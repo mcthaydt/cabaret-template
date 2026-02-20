@@ -147,46 +147,48 @@ Completion notes: Implemented pause/freeze gating migration to `C_CharacterState
 
 ### 4A: Event Name Centralization (prerequisite)
 
-- [ ] T4.1: Add checkpoint/victory/damage event name constants to `scripts/events/ecs/u_ecs_event_names.gd` (EVENT_CHECKPOINT_ZONE_ENTERED, EVENT_CHECKPOINT_ACTIVATED, EVENT_CHECKPOINT_ACTIVATION_REQUESTED, EVENT_VICTORY_TRIGGERED, EVENT_VICTORY_EXECUTION_REQUESTED, EVENT_DAMAGE_ZONE_ENTERED, EVENT_DAMAGE_ZONE_EXITED)
-- [ ] T4.2: Update S_CheckpointSystem to use centralized constants from U_ECSEventNames
-- [ ] T4.3: Update S_VictorySystem to use centralized constants from U_ECSEventNames
-- [ ] T4.4: Update S_DamageSystem to use centralized constants from U_ECSEventNames
-- [ ] T4.5: Run full test suite to confirm zero regressions from constant centralization
+- [x] T4.1: Add checkpoint/victory/damage event name constants to `scripts/events/ecs/u_ecs_event_names.gd` (EVENT_CHECKPOINT_ZONE_ENTERED, EVENT_CHECKPOINT_ACTIVATED, EVENT_CHECKPOINT_ACTIVATION_REQUESTED, EVENT_VICTORY_TRIGGERED, EVENT_VICTORY_EXECUTION_REQUESTED, EVENT_DAMAGE_ZONE_ENTERED, EVENT_DAMAGE_ZONE_EXITED)
+- [x] T4.2: Update S_CheckpointSystem to use centralized constants from U_ECSEventNames
+- [x] T4.3: Update S_VictorySystem to use centralized constants from U_ECSEventNames
+- [x] T4.4: Update S_DamageSystem to use centralized constants from U_ECSEventNames
+- [x] T4.5: Run full test suite to confirm zero regressions from constant centralization
+Completion notes: Centralized event names in `U_ECSEventNames` and migrated `S_CheckpointSystem`, `S_VictorySystem`, and `S_DamageSystem` to the shared constants. Regression verification passed on February 20, 2026 for `tests/unit/ecs/systems` (200/200), `tests/unit/ecs` (126/126), `tests/unit/qb` (51/51), and `tests/unit/style` (12/12).
 
 ### 4B: Rule Manager (TDD)
 
-- [ ] T4.6: Create `scripts/ecs/systems/s_game_rule_manager.gd` (S_GameRuleManager extends BaseQBRuleManager) - simple event-rule host, no custom process_tick iteration, `get_default_rule_definitions()` returns const-preloaded game rules
-- [ ] T4.7: Create `tests/unit/qb/test_game_rule_manager.gd` - Checkpoint rule forwards event payload via PUBLISH_EVENT, victory rule forwards event payload via PUBLISH_EVENT
-- [ ] T4.8: Run tests -- confirm they FAIL (red)
-- [ ] T4.9: Implement S_GameRuleManager
-- [ ] T4.10: Run tests -- confirm they PASS (green)
+- [x] T4.6: Create `scripts/ecs/systems/s_game_rule_manager.gd` (S_GameRuleManager extends BaseQBRuleManager) - simple event-rule host, no custom process_tick iteration, `get_default_rule_definitions()` returns const-preloaded game rules
+- [x] T4.7: Create `tests/unit/qb/test_game_rule_manager.gd` - Checkpoint rule forwards event payload via PUBLISH_EVENT, victory rule forwards event payload via PUBLISH_EVENT
+- [x] T4.8: Run tests -- confirm they FAIL (red)
+- [x] T4.9: Implement S_GameRuleManager
+- [x] T4.10: Run tests -- confirm they PASS (green)
 
 ### 4C: Handler Systems (TDD)
 
-- [ ] T4.11: Create `scripts/ecs/systems/s_checkpoint_handler_system.gd` (S_CheckpointHandlerSystem extends BaseECSSystem) - execution_priority=100, subscribes to checkpoint_activation_requested; validates payload (`checkpoint`, `spawn_point_id` required), activates checkpoint, dispatches set_last_checkpoint, resolves spawn position via `_resolve_spawn_point_position()` (replicate from S_CheckpointSystem lines 90-109), publishes typed Evn_CheckpointActivated
-- [ ] T4.12: Create `tests/unit/qb/test_checkpoint_handler_system.gd` - checkpoint activation flow, spawn position resolution
-- [ ] T4.13: Create `scripts/ecs/systems/s_victory_handler_system.gd` (S_VictoryHandlerSystem extends BaseECSSystem) - execution_priority=300, subscribes to victory_execution_requested with subscription priority 10 (matches current S_VictorySystem, processes before scene manager at priority 5); validates payload (`trigger_node` required), validates trigger (trigger_once + is_triggered guard), checks prerequisites (GAME_COMPLETE requires `completed_areas.has("bar")` — replicate `REQUIRED_FINAL_AREA` and `_can_trigger_victory()` from S_VictorySystem lines 56-73), dispatches actions (trigger_victory, mark_area_complete, game_complete), calls trigger.set_triggered()
-- [ ] T4.14: Create `tests/unit/qb/test_victory_handler_system.gd` - victory execution flow, GAME_COMPLETE prerequisite check (bar area required), trigger_once guard
+- [x] T4.11: Create `scripts/ecs/systems/s_checkpoint_handler_system.gd` (S_CheckpointHandlerSystem extends BaseECSSystem) - execution_priority=100, subscribes to checkpoint_activation_requested; validates payload (`checkpoint`, `spawn_point_id` required), activates checkpoint, dispatches set_last_checkpoint, resolves spawn position via `_resolve_spawn_point_position()` (replicate from S_CheckpointSystem lines 90-109), publishes typed Evn_CheckpointActivated
+- [x] T4.12: Create `tests/unit/qb/test_checkpoint_handler_system.gd` - checkpoint activation flow, spawn position resolution
+- [x] T4.13: Create `scripts/ecs/systems/s_victory_handler_system.gd` (S_VictoryHandlerSystem extends BaseECSSystem) - execution_priority=300, subscribes to victory_execution_requested with subscription priority 10 (matches current S_VictorySystem, processes before scene manager at priority 5); validates payload (`trigger_node` required), validates trigger (trigger_once + is_triggered guard), checks prerequisites (GAME_COMPLETE requires `completed_areas.has("bar")` — replicate `REQUIRED_FINAL_AREA` and `_can_trigger_victory()` from S_VictorySystem lines 56-73), dispatches actions (trigger_victory, mark_area_complete, game_complete), calls trigger.set_triggered()
+- [x] T4.14: Create `tests/unit/qb/test_victory_handler_system.gd` - victory execution flow, GAME_COMPLETE prerequisite check (bar area required), trigger_once guard
 
 ### 4D: Rule Definitions
 
-- [ ] T4.15: Create `resources/qb/game/cfg_checkpoint_rule.tres` - EVENT trigger: checkpoint_zone_entered; Effect: PUBLISH_EVENT checkpoint_activation_requested (forwards event payload preserving required `checkpoint` + `spawn_point_id`)
-- [ ] T4.16: Create `resources/qb/game/cfg_victory_rule.tres` - EVENT trigger: victory_triggered; Effect: PUBLISH_EVENT victory_execution_requested (forwards event payload preserving required `trigger_node`)
+- [x] T4.15: Create `resources/qb/game/cfg_checkpoint_rule.tres` - EVENT trigger: checkpoint_zone_entered; Effect: PUBLISH_EVENT checkpoint_activation_requested (forwards event payload preserving required `checkpoint` + `spawn_point_id`)
+- [x] T4.16: Create `resources/qb/game/cfg_victory_rule.tres` - EVENT trigger: victory_triggered; Effect: PUBLISH_EVENT victory_execution_requested (forwards event payload preserving required `trigger_node`)
 
 ### 4E: Migration
 
-- [ ] T4.17: Remove S_CheckpointSystem from gameplay scenes
-- [ ] T4.18: Remove S_VictorySystem from gameplay scenes
-- [ ] T4.19: Add S_GameRuleManager, S_CheckpointHandlerSystem, S_VictoryHandlerSystem to gameplay scenes
-- [ ] T4.20: S_DamageSystem stays as-is (just uses centralized event names from T4.4)
+- [x] T4.17: Remove S_CheckpointSystem from gameplay scenes
+- [x] T4.18: Remove S_VictorySystem from gameplay scenes
+- [x] T4.19: Add S_GameRuleManager, S_CheckpointHandlerSystem, S_VictoryHandlerSystem to gameplay scenes
+- [x] T4.20: S_DamageSystem stays as-is (just uses centralized event names from T4.4)
 
 ### 4F: Verification
 
-- [ ] T4.21: Run full existing test suite -- verify behavioral equivalence
-- [ ] T4.22: Run QB unit tests
-- [ ] T4.23: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 4 status
+- [x] T4.21: Run full existing test suite -- verify behavioral equivalence
+- [x] T4.22: Run QB unit tests
+- [x] T4.23: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 4 status
 
 **Phase 4 Commit**: Game state rules replace checkpoint and victory systems
+Completion notes: Added `S_GameRuleManager` + checkpoint/victory handler systems, authored game-domain QB event forwarding rules, migrated all gameplay scenes to handler-based flow, and centralized checkpoint/victory/damage ECS event constants. Verification passed on February 20, 2026 for `tests/unit/qb` (58/58), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), and `tests/unit/style` (12/12).
 
 ---
 

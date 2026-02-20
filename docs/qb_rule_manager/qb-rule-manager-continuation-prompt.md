@@ -6,17 +6,18 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Phase 3 complete (`T3.1`-`T3.20` complete)
+**Phase**: Phase 4 complete (`T4.1`-`T4.23` complete)
 **Branch**: QB-Rule-Manager
 **Last Commit**: `1622595` - docs(qb): update Phase 3 continuation and tasks
 
-**Next Task**: `T4.1` - Add checkpoint/victory/damage event name constants to `U_ECSEventNames`
+**Next Task**: `T5.1` - Create `C_CameraStateComponent` (target_fov, shake_trauma, fov_blend_speed)
 **Latest Verification**:
-- `tests/unit/qb` passing (49/49)
+- `tests/unit/qb` passing (58/58)
 - `tests/unit/ecs` passing (126/126)
 - `tests/unit/ecs/systems` passing (200/200)
 - `tests/integration/qb` passing (1/1)
 - `tests/unit/style` suite passing (12/12)
+- Phase 4 migration checks passed on February 20, 2026 (game rules + handler systems + scene migration)
 - Manual playtest passed on February 20, 2026 (movement/jump/death/respawn/pause/spawn-freeze/footsteps)
 
 ---

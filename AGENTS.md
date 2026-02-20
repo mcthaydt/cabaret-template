@@ -57,6 +57,11 @@
   - Use `U_ECSUtils.map_components_by_body()` when multiple systems need shared body→component dictionaries (avoids duplicate loops).
   - Auto-discovers `M_ECSManager` via parent traversal or ServiceLocator (`ecs_manager`); no manual wiring needed.
   - Event-driven request systems should extend `BaseEventVFXSystem` / `BaseEventSFXSystem` and implement `get_event_name()` + `create_request_from_payload()` to enqueue `requests`.
+- Game rule manager + handlers (Phase 4)
+  - `S_GameRuleManager` hosts event-only QB rules from `resources/qb/game/*.tres` and forwards trigger payloads via `PUBLISH_EVENT`.
+  - `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates required payload (`checkpoint`, `spawn_point_id`), dispatches `set_last_checkpoint`, and publishes `Evn_CheckpointActivated`.
+  - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `REQUIRED_FINAL_AREA = "bar"` for game-complete triggers, dispatches gameplay victory actions, and calls `trigger.set_triggered()`.
+  - Gameplay scenes now use `S_GameRuleManager` + handler systems; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from scene wiring.
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.
