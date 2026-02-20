@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RS_QBRuleDefinition" format=3 uid="uid://dvvaxg74olpqw"]
+
+[ext_resource type="Script" uid="uid://twfq4kfbgrmk" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
+[ext_resource type="Script" uid="uid://bjkl7axy0epam" path="res://scripts/resources/qb/rs_qb_effect.gd" id="2_effect"]
+
+[sub_resource type="Resource" id="QBEffect_checkpoint_request"]
+script = ExtResource("2_effect")
+effect_type = 1
+target = "checkpoint_activation_requested"
+
+[resource]
+script = ExtResource("1_rule")
+rule_id = &"checkpoint_activation_request"
+trigger_mode = 1
+trigger_event = &"checkpoint_zone_entered"
+effects = [SubResource("QBEffect_checkpoint_request")]

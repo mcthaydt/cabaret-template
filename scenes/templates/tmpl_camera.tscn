@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://4f8xryxbxit0"]
 
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="1_ecsentity"]
+[ext_resource type="Script" uid="uid://bl087ewsncoym" path="res://scripts/ecs/components/c_camera_state_component.gd" id="2_camera_state"]
 
 [node name="E_CameraRoot" type="Node3D" unique_id=246158049]
 script = ExtResource("1_ecsentity")
@@ -9,3 +10,8 @@ tags = Array[StringName]([&"camera"])
 
 [node name="E_PlayerCamera" type="Camera3D" parent="." unique_id=1000261679]
 current = true
+
+[node name="Components" type="Node" parent="." unique_id=1874295737]
+
+[node name="C_CameraStateComponent" type="Node" parent="Components" unique_id=1323051184]
+script = ExtResource("2_camera_state")

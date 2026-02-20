@@ -35,15 +35,15 @@ This document is the **single source of truth** for how ECS nodes (systems/compo
 
 | Producer | Action(s) | Dispatch cadence | Required payload fields (contract) |
 |---|---|---|---|
-| `S_CheckpointSystem` | `U_GameplayActions.set_last_checkpoint(StringName)` | on `checkpoint_zone_entered` | `spawn_point_id` |
+| `S_CheckpointHandlerSystem` | `U_GameplayActions.set_last_checkpoint(StringName)` | on `checkpoint_activation_requested` | `spawn_point_id` |
 | `C_SceneTriggerComponent` | `U_GameplayActions.set_target_spawn_point(StringName)` | on door trigger | `target_spawn_point` |
 | `S_HealthSystem` | `U_GameplayActions.take_damage(String, float)` | on applied damage | `entity_id`, `amount` |
 | `S_HealthSystem` | `U_GameplayActions.heal(String, float)` | on applied healing | `entity_id`, `amount` |
 | `S_HealthSystem` | `U_GameplayActions.increment_death_count()` | first death per entity_id | increments once per death sequence |
 | `S_HealthSystem` | `U_GameplayActions.trigger_death(String)` | on death | `entity_id` |
-| `S_VictorySystem` | `U_GameplayActions.trigger_victory(StringName)` | on victory trigger | `objective_id` |
-| `S_VictorySystem` | `U_GameplayActions.mark_area_complete(StringName)` | on victory trigger | `area_id` |
-| `S_VictorySystem` | `U_GameplayActions.game_complete()` | on final victory | no payload |
+| `S_VictoryHandlerSystem` | `U_GameplayActions.trigger_victory(StringName)` | on `victory_execution_requested` | `objective_id` |
+| `S_VictoryHandlerSystem` | `U_GameplayActions.mark_area_complete(StringName)` | on `victory_execution_requested` | `area_id` |
+| `S_VictoryHandlerSystem` | `U_GameplayActions.game_complete()` | on final victory execution | no payload |
 
 ### Entity coordination slice (`U_EntityActions`)
 
@@ -103,7 +103,7 @@ These reads are part of the contract until replaced by selectors.
 | `S_JumpSystem` | `state.settings.input_settings.accessibility.jump_buffer_time` | Increases jump buffer for accessibility. |
 | `S_HealthSystem` | `store.get_slice("gameplay").player_entity_id` | Determines which entity is the player. |
 | `S_HealthSystem` | `store.get_slice("gameplay").player_health` | One-time sync so health persists across gameplay scenes. |
-| `S_VictorySystem` | `state.gameplay.completed_areas` | Guards `GAME_COMPLETE` victory until required area completed. |
+| `S_VictoryHandlerSystem` | `state.gameplay.completed_areas` | Guards `GAME_COMPLETE` victory until required area completed. |
 | `C_SceneTriggerComponent` | `store.get_slice("scene").is_transitioning` | Blocks door triggers during transitions. |
 | `C_SceneTriggerComponent` | `state.scene.current_scene_id` | Door pairing lookup via `U_SceneRegistry`. |
 
@@ -113,4 +113,3 @@ These reads are part of the contract until replaced by selectors.
 
 - Systems that declare `@export var state_store: I_StateStore` should inject `tests/mocks/mock_state_store.gd` in unit tests.
 - Prefer verifying **actions dispatched** (shape + type) over asserting on internal state dictionaries.
-

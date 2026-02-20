@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RS_QBRuleDefinition" format=3 uid="uid://cscrg4idqsva6"]
+
+[ext_resource type="Script" uid="uid://twfq4kfbgrmk" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
+[ext_resource type="Script" uid="uid://bjkl7axy0epam" path="res://scripts/resources/qb/rs_qb_effect.gd" id="2_effect"]
+
+[sub_resource type="Resource" id="QBEffect_victory_request"]
+script = ExtResource("2_effect")
+effect_type = 1
+target = "victory_execution_requested"
+
+[resource]
+script = ExtResource("1_rule")
+rule_id = &"victory_execution_request"
+trigger_mode = 1
+trigger_event = &"victory_triggered"
+effects = [SubResource("QBEffect_victory_request")]

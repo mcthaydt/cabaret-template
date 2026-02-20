@@ -74,8 +74,9 @@ flowchart TD
     RotateSystem[S_RotateToInputSystem]
     GravitySystem[S_GravitySystem]
     TouchSystem[S_TouchscreenSystem]
-    VictorySystem[S_VictorySystem]
-    CheckpointSystem[S_CheckpointSystem]
+    GameRuleManager[S_GameRuleManager]
+    VictoryHandler[S_VictoryHandlerSystem]
+    CheckpointHandler[S_CheckpointHandlerSystem]
     HealthSystem[S_HealthSystem]
     SceneTriggerComponent[C_SceneTriggerComponent]
     VibrationSystem[S_GamepadVibrationSystem]
@@ -89,8 +90,8 @@ flowchart TD
   RotateSystem -->|dispatches entity snapshots| Store
   JumpSystem -->|dispatches entity snapshots| Store
   HealthSystem -->|dispatches gameplay + entity actions| Store
-  VictorySystem -->|dispatches gameplay actions| Store
-  CheckpointSystem -->|dispatches gameplay actions| Store
+  VictoryHandler -->|dispatches gameplay actions| Store
+  CheckpointHandler -->|dispatches gameplay actions| Store
   TouchSystem -->|dispatches input actions| Store
 
   GravitySystem -->|reads physics selectors| Store

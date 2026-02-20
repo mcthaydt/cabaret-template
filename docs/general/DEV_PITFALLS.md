@@ -105,6 +105,13 @@
 - **GUT needs recursive dirs**: `-gdir` is not recursive by default; suites in nested folders are silently skipped if you point at a parent. Always pass each test root explicitly (e.g., `-gdir=res://tests/unit -gdir=res://tests/integration`) or list the concrete leaf directories you added to ensure new suites actually run.
 - **Viewport capture fails in headless**: `Viewport.get_texture().get_image()` can error under the headless/dummy renderer (`Parameter "t" is null`). Tests that validate viewport screenshot capture should be marked `pending` when `OS.has_feature("headless")` or `DisplayServer.get_name() == "headless"` to avoid false failures.
 - **`M_StateStore` autoload can leak ambient state into unit tests**: `RS_StateStoreSettings.enable_persistence` defaults to `true`, so tests that create `M_StateStore` can auto-load `user://savegame.json` and emit normalization warnings (for example unknown spawn point warnings) as unexpected test errors. For tests not explicitly validating persistence, set `store.settings.enable_persistence = false` before adding the store node.
+- **Do not assert raw `push_warning` output directly in QB/system tests**: Engine warnings are hard to capture reliably in headless runs. For systems like `BaseQBRuleManager`, expose/override a small warning hook (for example `_emit_rule_validation_warning`) in test stubs and assert captured messages there instead of parsing console logs.
+
+## QB Camera Rule Pitfalls
+
+- **Hardcoded fallback FOV can override authored scene cameras**: If `S_CameraRuleManager` falls back to a constant FOV (for example `75.0`) when `camera.in_fov_zone` is false, scenes authored with cinematic FOV values (`28.8`, `65`, etc.) will look unexpectedly zoomed out after startup or after leaving a zone.
+  - **Fix pattern**: capture baseline FOV from the active `Camera3D` into `C_CameraStateComponent.base_fov` and restore that baseline when no FOV zone rule is active.
+  - **Regression check**: keep a unit test that enters/exits a zone and asserts the camera returns to the authored baseline FOV.
 
 ## Character Lighting Pitfalls
 
@@ -579,7 +586,7 @@
 
   **Problem**: Phase 8.5 implemented victory/death trigger systems that reference scenes that don't exist yet:
   - `s_health_system.gd:151` → transitions to `"game_over"` (scene doesn't exist, not registered)
-  - `s_victory_system.gd:47` → transitions to `"victory"` (scene doesn't exist, not registered)
+  - `s_victory_handler_system.gd` → publishes post-validation victory event consumed by scene transitions to `"victory"` (scene must exist and be registered)
   - When these triggers fire, the game crashes because Scene Manager can't load non-existent scenes
 
   **Solution**: Follow this order when implementing transition flows:

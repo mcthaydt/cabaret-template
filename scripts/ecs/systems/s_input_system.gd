@@ -9,6 +9,8 @@ const INPUT_TYPE := StringName("C_InputComponent")
 const GAMEPAD_TYPE := StringName("C_GamepadComponent")
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 
 # Use centralized DeviceType enum
 const DeviceType := U_DeviceTypeConstants.DeviceType
@@ -77,11 +79,8 @@ func process_tick(_delta: float) -> void:
 		if require_captured_cursor and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			return
 
-	# Skip input capture if game is paused
-	if store:
-		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if U_GameplaySelectors.get_is_paused(gameplay_state):
-			return
+	if not _is_gameplay_active_for_inputs():
+		return
 
 	# Get active input source and delegate input capture
 	var input_source: I_InputSource = null
@@ -225,6 +224,31 @@ func _get_state_store() -> I_StateStore:
 
 func _on_state_store_changed(__action: Dictionary, state: Dictionary) -> void:
 	_apply_settings_from_state(state)
+
+func _is_gameplay_active_for_inputs() -> bool:
+	var manager: I_ECSManager = get_manager()
+	if manager == null:
+		return true
+
+	var character_entities: Array = manager.query_entities([CHARACTER_STATE_TYPE])
+	if character_entities.is_empty():
+		return true
+
+	var has_character_state: bool = false
+	for entity_query_variant in character_entities:
+		var entity_query: Variant = entity_query_variant
+		if entity_query == null:
+			continue
+		var character_state: C_CharacterStateComponent = entity_query.get_component(CHARACTER_STATE_TYPE)
+		if character_state == null:
+			continue
+		has_character_state = true
+		if character_state.is_gameplay_active:
+			return true
+
+	if not has_character_state:
+		return true
+	return false
 
 func _apply_settings_from_state(state: Dictionary) -> void:
 	if state == null:

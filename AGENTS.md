@@ -57,6 +57,19 @@
   - Use `U_ECSUtils.map_components_by_body()` when multiple systems need shared body→component dictionaries (avoids duplicate loops).
   - Auto-discovers `M_ECSManager` via parent traversal or ServiceLocator (`ecs_manager`); no manual wiring needed.
   - Event-driven request systems should extend `BaseEventVFXSystem` / `BaseEventSFXSystem` and implement `get_event_name()` + `create_request_from_payload()` to enqueue `requests`.
+- Game rule manager + handlers (Phase 4)
+  - `S_GameRuleManager` hosts event-only QB rules from `resources/qb/game/*.tres` and forwards trigger payloads via `PUBLISH_EVENT`.
+  - `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates required payload (`checkpoint`, `spawn_point_id`), dispatches `set_last_checkpoint`, and publishes `Evn_CheckpointActivated`.
+  - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `@export var required_final_area: String = "bar"` for game-complete triggers, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED` for post-validation scene transitions.
+  - Gameplay flows use `S_GameRuleManager` + handler systems end-to-end; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from the codebase, and active tests target QB-handler flow.
+- QB rule validation patterns (Phase 6)
+  - `BaseQBRuleManager.on_configured()` runs `U_QBRuleValidator.validate_rule_definitions(...)` before rule registration.
+  - Only `valid_rules` from the validation report are registered; invalid rules are excluded from runtime evaluation.
+  - `get_rule_validation_report()` exposes `{valid_rules, errors_by_index, errors_by_rule_id}` for tests and debugging.
+  - Misconfigured rules emit editor-only warnings in `_warn_invalid_rule_definitions()` (gated by `_should_emit_rule_validation_warnings()`, default `Engine.is_editor_hint()`).
+  - Test pattern: override `_emit_rule_validation_warning(...)` in a test stub instead of asserting raw engine warning output.
+  - Tick extension pattern (Refactor Phase R3): keep `BaseQBRuleManager.process_tick()` as the canonical 5-step loop; subclasses should override `_post_tick_evaluation(contexts, delta)` for domain writes (brain data, camera state) instead of overriding `process_tick()`.
+  - Camera FOV baseline pattern: `S_CameraRuleManager` captures per-scene baseline FOV into `C_CameraStateComponent.base_fov` from the active camera and restores that baseline when `camera.in_fov_zone` is false, instead of falling back to a hardcoded default FOV.
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.
@@ -183,7 +196,7 @@
 - **Utilities:** `u_*` prefix (e.g., `u_ecs_utils.gd` → `U_ECSUtils`, `u_entity_query.gd` → `U_EntityQuery`)
 - **Managers:** `m_*` prefix (e.g., `m_ecs_manager.gd` → `M_ECSManager`, `m_state_store.gd` → `M_StateStore`)
 - **Components:** `c_*` prefix (e.g., `c_movement_component.gd` → `C_MovementComponent`)
-- **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`)
+- **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`), with one documented exception: `base_qb_rule_manager.gd`
 - **Resources:** `rs_*` prefix (e.g., `rs_jump_settings.gd` → `RS_JumpSettings`)
 - **Entities:** `e_*` prefix (e.g., `e_player.gd` → `E_Player`)
 - **Interactable Controllers:** `inter_*` prefix (e.g., `inter_door_trigger.gd` → `Inter_DoorTrigger`)
@@ -349,7 +362,7 @@ Production asset files use type-specific prefixes:
 
 - Use `set_timescale(scale)` (clamped to `[0.01, 10.0]`) and `get_scaled_delta(raw_delta)`.
 - ECS physics consumes scaled delta via `M_ECSManager`; system code should not re-scale delta.
-- `timescale` is transient in the `time` slice and resets on load.
+- `timescale` is transient in the `time` slice; save/load strips it, and runtime timescale stays manager-owned until `M_TimeManager` dispatches a replacement value.
 
 ### World Clock
 

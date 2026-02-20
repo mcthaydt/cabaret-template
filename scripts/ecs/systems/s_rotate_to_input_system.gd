@@ -6,6 +6,8 @@ class_name S_RotateToInputSystem
 
 const ROTATE_TYPE := StringName("C_RotateToInputComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -19,22 +21,30 @@ const INPUT_TYPE := StringName("C_InputComponent")
 var _last_debug_log_frame: int = -9999
 
 func process_tick(delta: float) -> void:
-	# Skip processing if game is paused
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null
 	if state_store != null:
 		store = state_store
 	else:
 		store = U_StateUtils.get_store(self)
-
-	if store:
-		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if U_GameplaySelectors.get_is_paused(gameplay_state):
-			return
 	
 	var manager := get_manager()
 	if manager == null:
 		return
+
+	var character_state_by_entity: Dictionary = {}
+	var character_entities: Array = manager.query_entities([CHARACTER_STATE_TYPE])
+	for entity_query_variant in character_entities:
+		var character_query: Variant = entity_query_variant
+		if character_query == null:
+			continue
+		var entity_id_variant: Variant = character_query.get_entity_id()
+		if not (entity_id_variant is StringName):
+			continue
+		var character_state: C_CharacterStateComponent = character_query.get_component(CHARACTER_STATE_TYPE)
+		if character_state == null:
+			continue
+		character_state_by_entity[entity_id_variant] = character_state
 
 	var entities := manager.query_entities(
 		[
@@ -46,6 +56,9 @@ func process_tick(delta: float) -> void:
 	for entity_query in entities:
 		var entity_id: StringName = entity_query.get_entity_id()
 		var can_log := _can_debug_log(entity_id)
+		var character_state: C_CharacterStateComponent = character_state_by_entity.get(entity_id, null) as C_CharacterStateComponent
+		if character_state != null and not character_state.is_gameplay_active:
+			continue
 
 		var component: C_RotateToInputComponent = entity_query.get_component(ROTATE_TYPE)
 		if component == null:

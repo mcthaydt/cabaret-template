@@ -112,7 +112,7 @@ Additional tracking requirements:
 - ✅ Phase 12.1: M_SpawnManager extraction (106 lines extracted, 23 tests added)
 - ✅ Phase 12.2: M_CameraManager extraction (135 lines extracted, 24 tests added)
 - ✅ Phase 12.3a: Death respawn system (spawn_at_last_spawn implementation)
-- ✅ Phase 12.3b: Checkpoint markers (C_CheckpointComponent + S_CheckpointSystem)
+- ✅ Phase 12.3b: Checkpoint markers (C_CheckpointComponent + QB game rule + S_CheckpointHandlerSystem)
 - ✅ Phase 12.4: Spawn particles (event-driven VFX integration)
 - ✅ Phase 12.5: Scene contract validation (ISceneContract validation)
 - ✅ Production ready - Comprehensive test coverage with 1462+ assertions
@@ -165,7 +165,7 @@ Additional tracking requirements:
 - 🐛 2 edge case tests need investigation (player positioning in test environment)
 
 **Sub-Phase 12.3b: Checkpoint Markers** (T262-T271) - ✅ **COMPLETE** (4 hours actual)
-- ✅ C_CheckpointComponent + S_CheckpointSystem implemented
+- ✅ C_CheckpointComponent + QB-handler checkpoint flow implemented
 - ✅ Checkpoint persistence in gameplay state
 - ✅ Area3D validation supports both child and sibling structures
 - Note: Initially planned as deferred, but was completed

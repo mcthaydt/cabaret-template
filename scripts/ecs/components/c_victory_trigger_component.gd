@@ -3,7 +3,6 @@ extends BaseECSComponent
 class_name C_VictoryTriggerComponent
 
 const EVENT_VICTORY_ZONE_ENTERED := StringName("victory_zone_entered")
-const EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")
 
 const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
@@ -107,7 +106,7 @@ func set_triggered() -> void:
 	if trigger_once and is_triggered:
 		return
 	is_triggered = true
-	# Note: Do NOT publish event here - creates infinite loop with S_VictorySystem
+	# Note: Do NOT publish event here - creates infinite loop with rule/handler flow.
 	# Event is already published by _on_body_entered → _publish_victory_triggered
 
 func _can_publish_trigger() -> bool:

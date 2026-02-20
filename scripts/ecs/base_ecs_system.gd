@@ -19,7 +19,7 @@ var _debug_disabled: bool = false
 	get:
 		return _execution_priority
 	set(value):
-		var clamped := clampi(value, 0, 1000)
+		var clamped := clampi(value, -100, 1000)
 		if _execution_priority == clamped:
 			return
 		_execution_priority = clamped

@@ -3,7 +3,7 @@ class_name Evn_CheckpointActivated
 
 ## Event published when a checkpoint is activated.
 ##
-## Published by: S_CheckpointSystem
+## Published by: S_CheckpointHandlerSystem
 ## Subscribers: UI_HudController (priority 0), S_CheckpointSoundSystem
 
 var checkpoint_id: StringName

@@ -32,6 +32,7 @@ const U_SCENE_CACHE := preload("res://scripts/scene_management/helpers/u_scene_c
 const U_SCENE_LOADER := preload("res://scripts/scene_management/helpers/u_scene_loader.gd")
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 const U_TRANSITION_ORCHESTRATOR := preload("res://scripts/scene_management/u_transition_orchestrator.gd")
 const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helpers/u_scene_transition_queue.gd")
@@ -149,7 +150,7 @@ var _unsubscribe: Callable
 
 ## ECS event bus subscriptions
 var _entity_death_unsubscribe: Callable
-var _victory_triggered_unsubscribe: Callable
+var _victory_executed_unsubscribe: Callable
 
 ## Skip initial scene load (for tests)
 var skip_initial_scene_load: bool = false
@@ -206,9 +207,9 @@ func _ready() -> void:
 
 	# Subscribe to ECS events with priorities
 	# entity_death: Priority 10 (high - quick transition to game over)
-	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("entity_death"), _on_entity_death, 10)
-	# victory_triggered: Priority 5 (medium - after S_VictorySystem processes state)
-	_victory_triggered_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("victory_triggered"), _on_victory_triggered, 5)
+	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_ENTITY_DEATH, _on_entity_death, 10)
+	# victory_executed: Priority 5 (medium - after handler validates and updates state)
+	_victory_executed_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, _on_victory_executed, 5)
 
 	# Register scene type handlers (T137c: Phase 10B-3)
 	_register_scene_type_handlers()
@@ -290,8 +291,8 @@ func _exit_tree() -> void:
 	# Unsubscribe from ECS events
 	if _entity_death_unsubscribe != null and _entity_death_unsubscribe.is_valid():
 		_entity_death_unsubscribe.call()
-	if _victory_triggered_unsubscribe != null and _victory_triggered_unsubscribe.is_valid():
-		_victory_triggered_unsubscribe.call()
+	if _victory_executed_unsubscribe != null and _victory_executed_unsubscribe.is_valid():
+		_victory_executed_unsubscribe.call()
 
 func _ensure_store_reference() -> void:
 	_store = U_SCENE_MANAGER_NODE_FINDER.ensure_store_reference(_store, self )
@@ -317,9 +318,9 @@ func _on_entity_death(_event: Dictionary) -> void:
 	# Trigger game over transition when player dies
 	transition_to_scene(StringName("game_over"), "fade", Priority.CRITICAL)
 
-## ECS event handler: victory_triggered
-## Phase 10B (T131): Subscribe to victory_triggered event instead of direct call from S_VictorySystem
-func _on_victory_triggered(event: Dictionary) -> void:
+## ECS event handler: victory_executed
+## Transition only after S_VictoryHandlerSystem validates prerequisites and dispatches state updates.
+func _on_victory_executed(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
 	var trigger := payload.get("trigger_node") as C_VictoryTriggerComponent
 	if trigger == null or not is_instance_valid(trigger):
@@ -561,18 +562,8 @@ func _perform_transition(request) -> void:
 			if new_camera != null:
 				new_camera.current = true
 
-			# T137c (Phase 10B-3): Delegate scene-type-specific load behavior to handler
-			# Handlers encapsulate scene-type logic (metadata, spawning, etc.)
-			# Wait for scene tree to fully initialize before calling handler
-			# Use physics_frame-only waits so transitions still progress while paused
-			# and so headless tests (which often advance only physics frames) don't hang.
-			var init_wait_frames: int = 0
-			if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
-				init_wait_frames = 1
-			for _i in range(init_wait_frames):
-				await get_tree().physics_frame
-
-		# Check scene is still valid before handler call (can be freed during test cleanup)
+		# Keep scene swap callback await-free. Awaiting inside this closure can
+		# resume after manager teardown in tests and emit class-instance-gone errors.
 		if is_instance_valid(new_scene):
 			var handler := _scene_type_handlers.get(scene_type) as I_SCENE_TYPE_HANDLER
 			if handler != null:

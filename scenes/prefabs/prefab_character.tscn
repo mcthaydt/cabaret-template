@@ -6,6 +6,7 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pjt0s"]
 resource_name = "BaseCharacterMat"
 cull_mode = 2
+shading_mode = 2
 diffuse_mode = 2
 specular_mode = 2
 disable_specular_occlusion = true

@@ -7,13 +7,14 @@ class_name S_VictorySoundSystem
 ## Plays victory sounds using base class helpers with pause/transition blocking.
 
 const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_victory_sound_settings.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 
 @export var settings: SETTINGS_TYPE
 
 var _last_play_time: float = -INF
 
 func get_event_name() -> StringName:
-	return StringName("victory_triggered")
+	return U_ECS_EVENT_NAMES.EVENT_VICTORY_TRIGGERED
 
 func create_request_from_payload(payload: Dictionary) -> Dictionary:
 	var position := Vector3.ZERO

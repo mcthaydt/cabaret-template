@@ -232,6 +232,11 @@ func test_entity_landed_event_publishes_event() -> void:
 
 	var payload: Dictionary = event_data.get("payload")
 	assert_not_null(payload)
+	var landing_entity_root: Node = ECS_UTILS.find_entity_root(jump_component, true)
+	var expected_entity_id: String = ""
+	if landing_entity_root != null:
+		expected_entity_id = String(ECS_UTILS.get_entity_id(landing_entity_root))
+	assert_eq(payload.get("entity_id"), expected_entity_id)
 	assert_eq(payload.get("entity"), body)
 	assert_eq(payload.get("jump_component"), jump_component)
 	assert_eq(payload.get("floating_component"), floating_component)

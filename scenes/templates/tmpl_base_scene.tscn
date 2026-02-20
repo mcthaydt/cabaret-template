@@ -31,13 +31,13 @@
 [ext_resource type="Script" uid="uid://dbegk7lwqi6r0" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="22_gamepad_vibration"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
-shading_mode = 0
+shading_mode = 2
 diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.43137255, 0.15294118, 0.15294118, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_748a2"]
-shading_mode = 0
+shading_mode = 2
 diffuse_mode = 3
 specular_mode = 1
 

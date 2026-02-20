@@ -521,22 +521,16 @@ func test_timer_removed_when_entity_freed() -> void:
 	# This test verifies the system doesn't crash when processing with freed entities
 	assert_true(true, "System should handle freed entities gracefully")
 
-# Test 23: Pause blocking still works (Phase 6.10 verification)
-func test_pause_blocking_verified() -> void:
-	# This test verifies the existing pause blocking (lines 36-45) still works
-	# We verify by checking that the code path exists and handles null state store gracefully
-
-	# System should handle null state store (no crashes)
-	system.state_store = null
+# Test 23: Gameplay gating is safe when no character state is present
+func test_gameplay_gating_handles_missing_character_state() -> void:
 	entity.velocity = Vector3(5, 0, 0)
 
-	# Process ticks without state store - should not crash
+	# Process ticks without a character-state component - should not crash.
 	for i in range(10):
 		system.process_tick(0.016)
 		await get_tree().physics_frame
 
-	# Test passes if we get here without crash (pause detection code exists at lines 36-45)
-	assert_true(true, "System handles null state_store gracefully (production path)")
+	assert_true(true, "System handles missing C_CharacterStateComponent gracefully")
 
 func _safe_move(body: CharacterBody3D) -> void:
 	if body == null:

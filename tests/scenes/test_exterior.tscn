@@ -23,7 +23,7 @@
 [ext_resource type="Script" uid="uid://bxqd4f7hk7hte" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
 [ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
 [ext_resource type="Script" uid="uid://qeq48m3npch6" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
-[ext_resource type="Script" uid="uid://cfddnuq1oriyb" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_game_rule_manager.gd" id="9_game_rules"]
 [ext_resource type="Script" uid="uid://bry3i70sfhmiv" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
 [ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
 [ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud/ui_hud_overlay.tscn" id="11_hud"]
@@ -37,7 +37,8 @@
 [ext_resource type="Script" uid="uid://cgbemg2ib5u7c" path="res://scripts/managers/m_gameplay_initializer.gd" id="31_j1c0c"]
 [ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
 [ext_resource type="Script" uid="uid://cly8oyjtrr3ev" path="res://scripts/gameplay/inter_endgame_goal_zone.gd" id="41_goal_script"]
-[ext_resource type="Script" uid="uid://djud6o4c7psxg" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_checkpoint_handler_system.gd" id="42_checkpoint_handler"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_victory_handler_system.gd" id="46_victory_handler"]
 [ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/cfg_checkpoint_box_2x3x2.tres" id="43_checkpoint_settings"]
 [ext_resource type="Script" uid="uid://cnqqo6qh71pqh" path="res://scripts/gameplay/inter_checkpoint_zone.gd" id="43_checkpoint_zone_script"]
 [ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="44_death_settings"]
@@ -137,15 +138,17 @@ execution_priority = 200
 script = ExtResource("9_damage")
 execution_priority = 250
 
-[node name="S_VictorySystem" type="Node" parent="Systems/Core" unique_id=1590193783]
-script = ExtResource("9_victory")
-execution_priority = 300
+[node name="S_GameRuleManager" type="Node" parent="Systems/Core" unique_id=1590193783]
+script = ExtResource("9_game_rules")
 
 [node name="S_SceneTriggerSystem" type="Node" parent="Systems/Core" unique_id=1065409081]
 script = ExtResource("20_scene_trigger_system")
 
-[node name="S_CheckpointSystem" type="Node" parent="Systems/Core" unique_id=1070323527]
-script = ExtResource("42_checkpoint_system")
+[node name="S_CheckpointHandlerSystem" type="Node" parent="Systems/Core" unique_id=1070323527]
+script = ExtResource("42_checkpoint_handler")
+
+[node name="S_VictoryHandlerSystem" type="Node" parent="Systems/Core" unique_id=1133332211]
+script = ExtResource("46_victory_handler")
 
 [node name="Physics" type="Node" parent="Systems" unique_id=1418369266]
 script = ExtResource("3_systems_physics")

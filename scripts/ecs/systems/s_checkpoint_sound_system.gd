@@ -5,7 +5,7 @@ class_name S_CheckpointSoundSystem
 ## Checkpoint Sound System (Phase 6 - Refactored)
 ##
 ## Plays checkpoint activation sounds using base class helpers.
-## Position is now resolved in S_CheckpointSystem and included in event payload,
+## Position is now resolved in S_CheckpointHandlerSystem and included in event payload,
 ## eliminating O(n) find_child() traversal.
 
 const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_checkpoint_sound_settings.gd")

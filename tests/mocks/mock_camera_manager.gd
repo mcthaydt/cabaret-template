@@ -10,13 +10,15 @@ class_name MockCameraManager
 var last_offset: Vector2 = Vector2.ZERO
 var last_rotation: float = 0.0
 var apply_calls: int = 0
+var main_camera: Camera3D = null
+var shake_sources: Dictionary = {}
 
 func _ready() -> void:
 	# Override to skip base setup and ServiceLocator registration.
 	pass
 
 func get_main_camera() -> Camera3D:
-	return null
+	return main_camera
 
 func initialize_scene_camera(_scene: Node) -> Camera3D:
 	return null
@@ -29,7 +31,26 @@ func apply_shake_offset(offset: Vector2, rotation: float) -> void:
 	last_rotation = rotation
 	apply_calls += 1
 
+func set_shake_source(source: StringName, offset: Vector2, rotation: float) -> void:
+	if source == &"":
+		return
+	shake_sources[source] = {
+		"offset": offset,
+		"rotation": rotation,
+	}
+	last_offset = offset
+	last_rotation = rotation
+	apply_calls += 1
+
+func clear_shake_source(source: StringName) -> void:
+	if source == &"":
+		return
+	shake_sources.erase(source)
+	last_offset = Vector2.ZERO
+	last_rotation = 0.0
+
 func reset() -> void:
 	last_offset = Vector2.ZERO
 	last_rotation = 0.0
 	apply_calls = 0
+	shake_sources.clear()

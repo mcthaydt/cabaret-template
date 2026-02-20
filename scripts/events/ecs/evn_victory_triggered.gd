@@ -4,7 +4,7 @@ class_name Evn_VictoryTriggered
 ## Event published when player enters victory zone.
 ##
 ## Published by: C_VictoryTriggerComponent
-## Subscribers: S_VictorySystem (priority 10), M_SceneManager (priority 5)
+## Subscribers: S_GameRuleManager (for rule-driven validation flow), S_VictorySoundSystem
 
 var entity_id: StringName
 var trigger_node: Node

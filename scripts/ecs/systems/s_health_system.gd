@@ -9,7 +9,7 @@ class_name S_HealthSystem
 ## U_ECSEventBus events emitted by components instead of direct signals.
 
 const COMPONENT_TYPE := StringName("C_HealthComponent")
-const PLAYER_RAGDOLL := preload("res://scenes/prefabs/prefab_player_ragdoll.tscn")
+const DEATH_HANDLER_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_death_handler_system.gd")
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -18,17 +18,11 @@ const PLAYER_RAGDOLL := preload("res://scenes/prefabs/prefab_player_ragdoll.tscn
 
 var _store: I_StateStore = null
 var _death_logged: Dictionary = {}          # entity_id -> bool
-var _transition_triggered: Dictionary = {}  # entity_id -> bool
-var _ragdoll_spawned: Dictionary = {}       # entity_id -> bool
-var _ragdoll_instances: Dictionary = {}     # entity_id -> WeakRef
-var _entity_refs: Dictionary = {}           # entity_id -> WeakRef
-var _entity_original_visibility: Dictionary = {}  # entity_id -> bool
-var _rng := RandomNumberGenerator.new()
+var _transition_triggered: Dictionary = {}  # entity_id -> bool (death-requested published)
 var _synced_from_state: Dictionary = {}  # entity_id -> bool
 
 func _init() -> void:
 	execution_priority = 200
-	_rng.randomize()
 
 func process_tick(delta: float) -> void:
 	if not _ensure_dependencies_ready():
@@ -165,15 +159,16 @@ func _apply_regeneration(component: C_HealthComponent, entity_id: String, delta:
 			_dispatch_heal_state(entity_id, healed_amount)
 
 func _handle_death_sequence(component: C_HealthComponent, entity_id: String) -> void:
-	if not _ragdoll_spawned.get(entity_id, false):
-		_spawn_ragdoll(component, entity_id)
-		_ragdoll_spawned[entity_id] = true
+	if not _transition_triggered.get(entity_id, false):
+		_publish_death_requested(component, entity_id)
+		_transition_triggered[entity_id] = true
 
 	# Death timer and transition are now handled by entity_death event
 	# M_SceneManager subscribes to entity_death and handles game over transition
 
 func _reset_death_flags(entity_id: String) -> void:
-	_restore_entity_state(entity_id)
+	if _transition_triggered.get(entity_id, false):
+		_publish_respawn_requested(entity_id)
 	_death_logged.erase(entity_id)
 	_transition_triggered.erase(entity_id)
 	_synced_from_state.erase(entity_id)
@@ -208,79 +203,65 @@ func _update_entity_snapshot(component: C_HealthComponent, entity_id: String) ->
 	}
 	_store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
 
-func _spawn_ragdoll(component: C_HealthComponent, entity_id: String) -> void:
-	if PLAYER_RAGDOLL == null:
-		return
-
+func _publish_death_requested(component: C_HealthComponent, entity_id: String) -> void:
+	var payload: Dictionary = {
+		"entity_id": entity_id,
+		"health_component": component,
+	}
 	var entity_root := U_ECSUtils.find_entity_root(component) as Node3D
 	if entity_root == null:
 		entity_root = component.get_parent() as Node3D
-	if entity_root == null:
-		return
-
-	var parent := entity_root.get_parent()
-	if parent == null:
-		return
-
-	var ragdoll_scene := PLAYER_RAGDOLL as PackedScene
-	if ragdoll_scene == null:
-		return
-
-	var ragdoll := ragdoll_scene.instantiate() as RigidBody3D
-	if ragdoll == null:
-		return
-
-	var source_transform: Transform3D = entity_root.global_transform
+	if entity_root != null:
+		payload["entity_root"] = entity_root
 	var body := component.get_character_body()
 	if body != null and is_instance_valid(body):
-		source_transform = body.global_transform
+		payload["body"] = body
 
-	parent.add_child(ragdoll)
-	ragdoll.global_transform = source_transform
-	ragdoll.linear_velocity = Vector3(
-		_rng.randf_range(-4.0, 4.0),
-		_rng.randf_range(4.0, 6.0),
-		_rng.randf_range(-4.0, 4.0)
-	)
-	ragdoll.angular_velocity = Vector3(
-		_rng.randf_range(-6.0, 6.0),
-		_rng.randf_range(-3.0, 3.0),
-		_rng.randf_range(-6.0, 6.0)
-	)
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_ENTITY_DEATH_REQUESTED, payload)
 
-	_entity_refs[entity_id] = weakref(entity_root)
-	_entity_original_visibility[entity_id] = entity_root.visible
-	entity_root.visible = false
-	_ragdoll_instances[entity_id] = weakref(ragdoll)
+func _publish_respawn_requested(entity_id: String) -> void:
+	var payload: Dictionary = {
+		"entity_id": entity_id,
+	}
+	var entity := _find_entity_root_by_id(entity_id)
+	if entity != null:
+		payload["entity_root"] = entity
 
-func _restore_entity_state(entity_id: String) -> void:
-	var ragdoll_ref_candidate: Variant = _ragdoll_instances.get(entity_id)
-	if ragdoll_ref_candidate is WeakRef:
-		var ragdoll_ref: WeakRef = ragdoll_ref_candidate
-		var ragdoll := ragdoll_ref.get_ref() as RigidBody3D
-		if ragdoll != null and is_instance_valid(ragdoll):
-			ragdoll.queue_free()
-	_ragdoll_instances.erase(entity_id)
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_ENTITY_RESPAWN_REQUESTED, payload)
 
-	var entity_ref_candidate: Variant = _entity_refs.get(entity_id)
-	if entity_ref_candidate is WeakRef:
-		var entity_ref: WeakRef = entity_ref_candidate
-		var entity := entity_ref.get_ref() as Node3D
-		if entity != null and is_instance_valid(entity):
-			var was_visible: bool = bool(_entity_original_visibility.get(entity_id, true))
-			entity.visible = was_visible
-	_entity_refs.erase(entity_id)
-	_entity_original_visibility.erase(entity_id)
-	_ragdoll_spawned.erase(entity_id)
+func _find_entity_root_by_id(entity_id: String) -> Node3D:
+	var manager: I_ECSManager = get_manager()
+	if manager == null or not manager.has_method("get_entity_by_id"):
+		return null
+	var entity_variant: Variant = manager.call("get_entity_by_id", StringName(entity_id))
+	return entity_variant as Node3D
 
 func get_ragdoll_for_entity(entity_id: StringName) -> RigidBody3D:
-	var key := String(entity_id)
-	if key.begins_with("E_"):
-		key = key.substr(2).to_lower()
-	var ragdoll_ref_candidate: Variant = _ragdoll_instances.get(key)
-	if ragdoll_ref_candidate is WeakRef:
-		var ragdoll_ref: WeakRef = ragdoll_ref_candidate
-		return ragdoll_ref.get_ref() as RigidBody3D
+	var handler: Variant = _find_death_handler()
+	if handler == null:
+		return null
+	if not handler.has_method("get_ragdoll_for_entity"):
+		return null
+	return handler.call("get_ragdoll_for_entity", entity_id) as RigidBody3D
+
+func _find_death_handler() -> Variant:
+	var parent_node: Node = get_parent()
+	if parent_node != null:
+		var in_parent: Variant = parent_node.find_child("S_DeathHandlerSystem", true, false)
+		if in_parent != null and in_parent.get_script() == DEATH_HANDLER_SYSTEM_SCRIPT:
+			return in_parent
+		if in_parent != null:
+			return in_parent
+
+	var tree: SceneTree = get_tree()
+	if tree == null:
+		return null
+	var current_scene: Node = tree.current_scene
+	if current_scene == null:
+		return null
+	var found: Variant = current_scene.find_child("S_DeathHandlerSystem", true, false)
+	if found != null and found.get_script() == DEATH_HANDLER_SYSTEM_SCRIPT:
+		return found
 	return null
 
 func _ensure_dependencies_ready() -> bool:

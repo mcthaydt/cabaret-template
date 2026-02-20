@@ -24,10 +24,12 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
 const HEALTH_SYSTEM := preload("res://scripts/ecs/systems/s_health_system.gd")
+const DEATH_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_death_handler_system.gd")
 const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gameplay/cfg_health_settings.tres")
 
 const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
-const VICTORY_SYSTEM := preload("res://scripts/ecs/systems/s_victory_system.gd")
+const GAME_RULE_MANAGER := preload("res://scripts/ecs/systems/s_game_rule_manager.gd")
+const VICTORY_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_victory_handler_system.gd")
 const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 var _root: Node
@@ -151,6 +153,10 @@ func _prepare_player_with_health() -> Dictionary:
 	health_system.name = "S_HealthSystem"
 	_systems_core.add_child(health_system)
 
+	var death_handler_system := DEATH_HANDLER_SYSTEM.new()
+	death_handler_system.name = "S_DeathHandlerSystem"
+	_systems_core.add_child(death_handler_system)
+
 	await wait_physics_frames(2)
 
 	return {
@@ -170,16 +176,22 @@ func _prepare_victory_system() -> Dictionary:
 	victory_component.trigger_once = false
 	victory_entity.add_child(victory_component)
 
-	var victory_system := VICTORY_SYSTEM.new()
-	victory_system.name = "S_VictorySystem"
-	_systems_core.add_child(victory_system)
+	var game_rule_manager := GAME_RULE_MANAGER.new()
+	game_rule_manager.name = "S_GameRuleManager"
+	_systems_core.add_child(game_rule_manager)
+
+	var victory_handler_system := VICTORY_HANDLER_SYSTEM.new()
+	victory_handler_system.name = "S_VictoryHandlerSystem"
+	victory_handler_system.required_final_area = "interior_house"
+	_systems_core.add_child(victory_handler_system)
 
 	await wait_physics_frames(2)
 
 	return {
 		"entity": victory_entity,
 		"component": victory_component,
-		"system": victory_system
+		"game_rule_manager": game_rule_manager,
+		"victory_handler_system": victory_handler_system,
 	}
 
 func _get_active_scene_instance() -> Node:
@@ -259,9 +271,6 @@ func test_victory_triggers_victory_scene_when_area_completed() -> void:
 	var body: CharacterBody3D = player_fixture["body"]
 	victory_component.call("_on_body_entered", body)
 	await wait_physics_frames(1)
-
-	if is_instance_valid(setup["system"]):
-		setup["system"].call("process_tick", 0.016)
 	await wait_physics_frames(2)
 
 	assert_true(_scene_manager.get_current_scene() != StringName("victory"),
@@ -276,8 +285,6 @@ func test_victory_triggers_victory_scene_when_area_completed() -> void:
 	if is_instance_valid(victory_component):
 		victory_component.call("_on_body_entered", body)
 		await wait_physics_frames(1)
-		if is_instance_valid(setup["system"]):
-			setup["system"].call("process_tick", 0.016)
 	await wait_seconds(0.3)
 
 	assert_eq(_scene_manager.get_current_scene(), StringName("victory"),

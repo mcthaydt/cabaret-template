@@ -989,7 +989,7 @@ func _perform_transition(...) -> void:
 - Checkpoint registration/restoration
 - Death respawn integration
 - Save/load persistence
-- C_CheckpointComponent + S_CheckpointSystem
+- C_CheckpointComponent + S_GameRuleManager/S_CheckpointHandlerSystem
 
 **Sub-Phase 12.4: Advanced Features** (12-15 hours)
 - Spawn effects (fade, particles)
@@ -1002,7 +1002,7 @@ func _perform_transition(...) -> void:
 **New Test Coverage**:
 - `tests/integration/spawn_system/test_spawn_manager.gd` (~200 lines)
 - `tests/integration/spawn_system/test_camera_initialization.gd` (~150 lines)
-- `tests/integration/spawn_system/test_checkpoint_system.gd` (~180 lines)
+- `tests/integration/spawn_system/test_checkpoint_handler_flow.gd` (~180 lines)
 - `tests/unit/spawn_system/test_spawn_validation.gd` (~120 lines)
 
 **Regression Testing**:
