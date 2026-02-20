@@ -3,3 +3,4 @@
 .godot_user/
 /android/
 *.uid
+/.vscode
