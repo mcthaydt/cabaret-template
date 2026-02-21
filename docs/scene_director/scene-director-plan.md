@@ -10,10 +10,12 @@
 - `objective_id: StringName`
 - `description: String`
 - `objective_type: ObjectiveType` enum (STANDARD, VICTORY, CHECKPOINT)
-- `conditions: Array[RS_QBCondition]` -- reuse existing QB condition resources
+  - Note: `CHECKPOINT` type is defined for future use; behavior is **not implemented in Phase 1-6**. The enum value must exist so resources can be authored, but M_ObjectivesManager treats CHECKPOINT the same as STANDARD until a later phase adds save-trigger behavior.
+- `conditions: Array[RS_QBCondition]` -- reuse existing QB condition resources; must use REDUX, EVENT_PAYLOAD, or CUSTOM sources only (no COMPONENT source — no per-entity context at manager level)
 - `completion_effects: Array[RS_QBEffect]` -- reuse existing QB effect resources
+- `completion_event_payload: Dictionary = {}` -- arbitrary data merged into the published completion event. Enables type-specific data without type-specific fields (e.g., VICTORY objectives set `{"target_scene": StringName("victory")}`).
 - `dependencies: Array[StringName]` -- objective IDs that must be completed first
-- `auto_activate: bool = false` -- activate immediately when set loads (no dependencies required)
+- `auto_activate: bool = false` -- activate immediately when set loads (regardless of dependencies; use for root-level objectives that have no prerequisites)
 
 **RS_ObjectiveSet** (`scripts/resources/scene_director/rs_objective_set.gd`):
 - `set_id: StringName`
@@ -62,11 +64,12 @@
 ### 1D: Redux Slices -- Scene Director
 
 **Actions** (`scripts/state/actions/u_scene_director_actions.gd`):
-- `start_directive(directive_id)`, `advance_beat(beat_index)`
+- `start_directive(directive_id)`, `advance_beat()` (no parameter — reducer increments index by 1)
 - `complete_directive()`, `reset()`
 
 **Reducer** (`scripts/state/reducers/u_scene_director_reducer.gd`):
 - Handles scene_director slice mutations
+- `advance_beat`: increments `current_beat_index` by 1 (does not accept an index from the caller)
 
 **Selectors** (`scripts/state/selectors/u_scene_director_selectors.gd`):
 - `get_active_directive_id(state)`, `get_current_beat_index(state)`
@@ -81,8 +84,8 @@
 
 - Add objectives and scene_director slices to `U_StateSliceManager.initialize_slices()`
 - Add `@export` fields to `M_StateStore` for new initial state resources
-- Objectives slice: persistent (saved/loaded)
-- Scene director slice: transient (not saved)
+- Objectives slice: persistent (saved/loaded) — no `is_transient`, no `transient_fields`
+- Scene director slice: fully transient — register with `is_transient = true` (same pattern as the `navigation` slice). All three fields are runtime-only state; nothing persists across saves.
 
 ### 1F: Event Constants
 
@@ -109,10 +112,12 @@ EVENT_DIRECTIVE_STARTED, EVENT_DIRECTIVE_COMPLETED, EVENT_BEAT_ADVANCED
 ### 2A: Helpers (TDD)
 
 **U_ObjectiveGraph** (`scripts/utils/scene_director/u_objective_graph.gd`):
-- `static func build_graph(objectives: Array[RS_ObjectiveDefinition]) -> Dictionary` -- adjacency list
-- `static func validate_graph(graph: Dictionary) -> Array[String]` -- cycle detection, missing refs
+- `static func build_graph(objectives: Array[RS_ObjectiveDefinition]) -> Dictionary` -- adjacency list keyed by objective_id
+- `static func validate_graph(graph: Dictionary, known_ids: Array[StringName]) -> Array[String]` -- cycle detection (DFS) + missing reference detection (dependency IDs not in known_ids); returns error strings, empty array = valid
 - `static func get_ready_dependents(objective_id: StringName, graph: Dictionary, statuses: Dictionary) -> Array[StringName]` -- dependents whose all prerequisites are completed
-- `static func topological_sort(graph: Dictionary) -> Array[StringName]` -- evaluation order
+- `static func topological_sort(graph: Dictionary) -> Array[StringName]` -- evaluation order via Kahn's algorithm
+
+Note: `validate_graph` requires `known_ids` because the graph's adjacency list can detect cycles and forward-references, but cannot detect whether a dependency ID refers to an objective that simply doesn't exist in the set. Pass `objectives.map(func(o): return o.objective_id)` as `known_ids`.
 
 **U_ObjectiveEventLog** (`scripts/utils/scene_director/u_objective_event_log.gd`):
 - `static func create_entry(objective_id: StringName, event_type: String, details: Dictionary = {}) -> Dictionary`
@@ -124,15 +129,18 @@ EVENT_DIRECTIVE_STARTED, EVENT_DIRECTIVE_COMPLETED, EVENT_BEAT_ADVANCED
 `scripts/managers/m_objectives_manager.gd` -- extends Node
 
 - `@export var state_store: I_StateStore = null` -- DI for testing
-- `@export var objective_sets: Array[RS_ObjectiveSet] = []` -- const-preloaded sets
+- `@export var objective_sets: Array[RS_ObjectiveSet] = []` -- sets assigned in root.tscn via ExtResource
 - Discovers store via injection-first + ServiceLocator fallback
+- In `_ready()`: calls `load_objective_set(set.set_id)` for each set in `objective_sets`
 - Subscribes to gameplay events via `U_ECSEventBus` (checkpoint_activated, victory_executed, area_complete via action_dispatched)
-- `load_objective_set(set_id)` -- activate set, build graph, activate auto-activate objectives
-- `_check_objective_conditions(objective_id)` -- evaluate conditions via U_QBRuleEvaluator
-- `_complete_objective(objective_id)` -- dispatch complete action, execute effects, activate dependents
+- `load_objective_set(set_id)` -- activate set, build graph via `U_ObjectiveGraph.build_graph()`, validate via `validate_graph(graph, known_ids)`, activate auto_activate objectives
+- `_check_objective_conditions(objective_id)` -- evaluate conditions via `U_QBRuleEvaluator.evaluate_all_conditions(conditions, context)`
+- `_build_context() -> Dictionary` -- returns `{"state_store": _store, "state": _store.get_state()}`; call before any QB utility invocation. Optionally extend with `"event_payload"` when evaluating event-triggered conditions.
+- `_complete_objective(objective_id)` -- dispatch complete action, execute effects via `U_QBEffectExecutor.execute_effects(effects, _build_context())`, activate dependents, log event
 - `_fail_objective(objective_id)` -- dispatch fail action
 - `get_objective_status(objective_id)` -- read from Redux via selectors
 - `_activate_dependents(objective_id)` -- check graph for ready dependents, activate them
+- For VICTORY type completion: after effects fire, read `objective.completion_event_payload` and publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with that dict as the event payload. `M_SceneManager` reads `event.payload.get("target_scene")` to determine the transition target.
 
 ### 2C: Tests
 
@@ -155,7 +163,7 @@ EVENT_DIRECTIVE_STARTED, EVENT_DIRECTIVE_COMPLETED, EVENT_BEAT_ADVANCED
 **U_BeatRunner** (`scripts/utils/scene_director/u_beat_runner.gd`):
 - RefCounted state machine
 - `start(beats: Array[RS_BeatDefinition])` -- initialize with beat list
-- `execute_current_beat(context: Dictionary)` -- check preconditions, fire effects
+- `execute_current_beat(context: Dictionary)` -- check preconditions via `U_QBRuleEvaluator`, fire effects via `U_QBEffectExecutor`
 - `advance()` -- move to next beat
 - `is_complete() -> bool` -- no more beats
 - `get_current_beat() -> RS_BeatDefinition`
@@ -164,18 +172,21 @@ EVENT_DIRECTIVE_STARTED, EVENT_DIRECTIVE_COMPLETED, EVENT_BEAT_ADVANCED
 - `update(delta: float)` -- tick for TIMED beats
 - `on_signal_received(event_name: StringName)` -- advance SIGNAL beats
 
+Context requirements: `execute_current_beat(context)` passes the context dict directly to QB utilities. The caller (M_SceneDirector) must build it: `{"state_store": _store, "state": _store.get_state()}`. For SIGNAL beats triggered by an ECS event, also include `"event_payload": event.get("payload", {})`. Beat conditions must use REDUX, EVENT_PAYLOAD, or CUSTOM sources — no COMPONENT source.
+
 ### 3B: M_SceneDirector (TDD)
 
 `scripts/managers/m_scene_director.gd` -- extends Node
 
 - `@export var state_store: I_StateStore = null` -- DI for testing
-- `@export var directives: Array[RS_SceneDirective] = []` -- const-preloaded directives
+- `@export var directives: Array[RS_SceneDirective] = []` -- directives assigned in root.tscn via ExtResource
 - Discovers store via injection-first + ServiceLocator fallback
 - Subscribes to `scene/transition_completed` via `action_dispatched` to select directive for new scene
-- `_select_directive(scene_id)` -- find highest-priority directive matching scene + conditions
+- `_select_directive(scene_id)` -- find highest-priority directive whose `target_scene_id == scene_id` and whose `selection_conditions` pass. Evaluates conditions with `{"state_store": _store, "state": _store.get_state()}` as context. Selection conditions must use REDUX, EVENT_PAYLOAD, or CUSTOM sources.
 - `_start_directive(directive)` -- dispatch start action, initialize beat runner
-- `_physics_process(delta)` -- tick beat runner for TIMED beats
-- Subscribes to ECS events for SIGNAL beat advancement
+- `_build_context() -> Dictionary` -- returns `{"state_store": _store, "state": _store.get_state()}`; pass to U_BeatRunner.execute_current_beat()
+- `_physics_process(delta)` -- tick beat runner for TIMED beats; pass `_build_context()` to execute_current_beat
+- Subscribes to ECS events for SIGNAL beat advancement; passes event payload in context when forwarding to beat runner
 - On directive complete: dispatch complete action, publish `directive_completed` event
 
 ### 3C: Tests
@@ -196,8 +207,8 @@ EVENT_DIRECTIVE_STARTED, EVENT_DIRECTIVE_COMPLETED, EVENT_BEAT_ADVANCED
 ### 4A: Victory Objective Resources
 
 Create objective definitions for victory scenarios:
-- `resources/scene_director/objectives/cfg_obj_level_complete.tres` -- STANDARD type, activates on area completion
-- `resources/scene_director/objectives/cfg_obj_game_complete.tres` -- VICTORY type, depends on level_complete, effects include `game_complete` action dispatch
+- `resources/scene_director/objectives/cfg_obj_level_complete.tres` -- STANDARD type, `auto_activate: true` (activates immediately when the set loads; the status goes to `active` on load, not on area completion — completion happens when the condition is met). Conditions: area completion check via REDUX source (evaluates `gameplay.completed_areas`).
+- `resources/scene_director/objectives/cfg_obj_game_complete.tres` -- VICTORY type, `dependencies: [level_complete]`. Conditions: required_final_area check via REDUX source. `completion_effects: [DISPATCH_ACTION: game_complete]`. `completion_event_payload: {"target_scene": StringName("victory")}` — M_ObjectivesManager reads this dict and includes it as the payload of `EVENT_OBJECTIVE_VICTORY_TRIGGERED`; M_SceneManager reads `event.payload.get("target_scene")` to determine the transition target.
 
 Create objective set:
 - `resources/scene_director/sets/cfg_objset_default.tres` -- default progression set
@@ -217,8 +228,8 @@ Add to M_SceneManager:
 ### 4C: Wire M_ObjectivesManager
 
 - M_ObjectivesManager subscribes to `victory_executed` event
-- On `victory_executed`: evaluate victory objectives' conditions
-- When VICTORY objective completes: publish `objective_victory_triggered` with target scene in payload
+- On `victory_executed`: evaluate VICTORY objectives' conditions using `_build_context()` (no COMPONENT source; REDUX source reads from `state_store.get_state()`)
+- When VICTORY objective completes: fire `completion_effects`, then read `objective.completion_event_payload` and publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with that dict as the event payload
 
 ### 4D: Scene Integration
 
@@ -331,7 +342,9 @@ scenes/root.tscn                                 -- Add M_ObjectivesManager + M_
 
 ### Test Files
 ```
+tests/unit/scene_director/test_objectives_selectors.gd
 tests/unit/scene_director/test_objectives_reducer.gd
+tests/unit/scene_director/test_scene_director_selectors.gd
 tests/unit/scene_director/test_scene_director_reducer.gd
 tests/unit/scene_director/test_objective_graph.gd
 tests/unit/scene_director/test_objective_event_log.gd

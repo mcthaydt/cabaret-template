@@ -34,7 +34,8 @@ Resource-defined goals tracked in Redux state. Each objective has:
 - **Conditions**: QB conditions that determine when an objective completes (reuses `RS_QBCondition`)
 - **Effects**: QB effects that fire on completion (reuses `RS_QBEffect`)
 - **Dependencies**: Other objective IDs that must be completed before this one activates (DAG)
-- **Type**: `STANDARD`, `VICTORY` (triggers win flow), `CHECKPOINT` (triggers save)
+- **Type**: `STANDARD`, `VICTORY` (triggers win flow), `CHECKPOINT` (triggers save — deferred, not implemented in Phase 1-6)
+- **Completion event payload**: `completion_event_payload: Dictionary` — arbitrary data merged into the published completion event. Allows objectives to carry type-specific data (e.g., VICTORY objectives set `{"target_scene": StringName("victory")}`) without polluting the base resource with type-specific fields.
 
 ### Objective Sets
 
@@ -60,9 +61,9 @@ A named sequence of beats for a specific scene. Multiple directives can exist pe
 
 Victory is modeled as an objective with type `VICTORY`. When a VICTORY objective completes:
 1. Its effects fire (e.g., `DISPATCH_ACTION: game_complete`)
-2. `M_ObjectivesManager` publishes `objective_victory_triggered` event
-3. `M_SceneManager` subscribes and transitions to the appropriate scene
-4. No hardcoded scene selection in `M_SceneManager` -- the objective's effects determine what happens
+2. `M_ObjectivesManager` reads `objective.completion_event_payload` and publishes `objective_victory_triggered` with that payload
+3. `M_SceneManager` subscribes, reads `event.payload.get("target_scene")`, and calls `transition_to_scene(target)`
+4. No hardcoded scene selection in `M_SceneManager` -- the objective's `completion_event_payload` determines the target
 
 ---
 
@@ -146,9 +147,14 @@ State (Redux):
         |  dispatch U_ObjectivesActions.activate(dependent_id) for each
         v
   [VICTORY type?]
-        |  YES -> publish "objective_victory_triggered" event
+        |  YES -> publish "objective_victory_triggered"
+        |         payload = objective.completion_event_payload
+        |         (e.g., {"target_scene": StringName("victory")})
         v
-  M_SceneManager._on_objective_victory() -> transition_to_scene(target)
+  M_SceneManager._on_objective_victory(event)
+        |  target := event.payload.get("target_scene")
+        v
+  transition_to_scene(target)
 ```
 
 ### Scene Director Flow
@@ -222,6 +228,31 @@ Objectives reuse the QB evaluation stack without extending BaseQBRuleManager:
 - `U_QBRuleEvaluator.evaluate_condition()` -- check objective completion conditions
 - `U_QBEffectExecutor.execute_effects()` -- fire objective completion effects
 - `U_QBQualityProvider.read_quality()` -- read qualities for condition evaluation
+
+#### Context Building (Required)
+
+Both `M_ObjectivesManager` and `M_SceneDirector` must construct a `context: Dictionary` before calling any QB utility. The required keys depend on the condition/effect source types in use:
+
+| Context key | Required by | Notes |
+|---|---|---|
+| `"state_store"` | `DISPATCH_ACTION` effects | Pass the `I_StateStore` instance |
+| `"state"` | `REDUX`-source conditions | Pass `state_store.get_state()` |
+| `"event_payload"` | `PUBLISH_EVENT` effects, `EVENT_PAYLOAD`-source conditions | Pass the triggering event's payload dict |
+
+Minimum context for objective condition evaluation:
+```gdscript
+var context := {
+    "state_store": _store,
+    "state": _store.get_state(),
+}
+```
+
+For beats that fire `PUBLISH_EVENT` effects or evaluate `EVENT_PAYLOAD`-source conditions, also populate:
+```gdscript
+context["event_payload"] = triggering_event.get("payload", {})
+```
+
+**`COMPONENT`-source conditions are not supported for objectives or beats** — there is no per-entity ECS context at the manager level. Objective and beat conditions must use `REDUX`, `EVENT_PAYLOAD`, or `CUSTOM` sources only.
 
 ### With Redux State (M_StateStore)
 

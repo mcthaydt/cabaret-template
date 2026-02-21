@@ -77,7 +77,7 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - `scripts/resources/qb/rs_qb_effect.gd` -- effect resource (reused by objectives)
 - `scripts/state/actions/u_gameplay_actions.gd` -- pattern for action creators
 - `scripts/state/reducers/u_gameplay_reducer.gd` -- pattern for reducers
-- `scripts/state/selectors/u_gameplay_selectors.gd` -- pattern for selectors (if exists)
+- `scripts/state/selectors/u_gameplay_selectors.gd` -- pattern for selectors
 - `scripts/resources/state/rs_gameplay_initial_state.gd` -- pattern for initial state resources
 - `scripts/state/utils/u_state_slice_manager.gd` -- add new slices here
 - `scripts/state/m_state_store.gd` -- add @export for new initial state resources
@@ -85,10 +85,11 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 ### Files to modify:
 - `scripts/state/utils/u_state_slice_manager.gd` -- add objectives + scene_director slices
 - `scripts/state/m_state_store.gd` -- add @export for objectives + scene_director initial state
-- `scripts/root.gd` -- register M_ObjectivesManager + M_SceneDirector with ServiceLocator
+- `scripts/root.gd` -- register M_ObjectivesManager + M_SceneDirector with ServiceLocator (keys: `"objectives_manager"`, `"scene_director"`)
 - `scripts/events/ecs/u_ecs_event_names.gd` -- add objective/directive event constants
 - `scripts/managers/m_scene_manager.gd` -- remove victory handling, add objective_victory subscription
 - `scenes/root.tscn` -- add M_ObjectivesManager + M_SceneDirector nodes
+- `AGENTS.md` -- add `"objectives_manager"` and `"scene_director"` to the available services list in the Quick How-Tos section (Phase 6A)
 
 ### Files that stay unchanged:
 - `scripts/ecs/systems/s_victory_handler_system.gd` -- stays as-is (93 lines)
@@ -132,7 +133,9 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - `resources/scene_director/directives/cfg_directive_gameplay_base.tres`
 
 **Tests**:
+- `tests/unit/scene_director/test_objectives_selectors.gd`
 - `tests/unit/scene_director/test_objectives_reducer.gd`
+- `tests/unit/scene_director/test_scene_director_selectors.gd`
 - `tests/unit/scene_director/test_scene_director_reducer.gd`
 - `tests/unit/scene_director/test_objective_graph.gd`
 - `tests/unit/scene_director/test_objective_event_log.gd`
@@ -160,9 +163,12 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 11. **M_SceneManager becomes pure loader** -- victory handling removed, subscribes to objective events
 12. **`_on_entity_death()` stays in M_SceneManager** -- game over is not objective-driven (yet)
 13. **Objective status lifecycle** -- inactive -> active -> completed | failed
-14. **auto_activate flag** -- objectives with no dependencies can activate immediately when set loads
-15. **Directive selection by conditions** -- highest priority directive matching scene + conditions wins
+14. **auto_activate flag** -- objective activates immediately when the set loads in _ready(); this is "skip inactive state on load", not "activate when an event fires"
+15. **Directive selection by conditions** -- highest priority directive matching scene + conditions wins; conditions evaluated with `_build_context()`
 16. **Beat wait modes** -- INSTANT (immediate), TIMED (duration), SIGNAL (event-driven)
+17. **Context building** -- both M_ObjectivesManager and M_SceneDirector implement `_build_context() -> {"state_store": _store, "state": _store.get_state()}` and pass it to all QB utility calls; for SIGNAL beats also include `"event_payload"`. COMPONENT-source conditions are not supported (no per-entity ECS context at manager level).
+18. **VICTORY completion_event_payload** -- RS_ObjectiveDefinition has `completion_event_payload: Dictionary`; M_ObjectivesManager reads this after effects fire and publishes it as the EVENT_OBJECTIVE_VICTORY_TRIGGERED payload. VICTORY objectives set `{"target_scene": StringName("victory")}` here. This is the general mechanism — not a victory-specific field.
+19. **CHECKPOINT type deferred** -- enum value exists so resources can be authored, but M_ObjectivesManager treats CHECKPOINT the same as STANDARD in Phase 1-6; save-trigger behavior is a future phase.
 
 ---
 
@@ -199,6 +205,19 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - `String(value)` fails for arbitrary Variants -- use `str(value)`
 - Inner class names must start with a capital letter (no `class _MockFoo`)
 - Resource preloading required for mobile (const preload arrays, not runtime DirAccess)
+
+## QB Utility Context Requirements
+
+Calling QB utilities without the right context keys causes silent null-access failures at runtime:
+
+| Call site | Minimum context |
+|---|---|
+| `evaluate_all_conditions` with REDUX source | `{"state_store": _store, "state": _store.get_state()}` |
+| `execute_effects` with DISPATCH_ACTION | `{"state_store": _store}` |
+| `execute_effects` with PUBLISH_EVENT | add `"event_payload": {}` |
+| SIGNAL beat advancement | add `"event_payload": event.get("payload", {})` |
+
+Always call `_build_context()` rather than building inline dicts — it ensures consistency and is easy to extend.
 
 ---
 
