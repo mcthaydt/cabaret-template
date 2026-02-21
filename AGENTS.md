@@ -70,6 +70,14 @@
   - Test pattern: override `_emit_rule_validation_warning(...)` in a test stub instead of asserting raw engine warning output.
   - Tick extension pattern (Refactor Phase R3): keep `BaseQBRuleManager.process_tick()` as the canonical 5-step loop; subclasses should override `_post_tick_evaluation(contexts, delta)` for domain writes (brain data, camera state) instead of overriding `process_tick()`.
   - Camera FOV baseline pattern: `S_CameraRuleManager` captures per-scene baseline FOV into `C_CameraStateComponent.base_fov` from the active camera and restores that baseline when `camera.in_fov_zone` is false, instead of falling back to a hardcoded default FOV.
+- Response curve scoring + decision groups (Refactor Phase R7)
+  - `RS_QBCondition.score_curve: Curve` (optional) + `normalize_min`/`normalize_max` enables quality-based scores (null = binary 1.0/0.0, backward compatible).
+  - `RS_QBCondition.get_score(quality_value)`: booleans → 1.0/0.0 directly; numerics normalized via clampf((v-min)/(max-min), 0, 1); division-by-zero guard when min==max.
+  - `U_QBRuleEvaluator.score_condition(condition, quality_value)`: 0.0 if fails, else calls `get_score`; `score_all_conditions(conditions, context)` is a test-only helper using dict path resolution.
+  - `BaseQBRuleManager._score_rule(rule, context)`: production scoring via `U_QB_QUALITY_PROVIDER` per condition, multiplicative product; `_select_winners(candidates)` partitions by `decision_group`, `_pick_best_candidate` uses score → priority → rule_id alphabetical tiebreak.
+  - `RS_QBRuleDefinition.decision_group: StringName`: non-empty groups compete per-context (only highest-scoring candidate fires); empty = independent (always fires if conditions pass).
+  - `_evaluate_rules_for_context()` refactored to 4 passes: (1) evaluate + unconditionally track salience for TICK mode, (2) score candidates, (3) select winners, (4) execute. EVENT mode never updates `was_true_by_context` (would corrupt BOTH-mode TICK salience state).
+  - Pause gate `.tres` files (`cfg_pause_gate_paused/shell/transitioning`) use `decision_group = &"pause_gate"` — identical effect so any winner is correct; changes from 3 redundant effects to 1 per tick (idempotent).
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.

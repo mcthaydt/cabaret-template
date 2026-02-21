@@ -6,22 +6,22 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Refactor -- Phase R6 complete (all 6 refactor phases complete)
-**Branch**: QB-Rule-Manager
-**Phase Completion Commit**: `31ee8fe` - Add inspector groups and doc hints to QB resources
+**Phase**: Refactor -- ALL PHASES COMPLETE (R1–R7)
+**Branch**: scene-director (continuation from QB-Rule-Manager, merged at `31ee8fe`)
+**Last Completed Phase**: R7 - Response Curve Scoring + Decision Groups
 
-**Next Task**: Refactor complete -- no unchecked tasks remain in `qb-rule-manager-refactor-tasks.md`
+**Next Task**: None — all QB Rule Manager refactor phases are complete.
 **Latest Verification**:
-- `tests/unit/qb` passing (75/75) on February 20, 2026 after legacy checkpoint/victory system removal
-- `tests/unit/ecs` passing (126/126) on February 20, 2026 after legacy checkpoint/victory system removal
-- `tests/unit/ecs/systems` passing (197/197) on February 20, 2026 after legacy checkpoint/victory system removal
-- `tests/integration/qb` passing (1/1) on February 20, 2026 after Phase R6 inspector/doc updates
-- `tests/integration/spawn_system` passing (21/21) on February 20, 2026 after checkpoint QB-flow migration
-- `tests/integration/scene_manager` passing (90/90) on February 20, 2026 after victory post-validation transition migration
-- `tests/unit/style` suite passing (12/12) on February 20, 2026 after Phase R6 inspector/doc updates
+- `tests/unit/qb` passing (97/97) on February 20, 2026 after Phase R7 scoring + decision groups
+- `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase R7
+- `tests/unit/ecs/systems` passing (197/197) on February 20, 2026 after Phase R7
+- `tests/integration/qb` passing (1/1) on February 20, 2026 after Phase R7
+- `tests/unit/style` suite passing (12/12) on February 20, 2026 after Phase R7
+- `tests/integration/spawn_system` passing (21/21) on February 20, 2026
+- `tests/integration/scene_manager` passing (90/90) on February 20, 2026
 - `tests/unit/camera_system` passing (11/11)
 - `tests/integration/vfx` passing (38/38)
-- Phase 4 migration checks passed on February 20, 2026 (game rules + handler systems + scene migration)
+- Phase 4 migration checks passed on February 20, 2026
 - Manual playtest passed on February 20, 2026 (movement/jump/death/respawn/pause/spawn-freeze/footsteps)
 
 ---
@@ -64,19 +64,31 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 
 ---
 
-## Current Work: Quality Refactor (6 phases, zero behavioral changes)
+## Current Work: Quality Refactor (7 phases)
 
-Phases R1-R6 are complete: shared variant helpers are centralized in `scripts/utils/qb/u_qb_variant_utils.gd`, store resolution is owned by `BaseQBRuleManager`, concrete managers now extend tick flow via `_post_tick_evaluation(...)`, character quality context assembly is decomposed into focused private helpers, R5 constants/configurability cleanup is complete, and R6 inspector/documentation hints are in place.
+Phases R1-R6 are complete (zero behavioral changes): shared variant helpers, base class store resolution, tick hook extension, context decomposition, constant naming, and inspector hints.
 
-The QB Rule Manager (16 files, ~2,570 lines) is functionally and quality complete per the current refactor plan.
+**Phase R7 (pending)** transforms the QB system from binary condition evaluation to true quality-based scoring with response curves and decision groups. This is a behavioral change but is fully backward compatible — rules without curves score 1.0/0.0, rules without a decision group fire independently (identical to current behavior).
 
-**Refactor phases** (R1-R6, all zero behavioral change):
+**R7 key design decisions:**
+- **Response curves**: Each `RS_QBCondition` gets optional `score_curve: Curve` + `normalize_min`/`normalize_max`. Null curve = binary 1.0/0.0 (backward compatible).
+- **Normalization formula**: `normalized = clampf((quality_value - normalize_min) / (normalize_max - normalize_min), 0.0, 1.0)`. Booleans bypass normalization: `true→1.0`, `false→0.0`. Division-by-zero guard when `normalize_min == normalize_max`.
+- **Rule score = product of condition scores**: Multiplicative aggregation. One 0.0 kills the rule.
+- **Decision groups**: `RS_QBRuleDefinition.decision_group: StringName`. Rules in the same group compete per-context; only the highest-scoring candidate fires. Empty group = independent (fires if conditions pass, no competition).
+- **Salience still gates candidacy**: Scoring ranks candidates; salience determines which rules are candidates (false→true transition).
+- **Salience state tracking is unconditional**: `was_true_by_context` must be updated for ALL evaluated rules every tick — regardless of pass/fail, regardless of group competition outcome. Current code gates tracking behind `requires_salience` and skips false conditions; R7 must always record the boolean result. This is the prerequisite for correct transition detection across ticks.
+- **Per-context scoping**: `_evaluate_rules_for_context()` is called once per context (entity). Candidates, group partitioning, and winner selection all happen within one invocation. Multi-context managers (camera) call `_evaluate_contexts()` which loops per-context.
+- **Priority is tiebreaker**: When two rules in the same group have equal scores, higher priority wins, then rule_id alphabetical.
+- **Existing rule migration**: Pause gates get `decision_group: "pause_gate"` (same effect, any winner correct — 1 effect fires instead of 3, idempotent). All other existing rules keep empty group (independent, no behavioral change).
+
+**Refactor phases**:
 - **R1**: Extract shared variant helpers into `U_QBVariantUtils` (complete)
 - **R2**: Promote `_resolve_store()` to base class (complete)
-- **R3**: Add `_post_tick_evaluation` hook to `process_tick()` so subclasses extend, not replace (camera's `_on_event_received` stays as-is — its multi-context evaluation is genuinely different)
-- **R4**: Decompose 113-line `_build_quality_context()` into focused helpers (complete)
+- **R3**: Add `_post_tick_evaluation` hook to `process_tick()` (complete)
+- **R4**: Decompose `_build_quality_context()` into focused helpers (complete)
 - **R5**: Name camera shake constants, make `required_final_area` an `@export`, small fixes (complete)
 - **R6**: Add `@export_group` organization and doc comments to QB resources (complete)
+- **R7**: Response curve scoring + decision group selection (pending — 19 tasks)
 
 **Refactor tasks checklist**: `docs/qb_rule_manager/qb-rule-manager-refactor-tasks.md`
 
@@ -87,7 +99,7 @@ The QB Rule Manager (16 files, ~2,570 lines) is functionally and quality complet
 1. Read `AGENTS.md` for project conventions
 2. Read `docs/general/DEV_PITFALLS.md` for known pitfalls
 3. Read `docs/qb_rule_manager/qb-rule-manager-refactor-tasks.md` for the refactor task checklist
-4. Refactor checklist is fully complete as of February 20, 2026; resume from new backlog work or follow-up polish tasks
+4. R1-R6 complete as of February 20, 2026; **R7 (scoring + decision groups) is the next phase**
 5. Original feature tasks (all complete): `docs/qb_rule_manager/qb-rule-manager-tasks.md`
 
 ---
@@ -169,6 +181,10 @@ The QB Rule Manager (16 files, ~2,570 lines) is functionally and quality complet
 - `tests/unit/qb/test_camera_rule_manager.gd`
 - `tests/integration/qb/test_qb_brain_data_pipeline.gd`
 
+**Scoring + Decision Groups** (Phase R7):
+- `tests/unit/qb/test_qb_condition_scoring.gd` (new)
+- `tests/unit/qb/test_qb_decision_groups.gd` (new)
+
 ---
 
 ## Design Summary (Key Differences from Earlier Designs)
@@ -198,6 +214,10 @@ These are the current design decisions that must be followed:
 21. **Post-migration store retention** -- keep @export state_store in S_GravitySystem (gravity_scale reads) and S_RotateToInputSystem (rotation snapshot dispatch); S_FootstepSoundSystem can drop it
 22. **S_VictoryHandlerSystem** must enforce `@export var required_final_area: String = "bar"` prerequisite check and use event subscription priority 10
 23. **S_CheckpointHandlerSystem** must replicate `_resolve_spawn_point_position()` for perf optimization
+24. **Response curve scoring** (R7) -- conditions optionally carry `score_curve: Curve` + `normalize_min`/`normalize_max`; null curve = binary 1.0/0.0 (backward compatible). Rule score = product of condition scores. Normalization: `clampf((value - min) / (max - min), 0.0, 1.0)`. Booleans bypass normalization (`true→1.0`, `false→0.0`).
+25. **Decision groups** (R7) -- `RS_QBRuleDefinition.decision_group: StringName`. Same-group rules compete per-context; only highest-scoring candidate fires. Empty group = independent (always fires if conditions pass). Priority is tiebreaker at equal scores. `_evaluate_rules_for_context()` is per-context already, so group partitioning is inherently per-context.
+26. **Salience gates candidacy, scoring ranks candidates** (R7) -- a rule must pass its false→true transition check to become a candidate; scoring determines which candidate wins within a decision group. `was_true_by_context` must be updated for ALL evaluated rules every tick (not just winners/passers) so transition detection works across ticks. Current code gates tracking behind `requires_salience` and skips false conditions — R7 refactors this.
+27. **Existing pause gate migration** (R7) -- three pause gate `.tres` files get `decision_group: "pause_gate"` (identical effect, any winner correct — changes from 3 redundant effects to 1, idempotent). All other existing rules keep empty group (independent, zero behavioral change).
 
 ---
 
