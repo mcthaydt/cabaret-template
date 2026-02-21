@@ -232,6 +232,10 @@ func _evaluate_contexts(contexts: Array, evaluation_mode: int, event_name: Strin
 		_evaluate_rules_for_context(context, evaluation_mode, event_name)
 
 func _evaluate_rules_for_context(context: Dictionary, evaluation_mode: int, event_name: StringName = StringName()) -> void:
+	# Pass 1: Evaluate conditions and unconditionally track salience state for all rules.
+	# was_true_by_context must be updated for every evaluated rule so that false→true transition
+	# detection works on subsequent ticks even for rules that lose group competition.
+	var pass1_results: Array = []
 	for rule_variant in _registered_rules:
 		if not _rule_matches_evaluation(rule_variant, evaluation_mode, event_name):
 			continue
@@ -249,10 +253,13 @@ func _evaluate_rules_for_context(context: Dictionary, evaluation_mode: int, even
 		var salience_key: String = _resolve_salience_key(context)
 		_mark_active_context_keys(rule_state, cooldown_key, salience_key)
 
-		var requires_salience: bool = _requires_salience(rule_variant, evaluation_mode)
 		var is_true_now: bool = _evaluate_rule_conditions(rule_variant, context)
+
+		# Track salience state for TICK evaluation only. EVENT evaluation uses no salience;
+		# updating was_true_by_context during EVENT mode would corrupt TICK salience state
+		# for BOTH-mode rules (false→true detection would incorrectly see was_true_before=true).
 		var was_true_before: bool = false
-		if requires_salience:
+		if evaluation_mode != QB_RULE.TriggerMode.EVENT:
 			var was_true_map_variant: Variant = rule_state.get("was_true_by_context", {})
 			var was_true_map: Dictionary = was_true_map_variant if was_true_map_variant is Dictionary else {}
 			was_true_before = bool(was_true_map.get(salience_key, false))
@@ -260,14 +267,55 @@ func _evaluate_rules_for_context(context: Dictionary, evaluation_mode: int, even
 			rule_state["was_true_by_context"] = was_true_map
 			_rule_states[rule_id] = rule_state
 
+		pass1_results.append({
+			"rule": rule_variant,
+			"rule_id": rule_id,
+			"rule_state": rule_state,
+			"cooldown_key": cooldown_key,
+			"is_true_now": is_true_now,
+			"was_true_before": was_true_before,
+		})
+
+	# Pass 2: Score candidates — rules that pass all gates (conditions, salience, cooldown).
+	var candidates: Array = []
+	for result in pass1_results:
+		var rule_variant: Variant = result["rule"]
+		var rule_state: Dictionary = result["rule_state"]
+		var is_true_now: bool = result["is_true_now"]
+		var was_true_before: bool = result["was_true_before"]
+		var cooldown_key: String = result["cooldown_key"]
+
 		if not is_true_now:
 			continue
 
+		var requires_salience: bool = _requires_salience(rule_variant, evaluation_mode)
 		if requires_salience and was_true_before:
 			continue
 
 		if not _is_cooldown_ready(rule_variant, rule_state, context, cooldown_key):
 			continue
+
+		var score: float = _score_rule(rule_variant, context)
+		var decision_group: StringName = StringName(_get_string_property(rule_variant, "decision_group", ""))
+
+		candidates.append({
+			"rule": rule_variant,
+			"rule_id": result["rule_id"],
+			"rule_state": rule_state,
+			"cooldown_key": cooldown_key,
+			"score": score,
+			"decision_group": decision_group,
+		})
+
+	# Pass 3: Select winners — group candidates by decision_group, pick highest scorer per group.
+	var winners: Array = _select_winners(candidates)
+
+	# Pass 4: Execute winners — fire effects, apply cooldown, handle one-shot deactivation.
+	for winner in winners:
+		var rule_variant: Variant = winner["rule"]
+		var rule_id: StringName = winner["rule_id"]
+		var rule_state: Dictionary = winner["rule_state"]
+		var cooldown_key: String = winner["cooldown_key"]
 
 		U_QB_EFFECT_EXECUTOR.execute_effects(_get_array_property(rule_variant, "effects"), context)
 		_set_cooldown(rule_variant, rule_state, context, cooldown_key)
@@ -276,6 +324,72 @@ func _evaluate_rules_for_context(context: Dictionary, evaluation_mode: int, even
 			rule_state["is_active"] = false
 			rule_state["has_fired"] = true
 			_rule_states[rule_id] = rule_state
+
+func _score_rule(rule: Variant, context: Dictionary) -> float:
+	var conditions: Array = _get_array_property(rule, "conditions")
+	if conditions.is_empty():
+		return 1.0
+	var score: float = 1.0
+	for condition_variant in conditions:
+		var quality_value: Variant = U_QB_QUALITY_PROVIDER.read_quality(condition_variant, context)
+		var condition_score: float = U_QB_RULE_EVALUATOR.score_condition(condition_variant, quality_value)
+		if condition_score == 0.0:
+			return 0.0
+		score *= condition_score
+	return score
+
+func _select_winners(candidates: Array) -> Array:
+	var winners: Array = []
+	var grouped: Dictionary = {}
+
+	for candidate in candidates:
+		var group: StringName = candidate["decision_group"]
+		if group == &"":
+			winners.append(candidate)
+		else:
+			if not grouped.has(group):
+				grouped[group] = []
+			var group_list: Array = grouped[group]
+			group_list.append(candidate)
+
+	for group_variant in grouped.keys():
+		var group_candidates: Array = grouped[group_variant]
+		var winner: Variant = _pick_best_candidate(group_candidates)
+		if winner != null:
+			winners.append(winner)
+
+	return winners
+
+func _pick_best_candidate(candidates: Array) -> Variant:
+	if candidates.is_empty():
+		return null
+
+	var best: Dictionary = candidates[0]
+	for i in range(1, candidates.size()):
+		var candidate: Dictionary = candidates[i]
+		var candidate_score: float = float(candidate["score"])
+		var best_score: float = float(best["score"])
+
+		if candidate_score > best_score:
+			best = candidate
+			continue
+		if candidate_score < best_score:
+			continue
+
+		var candidate_priority: int = _get_int_property(candidate["rule"], "priority", 0)
+		var best_priority: int = _get_int_property(best["rule"], "priority", 0)
+		if candidate_priority > best_priority:
+			best = candidate
+			continue
+		if candidate_priority < best_priority:
+			continue
+
+		var candidate_id: String = String(candidate["rule_id"])
+		var best_id: String = String(best["rule_id"])
+		if candidate_id < best_id:
+			best = candidate
+
+	return best
 
 func _rule_matches_evaluation(rule: Variant, evaluation_mode: int, event_name: StringName) -> bool:
 	var trigger_mode: int = _get_int_property(rule, "trigger_mode", QB_RULE.TriggerMode.TICK)

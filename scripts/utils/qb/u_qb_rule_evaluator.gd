@@ -44,6 +44,39 @@ static func evaluate_condition(condition: Variant, quality_value: Variant) -> bo
 		return not result
 	return result
 
+## Returns the score for a single condition given its resolved quality value.
+## Returns 0.0 if the condition fails its boolean evaluation.
+## Returns condition.get_score(quality_value) if the condition has a scoring method.
+## Returns 1.0 if the condition passes but has no scoring method (backward compatible).
+static func score_condition(condition: Variant, quality_value: Variant) -> float:
+	if not evaluate_condition(condition, quality_value):
+		return 0.0
+	if condition is Object and condition.has_method("get_score"):
+		return condition.call("get_score", quality_value)
+	return 1.0
+
+## Test-only convenience helper. Resolves quality values from context via dict path lookup.
+## Returns the product of all condition scores (multiplicative aggregation).
+## Production rule scoring uses BaseQBRuleManager._score_rule() with U_QB_QUALITY_PROVIDER.
+static func score_all_conditions(conditions: Array, context: Dictionary) -> float:
+	if conditions.is_empty():
+		return 1.0
+
+	var total_score: float = 1.0
+	for condition_variant in conditions:
+		var condition: Variant = condition_variant
+		if condition == null:
+			return 0.0
+
+		var quality_path: String = U_QB_VARIANT_UTILS.get_string_property(condition, "quality_path", "")
+		var quality_value: Variant = _resolve_quality_value(context, quality_path)
+		var condition_score: float = score_condition(condition, quality_value)
+		if condition_score == 0.0:
+			return 0.0
+		total_score *= condition_score
+
+	return total_score
+
 ## Test-only convenience helper.
 ## Production rule execution should flow through BaseQBRuleManager lifecycle APIs.
 static func evaluate_all_conditions(conditions: Array, context: Dictionary) -> bool:

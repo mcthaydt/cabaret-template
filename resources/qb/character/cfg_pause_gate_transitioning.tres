@@ -24,3 +24,4 @@ rule_id = &"pause_gate_transitioning"
 conditions = [SubResource("QBCondition_pause_gate_transitioning")]
 effects = [SubResource("QBEffect_pause_gate_transitioning")]
 requires_salience = false
+decision_group = &"pause_gate"

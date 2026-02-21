@@ -23,6 +23,11 @@ enum TriggerMode {
 @export var is_one_shot: bool = false
 @export var requires_salience: bool = true
 
+@export_group("Selection")
+## Rules with the same non-empty decision_group compete per-context; only the highest-scoring
+## candidate fires. Empty string = independent rule (fires if conditions pass, no competition).
+@export var decision_group: StringName = &""
+
 @export_group("Cooldown")
 @export var cooldown: float = 0.0
 ## Empty = global cooldown bucket for this rule.

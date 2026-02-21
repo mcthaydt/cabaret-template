@@ -32,6 +32,12 @@ static func validate_rule(rule: Variant) -> Array[String]:
 	for index in range(effects.size()):
 		_validate_effect(effects[index], index, errors)
 
+	var decision_group: String = U_QB_VARIANT_UTILS.get_string_property(rule, "decision_group", "")
+	if not decision_group.is_empty():
+		var requires_salience: bool = U_QB_VARIANT_UTILS.get_bool_property(rule, "requires_salience", true)
+		if not requires_salience and conditions.is_empty():
+			errors.append("decision_group set on rule with requires_salience=false and no conditions — unconditional rules in a group always tie at 1.0 (likely misconfiguration)")
+
 	return errors
 
 static func validate_rule_definitions(definitions: Array) -> Dictionary:
@@ -72,6 +78,13 @@ static func _validate_condition(condition: Variant, index: int, errors: Array[St
 		errors.append("%s.quality_path must be Component.field format" % prefix)
 	if source == QB_CONDITION.Source.REDUX and not _is_redux_path(quality_path):
 		errors.append("%s.quality_path must be slice.field format" % prefix)
+
+	var has_curve: bool = condition.get("score_curve") != null
+	if has_curve:
+		var normalize_min: float = float(condition.get("normalize_min") if condition.get("normalize_min") != null else 0.0)
+		var normalize_max: float = float(condition.get("normalize_max") if condition.get("normalize_max") != null else 1.0)
+		if normalize_min >= normalize_max:
+			errors.append("%s.normalize_min must be less than normalize_max when score_curve is set" % prefix)
 
 static func _validate_effect(effect: Variant, index: int, errors: Array[String]) -> void:
 	var prefix: String = "effects[%d]" % index

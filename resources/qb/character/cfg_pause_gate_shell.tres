@@ -26,3 +26,4 @@ rule_id = &"pause_gate_shell"
 conditions = [SubResource("QBCondition_pause_gate_shell")]
 effects = [SubResource("QBEffect_pause_gate_shell")]
 requires_salience = false
+decision_group = &"pause_gate"
