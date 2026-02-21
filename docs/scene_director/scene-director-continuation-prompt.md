@@ -9,6 +9,7 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 **Phase**: Not started
 **Branch**: scene-director
 **Next Task**: T1.1 -- Create RS_ObjectiveDefinition resource
+**Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
 **Latest Verification**: N/A (no implementation yet)
 
@@ -16,7 +17,7 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Context
 
-You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS game template. This builds on top of the completed QB Rule Manager (R1-R6). The feature adds three systems:
+You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS game template. This builds on top of the completed QB v2 rule engine (typed resources + stateless scoring library). The feature adds three systems:
 
 1. **M_ObjectivesManager** -- Dependency graph, win/loss conditions, event logging
 2. **M_SceneDirector** -- Beat runner for intra-scene sequences
@@ -24,9 +25,9 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 
 **Key design decisions:**
 
-- **Manager, not ECS system**: M_ObjectivesManager and M_SceneDirector extend Node, not BaseQBRuleManager -- objectives are global game state, not per-entity tick behavior
-- **QB utility reuse, not extension**: Uses U_QBRuleEvaluator, U_QBEffectExecutor, U_QBQualityProvider for condition/effect evaluation without the per-tick rule loop overhead
-- **Objectives own dependency graph**: DAG at objectives layer (not QB rules) with cycle detection and topological sort
+- **Manager, not ECS system**: M_ObjectivesManager and M_SceneDirector extend Node, not BaseECSSystem -- objectives are global game state, not per-entity tick behavior
+- **Direct v2 condition/effect evaluation**: Conditions self-evaluate via `condition.evaluate(context)`, effects self-execute via `effect.execute(context)`. No utility classes needed — much simpler than v1's three-utility-class indirection
+- **Objectives own dependency graph**: DAG at objectives layer with cycle detection and topological sort
 - **Victory as objective type**: VICTORY objectives trigger scene transitions via events; no hardcoded scene selection in M_SceneManager
 - **S_VictoryHandlerSystem stays as-is**: Validates triggers, dispatches state updates, publishes `victory_executed`. M_ObjectivesManager listens to this event
 - **S_CheckpointHandlerSystem stays as-is**: No changes needed
@@ -46,7 +47,7 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - `S_VictoryHandlerSystem` -- validates triggers, dispatches state, publishes `victory_executed`
 - `S_CheckpointHandlerSystem` -- activates checkpoints, dispatches state
 - `_on_entity_death()` in M_SceneManager -- game over transition stays (not objective-driven)
-- All QB Rule Manager code (BaseQBRuleManager, S_CharacterRuleManager, S_GameRuleManager, S_CameraRuleManager)
+- All QB v2 code (RS_Rule, RS_BaseCondition subclasses, RS_BaseEffect subclasses, U_RuleScorer, U_RuleSelector, RuleStateTracker)
 
 **Documentation location**: `docs/scene_director/`
 - Overview: `scene-director-overview.md`
@@ -69,12 +70,16 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 
 ## Key Files to Reference
 
+### v2 QB types used by objectives/beats:
+- `scripts/resources/qb/rs_base_condition.gd` -- base condition class; subclasses self-evaluate via `evaluate(context) -> float`
+- `scripts/resources/qb/conditions/rs_condition_redux_field.gd` -- reads Redux state paths (primary condition type for objectives)
+- `scripts/resources/qb/conditions/rs_condition_event_payload.gd` -- reads event payload fields
+- `scripts/resources/qb/conditions/rs_condition_constant.gd` -- fixed score for unconditional beats
+- `scripts/resources/qb/rs_base_effect.gd` -- base effect class; subclasses self-execute via `execute(context)`
+- `scripts/resources/qb/effects/rs_effect_dispatch_action.gd` -- dispatches Redux action
+- `scripts/resources/qb/effects/rs_effect_publish_event.gd` -- publishes ECS event
+
 ### Existing patterns to follow:
-- `scripts/utils/qb/u_qb_rule_evaluator.gd` -- reuse for condition evaluation
-- `scripts/utils/qb/u_qb_effect_executor.gd` -- reuse for effect execution
-- `scripts/utils/qb/u_qb_quality_provider.gd` -- reuse for quality reading
-- `scripts/resources/qb/rs_qb_condition.gd` -- condition resource (reused by objectives)
-- `scripts/resources/qb/rs_qb_effect.gd` -- effect resource (reused by objectives)
 - `scripts/state/actions/u_gameplay_actions.gd` -- pattern for action creators
 - `scripts/state/reducers/u_gameplay_reducer.gd` -- pattern for reducers
 - `scripts/state/selectors/u_gameplay_selectors.gd` -- pattern for selectors
@@ -94,8 +99,8 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 ### Files that stay unchanged:
 - `scripts/ecs/systems/s_victory_handler_system.gd` -- stays as-is (93 lines)
 - `scripts/ecs/systems/s_checkpoint_handler_system.gd` -- stays as-is
-- `scripts/ecs/systems/s_game_rule_manager.gd` -- stays as-is
-- `scripts/ecs/systems/base_qb_rule_manager.gd` -- stays as-is
+- `scripts/ecs/systems/s_game_event_system.gd` -- stays as-is (v2 name)
+- All v2 QB core code
 
 ### New files created by this feature:
 
@@ -151,7 +156,7 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 ## Design Summary (Key Decisions)
 
 1. **Manager, not ECS system** -- M_ObjectivesManager and M_SceneDirector extend Node (global game state, not per-entity)
-2. **QB utility reuse, not extension** -- uses U_QBRuleEvaluator/EffectExecutor/QualityProvider without extending BaseQBRuleManager
+2. **Direct v2 condition/effect evaluation** -- call condition.evaluate(context) and effect.execute(context) directly on typed resources; no utility classes needed
 3. **Objectives own dependency graph** -- DAG at objectives layer with cycle detection and topological sort
 4. **Victory as objective type** -- VICTORY objectives publish events; M_SceneManager subscribes
 5. **Two new Redux slices** -- `objectives` (persistent) and `scene_director` (transient)
@@ -164,10 +169,10 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 12. **`_on_entity_death()` stays in M_SceneManager** -- game over is not objective-driven (yet)
 13. **Objective status lifecycle** -- inactive -> active -> completed | failed
 14. **auto_activate flag** -- objective activates immediately when the set loads in _ready(); this is "skip inactive state on load", not "activate when an event fires"
-15. **Directive selection by conditions** -- highest priority directive matching scene + conditions wins; conditions evaluated with `_build_context()`
+15. **Directive selection by conditions** -- highest priority directive matching scene + conditions wins; conditions evaluated via condition.evaluate(context)
 16. **Beat wait modes** -- INSTANT (immediate), TIMED (duration), SIGNAL (event-driven)
-17. **Context building** -- both M_ObjectivesManager and M_SceneDirector implement `_build_context() -> {"state_store": _store, "state": _store.get_state()}` and pass it to all QB utility calls; for SIGNAL beats also include `"event_payload"`. COMPONENT-source conditions are not supported (no per-entity ECS context at manager level).
-18. **VICTORY completion_event_payload** -- RS_ObjectiveDefinition has `completion_event_payload: Dictionary`; M_ObjectivesManager reads this after effects fire and publishes it as the EVENT_OBJECTIVE_VICTORY_TRIGGERED payload. VICTORY objectives set `{"target_scene": StringName("victory")}` here. This is the general mechanism — not a victory-specific field.
+17. **Context building** -- both M_ObjectivesManager and M_SceneDirector implement `_build_context() -> {"state_store": _store, "redux_state": _store.get_state()}` and pass it to condition.evaluate()/effect.execute() calls; for SIGNAL beats also include `"event_payload"`. RS_ConditionComponentField/RS_ConditionEntityTag not supported (no per-entity context at manager level).
+18. **VICTORY completion_event_payload** -- RS_ObjectiveDefinition has `completion_event_payload: Dictionary`; M_ObjectivesManager reads this after effects execute and publishes it as the EVENT_OBJECTIVE_VICTORY_TRIGGERED payload. VICTORY objectives set `{"target_scene": StringName("victory")}` here. This is the general mechanism — not a victory-specific field.
 19. **CHECKPOINT type deferred** -- enum value exists so resources can be authored, but M_ObjectivesManager treats CHECKPOINT the same as STANDARD in Phase 1-6; save-trigger behavior is a future phase.
 
 ---
@@ -206,18 +211,46 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - Inner class names must start with a capital letter (no `class _MockFoo`)
 - Resource preloading required for mobile (const preload arrays, not runtime DirAccess)
 
-## QB Utility Context Requirements
+## Context Contract
 
-Calling QB utilities without the right context keys causes silent null-access failures at runtime:
+Both M_ObjectivesManager and M_SceneDirector build a context Dictionary before calling condition/effect methods:
 
-| Call site | Minimum context |
-|---|---|
-| `evaluate_all_conditions` with REDUX source | `{"state_store": _store, "state": _store.get_state()}` |
-| `execute_effects` with DISPATCH_ACTION | `{"state_store": _store}` |
-| `execute_effects` with PUBLISH_EVENT | add `"event_payload": {}` |
-| SIGNAL beat advancement | add `"event_payload": event.get("payload", {})` |
+```gdscript
+func _build_context() -> Dictionary:
+    return {
+        "state_store": _store,
+        "redux_state": _store.get_state(),
+    }
 
-Always call `_build_context()` rather than building inline dicts — it ensures consistency and is easy to extend.
+# When triggered by an event:
+func _build_event_context(event_payload: Dictionary) -> Dictionary:
+    var context := _build_context()
+    context["event_payload"] = event_payload
+    return context
+```
+
+**Condition evaluation (binary AND):**
+```gdscript
+func _check_conditions(conditions: Array[RS_BaseCondition], context: Dictionary) -> bool:
+    for condition in conditions:
+        if condition.evaluate(context) <= 0.0:
+            return false
+    return true
+```
+
+**Effect execution:**
+```gdscript
+func _execute_effects(effects: Array[RS_BaseEffect], context: Dictionary) -> void:
+    for effect in effects:
+        effect.execute(context)
+```
+
+**Appropriate condition subclasses for objectives/beats:**
+- `RS_ConditionReduxField` -- Redux state checks
+- `RS_ConditionEventPayload` -- event payload checks
+- `RS_ConditionConstant` -- unconditional / weighting
+
+**Not supported:** `RS_ConditionComponentField`, `RS_ConditionEntityTag` (no per-entity context at manager level)
 
 ---
 

@@ -11,8 +11,8 @@
 - `description: String`
 - `objective_type: ObjectiveType` enum (STANDARD, VICTORY, CHECKPOINT)
   - Note: `CHECKPOINT` type is defined for future use; behavior is **not implemented in Phase 1-6**. The enum value must exist so resources can be authored, but M_ObjectivesManager treats CHECKPOINT the same as STANDARD until a later phase adds save-trigger behavior.
-- `conditions: Array[RS_QBCondition]` -- reuse existing QB condition resources; must use REDUX, EVENT_PAYLOAD, or CUSTOM sources only (no COMPONENT source — no per-entity context at manager level)
-- `completion_effects: Array[RS_QBEffect]` -- reuse existing QB effect resources
+- `conditions: Array[RS_BaseCondition]` -- v2 typed conditions. Use `RS_ConditionReduxField`, `RS_ConditionEventPayload`, or `RS_ConditionConstant` subclasses (no `RS_ConditionComponentField` — no per-entity context at manager level)
+- `completion_effects: Array[RS_BaseEffect]` -- v2 typed effects. Use `RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetContextValue`, etc.
 - `completion_event_payload: Dictionary = {}` -- arbitrary data merged into the published completion event. Enables type-specific data without type-specific fields (e.g., VICTORY objectives set `{"target_scene": StringName("victory")}`).
 - `dependencies: Array[StringName]` -- objective IDs that must be completed first
 - `auto_activate: bool = false` -- activate immediately when set loads (regardless of dependencies; use for root-level objectives that have no prerequisites)
@@ -27,8 +27,8 @@
 **RS_BeatDefinition** (`scripts/resources/scene_director/rs_beat_definition.gd`):
 - `beat_id: StringName`
 - `description: String`
-- `preconditions: Array[RS_QBCondition]` -- gate beat execution
-- `effects: Array[RS_QBEffect]` -- fire when beat runs
+- `preconditions: Array[RS_BaseCondition]` -- v2 typed conditions that gate beat execution
+- `effects: Array[RS_BaseEffect]` -- v2 typed effects that fire when beat runs
 - `wait_mode: WaitMode` enum (INSTANT, TIMED, SIGNAL)
 - `duration: float = 0.0` -- for TIMED wait mode
 - `wait_event: StringName = &""` -- for SIGNAL wait mode
@@ -37,7 +37,7 @@
 - `directive_id: StringName`
 - `description: String`
 - `target_scene_id: StringName` -- which scene this directive applies to
-- `selection_conditions: Array[RS_QBCondition]` -- conditions for selecting this directive
+- `selection_conditions: Array[RS_BaseCondition]` -- v2 typed conditions for selecting this directive
 - `priority: int = 0` -- higher priority directives checked first
 - `beats: Array[RS_BeatDefinition]`
 
@@ -134,13 +134,14 @@ Note: `validate_graph` requires `known_ids` because the graph's adjacency list c
 - In `_ready()`: calls `load_objective_set(set.set_id)` for each set in `objective_sets`
 - Subscribes to gameplay events via `U_ECSEventBus` (checkpoint_activated, victory_executed, area_complete via action_dispatched)
 - `load_objective_set(set_id)` -- activate set, build graph via `U_ObjectiveGraph.build_graph()`, validate via `validate_graph(graph, known_ids)`, activate auto_activate objectives
-- `_check_objective_conditions(objective_id)` -- evaluate conditions via `U_QBRuleEvaluator.evaluate_all_conditions(conditions, context)`
-- `_build_context() -> Dictionary` -- returns `{"state_store": _store, "state": _store.get_state()}`; call before any QB utility invocation. Optionally extend with `"event_payload"` when evaluating event-triggered conditions.
-- `_complete_objective(objective_id)` -- dispatch complete action, execute effects via `U_QBEffectExecutor.execute_effects(effects, _build_context())`, activate dependents, log event
+- `_check_conditions(conditions, context) -> bool` -- iterates `condition.evaluate(context)`, returns true only if all > 0.0
+- `_execute_effects(effects, context)` -- iterates `effect.execute(context)`
+- `_build_context() -> Dictionary` -- returns `{"state_store": _store, "redux_state": _store.get_state()}`
+- `_complete_objective(objective_id)` -- dispatch complete action, execute effects via `_execute_effects(objective.completion_effects, _build_context())`, activate dependents, log event
 - `_fail_objective(objective_id)` -- dispatch fail action
 - `get_objective_status(objective_id)` -- read from Redux via selectors
 - `_activate_dependents(objective_id)` -- check graph for ready dependents, activate them
-- For VICTORY type completion: after effects fire, read `objective.completion_event_payload` and publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with that dict as the event payload. `M_SceneManager` reads `event.payload.get("target_scene")` to determine the transition target.
+- For VICTORY type completion: after effects execute, read `objective.completion_event_payload` and publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with that dict as the event payload. `M_SceneManager` reads `event.payload.get("target_scene")` to determine the transition target.
 
 ### 2C: Tests
 
@@ -163,7 +164,7 @@ Note: `validate_graph` requires `known_ids` because the graph's adjacency list c
 **U_BeatRunner** (`scripts/utils/scene_director/u_beat_runner.gd`):
 - RefCounted state machine
 - `start(beats: Array[RS_BeatDefinition])` -- initialize with beat list
-- `execute_current_beat(context: Dictionary)` -- check preconditions via `U_QBRuleEvaluator`, fire effects via `U_QBEffectExecutor`
+- `execute_current_beat(context: Dictionary)` -- check preconditions via `condition.evaluate(context)`, execute effects via `effect.execute(context)`
 - `advance()` -- move to next beat
 - `is_complete() -> bool` -- no more beats
 - `get_current_beat() -> RS_BeatDefinition`
@@ -172,7 +173,7 @@ Note: `validate_graph` requires `known_ids` because the graph's adjacency list c
 - `update(delta: float)` -- tick for TIMED beats
 - `on_signal_received(event_name: StringName)` -- advance SIGNAL beats
 
-Context requirements: `execute_current_beat(context)` passes the context dict directly to QB utilities. The caller (M_SceneDirector) must build it: `{"state_store": _store, "state": _store.get_state()}`. For SIGNAL beats triggered by an ECS event, also include `"event_payload": event.get("payload", {})`. Beat conditions must use REDUX, EVENT_PAYLOAD, or CUSTOM sources — no COMPONENT source.
+Context requirements: The caller (M_SceneDirector) builds it: `{"state_store": _store, "redux_state": _store.get_state()}`. For SIGNAL beats triggered by an ECS event, also include `"event_payload": event.get("payload", {})`. Beat conditions should use `RS_ConditionReduxField`, `RS_ConditionEventPayload`, or `RS_ConditionConstant` — no `RS_ConditionComponentField`.
 
 ### 3B: M_SceneDirector (TDD)
 
@@ -182,9 +183,9 @@ Context requirements: `execute_current_beat(context)` passes the context dict di
 - `@export var directives: Array[RS_SceneDirective] = []` -- directives assigned in root.tscn via ExtResource
 - Discovers store via injection-first + ServiceLocator fallback
 - Subscribes to `scene/transition_completed` via `action_dispatched` to select directive for new scene
-- `_select_directive(scene_id)` -- find highest-priority directive whose `target_scene_id == scene_id` and whose `selection_conditions` pass. Evaluates conditions with `{"state_store": _store, "state": _store.get_state()}` as context. Selection conditions must use REDUX, EVENT_PAYLOAD, or CUSTOM sources.
+- `_select_directive(scene_id)` -- find highest-priority directive whose `target_scene_id == scene_id` and whose `selection_conditions` all pass (`condition.evaluate(context) > 0.0`)
 - `_start_directive(directive)` -- dispatch start action, initialize beat runner
-- `_build_context() -> Dictionary` -- returns `{"state_store": _store, "state": _store.get_state()}`; pass to U_BeatRunner.execute_current_beat()
+- `_build_context() -> Dictionary` -- returns `{"state_store": _store, "redux_state": _store.get_state()}`
 - `_physics_process(delta)` -- tick beat runner for TIMED beats; pass `_build_context()` to execute_current_beat
 - Subscribes to ECS events for SIGNAL beat advancement; passes event payload in context when forwarding to beat runner
 - On directive complete: dispatch complete action, publish `directive_completed` event
@@ -207,8 +208,8 @@ Context requirements: `execute_current_beat(context)` passes the context dict di
 ### 4A: Victory Objective Resources
 
 Create objective definitions for victory scenarios:
-- `resources/scene_director/objectives/cfg_obj_level_complete.tres` -- STANDARD type, `auto_activate: true` (activates immediately when the set loads; the status goes to `active` on load, not on area completion — completion happens when the condition is met). Conditions: area completion check via REDUX source (evaluates `gameplay.completed_areas`).
-- `resources/scene_director/objectives/cfg_obj_game_complete.tres` -- VICTORY type, `dependencies: [level_complete]`. Conditions: required_final_area check via REDUX source. `completion_effects: [DISPATCH_ACTION: game_complete]`. `completion_event_payload: {"target_scene": StringName("victory")}` — M_ObjectivesManager reads this dict and includes it as the payload of `EVENT_OBJECTIVE_VICTORY_TRIGGERED`; M_SceneManager reads `event.payload.get("target_scene")` to determine the transition target.
+- `resources/scene_director/objectives/cfg_obj_level_complete.tres` -- STANDARD type, `auto_activate: true` (activates immediately when the set loads; the status goes to `active` on load, not on area completion — completion happens when the condition is met). Conditions: `RS_ConditionReduxField` checking `gameplay.completed_areas`.
+- `resources/scene_director/objectives/cfg_obj_game_complete.tres` -- VICTORY type, `dependencies: [level_complete]`. Conditions: `RS_ConditionReduxField` checking required final area. `completion_effects: [RS_EffectDispatchAction: game_complete]`. `completion_event_payload: {"target_scene": StringName("victory")}` — M_ObjectivesManager reads this dict and includes it as the payload of `EVENT_OBJECTIVE_VICTORY_TRIGGERED`; M_SceneManager reads `event.payload.get("target_scene")` to determine the transition target.
 
 Create objective set:
 - `resources/scene_director/sets/cfg_objset_default.tres` -- default progression set
@@ -228,8 +229,8 @@ Add to M_SceneManager:
 ### 4C: Wire M_ObjectivesManager
 
 - M_ObjectivesManager subscribes to `victory_executed` event
-- On `victory_executed`: evaluate VICTORY objectives' conditions using `_build_context()` (no COMPONENT source; REDUX source reads from `state_store.get_state()`)
-- When VICTORY objective completes: fire `completion_effects`, then read `objective.completion_event_payload` and publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with that dict as the event payload
+- On `victory_executed`: evaluate VICTORY objectives' conditions via `condition.evaluate(context)` (context built from `_build_context()`)
+- When VICTORY objective completes: execute `completion_effects` via `effect.execute(context)`, then read `objective.completion_event_payload` and publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with that dict as the event payload
 
 ### 4D: Scene Integration
 
@@ -367,8 +368,7 @@ tests/integration/scene_director/test_scene_director_integration.gd
 | `scripts/state/m_state_store.gd` | Add @export for objectives + scene_director initial state |
 | `scripts/root.gd` | Register M_ObjectivesManager + M_SceneDirector with ServiceLocator |
 | `scripts/events/ecs/u_ecs_event_names.gd` | Add objective/directive event constants |
-| `scripts/utils/qb/u_qb_rule_evaluator.gd` | Reuse for condition evaluation |
-| `scripts/utils/qb/u_qb_effect_executor.gd` | Reuse for effect execution |
-| `scripts/utils/qb/u_qb_quality_provider.gd` | Reuse for quality reading |
+| `scripts/resources/qb/rs_base_condition.gd` | Base class for typed conditions (v2) |
+| `scripts/resources/qb/rs_base_effect.gd` | Base class for typed effects (v2) |
 | `scenes/root.tscn` | Add M_ObjectivesManager + M_SceneDirector nodes |
 | `tests/mocks/` | MockStateStore, MockECSManager for testing |

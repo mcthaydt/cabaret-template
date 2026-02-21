@@ -15,11 +15,11 @@ Victory and checkpoint logic lives in handler systems (`S_VictoryHandlerSystem`,
 
 ## Solution
 
-Three systems layered on the existing QB Rule Manager infrastructure:
+Three systems, using v2 QB typed resources for condition/effect evaluation:
 
-1. **M_ObjectivesManager** -- Dependency graph, win/loss conditions, event logging. Manages objective lifecycle (inactive -> active -> completed/failed). Uses QB utilities (`U_QBRuleEvaluator`, `U_QBEffectExecutor`, `U_QBQualityProvider`) for condition/effect evaluation without extending `BaseQBRuleManager`.
+1. **M_ObjectivesManager** -- Dependency graph, win/loss conditions, event logging. Manages objective lifecycle (inactive -> active -> completed/failed). Uses v2 typed conditions/effects directly — `condition.evaluate(context)` and `effect.execute(context)`. No utility classes or base class inheritance needed.
 
-2. **M_SceneDirector** -- Beat runner for intra-scene sequences. Executes ordered beats within a scene directive. Beats can trigger dialogue, camera moves, spawn events, or any effect expressible through the QB effect system.
+2. **M_SceneDirector** -- Beat runner for intra-scene sequences. Executes ordered beats within a scene directive. Beats can trigger dialogue, camera moves, spawn events, or any effect expressible through v2 effect subclasses.
 
 3. **Scene Manager refactor** -- Strip victory/game-flow logic from `M_SceneManager`, making it a pure scene loader/transition coordinator. Victory transitions become objective-driven via `M_ObjectivesManager` publishing events that `M_SceneManager` subscribes to.
 
@@ -31,8 +31,8 @@ Three systems layered on the existing QB Rule Manager infrastructure:
 
 Resource-defined goals tracked in Redux state. Each objective has:
 - **Status lifecycle**: `inactive` -> `active` -> `completed` | `failed`
-- **Conditions**: QB conditions that determine when an objective completes (reuses `RS_QBCondition`)
-- **Effects**: QB effects that fire on completion (reuses `RS_QBEffect`)
+- **Conditions**: v2 typed conditions that determine when an objective completes (`Array[RS_BaseCondition]` — use `RS_ConditionReduxField`, `RS_ConditionEventPayload`, `RS_ConditionConstant`)
+- **Effects**: v2 typed effects that fire on completion (`Array[RS_BaseEffect]` — use `RS_EffectDispatchAction`, `RS_EffectPublishEvent`, etc.)
 - **Dependencies**: Other objective IDs that must be completed before this one activates (DAG)
 - **Type**: `STANDARD`, `VICTORY` (triggers win flow), `CHECKPOINT` (triggers save — deferred, not implemented in Phase 1-6)
 - **Completion event payload**: `completion_event_payload: Dictionary` — arbitrary data merged into the published completion event. Allows objectives to carry type-specific data (e.g., VICTORY objectives set `{"target_scene": StringName("victory")}`) without polluting the base resource with type-specific fields.
@@ -43,13 +43,13 @@ A collection of objectives that define a complete game progression. Only one set
 
 ### Dependency Graph (DAG)
 
-Objectives form a directed acyclic graph at the objectives layer (not QB rules). Dependencies are declared on `RS_ObjectiveDefinition` resources. The graph is validated at load time (cycle detection, missing references). When an objective completes, the graph evaluator activates any dependents whose prerequisites are now met.
+Objectives form a directed acyclic graph at the objectives layer. Dependencies are declared on `RS_ObjectiveDefinition` resources. The graph is validated at load time (cycle detection, missing references). When an objective completes, the graph evaluator activates any dependents whose prerequisites are now met.
 
 ### Beats
 
 Ordered intra-scene directives. A beat is an atomic step in a scene sequence:
-- **Preconditions**: QB conditions that gate beat execution
-- **Effects**: QB effects that fire when the beat runs
+- **Preconditions**: v2 typed conditions that gate beat execution
+- **Effects**: v2 typed effects that fire when the beat runs
 - **Duration**: Optional timed duration before auto-advancing to next beat
 - **Wait mode**: `INSTANT` (advance immediately after effects), `TIMED` (wait duration), `SIGNAL` (wait for event)
 
@@ -60,7 +60,7 @@ A named sequence of beats for a specific scene. Multiple directives can exist pe
 ### Victory as Objective Type
 
 Victory is modeled as an objective with type `VICTORY`. When a VICTORY objective completes:
-1. Its effects fire (e.g., `DISPATCH_ACTION: game_complete`)
+1. Its effects execute via `effect.execute(context)` (e.g., `RS_EffectDispatchAction: game_complete`)
 2. `M_ObjectivesManager` reads `objective.completion_event_payload` and publishes `objective_victory_triggered` with that payload
 3. `M_SceneManager` subscribes, reads `event.payload.get("target_scene")`, and calls `transition_to_scene(target)`
 4. No hardcoded scene selection in `M_SceneManager` -- the objective's `completion_event_payload` determines the target
@@ -76,19 +76,21 @@ RS_BeatDefinition              -- Single beat step (preconditions, effects, dura
 RS_SceneDirective              -- Ordered sequence of beats for a scene
 ```
 
+All condition/effect arrays use v2 typed resources (`Array[RS_BaseCondition]`, `Array[RS_BaseEffect]`). The inspector shows valid subclass dropdowns.
+
 ---
 
 ## Class Hierarchy
 
 ```
 Resources (data):
-  RS_ObjectiveDefinition         -- Objective with conditions, effects, dependencies, type
+  RS_ObjectiveDefinition         -- Objective with typed conditions, effects, dependencies, type
   RS_ObjectiveSet                -- Collection of objectives
-  RS_BeatDefinition              -- Beat step (preconditions, effects, timing)
+  RS_BeatDefinition              -- Beat step (typed preconditions, effects, timing)
   RS_SceneDirective              -- Ordered beat sequence for a scene
 
 Managers:
-  M_ObjectivesManager            -- Node (NOT BaseQBRuleManager); graph eval, event log, Redux sync
+  M_ObjectivesManager            -- Node; graph eval, event log, Redux sync
   M_SceneDirector                -- Node; beat runner, directive selection
 
 Helpers (pure logic, testable):
@@ -124,22 +126,22 @@ State (Redux):
 ### Objectives Flow
 
 ```
-[Game Events / QB Rules]
+[Game Events]
         |  (checkpoint_activated, victory_triggered, area_complete, etc.)
         v
   M_ObjectivesManager._on_event_received(event)
         |
         v
-  _check_objective_conditions(objective_id)
-        |  reads Redux state + ECS components via U_QBQualityProvider
-        |  evaluates conditions via U_QBRuleEvaluator
+  _check_conditions(objective.conditions, context)
+        |  builds context: {state_store, redux_state}
+        |  iterates: condition.evaluate(context) > 0.0 for ALL
         v
   [conditions met?]
         |
         v  YES
   _complete_objective(objective_id)
         |  dispatch U_ObjectivesActions.complete(objective_id)
-        |  execute completion effects via U_QBEffectExecutor
+        |  iterate completion effects: effect.execute(context)
         |  log event via U_ObjectiveEventLog
         v
   _activate_dependents(objective_id)
@@ -164,7 +166,8 @@ State (Redux):
         |
         v
   M_SceneDirector._select_directive(scene_id)
-        |  evaluates directive preconditions against Redux state
+        |  evaluates directive selection_conditions: condition.evaluate(context)
+        |  picks highest-priority passing directive
         v
   M_SceneDirector._start_directive(directive)
         |  dispatch U_SceneDirectorActions.start_directive(directive_id)
@@ -172,9 +175,9 @@ State (Redux):
   U_BeatRunner.start(beats)
         |
         v  (each beat)
-  U_BeatRunner.execute_current_beat()
-        |  check preconditions via U_QBRuleEvaluator
-        |  execute effects via U_QBEffectExecutor
+  U_BeatRunner.execute_current_beat(context)
+        |  check preconditions: condition.evaluate(context) > 0.0 for all
+        |  execute effects: effect.execute(context)
         |  wait based on wait_mode (INSTANT / TIMED / SIGNAL)
         v
   U_BeatRunner.advance()
@@ -192,67 +195,73 @@ State (Redux):
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Objectives own dependency graph | DAG at objectives layer, not QB rules | QB rules are condition-effect pairs without dependency semantics; objectives need ordered progression |
+| Objectives own dependency graph | DAG at objectives layer | Objectives need ordered progression; rules are condition-effect pairs without dependency semantics |
 | Manager, not ECS system | M_ObjectivesManager extends Node | Objectives are global game state, not per-entity ECS behavior; no physics tick needed |
 | Absorb victory, keep checkpoint | Victory transitions move to objectives; checkpoint handler stays | Checkpoint activation is a focused handler pattern that works well; victory needs objective context |
-| QB utility reuse, not extension | Uses U_QBRuleEvaluator/EffectExecutor/QualityProvider | Same condition/effect evaluation without the per-tick rule loop overhead of BaseQBRuleManager |
+| Direct v2 condition/effect evaluation | Call evaluate()/execute() on typed resources | Conditions/effects are self-contained — no utility classes needed. Simpler than v1 which required 3 utility classes |
 | Both debug + runtime event log | U_ObjectiveEventLog tracks all state transitions | Essential for debugging progression issues; log is structured and queryable |
 | Resource-defined objectives | RS_ObjectiveDefinition .tres files | Consistent with RS_* pattern, editor-friendly, mobile-safe preload |
 | Objective sets for modularity | RS_ObjectiveSet groups objectives | Enables campaign/difficulty/mod swapping without code changes |
 | Beat runner as helper | U_BeatRunner is RefCounted, not a Node | Pure state machine logic; M_SceneDirector owns the Node lifecycle |
 | Two Redux slices | objectives + scene_director | Clean separation of concerns; objectives persist, director state is transient |
 | Scene Manager stays a loader | Strip game flow logic, keep transitions | Single responsibility; M_SceneManager should not know about victory conditions |
-| Victory target in objective | Objective effects determine transition target | No hardcoded match statement; data-driven scene selection |
+| Victory target in objective | Objective completion_event_payload determines transition target | No hardcoded match statement; data-driven scene selection |
 
 ---
 
 ## Anti-Patterns
 
-- Do NOT extend BaseQBRuleManager for objectives (objectives need graph semantics, not per-tick rule evaluation)
-- Do NOT put dependency graph logic in QB rules (rules are condition-effect pairs, not DAG nodes)
+- Do NOT extend BaseECSSystem for objectives (objectives are global game state, not per-entity tick behavior)
+- Do NOT put dependency graph logic in rules (rules are condition-effect pairs, not DAG nodes)
 - Do NOT keep victory scene selection in M_SceneManager (move to objective effects)
 - Do NOT use runtime DirAccess for objective/directive loading (use const preload arrays)
-- Do NOT make M_ObjectivesManager an ECS system (it's global game state, not per-entity)
 - Do NOT couple beat execution to physics frames (beats may be timed, signal-based, or instant)
-- Do NOT duplicate QB condition/effect logic (reuse U_QBRuleEvaluator, U_QBEffectExecutor, U_QBQualityProvider)
 - Do NOT modify checkpoint handler (S_CheckpointHandlerSystem stays as-is)
 - Do NOT add objective state to the gameplay Redux slice (use dedicated objectives slice)
+- Do NOT use RS_ConditionComponentField or RS_ConditionEntityTag in objectives/beats (no per-entity context at manager level; use RS_ConditionReduxField, RS_ConditionEventPayload, or RS_ConditionConstant)
 
 ---
 
 ## Integration Points
 
-### With QB Rule Manager Utilities
+### With v2 QB Typed Resources
 
-Objectives reuse the QB evaluation stack without extending BaseQBRuleManager:
-- `U_QBRuleEvaluator.evaluate_condition()` -- check objective completion conditions
-- `U_QBEffectExecutor.execute_effects()` -- fire objective completion effects
-- `U_QBQualityProvider.read_quality()` -- read qualities for condition evaluation
+Objectives and beats use v2 condition/effect resources directly. No intermediate utility classes — conditions self-evaluate, effects self-execute:
 
-#### Context Building (Required)
-
-Both `M_ObjectivesManager` and `M_SceneDirector` must construct a `context: Dictionary` before calling any QB utility. The required keys depend on the condition/effect source types in use:
-
-| Context key | Required by | Notes |
-|---|---|---|
-| `"state_store"` | `DISPATCH_ACTION` effects | Pass the `I_StateStore` instance |
-| `"state"` | `REDUX`-source conditions | Pass `state_store.get_state()` |
-| `"event_payload"` | `PUBLISH_EVENT` effects, `EVENT_PAYLOAD`-source conditions | Pass the triggering event's payload dict |
-
-Minimum context for objective condition evaluation:
 ```gdscript
-var context := {
-    "state_store": _store,
-    "state": _store.get_state(),
-}
+# Check all conditions pass (binary AND)
+func _check_conditions(conditions: Array[RS_BaseCondition], context: Dictionary) -> bool:
+    for condition in conditions:
+        if condition.evaluate(context) <= 0.0:
+            return false
+    return true
+
+# Execute effects
+func _execute_effects(effects: Array[RS_BaseEffect], context: Dictionary) -> void:
+    for effect in effects:
+        effect.execute(context)
 ```
 
-For beats that fire `PUBLISH_EVENT` effects or evaluate `EVENT_PAYLOAD`-source conditions, also populate:
-```gdscript
-context["event_payload"] = triggering_event.get("payload", {})
-```
+**Appropriate condition subclasses for objectives/beats:**
+- `RS_ConditionReduxField` — check Redux state values (e.g., `navigation.shell`, `scene.is_transitioning`)
+- `RS_ConditionEventPayload` — check event payload fields (e.g., `trigger_node`, `checkpoint`)
+- `RS_ConditionConstant` — fixed score for unconditional beats or weighting
 
-**`COMPONENT`-source conditions are not supported for objectives or beats** — there is no per-entity ECS context at the manager level. Objective and beat conditions must use `REDUX`, `EVENT_PAYLOAD`, or `CUSTOM` sources only.
+**Context building:**
+
+```gdscript
+func _build_context() -> Dictionary:
+    return {
+        "state_store": _store,
+        "redux_state": _store.get_state(),
+    }
+
+# When triggered by an event:
+func _build_event_context(event_payload: Dictionary) -> Dictionary:
+    var context := _build_context()
+    context["event_payload"] = event_payload
+    return context
+```
 
 ### With Redux State (M_StateStore)
 
@@ -260,7 +269,7 @@ Two new slices:
 - `objectives` -- persistent slice (statuses, active_set_id, event_log)
 - `scene_director` -- transient slice (active_directive_id, current_beat_index, state)
 
-New action/reducer/selector/initial-state files follow existing patterns (see `u_gameplay_actions.gd`, `u_gameplay_reducer.gd`, etc.).
+New action/reducer/selector/initial-state files follow existing patterns.
 
 ### With ECS Event Bus (U_ECSEventBus)
 
@@ -276,7 +285,7 @@ M_ObjectivesManager subscribes to existing gameplay events (checkpoint_activated
 - Remove `_on_victory_executed()` handler and `_get_victory_target_scene()` from M_SceneManager
 - Remove `C_VICTORY_TRIGGER_COMPONENT` preload (line 36)
 - M_SceneManager subscribes to `objective_victory_triggered` event from M_ObjectivesManager
-- Victory target scene comes from objective completion effects (data-driven)
+- Victory target scene comes from objective completion_event_payload (data-driven)
 
 ### With ServiceLocator (root.gd)
 
