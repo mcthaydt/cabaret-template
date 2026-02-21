@@ -328,6 +328,68 @@ func test_salience_state_tracked_for_losing_rules() -> void:
 	assert_false(names_t4.has(&"low_s_event"), "Low rule still loses competition on tick 4")
 
 
+func test_per_context_independent_winner_selection() -> void:
+	# Entity A context has high score_x and low score_y → rule_x wins for A.
+	# Entity B context has low score_x and high score_y → rule_y wins for B.
+	# Both rules are in the same group, so only one fires per context — but the
+	# winner differs between contexts, proving per-context scoping works correctly.
+
+	var condition_x: Variant = _make_float_condition_with_curve("score_x", 0.0, 100.0)
+	var condition_y: Variant = _make_float_condition_with_curve("score_y", 0.0, 100.0)
+
+	var rule_x: Variant = _make_rule(&"rule_x", [condition_x], [_make_event_effect(&"x_event")], &"ctx_group")
+	var rule_y: Variant = _make_rule(&"rule_y", [condition_y], [_make_event_effect(&"y_event")], &"ctx_group")
+
+	var result: Dictionary = _configure_manager([rule_x, rule_y])
+	var manager: Variant = result["manager"]
+
+	var ctx_a: Dictionary = {"entity_id": "entity_a", "score_x": 80.0, "score_y": 20.0}
+	var ctx_b: Dictionary = {"entity_id": "entity_b", "score_x": 20.0, "score_y": 80.0}
+	manager.contexts = [ctx_a, ctx_b]
+	manager.process_tick(0.1)
+
+	var history: Array = U_ECSEventBus.get_event_history()
+	var fired_names: Array[StringName] = []
+	for entry in history:
+		fired_names.append(StringName(String(entry.get("name", ""))))
+
+	assert_true(fired_names.has(&"x_event"), "rule_x should win for entity_a (higher score_x)")
+	assert_true(fired_names.has(&"y_event"), "rule_y should win for entity_b (higher score_y)")
+
+
+func test_event_rule_in_decision_group_participates_in_scoring() -> void:
+	# Two EVENT-triggered rules in the same decision group both become candidates when
+	# the trigger event fires (salience auto-disabled for events). Only the winner
+	# fires — group selection applies even though salience is bypassed.
+	# Alphabetical tiebreak: "alpha_event_rule" < "beta_event_rule" → alpha wins.
+
+	var rule_alpha: Variant = QB_RULE.new()
+	rule_alpha.rule_id = &"alpha_event_rule"
+	rule_alpha.trigger_mode = QB_RULE.TriggerMode.EVENT
+	rule_alpha.trigger_event = &"group_test_event"
+	rule_alpha.effects = [_make_event_effect(&"alpha_event_fired")]
+	rule_alpha.decision_group = &"event_grp"
+
+	var rule_beta: Variant = QB_RULE.new()
+	rule_beta.rule_id = &"beta_event_rule"
+	rule_beta.trigger_mode = QB_RULE.TriggerMode.EVENT
+	rule_beta.trigger_event = &"group_test_event"
+	rule_beta.effects = [_make_event_effect(&"beta_event_fired")]
+	rule_beta.decision_group = &"event_grp"
+
+	var result: Dictionary = _configure_manager([rule_alpha, rule_beta])
+
+	U_ECSEventBus.publish(&"group_test_event", {})
+
+	var history: Array = U_ECSEventBus.get_event_history()
+	var fired_names: Array[StringName] = []
+	for entry in history:
+		fired_names.append(StringName(String(entry.get("name", ""))))
+
+	assert_true(fired_names.has(&"alpha_event_fired"), "Alphabetically earlier event rule should win the group")
+	assert_false(fired_names.has(&"beta_event_fired"), "beta_event_rule should be outcompeted in the group")
+
+
 func test_one_shot_winner_disabled_next_runner_up_wins() -> void:
 	var condition_a: Variant = _make_bool_condition("flag")
 	var condition_b: Variant = _make_bool_condition("flag")
