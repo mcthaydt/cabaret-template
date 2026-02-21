@@ -4,6 +4,8 @@ shader_type canvas_item;
 uniform float intensity : hint_range(0.0, 1.0) = 0.5;
 uniform int levels : hint_range(2, 16) = 4;
 uniform int pattern_mode : hint_range(0, 1) = 0; // 0 = bayer, 1 = noise
+uniform float time = 0.0;
+uniform float luma_weight : hint_range(0.0, 1.0) = 0.5;
 uniform sampler2D screen_texture : hint_screen_texture;
 
 // Fast hash for noise pattern
@@ -36,7 +38,7 @@ float _bayer8x8(vec2 pixel_pos) {
 // Get dither threshold value
 float _get_threshold(vec2 pixel_pos) {
 	if (pattern_mode == 1) {
-		return _hash12(pixel_pos);
+		return _hash12(pixel_pos + fract(vec2(time * 7.317, time * 5.137)));
 	} else {
 		return _bayer8x8(pixel_pos);
 	}
@@ -64,9 +66,14 @@ void fragment() {
 	// Get dither threshold
 	float threshold = _get_threshold(pixel_pos);
 
+	// Luma weighting: shadows get full dithering, highlights get less
+	float luma = dot(base.rgb, vec3(0.2126, 0.7152, 0.0722));
+	float luma_scale = 1.0 - (luma * luma_weight);
+	float weighted_threshold = mix(0.5, threshold, luma_scale);
+
 	// Apply dithering
 	float level_count = max(2.0, float(levels));
-	vec3 dithered = _dither_color(base.rgb, threshold, level_count);
+	vec3 dithered = _dither_color(base.rgb, weighted_threshold, level_count);
 
 	// Blend with original based on intensity
 	vec3 result = mix(base.rgb, dithered, intensity);
