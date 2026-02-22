@@ -442,6 +442,8 @@ Every domain builds a context `Dictionary` before calling the scorer. The contra
 | `components` | `Dictionary` | `{component_type → component_instance}` |
 | `event_payload` | `Dictionary` | Event data (if event-triggered evaluation) |
 
+**Context availability by consumer level:** `entity_id`, `entity_tags`, `entity`, and `components` are only available in per-entity contexts (ECS systems like S_CharacterStateSystem, S_CameraStateSystem). Manager-level consumers (M_ObjectivesManager, M_SceneDirector, future narrative/dialogue systems) build contexts without entity data — use `RS_ConditionReduxField`, `RS_ConditionEventPayload`, or `RS_ConditionConstant` in those contexts, not `RS_ConditionComponentField` or `RS_ConditionEntityTag`.
+
 ### Domain-Specific Keys
 
 Each domain adds its own keys. The character system adds `is_gameplay_active`, `is_grounded`, `is_dead`, `health_percent`, etc. The camera system adds `shake_trauma`, `base_fov`, `target_fov`. Future domains add whatever they need. The scoring library doesn't know or care about these keys — conditions resolve them via their configured paths.

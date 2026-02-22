@@ -184,7 +184,7 @@ Context requirements: The caller (M_SceneDirector) builds it: `{"state_store": _
 - Discovers store via injection-first + ServiceLocator fallback
 - Subscribes to `scene/transition_completed` via `action_dispatched` to select directive for new scene
 - `_select_directive(scene_id)` -- find highest-priority directive whose `target_scene_id == scene_id` and whose `selection_conditions` all pass (`condition.evaluate(context) > 0.0`)
-- `_start_directive(directive)` -- dispatch start action, initialize beat runner
+- `_start_directive(directive)` -- dispatch start action, initialize beat runner. On start: collect unique `wait_event` StringNames from all SIGNAL-mode beats, subscribe to each via `U_ECSEventBus`. On `_on_directive_complete()` or `reset()`: unsubscribe all. Store unsubscribe callables for cleanup.
 - `_build_context() -> Dictionary` -- returns `{"state_store": _store, "redux_state": _store.get_state()}`
 - `_physics_process(delta)` -- tick beat runner for TIMED beats; pass `_build_context()` to execute_current_beat
 - Subscribes to ECS events for SIGNAL beat advancement; passes event payload in context when forwarding to beat runner
@@ -245,7 +245,13 @@ Add to M_SceneManager:
 | `tests/unit/scene_director/test_victory_migration.gd` | Victory objective completion triggers scene transition, game_complete prerequisite still enforced |
 | `tests/integration/scene_director/test_objectives_integration.gd` | End-to-end: victory_executed -> objective evaluation -> objective_victory_triggered -> scene transition |
 
-### 4F: Regression + Manual Playtest + Commit
+### 4F: Save Migration
+
+- Add v(N) → v(N+1) migration to `U_SaveMigrationEngine` that injects an empty objectives slice (`{statuses: {}, active_set_id: "", event_log: []}`) into save files missing it
+- M_ObjectivesManager `load_objective_set()` reconciles resource definitions with persisted statuses: loads set from `RS_ObjectiveSet` resources, applies saved statuses where objective IDs match, discards statuses for objectives no longer in the set
+- Test: loading a pre-objectives save file produces valid objectives state with no errors
+
+### 4G: Regression + Manual Playtest + Commit
 
 ---
 

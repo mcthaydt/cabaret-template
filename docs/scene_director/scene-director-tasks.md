@@ -105,7 +105,7 @@
 ### 3B: M_SceneDirector (TDD)
 
 - [ ] T3.6: Create stub `scripts/managers/m_scene_director.gd` (M_SceneDirector extends Node) - @export state_store, @export directives, empty methods for _select_directive, _start_directive, _on_directive_complete, _build_context
-- [ ] T3.7: Create `tests/unit/scene_director/test_scene_director.gd` - Directive selection picks highest priority matching scene + conditions (conditions evaluated via condition.evaluate(context)), beat execution ticks via _physics_process for TIMED, signal advancement for SIGNAL beats, directive completion dispatches complete action + publishes event, no directive selected for scene with no matching directives. Context must include {"state_store": mock_store, "redux_state": {}}.
+- [ ] T3.7: Create `tests/unit/scene_director/test_scene_director.gd` - Directive selection picks highest priority matching scene + conditions (conditions evaluated via condition.evaluate(context)), beat execution ticks via _physics_process for TIMED, signal advancement for SIGNAL beats, directive completion dispatches complete action + publishes event, no directive selected for scene with no matching directives. Context must include {"state_store": mock_store, "redux_state": {}}. SIGNAL subscription tests: event subscriptions created on directive start (only for events referenced by SIGNAL beats), cleaned up on directive complete, cleaned up on reset.
 - [ ] T3.8: Run tests -- confirm they FAIL (red)
 - [ ] T3.9: Implement M_SceneDirector -- store discovery, _build_context() returns {"state_store": _store, "redux_state": _store.get_state()}, directive selection (evaluate selection_conditions via condition.evaluate(context) loop), beat runner lifecycle, _physics_process ticking with _build_context(), event subscription for signals (merges event payload into context)
 - [ ] T3.10: Run tests -- confirm they PASS (green)
@@ -153,12 +153,18 @@
 - [ ] T4.16: Create `tests/unit/scene_director/test_victory_migration.gd` - Victory objective completion triggers EVENT_OBJECTIVE_VICTORY_TRIGGERED, game_complete prerequisite still enforced via objective dependencies, M_SceneManager no longer subscribes to victory_executed
 - [ ] T4.17: Create `tests/integration/scene_director/test_objectives_integration.gd` - End-to-end: victory_executed event -> M_ObjectivesManager evaluates objectives -> VICTORY objective completes -> objective_victory_triggered published -> M_SceneManager transitions
 
-### 4F: Verification
+### 4F: Save Migration
 
-- [ ] T4.18: Run full existing test suite -- verify behavioral equivalence
-- [ ] T4.19: Run scene director unit tests
-- [ ] T4.20: Manual playtest: checkpoint, victory (level + game complete), verify transitions work
-- [ ] T4.21: Update continuation prompt with Phase 4 status
+- [ ] T4.18: Add save migration to `U_SaveMigrationEngine` — inject empty objectives slice (`{statuses: {}, active_set_id: "", event_log: []}`) into saves missing it
+- [ ] T4.19: Implement status reconciliation in M_ObjectivesManager.load_objective_set() — apply saved statuses to loaded resource definitions, discard orphaned statuses for objectives no longer in the set
+- [ ] T4.20: Test save migration + reconciliation — old save loads cleanly, statuses preserved for matching objectives, orphaned statuses discarded
+
+### 4G: Verification
+
+- [ ] T4.21: Run full existing test suite -- verify behavioral equivalence
+- [ ] T4.22: Run scene director unit tests
+- [ ] T4.23: Manual playtest: checkpoint, victory (level + game complete), verify transitions work
+- [ ] T4.24: Update continuation prompt with Phase 4 status
 
 **Phase 4 Commit**: Victory transitions migrated from M_SceneManager to objectives
 

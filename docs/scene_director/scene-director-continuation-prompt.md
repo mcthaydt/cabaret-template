@@ -174,6 +174,8 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 17. **Context building** -- both M_ObjectivesManager and M_SceneDirector implement `_build_context() -> {"state_store": _store, "redux_state": _store.get_state()}` and pass it to condition.evaluate()/effect.execute() calls; for SIGNAL beats also include `"event_payload"`. RS_ConditionComponentField/RS_ConditionEntityTag not supported (no per-entity context at manager level).
 18. **VICTORY completion_event_payload** -- RS_ObjectiveDefinition has `completion_event_payload: Dictionary`; M_ObjectivesManager reads this after effects execute and publishes it as the EVENT_OBJECTIVE_VICTORY_TRIGGERED payload. VICTORY objectives set `{"target_scene": StringName("victory")}` here. This is the general mechanism — not a victory-specific field.
 19. **CHECKPOINT type deferred** -- enum value exists so resources can be authored, but M_ObjectivesManager treats CHECKPOINT the same as STANDARD in Phase 1-6; save-trigger behavior is a future phase.
+20. **SIGNAL subscription strategy** -- M_SceneDirector pre-scans all beats on directive start, subscribes to unique `wait_event` names via `U_ECSEventBus`, unsubscribes on complete/reset. Stores unsubscribe callables for cleanup.
+21. **Event-driven objective evaluation** -- M_ObjectivesManager evaluates objectives only when subscribed events fire (checkpoint_activated, victory_executed, area_complete actions), never per-tick. Milestones, not polls.
 
 ---
 

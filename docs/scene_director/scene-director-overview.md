@@ -29,7 +29,9 @@ Three systems, using v2 QB typed resources for condition/effect evaluation:
 
 ### Objectives
 
-Resource-defined goals tracked in Redux state. Each objective has:
+Resource-defined goals tracked in Redux state. Objective conditions are evaluated **on event**, not polled every tick. M_ObjectivesManager subscribes to specific gameplay events (checkpoint_activated, victory_executed, area_complete actions) and re-evaluates relevant objectives only when those events fire. This is intentional — objectives represent milestone state changes, not continuous queries.
+
+Each objective has:
 - **Status lifecycle**: `inactive` -> `active` -> `completed` | `failed`
 - **Conditions**: v2 typed conditions that determine when an objective completes (`Array[RS_BaseCondition]` — use `RS_ConditionReduxField`, `RS_ConditionEventPayload`, `RS_ConditionConstant`)
 - **Effects**: v2 typed effects that fire on completion (`Array[RS_BaseEffect]` — use `RS_EffectDispatchAction`, `RS_EffectPublishEvent`, etc.)
@@ -171,6 +173,8 @@ State (Redux):
         v
   M_SceneDirector._start_directive(directive)
         |  dispatch U_SceneDirectorActions.start_directive(directive_id)
+        |  pre-scan all beats for unique wait_event values (SIGNAL mode)
+        |  subscribe to each via U_ECSEventBus
         v
   U_BeatRunner.start(beats)
         |
@@ -187,7 +191,10 @@ State (Redux):
         |  NO -> dispatch U_SceneDirectorActions.complete_directive()
         v
   M_SceneDirector._on_directive_complete()
+        |  unsubscribe all SIGNAL event subscriptions
 ```
+
+**SIGNAL subscription lifecycle:** On `_start_directive()`, the director pre-scans all beats for unique `wait_event` values and subscribes to those ECS events. On `_on_directive_complete()` or `reset()`, it unsubscribes all. This avoids subscribing to events that no beat in the current directive cares about.
 
 ---
 
@@ -270,6 +277,13 @@ Two new slices:
 - `scene_director` -- transient slice (active_directive_id, current_beat_index, state)
 
 New action/reducer/selector/initial-state files follow existing patterns.
+
+#### Save/Load Integration
+
+- Objectives slice is persistent — objective **statuses** are saved/loaded
+- Objective **definitions** are always reconstructed from `RS_ObjectiveSet` resources on load (resources are the source of truth for structure; saves are the source of truth for progress)
+- `U_SaveMigrationEngine` needs a migration step (v(N) → v(N+1)) that injects an empty `objectives: {statuses: {}, active_set_id: "", event_log: []}` into old save files missing the slice
+- On load, M_ObjectivesManager reconciles: loads set from resources, applies saved statuses where objective IDs match, discards statuses for objectives no longer in the set
 
 ### With ECS Event Bus (U_ECSEventBus)
 
