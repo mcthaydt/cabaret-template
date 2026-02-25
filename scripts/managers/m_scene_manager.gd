@@ -49,7 +49,7 @@ const H_GAMEPLAY_SCENE_HANDLER := preload("res://scripts/scene_management/handle
 const H_MENU_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_menu_scene_handler.gd")
 const H_UI_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_ui_scene_handler.gd")
 const H_ENDGAME_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_endgame_scene_handler.gd")
-const DEBUG_VICTORY_TRACE := true
+const DEBUG_VICTORY_TRACE := false
 
 ## Priority enum (re-exported from U_SceneTransitionQueue for external callers)
 enum Priority {

@@ -18,7 +18,7 @@ const STATUS_INACTIVE := "inactive"
 const STATUS_ACTIVE := "active"
 const STATUS_COMPLETED := "completed"
 const STATUS_FAILED := "failed"
-const DEBUG_VICTORY_TRACE := true
+const DEBUG_VICTORY_TRACE := false
 const DEBUG_SIGNATURE := "objmgr-2026-02-25T2"
 
 @export var state_store: I_StateStore = null
@@ -93,6 +93,8 @@ func _ready() -> void:
 		load_objective_set(set_id)
 
 func _emit_startup_signature() -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
 	var objective_set_ids: Array[String] = []
 	for objective_set_resource in objective_sets:
 		var objective_set := objective_set_resource as Resource

@@ -12,7 +12,7 @@ class_name UI_Victory
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
-const DEBUG_VICTORY_TRACE := true
+const DEBUG_VICTORY_TRACE := false
 
 @onready var _title_label: Label = $MarginContainer/VBoxContainer/TitleLabel
 @onready var _completed_label: Label = $MarginContainer/VBoxContainer/CompletedLabel

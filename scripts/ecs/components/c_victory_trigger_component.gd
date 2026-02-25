@@ -6,7 +6,7 @@ const EVENT_VICTORY_ZONE_ENTERED := StringName("victory_zone_entered")
 
 const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
-const DEBUG_VICTORY_TRACE := true
+const DEBUG_VICTORY_TRACE := false
 
 enum VictoryType {
 	LEVEL_COMPLETE = 0,

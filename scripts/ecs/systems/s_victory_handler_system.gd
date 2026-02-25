@@ -6,7 +6,7 @@ class_name S_VictoryHandlerSystem
 ## If set, system uses this instead of U_StateUtils.get_store()
 @export var state_store: I_StateStore = null
 @export var required_final_area: String = "bar"
-const DEBUG_VICTORY_TRACE := true
+const DEBUG_VICTORY_TRACE := false
 
 var _store: I_StateStore = null
 var _event_unsubscribes: Array[Callable] = []
