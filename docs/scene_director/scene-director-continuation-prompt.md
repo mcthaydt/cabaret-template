@@ -6,12 +6,12 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Current Status
 
-**Phase**: Not started
+**Phase**: Phase 1 in progress
 **Branch**: scene-director
-**Next Task**: T1.1 -- Create RS_ObjectiveDefinition resource
+**Next Task**: T1.2 -- Create RS_ObjectiveSet resource
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
-**Latest Verification**: N/A (no implementation yet)
+**Latest Verification**: 2026-02-25 -- `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12/12 passing)
 
 ---
 

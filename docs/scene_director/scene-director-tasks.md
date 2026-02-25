@@ -4,7 +4,7 @@
 
 ### 1A: Objective Resources
 
-- [ ] T1.1: Create `scripts/resources/scene_director/rs_objective_definition.gd` (RS_ObjectiveDefinition) - objective_id, description, objective_type enum (STANDARD, VICTORY, CHECKPOINT — NOTE: CHECKPOINT type is defined for future use; M_ObjectivesManager treats it as STANDARD in Phase 1-6), conditions (Array[Resource] — use RS_ConditionReduxField, RS_ConditionEventPayload, RS_ConditionConstant subclasses; no RS_ConditionComponentField), completion_effects (Array[Resource]), completion_event_payload (Dictionary — arbitrary data merged into the published completion event; e.g., VICTORY objectives set `{"target_scene": StringName("victory")}`), dependencies (Array[StringName]), auto_activate
+- [x] T1.1: Create `scripts/resources/scene_director/rs_objective_definition.gd` (RS_ObjectiveDefinition) - objective_id, description, objective_type enum (STANDARD, VICTORY, CHECKPOINT — NOTE: CHECKPOINT type is defined for future use; M_ObjectivesManager treats it as STANDARD in Phase 1-6), conditions (Array[Resource] — use RS_ConditionReduxField, RS_ConditionEventPayload, RS_ConditionConstant subclasses; no RS_ConditionComponentField), completion_effects (Array[Resource]), completion_event_payload (Dictionary — arbitrary data merged into the published completion event; e.g., VICTORY objectives set `{"target_scene": StringName("victory")}`), dependencies (Array[StringName]), auto_activate
 - [ ] T1.2: Create `scripts/resources/scene_director/rs_objective_set.gd` (RS_ObjectiveSet) - set_id, description, objectives (Array[RS_ObjectiveDefinition])
 
 ### 1B: Scene Director Resources
