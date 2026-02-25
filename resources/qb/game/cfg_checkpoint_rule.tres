@@ -1,12 +1,11 @@
-[gd_resource type="Resource" script_class="RS_Rule" format=3]
+[gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://bgwt1yvs2pofs"]
 
-[ext_resource type="Script" path="res://scripts/resources/qb/effects/rs_effect_publish_event.gd" id="1_n3coq"]
-[ext_resource type="Script" path="res://scripts/resources/qb/rs_rule.gd" id="2_31p0j"]
+[ext_resource type="Script" uid="uid://cgk1j4fpq4c8" path="res://scripts/resources/qb/effects/rs_effect_publish_event.gd" id="1_n3coq"]
+[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="2_31p0j"]
 
 [sub_resource type="Resource" id="Resource_k2dna"]
 script = ExtResource("1_n3coq")
 event_name = &"checkpoint_activation_requested"
-inject_entity_id = true
 
 [resource]
 script = ExtResource("2_31p0j")

@@ -16,6 +16,8 @@ shader = ExtResource("3_dither")
 shader_parameter/intensity = 0.5
 shader_parameter/levels = 8
 shader_parameter/pattern_mode = 0
+shader_parameter/time = 0.0
+shader_parameter/luma_weight = 0.5
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
 shader = ExtResource("2_crt")

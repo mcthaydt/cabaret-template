@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="RS_Rule" format=3]
+[gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://cu4l3eocdebh3"]
 
-[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="1_7ia1m"]
-[ext_resource type="Script" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="2_hntqi"]
-[ext_resource type="Script" path="res://scripts/resources/qb/rs_rule.gd" id="3_wm8ux"]
+[ext_resource type="Script" uid="uid://bbw7r0gg2jdbf" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="1_7ia1m"]
+[ext_resource type="Script" uid="uid://baf360oqwp7v5" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="2_hntqi"]
+[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="3_wm8ux"]
 
 [sub_resource type="Resource" id="Resource_8pss3"]
 script = ExtResource("1_7ia1m")
@@ -14,12 +14,10 @@ match_value_string = "true"
 script = ExtResource("2_hntqi")
 component_type = &"C_CameraStateComponent"
 field_name = &"target_fov"
-operation = "set"
 float_value = 60.0
 
 [resource]
 script = ExtResource("3_wm8ux")
 rule_id = &"camera_zone_fov"
-trigger_mode = "tick"
 conditions = Array[Resource]([SubResource("Resource_8pss3")])
 effects = Array[Resource]([SubResource("Resource_sxpn2")])
