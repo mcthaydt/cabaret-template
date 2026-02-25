@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="RS_Rule" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="1_who08"]
+[ext_resource type="Script" path="res://scripts/resources/qb/effects/rs_effect_set_context_value.gd" id="2_6cpr0"]
+[ext_resource type="Script" path="res://scripts/resources/qb/rs_rule.gd" id="3_oy11f"]
+
+[sub_resource type="Resource" id="Resource_elpnw"]
+script = ExtResource("1_who08")
+state_path = "time.is_paused"
+match_mode = "equals"
+match_value_string = "true"
+
+[sub_resource type="Resource" id="Resource_kx1tg"]
+script = ExtResource("2_6cpr0")
+context_key = &"is_gameplay_active"
+
+[resource]
+script = ExtResource("3_oy11f")
+rule_id = &"pause_gate_paused"
+conditions = Array[Resource]([SubResource("Resource_elpnw")])
+effects = Array[Resource]([SubResource("Resource_kx1tg")])
+decision_group = &"pause_gate"
