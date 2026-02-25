@@ -359,7 +359,8 @@ entity_id = &"finalgoal"
 tags = Array[StringName]([&"objective", &"endgame"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1272881135]
-radius = 1.5
+radius = 0.7910156
+height = 2.0715332
 material = ExtResource("56_fade_goal")
 
 [node name="Inter_CharacterLightZone_GoalGlow" type="Node3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1987194231]

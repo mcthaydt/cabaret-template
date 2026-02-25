@@ -335,7 +335,8 @@ entity_id = &"goalzone_interior"
 tags = Array[StringName]([&"objective", &"goal"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_GoalZone" unique_id=2146372515]
-radius = 1.5
+radius = 0.7910156
+height = 2.0715332
 material = ExtResource("53_fade_goal")
 
 [node name="Inter_CharacterLightZone_GoalGlow" type="Node3D" parent="Entities/Objectives/E_GoalZone" unique_id=1606359005]

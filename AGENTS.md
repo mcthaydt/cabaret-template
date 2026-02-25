@@ -60,6 +60,8 @@
   - Dependents are activated only when `U_ObjectiveGraph.get_ready_dependents(...)` reports all prerequisites completed.
   - VICTORY objectives publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with `completion_event_payload` as-is.
   - `M_SceneManager` listens to `EVENT_OBJECTIVE_VICTORY_TRIGGERED` for endgame transitions; legacy direct `victory_executed` scene transitions are removed.
+- Player-facing beat messaging pattern:
+  - Scene-director beats may publish `signpost_message` events with `{"message": "<localization_key>", "message_duration_sec": <float>}` payloads so existing HUD/mobile signpost consumers can render narrative/tutorial text without custom UI plumbing.
 
 ## ECS Guidelines
 

@@ -236,7 +236,7 @@ Phase 4 completion notes (2026-02-25):
 ### 5C: Tests
 
 - [x] T5.5: Create `tests/integration/scene_director/test_scene_director_integration.gd` - Scene load triggers directive selection, beats execute in order, directive completes and publishes event
-  - Completion note (2026-02-25): Added integration coverage for transition-driven directive start, beat event ordering, beat index advancement events, and directive completion state/event assertions.
+  - Completion note (2026-02-25): Added integration coverage for transition-driven directive start, beat event ordering, beat index advancement events, directive completion state/event assertions, and signpost-message integration for player-facing intro beat feedback.
 
 ### 5D: Verification
 
@@ -249,6 +249,7 @@ Phase 4 completion notes (2026-02-25):
 
 Phase 5 completion notes (2026-02-25):
 - Added default `gameplay_base` scene-director directive resource with intro beats and event-publish effects.
+- Intro beats now also publish `signpost_message` payloads (`hud.scene_director_intro_beat_1/2`) so existing HUD/mobile signpost consumers render player-facing onboarding text in runtime scenes.
 - Integrated `M_SceneDirector` into root scene/bootstrap and ServiceLocator dependency graph.
 - Added `test_scene_director_integration.gd` to validate directive selection/execution/completion end-to-end.
 - Restored full-suite stability by disabling persistence in `test_endgame_flows` fixture (prevents objective-status leakage from `user://` saves).

@@ -20,17 +20,35 @@ payload = {
 }
 inject_entity_id = false
 
+[sub_resource type="Resource" id="Resource_b4n8v"]
+script = ExtResource("3_5n2ac")
+event_name = &"signpost_message"
+payload = {
+"message": "hud.scene_director_intro_beat_1",
+"message_duration_sec": 1.8
+}
+inject_entity_id = false
+
+[sub_resource type="Resource" id="Resource_q9t2l"]
+script = ExtResource("3_5n2ac")
+event_name = &"signpost_message"
+payload = {
+"message": "hud.scene_director_intro_beat_2",
+"message_duration_sec": 2.2
+}
+inject_entity_id = false
+
 [sub_resource type="Resource" id="Resource_n2h5g"]
 script = ExtResource("2_vf4lq")
 beat_id = &"intro_beat_1"
 description = "Publishes the initial gameplay intro event."
-effects = Array[Resource]([SubResource("Resource_x7u2p")])
+effects = Array[Resource]([SubResource("Resource_x7u2p"), SubResource("Resource_b4n8v")])
 
 [sub_resource type="Resource" id="Resource_l1k9z"]
 script = ExtResource("2_vf4lq")
 beat_id = &"intro_beat_2"
 description = "Publishes a follow-up intro event after a short delay."
-effects = Array[Resource]([SubResource("Resource_ae8m3")])
+effects = Array[Resource]([SubResource("Resource_ae8m3"), SubResource("Resource_q9t2l")])
 wait_mode = 1
 duration = 0.05
 

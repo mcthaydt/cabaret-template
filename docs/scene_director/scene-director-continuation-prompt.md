@@ -12,6 +12,7 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
 **Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (61/61), `tests/integration/scene_director` (3/3), `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (197/197), `tests/unit/style` (12/12), `tests/integration/scene_manager` (90/90), full `tests/**` sweep (2639/2648 with 9 expected headless/mobile pending tests, 0 failures). Interactive manual playtest remains pending.
+**Integration note**: Default gameplay intro beats publish both instrumentation events (`scene_director_intro_beat_1/2`) and player-facing `signpost_message` payloads (`hud.scene_director_intro_beat_1/2`) consumed by HUD/mobile signpost flows.
 
 ---
 

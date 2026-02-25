@@ -11,6 +11,7 @@ const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.g
 
 const EVENT_BEAT_ONE := StringName("scene_director_intro_beat_1")
 const EVENT_BEAT_TWO := StringName("scene_director_intro_beat_2")
+const EVENT_SIGNPOST_MESSAGE := StringName("signpost_message")
 
 var _root: Node
 var _state_store: M_STATE_STORE
@@ -59,6 +60,7 @@ func test_scene_transition_starts_directive_and_completes_beats_in_order() -> vo
 	var completed_payloads: Array[Dictionary] = []
 	var beat_event_order: Array[StringName] = []
 	var beat_advanced_indices: Array[int] = []
+	var signpost_messages: Array[String] = []
 
 	var unsub_start: Callable = U_ECS_EVENT_BUS.subscribe(
 		U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_STARTED,
@@ -86,6 +88,12 @@ func test_scene_transition_starts_directive_and_completes_beats_in_order() -> vo
 		func(_event: Dictionary) -> void:
 			beat_event_order.append(EVENT_BEAT_TWO)
 	)
+	var unsub_signpost: Callable = U_ECS_EVENT_BUS.subscribe(
+		EVENT_SIGNPOST_MESSAGE,
+		func(event: Dictionary) -> void:
+			var payload: Dictionary = _extract_payload(event)
+			signpost_messages.append(String(payload.get("message", "")))
+	)
 
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 	await _wait_for_directive_completion(completed_payloads, 90)
@@ -107,6 +115,11 @@ func test_scene_transition_starts_directive_and_completes_beats_in_order() -> vo
 	assert_eq(beat_event_order, expected_beat_events)
 	var expected_advance_indices: Array[int] = [1, 2]
 	assert_eq(beat_advanced_indices, expected_advance_indices)
+	assert_eq(
+		signpost_messages,
+		["hud.scene_director_intro_beat_1", "hud.scene_director_intro_beat_2"],
+		"Intro beats should publish user-facing signpost messages"
+	)
 
 	var state: Dictionary = _state_store.get_state()
 	assert_eq(U_SCENE_DIRECTOR_SELECTORS.get_director_state(state), "completed")
@@ -125,6 +138,8 @@ func test_scene_transition_starts_directive_and_completes_beats_in_order() -> vo
 		unsub_beat_one.call()
 	if unsub_beat_two.is_valid():
 		unsub_beat_two.call()
+	if unsub_signpost.is_valid():
+		unsub_signpost.call()
 
 func _append_payload(target: Array[Dictionary], event: Dictionary) -> void:
 	var payload: Dictionary = _extract_payload(event)
