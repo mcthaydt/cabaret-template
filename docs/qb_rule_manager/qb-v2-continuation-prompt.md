@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 1 complete; Phase 2A next)
+- **Status:** In progress (Phase 2A complete; Phase 2B next)
 
 ## Recent Progress
 
@@ -75,6 +75,24 @@
   - Verified QB validator tests (11/11 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
   - Completed Phase 1 checkpoint (`T1-T131`) with v2 core library implemented in isolation
+- Phase 2A completed on 2026-02-25:
+  - Deleted 9 v1 QB engine files:
+    - `scripts/ecs/systems/base_qb_rule_manager.gd`
+    - `scripts/resources/qb/rs_qb_condition.gd`
+    - `scripts/resources/qb/rs_qb_effect.gd`
+    - `scripts/resources/qb/rs_qb_rule_definition.gd`
+    - `scripts/utils/qb/u_qb_rule_evaluator.gd`
+    - `scripts/utils/qb/u_qb_quality_provider.gd`
+    - `scripts/utils/qb/u_qb_effect_executor.gd`
+    - `scripts/utils/qb/u_qb_variant_utils.gd`
+    - `scripts/utils/qb/u_qb_rule_validator.gd`
+  - Deleted v1 QB tests:
+    - 10 v1 unit suites in `tests/unit/qb/`
+    - `tests/integration/qb/test_qb_brain_data_pipeline.gd`
+  - Deleted 9 legacy v1 QB rule resources under `resources/qb/{character,game,camera}/`
+  - Cleared stale deleted-class references from active code
+  - Verified style suite `tests/unit/style` (12/12 passing)
+  - Verified QB unit suite `tests/unit/qb` (101/101 passing)
 
 ## Required Readings
 
@@ -123,9 +141,9 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 2A:** Delete v1 QB engine files/tests/resources (T132-T144), then grep for stale references before migration work.
+1. **Phase 2B:** Recreate character rule resources with v2 types (`T145-T150`).
 2. Work through phases sequentially — each ends with a commit checkpoint.
-3. Do NOT touch v1 code until Phase 2A (delete step).
+3. Proceed to Phase 2C once Phase 2B resources pass `U_RuleValidator`.
 
 ## Key Design Decisions
 

@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 55% (131 / 240 tasks complete)
+**Progress:** 60% (144 / 240 tasks complete)
 
 ---
 
@@ -242,19 +242,24 @@ Completion note (2026-02-25): Added validator test suite (11 tests), implemented
 
 ### 2A — Delete v1
 
-- [ ] T132. Delete `scripts/ecs/systems/base_qb_rule_manager.gd`
-- [ ] T133. Delete `scripts/resources/qb/rs_qb_condition.gd`
-- [ ] T134. Delete `scripts/resources/qb/rs_qb_effect.gd`
-- [ ] T135. Delete `scripts/resources/qb/rs_qb_rule_definition.gd`
-- [ ] T136. Delete `scripts/utils/qb/u_qb_rule_evaluator.gd`
-- [ ] T137. Delete `scripts/utils/qb/u_qb_quality_provider.gd`
-- [ ] T138. Delete `scripts/utils/qb/u_qb_effect_executor.gd`
-- [ ] T139. Delete `scripts/utils/qb/u_qb_variant_utils.gd`
-- [ ] T140. Delete `scripts/utils/qb/u_qb_rule_validator.gd`
-- [ ] T141. Delete all v1 test files in `tests/unit/qb/` (only v1 files — preserve v2 tests from Phase 1)
-- [ ] T142. Delete `tests/integration/qb/test_qb_brain_data_pipeline.gd`
-- [ ] T143. Delete all 9 v1 `.tres` files in `resources/qb/` subdirectories
-- [ ] T144. Grep codebase for references to deleted class names — fix any remaining imports
+- [x] T132. Delete `scripts/ecs/systems/base_qb_rule_manager.gd`
+- [x] T133. Delete `scripts/resources/qb/rs_qb_condition.gd`
+- [x] T134. Delete `scripts/resources/qb/rs_qb_effect.gd`
+- [x] T135. Delete `scripts/resources/qb/rs_qb_rule_definition.gd`
+- [x] T136. Delete `scripts/utils/qb/u_qb_rule_evaluator.gd`
+- [x] T137. Delete `scripts/utils/qb/u_qb_quality_provider.gd`
+- [x] T138. Delete `scripts/utils/qb/u_qb_effect_executor.gd`
+- [x] T139. Delete `scripts/utils/qb/u_qb_variant_utils.gd`
+- [x] T140. Delete `scripts/utils/qb/u_qb_rule_validator.gd`
+- [x] T141. Delete all v1 test files in `tests/unit/qb/` (only v1 files — preserve v2 tests from Phase 1)
+- [x] T142. Delete `tests/integration/qb/test_qb_brain_data_pipeline.gd`
+- [x] T143. Delete all 9 v1 `.tres` files in `resources/qb/` subdirectories
+- [x] T144. Grep codebase for references to deleted class names — fix any remaining imports
+
+Completion note (2026-02-25): Deleted all targeted v1 QB engine scripts/resources/tests (`T132-T143`) and removed stale deleted-class references from active code (`T144`). Verification:
+- Stale-reference grep across `scripts/`, `scenes/`, `tests/`, `resources/`, and `project.godot`: 0 matches for deleted v1 class/file symbols
+- Style suite: 12/12 passing (`tests/unit/style`)
+- QB unit suite: 101/101 passing (`tests/unit/qb`)
 
 ### 2B — Recreate Character Rule Resources
 

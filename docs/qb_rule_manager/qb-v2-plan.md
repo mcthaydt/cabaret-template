@@ -4,7 +4,7 @@
 
 - **Feature:** Replace v1 QB rule engine (base class inheritance model) with v2 (stateless scoring library + resource polymorphism + domain composition)
 - **Branch:** `scene-director` (continues from v1 completion)
-- **Current status:** In progress (Phase 1 complete on 2026-02-25; Phase 2A next)
+- **Current status:** In progress (Phase 2A complete on 2026-02-25; Phase 2B next)
 - **Prerequisite:** v1 is 100% complete (all phases + R1-R7 refactors)
 
 ## Guiding Principles
@@ -52,6 +52,8 @@ Current Phase 1 outcome: fallback path was selected due headless parser instabil
 | 2B — Recreate character .tres | T145-T150 | 5 rule resources using v2 types, pass validation |
 | 2C — Migrate system (TDD) | T151-T175 | Tests first (T151-T164), then implementation (T165-T175) |
 | 2D — Integration test | T176-T178 | End-to-end: paused → movement blocked |
+
+Phase 2A completion note (2026-02-25): Deleted all 9 v1 core QB scripts, deleted v1 QB unit/integration suites, deleted 9 legacy v1 QB `.tres` resources, and cleared stale deleted-class references from active code. Verification: `tests/unit/style` (12/12 passing), `tests/unit/qb` (101/101 passing).
 
 **Deliverable:** v1 fully removed. Character brain data works identically. Green tests.
 
