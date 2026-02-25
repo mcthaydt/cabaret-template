@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 0% (0 / 120 tasks complete)
+**Progress:** 11% (13 / 120 tasks complete)
 
 ---
 
@@ -10,22 +10,24 @@
 
 **Tests first:**
 
-- [ ] T1. Create `tests/unit/qb/test_path_resolver.gd`
-- [ ] T2. Test: resolves single-key Dictionary path (`{"health": 100}`, path `"health"` → `100`)
-- [ ] T3. Test: resolves nested Dictionary path (`{"a": {"b": 5}}`, path `"a.b"` → `5`)
-- [ ] T4. Test: resolves StringName Dictionary key when path is String (and vice versa)
-- [ ] T5. Test: resolves Array index via string segment (`{"items": [10, 20]}`, path `"items.1"` → `20`)
-- [ ] T6. Test: resolves Object property (`node.name`, path `"name"` → node name)
-- [ ] T7. Test: resolves mixed nesting (Dict → Object → Dict)
-- [ ] T8. Test: returns null for missing Dictionary key
-- [ ] T9. Test: returns null for out-of-bounds Array index
-- [ ] T10. Test: returns null for missing Object property (no method-call fallback)
-- [ ] T11. Test: returns root value when path is empty string
+- [x] T1. Create `tests/unit/qb/test_path_resolver.gd`
+- [x] T2. Test: resolves single-key Dictionary path (`{"health": 100}`, path `"health"` → `100`)
+- [x] T3. Test: resolves nested Dictionary path (`{"a": {"b": 5}}`, path `"a.b"` → `5`)
+- [x] T4. Test: resolves StringName Dictionary key when path is String (and vice versa)
+- [x] T5. Test: resolves Array index via string segment (`{"items": [10, 20]}`, path `"items.1"` → `20`)
+- [x] T6. Test: resolves Object property (`node.name`, path `"name"` → node name)
+- [x] T7. Test: resolves mixed nesting (Dict → Object → Dict)
+- [x] T8. Test: returns null for missing Dictionary key
+- [x] T9. Test: returns null for out-of-bounds Array index
+- [x] T10. Test: returns null for missing Object property (no method-call fallback)
+- [x] T11. Test: returns root value when path is empty string
 
 **Implementation:**
 
-- [ ] T12. Create `scripts/utils/qb/u_path_resolver.gd` — static `resolve(root: Variant, path: String) -> Variant`
-- [ ] T13. All path resolver tests green
+- [x] T12. Create `scripts/utils/qb/u_path_resolver.gd` — static `resolve(root: Variant, path: String) -> Variant`
+- [x] T13. All path resolver tests green
+
+Completion note (2026-02-25): Added `U_PathResolver` + `test_path_resolver.gd`; ran `test_path_resolver.gd` (10/10 passing) and `tests/unit/style` (12/12 passing).
 
 ### 1B — Resource Definitions: Conditions (TDD)
 

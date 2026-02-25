@@ -4,13 +4,18 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** Not started
+- **Status:** In progress (Phase 1A complete; Phase 1B next)
 
 ## Recent Progress
 
 - v1 is 100% complete (6 feature phases + R1-R7 refactors, 97 QB tests, all green)
 - v2 overview, plan, tasks, and continuation prompt written
 - v1 docs archived to `docs/qb_rule_manager/v1/`
+- Phase 1A completed on 2026-02-25:
+  - Added `scripts/utils/qb/u_path_resolver.gd`
+  - Added `tests/unit/qb/test_path_resolver.gd` with T1-T11 coverage
+  - Verified `test_path_resolver.gd` (10/10 passing)
+  - Verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
 
@@ -59,7 +64,7 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 1:** Build core library (TDD). Start with T1-T13 (path resolver tests + implementation).
+1. **Phase 1B:** Build condition resources with TDD (T14-T54), starting with `test_condition_component_field.gd`.
 2. Work through phases sequentially — each ends with a commit checkpoint.
 3. Do NOT touch v1 code until Phase 2A (delete step).
 
