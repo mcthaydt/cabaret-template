@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 85% (204 / 240 tasks complete)
+**Progress:** 94% (225 / 240 tasks complete)
 
 ---
 
@@ -404,30 +404,35 @@ Completion note (2026-02-25): Recreated camera v2 rule resources `cfg_camera_sha
 
 **Tests first:**
 
-- [ ] T205. Create `tests/unit/qb/test_camera_state_system.gd`
-- [ ] T206. Test: default rules loaded and pass validation
-- [ ] T207. Test: shake trauma added on entity_death event (0.0 → 0.5)
-- [ ] T208. Test: shake trauma clamped to 1.0 max on repeated events
-- [ ] T209. Test: FOV zone — target_fov set when camera.in_fov_zone=true in Redux state
-- [ ] T210. Test: FOV blending lerps camera.fov toward target_fov over time
-- [ ] T211. Test: baseline FOV captured from authored Camera3D fov on first tick
-- [ ] T212. Test: baseline FOV restored when camera.in_fov_zone becomes false
-- [ ] T213. Test: designer-added rules via export evaluated alongside defaults
-- [ ] T214. Test: event fan-out — shake event evaluated across all camera entities
-- [ ] T215. Test: primary camera selection by entity_id "camera" or tag "camera"
+- [x] T205. Create `tests/unit/qb/test_camera_state_system.gd`
+- [x] T206. Test: default rules loaded and pass validation
+- [x] T207. Test: shake trauma added on entity_death event (0.0 → 0.5)
+- [x] T208. Test: shake trauma clamped to 1.0 max on repeated events
+- [x] T209. Test: FOV zone — target_fov set when camera.in_fov_zone=true in Redux state
+- [x] T210. Test: FOV blending lerps camera.fov toward target_fov over time
+- [x] T211. Test: baseline FOV captured from authored Camera3D fov on first tick
+- [x] T212. Test: baseline FOV restored when camera.in_fov_zone becomes false
+- [x] T213. Test: designer-added rules via export evaluated alongside defaults
+- [x] T214. Test: event fan-out — shake event evaluated across all camera entities
+- [x] T215. Test: primary camera selection by entity_id "camera" or tag "camera"
 
 **Implementation:**
 
-- [ ] T216. Rename `s_camera_rule_manager.gd` → `s_camera_state_system.gd`, class → `S_CameraStateSystem`
-- [ ] T217. Replace `extends BaseQBRuleManager` with `extends BaseECSSystem`
-- [ ] T218. Add `@export var rules: Array[RS_Rule] = []`
-- [ ] T219. Add `var _tracker := RuleStateTracker.new()` instance
-- [ ] T220. Migrate camera context building (`_build_camera_contexts`, `_attach_camera_context`)
-- [ ] T221. Implement `process_tick(delta)`: tick cooldowns → build camera contexts → score tick rules → select → execute → apply camera state
-- [ ] T222. Implement event subscription + `_on_event_received()` with fan-out across camera entities
-- [ ] T223. Migrate `_apply_camera_state()` — FOV blending (baseline capture, lerp, restore) + trauma shake (sine/cosine, decay) — all constants preserved
-- [ ] T224. Update scene references to new script path/class name
-- [ ] T225. All camera state system tests green
+- [x] T216. Rename `s_camera_rule_manager.gd` → `s_camera_state_system.gd`, class → `S_CameraStateSystem`
+- [x] T217. Replace `extends BaseQBRuleManager` with `extends BaseECSSystem`
+- [x] T218. Add `@export var rules: Array[Resource] = []` (headless fallback; runtime-validated to `RS_Rule`)
+- [x] T219. Add `var _tracker := RuleStateTracker.new()` instance
+- [x] T220. Migrate camera context building (`_build_camera_contexts`, `_attach_camera_context`)
+- [x] T221. Implement `process_tick(delta)`: tick cooldowns → build camera contexts → score tick rules → select → execute → apply camera state
+- [x] T222. Implement event subscription + `_on_event_received()` with fan-out across camera entities
+- [x] T223. Migrate `_apply_camera_state()` — FOV blending (baseline capture, lerp, restore) + trauma shake (sine/cosine, decay) — all constants preserved
+- [x] T224. Update scene references to new script path/class name
+- [x] T225. All camera state system tests green
+
+Completion note (2026-02-25): Added `tests/unit/qb/test_camera_state_system.gd` (10 tests, `T205-T215`) and migrated `S_CameraStateSystem` end-to-end (`T216-T225`) with v2 scorer/selector/tracker composition, validator-backed rule loading, per-camera tick/event evaluation, and preserved camera-domain FOV/shake behavior (baseline capture/restore, blend lerp, trauma decay + shake source writes). Updated gameplay scene references to `s_camera_state_system.gd` / `S_CameraStateSystem` and removed stale script UID references from camera-system `ext_resource` entries for headless parsing stability. Verification:
+- `test_camera_state_system.gd`: 10/10 passing
+- QB unit suite (`tests/unit/qb`): 131/131 passing
+- Style suite (`tests/unit/style`): 12/12 passing
 
 **Integration test:**
 

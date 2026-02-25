@@ -4,7 +4,7 @@
 
 - **Feature:** Replace v1 QB rule engine (base class inheritance model) with v2 (stateless scoring library + resource polymorphism + domain composition)
 - **Branch:** `scene-director` (continues from v1 completion)
-- **Current status:** In progress (Phase 4A complete on 2026-02-25; Phase 4B next)
+- **Current status:** In progress (Phase 4B complete on 2026-02-25; Phase 4C next)
 - **Prerequisite:** v1 is 100% complete (all phases + R1-R7 refactors)
 
 ## Guiding Principles
@@ -95,6 +95,7 @@ Phase 3C completion note (2026-02-25): Added `test_checkpoint_pipeline.gd` and `
 | 4C — Integration test | T226-T227 | Camera shake end-to-end pipeline |
 
 Phase 4A completion note (2026-02-25): Recreated `cfg_camera_shake_rule.tres` and `cfg_camera_zone_fov_rule.tres` in `resources/qb/camera/` using `RS_Rule` + typed v2 condition/effect subresources (`RS_EffectSetField`, `RS_ConditionReduxField`). Verification: `U_RuleValidator.validate_rules(...)` (2/2 valid), `tests/unit/qb` (121/121 passing), `tests/unit/style` (12/12 passing).
+Phase 4B completion note (2026-02-25): Migrated `s_camera_rule_manager.gd` → `s_camera_state_system.gd` with v2 scorer/selector/tracker composition, validator-backed rule loading, per-camera tick/event evaluation, and preserved FOV/shake behavior. Added `test_camera_state_system.gd` (10 tests) and updated gameplay scene references to the renamed script/class while removing stale camera-system script UIDs from scene `ext_resource` lines for headless parsing stability. Verification: `tests/unit/qb` (131/131 passing), `tests/unit/style` (12/12 passing).
 
 **Deliverable:** Camera state works identically to v1.
 

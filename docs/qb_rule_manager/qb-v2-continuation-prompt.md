@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 4A complete on 2026-02-25; Phase 4B next)
+- **Status:** In progress (Phase 4B complete on 2026-02-25; Phase 4C next)
 
 ## Recent Progress
 
@@ -150,6 +150,17 @@
   - Validated with `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
   - Re-verified QB unit suite `tests/unit/qb` (121/121 passing)
   - Re-verified style suite `tests/unit/style` (12/12 passing)
+- Phase 4B completed on 2026-02-25:
+  - Added `tests/unit/qb/test_camera_state_system.gd` (T205-T215, 10 tests)
+  - Renamed `s_camera_rule_manager.gd` → `s_camera_state_system.gd` (`class_name S_CameraStateSystem`)
+  - Replaced inheritance with v2 composition (`U_RuleScorer`, `U_RuleSelector`, `RuleStateTracker`, `U_RuleValidator`)
+  - Implemented per-camera tick/event evaluation with cooldown/rising-edge/one-shot gating and fan-out event processing
+  - Preserved camera-domain behavior: baseline FOV capture/restore, target FOV blending, trauma shake generation/decay
+  - Updated gameplay scene references to `s_camera_state_system.gd` / `S_CameraStateSystem`
+  - Removed stale `uid` attributes for renamed camera-system script ext_resources in gameplay scenes to stabilize headless scene parsing after rename
+  - Verified `test_camera_state_system.gd` (10/10 passing)
+  - Verified QB unit suite `tests/unit/qb` (131/131 passing)
+  - Verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
 
@@ -198,8 +209,8 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 4B:** Migrate `S_CameraStateSystem` with TDD (`T205-T225`).
-2. **Phase 4C:** Add camera shake integration test coverage (`T226-T227`).
+1. **Phase 4C:** Add camera shake integration test coverage (`T226-T227`).
+2. Begin Phase 5 verification/docs pass (`T228-T238`) after Phase 4 checkpoint is complete.
 3. Keep style + QB suites green at each sub-phase checkpoint.
 
 ## Key Design Decisions
