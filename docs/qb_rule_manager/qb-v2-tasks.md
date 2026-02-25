@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 11% (13 / 120 tasks complete)
+**Progress:** 45% (54 / 120 tasks complete)
 
 ---
 
@@ -33,57 +33,61 @@ Completion note (2026-02-25): Added `U_PathResolver` + `test_path_resolver.gd`; 
 
 **Tests first:**
 
-- [ ] T14. Create `tests/unit/qb/test_condition_component_field.gd`
-- [ ] T15. Test: numeric field normalized to 0-1 range (value=50, min=0, max=100 → 0.5)
-- [ ] T16. Test: value below range_min clamps to 0.0
-- [ ] T17. Test: value above range_max clamps to 1.0
-- [ ] T18. Test: bool field returns 1.0 for true, 0.0 for false
-- [ ] T19. Test: nested field_path resolves through component properties
-- [ ] T20. Test: missing component in context returns 0.0
-- [ ] T21. Test: missing field on component returns 0.0
-- [ ] T22. Test: division-by-zero guard when range_min == range_max (value >= min → 1.0, else 0.0)
+- [x] T14. Create `tests/unit/qb/test_condition_component_field.gd`
+- [x] T15. Test: numeric field normalized to 0-1 range (value=50, min=0, max=100 → 0.5)
+- [x] T16. Test: value below range_min clamps to 0.0
+- [x] T17. Test: value above range_max clamps to 1.0
+- [x] T18. Test: bool field returns 1.0 for true, 0.0 for false
+- [x] T19. Test: nested field_path resolves through component properties
+- [x] T20. Test: missing component in context returns 0.0
+- [x] T21. Test: missing field on component returns 0.0
+- [x] T22. Test: division-by-zero guard when range_min == range_max (value >= min → 1.0, else 0.0)
 
-- [ ] T23. Create `tests/unit/qb/test_condition_redux_field.gd`
-- [ ] T24. Test: normalize mode — numeric value mapped to 0-1 range
-- [ ] T25. Test: equals mode — matching string returns 1.0, non-matching returns 0.0
-- [ ] T26. Test: equals mode — bool true matched against string "true" returns 1.0
-- [ ] T27. Test: not_equals mode — non-matching returns 1.0, matching returns 0.0
-- [ ] T28. Test: nested state path resolves (e.g. `gameplay.completed_areas`)
-- [ ] T29. Test: missing state path returns 0.0
+- [x] T23. Create `tests/unit/qb/test_condition_redux_field.gd`
+- [x] T24. Test: normalize mode — numeric value mapped to 0-1 range
+- [x] T25. Test: equals mode — matching string returns 1.0, non-matching returns 0.0
+- [x] T26. Test: equals mode — bool true matched against string "true" returns 1.0
+- [x] T27. Test: not_equals mode — non-matching returns 1.0, matching returns 0.0
+- [x] T28. Test: nested state path resolves (e.g. `gameplay.completed_areas`)
+- [x] T29. Test: missing state path returns 0.0
 
-- [ ] T30. Create `tests/unit/qb/test_condition_entity_tag.gd`
-- [ ] T31. Test: tag present in entity_tags returns 1.0
-- [ ] T32. Test: tag absent returns 0.0
-- [ ] T33. Test: empty entity_tags array returns 0.0
+- [x] T30. Create `tests/unit/qb/test_condition_entity_tag.gd`
+- [x] T31. Test: tag present in entity_tags returns 1.0
+- [x] T32. Test: tag absent returns 0.0
+- [x] T33. Test: empty entity_tags array returns 0.0
 
-- [ ] T34. Create `tests/unit/qb/test_condition_event_payload.gd`
-- [ ] T35. Test: exists mode — non-null field returns 1.0, null/missing returns 0.0
-- [ ] T36. Test: normalize mode — numeric field mapped to 0-1 range
-- [ ] T37. Test: equals mode — string match returns 1.0
-- [ ] T38. Test: missing event_payload in context returns 0.0
+- [x] T34. Create `tests/unit/qb/test_condition_event_payload.gd`
+- [x] T35. Test: exists mode — non-null field returns 1.0, null/missing returns 0.0
+- [x] T36. Test: normalize mode — numeric field mapped to 0-1 range
+- [x] T37. Test: equals mode — string match returns 1.0
+- [x] T38. Test: missing event_payload in context returns 0.0
 
-- [ ] T39. Create `tests/unit/qb/test_condition_constant.gd`
-- [ ] T40. Test: returns configured score value regardless of context
-- [ ] T41. Test: default score is 1.0
+- [x] T39. Create `tests/unit/qb/test_condition_constant.gd`
+- [x] T40. Test: returns configured score value regardless of context
+- [x] T41. Test: default score is 1.0
 
 **Tests for base class behavior (response_curve + invert):**
 
-- [ ] T42. Create `tests/unit/qb/test_base_condition.gd`
-- [ ] T43. Test: response_curve remaps raw score (linear curve 0→0, 1→1 passthrough)
-- [ ] T44. Test: response_curve with sigmoid shape remaps mid-range values
-- [ ] T45. Test: invert flag flips score (0.7 → 0.3)
-- [ ] T46. Test: response_curve applied before invert
-- [ ] T47. Test: null response_curve passes score through unchanged
+- [x] T42. Create `tests/unit/qb/test_base_condition.gd`
+- [x] T43. Test: response_curve remaps raw score (linear curve 0→0, 1→1 passthrough)
+- [x] T44. Test: response_curve with sigmoid shape remaps mid-range values
+- [x] T45. Test: invert flag flips score (0.7 → 0.3)
+- [x] T46. Test: response_curve applied before invert
+- [x] T47. Test: null response_curve passes score through unchanged
 
 **Implementation:**
 
-- [ ] T48. Create `scripts/resources/qb/rs_base_condition.gd` — base class with response_curve, invert, virtual evaluate()
-- [ ] T49. Create `scripts/resources/qb/conditions/rs_condition_component_field.gd`
-- [ ] T50. Create `scripts/resources/qb/conditions/rs_condition_redux_field.gd`
-- [ ] T51. Create `scripts/resources/qb/conditions/rs_condition_entity_tag.gd`
-- [ ] T52. Create `scripts/resources/qb/conditions/rs_condition_event_payload.gd`
-- [ ] T53. Create `scripts/resources/qb/conditions/rs_condition_constant.gd`
-- [ ] T54. All condition tests green
+- [x] T48. Create `scripts/resources/qb/rs_base_condition.gd` — base class with response_curve, invert, virtual evaluate()
+- [x] T49. Create `scripts/resources/qb/conditions/rs_condition_component_field.gd`
+- [x] T50. Create `scripts/resources/qb/conditions/rs_condition_redux_field.gd`
+- [x] T51. Create `scripts/resources/qb/conditions/rs_condition_entity_tag.gd`
+- [x] T52. Create `scripts/resources/qb/conditions/rs_condition_event_payload.gd`
+- [x] T53. Create `scripts/resources/qb/conditions/rs_condition_constant.gd`
+- [x] T54. All condition tests green
+
+Completion note (2026-02-25): Added 6 condition test suites (28 tests), implemented `RS_BaseCondition` + 5 condition subclasses, and verified:
+- QB condition suites: 28/28 passing (`test_condition_*` + `test_base_condition`)
+- Style suite: 12/12 passing (`tests/unit/style`)
 
 ### 1C — Resource Definitions: Effects (TDD)
 
