@@ -11,7 +11,6 @@ const BASE_EFFECT_SCRIPT := preload("res://scripts/resources/qb/rs_base_effect.g
 
 @export_group("Trigger")
 @export_enum("tick", "event", "both") var trigger_mode: String = "tick"
-@export var trigger_event: StringName
 
 @export_group("Evaluation")
 # Fallback for headless parser stability: use Resource arrays when new class_name

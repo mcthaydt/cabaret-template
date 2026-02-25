@@ -68,10 +68,11 @@
   - The rule engine is a stateless library: `U_RuleScorer.score_rules(...)` + `U_RuleSelector.select_winners(...)`; systems compose these utilities instead of inheriting a QB base class.
   - Rule consumers (`S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem`) each own their own `RuleStateTracker` instance; never share trackers between systems.
   - Rule assets use `RS_Rule` + typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions`/`effects` remain `Array[Resource]` in headless fallback mode and must be runtime-validated with `U_RuleValidator.validate_rules(...)`.
+  - Condition contract: all rules must declare at least one condition; unconditional rules are invalid (validator error, scorer returns 0.0).
   - Validation contract: use only `valid_rules` from the validation report; expose/report `{valid_rules, errors_by_index, errors_by_rule_id}` for tests and debugging.
   - Scoring contract: conditions return 0.0-1.0, optional `response_curve` remap applies before optional `invert`, and rule score is the multiplicative product across conditions.
   - Selection contract: rules with empty `decision_group` fire independently; grouped rules compete by score, then priority, then `rule_id` alphabetical tiebreak.
-  - Trigger contract: `trigger_mode` supports `tick`, `event`, and `both`; event consumers fan out contexts per relevant entity/payload and apply cooldown/rising-edge/one-shot gating via tracker state.
+  - Trigger contract: `trigger_mode` supports `tick`, `event`, and `both`; event subscriptions are derived from `RS_ConditionEventName.expected_event_name` (not rule-level `trigger_event` metadata), and event consumers fan out contexts per relevant entity/payload with cooldown/rising-edge/one-shot gating via tracker state.
   - Context/path contract: conditions/effects resolve context paths through `U_PathResolver` and must not rely on method-call fallback behavior.
   - Camera baseline pattern: `S_CameraStateSystem` captures authored baseline FOV into `C_CameraStateComponent.base_fov` and restores it when `camera.in_fov_zone` is false.
   - Pause gate pattern: character pause gate rules (`cfg_pause_gate_paused/shell/transitioning`) share `decision_group = &"pause_gate"` so exactly one winner applies the same gate effect each tick.

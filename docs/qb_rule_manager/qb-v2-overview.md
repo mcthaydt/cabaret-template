@@ -53,8 +53,9 @@ RS_BaseCondition                 ← abstract, virtual evaluate() → float
 ├── RS_ConditionComponentField   ← reads ECS component property
 ├── RS_ConditionReduxField       ← reads Redux state path
 ├── RS_ConditionEntityTag        ← checks tag presence (binary)
+├── RS_ConditionEventName        ← checks current event_name (binary)
 ├── RS_ConditionEventPayload     ← reads from event payload
-└── RS_ConditionConstant         ← fixed score (weighting / always-true)
+└── RS_ConditionConstant         ← fixed score (weighting / fallback weighting)
 
 RS_BaseEffect                    ← abstract, virtual execute()
 ├── RS_EffectDispatchAction      ← dispatches Redux action
@@ -79,6 +80,7 @@ Two static functions. ~100 lines total. No state, no side effects, trivially tes
 
 **Scoring algorithm:**
 1. For each rule, evaluate every condition: `condition.evaluate(context) → float`
+   - Rules with empty condition arrays are invalid (validator error) and score as `0.0` at runtime
 2. If condition has a `response_curve`, remap: `curve.sample_baked(clampf(score, 0.0, 1.0))`
 3. If condition has `invert`, flip: `1.0 - score`
 4. Multiply all condition scores (short-circuit on 0.0)
@@ -134,7 +136,6 @@ class_name RS_Rule extends Resource
 
 @export_group("Trigger")
 @export_enum("tick", "event", "both") var trigger_mode: String = "tick"
-@export var trigger_event: StringName  ## only for event/both modes
 
 @export_group("Evaluation")
 @export var conditions: Array[Resource] = []  ## fallback; validator enforces RS_BaseCondition
@@ -233,6 +234,20 @@ class_name RS_ConditionEventPayload extends RS_BaseCondition
 ```
 
 Reads from `context["event_payload"]`. `exists` mode returns 1.0 if field is non-null. Other modes match component/redux behavior.
+
+### RS_ConditionEventName
+
+```gdscript
+class_name RS_ConditionEventName extends RS_BaseCondition
+
+@export_group("Source")
+@export var expected_event_name: StringName
+
+@export_group("Match")
+@export_enum("equals", "not_equals") var match_mode: String = "equals"
+```
+
+Reads `context["event_name"]` and returns binary score based on match mode.
 
 ### RS_ConditionConstant
 
@@ -353,13 +368,15 @@ Used by condition subclasses internally. Not called by consumers directly.
 Adapted from v1's `U_QBRuleValidator`. Validates at configure time:
 
 - `rule_id` non-empty
-- `trigger_event` required for event/both trigger modes
+- `conditions` must contain at least one entry
+- event/both trigger modes require at least one `RS_ConditionEventName` condition
 - Conditions are valid `RS_BaseCondition` instances (enforced by `U_RuleValidator` while `RS_Rule` uses `Array[Resource]` fallback)
 - Effects are valid `RS_BaseEffect` instances
 - `RS_ConditionComponentField`: `component_type` non-empty, `field_path` non-empty, `range_min < range_max` when both non-zero
 - `RS_ConditionReduxField`: `state_path` non-empty, contains `.` (slice.field format)
+- `RS_ConditionEventName`: `expected_event_name` non-empty
 - `RS_EffectSetField`: `component_type` and `field_name` non-empty
-- Warning: decision group on unconditional rule with no rising edge requirement
+- Warning (alongside validation error): decision group on unconditional rule with no rising edge requirement
 
 Returns `{valid_rules: Array[RS_Rule], errors_by_index: Dictionary, errors_by_rule_id: Dictionary}`.
 
@@ -439,9 +456,10 @@ Every domain builds a context `Dictionary` before calling the scorer. The contra
 | `entity_tags` | `Array[StringName]` | Entity tags (if per-entity context) |
 | `entity` | `Node` | Entity node reference |
 | `components` | `Dictionary` | `{component_type → component_instance}` |
+| `event_name` | `StringName` | Current event name (if event-triggered evaluation) |
 | `event_payload` | `Dictionary` | Event data (if event-triggered evaluation) |
 
-**Context availability by consumer level:** `entity_id`, `entity_tags`, `entity`, and `components` are only available in per-entity contexts (ECS systems like S_CharacterStateSystem, S_CameraStateSystem). Manager-level consumers (M_ObjectivesManager, M_SceneDirector, future narrative/dialogue systems) build contexts without entity data — use `RS_ConditionReduxField`, `RS_ConditionEventPayload`, or `RS_ConditionConstant` in those contexts, not `RS_ConditionComponentField` or `RS_ConditionEntityTag`.
+**Context availability by consumer level:** `entity_id`, `entity_tags`, `entity`, and `components` are only available in per-entity contexts (ECS systems like S_CharacterStateSystem, S_CameraStateSystem). Manager-level consumers (M_ObjectivesManager, M_SceneDirector, future narrative/dialogue systems) build contexts without entity data — use `RS_ConditionReduxField`, `RS_ConditionEventName`, `RS_ConditionEventPayload`, or `RS_ConditionConstant` in those contexts, not `RS_ConditionComponentField` or `RS_ConditionEntityTag`.
 
 ### Domain-Specific Keys
 
@@ -498,6 +516,7 @@ Some domains execute effects. Others interpret the winning rule's identity:
 | `scripts/resources/qb/conditions/rs_condition_component_field.gd` | `RS_ConditionComponentField` | ~40 |
 | `scripts/resources/qb/conditions/rs_condition_redux_field.gd` | `RS_ConditionReduxField` | ~45 |
 | `scripts/resources/qb/conditions/rs_condition_entity_tag.gd` | `RS_ConditionEntityTag` | ~15 |
+| `scripts/resources/qb/conditions/rs_condition_event_name.gd` | `RS_ConditionEventName` | ~30 |
 | `scripts/resources/qb/conditions/rs_condition_event_payload.gd` | `RS_ConditionEventPayload` | ~40 |
 | `scripts/resources/qb/conditions/rs_condition_constant.gd` | `RS_ConditionConstant` | ~10 |
 | `scripts/resources/qb/rs_base_effect.gd` | `RS_BaseEffect` | ~10 |

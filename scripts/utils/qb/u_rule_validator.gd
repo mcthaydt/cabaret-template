@@ -6,6 +6,7 @@ const BASE_EFFECT_SCRIPT := preload("res://scripts/resources/qb/rs_base_effect.g
 const CONDITION_COMPONENT_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_component_field.gd")
 const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
 const CONDITION_EVENT_PAYLOAD := preload("res://scripts/resources/qb/conditions/rs_condition_event_payload.gd")
+const CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
 const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
 
 static func validate_rules(rules: Array) -> Dictionary:
@@ -51,9 +52,13 @@ static func _validate_rule(rule_variant: Variant) -> Array[String]:
 	if rule_id == StringName():
 		errors.append("rule_id must be non-empty")
 
+	var conditions: Array = _read_array_property(rule, "conditions")
+	if conditions.is_empty():
+		errors.append("conditions must contain at least one entry")
+
 	var trigger_mode: String = _read_string_property(rule, "trigger_mode")
-	if (trigger_mode == "event" or trigger_mode == "both") and _read_string_name_property(rule, "trigger_event") == StringName():
-		errors.append("trigger_event is required for event/both trigger modes")
+	if (trigger_mode == "event" or trigger_mode == "both") and not _has_event_name_condition(conditions):
+		errors.append("event/both trigger modes require an RS_ConditionEventName condition")
 
 	errors.append_array(_validate_conditions(rule))
 	errors.append_array(_validate_effects(rule))
@@ -105,8 +110,19 @@ static func _validate_conditions(rule: Object) -> Array[String]:
 			var event_mode: String = _read_string_property(condition_object, "match_mode")
 			if event_mode == "normalize" and _has_invalid_numeric_range(condition_object):
 				errors.append("conditions[%d].range_min must be less than range_max when both non-zero" % index)
+		elif _is_script_instance_of(condition_object, CONDITION_EVENT_NAME):
+			if _read_string_name_property(condition_object, "expected_event_name") == StringName():
+				errors.append("conditions[%d].expected_event_name must be non-empty" % index)
 
 	return errors
+
+static func _has_event_name_condition(conditions: Array) -> bool:
+	for condition_variant in conditions:
+		if condition_variant == null or not (condition_variant is Object):
+			continue
+		if _is_script_instance_of(condition_variant as Object, CONDITION_EVENT_NAME):
+			return true
+	return false
 
 static func _validate_effects(rule: Object) -> Array[String]:
 	var errors: Array[String] = []

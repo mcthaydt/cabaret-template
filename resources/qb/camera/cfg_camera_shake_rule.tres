@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://baf360oqwp7v5" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="1_7ubwf"]
 [ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="2_3tnus"]
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_event_name.gd" id="3_081w0"]
 
 [sub_resource type="Resource" id="Resource_fv330"]
 script = ExtResource("1_7ubwf")
@@ -11,9 +12,13 @@ operation = "add"
 float_value = 0.5
 use_clamp = true
 
+[sub_resource type="Resource" id="Resource_qw7p2"]
+script = ExtResource("3_081w0")
+expected_event_name = &"entity_death"
+
 [resource]
 script = ExtResource("2_3tnus")
 rule_id = &"camera_shake"
 trigger_mode = "event"
-trigger_event = &"entity_death"
+conditions = Array[Resource]([SubResource("Resource_qw7p2")])
 effects = Array[Resource]([SubResource("Resource_fv330")])

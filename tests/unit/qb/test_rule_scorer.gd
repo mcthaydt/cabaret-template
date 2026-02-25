@@ -88,12 +88,11 @@ func test_score_threshold_filters_rules_below_threshold() -> void:
 	var results: Array = RULE_SCORER.score_rules([rule], {})
 	assert_true(results.is_empty())
 
-func test_rule_with_empty_conditions_scores_one() -> void:
+func test_rule_with_empty_conditions_scores_zero() -> void:
 	var rule: Variant = _make_rule(StringName("unconditional"), [], 0.0)
 
 	var results: Array = RULE_SCORER.score_rules([rule], {})
-	assert_eq(results.size(), 1)
-	assert_almost_eq(float(results[0].get("score", -1.0)), 1.0, 0.0001)
+	assert_true(results.is_empty())
 
 func test_empty_rules_array_returns_empty_results() -> void:
 	var results: Array = RULE_SCORER.score_rules([], {})

@@ -4,6 +4,7 @@ const RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
 const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
 const CONDITION_COMPONENT_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_component_field.gd")
 const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
+const CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
 const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
 const EFFECT_SET_CONTEXT_VALUE := preload("res://scripts/resources/qb/effects/rs_effect_set_context_value.gd")
 
@@ -59,15 +60,23 @@ func test_empty_rule_id_fails_validation() -> void:
 
 	assert_true(_errors_contain(rule_errors, "rule_id"))
 
-func test_event_trigger_mode_without_trigger_event_fails() -> void:
+func test_rule_without_conditions_fails_validation() -> void:
 	var rule: Variant = _make_valid_rule()
-	rule.trigger_mode = "event"
-	rule.trigger_event = StringName()
+	rule.conditions.clear()
 	var report: Dictionary = RULE_VALIDATOR.validate_rules([rule])
 	var errors_by_index: Dictionary = _report_errors_by_index(report)
 	var rule_errors: Array = errors_by_index.get(0, [])
 
-	assert_true(_errors_contain(rule_errors, "trigger_event"))
+	assert_true(_errors_contain(rule_errors, "conditions"))
+
+func test_event_trigger_mode_without_event_name_condition_fails() -> void:
+	var rule: Variant = _make_valid_rule()
+	rule.trigger_mode = "event"
+	var report: Dictionary = RULE_VALIDATOR.validate_rules([rule])
+	var errors_by_index: Dictionary = _report_errors_by_index(report)
+	var rule_errors: Array = errors_by_index.get(0, [])
+
+	assert_true(_errors_contain(rule_errors, "RS_ConditionEventName"))
 
 func test_component_field_condition_with_empty_component_type_fails() -> void:
 	var rule: Variant = _make_valid_rule()
@@ -146,6 +155,19 @@ func test_range_min_greater_or_equal_range_max_fails_when_both_non_zero() -> voi
 	var errors_by_index: Dictionary = _report_errors_by_index(report)
 	var rule_errors: Array = errors_by_index.get(0, [])
 	assert_true(_errors_contain(rule_errors, "range_min"))
+
+func test_event_name_condition_with_empty_expected_event_name_fails() -> void:
+	var rule: Variant = _make_valid_rule()
+	rule.conditions.clear()
+
+	var condition: Variant = CONDITION_EVENT_NAME.new()
+	condition.expected_event_name = StringName()
+	rule.conditions.append(condition)
+
+	var report: Dictionary = RULE_VALIDATOR.validate_rules([rule])
+	var errors_by_index: Dictionary = _report_errors_by_index(report)
+	var rule_errors: Array = errors_by_index.get(0, [])
+	assert_true(_errors_contain(rule_errors, "expected_event_name"))
 
 func test_grouped_unconditional_rule_without_rising_edge_emits_warning() -> void:
 	var rule: Variant = _make_valid_rule()

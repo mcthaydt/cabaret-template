@@ -11,6 +11,7 @@ const U_RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
 const U_RULE_SELECTOR := preload("res://scripts/utils/qb/u_rule_selector.gd")
 const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
 const U_RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
+const CONDITION_EVENT_NAME_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const CAMERA_MANAGER_SERVICE := StringName("camera_manager")
@@ -120,16 +121,17 @@ func _subscribe_rule_events() -> void:
 		if trigger_mode != TRIGGER_MODE_EVENT and trigger_mode != TRIGGER_MODE_BOTH:
 			continue
 
-		var event_name: StringName = _read_string_name_property(rule_variant, "trigger_event")
-		if event_name == StringName() or subscribed_events.has(event_name):
-			continue
+		var event_names: Array[StringName] = _extract_event_names_from_rule(rule_variant)
+		for event_name in event_names:
+			if event_name == StringName() or subscribed_events.has(event_name):
+				continue
 
-		var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(event_name, func(event_data: Dictionary) -> void:
-			_on_event_received(event_name, event_data)
-		)
-		if unsubscribe.is_valid():
-			_event_unsubscribers.append(unsubscribe)
-			subscribed_events[event_name] = true
+			var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(event_name, func(event_data: Dictionary) -> void:
+				_on_event_received(event_name, event_data)
+			)
+			if unsubscribe.is_valid():
+				_event_unsubscribers.append(unsubscribe)
+				subscribed_events[event_name] = true
 
 func _unsubscribe_rule_events() -> void:
 	for unsubscribe in _event_unsubscribers:
@@ -160,8 +162,8 @@ func _on_event_received(event_name: StringName, event_data: Dictionary) -> void:
 	_tracker.cleanup_stale_contexts(active_context_keys)
 	_apply_camera_state(contexts, 0.0)
 
-func _evaluate_context(context: Dictionary, trigger_mode: String, event_name: StringName) -> void:
-	var applicable_rules: Array = _get_applicable_rules(trigger_mode, event_name)
+func _evaluate_context(context: Dictionary, trigger_mode: String, _event_name: StringName) -> void:
+	var applicable_rules: Array = _get_applicable_rules(trigger_mode)
 	if applicable_rules.is_empty():
 		return
 
@@ -180,7 +182,7 @@ func _evaluate_context(context: Dictionary, trigger_mode: String, event_name: St
 	_execute_effects(winners, context)
 	_mark_fired_rules(winners, context)
 
-func _get_applicable_rules(trigger_mode: String, event_name: StringName) -> Array:
+func _get_applicable_rules(trigger_mode: String) -> Array:
 	var applicable_rules: Array = []
 	for rule_variant in _active_rules:
 		if rule_variant == null or not (rule_variant is Object):
@@ -195,8 +197,7 @@ func _get_applicable_rules(trigger_mode: String, event_name: StringName) -> Arra
 		if trigger_mode == TRIGGER_MODE_EVENT:
 			if rule_trigger_mode != TRIGGER_MODE_EVENT and rule_trigger_mode != TRIGGER_MODE_BOTH:
 				continue
-			if _read_string_name_property(rule_variant, "trigger_event") == event_name:
-				applicable_rules.append(rule_variant)
+			applicable_rules.append(rule_variant)
 
 	return applicable_rules
 
@@ -546,6 +547,19 @@ func _object_has_property(object_value: Object, property_name: String) -> bool:
 			return true
 	return false
 
+func _is_script_instance_of(object_value: Object, script_ref: Script) -> bool:
+	if object_value == null:
+		return false
+	if script_ref == null:
+		return false
+
+	var current: Variant = object_value.get_script()
+	while current != null and current is Script:
+		if current == script_ref:
+			return true
+		current = (current as Script).get_base_script()
+	return false
+
 func _get_float_property(object_value: Object, property_name: String, fallback: float) -> float:
 	if not _object_has_property(object_value, property_name):
 		return fallback
@@ -570,6 +584,33 @@ func _resolve_store() -> I_StateStore:
 	if state_store != null:
 		return state_store
 	return U_STATE_UTILS.try_get_store(self)
+
+func _extract_event_names_from_rule(rule_variant: Variant) -> Array[StringName]:
+	var event_names: Array[StringName] = []
+	if rule_variant == null or not (rule_variant is Object):
+		return event_names
+
+	var conditions_variant: Variant = (rule_variant as Object).get("conditions")
+	if not (conditions_variant is Array):
+		return event_names
+
+	for condition_variant in conditions_variant as Array:
+		var condition_event_name: StringName = _extract_event_name_from_condition(condition_variant)
+		if condition_event_name == StringName():
+			continue
+		if event_names.has(condition_event_name):
+			continue
+		event_names.append(condition_event_name)
+
+	return event_names
+
+func _extract_event_name_from_condition(condition_variant: Variant) -> StringName:
+	if condition_variant == null or not (condition_variant is Object):
+		return StringName()
+	var condition_object: Object = condition_variant as Object
+	if not _is_script_instance_of(condition_object, CONDITION_EVENT_NAME_SCRIPT):
+		return StringName()
+	return _read_string_name_property(condition_object, "expected_event_name")
 
 func _extract_event_payload(event_data: Dictionary) -> Dictionary:
 	var payload_variant: Variant = event_data.get("payload", null)

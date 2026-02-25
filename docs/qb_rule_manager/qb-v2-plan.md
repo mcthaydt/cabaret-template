@@ -25,7 +25,7 @@
 | Sub-phase | Tests | Implementation | Deliverable |
 |---|---|---|---|
 | 1A — Path Resolver | T1-T11 | T12-T13 | Dot-path resolution for Dict/Array/Object |
-| 1B — Conditions | T14-T47 | T48-T54 | 5 condition subclasses + base class with curve/invert |
+| 1B — Conditions | T14-T47 | T48-T54 | 5 initial condition subclasses + base class with curve/invert (later expanded to 6 with `RS_ConditionEventName`) |
 | 1C — Effects | T55-T71 | T72-T77 | 4 effect subclasses + base class |
 | 1D — Rule Resource | — | T78-T80 | RS_Rule with `Array[Resource]` fallback (typed-array target deferred) |
 | 1E — Scorer | T81-T90 | T91-T92 | `U_RuleScorer.score_rules()` |

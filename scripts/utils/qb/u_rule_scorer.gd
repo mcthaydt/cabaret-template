@@ -25,7 +25,7 @@ static func score_rules(rules: Array, context: Dictionary) -> Array[Dictionary]:
 static func _score_rule(rule: Variant, context: Dictionary) -> float:
 	var conditions: Array = _read_array_property(rule, "conditions")
 	if conditions.is_empty():
-		return 1.0
+		return 0.0
 
 	var score: float = 1.0
 	for condition_variant in conditions:

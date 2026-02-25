@@ -182,6 +182,13 @@
 - Phase 5C completed on 2026-02-25:
   - Recorded final verification counts (`T239`)
   - Marked v2 completion checkpoint and committed Phase 5 updates (`T240`)
+- Post-completion contract hardening applied on 2026-02-25:
+  - Added `scripts/resources/qb/conditions/rs_condition_event_name.gd` (`RS_ConditionEventName`)
+  - Removed `trigger_event` metadata from `RS_Rule`
+  - Enforced non-empty `conditions` in `U_RuleValidator` + `U_RuleScorer` (empty conditions invalid/blocked)
+  - Updated event subscriptions in `S_CharacterStateSystem`, `S_GameEventSystem`, and `S_CameraStateSystem` to derive subscriptions from `RS_ConditionEventName.expected_event_name`
+  - Updated default game/camera event rule resources to use `RS_ConditionEventName`
+  - Verified QB unit suite remains green (`tests/unit/qb`: 134/134 passing)
 
 ## Required Readings
 
@@ -200,7 +207,7 @@ Before making any changes, read these in order:
 
 **Layer 1 — Data (Resources):**
 - `RS_Rule` — conditions/effects arrays + metadata (currently `Array[Resource]` fallback in headless; validator enforces expected subtypes)
-- 5 condition subclasses: ComponentField, ReduxField, EntityTag, EventPayload, Constant
+- 6 condition subclasses: ComponentField, ReduxField, EntityTag, EventName, EventPayload, Constant
 - 4 effect subclasses: DispatchAction, PublishEvent, SetField, SetContextValue
 - Typed arrays are planned; headless currently uses `Array[Resource]` fallback with runtime validation
 

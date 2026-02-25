@@ -85,7 +85,7 @@ Completion note (2026-02-25): Added `U_PathResolver` + `test_path_resolver.gd`; 
 - [x] T53. Create `scripts/resources/qb/conditions/rs_condition_constant.gd`
 - [x] T54. All condition tests green
 
-Completion note (2026-02-25): Added 6 condition test suites (28 tests), implemented `RS_BaseCondition` + 5 condition subclasses, and verified:
+Completion note (2026-02-25): Added 6 condition test suites (28 tests), implemented `RS_BaseCondition` + 5 initial condition subclasses (later expanded to 6 with `RS_ConditionEventName` during contract hardening), and verified:
 - QB condition suites: 28/28 passing (`test_condition_*` + `test_base_condition`)
 - Style suite: 12/12 passing (`tests/unit/style`)
 
@@ -146,7 +146,7 @@ Completion note (2026-02-25): Added `RS_Rule` and validated export metadata in h
 - [x] T85. Test: response_curve applied per condition before multiplication
 - [x] T86. Test: invert applied per condition
 - [x] T87. Test: score_threshold filters out rules below threshold
-- [x] T88. Test: rule with empty conditions scores 1.0 (unconditional)
+- [x] T88. Test: rule with empty conditions scores 0.0 (invalid/unconditional blocked)
 - [x] T89. Test: empty rules array returns empty results
 - [x] T90. Test: returned results contain {rule: RS_Rule, score: float} dictionaries
 
@@ -215,14 +215,14 @@ Completion note (2026-02-25): Added state-tracker test suite (12 tests), impleme
 - [x] T118. Create `tests/unit/qb/test_rule_validator.gd`
 - [x] T119. Test: valid rule with conditions and effects passes
 - [x] T120. Test: empty rule_id fails validation
-- [x] T121. Test: event trigger mode without trigger_event fails
+- [x] T121. Test: event/both trigger mode without `RS_ConditionEventName` fails
 - [x] T122. Test: RS_ConditionComponentField with empty component_type fails
 - [x] T123. Test: RS_ConditionReduxField with empty state_path fails
 - [x] T124. Test: RS_ConditionReduxField without dot separator fails
 - [x] T125. Test: RS_EffectSetField with empty component_type fails
 - [x] T126. Test: RS_EffectSetField with empty field_name fails
 - [x] T127. Test: range_min >= range_max on numeric condition fails (when both non-zero)
-- [x] T128. Test: grouped unconditional rule without rising_edge emits warning
+- [x] T128. Test: grouped unconditional rule without rising_edge emits warning (legacy guard; unconditional also fails validation)
 - [x] T129. Test: returns valid_rules, errors_by_index, errors_by_rule_id structure
 
 **Implementation:**
@@ -304,7 +304,7 @@ Completion note (2026-02-25): Added all 5 character rule resources with v2 `RS_R
 - [x] T170. Implement `process_tick()`: tick cooldowns → build contexts → score → select → execute → write brain data
 - [x] T171. Implement `_execute_effects(winners, context)` — iterate winner effects, call effect.execute(context)
 - [x] T172. Migrate `_write_brain_data()` — copy context values to C_CharacterStateComponent
-- [x] T173. Implement event subscription for any rules with event/both trigger modes
+- [x] T173. Implement event subscription for any rules with event/both trigger modes by scanning `RS_ConditionEventName.expected_event_name`
 - [x] T174. Update scene references (`.tscn` files) to new script path/class name
 - [x] T175. All character state system tests green
 
@@ -333,10 +333,10 @@ Completion note (2026-02-25): Added `tests/integration/qb/test_character_movemen
 
 ### 3A — Recreate Game Rule Resources
 
-- [x] T179. Create `resources/qb/game/cfg_checkpoint_rule.tres` — RS_Rule (trigger_mode=event, trigger_event=checkpoint_zone_entered) + RS_EffectPublishEvent (checkpoint_activation_requested, inject_entity_id=true)
-- [x] T180. Create `resources/qb/game/cfg_victory_rule.tres` — RS_Rule (trigger_mode=event, trigger_event=victory_triggered) + RS_EffectPublishEvent (victory_execution_requested, inject_entity_id=true)
+- [x] T179. Create `resources/qb/game/cfg_checkpoint_rule.tres` — RS_Rule (`trigger_mode=event`, `RS_ConditionEventName.expected_event_name=checkpoint_zone_entered`) + RS_EffectPublishEvent (checkpoint_activation_requested, inject_entity_id=true)
+- [x] T180. Create `resources/qb/game/cfg_victory_rule.tres` — RS_Rule (`trigger_mode=event`, `RS_ConditionEventName.expected_event_name=victory_triggered`) + RS_EffectPublishEvent (victory_execution_requested, inject_entity_id=true)
 
-Completion note (2026-02-25): Added both v2 game event-forwarding rule resources (`cfg_checkpoint_rule.tres`, `cfg_victory_rule.tres`) using `RS_Rule` + `RS_EffectPublishEvent` with event trigger modes and `inject_entity_id = true`. Verification:
+Completion note (2026-02-25): Added both v2 game event-forwarding rule resources (`cfg_checkpoint_rule.tres`, `cfg_victory_rule.tres`) using `RS_Rule` + `RS_ConditionEventName` + `RS_EffectPublishEvent` with `inject_entity_id = true`. Verification:
 - Resource validation: `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
 - QB unit suite: 114/114 passing (`tests/unit/qb`)
 - Style suite: 12/12 passing (`tests/unit/style`)
@@ -360,7 +360,7 @@ Completion note (2026-02-25): Added both v2 game event-forwarding rule resources
 - [x] T190. Replace `extends BaseQBRuleManager` with `extends BaseECSSystem`
 - [x] T191. Add `@export var rules: Array[Resource] = []` (headless fallback; runtime-validated to `RS_Rule`)
 - [x] T192. Add `var _tracker := RuleStateTracker.new()` instance
-- [x] T193. Implement `on_configured()`: validate rules, subscribe to trigger events for event/both mode rules
+- [x] T193. Implement `on_configured()`: validate rules, subscribe to events derived from `RS_ConditionEventName` for event/both mode rules
 - [x] T194. Implement `_on_event_received(event_name, event)`: build context from payload + Redux state → score → select → execute effects
 - [x] T195. Implement `process_tick(delta)`: if any rules are tick/both mode, build global context (Redux state snapshot) → score → select → execute
 - [x] T196. Clean up event subscriptions in `_exit_tree()`
@@ -392,7 +392,7 @@ Completion note (2026-02-25): Added `tests/integration/qb/test_checkpoint_pipeli
 
 ### 4A — Recreate Camera Rule Resources
 
-- [x] T203. Create `resources/qb/camera/cfg_camera_shake_rule.tres` — RS_Rule (trigger_mode=event, trigger_event=entity_death) + RS_EffectSetField (C_CameraStateComponent.shake_trauma, add, 0.5, clamp 0-1)
+- [x] T203. Create `resources/qb/camera/cfg_camera_shake_rule.tres` — RS_Rule (`trigger_mode=event`, `RS_ConditionEventName.expected_event_name=entity_death`) + RS_EffectSetField (C_CameraStateComponent.shake_trauma, add, 0.5, clamp 0-1)
 - [x] T204. Create `resources/qb/camera/cfg_camera_zone_fov_rule.tres` — RS_Rule (trigger_mode=tick) + RS_ConditionReduxField (camera.in_fov_zone, equals, true) + RS_EffectSetField (C_CameraStateComponent.target_fov, set, 60.0)
 
 Completion note (2026-02-25): Recreated camera v2 rule resources `cfg_camera_shake_rule.tres` and `cfg_camera_zone_fov_rule.tres` in `resources/qb/camera/` using `RS_Rule` + typed v2 condition/effect subresources. Verification:
@@ -489,6 +489,14 @@ Completion note (2026-02-25): Updated all required docs for v2 alignment.
 Completion note (2026-02-25): Final Phase 5C checkpoint recorded.
 - Final counts: style 12/12, QB unit 132/132, QB integration 5/5, ECS unit 126/126, full integration 395/396 passing with 1 headless pending and 0 failures.
 - Final v2 completion commit created with all Phase 5 verification + documentation updates.
+
+Post-completion note (2026-02-25, contract hardening):
+- Enforced “condition-first trigger” model across v2 runtime:
+  - `trigger_event` removed from `RS_Rule`
+  - Event subscriptions now derive from `RS_ConditionEventName.expected_event_name`
+  - Rules must have at least one condition; empty-condition rules are invalid and score `0.0`
+- Updated default event-forwarding resources (`cfg_checkpoint_rule`, `cfg_victory_rule`, `cfg_camera_shake_rule`) to use `RS_ConditionEventName`.
+- Updated QB unit tests (`test_rule_validator`, `test_rule_scorer`, `test_game_event_system`) to enforce the new contract.
 
 ---
 

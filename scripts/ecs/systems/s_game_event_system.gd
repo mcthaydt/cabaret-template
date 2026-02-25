@@ -9,6 +9,7 @@ const U_RULE_SELECTOR := preload("res://scripts/utils/qb/u_rule_selector.gd")
 const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
 const U_RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
 const EFFECT_PUBLISH_EVENT_SCRIPT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
+const CONDITION_EVENT_NAME_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
 
 const TRIGGER_MODE_TICK := "tick"
 const TRIGGER_MODE_EVENT := "event"
@@ -80,16 +81,17 @@ func _subscribe_rule_events() -> void:
 		if trigger_mode != TRIGGER_MODE_EVENT and trigger_mode != TRIGGER_MODE_BOTH:
 			continue
 
-		var event_name: StringName = _read_string_name_property(rule_variant, "trigger_event")
-		if event_name == StringName() or subscribed_events.has(event_name):
-			continue
+		var event_names: Array[StringName] = _extract_event_names_from_rule(rule_variant)
+		for event_name in event_names:
+			if event_name == StringName() or subscribed_events.has(event_name):
+				continue
 
-		var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(event_name, func(event_data: Dictionary) -> void:
-			_on_event_received(event_name, event_data)
-		)
-		if unsubscribe.is_valid():
-			_event_unsubscribers.append(unsubscribe)
-			subscribed_events[event_name] = true
+			var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(event_name, func(event_data: Dictionary) -> void:
+				_on_event_received(event_name, event_data)
+			)
+			if unsubscribe.is_valid():
+				_event_unsubscribers.append(unsubscribe)
+				subscribed_events[event_name] = true
 
 func _unsubscribe_rule_events() -> void:
 	for unsubscribe in _event_unsubscribers:
@@ -105,8 +107,8 @@ func _on_event_received(event_name: StringName, event_data: Dictionary) -> void:
 	_evaluate_context(context, TRIGGER_MODE_EVENT, event_name)
 	_tracker.cleanup_stale_contexts([_context_key_for_context(context)])
 
-func _evaluate_context(context: Dictionary, trigger_mode: String, event_name: StringName) -> void:
-	var applicable_rules: Array = _get_applicable_rules(trigger_mode, event_name)
+func _evaluate_context(context: Dictionary, trigger_mode: String, _event_name: StringName) -> void:
+	var applicable_rules: Array = _get_applicable_rules(trigger_mode)
 	if applicable_rules.is_empty():
 		return
 
@@ -125,7 +127,7 @@ func _evaluate_context(context: Dictionary, trigger_mode: String, event_name: St
 	_execute_effects(winners, context)
 	_mark_fired_rules(winners, context)
 
-func _get_applicable_rules(trigger_mode: String, event_name: StringName) -> Array:
+func _get_applicable_rules(trigger_mode: String) -> Array:
 	var applicable_rules: Array = []
 	for rule_variant in _active_rules:
 		if rule_variant == null or not (rule_variant is Object):
@@ -140,8 +142,7 @@ func _get_applicable_rules(trigger_mode: String, event_name: StringName) -> Arra
 		if trigger_mode == TRIGGER_MODE_EVENT:
 			if rule_trigger_mode != TRIGGER_MODE_EVENT and rule_trigger_mode != TRIGGER_MODE_BOTH:
 				continue
-			if _read_string_name_property(rule_variant, "trigger_event") == event_name:
-				applicable_rules.append(rule_variant)
+			applicable_rules.append(rule_variant)
 
 	return applicable_rules
 
@@ -327,6 +328,33 @@ func _resolve_rule_id(rule_variant: Variant) -> StringName:
 	if rule_variant is Object:
 		return StringName("__rule_%d" % (rule_variant as Object).get_instance_id())
 	return StringName("__rule")
+
+func _extract_event_names_from_rule(rule_variant: Variant) -> Array[StringName]:
+	var event_names: Array[StringName] = []
+	if rule_variant == null or not (rule_variant is Object):
+		return event_names
+
+	var conditions_variant: Variant = (rule_variant as Object).get("conditions")
+	if not (conditions_variant is Array):
+		return event_names
+
+	for condition_variant in conditions_variant as Array:
+		var condition_event_name: StringName = _extract_event_name_from_condition(condition_variant)
+		if condition_event_name == StringName():
+			continue
+		if event_names.has(condition_event_name):
+			continue
+		event_names.append(condition_event_name)
+
+	return event_names
+
+func _extract_event_name_from_condition(condition_variant: Variant) -> StringName:
+	if condition_variant == null or not (condition_variant is Object):
+		return StringName()
+	var condition_object: Object = condition_variant as Object
+	if not _is_script_instance_of(condition_object, CONDITION_EVENT_NAME_SCRIPT):
+		return StringName()
+	return _read_string_name_property(condition_object, "expected_event_name")
 
 func _resolve_store() -> I_StateStore:
 	if state_store != null:

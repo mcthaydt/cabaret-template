@@ -6,6 +6,7 @@ const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 
 const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
 const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
+const CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
 const EFFECT_DISPATCH_ACTION := preload("res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd")
 const EFFECT_PUBLISH_EVENT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
 const C_CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
@@ -205,13 +206,16 @@ func _create_fixture(designer_rules: Array = []) -> Dictionary:
 	}
 
 func _make_event_dispatch_rule(rule_id: StringName, trigger_event: StringName, action_type: StringName) -> RS_Rule:
+	var event_condition := CONDITION_EVENT_NAME.new()
+	event_condition.expected_event_name = trigger_event
+
 	var effect := EFFECT_DISPATCH_ACTION.new()
 	effect.action_type = action_type
 
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "event"
-	rule.trigger_event = trigger_event
+	rule.conditions = [event_condition]
 	rule.effects = [effect]
 	return rule
 
@@ -221,6 +225,9 @@ func _make_event_publish_rule(
 	published_event: StringName,
 	static_payload: Dictionary = {}
 ) -> RS_Rule:
+	var event_condition := CONDITION_EVENT_NAME.new()
+	event_condition.expected_event_name = trigger_event
+
 	var effect := EFFECT_PUBLISH_EVENT.new()
 	effect.event_name = published_event
 	effect.payload = static_payload.duplicate(true)
@@ -229,7 +236,7 @@ func _make_event_publish_rule(
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "event"
-	rule.trigger_event = trigger_event
+	rule.conditions = [event_condition]
 	rule.effects = [effect]
 	return rule
 
