@@ -61,3 +61,22 @@ func test_entity_id_is_not_injected_when_disabled() -> void:
 	var published_event: Dictionary = history[0]
 	var payload: Dictionary = published_event.get("payload", {})
 	assert_false(payload.has("entity_id"))
+
+func test_entity_id_is_injected_when_context_uses_string_name_key() -> void:
+	var effect: Variant = EFFECT_PUBLISH_EVENT.new()
+	effect.event_name = StringName("checkpoint_activation_requested")
+	effect.inject_entity_id = true
+	effect.payload = {
+		"checkpoint": "cp_lobby"
+	}
+
+	var context: Dictionary = {
+		StringName("entity_id"): StringName("player")
+	}
+	effect.execute(context)
+
+	var history: Array = ECS_EVENT_BUS.get_event_history()
+	assert_eq(history.size(), 1)
+	var published_event: Dictionary = history[0]
+	var payload: Dictionary = published_event.get("payload", {})
+	assert_eq(payload.get("entity_id", StringName()), StringName("player"))
