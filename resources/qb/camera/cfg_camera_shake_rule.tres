@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="RS_Rule" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="1_7ubwf"]
+[ext_resource type="Script" path="res://scripts/resources/qb/rs_rule.gd" id="2_3tnus"]
+
+[sub_resource type="Resource" id="Resource_fv330"]
+script = ExtResource("1_7ubwf")
+component_type = &"C_CameraStateComponent"
+field_name = &"shake_trauma"
+operation = "add"
+float_value = 0.5
+use_clamp = true
+clamp_min = 0.0
+clamp_max = 1.0
+
+[resource]
+script = ExtResource("2_3tnus")
+rule_id = &"camera_shake"
+trigger_mode = "event"
+trigger_event = &"entity_death"
+effects = Array[Resource]([SubResource("Resource_fv330")])
