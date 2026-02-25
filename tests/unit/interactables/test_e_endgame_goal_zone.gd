@@ -4,7 +4,9 @@ const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
+const RS_OBJECTIVES_INITIAL_STATE := preload("res://scripts/resources/state/rs_objectives_initial_state.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_OBJECTIVES_ACTIONS := preload("res://scripts/state/actions/u_objectives_actions.gd")
 const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd")
 const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_victory_interaction_config.gd")
 
@@ -23,6 +25,7 @@ func before_each() -> void:
 	_store.settings.enable_global_settings_persistence = false
 	_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
 	_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
+	_store.objectives_initial_state = RS_OBJECTIVES_INITIAL_STATE.new()
 	add_child(_store)
 	autofree(_store)
 	await _pump_frames(3)
@@ -41,6 +44,10 @@ func _create_controller(config: Resource) -> Inter_EndgameGoalZone:
 
 func _dispatch_mark_area_complete(area_id: String) -> void:
 	var action := U_GAMEPLAY_ACTIONS.mark_area_complete(area_id)
+	action["immediate"] = true
+	_store.dispatch(action)
+
+func _dispatch_objective_action(action: Dictionary) -> void:
 	action["immediate"] = true
 	_store.dispatch(action)
 
@@ -78,3 +85,27 @@ func test_non_matching_config_does_not_override_valid_endgame_config() -> void:
 	await _pump_frames(2)
 	assert_true(controller.is_enabled(), "Original endgame config should continue to control unlock gating.")
 	assert_true(controller.visible)
+
+func test_endgame_goal_requires_active_objective_and_completed_area() -> void:
+	var config := RS_ENDGAME_GOAL_INTERACTION_CONFIG.new()
+	config.required_area = "area_cfg"
+	config.visibility_objective_id = StringName("final_complete")
+	var controller := await _create_controller(config)
+
+	assert_false(controller.is_enabled(), "Endgame goal should start locked when objective is inactive.")
+	assert_false(controller.visible, "Endgame goal should start hidden when objective is inactive.")
+
+	_dispatch_mark_area_complete("area_cfg")
+	await _pump_frames(2)
+	assert_false(controller.is_enabled(), "Completed area alone should not unlock objective-gated endgame goal.")
+	assert_false(controller.visible)
+
+	_dispatch_objective_action(U_OBJECTIVES_ACTIONS.activate(StringName("final_complete")))
+	await _pump_frames(2)
+	assert_true(controller.is_enabled(), "Endgame goal should unlock when objective is active and area requirement is met.")
+	assert_true(controller.visible)
+
+	_dispatch_objective_action(U_OBJECTIVES_ACTIONS.complete(StringName("final_complete")))
+	await _pump_frames(2)
+	assert_false(controller.is_enabled(), "Endgame goal should lock after gated objective completes.")
+	assert_false(controller.visible)
