@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 94% (225 / 240 tasks complete)
+**Progress:** 95% (227 / 240 tasks complete)
 
 ---
 
@@ -436,8 +436,13 @@ Completion note (2026-02-25): Added `tests/unit/qb/test_camera_state_system.gd` 
 
 **Integration test:**
 
-- [ ] T226. Create `tests/integration/qb/test_camera_shake_pipeline.gd`
-- [ ] T227. Test: entity death event → camera shake effect applied to camera manager
+- [x] T226. Create `tests/integration/qb/test_camera_shake_pipeline.gd`
+- [x] T227. Test: entity death event → camera shake effect applied to camera manager
+
+Completion note (2026-02-25): Added `tests/integration/qb/test_camera_shake_pipeline.gd` and verified end-to-end camera shake flow (`entity_death` event → `S_CameraStateSystem` event rule evaluation → `C_CameraStateComponent.shake_trauma` update + `MockCameraManager` shake source write). Verification:
+- QB integration suite (`tests/integration/qb`): 5/5 passing
+- QB unit suite (`tests/unit/qb`): 131/131 passing
+- Style suite (`tests/unit/style`): 12/12 passing
 
 **Phase 4 commit checkpoint.** Camera state works identically to v1.
 

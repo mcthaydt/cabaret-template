@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 4B complete on 2026-02-25; Phase 4C next)
+- **Status:** In progress (Phase 4 complete on 2026-02-25; Phase 5A next)
 
 ## Recent Progress
 
@@ -161,6 +161,12 @@
   - Verified `test_camera_state_system.gd` (10/10 passing)
   - Verified QB unit suite `tests/unit/qb` (131/131 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
+- Phase 4C completed on 2026-02-25:
+  - Added `tests/integration/qb/test_camera_shake_pipeline.gd` (T226-T227)
+  - Verified end-to-end camera shake flow: `entity_death` event → `S_CameraStateSystem` event rule fan-out → camera-state trauma update + camera-manager shake source write
+  - Verified QB integration suite `tests/integration/qb` (5/5 passing)
+  - Re-verified QB unit suite `tests/unit/qb` (131/131 passing)
+  - Re-verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
 
@@ -209,9 +215,9 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 4C:** Add camera shake integration test coverage (`T226-T227`).
-2. Begin Phase 5 verification/docs pass (`T228-T238`) after Phase 4 checkpoint is complete.
-3. Keep style + QB suites green at each sub-phase checkpoint.
+1. **Phase 5A:** Codebase verification (`T228-T233`) — stale-reference grep + full suite checks.
+2. **Phase 5B:** Documentation updates (`T234-T238`) — AGENTS/STYLE_GUIDE/DEV_PITFALLS final v2 alignment.
+3. **Phase 5C:** Final checkpoint (`T239-T240`) — record final suite counts and commit v2 completion.
 
 ## Key Design Decisions
 
