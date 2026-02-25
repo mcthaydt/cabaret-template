@@ -1,0 +1,378 @@
+@icon("res://assets/editor_icons/icn_manager.svg")
+extends Node
+class_name M_SceneDirector
+
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_director_actions.gd")
+const U_BEAT_RUNNER := preload("res://scripts/utils/scene_director/u_beat_runner.gd")
+const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
+
+const STORE_SERVICE_NAME := StringName("state_store")
+
+@export var state_store: I_StateStore = null
+@export var directives: Array[Resource] = []
+
+var _store: I_StateStore = null
+var _beat_runner: Variant = null
+var _active_directive: Resource = null
+var _store_action_connected: bool = false
+var _signal_unsubscribes_by_event: Dictionary = {}
+
+func _ready() -> void:
+	_beat_runner = U_BEAT_RUNNER.new()
+	_resolve_store()
+	_ensure_store_action_signal_connection()
+
+func _exit_tree() -> void:
+	_disconnect_store_action_signal()
+	_clear_signal_subscriptions()
+
+func _physics_process(delta: float) -> void:
+	if _active_directive == null:
+		return
+	if _beat_runner == null:
+		return
+
+	var context: Dictionary = _build_context()
+	var before_index: int = _to_int(_beat_runner.get_current_index(), -1)
+	_beat_runner.execute_current_beat(context)
+	_process_index_change(before_index)
+
+	if _active_directive == null:
+		return
+	if _beat_runner.is_complete():
+		_on_directive_complete()
+		return
+
+	before_index = _to_int(_beat_runner.get_current_index(), -1)
+	_beat_runner.update(delta)
+	_process_index_change(before_index)
+
+	if _active_directive == null:
+		return
+	if _beat_runner.is_complete():
+		_on_directive_complete()
+
+func _select_directive(scene_id: StringName) -> Resource:
+	if scene_id == StringName(""):
+		return null
+
+	var best_directive: Resource = null
+	var best_priority: int = -2147483648
+	var best_id: StringName = StringName("")
+	var context: Dictionary = _build_context()
+
+	for directive in directives:
+		if directive == null:
+			continue
+
+		var target_scene_id: StringName = _to_string_name(
+			_resource_get(directive, "target_scene_id", StringName(""))
+		)
+		if target_scene_id != scene_id:
+			continue
+
+		var selection_conditions: Array[Resource] = _to_resource_array(
+			_resource_get(directive, "selection_conditions", [])
+		)
+		if not _check_conditions(selection_conditions, context):
+			continue
+
+		var priority: int = _to_int(_resource_get(directive, "priority", 0), 0)
+		var directive_id: StringName = _get_directive_id(directive)
+		if best_directive == null:
+			best_directive = directive
+			best_priority = priority
+			best_id = directive_id
+			continue
+
+		var should_replace: bool = priority > best_priority
+		if not should_replace and priority == best_priority:
+			should_replace = String(directive_id) < String(best_id)
+
+		if should_replace:
+			best_directive = directive
+			best_priority = priority
+			best_id = directive_id
+
+	return best_directive
+
+func _start_directive(directive: Resource) -> void:
+	if directive == null:
+		return
+
+	if _beat_runner == null:
+		_beat_runner = U_BEAT_RUNNER.new()
+
+	_clear_signal_subscriptions()
+	_active_directive = directive
+
+	var directive_id: StringName = _get_directive_id(directive)
+	var beats: Array[Resource] = _to_resource_array(_resource_get(directive, "beats", []))
+	_beat_runner.start(beats)
+
+	if _store != null:
+		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.start_directive(directive_id))
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_STARTED, {
+		"directive_id": directive_id,
+	})
+
+	_subscribe_signal_events(beats)
+
+func _on_directive_complete() -> void:
+	if _active_directive == null:
+		return
+
+	var directive_id: StringName = _get_directive_id(_active_directive)
+	if _store != null:
+		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.complete_directive())
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_COMPLETED, {
+		"directive_id": directive_id,
+	})
+
+	_active_directive = null
+	_clear_signal_subscriptions()
+	if _beat_runner != null:
+		var empty_beats: Array[Resource] = []
+		_beat_runner.start(empty_beats)
+
+func _build_context() -> Dictionary:
+	_resolve_store()
+
+	var redux_state: Dictionary = {}
+	if _store != null:
+		redux_state = _store.get_state()
+
+	return {
+		"state_store": _store,
+		"redux_state": redux_state,
+	}
+
+func _build_event_context(event_payload: Dictionary) -> Dictionary:
+	var context: Dictionary = _build_context()
+	context["event_payload"] = event_payload.duplicate(true)
+	return context
+
+func _resolve_store() -> void:
+	var resolved_store: I_StateStore = null
+
+	if state_store != null and is_instance_valid(state_store):
+		resolved_store = state_store
+	elif _store != null and is_instance_valid(_store):
+		resolved_store = _store
+	else:
+		resolved_store = U_STATE_UTILS.try_get_store(self)
+		if resolved_store == null:
+			resolved_store = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
+
+	_set_store_reference(resolved_store)
+
+func _set_store_reference(next_store: I_StateStore) -> void:
+	if _store != next_store:
+		if _store != null and _store.has_signal("action_dispatched"):
+			if _store.action_dispatched.is_connected(_on_action_dispatched):
+				_store.action_dispatched.disconnect(_on_action_dispatched)
+		_store_action_connected = false
+		_store = next_store
+
+	_ensure_store_action_signal_connection()
+
+func _ensure_store_action_signal_connection() -> void:
+	if _store == null:
+		return
+	if not _store.has_signal("action_dispatched"):
+		return
+	if _store.action_dispatched.is_connected(_on_action_dispatched):
+		_store_action_connected = true
+		return
+
+	_store.action_dispatched.connect(_on_action_dispatched)
+	_store_action_connected = true
+
+func _disconnect_store_action_signal() -> void:
+	if not _store_action_connected:
+		return
+	if _store != null and _store.has_signal("action_dispatched"):
+		if _store.action_dispatched.is_connected(_on_action_dispatched):
+			_store.action_dispatched.disconnect(_on_action_dispatched)
+	_store_action_connected = false
+
+func _on_action_dispatched(action: Dictionary) -> void:
+	var action_type: StringName = _to_string_name(action.get("type", StringName("")))
+	if action_type != U_SCENE_ACTIONS.ACTION_TRANSITION_COMPLETED:
+		return
+
+	var payload: Dictionary = {}
+	var payload_variant: Variant = action.get("payload", {})
+	if payload_variant is Dictionary:
+		payload = payload_variant as Dictionary
+	var scene_id: StringName = _to_string_name(payload.get("scene_id", StringName("")))
+	if scene_id == StringName(""):
+		return
+
+	var directive: Resource = _select_directive(scene_id)
+	if directive == null:
+		_reset_director_state()
+		return
+
+	_start_directive(directive)
+
+func _reset_director_state() -> void:
+	_active_directive = null
+	_clear_signal_subscriptions()
+	if _beat_runner != null:
+		var empty_beats: Array[Resource] = []
+		_beat_runner.start(empty_beats)
+	if _store != null:
+		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.reset())
+
+func _subscribe_signal_events(beats: Array[Resource]) -> void:
+	var unique_events: Dictionary = {}
+	for beat in beats:
+		if beat == null:
+			continue
+
+		var wait_mode: int = _to_int(
+			_resource_get(beat, "wait_mode", RS_BEAT_DEFINITION.WaitMode.INSTANT),
+			RS_BEAT_DEFINITION.WaitMode.INSTANT
+		)
+		if wait_mode != RS_BEAT_DEFINITION.WaitMode.SIGNAL:
+			continue
+
+		var wait_event: StringName = _to_string_name(_resource_get(beat, "wait_event", StringName("")))
+		if wait_event == StringName(""):
+			continue
+
+		unique_events[wait_event] = true
+
+	for event_name_variant in unique_events.keys():
+		var wait_event: StringName = _to_string_name(event_name_variant)
+		var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(
+			wait_event,
+			func(event: Dictionary) -> void:
+				_on_signal_event(wait_event, event)
+		)
+		_signal_unsubscribes_by_event[wait_event] = unsubscribe
+
+func _on_signal_event(wait_event: StringName, event: Dictionary) -> void:
+	if _active_directive == null:
+		return
+	if _beat_runner == null:
+		return
+
+	var before_index: int = _to_int(_beat_runner.get_current_index(), -1)
+	_beat_runner.on_signal_received(wait_event)
+	_process_index_change(before_index)
+
+	if _active_directive == null:
+		return
+	if _beat_runner.is_complete():
+		_on_directive_complete()
+		return
+
+	var payload: Dictionary = {}
+	var payload_variant: Variant = event.get("payload", {})
+	if payload_variant is Dictionary:
+		payload = (payload_variant as Dictionary).duplicate(true)
+	var event_context: Dictionary = _build_event_context(payload)
+
+	before_index = _to_int(_beat_runner.get_current_index(), -1)
+	_beat_runner.execute_current_beat(event_context)
+	_process_index_change(before_index)
+
+	if _active_directive == null:
+		return
+	if _beat_runner.is_complete():
+		_on_directive_complete()
+
+func _process_index_change(previous_index: int) -> void:
+	if _beat_runner == null:
+		return
+
+	var current_index: int = _to_int(_beat_runner.get_current_index(), previous_index)
+	if current_index <= previous_index:
+		return
+
+	for _index in range(previous_index, current_index):
+		_dispatch_beat_advanced_event()
+
+func _dispatch_beat_advanced_event() -> void:
+	if _store != null:
+		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.advance_beat())
+
+	if _active_directive == null:
+		return
+
+	var directive_id: StringName = _get_directive_id(_active_directive)
+	var current_index: int = -1
+	if _beat_runner != null:
+		current_index = _to_int(_beat_runner.get_current_index(), -1)
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_BEAT_ADVANCED, {
+		"directive_id": directive_id,
+		"current_beat_index": current_index,
+	})
+
+func _clear_signal_subscriptions() -> void:
+	for unsubscribe_variant in _signal_unsubscribes_by_event.values():
+		if unsubscribe_variant is Callable:
+			var unsubscribe: Callable = unsubscribe_variant
+			if unsubscribe.is_valid():
+				unsubscribe.call()
+	_signal_unsubscribes_by_event.clear()
+
+func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool:
+	for condition_resource in conditions:
+		var condition: Variant = condition_resource
+		if condition == null:
+			return false
+		if not condition.has_method("evaluate"):
+			return false
+
+		var score: float = _to_float(condition.evaluate(context), 0.0)
+		if score <= 0.0:
+			return false
+	return true
+
+func _get_directive_id(directive: Resource) -> StringName:
+	return _to_string_name(_resource_get(directive, "directive_id", StringName("")))
+
+func _resource_get(resource: Resource, property_name: String, fallback: Variant) -> Variant:
+	if resource == null:
+		return fallback
+	var value: Variant = resource.get(property_name)
+	return value if value != null else fallback
+
+func _to_resource_array(value: Variant) -> Array[Resource]:
+	var resources: Array[Resource] = []
+	if value is Array:
+		for item in value:
+			if item is Resource:
+				resources.append(item as Resource)
+	return resources
+
+func _to_float(value: Variant, fallback: float) -> float:
+	if value is float:
+		return value
+	if value is int:
+		return float(value)
+	return fallback
+
+func _to_int(value: Variant, fallback: int) -> int:
+	if value is int:
+		return value
+	if value is float:
+		return int(value)
+	return fallback
+
+func _to_string_name(value: Variant) -> StringName:
+	if value is StringName:
+		return value
+	if value is String:
+		return StringName(value)
+	return StringName("")
