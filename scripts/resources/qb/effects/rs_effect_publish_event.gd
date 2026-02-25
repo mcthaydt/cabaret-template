@@ -1,0 +1,19 @@
+@icon("res://assets/editor_icons/icn_resource.svg")
+extends "res://scripts/resources/qb/rs_base_effect.gd"
+class_name RS_EffectPublishEvent
+
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+
+@export var event_name: StringName
+@export var payload: Dictionary = {}
+@export var inject_entity_id: bool = true
+
+func execute(context: Dictionary) -> void:
+	if event_name.is_empty():
+		return
+
+	var event_payload: Dictionary = payload.duplicate(true)
+	if inject_entity_id and context.has("entity_id") and not event_payload.has("entity_id"):
+		event_payload["entity_id"] = context.get("entity_id")
+
+	U_ECS_EVENT_BUS.publish(event_name, event_payload)
