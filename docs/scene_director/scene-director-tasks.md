@@ -321,3 +321,32 @@ Phase 5 completion notes (2026-02-25):
 - [x] T7.21: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
 
 **Phase 7 Commit**: Reset-run hardening with deterministic coordinator orchestration and migrated objective IDs
+
+---
+
+## Phase 8: Objective Mesh Visibility Gating (Follow-up)
+
+### 8A: Config + Controller Wiring
+
+- [x] T8.1: Added `visibility_objective_id: StringName` to `RS_VictoryInteractionConfig` for objective-status-driven mesh/interactable gating.
+- [x] T8.2: Refactored `Inter_VictoryZone` to resolve `I_StateStore`, subscribe to `slice_updated`, and gate `set_enabled(...)` + `visible` by `objectives` status (`active` only).
+- [x] T8.3: Refactored `Inter_EndgameGoalZone` to remove duplicated store/toggle logic and override `_compute_visibility_gate_unlocked(state)` so unlock requires both:
+  - objective gate pass (`final_complete` active via base behavior), and
+  - existing `required_area` completion in gameplay state.
+
+### 8B: Authored Resource Updates
+
+- [x] T8.4: Updated `cfg_victory_goal_bar.tres` with `visibility_objective_id = &"bar_complete"` so the bar goal mesh appears only during objective 1.
+- [x] T8.5: Updated `cfg_endgame_goal_alleyway.tres` with `visibility_objective_id = &"final_complete"` so the alleyway endgame mesh appears only during objective 2.
+
+### 8C: Tests + Verification
+
+- [x] T8.6: Extended `tests/unit/interactables/test_e_victory_zone.gd` to assert objective-gated visibility (`inactive`/`completed` hidden, `active` shown).
+- [x] T8.7: Extended `tests/unit/interactables/test_e_endgame_goal_zone.gd` to assert combined gating (objective active + required area complete).
+- [x] T8.8: Added validator regression in `tests/unit/resources/test_interaction_config_validator.gd` proving `visibility_objective_id` is optional.
+- [x] T8.9: Run verification suites:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_e_victory_zone`
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_e_endgame_goal_zone`
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources -gselect=test_interaction_config_validator`
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
+  - Completion note (2026-02-25): All requested suites passed (`test_e_victory_zone` 4/4, `test_e_endgame_goal_zone` 3/3, `test_interaction_config_validator` 16/16, `tests/unit/style` 12/12).

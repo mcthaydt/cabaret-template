@@ -14,6 +14,8 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 **Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (67/67), `tests/unit/ui -gselect=test_endgame_screens` (10/10), `tests/integration/scene_director` (3/3), `tests/integration/scene_manager -gselect=test_endgame_flows` (5/5), `tests/unit/style` (12/12). Interactive manual playtest remains pending.
 **Integration note**: Default gameplay intro beats publish both instrumentation events (`scene_director_intro_beat_1/2`) and player-facing `signpost_message` payloads (`hud.scene_director_intro_beat_1/2`) consumed by HUD/mobile signpost flows.
 **Reset-run note**: Victory Continue now dispatches `run/reset`; `M_RunCoordinator` orchestrates gameplay reset, interact unblock, objectives fresh reset (`reset_for_new_run`), and retry to `alleyway`.
+**Objective-visibility note**: Goal mesh visibility is objective-driven via interaction config `visibility_objective_id` (status gate = `active` only). `cfg_victory_goal_bar` gates on `bar_complete`, and `cfg_endgame_goal_alleyway` gates on `final_complete` plus endgame `required_area`.
+**Objective-visibility verification**: 2026-02-25 -- `test_e_victory_zone` (4/4), `test_e_endgame_goal_zone` (3/3), `test_interaction_config_validator` (16/16), and `tests/unit/style` (12/12) all passed.
 
 ---
 
@@ -39,6 +41,7 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - **Both debug + runtime event log**: U_ObjectiveEventLog tracks all objective state transitions
 - **M_SceneManager becomes pure loader**: Victory handling moves to objectives; scene manager only handles transitions
 - **Run reset is coordinated**: `UI_Victory` dispatches `U_RunActions.reset_run`, `M_RunCoordinator` owns reset sequencing, and `M_ObjectivesManager.reset_for_new_run` keeps objective reset separate from gameplay reset
+- **Objective mesh visibility is config-driven**: `RS_VictoryInteractionConfig.visibility_objective_id` gates interactable visuals/enabled state from objectives slice (`active` only), while `Inter_EndgameGoalZone` additionally enforces `required_area` completion.
 
 **What gets removed from M_SceneManager:**
 - `_on_victory_executed()` handler (lines 323-331)
