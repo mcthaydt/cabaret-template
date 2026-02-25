@@ -117,11 +117,13 @@ Phase 2 completion notes (2026-02-25):
 
 ### 3A: Beat Runner Helper (TDD)
 
-- [ ] T3.1: Create stub `scripts/utils/scene_director/u_beat_runner.gd` (U_BeatRunner extends RefCounted) - empty methods for start, execute_current_beat(context: Dictionary), advance, is_complete, get_current_beat, get_current_index, update, on_signal_received
-- [ ] T3.2: Create `tests/unit/scene_director/test_beat_runner.gd` - Start initializes with beat list at index 0, INSTANT beats auto-advance after effect execution, TIMED beats advance after duration elapsed via update(delta), SIGNAL beats advance on matching event, precondition gating skips beat effects when conditions fail (condition.evaluate(context) returns 0.0), is_complete returns true when all beats done, empty beat list is immediately complete. Context must include {"state_store": mock_store, "redux_state": {}} for tests.
-- [ ] T3.3: Run tests -- confirm they FAIL (red)
-- [ ] T3.4: Implement U_BeatRunner -- state machine with current index tracking, wait mode handling, precondition evaluation via condition.evaluate(context) loop, effect execution via effect.execute(context) loop. Beat conditions should use RS_ConditionReduxField/RS_ConditionEventPayload/RS_ConditionConstant subclasses.
-- [ ] T3.5: Run tests -- confirm they PASS (green)
+- [x] T3.1: Create stub `scripts/utils/scene_director/u_beat_runner.gd` (U_BeatRunner extends RefCounted) - empty methods for start, execute_current_beat(context: Dictionary), advance, is_complete, get_current_beat, get_current_index, update, on_signal_received
+- [x] T3.2: Create `tests/unit/scene_director/test_beat_runner.gd` - Start initializes with beat list at index 0, INSTANT beats auto-advance after effect execution, TIMED beats advance after duration elapsed via update(delta), SIGNAL beats advance on matching event, precondition gating skips beat effects when conditions fail (condition.evaluate(context) returns 0.0), is_complete returns true when all beats done, empty beat list is immediately complete. Context must include {"state_store": mock_store, "redux_state": {}} for tests.
+- [x] T3.3: Run tests -- confirm they FAIL (red)
+  - Completion note (2026-02-25): `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -gselect=test_beat_runner` produced expected failures against the BeatRunner stub (`1/7` passing, `6` failing behavior tests).
+- [x] T3.4: Implement U_BeatRunner -- state machine with current index tracking, wait mode handling, precondition evaluation via condition.evaluate(context) loop, effect execution via effect.execute(context) loop. Beat conditions should use RS_ConditionReduxField/RS_ConditionEventPayload/RS_ConditionConstant subclasses.
+- [x] T3.5: Run tests -- confirm they PASS (green)
+  - Completion note (2026-02-25): `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -gselect=test_beat_runner` passed `7/7`; follow-up `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director` passed `51/51` and style regression `tools/run_gut_suite.sh -gdir=res://tests/unit/style` passed `12/12`.
 
 ### 3B: M_SceneDirector (TDD)
 
