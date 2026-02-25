@@ -10,6 +10,7 @@ const ACTION_SET_ACTIVE_SET := StringName("objectives/set_active_set")
 const ACTION_LOG_EVENT := StringName("objectives/log_event")
 const ACTION_RESET_ALL := StringName("objectives/reset_all")
 const ACTION_BULK_ACTIVATE := StringName("objectives/bulk_activate")
+const ACTION_RESET_FOR_NEW_RUN := StringName("objectives/reset_for_new_run")
 
 static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_ACTIVATE)
@@ -19,6 +20,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_LOG_EVENT)
 	U_ActionRegistry.register_action(ACTION_RESET_ALL)
 	U_ActionRegistry.register_action(ACTION_BULK_ACTIVATE)
+	U_ActionRegistry.register_action(ACTION_RESET_FOR_NEW_RUN)
 
 static func activate(objective_id: StringName) -> Dictionary:
 	return {
@@ -62,3 +64,10 @@ static func bulk_activate(objective_ids: Array[StringName]) -> Dictionary:
 		"payload": objective_ids.duplicate(true)
 	}
 
+static func reset_for_new_run(set_id: StringName) -> Dictionary:
+	return {
+		"type": ACTION_RESET_FOR_NEW_RUN,
+		"payload": {
+			"set_id": set_id,
+		}
+	}

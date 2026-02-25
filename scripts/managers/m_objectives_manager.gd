@@ -181,6 +181,12 @@ func _exit_tree() -> void:
 	_event_unsubscribes.clear()
 
 func load_objective_set(set_id: StringName) -> bool:
+	return _load_objective_set_internal(set_id, true)
+
+func reset_for_new_run(set_id: StringName = StringName("default_progression")) -> bool:
+	return _load_objective_set_internal(set_id, false)
+
+func _load_objective_set_internal(set_id: StringName, reconcile_persisted_statuses: bool) -> bool:
 	if set_id == StringName(""):
 		return false
 
@@ -228,14 +234,18 @@ func load_objective_set(set_id: StringName) -> bool:
 	_objectives_by_id = objective_map
 	_objective_graph = graph
 
-	var persisted_statuses: Dictionary = _get_statuses_snapshot()
 	if _store != null:
-		_store.dispatch(U_OBJECTIVES_ACTIONS.reset_all())
-		_debug_objectives_slice("after objectives/reset_all")
-		_store.dispatch(U_OBJECTIVES_ACTIONS.set_active_set(set_id))
-		_debug_objectives_slice("after objectives/set_active_set")
-		_reconcile_persisted_statuses(known_ids, persisted_statuses)
-		_debug_objectives_slice("after objectives reconcile persisted statuses")
+		if reconcile_persisted_statuses:
+			var persisted_statuses: Dictionary = _get_statuses_snapshot()
+			_store.dispatch(U_OBJECTIVES_ACTIONS.reset_all())
+			_debug_objectives_slice("after objectives/reset_all")
+			_store.dispatch(U_OBJECTIVES_ACTIONS.set_active_set(set_id))
+			_debug_objectives_slice("after objectives/set_active_set")
+			_reconcile_persisted_statuses(known_ids, persisted_statuses)
+			_debug_objectives_slice("after objectives reconcile persisted statuses")
+		else:
+			_store.dispatch(U_OBJECTIVES_ACTIONS.reset_for_new_run(set_id))
+			_debug_objectives_slice("after objectives/reset_for_new_run")
 
 	var auto_activate_ids: Array[StringName] = []
 	for objective_id in known_ids:
@@ -246,8 +256,11 @@ func load_objective_set(set_id: StringName) -> bool:
 			auto_activate_ids.append(objective_id)
 	auto_activate_ids.sort()
 
-	for objective_id in auto_activate_ids:
-		_activate_objective(objective_id, {"reason": "auto_activate"})
+	if reconcile_persisted_statuses:
+		for objective_id in auto_activate_ids:
+			_activate_objective(objective_id, {"reason": "auto_activate"})
+	else:
+		_activate_objectives_for_reset(auto_activate_ids)
 
 	_debug_log(
 		"loaded objective set set_id=%s objectives=%s auto_activate=%s"
@@ -562,8 +575,8 @@ func _evaluate_active_objectives(context: Dictionary) -> void:
 				_complete_objective_with_context(objective_id, evaluation_context)
 				progressed = true
 
-			if not progressed:
-				break
+		if not progressed:
+			break
 
 func _ensure_objective_runtime_state() -> void:
 	if _store == null:
@@ -637,6 +650,17 @@ func _activate_objective(objective_id: StringName, details: Dictionary = {}) -> 
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_ACTIVATED, {
 		"objective_id": objective_id,
 	})
+
+func _activate_objectives_for_reset(objective_ids: Array[StringName]) -> void:
+	if objective_ids.is_empty():
+		return
+	if _store == null:
+		for objective_id in objective_ids:
+			_activate_objective(objective_id, {"reason": "reset_run"})
+		return
+
+	_store.dispatch(U_OBJECTIVES_ACTIONS.bulk_activate(objective_ids))
+	_debug_objectives_slice("after objectives/bulk_activate reset_run")
 
 func _log_event(objective_id: StringName, event_type: String, details: Dictionary = {}) -> void:
 	if _store == null:

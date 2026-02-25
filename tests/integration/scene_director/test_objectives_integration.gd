@@ -84,8 +84,8 @@ func test_victory_executed_transitions_scene_via_objectives_manager() -> void:
 
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("alleyway"))
 	await wait_physics_frames(1)
-	assert_eq(_objectives_manager.get_objective_status(StringName("level_complete")), "completed")
-	assert_eq(_objectives_manager.get_objective_status(StringName("game_complete")), "active")
+	assert_eq(_objectives_manager.get_objective_status(StringName("bar_complete")), "completed")
+	assert_eq(_objectives_manager.get_objective_status(StringName("final_complete")), "active")
 
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
 		"source": "victory_handler",
@@ -97,7 +97,7 @@ func test_victory_executed_transitions_scene_via_objectives_manager() -> void:
 	if objective_victory_events.size() > 0:
 		assert_eq(objective_victory_events[0].get("target_scene"), StringName("victory"))
 	assert_eq(_scene_manager.get_current_scene(), StringName("victory"))
-	assert_eq(_objectives_manager.get_objective_status(StringName("game_complete")), "completed")
+	assert_eq(_objectives_manager.get_objective_status(StringName("final_complete")), "completed")
 
 	if unsubscribe.is_valid():
 		unsubscribe.call()
@@ -178,27 +178,27 @@ func _build_test_objective_set() -> Resource:
 	var game_effect := EFFECT_DISPATCH_ACTION.new()
 	game_effect.action_type = U_GAMEPLAY_ACTIONS.ACTION_GAME_COMPLETE
 
-	var level_objective: Resource = OBJECTIVE_DEFINITION.new()
-	level_objective.objective_id = StringName("level_complete")
-	level_objective.auto_activate = true
-	var level_conditions: Array[Resource] = [level_condition]
-	level_objective.conditions = level_conditions
+	var bar_objective: Resource = OBJECTIVE_DEFINITION.new()
+	bar_objective.objective_id = StringName("bar_complete")
+	bar_objective.auto_activate = true
+	var bar_conditions: Array[Resource] = [level_condition]
+	bar_objective.conditions = bar_conditions
 
-	var game_objective: Resource = OBJECTIVE_DEFINITION.new()
-	game_objective.objective_id = StringName("game_complete")
-	game_objective.objective_type = OBJECTIVE_DEFINITION.ObjectiveType.VICTORY
-	var dependencies: Array[StringName] = [StringName("level_complete")]
-	game_objective.dependencies = dependencies
-	var game_conditions: Array[Resource] = [game_condition]
-	game_objective.conditions = game_conditions
-	var game_effects: Array[Resource] = [game_effect]
-	game_objective.completion_effects = game_effects
-	game_objective.completion_event_payload = {
+	var final_objective: Resource = OBJECTIVE_DEFINITION.new()
+	final_objective.objective_id = StringName("final_complete")
+	final_objective.objective_type = OBJECTIVE_DEFINITION.ObjectiveType.VICTORY
+	var dependencies: Array[StringName] = [StringName("bar_complete")]
+	final_objective.dependencies = dependencies
+	var final_conditions: Array[Resource] = [game_condition]
+	final_objective.conditions = final_conditions
+	var final_effects: Array[Resource] = [game_effect]
+	final_objective.completion_effects = final_effects
+	final_objective.completion_event_payload = {
 		"target_scene": StringName("victory"),
 	}
 
 	var objective_set: Resource = OBJECTIVE_SET.new()
 	objective_set.set_id = StringName("set_integration")
-	var objectives: Array[Resource] = [level_objective, game_objective]
+	var objectives: Array[Resource] = [bar_objective, final_objective]
 	objective_set.objectives = objectives
 	return objective_set

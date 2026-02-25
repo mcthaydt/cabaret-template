@@ -11,6 +11,7 @@ class_name UI_Victory
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
 const DEBUG_VICTORY_TRACE := true
 
 @onready var _title_label: Label = $MarginContainer/VBoxContainer/TitleLabel
@@ -18,8 +19,6 @@ const DEBUG_VICTORY_TRACE := true
 @onready var _continue_button: Button = $MarginContainer/VBoxContainer/ButtonRow/ContinueButton
 @onready var _credits_button: Button = $MarginContainer/VBoxContainer/ButtonRow/CreditsButton
 @onready var _menu_button: Button = $MarginContainer/VBoxContainer/ButtonRow/MenuButton
-
-const HUB_SCENE_ID := StringName("alleyway")
 
 var _store_unsubscribe: Callable = Callable()
 
@@ -110,8 +109,7 @@ func _localize_labels() -> void:
 
 func _on_continue_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
-	_reset_game_progress()
-	_dispatch_navigation(U_NavigationActions.retry(HUB_SCENE_ID))
+	_dispatch_run_reset(StringName("retry_alleyway"))
 
 func _on_credits_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
@@ -163,3 +161,9 @@ func _dispatch_navigation(action: Dictionary) -> void:
 	if store == null:
 		return
 	store.dispatch(action)
+
+func _dispatch_run_reset(next_route: StringName = StringName("retry_alleyway")) -> void:
+	var store := get_store()
+	if store == null:
+		return
+	store.dispatch(U_RUN_ACTIONS.reset_run(next_route))

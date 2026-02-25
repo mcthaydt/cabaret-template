@@ -63,6 +63,18 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			next_bulk_state["statuses"] = statuses
 			return next_bulk_state
 
+		OBJECTIVES_ACTIONS.ACTION_RESET_FOR_NEW_RUN:
+			var reset_run_state: Dictionary = current.duplicate(true)
+			reset_run_state["statuses"] = {}
+			reset_run_state["event_log"] = []
+			var payload_variant: Variant = action.get("payload", {})
+			if payload_variant is Dictionary:
+				var payload := payload_variant as Dictionary
+				reset_run_state["active_set_id"] = _to_string_name(payload.get("set_id", StringName("")))
+			else:
+				reset_run_state["active_set_id"] = StringName("")
+			return reset_run_state
+
 		_:
 			return state
 
@@ -90,3 +102,10 @@ static func _deep_copy(value: Variant) -> Variant:
 	if value is Array:
 		return (value as Array).duplicate(true)
 	return value
+
+static func _to_string_name(value: Variant) -> StringName:
+	if value is StringName:
+		return value
+	if value is String:
+		return StringName(value)
+	return StringName("")

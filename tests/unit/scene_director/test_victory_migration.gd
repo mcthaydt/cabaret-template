@@ -69,7 +69,7 @@ func after_each() -> void:
 	U_ServiceLocator.clear()
 	U_ECS_EVENT_BUS.reset()
 
-func test_game_complete_dependency_is_enforced_before_victory_completion() -> void:
+func test_final_complete_dependency_is_enforced_before_victory_completion() -> void:
 	var store := ObjectivesStoreStub.new()
 	autofree(store)
 	var level_condition := ConditionStub.new(0.0)
@@ -78,7 +78,7 @@ func test_game_complete_dependency_is_enforced_before_victory_completion() -> vo
 		StringName("set_default"),
 		[
 			_objective(
-				StringName("level_complete"),
+				StringName("bar_complete"),
 				[],
 				true,
 				[level_condition],
@@ -86,8 +86,8 @@ func test_game_complete_dependency_is_enforced_before_victory_completion() -> vo
 				OBJECTIVE_DEFINITION.ObjectiveType.STANDARD
 			),
 			_objective(
-				StringName("game_complete"),
-				[StringName("level_complete")],
+				StringName("final_complete"),
+				[StringName("bar_complete")],
 				false,
 				[game_condition],
 				[],
@@ -113,15 +113,15 @@ func test_game_complete_dependency_is_enforced_before_victory_completion() -> vo
 	await get_tree().process_frame
 
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {})
-	assert_eq(manager.get_objective_status(StringName("level_complete")), "active")
-	assert_eq(manager.get_objective_status(StringName("game_complete")), "inactive")
+	assert_eq(manager.get_objective_status(StringName("bar_complete")), "active")
+	assert_eq(manager.get_objective_status(StringName("final_complete")), "inactive")
 	assert_eq(captured_payloads.size(), 0, "Victory objective should not complete before dependency")
 
 	level_condition.response_value = 1.0
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_CHECKPOINT_ACTIVATED, {})
 
-	assert_eq(manager.get_objective_status(StringName("level_complete")), "completed")
-	assert_eq(manager.get_objective_status(StringName("game_complete")), "completed")
+	assert_eq(manager.get_objective_status(StringName("bar_complete")), "completed")
+	assert_eq(manager.get_objective_status(StringName("final_complete")), "completed")
 	assert_eq(captured_payloads.size(), 1, "Victory objective should complete once dependency is completed")
 	if unsubscribe.is_valid():
 		unsubscribe.call()

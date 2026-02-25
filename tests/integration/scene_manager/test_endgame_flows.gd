@@ -13,6 +13,7 @@ extends GutTest
 
 const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
 const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
+const M_RUN_COORDINATOR := preload("res://scripts/managers/m_run_coordinator.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
@@ -40,6 +41,7 @@ var _root: Node
 var _state_store: M_STATE_STORE
 var _scene_manager: M_SCENE_MANAGER
 var _objectives_manager: M_OBJECTIVES_MANAGER
+var _run_coordinator: M_RUN_COORDINATOR
 var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
 var _transition_overlay: CanvasLayer
@@ -100,6 +102,9 @@ func before_each() -> void:
 	_objectives_manager.state_store = _state_store
 	_objectives_manager.objective_sets = [_build_endgame_objective_set()]
 	_root.add_child(_objectives_manager)
+	_run_coordinator = M_RUN_COORDINATOR.new()
+	_run_coordinator.state_store = _state_store
+	_root.add_child(_run_coordinator)
 
 	# Register managers with ServiceLocator (Phase 10B-7: T141c)
 	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)
@@ -123,6 +128,7 @@ func after_each() -> void:
 	_state_store = null
 	_scene_manager = null
 	_objectives_manager = null
+	_run_coordinator = null
 	_active_scene_container = null
 	_ui_overlay_stack = null
 	_transition_overlay = null
@@ -217,26 +223,26 @@ func _build_endgame_objective_set() -> Resource:
 	game_condition.match_mode = "equals"
 	game_condition.match_value_string = "true"
 
-	var level_objective: Resource = OBJECTIVE_DEFINITION.new()
-	level_objective.objective_id = StringName("level_complete")
-	level_objective.auto_activate = true
-	var level_conditions: Array[Resource] = [level_condition]
-	level_objective.conditions = level_conditions
+	var bar_objective: Resource = OBJECTIVE_DEFINITION.new()
+	bar_objective.objective_id = StringName("bar_complete")
+	bar_objective.auto_activate = true
+	var bar_conditions: Array[Resource] = [level_condition]
+	bar_objective.conditions = bar_conditions
 
-	var game_objective: Resource = OBJECTIVE_DEFINITION.new()
-	game_objective.objective_id = StringName("game_complete")
-	game_objective.objective_type = OBJECTIVE_DEFINITION.ObjectiveType.VICTORY
-	var dependencies: Array[StringName] = [StringName("level_complete")]
-	game_objective.dependencies = dependencies
-	var game_conditions: Array[Resource] = [game_condition]
-	game_objective.conditions = game_conditions
-	game_objective.completion_event_payload = {
+	var final_objective: Resource = OBJECTIVE_DEFINITION.new()
+	final_objective.objective_id = StringName("final_complete")
+	final_objective.objective_type = OBJECTIVE_DEFINITION.ObjectiveType.VICTORY
+	var dependencies: Array[StringName] = [StringName("bar_complete")]
+	final_objective.dependencies = dependencies
+	var final_conditions: Array[Resource] = [game_condition]
+	final_objective.conditions = final_conditions
+	final_objective.completion_event_payload = {
 		"target_scene": StringName("victory"),
 	}
 
 	var objective_set: Resource = OBJECTIVE_SET.new()
-	objective_set.set_id = StringName("set_endgame_flows")
-	var objectives: Array[Resource] = [level_objective, game_objective]
+	objective_set.set_id = StringName("default_progression")
+	var objectives: Array[Resource] = [bar_objective, final_objective]
 	objective_set.objectives = objectives
 	return objective_set
 
@@ -389,6 +395,14 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 		"Reset should clear pending spawn point")
 	assert_eq(float(gameplay_state.get("player_health", -1.0)), float(gameplay_state.get("player_max_health", -1.0)),
 		"Reset should restore player health to max")
+	var objectives_state: Dictionary = _state_store.get_state().get("objectives", {})
+	var statuses: Dictionary = objectives_state.get("statuses", {})
+	assert_eq(statuses.get(StringName("bar_complete"), "inactive"), "active",
+		"Continue should re-arm root objective for new run")
+	assert_eq(statuses.get(StringName("final_complete"), "inactive"), "inactive",
+		"Continue should keep dependent objective inactive after fresh reset")
+	assert_eq(objectives_state.get("event_log", []), [],
+		"Continue should clear objective event log for a fresh run")
 	var entity_snapshots: Variant = gameplay_state.get("entities", {})
 	var player_entity_id: String = String(gameplay_state.get("player_entity_id", "player"))
 	if entity_snapshots is Dictionary:

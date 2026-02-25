@@ -3,6 +3,9 @@ extends GutTest
 const GameOverScene := preload("res://scenes/ui/menus/ui_game_over.tscn")
 const VictoryScene := preload("res://scenes/ui/menus/ui_victory.tscn")
 const CreditsScene := preload("res://scenes/ui/menus/ui_credits.tscn")
+const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 
 
 
@@ -50,17 +53,28 @@ func test_game_over_back_matches_retry() -> void:
 	var nav := store.get_slice(StringName("navigation"))
 	assert_eq(nav.get("shell"), StringName("gameplay"), "ui_cancel should trigger retry flow")
 
-func test_victory_continue_returns_to_gameplay() -> void:
+func test_victory_continue_dispatches_run_reset_contract_action() -> void:
 	var store := await _create_state_store()
 	_prepare_endgame_state(store, StringName("victory"))
 	var screen := await _instantiate_scene(VictoryScene)
+	var dispatched_actions: Array[Dictionary] = []
+	store.action_dispatched.connect(func(action: Dictionary) -> void:
+		dispatched_actions.append(action.duplicate(true))
+	)
 
 	var continue_button: Button = screen.get_node("MarginContainer/VBoxContainer/ButtonRow/ContinueButton")
 	continue_button.emit_signal("pressed")
 	await wait_process_frames(2)
 
-	var nav := store.get_slice(StringName("navigation"))
-	assert_eq(nav.get("shell"), StringName("gameplay"), "Continue should return to gameplay shell")
+	assert_true(_has_action_type(dispatched_actions, U_RUN_ACTIONS.ACTION_RESET_RUN))
+	assert_false(
+		_has_action_type(dispatched_actions, U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS),
+		"Victory UI should not dispatch gameplay/reset_progress directly"
+	)
+	assert_false(
+		_has_action_type(dispatched_actions, U_NAVIGATION_ACTIONS.ACTION_RETRY),
+		"Victory UI should not dispatch navigation/retry directly"
+	)
 
 func test_victory_credits_opens_credits_scene() -> void:
 	var store := await _create_state_store()
@@ -172,3 +186,9 @@ func _instantiate_scene(packed_scene: PackedScene) -> Control:
 	add_child_autofree(instance)
 	await wait_process_frames(3)
 	return instance
+
+func _has_action_type(actions: Array[Dictionary], action_type: StringName) -> bool:
+	for action in actions:
+		if action.get("type", StringName("")) == action_type:
+			return true
+	return false

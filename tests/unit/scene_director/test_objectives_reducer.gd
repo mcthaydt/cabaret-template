@@ -53,6 +53,29 @@ func test_reset_all_clears_statuses() -> void:
 
 	assert_eq(reset_state.get("statuses"), {}, "reset_all should clear objective statuses")
 
+func test_reset_for_new_run_clears_statuses_and_log_and_sets_set_id() -> void:
+	var state := {
+		"statuses": {
+			StringName("bar_complete"): "completed",
+			StringName("final_complete"): "active",
+		},
+		"active_set_id": StringName("old_set"),
+		"event_log": [
+			{"event_type": "completed", "objective_id": StringName("bar_complete")},
+		],
+	}
+
+	var action := OBJECTIVES_ACTIONS.reset_for_new_run(StringName("default_progression"))
+	var reduced: Dictionary = OBJECTIVES_REDUCER.reduce(state, action)
+
+	assert_eq(reduced.get("statuses"), {}, "reset_for_new_run should clear objective statuses")
+	assert_eq(reduced.get("event_log"), [], "reset_for_new_run should clear objective event_log")
+	assert_eq(
+		reduced.get("active_set_id"),
+		StringName("default_progression"),
+		"reset_for_new_run should set active_set_id from payload"
+	)
+
 func test_bulk_activate_marks_multiple_objectives_active() -> void:
 	var state := _base_state()
 	var action := OBJECTIVES_ACTIONS.bulk_activate(

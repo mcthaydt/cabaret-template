@@ -430,6 +430,40 @@ func test_recovers_runtime_when_objective_statuses_are_empty() -> void:
 		"Manager should recover empty objectives slice and continue evaluating event-driven completion"
 	)
 
+func test_reset_for_new_run_rearms_root_objective_and_clears_event_log() -> void:
+	var objective_set: Resource = _objective_set(
+		StringName("default_progression"),
+		[
+			_objective(
+				StringName("bar_complete"),
+				[],
+				true,
+				[ConditionStub.new(0.0)]
+			),
+			_objective(
+				StringName("final_complete"),
+				[StringName("bar_complete")],
+				false,
+				[ConditionStub.new(0.0)]
+			),
+		]
+	)
+	var manager: Variant = await _spawn_manager([objective_set], true)
+
+	manager._complete_objective(StringName("bar_complete"))
+	assert_eq(manager.get_objective_status(StringName("bar_complete")), "completed")
+	assert_eq(manager.get_objective_status(StringName("final_complete")), "active")
+	assert_true(_store.get_state().get("objectives", {}).get("event_log", []).size() > 0)
+
+	manager.reset_for_new_run(StringName("default_progression"))
+
+	var objectives_slice: Dictionary = _store.get_state().get("objectives", {})
+	var statuses: Dictionary = objectives_slice.get("statuses", {})
+	assert_eq(statuses.get(StringName("bar_complete"), "inactive"), "active")
+	assert_eq(statuses.get(StringName("final_complete"), "inactive"), "inactive")
+	assert_eq(objectives_slice.get("event_log", []), [], "reset_for_new_run should clear event log")
+	assert_eq(objectives_slice.get("active_set_id"), StringName("default_progression"))
+
 func _spawn_manager(objective_sets: Array[Resource], inject_store: bool) -> Variant:
 	var manager := M_OBJECTIVES_MANAGER.new()
 	manager.objective_sets = objective_sets.duplicate()
