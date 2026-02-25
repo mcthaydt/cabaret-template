@@ -6,12 +6,12 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Current Status
 
-**Phase**: Phase 7 reset-run hardening complete (interactive manual playtest pending)
+**Phase**: Phase 7 reset-run hardening complete (automated cleanup verification complete; interactive manual playtest pending)
 **Branch**: scene-director
-**Next Task**: T6.3/T6.4 -- Final cleanup verification + interactive manual playtest
+**Next Task**: T6.4 (+ T4.23) -- Interactive manual playtest verification
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
-**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (67/67), `tests/unit/ui -gselect=test_endgame_screens` (10/10), `tests/integration/scene_director` (3/3), `tests/integration/scene_manager -gselect=test_endgame_flows` (5/5), `tests/unit/style` (12/12). Interactive manual playtest remains pending.
+**Latest Verification**: 2026-02-25 -- `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/scene_director` (67/67), `tests/unit/style` (12/12), `tests/unit/ui -gselect=test_endgame_screens` (10/10), `tests/integration/scene_director` (3/3), `tests/integration/scene_manager -gselect=test_endgame_flows` (5/5). Interactive manual playtest remains pending (`T4.23`, `T6.4`).
 **Integration note**: Default gameplay intro beats publish both instrumentation events (`scene_director_intro_beat_1/2`) and player-facing `signpost_message` payloads (`hud.scene_director_intro_beat_1/2`) consumed by HUD/mobile signpost flows.
 **Reset-run note**: Victory Continue now dispatches `run/reset`; `M_RunCoordinator` orchestrates gameplay reset, interact unblock, objectives fresh reset (`reset_for_new_run`), and retry to `alleyway`.
 **Objective-visibility note**: Goal mesh visibility is objective-driven via interaction config `visibility_objective_id` (status gate = `active` only). `cfg_victory_goal_bar` gates on `bar_complete`, and `cfg_endgame_goal_alleyway` gates on `final_complete` plus endgame `required_area`.

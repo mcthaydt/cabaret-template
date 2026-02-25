@@ -261,12 +261,15 @@ Phase 5 completion notes (2026-02-25):
 
 ### 6A: Project-Level Updates
 
-- [ ] T6.1: Update `AGENTS.md` with Scene Director / Objectives Manager patterns section
-- [ ] T6.2: Update `docs/general/DEV_PITFALLS.md` with any new pitfalls discovered
+- [x] T6.1: Update `AGENTS.md` with Scene Director / Objectives Manager patterns section
+  - Completion note (2026-02-25): `AGENTS.md` includes Scene Director/Objectives architecture patterns and reset-run orchestration guidance under the Scene Director/Objectives section.
+- [x] T6.2: Update `docs/general/DEV_PITFALLS.md` with any new pitfalls discovered
+  - Completion note (2026-02-25): Added Scene Director reset pitfall documenting that `gameplay/reset_progress` alone does not reset objectives and that retry flows must dispatch `run/reset`.
 
 ### 6B: Final Verification
 
-- [ ] T6.3: Run full test suite (ECS + QB + Scene Director + Style)
+- [x] T6.3: Run full test suite (ECS + QB + Scene Director + Style)
+  - Completion note (2026-02-25): Verification suites passed -- `tests/unit/qb` (`134/134`), `tests/unit/ecs` (`126/126`), `tests/unit/scene_director` (`67/67`), `tests/unit/style` (`12/12`).
 - [ ] T6.4: Manual playtest: full gameplay loop (walk, checkpoint, victory, game complete, beat sequences)
 
 **Phase 6 Commit**: Cleanup and final verification
