@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 45% (54 / 120 tasks complete)
+**Progress:** 64% (77 / 120 tasks complete)
 
 ---
 
@@ -93,35 +93,39 @@ Completion note (2026-02-25): Added 6 condition test suites (28 tests), implemen
 
 **Tests first:**
 
-- [ ] T55. Create `tests/unit/qb/test_effect_dispatch_action.gd`
-- [ ] T56. Test: dispatches action with correct type and payload to MockStateStore
-- [ ] T57. Test: missing state_store in context is no-op (no crash)
+- [x] T55. Create `tests/unit/qb/test_effect_dispatch_action.gd`
+- [x] T56. Test: dispatches action with correct type and payload to MockStateStore
+- [x] T57. Test: missing state_store in context is no-op (no crash)
 
-- [ ] T58. Create `tests/unit/qb/test_effect_publish_event.gd`
-- [ ] T59. Test: publishes event with correct name and payload
-- [ ] T60. Test: entity_id injected from context when inject_entity_id is true
-- [ ] T61. Test: entity_id NOT injected when inject_entity_id is false
+- [x] T58. Create `tests/unit/qb/test_effect_publish_event.gd`
+- [x] T59. Test: publishes event with correct name and payload
+- [x] T60. Test: entity_id injected from context when inject_entity_id is true
+- [x] T61. Test: entity_id NOT injected when inject_entity_id is false
 
-- [ ] T62. Create `tests/unit/qb/test_effect_set_field.gd`
-- [ ] T63. Test: set operation writes literal float value to component field
-- [ ] T64. Test: add operation adds to existing component field value
-- [ ] T65. Test: clamp applied when use_clamp is true
-- [ ] T66. Test: use_context_value reads value from context path instead of literal
-- [ ] T67. Test: missing component in context is no-op
-- [ ] T68. Test: all value types (float, int, bool, string, string_name) resolve correctly
+- [x] T62. Create `tests/unit/qb/test_effect_set_field.gd`
+- [x] T63. Test: set operation writes literal float value to component field
+- [x] T64. Test: add operation adds to existing component field value
+- [x] T65. Test: clamp applied when use_clamp is true
+- [x] T66. Test: use_context_value reads value from context path instead of literal
+- [x] T67. Test: missing component in context is no-op
+- [x] T68. Test: all value types (float, int, bool, string, string_name) resolve correctly
 
-- [ ] T69. Create `tests/unit/qb/test_effect_set_context_value.gd`
-- [ ] T70. Test: writes typed value to context dictionary key
-- [ ] T71. Test: all value types write correctly
+- [x] T69. Create `tests/unit/qb/test_effect_set_context_value.gd`
+- [x] T70. Test: writes typed value to context dictionary key
+- [x] T71. Test: all value types write correctly
 
 **Implementation:**
 
-- [ ] T72. Create `scripts/resources/qb/rs_base_effect.gd` — base class with virtual execute()
-- [ ] T73. Create `scripts/resources/qb/effects/rs_effect_dispatch_action.gd`
-- [ ] T74. Create `scripts/resources/qb/effects/rs_effect_publish_event.gd`
-- [ ] T75. Create `scripts/resources/qb/effects/rs_effect_set_field.gd`
-- [ ] T76. Create `scripts/resources/qb/effects/rs_effect_set_context_value.gd`
-- [ ] T77. All effect tests green
+- [x] T72. Create `scripts/resources/qb/rs_base_effect.gd` — base class with virtual execute()
+- [x] T73. Create `scripts/resources/qb/effects/rs_effect_dispatch_action.gd`
+- [x] T74. Create `scripts/resources/qb/effects/rs_effect_publish_event.gd`
+- [x] T75. Create `scripts/resources/qb/effects/rs_effect_set_field.gd`
+- [x] T76. Create `scripts/resources/qb/effects/rs_effect_set_context_value.gd`
+- [x] T77. All effect tests green
+
+Completion note (2026-02-25): Added 4 effect test suites (13 tests), implemented `RS_BaseEffect` + 4 effect subclasses, and verified:
+- QB effect suites: 13/13 passing (`test_effect_*`)
+- Style suite: 12/12 passing (`tests/unit/style`)
 
 ### 1D — Rule Resource
 

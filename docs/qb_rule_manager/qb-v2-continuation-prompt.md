@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 1A and Phase 1B complete; Phase 1C next)
+- **Status:** In progress (Phase 1A, 1B, and 1C complete; Phase 1D next)
 
 ## Recent Progress
 
@@ -34,6 +34,20 @@
   - Verified QB condition tests (28/28 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
   - Stabilized headless parsing by using explicit script-path `extends` for new condition subclasses
+- Phase 1C completed on 2026-02-25:
+  - Added `scripts/resources/qb/rs_base_effect.gd`
+  - Added effect resources under `scripts/resources/qb/effects/`:
+    - `rs_effect_dispatch_action.gd`
+    - `rs_effect_publish_event.gd`
+    - `rs_effect_set_field.gd`
+    - `rs_effect_set_context_value.gd`
+  - Added test suites:
+    - `test_effect_dispatch_action.gd`
+    - `test_effect_publish_event.gd`
+    - `test_effect_set_field.gd`
+    - `test_effect_set_context_value.gd`
+  - Verified QB effect tests (13/13 passing)
+  - Verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
 
@@ -82,7 +96,7 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 1C:** Build effect resources with TDD (T55-T77), starting with `test_effect_dispatch_action.gd`.
+1. **Phase 1D:** Create `RS_Rule` with typed condition/effect arrays (T78), then verify inspector subclass dropdown behavior for both arrays (T79-T80).
 2. Work through phases sequentially — each ends with a commit checkpoint.
 3. Do NOT touch v1 code until Phase 2A (delete step).
 
