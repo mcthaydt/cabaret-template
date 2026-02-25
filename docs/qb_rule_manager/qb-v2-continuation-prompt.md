@@ -190,7 +190,7 @@ Before making any changes, read these in order:
 1. `docs/qb_rule_manager/qb-v2-overview.md` — full architecture (the source of truth)
 2. `docs/qb_rule_manager/qb-v2-plan.md` — phased implementation plan
 3. `docs/qb_rule_manager/qb-v2-tasks.md` — task checklist (track progress here)
-4. `AGENTS.md` — project conventions, naming, testing patterns (will be updated in Phase 5)
+4. `AGENTS.md` — project conventions, naming, testing patterns
 5. `docs/general/DEV_PITFALLS.md` — GDScript pitfalls and testing patterns
 6. `docs/general/STYLE_GUIDE.md` — prefix conventions
 

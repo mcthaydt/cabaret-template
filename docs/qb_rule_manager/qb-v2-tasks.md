@@ -457,7 +457,7 @@ Completion note (2026-02-25): Added `tests/integration/qb/test_camera_shake_pipe
 - [x] T230. Run style enforcement tests — all new files follow prefix patterns
 - [x] T231. Run full QB v2 test suite — all green
 - [x] T232. Run full ECS test suite — all green (handler systems unchanged)
-- [x] T233. Run full integration test suite — all green
+- [x] T233. Run full integration test suite — 395/396 passing, 1 known headless pending, 0 failures
 
 Completion note (2026-02-25): Completed codebase verification and full Phase 5A test runs.
 - Stale-reference grep across runtime files (`scripts/`, `scenes/`, `tests/`, `resources/`, `project.godot`): 0 matches for deleted v1 class names.
