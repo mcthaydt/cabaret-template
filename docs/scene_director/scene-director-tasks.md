@@ -69,11 +69,13 @@ Phase 1 completion notes (2026-02-25):
 
 ### 2A: Graph Helper (TDD)
 
-- [ ] T2.1: Create stub `scripts/utils/scene_director/u_objective_graph.gd` (U_ObjectiveGraph) - empty static methods returning default values
-- [ ] T2.2: Create `tests/unit/scene_director/test_objective_graph.gd` - Build graph from objective definitions, cycle detection (returns errors for circular deps), missing reference detection (dependency IDs not in known_ids), get_ready_dependents (returns dependents whose prerequisites are all completed), topological sort (returns valid evaluation order). Note: validate_graph signature is `validate_graph(graph: Dictionary, known_ids: Array[StringName]) -> Array[String]`; tests must pass known_ids.
-- [ ] T2.3: Run tests -- confirm they FAIL (red)
-- [ ] T2.4: Implement U_ObjectiveGraph -- adjacency list construction, DFS cycle detection, dependent readiness check, topological sort via Kahn's algorithm; validate_graph takes both graph and known_ids
-- [ ] T2.5: Run tests -- confirm they PASS (green)
+- [x] T2.1: Create stub `scripts/utils/scene_director/u_objective_graph.gd` (U_ObjectiveGraph) - empty static methods returning default values
+- [x] T2.2: Create `tests/unit/scene_director/test_objective_graph.gd` - Build graph from objective definitions, cycle detection (returns errors for circular deps), missing reference detection (dependency IDs not in known_ids), get_ready_dependents (returns dependents whose prerequisites are all completed), topological sort (returns valid evaluation order). Note: validate_graph signature is `validate_graph(graph: Dictionary, known_ids: Array[StringName]) -> Array[String]`; tests must pass known_ids.
+- [x] T2.3: Run tests -- confirm they FAIL (red)
+  - Completion note (2026-02-25): `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director` produced 5 expected failures in `test_objective_graph.gd` while `U_ObjectiveGraph` was still a stub.
+- [x] T2.4: Implement U_ObjectiveGraph -- adjacency list construction, DFS cycle detection, dependent readiness check, topological sort via Kahn's algorithm; validate_graph takes both graph and known_ids
+- [x] T2.5: Run tests -- confirm they PASS (green)
+  - Completion note (2026-02-25): `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director` passed `32/32` after implementation; style regression check `tools/run_gut_suite.sh -gdir=res://tests/unit/style` passed `12/12`.
 
 ### 2B: Event Log Helper (TDD)
 
