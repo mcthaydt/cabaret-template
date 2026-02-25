@@ -93,6 +93,8 @@
 
 - **Typed Array annotations can fail to resolve fresh `class_name` symbols in headless**: Exported typed arrays like `@export var conditions: Array[RS_BaseCondition]` and `@export var effects: Array[RS_BaseEffect]` can parse-fail in headless (`Could not find type ... in the current scope`) immediately after introducing new script classes. If this blocks progress, use `Array[Resource]` temporarily and enforce resource subtype checks in validation (`U_RuleValidator`) until editor/class cache stabilization is confirmed.
 
+- **Typed Array constructor syntax can parse-fail (`Cannot call on an expression`)**: Expressions like `Array[Resource]([value])` are not valid constructor calls in GDScript. Build typed arrays via annotated locals (`var values: Array[Resource] = [value]`) and assign that variable instead.
+
 - **Changing parent classes can surface inherited-helper parse errors**: If a script relied on helper methods inherited from a previous base class and you change `extends`, headless parse can fail with `Function "...()" not found in base self` even when those call sites are not hit in tests. Add local replacements in the same patch that changes inheritance so scripts remain loadable.
 
 - **Child scripts cannot redeclare parent members (incl. `const`)**: If a base class defines a member like `const U_Foo := preload("...")`, declaring another `const U_Foo := ...` in a derived script causes a parse error (`The member "U_Foo" already exists in parent class ...`). Prefer inheriting the constant, or use a different name in the child.

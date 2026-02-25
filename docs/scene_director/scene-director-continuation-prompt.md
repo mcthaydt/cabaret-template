@@ -6,12 +6,12 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Current Status
 
-**Phase**: Phase 4 in progress
+**Phase**: Phase 4 complete
 **Branch**: scene-director
-**Next Task**: T4.2 -- Create `cfg_obj_game_complete.tres`
+**Next Task**: T5.1 -- Create `cfg_directive_gameplay_base.tres`
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
-**Latest Verification**: 2026-02-25 -- `tests/unit/style` (12/12), `tests/unit/scene_director` (58/58). Prior full regression baseline remains green from 2026-02-25: `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (197/197), `tests/integration/scene_manager` (90/90). Full `tests/**` baseline still has one existing unrelated lighting performance failure (`test_multi_character_multi_zone_performance_smoke`).
+**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (61/61), `tests/integration/scene_director` (1/1), `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (197/197), `tests/unit/style` (12/12), `tests/integration/scene_manager` (90/90), full `tests/**` sweep (2637/2646 with 9 expected headless/mobile pending tests, 0 failures).
 
 ---
 
