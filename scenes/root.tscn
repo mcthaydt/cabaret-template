@@ -36,7 +36,7 @@
 [ext_resource type="Resource" uid="uid://ccmwelkabh11g" path="res://resources/base_settings/state/cfg_localization_initial_state.tres" id="34_localization_state"]
 [ext_resource type="Script" uid="uid://c32bn4etywtji" path="res://scripts/managers/m_localization_manager.gd" id="35_localization_manager"]
 [ext_resource type="Resource" uid="uid://b2kl002im8pb5" path="res://resources/base_settings/state/cfg_time_initial_state.tres" id="36_time_state"]
-[ext_resource type="Script" path="res://scripts/managers/m_objectives_manager.gd" id="37_objectives_manager"]
+[ext_resource type="Script" uid="uid://byruhjgybr4i8" path="res://scripts/managers/m_objectives_manager.gd" id="37_objectives_manager"]
 [ext_resource type="Resource" path="res://resources/scene_director/sets/cfg_objset_default.tres" id="38_objset_default"]
 
 [node name="Root" type="Node" unique_id=409084781]
@@ -107,7 +107,7 @@ script = ExtResource("21_ui_input_handler")
 [node name="M_SaveManager" type="Node" parent="Managers" unique_id=1442466026]
 script = ExtResource("23_save_manager")
 
-[node name="M_ObjectivesManager" type="Node" parent="Managers"]
+[node name="M_ObjectivesManager" type="Node" parent="Managers" unique_id=1572616087]
 script = ExtResource("37_objectives_manager")
 objective_sets = Array[Resource]([ExtResource("38_objset_default")])
 
