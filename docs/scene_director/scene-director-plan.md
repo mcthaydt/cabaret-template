@@ -20,7 +20,7 @@
 **RS_ObjectiveSet** (`scripts/resources/scene_director/rs_objective_set.gd`):
 - `set_id: StringName`
 - `description: String`
-- `objectives: Array[RS_ObjectiveDefinition]`
+- `objectives: Array[Resource]` -- entries should be `RS_ObjectiveDefinition`
 
 ### 1B: Scene Director Resources
 
@@ -39,7 +39,7 @@
 - `target_scene_id: StringName` -- which scene this directive applies to
 - `selection_conditions: Array[Resource]` -- v2 typed conditions for selecting this directive
 - `priority: int = 0` -- higher priority directives checked first
-- `beats: Array[RS_BeatDefinition]`
+- `beats: Array[Resource]` -- entries should be `RS_BeatDefinition`
 
 ### 1C: Redux Slices -- Objectives
 
@@ -112,7 +112,7 @@ EVENT_DIRECTIVE_STARTED, EVENT_DIRECTIVE_COMPLETED, EVENT_BEAT_ADVANCED
 ### 2A: Helpers (TDD)
 
 **U_ObjectiveGraph** (`scripts/utils/scene_director/u_objective_graph.gd`):
-- `static func build_graph(objectives: Array[RS_ObjectiveDefinition]) -> Dictionary` -- adjacency list keyed by objective_id
+- `static func build_graph(objectives: Array[Resource]) -> Dictionary` -- adjacency list keyed by objective_id; entries should be `RS_ObjectiveDefinition`
 - `static func validate_graph(graph: Dictionary, known_ids: Array[StringName]) -> Array[String]` -- cycle detection (DFS) + missing reference detection (dependency IDs not in known_ids); returns error strings, empty array = valid
 - `static func get_ready_dependents(objective_id: StringName, graph: Dictionary, statuses: Dictionary) -> Array[StringName]` -- dependents whose all prerequisites are completed
 - `static func topological_sort(graph: Dictionary) -> Array[StringName]` -- evaluation order via Kahn's algorithm
@@ -129,7 +129,7 @@ Note: `validate_graph` requires `known_ids` because the graph's adjacency list c
 `scripts/managers/m_objectives_manager.gd` -- extends Node
 
 - `@export var state_store: I_StateStore = null` -- DI for testing
-- `@export var objective_sets: Array[RS_ObjectiveSet] = []` -- sets assigned in root.tscn via ExtResource
+- `@export var objective_sets: Array[Resource] = []` -- sets assigned in root.tscn via ExtResource; entries should be `RS_ObjectiveSet`
 - Discovers store via injection-first + ServiceLocator fallback
 - In `_ready()`: calls `load_objective_set(set.set_id)` for each set in `objective_sets`
 - Subscribes to gameplay events via `U_ECSEventBus` (checkpoint_activated, victory_executed, area_complete via action_dispatched)
@@ -163,7 +163,7 @@ Note: `validate_graph` requires `known_ids` because the graph's adjacency list c
 
 **U_BeatRunner** (`scripts/utils/scene_director/u_beat_runner.gd`):
 - RefCounted state machine
-- `start(beats: Array[RS_BeatDefinition])` -- initialize with beat list
+- `start(beats: Array[Resource])` -- initialize with beat list; entries should be `RS_BeatDefinition`
 - `execute_current_beat(context: Dictionary)` -- check preconditions via `condition.evaluate(context)`, execute effects via `effect.execute(context)`
 - `advance()` -- move to next beat
 - `is_complete() -> bool` -- no more beats
@@ -180,7 +180,7 @@ Context requirements: The caller (M_SceneDirector) builds it: `{"state_store": _
 `scripts/managers/m_scene_director.gd` -- extends Node
 
 - `@export var state_store: I_StateStore = null` -- DI for testing
-- `@export var directives: Array[RS_SceneDirective] = []` -- directives assigned in root.tscn via ExtResource
+- `@export var directives: Array[Resource] = []` -- directives assigned in root.tscn via ExtResource; entries should be `RS_SceneDirective`
 - Discovers store via injection-first + ServiceLocator fallback
 - Subscribes to `scene/transition_completed` via `action_dispatched` to select directive for new scene
 - `_select_directive(scene_id)` -- find highest-priority directive whose `target_scene_id == scene_id` and whose `selection_conditions` all pass (`condition.evaluate(context) > 0.0`)
