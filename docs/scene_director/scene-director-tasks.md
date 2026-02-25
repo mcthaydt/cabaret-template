@@ -223,24 +223,36 @@ Phase 4 completion notes (2026-02-25):
 
 ### 5A: Directive Resources
 
-- [ ] T5.1: Create `resources/scene_director/directives/cfg_directive_gameplay_base.tres` (RS_SceneDirective) - target_scene_id: "gameplay_base", basic introductory beats
+- [x] T5.1: Create `resources/scene_director/directives/cfg_directive_gameplay_base.tres` (RS_SceneDirective) - target_scene_id: "gameplay_base", basic introductory beats
+  - Completion note (2026-02-25): Added `cfg_directive_gameplay_base.tres` with `directive_id = &"gameplay_base_intro"`, two intro beats, and publish-event effects (`scene_director_intro_beat_1`, `scene_director_intro_beat_2`) to support integration assertions.
 
 ### 5B: Scene Integration
 
-- [ ] T5.2: Add M_SceneDirector node to `scenes/root.tscn` under Managers
-- [ ] T5.3: Register M_SceneDirector in `root.gd` ServiceLocator with dependencies on state_store and objectives_manager
-- [ ] T5.4: Wire directives to M_SceneDirector in root.tscn
+- [x] T5.2: Add M_SceneDirector node to `scenes/root.tscn` under Managers
+- [x] T5.3: Register M_SceneDirector in `root.gd` ServiceLocator with dependencies on state_store and objectives_manager
+- [x] T5.4: Wire directives to M_SceneDirector in root.tscn
+  - Completion note (2026-02-25): Root runtime now instantiates `M_SceneDirector`, registers it as `scene_director`, validates dependencies (`state_store`, `objectives_manager`), and binds the default gameplay directive resource.
 
 ### 5C: Tests
 
-- [ ] T5.5: Create `tests/integration/scene_director/test_scene_director_integration.gd` - Scene load triggers directive selection, beats execute in order, directive completes and publishes event
+- [x] T5.5: Create `tests/integration/scene_director/test_scene_director_integration.gd` - Scene load triggers directive selection, beats execute in order, directive completes and publishes event
+  - Completion note (2026-02-25): Added integration coverage for transition-driven directive start, beat event ordering, beat index advancement events, and directive completion state/event assertions.
 
 ### 5D: Verification
 
-- [ ] T5.6: Run full test suite
-- [ ] T5.7: Update continuation prompt with Phase 5 status
+- [x] T5.6: Run full test suite
+  - Completion note (2026-02-25): Validation passed across targeted and full suites: `tests/unit/scene_director` (`61/61`), `tests/integration/scene_director` (`3/3`), `tests/unit/style` (`12/12`), `tests/integration/scene_manager` (`90/90`), full `tests/**` sweep (`2639/2648`, `9` expected pending, `0` failures).
+  - Stabilization note (2026-02-25): Hardened `tests/integration/scene_manager/test_endgame_flows.gd` fixture by disabling persistence (`settings.enable_persistence = false`) to prevent ambient save-state leakage from pre-completing objectives between runs.
+- [x] T5.7: Update continuation prompt with Phase 5 status
 
 **Phase 5 Commit**: Scene director integrated with scene flow
+
+Phase 5 completion notes (2026-02-25):
+- Added default `gameplay_base` scene-director directive resource with intro beats and event-publish effects.
+- Integrated `M_SceneDirector` into root scene/bootstrap and ServiceLocator dependency graph.
+- Added `test_scene_director_integration.gd` to validate directive selection/execution/completion end-to-end.
+- Restored full-suite stability by disabling persistence in `test_endgame_flows` fixture (prevents objective-status leakage from `user://` saves).
+- Verified regression baseline: scene-director unit/integration + style + scene-manager integration + full `tests/**` sweep all green with documented pending tests only.
 
 ---
 
