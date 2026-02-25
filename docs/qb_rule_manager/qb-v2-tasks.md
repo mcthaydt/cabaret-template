@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 85% (102 / 120 tasks complete)
+**Progress:** 98% (117 / 120 tasks complete)
 
 ---
 
@@ -185,24 +185,28 @@ Completion note (2026-02-25): Added selector test suite (7 tests), implemented `
 
 **Tests first:**
 
-- [ ] T103. Create `tests/unit/qb/test_rule_state_tracker.gd`
-- [ ] T104. Test: tick_cooldowns decrements active cooldowns
-- [ ] T105. Test: is_on_cooldown returns true during cooldown, false after expiry
-- [ ] T106. Test: mark_fired sets cooldown for rule+context pair
-- [ ] T107. Test: per-context cooldown isolation (rule on cooldown for context A, not for context B)
-- [ ] T108. Test: check_rising_edge returns true on false→true transition
-- [ ] T109. Test: check_rising_edge returns false on true→true (already true)
-- [ ] T110. Test: check_rising_edge returns false on false→false
-- [ ] T111. Test: rising edge resets after true→false→true cycle
-- [ ] T112. Test: mark_one_shot_spent prevents future firing
-- [ ] T113. Test: is_one_shot_spent returns false for unfired rules
-- [ ] T114. Test: cleanup_stale_contexts removes contexts not in active set
-- [ ] T115. Test: cleanup_stale_contexts preserves contexts with active cooldowns
+- [x] T103. Create `tests/unit/qb/test_rule_state_tracker.gd`
+- [x] T104. Test: tick_cooldowns decrements active cooldowns
+- [x] T105. Test: is_on_cooldown returns true during cooldown, false after expiry
+- [x] T106. Test: mark_fired sets cooldown for rule+context pair
+- [x] T107. Test: per-context cooldown isolation (rule on cooldown for context A, not for context B)
+- [x] T108. Test: check_rising_edge returns true on false→true transition
+- [x] T109. Test: check_rising_edge returns false on true→true (already true)
+- [x] T110. Test: check_rising_edge returns false on false→false
+- [x] T111. Test: rising edge resets after true→false→true cycle
+- [x] T112. Test: mark_one_shot_spent prevents future firing
+- [x] T113. Test: is_one_shot_spent returns false for unfired rules
+- [x] T114. Test: cleanup_stale_contexts removes contexts not in active set
+- [x] T115. Test: cleanup_stale_contexts preserves contexts with active cooldowns
 
 **Implementation:**
 
-- [ ] T116. Create `scripts/utils/qb/u_rule_state_tracker.gd` — `class_name RuleStateTracker extends RefCounted`
-- [ ] T117. All state tracker tests green
+- [x] T116. Create `scripts/utils/qb/u_rule_state_tracker.gd` — `class_name RuleStateTracker extends RefCounted`
+- [x] T117. All state tracker tests green
+
+Completion note (2026-02-25): Added state-tracker test suite (12 tests), implemented `RuleStateTracker`, and verified:
+- QB state tracker suite: 12/12 passing (`test_rule_state_tracker`)
+- Style suite: 12/12 passing (`tests/unit/style`)
 
 ### 1H — Validator (TDD)
 

@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 1A-1F complete; Phase 1G next)
+- **Status:** In progress (Phase 1A-1G complete; Phase 1H next)
 
 ## Recent Progress
 
@@ -64,6 +64,11 @@
   - Added `tests/unit/qb/test_rule_selector.gd` (T93-T100 coverage)
   - Verified QB selector tests (7/7 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
+- Phase 1G completed on 2026-02-25:
+  - Added `scripts/utils/qb/u_rule_state_tracker.gd` (`class_name RuleStateTracker`)
+  - Added `tests/unit/qb/test_rule_state_tracker.gd` (T103-T115 coverage)
+  - Verified QB state tracker tests (12/12 passing)
+  - Verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
 
@@ -112,7 +117,7 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 1G:** Build state tracker with TDD (T103-T117), starting with `test_rule_state_tracker.gd`.
+1. **Phase 1H:** Build validator with TDD (T118-T131), starting with `test_rule_validator.gd`.
 2. Work through phases sequentially — each ends with a commit checkpoint.
 3. Do NOT touch v1 code until Phase 2A (delete step).
 
