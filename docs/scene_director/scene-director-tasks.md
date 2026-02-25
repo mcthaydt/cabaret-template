@@ -4,13 +4,13 @@
 
 ### 1A: Objective Resources
 
-- [ ] T1.1: Create `scripts/resources/scene_director/rs_objective_definition.gd` (RS_ObjectiveDefinition) - objective_id, description, objective_type enum (STANDARD, VICTORY, CHECKPOINT — NOTE: CHECKPOINT type is defined for future use; M_ObjectivesManager treats it as STANDARD in Phase 1-6), conditions (Array[RS_BaseCondition] — use RS_ConditionReduxField, RS_ConditionEventPayload, RS_ConditionConstant subclasses; no RS_ConditionComponentField), completion_effects (Array[RS_BaseEffect]), completion_event_payload (Dictionary — arbitrary data merged into the published completion event; e.g., VICTORY objectives set `{"target_scene": StringName("victory")}`), dependencies (Array[StringName]), auto_activate
+- [ ] T1.1: Create `scripts/resources/scene_director/rs_objective_definition.gd` (RS_ObjectiveDefinition) - objective_id, description, objective_type enum (STANDARD, VICTORY, CHECKPOINT — NOTE: CHECKPOINT type is defined for future use; M_ObjectivesManager treats it as STANDARD in Phase 1-6), conditions (Array[Resource] — use RS_ConditionReduxField, RS_ConditionEventPayload, RS_ConditionConstant subclasses; no RS_ConditionComponentField), completion_effects (Array[Resource]), completion_event_payload (Dictionary — arbitrary data merged into the published completion event; e.g., VICTORY objectives set `{"target_scene": StringName("victory")}`), dependencies (Array[StringName]), auto_activate
 - [ ] T1.2: Create `scripts/resources/scene_director/rs_objective_set.gd` (RS_ObjectiveSet) - set_id, description, objectives (Array[RS_ObjectiveDefinition])
 
 ### 1B: Scene Director Resources
 
-- [ ] T1.3: Create `scripts/resources/scene_director/rs_beat_definition.gd` (RS_BeatDefinition) - beat_id, description, preconditions (Array[RS_BaseCondition]), effects (Array[RS_BaseEffect]), wait_mode enum (INSTANT, TIMED, SIGNAL), duration, wait_event
-- [ ] T1.4: Create `scripts/resources/scene_director/rs_scene_directive.gd` (RS_SceneDirective) - directive_id, description, target_scene_id, selection_conditions (Array[RS_BaseCondition]), priority, beats (Array[RS_BeatDefinition])
+- [ ] T1.3: Create `scripts/resources/scene_director/rs_beat_definition.gd` (RS_BeatDefinition) - beat_id, description, preconditions (Array[Resource]), effects (Array[Resource]), wait_mode enum (INSTANT, TIMED, SIGNAL), duration, wait_event
+- [ ] T1.4: Create `scripts/resources/scene_director/rs_scene_directive.gd` (RS_SceneDirective) - directive_id, description, target_scene_id, selection_conditions (Array[Resource]), priority, beats (Array[RS_BeatDefinition])
 
 ### 1C: Redux -- Objectives Slice (TDD)
 

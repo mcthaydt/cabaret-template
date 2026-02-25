@@ -33,8 +33,8 @@ Resource-defined goals tracked in Redux state. Objective conditions are evaluate
 
 Each objective has:
 - **Status lifecycle**: `inactive` -> `active` -> `completed` | `failed`
-- **Conditions**: v2 typed conditions that determine when an objective completes (`Array[RS_BaseCondition]` — use `RS_ConditionReduxField`, `RS_ConditionEventPayload`, `RS_ConditionConstant`)
-- **Effects**: v2 typed effects that fire on completion (`Array[RS_BaseEffect]` — use `RS_EffectDispatchAction`, `RS_EffectPublishEvent`, etc.)
+- **Conditions**: v2 typed conditions that determine when an objective completes (`Array[Resource]` — headless-safe; use `RS_ConditionReduxField`, `RS_ConditionEventPayload`, `RS_ConditionConstant`; validated at runtime via `U_RuleValidator`, see DEV_PITFALLS.md)
+- **Effects**: v2 typed effects that fire on completion (`Array[Resource]` — headless-safe; use `RS_EffectDispatchAction`, `RS_EffectPublishEvent`, etc.; validated at runtime via `U_RuleValidator`)
 - **Dependencies**: Other objective IDs that must be completed before this one activates (DAG)
 - **Type**: `STANDARD`, `VICTORY` (triggers win flow), `CHECKPOINT` (triggers save — deferred, not implemented in Phase 1-6)
 - **Completion event payload**: `completion_event_payload: Dictionary` — arbitrary data merged into the published completion event. Allows objectives to carry type-specific data (e.g., VICTORY objectives set `{"target_scene": StringName("victory")}`) without polluting the base resource with type-specific fields.
@@ -78,7 +78,7 @@ RS_BeatDefinition              -- Single beat step (preconditions, effects, dura
 RS_SceneDirective              -- Ordered sequence of beats for a scene
 ```
 
-All condition/effect arrays use v2 typed resources (`Array[RS_BaseCondition]`, `Array[RS_BaseEffect]`). The inspector shows valid subclass dropdowns.
+All condition/effect arrays use `Array[Resource]` for headless-parser compatibility (see DEV_PITFALLS.md). Runtime type enforcement via `U_RuleValidator.validate_rules()`. The inspector shows valid subclass dropdowns.
 
 ---
 
@@ -233,18 +233,19 @@ State (Redux):
 
 ### With v2 QB Typed Resources
 
-Objectives and beats use v2 condition/effect resources directly. No intermediate utility classes — conditions self-evaluate, effects self-execute:
+Objectives and beats use v2 condition/effect resources directly. No intermediate utility classes — conditions self-evaluate, effects self-execute. Arrays are declared as `Array[Resource]` (not `Array[RS_BaseCondition]`/`Array[RS_BaseEffect]`) because the headless parser cannot reliably resolve typed arrays of custom Resource subclasses (see DEV_PITFALLS.md). Use `U_RuleValidator.validate_rules()` for runtime type enforcement, matching the pattern in `rs_rule.gd:16-19`:
 
 ```gdscript
 # Check all conditions pass (binary AND)
-func _check_conditions(conditions: Array[RS_BaseCondition], context: Dictionary) -> bool:
+## Headless-safe: use Array[Resource] + U_RuleValidator (see DEV_PITFALLS.md)
+func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool:
     for condition in conditions:
         if condition.evaluate(context) <= 0.0:
             return false
     return true
 
 # Execute effects
-func _execute_effects(effects: Array[RS_BaseEffect], context: Dictionary) -> void:
+func _execute_effects(effects: Array[Resource], context: Dictionary) -> void:
     for effect in effects:
         effect.execute(context)
 ```

@@ -233,7 +233,7 @@ func _build_event_context(event_payload: Dictionary) -> Dictionary:
 
 **Condition evaluation (binary AND):**
 ```gdscript
-func _check_conditions(conditions: Array[RS_BaseCondition], context: Dictionary) -> bool:
+func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool:
     for condition in conditions:
         if condition.evaluate(context) <= 0.0:
             return false
@@ -242,7 +242,7 @@ func _check_conditions(conditions: Array[RS_BaseCondition], context: Dictionary)
 
 **Effect execution:**
 ```gdscript
-func _execute_effects(effects: Array[RS_BaseEffect], context: Dictionary) -> void:
+func _execute_effects(effects: Array[Resource], context: Dictionary) -> void:
     for effect in effects:
         effect.execute(context)
 ```

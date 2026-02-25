@@ -989,7 +989,7 @@ func _perform_transition(...) -> void:
 - Checkpoint registration/restoration
 - Death respawn integration
 - Save/load persistence
-- C_CheckpointComponent + S_GameRuleManager/S_CheckpointHandlerSystem
+- C_CheckpointComponent + S_GameEventSystem/S_CheckpointHandlerSystem
 
 **Sub-Phase 12.4: Advanced Features** (12-15 hours)
 - Spawn effects (fade, particles)

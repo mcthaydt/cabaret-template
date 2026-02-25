@@ -61,12 +61,12 @@ Event stored in rolling history buffer (1000 events)
 |------------|-------------|-----------|-------------|----------|
 | `health_changed` | `Evn_HealthChanged` | `C_HealthComponent` | _(none - state-driven)_ | - |
 | `entity_death` | `Evn_EntityDeath` | `C_HealthComponent` | `M_SceneManager` (10)<br>`S_GamepadVibrationSystem` (0) | High for scene manager |
-| `victory_triggered` | `Evn_VictoryTriggered` | `C_VictoryTriggerComponent` | `S_GameRuleManager` (0)<br>`S_VictorySoundSystem` (0) | Rule trigger + audio |
-| `victory_execution_requested` | _(StringName)_ | `S_GameRuleManager` | `S_VictoryHandlerSystem` (10) | Validate + dispatch gameplay writes |
+| `victory_triggered` | `Evn_VictoryTriggered` | `C_VictoryTriggerComponent` | `S_GameEventSystem` (0)<br>`S_VictorySoundSystem` (0) | Rule trigger + audio |
+| `victory_execution_requested` | _(StringName)_ | `S_GameEventSystem` | `S_VictoryHandlerSystem` (10) | Validate + dispatch gameplay writes |
 | `victory_executed` | _(StringName)_ | `S_VictoryHandlerSystem` | `M_SceneManager` (5) | Transition after validation |
 | `checkpoint_activated` | `Evn_CheckpointActivated` | `S_CheckpointHandlerSystem` | `UI_HudController` (0) | - |
 | `victory_zone_entered` | _(StringName)_ | `C_VictoryTriggerComponent` | _(internal)_ | - |
-| `checkpoint_zone_entered` | _(StringName)_ | `C_CheckpointComponent` | `S_GameRuleManager` (0) | Rule trigger |
+| `checkpoint_zone_entered` | _(StringName)_ | `C_CheckpointComponent` | `S_GameEventSystem` (0) | Rule trigger |
 | `damage_zone_entered` | _(StringName)_ | `C_DamageZoneComponent` | `S_DamageSystem` (0) | - |
 | `damage_zone_exited` | _(StringName)_ | `C_DamageZoneComponent` | `S_DamageSystem` (0) | - |
 | `entity_jumped` | _(StringName)_ | `S_JumpSystem` | VFX/Audio systems | - |
@@ -155,7 +155,7 @@ var body: Node3D
 ```
 
 **Subscribers**:
-- `S_GameRuleManager._on_event_received()` - Forwards to `victory_execution_requested`
+- `S_GameEventSystem._on_event_received()` - Forwards to `victory_execution_requested`
 - `S_VictorySoundSystem._on_event_received()` - Queues victory audio feedback
 
 ### Evn_CheckpointActivated

@@ -462,7 +462,7 @@ Completion note (2026-02-25): Added `tests/integration/qb/test_camera_shake_pipe
 Completion note (2026-02-25): Completed codebase verification and full Phase 5A test runs.
 - Stale-reference grep across runtime files (`scripts/`, `scenes/`, `tests/`, `resources/`, `project.godot`): 0 matches for deleted v1 class names.
 - Old-path grep across `.gd`/`.tscn`: 0 matches for deleted/renamed v1 script paths.
-- Style suite (`tests/unit/style`): 12/12 passing.
+- Style suite (`tests/unit/style`): 11/12 passing (one pre-existing failure: `test_production_paths_have_no_spaces` due to `mdl_new_character_Image Color Quantizer.png` — asset naming issue unrelated to QB v2).
 - QB v2 suites: unit (`tests/unit/qb`) 132/132 passing + integration (`tests/integration/qb`) 5/5 passing.
 - ECS suite (`tests/unit/ecs`): 126/126 passing.
 - Full integration suite (`tests/integration`): 395/396 passing with 1 pending (`test_color_blind_ui_filter.gd` headless environment pending), 0 failures.

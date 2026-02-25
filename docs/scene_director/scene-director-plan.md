@@ -11,8 +11,8 @@
 - `description: String`
 - `objective_type: ObjectiveType` enum (STANDARD, VICTORY, CHECKPOINT)
   - Note: `CHECKPOINT` type is defined for future use; behavior is **not implemented in Phase 1-6**. The enum value must exist so resources can be authored, but M_ObjectivesManager treats CHECKPOINT the same as STANDARD until a later phase adds save-trigger behavior.
-- `conditions: Array[RS_BaseCondition]` -- v2 typed conditions. Use `RS_ConditionReduxField`, `RS_ConditionEventPayload`, or `RS_ConditionConstant` subclasses (no `RS_ConditionComponentField` — no per-entity context at manager level)
-- `completion_effects: Array[RS_BaseEffect]` -- v2 typed effects. Use `RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetContextValue`, etc.
+- `conditions: Array[Resource]` -- v2 typed conditions. Use `RS_ConditionReduxField`, `RS_ConditionEventPayload`, or `RS_ConditionConstant` subclasses (no `RS_ConditionComponentField` — no per-entity context at manager level)
+- `completion_effects: Array[Resource]` -- v2 typed effects. Use `RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetContextValue`, etc.
 - `completion_event_payload: Dictionary = {}` -- arbitrary data merged into the published completion event. Enables type-specific data without type-specific fields (e.g., VICTORY objectives set `{"target_scene": StringName("victory")}`).
 - `dependencies: Array[StringName]` -- objective IDs that must be completed first
 - `auto_activate: bool = false` -- activate immediately when set loads (regardless of dependencies; use for root-level objectives that have no prerequisites)
@@ -27,8 +27,8 @@
 **RS_BeatDefinition** (`scripts/resources/scene_director/rs_beat_definition.gd`):
 - `beat_id: StringName`
 - `description: String`
-- `preconditions: Array[RS_BaseCondition]` -- v2 typed conditions that gate beat execution
-- `effects: Array[RS_BaseEffect]` -- v2 typed effects that fire when beat runs
+- `preconditions: Array[Resource]` -- v2 typed conditions that gate beat execution
+- `effects: Array[Resource]` -- v2 typed effects that fire when beat runs
 - `wait_mode: WaitMode` enum (INSTANT, TIMED, SIGNAL)
 - `duration: float = 0.0` -- for TIMED wait mode
 - `wait_event: StringName = &""` -- for SIGNAL wait mode
@@ -37,7 +37,7 @@
 - `directive_id: StringName`
 - `description: String`
 - `target_scene_id: StringName` -- which scene this directive applies to
-- `selection_conditions: Array[RS_BaseCondition]` -- v2 typed conditions for selecting this directive
+- `selection_conditions: Array[Resource]` -- v2 typed conditions for selecting this directive
 - `priority: int = 0` -- higher priority directives checked first
 - `beats: Array[RS_BeatDefinition]`
 
