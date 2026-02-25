@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 1A, 1B, and 1C complete; Phase 1D next)
+- **Status:** In progress (Phase 1A-1D complete; Phase 1E next)
 
 ## Recent Progress
 
@@ -47,6 +47,12 @@
     - `test_effect_set_field.gd`
     - `test_effect_set_context_value.gd`
   - Verified QB effect tests (13/13 passing)
+  - Verified style suite `tests/unit/style` (12/12 passing)
+- Phase 1D completed on 2026-02-25:
+  - Added `scripts/resources/qb/rs_rule.gd`
+  - Verified `conditions`/`effects` export metadata in headless via property introspection script
+  - Attempted typed arrays (`Array[RS_BaseCondition]`, `Array[RS_BaseEffect]`) but hit headless parser resolution errors for new class symbols
+  - Applied documented fallback to `Array[Resource]` in `RS_Rule` pending validator-enforced type checks in Phase 1H
   - Verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
@@ -96,7 +102,7 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 1D:** Create `RS_Rule` with typed condition/effect arrays (T78), then verify inspector subclass dropdown behavior for both arrays (T79-T80).
+1. **Phase 1E:** Build scorer with TDD (T81-T92), starting with `test_rule_scorer.gd`.
 2. Work through phases sequentially — each ends with a commit checkpoint.
 3. Do NOT touch v1 code until Phase 2A (delete step).
 

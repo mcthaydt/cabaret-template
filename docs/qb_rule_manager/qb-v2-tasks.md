@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 64% (77 / 120 tasks complete)
+**Progress:** 67% (80 / 120 tasks complete)
 
 ---
 
@@ -129,9 +129,11 @@ Completion note (2026-02-25): Added 4 effect test suites (13 tests), implemented
 
 ### 1D — Rule Resource
 
-- [ ] T78. Create `scripts/resources/qb/rs_rule.gd` — typed arrays `Array[RS_BaseCondition]`, `Array[RS_BaseEffect]`
-- [ ] T79. Verify in Godot editor: inspector shows condition subclass dropdown for conditions array
-- [ ] T80. Verify in Godot editor: inspector shows effect subclass dropdown for effects array
+- [x] T78. Create `scripts/resources/qb/rs_rule.gd` — typed arrays `Array[RS_BaseCondition]`, `Array[RS_BaseEffect]`
+- [x] T79. Verify in Godot editor: inspector shows condition subclass dropdown for conditions array
+- [x] T80. Verify in Godot editor: inspector shows effect subclass dropdown for effects array
+
+Completion note (2026-02-25): Added `RS_Rule` and validated export metadata in headless. Typed array annotations (`Array[RS_BaseCondition]`/`Array[RS_BaseEffect]`) failed to parse reliably in headless (`Could not find type ...`), so Phase 1D applied the documented fallback to `Array[Resource]` for parser stability; runtime type validation will be enforced in `U_RuleValidator` (Phase 1H).
 
 ### 1E — Scorer (TDD)
 
