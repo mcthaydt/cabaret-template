@@ -22,6 +22,11 @@ const CURRENT_VERSION := 1
 
 ## Legacy save path (pre-Phase 6)
 const LEGACY_SAVE_PATH := "user://savegame.json"
+const DEFAULT_OBJECTIVES_SLICE := {
+	"statuses": {},
+	"active_set_id": StringName(""),
+	"event_log": [],
+}
 
 ## Migration registry: version -> migration Callable
 ## Each migration transforms version N to version N+1
@@ -65,6 +70,7 @@ static func migrate(save_data: Dictionary) -> Dictionary:
 			# No more migrations defined
 			break
 
+	current_save = _inject_missing_objectives_slice(current_save)
 	return current_save
 
 ## Check if legacy save file exists
@@ -137,6 +143,18 @@ static func _migrate_v0_to_v1(v0_save: Dictionary) -> Dictionary:
 		"header": header,
 		"state": v0_save.duplicate(true)
 	}
+
+static func _inject_missing_objectives_slice(save_data: Dictionary) -> Dictionary:
+	var patched_save: Dictionary = save_data.duplicate(true)
+	var state_variant: Variant = patched_save.get("state", null)
+	if not (state_variant is Dictionary):
+		return patched_save
+
+	var state: Dictionary = (state_variant as Dictionary).duplicate(true)
+	if not state.has("objectives"):
+		state["objectives"] = DEFAULT_OBJECTIVES_SLICE.duplicate(true)
+	patched_save["state"] = state
+	return patched_save
 
 ## Helper: Get ISO 8601 timestamp
 static func _get_iso8601_timestamp() -> String:

@@ -87,9 +87,11 @@ func load_objective_set(set_id: StringName) -> bool:
 	_objectives_by_id = objective_map
 	_objective_graph = graph
 
+	var persisted_statuses: Dictionary = _get_statuses_snapshot()
 	if _store != null:
 		_store.dispatch(U_OBJECTIVES_ACTIONS.reset_all())
 		_store.dispatch(U_OBJECTIVES_ACTIONS.set_active_set(set_id))
+		_reconcile_persisted_statuses(known_ids, persisted_statuses)
 
 	var auto_activate_ids: Array[StringName] = []
 	for objective_id in known_ids:
@@ -377,6 +379,23 @@ func _log_event(objective_id: StringName, event_type: String, details: Dictionar
 		return
 	var entry: Dictionary = U_OBJECTIVE_EVENT_LOG.create_entry(objective_id, event_type, details)
 	_store.dispatch(U_OBJECTIVES_ACTIONS.log_event(entry))
+
+func _reconcile_persisted_statuses(known_ids: Array[StringName], persisted_statuses: Dictionary) -> void:
+	if _store == null:
+		return
+
+	for objective_id in known_ids:
+		var status: String = str(persisted_statuses.get(objective_id, STATUS_INACTIVE))
+		match status:
+			STATUS_ACTIVE:
+				_store.dispatch(U_OBJECTIVES_ACTIONS.activate(objective_id))
+			STATUS_COMPLETED:
+				_store.dispatch(U_OBJECTIVES_ACTIONS.complete(objective_id))
+			STATUS_FAILED:
+				_store.dispatch(U_OBJECTIVES_ACTIONS.fail(objective_id))
+			_:
+				# Unknown/empty statuses are treated as inactive.
+				pass
 
 func _get_statuses_snapshot() -> Dictionary:
 	if _store == null:

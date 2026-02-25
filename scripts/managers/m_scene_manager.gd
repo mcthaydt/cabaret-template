@@ -33,7 +33,6 @@ const U_SCENE_LOADER := preload("res://scripts/scene_management/helpers/u_scene_
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
-const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 const U_TRANSITION_ORCHESTRATOR := preload("res://scripts/scene_management/u_transition_orchestrator.gd")
 const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helpers/u_scene_transition_queue.gd")
 const U_SCENE_MANAGER_NODE_FINDER := preload("res://scripts/scene_management/helpers/u_scene_manager_node_finder.gd")
@@ -150,7 +149,7 @@ var _unsubscribe: Callable
 
 ## ECS event bus subscriptions
 var _entity_death_unsubscribe: Callable
-var _victory_executed_unsubscribe: Callable
+var _objective_victory_unsubscribe: Callable
 
 ## Skip initial scene load (for tests)
 var skip_initial_scene_load: bool = false
@@ -208,8 +207,12 @@ func _ready() -> void:
 	# Subscribe to ECS events with priorities
 	# entity_death: Priority 10 (high - quick transition to game over)
 	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_ENTITY_DEATH, _on_entity_death, 10)
-	# victory_executed: Priority 5 (medium - after handler validates and updates state)
-	_victory_executed_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, _on_victory_executed, 5)
+	# objective_victory_triggered: Priority 5 (medium - after objectives manager validates conditions)
+	_objective_victory_unsubscribe = U_ECS_EVENT_BUS.subscribe(
+		U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED,
+		_on_objective_victory,
+		5
+	)
 
 	# Register scene type handlers (T137c: Phase 10B-3)
 	_register_scene_type_handlers()
@@ -291,8 +294,8 @@ func _exit_tree() -> void:
 	# Unsubscribe from ECS events
 	if _entity_death_unsubscribe != null and _entity_death_unsubscribe.is_valid():
 		_entity_death_unsubscribe.call()
-	if _victory_executed_unsubscribe != null and _victory_executed_unsubscribe.is_valid():
-		_victory_executed_unsubscribe.call()
+	if _objective_victory_unsubscribe != null and _objective_victory_unsubscribe.is_valid():
+		_objective_victory_unsubscribe.call()
 
 func _ensure_store_reference() -> void:
 	_store = U_SCENE_MANAGER_NODE_FINDER.ensure_store_reference(_store, self )
@@ -318,25 +321,15 @@ func _on_entity_death(_event: Dictionary) -> void:
 	# Trigger game over transition when player dies
 	transition_to_scene(StringName("game_over"), "fade", Priority.CRITICAL)
 
-## ECS event handler: victory_executed
-## Transition only after S_VictoryHandlerSystem validates prerequisites and dispatches state updates.
-func _on_victory_executed(event: Dictionary) -> void:
+## ECS event handler: objective_victory_triggered
+## Transition only after M_ObjectivesManager completes a VICTORY objective.
+func _on_objective_victory(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
-	var trigger := payload.get("trigger_node") as C_VictoryTriggerComponent
-	if trigger == null or not is_instance_valid(trigger):
+	var target_scene: StringName = payload.get("target_scene", StringName(""))
+	if target_scene == StringName(""):
+		push_warning("M_SceneManager: objective_victory_triggered missing payload.target_scene")
 		return
-
-	# Determine target scene based on victory type
-	var target_scene := _get_victory_target_scene(trigger)
 	transition_to_scene(target_scene, "fade", Priority.HIGH)
-
-## Determine target scene for victory transition
-func _get_victory_target_scene(trigger: C_VictoryTriggerComponent) -> StringName:
-	match trigger.victory_type:
-		C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
-			return StringName("victory")
-		_:
-			return StringName("alleyway")
 
 ## Load initial scene on startup
 func _load_initial_scene() -> void:

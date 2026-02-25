@@ -12,11 +12,15 @@ extends GutTest
 ## implementation work for Phase 9 is complete.
 
 const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
+const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
+const OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
+const OBJECTIVE_SET := preload("res://scripts/resources/scene_director/rs_objective_set.gd")
+const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
@@ -35,6 +39,7 @@ const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd"
 var _root: Node
 var _state_store: M_STATE_STORE
 var _scene_manager: M_SCENE_MANAGER
+var _objectives_manager: M_OBJECTIVES_MANAGER
 var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
 var _transition_overlay: CanvasLayer
@@ -90,9 +95,14 @@ func before_each() -> void:
 	_scene_manager.skip_initial_scene_load = true
 	_scene_manager.initial_scene_id = StringName("alleyway")
 	_root.add_child(_scene_manager)
+	_objectives_manager = M_OBJECTIVES_MANAGER.new()
+	_objectives_manager.state_store = _state_store
+	_objectives_manager.objective_sets = [_build_endgame_objective_set()]
+	_root.add_child(_objectives_manager)
 
 	# Register managers with ServiceLocator (Phase 10B-7: T141c)
 	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)
+	U_ServiceLocator.register(StringName("objectives_manager"), _objectives_manager)
 
 	await get_tree().process_frame
 	await wait_physics_frames(1)
@@ -111,6 +121,7 @@ func after_each() -> void:
 	_root = null
 	_state_store = null
 	_scene_manager = null
+	_objectives_manager = null
 	_active_scene_container = null
 	_ui_overlay_stack = null
 	_transition_overlay = null
@@ -193,6 +204,40 @@ func _prepare_victory_system() -> Dictionary:
 		"game_event_system": game_event_system,
 		"victory_handler_system": victory_handler_system,
 	}
+
+func _build_endgame_objective_set() -> Resource:
+	var level_condition := CONDITION_REDUX_FIELD.new()
+	level_condition.state_path = "gameplay.completed_areas.0"
+	level_condition.match_mode = "not_equals"
+	level_condition.match_value_string = ""
+
+	var game_condition := CONDITION_REDUX_FIELD.new()
+	game_condition.state_path = "gameplay.game_completed"
+	game_condition.match_mode = "equals"
+	game_condition.match_value_string = "true"
+
+	var level_objective: Resource = OBJECTIVE_DEFINITION.new()
+	level_objective.objective_id = StringName("level_complete")
+	level_objective.auto_activate = true
+	var level_conditions: Array[Resource] = [level_condition]
+	level_objective.conditions = level_conditions
+
+	var game_objective: Resource = OBJECTIVE_DEFINITION.new()
+	game_objective.objective_id = StringName("game_complete")
+	game_objective.objective_type = OBJECTIVE_DEFINITION.ObjectiveType.VICTORY
+	var dependencies: Array[StringName] = [StringName("level_complete")]
+	game_objective.dependencies = dependencies
+	var game_conditions: Array[Resource] = [game_condition]
+	game_objective.conditions = game_conditions
+	game_objective.completion_event_payload = {
+		"target_scene": StringName("victory"),
+	}
+
+	var objective_set: Resource = OBJECTIVE_SET.new()
+	objective_set.set_id = StringName("set_endgame_flows")
+	var objectives: Array[Resource] = [level_objective, game_objective]
+	objective_set.objectives = objectives
+	return objective_set
 
 func _get_active_scene_instance() -> Node:
 	if _active_scene_container == null:

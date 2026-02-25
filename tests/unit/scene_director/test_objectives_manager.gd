@@ -362,6 +362,40 @@ func test_late_store_resolution_connects_action_dispatched_subscription() -> voi
 		"Manager should evaluate objectives on gameplay/mark_area_complete after late store discovery"
 	)
 
+func test_load_objective_set_reconciles_saved_statuses_and_discards_orphans() -> void:
+	_store.apply_loaded_state({
+		"objectives": {
+			"statuses": {
+				StringName("obj_saved_active"): "active",
+				StringName("obj_saved_completed"): "completed",
+				StringName("obj_orphan"): "failed",
+			},
+			"active_set_id": StringName("legacy_set"),
+			"event_log": [],
+		},
+		"gameplay": {
+			"completed_areas": [],
+			"test_flag": false,
+		},
+	})
+
+	var objective_set: Resource = _objective_set(
+		StringName("set_reconcile"),
+		[
+			_objective(StringName("obj_saved_active"), [], false),
+			_objective(StringName("obj_saved_completed"), [], false),
+			_objective(StringName("obj_auto"), [], true),
+		]
+	)
+	var manager: Variant = await _spawn_manager([objective_set], true)
+
+	var objectives_slice: Dictionary = _store.get_state().get("objectives", {})
+	var statuses: Dictionary = objectives_slice.get("statuses", {})
+	assert_eq(manager.get_objective_status(StringName("obj_saved_active")), "active")
+	assert_eq(manager.get_objective_status(StringName("obj_saved_completed")), "completed")
+	assert_eq(manager.get_objective_status(StringName("obj_auto")), "active")
+	assert_false(statuses.has(StringName("obj_orphan")), "Orphaned status should be discarded on set load")
+
 func _spawn_manager(objective_sets: Array[Resource], inject_store: bool) -> Variant:
 	var manager := M_OBJECTIVES_MANAGER.new()
 	manager.objective_sets = objective_sets.duplicate()
