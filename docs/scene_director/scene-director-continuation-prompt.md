@@ -6,12 +6,12 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Current Status
 
-**Phase**: Phase 1 in progress
+**Phase**: Phase 1 complete
 **Branch**: scene-director
-**Next Task**: T1.2 -- Create RS_ObjectiveSet resource
+**Next Task**: T2.1 -- Create U_ObjectiveGraph stub
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
-**Latest Verification**: 2026-02-25 -- `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12/12 passing)
+**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (27/27), `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (197/197), `tests/unit/style` (12/12), `tests/integration/scene_manager` (90/90). Full `tests/**` run had one existing unrelated lighting performance failure (`test_multi_character_multi_zone_performance_smoke`).
 
 ---
 
