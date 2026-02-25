@@ -270,3 +270,54 @@ Phase 5 completion notes (2026-02-25):
 - [ ] T6.4: Manual playtest: full gameplay loop (walk, checkpoint, victory, game complete, beat sequences)
 
 **Phase 6 Commit**: Cleanup and final verification
+
+---
+
+## Phase 7: Reset Run Hardening (TDD, Migrated IDs)
+
+### 7A: Public API + Reducer Support
+
+- [x] T7.1: Added `scripts/state/actions/u_run_actions.gd` with `ACTION_RESET_RUN` + `reset_run(next_route)` action creator.
+- [x] T7.2: Added `U_ObjectivesActions.ACTION_RESET_FOR_NEW_RUN` with payload contract `{ "set_id": StringName }`.
+- [x] T7.3: Extended `U_ObjectivesReducer` to handle `ACTION_RESET_FOR_NEW_RUN` by clearing `statuses`, clearing `event_log`, and setting `active_set_id`.
+
+### 7B: Objectives Manager Fresh-Reset Flow
+
+- [x] T7.4: Added `M_ObjectivesManager.reset_for_new_run(set_id := &"default_progression")`.
+- [x] T7.5: Split objective-set loading behavior into two paths:
+  - persisted reconciliation path (`load_objective_set`)
+  - fresh reset-run path (`reset_for_new_run`) that skips persisted-status reconciliation.
+- [x] T7.6: Fresh reset path now re-arms root objectives using `bulk_activate` so `event_log` stays empty after reset-run.
+- [x] T7.7: Reduced redundant objective re-evaluation passes for a single event by fixing the active-objective evaluation loop termination.
+
+### 7C: Run Coordinator + UI Routing
+
+- [x] T7.8: Added `scripts/managers/m_run_coordinator.gd` to orchestrate `run/reset`:
+  - dispatch `gameplay/reset_progress`
+  - call `U_InteractBlocker.force_unblock()`
+  - call `objectives_manager.reset_for_new_run(&"default_progression")` when available
+  - dispatch `navigation/retry(&"alleyway")`
+  - ignore re-entrant reset requests while one is in-flight
+- [x] T7.9: Registered `M_RunCoordinator` in `scenes/root.tscn` + `scripts/root.gd` ServiceLocator wiring/dependencies.
+- [x] T7.10: Updated `UI_Victory` Continue flow to dispatch `U_RunActions.reset_run(...)` (contract path) instead of direct gameplay/navigation reset chaining.
+
+### 7D: Test Coverage Updates (TDD)
+
+- [x] T7.11: Added reducer tests for `ACTION_RESET_FOR_NEW_RUN` in `tests/unit/scene_director/test_objectives_reducer.gd`.
+- [x] T7.12: Added objectives-manager reset tests in `tests/unit/scene_director/test_objectives_manager.gd`.
+- [x] T7.13: Added coordinator unit tests in `tests/unit/scene_director/test_run_coordinator.gd`.
+- [x] T7.14: Updated victory UI unit test to assert Continue dispatches `run/reset` contract action in `tests/unit/ui/test_endgame_screens.gd`.
+- [x] T7.15: Updated endgame integration assertions for post-Continue fresh objective state in `tests/integration/scene_manager/test_endgame_flows.gd`.
+- [x] T7.16: Normalized scene-director integration/unit migrated objective IDs (`bar_complete`, `final_complete`) in:
+  - `tests/integration/scene_director/test_objectives_integration.gd`
+  - `tests/unit/scene_director/test_victory_migration.gd`
+
+### 7E: Verification
+
+- [x] T7.17: `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director`
+- [x] T7.18: `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -gselect=test_endgame_screens`
+- [x] T7.19: `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director`
+- [x] T7.20: `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_endgame_flows`
+- [x] T7.21: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
+
+**Phase 7 Commit**: Reset-run hardening with deterministic coordinator orchestration and migrated objective IDs

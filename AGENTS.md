@@ -28,6 +28,7 @@
 - `scripts/managers/m_scene_manager.gd`: Scene transition coordinator (Phase 3+); manages ActiveSceneContainer.
 - `scripts/managers/m_save_manager.gd`: Save/load coordinator; manages save slots, atomic writes, migrations, and autosave scheduling.
 - `scripts/managers/m_objectives_manager.gd`: Objectives manager (Phase 2 core); loads objective sets, validates dependency DAGs, evaluates objective conditions on relevant events, and publishes objective lifecycle/victory events.
+- `scripts/managers/m_run_coordinator.gd`: Run reset coordinator; listens for `run/reset`, dispatches gameplay reset, force-unblocks interactions, resets objectives for a fresh run, and retries to `alleyway`.
 - `scripts/state/m_state_store.gd`: Redux store; registers with ServiceLocator for discovery via `U_StateUtils.get_store()`.
 - `scripts/ui/utils/u_ui_registry.gd` + `resources/ui_screens/`: UI registry definitions (`RS_UIScreenDefinition`) for base screens and overlays.
 - UI controllers are grouped by screen type: `scripts/ui/menus/`, `scripts/ui/overlays/`, `scripts/ui/hud/` (utilities live in `scripts/ui/utils/`).
@@ -60,6 +61,11 @@
   - Dependents are activated only when `U_ObjectiveGraph.get_ready_dependents(...)` reports all prerequisites completed.
   - VICTORY objectives publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with `completion_event_payload` as-is.
   - `M_SceneManager` listens to `EVENT_OBJECTIVE_VICTORY_TRIGGERED` for endgame transitions; legacy direct `victory_executed` scene transitions are removed.
+- Reset-run orchestration pattern (Phase 7):
+  - `UI_Victory` Continue dispatches `U_RunActions.reset_run(&"retry_alleyway")` (do not chain gameplay/navigation reset actions directly in UI code).
+  - `M_RunCoordinator` handles `run/reset` order: `gameplay/reset_progress` -> `U_InteractBlocker.force_unblock()` -> `objectives_manager.reset_for_new_run(&"default_progression")` -> `navigation/retry(&"alleyway")`.
+  - `M_ObjectivesManager.reset_for_new_run()` is the fresh objective-reset path (no persisted-status reconciliation); `load_objective_set()` remains the save/load reconciliation path.
+  - Re-entrant `run/reset` requests are ignored while a reset is in-flight.
 - Player-facing beat messaging pattern:
   - Scene-director beats may publish `signpost_message` events with `{"message": "<localization_key>", "message_duration_sec": <float>}` payloads so existing HUD/mobile signpost consumers can render narrative/tutorial text without custom UI plumbing.
 

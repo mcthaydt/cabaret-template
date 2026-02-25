@@ -297,6 +297,57 @@ Create scene directives:
 
 ---
 
+## Phase 7: Reset Run Hardening (TDD, Migrated IDs)
+
+**Goal**: Make victory Continue deterministic by routing through a single `run/reset` contract that resets gameplay + objectives and retries into `alleyway` with migrated objective IDs only.
+
+### 7A: Contract + State Updates
+
+- Add `U_RunActions.ACTION_RESET_RUN` and `reset_run(next_route := &"retry_alleyway")`
+- Add `U_ObjectivesActions.ACTION_RESET_FOR_NEW_RUN` with payload `{ "set_id": StringName }`
+- Extend `U_ObjectivesReducer` with `ACTION_RESET_FOR_NEW_RUN` handling:
+  - clear `statuses`
+  - clear `event_log`
+  - set `active_set_id` from payload
+
+### 7B: Objectives Fresh Reset Mode
+
+- Add `M_ObjectivesManager.reset_for_new_run(set_id := &"default_progression")`
+- Keep `load_objective_set()` as the persisted save/load reconciliation path
+- Split objective loading into two modes:
+  - reconciliation mode (save/load)
+  - fresh reset mode (reset-run) that skips persisted status reconciliation
+- Fresh reset mode re-arms root objectives using bulk activation so objective event log stays empty post-reset
+
+### 7C: Run Coordinator
+
+- Add `M_RunCoordinator` manager that subscribes to store `action_dispatched` and handles `run/reset`
+- `retry_alleyway` orchestration order:
+  1. `U_GameplayActions.reset_progress()`
+  2. `U_InteractBlocker.force_unblock()`
+  3. `M_ObjectivesManager.reset_for_new_run(&"default_progression")` (when available)
+  4. `U_NavigationActions.retry(&"alleyway")`
+- Missing objectives manager should not block gameplay reset + retry
+- Re-entrant reset requests while one is in-flight are ignored
+
+### 7D: UI + Root Wiring
+
+- Update `UI_Victory` Continue to dispatch `U_RunActions.reset_run(...)` instead of direct reset/navigation chaining
+- Register `M_RunCoordinator` in `scenes/root.tscn` and `scripts/root.gd` ServiceLocator dependency wiring
+
+### 7E: Test Coverage
+
+- Unit coverage for:
+  - objectives reducer reset-for-new-run semantics
+  - objectives manager fresh reset behavior
+  - run coordinator dispatch order + re-entrant guard
+  - victory continue contract action path
+- Integration coverage for:
+  - post-Continue gameplay/objective state + `alleyway` target
+  - migrated IDs only (`bar_complete`, `final_complete`) in scene-director objective integration
+
+---
+
 ## Files Summary
 
 ### New Files (Resources)
@@ -318,12 +369,14 @@ scripts/state/actions/u_scene_director_actions.gd
 scripts/state/reducers/u_scene_director_reducer.gd
 scripts/state/selectors/u_scene_director_selectors.gd
 scripts/resources/state/rs_scene_director_initial_state.gd
+scripts/state/actions/u_run_actions.gd
 ```
 
 ### New Files (Managers + Helpers)
 ```
 scripts/managers/m_objectives_manager.gd
 scripts/managers/m_scene_director.gd
+scripts/managers/m_run_coordinator.gd
 scripts/utils/scene_director/u_objective_graph.gd
 scripts/utils/scene_director/u_objective_event_log.gd
 scripts/utils/scene_director/u_beat_runner.gd
@@ -345,6 +398,7 @@ scripts/root.gd                                  -- Register 2 new managers + de
 scripts/events/ecs/u_ecs_event_names.gd          -- Add objective/directive event constants
 scripts/managers/m_scene_manager.gd              -- Remove victory handling, add objective_victory subscription
 scenes/root.tscn                                 -- Add M_ObjectivesManager + M_SceneDirector nodes
+scripts/ui/menus/ui_victory.gd                   -- Continue now dispatches run/reset contract action
 ```
 
 ### Test Files
@@ -359,8 +413,11 @@ tests/unit/scene_director/test_objectives_manager.gd
 tests/unit/scene_director/test_beat_runner.gd
 tests/unit/scene_director/test_scene_director.gd
 tests/unit/scene_director/test_victory_migration.gd
+tests/unit/scene_director/test_run_coordinator.gd
 tests/integration/scene_director/test_objectives_integration.gd
 tests/integration/scene_director/test_scene_director_integration.gd
+tests/unit/ui/test_endgame_screens.gd
+tests/integration/scene_manager/test_endgame_flows.gd
 ```
 
 ## Critical Files Reference

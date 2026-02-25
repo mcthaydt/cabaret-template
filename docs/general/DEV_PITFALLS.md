@@ -118,6 +118,10 @@
 - **`M_StateStore` autoload can leak ambient state into unit tests**: `RS_StateStoreSettings.enable_persistence` defaults to `true`, so tests that create `M_StateStore` can auto-load `user://savegame.json` and emit normalization warnings (for example unknown spawn point warnings) as unexpected test errors. For tests not explicitly validating persistence, set `store.settings.enable_persistence = false` before adding the store node.
 - **Do not assert raw `push_warning` output directly in QB/system tests**: Engine warnings are hard to capture reliably in headless runs. Expose/override a small warning hook in test doubles and assert captured messages there instead of parsing console logs.
 
+## Scene Director Pitfalls
+
+- **`gameplay/reset_progress` is not an objectives reset**: Dispatching `U_GameplayActions.reset_progress()` clears gameplay progression fields but does not rebuild objective statuses/event log. Endgame Continue/retry flows must route through the run-reset contract (`U_RunActions.reset_run`) so `M_RunCoordinator` can call `M_ObjectivesManager.reset_for_new_run(...)` and re-arm root objectives (`bar_complete` active, `final_complete` inactive) with an empty objective event log.
+
 ## QB Rule Engine v2 Pitfalls
 
 - **`U_PathResolver` intentionally has no method-call fallback**: Conditions/effects must resolve data through dictionary/object property paths only. Do not rely on `has_method()` + call behavior for rule evaluation.

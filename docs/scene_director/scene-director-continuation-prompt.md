@@ -6,13 +6,14 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Current Status
 
-**Phase**: Phase 5 implementation complete (interactive manual playtest pending)
+**Phase**: Phase 7 reset-run hardening complete (interactive manual playtest pending)
 **Branch**: scene-director
-**Next Task**: T6.1 -- Update `AGENTS.md` with Scene Director / Objectives Manager patterns
+**Next Task**: T6.3/T6.4 -- Final cleanup verification + interactive manual playtest
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
-**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (61/61), `tests/integration/scene_director` (3/3), `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (197/197), `tests/unit/style` (12/12), `tests/integration/scene_manager` (90/90), full `tests/**` sweep (2639/2648 with 9 expected headless/mobile pending tests, 0 failures). Interactive manual playtest remains pending.
+**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (67/67), `tests/unit/ui -gselect=test_endgame_screens` (10/10), `tests/integration/scene_director` (3/3), `tests/integration/scene_manager -gselect=test_endgame_flows` (5/5), `tests/unit/style` (12/12). Interactive manual playtest remains pending.
 **Integration note**: Default gameplay intro beats publish both instrumentation events (`scene_director_intro_beat_1/2`) and player-facing `signpost_message` payloads (`hud.scene_director_intro_beat_1/2`) consumed by HUD/mobile signpost flows.
+**Reset-run note**: Victory Continue now dispatches `run/reset`; `M_RunCoordinator` orchestrates gameplay reset, interact unblock, objectives fresh reset (`reset_for_new_run`), and retry to `alleyway`.
 
 ---
 
@@ -37,6 +38,7 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - **Beat runner as RefCounted helper**: Pure state machine logic; M_SceneDirector owns the Node lifecycle
 - **Both debug + runtime event log**: U_ObjectiveEventLog tracks all objective state transitions
 - **M_SceneManager becomes pure loader**: Victory handling moves to objectives; scene manager only handles transitions
+- **Run reset is coordinated**: `UI_Victory` dispatches `U_RunActions.reset_run`, `M_RunCoordinator` owns reset sequencing, and `M_ObjectivesManager.reset_for_new_run` keeps objective reset separate from gameplay reset
 
 **What gets removed from M_SceneManager:**
 - `_on_victory_executed()` handler (lines 323-331)
