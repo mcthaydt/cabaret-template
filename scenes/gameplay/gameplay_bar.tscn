@@ -321,7 +321,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.63254166)
 light_color = Color(1, 0.87451, 0.364706, 1)
 light_energy = 2.0
 
-[node name="E_Player" parent="Entities" unique_id=1535353491 instance=ExtResource("7_4wxy1")]
+[node name="E_Player" parent="Entities" unique_id=526145796 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2181439, 1, 0.6794058)
 
 [node name="E_CameraRoot" parent="Entities" unique_id=153420920 instance=ExtResource("19_ph0bl")]

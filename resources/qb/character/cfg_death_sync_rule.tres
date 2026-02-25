@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://y3hog88by51c" path="res://scripts/resources/qb/effects/rs_effect_set_context_value.gd" id="2_o4ogc"]
 [ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="3_dts07"]
 
-[sub_resource type="Resource" id="Resource_0xyou"]
+[sub_resource type="Resource" id="Resource_s53jo"]
 script = ExtResource("1_s53jo")
 component_type = &"C_HealthComponent"
 field_path = "_is_dead"
@@ -17,5 +17,5 @@ bool_value = true
 [resource]
 script = ExtResource("3_dts07")
 rule_id = &"death_sync"
-conditions = Array[Resource]([SubResource("Resource_0xyou")])
+conditions = Array[Resource]([SubResource("Resource_s53jo")])
 effects = Array[Resource]([SubResource("Resource_m25uh")])

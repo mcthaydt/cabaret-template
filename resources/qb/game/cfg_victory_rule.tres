@@ -2,15 +2,15 @@
 
 [ext_resource type="Script" uid="uid://cgk1j4fpq4c8" path="res://scripts/resources/qb/effects/rs_effect_publish_event.gd" id="1_8r2r6"]
 [ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="2_j3wtx"]
-[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_event_name.gd" id="3_rm11j"]
-
-[sub_resource type="Resource" id="Resource_h8nwu"]
-script = ExtResource("1_8r2r6")
-event_name = &"victory_execution_requested"
+[ext_resource type="Script" uid="uid://bkrf6emw8eq0d" path="res://scripts/resources/qb/conditions/rs_condition_event_name.gd" id="3_rm11j"]
 
 [sub_resource type="Resource" id="Resource_nq7aa"]
 script = ExtResource("3_rm11j")
 expected_event_name = &"victory_triggered"
+
+[sub_resource type="Resource" id="Resource_h8nwu"]
+script = ExtResource("1_8r2r6")
+event_name = &"victory_execution_requested"
 
 [resource]
 script = ExtResource("2_j3wtx")
