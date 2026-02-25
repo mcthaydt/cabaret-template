@@ -63,6 +63,7 @@ func before_each() -> void:
 
 	_state_store = M_STATE_STORE.new()
 	_state_store.settings = RS_STATE_STORE_SETTINGS.new()
+	_state_store.settings.enable_persistence = false
 	_state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
 	_state_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
 	_root.add_child(_state_store)
@@ -330,7 +331,7 @@ func test_victory_triggers_victory_scene_when_area_completed() -> void:
 	if is_instance_valid(victory_component):
 		victory_component.call("_on_body_entered", body)
 		await wait_physics_frames(1)
-	await wait_seconds(0.3)
+	await U_SceneTestHelpers.wait_for_transition_idle(_scene_manager)
 
 	assert_eq(_scene_manager.get_current_scene(), StringName("victory"),
 		"Victory scene should load once prerequisites satisfied")
