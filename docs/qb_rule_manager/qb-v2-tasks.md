@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 77% (92 / 120 tasks complete)
+**Progress:** 85% (102 / 120 tasks complete)
 
 ---
 
@@ -163,19 +163,23 @@ Completion note (2026-02-25): Added scorer test suite (9 tests), implemented `U_
 
 **Tests first:**
 
-- [ ] T93. Create `tests/unit/qb/test_rule_selector.gd`
-- [ ] T94. Test: ungrouped rules all appear in winners
-- [ ] T95. Test: grouped rules — highest score wins
-- [ ] T96. Test: grouped rules — priority tiebreak when scores equal
-- [ ] T97. Test: grouped rules — alphabetical rule_id tiebreak when score and priority equal
-- [ ] T98. Test: mixed grouped + ungrouped — both types represented in winners
-- [ ] T99. Test: multiple decision groups — each group produces its own winner
-- [ ] T100. Test: empty input returns empty winners
+- [x] T93. Create `tests/unit/qb/test_rule_selector.gd`
+- [x] T94. Test: ungrouped rules all appear in winners
+- [x] T95. Test: grouped rules — highest score wins
+- [x] T96. Test: grouped rules — priority tiebreak when scores equal
+- [x] T97. Test: grouped rules — alphabetical rule_id tiebreak when score and priority equal
+- [x] T98. Test: mixed grouped + ungrouped — both types represented in winners
+- [x] T99. Test: multiple decision groups — each group produces its own winner
+- [x] T100. Test: empty input returns empty winners
 
 **Implementation:**
 
-- [ ] T101. Create `scripts/utils/qb/u_rule_selector.gd` — static `select_winners(scored_results) -> Array[Dictionary]`
-- [ ] T102. All selector tests green
+- [x] T101. Create `scripts/utils/qb/u_rule_selector.gd` — static `select_winners(scored_results) -> Array[Dictionary]`
+- [x] T102. All selector tests green
+
+Completion note (2026-02-25): Added selector test suite (7 tests), implemented `U_RuleSelector`, and verified:
+- QB selector suite: 7/7 passing (`test_rule_selector`)
+- Style suite: 12/12 passing (`tests/unit/style`)
 
 ### 1G — State Tracker (TDD)
 
