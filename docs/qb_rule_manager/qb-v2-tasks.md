@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 84% (202 / 240 tasks complete)
+**Progress:** 85% (204 / 240 tasks complete)
 
 ---
 
@@ -392,8 +392,13 @@ Completion note (2026-02-25): Added `tests/integration/qb/test_checkpoint_pipeli
 
 ### 4A — Recreate Camera Rule Resources
 
-- [ ] T203. Create `resources/qb/camera/cfg_camera_shake_rule.tres` — RS_Rule (trigger_mode=event, trigger_event=entity_death) + RS_EffectSetField (C_CameraStateComponent.shake_trauma, add, 0.5, clamp 0-1)
-- [ ] T204. Create `resources/qb/camera/cfg_camera_zone_fov_rule.tres` — RS_Rule (trigger_mode=tick) + RS_ConditionReduxField (camera.in_fov_zone, equals, true) + RS_EffectSetField (C_CameraStateComponent.target_fov, set, 60.0)
+- [x] T203. Create `resources/qb/camera/cfg_camera_shake_rule.tres` — RS_Rule (trigger_mode=event, trigger_event=entity_death) + RS_EffectSetField (C_CameraStateComponent.shake_trauma, add, 0.5, clamp 0-1)
+- [x] T204. Create `resources/qb/camera/cfg_camera_zone_fov_rule.tres` — RS_Rule (trigger_mode=tick) + RS_ConditionReduxField (camera.in_fov_zone, equals, true) + RS_EffectSetField (C_CameraStateComponent.target_fov, set, 60.0)
+
+Completion note (2026-02-25): Recreated camera v2 rule resources `cfg_camera_shake_rule.tres` and `cfg_camera_zone_fov_rule.tres` in `resources/qb/camera/` using `RS_Rule` + typed v2 condition/effect subresources. Verification:
+- Resource validation: `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
+- QB unit suite (`tests/unit/qb`): 121/121 passing
+- Style suite (`tests/unit/style`): 12/12 passing
 
 ### 4B — Migrate S_CameraStateSystem (TDD)
 

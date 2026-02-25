@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 3C complete; Phase 4A next)
+- **Status:** In progress (Phase 4A complete on 2026-02-25; Phase 4B next)
 
 ## Recent Progress
 
@@ -142,6 +142,14 @@
   - Verified QB integration suite `tests/integration/qb` (4/4 passing)
   - Re-verified QB unit suite `tests/unit/qb` (121/121 passing)
   - Re-verified style suite `tests/unit/style` (12/12 passing)
+- Phase 4A completed on 2026-02-25:
+  - Added `resources/qb/camera/cfg_camera_shake_rule.tres`
+  - Added `resources/qb/camera/cfg_camera_zone_fov_rule.tres`
+  - Configured camera shake rule as `RS_Rule` event trigger (`entity_death`) with `RS_EffectSetField` add+clamp on `C_CameraStateComponent.shake_trauma`
+  - Configured camera FOV rule as `RS_Rule` tick trigger with `RS_ConditionReduxField` (`camera.in_fov_zone == true`) and `RS_EffectSetField` set on `C_CameraStateComponent.target_fov` (`60.0`)
+  - Validated with `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
+  - Re-verified QB unit suite `tests/unit/qb` (121/121 passing)
+  - Re-verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
 
@@ -190,8 +198,8 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 4A:** Recreate camera rule resources (`T203-T204`).
-2. Continue sequentially through Phase 4 (`T205-T227`) after the Phase 4A checkpoint.
+1. **Phase 4B:** Migrate `S_CameraStateSystem` with TDD (`T205-T225`).
+2. **Phase 4C:** Add camera shake integration test coverage (`T226-T227`).
 3. Keep style + QB suites green at each sub-phase checkpoint.
 
 ## Key Design Decisions
