@@ -11,6 +11,7 @@ const U_OBJECTIVE_EVENT_LOG := preload("res://scripts/utils/scene_director/u_obj
 const U_OBJECTIVES_ACTIONS := preload("res://scripts/state/actions/u_objectives_actions.gd")
 const U_OBJECTIVES_SELECTORS := preload("res://scripts/state/selectors/u_objectives_selectors.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const RS_OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
 
 const STORE_SERVICE_NAME := StringName("state_store")
@@ -511,10 +512,23 @@ func _on_action_dispatched(action: Dictionary) -> void:
 	var action_type: StringName = action.get("type", StringName(""))
 	if action_type != U_GAMEPLAY_ACTIONS.ACTION_MARK_AREA_COMPLETE \
 	and action_type != U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS \
-	and action_type != U_GAMEPLAY_ACTIONS.ACTION_GAME_COMPLETE:
+	and action_type != U_GAMEPLAY_ACTIONS.ACTION_GAME_COMPLETE \
+	and action_type != U_NAVIGATION_ACTIONS.ACTION_START_GAME:
 		return
 
 	_ensure_objective_runtime_state()
+	if action_type == U_NAVIGATION_ACTIONS.ACTION_START_GAME:
+		if _is_scene_transitioning():
+			return
+		var set_id: StringName = _resolve_set_id_for_new_run()
+		if set_id == StringName(""):
+			push_warning("M_ObjectivesManager: Ignoring navigation/start_game because no objective set is available for reset.")
+			return
+		var reset_ok: bool = reset_for_new_run(set_id)
+		if not reset_ok:
+			push_warning("M_ObjectivesManager: Failed to reset objective set '%s' on navigation/start_game." % str(set_id))
+		return
+
 	if action_type == U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS:
 		_debug_log("observed gameplay/reset_progress payload=%s" % str(action.get("payload", null)))
 		_debug_gameplay_slice("after gameplay/reset_progress dispatch observed")
@@ -622,6 +636,41 @@ func _resolve_active_set_id_from_store() -> StringName:
 		var active_set_id: StringName = _to_string_name(active_set_variant)
 		if active_set_id != StringName(""):
 			return active_set_id
+
+	var candidate_ids: Array[StringName] = []
+	for set_id_variant in _objective_sets_by_id.keys():
+		var candidate_id: StringName = _to_string_name(set_id_variant)
+		if candidate_id != StringName(""):
+			candidate_ids.append(candidate_id)
+	if candidate_ids.is_empty():
+		return StringName("")
+
+	candidate_ids.sort()
+	return candidate_ids[0]
+
+func _is_scene_transitioning() -> bool:
+	if _store == null:
+		return false
+
+	var state: Dictionary = _store.get_state()
+	var scene_variant: Variant = state.get("scene", {})
+	if not (scene_variant is Dictionary):
+		return false
+	var scene_slice: Dictionary = scene_variant as Dictionary
+	return bool(scene_slice.get("is_transitioning", false))
+
+func _resolve_set_id_for_new_run() -> StringName:
+	_index_objective_sets()
+	if _objective_sets_by_id.is_empty():
+		return StringName("")
+
+	var active_set_id: StringName = _resolve_active_set_id_from_store()
+	if active_set_id != StringName("") and _objective_sets_by_id.has(active_set_id):
+		return active_set_id
+
+	var default_set_id := StringName("default_progression")
+	if _objective_sets_by_id.has(default_set_id):
+		return default_set_id
 
 	var candidate_ids: Array[StringName] = []
 	for set_id_variant in _objective_sets_by_id.keys():

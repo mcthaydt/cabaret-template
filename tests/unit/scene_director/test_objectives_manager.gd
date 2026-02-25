@@ -7,6 +7,7 @@ const OBJECTIVE_SET := preload("res://scripts/resources/scene_director/rs_object
 const OBJECTIVES_REDUCER := preload("res://scripts/state/reducers/u_objectives_reducer.gd")
 const OBJECTIVES_ACTIONS := preload("res://scripts/state/actions/u_objectives_actions.gd")
 const GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const OBJECTIVE_EVENT_LOG := preload("res://scripts/utils/scene_director/u_objective_event_log.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
@@ -462,6 +463,40 @@ func test_reset_for_new_run_rearms_root_objective_and_clears_event_log() -> void
 	assert_eq(statuses.get(StringName("bar_complete"), "inactive"), "active")
 	assert_eq(statuses.get(StringName("final_complete"), "inactive"), "inactive")
 	assert_eq(objectives_slice.get("event_log", []), [], "reset_for_new_run should clear event log")
+	assert_eq(objectives_slice.get("active_set_id"), StringName("default_progression"))
+
+func test_navigation_start_game_resets_objectives_for_new_run() -> void:
+	var objective_set: Resource = _objective_set(
+		StringName("default_progression"),
+		[
+			_objective(
+				StringName("bar_complete"),
+				[],
+				true,
+				[ConditionStub.new(0.0)]
+			),
+			_objective(
+				StringName("final_complete"),
+				[StringName("bar_complete")],
+				false,
+				[ConditionStub.new(0.0)]
+			),
+		]
+	)
+	var manager: Variant = await _spawn_manager([objective_set], true)
+
+	manager._complete_objective(StringName("bar_complete"))
+	assert_eq(manager.get_objective_status(StringName("bar_complete")), "completed")
+	assert_eq(manager.get_objective_status(StringName("final_complete")), "active")
+	assert_true(_store.get_state().get("objectives", {}).get("event_log", []).size() > 0)
+
+	_store.dispatch(NAVIGATION_ACTIONS.start_game(StringName("alleyway")))
+
+	var objectives_slice: Dictionary = _store.get_state().get("objectives", {})
+	var statuses: Dictionary = objectives_slice.get("statuses", {})
+	assert_eq(statuses.get(StringName("bar_complete"), "inactive"), "active")
+	assert_eq(statuses.get(StringName("final_complete"), "inactive"), "inactive")
+	assert_eq(objectives_slice.get("event_log", []), [])
 	assert_eq(objectives_slice.get("active_set_id"), StringName("default_progression"))
 
 func _spawn_manager(objective_sets: Array[Resource], inject_store: bool) -> Variant:
