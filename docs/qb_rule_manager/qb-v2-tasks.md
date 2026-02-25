@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 98% (117 / 120 tasks complete)
+**Progress:** 55% (131 / 240 tasks complete)
 
 ---
 
@@ -212,23 +212,27 @@ Completion note (2026-02-25): Added state-tracker test suite (12 tests), impleme
 
 **Tests first:**
 
-- [ ] T118. Create `tests/unit/qb/test_rule_validator.gd`
-- [ ] T119. Test: valid rule with conditions and effects passes
-- [ ] T120. Test: empty rule_id fails validation
-- [ ] T121. Test: event trigger mode without trigger_event fails
-- [ ] T122. Test: RS_ConditionComponentField with empty component_type fails
-- [ ] T123. Test: RS_ConditionReduxField with empty state_path fails
-- [ ] T124. Test: RS_ConditionReduxField without dot separator fails
-- [ ] T125. Test: RS_EffectSetField with empty component_type fails
-- [ ] T126. Test: RS_EffectSetField with empty field_name fails
-- [ ] T127. Test: range_min >= range_max on numeric condition fails (when both non-zero)
-- [ ] T128. Test: grouped unconditional rule without rising_edge emits warning
-- [ ] T129. Test: returns valid_rules, errors_by_index, errors_by_rule_id structure
+- [x] T118. Create `tests/unit/qb/test_rule_validator.gd`
+- [x] T119. Test: valid rule with conditions and effects passes
+- [x] T120. Test: empty rule_id fails validation
+- [x] T121. Test: event trigger mode without trigger_event fails
+- [x] T122. Test: RS_ConditionComponentField with empty component_type fails
+- [x] T123. Test: RS_ConditionReduxField with empty state_path fails
+- [x] T124. Test: RS_ConditionReduxField without dot separator fails
+- [x] T125. Test: RS_EffectSetField with empty component_type fails
+- [x] T126. Test: RS_EffectSetField with empty field_name fails
+- [x] T127. Test: range_min >= range_max on numeric condition fails (when both non-zero)
+- [x] T128. Test: grouped unconditional rule without rising_edge emits warning
+- [x] T129. Test: returns valid_rules, errors_by_index, errors_by_rule_id structure
 
 **Implementation:**
 
-- [ ] T130. Create `scripts/utils/qb/u_rule_validator.gd` — static `validate_rules(rules) -> Dictionary`
-- [ ] T131. All validator tests green
+- [x] T130. Create `scripts/utils/qb/u_rule_validator.gd` — static `validate_rules(rules) -> Dictionary`
+- [x] T131. All validator tests green
+
+Completion note (2026-02-25): Added validator test suite (11 tests), implemented `U_RuleValidator`, and verified:
+- QB validator suite: 11/11 passing (`test_rule_validator`)
+- Style suite: 12/12 passing (`tests/unit/style`)
 
 **Phase 1 commit checkpoint.** All library code tested in isolation. No v1 code touched.
 

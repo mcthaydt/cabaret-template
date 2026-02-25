@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 1A-1G complete; Phase 1H next)
+- **Status:** In progress (Phase 1 complete; Phase 2A next)
 
 ## Recent Progress
 
@@ -69,6 +69,12 @@
   - Added `tests/unit/qb/test_rule_state_tracker.gd` (T103-T115 coverage)
   - Verified QB state tracker tests (12/12 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
+- Phase 1H completed on 2026-02-25:
+  - Added `scripts/utils/qb/u_rule_validator.gd`
+  - Added `tests/unit/qb/test_rule_validator.gd` (T118-T129 coverage)
+  - Verified QB validator tests (11/11 passing)
+  - Verified style suite `tests/unit/style` (12/12 passing)
+  - Completed Phase 1 checkpoint (`T1-T131`) with v2 core library implemented in isolation
 
 ## Required Readings
 
@@ -86,10 +92,10 @@ Before making any changes, read these in order:
 **Core change:** The rule engine is a stateless scoring library (two functions), not an ECS base class.
 
 **Layer 1 — Data (Resources):**
-- `RS_Rule` — conditions `Array[RS_BaseCondition]` + effects `Array[RS_BaseEffect]` + metadata
+- `RS_Rule` — conditions/effects arrays + metadata (currently `Array[Resource]` fallback in headless; validator enforces expected subtypes)
 - 5 condition subclasses: ComponentField, ReduxField, EntityTag, EventPayload, Constant
 - 4 effect subclasses: DispatchAction, PublishEvent, SetField, SetContextValue
-- Typed arrays enforce valid resources in the inspector
+- Typed arrays are planned; headless currently uses `Array[Resource]` fallback with runtime validation
 
 **Layer 2 — Engine (Pure functions):**
 - `U_RuleScorer.score_rules(rules, context) → Array[{rule, score}]`
@@ -117,7 +123,7 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 1H:** Build validator with TDD (T118-T131), starting with `test_rule_validator.gd`.
+1. **Phase 2A:** Delete v1 QB engine files/tests/resources (T132-T144), then grep for stale references before migration work.
 2. Work through phases sequentially — each ends with a commit checkpoint.
 3. Do NOT touch v1 code until Phase 2A (delete step).
 
