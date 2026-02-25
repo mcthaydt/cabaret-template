@@ -6,6 +6,7 @@ class_name RS_SceneDirective
 ##
 ## Notes:
 ## - selection_conditions remain Array[Resource] for headless parser stability.
+## - beats remains Array[Resource] for headless parser stability.
 ## - beats should contain RS_BeatDefinition resources.
 
 @export var directive_id: StringName = StringName("")
@@ -13,4 +14,4 @@ class_name RS_SceneDirective
 @export var target_scene_id: StringName = StringName("")
 @export var selection_conditions: Array[Resource] = []
 @export_range(-1000, 1000, 1) var priority: int = 0
-@export var beats: Array[RS_BeatDefinition] = []
+@export var beats: Array[Resource] = []
