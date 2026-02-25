@@ -154,7 +154,8 @@ Phase 3 completion notes (2026-02-25):
 
 ### 4A: Victory Objective Resources
 
-- [ ] T4.1: Create `resources/scene_director/objectives/cfg_obj_level_complete.tres` (RS_ObjectiveDefinition) - STANDARD type, `auto_activate: true` (objective activates immediately when the set is loaded in _ready(), NOT when an area completes — auto_activate means "skip the inactive state on load"). Conditions: `RS_ConditionReduxField` checking `gameplay.completed_areas`. No completion_effects needed.
+- [x] T4.1: Create `resources/scene_director/objectives/cfg_obj_level_complete.tres` (RS_ObjectiveDefinition) - STANDARD type, `auto_activate: true` (objective activates immediately when the set is loaded in _ready(), NOT when an area completes — auto_activate means "skip the inactive state on load"). Conditions: `RS_ConditionReduxField` checking `gameplay.completed_areas`. No completion_effects needed.
+  - Completion note (2026-02-25): Added `cfg_obj_level_complete.tres` with `objective_id = &"level_complete"`, `auto_activate = true`, and an `RS_ConditionReduxField` condition on `gameplay.completed_areas.0` (`match_mode = "not_equals"`, empty-string guard) so completion becomes true once at least one area exists.
 - [ ] T4.2: Create `resources/scene_director/objectives/cfg_obj_game_complete.tres` (RS_ObjectiveDefinition) - VICTORY type, `dependencies: [&"level_complete"]`, conditions: `RS_ConditionReduxField` checking required final area in completed_areas. `completion_effects: [RS_EffectDispatchAction: game_complete]`. `completion_event_payload: {"target_scene": StringName("victory")}` — M_ObjectivesManager reads this and includes it as the `EVENT_OBJECTIVE_VICTORY_TRIGGERED` event payload; M_SceneManager reads `event.payload.get("target_scene")` for the transition.
 - [ ] T4.3: Create `resources/scene_director/sets/cfg_objset_default.tres` (RS_ObjectiveSet) - default progression set containing level_complete + game_complete objectives
 

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RS_ObjectiveDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="1_e53mj"]
+[ext_resource type="Script" path="res://scripts/resources/scene_director/rs_objective_definition.gd" id="2_8mdsu"]
+
+[sub_resource type="Resource" id="Resource_b7a6j"]
+script = ExtResource("1_e53mj")
+state_path = "gameplay.completed_areas.0"
+match_mode = "not_equals"
+match_value_string = ""
+
+[resource]
+script = ExtResource("2_8mdsu")
+objective_id = &"level_complete"
+description = "Complete at least one gameplay area."
+objective_type = 0
+conditions = Array[Resource]([SubResource("Resource_b7a6j")])
+auto_activate = true
