@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 3B complete; Phase 3C next)
+- **Status:** In progress (Phase 3C complete; Phase 4A next)
 
 ## Recent Progress
 
@@ -135,6 +135,13 @@
   - Removed stale `uid` attributes for renamed game-event system script ext_resources in gameplay scenes to stabilize headless scene parsing after rename
   - Verified QB unit suite `tests/unit/qb` (121/121 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
+- Phase 3C completed on 2026-02-25:
+  - Added `tests/integration/qb/test_checkpoint_pipeline.gd` (T199-T200)
+  - Added `tests/integration/qb/test_victory_pipeline.gd` (T201-T202)
+  - Verified checkpoint and victory flows end-to-end: zone enter → `S_GameEventSystem` forwarding → handler execution → Redux/event outcomes
+  - Verified QB integration suite `tests/integration/qb` (4/4 passing)
+  - Re-verified QB unit suite `tests/unit/qb` (121/121 passing)
+  - Re-verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
 
@@ -183,8 +190,8 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 3C:** Add integration coverage for checkpoint/victory pipelines (`T199-T202`).
-2. Continue sequentially into Phase 4 (`T203-T227`) after the Phase 3 commit checkpoint is complete.
+1. **Phase 4A:** Recreate camera rule resources (`T203-T204`).
+2. Continue sequentially through Phase 4 (`T205-T227`) after the Phase 4A checkpoint.
 3. Keep style + QB suites green at each sub-phase checkpoint.
 
 ## Key Design Decisions

@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 83% (198 / 240 tasks complete)
+**Progress:** 84% (202 / 240 tasks complete)
 
 ---
 
@@ -374,10 +374,15 @@ Completion note (2026-02-25): Added `test_game_event_system.gd` (7 tests, `T181-
 
 **Integration tests:**
 
-- [ ] T199. Create `tests/integration/qb/test_checkpoint_pipeline.gd`
-- [ ] T200. Test: checkpoint zone enter → game event system → handler system → state update + typed event published
-- [ ] T201. Create `tests/integration/qb/test_victory_pipeline.gd`
-- [ ] T202. Test: victory zone enter → game event system → handler system → state update + victory executed event
+- [x] T199. Create `tests/integration/qb/test_checkpoint_pipeline.gd`
+- [x] T200. Test: checkpoint zone enter → game event system → handler system → state update + typed event published
+- [x] T201. Create `tests/integration/qb/test_victory_pipeline.gd`
+- [x] T202. Test: victory zone enter → game event system → handler system → state update + victory executed event
+
+Completion note (2026-02-25): Added `tests/integration/qb/test_checkpoint_pipeline.gd` and `tests/integration/qb/test_victory_pipeline.gd` to verify end-to-end game-event routing through `S_GameEventSystem` into handler systems and Redux state updates, including typed/event follow-up publication (`checkpoint_activated`, `victory_executed`). Verification:
+- QB integration suite (`tests/integration/qb`): 4/4 passing
+- QB unit suite (`tests/unit/qb`): 121/121 passing
+- Style suite (`tests/unit/style`): 12/12 passing
 
 **Phase 3 commit checkpoint.** Game event routing works. Handler systems unchanged.
 

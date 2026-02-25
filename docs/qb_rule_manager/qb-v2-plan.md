@@ -4,7 +4,7 @@
 
 - **Feature:** Replace v1 QB rule engine (base class inheritance model) with v2 (stateless scoring library + resource polymorphism + domain composition)
 - **Branch:** `scene-director` (continues from v1 completion)
-- **Current status:** In progress (Phase 3B complete on 2026-02-25; Phase 3C next)
+- **Current status:** In progress (Phase 3C complete on 2026-02-25; Phase 4A next)
 - **Prerequisite:** v1 is 100% complete (all phases + R1-R7 refactors)
 
 ## Guiding Principles
@@ -76,6 +76,7 @@ Phase 2D completion note (2026-02-25): Added `tests/integration/qb/test_characte
 
 Phase 3A completion note (2026-02-25): Recreated `cfg_checkpoint_rule.tres` and `cfg_victory_rule.tres` in `resources/qb/game/` using `RS_Rule` + `RS_EffectPublishEvent` event-forwarding configs. Verification: `U_RuleValidator.validate_rules(...)` (2/2 valid), `tests/unit/qb` (114/114 passing), `tests/unit/style` (12/12 passing).
 Phase 3B completion note (2026-02-25): Migrated `s_game_rule_manager.gd` → `s_game_event_system.gd` and added `test_game_event_system.gd` (7 tests) covering event forwarding, entity_id injection, designer-rule subscriptions, subscription cleanup, and global tick evaluation. Updated gameplay/integration scene references to the new script/class and removed stale script `uid` fields from affected `.tscn` `ext_resource` lines to keep headless parsing stable after rename. Verification: `tests/unit/qb` (121/121 passing), `tests/unit/style` (12/12 passing).
+Phase 3C completion note (2026-02-25): Added `test_checkpoint_pipeline.gd` and `test_victory_pipeline.gd` integration coverage for full zone-entry → `S_GameEventSystem` forwarding → handler execution → Redux/event outcomes. Verification: `tests/integration/qb` (4/4 passing), `tests/unit/qb` (121/121 passing), `tests/unit/style` (12/12 passing).
 
 **Deliverable:** Game event routing works. Handler systems unchanged. Global tick context available for future use.
 
