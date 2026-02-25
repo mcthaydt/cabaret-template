@@ -126,6 +126,60 @@ func test_scene_transition_completed_triggers_autosave_request() -> void:
 	# Verify autosave was requested
 	assert_gt(_mock_save_manager.autosave_request_count, 0, "Scene transition completed should trigger autosave request")
 
+func test_pending_autosave_flushes_before_pause_menu() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Start in gameplay with no overlay so checkpoint can queue autosave.
+	_mock_store.set_slice(StringName("navigation"), {"shell": "gameplay", "overlay_stack": []})
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	# Queue autosave from gameplay milestone.
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {"checkpoint_id": "test_checkpoint"})
+
+	# Pause action should flush the queued autosave immediately, before pause UI appears.
+	_mock_store.dispatch({"type": StringName("navigation/open_pause")})
+	assert_eq(_mock_save_manager.autosave_request_count, 1,
+		"Pending autosave should flush immediately when opening pause menu")
+
+	# Deferred queue should not write again.
+	await get_tree().process_frame
+	assert_eq(_mock_save_manager.autosave_request_count, 1,
+		"Flushed autosave should not run twice after deferred processing")
+
+func test_pending_autosave_flushes_before_non_gameplay_transition() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Start in gameplay so checkpoint queues autosave.
+	_mock_store.set_slice(StringName("navigation"), {"shell": "gameplay", "overlay_stack": []})
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {"checkpoint_id": "test_checkpoint"})
+
+	# Transition start to endgame should flush queued autosave before menu/endgame appears.
+	_mock_store.dispatch({
+		"type": StringName("scene/transition_started"),
+		"payload": {
+			"target_scene_id": StringName("game_over"),
+			"transition_type": "fade"
+		}
+	})
+	assert_eq(_mock_save_manager.autosave_request_count, 1,
+		"Pending autosave should flush before non-gameplay transition")
+
+	await get_tree().process_frame
+	assert_eq(_mock_save_manager.autosave_request_count, 1,
+		"Flushed autosave should not run twice after deferred processing")
+
 func test_endgame_transition_completed_does_not_trigger_autosave() -> void:
 	# Endgame transitions (e.g., game_over) should NOT overwrite autosaves,
 	# otherwise Main Menu "Continue" can load back into game_over.
@@ -187,6 +241,27 @@ func test_autosave_blocked_when_scene_transitioning() -> void:
 
 	# Verify autosave was NOT requested
 	assert_eq(_mock_save_manager.autosave_request_count, 0, "Autosave should be blocked when scene is transitioning")
+
+func test_autosave_blocked_when_pause_overlay_open() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Pause overlay active in gameplay shell.
+	_mock_store.set_slice(StringName("navigation"), {
+		"shell": "gameplay",
+		"overlay_stack": [StringName("pause_menu")]
+	})
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {"checkpoint_id": "test_checkpoint"})
+	await get_tree().process_frame
+
+	assert_eq(_mock_save_manager.autosave_request_count, 0,
+		"Autosave should not start while pause/menu overlay is visible")
 
 func test_coalescing_multiple_requests_into_one_write() -> void:
 	_scheduler = M_AUTOSAVE_SCHEDULER.new()

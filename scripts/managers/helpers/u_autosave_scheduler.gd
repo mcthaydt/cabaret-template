@@ -35,6 +35,11 @@ const COOLDOWN_HIGH := 2.0    # 2 seconds
 
 const EVENT_CHECKPOINT_ACTIVATED := StringName("checkpoint_activated")
 const ACTION_MARK_AREA_COMPLETE := StringName("gameplay/mark_area_complete")
+const ACTION_OPEN_PAUSE := StringName("navigation/open_pause")
+const ACTION_RETURN_TO_MAIN_MENU := StringName("navigation/return_to_main_menu")
+const ACTION_SKIP_TO_CREDITS := StringName("navigation/skip_to_credits")
+const ACTION_SKIP_TO_MENU := StringName("navigation/skip_to_menu")
+const ACTION_TRANSITION_STARTED := StringName("scene/transition_started")
 const ACTION_TRANSITION_COMPLETED := StringName("scene/transition_completed")
 
 var _state_store = null
@@ -76,10 +81,25 @@ func _on_checkpoint_activated(__event: Dictionary) -> void:
 func _on_action_dispatched(action: Dictionary) -> void:
 	var action_type: StringName = action.get("type", StringName(""))
 
+	if action_type == ACTION_OPEN_PAUSE \
+			or action_type == ACTION_RETURN_TO_MAIN_MENU \
+			or action_type == ACTION_SKIP_TO_CREDITS \
+			or action_type == ACTION_SKIP_TO_MENU:
+		# If a gameplay autosave is already queued, flush it now so disk IO happens
+		# before pause/endgame/menu UI becomes visible.
+		_flush_pending_autosave_before_menu()
+
 	if action_type == ACTION_MARK_AREA_COMPLETE:
 		# DON'T autosave on mark_area_complete - wait for transition_completed instead
 		# This ensures we save AFTER the scene transition, not before
 		pass
+	elif action_type == ACTION_TRANSITION_STARTED:
+		var payload_started: Dictionary = action.get("payload", {})
+		var target_scene_id: StringName = payload_started.get("target_scene_id", StringName(""))
+		# Non-gameplay transitions lead into menu/endgame/UI states; flush any queued
+		# gameplay autosave now so it doesn't fire after the menu appears.
+		if not _is_gameplay_scene(target_scene_id):
+			_flush_pending_autosave_before_menu()
 	elif action_type == ACTION_TRANSITION_COMPLETED:
 		var payload: Dictionary = action.get("payload", {})
 		var scene_id: StringName = payload.get("scene_id", StringName(""))
@@ -112,29 +132,30 @@ func _request_autosave_if_allowed(priority: int) -> void:
 	_is_dirty = true
 	_pending_priority = maxi(_pending_priority, priority)
 
-	# Schedule autosave on next frame (coalescing happens here)
-	if not _is_dirty:
-		return
-
-	# Perform autosave immediately (coalescing within same frame)
+	# Perform autosave on the next frame (coalescing within same frame).
 	call_deferred("_perform_autosave")
 
 func _is_autosave_allowed() -> bool:
 	return _get_autosave_block_reason(false).is_empty()
 
-func _get_autosave_block_reason(skip_shell_check: bool) -> String:
+func _get_autosave_block_reason(skip_shell_check: bool, skip_pause_check: bool = false) -> String:
 	if _state_store == null or _save_manager == null:
 		if _state_store == null:
 			return "state_store unavailable"
 		return "save_manager unavailable"
 
 	var state: Dictionary = _state_store.get_state()
+	var navigation: Dictionary = state.get("navigation", {})
 
 	# Only autosave during gameplay (not in menus)
 	if not skip_shell_check:
-		var navigation: Dictionary = state.get("navigation", {})
 		if navigation.get("shell", "") != "gameplay":
 			return "navigation.shell=%s" % str(navigation.get("shell", ""))
+	# Never autosave while pause/menu overlays are active.
+	if not skip_pause_check:
+		var overlay_stack_variant: Variant = navigation.get("overlay_stack", [])
+		if overlay_stack_variant is Array and not (overlay_stack_variant as Array).is_empty():
+			return "navigation.overlay_stack not empty"
 
 	# Check death_in_progress flag
 	var gameplay: Dictionary = state.get("gameplay", {})
@@ -193,6 +214,19 @@ func _request_autosave_for_gameplay_transition(priority: int) -> void:
 	_is_dirty = true
 	_pending_priority = maxi(_pending_priority, priority)
 	call_deferred("_perform_autosave")
+
+func _flush_pending_autosave_before_menu() -> void:
+	if not _is_dirty:
+		return
+
+	# Action-driven menu/transition requests can update navigation shell before this
+	# callback runs. Skip shell/pause checks so a valid queued gameplay autosave can
+	# still flush before menu/endgame UI appears.
+	var block_reason: String = _get_autosave_block_reason(true, true)
+	if not block_reason.is_empty():
+		return
+
+	_perform_autosave()
 
 func _perform_autosave() -> void:
 	if not _is_dirty:
