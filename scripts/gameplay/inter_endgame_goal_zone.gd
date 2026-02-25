@@ -2,6 +2,7 @@ extends "res://scripts/gameplay/inter_victory_zone.gd"
 class_name Inter_EndgameGoalZone
 
 const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd")
+const DEBUG_VICTORY_TRACE := false
 
 ## Exterior final goal controller built on the victory interactable base.
 ##
@@ -13,6 +14,11 @@ var _store: I_StateStore = null
 var _has_applied_state: bool = false
 var _is_unlocked: bool = false
 var _cached_endgame_config: RS_EndgameGoalInteractionConfig = null
+
+func _debug_log(message: String) -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	print("[VictoryDebug][Inter_EndgameGoalZone] %s" % message)
 
 func _ready() -> void:
 	super._ready()
@@ -42,6 +48,14 @@ func _refresh_lock_state() -> void:
 		if completed_raw is Array:
 			var completed: Array = completed_raw
 			unlocked = completed.has(_get_effective_required_area())
+			_debug_log(
+				"refresh_lock_state required_area=%s completed_areas=%s unlocked=%s"
+				% [_get_effective_required_area(), str(completed), str(unlocked)]
+			)
+		else:
+			_debug_log("refresh_lock_state skipped: gameplay.completed_areas invalid type=%s" % str(completed_raw))
+	else:
+		_debug_log("refresh_lock_state skipped: no store")
 
 	_apply_lock_state(unlocked)
 
@@ -54,6 +68,7 @@ func _apply_lock_state(unlocked: bool) -> void:
 
 	set_enabled(unlocked)
 	visible = unlocked
+	_debug_log("apply_lock_state unlocked=%s visible=%s enabled=%s" % [str(unlocked), str(visible), str(is_enabled())])
 
 func _get_effective_required_area() -> String:
 	var typed := _resolve_endgame_config()

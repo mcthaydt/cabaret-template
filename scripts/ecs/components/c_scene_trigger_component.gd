@@ -19,6 +19,7 @@ class_name C_SceneTriggerComponent
 ## 4. S_SceneTriggerSystem handles detection and transition logic
 
 const PLAYER_TAG_COMPONENT_TYPE := StringName("C_PlayerTagComponent")
+const DEBUG_SCENE_TRIGGER_TRACE := false
 
 ## Trigger mode enum
 enum TriggerMode {
@@ -28,6 +29,11 @@ enum TriggerMode {
 
 ## Component type constant
 const COMPONENT_TYPE := StringName("C_SceneTriggerComponent")
+
+func _debug_log(message: String) -> void:
+	if not DEBUG_SCENE_TRIGGER_TRACE:
+		return
+	print("[VictoryDebug][C_SceneTriggerComponent] %s" % message)
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
@@ -287,6 +293,7 @@ func _trigger_transition() -> void:
 	var store = U_StateUtils.get_store(self)
 	if store == null:
 		push_error("C_SceneTriggerComponent: No M_StateStore found")
+		_debug_log("transition dropped: missing state store")
 		return
 
 	# Mark pending to avoid duplicate requests within the same cooldown window
@@ -300,15 +307,28 @@ func _trigger_transition() -> void:
 	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 	if scene_manager == null:
 		push_error("C_SceneTriggerComponent: No M_SceneManager available")
+		_debug_log("transition dropped: missing scene manager")
 		return
 
 	# Trigger scene transition
 	# Get transition type from door pairing
+	var current_scene_id: StringName = _get_current_scene_id(store)
 	var door_data: Dictionary = U_SceneRegistry.get_door_exit(
-		_get_current_scene_id(store),
+		current_scene_id,
 		door_id
 	)
 	var transition_type: String = door_data.get("transition_type", "fade")
+	_debug_log(
+		"trigger_transition current_scene=%s door_id=%s target_scene=%s target_spawn=%s transition_type=%s door_pairing=%s"
+		% [
+			str(current_scene_id),
+			str(door_id),
+			str(target_scene_id),
+			str(target_spawn_point),
+			transition_type,
+			str(door_data),
+		]
+	)
 	scene_manager.transition_to_scene(target_scene_id, transition_type, scene_manager.Priority.HIGH)
 
 	# Start cooldown after dispatching to prevent immediate re-trigger
@@ -329,6 +349,16 @@ func trigger_interact() -> void:
 	# Explicit interact path should not depend on internal arm state or the
 	# component's own _player_in_zone bookkeeping, since controllers already
 	# validated player presence and arming on their side.
+	_debug_log(
+		"trigger_interact requested door_id=%s target_scene=%s target_spawn=%s pending=%s cooldown_remaining=%s"
+		% [
+			str(door_id),
+			str(target_scene_id),
+			str(target_spawn_point),
+			str(_pending_transition),
+			str(_cooldown_remaining),
+		]
+	)
 	if _can_trigger_interact():
 		# Suppress same-frame ESC pause handling to avoid pause overlay during
 		# door-triggered transitions when interact is used.
@@ -339,13 +369,17 @@ func trigger_interact() -> void:
 			mgr.suppress_pause_for_current_frame()
 
 		_trigger_transition()
+	else:
+		_debug_log("trigger_interact blocked by _can_trigger_interact guard")
 
 ## Interact-specific trigger guard (bypasses internal arm flag and zone flag)
 func _can_trigger_interact() -> bool:
 	if _pending_transition:
+		_debug_log("can_trigger_interact=false reason=pending_transition")
 		return false
 
 	if _cooldown_remaining > 0.0:
+		_debug_log("can_trigger_interact=false reason=cooldown_remaining value=%s" % str(_cooldown_remaining))
 		return false
 
 	# Guard against re-entry while a scene transition is underway
@@ -353,14 +387,17 @@ func _can_trigger_interact() -> bool:
 	if store != null:
 		var scene_state: Dictionary = store.get_slice(StringName("scene"))
 		if scene_state.get("is_transitioning", false):
+			_debug_log("can_trigger_interact=false reason=scene_slice_is_transitioning scene_state=%s" % str(scene_state))
 			return false
 
 	# Also check SceneManager if available via ServiceLocator (Phase 10B-7: T141c)
 	# Use try_get_service to avoid errors in test environments
 	var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
 	if mgr != null and mgr.is_transitioning():
+		_debug_log("can_trigger_interact=false reason=scene_manager_is_transitioning")
 		return false
 
+	_debug_log("can_trigger_interact=true")
 	return true
 
 ## Hint to Scene Manager to preload target scene in background (Phase 8)

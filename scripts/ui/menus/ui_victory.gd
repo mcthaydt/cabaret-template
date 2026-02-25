@@ -11,6 +11,7 @@ class_name UI_Victory
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const DEBUG_VICTORY_TRACE := true
 
 @onready var _title_label: Label = $MarginContainer/VBoxContainer/TitleLabel
 @onready var _completed_label: Label = $MarginContainer/VBoxContainer/CompletedLabel
@@ -21,6 +22,11 @@ const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_locali
 const HUB_SCENE_ID := StringName("alleyway")
 
 var _store_unsubscribe: Callable = Callable()
+
+func _debug_log(message: String) -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	print("[VictoryDebug][UI_Victory] %s" % message)
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -123,8 +129,31 @@ func _on_back_pressed() -> void:
 func _reset_game_progress() -> void:
 	var store := get_store()
 	if store == null:
+		_debug_log("reset_progress skipped: no store")
 		return
+	var before_state: Dictionary = store.get_state()
+	var before_gameplay: Dictionary = before_state.get("gameplay", {})
+	var before_objectives: Dictionary = before_state.get("objectives", {})
+	_debug_log(
+		"dispatching gameplay/reset_progress before gameplay.completed_areas=%s gameplay.game_completed=%s objectives.statuses=%s"
+		% [
+			str(before_gameplay.get("completed_areas", [])),
+			str(before_gameplay.get("game_completed", false)),
+			str(before_objectives.get("statuses", {})),
+		]
+	)
 	store.dispatch(U_GameplayActions.reset_progress())
+	var after_state: Dictionary = store.get_state()
+	var after_gameplay: Dictionary = after_state.get("gameplay", {})
+	var after_objectives: Dictionary = after_state.get("objectives", {})
+	_debug_log(
+		"after gameplay/reset_progress gameplay.completed_areas=%s gameplay.game_completed=%s objectives.statuses=%s"
+		% [
+			str(after_gameplay.get("completed_areas", [])),
+			str(after_gameplay.get("game_completed", false)),
+			str(after_objectives.get("statuses", {})),
+		]
+	)
 	_update_display(store.get_state())
 
 func _dispatch_navigation(action: Dictionary) -> void:

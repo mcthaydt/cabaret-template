@@ -76,6 +76,11 @@ var _active_prompt_shown: bool = false
 var _active_prompt_controller_id: int = 0
 var _interaction_hint_icon_sprite: Sprite3D = null
 
+func _debug_log_triggered(message: String) -> void:
+	if not DEBUG_INTERACTABLE_TRACE:
+		return
+	print("[VictoryDebug][TriggeredInteractableController:%s] %s" % [name, message])
+
 func _physics_process(delta: float) -> void:
 	super._physics_process(delta)
 	_refresh_interaction_hint_visibility()
@@ -85,20 +90,26 @@ func _physics_process(delta: float) -> void:
 		return
 	if not is_player_in_zone():
 		return
-	# Block interact input during toast display + cooldown
-	if U_InteractBlocker.is_blocked():
-		return
 	var action_name := String(interact_action)
 	if not InputMap.has_action(action_name):
 		return
 	if not Input.is_action_just_pressed(action_name):
 		return
+	_debug_log_triggered("interact_input_pressed player_in_zone=%s enabled=%s" % [str(is_player_in_zone()), str(is_enabled())])
+	# Block interact input during toast display + cooldown
+	if U_InteractBlocker.is_blocked():
+		_debug_log_triggered("interact_input_blocked reason=U_InteractBlocker active")
+		return
 	var player := get_primary_player()
 	if player == null:
+		_debug_log_triggered("interact_input_blocked reason=no_primary_player")
 		return
-	activate(player)
+	var activated_ok: bool = activate(player)
+	if not activated_ok:
+		_debug_log_triggered("interact_input_blocked reason=activate_returned_false")
 
 func _on_player_entered(player: Node3D) -> void:
+	_debug_log_triggered("player_entered trigger_mode=%s player=%s" % [str(_trigger_mode), str(player.name) if player != null else "<null>"])
 	if _trigger_mode == TriggerMode.AUTO:
 		activate(player)
 	else:
@@ -107,6 +118,7 @@ func _on_player_entered(player: Node3D) -> void:
 	super._on_player_entered(player)
 
 func _on_player_exited(player: Node3D) -> void:
+	_debug_log_triggered("player_exited player=%s" % (str(player.name) if player != null else "<null>"))
 	_hide_interact_prompt()
 	_refresh_interaction_hint_visibility()
 	super._on_player_exited(player)

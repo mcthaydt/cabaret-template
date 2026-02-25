@@ -49,7 +49,7 @@ const H_GAMEPLAY_SCENE_HANDLER := preload("res://scripts/scene_management/handle
 const H_MENU_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_menu_scene_handler.gd")
 const H_UI_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_ui_scene_handler.gd")
 const H_ENDGAME_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_endgame_scene_handler.gd")
-const DEBUG_VICTORY_TRACE := false
+const DEBUG_VICTORY_TRACE := true
 
 ## Priority enum (re-exported from U_SceneTransitionQueue for external callers)
 enum Priority {
@@ -332,7 +332,17 @@ func _on_entity_death(_event: Dictionary) -> void:
 func _on_objective_victory(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
 	var target_scene: StringName = payload.get("target_scene", StringName(""))
-	_debug_log("received objective_victory_triggered payload=%s resolved_target_scene=%s" % [str(payload), str(target_scene)])
+	var current_scene: StringName = get_current_scene()
+	_debug_log(
+		"received objective_victory_triggered payload=%s resolved_target_scene=%s current_scene=%s queue_size=%s is_processing=%s"
+		% [
+			str(payload),
+			str(target_scene),
+			str(current_scene),
+			str(_transition_queue_helper.size()),
+			str(_transition_queue_helper.is_processing()),
+		]
+	)
 	if target_scene == StringName(""):
 		push_warning("M_SceneManager: objective_victory_triggered missing payload.target_scene")
 		return

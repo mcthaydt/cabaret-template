@@ -102,7 +102,7 @@ func test_victory_executed_transitions_scene_via_objectives_manager() -> void:
 	if unsubscribe.is_valid():
 		unsubscribe.call()
 
-func test_default_objective_set_requires_game_complete_before_victory_transition() -> void:
+func test_default_objective_set_requires_final_trigger_before_victory_transition() -> void:
 	assert_not_null(CFG_OBJSET_DEFAULT)
 
 	if _objectives_manager != null and is_instance_valid(_objectives_manager):
@@ -119,37 +119,50 @@ func test_default_objective_set_requires_game_complete_before_victory_transition
 	await get_tree().process_frame
 	await wait_physics_frames(1)
 
-	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("alleyway"))
-	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("bar"))
-	await wait_physics_frames(1)
-
-	assert_eq(_objectives_manager.get_objective_status(StringName("level_complete")), "completed")
-	assert_eq(
-		_objectives_manager.get_objective_status(StringName("game_complete")),
-		"active",
-		"Default objective set should not complete game objective from area completion alone"
-	)
-
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
 		"source": "test",
-	})
-	await wait_physics_frames(1)
-
-	assert_eq(
-		_objectives_manager.get_objective_status(StringName("game_complete")),
-		"active",
-		"Victory event alone should not complete without gameplay.game_completed"
-	)
-	assert_eq(_scene_manager.get_current_scene(), StringName(""))
-
-	_state_store.dispatch(U_GAMEPLAY_ACTIONS.game_complete())
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
-		"source": "test",
+		"trigger_node": {
+			"objective_id": "goal_bar",
+		},
 	})
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)
 
-	assert_eq(_objectives_manager.get_objective_status(StringName("game_complete")), "completed")
+	assert_eq(_objectives_manager.get_objective_status(StringName("bar_complete")), "completed")
+	assert_eq(
+		_objectives_manager.get_objective_status(StringName("final_complete")),
+		"active",
+		"Default objective set should keep final objective active after bar trigger"
+	)
+	assert_eq(
+		_scene_manager.get_current_scene(),
+		StringName("alleyway"),
+		"Default objective set should route back to alleyway after bar objective completion"
+	)
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
+		"source": "test",
+	})
+	await wait_physics_frames(1)
+
+	assert_eq(
+		_objectives_manager.get_objective_status(StringName("final_complete")),
+		"active",
+		"Victory event without final trigger payload should not complete final objective"
+	)
+	assert_eq(_scene_manager.get_current_scene(), StringName("alleyway"))
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
+		"source": "test",
+		"trigger_node": {
+			"objective_id": "final_goal",
+		},
+	})
+	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)
+
+	assert_eq(_objectives_manager.get_objective_status(StringName("final_complete")), "completed")
 	assert_eq(_scene_manager.get_current_scene(), StringName("victory"))
+	var gameplay_state: Dictionary = _state_store.get_slice(StringName("gameplay"))
+	assert_true(bool(gameplay_state.get("game_completed", false)))
 
 func _build_test_objective_set() -> Resource:
 	var level_condition := CONDITION_REDUX_FIELD.new()

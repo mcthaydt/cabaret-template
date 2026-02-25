@@ -6,7 +6,7 @@ const EVENT_VICTORY_ZONE_ENTERED := StringName("victory_zone_entered")
 
 const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
-const DEBUG_VICTORY_TRACE := false
+const DEBUG_VICTORY_TRACE := true
 
 enum VictoryType {
 	LEVEL_COMPLETE = 0,
@@ -45,6 +45,17 @@ func _victory_type_to_string(value: int) -> String:
 func _ready() -> void:
 	super._ready()
 	_resolve_area()
+	_debug_log(
+		"ready objective_id=%s area_id=%s victory_type=%s trigger_once=%s is_triggered=%s instance_id=%s"
+		% [
+			str(objective_id),
+			area_id,
+			_victory_type_to_string(int(victory_type)),
+			str(trigger_once),
+			str(is_triggered),
+			str(get_instance_id()),
+		]
+	)
 
 func _exit_tree() -> void:
 	if _area != null and is_instance_valid(_area):

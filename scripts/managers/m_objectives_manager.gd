@@ -18,7 +18,8 @@ const STATUS_INACTIVE := "inactive"
 const STATUS_ACTIVE := "active"
 const STATUS_COMPLETED := "completed"
 const STATUS_FAILED := "failed"
-const DEBUG_VICTORY_TRACE := false
+const DEBUG_VICTORY_TRACE := true
+const DEBUG_SIGNATURE := "objmgr-2026-02-25T2"
 
 @export var state_store: I_StateStore = null
 @export var objective_sets: Array[Resource] = []
@@ -34,6 +35,28 @@ func _debug_log(message: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
 		return
 	print("[VictoryDebug][M_ObjectivesManager] %s" % message)
+
+func _debug_gameplay_slice(label: String) -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	if _store == null:
+		_debug_log("%s gameplay=<no_store>" % label)
+		return
+	var state: Dictionary = _store.get_state()
+	var gameplay_variant: Variant = state.get("gameplay", {})
+	if gameplay_variant is Dictionary:
+		var gameplay: Dictionary = gameplay_variant as Dictionary
+		_debug_log(
+			"%s gameplay.completed_areas=%s gameplay.game_completed=%s gameplay.last_victory_objective=%s"
+			% [
+				label,
+				str(gameplay.get("completed_areas", [])),
+				str(gameplay.get("game_completed", false)),
+				str(gameplay.get("last_victory_objective", StringName(""))),
+			]
+		)
+		return
+	_debug_log("%s gameplay=<missing_or_invalid> type=%s" % [label, str(gameplay_variant)])
 
 func _debug_objectives_slice(label: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
@@ -55,6 +78,8 @@ func _debug_objectives_slice(label: String) -> void:
 	_debug_log("%s objectives_slice=<missing_or_invalid> type=%s" % [label, str(objectives_variant)])
 
 func _ready() -> void:
+	_emit_startup_signature()
+	_debug_log_config_snapshot()
 	_resolve_store()
 	_index_objective_sets()
 	_subscribe_events()
@@ -66,6 +91,87 @@ func _ready() -> void:
 		if set_id == StringName(""):
 			continue
 		load_objective_set(set_id)
+
+func _emit_startup_signature() -> void:
+	var objective_set_ids: Array[String] = []
+	for objective_set_resource in objective_sets:
+		var objective_set := objective_set_resource as Resource
+		if objective_set == null:
+			objective_set_ids.append("<null>")
+			continue
+		var set_id: StringName = _to_string_name(_resource_get(objective_set, "set_id", StringName("")))
+		objective_set_ids.append(str(set_id))
+	print(
+		"[VictoryDebugSignature][M_ObjectivesManager] build=%s script=%s objective_sets=%s"
+		% [DEBUG_SIGNATURE, get_script().resource_path, str(objective_set_ids)]
+	)
+
+func _debug_log_config_snapshot() -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	for objective_set_resource in objective_sets:
+		var objective_set := objective_set_resource as Resource
+		if objective_set == null:
+			_debug_log("configured objective_set=<null>")
+			continue
+		var set_id: StringName = _to_string_name(_resource_get(objective_set, "set_id", StringName("")))
+		var objective_resources: Array[Resource] = _to_resource_array(_resource_get(objective_set, "objectives", []))
+		_debug_log(
+			"configured objective_set set_id=%s path=%s instance_id=%s objectives_count=%s"
+			% [
+				str(set_id),
+				objective_set.resource_path,
+				str(objective_set.get_instance_id()),
+				str(objective_resources.size()),
+			]
+		)
+		for objective_resource in objective_resources:
+			var objective := objective_resource as Resource
+			if objective == null:
+				_debug_log("configured objective=<null>")
+				continue
+			var objective_id: StringName = _to_string_name(_resource_get(objective, "objective_id", StringName("")))
+			var objective_type: int = int(
+				_resource_get(objective, "objective_type", RS_OBJECTIVE_DEFINITION.ObjectiveType.STANDARD)
+			)
+			var conditions: Array[Resource] = _to_resource_array(_resource_get(objective, "conditions", []))
+			var condition_descriptions: Array[String] = []
+			for condition_resource in conditions:
+				condition_descriptions.append(_describe_condition(condition_resource))
+			_debug_log(
+				"configured objective objective_id=%s type=%s path=%s instance_id=%s conditions=%s"
+				% [
+					str(objective_id),
+					str(objective_type),
+					objective.resource_path,
+					str(objective.get_instance_id()),
+					str(condition_descriptions),
+				]
+			)
+
+func _describe_condition(condition_resource: Resource) -> String:
+	if condition_resource == null:
+		return "<null>"
+	var script_path: String = _resource_script_path(condition_resource)
+	var field_path: String = String(_resource_get(condition_resource, "field_path", ""))
+	var state_path: String = String(_resource_get(condition_resource, "state_path", ""))
+	var match_mode: String = String(_resource_get(condition_resource, "match_mode", ""))
+	var match_value_string: String = String(_resource_get(condition_resource, "match_value_string", ""))
+	return "%s field_path=%s state_path=%s match_mode=%s match_value=%s" % [
+		script_path,
+		field_path,
+		state_path,
+		match_mode,
+		match_value_string,
+	]
+
+func _resource_script_path(resource: Resource) -> String:
+	if resource == null:
+		return ""
+	var script := resource.get_script() as Script
+	if script == null:
+		return "<no_script>"
+	return script.resource_path
 
 func _exit_tree() -> void:
 	_disconnect_store_action_signal()
@@ -111,6 +217,14 @@ func load_objective_set(set_id: StringName) -> bool:
 		_debug_log("objective graph validation failed set_id=%s errors=%s" % [str(set_id), str(errors)])
 		return false
 
+	if set_id == StringName("default_progression"):
+		var has_new_flow_ids: bool = known_ids.has(StringName("bar_complete")) and known_ids.has(StringName("final_complete"))
+		if not has_new_flow_ids:
+			_debug_log(
+				"WARNING stale default_progression objective IDs detected known_ids=%s (expected bar_complete + final_complete)"
+				% str(known_ids)
+			)
+
 	_objectives_by_id = objective_map
 	_objective_graph = graph
 
@@ -143,18 +257,30 @@ func load_objective_set(set_id: StringName) -> bool:
 	return true
 
 func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool:
+	var condition_index: int = 0
 	for condition_resource in conditions:
 		var condition: Variant = condition_resource
 		if condition == null:
+			_debug_log("condition check failed index=%s reason=null_condition" % str(condition_index))
 			return false
 		if not condition.has_method("evaluate"):
 			push_warning("M_ObjectivesManager: Condition missing evaluate(context): %s" % str(condition))
+			_debug_log(
+				"condition check failed index=%s reason=missing_evaluate condition=%s"
+				% [str(condition_index), str(condition)]
+			)
 			return false
 
 		var score_variant: Variant = condition.evaluate(context)
 		var score: float = _to_float(score_variant, 0.0)
+		_debug_log(
+			"condition evaluated index=%s condition=%s score=%s"
+			% [str(condition_index), str(condition), str(score)]
+		)
 		if score <= 0.0:
+			_debug_log("condition check failed index=%s reason=score<=0" % str(condition_index))
 			return false
+		condition_index += 1
 
 	return true
 
@@ -185,6 +311,7 @@ func _complete_objective_with_context(objective_id: StringName, context: Diction
 		return
 
 	_debug_log("completing objective objective_id=%s previous_status=%s" % [str(objective_id), status])
+	_debug_gameplay_slice("before objectives/complete %s" % str(objective_id))
 
 	if _store != null:
 		_store.dispatch(U_OBJECTIVES_ACTIONS.complete(objective_id))
@@ -211,6 +338,7 @@ func _complete_objective_with_context(objective_id: StringName, context: Diction
 		var payload_variant: Variant = _resource_get(objective, "completion_event_payload", {})
 		if payload_variant is Dictionary:
 			payload = (payload_variant as Dictionary).duplicate(true)
+		_debug_gameplay_slice("before objective_victory_triggered publish objective_id=%s" % str(objective_id))
 		_debug_log(
 			"publishing objective_victory_triggered objective_id=%s payload=%s"
 			% [str(objective_id), str(payload)]
@@ -366,11 +494,31 @@ func _on_victory_executed(event: Dictionary) -> void:
 
 func _on_action_dispatched(action: Dictionary) -> void:
 	var action_type: StringName = action.get("type", StringName(""))
-	if action_type != U_GAMEPLAY_ACTIONS.ACTION_MARK_AREA_COMPLETE:
+	if action_type != U_GAMEPLAY_ACTIONS.ACTION_MARK_AREA_COMPLETE \
+	and action_type != U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS \
+	and action_type != U_GAMEPLAY_ACTIONS.ACTION_GAME_COMPLETE:
 		return
 
 	_ensure_objective_runtime_state()
+	if action_type == U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS:
+		_debug_log("observed gameplay/reset_progress payload=%s" % str(action.get("payload", null)))
+		_debug_gameplay_slice("after gameplay/reset_progress dispatch observed")
+		_debug_objectives_slice("after gameplay/reset_progress dispatch observed")
+		_debug_log(
+			"post-reset objective snapshot active_ids=%s statuses=%s"
+			% [str(U_OBJECTIVES_SELECTORS.get_active_objectives(_store.get_state())), str(_get_statuses_snapshot())]
+		)
+		return
+
+	if action_type == U_GAMEPLAY_ACTIONS.ACTION_GAME_COMPLETE:
+		_debug_log("observed gameplay/game_complete")
+		_debug_gameplay_slice("after gameplay/game_complete dispatch observed")
+		_debug_objectives_slice("after gameplay/game_complete dispatch observed")
+		return
+
 	_debug_log("observed gameplay/mark_area_complete payload=%s" % str(action.get("payload", null)))
+	_debug_gameplay_slice("after gameplay/mark_area_complete dispatch observed")
+	_debug_objectives_slice("before evaluating objectives from gameplay/mark_area_complete")
 
 	_evaluate_active_objectives(_build_event_context({
 		"action_type": action_type,
@@ -397,6 +545,7 @@ func _evaluate_active_objectives(context: Dictionary) -> void:
 		var active_ids: Array[StringName] = U_OBJECTIVES_SELECTORS.get_active_objectives(state)
 		_debug_log("evaluating active objectives active_ids=%s event_payload=%s" % [str(active_ids), str(event_payload)])
 		if active_ids.is_empty():
+			_debug_log("no active objectives to evaluate; statuses=%s" % str(_get_statuses_snapshot()))
 			break
 
 		for objective_id in active_ids:

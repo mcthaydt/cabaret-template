@@ -6,7 +6,7 @@ class_name S_VictoryHandlerSystem
 ## If set, system uses this instead of U_StateUtils.get_store()
 @export var state_store: I_StateStore = null
 @export var required_final_area: String = "bar"
-const DEBUG_VICTORY_TRACE := false
+const DEBUG_VICTORY_TRACE := true
 
 var _store: I_StateStore = null
 var _event_unsubscribes: Array[Callable] = []
@@ -22,6 +22,49 @@ func _debug_log(message: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
 		return
 	print("[VictoryDebug][S_VictoryHandlerSystem] %s" % message)
+
+func _debug_gameplay_slice(label: String) -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	if _store == null:
+		_debug_log("%s gameplay=<no_store>" % label)
+		return
+	var state: Dictionary = _store.get_state()
+	var gameplay_variant: Variant = state.get("gameplay", {})
+	if gameplay_variant is Dictionary:
+		var gameplay: Dictionary = gameplay_variant as Dictionary
+		_debug_log(
+			"%s gameplay.completed_areas=%s gameplay.game_completed=%s gameplay.last_victory_objective=%s"
+			% [
+				label,
+				str(gameplay.get("completed_areas", [])),
+				str(gameplay.get("game_completed", false)),
+				str(gameplay.get("last_victory_objective", StringName(""))),
+			]
+		)
+		return
+	_debug_log("%s gameplay=<missing_or_invalid> type=%s" % [label, str(gameplay_variant)])
+
+func _debug_objectives_slice(label: String) -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	if _store == null:
+		_debug_log("%s objectives=<no_store>" % label)
+		return
+	var state: Dictionary = _store.get_state()
+	var objectives_variant: Variant = state.get("objectives", {})
+	if objectives_variant is Dictionary:
+		var objectives: Dictionary = objectives_variant as Dictionary
+		_debug_log(
+			"%s objectives.statuses=%s objectives.active_set_id=%s"
+			% [
+				label,
+				str(objectives.get("statuses", {})),
+				str(objectives.get("active_set_id", StringName(""))),
+			]
+		)
+		return
+	_debug_log("%s objectives=<missing_or_invalid> type=%s" % [label, str(objectives_variant)])
 
 func _victory_type_to_string(value: int) -> String:
 	match value:
@@ -67,6 +110,8 @@ func _on_victory_execution_requested(event: Dictionary) -> void:
 	if not _ensure_dependencies_ready():
 		_debug_log("dropping request: state store dependency missing")
 		return
+	_debug_gameplay_slice("before _can_trigger_victory")
+	_debug_objectives_slice("before _can_trigger_victory")
 	if not _can_trigger_victory(trigger):
 		_debug_log("dropping request: _can_trigger_victory returned false")
 		return
@@ -74,6 +119,7 @@ func _on_victory_execution_requested(event: Dictionary) -> void:
 	_handle_victory(trigger, payload)
 
 func _handle_victory(trigger: C_VictoryTriggerComponent, payload: Dictionary) -> void:
+	_debug_gameplay_slice("before dispatching victory gameplay actions")
 	if _store != null:
 		if trigger.objective_id != StringName(""):
 			_store.dispatch(U_GameplayActions.trigger_victory(trigger.objective_id))
@@ -81,6 +127,8 @@ func _handle_victory(trigger: C_VictoryTriggerComponent, payload: Dictionary) ->
 			_store.dispatch(U_GameplayActions.mark_area_complete(trigger.area_id))
 		if trigger.victory_type == C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
 			_store.dispatch(U_GameplayActions.game_complete())
+	_debug_gameplay_slice("after dispatching victory gameplay actions")
+	_debug_objectives_slice("after dispatching victory gameplay actions")
 	_debug_log(
 		"dispatched gameplay updates objective_id=%s area_id=%s victory_type=%s"
 		% [
