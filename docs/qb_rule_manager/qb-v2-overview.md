@@ -45,10 +45,10 @@ Rule = Conditions[] + Effects[] + metadata
 
 ### Layer 1 — Data (Resources, designer-authored)
 
-Typed resource hierarchy using Godot 4.x polymorphic `Array[BaseClass]` exports. The inspector dropdown shows only valid subclasses. No untyped arrays, no Dictionary payloads.
+Resource hierarchy using `RS_BaseCondition`/`RS_BaseEffect` subclasses. `RS_Rule` currently uses `Array[Resource]` fallback for headless parser stability, with runtime subtype validation in `U_RuleValidator`.
 
 ```
-RS_Rule                          ← rule definition with typed arrays
+RS_Rule                          ← rule definition with Resource arrays + validator checks
 RS_BaseCondition                 ← abstract, virtual evaluate() → float
 ├── RS_ConditionComponentField   ← reads ECS component property
 ├── RS_ConditionReduxField       ← reads Redux state path
@@ -137,8 +137,8 @@ class_name RS_Rule extends Resource
 @export var trigger_event: StringName  ## only for event/both modes
 
 @export_group("Evaluation")
-@export var conditions: Array[RS_BaseCondition] = []
-@export var effects: Array[RS_BaseEffect] = []
+@export var conditions: Array[Resource] = []  ## fallback; validator enforces RS_BaseCondition
+@export var effects: Array[Resource] = []     ## fallback; validator enforces RS_BaseEffect
 @export var score_threshold: float = 0.0
 
 @export_group("Selection")
@@ -152,8 +152,7 @@ class_name RS_Rule extends Resource
 ```
 
 **Key differences from v1 `RS_QBRuleDefinition`:**
-- `conditions: Array[RS_BaseCondition]` — typed, inspector-enforced (was untyped `Array`)
-- `effects: Array[RS_BaseEffect]` — typed, inspector-enforced (was untyped `Array`)
+- `conditions/effects` remain `Array[Resource]` in Phase 1 due headless parser instability; subtype checks are enforced by `U_RuleValidator` until typed arrays are safely reintroduced
 - `requires_rising_edge` — clearer name (was `requires_salience`)
 - `score_threshold` — explicit minimum score to be a candidate (was implicit > 0.0)
 - Removed: `cooldown_key_fields`, `cooldown_from_context_field` — context-scoped cooldowns are handled by `RuleStateTracker` API, not baked into the resource
@@ -355,7 +354,7 @@ Adapted from v1's `U_QBRuleValidator`. Validates at configure time:
 
 - `rule_id` non-empty
 - `trigger_event` required for event/both trigger modes
-- Conditions are valid `RS_BaseCondition` instances (typed array already enforces this largely)
+- Conditions are valid `RS_BaseCondition` instances (enforced by `U_RuleValidator` while `RS_Rule` uses `Array[Resource]` fallback)
 - Effects are valid `RS_BaseEffect` instances
 - `RS_ConditionComponentField`: `component_type` non-empty, `field_path` non-empty, `range_min < range_max` when both non-zero
 - `RS_ConditionReduxField`: `state_path` non-empty, contains `.` (slice.field format)

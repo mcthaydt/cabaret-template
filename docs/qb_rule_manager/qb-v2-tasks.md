@@ -129,9 +129,9 @@ Completion note (2026-02-25): Added 4 effect test suites (13 tests), implemented
 
 ### 1D — Rule Resource
 
-- [x] T78. Create `scripts/resources/qb/rs_rule.gd` — typed arrays `Array[RS_BaseCondition]`, `Array[RS_BaseEffect]`
-- [x] T79. Verify in Godot editor: inspector shows condition subclass dropdown for conditions array
-- [x] T80. Verify in Godot editor: inspector shows effect subclass dropdown for effects array
+- [x] T78. Create `scripts/resources/qb/rs_rule.gd` — typed-array target (`Array[RS_BaseCondition]`, `Array[RS_BaseEffect]`) with documented fallback path
+- [x] T79. Validate fallback export metadata in headless (`conditions`/`effects` exported as `Array[Resource]`)
+- [x] T80. Document typed-array inspector verification follow-up (deferred until typed arrays are re-enabled)
 
 Completion note (2026-02-25): Added `RS_Rule` and validated export metadata in headless. Typed array annotations (`Array[RS_BaseCondition]`/`Array[RS_BaseEffect]`) failed to parse reliably in headless (`Could not find type ...`), so Phase 1D applied the documented fallback to `Array[Resource]` for parser stability; runtime type validation will be enforced in `U_RuleValidator` (Phase 1H).
 

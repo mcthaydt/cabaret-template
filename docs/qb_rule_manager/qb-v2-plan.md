@@ -2,9 +2,9 @@
 
 ## Summary
 
-- **Feature:** Replace v1 QB rule engine (base class inheritance model) with v2 (stateless scoring library + typed resources + domain composition)
+- **Feature:** Replace v1 QB rule engine (base class inheritance model) with v2 (stateless scoring library + resource polymorphism + domain composition)
 - **Branch:** `scene-director` (continues from v1 completion)
-- **Current status:** Not started
+- **Current status:** In progress (Phase 1 complete on 2026-02-25; Phase 2A next)
 - **Prerequisite:** v1 is 100% complete (all phases + R1-R7 refactors)
 
 ## Guiding Principles
@@ -18,7 +18,7 @@
 
 ## Phase 1 — Core Library (TDD, Stateless Engine)
 
-**Goal:** Build the entire scoring library, typed resources, path resolver, state tracker, and validator. Everything is pure/static — no ECS, no scene tree, no Redux dependency. Fully unit-testable in isolation. v1 code is NOT touched.
+**Goal:** Build the entire scoring library, resource definitions, path resolver, state tracker, and validator. Everything is pure/static — no ECS, no scene tree, no Redux dependency. Fully unit-testable in isolation. v1 code is NOT touched.
 
 **Sub-phases (TDD order: tests first, then implementation):**
 
@@ -27,7 +27,7 @@
 | 1A — Path Resolver | T1-T11 | T12-T13 | Dot-path resolution for Dict/Array/Object |
 | 1B — Conditions | T14-T47 | T48-T54 | 5 condition subclasses + base class with curve/invert |
 | 1C — Effects | T55-T71 | T72-T77 | 4 effect subclasses + base class |
-| 1D — Rule Resource | — | T78-T80 | RS_Rule with typed arrays, verified in editor |
+| 1D — Rule Resource | — | T78-T80 | RS_Rule with `Array[Resource]` fallback (typed-array target deferred) |
 | 1E — Scorer | T81-T90 | T91-T92 | `U_RuleScorer.score_rules()` |
 | 1F — Selector | T93-T100 | T101-T102 | `U_RuleSelector.select_winners()` |
 | 1G — State Tracker | T103-T115 | T116-T117 | `RuleStateTracker` (cooldowns, rising edge, one-shot) |
@@ -36,6 +36,7 @@
 **Deliverable:** ~17 new files, ~80 test functions. All tested in isolation. v1 untouched.
 
 **Risk gate (1D):** Verify `Array[RS_BaseCondition]` shows correct subclass dropdown in the Godot 4.6 inspector before proceeding past Phase 1. If it doesn't work, fall back to `Array[Resource]` with runtime type checks.
+Current Phase 1 outcome: fallback path was selected due headless parser instability (`Could not find type ...`) and runtime subtype validation is enforced in `U_RuleValidator`.
 
 ---
 
