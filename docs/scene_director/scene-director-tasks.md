@@ -154,13 +154,12 @@ Phase 3 completion notes (2026-02-25):
 
 ### 4A: Victory Objective Resources
 
-- [x] T4.1: Create `resources/scene_director/objectives/cfg_obj_level_complete.tres` (RS_ObjectiveDefinition) - STANDARD type, `auto_activate: true` (objective activates immediately when the set is loaded in _ready(), NOT when an area completes — auto_activate means "skip the inactive state on load"). Conditions: `RS_ConditionReduxField` checking `gameplay.completed_areas`. No completion_effects needed.
-  - Completion note (2026-02-25): Added `cfg_obj_level_complete.tres` with `objective_id = &"level_complete"`, `auto_activate = true`, and an `RS_ConditionReduxField` condition on `gameplay.completed_areas.0` (`match_mode = "not_equals"`, empty-string guard) so completion becomes true once at least one area exists.
-- [x] T4.2: Create `resources/scene_director/objectives/cfg_obj_game_complete.tres` (RS_ObjectiveDefinition) - VICTORY type, `dependencies: [&"level_complete"]`, conditions: `RS_ConditionReduxField` checking the victory-ready gameplay flag. `completion_effects: [RS_EffectDispatchAction: game_complete]`. `completion_event_payload: {"target_scene": StringName("victory")}` — M_ObjectivesManager reads this and includes it as the `EVENT_OBJECTIVE_VICTORY_TRIGGERED` event payload; M_SceneManager reads `event.payload.get("target_scene")` for the transition.
-  - Completion note (2026-02-25): Added `cfg_obj_game_complete.tres` with `objective_id = &"game_complete"`, VICTORY type, dependency on `level_complete`, a Redux-field condition checking `gameplay.completed_areas.1 == "bar"`, `RS_EffectDispatchAction` for `gameplay/game_complete`, and `completion_event_payload = {"target_scene": &"victory"}`.
-  - Update note (2026-02-25): Patched the default condition to `gameplay.game_completed == true` to preserve `S_VictoryHandlerSystem` gating and prevent objective completion from `mark_area_complete` alone.
-- [x] T4.3: Create `resources/scene_director/sets/cfg_objset_default.tres` (RS_ObjectiveSet) - default progression set containing level_complete + game_complete objectives
-  - Completion note (2026-02-25): Added `cfg_objset_default.tres` with `set_id = &"default_progression"` and both objective resources wired in resource order.
+- [x] T4.1: Create `resources/scene_director/objectives/cfg_obj_level_complete.tres` (RS_ObjectiveDefinition) - STANDARD type, `objective_id = &"bar_complete"`, `auto_activate: true` (objective activates immediately when the set is loaded in _ready()). Condition uses `RS_ConditionEventPayload` to match `trigger_node.objective_id == "goal_bar"`. Completion effect publishes `objective_victory_triggered` with `{"target_scene": &"alleyway"}` for the mid-run return transition.
+  - Completion note (2026-02-25): Added `cfg_obj_level_complete.tres` with `objective_id = &"bar_complete"`, event-payload trigger matching (`goal_bar`), and completion publish-effect routing to `alleyway`.
+- [x] T4.2: Create `resources/scene_director/objectives/cfg_obj_game_complete.tres` (RS_ObjectiveDefinition) - VICTORY type, `objective_id = &"final_complete"`, `dependencies: [&"bar_complete"]`; condition uses `RS_ConditionEventPayload` to match `trigger_node.objective_id == "final_goal"`. `completion_effects: [RS_EffectDispatchAction: gameplay/game_complete]`. `completion_event_payload: {"target_scene": StringName("victory")}` — M_ObjectivesManager forwards this as the `EVENT_OBJECTIVE_VICTORY_TRIGGERED` payload and M_SceneManager transitions from `event.payload.get("target_scene")`.
+  - Completion note (2026-02-25): Added `cfg_obj_game_complete.tres` with `objective_id = &"final_complete"`, dependency on `bar_complete`, final-goal event-payload condition, `gameplay/game_complete` dispatch effect, and `completion_event_payload = {"target_scene": &"victory"}`.
+- [x] T4.3: Create `resources/scene_director/sets/cfg_objset_default.tres` (RS_ObjectiveSet) - default progression set containing `bar_complete` + `final_complete` objectives
+  - Completion note (2026-02-25): Added `cfg_objset_default.tres` with `set_id = &"default_progression"` and both migrated objective resources wired in order.
 
 ### 4B: M_ObjectivesManager Victory Flow
 
@@ -188,7 +187,7 @@ Phase 3 completion notes (2026-02-25):
 
 ### 4E: Tests
 
-- [x] T4.16: Create `tests/unit/scene_director/test_victory_migration.gd` - Victory objective completion triggers EVENT_OBJECTIVE_VICTORY_TRIGGERED, game_complete prerequisite still enforced via objective dependencies, M_SceneManager no longer subscribes to victory_executed
+- [x] T4.16: Create `tests/unit/scene_director/test_victory_migration.gd` - Victory objective completion triggers EVENT_OBJECTIVE_VICTORY_TRIGGERED, `final_complete` dependency gating remains enforced, M_SceneManager no longer subscribes to victory_executed
 - [x] T4.17: Create `tests/integration/scene_director/test_objectives_integration.gd` - End-to-end: victory_executed event -> M_ObjectivesManager evaluates objectives -> VICTORY objective completes -> objective_victory_triggered published -> M_SceneManager transitions
   - Completion note (2026-02-25): Added both test suites and updated existing `tests/integration/scene_manager/test_endgame_flows.gd` fixture to include objectives manager wiring for migrated victory flow.
 
@@ -203,15 +202,16 @@ Phase 3 completion notes (2026-02-25):
 
 - [x] T4.21: Run full existing test suite -- verify behavioral equivalence
 - [x] T4.22: Run scene director unit tests
-- [ ] T4.23: Manual playtest: checkpoint, victory (level + game complete), verify transitions work
+- [x] T4.23: Manual playtest: checkpoint, victory progression (`bar_complete` -> `final_complete`), verify transitions work
+  - Completion note (2026-02-25): Interactive run verified checkpoint flow, bar-goal transition back to alleyway, final-goal transition to victory, and no stale objective-state leakage.
 - [x] T4.24: Update continuation prompt with Phase 4 status
   - Completion note (2026-02-25): Full `tests/**` headless run passed (`2638/2647`, `9` pending/expected skipped, `0` failures), scene-director unit suite passed (`61/61`), and victory/checkpoint flows validated through integrated endgame + scene-director tests (`test_endgame_flows`, `test_objectives_integration`).
-  - Update note (2026-02-25): Dedicated interactive manual playtest remains pending; CI/headless integration coverage is complete.
+  - Update note (2026-02-25): Interactive manual verification completed (`T4.23`) and now aligns with automated coverage.
 
 **Phase 4 Commit**: Victory transitions migrated from M_SceneManager to objectives
 
 Phase 4 completion notes (2026-02-25):
-- Added migrated Phase 4 objective resources and default objective set (`cfg_obj_level_complete`, `cfg_obj_game_complete`, `cfg_objset_default`).
+- Added migrated Phase 4 objective resources and default objective set (`cfg_obj_level_complete`/`cfg_obj_game_complete` with IDs `bar_complete`/`final_complete`, plus `cfg_objset_default`).
 - Refactored scene transition ownership: `M_SceneManager` now consumes `EVENT_OBJECTIVE_VICTORY_TRIGGERED`; legacy direct `victory_executed` transition handling removed.
 - Integrated `M_ObjectivesManager` into root scene + ServiceLocator and wired default objective set for runtime loading.
 - Added save compatibility + reconciliation: missing-objectives injection during migration and persisted-status reconciliation during objective-set load.
@@ -270,7 +270,8 @@ Phase 5 completion notes (2026-02-25):
 
 - [x] T6.3: Run full test suite (ECS + QB + Scene Director + Style)
   - Completion note (2026-02-25): Verification suites passed -- `tests/unit/qb` (`134/134`), `tests/unit/ecs` (`126/126`), `tests/unit/scene_director` (`67/67`), `tests/unit/style` (`12/12`).
-- [ ] T6.4: Manual playtest: full gameplay loop (walk, checkpoint, victory, game complete, beat sequences)
+- [x] T6.4: Manual playtest: full gameplay loop (walk, checkpoint, victory, game complete, beat sequences)
+  - Completion note (2026-02-25): Completed full interactive loop verification, including beat sequence signaling and endgame routing, with expected objective transitions and reset behavior.
 
 **Phase 6 Commit**: Cleanup and final verification
 

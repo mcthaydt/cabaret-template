@@ -6,12 +6,12 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Current Status
 
-**Phase**: Phase 7 reset-run hardening complete (automated cleanup verification complete; interactive manual playtest pending)
+**Phase**: Phase 8 objective visibility gating complete (automated + interactive verification complete)
 **Branch**: scene-director
-**Next Task**: T6.4 (+ T4.23) -- Interactive manual playtest verification
+**Next Task**: No pending Scene Director implementation tasks (maintain regression coverage as adjacent systems change)
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
-**Latest Verification**: 2026-02-25 -- `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/scene_director` (67/67), `tests/unit/style` (12/12), `tests/unit/ui -gselect=test_endgame_screens` (10/10), `tests/integration/scene_director` (3/3), `tests/integration/scene_manager -gselect=test_endgame_flows` (5/5). Interactive manual playtest remains pending (`T4.23`, `T6.4`).
+**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (68/68), `tests/integration/scene_director` (3/3), `tests/integration/scene_manager -gselect=test_endgame_flows` (5/5), `tests/unit/ui -gselect=test_endgame_screens` (10/10), `tests/unit/style` (12/12). Interactive manual playtests for `T4.23` and `T6.4` are complete.
 **Integration note**: Default gameplay intro beats publish both instrumentation events (`scene_director_intro_beat_1/2`) and player-facing `signpost_message` payloads (`hud.scene_director_intro_beat_1/2`) consumed by HUD/mobile signpost flows.
 **Reset-run note**: Victory Continue now dispatches `run/reset`; `M_RunCoordinator` orchestrates gameplay reset, interact unblock, objectives fresh reset (`reset_for_new_run`), and retry to `alleyway`.
 **Objective-visibility note**: Goal mesh visibility is objective-driven via interaction config `visibility_objective_id` (status gate = `active` only). `cfg_victory_goal_bar` gates on `bar_complete`, and `cfg_endgame_goal_alleyway` gates on `final_complete` plus endgame `required_area`.
@@ -96,11 +96,11 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 ### Files to modify:
 - `scripts/state/utils/u_state_slice_manager.gd` -- add objectives + scene_director slices
 - `scripts/state/m_state_store.gd` -- add @export for objectives + scene_director initial state
-- `scripts/root.gd` -- register M_ObjectivesManager + M_SceneDirector with ServiceLocator (keys: `"objectives_manager"`, `"scene_director"`)
+- `scripts/root.gd` -- register M_ObjectivesManager + M_RunCoordinator + M_SceneDirector with ServiceLocator (keys: `"objectives_manager"`, `"run_coordinator"`, `"scene_director"`)
 - `scripts/events/ecs/u_ecs_event_names.gd` -- add objective/directive event constants
 - `scripts/managers/m_scene_manager.gd` -- remove victory handling, add objective_victory subscription
 - `scenes/root.tscn` -- add M_ObjectivesManager + M_SceneDirector nodes
-- `AGENTS.md` -- add `"objectives_manager"` and `"scene_director"` to the available services list in the Quick How-Tos section (Phase 6A)
+- `AGENTS.md` -- keep Quick How-Tos service list aligned with `root.gd` registrations (`"objectives_manager"`, `"run_coordinator"`, `"scene_director"`, etc.)
 
 ### Files that stay unchanged:
 - `scripts/ecs/systems/s_victory_handler_system.gd` -- stays as-is (93 lines)

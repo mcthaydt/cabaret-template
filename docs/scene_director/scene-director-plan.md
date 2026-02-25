@@ -208,8 +208,8 @@ Context requirements: The caller (M_SceneDirector) builds it: `{"state_store": _
 ### 4A: Victory Objective Resources
 
 Create objective definitions for victory scenarios:
-- `resources/scene_director/objectives/cfg_obj_level_complete.tres` -- STANDARD type, `auto_activate: true` (activates immediately when the set loads; the status goes to `active` on load, not on area completion — completion happens when the condition is met). Conditions: `RS_ConditionReduxField` checking `gameplay.completed_areas`.
-- `resources/scene_director/objectives/cfg_obj_game_complete.tres` -- VICTORY type, `dependencies: [level_complete]`. Conditions: `RS_ConditionReduxField` checking required final area. `completion_effects: [RS_EffectDispatchAction: game_complete]`. `completion_event_payload: {"target_scene": StringName("victory")}` — M_ObjectivesManager reads this dict and includes it as the payload of `EVENT_OBJECTIVE_VICTORY_TRIGGERED`; M_SceneManager reads `event.payload.get("target_scene")` to determine the transition target.
+- `resources/scene_director/objectives/cfg_obj_level_complete.tres` -- STANDARD type with `objective_id = &"bar_complete"`, `auto_activate: true`, event-payload condition (`trigger_node.objective_id == "goal_bar"`), and completion publish-effect routing to `{"target_scene": &"alleyway"}`.
+- `resources/scene_director/objectives/cfg_obj_game_complete.tres` -- VICTORY type with `objective_id = &"final_complete"`, `dependencies: [bar_complete]`, event-payload condition (`trigger_node.objective_id == "final_goal"`), `completion_effects: [RS_EffectDispatchAction: gameplay/game_complete]`, and `completion_event_payload: {"target_scene": StringName("victory")}`. M_ObjectivesManager forwards the payload in `EVENT_OBJECTIVE_VICTORY_TRIGGERED`; M_SceneManager reads `event.payload.get("target_scene")`.
 
 Create objective set:
 - `resources/scene_director/sets/cfg_objset_default.tres` -- default progression set
@@ -242,7 +242,7 @@ Add to M_SceneManager:
 
 | Test File | Coverage |
 |-----------|----------|
-| `tests/unit/scene_director/test_victory_migration.gd` | Victory objective completion triggers scene transition, game_complete prerequisite still enforced |
+| `tests/unit/scene_director/test_victory_migration.gd` | Victory objective completion triggers scene transition, `final_complete` dependency gating still enforced |
 | `tests/integration/scene_director/test_objectives_integration.gd` | End-to-end: victory_executed -> objective evaluation -> objective_victory_triggered -> scene transition |
 
 ### 4F: Save Migration
