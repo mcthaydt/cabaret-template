@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bageed5ytib7"]
 
 [ext_resource type="Script" uid="uid://ckkkd1tjiuv0w" path="res://scripts/ecs/systems/s_camera_rule_manager.gd" id="1_camera_rule_manager"]
-[ext_resource type="Script" uid="uid://dcha1xk3subkj" path="res://scripts/ecs/systems/s_character_rule_manager.gd" id="1_character_rule_manager"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_character_state_system.gd" id="1_character_rule_manager"]
 [ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://drmqto4u8pr8d" path="res://scripts/ecs/systems/s_game_rule_manager.gd" id="1_game_rule_manager"]
 [ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -167,7 +167,7 @@ script = ExtResource("3_ph0bl")
 [node name="Core" type="Node" parent="Systems" unique_id=217309481]
 script = ExtResource("3_systems_core")
 
-[node name="S_CharacterRuleManager" type="Node" parent="Systems/Core" unique_id=423935106]
+[node name="S_CharacterStateSystem" type="Node" parent="Systems/Core" unique_id=423935106]
 script = ExtResource("1_character_rule_manager")
 
 [node name="S_GameRuleManager" type="Node" parent="Systems/Core" unique_id=679204007]

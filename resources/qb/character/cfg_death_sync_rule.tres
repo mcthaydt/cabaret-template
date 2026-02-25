@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Resource_0xyou"]
 script = ExtResource("1_s53jo")
 component_type = &"C_HealthComponent"
-field_path = "is_dead"
+field_path = "_is_dead"
 
 [sub_resource type="Resource" id="Resource_m25uh"]
 script = ExtResource("2_o4ogc")
