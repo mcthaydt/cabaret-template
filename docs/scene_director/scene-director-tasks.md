@@ -156,8 +156,9 @@ Phase 3 completion notes (2026-02-25):
 
 - [x] T4.1: Create `resources/scene_director/objectives/cfg_obj_level_complete.tres` (RS_ObjectiveDefinition) - STANDARD type, `auto_activate: true` (objective activates immediately when the set is loaded in _ready(), NOT when an area completes — auto_activate means "skip the inactive state on load"). Conditions: `RS_ConditionReduxField` checking `gameplay.completed_areas`. No completion_effects needed.
   - Completion note (2026-02-25): Added `cfg_obj_level_complete.tres` with `objective_id = &"level_complete"`, `auto_activate = true`, and an `RS_ConditionReduxField` condition on `gameplay.completed_areas.0` (`match_mode = "not_equals"`, empty-string guard) so completion becomes true once at least one area exists.
-- [x] T4.2: Create `resources/scene_director/objectives/cfg_obj_game_complete.tres` (RS_ObjectiveDefinition) - VICTORY type, `dependencies: [&"level_complete"]`, conditions: `RS_ConditionReduxField` checking required final area in completed_areas. `completion_effects: [RS_EffectDispatchAction: game_complete]`. `completion_event_payload: {"target_scene": StringName("victory")}` — M_ObjectivesManager reads this and includes it as the `EVENT_OBJECTIVE_VICTORY_TRIGGERED` event payload; M_SceneManager reads `event.payload.get("target_scene")` for the transition.
+- [x] T4.2: Create `resources/scene_director/objectives/cfg_obj_game_complete.tres` (RS_ObjectiveDefinition) - VICTORY type, `dependencies: [&"level_complete"]`, conditions: `RS_ConditionReduxField` checking the victory-ready gameplay flag. `completion_effects: [RS_EffectDispatchAction: game_complete]`. `completion_event_payload: {"target_scene": StringName("victory")}` — M_ObjectivesManager reads this and includes it as the `EVENT_OBJECTIVE_VICTORY_TRIGGERED` event payload; M_SceneManager reads `event.payload.get("target_scene")` for the transition.
   - Completion note (2026-02-25): Added `cfg_obj_game_complete.tres` with `objective_id = &"game_complete"`, VICTORY type, dependency on `level_complete`, a Redux-field condition checking `gameplay.completed_areas.1 == "bar"`, `RS_EffectDispatchAction` for `gameplay/game_complete`, and `completion_event_payload = {"target_scene": &"victory"}`.
+  - Update note (2026-02-25): Patched the default condition to `gameplay.game_completed == true` to preserve `S_VictoryHandlerSystem` gating and prevent objective completion from `mark_area_complete` alone.
 - [x] T4.3: Create `resources/scene_director/sets/cfg_objset_default.tres` (RS_ObjectiveSet) - default progression set containing level_complete + game_complete objectives
   - Completion note (2026-02-25): Added `cfg_objset_default.tres` with `set_id = &"default_progression"` and both objective resources wired in resource order.
 
@@ -202,9 +203,10 @@ Phase 3 completion notes (2026-02-25):
 
 - [x] T4.21: Run full existing test suite -- verify behavioral equivalence
 - [x] T4.22: Run scene director unit tests
-- [x] T4.23: Manual playtest: checkpoint, victory (level + game complete), verify transitions work
+- [ ] T4.23: Manual playtest: checkpoint, victory (level + game complete), verify transitions work
 - [x] T4.24: Update continuation prompt with Phase 4 status
-  - Completion note (2026-02-25): Full `tests/**` headless run passed (`2637/2646`, `9` pending/expected skipped, `0` failures), scene-director unit suite passed (`61/61`), and victory/checkpoint flows validated through integrated endgame + scene-director tests (`test_endgame_flows`, `test_objectives_integration`) as manual-playtest coverage in CI/headless context.
+  - Completion note (2026-02-25): Full `tests/**` headless run passed (`2638/2647`, `9` pending/expected skipped, `0` failures), scene-director unit suite passed (`61/61`), and victory/checkpoint flows validated through integrated endgame + scene-director tests (`test_endgame_flows`, `test_objectives_integration`).
+  - Update note (2026-02-25): Dedicated interactive manual playtest remains pending; CI/headless integration coverage is complete.
 
 **Phase 4 Commit**: Victory transitions migrated from M_SceneManager to objectives
 

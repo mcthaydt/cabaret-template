@@ -6,12 +6,12 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Current Status
 
-**Phase**: Phase 4 complete
+**Phase**: Phase 4 implementation complete (interactive manual playtest pending)
 **Branch**: scene-director
 **Next Task**: T5.1 -- Create `cfg_directive_gameplay_base.tres`
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
-**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (61/61), `tests/integration/scene_director` (1/1), `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (197/197), `tests/unit/style` (12/12), `tests/integration/scene_manager` (90/90), full `tests/**` sweep (2637/2646 with 9 expected headless/mobile pending tests, 0 failures).
+**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (61/61), `tests/integration/scene_director` (2/2), `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (197/197), `tests/unit/style` (12/12), `tests/integration/scene_manager` (90/90), full `tests/**` sweep (2638/2647 with 9 expected headless/mobile pending tests, 0 failures). Interactive manual playtest remains pending.
 
 ---
 
@@ -131,11 +131,11 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - `scripts/managers/m_objectives_manager.gd`
 - `scripts/managers/m_scene_director.gd`
 
-**Resource Instances** (Phase 4-5):
+**Resource Instances** (created through Phase 4):
 - `resources/scene_director/objectives/cfg_obj_level_complete.tres`
 - `resources/scene_director/objectives/cfg_obj_game_complete.tres`
 - `resources/scene_director/sets/cfg_objset_default.tres`
-- `resources/scene_director/directives/cfg_directive_gameplay_base.tres`
+- Planned in Phase 5: `resources/scene_director/directives/cfg_directive_gameplay_base.tres`
 
 **Tests**:
 - `tests/unit/scene_director/test_objectives_selectors.gd`
@@ -149,7 +149,7 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - `tests/unit/scene_director/test_scene_director.gd`
 - `tests/unit/scene_director/test_victory_migration.gd`
 - `tests/integration/scene_director/test_objectives_integration.gd`
-- `tests/integration/scene_director/test_scene_director_integration.gd`
+- Planned in Phase 5: `tests/integration/scene_director/test_scene_director_integration.gd`
 
 ---
 
