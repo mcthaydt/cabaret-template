@@ -79,26 +79,37 @@ Phase 1 completion notes (2026-02-25):
 
 ### 2B: Event Log Helper (TDD)
 
-- [ ] T2.6: Create stub `scripts/utils/scene_director/u_objective_event_log.gd` (U_ObjectiveEventLog) - empty static methods
-- [ ] T2.7: Create `tests/unit/scene_director/test_objective_event_log.gd` - Entry creation with timestamp, format_log produces readable output, all event types (activated, completed, failed, dependency_met, condition_checked)
-- [ ] T2.8: Run tests -- confirm they FAIL (red)
-- [ ] T2.9: Implement U_ObjectiveEventLog -- structured entry creation, formatted output
-- [ ] T2.10: Run tests -- confirm they PASS (green)
+- [x] T2.6: Create stub `scripts/utils/scene_director/u_objective_event_log.gd` (U_ObjectiveEventLog) - empty static methods
+- [x] T2.7: Create `tests/unit/scene_director/test_objective_event_log.gd` - Entry creation with timestamp, format_log produces readable output, all event types (activated, completed, failed, dependency_met, condition_checked)
+- [x] T2.8: Run tests -- confirm they FAIL (red)
+  - Completion note (2026-02-25): `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director` produced 3 expected failures in `test_objective_event_log.gd` while the helper still returned defaults.
+- [x] T2.9: Implement U_ObjectiveEventLog -- structured entry creation, formatted output
+- [x] T2.10: Run tests -- confirm they PASS (green)
+  - Completion note (2026-02-25): `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director` passed `35/35` after helper implementation.
 
 ### 2C: M_ObjectivesManager (TDD)
 
-- [ ] T2.11: Create stub `scripts/managers/m_objectives_manager.gd` (M_ObjectivesManager extends Node) - @export state_store, @export objective_sets, empty methods for load_objective_set, _check_conditions, _execute_effects, _complete_objective, _fail_objective, _activate_dependents, get_objective_status, _build_context
-- [ ] T2.12: Create `tests/unit/scene_director/test_objectives_manager.gd` - Set loading activates auto_activate objectives (activates on load, not on event), condition evaluation via direct condition.evaluate(context) calls, completion dispatches actions + executes effects via effect.execute(context) + activates dependents, failure dispatches fail action, event logging records transitions, graph validation rejects cycles. For VICTORY type: completion publishes EVENT_OBJECTIVE_VICTORY_TRIGGERED with objective.completion_event_payload as the event payload.
-- [ ] T2.13: Run tests -- confirm they FAIL (red)
-- [ ] T2.14: Implement M_ObjectivesManager -- store discovery (injection + ServiceLocator), _ready() calls load_objective_set for each set in objective_sets, event subscriptions, set loading with graph build + validate_graph(graph, known_ids), condition checking via direct condition.evaluate(context) loop, effect execution via effect.execute(context) loop, completion flow with dependent activation, event logging. VICTORY completion: read objective.completion_event_payload, publish EVENT_OBJECTIVE_VICTORY_TRIGGERED with that dict as payload.
-- [ ] T2.15: Run tests -- confirm they PASS (green)
+- [x] T2.11: Create stub `scripts/managers/m_objectives_manager.gd` (M_ObjectivesManager extends Node) - @export state_store, @export objective_sets, empty methods for load_objective_set, _check_conditions, _execute_effects, _complete_objective, _fail_objective, _activate_dependents, get_objective_status, _build_context
+- [x] T2.12: Create `tests/unit/scene_director/test_objectives_manager.gd` - Set loading activates auto_activate objectives (activates on load, not on event), condition evaluation via direct condition.evaluate(context) calls, completion dispatches actions + executes effects via effect.execute(context) + activates dependents, failure dispatches fail action, event logging records transitions, graph validation rejects cycles. For VICTORY type: completion publishes EVENT_OBJECTIVE_VICTORY_TRIGGERED with objective.completion_event_payload as the event payload.
+- [x] T2.13: Run tests -- confirm they FAIL (red)
+  - Completion note (2026-02-25): `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director` produced 6 expected failing assertions in `test_objectives_manager.gd` against the manager stub.
+- [x] T2.14: Implement M_ObjectivesManager -- store discovery (injection + ServiceLocator), _ready() calls load_objective_set for each set in objective_sets, event subscriptions, set loading with graph build + validate_graph(graph, known_ids), condition checking via direct condition.evaluate(context) loop, effect execution via effect.execute(context) loop, completion flow with dependent activation, event logging. VICTORY completion: read objective.completion_event_payload, publish EVENT_OBJECTIVE_VICTORY_TRIGGERED with that dict as payload.
+- [x] T2.15: Run tests -- confirm they PASS (green)
+  - Completion note (2026-02-25): `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director` passed `42/42` after manager implementation and test fixes.
 
 ### 2D: Regression Check
 
-- [ ] T2.16: Run full existing test suite -- zero regressions
-- [ ] T2.17: Update continuation prompt with Phase 2 status
+- [x] T2.16: Run full existing test suite -- zero regressions
+  - Completion note (2026-02-25): Regression suites passed — `tests/unit/qb` (`134/134`), `tests/unit/ecs` (`126/126`), `tests/unit/ecs/systems` (`197/197`), `tests/unit/style` (`12/12`), `tests/integration/scene_manager` (`90/90`), `tests/unit/scene_director` (`42/42`).
+- [x] T2.17: Update continuation prompt with Phase 2 status
 
 **Phase 2 Commit**: Objectives manager core with graph, event log, and condition evaluation
+
+Phase 2 completion notes (2026-02-25):
+- Added `U_ObjectiveEventLog` helper plus unit coverage.
+- Added `M_ObjectivesManager` core flow: objective-set loading, graph validation, event-driven condition evaluation, completion/failure transitions, dependent activation, objective event publishing, and victory payload forwarding.
+- Added manager unit coverage with a dedicated state-store stub for reducer-backed assertions.
+- Regression validation passed across QB, ECS, ECS systems, style, scene manager integration, and scene director unit suites.
 
 ---
 

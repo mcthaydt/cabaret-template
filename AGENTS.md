@@ -27,6 +27,7 @@
 - `scripts/managers/m_ecs_manager.gd`: Registers components/systems; exposes `get_components(StringName)` and emits component signals.
 - `scripts/managers/m_scene_manager.gd`: Scene transition coordinator (Phase 3+); manages ActiveSceneContainer.
 - `scripts/managers/m_save_manager.gd`: Save/load coordinator; manages save slots, atomic writes, migrations, and autosave scheduling.
+- `scripts/managers/m_objectives_manager.gd`: Objectives manager (Phase 2 core); loads objective sets, validates dependency DAGs, evaluates objective conditions on relevant events, and publishes objective lifecycle/victory events.
 - `scripts/state/m_state_store.gd`: Redux store; registers with ServiceLocator for discovery via `U_StateUtils.get_store()`.
 - `scripts/ui/utils/u_ui_registry.gd` + `resources/ui_screens/`: UI registry definitions (`RS_UIScreenDefinition`) for base screens and overlays.
 - UI controllers are grouped by screen type: `scripts/ui/menus/`, `scripts/ui/overlays/`, `scripts/ui/hud/` (utilities live in `scripts/ui/utils/`).
@@ -37,10 +38,27 @@
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
 - `scripts/resources/ecs/*`: `Resource` classes holding tunables consumed by components/systems.
 - `scripts/utils/ecs/u_ecs_utils.gd`: ECS helpers (manager lookup, time, component mapping). Input helpers live in `scripts/utils/input/`.
+- `scripts/utils/scene_director/u_objective_graph.gd`: Objective DAG helper (build, cycle/missing-dependency validation, ready-dependents, topological sort).
+- `scripts/utils/scene_director/u_objective_event_log.gd`: Objective transition log helper (timestamped entries + readable formatting).
 - `scripts/events/ecs/`: ECS event bus + typed ECS events; `scripts/events/state/` holds `U_StateEventBus` (state-domain bus).
 - `scenes/root.tscn`: Main scene (persistent managers + containers).
 - `scenes/gameplay/*`: Gameplay scenes (dynamic loading, own M_ECSManager).
 - `tests/unit/*`: GUT test suites for ECS and state management.
+
+## Scene Director / Objectives (Phase 2 Core)
+
+- `M_ObjectivesManager` is event-driven, not tick-driven:
+  - Evaluates active objectives only when subscribed milestone events fire (`checkpoint_activated`, `victory_executed`, `gameplay/mark_area_complete` action dispatches).
+  - Does not run per-physics polling for objective completion.
+- Condition/effect execution contract:
+  - Conditions evaluate directly via `condition.evaluate(context)` and pass when score > 0.0.
+  - Effects execute directly via `effect.execute(context)` after objective completion.
+  - Context contract is `{"state_store": _store, "redux_state": _store.get_state()}` with optional `"event_payload"` for event-driven checks.
+- Objective completion flow:
+  - Status transition dispatches via `U_ObjectivesActions` (`activate`, `complete`, `fail`).
+  - Event log entries are dispatched through `U_ObjectiveEventLog.create_entry(...)`.
+  - Dependents are activated only when `U_ObjectiveGraph.get_ready_dependents(...)` reports all prerequisites completed.
+  - VICTORY objectives publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with `completion_event_payload` as-is.
 
 ## ECS Guidelines
 

@@ -6,12 +6,12 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Current Status
 
-**Phase**: Phase 2 in progress (2A complete)
+**Phase**: Phase 2 complete
 **Branch**: scene-director
-**Next Task**: T2.6 -- Create U_ObjectiveEventLog stub
+**Next Task**: T3.1 -- Create U_BeatRunner stub
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
-**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (32/32), `tests/unit/style` (12/12). Prior Phase 1 regression baseline remains: `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (197/197), `tests/integration/scene_manager` (90/90); full `tests/**` still had one existing unrelated lighting performance failure (`test_multi_character_multi_zone_performance_smoke`).
+**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (42/42), `tests/unit/qb` (134/134), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (197/197), `tests/unit/style` (12/12), `tests/integration/scene_manager` (90/90). Full `tests/**` baseline still had one existing unrelated lighting performance failure (`test_multi_character_multi_zone_performance_smoke`).
 
 ---
 
