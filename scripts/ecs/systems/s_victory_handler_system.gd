@@ -6,6 +6,7 @@ class_name S_VictoryHandlerSystem
 ## If set, system uses this instead of U_StateUtils.get_store()
 @export var state_store: I_StateStore = null
 @export var required_final_area: String = "bar"
+const DEBUG_VICTORY_TRACE := false
 
 var _store: I_StateStore = null
 var _event_unsubscribes: Array[Callable] = []
@@ -16,6 +17,20 @@ func _init() -> void:
 func process_tick(__delta: float) -> void:
 	# Victory processing is event-driven via ECSEventBus.
 	pass
+
+func _debug_log(message: String) -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	print("[VictoryDebug][S_VictoryHandlerSystem] %s" % message)
+
+func _victory_type_to_string(value: int) -> String:
+	match value:
+		C_VictoryTriggerComponent.VictoryType.LEVEL_COMPLETE:
+			return "LEVEL_COMPLETE"
+		C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
+			return "GAME_COMPLETE"
+		_:
+			return "UNKNOWN(%s)" % str(value)
 
 func on_configured() -> void:
 	_subscribe_events()
@@ -31,15 +46,31 @@ func _subscribe_events() -> void:
 func _on_victory_execution_requested(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
 	var trigger := payload.get("trigger_node") as C_VictoryTriggerComponent
+	_debug_log("received victory_execution_requested payload=%s" % str(payload))
 	if trigger == null or not is_instance_valid(trigger):
 		push_warning("S_VictoryHandlerSystem: victory_execution_requested missing required payload.trigger_node")
+		_debug_log("dropping request: payload.trigger_node missing or invalid")
 		return
+	_debug_log(
+		"trigger details objective_id=%s area_id=%s victory_type=%s trigger_once=%s is_triggered=%s"
+		% [
+			str(trigger.objective_id),
+			trigger.area_id,
+			_victory_type_to_string(int(trigger.victory_type)),
+			str(trigger.trigger_once),
+			str(trigger.is_triggered),
+		]
+	)
 	if trigger.trigger_once and trigger.is_triggered:
+		_debug_log("dropping request: trigger_once already consumed")
 		return
 	if not _ensure_dependencies_ready():
+		_debug_log("dropping request: state store dependency missing")
 		return
 	if not _can_trigger_victory(trigger):
+		_debug_log("dropping request: _can_trigger_victory returned false")
 		return
+	_debug_log("victory request accepted; executing victory flow")
 	_handle_victory(trigger, payload)
 
 func _handle_victory(trigger: C_VictoryTriggerComponent, payload: Dictionary) -> void:
@@ -50,8 +81,17 @@ func _handle_victory(trigger: C_VictoryTriggerComponent, payload: Dictionary) ->
 			_store.dispatch(U_GameplayActions.mark_area_complete(trigger.area_id))
 		if trigger.victory_type == C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
 			_store.dispatch(U_GameplayActions.game_complete())
+	_debug_log(
+		"dispatched gameplay updates objective_id=%s area_id=%s victory_type=%s"
+		% [
+			str(trigger.objective_id),
+			trigger.area_id,
+			_victory_type_to_string(int(trigger.victory_type)),
+		]
+	)
 
 	trigger.set_triggered()
+	_debug_log("trigger marked consumed; publishing victory_executed")
 	U_ECSEventBus.publish(U_ECSEventNames.EVENT_VICTORY_EXECUTED, {
 		"entity_id": payload.get("entity_id", null),
 		"trigger_node": trigger,
@@ -64,6 +104,7 @@ func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
 
 	if trigger.victory_type == C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
 		if _store == null:
+			_debug_log("GAME_COMPLETE gate failed: state store is null")
 			return false
 		var state: Dictionary = _store.get_state()
 		var gameplay: Dictionary = state.get("gameplay", {})
@@ -71,8 +112,17 @@ func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
 		if completed_variant is Array:
 			var completed: Array = completed_variant
 			if not completed.has(required_final_area):
+				_debug_log(
+					"GAME_COMPLETE gate failed: required_final_area=%s completed_areas=%s"
+					% [required_final_area, str(completed)]
+				)
 				return false
+			_debug_log(
+				"GAME_COMPLETE gate passed: required_final_area=%s completed_areas=%s"
+				% [required_final_area, str(completed)]
+			)
 		else:
+			_debug_log("GAME_COMPLETE gate failed: gameplay.completed_areas is not an Array (%s)" % str(completed_variant))
 			return false
 
 	return true
@@ -81,8 +131,10 @@ func _ensure_dependencies_ready() -> bool:
 	if _store == null:
 		if state_store != null:
 			_store = state_store
+			_debug_log("resolved state store from injected dependency")
 		else:
 			_store = U_StateUtils.get_store(self)
+			_debug_log("resolved state store via U_StateUtils.get_store: %s" % str(_store != null))
 	return _store != null
 
 func _exit_tree() -> void:

@@ -396,6 +396,40 @@ func test_load_objective_set_reconciles_saved_statuses_and_discards_orphans() ->
 	assert_eq(manager.get_objective_status(StringName("obj_auto")), "active")
 	assert_false(statuses.has(StringName("obj_orphan")), "Orphaned status should be discarded on set load")
 
+func test_recovers_runtime_when_objective_statuses_are_empty() -> void:
+	var objective_set: Resource = _objective_set(
+		StringName("set_recover"),
+		[
+			_objective(
+				StringName("obj_recover"),
+				[],
+				true,
+				[ConditionCompletedAreaStub.new("bar")]
+			),
+		]
+	)
+	var manager: Variant = await _spawn_manager([objective_set], true)
+
+	_store.apply_loaded_state({
+		"objectives": {
+			"statuses": {},
+			"active_set_id": StringName(""),
+			"event_log": [],
+		},
+		"gameplay": {
+			"completed_areas": [],
+			"test_flag": false,
+		},
+	})
+
+	_store.dispatch(GAMEPLAY_ACTIONS.mark_area_complete("bar"))
+
+	assert_eq(
+		manager.get_objective_status(StringName("obj_recover")),
+		"completed",
+		"Manager should recover empty objectives slice and continue evaluating event-driven completion"
+	)
+
 func _spawn_manager(objective_sets: Array[Resource], inject_store: bool) -> Variant:
 	var manager := M_OBJECTIVES_MANAGER.new()
 	manager.objective_sets = objective_sets.duplicate()

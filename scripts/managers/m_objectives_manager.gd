@@ -18,6 +18,7 @@ const STATUS_INACTIVE := "inactive"
 const STATUS_ACTIVE := "active"
 const STATUS_COMPLETED := "completed"
 const STATUS_FAILED := "failed"
+const DEBUG_VICTORY_TRACE := false
 
 @export var state_store: I_StateStore = null
 @export var objective_sets: Array[Resource] = []
@@ -28,6 +29,30 @@ var _objectives_by_id: Dictionary = {}
 var _objective_graph: Dictionary = {}
 var _event_unsubscribes: Array[Callable] = []
 var _store_action_connected: bool = false
+
+func _debug_log(message: String) -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	print("[VictoryDebug][M_ObjectivesManager] %s" % message)
+
+func _debug_objectives_slice(label: String) -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	if _store == null:
+		_debug_log("%s objectives_slice=<no_store>" % label)
+		return
+	var state: Dictionary = _store.get_state()
+	var objectives_variant: Variant = state.get("objectives", {})
+	if objectives_variant is Dictionary:
+		var objectives_slice: Dictionary = objectives_variant as Dictionary
+		var statuses_variant: Variant = objectives_slice.get("statuses", {})
+		var active_set_id: Variant = objectives_slice.get("active_set_id", StringName(""))
+		_debug_log(
+			"%s objectives.statuses=%s objectives.active_set_id=%s"
+			% [label, str(statuses_variant), str(active_set_id)]
+		)
+		return
+	_debug_log("%s objectives_slice=<missing_or_invalid> type=%s" % [label, str(objectives_variant)])
 
 func _ready() -> void:
 	_resolve_store()
@@ -58,6 +83,7 @@ func load_objective_set(set_id: StringName) -> bool:
 
 	var objective_set: Resource = _objective_sets_by_id.get(set_id, null) as Resource
 	if objective_set == null:
+		_debug_log("failed to load objective set: missing set_id=%s" % str(set_id))
 		return false
 
 	var objective_resources: Array[Resource] = _to_resource_array(_resource_get(objective_set, "objectives", []))
@@ -82,6 +108,7 @@ func load_objective_set(set_id: StringName) -> bool:
 	var graph: Dictionary = U_OBJECTIVE_GRAPH.build_graph(objective_resources)
 	var errors: Array[String] = U_OBJECTIVE_GRAPH.validate_graph(graph, known_ids)
 	if not errors.is_empty():
+		_debug_log("objective graph validation failed set_id=%s errors=%s" % [str(set_id), str(errors)])
 		return false
 
 	_objectives_by_id = objective_map
@@ -90,8 +117,11 @@ func load_objective_set(set_id: StringName) -> bool:
 	var persisted_statuses: Dictionary = _get_statuses_snapshot()
 	if _store != null:
 		_store.dispatch(U_OBJECTIVES_ACTIONS.reset_all())
+		_debug_objectives_slice("after objectives/reset_all")
 		_store.dispatch(U_OBJECTIVES_ACTIONS.set_active_set(set_id))
+		_debug_objectives_slice("after objectives/set_active_set")
 		_reconcile_persisted_statuses(known_ids, persisted_statuses)
+		_debug_objectives_slice("after objectives reconcile persisted statuses")
 
 	var auto_activate_ids: Array[StringName] = []
 	for objective_id in known_ids:
@@ -104,6 +134,11 @@ func load_objective_set(set_id: StringName) -> bool:
 
 	for objective_id in auto_activate_ids:
 		_activate_objective(objective_id, {"reason": "auto_activate"})
+
+	_debug_log(
+		"loaded objective set set_id=%s objectives=%s auto_activate=%s"
+		% [str(set_id), str(known_ids), str(auto_activate_ids)]
+	)
 
 	return true
 
@@ -146,10 +181,14 @@ func _complete_objective_with_context(objective_id: StringName, context: Diction
 
 	var status: String = get_objective_status(objective_id)
 	if status == STATUS_COMPLETED or status == STATUS_FAILED:
+		_debug_log("skipping objective completion objective_id=%s status=%s" % [str(objective_id), status])
 		return
+
+	_debug_log("completing objective objective_id=%s previous_status=%s" % [str(objective_id), status])
 
 	if _store != null:
 		_store.dispatch(U_OBJECTIVES_ACTIONS.complete(objective_id))
+		_debug_objectives_slice("after objectives/complete %s" % str(objective_id))
 
 	_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_COMPLETED)
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_COMPLETED, {
@@ -172,6 +211,10 @@ func _complete_objective_with_context(objective_id: StringName, context: Diction
 		var payload_variant: Variant = _resource_get(objective, "completion_event_payload", {})
 		if payload_variant is Dictionary:
 			payload = (payload_variant as Dictionary).duplicate(true)
+		_debug_log(
+			"publishing objective_victory_triggered objective_id=%s payload=%s"
+			% [str(objective_id), str(payload)]
+		)
 		U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED, payload)
 
 	_activate_dependents(objective_id)
@@ -190,6 +233,7 @@ func _fail_objective(objective_id: StringName) -> void:
 
 	if _store != null:
 		_store.dispatch(U_OBJECTIVES_ACTIONS.fail(objective_id))
+		_debug_objectives_slice("after objectives/fail %s" % str(objective_id))
 
 	_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_FAILED)
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_FAILED, {
@@ -307,16 +351,26 @@ func _disconnect_store_action_signal() -> void:
 
 func _on_checkpoint_activated(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
+	_ensure_objective_runtime_state()
+	_debug_log("received checkpoint_activated payload=%s" % str(payload))
 	_evaluate_active_objectives(_build_event_context(payload))
 
 func _on_victory_executed(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
+	_ensure_objective_runtime_state()
+	_debug_log(
+		"received victory_executed payload=%s statuses=%s"
+		% [str(payload), str(_get_statuses_snapshot())]
+	)
 	_evaluate_active_objectives(_build_event_context(payload))
 
 func _on_action_dispatched(action: Dictionary) -> void:
 	var action_type: StringName = action.get("type", StringName(""))
 	if action_type != U_GAMEPLAY_ACTIONS.ACTION_MARK_AREA_COMPLETE:
 		return
+
+	_ensure_objective_runtime_state()
+	_debug_log("observed gameplay/mark_area_complete payload=%s" % str(action.get("payload", null)))
 
 	_evaluate_active_objectives(_build_event_context({
 		"action_type": action_type,
@@ -326,6 +380,7 @@ func _on_action_dispatched(action: Dictionary) -> void:
 func _evaluate_active_objectives(context: Dictionary) -> void:
 	if _store == null:
 		return
+	_ensure_objective_runtime_state()
 
 	var event_payload: Dictionary = {}
 	var payload_variant: Variant = context.get("event_payload", {})
@@ -340,6 +395,7 @@ func _evaluate_active_objectives(context: Dictionary) -> void:
 			evaluation_context["event_payload"] = event_payload.duplicate(true)
 		var state: Dictionary = _store.get_state()
 		var active_ids: Array[StringName] = U_OBJECTIVES_SELECTORS.get_active_objectives(state)
+		_debug_log("evaluating active objectives active_ids=%s event_payload=%s" % [str(active_ids), str(event_payload)])
 		if active_ids.is_empty():
 			break
 
@@ -357,17 +413,76 @@ func _evaluate_active_objectives(context: Dictionary) -> void:
 				_complete_objective_with_context(objective_id, evaluation_context)
 				progressed = true
 
-		if not progressed:
-			break
+			if not progressed:
+				break
+
+func _ensure_objective_runtime_state() -> void:
+	if _store == null:
+		return
+	if _objectives_by_id.is_empty():
+		return
+
+	var state: Dictionary = _store.get_state()
+	var objectives_variant: Variant = state.get("objectives", {})
+	if not (objectives_variant is Dictionary):
+		_reload_objective_set_from_state()
+		return
+
+	var objectives_slice: Dictionary = objectives_variant as Dictionary
+	var statuses_variant: Variant = objectives_slice.get("statuses", {})
+	if statuses_variant is Dictionary:
+		var statuses: Dictionary = statuses_variant as Dictionary
+		if not statuses.is_empty():
+			return
+
+	_reload_objective_set_from_state()
+
+func _reload_objective_set_from_state() -> void:
+	var set_id: StringName = _resolve_active_set_id_from_store()
+	if set_id == StringName(""):
+		return
+	if load_objective_set(set_id):
+		_debug_log("reloaded objective set after empty objectives state set_id=%s" % str(set_id))
+	else:
+		push_warning("M_ObjectivesManager: Failed to reload objective set '%s' for runtime recovery." % str(set_id))
+
+func _resolve_active_set_id_from_store() -> StringName:
+	if _store == null:
+		return StringName("")
+
+	var state: Dictionary = _store.get_state()
+	var objectives_variant: Variant = state.get("objectives", {})
+	if objectives_variant is Dictionary:
+		var objectives_slice: Dictionary = objectives_variant as Dictionary
+		var active_set_variant: Variant = objectives_slice.get("active_set_id", StringName(""))
+		var active_set_id: StringName = _to_string_name(active_set_variant)
+		if active_set_id != StringName(""):
+			return active_set_id
+
+	var candidate_ids: Array[StringName] = []
+	for set_id_variant in _objective_sets_by_id.keys():
+		var candidate_id: StringName = _to_string_name(set_id_variant)
+		if candidate_id != StringName(""):
+			candidate_ids.append(candidate_id)
+	if candidate_ids.is_empty():
+		return StringName("")
+
+	candidate_ids.sort()
+	return candidate_ids[0]
 
 func _activate_objective(objective_id: StringName, details: Dictionary = {}) -> void:
 	if objective_id == StringName(""):
 		return
 	if get_objective_status(objective_id) != STATUS_INACTIVE:
+		_debug_log(
+			"skipping objectives/activate objective_id=%s current_status=%s"
+			% [str(objective_id), get_objective_status(objective_id)]
+		)
 		return
 
 	if _store != null:
 		_store.dispatch(U_OBJECTIVES_ACTIONS.activate(objective_id))
+		_debug_objectives_slice("after objectives/activate %s" % str(objective_id))
 
 	_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_ACTIVATED, details)
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_ACTIVATED, {
@@ -389,10 +504,13 @@ func _reconcile_persisted_statuses(known_ids: Array[StringName], persisted_statu
 		match status:
 			STATUS_ACTIVE:
 				_store.dispatch(U_OBJECTIVES_ACTIONS.activate(objective_id))
+				_debug_objectives_slice("reconcile -> objectives/activate %s" % str(objective_id))
 			STATUS_COMPLETED:
 				_store.dispatch(U_OBJECTIVES_ACTIONS.complete(objective_id))
+				_debug_objectives_slice("reconcile -> objectives/complete %s" % str(objective_id))
 			STATUS_FAILED:
 				_store.dispatch(U_OBJECTIVES_ACTIONS.fail(objective_id))
+				_debug_objectives_slice("reconcile -> objectives/fail %s" % str(objective_id))
 			_:
 				# Unknown/empty statuses are treated as inactive.
 				pass

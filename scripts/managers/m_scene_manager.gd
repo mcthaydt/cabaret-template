@@ -49,6 +49,7 @@ const H_GAMEPLAY_SCENE_HANDLER := preload("res://scripts/scene_management/handle
 const H_MENU_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_menu_scene_handler.gd")
 const H_UI_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_ui_scene_handler.gd")
 const H_ENDGAME_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_endgame_scene_handler.gd")
+const DEBUG_VICTORY_TRACE := false
 
 ## Priority enum (re-exported from U_SceneTransitionQueue for external callers)
 enum Priority {
@@ -156,6 +157,11 @@ var skip_initial_scene_load: bool = false
 
 ## Initial scene to load on startup (configurable for testing)
 @export var initial_scene_id: StringName = StringName("main_menu")
+
+func _debug_log(message: String) -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	print("[VictoryDebug][M_SceneManager] %s" % message)
 
 func _ready() -> void:
 	# Find managers via ServiceLocator (Phase 10B-7: T141c)
@@ -326,6 +332,7 @@ func _on_entity_death(_event: Dictionary) -> void:
 func _on_objective_victory(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
 	var target_scene: StringName = payload.get("target_scene", StringName(""))
+	_debug_log("received objective_victory_triggered payload=%s resolved_target_scene=%s" % [str(payload), str(target_scene)])
 	if target_scene == StringName(""):
 		push_warning("M_SceneManager: objective_victory_triggered missing payload.target_scene")
 		return
@@ -346,14 +353,27 @@ func transition_to_scene(scene_id: StringName, transition_type: String = "fade",
 	# Validate scene exists in registry
 	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(scene_id)
 	if scene_data.is_empty():
-		# Silently ignore missing scenes (graceful handling)
+		_debug_log("transition dropped: unknown scene_id=%s transition_type=%s priority=%s" % [
+			str(scene_id),
+			transition_type,
+			str(priority),
+		])
 		return
 
 	_ensure_store_reference()
 
 	# Add to queue based on priority (delegates to helper)
 	_transition_queue_helper.enqueue(scene_id, transition_type, priority)
-	# Debug logs live in tests, not here
+	_debug_log(
+		"transition enqueued scene_id=%s transition_type=%s priority=%s queue_size=%s is_processing=%s"
+		% [
+			str(scene_id),
+			transition_type,
+			str(priority),
+			str(_transition_queue_helper.size()),
+			str(_transition_queue_helper.is_processing()),
+		]
+	)
 
 	# Process queue if not already processing
 	if not _transition_queue_helper.is_processing() and not _queue_processing_scheduled:
@@ -382,6 +402,10 @@ func _process_transition_queue() -> void:
 		return
 
 	_active_transition_target = request.scene_id
+	_debug_log(
+		"processing transition scene_id=%s transition_type=%s remaining_queue=%s"
+		% [str(request.scene_id), request.transition_type, str(_transition_queue_helper.size())]
+	)
 
 	# Dispatch transition started action
 	if _store != null:
