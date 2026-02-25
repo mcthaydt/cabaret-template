@@ -11,10 +11,12 @@ const OBJECTIVE_SET := preload("res://scripts/resources/scene_director/rs_object
 const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
 const CONDITION_EVENT_PAYLOAD := preload("res://scripts/resources/qb/conditions/rs_condition_event_payload.gd")
 const EFFECT_DISPATCH_ACTION := preload("res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd")
+const CFG_OBJSET_DEFAULT := preload("res://resources/scene_director/sets/cfg_objset_default.tres")
 const U_SCENE_TEST_HELPERS := preload("res://tests/helpers/u_scene_test_helpers.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 var _root: Node
 var _state_store: M_STATE_STORE
@@ -22,6 +24,7 @@ var _scene_manager: M_SCENE_MANAGER
 var _objectives_manager: M_OBJECTIVES_MANAGER
 
 func before_each() -> void:
+	U_STATE_HANDOFF.clear_all()
 	U_ServiceLocator.clear()
 	U_ECS_EVENT_BUS.reset()
 
@@ -62,6 +65,7 @@ func after_each() -> void:
 
 	U_ServiceLocator.clear()
 	U_ECS_EVENT_BUS.reset()
+	U_STATE_HANDOFF.clear_all()
 
 	_root = null
 	_state_store = null
@@ -97,6 +101,55 @@ func test_victory_executed_transitions_scene_via_objectives_manager() -> void:
 
 	if unsubscribe.is_valid():
 		unsubscribe.call()
+
+func test_default_objective_set_requires_game_complete_before_victory_transition() -> void:
+	assert_not_null(CFG_OBJSET_DEFAULT)
+
+	if _objectives_manager != null and is_instance_valid(_objectives_manager):
+		_objectives_manager.queue_free()
+		await get_tree().process_frame
+
+	_objectives_manager = M_OBJECTIVES_MANAGER.new()
+	_objectives_manager.state_store = _state_store
+	var default_set: Resource = (CFG_OBJSET_DEFAULT as Resource).duplicate(true)
+	_objectives_manager.objective_sets = [default_set]
+	_root.add_child(_objectives_manager)
+	U_ServiceLocator.register(StringName("objectives_manager"), _objectives_manager)
+
+	await get_tree().process_frame
+	await wait_physics_frames(1)
+
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("alleyway"))
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("bar"))
+	await wait_physics_frames(1)
+
+	assert_eq(_objectives_manager.get_objective_status(StringName("level_complete")), "completed")
+	assert_eq(
+		_objectives_manager.get_objective_status(StringName("game_complete")),
+		"active",
+		"Default objective set should not complete game objective from area completion alone"
+	)
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
+		"source": "test",
+	})
+	await wait_physics_frames(1)
+
+	assert_eq(
+		_objectives_manager.get_objective_status(StringName("game_complete")),
+		"active",
+		"Victory event alone should not complete without gameplay.game_completed"
+	)
+	assert_eq(_scene_manager.get_current_scene(), StringName(""))
+
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.game_complete())
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
+		"source": "test",
+	})
+	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)
+
+	assert_eq(_objectives_manager.get_objective_status(StringName("game_complete")), "completed")
+	assert_eq(_scene_manager.get_current_scene(), StringName("victory"))
 
 func _build_test_objective_set() -> Resource:
 	var level_condition := CONDITION_REDUX_FIELD.new()
