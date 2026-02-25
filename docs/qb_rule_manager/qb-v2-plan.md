@@ -4,7 +4,7 @@
 
 - **Feature:** Replace v1 QB rule engine (base class inheritance model) with v2 (stateless scoring library + resource polymorphism + domain composition)
 - **Branch:** `scene-director` (continues from v1 completion)
-- **Current status:** In progress (Phase 2B complete on 2026-02-25; Phase 2C next)
+- **Current status:** In progress (Phase 2 complete on 2026-02-25; Phase 3A next)
 - **Prerequisite:** v1 is 100% complete (all phases + R1-R7 refactors)
 
 ## Guiding Principles
@@ -55,6 +55,8 @@ Current Phase 1 outcome: fallback path was selected due headless parser instabil
 
 Phase 2A completion note (2026-02-25): Deleted all 9 v1 core QB scripts, deleted v1 QB unit/integration suites, deleted 9 legacy v1 QB `.tres` resources, and cleared stale deleted-class references from active code. Verification: `tests/unit/style` (12/12 passing), `tests/unit/qb` (101/101 passing).
 Phase 2B completion note (2026-02-25): Recreated 5 character QB rule resources (`cfg_pause_gate_paused`, `cfg_pause_gate_shell`, `cfg_pause_gate_transitioning`, `cfg_spawn_freeze_rule`, `cfg_death_sync_rule`) using `RS_Rule` + typed v2 condition/effect subresources. Verified with `U_RuleValidator.validate_rules(...)` (0 errors), plus `tests/unit/style` (12/12 passing) and `tests/unit/qb` (101/101 passing).
+Phase 2C completion note (2026-02-25): Migrated `S_CharacterRuleManager` → `S_CharacterStateSystem` with v2 scorer/selector/tracker composition, validator-backed rule loading, scene reference updates, and new unit coverage (`test_character_state_system.gd`, 13 tests). Verification: `tests/unit/qb` (114/114 passing) and `tests/unit/style` (12/12 passing).
+Phase 2D completion note (2026-02-25): Added `tests/integration/qb/test_character_movement_pipeline.gd` for paused/unpaused end-to-end gating. Verification: `tests/integration/qb` (2/2 passing), `tests/unit/qb` (114/114 passing), `tests/unit/style` (12/12 passing).
 
 **Deliverable:** v1 fully removed. Character brain data works identically. Green tests.
 

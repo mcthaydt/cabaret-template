@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 63% (150 / 240 tasks complete)
+**Progress:** 74% (178 / 240 tasks complete)
 
 ---
 
@@ -279,40 +279,51 @@ Completion note (2026-02-25): Added all 5 character rule resources with v2 `RS_R
 
 **Tests first:**
 
-- [ ] T151. Create `tests/unit/qb/test_character_state_system.gd`
-- [ ] T152. Test: brain data defaults reset each tick (is_gameplay_active=true, is_dead=false, etc.)
-- [ ] T153. Test: pause gate paused — is_gameplay_active set to false when time.is_paused=true
-- [ ] T154. Test: pause gate shell — is_gameplay_active set to false when navigation.shell != gameplay
-- [ ] T155. Test: pause gate transitioning — is_gameplay_active set to false when scene.is_transitioning=true
-- [ ] T156. Test: pause gates compete in decision group — only one winner fires per tick
-- [ ] T157. Test: spawn freeze — is_spawn_frozen=true when C_SpawnStateComponent.is_physics_frozen=true
-- [ ] T158. Test: spawn freeze clears when component reports unfrozen
-- [ ] T159. Test: death sync — is_dead=true when C_HealthComponent.is_dead=true
-- [ ] T160. Test: death sync clears when health component reports alive
-- [ ] T161. Test: health_percent populated from health component
-- [ ] T162. Test: is_grounded populated from CharacterBody3D/floating state
-- [ ] T163. Test: is_moving populated from velocity threshold
-- [ ] T164. Test: designer rules via `@export var rules` evaluated alongside defaults
+- [x] T151. Create `tests/unit/qb/test_character_state_system.gd`
+- [x] T152. Test: brain data defaults reset each tick (is_gameplay_active=true, is_dead=false, etc.)
+- [x] T153. Test: pause gate paused — is_gameplay_active set to false when time.is_paused=true
+- [x] T154. Test: pause gate shell — is_gameplay_active set to false when navigation.shell != gameplay
+- [x] T155. Test: pause gate transitioning — is_gameplay_active set to false when scene.is_transitioning=true
+- [x] T156. Test: pause gates compete in decision group — only one winner fires per tick
+- [x] T157. Test: spawn freeze — is_spawn_frozen=true when C_SpawnStateComponent.is_physics_frozen=true
+- [x] T158. Test: spawn freeze clears when component reports unfrozen
+- [x] T159. Test: death sync — is_dead=true when C_HealthComponent.is_dead=true
+- [x] T160. Test: death sync clears when health component reports alive
+- [x] T161. Test: health_percent populated from health component
+- [x] T162. Test: is_grounded populated from CharacterBody3D/floating state
+- [x] T163. Test: is_moving populated from velocity threshold
+- [x] T164. Test: designer rules via `@export var rules` evaluated alongside defaults
 
 **Implementation:**
 
-- [ ] T165. Rename `s_character_rule_manager.gd` → `s_character_state_system.gd`, class → `S_CharacterStateSystem`
-- [ ] T166. Replace `extends BaseQBRuleManager` with `extends BaseECSSystem`
-- [ ] T167. Add `@export var rules: Array[RS_Rule] = []` for designer-added rules
-- [ ] T168. Add `var _tracker := RuleStateTracker.new()` instance
-- [ ] T169. Migrate context building: `_build_entity_contexts()` + decomposed helpers (populate entity, components, health, movement, input)
-- [ ] T170. Implement `process_tick()`: tick cooldowns → build contexts → score → select → execute → write brain data
-- [ ] T171. Implement `_execute_effects(winners, context)` — iterate winner effects, call effect.execute(context)
-- [ ] T172. Migrate `_write_brain_data()` — copy context values to C_CharacterStateComponent
-- [ ] T173. Implement event subscription for any rules with event/both trigger modes
-- [ ] T174. Update scene references (`.tscn` files) to new script path/class name
-- [ ] T175. All character state system tests green
+- [x] T165. Rename `s_character_rule_manager.gd` → `s_character_state_system.gd`, class → `S_CharacterStateSystem`
+- [x] T166. Replace `extends BaseQBRuleManager` with `extends BaseECSSystem`
+- [x] T167. Add `@export var rules: Array[RS_Rule] = []` for designer-added rules
+- [x] T168. Add `var _tracker := RuleStateTracker.new()` instance
+- [x] T169. Migrate context building: `_build_entity_contexts()` + decomposed helpers (populate entity, components, health, movement, input)
+- [x] T170. Implement `process_tick()`: tick cooldowns → build contexts → score → select → execute → write brain data
+- [x] T171. Implement `_execute_effects(winners, context)` — iterate winner effects, call effect.execute(context)
+- [x] T172. Migrate `_write_brain_data()` — copy context values to C_CharacterStateComponent
+- [x] T173. Implement event subscription for any rules with event/both trigger modes
+- [x] T174. Update scene references (`.tscn` files) to new script path/class name
+- [x] T175. All character state system tests green
+
+Completion note (2026-02-25): Added `test_character_state_system.gd` (13 tests, `T151-T164`) and migrated `S_CharacterStateSystem` end-to-end (`T165-T175`) with v2 scoring/selection, designer rules export, cooldown/rising-edge/one-shot tracking, and event-trigger subscriptions. Scene references were updated across gameplay scenes to `s_character_state_system.gd` / `S_CharacterStateSystem`. Verification:
+- `@export var rules` remains `Array[Resource]` in implementation as a headless parser-stability fallback while validating to `RS_Rule` via `U_RuleValidator`.
+- Character system suite: 13/13 passing (`test_character_state_system.gd`)
+- QB unit suite: 114/114 passing (`tests/unit/qb`)
+- Style suite: 12/12 passing (`tests/unit/style`)
 
 **Integration test:**
 
-- [ ] T176. Create `tests/integration/qb/test_character_movement_pipeline.gd`
-- [ ] T177. Test: paused → movement system reads is_gameplay_active=false → movement blocked
-- [ ] T178. Test: unpaused → movement proceeds
+- [x] T176. Create `tests/integration/qb/test_character_movement_pipeline.gd`
+- [x] T177. Test: paused → movement system reads is_gameplay_active=false → movement blocked
+- [x] T178. Test: unpaused → movement proceeds
+
+Completion note (2026-02-25): Added `tests/integration/qb/test_character_movement_pipeline.gd` to validate the end-to-end character gate → movement pipeline in v2. Verification:
+- QB integration suite (`tests/integration/qb`): 2/2 passing
+- QB unit suite (`tests/unit/qb`): 114/114 passing
+- Style suite (`tests/unit/style`): 12/12 passing
 
 **Phase 2 commit checkpoint.** v1 deleted. Character brain data works identically. Green tests.
 

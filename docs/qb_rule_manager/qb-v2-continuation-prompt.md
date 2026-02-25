@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 2B complete; Phase 2C next)
+- **Status:** In progress (Phase 2 complete; Phase 3A next)
 
 ## Recent Progress
 
@@ -106,6 +106,19 @@
   - Validated all 5 resources via `U_RuleValidator.validate_rules(...)` (0 errors)
   - Verified style suite `tests/unit/style` (12/12 passing)
   - Verified QB unit suite `tests/unit/qb` (101/101 passing)
+- Phase 2C completed on 2026-02-25:
+  - Added `tests/unit/qb/test_character_state_system.gd` (T151-T164, 13 tests)
+  - Renamed `s_character_rule_manager.gd` → `s_character_state_system.gd` (`class_name S_CharacterStateSystem`)
+  - Replaced inheritance with v2 composition (`U_RuleScorer`, `U_RuleSelector`, `RuleStateTracker`, `U_RuleValidator`)
+  - Updated gameplay scene references to `s_character_state_system.gd` / `S_CharacterStateSystem`
+  - Verified QB unit suite `tests/unit/qb` (114/114 passing)
+  - Verified style suite `tests/unit/style` (12/12 passing)
+- Phase 2D completed on 2026-02-25:
+  - Added `tests/integration/qb/test_character_movement_pipeline.gd` (T176-T178)
+  - Verified paused gate blocks movement and unpaused state allows movement end-to-end
+  - Verified QB integration suite `tests/integration/qb` (2/2 passing)
+  - Re-verified QB unit suite `tests/unit/qb` (114/114 passing)
+  - Re-verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
 
@@ -148,15 +161,15 @@ _handle_winners(winners, context)  # domain-specific
 **Key v2 improvements over v1:**
 - Typed condition/effect subclasses (no enum soup, no Dictionary payloads)
 - `RS_EffectSetField.use_context_value` — dynamic effect values read from context
-- `@export var rules: Array[RS_Rule]` on domain systems — designers add rules without editing code
+- `@export var rules` on domain systems — designers add rules without editing code (`Array[Resource]` fallback currently, validator-enforced `RS_Rule` subtypes)
 - `S_GameEventSystem` supports global tick context (v1 had no tick capability)
 - No 632-line base class to inherit from
 
 ## Next Steps
 
-1. **Phase 2C:** Migrate `S_CharacterRuleManager` to `S_CharacterStateSystem` with TDD (`T151-T175`).
-2. Work through phases sequentially — each ends with a commit checkpoint.
-3. After 2C implementation, run the Phase 2 integration tests (`T176-T178`).
+1. **Phase 3A:** Recreate game event rule resources (`T179-T180`).
+2. Continue sequentially through Phase 3 (`T181-T202`) with a commit checkpoint at completion.
+3. Keep style + QB suites green at each sub-phase checkpoint.
 
 ## Key Design Decisions
 
