@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 2A complete; Phase 2B next)
+- **Status:** In progress (Phase 2B complete; Phase 2C next)
 
 ## Recent Progress
 
@@ -93,6 +93,19 @@
   - Cleared stale deleted-class references from active code
   - Verified style suite `tests/unit/style` (12/12 passing)
   - Verified QB unit suite `tests/unit/qb` (101/101 passing)
+- Phase 2B completed on 2026-02-25:
+  - Recreated 5 character v2 rule resources under `resources/qb/character/`:
+    - `cfg_pause_gate_paused.tres`
+    - `cfg_pause_gate_shell.tres`
+    - `cfg_pause_gate_transitioning.tres`
+    - `cfg_spawn_freeze_rule.tres`
+    - `cfg_death_sync_rule.tres`
+  - Rules now use `RS_Rule` with typed condition/effect subresources:
+    - Pause gates: `RS_ConditionReduxField` + `RS_EffectSetContextValue`, `decision_group = &"pause_gate"`
+    - Spawn/death sync: `RS_ConditionComponentField` + `RS_EffectSetContextValue`
+  - Validated all 5 resources via `U_RuleValidator.validate_rules(...)` (0 errors)
+  - Verified style suite `tests/unit/style` (12/12 passing)
+  - Verified QB unit suite `tests/unit/qb` (101/101 passing)
 
 ## Required Readings
 
@@ -141,9 +154,9 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 2B:** Recreate character rule resources with v2 types (`T145-T150`).
+1. **Phase 2C:** Migrate `S_CharacterRuleManager` to `S_CharacterStateSystem` with TDD (`T151-T175`).
 2. Work through phases sequentially — each ends with a commit checkpoint.
-3. Proceed to Phase 2C once Phase 2B resources pass `U_RuleValidator`.
+3. After 2C implementation, run the Phase 2 integration tests (`T176-T178`).
 
 ## Key Design Decisions
 

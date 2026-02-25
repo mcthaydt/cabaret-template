@@ -4,7 +4,7 @@
 
 - **Feature:** Replace v1 QB rule engine (base class inheritance model) with v2 (stateless scoring library + resource polymorphism + domain composition)
 - **Branch:** `scene-director` (continues from v1 completion)
-- **Current status:** In progress (Phase 2A complete on 2026-02-25; Phase 2B next)
+- **Current status:** In progress (Phase 2B complete on 2026-02-25; Phase 2C next)
 - **Prerequisite:** v1 is 100% complete (all phases + R1-R7 refactors)
 
 ## Guiding Principles
@@ -54,6 +54,7 @@ Current Phase 1 outcome: fallback path was selected due headless parser instabil
 | 2D — Integration test | T176-T178 | End-to-end: paused → movement blocked |
 
 Phase 2A completion note (2026-02-25): Deleted all 9 v1 core QB scripts, deleted v1 QB unit/integration suites, deleted 9 legacy v1 QB `.tres` resources, and cleared stale deleted-class references from active code. Verification: `tests/unit/style` (12/12 passing), `tests/unit/qb` (101/101 passing).
+Phase 2B completion note (2026-02-25): Recreated 5 character QB rule resources (`cfg_pause_gate_paused`, `cfg_pause_gate_shell`, `cfg_pause_gate_transitioning`, `cfg_spawn_freeze_rule`, `cfg_death_sync_rule`) using `RS_Rule` + typed v2 condition/effect subresources. Verified with `U_RuleValidator.validate_rules(...)` (0 errors), plus `tests/unit/style` (12/12 passing) and `tests/unit/qb` (101/101 passing).
 
 **Deliverable:** v1 fully removed. Character brain data works identically. Green tests.
 

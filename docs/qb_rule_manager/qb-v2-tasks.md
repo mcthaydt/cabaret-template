@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 60% (144 / 240 tasks complete)
+**Progress:** 63% (150 / 240 tasks complete)
 
 ---
 
@@ -263,12 +263,17 @@ Completion note (2026-02-25): Deleted all targeted v1 QB engine scripts/resource
 
 ### 2B — Recreate Character Rule Resources
 
-- [ ] T145. Create `resources/qb/character/cfg_pause_gate_paused.tres` — RS_Rule + RS_ConditionReduxField (state_path=`time.is_paused`, equals, match=`true`) + RS_EffectSetContextValue (is_gameplay_active=false), decision_group=`pause_gate`
-- [ ] T146. Create `resources/qb/character/cfg_pause_gate_shell.tres` — RS_ConditionReduxField (state_path=`navigation.shell`, not_equals, match=`gameplay`), decision_group=`pause_gate`
-- [ ] T147. Create `resources/qb/character/cfg_pause_gate_transitioning.tres` — RS_ConditionReduxField (state_path=`scene.is_transitioning`, equals, match=`true`), decision_group=`pause_gate`
-- [ ] T148. Create `resources/qb/character/cfg_spawn_freeze_rule.tres` — RS_ConditionComponentField (C_SpawnStateComponent.is_physics_frozen, binary)
-- [ ] T149. Create `resources/qb/character/cfg_death_sync_rule.tres` — RS_ConditionComponentField (C_HealthComponent.is_dead, binary)
-- [ ] T150. All 5 resources pass U_RuleValidator.validate_rules()
+- [x] T145. Create `resources/qb/character/cfg_pause_gate_paused.tres` — RS_Rule + RS_ConditionReduxField (state_path=`time.is_paused`, equals, match=`true`) + RS_EffectSetContextValue (is_gameplay_active=false), decision_group=`pause_gate`
+- [x] T146. Create `resources/qb/character/cfg_pause_gate_shell.tres` — RS_ConditionReduxField (state_path=`navigation.shell`, not_equals, match=`gameplay`), decision_group=`pause_gate`
+- [x] T147. Create `resources/qb/character/cfg_pause_gate_transitioning.tres` — RS_ConditionReduxField (state_path=`scene.is_transitioning`, equals, match=`true`), decision_group=`pause_gate`
+- [x] T148. Create `resources/qb/character/cfg_spawn_freeze_rule.tres` — RS_ConditionComponentField (C_SpawnStateComponent.is_physics_frozen, binary)
+- [x] T149. Create `resources/qb/character/cfg_death_sync_rule.tres` — RS_ConditionComponentField (C_HealthComponent.is_dead, binary)
+- [x] T150. All 5 resources pass U_RuleValidator.validate_rules()
+
+Completion note (2026-02-25): Added all 5 character rule resources with v2 `RS_Rule` + typed condition/effect subresources and validated them with a headless generation/validation script (`/tmp/create_qb_v2_character_rules.gd` calling `U_RuleValidator.validate_rules`). Verification:
+- Validator: 5/5 resources loaded, 0 validation errors
+- Style suite: 12/12 passing (`tests/unit/style`)
+- QB unit suite: 101/101 passing (`tests/unit/qb`)
 
 ### 2C — Migrate S_CharacterStateSystem (TDD)
 
