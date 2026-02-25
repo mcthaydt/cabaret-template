@@ -4,7 +4,7 @@
 
 - **Feature:** Replace v1 QB rule engine (base class inheritance model) with v2 (stateless scoring library + resource polymorphism + domain composition)
 - **Branch:** `scene-director` (continues from v1 completion)
-- **Current status:** In progress (Phase 2 complete on 2026-02-25; Phase 3A next)
+- **Current status:** In progress (Phase 3A complete on 2026-02-25; Phase 3B next)
 - **Prerequisite:** v1 is 100% complete (all phases + R1-R7 refactors)
 
 ## Guiding Principles
@@ -73,6 +73,8 @@ Phase 2D completion note (2026-02-25): Added `tests/integration/qb/test_characte
 | 3A — Recreate game .tres | T179-T180 | 2 event-forwarding rules using v2 types |
 | 3B — Migrate system (TDD) | T181-T198 | Tests first (T181-T188), then implementation (T189-T198) |
 | 3C — Integration tests | T199-T202 | Checkpoint and victory end-to-end pipelines |
+
+Phase 3A completion note (2026-02-25): Recreated `cfg_checkpoint_rule.tres` and `cfg_victory_rule.tres` in `resources/qb/game/` using `RS_Rule` + `RS_EffectPublishEvent` event-forwarding configs. Verification: `U_RuleValidator.validate_rules(...)` (2/2 valid), `tests/unit/qb` (114/114 passing), `tests/unit/style` (12/12 passing).
 
 **Deliverable:** Game event routing works. Handler systems unchanged. Global tick context available for future use.
 

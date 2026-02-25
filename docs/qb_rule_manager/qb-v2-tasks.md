@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 74% (178 / 240 tasks complete)
+**Progress:** 75% (180 / 240 tasks complete)
 
 ---
 
@@ -333,8 +333,13 @@ Completion note (2026-02-25): Added `tests/integration/qb/test_character_movemen
 
 ### 3A — Recreate Game Rule Resources
 
-- [ ] T179. Create `resources/qb/game/cfg_checkpoint_rule.tres` — RS_Rule (trigger_mode=event, trigger_event=checkpoint_zone_entered) + RS_EffectPublishEvent (checkpoint_activation_requested, inject_entity_id=true)
-- [ ] T180. Create `resources/qb/game/cfg_victory_rule.tres` — RS_Rule (trigger_mode=event, trigger_event=victory_triggered) + RS_EffectPublishEvent (victory_execution_requested, inject_entity_id=true)
+- [x] T179. Create `resources/qb/game/cfg_checkpoint_rule.tres` — RS_Rule (trigger_mode=event, trigger_event=checkpoint_zone_entered) + RS_EffectPublishEvent (checkpoint_activation_requested, inject_entity_id=true)
+- [x] T180. Create `resources/qb/game/cfg_victory_rule.tres` — RS_Rule (trigger_mode=event, trigger_event=victory_triggered) + RS_EffectPublishEvent (victory_execution_requested, inject_entity_id=true)
+
+Completion note (2026-02-25): Added both v2 game event-forwarding rule resources (`cfg_checkpoint_rule.tres`, `cfg_victory_rule.tres`) using `RS_Rule` + `RS_EffectPublishEvent` with event trigger modes and `inject_entity_id = true`. Verification:
+- Resource validation: `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
+- QB unit suite: 114/114 passing (`tests/unit/qb`)
+- Style suite: 12/12 passing (`tests/unit/style`)
 
 ### 3B — Migrate S_GameEventSystem (TDD)
 

@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 2 complete; Phase 3A next)
+- **Status:** In progress (Phase 3A complete; Phase 3B next)
 
 ## Recent Progress
 
@@ -119,6 +119,13 @@
   - Verified QB integration suite `tests/integration/qb` (2/2 passing)
   - Re-verified QB unit suite `tests/unit/qb` (114/114 passing)
   - Re-verified style suite `tests/unit/style` (12/12 passing)
+- Phase 3A completed on 2026-02-25:
+  - Added `resources/qb/game/cfg_checkpoint_rule.tres`
+  - Added `resources/qb/game/cfg_victory_rule.tres`
+  - Configured both as `RS_Rule` event-forwarding resources using `RS_EffectPublishEvent` (`inject_entity_id = true`)
+  - Validated with `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
+  - Verified QB unit suite `tests/unit/qb` (114/114 passing)
+  - Verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
 
@@ -167,8 +174,8 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 3A:** Recreate game event rule resources (`T179-T180`).
-2. Continue sequentially through Phase 3 (`T181-T202`) with a commit checkpoint at completion.
+1. **Phase 3B:** Migrate `S_GameRuleManager` → `S_GameEventSystem` (`T181-T198`).
+2. **Phase 3C:** Add integration coverage for checkpoint/victory pipelines (`T199-T202`).
 3. Keep style + QB suites green at each sub-phase checkpoint.
 
 ## Key Design Decisions
