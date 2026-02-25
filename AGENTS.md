@@ -57,11 +57,13 @@
   - Use `U_ECSUtils.map_components_by_body()` when multiple systems need shared body→component dictionaries (avoids duplicate loops).
   - Auto-discovers `M_ECSManager` via parent traversal or ServiceLocator (`ecs_manager`); no manual wiring needed.
   - Event-driven request systems should extend `BaseEventVFXSystem` / `BaseEventSFXSystem` and implement `get_event_name()` + `create_request_from_payload()` to enqueue `requests`.
-- Game rule manager + handlers (Phase 4)
-  - `S_GameRuleManager` hosts event-only QB rules from `resources/qb/game/*.tres` and forwards trigger payloads via `PUBLISH_EVENT`.
+- Game event system + handlers (Phase 3B, QB v2)
+  - `S_GameEventSystem` hosts default game forwarding rules from `resources/qb/game/*.tres` and composes v2 rule utilities (`U_RuleScorer`, `U_RuleSelector`, `RuleStateTracker`, `U_RuleValidator`) directly.
+  - `S_GameEventSystem` evaluates event/both rules on subscribed ECS events and supports optional global tick evaluation for tick/both rules.
+  - Event-forwarding publish effects merge incoming event payload into the outgoing payload, then apply configured payload overrides and `entity_id` injection.
   - `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates required payload (`checkpoint`, `spawn_point_id`), dispatches `set_last_checkpoint`, and publishes `Evn_CheckpointActivated`.
   - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `@export var required_final_area: String = "bar"` for game-complete triggers, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED` for post-validation scene transitions.
-  - Gameplay flows use `S_GameRuleManager` + handler systems end-to-end; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from the codebase, and active tests target QB-handler flow.
+  - Gameplay flows use `S_GameEventSystem` + handler systems end-to-end; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from the codebase, and active tests target QB-handler flow.
 - QB rule validation patterns (Phase 6)
   - `BaseQBRuleManager.on_configured()` runs `U_QBRuleValidator.validate_rule_definitions(...)` before rule registration.
   - Only `valid_rules` from the validation report are registered; invalid rules are excluded from runtime evaluation.

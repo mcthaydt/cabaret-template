@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 3A complete; Phase 3B next)
+- **Status:** In progress (Phase 3B complete; Phase 3C next)
 
 ## Recent Progress
 
@@ -126,6 +126,15 @@
   - Validated with `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
   - Verified QB unit suite `tests/unit/qb` (114/114 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
+- Phase 3B completed on 2026-02-25:
+  - Added `tests/unit/qb/test_game_event_system.gd` (T181-T188, 7 tests)
+  - Renamed `s_game_rule_manager.gd` → `s_game_event_system.gd` (`class_name S_GameEventSystem`)
+  - Replaced inheritance with v2 composition (`U_RuleScorer`, `U_RuleSelector`, `RuleStateTracker`, `U_RuleValidator`)
+  - Implemented event/tick rule evaluation with subscription cleanup and cooldown/rising-edge/one-shot gating
+  - Updated gameplay/integration scene references to `s_game_event_system.gd` / `S_GameEventSystem`
+  - Removed stale `uid` attributes for renamed game-event system script ext_resources in gameplay scenes to stabilize headless scene parsing after rename
+  - Verified QB unit suite `tests/unit/qb` (121/121 passing)
+  - Verified style suite `tests/unit/style` (12/12 passing)
 
 ## Required Readings
 
@@ -174,8 +183,8 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 3B:** Migrate `S_GameRuleManager` → `S_GameEventSystem` (`T181-T198`).
-2. **Phase 3C:** Add integration coverage for checkpoint/victory pipelines (`T199-T202`).
+1. **Phase 3C:** Add integration coverage for checkpoint/victory pipelines (`T199-T202`).
+2. Continue sequentially into Phase 4 (`T203-T227`) after the Phase 3 commit checkpoint is complete.
 3. Keep style + QB suites green at each sub-phase checkpoint.
 
 ## Key Design Decisions

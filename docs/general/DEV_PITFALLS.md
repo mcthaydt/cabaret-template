@@ -26,6 +26,9 @@
   - omit the `uid="uid://..."` field on new `ext_resource` entries, or
   - verify the exact UID from the source `.uid` file before pasting it.
 
+- **Script renames can leave stale `ext_resource` UIDs in scenes**: After renaming/moving a script referenced by `.tscn` files, scene `ext_resource` lines may keep a UID that still resolves to the old path (for example, trying to load `res://.../old_name.gd` even when `path="res://.../new_name.gd"` is present). This can fail headless style/scene tests with parse errors.
+  - **Fix**: remove the stale `uid="uid://..."` on affected `ext_resource` lines (let Godot regenerate it), or refresh UID/cache via headless import.
+
 ## Godot Script Class Cache
 
 - **Refresh global class cache after moving `class_name` scripts**: Moving scripts that declare `class_name` can leave the global class cache pointing at old paths, causing scenes to instantiate with base `Control` nodes and missing methods in headless tests. **Fix**: run a headless import pass to rebuild the class cache:

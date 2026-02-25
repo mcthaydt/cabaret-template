@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 75% (180 / 240 tasks complete)
+**Progress:** 83% (198 / 240 tasks complete)
 
 ---
 
@@ -345,27 +345,32 @@ Completion note (2026-02-25): Added both v2 game event-forwarding rule resources
 
 **Tests first:**
 
-- [ ] T181. Create `tests/unit/qb/test_game_event_system.gd`
-- [ ] T182. Test: checkpoint event received → checkpoint_activation_requested published with full payload
-- [ ] T183. Test: victory event received → victory_execution_requested published with full payload
-- [ ] T184. Test: entity_id from event context injected into published payload
-- [ ] T185. Test: designer-added event rules via `@export var rules` are subscribed and evaluated
-- [ ] T186. Test: event subscription cleaned up on _exit_tree
-- [ ] T187. Test: no tick processing when all rules are event-only (process_tick is no-op)
-- [ ] T188. Test: global tick context built and evaluated when a tick-mode rule is added via export
+- [x] T181. Create `tests/unit/qb/test_game_event_system.gd`
+- [x] T182. Test: checkpoint event received → checkpoint_activation_requested published with full payload
+- [x] T183. Test: victory event received → victory_execution_requested published with full payload
+- [x] T184. Test: entity_id from event context injected into published payload
+- [x] T185. Test: designer-added event rules via `@export var rules` are subscribed and evaluated
+- [x] T186. Test: event subscription cleaned up on _exit_tree
+- [x] T187. Test: no tick processing when all rules are event-only (process_tick is no-op)
+- [x] T188. Test: global tick context built and evaluated when a tick-mode rule is added via export
 
 **Implementation:**
 
-- [ ] T189. Rename `s_game_rule_manager.gd` → `s_game_event_system.gd`, class → `S_GameEventSystem`
-- [ ] T190. Replace `extends BaseQBRuleManager` with `extends BaseECSSystem`
-- [ ] T191. Add `@export var rules: Array[RS_Rule] = []`
-- [ ] T192. Add `var _tracker := RuleStateTracker.new()` instance
-- [ ] T193. Implement `on_configured()`: validate rules, subscribe to trigger events for event/both mode rules
-- [ ] T194. Implement `_on_event_received(event_name, event)`: build context from payload + Redux state → score → select → execute effects
-- [ ] T195. Implement `process_tick(delta)`: if any rules are tick/both mode, build global context (Redux state snapshot) → score → select → execute
-- [ ] T196. Clean up event subscriptions in `_exit_tree()`
-- [ ] T197. Update scene references to new script path/class name
-- [ ] T198. All game event system tests green
+- [x] T189. Rename `s_game_rule_manager.gd` → `s_game_event_system.gd`, class → `S_GameEventSystem`
+- [x] T190. Replace `extends BaseQBRuleManager` with `extends BaseECSSystem`
+- [x] T191. Add `@export var rules: Array[RS_Rule] = []`
+- [x] T192. Add `var _tracker := RuleStateTracker.new()` instance
+- [x] T193. Implement `on_configured()`: validate rules, subscribe to trigger events for event/both mode rules
+- [x] T194. Implement `_on_event_received(event_name, event)`: build context from payload + Redux state → score → select → execute effects
+- [x] T195. Implement `process_tick(delta)`: if any rules are tick/both mode, build global context (Redux state snapshot) → score → select → execute
+- [x] T196. Clean up event subscriptions in `_exit_tree()`
+- [x] T197. Update scene references to new script path/class name
+- [x] T198. All game event system tests green
+
+Completion note (2026-02-25): Added `test_game_event_system.gd` (7 tests, `T181-T188`) and migrated `S_GameEventSystem` end-to-end (`T189-T198`) with v2 scoring/selection, event/tick trigger evaluation, validator-backed rule loading, cooldown/rising-edge/one-shot gating, and explicit event subscription cleanup. Scene references were updated across gameplay and integration fixtures to `s_game_event_system.gd` / `S_GameEventSystem`, and stale script UID references were removed from gameplay scenes to keep headless scene parsing stable after the script rename. Verification:
+- `test_game_event_system.gd`: 7/7 passing
+- QB unit suite (`tests/unit/qb`): 121/121 passing
+- Style suite (`tests/unit/style`): 12/12 passing
 
 **Integration tests:**
 
