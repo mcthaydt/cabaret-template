@@ -12,6 +12,10 @@ const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.g
 const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
 const U_LOCALIZATION_REDUCER := preload("res://scripts/state/reducers/u_localization_reducer.gd")
 const U_TIME_REDUCER := preload("res://scripts/state/reducers/u_time_reducer.gd")
+const U_OBJECTIVES_REDUCER := preload("res://scripts/state/reducers/u_objectives_reducer.gd")
+const U_SCENE_DIRECTOR_REDUCER := preload("res://scripts/state/reducers/u_scene_director_reducer.gd")
+const RS_OBJECTIVES_INITIAL_STATE := preload("res://scripts/resources/state/rs_objectives_initial_state.gd")
+const RS_SCENE_DIRECTOR_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_director_initial_state.gd")
 
 ## Initialize core slices based on the provided initial state resources.
 ##
@@ -26,9 +30,11 @@ static func initialize_slices(
 	gameplay_initial_state: RS_GameplayInitialState,
 	scene_initial_state: RS_SceneInitialState,
 	debug_initial_state: RS_DebugInitialState,
-	vfx_initial_state: RS_VFXInitialState,
-	audio_initial_state: RS_AudioInitialState,
-	display_initial_state: Resource,
+	vfx_initial_state: RS_VFXInitialState = null,
+	audio_initial_state: RS_AudioInitialState = null,
+	display_initial_state: Resource = null,
+	objectives_initial_state: Resource = null,
+	scene_director_initial_state: Resource = null,
 	localization_initial_state: Resource = null,
 	time_initial_state: Resource = null
 ) -> void:
@@ -106,6 +112,29 @@ static func initialize_slices(
 		debug_config.dependencies = []
 		debug_config.transient_fields = []
 		register_slice(slice_configs, state, debug_config)
+
+	# Objectives slice
+	if objectives_initial_state == null:
+		objectives_initial_state = RS_OBJECTIVES_INITIAL_STATE.new()
+	if objectives_initial_state != null:
+		var objectives_config := RS_StateSliceConfig.new(StringName("objectives"))
+		objectives_config.reducer = Callable(U_OBJECTIVES_REDUCER, "reduce")
+		objectives_config.initial_state = objectives_initial_state.to_dictionary()
+		objectives_config.dependencies = []
+		objectives_config.transient_fields = []
+		register_slice(slice_configs, state, objectives_config)
+
+	# Scene director slice (transient)
+	if scene_director_initial_state == null:
+		scene_director_initial_state = RS_SCENE_DIRECTOR_INITIAL_STATE.new()
+	if scene_director_initial_state != null:
+		var scene_director_config := RS_StateSliceConfig.new(StringName("scene_director"))
+		scene_director_config.reducer = Callable(U_SCENE_DIRECTOR_REDUCER, "reduce")
+		scene_director_config.initial_state = scene_director_initial_state.to_dictionary()
+		scene_director_config.dependencies = []
+		scene_director_config.transient_fields = []
+		scene_director_config.is_transient = true
+		register_slice(slice_configs, state, scene_director_config)
 
 	# VFX slice
 	if vfx_initial_state != null:

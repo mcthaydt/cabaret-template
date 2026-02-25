@@ -68,6 +68,8 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 @export var vfx_initial_state: RS_VFXInitialState
 @export var audio_initial_state: RS_AudioInitialState
 @export var display_initial_state: Resource
+@export var objectives_initial_state: Resource
+@export var scene_director_initial_state: Resource
 @export var localization_initial_state: Resource
 @export var time_initial_state: Resource
 
@@ -388,6 +390,8 @@ func _initialize_slices() -> void:
 		vfx_initial_state,
 		audio_initial_state,
 		display_initial_state,
+		objectives_initial_state,
+		scene_director_initial_state,
 		localization_initial_state,
 		time_initial_state
 	)
