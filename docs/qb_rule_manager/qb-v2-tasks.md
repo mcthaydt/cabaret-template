@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 67% (80 / 120 tasks complete)
+**Progress:** 77% (92 / 120 tasks complete)
 
 ---
 
@@ -139,21 +139,25 @@ Completion note (2026-02-25): Added `RS_Rule` and validated export metadata in h
 
 **Tests first:**
 
-- [ ] T81. Create `tests/unit/qb/test_rule_scorer.gd`
-- [ ] T82. Test: single condition rule — score equals condition evaluate() result
-- [ ] T83. Test: multi-condition rule — scores multiplied (0.8 * 0.5 = 0.4)
-- [ ] T84. Test: short-circuits on first 0.0 condition (second condition never called)
-- [ ] T85. Test: response_curve applied per condition before multiplication
-- [ ] T86. Test: invert applied per condition
-- [ ] T87. Test: score_threshold filters out rules below threshold
-- [ ] T88. Test: rule with empty conditions scores 1.0 (unconditional)
-- [ ] T89. Test: empty rules array returns empty results
-- [ ] T90. Test: returned results contain {rule: RS_Rule, score: float} dictionaries
+- [x] T81. Create `tests/unit/qb/test_rule_scorer.gd`
+- [x] T82. Test: single condition rule — score equals condition evaluate() result
+- [x] T83. Test: multi-condition rule — scores multiplied (0.8 * 0.5 = 0.4)
+- [x] T84. Test: short-circuits on first 0.0 condition (second condition never called)
+- [x] T85. Test: response_curve applied per condition before multiplication
+- [x] T86. Test: invert applied per condition
+- [x] T87. Test: score_threshold filters out rules below threshold
+- [x] T88. Test: rule with empty conditions scores 1.0 (unconditional)
+- [x] T89. Test: empty rules array returns empty results
+- [x] T90. Test: returned results contain {rule: RS_Rule, score: float} dictionaries
 
 **Implementation:**
 
-- [ ] T91. Create `scripts/utils/qb/u_rule_scorer.gd` — static `score_rules(rules, context) -> Array[Dictionary]`
-- [ ] T92. All scorer tests green
+- [x] T91. Create `scripts/utils/qb/u_rule_scorer.gd` — static `score_rules(rules, context) -> Array[Dictionary]`
+- [x] T92. All scorer tests green
+
+Completion note (2026-02-25): Added scorer test suite (9 tests), implemented `U_RuleScorer`, and verified:
+- QB scorer suite: 9/9 passing (`test_rule_scorer`)
+- Style suite: 12/12 passing (`tests/unit/style`)
 
 ### 1F — Selector (TDD)
 
