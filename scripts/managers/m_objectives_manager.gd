@@ -132,6 +132,9 @@ func _execute_effects(effects: Array[Resource], context: Dictionary) -> void:
 		effect.execute(context)
 
 func _complete_objective(objective_id: StringName) -> void:
+	_complete_objective_with_context(objective_id, {})
+
+func _complete_objective_with_context(objective_id: StringName, context: Dictionary) -> void:
 	if objective_id == StringName(""):
 		return
 
@@ -151,11 +154,13 @@ func _complete_objective(objective_id: StringName) -> void:
 		"objective_id": objective_id,
 	})
 
-	var context: Dictionary = _build_context()
+	var completion_context: Dictionary = context.duplicate(true)
+	if completion_context.is_empty():
+		completion_context = _build_context()
 	var completion_effects: Array[Resource] = _to_resource_array(
 		_resource_get(objective, "completion_effects", [])
 	)
-	_execute_effects(completion_effects, context)
+	_execute_effects(completion_effects, completion_context)
 
 	var objective_type: int = int(
 		_resource_get(objective, "objective_type", RS_OBJECTIVE_DEFINITION.ObjectiveType.STANDARD)
@@ -232,15 +237,28 @@ func _build_event_context(event_payload: Dictionary) -> Dictionary:
 	return context
 
 func _resolve_store() -> void:
-	if state_store != null and is_instance_valid(state_store):
-		_store = state_store
-		return
-	if _store != null and is_instance_valid(_store):
-		return
+	var resolved_store: I_StateStore = null
 
-	_store = U_STATE_UTILS.try_get_store(self)
-	if _store == null:
-		_store = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
+	if state_store != null and is_instance_valid(state_store):
+		resolved_store = state_store
+	elif _store != null and is_instance_valid(_store):
+		resolved_store = _store
+	else:
+		resolved_store = U_STATE_UTILS.try_get_store(self)
+		if resolved_store == null:
+			resolved_store = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
+
+	_set_store_reference(resolved_store)
+
+func _set_store_reference(next_store: I_StateStore) -> void:
+	if _store != next_store:
+		if _store != null and _store.has_signal("action_dispatched"):
+			if _store.action_dispatched.is_connected(_on_action_dispatched):
+				_store.action_dispatched.disconnect(_on_action_dispatched)
+		_store_action_connected = false
+		_store = next_store
+
+	_ensure_store_action_signal_connection()
 
 func _index_objective_sets() -> void:
 	_objective_sets_by_id.clear()
@@ -263,6 +281,9 @@ func _subscribe_events() -> void:
 		U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, _on_victory_executed)
 	)
 
+	_ensure_store_action_signal_connection()
+
+func _ensure_store_action_signal_connection() -> void:
 	if _store == null:
 		return
 	if not _store.has_signal("action_dispatched"):
@@ -304,9 +325,17 @@ func _evaluate_active_objectives(context: Dictionary) -> void:
 	if _store == null:
 		return
 
+	var event_payload: Dictionary = {}
+	var payload_variant: Variant = context.get("event_payload", {})
+	if payload_variant is Dictionary:
+		event_payload = (payload_variant as Dictionary).duplicate(true)
+
 	var max_iterations: int = max(_objectives_by_id.size() + 1, 1)
 	for _iteration in range(max_iterations):
 		var progressed: bool = false
+		var evaluation_context: Dictionary = _build_context()
+		if not event_payload.is_empty():
+			evaluation_context["event_payload"] = event_payload.duplicate(true)
 		var state: Dictionary = _store.get_state()
 		var active_ids: Array[StringName] = U_OBJECTIVES_SELECTORS.get_active_objectives(state)
 		if active_ids.is_empty():
@@ -318,12 +347,12 @@ func _evaluate_active_objectives(context: Dictionary) -> void:
 				continue
 
 			var conditions: Array[Resource] = _to_resource_array(_resource_get(objective, "conditions", []))
-			var conditions_met: bool = _check_conditions(conditions, context)
+			var conditions_met: bool = _check_conditions(conditions, evaluation_context)
 			_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_CONDITION_CHECKED, {
 				"passed": conditions_met,
 			})
 			if conditions_met:
-				_complete_objective(objective_id)
+				_complete_objective_with_context(objective_id, evaluation_context)
 				progressed = true
 
 		if not progressed:

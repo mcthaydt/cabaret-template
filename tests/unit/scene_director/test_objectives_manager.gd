@@ -11,6 +11,7 @@ const OBJECTIVE_EVENT_LOG := preload("res://scripts/utils/scene_director/u_objec
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const ACTION_SET_TEST_FLAG := StringName("tests/objectives/set_test_flag")
 
 class ObjectivesStoreStub extends I_STATE_STORE:
 	signal action_dispatched(action: Dictionary)
@@ -24,6 +25,7 @@ class ObjectivesStoreStub extends I_STATE_STORE:
 		},
 		"gameplay": {
 			"completed_areas": [],
+			"test_flag": false,
 		},
 	}
 	var _subscribers: Array[Callable] = []
@@ -45,6 +47,10 @@ class ObjectivesStoreStub extends I_STATE_STORE:
 				completed_areas.append(area_id)
 			gameplay_slice["completed_areas"] = completed_areas
 			_state["gameplay"] = gameplay_slice
+		elif action_type == ACTION_SET_TEST_FLAG:
+			var gameplay_with_flag: Dictionary = _state.get("gameplay", {}).duplicate(true)
+			gameplay_with_flag["test_flag"] = bool(action_copy.get("payload", false))
+			_state["gameplay"] = gameplay_with_flag
 
 		action_dispatched.emit(action_copy)
 		var snapshot: Dictionary = _state.duplicate(true)
@@ -92,6 +98,53 @@ class EffectStub extends Resource:
 	func execute(context: Dictionary) -> void:
 		execute_calls += 1
 		last_context = context.duplicate(true)
+
+class ConditionGameplayFlagStub extends Resource:
+	var evaluate_calls: int = 0
+	var last_context: Dictionary = {}
+
+	func evaluate(context: Dictionary) -> float:
+		evaluate_calls += 1
+		last_context = context.duplicate(true)
+		var state: Dictionary = context.get("redux_state", {})
+		var gameplay: Dictionary = state.get("gameplay", {})
+		return 1.0 if bool(gameplay.get("test_flag", false)) else 0.0
+
+class ConditionCompletedAreaStub extends Resource:
+	var required_area: String = ""
+	var evaluate_calls: int = 0
+
+	func _init(initial_area: String = "") -> void:
+		required_area = initial_area
+
+	func evaluate(context: Dictionary) -> float:
+		evaluate_calls += 1
+		var state: Dictionary = context.get("redux_state", {})
+		var gameplay: Dictionary = state.get("gameplay", {})
+		var completed_variant: Variant = gameplay.get("completed_areas", [])
+		if completed_variant is Array:
+			var completed: Array = completed_variant
+			return 1.0 if completed.has(required_area) else 0.0
+		return 0.0
+
+class EffectSetGameplayFlagStub extends Resource:
+	var execute_calls: int = 0
+	var value: bool = true
+
+	func _init(initial_value: bool = true) -> void:
+		value = initial_value
+
+	func execute(context: Dictionary) -> void:
+		execute_calls += 1
+		var store: Variant = context.get("state_store", null)
+		if store == null:
+			return
+		if not store.has_method("dispatch"):
+			return
+		store.dispatch({
+			"type": ACTION_SET_TEST_FLAG,
+			"payload": value,
+		})
 
 var _store: ObjectivesStoreStub
 
@@ -244,6 +297,70 @@ func test_discovers_store_from_service_locator_when_not_injected() -> void:
 	var manager: Variant = await _spawn_manager([objective_set], false)
 
 	assert_eq(manager.get_objective_status(StringName("obj_from_locator")), "active")
+
+func test_dependency_evaluation_refreshes_redux_state_within_same_event() -> void:
+	var parent_condition := ConditionStub.new(1.0)
+	var parent_effect := EffectSetGameplayFlagStub.new(true)
+	var child_condition := ConditionGameplayFlagStub.new()
+	var objective_set: Resource = _objective_set(
+		StringName("set_refresh"),
+		[
+			_objective(
+				StringName("obj_parent"),
+				[],
+				true,
+				[parent_condition],
+				[parent_effect]
+			),
+			_objective(
+				StringName("obj_child"),
+				[StringName("obj_parent")],
+				false,
+				[child_condition]
+			),
+		]
+	)
+	var manager: Variant = await _spawn_manager([objective_set], true)
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_CHECKPOINT_ACTIVATED, {})
+
+	assert_eq(manager.get_objective_status(StringName("obj_parent")), "completed")
+	assert_eq(
+		manager.get_objective_status(StringName("obj_child")),
+		"completed",
+		"Dependent objective should complete in the same evaluation event after parent effects mutate state"
+	)
+	assert_eq(parent_effect.execute_calls, 1)
+	assert_true(child_condition.evaluate_calls > 0)
+
+func test_late_store_resolution_connects_action_dispatched_subscription() -> void:
+	var late_store := ObjectivesStoreStub.new()
+	autofree(late_store)
+	var objective_set: Resource = _objective_set(
+		StringName("set_late_store"),
+		[
+			_objective(
+				StringName("obj_late"),
+				[],
+				true,
+				[ConditionCompletedAreaStub.new("area_late")]
+			),
+		]
+	)
+	var manager: Variant = await _spawn_manager([objective_set], false)
+
+	U_SERVICE_LOCATOR.register(StringName("state_store"), late_store)
+	var loaded: bool = manager.load_objective_set(StringName("set_late_store"))
+	assert_true(loaded)
+	assert_eq(manager.get_objective_status(StringName("obj_late")), "active")
+
+	late_store.dispatch(GAMEPLAY_ACTIONS.mark_area_complete("area_late"))
+
+	assert_eq(
+		manager.get_objective_status(StringName("obj_late")),
+		"completed",
+		"Manager should evaluate objectives on gameplay/mark_area_complete after late store discovery"
+	)
 
 func _spawn_manager(objective_sets: Array[Resource], inject_store: bool) -> Variant:
 	var manager := M_OBJECTIVES_MANAGER.new()
