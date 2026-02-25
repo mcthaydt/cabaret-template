@@ -1,8 +1,9 @@
 @icon("res://assets/editor_icons/icn_system.svg")
-extends BaseQBRuleManager
+extends BaseECSSystem
 class_name S_CameraRuleManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 
@@ -19,10 +20,7 @@ const SHAKE_FREQ_ROTATION: float = 13.0
 const SHAKE_PHASE_OFFSET_X: float = 1.1
 const SHAKE_PHASE_OFFSET_Y: float = 2.3
 const SHAKE_PHASE_ROTATION: float = 0.7
-const DEFAULT_RULE_DEFINITIONS := [
-	preload("res://resources/qb/camera/cfg_camera_shake_rule.tres"),
-	preload("res://resources/qb/camera/cfg_camera_zone_fov_rule.tres"),
-]
+const DEFAULT_RULE_DEFINITIONS: Array = []
 
 @export var camera_manager: I_CAMERA_MANAGER = null
 
@@ -53,10 +51,10 @@ func _on_event_received(event_name: StringName, event_data: Dictionary) -> void:
 	var contexts: Array = _build_camera_contexts(event_context)
 	if contexts.is_empty():
 		_ensure_context_dependencies(event_context)
-		_evaluate_rules_for_context(event_context, QB_RULE.TriggerMode.EVENT, event_name)
+		_evaluate_rules_for_context(event_context, "event", event_name)
 		return
 
-	_evaluate_contexts(contexts, QB_RULE.TriggerMode.EVENT, event_name)
+	_evaluate_contexts(contexts, "event", event_name)
 	_apply_camera_state(contexts, 0.0)
 
 func _build_camera_contexts(base_context: Dictionary) -> Array:
@@ -130,6 +128,24 @@ func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 		_camera_manager = service as I_CAMERA_MANAGER
 		return _camera_manager
 	return null
+
+func _resolve_store() -> I_StateStore:
+	return U_STATE_UTILS.try_get_store(self)
+
+func _build_event_context(event_name: StringName, payload: Dictionary) -> Dictionary:
+	return {
+		"event_name": event_name,
+		"event_payload": payload.duplicate(true),
+	}
+
+func _ensure_context_dependencies(_context: Dictionary) -> void:
+	pass
+
+func _evaluate_rules_for_context(_context: Dictionary, _trigger_mode: String, _event_name: StringName = StringName()) -> void:
+	pass
+
+func _evaluate_contexts(_contexts: Array, _trigger_mode: String, _event_name: StringName = StringName()) -> void:
+	pass
 
 func _apply_camera_state(contexts: Array, delta: float) -> void:
 	var manager: I_CAMERA_MANAGER = _resolve_camera_manager()
@@ -275,6 +291,24 @@ func _write_shake_trauma(camera_state: Variant, value: float) -> void:
 func _get_camera_state_float(camera_state: Variant, property_name: String, fallback: float) -> float:
 	if camera_state == null or not (camera_state is Object):
 		return fallback
-	if not U_QB_VARIANT_UTILS.object_has_property(camera_state, property_name):
+	if not _object_has_property(camera_state, property_name):
 		return fallback
-	return U_QB_VARIANT_UTILS.get_float_property(camera_state, property_name, fallback)
+	return _get_float_property(camera_state, property_name, fallback)
+
+func _object_has_property(target: Variant, property_name: String) -> bool:
+	if target == null:
+		return false
+	if not (target is Object):
+		return false
+	var property_list: Array[Dictionary] = (target as Object).get_property_list()
+	for entry in property_list:
+		if not (entry is Dictionary):
+			continue
+		if String(entry.get("name", "")) == property_name:
+			return true
+	return false
+
+func _get_float_property(target: Variant, property_name: String, fallback: float) -> float:
+	if not _object_has_property(target, property_name):
+		return fallback
+	return float((target as Object).get(property_name))

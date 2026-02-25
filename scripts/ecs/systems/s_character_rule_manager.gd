@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_system.svg")
-extends BaseQBRuleManager
+extends BaseECSSystem
 class_name S_CharacterRuleManager
 
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
@@ -8,6 +8,7 @@ const C_HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_compo
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
+const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const FLOATING_TYPE := C_FLOATING_COMPONENT.COMPONENT_TYPE
@@ -16,13 +17,7 @@ const INPUT_TYPE := C_INPUT_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
-const DEFAULT_RULE_DEFINITIONS := [
-	preload("res://resources/qb/character/cfg_pause_gate_paused.tres"),
-	preload("res://resources/qb/character/cfg_pause_gate_shell.tres"),
-	preload("res://resources/qb/character/cfg_pause_gate_transitioning.tres"),
-	preload("res://resources/qb/character/cfg_spawn_freeze_rule.tres"),
-	preload("res://resources/qb/character/cfg_death_sync_rule.tres"),
-]
+const DEFAULT_RULE_DEFINITIONS: Array = []
 
 func get_default_rule_definitions() -> Array:
 	return DEFAULT_RULE_DEFINITIONS.duplicate()
@@ -157,12 +152,12 @@ func _populate_health_state(context: Dictionary, health_component: Variant) -> v
 	var current_health: float = 0.0
 	if health_component.has_method("get_max_health"):
 		max_health = maxf(float(health_component.call("get_max_health")), 0.0)
-	elif U_QB_VARIANT_UTILS.object_has_property(health_component, "max_health"):
+	elif _object_has_property(health_component, "max_health"):
 		max_health = maxf(float(health_component.get("max_health")), 0.0)
 
 	if health_component.has_method("get_current_health"):
 		current_health = maxf(float(health_component.call("get_current_health")), 0.0)
-	elif U_QB_VARIANT_UTILS.object_has_property(health_component, "current_health"):
+	elif _object_has_property(health_component, "current_health"):
 		current_health = maxf(float(health_component.get("current_health")), 0.0)
 
 	if max_health > 0.0:
@@ -272,3 +267,19 @@ func _resolve_vertical_state(context: Dictionary) -> int:
 			return C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_RISING
 		_:
 			return C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_GROUNDED
+
+func _resolve_store() -> I_StateStore:
+	return U_STATE_UTILS.try_get_store(self)
+
+func _object_has_property(target: Variant, property_name: String) -> bool:
+	if target == null:
+		return false
+	if not (target is Object):
+		return false
+	var property_list: Array[Dictionary] = (target as Object).get_property_list()
+	for entry in property_list:
+		if not (entry is Dictionary):
+			continue
+		if String(entry.get("name", "")) == property_name:
+			return true
+	return false
