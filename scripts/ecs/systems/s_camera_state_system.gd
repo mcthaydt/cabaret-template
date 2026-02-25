@@ -353,20 +353,43 @@ func _apply_camera_state(contexts: Array, delta: float) -> void:
 		return
 
 	var context: Dictionary = _select_primary_camera_context(contexts)
+	var primary_camera_state: Variant = context.get("camera_state_component", null)
+	_decay_non_primary_trauma(contexts, primary_camera_state, delta)
 	if context.is_empty():
 		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
 		return
 
-	var camera_state: Variant = context.get("camera_state_component", null)
-	if camera_state == null or not (camera_state is Object):
+	if primary_camera_state == null or not (primary_camera_state is Object):
 		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
 		return
 
 	var main_camera: Camera3D = manager.get_main_camera()
 	if main_camera != null:
-		_apply_fov_to_camera(main_camera, camera_state, context, delta)
+		_apply_fov_to_camera(main_camera, primary_camera_state, context, delta)
 
-	_apply_trauma_shake(manager, camera_state, delta)
+	_apply_trauma_shake(manager, primary_camera_state, delta)
+
+func _decay_non_primary_trauma(contexts: Array, primary_camera_state: Variant, delta: float) -> void:
+	if delta <= 0.0:
+		return
+
+	var processed_states: Dictionary = {}
+	for context_variant in contexts:
+		if not (context_variant is Dictionary):
+			continue
+		var context: Dictionary = context_variant as Dictionary
+		var camera_state: Variant = context.get("camera_state_component", null)
+		if camera_state == null or not (camera_state is Object):
+			continue
+		if primary_camera_state != null and camera_state == primary_camera_state:
+			continue
+
+		var camera_state_object: Object = camera_state as Object
+		var state_id: int = camera_state_object.get_instance_id()
+		if processed_states.has(state_id):
+			continue
+		processed_states[state_id] = true
+		_decay_trauma(camera_state_object, delta)
 
 func _select_primary_camera_context(contexts: Array) -> Dictionary:
 	var fallback: Dictionary = {}
@@ -486,12 +509,18 @@ func _apply_trauma_shake(manager: I_CAMERA_MANAGER, camera_state: Variant, delta
 	var rotation: float = sin(_shake_time * SHAKE_FREQ_ROTATION + SHAKE_PHASE_ROTATION) * SHAKE_MAX_ROTATION_RAD * shake_strength
 	manager.set_shake_source(CAMERA_SHAKE_SOURCE, offset, rotation)
 
-	if delta <= 0.0:
-		return
-	var decayed_trauma: float = maxf(trauma - SHAKE_TRAUMA_DECAY_RATE * delta, 0.0)
-	_write_shake_trauma(camera_state, decayed_trauma)
+	var decayed_trauma: float = _decay_trauma(camera_state, delta)
 	if decayed_trauma <= 0.0:
 		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
+
+func _decay_trauma(camera_state: Variant, delta: float) -> float:
+	var trauma: float = clampf(_get_camera_state_float(camera_state, "shake_trauma", 0.0), 0.0, 1.0)
+	if delta <= 0.0:
+		return trauma
+
+	var decayed_trauma: float = maxf(trauma - SHAKE_TRAUMA_DECAY_RATE * delta, 0.0)
+	_write_shake_trauma(camera_state, decayed_trauma)
+	return decayed_trauma
 
 func _write_shake_trauma(camera_state: Variant, value: float) -> void:
 	var clamped: float = clampf(value, 0.0, 1.0)

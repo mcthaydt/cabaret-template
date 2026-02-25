@@ -168,6 +168,30 @@ func test_entity_death_event_fans_out_to_all_camera_entities() -> void:
 			continue
 		assert_almost_eq(state.shake_trauma, 0.5, 0.001)
 
+func test_non_primary_camera_trauma_decays_each_tick() -> void:
+	var fixture: Dictionary = _create_fixture(
+		[],
+		[
+			{"name": "E_Camera", "tags": []},
+			{"name": "E_Secondary", "tags": []},
+		],
+		90.0
+	)
+	var system: Variant = fixture.get("system", null)
+	var camera_states: Array = fixture.get("camera_states", []) as Array
+	assert_not_null(system)
+	assert_eq(camera_states.size(), 2)
+
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_ENTITY_DEATH, {"entity_id": StringName("player")})
+	system.process_tick(0.25)
+
+	for state_variant in camera_states:
+		var state: C_CameraStateComponent = state_variant as C_CameraStateComponent
+		assert_not_null(state)
+		if state == null:
+			continue
+		assert_almost_eq(state.shake_trauma, 0.0, 0.001)
+
 func test_primary_camera_selection_prefers_entity_id_or_camera_tag() -> void:
 	var selector_rule: RS_Rule = _make_tag_target_fov_rule(
 		StringName("focus_fov_rule"),
