@@ -28,7 +28,7 @@ const DEATH_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_death_handler
 const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gameplay/cfg_health_settings.tres")
 
 const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
-const GAME_RULE_MANAGER := preload("res://scripts/ecs/systems/s_game_rule_manager.gd")
+const GAME_RULE_MANAGER := preload("res://scripts/ecs/systems/s_game_event_system.gd")
 const VICTORY_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_victory_handler_system.gd")
 const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
@@ -177,7 +177,7 @@ func _prepare_victory_system() -> Dictionary:
 	victory_entity.add_child(victory_component)
 
 	var game_rule_manager := GAME_RULE_MANAGER.new()
-	game_rule_manager.name = "S_GameRuleManager"
+	game_rule_manager.name = "S_GameEventSystem"
 	_systems_core.add_child(game_rule_manager)
 
 	var victory_handler_system := VICTORY_HANDLER_SYSTEM.new()
