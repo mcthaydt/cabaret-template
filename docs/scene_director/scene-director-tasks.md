@@ -127,18 +127,26 @@ Phase 2 completion notes (2026-02-25):
 
 ### 3B: M_SceneDirector (TDD)
 
-- [ ] T3.6: Create stub `scripts/managers/m_scene_director.gd` (M_SceneDirector extends Node) - @export state_store, @export directives, empty methods for _select_directive, _start_directive, _on_directive_complete, _build_context
-- [ ] T3.7: Create `tests/unit/scene_director/test_scene_director.gd` - Directive selection picks highest priority matching scene + conditions (conditions evaluated via condition.evaluate(context)), beat execution ticks via _physics_process for TIMED, signal advancement for SIGNAL beats, directive completion dispatches complete action + publishes event, no directive selected for scene with no matching directives. Context must include {"state_store": mock_store, "redux_state": {}}. SIGNAL subscription tests: event subscriptions created on directive start (only for events referenced by SIGNAL beats), cleaned up on directive complete, cleaned up on reset.
-- [ ] T3.8: Run tests -- confirm they FAIL (red)
-- [ ] T3.9: Implement M_SceneDirector -- store discovery, _build_context() returns {"state_store": _store, "redux_state": _store.get_state()}, directive selection (evaluate selection_conditions via condition.evaluate(context) loop), beat runner lifecycle, _physics_process ticking with _build_context(), event subscription for signals (merges event payload into context)
-- [ ] T3.10: Run tests -- confirm they PASS (green)
+- [x] T3.6: Create stub `scripts/managers/m_scene_director.gd` (M_SceneDirector extends Node) - @export state_store, @export directives, empty methods for _select_directive, _start_directive, _on_directive_complete, _build_context
+- [x] T3.7: Create `tests/unit/scene_director/test_scene_director.gd` - Directive selection picks highest priority matching scene + conditions (conditions evaluated via condition.evaluate(context)), beat execution ticks via _physics_process for TIMED, signal advancement for SIGNAL beats, directive completion dispatches complete action + publishes event, no directive selected for scene with no matching directives. Context must include {"state_store": mock_store, "redux_state": {}}. SIGNAL subscription tests: event subscriptions created on directive start (only for events referenced by SIGNAL beats), cleaned up on directive complete, cleaned up on reset.
+- [x] T3.8: Run tests -- confirm they FAIL (red)
+  - Completion note (2026-02-25): `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -gselect=test_scene_director` produced expected failures against the manager stub (`1/6` passing, `5` failing).
+- [x] T3.9: Implement M_SceneDirector -- store discovery, _build_context() returns {"state_store": _store, "redux_state": _store.get_state()}, directive selection (evaluate selection_conditions via condition.evaluate(context) loop), beat runner lifecycle, _physics_process ticking with _build_context(), event subscription for signals (merges event payload into context)
+- [x] T3.10: Run tests -- confirm they PASS (green)
+  - Completion note (2026-02-25): `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -gselect=test_scene_director` passed `18/18` (includes reducer/selector suites selected by prefix); full scene director suite passed `57/57`.
 
 ### 3C: Regression Check
 
-- [ ] T3.11: Run full existing test suite -- zero regressions
-- [ ] T3.12: Update continuation prompt with Phase 3 status
+- [x] T3.11: Run full existing test suite -- zero regressions
+  - Completion note (2026-02-25): Regression suites passed — `tests/unit/qb` (`134/134`), `tests/unit/ecs` (`126/126`), `tests/unit/ecs/systems` (`197/197`), `tests/unit/style` (`12/12`), `tests/integration/scene_manager` (`90/90`), `tests/unit/scene_director` (`57/57`).
+- [x] T3.12: Update continuation prompt with Phase 3 status
 
 **Phase 3 Commit**: Scene director core with beat runner and directive selection
+
+Phase 3 completion notes (2026-02-25):
+- Added `M_SceneDirector` core flow with store discovery, directive selection, beat-runner lifecycle integration, per-frame ticking, and SIGNAL event subscription lifecycle management.
+- Added scene-director manager unit coverage for priority selection, timed execution, signal-driven advancement, directive completion events, and subscription cleanup on complete/reset.
+- Verified full Phase 3 regression baseline across QB, ECS, ECS systems, style, scene manager integration, and scene director unit suites.
 
 ---
 
