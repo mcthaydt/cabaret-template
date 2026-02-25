@@ -32,6 +32,11 @@ func _exit_tree() -> void:
 	_clear_signal_subscriptions()
 
 func _physics_process(delta: float) -> void:
+	# Keep retrying store discovery so late ServiceLocator registration can attach
+	# action subscriptions even while the director is idle.
+	if _store == null:
+		_resolve_store()
+
 	if _active_directive == null:
 		return
 	if _beat_runner == null:

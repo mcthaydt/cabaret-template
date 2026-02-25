@@ -286,6 +286,30 @@ func test_signal_subscriptions_cleanup_on_complete_and_reset() -> void:
 	assert_eq(manager._signal_unsubscribes_by_event.size(), 0)
 	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_RESET))
 
+func test_late_store_registration_resolves_during_idle_tick() -> void:
+	U_SERVICE_LOCATOR.clear()
+	var manager: Variant = await _spawn_manager(
+		[
+			_directive(
+				StringName("dir_late_store"),
+				StringName("gameplay_base"),
+				1,
+				[],
+				[
+					_beat(StringName("beat_once")),
+				]
+			),
+		],
+		false
+	)
+
+	# No store at _ready(); registration happens after manager is already in tree.
+	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
+	manager._physics_process(0.016)
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+
+	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_START_DIRECTIVE))
+
 func _spawn_manager(directive_list: Array[Resource], inject_store: bool = true) -> Variant:
 	var manager := M_SCENE_DIRECTOR.new()
 	if inject_store:
