@@ -358,7 +358,7 @@ Completion note (2026-02-25): Added both v2 game event-forwarding rule resources
 
 - [x] T189. Rename `s_game_rule_manager.gd` → `s_game_event_system.gd`, class → `S_GameEventSystem`
 - [x] T190. Replace `extends BaseQBRuleManager` with `extends BaseECSSystem`
-- [x] T191. Add `@export var rules: Array[RS_Rule] = []`
+- [x] T191. Add `@export var rules: Array[Resource] = []` (headless fallback; runtime-validated to `RS_Rule`)
 - [x] T192. Add `var _tracker := RuleStateTracker.new()` instance
 - [x] T193. Implement `on_configured()`: validate rules, subscribe to trigger events for event/both mode rules
 - [x] T194. Implement `_on_event_received(event_name, event)`: build context from payload + Redux state → score → select → execute effects
