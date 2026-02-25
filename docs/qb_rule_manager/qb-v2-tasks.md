@@ -1,6 +1,6 @@
 # QB Rule Engine v2 — Task Checklist
 
-**Progress:** 95% (227 / 240 tasks complete)
+**Progress:** 100% (240 / 240 tasks complete)
 
 ---
 
@@ -452,25 +452,43 @@ Completion note (2026-02-25): Added `tests/integration/qb/test_camera_shake_pipe
 
 ### 5A — Codebase Verification
 
-- [ ] T228. Grep for all deleted v1 class names — zero references remain: `BaseQBRuleManager`, `RS_QBCondition`, `RS_QBEffect`, `RS_QBRuleDefinition`, `U_QBRuleEvaluator`, `U_QBQualityProvider`, `U_QBEffectExecutor`, `U_QBVariantUtils`, `U_QBRuleValidator`, `S_CharacterRuleManager`, `S_GameRuleManager`, `S_CameraRuleManager`
-- [ ] T229. Grep for old script paths — zero `.tscn` or `.gd` files reference deleted paths
-- [ ] T230. Run style enforcement tests — all new files follow prefix patterns
-- [ ] T231. Run full QB v2 test suite — all green
-- [ ] T232. Run full ECS test suite — all green (handler systems unchanged)
-- [ ] T233. Run full integration test suite — all green
+- [x] T228. Grep for all deleted v1 class names — zero references remain: `BaseQBRuleManager`, `RS_QBCondition`, `RS_QBEffect`, `RS_QBRuleDefinition`, `U_QBRuleEvaluator`, `U_QBQualityProvider`, `U_QBEffectExecutor`, `U_QBVariantUtils`, `U_QBRuleValidator`, `S_CharacterRuleManager`, `S_GameRuleManager`, `S_CameraRuleManager`
+- [x] T229. Grep for old script paths — zero `.tscn` or `.gd` files reference deleted paths
+- [x] T230. Run style enforcement tests — all new files follow prefix patterns
+- [x] T231. Run full QB v2 test suite — all green
+- [x] T232. Run full ECS test suite — all green (handler systems unchanged)
+- [x] T233. Run full integration test suite — all green
+
+Completion note (2026-02-25): Completed codebase verification and full Phase 5A test runs.
+- Stale-reference grep across runtime files (`scripts/`, `scenes/`, `tests/`, `resources/`, `project.godot`): 0 matches for deleted v1 class names.
+- Old-path grep across `.gd`/`.tscn`: 0 matches for deleted/renamed v1 script paths.
+- Style suite (`tests/unit/style`): 12/12 passing.
+- QB v2 suites: unit (`tests/unit/qb`) 132/132 passing + integration (`tests/integration/qb`) 5/5 passing.
+- ECS suite (`tests/unit/ecs`): 126/126 passing.
+- Full integration suite (`tests/integration`): 395/396 passing with 1 pending (`test_color_blind_ui_filter.gd` headless environment pending), 0 failures.
 
 ### 5B — Documentation Updates
 
-- [ ] T234. Update `AGENTS.md` — replace all v1 QB sections with v2 architecture (library model, typed resources, consumer pattern, scoring algorithm, context contract, anti-patterns)
-- [ ] T235. Update `AGENTS.md` — remove `base_qb_rule_manager.gd` naming exception, add condition/effect subclass file patterns
-- [ ] T236. Update `docs/general/STYLE_GUIDE.md` — remove base_qb_rule_manager exception, add `rs_condition_*.gd` and `rs_effect_*.gd` patterns, add `conditions/` and `effects/` subdirectory convention
-- [ ] T237. Update `docs/general/DEV_PITFALLS.md` — replace v1 QB pitfalls with v2 pitfalls (no method-call fallback, typed arrays, effect subclasses, context-driven values)
-- [ ] T238. Update continuation prompt with final status
+- [x] T234. Update `AGENTS.md` — replace all v1 QB sections with v2 architecture (library model, typed resources, consumer pattern, scoring algorithm, context contract, anti-patterns)
+- [x] T235. Update `AGENTS.md` — remove `base_qb_rule_manager.gd` naming exception, add condition/effect subclass file patterns
+- [x] T236. Update `docs/general/STYLE_GUIDE.md` — remove base_qb_rule_manager exception, add `rs_condition_*.gd` and `rs_effect_*.gd` patterns, add `conditions/` and `effects/` subdirectory convention
+- [x] T237. Update `docs/general/DEV_PITFALLS.md` — replace v1 QB pitfalls with v2 pitfalls (no method-call fallback, typed arrays, effect subclasses, context-driven values)
+- [x] T238. Update continuation prompt with final status
+
+Completion note (2026-02-25): Updated all required docs for v2 alignment.
+- `AGENTS.md`: replaced v1 QB architecture notes with v2 scorer/selector/tracker composition guidance and updated naming quick reference.
+- `docs/general/STYLE_GUIDE.md`: removed legacy system exception and documented QB condition/effect filename patterns + `conditions/`/`effects/` directory convention.
+- `docs/general/DEV_PITFALLS.md`: replaced v1 QB pitfalls with v2-specific guidance (path resolution contract, headless-safe rule exports, subtype validation, context-value effects).
+- `docs/qb_rule_manager/qb-v2-continuation-prompt.md`: updated to Phase 5 completion status and recorded final verification counts.
 
 ### 5C — Final Commit
 
-- [ ] T239. Record final test counts per suite
-- [ ] T240. Commit v2 complete
+- [x] T239. Record final test counts per suite
+- [x] T240. Commit v2 complete
+
+Completion note (2026-02-25): Final Phase 5C checkpoint recorded.
+- Final counts: style 12/12, QB unit 132/132, QB integration 5/5, ECS unit 126/126, full integration 395/396 passing with 1 headless pending and 0 failures.
+- Final v2 completion commit created with all Phase 5 verification + documentation updates.
 
 ---
 

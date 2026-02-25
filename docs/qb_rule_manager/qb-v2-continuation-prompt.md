@@ -4,7 +4,7 @@
 
 - **Feature:** QB Rule Engine v2 — replace v1 inheritance-based rule engine with stateless scoring library + typed resources
 - **Branch:** `scene-director`
-- **Status:** In progress (Phase 4 complete on 2026-02-25; Phase 5A next)
+- **Status:** Complete (Phase 5C complete on 2026-02-25)
 
 ## Recent Progress
 
@@ -167,6 +167,21 @@
   - Verified QB integration suite `tests/integration/qb` (5/5 passing)
   - Re-verified QB unit suite `tests/unit/qb` (131/131 passing)
   - Re-verified style suite `tests/unit/style` (12/12 passing)
+- Phase 5A completed on 2026-02-25:
+  - Verified stale-reference cleanup (`T228-T229`) with zero runtime-file matches for deleted v1 class names and old script paths
+  - Verified style suite `tests/unit/style` (12/12 passing)
+  - Verified QB unit suite `tests/unit/qb` (132/132 passing)
+  - Verified QB integration suite `tests/integration/qb` (5/5 passing)
+  - Verified ECS unit suite `tests/unit/ecs` (126/126 passing)
+  - Verified full integration suite `tests/integration` (395/396 passing with 1 headless pending, 0 failures)
+- Phase 5B completed on 2026-02-25:
+  - Updated `AGENTS.md` to replace v1 QB guidance with v2 scorer/selector/tracker composition patterns
+  - Updated `docs/general/STYLE_GUIDE.md` to remove `base_qb_rule_manager` exception and document `rs_condition_*.gd` / `rs_effect_*.gd` conventions in `conditions/` and `effects/`
+  - Updated `docs/general/DEV_PITFALLS.md` with v2 QB pitfalls (path resolver contract, headless-safe rule exports, subtype validation, context-driven effects)
+  - Updated `docs/qb_rule_manager/qb-v2-tasks.md` with Phase 5 completion notes and final suite counts
+- Phase 5C completed on 2026-02-25:
+  - Recorded final verification counts (`T239`)
+  - Marked v2 completion checkpoint and committed Phase 5 updates (`T240`)
 
 ## Required Readings
 
@@ -215,9 +230,8 @@ _handle_winners(winners, context)  # domain-specific
 
 ## Next Steps
 
-1. **Phase 5A:** Codebase verification (`T228-T233`) — stale-reference grep + full suite checks.
-2. **Phase 5B:** Documentation updates (`T234-T238`) — AGENTS/STYLE_GUIDE/DEV_PITFALLS final v2 alignment.
-3. **Phase 5C:** Final checkpoint (`T239-T240`) — record final suite counts and commit v2 completion.
+1. QB Rule Engine v2 is complete (`T1-T240`).
+2. Optional follow-up: revisit typed `Array[RS_BaseCondition]` / `Array[RS_BaseEffect]` exports if a future Godot/headless parser update resolves class-discovery instability.
 
 ## Key Design Decisions
 
@@ -312,9 +326,8 @@ s_death_handler_system.gd       (event subscriber, no rule engine coupling)
 
 ## Outstanding Risks
 
-- **Typed Resource arrays in inspector:** Godot 4.6 should support `Array[RS_BaseCondition]` with subclass dropdown. Verify in Phase 1D (T79-T80) before building all resources on this assumption.
-- **Scene references after rename:** `.tscn` files referencing old script paths (`s_character_rule_manager.gd`) need updating. Grep all scenes in Phases 2-4.
-- **v1 test deletion scope:** Phase 2A deletes v1 tests. Ensure v2 tests from Phase 1 are in separate files that won't be caught in the deletion.
+- **Typed-array exports remain deferred:** Runtime is stable using `Array[Resource]` + `U_RuleValidator`. Migrating back to typed condition/effect arrays should be treated as a dedicated follow-up task.
+- **Integration suite includes one intentional headless pending test:** `tests/integration/display/test_color_blind_ui_filter.gd` has a known pending case (`UIOverlayStack` unavailable in headless test harness).
 
 ## Links
 

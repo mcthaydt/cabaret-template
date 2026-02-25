@@ -93,7 +93,7 @@
 
 - **Typed Array annotations can fail to resolve fresh `class_name` symbols in headless**: Exported typed arrays like `@export var conditions: Array[RS_BaseCondition]` and `@export var effects: Array[RS_BaseEffect]` can parse-fail in headless (`Could not find type ... in the current scope`) immediately after introducing new script classes. If this blocks progress, use `Array[Resource]` temporarily and enforce resource subtype checks in validation (`U_RuleValidator`) until editor/class cache stabilization is confirmed.
 
-- **Switching to a new base class can surface inherited-helper parse errors**: If a script previously relied on helper methods inherited from an old base class (for example `_resolve_store()` from `BaseQBRuleManager`) and you change `extends` to a different base, headless parse can fail with `Function "...()" not found in base self` even when those call sites are not hit in tests. Add local replacements/stubs for inherited helpers in the same patch that changes the base class to keep scripts loadable.
+- **Changing parent classes can surface inherited-helper parse errors**: If a script relied on helper methods inherited from a previous base class and you change `extends`, headless parse can fail with `Function "...()" not found in base self` even when those call sites are not hit in tests. Add local replacements in the same patch that changes inheritance so scripts remain loadable.
 
 - **Child scripts cannot redeclare parent members (incl. `const`)**: If a base class defines a member like `const U_Foo := preload("...")`, declaring another `const U_Foo := ...` in a derived script causes a parse error (`The member "U_Foo" already exists in parent class ...`). Prefer inheriting the constant, or use a different name in the child.
 
@@ -114,11 +114,19 @@
 - **GUT needs recursive dirs**: `-gdir` is not recursive by default; suites in nested folders are silently skipped if you point at a parent. Always pass each test root explicitly (e.g., `-gdir=res://tests/unit -gdir=res://tests/integration`) or list the concrete leaf directories you added to ensure new suites actually run.
 - **Viewport capture fails in headless**: `Viewport.get_texture().get_image()` can error under the headless/dummy renderer (`Parameter "t" is null`). Tests that validate viewport screenshot capture should be marked `pending` when `OS.has_feature("headless")` or `DisplayServer.get_name() == "headless"` to avoid false failures.
 - **`M_StateStore` autoload can leak ambient state into unit tests**: `RS_StateStoreSettings.enable_persistence` defaults to `true`, so tests that create `M_StateStore` can auto-load `user://savegame.json` and emit normalization warnings (for example unknown spawn point warnings) as unexpected test errors. For tests not explicitly validating persistence, set `store.settings.enable_persistence = false` before adding the store node.
-- **Do not assert raw `push_warning` output directly in QB/system tests**: Engine warnings are hard to capture reliably in headless runs. For systems like `BaseQBRuleManager`, expose/override a small warning hook (for example `_emit_rule_validation_warning`) in test stubs and assert captured messages there instead of parsing console logs.
+- **Do not assert raw `push_warning` output directly in QB/system tests**: Engine warnings are hard to capture reliably in headless runs. Expose/override a small warning hook in test doubles and assert captured messages there instead of parsing console logs.
+
+## QB Rule Engine v2 Pitfalls
+
+- **`U_PathResolver` intentionally has no method-call fallback**: Conditions/effects must resolve data through dictionary/object property paths only. Do not rely on `has_method()` + call behavior for rule evaluation.
+- **Keep `rules` exports in headless-safe mode until typed arrays are stable**: New rule-consumer systems should use `@export var rules: Array[Resource] = []` and run `U_RuleValidator.validate_rules(...)` before evaluation. Headless parser stability can lag new `class_name` symbols.
+- **Condition/effect subresources must match v2 subclasses**: Rule assets should use `RS_Condition*` and `RS_Effect*` resources only; validator failures should block runtime registration.
+- **Context-driven effects require explicit context contracts**: `RS_EffectSetField.use_context_value` will no-op or write wrong values if the expected context path is missing/mistyped. Keep context keys documented per consumer (`components`, `event_payload`, `state`, etc.) and verify in unit tests.
+- **Trackers are per-system state, not shared utilities**: `RuleStateTracker` stores cooldown/rising-edge/one-shot state. Reusing one tracker across systems causes cross-domain gating bugs.
 
 ## QB Camera Rule Pitfalls
 
-- **Hardcoded fallback FOV can override authored scene cameras**: If `S_CameraRuleManager` falls back to a constant FOV (for example `75.0`) when `camera.in_fov_zone` is false, scenes authored with cinematic FOV values (`28.8`, `65`, etc.) will look unexpectedly zoomed out after startup or after leaving a zone.
+- **Hardcoded fallback FOV can override authored scene cameras**: If `S_CameraStateSystem` falls back to a constant FOV (for example `75.0`) when `camera.in_fov_zone` is false, scenes authored with cinematic FOV values (`28.8`, `65`, etc.) will look unexpectedly zoomed out after startup or after leaving a zone.
   - **Fix pattern**: capture baseline FOV from the active `Camera3D` into `C_CameraStateComponent.base_fov` and restore that baseline when no FOV zone rule is active.
   - **Regression check**: keep a unit test that enters/exits a zone and asserts the camera returns to the authored baseline FOV.
 

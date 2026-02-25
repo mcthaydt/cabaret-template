@@ -4,7 +4,7 @@
 
 - **Feature:** Replace v1 QB rule engine (base class inheritance model) with v2 (stateless scoring library + resource polymorphism + domain composition)
 - **Branch:** `scene-director` (continues from v1 completion)
-- **Current status:** In progress (Phase 4 complete on 2026-02-25; Phase 5A next)
+- **Current status:** Complete (Phase 5C complete on 2026-02-25)
 - **Prerequisite:** v1 is 100% complete (all phases + R1-R7 refactors)
 
 ## Guiding Principles
@@ -113,6 +113,10 @@ Phase 4C completion note (2026-02-25): Added `test_camera_shake_pipeline.gd` int
 | 5A — Codebase verification | T228-T233 | Zero stale references, all suites green |
 | 5B — Documentation | T234-T238 | AGENTS.md, STYLE_GUIDE.md, DEV_PITFALLS.md updated |
 | 5C — Final commit | T239-T240 | Test counts recorded, v2 complete |
+
+Phase 5A completion note (2026-02-25): Completed stale-reference/path greps (0 runtime matches), style verification (`tests/unit/style`: 12/12), QB verification (`tests/unit/qb`: 132/132, `tests/integration/qb`: 5/5), ECS verification (`tests/unit/ecs`: 126/126), and full integration verification (`tests/integration`: 395/396 passing with 1 headless pending, 0 failures).
+Phase 5B completion note (2026-02-25): Updated `AGENTS.md`, `docs/general/STYLE_GUIDE.md`, `docs/general/DEV_PITFALLS.md`, `docs/qb_rule_manager/qb-v2-tasks.md`, and `docs/qb_rule_manager/qb-v2-continuation-prompt.md` for final v2 architecture alignment.
+Phase 5C completion note (2026-02-25): Recorded final suite counts and committed v2 completion checkpoint.
 
 ---
 

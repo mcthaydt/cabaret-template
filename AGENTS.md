@@ -64,22 +64,17 @@
   - `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates required payload (`checkpoint`, `spawn_point_id`), dispatches `set_last_checkpoint`, and publishes `Evn_CheckpointActivated`.
   - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `@export var required_final_area: String = "bar"` for game-complete triggers, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED` for post-validation scene transitions.
   - Gameplay flows use `S_GameEventSystem` + handler systems end-to-end; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from the codebase, and active tests target QB-handler flow.
-- QB rule validation patterns (Phase 6)
-  - `BaseQBRuleManager.on_configured()` runs `U_QBRuleValidator.validate_rule_definitions(...)` before rule registration.
-  - Only `valid_rules` from the validation report are registered; invalid rules are excluded from runtime evaluation.
-  - `get_rule_validation_report()` exposes `{valid_rules, errors_by_index, errors_by_rule_id}` for tests and debugging.
-  - Misconfigured rules emit editor-only warnings in `_warn_invalid_rule_definitions()` (gated by `_should_emit_rule_validation_warnings()`, default `Engine.is_editor_hint()`).
-  - Test pattern: override `_emit_rule_validation_warning(...)` in a test stub instead of asserting raw engine warning output.
-  - Tick extension pattern (Refactor Phase R3): keep `BaseQBRuleManager.process_tick()` as the canonical 5-step loop; subclasses should override `_post_tick_evaluation(contexts, delta)` for domain writes (brain data, camera state) instead of overriding `process_tick()`.
-  - Camera FOV baseline pattern: `S_CameraRuleManager` captures per-scene baseline FOV into `C_CameraStateComponent.base_fov` from the active camera and restores that baseline when `camera.in_fov_zone` is false, instead of falling back to a hardcoded default FOV.
-- Response curve scoring + decision groups (Refactor Phase R7)
-  - `RS_QBCondition.score_curve: Curve` (optional) + `normalize_min`/`normalize_max` enables quality-based scores (null = binary 1.0/0.0, backward compatible).
-  - `RS_QBCondition.get_score(quality_value)`: booleans → 1.0/0.0 directly; numerics normalized via clampf((v-min)/(max-min), 0, 1); division-by-zero guard when min==max.
-  - `U_QBRuleEvaluator.score_condition(condition, quality_value)`: 0.0 if fails, else calls `get_score`; `score_all_conditions(conditions, context)` is a test-only helper using dict path resolution.
-  - `BaseQBRuleManager._score_rule(rule, context)`: production scoring via `U_QB_QUALITY_PROVIDER` per condition, multiplicative product; `_select_winners(candidates)` partitions by `decision_group`, `_pick_best_candidate` uses score → priority → rule_id alphabetical tiebreak.
-  - `RS_QBRuleDefinition.decision_group: StringName`: non-empty groups compete per-context (only highest-scoring candidate fires); empty = independent (always fires if conditions pass).
-  - `_evaluate_rules_for_context()` refactored to 4 passes: (1) evaluate + unconditionally track salience for TICK mode, (2) score candidates, (3) select winners, (4) execute. EVENT mode never updates `was_true_by_context` (would corrupt BOTH-mode TICK salience state).
-  - Pause gate `.tres` files (`cfg_pause_gate_paused/shell/transitioning`) use `decision_group = &"pause_gate"` — identical effect so any winner is correct; changes from 3 redundant effects to 1 per tick (idempotent).
+- QB Rule Engine v2 patterns (Phase 5 complete)
+  - The rule engine is a stateless library: `U_RuleScorer.score_rules(...)` + `U_RuleSelector.select_winners(...)`; systems compose these utilities instead of inheriting a QB base class.
+  - Rule consumers (`S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem`) each own their own `RuleStateTracker` instance; never share trackers between systems.
+  - Rule assets use `RS_Rule` + typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions`/`effects` remain `Array[Resource]` in headless fallback mode and must be runtime-validated with `U_RuleValidator.validate_rules(...)`.
+  - Validation contract: use only `valid_rules` from the validation report; expose/report `{valid_rules, errors_by_index, errors_by_rule_id}` for tests and debugging.
+  - Scoring contract: conditions return 0.0-1.0, optional `response_curve` remap applies before optional `invert`, and rule score is the multiplicative product across conditions.
+  - Selection contract: rules with empty `decision_group` fire independently; grouped rules compete by score, then priority, then `rule_id` alphabetical tiebreak.
+  - Trigger contract: `trigger_mode` supports `tick`, `event`, and `both`; event consumers fan out contexts per relevant entity/payload and apply cooldown/rising-edge/one-shot gating via tracker state.
+  - Context/path contract: conditions/effects resolve context paths through `U_PathResolver` and must not rely on method-call fallback behavior.
+  - Camera baseline pattern: `S_CameraStateSystem` captures authored baseline FOV into `C_CameraStateComponent.base_fov` and restores it when `camera.in_fov_zone` is false.
+  - Pause gate pattern: character pause gate rules (`cfg_pause_gate_paused/shell/transitioning`) share `decision_group = &"pause_gate"` so exactly one winner applies the same gate effect each tick.
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.
@@ -206,8 +201,10 @@
 - **Utilities:** `u_*` prefix (e.g., `u_ecs_utils.gd` → `U_ECSUtils`, `u_entity_query.gd` → `U_EntityQuery`)
 - **Managers:** `m_*` prefix (e.g., `m_ecs_manager.gd` → `M_ECSManager`, `m_state_store.gd` → `M_StateStore`)
 - **Components:** `c_*` prefix (e.g., `c_movement_component.gd` → `C_MovementComponent`)
-- **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`), with one documented exception: `base_qb_rule_manager.gd`
+- **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`)
 - **Resources:** `rs_*` prefix (e.g., `rs_jump_settings.gd` → `RS_JumpSettings`)
+- **QB Condition Resources:** `rs_condition_*` prefix under `scripts/resources/qb/conditions/` (e.g., `rs_condition_redux_field.gd` → `RS_ConditionReduxField`)
+- **QB Effect Resources:** `rs_effect_*` prefix under `scripts/resources/qb/effects/` (e.g., `rs_effect_set_field.gd` → `RS_EffectSetField`)
 - **Entities:** `e_*` prefix (e.g., `e_player.gd` → `E_Player`)
 - **Interactable Controllers:** `inter_*` prefix (e.g., `inter_door_trigger.gd` → `Inter_DoorTrigger`)
 - **UI Scripts:** `ui_*` prefix (e.g., `ui_main_menu.gd` → `UI_MainMenu`)
