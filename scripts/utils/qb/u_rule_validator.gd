@@ -112,6 +112,9 @@ static func _validate_condition_entry(
 		return
 
 	if _is_script_instance_of(condition_object, CONDITION_COMPOSITE):
+		if depth >= MAX_COMPOSITE_VALIDATION_DEPTH:
+			errors.append("%s nesting depth exceeds %d" % [path_prefix, MAX_COMPOSITE_VALIDATION_DEPTH])
+			return
 		var children: Array = _read_array_property(condition_object, "children")
 		if children.is_empty():
 			errors.append("%s.children must contain at least one entry" % path_prefix)
@@ -168,6 +171,8 @@ static func _contains_event_name_condition(condition_variant: Variant, depth: in
 	if _is_script_instance_of(condition_object, CONDITION_EVENT_NAME):
 		return true
 	if not _is_script_instance_of(condition_object, CONDITION_COMPOSITE):
+		return false
+	if depth >= MAX_COMPOSITE_VALIDATION_DEPTH:
 		return false
 
 	var children: Array = _read_array_property(condition_object, "children")

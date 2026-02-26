@@ -42,7 +42,7 @@ func execute_current_beat(context: Dictionary) -> void:
 		var failure_target: StringName = _to_string_name(
 			_resource_get(beat, "next_beat_id_on_failure", StringName(""))
 		)
-		_advance_to_next(beat, failure_target)
+		_advance_to_next(beat, failure_target, false)
 		return
 
 	var effects: Array[Resource] = _to_resource_array(_resource_get(beat, "effects", []))
@@ -146,12 +146,16 @@ func is_parallel_complete() -> bool:
 func get_parallel_runners() -> Array:
 	return _parallel_runners.duplicate()
 
-func _advance_to_next(current_beat: Resource, explicit_target: StringName = StringName("")) -> void:
+func _advance_to_next(
+	current_beat: Resource,
+	explicit_target: StringName = StringName(""),
+	allow_success_target_fallback: bool = true
+) -> void:
 	if is_complete():
 		return
 
 	var next_index: int = _resolve_target_index(explicit_target)
-	if next_index < 0:
+	if next_index < 0 and allow_success_target_fallback:
 		var fallback_target: StringName = _to_string_name(
 			_resource_get(current_beat, "next_beat_id", StringName(""))
 		)

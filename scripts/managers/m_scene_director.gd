@@ -22,6 +22,8 @@ var _beat_runner: Variant = null
 var _active_directive: Resource = null
 var _store_action_connected: bool = false
 var _signal_unsubscribes_by_event: Dictionary = {}
+var _last_reported_current_beat_id: StringName = StringName("")
+var _last_reported_active_beat_ids: Array[StringName] = []
 
 func _ready() -> void:
 	_beat_runner = U_BEAT_RUNNER.new()
@@ -118,6 +120,7 @@ func _start_directive(directive: Resource) -> void:
 
 	_clear_signal_subscriptions()
 	_active_directive = directive
+	_reset_reported_beat_state()
 
 	var directive_id: StringName = _get_directive_id(directive)
 	var beats: Array[Resource] = _to_resource_array(_resource_get(directive, "beats", []))
@@ -160,6 +163,7 @@ func _on_directive_complete() -> void:
 	})
 
 	_active_directive = null
+	_reset_reported_beat_state()
 	_clear_signal_subscriptions()
 	if _beat_runner != null:
 		var empty_beats: Array[Resource] = []
@@ -248,6 +252,7 @@ func _on_action_dispatched(action: Dictionary) -> void:
 
 func _reset_director_state() -> void:
 	_active_directive = null
+	_reset_reported_beat_state()
 	_clear_signal_subscriptions()
 	if _beat_runner != null:
 		var empty_beats: Array[Resource] = []
@@ -328,12 +333,16 @@ func _process_runner_state_change(previous_index: int, previous_parallel_waiting
 	if _store != null:
 		if current_index != previous_index:
 			_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_beat_index(current_index))
-		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_current_beat(current_beat_id))
-		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_active_beats(active_beat_ids))
+		if current_beat_id != _last_reported_current_beat_id:
+			_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_current_beat(current_beat_id))
+		if not _string_name_arrays_equal(active_beat_ids, _last_reported_active_beat_ids):
+			_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_active_beats(active_beat_ids))
 		if waiting_parallel and not previous_parallel_waiting:
 			_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.start_parallel(active_beat_ids))
 		elif previous_parallel_waiting and not waiting_parallel:
 			_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.complete_parallel())
+		_last_reported_current_beat_id = current_beat_id
+		_last_reported_active_beat_ids = active_beat_ids.duplicate()
 
 	if current_index != previous_index and previous_index >= 0:
 		_dispatch_beat_advanced_event(current_beat_id, active_beat_ids)
@@ -411,6 +420,18 @@ func _clear_signal_subscriptions() -> void:
 			if unsubscribe.is_valid():
 				unsubscribe.call()
 	_signal_unsubscribes_by_event.clear()
+
+func _reset_reported_beat_state() -> void:
+	_last_reported_current_beat_id = StringName("")
+	_last_reported_active_beat_ids.clear()
+
+func _string_name_arrays_equal(left: Array[StringName], right: Array[StringName]) -> bool:
+	if left.size() != right.size():
+		return false
+	for index in range(left.size()):
+		if left[index] != right[index]:
+			return false
+	return true
 
 func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool:
 	for condition_resource in conditions:

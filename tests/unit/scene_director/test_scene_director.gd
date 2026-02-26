@@ -182,6 +182,42 @@ func test_timed_beats_run_in_physics_process_and_complete() -> void:
 	if unsubscribe_completed.is_valid():
 		unsubscribe_completed.call()
 
+func test_runner_state_sync_avoids_redundant_observability_dispatches() -> void:
+	var beat_effect := EffectStub.new()
+	var manager: Variant = await _spawn_manager(
+		[
+			_directive(
+				StringName("dir_timed_observability"),
+				StringName("gameplay_base"),
+				1,
+				[],
+				[
+					_beat(
+						StringName("beat_timed"),
+						RS_BEAT_DEFINITION.WaitMode.TIMED,
+						0.2,
+						StringName(""),
+						[],
+						[beat_effect]
+					),
+				]
+			),
+		]
+	)
+
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	manager._physics_process(0.016)
+
+	var current_beat_dispatches_before: int = _count_actions(U_SCENE_DIRECTOR_ACTIONS.ACTION_SET_CURRENT_BEAT)
+	var active_beats_dispatches_before: int = _count_actions(U_SCENE_DIRECTOR_ACTIONS.ACTION_SET_ACTIVE_BEATS)
+	assert_eq(current_beat_dispatches_before, 1)
+	assert_eq(active_beats_dispatches_before, 1)
+
+	manager._physics_process(0.05)
+
+	assert_eq(_count_actions(U_SCENE_DIRECTOR_ACTIONS.ACTION_SET_CURRENT_BEAT), current_beat_dispatches_before)
+	assert_eq(_count_actions(U_SCENE_DIRECTOR_ACTIONS.ACTION_SET_ACTIVE_BEATS), active_beats_dispatches_before)
+
 func test_signal_advancement_merges_event_payload_context() -> void:
 	var beat_one_effect := EffectStub.new()
 	var beat_two_condition := ConditionPayloadFlagStub.new()
@@ -441,3 +477,10 @@ func _has_action(action_type: StringName) -> bool:
 		if action.get("type", StringName("")) == action_type:
 			return true
 	return false
+
+func _count_actions(action_type: StringName) -> int:
+	var count: int = 0
+	for action in _store.get_dispatched_actions():
+		if action.get("type", StringName("")) == action_type:
+			count += 1
+	return count

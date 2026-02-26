@@ -45,6 +45,16 @@ func _errors_contain(errors: Array, substring: String) -> bool:
 			return true
 	return false
 
+func _make_composite_chain(levels: int, leaf_condition: Resource) -> Resource:
+	var current: Resource = leaf_condition
+	for _i in range(levels):
+		var composite: Variant = CONDITION_COMPOSITE.new()
+		composite.mode = CONDITION_COMPOSITE.CompositeMode.ALL
+		var children: Array[Resource] = [current]
+		composite.children = children
+		current = composite
+	return current
+
 func test_valid_rule_with_conditions_and_effects_passes() -> void:
 	var report: Dictionary = RULE_VALIDATOR.validate_rules([_make_valid_rule()])
 	var valid_rules: Array = report.get("valid_rules", [])
@@ -266,3 +276,34 @@ func test_event_name_nested_inside_composite_satisfies_event_mode_requirement() 
 	var report: Dictionary = RULE_VALIDATOR.validate_rules([rule])
 	var errors_by_index: Dictionary = _report_errors_by_index(report)
 	assert_true(errors_by_index.is_empty())
+
+func test_composite_depth_limit_allows_boundary_depth() -> void:
+	var rule: Variant = _make_valid_rule()
+	rule.conditions.clear()
+
+	var leaf: Variant = CONDITION_REDUX_FIELD.new()
+	leaf.state_path = "gameplay.is_paused"
+	leaf.match_mode = "equals"
+	leaf.match_value_string = "true"
+
+	rule.conditions.append(_make_composite_chain(8, leaf))
+
+	var report: Dictionary = RULE_VALIDATOR.validate_rules([rule])
+	var errors_by_index: Dictionary = _report_errors_by_index(report)
+	assert_true(errors_by_index.is_empty())
+
+func test_composite_depth_limit_rejects_exceeding_depth() -> void:
+	var rule: Variant = _make_valid_rule()
+	rule.conditions.clear()
+
+	var leaf: Variant = CONDITION_REDUX_FIELD.new()
+	leaf.state_path = "gameplay.is_paused"
+	leaf.match_mode = "equals"
+	leaf.match_value_string = "true"
+
+	rule.conditions.append(_make_composite_chain(9, leaf))
+
+	var report: Dictionary = RULE_VALIDATOR.validate_rules([rule])
+	var errors_by_index: Dictionary = _report_errors_by_index(report)
+	var rule_errors: Array = errors_by_index.get(0, [])
+	assert_true(_errors_contain(rule_errors, "nesting depth exceeds"))

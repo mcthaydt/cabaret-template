@@ -236,6 +236,29 @@ func test_next_beat_id_on_failure_jumps_when_preconditions_fail() -> void:
 	assert_true(_runner.is_complete())
 	assert_eq(fail_target_effect.execute_calls, 1)
 
+func test_failure_without_failure_target_falls_back_to_sequential_not_success_target() -> void:
+	var failing_condition := ConditionStub.new(0.0)
+
+	var guarded := _beat(
+		StringName("beat_guarded"),
+		RS_BEAT_DEFINITION.WaitMode.INSTANT,
+		0.0,
+		StringName(""),
+		[failing_condition]
+	)
+	guarded.next_beat_id = StringName("beat_success_target")
+	guarded.next_beat_id_on_failure = StringName("")
+
+	var sequential := _beat(StringName("beat_sequential"))
+	var success_target := _beat(StringName("beat_success_target"))
+	var beats: Array[Resource] = [guarded, sequential, success_target]
+	_runner.start(beats)
+
+	_runner.execute_current_beat(_build_context())
+
+	assert_false(_runner.is_complete())
+	assert_eq(_runner.get_current_beat().beat_id, StringName("beat_sequential"))
+
 func test_unknown_next_beat_id_falls_back_to_sequential_advance() -> void:
 	var first := _beat(StringName("beat_first"))
 	first.next_beat_id = StringName("missing_target")
