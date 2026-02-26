@@ -21,3 +21,10 @@ enum WaitMode {
 @export_range(0.0, 600.0, 0.01, "or_greater") var duration: float = 0.0
 @export var wait_event: StringName = StringName("")
 
+@export_group("Flow Control")
+@export var next_beat_id: StringName = StringName("")
+@export var next_beat_id_on_failure: StringName = StringName("")
+
+@export_group("Parallel")
+@export var parallel_beat_ids: Array[StringName] = []
+@export var parallel_join_beat_id: StringName = StringName("")
