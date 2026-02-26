@@ -13,7 +13,7 @@ var _timed_duration: float = 0.0
 var _is_waiting_signal: bool = false
 var _waiting_signal_event: StringName = StringName("")
 var _is_waiting_parallel: bool = false
-var _parallel_runners: Array = []
+var _parallel_runners: Array[U_BeatRunner] = []
 var _parallel_lane_ids: Array[StringName] = []
 var _parallel_join_index: int = -1
 
@@ -118,11 +118,8 @@ func on_signal_received(event_name: StringName) -> void:
 	if is_complete():
 		return
 	if _is_waiting_parallel:
-		for runner_variant in _parallel_runners:
-			var runner: Variant = runner_variant
+		for runner in _parallel_runners:
 			if runner == null:
-				continue
-			if not runner.has_method("on_signal_received"):
 				continue
 			runner.on_signal_received(event_name)
 		return
@@ -143,7 +140,7 @@ func is_waiting_parallel() -> bool:
 func is_parallel_complete() -> bool:
 	return not _is_waiting_parallel and _parallel_runners.is_empty() and _parallel_lane_ids.is_empty()
 
-func get_parallel_runners() -> Array:
+func get_parallel_runners() -> Array[U_BeatRunner]:
 	return _parallel_runners.duplicate()
 
 func _advance_to_next(
@@ -181,7 +178,7 @@ func _start_parallel(lane_ids: Array[StringName], join_id: StringName) -> void:
 		if lane_beat == null:
 			continue
 
-		var lane_runner := U_BeatRunner.new()
+		var lane_runner: U_BeatRunner = U_BeatRunner.new()
 		var lane_beats: Array[Resource] = [lane_beat]
 		lane_runner.start(lane_beats)
 		_parallel_runners.append(lane_runner)
@@ -190,16 +187,13 @@ func _start_parallel(lane_ids: Array[StringName], join_id: StringName) -> void:
 		_complete_parallel_wait()
 
 func _update_parallel(delta: float, context: Dictionary) -> void:
-	var remaining: Array = []
-	for runner_variant in _parallel_runners:
-		var runner: Variant = runner_variant
+	var remaining: Array[U_BeatRunner] = []
+	for runner in _parallel_runners:
 		if runner == null:
 			continue
-		if runner.has_method("execute_current_beat"):
-			runner.execute_current_beat(context)
-		if runner.has_method("update"):
-			runner.update(delta, context)
-		if runner.has_method("is_complete") and not runner.is_complete():
+		runner.execute_current_beat(context)
+		runner.update(delta, context)
+		if not runner.is_complete():
 			remaining.append(runner)
 
 	_parallel_runners = remaining

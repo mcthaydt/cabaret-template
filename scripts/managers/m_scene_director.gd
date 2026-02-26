@@ -18,7 +18,7 @@ const STORE_SERVICE_NAME := StringName("state_store")
 @export var directives: Array[Resource] = []
 
 var _store: I_StateStore = null
-var _beat_runner: Variant = null
+var _beat_runner: U_BeatRunner = null
 var _active_directive: Resource = null
 var _store_action_connected: bool = false
 var _signal_unsubscribes_by_event: Dictionary = {}
@@ -368,16 +368,11 @@ func _dispatch_beat_advanced_event(
 func _is_runner_waiting_parallel() -> bool:
 	if _beat_runner == null:
 		return false
-	if not _beat_runner.has_method("is_waiting_parallel"):
-		return false
 	return bool(_beat_runner.is_waiting_parallel())
 
 func _get_runner_current_beat_id() -> StringName:
 	if _beat_runner == null:
 		return StringName("")
-	if not _beat_runner.has_method("get_current_beat"):
-		return StringName("")
-
 	var beat: Variant = _beat_runner.get_current_beat()
 	if beat == null or not (beat is Resource):
 		return StringName("")
@@ -391,15 +386,12 @@ func _get_runner_active_beat_ids() -> Array[StringName]:
 		return [current_id]
 
 	var active_ids: Array[StringName] = []
-	if _beat_runner == null or not _beat_runner.has_method("get_parallel_runners"):
+	if _beat_runner == null:
 		return active_ids
 
-	var runners_variant: Variant = _beat_runner.get_parallel_runners()
-	if not (runners_variant is Array):
-		return active_ids
-	for lane_runner_variant in runners_variant as Array:
-		var lane_runner: Variant = lane_runner_variant
-		if lane_runner == null or not lane_runner.has_method("get_current_beat"):
+	var lane_runners: Array[U_BeatRunner] = _beat_runner.get_parallel_runners()
+	for lane_runner in lane_runners:
+		if lane_runner == null:
 			continue
 		var lane_beat: Variant = lane_runner.get_current_beat()
 		if lane_beat == null or not (lane_beat is Resource):
