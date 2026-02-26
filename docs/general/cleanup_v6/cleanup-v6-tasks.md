@@ -14,17 +14,27 @@
 
 ## Phase 0 — Baseline & Inventory (Read-Only)
 
-- [ ] Confirm style baseline:
+- [x] Confirm style baseline:
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
-- [ ] Confirm QB test baseline:
+- [x] Confirm QB test baseline:
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/qb -ginclude_subdirs=true`
-- [ ] Confirm Scene Director test baseline:
+- [x] Confirm Scene Director test baseline:
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true`
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true`
-- [ ] Confirm display test baseline:
+- [x] Confirm display test baseline:
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true`
-- [ ] Record baseline results and any pre-existing failures in this document.
+- [x] Record baseline results and any pre-existing failures in this document.
+  - Baseline run date: 2026-02-26.
+  - Style baseline: 11/12 passed, 1 failed (`test_production_paths_have_no_spaces`) due to 4 orphaned files with spaces:
+    - `res://scripts/resources/qb/conditions/rs_condition_composite 2.gd.uid`
+    - `res://scripts/managers/m_run_coordinator 2.gd.uid`
+    - `res://scripts/utils/scene_director/u_beat_graph 2.gd.uid`
+    - `res://scripts/state/actions/u_run_actions 2.gd.uid`
+  - QB baseline: 151/151 passed.
+  - Scene Director baseline: unit 97/97 passed; integration 4/4 passed.
+  - Display baseline: unit/managers 378/378 passed; integration/display 40/41 passed with 1 pending (`test_ui_color_blind_layer_has_higher_layer_than_ui_overlay` pending due to missing `UIOverlayStack` in test environment).
+  - Environmental warnings observed (non-failing): macOS CA certificate warning (`get_system_ca_certificates`) appears at suite startup.
 
 ## Phase 1 — Orphaned Files & Filesystem Cleanup (Low Risk)
 

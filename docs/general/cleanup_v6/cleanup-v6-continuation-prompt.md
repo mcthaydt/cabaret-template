@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Pre-Phase 0 (documents created, no implementation yet).
-- Branch: `cleanup-v6` (1 commit ahead of main: `57783b5 fix(gdscript): resolve INCOMPATIBLE_TERNARY and SHADOWED_GLOBAL_IDENTIFIER warnings`)
-- Working tree: clean.
+- Phase: Phase 0 complete (baseline and inventory captured); next: Phase 1A orphaned UID cleanup.
+- Branch: `cleanup-v6` (2 commits ahead of main; baseline docs update pending commit).
+- Working tree: clean before docs update; docs modified for Phase 0 baseline record.
 
 ## Context
 
@@ -76,6 +76,18 @@ All of this code needs to be brought up to the quality bar established by cleanu
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true`
 - State suites:
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/state -ginclude_subdirs=true`
+
+## Baseline Results (2026-02-26)
+
+- Style baseline (`tests/unit/style`): 11/12 passed; 1 failure in `test_production_paths_have_no_spaces` from orphan `* 2.gd.uid` files (tracked in Phase 1A task list).
+- QB baseline (`tests/unit/qb`): 151/151 passed.
+- Scene Director baseline:
+  - Unit (`tests/unit/scene_director`): 97/97 passed.
+  - Integration (`tests/integration/scene_director`): 4/4 passed.
+- Display baseline:
+  - Unit managers (`tests/unit/managers`): 378/378 passed.
+  - Integration (`tests/integration/display`): 40/41 passed with 1 pending (`UIOverlayStack` unavailable in test environment), no failures.
+- Known non-failing environment warning: `get_system_ca_certificates` appears at suite startup on macOS.
 
 ## Notes / Pitfalls
 
