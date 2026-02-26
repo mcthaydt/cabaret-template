@@ -1,6 +1,6 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
 extends I_SceneDirector
-class_name M_SceneDirector
+class_name M_SceneDirectorManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
@@ -128,7 +128,7 @@ func _start_directive(directive: Resource) -> void:
 	var graph_report: Dictionary = U_BEAT_GRAPH.validate(beats)
 	if not bool(graph_report.get("valid", false)):
 		print(
-			"M_SceneDirector: Invalid beat graph for directive '%s': %s"
+			"M_SceneDirectorManager: Invalid beat graph for directive '%s': %s"
 			% [str(directive_id), str(graph_report.get("errors", []))]
 		)
 		_reset_director_state()

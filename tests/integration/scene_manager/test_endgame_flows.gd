@@ -13,7 +13,7 @@ extends GutTest
 
 const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
 const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
-const M_RUN_COORDINATOR := preload("res://scripts/managers/m_run_coordinator.gd")
+const M_RUN_COORDINATOR := preload("res://scripts/managers/m_run_coordinator_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")

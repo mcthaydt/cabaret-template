@@ -1,6 +1,6 @@
 extends GutTest
 
-const M_SCENE_DIRECTOR := preload("res://scripts/managers/m_scene_director.gd")
+const M_SCENE_DIRECTOR := preload("res://scripts/managers/m_scene_director_manager.gd")
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_director_actions.gd")

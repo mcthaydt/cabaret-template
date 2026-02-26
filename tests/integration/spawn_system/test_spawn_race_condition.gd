@@ -1,7 +1,7 @@
 extends GutTest
 
 ## Integration test: Verify spawn bookkeeping is set before scene is added to tree
-## This prevents race condition where M_GameplayInitializer checks for spawn status
+## This prevents race condition where M_GameplayInitializerManager checks for spawn status
 ## before M_SceneManager has recorded it, causing double spawn calls.
 
 const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")

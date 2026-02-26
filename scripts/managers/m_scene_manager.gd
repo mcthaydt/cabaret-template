@@ -557,7 +557,7 @@ func _perform_transition(request) -> void:
 		var scene_type: int = U_SCENE_REGISTRY.get_scene_type(request.scene_id)
 
 		# T137c (Phase 10B-3): Set gameplay metadata BEFORE adding to tree
-		# This must happen before _ready() calls fire, so M_GameplayInitializer sees it
+		# This must happen before _ready() calls fire, so M_GameplayInitializerManager sees it
 		if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
 			mark_scene_spawned(new_scene)
 

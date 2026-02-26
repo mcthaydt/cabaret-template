@@ -1,8 +1,8 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-class_name M_GameplayInitializer
+class_name M_GameplayInitializerManager
 extends Node
 
-## M_GameplayInitializer - Gameplay Scene Initialization Manager
+## M_GameplayInitializerManager - Gameplay Scene Initialization Manager
 ##
 ## Ensures player spawns at sp_default when gameplay scene loads directly
 ## (not through M_SceneManager transition).

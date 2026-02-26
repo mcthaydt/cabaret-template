@@ -1,6 +1,6 @@
 extends GutTest
 
-const M_RUN_COORDINATOR := preload("res://scripts/managers/m_run_coordinator.gd")
+const M_RUN_COORDINATOR := preload("res://scripts/managers/m_run_coordinator_manager.gd")
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const I_OBJECTIVES_MANAGER := preload("res://scripts/interfaces/i_objectives_manager.gd")
 const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")

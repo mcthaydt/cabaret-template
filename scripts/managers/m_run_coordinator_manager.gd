@@ -1,6 +1,6 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
 extends I_RunCoordinator
-class_name M_RunCoordinator
+class_name M_RunCoordinatorManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
@@ -133,4 +133,4 @@ func is_reset_in_flight() -> bool:
 	return _is_reset_in_flight
 
 static func _warn(message: String) -> void:
-	print("M_RunCoordinator: WARNING %s" % message)
+	print("M_RunCoordinatorManager: WARNING %s" % message)

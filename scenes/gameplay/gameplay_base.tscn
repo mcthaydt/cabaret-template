@@ -48,7 +48,7 @@
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dbegk7lwqi6r0" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="22_gamepad_vibration"]
-[ext_resource type="Script" uid="uid://cgbemg2ib5u7c" path="res://scripts/managers/m_gameplay_initializer.gd" id="23_initializer"]
+[ext_resource type="Script" uid="uid://cgbemg2ib5u7c" path="res://scripts/managers/m_gameplay_initializer_manager.gd" id="23_initializer"]
 [ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="25_screen_shake_publisher"]
 [ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="26_damage_flash_publisher"]
@@ -250,7 +250,7 @@ script = ExtResource("12_klon2")
 [node name="M_ECSManager" type="Node" parent="Managers" unique_id=21287742]
 script = ExtResource("6_0e7m3")
 
-[node name="M_GameplayInitializer" type="Node" parent="Managers" unique_id=1449888917]
+[node name="M_GameplayInitializerManager" type="Node" parent="Managers" unique_id=1449888917]
 script = ExtResource("23_initializer")
 
 [node name="Entities" type="Node" parent="." unique_id=2082843038]
