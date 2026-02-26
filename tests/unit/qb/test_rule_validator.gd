@@ -5,6 +5,8 @@ const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
 const CONDITION_COMPONENT_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_component_field.gd")
 const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
 const CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
+const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
+const CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
 const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
 const EFFECT_SET_CONTEXT_VALUE := preload("res://scripts/resources/qb/effects/rs_effect_set_context_value.gd")
 
@@ -190,3 +192,77 @@ func test_validate_rules_returns_expected_report_structure() -> void:
 	assert_true(report.get("valid_rules", null) is Array)
 	assert_true(report.get("errors_by_index", null) is Dictionary)
 	assert_true(report.get("errors_by_rule_id", null) is Dictionary)
+
+func test_composite_condition_with_empty_children_fails_validation() -> void:
+	var rule: Variant = _make_valid_rule()
+	rule.conditions.clear()
+	var condition: Variant = CONDITION_COMPOSITE.new()
+	condition.mode = CONDITION_COMPOSITE.CompositeMode.ALL
+	var empty_children: Array[Resource] = []
+	condition.children = empty_children
+	rule.conditions.append(condition)
+
+	var report: Dictionary = RULE_VALIDATOR.validate_rules([rule])
+	var errors_by_index: Dictionary = _report_errors_by_index(report)
+	var rule_errors: Array = errors_by_index.get(0, [])
+	assert_true(_errors_contain(rule_errors, "children"))
+
+func test_composite_condition_with_valid_children_passes_validation() -> void:
+	var rule: Variant = _make_valid_rule()
+	rule.conditions.clear()
+	var composite: Variant = CONDITION_COMPOSITE.new()
+	composite.mode = CONDITION_COMPOSITE.CompositeMode.ANY
+	var child: Variant = CONDITION_REDUX_FIELD.new()
+	child.state_path = "gameplay.is_paused"
+	child.match_mode = "equals"
+	child.match_value_string = "true"
+	var children: Array[Resource] = [child]
+	composite.children = children
+	rule.conditions.append(composite)
+
+	var report: Dictionary = RULE_VALIDATOR.validate_rules([rule])
+	var errors_by_index: Dictionary = _report_errors_by_index(report)
+	assert_true(errors_by_index.is_empty())
+
+func test_nested_composite_condition_recurses_for_validation_errors() -> void:
+	var rule: Variant = _make_valid_rule()
+	rule.conditions.clear()
+
+	var nested_bad: Variant = CONDITION_REDUX_FIELD.new()
+	nested_bad.state_path = ""
+	var inner: Variant = CONDITION_COMPOSITE.new()
+	inner.mode = CONDITION_COMPOSITE.CompositeMode.ALL
+	var inner_children: Array[Resource] = [nested_bad]
+	inner.children = inner_children
+
+	var outer: Variant = CONDITION_COMPOSITE.new()
+	outer.mode = CONDITION_COMPOSITE.CompositeMode.ANY
+	var outer_children: Array[Resource] = [inner]
+	outer.children = outer_children
+
+	rule.conditions.append(outer)
+
+	var report: Dictionary = RULE_VALIDATOR.validate_rules([rule])
+	var errors_by_index: Dictionary = _report_errors_by_index(report)
+	var rule_errors: Array = errors_by_index.get(0, [])
+	assert_true(_errors_contain(rule_errors, "state_path"))
+
+func test_event_name_nested_inside_composite_satisfies_event_mode_requirement() -> void:
+	var rule: Variant = _make_valid_rule()
+	rule.trigger_mode = "event"
+	rule.conditions.clear()
+
+	var event_name: Variant = CONDITION_EVENT_NAME.new()
+	event_name.expected_event_name = StringName("victory_triggered")
+	var literal: Variant = CONDITION_CONSTANT.new()
+	literal.score = 1.0
+
+	var composite: Variant = CONDITION_COMPOSITE.new()
+	composite.mode = CONDITION_COMPOSITE.CompositeMode.ANY
+	var children: Array[Resource] = [literal, event_name]
+	composite.children = children
+	rule.conditions.append(composite)
+
+	var report: Dictionary = RULE_VALIDATOR.validate_rules([rule])
+	var errors_by_index: Dictionary = _report_errors_by_index(report)
+	assert_true(errors_by_index.is_empty())
