@@ -12,6 +12,9 @@ func test_start_directive_sets_running_state_and_index_zero() -> void:
 
 	assert_eq(reduced.get("active_directive_id"), StringName("dir_intro"))
 	assert_eq(reduced.get("current_beat_index"), 0)
+	assert_eq(reduced.get("current_beat_id"), StringName(""))
+	assert_eq(reduced.get("active_beat_ids"), [])
+	assert_eq(reduced.get("parallel_lane_ids"), [])
 	assert_eq(reduced.get("state"), "running")
 
 func test_advance_beat_increments_index_by_one() -> void:
@@ -31,6 +34,9 @@ func test_complete_directive_sets_completed_state() -> void:
 	var running_state := {
 		"active_directive_id": StringName("dir_intro"),
 		"current_beat_index": 2,
+		"current_beat_id": StringName("beat_a"),
+		"active_beat_ids": [StringName("beat_a")],
+		"parallel_lane_ids": [StringName("lane_a")],
 		"state": "running",
 	}
 	var reduced: Dictionary = SCENE_DIRECTOR_REDUCER.reduce(
@@ -40,11 +46,16 @@ func test_complete_directive_sets_completed_state() -> void:
 
 	assert_eq(reduced.get("state"), "completed")
 	assert_eq(reduced.get("active_directive_id"), StringName("dir_intro"))
+	assert_eq(reduced.get("parallel_lane_ids"), [])
+	assert_eq(reduced.get("active_beat_ids"), [])
 
 func test_reset_returns_idle_defaults() -> void:
 	var running_state := {
 		"active_directive_id": StringName("dir_intro"),
 		"current_beat_index": 4,
+		"current_beat_id": StringName("beat_join"),
+		"active_beat_ids": [StringName("beat_join")],
+		"parallel_lane_ids": [StringName("lane_a"), StringName("lane_b")],
 		"state": "running",
 	}
 
@@ -55,7 +66,36 @@ func test_reset_returns_idle_defaults() -> void:
 
 	assert_eq(reduced.get("active_directive_id"), StringName(""))
 	assert_eq(reduced.get("current_beat_index"), -1)
+	assert_eq(reduced.get("current_beat_id"), StringName(""))
+	assert_eq(reduced.get("active_beat_ids"), [])
+	assert_eq(reduced.get("parallel_lane_ids"), [])
 	assert_eq(reduced.get("state"), "idle")
+
+func test_set_beat_index_sets_arbitrary_index() -> void:
+	var state := _base_state()
+	var reduced: Dictionary = SCENE_DIRECTOR_REDUCER.reduce(
+		state,
+		SCENE_DIRECTOR_ACTIONS.set_beat_index(7)
+	)
+	assert_eq(reduced.get("current_beat_index"), 7)
+
+func test_start_parallel_stores_lane_ids() -> void:
+	var state := _base_state()
+	var lane_ids: Array[StringName] = [StringName("lane_a"), StringName("lane_b")]
+	var reduced: Dictionary = SCENE_DIRECTOR_REDUCER.reduce(
+		state,
+		SCENE_DIRECTOR_ACTIONS.start_parallel(lane_ids)
+	)
+	assert_eq(reduced.get("parallel_lane_ids"), lane_ids)
+
+func test_complete_parallel_clears_lane_ids() -> void:
+	var state := _base_state()
+	state["parallel_lane_ids"] = [StringName("lane_a")]
+	var reduced: Dictionary = SCENE_DIRECTOR_REDUCER.reduce(
+		state,
+		SCENE_DIRECTOR_ACTIONS.complete_parallel()
+	)
+	assert_eq(reduced.get("parallel_lane_ids"), [])
 
 func test_reducer_is_immutable() -> void:
 	var state := _base_state()
@@ -119,5 +159,8 @@ func _base_state() -> Dictionary:
 	return {
 		"active_directive_id": StringName(""),
 		"current_beat_index": -1,
+		"current_beat_id": StringName(""),
+		"active_beat_ids": [],
+		"parallel_lane_ids": [],
 		"state": "idle",
 	}

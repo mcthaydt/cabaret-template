@@ -248,6 +248,89 @@ func test_unknown_next_beat_id_falls_back_to_sequential_advance() -> void:
 	assert_false(_runner.is_complete())
 	assert_eq(_runner.get_current_beat().beat_id, StringName("beat_second"))
 
+func test_parallel_fork_join_runs_lane_runners_and_jumps_to_join() -> void:
+	var fork_effect := EffectStub.new()
+	var lane_a_effect := EffectStub.new()
+	var lane_b_effect := EffectStub.new()
+	var join_effect := EffectStub.new()
+
+	var fork := _beat(StringName("beat_fork"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""), [], [fork_effect])
+	var lane_a := _beat(StringName("lane_a"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""), [], [lane_a_effect])
+	var lane_b := _beat(StringName("lane_b"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""), [], [lane_b_effect])
+	var join := _beat(StringName("beat_join"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""), [], [join_effect])
+
+	var lanes: Array[StringName] = [StringName("lane_a"), StringName("lane_b")]
+	fork.parallel_beat_ids = lanes
+	fork.parallel_join_beat_id = StringName("beat_join")
+
+	var beats: Array[Resource] = [fork, lane_a, lane_b, join]
+	_runner.start(beats)
+
+	_runner.execute_current_beat(_build_context())
+	assert_true(_runner.is_waiting_parallel())
+	assert_eq(_runner.get_parallel_runners().size(), 2)
+	assert_eq(fork_effect.execute_calls, 1)
+	assert_eq(_runner.get_current_beat().beat_id, StringName("beat_fork"))
+
+	_runner.update(0.016, _build_context())
+	assert_false(_runner.is_waiting_parallel())
+	assert_eq(lane_a_effect.execute_calls, 1)
+	assert_eq(lane_b_effect.execute_calls, 1)
+	assert_eq(_runner.get_current_beat().beat_id, StringName("beat_join"))
+
+	_runner.execute_current_beat(_build_context())
+	assert_true(_runner.is_complete())
+	assert_eq(join_effect.execute_calls, 1)
+
+func test_parallel_signal_propagates_to_lane_runners() -> void:
+	var lane_effect := EffectStub.new()
+	var join_effect := EffectStub.new()
+
+	var fork := _beat(StringName("beat_fork"))
+	var lane := _beat(
+		StringName("lane_signal"),
+		RS_BEAT_DEFINITION.WaitMode.SIGNAL,
+		0.0,
+		StringName("lane_done"),
+		[],
+		[lane_effect]
+	)
+	var join := _beat(StringName("beat_join"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""), [], [join_effect])
+	var lanes: Array[StringName] = [StringName("lane_signal")]
+	fork.parallel_beat_ids = lanes
+	fork.parallel_join_beat_id = StringName("beat_join")
+
+	var beats: Array[Resource] = [fork, lane, join]
+	_runner.start(beats)
+
+	_runner.execute_current_beat(_build_context())
+	_runner.update(0.016, _build_context())
+	assert_true(_runner.is_waiting_parallel())
+	assert_eq(lane_effect.execute_calls, 1)
+
+	_runner.on_signal_received(StringName("lane_done"))
+	_runner.update(0.016, _build_context())
+	assert_false(_runner.is_waiting_parallel())
+	assert_eq(_runner.get_current_beat().beat_id, StringName("beat_join"))
+
+	_runner.execute_current_beat(_build_context())
+	assert_true(_runner.is_complete())
+	assert_eq(join_effect.execute_calls, 1)
+
+func test_parallel_with_no_valid_lanes_jumps_to_join() -> void:
+	var fork := _beat(StringName("beat_fork"))
+	var join := _beat(StringName("beat_join"))
+	var lanes: Array[StringName] = [StringName("lane_missing")]
+	fork.parallel_beat_ids = lanes
+	fork.parallel_join_beat_id = StringName("beat_join")
+	var beats: Array[Resource] = [fork, join]
+	_runner.start(beats)
+
+	_runner.execute_current_beat(_build_context())
+
+	assert_false(_runner.is_waiting_parallel())
+	assert_eq(_runner.get_current_beat().beat_id, StringName("beat_join"))
+
 func _beat(
 	beat_id: StringName,
 	wait_mode: int = RS_BEAT_DEFINITION.WaitMode.INSTANT,
@@ -265,6 +348,9 @@ func _beat(
 	beat.effects = effects.duplicate(true)
 	beat.next_beat_id = StringName("")
 	beat.next_beat_id_on_failure = StringName("")
+	var empty_lanes: Array[StringName] = []
+	beat.parallel_beat_ids = empty_lanes
+	beat.parallel_join_beat_id = StringName("")
 	return beat
 
 func _build_context() -> Dictionary:
