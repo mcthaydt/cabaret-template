@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 1 complete (orphan cleanup + misplaced-file moves + validation); next: Phase 2A duck-typing removal in Scene Director runner typing.
-- Branch: `cleanup-v6` (4 commits ahead of main; Phase 1 docs update pending commit).
-- Working tree: implementation committed (`bf3df98`), docs currently modified for Phase 1 status updates.
+- Phase: Phase 2A complete (runner duck-typing removal + Scene Director validation); next: Phase 2B interface extraction (`I_ObjectivesManager`, `I_SceneDirector`, `I_RunCoordinator`).
+- Branch: `cleanup-v6` (6 commits ahead of main; Phase 2A docs update pending commit).
+- Working tree: implementation committed (`c6f2085`), docs currently modified for Phase 2A status updates.
 
 ## Context
 
@@ -98,6 +98,17 @@ All of this code needs to be brought up to the quality bar established by cleanu
 - Validation:
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass; non-failing ObjectDB leak warning at exit)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
+
+## Phase 2A Results (2026-02-26)
+
+- Typed Scene Director runner state:
+  - `m_scene_director.gd`: `_beat_runner` is now `U_BeatRunner` (removed runner `has_method(...)` checks).
+  - `u_beat_runner.gd`: `_parallel_runners` is now `Array[U_BeatRunner]` (removed runner `has_method(...)` checks in signal/parallel update paths).
+- Remaining `has_method(...)` calls are intentional polymorphism guards for condition/effect resources (`evaluate`/`execute`) on `Array[Resource]` contracts.
+- Implementation commit: `c6f2085` (`refactor(scene-director): remove runner duck typing guards`).
+- Validation:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true` (4/4 passed)
 
 ## Notes / Pitfalls
 

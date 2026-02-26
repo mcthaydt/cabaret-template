@@ -72,10 +72,15 @@
 
 ### 2A — Type `_beat_runner` and `_parallel_runners`
 
-- [ ] In `scripts/managers/m_scene_director.gd`: change `var _beat_runner: Variant = null` → `var _beat_runner: U_BeatRunner = null`. Remove the 4 `has_method()` guards that this fixes (lines ~371, 378, 394, 402).
-- [ ] In `scripts/utils/scene_director/u_beat_runner.gd`: change `var _parallel_runners: Array = []` → `var _parallel_runners: Array[U_BeatRunner] = []`. Remove the 4 `has_method()` guards in `_update_parallel()` and `on_signal_received()` (lines ~125, 198, 200, 202).
-- [ ] Verify the remaining `has_method("evaluate")` and `has_method("execute")` calls on condition/effect resources are justified (polymorphic `Array[Resource]` contract). Document as accepted.
-- [ ] Run Scene Director tests.
+- [x] In `scripts/managers/m_scene_director.gd`: change `var _beat_runner: Variant = null` → `var _beat_runner: U_BeatRunner = null`. Remove the 4 `has_method()` guards that this fixes (lines ~371, 378, 394, 402).
+- [x] In `scripts/utils/scene_director/u_beat_runner.gd`: change `var _parallel_runners: Array = []` → `var _parallel_runners: Array[U_BeatRunner] = []`. Remove the 4 `has_method()` guards in `_update_parallel()` and `on_signal_received()` (lines ~125, 198, 200, 202).
+- [x] Verify the remaining `has_method("evaluate")` and `has_method("execute")` calls on condition/effect resources are justified (polymorphic `Array[Resource]` contract). Document as accepted.
+  - Acceptance note: confirmed remaining guards are only for condition/effect `Array[Resource]` polymorphism (`evaluate`/`execute`) in `m_scene_director.gd` and `u_beat_runner.gd`; these remain intentionally.
+- [x] Run Scene Director tests.
+  - Completion notes: Implemented in commit `c6f2085` (`refactor(scene-director): remove runner duck typing guards`).
+  - Validation notes (2026-02-26):
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
+    - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true` (4/4 passed)
 
 ### 2B — Add Missing Interfaces
 
