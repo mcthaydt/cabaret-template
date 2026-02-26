@@ -65,7 +65,10 @@ func execute(context: Dictionary) -> void:
 		if not _is_numeric(next_value):
 			return
 		var clamped_value: float = clampf(float(next_value), clamp_min, clamp_max)
-		next_value = int(clamped_value) if next_value is int else clamped_value
+		if next_value is int:
+			next_value = int(clamped_value)
+		else:
+			next_value = clamped_value
 
 	_write_field_value(component_value, field_name, next_value)
 
