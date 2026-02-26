@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 2A complete (runner duck-typing removal + Scene Director validation); next: Phase 2B interface extraction (`I_ObjectivesManager`, `I_SceneDirector`, `I_RunCoordinator`).
-- Branch: `cleanup-v6` (6 commits ahead of main; Phase 2A docs update pending commit).
-- Working tree: implementation committed (`c6f2085`), docs currently modified for Phase 2A status updates.
+- Phase: Phase 2B complete (new manager interfaces + typed objectives lookup in run coordinator); next: Phase 3A class rename (`RuleStateTracker` → `U_RuleStateTracker`).
+- Branch: `cleanup-v6` (8 commits ahead of main; Phase 2B docs update pending commit).
+- Working tree: implementation committed (`13c65f2`), docs currently modified for Phase 2B status updates.
 
 ## Context
 
@@ -110,12 +110,28 @@ All of this code needs to be brought up to the quality bar established by cleanu
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true` (4/4 passed)
 
+## Phase 2B Results (2026-02-26)
+
+- Added interfaces:
+  - `scripts/interfaces/i_objectives_manager.gd`
+  - `scripts/interfaces/i_scene_director.gd`
+  - `scripts/interfaces/i_run_coordinator.gd`
+- Updated managers to extend interfaces (`M_ObjectivesManager`, `M_SceneDirector`, `M_RunCoordinator`).
+- Removed `has_method("reset_for_new_run")` guard from `M_RunCoordinator` and switched to typed `I_ObjectivesManager` lookup before invoking `reset_for_new_run(...)`.
+- Updated run coordinator unit-test stub to implement `I_ObjectivesManager`.
+- Implementation commit: `13c65f2` (`refactor(scene-director): add manager interfaces and typed objectives lookup`).
+- Validation:
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass; required after adding interface `class_name` scripts)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true` (4/4 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/qb -ginclude_subdirs=true` (151/151 passed)
+
 ## Notes / Pitfalls
 
 - After moving `.tscn` or `class_name` scripts, run a headless import to refresh UID/script caches:
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
 - `RuleStateTracker` class name in `u_rule_state_tracker.gd` — confirmed: rename to `U_RuleStateTracker` and update AGENTS.md.
-- `_beat_runner` in `m_scene_director.gd` is typed as `Variant` but is always `U_BeatRunner` — retyping removes 4 `has_method()` calls.
 - Hardcoded game-specific IDs (`"bar_complete"`, `"final_complete"`, `"alleyway"`, `"bar"`) exist in template managers — flag for extraction but may be deferred if game-specific config system is not yet designed.
 - `rs_display_initial_state.gd` has `@export_enum("bayer", "blue_noise")` but catalog uses ID `"noise"` — potential mismatch to verify.
 - Missing initial state `.tres` for objectives and scene director slices — other slices all have wired resources in `root.tscn`, these two fall through to `== null` code path.

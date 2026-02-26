@@ -84,14 +84,21 @@
 
 ### 2B — Add Missing Interfaces
 
-- [ ] Create `scripts/interfaces/i_objectives_manager.gd` (`I_ObjectivesManager`) — extract public API from `M_ObjectivesManager`.
-- [ ] Update `M_ObjectivesManager` to extend `I_ObjectivesManager`.
-- [ ] Remove `has_method("reset_for_new_run")` guard in `scripts/managers/m_run_coordinator.gd` (line ~106) — use typed interface lookup instead.
-- [ ] Create `scripts/interfaces/i_scene_director.gd` (`I_SceneDirector`) — extract public API from `M_SceneDirector`.
-- [ ] Update `M_SceneDirector` to extend `I_SceneDirector`.
-- [ ] Create `scripts/interfaces/i_run_coordinator.gd` (`I_RunCoordinator`) — extract public API from `M_RunCoordinator`.
-- [ ] Update `M_RunCoordinator` to extend `I_RunCoordinator`.
-- [ ] Run Scene Director and QB tests.
+- [x] Create `scripts/interfaces/i_objectives_manager.gd` (`I_ObjectivesManager`) — extract public API from `M_ObjectivesManager`.
+- [x] Update `M_ObjectivesManager` to extend `I_ObjectivesManager`.
+- [x] Remove `has_method("reset_for_new_run")` guard in `scripts/managers/m_run_coordinator.gd` (line ~106) — use typed interface lookup instead.
+- [x] Create `scripts/interfaces/i_scene_director.gd` (`I_SceneDirector`) — extract public API from `M_SceneDirector`.
+- [x] Update `M_SceneDirector` to extend `I_SceneDirector`.
+- [x] Create `scripts/interfaces/i_run_coordinator.gd` (`I_RunCoordinator`) — extract public API from `M_RunCoordinator`.
+- [x] Update `M_RunCoordinator` to extend `I_RunCoordinator`.
+- [x] Run Scene Director and QB tests.
+  - Completion notes: Implemented in commit `13c65f2` (`refactor(scene-director): add manager interfaces and typed objectives lookup`).
+  - Validation notes (2026-02-26):
+    - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass; refreshed class cache after adding `class_name` interfaces)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
+    - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true` (4/4 passed)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/qb -ginclude_subdirs=true` (151/151 passed)
 
 ## Phase 3 — Naming & Prefix Fixes (Medium Risk)
 
