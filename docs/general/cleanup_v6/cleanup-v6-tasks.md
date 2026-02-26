@@ -111,20 +111,23 @@
 
 ### 3B — Manager Suffix Convention (Decision: Rename All Four)
 
-- [ ] Rename `m_run_coordinator.gd` → `m_run_coordinator_manager.gd` / class `M_RunCoordinator` → `M_RunCoordinatorManager`. Update all references.
-- [ ] Rename `m_scene_director.gd` → `m_scene_director_manager.gd` / class `M_SceneDirector` → `M_SceneDirectorManager`. Update all references.
-- [ ] Rename `m_gameplay_initializer.gd` → `m_gameplay_initializer_manager.gd` / class `M_GameplayInitializer` → `M_GameplayInitializerManager`. Update all references.
-- [ ] Rename `m_screenshot_cache.gd` → `m_screenshot_cache_manager.gd` / class `M_ScreenshotCache` → `M_ScreenshotCacheManager`. Update all references.
-- [ ] Run headless import after renames.
+- [x] Rename `m_run_coordinator.gd` → `m_run_coordinator_manager.gd` / class `M_RunCoordinator` → `M_RunCoordinatorManager`. Update all references.
+- [x] Rename `m_scene_director.gd` → `m_scene_director_manager.gd` / class `M_SceneDirector` → `M_SceneDirectorManager`. Update all references.
+- [x] Rename `m_gameplay_initializer.gd` → `m_gameplay_initializer_manager.gd` / class `M_GameplayInitializer` → `M_GameplayInitializerManager`. Update all references.
+- [x] Rename `m_screenshot_cache.gd` → `m_screenshot_cache_manager.gd` / class `M_ScreenshotCache` → `M_ScreenshotCacheManager`. Update all references.
+- [x] Run headless import after renames.
+  - Completion notes: Implemented in commit `e37bfd68` (`refactor(cleanup-v6): add _manager suffix to four manager classes (phase 3b)`). Updated class_name declarations, preload paths in 5 test files, path/node-name in 6 scene files (root.tscn, gameplay_base.tscn, gameplay_exterior.tscn, test_exterior.tscn), root.gd ServiceLocator registration strings, style enforcement test node check, interface doc comments, and inline warning message prefixes.
 
 ### 3C — STYLE_GUIDE.md Gaps
 
-- [ ] Add `tmpl_*.tscn` row to the scene naming table in STYLE_GUIDE.md (templates already follow this but it's undocumented).
-- [ ] Add `scripts/core/` to the directory tree in STYLE_GUIDE.md (exists, has enforcement test, but not documented).
+- [x] Add `tmpl_*.tscn` row to the scene naming table in STYLE_GUIDE.md (templates already follow this but it's undocumented).
+- [x] Add `scripts/core/` to the directory tree in STYLE_GUIDE.md (exists, has enforcement test, but not documented).
+  - Completion notes: Added `| **Template Scenes** | tmpl_*.tscn | ... |` row after Debug Scenes row. Added `├── core/` entry to scripts directory tree before `ecs/`.
 
 ### 3D — Validate
 
-- [ ] Run style tests and QB/Scene Director tests.
+- [x] Run style tests and QB/Scene Director tests.
+  - Validation notes (2026-02-26): `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed). QB and scene director confirmed passing from Phase 3B validation.
 
 ## Phase 4 — Dead Code & Debug Cruft Removal (Low Risk)
 

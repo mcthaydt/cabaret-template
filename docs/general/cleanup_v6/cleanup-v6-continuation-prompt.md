@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 3A complete (`RuleStateTracker` → `U_RuleStateTracker`); next: Phase 3B manager suffix renames.
-- Branch: `cleanup-v6` (9 commits ahead of main; Phase 3A docs update pending commit).
-- Working tree: implementation committed (`85c50057`), docs currently modified for Phase 3A status updates.
+- Phase: Phase 3 complete (3A–3D all done); next: Phase 4 dead code removal.
+- Branch: `cleanup-v6` (11 commits ahead of main; Phase 3B/3C docs update pending commit).
+- Working tree: implementation committed (`e37bfd68`), docs currently modified for Phase 3B/3C/3D status updates.
 
 ## Context
 
@@ -134,6 +134,24 @@ All of this code needs to be brought up to the quality bar established by cleanu
 - Updated two stale AGENTS.md references (QB v2 patterns section).
 - Implementation commit: `85c50057` (`refactor(qb): rename RuleStateTracker class to U_RuleStateTracker`).
 - No headless import required (no file moves or new `class_name` scripts added, only class_name value changed).
+
+## Phase 3B/3C/3D Results (2026-02-26)
+
+- Renamed four managers with `_manager` suffix (Phase 3B):
+  - `M_RunCoordinator` → `M_RunCoordinatorManager` (`m_run_coordinator_manager.gd`)
+  - `M_SceneDirector` → `M_SceneDirectorManager` (`m_scene_director_manager.gd`)
+  - `M_GameplayInitializer` → `M_GameplayInitializerManager` (`m_gameplay_initializer_manager.gd`)
+  - `M_ScreenshotCache` → `M_ScreenshotCacheManager` (`m_screenshot_cache_manager.gd`)
+  - Updated: class_name declarations, preload paths in 5 test files, path+node-name in 6 scenes, `root.gd` ServiceLocator strings, style enforcement test, interface doc comments, inline warning prefixes, doc comments in 3 scripts.
+- Added `tmpl_*.tscn` row to STYLE_GUIDE.md scene naming table (Phase 3C).
+- Added `scripts/core/` to STYLE_GUIDE.md directory tree (Phase 3C).
+- Implementation commit: `e37bfd68` (`refactor(cleanup-v6): add _manager suffix to four manager classes (phase 3b)`).
+- Validation (Phase 3D):
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true` (4/4 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/qb -ginclude_subdirs=true` (151/151 passed)
 
 ## Notes / Pitfalls
 
