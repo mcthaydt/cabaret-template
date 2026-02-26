@@ -6,12 +6,13 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Current Status
 
-**Phase**: Phase 8 objective visibility gating complete (automated + interactive verification complete)
+**Phase**: Phase 9 complete -- QB composite conditions + scene-director branch/fork-join shipped
 **Branch**: scene-director
 **Next Task**: No pending Scene Director implementation tasks (maintain regression coverage as adjacent systems change)
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
-**Latest Verification**: 2026-02-25 -- `tests/unit/scene_director` (68/68), `tests/integration/scene_director` (3/3), `tests/integration/scene_manager -gselect=test_endgame_flows` (5/5), `tests/unit/ui -gselect=test_endgame_screens` (10/10), `tests/unit/style` (12/12). Interactive manual playtests for `T4.23` and `T6.4` are complete.
+**Latest Verification**: 2026-02-26 -- `tests/unit/qb` (149/149), `tests/unit/scene_director` (95/95), `tests/integration/scene_director` (4/4), `tests/unit/style` (12/12).
+**Phase 9 note**: QB rules now support nested `RS_ConditionComposite` (`ALL`/`ANY`, max depth 8), and scene-director beats now support branch/failure routing plus single-hop parallel fork/join (`parallel_beat_ids` + `parallel_join_beat_id`).
 **Integration note**: Default gameplay intro beats publish both instrumentation events (`scene_director_intro_beat_1/2`) and player-facing `signpost_message` payloads (`hud.scene_director_intro_beat_1/2`) consumed by HUD/mobile signpost flows.
 **Reset-run note**: Victory Continue now dispatches `run/reset`; `M_RunCoordinator` orchestrates gameplay reset, interact unblock, objectives fresh reset (`reset_for_new_run`), and retry to `alleyway`.
 **Objective-visibility note**: Goal mesh visibility is objective-driven via interaction config `visibility_objective_id` (status gate = `active` only). `cfg_victory_goal_bar` gates on `bar_complete`, and `cfg_endgame_goal_alleyway` gates on `final_complete` plus endgame `required_area`.
@@ -42,6 +43,8 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - **M_SceneManager becomes pure loader**: Victory handling moves to objectives; scene manager only handles transitions
 - **Run reset is coordinated**: `UI_Victory` dispatches `U_RunActions.reset_run`, `M_RunCoordinator` owns reset sequencing, and `M_ObjectivesManager.reset_for_new_run` keeps objective reset separate from gameplay reset
 - **Objective mesh visibility is config-driven**: `RS_VictoryInteractionConfig.visibility_objective_id` gates interactable visuals/enabled state from objectives slice (`active` only), while `Inter_EndgameGoalZone` additionally enforces `required_area` completion.
+- **QB composite conditions are available**: `RS_ConditionComposite` supports nested `ALL`/`ANY` aggregation with depth-limited recursion and validator enforcement.
+- **Beat flow is graph-based (still backward-compatible)**: `RS_BeatDefinition` supports `next_beat_id`, `next_beat_id_on_failure`, and single-hop `parallel_beat_ids`/`parallel_join_beat_id`; empty flow fields preserve linear execution.
 
 **What gets removed from M_SceneManager:**
 - `_on_victory_executed()` handler (lines 323-331)
@@ -81,6 +84,7 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - `scripts/resources/qb/conditions/rs_condition_redux_field.gd` -- reads Redux state paths (primary condition type for objectives)
 - `scripts/resources/qb/conditions/rs_condition_event_payload.gd` -- reads event payload fields
 - `scripts/resources/qb/conditions/rs_condition_constant.gd` -- fixed score for unconditional beats
+- `scripts/resources/qb/conditions/rs_condition_composite.gd` -- nested `ALL`/`ANY` grouping for OR/AND condition graphs
 - `scripts/resources/qb/rs_base_effect.gd` -- base effect class; subclasses self-execute via `execute(context)`
 - `scripts/resources/qb/effects/rs_effect_dispatch_action.gd` -- dispatches Redux action
 - `scripts/resources/qb/effects/rs_effect_publish_event.gd` -- publishes ECS event
@@ -132,6 +136,7 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - `scripts/utils/scene_director/u_objective_graph.gd`
 - `scripts/utils/scene_director/u_objective_event_log.gd`
 - `scripts/utils/scene_director/u_beat_runner.gd`
+- `scripts/utils/scene_director/u_beat_graph.gd`
 
 **Managers** (Phase 2-3):
 - `scripts/managers/m_objectives_manager.gd`
@@ -154,6 +159,8 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 - `tests/unit/scene_director/test_beat_runner.gd`
 - `tests/unit/scene_director/test_scene_director.gd`
 - `tests/unit/scene_director/test_victory_migration.gd`
+- `tests/unit/scene_director/test_beat_graph.gd`
+- `tests/unit/qb/test_condition_composite.gd`
 - `tests/integration/scene_director/test_objectives_integration.gd`
 - `tests/integration/scene_director/test_scene_director_integration.gd`
 
@@ -182,6 +189,10 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 19. **CHECKPOINT type deferred** -- enum value exists so resources can be authored, but M_ObjectivesManager treats CHECKPOINT the same as STANDARD in Phase 1-6; save-trigger behavior is a future phase.
 20. **SIGNAL subscription strategy** -- M_SceneDirector pre-scans all beats on directive start, subscribes to unique `wait_event` names via `U_ECSEventBus`, unsubscribes on complete/reset. Stores unsubscribe callables for cleanup.
 21. **Event-driven objective evaluation** -- M_ObjectivesManager evaluates objectives only when subscribed events fire (checkpoint_activated, victory_executed, area_complete actions), never per-tick. Milestones, not polls.
+22. **Composite condition contract** -- `RS_ConditionComposite` implements nested condition trees with `ALL` (product) / `ANY` (max) and hard depth limit `8`; validation enforces non-empty children and recursive subtype checks.
+23. **Beat graph validation contract** -- `U_BeatGraph.validate(...)` must pass before directive start (IDs unique/non-empty, references valid, no cycles, lane beats cannot recurse parallel).
+24. **Branching contract** -- precondition failures may route through `next_beat_id_on_failure`; successful beats may route through `next_beat_id`; empty/unknown IDs fall back to linear progression.
+25. **Parallel contract** -- fork/join is single-hop only: a beat may fork to lane beats (`parallel_beat_ids`) and rejoin at `parallel_join_beat_id`; manager observability mirrors runtime via `current_beat_id`, `active_beat_ids`, and `parallel_lane_ids`.
 
 ---
 

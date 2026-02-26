@@ -41,6 +41,7 @@
 - `scripts/utils/ecs/u_ecs_utils.gd`: ECS helpers (manager lookup, time, component mapping). Input helpers live in `scripts/utils/input/`.
 - `scripts/utils/scene_director/u_objective_graph.gd`: Objective DAG helper (build, cycle/missing-dependency validation, ready-dependents, topological sort).
 - `scripts/utils/scene_director/u_objective_event_log.gd`: Objective transition log helper (timestamped entries + readable formatting).
+- `scripts/utils/scene_director/u_beat_graph.gd`: Beat-flow graph validator/helper (ID/reference checks, cycle detection, ID->index map).
 - `scripts/events/ecs/`: ECS event bus + typed ECS events; `scripts/events/state/` holds `U_StateEventBus` (state-domain bus).
 - `scenes/root.tscn`: Main scene (persistent managers + containers).
 - `scenes/gameplay/*`: Gameplay scenes (dynamic loading, own M_ECSManager).
@@ -68,6 +69,11 @@
   - Re-entrant `run/reset` requests are ignored while a reset is in-flight.
 - Player-facing beat messaging pattern:
   - Scene-director beats may publish `signpost_message` events with `{"message": "<localization_key>", "message_duration_sec": <float>}` payloads so existing HUD/mobile signpost consumers can render narrative/tutorial text without custom UI plumbing.
+- Scene-director flow-control pattern (Phase 9):
+  - `RS_BeatDefinition` supports `next_beat_id`, `next_beat_id_on_failure`, `parallel_beat_ids`, and `parallel_join_beat_id`.
+  - Always validate beat arrays with `U_BeatGraph.validate(...)` before runner start; skip invalid directives at runtime.
+  - Parallel support is single-hop fork/join only (lane beats must not define their own `parallel_beat_ids`).
+  - Redux observability uses `scene_director.current_beat_id`, `active_beat_ids`, and `parallel_lane_ids` in addition to `current_beat_index`.
 
 ## ECS Guidelines
 
@@ -103,6 +109,7 @@
   - Context/path contract: conditions/effects resolve context paths through `U_PathResolver` and must not rely on method-call fallback behavior.
   - Camera baseline pattern: `S_CameraStateSystem` captures authored baseline FOV into `C_CameraStateComponent.base_fov` and restores it when `camera.in_fov_zone` is false.
   - Pause gate pattern: character pause gate rules (`cfg_pause_gate_paused/shell/transitioning`) share `decision_group = &"pause_gate"` so exactly one winner applies the same gate effect each tick.
+  - Composite condition pattern (Phase 9): use `RS_ConditionComposite` for nested logical grouping (`ALL` for AND/product, `ANY` for OR/max). Keep nesting <= 8 and validate through `U_RuleValidator` (empty composite children are invalid).
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.

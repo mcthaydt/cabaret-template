@@ -354,3 +354,82 @@ Phase 5 completion notes (2026-02-25):
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources -gselect=test_interaction_config_validator`
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
   - Completion note (2026-02-25): All requested suites passed (`test_e_victory_zone` 4/4, `test_e_endgame_goal_zone` 3/3, `test_interaction_config_validator` 16/16, `tests/unit/style` 12/12).
+
+---
+
+## Phase 9: QB Composite Conditions + Scene Director Branch/Fork-Join (TDD)
+
+### 9A: QB Composite Conditions
+
+- [x] T9.1: Added `scripts/resources/qb/conditions/rs_condition_composite.gd` (`RS_ConditionComposite`) with `CompositeMode.ALL/ANY`, `children: Array[Resource]`, context depth tracking (`_composite_depth`), and `MAX_NESTING_DEPTH = 8`.
+- [x] T9.2: Implemented scoring semantics:
+  - `ALL`: multiplicative product, null child => `0.0`, short-circuit on `0.0`
+  - `ANY`: max child score, null children skipped
+  - empty child list => `0.0`
+- [x] T9.3: Added `tests/unit/qb/test_condition_composite.gd` (ALL/ANY behavior, nesting, depth limit, response curve + invert integration).
+- [x] T9.4: Extended `scripts/utils/qb/u_rule_validator.gd` for recursive composite validation + nested event-name condition detection.
+- [x] T9.5: Extended `tests/unit/qb/test_rule_validator.gd` for composite recursion and nested event-trigger compatibility.
+
+### 9B: Beat Definition + Graph Validator
+
+- [x] T9.6: Extended `scripts/resources/scene_director/rs_beat_definition.gd` with flow-control and parallel exports:
+  - `next_beat_id`
+  - `next_beat_id_on_failure`
+  - `parallel_beat_ids`
+  - `parallel_join_beat_id`
+- [x] T9.7: Added `scripts/utils/scene_director/u_beat_graph.gd` with:
+  - unique/non-empty beat ID validation
+  - next/failure/parallel/join reference validation
+  - parallel lane/join co-requirement validation
+  - single-hop lane rule (lane beats cannot define `parallel_beat_ids`)
+  - DFS cycle detection across all flow edges
+  - `build_id_to_index_map(beats)`
+- [x] T9.8: Added `tests/unit/scene_director/test_beat_graph.gd`.
+
+### 9C: Beat Runner Branching
+
+- [x] T9.9: Extended `tests/unit/scene_director/test_beat_runner.gd` for success/failure branching and linear fallback behavior.
+- [x] T9.10: Updated `scripts/utils/scene_director/u_beat_runner.gd`:
+  - branch routing via `_advance_to_next(...)`
+  - `next_beat_id` success path
+  - `next_beat_id_on_failure` precondition-fail path
+  - empty/missing targets fallback to linear advance
+
+### 9D: Fork/Join + Scene Director Redux State
+
+- [x] T9.11: Extended `tests/unit/scene_director/test_beat_runner.gd` for fork/join lane execution, completion, and signal propagation.
+- [x] T9.12: Implemented single-hop fork/join in `u_beat_runner.gd` using lane sub-runners and join index resolution.
+- [x] T9.13: Added/updated scene-director actions in `scripts/state/actions/u_scene_director_actions.gd`:
+  - `set_beat_index`
+  - `set_current_beat`
+  - `set_active_beats`
+  - `start_parallel`
+  - `complete_parallel`
+- [x] T9.14: Extended scene-director reducer/selectors/initial state for:
+  - `parallel_lane_ids`
+  - `current_beat_id`
+  - `active_beat_ids`
+- [x] T9.15: Extended reducer/selectors unit coverage:
+  - `tests/unit/scene_director/test_scene_director_reducer.gd`
+  - `tests/unit/scene_director/test_scene_director_selectors.gd`
+
+### 9E: Manager Integration
+
+- [x] T9.16: Extended `tests/unit/scene_director/test_scene_director.gd` for branch execution, fork/join orchestration, and invalid-graph skip behavior.
+- [x] T9.17: Extended `tests/integration/scene_director/test_scene_director_integration.gd` with branch+parallel directive coverage.
+- [x] T9.18: Updated `scripts/managers/m_scene_director.gd` to:
+  - validate beat graphs via `U_BeatGraph.validate(...)` before start
+  - skip invalid directives and reset scene-director runtime state
+  - sync beat jumps through `set_beat_index`
+  - dispatch `start_parallel` / `complete_parallel`
+  - publish `EVENT_BEAT_ADVANCED` payload with `current_beat_id` + `active_beat_ids`
+
+### 9F: Verification
+
+- [x] T9.19: `tools/run_gut_suite.sh -gdir=res://tests/unit/qb`
+- [x] T9.20: `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director`
+- [x] T9.21: `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director`
+- [x] T9.22: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
+  - Completion note (2026-02-26): All required gates passed -- `tests/unit/qb` (`149/149`), `tests/unit/scene_director` (`95/95`), `tests/integration/scene_director` (`4/4`), `tests/unit/style` (`12/12`).
+
+**Phase 9 Commit**: Composite QB conditions and scene-director branch/fork-join flow

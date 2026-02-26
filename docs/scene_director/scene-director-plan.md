@@ -348,6 +348,73 @@ Create scene directives:
 
 ---
 
+## Phase 9: Composite Conditions + Branch/Fork-Join (TDD)
+
+**Goal**: Add QB composite conditions (`ALL`/`ANY`) and non-linear scene-director flow (branching + single-hop parallel fork/join) while preserving linear backward compatibility.
+
+### 9A: QB Composite Condition Resource
+
+- Add `scripts/resources/qb/conditions/rs_condition_composite.gd` (`RS_ConditionComposite`)
+  - `CompositeMode` enum: `ALL`, `ANY`
+  - `children: Array[Resource]`
+  - `_composite_depth` context key with max depth `8`
+  - `ALL` scoring: multiplicative, short-circuit on `0.0`
+  - `ANY` scoring: max child score, skip null children
+  - Empty children returns `0.0`
+- Update `scripts/utils/qb/u_rule_validator.gd`
+  - recursive composite child validation with depth guard
+  - recursive event-name condition detection for `trigger_mode == event|both`
+- No scorer changes (`U_RuleScorer` continues calling `condition.evaluate(context)` polymorphically).
+
+### 9B: Beat Graph Contracts
+
+- Extend `scripts/resources/scene_director/rs_beat_definition.gd` with:
+  - `next_beat_id`
+  - `next_beat_id_on_failure`
+  - `parallel_beat_ids`
+  - `parallel_join_beat_id`
+- Add `scripts/utils/scene_director/u_beat_graph.gd`
+  - unique/non-empty ID validation
+  - target reference validation (`next`, `failure`, `parallel`, `join`)
+  - parallel co-requirement (`parallel_beat_ids` <-> `parallel_join_beat_id`)
+  - lane-beat restriction (no recursive parallel lanes)
+  - cycle detection over flow edges
+  - `build_id_to_index_map(beats)` helper
+
+### 9C: Beat Runner + Scene Director Slice
+
+- Update `scripts/utils/scene_director/u_beat_runner.gd`
+  - jump-based branching (`next_beat_id`, `next_beat_id_on_failure`)
+  - single-hop fork/join via per-lane sub-runners
+  - parallel query methods: `is_waiting_parallel()`, `is_parallel_complete()`, `get_parallel_runners()`
+- Update scene director state/actions/reducer/selectors:
+  - actions: `set_beat_index`, `start_parallel`, `complete_parallel`, `set_current_beat`, `set_active_beats`
+  - state fields:
+    - `parallel_lane_ids`
+    - `current_beat_id`
+    - `active_beat_ids`
+  - selectors expose parallel + observability accessors
+
+### 9D: Manager Integration
+
+- Update `scripts/managers/m_scene_director.gd`
+  - validate beat graph on directive start; skip invalid directives
+  - sync runner state with Redux via `set_beat_index` (branch-safe)
+  - dispatch `start_parallel`/`complete_parallel`
+  - propagate signal events through active lane runners
+  - enrich `EVENT_BEAT_ADVANCED` payload with `current_beat_id` + `active_beat_ids`
+- Integration coverage now includes a runtime branch+parallel directive path in `tests/integration/scene_director/test_scene_director_integration.gd`.
+
+### 9E: Verification
+
+- Required regression gates run green:
+  - `tests/unit/qb`
+  - `tests/unit/scene_director`
+  - `tests/integration/scene_director`
+  - `tests/unit/style`
+
+---
+
 ## Files Summary
 
 ### New Files (Resources)
@@ -356,6 +423,7 @@ scripts/resources/scene_director/rs_objective_definition.gd
 scripts/resources/scene_director/rs_objective_set.gd
 scripts/resources/scene_director/rs_beat_definition.gd
 scripts/resources/scene_director/rs_scene_directive.gd
+scripts/resources/qb/conditions/rs_condition_composite.gd
 ```
 
 ### New Files (State)
@@ -380,6 +448,7 @@ scripts/managers/m_run_coordinator.gd
 scripts/utils/scene_director/u_objective_graph.gd
 scripts/utils/scene_director/u_objective_event_log.gd
 scripts/utils/scene_director/u_beat_runner.gd
+scripts/utils/scene_director/u_beat_graph.gd
 ```
 
 ### New Files (Resource Instances)
@@ -399,6 +468,11 @@ scripts/events/ecs/u_ecs_event_names.gd          -- Add objective/directive even
 scripts/managers/m_scene_manager.gd              -- Remove victory handling, add objective_victory subscription
 scenes/root.tscn                                 -- Add M_ObjectivesManager + M_SceneDirector nodes
 scripts/ui/menus/ui_victory.gd                   -- Continue now dispatches run/reset contract action
+scripts/utils/qb/u_rule_validator.gd             -- Composite condition recursive validation + nested EventName detection
+scripts/state/actions/u_scene_director_actions.gd -- Branch/fork actions + beat observability actions
+scripts/state/reducers/u_scene_director_reducer.gd -- Parallel lane + active beat state updates
+scripts/state/selectors/u_scene_director_selectors.gd -- Parallel/active beat selectors
+scripts/resources/state/rs_scene_director_initial_state.gd -- Current beat ID, active beat IDs, parallel lanes
 ```
 
 ### Test Files
@@ -418,6 +492,8 @@ tests/integration/scene_director/test_objectives_integration.gd
 tests/integration/scene_director/test_scene_director_integration.gd
 tests/unit/ui/test_endgame_screens.gd
 tests/integration/scene_manager/test_endgame_flows.gd
+tests/unit/qb/test_condition_composite.gd
+tests/unit/scene_director/test_beat_graph.gd
 ```
 
 ## Critical Files Reference
