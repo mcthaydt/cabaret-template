@@ -9,6 +9,7 @@ const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.g
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_director_actions.gd")
 const U_BEAT_RUNNER := preload("res://scripts/utils/scene_director/u_beat_runner.gd")
+const U_BEAT_GRAPH := preload("res://scripts/utils/scene_director/u_beat_graph.gd")
 const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
 
 const STORE_SERVICE_NAME := StringName("state_store")
@@ -44,8 +45,9 @@ func _physics_process(delta: float) -> void:
 
 	var context: Dictionary = _build_context()
 	var before_index: int = _to_int(_beat_runner.get_current_index(), -1)
+	var was_waiting_parallel: bool = _is_runner_waiting_parallel()
 	_beat_runner.execute_current_beat(context)
-	_process_index_change(before_index)
+	_process_runner_state_change(before_index, was_waiting_parallel)
 
 	if _active_directive == null:
 		return
@@ -54,8 +56,9 @@ func _physics_process(delta: float) -> void:
 		return
 
 	before_index = _to_int(_beat_runner.get_current_index(), -1)
-	_beat_runner.update(delta)
-	_process_index_change(before_index)
+	was_waiting_parallel = _is_runner_waiting_parallel()
+	_beat_runner.update(delta, context)
+	_process_runner_state_change(before_index, was_waiting_parallel)
 
 	if _active_directive == null:
 		return
@@ -118,6 +121,16 @@ func _start_directive(directive: Resource) -> void:
 
 	var directive_id: StringName = _get_directive_id(directive)
 	var beats: Array[Resource] = _to_resource_array(_resource_get(directive, "beats", []))
+
+	var graph_report: Dictionary = U_BEAT_GRAPH.validate(beats)
+	if not bool(graph_report.get("valid", false)):
+		print(
+			"M_SceneDirector: Invalid beat graph for directive '%s': %s"
+			% [str(directive_id), str(graph_report.get("errors", []))]
+		)
+		_reset_director_state()
+		return
+
 	_beat_runner.start(beats)
 
 	if _store != null:
@@ -127,6 +140,7 @@ func _start_directive(directive: Resource) -> void:
 		"directive_id": directive_id,
 	})
 
+	_process_runner_state_change(-1, false)
 	_subscribe_signal_events(beats)
 
 func _on_directive_complete() -> void:
@@ -136,6 +150,10 @@ func _on_directive_complete() -> void:
 	var directive_id: StringName = _get_directive_id(_active_directive)
 	if _store != null:
 		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.complete_directive())
+		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_current_beat(StringName("")))
+		var empty_active: Array[StringName] = []
+		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_active_beats(empty_active))
+		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.complete_parallel())
 
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_COMPLETED, {
 		"directive_id": directive_id,
@@ -272,8 +290,9 @@ func _on_signal_event(wait_event: StringName, event: Dictionary) -> void:
 		return
 
 	var before_index: int = _to_int(_beat_runner.get_current_index(), -1)
+	var was_waiting_parallel: bool = _is_runner_waiting_parallel()
 	_beat_runner.on_signal_received(wait_event)
-	_process_index_change(before_index)
+	_process_runner_state_change(before_index, was_waiting_parallel)
 
 	if _active_directive == null:
 		return
@@ -288,29 +307,41 @@ func _on_signal_event(wait_event: StringName, event: Dictionary) -> void:
 	var event_context: Dictionary = _build_event_context(payload)
 
 	before_index = _to_int(_beat_runner.get_current_index(), -1)
+	was_waiting_parallel = _is_runner_waiting_parallel()
 	_beat_runner.execute_current_beat(event_context)
-	_process_index_change(before_index)
+	_process_runner_state_change(before_index, was_waiting_parallel)
 
 	if _active_directive == null:
 		return
 	if _beat_runner.is_complete():
 		_on_directive_complete()
 
-func _process_index_change(previous_index: int) -> void:
+func _process_runner_state_change(previous_index: int, previous_parallel_waiting: bool) -> void:
 	if _beat_runner == null:
 		return
 
 	var current_index: int = _to_int(_beat_runner.get_current_index(), previous_index)
-	if current_index <= previous_index:
-		return
+	var waiting_parallel: bool = _is_runner_waiting_parallel()
+	var current_beat_id: StringName = _get_runner_current_beat_id()
+	var active_beat_ids: Array[StringName] = _get_runner_active_beat_ids()
 
-	for _index in range(previous_index, current_index):
-		_dispatch_beat_advanced_event()
-
-func _dispatch_beat_advanced_event() -> void:
 	if _store != null:
-		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.advance_beat())
+		if current_index != previous_index:
+			_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_beat_index(current_index))
+		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_current_beat(current_beat_id))
+		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_active_beats(active_beat_ids))
+		if waiting_parallel and not previous_parallel_waiting:
+			_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.start_parallel(active_beat_ids))
+		elif previous_parallel_waiting and not waiting_parallel:
+			_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.complete_parallel())
 
+	if current_index != previous_index and previous_index >= 0:
+		_dispatch_beat_advanced_event(current_beat_id, active_beat_ids)
+
+func _dispatch_beat_advanced_event(
+	current_beat_id: StringName,
+	active_beat_ids: Array[StringName]
+) -> void:
 	if _active_directive == null:
 		return
 
@@ -321,7 +352,57 @@ func _dispatch_beat_advanced_event() -> void:
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_BEAT_ADVANCED, {
 		"directive_id": directive_id,
 		"current_beat_index": current_index,
+		"current_beat_id": current_beat_id,
+		"active_beat_ids": active_beat_ids.duplicate(),
 	})
+
+func _is_runner_waiting_parallel() -> bool:
+	if _beat_runner == null:
+		return false
+	if not _beat_runner.has_method("is_waiting_parallel"):
+		return false
+	return bool(_beat_runner.is_waiting_parallel())
+
+func _get_runner_current_beat_id() -> StringName:
+	if _beat_runner == null:
+		return StringName("")
+	if not _beat_runner.has_method("get_current_beat"):
+		return StringName("")
+
+	var beat: Variant = _beat_runner.get_current_beat()
+	if beat == null or not (beat is Resource):
+		return StringName("")
+	return _to_string_name(_resource_get(beat as Resource, "beat_id", StringName("")))
+
+func _get_runner_active_beat_ids() -> Array[StringName]:
+	if not _is_runner_waiting_parallel():
+		var current_id: StringName = _get_runner_current_beat_id()
+		if current_id == StringName(""):
+			return []
+		return [current_id]
+
+	var active_ids: Array[StringName] = []
+	if _beat_runner == null or not _beat_runner.has_method("get_parallel_runners"):
+		return active_ids
+
+	var runners_variant: Variant = _beat_runner.get_parallel_runners()
+	if not (runners_variant is Array):
+		return active_ids
+	for lane_runner_variant in runners_variant as Array:
+		var lane_runner: Variant = lane_runner_variant
+		if lane_runner == null or not lane_runner.has_method("get_current_beat"):
+			continue
+		var lane_beat: Variant = lane_runner.get_current_beat()
+		if lane_beat == null or not (lane_beat is Resource):
+			continue
+		var lane_id: StringName = _to_string_name(
+			_resource_get(lane_beat as Resource, "beat_id", StringName(""))
+		)
+		if lane_id == StringName(""):
+			continue
+		if not active_ids.has(lane_id):
+			active_ids.append(lane_id)
+	return active_ids
 
 func _clear_signal_subscriptions() -> void:
 	for unsubscribe_variant in _signal_unsubscribes_by_event.values():

@@ -4,6 +4,9 @@ const M_SCENE_DIRECTOR := preload("res://scripts/managers/m_scene_director.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const CFG_DIRECTIVE_GAMEPLAY_BASE := preload("res://resources/scene_director/directives/cfg_directive_gameplay_base.tres")
+const RS_SCENE_DIRECTIVE := preload("res://scripts/resources/scene_director/rs_scene_directive.gd")
+const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
+const EFFECT_PUBLISH_EVENT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_SCENE_DIRECTOR_SELECTORS := preload("res://scripts/state/selectors/u_scene_director_selectors.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
@@ -12,6 +15,11 @@ const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.g
 const EVENT_BEAT_ONE := StringName("scene_director_intro_beat_1")
 const EVENT_BEAT_TWO := StringName("scene_director_intro_beat_2")
 const EVENT_SIGNPOST_MESSAGE := StringName("signpost_message")
+const EVENT_BRANCH_START := StringName("test_branch_start")
+const EVENT_BRANCH_SKIPPED := StringName("test_branch_skipped")
+const EVENT_LANE_A := StringName("test_lane_a")
+const EVENT_LANE_B := StringName("test_lane_b")
+const EVENT_JOIN := StringName("test_join")
 
 var _root: Node
 var _state_store: M_STATE_STORE
@@ -141,6 +149,76 @@ func test_scene_transition_starts_directive_and_completes_beats_in_order() -> vo
 	if unsub_signpost.is_valid():
 		unsub_signpost.call()
 
+func test_branching_and_parallel_directive_executes_expected_beats() -> void:
+	var directive: Resource = _build_branch_parallel_directive()
+	_scene_director.directives = [directive]
+
+	var completed_payloads: Array[Dictionary] = []
+	var observed_events: Array[StringName] = []
+	var saw_parallel_state: bool = false
+
+	var unsub_completed: Callable = U_ECS_EVENT_BUS.subscribe(
+		U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_COMPLETED,
+		func(event: Dictionary) -> void:
+			_append_payload(completed_payloads, event)
+	)
+	var unsub_branch_start: Callable = U_ECS_EVENT_BUS.subscribe(
+		EVENT_BRANCH_START,
+		func(_event: Dictionary) -> void:
+			observed_events.append(EVENT_BRANCH_START)
+	)
+	var unsub_branch_skipped: Callable = U_ECS_EVENT_BUS.subscribe(
+		EVENT_BRANCH_SKIPPED,
+		func(_event: Dictionary) -> void:
+			observed_events.append(EVENT_BRANCH_SKIPPED)
+	)
+	var unsub_lane_a: Callable = U_ECS_EVENT_BUS.subscribe(
+		EVENT_LANE_A,
+		func(_event: Dictionary) -> void:
+			observed_events.append(EVENT_LANE_A)
+	)
+	var unsub_lane_b: Callable = U_ECS_EVENT_BUS.subscribe(
+		EVENT_LANE_B,
+		func(_event: Dictionary) -> void:
+			observed_events.append(EVENT_LANE_B)
+	)
+	var unsub_join: Callable = U_ECS_EVENT_BUS.subscribe(
+		EVENT_JOIN,
+		func(_event: Dictionary) -> void:
+			observed_events.append(EVENT_JOIN)
+	)
+
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	var frames: int = 0
+	while completed_payloads.is_empty() and frames < 120:
+		await wait_physics_frames(1)
+		if U_SCENE_DIRECTOR_SELECTORS.is_parallel(_state_store.get_state()):
+			saw_parallel_state = true
+		frames += 1
+
+	assert_eq(completed_payloads.size(), 1)
+	assert_true(saw_parallel_state, "Expected to observe parallel lane state while directive was active")
+	assert_true(observed_events.has(EVENT_BRANCH_START))
+	assert_false(observed_events.has(EVENT_BRANCH_SKIPPED))
+	assert_true(observed_events.has(EVENT_LANE_A))
+	assert_true(observed_events.has(EVENT_LANE_B))
+	assert_true(observed_events.has(EVENT_JOIN))
+	assert_eq(U_SCENE_DIRECTOR_SELECTORS.get_director_state(_state_store.get_state()), "completed")
+	assert_false(U_SCENE_DIRECTOR_SELECTORS.is_parallel(_state_store.get_state()))
+
+	if unsub_completed.is_valid():
+		unsub_completed.call()
+	if unsub_branch_start.is_valid():
+		unsub_branch_start.call()
+	if unsub_branch_skipped.is_valid():
+		unsub_branch_skipped.call()
+	if unsub_lane_a.is_valid():
+		unsub_lane_a.call()
+	if unsub_lane_b.is_valid():
+		unsub_lane_b.call()
+	if unsub_join.is_valid():
+		unsub_join.call()
+
 func _append_payload(target: Array[Dictionary], event: Dictionary) -> void:
 	var payload: Dictionary = _extract_payload(event)
 	target.append(payload.duplicate(true))
@@ -156,3 +234,68 @@ func _wait_for_directive_completion(completed_payloads: Array[Dictionary], max_f
 	while completed_payloads.is_empty() and frames < max_frames:
 		await wait_physics_frames(1)
 		frames += 1
+
+func _build_branch_parallel_directive() -> Resource:
+	var branch_start := _beat(StringName("beat_start"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
+	var branch_start_effects: Array[Resource] = [_make_publish_effect(EVENT_BRANCH_START)]
+	branch_start.effects = branch_start_effects
+	branch_start.next_beat_id = StringName("beat_fork")
+
+	var branch_skipped := _beat(StringName("beat_skipped"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
+	var branch_skip_effects: Array[Resource] = [_make_publish_effect(EVENT_BRANCH_SKIPPED)]
+	branch_skipped.effects = branch_skip_effects
+
+	var fork := _beat(StringName("beat_fork"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
+	var lane_ids: Array[StringName] = [StringName("lane_a"), StringName("lane_b")]
+	fork.parallel_beat_ids = lane_ids
+	fork.parallel_join_beat_id = StringName("beat_join")
+
+	var lane_a := _beat(StringName("lane_a"), RS_BEAT_DEFINITION.WaitMode.TIMED, 0.02, StringName(""))
+	var lane_a_effects: Array[Resource] = [_make_publish_effect(EVENT_LANE_A)]
+	lane_a.effects = lane_a_effects
+	var lane_b := _beat(StringName("lane_b"), RS_BEAT_DEFINITION.WaitMode.TIMED, 0.02, StringName(""))
+	var lane_b_effects: Array[Resource] = [_make_publish_effect(EVENT_LANE_B)]
+	lane_b.effects = lane_b_effects
+
+	var join := _beat(StringName("beat_join"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
+	var join_effects: Array[Resource] = [_make_publish_effect(EVENT_JOIN)]
+	join.effects = join_effects
+
+	var directive: Resource = RS_SCENE_DIRECTIVE.new()
+	directive.directive_id = StringName("branch_parallel_directive")
+	directive.target_scene_id = StringName("gameplay_base")
+	directive.priority = 100
+	var selection_conditions: Array[Resource] = []
+	directive.selection_conditions = selection_conditions
+	var beats: Array[Resource] = [branch_start, branch_skipped, fork, lane_a, lane_b, join]
+	directive.beats = beats
+	return directive
+
+func _beat(
+	beat_id: StringName,
+	wait_mode: int,
+	duration: float,
+	wait_event: StringName
+) -> Resource:
+	var beat: Resource = RS_BEAT_DEFINITION.new()
+	beat.beat_id = beat_id
+	beat.wait_mode = wait_mode
+	beat.duration = duration
+	beat.wait_event = wait_event
+	var preconditions: Array[Resource] = []
+	var effects: Array[Resource] = []
+	beat.preconditions = preconditions
+	beat.effects = effects
+	beat.next_beat_id = StringName("")
+	beat.next_beat_id_on_failure = StringName("")
+	var lane_ids: Array[StringName] = []
+	beat.parallel_beat_ids = lane_ids
+	beat.parallel_join_beat_id = StringName("")
+	return beat
+
+func _make_publish_effect(event_name: StringName) -> Resource:
+	var effect: Resource = EFFECT_PUBLISH_EVENT.new()
+	effect.event_name = event_name
+	effect.payload = {}
+	effect.inject_entity_id = false
+	return effect

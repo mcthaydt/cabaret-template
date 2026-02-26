@@ -310,6 +310,86 @@ func test_late_store_registration_resolves_during_idle_tick() -> void:
 
 	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_START_DIRECTIVE))
 
+func test_branching_directive_uses_set_beat_index_and_skips_intermediate_beat() -> void:
+	var start_effect := EffectStub.new()
+	var skipped_effect := EffectStub.new()
+	var end_effect := EffectStub.new()
+
+	var start := _beat(StringName("beat_start"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""), [], [start_effect])
+	start.next_beat_id = StringName("beat_end")
+	var skipped := _beat(StringName("beat_skipped"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""), [], [skipped_effect])
+	var ending := _beat(StringName("beat_end"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""), [], [end_effect])
+
+	var manager: Variant = await _spawn_manager(
+		[
+			_directive(StringName("dir_branch"), StringName("gameplay_base"), 1, [], [start, skipped, ending]),
+		]
+	)
+
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	manager._physics_process(0.016)
+	manager._physics_process(0.016)
+
+	assert_eq(start_effect.execute_calls, 1)
+	assert_eq(skipped_effect.execute_calls, 0)
+	assert_eq(end_effect.execute_calls, 1)
+	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_SET_BEAT_INDEX))
+	assert_eq(U_SCENE_DIRECTOR_SELECTORS.get_current_beat_index(_store.get_state()), 3)
+	assert_eq(U_SCENE_DIRECTOR_SELECTORS.get_director_state(_store.get_state()), "completed")
+
+func test_parallel_directive_dispatches_parallel_actions_and_completes_join() -> void:
+	var lane_a_effect := EffectStub.new()
+	var lane_b_effect := EffectStub.new()
+	var join_effect := EffectStub.new()
+
+	var fork := _beat(StringName("beat_fork"))
+	var lane_a := _beat(StringName("lane_a"), RS_BEAT_DEFINITION.WaitMode.TIMED, 0.05, StringName(""), [], [lane_a_effect])
+	var lane_b := _beat(StringName("lane_b"), RS_BEAT_DEFINITION.WaitMode.TIMED, 0.05, StringName(""), [], [lane_b_effect])
+	var join := _beat(StringName("beat_join"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""), [], [join_effect])
+	var lanes: Array[StringName] = [StringName("lane_a"), StringName("lane_b")]
+	fork.parallel_beat_ids = lanes
+	fork.parallel_join_beat_id = StringName("beat_join")
+
+	var manager: Variant = await _spawn_manager(
+		[
+			_directive(StringName("dir_parallel"), StringName("gameplay_base"), 1, [], [fork, lane_a, lane_b, join]),
+		]
+	)
+
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	manager._physics_process(0.016)
+	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_START_PARALLEL))
+	assert_true(U_SCENE_DIRECTOR_SELECTORS.is_parallel(_store.get_state()))
+
+	manager._physics_process(0.05)
+	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_COMPLETE_PARALLEL))
+	assert_false(U_SCENE_DIRECTOR_SELECTORS.is_parallel(_store.get_state()))
+
+	manager._physics_process(0.016)
+	assert_eq(lane_a_effect.execute_calls, 1)
+	assert_eq(lane_b_effect.execute_calls, 1)
+	assert_eq(join_effect.execute_calls, 1)
+	assert_eq(U_SCENE_DIRECTOR_SELECTORS.get_director_state(_store.get_state()), "completed")
+
+func test_invalid_beat_graph_warns_and_skips_directive_start() -> void:
+	var invalid_fork := _beat(StringName("beat_fork"))
+	var lanes: Array[StringName] = [StringName("lane_a")]
+	invalid_fork.parallel_beat_ids = lanes
+	var lane_a := _beat(StringName("lane_a"))
+
+	var manager: Variant = await _spawn_manager(
+		[
+			_directive(StringName("dir_invalid"), StringName("gameplay_base"), 1, [], [invalid_fork, lane_a]),
+		]
+	)
+
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	manager._physics_process(0.016)
+
+	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_RESET))
+	assert_false(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_START_PARALLEL))
+	assert_eq(U_SCENE_DIRECTOR_SELECTORS.get_director_state(_store.get_state()), "idle")
+
 func _spawn_manager(directive_list: Array[Resource], inject_store: bool = true) -> Variant:
 	var manager := M_SCENE_DIRECTOR.new()
 	if inject_store:
@@ -349,6 +429,11 @@ func _beat(
 	beat.wait_event = wait_event
 	beat.preconditions = preconditions.duplicate(true)
 	beat.effects = effects.duplicate(true)
+	beat.next_beat_id = StringName("")
+	beat.next_beat_id_on_failure = StringName("")
+	var empty_lanes: Array[StringName] = []
+	beat.parallel_beat_ids = empty_lanes
+	beat.parallel_join_beat_id = StringName("")
 	return beat
 
 func _has_action(action_type: StringName) -> bool:
