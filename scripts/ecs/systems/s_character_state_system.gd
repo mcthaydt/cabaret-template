@@ -38,7 +38,7 @@ const DEFAULT_RULE_DEFINITIONS := [
 @export var state_store: I_StateStore = null
 @export var rules: Array[Resource] = []
 
-var _tracker: RuleStateTracker = RULE_STATE_TRACKER.new()
+var _tracker: U_RuleStateTracker = RULE_STATE_TRACKER.new()
 var _active_rules: Array = []
 var _rule_validation_report: Dictionary = {}
 var _event_unsubscribers: Array[Callable] = []
