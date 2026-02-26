@@ -1,0 +1,136 @@
+@icon("res://assets/editor_icons/icn_manager.svg")
+extends Node
+class_name M_RunCoordinator
+
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_INTERACT_BLOCKER := preload("res://scripts/utils/u_interact_blocker.gd")
+
+const STORE_SERVICE_NAME := StringName("state_store")
+const OBJECTIVES_SERVICE_NAME := StringName("objectives_manager")
+const ROUTE_RETRY_ALLEYWAY := StringName("retry_alleyway")
+const OBJECTIVE_SET_DEFAULT := StringName("default_progression")
+const RETRY_SCENE_ID := StringName("alleyway")
+
+@export var state_store: I_StateStore = null
+
+var _store: I_StateStore = null
+var _store_action_connected: bool = false
+var _is_reset_in_flight: bool = false
+
+func _ready() -> void:
+	_resolve_store()
+	_ensure_store_action_signal_connection()
+
+func _physics_process(_delta: float) -> void:
+	# Keep retrying in case store registration is late.
+	if _store == null:
+		_resolve_store()
+
+func _exit_tree() -> void:
+	_disconnect_store_action_signal()
+
+func _resolve_store() -> void:
+	var resolved_store: I_StateStore = null
+
+	if state_store != null and is_instance_valid(state_store):
+		resolved_store = state_store
+	elif _store != null and is_instance_valid(_store):
+		resolved_store = _store
+	else:
+		resolved_store = U_STATE_UTILS.try_get_store(self)
+		if resolved_store == null:
+			resolved_store = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
+
+	_set_store_reference(resolved_store)
+
+func _set_store_reference(next_store: I_StateStore) -> void:
+	if _store != next_store:
+		if _store != null and _store.has_signal("action_dispatched"):
+			if _store.action_dispatched.is_connected(_on_action_dispatched):
+				_store.action_dispatched.disconnect(_on_action_dispatched)
+		_store_action_connected = false
+		_store = next_store
+
+	_ensure_store_action_signal_connection()
+
+func _ensure_store_action_signal_connection() -> void:
+	if _store == null:
+		return
+	if not _store.has_signal("action_dispatched"):
+		return
+	if _store.action_dispatched.is_connected(_on_action_dispatched):
+		_store_action_connected = true
+		return
+
+	_store.action_dispatched.connect(_on_action_dispatched)
+	_store_action_connected = true
+
+func _disconnect_store_action_signal() -> void:
+	if not _store_action_connected:
+		return
+	if _store != null and _store.has_signal("action_dispatched"):
+		if _store.action_dispatched.is_connected(_on_action_dispatched):
+			_store.action_dispatched.disconnect(_on_action_dispatched)
+	_store_action_connected = false
+
+func _on_action_dispatched(action: Dictionary) -> void:
+	var action_type: StringName = _to_string_name(action.get("type", StringName("")))
+	if action_type != U_RUN_ACTIONS.ACTION_RESET_RUN:
+		return
+	if _is_reset_in_flight:
+		return
+
+	_is_reset_in_flight = true
+	var next_route: StringName = _resolve_next_route(action)
+	_execute_reset_run(next_route)
+	call_deferred("_complete_reset_request")
+
+func _complete_reset_request() -> void:
+	_is_reset_in_flight = false
+
+func _execute_reset_run(next_route: StringName) -> void:
+	_resolve_store()
+	if _store == null:
+		_warn("No state store available for run/reset.")
+		return
+
+	_store.dispatch(U_GAMEPLAY_ACTIONS.reset_progress())
+	U_INTERACT_BLOCKER.force_unblock()
+
+	var objectives_manager: Node = U_SERVICE_LOCATOR.try_get_service(OBJECTIVES_SERVICE_NAME)
+	if objectives_manager != null and is_instance_valid(objectives_manager):
+		if objectives_manager.has_method("reset_for_new_run"):
+			objectives_manager.call("reset_for_new_run", OBJECTIVE_SET_DEFAULT)
+		else:
+			_warn("objectives_manager is missing reset_for_new_run().")
+	else:
+		_warn("objectives_manager not available during run/reset.")
+
+	match next_route:
+		ROUTE_RETRY_ALLEYWAY:
+			_store.dispatch(U_NAVIGATION_ACTIONS.retry(RETRY_SCENE_ID))
+		_:
+			_store.dispatch(U_NAVIGATION_ACTIONS.retry(RETRY_SCENE_ID))
+
+func _resolve_next_route(action: Dictionary) -> StringName:
+	var payload_variant: Variant = action.get("payload", {})
+	if payload_variant is Dictionary:
+		var payload: Dictionary = payload_variant as Dictionary
+		var next_route: StringName = _to_string_name(payload.get("next_route", ROUTE_RETRY_ALLEYWAY))
+		if next_route != StringName(""):
+			return next_route
+	return ROUTE_RETRY_ALLEYWAY
+
+static func _to_string_name(value: Variant) -> StringName:
+	if value is StringName:
+		return value
+	if value is String:
+		return StringName(value)
+	return StringName("")
+
+static func _warn(message: String) -> void:
+	print("M_RunCoordinator: WARNING %s" % message)

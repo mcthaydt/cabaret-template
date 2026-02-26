@@ -6,6 +6,7 @@
 [resource]
 script = ExtResource("1")
 objective_id = &"goal_bar"
+visibility_objective_id = &"bar_complete"
 area_id = "bar"
 interaction_id = &"victory_goal_bar"
 trigger_settings = ExtResource("2")

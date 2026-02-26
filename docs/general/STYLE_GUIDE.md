@@ -42,13 +42,16 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 
 | Category | Pattern | Example |
 |----------|---------|---------|
-| **Systems** | `s_*_system.gd` (plus `base_qb_rule_manager.gd` exception) | `s_movement_system.gd` |
+| **Systems** | `s_*_system.gd` | `s_movement_system.gd` |
 | **Components** | `c_*_component.gd` | `c_movement_component.gd` |
 | **Managers** | `m_*_manager.gd` | `m_ecs_manager.gd` |
 | **Resources (settings)** | `rs_*_settings.gd` | `rs_movement_settings.gd` |
 | **Resources (initial state)** | `rs_*_initial_state.gd` | `rs_gameplay_initial_state.gd` |
 | **Resources (registry/definition)** | `rs_*_entry.gd` / `rs_*_definition.gd` | `rs_scene_registry_entry.gd`, `rs_ui_screen_definition.gd` |
 | **Resources (lighting)** | `rs_character_lighting_*.gd` / `rs_character_light_*_config.gd` | `rs_character_lighting_profile.gd`, `rs_character_light_zone_config.gd` |
+| **Resources (QB core)** | `rs_rule.gd` / `rs_base_condition.gd` / `rs_base_effect.gd` | `rs_rule.gd`, `rs_base_condition.gd`, `rs_base_effect.gd` |
+| **Resources (QB conditions)** | `conditions/rs_condition_*.gd` | `conditions/rs_condition_redux_field.gd` |
+| **Resources (QB effects)** | `effects/rs_effect_*.gd` | `effects/rs_effect_set_field.gd` |
 | **State Actions** | `u_*_actions.gd` | `u_gameplay_actions.gd` |
 | **State Reducers** | `u_*_reducer.gd` | `u_gameplay_reducer.gd` |
 | **State Selectors** | `u_*_selectors.gd` | `u_gameplay_selectors.gd` |
@@ -67,6 +70,11 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 | **Tools** | `t_*_tool.gd` | `t_level_editor_tool.gd` |
 | **Plugins** | `p_*_plugin.gd` | `p_custom_plugin.gd` |
 | **Helpers** | `*helpers/*` + `u_*_helper.gd` / `u_*_builder.gd` / `u_*_loader.gd` | `u_scene_registry_loader.gd`, `u_touchscreen_preview_builder.gd`, `u_input_profile_loader.gd` |
+
+**QB v2 resource directory convention:**
+- Condition resource classes live under `scripts/resources/qb/conditions/` and must use `rs_condition_*.gd`.
+- Effect resource classes live under `scripts/resources/qb/effects/` and must use `rs_effect_*.gd`.
+- Shared rule/base contracts stay at `scripts/resources/qb/` (`rs_rule.gd`, `rs_base_condition.gd`, `rs_base_effect.gd`).
 
 **Shader filename exception (locked):**
 - `assets/shaders/sh_character_zone_lighting.gdshader` is an intentional locked production filename for the character lighting pipeline and is allowed even though it does not use the `_shader` suffix.
@@ -196,9 +204,16 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | Category | File Pattern | Class Pattern | Examples |
 |----------|--------------|---------------|----------|
 | **Managers** | `m_*_manager.gd` | `M_*Manager` | `m_ecs_manager.gd` → `M_ECSManager`, `m_state_store.gd` → `M_StateStore` |
-| **Systems** | `s_*_system.gd` (plus `base_qb_rule_manager.gd` exception) | `S_*System` | `s_movement_system.gd` → `S_MovementSystem`, `s_jump_system.gd` → `S_JumpSystem` |
+| **Systems** | `s_*_system.gd` | `S_*System` | `s_movement_system.gd` → `S_MovementSystem`, `s_jump_system.gd` → `S_JumpSystem` |
 | **Components** | `c_*_component.gd` | `C_*Component` | `c_movement_component.gd` → `C_MovementComponent` |
 | **Resources** | `rs_*_settings.gd` / `rs_*_initial_state.gd` | `RS_*Settings` / `RS_*InitialState` | `rs_movement_settings.gd` → `RS_MovementSettings` |
+
+#### QB Rule Resources
+| Category | File Pattern | Class Pattern | Examples |
+|----------|--------------|---------------|----------|
+| **QB Rule Core** | `rs_rule.gd` / `rs_base_condition.gd` / `rs_base_effect.gd` | `RS_Rule` / `RS_BaseCondition` / `RS_BaseEffect` | `rs_rule.gd` → `RS_Rule` |
+| **QB Conditions** | `conditions/rs_condition_*.gd` | `RS_Condition*` | `conditions/rs_condition_component_field.gd` → `RS_ConditionComponentField` |
+| **QB Effects** | `effects/rs_effect_*.gd` | `RS_Effect*` | `effects/rs_effect_publish_event.gd` → `RS_EffectPublishEvent` |
 
 #### State Management Layer
 | Category | File Pattern | Class Pattern | Examples |

@@ -7,6 +7,7 @@
 script = ExtResource("1")
 required_area = "bar"
 objective_id = &"final_goal"
+visibility_objective_id = &"final_complete"
 area_id = "alleyway"
 victory_type = 1
 interaction_id = &"endgame_goal_alleyway"

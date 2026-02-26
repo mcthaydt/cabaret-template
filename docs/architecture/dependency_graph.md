@@ -74,7 +74,7 @@ flowchart TD
     RotateSystem[S_RotateToInputSystem]
     GravitySystem[S_GravitySystem]
     TouchSystem[S_TouchscreenSystem]
-    GameRuleManager[S_GameRuleManager]
+    GameEventSystem[S_GameEventSystem]
     VictoryHandler[S_VictoryHandlerSystem]
     CheckpointHandler[S_CheckpointHandlerSystem]
     HealthSystem[S_HealthSystem]

@@ -1,26 +1,22 @@
-[gd_resource type="Resource" script_class="RS_QBRuleDefinition" format=3 uid="uid://104ei1noisgt"]
+[gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://r4vht5u6ma6f"]
 
-[ext_resource type="Script" uid="uid://twfq4kfbgrmk" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
-[ext_resource type="Script" uid="uid://bnqy287ut780h" path="res://scripts/resources/qb/rs_qb_condition.gd" id="2_condition"]
-[ext_resource type="Script" uid="uid://bjkl7axy0epam" path="res://scripts/resources/qb/rs_qb_effect.gd" id="3_effect"]
+[ext_resource type="Script" uid="uid://bbw7r0gg2jdbf" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="1_t5nab"]
+[ext_resource type="Script" uid="uid://y3hog88by51c" path="res://scripts/resources/qb/effects/rs_effect_set_context_value.gd" id="2_8xliq"]
+[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="3_pugwh"]
 
-[sub_resource type="Resource" id="QBCondition_pause_gate_transitioning"]
-script = ExtResource("2_condition")
-source = 1
-quality_path = "scene.is_transitioning"
-operator = 8
+[sub_resource type="Resource" id="Resource_5nkae"]
+script = ExtResource("1_t5nab")
+state_path = "scene.is_transitioning"
+match_mode = "equals"
+match_value_string = "true"
 
-[sub_resource type="Resource" id="QBEffect_pause_gate_transitioning"]
-script = ExtResource("3_effect")
-target = "is_gameplay_active"
-payload = {
-"value_bool": false,
-"value_type": "BOOL"
-}
+[sub_resource type="Resource" id="Resource_fn3ur"]
+script = ExtResource("2_8xliq")
+context_key = &"is_gameplay_active"
 
 [resource]
-script = ExtResource("1_rule")
+script = ExtResource("3_pugwh")
 rule_id = &"pause_gate_transitioning"
-conditions = [SubResource("QBCondition_pause_gate_transitioning")]
-effects = [SubResource("QBEffect_pause_gate_transitioning")]
-requires_salience = false
+conditions = Array[Resource]([SubResource("Resource_5nkae")])
+effects = Array[Resource]([SubResource("Resource_fn3ur")])
+decision_group = &"pause_gate"

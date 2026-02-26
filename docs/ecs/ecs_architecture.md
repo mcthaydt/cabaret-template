@@ -1472,8 +1472,8 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 |-------|-------------|-----------|-------------|----------|
 | `health_changed` | `Evn_HealthChanged` | `C_HealthComponent` | _(state-driven)_ | - |
 | `entity_death` | `Evn_EntityDeath` | `C_HealthComponent` | `M_SceneManager` (10), `S_GamepadVibrationSystem` (0) | 10: Quick game over |
-| `victory_triggered` | `Evn_VictoryTriggered` | `C_VictoryTriggerComponent` | `S_GameRuleManager` (0), `S_VictorySoundSystem` (0) | Rule trigger fan-out |
-| `victory_execution_requested` | _(StringName)_ | `S_GameRuleManager` | `S_VictoryHandlerSystem` (10) | Validated gameplay writes |
+| `victory_triggered` | `Evn_VictoryTriggered` | `C_VictoryTriggerComponent` | `S_GameEventSystem` (0), `S_VictorySoundSystem` (0) | Rule trigger fan-out |
+| `victory_execution_requested` | _(StringName)_ | `S_GameEventSystem` | `S_VictoryHandlerSystem` (10) | Validated gameplay writes |
 | `victory_executed` | _(StringName)_ | `S_VictoryHandlerSystem` | `M_SceneManager` (5) | Transition after validation |
 | `checkpoint_activated` | `Evn_CheckpointActivated` | `S_CheckpointHandlerSystem` | `UI_HudController` (0) | - |
 

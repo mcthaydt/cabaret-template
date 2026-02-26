@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RS_ObjectiveSet" format=3 uid="uid://dlyoikoiqtr81"]
+
+[ext_resource type="Resource" uid="uid://b2tqdtxcmwnyj" path="res://resources/scene_director/objectives/cfg_obj_level_complete.tres" id="1_0gf2m"]
+[ext_resource type="Resource" uid="uid://rhjrn8gss2ub" path="res://resources/scene_director/objectives/cfg_obj_game_complete.tres" id="2_l0yy7"]
+[ext_resource type="Script" uid="uid://f32dtmtiigna" path="res://scripts/resources/scene_director/rs_objective_set.gd" id="3_hn6a1"]
+
+[resource]
+script = ExtResource("3_hn6a1")
+set_id = &"default_progression"
+description = "Default objective progression for level and game completion."
+objectives = Array[Resource]([ExtResource("1_0gf2m"), ExtResource("2_l0yy7")])

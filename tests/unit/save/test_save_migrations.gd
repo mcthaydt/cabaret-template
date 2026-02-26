@@ -122,16 +122,38 @@ func test_migrate_v0_to_v1_extracts_scene_id_from_scene_slice() -> void:
 ## Migration Chain Tests
 ## ============================================================================
 
-func test_migrate_v1_save_returns_unchanged() -> void:
+func test_migrate_v1_save_with_objectives_returns_unchanged() -> void:
 	var v1_save: Dictionary = {
 		"header": {"save_version": 1, "timestamp": "2025-01-01T00:00:00Z"},
-		"state": {"gameplay": {"player_health": 100}}
+		"state": {
+			"gameplay": {"player_health": 100},
+			"objectives": {
+				"statuses": {},
+				"active_set_id": StringName(""),
+				"event_log": [],
+			},
+		}
 	}
 
 	var migrated: Dictionary = U_SAVE_MIGRATION_ENGINE.migrate(v1_save)
 
 	assert_eq(migrated["header"]["save_version"], 1, "v1 save should remain v1")
 	assert_eq(migrated, v1_save, "v1 save should be unchanged")
+
+func test_migrate_injects_objectives_slice_when_missing() -> void:
+	var v1_save_without_objectives: Dictionary = {
+		"header": {"save_version": 1, "timestamp": "2025-01-01T00:00:00Z"},
+		"state": {"gameplay": {"player_health": 100}}
+	}
+
+	var migrated: Dictionary = U_SAVE_MIGRATION_ENGINE.migrate(v1_save_without_objectives)
+	var state: Dictionary = migrated.get("state", {})
+
+	assert_true(state.has("objectives"), "Migration should inject missing objectives slice")
+	var objectives: Dictionary = state.get("objectives", {})
+	assert_eq(objectives.get("statuses", {}), {})
+	assert_eq(objectives.get("active_set_id", StringName("")), StringName(""))
+	assert_eq(objectives.get("event_log", []), [])
 
 func test_migrate_chains_multiple_versions() -> void:
 	# This test will pass even without v2->v3 migrations defined

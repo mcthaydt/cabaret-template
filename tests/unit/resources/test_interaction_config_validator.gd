@@ -155,6 +155,25 @@ func test_validator_rejects_level_complete_without_objective_id() -> void:
 	var errors := result.get("errors", []) as Array
 	assert_true(errors.any(func(msg: Variant): return String(msg).contains("LEVEL_COMPLETE")))
 
+func test_validator_allows_optional_visibility_objective_id_on_victory_config() -> void:
+	var validator := _load_script(VALIDATOR_PATH)
+	var victory_config := _new_resource(VICTORY_CONFIG_PATH)
+	if validator == null or victory_config == null:
+		return
+
+	victory_config.set("interaction_id", StringName("victory_visibility_gate"))
+	victory_config.set("objective_id", StringName("goal_bar"))
+	victory_config.set("victory_type", 0) # LEVEL_COMPLETE
+
+	var without_gate: Dictionary = validator.call("validate_config", victory_config, "res://tests/unit/resources/victory_optional_gate")
+	assert_true(bool(without_gate.get("is_valid", false)),
+		"Victory config should remain valid when visibility_objective_id is empty.")
+
+	victory_config.set("visibility_objective_id", StringName("bar_complete"))
+	var with_gate: Dictionary = validator.call("validate_config", victory_config, "res://tests/unit/resources/victory_optional_gate")
+	assert_true(bool(with_gate.get("is_valid", false)),
+		"Victory config should remain valid when visibility_objective_id is provided.")
+
 func test_validator_rejects_empty_signpost_message() -> void:
 	var validator := _load_script(VALIDATOR_PATH)
 	var signpost_config := _new_resource(SIGNPOST_CONFIG_PATH)

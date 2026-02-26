@@ -4,6 +4,7 @@ class_name BaseInteractableController
 # U_ECS_UTILS inherited from BaseECSEntity (via base_volume_controller.gd)
 const SCENE_MANAGER_GROUP := StringName("scene_manager")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
+const DEBUG_INTERACTABLE_TRACE := false
 
 signal player_entered(player: Node3D)
 signal player_exited(player: Node3D)
@@ -20,6 +21,11 @@ var _arming_frames_remaining: int = 0
 var _is_armed: bool = false
 var _area_enter_callable: Callable = Callable()
 var _area_exit_callable: Callable = Callable()
+
+func _debug_log(message: String) -> void:
+	if not DEBUG_INTERACTABLE_TRACE:
+		return
+	print("[VictoryDebug][BaseInteractableController:%s] %s" % [name, message])
 func _ready() -> void:
 	super._ready()
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -75,22 +81,35 @@ func force_cooldown_reset() -> void:
 
 func can_activate() -> bool:
 	if _is_locked:
+		_debug_log("can_activate=false reason=locked")
 		return false
 	if not _is_armed:
+		_debug_log("can_activate=false reason=not_armed")
 		return false
 	if not is_enabled():
+		_debug_log("can_activate=false reason=disabled")
 		return false
 	if _tracked_players.is_empty():
+		_debug_log("can_activate=false reason=no_players_in_zone")
 		return false
 	if _is_transition_blocked():
+		_debug_log("can_activate=false reason=transition_blocked")
 		return false
-	return _cooldown_remaining <= 0.0
+	if _cooldown_remaining > 0.0:
+		_debug_log("can_activate=false reason=cooldown_remaining value=%s" % str(_cooldown_remaining))
+		return false
+	return true
 
 func activate(player: Node3D) -> bool:
 	if not can_activate():
+		_debug_log("activate blocked player=%s" % (str(player.name) if player != null else "<null>"))
 		return false
 
 	_cooldown_remaining = max(0.0, cooldown_duration)
+	_debug_log("activate success player=%s cooldown=%s" % [
+		str(player.name) if player != null else "<null>",
+		str(_cooldown_remaining),
+	])
 	activated.emit(player)
 	_on_activated(player)
 	return true
@@ -208,15 +227,18 @@ func _is_transition_blocked() -> bool:
 	if store != null:
 		var scene_slice: Dictionary = store.get_slice(StringName("scene"))
 		if scene_slice.get("is_transitioning", false):
+			_debug_log("transition_blocked=true scene_slice.is_transitioning scene_slice=%s" % str(scene_slice))
 			return true
 		# Block interactions while any UI overlay is active (paused/menus)
 		var stack: Array = scene_slice.get("scene_stack", [])
 		if stack.size() > 0:
+			_debug_log("transition_blocked=true scene_stack_non_empty stack=%s" % str(stack))
 			return true
 	# Check if scene manager is transitioning via ServiceLocator (Phase 10B-7: T141c)
 	# Use try_get_service to avoid errors in test environments
 	var manager := U_ServiceLocator.try_get_service(SCENE_MANAGER_GROUP) as I_SceneManager
 	if manager != null and manager.is_transitioning():
+		_debug_log("transition_blocked=true scene_manager.is_transitioning")
 		return true
 	return false
 

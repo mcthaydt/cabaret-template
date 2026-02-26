@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="RS_ObjectiveDefinition" format=3 uid="uid://b2tqdtxcmwnyj"]
+
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_event_payload.gd" id="1_event_payload"]
+[ext_resource type="Script" uid="uid://d1pyjxgvw256f" path="res://scripts/resources/scene_director/rs_objective_definition.gd" id="2_8mdsu"]
+[ext_resource type="Script" path="res://scripts/resources/qb/effects/rs_effect_publish_event.gd" id="3_publish_event"]
+
+[sub_resource type="Resource" id="Resource_goal_bar_triggered"]
+script = ExtResource("1_event_payload")
+field_path = "trigger_node.objective_id"
+match_mode = "equals"
+match_value_string = "goal_bar"
+
+[sub_resource type="Resource" id="Resource_to_alleyway"]
+script = ExtResource("3_publish_event")
+event_name = &"objective_victory_triggered"
+payload = {
+"target_scene": &"alleyway"
+}
+inject_entity_id = false
+
+[resource]
+script = ExtResource("2_8mdsu")
+objective_id = &"bar_complete"
+description = "Reach the bar goal trigger, then return to alleyway."
+conditions = Array[Resource]([SubResource("Resource_goal_bar_triggered")])
+completion_effects = Array[Resource]([SubResource("Resource_to_alleyway")])
+auto_activate = true

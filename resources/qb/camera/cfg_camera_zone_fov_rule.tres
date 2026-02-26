@@ -1,28 +1,23 @@
-[gd_resource type="Resource" script_class="RS_QBRuleDefinition" format=3 uid="uid://bi1e4ew7nvgq5"]
+[gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://cu4l3eocdebh3"]
 
-[ext_resource type="Script" uid="uid://twfq4kfbgrmk" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
-[ext_resource type="Script" uid="uid://bnqy287ut780h" path="res://scripts/resources/qb/rs_qb_condition.gd" id="2_condition"]
-[ext_resource type="Script" uid="uid://bjkl7axy0epam" path="res://scripts/resources/qb/rs_qb_effect.gd" id="3_effect"]
+[ext_resource type="Script" uid="uid://bbw7r0gg2jdbf" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="1_7ia1m"]
+[ext_resource type="Script" uid="uid://baf360oqwp7v5" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="2_hntqi"]
+[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="3_wm8ux"]
 
-[sub_resource type="Resource" id="QBCondition_camera_zone"]
-script = ExtResource("2_condition")
-source = 1
-quality_path = "camera.in_fov_zone"
-operator = 8
+[sub_resource type="Resource" id="Resource_8pss3"]
+script = ExtResource("1_7ia1m")
+state_path = "camera.in_fov_zone"
+match_mode = "equals"
+match_value_string = "true"
 
-[sub_resource type="Resource" id="QBEffect_camera_fov"]
-script = ExtResource("3_effect")
-effect_type = 2
-target = "C_CameraStateComponent.target_fov"
-payload = {
-"operation": &"set",
-"value_float": 60.0,
-"value_type": "FLOAT"
-}
+[sub_resource type="Resource" id="Resource_sxpn2"]
+script = ExtResource("2_hntqi")
+component_type = &"C_CameraStateComponent"
+field_name = &"target_fov"
+float_value = 60.0
 
 [resource]
-script = ExtResource("1_rule")
-rule_id = &"camera_zone_fov_rule"
-conditions = [SubResource("QBCondition_camera_zone")]
-effects = [SubResource("QBEffect_camera_fov")]
-requires_salience = false
+script = ExtResource("3_wm8ux")
+rule_id = &"camera_zone_fov"
+conditions = Array[Resource]([SubResource("Resource_8pss3")])
+effects = Array[Resource]([SubResource("Resource_sxpn2")])

@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://q1djjqq4f3ts"]
 
-[ext_resource type="Script" uid="uid://ckkkd1tjiuv0w" path="res://scripts/ecs/systems/s_camera_rule_manager.gd" id="1_camera_rule_manager"]
-[ext_resource type="Script" uid="uid://dcha1xk3subkj" path="res://scripts/ecs/systems/s_character_rule_manager.gd" id="1_character_rule_manager"]
+[ext_resource type="Script" uid="uid://bgrjdxph5gqqh" path="res://scripts/ecs/systems/s_camera_state_system.gd" id="1_camera_state_system"]
+[ext_resource type="Script" uid="uid://tl3oy7blmu20" path="res://scripts/ecs/systems/s_character_state_system.gd" id="1_character_rule_manager"]
 [ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
-[ext_resource type="Script" uid="uid://drmqto4u8pr8d" path="res://scripts/ecs/systems/s_game_rule_manager.gd" id="1_game_rule_manager"]
+[ext_resource type="Script" uid="uid://drmqto4u8pr8d" path="res://scripts/ecs/systems/s_game_event_system.gd" id="1_game_event_system"]
 [ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
@@ -107,14 +107,14 @@ script = ExtResource("3_ph0bl")
 [node name="Core" type="Node" parent="Systems" unique_id=2069599387]
 script = ExtResource("3_systems_core")
 
-[node name="S_CharacterRuleManager" type="Node" parent="Systems/Core" unique_id=606846292]
+[node name="S_CharacterStateSystem" type="Node" parent="Systems/Core" unique_id=606846292]
 script = ExtResource("1_character_rule_manager")
 
-[node name="S_GameRuleManager" type="Node" parent="Systems/Core" unique_id=2054981486]
-script = ExtResource("1_game_rule_manager")
+[node name="S_GameEventSystem" type="Node" parent="Systems/Core" unique_id=2054981486]
+script = ExtResource("1_game_event_system")
 
-[node name="S_CameraRuleManager" type="Node" parent="Systems/Core" unique_id=575434424]
-script = ExtResource("1_camera_rule_manager")
+[node name="S_CameraStateSystem" type="Node" parent="Systems/Core" unique_id=575434424]
+script = ExtResource("1_camera_state_system")
 
 [node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=35777903]
 script = ExtResource("1_pybrx")
@@ -308,7 +308,8 @@ tags = Array[StringName]([&"objective", &"goal"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_GoalZone" unique_id=1272881135]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.63254166)
-radius = 1.5
+radius = 0.7910156
+height = 2.0715332
 material = ExtResource("53_fade_goal")
 
 [node name="Inter_CharacterLightZone_GoalGlow" type="Node3D" parent="Entities/Objectives/E_GoalZone" unique_id=1210409356]
@@ -321,7 +322,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.63254166)
 light_color = Color(1, 0.87451, 0.364706, 1)
 light_energy = 2.0
 
-[node name="E_Player" parent="Entities" unique_id=1535353491 instance=ExtResource("7_4wxy1")]
+[node name="E_Player" parent="Entities" unique_id=526145796 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2181439, 1, 0.6794058)
 
 [node name="E_CameraRoot" parent="Entities" unique_id=153420920 instance=ExtResource("19_ph0bl")]

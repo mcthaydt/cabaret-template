@@ -171,7 +171,7 @@ Systems are organized into **four functional categories** for better visual orga
 **Systems:**
 - `S_InputSystem` (priority: 0) - Input capture and processing
 - `S_TouchscreenSystem` - Mobile virtual controls coordination
-- `S_GameRuleManager` - Event-rule host for checkpoint/victory trigger routing
+- `S_GameEventSystem` - Event-rule host for checkpoint/victory trigger routing
 - `S_CheckpointHandlerSystem` - Checkpoint activation and respawn point updates
 - `S_SceneTriggerSystem` - Door and scene transition triggers
 - `S_VictoryHandlerSystem` - Victory validation and endgame action dispatch

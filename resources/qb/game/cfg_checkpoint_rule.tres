@@ -1,16 +1,20 @@
-[gd_resource type="Resource" script_class="RS_QBRuleDefinition" format=3 uid="uid://dvvaxg74olpqw"]
+[gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://bgwt1yvs2pofs"]
 
-[ext_resource type="Script" uid="uid://twfq4kfbgrmk" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
-[ext_resource type="Script" uid="uid://bjkl7axy0epam" path="res://scripts/resources/qb/rs_qb_effect.gd" id="2_effect"]
+[ext_resource type="Script" uid="uid://cgk1j4fpq4c8" path="res://scripts/resources/qb/effects/rs_effect_publish_event.gd" id="1_n3coq"]
+[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="2_31p0j"]
+[ext_resource type="Script" uid="uid://bkrf6emw8eq0d" path="res://scripts/resources/qb/conditions/rs_condition_event_name.gd" id="3_8nvo7"]
 
-[sub_resource type="Resource" id="QBEffect_checkpoint_request"]
-script = ExtResource("2_effect")
-effect_type = 1
-target = "checkpoint_activation_requested"
+[sub_resource type="Resource" id="Resource_5lxpe"]
+script = ExtResource("3_8nvo7")
+expected_event_name = &"checkpoint_zone_entered"
+
+[sub_resource type="Resource" id="Resource_k2dna"]
+script = ExtResource("1_n3coq")
+event_name = &"checkpoint_activation_requested"
 
 [resource]
-script = ExtResource("1_rule")
-rule_id = &"checkpoint_activation_request"
-trigger_mode = 1
-trigger_event = &"checkpoint_zone_entered"
-effects = [SubResource("QBEffect_checkpoint_request")]
+script = ExtResource("2_31p0j")
+rule_id = &"checkpoint_forward"
+trigger_mode = "event"
+conditions = Array[Resource]([SubResource("Resource_5lxpe")])
+effects = Array[Resource]([SubResource("Resource_k2dna")])

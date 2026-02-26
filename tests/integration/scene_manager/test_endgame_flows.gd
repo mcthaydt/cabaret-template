@@ -12,11 +12,16 @@ extends GutTest
 ## implementation work for Phase 9 is complete.
 
 const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
+const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
+const M_RUN_COORDINATOR := preload("res://scripts/managers/m_run_coordinator.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
+const OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
+const OBJECTIVE_SET := preload("res://scripts/resources/scene_director/rs_objective_set.gd")
+const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
@@ -28,13 +33,15 @@ const DEATH_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_death_handler
 const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gameplay/cfg_health_settings.tres")
 
 const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
-const GAME_RULE_MANAGER := preload("res://scripts/ecs/systems/s_game_rule_manager.gd")
+const GAME_EVENT_SYSTEM := preload("res://scripts/ecs/systems/s_game_event_system.gd")
 const VICTORY_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_victory_handler_system.gd")
 const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 var _root: Node
 var _state_store: M_STATE_STORE
 var _scene_manager: M_SCENE_MANAGER
+var _objectives_manager: M_OBJECTIVES_MANAGER
+var _run_coordinator: M_RUN_COORDINATOR
 var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
 var _transition_overlay: CanvasLayer
@@ -58,6 +65,7 @@ func before_each() -> void:
 
 	_state_store = M_STATE_STORE.new()
 	_state_store.settings = RS_STATE_STORE_SETTINGS.new()
+	_state_store.settings.enable_persistence = false
 	_state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
 	_state_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
 	_root.add_child(_state_store)
@@ -90,9 +98,17 @@ func before_each() -> void:
 	_scene_manager.skip_initial_scene_load = true
 	_scene_manager.initial_scene_id = StringName("alleyway")
 	_root.add_child(_scene_manager)
+	_objectives_manager = M_OBJECTIVES_MANAGER.new()
+	_objectives_manager.state_store = _state_store
+	_objectives_manager.objective_sets = [_build_endgame_objective_set()]
+	_root.add_child(_objectives_manager)
+	_run_coordinator = M_RUN_COORDINATOR.new()
+	_run_coordinator.state_store = _state_store
+	_root.add_child(_run_coordinator)
 
 	# Register managers with ServiceLocator (Phase 10B-7: T141c)
 	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)
+	U_ServiceLocator.register(StringName("objectives_manager"), _objectives_manager)
 
 	await get_tree().process_frame
 	await wait_physics_frames(1)
@@ -111,6 +127,8 @@ func after_each() -> void:
 	_root = null
 	_state_store = null
 	_scene_manager = null
+	_objectives_manager = null
+	_run_coordinator = null
 	_active_scene_container = null
 	_ui_overlay_stack = null
 	_transition_overlay = null
@@ -176,9 +194,9 @@ func _prepare_victory_system() -> Dictionary:
 	victory_component.trigger_once = false
 	victory_entity.add_child(victory_component)
 
-	var game_rule_manager := GAME_RULE_MANAGER.new()
-	game_rule_manager.name = "S_GameRuleManager"
-	_systems_core.add_child(game_rule_manager)
+	var game_event_system := GAME_EVENT_SYSTEM.new()
+	game_event_system.name = "S_GameEventSystem"
+	_systems_core.add_child(game_event_system)
 
 	var victory_handler_system := VICTORY_HANDLER_SYSTEM.new()
 	victory_handler_system.name = "S_VictoryHandlerSystem"
@@ -190,9 +208,43 @@ func _prepare_victory_system() -> Dictionary:
 	return {
 		"entity": victory_entity,
 		"component": victory_component,
-		"game_rule_manager": game_rule_manager,
+		"game_event_system": game_event_system,
 		"victory_handler_system": victory_handler_system,
 	}
+
+func _build_endgame_objective_set() -> Resource:
+	var level_condition := CONDITION_REDUX_FIELD.new()
+	level_condition.state_path = "gameplay.completed_areas.0"
+	level_condition.match_mode = "not_equals"
+	level_condition.match_value_string = ""
+
+	var game_condition := CONDITION_REDUX_FIELD.new()
+	game_condition.state_path = "gameplay.game_completed"
+	game_condition.match_mode = "equals"
+	game_condition.match_value_string = "true"
+
+	var bar_objective: Resource = OBJECTIVE_DEFINITION.new()
+	bar_objective.objective_id = StringName("bar_complete")
+	bar_objective.auto_activate = true
+	var bar_conditions: Array[Resource] = [level_condition]
+	bar_objective.conditions = bar_conditions
+
+	var final_objective: Resource = OBJECTIVE_DEFINITION.new()
+	final_objective.objective_id = StringName("final_complete")
+	final_objective.objective_type = OBJECTIVE_DEFINITION.ObjectiveType.VICTORY
+	var dependencies: Array[StringName] = [StringName("bar_complete")]
+	final_objective.dependencies = dependencies
+	var final_conditions: Array[Resource] = [game_condition]
+	final_objective.conditions = final_conditions
+	final_objective.completion_event_payload = {
+		"target_scene": StringName("victory"),
+	}
+
+	var objective_set: Resource = OBJECTIVE_SET.new()
+	objective_set.set_id = StringName("default_progression")
+	var objectives: Array[Resource] = [bar_objective, final_objective]
+	objective_set.objectives = objectives
+	return objective_set
 
 func _get_active_scene_instance() -> Node:
 	if _active_scene_container == null:
@@ -285,7 +337,7 @@ func test_victory_triggers_victory_scene_when_area_completed() -> void:
 	if is_instance_valid(victory_component):
 		victory_component.call("_on_body_entered", body)
 		await wait_physics_frames(1)
-	await wait_seconds(0.3)
+	await U_SceneTestHelpers.wait_for_transition_idle(_scene_manager)
 
 	assert_eq(_scene_manager.get_current_scene(), StringName("victory"),
 		"Victory scene should load once prerequisites satisfied")
@@ -343,6 +395,14 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 		"Reset should clear pending spawn point")
 	assert_eq(float(gameplay_state.get("player_health", -1.0)), float(gameplay_state.get("player_max_health", -1.0)),
 		"Reset should restore player health to max")
+	var objectives_state: Dictionary = _state_store.get_state().get("objectives", {})
+	var statuses: Dictionary = objectives_state.get("statuses", {})
+	assert_eq(statuses.get(StringName("bar_complete"), "inactive"), "active",
+		"Continue should re-arm root objective for new run")
+	assert_eq(statuses.get(StringName("final_complete"), "inactive"), "inactive",
+		"Continue should keep dependent objective inactive after fresh reset")
+	assert_eq(objectives_state.get("event_log", []), [],
+		"Continue should clear objective event log for a fresh run")
 	var entity_snapshots: Variant = gameplay_state.get("entities", {})
 	var player_entity_id: String = String(gameplay_state.get("player_entity_id", "player"))
 	if entity_snapshots is Dictionary:

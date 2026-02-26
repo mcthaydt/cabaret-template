@@ -41,6 +41,9 @@ func _initialize_service_locator() -> void:
 	_register_if_exists(managers_node, "M_InputDeviceManager", StringName("input_device_manager"))
 	_register_if_exists(managers_node, "M_UIInputHandler", StringName("ui_input_handler"))
 	_register_if_exists(managers_node, "M_SaveManager", StringName("save_manager"))
+	_register_if_exists(managers_node, "M_ObjectivesManager", StringName("objectives_manager"))
+	_register_if_exists(managers_node, "M_RunCoordinator", StringName("run_coordinator"))
+	_register_if_exists(managers_node, "M_SceneDirector", StringName("scene_director"))
 
 	# Register dependencies for validation
 	U_ServiceLocator.register_dependency(StringName("time_manager"), StringName("state_store"))
@@ -59,6 +62,11 @@ func _initialize_service_locator() -> void:
 	U_ServiceLocator.register_dependency(StringName("input_device_manager"), StringName("state_store"))
 	U_ServiceLocator.register_dependency(StringName("save_manager"), StringName("state_store"))
 	U_ServiceLocator.register_dependency(StringName("save_manager"), StringName("scene_manager"))
+	U_ServiceLocator.register_dependency(StringName("objectives_manager"), StringName("state_store"))
+	U_ServiceLocator.register_dependency(StringName("run_coordinator"), StringName("state_store"))
+	U_ServiceLocator.register_dependency(StringName("run_coordinator"), StringName("objectives_manager"))
+	U_ServiceLocator.register_dependency(StringName("scene_director"), StringName("state_store"))
+	U_ServiceLocator.register_dependency(StringName("scene_director"), StringName("objectives_manager"))
 
 	# Validate all dependencies
 	if not U_ServiceLocator.validate_all():

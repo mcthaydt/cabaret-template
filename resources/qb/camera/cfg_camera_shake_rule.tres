@@ -1,23 +1,24 @@
-[gd_resource type="Resource" script_class="RS_QBRuleDefinition" format=3 uid="uid://b310gx1pcytdu"]
+[gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://bl1mfl7srgr8r"]
 
-[ext_resource type="Script" uid="uid://twfq4kfbgrmk" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
-[ext_resource type="Script" uid="uid://bjkl7axy0epam" path="res://scripts/resources/qb/rs_qb_effect.gd" id="2_effect"]
+[ext_resource type="Script" uid="uid://baf360oqwp7v5" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="1_7ubwf"]
+[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="2_3tnus"]
+[ext_resource type="Script" uid="uid://bkrf6emw8eq0d" path="res://scripts/resources/qb/conditions/rs_condition_event_name.gd" id="3_081w0"]
 
-[sub_resource type="Resource" id="QBEffect_camera_shake"]
-script = ExtResource("2_effect")
-effect_type = 2
-target = "C_CameraStateComponent.shake_trauma"
-payload = {
-"clamp_max": 1.0,
-"clamp_min": 0.0,
-"operation": &"add",
-"value_float": 0.5,
-"value_type": "FLOAT"
-}
+[sub_resource type="Resource" id="Resource_qw7p2"]
+script = ExtResource("3_081w0")
+expected_event_name = &"entity_death"
+
+[sub_resource type="Resource" id="Resource_fv330"]
+script = ExtResource("1_7ubwf")
+component_type = &"C_CameraStateComponent"
+field_name = &"shake_trauma"
+operation = "add"
+float_value = 0.5
+use_clamp = true
 
 [resource]
-script = ExtResource("1_rule")
-rule_id = &"camera_shake_rule"
-trigger_mode = 1
-trigger_event = &"entity_death"
-effects = [SubResource("QBEffect_camera_shake")]
+script = ExtResource("2_3tnus")
+rule_id = &"camera_shake"
+trigger_mode = "event"
+conditions = Array[Resource]([SubResource("Resource_qw7p2")])
+effects = Array[Resource]([SubResource("Resource_fv330")])

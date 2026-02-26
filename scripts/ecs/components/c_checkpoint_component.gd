@@ -24,7 +24,7 @@ const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 ##
 ## Integration:
 ## - C_CheckpointComponent publishes EVENT_CHECKPOINT_ZONE_ENTERED
-## - S_GameRuleManager forwards checkpoint_activation_requested
+## - S_GameEventSystem forwards checkpoint_activation_requested
 ## - S_CheckpointHandlerSystem updates gameplay.last_checkpoint
 ## - On player collision: updates gameplay.last_checkpoint
 ## - M_SpawnManager.spawn_at_last_spawn() uses last_checkpoint > target_spawn_point > sp_default

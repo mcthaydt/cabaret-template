@@ -6,6 +6,7 @@ const EVENT_VICTORY_ZONE_ENTERED := StringName("victory_zone_entered")
 
 const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
+const DEBUG_VICTORY_TRACE := false
 
 enum VictoryType {
 	LEVEL_COMPLETE = 0,
@@ -27,9 +28,34 @@ var _last_body: Node3D = null
 func _init() -> void:
 	component_type = COMPONENT_TYPE
 
+func _debug_log(message: String) -> void:
+	if not DEBUG_VICTORY_TRACE:
+		return
+	print("[VictoryDebug][C_VictoryTriggerComponent] %s" % message)
+
+func _victory_type_to_string(value: int) -> String:
+	match value:
+		VictoryType.LEVEL_COMPLETE:
+			return "LEVEL_COMPLETE"
+		VictoryType.GAME_COMPLETE:
+			return "GAME_COMPLETE"
+		_:
+			return "UNKNOWN(%s)" % str(value)
+
 func _ready() -> void:
 	super._ready()
 	_resolve_area()
+	_debug_log(
+		"ready objective_id=%s area_id=%s victory_type=%s trigger_once=%s is_triggered=%s instance_id=%s"
+		% [
+			str(objective_id),
+			area_id,
+			_victory_type_to_string(int(victory_type)),
+			str(trigger_once),
+			str(is_triggered),
+			str(get_instance_id()),
+		]
+	)
 
 func _exit_tree() -> void:
 	if _area != null and is_instance_valid(_area):
@@ -75,9 +101,22 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	_player_inside = true
 	_last_body = body
+	_debug_log(
+		"player_entered objective_id=%s area_id=%s victory_type=%s trigger_once=%s is_triggered=%s body=%s"
+		% [
+			str(objective_id),
+			area_id,
+			_victory_type_to_string(int(victory_type)),
+			str(trigger_once),
+			str(is_triggered),
+			str(body.name) if body != null else "<null>",
+		]
+	)
 	_publish_zone_entered(body)
 	if _can_publish_trigger():
 		_publish_victory_triggered(body)
+	else:
+		_debug_log("skipped victory_triggered publish because trigger_once is already consumed")
 
 func _on_body_exited(body: Node3D) -> void:
 	if not _is_player(body):
@@ -115,6 +154,10 @@ func _can_publish_trigger() -> bool:
 	return true
 
 func _publish_zone_entered(body: Node3D) -> void:
+	_debug_log("publishing event=%s entity_id=%s" % [
+		str(EVENT_VICTORY_ZONE_ENTERED),
+		str(ECS_UTILS.get_entity_id(body)),
+	])
 	U_ECSEventBus.publish(EVENT_VICTORY_ZONE_ENTERED, {
 		"entity_id": ECS_UTILS.get_entity_id(body),
 		"trigger_node": self,
@@ -123,7 +166,13 @@ func _publish_zone_entered(body: Node3D) -> void:
 
 func _publish_victory_triggered(body: Node3D, force: bool = false) -> void:
 	if trigger_once and is_triggered and not force:
+		_debug_log("blocked victory_triggered publish because trigger_once=true and trigger already consumed")
 		return
+	_debug_log("publishing typed victory_triggered entity_id=%s objective_id=%s area_id=%s" % [
+		str(ECS_UTILS.get_entity_id(body)),
+		str(objective_id),
+		area_id,
+	])
 	var victory_event := Evn_VictoryTriggered.new(
 		ECS_UTILS.get_entity_id(body),
 		self,

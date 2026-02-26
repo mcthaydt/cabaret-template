@@ -8,14 +8,21 @@ extends RefCounted
 static var _is_blocked: bool = false
 static var _cooldown_timer: Timer = null
 static var _cooldown_node: Node = null
+const DEBUG_INTERACT_BLOCKER_TRACE := false
 
 ## Check if interact input should be blocked
 static func is_blocked() -> bool:
 	return _is_blocked
 
+static func _debug_log(message: String) -> void:
+	if not DEBUG_INTERACT_BLOCKER_TRACE:
+		return
+	print("[VictoryDebug][U_InteractBlocker] %s" % message)
+
 ## Block interact input (call when toast shows)
 static func block() -> void:
 	_is_blocked = true
+	_debug_log("block() called -> is_blocked=true")
 	# Cancel any pending cooldown when a new block is requested
 	_cancel_cooldown()
 
@@ -24,6 +31,7 @@ static func block() -> void:
 static func unblock_with_cooldown(cooldown_duration: float = 0.3) -> void:
 	if cooldown_duration <= 0.0:
 		_is_blocked = false
+		_debug_log("unblock_with_cooldown(%s) immediate unblock" % str(cooldown_duration))
 		return
 
 	# Create cooldown timer if needed
@@ -33,14 +41,17 @@ static func unblock_with_cooldown(cooldown_duration: float = 0.3) -> void:
 	if _cooldown_timer == null:
 		# Fallback if timer setup fails
 		_is_blocked = false
+		_debug_log("unblock_with_cooldown(%s) fallback immediate unblock (no timer)" % str(cooldown_duration))
 		return
 
 	# Start cooldown
 	_cooldown_timer.start(cooldown_duration)
+	_debug_log("unblock_with_cooldown(%s) started timer" % str(cooldown_duration))
 
 ## Immediately unblock without cooldown (emergency use only)
 static func force_unblock() -> void:
 	_is_blocked = false
+	_debug_log("force_unblock() -> is_blocked=false")
 	_cancel_cooldown()
 
 static func _setup_cooldown_timer() -> void:
@@ -83,6 +94,7 @@ static func _cancel_cooldown() -> void:
 
 static func _on_cooldown_timeout() -> void:
 	_is_blocked = false
+	_debug_log("cooldown timeout -> is_blocked=false")
 
 ## Cleanup method (call on game exit or between tests)
 static func cleanup() -> void:
@@ -99,3 +111,4 @@ static func cleanup() -> void:
 		_cooldown_node = null
 
 	_is_blocked = false
+	_debug_log("cleanup() -> blocker reset")

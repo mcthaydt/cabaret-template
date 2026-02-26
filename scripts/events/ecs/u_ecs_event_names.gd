@@ -21,6 +21,13 @@ const EVENT_VICTORY_EXECUTION_REQUESTED := StringName("victory_execution_request
 const EVENT_VICTORY_EXECUTED := StringName("victory_executed")
 const EVENT_DAMAGE_ZONE_ENTERED := StringName("damage_zone_entered")
 const EVENT_DAMAGE_ZONE_EXITED := StringName("damage_zone_exited")
+const EVENT_OBJECTIVE_ACTIVATED := StringName("objective_activated")
+const EVENT_OBJECTIVE_COMPLETED := StringName("objective_completed")
+const EVENT_OBJECTIVE_FAILED := StringName("objective_failed")
+const EVENT_OBJECTIVE_VICTORY_TRIGGERED := StringName("objective_victory_triggered")
+const EVENT_DIRECTIVE_STARTED := StringName("directive_started")
+const EVENT_DIRECTIVE_COMPLETED := StringName("directive_completed")
+const EVENT_BEAT_ADVANCED := StringName("beat_advanced")
 
 # Service Names
 const SERVICE_VFX_MANAGER := StringName("vfx_manager")

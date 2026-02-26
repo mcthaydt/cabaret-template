@@ -27,6 +27,8 @@
 - `scripts/managers/m_ecs_manager.gd`: Registers components/systems; exposes `get_components(StringName)` and emits component signals.
 - `scripts/managers/m_scene_manager.gd`: Scene transition coordinator (Phase 3+); manages ActiveSceneContainer.
 - `scripts/managers/m_save_manager.gd`: Save/load coordinator; manages save slots, atomic writes, migrations, and autosave scheduling.
+- `scripts/managers/m_objectives_manager.gd`: Objectives manager (Phase 2 core); loads objective sets, validates dependency DAGs, evaluates objective conditions on relevant events, and publishes objective lifecycle/victory events.
+- `scripts/managers/m_run_coordinator.gd`: Run reset coordinator; listens for `run/reset`, dispatches gameplay reset, force-unblocks interactions, resets objectives for a fresh run, and retries to `alleyway`.
 - `scripts/state/m_state_store.gd`: Redux store; registers with ServiceLocator for discovery via `U_StateUtils.get_store()`.
 - `scripts/ui/utils/u_ui_registry.gd` + `resources/ui_screens/`: UI registry definitions (`RS_UIScreenDefinition`) for base screens and overlays.
 - UI controllers are grouped by screen type: `scripts/ui/menus/`, `scripts/ui/overlays/`, `scripts/ui/hud/` (utilities live in `scripts/ui/utils/`).
@@ -37,10 +39,41 @@
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
 - `scripts/resources/ecs/*`: `Resource` classes holding tunables consumed by components/systems.
 - `scripts/utils/ecs/u_ecs_utils.gd`: ECS helpers (manager lookup, time, component mapping). Input helpers live in `scripts/utils/input/`.
+- `scripts/utils/scene_director/u_objective_graph.gd`: Objective DAG helper (build, cycle/missing-dependency validation, ready-dependents, topological sort).
+- `scripts/utils/scene_director/u_objective_event_log.gd`: Objective transition log helper (timestamped entries + readable formatting).
+- `scripts/utils/scene_director/u_beat_graph.gd`: Beat-flow graph validator/helper (ID/reference checks, cycle detection, ID->index map).
 - `scripts/events/ecs/`: ECS event bus + typed ECS events; `scripts/events/state/` holds `U_StateEventBus` (state-domain bus).
 - `scenes/root.tscn`: Main scene (persistent managers + containers).
 - `scenes/gameplay/*`: Gameplay scenes (dynamic loading, own M_ECSManager).
 - `tests/unit/*`: GUT test suites for ECS and state management.
+
+## Scene Director / Objectives (Phase 2 Core)
+
+- `M_ObjectivesManager` is event-driven, not tick-driven:
+  - Evaluates active objectives only when subscribed milestone events fire (`checkpoint_activated`, `victory_executed`, `gameplay/mark_area_complete` action dispatches).
+  - Does not run per-physics polling for objective completion.
+- Condition/effect execution contract:
+  - Conditions evaluate directly via `condition.evaluate(context)` and pass when score > 0.0.
+  - Effects execute directly via `effect.execute(context)` after objective completion.
+  - Context contract is `{"state_store": _store, "redux_state": _store.get_state()}` with optional `"event_payload"` for event-driven checks.
+- Objective completion flow:
+  - Status transition dispatches via `U_ObjectivesActions` (`activate`, `complete`, `fail`).
+  - Event log entries are dispatched through `U_ObjectiveEventLog.create_entry(...)`.
+  - Dependents are activated only when `U_ObjectiveGraph.get_ready_dependents(...)` reports all prerequisites completed.
+  - VICTORY objectives publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with `completion_event_payload` as-is.
+  - `M_SceneManager` listens to `EVENT_OBJECTIVE_VICTORY_TRIGGERED` for endgame transitions; legacy direct `victory_executed` scene transitions are removed.
+- Reset-run orchestration pattern (Phase 7):
+  - `UI_Victory` Continue dispatches `U_RunActions.reset_run(&"retry_alleyway")` (do not chain gameplay/navigation reset actions directly in UI code).
+  - `M_RunCoordinator` handles `run/reset` order: `gameplay/reset_progress` -> `U_InteractBlocker.force_unblock()` -> `objectives_manager.reset_for_new_run(&"default_progression")` -> `navigation/retry(&"alleyway")`.
+  - `M_ObjectivesManager.reset_for_new_run()` is the fresh objective-reset path (no persisted-status reconciliation); `load_objective_set()` remains the save/load reconciliation path.
+  - Re-entrant `run/reset` requests are ignored while a reset is in-flight.
+- Player-facing beat messaging pattern:
+  - Scene-director beats may publish `signpost_message` events with `{"message": "<localization_key>", "message_duration_sec": <float>}` payloads so existing HUD/mobile signpost consumers can render narrative/tutorial text without custom UI plumbing.
+- Scene-director flow-control pattern (Phase 9):
+  - `RS_BeatDefinition` supports `next_beat_id`, `next_beat_id_on_failure`, `parallel_beat_ids`, and `parallel_join_beat_id`.
+  - Always validate beat arrays with `U_BeatGraph.validate(...)` before runner start; skip invalid directives at runtime.
+  - Parallel support is single-hop fork/join only (lane beats must not define their own `parallel_beat_ids`).
+  - Redux observability uses `scene_director.current_beat_id`, `active_beat_ids`, and `parallel_lane_ids` in addition to `current_beat_index`.
 
 ## ECS Guidelines
 
@@ -57,19 +90,26 @@
   - Use `U_ECSUtils.map_components_by_body()` when multiple systems need shared body→component dictionaries (avoids duplicate loops).
   - Auto-discovers `M_ECSManager` via parent traversal or ServiceLocator (`ecs_manager`); no manual wiring needed.
   - Event-driven request systems should extend `BaseEventVFXSystem` / `BaseEventSFXSystem` and implement `get_event_name()` + `create_request_from_payload()` to enqueue `requests`.
-- Game rule manager + handlers (Phase 4)
-  - `S_GameRuleManager` hosts event-only QB rules from `resources/qb/game/*.tres` and forwards trigger payloads via `PUBLISH_EVENT`.
+- Game event system + handlers (Phase 3B, QB v2)
+  - `S_GameEventSystem` hosts default game forwarding rules from `resources/qb/game/*.tres` and composes v2 rule utilities (`U_RuleScorer`, `U_RuleSelector`, `RuleStateTracker`, `U_RuleValidator`) directly.
+  - `S_GameEventSystem` evaluates event/both rules on subscribed ECS events and supports optional global tick evaluation for tick/both rules.
+  - Event-forwarding publish effects merge incoming event payload into the outgoing payload, then apply configured payload overrides and `entity_id` injection.
   - `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates required payload (`checkpoint`, `spawn_point_id`), dispatches `set_last_checkpoint`, and publishes `Evn_CheckpointActivated`.
   - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `@export var required_final_area: String = "bar"` for game-complete triggers, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED` for post-validation scene transitions.
-  - Gameplay flows use `S_GameRuleManager` + handler systems end-to-end; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from the codebase, and active tests target QB-handler flow.
-- QB rule validation patterns (Phase 6)
-  - `BaseQBRuleManager.on_configured()` runs `U_QBRuleValidator.validate_rule_definitions(...)` before rule registration.
-  - Only `valid_rules` from the validation report are registered; invalid rules are excluded from runtime evaluation.
-  - `get_rule_validation_report()` exposes `{valid_rules, errors_by_index, errors_by_rule_id}` for tests and debugging.
-  - Misconfigured rules emit editor-only warnings in `_warn_invalid_rule_definitions()` (gated by `_should_emit_rule_validation_warnings()`, default `Engine.is_editor_hint()`).
-  - Test pattern: override `_emit_rule_validation_warning(...)` in a test stub instead of asserting raw engine warning output.
-  - Tick extension pattern (Refactor Phase R3): keep `BaseQBRuleManager.process_tick()` as the canonical 5-step loop; subclasses should override `_post_tick_evaluation(contexts, delta)` for domain writes (brain data, camera state) instead of overriding `process_tick()`.
-  - Camera FOV baseline pattern: `S_CameraRuleManager` captures per-scene baseline FOV into `C_CameraStateComponent.base_fov` from the active camera and restores that baseline when `camera.in_fov_zone` is false, instead of falling back to a hardcoded default FOV.
+  - Gameplay flows use `S_GameEventSystem` + handler systems end-to-end; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from the codebase, and active tests target QB-handler flow.
+- QB Rule Engine v2 patterns (Phase 5 complete)
+  - The rule engine is a stateless library: `U_RuleScorer.score_rules(...)` + `U_RuleSelector.select_winners(...)`; systems compose these utilities instead of inheriting a QB base class.
+  - Rule consumers (`S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem`) each own their own `RuleStateTracker` instance; never share trackers between systems.
+  - Rule assets use `RS_Rule` + typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions`/`effects` remain `Array[Resource]` in headless fallback mode and must be runtime-validated with `U_RuleValidator.validate_rules(...)`.
+  - Condition contract: all rules must declare at least one condition; unconditional rules are invalid (validator error, scorer returns 0.0).
+  - Validation contract: use only `valid_rules` from the validation report; expose/report `{valid_rules, errors_by_index, errors_by_rule_id}` for tests and debugging.
+  - Scoring contract: conditions return 0.0-1.0, optional `response_curve` remap applies before optional `invert`, and rule score is the multiplicative product across conditions.
+  - Selection contract: rules with empty `decision_group` fire independently; grouped rules compete by score, then priority, then `rule_id` alphabetical tiebreak.
+  - Trigger contract: `trigger_mode` supports `tick`, `event`, and `both`; event subscriptions are derived from `RS_ConditionEventName.expected_event_name` (not rule-level `trigger_event` metadata), and event consumers fan out contexts per relevant entity/payload with cooldown/rising-edge/one-shot gating via tracker state.
+  - Context/path contract: conditions/effects resolve context paths through `U_PathResolver` and must not rely on method-call fallback behavior.
+  - Camera baseline pattern: `S_CameraStateSystem` captures authored baseline FOV into `C_CameraStateComponent.base_fov` and restores it when `camera.in_fov_zone` is false.
+  - Pause gate pattern: character pause gate rules (`cfg_pause_gate_paused/shell/transitioning`) share `decision_group = &"pause_gate"` so exactly one winner applies the same gate effect each tick.
+  - Composite condition pattern (Phase 9): use `RS_ConditionComposite` for nested logical grouping (`ALL` for AND/product, `ANY` for OR/max). Keep nesting <= 8 and validate through `U_RuleValidator` (empty composite children are invalid).
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.
@@ -196,8 +236,10 @@
 - **Utilities:** `u_*` prefix (e.g., `u_ecs_utils.gd` → `U_ECSUtils`, `u_entity_query.gd` → `U_EntityQuery`)
 - **Managers:** `m_*` prefix (e.g., `m_ecs_manager.gd` → `M_ECSManager`, `m_state_store.gd` → `M_StateStore`)
 - **Components:** `c_*` prefix (e.g., `c_movement_component.gd` → `C_MovementComponent`)
-- **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`), with one documented exception: `base_qb_rule_manager.gd`
+- **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`)
 - **Resources:** `rs_*` prefix (e.g., `rs_jump_settings.gd` → `RS_JumpSettings`)
+- **QB Condition Resources:** `rs_condition_*` prefix under `scripts/resources/qb/conditions/` (e.g., `rs_condition_redux_field.gd` → `RS_ConditionReduxField`)
+- **QB Effect Resources:** `rs_effect_*` prefix under `scripts/resources/qb/effects/` (e.g., `rs_effect_set_field.gd` → `RS_EffectSetField`)
 - **Entities:** `e_*` prefix (e.g., `e_player.gd` → `E_Player`)
 - **Interactable Controllers:** `inter_*` prefix (e.g., `inter_door_trigger.gd` → `Inter_DoorTrigger`)
 - **UI Scripts:** `ui_*` prefix (e.g., `ui_main_menu.gd` → `UI_MainMenu`)
@@ -1223,7 +1265,7 @@ func _apply_window_mode(mode: String) -> void:
   - In `process_tick()`: no await needed (store already registered).
 - Access managers via ServiceLocator (Phase 10B-7: T141)
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
-  - Available services: `"state_store"`, `"scene_manager"`, `"time_manager"`, `"pause_manager"` (backward-compat alias), `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`, `"localization_manager"`, `"save_manager"`, `"vfx_manager"`.
+  - Available services: `"state_store"`, `"scene_manager"`, `"time_manager"`, `"pause_manager"` (backward-compat alias), `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"vfx_manager"`, `"character_lighting_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`, `"localization_manager"`, `"save_manager"`, `"objectives_manager"`, `"run_coordinator"`, `"scene_director"`.
   - ServiceLocator provides O(1) Dictionary lookup vs O(n) scene-tree traversal.
   - All services are registered at startup in `root.tscn` via `root.gd`.
 - Create a new gameplay scene

@@ -26,6 +26,9 @@
   - omit the `uid="uid://..."` field on new `ext_resource` entries, or
   - verify the exact UID from the source `.uid` file before pasting it.
 
+- **Script renames can leave stale `ext_resource` UIDs in scenes**: After renaming/moving a script referenced by `.tscn` files, scene `ext_resource` lines may keep a UID that still resolves to the old path (for example, trying to load `res://.../old_name.gd` even when `path="res://.../new_name.gd"` is present). This can fail headless style/scene tests with parse errors.
+  - **Fix**: remove the stale `uid="uid://..."` on affected `ext_resource` lines (let Godot regenerate it), or refresh UID/cache via headless import.
+
 ## Godot Script Class Cache
 
 - **Refresh global class cache after moving `class_name` scripts**: Moving scripts that declare `class_name` can leave the global class cache pointing at old paths, causing scenes to instantiate with base `Control` nodes and missing methods in headless tests. **Fix**: run a headless import pass to rebuild the class cache:
@@ -86,6 +89,14 @@
 
 - **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via a script preload alias (for example `const FOO_SCRIPT := preload("res://path/foo.gd")`) until the class is reliably discovered/loaded.
 
+- **New `class_name` base scripts can fail in `extends` during headless runs**: Creating a fresh base script (for example `class_name RS_BaseCondition`) and immediately extending it with `extends RS_BaseCondition` in sibling scripts can fail under headless GUT parsing (`Parse Error: Could not find base class ...`) before the global class cache catches up. Prefer explicit path-based inheritance for new stacks (`extends "res://scripts/resources/qb/rs_base_condition.gd"`) during active refactors; keep `class_name` for inspector/type usage.
+
+- **Typed Array annotations can fail to resolve fresh `class_name` symbols in headless**: Exported typed arrays like `@export var conditions: Array[RS_BaseCondition]` and `@export var effects: Array[RS_BaseEffect]` can parse-fail in headless (`Could not find type ... in the current scope`) immediately after introducing new script classes. If this blocks progress, use `Array[Resource]` temporarily and enforce resource subtype checks in validation (`U_RuleValidator`) until editor/class cache stabilization is confirmed.
+
+- **Typed Array constructor syntax can parse-fail (`Cannot call on an expression`)**: Expressions like `Array[Resource]([value])` are not valid constructor calls in GDScript. Build typed arrays via annotated locals (`var values: Array[Resource] = [value]`) and assign that variable instead.
+
+- **Changing parent classes can surface inherited-helper parse errors**: If a script relied on helper methods inherited from a previous base class and you change `extends`, headless parse can fail with `Function "...()" not found in base self` even when those call sites are not hit in tests. Add local replacements in the same patch that changes inheritance so scripts remain loadable.
+
 - **Child scripts cannot redeclare parent members (incl. `const`)**: If a base class defines a member like `const U_Foo := preload("...")`, declaring another `const U_Foo := ...` in a derived script causes a parse error (`The member "U_Foo" already exists in parent class ...`). Prefer inheriting the constant, or use a different name in the child.
 
 - **`tr` cannot be used as a static method name on external classes (Godot 4.6)**: Calling `.tr()` on a preloaded Script variable or class reference triggers a parse-time error `"Could not resolve external class member 'tr'"` because `tr()` is a built-in `Object` method. This means `U_SomeClass.tr(key)` will **not compile**. Name translation helper methods `localize()` or any non-colliding name instead. Never call bare `tr(key)` either (invokes Godot's built-in `Object.tr()`).
@@ -105,11 +116,24 @@
 - **GUT needs recursive dirs**: `-gdir` is not recursive by default; suites in nested folders are silently skipped if you point at a parent. Always pass each test root explicitly (e.g., `-gdir=res://tests/unit -gdir=res://tests/integration`) or list the concrete leaf directories you added to ensure new suites actually run.
 - **Viewport capture fails in headless**: `Viewport.get_texture().get_image()` can error under the headless/dummy renderer (`Parameter "t" is null`). Tests that validate viewport screenshot capture should be marked `pending` when `OS.has_feature("headless")` or `DisplayServer.get_name() == "headless"` to avoid false failures.
 - **`M_StateStore` autoload can leak ambient state into unit tests**: `RS_StateStoreSettings.enable_persistence` defaults to `true`, so tests that create `M_StateStore` can auto-load `user://savegame.json` and emit normalization warnings (for example unknown spawn point warnings) as unexpected test errors. For tests not explicitly validating persistence, set `store.settings.enable_persistence = false` before adding the store node.
-- **Do not assert raw `push_warning` output directly in QB/system tests**: Engine warnings are hard to capture reliably in headless runs. For systems like `BaseQBRuleManager`, expose/override a small warning hook (for example `_emit_rule_validation_warning`) in test stubs and assert captured messages there instead of parsing console logs.
+- **Do not assert raw `push_warning` output directly in QB/system tests**: Engine warnings are hard to capture reliably in headless runs. Expose/override a small warning hook in test doubles and assert captured messages there instead of parsing console logs.
+- **`push_warning(...)` can be treated as an unexpected test error in manager paths**: In some GUT flows, warnings emitted during exercised runtime branches are surfaced as test failures/noise even when behavior is otherwise correct. For validation-failure branches that are expected in tests (for example invalid scene-director beat graphs), prefer deterministic non-warning observability (return values/state flags/test hooks, or `print` if you only need debug output) so tests can assert behavior without warning-channel flakiness.
+
+## Scene Director Pitfalls
+
+- **`gameplay/reset_progress` is not an objectives reset**: Dispatching `U_GameplayActions.reset_progress()` clears gameplay progression fields but does not rebuild objective statuses/event log. Endgame Continue/retry flows must route through the run-reset contract (`U_RunActions.reset_run`) so `M_RunCoordinator` can call `M_ObjectivesManager.reset_for_new_run(...)` and re-arm root objectives (`bar_complete` active, `final_complete` inactive) with an empty objective event log.
+
+## QB Rule Engine v2 Pitfalls
+
+- **`U_PathResolver` intentionally has no method-call fallback**: Conditions/effects must resolve data through dictionary/object property paths only. Do not rely on `has_method()` + call behavior for rule evaluation.
+- **Keep `rules` exports in headless-safe mode until typed arrays are stable**: New rule-consumer systems should use `@export var rules: Array[Resource] = []` and run `U_RuleValidator.validate_rules(...)` before evaluation. Headless parser stability can lag new `class_name` symbols.
+- **Condition/effect subresources must match v2 subclasses**: Rule assets should use `RS_Condition*` and `RS_Effect*` resources only; validator failures should block runtime registration.
+- **Context-driven effects require explicit context contracts**: `RS_EffectSetField.use_context_value` will no-op or write wrong values if the expected context path is missing/mistyped. Keep context keys documented per consumer (`components`, `event_payload`, `state`, etc.) and verify in unit tests.
+- **Trackers are per-system state, not shared utilities**: `RuleStateTracker` stores cooldown/rising-edge/one-shot state. Reusing one tracker across systems causes cross-domain gating bugs.
 
 ## QB Camera Rule Pitfalls
 
-- **Hardcoded fallback FOV can override authored scene cameras**: If `S_CameraRuleManager` falls back to a constant FOV (for example `75.0`) when `camera.in_fov_zone` is false, scenes authored with cinematic FOV values (`28.8`, `65`, etc.) will look unexpectedly zoomed out after startup or after leaving a zone.
+- **Hardcoded fallback FOV can override authored scene cameras**: If `S_CameraStateSystem` falls back to a constant FOV (for example `75.0`) when `camera.in_fov_zone` is false, scenes authored with cinematic FOV values (`28.8`, `65`, etc.) will look unexpectedly zoomed out after startup or after leaving a zone.
   - **Fix pattern**: capture baseline FOV from the active `Camera3D` into `C_CameraStateComponent.base_fov` and restore that baseline when no FOV zone rule is active.
   - **Regression check**: keep a unit test that enters/exits a zone and asserts the camera returns to the authored baseline FOV.
 

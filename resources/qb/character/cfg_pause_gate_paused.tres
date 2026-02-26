@@ -1,26 +1,22 @@
-[gd_resource type="Resource" script_class="RS_QBRuleDefinition" format=3 uid="uid://de25fnfcvnkpo"]
+[gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://dokn387dyvfof"]
 
-[ext_resource type="Script" uid="uid://twfq4kfbgrmk" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
-[ext_resource type="Script" uid="uid://bnqy287ut780h" path="res://scripts/resources/qb/rs_qb_condition.gd" id="2_condition"]
-[ext_resource type="Script" uid="uid://bjkl7axy0epam" path="res://scripts/resources/qb/rs_qb_effect.gd" id="3_effect"]
+[ext_resource type="Script" uid="uid://bbw7r0gg2jdbf" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="1_who08"]
+[ext_resource type="Script" uid="uid://y3hog88by51c" path="res://scripts/resources/qb/effects/rs_effect_set_context_value.gd" id="2_6cpr0"]
+[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="3_oy11f"]
 
-[sub_resource type="Resource" id="QBCondition_pause_gate_paused"]
-script = ExtResource("2_condition")
-source = 1
-quality_path = "gameplay.paused"
-operator = 8
+[sub_resource type="Resource" id="Resource_elpnw"]
+script = ExtResource("1_who08")
+state_path = "time.is_paused"
+match_mode = "equals"
+match_value_string = "true"
 
-[sub_resource type="Resource" id="QBEffect_pause_gate_paused"]
-script = ExtResource("3_effect")
-target = "is_gameplay_active"
-payload = {
-"value_bool": false,
-"value_type": "BOOL"
-}
+[sub_resource type="Resource" id="Resource_kx1tg"]
+script = ExtResource("2_6cpr0")
+context_key = &"is_gameplay_active"
 
 [resource]
-script = ExtResource("1_rule")
+script = ExtResource("3_oy11f")
 rule_id = &"pause_gate_paused"
-conditions = [SubResource("QBCondition_pause_gate_paused")]
-effects = [SubResource("QBEffect_pause_gate_paused")]
-requires_salience = false
+conditions = Array[Resource]([SubResource("Resource_elpnw")])
+effects = Array[Resource]([SubResource("Resource_kx1tg")])
+decision_group = &"pause_gate"

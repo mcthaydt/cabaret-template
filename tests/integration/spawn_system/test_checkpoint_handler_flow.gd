@@ -1,10 +1,10 @@
 extends GutTest
 
 ## Integration tests for QB checkpoint flow:
-## C_CheckpointComponent -> S_GameRuleManager -> S_CheckpointHandlerSystem
+## C_CheckpointComponent -> S_GameEventSystem -> S_CheckpointHandlerSystem
 
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const S_GAME_RULE_MANAGER := preload("res://scripts/ecs/systems/s_game_rule_manager.gd")
+const S_GAME_EVENT_SYSTEM := preload("res://scripts/ecs/systems/s_game_event_system.gd")
 const S_CHECKPOINT_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_checkpoint_handler_system.gd")
 const C_CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 const C_PLAYER_TAG := preload("res://scripts/ecs/components/c_player_tag_component.gd")
@@ -30,9 +30,9 @@ func before_each() -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	var game_rule_manager := S_GAME_RULE_MANAGER.new()
-	_manager.add_child(game_rule_manager)
-	autofree(game_rule_manager)
+	var game_event_system := S_GAME_EVENT_SYSTEM.new()
+	_manager.add_child(game_event_system)
+	autofree(game_event_system)
 
 	var checkpoint_handler := S_CHECKPOINT_HANDLER_SYSTEM.new()
 	_manager.add_child(checkpoint_handler)

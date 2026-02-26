@@ -3,6 +3,8 @@ class_name Inter_VictoryZone
 
 const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_victory_interaction_config.gd")
 const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
+const U_OBJECTIVES_SELECTORS := preload("res://scripts/state/selectors/u_objectives_selectors.gd")
+const OBJECTIVES_SLICE_NAME := StringName("objectives")
 
 @export var component_name: StringName = StringName("C_VictoryTriggerComponent")
 
@@ -18,8 +20,13 @@ var _config: Resource = null
 		_config = value
 		_apply_config_resource()
 		_apply_component_config()
+		if is_inside_tree():
+			_refresh_visibility_gate()
 
 var _component: C_VictoryTriggerComponent = null
+var _store: I_StateStore = null
+var _has_applied_visibility_state: bool = false
+var _is_visibility_unlocked: bool = true
 
 func _ready() -> void:
 	_apply_config_resource()
@@ -28,6 +35,14 @@ func _ready() -> void:
 	var area := get_trigger_area()
 	if area != null:
 		_on_controller_area_ready(area)
+	await get_tree().process_frame
+	_resolve_store()
+	_connect_store()
+	_refresh_visibility_gate()
+
+func _exit_tree() -> void:
+	_disconnect_store()
+	super._exit_tree()
 
 func _on_controller_area_ready(area: Area3D) -> void:
 	if area == null:
@@ -116,3 +131,65 @@ func _resolve_config() -> RS_VictoryInteractionConfig:
 	if _config != null and U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_VICTORY_INTERACTION_CONFIG):
 		return _config as RS_VictoryInteractionConfig
 	return null
+
+func _resolve_store() -> void:
+	if _store != null and is_instance_valid(_store):
+		return
+	_store = U_StateUtils.try_get_store(self)
+
+func _connect_store() -> void:
+	if _store == null:
+		return
+	if not _store.slice_updated.is_connected(_on_slice_updated):
+		_store.slice_updated.connect(_on_slice_updated)
+
+func _disconnect_store() -> void:
+	if _store != null and is_instance_valid(_store):
+		if _store.slice_updated.is_connected(_on_slice_updated):
+			_store.slice_updated.disconnect(_on_slice_updated)
+	_store = null
+
+func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> void:
+	if not _is_slice_relevant_for_visibility_gate(slice_name):
+		return
+	_refresh_visibility_gate()
+
+func _is_slice_relevant_for_visibility_gate(slice_name: StringName) -> bool:
+	return slice_name == OBJECTIVES_SLICE_NAME
+
+func _refresh_visibility_gate() -> void:
+	_resolve_store()
+	var state := _build_visibility_state()
+	var unlocked: bool = _compute_visibility_gate_unlocked(state)
+	_apply_visibility_gate_state(unlocked)
+
+func _apply_visibility_gate_state(unlocked: bool) -> void:
+	if _has_applied_visibility_state and _is_visibility_unlocked == unlocked:
+		return
+	_has_applied_visibility_state = true
+	_is_visibility_unlocked = unlocked
+	set_enabled(unlocked)
+	visible = unlocked
+
+func _build_visibility_state() -> Dictionary:
+	if _store == null:
+		return {}
+	return _store.get_state()
+
+func _compute_visibility_gate_unlocked(state: Dictionary) -> bool:
+	return _is_visibility_objective_active(state)
+
+func _is_visibility_objective_active(state: Dictionary) -> bool:
+	var objective_id: StringName = _get_effective_visibility_objective_id()
+	if objective_id == StringName(""):
+		return true
+	if state.is_empty():
+		return false
+	var status: String = U_OBJECTIVES_SELECTORS.get_objective_status(state, objective_id)
+	return status == U_OBJECTIVES_SELECTORS.STATUS_ACTIVE
+
+func _get_effective_visibility_objective_id() -> StringName:
+	var typed := _resolve_config()
+	if typed == null:
+		return StringName("")
+	return typed.visibility_objective_id
