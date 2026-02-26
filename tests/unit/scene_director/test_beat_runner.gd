@@ -169,6 +169,85 @@ func test_empty_beat_list_is_immediately_complete() -> void:
 	assert_true(_runner.is_complete())
 	assert_eq(_runner.get_current_beat(), null)
 
+func test_next_beat_id_jumps_to_target_on_successful_completion() -> void:
+	var first_effect := EffectStub.new()
+	var jump_target_effect := EffectStub.new()
+	var skipped_effect := EffectStub.new()
+	var first := _beat(StringName("beat_first"))
+	first.next_beat_id = StringName("beat_jump_target")
+	var skipped := _beat(StringName("beat_skipped"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""), [], [skipped_effect])
+	var jump_target := _beat(
+		StringName("beat_jump_target"),
+		RS_BEAT_DEFINITION.WaitMode.INSTANT,
+		0.0,
+		StringName(""),
+		[],
+		[jump_target_effect]
+	)
+	var first_effects: Array[Resource] = [first_effect]
+	first.effects = first_effects
+	var beats: Array[Resource] = [first, skipped, jump_target]
+	_runner.start(beats)
+
+	_runner.execute_current_beat(_build_context())
+	assert_false(_runner.is_complete())
+	assert_eq(_runner.get_current_beat().beat_id, StringName("beat_jump_target"))
+	assert_eq(skipped_effect.execute_calls, 0)
+
+	_runner.execute_current_beat(_build_context())
+	assert_true(_runner.is_complete())
+	assert_eq(first_effect.execute_calls, 1)
+	assert_eq(jump_target_effect.execute_calls, 1)
+
+func test_next_beat_id_on_failure_jumps_when_preconditions_fail() -> void:
+	var failing_condition := ConditionStub.new(0.0)
+	var first_effect := EffectStub.new()
+	var fail_target_effect := EffectStub.new()
+
+	var first := _beat(
+		StringName("beat_guarded"),
+		RS_BEAT_DEFINITION.WaitMode.INSTANT,
+		0.0,
+		StringName(""),
+		[failing_condition],
+		[first_effect]
+	)
+	first.next_beat_id_on_failure = StringName("beat_failure_target")
+
+	var middle := _beat(StringName("beat_middle"))
+	var fail_target := _beat(
+		StringName("beat_failure_target"),
+		RS_BEAT_DEFINITION.WaitMode.INSTANT,
+		0.0,
+		StringName(""),
+		[],
+		[fail_target_effect]
+	)
+
+	var beats: Array[Resource] = [first, middle, fail_target]
+	_runner.start(beats)
+
+	_runner.execute_current_beat(_build_context())
+	assert_false(_runner.is_complete())
+	assert_eq(_runner.get_current_beat().beat_id, StringName("beat_failure_target"))
+	assert_eq(first_effect.execute_calls, 0)
+
+	_runner.execute_current_beat(_build_context())
+	assert_true(_runner.is_complete())
+	assert_eq(fail_target_effect.execute_calls, 1)
+
+func test_unknown_next_beat_id_falls_back_to_sequential_advance() -> void:
+	var first := _beat(StringName("beat_first"))
+	first.next_beat_id = StringName("missing_target")
+	var second := _beat(StringName("beat_second"))
+	var beats: Array[Resource] = [first, second]
+	_runner.start(beats)
+
+	_runner.execute_current_beat(_build_context())
+
+	assert_false(_runner.is_complete())
+	assert_eq(_runner.get_current_beat().beat_id, StringName("beat_second"))
+
 func _beat(
 	beat_id: StringName,
 	wait_mode: int = RS_BEAT_DEFINITION.WaitMode.INSTANT,
@@ -184,6 +263,8 @@ func _beat(
 	beat.wait_event = wait_event
 	beat.preconditions = preconditions.duplicate(true)
 	beat.effects = effects.duplicate(true)
+	beat.next_beat_id = StringName("")
+	beat.next_beat_id_on_failure = StringName("")
 	return beat
 
 func _build_context() -> Dictionary:

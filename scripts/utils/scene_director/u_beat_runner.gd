@@ -4,6 +4,7 @@ class_name U_BeatRunner
 const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
 
 var _beats: Array[Resource] = []
+var _beat_id_to_index: Dictionary = {}
 var _current_index: int = 0
 var _has_executed_current_beat: bool = false
 var _is_waiting_timed: bool = false
@@ -14,6 +15,7 @@ var _waiting_signal_event: StringName = StringName("")
 
 func start(beats: Array[Resource]) -> void:
 	_beats = beats.duplicate()
+	_beat_id_to_index = _build_id_to_index_map(_beats)
 	_current_index = 0
 	_reset_wait_state()
 
@@ -30,30 +32,36 @@ func execute_current_beat(context: Dictionary) -> void:
 
 	var preconditions: Array[Resource] = _to_resource_array(_resource_get(beat, "preconditions", []))
 	if not _check_conditions(preconditions, context):
-		advance()
+		var failure_target: StringName = _to_string_name(
+			_resource_get(beat, "next_beat_id_on_failure", StringName(""))
+		)
+		_advance_to_next(beat, failure_target)
 		return
 
 	var effects: Array[Resource] = _to_resource_array(_resource_get(beat, "effects", []))
 	_execute_effects(effects, context)
 	_has_executed_current_beat = true
 
+	var next_target: StringName = _to_string_name(
+		_resource_get(beat, "next_beat_id", StringName(""))
+	)
 	var wait_mode: int = _to_wait_mode(_resource_get(beat, "wait_mode", RS_BEAT_DEFINITION.WaitMode.INSTANT))
 	match wait_mode:
 		RS_BEAT_DEFINITION.WaitMode.INSTANT:
-			advance()
+			_advance_to_next(beat, next_target)
 		RS_BEAT_DEFINITION.WaitMode.TIMED:
 			_is_waiting_timed = true
 			_timed_elapsed = 0.0
 			_timed_duration = max(_to_float(_resource_get(beat, "duration", 0.0), 0.0), 0.0)
 			if _timed_duration <= 0.0:
-				advance()
+				_advance_to_next(beat, next_target)
 		RS_BEAT_DEFINITION.WaitMode.SIGNAL:
 			_is_waiting_signal = true
 			_waiting_signal_event = _to_string_name(_resource_get(beat, "wait_event", StringName("")))
 			if _waiting_signal_event == StringName(""):
-				advance()
+				_advance_to_next(beat, next_target)
 		_:
-			advance()
+			_advance_to_next(beat, next_target)
 
 func advance() -> void:
 	if is_complete():
@@ -80,7 +88,11 @@ func update(delta: float) -> void:
 
 	_timed_elapsed += max(delta, 0.0)
 	if _timed_elapsed >= _timed_duration:
-		advance()
+		var beat: Resource = get_current_beat()
+		var next_target: StringName = _to_string_name(
+			_resource_get(beat, "next_beat_id", StringName(""))
+		)
+		_advance_to_next(beat, next_target)
 
 func on_signal_received(event_name: StringName) -> void:
 	if is_complete():
@@ -90,7 +102,50 @@ func on_signal_received(event_name: StringName) -> void:
 	if _to_string_name(event_name) != _waiting_signal_event:
 		return
 
-	advance()
+	var beat: Resource = get_current_beat()
+	var next_target: StringName = _to_string_name(
+		_resource_get(beat, "next_beat_id", StringName(""))
+	)
+	_advance_to_next(beat, next_target)
+
+func _advance_to_next(current_beat: Resource, explicit_target: StringName = StringName("")) -> void:
+	if is_complete():
+		return
+
+	var next_index: int = _resolve_target_index(explicit_target)
+	if next_index < 0:
+		var fallback_target: StringName = _to_string_name(
+			_resource_get(current_beat, "next_beat_id", StringName(""))
+		)
+		next_index = _resolve_target_index(fallback_target)
+	if next_index < 0:
+		next_index = _current_index + 1
+
+	_current_index = next_index
+	_reset_wait_state()
+
+func _resolve_target_index(beat_id: StringName) -> int:
+	if beat_id == StringName(""):
+		return -1
+	if not _beat_id_to_index.has(beat_id):
+		return -1
+
+	var index_variant: Variant = _beat_id_to_index.get(beat_id, -1)
+	if index_variant is int:
+		return index_variant
+	return -1
+
+func _build_id_to_index_map(beats: Array[Resource]) -> Dictionary:
+	var map: Dictionary = {}
+	for index in range(beats.size()):
+		var beat: Resource = beats[index]
+		var beat_id: StringName = _to_string_name(_resource_get(beat, "beat_id", StringName("")))
+		if beat_id == StringName(""):
+			continue
+		if map.has(beat_id):
+			continue
+		map[beat_id] = index
+	return map
 
 func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool:
 	for condition_resource in conditions:
