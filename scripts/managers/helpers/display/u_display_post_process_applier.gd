@@ -5,7 +5,7 @@ class_name U_DisplayPostProcessApplier
 
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
-const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/u_post_process_layer.gd")
+const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/display/u_post_process_layer.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
 
 var _owner: Node = null

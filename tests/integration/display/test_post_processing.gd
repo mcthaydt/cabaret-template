@@ -16,7 +16,7 @@ const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_disp
 
 const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/u_post_process_layer.gd")
+const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/display/u_post_process_layer.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 
