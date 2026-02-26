@@ -316,7 +316,7 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (added 8 helper tests)
 
 - [x] **Task 3A.2 (Green)**: Implement U_PostProcessLayer helper
-  - Create `scripts/managers/helpers/u_post_process_layer.gd`
+  - Create `scripts/managers/helpers/display/u_post_process_layer.gd`
   - Implement `initialize()` to cache ColorRect references
   - Implement `set_effect_enabled(effect_name, enabled)`
   - Implement `set_effect_parameter(effect_name, param, value)`
@@ -787,7 +787,7 @@ Before starting Phase 0, verify:
 | `scripts/state/selectors/u_display_selectors.gd` | Selectors | Display state selectors (19 selectors) |
 | `scripts/interfaces/i_display_manager.gd` | Interface | Display manager interface |
 | `scripts/managers/m_display_manager.gd` | Manager | Main display manager |
-| `scripts/managers/helpers/u_post_process_layer.gd` | Helper | Post-process effect management |
+| `scripts/managers/helpers/display/u_post_process_layer.gd` | Helper | Post-process effect management |
 | `scripts/managers/helpers/u_palette_manager.gd` | Helper | Color blind palette management |
 | `scripts/utils/display/u_display_utils.gd` | Utility | Display manager lookup helper |
 | `scripts/resources/display/rs_quality_preset.gd` | Resource | Quality preset definition |

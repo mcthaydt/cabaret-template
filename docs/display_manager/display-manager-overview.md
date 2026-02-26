@@ -382,13 +382,13 @@ scripts/interfaces/
 scripts/managers/
   m_display_manager.gd              # Extends I_DisplayManager
 
-scripts/managers/helpers/
-  u_post_process_layer.gd           # CanvasLayer effect manager
-  u_palette_manager.gd              # Color blind palette loading
-
 scripts/managers/helpers/display/
+  u_post_process_layer.gd           # CanvasLayer effect manager
   u_cinema_grade_registry.gd        # Scene→grade mapping (mobile-safe)
   u_display_cinema_grade_applier.gd # Cinema grade applier (CanvasLayer 1)
+
+scripts/managers/helpers/
+  u_palette_manager.gd              # Color blind palette loading
 
 scripts/resources/state/
   rs_display_initial_state.gd       # Initial state resource

@@ -40,7 +40,7 @@
 
 ### 1A — Delete Orphaned UID Artifacts
 
-- [ ] Delete 11 orphaned `* 2.gd.uid` files:
+- [x] Delete 11 orphaned `* 2.gd.uid` files:
   - `scripts/managers/m_run_coordinator 2.gd.uid`
   - `scripts/utils/scene_director/u_beat_graph 2.gd.uid`
   - `scripts/state/actions/u_run_actions 2.gd.uid`
@@ -52,16 +52,21 @@
   - `tests/unit/qb/test_game_event_system 2.gd.uid`
   - `tests/integration/scene_director/test_objectives_integration 2.gd.uid`
   - `tests/integration/scene_director/test_scene_director_integration 2.gd.uid`
+  - Completion notes: Removed all 11 orphan files from working tree (these artifacts were untracked). Style path-space failure cleared after removal.
 
 ### 1B — Move Misplaced Files
 
-- [ ] Move `scripts/managers/helpers/u_post_process_layer.gd` → `scripts/managers/helpers/display/u_post_process_layer.gd` and update all references.
-- [ ] Rename `scripts/debug/extract_touchscreen_settings.gd` → `scripts/debug/debug_extract_touchscreen_settings.gd` and update all references (class name if applicable).
+- [x] Move `scripts/managers/helpers/u_post_process_layer.gd` → `scripts/managers/helpers/display/u_post_process_layer.gd` and update all references.
+- [x] Rename `scripts/debug/extract_touchscreen_settings.gd` → `scripts/debug/debug_extract_touchscreen_settings.gd` and update all references (class name if applicable).
+  - Completion notes: Implemented in commit `bf3df98` (`refactor(cleanup-v6): move misplaced helper and debug scripts`). Updated preload references in display applier and display integration tests; updated display manager docs path references.
 
 ### 1C — Validate
 
-- [ ] Run headless import after moves/renames.
-- [ ] Run style tests.
+- [x] Run headless import after moves/renames.
+- [x] Run style tests.
+  - Validation notes (2026-02-26):
+    - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass; non-failing ObjectDB leak warning at exit)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
 
 ## Phase 2 — Duck Typing Removal (Medium Risk)
 

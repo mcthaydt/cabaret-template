@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 0 complete (baseline and inventory captured); next: Phase 1A orphaned UID cleanup.
-- Branch: `cleanup-v6` (2 commits ahead of main; baseline docs update pending commit).
-- Working tree: clean before docs update; docs modified for Phase 0 baseline record.
+- Phase: Phase 1 complete (orphan cleanup + misplaced-file moves + validation); next: Phase 2A duck-typing removal in Scene Director runner typing.
+- Branch: `cleanup-v6` (4 commits ahead of main; Phase 1 docs update pending commit).
+- Working tree: implementation committed (`bf3df98`), docs currently modified for Phase 1 status updates.
 
 ## Context
 
@@ -89,6 +89,16 @@ All of this code needs to be brought up to the quality bar established by cleanu
   - Integration (`tests/integration/display`): 40/41 passed with 1 pending (`UIOverlayStack` unavailable in test environment), no failures.
 - Known non-failing environment warning: `get_system_ca_certificates` appears at suite startup on macOS.
 
+## Phase 1 Results (2026-02-26)
+
+- Removed all 11 orphaned `* 2.gd.uid` files from the working tree.
+- Moved `u_post_process_layer.gd` to `scripts/managers/helpers/display/` and updated preload references.
+- Renamed debug helper to `scripts/debug/debug_extract_touchscreen_settings.gd`.
+- Implementation commit: `bf3df98` (`refactor(cleanup-v6): move misplaced helper and debug scripts`).
+- Validation:
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass; non-failing ObjectDB leak warning at exit)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
+
 ## Notes / Pitfalls
 
 - After moving `.tscn` or `class_name` scripts, run a headless import to refresh UID/script caches:
@@ -97,7 +107,6 @@ All of this code needs to be brought up to the quality bar established by cleanu
 - `_beat_runner` in `m_scene_director.gd` is typed as `Variant` but is always `U_BeatRunner` — retyping removes 4 `has_method()` calls.
 - Hardcoded game-specific IDs (`"bar_complete"`, `"final_complete"`, `"alleyway"`, `"bar"`) exist in template managers — flag for extraction but may be deferred if game-specific config system is not yet designed.
 - `rs_display_initial_state.gd` has `@export_enum("bayer", "blue_noise")` but catalog uses ID `"noise"` — potential mismatch to verify.
-- `scripts/debug/extract_touchscreen_settings.gd` needs `debug_` prefix to match sibling files in that directory.
 - Missing initial state `.tres` for objectives and scene director slices — other slices all have wired resources in `root.tscn`, these two fall through to `== null` code path.
 - `scripts/core/` exists and is tested but not listed in STYLE_GUIDE.md directory tree.
 - `tmpl_*.tscn` prefix is established but not in STYLE_GUIDE.md scene naming table.
