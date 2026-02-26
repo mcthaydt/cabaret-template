@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends Node
+extends I_RunCoordinator
 class_name M_RunCoordinator
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -101,12 +101,9 @@ func _execute_reset_run(next_route: StringName) -> void:
 	_store.dispatch(U_GAMEPLAY_ACTIONS.reset_progress())
 	U_INTERACT_BLOCKER.force_unblock()
 
-	var objectives_manager: Node = U_SERVICE_LOCATOR.try_get_service(OBJECTIVES_SERVICE_NAME)
+	var objectives_manager: I_ObjectivesManager = U_SERVICE_LOCATOR.try_get_service(OBJECTIVES_SERVICE_NAME) as I_ObjectivesManager
 	if objectives_manager != null and is_instance_valid(objectives_manager):
-		if objectives_manager.has_method("reset_for_new_run"):
-			objectives_manager.call("reset_for_new_run", OBJECTIVE_SET_DEFAULT)
-		else:
-			_warn("objectives_manager is missing reset_for_new_run().")
+		objectives_manager.reset_for_new_run(OBJECTIVE_SET_DEFAULT)
 	else:
 		_warn("objectives_manager not available during run/reset.")
 
@@ -131,6 +128,9 @@ static func _to_string_name(value: Variant) -> StringName:
 	if value is String:
 		return StringName(value)
 	return StringName("")
+
+func is_reset_in_flight() -> bool:
+	return _is_reset_in_flight
 
 static func _warn(message: String) -> void:
 	print("M_RunCoordinator: WARNING %s" % message)

@@ -2,6 +2,7 @@ extends GutTest
 
 const M_RUN_COORDINATOR := preload("res://scripts/managers/m_run_coordinator.gd")
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const I_OBJECTIVES_MANAGER := preload("res://scripts/interfaces/i_objectives_manager.gd")
 const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
@@ -38,13 +39,14 @@ class RunStoreStub extends I_STATE_STORE:
 	func get_dispatched_actions() -> Array[Dictionary]:
 		return _dispatched_actions.duplicate(true)
 
-class ObjectivesManagerStub extends Node:
+class ObjectivesManagerStub extends I_OBJECTIVES_MANAGER:
 	var reset_calls: int = 0
 	var last_set_id: StringName = StringName("")
 
-	func reset_for_new_run(set_id: StringName = StringName("default_progression")) -> void:
+	func reset_for_new_run(set_id: StringName = StringName("default_progression")) -> bool:
 		reset_calls += 1
 		last_set_id = set_id
+		return true
 
 var _store: RunStoreStub
 

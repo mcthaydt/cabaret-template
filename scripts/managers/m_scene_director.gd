@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends Node
+extends I_SceneDirector
 class_name M_SceneDirector
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -168,6 +168,11 @@ func _on_directive_complete() -> void:
 	if _beat_runner != null:
 		var empty_beats: Array[Resource] = []
 		_beat_runner.start(empty_beats)
+
+func get_active_directive_id() -> StringName:
+	if _active_directive == null:
+		return StringName("")
+	return _get_directive_id(_active_directive)
 
 func _build_context() -> Dictionary:
 	_resolve_store()

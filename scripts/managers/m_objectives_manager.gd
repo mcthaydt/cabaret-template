@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends Node
+extends I_ObjectivesManager
 class_name M_ObjectivesManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
