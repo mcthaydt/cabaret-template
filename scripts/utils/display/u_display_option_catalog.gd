@@ -201,27 +201,6 @@ static func _is_quality_preset(resource: Resource) -> bool:
 static func _is_window_size_preset(resource: Resource) -> bool:
 	return resource != null and resource.get_script() == RS_WINDOW_SIZE_PRESET
 
-static func _load_preset_resources(dir_path: String) -> Array:
-	var results: Array = []
-	var dir := DirAccess.open(dir_path)
-	if dir == null:
-		return results
-
-	dir.list_dir_begin()
-	var entry := dir.get_next()
-	while entry != "":
-		if dir.current_is_dir():
-			if not entry.begins_with("."):
-				results.append_array(_load_preset_resources("%s/%s" % [dir_path, entry]))
-		elif entry.ends_with(".tres"):
-			var path := "%s/%s" % [dir_path, entry]
-			var resource := load(path)
-			if resource != null:
-				results.append(resource)
-		entry = dir.get_next()
-	dir.list_dir_end()
-	return results
-
 static func _duplicate_option_entries(options: Array) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
 	for option in options:

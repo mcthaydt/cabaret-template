@@ -128,17 +128,6 @@ func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 	# Apply color blind filter to UI layer as well
 	_apply_ui_color_blind_shader(enabled, mode_value)
 
-func _is_post_processing_enabled(quality_preset: String) -> bool:
-	if quality_preset.is_empty():
-		return true
-	var preset: Resource = U_DISPLAY_OPTION_CATALOG.get_quality_preset_by_id(quality_preset)
-	if preset == null:
-		return true
-	var enabled_value: Variant = preset.get("post_processing_enabled")
-	if enabled_value is bool:
-		return enabled_value
-	return true
-
 func _disable_post_process_effects() -> void:
 	_film_grain_active = false
 	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN, false)
