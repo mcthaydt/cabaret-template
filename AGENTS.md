@@ -95,7 +95,7 @@
   - Auto-discovers `M_ECSManager` via parent traversal or ServiceLocator (`ecs_manager`); no manual wiring needed.
   - Event-driven request systems should extend `BaseEventVFXSystem` / `BaseEventSFXSystem` and implement `get_event_name()` + `create_request_from_payload()` to enqueue `requests`.
 - Game event system + handlers (Phase 3B, QB v2)
-  - `S_GameEventSystem` hosts default game forwarding rules from `resources/qb/game/*.tres` and composes v2 rule utilities (`U_RuleScorer`, `U_RuleSelector`, `RuleStateTracker`, `U_RuleValidator`) directly.
+  - `S_GameEventSystem` hosts default game forwarding rules from `resources/qb/game/*.tres` and composes v2 rule utilities (`U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, `U_RuleValidator`) directly.
   - `S_GameEventSystem` evaluates event/both rules on subscribed ECS events and supports optional global tick evaluation for tick/both rules.
   - Event-forwarding publish effects merge incoming event payload into the outgoing payload, then apply configured payload overrides and `entity_id` injection.
   - `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates required payload (`checkpoint`, `spawn_point_id`), dispatches `set_last_checkpoint`, and publishes `Evn_CheckpointActivated`.
@@ -103,7 +103,7 @@
   - Gameplay flows use `S_GameEventSystem` + handler systems end-to-end; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from the codebase, and active tests target QB-handler flow.
 - QB Rule Engine v2 patterns (Phase 5 complete)
   - The rule engine is a stateless library: `U_RuleScorer.score_rules(...)` + `U_RuleSelector.select_winners(...)`; systems compose these utilities instead of inheriting a QB base class.
-  - Rule consumers (`S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem`) each own their own `RuleStateTracker` instance; never share trackers between systems.
+  - Rule consumers (`S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem`) each own their own `U_RuleStateTracker` instance; never share trackers between systems.
   - Rule assets use `RS_Rule` + typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions`/`effects` remain `Array[Resource]` in headless fallback mode and must be runtime-validated with `U_RuleValidator.validate_rules(...)`.
   - Condition contract: all rules must declare at least one condition; unconditional rules are invalid (validator error, scorer returns 0.0).
   - Validation contract: use only `valid_rules` from the validation report; expose/report `{valid_rules, errors_by_index, errors_by_rule_id}` for tests and debugging.

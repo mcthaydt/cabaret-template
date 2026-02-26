@@ -104,9 +104,10 @@
 
 ### 3A — Class Name Fixes
 
-- [ ] Rename class `RuleStateTracker` → `U_RuleStateTracker` in `scripts/utils/qb/u_rule_state_tracker.gd`.
-- [ ] Update all references to the renamed class.
-- [ ] Update AGENTS.md reference from `RuleStateTracker` to `U_RuleStateTracker`.
+- [x] Rename class `RuleStateTracker` → `U_RuleStateTracker` in `scripts/utils/qb/u_rule_state_tracker.gd`.
+- [x] Update all references to the renamed class.
+- [x] Update AGENTS.md reference from `RuleStateTracker` to `U_RuleStateTracker`.
+  - Completion notes: Implemented in commit `85c50057` (`refactor(qb): rename RuleStateTracker class to U_RuleStateTracker`). Updated `u_rule_state_tracker.gd` class_name, and references in `s_camera_state_system.gd`, `s_character_state_system.gd`, `s_game_event_system.gd`. AGENTS.md updated in docs commit.
 
 ### 3B — Manager Suffix Convention (Decision: Rename All Four)
 

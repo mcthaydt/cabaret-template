@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 2B complete (new manager interfaces + typed objectives lookup in run coordinator); next: Phase 3A class rename (`RuleStateTracker` → `U_RuleStateTracker`).
-- Branch: `cleanup-v6` (8 commits ahead of main; Phase 2B docs update pending commit).
-- Working tree: implementation committed (`13c65f2`), docs currently modified for Phase 2B status updates.
+- Phase: Phase 3A complete (`RuleStateTracker` → `U_RuleStateTracker`); next: Phase 3B manager suffix renames.
+- Branch: `cleanup-v6` (9 commits ahead of main; Phase 3A docs update pending commit).
+- Working tree: implementation committed (`85c50057`), docs currently modified for Phase 3A status updates.
 
 ## Context
 
@@ -126,6 +126,14 @@ All of this code needs to be brought up to the quality bar established by cleanu
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true` (4/4 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/qb -ginclude_subdirs=true` (151/151 passed)
+
+## Phase 3A Results (2026-02-26)
+
+- Renamed `class_name RuleStateTracker` → `U_RuleStateTracker` in `scripts/utils/qb/u_rule_state_tracker.gd`.
+- Updated all three consumers: `s_camera_state_system.gd`, `s_character_state_system.gd`, `s_game_event_system.gd`.
+- Updated two stale AGENTS.md references (QB v2 patterns section).
+- Implementation commit: `85c50057` (`refactor(qb): rename RuleStateTracker class to U_RuleStateTracker`).
+- No headless import required (no file moves or new `class_name` scripts added, only class_name value changed).
 
 ## Notes / Pitfalls
 
