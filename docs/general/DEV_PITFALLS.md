@@ -101,6 +101,8 @@
 
 - **`tr` cannot be used as a static method name on external classes (Godot 4.6)**: Calling `.tr()` on a preloaded Script variable or class reference triggers a parse-time error `"Could not resolve external class member 'tr'"` because `tr()` is a built-in `Object` method. This means `U_SomeClass.tr(key)` will **not compile**. Name translation helper methods `localize()` or any non-colliding name instead. Never call bare `tr(key)` either (invokes Godot's built-in `Object.tr()`).
 
+- **`log` cannot be used as a static method name (Godot 4.6)**: `log(x)` is a GDScript global built-in (natural logarithm). Declaring `static func log(message: String)` in a class body produces a parse error `"Invalid argument for log() function: argument 1 should be float but is String"`. Use `debug_log`, `trace`, or any non-colliding name instead.
+
 - **Inner class names must start with a capital letter**: Defining an inner class with an underscore-prefixed name (e.g. `class _MockFoo extends Node:`) causes a GDScript 4 parse error. Use `class MockFoo extends Node:` instead.
 
 - **Test inner class names can collide with global `class_name` symbols**: Even when declared inside a test file, an inner class name that matches an existing global `class_name` (for example `MockSaveManager`) can trigger parser/load conflicts in headless runs. Use distinct stub names (for example `SaveManagerStub`) to avoid global class table collisions.

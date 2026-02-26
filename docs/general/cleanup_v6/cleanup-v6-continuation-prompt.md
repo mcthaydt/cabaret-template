@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 3 complete (3A–3D all done); next: Phase 4 dead code removal.
-- Branch: `cleanup-v6` (11 commits ahead of main; Phase 3B/3C docs update pending commit).
-- Working tree: implementation committed (`e37bfd68`), docs currently modified for Phase 3B/3C/3D status updates.
+- Phase: Phase 4 complete (dead code removal + debug tracer extraction); next: Phase 5 helper extraction.
+- Branch: `cleanup-v6` (13 commits ahead of main; Phase 4 docs update pending commit).
+- Working tree: implementation committed (`d3340d4f`), docs currently modified for Phase 4 status updates.
 
 ## Context
 
@@ -152,6 +152,20 @@ All of this code needs to be brought up to the quality bar established by cleanu
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true` (4/4 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/qb -ginclude_subdirs=true` (151/151 passed)
+
+## Phase 4 Results (2026-02-26)
+
+- Removed `_is_post_processing_enabled()` dead method from `u_display_post_process_applier.gd` (no callers).
+- Removed `_load_preset_resources()` dead method from `u_display_option_catalog.gd` (mobile-unsafe DirAccess, superseded by const preloads).
+- Created `scripts/utils/scene_director/u_objectives_debug_tracer.gd` (`U_ObjectivesDebugTracer`) — extracts ~143 lines of debug infrastructure from `m_objectives_manager.gd`, including `_debug_log`/`_debug_gameplay_slice`/`_debug_objectives_slice`/`_emit_startup_signature`/`_debug_log_config_snapshot` plus `_describe_condition`/`_resource_script_path` support helpers. Private `_resource_get`/`_to_string_name`/`_to_resource_array` duplicated pending Phase 5B shared extraction.
+- Updated manager to delegate all debug calls through `U_OBJECTIVES_DEBUG_TRACER`.
+- Implementation commit: `d3340d4f` (`refactor(cleanup-v6): remove dead methods and extract objectives debug tracer (phase 4)`).
+- **New pitfall discovered**: `log()` is a GDScript built-in (natural logarithm) — cannot be used as a static method name. Used `debug_log()` instead. Documented in DEV_PITFALLS.md.
+- Validation:
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (378/378 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (40/41 passed, 1 pending pre-existing)
 
 ## Notes / Pitfalls
 

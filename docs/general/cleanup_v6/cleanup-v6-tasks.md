@@ -131,12 +131,18 @@
 
 ## Phase 4 — Dead Code & Debug Cruft Removal (Low Risk)
 
-- [ ] Remove `_is_post_processing_enabled()` dead method from `scripts/managers/helpers/display/u_display_post_process_applier.gd` (lines ~131–140).
-- [ ] Remove `_load_preset_resources()` dead method from `scripts/utils/display/u_display_option_catalog.gd` (lines ~204–223) — mobile-unsafe `DirAccess` code superseded by const preloads.
-- [ ] Extract `m_objectives_manager.gd` debug infrastructure to a separate helper:
+- [x] Remove `_is_post_processing_enabled()` dead method from `scripts/managers/helpers/display/u_display_post_process_applier.gd` (lines ~131–140).
+- [x] Remove `_load_preset_resources()` dead method from `scripts/utils/display/u_display_option_catalog.gd` (lines ~204–223) — mobile-unsafe `DirAccess` code superseded by const preloads.
+- [x] Extract `m_objectives_manager.gd` debug infrastructure to a separate helper:
   - Move `DEBUG_VICTORY_TRACE`, `DEBUG_SIGNATURE`, `_emit_startup_signature()`, `_debug_log_config_snapshot()`, `_debug_gameplay_slice()`, `_debug_objectives_slice()` (~100 lines) → new `scripts/utils/scene_director/u_objectives_debug_tracer.gd`.
   - Update `m_objectives_manager.gd` to delegate debug calls to the tracer.
-- [ ] Run display and Scene Director tests.
+- [x] Run display and Scene Director tests.
+  - Completion notes: Implemented in commit `d3340d4f` (`refactor(cleanup-v6): remove dead methods and extract objectives debug tracer (phase 4)`). Pitfall discovered: `log()` is a GDScript built-in (natural log); used `debug_log()` instead. Documented in DEV_PITFALLS.md. Tracer also moved `_describe_condition()`, `_resource_script_path()`, and duplicated `_resource_get/_to_string_name/_to_resource_array` helpers (pending Phase 5B shared extraction).
+  - Validation (2026-02-26):
+    - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (378/378 passed)
+    - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (40/41 passed, 1 pending pre-existing)
 
 ## Phase 5 — Extract Duplicated Helpers (Medium Risk)
 
