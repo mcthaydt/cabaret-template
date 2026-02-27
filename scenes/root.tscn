@@ -41,6 +41,8 @@
 [ext_resource type="Script" path="res://scripts/managers/m_scene_director_manager.gd" id="39_scene_director"]
 [ext_resource type="Resource" path="res://resources/scene_director/directives/cfg_directive_gameplay_base.tres" id="40_directive_gameplay_base"]
 [ext_resource type="Script" path="res://scripts/managers/m_run_coordinator_manager.gd" id="41_run_coordinator"]
+[ext_resource type="Resource" path="res://resources/state/cfg_default_objectives_initial_state.tres" id="42_objectives_state"]
+[ext_resource type="Resource" path="res://resources/state/cfg_default_scene_director_initial_state.tres" id="43_scene_director_state"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
@@ -63,6 +65,8 @@ audio_initial_state = ExtResource("26_audio_state")
 display_initial_state = ExtResource("29_display_state")
 localization_initial_state = ExtResource("34_localization_state")
 time_initial_state = ExtResource("36_time_state")
+objectives_initial_state = ExtResource("42_objectives_state")
+scene_director_initial_state = ExtResource("43_scene_director_state")
 
 [node name="M_CursorManager" type="Node" parent="Managers" unique_id=396316100]
 script = ExtResource("7_cursor")
