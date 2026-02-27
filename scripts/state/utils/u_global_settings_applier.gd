@@ -38,13 +38,13 @@ static func apply(store: I_StateStore, settings: Dictionary) -> void:
 
 static func _apply_display(store: I_StateStore, display: Dictionary) -> void:
 	if display.has("window_size_preset"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_window_size_preset(String(display.get("window_size_preset", ""))))
+		store.dispatch(U_DISPLAY_ACTIONS.set_window_size_preset(str(display.get("window_size_preset", ""))))
 	if display.has("window_mode"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_window_mode(String(display.get("window_mode", ""))))
+		store.dispatch(U_DISPLAY_ACTIONS.set_window_mode(str(display.get("window_mode", ""))))
 	if display.has("vsync_enabled"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_vsync_enabled(bool(display.get("vsync_enabled", true))))
 	if display.has("quality_preset"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_quality_preset(String(display.get("quality_preset", ""))))
+		store.dispatch(U_DISPLAY_ACTIONS.set_quality_preset(str(display.get("quality_preset", ""))))
 	if display.has("film_grain_enabled"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(bool(display.get("film_grain_enabled", false))))
 	if display.has("film_grain_intensity"):
@@ -62,11 +62,11 @@ static func _apply_display(store: I_StateStore, display: Dictionary) -> void:
 	if display.has("dither_intensity"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_dither_intensity(float(display.get("dither_intensity", 0.5))))
 	if display.has("dither_pattern"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_dither_pattern(String(display.get("dither_pattern", ""))))
+		store.dispatch(U_DISPLAY_ACTIONS.set_dither_pattern(str(display.get("dither_pattern", ""))))
 	if display.has("ui_scale"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(float(display.get("ui_scale", 1.0))))
 	if display.has("color_blind_mode"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_color_blind_mode(String(display.get("color_blind_mode", "normal"))))
+		store.dispatch(U_DISPLAY_ACTIONS.set_color_blind_mode(str(display.get("color_blind_mode", "normal"))))
 	if display.has("high_contrast_enabled"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_high_contrast_enabled(bool(display.get("high_contrast_enabled", false))))
 	if display.has("color_blind_shader_enabled"):

@@ -26,8 +26,8 @@ func apply_quality_preset(preset: String) -> void:
 	if config == null:
 		return
 
-	_apply_shadow_quality(String(config.shadow_quality))
-	_apply_anti_aliasing(String(config.anti_aliasing))
+	_apply_shadow_quality(str(config.shadow_quality))
+	_apply_anti_aliasing(str(config.anti_aliasing))
 
 func _load_quality_preset(preset: String) -> Resource:
 	var resource := U_DISPLAY_OPTION_CATALOG.get_quality_preset_by_id(preset)

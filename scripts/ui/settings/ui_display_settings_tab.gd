@@ -191,8 +191,8 @@ func _populate_option_button(button: OptionButton, options: Array, values: Array
 	for option in options:
 		if option is Dictionary:
 			var entry := option as Dictionary
-			var label := String(entry.get("label", ""))
-			var value := String(entry.get("id", ""))
+			var label := str(entry.get("label", ""))
+			var value := str(entry.get("id", ""))
 			if label.is_empty():
 				label = value
 			button.add_item(label)
@@ -488,35 +488,35 @@ func _dispatch_display_settings(settings: Variant, skip_window_actions: bool = f
 		return
 
 	if not skip_window_actions:
-		_state_store.dispatch(U_DisplayActions.set_window_size_preset(String(values.get("window_size_preset", ""))))
-		_state_store.dispatch(U_DisplayActions.set_window_mode(String(values.get("window_mode", ""))))
+		_state_store.dispatch(U_DisplayActions.set_window_size_preset(str(values.get("window_size_preset", ""))))
+		_state_store.dispatch(U_DisplayActions.set_window_mode(str(values.get("window_mode", ""))))
 	_state_store.dispatch(U_DisplayActions.set_vsync_enabled(bool(values.get("vsync_enabled", true))))
-	_state_store.dispatch(U_DisplayActions.set_quality_preset(String(values.get("quality_preset", ""))))
+	_state_store.dispatch(U_DisplayActions.set_quality_preset(str(values.get("quality_preset", ""))))
 	_state_store.dispatch(U_DisplayActions.set_post_processing_enabled(bool(values.get("post_processing_enabled", false))))
-	_state_store.dispatch(U_DisplayActions.set_post_processing_preset(String(values.get("post_processing_preset", ""))))
+	_state_store.dispatch(U_DisplayActions.set_post_processing_preset(str(values.get("post_processing_preset", ""))))
 	_state_store.dispatch(U_DisplayActions.set_ui_scale(float(values.get("ui_scale", 1.0))))
-	_state_store.dispatch(U_DisplayActions.set_color_blind_mode(String(values.get("color_blind_mode", ""))))
+	_state_store.dispatch(U_DisplayActions.set_color_blind_mode(str(values.get("color_blind_mode", ""))))
 	_state_store.dispatch(U_DisplayActions.set_high_contrast_enabled(bool(values.get("high_contrast_enabled", false))))
 
 func _dispatch_window_settings(values: Dictionary) -> void:
 	if _state_store == null:
 		return
-	_state_store.dispatch(U_DisplayActions.set_window_size_preset(String(values.get("window_size_preset", ""))))
-	_state_store.dispatch(U_DisplayActions.set_window_mode(String(values.get("window_mode", ""))))
+	_state_store.dispatch(U_DisplayActions.set_window_size_preset(str(values.get("window_size_preset", ""))))
+	_state_store.dispatch(U_DisplayActions.set_window_mode(str(values.get("window_mode", ""))))
 
 func _requires_window_confirmation(settings: Dictionary, state: Dictionary) -> bool:
 	if state == null:
 		return false
 	var current_size := U_DisplaySelectors.get_window_size_preset(state)
 	var current_mode := U_DisplaySelectors.get_window_mode(state)
-	var next_size := String(settings.get("window_size_preset", ""))
-	var next_mode := String(settings.get("window_mode", ""))
+	var next_size := str(settings.get("window_size_preset", ""))
+	var next_mode := str(settings.get("window_mode", ""))
 	return next_size != current_size or next_mode != current_mode
 
 func _begin_window_confirm(settings: Dictionary) -> void:
 	_pending_window_settings = {
-		"window_size_preset": String(settings.get("window_size_preset", "")),
-		"window_mode": String(settings.get("window_mode", "")),
+		"window_size_preset": str(settings.get("window_size_preset", "")),
+		"window_mode": str(settings.get("window_mode", "")),
 	}
 	_window_confirm_active = true
 	_window_confirm_seconds_left = WINDOW_CONFIRM_SECONDS
@@ -789,7 +789,7 @@ func _relocalize_option_buttons() -> void:
 
 func _localize_with_fallback(key: StringName, fallback: String) -> String:
 	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
+	if localized == str(key):
 		return fallback
 	return localized
 
