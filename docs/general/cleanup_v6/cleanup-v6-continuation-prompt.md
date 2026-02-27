@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 5 complete (helper extraction); next: Phase 6 `String(value)` → `str(value)` migration.
-- Branch: `cleanup-v6` (15 commits ahead of main; Phase 5 docs update pending commit).
-- Working tree: implementation committed (`4387cdd8`, `43804ade`), docs currently modified for Phase 5 status updates.
+- Phase: Phase 6 complete (`String(value)` migration + dither enum fix); next: Phase 7 style enforcement expansion.
+- Branch: `cleanup-v6` (17 commits ahead of main; Phase 6 docs update pending commit).
+- Working tree: implementation committed (`2aba797d`), docs currently modified for Phase 6 status updates.
 
 ## Context
 
@@ -192,6 +192,16 @@ All of this code needs to be brought up to the quality bar established by cleanu
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true` (4/4 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (378/378 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
+
+## Phase 6 Results (2026-02-26)
+
+- Replaced `String(value)` with `str(value)` in 6 files (48 occurrences total): `u_display_selectors.gd`, `u_display_reducer.gd`, `u_display_option_catalog.gd`, `u_global_settings_applier.gd`, `ui_display_settings_tab.gd`, `u_display_quality_applier.gd`.
+- Fixed `rs_display_initial_state.gd` dither pattern mismatch: `@export_enum("bayer", "blue_noise")` → `@export_enum("bayer", "noise")` to match the catalog's valid ID `"noise"`.
+- Implementation commit: `2aba797d` (`refactor(cleanup-v6): replace String() coercions with str() and fix dither enum mismatch (phase 6)`).
+- Validation:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (378/378 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/state -ginclude_subdirs=true` (365/365 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (40/41 passed, 1 pending pre-existing)
 
 ## Notes / Pitfalls
 

@@ -175,15 +175,21 @@
 
 ## Phase 6 — `String(value)` → `str(value)` Migration (Low Risk)
 
-- [ ] Replace `String(value)` with `str(value)` for Variant→String coercion in:
-  - `scripts/state/selectors/u_display_selectors.gd` (~6 occurrences)
-  - `scripts/state/reducers/u_display_reducer.gd` (~8 occurrences)
-  - `scripts/utils/display/u_display_option_catalog.gd` (~13 occurrences)
-  - `scripts/state/utils/u_global_settings_applier.gd` (~5 occurrences)
-  - `scripts/ui/settings/ui_display_settings_tab.gd` (~14 occurrences)
-  - `scripts/managers/helpers/display/u_display_quality_applier.gd` (~2 occurrences)
-- [ ] Verify `rs_display_initial_state.gd` `@export_enum("bayer", "blue_noise")` vs catalog ID `"noise"` — fix mismatch if confirmed.
-- [ ] Run display and state tests.
+- [x] Replace `String(value)` with `str(value)` for Variant→String coercion in:
+  - `scripts/state/selectors/u_display_selectors.gd` (6 occurrences)
+  - `scripts/state/reducers/u_display_reducer.gd` (8 occurrences)
+  - `scripts/utils/display/u_display_option_catalog.gd` (13 occurrences)
+  - `scripts/state/utils/u_global_settings_applier.gd` (5 occurrences)
+  - `scripts/ui/settings/ui_display_settings_tab.gd` (14 occurrences)
+  - `scripts/managers/helpers/display/u_display_quality_applier.gd` (2 occurrences)
+- [x] Verify `rs_display_initial_state.gd` `@export_enum("bayer", "blue_noise")` vs catalog ID `"noise"` — fix mismatch if confirmed.
+  - Mismatch confirmed: initial state had `"blue_noise"` but catalog uses `"noise"` as the ID. Fixed to `@export_enum("bayer", "noise")`.
+- [x] Run display and state tests.
+  - Completion notes: Implemented in commit `2aba797d` (`refactor(cleanup-v6): replace String() coercions with str() and fix dither enum mismatch (phase 6)`).
+  - Validation (2026-02-26):
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (378/378 passed)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/state -ginclude_subdirs=true` (365/365 passed)
+    - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (40/41 passed, 1 pending pre-existing)
 
 ## Phase 7 — Style Enforcement Expansion (Low Risk)
 
