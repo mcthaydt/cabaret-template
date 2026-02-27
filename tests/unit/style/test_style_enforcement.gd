@@ -13,6 +13,14 @@ const GD_DIRECTORIES := [
 	"res://scripts/scene_management",
 	"res://scripts/events",
 	"res://scripts/scene_structure",
+	"res://scripts/resources/qb",
+	"res://scripts/resources/qb/conditions",
+	"res://scripts/resources/qb/effects",
+	"res://scripts/resources/scene_director",
+	"res://scripts/resources/ecs",
+	"res://scripts/resources/display",
+	"res://scripts/resources/localization",
+	"res://scripts/debug",
 	"res://tests/unit/interactables",
 	"res://tests/unit/input",
 	"res://tests/unit/lighting",
@@ -75,6 +83,14 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/state/reducers": ["u_"],
 	"res://scripts/state/selectors": ["u_"],
 	"res://scripts/resources/state": ["rs_"], # State initial state resources
+	"res://scripts/resources/qb": ["rs_"], # QB base condition/effect/rule resources
+	"res://scripts/resources/qb/conditions": ["rs_"], # QB condition resources
+	"res://scripts/resources/qb/effects": ["rs_"], # QB effect resources
+	"res://scripts/resources/scene_director": ["rs_"], # Scene director beat/objective/directive resources
+	"res://scripts/resources/ecs": ["rs_"], # ECS component settings resources
+	"res://scripts/resources/display": ["rs_"], # Display preset resources
+	"res://scripts/resources/localization": ["rs_"], # Localization resources
+	"res://scripts/debug": ["debug_"], # Debug utility scripts
 	"res://scripts/state": ["u_", "m_"], # m_state_store.gd is in root
 	"res://scripts/resources/ui": ["rs_"], # UI screen definitions
 	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
