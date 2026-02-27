@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 9 complete (stale docs cleanup); next: Phase 10 large file audit.
-- Branch: `cleanup-v6` (23 commits ahead of main; Phase 9 docs update pending commit).
-- Working tree: implementation committed (`18bb9da0`), docs currently modified for Phase 9 status updates.
+- Phase: Phase 10 complete (large file audit); next: Phase 11 cinema grading test coverage.
+- Branch: `cleanup-v6` (23 commits ahead of main).
+- Working tree: clean; Phase 10 is docs-only (no implementation commit needed).
 
 ## Context
 
@@ -233,6 +233,14 @@ All of this code needs to be brought up to the quality bar established by cleanu
 - `docs/scene_director/scene-director-continuation-prompt.md`: corrected branch ("scene-director" → "main"), updated test counts to cleanup-v6 baseline (151/151 QB, 97/97 scene_director).
 - `docs/qb/` — does not exist; no-op.
 - Implementation commit: `18bb9da0` (`docs(cleanup-v6): clean up stale display/scene_director docs (phase 9)`).
+
+## Phase 10 Results (2026-02-26)
+
+- `m_objectives_manager.gd`: Phase 4 reduced it from 783 → 624 lines. Still 224 lines over the 400-line threshold. All remaining code is functional (set loading, objective lifecycle, event dispatch, state sync); no clean split without over-engineering. Flagged as monitored.
+- `m_scene_director_manager.gd`: Phase 5B reduced it from 485 → 448 lines. 48 lines over threshold. Functionally dense (beat runner orchestration, directive selection, state sync); no clean split. Flagged as monitored.
+- Shared pattern identified for future extraction: `_resolve_store`/`_set_store_reference`/`_ensure_store_action_signal_connection`/`_disconnect_store_action_signal` (~65 lines) is duplicated between both managers. Deferred — low value at current size, tight coupling.
+- Pre-existing files over 400 lines (out of v6 scope) flagged in tasks checklist for future cleanup consideration. Largest: `m_scene_manager.gd` (1148), `ui_display_settings_tab.gd` (809), `ui_save_load_menu.gd` (751), `m_save_manager.gd` (742).
+- No code changes; no commit needed.
 
 ## Notes / Pitfalls
 

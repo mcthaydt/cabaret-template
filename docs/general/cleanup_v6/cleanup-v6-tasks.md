@@ -236,9 +236,25 @@
 
 ## Phase 10 — Large File Audit (Medium Risk, May Defer)
 
-- [ ] `m_objectives_manager.gd` (783 lines) — evaluate whether debug infrastructure extraction (Phase 4) brings it under threshold, or if further helper extraction is needed.
-- [ ] `m_scene_director.gd` (485 lines) — evaluate whether resource access helper extraction (Phase 5B) brings it under threshold.
-- [ ] Flag any remaining files over 400 lines for future consideration.
+- [x] `m_objectives_manager.gd` (783 lines) — evaluate whether debug infrastructure extraction (Phase 4) brings it under threshold, or if further helper extraction is needed.
+  - Phase 4 reduced it from 783 → 624 lines (159 extracted). Still 224 lines over threshold.
+  - All remaining code is functional (set loading, objective lifecycle, event dispatch, state sync); no clean split without over-engineering.
+  - `_resolve_store`/`_set_store_reference`/`_ensure_store_action_signal_connection`/`_disconnect_store_action_signal` (~65 lines) duplicated with `m_scene_director_manager.gd` — candidate for future extraction, deferred.
+  - **Decision: monitored, no further extraction this phase.**
+- [x] `m_scene_director_manager.gd` (485 lines) — evaluate whether resource access helper extraction (Phase 5B) brings it under threshold.
+  - Phase 5B reduced it from 485 → 448 lines (37 extracted). 48 lines over threshold.
+  - File is functionally dense (beat runner orchestration, directive selection, state sync); no clean split without over-engineering.
+  - Same store resolver duplication as above — same deferred decision.
+  - **Decision: monitored, no further extraction this phase.**
+- [x] Flag any remaining files over 400 lines for future consideration.
+  - In-scope (new in v6): `m_objectives_manager.gd` (624), `m_scene_director_manager.gd` (448) — see above.
+  - Pre-existing large files (out of v6 scope, flagged for future cleanups):
+    - `m_scene_manager.gd` (1148), `ui_display_settings_tab.gd` (809), `ui_save_load_menu.gd` (751), `m_save_manager.gd` (742)
+    - `m_state_store.gd` (689), `s_camera_state_system.gd` (677), `m_spawn_manager.gd` (671), `m_character_lighting_manager.gd` (654)
+    - `m_ecs_manager.gd` (644), `ui_hud_controller.gd` (613), `s_character_state_system.gd` (588), `ui_audio_settings_tab.gd` (574)
+    - `ui_input_profile_selector.gd` (558), `ui_input_rebinding_overlay.gd` (550), `u_input_reducer.gd` (504), `ui_touchscreen_settings_overlay.gd` (501)
+    - `u_rebind_action_list_builder.gd` (497), `m_camera_manager.gd` (461), `ui_localization_settings_tab.gd` (448)
+  - No code changes; documentation-only phase.
 
 ## Phase 11 — Cinema Grading Test Coverage (Medium Risk)
 
