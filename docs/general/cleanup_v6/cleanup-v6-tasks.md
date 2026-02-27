@@ -223,13 +223,16 @@
 
 ## Phase 9 — Stale Documentation Cleanup (Low Risk)
 
-- [ ] Fix `docs/display_manager/display-manager-tasks.md`:
-  - Update progress header (line 3) to reflect actual completion count.
-  - Mark or remove stale outline feature test references (tasks 0A.1, 0B.1).
-  - Mark or remove stale LUT file entries in "Files to Create" table (lines ~794–817).
-  - Check off Phase 9 Task 9.2 "Update AGENTS.md" (already done).
-- [ ] Review `docs/scene_director/` docs for stale status references.
-- [ ] Review `docs/qb/` docs for stale status references.
+- [x] Fix `docs/display_manager/display-manager-tasks.md`:
+  - Updated progress header from "43% (35/81)" → "~91% (84/92)".
+  - Removed stale outline sub-bullets from tasks 0A.1 and 0B.1 (outline feature was dropped — shader exists but never wired to state).
+  - Removed stale LUT file rows from "Files to Create" table (LUT system was replaced by cinema grading; `resources/luts/` dir, `rs_lut_definition.gd`, and `sh_lut_shader.gdshader` never created). Annotated `sh_outline_shader.gdshader` row to clarify "created but not wired to state".
+  - Checked off Phase 9 Task 9.2 "Update AGENTS.md" (already done — Display Manager Patterns section present at line ~1051 in AGENTS.md).
+- [x] Review `docs/scene_director/` docs for stale status references.
+  - Updated `scene-director-continuation-prompt.md`: corrected branch name (merged → main), updated test counts (151/151 QB, 97/97 scene_director).
+- [x] Review `docs/qb/` docs for stale status references.
+  - N/A — `docs/qb/` directory does not exist.
+  - Completion notes: Implemented in commit `18bb9da0` (`docs(cleanup-v6): clean up stale display/scene_director docs (phase 9)`).
 
 ## Phase 10 — Large File Audit (Medium Risk, May Defer)
 

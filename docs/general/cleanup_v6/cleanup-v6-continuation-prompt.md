@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 8 complete (missing initial state resources); next: Phase 9 stale documentation cleanup.
-- Branch: `cleanup-v6` (21 commits ahead of main; Phase 8 docs update pending commit).
-- Working tree: implementation committed (`c2d869d8`), docs currently modified for Phase 8 status updates.
+- Phase: Phase 9 complete (stale docs cleanup); next: Phase 10 large file audit.
+- Branch: `cleanup-v6` (23 commits ahead of main; Phase 9 docs update pending commit).
+- Working tree: implementation committed (`18bb9da0`), docs currently modified for Phase 9 status updates.
 
 ## Context
 
@@ -222,6 +222,17 @@ All of this code needs to be brought up to the quality bar established by cleanu
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/state -ginclude_subdirs=true` (365/365 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
+
+## Phase 9 Results (2026-02-26)
+
+- `docs/display_manager/display-manager-tasks.md`:
+  - Progress header updated: "43% (35/81)" → "~91% (84/92)".
+  - Removed stale outline sub-bullets from tasks 0A.1 and 0B.1 (feature dropped, never wired to state).
+  - Removed stale LUT rows from "Files to Create" table (`rs_lut_definition.gd`, `sh_lut_shader.gdshader`, and all `resources/luts/` entries). LUT system was replaced by cinema grading.
+  - Marked Task 9.2 as done (Display Manager Patterns section already in AGENTS.md).
+- `docs/scene_director/scene-director-continuation-prompt.md`: corrected branch ("scene-director" → "main"), updated test counts to cleanup-v6 baseline (151/151 QB, 97/97 scene_director).
+- `docs/qb/` — does not exist; no-op.
+- Implementation commit: `18bb9da0` (`docs(cleanup-v6): clean up stale display/scene_director docs (phase 9)`).
 
 ## Notes / Pitfalls
 
