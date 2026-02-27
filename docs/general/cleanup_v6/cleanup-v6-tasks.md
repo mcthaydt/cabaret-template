@@ -341,39 +341,51 @@
 
 ### 14A — I_Condition / I_Effect Interfaces
 
-- [ ] Create `scripts/interfaces/i_condition.gd` (`I_Condition`) with `func evaluate(context: Dictionary) -> bool`.
-- [ ] Create `scripts/interfaces/i_effect.gd` (`I_Effect`) with `func execute(context: Dictionary) -> void`.
-- [ ] Update `scripts/resources/qb/conditions/rs_base_condition.gd` to extend `I_Condition`.
-- [ ] Update `scripts/resources/qb/effects/rs_base_effect.gd` to extend `I_Effect`.
-- [ ] Replace 11 `has_method("evaluate")` / `has_method("execute")` guards in `m_scene_director_manager.gd` and `u_beat_runner.gd` with `is I_Condition` / `is I_Effect` checks. Keep `Array[Resource]` on exports (Godot inspector limitation).
-- [ ] Run QB, Scene Director, and style tests.
+- [x] Create `scripts/interfaces/i_condition.gd` (`I_Condition`) with `func evaluate(context: Dictionary) -> float` (actual return type is float, not bool).
+- [x] Create `scripts/interfaces/i_effect.gd` (`I_Effect`) with `func execute(context: Dictionary) -> void`.
+- [x] Update `scripts/resources/qb/conditions/rs_base_condition.gd` to extend `I_Condition`.
+- [x] Update `scripts/resources/qb/effects/rs_base_effect.gd` to extend `I_Effect`.
+- [x] Replace 11 `has_method("evaluate")` / `has_method("execute")` guards with `is I_Condition` / `is I_Effect` checks across: `rs_condition_composite.gd` (2), `m_scene_director_manager.gd` (1), `m_objectives_manager.gd` (2), `u_beat_runner.gd` (2), `u_rule_scorer.gd` (1), `s_game_event_system.gd` (1), `s_character_state_system.gd` (1), `s_camera_state_system.gd` (1). Keep `Array[Resource]` on exports (Godot inspector limitation).
+- [x] Update test stubs in 5 test files to extend `I_Condition`/`I_Effect` instead of `Resource`.
+- [x] Run QB, Scene Director, and style tests.
+  - Implementation commit: `3ce45068`.
+  - Validation: QB 151/151, Scene Director unit 97/97, integration 4/4, style 12/12 passed.
 
 ### 14B — RS_GameConfig Resource
 
-- [ ] Create `scripts/resources/rs_game_config.gd` (`RS_GameConfig`) with exported fields for all hardcoded game-specific IDs currently in `M_RunCoordinatorManager` and `M_ObjectivesManager` (`"bar_complete"`, `"final_complete"`, `RETRY_SCENE_ID = "alleyway"`, `required_final_area = "bar"`, etc.).
-- [ ] Create `resources/cfg_game_config.tres` instance with current default values.
-- [ ] Wire `RS_GameConfig` via `@export` on `M_RunCoordinatorManager` and `M_ObjectivesManager` in `scenes/root.tscn`.
-- [ ] Remove hardcoded consts from both managers; read from the config resource instead.
-- [ ] Run Scene Director and state tests.
+- [x] Create `scripts/resources/rs_game_config.gd` (`RS_GameConfig`) with `retry_scene_id`, `route_retry`, `default_objective_set_id` exported fields.
+- [x] Create `resources/cfg_game_config.tres` instance with current default values.
+- [x] Wire `RS_GameConfig` via `@export` on `M_RunCoordinatorManager` and `M_ObjectivesManager` in `scenes/root.tscn` (id `44_game_config`).
+- [x] Remove `RETRY_SCENE_ID`, `ROUTE_RETRY_ALLEYWAY`, `OBJECTIVE_SET_DEFAULT` consts from `M_RunCoordinatorManager`; read from `game_config` instead. `M_ObjectivesManager` receives the export but has no standalone consts to remove (debug check strings left in-place). Simplified redundant match block in `_execute_reset_run` (both branches were identical).
+- [x] Run Scene Director and state tests.
+  - Implementation commit: `8a4c22f6`.
+  - Validation: Scene Director unit 97/97, integration 4/4 passed.
 
 ### 14C — Manager Interfaces
 
-- [ ] Create `scripts/interfaces/i_cursor_manager.gd` (`I_CursorManager`) — extract public API from `M_CursorManager`.
-- [ ] Create `scripts/interfaces/i_spawn_manager.gd` (`I_SpawnManager`) — extract public API from `M_SpawnManager`.
-- [ ] Create `scripts/interfaces/i_screenshot_cache_manager.gd` (`I_ScreenshotCacheManager`) — extract public API from `M_ScreenshotCacheManager`.
-- [ ] Create `scripts/interfaces/i_gameplay_initializer_manager.gd` (`I_GameplayInitializerManager`) — extract public API from `M_GameplayInitializerManager`.
-- [ ] Create `scripts/interfaces/i_ui_input_handler.gd` (`I_UIInputHandler`) — extract public API from `M_UIInputHandler`.
-- [ ] Update all 5 managers to extend their respective interfaces.
-- [ ] Update consumer type casts to use interface types instead of concrete classes.
-- [ ] Run style, QB, Scene Director, and display tests.
+- [x] Create `scripts/interfaces/i_cursor_manager.gd` (`I_CursorManager`) — set_cursor_state, set_cursor_locked, set_cursor_visible, is_cursor_locked, is_cursor_visible.
+- [x] Create `scripts/interfaces/i_spawn_manager.gd` (`I_SpawnManager`) — spawn_player_at_point, initialize_scene_camera, spawn_at_last_spawn.
+- [x] Create `scripts/interfaces/i_screenshot_cache_manager.gd` (`I_ScreenshotCacheManager`) — cache_current_frame, get_cached_screenshot, clear_cache, has_cached_screenshot.
+- [x] Create `scripts/interfaces/i_gameplay_initializer_manager.gd` (`I_GameplayInitializerManager`) — marker interface (no public API on concrete class).
+- [x] Create `scripts/interfaces/i_ui_input_handler.gd` (`I_UIInputHandler`) — marker interface (no public API on concrete class).
+- [x] Update all 5 managers to extend their respective interfaces.
+- [x] Update consumers: `M_SceneManager` uses `I_CursorManager`/`I_SpawnManager`; `M_TimeManager` uses `I_CursorManager`; `M_SaveManager` uses `I_ScreenshotCacheManager` and removes `has_method("get_cached_screenshot")` guard; `M_GameplayInitializerManager` uses `I_SpawnManager`.
+- [x] Run style, QB, Scene Director, and display tests.
+  - Implementation commit: `01789d85`.
+  - Validation: style 12/12, QB 151/151, scene director unit/integration all pass, managers 414/414, state 375/375, display 51/52 (1 pending pre-existing).
 
 ### 14D — Validate & Document
 
-- [ ] Run full suite sweep (style, QB, Scene Director, display, state).
-- [ ] Run headless import.
-- [ ] Update continuation prompt with Phase 14 results.
-- [ ] Update AGENTS.md if new patterns or pitfalls emerged.
+- [x] Run full suite sweep (style, QB, Scene Director, display, state).
+  - Style 12/12, QB 151/151, Scene Director unit 97/97, integration 4/4, managers 414/414, state 375/375, display 51/52 (1 pending pre-existing). All green.
+- [x] Run headless import.
+  - Pass. Non-failing ObjectDB leak at exit (known, pre-existing).
+- [x] Update continuation prompt with Phase 14 results.
+- [x] Update AGENTS.md if new patterns or pitfalls emerged.
+  - No new patterns or pitfalls. Existing interface documentation in AGENTS.md covers the new interfaces.
 
 ## Notes
 
-- The `condition.has_method("evaluate")` / `effect.has_method("execute")` pattern on `Array[Resource]` is considered justified polymorphism (documented in AGENTS.md) — Phase 14A replaces these with `is` checks.
+- Phase 14A task description said `evaluate -> bool` but the actual return type is `float` — interface created with `-> float` to match the implementation.
+- `M_GameplayInitializerManager` and `M_UIInputHandler` have no public instance methods; their interfaces are marker-only.
+- `required_final_area = "bar"` in `s_victory_handler_system.gd` is already an `@export var` (inspector-configurable); it was not moved to `RS_GameConfig`.

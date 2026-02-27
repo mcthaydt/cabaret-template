@@ -2,10 +2,10 @@
 
 ## Current Status
 
-- Phase: **14 — Deferred Items** (Phases 0–13 complete; Phase 14 defined).
+- Phase: **Complete** (All phases 0–14 done).
 - Branch: `cleanup-v6`.
 - Working tree: clean.
-- Next step: Phase 14A (I_Condition / I_Effect interfaces).
+- Next step: PR to main.
 
 ## Context
 
@@ -314,11 +314,52 @@ cleanup_v6 is complete. All goals achieved — duck typing removed, interfaces a
 
 Implementation commit: `b888ba27`.
 
+## Phase 14 Results (2026-02-27)
+
+### 14A — I_Condition / I_Effect Interfaces
+
+- Created `scripts/interfaces/i_condition.gd` (`I_Condition extends Resource`) with `evaluate(context) -> float` (actual return type is `float`, not `bool` as task description stated).
+- Created `scripts/interfaces/i_effect.gd` (`I_Effect extends Resource`) with `execute(context) -> void`.
+- `RS_BaseCondition` and `RS_BaseEffect` now extend their interfaces.
+- Replaced all 11 `has_method("evaluate")`/`has_method("execute")` guards across: `rs_condition_composite` (2), `m_scene_director_manager` (1), `m_objectives_manager` (2), `u_beat_runner` (2), `u_rule_scorer` (1), `s_game_event_system` (1), `s_character_state_system` (1), `s_camera_state_system` (1).
+- Updated 5 test files' stubs to extend `I_Condition`/`I_Effect` instead of `Resource`.
+- Implementation commit: `3ce45068`.
+
+### 14B — RS_GameConfig Resource
+
+- Created `scripts/resources/rs_game_config.gd` (`RS_GameConfig`) with `retry_scene_id`, `route_retry`, `default_objective_set_id`.
+- Created `resources/cfg_game_config.tres` with default values.
+- Added `@export var game_config: RS_GameConfig` to both managers; wired in `root.tscn` (id `44_game_config`).
+- Removed `RETRY_SCENE_ID`, `ROUTE_RETRY_ALLEYWAY`, `OBJECTIVE_SET_DEFAULT` consts from `M_RunCoordinatorManager`. Simplified redundant match block.
+- `"bar_complete"`/`"final_complete"` debug check strings left in-place (debug-only, not functional consts). `required_final_area` in `s_victory_handler_system.gd` is already an `@export var`.
+- Implementation commit: `8a4c22f6`.
+
+### 14C — Manager Interfaces
+
+- Created 5 interfaces: `I_CursorManager`, `I_SpawnManager`, `I_ScreenshotCacheManager`, `I_GameplayInitializerManager` (marker), `I_UIInputHandler` (marker).
+- Updated all 5 managers to extend their interfaces.
+- Consumer updates: `M_SceneManager` → `I_CursorManager`/`I_SpawnManager`; `M_TimeManager` → `I_CursorManager`; `M_SaveManager` → `I_ScreenshotCacheManager` + removed `has_method("get_cached_screenshot")` guard; `M_GameplayInitializerManager` → `I_SpawnManager`.
+- Implementation commit: `01789d85`.
+
+### 14D — Final Validation
+
+| Suite | Result |
+|---|---|
+| Style (`tests/unit/style`) | 12/12 passed |
+| QB (`tests/unit/qb`) | 151/151 passed |
+| Scene Director unit | 97/97 passed |
+| Scene Director integration | 4/4 passed |
+| Unit managers | 414/414 passed |
+| State unit | 375/375 passed |
+| Integration display | 51/52 passed, 1 pending (pre-existing) |
+| Headless import | pass (non-failing ObjectDB leak at exit) |
+
+cleanup_v6 is fully complete including all deferred Phase 14 items.
+
 ## Notes / Pitfalls
 
 - After moving `.tscn` or `class_name` scripts, run a headless import to refresh UID/script caches:
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
-- Hardcoded game-specific IDs (`"bar_complete"`, `"final_complete"`, `"alleyway"`, `"bar"`) exist in template managers — deferred to Phase 14B (`RS_GameConfig` resource).
 
 Previously open items now resolved:
 
@@ -327,3 +368,6 @@ Previously open items now resolved:
 - Missing initial state `.tres` for objectives/scene director slices (Phase 8).
 - `scripts/core/` not in STYLE_GUIDE.md directory tree (Phase 3C).
 - `tmpl_*.tscn` prefix not in STYLE_GUIDE.md scene naming table (Phase 3C).
+- Hardcoded game-specific IDs in run coordinator → `RS_GameConfig` (Phase 14B).
+- `has_method("evaluate")`/`has_method("execute")` guards → `is I_Condition`/`is I_Effect` (Phase 14A).
+- `has_method("get_cached_screenshot")` in save manager → typed `I_ScreenshotCacheManager` (Phase 14C).
