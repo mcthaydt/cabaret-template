@@ -1,7 +1,7 @@
 ## Scene type handler for GAMEPLAY scenes.
 ##
 ## Handles gameplay-specific initialization including player spawning via M_SpawnManager
-## and setting metadata to prevent M_GameplayInitializer race conditions.
+## and setting metadata to prevent M_GameplayInitializerManager race conditions.
 ##
 ## Responsibilities:
 ## - Record scene as spawned in M_SceneManager
@@ -24,7 +24,7 @@ func get_scene_type() -> int:
 ##
 ## Awaits M_SpawnManager to position player at target spawn point.
 ## Note: Scene spawn bookkeeping is handled by M_SceneManager
-## BEFORE the scene is added to the tree (to prevent M_GameplayInitializer race).
+## BEFORE the scene is added to the tree (to prevent M_GameplayInitializerManager race).
 ##
 ## Parameters:
 ## - scene: The loaded gameplay scene node (already added to tree)

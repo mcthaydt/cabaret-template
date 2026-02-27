@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends Node
+extends I_CursorManager
 class_name M_CursorManager
 
 ## Manages cursor visibility and lock state

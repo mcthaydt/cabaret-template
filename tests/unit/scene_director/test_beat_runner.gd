@@ -9,7 +9,7 @@ class StoreStub extends RefCounted:
 	func dispatch(action: Dictionary) -> void:
 		dispatched.append(action.duplicate(true))
 
-class ConditionStub extends Resource:
+class ConditionStub extends I_Condition:
 	var score: float = 1.0
 	var evaluate_calls: int = 0
 	var last_context: Dictionary = {}
@@ -22,7 +22,7 @@ class ConditionStub extends Resource:
 		last_context = context.duplicate(true)
 		return score
 
-class EffectStub extends Resource:
+class EffectStub extends I_Effect:
 	var execute_calls: int = 0
 	var last_context: Dictionary = {}
 

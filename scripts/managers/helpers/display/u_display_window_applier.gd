@@ -186,7 +186,7 @@ func _set_vsync_enabled_now(enabled: bool) -> void:
 		ops.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 
 func _is_gut_running() -> bool:
-	var tree := _get_tree()
+	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
 	if tree == null or tree.root == null:
 		return false
 	return tree.root.find_child("GutRunner", true, false) != null
@@ -204,14 +204,6 @@ func _get_window_ops() -> I_WindowOps:
 		return _window_ops
 	_window_ops = U_DISPLAY_SERVER_WINDOW_OPS.new()
 	return _window_ops
-
-func _get_tree() -> SceneTree:
-	if _owner != null:
-		return _owner.get_tree()
-	var main_loop := Engine.get_main_loop()
-	if main_loop is SceneTree:
-		return main_loop as SceneTree
-	return null
 
 func _should_defer() -> bool:
 	return _owner != null and _owner.is_inside_tree()

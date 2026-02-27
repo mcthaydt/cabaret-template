@@ -39,7 +39,7 @@ static func _score_rule(rule: Variant, context: Dictionary) -> float:
 static func _evaluate_condition(condition: Variant, context: Dictionary) -> float:
 	if condition == null or not (condition is Object):
 		return 0.0
-	if not condition.has_method("evaluate"):
+	if not condition is I_Condition:
 		return 0.0
 
 	var raw_score: Variant = condition.call("evaluate", context)

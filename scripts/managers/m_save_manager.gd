@@ -680,17 +680,15 @@ func _get_cached_manual_image() -> Image:
 	var cache := _get_screenshot_cache()
 	if cache == null:
 		return null
-	if cache.has_method("get_cached_screenshot"):
-		return cache.call("get_cached_screenshot")
-	return null
+	return cache.get_cached_screenshot()
 
 ## Write a thumbnail image to disk.
 func _write_thumbnail_image(image: Image, path: String) -> Error:
 	var capture := _get_screenshot_capture()
 	return capture.save_to_file(image, path)
 
-func _get_screenshot_cache() -> Node:
-	return U_ServiceLocator.try_get_service(StringName("screenshot_cache"))
+func _get_screenshot_cache() -> I_ScreenshotCacheManager:
+	return U_ServiceLocator.try_get_service(StringName("screenshot_cache")) as I_ScreenshotCacheManager
 
 func _get_screenshot_capture() -> U_ScreenshotCapture:
 	if _screenshot_capture == null:

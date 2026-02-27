@@ -622,7 +622,7 @@ func apply_quality_preset(preset: String) -> void:
 
 **Files to create**:
 - `scenes/ui/overlays/ui_post_process_overlay.tscn`
-- `scripts/managers/helpers/u_post_process_layer.gd`
+- `scripts/managers/helpers/display/u_post_process_layer.gd`
 - `tests/unit/managers/helpers/test_post_process_layer.gd` (15 tests)
 
 **Scene Structure** (`ui_post_process_overlay.tscn`):
@@ -1054,8 +1054,10 @@ scripts/interfaces/
 scripts/managers/
   m_display_manager.gd              # Extends I_DisplayManager
 
-scripts/managers/helpers/
+scripts/managers/helpers/display/
   u_post_process_layer.gd           # CanvasLayer effect manager
+
+scripts/managers/helpers/
   u_palette_manager.gd              # Color blind palette loading
 
 scripts/utils/display/

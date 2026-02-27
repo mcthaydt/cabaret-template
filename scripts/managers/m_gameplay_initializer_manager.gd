@@ -1,8 +1,8 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-class_name M_GameplayInitializer
-extends Node
+class_name M_GameplayInitializerManager
+extends I_GameplayInitializerManager
 
-## M_GameplayInitializer - Gameplay Scene Initialization Manager
+## M_GameplayInitializerManager - Gameplay Scene Initialization Manager
 ##
 ## Ensures player spawns at sp_default when gameplay scene loads directly
 ## (not through M_SceneManager transition).
@@ -17,7 +17,7 @@ extends Node
 ## - Discovers M_SpawnManager via ServiceLocator
 ## - Only spawns if player is NOT already at spawn point
 
-const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
+const I_SPAWN_MANAGER := preload("res://scripts/interfaces/i_spawn_manager.gd")
 const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
 
 func _ready() -> void:
@@ -42,7 +42,7 @@ func _ready() -> void:
 		return
 
 	# Find spawn manager via ServiceLocator (Phase 10B-7: T141c)
-	var spawn_manager: M_SPAWN_MANAGER = U_ServiceLocator.try_get_service(StringName("spawn_manager")) as M_SPAWN_MANAGER
+	var spawn_manager: I_SPAWN_MANAGER = U_ServiceLocator.try_get_service(StringName("spawn_manager")) as I_SPAWN_MANAGER
 	if spawn_manager == null:
 		# No spawn manager available (e.g., running scene standalone in editor)
 		# Silently skip - this is expected behavior

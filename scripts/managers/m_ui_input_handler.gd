@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends Node
+extends I_UIInputHandler
 class_name M_UIInputHandler
 
 ## Thin UI input handler for context-based navigation routing

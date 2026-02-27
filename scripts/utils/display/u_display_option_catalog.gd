@@ -73,8 +73,8 @@ static func get_quality_option_entries() -> Array[Dictionary]:
 	_ensure_quality_presets()
 	var entries: Array[Dictionary] = []
 	for preset in _quality_presets:
-		var preset_name: String = String(preset.get("preset_name"))
-		var label: String = String(preset.get("display_name"))
+		var preset_name: String = str(preset.get("preset_name"))
+		var label: String = str(preset.get("display_name"))
 		if label.is_empty():
 			label = preset_name.capitalize()
 		var label_key: StringName = StringName("settings.display.option.quality.%s" % preset_name)
@@ -112,8 +112,8 @@ static func get_window_size_option_entries() -> Array[Dictionary]:
 	_ensure_window_size_presets()
 	var entries: Array[Dictionary] = []
 	for preset in _window_size_presets:
-		var preset_id: String = String(preset.get("preset_id"))
-		var label: String = String(preset.get("label"))
+		var preset_id: String = str(preset.get("preset_id"))
+		var label: String = str(preset.get("label"))
 		var size: Vector2i = Vector2i(0, 0)
 		var size_value: Variant = preset.get("size")
 		if size_value is Vector2i:
@@ -133,14 +133,14 @@ static func get_window_size_ids() -> Array[String]:
 	_ensure_window_size_presets()
 	var ids: Array[String] = []
 	for preset in _window_size_presets:
-		ids.append(String(preset.get("preset_id")))
+		ids.append(str(preset.get("preset_id")))
 	return ids
 
 static func get_quality_ids() -> Array[String]:
 	_ensure_quality_presets()
 	var ids: Array[String] = []
 	for preset in _quality_presets:
-		ids.append(String(preset.get("preset_name")))
+		ids.append(str(preset.get("preset_name")))
 	return ids
 
 static func get_window_mode_ids() -> Array[String]:
@@ -165,7 +165,7 @@ static func _ensure_quality_presets() -> void:
 	# Use preloaded resources for mobile compatibility
 	for preset in QUALITY_PRESETS:
 		if _is_quality_preset(preset):
-			var preset_name: String = String(preset.get("preset_name"))
+			var preset_name: String = str(preset.get("preset_name"))
 			if preset_name.is_empty():
 				continue
 			_quality_presets.append(preset)
@@ -185,7 +185,7 @@ static func _ensure_window_size_presets() -> void:
 	# Use preloaded resources for mobile compatibility
 	for preset in WINDOW_SIZE_PRESETS:
 		if _is_window_size_preset(preset):
-			var preset_id: String = String(preset.get("preset_id"))
+			var preset_id: String = str(preset.get("preset_id"))
 			if preset_id.is_empty():
 				continue
 			_window_size_presets.append(preset)
@@ -201,39 +201,18 @@ static func _is_quality_preset(resource: Resource) -> bool:
 static func _is_window_size_preset(resource: Resource) -> bool:
 	return resource != null and resource.get_script() == RS_WINDOW_SIZE_PRESET
 
-static func _load_preset_resources(dir_path: String) -> Array:
-	var results: Array = []
-	var dir := DirAccess.open(dir_path)
-	if dir == null:
-		return results
-
-	dir.list_dir_begin()
-	var entry := dir.get_next()
-	while entry != "":
-		if dir.current_is_dir():
-			if not entry.begins_with("."):
-				results.append_array(_load_preset_resources("%s/%s" % [dir_path, entry]))
-		elif entry.ends_with(".tres"):
-			var path := "%s/%s" % [dir_path, entry]
-			var resource := load(path)
-			if resource != null:
-				results.append(resource)
-		entry = dir.get_next()
-	dir.list_dir_end()
-	return results
-
 static func _duplicate_option_entries(options: Array) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
 	for option in options:
 		if option is Dictionary:
 			var option_copy: Dictionary = (option as Dictionary).duplicate(true)
-			var fallback_label: String = String(option_copy.get("label", ""))
+			var fallback_label: String = str(option_copy.get("label", ""))
 			var key_value: Variant = option_copy.get("label_key", StringName())
 			var key: StringName = StringName("")
 			if key_value is StringName:
 				key = key_value
-			elif key_value is String and not String(key_value).is_empty():
-				key = StringName(String(key_value))
+			elif key_value is String and not str(key_value).is_empty():
+				key = StringName(str(key_value))
 			if not key.is_empty():
 				option_copy["label"] = _localize_with_fallback(key, fallback_label)
 			entries.append(option_copy)
@@ -243,11 +222,11 @@ static func _extract_option_ids(options: Array) -> Array[String]:
 	var ids: Array[String] = []
 	for option in options:
 		if option is Dictionary:
-			ids.append(String(option.get("id", "")))
+			ids.append(str(option.get("id", "")))
 	return ids
 
 static func _localize_with_fallback(key: StringName, fallback: String) -> String:
 	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
+	if localized == str(key):
 		return fallback
 	return localized

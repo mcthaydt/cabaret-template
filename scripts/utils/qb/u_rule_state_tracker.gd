@@ -1,5 +1,5 @@
 extends RefCounted
-class_name RuleStateTracker
+class_name U_RuleStateTracker
 
 const GLOBAL_CONTEXT_KEY := StringName("__global__")
 

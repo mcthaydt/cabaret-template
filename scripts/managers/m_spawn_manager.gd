@@ -1,6 +1,6 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
 class_name M_SpawnManager
-extends Node
+extends I_SpawnManager
 
 ## M_SpawnManager - Player Spawn Point Management (Phase 12.1)
 ##

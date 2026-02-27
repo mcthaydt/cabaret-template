@@ -5,7 +5,7 @@ class_name U_DisplayPostProcessApplier
 
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
-const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/u_post_process_layer.gd")
+const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/display/u_post_process_layer.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
 
 var _owner: Node = null
@@ -128,17 +128,6 @@ func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 	# Apply color blind filter to UI layer as well
 	_apply_ui_color_blind_shader(enabled, mode_value)
 
-func _is_post_processing_enabled(quality_preset: String) -> bool:
-	if quality_preset.is_empty():
-		return true
-	var preset: Resource = U_DISPLAY_OPTION_CATALOG.get_quality_preset_by_id(quality_preset)
-	if preset == null:
-		return true
-	var enabled_value: Variant = preset.get("post_processing_enabled")
-	if enabled_value is bool:
-		return enabled_value
-	return true
-
 func _disable_post_process_effects() -> void:
 	_film_grain_active = false
 	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN, false)
@@ -157,7 +146,7 @@ func _setup_post_process_overlay() -> void:
 		_post_process_layer.initialize(_post_process_overlay)
 		return
 
-	var tree := _get_tree()
+	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
 	if tree == null or tree.root == null:
 		return
 
@@ -200,16 +189,8 @@ func _get_color_blind_mode_value(mode: String) -> int:
 			return 3
 	return 0
 
-func _get_tree() -> SceneTree:
-	if _owner != null:
-		return _owner.get_tree()
-	var main_loop := Engine.get_main_loop()
-	if main_loop is SceneTree:
-		return main_loop as SceneTree
-	return null
-
 func _setup_ui_color_blind_layer() -> void:
-	var tree := _get_tree()
+	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
 	if tree == null or tree.root == null:
 		push_warning("U_DisplayPostProcessApplier: Cannot setup UI color blind layer, tree/root not available")
 		return

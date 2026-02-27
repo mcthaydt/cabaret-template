@@ -21,7 +21,8 @@ class_name M_SceneManager
 signal transition_visual_complete(scene_id: StringName)
 
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
+const I_CURSOR_MANAGER := preload("res://scripts/interfaces/i_cursor_manager.gd")
+const I_SPAWN_MANAGER := preload("res://scripts/interfaces/i_spawn_manager.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
@@ -60,8 +61,8 @@ enum Priority {
 
 ## Internal references
 var _store: I_StateStore = null
-var _cursor_manager: M_CursorManager = null
-var _spawn_manager: Node = null # M_SpawnManager (Phase 12.1)
+var _cursor_manager: I_CURSOR_MANAGER = null
+var _spawn_manager: I_SPAWN_MANAGER = null
 var _camera_manager: I_CAMERA_MANAGER = null
 var _active_scene_container: Node = null
 var _ui_overlay_stack: CanvasLayer = null
@@ -180,12 +181,12 @@ func _ready() -> void:
 		return
 
 	# Optional dependencies - use try_get_service to avoid error spam in tests
-	_cursor_manager = U_ServiceLocator.try_get_service(StringName("cursor_manager")) as M_CursorManager
+	_cursor_manager = U_ServiceLocator.try_get_service(StringName("cursor_manager")) as I_CURSOR_MANAGER
 	if not _cursor_manager:
 		push_warning("M_SceneManager: No M_CursorManager registered with ServiceLocator")
 
 	# Find M_SpawnManager via ServiceLocator (Phase 12.1: T225)
-	_spawn_manager = U_ServiceLocator.try_get_service(StringName("spawn_manager"))
+	_spawn_manager = U_ServiceLocator.try_get_service(StringName("spawn_manager")) as I_SPAWN_MANAGER
 	if not _spawn_manager:
 		push_warning("M_SceneManager: No M_SpawnManager registered with ServiceLocator")
 
@@ -557,7 +558,7 @@ func _perform_transition(request) -> void:
 		var scene_type: int = U_SCENE_REGISTRY.get_scene_type(request.scene_id)
 
 		# T137c (Phase 10B-3): Set gameplay metadata BEFORE adding to tree
-		# This must happen before _ready() calls fire, so M_GameplayInitializer sees it
+		# This must happen before _ready() calls fire, so M_GameplayInitializerManager sees it
 		if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
 			mark_scene_spawned(new_scene)
 

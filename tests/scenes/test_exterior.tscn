@@ -34,7 +34,7 @@
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dbegk7lwqi6r0" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="28_jpc3c"]
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
-[ext_resource type="Script" uid="uid://cgbemg2ib5u7c" path="res://scripts/managers/m_gameplay_initializer.gd" id="31_j1c0c"]
+[ext_resource type="Script" uid="uid://cgbemg2ib5u7c" path="res://scripts/managers/m_gameplay_initializer_manager.gd" id="31_j1c0c"]
 [ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
 [ext_resource type="Script" uid="uid://cly8oyjtrr3ev" path="res://scripts/gameplay/inter_endgame_goal_zone.gd" id="41_goal_script"]
 [ext_resource type="Script" uid="uid://cdheqmcyhlh2j" path="res://scripts/ecs/systems/s_checkpoint_handler_system.gd" id="42_checkpoint_handler"]
@@ -211,7 +211,7 @@ script = ExtResource("12_klon2")
 [node name="M_ECSManager" type="Node" parent="Managers" unique_id=833201186]
 script = ExtResource("6_0e7m3")
 
-[node name="M_GameplayInitializer" type="Node" parent="Managers" unique_id=2110236946]
+[node name="M_GameplayInitializerManager" type="Node" parent="Managers" unique_id=2110236946]
 script = ExtResource("31_j1c0c")
 
 [node name="Entities" type="Node" parent="." unique_id=1480806044]

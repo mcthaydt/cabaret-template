@@ -89,6 +89,7 @@ These rules apply to **production** assets under `res://scenes/**` and `res://re
 | **UI Scenes** | `ui_*.tscn` | `ui_main_menu.tscn`, `ui_pause_menu.tscn` |
 | **Prefab Scenes** | `prefab_*.tscn` | `prefab_death_zone.tscn`, `prefab_checkpoint.tscn` |
 | **Debug Scenes** | `debug_*.tscn` | `debug_state_overlay.tscn` |
+| **Template Scenes** | `tmpl_*.tscn` | `tmpl_base_scene.tscn`, `tmpl_camera.tscn`, `tmpl_character.tscn` |
 | **UI Screen Definitions** | `resources/ui_screens/cfg_*_screen.tres` / `cfg_*_overlay.tres` | `cfg_main_menu_screen.tres` |
 | **Scene Registry Entries** | `resources/scene_registry/cfg_*_entry.tres` | `cfg_gameplay_base_entry.tres` |
 
@@ -287,6 +288,7 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 
 ```
 scripts/
+├── core/
 ├── ecs/
 │   ├── components/
 │   └── systems/

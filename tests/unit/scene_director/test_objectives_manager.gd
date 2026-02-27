@@ -79,7 +79,7 @@ class ObjectivesStoreStub extends I_STATE_STORE:
 	func get_dispatched_actions() -> Array[Dictionary]:
 		return _dispatched_actions.duplicate(true)
 
-class ConditionStub extends Resource:
+class ConditionStub extends I_Condition:
 	var response_value: float = 1.0
 	var evaluate_calls: int = 0
 	var last_context: Dictionary = {}
@@ -92,7 +92,7 @@ class ConditionStub extends Resource:
 		last_context = context.duplicate(true)
 		return response_value
 
-class EffectStub extends Resource:
+class EffectStub extends I_Effect:
 	var execute_calls: int = 0
 	var last_context: Dictionary = {}
 
@@ -100,7 +100,7 @@ class EffectStub extends Resource:
 		execute_calls += 1
 		last_context = context.duplicate(true)
 
-class ConditionGameplayFlagStub extends Resource:
+class ConditionGameplayFlagStub extends I_Condition:
 	var evaluate_calls: int = 0
 	var last_context: Dictionary = {}
 
@@ -111,7 +111,7 @@ class ConditionGameplayFlagStub extends Resource:
 		var gameplay: Dictionary = state.get("gameplay", {})
 		return 1.0 if bool(gameplay.get("test_flag", false)) else 0.0
 
-class ConditionCompletedAreaStub extends Resource:
+class ConditionCompletedAreaStub extends I_Condition:
 	var required_area: String = ""
 	var evaluate_calls: int = 0
 
@@ -128,7 +128,7 @@ class ConditionCompletedAreaStub extends Resource:
 			return 1.0 if completed.has(required_area) else 0.0
 		return 0.0
 
-class EffectSetGameplayFlagStub extends Resource:
+class EffectSetGameplayFlagStub extends I_Effect:
 	var execute_calls: int = 0
 	var value: bool = true
 

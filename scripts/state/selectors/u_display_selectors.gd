@@ -8,11 +8,11 @@ class_name U_DisplaySelectors
 
 static func get_window_size_preset(state: Dictionary) -> String:
 	var display := _get_display_slice(state)
-	return String(display.get("window_size_preset", "1920x1080"))
+	return str(display.get("window_size_preset", "1920x1080"))
 
 static func get_window_mode(state: Dictionary) -> String:
 	var display := _get_display_slice(state)
-	return String(display.get("window_mode", "windowed"))
+	return str(display.get("window_mode", "windowed"))
 
 static func is_vsync_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)
@@ -20,7 +20,7 @@ static func is_vsync_enabled(state: Dictionary) -> bool:
 
 static func get_quality_preset(state: Dictionary) -> String:
 	var display := _get_display_slice(state)
-	return String(display.get("quality_preset", "high"))
+	return str(display.get("quality_preset", "high"))
 
 static func is_post_processing_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)
@@ -28,7 +28,7 @@ static func is_post_processing_enabled(state: Dictionary) -> bool:
 
 static func get_post_processing_preset(state: Dictionary) -> String:
 	var display := _get_display_slice(state)
-	return String(display.get("post_processing_preset", "medium"))
+	return str(display.get("post_processing_preset", "medium"))
 
 static func is_film_grain_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)
@@ -64,7 +64,7 @@ static func get_dither_intensity(state: Dictionary) -> float:
 
 static func get_dither_pattern(state: Dictionary) -> String:
 	var display := _get_display_slice(state)
-	return String(display.get("dither_pattern", "bayer"))
+	return str(display.get("dither_pattern", "bayer"))
 
 static func get_ui_scale(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
@@ -72,7 +72,7 @@ static func get_ui_scale(state: Dictionary) -> float:
 
 static func get_color_blind_mode(state: Dictionary) -> String:
 	var display := _get_display_slice(state)
-	return String(display.get("color_blind_mode", "normal"))
+	return str(display.get("color_blind_mode", "normal"))
 
 static func is_high_contrast_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)

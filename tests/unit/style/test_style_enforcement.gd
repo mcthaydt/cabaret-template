@@ -13,6 +13,14 @@ const GD_DIRECTORIES := [
 	"res://scripts/scene_management",
 	"res://scripts/events",
 	"res://scripts/scene_structure",
+	"res://scripts/resources/qb",
+	"res://scripts/resources/qb/conditions",
+	"res://scripts/resources/qb/effects",
+	"res://scripts/resources/scene_director",
+	"res://scripts/resources/ecs",
+	"res://scripts/resources/display",
+	"res://scripts/resources/localization",
+	"res://scripts/debug",
 	"res://tests/unit/interactables",
 	"res://tests/unit/input",
 	"res://tests/unit/lighting",
@@ -75,6 +83,14 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/state/reducers": ["u_"],
 	"res://scripts/state/selectors": ["u_"],
 	"res://scripts/resources/state": ["rs_"], # State initial state resources
+	"res://scripts/resources/qb": ["rs_"], # QB base condition/effect/rule resources
+	"res://scripts/resources/qb/conditions": ["rs_"], # QB condition resources
+	"res://scripts/resources/qb/effects": ["rs_"], # QB effect resources
+	"res://scripts/resources/scene_director": ["rs_"], # Scene director beat/objective/directive resources
+	"res://scripts/resources/ecs": ["rs_"], # ECS component settings resources
+	"res://scripts/resources/display": ["rs_"], # Display preset resources
+	"res://scripts/resources/localization": ["rs_"], # Localization resources
+	"res://scripts/debug": ["debug_"], # Debug utility scripts
 	"res://scripts/state": ["u_", "m_"], # m_state_store.gd is in root
 	"res://scripts/resources/ui": ["rs_"], # UI screen definitions
 	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
@@ -321,7 +337,7 @@ func test_scene_organization_root_structure() -> void:
 			has_cursor_manager = true
 		elif node_name == "M_TimeManager" and path_str.contains("Managers"):
 			has_time_manager = true
-		elif node_name == "M_ScreenshotCache" and path_str.contains("Managers"):
+		elif node_name == "M_ScreenshotCacheManager" and path_str.contains("Managers"):
 			has_screenshot_cache = true
 		elif node_name == "M_CharacterLightingManager" and path_str.contains("Managers"):
 			has_character_lighting_manager = true
@@ -335,7 +351,7 @@ func test_scene_organization_root_structure() -> void:
 	assert_true(has_scene_manager, "Root scene must have M_SceneManager in Managers")
 	assert_true(has_cursor_manager, "Root scene must have M_CursorManager in Managers")
 	assert_true(has_time_manager, "Root scene must have M_TimeManager in Managers")
-	assert_true(has_screenshot_cache, "Root scene must have M_ScreenshotCache in Managers")
+	assert_true(has_screenshot_cache, "Root scene must have M_ScreenshotCacheManager in Managers")
 	assert_true(has_character_lighting_manager, "Root scene must have M_CharacterLightingManager in Managers")
 	assert_true(has_active_scene_container, "Root scene must have ActiveSceneContainer")
 	assert_true(has_ui_overlay_stack, "Root scene must have UIOverlayStack")

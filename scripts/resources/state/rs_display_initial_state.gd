@@ -18,7 +18,7 @@ class_name RS_DisplayInitialState
 @export var film_grain_enabled: bool = false
 @export var crt_enabled: bool = false
 @export var dither_enabled: bool = false
-@export_enum("bayer", "blue_noise") var dither_pattern: String = "bayer"
+@export_enum("bayer", "noise") var dither_pattern: String = "bayer"
 # Note: Effect order is fixed internally (Film Grain -> Dither -> CRT), not user-configurable.
 # Note: Intensity values are loaded from post_processing_preset resource.
 

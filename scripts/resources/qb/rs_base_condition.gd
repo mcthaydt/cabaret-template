@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends Resource
+extends I_Condition
 class_name RS_BaseCondition
 
 @export var response_curve: Curve = null

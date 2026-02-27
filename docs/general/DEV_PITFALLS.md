@@ -79,7 +79,7 @@
 
 ## GDScript Typing Pitfalls
 
-- **Headless import treats some warnings as errors**: In headless `--import` runs, warnings like “variable type inferred from Variant” can be treated as errors and prevent scripts from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var script_obj: Script = get_script()` instead of `var script_obj := get_script()`).
+- **Headless import and GUT treat some warnings as errors**: Both headless `--import` runs and GUT's `warnings_manager` treat “variable type inferred from Variant” as a parse error that prevents the script from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var result: Variant = helper()` instead of `var result := helper()` when `helper()` returns `Variant`). This applies equally to production scripts and test files.
 
 - **`Script.new()` return values need explicit annotation in tests**: When loading helper scripts dynamically in GUT (`var script_obj := load(path) as Script`), `var helper := script_obj.new()` can fail parse/type inference in headless runs. Use an explicit annotation for the new instance (`var helper: Variant = script_obj.new()`) unless you can safely type it to a known loaded class.
 
@@ -100,6 +100,8 @@
 - **Child scripts cannot redeclare parent members (incl. `const`)**: If a base class defines a member like `const U_Foo := preload("...")`, declaring another `const U_Foo := ...` in a derived script causes a parse error (`The member "U_Foo" already exists in parent class ...`). Prefer inheriting the constant, or use a different name in the child.
 
 - **`tr` cannot be used as a static method name on external classes (Godot 4.6)**: Calling `.tr()` on a preloaded Script variable or class reference triggers a parse-time error `"Could not resolve external class member 'tr'"` because `tr()` is a built-in `Object` method. This means `U_SomeClass.tr(key)` will **not compile**. Name translation helper methods `localize()` or any non-colliding name instead. Never call bare `tr(key)` either (invokes Godot's built-in `Object.tr()`).
+
+- **`log` cannot be used as a static method name (Godot 4.6)**: `log(x)` is a GDScript global built-in (natural logarithm). Declaring `static func log(message: String)` in a class body produces a parse error `"Invalid argument for log() function: argument 1 should be float but is String"`. Use `debug_log`, `trace`, or any non-colliding name instead.
 
 - **Inner class names must start with a capital letter**: Defining an inner class with an underscore-prefixed name (e.g. `class _MockFoo extends Node:`) causes a GDScript 4 parse error. Use `class MockFoo extends Node:` instead.
 

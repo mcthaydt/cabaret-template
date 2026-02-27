@@ -42,8 +42,8 @@ func _initialize_service_locator() -> void:
 	_register_if_exists(managers_node, "M_UIInputHandler", StringName("ui_input_handler"))
 	_register_if_exists(managers_node, "M_SaveManager", StringName("save_manager"))
 	_register_if_exists(managers_node, "M_ObjectivesManager", StringName("objectives_manager"))
-	_register_if_exists(managers_node, "M_RunCoordinator", StringName("run_coordinator"))
-	_register_if_exists(managers_node, "M_SceneDirector", StringName("scene_director"))
+	_register_if_exists(managers_node, "M_RunCoordinatorManager", StringName("run_coordinator"))
+	_register_if_exists(managers_node, "M_SceneDirectorManager", StringName("scene_director"))
 
 	# Register dependencies for validation
 	U_ServiceLocator.register_dependency(StringName("time_manager"), StringName("state_store"))

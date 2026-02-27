@@ -42,7 +42,7 @@ const DEFAULT_RULE_DEFINITIONS := [
 @export var rules: Array[Resource] = []
 
 var _camera_manager: I_CAMERA_MANAGER = null
-var _tracker: RuleStateTracker = RULE_STATE_TRACKER.new()
+var _tracker: U_RuleStateTracker = RULE_STATE_TRACKER.new()
 var _active_rules: Array = []
 var _rule_validation_report: Dictionary = {}
 var _event_unsubscribers: Array[Callable] = []
@@ -251,7 +251,7 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 		for effect_variant in (effects_variant as Array):
 			if effect_variant == null or not (effect_variant is Object):
 				continue
-			if not effect_variant.has_method("execute"):
+			if not effect_variant is I_Effect:
 				continue
 			effect_variant.call("execute", context)
 

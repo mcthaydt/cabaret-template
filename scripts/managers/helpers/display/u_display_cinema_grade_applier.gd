@@ -80,7 +80,7 @@ func _ensure_cinema_grade_layer() -> bool:
 	return _cinema_grade_layer != null
 
 func _setup_cinema_grade_layer() -> void:
-	var tree := _get_tree()
+	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
 	if tree == null or tree.root == null:
 		return
 
@@ -120,10 +120,3 @@ func _setup_cinema_grade_layer() -> void:
 	_cinema_grade_layer.add_child(_cinema_grade_rect)
 	post_process_overlay.add_child(_cinema_grade_layer)
 
-func _get_tree() -> SceneTree:
-	if _owner != null:
-		return _owner.get_tree()
-	var main_loop := Engine.get_main_loop()
-	if main_loop is SceneTree:
-		return main_loop as SceneTree
-	return null

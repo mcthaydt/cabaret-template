@@ -37,7 +37,7 @@ func _evaluate_all(context: Dictionary) -> float:
 		var child: Variant = child_resource
 		if child == null:
 			return 0.0
-		if not child.has_method("evaluate"):
+		if not child is I_Condition:
 			return 0.0
 		score *= _to_score(child.evaluate(context))
 		if score <= 0.0:
@@ -50,7 +50,7 @@ func _evaluate_any(context: Dictionary) -> float:
 		var child: Variant = child_resource
 		if child == null:
 			continue
-		if not child.has_method("evaluate"):
+		if not child is I_Condition:
 			continue
 		var child_score: float = _to_score(child.evaluate(context))
 		if child_score > best_score:

@@ -26,8 +26,8 @@ func apply_quality_preset(preset: String) -> void:
 	if config == null:
 		return
 
-	_apply_shadow_quality(String(config.shadow_quality))
-	_apply_anti_aliasing(String(config.anti_aliasing))
+	_apply_shadow_quality(str(config.shadow_quality))
+	_apply_anti_aliasing(str(config.anti_aliasing))
 
 func _load_quality_preset(preset: String) -> Resource:
 	var resource := U_DISPLAY_OPTION_CATALOG.get_quality_preset_by_id(preset)
@@ -74,7 +74,7 @@ func _apply_anti_aliasing(anti_aliasing: String) -> void:
 			push_warning("U_DisplayQualityApplier: Unknown anti-aliasing '%s'" % anti_aliasing)
 
 func _get_render_target_viewport() -> Viewport:
-	var tree := _get_tree()
+	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
 	if tree != null and tree.root != null:
 		var game_viewport := tree.root.find_child("GameViewport", true, false)
 		if game_viewport is Viewport:
@@ -86,10 +86,3 @@ func _get_render_target_viewport() -> Viewport:
 func _is_rendering_available() -> bool:
 	return not (OS.has_feature("headless") or OS.has_feature("server"))
 
-func _get_tree() -> SceneTree:
-	if _owner != null:
-		return _owner.get_tree()
-	var main_loop := Engine.get_main_loop()
-	if main_loop is SceneTree:
-		return main_loop as SceneTree
-	return null

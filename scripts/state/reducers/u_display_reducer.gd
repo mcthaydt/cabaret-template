@@ -55,14 +55,14 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 	match action_type:
 		U_DisplayActions.ACTION_SET_WINDOW_SIZE_PRESET:
 			var payload: Dictionary = action.get("payload", {})
-			var preset: String = String(payload.get("preset", ""))
+			var preset: String = str(payload.get("preset", ""))
 			if not _is_valid_window_preset(preset):
 				return null
 			return _with_values(current, {"window_size_preset": preset})
 
 		U_DisplayActions.ACTION_SET_WINDOW_MODE:
 			var payload: Dictionary = action.get("payload", {})
-			var mode: String = String(payload.get("mode", ""))
+			var mode: String = str(payload.get("mode", ""))
 			if not _is_valid_window_mode(mode):
 				return null
 			return _with_values(current, {"window_mode": mode})
@@ -74,7 +74,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 
 		U_DisplayActions.ACTION_SET_QUALITY_PRESET:
 			var payload: Dictionary = action.get("payload", {})
-			var preset: String = String(payload.get("preset", ""))
+			var preset: String = str(payload.get("preset", ""))
 			if not _is_valid_quality_preset(preset):
 				return null
 			return _with_values(current, {"quality_preset": preset})
@@ -86,7 +86,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 
 		U_DisplayActions.ACTION_SET_POST_PROCESSING_PRESET:
 			var payload: Dictionary = action.get("payload", {})
-			var preset: String = String(payload.get("preset", ""))
+			var preset: String = str(payload.get("preset", ""))
 			if not _is_valid_post_processing_preset(preset):
 				return null
 			# Apply preset values to individual intensity settings
@@ -147,7 +147,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 
 		U_DisplayActions.ACTION_SET_DITHER_PATTERN:
 			var payload: Dictionary = action.get("payload", {})
-			var pattern: String = String(payload.get("pattern", ""))
+			var pattern: String = str(payload.get("pattern", ""))
 			if not _is_valid_dither_pattern(pattern):
 				return null
 			return _with_values(current, {"dither_pattern": pattern})
@@ -160,7 +160,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 
 		U_DisplayActions.ACTION_SET_COLOR_BLIND_MODE:
 			var payload: Dictionary = action.get("payload", {})
-			var mode: String = String(payload.get("mode", ""))
+			var mode: String = str(payload.get("mode", ""))
 			if not _is_valid_color_blind_mode(mode):
 				return null
 			return _with_values(current, {"color_blind_mode": mode})
@@ -188,13 +188,13 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 
 		U_CinemaGradeActions.ACTION_SET_PARAMETER:
 			var payload: Dictionary = action.get("payload", {})
-			var param_name: String = String(payload.get("param_name", ""))
+			var param_name: String = str(payload.get("param_name", ""))
 			if param_name.is_empty():
 				return null
 
 			# Special handling for filter_preset: convert string to numeric mode
 			if param_name == "filter_preset":
-				var filter_preset_str: String = String(payload.get("value", "none"))
+				var filter_preset_str: String = str(payload.get("value", "none"))
 				var filter_mode := _get_filter_mode_from_preset(filter_preset_str)
 				return _with_values(current, {
 					"cinema_grade_filter_mode": filter_mode,
