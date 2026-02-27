@@ -20,6 +20,7 @@ const STATUS_FAILED := "failed"
 
 @export var state_store: I_StateStore = null
 @export var objective_sets: Array[Resource] = []
+@export var game_config: RS_GameConfig = null
 
 var _store: I_StateStore:
 	get: return _binder.store

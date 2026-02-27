@@ -43,6 +43,7 @@
 [ext_resource type="Script" path="res://scripts/managers/m_run_coordinator_manager.gd" id="41_run_coordinator"]
 [ext_resource type="Resource" path="res://resources/state/cfg_default_objectives_initial_state.tres" id="42_objectives_state"]
 [ext_resource type="Resource" path="res://resources/state/cfg_default_scene_director_initial_state.tres" id="43_scene_director_state"]
+[ext_resource type="Resource" path="res://resources/cfg_game_config.tres" id="44_game_config"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
@@ -117,9 +118,11 @@ script = ExtResource("23_save_manager")
 [node name="M_ObjectivesManager" type="Node" parent="Managers" unique_id=1572616087]
 script = ExtResource("37_objectives_manager")
 objective_sets = Array[Resource]([ExtResource("38_objset_default")])
+game_config = ExtResource("44_game_config")
 
 [node name="M_RunCoordinatorManager" type="Node" parent="Managers" unique_id=905481122]
 script = ExtResource("41_run_coordinator")
+game_config = ExtResource("44_game_config")
 
 [node name="M_SceneDirectorManager" type="Node" parent="Managers" unique_id=1509652505]
 script = ExtResource("39_scene_director")

@@ -11,17 +11,17 @@ const U_INTERACT_BLOCKER := preload("res://scripts/utils/u_interact_blocker.gd")
 
 const STORE_SERVICE_NAME := StringName("state_store")
 const OBJECTIVES_SERVICE_NAME := StringName("objectives_manager")
-const ROUTE_RETRY_ALLEYWAY := StringName("retry_alleyway")
-const OBJECTIVE_SET_DEFAULT := StringName("default_progression")
-const RETRY_SCENE_ID := StringName("alleyway")
 
 @export var state_store: I_StateStore = null
+@export var game_config: RS_GameConfig = null
 
 var _store: I_StateStore = null
 var _store_action_connected: bool = false
 var _is_reset_in_flight: bool = false
 
 func _ready() -> void:
+	if game_config == null:
+		game_config = RS_GameConfig.new()
 	_resolve_store()
 	_ensure_store_action_signal_connection()
 
@@ -103,24 +103,20 @@ func _execute_reset_run(next_route: StringName) -> void:
 
 	var objectives_manager: I_ObjectivesManager = U_SERVICE_LOCATOR.try_get_service(OBJECTIVES_SERVICE_NAME) as I_ObjectivesManager
 	if objectives_manager != null and is_instance_valid(objectives_manager):
-		objectives_manager.reset_for_new_run(OBJECTIVE_SET_DEFAULT)
+		objectives_manager.reset_for_new_run(game_config.default_objective_set_id)
 	else:
 		_warn("objectives_manager not available during run/reset.")
 
-	match next_route:
-		ROUTE_RETRY_ALLEYWAY:
-			_store.dispatch(U_NAVIGATION_ACTIONS.retry(RETRY_SCENE_ID))
-		_:
-			_store.dispatch(U_NAVIGATION_ACTIONS.retry(RETRY_SCENE_ID))
+	_store.dispatch(U_NAVIGATION_ACTIONS.retry(game_config.retry_scene_id))
 
 func _resolve_next_route(action: Dictionary) -> StringName:
 	var payload_variant: Variant = action.get("payload", {})
 	if payload_variant is Dictionary:
 		var payload: Dictionary = payload_variant as Dictionary
-		var next_route: StringName = _to_string_name(payload.get("next_route", ROUTE_RETRY_ALLEYWAY))
+		var next_route: StringName = _to_string_name(payload.get("next_route", game_config.route_retry))
 		if next_route != StringName(""):
 			return next_route
-	return ROUTE_RETRY_ALLEYWAY
+	return game_config.route_retry
 
 static func _to_string_name(value: Variant) -> StringName:
 	if value is StringName:
