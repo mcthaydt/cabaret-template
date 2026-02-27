@@ -2,9 +2,10 @@
 
 ## Current Status
 
-- Phase: **COMPLETE** — all 12 phases done. Branch ready to merge to main.
-- Branch: `cleanup-v6` (27 commits ahead of main).
+- Phase: **14 — Deferred Items** (Phases 0–12 complete; Phase 13 in progress; Phase 14 defined).
+- Branch: `cleanup-v6`.
 - Working tree: clean.
+- Next step: Phase 14A (I_Condition / I_Effect interfaces).
 
 ## Context
 
@@ -269,6 +270,10 @@ Final validation run — all suites green:
 | Headless import | pass (non-failing ObjectDB leak at exit) |
 
 cleanup_v6 is complete. All goals achieved — duck typing removed, interfaces added, naming violations fixed, dead code removed, shared utilities extracted, style enforcement expanded, initial state resources wired, stale docs cleaned, and cinema grading test coverage added.
+
+## Phase 13 Results (in progress)
+
+- Phase 13 is currently in progress. Results will be recorded here upon completion.
 
 ## Notes / Pitfalls
 

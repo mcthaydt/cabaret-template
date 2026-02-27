@@ -290,8 +290,75 @@
 - [x] Record final status in continuation prompt.
   - All suites green. cleanup_v6 complete. Run date: 2026-02-26.
 
+## Phase 13 — Audit Remediation (Low–Medium Risk)
+
+### 13A — Stale Documentation Fixes
+
+- [ ] Fix AGENTS.md line 31: `scripts/managers/m_run_coordinator.gd` → `scripts/managers/m_run_coordinator_manager.gd`.
+- [ ] Clean up resolved items in `cleanup-v6-continuation-prompt.md` Notes / Pitfalls section (lines 277–282). These issues were fixed in Phases 3A, 3C, 6, and 8 but still read as open. Either remove them or annotate each with the phase that resolved it.
+
+### 13B — Cinema Grade Reducer Test Coverage
+
+- [ ] Add unit tests for `ACTION_SET_PARAMETER` (filter preset string→int mapping) in `tests/unit/state/test_display_reducer.gd` (or a new dedicated cinema grade reducer test file).
+- [ ] Add unit tests for `ACTION_RESET_TO_SCENE_DEFAULTS` (reset to grade dict values) in the same file.
+- [ ] Run display and state test suites.
+
+### 13C — Broader `String()` → `str()` Audit
+
+- [ ] Audit `String(` calls outside the Phase 6 display module scope (142 files flagged). Identify which are legitimate type coercions (e.g., `String(int)`) vs. Variant coercions that should be `str()`.
+- [ ] Fix any Variant coercion occurrences found. Leave legitimate numeric/bool coercions as-is.
+- [ ] Run affected test suites.
+
+### 13D — Store Resolver Duplication (Medium Risk)
+
+- [ ] Extract the shared `_resolve_store` / `_set_store_reference` / `_ensure_store_action_signal_connection` / `_disconnect_store_action_signal` pattern (~65 lines) duplicated between `m_objectives_manager.gd` and `m_scene_director_manager.gd` into a shared mixin or utility.
+- [ ] Update both managers to use the shared utility.
+- [ ] Run Scene Director and state tests.
+
+### 13E — Validate
+
+- [ ] Run full style suite.
+- [ ] Run full QB, Scene Director, display, and state suites.
+- [ ] Run headless import.
+- [ ] Update continuation prompt with Phase 13 results.
+
+## Phase 14 — Deferred Items (Medium Risk)
+
+### 14A — I_Condition / I_Effect Interfaces
+
+- [ ] Create `scripts/interfaces/i_condition.gd` (`I_Condition`) with `func evaluate(context: Dictionary) -> bool`.
+- [ ] Create `scripts/interfaces/i_effect.gd` (`I_Effect`) with `func execute(context: Dictionary) -> void`.
+- [ ] Update `scripts/resources/qb/conditions/rs_base_condition.gd` to extend `I_Condition`.
+- [ ] Update `scripts/resources/qb/effects/rs_base_effect.gd` to extend `I_Effect`.
+- [ ] Replace 11 `has_method("evaluate")` / `has_method("execute")` guards in `m_scene_director_manager.gd` and `u_beat_runner.gd` with `is I_Condition` / `is I_Effect` checks. Keep `Array[Resource]` on exports (Godot inspector limitation).
+- [ ] Run QB, Scene Director, and style tests.
+
+### 14B — RS_GameConfig Resource
+
+- [ ] Create `scripts/resources/rs_game_config.gd` (`RS_GameConfig`) with exported fields for all hardcoded game-specific IDs currently in `M_RunCoordinatorManager` and `M_ObjectivesManager` (`"bar_complete"`, `"final_complete"`, `RETRY_SCENE_ID = "alleyway"`, `required_final_area = "bar"`, etc.).
+- [ ] Create `resources/cfg_game_config.tres` instance with current default values.
+- [ ] Wire `RS_GameConfig` via `@export` on `M_RunCoordinatorManager` and `M_ObjectivesManager` in `scenes/root.tscn`.
+- [ ] Remove hardcoded consts from both managers; read from the config resource instead.
+- [ ] Run Scene Director and state tests.
+
+### 14C — Manager Interfaces
+
+- [ ] Create `scripts/interfaces/i_cursor_manager.gd` (`I_CursorManager`) — extract public API from `M_CursorManager`.
+- [ ] Create `scripts/interfaces/i_spawn_manager.gd` (`I_SpawnManager`) — extract public API from `M_SpawnManager`.
+- [ ] Create `scripts/interfaces/i_screenshot_cache_manager.gd` (`I_ScreenshotCacheManager`) — extract public API from `M_ScreenshotCacheManager`.
+- [ ] Create `scripts/interfaces/i_gameplay_initializer_manager.gd` (`I_GameplayInitializerManager`) — extract public API from `M_GameplayInitializerManager`.
+- [ ] Create `scripts/interfaces/i_ui_input_handler.gd` (`I_UIInputHandler`) — extract public API from `M_UIInputHandler`.
+- [ ] Update all 5 managers to extend their respective interfaces.
+- [ ] Update consumer type casts to use interface types instead of concrete classes.
+- [ ] Run style, QB, Scene Director, and display tests.
+
+### 14D — Validate & Document
+
+- [ ] Run full suite sweep (style, QB, Scene Director, display, state).
+- [ ] Run headless import.
+- [ ] Update continuation prompt with Phase 14 results.
+- [ ] Update AGENTS.md if new patterns or pitfalls emerged.
+
 ## Notes
 
-- Hardcoded game-specific IDs (`"bar_complete"`, `"final_complete"`, `RETRY_SCENE_ID = "alleyway"`, `required_final_area = "bar"`) in template managers are noted but deferred — extracting to a game config system is a feature, not cleanup.
-- The `condition.has_method("evaluate")` / `effect.has_method("execute")` pattern on `Array[Resource]` is considered justified polymorphism (documented in AGENTS.md).
-- Pre-existing interface gaps (`M_CursorManager`, `M_SpawnManager`, `M_GameplayInitializer`, `M_ScreenshotCache`, `M_UIInputHandler`) are out of scope for v6 — only new managers are targeted.
+- The `condition.has_method("evaluate")` / `effect.has_method("execute")` pattern on `Array[Resource]` is considered justified polymorphism (documented in AGENTS.md) — Phase 14A replaces these with `is` checks.
