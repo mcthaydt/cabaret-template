@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 domain = &"hud"
 translations = {
-"hud.signpost.default": "Press to interact",
 "hud.scene_director_intro_beat_1": "Welcome to the cabaret.",
-"hud.scene_director_intro_beat_2": "Find your footing, then head inside."
+"hud.scene_director_intro_beat_2": "Find your footing, then head inside.",
+"hud.signpost.default": "Press to interact"
 }

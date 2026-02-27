@@ -37,10 +37,10 @@
 [ext_resource type="Script" uid="uid://c32bn4etywtji" path="res://scripts/managers/m_localization_manager.gd" id="35_localization_manager"]
 [ext_resource type="Resource" uid="uid://b2kl002im8pb5" path="res://resources/base_settings/state/cfg_time_initial_state.tres" id="36_time_state"]
 [ext_resource type="Script" uid="uid://byruhjgybr4i8" path="res://scripts/managers/m_objectives_manager.gd" id="37_objectives_manager"]
-[ext_resource type="Resource" path="res://resources/scene_director/sets/cfg_objset_default.tres" id="38_objset_default"]
-[ext_resource type="Script" path="res://scripts/managers/m_scene_director_manager.gd" id="39_scene_director"]
+[ext_resource type="Resource" uid="uid://dlyoikoiqtr81" path="res://resources/scene_director/sets/cfg_objset_default.tres" id="38_objset_default"]
+[ext_resource type="Script" uid="uid://dnllpv24ljp7u" path="res://scripts/managers/m_scene_director_manager.gd" id="39_scene_director"]
 [ext_resource type="Resource" path="res://resources/scene_director/directives/cfg_directive_gameplay_base.tres" id="40_directive_gameplay_base"]
-[ext_resource type="Script" path="res://scripts/managers/m_run_coordinator_manager.gd" id="41_run_coordinator"]
+[ext_resource type="Script" uid="uid://b5087paku10p" path="res://scripts/managers/m_run_coordinator_manager.gd" id="41_run_coordinator"]
 [ext_resource type="Resource" path="res://resources/state/cfg_default_objectives_initial_state.tres" id="42_objectives_state"]
 [ext_resource type="Resource" path="res://resources/state/cfg_default_scene_director_initial_state.tres" id="43_scene_director_state"]
 [ext_resource type="Resource" path="res://resources/cfg_game_config.tres" id="44_game_config"]
@@ -64,10 +64,10 @@ debug_initial_state = ExtResource("19_debug_state")
 vfx_initial_state = ExtResource("24_vfx_state")
 audio_initial_state = ExtResource("26_audio_state")
 display_initial_state = ExtResource("29_display_state")
-localization_initial_state = ExtResource("34_localization_state")
-time_initial_state = ExtResource("36_time_state")
 objectives_initial_state = ExtResource("42_objectives_state")
 scene_director_initial_state = ExtResource("43_scene_director_state")
+localization_initial_state = ExtResource("34_localization_state")
+time_initial_state = ExtResource("36_time_state")
 
 [node name="M_CursorManager" type="Node" parent="Managers" unique_id=396316100]
 script = ExtResource("7_cursor")

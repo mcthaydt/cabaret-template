@@ -1,14 +1,8 @@
 [gd_resource type="Resource" script_class="RS_ObjectiveDefinition" format=3 uid="uid://b2tqdtxcmwnyj"]
 
-[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_event_payload.gd" id="1_event_payload"]
+[ext_resource type="Script" uid="uid://c01hdmwtkd014" path="res://scripts/resources/qb/conditions/rs_condition_event_payload.gd" id="1_event_payload"]
 [ext_resource type="Script" uid="uid://d1pyjxgvw256f" path="res://scripts/resources/scene_director/rs_objective_definition.gd" id="2_8mdsu"]
-[ext_resource type="Script" path="res://scripts/resources/qb/effects/rs_effect_publish_event.gd" id="3_publish_event"]
-
-[sub_resource type="Resource" id="Resource_goal_bar_triggered"]
-script = ExtResource("1_event_payload")
-field_path = "trigger_node.objective_id"
-match_mode = "equals"
-match_value_string = "goal_bar"
+[ext_resource type="Script" uid="uid://cgk1j4fpq4c8" path="res://scripts/resources/qb/effects/rs_effect_publish_event.gd" id="3_publish_event"]
 
 [sub_resource type="Resource" id="Resource_to_alleyway"]
 script = ExtResource("3_publish_event")
@@ -17,6 +11,12 @@ payload = {
 "target_scene": &"alleyway"
 }
 inject_entity_id = false
+
+[sub_resource type="Resource" id="Resource_goal_bar_triggered"]
+script = ExtResource("1_event_payload")
+field_path = "trigger_node.objective_id"
+match_mode = "equals"
+match_value_string = "goal_bar"
 
 [resource]
 script = ExtResource("2_8mdsu")

@@ -7,7 +7,7 @@ script = ExtResource("1_script")
 locale = &"pt"
 domain = &"hud"
 translations = {
-"hud.signpost.default": "Pressione para interagir",
 "hud.scene_director_intro_beat_1": "Bem-vindo ao cabaré.",
-"hud.scene_director_intro_beat_2": "Se oriente e depois entre."
+"hud.scene_director_intro_beat_2": "Se oriente e depois entre.",
+"hud.signpost.default": "Pressione para interagir"
 }
