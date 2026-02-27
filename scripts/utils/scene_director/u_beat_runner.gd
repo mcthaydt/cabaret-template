@@ -37,30 +37,30 @@ func execute_current_beat(context: Dictionary) -> void:
 		advance()
 		return
 
-	var preconditions: Array[Resource] = _to_resource_array(_resource_get(beat, "preconditions", []))
+	var preconditions: Array[Resource] = U_ResourceAccessHelpers.to_resource_array(U_ResourceAccessHelpers.resource_get(beat, "preconditions", []))
 	if not _check_conditions(preconditions, context):
-		var failure_target: StringName = _to_string_name(
-			_resource_get(beat, "next_beat_id_on_failure", StringName(""))
+		var failure_target: StringName = U_ResourceAccessHelpers.to_string_name(
+			U_ResourceAccessHelpers.resource_get(beat, "next_beat_id_on_failure", StringName(""))
 		)
 		_advance_to_next(beat, failure_target, false)
 		return
 
-	var effects: Array[Resource] = _to_resource_array(_resource_get(beat, "effects", []))
+	var effects: Array[Resource] = U_ResourceAccessHelpers.to_resource_array(U_ResourceAccessHelpers.resource_get(beat, "effects", []))
 	_execute_effects(effects, context)
 	_has_executed_current_beat = true
 
-	var next_target: StringName = _to_string_name(
-		_resource_get(beat, "next_beat_id", StringName(""))
+	var next_target: StringName = U_ResourceAccessHelpers.to_string_name(
+		U_ResourceAccessHelpers.resource_get(beat, "next_beat_id", StringName(""))
 	)
-	var wait_mode: int = _to_wait_mode(_resource_get(beat, "wait_mode", RS_BEAT_DEFINITION.WaitMode.INSTANT))
+	var wait_mode: int = _to_wait_mode(U_ResourceAccessHelpers.resource_get(beat, "wait_mode", RS_BEAT_DEFINITION.WaitMode.INSTANT))
 	match wait_mode:
 		RS_BEAT_DEFINITION.WaitMode.INSTANT:
 			var lane_ids: Array[StringName] = _to_string_name_array(
-				_resource_get(beat, "parallel_beat_ids", [])
+				U_ResourceAccessHelpers.resource_get(beat, "parallel_beat_ids", [])
 			)
 			if not lane_ids.is_empty():
-				var join_id: StringName = _to_string_name(
-					_resource_get(beat, "parallel_join_beat_id", StringName(""))
+				var join_id: StringName = U_ResourceAccessHelpers.to_string_name(
+					U_ResourceAccessHelpers.resource_get(beat, "parallel_join_beat_id", StringName(""))
 				)
 				_start_parallel(lane_ids, join_id)
 				return
@@ -68,12 +68,12 @@ func execute_current_beat(context: Dictionary) -> void:
 		RS_BEAT_DEFINITION.WaitMode.TIMED:
 			_is_waiting_timed = true
 			_timed_elapsed = 0.0
-			_timed_duration = max(_to_float(_resource_get(beat, "duration", 0.0), 0.0), 0.0)
+			_timed_duration = max(U_ResourceAccessHelpers.to_float(U_ResourceAccessHelpers.resource_get(beat, "duration", 0.0), 0.0), 0.0)
 			if _timed_duration <= 0.0:
 				_advance_to_next(beat, next_target)
 		RS_BEAT_DEFINITION.WaitMode.SIGNAL:
 			_is_waiting_signal = true
-			_waiting_signal_event = _to_string_name(_resource_get(beat, "wait_event", StringName("")))
+			_waiting_signal_event = U_ResourceAccessHelpers.to_string_name(U_ResourceAccessHelpers.resource_get(beat, "wait_event", StringName("")))
 			if _waiting_signal_event == StringName(""):
 				_advance_to_next(beat, next_target)
 		_:
@@ -109,8 +109,8 @@ func update(delta: float, context: Dictionary = {}) -> void:
 	_timed_elapsed += max(delta, 0.0)
 	if _timed_elapsed >= _timed_duration:
 		var beat: Resource = get_current_beat()
-		var next_target: StringName = _to_string_name(
-			_resource_get(beat, "next_beat_id", StringName(""))
+		var next_target: StringName = U_ResourceAccessHelpers.to_string_name(
+			U_ResourceAccessHelpers.resource_get(beat, "next_beat_id", StringName(""))
 		)
 		_advance_to_next(beat, next_target)
 
@@ -125,12 +125,12 @@ func on_signal_received(event_name: StringName) -> void:
 		return
 	if not _is_waiting_signal:
 		return
-	if _to_string_name(event_name) != _waiting_signal_event:
+	if U_ResourceAccessHelpers.to_string_name(event_name) != _waiting_signal_event:
 		return
 
 	var beat: Resource = get_current_beat()
-	var next_target: StringName = _to_string_name(
-		_resource_get(beat, "next_beat_id", StringName(""))
+	var next_target: StringName = U_ResourceAccessHelpers.to_string_name(
+		U_ResourceAccessHelpers.resource_get(beat, "next_beat_id", StringName(""))
 	)
 	_advance_to_next(beat, next_target)
 
@@ -153,8 +153,8 @@ func _advance_to_next(
 
 	var next_index: int = _resolve_target_index(explicit_target)
 	if next_index < 0 and allow_success_target_fallback:
-		var fallback_target: StringName = _to_string_name(
-			_resource_get(current_beat, "next_beat_id", StringName(""))
+		var fallback_target: StringName = U_ResourceAccessHelpers.to_string_name(
+			U_ResourceAccessHelpers.resource_get(current_beat, "next_beat_id", StringName(""))
 		)
 		next_index = _resolve_target_index(fallback_target)
 	if next_index < 0:
@@ -224,7 +224,7 @@ func _build_id_to_index_map(beats: Array[Resource]) -> Dictionary:
 	var map: Dictionary = {}
 	for index in range(beats.size()):
 		var beat: Resource = beats[index]
-		var beat_id: StringName = _to_string_name(_resource_get(beat, "beat_id", StringName("")))
+		var beat_id: StringName = U_ResourceAccessHelpers.to_string_name(U_ResourceAccessHelpers.resource_get(beat, "beat_id", StringName("")))
 		if beat_id == StringName(""):
 			continue
 		if map.has(beat_id):
@@ -240,7 +240,7 @@ func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool
 		if not condition.has_method("evaluate"):
 			return false
 
-		var score: float = _to_float(condition.evaluate(context), 0.0)
+		var score: float = U_ResourceAccessHelpers.to_float(condition.evaluate(context), 0.0)
 		if score <= 0.0:
 			return false
 	return true
@@ -273,45 +273,17 @@ func _to_wait_mode(value: Variant) -> int:
 		return value
 	return RS_BEAT_DEFINITION.WaitMode.INSTANT
 
-func _resource_get(resource: Resource, property_name: String, fallback: Variant) -> Variant:
-	if resource == null:
-		return fallback
-	var value: Variant = resource.get(property_name)
-	return value if value != null else fallback
-
-func _to_resource_array(value: Variant) -> Array[Resource]:
-	var resources: Array[Resource] = []
-	if value is Array:
-		for item in value:
-			if item is Resource:
-				resources.append(item as Resource)
-	return resources
-
-func _to_float(value: Variant, fallback: float) -> float:
-	if value is float:
-		return value
-	if value is int:
-		return float(value)
-	return fallback
-
-func _to_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value
-	if value is String:
-		return StringName(value)
-	return StringName("")
-
 func _to_string_name_array(value: Variant) -> Array[StringName]:
 	var names: Array[StringName] = []
 	if value is Array:
 		for entry in value:
-			var name: StringName = _to_string_name(entry)
+			var name: StringName = U_ResourceAccessHelpers.to_string_name(entry)
 			if name == StringName(""):
 				continue
 			names.append(name)
 	elif value is PackedStringArray:
 		for entry in value:
-			var name: StringName = _to_string_name(entry)
+			var name: StringName = U_ResourceAccessHelpers.to_string_name(entry)
 			if name == StringName(""):
 				continue
 			names.append(name)

@@ -41,7 +41,7 @@ func _ready() -> void:
 	for objective_set in objective_sets:
 		if objective_set == null:
 			continue
-		var set_id: StringName = _to_string_name(_resource_get(objective_set, "set_id", StringName("")))
+		var set_id: StringName = U_ResourceAccessHelpers.to_string_name(U_ResourceAccessHelpers.resource_get(objective_set, "set_id", StringName("")))
 		if set_id == StringName(""):
 			continue
 		load_objective_set(set_id)
@@ -71,14 +71,14 @@ func _load_objective_set_internal(set_id: StringName, reconcile_persisted_status
 		U_OBJECTIVES_DEBUG_TRACER.debug_log("failed to load objective set: missing set_id=%s" % str(set_id))
 		return false
 
-	var objective_resources: Array[Resource] = _to_resource_array(_resource_get(objective_set, "objectives", []))
+	var objective_resources: Array[Resource] = U_ResourceAccessHelpers.to_resource_array(U_ResourceAccessHelpers.resource_get(objective_set, "objectives", []))
 	var objective_map: Dictionary = {}
 	var known_ids: Array[StringName] = []
 
 	for objective in objective_resources:
 		if objective == null:
 			continue
-		var objective_id: StringName = _to_string_name(_resource_get(objective, "objective_id", StringName("")))
+		var objective_id: StringName = U_ResourceAccessHelpers.to_string_name(U_ResourceAccessHelpers.resource_get(objective, "objective_id", StringName("")))
 		if objective_id == StringName(""):
 			continue
 		if objective_map.has(objective_id):
@@ -125,7 +125,7 @@ func _load_objective_set_internal(set_id: StringName, reconcile_persisted_status
 		var objective: Resource = _objectives_by_id.get(objective_id, null) as Resource
 		if objective == null:
 			continue
-		if bool(_resource_get(objective, "auto_activate", false)):
+		if bool(U_ResourceAccessHelpers.resource_get(objective, "auto_activate", false)):
 			auto_activate_ids.append(objective_id)
 	auto_activate_ids.sort()
 
@@ -158,7 +158,7 @@ func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool
 			return false
 
 		var score_variant: Variant = condition.evaluate(context)
-		var score: float = _to_float(score_variant, 0.0)
+		var score: float = U_ResourceAccessHelpers.to_float(score_variant, 0.0)
 		U_OBJECTIVES_DEBUG_TRACER.debug_log(
 			"condition evaluated index=%s condition=%s score=%s"
 			% [str(condition_index), str(condition), str(score)]
@@ -211,17 +211,17 @@ func _complete_objective_with_context(objective_id: StringName, context: Diction
 	var completion_context: Dictionary = context.duplicate(true)
 	if completion_context.is_empty():
 		completion_context = _build_context()
-	var completion_effects: Array[Resource] = _to_resource_array(
-		_resource_get(objective, "completion_effects", [])
+	var completion_effects: Array[Resource] = U_ResourceAccessHelpers.to_resource_array(
+		U_ResourceAccessHelpers.resource_get(objective, "completion_effects", [])
 	)
 	_execute_effects(completion_effects, completion_context)
 
 	var objective_type: int = int(
-		_resource_get(objective, "objective_type", RS_OBJECTIVE_DEFINITION.ObjectiveType.STANDARD)
+		U_ResourceAccessHelpers.resource_get(objective, "objective_type", RS_OBJECTIVE_DEFINITION.ObjectiveType.STANDARD)
 	)
 	if objective_type == RS_OBJECTIVE_DEFINITION.ObjectiveType.VICTORY:
 		var payload: Dictionary = {}
-		var payload_variant: Variant = _resource_get(objective, "completion_event_payload", {})
+		var payload_variant: Variant = U_ResourceAccessHelpers.resource_get(objective, "completion_event_payload", {})
 		if payload_variant is Dictionary:
 			payload = (payload_variant as Dictionary).duplicate(true)
 		U_OBJECTIVES_DEBUG_TRACER.log_gameplay_slice("before objective_victory_triggered publish objective_id=%s" % str(objective_id), _store)
@@ -325,7 +325,7 @@ func _index_objective_sets() -> void:
 	for objective_set in objective_sets:
 		if objective_set == null:
 			continue
-		var set_id: StringName = _to_string_name(_resource_get(objective_set, "set_id", StringName("")))
+		var set_id: StringName = U_ResourceAccessHelpers.to_string_name(U_ResourceAccessHelpers.resource_get(objective_set, "set_id", StringName("")))
 		if set_id == StringName(""):
 			continue
 		if _objective_sets_by_id.has(set_id):
@@ -452,7 +452,7 @@ func _evaluate_active_objectives(context: Dictionary) -> void:
 			if objective == null:
 				continue
 
-			var conditions: Array[Resource] = _to_resource_array(_resource_get(objective, "conditions", []))
+			var conditions: Array[Resource] = U_ResourceAccessHelpers.to_resource_array(U_ResourceAccessHelpers.resource_get(objective, "conditions", []))
 			var conditions_met: bool = _check_conditions(conditions, evaluation_context)
 			_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_CONDITION_CHECKED, {
 				"passed": conditions_met,
@@ -503,13 +503,13 @@ func _resolve_active_set_id_from_store() -> StringName:
 	if objectives_variant is Dictionary:
 		var objectives_slice: Dictionary = objectives_variant as Dictionary
 		var active_set_variant: Variant = objectives_slice.get("active_set_id", StringName(""))
-		var active_set_id: StringName = _to_string_name(active_set_variant)
+		var active_set_id: StringName = U_ResourceAccessHelpers.to_string_name(active_set_variant)
 		if active_set_id != StringName(""):
 			return active_set_id
 
 	var candidate_ids: Array[StringName] = []
 	for set_id_variant in _objective_sets_by_id.keys():
-		var candidate_id: StringName = _to_string_name(set_id_variant)
+		var candidate_id: StringName = U_ResourceAccessHelpers.to_string_name(set_id_variant)
 		if candidate_id != StringName(""):
 			candidate_ids.append(candidate_id)
 	if candidate_ids.is_empty():
@@ -544,7 +544,7 @@ func _resolve_set_id_for_new_run() -> StringName:
 
 	var candidate_ids: Array[StringName] = []
 	for set_id_variant in _objective_sets_by_id.keys():
-		var candidate_id: StringName = _to_string_name(set_id_variant)
+		var candidate_id: StringName = U_ResourceAccessHelpers.to_string_name(set_id_variant)
 		if candidate_id != StringName(""):
 			candidate_ids.append(candidate_id)
 	if candidate_ids.is_empty():
@@ -622,32 +622,3 @@ func _get_statuses_snapshot() -> Dictionary:
 		return (statuses_variant as Dictionary).duplicate(true)
 	return {}
 
-static func _to_resource_array(value: Variant) -> Array[Resource]:
-	var result: Array[Resource] = []
-	if value is Array:
-		for entry in value:
-			if entry is Resource:
-				result.append(entry as Resource)
-	return result
-
-static func _resource_get(resource: Resource, property_name: String, fallback: Variant) -> Variant:
-	if resource == null:
-		return fallback
-	var value: Variant = resource.get(property_name)
-	if value == null:
-		return fallback
-	return value
-
-static func _to_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value
-	if value is String:
-		return StringName(value)
-	return StringName("")
-
-static func _to_float(value: Variant, fallback: float) -> float:
-	if value is float:
-		return value
-	if value is int:
-		return float(value)
-	return fallback

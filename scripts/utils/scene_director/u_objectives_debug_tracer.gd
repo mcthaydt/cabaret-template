@@ -4,10 +4,6 @@ class_name U_ObjectivesDebugTracer
 ##
 ## All methods are no-ops when DEBUG_VICTORY_TRACE is false, so this class
 ## adds zero runtime cost in production builds.
-##
-## Private helpers (_resource_get, _to_string_name, _to_resource_array) are
-## duplicated here from M_ObjectivesManager until Phase 5B extracts them into
-## a shared utility (u_resource_access_helpers.gd).
 
 const RS_OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
 
@@ -73,7 +69,7 @@ static func emit_startup_signature(objective_sets: Array[Resource], script_path:
 		if objective_set == null:
 			objective_set_ids.append("<null>")
 			continue
-		var set_id: StringName = _to_string_name(_resource_get(objective_set, "set_id", StringName("")))
+		var set_id: StringName = U_ResourceAccessHelpers.to_string_name(U_ResourceAccessHelpers.resource_get(objective_set, "set_id", StringName("")))
 		objective_set_ids.append(str(set_id))
 	print(
 		"[VictoryDebugSignature][M_ObjectivesManager] build=%s script=%s objective_sets=%s"
@@ -89,8 +85,8 @@ static func log_config_snapshot(objective_sets: Array[Resource]) -> void:
 		if objective_set == null:
 			debug_log("configured objective_set=<null>")
 			continue
-		var set_id: StringName = _to_string_name(_resource_get(objective_set, "set_id", StringName("")))
-		var objective_resources: Array[Resource] = _to_resource_array(_resource_get(objective_set, "objectives", []))
+		var set_id: StringName = U_ResourceAccessHelpers.to_string_name(U_ResourceAccessHelpers.resource_get(objective_set, "set_id", StringName("")))
+		var objective_resources: Array[Resource] = U_ResourceAccessHelpers.to_resource_array(U_ResourceAccessHelpers.resource_get(objective_set, "objectives", []))
 		debug_log(
 			"configured objective_set set_id=%s path=%s instance_id=%s objectives_count=%s"
 			% [
@@ -105,11 +101,11 @@ static func log_config_snapshot(objective_sets: Array[Resource]) -> void:
 			if objective == null:
 				debug_log("configured objective=<null>")
 				continue
-			var objective_id: StringName = _to_string_name(_resource_get(objective, "objective_id", StringName("")))
+			var objective_id: StringName = U_ResourceAccessHelpers.to_string_name(U_ResourceAccessHelpers.resource_get(objective, "objective_id", StringName("")))
 			var objective_type: int = int(
-				_resource_get(objective, "objective_type", RS_OBJECTIVE_DEFINITION.ObjectiveType.STANDARD)
+				U_ResourceAccessHelpers.resource_get(objective, "objective_type", RS_OBJECTIVE_DEFINITION.ObjectiveType.STANDARD)
 			)
-			var conditions: Array[Resource] = _to_resource_array(_resource_get(objective, "conditions", []))
+			var conditions: Array[Resource] = U_ResourceAccessHelpers.to_resource_array(U_ResourceAccessHelpers.resource_get(objective, "conditions", []))
 			var condition_descriptions: Array[String] = []
 			for condition_resource in conditions:
 				condition_descriptions.append(_describe_condition(condition_resource))
@@ -129,10 +125,10 @@ static func _describe_condition(condition_resource: Resource) -> String:
 	if condition_resource == null:
 		return "<null>"
 	var script_path: String = _resource_script_path(condition_resource)
-	var field_path: String = String(_resource_get(condition_resource, "field_path", ""))
-	var state_path: String = String(_resource_get(condition_resource, "state_path", ""))
-	var match_mode: String = String(_resource_get(condition_resource, "match_mode", ""))
-	var match_value_string: String = String(_resource_get(condition_resource, "match_value_string", ""))
+	var field_path: String = String(U_ResourceAccessHelpers.resource_get(condition_resource, "field_path", ""))
+	var state_path: String = String(U_ResourceAccessHelpers.resource_get(condition_resource, "state_path", ""))
+	var match_mode: String = String(U_ResourceAccessHelpers.resource_get(condition_resource, "match_mode", ""))
+	var match_value_string: String = String(U_ResourceAccessHelpers.resource_get(condition_resource, "match_value_string", ""))
 	return "%s field_path=%s state_path=%s match_mode=%s match_value=%s" % [
 		script_path,
 		field_path,
@@ -151,30 +147,3 @@ static func _resource_script_path(resource: Resource) -> String:
 	return script.resource_path
 
 
-## Private helpers — duplicated from M_ObjectivesManager until Phase 5B
-## extracts them into a shared utility (u_resource_access_helpers.gd).
-
-static func _resource_get(resource: Resource, property_name: String, fallback: Variant) -> Variant:
-	if resource == null:
-		return fallback
-	var value: Variant = resource.get(property_name)
-	if value == null:
-		return fallback
-	return value
-
-
-static func _to_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value
-	if value is String:
-		return StringName(value)
-	return StringName("")
-
-
-static func _to_resource_array(value: Variant) -> Array[Resource]:
-	var result: Array[Resource] = []
-	if value is Array:
-		for entry in value:
-			if entry is Resource:
-				result.append(entry as Resource)
-	return result
