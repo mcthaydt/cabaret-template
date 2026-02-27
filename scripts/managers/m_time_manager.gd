@@ -14,7 +14,7 @@ const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_acti
 const TIME_SLICE_NAME := StringName("time")
 
 var _store: I_StateStore = null
-var _cursor_manager: M_CursorManager = null
+var _cursor_manager: I_CursorManager = null
 var _ui_overlay_stack: CanvasLayer = null
 var _pause_system = U_PAUSE_SYSTEM.new()
 var _timescale_controller = U_TIMESCALE_CONTROLLER.new()
@@ -42,7 +42,7 @@ func _deferred_init() -> void:
 	_initialize()
 
 func _initialize() -> void:
-	_cursor_manager = U_ServiceLocator.try_get_service(StringName("cursor_manager")) as M_CursorManager
+	_cursor_manager = U_ServiceLocator.try_get_service(StringName("cursor_manager")) as I_CursorManager
 	_ui_overlay_stack = get_tree().root.find_child("UIOverlayStack", true, false) as CanvasLayer
 	_world_clock.on_minute_changed = Callable(self, "_on_world_minute_changed")
 	_world_clock.on_hour_changed = Callable(self, "_on_world_hour_changed")

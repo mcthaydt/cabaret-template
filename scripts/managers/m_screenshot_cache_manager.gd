@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends Node
+extends I_ScreenshotCacheManager
 class_name M_ScreenshotCacheManager
 
 ## Screenshot Cache Manager (Phase 16B)
