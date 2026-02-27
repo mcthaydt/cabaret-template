@@ -237,7 +237,7 @@ func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool
 		var condition: Variant = condition_resource
 		if condition == null:
 			return false
-		if not condition.has_method("evaluate"):
+		if not condition is I_Condition:
 			return false
 
 		var score: float = U_ResourceAccessHelpers.to_float(condition.evaluate(context), 0.0)
@@ -250,7 +250,7 @@ func _execute_effects(effects: Array[Resource], context: Dictionary) -> void:
 		var effect: Variant = effect_resource
 		if effect == null:
 			continue
-		if not effect.has_method("execute"):
+		if not effect is I_Effect:
 			continue
 		effect.execute(context)
 

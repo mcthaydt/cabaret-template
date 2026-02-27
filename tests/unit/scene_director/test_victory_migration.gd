@@ -52,7 +52,7 @@ class ObjectivesStoreStub extends I_STATE_STORE:
 	func apply_loaded_state(loaded_state: Dictionary) -> void:
 		_state = loaded_state.duplicate(true)
 
-class ConditionStub extends Resource:
+class ConditionStub extends I_Condition:
 	var response_value: float = 1.0
 
 	func _init(initial_response: float = 1.0) -> void:

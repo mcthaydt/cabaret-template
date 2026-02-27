@@ -59,7 +59,7 @@ class SceneDirectorStoreStub extends I_STATE_STORE:
 	func get_dispatched_actions() -> Array[Dictionary]:
 		return _dispatched_actions.duplicate(true)
 
-class ConditionStub extends Resource:
+class ConditionStub extends I_Condition:
 	var response_value: float = 1.0
 	var evaluate_calls: int = 0
 	var last_context: Dictionary = {}
@@ -72,7 +72,7 @@ class ConditionStub extends Resource:
 		last_context = context.duplicate(true)
 		return response_value
 
-class ConditionPayloadFlagStub extends Resource:
+class ConditionPayloadFlagStub extends I_Condition:
 	var evaluate_calls: int = 0
 	var last_context: Dictionary = {}
 
@@ -85,7 +85,7 @@ class ConditionPayloadFlagStub extends Resource:
 			return 1.0 if str(payload.get("flag", "")) == "ok" else 0.0
 		return 0.0
 
-class EffectStub extends Resource:
+class EffectStub extends I_Effect:
 	var execute_calls: int = 0
 	var last_context: Dictionary = {}
 

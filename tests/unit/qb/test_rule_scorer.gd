@@ -4,7 +4,7 @@ const RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
 const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
 const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
 
-class ConstantScoreCondition extends Resource:
+class ConstantScoreCondition extends I_Condition:
 	var score_value: float = 1.0
 	var evaluate_calls: int = 0
 

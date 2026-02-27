@@ -147,7 +147,7 @@ func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool
 		if condition == null:
 			U_OBJECTIVES_DEBUG_TRACER.debug_log("condition check failed index=%s reason=null_condition" % str(condition_index))
 			return false
-		if not condition.has_method("evaluate"):
+		if not condition is I_Condition:
 			push_warning("M_ObjectivesManager: Condition missing evaluate(context): %s" % str(condition))
 			U_OBJECTIVES_DEBUG_TRACER.debug_log(
 				"condition check failed index=%s reason=missing_evaluate condition=%s"
@@ -173,7 +173,7 @@ func _execute_effects(effects: Array[Resource], context: Dictionary) -> void:
 		var effect: Variant = effect_resource
 		if effect == null:
 			continue
-		if not effect.has_method("execute"):
+		if not effect is I_Effect:
 			push_warning("M_ObjectivesManager: Effect missing execute(context): %s" % str(effect))
 			continue
 		effect.execute(context)

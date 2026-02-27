@@ -251,7 +251,7 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 		for effect_variant in (effects_variant as Array):
 			if effect_variant == null or not (effect_variant is Object):
 				continue
-			if not effect_variant.has_method("execute"):
+			if not effect_variant is I_Effect:
 				continue
 			effect_variant.call("execute", context)
 

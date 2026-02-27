@@ -199,7 +199,7 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 			if _is_publish_event_effect(effect_variant):
 				_execute_publish_event_effect(effect_variant, context)
 				continue
-			if not effect_variant.has_method("execute"):
+			if not effect_variant is I_Effect:
 				continue
 			effect_variant.call("execute", context)
 
