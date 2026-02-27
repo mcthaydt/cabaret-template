@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 7 complete (style enforcement expansion); next: Phase 8 missing initial state resources.
-- Branch: `cleanup-v6` (19 commits ahead of main; Phase 7 docs update pending commit).
-- Working tree: implementation committed (`9969588b`), docs currently modified for Phase 7 status updates.
+- Phase: Phase 8 complete (missing initial state resources); next: Phase 9 stale documentation cleanup.
+- Branch: `cleanup-v6` (21 commits ahead of main; Phase 8 docs update pending commit).
+- Working tree: implementation committed (`c2d869d8`), docs currently modified for Phase 8 status updates.
 
 ## Context
 
@@ -210,6 +210,18 @@ All of this code needs to be brought up to the quality bar established by cleanu
 - No newly-caught violations — all files were already conforming.
 - Implementation commit: `9969588b` (`refactor(cleanup-v6): expand style enforcement to qb/scene_director/ecs/display/debug dirs (phase 7)`).
 - Validation: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
+
+## Phase 8 Results (2026-02-26)
+
+- Created `resources/state/cfg_default_objectives_initial_state.tres` — instance of `RS_ObjectivesInitialState` with all-default fields (empty statuses dict, blank active_set_id, empty event_log).
+- Created `resources/state/cfg_default_scene_director_initial_state.tres` — instance of `RS_SceneDirectorInitialState` with all-default fields (idle state, index -1, empty IDs).
+- Added ext_resource entries `42_objectives_state` and `43_scene_director_state` to `root.tscn`.
+- Wired `objectives_initial_state` and `scene_director_initial_state` on `M_StateStore` node. The `== null` fallback paths in `u_state_slice_manager.gd` are now unused but harmlessly unreachable.
+- Implementation commit: `c2d869d8` (`refactor(cleanup-v6): create and wire missing objectives/scene_director initial state resources (phase 8)`).
+- Validation:
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/state -ginclude_subdirs=true` (365/365 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
 
 ## Notes / Pitfalls
 

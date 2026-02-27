@@ -210,11 +210,16 @@
 
 ## Phase 8 — Missing Initial State Resources (Low Risk)
 
-- [ ] Create `resources/state/cfg_default_objectives_initial_state.tres` (instance of `RS_ObjectivesInitialState`).
-- [ ] Create `resources/state/cfg_default_scene_director_initial_state.tres` (instance of `RS_SceneDirectorInitialState`).
-- [ ] Wire both exports in `scenes/root.tscn` on the `M_StateStore` node (consistent with all other slices).
-- [ ] Verify `u_state_slice_manager.gd` handles the wired resources correctly (should already work — the `== null` fallback just becomes unused).
-- [ ] Run state and Scene Director tests.
+- [x] Create `resources/state/cfg_default_objectives_initial_state.tres` (instance of `RS_ObjectivesInitialState`).
+- [x] Create `resources/state/cfg_default_scene_director_initial_state.tres` (instance of `RS_SceneDirectorInitialState`).
+- [x] Wire both exports in `scenes/root.tscn` on the `M_StateStore` node (consistent with all other slices).
+- [x] Verify `u_state_slice_manager.gd` handles the wired resources correctly (should already work — the `== null` fallback just becomes unused).
+- [x] Run state and Scene Director tests.
+  - Completion notes: Implemented in commit `c2d869d8` (`refactor(cleanup-v6): create and wire missing objectives/scene_director initial state resources (phase 8)`). Added ext_resource entries `42_objectives_state` and `43_scene_director_state` in root.tscn. Headless import validated the scene without errors.
+  - Validation (2026-02-26):
+    - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/state -ginclude_subdirs=true` (365/365 passed)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
 
 ## Phase 9 — Stale Documentation Cleanup (Low Risk)
 
