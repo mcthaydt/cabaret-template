@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 10 complete (large file audit); next: Phase 11 cinema grading test coverage.
-- Branch: `cleanup-v6` (23 commits ahead of main).
-- Working tree: clean; Phase 10 is docs-only (no implementation commit needed).
+- Phase: Phase 11 complete (cinema grading test coverage); next: Phase 12 final validation.
+- Branch: `cleanup-v6` (25 commits ahead of main).
+- Working tree: clean.
 
 ## Context
 
@@ -241,6 +241,18 @@ All of this code needs to be brought up to the quality bar established by cleanu
 - Shared pattern identified for future extraction: `_resolve_store`/`_set_store_reference`/`_ensure_store_action_signal_connection`/`_disconnect_store_action_signal` (~65 lines) is duplicated between both managers. Deferred — low value at current size, tight coupling.
 - Pre-existing files over 400 lines (out of v6 scope) flagged in tasks checklist for future cleanup consideration. Largest: `m_scene_manager.gd` (1148), `ui_display_settings_tab.gd` (809), `ui_save_load_menu.gd` (751), `m_save_manager.gd` (742).
 - No code changes; no commit needed.
+
+## Phase 11 Results (2026-02-26)
+
+- Created `tests/unit/managers/test_cinema_grade_registry.gd` — 14 tests: known scene lookup (all 5 preloaded scenes), neutral fallback (scene_id="_neutral", default exposure/contrast/saturation), empty scene_id, `to_dictionary()` key validity, re-initialize safety.
+- Created `tests/unit/managers/test_cinema_grade_selectors.gd` — 22 tests: all 13 selector defaults, read-from-state for representative fields, `get_cinema_grade_settings` key filtering, graceful handling of missing/non-dict display slice.
+- Created `tests/integration/display/test_cinema_grade_applier.gd` — 11 tests: CinemaGradeLayer created under PostProcessOverlay, `scene/swapped` loads alleyway grade (filter_mode=6, exposure=-0.18, contrast=1.23 via both state selectors and shader uniforms), unknown scene falls back to neutral (filter_mode=0, exposure=0.0, state still populated).
+- **New pitfall**: GUT treats "Variant inference" warning as a parse error — `var x := helper()` where `helper()` returns `Variant` fails to load. Use `var x: Variant = helper()` instead. Documented in DEV_PITFALLS.md.
+- Implementation commit: `357165a9`.
+- Validation:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (414/414 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (51/52 passed, 1 pending pre-existing)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
 
 ## Notes / Pitfalls
 

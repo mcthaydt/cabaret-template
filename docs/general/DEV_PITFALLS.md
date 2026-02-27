@@ -79,7 +79,7 @@
 
 ## GDScript Typing Pitfalls
 
-- **Headless import treats some warnings as errors**: In headless `--import` runs, warnings like “variable type inferred from Variant” can be treated as errors and prevent scripts from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var script_obj: Script = get_script()` instead of `var script_obj := get_script()`).
+- **Headless import and GUT treat some warnings as errors**: Both headless `--import` runs and GUT's `warnings_manager` treat “variable type inferred from Variant” as a parse error that prevents the script from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var result: Variant = helper()` instead of `var result := helper()` when `helper()` returns `Variant`). This applies equally to production scripts and test files.
 
 - **`Script.new()` return values need explicit annotation in tests**: When loading helper scripts dynamically in GUT (`var script_obj := load(path) as Script`), `var helper := script_obj.new()` can fail parse/type inference in headless runs. Use an explicit annotation for the new instance (`var helper: Variant = script_obj.new()`) unless you can safely type it to a known loaded class.
 

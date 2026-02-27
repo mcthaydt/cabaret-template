@@ -258,10 +258,19 @@
 
 ## Phase 11 — Cinema Grading Test Coverage (Medium Risk)
 
-- [ ] Add unit tests for `U_CinemaGradeRegistry` (scene→grade mapping, neutral fallback, preload safety).
-- [ ] Add unit tests for `U_CinemaGradeSelectors` (all selector functions with defaults).
-- [ ] Add integration test for cinema grade applier (scene swap triggers grade change).
-- [ ] Run display test suites.
+- [x] Add unit tests for `U_CinemaGradeRegistry` (scene→grade mapping, neutral fallback, preload safety).
+  - Created `tests/unit/managers/test_cinema_grade_registry.gd` — 14 tests: known scene lookup (all 5 scenes), neutral fallback (scene_id="_neutral", default exposure/contrast/saturation), empty scene_id, `to_dictionary()` validity, re-initialize safety.
+- [x] Add unit tests for `U_CinemaGradeSelectors` (all selector functions with defaults).
+  - Created `tests/unit/managers/test_cinema_grade_selectors.gd` — 22 tests: all 13 selector defaults, read-from-state for filter_mode/filter_intensity/exposure/contrast/saturation, `get_cinema_grade_settings` key filtering, graceful handling of missing/malformed display slice.
+- [x] Add integration test for cinema grade applier (scene swap triggers grade change).
+  - Created `tests/integration/display/test_cinema_grade_applier.gd` — 11 tests: CinemaGradeLayer creation, `scene/swapped` loads alleyway grade (filter_mode=6, exposure=-0.18, contrast=1.23 via state and shader uniforms), unknown scene falls back to neutral (filter_mode=0, exposure=0.0, cinema_grade_ keys still populated).
+  - Fixed pitfall: GUT treats Variant inference warning as error — must use `var x: Variant = ...` not `var x :=` when calling helpers that return Variant.
+- [x] Run display test suites.
+  - Completion notes: Implementation commit `357165a9`. No style violations.
+  - Validation:
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (414/414 passed)
+    - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (51/52 passed, 1 pending pre-existing)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
 
 ## Phase 12 — Final Validation
 
