@@ -193,7 +193,7 @@
 
 ## Phase 7 — Style Enforcement Expansion (Low Risk)
 
-- [ ] Add missing directories to `GD_DIRECTORIES` (tab check) in `tests/unit/style/test_style_enforcement.gd`:
+- [x] Add missing directories to `GD_DIRECTORIES` (tab check) in `tests/unit/style/test_style_enforcement.gd`:
   - `scripts/resources/qb/`
   - `scripts/resources/qb/conditions/`
   - `scripts/resources/qb/effects/`
@@ -202,8 +202,11 @@
   - `scripts/resources/display/`
   - `scripts/resources/localization/`
   - `scripts/debug/`
-- [ ] Add corresponding entries to `SCRIPT_PREFIX_RULES` for prefix enforcement.
-- [ ] Run style tests — fix any newly-caught violations.
+- [x] Add corresponding entries to `SCRIPT_PREFIX_RULES` for prefix enforcement.
+- [x] Run style tests — fix any newly-caught violations.
+  - No violations found — all files were already conforming.
+  - Completion notes: Implemented in commit `9969588b` (`refactor(cleanup-v6): expand style enforcement to qb/scene_director/ecs/display/debug dirs (phase 7)`).
+  - Validation (2026-02-26): `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
 
 ## Phase 8 — Missing Initial State Resources (Low Risk)
 

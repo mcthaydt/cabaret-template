@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 6 complete (`String(value)` migration + dither enum fix); next: Phase 7 style enforcement expansion.
-- Branch: `cleanup-v6` (17 commits ahead of main; Phase 6 docs update pending commit).
-- Working tree: implementation committed (`2aba797d`), docs currently modified for Phase 6 status updates.
+- Phase: Phase 7 complete (style enforcement expansion); next: Phase 8 missing initial state resources.
+- Branch: `cleanup-v6` (19 commits ahead of main; Phase 7 docs update pending commit).
+- Working tree: implementation committed (`9969588b`), docs currently modified for Phase 7 status updates.
 
 ## Context
 
@@ -202,6 +202,14 @@ All of this code needs to be brought up to the quality bar established by cleanu
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (378/378 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/state -ginclude_subdirs=true` (365/365 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (40/41 passed, 1 pending pre-existing)
+
+## Phase 7 Results (2026-02-26)
+
+- Added 8 directories to `GD_DIRECTORIES` (tab check): `scripts/resources/qb`, `qb/conditions`, `qb/effects`, `scripts/resources/scene_director`, `scripts/resources/ecs`, `scripts/resources/display`, `scripts/resources/localization`, `scripts/debug`.
+- Added 8 `SCRIPT_PREFIX_RULES` entries: all `rs_` for resource dirs, `debug_` for `scripts/debug`.
+- No newly-caught violations — all files were already conforming.
+- Implementation commit: `9969588b` (`refactor(cleanup-v6): expand style enforcement to qb/scene_director/ecs/display/debug dirs (phase 7)`).
+- Validation: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
 
 ## Notes / Pitfalls
 
