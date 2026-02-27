@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: Phase 4 complete (dead code removal + debug tracer extraction); next: Phase 5 helper extraction.
-- Branch: `cleanup-v6` (13 commits ahead of main; Phase 4 docs update pending commit).
-- Working tree: implementation committed (`d3340d4f`), docs currently modified for Phase 4 status updates.
+- Phase: Phase 5 complete (helper extraction); next: Phase 6 `String(value)` → `str(value)` migration.
+- Branch: `cleanup-v6` (15 commits ahead of main; Phase 5 docs update pending commit).
+- Working tree: implementation committed (`4387cdd8`, `43804ade`), docs currently modified for Phase 5 status updates.
 
 ## Context
 
@@ -166,6 +166,32 @@ All of this code needs to be brought up to the quality bar established by cleanu
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (378/378 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (40/41 passed, 1 pending pre-existing)
+
+## Phase 5 Results (2026-02-26)
+
+### 5A — Display Applier `_get_tree()` Consolidation
+
+- Created `scripts/utils/display/u_display_applier_utils.gd` (`U_DisplayApplierUtils`) with `get_tree_safe(owner: Node) -> SceneTree`.
+- Removed duplicated `_get_tree()` from all 4 appliers; replaced 5 call sites with `U_DisplayApplierUtils.get_tree_safe(_owner)`.
+- Implementation commit: `4387cdd8` (`refactor(cleanup-v6): extract duplicated _get_tree() into U_DisplayApplierUtils (phase 5a)`).
+- Validation:
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (378/378 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (40/41 passed, 1 pending pre-existing)
+
+### 5B — Scene Director Resource Access Helpers
+
+- Created `scripts/utils/scene_director/u_resource_access_helpers.gd` (`U_ResourceAccessHelpers`) with 5 static helpers: `resource_get`, `to_resource_array`, `to_float`, `to_int`, `to_string_name`.
+- Removed duplicated private methods from `m_scene_director_manager.gd`, `u_beat_runner.gd`, `m_objectives_manager.gd`, and `u_objectives_debug_tracer.gd`; updated all call sites.
+- Kept `_to_wait_mode` and `_to_string_name_array` in `u_beat_runner.gd` — specific to beat runner logic.
+- Removed the "duplicated pending Phase 5B" comment block from `u_objectives_debug_tracer.gd`.
+- Implementation commit: `43804ade` (`refactor(cleanup-v6): extract shared resource helpers into U_ResourceAccessHelpers (phase 5b)`).
+- Validation:
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (pass)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true` (97/97 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true` (4/4 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (378/378 passed)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
 
 ## Notes / Pitfalls
 
