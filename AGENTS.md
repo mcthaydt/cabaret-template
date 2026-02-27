@@ -28,7 +28,7 @@
 - `scripts/managers/m_scene_manager.gd`: Scene transition coordinator (Phase 3+); manages ActiveSceneContainer.
 - `scripts/managers/m_save_manager.gd`: Save/load coordinator; manages save slots, atomic writes, migrations, and autosave scheduling.
 - `scripts/managers/m_objectives_manager.gd`: Objectives manager (Phase 2 core); loads objective sets, validates dependency DAGs, evaluates objective conditions on relevant events, and publishes objective lifecycle/victory events.
-- `scripts/managers/m_run_coordinator.gd`: Run reset coordinator; listens for `run/reset`, dispatches gameplay reset, force-unblocks interactions, resets objectives for a fresh run, and retries to `alleyway`.
+- `scripts/managers/m_run_coordinator_manager.gd`: Run reset coordinator; listens for `run/reset`, dispatches gameplay reset, force-unblocks interactions, resets objectives for a fresh run, and retries to `alleyway`.
 - `scripts/interfaces/i_objectives_manager.gd`: Interface contract for objectives manager lookups (`load_objective_set`, `reset_for_new_run`, `get_objective_status`).
 - `scripts/interfaces/i_scene_director.gd`: Interface contract for scene director lookups (`get_active_directive_id`).
 - `scripts/interfaces/i_run_coordinator.gd`: Interface contract for run coordinator lookups (`is_reset_in_flight`).

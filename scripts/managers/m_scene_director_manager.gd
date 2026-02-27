@@ -2,8 +2,6 @@
 extends I_SceneDirector
 class_name M_SceneDirectorManager
 
-const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
@@ -12,33 +10,31 @@ const U_BEAT_RUNNER := preload("res://scripts/utils/scene_director/u_beat_runner
 const U_BEAT_GRAPH := preload("res://scripts/utils/scene_director/u_beat_graph.gd")
 const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
 
-const STORE_SERVICE_NAME := StringName("state_store")
-
 @export var state_store: I_StateStore = null
 @export var directives: Array[Resource] = []
 
-var _store: I_StateStore = null
+var _store: I_StateStore:
+	get: return _binder.store
+var _binder: U_StoreActionBinder = U_StoreActionBinder.new()
 var _beat_runner: U_BeatRunner = null
 var _active_directive: Resource = null
-var _store_action_connected: bool = false
 var _signal_unsubscribes_by_event: Dictionary = {}
 var _last_reported_current_beat_id: StringName = StringName("")
 var _last_reported_active_beat_ids: Array[StringName] = []
 
 func _ready() -> void:
 	_beat_runner = U_BEAT_RUNNER.new()
-	_resolve_store()
-	_ensure_store_action_signal_connection()
+	_binder.resolve(state_store, self, _on_action_dispatched)
 
 func _exit_tree() -> void:
-	_disconnect_store_action_signal()
+	_binder.disconnect_signal(_on_action_dispatched)
 	_clear_signal_subscriptions()
 
 func _physics_process(delta: float) -> void:
 	# Keep retrying store discovery so late ServiceLocator registration can attach
 	# action subscriptions even while the director is idle.
 	if _store == null:
-		_resolve_store()
+		_binder.resolve(state_store, self, _on_action_dispatched)
 
 	if _active_directive == null:
 		return
@@ -175,7 +171,7 @@ func get_active_directive_id() -> StringName:
 	return _get_directive_id(_active_directive)
 
 func _build_context() -> Dictionary:
-	_resolve_store()
+	_binder.resolve(state_store, self, _on_action_dispatched)
 
 	var redux_state: Dictionary = {}
 	if _store != null:
@@ -190,50 +186,6 @@ func _build_event_context(event_payload: Dictionary) -> Dictionary:
 	var context: Dictionary = _build_context()
 	context["event_payload"] = event_payload.duplicate(true)
 	return context
-
-func _resolve_store() -> void:
-	var resolved_store: I_StateStore = null
-
-	if state_store != null and is_instance_valid(state_store):
-		resolved_store = state_store
-	elif _store != null and is_instance_valid(_store):
-		resolved_store = _store
-	else:
-		resolved_store = U_STATE_UTILS.try_get_store(self)
-		if resolved_store == null:
-			resolved_store = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
-
-	_set_store_reference(resolved_store)
-
-func _set_store_reference(next_store: I_StateStore) -> void:
-	if _store != next_store:
-		if _store != null and _store.has_signal("action_dispatched"):
-			if _store.action_dispatched.is_connected(_on_action_dispatched):
-				_store.action_dispatched.disconnect(_on_action_dispatched)
-		_store_action_connected = false
-		_store = next_store
-
-	_ensure_store_action_signal_connection()
-
-func _ensure_store_action_signal_connection() -> void:
-	if _store == null:
-		return
-	if not _store.has_signal("action_dispatched"):
-		return
-	if _store.action_dispatched.is_connected(_on_action_dispatched):
-		_store_action_connected = true
-		return
-
-	_store.action_dispatched.connect(_on_action_dispatched)
-	_store_action_connected = true
-
-func _disconnect_store_action_signal() -> void:
-	if not _store_action_connected:
-		return
-	if _store != null and _store.has_signal("action_dispatched"):
-		if _store.action_dispatched.is_connected(_on_action_dispatched):
-			_store.action_dispatched.disconnect(_on_action_dispatched)
-	_store_action_connected = false
 
 func _on_action_dispatched(action: Dictionary) -> void:
 	var action_type: StringName = U_ResourceAccessHelpers.to_string_name(action.get("type", StringName("")))

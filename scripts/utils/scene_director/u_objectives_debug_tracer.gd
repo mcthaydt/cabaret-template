@@ -125,10 +125,10 @@ static func _describe_condition(condition_resource: Resource) -> String:
 	if condition_resource == null:
 		return "<null>"
 	var script_path: String = _resource_script_path(condition_resource)
-	var field_path: String = String(U_ResourceAccessHelpers.resource_get(condition_resource, "field_path", ""))
-	var state_path: String = String(U_ResourceAccessHelpers.resource_get(condition_resource, "state_path", ""))
-	var match_mode: String = String(U_ResourceAccessHelpers.resource_get(condition_resource, "match_mode", ""))
-	var match_value_string: String = String(U_ResourceAccessHelpers.resource_get(condition_resource, "match_value_string", ""))
+	var field_path: String = str(U_ResourceAccessHelpers.resource_get(condition_resource, "field_path", ""))
+	var state_path: String = str(U_ResourceAccessHelpers.resource_get(condition_resource, "state_path", ""))
+	var match_mode: String = str(U_ResourceAccessHelpers.resource_get(condition_resource, "match_mode", ""))
+	var match_value_string: String = str(U_ResourceAccessHelpers.resource_get(condition_resource, "match_value_string", ""))
 	return "%s field_path=%s state_path=%s match_mode=%s match_value=%s" % [
 		script_path,
 		field_path,

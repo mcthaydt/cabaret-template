@@ -273,5 +273,109 @@ func test_post_processing_preset_medium_applies_current_defaults() -> void:
 	assert_eq(reduced.get("crt_chromatic_aberration"), 0.001, "Should apply medium aberration")
 	assert_eq(reduced.get("dither_intensity"), 1.0, "Should apply medium dither intensity")
 
+# --- Cinema Grade: ACTION_SET_PARAMETER ---
+
+# Test 29: set_parameter filter_preset maps string to numeric mode and stores preset name
+func test_set_parameter_filter_preset_dramatic_maps_to_mode_1() -> void:
+	var state := _make_display_state()
+	var action := U_CinemaGradeActions.set_parameter("filter_preset", "dramatic")
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	assert_eq(reduced.get("cinema_grade_filter_mode"), 1, "dramatic maps to mode 1")
+	assert_eq(reduced.get("cinema_grade_filter_preset"), "dramatic", "preset name stored")
+
+# Test 30: set_parameter filter_preset vivid_cold maps to mode 6
+func test_set_parameter_filter_preset_vivid_cold_maps_to_mode_6() -> void:
+	var state := _make_display_state()
+	var action := U_CinemaGradeActions.set_parameter("filter_preset", "vivid_cold")
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	assert_eq(reduced.get("cinema_grade_filter_mode"), 6, "vivid_cold maps to mode 6")
+	assert_eq(reduced.get("cinema_grade_filter_preset"), "vivid_cold")
+
+# Test 31: set_parameter filter_preset none maps to mode 0
+func test_set_parameter_filter_preset_none_maps_to_mode_0() -> void:
+	var state := _make_display_state()
+	var action := U_CinemaGradeActions.set_parameter("filter_preset", "none")
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	assert_eq(reduced.get("cinema_grade_filter_mode"), 0, "none maps to mode 0")
+	assert_eq(reduced.get("cinema_grade_filter_preset"), "none")
+
+# Test 32: set_parameter unknown filter_preset falls back to mode 0
+func test_set_parameter_unknown_filter_preset_falls_back_to_mode_0() -> void:
+	var state := _make_display_state()
+	var action := U_CinemaGradeActions.set_parameter("filter_preset", "not_a_preset")
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	assert_eq(reduced.get("cinema_grade_filter_mode"), 0, "unknown preset falls back to mode 0")
+	assert_eq(reduced.get("cinema_grade_filter_preset"), "not_a_preset", "preset name still stored")
+
+# Test 33: set_parameter filter_intensity stores value directly as cinema_grade_filter_intensity
+func test_set_parameter_filter_intensity_stores_value() -> void:
+	var state := _make_display_state()
+	var action := U_CinemaGradeActions.set_parameter("filter_intensity", 0.75)
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	assert_almost_eq(float(reduced.get("cinema_grade_filter_intensity", 0.0)), 0.75, 0.0001)
+
+# Test 34: set_parameter generic param is stored under cinema_grade_ prefixed key
+func test_set_parameter_generic_param_stores_as_cinema_grade_key() -> void:
+	var state := _make_display_state()
+	var action := U_CinemaGradeActions.set_parameter("exposure", 0.5)
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	assert_almost_eq(float(reduced.get("cinema_grade_exposure", 0.0)), 0.5, 0.0001)
+
+# Test 35: set_parameter empty param_name returns null
+func test_set_parameter_empty_param_name_returns_null() -> void:
+	var state := _make_display_state()
+	var action := U_CinemaGradeActions.set_parameter("", 1.0)
+	var reduced: Variant = U_DisplayReducer.reduce(state, action)
+
+	assert_null(reduced, "Empty param_name should return null")
+
+# --- Cinema Grade: ACTION_RESET_TO_SCENE_DEFAULTS ---
+
+# Test 36: reset_to_scene_defaults applies cinema_grade_ prefixed keys from payload
+func test_reset_to_scene_defaults_applies_cinema_grade_keys() -> void:
+	var state := _make_display_state()
+	var grade_dict := {
+		"cinema_grade_exposure": -0.2,
+		"cinema_grade_contrast": 1.1,
+		"cinema_grade_saturation": 0.9,
+	}
+	var action := U_CinemaGradeActions.reset_to_scene_defaults(grade_dict)
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	assert_almost_eq(float(reduced.get("cinema_grade_exposure", 0.0)), -0.2, 0.0001)
+	assert_almost_eq(float(reduced.get("cinema_grade_contrast", 0.0)), 1.1, 0.0001)
+	assert_almost_eq(float(reduced.get("cinema_grade_saturation", 0.0)), 0.9, 0.0001)
+
+# Test 37: reset_to_scene_defaults ignores keys without cinema_grade_ prefix
+func test_reset_to_scene_defaults_ignores_non_cinema_grade_keys() -> void:
+	var state := _make_display_state()
+	var grade_dict := {
+		"cinema_grade_exposure": 0.3,
+		"window_size_preset": "640x480",
+	}
+	var action := U_CinemaGradeActions.reset_to_scene_defaults(grade_dict)
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	assert_almost_eq(float(reduced.get("cinema_grade_exposure", 0.0)), 0.3, 0.0001)
+	assert_eq(
+		reduced.get("window_size_preset"),
+		state.get("window_size_preset"),
+		"Non-cinema_grade key should be ignored"
+	)
+
+# Test 38: reset_to_scene_defaults with empty payload returns null
+func test_reset_to_scene_defaults_empty_payload_returns_null() -> void:
+	var state := _make_display_state()
+	var action := U_CinemaGradeActions.reset_to_scene_defaults({})
+	var reduced: Variant = U_DisplayReducer.reduce(state, action)
+
+	assert_null(reduced, "Empty grade dict should return null")
+
 func _make_display_state() -> Dictionary:
 	return U_DisplayReducer.get_default_display_state()

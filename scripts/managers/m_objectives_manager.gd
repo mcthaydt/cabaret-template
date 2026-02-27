@@ -2,8 +2,6 @@
 extends I_ObjectivesManager
 class_name M_ObjectivesManager
 
-const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_OBJECTIVE_GRAPH := preload("res://scripts/utils/scene_director/u_objective_graph.gd")
@@ -15,7 +13,6 @@ const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_
 const RS_OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
 const U_OBJECTIVES_DEBUG_TRACER := preload("res://scripts/utils/scene_director/u_objectives_debug_tracer.gd")
 
-const STORE_SERVICE_NAME := StringName("state_store")
 const STATUS_INACTIVE := "inactive"
 const STATUS_ACTIVE := "active"
 const STATUS_COMPLETED := "completed"
@@ -24,17 +21,18 @@ const STATUS_FAILED := "failed"
 @export var state_store: I_StateStore = null
 @export var objective_sets: Array[Resource] = []
 
-var _store: I_StateStore = null
+var _store: I_StateStore:
+	get: return _binder.store
+var _binder: U_StoreActionBinder = U_StoreActionBinder.new()
 var _objective_sets_by_id: Dictionary = {}
 var _objectives_by_id: Dictionary = {}
 var _objective_graph: Dictionary = {}
 var _event_unsubscribes: Array[Callable] = []
-var _store_action_connected: bool = false
 
 func _ready() -> void:
 	U_OBJECTIVES_DEBUG_TRACER.emit_startup_signature(objective_sets, get_script().resource_path)
 	U_OBJECTIVES_DEBUG_TRACER.log_config_snapshot(objective_sets)
-	_resolve_store()
+	_binder.resolve(state_store, self, _on_action_dispatched)
 	_index_objective_sets()
 	_subscribe_events()
 
@@ -47,7 +45,7 @@ func _ready() -> void:
 		load_objective_set(set_id)
 
 func _exit_tree() -> void:
-	_disconnect_store_action_signal()
+	_binder.disconnect_signal(_on_action_dispatched)
 	for unsubscribe in _event_unsubscribes:
 		if unsubscribe.is_valid():
 			unsubscribe.call()
@@ -63,7 +61,7 @@ func _load_objective_set_internal(set_id: StringName, reconcile_persisted_status
 	if set_id == StringName(""):
 		return false
 
-	_resolve_store()
+	_binder.resolve(state_store, self, _on_action_dispatched)
 	_index_objective_sets()
 
 	var objective_set: Resource = _objective_sets_by_id.get(set_id, null) as Resource
@@ -274,14 +272,14 @@ func _activate_dependents(objective_id: StringName) -> void:
 		_activate_objective(dependent_id, {"dependency_id": objective_id})
 
 func get_objective_status(objective_id: StringName) -> String:
-	_resolve_store()
+	_binder.resolve(state_store, self, _on_action_dispatched)
 	if _store == null:
 		return STATUS_INACTIVE
 	var state: Dictionary = _store.get_state()
 	return U_OBJECTIVES_SELECTORS.get_objective_status(state, objective_id)
 
 func _build_context() -> Dictionary:
-	_resolve_store()
+	_binder.resolve(state_store, self, _on_action_dispatched)
 	var redux_state: Dictionary = {}
 	if _store != null:
 		redux_state = _store.get_state()
@@ -295,30 +293,6 @@ func _build_event_context(event_payload: Dictionary) -> Dictionary:
 	var context: Dictionary = _build_context()
 	context["event_payload"] = event_payload.duplicate(true)
 	return context
-
-func _resolve_store() -> void:
-	var resolved_store: I_StateStore = null
-
-	if state_store != null and is_instance_valid(state_store):
-		resolved_store = state_store
-	elif _store != null and is_instance_valid(_store):
-		resolved_store = _store
-	else:
-		resolved_store = U_STATE_UTILS.try_get_store(self)
-		if resolved_store == null:
-			resolved_store = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
-
-	_set_store_reference(resolved_store)
-
-func _set_store_reference(next_store: I_StateStore) -> void:
-	if _store != next_store:
-		if _store != null and _store.has_signal("action_dispatched"):
-			if _store.action_dispatched.is_connected(_on_action_dispatched):
-				_store.action_dispatched.disconnect(_on_action_dispatched)
-		_store_action_connected = false
-		_store = next_store
-
-	_ensure_store_action_signal_connection()
 
 func _index_objective_sets() -> void:
 	_objective_sets_by_id.clear()
@@ -341,27 +315,7 @@ func _subscribe_events() -> void:
 		U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, _on_victory_executed)
 	)
 
-	_ensure_store_action_signal_connection()
-
-func _ensure_store_action_signal_connection() -> void:
-	if _store == null:
-		return
-	if not _store.has_signal("action_dispatched"):
-		return
-	if _store.action_dispatched.is_connected(_on_action_dispatched):
-		_store_action_connected = true
-		return
-
-	_store.action_dispatched.connect(_on_action_dispatched)
-	_store_action_connected = true
-
-func _disconnect_store_action_signal() -> void:
-	if not _store_action_connected:
-		return
-	if _store != null and _store.has_signal("action_dispatched"):
-		if _store.action_dispatched.is_connected(_on_action_dispatched):
-			_store.action_dispatched.disconnect(_on_action_dispatched)
-	_store_action_connected = false
+	_binder.ensure_connection(_on_action_dispatched)
 
 func _on_checkpoint_activated(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
