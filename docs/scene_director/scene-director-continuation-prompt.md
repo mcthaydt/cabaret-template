@@ -7,11 +7,11 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 ## Current Status
 
 **Phase**: Phase 9 complete -- QB composite conditions + scene-director branch/fork-join shipped
-**Branch**: scene-director
+**Branch**: main (merged; cleanup-v6 in progress)
 **Next Task**: No pending Scene Director implementation tasks (maintain regression coverage as adjacent systems change)
 **Prerequisite**: QB v2 must be complete before starting (v2 typed resources are required)
 
-**Latest Verification**: 2026-02-26 -- `tests/unit/qb` (149/149), `tests/unit/scene_director` (95/95), `tests/integration/scene_director` (4/4), `tests/unit/style` (12/12).
+**Latest Verification**: 2026-02-26 (cleanup-v6) -- `tests/unit/qb` (151/151), `tests/unit/scene_director` (97/97), `tests/integration/scene_director` (4/4), `tests/unit/style` (12/12).
 **Phase 9 note**: QB rules now support nested `RS_ConditionComposite` (`ALL`/`ANY`, max depth 8), and scene-director beats now support branch/failure routing plus single-hop parallel fork/join (`parallel_beat_ids` + `parallel_join_beat_id`).
 **Integration note**: Default gameplay intro beats publish both instrumentation events (`scene_director_intro_beat_1/2`) and player-facing `signpost_message` payloads (`hud.scene_director_intro_beat_1/2`) consumed by HUD/mobile signpost flows.
 **Reset-run note**: Victory Continue now dispatches `run/reset`; `M_RunCoordinator` orchestrates gameplay reset, interact unblock, objectives fresh reset (`reset_for_new_run`), and retry to `alleyway`.

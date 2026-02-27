@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 43% (35 / 81 tasks complete)
+**Progress:** ~91% (84 / 92 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -36,7 +36,6 @@ Before starting Phase 0, verify:
   - Test `vsync_enabled` field exists with default `true`
   - Test `quality_preset` field exists with default `"high"`
   - Test film grain fields (`film_grain_enabled`, `film_grain_intensity`)
-  - Test outline fields (`outline_enabled`, `outline_thickness`, `outline_color`)
   - Test dither fields (`dither_enabled`, `dither_intensity`, `dither_pattern`)
   - Test `ui_scale` field exists with default `1.0`
   - Test accessibility fields (`color_blind_mode`, `high_contrast_enabled`, `color_blind_shader_enabled`)
@@ -68,9 +67,6 @@ Before starting Phase 0, verify:
   - Test `set_quality_preset(preset)` action structure
   - Test `set_film_grain_enabled(enabled)` action structure
   - Test `set_film_grain_intensity(intensity)` action structure
-  - Test `set_outline_enabled(enabled)` action structure
-  - Test `set_outline_thickness(thickness)` action structure
-  - Test `set_outline_color(color)` action structure
   - Test `set_dither_enabled(enabled)` action structure
   - Test `set_dither_intensity(intensity)` action structure
   - Test `set_dither_pattern(pattern)` action structure
@@ -603,12 +599,13 @@ Before starting Phase 0, verify:
   - Document current phase, completed tasks, next steps
   - Update after each phase completion
 
-- [ ] **Task 9.2**: Update AGENTS.md
+- [x] **Task 9.2**: Update AGENTS.md
   - Add "Display Manager Patterns" section (after Audio Manager section)
   - Document hash-based optimization pattern
   - Document preview mode pattern
   - Document ServiceLocator registration
   - Add anti-patterns section
+  - Notes: Completed (AGENTS.md has "Display Manager Patterns (Phase 11 Complete)" section at line ~1051)
 
 - [ ] **Task 9.3**: Update DEV_PITFALLS.md if applicable
   - Add Display-specific pitfalls discovered during implementation
@@ -791,7 +788,6 @@ Before starting Phase 0, verify:
 | `scripts/managers/helpers/u_palette_manager.gd` | Helper | Color blind palette management |
 | `scripts/utils/display/u_display_utils.gd` | Utility | Display manager lookup helper |
 | `scripts/resources/display/rs_quality_preset.gd` | Resource | Quality preset definition |
-| `scripts/resources/display/rs_lut_definition.gd` | Resource | LUT definition |
 | `scripts/resources/ui/rs_ui_color_palette.gd` | Resource | Color palette definition |
 | `resources/display/cfg_quality_presets/cfg_quality_low.tres` | Instance | Low quality preset |
 | `resources/display/cfg_quality_presets/cfg_quality_medium.tres` | Instance | Medium quality preset |
@@ -804,17 +800,10 @@ Before starting Phase 0, verify:
 | `resources/ui_themes/cfg_palette_high_contrast.tres` | Instance | High contrast palette |
 | `assets/shaders/sh_film_grain_shader.gdshader` | Shader | Film grain effect |
 | `assets/shaders/sh_crt_shader.gdshader` | Shader | CRT filter effect |
-| `assets/shaders/sh_outline_shader.gdshader` | Shader | Outline effect (not currently wired) |
+| `assets/shaders/sh_outline_shader.gdshader` | Shader | Outline effect (created but not wired to state) |
 | `assets/shaders/sh_dither_shader.gdshader` | Shader | Dither effect |
-| `assets/shaders/sh_lut_shader.gdshader` | Shader | LUT color grading |
 | `assets/shaders/sh_colorblind_daltonize.gdshader` | Shader | Color blind simulation |
 | `resources/textures/tex_bayer_8x8.png` | Texture | Bayer dither pattern |
-| `resources/luts/cfg_lut_neutral.tres` | Instance | Neutral LUT definition |
-| `resources/luts/cfg_lut_warm.tres` | Instance | Warm LUT definition |
-| `resources/luts/cfg_lut_cool.tres` | Instance | Cool LUT definition |
-| `resources/luts/tex_lut_neutral.png` | Texture | Neutral LUT texture |
-| `resources/luts/tex_lut_warm.png` | Texture | Warm LUT texture |
-| `resources/luts/tex_lut_cool.png` | Texture | Cool LUT texture |
 | `scenes/ui/overlays/ui_post_process_overlay.tscn` | Scene | Post-process overlay (instanced in GameViewport) |
 | `scenes/ui/overlays/settings/ui_display_settings_tab.tscn` | Scene | Display settings UI tab |
 | `scenes/ui/overlays/settings/ui_display_settings_overlay.tscn` | Scene | Display settings overlay wrapper |
