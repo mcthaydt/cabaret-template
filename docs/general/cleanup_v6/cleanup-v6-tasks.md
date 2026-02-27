@@ -274,13 +274,21 @@
 
 ## Phase 12 — Final Validation
 
-- [ ] Run full style suite: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
-- [ ] Run full QB suite: `tools/run_gut_suite.sh -gdir=res://tests/unit/qb -ginclude_subdirs=true`
-- [ ] Run full Scene Director suite: `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true`
-- [ ] Run Scene Director integration: `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true`
-- [ ] Run display suites: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` and `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true`
-- [ ] Run headless import: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
-- [ ] Record final status in continuation prompt.
+- [x] Run full style suite: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
+  - 12/12 passed.
+- [x] Run full QB suite: `tools/run_gut_suite.sh -gdir=res://tests/unit/qb -ginclude_subdirs=true`
+  - 151/151 passed.
+- [x] Run full Scene Director suite: `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_director -ginclude_subdirs=true`
+  - 97/97 passed.
+- [x] Run Scene Director integration: `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_director -ginclude_subdirs=true`
+  - 4/4 passed.
+- [x] Run display suites: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` and `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true`
+  - 414/414 unit/managers passed.
+  - 51/52 integration/display passed (1 pending pre-existing: `test_ui_color_blind_layer_has_higher_layer_than_ui_overlay`).
+- [x] Run headless import: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
+  - Pass. Non-failing ObjectDB leak warning at exit (known, pre-existing).
+- [x] Record final status in continuation prompt.
+  - All suites green. cleanup_v6 complete. Run date: 2026-02-26.
 
 ## Notes
 

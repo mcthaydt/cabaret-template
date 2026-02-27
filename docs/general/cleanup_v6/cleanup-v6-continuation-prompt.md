@@ -2,8 +2,8 @@
 
 ## Current Status
 
-- Phase: Phase 11 complete (cinema grading test coverage); next: Phase 12 final validation.
-- Branch: `cleanup-v6` (25 commits ahead of main).
+- Phase: **COMPLETE** — all 12 phases done. Branch ready to merge to main.
+- Branch: `cleanup-v6` (27 commits ahead of main).
 - Working tree: clean.
 
 ## Context
@@ -253,6 +253,22 @@ All of this code needs to be brought up to the quality bar established by cleanu
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (414/414 passed)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (51/52 passed, 1 pending pre-existing)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (12/12 passed)
+
+## Phase 12 Results (2026-02-26)
+
+Final validation run — all suites green:
+
+| Suite | Result |
+|---|---|
+| Style (`tests/unit/style`) | 12/12 passed |
+| QB (`tests/unit/qb`) | 151/151 passed |
+| Scene Director unit (`tests/unit/scene_director`) | 97/97 passed |
+| Scene Director integration (`tests/integration/scene_director`) | 4/4 passed |
+| Unit managers (`tests/unit/managers`) | 414/414 passed |
+| Integration display (`tests/integration/display`) | 51/52 passed, 1 pending (pre-existing) |
+| Headless import | pass (non-failing ObjectDB leak at exit) |
+
+cleanup_v6 is complete. All goals achieved — duck typing removed, interfaces added, naming violations fixed, dead code removed, shared utilities extracted, style enforcement expanded, initial state resources wired, stale docs cleaned, and cinema grading test coverage added.
 
 ## Notes / Pitfalls
 
