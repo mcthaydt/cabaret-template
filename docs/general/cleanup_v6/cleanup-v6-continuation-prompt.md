@@ -2,7 +2,7 @@
 
 ## Current Status
 
-- Phase: **14 — Deferred Items** (Phases 0–12 complete; Phase 13 in progress; Phase 14 defined).
+- Phase: **14 — Deferred Items** (Phases 0–13 complete; Phase 14 defined).
 - Branch: `cleanup-v6`.
 - Working tree: clean.
 - Next step: Phase 14A (I_Condition / I_Effect interfaces).
@@ -271,17 +271,59 @@ Final validation run — all suites green:
 
 cleanup_v6 is complete. All goals achieved — duck typing removed, interfaces added, naming violations fixed, dead code removed, shared utilities extracted, style enforcement expanded, initial state resources wired, stale docs cleaned, and cinema grading test coverage added.
 
-## Phase 13 Results (in progress)
+## Phase 13 Results (2026-02-27)
 
-- Phase 13 is currently in progress. Results will be recorded here upon completion.
+### 13A — Stale Documentation Fixes
+
+- Fixed AGENTS.md: `m_run_coordinator.gd` → `m_run_coordinator_manager.gd` (line 31).
+- Annotated resolved Notes/Pitfalls items with their resolution phases; removed open-item framing.
+
+### 13B — Cinema Grade Reducer Test Coverage
+
+- Added Tests 29–38 to `tests/unit/state/test_display_reducer.gd`:
+  - `ACTION_SET_PARAMETER`: dramatic→mode 1, vivid_cold→mode 6, none→mode 0, unknown→mode 0 fallback, filter_intensity direct store, generic param as `cinema_grade_` key, empty param_name returns null.
+  - `ACTION_RESET_TO_SCENE_DEFAULTS`: cinema_grade_ keys applied, non-cinema_grade keys ignored, empty payload returns null.
+- State suite: 375/375 passed (+10 from baseline 365).
+
+### 13C — Broader `String()` → `str()` Audit
+
+- Audited 80 files with `String(` calls. Findings:
+  - Vast majority are `String(StringName)`, `String(int)`, `String(NodePath)` — all legitimate.
+  - One clear v6-scope violation: `u_objectives_debug_tracer.gd:128–131` called `String(resource_get(...))` where `resource_get` returns `Variant`. Fixed to `str(...)`.
+  - Pre-existing patterns in save manager, input reducer, HUD controller, etc. are out of v6 scope.
+
+### 13D — Store Resolver Duplication
+
+- Created `scripts/utils/scene_director/u_store_action_binder.gd` (`U_StoreActionBinder extends RefCounted`).
+  - Methods: `resolve(exported_store, owner_node, callback)`, `ensure_connection(callback)`, `disconnect_signal(callback)`, `_set_store(next_store, callback)`.
+  - Contains `STORE_SERVICE_NAME`, `U_SERVICE_LOCATOR`, `U_STATE_UTILS` (removed from both managers).
+- Both managers updated: `var _store` → getter property, `var _store_action_connected` → removed, 4 private methods → removed, call sites → binder calls.
+
+### 13E — Final Validation
+
+| Suite | Result |
+|---|---|
+| Style (`tests/unit/style`) | 12/12 passed |
+| QB (`tests/unit/qb`) | 151/151 passed |
+| Scene Director unit | 97/97 passed |
+| Scene Director integration | 4/4 passed |
+| Unit managers | 414/414 passed |
+| State unit | 375/375 passed |
+| Integration display | 51/52 passed, 1 pending (pre-existing) |
+| Headless import | pass (non-failing ObjectDB leak at exit) |
+
+Implementation commit: `b888ba27`.
 
 ## Notes / Pitfalls
 
 - After moving `.tscn` or `class_name` scripts, run a headless import to refresh UID/script caches:
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
-- `RuleStateTracker` class name in `u_rule_state_tracker.gd` — confirmed: rename to `U_RuleStateTracker` and update AGENTS.md.
-- Hardcoded game-specific IDs (`"bar_complete"`, `"final_complete"`, `"alleyway"`, `"bar"`) exist in template managers — flag for extraction but may be deferred if game-specific config system is not yet designed.
-- `rs_display_initial_state.gd` has `@export_enum("bayer", "blue_noise")` but catalog uses ID `"noise"` — potential mismatch to verify.
-- Missing initial state `.tres` for objectives and scene director slices — other slices all have wired resources in `root.tscn`, these two fall through to `== null` code path.
-- `scripts/core/` exists and is tested but not listed in STYLE_GUIDE.md directory tree.
-- `tmpl_*.tscn` prefix is established but not in STYLE_GUIDE.md scene naming table.
+- Hardcoded game-specific IDs (`"bar_complete"`, `"final_complete"`, `"alleyway"`, `"bar"`) exist in template managers — deferred to Phase 14B (`RS_GameConfig` resource).
+
+Previously open items now resolved:
+
+- `RuleStateTracker` → `U_RuleStateTracker` (Phase 3A).
+- `rs_display_initial_state.gd` dither enum mismatch (`"blue_noise"` → `"noise"`) (Phase 6).
+- Missing initial state `.tres` for objectives/scene director slices (Phase 8).
+- `scripts/core/` not in STYLE_GUIDE.md directory tree (Phase 3C).
+- `tmpl_*.tscn` prefix not in STYLE_GUIDE.md scene naming table (Phase 3C).
