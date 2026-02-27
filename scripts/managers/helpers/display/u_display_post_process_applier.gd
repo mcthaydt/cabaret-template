@@ -146,7 +146,7 @@ func _setup_post_process_overlay() -> void:
 		_post_process_layer.initialize(_post_process_overlay)
 		return
 
-	var tree := _get_tree()
+	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
 	if tree == null or tree.root == null:
 		return
 
@@ -189,16 +189,8 @@ func _get_color_blind_mode_value(mode: String) -> int:
 			return 3
 	return 0
 
-func _get_tree() -> SceneTree:
-	if _owner != null:
-		return _owner.get_tree()
-	var main_loop := Engine.get_main_loop()
-	if main_loop is SceneTree:
-		return main_loop as SceneTree
-	return null
-
 func _setup_ui_color_blind_layer() -> void:
-	var tree := _get_tree()
+	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
 	if tree == null or tree.root == null:
 		push_warning("U_DisplayPostProcessApplier: Cannot setup UI color blind layer, tree/root not available")
 		return
