@@ -110,10 +110,30 @@ func _execute_fade_transition(effect: Trans_Fade, overlay: CanvasLayer, scene_sw
 			complete.call()
 		return
 
-	# Execute fade-out and wait for completion
-	var fade_out_signal := effect.execute_fade_out(overlay)
-	if fade_out_signal != null:
-		await fade_out_signal
+	# Check if the overlay was already snapped to fully opaque (e.g. by endgame
+	# UI calling _hide_immediately()). If so, skip fade-out and only fade in.
+	var already_black := false
+	var color_rect: ColorRect = null
+	for child in overlay.get_children():
+		if child is ColorRect and child.name == "TransitionColorRect":
+			color_rect = child as ColorRect
+			break
+	if color_rect != null and is_equal_approx(color_rect.modulate.a, 1.0):
+		already_black = true
+		# Ensure process modes are set so fade-in tween can run during pause
+		overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+		color_rect.process_mode = Node.PROCESS_MODE_ALWAYS
+		# Cache the original mouse filter so execute_fade_in restores it correctly
+		effect._mouse_filter_cache[color_rect] = int(color_rect.mouse_filter)
+		color_rect.mouse_filter = Control.MOUSE_FILTER_STOP
+		# Since fade-out is skipped, use a longer duration for a smooth fade-in
+		effect.duration = 1.0
+
+	if not already_black:
+		# Execute fade-out and wait for completion
+		var fade_out_signal := effect.execute_fade_out(overlay)
+		if fade_out_signal != null:
+			await fade_out_signal
 
 	# Execute async scene swap
 	await scene_swap.call()

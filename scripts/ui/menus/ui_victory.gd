@@ -109,17 +109,36 @@ func _localize_labels() -> void:
 
 func _on_continue_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
+	_hide_immediately()
 	_dispatch_run_reset(StringName("retry_alleyway"))
 
 func _on_credits_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
+	_hide_immediately()
 	_reset_game_progress()
 	_dispatch_navigation(U_NavigationActions.skip_to_credits())
 
 func _on_menu_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
+	_hide_immediately()
 	_reset_game_progress()
 	_dispatch_navigation(U_NavigationActions.return_to_main_menu())
+
+func _hide_immediately() -> void:
+	visible = false
+	# Snap the transition overlay to fully opaque so the screen goes black
+	# instantly. Trans_Fade.execute_fade_out will detect alpha == 1.0 and
+	# skip the fade-out animation, giving a clean cut-to-black → fade-in.
+	var tree := get_tree()
+	if tree == null:
+		return
+	var overlay := tree.root.find_child("TransitionOverlay", true, false) as CanvasLayer
+	if overlay == null:
+		return
+	for child in overlay.get_children():
+		if child is ColorRect and child.name == "TransitionColorRect":
+			(child as ColorRect).modulate.a = 1.0
+			break
 
 func _on_back_pressed() -> void:
 	_on_credits_pressed()

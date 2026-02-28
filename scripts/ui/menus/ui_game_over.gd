@@ -85,13 +85,28 @@ func _localize_labels() -> void:
 
 func _on_retry_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
+	_hide_immediately()
 	_dispatch_soft_reset()
 	_dispatch_navigation(U_NavigationActions.retry())
 
 func _on_menu_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
+	_hide_immediately()
 	_dispatch_soft_reset()
 	_dispatch_navigation(U_NavigationActions.return_to_main_menu())
+
+func _hide_immediately() -> void:
+	visible = false
+	var tree := get_tree()
+	if tree == null:
+		return
+	var overlay := tree.root.find_child("TransitionOverlay", true, false) as CanvasLayer
+	if overlay == null:
+		return
+	for child in overlay.get_children():
+		if child is ColorRect and child.name == "TransitionColorRect":
+			(child as ColorRect).modulate.a = 1.0
+			break
 
 func _on_back_pressed() -> void:
 	_on_retry_pressed()

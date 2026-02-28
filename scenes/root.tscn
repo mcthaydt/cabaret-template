@@ -156,6 +156,7 @@ process_mode = 3
 layer = 10
 
 [node name="TransitionOverlay" type="CanvasLayer" parent="." unique_id=1366387080]
+layer = 50
 
 [node name="TransitionColorRect" type="ColorRect" parent="TransitionOverlay" unique_id=1316465376]
 modulate = Color(1, 1, 1, 0)
