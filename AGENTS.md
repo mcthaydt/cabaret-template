@@ -99,7 +99,7 @@
   - `S_GameEventSystem` evaluates event/both rules on subscribed ECS events and supports optional global tick evaluation for tick/both rules.
   - Event-forwarding publish effects merge incoming event payload into the outgoing payload, then apply configured payload overrides and `entity_id` injection.
   - `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates required payload (`checkpoint`, `spawn_point_id`), dispatches `set_last_checkpoint`, and publishes `Evn_CheckpointActivated`.
-  - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `@export var required_final_area: String = "bar"` for game-complete triggers, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED` for post-validation scene transitions.
+  - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `game_config.required_final_area` (from `RS_GameConfig`) for game-complete triggers, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED` for post-validation scene transitions.
   - Gameplay flows use `S_GameEventSystem` + handler systems end-to-end; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from the codebase, and active tests target QB-handler flow.
 - QB Rule Engine v2 patterns (Phase 5 complete)
   - The rule engine is a stateless library: `U_RuleScorer.score_rules(...)` + `U_RuleSelector.select_winners(...)`; systems compose these utilities instead of inheriting a QB base class.

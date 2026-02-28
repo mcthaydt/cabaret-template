@@ -103,7 +103,7 @@ func test_required_final_area_export_is_configurable() -> void:
 	var store: MockStateStore = fixture["store"] as MockStateStore
 	var trigger := _create_trigger()
 	trigger.victory_type = C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE
-	system.required_final_area = "theater"
+	system.game_config.required_final_area = "theater"
 
 	store.set_slice(StringName("gameplay"), {"completed_areas": ["bar"]})
 	U_ECSEventBus.publish(U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED, {

@@ -16,3 +16,6 @@ class_name RS_GameConfig
 
 ## Objective set ID loaded at the start of a new run.
 @export var default_objective_set_id: StringName = StringName("default_progression")
+
+## Area ID that must be in completed_areas before GAME_COMPLETE victory can fire.
+@export var required_final_area: String = "bar"

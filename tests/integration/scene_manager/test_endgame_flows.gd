@@ -200,7 +200,7 @@ func _prepare_victory_system() -> Dictionary:
 
 	var victory_handler_system := VICTORY_HANDLER_SYSTEM.new()
 	victory_handler_system.name = "S_VictoryHandlerSystem"
-	victory_handler_system.required_final_area = "interior_house"
+	victory_handler_system.game_config.required_final_area = "interior_house"
 	_systems_core.add_child(victory_handler_system)
 
 	await wait_physics_frames(2)
