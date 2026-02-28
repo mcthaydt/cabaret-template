@@ -3,9 +3,21 @@
 ## Current Status
 
 - Phase: **Not started** (pre-implementation).
-- Branch: `UI-Looksmaxxing` (or create a dedicated branch).
-- Working tree: has uncommitted changes in `u_damage_flash.gd` and `m_vfx_manager.gd`.
+- Branch: `UI-Looksmaxxing`.
+- Working tree: clean.
 - Next step: Phase 0 — Baseline & Inventory.
+
+### Ad-Hoc Fixes Already on Branch
+
+Several commits on `UI-Looksmaxxing` introduced visual fixes **outside** this refactor's phased plan. These work but introduce patterns the refactor must clean up:
+
+| Commit | What it did | Anti-patterns introduced |
+|--------|-------------|------------------------|
+| `db570323` (fade-in transition) | Endgame screens snap TransitionOverlay to opaque via `_hide_immediately()`, orchestrator detects `already_black` and skips fade-out | `find_child("TransitionOverlay")` in `ui_game_over.gd` and `ui_victory.gd`; orchestrator iterates overlay children by name to read `TransitionColorRect` alpha; orchestrator mutates `effect.duration` directly |
+| `02ed9612` (remove red flash from menus) | `M_VfxManager` subscribes to Redux state, calls `cancel_flash()` when shell leaves gameplay | Good pattern (Redux subscription) — reference as precedent in Phase 5. `cancel_flash()` is new on `U_DamageFlash` and must be accounted for in Phase 3 tween unification |
+| `db570323` (root.tscn) | TransitionOverlay explicitly set to `layer = 50` | Correct value per target layer stack, but done without `U_CanvasLayers` constant — Phase 1 should reference this as already done |
+
+**Key concern:** `_hide_immediately()` is copy-pasted identically in both `ui_game_over.gd:98-108` and `ui_victory.gd:127-137`. Both use `tree.root.find_child()` and directly manipulate overlay internals. Phase 4 must migrate these to ServiceLocator, and Phase 4/5 should consider whether this logic belongs in the transition system rather than individual menu screens.
 
 ## Context
 
@@ -69,6 +81,8 @@ The UI layer stack, scene transitions, VFX overlays, and HUD management have gro
 | `scenes/ui/overlays/ui_post_process_overlay.tscn` | Post-process CanvasLayers (layers 2-5, inside GameViewport) |
 | `scenes/ui/hud/ui_hud_overlay.tscn` | HUD CanvasLayer |
 | `scenes/templates/tmpl_base_scene.tscn` | Base scene template (remove HUD instance) |
+| `scripts/ui/menus/ui_game_over.gd` | Endgame screen — has `_hide_immediately()` with `find_child()` and overlay manipulation (migrate in Phase 4/5) |
+| `scripts/ui/menus/ui_victory.gd` | Endgame screen — identical `_hide_immediately()` pattern (migrate in Phase 4/5) |
 | `tests/mocks/mock_scene_manager_with_transition.gd` | Mock scene manager (remove HUD mock methods) |
 
 ## Existing Redux Actions (Reference)
@@ -78,19 +92,20 @@ The Redux store already dispatches these relevant actions — no new ones needed
 - **`scene` slice**: Contains `is_transitioning` (bool) — set true during transitions, false on completion.
 - **`navigation` slice**: Contains `shell` (StringName) — `"gameplay"`, `"main_menu"`, etc.
 - `UI_HudController` already subscribes to `slice_updated` and checks `shell` in `_update_health()`. Extend this pattern to toggle the entire HUD's `visible` property.
+- **Precedent:** `M_VfxManager` (commit `02ed9612`) already subscribes to the state store and detects shell changes to cancel the damage flash. This validates the Redux-driven approach and can serve as a reference implementation for Phase 5.
 
 ## Current Layer Stack (Before Refactor)
 
 ```
-Layer   Node                        Purpose
-─────   ──────────────────────────  ────────────────────────
-2-5     PostProcessOverlay          Shaders (inside GameViewport — separate layer space)
+Layer   Node                        Purpose                                        Status
+─────   ──────────────────────────  ────────────────────────                       ──────
+2-5     PostProcessOverlay          Shaders (inside GameViewport — separate space)
 6       HUDLayer                    HUD (reparented at runtime)
 10      UIOverlayStack              Menus/overlays
 11      UIColorBlindLayer           Color blind for UI
-50      TransitionOverlay           Fade-to-black
+50      TransitionOverlay           Fade-to-black                                  ✓ layer=50 set in root.tscn (db570323)
 100     LoadingOverlay              Loading screen
-110     DamageFlashOverlay          Red flash (PROBLEM: above loading)
+110     DamageFlashOverlay          Red flash (PROBLEM: above loading)             ✗ still 110, needs → 90
 ```
 
 ## Target Layer Stack (After Refactor)

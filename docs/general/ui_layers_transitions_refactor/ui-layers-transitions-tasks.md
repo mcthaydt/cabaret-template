@@ -61,6 +61,7 @@
 - [ ] Update `scripts/ui/hud/ui_hud_controller.gd`: replace hardcoded `layer = 6` with `U_CanvasLayers.HUD`.
 - [ ] Update `scripts/managers/helpers/display/u_display_post_process_applier.gd`: UIColorBlindLayer `layer = 11` → `U_CanvasLayers.UI_COLOR_BLIND`.
 - [ ] Verify `scenes/root.tscn` layer values match constants (HUDLayer=6, UIOverlayStack=10, TransitionOverlay=50, LoadingOverlay=100). These are in `.tscn` so can stay as literals but document they must match `U_CanvasLayers`.
+  - **Note:** TransitionOverlay `layer = 50` was already explicitly set in `root.tscn` (commit `db570323`). Verify it matches `U_CanvasLayers.TRANSITION`.
 - [ ] **Note:** Post-process layers (2-5) in `ui_post_process_overlay.tscn` are inside `GameViewport` (different layer space). Keep as `.tscn` literals; the `PP_*` constants are reference documentation only.
 - [ ] Grep for any remaining hardcoded layer assignments and update them.
 - [ ] Update `docs/general/SCENE_ORGANIZATION_GUIDE.md` with the new canonical layer map referencing `U_CanvasLayers`.
@@ -112,6 +113,7 @@
   ```
 - [ ] **Note:** `U_TweenManager.create_transition_tween` calls `set_process_mode` but not `set_pause_mode`. The pause mode (`TWEEN_PAUSE_PROCESS` = runs during pause) is a separate Tween concept. Set it explicitly after creation.
 - [ ] Remove manual tween kill logic if `U_TweenManager` handles it.
+- [ ] Update `cancel_flash()` method (added in commit `02ed9612`) to use `U_TweenManager` for tween cleanup instead of manual `_tween.kill()`. Ensure the instant-clear behavior (`_flash_rect.modulate.a = 0.0`) is preserved.
 
 ### 3B — Update Caller in `m_vfx_manager.gd`
 
@@ -178,7 +180,23 @@
 - [ ] Replace `tree.root.find_child("PostProcessOverlay")` with ServiceLocator lookup using `StringName("post_process_overlay")`.
 - [ ] Use `StringName("game_viewport")` for the fallback instantiation path.
 
-### 4D — Test Considerations
+### 4D — Migrate Endgame Screen `find_child()` Calls
+
+> Added post-documentation: commits `db570323` introduced `_hide_immediately()` in both endgame screens, which use `tree.root.find_child("TransitionOverlay")` and directly manipulate `TransitionColorRect.modulate.a`. This is the exact anti-pattern this phase eliminates.
+
+- [ ] Replace `find_child("TransitionOverlay")` in `scripts/ui/menus/ui_game_over.gd` (`_hide_immediately()`) with ServiceLocator lookup: `U_ServiceLocator.try_get_service(StringName("transition_overlay"))`.
+- [ ] Replace `find_child("TransitionOverlay")` in `scripts/ui/menus/ui_victory.gd` (`_hide_immediately()`) with ServiceLocator lookup.
+- [ ] Consider extracting the duplicated `_hide_immediately()` logic into a shared utility or moving it into the transition system (e.g., a method on `Trans_Fade` or `U_TransitionOrchestrator`) so endgame screens don't need to know overlay internals. Evaluate during implementation — if extraction is too disruptive, ServiceLocator migration alone is acceptable for this phase.
+
+### 4E — Migrate Orchestrator Overlay Introspection
+
+> Added post-documentation: commit `db570323` added `already_black` detection in `u_transition_orchestrator.gd` that iterates `overlay.get_children()` looking for `TransitionColorRect` by name.
+
+- [ ] Evaluate whether the orchestrator's `already_black` detection (iterating overlay children, checking `ColorRect` alpha) should be moved into `Trans_Fade` as a query method (e.g., `is_overlay_opaque(overlay) -> bool`). This would keep overlay-internal knowledge within the transition effect that owns it.
+- [ ] If migrated, update orchestrator to call `effect.is_overlay_opaque(overlay)` instead of doing its own child iteration.
+- [ ] The `effect.duration = 1.0` mutation from the orchestrator should also be evaluated — consider a `Trans_Fade` parameter or method instead of direct field mutation.
+
+### 4F — Test Considerations
 
 - [ ] Tests that previously relied on `find_child()` auto-discovery will need to register their mock nodes in `ServiceLocator` in `before_each`.
 - [ ] `TransitionOverlay` and `LoadingOverlay` already have this pattern — extend it to `ActiveSceneContainer` and `UIOverlayStack`.
@@ -193,6 +211,8 @@
 ### 5A — HUD Subscribes to Redux for Visibility
 
 Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"scene"` slice (line 131-133) and calls `_update_display()`. The `_update_health()` method already hides the health bar when `shell != "gameplay"`.
+
+**Precedent:** `M_VfxManager` (commit `02ed9612`) already subscribes to the state store via `_state_store.subscribe(_on_state_changed)` and detects shell changes to cancel the damage flash. This validates the Redux-driven visibility pattern and can serve as a reference implementation.
 
 - [ ] Add visibility toggle to `_on_slice_updated` or `_update_display`:
   ```gdscript
@@ -304,10 +324,13 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 | `scenes/ui/overlays/ui_damage_flash_overlay.tscn` | 1 | layer 110→90 |
 | `scripts/ui/hud/ui_hud_controller.gd` | 1,5,6 | Use constant, add visibility logic, remove reparent+registration |
 | `scripts/managers/helpers/display/u_display_post_process_applier.gd` | 1,4 | Use constant, ServiceLocator discovery |
-| `scripts/managers/helpers/u_damage_flash.gd` | 2,3 | Remove vestigial field, use U_TweenManager |
+| `scripts/managers/helpers/u_damage_flash.gd` | 2,3 | Remove vestigial field, use U_TweenManager, update `cancel_flash()` |
 | `scripts/managers/m_vfx_manager.gd` | 3 | Update U_DamageFlash construction |
 | `scripts/root.gd` | 4 | Register containers in ServiceLocator |
 | `scripts/scene_management/helpers/u_scene_manager_node_finder.gd` | 4 | ServiceLocator only |
+| `scripts/scene_management/u_transition_orchestrator.gd` | 4E | Migrate `already_black` overlay introspection to `Trans_Fade` query |
+| `scripts/ui/menus/ui_game_over.gd` | 4D | Migrate `_hide_immediately()` from `find_child` to ServiceLocator |
+| `scripts/ui/menus/ui_victory.gd` | 4D | Migrate `_hide_immediately()` from `find_child` to ServiceLocator |
 | `scripts/scene_management/transitions/trans_loading_screen.gd` | 5 | Remove HUD hiding logic |
 | `scripts/managers/m_scene_manager.gd` | 5,6 | Remove HUD registration, add HUD instantiation |
 | `scripts/interfaces/i_scene_manager.gd` | 5 | Remove HUD methods from interface |

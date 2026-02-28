@@ -3,7 +3,7 @@
 ## Current Focus
 
 - Feature / story: UI Visual Overhaul
-- Branch: TBD (create after prerequisite refactor completes)
+- Branch: `UI-Looksmaxxing` (shared with prerequisite refactor)
 - Status summary: **Not started** — documentation phase complete, awaiting "UI, Layers & Transitions Refactor" completion.
 
 ## Recent Progress
@@ -12,9 +12,20 @@
 - Created task checklist (`docs/ui_visual_overhaul/ui-visual-overhaul-tasks.md`)
 - Created this continuation prompt
 
+### Branch State (as of 2026-02-28)
+
+The `UI-Looksmaxxing` branch contains ad-hoc visual polish commits that are **separate from this spec** but affect files this overhaul will touch:
+
+| Commit | Impact on this overhaul |
+|--------|------------------------|
+| `db570323` (fade-in transition) | New endgame screens (`ui_game_over.gd`, `ui_victory.gd`) use inline tweens for hide/show — Phase 3 (Base Class Integration) should evaluate whether these should use `RS_UIMotionSet` for enter/exit animations instead |
+| `02ed9612` (remove red flash from menus) | `M_VfxManager` now has Redux state subscription pattern — validates the approach HUD widgets will use in Phase 4 |
+
+The prerequisite refactor tasks doc now includes additional scope for migrating `find_child()` calls and overlay introspection introduced by these commits. This does not change the Visual Overhaul's scope — the refactor handles cleanup, this overhaul adds polish on top.
+
 ## Context
 
-The template's UI is functionally complete but visually bare. All styling is inline `theme_override_*` per scene (~119 overrides across ~13 `.tscn` files), there is no global Theme resource, no animation/motion system, and the HUD has only 4 widgets. This overhaul adds AAA-quality visual polish without changing any existing functionality.
+The template's UI is functionally complete but visually bare. All styling is inline `theme_override_*` per scene (~130 overrides across ~13 `.tscn` files), there is no global Theme resource, no animation/motion system, and the HUD has only 4 widgets. This overhaul adds AAA-quality visual polish without changing any existing functionality.
 
 ### Key Integration Points
 
@@ -35,7 +46,7 @@ The template's UI is functionally complete but visually bare. All styling is inl
 | Editor tooling | `@tool` scripts following `U_CinemaGradePreview` pattern | `queue_free()` at runtime, `Engine.is_editor_hint()` guards |
 | Color palette | Duel (256-color) from [Lospec](https://lospec.com/palette-list/duel) | Cohesive cinematic aesthetic; 20 semantic tokens mapped to palette hex values (see PRD "Resolved Questions") |
 | Motion chaining | Sequential by default, `parallel` bool for concurrent steps, `interval_sec` for holds | Matches Godot's `Tween` default sequential behavior; existing HUD already chains fade-in → hold → fade-out |
-| Default theme values | Typography (8 sizes), spacing (7 tokens), styleboxes (8 types) documented in PRD | Derived from auditing all ~119 inline `theme_override_*` across `.tscn` files |
+| Default theme values | Typography (8 sizes), spacing (7 tokens), styleboxes (8 types) documented in PRD | Derived from auditing all ~130 inline `theme_override_*` across `.tscn` files |
 | Inline overrides | Stay until Phase 6 migration | They override Theme resource, so migration can happen independently |
 
 ### Color Token Quick Reference
@@ -130,10 +141,11 @@ Phase 2 (Motion) ─┘                                            │
 
 ## Outstanding Risks
 
-- Prerequisite refactor not yet complete — this work cannot begin until it is.
-- Default theme values need to be derived from auditing ~119 inline overrides — tedious but low risk.
+- Prerequisite refactor not yet complete — this work cannot begin until it is. The refactor's scope has grown slightly with new tasks (Phase 4D/4E) for ad-hoc code on the branch.
+- Default theme values documented in PRD "Resolved Questions" — derived from auditing ~130 inline overrides. Low risk.
 - Phase 6 migration (removing inline overrides) could cause subtle visual regressions — mitigated by per-scene before/after comparison.
 - `@tool` scripts must be carefully guarded to avoid runtime side effects — follow `U_CinemaGradePreview` pattern exactly.
+- Endgame screens (`ui_game_over.gd`, `ui_victory.gd`) currently use hardcoded tweens — Phase 3 should evaluate integrating them with the motion framework, but this is optional (they work fine as-is).
 
 ## Process for Completion (Every Phase)
 

@@ -8,7 +8,7 @@
 
 ## Problem Statement
 
-- The template's UI is functionally complete but visually bare: all styling is inline `theme_override_*` per scene (~119 overrides across ~13 `.tscn` files), no global Theme resource, no animation/motion system, and the HUD has only 4 widgets (health bar, checkpoint toast, signpost, interact prompt).
+- The template's UI is functionally complete but visually bare: all styling is inline `theme_override_*` per scene (~130 overrides across ~13 `.tscn` files), no global Theme resource, no animation/motion system, and the HUD has only 4 widgets (health bar, checkpoint toast, signpost, interact prompt).
 - Developers adopting this template get a working UI stack but must build all visual polish from scratch — theming, transitions, HUD modules, and designer tooling. This gap makes the template feel prototype-grade rather than production-ready.
 
 ## Goals
@@ -46,7 +46,7 @@
 
 ## Success Metrics
 
-- All ~119 inline `theme_override_*` values migrated to the global Theme resource (zero remaining in `.tscn` files, except per-element semantic overrides).
+- All ~130 inline `theme_override_*` values migrated to the global Theme resource (zero remaining in `.tscn` files, except per-element semantic overrides).
 - All existing screens animate on enter/exit when a motion set is assigned.
 - 5 new HUD widgets functional and tested with config resources.
 - `@tool` previews work in editor for both theme and motion.
