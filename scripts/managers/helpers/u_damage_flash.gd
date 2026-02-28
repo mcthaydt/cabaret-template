@@ -31,3 +31,10 @@ func trigger_flash(intensity: float = 1.0) -> void:
 	_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_tween_pause_mode = Tween.TWEEN_PAUSE_PROCESS
 	_tween.tween_property(_flash_rect, "modulate:a", 0.0, FADE_DURATION)
+
+
+func cancel_flash() -> void:
+	if _tween != null and _tween.is_valid():
+		_tween.kill()
+	if _flash_rect != null:
+		_flash_rect.modulate.a = 0.0
