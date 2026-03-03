@@ -128,10 +128,10 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
 
 ### 2A — `_tween_pause_mode` in `u_damage_flash.gd`
 
-- [ ] Remove `var _tween_pause_mode: int = -1` (line 9).
-- [ ] Remove `_tween_pause_mode = Tween.TWEEN_PAUSE_PROCESS` (line 32).
-- [ ] Update test in `tests/` that reads `_damage_flash._tween_pause_mode` — either remove that assertion or replace with checking the tween directly.
-- [ ] Confirm no external code references this field.
+- [x] Remove `var _tween_pause_mode: int = -1` (line 9).
+- [x] Remove `_tween_pause_mode = Tween.TWEEN_PAUSE_PROCESS` (line 32).
+- [x] Update test in `tests/` that reads `_damage_flash._tween_pause_mode` — either remove that assertion or replace with checking the tween directly.
+- [x] Confirm no external code references this field.
 
 ### 2B — `_effects_container` — DO NOT REMOVE
 
@@ -139,8 +139,17 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
 
 ### 2C — Tests
 
-- [ ] Run VFX-related tests (if any exist).
-- [ ] Run full manager test suite.
+- [x] Run VFX-related tests (if any exist).
+- [x] Run full manager test suite.
+
+### Phase 2 Completion Notes (2026-03-03)
+
+- Implementation commit: `57c1db05` (`refactor(vfx): remove dead damage flash tween pause cache`).
+- Removed dead `_tween_pause_mode` state from `scripts/managers/helpers/u_damage_flash.gd`.
+- Updated `tests/unit/managers/helpers/test_damage_flash.gd` to stop asserting removed internals and assert direct tween validity instead.
+- Confirmed no remaining `_tween_pause_mode` references in `scripts/` or `tests/`.
+- Validation:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
 
 ---
 

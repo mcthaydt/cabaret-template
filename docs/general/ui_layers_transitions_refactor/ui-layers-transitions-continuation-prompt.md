@@ -2,10 +2,19 @@
 
 ## Current Status
 
-- Phase: **Phase 1 complete** (Layer constants + DamageFlash z-order completed on 2026-03-03).
+- Phase: **Phase 2 complete** (Dead damage-flash tween cache removed on 2026-03-03).
 - Branch: `UI-Looksmaxxing`.
-- Working tree: clean.
-- Next step: Phase 2 — Remove dead `_tween_pause_mode` code in `u_damage_flash.gd`.
+- Working tree: docs-only updates pending commit.
+- Next step: Phase 3 — Unify DamageFlash tween creation through `U_TweenManager`.
+
+### Phase 2 Implementation Summary (2026-03-03)
+
+- Implementation commit: `57c1db05` (`refactor(vfx): remove dead damage flash tween pause cache`).
+- Removed `_tween_pause_mode` from `scripts/managers/helpers/u_damage_flash.gd`.
+- Updated `tests/unit/managers/helpers/test_damage_flash.gd` to avoid internal cache assertions and validate tween creation directly.
+- Confirmed no remaining `_tween_pause_mode` references in production/tests.
+- Phase 2 verification:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
 
 ### Phase 1 Implementation Summary (2026-03-03)
 
