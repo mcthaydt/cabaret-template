@@ -6,6 +6,7 @@ const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 
 var _store: M_StateStore
 var _ui_overlay_stack: CanvasLayer
+var _hud_layer: CanvasLayer
 var _active_scene_container: Node
 var _transition_overlay: CanvasLayer
 var _cursor_manager: M_CursorManager
@@ -24,6 +25,11 @@ func before_each() -> void:
 	_ui_overlay_stack.name = "UIOverlayStack"
 	add_child_autofree(_ui_overlay_stack)
 	U_ServiceLocator.register(StringName("ui_overlay_stack"), _ui_overlay_stack)
+
+	_hud_layer = CanvasLayer.new()
+	_hud_layer.name = "HUDLayer"
+	add_child_autofree(_hud_layer)
+	U_ServiceLocator.register(StringName("hud_layer"), _hud_layer)
 
 	_transition_overlay = CanvasLayer.new()
 	_transition_overlay.name = "TransitionOverlay"
@@ -71,6 +77,7 @@ func after_each() -> void:
 	get_tree().paused = false  # Reset pause state
 	_store = null
 	_ui_overlay_stack = null
+	_hud_layer = null
 	_active_scene_container = null
 	_transition_overlay = null
 	_pause_system = null

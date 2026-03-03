@@ -11,6 +11,7 @@ const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_ini
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
+const UI_HUD_CONTROLLER = preload("res://scripts/ui/hud/ui_hud_controller.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore
@@ -92,6 +93,18 @@ func test_manager_registers_with_service_locator() -> void:
 func test_manager_finds_state_store() -> void:
 	assert_not_null(_manager._store, "Manager should find state store")
 	assert_eq(_manager._store, _store, "Manager should reference correct store")
+
+func test_manager_instantiates_hud_under_hud_layer() -> void:
+	var hud_layer := U_ServiceLocator.get_service(StringName("hud_layer")) as CanvasLayer
+	assert_not_null(hud_layer, "HUDLayer should be registered for scene manager setup")
+
+	var hud_count: int = 0
+	for child: Node in hud_layer.get_children():
+		var child_script: Variant = child.get_script()
+		if child_script == UI_HUD_CONTROLLER:
+			hud_count += 1
+
+	assert_eq(hud_count, 1, "Scene manager should ensure exactly one HUD controller instance in HUDLayer")
 
 ## Test transition_to_scene dispatches actions
 func test_transition_to_scene_dispatches_started_action() -> void:

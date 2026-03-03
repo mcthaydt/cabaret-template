@@ -40,7 +40,8 @@ corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [node name="HUD" type="CanvasLayer" unique_id=510794979]
-layer = 100
+visible = false
+layer = 6
 script = ExtResource("1_hud")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=984066284]

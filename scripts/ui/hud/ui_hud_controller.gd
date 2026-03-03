@@ -22,7 +22,6 @@ const SIGNPOST_PANEL_FADE_OUT_SEC: float = 0.18
 const SIGNPOST_BLOCKER_COOLDOWN_SEC: float = 0.15
 const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
 const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.35
-const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 
 var _store: I_StateStore = null
 var _player_entity_id: String = "player"
@@ -69,12 +68,10 @@ func _ready() -> void:
 		if fill_style is StyleBoxFlat:
 			_health_bar_fill_style = fill_style as StyleBoxFlat
 
-	# Defer reparent and event subscriptions to avoid tree modifications during _ready.
+	# Defer event subscriptions to avoid signal churn during _ready.
 	call_deferred("_complete_initialization")
 
 func _complete_initialization() -> void:
-	_reparent_to_root_hud_layer()
-
 	# Subscribe to events after deferred initialization.
 	_unsubscribe_checkpoint = U_ECSEventBus.subscribe(StringName("checkpoint_activated"), _on_checkpoint_event)
 	_unsubscribe_interact_prompt_show = U_ECSEventBus.subscribe(StringName("interact_prompt_show"), _on_interact_prompt_show)
@@ -507,29 +504,6 @@ func _on_interact_prompt_hide(payload: Variant) -> void:
 		return
 	_active_prompt_id = 0
 	interact_prompt.hide_prompt()
-
-func _reparent_to_root_hud_layer() -> void:
-	# Reparent HUD to root HUDLayer to escape SubViewport rendering
-	var tree := get_tree()
-	if tree == null:
-		return
-
-	var root_hud_layer := U_ServiceLocator.try_get_service(StringName("hud_layer"))
-	if root_hud_layer == null:
-		push_warning("HUD: Could not find HUDLayer in root - HUD will render inside viewport")
-		return
-
-	var current_parent := get_parent()
-	if current_parent == null or current_parent == root_hud_layer:
-		return
-
-	# Reparent to root HUD layer
-	current_parent.remove_child(self)
-	root_hud_layer.add_child(self)
-
-	# Render after post-processing layers but before root UI overlays.
-	# When CanvasLayers are nested, child layer number determines render order, not parent
-	layer = U_CANVAS_LAYERS.HUD
 
 func _on_signpost_message(payload: Variant) -> void:
 	var data := _extract_event_payload(payload)

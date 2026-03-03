@@ -7,6 +7,7 @@ const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helper
 var _manager: M_SceneManager
 var _store: M_StateStore
 var _active: Node
+var _hud_layer: CanvasLayer
 var _ui: CanvasLayer
 var _transition_overlay: CanvasLayer
 
@@ -26,6 +27,11 @@ func before_each() -> void:
     _ui.name = "UIOverlayStack"
     add_child_autofree(_ui)
     U_ServiceLocator.register(StringName("ui_overlay_stack"), _ui)
+
+    _hud_layer = CanvasLayer.new()
+    _hud_layer.name = "HUDLayer"
+    add_child_autofree(_hud_layer)
+    U_ServiceLocator.register(StringName("hud_layer"), _hud_layer)
 
     _transition_overlay = CanvasLayer.new()
     _transition_overlay.name = "TransitionOverlay"
@@ -49,6 +55,7 @@ func after_each() -> void:
     _manager = null
     _store = null
     _active = null
+    _hud_layer = null
     _ui = null
     _transition_overlay = null
 
