@@ -401,13 +401,13 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 
 ### 6A — Remove HUD from Gameplay Scene Template
 
-- [ ] Remove `[node name="HUD" ... instance=ExtResource("11_hud")]` from `scenes/templates/tmpl_base_scene.tscn`.
-- [ ] Remove the `ext_resource` for `ui_hud_overlay.tscn` from the same file.
-- [ ] Check all gameplay scenes that inherit from this template — they should inherit the removal.
+- [x] Remove `[node name="HUD" ... instance=ExtResource("11_hud")]` from `scenes/templates/tmpl_base_scene.tscn`.
+- [x] Remove the `ext_resource` for `ui_hud_overlay.tscn` from the same file.
+- [x] Check all gameplay scenes that inherit from this template — they should inherit the removal.
 
 ### 6B — M_SceneManager Instantiates HUD Under HUDLayer
 
-- [ ] In `M_SceneManager._ready()`, after containers are found:
+- [x] In `M_SceneManager._ready()`, after containers are found:
   ```gdscript
   const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
 
@@ -420,25 +420,41 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 
 ### 6C — Remove Reparenting from `UI_HudController`
 
-- [ ] Remove `_reparent_to_root_hud_layer()` method entirely.
-- [ ] Remove the `_reparent_to_root_hud_layer()` call from `_complete_initialization()`.
-- [ ] The HUD is now born in `HUDLayer` — no reparenting needed.
-- [ ] Remove the `layer = 6` assignment (it's a child of HUDLayer, which is already at layer 6).
-- [ ] **Keep** `_complete_initialization()` for event subscriptions — just remove the reparent call from it.
+- [x] Remove `_reparent_to_root_hud_layer()` method entirely.
+- [x] Remove the `_reparent_to_root_hud_layer()` call from `_complete_initialization()`.
+- [x] The HUD is now born in `HUDLayer` — no reparenting needed.
+- [x] Remove the `layer = 6` assignment (it's a child of HUDLayer, which is already at layer 6).
+- [x] **Keep** `_complete_initialization()` for event subscriptions — just remove the reparent call from it.
 
 ### 6D — HUD Visibility Driven by Redux (from Phase 5)
 
-- [ ] HUD starts hidden (`visible = false` in scene or `_ready()`).
-- [ ] When the navigation shell changes to `"gameplay"` and `is_transitioning` is false, it becomes visible.
-- [ ] When transitioning or in a non-gameplay shell, it hides.
+- [x] HUD starts hidden (`visible = false` in scene or `_ready()`).
+- [x] When the navigation shell changes to `"gameplay"` and `is_transitioning` is false, it becomes visible.
+- [x] When transitioning or in a non-gameplay shell, it hides.
 
 ### 6E — Tests
 
-- [ ] Verify HUD appears correctly during gameplay.
-- [ ] Verify HUD is hidden/absent during menus.
-- [ ] Verify transitions still work with the new HUD lifecycle.
-- [ ] Run HUD tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true`
-- [ ] Run full test suite.
+- [x] Verify HUD appears correctly during gameplay.
+- [x] Verify HUD is hidden/absent during menus.
+- [x] Verify transitions still work with the new HUD lifecycle.
+- [x] Run HUD tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true`
+- [x] Run full test suite.
+
+### Phase 6 Completion Notes (2026-03-03)
+
+- Implementation commit: `31a05703` (`refactor(ui): manager-instantiate hud lifecycle`).
+- `scenes/templates/tmpl_base_scene.tscn` no longer instantiates `ui_hud_overlay.tscn`; gameplay templates/scenes now load without embedded HUD nodes.
+- `M_SceneManager` now ensures a single HUD instance under root `hud_layer` during `_ready()` and avoids duplicate instantiation when a HUD already exists.
+- `UI_HudController` no longer self-reparents; deferred initialization now subscribes events only.
+- `scenes/ui/hud/ui_hud_overlay.tscn` now starts hidden and uses HUD layer ordering (`visible = false`, `layer = 6`) so manager-instantiated lifecycle does not flash during shell transitions.
+- Updated scene-manager/unit-integration harnesses to register `hud_layer` wherever `M_SceneManager` is constructed.
+- Validation:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass 12/12)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass 97/102 with 5 pre-existing pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true` (pass 90/90)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true` (pass 200/202 with 2 mobile-only pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/integration -ginclude_subdirs=true` (pass 59/59)
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (pass 2758/2767 with 9 known pending; 0 failures)
 
 ---
 

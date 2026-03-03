@@ -2,10 +2,31 @@
 
 ## Current Status
 
-- Phase: **Phase 5 complete** (HUD/transition decoupling landed on 2026-03-03).
+- Phase: **Phase 6 complete** (manager-driven HUD instantiation landed on 2026-03-03).
 - Branch: `UI-Looksmaxxing`.
-- Working tree: clean after Phase 5 implementation + documentation commits.
-- Next step: Phase 6 — Replace HUD self-reparenting with manager-driven instantiation.
+- Working tree: clean after Phase 6 implementation + documentation commits.
+- Next step: Phase 7 — Final validation + documentation closeout.
+
+### Phase 6 Implementation Summary (2026-03-03)
+
+- Implementation commit:
+  - `31a05703` (`refactor(ui): manager-instantiate hud lifecycle`)
+- HUD lifecycle now routes through scene manager + root container contracts:
+  - removed HUD instance from `scenes/templates/tmpl_base_scene.tscn` (template gameplay scenes no longer embed HUD);
+  - `M_SceneManager` now instantiates/owns `ui_hud_overlay.tscn` under `hud_layer`, with duplicate-guard for existing HUD instances;
+  - `UI_HudController` no longer reparenting itself (`_reparent_to_root_hud_layer` removed).
+- HUD scene defaults aligned with manager lifecycle:
+  - `scenes/ui/hud/ui_hud_overlay.tscn` now starts hidden (`visible = false`) and uses HUD layer ordering (`layer = 6`).
+- Added/updated coverage for new contract:
+  - `tests/unit/scene_manager/test_m_scene_manager.gd::test_manager_instantiates_hud_under_hud_layer`
+  - Scene-manager harness updates now register `hud_layer` where `M_SceneManager` is constructed in lightweight integration/unit suites.
+- Phase 6 verification:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass 12/12)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass 97/102 with 5 pre-existing pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true` (pass 90/90)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true` (pass 200/202 with 2 mobile-only pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/integration -ginclude_subdirs=true` (pass 59/59)
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (pass 2758/2767 with 9 known pending; 0 failures)
 
 ### Phase 5 Implementation Summary (2026-03-03)
 
@@ -146,7 +167,7 @@ The UI layer stack, scene transitions, VFX overlays, and HUD management have gro
 
 - **Scattered layer constants** — layer numbers are baked into `.tscn` files and hardcoded in scripts with no single source of truth.
 - **DamageFlash renders above LoadingOverlay** — layer 110 vs 100, with only a Redux state gate preventing visual overlap (race-prone).
-- **HUD self-reparents at runtime** — `UI_HudController` uses deferred `find_child("HUDLayer")` to escape the SubViewport, coupling itself to the root scene structure.
+- **HUD self-reparenting removed in Phase 6** — `M_SceneManager` now instantiates HUD directly under root `HUDLayer`; `UI_HudController` no longer reparent-couples to scene structure.
 - **Inconsistent node discovery** — mix of `ServiceLocator`, `find_child()`, and fallback chains across transition classes and managers.
 - **Transitions know about HUD internals** — **resolved in Phase 5**; `Trans_LoadingScreen` no longer queries or mutates HUD state directly.
 - **Inconsistent tween creation** — `Trans_Fade` uses `U_TweenManager`, `U_DamageFlash` manually creates tweens.
@@ -196,7 +217,7 @@ The UI layer stack, scene transitions, VFX overlays, and HUD management have gro
 | `scripts/scene_management/helpers/u_scene_manager_node_finder.gd` | Container/node discovery (migrate to ServiceLocator) |
 | `scripts/managers/helpers/display/u_display_post_process_applier.gd` | Post-process shader management |
 | `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd` | Per-scene cinema grade |
-| `scripts/ui/hud/ui_hud_controller.gd` | HUD logic, viewport escape reparenting, Redux-driven visibility |
+| `scripts/ui/hud/ui_hud_controller.gd` | HUD logic, Redux-driven visibility |
 | `scripts/ui/base/base_overlay.gd` | Base overlay class |
 | `scenes/ui/overlays/ui_damage_flash_overlay.tscn` | DamageFlash CanvasLayer (layer=110, change to 90) |
 | `scenes/ui/overlays/ui_post_process_overlay.tscn` | Post-process CanvasLayers (layers 2-5, inside GameViewport) |
