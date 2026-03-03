@@ -337,6 +337,7 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 **Precedent:** `M_VfxManager` (commit `02ed9612`) already subscribes to the state store via `_state_store.subscribe(_on_state_changed)` and detects shell changes to cancel the damage flash. This validates the Redux-driven visibility pattern and can serve as a reference implementation.
 
 - [ ] Add visibility toggle to `_on_slice_updated` or `_update_display`:
+- [x] Add visibility toggle to `_on_slice_updated` or `_update_display`:
   ```gdscript
   var scene_state: Dictionary = state.get("scene", {})
   var is_transitioning: bool = scene_state.get("is_transitioning", false)
@@ -346,30 +347,54 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 
 ### 5B — Remove HUD Hiding from `Trans_LoadingScreen`
 
-- [ ] Remove `_hide_hud_layers()` calls (lines 71, 130, 193).
-- [ ] Remove `_restore_hidden_hud_layers()` call (line 249).
-- [ ] Remove these methods entirely:
+- [x] Remove `_hide_hud_layers()` calls (lines 71, 130, 193).
+- [x] Remove `_restore_hidden_hud_layers()` call (line 249).
+- [x] Remove these methods entirely:
   - `_resolve_hud_controller()`
   - `_hide_hud_layers()`
   - `_restore_hidden_hud_layers()`
   - `_toggle_visibility()`
-- [ ] Remove `_temporarily_hidden_hud_nodes` array.
-- [ ] Remove the `U_ServiceLocator` import/usage if no longer needed.
+- [x] Remove `_temporarily_hidden_hud_nodes` array.
+- [x] Remove the `U_ServiceLocator` import/usage if no longer needed.
 
 ### 5C — Remove HUD Registration from M_SceneManager
 
-- [ ] Remove from `m_scene_manager.gd`: `_hud_controller` field, `register_hud_controller()`, `unregister_hud_controller()`, `get_hud_controller()`.
-- [ ] Remove same methods from `i_scene_manager.gd` interface.
-- [ ] Remove same methods from `tests/mocks/mock_scene_manager_with_transition.gd`.
-- [ ] Remove `_register_with_scene_manager()` and `_unregister_from_scene_manager()` from `ui_hud_controller.gd`.
-- [ ] Remove the `_unregister_from_scene_manager()` call from `_exit_tree()`.
+- [x] Remove from `m_scene_manager.gd`: `_hud_controller` field, `register_hud_controller()`, `unregister_hud_controller()`, `get_hud_controller()`.
+- [x] Remove same methods from `i_scene_manager.gd` interface.
+- [x] Remove same methods from `tests/mocks/mock_scene_manager_with_transition.gd`.
+- [x] Remove `_register_with_scene_manager()` and `_unregister_from_scene_manager()` from `ui_hud_controller.gd`.
+- [x] Remove the `_unregister_from_scene_manager()` call from `_exit_tree()`.
 
 ### 5D — Tests
 
-- [ ] Verify loading screen transition still hides HUD (via Redux now).
-- [ ] Verify HUD reappears after transition completes.
-- [ ] Verify fade transitions (which don't involve HUD hiding) are unaffected.
-- [ ] Run scene management and manager test suites.
+- [x] Verify loading screen transition still hides HUD (via Redux now).
+- [x] Verify HUD reappears after transition completes.
+- [x] Verify fade transitions (which don't involve HUD hiding) are unaffected.
+- [x] Run scene management and manager test suites.
+
+### Phase 5 Completion Notes (2026-03-03)
+
+- Implementation commits:
+  - `7fb773f6` (`refactor(ui): decouple hud visibility from transition internals`)
+  - `b8d7ce1e` (`fix(ui): keep hud reparenting while decoupling transitions`)
+- `UI_HudController` now owns HUD visibility based on Redux state:
+  - hides when `scene.is_transitioning == true` or `navigation.shell != "gameplay"`;
+  - restores when gameplay shell is active and transition state is clear;
+  - clears active HUD feedback channels when the HUD is hidden to avoid stale interaction blockers.
+- Kept existing HUD reparenting behavior in Phase 5 (`_reparent_to_root_hud_layer`) so SubViewport escape remains intact until Phase 6 manager-driven HUD lifecycle work.
+- Removed transition-to-HUD coupling from `Trans_LoadingScreen`:
+  - deleted HUD lookup/hide/restore internals (`_hide_hud_layers`, `_restore_hidden_hud_layers`, `_resolve_hud_controller`, `_toggle_visibility`);
+  - loading transition now focuses only on loading overlay/progress lifecycle.
+- Removed obsolete HUD registration surface from scene manager APIs:
+  - deleted HUD registration/getter methods from `I_SceneManager`, `M_SceneManager`, and `MockSceneManagerWithTransition`;
+  - removed HUD scene-manager registration/unregistration in `UI_HudController`.
+- Added coverage in `tests/unit/ui/test_hud_controller.gd`:
+  - `test_hud_visibility_tracks_transition_state_and_shell`.
+- Validation:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass 96/101 with 5 pre-existing pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true` (pass 90/90)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true` (pass 200/202 with 2 mobile-only pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
 
 ---
 

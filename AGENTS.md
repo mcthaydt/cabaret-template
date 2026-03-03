@@ -166,6 +166,7 @@
   - Container service registration contract (Phase 4 UI/Layers refactor): `root.gd` registers `hud_layer`, `ui_overlay_stack`, `transition_overlay`, `loading_overlay`, `game_viewport`, `active_scene_container`, and `post_process_overlay` via `U_ServiceLocator`.
   - Test harness contract for strict container discovery: lightweight tests that instantiate scenes outside `root.tscn` must register required container services (at minimum `hud_layer` for HUD-bearing scenes, plus any container consumed by the path under test).
   - Scene/container discovery contract: `U_SceneManagerNodeFinder` and display post-process setup are ServiceLocator-only; do not add `find_child()` fallbacks for these container lookups.
+  - HUD transition-decoupling contract (Phase 5): `UI_HudController` visibility is Redux-driven (`scene.is_transitioning` + `navigation.shell == "gameplay"`). Transition effects (including `Trans_LoadingScreen`) must not hide/show HUD directly, and `I_SceneManager` no longer exposes HUD registration/getter APIs.
 - Mobile touch controls: `scenes/ui/mobile_controls.tscn` CanvasLayer lives in root; shows virtual joystick/buttons on mobile or `--emulate-mobile`, hides during transitions/pause/gamepad input
 - CanvasLayer constants are centralized in `scripts/ui/u_canvas_layers.gd`; script-authored layer assignments should use these constants instead of raw numbers.
 - **Gameplay scenes**: Each has own `M_ECSManager` instance

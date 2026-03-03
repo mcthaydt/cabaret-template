@@ -2,10 +2,33 @@
 
 ## Current Status
 
-- Phase: **Phase 4 complete + hardening addendum complete** (strict ServiceLocator cleanup landed on 2026-03-03).
+- Phase: **Phase 5 complete** (HUD/transition decoupling landed on 2026-03-03).
 - Branch: `UI-Looksmaxxing`.
 - Working tree: docs-only updates pending commit.
-- Next step: Phase 5 — Decouple transitions from HUD via Redux.
+- Next step: Phase 6 — Replace HUD self-reparenting with manager-driven instantiation.
+
+### Phase 5 Implementation Summary (2026-03-03)
+
+- Implementation commits:
+  - `7fb773f6` (`refactor(ui): decouple hud visibility from transition internals`)
+  - `b8d7ce1e` (`fix(ui): keep hud reparenting while decoupling transitions`)
+- `UI_HudController` now owns visibility with Redux state:
+  - hides when `scene.is_transitioning` is true or `navigation.shell != "gameplay"`;
+  - re-shows automatically when gameplay shell resumes after transition completion;
+  - clears active HUD feedback channels when hidden to avoid stale interaction blockers.
+  - existing HUD reparent path is intentionally retained in this phase (`_reparent_to_root_hud_layer`) so Phase 6 can handle manager-instantiated HUD lifecycle separately.
+- `Trans_LoadingScreen` no longer reaches into HUD internals:
+  - removed `_hide_hud_layers`, `_restore_hidden_hud_layers`, `_resolve_hud_controller`, `_toggle_visibility`, and `_temporarily_hidden_hud_nodes`.
+- Removed obsolete HUD registration API surface:
+  - `I_SceneManager`, `M_SceneManager`, and `MockSceneManagerWithTransition` no longer expose/register/get HUD controller methods.
+  - `UI_HudController` no longer registers/unregisters itself with scene manager.
+- Added HUD visibility coverage:
+  - `tests/unit/ui/test_hud_controller.gd::test_hud_visibility_tracks_transition_state_and_shell`.
+- Phase 5 verification:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass 96/101 with 5 pre-existing pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true` (pass 90/90)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true` (pass 200/202 with 2 mobile-only pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
 
 ### Phase 4 Hardening Summary (2026-03-03)
 
@@ -125,14 +148,14 @@ The UI layer stack, scene transitions, VFX overlays, and HUD management have gro
 - **DamageFlash renders above LoadingOverlay** — layer 110 vs 100, with only a Redux state gate preventing visual overlap (race-prone).
 - **HUD self-reparents at runtime** — `UI_HudController` uses deferred `find_child("HUDLayer")` to escape the SubViewport, coupling itself to the root scene structure.
 - **Inconsistent node discovery** — mix of `ServiceLocator`, `find_child()`, and fallback chains across transition classes and managers.
-- **Transitions know about HUD internals** — `Trans_LoadingScreen` does a ServiceLocator round-trip to find and hide the HUD controller.
+- **Transitions know about HUD internals** — **resolved in Phase 5**; `Trans_LoadingScreen` no longer queries or mutates HUD state directly.
 - **Inconsistent tween creation** — `Trans_Fade` uses `U_TweenManager`, `U_DamageFlash` manually creates tweens.
 
 ### Corrected Findings (from codebase exploration)
 
 - **`_effects_container` is NOT dead code** — it is actively used by `U_ParticleSpawner` → `S_SpawnParticlesSystem`, `S_JumpParticlesSystem`, `S_LandingParticlesSystem`. DO NOT REMOVE.
 - **Existing Redux actions already cover transition phases** — no new signals or actions needed. The `scene` slice already has `is_transitioning`, and the `navigation` slice has `shell`. HUD just needs to subscribe and toggle visibility.
-- **HUD already subscribes to scene/navigation slices** — `UI_HudController` already subscribes to `slice_updated` for the `"scene"` slice (line 131-133) and calls `_update_display()`. Just needs a visibility toggle added.
+- **HUD visibility now Redux-driven** — `UI_HudController` subscribes to scene/navigation slices and toggles `visible` from `scene.is_transitioning` + `navigation.shell` (`"gameplay"` only).
 - **Post-process layers are in a separate viewport layer space** — layers 2-5 in `ui_post_process_overlay.tscn` are inside `GameViewport` (different layer space from root viewport). Keep as `.tscn` literals; `U_CanvasLayers.PP_*` constants are reference documentation only.
 
 ## Architectural Decisions
@@ -162,18 +185,18 @@ The UI layer stack, scene transitions, VFX overlays, and HUD management have gro
 | `scripts/root.gd` | ServiceLocator bootstrap, container registration |
 | `scripts/managers/m_vfx_manager.gd` | VFX coordinator, damage flash instantiation |
 | `scripts/managers/helpers/u_damage_flash.gd` | Damage flash tween helper |
-| `scripts/managers/m_scene_manager.gd` | Scene transitions, overlay stack, HUD registration |
+| `scripts/managers/m_scene_manager.gd` | Scene transitions and overlay stack orchestration |
 | `scripts/managers/m_display_manager.gd` | Display settings, post-process management |
-| `scripts/interfaces/i_scene_manager.gd` | Scene manager interface (HUD methods to remove) |
+| `scripts/interfaces/i_scene_manager.gd` | Scene manager interface (HUD registration methods removed in Phase 5) |
 | `scripts/scene_management/u_transition_orchestrator.gd` | Transition sequencing |
 | `scripts/scene_management/u_transition_factory.gd` | Transition type registry |
 | `scripts/scene_management/transitions/trans_fade.gd` | Fade-to-black transition |
-| `scripts/scene_management/transitions/trans_loading_screen.gd` | Loading screen transition (HUD hiding to remove) |
+| `scripts/scene_management/transitions/trans_loading_screen.gd` | Loading screen transition (HUD reach-in removed in Phase 5) |
 | `scripts/scene_management/helpers/u_overlay_stack_manager.gd` | UIOverlayStack push/pop |
 | `scripts/scene_management/helpers/u_scene_manager_node_finder.gd` | Container/node discovery (migrate to ServiceLocator) |
 | `scripts/managers/helpers/display/u_display_post_process_applier.gd` | Post-process shader management |
 | `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd` | Per-scene cinema grade |
-| `scripts/ui/hud/ui_hud_controller.gd` | HUD logic, viewport escape reparenting |
+| `scripts/ui/hud/ui_hud_controller.gd` | HUD logic, viewport escape reparenting, Redux-driven visibility |
 | `scripts/ui/base/base_overlay.gd` | Base overlay class |
 | `scenes/ui/overlays/ui_damage_flash_overlay.tscn` | DamageFlash CanvasLayer (layer=110, change to 90) |
 | `scenes/ui/overlays/ui_post_process_overlay.tscn` | Post-process CanvasLayers (layers 2-5, inside GameViewport) |
