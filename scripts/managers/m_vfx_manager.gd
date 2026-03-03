@@ -100,13 +100,13 @@ func _ready() -> void:
 	# Load and initialize damage flash overlay (VFX Phase 4: T4.4)
 	var flash_scene: PackedScene = DAMAGE_FLASH_SCENE
 	if flash_scene != null:
-		var flash_instance: CanvasLayer = flash_scene.instantiate()
-		add_child(flash_instance)
-		var flash_rect: ColorRect = flash_instance.get_node("FlashRect") as ColorRect
-		if flash_rect != null:
-			_damage_flash = U_DamageFlash.new(flash_rect, get_tree())
-		else:
-			push_error("M_VFXManager: Failed to find FlashRect in damage flash overlay scene")
+			var flash_instance: CanvasLayer = flash_scene.instantiate()
+			add_child(flash_instance)
+			var flash_rect: ColorRect = flash_instance.get_node("FlashRect") as ColorRect
+			if flash_rect != null:
+				_damage_flash = U_DamageFlash.new(flash_rect, flash_instance)
+			else:
+				push_error("M_VFXManager: Failed to find FlashRect in damage flash overlay scene")
 	else:
 		push_error("M_VFXManager: Failed to load damage flash overlay scene")
 

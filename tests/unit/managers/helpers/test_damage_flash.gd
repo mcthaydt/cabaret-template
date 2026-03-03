@@ -2,18 +2,21 @@ extends GutTest
 
 const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/overlays/ui_damage_flash_overlay.tscn")
 
+var _flash_owner: CanvasLayer
 var _flash_rect: ColorRect
 var _damage_flash: U_DamageFlash
 
 
 func before_each() -> void:
+	_flash_owner = CanvasLayer.new()
+	add_child_autofree(_flash_owner)
 	_flash_rect = ColorRect.new()
 	_flash_rect.modulate = Color(1, 1, 1, 0)
-	add_child_autofree(_flash_rect)
+	_flash_owner.add_child(_flash_rect)
 
 
 func test_initialization_with_color_rect() -> void:
-	_damage_flash = U_DamageFlash.new(_flash_rect, get_tree())
+	_damage_flash = U_DamageFlash.new(_flash_rect, _flash_owner)
 
 	assert_not_null(_damage_flash, "U_DamageFlash should initialize")
 
@@ -27,7 +30,7 @@ func test_flash_rect_color_alpha_is_1_0() -> void:
 
 
 func test_trigger_flash_sets_alpha_to_max_instantly() -> void:
-	_damage_flash = U_DamageFlash.new(_flash_rect, get_tree())
+	_damage_flash = U_DamageFlash.new(_flash_rect, _flash_owner)
 
 	_damage_flash.trigger_flash()
 
@@ -35,7 +38,7 @@ func test_trigger_flash_sets_alpha_to_max_instantly() -> void:
 
 
 func test_fade_to_zero_over_duration() -> void:
-	_damage_flash = U_DamageFlash.new(_flash_rect, get_tree())
+	_damage_flash = U_DamageFlash.new(_flash_rect, _flash_owner)
 
 	_damage_flash.trigger_flash()
 	await wait_seconds(0.5)  # FADE_DURATION + buffer
@@ -44,7 +47,7 @@ func test_fade_to_zero_over_duration() -> void:
 
 
 func test_retrigger_kills_existing_tween() -> void:
-	_damage_flash = U_DamageFlash.new(_flash_rect, get_tree())
+	_damage_flash = U_DamageFlash.new(_flash_rect, _flash_owner)
 
 	# First trigger
 	_damage_flash.trigger_flash()
@@ -59,7 +62,7 @@ func test_retrigger_kills_existing_tween() -> void:
 
 
 func test_tween_has_pause_mode_process() -> void:
-	_damage_flash = U_DamageFlash.new(_flash_rect, get_tree())
+	_damage_flash = U_DamageFlash.new(_flash_rect, _flash_owner)
 
 	_damage_flash.trigger_flash()
 
@@ -68,7 +71,7 @@ func test_tween_has_pause_mode_process() -> void:
 
 
 func test_intensity_affects_max_alpha() -> void:
-	_damage_flash = U_DamageFlash.new(_flash_rect, get_tree())
+	_damage_flash = U_DamageFlash.new(_flash_rect, _flash_owner)
 
 	_damage_flash.trigger_flash(0.5)  # 50% intensity
 
@@ -76,7 +79,7 @@ func test_intensity_affects_max_alpha() -> void:
 
 
 func test_zero_intensity_produces_no_flash() -> void:
-	_damage_flash = U_DamageFlash.new(_flash_rect, get_tree())
+	_damage_flash = U_DamageFlash.new(_flash_rect, _flash_owner)
 
 	_damage_flash.trigger_flash(0.0)
 
@@ -84,7 +87,7 @@ func test_zero_intensity_produces_no_flash() -> void:
 
 
 func test_double_intensity_doubles_alpha() -> void:
-	_damage_flash = U_DamageFlash.new(_flash_rect, get_tree())
+	_damage_flash = U_DamageFlash.new(_flash_rect, _flash_owner)
 
 	_damage_flash.trigger_flash(2.0)
 
@@ -92,7 +95,7 @@ func test_double_intensity_doubles_alpha() -> void:
 
 
 func test_null_flash_rect_does_not_crash() -> void:
-	_damage_flash = U_DamageFlash.new(null, get_tree())
+	_damage_flash = U_DamageFlash.new(null, _flash_owner)
 
 	_damage_flash.trigger_flash()
 
@@ -100,17 +103,17 @@ func test_null_flash_rect_does_not_crash() -> void:
 	assert_true(true, "Null flash_rect should not crash")
 
 
-func test_null_scene_tree_does_not_crash() -> void:
+func test_null_owner_node_does_not_crash() -> void:
 	_damage_flash = U_DamageFlash.new(_flash_rect, null)
 
 	_damage_flash.trigger_flash()
 
 	# Should not crash, just silently return
-	assert_true(true, "Null scene_tree should not crash")
+	assert_true(true, "Null owner node should not crash")
 
 
 func test_multiple_rapid_triggers_handle_gracefully() -> void:
-	_damage_flash = U_DamageFlash.new(_flash_rect, get_tree())
+	_damage_flash = U_DamageFlash.new(_flash_rect, _flash_owner)
 
 	# Spam triggers
 	_damage_flash.trigger_flash()
