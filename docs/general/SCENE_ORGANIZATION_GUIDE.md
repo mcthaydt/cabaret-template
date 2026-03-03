@@ -118,8 +118,15 @@ Root (Node) [root.gd]
 │  ├─ M_InputDeviceManager
 │  └─ UIInputHandler
 │
-├─ ActiveSceneContainer (Node) [marker_active_scene_container.gd]
-│  └─ (Gameplay / UI scenes loaded by M_SceneManager)
+├─ GameViewportContainer (SubViewportContainer)
+│  └─ GameViewport (SubViewport)
+│     ├─ ActiveSceneContainer (Node) [marker_active_scene_container.gd]
+│     │  └─ (Gameplay / UI scenes loaded by M_SceneManager)
+│     └─ PostProcessOverlay (Node)
+│        └─ (Film grain / dither / CRT / color blind layers)
+│
+├─ HUDLayer (CanvasLayer)
+│  └─ (HUD content)
 │
 ├─ UIOverlayStack (CanvasLayer)
 │  └─ (Overlay UI scenes pushed by Scene Manager)
@@ -136,10 +143,32 @@ Root (Node) [root.gd]
 
 **Responsibilities:**
 - `Managers` contains all global managers; no other scene should instantiate a second copy of these classes.
-- `ActiveSceneContainer` hosts gameplay and UI scenes that come and go.
+- `GameViewportContainer/GameViewport/ActiveSceneContainer` hosts gameplay and UI scenes that come and go.
+- `PostProcessOverlay` lives inside `GameViewport` and handles gameplay post-process effects.
+- `HUDLayer` hosts root-viewport HUD content.
 - `UIOverlayStack` holds stacked overlays (pause, settings, rebinding, etc.).
 - `TransitionOverlay` and `LoadingOverlay` are dedicated to visual transitions.
 - `MobileControls` provides device‑aware virtual controls and must follow Input/UI Manager patterns.
+
+**Canonical Canvas Layer Map (`scripts/ui/u_canvas_layers.gd`):**
+
+| Constant | Layer | Scope | Node / Use |
+|----------|-------|-------|------------|
+| `U_CanvasLayers.HUD` | 6 | Root viewport | `HUDLayer` in `scenes/root.tscn` |
+| `U_CanvasLayers.UI_OVERLAY` | 10 | Root viewport | `UIOverlayStack` in `scenes/root.tscn` |
+| `U_CanvasLayers.UI_COLOR_BLIND` | 11 | Root viewport | Dynamic `UIColorBlindLayer` (display applier) |
+| `U_CanvasLayers.TRANSITION` | 50 | Root viewport | `TransitionOverlay` in `scenes/root.tscn` |
+| `U_CanvasLayers.DAMAGE_FLASH` | 90 | Root viewport | `DamageFlashOverlay` in `scenes/ui/overlays/ui_damage_flash_overlay.tscn` |
+| `U_CanvasLayers.LOADING` | 100 | Root viewport | `LoadingOverlay` in `scenes/root.tscn` |
+| `U_CanvasLayers.MOBILE_CONTROLS` | 101 | Root viewport | `MobileControls` in `scenes/ui/hud/ui_mobile_controls.tscn` |
+| `U_CanvasLayers.DEBUG_OVERLAY` | 128 | Root viewport | `SC_CinemaDebugOverlay` in `scenes/debug/debug_cinema_grade_overlay.tscn` |
+| `U_CanvasLayers.PP_CINEMA_GRADE` | 1 | `GameViewport` post-process space | Dynamic `CinemaGradeLayer` |
+| `U_CanvasLayers.PP_FILM_GRAIN` | 2 | `GameViewport` post-process space | `FilmGrainLayer` in `ui_post_process_overlay.tscn` |
+| `U_CanvasLayers.PP_DITHER` | 3 | `GameViewport` post-process space | `DitherLayer` in `ui_post_process_overlay.tscn` |
+| `U_CanvasLayers.PP_CRT` | 4 | `GameViewport` post-process space | `CRTLayer` in `ui_post_process_overlay.tscn` |
+| `U_CanvasLayers.PP_COLOR_BLIND` | 5 | `GameViewport` post-process space | `ColorBlindLayer` in `ui_post_process_overlay.tscn` |
+
+Post-process layers (1-5) are authored/created inside `GameViewport` and do not share draw-order space with root viewport CanvasLayers.
 
 **Manager Initialization Order:**
 
@@ -529,7 +558,11 @@ Root scene:
 ```
 Root
 ├─ Managers
-├─ ActiveSceneContainer
+├─ GameViewportContainer
+│  └─ GameViewport
+│     ├─ ActiveSceneContainer
+│     └─ PostProcessOverlay
+├─ HUDLayer
 ├─ UIOverlayStack
 ├─ TransitionOverlay
 ├─ LoadingOverlay
@@ -563,5 +596,5 @@ Root
 
 ---
 
-**Last Updated:** 2025-01-28
+**Last Updated:** 2026-03-03
 **Maintained By:** Development Team

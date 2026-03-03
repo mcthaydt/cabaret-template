@@ -67,8 +67,8 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
 
 ### 1A — Create `U_CanvasLayers` Constant Class
 
-- [ ] Create `scripts/ui/u_canvas_layers.gd` with `class_name U_CanvasLayers extends RefCounted`.
-- [ ] Define all layer constants:
+- [x] Create `scripts/ui/u_canvas_layers.gd` with `class_name U_CanvasLayers extends RefCounted`.
+- [x] Define all layer constants:
   ```gdscript
   # Root viewport layers (draw order)
   const HUD := 6
@@ -86,24 +86,41 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
   const PP_CRT := 4
   const PP_COLOR_BLIND := 5
   ```
-- [ ] Verify no existing `class_name U_CanvasLayers` conflicts.
+- [x] Verify no existing `class_name U_CanvasLayers` conflicts.
 
 ### 1B — Replace Hardcoded Layer Numbers
 
-- [ ] Update `scenes/ui/overlays/ui_damage_flash_overlay.tscn`: change `layer` from `110` to `90`.
-- [ ] Update `scripts/ui/hud/ui_hud_controller.gd`: replace hardcoded `layer = 6` with `U_CanvasLayers.HUD`.
-- [ ] Update `scripts/managers/helpers/display/u_display_post_process_applier.gd`: UIColorBlindLayer `layer = 11` → `U_CanvasLayers.UI_COLOR_BLIND`.
-- [ ] Verify `scenes/root.tscn` layer values match constants (HUDLayer=6, UIOverlayStack=10, TransitionOverlay=50, LoadingOverlay=100). These are in `.tscn` so can stay as literals but document they must match `U_CanvasLayers`.
+- [x] Update `scenes/ui/overlays/ui_damage_flash_overlay.tscn`: change `layer` from `110` to `90`.
+- [x] Update `scripts/ui/hud/ui_hud_controller.gd`: replace hardcoded `layer = 6` with `U_CanvasLayers.HUD`.
+- [x] Update `scripts/managers/helpers/display/u_display_post_process_applier.gd`: UIColorBlindLayer `layer = 11` → `U_CanvasLayers.UI_COLOR_BLIND`.
+- [x] Verify `scenes/root.tscn` layer values match constants (HUDLayer=6, UIOverlayStack=10, TransitionOverlay=50, LoadingOverlay=100). These are in `.tscn` so can stay as literals but document they must match `U_CanvasLayers`.
   - **Note:** TransitionOverlay `layer = 50` was already explicitly set in `root.tscn` (commit `db570323`). Verify it matches `U_CanvasLayers.TRANSITION`.
-- [ ] **Note:** Post-process layers (2-5) in `ui_post_process_overlay.tscn` are inside `GameViewport` (different layer space). Keep as `.tscn` literals; the `PP_*` constants are reference documentation only.
-- [ ] Grep for any remaining hardcoded layer assignments and update them.
-- [ ] Update `docs/general/SCENE_ORGANIZATION_GUIDE.md` with the new canonical layer map referencing `U_CanvasLayers`.
+- [x] **Note:** Post-process layers (2-5) in `ui_post_process_overlay.tscn` are inside `GameViewport` (different layer space). Keep as `.tscn` literals; the `PP_*` constants are reference documentation only.
+- [x] Grep for any remaining hardcoded layer assignments and update them.
+- [x] Update `docs/general/SCENE_ORGANIZATION_GUIDE.md` with the new canonical layer map referencing `U_CanvasLayers`.
 
 ### 1C — Tests
 
-- [ ] Run style enforcement tests.
-- [ ] Run manager and display test suites.
-- [ ] Verify no regressions.
+- [x] Run style enforcement tests.
+- [x] Run manager and display test suites.
+- [x] Verify no regressions.
+
+### Phase 1 Completion Notes (2026-03-03)
+
+- Implementation commit: `36e29d9b` (`refactor(ui): centralize canvas layers and lower damage flash z-order`).
+- Added `scripts/ui/u_canvas_layers.gd` as the canonical layer constants source (including root viewport and post-process layer constants).
+- Moved `DamageFlashOverlay` from layer `110` to `90` in `scenes/ui/overlays/ui_damage_flash_overlay.tscn`.
+- Replaced script-side hardcoded layer numbers with `U_CanvasLayers` constants in:
+  - `scripts/ui/hud/ui_hud_controller.gd`
+  - `scripts/managers/helpers/display/u_display_post_process_applier.gd`
+  - `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd`
+  - `scripts/utils/display/u_cinema_grade_preview.gd`
+  - `scripts/debug/debug_cinema_grade_overlay.gd`
+- Confirmed `scenes/root.tscn` root viewport literals match constants (`HUD=6`, `UIOverlay=10`, `Transition=50`, `Loading=100`).
+- Validation:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass 12/12)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (pass 51/52 with 1 pre-existing pending test)
 
 ---
 

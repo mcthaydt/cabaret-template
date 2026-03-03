@@ -2,10 +2,28 @@
 
 ## Current Status
 
-- Phase: **Phase 0 complete** (Baseline & Inventory done on 2026-03-03).
+- Phase: **Phase 1 complete** (Layer constants + DamageFlash z-order completed on 2026-03-03).
 - Branch: `UI-Looksmaxxing`.
 - Working tree: docs-only updates pending commit.
-- Next step: Phase 1 — Centralize `U_CanvasLayers` constants and move DamageFlash from layer 110 to 90.
+- Next step: Phase 2 — Remove dead `_tween_pause_mode` code in `u_damage_flash.gd`.
+
+### Phase 1 Implementation Summary (2026-03-03)
+
+- Implementation commit: `36e29d9b` (`refactor(ui): centralize canvas layers and lower damage flash z-order`).
+- Added `scripts/ui/u_canvas_layers.gd` as the canonical CanvasLayer constants source.
+- Moved `DamageFlashOverlay` from layer `110` to `90`.
+- Replaced script-side hardcoded layer assignments with `U_CanvasLayers` constants (HUD controller, display post-process applier, cinema-grade applier/preview, debug cinema overlay).
+- Updated `docs/general/SCENE_ORGANIZATION_GUIDE.md` with canonical layer map, root hierarchy updates, and `U_CanvasLayers` references.
+- Phase 1 verification:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass 12/12)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (pass 51/52, 1 pre-existing pending)
+
+### Phase 1 Outcome
+
+- Layer constants are now centralized.
+- Damage flash no longer renders above loading/transition overlays.
+- Root and post-process layer documentation now references one constant source.
 
 ### Phase 0 Baseline Results (2026-03-03)
 

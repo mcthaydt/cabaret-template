@@ -160,9 +160,10 @@
 
 - **Root scene pattern (NEW - Phase 2)**: `scenes/root.tscn` persists throughout session
   - Persistent managers: `M_StateStore`, `M_CursorManager`, `M_SceneManager`
-  - Scene containers: `ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`
-  - Gameplay scenes load/unload as children of `ActiveSceneContainer`
+  - Scene containers: `GameViewportContainer/GameViewport/ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`
+  - Gameplay scenes load/unload as children of `GameViewportContainer/GameViewport/ActiveSceneContainer`
 - Mobile touch controls: `scenes/ui/mobile_controls.tscn` CanvasLayer lives in root; shows virtual joystick/buttons on mobile or `--emulate-mobile`, hides during transitions/pause/gamepad input
+- CanvasLayer constants are centralized in `scripts/ui/u_canvas_layers.gd`; script-authored layer assignments should use these constants instead of raw numbers.
 - **Gameplay scenes**: Each has own `M_ECSManager` instance
   - Example: `scenes/gameplay/gameplay_base.tscn`
   - Contains: Systems, Entities, SceneObjects, Environment
