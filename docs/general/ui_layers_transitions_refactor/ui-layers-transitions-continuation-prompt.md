@@ -4,7 +4,7 @@
 
 - Phase: **Phase 1 complete** (Layer constants + DamageFlash z-order completed on 2026-03-03).
 - Branch: `UI-Looksmaxxing`.
-- Working tree: docs-only updates pending commit.
+- Working tree: clean.
 - Next step: Phase 2 — Remove dead `_tween_pause_mode` code in `u_damage_flash.gd`.
 
 ### Phase 1 Implementation Summary (2026-03-03)
