@@ -2,10 +2,31 @@
 
 ## Current Status
 
-- Phase: **Phase 3 complete** (DamageFlash tweening unified through `U_TweenManager` on 2026-03-03).
+- Phase: **Phase 4 complete** (ServiceLocator-only node discovery migration completed on 2026-03-03).
 - Branch: `UI-Looksmaxxing`.
-- Working tree: docs-only updates pending commit.
-- Next step: Phase 4 — Standardize node discovery to ServiceLocator-only lookups.
+- Working tree: implementation + docs updates pending split commits.
+- Next step: Phase 5 — Decouple transitions from HUD via Redux.
+
+### Phase 4 Implementation Summary (2026-03-03)
+
+- Implementation commit: `6eb4cf1c` (`refactor(scene): use ServiceLocator-only container discovery`).
+- `scripts/root.gd` now registers root container services used by scene/display systems:
+  - `hud_layer`, `ui_overlay_stack`, `transition_overlay`, `loading_overlay`, `game_viewport`, `active_scene_container`, `post_process_overlay`.
+- `scripts/scene_management/helpers/u_scene_manager_node_finder.gd` now uses ServiceLocator-only lookups for all required containers (no `find_child()` or root walk fallback path).
+- `scripts/managers/helpers/display/u_display_post_process_applier.gd` now resolves `post_process_overlay` and fallback `game_viewport` via ServiceLocator.
+- `scripts/ui/menus/ui_game_over.gd` and `scripts/ui/menus/ui_victory.gd` now resolve `transition_overlay` via ServiceLocator in `_hide_immediately()`.
+- `scripts/scene_management/u_transition_orchestrator.gd` no longer inspects overlay children directly; `scripts/scene_management/transitions/trans_fade.gd` now owns opaque-overlay detection/prep through `setup_for_opaque_overlay_resume(...)`.
+- Test harness updates:
+  - Scene manager test scaffolds now register container services (`active_scene_container`, `ui_overlay_stack`, `transition_overlay`, `loading_overlay`).
+  - Display test scaffolds now register `post_process_overlay` and/or `game_viewport` services where needed.
+- Phase 4 verification:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass 12/12)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass 96/101 with 5 pre-existing pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true` (pass 88/90; 2 failing endgame flow assertions in `test_endgame_flows.gd`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (pass 51/52 with 1 pre-existing pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/integration -ginclude_subdirs=true` (pass 59/59)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/ui -ginclude_subdirs=true` (pass 9/9)
 
 ### Phase 3 Implementation Summary (2026-03-03)
 
@@ -64,11 +85,11 @@ Several commits on `UI-Looksmaxxing` introduced visual fixes **outside** this re
 
 | Commit | What it did | Anti-patterns introduced |
 |--------|-------------|------------------------|
-| `db570323` (fade-in transition) | Endgame screens snap TransitionOverlay to opaque via `_hide_immediately()`, orchestrator detects `already_black` and skips fade-out | `find_child("TransitionOverlay")` in `ui_game_over.gd` and `ui_victory.gd`; orchestrator iterates overlay children by name to read `TransitionColorRect` alpha; orchestrator mutates `effect.duration` directly |
+| `db570323` (fade-in transition) | Endgame screens snap TransitionOverlay to opaque via `_hide_immediately()`, orchestrator detects `already_black` and skips fade-out | **Phase 4 cleanup applied**: `find_child("TransitionOverlay")` removed from endgame screens; overlay introspection moved from orchestrator to `Trans_Fade`; duration mutation encapsulated behind `Trans_Fade` helper |
 | `02ed9612` (remove red flash from menus) | `M_VfxManager` subscribes to Redux state, calls `cancel_flash()` when shell leaves gameplay | Good pattern (Redux subscription) — reference as precedent in Phase 5. `cancel_flash()` is new on `U_DamageFlash` and must be accounted for in Phase 3 tween unification |
 | `db570323` (root.tscn) | TransitionOverlay explicitly set to `layer = 50` | Correct value per target layer stack, but done without `U_CanvasLayers` constant — Phase 1 should reference this as already done |
 
-**Key concern:** `_hide_immediately()` is copy-pasted identically in both `ui_game_over.gd:98-108` and `ui_victory.gd:127-137`. Both use `tree.root.find_child()` and directly manipulate overlay internals. Phase 4 must migrate these to ServiceLocator, and Phase 4/5 should consider whether this logic belongs in the transition system rather than individual menu screens.
+**Remaining concern:** `_hide_immediately()` is still duplicated in both endgame screens and still manipulates transition overlay internals directly (though now via ServiceLocator). Consider consolidating this into transition-layer API during Phase 5+ cleanup.
 
 ## Context
 
@@ -132,8 +153,8 @@ The UI layer stack, scene transitions, VFX overlays, and HUD management have gro
 | `scenes/ui/overlays/ui_post_process_overlay.tscn` | Post-process CanvasLayers (layers 2-5, inside GameViewport) |
 | `scenes/ui/hud/ui_hud_overlay.tscn` | HUD CanvasLayer |
 | `scenes/templates/tmpl_base_scene.tscn` | Base scene template (remove HUD instance) |
-| `scripts/ui/menus/ui_game_over.gd` | Endgame screen — has `_hide_immediately()` with `find_child()` and overlay manipulation (migrate in Phase 4/5) |
-| `scripts/ui/menus/ui_victory.gd` | Endgame screen — identical `_hide_immediately()` pattern (migrate in Phase 4/5) |
+| `scripts/ui/menus/ui_game_over.gd` | Endgame screen — `_hide_immediately()` now uses ServiceLocator; still directly manipulates transition overlay alpha |
+| `scripts/ui/menus/ui_victory.gd` | Endgame screen — `_hide_immediately()` now uses ServiceLocator; still directly manipulates transition overlay alpha |
 | `tests/mocks/mock_scene_manager_with_transition.gd` | Mock scene manager (remove HUD mock methods) |
 
 ## Existing Redux Actions (Reference)

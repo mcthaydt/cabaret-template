@@ -163,6 +163,8 @@
   - Persistent managers: `M_StateStore`, `M_CursorManager`, `M_SceneManager`
   - Scene containers: `GameViewportContainer/GameViewport/ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`
   - Gameplay scenes load/unload as children of `GameViewportContainer/GameViewport/ActiveSceneContainer`
+  - Container service registration contract (Phase 4 UI/Layers refactor): `root.gd` registers `hud_layer`, `ui_overlay_stack`, `transition_overlay`, `loading_overlay`, `game_viewport`, `active_scene_container`, and `post_process_overlay` via `U_ServiceLocator`.
+  - Scene/container discovery contract: `U_SceneManagerNodeFinder` and display post-process setup are ServiceLocator-only; do not add `find_child()` fallbacks for these container lookups.
 - Mobile touch controls: `scenes/ui/mobile_controls.tscn` CanvasLayer lives in root; shows virtual joystick/buttons on mobile or `--emulate-mobile`, hides during transitions/pause/gamepad input
 - CanvasLayer constants are centralized in `scripts/ui/u_canvas_layers.gd`; script-authored layer assignments should use these constants instead of raw numbers.
 - **Gameplay scenes**: Each has own `M_ECSManager` instance
