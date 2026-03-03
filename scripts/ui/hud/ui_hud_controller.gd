@@ -22,6 +22,7 @@ const SIGNPOST_PANEL_FADE_OUT_SEC: float = 0.18
 const SIGNPOST_BLOCKER_COOLDOWN_SEC: float = 0.15
 const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
 const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.35
+const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 
 var _store: I_StateStore = null
 var _player_entity_id: String = "player"
@@ -511,9 +512,9 @@ func _reparent_to_root_hud_layer() -> void:
 	current_parent.remove_child(self)
 	root_hud_layer.add_child(self)
 
-	# Set layer to 6 to render AFTER post-processing (layers 1-5) but BEFORE UI overlays (layer 10)
+	# Render after post-processing layers but before root UI overlays.
 	# When CanvasLayers are nested, child layer number determines render order, not parent
-	layer = 6
+	layer = U_CANVAS_LAYERS.HUD
 
 func _on_signpost_message(payload: Variant) -> void:
 	var data := _extract_event_payload(payload)

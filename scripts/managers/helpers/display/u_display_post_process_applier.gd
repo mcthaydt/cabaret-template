@@ -7,6 +7,7 @@ const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_se
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
 const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/display/u_post_process_layer.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
+const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 
 var _owner: Node = null
 var _post_process_layer: U_PostProcessLayer = null
@@ -202,10 +203,10 @@ func _setup_ui_color_blind_layer() -> void:
 		_ui_color_blind_rect = _ui_color_blind_layer.find_child("ColorBlindRect", false, false) as ColorRect
 		return
 
-	# Create UI color blind layer (layer 11, above UIOverlayStack which is layer 10)
+	# Create UI color blind layer above UIOverlayStack.
 	_ui_color_blind_layer = CanvasLayer.new()
 	_ui_color_blind_layer.name = "UIColorBlindLayer"
-	_ui_color_blind_layer.layer = 11
+	_ui_color_blind_layer.layer = U_CANVAS_LAYERS.UI_COLOR_BLIND
 
 	# Load the color blind shader
 	var shader: Shader = load("res://assets/shaders/sh_colorblind_daltonize.gdshader")

@@ -10,6 +10,7 @@ class_name U_CinemaGradePreview
 ## (M_DisplayManager handles everything in-game).
 
 const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shader.gdshader")
+const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 
 @export var cinema_grade: Resource = null:
 	set(value):
@@ -34,7 +35,7 @@ func _setup_preview() -> void:
 
 	_preview_layer = CanvasLayer.new()
 	_preview_layer.name = "CinemaGradePreviewLayer"
-	_preview_layer.layer = 100
+	_preview_layer.layer = U_CANVAS_LAYERS.LOADING
 
 	_shader_material = ShaderMaterial.new()
 	_shader_material.shader = CINEMA_GRADE_SHADER
