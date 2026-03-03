@@ -5,6 +5,7 @@ class_name U_DisplayQualityApplier
 
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _owner: Node = null
 
@@ -74,15 +75,12 @@ func _apply_anti_aliasing(anti_aliasing: String) -> void:
 			push_warning("U_DisplayQualityApplier: Unknown anti-aliasing '%s'" % anti_aliasing)
 
 func _get_render_target_viewport() -> Viewport:
-	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
-	if tree != null and tree.root != null:
-		var game_viewport := tree.root.find_child("GameViewport", true, false)
-		if game_viewport is Viewport:
-			return game_viewport as Viewport
+	var game_viewport := U_SERVICE_LOCATOR.try_get_service(StringName("game_viewport"))
+	if game_viewport is Viewport:
+		return game_viewport as Viewport
 	if _owner != null:
 		return _owner.get_viewport()
 	return null
 
 func _is_rendering_available() -> bool:
 	return not (OS.has_feature("headless") or OS.has_feature("server"))
-

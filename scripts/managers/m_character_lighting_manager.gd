@@ -18,7 +18,6 @@ const ACTION_SCENE_SWAPPED := StringName("scene/swapped")
 const SCENE_SLICE := StringName("scene")
 const NAVIGATION_SLICE := StringName("navigation")
 const GAMEPLAY_SHELL := StringName("gameplay")
-const ACTIVE_SCENE_CONTAINER_NAME := "ActiveSceneContainer"
 const LIGHTING_NODE_NAME := "Lighting"
 const SETTINGS_NODE_NAME := "CharacterLightingSettings"
 const INFLUENCE_ENTER_THRESHOLD := 0.02
@@ -258,27 +257,7 @@ func _get_active_scene_root() -> Node:
 	return null
 
 func _find_active_scene_container() -> Node:
-	var tree := get_tree()
-	if tree == null or tree.root == null:
-		return null
-
-	var scoped_container := _find_scoped_active_scene_container()
-	if scoped_container != null:
-		return scoped_container
-
-	return tree.root.find_child(ACTIVE_SCENE_CONTAINER_NAME, true, false)
-
-func _find_scoped_active_scene_container() -> Node:
-	var current: Node = self
-	while current != null:
-		var by_path := current.get_node_or_null("GameViewportContainer/GameViewport/ActiveSceneContainer")
-		if by_path != null:
-			return by_path
-		var by_name := current.get_node_or_null(ACTIVE_SCENE_CONTAINER_NAME)
-		if by_name != null:
-			return by_name
-		current = current.get_parent()
-	return null
+	return U_SERVICE_LOCATOR.try_get_service(StringName("active_scene_container")) as Node
 
 func _resolve_profile_values(profile: Resource) -> Dictionary:
 	if profile != null and profile.has_method("get_resolved_values"):

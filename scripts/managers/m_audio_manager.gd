@@ -119,11 +119,7 @@ func _setup_ui_sound_players() -> void:
 		_ui_sound_players.append(player)
 
 func _resolve_sfx_parent() -> Node:
-	var tree := get_tree()
-	if tree == null:
-		return self
-
-	var game_viewport := tree.root.find_child("GameViewport", true, false)
+	var game_viewport := U_SERVICE_LOCATOR.try_get_service(StringName("game_viewport"))
 	if game_viewport is SubViewport:
 		return game_viewport
 	if game_viewport is Viewport:

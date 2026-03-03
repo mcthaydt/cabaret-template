@@ -8,6 +8,7 @@ class_name U_DisplayCinemaGradeApplier
 
 const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shader.gdshader")
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 const SCENE_SWAPPED := StringName("scene/swapped")
 
@@ -81,11 +82,7 @@ func _ensure_cinema_grade_layer() -> bool:
 	return _cinema_grade_layer != null
 
 func _setup_cinema_grade_layer() -> void:
-	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
-	if tree == null or tree.root == null:
-		return
-
-	var post_process_overlay := tree.root.find_child("PostProcessOverlay", true, false)
+	var post_process_overlay := U_SERVICE_LOCATOR.try_get_service(StringName("post_process_overlay")) as Node
 	if post_process_overlay == null:
 		return
 

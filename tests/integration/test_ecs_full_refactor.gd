@@ -32,6 +32,9 @@ func before_each():
 		var hud_layer := CanvasLayer.new()
 		hud_layer.name = "HUDLayer"
 		add_child_autofree(hud_layer)
+		U_ServiceLocator.register(StringName("hud_layer"), hud_layer)
+	else:
+		U_ServiceLocator.register(StringName("hud_layer"), existing)
 
 	# Reset event tracking
 	events_received.clear()

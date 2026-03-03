@@ -385,6 +385,9 @@ func test_falls_back_to_scene_tag_discovery_when_ecs_manager_unavailable() -> vo
 	U_SERVICE_LOCATOR.clear()
 	manager.set("_state_store", context.store)
 	manager.set("_scene_manager", context.scene_manager)
+	U_SERVICE_LOCATOR.register(StringName("state_store"), context.store)
+	U_SERVICE_LOCATOR.register(StringName("scene_manager"), context.scene_manager)
+	U_SERVICE_LOCATOR.register(StringName("active_scene_container"), context.active_scene_container)
 
 	manager.refresh_scene_bindings()
 	manager._physics_process(0.016)
@@ -507,6 +510,7 @@ func _create_manager_context() -> Dictionary:
 	var active_scene_container := Node.new()
 	active_scene_container.name = "ActiveSceneContainer"
 	viewport.add_child(active_scene_container)
+	U_SERVICE_LOCATOR.register(StringName("active_scene_container"), active_scene_container)
 
 	var scene := _create_gameplay_scene_with_lighting()
 	active_scene_container.add_child(scene.scene_root)

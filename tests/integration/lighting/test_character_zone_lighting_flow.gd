@@ -339,6 +339,7 @@ func _create_lighting_context() -> Dictionary:
 	var active_scene_container := Node.new()
 	active_scene_container.name = "ActiveSceneContainer"
 	viewport.add_child(active_scene_container)
+	U_ServiceLocator.register(StringName("active_scene_container"), active_scene_container)
 
 	var gameplay_scene := Node3D.new()
 	gameplay_scene.name = "GameplayScene"

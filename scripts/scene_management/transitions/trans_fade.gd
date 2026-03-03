@@ -14,7 +14,7 @@ class_name Trans_Fade
 
 ## Transition duration in seconds
 @export var duration: float = 1.0
-@export var snapped_overlay_fade_in_duration: float = 1.0
+@export var snapped_overlay_fade_in_duration: float = 0.2
 
 ## Color to fade to (default black)
 @export var fade_color: Color = Color.BLACK

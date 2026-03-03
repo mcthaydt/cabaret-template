@@ -21,11 +21,13 @@ func _create_store() -> M_StateStore:
 func _ensure_hud_layer() -> void:
 	var existing := get_tree().root.find_child("HUDLayer", true, false)
 	if existing != null:
+		U_ServiceLocator.register(StringName("hud_layer"), existing)
 		return
 	var hud_layer := CanvasLayer.new()
 	hud_layer.name = "HUDLayer"
 	add_child(hud_layer)
 	autofree(hud_layer)
+	U_ServiceLocator.register(StringName("hud_layer"), hud_layer)
 
 func test_hud_controller_uses_process_mode_always() -> void:
 	var store := _create_store()

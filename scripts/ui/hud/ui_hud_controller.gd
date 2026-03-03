@@ -499,7 +499,7 @@ func _reparent_to_root_hud_layer() -> void:
 	if tree == null:
 		return
 
-	var root_hud_layer := tree.root.find_child("HUDLayer", true, false)
+	var root_hud_layer := U_ServiceLocator.try_get_service(StringName("hud_layer"))
 	if root_hud_layer == null:
 		push_warning("HUD: Could not find HUDLayer in root - HUD will render inside viewport")
 		return

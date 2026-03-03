@@ -43,7 +43,7 @@ func _deferred_init() -> void:
 
 func _initialize() -> void:
 	_cursor_manager = U_ServiceLocator.try_get_service(StringName("cursor_manager")) as I_CursorManager
-	_ui_overlay_stack = get_tree().root.find_child("UIOverlayStack", true, false) as CanvasLayer
+	_ui_overlay_stack = U_ServiceLocator.try_get_service(StringName("ui_overlay_stack")) as CanvasLayer
 	_world_clock.on_minute_changed = Callable(self, "_on_world_minute_changed")
 	_world_clock.on_hour_changed = Callable(self, "_on_world_hour_changed")
 

@@ -12,7 +12,7 @@ class_name UI_Victory
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
-const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_TRANSITION_OVERLAY_SNAP := preload("res://scripts/scene_management/helpers/u_transition_overlay_snap.gd")
 const DEBUG_VICTORY_TRACE := false
 
 @onready var _title_label: Label = $MarginContainer/VBoxContainer/TitleLabel
@@ -126,17 +126,10 @@ func _on_menu_pressed() -> void:
 	_dispatch_navigation(U_NavigationActions.return_to_main_menu())
 
 func _hide_immediately() -> void:
-	visible = false
 	# Snap the transition overlay to fully opaque so the screen goes black
 	# instantly. Trans_Fade.execute_fade_out will detect alpha == 1.0 and
 	# skip the fade-out animation, giving a clean cut-to-black → fade-in.
-	var overlay := U_SERVICE_LOCATOR.try_get_service(StringName("transition_overlay")) as CanvasLayer
-	if overlay == null:
-		return
-	for child in overlay.get_children():
-		if child is ColorRect and child.name == "TransitionColorRect":
-			(child as ColorRect).modulate.a = 1.0
-			break
+	U_TRANSITION_OVERLAY_SNAP.hide_screen_and_snap_transition_overlay(self)
 
 func _on_back_pressed() -> void:
 	_on_credits_pressed()

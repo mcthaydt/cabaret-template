@@ -10,7 +10,7 @@ class_name UI_GameOver
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
-const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_TRANSITION_OVERLAY_SNAP := preload("res://scripts/scene_management/helpers/u_transition_overlay_snap.gd")
 
 @onready var _title_label: Label = $MarginContainer/VBoxContainer/TitleLabel
 @onready var _death_count_label: Label = $MarginContainer/VBoxContainer/DeathCountLabel
@@ -97,14 +97,7 @@ func _on_menu_pressed() -> void:
 	_dispatch_navigation(U_NavigationActions.return_to_main_menu())
 
 func _hide_immediately() -> void:
-	visible = false
-	var overlay := U_SERVICE_LOCATOR.try_get_service(StringName("transition_overlay")) as CanvasLayer
-	if overlay == null:
-		return
-	for child in overlay.get_children():
-		if child is ColorRect and child.name == "TransitionColorRect":
-			(child as ColorRect).modulate.a = 1.0
-			break
+	U_TRANSITION_OVERLAY_SNAP.hide_screen_and_snap_transition_overlay(self)
 
 func _on_back_pressed() -> void:
 	_on_retry_pressed()

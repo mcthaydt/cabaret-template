@@ -36,6 +36,7 @@ func before_each() -> void:
 	var game_viewport := SubViewport.new()
 	game_viewport.name = "GameViewport"
 	add_child_autofree(game_viewport)
+	U_SERVICE_LOCATOR.register(StringName("game_viewport"), game_viewport)
 
 	_loc_manager = M_LOCALIZATION_MANAGER.new()
 	_loc_manager.state_store = _store

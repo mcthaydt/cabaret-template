@@ -22,6 +22,9 @@ func before_each() -> void:
 		hud_layer.name = "HUDLayer"
 		add_child(hud_layer)
 		autofree(hud_layer)
+		U_ServiceLocator.register(StringName("hud_layer"), hud_layer)
+	else:
+		U_ServiceLocator.register(StringName("hud_layer"), existing)
 
 	# Create and add M_StateStore for systems that require it
 	_state_store = M_StateStore.new()
