@@ -336,7 +336,6 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 
 **Precedent:** `M_VfxManager` (commit `02ed9612`) already subscribes to the state store via `_state_store.subscribe(_on_state_changed)` and detects shell changes to cancel the damage flash. This validates the Redux-driven visibility pattern and can serve as a reference implementation.
 
-- [ ] Add visibility toggle to `_on_slice_updated` or `_update_display`:
 - [x] Add visibility toggle to `_on_slice_updated` or `_update_display`:
   ```gdscript
   var scene_state: Dictionary = state.get("scene", {})
