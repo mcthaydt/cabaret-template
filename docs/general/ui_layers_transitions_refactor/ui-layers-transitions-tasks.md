@@ -297,6 +297,35 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/integration -ginclude_subdirs=true` (pass 59/59)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/ui -ginclude_subdirs=true` (pass 9/9)
 
+### Phase 4 Hardening Addendum (2026-03-03)
+
+- Implementation commit: `962d19d5` (`refactor(ui): harden service-locator container contracts and endgame snap flow`).
+- Closed remaining Phase 1-4 gaps after initial Phase 4 landing:
+  - strict ServiceLocator lookups in phase-adjacent runtime modules:
+    - `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd` (`post_process_overlay`)
+    - `scripts/managers/helpers/display/u_display_quality_applier.gd` (`game_viewport`, owner viewport fallback kept for isolated tests)
+    - `scripts/managers/m_audio_manager.gd` (`game_viewport`)
+    - `scripts/managers/m_time_manager.gd` (`ui_overlay_stack`)
+    - `scripts/managers/m_character_lighting_manager.gd` (`active_scene_container`, removed root-search fallback)
+    - `scripts/ui/hud/ui_hud_controller.gd` (`hud_layer`)
+  - extracted duplicate endgame snap helper to `scripts/scene_management/helpers/u_transition_overlay_snap.gd` and updated:
+    - `scripts/ui/menus/ui_game_over.gd`
+    - `scripts/ui/menus/ui_victory.gd`
+  - restored fast snapped-overlay return timing in `scripts/scene_management/transitions/trans_fade.gd` (`snapped_overlay_fade_in_duration = 0.2`).
+- Hardened test harness registrations for strict ServiceLocator container contracts:
+  - Added explicit `hud_layer` registration in affected UI/ECS/scene-manager tests.
+  - Added explicit `active_scene_container` registration in character-lighting test scaffolds.
+  - Added explicit `game_viewport` registration in localization integration setup.
+- Validation (post-hardening):
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/localization -ginclude_subdirs=true` (pass 20/20)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true -gselect=test_endgame_flows` (pass 5/5)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (pass 51/52 with 1 pre-existing pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true` (pass 199/201 with 2 mobile-only pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass 96/101 with 5 pre-existing pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass 12/12)
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (pass 2756/2765 with 9 known pending; 0 failures)
+
 ---
 
 ## Phase 5 — Decouple Transitions from HUD via Redux

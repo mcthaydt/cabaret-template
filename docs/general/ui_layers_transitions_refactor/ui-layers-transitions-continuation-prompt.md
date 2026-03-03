@@ -2,10 +2,36 @@
 
 ## Current Status
 
-- Phase: **Phase 4 complete** (ServiceLocator-only node discovery migration completed on 2026-03-03).
+- Phase: **Phase 4 complete + hardening addendum complete** (strict ServiceLocator cleanup landed on 2026-03-03).
 - Branch: `UI-Looksmaxxing`.
-- Working tree: implementation + docs updates pending split commits.
+- Working tree: docs-only updates pending commit.
 - Next step: Phase 5 — Decouple transitions from HUD via Redux.
+
+### Phase 4 Hardening Summary (2026-03-03)
+
+- Implementation commit: `962d19d5` (`refactor(ui): harden service-locator container contracts and endgame snap flow`).
+- Closed remaining Phase 1-4 gaps after initial Phase 4 landing:
+  - strict ServiceLocator lookups added for remaining phase-adjacent runtime container discovery:
+    - `u_display_cinema_grade_applier` (`post_process_overlay`)
+    - `u_display_quality_applier` (`game_viewport`, owner viewport fallback retained for isolated tests)
+    - `m_audio_manager` (`game_viewport`)
+    - `m_time_manager` (`ui_overlay_stack`)
+    - `m_character_lighting_manager` (`active_scene_container`, root-search fallback removed)
+    - `ui_hud_controller` (`hud_layer`)
+  - duplicate endgame overlay snap internals extracted to shared helper:
+    - `scripts/scene_management/helpers/u_transition_overlay_snap.gd`
+    - consumed by `ui_game_over.gd` and `ui_victory.gd`
+  - snapped-overlay resume timing restored to fast return default in `trans_fade.gd` (`snapped_overlay_fade_in_duration = 0.2`).
+- Test harness hardening completed for strict container registration (notably `hud_layer`, `active_scene_container`, and `game_viewport`).
+- Verification (post-hardening):
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/localization -ginclude_subdirs=true` (pass 20/20)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true -gselect=test_endgame_flows` (pass 5/5)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (pass 51/52 with 1 pre-existing pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true` (pass 199/201 with 2 mobile-only pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass 96/101 with 5 pre-existing pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass 12/12)
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (pass 2756/2765 with 9 known pending; 0 failures)
 
 ### Phase 4 Implementation Summary (2026-03-03)
 
@@ -89,7 +115,7 @@ Several commits on `UI-Looksmaxxing` introduced visual fixes **outside** this re
 | `02ed9612` (remove red flash from menus) | `M_VfxManager` subscribes to Redux state, calls `cancel_flash()` when shell leaves gameplay | Good pattern (Redux subscription) — reference as precedent in Phase 5. `cancel_flash()` is new on `U_DamageFlash` and must be accounted for in Phase 3 tween unification |
 | `db570323` (root.tscn) | TransitionOverlay explicitly set to `layer = 50` | Correct value per target layer stack, but done without `U_CanvasLayers` constant — Phase 1 should reference this as already done |
 
-**Remaining concern:** `_hide_immediately()` is still duplicated in both endgame screens and still manipulates transition overlay internals directly (though now via ServiceLocator). Consider consolidating this into transition-layer API during Phase 5+ cleanup.
+**Status update:** duplicated `_hide_immediately()` internals were consolidated into shared helper `U_TransitionOverlaySnap` in the hardening addendum. Endgame screens still intentionally trigger overlay alpha snap, but implementation is now centralized.
 
 ## Context
 
@@ -153,8 +179,8 @@ The UI layer stack, scene transitions, VFX overlays, and HUD management have gro
 | `scenes/ui/overlays/ui_post_process_overlay.tscn` | Post-process CanvasLayers (layers 2-5, inside GameViewport) |
 | `scenes/ui/hud/ui_hud_overlay.tscn` | HUD CanvasLayer |
 | `scenes/templates/tmpl_base_scene.tscn` | Base scene template (remove HUD instance) |
-| `scripts/ui/menus/ui_game_over.gd` | Endgame screen — `_hide_immediately()` now uses ServiceLocator; still directly manipulates transition overlay alpha |
-| `scripts/ui/menus/ui_victory.gd` | Endgame screen — `_hide_immediately()` now uses ServiceLocator; still directly manipulates transition overlay alpha |
+| `scripts/ui/menus/ui_game_over.gd` | Endgame screen — `_hide_immediately()` now calls shared `U_TransitionOverlaySnap` helper |
+| `scripts/ui/menus/ui_victory.gd` | Endgame screen — `_hide_immediately()` now calls shared `U_TransitionOverlaySnap` helper |
 | `tests/mocks/mock_scene_manager_with_transition.gd` | Mock scene manager (remove HUD mock methods) |
 
 ## Existing Redux Actions (Reference)
