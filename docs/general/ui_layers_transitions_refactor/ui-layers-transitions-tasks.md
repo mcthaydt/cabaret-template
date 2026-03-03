@@ -18,15 +18,48 @@
 
 ## Phase 0 — Baseline & Inventory (Read-Only)
 
-- [ ] Confirm test baselines:
+- [x] Confirm test baselines:
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true`
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_management -ginclude_subdirs=true` (if exists)
-- [ ] Record baseline results and any pre-existing failures in this document.
-- [ ] Audit all canvas layer numbers currently in use:
+- [x] Record baseline results and any pre-existing failures in this document.
+- [x] Audit all canvas layer numbers currently in use:
   - Grep for `layer = ` in `.tscn` files and `\.layer\s*=` in `.gd` files.
   - Document the full layer map with source file references.
+
+### Phase 0 Completion Notes (2026-03-03)
+
+#### Baseline Test Results
+
+| Suite | Command | Result | Notes |
+|------|---------|--------|-------|
+| Managers | `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` | Pass (414/414) | 39 scripts, 3 deprecated warnings, 2 orphan warnings in `test_display_manager.gd` (pre-existing) |
+| Display Integration | `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` | Pass (51/52 + 1 pending) | Pending test: `test_ui_color_blind_layer_has_higher_layer_than_ui_overlay` (reason: `UIOverlayStack not available in test environment`) |
+| Style | `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` | Pass (12/12) | Includes `test_style_enforcement.gd` and scene organization checks |
+| Scene Management | `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_management -ginclude_subdirs=true` | Pass (30/30) | Directory exists and suite is healthy |
+
+Pre-existing runtime warning seen in several suites (non-failing): `get_system_ca_certificates` on macOS startup.
+
+#### Layer Inventory (Current)
+
+| Layer | Source | Node/Assignment |
+|------|--------|-----------------|
+| 1 | `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd:104` | `_cinema_grade_layer.layer = 1` |
+| 2 | `scenes/ui/overlays/ui_post_process_overlay.tscn:39` | `FilmGrainLayer.layer = 2` |
+| 3 | `scenes/ui/overlays/ui_post_process_overlay.tscn:53` | `DitherLayer.layer = 3` |
+| 4 | `scenes/ui/overlays/ui_post_process_overlay.tscn:67` | `CRTLayer.layer = 4` |
+| 5 | `scenes/ui/overlays/ui_post_process_overlay.tscn:81` | `ColorBlindLayer.layer = 5` |
+| 6 | `scenes/root.tscn:152` | `HUDLayer.layer = 6` |
+| 10 | `scenes/root.tscn:156` | `UIOverlayStack.layer = 10` |
+| 11 | `scripts/managers/helpers/display/u_display_post_process_applier.gd:208` | `_ui_color_blind_layer.layer = 11` |
+| 50 | `scenes/root.tscn:159` | `TransitionOverlay.layer = 50` |
+| 100 | `scenes/root.tscn:173` | `LoadingOverlay.layer = 100` |
+| 100 | `scenes/ui/hud/ui_hud_overlay.tscn:43` | `HUD.layer = 100` |
+| 100 | `scripts/utils/display/u_cinema_grade_preview.gd:37` | `_preview_layer.layer = 100` |
+| 101 | `scenes/ui/hud/ui_mobile_controls.tscn:9` | `MobileControls.layer = 101` |
+| 110 | `scenes/ui/overlays/ui_damage_flash_overlay.tscn:4` | `DamageFlashOverlay.layer = 110` |
+| 128 | `scenes/debug/debug_cinema_grade_overlay.tscn:6` | `DebugCinemaGradeOverlay.layer = 128` |
 
 ---
 

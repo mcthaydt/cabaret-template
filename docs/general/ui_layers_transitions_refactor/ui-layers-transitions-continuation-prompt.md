@@ -2,10 +2,23 @@
 
 ## Current Status
 
-- Phase: **Not started** (pre-implementation).
+- Phase: **Phase 0 complete** (Baseline & Inventory done on 2026-03-03).
 - Branch: `UI-Looksmaxxing`.
-- Working tree: clean.
-- Next step: Phase 0 — Baseline & Inventory.
+- Working tree: docs-only updates pending commit.
+- Next step: Phase 1 — Centralize `U_CanvasLayers` constants and move DamageFlash from layer 110 to 90.
+
+### Phase 0 Baseline Results (2026-03-03)
+
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`: pass (414/414).
+- `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true`: pass (51/52) with 1 pre-existing pending test (`test_ui_color_blind_layer_has_higher_layer_than_ui_overlay`, missing `UIOverlayStack` in test environment).
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`: pass (12/12).
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_management -ginclude_subdirs=true`: pass (30/30).
+- Non-failing pre-existing runtime warning seen during test startup on macOS: `get_system_ca_certificates`.
+
+### Phase 0 Inventory Snapshot
+
+- Layer grep completed for `.tscn` (`layer = ...`) and `.gd` (`.layer = ...`) assignments.
+- Full current layer map with source references is recorded in `docs/general/ui_layers_transitions_refactor/ui-layers-transitions-tasks.md` under "Phase 0 Completion Notes".
 
 ### Ad-Hoc Fixes Already on Branch
 
