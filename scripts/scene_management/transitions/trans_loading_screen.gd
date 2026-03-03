@@ -49,7 +49,6 @@ var _tip_label: Label = null
 var _status_label: Label = null
 var _tween: Tween = null
 var _start_time: float = 0.0
-var _temporarily_hidden_hud_nodes: Array[Node] = []
 
 ## Execute loading screen transition
 ##
@@ -66,9 +65,6 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 
 	_loading_overlay = overlay
 	_start_time = Time.get_ticks_msec() / 1000.0
-
-	_temporarily_hidden_hud_nodes.clear()
-	_hide_hud_layers()
 
 	# Find loading screen UI
 	_loading_screen = _find_loading_screen(overlay)
@@ -125,9 +121,6 @@ func _execute_with_real_progress(overlay: CanvasLayer, callback: Callable, origi
 	# Kick off scene swap immediately so async loading can report real progress
 	if not mid_transition_fired and mid_transition_callback.is_valid():
 		await mid_transition_callback.call()
-		# Guard against overlay being freed during scene swap
-		if is_instance_valid(overlay) and overlay.get_tree():
-			_hide_hud_layers()
 		mid_transition_fired = true
 
 	while true:
@@ -190,7 +183,6 @@ func _execute_with_fake_progress(overlay: CanvasLayer, callback: Callable, origi
 	_tween.tween_callback(func() -> void:
 		if mid_transition_callback.is_valid():
 			await mid_transition_callback.call()
-		_hide_hud_layers()
 	)
 
 	# Phase 3: Animate 50→100% (slower actual load phase)
@@ -246,8 +238,6 @@ func _complete_transition(overlay: CanvasLayer, callback: Callable, original_ove
 	if is_instance_valid(overlay):
 		overlay.visible = false
 
-	_restore_hidden_hud_layers()
-
 	# Restore process modes
 	if is_instance_valid(overlay):
 		overlay.process_mode = original_overlay_mode as Node.ProcessMode
@@ -265,7 +255,6 @@ func _complete_transition(overlay: CanvasLayer, callback: Callable, original_ove
 	_progress_bar = null
 	_tip_label = null
 	_status_label = null
-	_temporarily_hidden_hud_nodes.clear()
 
 ## Update progress manually (for real async loading)
 ##
@@ -273,26 +262,6 @@ func _complete_transition(overlay: CanvasLayer, callback: Callable, original_ove
 func update_progress(progress: float) -> void:
 	if _progress_bar:
 		_progress_bar.value = clamp(progress, 0.0, 100.0)
-
-## Hide HUD CanvasLayers while the loading screen is active
-func _hide_hud_layers() -> void:
-	var hud := _resolve_hud_controller()
-	if hud == null:
-		return
-
-	_toggle_visibility(hud, false)
-	if not _temporarily_hidden_hud_nodes.has(hud):
-		_temporarily_hidden_hud_nodes.append(hud)
-
-## Restore previously hidden HUD CanvasLayers
-func _restore_hidden_hud_layers() -> void:
-	if _temporarily_hidden_hud_nodes.is_empty():
-		return
-
-	for canvas_item in _temporarily_hidden_hud_nodes:
-		if is_instance_valid(canvas_item):
-			_toggle_visibility(canvas_item, true)
-	_temporarily_hidden_hud_nodes.clear()
 
 ## Get a random loading tip
 ##
@@ -303,25 +272,6 @@ func _get_random_tip() -> String:
 
 	var index: int = randi() % _loading_tip_keys.size()
 	return U_LOCALIZATION_UTILS.localize(_loading_tip_keys[index])
-
-func _resolve_hud_controller() -> CanvasLayer:
-	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
-	if scene_manager != null:
-		var hud := scene_manager.get_hud_controller() as CanvasLayer
-		if hud != null and is_instance_valid(hud):
-			return hud
-	return null
-
-func _toggle_visibility(node: Node, is_visible: bool) -> void:
-	if node == null:
-		return
-	if "visible" in node:
-		node.set("visible", is_visible)
-	elif node.has_method("show") and node.has_method("hide"):
-		if is_visible:
-			node.call("show")
-		else:
-			node.call("hide")
 
 ## Find LoadingScreen Control in overlay
 func _find_loading_screen(overlay: CanvasLayer) -> Control:

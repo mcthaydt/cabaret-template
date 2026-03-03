@@ -22,7 +22,6 @@ const SIGNPOST_PANEL_FADE_OUT_SEC: float = 0.18
 const SIGNPOST_BLOCKER_COOLDOWN_SEC: float = 0.15
 const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
 const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.35
-const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 
 var _store: I_StateStore = null
 var _player_entity_id: String = "player"
@@ -70,15 +69,11 @@ func _ready() -> void:
 			_health_bar_fill_style = fill_style as StyleBoxFlat
 
 	# Defer reparent AND event subscriptions to avoid tree modifications during _ready
-	# and to ensure subscriptions happen AFTER reparenting (which triggers _exit_tree)
+	# and to ensure subscriptions happen after the node has entered the tree.
 	call_deferred("_complete_initialization")
 
 func _complete_initialization() -> void:
-	# Reparent first
-	_reparent_to_root_hud_layer()
-	_register_with_scene_manager()
-
-	# Then subscribe to events (after reparenting to avoid unsubscribe in _exit_tree)
+	# Subscribe to events after deferred initialization.
 	_unsubscribe_checkpoint = U_ECSEventBus.subscribe(StringName("checkpoint_activated"), _on_checkpoint_event)
 	_unsubscribe_interact_prompt_show = U_ECSEventBus.subscribe(StringName("interact_prompt_show"), _on_interact_prompt_show)
 	_unsubscribe_interact_prompt_hide = U_ECSEventBus.subscribe(StringName("interact_prompt_hide"), _on_interact_prompt_hide)
@@ -98,7 +93,6 @@ func _process(delta: float) -> void:
 	_update_autosave_spinner_animation(delta)
 
 func _exit_tree() -> void:
-	_unregister_from_scene_manager()
 	if _store != null and _store.slice_updated.is_connected(_on_slice_updated):
 		_store.slice_updated.disconnect(_on_slice_updated)
 	if _unsubscribe_checkpoint != null and _unsubscribe_checkpoint.is_valid():
@@ -115,16 +109,6 @@ func _exit_tree() -> void:
 		_unsubscribe_save_completed.call()
 	if _unsubscribe_save_failed != null and _unsubscribe_save_failed.is_valid():
 		_unsubscribe_save_failed.call()
-
-func _register_with_scene_manager() -> void:
-	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
-	if scene_manager != null:
-		scene_manager.register_hud_controller(self)
-
-func _unregister_from_scene_manager() -> void:
-	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
-	if scene_manager != null:
-		scene_manager.unregister_hud_controller(self)
 
 func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> void:
 	if _store == null:
@@ -159,8 +143,37 @@ func _localize_static_labels() -> void:
 		autosave_spinner_label.text = U_LocalizationUtils.localize(&"hud.autosave_saving")
 
 func _update_display(state: Dictionary) -> void:
+	_sync_visibility(state)
+	if not visible:
+		return
 	pause_label.text = ""
 	_update_health(state)
+
+func _sync_visibility(state: Dictionary) -> void:
+	var should_show: bool = _should_show_hud(state)
+	if visible == should_show:
+		return
+
+	visible = should_show
+	if visible:
+		return
+
+	if interact_prompt != null:
+		interact_prompt.hide_prompt()
+	_hide_checkpoint_toast_immediate()
+	_hide_autosave_spinner()
+	_hide_signpost_panel()
+	U_InteractBlocker.force_unblock()
+
+func _should_show_hud(state: Dictionary) -> bool:
+	var scene_state: Dictionary = state.get("scene", {})
+	var is_transitioning: bool = scene_state.get("is_transitioning", false)
+	if is_transitioning:
+		return false
+
+	var navigation_state: Dictionary = state.get("navigation", {})
+	var shell: StringName = navigation_state.get("shell", StringName())
+	return shell == StringName("gameplay")
 
 func _update_health(state: Dictionary) -> void:
 	if health_bar == null:
@@ -492,29 +505,6 @@ func _on_interact_prompt_hide(payload: Variant) -> void:
 		return
 	_active_prompt_id = 0
 	interact_prompt.hide_prompt()
-
-func _reparent_to_root_hud_layer() -> void:
-	# Reparent HUD to root HUDLayer to escape SubViewport rendering
-	var tree := get_tree()
-	if tree == null:
-		return
-
-	var root_hud_layer := U_ServiceLocator.try_get_service(StringName("hud_layer"))
-	if root_hud_layer == null:
-		push_warning("HUD: Could not find HUDLayer in root - HUD will render inside viewport")
-		return
-
-	var current_parent := get_parent()
-	if current_parent == null or current_parent == root_hud_layer:
-		return
-
-	# Reparent to root HUD layer
-	current_parent.remove_child(self)
-	root_hud_layer.add_child(self)
-
-	# Render after post-processing layers but before root UI overlays.
-	# When CanvasLayers are nested, child layer number determines render order, not parent
-	layer = U_CANVAS_LAYERS.HUD
 
 func _on_signpost_message(payload: Variant) -> void:
 	var data := _extract_event_payload(payload)
