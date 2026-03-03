@@ -157,8 +157,8 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
 
 ### 3A — Route DamageFlash Through U_TweenManager
 
-- [ ] Change `U_DamageFlash._init` signature from `(flash_rect, scene_tree)` to `(flash_rect, owner_node)` where `owner_node` is the `CanvasLayer` instance (the DamageFlashOverlay).
-- [ ] Replace tween creation:
+- [x] Change `U_DamageFlash._init` signature from `(flash_rect, scene_tree)` to `(flash_rect, owner_node)` where `owner_node` is the `CanvasLayer` instance (the DamageFlashOverlay).
+- [x] Replace tween creation:
   ```gdscript
   # Before:
   _tween = _scene_tree.create_tween()
@@ -170,13 +170,13 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
   _tween = U_TweenManager.create_transition_tween(_owner_node, config)
   _tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
   ```
-- [ ] **Note:** `U_TweenManager.create_transition_tween` calls `set_process_mode` but not `set_pause_mode`. The pause mode (`TWEEN_PAUSE_PROCESS` = runs during pause) is a separate Tween concept. Set it explicitly after creation.
-- [ ] Remove manual tween kill logic if `U_TweenManager` handles it.
-- [ ] Update `cancel_flash()` method (added in commit `02ed9612`) to use `U_TweenManager` for tween cleanup instead of manual `_tween.kill()`. Ensure the instant-clear behavior (`_flash_rect.modulate.a = 0.0`) is preserved.
+- [x] **Note:** `U_TweenManager.create_transition_tween` calls `set_process_mode` but not `set_pause_mode`. The pause mode (`TWEEN_PAUSE_PROCESS` = runs during pause) is a separate Tween concept. Set it explicitly after creation.
+- [x] Remove manual tween kill logic if `U_TweenManager` handles it.
+- [x] Update `cancel_flash()` method (added in commit `02ed9612`) to use `U_TweenManager` for tween cleanup instead of manual `_tween.kill()`. Ensure the instant-clear behavior (`_flash_rect.modulate.a = 0.0`) is preserved.
 
 ### 3B — Update Caller in `m_vfx_manager.gd`
 
-- [ ] Update construction call:
+- [x] Update construction call:
   ```gdscript
   # Before (line ~107):
   _damage_flash = U_DamageFlash.new(flash_rect, get_tree())
@@ -186,14 +186,29 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
 
 ### 3C — Audit Other Manual Tween Sites
 
-- [ ] Grep for `create_tween()` calls outside of `U_TweenManager`.
-- [ ] Evaluate each for migration — only migrate if it's a transition/VFX tween (don't touch gameplay animation tweens).
+- [x] Grep for `create_tween()` calls outside of `U_TweenManager`.
+- [x] Evaluate each for migration — only migrate if it's a transition/VFX tween (don't touch gameplay animation tweens).
 
 ### 3D — Tests
 
-- [ ] Verify damage flash still triggers and fades correctly.
-- [ ] Verify fade transitions still work.
-- [ ] Run manager test suite: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`
+- [x] Verify damage flash still triggers and fades correctly.
+- [x] Verify fade transitions still work.
+- [x] Run manager test suite: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`
+
+### Phase 3 Completion Notes (2026-03-03)
+
+- Implementation commit: `018c4a14` (`refactor(vfx): route damage flash tweening through u_tween_manager`).
+- `U_DamageFlash` now takes `(flash_rect, owner_node)` and creates fade tweens through `U_TweenManager.create_transition_tween(...)` with `TweenConfig.process_mode = TWEEN_PROCESS_IDLE`.
+- Explicit `Tween.TWEEN_PAUSE_PROCESS` is still applied on the returned tween.
+- Added `U_TweenManager.kill_tween(...)` and used it for `U_DamageFlash` active-tween cleanup (`trigger_flash` retrigger + `cancel_flash`).
+- Updated `M_VFXManager` to pass `flash_instance` as owner node instead of `get_tree()`.
+- Updated `tests/unit/managers/helpers/test_damage_flash.gd` constructor usage and null-case coverage (`null owner node`).
+- `create_tween()` audit after migration:
+  - Remaining call sites are non-transition/non-VFX (`UI_HudController`, `M_CameraManager`, `UI_Credits`, `U_CrossfadePlayer`) plus centralized factory in `U_TweenManager`.
+  - No additional transition/VFX migrations were required in this phase.
+- Validation:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass 96/101 with 5 pre-existing headless pending tests)
 
 ---
 

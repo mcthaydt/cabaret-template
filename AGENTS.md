@@ -118,6 +118,7 @@
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.
   - Player-only + transition gating: `M_VFXManager` filters requests via `_is_player_entity()` and `_is_transition_blocked()` using Redux `gameplay.player_entity_id`, `scene.is_transitioning`, `scene.scene_stack`, and `navigation.shell == "gameplay"`.
+  - `U_DamageFlash` now takes `(flash_rect, owner_node)` and creates tweens through `U_TweenManager` (`TweenConfig.process_mode = TWEEN_PROCESS_IDLE` + explicit `TWEEN_PAUSE_PROCESS`).
   - Use `U_ECSEventNames` constants for subscriptions instead of string literals.
 - VFX Tuning Resources (Phase 4)
   - `RS_ScreenShakeTuning` defines trauma decay + damage/landing/death curves; defaults in `resources/vfx/cfg_screen_shake_tuning.tres`.

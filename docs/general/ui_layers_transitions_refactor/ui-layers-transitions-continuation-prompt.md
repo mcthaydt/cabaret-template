@@ -2,10 +2,21 @@
 
 ## Current Status
 
-- Phase: **Phase 2 complete** (Dead damage-flash tween cache removed on 2026-03-03).
+- Phase: **Phase 3 complete** (DamageFlash tweening unified through `U_TweenManager` on 2026-03-03).
 - Branch: `UI-Looksmaxxing`.
 - Working tree: docs-only updates pending commit.
-- Next step: Phase 3 — Unify DamageFlash tween creation through `U_TweenManager`.
+- Next step: Phase 4 — Standardize node discovery to ServiceLocator-only lookups.
+
+### Phase 3 Implementation Summary (2026-03-03)
+
+- Implementation commit: `018c4a14` (`refactor(vfx): route damage flash tweening through u_tween_manager`).
+- `U_DamageFlash` now takes `(flash_rect, owner_node)` and creates tweens via `U_TweenManager.create_transition_tween(...)` using idle process mode plus explicit pause mode.
+- Added `U_TweenManager.kill_tween(...)` and used it for damage-flash retrigger/cancel cleanup.
+- Updated `M_VFXManager` construction to `U_DamageFlash.new(flash_rect, flash_instance)`.
+- Updated damage flash helper tests for owner-node injection and null-owner safety.
+- Phase 3 verification:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass 96/101 with 5 pre-existing headless pending tests)
 
 ### Phase 2 Implementation Summary (2026-03-03)
 
