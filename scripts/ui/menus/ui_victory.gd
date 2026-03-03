@@ -12,6 +12,7 @@ class_name UI_Victory
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const DEBUG_VICTORY_TRACE := false
 
 @onready var _title_label: Label = $MarginContainer/VBoxContainer/TitleLabel
@@ -129,10 +130,7 @@ func _hide_immediately() -> void:
 	# Snap the transition overlay to fully opaque so the screen goes black
 	# instantly. Trans_Fade.execute_fade_out will detect alpha == 1.0 and
 	# skip the fade-out animation, giving a clean cut-to-black → fade-in.
-	var tree := get_tree()
-	if tree == null:
-		return
-	var overlay := tree.root.find_child("TransitionOverlay", true, false) as CanvasLayer
+	var overlay := U_SERVICE_LOCATOR.try_get_service(StringName("transition_overlay")) as CanvasLayer
 	if overlay == null:
 		return
 	for child in overlay.get_children():

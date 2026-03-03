@@ -45,6 +45,15 @@ func _initialize_service_locator() -> void:
 	_register_if_exists(managers_node, "M_RunCoordinatorManager", StringName("run_coordinator"))
 	_register_if_exists(managers_node, "M_SceneDirectorManager", StringName("scene_director"))
 
+	# Register root-level containers and viewport nodes.
+	_register_container("HUDLayer", StringName("hud_layer"))
+	_register_container("UIOverlayStack", StringName("ui_overlay_stack"))
+	_register_container("TransitionOverlay", StringName("transition_overlay"))
+	_register_container("LoadingOverlay", StringName("loading_overlay"))
+	_register_container("GameViewportContainer/GameViewport", StringName("game_viewport"))
+	_register_container("GameViewportContainer/GameViewport/ActiveSceneContainer", StringName("active_scene_container"))
+	_register_container("GameViewportContainer/GameViewport/PostProcessOverlay", StringName("post_process_overlay"))
+
 	# Register dependencies for validation
 	U_ServiceLocator.register_dependency(StringName("time_manager"), StringName("state_store"))
 	U_ServiceLocator.register_dependency(StringName("time_manager"), StringName("cursor_manager"))
@@ -78,5 +87,10 @@ func _initialize_service_locator() -> void:
 ## Helper to register a service only if the node exists
 func _register_if_exists(parent: Node, node_name: String, service_name: StringName) -> void:
 	var node := parent.get_node_or_null(node_name)
+	if node != null:
+		U_ServiceLocator.register(service_name, node)
+
+func _register_container(path: String, service_name: StringName) -> void:
+	var node := get_node_or_null(path)
 	if node != null:
 		U_ServiceLocator.register(service_name, node)

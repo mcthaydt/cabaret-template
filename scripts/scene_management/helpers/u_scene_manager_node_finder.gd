@@ -4,7 +4,7 @@ class_name U_SceneManagerNodeFinder
 ##
 ## Responsibilities:
 ## - Find required container nodes in the scene tree
-## - ServiceLocator-first lookup with tree fallback
+## - ServiceLocator-only lookup
 ## - Store reference discovery
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -19,50 +19,37 @@ class ContainerRefs:
 
 ## Find all required container nodes
 ##
-## Searches from the scene root (not SceneTree.root) to avoid cross-scene pollution.
-## Uses ServiceLocator first for overlays (test environments), falls back to tree search.
+## Uses ServiceLocator only for deterministic node discovery.
 ##
 ## Parameters:
-##   manager: The scene manager node (used to find scene root)
+##   manager: The scene manager node (used for null/validity guard)
 ##
 ## Returns:
 ##   ContainerRefs instance with discovered nodes (null if not found)
 static func find_containers(manager: Node) -> ContainerRefs:
 	var refs := ContainerRefs.new()
-	var tree := manager.get_tree()
-	if tree == null:
+	if manager == null:
 		return refs
 
-	# Walk up to scene root (direct child of SceneTree.root)
-	var root: Node = manager
-	while root.get_parent() != null and root.get_parent() != tree.root:
-		root = root.get_parent()
-	if root.get_parent() != tree.root:
-		root = tree.root
-
 	# Find ActiveSceneContainer
-	refs.active_scene_container = root.find_child("ActiveSceneContainer", true, false)
+	refs.active_scene_container = U_SERVICE_LOCATOR.try_get_service(StringName("active_scene_container"))
 	if refs.active_scene_container == null:
-		push_error("M_SceneManager: ActiveSceneContainer not found")
+		push_error("M_SceneManager: ActiveSceneContainer service not found (active_scene_container)")
 
 	# Find UIOverlayStack
-	refs.ui_overlay_stack = root.find_child("UIOverlayStack", true, false)
+	refs.ui_overlay_stack = U_SERVICE_LOCATOR.try_get_service(StringName("ui_overlay_stack")) as CanvasLayer
 	if refs.ui_overlay_stack == null:
-		push_error("M_SceneManager: UIOverlayStack not found")
+		push_error("M_SceneManager: UIOverlayStack service not found (ui_overlay_stack)")
 
-	# Find TransitionOverlay (ServiceLocator first for test environments)
+	# Find TransitionOverlay
 	refs.transition_overlay = U_SERVICE_LOCATOR.try_get_service(StringName("transition_overlay")) as CanvasLayer
 	if refs.transition_overlay == null:
-		refs.transition_overlay = root.find_child("TransitionOverlay", true, false)
-	if refs.transition_overlay == null:
-		push_error("M_SceneManager: TransitionOverlay not found")
+		push_error("M_SceneManager: TransitionOverlay service not found (transition_overlay)")
 
-	# Find LoadingOverlay (ServiceLocator first for test environments)
+	# Find LoadingOverlay
 	refs.loading_overlay = U_SERVICE_LOCATOR.try_get_service(StringName("loading_overlay")) as CanvasLayer
 	if refs.loading_overlay == null:
-		refs.loading_overlay = root.find_child("LoadingOverlay", true, false)
-	if refs.loading_overlay == null:
-		push_warning("M_SceneManager: LoadingOverlay not found (loading transitions will not work)")
+		push_warning("M_SceneManager: LoadingOverlay service not found (loading transitions will not work)")
 
 	return refs
 

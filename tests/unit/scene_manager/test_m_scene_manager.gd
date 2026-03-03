@@ -17,6 +17,7 @@ var _store: M_StateStore
 var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
 var _transition_overlay: CanvasLayer
+var _loading_overlay: CanvasLayer
 
 func before_each() -> void:
 	# Clear ServiceLocator first to ensure clean state between tests
@@ -41,10 +42,12 @@ func before_each() -> void:
 	_active_scene_container = Node.new()
 	_active_scene_container.name = "ActiveSceneContainer"
 	add_child_autofree(_active_scene_container)
+	U_ServiceLocator.register(StringName("active_scene_container"), _active_scene_container)
 
 	_ui_overlay_stack = CanvasLayer.new()
 	_ui_overlay_stack.name = "UIOverlayStack"
 	add_child_autofree(_ui_overlay_stack)
+	U_ServiceLocator.register(StringName("ui_overlay_stack"), _ui_overlay_stack)
 
 	_transition_overlay = CanvasLayer.new()
 	_transition_overlay.name = "TransitionOverlay"
@@ -52,6 +55,12 @@ func before_each() -> void:
 	color_rect.name = "TransitionColorRect"
 	_transition_overlay.add_child(color_rect)
 	add_child_autofree(_transition_overlay)
+	U_ServiceLocator.register(StringName("transition_overlay"), _transition_overlay)
+
+	_loading_overlay = CanvasLayer.new()
+	_loading_overlay.name = "LoadingOverlay"
+	add_child_autofree(_loading_overlay)
+	U_ServiceLocator.register(StringName("loading_overlay"), _loading_overlay)
 
 	# Create scene manager
 	_manager = M_SceneManager.new()
@@ -69,6 +78,7 @@ func after_each() -> void:
 	_active_scene_container = null
 	_ui_overlay_stack = null
 	_transition_overlay = null
+	_loading_overlay = null
 
 ## Test manager is registered with ServiceLocator
 func test_manager_registers_with_service_locator() -> void:

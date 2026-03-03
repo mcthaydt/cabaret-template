@@ -14,6 +14,7 @@ class_name Trans_Fade
 
 ## Transition duration in seconds
 @export var duration: float = 1.0
+@export var snapped_overlay_fade_in_duration: float = 1.0
 
 ## Color to fade to (default black)
 @export var fade_color: Color = Color.BLACK
@@ -205,6 +206,28 @@ func _find_color_rect(overlay: CanvasLayer) -> ColorRect:
 		if child is ColorRect and child.name == "TransitionColorRect":
 			return child as ColorRect
 	return null
+
+## Configure fade state when the transition overlay is already fully opaque.
+##
+## Returns true when the overlay was opaque and transition state was prepared
+## for an immediate fade-in-only flow.
+func setup_for_opaque_overlay_resume(overlay: CanvasLayer) -> bool:
+	var color_rect := _find_color_rect(overlay)
+	if color_rect == null:
+		return false
+	if not is_equal_approx(color_rect.modulate.a, 1.0):
+		return false
+
+	overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+	color_rect.process_mode = Node.PROCESS_MODE_ALWAYS
+
+	if block_input:
+		if not _mouse_filter_cache.has(color_rect):
+			_mouse_filter_cache[color_rect] = int(color_rect.mouse_filter)
+		color_rect.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	duration = snapped_overlay_fade_in_duration
+	return true
 
 ## Clean up Tween reference
 func _cleanup_tween() -> void:

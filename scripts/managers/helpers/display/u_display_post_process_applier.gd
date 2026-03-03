@@ -8,6 +8,7 @@ const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display
 const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/display/u_post_process_layer.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _owner: Node = null
 var _post_process_layer: U_PostProcessLayer = null
@@ -147,22 +148,17 @@ func _setup_post_process_overlay() -> void:
 		_post_process_layer.initialize(_post_process_overlay)
 		return
 
-	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
-	if tree == null or tree.root == null:
-		return
-
-	# PostProcessOverlay is now inside GameViewport, not directly in root.
-	var existing := tree.root.find_child("PostProcessOverlay", true, false)
+	var existing := U_SERVICE_LOCATOR.try_get_service(StringName("post_process_overlay"))
 	if existing is Node:
 		_post_process_overlay = existing
 	elif existing != null:
-		push_warning("U_DisplayPostProcessApplier: PostProcessOverlay found but is not a Node")
+		push_warning("U_DisplayPostProcessApplier: post_process_overlay service is not a Node")
 
 	if _post_process_overlay == null:
-		# Fallback: try to find GameViewport and add overlay there.
-		var game_viewport := tree.root.find_child("GameViewport", true, false) as SubViewport
+		# Fallback: add overlay under the registered gameplay viewport.
+		var game_viewport := U_SERVICE_LOCATOR.try_get_service(StringName("game_viewport")) as SubViewport
 		if game_viewport == null:
-			push_error("U_DisplayPostProcessApplier: GameViewport not found, cannot add post-process overlay")
+			push_error("U_DisplayPostProcessApplier: game_viewport service not found, cannot add post-process overlay")
 			return
 
 		var overlay_scene: PackedScene = POST_PROCESS_OVERLAY_SCENE
@@ -173,6 +169,7 @@ func _setup_post_process_overlay() -> void:
 		if overlay_instance is Node:
 			_post_process_overlay = overlay_instance
 			game_viewport.add_child(_post_process_overlay)
+			U_SERVICE_LOCATOR.register(StringName("post_process_overlay"), _post_process_overlay)
 		else:
 			push_error("U_DisplayPostProcessApplier: Post-process overlay root is not a Node")
 			return

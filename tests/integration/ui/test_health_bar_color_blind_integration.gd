@@ -46,6 +46,7 @@ func before_each() -> void:
 	var post_process_overlay := POST_PROCESS_OVERLAY_SCENE.instantiate()
 	post_process_overlay.name = "PostProcessOverlay"
 	add_child_autofree(post_process_overlay)
+	U_ServiceLocator.register(StringName("post_process_overlay"), post_process_overlay)
 
 	# Create and register DisplayManager so HUD can query it for palettes
 	_display_manager = M_DisplayManager.new()

@@ -58,10 +58,12 @@ func before_each() -> void:
 	_active_scene_container = Node.new()
 	_active_scene_container.name = "ActiveSceneContainer"
 	add_child_autofree(_active_scene_container)
+	U_ServiceLocator.register(StringName("active_scene_container"), _active_scene_container)
 
 	_ui_overlay_stack = CanvasLayer.new()
 	_ui_overlay_stack.name = "UIOverlayStack"
 	add_child_autofree(_ui_overlay_stack)
+	U_ServiceLocator.register(StringName("ui_overlay_stack"), _ui_overlay_stack)
 
 	_transition_overlay = CanvasLayer.new()
 	_transition_overlay.name = "TransitionOverlay"
@@ -69,10 +71,12 @@ func before_each() -> void:
 	color_rect.name = "TransitionColorRect"
 	_transition_overlay.add_child(color_rect)
 	add_child_autofree(_transition_overlay)
+	U_ServiceLocator.register(StringName("transition_overlay"), _transition_overlay)
 
 	var loading_overlay := CanvasLayer.new()
 	loading_overlay.name = "LoadingOverlay"
 	add_child_autofree(loading_overlay)
+	U_ServiceLocator.register(StringName("loading_overlay"), loading_overlay)
 
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
