@@ -2,10 +2,36 @@
 
 ## Current Status
 
-- Phase: **Phase 7 automated closeout complete** (final validation + documentation updates landed on 2026-03-03; manual GUI smoke remains pending).
+- Phase: **Phase 7 closeout + post-audit gap patch complete** (manual GUI smoke remains pending; full-suite aggregate run has one known perf-smoke failure).
 - Branch: `UI-Looksmaxxing`.
-- Working tree: clean after Phase 7 documentation updates.
-- Next step: Refactor complete; optional interactive/manual smoke pass when a GUI session is available.
+- Working tree: includes the post-audit HUD ownership/test-guard corrections.
+- Next step: Run the interactive/manual smoke pass in a GUI session.
+
+### Phase 7 Gap Patch Summary (2026-03-04)
+
+- Patched remaining HUD ownership/integration gaps discovered during post-closeout audit:
+  - removed gameplay-scene HUD embeds from:
+    - `scenes/gameplay/gameplay_base.tscn`
+    - `scenes/gameplay/gameplay_alleyway.tscn`
+    - `scenes/gameplay/gameplay_bar.tscn`
+    - `scenes/gameplay/gameplay_exterior.tscn`
+    - `scenes/gameplay/gameplay_interior_house.tscn`
+  - added style regression guard:
+    - `tests/unit/style/test_style_enforcement.gd::test_gameplay_scenes_do_not_embed_hud_instances`
+  - fixed style helper iteration regression in `tests/unit/style/test_style_enforcement.gd` (`_collect_interaction_resource_placement_violations`) so file entries advance correctly.
+- Synced architecture/docs after patch:
+  - `docs/general/SCENE_ORGANIZATION_GUIDE.md` gameplay hierarchy and UI naming references now match root-managed HUD lifecycle.
+  - `docs/general/DEV_PITFALLS.md` now documents the new style guard.
+  - `AGENTS.md` gameplay-scene guidance now explicitly states HUD is root-managed (no gameplay HUD nodes).
+- Verification reruns after patch:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass `13/13`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass `97/102` with `5` known pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true` (pass `200/202` with `2` mobile pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true` (pass `90/90`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (pass `51/52` with `1` known pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass `414/414`)
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (pass `2758/2768` with `9` known pending, `1` failing performance-smoke test in aggregate run: `tests/integration/lighting/test_character_zone_lighting_flow.gd::test_multi_character_multi_zone_performance_smoke`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -ginclude_subdirs=true` (isolated rerun pass `7/7`; aggregate failure appears load-sensitive/flaky rather than HUD-patch related)
 
 ### Phase 7 Completion Summary (2026-03-03)
 

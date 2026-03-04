@@ -42,6 +42,8 @@
 
 - **HUD is manager-instantiated under `HUDLayer`**: Do not add HUD instances to gameplay scenes or templates. `M_SceneManager` owns HUD instantiation in root, and `UI_HudController` visibility is Redux-driven. Embedding HUD in gameplay scenes reintroduces duplicate instances and lifecycle drift.
 
+- **Protect HUD ownership with style checks**: `tests/unit/style/test_style_enforcement.gd` includes a guard that fails when any `scenes/gameplay/*.tscn` references `ui_hud_overlay.tscn` or defines a `HUD` root node. Keep this test green when authoring or migrating gameplay scenes.
+
 - **Full-screen overlay containers block input by default**: When creating HUD overlays or full-screen UI containers (using `anchors_preset = 15`), the container will block ALL mouse input to UI elements below it, even if the container's children only occupy a small portion of the screen. This happens because Control nodes use `mouse_filter = MOUSE_FILTER_STOP` (value 0) by default, which intercepts and stops mouse events from propagating.
   
   **Problem**: A MarginContainer covering the entire screen for a HUD overlay will prevent clicks from reaching buttons or UI elements below it, even though the HUD content (health/score labels) only appears in the corner.

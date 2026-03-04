@@ -173,7 +173,8 @@
 - **Gameplay scenes**: Each has own `M_ECSManager` instance
   - Example: `scenes/gameplay/gameplay_base.tscn`
   - Contains: Systems, Entities, SceneObjects, Environment
-  - HUD uses `U_StateUtils.get_store(self)` to find M_StateStore via ServiceLocator (or injected store)
+  - HUD is root-managed under `HUDLayer` by `M_SceneManager`; gameplay scenes must not embed HUD nodes.
+  - UI controllers (including HUD) use `U_StateUtils.get_store(self)` for `M_StateStore` lookup (or injected store).
 - Node tree structure: See `docs/scene_organization/SCENE_ORGANIZATION_GUIDE.md`
 - Templates: `scenes/templates/tmpl_base_scene.tscn`, `scenes/templates/tmpl_character.tscn`, `scenes/templates/tmpl_camera.tscn`
 - Marker scripts: `scripts/scene_structure/*` (11 total) provide visual organization

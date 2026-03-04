@@ -78,11 +78,10 @@ GameplayRoot (Node3D) [root.gd]
 │        ├─ GlowLight (OmniLight3D)
 │        └─ Sparkles (CPUParticles3D)
 │
-└─ HUD (CanvasLayer or Control)
-   └─ (UI elements)
 ```
 
 `GameplayRoot` is the canonical root name for gameplay scenes; it must use the `root.gd` root script.
+HUD is root-managed under `Root/HUDLayer`; gameplay scenes should not embed `HUD` nodes.
 
 ### Important: Node Hierarchy Rules
 
@@ -356,7 +355,7 @@ All nodes should use **descriptive names with category prefixes** for clarity:
 | **Managers** | `M_` | `M_ECSManager`, `M_StateStore` | Manager singleton nodes |
 | **Scene Objects** | `SO_` | `SO_Floor`, `SO_Block` | Static geometry |
 | **Environment** | `Env_` | `Env_WorldEnvironment`, `Env_DirectionalLight3D` | Lighting/environment nodes |
-| **UI** | `HUD` or `UI_` | `HUD`, `UI_PauseMenu` | User interface elements |
+| **UI** | `UI_` | `UI_HudController`, `UI_PauseMenu` | User interface elements |
 | **Scene Files (Gameplay)** | `gameplay_` | `gameplay_base.tscn`, `gameplay_exterior.tscn` | Gameplay scenes |
 | **Scene Files (UI)** | `ui_` | `ui_main_menu.tscn`, `ui_pause_menu.tscn` | UI scenes |
 | **Scene Files (Debug)** | `debug_` | `debug_state_overlay.tscn` | Debug/testing scenes |
@@ -564,8 +563,7 @@ GameplayRoot
 │  ├─ Movement
 │  └─ Feedback
 ├─ Managers
-├─ Entities
-└─ HUD
+└─ Entities
 ```
 
 Root scene:
@@ -590,7 +588,7 @@ Root
 - `M_` = Manager
 - `SO_` = Scene Object
 - `Env_` = Environment
-- `HUD` / `UI_` = User Interface
+- `UI_` = User Interface
 
 ### Priority Ranges
 - **0-10:** Input/control

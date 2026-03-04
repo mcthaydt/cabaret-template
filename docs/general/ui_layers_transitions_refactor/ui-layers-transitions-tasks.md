@@ -488,6 +488,31 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 - Manual smoke-test note:
   - Interactive launch checks were not run in this headless terminal workflow; full automated suite remained green with the known pending set.
 
+### Phase 7 Gap Patch Notes (2026-03-04)
+
+- [x] Removed leftover gameplay-scene HUD embeds that violated the Phase 6 lifecycle contract:
+  - `scenes/gameplay/gameplay_base.tscn`
+  - `scenes/gameplay/gameplay_alleyway.tscn`
+  - `scenes/gameplay/gameplay_bar.tscn`
+  - `scenes/gameplay/gameplay_exterior.tscn`
+  - `scenes/gameplay/gameplay_interior_house.tscn`
+- [x] Added style regression guard:
+  - `tests/unit/style/test_style_enforcement.gd::test_gameplay_scenes_do_not_embed_hud_instances`
+- [x] Fixed style helper iteration regression in `tests/unit/style/test_style_enforcement.gd` so interaction-resource placement scans advance across file entries.
+- [x] Synced docs/contracts after patch:
+  - `docs/general/SCENE_ORGANIZATION_GUIDE.md` (removed stale gameplay HUD hierarchy references)
+  - `docs/general/DEV_PITFALLS.md` (documented HUD-embed style guard)
+  - `AGENTS.md` (clarified root-managed HUD + no gameplay HUD nodes)
+- [x] Re-ran verification suites after patch:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass `13/13`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager -ginclude_subdirs=true` (pass `97/102`, `5` pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true` (pass `200/202`, `2` pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true` (pass `90/90`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (pass `51/52`, `1` pending)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass `414/414`)
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (pass `2758/2768`, `9` pending, `1` failure in aggregate run: `tests/integration/lighting/test_character_zone_lighting_flow.gd::test_multi_character_multi_zone_performance_smoke`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -ginclude_subdirs=true` (isolated rerun pass `7/7`; indicates the aggregate failure is load-sensitive/flaky)
+
 ---
 
 ## Files Modified (Summary)
@@ -510,6 +535,11 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 | `scripts/interfaces/i_scene_manager.gd` | 5 | Remove HUD methods from interface |
 | `tests/mocks/mock_scene_manager_with_transition.gd` | 5 | Remove HUD mock methods |
 | `scenes/templates/tmpl_base_scene.tscn` | 6 | Remove HUD instance |
+| `scenes/gameplay/gameplay_*.tscn` | 7 gap patch | Remove legacy HUD embeds from gameplay scenes |
+| `tests/unit/style/test_style_enforcement.gd` | 7 gap patch | Add gameplay HUD embed regression guard |
+| `docs/general/SCENE_ORGANIZATION_GUIDE.md` | 7 gap patch | Remove stale gameplay HUD hierarchy references |
+| `docs/general/DEV_PITFALLS.md` | 7 gap patch | Document HUD embed style guard |
+| `AGENTS.md` | 7 gap patch | Clarify root-managed HUD contract in gameplay section |
 | Tests (various) | 2-6 | Update for new APIs, ServiceLocator registrations |
 
 ---
