@@ -393,6 +393,16 @@ func test_scene_organization_gameplay_structure() -> void:
 	assert_true(has_spawn_points_in_entities,
 		"Spawn points must be under Entities node per SCENE_ORGANIZATION_GUIDE.md")
 
+func test_gameplay_scenes_do_not_embed_hud_instances() -> void:
+	var violations: Array[String] = []
+	_collect_gameplay_hud_embedding_violations("res://scenes/gameplay", violations)
+
+	var message := "Gameplay scenes must not embed HUD instances (HUD is root-managed by M_SceneManager)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+
+	assert_eq(violations.size(), 0, message)
+
 # Helper functions for prefix validation
 
 func _check_directory_prefixes(dir_path: String, allowed_prefixes: Array, violations: Array[String]) -> void:
@@ -525,3 +535,41 @@ func _collect_interaction_resource_placement_violations(dir_path: String, violat
 				violations.append("%s - interaction config instances must live in a category subdirectory" % path)
 		entry = dir.get_next()
 	dir.list_dir_end()
+
+func _collect_gameplay_hud_embedding_violations(dir_path: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_gameplay_hud_embedding_violations(path, violations)
+		elif entry.ends_with(".tscn"):
+			if _scene_embeds_hud_overlay(path):
+				violations.append("%s embeds ui_hud_overlay.tscn or HUD root node" % path)
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _scene_embeds_hud_overlay(path: String) -> bool:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return false
+
+	var has_hud_ext_resource := false
+	var has_hud_node := false
+	while not file.eof_reached():
+		var line := file.get_line()
+		if line.find("res://scenes/ui/hud/ui_hud_overlay.tscn") != -1:
+			has_hud_ext_resource = true
+		if line.begins_with("[node name=\"HUD\""):
+			has_hud_node = true
+		if has_hud_ext_resource or has_hud_node:
+			file.close()
+			return true
+
+	file.close()
+	return false
