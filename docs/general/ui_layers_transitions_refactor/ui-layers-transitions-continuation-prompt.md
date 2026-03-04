@@ -2,10 +2,22 @@
 
 ## Current Status
 
-- Phase: **Phase 6 complete** (manager-driven HUD instantiation landed on 2026-03-03).
+- Phase: **Phase 7 automated closeout complete** (final validation + documentation updates landed on 2026-03-03; manual GUI smoke remains pending).
 - Branch: `UI-Looksmaxxing`.
-- Working tree: clean after Phase 6 implementation + documentation commits.
-- Next step: Phase 7 — Final validation + documentation closeout.
+- Working tree: clean after Phase 7 documentation updates.
+- Next step: Refactor complete; optional interactive/manual smoke pass when a GUI session is available.
+
+### Phase 7 Completion Summary (2026-03-03)
+
+- Final validation:
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` (pass `2758/2767` with `9` known pending tests, `0` failures).
+- Documentation closeout:
+  - `docs/general/SCENE_ORGANIZATION_GUIDE.md` updated with explicit root container ServiceLocator registrations and HUD lifecycle contract.
+  - `docs/general/DEV_PITFALLS.md` updated with `U_CanvasLayers` layer-assignment guidance and manager-instantiated HUD reminder.
+  - `docs/general/ui_layers_transitions_refactor/ui-layers-transitions-tasks.md` updated with Phase 7 completion notes/checklist.
+- `AGENTS.md` reviewed; no additional updates were required because container/HUD architecture guidance from Phases 4-6 is already captured.
+- Manual smoke note:
+  - GUI-driven smoke checks (damage flash layering and shell transition HUD toggles) were not run in this headless terminal workflow.
 
 ### Phase 6 Implementation Summary (2026-03-03)
 

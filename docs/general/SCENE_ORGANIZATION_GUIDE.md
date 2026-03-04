@@ -150,6 +150,20 @@ Root (Node) [root.gd]
 - `TransitionOverlay` and `LoadingOverlay` are dedicated to visual transitions.
 - `MobileControls` provides device‑aware virtual controls and must follow Input/UI Manager patterns.
 
+**ServiceLocator container registration contract (`scripts/root.gd`):**
+- `hud_layer` -> `HUDLayer`
+- `ui_overlay_stack` -> `UIOverlayStack`
+- `transition_overlay` -> `TransitionOverlay`
+- `loading_overlay` -> `LoadingOverlay`
+- `game_viewport` -> `GameViewportContainer/GameViewport`
+- `active_scene_container` -> `GameViewportContainer/GameViewport/ActiveSceneContainer`
+- `post_process_overlay` -> `GameViewportContainer/GameViewport/PostProcessOverlay`
+
+**HUD lifecycle contract (Phase 6):**
+- `M_SceneManager` instantiates `scenes/ui/hud/ui_hud_overlay.tscn` under `HUDLayer` during manager startup.
+- Gameplay templates/scenes must not embed HUD instances directly.
+- `UI_HudController` must not self-reparent; HUD visibility is Redux-driven (`scene.is_transitioning` and `navigation.shell`).
+
 **Canonical Canvas Layer Map (`scripts/ui/u_canvas_layers.gd`):**
 
 | Constant | Layer | Scope | Node / Use |

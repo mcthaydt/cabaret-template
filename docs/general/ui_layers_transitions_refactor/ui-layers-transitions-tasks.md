@@ -460,21 +460,33 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 
 ## Phase 7 — Final Validation & Documentation
 
-- [ ] Run full test suite: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true`.
-- [ ] Update `docs/general/SCENE_ORGANIZATION_GUIDE.md` with:
+- [x] Run full test suite: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true`.
+- [x] Update `docs/general/SCENE_ORGANIZATION_GUIDE.md` with:
   - New canonical layer map referencing `U_CanvasLayers`.
   - ServiceLocator container registration list.
   - HUD lifecycle description.
-- [ ] Update `docs/general/DEV_PITFALLS.md` with:
+- [x] Update `docs/general/DEV_PITFALLS.md` with:
   - "Always use `U_CanvasLayers` constants for layer assignments."
   - "HUD is manager-instantiated under HUDLayer — do not add to gameplay scenes."
-- [ ] Update `AGENTS.md` if new architectural patterns were introduced.
-- [ ] Update this task list with final completion notes.
-- [ ] Update continuation prompt with final status.
-- [ ] Manual smoke test:
+- [x] Update `AGENTS.md` if new architectural patterns were introduced.
+- [x] Update this task list with final completion notes.
+- [x] Update continuation prompt with final status.
+- [ ] Manual smoke test (requires interactive GUI run):
   - Launch game, take damage (flash should appear below loading screen).
   - Trigger a loading transition (HUD should hide).
   - Navigate menus → gameplay → menus (HUD toggles correctly).
+
+### Phase 7 Completion Notes (2026-03-03)
+
+- Final validation command:
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true`
+  - Result: pass `2758/2767` with `9` known pending tests, `0` failures.
+- Updated documentation contracts:
+  - `docs/general/SCENE_ORGANIZATION_GUIDE.md` now explicitly lists root container ServiceLocator registrations and the Phase 6 HUD lifecycle contract.
+  - `docs/general/DEV_PITFALLS.md` now documents `U_CanvasLayers` constant usage and manager-instantiated HUD constraints.
+- `AGENTS.md` review: no additional edits were required because Phase 4/5/6 container/HUD architecture guidance is already documented.
+- Manual smoke-test note:
+  - Interactive launch checks were not run in this headless terminal workflow; full automated suite remained green with the known pending set.
 
 ---
 
