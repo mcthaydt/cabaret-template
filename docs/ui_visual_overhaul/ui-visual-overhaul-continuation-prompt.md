@@ -4,15 +4,16 @@
 
 - Feature / story: UI Visual Overhaul
 - Branch: `UI-Looksmaxxing` (shared with prerequisite refactor)
-- Status summary: **Not started** — documentation phase complete, awaiting "UI, Layers & Transitions Refactor" completion.
+- Status summary: **Ready to implement** — prerequisite refactor complete, documentation phase complete.
 
 ## Recent Progress
 
 - Created PRD (`docs/ui_visual_overhaul/ui-visual-overhaul-prd.md`)
 - Created task checklist (`docs/ui_visual_overhaul/ui-visual-overhaul-tasks.md`)
 - Created this continuation prompt
+- **"UI, Layers & Transitions Refactor" completed** — all 7 phases done on branch `UI-Looksmaxxing`
 
-### Branch State (as of 2026-02-28)
+### Branch State (as of 2026-03-03)
 
 The `UI-Looksmaxxing` branch contains ad-hoc visual polish commits that are **separate from this spec** but affect files this overhaul will touch:
 
@@ -99,10 +100,8 @@ Phase 2 (Motion) ─┘                                            │
 
 ## Next Steps
 
-1. Complete the "UI, Layers & Transitions Refactor" (all 7 phases)
-2. Confirm test baselines pass
-3. Begin Phase 1 (Theme) and Phase 2 (Motion) in parallel
-4. Phase 1A: Create `RS_UIThemeConfig` resource — audit current inline overrides to derive default values
+1. Begin Phase 1 (Theme) and Phase 2 (Motion) in parallel
+2. Phase 1A: Create `RS_UIThemeConfig` resource — audit current inline overrides to derive default values
 
 ## Key Files (New — To Be Created)
 
@@ -141,7 +140,6 @@ Phase 2 (Motion) ─┘                                            │
 
 ## Outstanding Risks
 
-- Prerequisite refactor not yet complete — this work cannot begin until it is. The refactor's scope has grown slightly with new tasks (Phase 4D/4E) for ad-hoc code on the branch.
 - Default theme values documented in PRD "Resolved Questions" — derived from auditing ~130 inline overrides. Low risk.
 - Phase 6 migration (removing inline overrides) could cause subtle visual regressions — mitigated by per-scene before/after comparison.
 - `@tool` scripts must be carefully guarded to avoid runtime side effects — follow `U_CinemaGradePreview` pattern exactly.

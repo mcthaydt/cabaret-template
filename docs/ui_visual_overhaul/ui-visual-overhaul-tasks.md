@@ -1,11 +1,11 @@
 # UI Visual Overhaul — Tasks
 
-**Progress:** 0% (0 / 62 tasks complete)
+**Progress:** 3% (2 / 62 tasks complete)
 
 ## Prerequisite
 
-- [ ] Confirm "UI, Layers & Transitions Refactor" is complete (all 7 phases in `docs/general/ui_layers_transitions_refactor/`)
-- [ ] Confirm test baselines: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true`
+- [x] Confirm "UI, Layers & Transitions Refactor" is complete (all 7 phases in `docs/general/ui_layers_transitions_refactor/`) — completed 2026-03-03, branch `UI-Looksmaxxing`
+- [x] Confirm test baselines: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` — baselines green
 
 ---
 
