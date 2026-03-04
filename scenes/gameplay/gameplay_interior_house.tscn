@@ -400,5 +400,4 @@ light_color = Color(0.8, 0.9, 1, 1)
 light_energy = 1.5
 omni_range = 1.863689
 
-
 [editable path="Entities/E_CameraRoot"]

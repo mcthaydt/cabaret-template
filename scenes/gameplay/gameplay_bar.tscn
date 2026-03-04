@@ -353,5 +353,4 @@ visual_paths = Array[NodePath]([NodePath(""), NodePath("")])
 entity_id = &"tutorial_bar"
 tags = Array[StringName]([&"interactable", &"tutorial"])
 
-
 [editable path="Entities/E_CameraRoot"]

@@ -3,6 +3,9 @@ extends Node
 
 ## Root scene script (dedicated editor icon + ServiceLocator bootstrap).
 
+func _enter_tree() -> void:
+	_initialize_service_locator()
+
 func _ready() -> void:
 	_initialize_service_locator()
 

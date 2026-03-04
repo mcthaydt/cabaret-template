@@ -158,7 +158,7 @@ func _setup_post_process_overlay() -> void:
 		# Fallback: add overlay under the registered gameplay viewport.
 		var game_viewport := U_SERVICE_LOCATOR.try_get_service(StringName("game_viewport")) as SubViewport
 		if game_viewport == null:
-			push_error("U_DisplayPostProcessApplier: game_viewport service not found, cannot add post-process overlay")
+			push_warning("U_DisplayPostProcessApplier: game_viewport service not found, cannot add post-process overlay")
 			return
 
 		var overlay_scene: PackedScene = POST_PROCESS_OVERLAY_SCENE

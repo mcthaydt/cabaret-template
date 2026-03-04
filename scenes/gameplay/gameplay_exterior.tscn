@@ -465,5 +465,4 @@ tags = Array[StringName]([&"interactable", &"tutorial"])
 radius = 0.15387383
 material = SubResource("StandardMaterial3D_12vux")
 
-
 [editable path="Entities/E_CameraRoot"]

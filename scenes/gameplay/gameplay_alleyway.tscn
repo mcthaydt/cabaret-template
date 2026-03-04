@@ -406,5 +406,4 @@ tags = Array[StringName]([&"checkpoint", &"objective"])
 [node name="CheckpointVisual" type="Sprite3D" parent="Entities/E_Checkpoint_SafeZone" unique_id=2041254471]
 texture = ExtResource("39_u0c34")
 
-
 [editable path="Entities/E_CameraRoot"]
