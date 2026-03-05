@@ -19,7 +19,7 @@ Build just enough shared infrastructure so screens have a common visual language
 
 - [ ] Create `scripts/resources/ui/rs_ui_theme_config.gd` — `RS_UIThemeConfig extends Resource` with `@export_group` sections:
   - Typography: font sizes for title(48), heading(32), subheading(24), body(22), body_small(18), caption(16), section_header(14), caption_small(12)
-  - Colors: Duel palette tokens — bg_base, bg_panel, bg_panel_light, bg_surface, text_primary, text_secondary, text_disabled, accent_primary, accent_hover, accent_pressed, accent_focus, section_header, danger, success, warning, golden, health_fill, health_bg, slider_fill, slider_bg
+  - Colors: Duel palette tokens — bg_base, bg_panel, bg_panel_light, bg_surface, text_primary, text_secondary, text_disabled, accent_primary, accent_hover, accent_pressed, accent_focus, section_header, danger, success, warning, golden, health_bg, slider_fill, slider_bg (note: `health_fill` excluded — dynamically palette-driven for color-blind accessibility)
   - Spacing: margin_outer(20), margin_section(16), margin_inner(12), separation_large(32), separation_medium(24), separation_default(12), separation_compact(8)
   - Button Styles: normal/hover/pressed/focus/disabled `StyleBoxFlat`
   - Panel Styles: panel_section, panel_signpost, panel_button_prompt
@@ -44,16 +44,22 @@ Build just enough shared infrastructure so screens have a common visual language
   - `test_build_theme_standalone_without_font_theme` — pass `null` base theme, assert Theme returned with styleboxes (no crash)
   - `test_build_theme_null_config_returns_null` — pass `null` config, assert returns `null` (no-op)
   - `test_build_theme_spacing_constants` — assert `theme.get_constant(&"separation", &"VBoxContainer") == config.separation_default`
-- [ ] Create `scripts/ui/utils/u_ui_theme_builder.gd` — static utility: `build_theme(config: RS_UIThemeConfig, base_theme: Theme = null) -> Theme`. Sets type variations for Button, Label, PanelContainer, ProgressBar, HSlider, HSeparator, VBoxContainer, HBoxContainer.
+  - `test_build_theme_merges_palette_colors` — pass palette, assert `theme.get_color(&"font_color", &"Label") == palette.text`
+  - `test_build_theme_without_palette_preserves_font_theme` — pass null palette, assert font theme colors untouched
+- [ ] Create `scripts/ui/utils/u_ui_theme_builder.gd` — static utility: `build_theme(config: RS_UIThemeConfig, base_font_theme: Theme = null, palette: RS_UIColorPalette = null) -> Theme`. Builder merges: fonts from base_font_theme + palette colors (font_color on text types, replaces what `U_DisplayUIThemeApplier._configure_ui_theme()` does) + styleboxes/spacing/sizes from config. Sets type variations for Button, Label, PanelContainer, ProgressBar, HSlider, HSeparator, VBoxContainer, HBoxContainer.
 - [ ] Run tests — all `test_ui_theme_builder.gd` tests pass
 
-### 0C — Font Applier Integration (TDD)
+### 0C — Unified Theme Pipeline Integration (TDD)
 
 - [ ] Add test to `tests/unit/ui/test_ui_theme_builder.gd`:
-  - `test_font_applier_uses_theme_builder_when_config_registered` — register a `RS_UIThemeConfig` via `U_ServiceLocator` as `StringName("ui_theme_config")`, call `apply_theme_to_root()`, assert the root's theme has both fonts AND styleboxes
-  - `test_font_applier_unchanged_when_no_config_registered` — do NOT register theme config, call `apply_theme_to_root()`, assert theme has fonts but NOT styleboxes (existing behavior preserved)
-- [ ] Modify `scripts/managers/helpers/localization/u_localization_font_applier.gd` — `build_theme()` calls through `U_UIThemeBuilder.build_theme(config, font_theme)` when theme config is available via ServiceLocator (`StringName("ui_theme_config")`). If none registered, existing font-only behavior unchanged.
-- [ ] Run tests — new tests pass, all existing localization tests still pass
+  - `test_font_applier_uses_theme_builder_when_config_set` — set `U_UIThemeBuilder.active_config`, call `apply_theme_to_root()`, assert the root's theme has both fonts AND styleboxes
+  - `test_font_applier_unchanged_when_no_config_set` — do NOT set `U_UIThemeBuilder.active_config`, call `apply_theme_to_root()`, assert theme has fonts but NOT styleboxes (existing behavior preserved)
+  - `test_palette_change_triggers_theme_rebuild` — change palette, assert resulting theme has both font AND palette colors
+- [ ] Add `static var active_config: RS_UIThemeConfig` to `scripts/ui/utils/u_ui_theme_builder.gd` — set in `root.gd` via preload. No ServiceLocator involvement (ServiceLocator only accepts Node instances).
+- [ ] Modify `scripts/managers/helpers/localization/u_localization_font_applier.gd` — after building the font-only theme, call `U_UIThemeBuilder.build_theme(active_config, font_theme, active_palette)` to compose the full theme when `U_UIThemeBuilder.active_config` is set. If not set, existing font-only behavior unchanged.
+- [ ] Modify `M_DisplayManager._apply_accessibility_settings()` to trigger theme rebuild through the unified pipeline instead of calling `_ui_theme_applier.apply_theme_to_roots()` independently.
+- [ ] Modify `U_DisplayUIThemeApplier.apply_theme_from_palette()` — still builds palette data, but the actual theme application goes through `U_UIThemeBuilder` instead of applying independently.
+- [ ] Run tests — new tests pass, all existing localization and display tests still pass
 
 ### 0D — Motion Resources (TDD)
 
@@ -177,11 +183,11 @@ Build just enough shared infrastructure so screens have a common visual language
 
 ### Screen 7: Settings Menu (`scenes/ui/menus/ui_settings_menu.tscn`)
 
-- [ ] Standardize dim opacity
+- [ ] Standardize dim opacity to 0.7 (matching BaseOverlay default; current 0.647 is an outlier)
 - [ ] Add panel background behind scroll/button list
 - [ ] "Settings" title uses `heading` size, category buttons styled via theme
 - [ ] Overlay fade-in, scroll follows focus
-- [ ] Run existing `test_settings_menu.gd` — all tests pass (8 category buttons, back, embedded mode)
+- [ ] Run existing `test_settings_menu_visibility.gd` — all tests pass (8 category buttons, back, embedded mode)
 - [ ] Run full test suite
 - [ ] **Manual smoke test:** Open settings from pause, verify all 8 categories open correct overlays, back works, dim is consistent with pause menu. Open settings from main menu embedded mode — verify no dim, panel background visible.
 
@@ -271,12 +277,11 @@ These wrapper overlays contain the settings tab content. They need theme applica
 **Add automated tests** (TDD — extends existing HUD test patterns):
 
 - [ ] Add to `tests/unit/ui/test_hud_controller.gd` or create `tests/unit/ui/test_hud_theme.gd`:
-  - `test_health_bar_uses_theme_styles` — instantiate HUD with theme, assert `health_bar.get_theme_stylebox("background") is StyleBoxFlat`, assert `(stylebox as StyleBoxFlat).bg_color.is_equal_approx(config.health_bg)` (pattern: `test_health_bar_color_blind_integration.gd`)
-  - `test_health_bar_fill_uses_duel_palette` — assert fill `bg_color.is_equal_approx(Color(0.714, 0.302, 0.275, 1))` (health_fill #b64d46)
-  - `test_health_bar_no_inline_style_overrides` — assert `health_bar.has_theme_stylebox_override("background") == false` and `has_theme_stylebox_override("fill") == false`
+  - `test_health_bar_uses_theme_styles` — instantiate HUD with theme, assert `health_bar.get_theme_stylebox("background") is StyleBoxFlat`, assert `(stylebox as StyleBoxFlat).bg_color.is_equal_approx(config.health_bg)`. Only the BACKGROUND stylebox comes from theme; fill color is palette-driven (existing `tests/integration/ui/test_health_bar_color_blind_integration.gd` already covers fill).
+  - `test_health_bar_no_inline_style_overrides` — assert `health_bar.has_theme_stylebox_override("background") == false`
   - `test_signpost_golden_override_preserved` — assert signpost label still has `theme_override_colors/font_color` set (semantic override stays)
   - `test_toast_uses_motion_resource` — trigger checkpoint event, verify tween is created (existing pattern in `test_hud_feedback_channels.gd`, extend to verify motion resource is used)
-- [ ] Health bar: migrate StyleBoxFlat to theme's progress_bar_bg/fill, update colors to Duel palette health_fill (#b64d46) / health_bg (#3a4568)
+- [ ] Health bar: migrate StyleBoxFlat background to theme's progress_bar_bg, health_bg (#3a4568). Health bar fill remains palette-driven via `U_PaletteManager` for color-blind accessibility. Do not migrate fill color to theme.
 - [ ] Health label: migrate font_size 18 to theme token
 - [ ] Pause label: migrate font_size 32 to theme token
 - [ ] Outer margins: migrate 20px to theme margin_outer
@@ -290,7 +295,7 @@ These wrapper overlays contain the settings tab content. They need theme applica
 - [ ] Run new HUD theme tests — pass
 - [ ] Run existing HUD tests (`test_hud_controller.gd`, `test_hud_feedback_channels.gd`, `test_hud_button_prompts.gd`, `test_hud_interactions_pause_and_signpost.gd`) — all pass
 - [ ] Run full test suite
-- [ ] **Manual smoke test:** Play gameplay, verify: health bar is health_fill/health_bg colors (not green), checkpoint toast fades in/holds/fades out smoothly, signpost shows golden text on dark panel, autosave spinner rotates during save, interact prompt appears near interactables
+- [ ] **Manual smoke test:** Play gameplay, verify: health bar background is health_bg (#3a4568), fill is palette-driven (changes with health % and color-blind mode), checkpoint toast fades in/holds/fades out smoothly, signpost shows golden text on dark panel, autosave spinner rotates during save, interact prompt appears near interactables
 
 ### Screen 18: Button Prompt (`scenes/ui/hud/ui_button_prompt.tscn`)
 
@@ -341,7 +346,7 @@ Run through each flow end-to-end in the game (not headless):
 
 - [ ] **Boot flow:** Launch game -> language selector (if first run) -> main menu. Verify consistent bg_base background, buttons styled, title prominent.
 - [ ] **Menu navigation:** Main menu -> Settings (embedded) -> Back. Verify panel backgrounds, button hover/press feedback.
-- [ ] **Gameplay entry:** Start game -> gameplay HUD visible. Verify health bar colors (health_fill/health_bg), pause label hidden, interact prompt appears near interactables.
+- [ ] **Gameplay entry:** Start game -> gameplay HUD visible. Verify health bar background (health_bg), fill is palette-driven (color-blind), pause label hidden, interact prompt appears near interactables.
 - [ ] **Pause flow:** Pause -> Settings -> Audio -> adjust sliders -> Back -> Resume. Verify dim consistency, slider styling, category buttons all work.
 - [ ] **Save/Load flow:** Pause -> Save/Load -> save to slot -> load from slot. Verify slot items styled, error text danger-colored, spinner visible.
 - [ ] **Death flow:** Die -> Game Over screen. Verify danger-colored title, fade-in animation, Retry/Menu buttons work.
@@ -374,7 +379,7 @@ Run through each flow end-to-end in the game (not headless):
 | `test_base_ui_classes.gd` (additions) | 0F | Base class motion integration: null motion_set no-op, enter/exit animation, overlay dim animation |
 | `test_audio_settings_theme.gd` | 3/S15 | Slider theme styles applied, no inline overrides remaining |
 | `test_display_settings_theme.gd` | 3/S16 | Section panel styles, header colors, no inline overrides remaining |
-| `test_hud_theme.gd` | 4/S17 | Health bar Duel palette colors, no inline style overrides, signpost semantic override preserved, motion resource used for toast |
+| `test_hud_theme.gd` | 4/S17 | Health bar background theme style, no inline style overrides, signpost semantic override preserved, motion resource used for toast |
 | `test_style_enforcement.gd` (addition) | 5A | Global guard: total inline overrides <= 4 across all UI scenes |
 
 ### Automated (Existing — Run After Each Screen)
@@ -384,13 +389,13 @@ Run existing tests to confirm zero behavioral regression:
 - `test_main_menu.gd` — Redux navigation, button dispatch, quit visibility, focus chain
 - `test_endgame_screens.gd` — Game over/victory/credits button dispatch, auto-return
 - `test_pause_menu.gd` — Resume, settings, PROCESS_MODE_ALWAYS
-- `test_settings_menu.gd` — 8 categories, back, embedded mode
+- `test_settings_menu_visibility.gd` — 8 categories, back, embedded mode
 - `test_save_load_menu.gd` — Save/Load/Delete/Overwrite, mode detection
 - `test_hud_controller.gd` — Health bar visibility, pause hide, transition hide
 - `test_hud_feedback_channels.gd` — Toast/spinner/signpost channels, interact blocker, layout geometry, tween animation
 - `test_hud_button_prompts.gd` — Prompt icon/text, device switch, localization
 - `test_hud_interactions_pause_and_signpost.gd` — Pause suppression, signpost localization
-- `test_health_bar_color_blind_integration.gd` — Palette color binding, live color update
+- `tests/integration/ui/test_health_bar_color_blind_integration.gd` — Palette color binding, live color update
 - All overlay-specific tests (rebinding, input profile, gamepad, touchscreen, edit touch controls)
 
 ### Manual (Visual Feel — Cannot Be Automated)

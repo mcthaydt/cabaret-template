@@ -35,10 +35,14 @@ The `UI-Looksmaxxing` branch contains:
 
 The template's UI is functionally complete but visually bare. All styling is inline `theme_override_*` per scene (119 overrides across 13 `.tscn` files), there is no global Theme resource, no animation/motion system. This overhaul systematically polishes each screen while migrating inline overrides to a shared theme.
 
+Additionally, the two existing theme systems (font applier + display theme applier) have a latent last-writer-wins bug where both overwrite `control.theme =` independently. Phase 0C fixes this as part of the unification.
+
 ### Key Integration Points
 
 - **Font applier**: `U_LocalizationFontApplier.build_theme()` already creates a Theme per UI root with font overrides. The new `U_UIThemeBuilder` extends this Theme — it does NOT replace the font applier.
-- **ServiceLocator**: Theme config registered as `StringName("ui_theme_config")` — follows existing pattern.
+- **Config access**: `U_UIThemeBuilder.active_config` static var, set in `root.gd` via preload. No ServiceLocator involvement (ServiceLocator only accepts Node instances).
+- **Display theme applier**: `U_DisplayUIThemeApplier` currently applies palette colors independently. Phase 0C migrates this into the unified pipeline — palette data feeds into `U_UIThemeBuilder` alongside fonts and theme config.
+- **Palette manager**: `U_PaletteManager` provides color-blind palette to both the unified theme builder (for font_color) and the HUD controller (for health bar fill). These are separate consumers.
 - **Base classes**: `BasePanel` → `BaseMenuScreen` → `BaseOverlay` hierarchy gets opt-in motion support via exported `RS_UIMotionSet` resource (null = no change).
 
 ### Architectural Decisions
@@ -49,7 +53,10 @@ The template's UI is functionally complete but visually bare. All styling is inl
 | Motion framework | Resource-driven tweens (`RS_UIMotionPreset`/`RS_UIMotionSet`) | Designer-friendly, swappable, no code changes needed to adjust feel |
 | Motion ↔ Sound | Decoupled — motion never calls `U_UISoundPlayer` | Separate concerns; sound handled by existing systems |
 | Backward compat | All features opt-in via exported resources | `null` resource = zero behavioral change everywhere |
-| Color palette | Duel (256-color) from [Lospec](https://lospec.com/palette-list/duel) | Cohesive cinematic aesthetic; 20 semantic tokens mapped to palette hex values |
+| Config access | Static var on `U_UIThemeBuilder`, set in `root.gd` | ServiceLocator only accepts Node instances; static var is simpler and type-safe |
+| Theme unification | `U_UIThemeBuilder` composes fonts + palette colors + styleboxes into single Theme | Replaces independent application by font applier and display theme applier. Fixes latent last-writer-wins bug where both overwrite `control.theme =` independently |
+| Health bar fill | Stays palette-driven (color-blind). Only background migrates to theme | `U_PaletteManager` dynamically sets fill based on health % and color-blind mode (success/warning/danger) |
+| Color palette | Duel (256-color) from [Lospec](https://lospec.com/palette-list/duel) | Cohesive cinematic aesthetic; 19 semantic tokens mapped to palette hex values (`health_fill` excluded — palette-driven) |
 | Approach | Screen-by-screen (not framework-first) | Ensures behavior preservation, contextual visual improvements, and incremental progress |
 
 ### Color Token Quick Reference
@@ -72,8 +79,7 @@ The template's UI is functionally complete but visually bare. All styling is inl
 | `success` | `#7da42d` | Positive/completion |
 | `warning` | `#ffbc4e` | Warnings |
 | `golden` | `#ecc581` | Special callouts |
-| `health_fill` | `#b64d46` | Health bar fill |
-| `health_bg` | `#3a4568` | Health bar background |
+| `health_bg` | `#3a4568` | Health bar background (fill is palette-driven) |
 | `slider_fill` | `#41b2e3` | Slider fill |
 | `slider_bg` | `#434549` | Slider track |
 
@@ -100,7 +106,7 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 1. Begin Phase 0A: Create `RS_UIThemeConfig` resource
 2. Phase 0B: Create `U_UIThemeBuilder` utility
-3. Phase 0C: Integrate font applier
+3. Phase 0C: Unify font applier + display theme applier into single pipeline through `U_UIThemeBuilder`
 4. Phase 0D-0E: Create motion resources and presets
 5. Phase 0F: Base class integration
 6. Phase 0G: Tests
@@ -133,7 +139,9 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 | File | Phase | Change |
 |------|-------|--------|
-| `scripts/managers/helpers/localization/u_localization_font_applier.gd` | 0C | Call through `U_UIThemeBuilder` when theme config registered |
+| `scripts/managers/helpers/localization/u_localization_font_applier.gd` | 0C | Call through `U_UIThemeBuilder` when `active_config` set |
+| `scripts/managers/m_display_manager.gd` | 0C | Stop independent theme application, trigger unified rebuild |
+| `scripts/managers/helpers/display/u_display_ui_theme_applier.gd` | 0C | Feeds palette into builder instead of applying independently |
 | `scripts/ui/base/base_panel.gd` | 0F | Add `@export var motion_set` + bind interactive children |
 | `scripts/ui/base/base_menu_screen.gd` | 0F | Add enter/exit animation methods |
 | `scripts/ui/base/base_overlay.gd` | 0F | Animate dim background with content motion |
@@ -158,7 +166,9 @@ These were in the original plan but are deferred to a future pass:
 
 - Default theme values documented in PRD "Resolved Questions" — derived from auditing ~130 inline overrides. Low risk.
 - Phase 3-4 migration (removing inline overrides from override-heavy screens) could cause subtle visual regressions — mitigated by per-screen test runs.
-- Endgame screens (`ui_game_over.gd`, `ui_victory.gd`) currently use hardcoded tweens — Phase 1 should evaluate integrating them with the motion framework.
+- Unified theme pipeline (Phase 0C) touches both display manager and localization manager — integration testing critical.
+- Endgame screens have no existing tweens — Phase 1 adds new motion (fade-in enter), no extraction needed.
+- Health bar fill stays palette-driven; must NOT be migrated to theme config.
 
 ## Verification Strategy
 

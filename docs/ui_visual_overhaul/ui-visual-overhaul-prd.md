@@ -26,6 +26,7 @@
 - Replacing `U_LocalizationFontApplier` — the new theme system extends it, not replaces it.
 - Adding sound/audio integration to the motion framework (stays decoupled from `U_UISoundPlayer`).
 - Custom rendering or shader-based UI effects (stays within Godot's built-in Theme/StyleBox system).
+- Changing the health bar's dynamic palette-driven fill behavior (color-blind accessibility).
 - New HUD widgets (notification queue, objective tracker, currency/score, timer, minimap slot) — deferred to a future pass.
 - `@tool` editor preview scripts — deferred to a future pass.
 - Animated number ticker utility — deferred to a future pass.
@@ -39,7 +40,9 @@
 
 - **Prerequisite**: The "UI, Layers & Transitions Refactor" (7 phases in `docs/general/ui_layers_transitions_refactor/`) must be complete before starting this work. That refactor establishes the layer stack, ServiceLocator container registration, and Redux-driven HUD visibility that this overhaul builds on.
 - **Integration point**: `U_LocalizationFontApplier.build_theme()` already creates a Theme per UI root. The new `U_UIThemeBuilder` merges styleboxes/sizes onto that output. If no font applier is available, it works standalone.
-- **ServiceLocator**: Theme config registered as `StringName("ui_theme_config")` — follows existing pattern.
+- **Config access**: `U_UIThemeBuilder.active_config` static var, set in `root.gd` via preload. No ServiceLocator involvement (ServiceLocator only accepts Node instances).
+- **Unified theme pipeline**: Two existing systems (`U_LocalizationFontApplier` for fonts, `U_DisplayUIThemeApplier` for palette colors) both overwrite `control.theme =` independently — latent last-writer-wins bug. `U_UIThemeBuilder` becomes the single composition point: takes font applier output + palette + theme config → one merged Theme. Both existing appliers feed INTO the builder rather than applying independently. Fixes existing bug AND accommodates new styleboxes/spacing.
+- **Existing systems**: `U_DisplayUIThemeApplier` (`scripts/managers/helpers/display/u_display_ui_theme_applier.gd`) currently applies palette colors to UI roots independently. `U_PaletteManager` (`scripts/managers/helpers/u_palette_manager.gd`) and `RS_UIColorPalette` provide the color-blind palette system. Both are subsumed into the unified pipeline in Phase 0C.
 - **Mobile compatibility**: All resources use `preload()` / `const` arrays — no runtime `DirAccess` scanning.
 - **Backward compatibility**: All new features are opt-in via exported resources. `null` resource = zero behavioral change.
 
@@ -48,9 +51,10 @@
 - All 119 inline `theme_override_*` values migrated to the global Theme resource (zero remaining in `.tscn` files, except 4 per-element semantic overrides in `ui_virtual_button.tscn`).
 - All existing screens (23 scenes including overlays and HUD components) polished with theme and motion.
 - All existing screens animate on enter/exit when a motion set is assigned.
-- HUD tween params extracted to motion resources.
+- HUD tween params (checkpoint toast, signpost) extracted to motion resources.
 - All tests pass (existing + new).
 - Manual smoke test: menus animate, buttons respond, HUD styling consistent, checkpoint toasts animate.
+- Health bar background uses theme; fill remains palette-driven (color-blind accessibility preserved).
 
 ## Resolved Questions
 
@@ -91,10 +95,11 @@ Derived from auditing all inline `theme_override_*` across `.tscn` files (exclud
 | `success` | `#7da42d` | `Color(0.490, 0.643, 0.176, 1)` | Completion, positive |
 | `warning` | `#ffbc4e` | `Color(1.000, 0.737, 0.306, 1)` | Warnings, timer threshold |
 | `golden` | `#ecc581` | `Color(0.925, 0.773, 0.506, 1)` | Signpost text, special callouts |
-| `health_fill` | `#b64d46` | `Color(0.714, 0.302, 0.275, 1)` | Health bar fill |
 | `health_bg` | `#3a4568` | `Color(0.227, 0.271, 0.408, 1)` | Health bar background |
 | `slider_fill` | `#41b2e3` | `Color(0.255, 0.698, 0.890, 1)` | Slider filled area |
 | `slider_bg` | `#434549` | `Color(0.263, 0.271, 0.286, 1)` | Slider track background |
+
+> **Note:** Health bar fill color is dynamically set by `U_PaletteManager` based on health percentage and color-blind mode (success/warning/danger). Only the background (`health_bg`) is theme-driven. `health_fill` is intentionally excluded from the theme config.
 
 **Semantic per-element overrides** (stay in `.tscn`, NOT in theme):
 - Signpost golden text — uses `golden` from palette but stays as a per-node override (not every Label should be golden)
