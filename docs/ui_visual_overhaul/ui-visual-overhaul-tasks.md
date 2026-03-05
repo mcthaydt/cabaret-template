@@ -1,6 +1,8 @@
-# UI Visual Overhaul — Tasks
+# UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 3% (2 / 62 tasks complete)
+**Progress:** 1% (2 / 165 tasks complete)
+
+**Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
 ## Prerequisite
 
@@ -9,190 +11,459 @@
 
 ---
 
-## Phase 1 — Global Theme Resource System
+## Phase 0 — Infrastructure (Minimal)
 
-### 1A — Theme Config Resource
+Build just enough shared infrastructure so screens have a common visual language.
+
+### 0A — Theme Config Resource
 
 - [ ] Create `scripts/resources/ui/rs_ui_theme_config.gd` — `RS_UIThemeConfig extends Resource` with `@export_group` sections:
-  - Typography: font sizes for title, heading, body, caption, button
-  - Spacing: margins, separations
+  - Typography: font sizes for title(48), heading(32), subheading(24), body(22), body_small(18), caption(16), section_header(14), caption_small(12)
+  - Colors: Duel palette tokens — bg_base, bg_panel, bg_panel_light, bg_surface, text_primary, text_secondary, text_disabled, accent_primary, accent_hover, accent_pressed, accent_focus, section_header, danger, success, warning, golden, health_fill, health_bg, slider_fill, slider_bg
+  - Spacing: margin_outer(20), margin_section(16), margin_inner(12), separation_large(32), separation_medium(24), separation_default(12), separation_compact(8)
   - Button Styles: normal/hover/pressed/focus/disabled `StyleBoxFlat`
-  - Panel Styles
-  - Progress Bar Styles
-  - Focus styling
-- [ ] Create `resources/ui/cfg_ui_theme_default.tres` — default minimal/cinematic theme instance. **Default values (typography, colors, spacing) are documented in the PRD "Resolved Questions" section.**
+  - Panel Styles: panel_section, panel_signpost, panel_button_prompt
+  - Bar Styles: progress_bar_bg, progress_bar_fill, slider_bg, slider_fill, slider_grabber, slider_grabber_highlight
+  - Focus: focus_stylebox
+  - Separator: separator_style
+- [ ] Create `resources/ui/cfg_ui_theme_default.tres` — default instance with Duel palette values
 
-### 1B — Theme Builder Utility
+### 0B — Theme Builder Utility (TDD)
 
-- [ ] Create `scripts/ui/utils/u_ui_theme_builder.gd` — static utility that merges `RS_UIThemeConfig` styleboxes/sizes onto a `U_LocalizationFontApplier.build_theme()` output. Fallback: works standalone if no font applier available.
+**Write tests first**, then implement to make them pass.
 
-### 1C — Font Applier Integration
+- [ ] Create `tests/unit/ui/test_ui_theme_builder.gd` — tests BEFORE implementation:
+  - `test_build_theme_returns_theme_with_font_sizes` — build with default config, assert `theme.get_font_size(&"font_size", &"Label") == config.body` (pattern: `test_display_manager.gd`)
+  - `test_build_theme_applies_button_styleboxes` — assert `theme.get_stylebox(&"normal", &"Button") is StyleBoxFlat` and `bg_color` matches config
+  - `test_build_theme_applies_progress_bar_styles` — assert `theme.get_stylebox(&"fill", &"ProgressBar") is StyleBoxFlat`
+  - `test_build_theme_applies_slider_styles` — assert `theme.get_stylebox(&"slider", &"HSlider") is StyleBoxFlat`
+  - `test_build_theme_applies_panel_styles` — assert `theme.get_stylebox(&"panel", &"PanelContainer") is StyleBoxFlat`
+  - `test_build_theme_applies_separator_style` — assert `theme.get_stylebox(&"separator", &"HSeparator") is StyleBoxFlat`
+  - `test_build_theme_applies_label_colors` — assert `theme.get_color(&"font_color", &"Label").is_equal_approx(config.text_primary)` (pattern: `test_ui_scale_and_theme.gd`)
+  - `test_build_theme_merges_onto_font_theme` — create a font-only theme via `U_LocalizationFontApplier.build_theme()`, pass to builder, assert both font AND styleboxes present
+  - `test_build_theme_standalone_without_font_theme` — pass `null` base theme, assert Theme returned with styleboxes (no crash)
+  - `test_build_theme_null_config_returns_null` — pass `null` config, assert returns `null` (no-op)
+  - `test_build_theme_spacing_constants` — assert `theme.get_constant(&"separation", &"VBoxContainer") == config.separation_default`
+- [ ] Create `scripts/ui/utils/u_ui_theme_builder.gd` — static utility: `build_theme(config: RS_UIThemeConfig, base_theme: Theme = null) -> Theme`. Sets type variations for Button, Label, PanelContainer, ProgressBar, HSlider, HSeparator, VBoxContainer, HBoxContainer.
+- [ ] Run tests — all `test_ui_theme_builder.gd` tests pass
 
-- [ ] Modify `scripts/managers/helpers/localization/u_localization_font_applier.gd` — `apply_theme_to_root()` calls through `U_UIThemeBuilder` when a theme config is registered via ServiceLocator (`StringName("ui_theme_config")`). If none registered, existing font-only behavior unchanged.
+### 0C — Font Applier Integration (TDD)
 
-### 1D — Tests
+- [ ] Add test to `tests/unit/ui/test_ui_theme_builder.gd`:
+  - `test_font_applier_uses_theme_builder_when_config_registered` — register a `RS_UIThemeConfig` via `U_ServiceLocator` as `StringName("ui_theme_config")`, call `apply_theme_to_root()`, assert the root's theme has both fonts AND styleboxes
+  - `test_font_applier_unchanged_when_no_config_registered` — do NOT register theme config, call `apply_theme_to_root()`, assert theme has fonts but NOT styleboxes (existing behavior preserved)
+- [ ] Modify `scripts/managers/helpers/localization/u_localization_font_applier.gd` — `build_theme()` calls through `U_UIThemeBuilder.build_theme(config, font_theme)` when theme config is available via ServiceLocator (`StringName("ui_theme_config")`). If none registered, existing font-only behavior unchanged.
+- [ ] Run tests — new tests pass, all existing localization tests still pass
 
-- [ ] Create `tests/unit/ui/test_ui_theme_builder.gd` — test theme merging, standalone fallback, null config path
+### 0D — Motion Resources (TDD)
+
+**Write tests first**, then implement to make them pass.
+
+- [ ] Create `tests/unit/ui/test_ui_motion.gd` — tests BEFORE implementation:
+  - `test_play_returns_tween_for_valid_presets` — create an `RS_UIMotionPreset` (property_path="modulate:a", from=0.0, to=1.0, duration=0.3), call `U_UIMotion.play(node, [preset])`, assert returns a `Tween`
+  - `test_play_applies_property_change` — play a preset, await tween finished, assert `node.modulate.a == 1.0` with `assert_almost_eq(..., 0.01)` (pattern: `test_mobile_controls.gd`)
+  - `test_play_sequential_chain` — create 3 presets (fade-in, interval, fade-out), play all, assert sequencing by checking intermediate `modulate.a` values after frame advances
+  - `test_play_parallel_presets` — create 2 presets with `parallel=true`, play both, assert they run concurrently (both properties change within same frame window)
+  - `test_play_interval_preset` — create preset with empty `property_path` and `interval_sec=0.5`, assert acts as hold (tween duration includes interval)
+  - `test_play_null_presets_returns_null` — `U_UIMotion.play(node, [])` returns `null`, no crash
+  - `test_play_null_node_returns_null` — `U_UIMotion.play(null, presets)` returns `null`
+  - `test_play_enter_delegates_to_motion_set` — create `RS_UIMotionSet` with `enter` presets, call `play_enter()`, assert tween returned
+  - `test_play_exit_delegates_to_motion_set` — same for `exit`
+  - `test_play_enter_null_motion_set_returns_null` — `play_enter(node, null)` returns `null`, no-op
+  - `test_bind_interactive_connects_signals` — call `bind_interactive(button, motion_set)`, assert `mouse_entered`/`mouse_exited`/`focus_entered`/`focus_exited` signals are connected
+  - `test_bind_interactive_null_motion_set_no_op` — `bind_interactive(button, null)` does nothing, no crash
+- [ ] Create `scripts/resources/ui/rs_ui_motion_preset.gd` — single tween recipe: property_path, from_value, to_value, relative, duration_sec, delay_sec, transition_type, ease_type, parallel, interval_sec
+- [ ] Create `scripts/resources/ui/rs_ui_motion_set.gd` — collection per interaction: enter, exit, hover_in, hover_out, press, focus_in, focus_out, pulse
+- [ ] Create `scripts/ui/utils/u_ui_motion.gd` — static utility: `play()`, `play_enter()`, `play_exit()`, `bind_interactive()`
+- [ ] Run tests — all `test_ui_motion.gd` tests pass
+
+### 0E — Default Motion Presets
+
+- [ ] Create `resources/ui/motions/cfg_motion_fade_slide.tres` — screen enter/exit (fade + slide-up)
+- [ ] Create `resources/ui/motions/cfg_motion_button_default.tres` — button hover/press scale
+- [ ] Create `resources/ui/motions/cfg_motion_hud_pop.tres` — HUD widget pop-in
+
+### 0F — Base Class Integration (TDD)
+
+- [ ] Add tests to `tests/unit/ui/test_base_ui_classes.gd`:
+  - `test_base_panel_null_motion_set_no_bind` — instantiate BasePanel with `motion_set = null`, assert no signal connections added to focusable children (existing behavior preserved)
+  - `test_base_panel_motion_set_binds_focusable_children` — instantiate BasePanel with a motion_set, assert `mouse_entered` signal connected on focusable child buttons
+  - `test_base_menu_screen_play_enter_with_motion_set` — assign motion_set with enter presets, call `play_enter_animation()`, assert returns Tween, assert `modulate.a` changes (pattern: `test_mobile_controls.gd`)
+  - `test_base_menu_screen_play_enter_without_motion_set_returns_null` — no motion_set assigned, `play_enter_animation()` returns null (no-op)
+  - `test_base_overlay_animates_dim_on_enter` — assign motion_set to overlay, assert background `ColorRect.modulate.a` changes alongside content
+- [ ] Modify `scripts/ui/base/base_panel.gd` — add `@export var motion_set: RS_UIMotionSet = null`; if set, call `U_UIMotion.bind_interactive()` on focusable children
+- [ ] Modify `scripts/ui/base/base_menu_screen.gd` — add `play_enter_animation()` / `play_exit_animation()` delegating to `U_UIMotion`
+- [ ] Modify `scripts/ui/base/base_overlay.gd` — animate dim ColorRect alongside content motion
+- [ ] Run tests — new tests pass, all existing base UI tests still pass
+
+### 0G — Full Suite Verification
+
+- [ ] Run full test suite: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` — confirm zero regressions
 - [ ] Run style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
-- [ ] Run full test suite to confirm no regressions
 
 ---
 
-## Phase 2 — UI Motion/Animation Framework
+## Phase 1 — Simple Full-Screen Menus
 
-### 2A — Motion Resources
+### Screen 1: Main Menu (`scenes/ui/menus/ui_main_menu.tscn`)
 
-- [ ] Create `scripts/resources/ui/rs_ui_motion_preset.gd` — single tween recipe: `property_path` (String), `from_value`/`to_value` (Variant), `relative` (bool), `duration_sec`, `delay_sec`, `transition_type`, `ease_type`, `parallel` (bool — when true, runs in parallel with previous step instead of sequentially), `interval_sec` (float — when > 0 and `property_path` is empty, acts as a `tween_interval()` hold step)
-- [ ] Create `scripts/resources/ui/rs_ui_motion_set.gd` — collection of presets per interaction: `enter`, `exit`, `hover_in`, `hover_out`, `press`, `focus_in`, `focus_out`, `pulse` (all `Array[RS_UIMotionPreset]`)
-
-### 2B — Default Motion Presets
-
-- [ ] Create `resources/ui/motions/cfg_motion_fade_slide.tres` — default screen enter/exit (fade + slide-up)
-- [ ] Create `resources/ui/motions/cfg_motion_button_default.tres` — default button hover/press
-- [ ] Create `resources/ui/motions/cfg_motion_hud_pop.tres` — HUD widget pop-in/pulse
-
-### 2C — Motion Utility
-
-- [ ] Create `scripts/ui/utils/u_ui_motion.gd` — static utility: `play()`, `play_enter()`, `play_exit()`, `bind_interactive()` (connects mouse/focus signals to motion presets). Decoupled from sound — never calls `U_UISoundPlayer`.
-
-### 2D — Number Ticker
-
-- [ ] Create `scripts/ui/utils/u_ui_number_ticker.gd` — animated number counting utility for score/health/currency/timer labels. Tweens a float value and updates a Label each step with configurable format string.
-
-### 2E — Tests
-
-- [ ] Create `tests/unit/ui/test_ui_motion.gd`
-- [ ] Create `tests/unit/ui/test_ui_number_ticker.gd`
-- [ ] Run style enforcement
+- [ ] Apply theme resource to root (via font applier integration — automatic)
+- [ ] Add bg_base ColorRect or background styling
+- [ ] Style VBoxContainer button group with panel_section background
+- [ ] Title label uses `title` font size token
+- [ ] Buttons get accent_primary styling from theme
+- [ ] Assign `cfg_motion_fade_slide` for enter/exit
+- [ ] Run existing `test_main_menu.gd` — all tests pass (Redux navigation, button dispatch, quit visibility, focus chain)
 - [ ] Run full test suite
+- [ ] **Manual smoke test:** Launch main menu, verify bg color matches bg_base (#1d1d21), buttons have accent_primary (#41b2e3) styling, title is visually larger than button text, enter/exit animation plays smoothly, settings embed still opens
 
----
+### Screen 2: Game Over (`scenes/ui/menus/ui_game_over.tscn`)
 
-## Phase 3 — Base Class Integration
-
-### 3A — BasePanel Motion Support
-
-- [ ] Modify `scripts/ui/base/base_panel.gd` — add `@export var motion_set: RS_UIMotionSet = null`. In `_on_panel_ready()`, if motion_set is set, call `U_UIMotion.bind_interactive()` on all focusable children (reuse existing `_find_focusable_in()`)
-
-### 3B — BaseMenuScreen Enter/Exit
-
-- [ ] Modify `scripts/ui/base/base_menu_screen.gd` — add `play_enter_animation()` and `play_exit_animation()` methods that delegate to `U_UIMotion` if `motion_set` is assigned. Returns tween.finished signal for chaining.
-
-### 3C — BaseOverlay Animation
-
-- [ ] Modify `scripts/ui/base/base_overlay.gd` — override enter/exit to animate the dim `ColorRect` background alongside content motion
-
-### 3D — Regression Tests
-
-- [ ] Confirm null `motion_set` path is identical to current behavior (zero behavioral change)
+- [ ] Migrate separation overrides to theme tokens (separation_large, separation_medium)
+- [ ] Replace 96px anchor offsets with proper margin container using theme spacing
+- [ ] Title "Game Over" uses `title` size, danger color
+- [ ] Death count uses `heading` size, text_secondary
+- [ ] Buttons styled via theme, bg_base background
+- [ ] Motion: Fade-in enter, title with slight delay
+- [ ] Run existing `test_endgame_screens.gd` — all game over tests pass (button dispatch, ui_cancel behavior)
 - [ ] Run full test suite
+- [ ] **Manual smoke test:** Die in gameplay, verify game over screen shows with danger-colored title, death count is readable, Retry/Menu buttons work, fade-in animation plays
+
+### Screen 3: Victory (`scenes/ui/menus/ui_victory.tscn`)
+
+- [ ] Same migration as Game Over — separation overrides to theme tokens
+- [ ] Title "Victory!" uses `title` size, success color
+- [ ] Stats use text_secondary
+- [ ] Remove or properly hide disabled Credits button
+- [ ] Motion: Similar to Game Over with success feel
+- [ ] Run existing `test_endgame_screens.gd` — all victory tests pass
+- [ ] Run full test suite
+- [ ] **Manual smoke test:** Win in gameplay, verify victory screen shows with success-colored title, stats readable, Reset Run/Menu work, fade-in plays
+
+### Screen 4: Credits (`scenes/ui/menus/ui_credits.tscn`)
+
+- [ ] Migrate separation to theme token
+- [ ] Replace manual spacer Control nodes with proper VBox separation
+- [ ] Header uses `title`, names use `body`, footer uses `caption`
+- [ ] Fix Skip button from hardcoded pixel offsets to anchored margin
+- [ ] bg_base background, fade-in motion
+- [ ] Run existing `test_endgame_screens.gd` — credits tests pass (auto-return timer, skip)
+- [ ] Run full test suite
+- [ ] **Manual smoke test:** Open credits, verify text hierarchy is visually clear (title > body > caption), Skip button is accessible, auto-scroll completes
+
+### Screen 5: Language Selector (`scenes/ui/menus/ui_language_selector.tscn`)
+
+- [ ] Migrate separations to theme tokens
+- [ ] Style PanelContainer with panel_section from theme
+- [ ] Title uses `heading` size, language buttons get accent styling
+- [ ] bg_base background, fade-in motion
+- [ ] Run existing `test_language_selector.gd` (if exists) or run full suite
+- [ ] Run full test suite
+- [ ] **Manual smoke test:** Clear first-run flag, launch game, verify language selector appears, buttons are styled, selecting a language persists and skips on next launch
 
 ---
 
-## Phase 4 — HUD Widget Framework + Existing HUD Enhancement
+## Phase 2 — Overlay Screens
 
-### 4A — Widget Base Class
+### Screen 6: Pause Menu (`scenes/ui/menus/ui_pause_menu.tscn`)
 
-- [ ] Create `scripts/ui/hud/base_hud_widget.gd` — `BaseHUDWidget extends Control`: store subscription via `U_StateUtils`, `show_widget()`/`hide_widget()` with motion, `_should_show(state)` visibility gating by shell/pause/transition state
-- [ ] Create `scripts/resources/ui/rs_hud_widget_config.gd` — per-widget config: `widget_id` (StringName), `visible_shells` (Array[StringName], default `[&"gameplay"]`), `hide_when_paused` (bool), `hide_during_transition` (bool)
-- [ ] Create `tests/unit/ui/test_base_hud_widget.gd`
+- [ ] Standardize dim to bg_base at 0.7 alpha (via BaseOverlay export)
+- [ ] Add panel_section background behind button group
+- [ ] "Paused" title uses `heading` size, buttons styled via theme
+- [ ] Overlay fade-in (dim + content), buttons get interactive motion
+- [ ] Run existing `test_pause_menu.gd` — all tests pass (Resume, settings open, PROCESS_MODE_ALWAYS)
+- [ ] Run full test suite
+- [ ] **Manual smoke test:** Pause during gameplay, verify dim background is consistent (#1d1d21 at 0.7), buttons are styled, Resume/Settings/Quit all work, overlay fade-in plays
 
-### 4B — Existing HUD Enhancement
+### Screen 7: Settings Menu (`scenes/ui/menus/ui_settings_menu.tscn`)
 
-- [ ] Modify `scripts/ui/hud/ui_hud_controller.gd` — extract hardcoded tween params into exported `RS_UIMotionPreset` resources with defaults matching current values:
+- [ ] Standardize dim opacity
+- [ ] Add panel background behind scroll/button list
+- [ ] "Settings" title uses `heading` size, category buttons styled via theme
+- [ ] Overlay fade-in, scroll follows focus
+- [ ] Run existing `test_settings_menu.gd` — all tests pass (8 category buttons, back, embedded mode)
+- [ ] Run full test suite
+- [ ] **Manual smoke test:** Open settings from pause, verify all 8 categories open correct overlays, back works, dim is consistent with pause menu. Open settings from main menu embedded mode — verify no dim, panel background visible.
+
+### Screen 8: Save/Load Menu (`scenes/ui/overlays/ui_save_load_menu.tscn`)
+
+- [ ] Migrate error color to `danger` token (keep as semantic per-node override)
+- [ ] Migrate font sizes to theme tokens (section_header, subheading)
+- [ ] Style slot list items, loading spinner uses consistent styling
+- [ ] Overlay fade-in, slot selection feedback
+- [ ] Run existing `test_save_load_menu.gd` — all tests pass (Save/Load/Delete/Overwrite, mode detection, confirmation)
+- [ ] Run full test suite
+- [ ] **Manual smoke test:** Open save/load from pause, verify error text is danger-colored, slot items are styled, loading spinner visible during operations
+
+### Screens 9-13: Remaining Overlays (batch)
+
+- [ ] **9. Input Rebinding** (`ui_input_rebinding_overlay.tscn`) — 0 overrides, dim=0.5. Style panel and dialogs.
+- [ ] **10. Input Profile Selector** (`ui_input_profile_selector.tscn`) — 4 spacing overrides, dim=0.5. Migrate to theme tokens.
+- [ ] **11. Gamepad Settings** (`ui_gamepad_settings_overlay.tscn`) — 0 overrides, dim=0.5. Style sliders and preview area.
+- [ ] **12. Touchscreen Settings** (`ui_touchscreen_settings_overlay.tscn`) — 0 overrides, dim=0.5. Style sliders and preview container.
+- [ ] **13. Edit Touch Controls** (`ui_edit_touch_controls_overlay.tscn`) — 0 overrides, unique dim=0.05. Keep translucent nature, style toolbar panel.
+- [ ] Run existing overlay tests (rebinding, input profile, gamepad, touchscreen, edit touch) — all pass
+- [ ] Run full test suite after batch
+- [ ] **Manual smoke test:** Open each overlay in sequence, verify dim is consistent (0.5 for most, 0.05 for edit touch), panels styled, sliders functional, preview areas render
+
+### Settings Overlay Wrappers (batch — all 0 overrides)
+
+These wrapper overlays contain the settings tab content. They need theme application and consistent dim styling.
+
+- [ ] `ui_audio_settings_overlay.tscn` — wrapper for audio settings tab
+- [ ] `ui_display_settings_overlay.tscn` — wrapper for display settings tab
+- [ ] `ui_localization_settings_overlay.tscn` — wrapper for localization settings tab
+- [ ] `ui_vfx_settings_overlay.tscn` — wrapper for VFX settings (no tab file, standalone)
+- [ ] Run full test suite after batch
+
+---
+
+## Phase 3 — Settings Tabs (Override-Heavy)
+
+### Screen 14: Localization Settings Tab (`ui_localization_settings_tab.tscn`)
+
+- [ ] Migrate separation (1 override), apply theme to language list
+- [ ] Run existing localization settings tests — pass
+- [ ] Run full test suite
+- [ ] **Manual smoke test:** Open localization settings, verify language list styled, font preview works
+
+### Screen 15: Audio Settings Tab (`ui_audio_settings_tab.tscn`)
+
+**Add automated test for slider styling** (TDD — follows `test_health_bar_color_blind_integration.gd` pattern):
+
+- [ ] Add test to existing audio settings test file or create `tests/unit/ui/test_audio_settings_theme.gd`:
+  - `test_audio_sliders_use_theme_styles` — instantiate audio settings tab with theme applied, for each slider assert `slider.get_theme_stylebox("slider") is StyleBoxFlat` and `slider.get_theme_stylebox("grabber_area") is StyleBoxFlat`
+  - `test_audio_sliders_no_inline_overrides` — assert `slider.has_theme_stylebox_override("slider") == false` (overrides migrated to theme)
+- [ ] Migrate all 18 overrides: 4x slider styleboxes (slider, grabber_area, grabber_area_highlight) + row separations
+- [ ] Sliders get slider_fill/slider_bg from Duel palette
+- [ ] Run tests — new slider theme tests pass
+- [ ] Run existing audio settings tests — all pass (4 volume sliders, values persist)
+- [ ] Run full test suite
+- [ ] **Manual smoke test:** Open audio settings, verify sliders have Duel palette fill (#41b2e3), track (#434549), all 4 sliders respond to input
+
+### Screen 16: Display Settings Tab (`ui_display_settings_tab.tscn`)
+
+**Add automated test for section panel styling** (TDD):
+
+- [ ] Add test to existing display settings test file or create `tests/unit/ui/test_display_settings_theme.gd`:
+  - `test_display_section_panels_use_theme_style` — instantiate display settings tab with theme, find PanelContainer nodes, assert `panel.get_theme_stylebox("panel") is StyleBoxFlat` (theme-provided, not inline override)
+  - `test_display_section_headers_use_theme_color` — find section header Labels, assert `label.get_theme_color("font_color").is_equal_approx(config.section_header_color)` (pattern: `test_ui_scale_and_theme.gd`)
+  - `test_display_no_inline_overrides_remaining` — scan all child nodes, assert none have `theme_override_constants/separation` set (all migrated to theme)
+- [ ] Migrate all 43 overrides — the most complex screen:
+  - 4 section panels -> theme's panel_section
+  - 4 section headers -> theme's section_header color + size tokens
+  - 4 separator styles -> theme's separator_style
+  - 1 slider -> theme's slider styles
+  - ~20 separation constants -> theme tokens
+- [ ] Run tests — new display theme tests pass
+- [ ] Run existing display settings tests — all pass (dropdowns, UI scale slider, toggle checkboxes)
+- [ ] Run full test suite
+- [ ] **Manual smoke test:** Open display settings, verify 4 sections have consistent panel backgrounds, headers are section_header color (#96b2d9), separators visible, UI scale slider works
+
+---
+
+## Phase 4 — HUD Enhancement
+
+### Screen 17: HUD Overlay (`scenes/ui/hud/ui_hud_overlay.tscn`)
+
+**28 overrides total** (4 outer margins, 1 pause font, 2 health bar styles, 1 health label font, 4 toast margins, 1 toast font, 1 autosave panel style, 4 autosave zero-margins, 1 autosave zero-separation, 1 autosave font, 1 signpost panel style, 4 signpost margins, 1 signpost font_color, 1 signpost line_spacing, 1 signpost font)
+
+**Add automated tests** (TDD — extends existing HUD test patterns):
+
+- [ ] Add to `tests/unit/ui/test_hud_controller.gd` or create `tests/unit/ui/test_hud_theme.gd`:
+  - `test_health_bar_uses_theme_styles` — instantiate HUD with theme, assert `health_bar.get_theme_stylebox("background") is StyleBoxFlat`, assert `(stylebox as StyleBoxFlat).bg_color.is_equal_approx(config.health_bg)` (pattern: `test_health_bar_color_blind_integration.gd`)
+  - `test_health_bar_fill_uses_duel_palette` — assert fill `bg_color.is_equal_approx(Color(0.714, 0.302, 0.275, 1))` (health_fill #b64d46)
+  - `test_health_bar_no_inline_style_overrides` — assert `health_bar.has_theme_stylebox_override("background") == false` and `has_theme_stylebox_override("fill") == false`
+  - `test_signpost_golden_override_preserved` — assert signpost label still has `theme_override_colors/font_color` set (semantic override stays)
+  - `test_toast_uses_motion_resource` — trigger checkpoint event, verify tween is created (existing pattern in `test_hud_feedback_channels.gd`, extend to verify motion resource is used)
+- [ ] Health bar: migrate StyleBoxFlat to theme's progress_bar_bg/fill, update colors to Duel palette health_fill (#b64d46) / health_bg (#3a4568)
+- [ ] Health label: migrate font_size 18 to theme token
+- [ ] Pause label: migrate font_size 32 to theme token
+- [ ] Outer margins: migrate 20px to theme margin_outer
+- [ ] Toast: migrate inner margins (12/8) and font_size 18 to theme tokens
+- [ ] Signpost: migrate margins (28/18), font_size 22, line_spacing=4, font_color to theme. Update golden color to #ecc581 (keep as semantic per-node override)
+- [ ] Autosave: migrate font_size 16, StyleBoxEmpty panel, zero-margins (4), and zero-separation to theme
+- [ ] Extract hardcoded tween params from script into `RS_UIMotionPreset` resources:
   - Checkpoint toast: fade-in 0.2s TRANS_CUBIC, hold 1.0s, fade-out 0.3s
   - Signpost: fade-in 0.14s EASE_OUT, fade-out 0.18s EASE_IN
-- [ ] Integrate `U_UINumberTicker` for health label animated value changes
-- [ ] Verify visual behavior identical unless resources are swapped
-
-### 4C — Tests
-
-- [ ] Run HUD tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/ui -ginclude_subdirs=true`
+- [ ] Use motion resources for toast/signpost animations instead of hardcoded values
+- [ ] Run new HUD theme tests — pass
+- [ ] Run existing HUD tests (`test_hud_controller.gd`, `test_hud_feedback_channels.gd`, `test_hud_button_prompts.gd`, `test_hud_interactions_pause_and_signpost.gd`) — all pass
 - [ ] Run full test suite
+- [ ] **Manual smoke test:** Play gameplay, verify: health bar is health_fill/health_bg colors (not green), checkpoint toast fades in/holds/fades out smoothly, signpost shows golden text on dark panel, autosave spinner rotates during save, interact prompt appears near interactables
 
----
+### Screen 18: Button Prompt (`scenes/ui/hud/ui_button_prompt.tscn`)
 
-## Phase 5 — Opt-In HUD Widgets
+**5 overrides** (separation=12, panel StyleBox, font_size 20/12/24)
 
-### 5A — Notification Queue
-
-- [ ] Create `scripts/ui/hud/ui_notification_queue.gd` + `.tscn`
-- [ ] Create `scripts/resources/ui/rs_notification_config.gd` + `resources/ui/hud/cfg_notification_default.tres`
-- [ ] Create `tests/unit/ui/test_ui_notification_queue.gd`
-
-### 5B — Objective Tracker
-
-- [ ] Create `scripts/ui/hud/ui_objective_tracker.gd` + `.tscn`
-- [ ] Create `scripts/resources/ui/rs_objective_tracker_config.gd` + `resources/ui/hud/cfg_objective_tracker_default.tres`
-- [ ] Create `tests/unit/ui/test_ui_objective_tracker.gd`
-
-### 5C — Currency/Score Display
-
-- [ ] Create `scripts/ui/hud/ui_currency_display.gd` + `.tscn`
-- [ ] Create `scripts/resources/ui/rs_currency_display_config.gd` + `resources/ui/hud/cfg_currency_display_default.tres`
-- [ ] Create `tests/unit/ui/test_ui_currency_display.gd`
-
-### 5D — Timer Widget
-
-- [ ] Create `scripts/ui/hud/ui_timer_widget.gd` + `.tscn`
-- [ ] Create `scripts/resources/ui/rs_timer_config.gd` + `resources/ui/hud/cfg_timer_default.tres`
-- [ ] Create `tests/unit/ui/test_ui_timer_widget.gd`
-
-### 5E — Minimap Slot
-
-- [ ] Create `scripts/ui/hud/ui_minimap_slot.gd` + `.tscn`
-- [ ] Create `scripts/resources/ui/rs_minimap_slot_config.gd` + `resources/ui/hud/cfg_minimap_slot_default.tres`
-- [ ] Create `tests/unit/ui/test_ui_minimap_slot.gd`
-
-### 5F — Tests
-
-- [ ] Run full test suite after all widgets
-
----
-
-## Phase 6 — Theme Migration
-
-- [ ] Migrate `scenes/ui/hud/ui_hud_overlay.tscn` (~28 overrides) — remove inline overrides covered by Theme, verify visual match
-- [ ] Migrate `scenes/ui/settings/ui_display_settings_tab.tscn` (~43 overrides)
-- [ ] Migrate `scenes/ui/settings/ui_audio_settings_tab.tscn` (~18 overrides)
-- [ ] Migrate remaining ~10 scenes (1-5 overrides each)
-- [ ] Keep per-element semantic overrides (e.g., signpost golden text)
+- [ ] Migrate separation to theme token (separation_default)
+- [ ] Migrate panel StyleBox to theme's panel_button_prompt
+- [ ] Migrate font_sizes: 24 -> subheading, 20 -> body, 12 -> caption_small
+- [ ] Run existing `test_hud_button_prompts.gd` — all pass (icon/text updates, device switch, localization)
 - [ ] Run full test suite
-- [ ] Before/after visual comparison per scene
+- [ ] **Manual smoke test:** Approach interactable in gameplay, verify prompt panel is styled, text hierarchy is clear (action name larger than sub-label), device icons render correctly
+
+### Screen 19: Loading Screen (`scenes/ui/hud/ui_loading_screen.tscn`)
+
+- [ ] Migrate all font sizes to theme tokens (title, heading, body_small, section_header)
+- [ ] Migrate separation to theme margin_outer
+- [ ] Style progress bar with theme's progress_bar_bg/fill
+- [ ] bg_base solid background, fade-in on load start, progress bar smooth fill
+- [ ] Run full test suite
+- [ ] **Manual smoke test:** Trigger scene transition, verify loading screen shows with bg_base background, progress bar fills with accent_primary color, text hierarchy visible, tip text shows in body_small size
 
 ---
 
-## Phase 7 — @tool Editor Preview Scripts
+## Phase 5 — Polish & Verification
 
-- [ ] Create `scripts/ui/tools/u_ui_theme_preview.gd` — `@tool`, drop into any UI scene, assign `RS_UIThemeConfig`, see theme applied live. Setter triggers `_update_preview()` on resource change. `queue_free()` at runtime, `Engine.is_editor_hint()` guards, `_get_configuration_warnings()`.
-- [ ] Create `scripts/ui/tools/u_ui_motion_preview.gd` — `@tool`, drop into any UI scene, assign `RS_UIMotionSet`, toggle `@export var preview_enter: bool` to play animation in editor viewport. Same runtime/editor guards.
-- [ ] Run style enforcement
+### 5A — Automated Override Migration Verification
 
----
+**Add a style enforcement test** to permanently guard against override regression:
 
-## Phase 8 — Documentation & Polish
+- [ ] Add to `tests/unit/style/test_style_enforcement.gd`:
+  - `test_no_inline_theme_overrides_except_semantic` — scan all `.tscn` files under `scenes/ui/`, count `theme_override_` lines. Assert total <= 4 (only `ui_virtual_button.tscn` semantic overrides remain). List files with violations in assertion message.
+- [ ] Run style enforcement — new test passes
 
-- [ ] Update `AGENTS.md` — add patterns for theme system, motion framework, HUD widget architecture
-- [ ] Update `docs/general/DEV_PITFALLS.md` — add:
+### 5B — Visual Consistency Pass
+
+- [ ] Review all screens side by side for visual consistency
+- [ ] Verify overlay dim opacity is consistent (current values: 0.05 edit-touch, 0.5 pause/input/gamepad/touchscreen, 0.647 settings, 0.7 save-load/BaseOverlay default, 1.0 loading)
+- [ ] Verify excluded scenes still render correctly: `ui_mobile_controls.tscn`, `ui_damage_flash_overlay.tscn`, `ui_post_process_overlay.tscn`, `ui_gamepad_preview_prompt.tscn`, `ui_virtual_joystick.tscn`, `ui_virtual_button.tscn`
+
+### 5C — Full Test Suite
+
+- [ ] `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` — all tests pass
+- [ ] Style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` — all pass including new override guard
+
+### 5D — Manual Smoke Test Checklist
+
+Run through each flow end-to-end in the game (not headless):
+
+- [ ] **Boot flow:** Launch game -> language selector (if first run) -> main menu. Verify consistent bg_base background, buttons styled, title prominent.
+- [ ] **Menu navigation:** Main menu -> Settings (embedded) -> Back. Verify panel backgrounds, button hover/press feedback.
+- [ ] **Gameplay entry:** Start game -> gameplay HUD visible. Verify health bar colors (health_fill/health_bg), pause label hidden, interact prompt appears near interactables.
+- [ ] **Pause flow:** Pause -> Settings -> Audio -> adjust sliders -> Back -> Resume. Verify dim consistency, slider styling, category buttons all work.
+- [ ] **Save/Load flow:** Pause -> Save/Load -> save to slot -> load from slot. Verify slot items styled, error text danger-colored, spinner visible.
+- [ ] **Death flow:** Die -> Game Over screen. Verify danger-colored title, fade-in animation, Retry/Menu buttons work.
+- [ ] **Victory flow:** Win -> Victory screen. Verify success-colored title, stats readable, Reset Run works.
+- [ ] **Credits flow:** Victory -> Credits. Verify text hierarchy, Skip button, auto-scroll.
+- [ ] **HUD feedback:** Trigger checkpoint toast, signpost message, autosave. Verify animations play smoothly, golden signpost text, spinner rotates.
+- [ ] **Loading screen:** Trigger scene transition. Verify progress bar fills, bg_base background, tip text shows.
+- [ ] **Overlay stacking:** Pause -> Settings -> Input Rebinding -> assign key -> Back -> Back -> Resume. Verify dim consistency across overlay stack.
+
+### 5E — Documentation Updates
+
+- [ ] Update `AGENTS.md` with theme system and motion framework patterns
+- [ ] Update `docs/general/DEV_PITFALLS.md` with new pitfalls:
   - "Use `RS_UIThemeConfig` for styling, not inline `theme_override_*`"
-  - "HUD widgets extend `BaseHUDWidget`"
-  - "`@tool` scripts must `queue_free()` at runtime"
-- [ ] Final full test suite: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true`
-- [ ] Manual smoke test: menu animations, button effects, HUD pop-in, health ticker, checkpoint toast animation
-- [ ] Mobile compatibility verification
+  - "Motion resources are opt-in — `null` motion_set = zero behavioral change"
+  - "Semantic per-node overrides (signpost golden, error red, virtual button) are intentional exceptions"
 - [ ] Update this task list with final completion notes
 - [ ] Update continuation prompt with final status
 
 ---
 
+## Testing Strategy Summary
+
+### Automated (TDD — write tests BEFORE implementation)
+
+| Test File | Phase | What It Verifies |
+| --------- | ----- | ---------------- |
+| `test_ui_theme_builder.gd` | 0B | Theme config -> Godot Theme: font sizes, styleboxes, colors, spacing, merging with font theme, null safety |
+| `test_ui_motion.gd` | 0D | Motion preset playback: property changes, sequential/parallel chaining, intervals, null safety, signal binding |
+| `test_base_ui_classes.gd` (additions) | 0F | Base class motion integration: null motion_set no-op, enter/exit animation, overlay dim animation |
+| `test_audio_settings_theme.gd` | 3/S15 | Slider theme styles applied, no inline overrides remaining |
+| `test_display_settings_theme.gd` | 3/S16 | Section panel styles, header colors, no inline overrides remaining |
+| `test_hud_theme.gd` | 4/S17 | Health bar Duel palette colors, no inline style overrides, signpost semantic override preserved, motion resource used for toast |
+| `test_style_enforcement.gd` (addition) | 5A | Global guard: total inline overrides <= 4 across all UI scenes |
+
+### Automated (Existing — Run After Each Screen)
+
+Run existing tests to confirm zero behavioral regression:
+
+- `test_main_menu.gd` — Redux navigation, button dispatch, quit visibility, focus chain
+- `test_endgame_screens.gd` — Game over/victory/credits button dispatch, auto-return
+- `test_pause_menu.gd` — Resume, settings, PROCESS_MODE_ALWAYS
+- `test_settings_menu.gd` — 8 categories, back, embedded mode
+- `test_save_load_menu.gd` — Save/Load/Delete/Overwrite, mode detection
+- `test_hud_controller.gd` — Health bar visibility, pause hide, transition hide
+- `test_hud_feedback_channels.gd` — Toast/spinner/signpost channels, interact blocker, layout geometry, tween animation
+- `test_hud_button_prompts.gd` — Prompt icon/text, device switch, localization
+- `test_hud_interactions_pause_and_signpost.gd` — Pause suppression, signpost localization
+- `test_health_bar_color_blind_integration.gd` — Palette color binding, live color update
+- All overlay-specific tests (rebinding, input profile, gamepad, touchscreen, edit touch controls)
+
+### Manual (Visual Feel — Cannot Be Automated)
+
+These verify visual polish that requires human eyes:
+
+- Background color correctness against Duel palette reference
+- Animation smoothness and timing feel (easing curves)
+- Text hierarchy legibility (title > heading > body > caption)
+- Button hover/press visual feedback
+- Overlay dim consistency across stack
+- Color harmony and contrast between elements
+- Font rendering at different sizes
+- Platform-specific rendering (mobile vs desktop)
+
+---
+
 ## Notes
 
-- Phases 1 and 2 can be developed in parallel (no dependencies between them).
-- Phase 6 (Theme Migration) can run in parallel with Phases 4-5.
-- Phase 7 depends on Phases 1 and 2.
-- Phase 8 runs after all other phases.
+- **Scope change (2026-03-05)**: Replaced framework-first approach with screen-by-screen pass. No new HUD widgets (notification queue, objective tracker, currency/score, timer, minimap slot) — those are deferred. No @tool editor previews — deferred. No number ticker utility — deferred.
+- Phase 0 builds minimal shared infrastructure (theme config, theme builder, motion resources, base class integration).
+- Phases 1-4 systematically polish each screen, migrating inline overrides and adding motion.
+- Phase 5 is final verification and documentation.
+- After **every screen**: run full test suite, verify behavior unchanged, confirm visual improvement.
 - If `motion_set` is null (the default), zero behavioral change — all existing screens work identically.
-- Inline `theme_override_*` values stay in `.tscn` files until Phase 6 migration (they override the Theme resource).
+
+### Override Inventory (verified 2026-03-05)
+
+**Total: 119** `theme_override_` lines across 13 files (115 excluding 4 virtual_button semantic overrides).
+
+| File | Count | Notes |
+| ---- | ----- | ----- |
+| `ui_display_settings_tab.tscn` | 43 | 4 section panels, 4 headers, 4 separators, 1 slider, ~20 separations |
+| `ui_hud_overlay.tscn` | 28 | Margins, fonts, 4 StyleBox sub-resources, signpost styling |
+| `ui_audio_settings_tab.tscn` | 18 | 4x slider styling + row separations |
+| `ui_button_prompt.tscn` | 5 | Separation, panel StyleBox, 3 font sizes |
+| `ui_loading_screen.tscn` | 5 | Separation, 4 font sizes |
+| `ui_input_profile_selector.tscn` | 4 | 4 spacing overrides |
+| `ui_virtual_button.tscn` | 4 | Semantic per-node (excluded from migration) |
+| `ui_language_selector.tscn` | 3 | VBox + Grid separations |
+| `ui_save_load_menu.tscn` | 3 | Error color, 2 font sizes |
+| `ui_game_over.tscn` | 2 | VBox separations |
+| `ui_victory.tscn` | 2 | VBox separations |
+| `ui_credits.tscn` | 1 | VBox separation |
+| `ui_localization_settings_tab.tscn` | 1 | Separation |
+
+### Dim Opacity Inventory (verified 2026-03-05)
+
+| File | Current Alpha | Notes |
+| ---- | ------------- | ----- |
+| `ui_edit_touch_controls_overlay.tscn` | 0.05 | Intentionally translucent for touch editing |
+| `ui_pause_menu.tscn` | 0.5 | |
+| `ui_input_rebinding_overlay.tscn` | 0.5 | |
+| `ui_input_profile_selector.tscn` | 0.5 | |
+| `ui_gamepad_settings_overlay.tscn` | 0.5 | |
+| `ui_touchscreen_settings_overlay.tscn` | 0.5 | |
+| `ui_settings_menu.tscn` | 0.647 | Outlier — should standardize |
+| `ui_save_load_menu.tscn` | 0.7 | Matches BaseOverlay default |
+| `ui_loading_screen.tscn` | 1.0 | Fully opaque (intentional) |
+| BaseOverlay default | 0.7 | Code default in `base_overlay.gd` |
+
+### Excluded Scenes (0 overrides, no individual treatment needed)
+
+These scenes have no `theme_override_*` values and inherit styling from the global Theme resource automatically. Verified in Phase 5A.
+
+- `ui_main_menu.tscn`, `ui_pause_menu.tscn`, `ui_settings_menu.tscn` — styled via theme (already 0 overrides)
+- `ui_input_rebinding_overlay.tscn`, `ui_gamepad_settings_overlay.tscn`, `ui_touchscreen_settings_overlay.tscn`, `ui_edit_touch_controls_overlay.tscn` — styled via theme (already 0 overrides, addressed in batch)
+- `ui_mobile_controls.tscn` — mobile-only control container, no text styling
+- `ui_damage_flash_overlay.tscn` — fullscreen color flash, no theme elements
+- `ui_post_process_overlay.tscn` — post-processing container, no theme elements
+- `ui_gamepad_preview_prompt.tscn` — gamepad preview widget, no overrides
+- `ui_virtual_joystick.tscn` — mobile joystick widget, no overrides
+- `ui_virtual_button.tscn` — 4 overrides but **semantic per-node** (mobile-only, excluded from migration)
 
 ## Links
 

@@ -8,17 +8,16 @@
 
 ## Problem Statement
 
-- The template's UI is functionally complete but visually bare: all styling is inline `theme_override_*` per scene (~130 overrides across ~13 `.tscn` files), no global Theme resource, no animation/motion system, and the HUD has only 4 widgets (health bar, checkpoint toast, signpost, interact prompt).
+- The template's UI is functionally complete but visually bare: all styling is inline `theme_override_*` per scene (119 overrides across 13 `.tscn` files), no global Theme resource, no animation/motion system, and the HUD has only 4 widgets (health bar, checkpoint toast, signpost, interact prompt).
 - Developers adopting this template get a working UI stack but must build all visual polish from scratch — theming, transitions, HUD modules, and designer tooling. This gap makes the template feel prototype-grade rather than production-ready.
 
 ## Goals
 
 - Centralized, swappable Theme resource that integrates with the existing `U_LocalizationFontApplier` font cascade — one resource swap changes the entire visual identity.
-- Resource-driven UI motion/animation framework (enter/exit, hover/press, focus, value-change) decoupled from sound.
-- Modular, opt-in HUD widget system with a common base class, Redux state subscriptions, and visibility gating.
-- 5 new opt-in HUD widgets: Notification Queue, Objective Tracker, Currency/Score Display, Timer, Minimap Slot.
+- Resource-driven UI motion/animation framework (enter/exit, hover/press, focus) decoupled from sound.
 - Migrate all inline `theme_override_*` to the global Theme resource.
-- `@tool` editor preview scripts for themes and motion presets (designer-friendly iteration).
+- Polish all existing screens with consistent visual language and contextual motion.
+- Enhance existing HUD by migrating inline styles and extracting hardcoded tween params to motion resources.
 - AAA-quality visual polish with a minimal/cinematic aesthetic — no functionality changes.
 
 ## Non-Goals
@@ -26,32 +25,32 @@
 - Changing existing UI functionality or control flow.
 - Replacing `U_LocalizationFontApplier` — the new theme system extends it, not replaces it.
 - Adding sound/audio integration to the motion framework (stays decoupled from `U_UISoundPlayer`).
-- Making HUD widgets mandatory — all are opt-in, default behavior unchanged.
 - Custom rendering or shader-based UI effects (stays within Godot's built-in Theme/StyleBox system).
+- New HUD widgets (notification queue, objective tracker, currency/score, timer, minimap slot) — deferred to a future pass.
+- `@tool` editor preview scripts — deferred to a future pass.
+- Animated number ticker utility — deferred to a future pass.
 
 ## User Experience Notes
 
-- **Developers**: Assign a single `RS_UIThemeConfig` resource to change the entire UI look. Assign `RS_UIMotionSet` resources to panels/buttons for animation. Drop HUD widget scenes into the HUD and assign config resources.
-- **Designers**: Use `@tool` preview scripts to see theme and motion changes live in the editor without running the game.
-- **End users**: Menus animate in/out, buttons respond to hover/press with motion, HUD elements pop in with personality, health/score values tick smoothly. All of this is invisible — it just feels polished.
+- **Developers**: Assign a single `RS_UIThemeConfig` resource to change the entire UI look. Assign `RS_UIMotionSet` resources to panels/buttons for animation.
+- **End users**: Menus animate in/out, buttons respond to hover/press with motion, HUD elements have consistent styling. All of this is invisible — it just feels polished.
 
 ## Technical Considerations
 
 - **Prerequisite**: The "UI, Layers & Transitions Refactor" (7 phases in `docs/general/ui_layers_transitions_refactor/`) must be complete before starting this work. That refactor establishes the layer stack, ServiceLocator container registration, and Redux-driven HUD visibility that this overhaul builds on.
 - **Integration point**: `U_LocalizationFontApplier.build_theme()` already creates a Theme per UI root. The new `U_UIThemeBuilder` merges styleboxes/sizes onto that output. If no font applier is available, it works standalone.
 - **ServiceLocator**: Theme config registered as `StringName("ui_theme_config")` — follows existing pattern.
-- **Redux**: HUD widgets subscribe to relevant slices via `U_StateUtils` — follows existing `UI_HudController` pattern.
 - **Mobile compatibility**: All resources use `preload()` / `const` arrays — no runtime `DirAccess` scanning.
 - **Backward compatibility**: All new features are opt-in via exported resources. `null` resource = zero behavioral change.
 
 ## Success Metrics
 
-- All ~130 inline `theme_override_*` values migrated to the global Theme resource (zero remaining in `.tscn` files, except per-element semantic overrides).
+- All 119 inline `theme_override_*` values migrated to the global Theme resource (zero remaining in `.tscn` files, except 4 per-element semantic overrides in `ui_virtual_button.tscn`).
+- All existing screens (23 scenes including overlays and HUD components) polished with theme and motion.
 - All existing screens animate on enter/exit when a motion set is assigned.
-- 5 new HUD widgets functional and tested with config resources.
-- `@tool` previews work in editor for both theme and motion.
+- HUD tween params extracted to motion resources.
 - All tests pass (existing + new).
-- Manual smoke test: menus animate, buttons respond, HUD pops in, health ticks, checkpoint toasts animate.
+- Manual smoke test: menus animate, buttons respond, HUD styling consistent, checkpoint toasts animate.
 
 ## Resolved Questions
 
