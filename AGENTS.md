@@ -191,6 +191,17 @@
 - `U_DisplayUIThemeApplier` no longer owns a standalone applied theme in unified mode; it stores active palette state and rebuilds registered UI roots through `U_UIThemeBuilder`.
 - Backward-compat contract: when `U_UIThemeBuilder.active_config` is `null`, localization and display theming keep legacy behavior (font-only localization theme + palette-only display theme).
 
+### UI Motion Pipeline (UI Visual Overhaul Phase 0)
+
+- Motion resources are data-driven and opt-in:
+  - `RS_UIMotionPreset` (`scripts/resources/ui/rs_ui_motion_preset.gd`) defines one tween step (property, from/to, duration, delay, interval, transition/ease, parallel flag).
+  - `RS_UIMotionSet` (`scripts/resources/ui/rs_ui_motion_set.gd`) groups motion sequences by interaction (`enter`, `exit`, `hover_in/out`, `press`, `focus_in/out`, `pulse`).
+- `U_UIMotion` (`scripts/ui/utils/u_ui_motion.gd`) is the canonical playback helper:
+  - `play(node, presets)` supports sequential steps by default, optional parallel steps, and interval-only hold steps.
+  - `play_enter(...)` / `play_exit(...)` delegate to `RS_UIMotionSet` lifecycle arrays.
+  - `bind_interactive(control, motion_set)` wires hover/focus/press signals without duplicating existing connections.
+- Default authored presets live under `resources/ui/motions/` (`cfg_motion_fade_slide.tres`, `cfg_motion_button_default.tres`, `cfg_motion_hud_pop.tres`) and are intended as baseline feel, not hard requirements.
+
 ### Interactable Controllers
 
 - Controllers live in `scripts/gameplay/` and replace ad-hoc `C_*` nodes; create a single `Inter_*` controller per interactable (node names may remain `E_*` in scenes):

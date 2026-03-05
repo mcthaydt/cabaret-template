@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0C complete (theme config + unified theme pipeline + tests). Next: Phase 0D motion resources.
+- Status summary: **In progress** — Phase 0A-0E complete (theme + unified pipeline + motion resources/presets). Next: Phase 0F base-class integration.
 
 ## Recent Progress
 
@@ -18,6 +18,15 @@
   - Unified theme pipeline: localization font applier composes fonts+theme; display theme applier feeds active palette and rebuilds via builder
   - Added `tests/unit/ui/test_ui_theme_builder.gd` (16 tests) including 0C integration coverage
   - Verified related display/localization suites + style suite all pass
+- **2026-03-05: Phase 0D-0E implemented**
+  - Added motion resource contracts: `RS_UIMotionPreset`, `RS_UIMotionSet`
+  - Added motion utility: `U_UIMotion.play/play_enter/play_exit/bind_interactive`
+  - Added `tests/unit/ui/test_ui_motion.gd` (12 tests) covering sequential, parallel, interval, and signal binding behavior
+  - Authored default motion sets:
+    - `resources/ui/motions/cfg_motion_fade_slide.tres`
+    - `resources/ui/motions/cfg_motion_button_default.tres`
+    - `resources/ui/motions/cfg_motion_hud_pop.tres`
+  - Verified new motion tests, theme builder tests, and style suite all pass
 
 ### Plan Change Summary (2026-03-05)
 
@@ -110,11 +119,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Begin Phase 0D: Create motion resources (`RS_UIMotionPreset`, `RS_UIMotionSet`) and `tests/unit/ui/test_ui_motion.gd` (TDD first)
-2. Phase 0E: Author default motion presets under `resources/ui/motions/`
-3. Phase 0F: Integrate motion sets into `BasePanel` / `BaseMenuScreen` / `BaseOverlay` with tests
-4. Phase 0G: Run full suite verification
-5. Then proceed screen-by-screen through Phases 1-4
+1. Begin Phase 0F: Integrate motion sets into `BasePanel` / `BaseMenuScreen` / `BaseOverlay` with tests first (`tests/unit/ui/test_base_ui_classes.gd`)
+2. Phase 0G: Run full suite verification for completed Phase 0
+3. Then proceed screen-by-screen through Phases 1-4
+
+Updated next action (2026-03-05): Start Phase 0F by adding motion exports and enter/exit animation methods to base UI classes, with `tests/unit/ui/test_base_ui_classes.gd` updates first.
 
 ## Key Files (New — To Be Created)
 

@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 8% (14 / 165 tasks complete)
+**Progress:** 13% (22 / 165 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -70,7 +70,7 @@ Completion note (2026-03-05): Implemented 0A-0C in commit `b372980d` and validat
 
 **Write tests first**, then implement to make them pass.
 
-- [ ] Create `tests/unit/ui/test_ui_motion.gd` — tests BEFORE implementation:
+- [x] Create `tests/unit/ui/test_ui_motion.gd` — tests BEFORE implementation:
   - `test_play_returns_tween_for_valid_presets` — create an `RS_UIMotionPreset` (property_path="modulate:a", from=0.0, to=1.0, duration=0.3), call `U_UIMotion.play(node, [preset])`, assert returns a `Tween`
   - `test_play_applies_property_change` — play a preset, await tween finished, assert `node.modulate.a == 1.0` with `assert_almost_eq(..., 0.01)` (pattern: `test_mobile_controls.gd`)
   - `test_play_sequential_chain` — create 3 presets (fade-in, interval, fade-out), play all, assert sequencing by checking intermediate `modulate.a` values after frame advances
@@ -83,16 +83,23 @@ Completion note (2026-03-05): Implemented 0A-0C in commit `b372980d` and validat
   - `test_play_enter_null_motion_set_returns_null` — `play_enter(node, null)` returns `null`, no-op
   - `test_bind_interactive_connects_signals` — call `bind_interactive(button, motion_set)`, assert `mouse_entered`/`mouse_exited`/`focus_entered`/`focus_exited` signals are connected
   - `test_bind_interactive_null_motion_set_no_op` — `bind_interactive(button, null)` does nothing, no crash
-- [ ] Create `scripts/resources/ui/rs_ui_motion_preset.gd` — single tween recipe: property_path, from_value, to_value, relative, duration_sec, delay_sec, transition_type, ease_type, parallel, interval_sec
-- [ ] Create `scripts/resources/ui/rs_ui_motion_set.gd` — collection per interaction: enter, exit, hover_in, hover_out, press, focus_in, focus_out, pulse
-- [ ] Create `scripts/ui/utils/u_ui_motion.gd` — static utility: `play()`, `play_enter()`, `play_exit()`, `bind_interactive()`
-- [ ] Run tests — all `test_ui_motion.gd` tests pass
+- [x] Create `scripts/resources/ui/rs_ui_motion_preset.gd` — single tween recipe: property_path, from_value, to_value, relative, duration_sec, delay_sec, transition_type, ease_type, parallel, interval_sec
+- [x] Create `scripts/resources/ui/rs_ui_motion_set.gd` — collection per interaction: enter, exit, hover_in, hover_out, press, focus_in, focus_out, pulse
+- [x] Create `scripts/ui/utils/u_ui_motion.gd` — static utility: `play()`, `play_enter()`, `play_exit()`, `bind_interactive()`
+- [x] Run tests — all `test_ui_motion.gd` tests pass
+
+Completion note (2026-03-05): Implemented 0D in commit `11571760` and validated with:
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_motion.gd`
 
 ### 0E — Default Motion Presets
 
-- [ ] Create `resources/ui/motions/cfg_motion_fade_slide.tres` — screen enter/exit (fade + slide-up)
-- [ ] Create `resources/ui/motions/cfg_motion_button_default.tres` — button hover/press scale
-- [ ] Create `resources/ui/motions/cfg_motion_hud_pop.tres` — HUD widget pop-in
+- [x] Create `resources/ui/motions/cfg_motion_fade_slide.tres` — screen enter/exit (fade + slide-up)
+- [x] Create `resources/ui/motions/cfg_motion_button_default.tres` — button hover/press scale
+- [x] Create `resources/ui/motions/cfg_motion_hud_pop.tres` — HUD widget pop-in
+
+Completion note (2026-03-05): Implemented 0E in commit `11571760` and validated with:
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_motion.gd -gtest=res://tests/unit/ui/test_ui_theme_builder.gd`
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
 
 ### 0F — Base Class Integration (TDD)
 
