@@ -1,6 +1,9 @@
 extends RefCounted
 class_name U_LocalizationFontApplier
 
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
+
 const CJK_LOCALES: Array[StringName] = [&"zh_CN", &"ja"]
 const FONT_THEME_TYPES: Array[StringName] = [
 	&"Control", &"Label", &"Button", &"OptionButton", &"CheckBox", &"CheckButton",
@@ -49,7 +52,7 @@ func build_theme(locale: StringName, dyslexia_enabled: bool) -> Theme:
 	var theme := Theme.new()
 	for type_name: StringName in FONT_THEME_TYPES:
 		theme.set_font(&"font", type_name, active_font)
-	return theme
+	return _compose_theme(theme)
 
 func apply_theme_to_root(root: Node, theme: Theme) -> void:
 	if root == null or theme == null:
@@ -78,3 +81,18 @@ func _apply_cjk_fallback(font: Font) -> void:
 		if _cjk_font not in fallbacks:
 			fallbacks.append(_cjk_font)
 			font_file.fallbacks = fallbacks
+
+func _compose_theme(font_theme: Theme) -> Theme:
+	if font_theme == null:
+		return null
+	if U_UI_THEME_BUILDER.active_config == null:
+		return font_theme
+	var active_palette: Resource = U_DISPLAY_UI_THEME_APPLIER.get_active_palette()
+	var merged_theme := U_UI_THEME_BUILDER.build_theme(
+		U_UI_THEME_BUILDER.active_config,
+		font_theme,
+		active_palette
+	)
+	if merged_theme == null:
+		return font_theme
+	return merged_theme

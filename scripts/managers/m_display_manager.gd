@@ -62,6 +62,8 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	if _cinema_grade_applier != null:
 		_cinema_grade_applier.cleanup()
+	if _ui_theme_applier != null:
+		_ui_theme_applier.clear_active_palette()
 	if _state_store != null and _state_store.has_signal("slice_updated"):
 		if _state_store.slice_updated.is_connected(_on_slice_updated):
 			_state_store.slice_updated.disconnect(_on_slice_updated)
@@ -231,8 +233,7 @@ func _apply_accessibility_settings(display_settings: Dictionary) -> void:
 	_ensure_appliers()
 	if _ui_theme_applier != null:
 		_ui_theme_applier.apply_theme_from_palette(_palette_manager.get_active_palette())
-		if _ui_scale_applier != null:
-			_ui_theme_applier.apply_theme_to_roots(_ui_scale_applier.get_roots())
+		_rebuild_ui_theme_roots()
 
 func _apply_post_process_settings(display_settings: Dictionary) -> void:
 	_ensure_appliers()
@@ -341,13 +342,23 @@ func register_ui_scale_root(node: Node) -> void:
 	if _ui_scale_applier != null:
 		_ui_scale_applier.register_ui_scale_root(node)
 	if _ui_theme_applier != null:
-		_ui_theme_applier.apply_theme_to_node(node)
+		_rebuild_ui_theme_node(node)
 
 func unregister_ui_scale_root(node: Node) -> void:
 	_ensure_appliers()
 	if _ui_scale_applier == null:
 		return
 	_ui_scale_applier.unregister_ui_scale_root(node)
+
+func _rebuild_ui_theme_roots() -> void:
+	if _ui_theme_applier == null or _ui_scale_applier == null:
+		return
+	_ui_theme_applier.apply_theme_to_roots(_ui_scale_applier.get_roots())
+
+func _rebuild_ui_theme_node(node: Node) -> void:
+	if _ui_theme_applier == null:
+		return
+	_ui_theme_applier.apply_theme_to_node(node)
 
 func _update_overlay_visibility() -> void:
 	if _state_store == null:

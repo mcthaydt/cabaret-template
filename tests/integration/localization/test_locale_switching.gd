@@ -19,6 +19,8 @@ const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_local
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 
 var _store: M_StateStore
 var _loc_manager: M_LocalizationManager
@@ -27,6 +29,8 @@ var _display_manager: M_DisplayManager
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
 	U_STATE_HANDOFF.clear_all()
+	U_DISPLAY_UI_THEME_APPLIER.clear_active_palette()
+	U_UI_THEME_BUILDER.active_config = null
 	await get_tree().process_frame
 
 	_store = _make_store()
@@ -49,6 +53,8 @@ func before_each() -> void:
 
 func after_each() -> void:
 	U_STATE_HANDOFF.clear_all()
+	U_DISPLAY_UI_THEME_APPLIER.clear_active_palette()
+	U_UI_THEME_BUILDER.active_config = null
 	super.after_each()
 
 func _make_store() -> M_StateStore:

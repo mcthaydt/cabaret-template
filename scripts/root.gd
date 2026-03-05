@@ -3,11 +3,19 @@ extends Node
 
 ## Root scene script (dedicated editor icon + ServiceLocator bootstrap).
 
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const UI_THEME_CONFIG_DEFAULT := preload("res://resources/ui/cfg_ui_theme_default.tres")
+
 func _enter_tree() -> void:
+	_initialize_ui_theme_config()
 	_initialize_service_locator()
 
 func _ready() -> void:
+	_initialize_ui_theme_config()
 	_initialize_service_locator()
+
+func _exit_tree() -> void:
+	U_UI_THEME_BUILDER.active_config = null
 
 ## Register all managers with the service locator for fast, centralized access
 func _initialize_service_locator() -> void:
@@ -97,3 +105,6 @@ func _register_container(path: String, service_name: StringName) -> void:
 	var node := get_node_or_null(path)
 	if node != null:
 		U_ServiceLocator.register(service_name, node)
+
+func _initialize_ui_theme_config() -> void:
+	U_UI_THEME_BUILDER.active_config = UI_THEME_CONFIG_DEFAULT

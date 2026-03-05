@@ -8,17 +8,23 @@ const MOCK_WINDOW_OPS := preload("res://tests/mocks/mock_window_ops.gd")
 const I_DISPLAY_MANAGER := preload("res://scripts/interfaces/i_display_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const RS_UI_COLOR_PALETTE := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
+const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 
 var _manager: Node
 var _store: Node
 
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
+	U_DISPLAY_UI_THEME_APPLIER.clear_active_palette()
+	U_UI_THEME_BUILDER.active_config = null
 	_manager = null
 	_store = null
 
 func after_each() -> void:
 	U_SERVICE_LOCATOR.clear()
+	U_DISPLAY_UI_THEME_APPLIER.clear_active_palette()
+	U_UI_THEME_BUILDER.active_config = null
 	_manager = null
 	_store = null
 

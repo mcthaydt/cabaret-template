@@ -4,9 +4,11 @@ class_name U_DisplayUIThemeApplier
 ## Applies UI theme overrides based on palette resources.
 
 const RS_UI_COLOR_PALETTE := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 
 var _ui_theme: Theme = null
 var _ui_theme_palette_id: StringName = StringName("")
+static var _active_palette: Resource = null
 
 func apply_theme_from_palette(palette: Resource) -> void:
 	if palette == null:
@@ -14,6 +16,11 @@ func apply_theme_from_palette(palette: Resource) -> void:
 	if not (palette is RS_UI_COLOR_PALETTE):
 		return
 	var typed_palette := palette as RS_UI_COLOR_PALETTE
+	_active_palette = typed_palette
+
+	if U_UI_THEME_BUILDER.active_config != null:
+		return
+
 	if _ui_theme == null:
 		_ui_theme = Theme.new()
 	var should_update := _ui_theme_palette_id != typed_palette.palette_id
@@ -22,22 +29,31 @@ func apply_theme_from_palette(palette: Resource) -> void:
 		_ui_theme_palette_id = typed_palette.palette_id
 
 func apply_theme_to_roots(roots: Array[Node]) -> void:
-	if _ui_theme == null:
-		return
 	if roots.is_empty():
+		return
+	if U_UI_THEME_BUILDER.active_config == null and _ui_theme == null:
 		return
 	for node in roots:
 		if node == null or not is_instance_valid(node):
 			continue
-		_apply_ui_theme_to_node(node)
+		apply_theme_to_node(node)
 
 func apply_theme_to_node(node: Node) -> void:
+	if U_UI_THEME_BUILDER.active_config != null:
+		_apply_unified_theme_to_node(node)
+		return
 	if _ui_theme == null:
 		return
 	_apply_ui_theme_to_node(node)
 
 func get_theme() -> Theme:
 	return _ui_theme
+
+static func get_active_palette() -> Resource:
+	return _active_palette
+
+static func clear_active_palette() -> void:
+	_active_palette = null
 
 func _configure_ui_theme(theme: Theme, palette: RS_UI_COLOR_PALETTE) -> void:
 	var text_color := palette.text
@@ -63,3 +79,26 @@ func _apply_ui_theme_to_node(node: Node) -> void:
 	for child in children:
 		if child is Node:
 			_apply_ui_theme_to_node(child)
+
+func _apply_unified_theme_to_node(node: Node) -> void:
+	if node == null:
+		return
+	if node is Control:
+		_apply_unified_theme_to_control(node as Control)
+		return
+	var children: Array = node.get_children()
+	for child in children:
+		if child is Node:
+			_apply_unified_theme_to_node(child)
+
+func _apply_unified_theme_to_control(control: Control) -> void:
+	if control == null:
+		return
+	var merged_theme := U_UI_THEME_BUILDER.build_theme(
+		U_UI_THEME_BUILDER.active_config,
+		control.theme,
+		_active_palette
+	)
+	if merged_theme == null:
+		return
+	control.theme = merged_theme
