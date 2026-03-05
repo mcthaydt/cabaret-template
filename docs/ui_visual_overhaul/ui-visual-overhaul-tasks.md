@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 1% (2 / 165 tasks complete)
+**Progress:** 8% (14 / 165 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -17,7 +17,7 @@ Build just enough shared infrastructure so screens have a common visual language
 
 ### 0A — Theme Config Resource
 
-- [ ] Create `scripts/resources/ui/rs_ui_theme_config.gd` — `RS_UIThemeConfig extends Resource` with `@export_group` sections:
+- [x] Create `scripts/resources/ui/rs_ui_theme_config.gd` — `RS_UIThemeConfig extends Resource` with `@export_group` sections:
   - Typography: font sizes for title(48), heading(32), subheading(24), body(22), body_small(18), caption(16), section_header(14), caption_small(12)
   - Colors: Duel palette tokens — bg_base, bg_panel, bg_panel_light, bg_surface, text_primary, text_secondary, text_disabled, accent_primary, accent_hover, accent_pressed, accent_focus, section_header, danger, success, warning, golden, health_bg, slider_fill, slider_bg (note: `health_fill` excluded — dynamically palette-driven for color-blind accessibility)
   - Spacing: margin_outer(20), margin_section(16), margin_inner(12), separation_large(32), separation_medium(24), separation_default(12), separation_compact(8)
@@ -26,13 +26,13 @@ Build just enough shared infrastructure so screens have a common visual language
   - Bar Styles: progress_bar_bg, progress_bar_fill, slider_bg, slider_fill, slider_grabber, slider_grabber_highlight
   - Focus: focus_stylebox
   - Separator: separator_style
-- [ ] Create `resources/ui/cfg_ui_theme_default.tres` — default instance with Duel palette values
+- [x] Create `resources/ui/cfg_ui_theme_default.tres` — default instance with Duel palette values
 
 ### 0B — Theme Builder Utility (TDD)
 
 **Write tests first**, then implement to make them pass.
 
-- [ ] Create `tests/unit/ui/test_ui_theme_builder.gd` — tests BEFORE implementation:
+- [x] Create `tests/unit/ui/test_ui_theme_builder.gd` — tests BEFORE implementation:
   - `test_build_theme_returns_theme_with_font_sizes` — build with default config, assert `theme.get_font_size(&"font_size", &"Label") == config.body` (pattern: `test_display_manager.gd`)
   - `test_build_theme_applies_button_styleboxes` — assert `theme.get_stylebox(&"normal", &"Button") is StyleBoxFlat` and `bg_color` matches config
   - `test_build_theme_applies_progress_bar_styles` — assert `theme.get_stylebox(&"fill", &"ProgressBar") is StyleBoxFlat`
@@ -46,20 +46,25 @@ Build just enough shared infrastructure so screens have a common visual language
   - `test_build_theme_spacing_constants` — assert `theme.get_constant(&"separation", &"VBoxContainer") == config.separation_default`
   - `test_build_theme_merges_palette_colors` — pass palette, assert `theme.get_color(&"font_color", &"Label") == palette.text`
   - `test_build_theme_without_palette_preserves_font_theme` — pass null palette, assert font theme colors untouched
-- [ ] Create `scripts/ui/utils/u_ui_theme_builder.gd` — static utility: `build_theme(config: RS_UIThemeConfig, base_font_theme: Theme = null, palette: RS_UIColorPalette = null) -> Theme`. Builder merges: fonts from base_font_theme + palette colors (font_color on text types, replaces what `U_DisplayUIThemeApplier._configure_ui_theme()` does) + styleboxes/spacing/sizes from config. Sets type variations for Button, Label, PanelContainer, ProgressBar, HSlider, HSeparator, VBoxContainer, HBoxContainer.
-- [ ] Run tests — all `test_ui_theme_builder.gd` tests pass
+- [x] Create `scripts/ui/utils/u_ui_theme_builder.gd` — static utility: `build_theme(config: RS_UIThemeConfig, base_font_theme: Theme = null, palette: RS_UIColorPalette = null) -> Theme`. Builder merges: fonts from base_font_theme + palette colors (font_color on text types, replaces what `U_DisplayUIThemeApplier._configure_ui_theme()` does) + styleboxes/spacing/sizes from config. Sets type variations for Button, Label, PanelContainer, ProgressBar, HSlider, HSeparator, VBoxContainer, HBoxContainer.
+- [x] Run tests — all `test_ui_theme_builder.gd` tests pass
 
 ### 0C — Unified Theme Pipeline Integration (TDD)
 
-- [ ] Add test to `tests/unit/ui/test_ui_theme_builder.gd`:
+- [x] Add test to `tests/unit/ui/test_ui_theme_builder.gd`:
   - `test_font_applier_uses_theme_builder_when_config_set` — set `U_UIThemeBuilder.active_config`, call `apply_theme_to_root()`, assert the root's theme has both fonts AND styleboxes
   - `test_font_applier_unchanged_when_no_config_set` — do NOT set `U_UIThemeBuilder.active_config`, call `apply_theme_to_root()`, assert theme has fonts but NOT styleboxes (existing behavior preserved)
   - `test_palette_change_triggers_theme_rebuild` — change palette, assert resulting theme has both font AND palette colors
-- [ ] Add `static var active_config: RS_UIThemeConfig` to `scripts/ui/utils/u_ui_theme_builder.gd` — set in `root.gd` via preload. No ServiceLocator involvement (ServiceLocator only accepts Node instances).
-- [ ] Modify `scripts/managers/helpers/localization/u_localization_font_applier.gd` — after building the font-only theme, call `U_UIThemeBuilder.build_theme(active_config, font_theme, active_palette)` to compose the full theme when `U_UIThemeBuilder.active_config` is set. If not set, existing font-only behavior unchanged.
-- [ ] Modify `M_DisplayManager._apply_accessibility_settings()` to trigger theme rebuild through the unified pipeline instead of calling `_ui_theme_applier.apply_theme_to_roots()` independently.
-- [ ] Modify `U_DisplayUIThemeApplier.apply_theme_from_palette()` — still builds palette data, but the actual theme application goes through `U_UIThemeBuilder` instead of applying independently.
-- [ ] Run tests — new tests pass, all existing localization and display tests still pass
+- [x] Add `static var active_config: RS_UIThemeConfig` to `scripts/ui/utils/u_ui_theme_builder.gd` — set in `root.gd` via preload. No ServiceLocator involvement (ServiceLocator only accepts Node instances).
+- [x] Modify `scripts/managers/helpers/localization/u_localization_font_applier.gd` — after building the font-only theme, call `U_UIThemeBuilder.build_theme(active_config, font_theme, active_palette)` to compose the full theme when `U_UIThemeBuilder.active_config` is set. If not set, existing font-only behavior unchanged.
+- [x] Modify `M_DisplayManager._apply_accessibility_settings()` to trigger theme rebuild through the unified pipeline instead of calling `_ui_theme_applier.apply_theme_to_roots()` independently.
+- [x] Modify `U_DisplayUIThemeApplier.apply_theme_from_palette()` — still builds palette data, but the actual theme application goes through `U_UIThemeBuilder` instead of applying independently.
+- [x] Run tests — new tests pass, all existing localization and display tests still pass
+
+Completion note (2026-03-05): Implemented 0A-0C in commit `b372980d` and validated with:
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_theme_builder.gd`
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/helpers/localization/test_localization_font_applier.gd -gtest=res://tests/unit/managers/test_display_manager.gd -gtest=res://tests/unit/managers/test_display_manager_high_contrast.gd -gtest=res://tests/integration/display/test_ui_scale_and_theme.gd -gtest=res://tests/integration/localization/test_locale_switching.gd`
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
 
 ### 0D — Motion Resources (TDD)
 

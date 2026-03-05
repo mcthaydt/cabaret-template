@@ -181,6 +181,16 @@
 - Systems organized by category: Core / Physics / Movement / Feedback
 - Naming: Node names use prefixes matching their script types (E_, Inter_, S_, C_, M_, SO_, Env_)
 
+### UI Theme Pipeline (UI Visual Overhaul Phase 0)
+
+- `RS_UIThemeConfig` (`scripts/resources/ui/rs_ui_theme_config.gd`) is the canonical theme contract; default instance is `resources/ui/cfg_ui_theme_default.tres`.
+- `U_UIThemeBuilder` (`scripts/ui/utils/u_ui_theme_builder.gd`) is the single composition point for UI themes:
+  - Input: base font theme from `U_LocalizationFontApplier`, optional `RS_UIColorPalette`, required `RS_UIThemeConfig`.
+  - Output: merged `Theme` containing fonts, text colors, spacing constants, and styleboxes.
+- Root bootstrap contract: `scripts/root.gd` sets `U_UIThemeBuilder.active_config` on enter/ready and clears it on exit.
+- `U_DisplayUIThemeApplier` no longer owns a standalone applied theme in unified mode; it stores active palette state and rebuilds registered UI roots through `U_UIThemeBuilder`.
+- Backward-compat contract: when `U_UIThemeBuilder.active_config` is `null`, localization and display theming keep legacy behavior (font-only localization theme + palette-only display theme).
+
 ### Interactable Controllers
 
 - Controllers live in `scripts/gameplay/` and replace ad-hoc `C_*` nodes; create a single `Inter_*` controller per interactable (node names may remain `E_*` in scenes):

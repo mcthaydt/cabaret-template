@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **Ready to implement** — plan revised to screen-by-screen approach, documentation updated.
+- Status summary: **In progress** — Phase 0A-0C complete (theme config + unified theme pipeline + tests). Next: Phase 0D motion resources.
 
 ## Recent Progress
 
@@ -12,6 +12,12 @@
 - Created task checklist (`docs/ui_visual_overhaul/ui-visual-overhaul-tasks.md`)
 - **"UI, Layers & Transitions Refactor" completed** — all 7 phases done on branch `UI-Looksmaxxing`
 - **2026-03-05: Plan revised** — replaced framework-first approach (8 phases) with screen-by-screen approach (6 phases: 0-5). Deferred HUD widgets, @tool previews, and number ticker. Focus is on polishing all existing screens + enhancing existing HUD.
+- **2026-03-05: Phase 0A-0C implemented**
+  - Added `RS_UIThemeConfig` + default config resource (`resources/ui/cfg_ui_theme_default.tres`)
+  - Added `U_UIThemeBuilder` and static `active_config` wiring in `root.gd`
+  - Unified theme pipeline: localization font applier composes fonts+theme; display theme applier feeds active palette and rebuilds via builder
+  - Added `tests/unit/ui/test_ui_theme_builder.gd` (16 tests) including 0C integration coverage
+  - Verified related display/localization suites + style suite all pass
 
 ### Plan Change Summary (2026-03-05)
 
@@ -104,13 +110,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Begin Phase 0A: Create `RS_UIThemeConfig` resource
-2. Phase 0B: Create `U_UIThemeBuilder` utility
-3. Phase 0C: Unify font applier + display theme applier into single pipeline through `U_UIThemeBuilder`
-4. Phase 0D-0E: Create motion resources and presets
-5. Phase 0F: Base class integration
-6. Phase 0G: Tests
-7. Then proceed screen-by-screen through Phases 1-4
+1. Begin Phase 0D: Create motion resources (`RS_UIMotionPreset`, `RS_UIMotionSet`) and `tests/unit/ui/test_ui_motion.gd` (TDD first)
+2. Phase 0E: Author default motion presets under `resources/ui/motions/`
+3. Phase 0F: Integrate motion sets into `BasePanel` / `BaseMenuScreen` / `BaseOverlay` with tests
+4. Phase 0G: Run full suite verification
+5. Then proceed screen-by-screen through Phases 1-4
 
 ## Key Files (New — To Be Created)
 
