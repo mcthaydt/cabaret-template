@@ -66,6 +66,15 @@ Completion note (2026-03-05): Implemented 0A-0C in commit `b372980d` and validat
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/helpers/localization/test_localization_font_applier.gd -gtest=res://tests/unit/managers/test_display_manager.gd -gtest=res://tests/unit/managers/test_display_manager_high_contrast.gd -gtest=res://tests/integration/display/test_ui_scale_and_theme.gd -gtest=res://tests/integration/localization/test_locale_switching.gd`
 - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
 
+Follow-up note (2026-03-06): Fixed unified-theme lifecycle regression caused by shared `root.gd` usage in gameplay scenes.
+- Root cause: gameplay scene roots also use `scripts/root.gd`; unconditional `_exit_tree()` cleanup cleared `U_UIThemeBuilder.active_config`, causing later UI screens to render default gray styles.
+- Fix: guard theme-config teardown so only the persistent app root (has `Managers/M_StateStore`) clears `U_UIThemeBuilder.active_config`.
+- Added regression coverage: `tests/unit/ui/test_root_ui_theme_lifecycle.gd`.
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_root_ui_theme_lifecycle.gd`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd`
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
+
 ### 0D — Motion Resources (TDD)
 
 **Write tests first**, then implement to make them pass.

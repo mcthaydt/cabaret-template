@@ -46,6 +46,9 @@
 - **Unified UI theme bootstrapping needs a no-palette fallback**: In the merged font+theme pipeline, a root can receive a composed theme before `U_DisplayUIThemeApplier` has published an active palette. If the builder simply preserves base colors when palette is missing, roots with no pre-existing colors can remain unstyled until the next palette-triggered rebuild.
   - **Fix pattern**: when palette is `null`, preserve existing base-theme colors where they exist, but still apply `RS_UIThemeConfig.text_primary` to missing text color slots so first paint is deterministic.
 
+- **Shared `root.gd` teardown can clear global UI theme config unexpectedly**: Gameplay scenes also attach `scripts/root.gd`, so unconditional cleanup in `_exit_tree()` can clear `U_UIThemeBuilder.active_config` while the persistent app root is still alive. This causes subsequent menus/overlays to render fallback/default (gray) styling instead of unified theme tokens.
+  - **Fix pattern**: only clear `U_UIThemeBuilder.active_config` when the exiting root is the persistent app root (for example, it has `Managers/M_StateStore`). Keep non-persistent gameplay roots from mutating global theme config.
+
 - **Shared overlay scenes can be mounted in non-overlay contexts**: Some UI scenes (for example `UI_SettingsMenu`) run both as gameplay overlays and as embedded panels in main-menu flows. If dim alpha is applied unconditionally in `BaseOverlay` subclasses, embedded usage can become unintentionally darkened.
   - **Fix pattern**: gate dim alpha by navigation context (`navigation.overlay_stack` top or shell checks). Use normal dim (`0.7`) only when running as an active overlay; use `0.0` when embedded.
 

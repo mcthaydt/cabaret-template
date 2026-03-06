@@ -8,6 +8,14 @@
 
 ## Recent Progress
 
+- **2026-03-06: Theme lifecycle regression hardening**
+  - Root cause: gameplay scenes also attach `scripts/root.gd`; unloading gameplay roots ran `_exit_tree()` and cleared `U_UIThemeBuilder.active_config`, so later menu screens could render default gray chrome.
+  - Fix: `scripts/root.gd` now clears `U_UIThemeBuilder.active_config` only for the persistent app root (detected via `Managers/M_StateStore`).
+  - Added regression tests: `tests/unit/ui/test_root_ui_theme_lifecycle.gd` (`non_persistent_root_exit_does_not_clear_active_theme_config`, `persistent_root_exit_clears_active_theme_config`).
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_root_ui_theme_lifecycle.gd` → 2/2 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd` → 14/14 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 - Created PRD (`docs/ui_visual_overhaul/ui-visual-overhaul-prd.md`)
 - Created task checklist (`docs/ui_visual_overhaul/ui-visual-overhaul-tasks.md`)
 - **"UI, Layers & Transitions Refactor" completed** — all 7 phases done on branch `UI-Looksmaxxing`
