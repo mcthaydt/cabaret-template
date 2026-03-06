@@ -76,6 +76,23 @@ func test_enter_animation_keeps_overlay_root_position_static() -> void:
 		"Pause menu root should not slide during enter animation"
 	)
 
+func test_pause_menu_panel_stays_vertically_centered_after_enter_animation() -> void:
+	await _create_state_store()
+	var pause_menu := await _instantiate_pause_menu()
+	await wait_process_frames(24)
+
+	var center_container: CenterContainer = pause_menu.get_node("CenterContainer")
+	var panel_host: Control = pause_menu.get_node("%MainPanelMotionHost")
+	var container_center_y: float = center_container.global_position.y + (center_container.size.y * 0.5)
+	var panel_center_y: float = panel_host.global_position.y + (panel_host.size.y * 0.5)
+
+	assert_almost_eq(
+		panel_center_y,
+		container_center_y,
+		1.0,
+		"Pause menu panel should remain vertically centered after enter animation completes"
+	)
+
 func test_resume_button_closes_pause_overlay() -> void:
 	var store := await _create_state_store()
 	_prepare_paused_state(store)
