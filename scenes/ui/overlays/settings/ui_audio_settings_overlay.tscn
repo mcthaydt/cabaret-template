@@ -17,6 +17,7 @@ grow_vertical = 2
 script = ExtResource("1_ui_audio_settings_overlay_script")
 background_color = Color(0.114, 0.114, 0.129, 0.5)
 motion_set = ExtResource("3_motion_set")
+motion_target_path = NodePath("CenterContainer/Panel")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=678091063]
 script = ExtResource("ui_scale_root")
