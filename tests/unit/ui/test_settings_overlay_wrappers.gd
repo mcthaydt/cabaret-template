@@ -75,6 +75,34 @@ func test_display_settings_overlay_wrapper_has_motion_and_theme_tokens_when_acti
 	var overlay := await _spawn_overlay_with_theme(DISPLAY_OVERLAY_SCENE)
 	_assert_wrapper_theme_and_motion(overlay, "CenterContainer/Panel", "CenterContainer/Panel/VBox", 0.5)
 
+func test_display_settings_overlay_keeps_panel_vertically_centered_after_enter() -> void:
+	var overlay := await _spawn_overlay_with_theme(DISPLAY_OVERLAY_SCENE)
+	assert_not_null(overlay, "Display wrapper should instantiate")
+	if overlay == null:
+		return
+
+	assert_eq(
+		overlay.get("motion_target_path"),
+		NodePath("CenterContainer/Panel"),
+		"Display wrapper should animate panel target instead of center container"
+	)
+
+	await _pump_frames(60)
+
+	var panel := overlay.get_node_or_null("CenterContainer/Panel") as PanelContainer
+	assert_not_null(panel, "Display wrapper panel should exist")
+	if panel == null:
+		return
+
+	var viewport_height: float = overlay.get_viewport_rect().size.y
+	var panel_center_y: float = panel.global_position.y + (panel.size.y * 0.5)
+	assert_almost_eq(
+		panel_center_y,
+		viewport_height * 0.5,
+		2.0,
+		"Display wrapper panel should remain vertically centered after enter animation"
+	)
+
 
 func test_localization_settings_overlay_wrapper_has_motion_and_theme_tokens_when_active_config_set() -> void:
 	var overlay := await _spawn_overlay_with_theme(LOCALIZATION_OVERLAY_SCENE)
@@ -111,6 +139,34 @@ func test_localization_settings_overlay_keeps_panel_vertically_centered_after_en
 func test_vfx_settings_overlay_wrapper_has_motion_and_theme_tokens_when_active_config_set() -> void:
 	var overlay := await _spawn_overlay_with_theme(VFX_OVERLAY_SCENE)
 	_assert_wrapper_theme_and_motion(overlay, "CenterContainer/Panel", "CenterContainer/Panel/VBox", 0.5)
+
+func test_vfx_settings_overlay_keeps_panel_vertically_centered_after_enter() -> void:
+	var overlay := await _spawn_overlay_with_theme(VFX_OVERLAY_SCENE)
+	assert_not_null(overlay, "VFX wrapper should instantiate")
+	if overlay == null:
+		return
+
+	assert_eq(
+		overlay.get("motion_target_path"),
+		NodePath("CenterContainer/Panel"),
+		"VFX wrapper should animate panel target instead of center container"
+	)
+
+	await _pump_frames(60)
+
+	var panel := overlay.get_node_or_null("CenterContainer/Panel") as PanelContainer
+	assert_not_null(panel, "VFX wrapper panel should exist")
+	if panel == null:
+		return
+
+	var viewport_height: float = overlay.get_viewport_rect().size.y
+	var panel_center_y: float = panel.global_position.y + (panel.size.y * 0.5)
+	assert_almost_eq(
+		panel_center_y,
+		viewport_height * 0.5,
+		2.0,
+		"VFX wrapper panel should remain vertically centered after enter animation"
+	)
 
 
 func _spawn_overlay_with_theme(scene: PackedScene) -> Control:
