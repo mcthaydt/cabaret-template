@@ -156,6 +156,44 @@ func test_bind_interactive_null_motion_set_no_op() -> void:
 	assert_eq(button.focus_exited.get_connections().size(), 0,
 		"Null motion set should not connect focus_exited")
 
+func test_play_pulse_delegates_to_motion_set() -> void:
+	var node := Control.new()
+	add_child_autofree(node)
+	var motion_set := RS_UI_MOTION_SET.new()
+	motion_set.pulse = [_make_preset("modulate:a", 1.0, 0.5, 0.03)]
+
+	var tween: Tween = U_UI_MOTION.play_pulse(node, motion_set)
+	assert_not_null(tween, "play_pulse should delegate to motion_set.pulse")
+
+func test_play_pulse_null_motion_set_returns_null() -> void:
+	var node := Control.new()
+	add_child_autofree(node)
+
+	var tween: Tween = U_UI_MOTION.play_pulse(node, null)
+	assert_null(tween, "Null motion set should return null for pulse")
+
+func test_append_step_adds_property_tween() -> void:
+	var node := Control.new()
+	node.modulate.a = 0.0
+	add_child_autofree(node)
+	var preset := _make_preset("modulate:a", 0.0, 1.0, 0.03)
+
+	var tween := node.create_tween()
+	var result: bool = U_UI_MOTION.append_step(tween, node, preset)
+	assert_true(result, "append_step should return true for valid preset")
+
+	await tween.finished
+	assert_almost_eq(node.modulate.a, 1.0, 0.01,
+		"append_step tween should reach target value")
+
+func test_append_step_null_tween_returns_false() -> void:
+	var node := Control.new()
+	add_child_autofree(node)
+	var preset := _make_preset("modulate:a", 0.0, 1.0, 0.03)
+
+	var result: bool = U_UI_MOTION.append_step(null, node, preset)
+	assert_false(result, "append_step with null tween should return false")
+
 func _make_preset(path: String, from_value: Variant, to_value: Variant, duration_sec: float) -> Resource:
 	var preset := RS_UI_MOTION_PRESET.new()
 	preset.property_path = path

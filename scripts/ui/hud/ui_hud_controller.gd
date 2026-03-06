@@ -6,6 +6,7 @@ const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.g
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 const RS_UI_MOTION_SET := preload("res://scripts/resources/ui/rs_ui_motion_set.gd")
 const RS_UI_MOTION_PRESET := preload("res://scripts/resources/ui/rs_ui_motion_preset.gd")
+const U_UI_MOTION := preload("res://scripts/ui/utils/u_ui_motion.gd")
 
 @export var checkpoint_toast_motion_set: Resource = preload("res://resources/ui/motions/cfg_motion_hud_checkpoint_toast.tres")
 @export var signpost_fade_in_preset: Resource = preload("res://resources/ui/motions/cfg_motion_hud_signpost_fade_in.tres")
@@ -657,44 +658,12 @@ func _append_motion_sequence(
 
 	var appended_any: bool = false
 	for preset_resource in presets:
-		if _append_motion_preset_step(tween, target, preset_resource):
+		if U_UI_MOTION.append_step(tween, target, preset_resource):
 			appended_any = true
 	return appended_any
 
 func _append_motion_preset_step(tween: Tween, target: Node, preset_resource: Resource) -> bool:
-	if tween == null or target == null:
-		return false
-	if not (preset_resource is RS_UI_MOTION_PRESET):
-		return false
-	var preset := preset_resource as RS_UI_MOTION_PRESET
-	var property_path: String = String(preset.property_path).strip_edges()
-
-	if property_path.is_empty():
-		var interval_sec: float = maxf(float(preset.interval_sec) + float(preset.delay_sec), 0.0)
-		if interval_sec <= 0.0:
-			return false
-		tween.tween_interval(interval_sec)
-		return true
-
-	var duration_sec: float = maxf(float(preset.duration_sec), 0.0)
-	if duration_sec <= 0.0:
-		return false
-	var tween_value: Variant = preset.to_value
-	if tween_value == null:
-		return false
-
-	var tweener := tween.tween_property(target, property_path, tween_value, duration_sec)
-	if preset.from_value != null:
-		tweener.from(preset.from_value)
-	if bool(preset.relative):
-		tweener.as_relative()
-
-	var delay_sec: float = maxf(float(preset.delay_sec), 0.0)
-	if delay_sec > 0.0:
-		tweener.set_delay(delay_sec)
-	tweener.set_trans(int(preset.transition_type))
-	tweener.set_ease(int(preset.ease_type))
-	return true
+	return U_UI_MOTION.append_step(tween, target, preset_resource)
 
 ## Phase 11: Save event handlers for autosave feedback
 

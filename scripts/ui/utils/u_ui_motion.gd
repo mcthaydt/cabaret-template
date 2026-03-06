@@ -42,6 +42,21 @@ static func play_exit(node: Node, motion_set: Resource) -> Tween:
 	var presets: Array[Resource] = motion_set.exit
 	return play(node, presets)
 
+static func play_pulse(node: Node, motion_set: Resource) -> Tween:
+	if motion_set == null:
+		return null
+	if not ("pulse" in motion_set):
+		return null
+	var presets: Array[Resource] = motion_set.pulse
+	return play(node, presets)
+
+static func append_step(tween: Tween, node: Node, preset: Resource) -> bool:
+	if tween == null or node == null:
+		return false
+	if not (preset is RS_UI_MOTION_PRESET):
+		return false
+	return _append_step(tween, node, preset)
+
 static func bind_interactive(control: Control, motion_set: Resource) -> void:
 	if control == null or motion_set == null:
 		return

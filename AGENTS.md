@@ -204,9 +204,10 @@
   - `RS_UIMotionSet` (`scripts/resources/ui/rs_ui_motion_set.gd`) groups motion sequences by interaction (`enter`, `exit`, `hover_in/out`, `press`, `focus_in/out`, `pulse`).
 - `U_UIMotion` (`scripts/ui/utils/u_ui_motion.gd`) is the canonical playback helper:
   - `play(node, presets)` supports sequential steps by default, optional parallel steps, and interval-only hold steps.
-  - `play_enter(...)` / `play_exit(...)` delegate to `RS_UIMotionSet` lifecycle arrays.
+  - `play_enter(...)` / `play_exit(...)` / `play_pulse(...)` delegate to `RS_UIMotionSet` lifecycle/interaction arrays.
+  - `append_step(tween, node, preset)` is the public single-step API for custom tween composition (used by `UI_HudController` for interleaved toast/signpost sequences).
   - `bind_interactive(control, motion_set)` wires hover/focus/press signals without duplicating existing connections.
-- Default authored presets live under `resources/ui/motions/` (`cfg_motion_fade_slide.tres`, `cfg_motion_button_default.tres`, `cfg_motion_hud_pop.tres`) and are intended as baseline feel, not hard requirements.
+- Default authored presets live under `resources/ui/motions/` (`cfg_motion_fade_slide.tres`, `cfg_motion_button_default.tres`) and are intended as baseline feel, not hard requirements.
 - HUD feedback motion contract (Phase 4 Screen 17): checkpoint/signpost timing is data-driven through `cfg_motion_hud_checkpoint_toast.tres`, `cfg_motion_hud_signpost_fade_in.tres`, and `cfg_motion_hud_signpost_fade_out.tres`; avoid reintroducing hardcoded HUD fade durations in `UI_HudController`.
 - Base-class integration contract (Phase 0F):
   - `BasePanel.motion_set` is opt-in; when set, focusable child controls are bound via `U_UIMotion.bind_interactive(...)`.
