@@ -8,6 +8,8 @@ class_name UI_VFXSettingsOverlay
 ## Changes are applied only when user clicks Apply button.
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"settings.vfx.title"
 const LABEL_SCREEN_SHAKE_KEY := &"settings.vfx.label.screen_shake"
@@ -21,11 +23,18 @@ const TOOLTIP_SHAKE_INTENSITY_KEY := &"settings.vfx.tooltip.shake_intensity"
 const TOOLTIP_DAMAGE_FLASH_KEY := &"settings.vfx.tooltip.damage_flash"
 const TOOLTIP_PARTICLES_KEY := &"settings.vfx.tooltip.particles"
 
+@onready var _main_panel: PanelContainer = $CenterContainer/Panel
+@onready var _main_panel_content: VBoxContainer = $CenterContainer/Panel/VBox
 @onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
+@onready var _shake_enabled_row: HBoxContainer = $CenterContainer/Panel/VBox/ShakeEnabledRow
 @onready var _shake_enabled_label: Label = $CenterContainer/Panel/VBox/ShakeEnabledRow/ShakeEnabledLabel
+@onready var _shake_intensity_row: HBoxContainer = $CenterContainer/Panel/VBox/ShakeIntensityRow
 @onready var _intensity_label: Label = $CenterContainer/Panel/VBox/ShakeIntensityRow/IntensityLabel
+@onready var _flash_enabled_row: HBoxContainer = $CenterContainer/Panel/VBox/FlashEnabledRow
 @onready var _flash_enabled_label: Label = $CenterContainer/Panel/VBox/FlashEnabledRow/FlashEnabledLabel
+@onready var _particles_enabled_row: HBoxContainer = $CenterContainer/Panel/VBox/ParticlesEnabledRow
 @onready var _particles_enabled_label: Label = $CenterContainer/Panel/VBox/ParticlesEnabledRow/ParticlesEnabledLabel
+@onready var _button_row: HBoxContainer = $CenterContainer/Panel/VBox/ButtonRow
 @onready var _shake_enabled_toggle: CheckButton = %ShakeEnabledToggle
 @onready var _intensity_slider: HSlider = %IntensitySlider
 @onready var _intensity_percentage: Label = %IntensityPercentage
@@ -53,6 +62,7 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_on_state_changed({}, store.get_state())
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_configure_focus_neighbors()
 	_connect_control_signals()
 	_localize_labels()
@@ -61,6 +71,62 @@ func _on_panel_ready() -> void:
 	var store := get_store()
 	if store != null:
 		_on_state_changed({}, store.get_state())
+	play_enter_animation()
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	var dim_color := config.bg_base
+	dim_color.a = 0.5
+	background_color = dim_color
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = dim_color
+
+	if _main_panel != null and config.panel_section != null:
+		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _main_panel_content != null:
+		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+
+	var compact_rows: Array[HBoxContainer] = [
+		_shake_enabled_row,
+		_shake_intensity_row,
+		_flash_enabled_row,
+		_particles_enabled_row,
+		_button_row,
+	]
+	for row in compact_rows:
+		if row != null:
+			row.add_theme_constant_override(&"separation", config.separation_compact)
+
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.heading)
+	if _shake_enabled_label != null:
+		_shake_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _intensity_label != null:
+		_intensity_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _flash_enabled_label != null:
+		_flash_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _particles_enabled_label != null:
+		_particles_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _shake_enabled_toggle != null:
+		_shake_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
+	if _flash_enabled_toggle != null:
+		_flash_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
+	if _particles_enabled_toggle != null:
+		_particles_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
+	if _intensity_percentage != null:
+		_intensity_percentage.add_theme_font_size_override(&"font_size", config.body_small)
+		_intensity_percentage.add_theme_color_override(&"font_color", config.text_secondary)
+	if _cancel_button != null:
+		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _reset_button != null:
+		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _apply_button != null:
+		_apply_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
