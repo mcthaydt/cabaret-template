@@ -397,6 +397,11 @@ Completion note (2026-03-06): Implemented Screen 12 with centered panel-backed l
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2822/2831 passing, 0 failing, 9 pending/risky
 - Manual smoke test pending (user verification).
 
+Follow-up note (2026-03-06): Adjusted Screen 12 preview layout after user feedback that joystick/buttons were drifting to the bottom of the preview panel.
+- Fix: restored original panel footprint (`560x520`) and wrapped `PreviewContainer` in a centering host (`PreviewCenterContainer`) so preview controls remain visually centered in the bottom preview panel.
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd` → 12/12 passing
+
 ### Settings Overlay Wrappers (batch — all 0 overrides)
 
 These wrapper overlays contain the settings tab content. They need theme application and consistent dim styling.

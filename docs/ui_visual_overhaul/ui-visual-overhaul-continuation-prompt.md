@@ -391,6 +391,13 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2822/2831 passing, 0 failing, 9 pending/risky
   - Implementation commit: `1c9f52ab`
   - Manual smoke: pending (user verification)
+- **2026-03-06: Screen 12 preview-centering follow-up**
+  - User feedback: touchscreen preview joystick/buttons were drifting to the bottom of the preview panel.
+  - Fix:
+    - Restored Screen 12 panel footprint to the original `560x520`.
+    - Added `PreviewCenterContainer` under `PreviewPanel` and re-parented `%PreviewContainer` through it so preview content remains centered.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd` → 12/12 passing
 
 ### Plan Change Summary (2026-03-05)
 
