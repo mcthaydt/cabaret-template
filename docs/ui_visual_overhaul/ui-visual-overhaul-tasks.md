@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 85% (144 / 168 tasks complete)
+**Progress:** 100% (168 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -621,7 +621,7 @@ Completion note (2026-03-06): Implemented Screen 17 in commit `9e306d4d`.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_hud_theme.gd -gtest=res://tests/unit/ui/test_hud_controller.gd -gtest=res://tests/unit/ui/test_hud_feedback_channels.gd -gtest=res://tests/unit/ui/test_hud_button_prompts.gd -gtest=res://tests/unit/ui/test_hud_interactions_pause_and_signpost.gd -gtest=res://tests/integration/ui/test_health_bar_color_blind_integration.gd` → 33/33 passing
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2843/2852 passing, 0 failing, 9 pending/risky
-- Manual smoke for Screen 17 is still pending.
+- Manual smoke completed during Phase 5D full-flow pass (user-verified on 2026-03-06).
 
 ### Screen 18: Button Prompt (`scenes/ui/hud/ui_button_prompt.tscn`)
 
@@ -648,7 +648,7 @@ Completion note (2026-03-06): Implemented Screen 18 in commit `1755bc5b`.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_button_prompt.gd -gtest=res://tests/unit/ui/test_hud_button_prompts.gd` → 17/17 passing
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2845/2854 passing, 0 failing, 9 pending/risky
-- Manual smoke for Screen 18 is still pending.
+- Manual smoke completed during Phase 5D full-flow pass (user-verified on 2026-03-06).
 
 ### Screen 19: Loading Screen (`scenes/ui/hud/ui_loading_screen.tscn`)
 
@@ -669,7 +669,7 @@ Completion note (2026-03-06): Implemented Screen 19 in commit `7be37ce9`.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_loading_screen_theme.gd -gtest=res://tests/unit/scene_manager/test_loading_screen_transition.gd` → 3/4 passing, 0 failing, 1 pending/risky (headless timing gate)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2847/2856 passing, 0 failing, 9 pending/risky
-- Manual smoke for Screen 19 is still pending.
+- Manual smoke completed during Phase 5D full-flow pass (user-verified on 2026-03-06).
 
 ---
 
@@ -724,13 +724,19 @@ Run through each flow end-to-end in the game (not headless):
 
 ### 5E — Documentation Updates
 
-- [ ] Update `AGENTS.md` with theme system and motion framework patterns
-- [ ] Update `docs/general/DEV_PITFALLS.md` with new pitfalls:
+- [x] Update `AGENTS.md` with theme system and motion framework patterns
+- [x] Update `docs/general/DEV_PITFALLS.md` with new pitfalls:
   - "Use `RS_UIThemeConfig` for styling, not inline `theme_override_*`"
   - "Motion resources are opt-in — `null` motion_set = zero behavioral change"
   - "Semantic per-node overrides (signpost golden, error red, virtual button) are intentional exceptions"
-- [ ] Update this task list with final completion notes
-- [ ] Update continuation prompt with final status
+- [x] Update this task list with final completion notes
+- [x] Update continuation prompt with final status
+
+Completion note (2026-03-06): Completed Phase 5E documentation closure.
+- Updated `AGENTS.md` with explicit unified-theme override policy + motion opt-in no-op contract.
+- Updated `docs/general/DEV_PITFALLS.md` with UI theming/motion exception pitfalls.
+- Updated this task list and the continuation prompt to final-complete status.
+- UI Visual Overhaul story is fully complete end-to-end (Phases 0-5).
 
 ---
 

@@ -4,9 +4,18 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screens 14-16 complete (automated verification), Phase 4 Screens 17-19 complete (implementation + automated verification), and Phase 5A/5C automated verification complete. Pending manual smoke for Screens 15-19 plus Phase 5B/5D/5E visual/manual/documentation closure.
+- Status summary: **Complete** — UI Visual Overhaul Phases 0-5 are complete (implementation, automated verification, manual smoke verification, and final documentation closure). No remaining tasks in this story.
 
 ## Recent Progress
+
+- **2026-03-06: Phase 5D/5E closure completed (manual + documentation)**
+  - Completed end-to-end manual smoke checklist (boot/menu/gameplay/pause/save-load/death/victory/credits/HUD/loading/overlay stack), including pending Screen 15-19 visual checks.
+  - Updated documentation for final rollout state:
+    - `AGENTS.md` (unified-theme no-inline-override policy + motion opt-in no-op contract)
+    - `docs/general/DEV_PITFALLS.md` (theme tokens vs inline overrides, motion opt-in pitfall, semantic override exceptions)
+    - `docs/ui_visual_overhaul/ui-visual-overhaul-tasks.md` (Phase 5E complete, progress 100%)
+    - `docs/ui_visual_overhaul/ui-visual-overhaul-continuation-prompt.md` (final status)
+  - Story outcome: all 168/168 task checklist items complete.
 
 - **2026-03-06: Phase 5A/5C automated verification completed**
   - Added global override-regression guard in `tests/unit/style/test_style_enforcement.gd`:
@@ -40,7 +49,7 @@
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2847/2856 passing, 0 failing, 9 pending/risky
   - Implementation commit: `7be37ce9`
-  - Manual smoke for Screen 19 is still pending.
+  - Manual smoke for Screen 19 completed in Phase 5D.
 
 - **2026-03-06: Phase 4 Screen 18 implemented (`ui_button_prompt.tscn`)**
   - Button prompt migrated off inline scene overrides:
@@ -59,7 +68,7 @@
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2845/2854 passing, 0 failing, 9 pending/risky
   - Implementation commit: `1755bc5b`
-  - Manual smoke for Screen 18 is still pending.
+  - Manual smoke for Screen 18 completed in Phase 5D.
 
 - **2026-03-06: Phase 4 Screen 17 implemented (`ui_hud_overlay.tscn`)**
   - HUD overlay migrated off inline scene overrides:
@@ -738,11 +747,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Run pending manual smoke for Phase 3 Screens 15/16 (`ui_audio_settings_tab.tscn`, `ui_display_settings_tab.tscn`) and Phase 4 Screens 17/18/19 (`ui_hud_overlay.tscn`, `ui_button_prompt.tscn`, `ui_loading_screen.tscn`) to verify in-game visual feel, HUD feedback timing, and loading-screen fade/progress timing.
-2. Execute Phase 5B visual-consistency pass (all polished screens + excluded scene sanity checks).
-3. Complete Phase 5D/5E closure updates (manual smoke checklist, AGENTS/DEV_PITFALLS updates if needed, final task + continuation status).
+1. Treat this continuation prompt as historical-complete context for UI Visual Overhaul; start any additional UI work as a separate follow-up story.
+2. Keep `tests/unit/style/test_style_enforcement.gd` override guards green when touching `scenes/ui/**`.
+3. Preserve the tokenized-theme + motion-resource contracts documented in `AGENTS.md` and `docs/general/DEV_PITFALLS.md`.
 
-Updated next action (2026-03-06): Complete pending manual smoke for Screens 15/16/17/18/19, then finish Phase 5B/5D/5E closure items.
+Updated next action (2026-03-06): Story complete; no pending UI Visual Overhaul tasks.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

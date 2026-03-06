@@ -195,6 +195,7 @@
 - Settings-tab tokenization contract (Phase 3 Screen 14): tabs embedded inside settings wrappers (for example `UI_LocalizationSettingsTab`) should remove inline `theme_override_*` constants and apply spacing/typography tokens in script via `U_UIThemeBuilder.active_config` + `RS_UIThemeConfig` (`separation_default`, `separation_compact`, `heading`, `section_header`, `body_small`, semantic text colors).
 - HUD tokenization contract (Phase 4 Screen 17): `scenes/ui/hud/ui_hud_overlay.tscn` should not keep inline `theme_override_*` entries. Apply HUD margins/typography/surface tokens in `UI_HudController._apply_theme_tokens()`. Health bar background should come from themed `ProgressBar.background`; health fill stays palette-driven via `_update_health_bar_colors(...)`.
 - Button-prompt tokenization contract (Phase 4 Screen 18): `scenes/ui/hud/ui_button_prompt.tscn` should not keep inline `theme_override_*` entries. Apply prompt spacing/panel/typography tokens in `UI_ButtonPrompt._apply_theme_tokens()` using `separation_default`, `panel_button_prompt`, `subheading`, `body`, and `caption_small`.
+- Inline-override policy (Phase 5A): do not reintroduce non-semantic `theme_override_*` lines in `scenes/ui/**`. `tests/unit/style/test_style_enforcement.gd::test_no_inline_theme_overrides_except_semantic` enforces this. Current semantic exceptions are intentional (`ui_virtual_button.tscn`, signpost golden callout text, and danger/error emphasis labels).
 
 ### UI Motion Pipeline (UI Visual Overhaul Phase 0)
 
@@ -217,6 +218,7 @@
   - `BaseOverlay` animates its dim `OverlayBackground` alpha in parallel with content enter/exit motion.
   - `BaseOverlay` background contract: prefer `background_color` + auto-created `OverlayBackground`; do not keep an extra full-screen `Background` `ColorRect` unless `auto_create_background = false`, or dim opacity will stack.
   - `UI_SettingsMenu` dual-mode dim contract (Phase 2 Screen 7): apply `bg_base` dim at alpha `0.7` only when `navigation.overlay_stack` top is `settings_menu_overlay`; keep dim alpha `0.0` when the same scene is embedded under main-menu settings.
+- Backward-compat motion contract: `motion_set = null` must remain a strict no-op (no signal binding side effects, no tween playback). This preserves pre-overhaul behavior for screens/controllers that opt out of motion resources.
 
 ### Interactable Controllers
 

@@ -38,6 +38,15 @@
 
 ## Godot UI Pitfalls
 
+- **Use `RS_UIThemeConfig` + `U_UIThemeBuilder` tokens for shared UI styling, not inline `theme_override_*` scene edits**: Reintroducing scene-local overrides in polished UI screens bypasses the unified theme pipeline and causes style drift across menus/overlays.
+  - **Fix pattern**: apply spacing/typography/panel tokens in controller scripts (`_apply_theme_tokens()` style methods) and keep scene files free of non-semantic inline overrides.
+
+- **Motion resources are opt-in and must preserve no-op behavior when unset**: Assigning motion logic unconditionally can change legacy navigation/animation behavior on screens that intentionally do not opt in.
+  - **Fix pattern**: keep `motion_set` nullable and treat `null` as a strict no-op (no automatic signal binding and no tween playback).
+
+- **A small set of semantic per-node overrides are intentional and should not be “cleaned up”**: Some overrides are design semantics, not theme debt (for example signpost golden emphasis, danger/error emphasis labels, and mobile virtual-button exceptions).
+  - **Fix pattern**: keep semantic overrides explicit and enforce global cleanup through `tests/unit/style/test_style_enforcement.gd::test_no_inline_theme_overrides_except_semantic`.
+
 - **Snapping transition overlay + instant navigation can leave the screen black**: Endgame flows may call `U_TransitionOverlaySnap.hide_screen_and_snap_transition_overlay(...)` before dispatching navigation. If the next transition uses `instant`, there is no fade-in step to clear `TransitionColorRect.modulate.a`, so the new scene can remain fully obscured.
   - **Fix pattern**: instant transitions must explicitly clear `TransitionColorRect` alpha after scene swap (or use a fade transition that performs fade-in).
 
