@@ -489,8 +489,8 @@ func _on_reset_pressed() -> void:
 	var store := get_store()
 	if store != null:
 		store.dispatch(U_InputActions.update_touchscreen_settings({
-			"virtual_joystick_size": _defaults.virtual_joystick_size,
-			"button_size": _defaults.button_size,
+			"virtual_joystick_size": float(_joystick_size_slider.value),
+			"button_size": float(_button_size_slider.value),
 			"virtual_joystick_opacity": _defaults.virtual_joystick_opacity,
 			"button_opacity": _defaults.button_opacity,
 			"joystick_deadzone": _defaults.joystick_deadzone,
