@@ -150,7 +150,7 @@ func test_pause_menu_opens_profile_selector_overlay() -> void:
 		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	assert_not_null(pause_menu, "Pause menu overlay should exist")
-	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
+	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	assert_not_null(settings_button, "SettingsButton should exist on pause menu")
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
@@ -182,7 +182,7 @@ func test_apply_closes_overlays_and_resumes() -> void:
 		assert_true(false, "UIOverlayStack should have at least one child (pause menu)")
 		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
+	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
 	_debug_overlay_snapshot("after SettingsButton pressed + wait(4)")
@@ -254,7 +254,7 @@ func test_profile_selector_shows_binding_preview() -> void:
 		assert_true(false, "UIOverlayStack should have at least one child (pause menu)")
 		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
+	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	assert_not_null(settings_button, "SettingsButton should exist on pause menu")
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
@@ -294,7 +294,7 @@ func test_profile_selector_updates_overlay_labels_on_locale_change() -> void:
 		assert_true(false, "UIOverlayStack should have at least one child (pause menu)")
 		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
+	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	assert_not_null(settings_button, "SettingsButton should exist on pause menu")
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
