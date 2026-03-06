@@ -211,6 +211,7 @@
     - otherwise fallback to the screen root.
   - Prefer this default backdrop-fade + panel-slide behavior over per-screen motion overrides for centered panel screens.
   - `BaseOverlay` animates its dim `OverlayBackground` alpha in parallel with content enter/exit motion.
+  - `BaseOverlay` background contract: prefer `background_color` + auto-created `OverlayBackground`; do not keep an extra full-screen `Background` `ColorRect` unless `auto_create_background = false`, or dim opacity will stack.
   - `UI_SettingsMenu` dual-mode dim contract (Phase 2 Screen 7): apply `bg_base` dim at alpha `0.7` only when `navigation.overlay_stack` top is `settings_menu_overlay`; keep dim alpha `0.0` when the same scene is embedded under main-menu settings.
 
 ### Interactable Controllers

@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 56% (94 / 168 tasks complete)
+**Progress:** 58% (97 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -346,9 +346,9 @@ Follow-up correction (2026-03-06): Applied the actual `Window` chrome keys used 
 - [x] **10. Input Profile Selector** (`ui_input_profile_selector.tscn`) — migrated to overlay-panel pattern with tokenized spacing and `bg_base@0.5` dim.
 - [x] **11. Gamepad Settings** (`ui_gamepad_settings_overlay.tscn`) — migrated to overlay-panel pattern with tokenized slider/preview styling and `bg_base@0.5` dim.
 - [x] **12. Touchscreen Settings** (`ui_touchscreen_settings_overlay.tscn`) — migrated to overlay-panel pattern with tokenized slider/preview styling and `bg_base@0.5` dim.
-- [ ] **13. Edit Touch Controls** (`ui_edit_touch_controls_overlay.tscn`) — 0 overrides, unique dim=0.05. Keep translucent nature, style toolbar panel.
-- [ ] Run existing overlay tests (rebinding, input profile, gamepad, touchscreen, edit touch) — all pass
-- [ ] Run full test suite after batch
+- [x] **13. Edit Touch Controls** (`ui_edit_touch_controls_overlay.tscn`) — migrated to overlay-panel pattern with tokenized toolbar styling while preserving translucent dim (`bg_base@0.05`).
+- [x] Run existing overlay tests (rebinding, input profile, gamepad, touchscreen, edit touch) — all pass
+- [x] Run full test suite after batch
 - [ ] **Manual smoke test:** Open each overlay in sequence, verify dim is consistent (0.5 for most, 0.05 for edit touch), panels styled, sliders functional, preview areas render
 
 Completion note (2026-03-06): Implemented Screen 9 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `section_header`, `body_small`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`, `bg_base@0.7`).
@@ -408,6 +408,15 @@ Follow-up note (2026-03-06): Enforced panel-fit size limits for Screen 12 joysti
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd` → 12/12 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+
+Completion note (2026-03-06): Implemented Screen 13 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `section_header`, `body_small`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`, `bg_base@0.05`) while retaining low-opacity grid overlay behavior.
+- Implementation commit: `63e0746e`
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay_localization.gd` → 7/7 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/ui/test_input_profile_selector.gd -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd -gtest=res://tests/unit/ui/test_gamepad_settings_overlay.gd -gtest=res://tests/unit/ui/test_gamepad_settings_overlay_localization.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay_localization.gd` → 41/41 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2823/2832 passing, 0 failing, 9 pending/risky
+- Manual smoke test pending (user verification).
 
 ### Settings Overlay Wrappers (batch — all 0 overrides)
 

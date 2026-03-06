@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) and Screen 7 (`ui_settings_menu.tscn`) are implemented + manual-smoke verified. Phase 2 Screen 8 (`ui_save_load_menu.tscn`), Screen 9 (`ui_input_rebinding_overlay.tscn`), Screen 10 (`ui_input_profile_selector.tscn`), Screen 11 (`ui_gamepad_settings_overlay.tscn`), and Screen 12 (`ui_touchscreen_settings_overlay.tscn`) are implemented. Next: manual smoke for Screens 8-12, then Screen 13 (`ui_edit_touch_controls_overlay.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) and Screen 7 (`ui_settings_menu.tscn`) are implemented + manual-smoke verified. Phase 2 Screen 8 (`ui_save_load_menu.tscn`), Screen 9 (`ui_input_rebinding_overlay.tscn`), Screen 10 (`ui_input_profile_selector.tscn`), Screen 11 (`ui_gamepad_settings_overlay.tscn`), Screen 12 (`ui_touchscreen_settings_overlay.tscn`), and Screen 13 (`ui_edit_touch_controls_overlay.tscn`) are implemented. Next: manual smoke for Screens 8-13, then Phase 2 settings-overlay wrappers.
 
 ## Recent Progress
 
@@ -405,6 +405,29 @@
   - Verification:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd` → 12/12 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- **2026-03-06: Phase 2 Screen 13 implemented (`ui_edit_touch_controls_overlay.tscn`)**
+  - Scene composition migrated to overlay-panel pattern:
+    - Removed legacy inline background dim node and standardized on `BaseOverlay` backdrop color.
+    - Added centered panel structure (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`).
+    - Assigned `motion_set = cfg_motion_fade_slide` to `UI_EditTouchControlsOverlay`.
+  - `UI_EditTouchControlsOverlay` now applies `RS_UIThemeConfig` tokens from `U_UIThemeBuilder.active_config`:
+    - `heading` for title,
+    - `section_header` for drag-mode toggle and action buttons,
+    - `body_small` + `text_secondary` for instructions,
+    - `margin_section` for panel padding,
+    - `separation_default`/`separation_compact` for content and row spacing,
+    - `panel_section` for panel surface styling,
+    - `bg_base` at `0.05` alpha for dim background (unique translucent feel preserved).
+  - Added regression coverage:
+    - `tests/unit/ui/test_edit_touch_controls_overlay.gd::test_edit_touch_controls_overlay_has_motion_and_theme_tokens_when_active_config_set`
+    - `tests/unit/ui/test_edit_touch_controls_overlay_localization.gd` now resets `U_UIThemeBuilder.active_config` for test isolation.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay_localization.gd` → 7/7 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/ui/test_input_profile_selector.gd -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd -gtest=res://tests/unit/ui/test_gamepad_settings_overlay.gd -gtest=res://tests/unit/ui/test_gamepad_settings_overlay_localization.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay_localization.gd` → 41/41 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2823/2832 passing, 0 failing, 9 pending/risky
+  - Implementation commit: `63e0746e`
+  - Manual smoke: pending (user verification)
 
 ### Plan Change Summary (2026-03-05)
 
@@ -445,6 +468,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 2 Screen 10 input-profile-selector migration commit: `509e75de`
 - Phase 2 Screen 11 gamepad-settings-overlay migration commit: `5a40761f`
 - Phase 2 Screen 12 touchscreen-settings-overlay migration commit: `1c9f52ab`
+- Phase 2 Screen 13 edit-touch-controls-overlay migration commit: `63e0746e`
 
 ## Context
 
@@ -524,9 +548,10 @@ All phases are sequential. After every screen: run full test suite, verify behav
 3. Complete Screen 10 manual smoke verification (`ui_input_profile_selector.tscn`: open from settings, verify panel styling/motion, dim alpha at 0.5, profile cycling via left/right and button press, and preview row readability/icon fallbacks).
 4. Complete Screen 11 manual smoke verification (`ui_gamepad_settings_overlay.tscn`: open from settings, verify panel styling/motion, dim alpha at 0.5, slider row readability, preview panel chrome, prompt visibility toggling, and preview enter/exit flow behavior).
 5. Complete Screen 12 manual smoke verification (`ui_touchscreen_settings_overlay.tscn`: open from settings, verify panel styling/motion, dim alpha at 0.5, slider row readability, preview panel chrome, and Edit Layout visibility in gameplay-vs-main-menu contexts).
-6. Start Screen 13 (`ui_edit_touch_controls_overlay.tscn`) and preserve its unique low-opacity overlay feel (`bg_base` alpha `0.05`) while styling toolbar panel chrome.
+6. Complete Screen 13 manual smoke verification (`ui_edit_touch_controls_overlay.tscn`: open from touchscreen settings, verify low-opacity dim feel (`bg_base` alpha `0.05`), toolbar panel chrome, drag-mode toggle behavior, and save/reset/cancel behavior).
+7. Start Phase 2 settings overlay wrappers (`ui_audio_settings_overlay.tscn`, `ui_display_settings_overlay.tscn`, `ui_localization_settings_overlay.tscn`, `ui_vfx_settings_overlay.tscn`) with consistent overlay dim + panel token application.
 
-Updated next action (2026-03-06): Complete manual smoke for Screens 8-12, then start Screen 13 (`ui_edit_touch_controls_overlay.tscn`).
+Updated next action (2026-03-06): Complete manual smoke for Screens 8-13, then start Phase 2 settings-overlay wrappers.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

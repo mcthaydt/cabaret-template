@@ -55,6 +55,9 @@
 - **Shared overlay scenes can be mounted in non-overlay contexts**: Some UI scenes (for example `UI_SettingsMenu`) run both as gameplay overlays and as embedded panels in main-menu flows. If dim alpha is applied unconditionally in `BaseOverlay` subclasses, embedded usage can become unintentionally darkened.
   - **Fix pattern**: gate dim alpha by navigation context (`navigation.overlay_stack` top or shell checks). Use normal dim (`0.7`) only when running as an active overlay; use `0.0` when embedded.
 
+- **`BaseOverlay` auto-background + manual full-screen background can double-stack dimming**: `BaseOverlay` auto-creates `OverlayBackground` when `auto_create_background` is enabled. If a scene also keeps a custom full-screen `Background` `ColorRect`, effective dim can be much darker than intended and drift from tokenized alpha targets.
+  - **Fix pattern**: prefer setting `background_color` and style `OverlayBackground`; only keep a manual full-screen background when `auto_create_background = false`.
+
 - **HUD is manager-instantiated under `HUDLayer`**: Do not add HUD instances to gameplay scenes or templates. `M_SceneManager` owns HUD instantiation in root, and `UI_HudController` visibility is Redux-driven. Embedding HUD in gameplay scenes reintroduces duplicate instances and lifecycle drift.
 
 - **Protect HUD ownership with style checks**: `tests/unit/style/test_style_enforcement.gd` includes a guard that fails when any `scenes/gameplay/*.tscn` references `ui_hud_overlay.tscn` or defines a `HUD` root node. Keep this test green when authoring or migrating gameplay scenes.
