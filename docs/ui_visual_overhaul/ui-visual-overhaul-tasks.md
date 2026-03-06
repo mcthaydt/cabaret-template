@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 40% (66 / 165 tasks complete)
+**Progress:** 41% (69 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -160,13 +160,13 @@ Completion note (2026-03-05): Implemented Screen 1 in commit `aaa7f75c` and vali
 - [x] Motion: Fade-in enter, title with slight delay
 - [x] Run existing `test_endgame_screens.gd` — all game over tests pass (button dispatch, ui_cancel behavior)
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Die in gameplay, verify game over screen shows with danger-colored title, death count is readable, Retry/Menu buttons work, fade-in animation plays
+- [x] **Manual smoke test:** Die in gameplay, verify game over screen shows with danger-colored title, death count is readable, Retry/Menu buttons work, fade-in animation plays
 
 Completion note (2026-03-05): Implemented Screen 2 in commit `f2fb658a` and validated with:
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd`
 - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2796/2805 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
 - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
-- Manual smoke test remains pending (requires runtime visual pass).
+- Manual smoke test completed (user-verified, 2026-03-06).
 
 ### Screen 3: Victory (`scenes/ui/menus/ui_victory.tscn`)
 
@@ -177,13 +177,13 @@ Completion note (2026-03-05): Implemented Screen 2 in commit `f2fb658a` and vali
 - [x] Motion: Similar to Game Over with success feel
 - [x] Run existing `test_endgame_screens.gd` — all victory tests pass
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Win in gameplay, verify victory screen shows with success-colored title, stats readable, Reset Run/Menu work, fade-in plays
+- [x] **Manual smoke test:** Win in gameplay, verify victory screen shows with success-colored title, stats readable, Reset Run/Menu work, fade-in plays
 
 Completion note (2026-03-05): Implemented Screen 3 in commit `b05c75df` and validated with:
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd`
 - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2797/2806 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
 - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
-- Manual smoke test remains pending (requires runtime visual pass).
+- Manual smoke test completed (user-verified, 2026-03-06).
 
 ### Screen 4: Credits (`scenes/ui/menus/ui_credits.tscn`)
 
@@ -194,7 +194,7 @@ Completion note (2026-03-05): Implemented Screen 3 in commit `b05c75df` and vali
 - [x] bg_base background, fade-in motion
 - [x] Run existing `test_endgame_screens.gd` — credits tests pass (auto-return timer, skip)
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Open credits, verify text hierarchy is visually clear (title > body > caption), Skip button is accessible, auto-scroll completes
+- [x] **Manual smoke test:** Open credits, verify text hierarchy is visually clear (title > body > caption), Skip button is accessible, auto-scroll completes
 
 Completion note (2026-03-05): Implemented Screen 4 in commit `c747d478` and validated with:
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd` → 13/13 passing
@@ -214,13 +214,13 @@ Follow-up note (2026-03-05): Fixed black-screen regression when opening credits 
 - [x] bg_base background, fade-in motion
 - [x] Run existing `test_language_selector.gd` (if exists) or run full suite
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Clear first-run flag, launch game, verify language selector appears, buttons are styled, selecting a language persists and skips on next launch
+- [x] **Manual smoke test:** Clear first-run flag, launch game, verify language selector appears, buttons are styled, selecting a language persists and skips on next launch
 
 Completion note (2026-03-05): Implemented Screen 5 in commit `3a9ab267` and validated with:
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_language_selector.gd` → 3/3 passing
 - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2801/2810 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
 - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
-- Manual smoke test remains pending (requires runtime visual pass).
+- Manual smoke test completed (user-verified, 2026-03-06).
 
 ---
 

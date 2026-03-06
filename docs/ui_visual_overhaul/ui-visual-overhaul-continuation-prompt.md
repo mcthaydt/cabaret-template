@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 (`ui_main_menu.tscn`, `ui_game_over.tscn`, `ui_victory.tscn`, `ui_credits.tscn`, `ui_language_selector.tscn`) implemented + automation-verified. Manual smokes complete for Screens 1 and 4; Screens 2, 3, and 5 remain pending. Next: Phase 2 Screen 6 (`ui_pause_menu.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 (`ui_main_menu.tscn`, `ui_game_over.tscn`, `ui_victory.tscn`, `ui_credits.tscn`, `ui_language_selector.tscn`) implemented + automation-verified. Manual smokes now complete for all Phase 1 screens. Next: Phase 2 Screen 6 (`ui_pause_menu.tscn`).
 
 ## Recent Progress
 
@@ -134,6 +134,16 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2801/2810 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `3a9ab267`
+- **2026-03-06: Phase 1 manual-smoke and integration hardening follow-up**
+  - User completed manual smoke verification for remaining Phase 1 screens: `ui_game_over.tscn`, `ui_victory.tscn`, and `ui_language_selector.tscn`.
+  - Landed navigation/transition integration stabilization:
+    - Updated integration suites to target canonical gameplay scene id `alleyway` instead of legacy `scene1`.
+    - Hardened `_await_scene(...)` helpers to wait for both `current_scene_id` match and `scene.is_transitioning == false` before asserting.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd` → 4/4 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/integration/test_navigation_integration.gd` → 7/7 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2801/2810 passing, 0 failing, 9 pending/risky
+  - Implementation commits: `4f7bdccb`, `b9197a89`
 
 ### Plan Change Summary (2026-03-05)
 
@@ -146,7 +156,7 @@
 | Number Ticker | `U_UINumberTicker` utility | Deferred |
 | Scope | New features + migration | Polish existing screens only |
 
-### Branch State (as of 2026-03-05)
+### Branch State (as of 2026-03-06)
 
 The `UI-Looksmaxxing` branch contains:
 - Completed "UI, Layers & Transitions Refactor" (7 phases)
@@ -157,6 +167,8 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 1 Screen 3 victory migration commit: `b05c75df`
 - Phase 1 Screen 4 credits migration commit: `c747d478`
 - Phase 1 Screen 5 language-selector migration commit: `3a9ab267`
+- Navigation reducer follow-up commit: `4f7bdccb`
+- Integration await hardening commit: `b9197a89`
 
 ## Context
 
@@ -231,11 +243,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Perform pending manual smoke tests for Phase 1 Screens 2, 3, and 5 (`ui_game_over.tscn`, `ui_victory.tscn`, `ui_language_selector.tscn`) in runtime/editor.
-2. Begin Phase 2 Screen 6 (`ui_pause_menu.tscn`) migration.
-3. Continue screen-by-screen through Phases 1-4, running full-suite + style gates after each screen or batch.
+1. Begin Phase 2 Screen 6 (`ui_pause_menu.tscn`) migration.
+2. Continue screen-by-screen through Phases 2-4, running full-suite + style gates after each screen or batch.
+3. Keep manual smoke verification in lockstep with each screen completion (do not defer to end-of-phase).
 
-Updated next action (2026-03-05): Run manual smokes for `ui_game_over.tscn`, `ui_victory.tscn`, and `ui_language_selector.tscn`, then start Screen 6 (`ui_pause_menu.tscn`) with dim/panel normalization and motion polish.
+Updated next action (2026-03-06): Start Screen 6 (`ui_pause_menu.tscn`) with dim/panel normalization and motion polish, then rerun targeted pause/settings UI suites plus full-suite/style gates.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 
