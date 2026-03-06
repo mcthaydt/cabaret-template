@@ -2,6 +2,7 @@ extends GutTest
 
 const OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_edit_touch_controls_overlay.tscn")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 
 var _store: M_StateStore
 var _overlay: UI_EditTouchControlsOverlay
@@ -10,6 +11,7 @@ var _localization_manager: MockLocalizationManager
 func before_each() -> void:
 	U_StateHandoff.clear_all()
 	U_SERVICE_LOCATOR.clear()
+	U_UI_THEME_BUILDER.active_config = null
 
 	_store = M_StateStore.new()
 	var test_settings := RS_StateStoreSettings.new()
@@ -41,6 +43,7 @@ func before_each() -> void:
 func after_each() -> void:
 	U_StateHandoff.clear_all()
 	U_SERVICE_LOCATOR.clear()
+	U_UI_THEME_BUILDER.active_config = null
 	_store = null
 	_overlay = null
 	_localization_manager = null
