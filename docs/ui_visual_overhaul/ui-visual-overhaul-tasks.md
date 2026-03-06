@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 13% (22 / 165 tasks complete)
+**Progress:** 16% (27 / 165 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -103,16 +103,21 @@ Completion note (2026-03-05): Implemented 0E in commit `11571760` and validated 
 
 ### 0F — Base Class Integration (TDD)
 
-- [ ] Add tests to `tests/unit/ui/test_base_ui_classes.gd`:
+- [x] Add tests to `tests/unit/ui/test_base_ui_classes.gd`:
   - `test_base_panel_null_motion_set_no_bind` — instantiate BasePanel with `motion_set = null`, assert no signal connections added to focusable children (existing behavior preserved)
   - `test_base_panel_motion_set_binds_focusable_children` — instantiate BasePanel with a motion_set, assert `mouse_entered` signal connected on focusable child buttons
   - `test_base_menu_screen_play_enter_with_motion_set` — assign motion_set with enter presets, call `play_enter_animation()`, assert returns Tween, assert `modulate.a` changes (pattern: `test_mobile_controls.gd`)
   - `test_base_menu_screen_play_enter_without_motion_set_returns_null` — no motion_set assigned, `play_enter_animation()` returns null (no-op)
   - `test_base_overlay_animates_dim_on_enter` — assign motion_set to overlay, assert background `ColorRect.modulate.a` changes alongside content
-- [ ] Modify `scripts/ui/base/base_panel.gd` — add `@export var motion_set: RS_UIMotionSet = null`; if set, call `U_UIMotion.bind_interactive()` on focusable children
-- [ ] Modify `scripts/ui/base/base_menu_screen.gd` — add `play_enter_animation()` / `play_exit_animation()` delegating to `U_UIMotion`
-- [ ] Modify `scripts/ui/base/base_overlay.gd` — animate dim ColorRect alongside content motion
-- [ ] Run tests — new tests pass, all existing base UI tests still pass
+- [x] Modify `scripts/ui/base/base_panel.gd` — add `@export var motion_set: RS_UIMotionSet = null`; if set, call `U_UIMotion.bind_interactive()` on focusable children
+- [x] Modify `scripts/ui/base/base_menu_screen.gd` — add `play_enter_animation()` / `play_exit_animation()` delegating to `U_UIMotion`
+- [x] Modify `scripts/ui/base/base_overlay.gd` — animate dim ColorRect alongside content motion
+- [x] Run tests — new tests pass, all existing base UI tests still pass
+
+Completion note (2026-03-05): Implemented 0F in commit `3a011b62` and validated with:
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_base_ui_classes.gd`
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_motion.gd -gtest=res://tests/unit/ui/test_pause_menu.gd -gtest=res://tests/unit/ui/test_main_menu.gd -gtest=res://tests/unit/ui/test_settings_menu_visibility.gd -gtest=res://tests/unit/ui/test_save_load_menu.gd`
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
 
 ### 0G — Full Suite Verification
 

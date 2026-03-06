@@ -93,6 +93,10 @@
 
 - **Avoid `String(...)` as a generic cast in debug logs**: `String(some_variant)` can throw at runtime for some types (e.g., `NodePath`). Prefer `str(...)` for debug prints unless you know the Variant type is safe for `String()`.
 
+- **`Object.get()` only accepts one argument in GDScript**: Unlike dictionary `get(key, default)`, calling `some_object.get("prop", fallback)` is a parse error (`Too many arguments for "get()" call`). For `Object`/`Resource` properties, either:
+  - check property existence via `get_property_list()` first, then call `get("prop")`, or
+  - call `get("prop")` and handle `null`/missing cases explicitly.
+
 - **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via a script preload alias (for example `const FOO_SCRIPT := preload("res://path/foo.gd")`) until the class is reliably discovered/loaded.
 
 - **New `class_name` base scripts can fail in `extends` during headless runs**: Creating a fresh base script (for example `class_name RS_BaseCondition`) and immediately extending it with `extends RS_BaseCondition` in sibling scripts can fail under headless GUT parsing (`Parse Error: Could not find base class ...`) before the global class cache catches up. Prefer explicit path-based inheritance for new stacks (`extends "res://scripts/resources/qb/rs_base_condition.gd"`) during active refactors; keep `class_name` for inspector/type usage.

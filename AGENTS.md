@@ -201,6 +201,10 @@
   - `play_enter(...)` / `play_exit(...)` delegate to `RS_UIMotionSet` lifecycle arrays.
   - `bind_interactive(control, motion_set)` wires hover/focus/press signals without duplicating existing connections.
 - Default authored presets live under `resources/ui/motions/` (`cfg_motion_fade_slide.tres`, `cfg_motion_button_default.tres`, `cfg_motion_hud_pop.tres`) and are intended as baseline feel, not hard requirements.
+- Base-class integration contract (Phase 0F):
+  - `BasePanel.motion_set` is opt-in; when set, focusable child controls are bound via `U_UIMotion.bind_interactive(...)`.
+  - `BaseMenuScreen.play_enter_animation()` / `play_exit_animation()` delegate directly to `U_UIMotion`.
+  - `BaseOverlay` animates its dim `OverlayBackground` alpha in parallel with content enter/exit motion.
 
 ### Interactable Controllers
 

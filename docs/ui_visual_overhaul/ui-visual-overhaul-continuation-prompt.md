@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0E complete (theme + unified pipeline + motion resources/presets). Next: Phase 0F base-class integration.
+- Status summary: **In progress** — Phase 0A-0F complete (theme + unified pipeline + motion resources + base class integration). Next: Phase 0G full-suite verification.
 
 ## Recent Progress
 
@@ -27,6 +27,12 @@
     - `resources/ui/motions/cfg_motion_button_default.tres`
     - `resources/ui/motions/cfg_motion_hud_pop.tres`
   - Verified new motion tests, theme builder tests, and style suite all pass
+- **2026-03-05: Phase 0F implemented**
+  - Added motion integration tests to `tests/unit/ui/test_base_ui_classes.gd` (null-bind, bind, menu enter/no-enter, overlay dim)
+  - `BasePanel` now supports optional exported `motion_set` and binds interactive child controls through `U_UIMotion`
+  - `BaseMenuScreen` now exposes `play_enter_animation()` / `play_exit_animation()`
+  - `BaseOverlay` now animates dim background alpha alongside enter/exit motion
+  - Verified base UI tests plus menu/overlay regression suites and style suite all pass
 
 ### Plan Change Summary (2026-03-05)
 
@@ -119,11 +125,10 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Begin Phase 0F: Integrate motion sets into `BasePanel` / `BaseMenuScreen` / `BaseOverlay` with tests first (`tests/unit/ui/test_base_ui_classes.gd`)
-2. Phase 0G: Run full suite verification for completed Phase 0
-3. Then proceed screen-by-screen through Phases 1-4
+1. Begin Phase 0G: Run full suite verification for completed Phase 0
+2. Then proceed screen-by-screen through Phases 1-4 (starting Phase 1 Screen 1: Main Menu)
 
-Updated next action (2026-03-05): Start Phase 0F by adding motion exports and enter/exit animation methods to base UI classes, with `tests/unit/ui/test_base_ui_classes.gd` updates first.
+Updated next action (2026-03-05): Run `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` for Phase 0G gate, then begin Phase 1 Screen 1 migration.
 
 ## Key Files (New — To Be Created)
 
