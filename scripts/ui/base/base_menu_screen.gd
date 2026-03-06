@@ -122,3 +122,9 @@ func _navigate_focus(direction: StringName) -> void:
 func reset_analog_navigation() -> void:
 	if _stick_repeater:
 		_stick_repeater.reset()
+
+func play_enter_animation() -> Tween:
+	return U_UI_MOTION.play_enter(self, motion_set)
+
+func play_exit_animation() -> Tween:
+	return U_UI_MOTION.play_exit(self, motion_set)

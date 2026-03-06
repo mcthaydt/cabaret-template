@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_utility.svg")
-extends BaseMenuScreen
+extends "res://scripts/ui/base/base_menu_screen.gd"
 class_name BaseOverlay
 
 ## Base class for overlay scenes that stack on top of gameplay/menus.
@@ -20,6 +20,7 @@ class_name BaseOverlay
 var overlay_scene_id: StringName = StringName("")
 
 var _background_panel: ColorRect = null
+var _background_tween: Tween = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -81,3 +82,81 @@ func _ensure_fullscreen_anchors(panel: ColorRect) -> void:
 	panel.offset_top = 0.0
 	panel.offset_right = 0.0
 	panel.offset_bottom = 0.0
+
+func play_enter_animation() -> Tween:
+	var content_tween: Tween = super.play_enter_animation()
+	_play_background_enter_animation()
+	return content_tween
+
+func play_exit_animation() -> Tween:
+	var content_tween: Tween = super.play_exit_animation()
+	_play_background_exit_animation()
+	return content_tween
+
+func _play_background_enter_animation() -> void:
+	if _background_panel == null or not is_instance_valid(_background_panel):
+		return
+	_stop_background_tween()
+	_background_panel.modulate.a = 0.0
+	_background_tween = _background_panel.create_tween()
+	_background_tween.set_trans(Tween.TRANS_CUBIC)
+	_background_tween.set_ease(Tween.EASE_OUT)
+	_background_tween.tween_property(_background_panel, "modulate:a", 1.0, _resolve_dim_tween_duration(true))
+
+func _play_background_exit_animation() -> void:
+	if _background_panel == null or not is_instance_valid(_background_panel):
+		return
+	_stop_background_tween()
+	_background_tween = _background_panel.create_tween()
+	_background_tween.set_trans(Tween.TRANS_CUBIC)
+	_background_tween.set_ease(Tween.EASE_IN)
+	_background_tween.tween_property(_background_panel, "modulate:a", 0.0, _resolve_dim_tween_duration(false))
+
+func _resolve_dim_tween_duration(is_enter: bool) -> float:
+	if motion_set == null:
+		return 0.2 if is_enter else 0.16
+
+	var key: String = "enter" if is_enter else "exit"
+	var presets: Array[Resource] = _get_motion_sequence(key)
+	if presets.is_empty():
+		return 0.2 if is_enter else 0.16
+	var longest: float = 0.0
+	for preset: Resource in presets:
+		if preset == null:
+			continue
+		var duration: float = float(preset.get("duration_sec"))
+		var delay: float = float(preset.get("delay_sec"))
+		var interval: float = float(preset.get("interval_sec"))
+		var total: float = duration + delay + interval
+		if total > longest:
+			longest = total
+
+	if longest <= 0.0:
+		return 0.2 if is_enter else 0.16
+	return longest
+
+func _get_motion_sequence(sequence_name: String) -> Array[Resource]:
+	if motion_set == null:
+		return []
+	var properties: Array = motion_set.get_property_list()
+	var has_property: bool = false
+	for property_info in properties:
+		if not (property_info is Dictionary):
+			continue
+		var name: String = String((property_info as Dictionary).get("name", ""))
+		if name == sequence_name:
+			has_property = true
+			break
+	if not has_property:
+		return []
+	var value: Variant = motion_set.get(sequence_name)
+	if value is Array:
+		return value as Array[Resource]
+	return []
+
+func _stop_background_tween() -> void:
+	if _background_tween == null:
+		return
+	if is_instance_valid(_background_tween):
+		_background_tween.kill()
+	_background_tween = null
