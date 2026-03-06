@@ -64,6 +64,18 @@ func test_applies_theme_tokens_when_active_config_present() -> void:
 			"Pause menu dim should use bg_base with 0.7 alpha from theme config"
 		)
 
+func test_enter_animation_keeps_overlay_root_position_static() -> void:
+	await _create_state_store()
+	var pause_menu := await _instantiate_pause_menu()
+	await wait_process_frames(1)
+
+	assert_almost_eq(
+		pause_menu.position.y,
+		0.0,
+		0.01,
+		"Pause menu root should not slide during enter animation"
+	)
+
 func test_resume_button_closes_pause_overlay() -> void:
 	var store := await _create_state_store()
 	_prepare_paused_state(store)

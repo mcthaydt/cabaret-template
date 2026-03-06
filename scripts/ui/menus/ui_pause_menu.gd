@@ -10,6 +10,7 @@ class_name UI_PauseMenu
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const U_UI_MOTION_HELPER := preload("res://scripts/ui/utils/u_ui_motion.gd")
 
 const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
@@ -113,6 +114,18 @@ func _on_panel_ready() -> void:
 	_connect_buttons()
 	_localize_labels()
 	play_enter_animation()
+
+func play_enter_animation() -> Tween:
+	_play_background_enter_animation()
+	if _main_panel == null:
+		return null
+	return U_UI_MOTION_HELPER.play_enter(_main_panel, motion_set)
+
+func play_exit_animation() -> Tween:
+	_play_background_exit_animation()
+	if _main_panel == null:
+		return null
+	return U_UI_MOTION_HELPER.play_exit(_main_panel, motion_set)
 
 func _apply_theme_tokens() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
