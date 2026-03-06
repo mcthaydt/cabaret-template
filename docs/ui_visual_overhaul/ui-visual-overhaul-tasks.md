@@ -484,6 +484,15 @@ Completion note (2026-03-06): Implemented Screen 14 in commit `c94de23c`.
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2829/2838 passing, 0 failing, 9 pending/risky
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
 
+Follow-up note (2026-03-06): Localization overlay centering regression fix in commit `abc897ed`.
+- Root cause: wrapper enter motion was auto-targeting `CenterContainer`, which could leave the panel visually offset during/after tween sampling.
+- Fix: set `motion_target_path = NodePath("CenterContainer/Panel")` in `ui_localization_settings_overlay.tscn` so slide animation targets the panel while preserving container centering.
+- Added regression coverage in `tests/unit/ui/test_settings_overlay_wrappers.gd`:
+  - `test_localization_settings_overlay_keeps_panel_vertically_centered_after_enter`
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd -gtest=res://tests/integration/localization/test_localization_settings_tab.gd` → 14/14 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+
 ### Screen 15: Audio Settings Tab (`ui_audio_settings_tab.tscn`)
 
 **Add automated test for slider styling** (TDD — follows `test_health_bar_color_blind_integration.gd` pattern):

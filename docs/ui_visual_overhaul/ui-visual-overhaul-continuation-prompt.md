@@ -8,6 +8,15 @@
 
 ## Recent Progress
 
+- **2026-03-06: Screen 14 localization overlay centering follow-up**
+  - Root cause: `UI_LocalizationSettingsOverlay` enter motion was auto-targeting `CenterContainer`, which introduced vertical drift for the wrapper panel.
+  - Fix: set `motion_target_path = NodePath("CenterContainer/Panel")` so slide animation applies to the panel while preserving center-container layout.
+  - Added regression coverage:
+    - `tests/unit/ui/test_settings_overlay_wrappers.gd::test_localization_settings_overlay_keeps_panel_vertically_centered_after_enter`
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd -gtest=res://tests/integration/localization/test_localization_settings_tab.gd` → 14/14 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+  - Implementation commit: `abc897ed`
 - **2026-03-06: Phase 3 Screen 14 implemented (`ui_localization_settings_tab.tscn`)**
   - Localization settings tab migrated to token-driven styling:
     - Removed the final inline `theme_override_constants/separation` from the tab scene.
@@ -522,6 +531,7 @@ The `UI-Looksmaxxing` branch contains:
 - Screen 13 documentation + continuation update commit: `a53b0d78`
 - Phase 2 settings-overlay wrappers migration commit: `96df500e`
 - Phase 3 Screen 14 localization-settings-tab migration commit: `c94de23c`
+- Screen 14 localization-overlay centering fix commit: `abc897ed`
 
 ## Context
 
