@@ -167,11 +167,37 @@ func test_credits_skip_returns_to_menu() -> void:
 	_prepare_credits_state(store)
 	var screen := await _instantiate_scene(CreditsScene)
 
-	var skip_button: Button = screen.get_node("SkipButton")
+	var skip_button: Button = screen.get_node("%SkipButton")
 	skip_button.emit_signal("pressed")
 	await _await_shell(store, StringName("main_menu"))
 	var nav_after_skip := store.get_slice(StringName("navigation"))
 	assert_eq(nav_after_skip.get("shell"), StringName("main_menu"), "Skip should return to main menu shell")
+
+func test_credits_has_motion_and_theme_tokens_when_active_config_set() -> void:
+	var store := await _create_state_store()
+	_prepare_credits_state(store)
+	var config := RS_UI_THEME_CONFIG.new()
+	config.title = 62
+	config.body = 26
+	config.caption = 15
+	config.separation_medium = 29
+	config.bg_base = Color(0.1, 0.15, 0.22, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	var screen: Variant = await _instantiate_scene(CreditsScene)
+	var motion_set: Variant = screen.get("motion_set")
+	var header_label: Label = screen.get_node("%HeaderLabel")
+	var names_label: Label = screen.get_node("%NamesLabel")
+	var footer_label: Label = screen.get_node("%FooterLabel")
+	var content_vbox: VBoxContainer = screen.get_node("%ContentVBox")
+	var background: ColorRect = screen.get_node("Background")
+
+	assert_not_null(motion_set, "Credits should assign enter/exit motion set")
+	assert_eq(header_label.get_theme_font_size(&"font_size"), 62, "Credits header should use theme title size token")
+	assert_eq(names_label.get_theme_font_size(&"font_size"), 26, "Credits names should use theme body size token")
+	assert_eq(footer_label.get_theme_font_size(&"font_size"), 15, "Credits footer should use theme caption size token")
+	assert_eq(content_vbox.get_theme_constant(&"separation"), 29, "Credits spacing should use separation_medium token")
+	assert_true(background.color.is_equal_approx(config.bg_base), "Credits background should use theme bg_base token")
 
 func test_credits_auto_return_dispatches_navigation() -> void:
 	var store := await _create_state_store()
