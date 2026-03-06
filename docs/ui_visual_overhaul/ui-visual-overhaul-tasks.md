@@ -248,6 +248,11 @@ Completion note (2026-03-06): Implemented Screen 6 (automation + manual-smoke ve
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2803/2812 passing, 0 failing, 9 pending/risky
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 Follow-up note (2026-03-06): User manual smoke passed for Screen 6. Enter/exit animation was refined so only the pause panel slides while the dim backdrop remains stationary (fade-only), avoiding visible backdrop cutoff during slide motion.
+- Post-refinement verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_pause_menu.gd` → 9/9 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd` → 4/4 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2804/2813 passing, 0 failing, 9 pending/risky
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 
 ### Screen 7: Settings Menu (`scenes/ui/menus/ui_settings_menu.tscn`)
 

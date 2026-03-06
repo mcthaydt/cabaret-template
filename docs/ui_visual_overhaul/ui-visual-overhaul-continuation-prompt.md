@@ -173,6 +173,7 @@
   - Verification:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_pause_menu.gd` → 9/9 passing
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd` → 4/4 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2804/2813 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 
 ### Plan Change Summary (2026-03-05)
