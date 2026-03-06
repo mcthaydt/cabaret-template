@@ -469,6 +469,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 2 Screen 11 gamepad-settings-overlay migration commit: `5a40761f`
 - Phase 2 Screen 12 touchscreen-settings-overlay migration commit: `1c9f52ab`
 - Phase 2 Screen 13 edit-touch-controls-overlay migration commit: `63e0746e`
+- Screen 13 documentation + continuation update commit: `a53b0d78`
 
 ## Context
 
