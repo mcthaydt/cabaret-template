@@ -177,7 +177,7 @@ Completion note (2026-03-05): Implemented Screen 2 in commit `f2fb658a` and vali
 - [x] Motion: Similar to Game Over with success feel
 - [x] Run existing `test_endgame_screens.gd` — all victory tests pass
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Win in gameplay, verify victory screen shows with success-colored title, stats readable, Reset Run/Menu work, fade-in plays
+- [x] **Manual smoke test:** Win in gameplay, verify victory screen shows with success-colored title, stats readable, Reset Run/Menu work, fade-in plays
 
 Completion note (2026-03-05): Implemented Screen 3 in commit `b05c75df` and validated with:
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd`
