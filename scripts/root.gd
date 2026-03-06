@@ -15,7 +15,8 @@ func _ready() -> void:
 	_initialize_service_locator()
 
 func _exit_tree() -> void:
-	U_UI_THEME_BUILDER.active_config = null
+	if _is_persistent_app_root():
+		U_UI_THEME_BUILDER.active_config = null
 
 ## Register all managers with the service locator for fast, centralized access
 func _initialize_service_locator() -> void:
@@ -108,3 +109,9 @@ func _register_container(path: String, service_name: StringName) -> void:
 
 func _initialize_ui_theme_config() -> void:
 	U_UI_THEME_BUILDER.active_config = UI_THEME_CONFIG_DEFAULT
+
+func _is_persistent_app_root() -> bool:
+	var managers_node := get_node_or_null("Managers")
+	if managers_node == null:
+		return false
+	return managers_node.get_node_or_null("M_StateStore") != null
