@@ -40,6 +40,9 @@
 
 - **Always use `U_CanvasLayers` constants for script-authored layer assignments**: Do not introduce raw layer integers in GDScript for HUD/overlay/debug/post-process layering. Use `scripts/ui/u_canvas_layers.gd` constants so layer intent stays centralized and testable. Keep `.tscn` literals aligned with the same canonical map.
 
+- **Unified UI theme bootstrapping needs a no-palette fallback**: In the merged font+theme pipeline, a root can receive a composed theme before `U_DisplayUIThemeApplier` has published an active palette. If the builder simply preserves base colors when palette is missing, roots with no pre-existing colors can remain unstyled until the next palette-triggered rebuild.
+  - **Fix pattern**: when palette is `null`, preserve existing base-theme colors where they exist, but still apply `RS_UIThemeConfig.text_primary` to missing text color slots so first paint is deterministic.
+
 - **HUD is manager-instantiated under `HUDLayer`**: Do not add HUD instances to gameplay scenes or templates. `M_SceneManager` owns HUD instantiation in root, and `UI_HudController` visibility is Redux-driven. Embedding HUD in gameplay scenes reintroduces duplicate instances and lifecycle drift.
 
 - **Protect HUD ownership with style checks**: `tests/unit/style/test_style_enforcement.gd` includes a guard that fails when any `scenes/gameplay/*.tscn` references `ui_hud_overlay.tscn` or defines a `HUD` root node. Keep this test green when authoring or migrating gameplay scenes.

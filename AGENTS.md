@@ -190,6 +190,7 @@
 - Root bootstrap contract: `scripts/root.gd` sets `U_UIThemeBuilder.active_config` on enter/ready and clears it on exit.
 - `U_DisplayUIThemeApplier` no longer owns a standalone applied theme in unified mode; it stores active palette state and rebuilds registered UI roots through `U_UIThemeBuilder`.
 - Backward-compat contract: when `U_UIThemeBuilder.active_config` is `null`, localization and display theming keep legacy behavior (font-only localization theme + palette-only display theme).
+- Palette bootstrapping contract: when unified mode is active and palette has not been applied yet, `U_UIThemeBuilder` should still apply config text colors for roots missing explicit font colors while preserving existing base-theme colors when present.
 
 ### UI Motion Pipeline (UI Visual Overhaul Phase 0)
 

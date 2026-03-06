@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 16% (27 / 165 tasks complete)
+**Progress:** 18% (29 / 165 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -46,7 +46,7 @@ Build just enough shared infrastructure so screens have a common visual language
   - `test_build_theme_spacing_constants` — assert `theme.get_constant(&"separation", &"VBoxContainer") == config.separation_default`
   - `test_build_theme_merges_palette_colors` — pass palette, assert `theme.get_color(&"font_color", &"Label") == palette.text`
   - `test_build_theme_without_palette_preserves_font_theme` — pass null palette, assert font theme colors untouched
-- [x] Create `scripts/ui/utils/u_ui_theme_builder.gd` — static utility: `build_theme(config: RS_UIThemeConfig, base_font_theme: Theme = null, palette: RS_UIColorPalette = null) -> Theme`. Builder merges: fonts from base_font_theme + palette colors (font_color on text types, replaces what `U_DisplayUIThemeApplier._configure_ui_theme()` does) + styleboxes/spacing/sizes from config. Sets type variations for Button, Label, PanelContainer, ProgressBar, HSlider, HSeparator, VBoxContainer, HBoxContainer.
+- [x] Create `scripts/ui/utils/u_ui_theme_builder.gd` — static utility: `build_theme(config: Resource, base_font_theme: Theme = null, palette: Resource = null) -> Theme` with runtime validation (`RS_UIThemeConfig`/`RS_UIColorPalette`). Builder merges: fonts from base_font_theme + palette colors (font_color on text types, replaces what `U_DisplayUIThemeApplier._configure_ui_theme()` does) + styleboxes/spacing/sizes from config. Sets type variations for Button, Label, PanelContainer, ProgressBar, HSlider, HSeparator, VBoxContainer, HBoxContainer.
 - [x] Run tests — all `test_ui_theme_builder.gd` tests pass
 
 ### 0C — Unified Theme Pipeline Integration (TDD)
@@ -55,7 +55,7 @@ Build just enough shared infrastructure so screens have a common visual language
   - `test_font_applier_uses_theme_builder_when_config_set` — set `U_UIThemeBuilder.active_config`, call `apply_theme_to_root()`, assert the root's theme has both fonts AND styleboxes
   - `test_font_applier_unchanged_when_no_config_set` — do NOT set `U_UIThemeBuilder.active_config`, call `apply_theme_to_root()`, assert theme has fonts but NOT styleboxes (existing behavior preserved)
   - `test_palette_change_triggers_theme_rebuild` — change palette, assert resulting theme has both font AND palette colors
-- [x] Add `static var active_config: RS_UIThemeConfig` to `scripts/ui/utils/u_ui_theme_builder.gd` — set in `root.gd` via preload. No ServiceLocator involvement (ServiceLocator only accepts Node instances).
+- [x] Add `static var active_config` to `scripts/ui/utils/u_ui_theme_builder.gd` — set in `root.gd` via preload. No ServiceLocator involvement (ServiceLocator only accepts Node instances). Keep `Resource` typing for headless parser compatibility.
 - [x] Modify `scripts/managers/helpers/localization/u_localization_font_applier.gd` — after building the font-only theme, call `U_UIThemeBuilder.build_theme(active_config, font_theme, active_palette)` to compose the full theme when `U_UIThemeBuilder.active_config` is set. If not set, existing font-only behavior unchanged.
 - [x] Modify `M_DisplayManager._apply_accessibility_settings()` to trigger theme rebuild through the unified pipeline instead of calling `_ui_theme_applier.apply_theme_to_roots()` independently.
 - [x] Modify `U_DisplayUIThemeApplier.apply_theme_from_palette()` — still builds palette data, but the actual theme application goes through `U_UIThemeBuilder` instead of applying independently.
@@ -121,8 +121,12 @@ Completion note (2026-03-05): Implemented 0F in commit `3a011b62` and validated 
 
 ### 0G — Full Suite Verification
 
-- [ ] Run full test suite: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` — confirm zero regressions
-- [ ] Run style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
+- [x] Run full test suite: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` — confirm zero regressions
+- [x] Run style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
+
+Completion note (2026-03-05): Phase 0G verification completed after infrastructure gap patch.
+- `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2793/2802 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 
 ---
 
@@ -474,12 +478,12 @@ These verify visual polish that requires human eyes:
 | `ui_loading_screen.tscn` | 1.0 | Fully opaque (intentional) |
 | BaseOverlay default | 0.7 | Code default in `base_overlay.gd` |
 
-### Excluded Scenes (0 overrides, no individual treatment needed)
+### Zero-Override Baseline Scenes (verified 2026-03-05)
 
-These scenes have no `theme_override_*` values and inherit styling from the global Theme resource automatically. Verified in Phase 5A.
+These scenes currently have no `theme_override_*` lines, so they do not need override-migration work. Some are still explicit Screen tasks for composition/motion polish.
 
-- `ui_main_menu.tscn`, `ui_pause_menu.tscn`, `ui_settings_menu.tscn` — styled via theme (already 0 overrides)
-- `ui_input_rebinding_overlay.tscn`, `ui_gamepad_settings_overlay.tscn`, `ui_touchscreen_settings_overlay.tscn`, `ui_edit_touch_controls_overlay.tscn` — styled via theme (already 0 overrides, addressed in batch)
+- `ui_main_menu.tscn`, `ui_pause_menu.tscn`, `ui_settings_menu.tscn` — zero overrides, but still in Phases 1-2 for layout/panel/motion polish
+- `ui_input_rebinding_overlay.tscn`, `ui_gamepad_settings_overlay.tscn`, `ui_touchscreen_settings_overlay.tscn`, `ui_edit_touch_controls_overlay.tscn` — zero overrides, still included in the batch overlay polish pass
 - `ui_mobile_controls.tscn` — mobile-only control container, no text styling
 - `ui_damage_flash_overlay.tscn` — fullscreen color flash, no theme elements
 - `ui_post_process_overlay.tscn` — post-processing container, no theme elements

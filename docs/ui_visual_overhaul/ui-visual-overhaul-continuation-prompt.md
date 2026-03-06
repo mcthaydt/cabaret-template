@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0F complete (theme + unified pipeline + motion resources + base class integration). Next: Phase 0G full-suite verification.
+- Status summary: **In progress** — Phase 0A-0G complete (theme + unified pipeline + motion resources + base class integration + verification). Next: Phase 1 Screen 1 (`ui_main_menu.tscn`) migration.
 
 ## Recent Progress
 
@@ -33,6 +33,14 @@
   - `BaseMenuScreen` now exposes `play_enter_animation()` / `play_exit_animation()`
   - `BaseOverlay` now animates dim background alpha alongside enter/exit motion
   - Verified base UI tests plus menu/overlay regression suites and style suite all pass
+- **2026-03-05: Phase 0G verification completed**
+  - Full suite: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true`
+  - Result: 2802 total tests, 2793 passing, 0 failing, 9 pending/risky (headless/mobile-gated skips)
+  - Style suite: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (13/13 passing)
+  - Follow-up hardening patch applied:
+    - `U_UIThemeBuilder` now applies config text colors when palette is not yet available and the base theme has no colors.
+    - Builder kept `Resource` typing for `active_config`/palette parameters to maintain headless parser compatibility.
+    - `resources/ui/cfg_ui_theme_default.tres` now pins primitive default tokens explicitly.
 
 ### Plan Change Summary (2026-03-05)
 
@@ -125,12 +133,12 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Begin Phase 0G: Run full suite verification for completed Phase 0
-2. Then proceed screen-by-screen through Phases 1-4 (starting Phase 1 Screen 1: Main Menu)
+1. Begin Phase 1 Screen 1 (`ui_main_menu.tscn`) migration
+2. Continue screen-by-screen through Phases 1-4, running full-suite + style gates after each screen or batch
 
-Updated next action (2026-03-05): Run `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` for Phase 0G gate, then begin Phase 1 Screen 1 migration.
+Updated next action (2026-03-05): Start Phase 1 Screen 1 (`ui_main_menu.tscn`) by applying background/panel composition and assigning `cfg_motion_fade_slide`, then run the full suite + style gate.
 
-## Key Files (New — To Be Created)
+## Key Files (Phase 0 Infrastructure — Completed)
 
 ### Infrastructure (Phase 0)
 
