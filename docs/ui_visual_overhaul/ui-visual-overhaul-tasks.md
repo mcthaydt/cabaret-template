@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 22% (37 / 165 tasks complete)
+**Progress:** 27% (45 / 165 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -152,15 +152,21 @@ Completion note (2026-03-05): Implemented Screen 1 in commit `aaa7f75c` and vali
 
 ### Screen 2: Game Over (`scenes/ui/menus/ui_game_over.tscn`)
 
-- [ ] Migrate separation overrides to theme tokens (separation_large, separation_medium)
-- [ ] Replace 96px anchor offsets with proper margin container using theme spacing
-- [ ] Title "Game Over" uses `title` size, danger color
-- [ ] Death count uses `heading` size, text_secondary
-- [ ] Buttons styled via theme, bg_base background
-- [ ] Motion: Fade-in enter, title with slight delay
-- [ ] Run existing `test_endgame_screens.gd` — all game over tests pass (button dispatch, ui_cancel behavior)
-- [ ] Run full test suite
+- [x] Migrate separation overrides to theme tokens (separation_large, separation_medium)
+- [x] Replace 96px anchor offsets with proper margin container using theme spacing
+- [x] Title "Game Over" uses `title` size, danger color
+- [x] Death count uses `heading` size, text_secondary
+- [x] Buttons styled via theme, bg_base background
+- [x] Motion: Fade-in enter, title with slight delay
+- [x] Run existing `test_endgame_screens.gd` — all game over tests pass (button dispatch, ui_cancel behavior)
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Die in gameplay, verify game over screen shows with danger-colored title, death count is readable, Retry/Menu buttons work, fade-in animation plays
+
+Completion note (2026-03-05): Implemented Screen 2 in commit `f2fb658a` and validated with:
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd`
+- `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2796/2805 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- Manual smoke test remains pending (requires runtime visual pass).
 
 ### Screen 3: Victory (`scenes/ui/menus/ui_victory.tscn`)
 

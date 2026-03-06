@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete and Phase 1 Screen 1 (`ui_main_menu.tscn`) implemented + automation-verified. Manual smoke for Screen 1 is still pending. Next: Phase 1 Screen 2 (`ui_game_over.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screen 1 (`ui_main_menu.tscn`) and Screen 2 (`ui_game_over.tscn`) implemented + automation-verified. Manual smokes for Screens 1-2 are still pending. Next: Phase 1 Screen 3 (`ui_victory.tscn`).
 
 ## Recent Progress
 
@@ -53,6 +53,23 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2795/2804 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `aaa7f75c`
+- **2026-03-05: Phase 1 Screen 2 implemented (`ui_game_over.tscn`)**
+  - Scene composition updated: full-screen `Background` (`bg_base`) + centered `PanelContainer` layout replacing hard-coded 96px offsets.
+  - Assigned `motion_set = cfg_motion_fade_slide` on `UI_GameOver` root and trigger `play_enter_animation()` on panel ready.
+  - Added token-driven visual application in `UI_GameOver` from `U_UIThemeBuilder.active_config`:
+    - `title` size + `danger` color for title label,
+    - `heading` size + `text_secondary` for death count,
+    - `separation_large` / `separation_medium` for content and button row spacing,
+    - `bg_base` for background color.
+  - Added slight delayed title fade-in motion for Screen 2 feel polish.
+  - Updated `tests/unit/ui/test_endgame_screens.gd`:
+    - Added coverage for Game Over motion/theme-token application with active config.
+    - Migrated Game Over button lookups to `%UniqueName` for hierarchy-safe assertions.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd` → 11/11 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2796/2805 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `f2fb658a`
 
 ### Plan Change Summary (2026-03-05)
 
@@ -72,6 +89,7 @@ The `UI-Looksmaxxing` branch contains:
 - Ad-hoc visual polish commits (fade-in transitions for endgame screens, red flash removal)
 - Documentation updates for the revised plan
 - Phase 1 Screen 1 main-menu migration commit: `aaa7f75c`
+- Phase 1 Screen 2 game-over migration commit: `f2fb658a`
 
 ## Context
 
@@ -146,11 +164,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Perform the pending manual smoke test for Phase 1 Screen 1 (`ui_main_menu.tscn`) in runtime/editor.
-2. Begin Phase 1 Screen 2 (`ui_game_over.tscn`) migration.
+1. Perform pending manual smoke tests for Phase 1 Screens 1-2 (`ui_main_menu.tscn`, `ui_game_over.tscn`) in runtime/editor.
+2. Begin Phase 1 Screen 3 (`ui_victory.tscn`) migration.
 3. Continue screen-by-screen through Phases 1-4, running full-suite + style gates after each screen or batch.
 
-Updated next action (2026-03-05): Run the manual smoke for `ui_main_menu.tscn`, then start Screen 2 (`ui_game_over.tscn`) with theme-token migration and motion polish.
+Updated next action (2026-03-05): Run manual smokes for `ui_main_menu.tscn` and `ui_game_over.tscn`, then start Screen 3 (`ui_victory.tscn`) using the same theme-token + motion migration pattern.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 
