@@ -8,6 +8,16 @@
 
 ## Recent Progress
 
+- **2026-03-06: Display/VFX settings overlay centering follow-up**
+  - Root cause: `UI_DisplaySettingsOverlay` and `UI_VFXSettingsOverlay` enter motion auto-targeted `CenterContainer`, which could introduce vertical drift for wrapper panels during tween sampling.
+  - Fix: set `motion_target_path = NodePath("CenterContainer/Panel")` in both overlay scenes so slide animation applies to the panel while preserving center-container alignment.
+  - Added regression coverage:
+    - `tests/unit/ui/test_settings_overlay_wrappers.gd::test_display_settings_overlay_keeps_panel_vertically_centered_after_enter`
+    - `tests/unit/ui/test_settings_overlay_wrappers.gd::test_vfx_settings_overlay_keeps_panel_vertically_centered_after_enter`
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd -gtest=res://tests/integration/display/test_display_settings.gd -gtest=res://tests/integration/vfx/test_vfx_settings_ui.gd` → 33/33 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+  - Implementation commit: `828ca262`
 - **2026-03-06: Phase 3 Screen 16 implemented (`ui_display_settings_tab.tscn`)**
   - Display settings tab migrated to token-driven styling:
     - Removed inline section panel/separator/slider/separation overrides from the scene.

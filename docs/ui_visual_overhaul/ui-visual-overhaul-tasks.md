@@ -559,6 +559,19 @@ Completion note (2026-03-06): Implemented Screen 16 in commit `7f7ece0c`.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2837/2846 passing, 0 failing, 9 pending/risky
 
+Follow-up note (2026-03-06): Display/VFX settings overlay centering regression fix in commit `828ca262`.
+- Root cause: wrapper enter motion auto-targeted `CenterContainer`, which could shift vertical alignment for Display/VFX panels during tween sampling.
+- Fix:
+  - set `motion_target_path = NodePath("CenterContainer/Panel")` in:
+    - `scenes/ui/overlays/settings/ui_display_settings_overlay.tscn`
+    - `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`
+- Added regression coverage in `tests/unit/ui/test_settings_overlay_wrappers.gd`:
+  - `test_display_settings_overlay_keeps_panel_vertically_centered_after_enter`
+  - `test_vfx_settings_overlay_keeps_panel_vertically_centered_after_enter`
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd -gtest=res://tests/integration/display/test_display_settings.gd -gtest=res://tests/integration/vfx/test_vfx_settings_ui.gd` → 33/33 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+
 ---
 
 ## Phase 4 — HUD Enhancement
