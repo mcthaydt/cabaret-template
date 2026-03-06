@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) and Screen 7 (`ui_settings_menu.tscn`) are implemented + manual-smoke verified. Phase 2 Screen 8 (`ui_save_load_menu.tscn`) and Screen 9 (`ui_input_rebinding_overlay.tscn`) are implemented with automated verification complete. Next: manual smoke for Screens 8-9, then Screen 10 (`ui_input_profile_selector.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) and Screen 7 (`ui_settings_menu.tscn`) are implemented + manual-smoke verified. Phase 2 Screen 8 (`ui_save_load_menu.tscn`) and Screen 9 (`ui_input_rebinding_overlay.tscn`) are implemented, with Screen 9 follow-up fixes landed for search chrome + keyboard left/right row navigation. Next: manual smoke for Screens 8-9, then Screen 10 (`ui_input_profile_selector.tscn`).
 
 ## Recent Progress
 
@@ -287,6 +287,21 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `3739f301`
   - Manual smoke: pending (user verification)
+- **2026-03-06: Screen 9 input-rebinding follow-up (search styling + row keyboard nav)**
+  - User feedback from manual smoke: search action box looked off-theme, and keyboard left/right navigation in center rebind rows was not selecting/highlighting correctly.
+  - `UI_InputRebindingOverlay` updates:
+    - Added tokenized search `LineEdit` style overrides (`normal`/`focus`/`read_only`) with themed placeholder/caret colors.
+    - Added `_unhandled_key_input(...)` directional handling for row/bottom controls (while preserving search-caret behavior).
+    - Added focus-sync helpers so internal row/bottom indices stay aligned with actual focused controls.
+  - `U_RebindFocusNavigation.connect_row_focus_handlers(...)` now syncs overlay focus-tracking state on `focus_entered` for row container/add/replace/reset controls.
+  - Updated `tests/unit/ui/test_input_rebinding_overlay.gd`:
+    - Added `test_keyboard_horizontal_navigation_cycles_row_buttons_and_preserves_row_highlight`.
+    - Extended theme-token coverage assertions for search style overrides.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/integration/test_rebinding_flow.gd` → 13/13 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `3ad822c9`
+  - Manual smoke: pending re-run (user verification)
 
 ### Plan Change Summary (2026-03-05)
 
@@ -323,6 +338,7 @@ The `UI-Looksmaxxing` branch contains:
 - Screen 8 confirmation-dialog chrome follow-up commit: `1b91c156`
 - Screen 8 confirmation-dialog chrome correction commit: `2f61c70f`
 - Phase 2 Screen 9 input-rebinding-overlay migration commit: `3739f301`
+- Screen 9 input-rebinding follow-up commit: `3ad822c9`
 
 ## Context
 
@@ -398,10 +414,10 @@ All phases are sequential. After every screen: run full test suite, verify behav
 ## Next Steps
 
 1. Complete Screen 8 manual smoke verification (open from pause, validate tokenized error state, slot styling, and loading spinner behavior during save/load/delete flows).
-2. Complete Screen 9 manual smoke verification (`ui_input_rebinding_overlay.tscn`: open from settings, verify panel styling/motion, status/search readability, and dialog chrome for conflict/reset/error paths).
+2. Complete Screen 9 manual smoke verification (`ui_input_rebinding_overlay.tscn`: open from settings, verify panel styling/motion, search-box chrome, keyboard left/right action-row focus/highlight behavior, and dialog chrome for conflict/reset/error paths).
 3. Continue screen-by-screen through Phases 2-4, running full-suite + style gates after each screen or batch.
 
-Updated next action (2026-03-06): Run Screen 8 + Screen 9 manual smoke, then start Screen 10 (`ui_input_profile_selector.tscn`).
+Updated next action (2026-03-06): Re-run Screen 9 manual smoke with keyboard navigation checks, complete Screen 8 manual smoke, then start Screen 10 (`ui_input_profile_selector.tscn`).
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

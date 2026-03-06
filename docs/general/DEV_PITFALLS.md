@@ -241,6 +241,19 @@
 
 - **Real example**: `scripts/ui/ui_input_profile_selector.gd` - Uses left/right to cycle through profile names on the focused ProfileButton, while focus neighbors handle up/down navigation between UI rows.
 
+### Stateful Rebind Navigation Must Sync on Focus Enter
+
+- **Problem**: Overlays that keep their own navigation indices (`_focused_action_index`, `_row_button_index`, `_is_on_bottom_row`) can drift out of sync with actual UI focus when focus changes through default neighbor traversal or keyboard events.
+
+- **Symptom**: Left/right action-row navigation appears unresponsive or jumps incorrectly, and row highlight modulation does not match the currently focused rebind button.
+
+- **Solution**:
+  1. Add a focus-sync hook that recomputes internal indices from the currently focused control (`_sync_focus_tracking_from_control`).
+  2. Call that hook from row control `focus_entered` handlers (row container + per-row buttons, plus bottom-row buttons).
+  3. For overlays with custom directional handling, keep `_unhandled_key_input(...)` focused on overlay-specific controls and preserve `LineEdit` caret behavior (do not hijack arrow keys while the search field is focused).
+
+- **Real example**: `scripts/ui/overlays/ui_input_rebinding_overlay.gd` + `scripts/ui/helpers/u_rebind_focus_navigation.gd` (Screen 9 follow-up).
+
 ### Avoid Await Before Wiring UI Signals
 
 - **Problem**: Awaiting (e.g., `await get_tree().process_frame`) before connecting critical UI signals can create a 1+ frame window where buttons emit `pressed` but nothing is listening yet.

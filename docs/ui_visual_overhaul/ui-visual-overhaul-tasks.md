@@ -337,6 +337,18 @@ Completion note (2026-03-06): Implemented Screen 9 with centered panel-backed la
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 - Manual smoke test pending (user verification).
 
+Follow-up note (2026-03-06): Addressed Screen 9 usability regressions found during manual smoke.
+- Search box now uses tokenized style overrides (`normal`/`focus`/`read_only`, placeholder/caret colors) so it matches panel chrome.
+- Keyboard left/right navigation now cycles center row action buttons correctly, and row highlight state stays in sync when focus changes via keyboard/default focus handling.
+- Added regression coverage in `tests/unit/ui/test_input_rebinding_overlay.gd`:
+  - `test_keyboard_horizontal_navigation_cycles_row_buttons_and_preserves_row_highlight`
+  - Extended token test assertions for search-box style overrides.
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/integration/test_rebinding_flow.gd` → 13/13 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- Implementation commit: `3ad822c9`
+- Manual smoke re-run pending (user verification).
+
 ### Settings Overlay Wrappers (batch — all 0 overrides)
 
 These wrapper overlays contain the settings tab content. They need theme application and consistent dim styling.
