@@ -204,7 +204,11 @@
 - Default authored presets live under `resources/ui/motions/` (`cfg_motion_fade_slide.tres`, `cfg_motion_button_default.tres`, `cfg_motion_hud_pop.tres`) and are intended as baseline feel, not hard requirements.
 - Base-class integration contract (Phase 0F):
   - `BasePanel.motion_set` is opt-in; when set, focusable child controls are bound via `U_UIMotion.bind_interactive(...)`.
-  - `BaseMenuScreen.play_enter_animation()` / `play_exit_animation()` delegate directly to `U_UIMotion`.
+  - `BaseMenuScreen.play_enter_animation()` / `play_exit_animation()` delegate to `U_UIMotion` using a resolved motion target:
+    - explicit `motion_target_path` when exported/set,
+    - otherwise auto-target `CenterContainer` when a backdrop (`Background` / `OverlayBackground` / `ColorRect`) and `PanelContainer` are present,
+    - otherwise fallback to the screen root.
+  - Prefer this default backdrop-fade + panel-slide behavior over per-screen motion overrides for centered panel screens.
   - `BaseOverlay` animates its dim `OverlayBackground` alpha in parallel with content enter/exit motion.
 
 ### Interactable Controllers

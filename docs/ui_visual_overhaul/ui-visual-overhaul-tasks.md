@@ -254,6 +254,17 @@ Follow-up note (2026-03-06): User manual smoke passed for Screen 6. Enter/exit a
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2804/2813 passing, 0 failing, 9 pending/risky
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 - Centering follow-up (2026-03-06): Added `MainPanelMotionHost` under `CenterContainer` so slide animation runs on `MainPanel` inside a centered host, preventing drift from true vertical center after animation.
+- Default-behavior follow-up (2026-03-06): Promoted panel-only slide behavior to `BaseMenuScreen` so backdrop + centered-panel screens animate content by default while backdrop remains stationary.
+  - `BaseMenuScreen` now supports optional `motion_target_path` override and auto-targets `CenterContainer` when a backdrop (`Background` / `OverlayBackground` / `ColorRect`) and `PanelContainer` are present.
+  - `UI_PauseMenu` removed local enter/exit animation overrides and now relies on base behavior.
+  - Added base coverage in `tests/unit/ui/test_base_ui_classes.gd`: `test_base_menu_screen_targets_center_container_when_backdrop_and_panel_exist`.
+  - Hardened `tests/unit/integration/test_input_profile_selector_overlay.gd` by disabling state persistence in test setup to avoid locale bleed-through.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_base_ui_classes.gd -gtest=res://tests/unit/ui/test_pause_menu.gd` → 23/23 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd -gtest=res://tests/unit/ui/test_endgame_screens.gd -gtest=res://tests/unit/ui/test_language_selector.gd` → 30/30 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd` → 4/4 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2806/2815 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 
 ### Screen 7: Settings Menu (`scenes/ui/menus/ui_settings_menu.tscn`)
 

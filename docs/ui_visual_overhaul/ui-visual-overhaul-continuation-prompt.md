@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) is implemented + manual-smoke verified with a panel-only slide animation refinement. Next: Phase 2 Screen 7 (`ui_settings_menu.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) is implemented + manual-smoke verified, and panel-only slide motion is now the default for backdrop + centered-panel menu/overlay screens. Next: Phase 2 Screen 7 (`ui_settings_menu.tscn`).
 
 ## Recent Progress
 
@@ -178,6 +178,24 @@
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd` → 4/4 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2804/2813 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- **2026-03-06: Default panel-only slide behavior generalized**
+  - `BaseMenuScreen` now resolves a motion target automatically:
+    - optional explicit `motion_target_path`,
+    - otherwise auto-targets `CenterContainer` when a backdrop (`Background` / `OverlayBackground` / `ColorRect`) and `PanelContainer` are present,
+    - otherwise falls back to animating the root node.
+  - This makes backdrop fade + panel slide the default behavior across migrated menu/overlay screens without per-screen overrides.
+  - `UI_PauseMenu` removed custom enter/exit motion overrides and now inherits base behavior.
+  - Added base regression coverage in `tests/unit/ui/test_base_ui_classes.gd`:
+    - `test_base_menu_screen_targets_center_container_when_backdrop_and_panel_exist`
+  - Integration hardening:
+    - `tests/unit/integration/test_input_profile_selector_overlay.gd` now sets `store.settings.enable_persistence = false` in setup to prevent persisted locale leakage.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_base_ui_classes.gd -gtest=res://tests/unit/ui/test_pause_menu.gd` → 23/23 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd -gtest=res://tests/unit/ui/test_endgame_screens.gd -gtest=res://tests/unit/ui/test_language_selector.gd` → 30/30 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd` → 4/4 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2806/2815 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `87865a19`
 
 ### Plan Change Summary (2026-03-05)
 
@@ -208,6 +226,7 @@ The `UI-Looksmaxxing` branch contains:
 - Screen 6 commit-reference doc patch: `e3a2375f`
 - Screen 6 panel-only-slide refinement commit: `0df2deae`
 - Screen 6 centering regression fix commit: `5e7e679b`
+- Default panel-only motion-target rollout commit: `87865a19`
 
 ## Context
 
