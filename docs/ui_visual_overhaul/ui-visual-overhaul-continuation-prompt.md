@@ -4,10 +4,27 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, and Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification). Next: Phase 3 Screen 14 (`ui_localization_settings_tab.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, and Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening). Next: Phase 3 Screen 14 (`ui_localization_settings_tab.tscn`).
 
 ## Recent Progress
 
+- **2026-03-06: Phase 2 overlay audit hardening pass**
+  - Gap closures completed:
+    - Normalized Screen 9 dim to `bg_base@0.5` across scene/script/tests.
+    - Standardized settings-overlay close paths so main-menu returns use `navigate_to_ui_screen("settings_menu", "fade", 2)` while stacked overlays still use `close_top_overlay()`.
+    - Removed transient debug `print(...)` logging from `UI_TouchscreenSettingsOverlay`.
+    - Added style guard `test_polished_overlay_scenes_have_no_inline_theme_overrides` in `tests/unit/style/test_style_enforcement.gd`.
+  - Validation:
+    - `... -gtest=res://tests/unit/ui/test_gamepad_settings_overlay.gd` → 4/4 passing
+    - `... -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd` → 11/11 passing
+    - `... -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd` → 11/11 passing
+    - `... -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay.gd` → 6/6 passing
+    - `... -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd` → 4/4 passing
+    - `... -gtest=res://tests/integration/audio/test_audio_settings_ui.gd` → 10/10 passing
+    - `... -gtest=res://tests/integration/display/test_display_settings.gd` → 17/17 passing
+    - `... -gtest=res://tests/integration/localization/test_localization_settings_tab.gd` → 9/9 passing
+    - `... -gtest=res://tests/integration/vfx/test_vfx_settings_ui.gd` → 8/8 passing
+    - `... -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
 - **2026-03-06: Phase 2 settings-overlay wrappers implemented (`ui_audio_settings_overlay`, `ui_display_settings_overlay`, `ui_localization_settings_overlay`, `ui_vfx_settings_overlay`)**
   - Wrapper overlays migrated to shared overlay behavior:
     - Removed legacy inline `Background` color rects and standardized on `BaseOverlay` `OverlayBackground`.
@@ -268,7 +285,7 @@
     - `margin_section` for panel padding,
     - `separation_default`/`separation_compact` for content and slot spacing,
     - `panel_section` for panel surface styling,
-    - `bg_base` at `0.7` alpha for dim background.
+    - `bg_base` at `0.5` alpha for dim background.
   - Runtime slot-row styling now uses the active theme tokens for row spacing, button font sizes, and thumbnail sizing.
   - Updated `tests/unit/ui/test_save_load_menu.gd`:
     - Added motion assignment + theme-token coverage with active config.

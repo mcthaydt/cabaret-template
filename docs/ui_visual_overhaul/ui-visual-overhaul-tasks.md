@@ -351,7 +351,7 @@ Follow-up correction (2026-03-06): Applied the actual `Window` chrome keys used 
 - [x] Run full test suite after batch
 - [x] **Manual smoke test:** Open each overlay in sequence, verify dim is consistent (0.5 for most, 0.05 for edit touch), panels styled, sliders functional, preview areas render
 
-Completion note (2026-03-06): Implemented Screen 9 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `section_header`, `body_small`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`, `bg_base@0.7`).
+Completion note (2026-03-06): Implemented Screen 9 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `section_header`, `body_small`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`, `bg_base@0.5`).
 - Implementation commit: `3739f301`
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/integration/test_rebinding_flow.gd` → 12/12 passing
@@ -441,6 +441,28 @@ Completion note (2026-03-06): Completed settings-overlay wrapper batch migration
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd -gtest=res://tests/integration/audio/test_audio_settings_ui.gd -gtest=res://tests/integration/display/test_display_settings.gd -gtest=res://tests/integration/localization/test_localization_settings_tab.gd -gtest=res://tests/integration/vfx/test_vfx_settings_ui.gd -gtest=res://tests/unit/ui/test_vfx_settings_overlay_localization.gd` → 49/49 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2827/2836 passing, 0 failing, 9 pending/risky
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+
+Follow-up note (2026-03-06): Phase 2 overlay audit hardening pass completed.
+- Gap closures:
+  - Normalized input-rebinding dim to `bg_base@0.5` (scene + script + unit test expectations aligned).
+  - Standardized close-path behavior for settings-related overlays:
+    - `close_top_overlay()` when an overlay stack is present.
+    - `navigate_to_ui_screen("settings_menu", "fade", 2)` when returning from main-menu shell without overlays.
+    - `set_shell("main_menu", "settings_menu")` retained as non-main-menu fallback.
+  - Removed transient debug `print(...)` logging from touchscreen settings overlay close flow.
+  - Added style regression guard in `tests/unit/style/test_style_enforcement.gd`:
+    - `test_polished_overlay_scenes_have_no_inline_theme_overrides`.
+- Verification:
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/unit/ui/test_gamepad_settings_overlay.gd -gexit` → 4/4 passing
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gexit` → 11/11 passing
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gexit` → 11/11 passing
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay.gd -gexit` → 6/6 passing
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd -gexit` → 4/4 passing
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/integration/audio/test_audio_settings_ui.gd -gexit` → 10/10 passing
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/integration/display/test_display_settings.gd -gexit` → 17/17 passing
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/integration/localization/test_localization_settings_tab.gd -gexit` → 9/9 passing
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/integration/vfx/test_vfx_settings_ui.gd -gexit` → 8/8 passing
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit` → 12/12 passing
 
 ---
 
@@ -552,7 +574,7 @@ Completion note (2026-03-06): Completed settings-overlay wrapper batch migration
 ### 5B — Visual Consistency Pass
 
 - [ ] Review all screens side by side for visual consistency
-- [ ] Verify overlay dim opacity is consistent (current values: 0.05 edit-touch, 0.5 pause/input/gamepad/touchscreen, 0.647 settings, 0.7 save-load/BaseOverlay default, 1.0 loading)
+- [ ] Verify overlay dim opacity is consistent with the current two-tier convention (0.7: pause/settings-overlay/save-load, 0.5: rebinding/profile/gamepad/touchscreen/settings wrappers, 0.05: edit-touch, 0.0: embedded settings, 1.0: loading)
 - [ ] Verify excluded scenes still render correctly: `ui_mobile_controls.tscn`, `ui_damage_flash_overlay.tscn`, `ui_post_process_overlay.tscn`, `ui_gamepad_preview_prompt.tscn`, `ui_virtual_joystick.tscn`, `ui_virtual_button.tscn`
 
 ### 5C — Full Test Suite
@@ -662,18 +684,22 @@ These verify visual polish that requires human eyes:
 | `ui_credits.tscn` | 1 | VBox separation |
 | `ui_localization_settings_tab.tscn` | 1 | Separation |
 
-### Dim Opacity Inventory (verified 2026-03-05)
+### Dim Opacity Inventory (verified 2026-03-06)
 
 | File | Current Alpha | Notes |
 | ---- | ------------- | ----- |
 | `ui_edit_touch_controls_overlay.tscn` | 0.05 | Intentionally translucent for touch editing |
-| `ui_pause_menu.tscn` | 0.5 | |
-| `ui_input_rebinding_overlay.tscn` | 0.5 | |
+| `ui_pause_menu.tscn` | 0.7 | Overlay mode |
+| `ui_settings_menu.tscn` | 0.7 / 0.0 | 0.7 in overlay mode, 0.0 when embedded in main menu |
+| `ui_save_load_menu.tscn` | 0.7 | Matches BaseOverlay default |
+| `ui_input_rebinding_overlay.tscn` | 0.5 | Screen 9 dim normalized in audit pass |
 | `ui_input_profile_selector.tscn` | 0.5 | |
 | `ui_gamepad_settings_overlay.tscn` | 0.5 | |
 | `ui_touchscreen_settings_overlay.tscn` | 0.5 | |
-| `ui_settings_menu.tscn` | 0.647 | Outlier — should standardize |
-| `ui_save_load_menu.tscn` | 0.7 | Matches BaseOverlay default |
+| `ui_audio_settings_overlay.tscn` | 0.5 | Settings wrapper |
+| `ui_display_settings_overlay.tscn` | 0.5 | Settings wrapper |
+| `ui_localization_settings_overlay.tscn` | 0.5 | Settings wrapper |
+| `ui_vfx_settings_overlay.tscn` | 0.5 | Settings wrapper |
 | `ui_loading_screen.tscn` | 1.0 | Fully opaque (intentional) |
 | BaseOverlay default | 0.7 | Code default in `base_overlay.gd` |
 
