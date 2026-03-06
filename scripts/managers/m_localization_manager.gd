@@ -13,6 +13,8 @@ const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/managers/helpers/loc
 const U_LOCALIZATION_PREVIEW_CONTROLLER := preload("res://scripts/managers/helpers/localization/u_localization_preview_controller.gd")
 const U_LOCALIZATION_ROOT_REGISTRY := preload("res://scripts/managers/helpers/localization/u_localization_root_registry.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 
 const SERVICE_NAME := StringName("localization_manager")
 const LOCALIZATION_SLICE_NAME := StringName("localization")
@@ -45,6 +47,7 @@ var _apply_count: int = 0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	U_SERVICE_LOCATOR.register(SERVICE_NAME, self)
+	_theme_debug_log("ready: service registered")
 	_load_fonts()
 	_initialize_store_async()
 
@@ -57,18 +60,23 @@ func _exit_tree() -> void:
 
 func _initialize_store_async() -> void:
 	if state_store != null:
+		_theme_debug_log("initialize_store_async: using injected state_store")
 		_on_store_ready(state_store)
 		return
+	_theme_debug_log("initialize_store_async: awaiting store")
 	var store := await _await_store_ready_soft()
 	if store != null:
+		_theme_debug_log("initialize_store_async: store resolved")
 		_on_store_ready(store)
 	else:
+		_theme_debug_log("initialize_store_async: store missing, fallback locale=en")
 		print_verbose("M_LocalizationManager: StateStore not found. Loading default locale.")
 		_load_locale(&"en")
 		_apply_font_override(false)
 
 func _on_store_ready(store: I_StateStore) -> void:
 	_resolved_store = store
+	_theme_debug_log("store ready: applying localization settings")
 	if _resolved_store.has_signal("slice_updated"):
 		_resolved_store.slice_updated.connect(_on_slice_updated)
 	var state: Dictionary = _resolved_store.get_state()
@@ -150,6 +158,15 @@ func set_dyslexia_font_enabled(enabled: bool) -> void:
 
 func register_ui_root(root: Node) -> void:
 	if _root_registry.register_root(root):
+		var has_theme := _font_theme != null
+		var has_active_config := U_UI_THEME_BUILDER.active_config != null
+		_theme_debug_log(
+			"register_ui_root '%s': has_font_theme=%s has_active_config=%s" % [
+				root.name,
+				str(has_theme),
+				str(has_active_config),
+			]
+		)
 		_font_applier.apply_theme_to_root(root, _font_theme)
 
 func unregister_ui_root(root: Node) -> void:
@@ -179,10 +196,27 @@ func _load_fonts() -> void:
 	_default_font = _font_applier.get_default_font()
 	_dyslexia_font = _font_applier.get_dyslexia_font()
 	_cjk_font = _font_applier.get_cjk_font()
+	_theme_debug_log(
+		"fonts loaded: default=%s dyslexia=%s cjk=%s" % [
+			str(_default_font != null),
+			str(_dyslexia_font != null),
+			str(_cjk_font != null),
+		]
+	)
 
 func _apply_font_override(dyslexia_enabled: bool) -> void:
 	_font_theme = _font_applier.build_theme(_active_locale, dyslexia_enabled)
-	for root: Node in _root_registry.get_live_roots():
+	var roots: Array[Node] = _root_registry.get_live_roots()
+	_theme_debug_log(
+		"apply_font_override locale=%s dyslexia=%s theme_null=%s roots=%d active_config=%s" % [
+			str(_active_locale),
+			str(dyslexia_enabled),
+			str(_font_theme == null),
+			roots.size(),
+			str(U_UI_THEME_BUILDER.active_config != null),
+		]
+	)
+	for root: Node in roots:
 		_font_applier.apply_theme_to_root(root, _font_theme)
 
 func _get_active_font(dyslexia_enabled: bool = false) -> Font:
@@ -218,3 +252,6 @@ func _is_gut_running() -> bool:
 	if tree == null or tree.root == null:
 		return false
 	return tree.root.find_child("GutRunner", true, false) != null
+
+func _theme_debug_log(message: String) -> void:
+	U_UI_THEME_DEBUG.log("M_LocalizationManager", message)

@@ -18,6 +18,8 @@ const U_DISPLAY_POST_PROCESS_APPLIER := preload("res://scripts/managers/helpers/
 const U_DISPLAY_UI_SCALE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_scale_applier.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
 const U_DISPLAY_CINEMA_GRADE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_cinema_grade_applier.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
@@ -55,6 +57,7 @@ var _apply_count: int = 0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	U_SERVICE_LOCATOR.register(SERVICE_NAME, self)
+	_theme_debug_log("ready: service registered")
 	_ensure_appliers()
 
 	await _initialize_store_async()
@@ -70,12 +73,15 @@ func _exit_tree() -> void:
 	_state_store = null
 
 func _initialize_store_async() -> void:
+	_theme_debug_log("initialize_store_async: awaiting store")
 	var store := await _await_store_ready_soft()
 	if store == null:
+		_theme_debug_log("initialize_store_async: store not found")
 		print_verbose("M_DisplayManager: StateStore not found. Display settings will not be applied.")
 		return
 
 	_state_store = store
+	_theme_debug_log("initialize_store_async: store resolved")
 	if _state_store.has_signal("slice_updated"):
 		_state_store.slice_updated.connect(_on_slice_updated)
 
@@ -230,9 +236,18 @@ func _apply_accessibility_settings(display_settings: Dictionary) -> void:
 	var mode := U_DISPLAY_SELECTORS.get_color_blind_mode(state)
 	var high_contrast := U_DISPLAY_SELECTORS.is_high_contrast_enabled(state)
 	_palette_manager.set_color_blind_mode(mode, high_contrast)
+	var palette: Resource = _palette_manager.get_active_palette()
+	_theme_debug_log(
+		"apply_accessibility_settings mode=%s high_contrast=%s palette_id=%s active_config=%s" % [
+			mode,
+			str(high_contrast),
+			_get_palette_id_text(palette),
+			str(U_UI_THEME_BUILDER.active_config != null),
+		]
+	)
 	_ensure_appliers()
 	if _ui_theme_applier != null:
-		_ui_theme_applier.apply_theme_from_palette(_palette_manager.get_active_palette())
+		_ui_theme_applier.apply_theme_from_palette(palette)
 		_rebuild_ui_theme_roots()
 
 func _apply_post_process_settings(display_settings: Dictionary) -> void:
@@ -341,6 +356,17 @@ func register_ui_scale_root(node: Node) -> void:
 	_ensure_appliers()
 	if _ui_scale_applier != null:
 		_ui_scale_applier.register_ui_scale_root(node)
+	var palette: Resource = _palette_manager.get_active_palette() if _palette_manager != null else null
+	var node_name: String = "<null>"
+	if node != null:
+		node_name = str(node.name)
+	_theme_debug_log(
+		"register_ui_scale_root '%s' active_config=%s palette_id=%s" % [
+			node_name,
+			str(U_UI_THEME_BUILDER.active_config != null),
+			_get_palette_id_text(palette),
+		]
+	)
 	if _ui_theme_applier != null:
 		_rebuild_ui_theme_node(node)
 
@@ -358,6 +384,10 @@ func _rebuild_ui_theme_roots() -> void:
 func _rebuild_ui_theme_node(node: Node) -> void:
 	if _ui_theme_applier == null:
 		return
+	var node_name: String = "<null>"
+	if node != null:
+		node_name = str(node.name)
+	_theme_debug_log("rebuild_ui_theme_node '%s'" % node_name)
 	_ui_theme_applier.apply_theme_to_node(node)
 
 func _update_overlay_visibility() -> void:
@@ -374,3 +404,14 @@ func _update_overlay_visibility() -> void:
 		_post_process_applier.update_overlay_visibility(should_show)
 	if _cinema_grade_applier != null:
 		_cinema_grade_applier.update_visibility(should_show)
+
+func _get_palette_id_text(palette: Resource) -> String:
+	if palette == null:
+		return "null"
+	if palette.has_method("get"):
+		var palette_id: Variant = palette.get("palette_id")
+		return str(palette_id)
+	return "<no-palette-id>"
+
+func _theme_debug_log(message: String) -> void:
+	U_UI_THEME_DEBUG.log("M_DisplayManager", message)
