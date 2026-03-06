@@ -73,6 +73,8 @@ static func _apply_button_styles(theme: Theme, config) -> void:
 static func _apply_panel_styles(theme: Theme, config) -> void:
 	_set_stylebox(theme, &"panel", &"PanelContainer", config.panel_section)
 	_set_stylebox(theme, &"panel", &"AcceptDialog", config.panel_section)
+	_set_stylebox(theme, &"panel", &"ConfirmationDialog", config.panel_section)
+	_set_stylebox(theme, &"panel", &"Window", config.panel_section)
 
 static func _apply_bar_styles(theme: Theme, config) -> void:
 	_set_stylebox(theme, &"background", &"ProgressBar", config.progress_bar_bg)

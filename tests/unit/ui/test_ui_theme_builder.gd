@@ -53,6 +53,31 @@ func test_build_theme_applies_panel_styles() -> void:
 
 	assert_true(panel is StyleBoxFlat, "PanelContainer panel stylebox should be StyleBoxFlat")
 
+func test_build_theme_applies_dialog_window_panel_styles() -> void:
+	var theme := U_UI_THEME_BUILDER.build_theme(_config)
+	var accept_dialog_panel := theme.get_stylebox(&"panel", &"AcceptDialog")
+	var confirmation_dialog_panel := theme.get_stylebox(&"panel", &"ConfirmationDialog")
+	var window_panel := theme.get_stylebox(&"panel", &"Window")
+
+	assert_true(accept_dialog_panel is StyleBoxFlat, "AcceptDialog panel stylebox should be StyleBoxFlat")
+	assert_true(
+		(accept_dialog_panel as StyleBoxFlat).bg_color.is_equal_approx(_config.panel_section.bg_color),
+		"AcceptDialog panel color should match config panel_section"
+	)
+	assert_true(
+		confirmation_dialog_panel is StyleBoxFlat,
+		"ConfirmationDialog panel stylebox should be StyleBoxFlat"
+	)
+	assert_true(
+		(confirmation_dialog_panel as StyleBoxFlat).bg_color.is_equal_approx(_config.panel_section.bg_color),
+		"ConfirmationDialog panel color should match config panel_section"
+	)
+	assert_true(window_panel is StyleBoxFlat, "Window panel stylebox should be StyleBoxFlat")
+	assert_true(
+		(window_panel as StyleBoxFlat).bg_color.is_equal_approx(_config.panel_section.bg_color),
+		"Window panel color should match config panel_section"
+	)
+
 func test_build_theme_applies_separator_style() -> void:
 	var theme := U_UI_THEME_BUILDER.build_theme(_config)
 	var separator := theme.get_stylebox(&"separator", &"HSeparator")
