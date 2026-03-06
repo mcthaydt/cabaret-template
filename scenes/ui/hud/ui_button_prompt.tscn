@@ -1,22 +1,10 @@
 [gd_scene format=3 uid="uid://bq8y7b2npl2g0"]
 
 [ext_resource type="Script" uid="uid://ch0sgvt18amc1" path="res://scripts/ui/hud/ui_button_prompt.gd" id="1_button_prompt"]
-[ext_resource type="Texture2D" uid="uid://da5wjpwvjqj77" path="res://assets/button_prompts/mobile/button_background.png" id="2_mobile_button"]
-
-[sub_resource type="StyleBoxFlat" id="1"]
-content_margin_left = 8.0
-content_margin_top = 4.0
-content_margin_right = 8.0
-content_margin_bottom = 4.0
-bg_color = Color(0.180392, 0.196078, 0.227451, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[ext_resource type="Texture2D" uid="uid://cymd2im13edts" path="res://assets/button_prompts/mobile/button_background.svg" id="2_mobile_button"]
 
 [node name="ButtonPrompt" type="HBoxContainer" unique_id=1475440060]
 visible = false
-theme_override_constants/separation = 12
 alignment = 1
 script = ExtResource("1_button_prompt")
 
@@ -24,7 +12,6 @@ script = ExtResource("1_button_prompt")
 visible = false
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("1")
 
 [node name="ButtonIcon" type="TextureRect" parent="TextIcon" unique_id=486597860]
 visible = false
@@ -35,7 +22,6 @@ stretch_mode = 5
 
 [node name="Label" type="Label" parent="TextIcon" unique_id=1921560241]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -63,13 +49,11 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 12
 text = "Interact"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Text" type="Label" parent="." unique_id=1763875455]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
 vertical_alignment = 1

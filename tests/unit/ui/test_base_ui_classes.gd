@@ -2,6 +2,8 @@ extends GutTest
 
 const OverlayStub := preload("res://tests/test_doubles/ui/overlay_stub.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const RS_UI_MOTION_SET := preload("res://scripts/resources/ui/rs_ui_motion_set.gd")
+const RS_UI_MOTION_PRESET := preload("res://scripts/resources/ui/rs_ui_motion_preset.gd")
 
 
 var _mock_audio_manager: MockAudioManager
@@ -170,6 +172,122 @@ func test_base_panel_exposes_state_store_reference() -> void:
 	assert_eq(panel.get_store(), store,
 		"BasePanel should resolve the same store instance in the scene tree")
 
+func test_base_panel_null_motion_set_no_bind() -> void:
+	await _create_state_store()
+	var panel := BasePanel.new()
+	panel.motion_set = null
+
+	var button := Button.new()
+	button.focus_mode = Control.FOCUS_ALL
+	panel.add_child(button)
+
+	add_child_autofree(panel)
+	await wait_process_frames(3)
+
+	assert_eq(button.mouse_entered.get_connections().size(), 0,
+		"Null motion_set should not bind hover-in signal")
+	assert_eq(button.mouse_exited.get_connections().size(), 0,
+		"Null motion_set should not bind hover-out signal")
+	assert_eq(button.focus_entered.get_connections().size(), 0,
+		"Null motion_set should not bind focus-in signal")
+	assert_eq(button.focus_exited.get_connections().size(), 0,
+		"Null motion_set should not bind focus-out signal")
+
+func test_base_panel_motion_set_binds_focusable_children() -> void:
+	await _create_state_store()
+	var panel := BasePanel.new()
+	panel.motion_set = _make_interactive_motion_set()
+
+	var button := Button.new()
+	button.focus_mode = Control.FOCUS_ALL
+	panel.add_child(button)
+
+	add_child_autofree(panel)
+	await wait_process_frames(3)
+
+	assert_gt(button.mouse_entered.get_connections().size(), 0,
+		"Motion set should bind hover-in signal for focusable children")
+	assert_gt(button.mouse_exited.get_connections().size(), 0,
+		"Motion set should bind hover-out signal for focusable children")
+
+func test_base_menu_screen_play_enter_with_motion_set() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	screen.motion_set = _make_enter_motion_set(0.12)
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+
+	var tween: Tween = screen.play_enter_animation()
+	assert_not_null(tween, "play_enter_animation should return a Tween when motion_set.enter is defined")
+	await wait_process_frames(1)
+	assert_true(screen.modulate.a < 0.99, "Enter animation should apply the from alpha near start")
+
+	await wait_seconds(0.08)
+	assert_true(screen.modulate.a > 0.01,
+		"Enter animation should modify screen alpha while tween is in progress")
+
+func test_base_menu_screen_play_enter_without_motion_set_returns_null() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	screen.motion_set = null
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+
+	var tween: Tween = screen.play_enter_animation()
+	assert_null(tween, "play_enter_animation should return null when motion_set is missing")
+
+func test_base_menu_screen_targets_center_container_when_backdrop_and_panel_exist() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	screen.motion_set = _make_enter_motion_set(0.12)
+
+	var background := ColorRect.new()
+	background.name = "Background"
+	screen.add_child(background)
+
+	var center_container := CenterContainer.new()
+	center_container.name = "CenterContainer"
+	screen.add_child(center_container)
+
+	var panel := PanelContainer.new()
+	panel.name = "MainPanel"
+	center_container.add_child(panel)
+
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+
+	var tween: Tween = screen.play_enter_animation()
+	assert_not_null(tween, "play_enter_animation should return a Tween when backdrop + centered panel is present")
+	assert_almost_eq(screen.modulate.a, 1.0, 0.01,
+		"Screen root should not animate when centered panel targeting is active")
+	await wait_process_frames(1)
+	assert_true(center_container.modulate.a < 0.99,
+		"Center container should receive enter animation while root remains static")
+
+	await wait_seconds(0.08)
+	assert_true(center_container.modulate.a > 0.01,
+		"Center container should animate alpha during enter tween")
+
+func test_base_overlay_animates_dim_on_enter() -> void:
+	await _create_state_store()
+	var overlay := OverlayStub.new()
+	overlay.motion_set = _make_enter_motion_set(0.12)
+	overlay.background_color = Color(0, 0, 0, 0.7)
+	add_child_autofree(overlay)
+	await wait_process_frames(3)
+
+	var background := overlay.get_node_or_null("OverlayBackground") as ColorRect
+	assert_not_null(background, "Overlay should create a background dim panel")
+
+	var tween: Tween = overlay.play_enter_animation()
+	assert_not_null(tween, "Overlay enter animation should return content tween when motion set exists")
+	assert_almost_eq(background.modulate.a, 0.0, 0.01,
+		"Background dim should start transparent before fade-in")
+
+	await wait_seconds(0.08)
+	assert_true(background.modulate.a > 0.05,
+		"Background dim alpha should increase during enter animation")
+
 func _create_state_store() -> M_StateStore:
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
@@ -182,3 +300,46 @@ func _create_state_store() -> M_StateStore:
 	add_child_autofree(store)
 	await wait_process_frames(2)
 	return store
+
+func _make_enter_motion_set(duration_sec: float) -> Resource:
+	var motion_set := RS_UI_MOTION_SET.new()
+	var enter_preset := RS_UI_MOTION_PRESET.new()
+	enter_preset.property_path = "modulate:a"
+	enter_preset.from_value = 0.0
+	enter_preset.to_value = 1.0
+	enter_preset.duration_sec = duration_sec
+	motion_set.enter = [enter_preset]
+	return motion_set
+
+func _make_interactive_motion_set() -> Resource:
+	var motion_set := RS_UI_MOTION_SET.new()
+
+	var hover_in := RS_UI_MOTION_PRESET.new()
+	hover_in.property_path = "modulate:a"
+	hover_in.from_value = 0.8
+	hover_in.to_value = 1.0
+	hover_in.duration_sec = 0.08
+
+	var hover_out := RS_UI_MOTION_PRESET.new()
+	hover_out.property_path = "modulate:a"
+	hover_out.from_value = 1.0
+	hover_out.to_value = 0.8
+	hover_out.duration_sec = 0.08
+
+	var focus_in := RS_UI_MOTION_PRESET.new()
+	focus_in.property_path = "scale:x"
+	focus_in.from_value = 1.0
+	focus_in.to_value = 1.05
+	focus_in.duration_sec = 0.08
+
+	var focus_out := RS_UI_MOTION_PRESET.new()
+	focus_out.property_path = "scale:x"
+	focus_out.from_value = 1.05
+	focus_out.to_value = 1.0
+	focus_out.duration_sec = 0.08
+
+	motion_set.hover_in = [hover_in]
+	motion_set.hover_out = [hover_out]
+	motion_set.focus_in = [focus_in]
+	motion_set.focus_out = [focus_out]
+	return motion_set

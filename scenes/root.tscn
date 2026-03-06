@@ -39,11 +39,11 @@
 [ext_resource type="Script" uid="uid://byruhjgybr4i8" path="res://scripts/managers/m_objectives_manager.gd" id="37_objectives_manager"]
 [ext_resource type="Resource" uid="uid://dlyoikoiqtr81" path="res://resources/scene_director/sets/cfg_objset_default.tres" id="38_objset_default"]
 [ext_resource type="Script" uid="uid://dnllpv24ljp7u" path="res://scripts/managers/m_scene_director_manager.gd" id="39_scene_director"]
-[ext_resource type="Resource" path="res://resources/scene_director/directives/cfg_directive_gameplay_base.tres" id="40_directive_gameplay_base"]
+[ext_resource type="Resource" uid="uid://d2gupe7j15r78" path="res://resources/scene_director/directives/cfg_directive_gameplay_base.tres" id="40_directive_gameplay_base"]
 [ext_resource type="Script" uid="uid://b5087paku10p" path="res://scripts/managers/m_run_coordinator_manager.gd" id="41_run_coordinator"]
-[ext_resource type="Resource" path="res://resources/state/cfg_default_objectives_initial_state.tres" id="42_objectives_state"]
-[ext_resource type="Resource" path="res://resources/state/cfg_default_scene_director_initial_state.tres" id="43_scene_director_state"]
-[ext_resource type="Resource" path="res://resources/cfg_game_config.tres" id="44_game_config"]
+[ext_resource type="Resource" uid="uid://xn3e3t3x7lad" path="res://resources/state/cfg_default_objectives_initial_state.tres" id="42_objectives_state"]
+[ext_resource type="Resource" uid="uid://nbd84s2mk7ye" path="res://resources/state/cfg_default_scene_director_initial_state.tres" id="43_scene_director_state"]
+[ext_resource type="Resource" uid="uid://dmbf02gq12jfj" path="res://resources/cfg_game_config.tres" id="44_game_config"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
@@ -156,6 +156,7 @@ process_mode = 3
 layer = 10
 
 [node name="TransitionOverlay" type="CanvasLayer" parent="." unique_id=1366387080]
+layer = 50
 
 [node name="TransitionColorRect" type="ColorRect" parent="TransitionOverlay" unique_id=1316465376]
 modulate = Color(1, 1, 1, 0)

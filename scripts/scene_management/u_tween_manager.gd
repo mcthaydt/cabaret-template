@@ -131,6 +131,14 @@ static func create_transition_tween(owner: Node, config: TweenConfig = null) -> 
 	return tween
 
 
+## Kill a tween safely (null/invalid guarded)
+##
+## Useful for helpers that need centralized tween cleanup behavior.
+static func kill_tween(tween: Tween) -> void:
+	if tween != null and tween.is_valid():
+		tween.kill()
+
+
 ## Create a pausable tween with automatic process mode management
 ##
 ## Creates a TweenContext that:

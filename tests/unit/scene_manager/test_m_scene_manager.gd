@@ -11,12 +11,14 @@ const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_ini
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
+const UI_HUD_CONTROLLER = preload("res://scripts/ui/hud/ui_hud_controller.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore
 var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
 var _transition_overlay: CanvasLayer
+var _loading_overlay: CanvasLayer
 
 func before_each() -> void:
 	# Clear ServiceLocator first to ensure clean state between tests
@@ -27,6 +29,9 @@ func before_each() -> void:
 		var hud_layer := CanvasLayer.new()
 		hud_layer.name = "HUDLayer"
 		add_child_autofree(hud_layer)
+		U_ServiceLocator.register(StringName("hud_layer"), hud_layer)
+	else:
+		U_ServiceLocator.register(StringName("hud_layer"), existing)
 
 	# Create state store with scene slice
 	_store = M_StateStore.new()
@@ -41,10 +46,12 @@ func before_each() -> void:
 	_active_scene_container = Node.new()
 	_active_scene_container.name = "ActiveSceneContainer"
 	add_child_autofree(_active_scene_container)
+	U_ServiceLocator.register(StringName("active_scene_container"), _active_scene_container)
 
 	_ui_overlay_stack = CanvasLayer.new()
 	_ui_overlay_stack.name = "UIOverlayStack"
 	add_child_autofree(_ui_overlay_stack)
+	U_ServiceLocator.register(StringName("ui_overlay_stack"), _ui_overlay_stack)
 
 	_transition_overlay = CanvasLayer.new()
 	_transition_overlay.name = "TransitionOverlay"
@@ -52,6 +59,12 @@ func before_each() -> void:
 	color_rect.name = "TransitionColorRect"
 	_transition_overlay.add_child(color_rect)
 	add_child_autofree(_transition_overlay)
+	U_ServiceLocator.register(StringName("transition_overlay"), _transition_overlay)
+
+	_loading_overlay = CanvasLayer.new()
+	_loading_overlay.name = "LoadingOverlay"
+	add_child_autofree(_loading_overlay)
+	U_ServiceLocator.register(StringName("loading_overlay"), _loading_overlay)
 
 	# Create scene manager
 	_manager = M_SceneManager.new()
@@ -69,6 +82,7 @@ func after_each() -> void:
 	_active_scene_container = null
 	_ui_overlay_stack = null
 	_transition_overlay = null
+	_loading_overlay = null
 
 ## Test manager is registered with ServiceLocator
 func test_manager_registers_with_service_locator() -> void:
@@ -79,6 +93,18 @@ func test_manager_registers_with_service_locator() -> void:
 func test_manager_finds_state_store() -> void:
 	assert_not_null(_manager._store, "Manager should find state store")
 	assert_eq(_manager._store, _store, "Manager should reference correct store")
+
+func test_manager_instantiates_hud_under_hud_layer() -> void:
+	var hud_layer := U_ServiceLocator.get_service(StringName("hud_layer")) as CanvasLayer
+	assert_not_null(hud_layer, "HUDLayer should be registered for scene manager setup")
+
+	var hud_count: int = 0
+	for child: Node in hud_layer.get_children():
+		var child_script: Variant = child.get_script()
+		if child_script == UI_HUD_CONTROLLER:
+			hud_count += 1
+
+	assert_eq(hud_count, 1, "Scene manager should ensure exactly one HUD controller instance in HUDLayer")
 
 ## Test transition_to_scene dispatches actions
 func test_transition_to_scene_dispatches_started_action() -> void:

@@ -2,10 +2,12 @@
 
 [ext_resource type="Script" uid="uid://opfqmh58idor" path="res://scripts/ui/settings/ui_localization_settings_overlay.gd" id="1_ui_localization_settings_overlay_script"]
 [ext_resource type="PackedScene" uid="uid://c3j1lsetv0tnv" path="res://scenes/ui/overlays/settings/ui_localization_settings_tab.tscn" id="2_ui_localization_settings_tab_scene"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="3_motion_set"]
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="LocalizationSettingsOverlay" type="Control" unique_id=1]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -13,21 +15,15 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ui_localization_settings_overlay_script")
+background_color = Color(0.114, 0.114, 0.129, 0.5)
+motion_set = ExtResource("3_motion_set")
+motion_target_path = NodePath("CenterContainer/Panel")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=2]
 script = ExtResource("ui_scale_root")
 
 [node name="LocalizationRoot" type="Node" parent="." unique_id=1683104167]
 script = ExtResource("localization_root")
-
-[node name="Background" type="ColorRect" parent="." unique_id=3]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=4]
 layout_mode = 1

@@ -2,11 +2,13 @@
 
 [ext_resource type="Script" uid="uid://e702bxolhcyh" path="res://scripts/ui/overlays/ui_gamepad_settings_overlay.gd" id="1"]
 [ext_resource type="Script" uid="uid://dp8sy2xbxa1wb" path="res://scripts/ui/overlays/ui_gamepad_stick_preview.gd" id="2"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
 [ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/ui/hud/ui_button_prompt.tscn" id="3"]
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="GamepadSettingsOverlay" type="Control" unique_id=837029059]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,6 +16,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+background_color = Color(0.114, 0.114, 0.129, 0.5)
+motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1582691977]
 script = ExtResource("ui_scale_root")
@@ -21,54 +25,55 @@ script = ExtResource("ui_scale_root")
 [node name="LocalizationRoot" type="Node" parent="." unique_id=400295680]
 script = ExtResource("localization_root")
 
-[node name="Background" type="ColorRect" parent="." unique_id=548733413]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=346918165]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
 
-[node name="CenterContainer" type="CenterContainer" parent="." unique_id=346918165]
+[node name="MainPanelMotionHost" type="Control" parent="CenterContainer" unique_id=1752036848]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(680, 560)
+layout_mode = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer/MainPanelMotionHost" unique_id=1118604342]
+unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -260.0
-offset_top = -220.0
-offset_right = 260.0
-offset_bottom = 220.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="PanelContainer" parent="CenterContainer" unique_id=1118604342]
+[node name="MainPanelPadding" type="MarginContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel" unique_id=1605203476]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MainPanelContent" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding" unique_id=1541533053]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel" unique_id=1541533053]
-custom_minimum_size = Vector2(520, 440)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="Title" type="Label" parent="CenterContainer/Panel/VBox" unique_id=1758071195]
+[node name="HeadingLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1758071195]
+unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LeftRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1614151605]
+[node name="LeftRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1614151605]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="LeftLabel" type="Label" parent="CenterContainer/Panel/VBox/LeftRow" unique_id=773747941]
+[node name="LeftLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/LeftRow" unique_id=773747941]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="LeftDeadzoneSlider" type="HSlider" parent="CenterContainer/Panel/VBox/LeftRow" unique_id=1648842850]
+[node name="LeftDeadzoneSlider" type="HSlider" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/LeftRow" unique_id=1648842850]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -76,21 +81,24 @@ max_value = 1.0
 step = 0.01
 value = 0.2
 
-[node name="LeftDeadzoneValue" type="Label" parent="CenterContainer/Panel/VBox/LeftRow" unique_id=1116380032]
+[node name="LeftDeadzoneValue" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/LeftRow" unique_id=1116380032]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "0.20"
 horizontal_alignment = 1
 
-[node name="RightRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1161090736]
+[node name="RightRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1161090736]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="RightLabel" type="Label" parent="CenterContainer/Panel/VBox/RightRow" unique_id=1510068830]
+[node name="RightLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/RightRow" unique_id=1510068830]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="RightDeadzoneSlider" type="HSlider" parent="CenterContainer/Panel/VBox/RightRow" unique_id=1337607946]
+[node name="RightDeadzoneSlider" type="HSlider" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/RightRow" unique_id=1337607946]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -98,35 +106,40 @@ max_value = 1.0
 step = 0.01
 value = 0.2
 
-[node name="RightDeadzoneValue" type="Label" parent="CenterContainer/Panel/VBox/RightRow" unique_id=1442901567]
+[node name="RightDeadzoneValue" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/RightRow" unique_id=1442901567]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "0.20"
 horizontal_alignment = 1
 
-[node name="VibrationEnableRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=698681649]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="VibrationEnableLabel" type="Label" parent="CenterContainer/Panel/VBox/VibrationEnableRow" unique_id=1155680607]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="VibrationCheck" type="CheckButton" parent="CenterContainer/Panel/VBox/VibrationEnableRow" unique_id=1308529665]
+[node name="VibrationEnableRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=698681649]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="VibrationEnableLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/VibrationEnableRow" unique_id=1155680607]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VibrationCheck" type="CheckButton" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/VibrationEnableRow" unique_id=1308529665]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
 button_pressed = true
 
-[node name="VibrationRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=384633309]
+[node name="VibrationRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=384633309]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="VibrationLabel" type="Label" parent="CenterContainer/Panel/VBox/VibrationRow" unique_id=340939157]
+[node name="VibrationLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/VibrationRow" unique_id=340939157]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="VibrationSlider" type="HSlider" parent="CenterContainer/Panel/VBox/VibrationRow" unique_id=259808711]
+[node name="VibrationSlider" type="HSlider" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/VibrationRow" unique_id=259808711]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -134,44 +147,52 @@ max_value = 1.0
 step = 0.01
 value = 1.0
 
-[node name="VibrationValue" type="Label" parent="CenterContainer/Panel/VBox/VibrationRow" unique_id=1705217941]
+[node name="VibrationValue" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/VibrationRow" unique_id=1705217941]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "1.00"
 horizontal_alignment = 1
 
-[node name="StickPreviewContainer" type="VBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=2079516773]
+[node name="PreviewPanel" type="PanelContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1993784850]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="StickPreview" type="Control" parent="CenterContainer/Panel/VBox/StickPreviewContainer" unique_id=1854432697]
+[node name="PreviewContent" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/PreviewPanel" unique_id=1030812442]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StickPreview" type="Control" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/PreviewPanel/PreviewContent" unique_id=1854432697]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 2
 script = ExtResource("2")
 
-[node name="EnterPrompt" parent="CenterContainer/Panel/VBox/StickPreviewContainer" unique_id=98247220 instance=ExtResource("3")]
+[node name="EnterPrompt" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/PreviewPanel/PreviewContent" unique_id=98247220 instance=ExtResource("3")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ExitPrompt" parent="CenterContainer/Panel/VBox/StickPreviewContainer" unique_id=1915459794 instance=ExtResource("3")]
+[node name="ExitPrompt" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/PreviewPanel/PreviewContent" unique_id=1915459794 instance=ExtResource("3")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=969736010]
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=969736010]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 2
 
-[node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=455058960]
+[node name="CancelButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=455058960]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=531716769]
+[node name="ResetButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=531716769]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ApplyButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1796816526]
+[node name="ApplyButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=1796816526]
 unique_name_in_owner = true
 layout_mode = 2

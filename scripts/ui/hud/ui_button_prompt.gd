@@ -2,6 +2,8 @@
 extends HBoxContainer
 class_name UI_ButtonPrompt
 
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 @export var label_path: NodePath = NodePath("Text")
 @export var text_icon_panel_path: NodePath = NodePath("TextIcon")
@@ -37,6 +39,7 @@ func _ready() -> void:
 	_text_icon_label = get_node_or_null(text_icon_label_path) as Label
 	_mobile_button = get_node_or_null(mobile_button_path) as Control
 	_mobile_button_label = get_node_or_null(mobile_button_label_path) as Label
+	_apply_theme_tokens()
 	_reset_visuals()
 	_bind_store()
 	_device_type = _get_initial_device_type()
@@ -175,6 +178,26 @@ func _reset_visuals() -> void:
 	if _mobile_button_label != null:
 		_mobile_button_label.text = ""
 	visible = false
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	add_theme_constant_override(&"separation", config.separation_default)
+
+	if _text_icon_panel != null and config.panel_button_prompt != null:
+		var panel_style: Variant = config.panel_button_prompt.duplicate(true)
+		if panel_style is StyleBox:
+			_text_icon_panel.add_theme_stylebox_override(&"panel", panel_style as StyleBox)
+
+	if _label != null:
+		_label.add_theme_font_size_override(&"font_size", config.subheading)
+	if _text_icon_label != null:
+		_text_icon_label.add_theme_font_size_override(&"font_size", config.body)
+	if _mobile_button_label != null:
+		_mobile_button_label.add_theme_font_size_override(&"font_size", config.caption_small)
 
 func _bind_device_manager() -> void:
 	if _device_manager != null and is_instance_valid(_device_manager):

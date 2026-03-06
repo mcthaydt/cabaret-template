@@ -2,6 +2,8 @@ extends GutTest
 
 const ButtonPromptScene := preload("res://scenes/ui/hud/ui_button_prompt.tscn")
 const DeviceType := M_InputDeviceManager.DeviceType
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 class LocalizationManagerStub extends Node:
 	var translations: Dictionary = {}
@@ -15,6 +17,7 @@ var _button_prompt: Control
 var _localization_manager: LocalizationManagerStub
 
 func before_each() -> void:
+	U_UI_THEME_BUILDER.active_config = null
 	U_ServiceLocator.clear()
 	U_StateHandoff.clear_all()
 	_store = M_StateStore.new()
@@ -48,6 +51,7 @@ func before_each() -> void:
 	await _await_frames(1)
 
 func after_each() -> void:
+	U_UI_THEME_BUILDER.active_config = null
 	U_StateHandoff.clear_all()
 	U_ServiceLocator.clear()
 	_store = null
@@ -263,6 +267,64 @@ func test_touchscreen_interact_uses_localized_mobile_label() -> void:
 	assert_true(mobile_button.visible, "Mobile button should be visible for touchscreen prompts")
 	assert_false(text_icon.visible, "Text icon should hide for touchscreen prompts")
 	assert_eq(mobile_label.text, "Interagir", "Touchscreen interact label should use localized text")
+
+func test_button_prompt_applies_theme_tokens_when_active_config_set() -> void:
+	var config := RS_UI_THEME_CONFIG.new()
+	config.separation_default = 19
+	config.subheading = 31
+	config.body = 23
+	config.caption_small = 15
+	var prompt_panel := StyleBoxFlat.new()
+	prompt_panel.bg_color = Color(0.29, 0.33, 0.61, 1.0)
+	config.panel_button_prompt = prompt_panel
+	U_UI_THEME_BUILDER.active_config = config
+
+	if _button_prompt != null and is_instance_valid(_button_prompt):
+		_button_prompt.queue_free()
+		await _await_frames(1)
+
+	_button_prompt = ButtonPromptScene.instantiate()
+	add_child_autofree(_button_prompt)
+	await _await_frames(1)
+
+	var text_icon_panel := _button_prompt.get_node("TextIcon") as PanelContainer
+	var binding_label := _button_prompt.get_node("TextIcon/Label") as Label
+	var action_label := _button_prompt.get_node("Text") as Label
+	var mobile_label := _button_prompt.get_node("MobileButton/ActionLabel") as Label
+
+	assert_eq(
+		_button_prompt.get_theme_constant(&"separation"),
+		config.separation_default,
+		"Root prompt row should use separation_default token"
+	)
+	assert_true(
+		text_icon_panel.has_theme_stylebox_override(&"panel"),
+		"Text icon panel should use panel_button_prompt style override"
+	)
+	assert_eq(
+		action_label.get_theme_font_size(&"font_size"),
+		config.subheading,
+		"Main prompt label should use subheading token"
+	)
+	assert_eq(
+		binding_label.get_theme_font_size(&"font_size"),
+		config.body,
+		"Binding label should use body token"
+	)
+	assert_eq(
+		mobile_label.get_theme_font_size(&"font_size"),
+		config.caption_small,
+		"Mobile action label should use caption_small token"
+	)
+
+func test_button_prompt_scene_has_no_inline_theme_overrides() -> void:
+	var scene_text := FileAccess.get_file_as_string("res://scenes/ui/hud/ui_button_prompt.tscn")
+	assert_ne(scene_text, "", "Scene file should load as text")
+	assert_eq(
+		scene_text.find("theme_override_"),
+		-1,
+		"Button prompt scene should not keep inline theme_override entries"
+	)
 
 func _capture_action_events(action: StringName) -> Array[InputEvent]:
 	var results: Array[InputEvent] = []

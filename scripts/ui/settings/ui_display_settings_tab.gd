@@ -5,6 +5,8 @@ class_name UI_DisplaySettingsTab
 const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_display_initial_state.tres")
 const WINDOW_CONFIRM_SECONDS := 10
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"settings.display.title"
 const SECTION_GRAPHICS_KEY := &"settings.display.section.graphics"
@@ -70,6 +72,7 @@ var _color_blind_mode_values: Array[String] = []
 @onready var _window_confirm_timer: Timer = %WindowConfirmTimer
 
 @onready var _heading_label: Label = $HeadingLabel
+@onready var _content_margin: MarginContainer = $Scroll/ContentMargin
 @onready var _graphics_header_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsHeader
 @onready var _post_process_header_label: Label = $Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessHeader
 @onready var _ui_header_label: Label = $Scroll/ContentMargin/Content/UISection/UIVBox/UIHeader
@@ -86,6 +89,7 @@ var _color_blind_mode_values: Array[String] = []
 @onready var _high_contrast_label: Label = $Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/HighContrastRow/HighContrastLabel
 
 func _ready() -> void:
+	_apply_theme_tokens()
 	_connect_signals()
 	_localize_labels()
 	_hide_desktop_only_controls_on_mobile()
@@ -100,6 +104,66 @@ func _ready() -> void:
 
 	_unsubscribe = _state_store.subscribe(_on_state_changed)
 	_on_state_changed({}, _state_store.get_state())
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	if _content_margin != null:
+		_content_margin.add_theme_constant_override(&"margin_left", config.margin_section)
+		_content_margin.add_theme_constant_override(&"margin_top", config.margin_section)
+		_content_margin.add_theme_constant_override(&"margin_right", config.margin_section)
+		_content_margin.add_theme_constant_override(&"margin_bottom", config.margin_section)
+
+	if _heading_label != null:
+		_heading_label.add_theme_font_size_override(&"font_size", config.heading)
+
+	var section_headers: Array[Label] = [
+		_graphics_header_label,
+		_post_process_header_label,
+		_ui_header_label,
+		_accessibility_header_label,
+	]
+	for section_header in section_headers:
+		if section_header != null:
+			section_header.add_theme_font_size_override(&"font_size", config.section_header)
+			section_header.add_theme_color_override(&"font_color", config.section_header_color)
+
+	var field_labels: Array[Label] = [
+		_window_size_label,
+		_window_mode_label,
+		_vsync_label,
+		_quality_label,
+		_post_processing_label,
+		_post_process_preset_label,
+		_ui_scale_label,
+		_color_blind_mode_label,
+		_high_contrast_label,
+	]
+	for field_label in field_labels:
+		if field_label != null:
+			field_label.add_theme_font_size_override(&"font_size", config.body_small)
+			field_label.add_theme_color_override(&"font_color", config.text_secondary)
+
+	var controls_with_section_header_size: Array[Control] = [
+		_window_size_option,
+		_window_mode_option,
+		_vsync_toggle,
+		_quality_preset_option,
+		_post_processing_toggle,
+		_post_processing_preset_option,
+		_ui_scale_value,
+		_color_blind_mode_option,
+		_high_contrast_toggle,
+		_cancel_button,
+		_reset_button,
+		_apply_button,
+	]
+	for themed_control in controls_with_section_header_size:
+		if themed_control != null:
+			themed_control.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _exit_tree() -> void:
 	_stop_window_confirm_timer()

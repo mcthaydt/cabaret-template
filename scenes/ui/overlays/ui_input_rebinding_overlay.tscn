@@ -1,17 +1,21 @@
 [gd_scene format=3 uid="uid://cud3ix81sip6p"]
 
-[ext_resource type="Script" uid="uid://d0y5pdih30xo0" path="res://scripts/ui/overlays/ui_input_rebinding_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://d0y5pdih30xo0" path="res://scripts/ui/overlays/ui_input_rebinding_overlay.gd" id="1_input_rebinding_script"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="InputRebindingOverlay" type="Control" unique_id=142623892]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1")
+script = ExtResource("1_input_rebinding_script")
+background_color = Color(0.114, 0.114, 0.129, 0.5)
+motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1469292173]
 script = ExtResource("ui_scale_root")
@@ -19,74 +23,74 @@ script = ExtResource("ui_scale_root")
 [node name="LocalizationRoot" type="Node" parent="." unique_id=2129534349]
 script = ExtResource("localization_root")
 
-[node name="Background" type="ColorRect" parent="." unique_id=1838712796]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1016764674]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
 
-[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1016764674]
+[node name="MainPanelMotionHost" type="Control" parent="CenterContainer" unique_id=609428431]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(860, 620)
+layout_mode = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer/MainPanelMotionHost" unique_id=1742476347]
+unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -320.0
-offset_top = -260.0
-offset_right = 320.0
-offset_bottom = 260.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="PanelContainer" parent="CenterContainer" unique_id=1742476347]
+[node name="MainPanelPadding" type="MarginContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel" unique_id=1548294933]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel" unique_id=43803489]
-custom_minimum_size = Vector2(640, 520)
+[node name="MainPanelContent" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding" unique_id=43803489]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
-[node name="Title" type="Label" parent="CenterContainer/Panel/VBox" unique_id=1731382528]
+[node name="TitleLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1731382528]
+unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="CenterContainer/Panel/VBox" unique_id=238594900]
+[node name="StatusLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=238594900]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 2
 
-[node name="SearchBox" type="LineEdit" parent="CenterContainer/Panel/VBox" unique_id=1389934968]
+[node name="SearchBox" type="LineEdit" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1389934968]
 unique_name_in_owner = true
 layout_mode = 2
 clear_button_enabled = true
 
-[node name="Scroll" type="ScrollContainer" parent="CenterContainer/Panel/VBox" unique_id=123124521]
+[node name="Scroll" type="ScrollContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=123124521]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+follow_focus = true
 
-[node name="ActionList" type="VBoxContainer" parent="CenterContainer/Panel/VBox/Scroll" unique_id=993717946]
+[node name="ActionList" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/Scroll" unique_id=993717946]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=2079290331]
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=2079290331]
+unique_name_in_owner = true
 layout_mode = 2
 alignment = 2
 
-[node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=2024587835]
+[node name="ResetButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=2024587835]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="CloseButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=87717856]
+[node name="CloseButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=87717856]
 unique_name_in_owner = true
 layout_mode = 2
 

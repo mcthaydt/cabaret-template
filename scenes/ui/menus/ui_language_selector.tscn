@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://ddx2j68qqrq0b"]
 
 [ext_resource type="Script" uid="uid://c25513qcetdqr" path="res://scripts/ui/menus/ui_language_selector.gd" id="1_lang_selector_script"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="2_ui_scale_root"]
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 
@@ -12,12 +13,22 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_lang_selector_script")
+motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1309674675]
 script = ExtResource("2_ui_scale_root")
 
 [node name="LocalizationRoot" type="Node" parent="." unique_id=1751483382]
 script = ExtResource("localization_root")
+
+[node name="Background" type="ColorRect" parent="." unique_id=687595469]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.114, 0.114, 0.129, 1)
 
 [node name="ButtonContainer" type="CenterContainer" parent="." unique_id=839940316]
 unique_name_in_owner = true
@@ -30,46 +41,52 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="ButtonContainer" unique_id=2042175945]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(540, 360)
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ButtonContainer/PanelContainer" unique_id=1154941999]
+[node name="MainPanelPadding" type="MarginContainer" parent="ButtonContainer/PanelContainer" unique_id=1858751318]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 16
 
-[node name="TitleLabel" type="Label" parent="ButtonContainer/PanelContainer/VBoxContainer" unique_id=498396947]
+[node name="ContentVBox" type="VBoxContainer" parent="ButtonContainer/PanelContainer/MainPanelPadding" unique_id=1154941999]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="ButtonContainer/PanelContainer/MainPanelPadding/ContentVBox" unique_id=498396947]
+unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="ButtonContainer/PanelContainer/VBoxContainer" unique_id=926730139]
+[node name="HSeparator" type="HSeparator" parent="ButtonContainer/PanelContainer/MainPanelPadding/ContentVBox" unique_id=926730139]
 layout_mode = 2
 
-[node name="GridContainer" type="GridContainer" parent="ButtonContainer/PanelContainer/VBoxContainer" unique_id=350046657]
+[node name="GridContainer" type="GridContainer" parent="ButtonContainer/PanelContainer/MainPanelPadding/ContentVBox" unique_id=350046657]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
 columns = 3
 
-[node name="EnButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer" unique_id=923459781]
+[node name="EnButton" type="Button" parent="ButtonContainer/PanelContainer/MainPanelPadding/ContentVBox/GridContainer" unique_id=923459781]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 80)
 layout_mode = 2
 
-[node name="EsButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer" unique_id=2000506282]
+[node name="EsButton" type="Button" parent="ButtonContainer/PanelContainer/MainPanelPadding/ContentVBox/GridContainer" unique_id=2000506282]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 80)
 layout_mode = 2
 
-[node name="PtButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer" unique_id=954468652]
+[node name="PtButton" type="Button" parent="ButtonContainer/PanelContainer/MainPanelPadding/ContentVBox/GridContainer" unique_id=954468652]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 80)
 layout_mode = 2
 
-[node name="ZhCnButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer" unique_id=833155879]
+[node name="ZhCnButton" type="Button" parent="ButtonContainer/PanelContainer/MainPanelPadding/ContentVBox/GridContainer" unique_id=833155879]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 80)
 layout_mode = 2
 
-[node name="JaButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer" unique_id=1373925847]
+[node name="JaButton" type="Button" parent="ButtonContainer/PanelContainer/MainPanelPadding/ContentVBox/GridContainer" unique_id=1373925847]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 80)
 layout_mode = 2

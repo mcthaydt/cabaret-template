@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://ddn5pq0hy1ou6"]
 
 [ext_resource type="Script" uid="uid://dnt7vw1x370bc" path="res://scripts/ui/menus/ui_settings_menu.gd" id="1_settings_menu_script"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
@@ -12,6 +13,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_settings_menu_script")
+background_color = Color(0.114, 0.114, 0.129, 0.7)
+motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=163935902]
 script = ExtResource("ui_scale_root")
@@ -19,79 +22,102 @@ script = ExtResource("ui_scale_root")
 [node name="LocalizationRoot" type="Node" parent="." unique_id=31562931]
 script = ExtResource("localization_root")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1053603333]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=2083516117]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.64705884)
 
-[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=1273269285]
-custom_minimum_size = Vector2(280, 220)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-follow_focus = true
-
-[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer" unique_id=514406243]
-custom_minimum_size = Vector2(280, 220)
+[node name="MainPanelMotionHost" type="Control" parent="CenterContainer" unique_id=213359441]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(460, 560)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-alignment = 1
 
-[node name="TitleLabel" type="Label" parent="ScrollContainer/VBoxContainer" unique_id=858077501]
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer/MainPanelMotionHost" unique_id=623521785]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanelPadding" type="MarginContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel" unique_id=264061514]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MainPanelContent" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding" unique_id=211497304]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=858077501]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Settings"
 horizontal_alignment = 1
 
-[node name="InputProfilesButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=519881101]
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1114520204]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1273269285]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 360)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+
+[node name="ButtonsVBox" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer" unique_id=514406243]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 360)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+
+[node name="InputProfilesButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=519881101]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Input Profiles"
 
-[node name="GamepadSettingsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=786011521]
+[node name="GamepadSettingsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=786011521]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Gamepad Settings"
 
-[node name="TouchscreenSettingsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=1523316640]
+[node name="TouchscreenSettingsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=1523316640]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Touchscreen Settings"
 
-[node name="VFXSettingsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=838673743]
+[node name="VFXSettingsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=838673743]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Visual Effects"
 
-[node name="DisplaySettingsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=1702409007]
+[node name="DisplaySettingsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=1702409007]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Display Settings"
 
-[node name="AudioSettingsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=125247589]
+[node name="AudioSettingsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=125247589]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Audio Settings"
 
-[node name="LanguageSettingsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=1847302915]
+[node name="LanguageSettingsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=1847302915]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Language"
 
-[node name="RebindControlsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=470415140]
+[node name="RebindControlsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=470415140]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Rebind Controls"
 
-[node name="BackButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=1389306686]
+[node name="BackButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=1389306686]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Back to Main Menu"

@@ -5,6 +5,8 @@ class_name UI_EditTouchControlsOverlay
 const I_INPUT_DEVICE_MANAGER := preload("res://scripts/interfaces/i_input_device_manager.gd")
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"overlay.edit_touch_controls.title"
 const LABEL_DRAG_MODE_KEY := &"overlay.edit_touch_controls.label.drag_mode"
@@ -16,9 +18,14 @@ const TOOLTIP_DRAG_MODE_KEY := &"overlay.edit_touch_controls.tooltip.drag_mode"
 const TOOLTIP_RESET_KEY := &"overlay.edit_touch_controls.tooltip.reset"
 const TOOLTIP_SAVE_KEY := &"overlay.edit_touch_controls.tooltip.save"
 
-@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
+@onready var _main_panel: PanelContainer = %MainPanel
+@onready var _main_panel_padding: MarginContainer = %MainPanelPadding
+@onready var _main_panel_content: VBoxContainer = %MainPanelContent
+@onready var _toggle_row: HBoxContainer = %ToggleRow
+@onready var _button_row: HBoxContainer = %ButtonRow
+@onready var _title_label: Label = %HeadingLabel
 @onready var _drag_mode_check: CheckButton = %DragModeCheck
-@onready var _instructions_label: Label = $CenterContainer/Panel/VBox/Instructions
+@onready var _instructions_label: Label = %InstructionsLabel
 @onready var _cancel_button: Button = %CancelButton
 @onready var _reset_button: Button = %ResetButton
 @onready var _save_button: Button = %SaveButton
@@ -34,6 +41,7 @@ var _drag_mode_enabled: bool = false
 var _original_positions: Dictionary = {}
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_mobile_controls = _resolve_mobile_controls()
 	_profile_manager = _resolve_input_profile_manager()
 
@@ -47,6 +55,52 @@ func _on_panel_ready() -> void:
 	_cancel_button.pressed.connect(_on_cancel_pressed)
 	_reset_button.pressed.connect(_on_reset_pressed)
 	_save_button.pressed.connect(_on_save_pressed)
+	play_enter_animation()
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	var dim_color := config.bg_base
+	dim_color.a = 0.05
+	background_color = dim_color
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = dim_color
+
+	if _grid_overlay != null:
+		var grid_color := config.text_secondary
+		grid_color.a = 0.05
+		_grid_overlay.color = grid_color
+
+	if _main_panel != null and config.panel_section != null:
+		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _main_panel_padding != null:
+		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	if _main_panel_content != null:
+		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+	if _toggle_row != null:
+		_toggle_row.add_theme_constant_override(&"separation", config.separation_compact)
+	if _button_row != null:
+		_button_row.add_theme_constant_override(&"separation", config.separation_compact)
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.heading)
+	if _drag_mode_check != null:
+		_drag_mode_check.add_theme_font_size_override(&"font_size", config.section_header)
+	if _instructions_label != null:
+		_instructions_label.add_theme_font_size_override(&"font_size", config.body_small)
+		_instructions_label.add_theme_color_override(&"font_color", config.text_secondary)
+	if _cancel_button != null:
+		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _reset_button != null:
+		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _save_button != null:
+		_save_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _resolve_input_profile_manager() -> Node:
 	if input_profile_manager != null and is_instance_valid(input_profile_manager):

@@ -56,6 +56,25 @@ const PRODUCTION_PATH_DIRECTORIES := [
 	"res://resources"
 ]
 
+const UI_POLISHED_OVERLAY_SCENES := [
+	"res://scenes/ui/menus/ui_pause_menu.tscn",
+	"res://scenes/ui/menus/ui_settings_menu.tscn",
+	"res://scenes/ui/overlays/ui_save_load_menu.tscn",
+	"res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn",
+	"res://scenes/ui/overlays/ui_input_profile_selector.tscn",
+	"res://scenes/ui/overlays/ui_gamepad_settings_overlay.tscn",
+	"res://scenes/ui/overlays/ui_touchscreen_settings_overlay.tscn",
+	"res://scenes/ui/overlays/ui_edit_touch_controls_overlay.tscn",
+	"res://scenes/ui/overlays/settings/ui_audio_settings_overlay.tscn",
+	"res://scenes/ui/overlays/settings/ui_display_settings_overlay.tscn",
+	"res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn",
+	"res://scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn",
+]
+
+const UI_THEME_OVERRIDE_ALLOWED_COUNTS := {
+	"res://scenes/ui/widgets/ui_virtual_button.tscn": 4,
+}
+
 const SCRIPT_FILENAME_EXCEPTIONS := [
 	"root.gd" # Root bootstrap script (intentionally unprefixed)
 ]
@@ -304,6 +323,51 @@ func test_production_paths_have_no_spaces() -> void:
 
 	assert_eq(violations.size(), 0, message)
 
+func test_polished_overlay_scenes_have_no_inline_theme_overrides() -> void:
+	var violations: Array[String] = []
+
+	for scene_path in UI_POLISHED_OVERLAY_SCENES:
+		var override_count: int = _count_theme_override_lines(scene_path)
+		if override_count > 0:
+			violations.append("%s (%d inline theme_override_ lines)" % [scene_path, override_count])
+
+	var message := "Polished overlay scenes should not regress to inline theme_override_* styling"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+		message += "\nUse RS_UIThemeConfig tokens in script/theme builder instead."
+
+	assert_eq(violations.size(), 0, message)
+
+func test_no_inline_theme_overrides_except_semantic() -> void:
+	var override_counts: Dictionary = {}
+	_collect_scene_theme_override_counts("res://scenes/ui", override_counts)
+
+	var total_override_count: int = 0
+	var violations: Array[String] = []
+	var scene_paths: Array[String] = []
+	for path_variant in override_counts.keys():
+		scene_paths.append(str(path_variant))
+	scene_paths.sort()
+
+	for scene_path in scene_paths:
+		var override_count: int = int(override_counts.get(scene_path, 0))
+		total_override_count += override_count
+		var allowed_count: int = int(UI_THEME_OVERRIDE_ALLOWED_COUNTS.get(scene_path, 0))
+		if override_count > allowed_count:
+			violations.append("%s (%d inline theme_override_ lines; allowed %d)" % [scene_path, override_count, allowed_count])
+
+	var violations_message := "UI scenes should avoid inline theme_override_* except semantic exceptions"
+	if violations.size() > 0:
+		violations_message += ":\n" + "\n".join(violations)
+		violations_message += "\nUse RS_UIThemeConfig tokens and script-applied overrides instead."
+	assert_eq(violations.size(), 0, violations_message)
+
+	assert_lte(
+		total_override_count,
+		4,
+		"Expected <= 4 total inline theme_override_* lines under scenes/ui (semantic virtual-button overrides only), got %d" % total_override_count
+	)
+
 func test_scene_organization_root_structure() -> void:
 	var root_scene := load("res://scenes/root.tscn") as PackedScene
 	assert_not_null(root_scene, "Root scene must exist")
@@ -392,6 +456,16 @@ func test_scene_organization_gameplay_structure() -> void:
 	assert_true(has_entities, "Gameplay scene must have Entities node")
 	assert_true(has_spawn_points_in_entities,
 		"Spawn points must be under Entities node per SCENE_ORGANIZATION_GUIDE.md")
+
+func test_gameplay_scenes_do_not_embed_hud_instances() -> void:
+	var violations: Array[String] = []
+	_collect_gameplay_hud_embedding_violations("res://scenes/gameplay", violations)
+
+	var message := "Gameplay scenes must not embed HUD instances (HUD is root-managed by M_SceneManager)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+
+	assert_eq(violations.size(), 0, message)
 
 # Helper functions for prefix validation
 
@@ -523,5 +597,76 @@ func _collect_interaction_resource_placement_violations(dir_path: String, violat
 		elif entry.ends_with(".tres"):
 			if dir_path == "res://resources/interactions":
 				violations.append("%s - interaction config instances must live in a category subdirectory" % path)
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _collect_gameplay_hud_embedding_violations(dir_path: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_gameplay_hud_embedding_violations(path, violations)
+		elif entry.ends_with(".tscn"):
+			if _scene_embeds_hud_overlay(path):
+				violations.append("%s embeds ui_hud_overlay.tscn or HUD root node" % path)
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _scene_embeds_hud_overlay(path: String) -> bool:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return false
+
+	var has_hud_ext_resource := false
+	var has_hud_node := false
+	while not file.eof_reached():
+		var line := file.get_line()
+		if line.find("res://scenes/ui/hud/ui_hud_overlay.tscn") != -1:
+			has_hud_ext_resource = true
+		if line.begins_with("[node name=\"HUD\""):
+			has_hud_node = true
+		if has_hud_ext_resource or has_hud_node:
+			file.close()
+			return true
+
+	file.close()
+	return false
+
+func _count_theme_override_lines(path: String) -> int:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return 0
+
+	var count := 0
+	while not file.eof_reached():
+		var line := file.get_line()
+		if line.find("theme_override_") != -1:
+			count += 1
+
+	file.close()
+	return count
+
+func _collect_scene_theme_override_counts(dir_path: String, override_counts: Dictionary) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_scene_theme_override_counts(path, override_counts)
+		elif entry.ends_with(".tscn"):
+			var override_count: int = _count_theme_override_lines(path)
+			if override_count > 0:
+				override_counts[path] = override_count
 		entry = dir.get_next()
 	dir.list_dir_end()

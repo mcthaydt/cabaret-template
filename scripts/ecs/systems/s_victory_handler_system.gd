@@ -5,7 +5,7 @@ class_name S_VictoryHandlerSystem
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
 @export var state_store: I_StateStore = null
-@export var required_final_area: String = "bar"
+@export var game_config: RS_GameConfig = null
 const DEBUG_VICTORY_TRACE := false
 
 var _store: I_StateStore = null
@@ -13,6 +13,8 @@ var _event_unsubscribes: Array[Callable] = []
 
 func _init() -> void:
 	execution_priority = 300
+	if game_config == null:
+		game_config = RS_GameConfig.new()
 
 func process_tick(__delta: float) -> void:
 	# Victory processing is event-driven via ECSEventBus.
@@ -159,15 +161,15 @@ func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
 		var completed_variant: Variant = gameplay.get("completed_areas", [])
 		if completed_variant is Array:
 			var completed: Array = completed_variant
-			if not completed.has(required_final_area):
+			if not completed.has(game_config.required_final_area):
 				_debug_log(
 					"GAME_COMPLETE gate failed: required_final_area=%s completed_areas=%s"
-					% [required_final_area, str(completed)]
+					% [game_config.required_final_area, str(completed)]
 				)
 				return false
 			_debug_log(
 				"GAME_COMPLETE gate passed: required_final_area=%s completed_areas=%s"
-				% [required_final_area, str(completed)]
+				% [game_config.required_final_area, str(completed)]
 			)
 		else:
 			_debug_log("GAME_COMPLETE gate failed: gameplay.completed_areas is not an Array (%s)" % str(completed_variant))

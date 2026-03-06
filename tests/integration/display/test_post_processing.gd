@@ -38,6 +38,7 @@ func before_each() -> void:
 	_overlay = POST_PROCESS_OVERLAY_SCENE.instantiate()
 	_overlay.name = "PostProcessOverlay"
 	add_child_autofree(_overlay)
+	U_SERVICE_LOCATOR.register(StringName("post_process_overlay"), _overlay)
 
 	_display_manager = M_DISPLAY_MANAGER.new()
 	add_child_autofree(_display_manager)

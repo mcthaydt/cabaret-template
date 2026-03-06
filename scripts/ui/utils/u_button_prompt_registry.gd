@@ -23,19 +23,19 @@ static func _initialize_registry() -> void:
 
 	_assign_prompt(StringName("ui_accept"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_space.png", "Enter")
 	_assign_prompt(StringName("ui_accept"), DEVICE_GAMEPAD, gamepad_base + "face_buttons_south.png", "A")
-	_assign_prompt(StringName("ui_accept"), DEVICE_TOUCHSCREEN, mobile_base + "button_background.png", "Accept")
+	_assign_prompt(StringName("ui_accept"), DEVICE_TOUCHSCREEN, mobile_base + "button_background.svg", "Accept")
 
 	_assign_prompt(StringName("ui_cancel"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_escape.png", "Esc")
 	_assign_prompt(StringName("ui_cancel"), DEVICE_GAMEPAD, gamepad_base + "face_buttons_east.png", "B")
-	_assign_prompt(StringName("ui_cancel"), DEVICE_TOUCHSCREEN, mobile_base + "button_background.png", "Back")
+	_assign_prompt(StringName("ui_cancel"), DEVICE_TOUCHSCREEN, mobile_base + "button_background.svg", "Back")
 
 	_assign_prompt(StringName("ui_pause"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_escape.png", "Esc")
 	_assign_prompt(StringName("ui_pause"), DEVICE_GAMEPAD, gamepad_base + "button_start.png", "Start")
-	_assign_prompt(StringName("ui_pause"), DEVICE_TOUCHSCREEN, mobile_base + "button_background.png", "Pause")
+	_assign_prompt(StringName("ui_pause"), DEVICE_TOUCHSCREEN, mobile_base + "button_background.svg", "Pause")
 
 	_assign_prompt(StringName("interact"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_e.png", "E")
 	_assign_prompt(StringName("interact"), DEVICE_GAMEPAD, gamepad_base + "face_buttons_west.png", "X")
-	_assign_prompt(StringName("interact"), DEVICE_TOUCHSCREEN, mobile_base + "button_background.png", "Interact")
+	_assign_prompt(StringName("interact"), DEVICE_TOUCHSCREEN, mobile_base + "button_background.svg", "Interact")
 
 	_assign_prompt(StringName("jump"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_space.png")
 	_assign_prompt(StringName("jump"), DEVICE_GAMEPAD, gamepad_base + "face_buttons_south.png")

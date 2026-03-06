@@ -5,6 +5,8 @@ class_name UI_InputRebindingOverlay
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/cfg_default_rebind_settings.tres")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"menu.settings.rebind"
 const STATUS_DEFAULT_KEY := &"overlay.input_rebinding.status.default"
@@ -22,13 +24,17 @@ const ERROR_RESET_UNAVAILABLE_KEY := &"overlay.input_rebinding.error.reset_unava
 const ERROR_RESET_RESERVED_KEY := &"overlay.input_rebinding.error.reset_reserved"
 const ERROR_RESET_ACTION_UNAVAILABLE_KEY := &"overlay.input_rebinding.error.reset_action_unavailable"
 
-@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
+@onready var _title_label: Label = %TitleLabel
+@onready var _main_panel: PanelContainer = %MainPanel
+@onready var _main_panel_padding: MarginContainer = %MainPanelPadding
+@onready var _main_panel_content: VBoxContainer = %MainPanelContent
 @onready var _action_list: VBoxContainer = %ActionList
 @onready var _status_label: Label = %StatusLabel
 @onready var _search_box: LineEdit = %SearchBox
+@onready var _button_row: HBoxContainer = %ButtonRow
 @onready var _close_button: Button = %CloseButton
 @onready var _reset_button: Button = %ResetButton
-@onready var _scroll: ScrollContainer = $CenterContainer/Panel/VBox/Scroll
+@onready var _scroll: ScrollContainer = %Scroll
 @onready var _conflict_dialog: ConfirmationDialog = %ConflictDialog
 @onready var _reset_confirm_dialog: ConfirmationDialog = %ResetConfirmDialog
 @onready var _error_dialog: AcceptDialog = %ErrorDialog
@@ -59,6 +65,7 @@ var _bottom_button_index: int = 0
 var _row_button_index: int = 0
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_profile_manager = _resolve_input_profile_manager()
 	if _profile_manager != null and "store_ref" in _profile_manager:
 		var manager_store: Variant = _profile_manager.store_ref
@@ -91,6 +98,8 @@ func _on_panel_ready() -> void:
 	_build_action_rows()
 	_update_status(_get_status_default_text())
 	_set_reset_button_enabled(_profile_manager != null)
+	_connect_bottom_row_focus_handlers()
+	play_enter_animation()
 
 func _resolve_input_profile_manager() -> Node:
 	if input_profile_manager != null and is_instance_valid(input_profile_manager):
@@ -412,6 +421,68 @@ func _localize_static_labels() -> void:
 	if _error_dialog != null:
 		_error_dialog.title = _localize_with_fallback(ERROR_TITLE_KEY, "Rebind Error")
 
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	var dim_color := config.bg_base
+	dim_color.a = 0.5
+	background_color = dim_color
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = dim_color
+
+	if _main_panel != null and config.panel_section != null:
+		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _main_panel_padding != null:
+		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	if _main_panel_content != null:
+		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+	if _action_list != null:
+		_action_list.add_theme_constant_override(&"separation", config.separation_compact)
+	if _button_row != null:
+		_button_row.add_theme_constant_override(&"separation", config.separation_default)
+
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.heading)
+	if _status_label != null:
+		_status_label.add_theme_font_size_override(&"font_size", config.section_header)
+		_status_label.add_theme_color_override(&"font_color", config.text_secondary)
+	if _search_box != null:
+		_search_box.add_theme_font_size_override(&"font_size", config.body_small)
+		var search_normal := _build_search_stylebox(config.bg_surface, config.bg_panel_light, 1)
+		var search_focus := _build_search_stylebox(config.bg_surface, config.accent_focus, 2)
+		_search_box.add_theme_stylebox_override(&"normal", search_normal)
+		_search_box.add_theme_stylebox_override(&"focus", search_focus)
+		_search_box.add_theme_stylebox_override(&"read_only", search_normal.duplicate(true))
+		_search_box.add_theme_color_override(&"font_color", config.text_primary)
+		_search_box.add_theme_color_override(&"font_placeholder_color", config.text_secondary)
+		_search_box.add_theme_color_override(&"caret_color", config.text_primary)
+	if _reset_button != null:
+		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _close_button != null:
+		_close_button.add_theme_font_size_override(&"font_size", config.section_header)
+
+func _build_search_stylebox(bg_color: Color, border_color: Color, border_width: int) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg_color
+	style.border_color = border_color
+	style.set_border_width_all(border_width)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	style.content_margin_left = 10.0
+	style.content_margin_right = 10.0
+	style.content_margin_top = 8.0
+	style.content_margin_bottom = 8.0
+	return style
+
 func _get_status_default_text() -> String:
 	return _localize_with_fallback(STATUS_DEFAULT_KEY, "Select an action to rebind.")
 
@@ -432,6 +503,118 @@ func _matches_search_filter(action: StringName) -> bool:
 func _on_search_changed(new_text: String) -> void:
 	_search_filter = new_text
 	_build_action_rows()
+
+func _connect_bottom_row_focus_handlers() -> void:
+	if _reset_button != null and not _reset_button.focus_entered.is_connected(_on_reset_button_focus_entered):
+		_reset_button.focus_entered.connect(_on_reset_button_focus_entered)
+	if _close_button != null and not _close_button.focus_entered.is_connected(_on_close_button_focus_entered):
+		_close_button.focus_entered.connect(_on_close_button_focus_entered)
+
+func _on_reset_button_focus_entered() -> void:
+	_sync_focus_tracking_from_control(_reset_button)
+
+func _on_close_button_focus_entered() -> void:
+	_sync_focus_tracking_from_control(_close_button)
+
+func _sync_focus_tracking_from_control(control: Control) -> void:
+	if control == null:
+		return
+
+	if control == _reset_button or control == _close_button:
+		_is_on_bottom_row = true
+		_bottom_button_index = 0 if control == _reset_button else 1
+		_refresh_action_row_highlight()
+		return
+
+	for index in range(_focusable_actions.size()):
+		var action: StringName = _focusable_actions[index]
+		var row_data: Dictionary = _action_rows.get(action, {}) as Dictionary
+		var row_container := row_data.get("container") as Control
+		var add_button := row_data.get("add_button") as Button
+		var replace_button := row_data.get("replace_button") as Button
+		var reset_button := row_data.get("reset_button") as Button
+
+		if control != row_container and control != add_button and control != replace_button and control != reset_button:
+			continue
+
+		_is_on_bottom_row = false
+		_focused_action_index = index
+
+		var row_buttons: Array[Button] = []
+		if add_button != null and not add_button.disabled:
+			row_buttons.append(add_button)
+		if replace_button != null and not replace_button.disabled:
+			row_buttons.append(replace_button)
+		if reset_button != null and not reset_button.disabled:
+			row_buttons.append(reset_button)
+		_row_button_index = row_buttons.find(control) if row_buttons.has(control) else 0
+		_refresh_action_row_highlight()
+		return
+
+func _refresh_action_row_highlight() -> void:
+	for action_key in _action_rows.keys():
+		var data: Dictionary = _action_rows[action_key]
+		var row_container := data.get("container") as Control
+		if row_container == null:
+			continue
+		if _is_on_bottom_row:
+			row_container.modulate = Color(1, 1, 1, 0.7)
+		elif _focused_action_index >= 0 \
+				and _focused_action_index < _focusable_actions.size() \
+				and action_key == _focusable_actions[_focused_action_index]:
+			row_container.modulate = Color(1, 1, 1, 1)
+		else:
+			row_container.modulate = Color(1, 1, 1, 0.7)
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if _is_capturing:
+		return
+	if event == null:
+		return
+
+	var direction := _get_navigation_direction(event)
+	if direction.is_empty():
+		return
+
+	var viewport := get_viewport()
+	if viewport == null:
+		return
+	var focused := viewport.gui_get_focus_owner() as Control
+	if focused == null or not is_ancestor_of(focused):
+		return
+	if focused == _search_box:
+		# Let the search box keep arrow-key caret behavior.
+		return
+
+	if not _is_rebind_action_or_bottom_focus(focused):
+		return
+
+	_navigate(direction)
+	viewport.set_input_as_handled()
+
+func _get_navigation_direction(event: InputEvent) -> StringName:
+	if event.is_action_pressed(StringName("ui_left")):
+		return StringName("ui_left")
+	if event.is_action_pressed(StringName("ui_right")):
+		return StringName("ui_right")
+	if event.is_action_pressed(StringName("ui_up")):
+		return StringName("ui_up")
+	if event.is_action_pressed(StringName("ui_down")):
+		return StringName("ui_down")
+	return StringName()
+
+func _is_rebind_action_or_bottom_focus(focused: Control) -> bool:
+	if focused == _reset_button or focused == _close_button:
+		return true
+
+	for action in _focusable_actions:
+		if not _action_rows.has(action):
+			continue
+		var row_data: Dictionary = _action_rows[action]
+		var row_container := row_data.get("container") as Control
+		if row_container != null and row_container.is_ancestor_of(focused):
+			return true
+	return false
 
 func _add_spacer(height: int) -> void:
 	U_RebindActionListBuilder._add_spacer(_action_list, height)

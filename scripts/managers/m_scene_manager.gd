@@ -40,6 +40,8 @@ const U_SCENE_MANAGER_NODE_FINDER := preload("res://scripts/scene_management/hel
 const U_NAVIGATION_RECONCILER := preload("res://scripts/scene_management/helpers/u_navigation_reconciler.gd")
 const U_INPUT_MAP_BOOTSTRAPPER := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
+const HUD_OVERLAY_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
+const UI_HUD_CONTROLLER := preload("res://scripts/ui/hud/ui_hud_controller.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
 # Kept for type checking only:
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/trans_fade.gd")
@@ -68,7 +70,8 @@ var _active_scene_container: Node = null
 var _ui_overlay_stack: CanvasLayer = null
 var _transition_overlay: CanvasLayer = null
 var _loading_overlay: CanvasLayer = null
-var _hud_controller: CanvasLayer = null
+var _hud_instance: CanvasLayer = null
+var _owns_hud_instance: bool = false
 
 ## Transition queue helper
 var _transition_queue_helper := U_SCENE_TRANSITION_QUEUE.new()
@@ -201,6 +204,7 @@ func _ready() -> void:
 	_ui_overlay_stack = containers.ui_overlay_stack
 	_transition_overlay = containers.transition_overlay
 	_loading_overlay = containers.loading_overlay
+	_ensure_hud_overlay()
 
 	_sync_overlay_stack_state()
 
@@ -274,23 +278,12 @@ func _register_scene_type_handlers() -> void:
 	_scene_type_handlers[U_SCENE_REGISTRY.SceneType.UI] = H_UI_SCENE_HANDLER.new()
 	_scene_type_handlers[U_SCENE_REGISTRY.SceneType.END_GAME] = H_ENDGAME_SCENE_HANDLER.new()
 
-func register_hud_controller(hud: CanvasLayer) -> void:
-	if hud == null:
-		return
-	_hud_controller = hud
-
-func unregister_hud_controller(hud: CanvasLayer = null) -> void:
-	if hud == null or hud == _hud_controller:
-		_hud_controller = null
-
-func get_hud_controller() -> CanvasLayer:
-	if _hud_controller != null and is_instance_valid(_hud_controller):
-		return _hud_controller
-	_hud_controller = null
-	return null
-
-
 func _exit_tree() -> void:
+	if _owns_hud_instance and _hud_instance != null and is_instance_valid(_hud_instance):
+		_hud_instance.queue_free()
+	_hud_instance = null
+	_owns_hud_instance = false
+
 	# Unsubscribe from state updates
 	if _unsubscribe != null and _unsubscribe.is_valid():
 		_unsubscribe.call()
@@ -303,6 +296,36 @@ func _exit_tree() -> void:
 		_entity_death_unsubscribe.call()
 	if _objective_victory_unsubscribe != null and _objective_victory_unsubscribe.is_valid():
 		_objective_victory_unsubscribe.call()
+
+func _ensure_hud_overlay() -> void:
+	var hud_layer := U_ServiceLocator.try_get_service(StringName("hud_layer")) as CanvasLayer
+	if hud_layer == null:
+		push_warning("M_SceneManager: No HUDLayer registered with ServiceLocator")
+		return
+
+	var existing_hud := _find_existing_hud_controller(hud_layer)
+	if existing_hud != null:
+		_hud_instance = existing_hud
+		_owns_hud_instance = false
+		return
+
+	var hud_node: Node = HUD_OVERLAY_SCENE.instantiate()
+	var hud_controller := hud_node as CanvasLayer
+	if hud_controller == null:
+		push_error("M_SceneManager: HUD overlay scene root must be a CanvasLayer")
+		hud_node.queue_free()
+		return
+
+	hud_layer.add_child(hud_controller)
+	_hud_instance = hud_controller
+	_owns_hud_instance = true
+
+func _find_existing_hud_controller(hud_layer: CanvasLayer) -> CanvasLayer:
+	for child: Node in hud_layer.get_children():
+		var child_script: Variant = child.get_script()
+		if child_script == UI_HUD_CONTROLLER:
+			return child as CanvasLayer
+	return null
 
 func _ensure_store_reference() -> void:
 	_store = U_SCENE_MANAGER_NODE_FINDER.ensure_store_reference(_store, self )

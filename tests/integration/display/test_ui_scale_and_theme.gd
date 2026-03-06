@@ -11,6 +11,8 @@ const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 const RS_UI_COLOR_PALETTE := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
+const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 
 const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -25,6 +27,8 @@ var _post_process_overlay: Node
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
 	U_STATE_HANDOFF.clear_all()
+	U_DISPLAY_UI_THEME_APPLIER.clear_active_palette()
+	U_UI_THEME_BUILDER.active_config = null
 	await get_tree().process_frame
 
 	_store = _create_state_store()
@@ -34,6 +38,7 @@ func before_each() -> void:
 	_post_process_overlay = POST_PROCESS_OVERLAY_SCENE.instantiate()
 	_post_process_overlay.name = "PostProcessOverlay"
 	add_child_autofree(_post_process_overlay)
+	U_SERVICE_LOCATOR.register(StringName("post_process_overlay"), _post_process_overlay)
 
 	_display_manager = M_DISPLAY_MANAGER.new()
 	add_child_autofree(_display_manager)
@@ -41,6 +46,8 @@ func before_each() -> void:
 
 func after_each() -> void:
 	U_STATE_HANDOFF.clear_all()
+	U_DISPLAY_UI_THEME_APPLIER.clear_active_palette()
+	U_UI_THEME_BUILDER.active_config = null
 	super.after_each()
 
 func _create_state_store() -> M_StateStore:

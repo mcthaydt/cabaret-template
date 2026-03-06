@@ -62,6 +62,10 @@ var _flash_requests: Array = []
 ## Unsubscribe callables for ECS event subscriptions
 var _event_unsubscribes: Array[Callable] = []
 
+## State store subscription for detecting shell changes
+var _store_unsubscribe: Callable = Callable()
+var _last_shell: StringName = StringName("")
+
 ## Preview settings overrides (used by settings UI)
 var _preview_settings: Dictionary = {}
 var _is_previewing: bool = false
@@ -96,13 +100,13 @@ func _ready() -> void:
 	# Load and initialize damage flash overlay (VFX Phase 4: T4.4)
 	var flash_scene: PackedScene = DAMAGE_FLASH_SCENE
 	if flash_scene != null:
-		var flash_instance: CanvasLayer = flash_scene.instantiate()
-		add_child(flash_instance)
-		var flash_rect: ColorRect = flash_instance.get_node("FlashRect") as ColorRect
-		if flash_rect != null:
-			_damage_flash = U_DamageFlash.new(flash_rect, get_tree())
-		else:
-			push_error("M_VFXManager: Failed to find FlashRect in damage flash overlay scene")
+			var flash_instance: CanvasLayer = flash_scene.instantiate()
+			add_child(flash_instance)
+			var flash_rect: ColorRect = flash_instance.get_node("FlashRect") as ColorRect
+			if flash_rect != null:
+				_damage_flash = U_DamageFlash.new(flash_rect, flash_instance)
+			else:
+				push_error("M_VFXManager: Failed to find FlashRect in damage flash overlay scene")
 	else:
 		push_error("M_VFXManager: Failed to load damage flash overlay scene")
 
@@ -116,12 +120,19 @@ func _ready() -> void:
 		_on_damage_flash_request
 	))
 
+	# Subscribe to state changes to cancel flash when leaving gameplay
+	if _state_store != null:
+		_store_unsubscribe = _state_store.subscribe(_on_state_changed)
+
 func _exit_tree() -> void:
 	# Unsubscribe from all ECS events to prevent memory leaks
 	for unsubscribe in _event_unsubscribes:
 		if unsubscribe.is_valid():
 			unsubscribe.call()
 	_event_unsubscribes.clear()
+	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
+		_store_unsubscribe.call()
+		_store_unsubscribe = Callable()
 
 ## Add trauma to the current trauma level
 ##
@@ -227,6 +238,14 @@ func _is_transition_blocked() -> bool:
 		return true
 
 	return false
+
+func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
+	var nav_slice: Dictionary = state.get("navigation", {})
+	var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(nav_slice)
+	if _last_shell == StringName("gameplay") and shell != StringName("gameplay"):
+		if _damage_flash != null:
+			_damage_flash.cancel_flash()
+	_last_shell = shell
 
 ## Physics process - handles trauma decay and screen shake application (VFX Phase 3: T3.2)
 func _physics_process(delta: float) -> void:

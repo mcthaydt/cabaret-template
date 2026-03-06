@@ -9,6 +9,9 @@ class_name UI_MainMenu
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
@@ -18,6 +21,7 @@ const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 @onready var _title_label: Label = %TitleLabel
 @onready var _main_panel: Control = %MainPanel
 @onready var _settings_panel: Control = %SettingsPanel
+@onready var _background: ColorRect = $Background
 @onready var _continue_button: Button = %ContinueButton
 @onready var _new_game_button: Button = %NewGameButton
 @onready var _load_game_button: Button = %LoadGameButton
@@ -32,6 +36,8 @@ var _store_unsubscribe: Callable = Callable()
 var _active_panel: StringName = StringName()
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
+	call_deferred("_debug_log_theme_snapshot")
 	_discover_save_manager()
 	_update_button_visibility()
 	_connect_buttons()
@@ -43,6 +49,24 @@ func _on_panel_ready() -> void:
 	if _store_unsubscribe == Callable() or not _store_unsubscribe.is_valid():
 		_store_unsubscribe = store.subscribe(_on_state_changed)
 	_on_state_changed({}, store.get_state())
+	play_enter_animation()
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		_theme_debug_log("apply_theme_tokens skipped: active_config type mismatch")
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+	if _background != null:
+		_background.color = config.bg_base
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.title)
+	_theme_debug_log(
+		"apply_theme_tokens applied: bg_base=%s title=%d" % [
+			str(config.bg_base),
+			config.title,
+		]
+	)
 
 func _discover_save_manager() -> void:
 	_save_manager = U_ServiceLocator.try_get_service(StringName("save_manager"))
@@ -282,3 +306,33 @@ func _localize_labels() -> void:
 
 func _on_locale_changed(_locale: StringName) -> void:
 	_localize_labels()
+
+func _debug_log_theme_snapshot() -> void:
+	if not U_UI_THEME_DEBUG.is_enabled():
+		return
+	var root_theme: Theme = theme
+	var button_theme := _new_game_button.get_theme() if _new_game_button != null else null
+	var has_root_button_style := false
+	var has_root_panel_style := false
+	var has_button_effective_style := false
+	if root_theme != null:
+		has_root_button_style = root_theme.has_stylebox(&"normal", &"Button")
+		has_root_panel_style = root_theme.has_stylebox(&"panel", &"PanelContainer")
+	if _new_game_button != null:
+		var stylebox: StyleBox = _new_game_button.get_theme_stylebox(&"normal")
+		has_button_effective_style = stylebox != null
+	_theme_debug_log(
+		"theme snapshot: root_theme=%s root_has_button_style=%s root_has_panel_style=%s " % [
+			str(root_theme != null),
+			str(has_root_button_style),
+			str(has_root_panel_style),
+		] +
+		"button_theme=%s button_effective_style=%s background=%s" % [
+			str(button_theme != null),
+			str(has_button_effective_style),
+			str(_background.color if _background != null else Color.BLACK),
+		]
+	)
+
+func _theme_debug_log(message: String) -> void:
+	U_UI_THEME_DEBUG.log("UI_MainMenu", message)

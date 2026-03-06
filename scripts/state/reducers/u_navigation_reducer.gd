@@ -213,6 +213,12 @@ static func _reduce_start_game(state: Dictionary, action: Dictionary) -> Diction
 	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = DEFAULT_PAUSE_PANEL
 	new_state["last_gameplay_scene_id"] = scene_id
+	# Start-game transitions use a loading screen so the player sees feedback
+	# while the gameplay scene loads (especially on slower devices).
+	new_state["_transition_metadata"] = {
+		"transition_type": "loading",
+		"priority": 1
+	}
 	return new_state
 
 static func _reduce_open_endgame(state: Dictionary, action: Dictionary) -> Dictionary:
@@ -250,11 +256,9 @@ static func _reduce_retry(state: Dictionary, action: Dictionary) -> Dictionary:
 	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = DEFAULT_PAUSE_PANEL
 	new_state["last_gameplay_scene_id"] = desired_scene
-	# Retry transitions (from Game Over / Victory) should be snappy to keep
-	# the flow responsive. Store transition metadata so M_SceneManager can
-	# prefer instant, high-priority transitions for this navigation change.
+	# Retry transitions use a fade so the scene change feels smooth.
 	new_state["_transition_metadata"] = {
-		"transition_type": "instant",
+		"transition_type": "fade",
 		"priority": 2
 	}
 	return new_state

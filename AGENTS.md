@@ -99,7 +99,7 @@
   - `S_GameEventSystem` evaluates event/both rules on subscribed ECS events and supports optional global tick evaluation for tick/both rules.
   - Event-forwarding publish effects merge incoming event payload into the outgoing payload, then apply configured payload overrides and `entity_id` injection.
   - `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates required payload (`checkpoint`, `spawn_point_id`), dispatches `set_last_checkpoint`, and publishes `Evn_CheckpointActivated`.
-  - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `@export var required_final_area: String = "bar"` for game-complete triggers, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED` for post-validation scene transitions.
+  - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `game_config.required_final_area` (from `RS_GameConfig`) for game-complete triggers, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED` for post-validation scene transitions.
   - Gameplay flows use `S_GameEventSystem` + handler systems end-to-end; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from the codebase, and active tests target QB-handler flow.
 - QB Rule Engine v2 patterns (Phase 5 complete)
   - The rule engine is a stateless library: `U_RuleScorer.score_rules(...)` + `U_RuleSelector.select_winners(...)`; systems compose these utilities instead of inheriting a QB base class.
@@ -118,6 +118,7 @@
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.
   - Player-only + transition gating: `M_VFXManager` filters requests via `_is_player_entity()` and `_is_transition_blocked()` using Redux `gameplay.player_entity_id`, `scene.is_transitioning`, `scene.scene_stack`, and `navigation.shell == "gameplay"`.
+  - `U_DamageFlash` now takes `(flash_rect, owner_node)` and creates tweens through `U_TweenManager` (`TweenConfig.process_mode = TWEEN_PROCESS_IDLE` + explicit `TWEEN_PAUSE_PROCESS`).
   - Use `U_ECSEventNames` constants for subscriptions instead of string literals.
 - VFX Tuning Resources (Phase 4)
   - `RS_ScreenShakeTuning` defines trauma decay + damage/landing/death curves; defaults in `resources/vfx/cfg_screen_shake_tuning.tres`.
@@ -160,18 +161,65 @@
 
 - **Root scene pattern (NEW - Phase 2)**: `scenes/root.tscn` persists throughout session
   - Persistent managers: `M_StateStore`, `M_CursorManager`, `M_SceneManager`
-  - Scene containers: `ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`
-  - Gameplay scenes load/unload as children of `ActiveSceneContainer`
+  - Scene containers: `GameViewportContainer/GameViewport/ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`
+  - Gameplay scenes load/unload as children of `GameViewportContainer/GameViewport/ActiveSceneContainer`
+  - Container service registration contract (Phase 4 UI/Layers refactor): `root.gd` registers `hud_layer`, `ui_overlay_stack`, `transition_overlay`, `loading_overlay`, `game_viewport`, `active_scene_container`, and `post_process_overlay` via `U_ServiceLocator`.
+  - Test harness contract for strict container discovery: lightweight tests that instantiate scenes outside `root.tscn` must register required container services (at minimum `hud_layer` for HUD-bearing scenes, plus any container consumed by the path under test).
+  - Scene/container discovery contract: `U_SceneManagerNodeFinder` and display post-process setup are ServiceLocator-only; do not add `find_child()` fallbacks for these container lookups.
+  - HUD transition-decoupling contract (Phase 5): `UI_HudController` visibility is Redux-driven (`scene.is_transitioning` + `navigation.shell == "gameplay"`). Transition effects (including `Trans_LoadingScreen`) must not hide/show HUD directly, and `I_SceneManager` no longer exposes HUD registration/getter APIs.
+  - HUD lifecycle contract (Phase 6): `M_SceneManager` instantiates `scenes/ui/hud/ui_hud_overlay.tscn` under `hud_layer`; gameplay templates/scenes must not embed HUD instances, and `UI_HudController` must not self-reparent.
 - Mobile touch controls: `scenes/ui/mobile_controls.tscn` CanvasLayer lives in root; shows virtual joystick/buttons on mobile or `--emulate-mobile`, hides during transitions/pause/gamepad input
+- CanvasLayer constants are centralized in `scripts/ui/u_canvas_layers.gd`; script-authored layer assignments should use these constants instead of raw numbers.
 - **Gameplay scenes**: Each has own `M_ECSManager` instance
   - Example: `scenes/gameplay/gameplay_base.tscn`
   - Contains: Systems, Entities, SceneObjects, Environment
-  - HUD uses `U_StateUtils.get_store(self)` to find M_StateStore via ServiceLocator (or injected store)
+  - HUD is root-managed under `HUDLayer` by `M_SceneManager`; gameplay scenes must not embed HUD nodes.
+  - UI controllers (including HUD) use `U_StateUtils.get_store(self)` for `M_StateStore` lookup (or injected store).
 - Node tree structure: See `docs/scene_organization/SCENE_ORGANIZATION_GUIDE.md`
 - Templates: `scenes/templates/tmpl_base_scene.tscn`, `scenes/templates/tmpl_character.tscn`, `scenes/templates/tmpl_camera.tscn`
 - Marker scripts: `scripts/scene_structure/*` (11 total) provide visual organization
 - Systems organized by category: Core / Physics / Movement / Feedback
 - Naming: Node names use prefixes matching their script types (E_, Inter_, S_, C_, M_, SO_, Env_)
+
+### UI Theme Pipeline (UI Visual Overhaul Phase 0)
+
+- `RS_UIThemeConfig` (`scripts/resources/ui/rs_ui_theme_config.gd`) is the canonical theme contract; default instance is `resources/ui/cfg_ui_theme_default.tres`.
+- `U_UIThemeBuilder` (`scripts/ui/utils/u_ui_theme_builder.gd`) is the single composition point for UI themes:
+  - Input: base font theme from `U_LocalizationFontApplier`, optional `RS_UIColorPalette`, required `RS_UIThemeConfig`.
+  - Output: merged `Theme` containing fonts, text colors, spacing constants, and styleboxes.
+  - Runtime-default contract: call `RS_UIThemeConfig.ensure_runtime_defaults()` inside `U_UIThemeBuilder` before stylebox application so loaded config resources hydrate missing styleboxes consistently on mobile/export builds.
+- Root bootstrap contract: `scripts/root.gd` sets `U_UIThemeBuilder.active_config` on enter/ready; only the persistent app root (`Managers/M_StateStore` present) clears it on exit. Non-persistent gameplay roots must not clear global theme config.
+- `U_DisplayUIThemeApplier` no longer owns a standalone applied theme in unified mode; it stores active palette state and rebuilds registered UI roots through `U_UIThemeBuilder`.
+- Backward-compat contract: when `U_UIThemeBuilder.active_config` is `null`, localization and display theming keep legacy behavior (font-only localization theme + palette-only display theme).
+- Palette bootstrapping contract: when unified mode is active and palette has not been applied yet, `U_UIThemeBuilder` should still apply config text colors for roots missing explicit font colors while preserving existing base-theme colors when present.
+- Settings-tab tokenization contract (Phase 3 Screen 14): tabs embedded inside settings wrappers (for example `UI_LocalizationSettingsTab`) should remove inline `theme_override_*` constants and apply spacing/typography tokens in script via `U_UIThemeBuilder.active_config` + `RS_UIThemeConfig` (`separation_default`, `separation_compact`, `heading`, `section_header`, `body_small`, semantic text colors).
+- HUD tokenization contract (Phase 4 Screen 17): `scenes/ui/hud/ui_hud_overlay.tscn` should not keep inline `theme_override_*` entries. Apply HUD margins/typography/surface tokens in `UI_HudController._apply_theme_tokens()`. Health bar background should come from themed `ProgressBar.background`; health fill stays palette-driven via `_update_health_bar_colors(...)`.
+- Button-prompt tokenization contract (Phase 4 Screen 18): `scenes/ui/hud/ui_button_prompt.tscn` should not keep inline `theme_override_*` entries. Apply prompt spacing/panel/typography tokens in `UI_ButtonPrompt._apply_theme_tokens()` using `separation_default`, `panel_button_prompt`, `subheading`, `body`, and `caption_small`.
+- Inline-override policy (Phase 5A): do not reintroduce non-semantic `theme_override_*` lines in `scenes/ui/**`. `tests/unit/style/test_style_enforcement.gd::test_no_inline_theme_overrides_except_semantic` enforces this. Current semantic exceptions are intentional (`ui_virtual_button.tscn`, signpost golden callout text, and danger/error emphasis labels).
+
+### UI Motion Pipeline (UI Visual Overhaul Phase 0)
+
+- Motion resources are data-driven and opt-in:
+  - `RS_UIMotionPreset` (`scripts/resources/ui/rs_ui_motion_preset.gd`) defines one tween step (property, from/to, duration, delay, interval, transition/ease, parallel flag).
+  - `RS_UIMotionSet` (`scripts/resources/ui/rs_ui_motion_set.gd`) groups motion sequences by interaction (`enter`, `exit`, `hover_in/out`, `press`, `focus_in/out`, `pulse`).
+- `U_UIMotion` (`scripts/ui/utils/u_ui_motion.gd`) is the canonical playback helper:
+  - `play(node, presets)` supports sequential steps by default, optional parallel steps, and interval-only hold steps.
+  - `play_enter(...)` / `play_exit(...)` / `play_pulse(...)` delegate to `RS_UIMotionSet` lifecycle/interaction arrays.
+  - `append_step(tween, node, preset)` is the public single-step API for custom tween composition (used by `UI_HudController` for interleaved toast/signpost sequences).
+  - `bind_interactive(control, motion_set)` wires hover/focus/press signals without duplicating existing connections.
+- Default authored presets live under `resources/ui/motions/` (`cfg_motion_fade_slide.tres`, `cfg_motion_button_default.tres`) and are intended as baseline feel, not hard requirements.
+- HUD feedback motion contract (Phase 4 Screen 17): checkpoint/signpost timing is data-driven through `cfg_motion_hud_checkpoint_toast.tres`, `cfg_motion_hud_signpost_fade_in.tres`, and `cfg_motion_hud_signpost_fade_out.tres`; avoid reintroducing hardcoded HUD fade durations in `UI_HudController`.
+- Base-class integration contract (Phase 0F):
+  - `BasePanel.motion_set` is opt-in; when set, focusable child controls are bound via `U_UIMotion.bind_interactive(...)`.
+  - `BaseMenuScreen.play_enter_animation()` / `play_exit_animation()` delegate to `U_UIMotion` using a resolved motion target:
+    - explicit `motion_target_path` when exported/set,
+    - otherwise auto-target `CenterContainer` when a backdrop (`Background` / `OverlayBackground` / `ColorRect`) and `PanelContainer` are present,
+    - otherwise fallback to the screen root.
+  - Prefer this default backdrop-fade + panel-slide behavior over per-screen motion overrides for centered panel screens.
+  - `BaseOverlay` animates its dim `OverlayBackground` alpha in parallel with content enter/exit motion.
+  - `BaseOverlay` background contract: prefer `background_color` + auto-created `OverlayBackground`; do not keep an extra full-screen `Background` `ColorRect` unless `auto_create_background = false`, or dim opacity will stack.
+  - `UI_SettingsMenu` dual-mode dim contract (Phase 2 Screen 7): apply `bg_base` dim at alpha `0.7` only when `navigation.overlay_stack` top is `settings_menu_overlay`; keep dim alpha `0.0` when the same scene is embedded under main-menu settings.
+- Backward-compat motion contract: `motion_set = null` must remain a strict no-op (no signal binding side effects, no tween playback). This preserves pre-overhaul behavior for screens/controllers that opt out of motion resources.
 
 ### Interactable Controllers
 

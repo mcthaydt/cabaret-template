@@ -22,6 +22,7 @@ func before_each() -> void:
 	var hud_layer := CanvasLayer.new()
 	hud_layer.name = "HUDLayer"
 	add_child_autofree(hud_layer)
+	U_ServiceLocator.register(StringName("hud_layer"), hud_layer)
 
 	# Create spawn_manager (required by gameplay scenes)
 	_spawn_manager = M_SPAWN_MANAGER.new()

@@ -1,9 +1,11 @@
 extends GutTest
 
 const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
+const GAMEPLAY_SCENE_ID := StringName("alleyway")
 
 var _store: M_StateStore
 var _ui_overlay_stack: CanvasLayer
+var _hud_layer: CanvasLayer
 var _active_scene_container: Node
 var _transition_overlay: CanvasLayer
 var _cursor_manager: M_CursorManager
@@ -58,10 +60,17 @@ func before_each() -> void:
 	_active_scene_container = Node.new()
 	_active_scene_container.name = "ActiveSceneContainer"
 	add_child_autofree(_active_scene_container)
+	U_ServiceLocator.register(StringName("active_scene_container"), _active_scene_container)
 
 	_ui_overlay_stack = CanvasLayer.new()
 	_ui_overlay_stack.name = "UIOverlayStack"
 	add_child_autofree(_ui_overlay_stack)
+	U_ServiceLocator.register(StringName("ui_overlay_stack"), _ui_overlay_stack)
+
+	_hud_layer = CanvasLayer.new()
+	_hud_layer.name = "HUDLayer"
+	add_child_autofree(_hud_layer)
+	U_ServiceLocator.register(StringName("hud_layer"), _hud_layer)
 
 	_transition_overlay = CanvasLayer.new()
 	_transition_overlay.name = "TransitionOverlay"
@@ -69,13 +78,16 @@ func before_each() -> void:
 	color_rect.name = "TransitionColorRect"
 	_transition_overlay.add_child(color_rect)
 	add_child_autofree(_transition_overlay)
+	U_ServiceLocator.register(StringName("transition_overlay"), _transition_overlay)
 
 	var loading_overlay := CanvasLayer.new()
 	loading_overlay.name = "LoadingOverlay"
 	add_child_autofree(loading_overlay)
+	U_ServiceLocator.register(StringName("loading_overlay"), loading_overlay)
 
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
+	_store.settings.enable_persistence = false
 	_store.scene_initial_state = RS_SceneInitialState.new()
 	_store.localization_initial_state = RS_LocalizationInitialState.new()
 	add_child_autofree(_store)
@@ -117,6 +129,7 @@ func after_each() -> void:
 	get_tree().paused = false  # Reset pause state
 	_store = null
 	_ui_overlay_stack = null
+	_hud_layer = null
 	_active_scene_container = null
 	_transition_overlay = null
 	_profile_manager = null
@@ -138,7 +151,7 @@ func test_pause_menu_opens_profile_selector_overlay() -> void:
 		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	assert_not_null(pause_menu, "Pause menu overlay should exist")
-	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
+	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	assert_not_null(settings_button, "SettingsButton should exist on pause menu")
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
@@ -170,7 +183,7 @@ func test_apply_closes_overlays_and_resumes() -> void:
 		assert_true(false, "UIOverlayStack should have at least one child (pause menu)")
 		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
+	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
 	_debug_overlay_snapshot("after SettingsButton pressed + wait(4)")
@@ -183,7 +196,7 @@ func test_apply_closes_overlays_and_resumes() -> void:
 
 	# Press Apply on the selector
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var apply_button := selector.get_node("CenterContainer/Panel/MainContainer/ButtonRow/ApplyButton") as Button
+	var apply_button := selector.get_node("%ApplyButton") as Button
 	assert_not_null(apply_button, "ApplyButton should exist on input profile selector overlay")
 	apply_button.emit_signal("pressed")
 	_debug_overlay_snapshot("after ApplyButton pressed")
@@ -242,7 +255,7 @@ func test_profile_selector_shows_binding_preview() -> void:
 		assert_true(false, "UIOverlayStack should have at least one child (pause menu)")
 		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
+	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	assert_not_null(settings_button, "SettingsButton should exist on pause menu")
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
@@ -254,18 +267,18 @@ func test_profile_selector_shows_binding_preview() -> void:
 	await wait_physics_frames(4)
 
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var heading_label := selector.get_node("CenterContainer/Panel/MainContainer/HeadingLabel") as Label
+	var heading_label := selector.get_node("%HeadingLabel") as Label
 	assert_not_null(heading_label, "HeadingLabel should exist on profile selector")
 	assert_eq(heading_label.text, "Input Profile Settings", "Heading should localize to English by default")
-	var profile_label := selector.get_node("CenterContainer/Panel/MainContainer/ProfileRow/ProfileLabel") as Label
+	var profile_label := selector.get_node("%ProfileLabel") as Label
 	assert_not_null(profile_label, "ProfileLabel should exist on profile selector")
 	assert_eq(profile_label.text, "Input Profile:", "Profile label should localize to English by default")
-	var preview_container := selector.get_node("CenterContainer/Panel/MainContainer/PreviewContainer") as VBoxContainer
+	var preview_container := selector.get_node("%PreviewContainer") as VBoxContainer
 	assert_not_null(preview_container, "PreviewContainer should exist on profile selector")
 	var header_label := preview_container.get_node("HeaderLabel") as Label
 	assert_not_null(header_label, "HeaderLabel should exist in preview container")
 	# The bindings container should have child nodes showing the bindings with icons
-	var bindings_container := preview_container.get_node("BindingsContainer") as VBoxContainer
+	var bindings_container := selector.get_node("%BindingsContainer") as VBoxContainer
 	assert_not_null(bindings_container, "BindingsContainer should exist in preview container")
 	assert_gt(bindings_container.get_child_count(), 0, "Bindings container should show action bindings")
 
@@ -282,7 +295,7 @@ func test_profile_selector_updates_overlay_labels_on_locale_change() -> void:
 		assert_true(false, "UIOverlayStack should have at least one child (pause menu)")
 		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
+	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	assert_not_null(settings_button, "SettingsButton should exist on pause menu")
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
@@ -294,9 +307,9 @@ func test_profile_selector_updates_overlay_labels_on_locale_change() -> void:
 	await wait_physics_frames(4)
 
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var heading_label := selector.get_node("CenterContainer/Panel/MainContainer/HeadingLabel") as Label
+	var heading_label := selector.get_node("%HeadingLabel") as Label
 	assert_not_null(heading_label, "HeadingLabel should exist on profile selector")
-	var profile_label := selector.get_node("CenterContainer/Panel/MainContainer/ProfileRow/ProfileLabel") as Label
+	var profile_label := selector.get_node("%ProfileLabel") as Label
 	assert_not_null(profile_label, "ProfileLabel should exist on profile selector")
 	assert_eq(heading_label.text, "Input Profile Settings", "Heading should start in English")
 	assert_eq(profile_label.text, "Input Profile:", "Profile label should start in English")
@@ -316,15 +329,17 @@ func test_profile_selector_updates_overlay_labels_on_locale_change() -> void:
 	assert_eq(profile_label.text, "Perfil de Entrada:", "Profile label should update when locale changes")
 
 func _start_game_and_pause() -> void:
-	_store.dispatch(U_NavigationActions.start_game(StringName("scene1")))
-	await _await_scene(StringName("scene1"))
+	_store.dispatch(U_NavigationActions.start_game(GAMEPLAY_SCENE_ID))
+	await _await_scene(GAMEPLAY_SCENE_ID)
 	_store.dispatch(U_NavigationActions.open_pause())
 	await wait_physics_frames(4)
 
-func _await_scene(scene_id: StringName, limit_frames: int = 30) -> void:
+func _await_scene(scene_id: StringName, limit_frames: int = 120) -> void:
 	for _i in range(limit_frames):
 		var scene_state: Dictionary = _store.get_state().get("scene", {})
-		if scene_state.get("current_scene_id") == scene_id:
+		var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+		var is_transitioning: bool = bool(scene_state.get("is_transitioning", false))
+		if current_scene_id == scene_id and not is_transitioning:
 			return
 		await wait_physics_frames(1)
 	assert_true(false, "Timed out waiting for scene_id %s" % scene_id)

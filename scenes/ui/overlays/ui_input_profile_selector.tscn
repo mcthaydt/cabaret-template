@@ -1,10 +1,12 @@
 [gd_scene format=3 uid="uid://cwfxmqu368b47"]
 
 [ext_resource type="Script" uid="uid://bhkuj2s600glu" path="res://scripts/ui/overlays/ui_input_profile_selector.gd" id="1"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="InputProfileSelector" type="Control" unique_id=358970070]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -12,6 +14,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+background_color = Color(0.114, 0.114, 0.129, 0.5)
+motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1762069587]
 script = ExtResource("ui_scale_root")
@@ -19,89 +23,90 @@ script = ExtResource("ui_scale_root")
 [node name="LocalizationRoot" type="Node" parent="." unique_id=1977515207]
 script = ExtResource("localization_root")
 
-[node name="Background" type="ColorRect" parent="." unique_id=1998850101]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=142530297]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
 
-[node name="CenterContainer" type="CenterContainer" parent="." unique_id=142530297]
+[node name="MainPanelMotionHost" type="Control" parent="CenterContainer" unique_id=179189488]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(620, 500)
+layout_mode = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer/MainPanelMotionHost" unique_id=1936237452]
+unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -260.0
-offset_top = -220.0
-offset_right = 260.0
-offset_bottom = 220.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="PanelContainer" parent="CenterContainer" unique_id=1936237452]
+[node name="MainPanelPadding" type="MarginContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel" unique_id=500437174]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
-[node name="MainContainer" type="VBoxContainer" parent="CenterContainer/Panel" unique_id=1446412379]
-custom_minimum_size = Vector2(520, 440)
+[node name="MainPanelContent" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding" unique_id=1446412379]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 12
 
-[node name="HeadingLabel" type="Label" parent="CenterContainer/Panel/MainContainer" unique_id=529720151]
+[node name="HeadingLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=529720151]
+unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 
-[node name="ProfileRow" type="HBoxContainer" parent="CenterContainer/Panel/MainContainer" unique_id=1979611833]
+[node name="ProfileRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1979611833]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 12
 
-[node name="ProfileLabel" type="Label" parent="CenterContainer/Panel/MainContainer/ProfileRow" unique_id=28240624]
+[node name="ProfileLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ProfileRow" unique_id=28240624]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 
-[node name="ProfileButton" type="Button" parent="CenterContainer/Panel/MainContainer/ProfileRow" unique_id=408754869]
+[node name="ProfileButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ProfileRow" unique_id=408754869]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="PreviewContainer" type="VBoxContainer" parent="CenterContainer/Panel/MainContainer" unique_id=1315313494]
+[node name="PreviewContainer" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1315313494]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
 
-[node name="HeaderLabel" type="Label" parent="CenterContainer/Panel/MainContainer/PreviewContainer" unique_id=575829372]
-layout_mode = 2
-autowrap_mode = 2
-
-[node name="DescriptionLabel" type="Label" parent="CenterContainer/Panel/MainContainer/PreviewContainer" unique_id=926130402]
+[node name="HeaderLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/PreviewContainer" unique_id=575829372]
+unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 2
 
-[node name="BindingsContainer" type="VBoxContainer" parent="CenterContainer/Panel/MainContainer/PreviewContainer" unique_id=545592420]
+[node name="DescriptionLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/PreviewContainer" unique_id=926130402]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+
+[node name="BindingsContainer" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/PreviewContainer" unique_id=545592420]
+unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Spacer" type="Control" parent="CenterContainer/Panel/MainContainer" unique_id=534096530]
+[node name="Spacer" type="Control" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=534096530]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/MainContainer" unique_id=1996638810]
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1996638810]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
 alignment = 2
 
-[node name="CancelButton" type="Button" parent="CenterContainer/Panel/MainContainer/ButtonRow" unique_id=1645839423]
+[node name="CancelButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=1645839423]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ResetButton" type="Button" parent="CenterContainer/Panel/MainContainer/ButtonRow" unique_id=1372962006]
+[node name="ResetButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=1372962006]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ApplyButton" type="Button" parent="CenterContainer/Panel/MainContainer/ButtonRow" unique_id=54814959]
+[node name="ApplyButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=54814959]
 unique_name_in_owner = true
 layout_mode = 2

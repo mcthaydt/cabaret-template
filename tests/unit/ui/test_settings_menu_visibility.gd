@@ -1,18 +1,105 @@
 extends GutTest
 
 const SettingsMenuScene := preload("res://scenes/ui/menus/ui_settings_menu.tscn")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
+
+func test_settings_menu_has_enter_exit_motion_assigned() -> void:
+	await _create_state_store()
+	var settings_menu: Variant = await _create_settings_menu()
+	var motion_set: Variant = settings_menu.get("motion_set")
+
+	assert_not_null(motion_set, "Settings menu should assign a motion set for enter/exit animation")
+	if motion_set == null:
+		return
+	assert_true("enter" in motion_set, "Motion set should expose enter presets")
+	assert_true("exit" in motion_set, "Motion set should expose exit presets")
+	var enter_presets: Array = motion_set.enter
+	var exit_presets: Array = motion_set.exit
+	assert_gt(enter_presets.size(), 0, "Motion set enter presets should not be empty")
+	assert_gt(exit_presets.size(), 0, "Motion set exit presets should not be empty")
+
+func test_applies_theme_tokens_and_overlay_dim_in_overlay_context() -> void:
+	var store := await _create_state_store()
+	var config := RS_UI_THEME_CONFIG.new()
+	config.heading = 41
+	config.margin_section = 19
+	config.separation_default = 14
+	config.bg_base = Color(0.18, 0.27, 0.36, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+	_prepare_settings_overlay_context(store)
+
+	var settings_menu := await _create_settings_menu()
+	var title_label: Label = settings_menu.get_node("%TitleLabel")
+	var panel_padding: MarginContainer = settings_menu.get_node("%MainPanelPadding")
+	var panel_content: VBoxContainer = settings_menu.get_node("%MainPanelContent")
+	var buttons_vbox: VBoxContainer = settings_menu.get_node("%ButtonsVBox")
+	var overlay_background := settings_menu.get_node_or_null("OverlayBackground") as ColorRect
+	var expected_dim := config.bg_base
+	expected_dim.a = 0.7
+
+	assert_eq(
+		title_label.get_theme_font_size(&"font_size"),
+		41,
+		"Settings title should use heading token from active theme config"
+	)
+	assert_eq(
+		panel_padding.get_theme_constant(&"margin_left"),
+		19,
+		"Panel padding should use margin_section token from active theme config"
+	)
+	assert_eq(
+		panel_content.get_theme_constant(&"separation"),
+		14,
+		"Panel content spacing should use separation_default token"
+	)
+	assert_eq(
+		buttons_vbox.get_theme_constant(&"separation"),
+		14,
+		"Button list spacing should use separation_default token"
+	)
+	assert_not_null(overlay_background, "Settings menu should create an overlay background panel")
+	if overlay_background != null:
+		assert_true(
+			overlay_background.color.is_equal_approx(expected_dim),
+			"Overlay dim should use bg_base with 0.7 alpha in overlay mode"
+		)
+
+func test_embedded_mode_uses_no_dim_background() -> void:
+	var store := await _create_state_store()
+	var config := RS_UI_THEME_CONFIG.new()
+	config.bg_base = Color(0.2, 0.25, 0.3, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	store.dispatch(U_NavigationActions.return_to_main_menu())
+	await wait_process_frames(2)
+
+	var settings_menu := await _create_settings_menu()
+	var overlay_background := settings_menu.get_node_or_null("OverlayBackground") as ColorRect
+	assert_not_null(overlay_background, "Settings menu should create an overlay background panel")
+	if overlay_background == null:
+		return
+
+	assert_almost_eq(
+		overlay_background.color.a,
+		0.0,
+		0.001,
+		"Embedded settings mode should not apply dim background"
+	)
 
 func test_gamepad_settings_button_visible_when_gamepad_connected() -> void:
 	await _create_state_store()
 	var settings_menu := await _create_settings_menu()
 
-	var gamepad_button: Button = settings_menu.get_node("ScrollContainer/VBoxContainer/GamepadSettingsButton")
+	var gamepad_button: Button = settings_menu.get_node("%GamepadSettingsButton")
 
 	var state_no_gamepad := {
 		"input": {
@@ -36,7 +123,7 @@ func test_rebind_controls_hidden_when_touchscreen_is_active() -> void:
 	await _create_state_store()
 	var settings_menu := await _create_settings_menu()
 
-	var rebind_button: Button = settings_menu.get_node("ScrollContainer/VBoxContainer/RebindControlsButton")
+	var rebind_button: Button = settings_menu.get_node("%RebindControlsButton")
 
 	var touch_only_state := {
 		"input": {
@@ -78,3 +165,8 @@ func _create_settings_menu() -> Control:
 	add_child_autofree(settings_menu)
 	await wait_process_frames(3)
 	return settings_menu
+
+func _prepare_settings_overlay_context(store: M_StateStore) -> void:
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.open_pause())
+	store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))

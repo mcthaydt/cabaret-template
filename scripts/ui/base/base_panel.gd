@@ -7,6 +7,7 @@ class_name BasePanel
 ## Provides common store lookup, focus management, and back-input handling
 ## so concrete panels only need to implement their domain logic.
 
+const U_UI_MOTION := preload("res://scripts/ui/utils/u_ui_motion.gd")
 
 const BACK_ACTION_CANCEL := StringName("ui_cancel")
 const BACK_ACTION_PAUSE := StringName("ui_pause")
@@ -26,6 +27,8 @@ var _focus_sound_armed: bool = false
 var _focus_sound_armed_time_ms: int = 0
 var _focus_sound_armed_before: Control = null
 
+@export var motion_set: Resource = null
+
 func _ready() -> void:
 	_connect_ui_sound_signals()
 	set_process_input(true)
@@ -39,6 +42,7 @@ func _deferred_panel_ready() -> void:
 	_ensure_store_ready()
 	_on_panel_ready()
 	_apply_initial_focus()
+	_bind_motion_to_interactive_controls()
 
 func _connect_ui_sound_signals() -> void:
 	var viewport := get_viewport()
@@ -182,6 +186,26 @@ func _find_focusable_in(root: Node) -> Control:
 			if nested != null:
 				return nested
 	return null
+
+func _bind_motion_to_interactive_controls() -> void:
+	if motion_set == null:
+		return
+	var controls := _collect_focusable_controls(self)
+	for control: Control in controls:
+		U_UI_MOTION.bind_interactive(control, motion_set)
+
+func _collect_focusable_controls(root: Node) -> Array[Control]:
+	var result: Array[Control] = []
+	var children: Array = root.get_children()
+	for child in children:
+		if not (child is Node):
+			continue
+		if child is Control:
+			var control := child as Control
+			if control != self and control.focus_mode != Control.FOCUS_NONE:
+				result.append(control)
+		result.append_array(_collect_focusable_controls(child))
+	return result
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _should_handle_back_input(event):

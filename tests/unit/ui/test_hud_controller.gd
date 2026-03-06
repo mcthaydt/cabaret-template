@@ -6,6 +6,7 @@ const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 
 func _create_store() -> M_StateStore:
 	var store := M_STATE_STORE.new()
@@ -21,11 +22,13 @@ func _create_store() -> M_StateStore:
 func _ensure_hud_layer() -> void:
 	var existing := get_tree().root.find_child("HUDLayer", true, false)
 	if existing != null:
+		U_ServiceLocator.register(StringName("hud_layer"), existing)
 		return
 	var hud_layer := CanvasLayer.new()
 	hud_layer.name = "HUDLayer"
 	add_child(hud_layer)
 	autofree(hud_layer)
+	U_ServiceLocator.register(StringName("hud_layer"), hud_layer)
 
 func test_hud_controller_uses_process_mode_always() -> void:
 	var store := _create_store()
@@ -110,3 +113,30 @@ func test_health_bar_hidden_when_transitioning_to_main_menu() -> void:
 	# Health bar should STAY hidden because we're transitioning to main menu shell
 	# The shell is now "main_menu" not "gameplay", so health bar remains hidden
 	assert_false(health_bar.visible, "Health bar should stay hidden when transitioning to main menu")
+
+func test_hud_visibility_tracks_transition_state_and_shell() -> void:
+	var store := _create_store()
+	await get_tree().process_frame
+	_ensure_hud_layer()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	await wait_process_frames(2)
+
+	var hud := HUD_SCENE.instantiate()
+	add_child(hud)
+	autofree(hud)
+	await wait_process_frames(2)
+
+	assert_true(hud.visible, "HUD should be visible during active gameplay when not transitioning")
+
+	store.dispatch(U_SCENE_ACTIONS.transition_started(StringName("main_menu"), "loading"))
+	await wait_process_frames(2)
+	assert_false(hud.visible, "HUD should hide while scene.is_transitioning is true")
+
+	store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("main_menu")))
+	store.dispatch(U_NavigationActions.return_to_main_menu())
+	await wait_process_frames(2)
+	assert_false(hud.visible, "HUD should stay hidden in non-gameplay shells")
+
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	await wait_process_frames(2)
+	assert_true(hud.visible, "HUD should reappear when gameplay shell resumes and transition is complete")

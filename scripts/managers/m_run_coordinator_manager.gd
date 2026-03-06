@@ -107,7 +107,8 @@ func _execute_reset_run(next_route: StringName) -> void:
 	else:
 		_warn("objectives_manager not available during run/reset.")
 
-	_store.dispatch(U_NAVIGATION_ACTIONS.retry(game_config.retry_scene_id))
+	var retry_scene_id: StringName = _resolve_retry_scene_id(next_route)
+	_store.dispatch(U_NAVIGATION_ACTIONS.retry(retry_scene_id))
 
 func _resolve_next_route(action: Dictionary) -> StringName:
 	var payload_variant: Variant = action.get("payload", {})
@@ -117,6 +118,15 @@ func _resolve_next_route(action: Dictionary) -> StringName:
 		if next_route != StringName(""):
 			return next_route
 	return game_config.route_retry
+
+func _resolve_retry_scene_id(next_route: StringName) -> StringName:
+	if next_route == game_config.route_retry:
+		return game_config.retry_scene_id
+	_warn("Unknown run/reset next_route '%s'; defaulting to retry scene '%s'." % [
+		String(next_route),
+		String(game_config.retry_scene_id),
+	])
+	return game_config.retry_scene_id
 
 static func _to_string_name(value: Variant) -> StringName:
 	if value is StringName:

@@ -8,11 +8,16 @@ class_name UI_PauseMenu
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 @onready var _title_label: Label = %TitleLabel
+@onready var _main_panel: PanelContainer = %MainPanel
+@onready var _main_panel_padding: MarginContainer = %MainPanelPadding
+@onready var _main_panel_content: VBoxContainer = %MainPanelContent
 @onready var _resume_button: Button = %ResumeButton
 @onready var _settings_button: Button = %SettingsButton
 @onready var _save_button: Button = %SaveButton
@@ -104,8 +109,35 @@ func _deferred_focus_resume() -> void:
 		_resume_button.grab_focus()
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_connect_buttons()
 	_localize_labels()
+	play_enter_animation()
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+
+	var config := config_resource as RS_UI_THEME_CONFIG
+	var dim_color := config.bg_base
+	dim_color.a = 0.7
+	background_color = dim_color
+
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = dim_color
+	if _main_panel != null and config.panel_section != null:
+		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _main_panel_padding != null:
+		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	if _main_panel_content != null:
+		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.heading)
 
 func _connect_buttons() -> void:
 	if _resume_button != null and not _resume_button.pressed.is_connected(_on_resume_pressed):

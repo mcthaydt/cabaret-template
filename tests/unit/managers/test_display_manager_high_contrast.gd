@@ -2,15 +2,21 @@ extends GutTest
 
 ## Tests for high contrast mode in display manager
 
+const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 
 var _manager: Node
 var _store: Node
 
 func before_each() -> void:
 	U_ServiceLocator.clear()
+	U_DISPLAY_UI_THEME_APPLIER.clear_active_palette()
+	U_UI_THEME_BUILDER.active_config = null
 
 func after_each() -> void:
 	U_ServiceLocator.clear()
+	U_DISPLAY_UI_THEME_APPLIER.clear_active_palette()
+	U_UI_THEME_BUILDER.active_config = null
 	_manager = null
 	_store = null
 
@@ -78,6 +84,7 @@ func _setup_manager_with_store(display_state: Dictionary) -> void:
 	var game_viewport := SubViewport.new()
 	game_viewport.name = "GameViewport"
 	add_child_autofree(game_viewport)
+	U_ServiceLocator.register(StringName("game_viewport"), game_viewport)
 
 	_manager = M_DisplayManager.new()
 	add_child_autofree(_manager)

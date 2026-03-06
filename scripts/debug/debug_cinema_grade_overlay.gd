@@ -12,6 +12,8 @@ class_name SC_CinemaDebugOverlay
 ##
 ## Toggled with F5 key via M_StateStore._input()
 
+const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
+
 @onready var scene_label: Label = %SceneLabel
 @onready var filter_preset_option: OptionButton = %FilterPresetOption
 @onready var filter_intensity_slider: HSlider = %FilterIntensitySlider
@@ -48,7 +50,7 @@ var _current_scene_id: StringName = StringName("")
 func _ready() -> void:
 	# CanvasLayer with PROCESS_MODE_ALWAYS to work even when paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	layer = 128
+	layer = U_CANVAS_LAYERS.DEBUG_OVERLAY
 
 	# Wait for scene tree to be fully ready
 	await get_tree().process_frame

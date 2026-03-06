@@ -7,6 +7,8 @@ class_name U_DisplayCinemaGradeApplier
 ## listens for scene/transition_completed to swap cinema grades automatically.
 
 const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shader.gdshader")
+const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 const SCENE_SWAPPED := StringName("scene/swapped")
 
@@ -80,11 +82,7 @@ func _ensure_cinema_grade_layer() -> bool:
 	return _cinema_grade_layer != null
 
 func _setup_cinema_grade_layer() -> void:
-	var tree := U_DisplayApplierUtils.get_tree_safe(_owner)
-	if tree == null or tree.root == null:
-		return
-
-	var post_process_overlay := tree.root.find_child("PostProcessOverlay", true, false)
+	var post_process_overlay := U_SERVICE_LOCATOR.try_get_service(StringName("post_process_overlay")) as Node
 	if post_process_overlay == null:
 		return
 
@@ -98,10 +96,10 @@ func _setup_cinema_grade_layer() -> void:
 			_shader_material = _cinema_grade_rect.material as ShaderMaterial
 		return
 
-	# Create CinemaGradeLayer at layer 1 (below FilmGrain=2, Dither=3, CRT=4, ColorBlind=5)
+	# Create CinemaGradeLayer below the authored post-process layers.
 	_cinema_grade_layer = CanvasLayer.new()
 	_cinema_grade_layer.name = "CinemaGradeLayer"
-	_cinema_grade_layer.layer = 1
+	_cinema_grade_layer.layer = U_CANVAS_LAYERS.PP_CINEMA_GRADE
 	_cinema_grade_layer.follow_viewport_enabled = true
 
 	_shader_material = ShaderMaterial.new()
@@ -119,4 +117,3 @@ func _setup_cinema_grade_layer() -> void:
 
 	_cinema_grade_layer.add_child(_cinema_grade_rect)
 	post_process_overlay.add_child(_cinema_grade_layer)
-

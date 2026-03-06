@@ -6,16 +6,22 @@ class_name U_LocalizationRoot
 ## Follows the same retry-polling pattern as U_UIScaleRoot.
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 
 const MAX_REGISTER_FRAMES: int = 30
 
 var _registered: bool = false
 var _frames_remaining: int = 0
 var _skip_first_process: bool = true
+var _logged_waiting: bool = false
+var _logged_timeout: bool = false
 
 func _ready() -> void:
 	_frames_remaining = MAX_REGISTER_FRAMES
 	_skip_first_process = true
+	_logged_waiting = false
+	_logged_timeout = false
+	_theme_debug_log("ready; waiting for localization_manager registration")
 	set_process(true)
 
 func _exit_tree() -> void:
@@ -33,6 +39,10 @@ func _process(_delta: float) -> void:
 	_frames_remaining -= 1
 	_register()
 
+	if not _registered and _frames_remaining <= 0 and not _logged_timeout:
+		_logged_timeout = true
+		_theme_debug_log("registration timed out after %d frames" % MAX_REGISTER_FRAMES)
+
 	if _registered or _frames_remaining <= 0:
 		set_process(false)
 
@@ -44,9 +54,15 @@ func _register() -> void:
 		return
 	var manager := U_SERVICE_LOCATOR.try_get_service(StringName("localization_manager"))
 	if manager == null:
+		if not _logged_waiting:
+			_logged_waiting = true
+			_theme_debug_log("localization_manager not available yet; frames_remaining=%d" % _frames_remaining)
 		return
+	if _logged_waiting:
+		_theme_debug_log("localization_manager became available; registering root")
 	manager.register_ui_root(target)
 	_registered = true
+	_theme_debug_log("registered parent root '%s'" % target.name)
 
 func _unregister() -> void:
 	if not _registered:
@@ -56,4 +72,12 @@ func _unregister() -> void:
 		var manager := U_SERVICE_LOCATOR.try_get_service(StringName("localization_manager"))
 		if manager != null:
 			manager.unregister_ui_root(target)
+			_theme_debug_log("unregistered parent root '%s'" % target.name)
 	_registered = false
+
+func _theme_debug_log(message: String) -> void:
+	var parent_name := "<no-parent>"
+	var parent := get_parent()
+	if parent != null:
+		parent_name = parent.name
+	U_UI_THEME_DEBUG.log("U_LocalizationRoot:%s" % parent_name, message)

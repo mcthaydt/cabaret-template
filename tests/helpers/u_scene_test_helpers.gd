@@ -42,6 +42,10 @@ static func create_root_with_containers(register_overlays: bool = false) -> Dict
 	root.add_child(loading_overlay)
 
 	if register_overlays:
+		U_SERVICE_LOCATOR.register(StringName("game_viewport"), game_viewport)
+		U_SERVICE_LOCATOR.register(StringName("active_scene_container"), active_scene_container)
+		U_SERVICE_LOCATOR.register(StringName("hud_layer"), hud_layer)
+		U_SERVICE_LOCATOR.register(StringName("ui_overlay_stack"), ui_overlay_stack)
 		U_SERVICE_LOCATOR.register(StringName("transition_overlay"), transition_overlay)
 		U_SERVICE_LOCATOR.register(StringName("loading_overlay"), loading_overlay)
 

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bogqi0pteyfev" path="res://scripts/ui/menus/ui_main_menu.gd" id="1_main_menu_script"]
 [ext_resource type="PackedScene" uid="uid://ddn5pq0hy1ou6" path="res://scenes/ui/menus/ui_settings_menu.tscn" id="2_settings_menu_scene"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="3_motion_set"]
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
@@ -13,12 +14,22 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main_menu_script")
+motion_set = ExtResource("3_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1019629989]
 script = ExtResource("ui_scale_root")
 
 [node name="LocalizationRoot" type="Node" parent="." unique_id=1386882774]
 script = ExtResource("localization_root")
+
+[node name="Background" type="ColorRect" parent="." unique_id=179943262]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.114, 0.114, 0.129, 1)
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=28075082]
 layout_mode = 1
@@ -28,39 +39,45 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MainPanel" type="VBoxContainer" parent="CenterContainer" unique_id=901639786]
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer" unique_id=901639786]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 160)
+custom_minimum_size = Vector2(360, 320)
+layout_mode = 2
+
+[node name="MainPanelPadding" type="MarginContainer" parent="CenterContainer/MainPanel" unique_id=128262903]
+layout_mode = 2
+
+[node name="MainPanelContent" type="VBoxContainer" parent="CenterContainer/MainPanel/MainPanelPadding" unique_id=1472815791]
 layout_mode = 2
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/MainPanel" unique_id=942197245]
+[node name="TitleLabel" type="Label" parent="CenterContainer/MainPanel/MainPanelPadding/MainPanelContent" unique_id=942197245]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Main Menu"
 horizontal_alignment = 1
 
-[node name="ContinueButton" type="Button" parent="CenterContainer/MainPanel" unique_id=27830688]
+[node name="ContinueButton" type="Button" parent="CenterContainer/MainPanel/MainPanelPadding/MainPanelContent" unique_id=27830688]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Continue"
 
-[node name="NewGameButton" type="Button" parent="CenterContainer/MainPanel" unique_id=342943689]
+[node name="NewGameButton" type="Button" parent="CenterContainer/MainPanel/MainPanelPadding/MainPanelContent" unique_id=342943689]
 unique_name_in_owner = true
 layout_mode = 2
 text = "New Game"
 
-[node name="LoadGameButton" type="Button" parent="CenterContainer/MainPanel" unique_id=1093992766]
+[node name="LoadGameButton" type="Button" parent="CenterContainer/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1093992766]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Load Game"
 
-[node name="SettingsButton" type="Button" parent="CenterContainer/MainPanel" unique_id=968035331]
+[node name="SettingsButton" type="Button" parent="CenterContainer/MainPanel/MainPanelPadding/MainPanelContent" unique_id=968035331]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Settings"
 
-[node name="QuitButton" type="Button" parent="CenterContainer/MainPanel" unique_id=871245266]
+[node name="QuitButton" type="Button" parent="CenterContainer/MainPanel/MainPanelPadding/MainPanelContent" unique_id=871245266]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Quit"

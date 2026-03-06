@@ -1,6 +1,44 @@
 extends RefCounted
 class_name U_TouchscreenPreviewBuilder
 
+const PREVIEW_PADDING: float = 24.0
+const BUTTON_SPACING: float = 12.0
+const BUTTON_GRID_COLS: int = 2
+const BUTTON_GRID_ROWS: int = 2
+const MIN_SCALE: float = 0.01
+
+func get_max_preview_scales(
+	preview_container: Control,
+	preview_joystick: Control,
+	preview_buttons: Array
+) -> Dictionary:
+	var preview_size := _resolve_preview_size(preview_container)
+	var available_width: float = max(preview_size.x - (PREVIEW_PADDING * 2.0), 1.0)
+	var available_height: float = max(preview_size.y - (PREVIEW_PADDING * 2.0), 1.0)
+
+	var base_joystick_size := _resolve_control_base_size(preview_joystick, Vector2(180, 180))
+	var joystick_max: float = min(
+		available_width / max(base_joystick_size.x, 1.0),
+		available_height / max(base_joystick_size.y, 1.0)
+	)
+
+	var sample_button: Control = null
+	if not preview_buttons.is_empty() and preview_buttons[0] is Control:
+		sample_button = preview_buttons[0] as Control
+	var base_button_size := _resolve_control_base_size(sample_button, Vector2(100, 100))
+	var button_max_width: float = (
+		available_width - (float(BUTTON_GRID_COLS - 1) * BUTTON_SPACING)
+	) / max(float(BUTTON_GRID_COLS) * max(base_button_size.x, 1.0), 1.0)
+	var button_max_height: float = (
+		available_height - (float(BUTTON_GRID_ROWS - 1) * BUTTON_SPACING)
+	) / max(float(BUTTON_GRID_ROWS) * max(base_button_size.y, 1.0), 1.0)
+	var button_max: float = min(button_max_width, button_max_height)
+
+	return {
+		"joystick": max(joystick_max, MIN_SCALE),
+		"button": max(button_max, MIN_SCALE),
+	}
+
 func build_preview(
 	preview_container: Control,
 	virtual_joystick_scene: PackedScene,
@@ -17,9 +55,7 @@ func build_preview(
 	out_preview_buttons.clear()
 	out_preview_joystick.clear()
 
-	var viewport_size: Vector2 = preview_container.size
-	if viewport_size.is_zero_approx():
-		viewport_size = Vector2(400, 220)
+	var viewport_size := _resolve_preview_size(preview_container)
 
 	var joystick_instance := virtual_joystick_scene.instantiate()
 	if joystick_instance is Control:
@@ -58,8 +94,12 @@ func update_preview_from_sliders(
 	button_opacity: float,
 	joystick_deadzone: float
 ) -> void:
-	var clamped_joystick_size: float = max(joystick_size, 0.01)
-	var clamped_button_size: float = max(button_size, 0.01)
+	var max_scales := get_max_preview_scales(preview_container, preview_joystick, preview_buttons)
+	var joystick_max: float = float(max_scales.get("joystick", joystick_size))
+	var button_max: float = float(max_scales.get("button", button_size))
+
+	var clamped_joystick_size: float = clampf(joystick_size, MIN_SCALE, max(joystick_max, MIN_SCALE))
+	var clamped_button_size: float = clampf(button_size, MIN_SCALE, max(button_max, MIN_SCALE))
 	var clamped_joystick_opacity: float = clampf(joystick_opacity, 0.0, 1.0)
 	var clamped_button_opacity: float = clampf(button_opacity, 0.0, 1.0)
 	var clamped_deadzone: float = clampf(joystick_deadzone, 0.0, 1.0)
@@ -98,48 +138,56 @@ func _update_preview_positions(
 	if preview_container == null:
 		return
 
-	var preview_size: Vector2 = preview_container.size
-	if preview_size.is_zero_approx():
-		preview_size = Vector2(520, 220)
+	var preview_size := _resolve_preview_size(preview_container)
 
 	if preview_joystick != null and is_instance_valid(preview_joystick):
-		var base_joystick_size: Vector2 = preview_joystick.size
-		if base_joystick_size.is_zero_approx():
-			base_joystick_size = preview_joystick.custom_minimum_size
+		var base_joystick_size := _resolve_control_base_size(preview_joystick, Vector2(180, 180))
 		var joystick_scaled: Vector2 = base_joystick_size * joystick_size
-		var padding: float = 24.0
 		preview_joystick.position = Vector2(
-			padding,
-			max(padding, preview_size.y - padding - joystick_scaled.y)
+			PREVIEW_PADDING,
+			max(PREVIEW_PADDING, preview_size.y - PREVIEW_PADDING - joystick_scaled.y)
 		)
 
-	var button_padding: float = 24.0
-	var button_spacing: float = 12.0
 	var base_button_size: Vector2 = Vector2.ONE * 100.0
 	if not preview_buttons.is_empty():
 		var sample_button: Control = preview_buttons[0]
 		if sample_button != null and is_instance_valid(sample_button):
-			base_button_size = sample_button.size
-			if base_button_size.is_zero_approx():
-				base_button_size = sample_button.custom_minimum_size
+			base_button_size = _resolve_control_base_size(sample_button, Vector2(100, 100))
 	var button_scaled_size: Vector2 = base_button_size * button_size
 
-	var grid_cols: int = 2
-	var grid_rows: int = 2
-	var grid_width: float = float(grid_cols) * button_scaled_size.x + float(grid_cols - 1) * button_spacing
-	var grid_height: float = float(grid_rows) * button_scaled_size.y + float(grid_rows - 1) * button_spacing
+	var grid_width: float = float(BUTTON_GRID_COLS) * button_scaled_size.x + float(BUTTON_GRID_COLS - 1) * BUTTON_SPACING
+	var grid_height: float = float(BUTTON_GRID_ROWS) * button_scaled_size.y + float(BUTTON_GRID_ROWS - 1) * BUTTON_SPACING
 
-	var grid_start_x: float = max(button_padding, preview_size.x - button_padding - grid_width)
-	var grid_start_y: float = max(button_padding, preview_size.y - button_padding - grid_height)
+	var grid_start_x: float = max(PREVIEW_PADDING, preview_size.x - PREVIEW_PADDING - grid_width)
+	var grid_start_y: float = max(PREVIEW_PADDING, preview_size.y - PREVIEW_PADDING - grid_height)
 
 	for index in preview_buttons.size():
 		var button: Control = preview_buttons[index]
 		if button == null or not is_instance_valid(button):
 			continue
-		var col: int = index % grid_cols
-		var row: int = index / grid_cols
+		var col: int = index % BUTTON_GRID_COLS
+		var row: int = int(floor(float(index) / float(BUTTON_GRID_COLS)))
 		button.position = Vector2(
-			grid_start_x + float(col) * (button_scaled_size.x + button_spacing),
-			grid_start_y + float(row) * (button_scaled_size.y + button_spacing)
+			grid_start_x + float(col) * (button_scaled_size.x + BUTTON_SPACING),
+			grid_start_y + float(row) * (button_scaled_size.y + BUTTON_SPACING)
 		)
 
+func _resolve_preview_size(preview_container: Control) -> Vector2:
+	if preview_container == null:
+		return Vector2(520, 220)
+	var preview_size: Vector2 = preview_container.size
+	if preview_size.is_zero_approx():
+		preview_size = preview_container.custom_minimum_size
+	if preview_size.is_zero_approx():
+		preview_size = Vector2(520, 220)
+	return preview_size
+
+func _resolve_control_base_size(control: Control, fallback: Vector2) -> Vector2:
+	if control == null or not is_instance_valid(control):
+		return fallback
+	var resolved: Vector2 = control.size
+	if resolved.is_zero_approx():
+		resolved = control.custom_minimum_size
+	if resolved.is_zero_approx():
+		resolved = fallback
+	return resolved

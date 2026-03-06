@@ -36,7 +36,6 @@
 [ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/base_settings/audio/cfg_landing_sound_default.tres" id="10_landing_sound_settings"]
 [ext_resource type="Script" uid="uid://bcy243ogwqv5f" path="res://scripts/ecs/systems/s_death_sound_system.gd" id="11_death_sound"]
 [ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/base_settings/audio/cfg_death_sound_default.tres" id="11_death_sound_settings"]
-[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud/ui_hud_overlay.tscn" id="11_hud"]
 [ext_resource type="Script" uid="uid://buguhw0x2x6og" path="res://scripts/ecs/systems/s_checkpoint_sound_system.gd" id="12_checkpoint_sound"]
 [ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/base_settings/audio/cfg_checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
 [ext_resource type="Script" uid="uid://d0omtagbm74cs" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
@@ -465,7 +464,5 @@ tags = Array[StringName]([&"interactable", &"tutorial"])
 [node name="CSGSphere3D" type="CSGSphere3D" parent="Entities/E_TutorialSign" unique_id=656487587]
 radius = 0.15387383
 material = SubResource("StandardMaterial3D_12vux")
-
-[node name="HUD" parent="." unique_id=920632912 instance=ExtResource("11_hud")]
 
 [editable path="Entities/E_CameraRoot"]

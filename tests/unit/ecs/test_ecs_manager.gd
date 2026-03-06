@@ -93,6 +93,7 @@ func before_each() -> void:
 	hud_layer.name = "HUDLayer"
 	add_child(hud_layer)
 	autofree(hud_layer)
+	U_ServiceLocator.register(StringName("hud_layer"), hud_layer)
 
 func _on_component_added(component_type, received) -> void:
 	_added_calls += 1

@@ -37,7 +37,6 @@
 [ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/base_settings/audio/cfg_landing_sound_default.tres" id="10_landing_sound_settings"]
 [ext_resource type="Script" uid="uid://bcy243ogwqv5f" path="res://scripts/ecs/systems/s_death_sound_system.gd" id="11_death_sound"]
 [ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/base_settings/audio/cfg_death_sound_default.tres" id="11_death_sound_settings"]
-[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud/ui_hud_overlay.tscn" id="11_hud"]
 [ext_resource type="Script" uid="uid://buguhw0x2x6og" path="res://scripts/ecs/systems/s_checkpoint_sound_system.gd" id="12_checkpoint_sound"]
 [ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/base_settings/audio/cfg_checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
 [ext_resource type="Script" uid="uid://d0omtagbm74cs" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
@@ -284,22 +283,22 @@ script = ExtResource("16_8qi87")
 script = ExtResource("21_spawnpoints")
 
 [node name="sp_default" type="Node3D" parent="Entities/SpawnPoints" unique_id=2016792290]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3674707, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.559377, 0)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("51_exterior_default_spawn_meta")
 
 [node name="sp_checkpoint_safe" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428565]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8532863, -0.05000639, -0.5544181)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8532863, 1.1419001, -0.5544181)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("52_exterior_checkpoint_spawn_meta")
 
 [node name="sp_exit_from_house" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428566]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21133327, -0.31296825, -4.208724)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21133327, 0.8789382, -4.208724)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("53_exterior_exit_from_house_spawn_meta")
 
 [node name="sp_exit_from_bar" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428567]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.26211882, -0.31296825, -4.077717)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.26211882, 0.8789382, -4.077717)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("54_exterior_exit_from_bar_spawn_meta")
 
@@ -406,7 +405,5 @@ tags = Array[StringName]([&"checkpoint", &"objective"])
 
 [node name="CheckpointVisual" type="Sprite3D" parent="Entities/E_Checkpoint_SafeZone" unique_id=2041254471]
 texture = ExtResource("39_u0c34")
-
-[node name="HUD" parent="." unique_id=1864878923 instance=ExtResource("11_hud")]
 
 [editable path="Entities/E_CameraRoot"]

@@ -1,6 +1,8 @@
 extends GutTest
 
 const OverlayScene := preload("res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 var _store: TestStateStore
 var _profile_manager: ProfileManagerStub
@@ -8,6 +10,7 @@ var _scene_manager_mock: Node
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
 	_store = TestStateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
 	if _store.settings != null:
@@ -37,6 +40,130 @@ func after_each() -> void:
 	_scene_manager_mock = null
 	U_StateHandoff.clear_all()
 	U_ServiceLocator.clear()
+	U_UI_THEME_BUILDER.active_config = null
+
+func test_input_rebinding_overlay_has_motion_and_theme_tokens_when_active_config_set() -> void:
+	var config := RS_UI_THEME_CONFIG.new()
+	config.heading = 35
+	config.section_header = 17
+	config.body_small = 15
+	config.margin_section = 22
+	config.separation_default = 14
+	config.separation_compact = 6
+	config.bg_base = Color(0.08, 0.11, 0.16, 1.0)
+	config.text_secondary = Color(0.75, 0.81, 0.89, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	var overlay: Node = OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+
+	var motion_set: Variant = overlay.get("motion_set")
+	assert_not_null(motion_set, "Input rebinding overlay should assign enter/exit motion set")
+	if motion_set != null:
+		assert_true("enter" in motion_set, "Motion set should expose enter presets")
+		assert_true("exit" in motion_set, "Motion set should expose exit presets")
+
+	var title_label := overlay.get_node_or_null("%TitleLabel") as Label
+	var status_label := overlay.get_node_or_null("%StatusLabel") as Label
+	var search_box := overlay.get_node_or_null("%SearchBox") as LineEdit
+	var main_panel := overlay.get_node_or_null("%MainPanel") as PanelContainer
+	var panel_padding := overlay.get_node_or_null("%MainPanelPadding") as MarginContainer
+	var action_list := overlay.get_node_or_null("%ActionList") as VBoxContainer
+	var button_row := overlay.get_node_or_null("%ButtonRow") as HBoxContainer
+	var overlay_background := overlay.get_node_or_null("OverlayBackground") as ColorRect
+	var expected_dim := config.bg_base
+	expected_dim.a = 0.5
+
+	assert_not_null(title_label, "TitleLabel should exist")
+	assert_not_null(status_label, "StatusLabel should exist")
+	assert_not_null(search_box, "SearchBox should exist")
+	assert_not_null(main_panel, "MainPanel should exist")
+	assert_not_null(panel_padding, "MainPanelPadding should exist")
+	assert_not_null(action_list, "ActionList should exist")
+	assert_not_null(button_row, "ButtonRow should exist")
+	assert_not_null(overlay_background, "OverlayBackground should exist")
+
+	if title_label != null:
+		assert_eq(title_label.get_theme_font_size(&"font_size"), 35, "Title should use heading token")
+	if status_label != null:
+		assert_eq(status_label.get_theme_font_size(&"font_size"), 17, "Status should use section_header token")
+		assert_true(
+			status_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
+			"Status should use text_secondary token"
+		)
+	if search_box != null:
+		assert_eq(search_box.get_theme_font_size(&"font_size"), 15, "Search box should use body_small token")
+		assert_true(
+			search_box.has_theme_stylebox_override(&"normal"),
+			"Search box should have themed normal stylebox override"
+		)
+		assert_true(
+			search_box.has_theme_stylebox_override(&"focus"),
+			"Search box should have themed focus stylebox override"
+		)
+		assert_true(
+			search_box.get_theme_color(&"font_placeholder_color").is_equal_approx(config.text_secondary),
+			"Search box placeholder should use text_secondary token"
+		)
+	if main_panel != null:
+		assert_not_null(main_panel.get_theme_stylebox(&"panel"), "Main panel should have themed panel style")
+	if panel_padding != null:
+		assert_eq(panel_padding.get_theme_constant(&"margin_left"), 22, "Panel padding should use margin_section token")
+	if action_list != null:
+		assert_eq(action_list.get_theme_constant(&"separation"), 6, "Action list should use separation_compact token")
+	if button_row != null:
+		assert_eq(button_row.get_theme_constant(&"separation"), 14, "Button row should use separation_default token")
+	if overlay_background != null:
+		assert_true(
+			overlay_background.color.is_equal_approx(expected_dim),
+			"Overlay dim should use bg_base at 0.5 alpha"
+		)
+
+func test_keyboard_horizontal_navigation_cycles_row_buttons_and_preserves_row_highlight() -> void:
+	var overlay: Node = OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+
+	var rows_value: Variant = overlay.get("_action_rows")
+	assert_true(rows_value is Dictionary, "Overlay should expose action rows dictionary")
+	if not (rows_value is Dictionary):
+		return
+	var rows: Dictionary = rows_value as Dictionary
+	var jump_row: Dictionary = rows.get(StringName("test_jump"), {})
+	var add_button := jump_row.get("add_button") as Button
+	var replace_button := jump_row.get("replace_button") as Button
+	var row_container := jump_row.get("container") as Control
+	assert_not_null(add_button, "Jump row should expose add button")
+	assert_not_null(replace_button, "Jump row should expose replace button")
+	assert_not_null(row_container, "Jump row should expose container")
+	if add_button == null or replace_button == null or row_container == null:
+		return
+
+	add_button.grab_focus()
+	await _pump()
+
+	var right := InputEventAction.new()
+	right.action = StringName("ui_right")
+	right.pressed = true
+	overlay.call("_unhandled_key_input", right)
+	await _pump()
+
+	var focused := overlay.get_viewport().gui_get_focus_owner()
+	assert_eq(focused, replace_button, "Keyboard right should move row focus to replace button")
+	assert_true(
+		row_container.modulate.is_equal_approx(Color(1, 1, 1, 1)),
+		"Focused row should remain highlighted when moving horizontally"
+	)
+
+	var left := InputEventAction.new()
+	left.action = StringName("ui_left")
+	left.pressed = true
+	overlay.call("_unhandled_key_input", left)
+	await _pump()
+
+	focused = overlay.get_viewport().gui_get_focus_owner()
+	assert_eq(focused, add_button, "Keyboard left should move row focus back to add button")
 
 func test_analog_navigation_uses_repeater_only() -> void:
 	var overlay: BaseOverlay = OverlayScene.instantiate() as BaseOverlay
@@ -603,5 +730,9 @@ func _count_navigation_close_or_return_actions() -> int:
 			var shell: StringName = action.get("shell", StringName())
 			var base_scene: StringName = action.get("base_scene_id", StringName())
 			if shell == StringName("main_menu") and base_scene == StringName("settings_menu"):
+				count += 1
+		elif action_type == U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
+			var scene_id: StringName = action.get("scene_id", StringName())
+			if scene_id == StringName("settings_menu"):
 				count += 1
 	return count

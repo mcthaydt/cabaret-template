@@ -1,11 +1,14 @@
 extends GutTest
 
 const OverlayScene := preload("res://scenes/ui/overlays/ui_gamepad_settings_overlay.tscn")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 var _store: TestStateStore
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
 	_store = TestStateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
 	_store.gameplay_initial_state = RS_GameplayInitialState.new()
@@ -16,7 +19,78 @@ func before_each() -> void:
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
 	_store = null
+
+func test_gamepad_settings_overlay_has_motion_and_theme_tokens_when_active_config_set() -> void:
+	var config := RS_UI_THEME_CONFIG.new()
+	config.heading = 38
+	config.section_header = 16
+	config.body_small = 14
+	config.margin_section = 23
+	config.separation_compact = 9
+	config.bg_base = Color(0.13, 0.17, 0.22, 1.0)
+	config.text_secondary = Color(0.72, 0.79, 0.87, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	var overlay := OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+	await _pump()
+
+	var motion_set: Variant = overlay.get("motion_set")
+	assert_not_null(motion_set, "Gamepad settings overlay should assign enter/exit motion set")
+	if motion_set != null:
+		assert_true("enter" in motion_set, "Motion set should expose enter presets")
+		assert_true("exit" in motion_set, "Motion set should expose exit presets")
+
+	var heading_label := overlay.get_node_or_null("%HeadingLabel") as Label
+	var left_text_label := overlay.get_node_or_null("%LeftLabel") as Label
+	var left_value_label := overlay.get_node_or_null("%LeftDeadzoneValue") as Label
+	var main_panel := overlay.get_node_or_null("%MainPanel") as PanelContainer
+	var preview_panel := overlay.get_node_or_null("%PreviewPanel") as PanelContainer
+	var panel_padding := overlay.get_node_or_null("%MainPanelPadding") as MarginContainer
+	var left_row := overlay.get_node_or_null("%LeftRow") as HBoxContainer
+	var button_row := overlay.get_node_or_null("%ButtonRow") as HBoxContainer
+	var overlay_background := overlay.get_node_or_null("OverlayBackground") as ColorRect
+	var expected_dim := config.bg_base
+	expected_dim.a = 0.5
+
+	assert_not_null(heading_label, "HeadingLabel should exist")
+	assert_not_null(left_text_label, "LeftLabel should exist")
+	assert_not_null(left_value_label, "LeftDeadzoneValue should exist")
+	assert_not_null(main_panel, "MainPanel should exist")
+	assert_not_null(preview_panel, "PreviewPanel should exist")
+	assert_not_null(panel_padding, "MainPanelPadding should exist")
+	assert_not_null(left_row, "LeftRow should exist")
+	assert_not_null(button_row, "ButtonRow should exist")
+	assert_not_null(overlay_background, "OverlayBackground should exist")
+
+	if heading_label != null:
+		assert_eq(heading_label.get_theme_font_size(&"font_size"), 38, "Heading should use heading token")
+	if left_text_label != null:
+		assert_eq(left_text_label.get_theme_font_size(&"font_size"), 16, "Row labels should use section_header token")
+	if left_value_label != null:
+		assert_eq(left_value_label.get_theme_font_size(&"font_size"), 14, "Slider values should use body_small token")
+		assert_true(
+			left_value_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
+			"Slider values should use text_secondary token"
+		)
+	if main_panel != null:
+		assert_true(main_panel.has_theme_stylebox_override(&"panel"), "Main panel should use themed panel style")
+	if preview_panel != null:
+		assert_true(preview_panel.has_theme_stylebox_override(&"panel"), "Preview panel should use themed panel style")
+	if panel_padding != null:
+		assert_eq(panel_padding.get_theme_constant(&"margin_left"), 23, "Panel padding should use margin_section token")
+	if left_row != null:
+		assert_eq(left_row.get_theme_constant(&"separation"), 9, "Rows should use separation_compact token")
+	if button_row != null:
+		assert_eq(button_row.get_theme_constant(&"separation"), 9, "Button row should use separation_compact token")
+	if overlay_background != null:
+		assert_true(
+			overlay_background.color.is_equal_approx(expected_dim),
+			"Overlay dim should use bg_base at 0.5 alpha"
+		)
 
 func test_overlay_populates_values_from_store() -> void:
 	_store.dispatch(U_InputActions.update_gamepad_deadzone("left", 0.45))
@@ -69,6 +143,21 @@ func test_apply_updates_state_settings() -> void:
 	var close_after := _count_navigation_close_or_return_actions()
 	assert_eq(close_after, close_before + 1, "Apply should dispatch a single navigation close/navigation return action")
 
+func test_vibration_toggle_does_not_use_expand_fill_layout() -> void:
+	var overlay := OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+	await _pump()
+
+	var vibration_checkbox := overlay.get_node_or_null("%VibrationCheck") as CheckButton
+	assert_not_null(vibration_checkbox, "VibrationCheck should exist")
+	if vibration_checkbox != null:
+		assert_ne(
+			vibration_checkbox.size_flags_horizontal,
+			Control.SIZE_EXPAND_FILL,
+			"Vibration toggle should not stretch across the full row"
+		)
+
 func _pump() -> void:
 	await get_tree().process_frame
 
@@ -107,5 +196,9 @@ func _count_navigation_close_or_return_actions() -> int:
 			var shell: StringName = action.get("shell", StringName())
 			var base_scene: StringName = action.get("base_scene_id", StringName())
 			if shell == StringName("main_menu") and base_scene == StringName("settings_menu"):
+				count += 1
+		elif action_type == U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
+			var scene_id: StringName = action.get("scene_id", StringName())
+			if scene_id == StringName("settings_menu"):
 				count += 1
 	return count

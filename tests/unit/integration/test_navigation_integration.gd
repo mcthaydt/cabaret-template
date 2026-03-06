@@ -1,10 +1,12 @@
 extends BaseTest
 
 const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
+const GAMEPLAY_SCENE_ID := StringName("alleyway")
 
 var _store: M_StateStore
 var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
+var _hud_layer: CanvasLayer
 var _transition_overlay: CanvasLayer
 var _loading_overlay: CanvasLayer
 var _cursor_manager: M_CursorManager
@@ -16,10 +18,17 @@ func before_each() -> void:
 	_active_scene_container = Node.new()
 	_active_scene_container.name = "ActiveSceneContainer"
 	add_child_autofree(_active_scene_container)
+	U_ServiceLocator.register(StringName("active_scene_container"), _active_scene_container)
 
 	_ui_overlay_stack = CanvasLayer.new()
 	_ui_overlay_stack.name = "UIOverlayStack"
 	add_child_autofree(_ui_overlay_stack)
+	U_ServiceLocator.register(StringName("ui_overlay_stack"), _ui_overlay_stack)
+
+	_hud_layer = CanvasLayer.new()
+	_hud_layer.name = "HUDLayer"
+	add_child_autofree(_hud_layer)
+	U_ServiceLocator.register(StringName("hud_layer"), _hud_layer)
 
 	_transition_overlay = CanvasLayer.new()
 	_transition_overlay.name = "TransitionOverlay"
@@ -27,10 +36,12 @@ func before_each() -> void:
 	color_rect.name = "TransitionColorRect"
 	_transition_overlay.add_child(color_rect)
 	add_child_autofree(_transition_overlay)
+	U_ServiceLocator.register(StringName("transition_overlay"), _transition_overlay)
 
 	_loading_overlay = CanvasLayer.new()
 	_loading_overlay.name = "LoadingOverlay"
 	add_child_autofree(_loading_overlay)
+	U_ServiceLocator.register(StringName("loading_overlay"), _loading_overlay)
 
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
@@ -64,6 +75,7 @@ func after_each() -> void:
 	_store = null
 	_active_scene_container = null
 	_ui_overlay_stack = null
+	_hud_layer = null
 	_transition_overlay = null
 	_loading_overlay = null
 	_cursor_manager = null
@@ -76,8 +88,8 @@ func after_each() -> void:
 func test_navigation_open_and_close_pause_overlay() -> void:
 	await _spawn_scene_manager()
 
-	_store.dispatch(U_NavigationActions.start_game(StringName("scene1")))
-	await _await_scene(StringName("scene1"))
+	_store.dispatch(U_NavigationActions.start_game(GAMEPLAY_SCENE_ID))
+	await _await_scene(GAMEPLAY_SCENE_ID)
 
 	_store.dispatch(U_NavigationActions.open_pause())
 	await wait_physics_frames(5)  # Allow time for navigation→scene bridging + M_TimeManager reaction
@@ -95,8 +107,8 @@ func test_navigation_open_and_close_pause_overlay() -> void:
 func test_navigation_nested_overlay_returns_to_pause() -> void:
 	await _spawn_scene_manager()
 
-	_store.dispatch(U_NavigationActions.start_game(StringName("scene1")))
-	await _await_scene(StringName("scene1"))
+	_store.dispatch(U_NavigationActions.start_game(GAMEPLAY_SCENE_ID))
+	await _await_scene(GAMEPLAY_SCENE_ID)
 
 	_store.dispatch(U_NavigationActions.open_pause())
 	await wait_physics_frames(2)
@@ -121,23 +133,23 @@ func test_navigation_nested_overlay_returns_to_pause() -> void:
 func test_navigation_retry_returns_to_last_gameplay_scene() -> void:
 	await _spawn_scene_manager()
 
-	_store.dispatch(U_NavigationActions.start_game(StringName("scene1")))
-	await _await_scene(StringName("scene1"))
+	_store.dispatch(U_NavigationActions.start_game(GAMEPLAY_SCENE_ID))
+	await _await_scene(GAMEPLAY_SCENE_ID)
 
 	_store.dispatch(U_NavigationActions.open_endgame(StringName("game_over")))
 	await _await_scene(StringName("game_over"), 20)
 
 	_store.dispatch(U_NavigationActions.retry())
-	await _await_scene(StringName("scene1"), 20)
+	await _await_scene(GAMEPLAY_SCENE_ID, 90)
 
 	var scene_state: Dictionary = _store.get_state().get("scene", {})
-	assert_eq(scene_state.get("current_scene_id"), StringName("scene1"), "Retry should restore last gameplay scene")
+	assert_eq(scene_state.get("current_scene_id"), GAMEPLAY_SCENE_ID, "Retry should restore last gameplay scene")
 
 func test_navigation_victory_skip_flow() -> void:
 	await _spawn_scene_manager()
 
-	_store.dispatch(U_NavigationActions.start_game(StringName("scene1")))
-	await _await_scene(StringName("scene1"))
+	_store.dispatch(U_NavigationActions.start_game(GAMEPLAY_SCENE_ID))
+	await _await_scene(GAMEPLAY_SCENE_ID)
 
 	_store.dispatch(U_NavigationActions.open_endgame(StringName("victory")))
 	await _await_scene(StringName("victory"), 20)
@@ -194,11 +206,11 @@ func test_sync_navigation_shell_clears_stale_pending_navigation() -> void:
 
 	# The loaded scene is gameplay; syncing should clear the stale pending target and
 	# dispatch a navigation action to align shell/base_scene_id with the actual scene.
-	manager._sync_navigation_shell_with_scene(StringName("scene1"))
+	manager._sync_navigation_shell_with_scene(GAMEPLAY_SCENE_ID)
 	await wait_physics_frames(1)
 
 	nav_slice = _store.get_slice(StringName("navigation"))
-	assert_eq(nav_slice.get("base_scene_id"), StringName("scene1"), "Stale pending navigation should not block shell sync")
+	assert_eq(nav_slice.get("base_scene_id"), GAMEPLAY_SCENE_ID, "Stale pending navigation should not block shell sync")
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"), "Gameplay scene should run under gameplay shell")
 
 func test_manual_transition_to_touchscreen_settings_aligns_navigation() -> void:
@@ -265,11 +277,13 @@ func _spawn_scene_manager() -> M_SceneManager:
 	U_ServiceLocator.register(StringName("scene_manager"), manager)
 	return manager
 
-func _await_scene(scene_id: StringName, limit_frames: int = 30) -> void:
+func _await_scene(scene_id: StringName, limit_frames: int = 120) -> void:
 	for _i in range(limit_frames):
 		var state: Dictionary = _store.get_state()
 		var scene_state: Dictionary = state.get("scene", {})
-		if scene_state.get("current_scene_id") == scene_id:
+		var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+		var is_transitioning: bool = bool(scene_state.get("is_transitioning", false))
+		if current_scene_id == scene_id and not is_transitioning:
 			return
 		await wait_physics_frames(1)
 	assert_true(false, "Timed out waiting for scene_id %s" % scene_id)

@@ -4,6 +4,8 @@ class_name UI_AudioSettingsTab
 
 const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"settings.audio.title"
 const LABEL_MASTER_VOLUME_KEY := &"settings.audio.label.master_volume"
@@ -31,6 +33,7 @@ var _has_local_edits: bool = false
 @onready var _music_row: HBoxContainer = $MusicRow
 @onready var _sfx_row: HBoxContainer = $SFXRow
 @onready var _ambient_row: HBoxContainer = $AmbientRow
+@onready var _button_row: HBoxContainer = $ButtonRow
 
 # Static labels
 @onready var _heading_label: Label = $HeadingLabel
@@ -69,6 +72,7 @@ var _has_local_edits: bool = false
 @onready var _reset_button: Button = %ResetButton
 
 func _ready() -> void:
+	_apply_theme_tokens()
 	_connect_signals()
 	_configure_focus_neighbors()
 	_localize_labels()
@@ -83,6 +87,72 @@ func _ready() -> void:
 
 	_unsubscribe = _state_store.subscribe(_on_state_changed)
 	_on_state_changed({}, _state_store.get_state())
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	add_theme_constant_override(&"separation", config.separation_default)
+
+	var volume_rows: Array[HBoxContainer] = [
+		_master_row,
+		_music_row,
+		_sfx_row,
+		_ambient_row,
+	]
+	for row in volume_rows:
+		if row != null:
+			row.add_theme_constant_override(&"separation", config.separation_default)
+
+	if _button_row != null:
+		_button_row.add_theme_constant_override(&"separation", config.separation_compact)
+
+	if _heading_label != null:
+		_heading_label.add_theme_font_size_override(&"font_size", config.heading)
+
+	var field_labels: Array[Label] = [
+		_master_label,
+		_music_label,
+		_sfx_label,
+		_ambient_label,
+		_spatial_audio_label,
+	]
+	for field_label in field_labels:
+		if field_label != null:
+			field_label.add_theme_font_size_override(&"font_size", config.body_small)
+			field_label.add_theme_color_override(&"font_color", config.text_secondary)
+
+	var percent_labels: Array[Label] = [
+		_master_percentage,
+		_music_percentage,
+		_sfx_percentage,
+		_ambient_percentage,
+	]
+	for percent_label in percent_labels:
+		if percent_label != null:
+			percent_label.add_theme_font_size_override(&"font_size", config.section_header)
+
+	var toggles: Array[CheckBox] = [
+		_master_mute_toggle,
+		_music_mute_toggle,
+		_sfx_mute_toggle,
+		_ambient_mute_toggle,
+		_spatial_audio_toggle,
+	]
+	for toggle in toggles:
+		if toggle != null:
+			toggle.add_theme_font_size_override(&"font_size", config.section_header)
+
+	var action_buttons: Array[Button] = [
+		_cancel_button,
+		_reset_button,
+		_apply_button,
+	]
+	for action_button in action_buttons:
+		if action_button != null:
+			action_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _exit_tree() -> void:
 	_clear_audio_settings_preview()

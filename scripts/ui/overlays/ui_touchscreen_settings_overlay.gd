@@ -6,6 +6,8 @@ const VirtualJoystickScene := preload("res://scenes/ui/widgets/ui_virtual_joysti
 const VirtualButtonScene := preload("res://scenes/ui/widgets/ui_virtual_button.tscn")
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"settings.touchscreen.title"
 const LABEL_JOYSTICK_SIZE_KEY := &"settings.touchscreen.label.joystick_size"
@@ -24,12 +26,22 @@ const TOOLTIP_JOYSTICK_DEADZONE_KEY := &"settings.touchscreen.tooltip.joystick_d
 const TOOLTIP_PREVIEW_KEY := &"settings.touchscreen.tooltip.preview"
 const TOOLTIP_EDIT_LAYOUT_KEY := &"settings.touchscreen.tooltip.edit_layout"
 
-@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
-@onready var _joystick_size_text_label: Label = $CenterContainer/Panel/VBox/JoystickSizeRow/JoystickSizeLabel
-@onready var _button_size_text_label: Label = $CenterContainer/Panel/VBox/ButtonSizeRow/ButtonSizeLabel
-@onready var _joystick_opacity_text_label: Label = $CenterContainer/Panel/VBox/JoystickOpacityRow/JoystickOpacityLabel
-@onready var _button_opacity_text_label: Label = $CenterContainer/Panel/VBox/ButtonOpacityRow/ButtonOpacityLabel
-@onready var _joystick_deadzone_text_label: Label = $CenterContainer/Panel/VBox/JoystickDeadzoneRow/JoystickDeadzoneLabel
+@onready var _main_panel: PanelContainer = %MainPanel
+@onready var _main_panel_padding: MarginContainer = %MainPanelPadding
+@onready var _main_panel_content: VBoxContainer = %MainPanelContent
+@onready var _preview_panel: PanelContainer = %PreviewPanel
+@onready var _button_row: HBoxContainer = %ButtonRow
+@onready var _title_label: Label = %HeadingLabel
+@onready var _joystick_size_row: HBoxContainer = %JoystickSizeRow
+@onready var _button_size_row: HBoxContainer = %ButtonSizeRow
+@onready var _joystick_opacity_row: HBoxContainer = %JoystickOpacityRow
+@onready var _button_opacity_row: HBoxContainer = %ButtonOpacityRow
+@onready var _joystick_deadzone_row: HBoxContainer = %JoystickDeadzoneRow
+@onready var _joystick_size_text_label: Label = %JoystickSizeLabel
+@onready var _button_size_text_label: Label = %ButtonSizeLabel
+@onready var _joystick_opacity_text_label: Label = %JoystickOpacityLabel
+@onready var _button_opacity_text_label: Label = %ButtonOpacityLabel
+@onready var _joystick_deadzone_text_label: Label = %JoystickDeadzoneLabel
 
 @onready var _joystick_size_slider: HSlider = %JoystickSizeSlider
 @onready var _button_size_slider: HSlider = %ButtonSizeSlider
@@ -62,7 +74,6 @@ var _preview_builder := U_TouchscreenPreviewBuilder.new()
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false
 var _override_log_count: int = 0
-var _local_edit_log_count: int = 0
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -73,15 +84,96 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_on_state_changed({}, store.get_state())
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_profile_manager = _resolve_input_profile_manager()
 
 	_configure_focus_neighbors()
 	_build_preview()
+	_apply_preview_size_limits()
+	call_deferred("_refresh_preview_size_limits_deferred")
 	_connect_signals()
 	_localize_labels()
 	_configure_tooltips()
 	_update_preview_from_sliders()
 	_update_edit_layout_visibility()
+	play_enter_animation()
+
+func _refresh_preview_size_limits_deferred() -> void:
+	_apply_preview_size_limits()
+	_update_preview_from_sliders()
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	var dim_color := config.bg_base
+	dim_color.a = 0.5
+	background_color = dim_color
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = dim_color
+
+	if _main_panel != null and config.panel_section != null:
+		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _preview_panel != null and config.panel_section != null:
+		_preview_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _main_panel_padding != null:
+		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	if _main_panel_content != null:
+		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+
+	var compact_rows: Array[HBoxContainer] = [
+		_joystick_size_row,
+		_button_size_row,
+		_joystick_opacity_row,
+		_button_opacity_row,
+		_joystick_deadzone_row,
+		_button_row,
+	]
+	for row in compact_rows:
+		if row != null:
+			row.add_theme_constant_override(&"separation", config.separation_compact)
+
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.heading)
+
+	var row_labels: Array[Label] = [
+		_joystick_size_text_label,
+		_button_size_text_label,
+		_joystick_opacity_text_label,
+		_button_opacity_text_label,
+		_joystick_deadzone_text_label,
+	]
+	for row_label in row_labels:
+		if row_label != null:
+			row_label.add_theme_font_size_override(&"font_size", config.section_header)
+
+	var value_labels: Array[Label] = [
+		_joystick_size_label,
+		_button_size_label,
+		_joystick_opacity_label,
+		_button_opacity_label,
+		_joystick_deadzone_label,
+	]
+	for value_label in value_labels:
+		if value_label == null:
+			continue
+		value_label.add_theme_font_size_override(&"font_size", config.body_small)
+		value_label.add_theme_color_override(&"font_color", config.text_secondary)
+
+	if _cancel_button != null:
+		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _reset_button != null:
+		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _edit_layout_button != null:
+		_edit_layout_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _apply_button != null:
+		_apply_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _resolve_input_profile_manager() -> Node:
 	if input_profile_manager != null and is_instance_valid(input_profile_manager):
@@ -122,6 +214,30 @@ func _build_preview() -> void:
 	for entry in buttons_out:
 		if entry is Control:
 			_preview_buttons.append(entry)
+
+func _apply_preview_size_limits() -> void:
+	if _preview_container == null:
+		return
+	if _joystick_size_slider == null or _button_size_slider == null:
+		return
+	var max_scales: Dictionary = _preview_builder.get_max_preview_scales(
+		_preview_container,
+		_preview_joystick,
+		_preview_buttons
+	)
+	var joystick_max: float = max(
+		float(max_scales.get("joystick", _joystick_size_slider.max_value)),
+		_joystick_size_slider.min_value
+	)
+	var button_max: float = max(
+		float(max_scales.get("button", _button_size_slider.max_value)),
+		_button_size_slider.min_value
+	)
+
+	_joystick_size_slider.max_value = joystick_max
+	_button_size_slider.max_value = button_max
+	_joystick_size_slider.set_value_no_signal(min(_joystick_size_slider.value, joystick_max))
+	_button_size_slider.set_value_no_signal(min(_button_size_slider.value, button_max))
 
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
@@ -372,8 +488,8 @@ func _on_reset_pressed() -> void:
 	var store := get_store()
 	if store != null:
 		store.dispatch(U_InputActions.update_touchscreen_settings({
-			"virtual_joystick_size": _defaults.virtual_joystick_size,
-			"button_size": _defaults.button_size,
+			"virtual_joystick_size": float(_joystick_size_slider.value),
+			"button_size": float(_button_size_slider.value),
 			"virtual_joystick_opacity": _defaults.virtual_joystick_opacity,
 			"button_opacity": _defaults.button_opacity,
 			"joystick_deadzone": _defaults.joystick_deadzone,
@@ -388,7 +504,6 @@ func _on_edit_layout_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	U_UISoundPlayer.play_cancel()
-	print("[TouchscreenSettingsOverlay] _on_back_pressed invoked")
 	_close_overlay()
 
 func _is_position_only_settings_update(settings_payload: Dictionary) -> bool:
@@ -472,20 +587,12 @@ func _log_local_slider_edit(_field: String, _value: float) -> void:
 func _close_overlay() -> void:
 	var store := get_store()
 	if store == null:
-		print("[TouchscreenSettingsOverlay] _close_overlay store is null; aborting")
 		return
 
 	var state: Dictionary = store.get_state()
 	var nav_slice: Dictionary = state.get("navigation", {})
 	var overlay_stack: Array = U_NavigationSelectors.get_overlay_stack(nav_slice)
 	var shell: StringName = U_NavigationSelectors.get_shell(nav_slice)
-
-	print(
-		"[TouchscreenSettingsOverlay] _close_overlay shell=%s overlay_stack_size=%d" % [
-			str(shell),
-			overlay_stack.size()
-		]
-	)
 
 	if not overlay_stack.is_empty():
 		store.dispatch(U_NavigationActions.close_top_overlay())
@@ -496,6 +603,6 @@ func _close_overlay() -> void:
 	#   scene (no overlays). Closing should return to the settings_menu scene.
 	# - Use navigate_to_ui_screen action to trigger the transition via Redux.
 	if shell == StringName("main_menu"):
-		store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_menu"), "fade", 1))
+		store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_menu"), "fade", 2))
 	else:
 		store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))

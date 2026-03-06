@@ -2,6 +2,8 @@ extends GutTest
 
 const OverlayScene := preload("res://scenes/ui/overlays/ui_edit_touch_controls_overlay.tscn")
 const MobileControlsScene := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 var _store: TestStateStore
 var _profile_manager_mock: ProfileManagerMock
@@ -9,6 +11,7 @@ var _mobile_controls: UI_MobileControls
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
 	_store = TestStateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
 	_store.settings.enable_persistence = false
@@ -30,10 +33,87 @@ func before_each() -> void:
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
 	_store = null
 	_profile_manager_mock = null
 	_mobile_controls = null
 	U_ServiceLocator.clear()
+
+func test_edit_touch_controls_overlay_has_motion_and_theme_tokens_when_active_config_set() -> void:
+	var config := RS_UI_THEME_CONFIG.new()
+	config.heading = 36
+	config.section_header = 17
+	config.body_small = 13
+	config.margin_section = 19
+	config.separation_default = 14
+	config.separation_compact = 6
+	config.bg_base = Color(0.12, 0.14, 0.2, 1.0)
+	config.text_secondary = Color(0.72, 0.8, 0.9, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	var overlay := OverlayScene.instantiate() as Control
+	add_child_autofree(overlay)
+	await _pump_frames(2)
+
+	var motion_set: Variant = overlay.get("motion_set")
+	assert_not_null(motion_set, "Edit touch controls overlay should assign enter/exit motion set")
+	if motion_set != null:
+		assert_true("enter" in motion_set, "Motion set should expose enter presets")
+		assert_true("exit" in motion_set, "Motion set should expose exit presets")
+
+	var heading_label := overlay.get_node_or_null("%HeadingLabel") as Label
+	var drag_mode_check := overlay.get_node_or_null("%DragModeCheck") as CheckButton
+	var instructions_label := overlay.get_node_or_null("%InstructionsLabel") as Label
+	var main_panel := overlay.get_node_or_null("%MainPanel") as PanelContainer
+	var panel_padding := overlay.get_node_or_null("%MainPanelPadding") as MarginContainer
+	var panel_content := overlay.get_node_or_null("%MainPanelContent") as VBoxContainer
+	var toggle_row := overlay.get_node_or_null("%ToggleRow") as HBoxContainer
+	var button_row := overlay.get_node_or_null("%ButtonRow") as HBoxContainer
+	var grid_overlay := overlay.get_node_or_null("GridOverlay") as ColorRect
+	var overlay_background := overlay.get_node_or_null("OverlayBackground") as ColorRect
+	var expected_dim := config.bg_base
+	expected_dim.a = 0.05
+	var expected_grid := config.text_secondary
+	expected_grid.a = 0.05
+
+	assert_not_null(heading_label, "HeadingLabel should exist")
+	assert_not_null(drag_mode_check, "DragModeCheck should exist")
+	assert_not_null(instructions_label, "InstructionsLabel should exist")
+	assert_not_null(main_panel, "MainPanel should exist")
+	assert_not_null(panel_padding, "MainPanelPadding should exist")
+	assert_not_null(panel_content, "MainPanelContent should exist")
+	assert_not_null(toggle_row, "ToggleRow should exist")
+	assert_not_null(button_row, "ButtonRow should exist")
+	assert_not_null(grid_overlay, "GridOverlay should exist")
+	assert_not_null(overlay_background, "OverlayBackground should exist")
+
+	if heading_label != null:
+		assert_eq(heading_label.get_theme_font_size(&"font_size"), 36, "Heading should use heading token")
+	if drag_mode_check != null:
+		assert_eq(drag_mode_check.get_theme_font_size(&"font_size"), 17, "Toggle should use section_header token")
+	if instructions_label != null:
+		assert_eq(instructions_label.get_theme_font_size(&"font_size"), 13, "Instructions should use body_small token")
+		assert_true(
+			instructions_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
+			"Instructions should use text_secondary token"
+		)
+	if main_panel != null:
+		assert_true(main_panel.has_theme_stylebox_override(&"panel"), "Main panel should use themed panel style")
+	if panel_padding != null:
+		assert_eq(panel_padding.get_theme_constant(&"margin_left"), 19, "Panel padding should use margin_section token")
+	if panel_content != null:
+		assert_eq(panel_content.get_theme_constant(&"separation"), 14, "Panel content should use separation_default token")
+	if toggle_row != null:
+		assert_eq(toggle_row.get_theme_constant(&"separation"), 6, "Toggle row should use separation_compact token")
+	if button_row != null:
+		assert_eq(button_row.get_theme_constant(&"separation"), 6, "Button row should use separation_compact token")
+	if grid_overlay != null:
+		assert_true(grid_overlay.color.is_equal_approx(expected_grid), "Grid overlay should use themed subtle tint")
+	if overlay_background != null:
+		assert_true(
+			overlay_background.color.is_equal_approx(expected_dim),
+			"Overlay dim should use bg_base at 0.05 alpha"
+		)
 
 func test_drag_mode_toggle_enables_and_disables_repositioning() -> void:
 	var overlay := await _create_overlay()
@@ -233,5 +313,9 @@ func _count_navigation_close_or_return_actions() -> int:
 			var shell: StringName = action.get("shell", StringName())
 			var base_scene: StringName = action.get("base_scene_id", StringName())
 			if shell == StringName("main_menu") and base_scene == StringName("settings_menu"):
+				count += 1
+		elif action_type == U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
+			var scene_id: StringName = action.get("scene_id", StringName())
+			if scene_id == StringName("settings_menu"):
 				count += 1
 	return count

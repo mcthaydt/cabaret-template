@@ -38,6 +38,45 @@
 
 ## Godot UI Pitfalls
 
+- **Use `RS_UIThemeConfig` + `U_UIThemeBuilder` tokens for shared UI styling, not inline `theme_override_*` scene edits**: Reintroducing scene-local overrides in polished UI screens bypasses the unified theme pipeline and causes style drift across menus/overlays.
+  - **Fix pattern**: apply spacing/typography/panel tokens in controller scripts (`_apply_theme_tokens()` style methods) and keep scene files free of non-semantic inline overrides.
+
+- **Motion resources are opt-in and must preserve no-op behavior when unset**: Assigning motion logic unconditionally can change legacy navigation/animation behavior on screens that intentionally do not opt in.
+  - **Fix pattern**: keep `motion_set` nullable and treat `null` as a strict no-op (no automatic signal binding and no tween playback).
+
+- **A small set of semantic per-node overrides are intentional and should not be “cleaned up”**: Some overrides are design semantics, not theme debt (for example signpost golden emphasis, danger/error emphasis labels, and mobile virtual-button exceptions).
+  - **Fix pattern**: keep semantic overrides explicit and enforce global cleanup through `tests/unit/style/test_style_enforcement.gd::test_no_inline_theme_overrides_except_semantic`.
+
+- **Snapping transition overlay + instant navigation can leave the screen black**: Endgame flows may call `U_TransitionOverlaySnap.hide_screen_and_snap_transition_overlay(...)` before dispatching navigation. If the next transition uses `instant`, there is no fade-in step to clear `TransitionColorRect.modulate.a`, so the new scene can remain fully obscured.
+  - **Fix pattern**: instant transitions must explicitly clear `TransitionColorRect` alpha after scene swap (or use a fade transition that performs fade-in).
+
+- **Always use `U_CanvasLayers` constants for script-authored layer assignments**: Do not introduce raw layer integers in GDScript for HUD/overlay/debug/post-process layering. Use `scripts/ui/u_canvas_layers.gd` constants so layer intent stays centralized and testable. Keep `.tscn` literals aligned with the same canonical map.
+
+- **Unified UI theme bootstrapping needs a no-palette fallback**: In the merged font+theme pipeline, a root can receive a composed theme before `U_DisplayUIThemeApplier` has published an active palette. If the builder simply preserves base colors when palette is missing, roots with no pre-existing colors can remain unstyled until the next palette-triggered rebuild.
+  - **Fix pattern**: when palette is `null`, preserve existing base-theme colors where they exist, but still apply `RS_UIThemeConfig.text_primary` to missing text color slots so first paint is deterministic.
+
+- **`U_UIThemeBuilder.active_config` is global and can leak between tests**: UI/integration tests that set `active_config` can unintentionally affect later suites (for example, health-bar palette assertions reading themed defaults instead of runtime palette output) when they do not reset static state.
+  - **Fix pattern**: explicitly set `U_UIThemeBuilder.active_config = null` in both `before_each` and `after_each` for tests that mutate the global config.
+
+- **Loaded `RS_UIThemeConfig` resources can miss runtime stylebox defaults on mobile/export**: `cfg_ui_theme_default.tres` stores primitive tokens, but stylebox fields (`button_normal`, `panel_section`, etc.) may still be `null` at runtime on some export paths if hydration relies only on `_init()`.
+  - **Fix pattern**: expose an explicit `ensure_runtime_defaults()` on `RS_UIThemeConfig` and call it from `U_UIThemeBuilder.build_theme(...)` before applying styleboxes.
+
+- **Shared `root.gd` teardown can clear global UI theme config unexpectedly**: Gameplay scenes also attach `scripts/root.gd`, so unconditional cleanup in `_exit_tree()` can clear `U_UIThemeBuilder.active_config` while the persistent app root is still alive. This causes subsequent menus/overlays to render fallback/default (gray) styling instead of unified theme tokens.
+  - **Fix pattern**: only clear `U_UIThemeBuilder.active_config` when the exiting root is the persistent app root (for example, it has `Managers/M_StateStore`). Keep non-persistent gameplay roots from mutating global theme config.
+
+- **Shared overlay scenes can be mounted in non-overlay contexts**: Some UI scenes (for example `UI_SettingsMenu`) run both as gameplay overlays and as embedded panels in main-menu flows. If dim alpha is applied unconditionally in `BaseOverlay` subclasses, embedded usage can become unintentionally darkened.
+  - **Fix pattern**: gate dim alpha by navigation context (`navigation.overlay_stack` top or shell checks). Use normal dim (`0.7`) only when running as an active overlay; use `0.0` when embedded.
+
+- **`BaseOverlay` auto-background + manual full-screen background can double-stack dimming**: `BaseOverlay` auto-creates `OverlayBackground` when `auto_create_background` is enabled. If a scene also keeps a custom full-screen `Background` `ColorRect`, effective dim can be much darker than intended and drift from tokenized alpha targets.
+  - **Fix pattern**: prefer setting `background_color` and style `OverlayBackground`; only keep a manual full-screen background when `auto_create_background = false`.
+
+- **HUD is manager-instantiated under `HUDLayer`**: Do not add HUD instances to gameplay scenes or templates. `M_SceneManager` owns HUD instantiation in root, and `UI_HudController` visibility is Redux-driven. Embedding HUD in gameplay scenes reintroduces duplicate instances and lifecycle drift.
+
+- **HUD health fill is palette-driven; do not bake it into themed scene overrides**: `UI_HudController` intentionally updates health fill color at runtime from the active display palette (`success`/`warning`/`danger`) for color-blind accessibility. Reintroducing inline `ProgressBar.fill` overrides or static hardcoded colors can break integration behavior.
+  - **Fix pattern**: keep health background/theme chrome in `RS_UIThemeConfig` (`progress_bar_bg`), but leave fill updates to `_update_health_bar_colors(...)` using the active palette service.
+
+- **Protect HUD ownership with style checks**: `tests/unit/style/test_style_enforcement.gd` includes a guard that fails when any `scenes/gameplay/*.tscn` references `ui_hud_overlay.tscn` or defines a `HUD` root node. Keep this test green when authoring or migrating gameplay scenes.
+
 - **Full-screen overlay containers block input by default**: When creating HUD overlays or full-screen UI containers (using `anchors_preset = 15`), the container will block ALL mouse input to UI elements below it, even if the container's children only occupy a small portion of the screen. This happens because Control nodes use `mouse_filter = MOUSE_FILTER_STOP` (value 0) by default, which intercepts and stops mouse events from propagating.
   
   **Problem**: A MarginContainer covering the entire screen for a HUD overlay will prevent clicks from reaching buttons or UI elements below it, even though the HUD content (health/score labels) only appears in the corner.
@@ -87,6 +126,10 @@
 
 - **Avoid `String(...)` as a generic cast in debug logs**: `String(some_variant)` can throw at runtime for some types (e.g., `NodePath`). Prefer `str(...)` for debug prints unless you know the Variant type is safe for `String()`.
 
+- **`Object.get()` only accepts one argument in GDScript**: Unlike dictionary `get(key, default)`, calling `some_object.get("prop", fallback)` is a parse error (`Too many arguments for "get()" call`). For `Object`/`Resource` properties, either:
+  - check property existence via `get_property_list()` first, then call `get("prop")`, or
+  - call `get("prop")` and handle `null`/missing cases explicitly.
+
 - **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via a script preload alias (for example `const FOO_SCRIPT := preload("res://path/foo.gd")`) until the class is reliably discovered/loaded.
 
 - **New `class_name` base scripts can fail in `extends` during headless runs**: Creating a fresh base script (for example `class_name RS_BaseCondition`) and immediately extending it with `extends RS_BaseCondition` in sibling scripts can fail under headless GUT parsing (`Parse Error: Could not find base class ...`) before the global class cache catches up. Prefer explicit path-based inheritance for new stacks (`extends "res://scripts/resources/qb/rs_base_condition.gd"`) during active refactors; keep `class_name` for inspector/type usage.
@@ -120,6 +163,8 @@
 - **`M_StateStore` autoload can leak ambient state into unit tests**: `RS_StateStoreSettings.enable_persistence` defaults to `true`, so tests that create `M_StateStore` can auto-load `user://savegame.json` and emit normalization warnings (for example unknown spawn point warnings) as unexpected test errors. For tests not explicitly validating persistence, set `store.settings.enable_persistence = false` before adding the store node.
 - **Do not assert raw `push_warning` output directly in QB/system tests**: Engine warnings are hard to capture reliably in headless runs. Expose/override a small warning hook in test doubles and assert captured messages there instead of parsing console logs.
 - **`push_warning(...)` can be treated as an unexpected test error in manager paths**: In some GUT flows, warnings emitted during exercised runtime branches are surfaced as test failures/noise even when behavior is otherwise correct. For validation-failure branches that are expected in tests (for example invalid scene-director beat graphs), prefer deterministic non-warning observability (return values/state flags/test hooks, or `print` if you only need debug output) so tests can assert behavior without warning-channel flakiness.
+- **Tween pause mode is not reliably introspectable in tests**: In this Godot runtime, `Tween.get_pause_mode()` is unavailable and reading `tween.get("pause_mode")` can return `null`. Prefer behavior-focused assertions (for example tween created/valid and expected fade outcome) instead of inspecting tween pause mode internals.
+- **ServiceLocator-only container discovery requires explicit test registrations**: Scene/display/UI code paths that now resolve `hud_layer`, `active_scene_container`, `ui_overlay_stack`, `transition_overlay`, `loading_overlay`, `post_process_overlay`, and `game_viewport` via `U_ServiceLocator` will fail to initialize in test harnesses that only add nodes to the tree. Register these services in `before_each` when constructing lightweight scene scaffolds.
 
 ## Scene Director Pitfalls
 
@@ -219,6 +264,19 @@
 - **When to use**: Any overlay that needs non-standard navigation (cycling values, custom layouts) instead of simple focus neighbor traversal.
 
 - **Real example**: `scripts/ui/ui_input_profile_selector.gd` - Uses left/right to cycle through profile names on the focused ProfileButton, while focus neighbors handle up/down navigation between UI rows.
+
+### Stateful Rebind Navigation Must Sync on Focus Enter
+
+- **Problem**: Overlays that keep their own navigation indices (`_focused_action_index`, `_row_button_index`, `_is_on_bottom_row`) can drift out of sync with actual UI focus when focus changes through default neighbor traversal or keyboard events.
+
+- **Symptom**: Left/right action-row navigation appears unresponsive or jumps incorrectly, and row highlight modulation does not match the currently focused rebind button.
+
+- **Solution**:
+  1. Add a focus-sync hook that recomputes internal indices from the currently focused control (`_sync_focus_tracking_from_control`).
+  2. Call that hook from row control `focus_entered` handlers (row container + per-row buttons, plus bottom-row buttons).
+  3. For overlays with custom directional handling, keep `_unhandled_key_input(...)` focused on overlay-specific controls and preserve `LineEdit` caret behavior (do not hijack arrow keys while the search field is focused).
+
+- **Real example**: `scripts/ui/overlays/ui_input_rebinding_overlay.gd` + `scripts/ui/helpers/u_rebind_focus_navigation.gd` (Screen 9 follow-up).
 
 ### Avoid Await Before Wiring UI Signals
 

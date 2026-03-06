@@ -91,11 +91,11 @@ func test_input_profile_selector_has_panel_structure() -> void:
 	await wait_process_frames(2)
 
 	# Verify it has the panel structure: Background + CenterContainer + PanelContainer
-	var background := selector.get_node_or_null("Background") as ColorRect
+	var background := selector.get_node_or_null("OverlayBackground") as ColorRect
 	var center_container := selector.get_node_or_null("CenterContainer") as CenterContainer
-	var panel := selector.get_node_or_null("CenterContainer/Panel") as PanelContainer
+	var panel := selector.get_node_or_null("%MainPanel") as PanelContainer
 
-	assert_not_null(background, "Should have Background ColorRect for dimming")
+	assert_not_null(background, "Should have OverlayBackground ColorRect for dimming")
 	assert_not_null(center_container, "Should have CenterContainer for centering")
 	assert_not_null(panel, "Should have PanelContainer for panel styling")
 
@@ -139,7 +139,7 @@ func test_input_profile_selector_navigation_allows_up_down() -> void:
 	await wait_process_frames(3)
 
 	# Get profile button and a bottom button
-	var profile_button := selector.get_node_or_null("CenterContainer/Panel/MainContainer/ProfileRow/ProfileButton") as Button
+	var profile_button := selector.get_node_or_null("%ProfileButton") as Button
 	var apply_button := selector.get_node_or_null("%ApplyButton") as Button
 
 	assert_not_null(profile_button, "Should have profile button")
