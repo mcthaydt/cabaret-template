@@ -4,6 +4,8 @@ class_name UI_InputProfileSelector
 
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const ACTION_LABEL_KEYS := {
 	StringName("move"): &"input.action.move",
@@ -21,15 +23,21 @@ const OVERLAY_RESET_BUTTON_FALLBACK := "Reset to Defaults"
 const COMMON_APPLY_FALLBACK := "Apply"
 const COMMON_CANCEL_FALLBACK := "Cancel"
 
-@onready var _heading_label: Label = $CenterContainer/Panel/MainContainer/HeadingLabel
-@onready var _profile_label: Label = $CenterContainer/Panel/MainContainer/ProfileRow/ProfileLabel
-@onready var _profile_button: Button = $CenterContainer/Panel/MainContainer/ProfileRow/ProfileButton
+@onready var _main_panel: PanelContainer = %MainPanel
+@onready var _main_panel_padding: MarginContainer = %MainPanelPadding
+@onready var _main_panel_content: VBoxContainer = %MainPanelContent
+@onready var _heading_label: Label = %HeadingLabel
+@onready var _profile_row: HBoxContainer = %ProfileRow
+@onready var _profile_label: Label = %ProfileLabel
+@onready var _profile_button: Button = %ProfileButton
 @onready var _apply_button: Button = %ApplyButton
 @onready var _cancel_button: Button = %CancelButton
 @onready var _reset_button: Button = %ResetButton
-@onready var _header_label: Label = $CenterContainer/Panel/MainContainer/PreviewContainer/HeaderLabel
-@onready var _description_label: Label = $CenterContainer/Panel/MainContainer/PreviewContainer/DescriptionLabel
-@onready var _bindings_container: VBoxContainer = $CenterContainer/Panel/MainContainer/PreviewContainer/BindingsContainer
+@onready var _preview_container: VBoxContainer = %PreviewContainer
+@onready var _button_row: HBoxContainer = %ButtonRow
+@onready var _header_label: Label = %HeaderLabel
+@onready var _description_label: Label = %DescriptionLabel
+@onready var _bindings_container: VBoxContainer = %BindingsContainer
 
 @export var debug_nav_logs: bool = false
 
@@ -40,6 +48,7 @@ const INPUT_PROFILE_MANAGER_SERVICE := StringName("input_profile_manager")
 var _manager: Node = null
 var _available_profiles: Array[String] = []
 var _current_index: int = 0
+var _theme_config: Resource = null
 
 func _nav_log(message: String) -> void:
 	if not debug_nav_logs:
@@ -52,6 +61,7 @@ func _describe_node(node: Node) -> String:
 	return "%s(%s)" % [node.name, node.get_class()]
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	if _profile_button != null and not _profile_button.pressed.is_connected(_on_profile_button_pressed):
 		_profile_button.pressed.connect(_on_profile_button_pressed)
 	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
@@ -66,6 +76,7 @@ func _on_panel_ready() -> void:
 	if _manager == null:
 		_nav_log("InputProfileSelector: M_InputProfileManager not found")
 		_update_preview()
+		play_enter_animation()
 		return
 	if _manager.has_signal("profile_switched") and not _manager.profile_switched.is_connected(_on_manager_profile_switched):
 		_manager.profile_switched.connect(_on_manager_profile_switched)
@@ -78,6 +89,7 @@ func _on_panel_ready() -> void:
 		_describe_node(get_viewport().gui_get_focus_owner() if get_viewport() != null else null)
 	])
 	_update_preview()
+	play_enter_animation()
 
 func _resolve_input_profile_manager() -> Node:
 	if input_profile_manager != null and is_instance_valid(input_profile_manager):
@@ -355,6 +367,58 @@ func _localize_with_fallback(key: StringName, fallback: String) -> String:
 		return fallback
 	return localized
 
+func _apply_theme_tokens() -> void:
+	_theme_config = null
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+	_theme_config = config
+
+	var dim_color := config.bg_base
+	dim_color.a = 0.5
+	background_color = dim_color
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = dim_color
+
+	if _main_panel != null and config.panel_section != null:
+		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _main_panel_padding != null:
+		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	if _main_panel_content != null:
+		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+	if _profile_row != null:
+		_profile_row.add_theme_constant_override(&"separation", config.separation_default)
+	if _preview_container != null:
+		_preview_container.add_theme_constant_override(&"separation", config.separation_compact)
+	if _bindings_container != null:
+		_bindings_container.add_theme_constant_override(&"separation", config.separation_compact)
+	if _button_row != null:
+		_button_row.add_theme_constant_override(&"separation", config.separation_compact)
+
+	if _heading_label != null:
+		_heading_label.add_theme_font_size_override(&"font_size", config.heading)
+	if _profile_label != null:
+		_profile_label.add_theme_font_size_override(&"font_size", config.section_header)
+		_profile_label.add_theme_color_override(&"font_color", config.section_header)
+	if _header_label != null:
+		_header_label.add_theme_font_size_override(&"font_size", config.subheading)
+	if _description_label != null:
+		_description_label.add_theme_font_size_override(&"font_size", config.body_small)
+		_description_label.add_theme_color_override(&"font_color", config.text_secondary)
+	if _profile_button != null:
+		_profile_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _cancel_button != null:
+		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _reset_button != null:
+		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _apply_button != null:
+		_apply_button.add_theme_font_size_override(&"font_size", config.section_header)
+
 func _transition_back_to_settings_scene() -> void:
 	var store := get_store()
 	if store == null:
@@ -458,7 +522,7 @@ func _add_action_group_row(group_label: String, actions: Array, profile: RS_Inpu
 		return
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override(&"separation", 8)
 
 	var label := Label.new()
 	label.text = group_label + ":"
@@ -466,8 +530,9 @@ func _add_action_group_row(group_label: String, actions: Array, profile: RS_Inpu
 	row.add_child(label)
 
 	var icons_container := HBoxContainer.new()
-	icons_container.add_theme_constant_override("separation", 4)
+	icons_container.add_theme_constant_override(&"separation", 4)
 	row.add_child(icons_container)
+	_apply_preview_row_theme_tokens(row, label, icons_container)
 
 	for action_name in actions:
 		_add_binding_icons_for_action(icons_container, action_name, profile, device_type)
@@ -483,7 +548,7 @@ func _add_action_row(action_label: String, action_name: StringName, profile: RS_
 		return
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override(&"separation", 8)
 
 	var label := Label.new()
 	label.text = action_label + ":"
@@ -491,8 +556,9 @@ func _add_action_row(action_label: String, action_name: StringName, profile: RS_
 	row.add_child(label)
 
 	var icons_container := HBoxContainer.new()
-	icons_container.add_theme_constant_override("separation", 4)
+	icons_container.add_theme_constant_override(&"separation", 4)
 	row.add_child(icons_container)
+	_apply_preview_row_theme_tokens(row, label, icons_container)
 
 	_add_binding_icons_for_action(icons_container, action_name, profile, device_type)
 
@@ -501,6 +567,15 @@ func _add_action_row(action_label: String, action_name: StringName, profile: RS_
 func _add_binding_icons_for_action(container: HBoxContainer, action: StringName, profile: RS_InputProfile, _device_type: int) -> void:
 	if container == null or profile == null:
 		return
+
+	var event_text_color := Color(0.7, 0.7, 0.7, 1.0)
+	var separator_color := Color(0.5, 0.5, 0.5, 1.0)
+	var event_font_size := 0
+	if _theme_config is RS_UI_THEME_CONFIG:
+		var config := _theme_config as RS_UI_THEME_CONFIG
+		event_text_color = config.text_secondary
+		separator_color = config.text_disabled
+		event_font_size = config.caption
 
 	# Show the actual events from this profile (not the registry defaults)
 	var events := profile.get_events_for_action(action)
@@ -524,15 +599,32 @@ func _add_binding_icons_for_action(container: HBoxContainer, action: StringName,
 			# Fallback to text label
 			var event_label := Label.new()
 			event_label.text = _format_binding_label(U_InputRebindUtils.format_event_label(event))
-			event_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
+			event_label.add_theme_color_override(&"font_color", event_text_color)
+			if event_font_size > 0:
+				event_label.add_theme_font_size_override(&"font_size", event_font_size)
 			container.add_child(event_label)
 
 		# Add separator comma between bindings (except last)
 		if i < events.size() - 1:
 			var separator := Label.new()
 			separator.text = ", "
-			separator.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1.0))
+			separator.add_theme_color_override(&"font_color", separator_color)
+			if event_font_size > 0:
+				separator.add_theme_font_size_override(&"font_size", event_font_size)
 			container.add_child(separator)
+
+func _apply_preview_row_theme_tokens(row: HBoxContainer, label: Label, icons_container: HBoxContainer) -> void:
+	if row == null:
+		return
+	if not (_theme_config is RS_UI_THEME_CONFIG):
+		return
+	var config := _theme_config as RS_UI_THEME_CONFIG
+	row.add_theme_constant_override(&"separation", config.separation_compact)
+	if icons_container != null:
+		icons_container.add_theme_constant_override(&"separation", config.separation_compact)
+	if label != null:
+		label.add_theme_font_size_override(&"font_size", config.body_small)
+		label.add_theme_color_override(&"font_color", config.text_secondary)
 
 func _format_binding_label(binding_text: String) -> String:
 	var trimmed := binding_text.strip_edges()

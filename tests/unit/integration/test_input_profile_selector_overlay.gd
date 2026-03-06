@@ -196,7 +196,7 @@ func test_apply_closes_overlays_and_resumes() -> void:
 
 	# Press Apply on the selector
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var apply_button := selector.get_node("CenterContainer/Panel/MainContainer/ButtonRow/ApplyButton") as Button
+	var apply_button := selector.get_node("%ApplyButton") as Button
 	assert_not_null(apply_button, "ApplyButton should exist on input profile selector overlay")
 	apply_button.emit_signal("pressed")
 	_debug_overlay_snapshot("after ApplyButton pressed")
@@ -267,18 +267,18 @@ func test_profile_selector_shows_binding_preview() -> void:
 	await wait_physics_frames(4)
 
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var heading_label := selector.get_node("CenterContainer/Panel/MainContainer/HeadingLabel") as Label
+	var heading_label := selector.get_node("%HeadingLabel") as Label
 	assert_not_null(heading_label, "HeadingLabel should exist on profile selector")
 	assert_eq(heading_label.text, "Input Profile Settings", "Heading should localize to English by default")
-	var profile_label := selector.get_node("CenterContainer/Panel/MainContainer/ProfileRow/ProfileLabel") as Label
+	var profile_label := selector.get_node("%ProfileLabel") as Label
 	assert_not_null(profile_label, "ProfileLabel should exist on profile selector")
 	assert_eq(profile_label.text, "Input Profile:", "Profile label should localize to English by default")
-	var preview_container := selector.get_node("CenterContainer/Panel/MainContainer/PreviewContainer") as VBoxContainer
+	var preview_container := selector.get_node("%PreviewContainer") as VBoxContainer
 	assert_not_null(preview_container, "PreviewContainer should exist on profile selector")
 	var header_label := preview_container.get_node("HeaderLabel") as Label
 	assert_not_null(header_label, "HeaderLabel should exist in preview container")
 	# The bindings container should have child nodes showing the bindings with icons
-	var bindings_container := preview_container.get_node("BindingsContainer") as VBoxContainer
+	var bindings_container := selector.get_node("%BindingsContainer") as VBoxContainer
 	assert_not_null(bindings_container, "BindingsContainer should exist in preview container")
 	assert_gt(bindings_container.get_child_count(), 0, "Bindings container should show action bindings")
 
@@ -307,9 +307,9 @@ func test_profile_selector_updates_overlay_labels_on_locale_change() -> void:
 	await wait_physics_frames(4)
 
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var heading_label := selector.get_node("CenterContainer/Panel/MainContainer/HeadingLabel") as Label
+	var heading_label := selector.get_node("%HeadingLabel") as Label
 	assert_not_null(heading_label, "HeadingLabel should exist on profile selector")
-	var profile_label := selector.get_node("CenterContainer/Panel/MainContainer/ProfileRow/ProfileLabel") as Label
+	var profile_label := selector.get_node("%ProfileLabel") as Label
 	assert_not_null(profile_label, "ProfileLabel should exist on profile selector")
 	assert_eq(heading_label.text, "Input Profile Settings", "Heading should start in English")
 	assert_eq(profile_label.text, "Input Profile:", "Profile label should start in English")
