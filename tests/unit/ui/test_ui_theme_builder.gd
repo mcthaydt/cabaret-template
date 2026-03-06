@@ -57,7 +57,8 @@ func test_build_theme_applies_dialog_window_panel_styles() -> void:
 	var theme := U_UI_THEME_BUILDER.build_theme(_config)
 	var accept_dialog_panel := theme.get_stylebox(&"panel", &"AcceptDialog")
 	var confirmation_dialog_panel := theme.get_stylebox(&"panel", &"ConfirmationDialog")
-	var window_panel := theme.get_stylebox(&"panel", &"Window")
+	var window_border := theme.get_stylebox(&"embedded_border", &"Window")
+	var window_unfocused_border := theme.get_stylebox(&"embedded_unfocused_border", &"Window")
 
 	assert_true(accept_dialog_panel is StyleBoxFlat, "AcceptDialog panel stylebox should be StyleBoxFlat")
 	assert_true(
@@ -72,10 +73,26 @@ func test_build_theme_applies_dialog_window_panel_styles() -> void:
 		(confirmation_dialog_panel as StyleBoxFlat).bg_color.is_equal_approx(_config.panel_section.bg_color),
 		"ConfirmationDialog panel color should match config panel_section"
 	)
-	assert_true(window_panel is StyleBoxFlat, "Window panel stylebox should be StyleBoxFlat")
+	assert_true(window_border is StyleBoxFlat, "Window embedded border stylebox should be StyleBoxFlat")
 	assert_true(
-		(window_panel as StyleBoxFlat).bg_color.is_equal_approx(_config.panel_section.bg_color),
-		"Window panel color should match config panel_section"
+		(window_border as StyleBoxFlat).bg_color.is_equal_approx(_config.panel_section.bg_color),
+		"Window embedded border color should match config panel_section"
+	)
+	assert_true(
+		window_unfocused_border is StyleBoxFlat,
+		"Window embedded unfocused border stylebox should be StyleBoxFlat"
+	)
+	assert_true(
+		(window_unfocused_border as StyleBoxFlat).bg_color.is_equal_approx(_config.panel_section.bg_color),
+		"Window embedded unfocused border color should match config panel_section"
+	)
+	assert_true(
+		theme.get_color(&"title_color", &"Window").is_equal_approx(_config.text_primary),
+		"Window title color should match config text_primary"
+	)
+	assert_true(
+		theme.get_color(&"title_outline_modulate", &"Window").is_equal_approx(Color(0.0, 0.0, 0.0, 0.0)),
+		"Window title outline should be transparent"
 	)
 
 func test_build_theme_applies_separator_style() -> void:
