@@ -505,7 +505,7 @@ Follow-up note (2026-03-06): Localization overlay centering regression fix in co
 - [x] Run tests — new slider theme tests pass
 - [x] Run existing audio settings tests — all pass (4 volume sliders, values persist)
 - [x] Run full test suite
-- [x] **Manual smoke test:** Open audio settings, verify sliders have Duel palette fill (#41b2e3), track (#434549), all 4 sliders respond to input
+- [ ] **Manual smoke test:** Open audio settings, verify sliders have Duel palette fill (#41b2e3), track (#434549), all 4 sliders respond to input
 
 Completion note (2026-03-06): Implemented Screen 15 in commit `2b4db1c9`.
 - Added `tests/unit/ui/test_audio_settings_theme.gd` with Screen 15 coverage:
@@ -518,6 +518,15 @@ Completion note (2026-03-06): Implemented Screen 15 in commit `2b4db1c9`.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_audio_settings_theme.gd -gtest=res://tests/unit/ui/test_audio_settings_tab_localization.gd -gtest=res://tests/integration/audio/test_audio_settings_ui.gd` → 14/14 passing
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2833/2842 passing, 0 failing, 9 pending/risky
+
+Follow-up note (2026-03-06): Centered audio settings wrapper panel after enter animation in commit `217f77a6`.
+- Root cause: wrapper enter motion auto-targeted `CenterContainer`, which could shift vertical alignment during tween sampling.
+- Fix: set `motion_target_path = NodePath("CenterContainer/Panel")` in `ui_audio_settings_overlay.tscn`.
+- Added regression coverage in `tests/unit/ui/test_settings_overlay_wrappers.gd`:
+  - `test_audio_settings_overlay_keeps_panel_vertically_centered_after_enter`
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd -gtest=res://tests/integration/audio/test_audio_settings_ui.gd` → 16/16 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
 
 ### Screen 16: Display Settings Tab (`ui_display_settings_tab.tscn`)
 

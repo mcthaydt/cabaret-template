@@ -8,6 +8,15 @@
 
 ## Recent Progress
 
+- **2026-03-06: Screen 15 audio overlay centering follow-up**
+  - Root cause: `UI_AudioSettingsOverlay` enter motion was auto-targeting `CenterContainer`, which could introduce vertical drift for the wrapper panel during tween sampling.
+  - Fix: set `motion_target_path = NodePath("CenterContainer/Panel")` so slide animation applies to the panel while preserving center-container alignment.
+  - Added regression coverage:
+    - `tests/unit/ui/test_settings_overlay_wrappers.gd::test_audio_settings_overlay_keeps_panel_vertically_centered_after_enter`
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd -gtest=res://tests/integration/audio/test_audio_settings_ui.gd` → 16/16 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+  - Implementation commit: `217f77a6`
 - **2026-03-06: Phase 3 Screen 15 implemented (`ui_audio_settings_tab.tscn`)**
   - Audio settings tab migrated to token-driven styling:
     - Removed all inline slider style overrides (`slider`, `grabber_area`, `grabber_area_highlight`) and row/root/button separation overrides from the tab scene.
@@ -548,6 +557,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 3 Screen 14 localization-settings-tab migration commit: `c94de23c`
 - Screen 14 localization-overlay centering fix commit: `abc897ed`
 - Phase 3 Screen 15 audio-settings-tab migration commit: `2b4db1c9`
+- Screen 15 audio-settings-overlay centering fix commit: `217f77a6`
 
 ## Context
 
