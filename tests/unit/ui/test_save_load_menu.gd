@@ -2,6 +2,8 @@ extends GutTest
 
 const SaveLoadMenuScene := preload("res://scenes/ui/overlays/ui_save_load_menu.tscn")
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
 const TEST_THUMB_DIR := "user://test_ui_thumbs/"
@@ -11,6 +13,7 @@ var _test_store: M_StateStore
 
 func before_each() -> void:
 	U_ServiceLocator.clear()
+	U_UI_THEME_BUILDER.active_config = null
 	# Create and register mock save manager first
 	_test_save_manager = MockSaveManager.new()
 	add_child_autofree(_test_save_manager)
@@ -25,6 +28,62 @@ func after_each() -> void:
 	# Note: _test_save_manager and _test_store are freed by add_child_autofree()
 	U_SAVE_TEST_UTILS.teardown(TEST_THUMB_DIR)
 	U_ServiceLocator.clear()
+	U_UI_THEME_BUILDER.active_config = null
+
+func test_save_load_menu_has_motion_and_theme_tokens_when_active_config_set() -> void:
+	var config := RS_UI_THEME_CONFIG.new()
+	config.subheading = 34
+	config.section_header = 15
+	config.margin_section = 21
+	config.separation_default = 17
+	config.separation_compact = 9
+	config.bg_base = Color(0.12, 0.2, 0.28, 1.0)
+	config.danger = Color(0.88, 0.3, 0.33, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+	_prepare_save_mode(_test_store)
+
+	var menu := await _instantiate_save_load_menu()
+	var motion_set: Variant = menu.get("motion_set")
+	assert_not_null(motion_set, "Save/load menu should assign enter/exit motion set")
+	if motion_set != null:
+		assert_true("enter" in motion_set, "Motion set should expose enter presets")
+		assert_true("exit" in motion_set, "Motion set should expose exit presets")
+
+	var mode_label := menu.get_node_or_null("%ModeLabel") as Label
+	var error_label := menu.get_node_or_null("%ErrorLabel") as Label
+	var spinner_label := menu.get_node_or_null("%SpinnerLabel") as Label
+	var panel_padding := menu.get_node_or_null("%MainPanelPadding") as MarginContainer
+	var slot_list := menu.get_node_or_null("%SlotListContainer") as VBoxContainer
+	var overlay_background := menu.get_node_or_null("OverlayBackground") as ColorRect
+	var expected_dim := config.bg_base
+	expected_dim.a = 0.7
+
+	assert_not_null(mode_label, "ModeLabel should exist")
+	assert_not_null(error_label, "ErrorLabel should exist")
+	assert_not_null(spinner_label, "SpinnerLabel should exist")
+	assert_not_null(panel_padding, "MainPanelPadding should exist")
+	assert_not_null(slot_list, "SlotListContainer should exist")
+	assert_not_null(overlay_background, "OverlayBackground should exist")
+
+	if mode_label != null:
+		assert_eq(mode_label.get_theme_font_size(&"font_size"), 34, "Mode label should use subheading token")
+	if spinner_label != null:
+		assert_eq(spinner_label.get_theme_font_size(&"font_size"), 34, "Spinner label should use subheading token")
+	if error_label != null:
+		assert_eq(error_label.get_theme_font_size(&"font_size"), 15, "Error label should use section_header token")
+		assert_true(
+			error_label.get_theme_color(&"font_color").is_equal_approx(config.danger),
+			"Error label should use danger token color"
+		)
+	if panel_padding != null:
+		assert_eq(panel_padding.get_theme_constant(&"margin_left"), 21, "Panel padding should use margin_section token")
+	if slot_list != null:
+		assert_eq(slot_list.get_theme_constant(&"separation"), 9, "Slot list should use separation_compact token")
+	if overlay_background != null:
+		assert_true(
+			overlay_background.color.is_equal_approx(expected_dim),
+			"Overlay dim should use bg_base at 0.7 alpha"
+		)
 
 func test_spinner_hidden_initially() -> void:
 	_prepare_save_mode(_test_store)

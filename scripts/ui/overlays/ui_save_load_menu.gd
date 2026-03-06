@@ -13,6 +13,8 @@ class_name UI_SaveLoadMenu
 const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
 const PLACEHOLDER_TEXTURE := preload(PLACEHOLDER_TEXTURE_PATH)
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 const MONTH_KEYS: Array[StringName] = [
 	&"date.month.jan",
 	&"date.month.feb",
@@ -60,12 +62,16 @@ var _pending_action: Dictionary = {} # {action: "save"|"delete", slot_id: String
 
 ## UI References (set via @onready once scene is created)
 @onready var _mode_label: Label = %ModeLabel
+@onready var _main_panel: PanelContainer = %MainPanel
+@onready var _main_panel_padding: MarginContainer = %MainPanelPadding
+@onready var _main_panel_content: VBoxContainer = %MainPanelContent
 @onready var _slot_list_container: VBoxContainer = %SlotListContainer
 @onready var _back_button: Button = %BackButton
 @onready var _confirmation_dialog: ConfirmationDialog = %ConfirmationDialog
 @onready var _loading_spinner: Control = %LoadingSpinner
+@onready var _spinner_label: Label = %SpinnerLabel
 @onready var _error_label: Label = %ErrorLabel
-@onready var _loading_label: Label = $CenterContainer/VBoxContainer/LoadingSpinner/LoadingLabel
+@onready var _loading_label: Label = %LoadingLabel
 
 func _ready() -> void:
 	super._ready()
@@ -265,6 +271,7 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 	slot_container.add_child(thumbnail_rect)
 	slot_container.add_child(main_button)
 	slot_container.add_child(delete_button)
+	_apply_slot_item_theme(slot_container, main_button, delete_button, thumbnail_rect)
 
 	_slot_list_container.add_child(slot_container)
 
@@ -702,9 +709,11 @@ func _set_buttons_enabled(enabled: bool) -> void:
 					delete_button.disabled = not enabled
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_connect_buttons()
 	_localize_static_ui()
 	_read_mode_from_state()
+	play_enter_animation()
 
 func _connect_buttons() -> void:
 	if _back_button != null and not _back_button.pressed.is_connected(_on_back_pressed_button):
@@ -749,3 +758,60 @@ func _localize_with_fallback(key: StringName, fallback: String) -> String:
 	if localized == String(key):
 		return fallback
 	return localized
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	var dim_color := config.bg_base
+	dim_color.a = 0.7
+	background_color = dim_color
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = dim_color
+
+	if _main_panel != null and config.panel_section != null:
+		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _main_panel_padding != null:
+		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	if _main_panel_content != null:
+		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+	if _slot_list_container != null:
+		_slot_list_container.add_theme_constant_override(&"separation", config.separation_compact)
+	if _loading_spinner is HBoxContainer:
+		(_loading_spinner as HBoxContainer).add_theme_constant_override(&"separation", config.separation_default)
+
+	if _mode_label != null:
+		_mode_label.add_theme_font_size_override(&"font_size", config.subheading)
+	if _error_label != null:
+		_error_label.add_theme_font_size_override(&"font_size", config.section_header)
+		_error_label.add_theme_color_override(&"font_color", config.danger)
+	if _spinner_label != null:
+		_spinner_label.add_theme_font_size_override(&"font_size", config.subheading)
+	if _loading_label != null:
+		_loading_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _back_button != null:
+		_back_button.add_theme_font_size_override(&"font_size", config.section_header)
+
+func _apply_slot_item_theme(slot_container: HBoxContainer, main_button: Button, delete_button: Button, thumbnail_rect: TextureRect) -> void:
+	if slot_container == null:
+		return
+
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	slot_container.add_theme_constant_override(&"separation", config.separation_compact)
+	if main_button != null:
+		main_button.custom_minimum_size = Vector2(0, 76)
+		main_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if delete_button != null:
+		delete_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if thumbnail_rect != null:
+		thumbnail_rect.custom_minimum_size = Vector2(96, 54)
