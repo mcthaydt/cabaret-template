@@ -169,9 +169,12 @@
 - **2026-03-06: Screen 6 animation follow-up refinement**
   - Updated pause-menu enter/exit behavior so only `MainPanel` receives slide motion.
   - Backdrop (`OverlayBackground`) now fades only and no longer slides, removing visible edge/cutoff artifacts during transition.
-  - Added regression coverage in `tests/unit/ui/test_pause_menu.gd` (`test_enter_animation_keeps_overlay_root_position_static`).
+  - Centering fix: introduced `MainPanelMotionHost` under `CenterContainer` and moved `MainPanel` inside it so slide animation no longer displaces center alignment.
+  - Added regression coverage in `tests/unit/ui/test_pause_menu.gd`:
+    - `test_enter_animation_keeps_overlay_root_position_static`
+    - `test_pause_menu_panel_stays_vertically_centered_after_enter_animation`
   - Verification:
-    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_pause_menu.gd` → 9/9 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_pause_menu.gd` → 10/10 passing
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd` → 4/4 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2804/2813 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
@@ -204,6 +207,7 @@ The `UI-Looksmaxxing` branch contains:
 - Screen 6 documentation update commit: `b156374e`
 - Screen 6 commit-reference doc patch: `e3a2375f`
 - Screen 6 panel-only-slide refinement commit: `0df2deae`
+- Screen 6 centering regression fix commit: `5e7e679b`
 
 ## Context
 
