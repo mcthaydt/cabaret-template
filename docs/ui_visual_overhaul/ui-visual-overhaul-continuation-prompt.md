@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-3 (`ui_main_menu.tscn`, `ui_game_over.tscn`, `ui_victory.tscn`) implemented + automation-verified. Screen 1 manual smoke is complete; Screens 2-3 manual smokes remain pending. Next: Phase 1 Screen 4 (`ui_credits.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-4 (`ui_main_menu.tscn`, `ui_game_over.tscn`, `ui_victory.tscn`, `ui_credits.tscn`) implemented + automation-verified. Screen 1 manual smoke is complete; Screens 2-4 manual smokes remain pending. Next: Phase 1 Screen 5 (`ui_language_selector.tscn`).
 
 ## Recent Progress
 
@@ -88,6 +88,24 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2797/2806 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `b05c75df`
+- **2026-03-05: Phase 1 Screen 4 implemented (`ui_credits.tscn`)**
+  - Scene composition updated to match migrated endgame pattern: full-screen `Background` (`bg_base`) + centered `PanelContainer` credits layout replacing fixed 96px offsets.
+  - Assigned `motion_set = cfg_motion_fade_slide` on `UI_Credits` root and trigger `play_enter_animation()` on panel ready.
+  - Replaced spacer `Control` nodes with token-driven VBox separation and moved Skip button to anchored margin-based placement (no fixed bottom-right pixel block).
+  - Added token-driven visual application in `UI_Credits` from `U_UIThemeBuilder.active_config`:
+    - `title` size for header label,
+    - `body` size for credits names/thanks,
+    - `caption` size for footer label,
+    - `separation_medium` for content spacing,
+    - `bg_base` for background color.
+  - Updated `tests/unit/ui/test_endgame_screens.gd`:
+    - Added credits motion/theme-token coverage with active config.
+    - Migrated credits skip button lookup to `%UniqueName` hierarchy-safe selector.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd` → 13/13 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2798/2807 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `c747d478`
 
 ### Plan Change Summary (2026-03-05)
 
@@ -109,6 +127,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 1 Screen 1 main-menu migration commit: `aaa7f75c`
 - Phase 1 Screen 2 game-over migration commit: `f2fb658a`
 - Phase 1 Screen 3 victory migration commit: `b05c75df`
+- Phase 1 Screen 4 credits migration commit: `c747d478`
 
 ## Context
 
@@ -183,11 +202,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Perform pending manual smoke tests for Phase 1 Screens 2-3 (`ui_game_over.tscn`, `ui_victory.tscn`) in runtime/editor.
-2. Begin Phase 1 Screen 4 (`ui_credits.tscn`) migration.
+1. Perform pending manual smoke tests for Phase 1 Screens 2-4 (`ui_game_over.tscn`, `ui_victory.tscn`, `ui_credits.tscn`) in runtime/editor.
+2. Begin Phase 1 Screen 5 (`ui_language_selector.tscn`) migration.
 3. Continue screen-by-screen through Phases 1-4, running full-suite + style gates after each screen or batch.
 
-Updated next action (2026-03-05): Run manual smokes for `ui_game_over.tscn` and `ui_victory.tscn`, then start Screen 4 (`ui_credits.tscn`) with theme-token migration, layout cleanup, and enter motion.
+Updated next action (2026-03-05): Run manual smokes for `ui_game_over.tscn`, `ui_victory.tscn`, and `ui_credits.tscn`, then start Screen 5 (`ui_language_selector.tscn`) with theme-token migration, panel styling, and enter motion.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 32% (53 / 165 tasks complete)
+**Progress:** 36% (59 / 165 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -177,7 +177,7 @@ Completion note (2026-03-05): Implemented Screen 2 in commit `f2fb658a` and vali
 - [x] Motion: Similar to Game Over with success feel
 - [x] Run existing `test_endgame_screens.gd` — all victory tests pass
 - [x] Run full test suite
-- [x] **Manual smoke test:** Win in gameplay, verify victory screen shows with success-colored title, stats readable, Reset Run/Menu work, fade-in plays
+- [ ] **Manual smoke test:** Win in gameplay, verify victory screen shows with success-colored title, stats readable, Reset Run/Menu work, fade-in plays
 
 Completion note (2026-03-05): Implemented Screen 3 in commit `b05c75df` and validated with:
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd`
@@ -187,14 +187,20 @@ Completion note (2026-03-05): Implemented Screen 3 in commit `b05c75df` and vali
 
 ### Screen 4: Credits (`scenes/ui/menus/ui_credits.tscn`)
 
-- [ ] Migrate separation to theme token
-- [ ] Replace manual spacer Control nodes with proper VBox separation
-- [ ] Header uses `title`, names use `body`, footer uses `caption`
-- [ ] Fix Skip button from hardcoded pixel offsets to anchored margin
-- [ ] bg_base background, fade-in motion
-- [ ] Run existing `test_endgame_screens.gd` — credits tests pass (auto-return timer, skip)
-- [ ] Run full test suite
+- [x] Migrate separation to theme token
+- [x] Replace manual spacer Control nodes with proper VBox separation
+- [x] Header uses `title`, names use `body`, footer uses `caption`
+- [x] Fix Skip button from hardcoded pixel offsets to anchored margin
+- [x] bg_base background, fade-in motion
+- [x] Run existing `test_endgame_screens.gd` — credits tests pass (auto-return timer, skip)
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Open credits, verify text hierarchy is visually clear (title > body > caption), Skip button is accessible, auto-scroll completes
+
+Completion note (2026-03-05): Implemented Screen 4 in commit `c747d478` and validated with:
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd` → 13/13 passing
+- `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2798/2807 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- Manual smoke test remains pending (requires runtime visual pass).
 
 ### Screen 5: Language Selector (`scenes/ui/menus/ui_language_selector.tscn`)
 
