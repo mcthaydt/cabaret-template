@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 54% (90 / 168 tasks complete)
+**Progress:** 54% (91 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -322,7 +322,7 @@ Follow-up correction (2026-03-06): Applied the actual `Window` chrome keys used 
 
 - [x] **9. Input Rebinding** (`ui_input_rebinding_overlay.tscn`) — migrated to overlay-panel pattern with tokenized styling + dialog theming support.
 - [x] **10. Input Profile Selector** (`ui_input_profile_selector.tscn`) — migrated to overlay-panel pattern with tokenized spacing and `bg_base@0.5` dim.
-- [ ] **11. Gamepad Settings** (`ui_gamepad_settings_overlay.tscn`) — 0 overrides, dim=0.5. Style sliders and preview area.
+- [x] **11. Gamepad Settings** (`ui_gamepad_settings_overlay.tscn`) — migrated to overlay-panel pattern with tokenized slider/preview styling and `bg_base@0.5` dim.
 - [ ] **12. Touchscreen Settings** (`ui_touchscreen_settings_overlay.tscn`) — 0 overrides, dim=0.5. Style sliders and preview container.
 - [ ] **13. Edit Touch Controls** (`ui_edit_touch_controls_overlay.tscn`) — 0 overrides, unique dim=0.05. Keep translucent nature, style toolbar panel.
 - [ ] Run existing overlay tests (rebinding, input profile, gamepad, touchscreen, edit touch) — all pass
@@ -355,6 +355,15 @@ Completion note (2026-03-06): Implemented Screen 10 with centered panel-backed l
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_profile_selector.gd -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd -gtest=res://tests/unit/input/test_input_profile_mobile_regression.gd` → 12/12 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2814/2823 passing, 0 failing, 9 pending/risky
+- Manual smoke test pending (user verification).
+
+Completion note (2026-03-06): Implemented Screen 11 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `section_header`, `body_small`, `margin_section`, `separation_compact`, `panel_section`, `bg_base@0.5`) including themed preview-panel chrome.
+- Implementation commit: `5a40761f`
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_gamepad_settings_overlay.gd` → 3/3 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_gamepad_settings_overlay_localization.gd` → 1/1 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2815/2824 passing, 0 failing, 9 pending/risky
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 - Manual smoke test pending (user verification).
 
 ### Settings Overlay Wrappers (batch — all 0 overrides)
