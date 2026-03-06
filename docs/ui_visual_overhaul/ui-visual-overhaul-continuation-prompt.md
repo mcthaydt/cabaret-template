@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) and Screen 7 (`ui_settings_menu.tscn`) are implemented + manual-smoke verified. Phase 2 Screen 8 (`ui_save_load_menu.tscn`) is implemented with automated verification complete. Next: Screen 8 manual smoke, then Screen 9 (`ui_input_rebinding_overlay.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) and Screen 7 (`ui_settings_menu.tscn`) are implemented + manual-smoke verified. Phase 2 Screen 8 (`ui_save_load_menu.tscn`) and Screen 9 (`ui_input_rebinding_overlay.tscn`) are implemented with automated verification complete. Next: manual smoke for Screens 8-9, then Screen 10 (`ui_input_profile_selector.tscn`).
 
 ## Recent Progress
 
@@ -265,6 +265,28 @@
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_theme_builder.gd -gtest=res://tests/unit/ui/test_save_load_menu.gd` → 31/31 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `2f61c70f`
+- **2026-03-06: Phase 2 Screen 9 implemented (`ui_input_rebinding_overlay.tscn`)**
+  - Scene composition migrated to overlay-panel pattern:
+    - Removed legacy inline `Background` color rect.
+    - Added centered panel structure (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`).
+    - Assigned `motion_set = cfg_motion_fade_slide` to `UI_InputRebindingOverlay`.
+  - `UI_InputRebindingOverlay` now applies `RS_UIThemeConfig` tokens from `U_UIThemeBuilder.active_config`:
+    - `heading` for title,
+    - `section_header` for status + action buttons,
+    - `body_small` for search box text,
+    - `margin_section` for panel padding,
+    - `separation_default`/`separation_compact` for button/action list spacing,
+    - `panel_section` for panel surface styling,
+    - `bg_base` at `0.7` alpha for dim background.
+  - Updated `tests/unit/ui/test_input_rebinding_overlay.gd`:
+    - Added motion/theme-token coverage with active config.
+    - Added setup/teardown reset handling for `U_UIThemeBuilder.active_config`.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/integration/test_rebinding_flow.gd` → 12/12 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2812/2821 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `3739f301`
+  - Manual smoke: pending (user verification)
 
 ### Plan Change Summary (2026-03-05)
 
@@ -300,6 +322,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 2 Screen 8 save-load-menu migration commit: `c969b7f4`
 - Screen 8 confirmation-dialog chrome follow-up commit: `1b91c156`
 - Screen 8 confirmation-dialog chrome correction commit: `2f61c70f`
+- Phase 2 Screen 9 input-rebinding-overlay migration commit: `3739f301`
 
 ## Context
 
@@ -375,10 +398,10 @@ All phases are sequential. After every screen: run full test suite, verify behav
 ## Next Steps
 
 1. Complete Screen 8 manual smoke verification (open from pause, validate tokenized error state, slot styling, and loading spinner behavior during save/load/delete flows).
-2. Begin Phase 2 Screen 9 (`ui_input_rebinding_overlay.tscn`) migration.
+2. Complete Screen 9 manual smoke verification (`ui_input_rebinding_overlay.tscn`: open from settings, verify panel styling/motion, status/search readability, and dialog chrome for conflict/reset/error paths).
 3. Continue screen-by-screen through Phases 2-4, running full-suite + style gates after each screen or batch.
 
-Updated next action (2026-03-06): Run Screen 8 manual smoke, then start Screen 9 (`ui_input_rebinding_overlay.tscn`).
+Updated next action (2026-03-06): Run Screen 8 + Screen 9 manual smoke, then start Screen 10 (`ui_input_profile_selector.tscn`).
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

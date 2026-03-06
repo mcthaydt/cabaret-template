@@ -320,7 +320,7 @@ Follow-up correction (2026-03-06): Applied the actual `Window` chrome keys used 
 
 ### Screens 9-13: Remaining Overlays (batch)
 
-- [ ] **9. Input Rebinding** (`ui_input_rebinding_overlay.tscn`) — 0 overrides, dim=0.5. Style panel and dialogs.
+- [x] **9. Input Rebinding** (`ui_input_rebinding_overlay.tscn`) — migrated to overlay-panel pattern with tokenized styling + dialog theming support.
 - [ ] **10. Input Profile Selector** (`ui_input_profile_selector.tscn`) — 4 spacing overrides, dim=0.5. Migrate to theme tokens.
 - [ ] **11. Gamepad Settings** (`ui_gamepad_settings_overlay.tscn`) — 0 overrides, dim=0.5. Style sliders and preview area.
 - [ ] **12. Touchscreen Settings** (`ui_touchscreen_settings_overlay.tscn`) — 0 overrides, dim=0.5. Style sliders and preview container.
@@ -328,6 +328,14 @@ Follow-up correction (2026-03-06): Applied the actual `Window` chrome keys used 
 - [ ] Run existing overlay tests (rebinding, input profile, gamepad, touchscreen, edit touch) — all pass
 - [ ] Run full test suite after batch
 - [ ] **Manual smoke test:** Open each overlay in sequence, verify dim is consistent (0.5 for most, 0.05 for edit touch), panels styled, sliders functional, preview areas render
+
+Completion note (2026-03-06): Implemented Screen 9 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `section_header`, `body_small`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`, `bg_base@0.7`).
+- Implementation commit: `3739f301`
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/integration/test_rebinding_flow.gd` → 12/12 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2812/2821 passing, 0 failing, 9 pending/risky
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- Manual smoke test pending (user verification).
 
 ### Settings Overlay Wrappers (batch — all 0 overrides)
 
