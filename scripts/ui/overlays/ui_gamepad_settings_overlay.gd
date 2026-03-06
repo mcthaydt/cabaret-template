@@ -3,6 +3,8 @@ extends "res://scripts/ui/base/base_overlay.gd"
 class_name UI_GamepadSettingsOverlay
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"settings.gamepad.title"
 const LABEL_LEFT_DEADZONE_KEY := &"settings.gamepad.label.left_deadzone"
@@ -19,11 +21,21 @@ const TOOLTIP_VIBRATION_ENABLED_KEY := &"settings.gamepad.tooltip.vibration_enab
 const TOOLTIP_VIBRATION_INTENSITY_KEY := &"settings.gamepad.tooltip.vibration_intensity"
 const TOOLTIP_PREVIEW_KEY := &"settings.gamepad.tooltip.preview"
 
-@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
-@onready var _left_deadzone_label: Label = $CenterContainer/Panel/VBox/LeftRow/LeftLabel
-@onready var _right_deadzone_label: Label = $CenterContainer/Panel/VBox/RightRow/RightLabel
-@onready var _vibration_enabled_label: Label = $CenterContainer/Panel/VBox/VibrationEnableRow/VibrationEnableLabel
-@onready var _vibration_intensity_label: Label = $CenterContainer/Panel/VBox/VibrationRow/VibrationLabel
+@onready var _main_panel: PanelContainer = %MainPanel
+@onready var _main_panel_padding: MarginContainer = %MainPanelPadding
+@onready var _main_panel_content: VBoxContainer = %MainPanelContent
+@onready var _preview_panel: PanelContainer = %PreviewPanel
+@onready var _preview_content: VBoxContainer = %PreviewContent
+@onready var _title_label: Label = %HeadingLabel
+@onready var _left_row: HBoxContainer = %LeftRow
+@onready var _right_row: HBoxContainer = %RightRow
+@onready var _vibration_enable_row: HBoxContainer = %VibrationEnableRow
+@onready var _vibration_row: HBoxContainer = %VibrationRow
+@onready var _button_row: HBoxContainer = %ButtonRow
+@onready var _left_deadzone_label: Label = %LeftLabel
+@onready var _right_deadzone_label: Label = %RightLabel
+@onready var _vibration_enabled_label: Label = %VibrationEnableLabel
+@onready var _vibration_intensity_label: Label = %VibrationLabel
 @onready var _left_slider: HSlider = %LeftDeadzoneSlider
 @onready var _right_slider: HSlider = %RightDeadzoneSlider
 @onready var _left_label: Label = %LeftDeadzoneValue
@@ -56,11 +68,78 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_on_state_changed({}, store.get_state())
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_configure_focus_neighbors()
 	_connect_control_signals()
 	_localize_labels()
 	_configure_tooltips()
 	_configure_preview_prompts()
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	var dim_color := config.bg_base
+	dim_color.a = 0.5
+	background_color = dim_color
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = dim_color
+
+	if _main_panel != null and config.panel_section != null:
+		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _preview_panel != null and config.panel_section != null:
+		_preview_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _main_panel_padding != null:
+		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	if _main_panel_content != null:
+		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+
+	var compact_rows: Array[HBoxContainer] = [
+		_left_row,
+		_right_row,
+		_vibration_enable_row,
+		_vibration_row,
+		_button_row,
+	]
+	for row in compact_rows:
+		if row != null:
+			row.add_theme_constant_override(&"separation", config.separation_compact)
+	if _preview_content != null:
+		_preview_content.add_theme_constant_override(&"separation", config.separation_compact)
+
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.heading)
+	if _left_deadzone_label != null:
+		_left_deadzone_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _right_deadzone_label != null:
+		_right_deadzone_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _vibration_enabled_label != null:
+		_vibration_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _vibration_intensity_label != null:
+		_vibration_intensity_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _left_label != null:
+		_left_label.add_theme_font_size_override(&"font_size", config.body_small)
+		_left_label.add_theme_color_override(&"font_color", config.text_secondary)
+	if _right_label != null:
+		_right_label.add_theme_font_size_override(&"font_size", config.body_small)
+		_right_label.add_theme_color_override(&"font_color", config.text_secondary)
+	if _vibration_label != null:
+		_vibration_label.add_theme_font_size_override(&"font_size", config.body_small)
+		_vibration_label.add_theme_color_override(&"font_color", config.text_secondary)
+	if _vibration_checkbox != null:
+		_vibration_checkbox.add_theme_font_size_override(&"font_size", config.section_header)
+	if _cancel_button != null:
+		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _reset_button != null:
+		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _apply_button != null:
+		_apply_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _configure_preview_prompts() -> void:
 	_preview_active = false
@@ -174,26 +253,7 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	if state == null:
 		return
 
-	var action_type: StringName = StringName("")
-	if _action.has("type"):
-		action_type = _action.get("type", StringName(""))
-
 	var settings := U_InputSelectors.get_gamepad_settings(state)
-	var overridden_fields: Array[String] = []
-	if not settings.is_empty():
-		var left_from_state := float(settings.get("left_stick_deadzone", _left_slider.value))
-		var right_from_state := float(settings.get("right_stick_deadzone", _right_slider.value))
-		var vibration_enabled_from_state := bool(settings.get("vibration_enabled", true))
-		var vibration_from_state := float(settings.get("vibration_intensity", _vibration_slider.value))
-
-		if not is_equal_approx(_left_slider.value, left_from_state):
-			overridden_fields.append("left_stick_deadzone")
-		if not is_equal_approx(_right_slider.value, right_from_state):
-			overridden_fields.append("right_stick_deadzone")
-		if _vibration_checkbox.button_pressed != vibration_enabled_from_state:
-			overridden_fields.append("vibration_enabled")
-		if not is_equal_approx(_vibration_slider.value, vibration_from_state):
-			overridden_fields.append("vibration_intensity")
 
 	_updating_from_state = true
 	if not settings.is_empty():
