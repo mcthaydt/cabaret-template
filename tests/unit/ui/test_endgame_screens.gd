@@ -41,6 +41,28 @@ func test_game_over_has_motion_and_theme_tokens_when_active_config_set() -> void
 	assert_eq(death_count_label.get_theme_font_size(&"font_size"), 34, "Death count should use theme heading size token")
 	assert_true(background.color.is_equal_approx(config.bg_base), "Background should use theme bg_base token")
 
+func test_victory_has_motion_and_theme_tokens_when_active_config_set() -> void:
+	var store := await _create_state_store()
+	_prepare_endgame_state(store, StringName("victory"))
+	var config := RS_UI_THEME_CONFIG.new()
+	config.title = 60
+	config.heading = 32
+	config.bg_base = Color(0.11, 0.16, 0.22, 1.0)
+	config.success = Color(0.3, 0.8, 0.4, 1.0)
+	config.text_secondary = Color(0.72, 0.72, 0.8, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	var screen: Variant = await _instantiate_scene(VictoryScene)
+	var motion_set: Variant = screen.get("motion_set")
+	var title_label: Label = screen.get_node("%TitleLabel")
+	var completed_label: Label = screen.get_node("%CompletedLabel")
+	var background: ColorRect = screen.get_node("Background")
+
+	assert_not_null(motion_set, "Victory should assign enter/exit motion set")
+	assert_eq(title_label.get_theme_font_size(&"font_size"), 60, "Victory title should use theme title size token")
+	assert_eq(completed_label.get_theme_font_size(&"font_size"), 32, "Victory stats should use theme heading size token")
+	assert_true(background.color.is_equal_approx(config.bg_base), "Victory background should use theme bg_base token")
+
 func test_game_over_retry_returns_to_gameplay() -> void:
 	var store := await _create_state_store()
 	_prepare_endgame_state(store, StringName("game_over"))
@@ -88,7 +110,7 @@ func test_victory_continue_dispatches_run_reset_contract_action() -> void:
 		dispatched_actions.append(action.duplicate(true))
 	)
 
-	var continue_button: Button = screen.get_node("MarginContainer/VBoxContainer/ButtonRow/ContinueButton")
+	var continue_button: Button = screen.get_node("%ContinueButton")
 	continue_button.emit_signal("pressed")
 	await wait_process_frames(2)
 
@@ -107,7 +129,7 @@ func test_victory_credits_opens_credits_scene() -> void:
 	_prepare_endgame_state(store, StringName("victory"))
 	var screen := await _instantiate_scene(VictoryScene)
 
-	var credits_button: Button = screen.get_node("MarginContainer/VBoxContainer/ButtonRow/CreditsButton")
+	var credits_button: Button = screen.get_node("%CreditsButton")
 	credits_button.emit_signal("pressed")
 	await wait_process_frames(2)
 
@@ -119,7 +141,7 @@ func test_victory_menu_returns_to_main_menu() -> void:
 	_prepare_endgame_state(store, StringName("victory"))
 	var screen := await _instantiate_scene(VictoryScene)
 
-	var menu_button: Button = screen.get_node("MarginContainer/VBoxContainer/ButtonRow/MenuButton")
+	var menu_button: Button = screen.get_node("%MenuButton")
 	menu_button.emit_signal("pressed")
 	await wait_process_frames(2)
 

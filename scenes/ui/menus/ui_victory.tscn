@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bhgc3ilb2eqhd"]
 
 [ext_resource type="Script" uid="uid://kbb5lnp3ts58" path="res://scripts/ui/menus/ui_victory.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
@@ -12,6 +13,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=416542716]
 script = ExtResource("ui_scale_root")
@@ -19,54 +21,73 @@ script = ExtResource("ui_scale_root")
 [node name="LocalizationRoot" type="Node" parent="." unique_id=480564745]
 script = ExtResource("localization_root")
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1032195911]
-layout_mode = 0
+[node name="Background" type="ColorRect" parent="." unique_id=1128792438]
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 96.0
-offset_top = 96.0
-offset_right = -96.0
-offset_bottom = -96.0
-mouse_filter = 0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.114, 0.114, 0.129, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1290091459]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1032195911]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="MarginContainer" unique_id=1229878424]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-mouse_filter = 0
-theme_override_constants/separation = 32
+
+[node name="MainPanel" type="PanelContainer" parent="MarginContainer/CenterContainer" unique_id=202119839]
+custom_minimum_size = Vector2(560, 300)
+layout_mode = 2
+
+[node name="MainPanelPadding" type="MarginContainer" parent="MarginContainer/CenterContainer/MainPanel" unique_id=1422406483]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding" unique_id=1290091459]
+layout_mode = 2
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1464390046]
+[node name="TitleLabel" type="Label" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer" unique_id=1464390046]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Victory!"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CompletedLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=345488332]
+[node name="CompletedLabel" type="Label" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer" unique_id=345488332]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Completed Areas: 0"
 horizontal_alignment = 1
 
-[node name="ButtonRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1963959331]
+[node name="ButtonRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer" unique_id=1963959331]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 24
 alignment = 1
 
-[node name="ContinueButton" type="Button" parent="MarginContainer/VBoxContainer/ButtonRow" unique_id=337882012]
+[node name="ContinueButton" type="Button" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer/ButtonRow" unique_id=337882012]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Reset Run"
 
-[node name="CreditsButton" type="Button" parent="MarginContainer/VBoxContainer/ButtonRow" unique_id=492383948]
+[node name="CreditsButton" type="Button" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer/ButtonRow" unique_id=492383948]
+unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 disabled = true
 text = "Credits"
 
-[node name="MenuButton" type="Button" parent="MarginContainer/VBoxContainer/ButtonRow" unique_id=1132642455]
+[node name="MenuButton" type="Button" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer/ButtonRow" unique_id=1132642455]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Menu"
