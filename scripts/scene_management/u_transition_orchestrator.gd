@@ -163,8 +163,26 @@ func _execute_instant_transition(effect, overlay: CanvasLayer, scene_swap: Calla
 	if scene_swap != null and scene_swap.is_valid():
 		await scene_swap.call()
 
+	# Endgame flows can pre-snap the transition overlay to opaque black before
+	# dispatching navigation actions. Instant transitions do not animate fade-in,
+	# so explicitly clear the overlay after scene swap to avoid a stuck black screen.
+	_clear_transition_overlay(overlay)
+
 	if complete != null and complete.is_valid():
 		complete.call()
+
+## Ensure TransitionColorRect is transparent after instant transitions.
+func _clear_transition_overlay(overlay: CanvasLayer) -> void:
+	if overlay == null:
+		return
+	for child in overlay.get_children():
+		if child is ColorRect and child.name == "TransitionColorRect":
+			var color_rect := child as ColorRect
+			color_rect.modulate.a = 0.0
+			color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			overlay.process_mode = Node.PROCESS_MODE_INHERIT
+			color_rect.process_mode = Node.PROCESS_MODE_INHERIT
+			return
 
 ## Create progress callback for loading transitions
 func _create_progress_callback(transition_effect, use_cached: bool) -> Callable:

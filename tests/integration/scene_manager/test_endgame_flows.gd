@@ -453,6 +453,15 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 	await wait_seconds(0.4)
 	assert_eq(_scene_manager.get_current_scene(), StringName("credits"),
 		"Credits button should open credits scene")
+	var transition_rect := _transition_overlay.get_node_or_null("TransitionColorRect") as ColorRect
+	assert_not_null(transition_rect, "Transition overlay should expose TransitionColorRect")
+	if transition_rect != null:
+		assert_almost_eq(
+			transition_rect.modulate.a,
+			0.0,
+			0.001,
+			"Transition overlay alpha should clear after instant credits navigation"
+		)
 	await wait_physics_frames(2)
 	gameplay_state = _state_store.get_state().get("gameplay", {})
 	assert_false(bool(gameplay_state.get("game_completed", true)),
