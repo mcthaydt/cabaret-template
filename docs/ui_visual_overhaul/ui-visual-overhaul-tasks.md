@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 58% (97 / 168 tasks complete)
+**Progress:** 58% (98 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -322,7 +322,7 @@ Completion note (2026-03-06): Implemented Screen 8 with centered panel-backed la
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_save_load_menu.gd -gtest=res://tests/unit/ui/test_save_load_menu_localization.gd` → 14/14 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2810/2819 passing, 0 failing, 9 pending/risky
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
-- Manual smoke test pending (user verification).
+- Manual smoke test completed (user-verified on 2026-03-06).
 
 Follow-up note (2026-03-06): Confirmation dialog chrome was still rendering with default gray window styling in save/load flows.
 - Initial fix attempt tokenized `ConfirmationDialog` and `Window` `panel` paths, but `Window` chrome still rendered gray because Godot uses embedded border stylebox keys for window chrome.
@@ -349,7 +349,7 @@ Follow-up correction (2026-03-06): Applied the actual `Window` chrome keys used 
 - [x] **13. Edit Touch Controls** (`ui_edit_touch_controls_overlay.tscn`) — migrated to overlay-panel pattern with tokenized toolbar styling while preserving translucent dim (`bg_base@0.05`).
 - [x] Run existing overlay tests (rebinding, input profile, gamepad, touchscreen, edit touch) — all pass
 - [x] Run full test suite after batch
-- [ ] **Manual smoke test:** Open each overlay in sequence, verify dim is consistent (0.5 for most, 0.05 for edit touch), panels styled, sliders functional, preview areas render
+- [x] **Manual smoke test:** Open each overlay in sequence, verify dim is consistent (0.5 for most, 0.05 for edit touch), panels styled, sliders functional, preview areas render
 
 Completion note (2026-03-06): Implemented Screen 9 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `section_header`, `body_small`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`, `bg_base@0.7`).
 - Implementation commit: `3739f301`
@@ -357,7 +357,7 @@ Completion note (2026-03-06): Implemented Screen 9 with centered panel-backed la
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/integration/test_rebinding_flow.gd` → 12/12 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2812/2821 passing, 0 failing, 9 pending/risky
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
-- Manual smoke test pending (user verification).
+- Manual smoke test completed (user-verified on 2026-03-06).
 
 Follow-up note (2026-03-06): Addressed Screen 9 usability regressions found during manual smoke.
 - Search box now uses tokenized style overrides (`normal`/`focus`/`read_only`, placeholder/caret colors) so it matches panel chrome.
@@ -369,7 +369,7 @@ Follow-up note (2026-03-06): Addressed Screen 9 usability regressions found duri
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/integration/test_rebinding_flow.gd` → 13/13 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 - Implementation commit: `3ad822c9`
-- Manual smoke re-run pending (user verification).
+- Manual smoke re-run completed (user-verified on 2026-03-06).
 
 Completion note (2026-03-06): Implemented Screen 10 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `subheading`, `body_small`, `section_header`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`, `bg_base@0.5`).
 - Implementation commit: `509e75de`
@@ -377,7 +377,7 @@ Completion note (2026-03-06): Implemented Screen 10 with centered panel-backed l
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_profile_selector.gd -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd -gtest=res://tests/unit/input/test_input_profile_mobile_regression.gd` → 12/12 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2814/2823 passing, 0 failing, 9 pending/risky
-- Manual smoke test pending (user verification).
+- Manual smoke test completed (user-verified on 2026-03-06).
 
 Completion note (2026-03-06): Implemented Screen 11 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `section_header`, `body_small`, `margin_section`, `separation_compact`, `panel_section`, `bg_base@0.5`) including themed preview-panel chrome.
 - Implementation commit: `5a40761f`
@@ -386,7 +386,7 @@ Completion note (2026-03-06): Implemented Screen 11 with centered panel-backed l
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_gamepad_settings_overlay_localization.gd` → 1/1 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2815/2824 passing, 0 failing, 9 pending/risky
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
-- Manual smoke test pending (user verification).
+- Manual smoke test completed (user-verified on 2026-03-06).
 
 Completion note (2026-03-06): Implemented Screen 12 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `section_header`, `body_small`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`, `bg_base@0.5`) including themed preview-panel chrome.
 - Implementation commit: `1c9f52ab`
@@ -395,7 +395,7 @@ Completion note (2026-03-06): Implemented Screen 12 with centered panel-backed l
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/ui/test_input_profile_selector.gd -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd -gtest=res://tests/unit/ui/test_gamepad_settings_overlay.gd -gtest=res://tests/unit/ui/test_gamepad_settings_overlay_localization.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay_localization.gd` → 40/40 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2822/2831 passing, 0 failing, 9 pending/risky
-- Manual smoke test pending (user verification).
+- Manual smoke test completed (user-verified on 2026-03-06).
 
 Follow-up note (2026-03-06): Adjusted Screen 12 preview layout after user feedback that joystick/buttons were drifting to the bottom of the preview panel.
 - Fix: restored original panel footprint (`560x520`) and wrapped `PreviewContainer` in a centering host (`PreviewCenterContainer`) so preview controls remain visually centered in the bottom preview panel.
@@ -416,7 +416,7 @@ Completion note (2026-03-06): Implemented Screen 13 with centered panel-backed l
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/ui/test_input_profile_selector.gd -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd -gtest=res://tests/unit/ui/test_gamepad_settings_overlay.gd -gtest=res://tests/unit/ui/test_gamepad_settings_overlay_localization.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay.gd -gtest=res://tests/unit/ui/test_edit_touch_controls_overlay_localization.gd` → 41/41 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2823/2832 passing, 0 failing, 9 pending/risky
-- Manual smoke test pending (user verification).
+- Manual smoke test completed (user-verified on 2026-03-06).
 
 ### Settings Overlay Wrappers (batch — all 0 overrides)
 

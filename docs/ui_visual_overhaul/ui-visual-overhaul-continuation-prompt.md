@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) and Screen 7 (`ui_settings_menu.tscn`) are implemented + manual-smoke verified. Phase 2 Screen 8 (`ui_save_load_menu.tscn`), Screen 9 (`ui_input_rebinding_overlay.tscn`), Screen 10 (`ui_input_profile_selector.tscn`), Screen 11 (`ui_gamepad_settings_overlay.tscn`), Screen 12 (`ui_touchscreen_settings_overlay.tscn`), and Screen 13 (`ui_edit_touch_controls_overlay.tscn`) are implemented. Next: manual smoke for Screens 8-13, then Phase 2 settings-overlay wrappers.
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 and Phase 2 Screens 6-13 implemented + manual-smoke verified. Next: Phase 2 settings-overlay wrappers (`ui_audio_settings_overlay`, `ui_display_settings_overlay`, `ui_localization_settings_overlay`, `ui_vfx_settings_overlay`), then Phase 3 settings tabs.
 
 ## Recent Progress
 
@@ -240,7 +240,7 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2809/2818 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `ca75551a`
-  - Manual smoke: pending (user verification)
+  - Manual smoke: completed (user-verified on 2026-03-06)
 - **2026-03-06: Phase 2 Screen 7 manual-smoke verified (`ui_settings_menu.tscn`)**
   - User-verified pause-overlay flow and embedded main-menu flow.
   - Verified all 8 category buttons open expected overlays, Back behavior is correct, overlay dim remains consistent with pause flow, and embedded mode keeps dim disabled while retaining panel styling.
@@ -266,7 +266,7 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2810/2819 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `c969b7f4`
-  - Manual smoke: pending (user verification)
+  - Manual smoke: completed (user-verified on 2026-03-06)
 - **2026-03-06: Screen 8 confirmation-dialog chrome follow-up**
   - User feedback: default gray confirmation window chrome remained visually off-theme in save/load.
   - Initial fix attempt mapped `panel_section` to `ConfirmationDialog` and `Window` `panel` path; this was insufficient because Godot `Window` chrome does not use `panel`.
@@ -307,7 +307,7 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2812/2821 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `3739f301`
-  - Manual smoke: pending (user verification)
+  - Manual smoke: completed (user-verified on 2026-03-06)
 - **2026-03-06: Screen 9 input-rebinding follow-up (search styling + row keyboard nav)**
   - User feedback from manual smoke: search action box looked off-theme, and keyboard left/right navigation in center rebind rows was not selecting/highlighting correctly.
   - `UI_InputRebindingOverlay` updates:
@@ -322,7 +322,7 @@
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_rebinding_overlay.gd -gtest=res://tests/unit/integration/test_rebinding_flow.gd` → 13/13 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `3ad822c9`
-  - Manual smoke: pending re-run (user verification)
+  - Manual smoke re-run: completed (user-verified on 2026-03-06)
 - **2026-03-06: Phase 2 Screen 10 implemented (`ui_input_profile_selector.tscn`)**
   - Scene composition migrated to overlay-panel pattern:
     - Removed legacy inline `Background` color rect.
@@ -345,7 +345,7 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2814/2823 passing, 0 failing, 9 pending/risky
   - Implementation commit: `509e75de`
-  - Manual smoke: pending (user verification)
+  - Manual smoke: completed (user-verified on 2026-03-06)
 - **2026-03-06: Phase 2 Screen 11 implemented (`ui_gamepad_settings_overlay.tscn`)**
   - Scene composition migrated to overlay-panel pattern:
     - Removed legacy inline `Background` color rect.
@@ -367,7 +367,7 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2815/2824 passing, 0 failing, 9 pending/risky
   - Implementation commit: `5a40761f`
-  - Manual smoke: pending (user verification)
+  - Manual smoke: completed (user-verified on 2026-03-06)
 - **2026-03-06: Phase 2 Screen 12 implemented (`ui_touchscreen_settings_overlay.tscn`)**
   - Scene composition migrated to overlay-panel pattern:
     - Removed legacy inline `Background` color rect.
@@ -390,7 +390,7 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2822/2831 passing, 0 failing, 9 pending/risky
   - Implementation commit: `1c9f52ab`
-  - Manual smoke: pending (user verification)
+  - Manual smoke: completed (user-verified on 2026-03-06)
 - **2026-03-06: Screen 12 preview-centering follow-up**
   - User feedback: touchscreen preview joystick/buttons were drifting to the bottom of the preview panel.
   - Fix:
@@ -427,7 +427,17 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2823/2832 passing, 0 failing, 9 pending/risky
   - Implementation commit: `63e0746e`
-  - Manual smoke: pending (user verification)
+  - Manual smoke: completed (user-verified on 2026-03-06)
+
+- **2026-03-06: Phase 2 Screens 8-13 manual-smoke verified**
+  - User confirmed all remaining manual smoke checks passed for:
+    - `ui_save_load_menu.tscn`
+    - `ui_input_rebinding_overlay.tscn`
+    - `ui_input_profile_selector.tscn`
+    - `ui_gamepad_settings_overlay.tscn`
+    - `ui_touchscreen_settings_overlay.tscn`
+    - `ui_edit_touch_controls_overlay.tscn`
+  - Phase 2 overlay-screen pass is now implementation + manual-smoke complete.
 
 ### Plan Change Summary (2026-03-05)
 
@@ -544,15 +554,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Complete Screen 8 manual smoke verification (open from pause, validate tokenized error state, slot styling, and loading spinner behavior during save/load/delete flows).
-2. Complete Screen 9 manual smoke verification (`ui_input_rebinding_overlay.tscn`: open from settings, verify panel styling/motion, search-box chrome, keyboard left/right action-row focus/highlight behavior, and dialog chrome for conflict/reset/error paths).
-3. Complete Screen 10 manual smoke verification (`ui_input_profile_selector.tscn`: open from settings, verify panel styling/motion, dim alpha at 0.5, profile cycling via left/right and button press, and preview row readability/icon fallbacks).
-4. Complete Screen 11 manual smoke verification (`ui_gamepad_settings_overlay.tscn`: open from settings, verify panel styling/motion, dim alpha at 0.5, slider row readability, preview panel chrome, prompt visibility toggling, and preview enter/exit flow behavior).
-5. Complete Screen 12 manual smoke verification (`ui_touchscreen_settings_overlay.tscn`: open from settings, verify panel styling/motion, dim alpha at 0.5, slider row readability, preview panel chrome, and Edit Layout visibility in gameplay-vs-main-menu contexts).
-6. Complete Screen 13 manual smoke verification (`ui_edit_touch_controls_overlay.tscn`: open from touchscreen settings, verify low-opacity dim feel (`bg_base` alpha `0.05`), toolbar panel chrome, drag-mode toggle behavior, and save/reset/cancel behavior).
-7. Start Phase 2 settings overlay wrappers (`ui_audio_settings_overlay.tscn`, `ui_display_settings_overlay.tscn`, `ui_localization_settings_overlay.tscn`, `ui_vfx_settings_overlay.tscn`) with consistent overlay dim + panel token application.
+1. Start Phase 2 settings overlay wrappers (`ui_audio_settings_overlay.tscn`, `ui_display_settings_overlay.tscn`, `ui_localization_settings_overlay.tscn`, `ui_vfx_settings_overlay.tscn`) with consistent overlay dim + panel token application.
+2. Run wrapper-related suites + full test suite and style suite.
+3. Begin Phase 3 Screen 14 (`ui_localization_settings_tab.tscn`) after wrapper pass is complete.
 
-Updated next action (2026-03-06): Complete manual smoke for Screens 8-13, then start Phase 2 settings-overlay wrappers.
+Updated next action (2026-03-06): Begin Phase 2 settings-overlay wrapper migration.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 
