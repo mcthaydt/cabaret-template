@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 18% (29 / 165 tasks complete)
+**Progress:** 22% (37 / 165 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -134,15 +134,21 @@ Completion note (2026-03-05): Phase 0G verification completed after infrastructu
 
 ### Screen 1: Main Menu (`scenes/ui/menus/ui_main_menu.tscn`)
 
-- [ ] Apply theme resource to root (via font applier integration — automatic)
-- [ ] Add bg_base ColorRect or background styling
-- [ ] Style VBoxContainer button group with panel_section background
-- [ ] Title label uses `title` font size token
-- [ ] Buttons get accent_primary styling from theme
-- [ ] Assign `cfg_motion_fade_slide` for enter/exit
-- [ ] Run existing `test_main_menu.gd` — all tests pass (Redux navigation, button dispatch, quit visibility, focus chain)
-- [ ] Run full test suite
+- [x] Apply theme resource to root (via font applier integration — automatic)
+- [x] Add bg_base ColorRect or background styling
+- [x] Style VBoxContainer button group with panel_section background
+- [x] Title label uses `title` font size token
+- [x] Buttons get accent_primary styling from theme
+- [x] Assign `cfg_motion_fade_slide` for enter/exit
+- [x] Run existing `test_main_menu.gd` — all tests pass (Redux navigation, button dispatch, quit visibility, focus chain)
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Launch main menu, verify bg color matches bg_base (#1d1d21), buttons have accent_primary (#41b2e3) styling, title is visually larger than button text, enter/exit animation plays smoothly, settings embed still opens
+
+Completion note (2026-03-05): Implemented Screen 1 in commit `aaa7f75c` and validated with:
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd`
+- `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2795/2804 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- Manual smoke test remains pending (requires editor/runtime visual pass).
 
 ### Screen 2: Game Over (`scenes/ui/menus/ui_game_over.tscn`)
 

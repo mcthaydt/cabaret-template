@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete (theme + unified pipeline + motion resources + base class integration + verification). Next: Phase 1 Screen 1 (`ui_main_menu.tscn`) migration.
+- Status summary: **In progress** — Phase 0A-0G complete and Phase 1 Screen 1 (`ui_main_menu.tscn`) implemented + automation-verified. Manual smoke for Screen 1 is still pending. Next: Phase 1 Screen 2 (`ui_game_over.tscn`).
 
 ## Recent Progress
 
@@ -41,6 +41,18 @@
     - `U_UIThemeBuilder` now applies config text colors when palette is not yet available and the base theme has no colors.
     - Builder kept `Resource` typing for `active_config`/palette parameters to maintain headless parser compatibility.
     - `resources/ui/cfg_ui_theme_default.tres` now pins primitive default tokens explicitly.
+- **2026-03-05: Phase 1 Screen 1 implemented (`ui_main_menu.tscn`)**
+  - Scene composition updated: full-screen `Background` (`bg_base`) + centered `PanelContainer` for the main button group.
+  - Assigned `motion_set = cfg_motion_fade_slide` on `UI_MainMenu` root and trigger `play_enter_animation()` on panel ready.
+  - `UI_MainMenu` now applies `RS_UIThemeConfig` tokens from `U_UIThemeBuilder.active_config` (`bg_base` for background + `title` font size for `TitleLabel`).
+  - Updated `tests/unit/ui/test_main_menu.gd`:
+    - Added coverage for motion assignment and token application from active theme config.
+    - Switched brittle path-based button lookups to `%UniqueName` access for hierarchy-safe assertions.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd` → 14/14 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2795/2804 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `aaa7f75c`
 
 ### Plan Change Summary (2026-03-05)
 
@@ -59,6 +71,7 @@ The `UI-Looksmaxxing` branch contains:
 - Completed "UI, Layers & Transitions Refactor" (7 phases)
 - Ad-hoc visual polish commits (fade-in transitions for endgame screens, red flash removal)
 - Documentation updates for the revised plan
+- Phase 1 Screen 1 main-menu migration commit: `aaa7f75c`
 
 ## Context
 
@@ -133,10 +146,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Begin Phase 1 Screen 1 (`ui_main_menu.tscn`) migration
-2. Continue screen-by-screen through Phases 1-4, running full-suite + style gates after each screen or batch
+1. Perform the pending manual smoke test for Phase 1 Screen 1 (`ui_main_menu.tscn`) in runtime/editor.
+2. Begin Phase 1 Screen 2 (`ui_game_over.tscn`) migration.
+3. Continue screen-by-screen through Phases 1-4, running full-suite + style gates after each screen or batch.
 
-Updated next action (2026-03-05): Start Phase 1 Screen 1 (`ui_main_menu.tscn`) by applying background/panel composition and assigning `cfg_motion_fade_slide`, then run the full suite + style gate.
+Updated next action (2026-03-05): Run the manual smoke for `ui_main_menu.tscn`, then start Screen 2 (`ui_game_over.tscn`) with theme-token migration and motion polish.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 
