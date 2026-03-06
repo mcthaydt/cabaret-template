@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 (`ui_main_menu.tscn`, `ui_game_over.tscn`, `ui_victory.tscn`, `ui_credits.tscn`, `ui_language_selector.tscn`) implemented + automation-verified. Manual smokes now complete for all Phase 1 screens. Next: Phase 2 Screen 6 (`ui_pause_menu.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) is now implemented + automation-verified; manual smoke is pending. Next: complete Screen 6 manual smoke, then start Screen 7 (`ui_settings_menu.tscn`).
 
 ## Recent Progress
 
@@ -144,6 +144,27 @@
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/integration/test_navigation_integration.gd` → 7/7 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2801/2810 passing, 0 failing, 9 pending/risky
   - Implementation commits: `4f7bdccb`, `b9197a89`
+- **2026-03-06: Phase 2 Screen 6 implemented (`ui_pause_menu.tscn`)**
+  - Scene composition migrated to overlay-panel pattern:
+    - Removed legacy static `ColorRect` dim and normalized BaseOverlay dim to `bg_base` at alpha `0.7`.
+    - Added panel-backed content layout (`MainPanel` + `MainPanelPadding` + `MainPanelContent`) for consistent `panel_section` styling.
+    - Assigned `motion_set = cfg_motion_fade_slide` to `UI_PauseMenu` for enter/exit and interactive button motion.
+  - `UI_PauseMenu` now applies `RS_UIThemeConfig` tokens from `U_UIThemeBuilder.active_config`:
+    - heading token for `TitleLabel`,
+    - `margin_section` for panel padding,
+    - `separation_default` for button-stack spacing,
+    - `panel_section` style override for panel background,
+    - `bg_base` with 0.7 alpha for overlay dim.
+  - Updated tests:
+    - Added pause-menu motion/theme token coverage in `tests/unit/ui/test_pause_menu.gd`.
+    - Updated pause-menu settings button integration lookups to `%SettingsButton` in `tests/unit/integration/test_input_profile_selector_overlay.gd` for hierarchy-safe assertions.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_pause_menu.gd` → 8/8 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd` → 4/4 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_pause_menu.gd -gtest=res://tests/unit/ui/test_settings_menu_visibility.gd` → 10/10 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2803/2812 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Manual smoke: pending (user verification needed)
 
 ### Plan Change Summary (2026-03-05)
 
@@ -169,6 +190,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 1 Screen 5 language-selector migration commit: `3a9ab267`
 - Navigation reducer follow-up commit: `4f7bdccb`
 - Integration await hardening commit: `b9197a89`
+- Phase 2 Screen 6 pause-menu migration commit: `(pending current branch commit)`
 
 ## Context
 
@@ -243,11 +265,12 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Begin Phase 2 Screen 6 (`ui_pause_menu.tscn`) migration.
-2. Continue screen-by-screen through Phases 2-4, running full-suite + style gates after each screen or batch.
-3. Keep manual smoke verification in lockstep with each screen completion (do not defer to end-of-phase).
+1. Run manual smoke for Phase 2 Screen 6 (`ui_pause_menu.tscn`) in gameplay pause flow and confirm visual/interaction parity.
+2. Begin Phase 2 Screen 7 (`ui_settings_menu.tscn`) migration (dim normalization + panel-backed layout + heading/motion polish).
+3. Continue screen-by-screen through Phases 2-4, running full-suite + style gates after each screen or batch.
+4. Keep manual smoke verification in lockstep with each screen completion (do not defer to end-of-phase).
 
-Updated next action (2026-03-06): Start Screen 6 (`ui_pause_menu.tscn`) with dim/panel normalization and motion polish, then rerun targeted pause/settings UI suites plus full-suite/style gates.
+Updated next action (2026-03-06): Execute Screen 6 manual smoke, then start Screen 7 (`ui_settings_menu.tscn`) with matching dim/panel normalization and motion polish.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 
