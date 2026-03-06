@@ -220,7 +220,7 @@ func _apply_preview_size_limits() -> void:
 		return
 	if _joystick_size_slider == null or _button_size_slider == null:
 		return
-	var max_scales := _preview_builder.get_max_preview_scales(
+	var max_scales: Dictionary = _preview_builder.get_max_preview_scales(
 		_preview_container,
 		_preview_joystick,
 		_preview_buttons

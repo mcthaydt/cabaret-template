@@ -166,7 +166,7 @@ func _update_preview_positions(
 		if button == null or not is_instance_valid(button):
 			continue
 		var col: int = index % BUTTON_GRID_COLS
-		var row: int = index // BUTTON_GRID_COLS
+		var row: int = int(floor(float(index) / float(BUTTON_GRID_COLS)))
 		button.position = Vector2(
 			grid_start_x + float(col) * (button_scaled_size.x + BUTTON_SPACING),
 			grid_start_y + float(row) * (button_scaled_size.y + BUTTON_SPACING)
