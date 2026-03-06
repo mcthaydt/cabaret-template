@@ -4,7 +4,6 @@
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 
 [node name="LocalizationSettingsTab" type="VBoxContainer" unique_id=1]
-theme_override_constants/separation = 12
 script = ExtResource("1_ui_localization_settings_tab_script")
 
 [node name="LocalizationRoot" type="Node" parent="." unique_id=1901183119]

@@ -8,6 +8,8 @@ const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_locali
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_FOCUS_CONFIGURATOR := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 const DEFAULT_LOCALIZATION_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_localization_initial_state.tres")
 
 const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]
@@ -37,6 +39,9 @@ var _pre_change_dyslexia: bool = false
 @onready var _language_label: Label = %LanguageLabel
 @onready var _accessibility_section_label: Label = %AccessibilitySection
 @onready var _dyslexia_label: Label = %DyslexiaLabel
+@onready var _language_row: HBoxContainer = $LanguageRow
+@onready var _dyslexia_row: HBoxContainer = $DyslexiaRow
+@onready var _button_row: HBoxContainer = $ButtonRow
 @onready var _language_option: OptionButton = %LanguageOptionButton
 @onready var _dyslexia_toggle: CheckButton = %DyslexiaCheckButton
 @onready var _apply_button: Button = %ApplyButton
@@ -46,6 +51,7 @@ var _pre_change_dyslexia: bool = false
 @onready var _language_confirm_timer: Timer = %LanguageConfirmTimer
 
 func _ready() -> void:
+	_apply_theme_tokens()
 	_populate_language_option()
 	_connect_signals()
 	_configure_focus_neighbors()
@@ -60,6 +66,53 @@ func _ready() -> void:
 
 	_unsubscribe = _state_store.subscribe(_on_state_changed)
 	_on_state_changed({}, _state_store.get_state())
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	add_theme_constant_override(&"separation", config.separation_default)
+
+	if _language_row != null:
+		_language_row.add_theme_constant_override(&"separation", config.separation_default)
+	if _dyslexia_row != null:
+		_dyslexia_row.add_theme_constant_override(&"separation", config.separation_default)
+	if _button_row != null:
+		_button_row.add_theme_constant_override(&"separation", config.separation_compact)
+
+	if _heading_label != null:
+		_heading_label.add_theme_font_size_override(&"font_size", config.heading)
+	if _language_section_label != null:
+		_language_section_label.add_theme_font_size_override(&"font_size", config.section_header)
+		_language_section_label.add_theme_color_override(&"font_color", config.section_header_color)
+	if _accessibility_section_label != null:
+		_accessibility_section_label.add_theme_font_size_override(&"font_size", config.section_header)
+		_accessibility_section_label.add_theme_color_override(&"font_color", config.section_header_color)
+
+	var body_labels: Array[Label] = [
+		_language_label,
+		_dyslexia_label,
+	]
+	for body_label in body_labels:
+		if body_label != null:
+			body_label.add_theme_font_size_override(&"font_size", config.body_small)
+			body_label.add_theme_color_override(&"font_color", config.text_secondary)
+
+	if _language_option != null:
+		_language_option.add_theme_font_size_override(&"font_size", config.section_header)
+	if _dyslexia_toggle != null:
+		_dyslexia_toggle.add_theme_font_size_override(&"font_size", config.section_header)
+
+	var action_buttons: Array[Button] = [
+		_cancel_button,
+		_reset_button,
+		_apply_button,
+	]
+	for action_button in action_buttons:
+		if action_button != null:
+			action_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _exit_tree() -> void:
 	_stop_language_confirm_timer()
