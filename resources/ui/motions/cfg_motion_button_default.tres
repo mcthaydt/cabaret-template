@@ -1,7 +1,37 @@
-[gd_resource type="Resource" script_class="RS_UIMotionSet" format=3]
+[gd_resource type="Resource" script_class="RS_UIMotionSet" format=3 uid="uid://3q2nuncx218f"]
 
-[ext_resource type="Script" path="res://scripts/resources/ui/rs_ui_motion_set.gd" id="1_motion_set"]
-[ext_resource type="Script" path="res://scripts/resources/ui/rs_ui_motion_preset.gd" id="2_motion_preset"]
+[ext_resource type="Script" uid="uid://cu5sr5qe1yst4" path="res://scripts/resources/ui/rs_ui_motion_set.gd" id="1_motion_set"]
+[ext_resource type="Script" uid="uid://bywbkktihcmqf" path="res://scripts/resources/ui/rs_ui_motion_preset.gd" id="2_motion_preset"]
+
+[sub_resource type="Resource" id="MotionPreset_focus_in_x"]
+script = ExtResource("2_motion_preset")
+property_path = "scale:x"
+from_value = 1.0
+to_value = 1.02
+duration_sec = 0.1
+
+[sub_resource type="Resource" id="MotionPreset_focus_in_y"]
+script = ExtResource("2_motion_preset")
+property_path = "scale:y"
+from_value = 1.0
+to_value = 1.02
+duration_sec = 0.1
+parallel = true
+
+[sub_resource type="Resource" id="MotionPreset_focus_out_x"]
+script = ExtResource("2_motion_preset")
+property_path = "scale:x"
+from_value = 1.02
+to_value = 1.0
+duration_sec = 0.08
+
+[sub_resource type="Resource" id="MotionPreset_focus_out_y"]
+script = ExtResource("2_motion_preset")
+property_path = "scale:y"
+from_value = 1.02
+to_value = 1.0
+duration_sec = 0.08
+parallel = true
 
 [sub_resource type="Resource" id="MotionPreset_hover_in_x"]
 script = ExtResource("2_motion_preset")
@@ -59,36 +89,6 @@ duration_sec = 0.08
 script = ExtResource("2_motion_preset")
 property_path = "scale:y"
 from_value = 0.97
-to_value = 1.0
-duration_sec = 0.08
-parallel = true
-
-[sub_resource type="Resource" id="MotionPreset_focus_in_x"]
-script = ExtResource("2_motion_preset")
-property_path = "scale:x"
-from_value = 1.0
-to_value = 1.02
-duration_sec = 0.1
-
-[sub_resource type="Resource" id="MotionPreset_focus_in_y"]
-script = ExtResource("2_motion_preset")
-property_path = "scale:y"
-from_value = 1.0
-to_value = 1.02
-duration_sec = 0.1
-parallel = true
-
-[sub_resource type="Resource" id="MotionPreset_focus_out_x"]
-script = ExtResource("2_motion_preset")
-property_path = "scale:x"
-from_value = 1.02
-to_value = 1.0
-duration_sec = 0.08
-
-[sub_resource type="Resource" id="MotionPreset_focus_out_y"]
-script = ExtResource("2_motion_preset")
-property_path = "scale:y"
-from_value = 1.02
 to_value = 1.0
 duration_sec = 0.08
 parallel = true

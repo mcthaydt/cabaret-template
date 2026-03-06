@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dbcudtme76aba"]
 
 [ext_resource type="Script" uid="uid://dnudhjs6mrfo5" path="res://scripts/ui/menus/ui_game_over.gd" id="1"]
-[ext_resource type="Resource" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 

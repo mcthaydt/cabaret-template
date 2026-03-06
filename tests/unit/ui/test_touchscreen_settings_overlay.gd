@@ -132,9 +132,11 @@ func test_overlay_populates_values_from_store() -> void:
 	var joystick_opacity_slider: HSlider = overlay.get_node("%JoystickOpacitySlider")
 	var button_opacity_slider: HSlider = overlay.get_node("%ButtonOpacitySlider")
 	var joystick_deadzone_slider: HSlider = overlay.get_node("%JoystickDeadzoneSlider")
+	var expected_joystick_size: float = min(1.5, joystick_size_slider.max_value)
+	var expected_button_size: float = min(1.2, button_size_slider.max_value)
 
-	assert_almost_eq(joystick_size_slider.value, 1.5, 0.001)
-	assert_almost_eq(button_size_slider.value, 1.2, 0.001)
+	assert_almost_eq(joystick_size_slider.value, expected_joystick_size, 0.001)
+	assert_almost_eq(button_size_slider.value, expected_button_size, 0.001)
 	assert_almost_eq(joystick_opacity_slider.value, 0.6, 0.001)
 	assert_almost_eq(button_opacity_slider.value, 0.9, 0.001)
 	assert_almost_eq(joystick_deadzone_slider.value, 0.25, 0.001)
@@ -154,25 +156,27 @@ func test_slider_updates_preview_in_real_time() -> void:
 	var preview_joystick: Control = overlay.get_node("%PreviewContainer/PreviewJoystick")
 	var preview_button: Control = overlay.get_node("%PreviewContainer/PreviewButton_jump")
 
-	joystick_size_slider.value = 1.8
-	joystick_size_slider.emit_signal("value_changed", joystick_size_slider.value)
+	var expected_joystick_size: float = min(1.8, joystick_size_slider.max_value)
+	var expected_button_size: float = min(1.4, button_size_slider.max_value)
+	joystick_size_slider.value = expected_joystick_size
+	joystick_size_slider.emit_signal("value_changed", expected_joystick_size)
 	joystick_opacity_slider.value = 0.5
 	joystick_opacity_slider.emit_signal("value_changed", joystick_opacity_slider.value)
 	joystick_deadzone_slider.value = 0.3
 	joystick_deadzone_slider.emit_signal("value_changed", joystick_deadzone_slider.value)
-	button_size_slider.value = 1.4
-	button_size_slider.emit_signal("value_changed", button_size_slider.value)
+	button_size_slider.value = expected_button_size
+	button_size_slider.emit_signal("value_changed", expected_button_size)
 	button_opacity_slider.value = 0.4
 	button_opacity_slider.emit_signal("value_changed", button_opacity_slider.value)
 
 	await _pump()
 
-	assert_vector_almost_eq(preview_joystick.scale, Vector2.ONE * 1.8, 0.001, "Joystick scale should match slider")
+	assert_vector_almost_eq(preview_joystick.scale, Vector2.ONE * expected_joystick_size, 0.001, "Joystick scale should match slider")
 	assert_almost_eq(preview_joystick.modulate.a, 0.5, 0.001, "Joystick opacity should match slider")
 	if "deadzone" in preview_joystick:
 		assert_almost_eq(preview_joystick.deadzone, 0.3, 0.001, "Joystick deadzone should match slider")
 
-	assert_vector_almost_eq(preview_button.scale, Vector2.ONE * 1.4, 0.001, "Button scale should match slider")
+	assert_vector_almost_eq(preview_button.scale, Vector2.ONE * expected_button_size, 0.001, "Button scale should match slider")
 	assert_almost_eq(preview_button.modulate.a, 0.4, 0.001, "Button opacity should match slider")
 
 func test_apply_dispatches_update_to_store_and_closes_overlay() -> void:
@@ -187,8 +191,10 @@ func test_apply_dispatches_update_to_store_and_closes_overlay() -> void:
 	var button_opacity_slider: HSlider = overlay.get_node("%ButtonOpacitySlider")
 	var joystick_deadzone_slider: HSlider = overlay.get_node("%JoystickDeadzoneSlider")
 
-	joystick_size_slider.value = 1.6
-	button_size_slider.value = 1.1
+	var expected_joystick_size: float = min(1.6, joystick_size_slider.max_value)
+	var expected_button_size: float = min(1.1, button_size_slider.max_value)
+	joystick_size_slider.value = expected_joystick_size
+	button_size_slider.value = expected_button_size
 	joystick_opacity_slider.value = 0.55
 	button_opacity_slider.value = 0.75
 	joystick_deadzone_slider.value = 0.2
@@ -205,8 +211,8 @@ func test_apply_dispatches_update_to_store_and_closes_overlay() -> void:
 
 	var payload: Dictionary = action.get("payload", {})
 	var settings: Dictionary = payload.get("settings", {})
-	assert_almost_eq(float(settings.get("virtual_joystick_size", 0.0)), 1.6, 0.001)
-	assert_almost_eq(float(settings.get("button_size", 0.0)), 1.1, 0.001)
+	assert_almost_eq(float(settings.get("virtual_joystick_size", 0.0)), expected_joystick_size, 0.001)
+	assert_almost_eq(float(settings.get("button_size", 0.0)), expected_button_size, 0.001)
 	assert_almost_eq(float(settings.get("virtual_joystick_opacity", 0.0)), 0.55, 0.001)
 	assert_almost_eq(float(settings.get("button_opacity", 0.0)), 0.75, 0.001)
 	assert_almost_eq(float(settings.get("joystick_deadzone", 0.0)), 0.2, 0.001)
@@ -227,8 +233,8 @@ func test_reset_restores_default_values_and_calls_profile_manager() -> void:
 	var button_opacity_slider: HSlider = overlay.get_node("%ButtonOpacitySlider")
 	var joystick_deadzone_slider: HSlider = overlay.get_node("%JoystickDeadzoneSlider")
 
-	joystick_size_slider.value = 1.8
-	button_size_slider.value = 1.4
+	joystick_size_slider.value = min(1.8, joystick_size_slider.max_value)
+	button_size_slider.value = min(1.4, button_size_slider.max_value)
 	joystick_opacity_slider.value = 0.4
 	button_opacity_slider.value = 0.5
 	joystick_deadzone_slider.value = 0.3
@@ -236,8 +242,18 @@ func test_reset_restores_default_values_and_calls_profile_manager() -> void:
 	overlay.call("_on_reset_pressed")
 	await _pump()
 
-	assert_almost_eq(joystick_size_slider.value, 0.8, 0.001, "Joystick size should reset to default")
-	assert_almost_eq(button_size_slider.value, 1.1, 0.001, "Button size should reset to default")
+	assert_almost_eq(
+		joystick_size_slider.value,
+		min(0.8, joystick_size_slider.max_value),
+		0.001,
+		"Joystick size should reset to default (or panel-fit maximum)"
+	)
+	assert_almost_eq(
+		button_size_slider.value,
+		min(1.1, button_size_slider.max_value),
+		0.001,
+		"Button size should reset to default (or panel-fit maximum)"
+	)
 	assert_almost_eq(joystick_opacity_slider.value, 0.7, 0.001, "Joystick opacity should reset to default")
 	assert_almost_eq(button_opacity_slider.value, 0.8, 0.001, "Button opacity should reset to default")
 	assert_almost_eq(joystick_deadzone_slider.value, 0.15, 0.001, "Joystick deadzone should reset to default")
@@ -256,8 +272,8 @@ func test_reset_dispatches_default_settings_to_store() -> void:
 	var button_opacity_slider: HSlider = overlay.get_node("%ButtonOpacitySlider")
 	var joystick_deadzone_slider: HSlider = overlay.get_node("%JoystickDeadzoneSlider")
 
-	joystick_size_slider.value = 1.8
-	button_size_slider.value = 1.4
+	joystick_size_slider.value = min(1.8, joystick_size_slider.max_value)
+	button_size_slider.value = min(1.4, button_size_slider.max_value)
 	joystick_opacity_slider.value = 0.4
 	button_opacity_slider.value = 0.5
 	joystick_deadzone_slider.value = 0.3
@@ -271,8 +287,16 @@ func test_reset_dispatches_default_settings_to_store() -> void:
 	assert_eq(action.get("type"), U_InputActions.ACTION_UPDATE_TOUCHSCREEN_SETTINGS)
 	var payload: Dictionary = action.get("payload", {})
 	var settings: Dictionary = payload.get("settings", {})
-	assert_almost_eq(float(settings.get("virtual_joystick_size", -1.0)), 0.8, 0.001)
-	assert_almost_eq(float(settings.get("button_size", -1.0)), 1.1, 0.001)
+	assert_almost_eq(
+		float(settings.get("virtual_joystick_size", -1.0)),
+		min(0.8, joystick_size_slider.max_value),
+		0.001
+	)
+	assert_almost_eq(
+		float(settings.get("button_size", -1.0)),
+		min(1.1, button_size_slider.max_value),
+		0.001
+	)
 	assert_almost_eq(float(settings.get("virtual_joystick_opacity", -1.0)), 0.7, 0.001)
 	assert_almost_eq(float(settings.get("button_opacity", -1.0)), 0.8, 0.001)
 	assert_almost_eq(float(settings.get("joystick_deadzone", -1.0)), 0.15, 0.001)
@@ -377,7 +401,7 @@ func test_device_changed_does_not_override_local_edits() -> void:
 	await _refresh_overlay_state(overlay)
 
 	var button_size_slider: HSlider = overlay.get_node("%ButtonSizeSlider")
-	button_size_slider.value = 1.3
+	button_size_slider.value = min(1.3, button_size_slider.max_value)
 	button_size_slider.emit_signal("value_changed", button_size_slider.value)
 	await _pump()
 
@@ -386,7 +410,7 @@ func test_device_changed_does_not_override_local_edits() -> void:
 	overlay.call("_on_state_changed", device_action, _store.get_state())
 	await _pump()
 
-	assert_almost_eq(button_size_slider.value, 1.3, 0.001,
+	assert_almost_eq(button_size_slider.value, min(1.3, button_size_slider.max_value), 0.001,
 		"Local slider edits should persist when non-settings actions arrive")
 
 func test_position_only_update_does_not_override_slider_edits() -> void:

@@ -90,12 +90,18 @@ func _on_panel_ready() -> void:
 
 	_configure_focus_neighbors()
 	_build_preview()
+	_apply_preview_size_limits()
+	call_deferred("_refresh_preview_size_limits_deferred")
 	_connect_signals()
 	_localize_labels()
 	_configure_tooltips()
 	_update_preview_from_sliders()
 	_update_edit_layout_visibility()
 	play_enter_animation()
+
+func _refresh_preview_size_limits_deferred() -> void:
+	_apply_preview_size_limits()
+	_update_preview_from_sliders()
 
 func _apply_theme_tokens() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
@@ -209,6 +215,30 @@ func _build_preview() -> void:
 	for entry in buttons_out:
 		if entry is Control:
 			_preview_buttons.append(entry)
+
+func _apply_preview_size_limits() -> void:
+	if _preview_container == null:
+		return
+	if _joystick_size_slider == null or _button_size_slider == null:
+		return
+	var max_scales := _preview_builder.get_max_preview_scales(
+		_preview_container,
+		_preview_joystick,
+		_preview_buttons
+	)
+	var joystick_max: float = max(
+		float(max_scales.get("joystick", _joystick_size_slider.max_value)),
+		_joystick_size_slider.min_value
+	)
+	var button_max: float = max(
+		float(max_scales.get("button", _button_size_slider.max_value)),
+		_button_size_slider.min_value
+	)
+
+	_joystick_size_slider.max_value = joystick_max
+	_button_size_slider.max_value = button_max
+	_joystick_size_slider.set_value_no_signal(min(_joystick_size_slider.value, joystick_max))
+	_button_size_slider.set_value_no_signal(min(_button_size_slider.value, button_max))
 
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
