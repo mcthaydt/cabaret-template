@@ -11,23 +11,25 @@ const _TEXT_COLOR_TYPES: Array[StringName] = [
 
 static var active_config: Resource = null
 
-static func build_theme(config: Resource, base_font_theme: Theme = null, palette: Resource = null) -> Theme:
+static func build_theme(
+	config: Resource,
+	base_font_theme: Theme = null,
+	palette: Resource = null
+) -> Theme:
 	if config == null:
 		return null
 	if not (config is RS_UI_THEME_CONFIG):
 		return null
 
-	var typed_config := config
 	var theme := _duplicate_theme_or_new(base_font_theme)
-	var typed_palette: Resource = palette
 
-	_apply_font_sizes(theme, typed_config)
-	_apply_spacing(theme, typed_config)
-	_apply_button_styles(theme, typed_config)
-	_apply_panel_styles(theme, typed_config)
-	_apply_bar_styles(theme, typed_config)
-	_apply_separator_style(theme, typed_config)
-	_apply_text_colors(theme, typed_config, typed_palette, base_font_theme != null)
+	_apply_font_sizes(theme, config)
+	_apply_spacing(theme, config)
+	_apply_button_styles(theme, config)
+	_apply_panel_styles(theme, config)
+	_apply_bar_styles(theme, config)
+	_apply_separator_style(theme, config)
+	_apply_text_colors(theme, config, palette, base_font_theme != null)
 	return theme
 
 static func _duplicate_theme_or_new(base_theme: Theme) -> Theme:
@@ -98,20 +100,22 @@ static func _apply_text_colors(
 	palette: Resource,
 	preserve_base_colors: bool
 ) -> void:
-	if preserve_base_colors and not (palette is RS_UI_COLOR_PALETTE):
-		return
+	var has_palette: bool = palette is RS_UI_COLOR_PALETTE
+	var preserve_existing: bool = preserve_base_colors and not has_palette
 
 	var text_color: Color = config.text_primary
-	if palette is RS_UI_COLOR_PALETTE:
-		text_color = palette.text
+	if has_palette:
+		text_color = (palette as RS_UI_COLOR_PALETTE).text
 
 	for type_name: StringName in _TEXT_COLOR_TYPES:
+		if preserve_existing and theme.has_color(&"font_color", type_name):
+			continue
 		theme.set_color(&"font_color", type_name, text_color)
 
-	theme.set_color(&"font_disabled_color", &"Button", config.text_disabled)
-	theme.set_color(&"font_pressed_color", &"Button", config.text_primary)
-	theme.set_color(&"font_hover_color", &"Button", config.text_primary)
-	theme.set_color(&"font_focus_color", &"Button", config.text_primary)
+	_set_color_if_allowed(theme, &"font_disabled_color", &"Button", config.text_disabled, preserve_existing)
+	_set_color_if_allowed(theme, &"font_pressed_color", &"Button", config.text_primary, preserve_existing)
+	_set_color_if_allowed(theme, &"font_hover_color", &"Button", config.text_primary, preserve_existing)
+	_set_color_if_allowed(theme, &"font_focus_color", &"Button", config.text_primary, preserve_existing)
 
 static func _set_stylebox(theme: Theme, name: StringName, type_name: StringName, stylebox: StyleBox) -> void:
 	if stylebox == null:
@@ -121,3 +125,14 @@ static func _set_stylebox(theme: Theme, name: StringName, type_name: StringName,
 		theme.set_stylebox(name, type_name, duplicated as StyleBox)
 		return
 	theme.set_stylebox(name, type_name, stylebox)
+
+static func _set_color_if_allowed(
+	theme: Theme,
+	color_name: StringName,
+	type_name: StringName,
+	color: Color,
+	preserve_existing: bool
+) -> void:
+	if preserve_existing and theme.has_color(color_name, type_name):
+		return
+	theme.set_color(color_name, type_name, color)

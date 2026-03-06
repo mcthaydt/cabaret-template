@@ -125,6 +125,15 @@ func test_build_theme_without_palette_preserves_font_theme() -> void:
 		"Builder should keep base font theme colors when palette is not provided"
 	)
 
+func test_build_theme_without_palette_falls_back_to_config_colors_when_base_missing() -> void:
+	var base_theme := Theme.new()
+	var merged_theme := U_UI_THEME_BUILDER.build_theme(_config, base_theme, null)
+
+	assert_true(
+		merged_theme.get_color(&"font_color", &"Label").is_equal_approx(_config.text_primary),
+		"Builder should apply config text colors when base theme has no font colors and palette is missing"
+	)
+
 func test_font_applier_uses_theme_builder_when_config_set() -> void:
 	U_UI_THEME_BUILDER.active_config = _config
 
