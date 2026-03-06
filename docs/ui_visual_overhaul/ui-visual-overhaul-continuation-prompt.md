@@ -106,6 +106,14 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2798/2807 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `c747d478`
+- **2026-03-05: Credits black-screen follow-up fix**
+  - Root cause: Victory button flows snap `TransitionColorRect` to opaque black before dispatching navigation. `skip_to_credits` uses `instant` transition, which previously had no fade-in step to clear overlay alpha.
+  - Fix: `U_TransitionOrchestrator` now clears `TransitionColorRect.modulate.a` after instant scene swap completion.
+  - Added regression coverage in `tests/integration/scene_manager/test_endgame_flows.gd` asserting transition overlay alpha resets to `0.0` after Victory → Credits.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/integration/scene_manager/test_endgame_flows.gd` → 5/5 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd` → 13/13 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 
 ### Plan Change Summary (2026-03-05)
 

@@ -38,6 +38,9 @@
 
 ## Godot UI Pitfalls
 
+- **Snapping transition overlay + instant navigation can leave the screen black**: Endgame flows may call `U_TransitionOverlaySnap.hide_screen_and_snap_transition_overlay(...)` before dispatching navigation. If the next transition uses `instant`, there is no fade-in step to clear `TransitionColorRect.modulate.a`, so the new scene can remain fully obscured.
+  - **Fix pattern**: instant transitions must explicitly clear `TransitionColorRect` alpha after scene swap (or use a fade transition that performs fade-in).
+
 - **Always use `U_CanvasLayers` constants for script-authored layer assignments**: Do not introduce raw layer integers in GDScript for HUD/overlay/debug/post-process layering. Use `scripts/ui/u_canvas_layers.gd` constants so layer intent stays centralized and testable. Keep `.tscn` literals aligned with the same canonical map.
 
 - **Unified UI theme bootstrapping needs a no-palette fallback**: In the merged font+theme pipeline, a root can receive a composed theme before `U_DisplayUIThemeApplier` has published an active palette. If the builder simply preserves base colors when palette is missing, roots with no pre-existing colors can remain unstyled until the next palette-triggered rebuild.

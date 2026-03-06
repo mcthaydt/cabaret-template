@@ -202,6 +202,10 @@ Completion note (2026-03-05): Implemented Screen 4 in commit `c747d478` and vali
 - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 - Manual smoke test remains pending (requires runtime visual pass).
 
+Follow-up note (2026-03-05): Fixed black-screen regression when opening credits from Victory after overlay snap + instant transition.
+- `scripts/scene_management/u_transition_orchestrator.gd` now clears `TransitionColorRect` alpha after instant scene swap.
+- Added integration coverage in `tests/integration/scene_manager/test_endgame_flows.gd` to assert overlay alpha is reset on Victory → Credits.
+
 ### Screen 5: Language Selector (`scenes/ui/menus/ui_language_selector.tscn`)
 
 - [ ] Migrate separations to theme tokens
