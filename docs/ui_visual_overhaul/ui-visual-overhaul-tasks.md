@@ -545,7 +545,7 @@ Follow-up note (2026-03-06): Centered audio settings wrapper panel after enter a
 - [x] Run tests — new display theme tests pass
 - [x] Run existing display settings tests — all pass (dropdowns, UI scale slider, toggle checkboxes)
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Open display settings, verify 4 sections have consistent panel backgrounds, headers are section_header color (#96b2d9), separators visible, UI scale slider works
+- [x] **Manual smoke test:** Open display settings, verify 4 sections have consistent panel backgrounds, headers are section_header color (#96b2d9), separators visible, UI scale slider works
 
 Completion note (2026-03-06): Implemented Screen 16 in commit `7f7ece0c`.
 - Added `tests/unit/ui/test_display_settings_theme.gd` with Screen 16 coverage:
