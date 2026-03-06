@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) is implemented + manual-smoke verified, and panel-only slide motion is now the default for backdrop + centered-panel menu/overlay screens. Next: Phase 2 Screen 7 (`ui_settings_menu.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) is implemented + manual-smoke verified, and Phase 2 Screen 7 (`ui_settings_menu.tscn`) is implemented with automated verification complete. Next: Screen 7 manual smoke, then Phase 2 Screen 8 (`ui_save_load_menu.tscn`).
 
 ## Recent Progress
 
@@ -196,6 +196,30 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2806/2815 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `87865a19`
+- **2026-03-06: Phase 2 Screen 7 implemented (`ui_settings_menu.tscn`)**
+  - Scene composition migrated to centered panel/scroll pattern:
+    - Removed legacy inline dim `ColorRect` and moved to `BaseOverlay` background handling.
+    - Added `CenterContainer` + `MainPanel` + `MainPanelPadding` + `ScrollContainer/ButtonsVBox` structure for panel-backed settings categories.
+    - Assigned `motion_set = cfg_motion_fade_slide` to `UI_SettingsMenu` for enter/exit and interactive button motion.
+  - `UI_SettingsMenu` now applies `RS_UIThemeConfig` tokens from `U_UIThemeBuilder.active_config`:
+    - `heading` for `TitleLabel`,
+    - `margin_section` for panel padding,
+    - `separation_default` for panel content and button list spacing,
+    - `panel_section` style override for `MainPanel`.
+  - Dim behavior is now context-aware:
+    - Overlay mode (`settings_menu_overlay` on top): `bg_base` at alpha `0.7`.
+    - Embedded main-menu mode: no dim (`alpha = 0.0`) while preserving panel styling.
+  - Updated `tests/unit/ui/test_settings_menu_visibility.gd`:
+    - Added motion assignment coverage.
+    - Added theme-token + overlay-dim coverage for overlay context.
+    - Added regression coverage ensuring embedded mode keeps dim disabled.
+    - Migrated node lookups to `%UniqueName` selectors for hierarchy safety.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_menu_visibility.gd -gtest=res://tests/unit/ui/test_pause_menu.gd -gtest=res://tests/unit/ui/test_main_menu.gd` → 29/29 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2809/2818 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `ca75551a`
+  - Manual smoke: pending (user verification)
 
 ### Plan Change Summary (2026-03-05)
 
@@ -227,6 +251,7 @@ The `UI-Looksmaxxing` branch contains:
 - Screen 6 panel-only-slide refinement commit: `0df2deae`
 - Screen 6 centering regression fix commit: `5e7e679b`
 - Default panel-only motion-target rollout commit: `87865a19`
+- Phase 2 Screen 7 settings-menu migration commit: `ca75551a`
 
 ## Context
 
@@ -301,11 +326,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Begin Phase 2 Screen 7 (`ui_settings_menu.tscn`) migration (dim normalization + panel-backed layout + heading/motion polish).
-2. Continue screen-by-screen through Phases 2-4, running full-suite + style gates after each screen or batch.
-3. Keep manual smoke verification in lockstep with each screen completion (do not defer to end-of-phase).
+1. Complete Screen 7 manual smoke verification (pause overlay flow + embedded main-menu flow).
+2. Begin Phase 2 Screen 8 (`ui_save_load_menu.tscn`) migration.
+3. Continue screen-by-screen through Phases 2-4, running full-suite + style gates after each screen or batch.
 
-Updated next action (2026-03-06): Start Screen 7 (`ui_settings_menu.tscn`) with matching dim/panel normalization and motion polish.
+Updated next action (2026-03-06): Run Screen 7 manual smoke, then start Screen 8 (`ui_save_load_menu.tscn`).
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 
