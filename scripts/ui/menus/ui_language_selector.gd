@@ -10,15 +10,23 @@ class_name UI_LanguageSelector
 
 
 const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]
+const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 @onready var _button_container: Control = %ButtonContainer
-@onready var _title_label: Label = $ButtonContainer/PanelContainer/VBoxContainer/TitleLabel
+@onready var _panel_container: PanelContainer = %PanelContainer
+@onready var _panel_padding: MarginContainer = %MainPanelPadding
+@onready var _content_vbox: VBoxContainer = %ContentVBox
+@onready var _grid_container: GridContainer = %GridContainer
+@onready var _title_label: Label = %TitleLabel
 @onready var _en_button: Button = %EnButton
 @onready var _es_button: Button = %EsButton
 @onready var _pt_button: Button = %PtButton
 @onready var _zh_cn_button: Button = %ZhCnButton
 @onready var _ja_button: Button = %JaButton
+@onready var _background: ColorRect = $Background
 
 
 func _ready() -> void:
@@ -38,6 +46,7 @@ func _on_store_ready(_store_ref: M_StateStore) -> void:
 
 
 func _setup_buttons() -> void:
+	_apply_theme_tokens()
 	if _button_container != null:
 		_button_container.visible = true
 
@@ -59,6 +68,29 @@ func _setup_buttons() -> void:
 
 	if _en_button != null:
 		_en_button.grab_focus()
+	play_enter_animation()
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+	if _background != null:
+		_background.color = config.bg_base
+	if _panel_container != null and config.panel_section != null:
+		_panel_container.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _panel_padding != null:
+		_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+		_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+		_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+		_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	if _content_vbox != null:
+		_content_vbox.add_theme_constant_override(&"separation", config.separation_default)
+	if _grid_container != null:
+		_grid_container.add_theme_constant_override(&"h_separation", config.separation_compact)
+		_grid_container.add_theme_constant_override(&"v_separation", config.separation_compact)
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.heading)
 
 func _on_locale_changed(_locale: StringName) -> void:
 	_localize_labels()
@@ -81,7 +113,7 @@ func _on_locale_selected(locale: StringName) -> void:
 
 
 func _skip_to_main_menu() -> void:
-	var scene_manager := U_ServiceLocator.get_service(StringName("scene_manager")) as M_SceneManager
+	var scene_manager := _get_scene_manager()
 	if scene_manager == null:
 		push_warning("UI_LanguageSelector: scene_manager not found — cannot skip to main_menu")
 		return
@@ -89,11 +121,14 @@ func _skip_to_main_menu() -> void:
 
 
 func _transition_to_main_menu() -> void:
-	var scene_manager := U_ServiceLocator.get_service(StringName("scene_manager")) as M_SceneManager
+	var scene_manager := _get_scene_manager()
 	if scene_manager == null:
 		push_warning("UI_LanguageSelector: scene_manager not found — cannot transition to main_menu")
 		return
 	scene_manager.transition_to_scene(StringName("main_menu"), "fade")
+
+func _get_scene_manager() -> I_SCENE_MANAGER:
+	return U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SCENE_MANAGER
 
 
 func _on_back_pressed() -> void:
