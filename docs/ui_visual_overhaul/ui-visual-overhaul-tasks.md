@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 45% (75 / 168 tasks complete)
+**Progress:** 45% (76 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -234,9 +234,9 @@ Completion note (2026-03-05): Implemented Screen 5 in commit `3a9ab267` and vali
 - [x] Overlay fade-in (dim + content), buttons get interactive motion
 - [x] Run existing `test_pause_menu.gd` — all tests pass (Resume, settings open, PROCESS_MODE_ALWAYS)
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Pause during gameplay, verify dim background is consistent (#1d1d21 at 0.7), buttons are styled, Resume/Settings/Quit all work, overlay fade-in plays
+- [x] **Manual smoke test:** Pause during gameplay, verify dim background is consistent (#1d1d21 at 0.7), buttons are styled, Resume/Settings/Quit all work, overlay fade-in plays
 
-Completion note (2026-03-06): Implemented Screen 6 (automation-verified; manual smoke pending) with:
+Completion note (2026-03-06): Implemented Screen 6 (automation + manual-smoke verified) with:
 - Scene migration to panel-backed pause layout + motion-set assignment (`cfg_motion_fade_slide`)
 - BaseOverlay dim normalization to `bg_base` at 0.7 alpha via theme-token application
 - Pause-menu token plumbing (`heading`, `separation_default`, `margin_section`, `panel_section`)
@@ -247,6 +247,7 @@ Completion note (2026-03-06): Implemented Screen 6 (automation-verified; manual 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_pause_menu.gd -gtest=res://tests/unit/ui/test_settings_menu_visibility.gd` → 10/10 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2803/2812 passing, 0 failing, 9 pending/risky
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+Follow-up note (2026-03-06): User manual smoke passed for Screen 6. Enter/exit animation was refined so only the pause panel slides while the dim backdrop remains stationary (fade-only), avoiding visible backdrop cutoff during slide motion.
 
 ### Screen 7: Settings Menu (`scenes/ui/menus/ui_settings_menu.tscn`)
 
