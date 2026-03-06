@@ -4,9 +4,22 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screens 14-16 complete (automated verification), Phase 4 Screens 17-19 complete (implementation + automated verification). Pending manual smoke for Screens 15-19. Next: complete pending manual-smoke pass, then begin Phase 5 polish verification.
+- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screens 14-16 complete (automated verification), Phase 4 Screens 17-19 complete (implementation + automated verification), and Phase 5A/5C automated verification complete. Pending manual smoke for Screens 15-19 plus Phase 5B/5D/5E visual/manual/documentation closure.
 
 ## Recent Progress
+
+- **2026-03-06: Phase 5A/5C automated verification completed**
+  - Added global override-regression guard in `tests/unit/style/test_style_enforcement.gd`:
+    - `test_no_inline_theme_overrides_except_semantic`
+  - Removed remaining non-semantic inline scene overrides so only semantic virtual-button overrides remain:
+    - `scenes/ui/menus/ui_credits.tscn`
+    - `scenes/ui/menus/ui_language_selector.tscn`
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 13/13 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd -gtest=res://tests/unit/ui/test_language_selector.gd` → 16/16 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2848/2857 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 15/15 passing
+  - Implementation commit: `a4bd58b8`
 
 - **2026-03-06: Phase 4 Screen 19 implemented (`ui_loading_screen.tscn`)**
   - Loading screen migrated off inline scene overrides:
@@ -650,6 +663,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 4 Screen 17 HUD-overlay migration commit: `9e306d4d`
 - Phase 4 Screen 18 button-prompt migration commit: `1755bc5b`
 - Phase 4 Screen 19 loading-screen migration commit: `7be37ce9`
+- Phase 5 override-guard + cleanup commit: `a4bd58b8`
 
 ## Context
 
@@ -724,11 +738,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Run manual smoke for Phase 3 Screens 15/16 (`ui_audio_settings_tab.tscn`, `ui_display_settings_tab.tscn`) and Phase 4 Screens 17/18 (`ui_hud_overlay.tscn`, `ui_button_prompt.tscn`) to verify in-game visual feel and HUD feedback timing.
-2. Run manual smoke for Phase 4 Screen 19 (`ui_loading_screen.tscn`) to verify loading-screen visual feel and fade/progress timing in-game.
-3. Begin Phase 5 polish verification once Screen 19 manual smoke is complete.
+1. Run pending manual smoke for Phase 3 Screens 15/16 (`ui_audio_settings_tab.tscn`, `ui_display_settings_tab.tscn`) and Phase 4 Screens 17/18/19 (`ui_hud_overlay.tscn`, `ui_button_prompt.tscn`, `ui_loading_screen.tscn`) to verify in-game visual feel, HUD feedback timing, and loading-screen fade/progress timing.
+2. Execute Phase 5B visual-consistency pass (all polished screens + excluded scene sanity checks).
+3. Complete Phase 5D/5E closure updates (manual smoke checklist, AGENTS/DEV_PITFALLS updates if needed, final task + continuation status).
 
-Updated next action (2026-03-06): Run pending manual smoke for Screens 15/16/17/18/19, then proceed to Phase 5 polish verification.
+Updated next action (2026-03-06): Complete pending manual smoke for Screens 15/16/17/18/19, then finish Phase 5B/5D/5E closure items.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

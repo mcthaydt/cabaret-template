@@ -679,9 +679,17 @@ Completion note (2026-03-06): Implemented Screen 19 in commit `7be37ce9`.
 
 **Add a style enforcement test** to permanently guard against override regression:
 
-- [ ] Add to `tests/unit/style/test_style_enforcement.gd`:
+- [x] Add to `tests/unit/style/test_style_enforcement.gd`:
   - `test_no_inline_theme_overrides_except_semantic` — scan all `.tscn` files under `scenes/ui/`, count `theme_override_` lines. Assert total <= 4 (only `ui_virtual_button.tscn` semantic overrides remain). List files with violations in assertion message.
-- [ ] Run style enforcement — new test passes
+- [x] Run style enforcement — new test passes
+
+Completion note (2026-03-06): Completed Phase 5A in commit `a4bd58b8`.
+- Added `test_no_inline_theme_overrides_except_semantic` to `tests/unit/style/test_style_enforcement.gd`.
+- Removed remaining non-semantic inline margin overrides from:
+  - `scenes/ui/menus/ui_credits.tscn`
+  - `scenes/ui/menus/ui_language_selector.tscn`
+- Verified UI override inventory now only includes `ui_virtual_button.tscn` semantic lines (4 total):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 13/13 passing
 
 ### 5B — Visual Consistency Pass
 
@@ -691,8 +699,12 @@ Completion note (2026-03-06): Implemented Screen 19 in commit `7be37ce9`.
 
 ### 5C — Full Test Suite
 
-- [ ] `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` — all tests pass
-- [ ] Style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` — all pass including new override guard
+- [x] `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` — all tests pass
+- [x] Style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` — all pass including new override guard
+
+Completion note (2026-03-06): Completed Phase 5C automated verification.
+- `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2848/2857 passing, 0 failing, 9 pending/risky
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 15/15 passing
 
 ### 5D — Manual Smoke Test Checklist
 
