@@ -4,10 +4,21 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, and Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening). Next: Phase 3 Screen 14 (`ui_localization_settings_tab.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), and Phase 3 Screen 14 complete. Next: Phase 3 Screen 15 (`ui_audio_settings_tab.tscn`).
 
 ## Recent Progress
 
+- **2026-03-06: Phase 3 Screen 14 implemented (`ui_localization_settings_tab.tscn`)**
+  - Localization settings tab migrated to token-driven styling:
+    - Removed the final inline `theme_override_constants/separation` from the tab scene.
+    - Added `UI_LocalizationSettingsTab._apply_theme_tokens()` for language-list styling using `RS_UIThemeConfig` tokens (`heading`, `section_header`, `body_small`, `section_header_color`, `text_secondary`, `separation_default`, `separation_compact`).
+  - Added Screen 14 regression coverage:
+    - `tests/unit/ui/test_localization_settings_tab_theme.gd` validates spacing and typography/color token application when `U_UIThemeBuilder.active_config` is set.
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_localization_settings_tab_theme.gd -gtest=res://tests/integration/localization/test_localization_settings_tab.gd -gtest=res://tests/unit/ui/test_display_settings_tab_localization.gd -gtest=res://tests/unit/ui/test_audio_settings_tab_localization.gd` → 12/12 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2829/2838 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+  - Implementation commit: `c94de23c`
 - **2026-03-06: Phase 2 overlay audit hardening pass**
   - Gap closures completed:
     - Normalized Screen 9 dim to `bg_base@0.5` across scene/script/tests.
@@ -510,6 +521,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 2 Screen 13 edit-touch-controls-overlay migration commit: `63e0746e`
 - Screen 13 documentation + continuation update commit: `a53b0d78`
 - Phase 2 settings-overlay wrappers migration commit: `96df500e`
+- Phase 3 Screen 14 localization-settings-tab migration commit: `c94de23c`
 
 ## Context
 
@@ -584,11 +596,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Begin Phase 3 Screen 14 (`ui_localization_settings_tab.tscn`) and migrate remaining inline theme overrides in the localization tab.
-2. Run localization settings tab suites + full test suite + style suite.
-3. Continue Phase 3 with Screen 15 (`ui_audio_settings_tab.tscn`) and Screen 16 (`ui_display_settings_tab.tscn`).
+1. Begin Phase 3 Screen 15 (`ui_audio_settings_tab.tscn`) and migrate slider style overrides + row separations to `RS_UIThemeConfig` tokens.
+2. Add audio settings tab theme regression coverage (`test_audio_settings_theme.gd`) and run targeted audio/localization suites.
+3. Continue Phase 3 with Screen 16 (`ui_display_settings_tab.tscn`) and migrate section panels/separators/header styling + separation overrides.
 
-Updated next action (2026-03-06): Begin Phase 3 Screen 14 localization-settings-tab migration.
+Updated next action (2026-03-06): Begin Phase 3 Screen 15 audio-settings-tab migration.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

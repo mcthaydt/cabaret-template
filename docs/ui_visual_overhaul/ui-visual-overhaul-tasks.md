@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 58% (98 / 168 tasks complete)
+**Progress:** 60% (101 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -470,10 +470,19 @@ Follow-up note (2026-03-06): Phase 2 overlay audit hardening pass completed.
 
 ### Screen 14: Localization Settings Tab (`ui_localization_settings_tab.tscn`)
 
-- [ ] Migrate separation (1 override), apply theme to language list
-- [ ] Run existing localization settings tests — pass
-- [ ] Run full test suite
+- [x] Migrate separation (1 override), apply theme to language list
+- [x] Run existing localization settings tests — pass
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Open localization settings, verify language list styled, font preview works
+
+Completion note (2026-03-06): Implemented Screen 14 in commit `c94de23c`.
+- Removed the final inline `theme_override_constants/separation` from `ui_localization_settings_tab.tscn`.
+- Added token-driven localization tab styling in `UI_LocalizationSettingsTab` (`heading`, `section_header`, `body_small`, `section_header_color`, `text_secondary`, `separation_default`, `separation_compact`).
+- Added `tests/unit/ui/test_localization_settings_tab_theme.gd` for Screen 14 theme-token coverage.
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_localization_settings_tab_theme.gd -gtest=res://tests/integration/localization/test_localization_settings_tab.gd -gtest=res://tests/unit/ui/test_display_settings_tab_localization.gd -gtest=res://tests/unit/ui/test_audio_settings_tab_localization.gd` → 12/12 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2829/2838 passing, 0 failing, 9 pending/risky
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
 
 ### Screen 15: Audio Settings Tab (`ui_audio_settings_tab.tscn`)
 

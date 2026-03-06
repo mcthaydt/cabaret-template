@@ -192,6 +192,7 @@
 - `U_DisplayUIThemeApplier` no longer owns a standalone applied theme in unified mode; it stores active palette state and rebuilds registered UI roots through `U_UIThemeBuilder`.
 - Backward-compat contract: when `U_UIThemeBuilder.active_config` is `null`, localization and display theming keep legacy behavior (font-only localization theme + palette-only display theme).
 - Palette bootstrapping contract: when unified mode is active and palette has not been applied yet, `U_UIThemeBuilder` should still apply config text colors for roots missing explicit font colors while preserving existing base-theme colors when present.
+- Settings-tab tokenization contract (Phase 3 Screen 14): tabs embedded inside settings wrappers (for example `UI_LocalizationSettingsTab`) should remove inline `theme_override_*` constants and apply spacing/typography tokens in script via `U_UIThemeBuilder.active_config` + `RS_UIThemeConfig` (`separation_default`, `separation_compact`, `heading`, `section_header`, `body_small`, semantic text colors).
 
 ### UI Motion Pipeline (UI Visual Overhaul Phase 0)
 
