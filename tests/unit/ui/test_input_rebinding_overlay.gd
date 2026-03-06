@@ -1,6 +1,8 @@
 extends GutTest
 
 const OverlayScene := preload("res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 var _store: TestStateStore
 var _profile_manager: ProfileManagerStub
@@ -8,6 +10,7 @@ var _scene_manager_mock: Node
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
 	_store = TestStateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
 	if _store.settings != null:
@@ -37,6 +40,73 @@ func after_each() -> void:
 	_scene_manager_mock = null
 	U_StateHandoff.clear_all()
 	U_ServiceLocator.clear()
+	U_UI_THEME_BUILDER.active_config = null
+
+func test_input_rebinding_overlay_has_motion_and_theme_tokens_when_active_config_set() -> void:
+	var config := RS_UI_THEME_CONFIG.new()
+	config.heading = 35
+	config.section_header = 17
+	config.body_small = 15
+	config.margin_section = 22
+	config.separation_default = 14
+	config.separation_compact = 6
+	config.bg_base = Color(0.08, 0.11, 0.16, 1.0)
+	config.text_secondary = Color(0.75, 0.81, 0.89, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	var overlay: Node = OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+
+	var motion_set: Variant = overlay.get("motion_set")
+	assert_not_null(motion_set, "Input rebinding overlay should assign enter/exit motion set")
+	if motion_set != null:
+		assert_true("enter" in motion_set, "Motion set should expose enter presets")
+		assert_true("exit" in motion_set, "Motion set should expose exit presets")
+
+	var title_label := overlay.get_node_or_null("%TitleLabel") as Label
+	var status_label := overlay.get_node_or_null("%StatusLabel") as Label
+	var search_box := overlay.get_node_or_null("%SearchBox") as LineEdit
+	var main_panel := overlay.get_node_or_null("%MainPanel") as PanelContainer
+	var panel_padding := overlay.get_node_or_null("%MainPanelPadding") as MarginContainer
+	var action_list := overlay.get_node_or_null("%ActionList") as VBoxContainer
+	var button_row := overlay.get_node_or_null("%ButtonRow") as HBoxContainer
+	var overlay_background := overlay.get_node_or_null("OverlayBackground") as ColorRect
+	var expected_dim := config.bg_base
+	expected_dim.a = 0.7
+
+	assert_not_null(title_label, "TitleLabel should exist")
+	assert_not_null(status_label, "StatusLabel should exist")
+	assert_not_null(search_box, "SearchBox should exist")
+	assert_not_null(main_panel, "MainPanel should exist")
+	assert_not_null(panel_padding, "MainPanelPadding should exist")
+	assert_not_null(action_list, "ActionList should exist")
+	assert_not_null(button_row, "ButtonRow should exist")
+	assert_not_null(overlay_background, "OverlayBackground should exist")
+
+	if title_label != null:
+		assert_eq(title_label.get_theme_font_size(&"font_size"), 35, "Title should use heading token")
+	if status_label != null:
+		assert_eq(status_label.get_theme_font_size(&"font_size"), 17, "Status should use section_header token")
+		assert_true(
+			status_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
+			"Status should use text_secondary token"
+		)
+	if search_box != null:
+		assert_eq(search_box.get_theme_font_size(&"font_size"), 15, "Search box should use body_small token")
+	if main_panel != null:
+		assert_not_null(main_panel.get_theme_stylebox(&"panel"), "Main panel should have themed panel style")
+	if panel_padding != null:
+		assert_eq(panel_padding.get_theme_constant(&"margin_left"), 22, "Panel padding should use margin_section token")
+	if action_list != null:
+		assert_eq(action_list.get_theme_constant(&"separation"), 6, "Action list should use separation_compact token")
+	if button_row != null:
+		assert_eq(button_row.get_theme_constant(&"separation"), 14, "Button row should use separation_default token")
+	if overlay_background != null:
+		assert_true(
+			overlay_background.color.is_equal_approx(expected_dim),
+			"Overlay dim should use bg_base at 0.7 alpha"
+		)
 
 func test_analog_navigation_uses_repeater_only() -> void:
 	var overlay: BaseOverlay = OverlayScene.instantiate() as BaseOverlay

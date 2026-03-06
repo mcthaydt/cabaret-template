@@ -5,6 +5,8 @@ class_name UI_InputRebindingOverlay
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/cfg_default_rebind_settings.tres")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"menu.settings.rebind"
 const STATUS_DEFAULT_KEY := &"overlay.input_rebinding.status.default"
@@ -22,13 +24,17 @@ const ERROR_RESET_UNAVAILABLE_KEY := &"overlay.input_rebinding.error.reset_unava
 const ERROR_RESET_RESERVED_KEY := &"overlay.input_rebinding.error.reset_reserved"
 const ERROR_RESET_ACTION_UNAVAILABLE_KEY := &"overlay.input_rebinding.error.reset_action_unavailable"
 
-@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
+@onready var _title_label: Label = %TitleLabel
+@onready var _main_panel: PanelContainer = %MainPanel
+@onready var _main_panel_padding: MarginContainer = %MainPanelPadding
+@onready var _main_panel_content: VBoxContainer = %MainPanelContent
 @onready var _action_list: VBoxContainer = %ActionList
 @onready var _status_label: Label = %StatusLabel
 @onready var _search_box: LineEdit = %SearchBox
+@onready var _button_row: HBoxContainer = %ButtonRow
 @onready var _close_button: Button = %CloseButton
 @onready var _reset_button: Button = %ResetButton
-@onready var _scroll: ScrollContainer = $CenterContainer/Panel/VBox/Scroll
+@onready var _scroll: ScrollContainer = %Scroll
 @onready var _conflict_dialog: ConfirmationDialog = %ConflictDialog
 @onready var _reset_confirm_dialog: ConfirmationDialog = %ResetConfirmDialog
 @onready var _error_dialog: AcceptDialog = %ErrorDialog
@@ -59,6 +65,7 @@ var _bottom_button_index: int = 0
 var _row_button_index: int = 0
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_profile_manager = _resolve_input_profile_manager()
 	if _profile_manager != null and "store_ref" in _profile_manager:
 		var manager_store: Variant = _profile_manager.store_ref
@@ -91,6 +98,7 @@ func _on_panel_ready() -> void:
 	_build_action_rows()
 	_update_status(_get_status_default_text())
 	_set_reset_button_enabled(_profile_manager != null)
+	play_enter_animation()
 
 func _resolve_input_profile_manager() -> Node:
 	if input_profile_manager != null and is_instance_valid(input_profile_manager):
@@ -411,6 +419,45 @@ func _localize_static_labels() -> void:
 			reset_cancel.text = _localize_with_fallback(&"common.cancel", "Cancel")
 	if _error_dialog != null:
 		_error_dialog.title = _localize_with_fallback(ERROR_TITLE_KEY, "Rebind Error")
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	var dim_color := config.bg_base
+	dim_color.a = 0.7
+	background_color = dim_color
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = dim_color
+
+	if _main_panel != null and config.panel_section != null:
+		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _main_panel_padding != null:
+		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	if _main_panel_content != null:
+		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+	if _action_list != null:
+		_action_list.add_theme_constant_override(&"separation", config.separation_compact)
+	if _button_row != null:
+		_button_row.add_theme_constant_override(&"separation", config.separation_default)
+
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.heading)
+	if _status_label != null:
+		_status_label.add_theme_font_size_override(&"font_size", config.section_header)
+		_status_label.add_theme_color_override(&"font_color", config.text_secondary)
+	if _search_box != null:
+		_search_box.add_theme_font_size_override(&"font_size", config.body_small)
+	if _reset_button != null:
+		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _close_button != null:
+		_close_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _get_status_default_text() -> String:
 	return _localize_with_fallback(STATUS_DEFAULT_KEY, "Select an action to rebind.")
