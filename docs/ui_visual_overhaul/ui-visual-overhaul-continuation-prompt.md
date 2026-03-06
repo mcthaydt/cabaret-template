@@ -248,13 +248,23 @@
   - Manual smoke: pending (user verification)
 - **2026-03-06: Screen 8 confirmation-dialog chrome follow-up**
   - User feedback: default gray confirmation window chrome remained visually off-theme in save/load.
-  - Fix: `U_UIThemeBuilder` now applies `panel_section` stylebox to `ConfirmationDialog` and `Window` panel paths (in addition to `AcceptDialog`), aligning confirm dialogs with tokenized panel styling.
+  - Initial fix attempt mapped `panel_section` to `ConfirmationDialog` and `Window` `panel` path; this was insufficient because Godot `Window` chrome does not use `panel`.
   - Added regression coverage in `tests/unit/ui/test_ui_theme_builder.gd`:
     - `test_build_theme_applies_dialog_window_panel_styles`
   - Verification:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_theme_builder.gd -gtest=res://tests/unit/ui/test_save_load_menu.gd` → 31/31 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `1b91c156`
+- **2026-03-06: Screen 8 confirmation-dialog chrome correction**
+  - Root cause verified via headless theme inspection: `Window` uses `embedded_border` / `embedded_unfocused_border` styleboxes (not `panel`).
+  - Corrected fix in `U_UIThemeBuilder`:
+    - Apply `panel_section` to `Window.embedded_border` and `Window.embedded_unfocused_border`.
+    - Apply `title_color = text_primary` and transparent `title_outline_modulate` for themed window headers.
+  - Updated regression coverage in `tests/unit/ui/test_ui_theme_builder.gd::test_build_theme_applies_dialog_window_panel_styles` to assert `Window` embedded border styleboxes + title colors.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_theme_builder.gd -gtest=res://tests/unit/ui/test_save_load_menu.gd` → 31/31 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `2f61c70f`
 
 ### Plan Change Summary (2026-03-05)
 
@@ -289,6 +299,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 2 Screen 7 settings-menu migration commit: `ca75551a`
 - Phase 2 Screen 8 save-load-menu migration commit: `c969b7f4`
 - Screen 8 confirmation-dialog chrome follow-up commit: `1b91c156`
+- Screen 8 confirmation-dialog chrome correction commit: `2f61c70f`
 
 ## Context
 

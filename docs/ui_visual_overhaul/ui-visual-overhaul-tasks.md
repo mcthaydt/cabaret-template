@@ -303,12 +303,20 @@ Completion note (2026-03-06): Implemented Screen 8 with centered panel-backed la
 - Manual smoke test pending (user verification).
 
 Follow-up note (2026-03-06): Confirmation dialog chrome was still rendering with default gray window styling in save/load flows.
-- Fix applied in shared theme builder: tokenize dialog/window panel paths for `ConfirmationDialog` + `Window` (keeps confirm modals aligned with `panel_section` styling).
+- Initial fix attempt tokenized `ConfirmationDialog` and `Window` `panel` paths, but `Window` chrome still rendered gray because Godot uses embedded border stylebox keys for window chrome.
 - Regression coverage added: `tests/unit/ui/test_ui_theme_builder.gd::test_build_theme_applies_dialog_window_panel_styles`.
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_theme_builder.gd -gtest=res://tests/unit/ui/test_save_load_menu.gd` → 31/31 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 - Implementation commit: `1b91c156`
+
+Follow-up correction (2026-03-06): Applied the actual `Window` chrome keys used by Godot.
+- Fix applied in shared theme builder: `Window.embedded_border` + `Window.embedded_unfocused_border` now use `panel_section`, plus themed `title_color`/`title_outline_modulate`.
+- Regression test updated to assert embedded border styleboxes and title colors on `Window`.
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_theme_builder.gd -gtest=res://tests/unit/ui/test_save_load_menu.gd` → 31/31 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- Implementation commit: `2f61c70f`
 
 ### Screens 9-13: Remaining Overlays (batch)
 
