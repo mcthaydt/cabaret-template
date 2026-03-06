@@ -5,6 +5,7 @@ const RS_UI_COLOR_PALETTE := preload("res://scripts/resources/ui/rs_ui_color_pal
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
 const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/managers/helpers/localization/u_localization_font_applier.gd")
+const UI_THEME_CONFIG_DEFAULT := preload("res://resources/ui/cfg_ui_theme_default.tres")
 
 var _config: Resource = null
 
@@ -238,6 +239,20 @@ func test_palette_change_triggers_theme_rebuild() -> void:
 		root.theme.get_stylebox(&"normal", &"Button") is StyleBoxFlat,
 		"Rebuilt theme should keep styleboxes while palette changes"
 	)
+
+func test_build_theme_hydrates_runtime_style_defaults_for_loaded_config_resource() -> void:
+	var loaded_config := UI_THEME_CONFIG_DEFAULT.duplicate(true)
+	assert_true(loaded_config is RS_UI_THEME_CONFIG, "Default config resource should load as RS_UIThemeConfig")
+	var typed_config := loaded_config as RS_UI_THEME_CONFIG
+	typed_config.button_normal = null
+	typed_config.panel_section = null
+
+	var theme := U_UI_THEME_BUILDER.build_theme(typed_config)
+
+	assert_not_null(typed_config.button_normal, "Builder should hydrate missing button style defaults")
+	assert_not_null(typed_config.panel_section, "Builder should hydrate missing panel style defaults")
+	assert_true(theme.has_stylebox(&"normal", &"Button"), "Built theme should include button stylebox")
+	assert_true(theme.has_stylebox(&"panel", &"PanelContainer"), "Built theme should include panel stylebox")
 
 func _make_font_applier():
 	var applier: Variant = U_LOCALIZATION_FONT_APPLIER.new()

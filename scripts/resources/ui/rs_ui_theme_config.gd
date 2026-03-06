@@ -71,6 +71,9 @@ class_name RS_UIThemeConfig
 @export var separator_style: StyleBoxFlat
 
 func _init() -> void:
+	ensure_runtime_defaults()
+
+func ensure_runtime_defaults() -> void:
 	if button_normal == null:
 		button_normal = _create_box(bg_panel, accent_primary, 2, 10)
 	if button_hover == null:

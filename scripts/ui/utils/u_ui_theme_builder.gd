@@ -24,17 +24,19 @@ static func build_theme(
 	if not (config is RS_UI_THEME_CONFIG):
 		_debug_log("build_theme: config type mismatch (%s)" % config.get_class())
 		return null
+	var typed_config := config as RS_UI_THEME_CONFIG
+	typed_config.ensure_runtime_defaults()
 
 	var theme := _duplicate_theme_or_new(base_font_theme)
 
-	_apply_font_sizes(theme, config)
-	_apply_spacing(theme, config)
-	_apply_button_styles(theme, config)
-	_apply_panel_styles(theme, config)
-	_apply_bar_styles(theme, config)
-	_apply_separator_style(theme, config)
-	_apply_text_colors(theme, config, palette, base_font_theme != null)
-	_log_build_summary_once(theme, config, palette, base_font_theme)
+	_apply_font_sizes(theme, typed_config)
+	_apply_spacing(theme, typed_config)
+	_apply_button_styles(theme, typed_config)
+	_apply_panel_styles(theme, typed_config)
+	_apply_bar_styles(theme, typed_config)
+	_apply_separator_style(theme, typed_config)
+	_apply_text_colors(theme, typed_config, palette, base_font_theme != null)
+	_log_build_summary_once(theme, typed_config, palette, base_font_theme)
 	return theme
 
 static func _duplicate_theme_or_new(base_theme: Theme) -> Theme:
