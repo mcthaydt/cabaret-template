@@ -194,18 +194,26 @@ static func connect_row_focus_handlers(
 	if row != null:
 		row.focus_entered.connect(func() -> void:
 			ensure_row_visible(overlay, row)
+			if overlay.has_method("_sync_focus_tracking_from_control"):
+				overlay.call("_sync_focus_tracking_from_control", row)
 		)
 	if add_button != null:
 		add_button.focus_entered.connect(func() -> void:
 			ensure_row_visible(overlay, row)
+			if overlay.has_method("_sync_focus_tracking_from_control"):
+				overlay.call("_sync_focus_tracking_from_control", add_button)
 		)
 	if replace_button != null:
 		replace_button.focus_entered.connect(func() -> void:
 			ensure_row_visible(overlay, row)
+			if overlay.has_method("_sync_focus_tracking_from_control"):
+				overlay.call("_sync_focus_tracking_from_control", replace_button)
 		)
 	if reset_button != null:
 		reset_button.focus_entered.connect(func() -> void:
 			ensure_row_visible(overlay, row)
+			if overlay.has_method("_sync_focus_tracking_from_control"):
+				overlay.call("_sync_focus_tracking_from_control", reset_button)
 		)
 
 static func cycle_bottom_button(overlay: Node, direction: int) -> void:

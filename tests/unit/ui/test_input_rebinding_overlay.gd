@@ -94,6 +94,18 @@ func test_input_rebinding_overlay_has_motion_and_theme_tokens_when_active_config
 		)
 	if search_box != null:
 		assert_eq(search_box.get_theme_font_size(&"font_size"), 15, "Search box should use body_small token")
+		assert_true(
+			search_box.has_theme_stylebox_override(&"normal"),
+			"Search box should have themed normal stylebox override"
+		)
+		assert_true(
+			search_box.has_theme_stylebox_override(&"focus"),
+			"Search box should have themed focus stylebox override"
+		)
+		assert_true(
+			search_box.get_theme_color(&"font_placeholder_color").is_equal_approx(config.text_secondary),
+			"Search box placeholder should use text_secondary token"
+		)
 	if main_panel != null:
 		assert_not_null(main_panel.get_theme_stylebox(&"panel"), "Main panel should have themed panel style")
 	if panel_padding != null:
@@ -107,6 +119,51 @@ func test_input_rebinding_overlay_has_motion_and_theme_tokens_when_active_config
 			overlay_background.color.is_equal_approx(expected_dim),
 			"Overlay dim should use bg_base at 0.7 alpha"
 		)
+
+func test_keyboard_horizontal_navigation_cycles_row_buttons_and_preserves_row_highlight() -> void:
+	var overlay: Node = OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+
+	var rows_value: Variant = overlay.get("_action_rows")
+	assert_true(rows_value is Dictionary, "Overlay should expose action rows dictionary")
+	if not (rows_value is Dictionary):
+		return
+	var rows: Dictionary = rows_value as Dictionary
+	var jump_row: Dictionary = rows.get(StringName("test_jump"), {})
+	var add_button := jump_row.get("add_button") as Button
+	var replace_button := jump_row.get("replace_button") as Button
+	var row_container := jump_row.get("container") as Control
+	assert_not_null(add_button, "Jump row should expose add button")
+	assert_not_null(replace_button, "Jump row should expose replace button")
+	assert_not_null(row_container, "Jump row should expose container")
+	if add_button == null or replace_button == null or row_container == null:
+		return
+
+	add_button.grab_focus()
+	await _pump()
+
+	var right := InputEventAction.new()
+	right.action = StringName("ui_right")
+	right.pressed = true
+	overlay.call("_unhandled_key_input", right)
+	await _pump()
+
+	var focused := overlay.get_viewport().gui_get_focus_owner()
+	assert_eq(focused, replace_button, "Keyboard right should move row focus to replace button")
+	assert_true(
+		row_container.modulate.is_equal_approx(Color(1, 1, 1, 1)),
+		"Focused row should remain highlighted when moving horizontally"
+	)
+
+	var left := InputEventAction.new()
+	left.action = StringName("ui_left")
+	left.pressed = true
+	overlay.call("_unhandled_key_input", left)
+	await _pump()
+
+	focused = overlay.get_viewport().gui_get_focus_owner()
+	assert_eq(focused, add_button, "Keyboard left should move row focus back to add button")
 
 func test_analog_navigation_uses_repeater_only() -> void:
 	var overlay: BaseOverlay = OverlayScene.instantiate() as BaseOverlay
