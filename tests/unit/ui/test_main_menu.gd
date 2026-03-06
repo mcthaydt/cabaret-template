@@ -1,14 +1,54 @@
 extends GutTest
 
 const MainMenuScene := preload("res://scenes/ui/menus/ui_main_menu.tscn")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
 	U_ServiceLocator.clear()
+	U_UI_THEME_BUILDER.active_config = null
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
 	U_ServiceLocator.clear()
+	U_UI_THEME_BUILDER.active_config = null
+
+func test_main_menu_has_enter_exit_motion_assigned() -> void:
+	await _create_state_store()
+	var menu: Variant = await _create_main_menu()
+	var motion_set: Variant = menu.get("motion_set")
+
+	assert_not_null(motion_set, "Main menu should assign a motion set for enter/exit animation")
+	if motion_set == null:
+		return
+	assert_true("enter" in motion_set, "Motion set should expose enter presets")
+	assert_true("exit" in motion_set, "Motion set should expose exit presets")
+	var enter_presets: Array = motion_set.enter
+	var exit_presets: Array = motion_set.exit
+	assert_gt(enter_presets.size(), 0, "Motion set enter presets should not be empty")
+	assert_gt(exit_presets.size(), 0, "Motion set exit presets should not be empty")
+
+func test_applies_theme_tokens_when_active_config_present() -> void:
+	await _create_state_store()
+	var config := RS_UI_THEME_CONFIG.new()
+	config.title = 62
+	config.bg_base = Color(0.1, 0.2, 0.3, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	var menu := await _create_main_menu()
+	var title_label: Label = menu.get_node("%TitleLabel")
+	var background: ColorRect = menu.get_node("Background")
+
+	assert_eq(
+		title_label.get_theme_font_size(&"font_size"),
+		62,
+		"Title label should use the title size token from the active theme config"
+	)
+	assert_true(
+		background.color.is_equal_approx(config.bg_base),
+		"Background color should use the bg_base token from the active theme config"
+	)
 
 func test_main_panel_visible_by_default() -> void:
 	var store := await _create_state_store()
@@ -35,7 +75,7 @@ func test_dispatching_panel_change_updates_visibility() -> void:
 func test_settings_button_switches_to_settings_panel() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
-	var settings_button: Button = menu.get_node("CenterContainer/MainPanel/SettingsButton")
+	var settings_button: Button = menu.get_node("%SettingsButton")
 
 	settings_button.emit_signal("pressed")
 	await wait_process_frames(2)
@@ -47,7 +87,7 @@ func test_settings_button_switches_to_settings_panel() -> void:
 func test_back_button_returns_to_main_panel() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
-	var settings_button: Button = menu.get_node("CenterContainer/MainPanel/SettingsButton")
+	var settings_button: Button = menu.get_node("%SettingsButton")
 	var settings_content: Control = menu.get_node("SettingsPanel/SettingsContent")
 	var back_button: Button = settings_content.get_node("%BackButton")
 
@@ -63,7 +103,7 @@ func test_back_button_returns_to_main_panel() -> void:
 func test_play_button_dispatches_start_game_action() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
-	var new_game_button: Button = menu.get_node("CenterContainer/MainPanel/NewGameButton")
+	var new_game_button: Button = menu.get_node("%NewGameButton")
 
 	new_game_button.emit_signal("pressed")
 	await wait_process_frames(2)
@@ -78,7 +118,7 @@ func test_new_game_prompts_confirmation_when_saves_exist() -> void:
 	var store := await _create_state_store()
 	await _register_save_manager_with_saves()
 	var menu := await _create_main_menu()
-	var new_game_button: Button = menu.get_node("CenterContainer/MainPanel/NewGameButton")
+	var new_game_button: Button = menu.get_node("%NewGameButton")
 
 	new_game_button.emit_signal("pressed")
 	await wait_process_frames(2)
@@ -97,7 +137,7 @@ func test_new_game_confirmation_confirm_starts_game() -> void:
 	var store := await _create_state_store()
 	await _register_save_manager_with_saves()
 	var menu := await _create_main_menu()
-	var new_game_button: Button = menu.get_node("CenterContainer/MainPanel/NewGameButton")
+	var new_game_button: Button = menu.get_node("%NewGameButton")
 
 	new_game_button.emit_signal("pressed")
 	await wait_process_frames(2)
@@ -120,7 +160,7 @@ func test_new_game_confirmation_cancel_does_nothing() -> void:
 	var store := await _create_state_store()
 	await _register_save_manager_with_saves()
 	var menu := await _create_main_menu()
-	var new_game_button: Button = menu.get_node("CenterContainer/MainPanel/NewGameButton")
+	var new_game_button: Button = menu.get_node("%NewGameButton")
 
 	new_game_button.emit_signal("pressed")
 	await wait_process_frames(2)
@@ -205,7 +245,7 @@ func test_quit_button_hidden_on_mobile() -> void:
 	# Instead, we verify the button visibility logic exists
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
-	var quit_button: Button = menu.get_node("CenterContainer/MainPanel/QuitButton")
+	var quit_button: Button = menu.get_node("%QuitButton")
 
 	assert_not_null(quit_button, "Quit button should exist in scene")
 
@@ -220,8 +260,8 @@ func test_quit_button_hidden_on_mobile() -> void:
 func test_quit_button_excluded_from_focus_when_hidden() -> void:
 	await _create_state_store()
 	var menu := await _create_main_menu()
-	var quit_button: Button = menu.get_node("CenterContainer/MainPanel/QuitButton")
-	var settings_button: Button = menu.get_node("CenterContainer/MainPanel/SettingsButton")
+	var quit_button: Button = menu.get_node("%QuitButton")
+	var settings_button: Button = menu.get_node("%SettingsButton")
 
 	assert_not_null(quit_button, "Quit button should exist")
 	assert_not_null(settings_button, "Settings button should exist")

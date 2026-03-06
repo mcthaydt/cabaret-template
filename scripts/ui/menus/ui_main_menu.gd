@@ -9,6 +9,8 @@ class_name UI_MainMenu
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
@@ -18,6 +20,7 @@ const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 @onready var _title_label: Label = %TitleLabel
 @onready var _main_panel: Control = %MainPanel
 @onready var _settings_panel: Control = %SettingsPanel
+@onready var _background: ColorRect = $Background
 @onready var _continue_button: Button = %ContinueButton
 @onready var _new_game_button: Button = %NewGameButton
 @onready var _load_game_button: Button = %LoadGameButton
@@ -32,6 +35,7 @@ var _store_unsubscribe: Callable = Callable()
 var _active_panel: StringName = StringName()
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_discover_save_manager()
 	_update_button_visibility()
 	_connect_buttons()
@@ -43,6 +47,17 @@ func _on_panel_ready() -> void:
 	if _store_unsubscribe == Callable() or not _store_unsubscribe.is_valid():
 		_store_unsubscribe = store.subscribe(_on_state_changed)
 	_on_state_changed({}, store.get_state())
+	play_enter_animation()
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+	if _background != null:
+		_background.color = config.bg_base
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.title)
 
 func _discover_save_manager() -> void:
 	_save_manager = U_ServiceLocator.try_get_service(StringName("save_manager"))
