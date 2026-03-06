@@ -6,21 +6,47 @@ const CreditsScene := preload("res://scenes/ui/menus/ui_credits.tscn")
 const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
+
+func test_game_over_has_motion_and_theme_tokens_when_active_config_set() -> void:
+	var store := await _create_state_store()
+	_prepare_endgame_state(store, StringName("game_over"))
+	var config := RS_UI_THEME_CONFIG.new()
+	config.title = 58
+	config.heading = 34
+	config.bg_base = Color(0.12, 0.18, 0.25, 1.0)
+	config.danger = Color(0.9, 0.2, 0.2, 1.0)
+	config.text_secondary = Color(0.7, 0.7, 0.8, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	var screen: Variant = await _instantiate_scene(GameOverScene)
+	var motion_set: Variant = screen.get("motion_set")
+	var title_label: Label = screen.get_node("%TitleLabel")
+	var death_count_label: Label = screen.get_node("%DeathCountLabel")
+	var background: ColorRect = screen.get_node("Background")
+
+	assert_not_null(motion_set, "Game Over should assign enter/exit motion set")
+	assert_eq(title_label.get_theme_font_size(&"font_size"), 58, "Title should use theme title size token")
+	assert_eq(death_count_label.get_theme_font_size(&"font_size"), 34, "Death count should use theme heading size token")
+	assert_true(background.color.is_equal_approx(config.bg_base), "Background should use theme bg_base token")
 
 func test_game_over_retry_returns_to_gameplay() -> void:
 	var store := await _create_state_store()
 	_prepare_endgame_state(store, StringName("game_over"))
 	var screen := await _instantiate_scene(GameOverScene)
 
-	var retry_button: Button = screen.get_node("MarginContainer/VBoxContainer/ButtonRow/RetryButton")
+	var retry_button: Button = screen.get_node("%RetryButton")
 	retry_button.emit_signal("pressed")
 	await wait_process_frames(2)
 
@@ -32,7 +58,7 @@ func test_game_over_menu_returns_to_main_menu() -> void:
 	_prepare_endgame_state(store, StringName("game_over"))
 	var screen := await _instantiate_scene(GameOverScene)
 
-	var menu_button: Button = screen.get_node("MarginContainer/VBoxContainer/ButtonRow/MenuButton")
+	var menu_button: Button = screen.get_node("%MenuButton")
 	menu_button.emit_signal("pressed")
 	await wait_process_frames(2)
 

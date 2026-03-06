@@ -11,11 +11,17 @@ class_name UI_GameOver
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_TRANSITION_OVERLAY_SNAP := preload("res://scripts/scene_management/helpers/u_transition_overlay_snap.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const RS_UI_MOTION_PRESET := preload("res://scripts/resources/ui/rs_ui_motion_preset.gd")
 
-@onready var _title_label: Label = $MarginContainer/VBoxContainer/TitleLabel
-@onready var _death_count_label: Label = $MarginContainer/VBoxContainer/DeathCountLabel
-@onready var _retry_button: Button = $MarginContainer/VBoxContainer/ButtonRow/RetryButton
-@onready var _menu_button: Button = $MarginContainer/VBoxContainer/ButtonRow/MenuButton
+@onready var _title_label: Label = %TitleLabel
+@onready var _death_count_label: Label = %DeathCountLabel
+@onready var _button_row: HBoxContainer = $MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer/ButtonRow
+@onready var _content_vbox: VBoxContainer = $MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer
+@onready var _background: ColorRect = $Background
+@onready var _retry_button: Button = %RetryButton
+@onready var _menu_button: Button = %MenuButton
 
 var _store_unsubscribe: Callable = Callable()
 
@@ -28,9 +34,42 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_update_death_count(store.get_state())
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_connect_buttons()
 	_configure_focus_neighbors()
 	_localize_labels()
+	play_enter_animation()
+	_play_title_enter_motion()
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+	if _background != null:
+		_background.color = config.bg_base
+	if _content_vbox != null:
+		_content_vbox.add_theme_constant_override(&"separation", config.separation_large)
+	if _button_row != null:
+		_button_row.add_theme_constant_override(&"separation", config.separation_medium)
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.title)
+		_title_label.add_theme_color_override(&"font_color", config.danger)
+	if _death_count_label != null:
+		_death_count_label.add_theme_font_size_override(&"font_size", config.heading)
+		_death_count_label.add_theme_color_override(&"font_color", config.text_secondary)
+
+func _play_title_enter_motion() -> void:
+	if _title_label == null:
+		return
+	var preset: Resource = RS_UI_MOTION_PRESET.new()
+	preset.property_path = "modulate:a"
+	preset.from_value = 0.0
+	preset.to_value = 1.0
+	preset.duration_sec = 0.24
+	preset.delay_sec = 0.1
+	var presets: Array[Resource] = [preset]
+	U_UI_MOTION.play(_title_label, presets)
 
 func _configure_focus_neighbors() -> void:
 	# Configure horizontal focus navigation for game over buttons with wrapping
