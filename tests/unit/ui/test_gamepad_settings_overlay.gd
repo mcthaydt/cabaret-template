@@ -143,6 +143,21 @@ func test_apply_updates_state_settings() -> void:
 	var close_after := _count_navigation_close_or_return_actions()
 	assert_eq(close_after, close_before + 1, "Apply should dispatch a single navigation close/navigation return action")
 
+func test_vibration_toggle_does_not_use_expand_fill_layout() -> void:
+	var overlay := OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+	await _pump()
+
+	var vibration_checkbox := overlay.get_node_or_null("%VibrationCheck") as CheckButton
+	assert_not_null(vibration_checkbox, "VibrationCheck should exist")
+	if vibration_checkbox != null:
+		assert_ne(
+			vibration_checkbox.size_flags_horizontal,
+			Control.SIZE_EXPAND_FILL,
+			"Vibration toggle should not stretch across the full row"
+		)
+
 func _pump() -> void:
 	await get_tree().process_frame
 

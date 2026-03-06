@@ -225,6 +225,48 @@ func test_touch_event_switches_to_touchscreen_without_gamepad_state() -> void:
 	assert_eq(event.get("device_id"), -1)
 	assert_gt(float(event.get("timestamp", 0.0)), 0.0)
 
+func test_touch_event_does_not_switch_device_on_gamepad_settings_overlay() -> void:
+	await _simulate_gamepad_input(6)
+	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.open_pause())
+	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
+	_store.dispatch(U_NavigationActions.open_overlay(StringName("gamepad_settings")))
+	await get_tree().process_frame
+	_dispatched_actions.clear()
+	_device_events.clear()
+
+	var touch: InputEventScreenTouch = InputEventScreenTouch.new()
+	touch.pressed = true
+	touch.index = 0
+	touch.position = Vector2.ONE
+	_manager._input(touch)
+	await get_tree().process_frame
+
+	assert_eq(_manager.get_active_device(), M_InputDeviceManager.DeviceType.GAMEPAD)
+	assert_eq(_manager.get_gamepad_device_id(), 6)
+	assert_eq(_device_events.size(), 0, "Touch input should not emit device_changed on gamepad settings overlay")
+	assert_eq(_dispatched_actions.size(), 0, "Touch input should not dispatch device changes on gamepad settings overlay")
+
+func test_touch_event_does_not_switch_device_on_gamepad_settings_base_scene() -> void:
+	await _simulate_gamepad_input(9)
+	_store.dispatch(U_NavigationActions.return_to_main_menu())
+	_store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("gamepad_settings")))
+	await get_tree().process_frame
+	_dispatched_actions.clear()
+	_device_events.clear()
+
+	var touch: InputEventScreenTouch = InputEventScreenTouch.new()
+	touch.pressed = true
+	touch.index = 0
+	touch.position = Vector2.ONE
+	_manager._input(touch)
+	await get_tree().process_frame
+
+	assert_eq(_manager.get_active_device(), M_InputDeviceManager.DeviceType.GAMEPAD)
+	assert_eq(_manager.get_gamepad_device_id(), 9)
+	assert_eq(_device_events.size(), 0, "Touch input should not emit device_changed on gamepad settings base scene")
+	assert_eq(_dispatched_actions.size(), 0, "Touch input should not dispatch device changes on gamepad settings base scene")
+
 func test_gamepad_disconnect_ignored_when_overlay_active() -> void:
 	await _simulate_gamepad_input(5)
 	_dispatched_actions.clear()
