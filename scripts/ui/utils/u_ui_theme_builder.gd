@@ -3,6 +3,7 @@ class_name U_UIThemeBuilder
 
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 const RS_UI_COLOR_PALETTE := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
+const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 
 const _TEXT_COLOR_TYPES: Array[StringName] = [
 	&"Control", &"Label", &"Button", &"CheckBox", &"CheckButton",
@@ -10,6 +11,7 @@ const _TEXT_COLOR_TYPES: Array[StringName] = [
 ]
 
 static var active_config: Resource = null
+static var _did_log_build_summary: bool = false
 
 static func build_theme(
 	config: Resource,
@@ -17,8 +19,10 @@ static func build_theme(
 	palette: Resource = null
 ) -> Theme:
 	if config == null:
+		_debug_log("build_theme: config=null")
 		return null
 	if not (config is RS_UI_THEME_CONFIG):
+		_debug_log("build_theme: config type mismatch (%s)" % config.get_class())
 		return null
 
 	var theme := _duplicate_theme_or_new(base_font_theme)
@@ -30,6 +34,7 @@ static func build_theme(
 	_apply_bar_styles(theme, config)
 	_apply_separator_style(theme, config)
 	_apply_text_colors(theme, config, palette, base_font_theme != null)
+	_log_build_summary_once(theme, config, palette, base_font_theme)
 	return theme
 
 static func _duplicate_theme_or_new(base_theme: Theme) -> Theme:
@@ -141,3 +146,38 @@ static func _set_color_if_allowed(
 	if preserve_existing and theme.has_color(color_name, type_name):
 		return
 	theme.set_color(color_name, type_name, color)
+
+static func _log_build_summary_once(
+	theme: Theme,
+	config: Resource,
+	palette: Resource,
+	base_font_theme: Theme
+) -> void:
+	if _did_log_build_summary:
+		return
+	if not U_UI_THEME_DEBUG.is_enabled():
+		return
+	_did_log_build_summary = true
+	var typed_config := config as RS_UI_THEME_CONFIG
+	var palette_id := "null"
+	if palette is RS_UI_COLOR_PALETTE:
+		palette_id = str((palette as RS_UI_COLOR_PALETTE).palette_id)
+	_debug_log(
+		"build summary: cfg_ok=true cfg_class=%s base_theme=%s palette=%s " % [
+			config.get_class(),
+			str(base_font_theme != null),
+			palette_id,
+		] +
+		"button_normal_null=%s panel_section_null=%s " % [
+			str(typed_config.button_normal == null),
+			str(typed_config.panel_section == null),
+		] +
+		"has_button_style=%s has_panel_style=%s has_label_color=%s" % [
+			str(theme.has_stylebox(&"normal", &"Button")),
+			str(theme.has_stylebox(&"panel", &"PanelContainer")),
+			str(theme.has_color(&"font_color", &"Label")),
+		]
+	)
+
+static func _debug_log(message: String) -> void:
+	U_UI_THEME_DEBUG.log("U_UIThemeBuilder", message)
