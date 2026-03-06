@@ -473,7 +473,7 @@ Follow-up note (2026-03-06): Phase 2 overlay audit hardening pass completed.
 - [x] Migrate separation (1 override), apply theme to language list
 - [x] Run existing localization settings tests — pass
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Open localization settings, verify language list styled, font preview works
+- [x] **Manual smoke test:** Open localization settings, verify language list styled, font preview works
 
 Completion note (2026-03-06): Implemented Screen 14 in commit `c94de23c`.
 - Removed the final inline `theme_override_constants/separation` from `ui_localization_settings_tab.tscn`.
