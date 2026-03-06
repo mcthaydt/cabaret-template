@@ -1,6 +1,7 @@
 extends GutTest
 
 const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
+const GAMEPLAY_SCENE_ID := StringName("alleyway")
 
 var _store: M_StateStore
 var _ui_overlay_stack: CanvasLayer
@@ -327,15 +328,17 @@ func test_profile_selector_updates_overlay_labels_on_locale_change() -> void:
 	assert_eq(profile_label.text, "Perfil de Entrada:", "Profile label should update when locale changes")
 
 func _start_game_and_pause() -> void:
-	_store.dispatch(U_NavigationActions.start_game(StringName("scene1")))
-	await _await_scene(StringName("scene1"))
+	_store.dispatch(U_NavigationActions.start_game(GAMEPLAY_SCENE_ID))
+	await _await_scene(GAMEPLAY_SCENE_ID)
 	_store.dispatch(U_NavigationActions.open_pause())
 	await wait_physics_frames(4)
 
-func _await_scene(scene_id: StringName, limit_frames: int = 30) -> void:
+func _await_scene(scene_id: StringName, limit_frames: int = 120) -> void:
 	for _i in range(limit_frames):
 		var scene_state: Dictionary = _store.get_state().get("scene", {})
-		if scene_state.get("current_scene_id") == scene_id:
+		var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+		var is_transitioning: bool = bool(scene_state.get("is_transitioning", false))
+		if current_scene_id == scene_id and not is_transitioning:
 			return
 		await wait_physics_frames(1)
 	assert_true(false, "Timed out waiting for scene_id %s" % scene_id)
