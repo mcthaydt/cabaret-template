@@ -4,10 +4,22 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 and Phase 2 Screens 6-13 implemented + manual-smoke verified. Next: Phase 2 settings-overlay wrappers (`ui_audio_settings_overlay`, `ui_display_settings_overlay`, `ui_localization_settings_overlay`, `ui_vfx_settings_overlay`), then Phase 3 settings tabs.
+- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, and Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification). Next: Phase 3 Screen 14 (`ui_localization_settings_tab.tscn`).
 
 ## Recent Progress
 
+- **2026-03-06: Phase 2 settings-overlay wrappers implemented (`ui_audio_settings_overlay`, `ui_display_settings_overlay`, `ui_localization_settings_overlay`, `ui_vfx_settings_overlay`)**
+  - Wrapper overlays migrated to shared overlay behavior:
+    - Removed legacy inline `Background` color rects and standardized on `BaseOverlay` `OverlayBackground`.
+    - Assigned `motion_set = cfg_motion_fade_slide` to all four wrapper roots.
+    - Added wrapper `_on_panel_ready()` token plumbing (dim/panel/spacing) and `play_enter_animation()` hooks.
+  - Added wrapper regression suite:
+    - `tests/unit/ui/test_settings_overlay_wrappers.gd` (4 tests) validates motion assignment + `bg_base@0.5` dim + `panel_section` + `separation_default` application across all wrappers.
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd -gtest=res://tests/integration/audio/test_audio_settings_ui.gd -gtest=res://tests/integration/display/test_display_settings.gd -gtest=res://tests/integration/localization/test_localization_settings_tab.gd -gtest=res://tests/integration/vfx/test_vfx_settings_ui.gd -gtest=res://tests/unit/ui/test_vfx_settings_overlay_localization.gd` → 49/49 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2827/2836 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `96df500e`
 - **2026-03-06: Mobile stylebox hydration fix (unified theme)**
   - Device trace showed unified bootstrap running, but `U_UIThemeBuilder` reported `button_normal_null=true` and `panel_section_null=true`, so built themes had text colors but no button/panel styleboxes.
   - Root cause: loaded `cfg_ui_theme_default.tres` may not hydrate stylebox fields on export paths if defaults rely only on `RS_UIThemeConfig._init()`.
@@ -480,6 +492,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 2 Screen 12 touchscreen-settings-overlay migration commit: `1c9f52ab`
 - Phase 2 Screen 13 edit-touch-controls-overlay migration commit: `63e0746e`
 - Screen 13 documentation + continuation update commit: `a53b0d78`
+- Phase 2 settings-overlay wrappers migration commit: `96df500e`
 
 ## Context
 
@@ -554,11 +567,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Start Phase 2 settings overlay wrappers (`ui_audio_settings_overlay.tscn`, `ui_display_settings_overlay.tscn`, `ui_localization_settings_overlay.tscn`, `ui_vfx_settings_overlay.tscn`) with consistent overlay dim + panel token application.
-2. Run wrapper-related suites + full test suite and style suite.
-3. Begin Phase 3 Screen 14 (`ui_localization_settings_tab.tscn`) after wrapper pass is complete.
+1. Begin Phase 3 Screen 14 (`ui_localization_settings_tab.tscn`) and migrate remaining inline theme overrides in the localization tab.
+2. Run localization settings tab suites + full test suite + style suite.
+3. Continue Phase 3 with Screen 15 (`ui_audio_settings_tab.tscn`) and Screen 16 (`ui_display_settings_tab.tscn`).
 
-Updated next action (2026-03-06): Begin Phase 2 settings-overlay wrapper migration.
+Updated next action (2026-03-06): Begin Phase 3 Screen 14 localization-settings-tab migration.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

@@ -422,11 +422,25 @@ Completion note (2026-03-06): Implemented Screen 13 with centered panel-backed l
 
 These wrapper overlays contain the settings tab content. They need theme application and consistent dim styling.
 
-- [ ] `ui_audio_settings_overlay.tscn` — wrapper for audio settings tab
-- [ ] `ui_display_settings_overlay.tscn` — wrapper for display settings tab
-- [ ] `ui_localization_settings_overlay.tscn` — wrapper for localization settings tab
-- [ ] `ui_vfx_settings_overlay.tscn` — wrapper for VFX settings (no tab file, standalone)
-- [ ] Run full test suite after batch
+- [x] `ui_audio_settings_overlay.tscn` — wrapper for audio settings tab
+- [x] `ui_display_settings_overlay.tscn` — wrapper for display settings tab
+- [x] `ui_localization_settings_overlay.tscn` — wrapper for localization settings tab
+- [x] `ui_vfx_settings_overlay.tscn` — wrapper for VFX settings (no tab file, standalone)
+- [x] Run full test suite after batch
+
+Completion note (2026-03-06): Completed settings-overlay wrapper batch migration.
+- Removed legacy inline `Background` `ColorRect` nodes from all four wrappers and standardized on `BaseOverlay` auto `OverlayBackground` dim.
+- Added `cfg_motion_fade_slide` assignment to all wrapper roots and invoked `play_enter_animation()` from wrapper `_on_panel_ready()`.
+- Added theme-token wrapper styling in overlay controllers:
+  - dim uses `bg_base@0.5`,
+  - panel chrome uses `panel_section`,
+  - wrapper content spacing uses `separation_default`.
+- Added wrapper regression coverage: `tests/unit/ui/test_settings_overlay_wrappers.gd` (4 tests).
+- Implementation commit: `96df500e`
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_overlay_wrappers.gd -gtest=res://tests/integration/audio/test_audio_settings_ui.gd -gtest=res://tests/integration/display/test_display_settings.gd -gtest=res://tests/integration/localization/test_localization_settings_tab.gd -gtest=res://tests/integration/vfx/test_vfx_settings_ui.gd -gtest=res://tests/unit/ui/test_vfx_settings_overlay_localization.gd` → 49/49 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2827/2836 passing, 0 failing, 9 pending/risky
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 
 ---
 
