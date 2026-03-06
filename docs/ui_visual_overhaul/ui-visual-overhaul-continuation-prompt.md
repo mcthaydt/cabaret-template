@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-4 (`ui_main_menu.tscn`, `ui_game_over.tscn`, `ui_victory.tscn`, `ui_credits.tscn`) implemented + automation-verified. Screen 1 manual smoke is complete; Screens 2-4 manual smokes remain pending. Next: Phase 1 Screen 5 (`ui_language_selector.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 (`ui_main_menu.tscn`, `ui_game_over.tscn`, `ui_victory.tscn`, `ui_credits.tscn`, `ui_language_selector.tscn`) implemented + automation-verified. Manual smokes complete for Screens 1 and 4; Screens 2, 3, and 5 remain pending. Next: Phase 2 Screen 6 (`ui_pause_menu.tscn`).
 
 ## Recent Progress
 
@@ -114,6 +114,26 @@
     - `tools/run_gut_suite.sh -gtest=res://tests/integration/scene_manager/test_endgame_flows.gd` → 5/5 passing
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd` → 13/13 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- **2026-03-05: Phase 1 Screen 5 implemented (`ui_language_selector.tscn`)**
+  - Scene composition updated: full-screen `Background` (`bg_base`) + centered `PanelContainer` with padded content and tokenized grid spacing.
+  - Assigned `motion_set = cfg_motion_fade_slide` on `UI_LanguageSelector` root and trigger `play_enter_animation()` when first-run button grid appears.
+  - Added token-driven visual application in `UI_LanguageSelector` from `U_UIThemeBuilder.active_config`:
+    - `heading` size for title label,
+    - `panel_section` style for the panel container,
+    - `separation_default` for vertical content spacing,
+    - `separation_compact` for language grid spacing,
+    - `margin_section` for panel padding,
+    - `bg_base` for background color.
+  - Refactored scene-manager lookup to use `I_SceneManager` service typing for both skip and transition paths.
+  - Added `tests/unit/ui/test_language_selector.gd` covering:
+    - theme/motion token application,
+    - skip-to-main-menu behavior when language is already selected,
+    - locale selection dispatch + transition behavior.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_language_selector.gd` → 3/3 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2801/2810 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `3a9ab267`
 
 ### Plan Change Summary (2026-03-05)
 
@@ -136,6 +156,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 1 Screen 2 game-over migration commit: `f2fb658a`
 - Phase 1 Screen 3 victory migration commit: `b05c75df`
 - Phase 1 Screen 4 credits migration commit: `c747d478`
+- Phase 1 Screen 5 language-selector migration commit: `3a9ab267`
 
 ## Context
 
@@ -210,11 +231,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Perform pending manual smoke tests for Phase 1 Screens 2-4 (`ui_game_over.tscn`, `ui_victory.tscn`, `ui_credits.tscn`) in runtime/editor.
-2. Begin Phase 1 Screen 5 (`ui_language_selector.tscn`) migration.
+1. Perform pending manual smoke tests for Phase 1 Screens 2, 3, and 5 (`ui_game_over.tscn`, `ui_victory.tscn`, `ui_language_selector.tscn`) in runtime/editor.
+2. Begin Phase 2 Screen 6 (`ui_pause_menu.tscn`) migration.
 3. Continue screen-by-screen through Phases 1-4, running full-suite + style gates after each screen or batch.
 
-Updated next action (2026-03-05): Run manual smokes for `ui_game_over.tscn`, `ui_victory.tscn`, and `ui_credits.tscn`, then start Screen 5 (`ui_language_selector.tscn`) with theme-token migration, panel styling, and enter motion.
+Updated next action (2026-03-05): Run manual smokes for `ui_game_over.tscn`, `ui_victory.tscn`, and `ui_language_selector.tscn`, then start Screen 6 (`ui_pause_menu.tscn`) with dim/panel normalization and motion polish.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

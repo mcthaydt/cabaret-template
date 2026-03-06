@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 36% (59 / 165 tasks complete)
+**Progress:** 40% (66 / 165 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -200,7 +200,7 @@ Completion note (2026-03-05): Implemented Screen 4 in commit `c747d478` and vali
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd` → 13/13 passing
 - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2798/2807 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
 - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
-- Manual smoke test remains pending (requires runtime visual pass).
+- Manual smoke test completed (user-verified).
 
 Follow-up note (2026-03-05): Fixed black-screen regression when opening credits from Victory after overlay snap + instant transition.
 - `scripts/scene_management/u_transition_orchestrator.gd` now clears `TransitionColorRect` alpha after instant scene swap.
@@ -208,13 +208,19 @@ Follow-up note (2026-03-05): Fixed black-screen regression when opening credits 
 
 ### Screen 5: Language Selector (`scenes/ui/menus/ui_language_selector.tscn`)
 
-- [ ] Migrate separations to theme tokens
-- [ ] Style PanelContainer with panel_section from theme
-- [ ] Title uses `heading` size, language buttons get accent styling
-- [ ] bg_base background, fade-in motion
-- [ ] Run existing `test_language_selector.gd` (if exists) or run full suite
-- [ ] Run full test suite
+- [x] Migrate separations to theme tokens
+- [x] Style PanelContainer with panel_section from theme
+- [x] Title uses `heading` size, language buttons get accent styling
+- [x] bg_base background, fade-in motion
+- [x] Run existing `test_language_selector.gd` (if exists) or run full suite
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Clear first-run flag, launch game, verify language selector appears, buttons are styled, selecting a language persists and skips on next launch
+
+Completion note (2026-03-05): Implemented Screen 5 in commit `3a9ab267` and validated with:
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_language_selector.gd` → 3/3 passing
+- `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2801/2810 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- Manual smoke test remains pending (requires runtime visual pass).
 
 ---
 
