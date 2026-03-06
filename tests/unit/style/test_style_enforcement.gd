@@ -71,6 +71,10 @@ const UI_POLISHED_OVERLAY_SCENES := [
 	"res://scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn",
 ]
 
+const UI_THEME_OVERRIDE_ALLOWED_COUNTS := {
+	"res://scenes/ui/widgets/ui_virtual_button.tscn": 4,
+}
+
 const SCRIPT_FILENAME_EXCEPTIONS := [
 	"root.gd" # Root bootstrap script (intentionally unprefixed)
 ]
@@ -333,6 +337,36 @@ func test_polished_overlay_scenes_have_no_inline_theme_overrides() -> void:
 		message += "\nUse RS_UIThemeConfig tokens in script/theme builder instead."
 
 	assert_eq(violations.size(), 0, message)
+
+func test_no_inline_theme_overrides_except_semantic() -> void:
+	var override_counts: Dictionary = {}
+	_collect_scene_theme_override_counts("res://scenes/ui", override_counts)
+
+	var total_override_count: int = 0
+	var violations: Array[String] = []
+	var scene_paths: Array[String] = []
+	for path_variant in override_counts.keys():
+		scene_paths.append(str(path_variant))
+	scene_paths.sort()
+
+	for scene_path in scene_paths:
+		var override_count: int = int(override_counts.get(scene_path, 0))
+		total_override_count += override_count
+		var allowed_count: int = int(UI_THEME_OVERRIDE_ALLOWED_COUNTS.get(scene_path, 0))
+		if override_count > allowed_count:
+			violations.append("%s (%d inline theme_override_ lines; allowed %d)" % [scene_path, override_count, allowed_count])
+
+	var violations_message := "UI scenes should avoid inline theme_override_* except semantic exceptions"
+	if violations.size() > 0:
+		violations_message += ":\n" + "\n".join(violations)
+		violations_message += "\nUse RS_UIThemeConfig tokens and script-applied overrides instead."
+	assert_eq(violations.size(), 0, violations_message)
+
+	assert_lte(
+		total_override_count,
+		4,
+		"Expected <= 4 total inline theme_override_* lines under scenes/ui (semantic virtual-button overrides only), got %d" % total_override_count
+	)
 
 func test_scene_organization_root_structure() -> void:
 	var root_scene := load("res://scenes/root.tscn") as PackedScene
@@ -617,3 +651,22 @@ func _count_theme_override_lines(path: String) -> int:
 
 	file.close()
 	return count
+
+func _collect_scene_theme_override_counts(dir_path: String, override_counts: Dictionary) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_scene_theme_override_counts(path, override_counts)
+		elif entry.ends_with(".tscn"):
+			var override_count: int = _count_theme_override_lines(path)
+			if override_count > 0:
+				override_counts[path] = override_count
+		entry = dir.get_next()
+	dir.list_dir_end()

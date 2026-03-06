@@ -38,10 +38,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
 
 [node name="CenterContainer" type="CenterContainer" parent="MarginContainer" unique_id=1570674488]
 layout_mode = 2
@@ -54,10 +50,6 @@ layout_mode = 2
 
 [node name="MainPanelPadding" type="MarginContainer" parent="MarginContainer/CenterContainer/MainPanel" unique_id=1575473295]
 layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding" unique_id=1402451651]
 unique_name_in_owner = true
@@ -110,10 +102,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
 
 [node name="SkipButtonVBox" type="VBoxContainer" parent="SkipButtonMargin" unique_id=341205624]
 layout_mode = 2

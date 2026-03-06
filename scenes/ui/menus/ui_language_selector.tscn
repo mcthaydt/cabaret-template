@@ -48,10 +48,6 @@ layout_mode = 2
 [node name="MainPanelPadding" type="MarginContainer" parent="ButtonContainer/PanelContainer" unique_id=1858751318]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
 
 [node name="ContentVBox" type="VBoxContainer" parent="ButtonContainer/PanelContainer/MainPanelPadding" unique_id=1154941999]
 unique_name_in_owner = true
