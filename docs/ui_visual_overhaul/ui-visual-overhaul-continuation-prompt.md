@@ -202,7 +202,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 2 Screen 6 pause-menu migration commit: `5a4ee078`
 - Screen 6 documentation update commit: `b156374e`
 - Screen 6 commit-reference doc patch: `e3a2375f`
-- Screen 6 panel-only-slide refinement commit: `(pending current branch commit)`
+- Screen 6 panel-only-slide refinement commit: `0df2deae`
 
 ## Context
 
