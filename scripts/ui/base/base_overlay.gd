@@ -143,8 +143,8 @@ func _get_motion_sequence(sequence_name: String) -> Array[Resource]:
 	for property_info in properties:
 		if not (property_info is Dictionary):
 			continue
-		var name: String = String((property_info as Dictionary).get("name", ""))
-		if name == sequence_name:
+		var property_name: String = String((property_info as Dictionary).get("name", ""))
+		if property_name == sequence_name:
 			has_property = true
 			break
 	if not has_property:

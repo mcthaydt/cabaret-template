@@ -185,47 +185,65 @@ func _load_entries_from_dir(
 			push_warning("U_SceneRegistryLoader: Could not open dir '%s' for scene registry entries" % dir_path)
 		return {"loaded": 0, "skipped": 0}
 
-	dir.list_dir_begin()
-	var file_name: String = dir.get_next()
+	var file_names: PackedStringArray = _collect_tres_files(dir, dir_path)
+	for file_name in file_names:
+		var resource_path: String = _join_path(dir_path, file_name)
+		var resource: Resource = load(resource_path)
+		if resource == null:
+			push_warning("U_SceneRegistryLoader: Failed to load scene registry resource at %s, skipping" % resource_path)
+			skipped_count += 1
+			continue
 
-	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".tres"):
-			var resource_path: String = _join_path(dir_path, file_name)
-			var resource: Resource = load(resource_path)
+		if not (resource is RS_SceneRegistryEntry):
+			push_warning("U_SceneRegistryLoader: Resource at %s is not RS_SceneRegistryEntry (found %s), skipping" % [resource_path, resource.get_class()])
+			skipped_count += 1
+			continue
 
-			if not (resource is RS_SceneRegistryEntry):
-				push_warning("U_SceneRegistryLoader: Resource at %s is not RS_SceneRegistryEntry (found %s), skipping" % [resource_path, resource.get_class()])
-				skipped_count += 1
-				file_name = dir.get_next()
-				continue
+		var entry := resource as RS_SceneRegistryEntry
+		if not entry.is_valid():
+			push_warning("U_SceneRegistryLoader: Scene entry in %s is invalid (scene_id or scene_path empty), skipping" % resource_path)
+			skipped_count += 1
+			continue
 
-			var entry := resource as RS_SceneRegistryEntry
-			if not entry.is_valid():
-				push_warning("U_SceneRegistryLoader: Scene entry in %s is invalid (scene_id or scene_path empty), skipping" % resource_path)
-				skipped_count += 1
-				file_name = dir.get_next()
-				continue
+		if scenes.has(entry.scene_id):
+			push_warning("U_SceneRegistryLoader: Scene '%s' from %s already registered (hardcoded or duplicate), skipping" % [entry.scene_id, resource_path])
+			skipped_count += 1
+			continue
 
-			if scenes.has(entry.scene_id):
-				push_warning("U_SceneRegistryLoader: Scene '%s' from %s already registered (hardcoded or duplicate), skipping" % [entry.scene_id, resource_path])
-				skipped_count += 1
-				file_name = dir.get_next()
-				continue
-
-			register_scene_callable.call(
-				entry.scene_id,
-				entry.scene_path,
-				entry.scene_type,
-				entry.default_transition,
-				entry.preload_priority
-			)
-			loaded_count += 1
-		file_name = dir.get_next()
-
-	dir.list_dir_end()
+		register_scene_callable.call(
+			entry.scene_id,
+			entry.scene_path,
+			entry.scene_type,
+			entry.default_transition,
+			entry.preload_priority
+		)
+		loaded_count += 1
 	if loaded_count == 0 and skipped_count == 0 and warn_on_missing_dir and not (OS.has_feature("headless") or DisplayServer.get_name() == "headless"):
 		push_warning("U_SceneRegistryLoader: No .tres entries found under '%s' (exports may be missing resources/scene_registry files)" % dir_path)
 	return {"loaded": loaded_count, "skipped": skipped_count}
+
+func _collect_tres_files(dir: DirAccess, dir_path: String) -> PackedStringArray:
+	var files: PackedStringArray = PackedStringArray()
+
+	if dir != null:
+		dir.list_dir_begin()
+		var file_name: String = dir.get_next()
+		while file_name != "":
+			if not dir.current_is_dir() and file_name.ends_with(".tres"):
+				files.append(file_name)
+			file_name = dir.get_next()
+		dir.list_dir_end()
+
+	# Some export targets may not enumerate files via list_dir_begin/get_next even when
+	# the directory is accessible. Fallback to static file listing for resiliency.
+	if files.is_empty():
+		var static_files: PackedStringArray = DirAccess.get_files_at(dir_path.trim_suffix("/"))
+		for file_name in static_files:
+			if file_name.ends_with(".tres"):
+				files.append(file_name)
+
+	files.sort()
+	return files
 
 func _open_dir(dir_path: String) -> DirAccess:
 	var normalized: String = dir_path.trim_suffix("/")

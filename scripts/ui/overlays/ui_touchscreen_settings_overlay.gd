@@ -74,7 +74,6 @@ var _preview_builder := U_TouchscreenPreviewBuilder.new()
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false
 var _override_log_count: int = 0
-var _local_edit_log_count: int = 0
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
