@@ -164,6 +164,7 @@
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_pause_menu.gd -gtest=res://tests/unit/ui/test_settings_menu_visibility.gd` → 10/10 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2803/2812 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `5a4ee078`
   - Manual smoke: pending (user verification needed)
 
 ### Plan Change Summary (2026-03-05)
@@ -190,7 +191,8 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 1 Screen 5 language-selector migration commit: `3a9ab267`
 - Navigation reducer follow-up commit: `4f7bdccb`
 - Integration await hardening commit: `b9197a89`
-- Phase 2 Screen 6 pause-menu migration commit: `(pending current branch commit)`
+- Phase 2 Screen 6 pause-menu migration commit: `5a4ee078`
+- Screen 6 documentation update commit: `b156374e`
 
 ## Context
 
