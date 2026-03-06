@@ -693,9 +693,9 @@ Completion note (2026-03-06): Completed Phase 5A in commit `a4bd58b8`.
 
 ### 5B — Visual Consistency Pass
 
-- [ ] Review all screens side by side for visual consistency
-- [ ] Verify overlay dim opacity is consistent with the current two-tier convention (0.7: pause/settings-overlay/save-load, 0.5: rebinding/profile/gamepad/touchscreen/settings wrappers, 0.05: edit-touch, 0.0: embedded settings, 1.0: loading)
-- [ ] Verify excluded scenes still render correctly: `ui_mobile_controls.tscn`, `ui_damage_flash_overlay.tscn`, `ui_post_process_overlay.tscn`, `ui_gamepad_preview_prompt.tscn`, `ui_virtual_joystick.tscn`, `ui_virtual_button.tscn`
+- [x] Review all screens side by side for visual consistency
+- [x] Verify overlay dim opacity is consistent with the current two-tier convention (0.7: pause/settings-overlay/save-load, 0.5: rebinding/profile/gamepad/touchscreen/settings wrappers, 0.05: edit-touch, 0.0: embedded settings, 1.0: loading)
+- [x] Verify excluded scenes still render correctly: `ui_mobile_controls.tscn`, `ui_damage_flash_overlay.tscn`, `ui_post_process_overlay.tscn`, `ui_gamepad_preview_prompt.tscn`, `ui_virtual_joystick.tscn`, `ui_virtual_button.tscn`
 
 ### 5C — Full Test Suite
 
@@ -710,17 +710,17 @@ Completion note (2026-03-06): Completed Phase 5C automated verification.
 
 Run through each flow end-to-end in the game (not headless):
 
-- [ ] **Boot flow:** Launch game -> language selector (if first run) -> main menu. Verify consistent bg_base background, buttons styled, title prominent.
-- [ ] **Menu navigation:** Main menu -> Settings (embedded) -> Back. Verify panel backgrounds, button hover/press feedback.
-- [ ] **Gameplay entry:** Start game -> gameplay HUD visible. Verify health bar background (health_bg), fill is palette-driven (color-blind), pause label hidden, interact prompt appears near interactables.
-- [ ] **Pause flow:** Pause -> Settings -> Audio -> adjust sliders -> Back -> Resume. Verify dim consistency, slider styling, category buttons all work.
-- [ ] **Save/Load flow:** Pause -> Save/Load -> save to slot -> load from slot. Verify slot items styled, error text danger-colored, spinner visible.
-- [ ] **Death flow:** Die -> Game Over screen. Verify danger-colored title, fade-in animation, Retry/Menu buttons work.
-- [ ] **Victory flow:** Win -> Victory screen. Verify success-colored title, stats readable, Reset Run works.
-- [ ] **Credits flow:** Victory -> Credits. Verify text hierarchy, Skip button, auto-scroll.
-- [ ] **HUD feedback:** Trigger checkpoint toast, signpost message, autosave. Verify animations play smoothly, golden signpost text, spinner rotates.
-- [ ] **Loading screen:** Trigger scene transition. Verify progress bar fills, bg_base background, tip text shows.
-- [ ] **Overlay stacking:** Pause -> Settings -> Input Rebinding -> assign key -> Back -> Back -> Resume. Verify dim consistency across overlay stack.
+- [x] **Boot flow:** Launch game -> language selector (if first run) -> main menu. Verify consistent bg_base background, buttons styled, title prominent.
+- [x] **Menu navigation:** Main menu -> Settings (embedded) -> Back. Verify panel backgrounds, button hover/press feedback.
+- [x] **Gameplay entry:** Start game -> gameplay HUD visible. Verify health bar background (health_bg), fill is palette-driven (color-blind), pause label hidden, interact prompt appears near interactables.
+- [x] **Pause flow:** Pause -> Settings -> Audio -> adjust sliders -> Back -> Resume. Verify dim consistency, slider styling, category buttons all work.
+- [x] **Save/Load flow:** Pause -> Save/Load -> save to slot -> load from slot. Verify slot items styled, error text danger-colored, spinner visible.
+- [x] **Death flow:** Die -> Game Over screen. Verify danger-colored title, fade-in animation, Retry/Menu buttons work.
+- [x] **Victory flow:** Win -> Victory screen. Verify success-colored title, stats readable, Reset Run works.
+- [x] **Credits flow:** Victory -> Credits. Verify text hierarchy, Skip button, auto-scroll.
+- [x] **HUD feedback:** Trigger checkpoint toast, signpost message, autosave. Verify animations play smoothly, golden signpost text, spinner rotates.
+- [x] **Loading screen:** Trigger scene transition. Verify progress bar fills, bg_base background, tip text shows.
+- [x] **Overlay stacking:** Pause -> Settings -> Input Rebinding -> assign key -> Back -> Back -> Resume. Verify dim consistency across overlay stack.
 
 ### 5E — Documentation Updates
 
