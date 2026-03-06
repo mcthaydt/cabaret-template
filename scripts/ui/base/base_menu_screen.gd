@@ -17,6 +17,7 @@ const STICK_DEADZONE: float = 0.25 # Must match project.godot ui_* action deadzo
 
 var _stick_repeater: RefCounted = null
 
+@export var motion_target_path: NodePath = NodePath()
 
 func _ready() -> void:
 	super._ready()
@@ -124,7 +125,66 @@ func reset_analog_navigation() -> void:
 		_stick_repeater.reset()
 
 func play_enter_animation() -> Tween:
-	return U_UI_MOTION.play_enter(self, motion_set)
+	return U_UI_MOTION.play_enter(_resolve_motion_target(), motion_set)
 
 func play_exit_animation() -> Tween:
-	return U_UI_MOTION.play_exit(self, motion_set)
+	return U_UI_MOTION.play_exit(_resolve_motion_target(), motion_set)
+
+func _resolve_motion_target() -> Node:
+	var explicit_target := _resolve_explicit_motion_target()
+	if explicit_target != null:
+		return explicit_target
+
+	var center_target := _resolve_center_panel_motion_target()
+	if center_target != null:
+		return center_target
+	return self
+
+func _resolve_explicit_motion_target() -> Node:
+	if motion_target_path == NodePath():
+		return null
+	return get_node_or_null(motion_target_path)
+
+func _resolve_center_panel_motion_target() -> Control:
+	if not _has_backdrop_layer():
+		return null
+	var center := _find_center_container_with_panel(self)
+	if center == null:
+		return null
+	return center
+
+func _has_backdrop_layer() -> bool:
+	var background := get_node_or_null("Background")
+	if background is ColorRect:
+		return true
+	var overlay_background := get_node_or_null("OverlayBackground")
+	if overlay_background is ColorRect:
+		return true
+	var color_rect := get_node_or_null("ColorRect")
+	return color_rect is ColorRect
+
+func _find_center_container_with_panel(root: Node) -> Control:
+	for child in root.get_children():
+		if not (child is Node):
+			continue
+		var child_node := child as Node
+		if child_node is CenterContainer:
+			var center := child_node as CenterContainer
+			if _find_panel_descendant(center) != null:
+				return center
+		var nested := _find_center_container_with_panel(child_node)
+		if nested != null:
+			return nested
+	return null
+
+func _find_panel_descendant(root: Node) -> PanelContainer:
+	if root is PanelContainer:
+		return root as PanelContainer
+	for child in root.get_children():
+		if not (child is Node):
+			continue
+		var child_node := child as Node
+		var panel := _find_panel_descendant(child_node)
+		if panel != null:
+			return panel
+	return null

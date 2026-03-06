@@ -236,6 +236,38 @@ func test_base_menu_screen_play_enter_without_motion_set_returns_null() -> void:
 	var tween: Tween = screen.play_enter_animation()
 	assert_null(tween, "play_enter_animation should return null when motion_set is missing")
 
+func test_base_menu_screen_targets_center_container_when_backdrop_and_panel_exist() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	screen.motion_set = _make_enter_motion_set(0.12)
+
+	var background := ColorRect.new()
+	background.name = "Background"
+	screen.add_child(background)
+
+	var center_container := CenterContainer.new()
+	center_container.name = "CenterContainer"
+	screen.add_child(center_container)
+
+	var panel := PanelContainer.new()
+	panel.name = "MainPanel"
+	center_container.add_child(panel)
+
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+
+	var tween: Tween = screen.play_enter_animation()
+	assert_not_null(tween, "play_enter_animation should return a Tween when backdrop + centered panel is present")
+	assert_almost_eq(screen.modulate.a, 1.0, 0.01,
+		"Screen root should not animate when centered panel targeting is active")
+	await wait_process_frames(1)
+	assert_true(center_container.modulate.a < 0.99,
+		"Center container should receive enter animation while root remains static")
+
+	await wait_seconds(0.08)
+	assert_true(center_container.modulate.a > 0.01,
+		"Center container should animate alpha during enter tween")
+
 func test_base_overlay_animates_dim_on_enter() -> void:
 	await _create_state_store()
 	var overlay := OverlayStub.new()

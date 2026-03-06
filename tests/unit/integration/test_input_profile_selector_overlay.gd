@@ -87,6 +87,7 @@ func before_each() -> void:
 
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
+	_store.settings.enable_persistence = false
 	_store.scene_initial_state = RS_SceneInitialState.new()
 	_store.localization_initial_state = RS_LocalizationInitialState.new()
 	add_child_autofree(_store)
