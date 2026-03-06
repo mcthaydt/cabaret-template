@@ -46,6 +46,9 @@
 - **Unified UI theme bootstrapping needs a no-palette fallback**: In the merged font+theme pipeline, a root can receive a composed theme before `U_DisplayUIThemeApplier` has published an active palette. If the builder simply preserves base colors when palette is missing, roots with no pre-existing colors can remain unstyled until the next palette-triggered rebuild.
   - **Fix pattern**: when palette is `null`, preserve existing base-theme colors where they exist, but still apply `RS_UIThemeConfig.text_primary` to missing text color slots so first paint is deterministic.
 
+- **`U_UIThemeBuilder.active_config` is global and can leak between tests**: UI/integration tests that set `active_config` can unintentionally affect later suites (for example, health-bar palette assertions reading themed defaults instead of runtime palette output) when they do not reset static state.
+  - **Fix pattern**: explicitly set `U_UIThemeBuilder.active_config = null` in both `before_each` and `after_each` for tests that mutate the global config.
+
 - **Loaded `RS_UIThemeConfig` resources can miss runtime stylebox defaults on mobile/export**: `cfg_ui_theme_default.tres` stores primitive tokens, but stylebox fields (`button_normal`, `panel_section`, etc.) may still be `null` at runtime on some export paths if hydration relies only on `_init()`.
   - **Fix pattern**: expose an explicit `ensure_runtime_defaults()` on `RS_UIThemeConfig` and call it from `U_UIThemeBuilder.build_theme(...)` before applying styleboxes.
 
@@ -59,6 +62,9 @@
   - **Fix pattern**: prefer setting `background_color` and style `OverlayBackground`; only keep a manual full-screen background when `auto_create_background = false`.
 
 - **HUD is manager-instantiated under `HUDLayer`**: Do not add HUD instances to gameplay scenes or templates. `M_SceneManager` owns HUD instantiation in root, and `UI_HudController` visibility is Redux-driven. Embedding HUD in gameplay scenes reintroduces duplicate instances and lifecycle drift.
+
+- **HUD health fill is palette-driven; do not bake it into themed scene overrides**: `UI_HudController` intentionally updates health fill color at runtime from the active display palette (`success`/`warning`/`danger`) for color-blind accessibility. Reintroducing inline `ProgressBar.fill` overrides or static hardcoded colors can break integration behavior.
+  - **Fix pattern**: keep health background/theme chrome in `RS_UIThemeConfig` (`progress_bar_bg`), but leave fill updates to `_update_health_bar_colors(...)` using the active palette service.
 
 - **Protect HUD ownership with style checks**: `tests/unit/style/test_style_enforcement.gd` includes a guard that fails when any `scenes/gameplay/*.tscn` references `ui_hud_overlay.tscn` or defines a `HUD` root node. Keep this test green when authoring or migrating gameplay scenes.
 

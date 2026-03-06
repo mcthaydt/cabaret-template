@@ -4,10 +4,34 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screens 14-16 complete (automated verification). Next: Screen 15-16 manual smoke, then Phase 4 Screen 17 (`ui_hud_overlay.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screens 14-16 complete (automated verification), Phase 4 Screen 17 complete (implementation + automated verification). Pending manual smoke for Screens 15-17. Next: Phase 4 Screen 18 (`ui_button_prompt.tscn`).
 
 ## Recent Progress
 
+- **2026-03-06: Phase 4 Screen 17 implemented (`ui_hud_overlay.tscn`)**
+  - HUD overlay migrated off inline scene overrides:
+    - Removed all 28 Screen 17 `theme_override_*` entries from `ui_hud_overlay.tscn`.
+    - Added token application in `UI_HudController._apply_theme_tokens()` for margins/typography/signpost styling.
+    - Health bar background now comes from themed `ProgressBar.background`; fill remains palette-driven (`_update_health_bar_colors`) for color-blind accessibility.
+  - Motion extraction completed for HUD feedback channels:
+    - `resources/ui/motions/cfg_motion_hud_checkpoint_toast.tres`
+    - `resources/ui/motions/cfg_motion_hud_signpost_fade_in.tres`
+    - `resources/ui/motions/cfg_motion_hud_signpost_fade_out.tres`
+    - `UI_HudController` now consumes these resources instead of hardcoded checkpoint/signpost fade timings.
+  - Added Screen 17 regression coverage:
+    - `tests/unit/ui/test_hud_theme.gd`
+      - `test_health_bar_uses_theme_styles`
+      - `test_health_bar_no_inline_style_overrides`
+      - `test_signpost_golden_override_preserved`
+      - `test_toast_uses_motion_resource`
+  - Stability hardening:
+    - `tests/integration/ui/test_health_bar_color_blind_integration.gd` now resets `U_UIThemeBuilder.active_config` in setup/teardown to prevent cross-suite static-theme leakage.
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_hud_theme.gd` → 4/4 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_hud_theme.gd -gtest=res://tests/unit/ui/test_hud_controller.gd -gtest=res://tests/unit/ui/test_hud_feedback_channels.gd -gtest=res://tests/unit/ui/test_hud_button_prompts.gd -gtest=res://tests/unit/ui/test_hud_interactions_pause_and_signpost.gd -gtest=res://tests/integration/ui/test_health_bar_color_blind_integration.gd` → 33/33 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2843/2852 passing, 0 failing, 9 pending/risky
+  - Implementation commit: `9e306d4d`
 - **2026-03-06: Display/VFX settings overlay centering follow-up**
   - Root cause: `UI_DisplaySettingsOverlay` and `UI_VFXSettingsOverlay` enter motion auto-targeted `CenterContainer`, which could introduce vertical drift for wrapper panels during tween sampling.
   - Fix: set `motion_target_path = NodePath("CenterContainer/Panel")` in both overlay scenes so slide animation applies to the panel while preserving center-container alignment.
@@ -583,6 +607,7 @@ The `UI-Looksmaxxing` branch contains:
 - Screen 14 localization-overlay centering fix commit: `abc897ed`
 - Phase 3 Screen 15 audio-settings-tab migration commit: `2b4db1c9`
 - Screen 15 audio-settings-overlay centering fix commit: `217f77a6`
+- Phase 4 Screen 17 HUD-overlay migration commit: `9e306d4d`
 
 ## Context
 
@@ -657,11 +682,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Run manual smoke for Phase 3 Screen 15 (`ui_audio_settings_tab.tscn`) and Screen 16 (`ui_display_settings_tab.tscn`) to verify in-game visual feel and interaction flow.
-2. Begin Phase 4 Screen 17 (`ui_hud_overlay.tscn`) and migrate HUD theme overrides to token-driven styling while preserving palette-driven health fill behavior.
-3. Add/extend HUD theme regression coverage before Screen 17 implementation.
+1. Run manual smoke for Phase 3 Screens 15/16 (`ui_audio_settings_tab.tscn`, `ui_display_settings_tab.tscn`) and Phase 4 Screen 17 (`ui_hud_overlay.tscn`) to verify in-game visual feel and HUD feedback timing.
+2. Begin Phase 4 Screen 18 (`ui_button_prompt.tscn`) and migrate prompt panel/theme overrides to token-driven styling.
+3. Continue with Phase 4 Screen 19 (`ui_loading_screen.tscn`) once Screen 18 automated checks are green.
 
-Updated next action (2026-03-06): Run Screen 15/16 manual smoke, then start Phase 4 Screen 17 HUD migration.
+Updated next action (2026-03-06): Run pending manual smoke for Screens 15/16/17, then start Phase 4 Screen 18 button-prompt migration.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

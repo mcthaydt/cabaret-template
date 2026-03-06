@@ -582,26 +582,46 @@ Follow-up note (2026-03-06): Display/VFX settings overlay centering regression f
 
 **Add automated tests** (TDD — extends existing HUD test patterns):
 
-- [ ] Add to `tests/unit/ui/test_hud_controller.gd` or create `tests/unit/ui/test_hud_theme.gd`:
+- [x] Add to `tests/unit/ui/test_hud_controller.gd` or create `tests/unit/ui/test_hud_theme.gd`:
   - `test_health_bar_uses_theme_styles` — instantiate HUD with theme, assert `health_bar.get_theme_stylebox("background") is StyleBoxFlat`, assert `(stylebox as StyleBoxFlat).bg_color.is_equal_approx(config.health_bg)`. Only the BACKGROUND stylebox comes from theme; fill color is palette-driven (existing `tests/integration/ui/test_health_bar_color_blind_integration.gd` already covers fill).
   - `test_health_bar_no_inline_style_overrides` — assert `health_bar.has_theme_stylebox_override("background") == false`
   - `test_signpost_golden_override_preserved` — assert signpost label still has `theme_override_colors/font_color` set (semantic override stays)
   - `test_toast_uses_motion_resource` — trigger checkpoint event, verify tween is created (existing pattern in `test_hud_feedback_channels.gd`, extend to verify motion resource is used)
-- [ ] Health bar: migrate StyleBoxFlat background to theme's progress_bar_bg, health_bg (#3a4568). Health bar fill remains palette-driven via `U_PaletteManager` for color-blind accessibility. Do not migrate fill color to theme.
-- [ ] Health label: migrate font_size 18 to theme token
-- [ ] Pause label: migrate font_size 32 to theme token
-- [ ] Outer margins: migrate 20px to theme margin_outer
-- [ ] Toast: migrate inner margins (12/8) and font_size 18 to theme tokens
-- [ ] Signpost: migrate margins (28/18), font_size 22, line_spacing=4, font_color to theme. Update golden color to #ecc581 (keep as semantic per-node override)
-- [ ] Autosave: migrate font_size 16, StyleBoxEmpty panel, zero-margins (4), and zero-separation to theme
-- [ ] Extract hardcoded tween params from script into `RS_UIMotionPreset` resources:
+- [x] Health bar: migrate StyleBoxFlat background to theme's progress_bar_bg, health_bg (#3a4568). Health bar fill remains palette-driven via `U_PaletteManager` for color-blind accessibility. Do not migrate fill color to theme.
+- [x] Health label: migrate font_size 18 to theme token
+- [x] Pause label: migrate font_size 32 to theme token
+- [x] Outer margins: migrate 20px to theme margin_outer
+- [x] Toast: migrate inner margins (12/8) and font_size 18 to theme tokens
+- [x] Signpost: migrate margins (28/18), font_size 22, line_spacing=4, font_color to theme. Update golden color to #ecc581 (keep as semantic per-node override)
+- [x] Autosave: migrate font_size 16, StyleBoxEmpty panel, zero-margins (4), and zero-separation to theme
+- [x] Extract hardcoded tween params from script into `RS_UIMotionPreset` resources:
   - Checkpoint toast: fade-in 0.2s TRANS_CUBIC, hold 1.0s, fade-out 0.3s
   - Signpost: fade-in 0.14s EASE_OUT, fade-out 0.18s EASE_IN
-- [ ] Use motion resources for toast/signpost animations instead of hardcoded values
-- [ ] Run new HUD theme tests — pass
-- [ ] Run existing HUD tests (`test_hud_controller.gd`, `test_hud_feedback_channels.gd`, `test_hud_button_prompts.gd`, `test_hud_interactions_pause_and_signpost.gd`) — all pass
-- [ ] Run full test suite
+- [x] Use motion resources for toast/signpost animations instead of hardcoded values
+- [x] Run new HUD theme tests — pass
+- [x] Run existing HUD tests (`test_hud_controller.gd`, `test_hud_feedback_channels.gd`, `test_hud_button_prompts.gd`, `test_hud_interactions_pause_and_signpost.gd`) — all pass
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Play gameplay, verify: health bar background is health_bg (#3a4568), fill is palette-driven (changes with health % and color-blind mode), checkpoint toast fades in/holds/fades out smoothly, signpost shows golden text on dark panel, autosave spinner rotates during save, interact prompt appears near interactables
+
+Completion note (2026-03-06): Implemented Screen 17 in commit `9e306d4d`.
+- Migrated `scenes/ui/hud/ui_hud_overlay.tscn` away from inline `theme_override_*` values (all 28 Screen 17 overrides removed from scene markup).
+- `UI_HudController` now applies HUD tokenized styling from `U_UIThemeBuilder.active_config` and keeps health fill palette-driven through runtime updates (`_update_health_bar_colors`).
+- Extracted checkpoint/signpost fade timings into HUD motion resources:
+  - `resources/ui/motions/cfg_motion_hud_checkpoint_toast.tres`
+  - `resources/ui/motions/cfg_motion_hud_signpost_fade_in.tres`
+  - `resources/ui/motions/cfg_motion_hud_signpost_fade_out.tres`
+- Added Screen 17 regression coverage in `tests/unit/ui/test_hud_theme.gd`:
+  - `test_health_bar_uses_theme_styles`
+  - `test_health_bar_no_inline_style_overrides`
+  - `test_signpost_golden_override_preserved`
+  - `test_toast_uses_motion_resource`
+- Test isolation hardening: `tests/integration/ui/test_health_bar_color_blind_integration.gd` now resets `U_UIThemeBuilder.active_config` in setup/teardown to avoid cross-suite static-theme leakage.
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_hud_theme.gd` → 4/4 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_hud_theme.gd -gtest=res://tests/unit/ui/test_hud_controller.gd -gtest=res://tests/unit/ui/test_hud_feedback_channels.gd -gtest=res://tests/unit/ui/test_hud_button_prompts.gd -gtest=res://tests/unit/ui/test_hud_interactions_pause_and_signpost.gd -gtest=res://tests/integration/ui/test_health_bar_color_blind_integration.gd` → 33/33 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2843/2852 passing, 0 failing, 9 pending/risky
+- Manual smoke for Screen 17 is still pending.
 
 ### Screen 18: Button Prompt (`scenes/ui/hud/ui_button_prompt.tscn`)
 

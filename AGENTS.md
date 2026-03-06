@@ -193,6 +193,7 @@
 - Backward-compat contract: when `U_UIThemeBuilder.active_config` is `null`, localization and display theming keep legacy behavior (font-only localization theme + palette-only display theme).
 - Palette bootstrapping contract: when unified mode is active and palette has not been applied yet, `U_UIThemeBuilder` should still apply config text colors for roots missing explicit font colors while preserving existing base-theme colors when present.
 - Settings-tab tokenization contract (Phase 3 Screen 14): tabs embedded inside settings wrappers (for example `UI_LocalizationSettingsTab`) should remove inline `theme_override_*` constants and apply spacing/typography tokens in script via `U_UIThemeBuilder.active_config` + `RS_UIThemeConfig` (`separation_default`, `separation_compact`, `heading`, `section_header`, `body_small`, semantic text colors).
+- HUD tokenization contract (Phase 4 Screen 17): `scenes/ui/hud/ui_hud_overlay.tscn` should not keep inline `theme_override_*` entries. Apply HUD margins/typography/surface tokens in `UI_HudController._apply_theme_tokens()`. Health bar background should come from themed `ProgressBar.background`; health fill stays palette-driven via `_update_health_bar_colors(...)`.
 
 ### UI Motion Pipeline (UI Visual Overhaul Phase 0)
 
@@ -204,6 +205,7 @@
   - `play_enter(...)` / `play_exit(...)` delegate to `RS_UIMotionSet` lifecycle arrays.
   - `bind_interactive(control, motion_set)` wires hover/focus/press signals without duplicating existing connections.
 - Default authored presets live under `resources/ui/motions/` (`cfg_motion_fade_slide.tres`, `cfg_motion_button_default.tres`, `cfg_motion_hud_pop.tres`) and are intended as baseline feel, not hard requirements.
+- HUD feedback motion contract (Phase 4 Screen 17): checkpoint/signpost timing is data-driven through `cfg_motion_hud_checkpoint_toast.tres`, `cfg_motion_hud_signpost_fade_in.tres`, and `cfg_motion_hud_signpost_fade_out.tres`; avoid reintroducing hardcoded HUD fade durations in `UI_HudController`.
 - Base-class integration contract (Phase 0F):
   - `BasePanel.motion_set` is opt-in; when set, focusable child controls are bound via `U_UIMotion.bind_interactive(...)`.
   - `BaseMenuScreen.play_enter_animation()` / `play_exit_animation()` delegate to `U_UIMotion` using a resolved motion target:
