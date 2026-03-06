@@ -73,7 +73,7 @@ func test_input_rebinding_overlay_has_motion_and_theme_tokens_when_active_config
 	var button_row := overlay.get_node_or_null("%ButtonRow") as HBoxContainer
 	var overlay_background := overlay.get_node_or_null("OverlayBackground") as ColorRect
 	var expected_dim := config.bg_base
-	expected_dim.a = 0.7
+	expected_dim.a = 0.5
 
 	assert_not_null(title_label, "TitleLabel should exist")
 	assert_not_null(status_label, "StatusLabel should exist")
@@ -117,7 +117,7 @@ func test_input_rebinding_overlay_has_motion_and_theme_tokens_when_active_config
 	if overlay_background != null:
 		assert_true(
 			overlay_background.color.is_equal_approx(expected_dim),
-			"Overlay dim should use bg_base at 0.7 alpha"
+			"Overlay dim should use bg_base at 0.5 alpha"
 		)
 
 func test_keyboard_horizontal_navigation_cycles_row_buttons_and_preserves_row_highlight() -> void:
@@ -730,5 +730,9 @@ func _count_navigation_close_or_return_actions() -> int:
 			var shell: StringName = action.get("shell", StringName())
 			var base_scene: StringName = action.get("base_scene_id", StringName())
 			if shell == StringName("main_menu") and base_scene == StringName("settings_menu"):
+				count += 1
+		elif action_type == U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
+			var scene_id: StringName = action.get("scene_id", StringName())
+			if scene_id == StringName("settings_menu"):
 				count += 1
 	return count

@@ -43,8 +43,11 @@ func _close_overlay() -> void:
 
 	var nav_slice: Dictionary = store.get_state().get("navigation", {})
 	var overlay_stack: Array = U_NavigationSelectors.get_overlay_stack(nav_slice)
+	var shell: StringName = U_NavigationSelectors.get_shell(nav_slice)
 
 	if not overlay_stack.is_empty():
 		store.dispatch(U_NavigationActions.close_top_overlay())
+	elif shell == StringName("main_menu"):
+		store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_menu"), "fade", 2))
 	else:
 		store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))

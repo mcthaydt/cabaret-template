@@ -505,7 +505,6 @@ func _on_edit_layout_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	U_UISoundPlayer.play_cancel()
-	print("[TouchscreenSettingsOverlay] _on_back_pressed invoked")
 	_close_overlay()
 
 func _is_position_only_settings_update(settings_payload: Dictionary) -> bool:
@@ -589,20 +588,12 @@ func _log_local_slider_edit(_field: String, _value: float) -> void:
 func _close_overlay() -> void:
 	var store := get_store()
 	if store == null:
-		print("[TouchscreenSettingsOverlay] _close_overlay store is null; aborting")
 		return
 
 	var state: Dictionary = store.get_state()
 	var nav_slice: Dictionary = state.get("navigation", {})
 	var overlay_stack: Array = U_NavigationSelectors.get_overlay_stack(nav_slice)
 	var shell: StringName = U_NavigationSelectors.get_shell(nav_slice)
-
-	print(
-		"[TouchscreenSettingsOverlay] _close_overlay shell=%s overlay_stack_size=%d" % [
-			str(shell),
-			overlay_stack.size()
-		]
-	)
 
 	if not overlay_stack.is_empty():
 		store.dispatch(U_NavigationActions.close_top_overlay())
@@ -613,6 +604,6 @@ func _close_overlay() -> void:
 	#   scene (no overlays). Closing should return to the settings_menu scene.
 	# - Use navigate_to_ui_screen action to trigger the transition via Redux.
 	if shell == StringName("main_menu"):
-		store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_menu"), "fade", 1))
+		store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_menu"), "fade", 2))
 	else:
 		store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))

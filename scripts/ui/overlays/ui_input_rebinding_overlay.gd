@@ -428,7 +428,7 @@ func _apply_theme_tokens() -> void:
 	var config := config_resource as RS_UI_THEME_CONFIG
 
 	var dim_color := config.bg_base
-	dim_color.a = 0.7
+	dim_color.a = 0.5
 	background_color = dim_color
 	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
 	if overlay_background != null:

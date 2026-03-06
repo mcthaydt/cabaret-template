@@ -56,6 +56,21 @@ const PRODUCTION_PATH_DIRECTORIES := [
 	"res://resources"
 ]
 
+const UI_POLISHED_OVERLAY_SCENES := [
+	"res://scenes/ui/menus/ui_pause_menu.tscn",
+	"res://scenes/ui/menus/ui_settings_menu.tscn",
+	"res://scenes/ui/overlays/ui_save_load_menu.tscn",
+	"res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn",
+	"res://scenes/ui/overlays/ui_input_profile_selector.tscn",
+	"res://scenes/ui/overlays/ui_gamepad_settings_overlay.tscn",
+	"res://scenes/ui/overlays/ui_touchscreen_settings_overlay.tscn",
+	"res://scenes/ui/overlays/ui_edit_touch_controls_overlay.tscn",
+	"res://scenes/ui/overlays/settings/ui_audio_settings_overlay.tscn",
+	"res://scenes/ui/overlays/settings/ui_display_settings_overlay.tscn",
+	"res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn",
+	"res://scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn",
+]
+
 const SCRIPT_FILENAME_EXCEPTIONS := [
 	"root.gd" # Root bootstrap script (intentionally unprefixed)
 ]
@@ -301,6 +316,21 @@ func test_production_paths_have_no_spaces() -> void:
 		message += "\n\nRename files/directories to remove spaces."
 	else:
 		message += " - all paths compliant!"
+
+	assert_eq(violations.size(), 0, message)
+
+func test_polished_overlay_scenes_have_no_inline_theme_overrides() -> void:
+	var violations: Array[String] = []
+
+	for scene_path in UI_POLISHED_OVERLAY_SCENES:
+		var override_count: int = _count_theme_override_lines(scene_path)
+		if override_count > 0:
+			violations.append("%s (%d inline theme_override_ lines)" % [scene_path, override_count])
+
+	var message := "Polished overlay scenes should not regress to inline theme_override_* styling"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+		message += "\nUse RS_UIThemeConfig tokens in script/theme builder instead."
 
 	assert_eq(violations.size(), 0, message)
 
@@ -573,3 +603,17 @@ func _scene_embeds_hud_overlay(path: String) -> bool:
 
 	file.close()
 	return false
+
+func _count_theme_override_lines(path: String) -> int:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return 0
+
+	var count := 0
+	while not file.eof_reached():
+		var line := file.get_line()
+		if line.find("theme_override_") != -1:
+			count += 1
+
+	file.close()
+	return count
