@@ -402,6 +402,13 @@ Follow-up note (2026-03-06): Adjusted Screen 12 preview layout after user feedba
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd` → 12/12 passing
 
+Follow-up note (2026-03-06): Enforced panel-fit size limits for Screen 12 joystick/button scaling so controls cannot exceed preview panel bounds.
+- Fix:
+  - Reset flow now dispatches clamped slider values (not raw defaults), so persisted settings cannot bypass panel-fit size limits.
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd` → 12/12 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+
 ### Settings Overlay Wrappers (batch — all 0 overrides)
 
 These wrapper overlays contain the settings tab content. They need theme application and consistent dim styling.

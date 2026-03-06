@@ -398,6 +398,13 @@
     - Added `PreviewCenterContainer` under `PreviewPanel` and re-parented `%PreviewContainer` through it so preview content remains centered.
   - Verification:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd` → 12/12 passing
+- **2026-03-06: Screen 12 panel-fit size-limit follow-up**
+  - User feedback: touchscreen size sliders could grow controls beyond preview panel dimensions.
+  - Fix:
+    - Reset now dispatches clamped slider values (`_joystick_size_slider.value`, `_button_size_slider.value`) instead of raw resource defaults, so persisted settings cannot bypass panel-fit size limits.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay.gd -gtest=res://tests/unit/ui/test_touchscreen_settings_overlay_localization.gd` → 12/12 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 
 ### Plan Change Summary (2026-03-05)
 
