@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) is implemented + manual-smoke verified, and Phase 2 Screen 7 (`ui_settings_menu.tscn`) is implemented with automated verification complete. Next: Screen 7 manual smoke, then Phase 2 Screen 8 (`ui_save_load_menu.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) and Screen 7 (`ui_settings_menu.tscn`) are implemented + manual-smoke verified. Phase 2 Screen 8 (`ui_save_load_menu.tscn`) is implemented with automated verification complete. Next: Screen 8 manual smoke, then Screen 9 (`ui_input_rebinding_overlay.tscn`).
 
 ## Recent Progress
 
@@ -220,6 +220,32 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `ca75551a`
   - Manual smoke: pending (user verification)
+- **2026-03-06: Phase 2 Screen 7 manual-smoke verified (`ui_settings_menu.tscn`)**
+  - User-verified pause-overlay flow and embedded main-menu flow.
+  - Verified all 8 category buttons open expected overlays, Back behavior is correct, overlay dim remains consistent with pause flow, and embedded mode keeps dim disabled while retaining panel styling.
+- **2026-03-06: Phase 2 Screen 8 implemented (`ui_save_load_menu.tscn`)**
+  - Scene composition migrated to overlay-panel pattern:
+    - Removed legacy inline dim `ColorRect`.
+    - Added centered panel structure (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`).
+    - Assigned `motion_set = cfg_motion_fade_slide` to `UI_SaveLoadMenu`.
+  - `UI_SaveLoadMenu` now applies `RS_UIThemeConfig` tokens from `U_UIThemeBuilder.active_config`:
+    - `subheading` for mode/spinner labels,
+    - `section_header` for loading/error/back labels,
+    - `danger` for error color,
+    - `margin_section` for panel padding,
+    - `separation_default`/`separation_compact` for content and slot spacing,
+    - `panel_section` for panel surface styling,
+    - `bg_base` at `0.7` alpha for dim background.
+  - Runtime slot-row styling now uses the active theme tokens for row spacing, button font sizes, and thumbnail sizing.
+  - Updated `tests/unit/ui/test_save_load_menu.gd`:
+    - Added motion assignment + theme-token coverage with active config.
+    - Added teardown/reset handling for `U_UIThemeBuilder.active_config` between tests.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_save_load_menu.gd -gtest=res://tests/unit/ui/test_save_load_menu_localization.gd` → 14/14 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2810/2819 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `c969b7f4`
+  - Manual smoke: pending (user verification)
 
 ### Plan Change Summary (2026-03-05)
 
@@ -252,6 +278,7 @@ The `UI-Looksmaxxing` branch contains:
 - Screen 6 centering regression fix commit: `5e7e679b`
 - Default panel-only motion-target rollout commit: `87865a19`
 - Phase 2 Screen 7 settings-menu migration commit: `ca75551a`
+- Phase 2 Screen 8 save-load-menu migration commit: `c969b7f4`
 
 ## Context
 
@@ -326,11 +353,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Complete Screen 7 manual smoke verification (pause overlay flow + embedded main-menu flow).
-2. Begin Phase 2 Screen 8 (`ui_save_load_menu.tscn`) migration.
+1. Complete Screen 8 manual smoke verification (open from pause, validate tokenized error state, slot styling, and loading spinner behavior during save/load/delete flows).
+2. Begin Phase 2 Screen 9 (`ui_input_rebinding_overlay.tscn`) migration.
 3. Continue screen-by-screen through Phases 2-4, running full-suite + style gates after each screen or batch.
 
-Updated next action (2026-03-06): Run Screen 7 manual smoke, then start Screen 8 (`ui_save_load_menu.tscn`).
+Updated next action (2026-03-06): Run Screen 8 manual smoke, then start Screen 9 (`ui_input_rebinding_overlay.tscn`).
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

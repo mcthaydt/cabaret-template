@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 49% (82 / 168 tasks complete)
+**Progress:** 53% (89 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -274,7 +274,7 @@ Follow-up note (2026-03-06): User manual smoke passed for Screen 6. Enter/exit a
 - [x] Overlay fade-in, scroll follows focus
 - [x] Run existing `test_settings_menu_visibility.gd` — all tests pass (8 category buttons, back, embedded mode)
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Open settings from pause, verify all 8 categories open correct overlays, back works, dim is consistent with pause menu. Open settings from main menu embedded mode — verify no dim, panel background visible.
+- [x] **Manual smoke test:** Open settings from pause, verify all 8 categories open correct overlays, back works, dim is consistent with pause menu. Open settings from main menu embedded mode — verify no dim, panel background visible.
 
 Completion note (2026-03-06): Implemented Screen 7 with centered panel/scroll layout, `cfg_motion_fade_slide`, theme-token application (`heading`, `margin_section`, `separation_default`, `panel_section`), and context-aware dim behavior (`0.7` in overlay mode, `0.0` when embedded in main menu).
 - Implementation commit: `ca75551a`
@@ -282,17 +282,25 @@ Completion note (2026-03-06): Implemented Screen 7 with centered panel/scroll la
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_settings_menu_visibility.gd -gtest=res://tests/unit/ui/test_pause_menu.gd -gtest=res://tests/unit/ui/test_main_menu.gd` → 29/29 passing
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2809/2818 passing, 0 failing, 9 pending/risky
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
-- Manual smoke test pending (user verification).
+- Manual smoke test passed (user-verified on 2026-03-06).
 
 ### Screen 8: Save/Load Menu (`scenes/ui/overlays/ui_save_load_menu.tscn`)
 
-- [ ] Migrate error color to `danger` token (keep as semantic per-node override)
-- [ ] Migrate font sizes to theme tokens (section_header, subheading)
-- [ ] Style slot list items, loading spinner uses consistent styling
-- [ ] Overlay fade-in, slot selection feedback
-- [ ] Run existing `test_save_load_menu.gd` — all tests pass (Save/Load/Delete/Overwrite, mode detection, confirmation)
-- [ ] Run full test suite
+- [x] Migrate error color to `danger` token (keep as semantic per-node override)
+- [x] Migrate font sizes to theme tokens (section_header, subheading)
+- [x] Style slot list items, loading spinner uses consistent styling
+- [x] Overlay fade-in, slot selection feedback
+- [x] Run existing `test_save_load_menu.gd` — all tests pass (Save/Load/Delete/Overwrite, mode detection, confirmation)
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Open save/load from pause, verify error text is danger-colored, slot items are styled, loading spinner visible during operations
+
+Completion note (2026-03-06): Implemented Screen 8 with centered panel-backed layout, `cfg_motion_fade_slide`, theme-token application (`danger`, `subheading`, `section_header`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`), and tokenized slot-row styling for runtime-created items.
+- Implementation commit: `c969b7f4`
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_save_load_menu.gd -gtest=res://tests/unit/ui/test_save_load_menu_localization.gd` → 14/14 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2810/2819 passing, 0 failing, 9 pending/risky
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- Manual smoke test pending (user verification).
 
 ### Screens 9-13: Remaining Overlays (batch)
 
