@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 27% (45 / 165 tasks complete)
+**Progress:** 32% (53 / 165 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -142,13 +142,13 @@ Completion note (2026-03-05): Phase 0G verification completed after infrastructu
 - [x] Assign `cfg_motion_fade_slide` for enter/exit
 - [x] Run existing `test_main_menu.gd` — all tests pass (Redux navigation, button dispatch, quit visibility, focus chain)
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Launch main menu, verify bg color matches bg_base (#1d1d21), buttons have accent_primary (#41b2e3) styling, title is visually larger than button text, enter/exit animation plays smoothly, settings embed still opens
+- [x] **Manual smoke test:** Launch main menu, verify bg color matches bg_base (#1d1d21), buttons have accent_primary (#41b2e3) styling, title is visually larger than button text, enter/exit animation plays smoothly, settings embed still opens
 
 Completion note (2026-03-05): Implemented Screen 1 in commit `aaa7f75c` and validated with:
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd`
 - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2795/2804 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
 - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
-- Manual smoke test remains pending (requires editor/runtime visual pass).
+- Manual smoke test completed (user-verified).
 
 ### Screen 2: Game Over (`scenes/ui/menus/ui_game_over.tscn`)
 
@@ -170,14 +170,20 @@ Completion note (2026-03-05): Implemented Screen 2 in commit `f2fb658a` and vali
 
 ### Screen 3: Victory (`scenes/ui/menus/ui_victory.tscn`)
 
-- [ ] Same migration as Game Over — separation overrides to theme tokens
-- [ ] Title "Victory!" uses `title` size, success color
-- [ ] Stats use text_secondary
-- [ ] Remove or properly hide disabled Credits button
-- [ ] Motion: Similar to Game Over with success feel
-- [ ] Run existing `test_endgame_screens.gd` — all victory tests pass
-- [ ] Run full test suite
+- [x] Same migration as Game Over — separation overrides to theme tokens
+- [x] Title "Victory!" uses `title` size, success color
+- [x] Stats use text_secondary
+- [x] Remove or properly hide disabled Credits button
+- [x] Motion: Similar to Game Over with success feel
+- [x] Run existing `test_endgame_screens.gd` — all victory tests pass
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Win in gameplay, verify victory screen shows with success-colored title, stats readable, Reset Run/Menu work, fade-in plays
+
+Completion note (2026-03-05): Implemented Screen 3 in commit `b05c75df` and validated with:
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd`
+- `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2797/2806 passing, 0 failing, 9 pending/risky (headless/mobile-gated)
+- `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+- Manual smoke test remains pending (requires runtime visual pass).
 
 ### Screen 4: Credits (`scenes/ui/menus/ui_credits.tscn`)
 

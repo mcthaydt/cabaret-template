@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screen 1 (`ui_main_menu.tscn`) and Screen 2 (`ui_game_over.tscn`) implemented + automation-verified. Manual smokes for Screens 1-2 are still pending. Next: Phase 1 Screen 3 (`ui_victory.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-3 (`ui_main_menu.tscn`, `ui_game_over.tscn`, `ui_victory.tscn`) implemented + automation-verified. Screen 1 manual smoke is complete; Screens 2-3 manual smokes remain pending. Next: Phase 1 Screen 4 (`ui_credits.tscn`).
 
 ## Recent Progress
 
@@ -70,6 +70,24 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2796/2805 passing, 0 failing, 9 pending/risky
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `f2fb658a`
+- **2026-03-05: Phase 1 Screen 3 implemented (`ui_victory.tscn`)**
+  - Scene composition updated to match Screen 2 pattern: full-screen `Background` (`bg_base`) + centered `PanelContainer` replacing hard-coded margin offsets.
+  - Assigned `motion_set = cfg_motion_fade_slide` on `UI_Victory` root and trigger `play_enter_animation()` on panel ready.
+  - Added token-driven visual application in `UI_Victory` from `U_UIThemeBuilder.active_config`:
+    - `title` size + `success` color for title label,
+    - `heading` size + `text_secondary` for completion stats,
+    - `separation_large` / `separation_medium` for content and button-row spacing,
+    - `bg_base` for background color.
+  - Added slight delayed title fade-in motion for endgame polish.
+  - Focus-chain hardening: credits button only participates when visible and enabled (prevents hidden focus target behavior).
+  - Updated `tests/unit/ui/test_endgame_screens.gd`:
+    - Added victory motion/theme-token coverage with active config.
+    - Migrated victory button lookups to `%UniqueName` hierarchy-safe selectors.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_endgame_screens.gd` → 12/12 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2797/2806 passing, 0 failing, 9 pending/risky
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - Implementation commit: `b05c75df`
 
 ### Plan Change Summary (2026-03-05)
 
@@ -90,6 +108,7 @@ The `UI-Looksmaxxing` branch contains:
 - Documentation updates for the revised plan
 - Phase 1 Screen 1 main-menu migration commit: `aaa7f75c`
 - Phase 1 Screen 2 game-over migration commit: `f2fb658a`
+- Phase 1 Screen 3 victory migration commit: `b05c75df`
 
 ## Context
 
@@ -164,11 +183,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Perform pending manual smoke tests for Phase 1 Screens 1-2 (`ui_main_menu.tscn`, `ui_game_over.tscn`) in runtime/editor.
-2. Begin Phase 1 Screen 3 (`ui_victory.tscn`) migration.
+1. Perform pending manual smoke tests for Phase 1 Screens 2-3 (`ui_game_over.tscn`, `ui_victory.tscn`) in runtime/editor.
+2. Begin Phase 1 Screen 4 (`ui_credits.tscn`) migration.
 3. Continue screen-by-screen through Phases 1-4, running full-suite + style gates after each screen or batch.
 
-Updated next action (2026-03-05): Run manual smokes for `ui_main_menu.tscn` and `ui_game_over.tscn`, then start Screen 3 (`ui_victory.tscn`) using the same theme-token + motion migration pattern.
+Updated next action (2026-03-05): Run manual smokes for `ui_game_over.tscn` and `ui_victory.tscn`, then start Screen 4 (`ui_credits.tscn`) with theme-token migration, layout cleanup, and enter motion.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 
