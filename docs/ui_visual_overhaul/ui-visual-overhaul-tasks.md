@@ -505,7 +505,7 @@ Follow-up note (2026-03-06): Localization overlay centering regression fix in co
 - [x] Run tests — new slider theme tests pass
 - [x] Run existing audio settings tests — all pass (4 volume sliders, values persist)
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Open audio settings, verify sliders have Duel palette fill (#41b2e3), track (#434549), all 4 sliders respond to input
+- [x] **Manual smoke test:** Open audio settings, verify sliders have Duel palette fill (#41b2e3), track (#434549), all 4 sliders respond to input
 
 Completion note (2026-03-06): Implemented Screen 15 in commit `2b4db1c9`.
 - Added `tests/unit/ui/test_audio_settings_theme.gd` with Screen 15 coverage:
