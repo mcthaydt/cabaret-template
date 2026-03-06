@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 60% (101 / 168 tasks complete)
+**Progress:** 63% (106 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -497,15 +497,27 @@ Follow-up note (2026-03-06): Localization overlay centering regression fix in co
 
 **Add automated test for slider styling** (TDD — follows `test_health_bar_color_blind_integration.gd` pattern):
 
-- [ ] Add test to existing audio settings test file or create `tests/unit/ui/test_audio_settings_theme.gd`:
+- [x] Add test to existing audio settings test file or create `tests/unit/ui/test_audio_settings_theme.gd`:
   - `test_audio_sliders_use_theme_styles` — instantiate audio settings tab with theme applied, for each slider assert `slider.get_theme_stylebox("slider") is StyleBoxFlat` and `slider.get_theme_stylebox("grabber_area") is StyleBoxFlat`
   - `test_audio_sliders_no_inline_overrides` — assert `slider.has_theme_stylebox_override("slider") == false` (overrides migrated to theme)
-- [ ] Migrate all 18 overrides: 4x slider styleboxes (slider, grabber_area, grabber_area_highlight) + row separations
-- [ ] Sliders get slider_fill/slider_bg from Duel palette
-- [ ] Run tests — new slider theme tests pass
-- [ ] Run existing audio settings tests — all pass (4 volume sliders, values persist)
-- [ ] Run full test suite
+- [x] Migrate all 18 overrides: 4x slider styleboxes (slider, grabber_area, grabber_area_highlight) + row separations
+- [x] Sliders get slider_fill/slider_bg from Duel palette
+- [x] Run tests — new slider theme tests pass
+- [x] Run existing audio settings tests — all pass (4 volume sliders, values persist)
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Open audio settings, verify sliders have Duel palette fill (#41b2e3), track (#434549), all 4 sliders respond to input
+
+Completion note (2026-03-06): Implemented Screen 15 in commit `2b4db1c9`.
+- Added `tests/unit/ui/test_audio_settings_theme.gd` with Screen 15 coverage:
+  - `test_audio_sliders_use_theme_styles`
+  - `test_audio_sliders_no_inline_overrides`
+  - `test_audio_settings_tab_applies_row_separation_tokens_when_active_config_set`
+- Removed all inline slider style and row/button/root separation overrides from `ui_audio_settings_tab.tscn`.
+- Added `UI_AudioSettingsTab._apply_theme_tokens()` to apply token-driven spacing/typography (`separation_default`, `separation_compact`, `heading`, `body_small`, `section_header`, `text_secondary`) while relying on theme-provided slider styles.
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_audio_settings_theme.gd -gtest=res://tests/unit/ui/test_audio_settings_tab_localization.gd -gtest=res://tests/integration/audio/test_audio_settings_ui.gd` → 14/14 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2833/2842 passing, 0 failing, 9 pending/risky
 
 ### Screen 16: Display Settings Tab (`ui_display_settings_tab.tscn`)
 

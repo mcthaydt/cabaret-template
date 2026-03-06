@@ -4,10 +4,25 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), and Phase 3 Screen 14 complete. Next: Phase 3 Screen 15 (`ui_audio_settings_tab.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screen 14 complete, and Phase 3 Screen 15 complete (automated verification). Next: Screen 15 manual smoke + Phase 3 Screen 16 (`ui_display_settings_tab.tscn`).
 
 ## Recent Progress
 
+- **2026-03-06: Phase 3 Screen 15 implemented (`ui_audio_settings_tab.tscn`)**
+  - Audio settings tab migrated to token-driven styling:
+    - Removed all inline slider style overrides (`slider`, `grabber_area`, `grabber_area_highlight`) and row/root/button separation overrides from the tab scene.
+    - Added `UI_AudioSettingsTab._apply_theme_tokens()` for spacing/typography tokens (`separation_default`, `separation_compact`, `heading`, `body_small`, `section_header`, `text_secondary`).
+    - Slider visuals now come from unified theme builder styleboxes (`slider_bg` / `slider_fill`) instead of per-node scene overrides.
+  - Added Screen 15 regression coverage:
+    - `tests/unit/ui/test_audio_settings_theme.gd`
+      - `test_audio_sliders_use_theme_styles`
+      - `test_audio_sliders_no_inline_overrides`
+      - `test_audio_settings_tab_applies_row_separation_tokens_when_active_config_set`
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_audio_settings_theme.gd -gtest=res://tests/unit/ui/test_audio_settings_tab_localization.gd -gtest=res://tests/integration/audio/test_audio_settings_ui.gd` → 14/14 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2833/2842 passing, 0 failing, 9 pending/risky
+  - Implementation commit: `2b4db1c9`
 - **2026-03-06: Screen 14 localization overlay centering follow-up**
   - Root cause: `UI_LocalizationSettingsOverlay` enter motion was auto-targeting `CenterContainer`, which introduced vertical drift for the wrapper panel.
   - Fix: set `motion_target_path = NodePath("CenterContainer/Panel")` so slide animation applies to the panel while preserving center-container layout.
@@ -532,6 +547,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 2 settings-overlay wrappers migration commit: `96df500e`
 - Phase 3 Screen 14 localization-settings-tab migration commit: `c94de23c`
 - Screen 14 localization-overlay centering fix commit: `abc897ed`
+- Phase 3 Screen 15 audio-settings-tab migration commit: `2b4db1c9`
 
 ## Context
 
@@ -606,11 +622,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Begin Phase 3 Screen 15 (`ui_audio_settings_tab.tscn`) and migrate slider style overrides + row separations to `RS_UIThemeConfig` tokens.
-2. Add audio settings tab theme regression coverage (`test_audio_settings_theme.gd`) and run targeted audio/localization suites.
-3. Continue Phase 3 with Screen 16 (`ui_display_settings_tab.tscn`) and migrate section panels/separators/header styling + separation overrides.
+1. Run manual smoke for Phase 3 Screen 15 (`ui_audio_settings_tab.tscn`) to verify slider feel/visuals in-game.
+2. Begin Phase 3 Screen 16 (`ui_display_settings_tab.tscn`) and migrate section panels/separators/header styling + separation overrides to `RS_UIThemeConfig` tokens.
+3. Add Screen 16 theme regression coverage (`test_display_settings_theme.gd`) and run targeted display/localization suites.
 
-Updated next action (2026-03-06): Begin Phase 3 Screen 15 audio-settings-tab migration.
+Updated next action (2026-03-06): Begin Phase 3 Screen 16 display-settings-tab migration (after Screen 15 manual smoke).
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 
