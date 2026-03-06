@@ -4,9 +4,30 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screens 14-16 complete (automated verification), Phase 4 Screens 17-18 complete (implementation + automated verification). Pending manual smoke for Screens 15-18. Next: Phase 4 Screen 19 (`ui_loading_screen.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screens 14-16 complete (automated verification), Phase 4 Screens 17-19 complete (implementation + automated verification). Pending manual smoke for Screens 15-19. Next: complete pending manual-smoke pass, then begin Phase 5 polish verification.
 
 ## Recent Progress
+
+- **2026-03-06: Phase 4 Screen 19 implemented (`ui_loading_screen.tscn`)**
+  - Loading screen migrated off inline scene overrides:
+    - Removed all Screen 19 inline `theme_override_*` entries (VBox separation + 4 label font-size overrides).
+    - Added `UI_LoadingScreen` controller (`scripts/ui/hud/ui_loading_screen.gd`) to apply tokenized styling from `U_UIThemeBuilder.active_config`.
+  - Screen 19 token mapping now centralized in script:
+    - `margin_outer` for loading-stack spacing
+    - `title` for logo text, `heading` for spinner glyph, `body_small` for status, `section_header` for tip text
+    - `bg_base` for full-screen background color
+  - Added loading-screen start fade polish:
+    - `UI_LoadingScreen` now fades in on `visibility_changed` when LoadingOverlay is shown.
+  - Added Screen 19 regression coverage:
+    - `tests/unit/ui/test_loading_screen_theme.gd`
+      - `test_loading_screen_applies_theme_tokens_when_active_config_set`
+      - `test_loading_screen_scene_has_no_inline_theme_overrides`
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_loading_screen_theme.gd -gtest=res://tests/unit/scene_manager/test_loading_screen_transition.gd` → 3/4 passing, 0 failing, 1 pending/risky (headless timing gate)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2847/2856 passing, 0 failing, 9 pending/risky
+  - Implementation commit: `7be37ce9`
+  - Manual smoke for Screen 19 is still pending.
 
 - **2026-03-06: Phase 4 Screen 18 implemented (`ui_button_prompt.tscn`)**
   - Button prompt migrated off inline scene overrides:
@@ -628,6 +649,7 @@ The `UI-Looksmaxxing` branch contains:
 - Screen 15 audio-settings-overlay centering fix commit: `217f77a6`
 - Phase 4 Screen 17 HUD-overlay migration commit: `9e306d4d`
 - Phase 4 Screen 18 button-prompt migration commit: `1755bc5b`
+- Phase 4 Screen 19 loading-screen migration commit: `7be37ce9`
 
 ## Context
 
@@ -703,10 +725,10 @@ All phases are sequential. After every screen: run full test suite, verify behav
 ## Next Steps
 
 1. Run manual smoke for Phase 3 Screens 15/16 (`ui_audio_settings_tab.tscn`, `ui_display_settings_tab.tscn`) and Phase 4 Screens 17/18 (`ui_hud_overlay.tscn`, `ui_button_prompt.tscn`) to verify in-game visual feel and HUD feedback timing.
-2. Begin Phase 4 Screen 19 (`ui_loading_screen.tscn`) and migrate loading-screen typography/progress-bar overrides to token-driven styling.
-3. Continue with Phase 5 polish verification once Screen 19 automated checks are green.
+2. Run manual smoke for Phase 4 Screen 19 (`ui_loading_screen.tscn`) to verify loading-screen visual feel and fade/progress timing in-game.
+3. Begin Phase 5 polish verification once Screen 19 manual smoke is complete.
 
-Updated next action (2026-03-06): Run pending manual smoke for Screens 15/16/17/18, then start Phase 4 Screen 19 loading-screen migration.
+Updated next action (2026-03-06): Run pending manual smoke for Screens 15/16/17/18/19, then proceed to Phase 5 polish verification.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

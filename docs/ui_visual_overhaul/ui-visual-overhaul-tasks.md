@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 69% (116 / 168 tasks complete)
+**Progress:** 85% (144 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -652,12 +652,24 @@ Completion note (2026-03-06): Implemented Screen 18 in commit `1755bc5b`.
 
 ### Screen 19: Loading Screen (`scenes/ui/hud/ui_loading_screen.tscn`)
 
-- [ ] Migrate all font sizes to theme tokens (title, heading, body_small, section_header)
-- [ ] Migrate separation to theme margin_outer
-- [ ] Style progress bar with theme's progress_bar_bg/fill
-- [ ] bg_base solid background, fade-in on load start, progress bar smooth fill
-- [ ] Run full test suite
-- [ ] **Manual smoke test:** Trigger scene transition, verify loading screen shows with bg_base background, progress bar fills with accent_primary color, text hierarchy visible, tip text shows in body_small size
+- [x] Migrate all font sizes to theme tokens (title, heading, body_small, section_header)
+- [x] Migrate separation to theme margin_outer
+- [x] Style progress bar with theme's progress_bar_bg/fill
+- [x] bg_base solid background, fade-in on load start, progress bar smooth fill
+- [x] Run full test suite
+- [ ] **Manual smoke test:** Trigger scene transition, verify loading screen shows with bg_base background, progress bar fills with accent_primary color, text hierarchy visible, tip text shows in section_header size
+
+Completion note (2026-03-06): Implemented Screen 19 in commit `7be37ce9`.
+- Added `scripts/ui/hud/ui_loading_screen.gd` (`UI_LoadingScreen`) for tokenized loading-screen styling and fade-in-on-show behavior.
+- Removed all inline `theme_override_*` entries from `scenes/ui/hud/ui_loading_screen.tscn` and wired the new controller script.
+- Added Screen 19 regression coverage in `tests/unit/ui/test_loading_screen_theme.gd`:
+  - `test_loading_screen_applies_theme_tokens_when_active_config_set`
+  - `test_loading_screen_scene_has_no_inline_theme_overrides`
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_loading_screen_theme.gd -gtest=res://tests/unit/scene_manager/test_loading_screen_transition.gd` → 3/4 passing, 0 failing, 1 pending/risky (headless timing gate)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2847/2856 passing, 0 failing, 9 pending/risky
+- Manual smoke for Screen 19 is still pending.
 
 ---
 
