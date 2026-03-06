@@ -9,8 +9,14 @@ class_name UI_SettingsMenu
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 @onready var _title_label: Label = %TitleLabel
+@onready var _main_panel: PanelContainer = %MainPanel
+@onready var _main_panel_padding: MarginContainer = %MainPanelPadding
+@onready var _main_panel_content: VBoxContainer = %MainPanelContent
+@onready var _buttons_vbox: VBoxContainer = %ButtonsVBox
 @onready var _back_button: Button = %BackButton
 @onready var _input_profiles_button: Button = %InputProfilesButton
 @onready var _gamepad_settings_button: Button = %GamepadSettingsButton
@@ -45,6 +51,7 @@ func _exit_tree() -> void:
 		store.slice_updated.disconnect(_on_slice_updated)
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	if _back_button != null and not _back_button.pressed.is_connected(_on_back_pressed):
 		_back_button.pressed.connect(_on_back_pressed)
 	if _input_profiles_button != null and not _input_profiles_button.pressed.is_connected(_on_input_profiles_pressed):
@@ -69,12 +76,15 @@ func _on_panel_ready() -> void:
 	var store := get_store()
 	if store != null:
 		_update_button_visibility(store.get_state())
+	play_enter_animation()
 
 func _on_slice_updated(__slice_name: StringName, _slice_state: Dictionary) -> void:
 	var store := get_store()
 	if store == null:
 		return
 	_update_button_visibility(store.get_state())
+	_update_back_button_label()
+	_refresh_background_dim()
 
 func _on_back_pressed() -> void:
 	U_UISoundPlayer.play_cancel()
@@ -227,6 +237,45 @@ func _update_back_button_label() -> void:
 	var top_overlay: StringName = U_NavigationSelectors.get_top_overlay_id(nav_slice)
 	var is_overlay: bool = top_overlay == SETTINGS_OVERLAY_ID
 	_back_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.back") if is_overlay else U_LOCALIZATION_UTILS.localize(&"menu.settings.back_to_main")
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if config_resource is RS_UI_THEME_CONFIG:
+		var config := config_resource as RS_UI_THEME_CONFIG
+		if _main_panel != null and config.panel_section != null:
+			_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+		if _main_panel_padding != null:
+			_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+			_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+			_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+			_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+		if _main_panel_content != null:
+			_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+		if _buttons_vbox != null:
+			_buttons_vbox.add_theme_constant_override(&"separation", config.separation_default)
+		if _title_label != null:
+			_title_label.add_theme_font_size_override(&"font_size", config.heading)
+
+	_refresh_background_dim()
+
+func _refresh_background_dim() -> void:
+	var base_color := background_color
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if config_resource is RS_UI_THEME_CONFIG:
+		base_color = (config_resource as RS_UI_THEME_CONFIG).bg_base
+	base_color.a = 0.7 if _is_overlay_context() else 0.0
+	background_color = base_color
+
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = base_color
+
+func _is_overlay_context() -> bool:
+	var store := get_store()
+	if store == null:
+		return false
+	var nav_slice: Dictionary = store.get_state().get("navigation", {})
+	return U_NavigationSelectors.get_top_overlay_id(nav_slice) == SETTINGS_OVERLAY_ID
 
 func _localize_labels() -> void:
 	if _title_label != null:
