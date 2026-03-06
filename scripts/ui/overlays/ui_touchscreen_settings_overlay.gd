@@ -6,6 +6,8 @@ const VirtualJoystickScene := preload("res://scenes/ui/widgets/ui_virtual_joysti
 const VirtualButtonScene := preload("res://scenes/ui/widgets/ui_virtual_button.tscn")
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"settings.touchscreen.title"
 const LABEL_JOYSTICK_SIZE_KEY := &"settings.touchscreen.label.joystick_size"
@@ -24,12 +26,22 @@ const TOOLTIP_JOYSTICK_DEADZONE_KEY := &"settings.touchscreen.tooltip.joystick_d
 const TOOLTIP_PREVIEW_KEY := &"settings.touchscreen.tooltip.preview"
 const TOOLTIP_EDIT_LAYOUT_KEY := &"settings.touchscreen.tooltip.edit_layout"
 
-@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
-@onready var _joystick_size_text_label: Label = $CenterContainer/Panel/VBox/JoystickSizeRow/JoystickSizeLabel
-@onready var _button_size_text_label: Label = $CenterContainer/Panel/VBox/ButtonSizeRow/ButtonSizeLabel
-@onready var _joystick_opacity_text_label: Label = $CenterContainer/Panel/VBox/JoystickOpacityRow/JoystickOpacityLabel
-@onready var _button_opacity_text_label: Label = $CenterContainer/Panel/VBox/ButtonOpacityRow/ButtonOpacityLabel
-@onready var _joystick_deadzone_text_label: Label = $CenterContainer/Panel/VBox/JoystickDeadzoneRow/JoystickDeadzoneLabel
+@onready var _main_panel: PanelContainer = %MainPanel
+@onready var _main_panel_padding: MarginContainer = %MainPanelPadding
+@onready var _main_panel_content: VBoxContainer = %MainPanelContent
+@onready var _preview_panel: PanelContainer = %PreviewPanel
+@onready var _button_row: HBoxContainer = %ButtonRow
+@onready var _title_label: Label = %HeadingLabel
+@onready var _joystick_size_row: HBoxContainer = %JoystickSizeRow
+@onready var _button_size_row: HBoxContainer = %ButtonSizeRow
+@onready var _joystick_opacity_row: HBoxContainer = %JoystickOpacityRow
+@onready var _button_opacity_row: HBoxContainer = %ButtonOpacityRow
+@onready var _joystick_deadzone_row: HBoxContainer = %JoystickDeadzoneRow
+@onready var _joystick_size_text_label: Label = %JoystickSizeLabel
+@onready var _button_size_text_label: Label = %ButtonSizeLabel
+@onready var _joystick_opacity_text_label: Label = %JoystickOpacityLabel
+@onready var _button_opacity_text_label: Label = %ButtonOpacityLabel
+@onready var _joystick_deadzone_text_label: Label = %JoystickDeadzoneLabel
 
 @onready var _joystick_size_slider: HSlider = %JoystickSizeSlider
 @onready var _button_size_slider: HSlider = %ButtonSizeSlider
@@ -73,6 +85,7 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_on_state_changed({}, store.get_state())
 
 func _on_panel_ready() -> void:
+	_apply_theme_tokens()
 	_profile_manager = _resolve_input_profile_manager()
 
 	_configure_focus_neighbors()
@@ -82,6 +95,80 @@ func _on_panel_ready() -> void:
 	_configure_tooltips()
 	_update_preview_from_sliders()
 	_update_edit_layout_visibility()
+	play_enter_animation()
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	var dim_color := config.bg_base
+	dim_color.a = 0.5
+	background_color = dim_color
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		overlay_background.color = dim_color
+
+	if _main_panel != null and config.panel_section != null:
+		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _preview_panel != null and config.panel_section != null:
+		_preview_panel.add_theme_stylebox_override(&"panel", config.panel_section)
+	if _main_panel_padding != null:
+		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
+		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	if _main_panel_content != null:
+		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
+
+	var compact_rows: Array[HBoxContainer] = [
+		_joystick_size_row,
+		_button_size_row,
+		_joystick_opacity_row,
+		_button_opacity_row,
+		_joystick_deadzone_row,
+		_button_row,
+	]
+	for row in compact_rows:
+		if row != null:
+			row.add_theme_constant_override(&"separation", config.separation_compact)
+
+	if _title_label != null:
+		_title_label.add_theme_font_size_override(&"font_size", config.heading)
+
+	var row_labels: Array[Label] = [
+		_joystick_size_text_label,
+		_button_size_text_label,
+		_joystick_opacity_text_label,
+		_button_opacity_text_label,
+		_joystick_deadzone_text_label,
+	]
+	for row_label in row_labels:
+		if row_label != null:
+			row_label.add_theme_font_size_override(&"font_size", config.section_header)
+
+	var value_labels: Array[Label] = [
+		_joystick_size_label,
+		_button_size_label,
+		_joystick_opacity_label,
+		_button_opacity_label,
+		_joystick_deadzone_label,
+	]
+	for value_label in value_labels:
+		if value_label == null:
+			continue
+		value_label.add_theme_font_size_override(&"font_size", config.body_small)
+		value_label.add_theme_color_override(&"font_color", config.text_secondary)
+
+	if _cancel_button != null:
+		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _reset_button != null:
+		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _edit_layout_button != null:
+		_edit_layout_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _apply_button != null:
+		_apply_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _resolve_input_profile_manager() -> Node:
 	if input_profile_manager != null and is_instance_valid(input_profile_manager):

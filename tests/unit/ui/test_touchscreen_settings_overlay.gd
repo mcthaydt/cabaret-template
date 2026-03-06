@@ -1,14 +1,19 @@
 extends GutTest
 
 const OverlayScene := preload("res://scenes/ui/overlays/ui_touchscreen_settings_overlay.tscn")
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 var _store: TestStateStore
 var _profile_manager_mock: ProfileManagerMock
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
 	_store = TestStateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
+	if _store.settings != null:
+		_store.settings.enable_persistence = false
 	_store.gameplay_initial_state = RS_GameplayInitialState.new()
 	_store.settings_initial_state = RS_SettingsInitialState.new()
 	add_child_autofree(_store)
@@ -22,9 +27,89 @@ func before_each() -> void:
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
+	U_UI_THEME_BUILDER.active_config = null
 	_store = null
 	_profile_manager_mock = null
 	U_ServiceLocator.clear()
+
+func test_touchscreen_settings_overlay_has_motion_and_theme_tokens_when_active_config_set() -> void:
+	var config := RS_UI_THEME_CONFIG.new()
+	config.heading = 37
+	config.section_header = 16
+	config.body_small = 14
+	config.margin_section = 21
+	config.separation_default = 13
+	config.separation_compact = 7
+	config.bg_base = Color(0.11, 0.15, 0.21, 1.0)
+	config.text_secondary = Color(0.75, 0.82, 0.9, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	var overlay := OverlayScene.instantiate() as Control
+	add_child_autofree(overlay)
+	await _pump()
+	await _pump()
+
+	var motion_set: Variant = overlay.get("motion_set")
+	assert_not_null(motion_set, "Touchscreen settings overlay should assign enter/exit motion set")
+	if motion_set != null:
+		assert_true("enter" in motion_set, "Motion set should expose enter presets")
+		assert_true("exit" in motion_set, "Motion set should expose exit presets")
+
+	var heading_label := overlay.get_node_or_null("%HeadingLabel") as Label
+	var row_text_label := overlay.get_node_or_null("%JoystickSizeLabel") as Label
+	var row_value_label := overlay.get_node_or_null("%JoystickSizeValue") as Label
+	var main_panel := overlay.get_node_or_null("%MainPanel") as PanelContainer
+	var preview_panel := overlay.get_node_or_null("%PreviewPanel") as PanelContainer
+	var panel_padding := overlay.get_node_or_null("%MainPanelPadding") as MarginContainer
+	var main_panel_content := overlay.get_node_or_null("%MainPanelContent") as VBoxContainer
+	var joystick_row := overlay.get_node_or_null("%JoystickSizeRow") as HBoxContainer
+	var button_row := overlay.get_node_or_null("%ButtonRow") as HBoxContainer
+	var overlay_background := overlay.get_node_or_null("OverlayBackground") as ColorRect
+	var expected_dim := config.bg_base
+	expected_dim.a = 0.5
+
+	assert_not_null(heading_label, "HeadingLabel should exist")
+	assert_not_null(row_text_label, "JoystickSizeLabel should exist")
+	assert_not_null(row_value_label, "JoystickSizeValue should exist")
+	assert_not_null(main_panel, "MainPanel should exist")
+	assert_not_null(preview_panel, "PreviewPanel should exist")
+	assert_not_null(panel_padding, "MainPanelPadding should exist")
+	assert_not_null(main_panel_content, "MainPanelContent should exist")
+	assert_not_null(joystick_row, "JoystickSizeRow should exist")
+	assert_not_null(button_row, "ButtonRow should exist")
+	assert_not_null(overlay_background, "OverlayBackground should exist")
+
+	if heading_label != null:
+		assert_eq(heading_label.get_theme_font_size(&"font_size"), 37, "Heading should use heading token")
+	if row_text_label != null:
+		assert_eq(row_text_label.get_theme_font_size(&"font_size"), 16, "Row labels should use section_header token")
+	if row_value_label != null:
+		assert_eq(row_value_label.get_theme_font_size(&"font_size"), 14, "Value labels should use body_small token")
+		assert_true(
+			row_value_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
+			"Value labels should use text_secondary token"
+		)
+	if main_panel != null:
+		assert_true(main_panel.has_theme_stylebox_override(&"panel"), "Main panel should use themed panel style")
+	if preview_panel != null:
+		assert_true(preview_panel.has_theme_stylebox_override(&"panel"), "Preview panel should use themed panel style")
+	if panel_padding != null:
+		assert_eq(panel_padding.get_theme_constant(&"margin_left"), 21, "Panel padding should use margin_section token")
+	if main_panel_content != null:
+		assert_eq(
+			main_panel_content.get_theme_constant(&"separation"),
+			13,
+			"Main panel content should use separation_default token"
+		)
+	if joystick_row != null:
+		assert_eq(joystick_row.get_theme_constant(&"separation"), 7, "Slider rows should use separation_compact token")
+	if button_row != null:
+		assert_eq(button_row.get_theme_constant(&"separation"), 7, "Button row should use separation_compact token")
+	if overlay_background != null:
+		assert_true(
+			overlay_background.color.is_equal_approx(expected_dim),
+			"Overlay dim should use bg_base at 0.5 alpha"
+		)
 
 func test_overlay_populates_values_from_store() -> void:
 	var settings := {
