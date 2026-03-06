@@ -4,7 +4,7 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) and Screen 7 (`ui_settings_menu.tscn`) are implemented + manual-smoke verified. Phase 2 Screen 8 (`ui_save_load_menu.tscn`) and Screen 9 (`ui_input_rebinding_overlay.tscn`) are implemented, with Screen 9 follow-up fixes landed for search chrome + keyboard left/right row navigation. Next: manual smoke for Screens 8-9, then Screen 10 (`ui_input_profile_selector.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, plus Phase 1 Screens 1-5 implemented + manual-smoke verified. Phase 2 Screen 6 (`ui_pause_menu.tscn`) and Screen 7 (`ui_settings_menu.tscn`) are implemented + manual-smoke verified. Phase 2 Screen 8 (`ui_save_load_menu.tscn`), Screen 9 (`ui_input_rebinding_overlay.tscn`), and Screen 10 (`ui_input_profile_selector.tscn`) are implemented. Next: manual smoke for Screens 8-10, then Screen 11 (`ui_gamepad_settings_overlay.tscn`).
 
 ## Recent Progress
 
@@ -302,6 +302,29 @@
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
   - Implementation commit: `3ad822c9`
   - Manual smoke: pending re-run (user verification)
+- **2026-03-06: Phase 2 Screen 10 implemented (`ui_input_profile_selector.tscn`)**
+  - Scene composition migrated to overlay-panel pattern:
+    - Removed legacy inline `Background` color rect.
+    - Added centered panel structure (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`).
+    - Assigned `motion_set = cfg_motion_fade_slide` to `UI_InputProfileSelector`.
+  - `UI_InputProfileSelector` now applies `RS_UIThemeConfig` tokens from `U_UIThemeBuilder.active_config`:
+    - `heading` for title,
+    - `subheading` for active-profile preview header,
+    - `section_header` for profile/action buttons,
+    - `body_small` + `text_secondary` for description/action labels,
+    - `margin_section` for panel padding,
+    - `separation_default`/`separation_compact` for profile/preview/action spacing,
+    - `panel_section` for panel surface styling,
+    - `bg_base` at `0.5` alpha for dim background.
+  - Updated tests:
+    - Added Screen 10 motion/theme token coverage in `tests/unit/ui/test_input_profile_selector.gd`.
+    - Migrated input-profile-selector test lookups to `%UniqueName` selectors in `tests/unit/ui/test_input_profile_selector.gd`, `tests/unit/input/test_input_profile_mobile_regression.gd`, and `tests/unit/integration/test_input_profile_selector_overlay.gd`.
+  - Verification:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_profile_selector.gd -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd -gtest=res://tests/unit/input/test_input_profile_mobile_regression.gd` → 12/12 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2814/2823 passing, 0 failing, 9 pending/risky
+  - Implementation commit: `509e75de`
+  - Manual smoke: pending (user verification)
 
 ### Plan Change Summary (2026-03-05)
 
@@ -339,6 +362,7 @@ The `UI-Looksmaxxing` branch contains:
 - Screen 8 confirmation-dialog chrome correction commit: `2f61c70f`
 - Phase 2 Screen 9 input-rebinding-overlay migration commit: `3739f301`
 - Screen 9 input-rebinding follow-up commit: `3ad822c9`
+- Phase 2 Screen 10 input-profile-selector migration commit: `509e75de`
 
 ## Context
 
@@ -415,9 +439,10 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 1. Complete Screen 8 manual smoke verification (open from pause, validate tokenized error state, slot styling, and loading spinner behavior during save/load/delete flows).
 2. Complete Screen 9 manual smoke verification (`ui_input_rebinding_overlay.tscn`: open from settings, verify panel styling/motion, search-box chrome, keyboard left/right action-row focus/highlight behavior, and dialog chrome for conflict/reset/error paths).
-3. Continue screen-by-screen through Phases 2-4, running full-suite + style gates after each screen or batch.
+3. Complete Screen 10 manual smoke verification (`ui_input_profile_selector.tscn`: open from settings, verify panel styling/motion, dim alpha at 0.5, profile cycling via left/right and button press, and preview row readability/icon fallbacks).
+4. Continue screen-by-screen through Phases 2-4, running full-suite + style gates after each screen or batch.
 
-Updated next action (2026-03-06): Re-run Screen 9 manual smoke with keyboard navigation checks, complete Screen 8 manual smoke, then start Screen 10 (`ui_input_profile_selector.tscn`).
+Updated next action (2026-03-06): Complete manual smoke for Screens 8-10, then start Screen 11 (`ui_gamepad_settings_overlay.tscn`).
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

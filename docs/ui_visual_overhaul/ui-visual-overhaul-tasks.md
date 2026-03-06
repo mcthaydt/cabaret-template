@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 53% (89 / 168 tasks complete)
+**Progress:** 54% (90 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -321,7 +321,7 @@ Follow-up correction (2026-03-06): Applied the actual `Window` chrome keys used 
 ### Screens 9-13: Remaining Overlays (batch)
 
 - [x] **9. Input Rebinding** (`ui_input_rebinding_overlay.tscn`) — migrated to overlay-panel pattern with tokenized styling + dialog theming support.
-- [ ] **10. Input Profile Selector** (`ui_input_profile_selector.tscn`) — 4 spacing overrides, dim=0.5. Migrate to theme tokens.
+- [x] **10. Input Profile Selector** (`ui_input_profile_selector.tscn`) — migrated to overlay-panel pattern with tokenized spacing and `bg_base@0.5` dim.
 - [ ] **11. Gamepad Settings** (`ui_gamepad_settings_overlay.tscn`) — 0 overrides, dim=0.5. Style sliders and preview area.
 - [ ] **12. Touchscreen Settings** (`ui_touchscreen_settings_overlay.tscn`) — 0 overrides, dim=0.5. Style sliders and preview container.
 - [ ] **13. Edit Touch Controls** (`ui_edit_touch_controls_overlay.tscn`) — 0 overrides, unique dim=0.05. Keep translucent nature, style toolbar panel.
@@ -348,6 +348,14 @@ Follow-up note (2026-03-06): Addressed Screen 9 usability regressions found duri
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 - Implementation commit: `3ad822c9`
 - Manual smoke re-run pending (user verification).
+
+Completion note (2026-03-06): Implemented Screen 10 with centered panel-backed layout (`MainPanelMotionHost` + `MainPanel` + `MainPanelPadding` + `MainPanelContent`), `cfg_motion_fade_slide`, and token-driven styling from `U_UIThemeBuilder.active_config` (`heading`, `subheading`, `body_small`, `section_header`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`, `bg_base@0.5`).
+- Implementation commit: `509e75de`
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_input_profile_selector.gd -gtest=res://tests/unit/integration/test_input_profile_selector_overlay.gd -gtest=res://tests/unit/input/test_input_profile_mobile_regression.gd` → 12/12 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2814/2823 passing, 0 failing, 9 pending/risky
+- Manual smoke test pending (user verification).
 
 ### Settings Overlay Wrappers (batch — all 0 overrides)
 
