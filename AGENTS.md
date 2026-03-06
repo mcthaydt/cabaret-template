@@ -194,6 +194,7 @@
 - Palette bootstrapping contract: when unified mode is active and palette has not been applied yet, `U_UIThemeBuilder` should still apply config text colors for roots missing explicit font colors while preserving existing base-theme colors when present.
 - Settings-tab tokenization contract (Phase 3 Screen 14): tabs embedded inside settings wrappers (for example `UI_LocalizationSettingsTab`) should remove inline `theme_override_*` constants and apply spacing/typography tokens in script via `U_UIThemeBuilder.active_config` + `RS_UIThemeConfig` (`separation_default`, `separation_compact`, `heading`, `section_header`, `body_small`, semantic text colors).
 - HUD tokenization contract (Phase 4 Screen 17): `scenes/ui/hud/ui_hud_overlay.tscn` should not keep inline `theme_override_*` entries. Apply HUD margins/typography/surface tokens in `UI_HudController._apply_theme_tokens()`. Health bar background should come from themed `ProgressBar.background`; health fill stays palette-driven via `_update_health_bar_colors(...)`.
+- Button-prompt tokenization contract (Phase 4 Screen 18): `scenes/ui/hud/ui_button_prompt.tscn` should not keep inline `theme_override_*` entries. Apply prompt spacing/panel/typography tokens in `UI_ButtonPrompt._apply_theme_tokens()` using `separation_default`, `panel_button_prompt`, `subheading`, `body`, and `caption_small`.
 
 ### UI Motion Pipeline (UI Visual Overhaul Phase 0)
 

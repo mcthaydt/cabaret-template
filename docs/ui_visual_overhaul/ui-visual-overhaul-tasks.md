@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 66% (111 / 168 tasks complete)
+**Progress:** 69% (116 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -627,12 +627,28 @@ Completion note (2026-03-06): Implemented Screen 17 in commit `9e306d4d`.
 
 **5 overrides** (separation=12, panel StyleBox, font_size 20/12/24)
 
-- [ ] Migrate separation to theme token (separation_default)
-- [ ] Migrate panel StyleBox to theme's panel_button_prompt
-- [ ] Migrate font_sizes: 24 -> subheading, 20 -> body, 12 -> caption_small
-- [ ] Run existing `test_hud_button_prompts.gd` — all pass (icon/text updates, device switch, localization)
-- [ ] Run full test suite
+- [x] Migrate separation to theme token (separation_default)
+- [x] Migrate panel StyleBox to theme's panel_button_prompt
+- [x] Migrate font_sizes: 24 -> subheading, 20 -> body, 12 -> caption_small
+- [x] Run existing `test_hud_button_prompts.gd` — all pass (icon/text updates, device switch, localization)
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Approach interactable in gameplay, verify prompt panel is styled, text hierarchy is clear (action name larger than sub-label), device icons render correctly
+
+Completion note (2026-03-06): Implemented Screen 18 in commit `1755bc5b`.
+- Migrated `scenes/ui/hud/ui_button_prompt.tscn` off inline `theme_override_*` entries:
+  - Removed root separation override, text-icon panel stylebox subresource override, and font-size overrides for action/binding/mobile labels.
+- Added `UI_ButtonPrompt._apply_theme_tokens()` to apply Screen 18 token contracts from `U_UIThemeBuilder.active_config`:
+  - `separation_default` on the root row
+  - `panel_button_prompt` on `TextIcon`
+  - `subheading` on prompt text, `body` on binding label, `caption_small` on mobile label
+- Added Screen 18 regression coverage in `tests/unit/ui/test_button_prompt.gd`:
+  - `test_button_prompt_applies_theme_tokens_when_active_config_set`
+  - `test_button_prompt_scene_has_no_inline_theme_overrides`
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_button_prompt.gd -gtest=res://tests/unit/ui/test_hud_button_prompts.gd` → 17/17 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2845/2854 passing, 0 failing, 9 pending/risky
+- Manual smoke for Screen 18 is still pending.
 
 ### Screen 19: Loading Screen (`scenes/ui/hud/ui_loading_screen.tscn`)
 

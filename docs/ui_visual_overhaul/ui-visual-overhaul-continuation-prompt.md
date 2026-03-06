@@ -4,9 +4,28 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screens 14-16 complete (automated verification), Phase 4 Screen 17 complete (implementation + automated verification). Pending manual smoke for Screens 15-17. Next: Phase 4 Screen 18 (`ui_button_prompt.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screens 14-16 complete (automated verification), Phase 4 Screens 17-18 complete (implementation + automated verification). Pending manual smoke for Screens 15-18. Next: Phase 4 Screen 19 (`ui_loading_screen.tscn`).
 
 ## Recent Progress
+
+- **2026-03-06: Phase 4 Screen 18 implemented (`ui_button_prompt.tscn`)**
+  - Button prompt migrated off inline scene overrides:
+    - Removed all Screen 18 inline `theme_override_*` entries (root separation, text-icon panel stylebox, and 3 font-size overrides).
+    - Added `UI_ButtonPrompt._apply_theme_tokens()` to apply tokenized styling from `U_UIThemeBuilder.active_config`.
+  - Screen 18 token mapping now centralized in script:
+    - `separation_default` for root prompt spacing
+    - `panel_button_prompt` for `TextIcon` panel chrome
+    - `subheading` for prompt action text, `body` for binding label, `caption_small` for mobile label text
+  - Added Screen 18 regression coverage:
+    - `tests/unit/ui/test_button_prompt.gd`
+      - `test_button_prompt_applies_theme_tokens_when_active_config_set`
+      - `test_button_prompt_scene_has_no_inline_theme_overrides`
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_button_prompt.gd -gtest=res://tests/unit/ui/test_hud_button_prompts.gd` → 17/17 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2845/2854 passing, 0 failing, 9 pending/risky
+  - Implementation commit: `1755bc5b`
+  - Manual smoke for Screen 18 is still pending.
 
 - **2026-03-06: Phase 4 Screen 17 implemented (`ui_hud_overlay.tscn`)**
   - HUD overlay migrated off inline scene overrides:
@@ -608,6 +627,7 @@ The `UI-Looksmaxxing` branch contains:
 - Phase 3 Screen 15 audio-settings-tab migration commit: `2b4db1c9`
 - Screen 15 audio-settings-overlay centering fix commit: `217f77a6`
 - Phase 4 Screen 17 HUD-overlay migration commit: `9e306d4d`
+- Phase 4 Screen 18 button-prompt migration commit: `1755bc5b`
 
 ## Context
 
@@ -682,11 +702,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Run manual smoke for Phase 3 Screens 15/16 (`ui_audio_settings_tab.tscn`, `ui_display_settings_tab.tscn`) and Phase 4 Screen 17 (`ui_hud_overlay.tscn`) to verify in-game visual feel and HUD feedback timing.
-2. Begin Phase 4 Screen 18 (`ui_button_prompt.tscn`) and migrate prompt panel/theme overrides to token-driven styling.
-3. Continue with Phase 4 Screen 19 (`ui_loading_screen.tscn`) once Screen 18 automated checks are green.
+1. Run manual smoke for Phase 3 Screens 15/16 (`ui_audio_settings_tab.tscn`, `ui_display_settings_tab.tscn`) and Phase 4 Screens 17/18 (`ui_hud_overlay.tscn`, `ui_button_prompt.tscn`) to verify in-game visual feel and HUD feedback timing.
+2. Begin Phase 4 Screen 19 (`ui_loading_screen.tscn`) and migrate loading-screen typography/progress-bar overrides to token-driven styling.
+3. Continue with Phase 5 polish verification once Screen 19 automated checks are green.
 
-Updated next action (2026-03-06): Run pending manual smoke for Screens 15/16/17, then start Phase 4 Screen 18 button-prompt migration.
+Updated next action (2026-03-06): Run pending manual smoke for Screens 15/16/17/18, then start Phase 4 Screen 19 loading-screen migration.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 
@@ -722,7 +742,8 @@ Updated next action (2026-03-06): Run pending manual smoke for Screens 15/16/17,
 | `scripts/ui/base/base_menu_screen.gd` | 0F | Add enter/exit animation methods |
 | `scripts/ui/base/base_overlay.gd` | 0F | Animate dim background with content motion |
 | `scripts/ui/hud/ui_hud_controller.gd` | 4 | Extract tween params to motion resources |
-| 13 `.tscn` files with overrides (119 total) | 1-4 | Remove inline `theme_override_*` values, apply theme |
+| `scripts/ui/hud/ui_button_prompt.gd` | 4 | Apply button-prompt token overrides from active theme config |
+| 14 `.tscn` files with overrides (124 total) | 1-4 | Remove inline `theme_override_*` values, apply theme |
 | 4 settings overlay wrappers | 2 | Theme application, dim standardization |
 | `AGENTS.md` | 5C | New patterns |
 | `docs/general/DEV_PITFALLS.md` | 5C | New pitfalls |
