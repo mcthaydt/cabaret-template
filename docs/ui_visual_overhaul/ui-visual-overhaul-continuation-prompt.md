@@ -4,10 +4,25 @@
 
 - Feature / story: UI Visual Overhaul (Screen-by-Screen)
 - Branch: `UI-Looksmaxxing`
-- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screen 14 complete, and Phase 3 Screen 15 complete (automated verification). Next: Screen 15 manual smoke + Phase 3 Screen 16 (`ui_display_settings_tab.tscn`).
+- Status summary: **In progress** — Phase 0A-0G complete, Phase 1 Screens 1-5 complete, Phase 2 Screens 6-13 + settings-overlay wrappers complete (implementation + automated verification + audit hardening), Phase 3 Screens 14-16 complete (automated verification). Next: Screen 15-16 manual smoke, then Phase 4 Screen 17 (`ui_hud_overlay.tscn`).
 
 ## Recent Progress
 
+- **2026-03-06: Phase 3 Screen 16 implemented (`ui_display_settings_tab.tscn`)**
+  - Display settings tab migrated to token-driven styling:
+    - Removed inline section panel/separator/slider/separation overrides from the scene.
+    - Added `UI_DisplaySettingsTab._apply_theme_tokens()` to apply typography/color/margin tokens (`heading`, `section_header`, `section_header_color`, `body_small`, `text_secondary`, `margin_section`).
+    - Section panels/separators/slider now source styleboxes from unified theme builder (`panel_section`, `separator_style`, `slider_bg`/`slider_fill`) instead of scene-local subresources.
+  - Added Screen 16 regression coverage:
+    - `tests/unit/ui/test_display_settings_theme.gd`
+      - `test_display_section_panels_use_theme_style`
+      - `test_display_section_headers_use_theme_color`
+      - `test_display_no_inline_overrides_remaining`
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_display_settings_theme.gd -gtest=res://tests/unit/ui/test_display_settings_tab_localization.gd -gtest=res://tests/integration/display/test_display_settings.gd` → 21/21 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2837/2846 passing, 0 failing, 9 pending/risky
+  - Implementation commit: `7f7ece0c`
 - **2026-03-06: Screen 15 audio overlay centering follow-up**
   - Root cause: `UI_AudioSettingsOverlay` enter motion was auto-targeting `CenterContainer`, which could introduce vertical drift for the wrapper panel during tween sampling.
   - Fix: set `motion_target_path = NodePath("CenterContainer/Panel")` so slide animation applies to the panel while preserving center-container alignment.
@@ -632,11 +647,11 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 ## Next Steps
 
-1. Run manual smoke for Phase 3 Screen 15 (`ui_audio_settings_tab.tscn`) to verify slider feel/visuals in-game.
-2. Begin Phase 3 Screen 16 (`ui_display_settings_tab.tscn`) and migrate section panels/separators/header styling + separation overrides to `RS_UIThemeConfig` tokens.
-3. Add Screen 16 theme regression coverage (`test_display_settings_theme.gd`) and run targeted display/localization suites.
+1. Run manual smoke for Phase 3 Screen 15 (`ui_audio_settings_tab.tscn`) and Screen 16 (`ui_display_settings_tab.tscn`) to verify in-game visual feel and interaction flow.
+2. Begin Phase 4 Screen 17 (`ui_hud_overlay.tscn`) and migrate HUD theme overrides to token-driven styling while preserving palette-driven health fill behavior.
+3. Add/extend HUD theme regression coverage before Screen 17 implementation.
 
-Updated next action (2026-03-06): Begin Phase 3 Screen 16 display-settings-tab migration (after Screen 15 manual smoke).
+Updated next action (2026-03-06): Run Screen 15/16 manual smoke, then start Phase 4 Screen 17 HUD migration.
 
 ## Key Files (Phase 0 Infrastructure — Completed)
 

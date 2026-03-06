@@ -1,6 +1,6 @@
 # UI Visual Overhaul — Tasks (Screen-by-Screen)
 
-**Progress:** 63% (106 / 168 tasks complete)
+**Progress:** 66% (111 / 168 tasks complete)
 
 **Approach:** TDD where possible. Write/update tests BEFORE implementation, then make them pass. Manual smoke tests for visual feel that can't be automated.
 
@@ -532,20 +532,32 @@ Follow-up note (2026-03-06): Centered audio settings wrapper panel after enter a
 
 **Add automated test for section panel styling** (TDD):
 
-- [ ] Add test to existing display settings test file or create `tests/unit/ui/test_display_settings_theme.gd`:
+- [x] Add test to existing display settings test file or create `tests/unit/ui/test_display_settings_theme.gd`:
   - `test_display_section_panels_use_theme_style` — instantiate display settings tab with theme, find PanelContainer nodes, assert `panel.get_theme_stylebox("panel") is StyleBoxFlat` (theme-provided, not inline override)
   - `test_display_section_headers_use_theme_color` — find section header Labels, assert `label.get_theme_color("font_color").is_equal_approx(config.section_header_color)` (pattern: `test_ui_scale_and_theme.gd`)
   - `test_display_no_inline_overrides_remaining` — scan all child nodes, assert none have `theme_override_constants/separation` set (all migrated to theme)
-- [ ] Migrate all 43 overrides — the most complex screen:
+- [x] Migrate all 43 overrides — the most complex screen:
   - 4 section panels -> theme's panel_section
   - 4 section headers -> theme's section_header color + size tokens
   - 4 separator styles -> theme's separator_style
   - 1 slider -> theme's slider styles
   - ~20 separation constants -> theme tokens
-- [ ] Run tests — new display theme tests pass
-- [ ] Run existing display settings tests — all pass (dropdowns, UI scale slider, toggle checkboxes)
-- [ ] Run full test suite
+- [x] Run tests — new display theme tests pass
+- [x] Run existing display settings tests — all pass (dropdowns, UI scale slider, toggle checkboxes)
+- [x] Run full test suite
 - [ ] **Manual smoke test:** Open display settings, verify 4 sections have consistent panel backgrounds, headers are section_header color (#96b2d9), separators visible, UI scale slider works
+
+Completion note (2026-03-06): Implemented Screen 16 in commit `7f7ece0c`.
+- Added `tests/unit/ui/test_display_settings_theme.gd` with Screen 16 coverage:
+  - `test_display_section_panels_use_theme_style`
+  - `test_display_section_headers_use_theme_color`
+  - `test_display_no_inline_overrides_remaining`
+- Removed inline section panel/separator/slider/separation overrides from `ui_display_settings_tab.tscn` so styling is sourced from unified theme builder.
+- Added `UI_DisplaySettingsTab._apply_theme_tokens()` to apply token-driven typography/color/margin styling (`heading`, `section_header`, `section_header_color`, `body_small`, `text_secondary`, `margin_section`).
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_display_settings_theme.gd -gtest=res://tests/unit/ui/test_display_settings_tab_localization.gd -gtest=res://tests/integration/display/test_display_settings.gd` → 21/21 passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → 12/12 passing
+  - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` → 2837/2846 passing, 0 failing, 9 pending/risky
 
 ---
 
