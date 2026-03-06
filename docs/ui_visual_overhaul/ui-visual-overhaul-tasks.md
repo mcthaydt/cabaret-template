@@ -632,7 +632,7 @@ Completion note (2026-03-06): Implemented Screen 17 in commit `9e306d4d`.
 - [x] Migrate font_sizes: 24 -> subheading, 20 -> body, 12 -> caption_small
 - [x] Run existing `test_hud_button_prompts.gd` — all pass (icon/text updates, device switch, localization)
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Approach interactable in gameplay, verify prompt panel is styled, text hierarchy is clear (action name larger than sub-label), device icons render correctly
+- [x] **Manual smoke test:** Approach interactable in gameplay, verify prompt panel is styled, text hierarchy is clear (action name larger than sub-label), device icons render correctly
 
 Completion note (2026-03-06): Implemented Screen 18 in commit `1755bc5b`.
 - Migrated `scenes/ui/hud/ui_button_prompt.tscn` off inline `theme_override_*` entries:
@@ -657,7 +657,7 @@ Completion note (2026-03-06): Implemented Screen 18 in commit `1755bc5b`.
 - [x] Style progress bar with theme's progress_bar_bg/fill
 - [x] bg_base solid background, fade-in on load start, progress bar smooth fill
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Trigger scene transition, verify loading screen shows with bg_base background, progress bar fills with accent_primary color, text hierarchy visible, tip text shows in section_header size
+- [x] **Manual smoke test:** Trigger scene transition, verify loading screen shows with bg_base background, progress bar fills with accent_primary color, text hierarchy visible, tip text shows in section_header size
 
 Completion note (2026-03-06): Implemented Screen 19 in commit `7be37ce9`.
 - Added `scripts/ui/hud/ui_loading_screen.gd` (`UI_LoadingScreen`) for tokenized loading-screen styling and fade-in-on-show behavior.
