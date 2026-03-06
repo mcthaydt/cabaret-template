@@ -75,6 +75,19 @@ Follow-up note (2026-03-06): Fixed unified-theme lifecycle regression caused by 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd`
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
 
+Follow-up note (2026-03-06): Fixed mobile/export stylebox hydration gap in unified theme builder.
+- Symptom on device: startup logs showed `U_UIThemeBuilder` building with `button_normal_null=true` / `panel_section_null=true`, producing text colors but no panel/button styleboxes (gray default UI chrome).
+- Root cause: loaded `cfg_ui_theme_default.tres` can arrive with stylebox fields unset on export paths when hydration depends only on `RS_UIThemeConfig._init()`.
+- Fix:
+  - Added `RS_UIThemeConfig.ensure_runtime_defaults()` and made `_init()` delegate to it.
+  - `U_UIThemeBuilder.build_theme(...)` now calls `ensure_runtime_defaults()` before applying styleboxes/tokens.
+- Added regression coverage:
+  - `test_build_theme_hydrates_runtime_style_defaults_for_loaded_config_resource` in `tests/unit/ui/test_ui_theme_builder.gd`.
+- Validation:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_theme_builder.gd`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd -gtest=res://tests/unit/managers/test_display_manager.gd -gtest=res://tests/unit/managers/test_localization_manager.gd`
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
+
 ### 0D — Motion Resources (TDD)
 
 **Write tests first**, then implement to make them pass.

@@ -187,6 +187,7 @@
 - `U_UIThemeBuilder` (`scripts/ui/utils/u_ui_theme_builder.gd`) is the single composition point for UI themes:
   - Input: base font theme from `U_LocalizationFontApplier`, optional `RS_UIColorPalette`, required `RS_UIThemeConfig`.
   - Output: merged `Theme` containing fonts, text colors, spacing constants, and styleboxes.
+  - Runtime-default contract: call `RS_UIThemeConfig.ensure_runtime_defaults()` inside `U_UIThemeBuilder` before stylebox application so loaded config resources hydrate missing styleboxes consistently on mobile/export builds.
 - Root bootstrap contract: `scripts/root.gd` sets `U_UIThemeBuilder.active_config` on enter/ready; only the persistent app root (`Managers/M_StateStore` present) clears it on exit. Non-persistent gameplay roots must not clear global theme config.
 - `U_DisplayUIThemeApplier` no longer owns a standalone applied theme in unified mode; it stores active palette state and rebuilds registered UI roots through `U_UIThemeBuilder`.
 - Backward-compat contract: when `U_UIThemeBuilder.active_config` is `null`, localization and display theming keep legacy behavior (font-only localization theme + palette-only display theme).

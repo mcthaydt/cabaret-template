@@ -8,6 +8,19 @@
 
 ## Recent Progress
 
+- **2026-03-06: Mobile stylebox hydration fix (unified theme)**
+  - Device trace showed unified bootstrap running, but `U_UIThemeBuilder` reported `button_normal_null=true` and `panel_section_null=true`, so built themes had text colors but no button/panel styleboxes.
+  - Root cause: loaded `cfg_ui_theme_default.tres` may not hydrate stylebox fields on export paths if defaults rely only on `RS_UIThemeConfig._init()`.
+  - Fix:
+    - Added `RS_UIThemeConfig.ensure_runtime_defaults()`.
+    - `_init()` now delegates to `ensure_runtime_defaults()`.
+    - `U_UIThemeBuilder.build_theme(...)` now explicitly calls `ensure_runtime_defaults()` before stylebox/token application.
+  - Added regression test:
+    - `test_build_theme_hydrates_runtime_style_defaults_for_loaded_config_resource` in `tests/unit/ui/test_ui_theme_builder.gd`.
+  - Validation:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_theme_builder.gd` → 19/19 passing
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd -gtest=res://tests/unit/managers/test_display_manager.gd -gtest=res://tests/unit/managers/test_localization_manager.gd` → 64/64 passing
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 - **2026-03-06: Theme lifecycle regression hardening**
   - Root cause: gameplay scenes also attach `scripts/root.gd`; unloading gameplay roots ran `_exit_tree()` and cleared `U_UIThemeBuilder.active_config`, so later menu screens could render default gray chrome.
   - Fix: `scripts/root.gd` now clears `U_UIThemeBuilder.active_config` only for the persistent app root (detected via `Managers/M_StateStore`).

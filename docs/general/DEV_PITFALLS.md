@@ -46,6 +46,9 @@
 - **Unified UI theme bootstrapping needs a no-palette fallback**: In the merged font+theme pipeline, a root can receive a composed theme before `U_DisplayUIThemeApplier` has published an active palette. If the builder simply preserves base colors when palette is missing, roots with no pre-existing colors can remain unstyled until the next palette-triggered rebuild.
   - **Fix pattern**: when palette is `null`, preserve existing base-theme colors where they exist, but still apply `RS_UIThemeConfig.text_primary` to missing text color slots so first paint is deterministic.
 
+- **Loaded `RS_UIThemeConfig` resources can miss runtime stylebox defaults on mobile/export**: `cfg_ui_theme_default.tres` stores primitive tokens, but stylebox fields (`button_normal`, `panel_section`, etc.) may still be `null` at runtime on some export paths if hydration relies only on `_init()`.
+  - **Fix pattern**: expose an explicit `ensure_runtime_defaults()` on `RS_UIThemeConfig` and call it from `U_UIThemeBuilder.build_theme(...)` before applying styleboxes.
+
 - **Shared `root.gd` teardown can clear global UI theme config unexpectedly**: Gameplay scenes also attach `scripts/root.gd`, so unconditional cleanup in `_exit_tree()` can clear `U_UIThemeBuilder.active_config` while the persistent app root is still alive. This causes subsequent menus/overlays to render fallback/default (gray) styling instead of unified theme tokens.
   - **Fix pattern**: only clear `U_UIThemeBuilder.active_config` when the exiting root is the persistent app root (for example, it has `Managers/M_StateStore`). Keep non-persistent gameplay roots from mutating global theme config.
 
