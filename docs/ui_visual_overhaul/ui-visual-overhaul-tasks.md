@@ -601,7 +601,7 @@ Follow-up note (2026-03-06): Display/VFX settings overlay centering regression f
 - [x] Run new HUD theme tests — pass
 - [x] Run existing HUD tests (`test_hud_controller.gd`, `test_hud_feedback_channels.gd`, `test_hud_button_prompts.gd`, `test_hud_interactions_pause_and_signpost.gd`) — all pass
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Play gameplay, verify: health bar background is health_bg (#3a4568), fill is palette-driven (changes with health % and color-blind mode), checkpoint toast fades in/holds/fades out smoothly, signpost shows golden text on dark panel, autosave spinner rotates during save, interact prompt appears near interactables
+- [x] **Manual smoke test:** Play gameplay, verify: health bar background is health_bg (#3a4568), fill is palette-driven (changes with health % and color-blind mode), checkpoint toast fades in/holds/fades out smoothly, signpost shows golden text on dark panel, autosave spinner rotates during save, interact prompt appears near interactables
 
 Completion note (2026-03-06): Implemented Screen 17 in commit `9e306d4d`.
 - Migrated `scenes/ui/hud/ui_hud_overlay.tscn` away from inline `theme_override_*` values (all 28 Screen 17 overrides removed from scene markup).
