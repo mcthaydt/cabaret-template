@@ -2,12 +2,14 @@ extends GutTest
 
 ## Integration test: Health bar color adapts to color blind palette.
 
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 
 var _store: M_StateStore = null
 var _hud: UI_HudController = null
 var _display_manager: M_DisplayManager = null
 
 func before_each() -> void:
+	U_UI_THEME_BUILDER.active_config = null
 	# Clear ServiceLocator first to unregister any previous DisplayManager
 	U_ServiceLocator.clear()
 	await get_tree().process_frame
@@ -78,6 +80,7 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 func after_each() -> void:
+	U_UI_THEME_BUILDER.active_config = null
 	# Clean up any lingering UI color blind layer from display manager
 	if _display_manager != null and is_instance_valid(_display_manager):
 		var tree := get_tree()

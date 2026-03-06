@@ -2,26 +2,42 @@
 extends CanvasLayer
 class_name UI_HudController
 
+const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const RS_UI_MOTION_SET := preload("res://scripts/resources/ui/rs_ui_motion_set.gd")
+const RS_UI_MOTION_PRESET := preload("res://scripts/resources/ui/rs_ui_motion_preset.gd")
 
+@export var checkpoint_toast_motion_set: Resource = preload("res://resources/ui/motions/cfg_motion_hud_checkpoint_toast.tres")
+@export var signpost_fade_in_preset: Resource = preload("res://resources/ui/motions/cfg_motion_hud_signpost_fade_in.tres")
+@export var signpost_fade_out_preset: Resource = preload("res://resources/ui/motions/cfg_motion_hud_signpost_fade_out.tres")
+
+@onready var hud_margin_container: MarginContainer = $MarginContainer
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthBar/HealthLabel
 @onready var toast_container: Control = $MarginContainer/ToastContainer
+@onready var toast_margin_container: MarginContainer = $MarginContainer/ToastContainer/PanelContainer/MarginContainer
 @onready var checkpoint_toast: Label = $MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast
 @onready var autosave_spinner_container: Control = $MarginContainer/AutosaveSpinnerContainer
+@onready var autosave_panel: PanelContainer = $MarginContainer/AutosaveSpinnerContainer/PanelContainer
+@onready var autosave_margin_container: MarginContainer = $MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer
+@onready var autosave_hbox: HBoxContainer = $MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer
 @onready var autosave_spinner_icon: TextureRect = $MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer/SpinnerIcon
 @onready var autosave_spinner_label: Label = $MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer/SpinnerLabel
 @onready var signpost_panel_container: Control = $SignpostPanelContainer
+@onready var signpost_panel: PanelContainer = $SignpostPanelContainer/PanelContainer
+@onready var signpost_margin_container: MarginContainer = $SignpostPanelContainer/PanelContainer/MarginContainer
 @onready var signpost_message_label: Label = $SignpostPanelContainer/PanelContainer/MarginContainer/SignpostMessage
 @onready var interact_prompt: UI_ButtonPrompt = $MarginContainer/InteractPrompt
 
 const SIGNPOST_DEFAULT_DURATION_SEC: float = 3.0
 const SIGNPOST_MIN_DURATION_SEC: float = 0.05
-const SIGNPOST_PANEL_FADE_IN_SEC: float = 0.14
-const SIGNPOST_PANEL_FADE_OUT_SEC: float = 0.18
+const SIGNPOST_PANEL_FADE_IN_FALLBACK_SEC: float = 0.14
+const SIGNPOST_PANEL_FADE_OUT_FALLBACK_SEC: float = 0.18
 const SIGNPOST_BLOCKER_COOLDOWN_SEC: float = 0.15
 const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
 const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.35
+const CHECKPOINT_TOAST_UNBLOCK_COOLDOWN_SEC: float = 0.3
 
 var _store: I_StateStore = null
 var _player_entity_id: String = "player"
@@ -43,12 +59,12 @@ var _autosave_spinner_hide_request_id: int = 0
 var _signpost_panel_active: bool = false
 var _checkpoint_toast_tween: Tween = null
 var _signpost_panel_tween: Tween = null
-var _health_bar_bg_style: StyleBoxFlat = null
 var _health_bar_fill_style: StyleBoxFlat = null
 var _pending_prompt_localization_refresh: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_apply_theme_tokens()
 	_localize_static_labels()
 	_store = U_StateUtils.get_store(self)
 
@@ -59,11 +75,8 @@ func _ready() -> void:
 	_player_entity_id = String(_store.get_slice(StringName("gameplay")).get("player_entity_id", "player"))
 	_store.slice_updated.connect(_on_slice_updated)
 
-	# Grab direct references to the scene's StyleBoxFlat resources
+	# Grab direct references to the active ProgressBar style resources.
 	if health_bar != null:
-		var bg_style := health_bar.get_theme_stylebox("background")
-		if bg_style is StyleBoxFlat:
-			_health_bar_bg_style = bg_style as StyleBoxFlat
 		var fill_style := health_bar.get_theme_stylebox("fill")
 		if fill_style is StyleBoxFlat:
 			_health_bar_fill_style = fill_style as StyleBoxFlat
@@ -140,6 +153,61 @@ func _on_locale_changed(_locale: StringName) -> void:
 func _localize_static_labels() -> void:
 	if autosave_spinner_label != null:
 		autosave_spinner_label.text = U_LocalizationUtils.localize(&"hud.autosave_saving")
+
+func _apply_theme_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+
+	if hud_margin_container != null:
+		hud_margin_container.add_theme_constant_override(&"margin_left", config.margin_outer)
+		hud_margin_container.add_theme_constant_override(&"margin_top", config.margin_outer)
+		hud_margin_container.add_theme_constant_override(&"margin_right", config.margin_outer)
+		hud_margin_container.add_theme_constant_override(&"margin_bottom", config.margin_outer)
+
+	if pause_label != null:
+		pause_label.add_theme_font_size_override(&"font_size", config.heading)
+	if health_label != null:
+		health_label.add_theme_font_size_override(&"font_size", config.body_small)
+
+	if toast_margin_container != null:
+		toast_margin_container.add_theme_constant_override(&"margin_left", config.margin_inner)
+		toast_margin_container.add_theme_constant_override(&"margin_top", config.separation_compact)
+		toast_margin_container.add_theme_constant_override(&"margin_right", config.margin_inner)
+		toast_margin_container.add_theme_constant_override(&"margin_bottom", config.separation_compact)
+	if checkpoint_toast != null:
+		checkpoint_toast.add_theme_font_size_override(&"font_size", config.body_small)
+
+	if autosave_panel != null:
+		# Keep autosave chrome intentionally transparent while removing scene-local subresources.
+		autosave_panel.add_theme_stylebox_override(&"panel", StyleBoxEmpty.new())
+	if autosave_margin_container != null:
+		autosave_margin_container.add_theme_constant_override(&"margin_left", 0)
+		autosave_margin_container.add_theme_constant_override(&"margin_top", 0)
+		autosave_margin_container.add_theme_constant_override(&"margin_right", 0)
+		autosave_margin_container.add_theme_constant_override(&"margin_bottom", 0)
+	if autosave_hbox != null:
+		autosave_hbox.add_theme_constant_override(&"separation", 0)
+	if autosave_spinner_label != null:
+		autosave_spinner_label.add_theme_font_size_override(&"font_size", config.caption)
+
+	if signpost_panel != null and config.panel_signpost != null:
+		signpost_panel.add_theme_stylebox_override(&"panel", config.panel_signpost)
+	if signpost_margin_container != null:
+		var signpost_horizontal_margin: int = config.margin_outer + config.separation_compact
+		var signpost_vertical_margin: int = config.margin_section + int(round(config.separation_compact * 0.25))
+		signpost_margin_container.add_theme_constant_override(&"margin_left", signpost_horizontal_margin)
+		signpost_margin_container.add_theme_constant_override(&"margin_top", signpost_vertical_margin)
+		signpost_margin_container.add_theme_constant_override(&"margin_right", signpost_horizontal_margin)
+		signpost_margin_container.add_theme_constant_override(&"margin_bottom", signpost_vertical_margin)
+	if signpost_message_label != null:
+		signpost_message_label.add_theme_font_size_override(&"font_size", config.body)
+		signpost_message_label.add_theme_constant_override(
+			&"line_spacing",
+			maxi(1, int(round(config.separation_compact * 0.5)))
+		)
+		signpost_message_label.add_theme_color_override(&"font_color", config.golden)
 
 func _update_display(state: Dictionary) -> void:
 	_sync_visibility(state)
@@ -240,20 +308,24 @@ func _show_checkpoint_toast(text: String) -> void:
 		interact_prompt.hide_prompt()
 
 	_checkpoint_toast_tween = create_tween()
-	_checkpoint_toast_tween.set_trans(Tween.TRANS_CUBIC)
-	_checkpoint_toast_tween.set_ease(Tween.EASE_IN_OUT)
-	# Fade in
-	_checkpoint_toast_tween.tween_property(toast_container, "modulate:a", 1.0, 0.2).from(0.0)
-	# Hold
-	_checkpoint_toast_tween.tween_interval(1.0)
-	# Fade out
-	_checkpoint_toast_tween.tween_property(toast_container, "modulate:a", 0.0, 0.3)
+	var using_motion_resource: bool = _append_motion_sequence(
+		_checkpoint_toast_tween,
+		toast_container,
+		checkpoint_toast_motion_set,
+		&"enter"
+	)
+	if not using_motion_resource:
+		_checkpoint_toast_tween.set_trans(Tween.TRANS_CUBIC)
+		_checkpoint_toast_tween.set_ease(Tween.EASE_IN_OUT)
+		_checkpoint_toast_tween.tween_property(toast_container, "modulate:a", 1.0, 0.2).from(0.0)
+		_checkpoint_toast_tween.tween_interval(1.0)
+		_checkpoint_toast_tween.tween_property(toast_container, "modulate:a", 0.0, 0.3)
 	_checkpoint_toast_tween.finished.connect(func() -> void:
 		_checkpoint_toast_tween = null
 		toast_container.visible = false
 		_toast_active = false
-		# Unblock interact with cooldown (0.3s default)
-		U_InteractBlocker.unblock_with_cooldown(0.3)
+		# Unblock interact with a short cooldown to avoid immediate re-trigger.
+		U_InteractBlocker.unblock_with_cooldown(CHECKPOINT_TOAST_UNBLOCK_COOLDOWN_SEC)
 		# Restore prompt if still relevant and not paused
 		if not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt != null:
 			interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
@@ -402,12 +474,35 @@ func _show_signpost_panel(text: String, duration_sec: float = SIGNPOST_DEFAULT_D
 
 	var effective_duration := maxf(duration_sec, SIGNPOST_MIN_DURATION_SEC)
 	_signpost_panel_tween = create_tween()
-	_signpost_panel_tween.set_trans(Tween.TRANS_CUBIC)
-	_signpost_panel_tween.set_ease(Tween.EASE_OUT)
-	_signpost_panel_tween.tween_property(signpost_panel_container, "modulate:a", 1.0, SIGNPOST_PANEL_FADE_IN_SEC).from(0.0)
+	var using_signpost_fade_in: bool = _append_motion_preset_step(
+		_signpost_panel_tween,
+		signpost_panel_container,
+		signpost_fade_in_preset
+	)
+	if not using_signpost_fade_in:
+		_signpost_panel_tween.set_trans(Tween.TRANS_CUBIC)
+		_signpost_panel_tween.set_ease(Tween.EASE_OUT)
+		_signpost_panel_tween.tween_property(
+			signpost_panel_container,
+			"modulate:a",
+			1.0,
+			SIGNPOST_PANEL_FADE_IN_FALLBACK_SEC
+		).from(0.0)
 	_signpost_panel_tween.tween_interval(effective_duration)
-	_signpost_panel_tween.set_ease(Tween.EASE_IN)
-	_signpost_panel_tween.tween_property(signpost_panel_container, "modulate:a", 0.0, SIGNPOST_PANEL_FADE_OUT_SEC)
+	var using_signpost_fade_out: bool = _append_motion_preset_step(
+		_signpost_panel_tween,
+		signpost_panel_container,
+		signpost_fade_out_preset
+	)
+	if not using_signpost_fade_out:
+		_signpost_panel_tween.set_trans(Tween.TRANS_CUBIC)
+		_signpost_panel_tween.set_ease(Tween.EASE_IN)
+		_signpost_panel_tween.tween_property(
+			signpost_panel_container,
+			"modulate:a",
+			0.0,
+			SIGNPOST_PANEL_FADE_OUT_FALLBACK_SEC
+		)
 	_signpost_panel_tween.finished.connect(_on_signpost_panel_finished)
 
 func _hide_signpost_panel(restore_prompt: bool = false) -> void:
@@ -528,6 +623,79 @@ func _resolve_signpost_duration(payload: Dictionary) -> float:
 		return SIGNPOST_DEFAULT_DURATION_SEC
 	return duration_sec
 
+func _append_motion_sequence(
+	tween: Tween,
+	target: Node,
+	motion_set_resource: Resource,
+	sequence_name: StringName
+) -> bool:
+	if tween == null or target == null:
+		return false
+	if not (motion_set_resource is RS_UI_MOTION_SET):
+		return false
+	var motion_set := motion_set_resource as RS_UI_MOTION_SET
+	var presets: Array[Resource] = []
+	match sequence_name:
+		&"enter":
+			presets = motion_set.enter
+		&"exit":
+			presets = motion_set.exit
+		&"hover_in":
+			presets = motion_set.hover_in
+		&"hover_out":
+			presets = motion_set.hover_out
+		&"press":
+			presets = motion_set.press
+		&"focus_in":
+			presets = motion_set.focus_in
+		&"focus_out":
+			presets = motion_set.focus_out
+		&"pulse":
+			presets = motion_set.pulse
+		_:
+			return false
+
+	var appended_any: bool = false
+	for preset_resource in presets:
+		if _append_motion_preset_step(tween, target, preset_resource):
+			appended_any = true
+	return appended_any
+
+func _append_motion_preset_step(tween: Tween, target: Node, preset_resource: Resource) -> bool:
+	if tween == null or target == null:
+		return false
+	if not (preset_resource is RS_UI_MOTION_PRESET):
+		return false
+	var preset := preset_resource as RS_UI_MOTION_PRESET
+	var property_path: String = String(preset.property_path).strip_edges()
+
+	if property_path.is_empty():
+		var interval_sec: float = maxf(float(preset.interval_sec) + float(preset.delay_sec), 0.0)
+		if interval_sec <= 0.0:
+			return false
+		tween.tween_interval(interval_sec)
+		return true
+
+	var duration_sec: float = maxf(float(preset.duration_sec), 0.0)
+	if duration_sec <= 0.0:
+		return false
+	var tween_value: Variant = preset.to_value
+	if tween_value == null:
+		return false
+
+	var tweener := tween.tween_property(target, property_path, tween_value, duration_sec)
+	if preset.from_value != null:
+		tweener.from(preset.from_value)
+	if bool(preset.relative):
+		tweener.as_relative()
+
+	var delay_sec: float = maxf(float(preset.delay_sec), 0.0)
+	if delay_sec > 0.0:
+		tweener.set_delay(delay_sec)
+	tweener.set_trans(int(preset.transition_type))
+	tweener.set_ease(int(preset.ease_type))
+	return true
+
 ## Phase 11: Save event handlers for autosave feedback
 
 func _on_save_started(payload: Variant) -> void:
@@ -577,13 +745,22 @@ func _is_paused(state: Dictionary) -> bool:
 	return U_NavigationSelectors.is_paused(navigation_state)
 
 func _update_health_bar_colors(__state: Dictionary, health: float, max_health: float) -> void:
+	if _health_bar_fill_style == null and health_bar != null:
+		var fill_style: StyleBox = health_bar.get_theme_stylebox("fill")
+		if fill_style is StyleBoxFlat:
+			_health_bar_fill_style = fill_style as StyleBoxFlat
 	if _health_bar_fill_style == null:
 		return
 
-	var display_mgr := U_ServiceLocator.try_get_service(StringName("display_manager")) as I_DisplayManager
-	if display_mgr == null:
+	var display_mgr_service: Variant = U_ServiceLocator.try_get_service(StringName("display_manager"))
+	if display_mgr_service == null:
 		return
-	var active_palette: Resource = display_mgr.get_active_palette()
+	if not (display_mgr_service is Object):
+		return
+	var display_mgr_obj := display_mgr_service as Object
+	if not display_mgr_obj.has_method("get_active_palette"):
+		return
+	var active_palette: Resource = display_mgr_obj.call("get_active_palette")
 	if active_palette == null:
 		return
 
