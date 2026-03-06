@@ -292,7 +292,7 @@ Completion note (2026-03-06): Implemented Screen 7 with centered panel/scroll la
 - [x] Overlay fade-in, slot selection feedback
 - [x] Run existing `test_save_load_menu.gd` — all tests pass (Save/Load/Delete/Overwrite, mode detection, confirmation)
 - [x] Run full test suite
-- [ ] **Manual smoke test:** Open save/load from pause, verify error text is danger-colored, slot items are styled, loading spinner visible during operations
+- [x] **Manual smoke test:** Open save/load from pause, verify error text is danger-colored, slot items are styled, loading spinner visible during operations
 
 Completion note (2026-03-06): Implemented Screen 8 with centered panel-backed layout, `cfg_motion_fade_slide`, theme-token application (`danger`, `subheading`, `section_header`, `margin_section`, `separation_default`, `separation_compact`, `panel_section`), and tokenized slot-row styling for runtime-created items.
 - Implementation commit: `c969b7f4`
