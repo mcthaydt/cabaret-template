@@ -3,6 +3,7 @@
 **Progress:** 5 / 5 documentation tasks complete; 0 implementation tasks complete
 **Estimated Test Count:** ~296 checks (about 254 automated tests + 42 manual checks)
 **Status note:** Strict TDD (Red/Green/Refactor). Each camera mode has a dedicated phase. Mobile drag-look is a hard prerequisite for orbit/first-person completion.
+**Manual QA cadence:** Manual checks are embedded in the relevant implementation phases (no standalone manual-testing phase).
 
 ---
 
@@ -289,7 +290,7 @@ Before starting Phase 0, verify:
 
 ## Phase 2: Orbit Camera Mode
 
-**Exit Criteria:** All ~18 orbit tests pass (8 resource + 10 evaluator), orbit evaluation produces correct transforms for all authored configurations
+**Exit Criteria:** All ~18 orbit tests pass (8 resource + 10 evaluator), orbit evaluation produces correct transforms for all authored configurations (runtime manual checks deferred to Phase 6C after scene wiring)
 
 ### Phase 2A: RS_VCamModeOrbit Resource
 
@@ -343,7 +344,7 @@ Before starting Phase 0, verify:
 
 ## Phase 3: Fixed Camera Mode
 
-**Exit Criteria:** All ~14 fixed tests pass (6 resource + 8 evaluator), fixed evaluation produces correct transforms for anchored and tracking configurations
+**Exit Criteria:** All ~14 fixed tests pass (6 resource + 8 evaluator), fixed evaluation produces correct transforms for anchored and tracking configurations (runtime manual checks deferred to Phase 6C after scene wiring)
 
 ### Phase 3A: RS_VCamModeFixed Resource
 
@@ -387,7 +388,7 @@ Before starting Phase 0, verify:
 
 ## Phase 4: First-Person Camera Mode
 
-**Exit Criteria:** All ~18 first-person tests pass (8 resource + 10 evaluator), first-person evaluation produces correct transforms with pitch clamping and head offset
+**Exit Criteria:** All ~18 first-person tests pass (8 resource + 10 evaluator), first-person evaluation produces correct transforms with pitch clamping and head offset (runtime manual checks deferred to Phase 6C after scene wiring)
 
 ### Phase 4A: RS_VCamModeFirstPerson Resource
 
@@ -525,7 +526,7 @@ Before starting Phase 0, verify:
 
 ## Phase 6: vCam System (ECS) and Scene Wiring
 
-**Exit Criteria:** All ~12 system tests pass, `S_VCamSystem` reads look input from Redux, evaluates active/outgoing vcams, submits results to manager, scene wiring complete
+**Exit Criteria:** All ~12 system tests pass, `S_VCamSystem` reads look input from Redux, evaluates active/outgoing vcams, submits results to manager, scene wiring complete, desktop manual camera checks pass (`MT-01..MT-04`, `MT-09..MT-15`, `MT-18`)
 
 ### Phase 6A: S_VCamSystem
 
@@ -566,6 +567,23 @@ Before starting Phase 0, verify:
 - [ ] **Task 6B.3**: Wire C_VCamComponent to camera template
   - Modify `scenes/templates/tmpl_camera.tscn`: add default `C_VCamComponent` with `cfg_default_orbit.tres`
   - Verify template remains backward compatible with `C_CameraStateComponent`
+
+---
+
+### Phase 6C: Manual Validation (Desktop Camera Modes)
+
+- [ ] **MT-01**: Orbit camera follows player at configured distance and pitch
+- [ ] **MT-02**: Orbit camera rotates horizontally with mouse/right-stick look input
+- [ ] **MT-03**: Orbit camera rotates vertically with mouse/right-stick look input (pitch clamped)
+- [ ] **MT-04**: Orbit camera with `allow_player_rotation = false` stays at authored angle
+- [ ] **MT-09**: Fixed camera stays at authored world position
+- [ ] **MT-10**: Fixed camera with `track_target = true` rotates to follow player
+- [ ] **MT-11**: Fixed camera with `track_target = false` keeps authored rotation
+- [ ] **MT-12**: Fixed camera does not respond to look input
+- [ ] **MT-13**: First-person camera positioned at player + head offset
+- [ ] **MT-14**: First-person camera rotates with mouse/right-stick look input
+- [ ] **MT-15**: First-person camera pitch is clamped at min/max boundaries
+- [ ] **MT-18**: First-person `look_multiplier` scales rotation speed
 
 ---
 
@@ -632,6 +650,20 @@ Before starting Phase 0, verify:
 
 ---
 
+### Phase 7D: Manual Validation (Mobile Drag-Look + Touch Settings)
+
+- [ ] **MT-05**: Orbit camera on mobile: drag-look rotates camera horizontally
+- [ ] **MT-06**: Orbit camera on mobile: drag-look rotates camera vertically
+- [ ] **MT-07**: Orbit camera on mobile: simultaneous move joystick + drag-look works
+- [ ] **MT-08**: Orbit camera on mobile: pressing button during drag-look does not disrupt
+- [ ] **MT-16**: First-person camera on mobile: drag-look rotates view
+- [ ] **MT-17**: First-person camera on mobile: simultaneous move + look works
+- [ ] **MT-35**: Drag-look sensitivity slider in touchscreen settings changes rotation speed
+- [ ] **MT-36**: Invert-Y toggle in touchscreen settings inverts vertical drag direction
+- [ ] **MT-37**: Drag-look settings persist after quit and relaunch
+
+---
+
 ## Phase 8: Projection-Based Soft Zone
 
 **Exit Criteria:** All ~10 soft zone tests pass, correction is projection-aware and handles multiple viewport sizes and depths
@@ -667,6 +699,14 @@ Before starting Phase 0, verify:
   - Add 2 regression tests to `test_vcam_system.gd`:
     - Test soft zone correction is applied when component has soft zone resource
     - Test no correction when component has no soft zone resource
+
+---
+
+### Phase 8C: Manual Validation (Soft Zone)
+
+- [ ] **MT-24**: Player in dead zone: camera does not move
+- [ ] **MT-25**: Player in soft zone: camera follows with damped lag
+- [ ] **MT-26**: Player near screen edge: camera corrects to keep player in frame
 
 ---
 
@@ -752,6 +792,19 @@ Before starting Phase 0, verify:
 
 ---
 
+### Phase 9E: Manual Validation (Blend + Shake Coexistence)
+
+- [ ] **MT-19**: Switching from orbit to fixed blends smoothly (no snap)
+- [ ] **MT-20**: Switching from fixed to first-person blends smoothly
+- [ ] **MT-21**: Switching between two moving orbit cameras blends live (not frozen)
+- [ ] **MT-22**: `cut_on_distance_threshold` triggers instant cut when cameras far apart
+- [ ] **MT-23**: vCam blend does not fight scene-transition blend (suspends during transition)
+- [ ] **MT-32**: Screen shake during orbit camera works (shake visible, returns to correct position)
+- [ ] **MT-33**: Screen shake during first-person camera works
+- [ ] **MT-34**: vCam + shake + scene-transition blend all coexist cleanly
+
+---
+
 ## Phase 10: Occlusion and Silhouette
 
 **Exit Criteria:** All ~18 occlusion tests pass (6 collision + 6 silhouette + 6 integration), silhouettes work on MeshInstance3D and CSGShape3D, gated by `vfx.occlusion_silhouette_enabled`
@@ -820,6 +873,16 @@ Before starting Phase 0, verify:
 
 ---
 
+### Phase 10D: Manual Validation (Occlusion + Silhouette)
+
+- [ ] **MT-27**: Wall between camera and player shows silhouette shader
+- [ ] **MT-28**: CSG geometry occluder shows silhouette
+- [ ] **MT-29**: Silhouette clears when obstruction removed
+- [ ] **MT-30**: Silhouette toggle in VFX settings disables/enables silhouettes
+- [ ] **MT-31**: Silhouettes clear on scene transition (no stale overrides)
+
+---
+
 ## Phase 11: Editor Preview
 
 **Exit Criteria:** Rule-of-thirds preview visible in editor, absent at runtime, style tests pass
@@ -837,6 +900,13 @@ Before starting Phase 0, verify:
 
 - [ ] **Task 11.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with new files
+
+---
+
+### Phase 11A: Manual Validation (Editor Preview)
+
+- [ ] **MT-38**: Rule-of-thirds grid visible in editor viewport on camera template
+- [ ] **MT-39**: Rule-of-thirds grid NOT visible at runtime
 
 ---
 
@@ -891,6 +961,14 @@ Before starting Phase 0, verify:
 
 ---
 
+### Phase 12A: Manual Validation (Redux Observability)
+
+- [ ] **MT-40**: `vcam.active_vcam_id` updates when active camera changes
+- [ ] **MT-41**: `vcam.is_blending` is true during blend, false after completion
+- [ ] **MT-42**: `vcam.silhouette_active_count` reflects active silhouette count
+
+---
+
 ## Phase 13: Regression Coverage and Docs
 
 **Exit Criteria:** Camera-manager regression tests pass, documentation updated, style enforcement passes
@@ -918,84 +996,6 @@ Before starting Phase 0, verify:
   - Run camera-manager regression tests
   - Run touchscreen/mobile control regression tests
   - Run input system regression tests
-
----
-
-## Phase 14: Manual Testing
-
-**Exit Criteria:** All manual tests verified on desktop and mobile (or mobile emulation)
-
-### Orbit Camera Mode
-
-- [ ] **MT-01**: Orbit camera follows player at configured distance and pitch
-- [ ] **MT-02**: Orbit camera rotates horizontally with mouse/right-stick look input
-- [ ] **MT-03**: Orbit camera rotates vertically with mouse/right-stick look input (pitch clamped)
-- [ ] **MT-04**: Orbit camera with `allow_player_rotation = false` stays at authored angle
-- [ ] **MT-05**: Orbit camera on mobile: drag-look rotates camera horizontally
-- [ ] **MT-06**: Orbit camera on mobile: drag-look rotates camera vertically
-- [ ] **MT-07**: Orbit camera on mobile: simultaneous move joystick + drag-look works
-- [ ] **MT-08**: Orbit camera on mobile: pressing button during drag-look does not disrupt
-
-### Fixed Camera Mode
-
-- [ ] **MT-09**: Fixed camera stays at authored world position
-- [ ] **MT-10**: Fixed camera with `track_target = true` rotates to follow player
-- [ ] **MT-11**: Fixed camera with `track_target = false` keeps authored rotation
-- [ ] **MT-12**: Fixed camera does not respond to look input
-
-### First-Person Camera Mode
-
-- [ ] **MT-13**: First-person camera positioned at player + head offset
-- [ ] **MT-14**: First-person camera rotates with mouse/right-stick look input
-- [ ] **MT-15**: First-person camera pitch is clamped at min/max boundaries
-- [ ] **MT-16**: First-person camera on mobile: drag-look rotates view
-- [ ] **MT-17**: First-person camera on mobile: simultaneous move + look works
-- [ ] **MT-18**: First-person `look_multiplier` scales rotation speed
-
-### Blend and Transition
-
-- [ ] **MT-19**: Switching from orbit to fixed blends smoothly (no snap)
-- [ ] **MT-20**: Switching from fixed to first-person blends smoothly
-- [ ] **MT-21**: Switching between two moving orbit cameras blends live (not frozen)
-- [ ] **MT-22**: `cut_on_distance_threshold` triggers instant cut when cameras far apart
-- [ ] **MT-23**: vCam blend does not fight scene-transition blend (suspends during transition)
-
-### Soft Zone
-
-- [ ] **MT-24**: Player in dead zone: camera does not move
-- [ ] **MT-25**: Player in soft zone: camera follows with damped lag
-- [ ] **MT-26**: Player near screen edge: camera corrects to keep player in frame
-
-### Occlusion and Silhouette
-
-- [ ] **MT-27**: Wall between camera and player shows silhouette shader
-- [ ] **MT-28**: CSG geometry occluder shows silhouette
-- [ ] **MT-29**: Silhouette clears when obstruction removed
-- [ ] **MT-30**: Silhouette toggle in VFX settings disables/enables silhouettes
-- [ ] **MT-31**: Silhouettes clear on scene transition (no stale overrides)
-
-### Shake Coexistence
-
-- [ ] **MT-32**: Screen shake during orbit camera works (shake visible, returns to correct position)
-- [ ] **MT-33**: Screen shake during first-person camera works
-- [ ] **MT-34**: vCam + shake + scene-transition blend all coexist cleanly
-
-### Mobile Settings
-
-- [ ] **MT-35**: Drag-look sensitivity slider in touchscreen settings changes rotation speed
-- [ ] **MT-36**: Invert-Y toggle in touchscreen settings inverts vertical drag direction
-- [ ] **MT-37**: Drag-look settings persist after quit and relaunch
-
-### Editor Preview
-
-- [ ] **MT-38**: Rule-of-thirds grid visible in editor viewport on camera template
-- [ ] **MT-39**: Rule-of-thirds grid NOT visible at runtime
-
-### Redux Observability
-
-- [ ] **MT-40**: `vcam.active_vcam_id` updates when active camera changes
-- [ ] **MT-41**: `vcam.is_blending` is true during blend, false after completion
-- [ ] **MT-42**: `vcam.silhouette_active_count` reflects active silhouette count
 
 ---
 
