@@ -1,0 +1,366 @@
+# vCam Manager Overview
+
+**Project**: Cabaret Template (Godot 4.6)  
+**Created**: 2026-03-06  
+**Updated**: 2026-03-07  
+**Status**: Documentation remediated, implementation not started
+
+## Summary
+
+The vCam Manager is a gameplay camera orchestration layer inspired by Cinemachine. It adds virtual-camera authoring and selection on top of the current camera stack without replacing the existing low-level camera manager or QB camera-state systems.
+
+For this feature to be complete, player-controlled orbit and first-person camera behavior must also work on mobile through drag-look, not only on mouse and gamepad.
+
+The corrected stack is:
+
+```text
+Gameplay input and camera authorship
+        |
+        v
+S_InputSystem / S_TouchscreenSystem -> gameplay.look_input
+        |
+        v
+S_VCamSystem + C_VCamComponent + vCam mode resources
+        |
+        v
+M_VCamManager
+        |
+        v
+M_CameraManager + C_CameraStateComponent + S_CameraStateSystem
+```
+
+`M_VCamManager` chooses which virtual camera should drive gameplay, owns live vCam-to-vCam blend state, manages occlusion silhouettes, and publishes runtime observability into Redux. `M_CameraManager` still owns scene-transition blending and shake layering. `S_CameraStateSystem` still owns the final `camera.fov` write.
+
+## Repo Reality Checks
+
+- `scenes/root.tscn` is the persistent app root. Long-lived managers live there.
+- Gameplay scenes own their own `M_ECSManager`.
+- `S_InputSystem` already captures `look_input` and dispatches it into the gameplay slice.
+- `S_TouchscreenSystem` currently handles move/jump/sprint only and hard-codes look strength to `0.0`, so mobile drag-look is still a required dependency for vCam parity.
+- `M_CameraManager` is already registered in `U_ServiceLocator` as `camera_manager`.
+- `M_CameraManager` may insert a `ShakeParent` above the active camera to apply screen shake.
+- Because of that `ShakeParent`, vCam must not write `camera.global_transform` directly.
+- `C_CameraStateComponent` and `S_CameraStateSystem` already exist and already own FOV composition and shake-trauma behavior.
+- `U_GlobalSettingsSerialization` already persists the `vfx` slice, so player-facing silhouette enablement belongs there.
+- `settings.input_settings.touchscreen_settings` is already the persisted home for mobile control tuning, so drag-look sensitivity and invert-Y belong there, not in `vcam`.
+- Existing gameplay scenes use both `MeshInstance3D` and `CSGBox3D`-style geometry, so occlusion logic cannot assume mesh-only scene content.
+
+## Runtime Wiring
+
+These nodes and files are required for the feature to exist at runtime:
+
+- `scenes/root.tscn`
+  - add `M_VCamManager` under `Managers`
+  - assign `vcam_initial_state` on `M_StateStore`
+- `scenes/templates/tmpl_base_scene.tscn`
+  - add `S_VCamSystem` under `Systems/Core`
+- `scenes/gameplay/gameplay_base.tscn`
+  - update concrete system tree until template propagation covers it
+- `scenes/templates/tmpl_camera.tscn`
+  - add the default `C_VCamComponent`
+  - later add the editor-only rule-of-thirds preview node
+
+Updating only `tmpl_camera.tscn` is not enough.
+
+## Goals
+
+- Support orbit, fixed, and first-person virtual camera modes.
+- Support soft-zone follow behavior with dead-zone and damping.
+- Blend smoothly between virtual cameras.
+- Handle occluders with silhouettes instead of dolly push-in.
+- Provide an editor-only rule-of-thirds preview.
+- Expose active camera runtime state through a transient Redux slice.
+- Support mobile drag-look for rotatable orbit and first-person cameras.
+- Fit the existing scene-manager, state-store, and camera-manager architecture cleanly.
+
+## Non-Goals
+
+- Replacing `M_CameraManager`
+- Replacing `S_CameraStateSystem`
+- Replacing the existing input pipeline
+- Dolly or push-in collision response
+- Cinematic timeline tooling
+- Split-screen or multi-viewport support
+- 2D cameras
+
+## Responsibilities and Boundaries
+
+### `M_VCamManager`
+
+Owns:
+
+- registration and lifetime of active `C_VCamComponent` instances
+- active vCam selection
+- vCam blend state
+- Redux `vcam` observability updates
+- occlusion detection and silhouette application
+- final handoff of gameplay transform data into `M_CameraManager`
+
+Does not own:
+
+- scene-transition blends
+- shake layering
+- direct final `camera.fov` writes
+
+### `S_VCamSystem`
+
+Owns:
+
+- reading current `look_input` from Redux
+- evaluating the active vCam every physics tick
+- evaluating the outgoing vCam as well when a blend is active
+- updating `runtime_yaw` and `runtime_pitch` on the correct component
+- applying soft-zone correction before results are submitted
+
+### `M_CameraManager`
+
+Remains the low-level camera runtime owner:
+
+- registers and discovers the main scene camera
+- owns the transition camera
+- owns shake-parent creation and shake transforms
+- exposes a shake-safe API for vCam gameplay transform application
+
+### `S_CameraStateSystem`
+
+Remains the FOV and trauma owner:
+
+- QB-driven camera rules
+- base-FOV composition
+- final `camera.fov` application
+
+## Interaction Flow
+
+```text
+S_InputSystem
+  -> dispatches gameplay.look_input
+
+S_TouchscreenSystem
+  -> dispatches gameplay.look_input for mobile drag-look using UI_MobileControls
+
+S_VCamSystem.process_tick(delta)
+  -> resolve active vCam from M_VCamManager
+  -> resolve outgoing vCam too when blend is active
+  -> update per-vCam runtime_yaw/runtime_pitch from gameplay.look_input
+  -> evaluate mode resource(s)
+  -> apply projection-based soft-zone correction
+  -> submit evaluated camera result(s) back to M_VCamManager
+
+M_VCamManager._physics_process(delta)
+  -> if M_CameraManager.is_blend_active(): suspend gameplay camera writes
+  -> select live blended result or active result
+  -> M_CameraManager.apply_main_camera_transform(transform)
+  -> update C_CameraStateComponent.base_fov
+  -> detect occluders and apply silhouettes if vfx.occlusion_silhouette_enabled
+  -> dispatch transient vcam slice updates
+
+S_CameraStateSystem.process_tick(delta)
+  -> reads camera-state component
+  -> applies final camera.fov
+```
+
+## Public API
+
+### `M_VCamManager`
+
+```gdscript
+func register_vcam(vcam: C_VCamComponent) -> void
+func unregister_vcam(vcam: C_VCamComponent) -> void
+func set_active_vcam(vcam_id: StringName, blend_duration: float = -1.0) -> void
+func get_active_vcam_id() -> StringName
+func get_previous_vcam_id() -> StringName
+func submit_evaluated_camera(vcam_id: StringName, result: Dictionary) -> void
+func get_blend_progress() -> float
+func is_blending() -> bool
+```
+
+### `M_CameraManager` additions required by vCam
+
+```gdscript
+func apply_main_camera_transform(xform: Transform3D) -> void
+func is_blend_active() -> bool
+```
+
+`apply_main_camera_transform(...)` exists specifically so gameplay camera motion can coexist with `ShakeParent`-based shake.
+
+## State Model
+
+### Transient `vcam` slice
+
+| Field | Type | Notes |
+|------|------|-------|
+| `active_vcam_id` | `StringName` | currently active gameplay vCam |
+| `active_mode` | `String` | mode name for debugging/UI |
+| `previous_vcam_id` | `StringName` | outgoing vCam during a live blend |
+| `blend_progress` | `float` | `0.0..1.0` |
+| `is_blending` | `bool` | whether live vCam blending is active |
+| `silhouette_active_count` | `int` | number of active silhouette overrides |
+
+This slice is whole-slice transient. It is not save data and not a player settings surface.
+
+### Persisted VFX setting
+
+| Slice | Field | Purpose |
+|------|-------|---------|
+| `vfx` | `occlusion_silhouette_enabled` | player-facing enable/disable toggle |
+
+### Persisted mobile look settings
+
+| Slice | Field | Purpose |
+|------|-------|---------|
+| `settings.input_settings.touchscreen_settings` | `look_drag_sensitivity` | mobile drag-look tuning |
+| `settings.input_settings.touchscreen_settings` | `invert_look_y` | mobile drag-look inversion |
+
+## Camera Modes
+
+### `RS_VCamModeOrbit`
+
+- authored distance/pitch/yaw
+- optional player rotation
+- `rotation_speed` is used only when player rotation is enabled
+- authored FOV feeds `C_CameraStateComponent.base_fov`
+
+### `RS_VCamModeFixed`
+
+- authored world anchor
+- optional tracking toward the follow target
+- useful for room cameras and authored framing
+
+### `RS_VCamModeFirstPerson`
+
+- authored head offset
+- authored `look_multiplier`
+- pitch clamping
+- authored FOV feeds `C_CameraStateComponent.base_fov`
+
+`look_multiplier` is a per-vCam authored multiplier. The input layer already provides scaled `look_input`.
+
+On mobile, that same `look_input` must come from drag-look through the existing touchscreen input path rather than through a separate vCam-only control scheme.
+
+## Soft-Zone System
+
+Soft-zone behavior is still defined in normalized screen space, but the implementation has to be projection-aware.
+
+Correct process:
+
+1. Evaluate the vCam mode to get a desired camera pose.
+2. Project the follow target into the viewport from that desired pose.
+3. Determine whether the target is in the dead zone, soft zone, or outside the allowed bounds.
+4. Find the corrected screen-space target point.
+5. Reproject that point back into world space at the same camera-space depth.
+6. Convert the difference into a world-space correction applied to the desired camera pose.
+
+What the implementation must not do:
+
+- assume `target_screen_pos` already exists without a projection step
+- treat normalized screen deltas like direct world-space units
+
+## Blend System
+
+The original draft froze the outgoing transform at blend start. That is not sufficient for moving cameras.
+
+Correct blend behavior:
+
+- store outgoing and incoming vCam IDs, not only old transforms
+- evaluate both cameras every tick while a blend is active
+- blend the two live results each tick
+- apply `RS_VCamBlendHint.ease_type`
+- if `cut_on_distance_threshold > 0.0` and the evaluated camera positions are farther apart than the threshold, cut immediately instead of blending
+
+## Mobile Drag-Look Contract
+
+Mobile support is not complete unless the shared `gameplay.look_input` path works for touch.
+
+Required behavior:
+
+- `UI_MobileControls` tracks a dedicated look touch separate from the move joystick and virtual buttons.
+- A touch that begins on the joystick or on a button remains owned by that control.
+- A touch that begins elsewhere becomes a drag-look gesture.
+- `S_TouchscreenSystem` dispatches `U_InputActions.update_look_input(look_delta)` each tick for touchscreen mode.
+- `S_InputSystem` must not overwrite touchscreen gameplay input with zero payloads from `TouchscreenSource`.
+- Mobile drag-look settings persist through `settings.input_settings.touchscreen_settings`, not the `vcam` slice.
+- `S_VCamSystem` remains device-agnostic and simply consumes the shared `look_input` value.
+
+## Collision and Silhouette
+
+### Detection
+
+- cast against physics layer 6 named `vcam_occludable`
+- detect `GeometryInstance3D` occluders
+- support `MeshInstance3D` and `CSGShape3D`
+
+### Rendering
+
+- use `assets/shaders/sh_vcam_silhouette_shader.gdshader`
+- store original override state so restoration is deterministic
+- clear all overrides when no active gameplay vCam exists or a scene swap invalidates the previous result set
+
+## Editor Preview
+
+Use a helper patterned after `U_CinemaGradePreview`:
+
+- file: `scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`
+- `@tool`
+- extends `Node`
+- creates its own `CanvasLayer` and drawing child internally
+- frees itself at runtime
+
+This intentionally avoids a new `scripts/tools` category.
+
+## File Layout
+
+```text
+scripts/managers/m_vcam_manager.gd
+scripts/interfaces/i_vcam_manager.gd
+scripts/ecs/components/c_vcam_component.gd
+scripts/ecs/systems/s_vcam_system.gd
+scripts/resources/display/vcam/*.gd
+scripts/resources/state/rs_vcam_initial_state.gd
+scripts/state/actions/u_vcam_actions.gd
+scripts/state/reducers/u_vcam_reducer.gd
+scripts/state/selectors/u_vcam_selectors.gd
+scripts/utils/display/u_vcam_rule_of_thirds_preview.gd
+assets/shaders/sh_vcam_silhouette_shader.gdshader
+resources/state/cfg_default_vcam_initial_state.tres
+resources/display/vcam/*.tres
+```
+
+## Testing Strategy
+
+### Unit coverage
+
+- state resource, reducer, selectors
+- vCam mode resources
+- soft-zone helper
+- blend evaluator
+- collision detector
+- silhouette helper
+- `M_VCamManager`
+- `S_VCamSystem`
+- mobile drag-look regression coverage in `S_TouchscreenSystem` and `UI_MobileControls`
+- zero-clobber regression coverage for `S_InputSystem` when touchscreen is active
+- `M_CameraManager` regression coverage for the new API
+- `MockCameraManager` coverage for new interface methods
+
+### Integration coverage
+
+- root scene registers `M_VCamManager`
+- gameplay scenes include `S_VCamSystem`
+- switching active vCams blends correctly
+- moving outgoing and incoming cameras stay live through the blend
+- vCam gameplay motion and shake coexist
+- silhouettes work on both mesh and CSG occluders
+- mobile drag-look feeds orbit and first-person cameras through the same `gameplay.look_input` path
+
+## Resolved Decisions
+
+| Topic | Decision |
+|------|----------|
+| root wiring | `M_VCamManager` lives in `scenes/root.tscn` |
+| gameplay wiring | `S_VCamSystem` lives in gameplay `Systems/Core` |
+| state persistence | `vcam` is transient; silhouette enablement persists in `vfx` |
+| input ownership | reuse `gameplay.look_input` from `S_InputSystem` and touchscreen drag-look via `S_TouchscreenSystem` |
+| shake compatibility | vCam uses `M_CameraManager.apply_main_camera_transform(...)` |
+| blend correctness | evaluate both cameras live during blends |
+| soft-zone math | projection-based correction |
+| naming/style | use `scripts/resources/display/vcam`, `scripts/utils/display`, `sh_*_shader.gdshader` |
