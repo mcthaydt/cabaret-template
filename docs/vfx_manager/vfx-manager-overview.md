@@ -1,20 +1,29 @@
 # VFX Manager Overview
 
-**Project**: Cabaret Template (Godot 4.5)
+**Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-01-01
-**Last Updated**: 2026-01-04
-**Status**: IMPLEMENTED (Phases 0-7 complete)
+**Last Updated**: 2026-03-07
+**Status**: IMPLEMENTED baseline (vCam-alignment addendum documented)
 **Scope**: Screen shake, damage flash, gameplay visual effects (particle systems retained)
 
 ## Summary
 
 The VFX Manager is a persistent orchestration layer for screen-level visual effects. It coordinates screen shake (camera trauma), damage flash overlays, and future gameplay screen effects. The manager works alongside existing ECS particle systems (`S_JumpParticlesSystem`, `S_LandingParticlesSystem`, etc.) which remain ECS-based; particle spawning is globally gated by `vfx.particles_enabled` via `U_ParticleSpawner`. Post-processing effects (film grain, CRT, Lomo) are explicitly out of scope and will be handled by a future Display Manager.
 
+## vCam Alignment Addendum (2026-03)
+
+- Camera runtime orchestration authority lives in `docs/vcam_manager/*`; this doc remains authoritative only for VFX behavior and settings ownership.
+- `M_CameraManager.apply_shake_offset(...)` remains VFX-owned integration for shake layering.
+- vCam gameplay transform handoff uses `M_CameraManager.apply_main_camera_transform(...)` and transition guard `M_CameraManager.is_blend_active()` (defined in vCam docs).
+- Occlusion silhouette player preference is persisted in `vfx.occlusion_silhouette_enabled` and exposed in `UI_VFXSettingsOverlay` with localization keys.
+- Occlusion rollout requires both physics layer naming (`vcam_occludable`) and authored-scene migration of true camera blockers.
+
 ## Repo Reality Checks
 
 - Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
 - Service registration is bootstrapped by `scripts/root.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
 - `M_CameraManager` supports both camera blending and screen shake via `apply_shake_offset(offset: Vector2, rotation: float)` (active scene camera, or TransitionCamera during blends).
+- Gameplay camera orchestration contracts (`apply_main_camera_transform`, `is_blend_active`, fixed-anchor strategy) are documented in `docs/vcam_manager/*` and are out of scope for this VFX overview.
 - Tests should use real `U_ECSEventBus` and call `U_ECSEventBus.reset()` in `before_each()` to prevent subscription leaks.
 - `LoadingOverlay` in `scenes/root.tscn` uses `layer = 100`; if adding a damage flash overlay scene, pick an explicit layer below it (docs recommend `layer = 50`).
 
@@ -88,6 +97,7 @@ U_VFXSelectors.is_particles_enabled(state: Dictionary) -> bool
 | `screen_shake_intensity` | float | 1.0 | Shake intensity multiplier (0.0-2.0) |
 | `damage_flash_enabled` | bool | true | Damage flash effect toggle |
 | `particles_enabled` | bool | true | Global particles toggle |
+| `occlusion_silhouette_enabled` | bool | true | Player-facing vCam occlusion silhouette toggle |
 
 **Note**: VFX settings persist to save files (included in vfx slice).
 

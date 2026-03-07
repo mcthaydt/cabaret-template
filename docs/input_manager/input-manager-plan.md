@@ -8,6 +8,15 @@
 
 > **Cleanup note (2026-03)**: Any references to adding managers to groups for discovery are outdated. Rely on ServiceLocator registration and @export injection per cleanup_v3.
 
+## vCam Alignment Addendum (2026-03)
+
+- Gameplay camera-runtime authority is `docs/vcam_manager/*`; this plan is input-domain authority.
+- Shared look path is `gameplay.look_input` across desktop, gamepad, and touchscreen.
+- `S_TouchscreenSystem` owns touchscreen look dispatch from `UI_MobileControls` drag-look data.
+- `S_InputSystem` must not zero-clobber touchscreen move/look payloads when touchscreen is the active source.
+- Touch look tuning persists in `settings.input_settings.touchscreen_settings` (`look_drag_sensitivity`, `invert_look_y`) and feeds the shared look path.
+- References below that imply group-based discovery or touchscreen look bypassing Redux should be treated as historical.
+
 The Input Manager system provides comprehensive multi-device input support for the game, enabling keyboard/mouse, gamepad, and touchscreen inputs with rebinding, profiles, and accessibility features. The system integrates with the existing ECS architecture and Redux-based M_StateStore while maintaining the project's no-autoload pattern. Key features include:
 
 - **Multi-device support**: Keyboard/mouse, gamepad (analog + digital), touchscreen (virtual controls)
@@ -42,7 +51,7 @@ The Input Manager system provides comprehensive multi-device input support for t
 
 **Storage**:
 - Input settings: `user://global_settings.json` (JSON-based persistence)
-- Input profiles: `resources/input_profiles/*.tres` (Godot Resource files)
+- Input profiles: `resources/input/profiles/*.tres` (Godot Resource files)
 - Button prompts: `resources/button_prompts/{keyboard,gamepad}/*.png` (texture assets)
 
 **Testing**: GUT framework for unit/integration tests, manual in-game validation
@@ -61,7 +70,7 @@ The Input Manager system provides comprehensive multi-device input support for t
 - Gamepad vibration latency: < 50ms from trigger to haptic feedback
 
 **Constraints**:
-- **No autoloads**: Scene-tree-based architecture, discovery via groups and parent traversal
+- **No autoloads**: Scene-tree-based architecture, discovery via ServiceLocator and typed dependency injection
 - **ECS integration**: Follow existing component/system patterns (C_*, S_* prefixes, auto-registration)
 - **Redux patterns**: All state updates via action creators and reducers
 - **StateHandoff compatible**: Input settings persist across scene transitions
@@ -84,7 +93,7 @@ The Input Manager system provides comprehensive multi-device input support for t
 
 **Architectural Constraints Check**:
 
-✅ **No Autoloads**: M_InputProfileManager and M_InputDeviceManager will be in-scene nodes in root.tscn, discoverable via groups ("input_profile_manager", "input_device_manager")
+✅ **No Autoloads**: M_InputProfileManager and M_InputDeviceManager are in-scene nodes in root.tscn, discoverable via ServiceLocator
 ✅ **ECS Integration**: All input components extend ECSComponent, all systems extend ECSSystem, follow auto-registration pattern
 ✅ **State Management**: Integrates with existing M_StateStore (Redux) by adding input state to gameplay and settings slices
 ✅ **Scene Tree Based**: All managers live in scenes, no singleton configuration required
@@ -101,7 +110,7 @@ The Input Manager system provides comprehensive multi-device input support for t
 **Risk Assessment**:
 
 ✅ **Well-Scoped**: PRD comprehensive with 136 FRs, 22 SCs, all architectural questions resolved
-✅ **Proven Patterns**: Reuses existing ECS patterns, Redux patterns, manager discovery patterns
+✅ **Proven Patterns**: Reuses existing ECS patterns, Redux patterns, and ServiceLocator discovery patterns
 ⚠️ **Moderate Complexity**: Coordinates multiple input devices, profile system, rebinding validation, state persistence
 ⚠️ **Cross-Platform**: Requires testing on desktop (keyboard/mouse/gamepad) AND mobile (touchscreen) - physical device now available (emulation only as fallback)
 ⚠️ **Performance Sensitive**: Input latency critical for game feel - must validate < 16ms target on all devices
@@ -228,7 +237,7 @@ tests/
 │       ├── test_virtual_button.gd                 # NEW - Virtual button tests
 │       ├── test_u_input_actions.gd                # NEW - Action creator tests
 │       ├── test_u_input_selectors.gd              # NEW - Selector tests
-│       ├── test_input_reducer.gd                  # NEW - Reducer tests
+│       ├── test_u_input_reducer.gd                # NEW - Reducer tests
 │       ├── test_rs_input_profile.gd               # NEW - Profile resource tests
 │       ├── test_rs_gamepad_settings.gd            # NEW - Gamepad settings tests
 │       └── test_rs_rebind_settings.gd             # NEW - Rebind settings tests
@@ -251,7 +260,7 @@ tests/
 - **NEW tests**: 22 (14 unit + 8 integration)
 
 **Organization Note**: All files follow existing repo patterns - NO new `scripts/input/` directory:
-- Resources → `scripts/ecs/resources/`
+- Resources → `scripts/resources/input/`
 - Utilities → `scripts/` (root)
 - Systems → `scripts/ecs/systems/`
 - Managers → `scripts/managers/`
@@ -266,23 +275,23 @@ The following architectural decisions address integration with existing systems 
 
 **Where M_InputProfileManager and M_InputDeviceManager Live:**
 - **Location**: `scenes/root.tscn` under `Managers/` node (parallel to M_StateStore, M_SceneManager, M_CursorManager)
-- **Pattern**: In-scene nodes, discoverable via groups ("input_profile_manager", "input_device_manager")
+- **Pattern**: In-scene nodes, registered in ServiceLocator (`input_profile_manager`, `input_device_manager`)
 - **Reasoning**: Consistent with project's no-autoload constraint, follows existing manager patterns
 
 **Manager Scope:**
 - One instance per session (persist in root.tscn throughout game lifetime)
 - Initialize on _ready() before gameplay systems run
-- Add to groups for discovery: `add_to_group("input_profile_manager")`, `add_to_group("input_device_manager")`
+- Register services for discovery via `U_ServiceLocator.register(...)`
 
 **Template Updates Required:**
 - ✅ Update `scenes/root.tscn` to include M_InputProfileManager and M_InputDeviceManager under Managers/ node
-- ✅ Ensure managers call `add_to_group()` in `_ready()`
-- ✅ Systems find managers via `get_tree().get_first_node_in_group("input_profile_manager")`
+- ✅ Ensure managers register/unregister with ServiceLocator in lifecycle hooks
+- ✅ Systems and overlays resolve managers through ServiceLocator (or injected interfaces in tests)
 
 ### Decision 2: Resource File Organization
 
 **Where Input Profile .tres Files Live:**
-- **Location**: `resources/input_profiles/` (NEW directory)
+- **Location**: `resources/input/profiles/` (NEW directory)
 - **Pattern**: Follows existing `resources/base_settings/` convention for ECS settings
 - **File Structure**:
   ```
@@ -299,7 +308,7 @@ The following architectural decisions address integration with existing systems 
       ├── default_jump_settings.tres
       └── ...
 
-  scripts/input/                         # .gd scripts ONLY
+  scripts/resources/input/               # .gd scripts ONLY
   ├── rs_input_profile.gd
   ├── rs_gamepad_settings.gd
   └── ...
@@ -677,7 +686,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 **Task 0.7: Design File Structure** (1 hour)
 - Create complete file tree for Input Manager (see Project Structure section above)
 - Annotate files as NEW vs MODIFIED
-- Plan directory creation: `resources/input_profiles/`, `resources/button_prompts/` (NO `scripts/input/` - follows existing patterns)
+- Plan directory creation: `resources/input/profiles/`, `resources/button_prompts/` (NO `scripts/input/` - follows existing patterns)
 - Plan test directory: `tests/unit/input_manager/`, `tests/integration/input_manager/`
 - **File organization**: Resources in `scripts/ecs/resources/`, utilities in `scripts/`, systems in `scripts/ecs/systems/`
 - **Deliverables**:
@@ -808,7 +817,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   - [ ] All 10 selector functions implemented
 
 **Task 1.3: Extend Gameplay Reducer for Input Actions** (1-2 hours) - TDD REQUIRED - **Satisfies FR-076**
-- **Test First**: Write `tests/unit/input_manager/test_input_reducer.gd`
+- **Test First**: Write `tests/unit/input_manager/test_u_input_reducer.gd`
   - Test reducer handles all 14 input action types
   - Test state updates immutable (use .duplicate(true))
   - Test transient fields excluded from persistence
@@ -839,7 +848,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   - ACTION_GAMEPAD_DISCONNECTED: Update gamepad_connected, gamepad_device_id = -1
 - Use immutable updates: `new_state.input = state.input.duplicate(true)` before modifying
 - Mark input slice as transient (excluded from save_state())
-- **Files modified**: u_gameplay_reducer.gd, test_input_reducer.gd
+- **Files modified**: u_gameplay_reducer.gd, test_u_input_reducer.gd
 - **Acceptance**:
   - [ ] Test passes: All input actions handled correctly
   - [ ] Test passes: State updates are immutable (original state unchanged)
@@ -1003,7 +1012,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 
 **Commit 3**: Input reducers implemented (TDD)
 - **Message**: "Phase 1.3-1.4: Gameplay and settings reducers for input with tests"
-- **Files**: u_gameplay_reducer.gd (modified), u_settings_reducer.gd (modified or new), test_input_reducer.gd, test_settings_reducer.gd
+- **Files**: u_gameplay_reducer.gd (modified), u_settings_reducer.gd (modified or new), test_u_input_reducer.gd, test_settings_reducer.gd
 
 **Commit 4**: S_InputSystem state integration and mouse sensitivity
 - **Message**: "Phase 1.5-1.6: S_InputSystem state dispatch and mouse sensitivity"
@@ -1031,7 +1040,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   - Test resource save/load (.tres file)
   - Test action_mappings dictionary structure
 - **Time estimate**: 30 min for tests, 1-1.5 hours for implementation
-- Create `scripts/input/rs_input_profile.gd`
+- Create `scripts/resources/input/rs_input_profile.gd`
 - Define resource class:
   ```gdscript
   class_name RS_InputProfile extends Resource
@@ -1052,7 +1061,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 
 **Task 2.2: Create Default Input Profiles** (2-3 hours) - **Satisfies FR-012**
 - **Time estimate**: 2-3 hours (manual resource creation in Godot editor)
-- Create 4 profile .tres files in `resources/input_profiles/`:
+- Create 4 profile .tres files in `resources/input/profiles/`:
   1. **default.tres** (WASD, Space, Shift)
      ```
      profile_name = "Default"
@@ -1115,7 +1124,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
      ```
 - **Files created**: default.tres, alternate.tres, accessibility.tres, gamepad_generic.tres
 - **Acceptance**:
-  - [ ] 4 profile .tres files created in resources/input_profiles/
+  - [ ] 4 profile .tres files created in `resources/input/profiles/`
   - [ ] All profiles loadable in Godot editor without errors
   - [ ] All required actions mapped in each profile
 
@@ -1200,7 +1209,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   func _load_active_profile() -> void:
     var state := _state_store.get_state()
     var profile_id := U_InputSelectors.get_active_profile_id(state)
-    var profile_path := "res://resources/input_profiles/%s.tres" % profile_id
+    var profile_path := "res://resources/input/profiles/%s.tres" % profile_id
     switch_profile(profile_path)
   ```
 - **Files created**: m_input_profile_manager.gd, test_input_profile_manager.gd
@@ -1232,7 +1241,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   func _on_profile_selected(index: int) -> void:
     var profile_names := ["default", "alternate", "accessibility", "gamepad_generic"]
     var profile_id := profile_names[index]
-    var profile_path := "res://resources/input_profiles/%s.tres" % profile_id
+    var profile_path := "res://resources/input/profiles/%s.tres" % profile_id
 
     var manager := get_tree().get_first_node_in_group("input_profile_manager") as M_InputProfileManager
     if manager:
@@ -1798,7 +1807,7 @@ func _ready() -> void:
 func _on_profile_selected(index: int) -> void:
 	var profile_names := ["default", "alternate", "accessibility", "gamepad_generic"]
 	var profile_id := profile_names[index]
-	var profile_path := "res://resources/input_profiles/%s.tres" % profile_id
+	var profile_path := "res://resources/input/profiles/%s.tres" % profile_id
 
 	# Find manager via group
 	var manager := get_tree().get_first_node_in_group("input_profile_manager") as M_InputProfileManager
@@ -2470,7 +2479,7 @@ func _apply_landing_vibration(fall_speed: float) -> void:
    - Test selectors return correct values from state
    - Test selectors handle missing fields gracefully
 
-3. **test_input_reducer.gd** (~200 lines) - **Satisfies FR-129**
+3. **test_u_input_reducer.gd** (~200 lines) - **Satisfies FR-129**
    - Test reducer handles all 14 input action types
    - Test immutable updates (original state unchanged)
    - Test transient fields excluded from persistence

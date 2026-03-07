@@ -5,6 +5,13 @@
 **Integration Tests:** 13 / 13 passing (Phase 6 integration complete)
 **Manual QA:** 9 / 9 complete (Phase 6 complete)
 
+## vCam Alignment Addendum (2026-03)
+
+- Camera-runtime orchestration source of truth is `docs/vcam_manager/*`; this checklist remains VFX-domain scoped.
+- Keep VFX integration on `M_CameraManager.apply_shake_offset(...)`; do not redefine gameplay transform ownership here.
+- Persisted silhouette toggle used by vCam occlusion is `vfx.occlusion_silhouette_enabled` (UI: `UI_VFXSettingsOverlay` + localization keys).
+- Occlusion blocker rollout (`vcam_occludable` + authored blocker migration) is tracked in vCam docs/tasks, not this VFX checklist.
+
 ---
 
 ## Phase 0: Redux Foundation ✅ COMPLETE
@@ -17,7 +24,7 @@
   - All 6 tests failing as expected ✅
 
 - [x] **Task 0.2 (Green)**: Implement VFX initial state resource
-  - Create `scripts/state/resources/rs_vfx_initial_state.gd`
+  - Create `scripts/resources/state/rs_vfx_initial_state.gd`
   - Exports: `screen_shake_enabled: bool`, `screen_shake_intensity: float`, `damage_flash_enabled: bool`, `particles_enabled: bool`
   - Implement `to_dictionary()` for slice initialization
   - All 6 tests passing ✅
@@ -251,7 +258,7 @@
 **Exit Criteria:** All 10 damage flash tests pass, flash visible on damage, fade animation correct (0.4s duration), retrigger kills existing tween
 
 - [x] **Task 4.1 (Green)**: Create damage flash overlay scene
-  - Create `scenes/ui/ui_damage_flash_overlay.tscn` (CanvasLayer; recommend `layer = 50` to stay below `LoadingOverlay.layer = 100` in `scenes/root.tscn`)
+  - Create `scenes/ui/overlays/ui_damage_flash_overlay.tscn` (CanvasLayer; recommend `layer = 50` to stay below `LoadingOverlay.layer = 100` in `scenes/root.tscn`)
   - Scene structure:
     ```
 	    CanvasLayer (layer=50)
@@ -308,7 +315,7 @@
   - Add field: `var _damage_flash: U_DamageFlash`
   - Load and instance damage flash scene in `_ready()`:
     ```gdscript
-    var flash_scene := load("res://scenes/ui/ui_damage_flash_overlay.tscn")
+    var flash_scene := load("res://scenes/ui/overlays/ui_damage_flash_overlay.tscn")
     var flash_instance := flash_scene.instantiate()
     add_child(flash_instance)
     var flash_rect := flash_instance.get_node("FlashRect") as ColorRect
@@ -476,7 +483,7 @@
   - Add particle gating test: `tests/unit/ecs/systems/test_spawn_particles_system.gd`
 
 - [x] **Task 7.2 (Green)**: Add `particles_enabled` to VFX Redux slice
-  - Modify `scripts/state/resources/rs_vfx_initial_state.gd` (add field + `to_dictionary()`)
+  - Modify `scripts/resources/state/rs_vfx_initial_state.gd` (add field + `to_dictionary()`)
   - Modify `scripts/state/actions/u_vfx_actions.gd` (add action + creator)
   - Modify `scripts/state/reducers/u_vfx_reducer.gd` (add reducer support)
   - Modify `scripts/state/selectors/u_vfx_selectors.gd` (add selector)
@@ -498,7 +505,7 @@
 
 | File Path | Status | Phase | Notes |
 |-----------|--------|-------|-------|
-| `scripts/state/resources/rs_vfx_initial_state.gd` | ✅ Complete | 0, 7 | VFX initial state resource with 4 fields |
+| `scripts/resources/state/rs_vfx_initial_state.gd` | ✅ Complete | 0, 7 | VFX initial state resource with 4 fields |
 | `scripts/state/actions/u_vfx_actions.gd` | ✅ Complete | 0, 7 | 4 action creators for VFX settings |
 | `scripts/state/reducers/u_vfx_reducer.gd` | ✅ Complete | 0, 7 | VFX reducer with intensity clamping |
 | `scripts/state/selectors/u_vfx_selectors.gd` | ✅ Complete | 0, 7 | 4 selectors for VFX state |
@@ -513,7 +520,7 @@
 | `scripts/managers/helpers/u_screen_shake.gd` | ✅ Complete | 2 | Screen shake helper with noise algorithm |
 | `tests/unit/managers/helpers/test_screen_shake.gd` | ✅ Complete | 2 | 15 tests for shake algorithm |
 | `scripts/managers/m_camera_manager.gd` | ✅ Complete | 3 | Modified to add shake parent + apply method + ServiceLocator registration |
-| `scenes/ui/ui_damage_flash_overlay.tscn` | ✅ Complete | 4 | Damage flash overlay scene (CanvasLayer layer 50) |
+| `scenes/ui/overlays/ui_damage_flash_overlay.tscn` | ✅ Complete | 4 | Damage flash overlay scene (CanvasLayer layer 50) |
 | `scripts/managers/helpers/u_damage_flash.gd` | ✅ Complete | 4 | Damage flash helper with tween fade (0.4s duration) |
 | `tests/unit/managers/helpers/test_damage_flash.gd` | ✅ Complete | 4 | 10 tests for damage flash |
 | `scenes/ui/ui_vfx_settings_overlay.tscn` | ✅ Complete | 5 | VFX settings overlay scene |

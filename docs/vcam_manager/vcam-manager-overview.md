@@ -42,6 +42,7 @@ M_CameraManager + C_CameraStateComponent + S_CameraStateSystem
 - Because of that `ShakeParent`, vCam must not write `camera.global_transform` directly.
 - `C_CameraStateComponent` and `S_CameraStateSystem` already exist and already own FOV composition and shake-trauma behavior.
 - `U_GlobalSettingsSerialization` already persists the `vfx` slice, so player-facing silhouette enablement belongs there.
+- `UI_VFXSettingsOverlay` already exists (`scripts/ui/settings/ui_vfx_settings_overlay.gd`), but it currently has no silhouette toggle row, so the vCam delivery must include VFX settings UI wiring plus localization keys.
 - `settings.input_settings.touchscreen_settings` is already the persisted home for mobile control tuning, so drag-look sensitivity and invert-Y belong there, not in `vcam`.
 - Existing gameplay scenes use both `MeshInstance3D` and `CSGBox3D`-style geometry, so occlusion logic cannot assume mesh-only scene content.
 
@@ -59,6 +60,9 @@ These nodes and files are required for the feature to exist at runtime:
 - `scenes/templates/tmpl_camera.tscn`
   - add the default `C_VCamComponent`
   - later add the editor-only rule-of-thirds preview node
+- `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`
+  - add a silhouette enable/disable control bound to the `vfx` slice (`occlusion_silhouette_enabled`)
+  - localize new label/tooltip keys across `resources/localization/cfg_locale_*_ui.tres`
 
 Updating only `tmpl_camera.tscn` is not enough.
 
@@ -223,6 +227,7 @@ This slice is whole-slice transient. It is not save data and not a player settin
 ### `RS_VCamModeFixed`
 
 - authored world anchor
+- authored world anchor comes from `C_VCamComponent.fixed_anchor_path` when set, with fallback to the vCam host entity-root `Node3D`
 - optional tracking toward the follow target
 - useful for room cameras and authored framing
 
@@ -288,6 +293,7 @@ Required behavior:
 - cast against physics layer 6 named `vcam_occludable`
 - detect `GeometryInstance3D` occluders
 - support `MeshInstance3D` and `CSGShape3D`
+- migrate authored occluding geometry in gameplay/prefab scenes onto layer 6; naming the layer in `project.godot` alone is not sufficient
 
 ### Rendering
 
@@ -350,6 +356,7 @@ resources/display/vcam/*.tres
 - moving outgoing and incoming cameras stay live through the blend
 - vCam gameplay motion and shake coexist
 - silhouettes work on both mesh and CSG occluders
+- VFX settings overlay exposes and persists `occlusion_silhouette_enabled` with localization coverage
 - mobile drag-look feeds orbit and first-person cameras through the same `gameplay.look_input` path
 
 ## Resolved Decisions

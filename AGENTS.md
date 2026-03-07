@@ -127,6 +127,13 @@
 - VFX Settings Preview (Phase 8)
   - `M_VFXManager` supports temporary overrides via `set_vfx_settings_preview(...)` and `clear_vfx_settings_preview()`.
   - `UI_VFXSettingsOverlay` pushes preview updates on toggle/slider changes and calls `trigger_test_shake()` on intensity changes; preview is cleared on cancel or overlay exit.
+- vCam Runtime Contracts (Documentation Sweep 2026-03)
+  - Gameplay camera orchestration authority lives in `docs/vcam_manager/*`; keep camera-runtime behavior aligned to those docs.
+  - Fixed-mode anchors resolve from `C_VCamComponent.fixed_anchor_path` first, then fallback to the vCam host entity-root `Node3D`; never use component transform as the fixed anchor source.
+  - `M_CameraManager` integration for gameplay vCam flow is `apply_main_camera_transform(xform)` with `is_blend_active()` gating for transition blends.
+  - Occlusion silhouette preference persists in `vfx.occlusion_silhouette_enabled` and is surfaced in `UI_VFXSettingsOverlay` with localization keys.
+  - Occlusion rollout is complete only when both physics-layer naming (`vcam_occludable`) and authored-scene blocker migration are done.
+  - Shared look-input contract is `gameplay.look_input`; `S_TouchscreenSystem` owns touchscreen look dispatch and `S_InputSystem` must not zero-clobber touchscreen-owned move/look payloads.
 - **Testing with Dependency Injection (Phase 10B-8)**
   - Systems support `@export` dependency injection for isolated testing with mocks.
   - **Inject ECS manager**: All systems inherit `@export var ecs_manager: I_ECSManager` from BaseECSSystem.

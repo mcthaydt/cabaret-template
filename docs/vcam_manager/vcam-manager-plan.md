@@ -1,7 +1,7 @@
 # vCam Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.6)  
-**Status**: Documentation remediated, implementation not started  
+**Status**: Documentation remediated with gap patching, implementation not started  
 **Methodology**: Test-driven, integration-first where scene wiring matters
 
 ## Overview
@@ -36,6 +36,16 @@ The original docs missed the runtime integration points. The implementation must
 - Extend `scenes/templates/tmpl_camera.tscn` with a default `C_VCamComponent`.
 - Add the editor-only rule-of-thirds preview node to `tmpl_camera.tscn` only after the preview helper exists.
 
+## Documentation Cadence (Mandatory)
+
+After every completed phase, update docs immediately so written guidance matches implementation state:
+
+- update `docs/vcam_manager/vcam-manager-continuation-prompt.md`
+- update `docs/vcam_manager/vcam-manager-tasks.md` with `[x]` marks and completion notes
+- update `AGENTS.md` when stable architecture/pattern contracts change
+- update `docs/general/DEV_PITFALLS.md` for new pitfalls discovered during implementation
+- commit documentation updates separately from implementation commits
+
 ## Phase 0: State and Persistence
 
 ### Commit 0.0: Touchscreen drag-look settings prerequisite
@@ -46,7 +56,7 @@ The original docs missed the runtime integration points. The implementation must
 - `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`
 - `scripts/state/reducers/u_input_reducer.gd`
 - `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`
-- `tests/unit/state/test_input_reducer.gd`
+- `tests/unit/input_manager/test_u_input_reducer.gd`
 - `tests/unit/ui/test_touchscreen_settings_overlay.gd`
 
 **Behavior**
@@ -70,15 +80,26 @@ The original docs missed the runtime integration points. The implementation must
 - `scripts/state/actions/u_vfx_actions.gd`
 - `scripts/state/reducers/u_vfx_reducer.gd`
 - `scripts/state/selectors/u_vfx_selectors.gd`
+- `scripts/ui/settings/ui_vfx_settings_overlay.gd`
+- `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`
+- `resources/localization/cfg_locale_en_ui.tres`
+- `resources/localization/cfg_locale_es_ui.tres`
+- `resources/localization/cfg_locale_ja_ui.tres`
+- `resources/localization/cfg_locale_pt_ui.tres`
+- `resources/localization/cfg_locale_zh_CN_ui.tres`
 - `tests/unit/state/test_vfx_initial_state.gd`
 - `tests/unit/state/test_vfx_reducer.gd`
 - `tests/unit/state/test_vfx_selectors.gd`
+- `tests/unit/ui/test_vfx_settings_overlay_localization.gd`
+- `tests/unit/ui/test_vfx_settings_overlay.gd` (create if missing)
 
 **Behavior**
 
 - Add `occlusion_silhouette_enabled: bool = true` to the `vfx` slice.
 - Persist it through the existing global-settings pipeline automatically via the `vfx` slice.
 - Use the existing action shape conventions: `StringName` action constants, `payload`, and `U_ActionRegistry`.
+- Expose the toggle in the VFX settings overlay (Apply/Cancel + Reset flows) so players can actually control the persisted field.
+- Add localization label/tooltip keys for the new toggle across all supported UI locale resources.
 
 **Why**
 
@@ -215,6 +236,7 @@ func to_dictionary() -> Dictionary:
   - `vcam_id: StringName`
   - `priority: int`
   - `mode: Resource`
+  - `fixed_anchor_path: NodePath`
   - `follow_target_path: NodePath`
   - `look_at_target_path: NodePath`
   - `soft_zone: Resource`
@@ -307,12 +329,13 @@ func to_dictionary() -> Dictionary:
 
 **Contract**
 
-- Accepts a mode resource plus resolved targets and rotation state.
+- Accepts a mode resource plus resolved targets, a resolved fixed-anchor `Node3D`, and rotation state.
 - Returns a dictionary with:
   - `transform`
   - `fov`
   - `mode_name`
 - Null and invalid-resource cases return `{}` without warning-channel noise.
+- Fixed-mode `use_world_anchor = true` reads world transform from `C_VCamComponent.fixed_anchor_path` when authored; otherwise falls back to vCam host entity root. It must not read transform from `C_VCamComponent` (which extends `Node`).
 
 ### Commit 2.4: `S_VCamSystem`
 
@@ -327,6 +350,7 @@ func to_dictionary() -> Dictionary:
 - read gameplay look input from Redux via the existing input pipeline
 - evaluate the active vCam every tick
 - when a blend is active, also evaluate the outgoing vCam every tick
+- resolve a `Node3D` fixed anchor for each vCam (`fixed_anchor_path` when set, entity root default otherwise) before mode evaluation
 - update `runtime_yaw` and `runtime_pitch` on the component that owns the rotation context
 - submit evaluated results back to `M_VCamManager`
 
@@ -348,7 +372,7 @@ func to_dictionary() -> Dictionary:
 - `scripts/ecs/systems/s_input_system.gd`
 - `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`
 - `tests/unit/ecs/systems/test_s_touchscreen_system.gd`
-- `tests/unit/ecs/systems/test_s_input_system.gd`
+- `tests/unit/ecs/systems/test_input_system.gd`
 - `tests/unit/ui/test_mobile_controls.gd`
 - `tests/unit/ui/test_touchscreen_settings_overlay.gd`
 
@@ -487,7 +511,7 @@ static func compute_camera_correction(
 - `scripts/interfaces/i_camera_manager.gd`
 - `scripts/managers/m_camera_manager.gd`
 - `tests/mocks/mock_camera_manager.gd`
-- `tests/unit/managers/test_camera_manager.gd`
+- `tests/integration/camera_system/test_camera_manager.gd`
 - `tests/unit/managers/test_vcam_manager.gd`
 
 **New camera-manager API**
@@ -533,6 +557,23 @@ static func compute_camera_correction(
 - mesh occluder detected
 - CSG occluder detected
 - invalid or freed collider skipped safely
+
+### Commit 5.1a: Occluder layer rollout in authored scenes
+
+**Files to modify**
+
+- `scenes/gameplay/gameplay_base.tscn`
+- any gameplay/prefab scenes with geometry expected to occlude camera-to-target line of sight in vCam flows
+
+**Contract**
+
+- layer-name setup in `project.godot` is only schema; authored geometry must also be assigned to layer 6 `vcam_occludable`
+- only true camera blockers belong on this layer; triggers/zones stay on their existing layers
+
+**Validation**
+
+- add or extend tests proving wrong-layer colliders are ignored and migrated colliders are detected
+- run style/scene-organization gates after scene edits
 
 ### Commit 5.2: `U_VCamSilhouetteHelper`
 
@@ -631,6 +672,8 @@ static func compute_camera_correction(
 10. Do not introduce `scripts/tools` or `assets/shaders/vcam_*.gdshader` paths that fight the current style guide. Use `scripts/utils/display/` and `sh_*_shader.gdshader`.
 11. Do not assume occluders are only `MeshInstance3D`. Current gameplay scenes use `CSGBox3D` extensively.
 12. Do not forget to update `tests/mocks/mock_camera_manager.gd` when `I_CameraManager` grows new methods.
+13. Do not stop at state wiring for `occlusion_silhouette_enabled`; wire it into `UI_VFXSettingsOverlay` and localization resources so players can control it.
+14. Do not assume naming physics layer 6 is enough; migrate authored occluder geometry to that layer in scenes/prefabs.
 
 ## File Structure
 

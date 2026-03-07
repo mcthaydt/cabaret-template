@@ -946,6 +946,16 @@
 
 - **Mobile emulation flag is for desktop QA only**: Use `--emulate-mobile` to smoke test touchscreen UI on desktop; real device runs remain the source of truth. Do not ship builds with emulation flags enabled, and remember that device detection still relies on `M_InputDeviceManager` even when emulating.
 
+## vCam Integration Pitfalls
+
+- **Do not write gameplay camera transforms directly to `camera.global_transform`**: vCam runtime motion must flow through `M_CameraManager.apply_main_camera_transform(...)` so `ShakeParent` layering and transition-camera behavior stay intact.
+
+- **Fixed mode must resolve authored anchors via component path first**: `C_VCamComponent` is a `Node`, not the authored world anchor. For fixed cameras, resolve `fixed_anchor_path` to a `Node3D` first and fallback to the vCam host entity-root `Node3D`; do not read component transform as anchor data.
+
+- **`vcam_occludable` naming alone does not enable real occlusion behavior**: After defining physics layer schema, migrate authored camera-blocking geometry in gameplay/prefab scenes onto that layer. Leaving blockers on old layers makes silhouette tests pass in isolation but fail in live scenes.
+
+- **Touch look ownership must stay in `S_TouchscreenSystem`**: `gameplay.look_input` is shared across devices. If `S_InputSystem` keeps dispatching zero touchscreen payloads while touchscreen is active, it clobbers drag-look and breaks mobile orbit/first-person camera control.
+
 ## UI Manager / Input Manager Boundary (Phase 4b - T075)
 
 The Input Manager and UI Manager have clear, separated responsibilities. Violating this boundary causes double-handling, race conditions, and unpredictable pause behavior.

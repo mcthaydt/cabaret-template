@@ -4,19 +4,24 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Documentation has been remediated for correctness. Implementation has not started. Begin with state and persistence, not scene/template edits.
+- **Status summary**: Documentation has been remediated for correctness and patched for integration gaps. Implementation has not started. Begin with state and persistence prerequisites before vCam runtime wiring.
 
 ## What Changed In The Docs
 
 - Runtime wiring is now explicit: `M_VCamManager` belongs in `scenes/root.tscn`, and `S_VCamSystem` belongs in gameplay system trees.
 - The `vcam` Redux slice is now defined as transient runtime observability only.
 - The silhouette enable/disable toggle moved to the persisted `vfx` slice.
+- VFX settings UI integration is now explicit: wire the silhouette toggle into `UI_VFXSettingsOverlay` (`scripts/ui/settings/ui_vfx_settings_overlay.gd` + `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`) and localize it in all `cfg_locale_*_ui.tres` files.
 - The blend design now evaluates both outgoing and incoming cameras live during blends.
 - The camera integration now requires a shake-safe `M_CameraManager.apply_main_camera_transform(...)` API instead of direct `camera.global_transform` writes.
 - Soft-zone math is now defined as projection-based rather than basis-vector offset math.
 - Mobile drag-look is now a hard requirement for rotatable orbit and first-person support.
 - Mobile drag-look settings belong in `settings.input_settings.touchscreen_settings`, and the touch look path must extend `UI_MobileControls` plus `S_TouchscreenSystem`.
 - `S_InputSystem` must be gated so it does not overwrite touchscreen gameplay input with zero `TouchscreenSource` payloads.
+- Fixed-mode anchor ownership is now explicit: fixed cameras must resolve `C_VCamComponent.fixed_anchor_path` first, then fall back to a vCam host entity-root `Node3D`; never read component transform.
+- Occlusion rollout is now explicit: naming layer 6 `vcam_occludable` is not enough; authored occluding geometry in gameplay/prefab scenes must be migrated to that layer.
+- Stale test paths were corrected (`test_u_input_reducer.gd`, `test_input_system.gd`, `tests/integration/camera_system/test_camera_manager.gd`).
+- Per-phase doc cadence is now explicit and mandatory: update continuation prompt + tasks after each phase, and update AGENTS/DEV_PITFALLS when new stable contracts or pitfalls appear.
 - Naming paths now follow the repo style guide:
   - `scripts/resources/display/vcam/`
   - `scripts/utils/display/`
@@ -41,7 +46,16 @@
 - `scripts/utils/display/u_cinema_grade_preview.gd`
 - `scripts/ui/hud/ui_mobile_controls.gd`
 - `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`
+- `scripts/ui/settings/ui_vfx_settings_overlay.gd`
 - `scripts/resources/input/rs_touchscreen_settings.gd`
+- `resources/localization/cfg_locale_en_ui.tres`
+- `resources/localization/cfg_locale_es_ui.tres`
+- `resources/localization/cfg_locale_ja_ui.tres`
+- `resources/localization/cfg_locale_pt_ui.tres`
+- `resources/localization/cfg_locale_zh_CN_ui.tres`
+- `tests/unit/input_manager/test_u_input_reducer.gd`
+- `tests/unit/ecs/systems/test_input_system.gd`
+- `tests/integration/camera_system/test_camera_manager.gd`
 - `scenes/root.tscn`
 - `scenes/templates/tmpl_base_scene.tscn`
 - `scenes/templates/tmpl_camera.tscn`
@@ -49,12 +63,14 @@
 
 ## Next Steps
 
-1. Implement Phase 0 Commit 0.0: add persisted touchscreen drag-look settings and patch the touchscreen settings overlay.
-2. Implement Phase 0 Commit 0.1: add persisted `vfx.occlusion_silhouette_enabled`.
+1. Implement Phase 0 Commit 0.0: add persisted touchscreen drag-look settings and patch the touchscreen settings overlay (`test_u_input_reducer.gd` path).
+2. Implement Phase 0 Commit 0.1: add persisted `vfx.occlusion_silhouette_enabled`, wire it into VFX settings UI, and add localization keys across all UI locales.
 3. Implement Phase 0 Commit 0.2: create `RS_VCamInitialState` and `cfg_default_vcam_initial_state.tres`.
 4. Implement Phase 0 Commit 0.3: create vCam actions and reducer.
 5. Implement Phase 0 Commit 0.4: add selectors, wire the new state export in `M_StateStore`, register `vcam` as transient, and patch `scenes/root.tscn`.
-6. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, and gate `S_InputSystem` so touch input is not clobbered.
+6. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
+7. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
+8. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 
@@ -66,6 +82,7 @@
 - vCam does not write `camera.fov` directly.
 - vCam does not write `camera.global_transform` directly.
 - vCam blends are live blends between two evaluated cameras, not frozen-transform lerps.
+- fixed-mode world anchoring resolves from `fixed_anchor_path` first, then host entity-root `Node3D` fallback; not from component transform assumptions.
 
 ## Known Risks
 
@@ -76,6 +93,8 @@
 - orbit/first-person can appear “done” on desktop while still being broken on mobile if `S_TouchscreenSystem` continues to dispatch zero look input
 - touch-look can conflict with joystick/buttons if `UI_MobileControls` does not claim a dedicated free-screen look touch
 - touch gameplay input can be silently overwritten if `S_InputSystem` continues processing `TouchscreenSource` zero payloads
+- silhouette persistence can ship without user control if `UI_VFXSettingsOverlay` is not updated alongside state/actions/reducer/selectors
+- collision detector can appear correct in tests but fail in gameplay if authored occluding geometry is not migrated to layer 6 `vcam_occludable`
 
 ## Links
 

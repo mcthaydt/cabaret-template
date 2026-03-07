@@ -52,6 +52,7 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - Add a vCam by placing `C_VCamComponent` on a gameplay entity and assigning a mode resource.
 - Use priority or explicit `M_VCamManager.set_active_vcam(...)` calls to change cameras.
 - Configure silhouettes through the persisted VFX settings flow, not through a separate vCam settings system.
+- Ensure `UI_VFXSettingsOverlay` exposes the silhouette toggle and localization keys so the persisted VFX field is player-controllable.
 - Use the existing gameplay scene template wiring so the feature actually runs at runtime.
 - Use the editor-only rule-of-thirds preview for framing without adding runtime overhead.
 - Extend the existing touchscreen settings flow for mobile drag-look sensitivity and invert-Y rather than introducing a vCam-only mobile settings path.
@@ -61,6 +62,7 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - camera follows smoothly without jitter
 - camera transitions feel intentional instead of snapping
 - walls between the player and camera become readable silhouettes instead of causing lost visibility
+- players can enable/disable silhouette behavior from the existing VFX settings screen
 - player-controlled orbit and first-person look reuse the same input profile and sensitivity pipeline as the rest of gameplay
 - on mobile, dragging on free screen space should rotate orbit and first-person cameras while still allowing simultaneous move-joystick and button input
 
@@ -84,9 +86,11 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - `vcam` is a transient Redux slice for observability only.
 - persisted silhouette enablement belongs in `vfx`.
 - persisted mobile drag-look tuning belongs in `settings.input_settings.touchscreen_settings`.
+- fixed-mode world anchors resolve from `C_VCamComponent.fixed_anchor_path` when set, with fallback to the vCam host entity-root `Node3D`; do not read `C_VCamComponent` transform assumptions.
 - `S_TouchscreenSystem` owns touchscreen gameplay look dispatch, and `S_InputSystem` must not overwrite it with zero touchscreen-source payloads.
 - vCam motion feeds into a new shake-safe `M_CameraManager.apply_main_camera_transform(...)` API rather than writing `camera.global_transform` directly.
 - vCam-authored FOV writes go to `C_CameraStateComponent.base_fov`; `S_CameraStateSystem` remains the final FOV writer.
+- occluder rollout requires both naming physics layer 6 (`vcam_occludable`) and migrating authored occluding geometry in gameplay/prefab scenes onto that layer.
 
 ### Risks and Mitigations
 
@@ -101,6 +105,8 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 | mobile orbit/first-person ship half-finished | extend `UI_MobileControls` and `S_TouchscreenSystem` so drag-look writes shared `gameplay.look_input` |
 | touch-look conflicts with movement/buttons | claim a dedicated look touch only when the touch starts outside joystick/button hit regions |
 | touchscreen input gets overwritten by zeros | gate `S_InputSystem` so touch gameplay input remains owned by `S_TouchscreenSystem` when touchscreen is active |
+| silhouette field persists but players cannot control it | add silhouette toggle wiring + localization in `UI_VFXSettingsOverlay` |
+| detector works in isolation but misses gameplay occluders | migrate authored scene/prefab camera blockers to layer 6 `vcam_occludable` |
 
 ### Compatibility
 
@@ -143,3 +149,4 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 | FOV composition | set `C_CameraStateComponent.base_fov`; do not write `camera.fov` directly |
 | blend correctness | evaluate both cameras live during blends |
 | style alignment | use display resource/util directories and `sh_*_shader.gdshader` |
+| fixed-mode anchor source | use `fixed_anchor_path` first, then host entity-root `Node3D` fallback; never component transform |
