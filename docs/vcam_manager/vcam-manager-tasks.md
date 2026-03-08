@@ -13,8 +13,8 @@
 |------|-------|--------|
 | [vcam-base-tasks.md](vcam-base-tasks.md) | Shared infrastructure: state/persistence, base resources, component/interface/manager, ECS system, scene wiring, mobile drag-look, soft zone, blend, occlusion, editor preview, integration tests, regression/docs | 0, 1, 5, 6, 7, 8, 9, 10, 11, 12, 13 |
 | [vcam-orbit-tasks.md](vcam-orbit-tasks.md) | Orbit camera mode: resource, evaluator, default preset, manual checks | 2 |
-| [vcam-fixed-tasks.md](vcam-fixed-tasks.md) | Fixed camera mode: resource, evaluator, manual checks | 3 |
-| [vcam-fps-tasks.md](vcam-fps-tasks.md) | First-person camera mode: resource, evaluator, refactor pass, manual checks | 4 |
+| [vcam-fps-tasks.md](vcam-fps-tasks.md) | First-person camera mode: resource, evaluator, refactor pass, manual checks | 3 |
+| [vcam-fixed-tasks.md](vcam-fixed-tasks.md) | Fixed camera mode: resource, evaluator, final evaluator refactor, manual checks | 4 |
 
 ---
 
@@ -24,9 +24,9 @@
 |------------|------|-------------|--------------|
 | 0 | Base | State and Persistence | 0.0 – 0.4 |
 | 1 | Base | Base Authoring Resources (Soft Zone + Blend Hint) | 1.1 (partial) |
-| 2 | Orbit | Orbit Camera Mode | 1.1 (partial), 2.3 (partial) |
-| 3 | Fixed | Fixed Camera Mode | 1.1 (partial), 2.3 (partial) |
-| 4 | FPS | First-Person Camera Mode | 1.1 (partial), 2.3 (partial) |
+| 2 | Orbit | Orbit Camera Mode (creates `U_VCamModeEvaluator`) | 1.1 (partial), 2.3 (partial) |
+| 3 | FPS | First-Person Camera Mode (extends evaluator) | 1.1 (partial), 2.3 (partial) |
+| 4 | Fixed | Fixed Camera Mode (extends evaluator, final refactor) | 1.1 (partial), 2.3 (partial) |
 | 5 | Base | Component, Interface, and Manager Core | 1.2, 2.1, 2.2 |
 | 6 | Base | vCam System (ECS) and Scene Wiring | 2.4, 2.5 |
 | 7 | Base | Mobile Drag-Look | 2.4a |
@@ -38,6 +38,7 @@
 | 13 | Base | Regression Coverage and Docs | 7.2, 7.3 |
 
 > **Note:** "Plan Commits" reference `vcam-manager-plan.md` commit numbers (0.0–7.3), which use a different numbering scheme than task phases (0–13).
+> **Execution order rationale:** Orbit is implemented first because it creates `U_VCamModeEvaluator`. FPS comes second because it shares the most input-pipeline concerns with orbit (both consume `look_input`). Fixed comes last because it is the simplest evaluator branch and hosts the final three-mode refactor pass.
 
 ---
 
