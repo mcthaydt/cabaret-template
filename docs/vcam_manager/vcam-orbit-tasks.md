@@ -235,10 +235,7 @@ These checks gate Phase 13 cross-mode QA completion:
 
 These checks gate Phase 9F completion:
 
-- [ ] **MT-19**: Switching from orbit to fixed blends smoothly (no snap)
-  - Trigger a vCam switch from orbit to fixed
-  - Verify smooth interpolation over `blend_duration`
-  - Verify no visible snap or teleport
+- [ ] **MT-19**: (see [vcam-fixed-tasks.md](vcam-fixed-tasks.md) — orbit-to-fixed blend is owned by the fixed mode task file)
 - [ ] **MT-21**: Switching between two moving orbit cameras blends live (not frozen)
   - Have two orbit cameras following moving targets
   - Switch between them

@@ -230,10 +230,11 @@ This slice is whole-slice transient. It is not save data and not a player settin
 
 ### `RS_VCamModeFixed`
 
-- authored world anchor
-- authored world anchor comes from `C_VCamComponent.fixed_anchor_path` when set, with fallback to the vCam host entity-root `Node3D`
-- optional tracking toward the follow target
-- useful for room cameras and authored framing
+- When `use_world_anchor = true` (default): camera uses a fixed world anchor. Anchor comes from `C_VCamComponent.fixed_anchor_path` when set, with fallback to the vCam host entity-root `Node3D`. Useful for room cameras and authored framing.
+- When `use_world_anchor = false`: camera maintains a constant `follow_offset` from the follow target — useful for simple chase cameras or over-shoulder views without player rotation. Position = `follow_target.global_position + follow_offset`. Returns invalid if follow target is null.
+- `follow_offset: Vector3 = Vector3(0, 3, 5)` — only consumed when `use_world_anchor = false`
+- optional tracking toward the follow target (`track_target`) applies in both anchor modes
+- `runtime_yaw`/`runtime_pitch` are always ignored (fixed cameras never respond to player input)
 
 ### `RS_VCamModeFirstPerson`
 
@@ -285,7 +286,7 @@ Correct blend behavior:
 - store outgoing and incoming vCam IDs, not only old transforms
 - evaluate both cameras every tick while a blend is active
 - blend the two live results each tick
-- apply `RS_VCamBlendHint.ease_type`
+- apply `RS_VCamBlendHint.ease_type` and `RS_VCamBlendHint.trans_type`
 - if `cut_on_distance_threshold > 0.0` and the evaluated camera positions are farther apart than the threshold, cut immediately instead of blending
 
 ### Reentrant Switch (Mid-Blend Interruption)

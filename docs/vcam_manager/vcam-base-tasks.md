@@ -39,7 +39,7 @@ Before starting Phase 0, verify:
 
 ## Phase 0: State and Persistence
 
-**Exit Criteria:** All ~56 Redux/UI tests pass, `vcam` slice registered as transient in `M_StateStore`, `vfx.occlusion_silhouette_enabled` persisted, VFX settings exposes the silhouette toggle, touchscreen drag-look settings persisted, no console errors
+**Exit Criteria:** All ~74 Redux/UI tests pass, `vcam` slice registered as transient in `M_StateStore`, `vfx.occlusion_silhouette_enabled` persisted, VFX settings exposes the silhouette toggle, touchscreen drag-look settings persisted, no console errors
 
 ### Phase 0A: Touchscreen Drag-Look Settings Prerequisite
 
@@ -136,12 +136,16 @@ Before starting Phase 0, verify:
   - Test `to_dictionary()` returns `blend_progress` as `1.0`
   - Test `to_dictionary()` returns `is_blending` as `false`
   - Test `to_dictionary()` returns `silhouette_active_count` as `0`
-  - Test `to_dictionary()` returns exactly 6 keys
-  - **Target: 7 tests**
+  - Test `to_dictionary()` returns `blend_from_vcam_id` as `&""`
+  - Test `to_dictionary()` returns `blend_to_vcam_id` as `&""`
+  - Test `to_dictionary()` returns `active_target_valid` as `true`
+  - Test `to_dictionary()` returns `last_recovery_reason` as `""`
+  - Test `to_dictionary()` returns exactly 10 keys
+  - **Target: 11 tests**
 
 - [ ] **Task 0C.2 (Green)**: Implement RS_VCamInitialState
   - Create `scripts/resources/state/rs_vcam_initial_state.gd`
-  - Implement `to_dictionary()` returning all 6 fields
+  - Implement `to_dictionary()` returning all 10 fields
   - All tests should pass
 
 - [ ] **Task 0C.3**: Create default resource instance
@@ -159,11 +163,13 @@ Before starting Phase 0, verify:
   - Test `update_blend(progress)` action structure
   - Test `complete_blend()` action structure
   - Test `update_silhouette_count(count)` action structure
-  - **Target: 5 tests**
+  - Test `update_target_validity(valid)` action structure
+  - Test `record_recovery(reason)` action structure
+  - **Target: 7 tests**
 
 - [ ] **Task 0D.2 (Green)**: Implement U_VCamActions
   - Create `scripts/state/actions/u_vcam_actions.gd`
-  - Add 5 action type constants and static creator functions
+  - Add 7 action type constants and static creator functions
   - All tests should pass
 
 - [ ] **Task 0D.3 (Red)**: Write tests for U_VCamReducer
@@ -176,9 +182,11 @@ Before starting Phase 0, verify:
   - Test `complete_blend` clears `previous_vcam_id`, sets `blend_progress = 1.0`, `is_blending = false`
   - Test `update_silhouette_count` stores non-negative count
   - Test `update_silhouette_count` with negative clamps to 0
+  - Test `update_target_validity` sets `active_target_valid` to provided bool
+  - Test `record_recovery` sets `last_recovery_reason` to provided string
   - Test reducer returns same state for unknown action
   - Test reducer immutability (old state reference != new state reference)
-  - **Target: 10 tests**
+  - **Target: 12 tests**
 
 - [ ] **Task 0D.4 (Green)**: Implement U_VCamReducer
   - Create `scripts/state/reducers/u_vcam_reducer.gd`
@@ -202,11 +210,19 @@ Before starting Phase 0, verify:
   - Test `is_blending(state)` returns `false` when missing
   - Test `get_silhouette_active_count(state)` returns value from state
   - Test `get_silhouette_active_count(state)` returns `0` when missing
-  - **Target: 11 tests**
+  - Test `get_blend_from_vcam_id(state)` returns value from state
+  - Test `get_blend_from_vcam_id(state)` returns `&""` when missing
+  - Test `get_blend_to_vcam_id(state)` returns value from state
+  - Test `get_blend_to_vcam_id(state)` returns `&""` when missing
+  - Test `is_active_target_valid(state)` returns value from state
+  - Test `is_active_target_valid(state)` returns `true` when missing
+  - Test `get_last_recovery_reason(state)` returns value from state
+  - Test `get_last_recovery_reason(state)` returns `""` when missing
+  - **Target: 21 tests**
 
 - [ ] **Task 0E.2 (Green)**: Implement U_VCamSelectors
   - Create `scripts/state/selectors/u_vcam_selectors.gd`
-  - All selectors null-safe and slice-safe
+  - All selectors null-safe and slice-safe (including 4 debug-field selectors: `get_blend_from_vcam_id`, `get_blend_to_vcam_id`, `is_active_target_valid`, `get_last_recovery_reason`)
   - All tests should pass
 
 - [ ] **Task 0E.3**: Integrate vcam slice with M_StateStore

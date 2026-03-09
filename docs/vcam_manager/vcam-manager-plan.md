@@ -212,6 +212,8 @@ func to_dictionary() -> Dictionary:
   - uses `rotation_speed` when `allow_player_rotation = true`
 - `RS_VCamModeFixed`
   - fixed world anchor, optional target tracking
+  - `follow_offset: Vector3 = Vector3(0, 3, 5)` — consumed only when `use_world_anchor = false`
+  - When `use_world_anchor = false`, camera positions at `follow_target.global_position + follow_offset`
 - `RS_VCamModeFirstPerson`
   - use `look_multiplier`, not `mouse_sensitivity`
   - input already arrives pre-scaled from the input pipeline
@@ -220,6 +222,7 @@ func to_dictionary() -> Dictionary:
 - `RS_VCamBlendHint`
   - `blend_duration`
   - `ease_type`
+  - `trans_type` (e.g. `Tween.TRANS_CUBIC`)
   - `cut_on_distance_threshold`
 
 **Rationale for `look_multiplier`**
@@ -343,6 +346,7 @@ func to_dictionary() -> Dictionary:
 - Null and invalid-resource cases return `{}` without warning-channel noise.
 - If the follow target or fixed anchor is an invalid (freed) object reference, return `{}` immediately without crashing.
 - Fixed-mode `use_world_anchor = true` reads world transform from `C_VCamComponent.fixed_anchor_path` when authored; otherwise falls back to vCam host entity root. It must not read transform from `C_VCamComponent` (which extends `Node`).
+- Fixed-mode `use_world_anchor = false` positions at `follow_target.global_position + mode.follow_offset`. Returns `{}` if follow target is null. `track_target` still applies; `runtime_yaw`/`runtime_pitch` still ignored.
 
 ### Commit 2.4: `S_VCamSystem`
 

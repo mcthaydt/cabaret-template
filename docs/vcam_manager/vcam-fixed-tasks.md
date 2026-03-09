@@ -41,7 +41,7 @@ Before starting Phase 4, verify:
 
 ## Phase 4: Fixed Camera Mode
 
-**Exit Criteria:** All ~14 fixed tests pass (6 resource + 8 evaluator), default preset created, fixed evaluation produces correct transforms for anchored and tracking configurations (runtime manual checks deferred to Phase 6C after scene wiring), evaluator refactored for clarity across all three modes
+**Exit Criteria:** All ~19 fixed tests pass (8 resource + 11 evaluator), default preset created, fixed evaluation produces correct transforms for both anchor modes (world anchor and follow-offset) and tracking configurations (runtime manual checks deferred to Phase 6C after scene wiring), evaluator refactored for clarity across all three modes
 
 ### Phase 4A: RS_VCamModeFixed Resource
 
@@ -64,17 +64,21 @@ Before starting Phase 4, verify:
   - Test `tracking_damping` must be non-negative
     - Set tracking_damping to -1.0, verify validation rejects
     - Set tracking_damping to 0.0, verify it is accepted (instant tracking)
-  - **Target: 6 tests**
+  - Test `follow_offset` field exists with default `Vector3(0, 3, 5)`
+    - Verify type is `Vector3`
+  - Test `follow_offset` is only consumed when `use_world_anchor = false`
+  - **Target: 8 tests**
 
 - [ ] **Task 4A.2 (Green)**: Implement RS_VCamModeFixed
   - Create `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd`
   - Extend `Resource`
   - Add `class_name RS_VCamModeFixed`
   - All `@export` fields with sensible defaults:
-    - `use_world_anchor: bool = true` — when true, camera uses the fixed anchor position; when false, camera could be positioned relative to the follow target (less common)
+    - `use_world_anchor: bool = true` — when true, camera uses the fixed anchor position; when false, camera positions at `follow_target.global_position + follow_offset`
     - `track_target: bool = false` — when true, camera rotates to look at the follow target; when false, keeps authored rotation
     - `fov: float = 75.0` — authored field of view
     - `tracking_damping: float = 5.0` — smoothing factor for target tracking rotation (0.0 = instant snap)
+    - `follow_offset: Vector3 = Vector3(0, 3, 5)` — offset from follow target when `use_world_anchor = false`; ignored when `use_world_anchor = true`
   - All tests should pass
 
 - [ ] **Task 4A.3**: Run style enforcement tests
@@ -115,7 +119,18 @@ Before starting Phase 4, verify:
   - Test fixed evaluation ignores `runtime_yaw` and `runtime_pitch` (fixed cameras are not player-rotatable)
     - Pass non-zero `runtime_yaw = 90.0` and `runtime_pitch = -45.0`
     - Verify result is identical to evaluation with zero runtime rotation
-  - **Target: 8 tests**
+  - Test `use_world_anchor = false` positions camera at `follow_target.global_position + follow_offset`
+    - Set `use_world_anchor = false`, `follow_offset = Vector3(0, 3, 5)`
+    - Place follow target at `Vector3(10, 0, 0)`
+    - Assert `result.transform.origin` is approximately `Vector3(10, 3, 5)`
+  - Test `use_world_anchor = false` with `track_target = true` looks at follow target from offset position
+    - Set `use_world_anchor = false`, `track_target = true`, `follow_offset = Vector3(0, 3, 5)`
+    - Place follow target at `Vector3(0, 0, 0)`
+    - Verify camera's -Z basis direction points approximately toward follow target
+  - Test `use_world_anchor = false` with null follow target returns `{}`
+    - Set `use_world_anchor = false`, pass `follow_target = null`
+    - Verify `result == {}`
+  - **Target: 11 tests**
 
   **Test helper setup pattern:**
   ```gdscript
@@ -150,7 +165,9 @@ Before starting Phase 4, verify:
   - Handle fixed mode branch:
     - Guard: return `{}` if mode is null
     - Guard: return `{}` if `use_world_anchor = true` and `fixed_anchor` is null
+    - Guard: return `{}` if `use_world_anchor = false` and `follow_target` is null
     - Camera position = `fixed_anchor.global_position` (when `use_world_anchor = true`)
+    - Camera position = `follow_target.global_position + mode.follow_offset` (when `use_world_anchor = false`)
     - Camera rotation:
       - If `track_target = true` AND `follow_target` is not null: build `looking_at` basis toward follow target
       - Otherwise: use `fixed_anchor.global_transform.basis` (authored rotation)
@@ -161,14 +178,26 @@ Before starting Phase 4, verify:
 
   **Fixed transform construction contract:**
   ```gdscript
-  var pos := fixed_anchor.global_position
-  var basis: Basis
+  var pos: Vector3
+  var default_basis: Basis
 
+  if mode.use_world_anchor:
+      if fixed_anchor == null:
+          return {}
+      pos = fixed_anchor.global_position
+      default_basis = fixed_anchor.global_transform.basis
+  else:
+      if follow_target == null:
+          return {}
+      pos = follow_target.global_position + mode.follow_offset
+      default_basis = Basis.IDENTITY
+
+  var basis: Basis
   if mode.track_target and follow_target != null:
       var xform := Transform3D.IDENTITY.looking_at_from_position(pos, follow_target.global_position, Vector3.UP)
       basis = xform.basis
   else:
-      basis = fixed_anchor.global_transform.basis
+      basis = default_basis
 
   var camera_xform := Transform3D(basis, pos)
   ```
@@ -177,7 +206,7 @@ Before starting Phase 4, verify:
 
 - [ ] **Task 4B.3**: Create default fixed resource instance
   - Create `resources/display/vcam/cfg_default_fixed.tres`
-  - Set all fields to resource defaults (use_world_anchor=true, track_target=false, fov=75.0, tracking_damping=5.0)
+  - Set all fields to resource defaults (use_world_anchor=true, track_target=false, fov=75.0, tracking_damping=5.0, follow_offset=Vector3(0,3,5))
   - Verify resource loads without errors:
     ```gdscript
     var res := load("res://resources/display/vcam/cfg_default_fixed.tres")
@@ -226,6 +255,8 @@ Before starting Phase 4, verify:
 - [ ] Verify `runtime_yaw` and `runtime_pitch` are truly ignored — fixed cameras must never respond to player look input
 - [ ] Verify orbit and first-person evaluation still work identically after fixed branch is added (no shared state pollution)
 - [ ] Verify the evaluator's `fixed_anchor` parameter is null-safe when mode is not fixed (orbit/first-person ignore it)
+- [ ] Verify `follow_offset` is ignored when `use_world_anchor = true` (camera uses fixed anchor position regardless of `follow_offset` value)
+- [ ] Verify `fixed_anchor` parameter is ignored when `use_world_anchor = false` (camera uses follow target + offset regardless of anchor)
 
 ---
 
@@ -268,6 +299,12 @@ These checks gate Phase 13 cross-mode QA completion:
   - Free or remove the fixed anchor node while fixed vCam is active
   - Verify camera falls back to entity root or holds last valid pose
   - Verify no crash or NaN camera state
+- [ ] **MT-69**: Fixed camera with `use_world_anchor = false` follows player at configured offset
+  - Set `use_world_anchor = false` and `follow_offset = Vector3(0, 3, 5)` on the fixed vCam resource
+  - Move player around, verify camera maintains constant offset from player
+  - Verify camera does NOT respond to look input (mouse/right-stick)
+  - Verify `track_target = true` causes camera to look at player from the offset position
+  - Verify `track_target = false` keeps camera facing its default direction at the offset position
 
 ---
 
@@ -280,11 +317,7 @@ These checks gate Phase 9F completion:
   - Verify smooth interpolation of both position and rotation over `blend_duration`
   - Verify no visible snap or teleport
   - Verify camera lands exactly at fixed anchor position
-- [ ] **MT-20**: Switching from fixed to first-person blends smoothly
-  - Trigger a vCam switch from fixed to first-person
-  - Verify smooth interpolation over `blend_duration`
-  - Verify camera smoothly transitions from fixed world position to player head offset
-  - Verify no visible snap or teleport
+- [ ] **MT-20**: (see [vcam-fps-tasks.md](vcam-fps-tasks.md) — fixed-to-first-person blend is owned by the first-person mode task file)
 
 ---
 
