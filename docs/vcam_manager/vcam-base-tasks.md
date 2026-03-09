@@ -1,6 +1,6 @@
 # vCam Base — Task Checklist
 
-**Scope:** Shared infrastructure — state/persistence, base resources, component/interface/manager core, ECS system, scene wiring, mobile drag-look, soft zone, blend/camera integration, occlusion/silhouette, editor preview, regression/docs.
+**Scope:** Shared infrastructure — state/persistence, base resources, component/interface/manager core, ECS system, scene wiring, mobile drag-look, blend/camera integration, occlusion/silhouette, editor preview, regression/docs.
 
 ---
 
@@ -292,7 +292,7 @@ Before starting Phase 0, verify:
 
 ## Phase 1: Base Authoring Resources (Soft Zone + Blend Hint)
 
-**Exit Criteria:** All ~42 tests pass (7 soft zone + 7 blend hint + 13 second-order dynamics 1D + 7 second-order dynamics 3D + 8 response resource), default `.tres` instances created
+**Exit Criteria:** All ~42 tests pass (7 soft zone + 7 blend hint + 13 second-order dynamics 1D + 7 second-order dynamics 3D + 8 response resource), default `.tres` instances created. Note: look-ahead and auto-level fields on RS_VCamResponse are added in orbit Phase 2C when those features are implemented.
 
 ### Phase 1A: RS_VCamSoftZone
 
@@ -450,16 +450,7 @@ Before starting Phase 0, verify:
   - Test `rotation_initial_response` field exists with default `1.0`
   - Test `frequency` values must be positive (reject 0.0 and negative)
   - Test `damping` values must be non-negative (0.0 = undamped oscillation is valid but extreme)
-  - **Look-ahead:**
-  - Test `look_ahead_distance` field exists with default `0.0` (disabled)
-  - Test `look_ahead_distance` must be non-negative
-  - Test `look_ahead_smoothing` field exists with default `3.0` (Hz — how fast look-ahead offset settles; uses second-order dynamics internally)
-  - **Auto-level:**
-  - Test `auto_level_speed` field exists with default `0.0` (disabled — degrees/sec toward horizon)
-  - Test `auto_level_speed` must be non-negative
-  - Test `auto_level_delay` field exists with default `1.0` (seconds of no look input before auto-level kicks in)
-  - Test `auto_level_delay` must be non-negative
-  - **Target: 14 tests**
+  - **Target: 8 tests**
 
 - [ ] **Task 1F.2 (Green)**: Implement RS_VCamResponse
   - Create `scripts/resources/display/vcam/rs_vcam_response.gd`
@@ -473,26 +464,11 @@ Before starting Phase 0, verify:
     - `rotation_frequency: float = 4.0` — how fast rotation tracks target (Hz)
     - `rotation_damping: float = 1.0` — rotation damping ratio
     - `rotation_initial_response: float = 1.0` — rotation initial response
-    - **Look-ahead (predictive offset):**
-    - `look_ahead_distance: float = 0.0` — max world-space offset in the follow target's movement direction (0 = disabled)
-    - `look_ahead_smoothing: float = 3.0` — Hz for look-ahead offset second-order dynamics (prevents jitter on direction changes)
-    - **Auto-level (horizon correction):**
-    - `auto_level_speed: float = 0.0` — degrees/sec pitch decays toward horizon when no look input active (0 = disabled)
-    - `auto_level_delay: float = 1.0` — seconds of zero look input before auto-level begins
   - All tests should pass
 
 - [ ] **Task 1F.3**: Create default response resource instance
   - Create `resources/display/vcam/cfg_default_response.tres`
-  - Set all fields to defaults (follow: f=3.0, z=0.7, r=1.0; rotation: f=4.0, z=1.0, r=1.0; look_ahead: 0.0; auto_level: 0.0)
-  - Verify resource loads without errors
-
-- [ ] **Task 1F.4**: Create gameplay response preset
-  - Create `resources/display/vcam/cfg_gameplay_response.tres`
-  - Tuned for third-person action:
-    - follow: f=3.5, z=0.6, r=1.2 (snappy, slight overshoot)
-    - rotation: f=5.0, z=0.9, r=1.0 (fast, near-critical)
-    - look_ahead_distance=1.5, look_ahead_smoothing=2.5
-    - auto_level_speed=15.0, auto_level_delay=2.0
+  - Set all fields to defaults (follow: f=3.0, z=0.7, r=1.0; rotation: f=4.0, z=1.0, r=1.0)
   - Verify resource loads without errors
 
 - [ ] **Task 1F.5**: Run style enforcement tests
@@ -594,7 +570,7 @@ Before starting Phase 0, verify:
 
 ## Phase 6: vCam System (ECS) and Scene Wiring
 
-**Exit Criteria:** All ~55 system tests pass (12 core + 6 rotation continuity + 8 second-order dynamics + 6 look-ahead + 6 auto-level + 4 camera state fields + 6 FOV breathing + 5 landing impact rule + 4 landing impact recovery + 4 recovery tests), `S_VCamSystem` reads look input from Redux, evaluates active/outgoing vcams, applies second-order dynamics smoothing via `RS_VCamResponse`, applies look-ahead and auto-level, applies landing impact offset with spring recovery, integrates with QB-driven FOV breathing, submits results to manager, scene wiring complete, desktop manual camera checks pass (`MT-01..MT-04`, `MT-09..MT-15`, `MT-18`)
+**Exit Criteria:** All ~43 system tests pass (12 core + 6 rotation continuity + 8 second-order dynamics + 4 camera state fields + 6 FOV breathing + 5 landing impact rule + 4 landing impact recovery + 4 recovery tests), `S_VCamSystem` reads look input from Redux, evaluates active/outgoing vcams, applies second-order dynamics smoothing via `RS_VCamResponse`, applies landing impact offset with spring recovery, integrates with QB-driven FOV breathing, submits results to manager, scene wiring complete, desktop manual camera checks pass (`MT-01..MT-04`, `MT-09..MT-15`, `MT-18`)
 
 ### Phase 6A: S_VCamSystem
 
@@ -674,55 +650,6 @@ Before starting Phase 0, verify:
       var smoothed_xform := Transform3D(smooth_basis, smooth_pos)
       return {transform = smoothed_xform, fov = raw_result.fov, mode_name = raw_result.mode_name}
   ```
-
-- [ ] **Task 6A2.3 (Red)**: Write tests for look-ahead (predictive offset)
-  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
-  - Test `look_ahead_distance = 0.0`: no offset applied (disabled)
-  - Test `look_ahead_distance > 0.0` with moving follow target: camera position shifts in the target's velocity direction
-    - Move target from `Vector3(0,0,0)` to `Vector3(5,0,0)` over several ticks
-    - Verify camera position is offset ahead (positive X) compared to raw evaluator position
-  - Test look-ahead offset magnitude does not exceed `look_ahead_distance`
-  - Test look-ahead direction changes smoothly when target reverses (second-order dynamics at `look_ahead_smoothing` Hz prevents snap)
-  - Test stationary target produces zero look-ahead offset
-  - Test look-ahead resets on mode switch / target change (no stale velocity)
-  - **Target: 6 tests**
-
-- [ ] **Task 6A2.4 (Green)**: Implement look-ahead in S_VCamSystem
-  - Track follow target velocity via frame-to-frame position delta (do not depend on physics velocity — follow target may not have a body)
-  - Compute look-ahead offset: `velocity.normalized() * look_ahead_distance` (clamped to `look_ahead_distance`)
-  - Smooth the offset through a dedicated `U_SecondOrderDynamics3D` instance (using `look_ahead_smoothing` Hz, critically damped, r=0.5)
-  - Add smoothed offset to the evaluated camera position BEFORE the main follow dynamics
-  - Reset look-ahead dynamics on mode switch / target change
-  - All tests should pass
-
-  **Look-ahead integration point:**
-  ```gdscript
-  # In process_tick, after evaluating ideal pose:
-  var target_velocity := (follow_target.global_position - _prev_target_pos) / delta
-  _prev_target_pos = follow_target.global_position
-  var ahead_offset := target_velocity.normalized() * resp.look_ahead_distance
-  var smooth_ahead := _look_ahead_dynamics[vcam_id].step(ahead_offset, delta)
-  # Add to ideal position before main follow dynamics
-  raw_result.transform.origin += smooth_ahead
-  ```
-
-- [ ] **Task 6A2.5 (Red)**: Write tests for auto-level (horizon correction)
-  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
-  - Test `auto_level_speed = 0.0`: pitch stays at current value indefinitely (disabled)
-  - Test `auto_level_speed > 0.0` with zero look input for > `auto_level_delay` seconds: `runtime_pitch` decays toward `0.0`
-  - Test auto-level does NOT activate while look input is non-zero (player is actively looking)
-  - Test auto-level delay timer resets each frame that look input is non-zero
-  - Test auto-level respects `auto_level_speed` rate (degrees/sec — after 1 second at speed=30, pitch should decay ~30 degrees)
-  - Test auto-level on fixed mode is a no-op (fixed cameras don't have runtime pitch)
-  - **Target: 6 tests**
-
-- [ ] **Task 6A2.6 (Green)**: Implement auto-level in S_VCamSystem
-  - Track per-vCam `_no_look_input_timer` (float, incremented when look input is zero, reset when non-zero)
-  - When timer exceeds `auto_level_delay` and `auto_level_speed > 0.0`:
-    - `runtime_pitch = move_toward(runtime_pitch, 0.0, auto_level_speed * delta)`
-  - Apply BEFORE evaluator call (pitch is an input to evaluation, not a post-process)
-  - Skip for fixed mode (no runtime pitch)
-  - All tests should pass
 
 - [ ] **Task 6A.3 (Red)**: Write tests for rotation continuity on mode switch
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
@@ -965,77 +892,6 @@ Settings checks (mode-agnostic):
 - [ ] **MT-37**: Drag-look settings persist after quit and relaunch
 
 ---
-
-## Phase 8: Projection-Based Soft Zone
-
-**Exit Criteria:** All ~14 soft zone tests pass (10 base + 4 hysteresis), correction is projection-aware with dead zone hysteresis, handles multiple viewport sizes and depths
-
-### Phase 8A: U_VCamSoftZone Helper
-
-- [ ] **Task 8A.1 (Red)**: Write tests for U_VCamSoftZone
-  - Create `tests/unit/managers/helpers/test_vcam_soft_zone.gd`
-  - Test target inside dead zone produces zero correction
-  - Test target in soft zone produces damped non-zero correction
-  - Test target outside soft zone (hard zone) clamps back inside viewport boundary
-  - Test correction magnitude scales with damping parameter
-  - Test correction is zero when soft zone resource is null (disabled)
-  - Test correction works at different viewport sizes
-  - Test correction works at different target depths (near vs far)
-  - Test correction direction is toward the nearest allowed zone boundary
-  - Test zero-size dead zone means any offset triggers correction
-  - Test full-viewport soft zone means no clamping
-  - **Target: 10 tests**
-
-- [ ] **Task 8A.2 (Green)**: Implement U_VCamSoftZone
-  - Create `scripts/managers/helpers/u_vcam_soft_zone.gd`
-  - Implement `static func compute_camera_correction(camera, follow_world_pos, desired_transform, soft_zone, delta) -> Vector3`
-  - Project follow target, test zone membership, reproject correction
-  - **Note:** The `damping` field on `RS_VCamSoftZone` controls correction magnitude (how aggressively the camera corrects when the target enters the soft zone). The temporal smoothing of that correction is handled by the second-order dynamics in `S_VCamSystem` (Phase 6A2) — the soft zone helper computes the instantaneous correction vector, and the dynamics smooth the resulting camera position over time.
-  - All tests should pass
-
----
-
-### Phase 8A2: Dead Zone Hysteresis
-
-> **Why:** Without hysteresis, a target oscillating exactly at the dead zone boundary causes per-frame correction toggling (jitter). Hysteresis uses slightly different enter/exit thresholds — the dead zone is smaller to enter (correction starts) and larger to exit (correction stops), preventing boundary flutter.
-
-- [ ] **Task 8A2.1**: Add `hysteresis_margin` field to RS_VCamSoftZone
-  - Modify `scripts/resources/display/vcam/rs_vcam_soft_zone.gd`:
-    - `@export var hysteresis_margin: float = 0.02` — fraction of screen space added/subtracted to dead zone for enter/exit thresholds
-  - Modify existing tests to verify field exists with default
-
-- [ ] **Task 8A2.2 (Red)**: Write tests for hysteresis behavior
-  - Add to `tests/unit/managers/helpers/test_vcam_soft_zone.gd`
-  - Test target crossing INTO dead zone boundary: correction stops at `dead_zone + hysteresis_margin` (slightly past boundary)
-  - Test target crossing OUT OF dead zone boundary: correction starts at `dead_zone - hysteresis_margin` (slightly before boundary)
-  - Test target oscillating at exact dead zone boundary (alternating +/- epsilon): correction state remains stable (no per-frame toggling)
-  - Test `hysteresis_margin = 0.0` behaves identically to non-hysteresis (backward compatible)
-  - **Target: 4 tests**
-
-- [ ] **Task 8A2.3 (Green)**: Implement hysteresis in U_VCamSoftZone
-  - Track per-axis `_was_in_dead_zone` state (bool pair for X/Y)
-  - Use `dead_zone + hysteresis_margin` as exit threshold (stay in dead zone longer)
-  - Use `dead_zone - hysteresis_margin` as entry threshold (leave dead zone slightly early)
-  - **Note:** `_was_in_dead_zone` is per-call state passed as an optional parameter or tracked externally by `S_VCamSystem` (helper remains stateless)
-  - All tests should pass
-
----
-
-### Phase 8B: Soft Zone Integration
-
-- [ ] **Task 8B.1**: Integrate soft-zone correction into S_VCamSystem
-  - Modify `scripts/ecs/systems/s_vcam_system.gd`: apply correction to evaluated transform before submitting
-  - Add 2 regression tests to `test_vcam_system.gd`:
-    - Test soft zone correction is applied when component has soft zone resource
-    - Test no correction when component has no soft zone resource
-
----
-
-### Phase 8C: Manual Validation (Soft Zone)
-
-- [ ] **MT-24**: Player in dead zone: camera does not move
-- [ ] **MT-25**: Player in soft zone: camera follows with damped lag
-- [ ] **MT-26**: Player near screen edge: camera corrects to keep player in frame
 
 ---
 
@@ -1416,16 +1272,7 @@ Cross-mode checks (mode-agnostic):
   - [ ] **MT-78**: Dynamics reset on mode switch: no residual momentum carried from previous mode (camera doesn't swing wildly on switch)
   - [ ] **MT-79**: Dynamics reset on scene load: first frame starts at correct position (no fly-in from origin)
 
-- [ ] **Task 13.6b**: Look-ahead and auto-level feel QA (manual)
-  - [ ] **MT-81**: Look-ahead active while sprinting: camera leads slightly ahead of player movement direction
-  - [ ] **MT-82**: Look-ahead direction reversal: when player reverses, look-ahead offset smoothly swings to new direction (no snap)
-  - [ ] **MT-83**: Look-ahead stationary: when player stops, look-ahead offset settles back to zero
-  - [ ] **MT-84**: Look-ahead disabled (distance=0): no offset applied, camera centered on follow target
-  - [ ] **MT-85**: Auto-level active: after 2 seconds of no look input, camera pitch slowly returns to horizon
-  - [ ] **MT-86**: Auto-level interrupted: player provides look input during auto-level, auto-level stops immediately and delay timer resets
-  - [ ] **MT-87**: Auto-level disabled (speed=0): pitch stays wherever the player left it indefinitely
-
-- [ ] **Task 13.6c**: QB-driven camera feel QA (manual)
+- [ ] **Task 13.6b**: QB-driven camera feel QA (manual)
   - [ ] **MT-88**: FOV breathing while sprinting: FOV widens subtly (e.g. 75 → ~85) as speed increases
   - [ ] **MT-89**: FOV breathing while stationary: FOV returns to base value smoothly (existing `fov_blend_speed` handles transition)
   - [ ] **MT-90**: FOV breathing response curve: FOV ramps gradually at walk speed, aggressively at sprint speed (non-linear curve)
@@ -1433,7 +1280,6 @@ Cross-mode checks (mode-agnostic):
   - [ ] **MT-92**: Landing impact scales with fall speed: light landing = barely noticeable dip, hard landing = pronounced dip
   - [ ] **MT-93**: Landing impact + shake coexistence: both landing dip (low-frequency) and shake (high-frequency) visible simultaneously, compound feel
   - [ ] **MT-94**: Landing impact on soft landing (below threshold): no camera dip (condition score = 0)
-  - [ ] **MT-95**: Dead zone hysteresis: target oscillating at dead zone boundary does NOT cause per-frame correction jitter
 
 - [ ] **Task 13.7**: Performance regression checks (manual)
   - [ ] **MT-56**: Long scene with many potential occluders: no frame-pacing spikes from occlusion pass
@@ -1471,16 +1317,11 @@ Cross-mode checks (mode-agnostic):
 - [ ] Verify null `RS_VCamResponse` on component produces identical behavior to pre-dynamics implementation (backward compatible)
 - [ ] Verify dynamics do not allocate per-frame (all instances are pre-created and reused)
 - [ ] Verify rotation smoothing decomposes to Euler → smooth → recompose correctly without gimbal lock at typical camera angles
-- [ ] Verify look-ahead reads follow target velocity from frame-to-frame position delta (does NOT depend on physics body `linear_velocity`)
-- [ ] Verify look-ahead offset is smoothed through its own `U_SecondOrderDynamics3D` instance (not the main follow dynamics)
-- [ ] Verify auto-level only activates after `auto_level_delay` seconds of zero look input (not immediately)
-- [ ] Verify auto-level is skipped for fixed mode (fixed cameras have no runtime pitch)
 - [ ] Verify FOV breathing uses existing QB rule infrastructure (`RS_ConditionComponentField` + `RS_EffectSetField` + `S_CameraStateSystem`)
 - [ ] Verify FOV breathing does NOT bypass `S_CameraStateSystem._resolve_target_fov()` — it adds `speed_fov_bonus`, not writes `camera.fov` directly
 - [ ] Verify landing impact offset is additive with screen shake (both apply simultaneously)
 - [ ] Verify landing impact recovery uses `U_SecondOrderDynamics3D` (not simple lerp) for spring-like settling
 - [ ] Verify landing impact rule reuses existing `EVENT_ENTITY_LANDED` event (does NOT create a new event)
-- [ ] Verify dead zone hysteresis margin is backward compatible (`hysteresis_margin = 0.0` produces identical behavior to no hysteresis)
 
 ---
 

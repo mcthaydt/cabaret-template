@@ -1,6 +1,6 @@
 # vCam Orbit — Task Checklist
 
-**Scope:** Orbit camera mode — resource, evaluator, default preset, and manual validation.
+**Scope:** Orbit camera mode — resource, evaluator, default preset, orbit-specific game feel (look-ahead, auto-level, soft zone, hysteresis), and manual validation.
 
 **Depends on:** Phase 1 (base resources) must be complete before Phase 2B evaluator tests.
 
@@ -152,6 +152,182 @@ Before starting Phase 2, verify:
   - `tests/unit/style/test_style_enforcement.gd` passes with all new files
   - Verify `u_vcam_mode_evaluator.gd` is in `scripts/managers/helpers/` per file structure
   - Verify test file is in `tests/unit/managers/helpers/`
+
+---
+
+## Phase 2C: Orbit Game Feel
+
+**Depends on:** Phase 6A2 (second-order dynamics in S_VCamSystem) must be complete before implementing orbit feel features.
+
+### Phase 2C1: Look-Ahead (Predictive Offset)
+
+> **Why:** In third-person orbit, the camera trails behind the player. Look-ahead offsets the camera ahead in the movement direction so the player can see more of where they're going. This is an orbit-only concept — first-person cameras ARE the player's eyes and don't need predictive offset.
+
+- [ ] **Task 2C1.1**: Add look-ahead fields to RS_VCamResponse
+  - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
+    - `@export var look_ahead_distance: float = 0.0` — max world-space offset in the follow target's movement direction (0 = disabled)
+    - `@export var look_ahead_smoothing: float = 3.0` — Hz for look-ahead offset second-order dynamics (prevents jitter on direction changes)
+  - Add tests verifying fields exist with defaults and non-negative validation
+  - **Target: 3 tests**
+
+- [ ] **Task 2C1.2 (Red)**: Write tests for look-ahead in S_VCamSystem
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test `look_ahead_distance = 0.0`: no offset applied (disabled)
+  - Test `look_ahead_distance > 0.0` with moving follow target: camera position shifts in the target's velocity direction
+    - Move target from `Vector3(0,0,0)` to `Vector3(5,0,0)` over several ticks
+    - Verify camera position is offset ahead (positive X) compared to raw evaluator position
+  - Test look-ahead offset magnitude does not exceed `look_ahead_distance`
+  - Test look-ahead direction changes smoothly when target reverses (second-order dynamics at `look_ahead_smoothing` Hz prevents snap)
+  - Test stationary target produces zero look-ahead offset
+  - Test look-ahead resets on mode switch / target change (no stale velocity)
+  - Test look-ahead is a no-op for first-person mode (only applies to orbit)
+  - **Target: 7 tests**
+
+- [ ] **Task 2C1.3 (Green)**: Implement look-ahead in S_VCamSystem
+  - Track follow target velocity via frame-to-frame position delta (do not depend on physics velocity — follow target may not have a body)
+  - Compute look-ahead offset: `velocity.normalized() * look_ahead_distance` (clamped to `look_ahead_distance`)
+  - Smooth the offset through a dedicated `U_SecondOrderDynamics3D` instance (using `look_ahead_smoothing` Hz, critically damped, r=0.5)
+  - Add smoothed offset to the evaluated camera position BEFORE the main follow dynamics
+  - Gate: only apply when active mode is orbit (skip for first-person and fixed)
+  - Reset look-ahead dynamics on mode switch / target change
+  - All tests should pass
+
+  **Look-ahead integration point:**
+  ```gdscript
+  # In process_tick, after evaluating ideal pose (orbit mode only):
+  var target_velocity := (follow_target.global_position - _prev_target_pos) / delta
+  _prev_target_pos = follow_target.global_position
+  var ahead_offset := target_velocity.normalized() * resp.look_ahead_distance
+  var smooth_ahead := _look_ahead_dynamics[vcam_id].step(ahead_offset, delta)
+  # Add to ideal position before main follow dynamics
+  raw_result.transform.origin += smooth_ahead
+  ```
+
+---
+
+### Phase 2C2: Auto-Level (Horizon Correction)
+
+> **Why:** In orbit mode, the camera can drift to awkward pitch angles after the player stops actively looking. Auto-level gradually returns the camera pitch to the horizon when no look input is active. This is orbit-specific because first-person pitch drift is the player's own view direction (resetting it feels like the game is fighting the player).
+
+- [ ] **Task 2C2.1**: Add auto-level fields to RS_VCamResponse
+  - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
+    - `@export var auto_level_speed: float = 0.0` — degrees/sec pitch decays toward horizon when no look input active (0 = disabled)
+    - `@export var auto_level_delay: float = 1.0` — seconds of zero look input before auto-level begins
+  - Add tests verifying fields exist with defaults and non-negative validation
+  - **Target: 4 tests**
+
+- [ ] **Task 2C2.2 (Red)**: Write tests for auto-level in S_VCamSystem
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test `auto_level_speed = 0.0`: pitch stays at current value indefinitely (disabled)
+  - Test `auto_level_speed > 0.0` with zero look input for > `auto_level_delay` seconds: `runtime_pitch` decays toward `0.0`
+  - Test auto-level does NOT activate while look input is non-zero (player is actively looking)
+  - Test auto-level delay timer resets each frame that look input is non-zero
+  - Test auto-level respects `auto_level_speed` rate (degrees/sec — after 1 second at speed=30, pitch should decay ~30 degrees)
+  - Test auto-level is a no-op for first-person and fixed modes
+  - **Target: 6 tests**
+
+- [ ] **Task 2C2.3 (Green)**: Implement auto-level in S_VCamSystem
+  - Track per-vCam `_no_look_input_timer` (float, incremented when look input is zero, reset when non-zero)
+  - When timer exceeds `auto_level_delay` and `auto_level_speed > 0.0`:
+    - `runtime_pitch = move_toward(runtime_pitch, 0.0, auto_level_speed * delta)`
+  - Apply BEFORE evaluator call (pitch is an input to evaluation, not a post-process)
+  - Gate: only apply for orbit mode (skip for first-person and fixed)
+  - All tests should pass
+
+---
+
+### Phase 2C3: Projection-Based Soft Zone
+
+> **Why:** Soft zones keep the follow target framed within screen-space bounds, creating cinematic follow behavior in third-person orbit. First-person cameras don't have an external target to frame — the camera IS the player's eyes. This is orbit-only.
+
+**Exit Criteria:** All ~14 soft zone tests pass (10 base + 4 hysteresis), correction is projection-aware with dead zone hysteresis, handles multiple viewport sizes and depths
+
+- [ ] **Task 2C3.1 (Red)**: Write tests for U_VCamSoftZone
+  - Create `tests/unit/managers/helpers/test_vcam_soft_zone.gd`
+  - Test target inside dead zone produces zero correction
+  - Test target in soft zone produces damped non-zero correction
+  - Test target outside soft zone (hard zone) clamps back inside viewport boundary
+  - Test correction magnitude scales with damping parameter
+  - Test correction is zero when soft zone resource is null (disabled)
+  - Test correction works at different viewport sizes
+  - Test correction works at different target depths (near vs far)
+  - Test correction direction is toward the nearest allowed zone boundary
+  - Test zero-size dead zone means any offset triggers correction
+  - Test full-viewport soft zone means no clamping
+  - **Target: 10 tests**
+
+- [ ] **Task 2C3.2 (Green)**: Implement U_VCamSoftZone
+  - Create `scripts/managers/helpers/u_vcam_soft_zone.gd`
+  - Implement `static func compute_camera_correction(camera, follow_world_pos, desired_transform, soft_zone, delta) -> Vector3`
+  - Project follow target, test zone membership, reproject correction
+  - **Note:** The `damping` field on `RS_VCamSoftZone` controls correction magnitude (how aggressively the camera corrects when the target enters the soft zone). The temporal smoothing of that correction is handled by the second-order dynamics in `S_VCamSystem` (Phase 6A2) — the soft zone helper computes the instantaneous correction vector, and the dynamics smooth the resulting camera position over time.
+  - All tests should pass
+
+---
+
+### Phase 2C4: Dead Zone Hysteresis
+
+> **Why:** Without hysteresis, a target oscillating exactly at the dead zone boundary causes per-frame correction toggling (jitter). Hysteresis uses slightly different enter/exit thresholds — the dead zone is smaller to enter (correction starts) and larger to exit (correction stops), preventing boundary flutter.
+
+- [ ] **Task 2C4.1**: Add `hysteresis_margin` field to RS_VCamSoftZone
+  - Modify `scripts/resources/display/vcam/rs_vcam_soft_zone.gd`:
+    - `@export var hysteresis_margin: float = 0.02` — fraction of screen space added/subtracted to dead zone for enter/exit thresholds
+  - Modify existing tests to verify field exists with default
+
+- [ ] **Task 2C4.2 (Red)**: Write tests for hysteresis behavior
+  - Add to `tests/unit/managers/helpers/test_vcam_soft_zone.gd`
+  - Test target crossing INTO dead zone boundary: correction stops at `dead_zone + hysteresis_margin` (slightly past boundary)
+  - Test target crossing OUT OF dead zone boundary: correction starts at `dead_zone - hysteresis_margin` (slightly before boundary)
+  - Test target oscillating at exact dead zone boundary (alternating +/- epsilon): correction state remains stable (no per-frame toggling)
+  - Test `hysteresis_margin = 0.0` behaves identically to non-hysteresis (backward compatible)
+  - **Target: 4 tests**
+
+- [ ] **Task 2C4.3 (Green)**: Implement hysteresis in U_VCamSoftZone
+  - Track per-axis `_was_in_dead_zone` state (bool pair for X/Y)
+  - Use `dead_zone + hysteresis_margin` as exit threshold (stay in dead zone longer)
+  - Use `dead_zone - hysteresis_margin` as entry threshold (leave dead zone slightly early)
+  - **Note:** `_was_in_dead_zone` is per-call state passed as an optional parameter or tracked externally by `S_VCamSystem` (helper remains stateless)
+  - All tests should pass
+
+---
+
+### Phase 2C5: Soft Zone Integration
+
+- [ ] **Task 2C5.1**: Integrate soft-zone correction into S_VCamSystem
+  - Modify `scripts/ecs/systems/s_vcam_system.gd`: apply correction to evaluated transform before submitting
+  - Gate: only apply when active mode is orbit and component has a soft zone resource
+  - Add 2 regression tests to `test_vcam_system.gd`:
+    - Test soft zone correction is applied when orbit component has soft zone resource
+    - Test no correction when component has no soft zone resource
+    - Test no correction when active mode is first-person (even if soft zone resource is set)
+
+---
+
+### Manual Validation (Orbit Game Feel)
+
+- [ ] **MT-24**: Player in dead zone: camera does not move
+- [ ] **MT-25**: Player in soft zone: camera follows with damped lag
+- [ ] **MT-26**: Player near screen edge: camera corrects to keep player in frame
+- [ ] **MT-81**: Look-ahead active while sprinting: camera leads slightly ahead of player movement direction
+- [ ] **MT-82**: Look-ahead direction reversal: when player reverses, look-ahead offset smoothly swings to new direction (no snap)
+- [ ] **MT-83**: Look-ahead stationary: when player stops, look-ahead offset settles back to zero
+- [ ] **MT-84**: Look-ahead disabled (distance=0): no offset applied, camera centered on follow target
+- [ ] **MT-85**: Auto-level active: after 2 seconds of no look input, camera pitch slowly returns to horizon
+- [ ] **MT-86**: Auto-level interrupted: player provides look input during auto-level, auto-level stops immediately and delay timer resets
+- [ ] **MT-87**: Auto-level disabled (speed=0): pitch stays wherever the player left it indefinitely
+- [ ] **MT-95**: Dead zone hysteresis: target oscillating at dead zone boundary does NOT cause per-frame correction jitter
+
+---
+
+### Cross-Cutting Checks (Orbit Game Feel)
+
+- [ ] Verify look-ahead reads follow target velocity from frame-to-frame position delta (does NOT depend on physics body `linear_velocity`)
+- [ ] Verify look-ahead offset is smoothed through its own `U_SecondOrderDynamics3D` instance (not the main follow dynamics)
+- [ ] Verify look-ahead is gated to orbit mode only (no-op for first-person and fixed)
+- [ ] Verify auto-level only activates after `auto_level_delay` seconds of zero look input (not immediately)
+- [ ] Verify auto-level is gated to orbit mode only (no-op for first-person and fixed)
+- [ ] Verify soft zone correction is gated to orbit mode only
+- [ ] Verify dead zone hysteresis margin is backward compatible (`hysteresis_margin = 0.0` produces identical behavior to no hysteresis)
 
 ---
 

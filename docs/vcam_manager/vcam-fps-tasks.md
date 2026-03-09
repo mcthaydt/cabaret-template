@@ -1,6 +1,6 @@
 # vCam First-Person — Task Checklist
 
-**Scope:** First-person camera mode — resource, evaluator, evaluator refactor, and manual validation.
+**Scope:** First-person camera mode — resource, evaluator, evaluator refactor, FP-specific game feel (strafe tilt, head bob, landing head dip), and manual validation.
 
 **Depends on:** Phase 2B (orbit evaluator creates `U_VCamModeEvaluator`) must be complete before Phase 3 extends it.
 
@@ -196,6 +196,182 @@ Before starting Phase 3, verify:
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gselect=test_vcam_mode -ginclude_subdirs=true -gexit
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -ginclude_subdirs=true -gexit
   ```
+
+---
+
+## Phase 3C: First-Person Game Feel
+
+**Depends on:** Phase 6A2 (second-order dynamics in S_VCamSystem) and Phase 3B (first-person evaluator) must be complete before implementing FP feel features.
+
+> **Why FP-specific?** First-person game feel is fundamentally different from orbit. The camera IS the player's eyes, so effects must feel embodied — physical sensations like tilting into a strafe, head bobbing while walking, and a visceral head dip on landing. Orbit game feel (look-ahead, soft zone, auto-level) is about framing an external target, which is irrelevant when you are the camera.
+
+### Phase 3C1: Strafe Tilt (Roll on Lateral Movement)
+
+> **Why:** Subtle camera roll when strafing left/right creates a strong sense of physicality and speed. Common in modern FPS games (Doom, Titanfall, Mirror's Edge). The roll angle is proportional to lateral input, smoothed through second-order dynamics.
+
+- [ ] **Task 3C1.1**: Add strafe tilt fields to RS_VCamModeFirstPerson
+  - Modify `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd`:
+    - `@export var strafe_tilt_angle: float = 0.0` — max roll angle in degrees when strafing at full speed (0 = disabled)
+    - `@export var strafe_tilt_smoothing: float = 6.0` — Hz for tilt second-order dynamics (higher = snappier response)
+  - Add tests verifying fields exist with defaults
+  - Test `strafe_tilt_angle` must be non-negative
+  - **Target: 3 tests**
+
+- [ ] **Task 3C1.2 (Red)**: Write tests for strafe tilt in S_VCamSystem
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test `strafe_tilt_angle = 0.0`: no roll applied (disabled)
+  - Test strafing left (negative lateral input): camera rolls in the strafing direction (negative roll)
+  - Test strafing right (positive lateral input): camera rolls in the strafing direction (positive roll)
+  - Test roll magnitude scales with lateral input strength (partial input = partial tilt)
+  - Test roll magnitude does not exceed `strafe_tilt_angle`
+  - Test tilt smoothly returns to zero when lateral input stops (second-order dynamics)
+  - Test strafe tilt is a no-op for orbit and fixed modes
+  - **Target: 7 tests**
+
+- [ ] **Task 3C1.3 (Green)**: Implement strafe tilt in S_VCamSystem
+  - Read lateral component of `gameplay.move_input` (the X component in the player's local frame)
+  - Compute target roll: `lateral_input * strafe_tilt_angle`
+  - Smooth through a dedicated `U_SecondOrderDynamics` instance at `strafe_tilt_smoothing` Hz (critically damped)
+  - Apply smoothed roll to the evaluated camera basis AFTER yaw/pitch construction
+  - Gate: only apply when active mode is first-person
+  - Reset tilt dynamics on mode switch
+  - All tests should pass
+
+  **Strafe tilt integration point:**
+  ```gdscript
+  # In process_tick, after evaluating first-person pose:
+  var lateral_input := move_input.x  # local-frame strafe axis
+  var target_roll := lateral_input * mode.strafe_tilt_angle
+  var smooth_roll := _strafe_tilt_dynamics[vcam_id].step(target_roll, delta)
+  # Apply roll to camera basis
+  var roll_rad := deg_to_rad(smooth_roll)
+  result_basis = result_basis.rotated(result_basis.z, roll_rad)
+  ```
+
+---
+
+### Phase 3C2: Head Bob (Rhythmic Position Oscillation)
+
+> **Why:** Subtle vertical and horizontal oscillation while walking/running creates embodied movement feel. The bob frequency and amplitude scale with movement speed. Uses a simple sine-wave approach driven by distance traveled, not time — so stopping mid-stride freezes the bob naturally.
+
+- [ ] **Task 3C2.1**: Add head bob fields to RS_VCamModeFirstPerson
+  - Modify `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd`:
+    - `@export var head_bob_amplitude: Vector2 = Vector2.ZERO` — vertical (Y) and horizontal (X) bob magnitude in world units (0 = disabled)
+    - `@export var head_bob_frequency: float = 2.0` — bob cycles per meter traveled (higher = faster stepping cadence)
+    - `@export var head_bob_speed_threshold: float = 0.5` — minimum movement speed to activate bob (avoids micro-drift bob)
+  - Add tests verifying fields exist with defaults
+  - Test `head_bob_amplitude` components must be non-negative
+  - Test `head_bob_frequency` must be positive
+  - **Target: 4 tests**
+
+- [ ] **Task 3C2.2 (Red)**: Write tests for head bob in S_VCamSystem
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test `head_bob_amplitude = Vector2.ZERO`: no bob applied (disabled)
+  - Test moving at speed above threshold: camera position oscillates vertically
+  - Test bob amplitude scales with movement speed (faster = larger bob, clamped to `head_bob_amplitude`)
+  - Test bob frequency matches `head_bob_frequency` cycles per meter traveled
+  - Test stopping mid-stride: bob freezes at current phase (distance-driven, not time-driven)
+  - Test speed below `head_bob_speed_threshold`: no bob (avoids micro-drift)
+  - Test head bob is a no-op for orbit and fixed modes
+  - **Target: 7 tests**
+
+- [ ] **Task 3C2.3 (Green)**: Implement head bob in S_VCamSystem
+  - Track per-vCam `_bob_distance_accumulator` (float, incremented by `speed * delta` each tick)
+  - Compute bob phase: `_bob_distance_accumulator * head_bob_frequency * TAU`
+  - Compute bob offset:
+    - Y: `sin(phase) * head_bob_amplitude.y * speed_factor`
+    - X: `sin(phase * 0.5) * head_bob_amplitude.x * speed_factor` (half frequency for horizontal sway)
+  - `speed_factor`: 0.0 below threshold, ramps to 1.0 at sprint speed
+  - Add bob offset to evaluated camera position in local camera space
+  - Gate: only apply when active mode is first-person
+  - Freeze accumulator when speed is below threshold (preserves phase)
+  - Reset accumulator on mode switch
+  - All tests should pass
+
+  **Head bob integration point:**
+  ```gdscript
+  # In process_tick, after evaluating first-person pose:
+  var speed := move_input.length() * max_move_speed  # approximate ground speed
+  if speed >= mode.head_bob_speed_threshold:
+      _bob_distance[vcam_id] += speed * delta
+  var phase := _bob_distance[vcam_id] * mode.head_bob_frequency * TAU
+  var bob_offset := Vector3(
+      sin(phase * 0.5) * mode.head_bob_amplitude.x,
+      sin(phase) * mode.head_bob_amplitude.y,
+      0.0
+  ) * speed_factor
+  # Transform bob offset into camera local space
+  result.transform.origin += result.transform.basis * bob_offset
+  ```
+
+---
+
+### Phase 3C3: Landing Head Dip (FP-Specific Impact)
+
+> **Why:** While the shared landing impact (Phase 6A3c) applies a camera dip via QB rules to any mode, first-person benefits from an additional embodied response — a brief pitch dip (looking down on impact) that recovers via second-order dynamics. This stacks with the shared position dip and screen shake for a layered, visceral landing feel.
+
+- [ ] **Task 3C3.1**: Add landing dip fields to RS_VCamModeFirstPerson
+  - Modify `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd`:
+    - `@export var landing_pitch_dip: float = 0.0` — max pitch dip in degrees on hard landing (0 = disabled, negative = look down)
+    - `@export var landing_dip_recovery_speed: float = 6.0` — Hz for pitch recovery second-order dynamics
+  - Add tests verifying fields exist with defaults
+  - **Target: 2 tests**
+
+- [ ] **Task 3C3.2 (Red)**: Write tests for landing head dip
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test `landing_pitch_dip = 0.0`: no pitch offset on landing (disabled)
+  - Test landing event with `landing_pitch_dip < 0`: camera pitch dips downward briefly
+  - Test dip magnitude scales with `fall_speed` from landing event (same normalization as shared impact)
+  - Test pitch recovers toward zero via second-order dynamics at `landing_dip_recovery_speed` Hz
+  - Test recovery is critically damped (single smooth return, no pitch oscillation)
+  - Test landing head dip is a no-op for orbit and fixed modes
+  - **Target: 6 tests**
+
+- [ ] **Task 3C3.3 (Green)**: Implement landing head dip in S_VCamSystem
+  - Subscribe to `EVENT_ENTITY_LANDED` (same event as shared landing impact)
+  - On landing, set per-vCam `_landing_pitch_offset` to `landing_pitch_dip * normalized_fall_speed`
+  - Each tick, drive `_landing_pitch_offset` toward `0.0` via `U_SecondOrderDynamics` at `landing_dip_recovery_speed` Hz (critically damped)
+  - Add `_landing_pitch_offset` to `runtime_pitch` AFTER normal pitch computation but BEFORE evaluator
+  - Gate: only apply when active mode is first-person
+  - All tests should pass
+
+  **Relationship to shared landing impact:**
+  - Shared landing impact (Phase 6A3c): vertical position dip (camera drops down) — works in all modes
+  - FP landing head dip (this phase): pitch rotation dip (camera looks down) — first-person only
+  - Both stack with screen shake for a three-layer landing feel:
+    - Position dip (low-frequency, gut-punch)
+    - Pitch dip (medium-frequency, embodied nod)
+    - Screen shake (high-frequency, violent vibration)
+
+---
+
+### Manual Validation (First-Person Game Feel)
+
+- [ ] **MT-96**: Strafe tilt while moving left: camera tilts subtly in strafe direction
+- [ ] **MT-97**: Strafe tilt while moving right: camera tilts subtly in strafe direction
+- [ ] **MT-98**: Strafe tilt returns to level when lateral input stops (no lingering roll)
+- [ ] **MT-99**: Strafe tilt disabled (angle=0): camera stays level during strafing
+- [ ] **MT-100**: Head bob while walking: subtle vertical oscillation at walking cadence
+- [ ] **MT-101**: Head bob while sprinting: larger amplitude, faster cadence
+- [ ] **MT-102**: Head bob stops cleanly when player stops (no drift or jitter)
+- [ ] **MT-103**: Head bob disabled (amplitude=0,0): no oscillation during movement
+- [ ] **MT-104**: Landing head dip on hard landing: brief downward pitch dip, springs back smoothly
+- [ ] **MT-105**: Landing head dip + shared impact + shake: all three layers visible simultaneously, compound feel
+- [ ] **MT-106**: Landing head dip disabled (dip=0): no pitch change on landing (shared position dip + shake still work)
+
+---
+
+### Cross-Cutting Checks (First-Person Game Feel)
+
+- [ ] Verify strafe tilt is gated to first-person mode only (no-op for orbit and fixed)
+- [ ] Verify strafe tilt reads lateral input from the same `gameplay.move_input` used by movement systems
+- [ ] Verify strafe tilt dynamics reset on mode switch (no residual roll from previous mode)
+- [ ] Verify head bob is distance-driven, not time-driven (stopping freezes the phase)
+- [ ] Verify head bob is gated to first-person mode only
+- [ ] Verify head bob speed threshold prevents micro-drift oscillation
+- [ ] Verify landing head dip stacks with shared landing impact (both apply simultaneously)
+- [ ] Verify landing head dip is gated to first-person mode only
+- [ ] Verify all FP game feel dynamics instances are pre-created and reused (zero per-frame allocations)
 
 ---
 
