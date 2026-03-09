@@ -21,6 +21,10 @@
 - Fixed-mode anchor ownership is now explicit: fixed cameras must resolve `C_VCamComponent.fixed_anchor_path` first, then fall back to a vCam host entity-root `Node3D`; never read component transform.
 - Occlusion rollout is now explicit: naming layer 6 `vcam_occludable` is not enough; authored occluding geometry in gameplay/prefab scenes must be migrated to that layer.
 - Stale test paths were corrected (`test_u_input_reducer.gd`, `test_input_system.gd`, `tests/integration/camera_system/test_camera_manager.gd`).
+- ECS Event Bus integration added: `M_VCamManager` publishes lifecycle events (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`) through `U_ECSEventBus` so `S_GameEventSystem`, `S_CameraStateSystem`, and QB rules can subscribe to vCam state changes.
+- vCam event constants must be added to `scripts/events/ecs/u_ecs_event_names.gd` following existing `EVENT_*` pattern.
+- Entity-based target resolution added: `C_VCamComponent` supports `follow_target_entity_id` and `follow_target_tag` exports as fallbacks when NodePath is empty. `S_VCamSystem` resolves targets via `M_ECSManager.get_entity_by_id()` / `get_entities_by_tag()`, leveraging the existing `BaseECSEntity` ID/tag system.
+- QB rule context enrichment: `S_CameraStateSystem._build_camera_context()` is extended with `vcam_active_mode`, `vcam_is_blending`, `vcam_active_vcam_id` so camera rules can condition on vCam state using standard `RS_ConditionContextField`.
 - Per-phase doc cadence is now explicit and mandatory: update continuation prompt + tasks after each phase, and update AGENTS/DEV_PITFALLS when new stable contracts or pitfalls appear.
 - Naming paths now follow the repo style guide:
   - `scripts/resources/display/vcam/`
@@ -41,6 +45,11 @@
 - `tests/mocks/mock_camera_manager.gd`
 - `scripts/ecs/systems/s_input_system.gd`
 - `scripts/ecs/systems/s_touchscreen_system.gd`
+- `scripts/ecs/systems/s_camera_state_system.gd` (QB rule context, FOV composition, shake trauma)
+- `scripts/ecs/components/c_camera_state_component.gd` (base_fov, target_fov, shake_trauma API)
+- `scripts/events/ecs/u_ecs_event_bus.gd` (event subscription/publish pattern)
+- `scripts/events/ecs/u_ecs_event_names.gd` (event constant pattern — vCam events added here)
+- `scripts/utils/qb/u_rule_scorer.gd` (QB rule scoring for camera rules)
 - `scripts/state/utils/u_state_slice_manager.gd`
 - `scripts/utils/u_global_settings_serialization.gd`
 - `scripts/utils/display/u_cinema_grade_preview.gd`
@@ -83,6 +92,9 @@
 - vCam does not write `camera.global_transform` directly.
 - vCam blends are live blends between two evaluated cameras, not frozen-transform lerps.
 - fixed-mode world anchoring resolves from `fixed_anchor_path` first, then host entity-root `Node3D` fallback; not from component transform assumptions.
+- vCam publishes lifecycle events through `U_ECSEventBus`, not just Redux — enabling reactive integration with QB rules and other systems.
+- QB camera rules can condition on vCam state via enriched context fields (`vcam_active_mode`, `vcam_is_blending`) — no vCam-specific rule types needed.
+- Follow target resolution uses existing entity ID/tag system as fallback when NodePaths are empty.
 
 ## Known Risks
 

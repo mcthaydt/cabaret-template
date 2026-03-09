@@ -1,10 +1,10 @@
 # vCam Manager — Task Index
 
 **Progress:** 5 / 5 documentation tasks complete; 0 implementation tasks complete
-**Estimated Test Count:** ~420 checks (about 340 automated tests + 80 manual checks including game-feel QA)
+**Estimated Test Count:** ~440 checks (about 360 automated tests + 80 manual checks including game-feel QA)
 **Status note:** Strict TDD (Red/Green/Refactor). Each camera mode has a dedicated phase. Mobile drag-look is a hard prerequisite for orbit/first-person completion.
 **Manual QA cadence:** Manual checks are embedded in the relevant implementation phases (no standalone manual-testing phase).
-**Quality gaps addressed:** Orientation continuity, blend interruption, invalid-target recovery, occlusion anti-flicker, performance budget, observability expansion, open-question resolution, cross-mode feel QA, **second-order dynamics for natural camera motion**.
+**Quality gaps addressed:** Orientation continuity, blend interruption, invalid-target recovery, occlusion anti-flicker, performance budget, observability expansion, open-question resolution, cross-mode feel QA, **second-order dynamics for natural camera motion**, **ECS event bus integration**, **QB rule context enrichment**, **entity-based target resolution**.
 
 ---
 
@@ -12,7 +12,7 @@
 
 | File | Scope | Phases |
 |------|-------|--------|
-| [vcam-base-tasks.md](vcam-base-tasks.md) | Shared infrastructure: state/persistence, base resources, **second-order dynamics**, response tuning, component/interface/manager, ECS system, scene wiring, mobile drag-look, soft zone, blend, occlusion, editor preview, integration tests, regression/docs | 0, 1, 5, 6, 7, 8, 9, 10, 11, 12, 13 |
+| [vcam-base-tasks.md](vcam-base-tasks.md) | Shared infrastructure: state/persistence, **ECS event bus constants**, base resources, **second-order dynamics**, response tuning, component/interface/manager, ECS system, scene wiring, mobile drag-look, soft zone, blend, **QB rule context enrichment**, occlusion, editor preview, integration tests, regression/docs | 0, 1, 5, 6, 7, 8, 9, 10, 11, 12, 13 |
 | [vcam-orbit-tasks.md](vcam-orbit-tasks.md) | Orbit camera mode: resource, evaluator, default preset, manual checks | 2 |
 | [vcam-fps-tasks.md](vcam-fps-tasks.md) | First-person camera mode: resource, evaluator, refactor pass, manual checks | 3 |
 | [vcam-fixed-tasks.md](vcam-fixed-tasks.md) | Fixed camera mode: resource, evaluator, final evaluator refactor, manual checks | 4 |

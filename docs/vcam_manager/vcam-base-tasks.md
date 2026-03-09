@@ -172,6 +172,15 @@ Before starting Phase 0, verify:
   - Add 7 action type constants and static creator functions
   - All tests should pass
 
+- [ ] **Task 0D.2a**: Add vCam event constants to U_ECSEventNames
+  - Modify `scripts/events/ecs/u_ecs_event_names.gd`
+  - Add `EVENT_VCAM_ACTIVE_CHANGED := &"vcam_active_changed"`
+  - Add `EVENT_VCAM_BLEND_STARTED := &"vcam_blend_started"`
+  - Add `EVENT_VCAM_BLEND_COMPLETED := &"vcam_blend_completed"`
+  - Add `EVENT_VCAM_RECOVERY := &"vcam_recovery"`
+  - Follow existing `EVENT_*` naming and `StringName` pattern
+  - These events are published by `M_VCamManager` through `U_ECSEventBus` so `S_GameEventSystem`, `S_CameraStateSystem`, and QB rules can subscribe to vCam lifecycle changes
+
 - [ ] **Task 0D.3 (Red)**: Write tests for U_VCamReducer
   - Create `tests/unit/state/test_vcam_reducer.gd`
   - Test `set_active_runtime` updates `active_vcam_id` and `active_mode`
@@ -462,18 +471,21 @@ Before starting Phase 0, verify:
   - Test `mode` export exists (Resource type)
   - Test `fixed_anchor_path` export exists (NodePath)
   - Test `follow_target_path` export exists (NodePath)
+  - Test `follow_target_entity_id` export exists (StringName, default `&""`) — entity ID fallback for dynamic target resolution via `M_ECSManager.get_entity_by_id()`
+  - Test `follow_target_tag` export exists (StringName, default `&""`) — tag fallback for target resolution via `M_ECSManager.get_entities_by_tag()`
   - Test `look_at_target_path` export exists (NodePath)
   - Test `soft_zone` export exists (Resource type)
   - Test `blend_hint` export exists (Resource type)
   - Test `response` export exists (Resource type, RS_VCamResponse)
   - Test `is_active` export exists with default `true`
-  - **Target: 12 tests**
+  - **Target: 14 tests**
 
 - [ ] **Task 5A.2 (Green)**: Implement C_VCamComponent
   - Create `scripts/ecs/components/c_vcam_component.gd`
   - Extend `BaseECSComponent`, set `COMPONENT_TYPE`
-  - Add all exports (including `response: RS_VCamResponse`) and runtime-only `runtime_yaw`, `runtime_pitch` vars
+  - Add all exports (including `response: RS_VCamResponse`, `follow_target_entity_id`, `follow_target_tag`) and runtime-only `runtime_yaw`, `runtime_pitch` vars
   - Implement null-safe `get_follow_target()` and `get_look_at_target()` typed getters
+  - Target resolution priority in `S_VCamSystem`: NodePath → entity ID → tag → null (recovery)
   - All tests should pass
 
 ---
@@ -522,14 +534,16 @@ Before starting Phase 0, verify:
   - Test `get_active_vcam_id()` returns current active
   - Test `get_active_vcam_id()` returns `&""` when no vcams registered
   - Test `set_active_vcam()` dispatches `vcam/set_active_runtime` action
+  - Test `set_active_vcam()` publishes `EVENT_VCAM_ACTIVE_CHANGED` through `U_ECSEventBus` with `{vcam_id, previous_vcam_id, mode}` payload
   - Test `is_active = false` on component excludes it from priority selection
   - Test changing `is_active` to false on the active vcam triggers reselection
   - Test priority reselection after unregister picks next highest
-  - **Target: 10 tests**
+  - **Target: 11 tests**
 
 - [ ] **Task 5C.4 (Green)**: Implement M_VCamManager active selection
   - Add active selection logic with explicit override and priority fallback
   - Add Redux dispatch integration (injection-first, ServiceLocator fallback)
+  - Publish `U_ECSEventBus.publish(U_ECSEventNames.EVENT_VCAM_ACTIVE_CHANGED, payload)` on active vCam change
   - All tests should pass
 
 ---
@@ -544,7 +558,7 @@ Before starting Phase 0, verify:
   - Create `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test extends `BaseECSSystem`
   - Test resolves `I_VCamManager` via ServiceLocator
-  - Test reads `look_input` from gameplay Redux slice
+  - Test reads `look_input` from gameplay Redux slice (`gameplay.look_input` from `S_InputSystem` / `S_TouchscreenSystem`)
   - Test evaluates active vCam each tick via `U_VCamModeEvaluator`
   - Test updates `runtime_yaw` on orbit component when `allow_player_rotation = true`
   - Test updates `runtime_pitch` on orbit component when `allow_player_rotation = true`
@@ -552,14 +566,17 @@ Before starting Phase 0, verify:
   - Test updates yaw/pitch on first-person component using `look_multiplier`
   - Test submits evaluated result to `M_VCamManager.submit_evaluated_camera()`
   - Test evaluates outgoing vCam too when `manager.is_blending()` is true
+  - Test resolves follow target from NodePath export first, then falls back to entity query (`M_ECSManager.get_entity_by_id()`) when path is empty
+  - Test resolves follow target by tag (`M_ECSManager.get_entities_by_tag()`) as last fallback
   - Test does nothing when no active vCam exists
   - Test does nothing when manager is not found
-  - **Target: 12 tests**
+  - **Target: 14 tests**
 
 - [ ] **Task 6A.2 (Green)**: Implement S_VCamSystem
   - Create `scripts/ecs/systems/s_vcam_system.gd`
   - Extend `BaseECSSystem`, implement `process_tick(delta)`
   - Resolve manager, read look input, evaluate modes, submit results
+  - Target resolution priority: NodePath export → `M_ECSManager.get_entity_by_id(target_entity_id)` → `M_ECSManager.get_entities_by_tag(target_tag)` → null (triggers recovery)
   - All tests should pass
 
 ### Phase 6A2: Second-Order Dynamics Integration in S_VCamSystem
@@ -815,7 +832,8 @@ Before starting Phase 0, verify:
 
 - [ ] **Task 6B2.2 (Green)**: Implement runtime recovery
   - Add per-tick validity checks in `S_VCamSystem` and `M_VCamManager`
-  - Dispatch `update_target_validity` and `record_recovery` actions
+  - Dispatch `update_target_validity` and `record_recovery` Redux actions
+  - Publish `EVENT_VCAM_RECOVERY` through `U_ECSEventBus` with `{reason, vcam_id}` payload so other systems can react (e.g., `S_GameEventSystem` rules that trigger effects on camera recovery)
   - All tests should pass
 
 ---
@@ -1009,18 +1027,21 @@ Settings checks (mode-agnostic):
 - [ ] **Task 9B.1 (Red)**: Write tests for live blend in M_VCamManager
   - Add to `tests/unit/managers/test_vcam_manager.gd`
   - Test `set_active_vcam()` starts blend between old and new vcam IDs
+  - Test `set_active_vcam()` publishes `EVENT_VCAM_BLEND_STARTED` through `U_ECSEventBus` with `{from_vcam_id, to_vcam_id, duration}` payload
   - Test `is_blending()` returns true during active blend
   - Test `get_blend_progress()` advances over time
   - Test blend completes when progress reaches 1.0
+  - Test blend completion publishes `EVENT_VCAM_BLEND_COMPLETED` through `U_ECSEventBus` with `{vcam_id}` payload
   - Test `get_previous_vcam_id()` returns outgoing vcam during blend
   - Test `submit_evaluated_camera()` stores both active and outgoing results during blend
   - Test blend result is computed from two live results (not frozen transforms)
   - Test `set_active_vcam()` with `blend_duration = 0.0` cuts immediately (no blend)
-  - **Target: 8 tests**
+  - **Target: 10 tests**
 
 - [ ] **Task 9B.2 (Green)**: Implement live blend in M_VCamManager
   - Extend manager with blend state tracking, elapsed time, blend evaluation
   - Process blend progression in `_physics_process`
+  - Publish `EVENT_VCAM_BLEND_STARTED` on blend start, `EVENT_VCAM_BLEND_COMPLETED` on completion
   - All tests should pass
 
 ---
@@ -1054,8 +1075,17 @@ Settings checks (mode-agnostic):
 
 - [ ] **Task 9D.2 (Green)**: Implement vCam apply flow in M_VCamManager
   - Route final blended/unblended result through `camera_manager.apply_main_camera_transform()`
-  - Set `C_CameraStateComponent.base_fov`
+  - Set `C_CameraStateComponent.base_fov` (use `set_base_fov()` setter)
   - All tests should pass
+
+- [ ] **Task 9D.3**: Enrich `S_CameraStateSystem` QB rule context with vCam state
+  - Modify `scripts/ecs/systems/s_camera_state_system.gd` `_build_camera_context()` method
+  - Add `vcam_active_mode` from `U_VCamSelectors.get_active_mode(state)`
+  - Add `vcam_is_blending` from `U_VCamSelectors.is_blending(state)`
+  - Add `vcam_active_vcam_id` from `U_VCamSelectors.get_active_vcam_id(state)`
+  - This enables QB camera rules to condition on vCam state (e.g., "reduce FOV zone effect in first-person mode", "suppress shake during blends")
+  - Rules use standard `RS_ConditionContextField` to read these fields — no vCam-specific condition types needed
+  - Write regression tests verifying existing camera rules still pass with enriched context
 
 ---
 

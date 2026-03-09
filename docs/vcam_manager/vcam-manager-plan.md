@@ -153,6 +153,17 @@ func to_dictionary() -> Dictionary:
 - `vcam/complete_blend`
 - `vcam/update_silhouette_count`
 
+**ECS Event Constants**
+
+Extend `scripts/events/ecs/u_ecs_event_names.gd` with vCam lifecycle event constants:
+
+- `EVENT_VCAM_ACTIVE_CHANGED` — published when active vCam selection changes
+- `EVENT_VCAM_BLEND_STARTED` — published when a vCam-to-vCam blend begins
+- `EVENT_VCAM_BLEND_COMPLETED` — published when a blend finishes or cuts
+- `EVENT_VCAM_RECOVERY` — published when the recovery policy activates (target freed, anchor invalid)
+
+These follow the existing `EVENT_*` naming pattern and are published through `U_ECSEventBus` so `S_GameEventSystem`, `S_CameraStateSystem`, and QB rules can subscribe.
+
 **Reducer behavior**
 
 - `set_active_runtime`: updates `active_vcam_id` and `active_mode`
@@ -247,6 +258,8 @@ func to_dictionary() -> Dictionary:
   - `mode: Resource`
   - `fixed_anchor_path: NodePath`
   - `follow_target_path: NodePath`
+  - `follow_target_entity_id: StringName` — entity ID fallback for dynamic target resolution via `M_ECSManager.get_entity_by_id()`
+  - `follow_target_tag: StringName` — tag fallback for target resolution via `M_ECSManager.get_entities_by_tag()`
   - `look_at_target_path: NodePath`
   - `soft_zone: Resource`
   - `blend_hint: Resource`
@@ -258,6 +271,7 @@ func to_dictionary() -> Dictionary:
 **Behavior**
 
 - Resolve follow/look targets with null-safe typed getters.
+- Target resolution priority (applied by `S_VCamSystem`): `follow_target_path` NodePath → `follow_target_entity_id` via `M_ECSManager.get_entity_by_id()` → `follow_target_tag` via `M_ECSManager.get_entities_by_tag()` → null (triggers recovery). This leverages the existing `BaseECSEntity` ID and tag system for dynamic target assignment.
 - Register with `M_VCamManager` on readiness/registration.
 - Unregister on `_exit_tree()` so the persistent manager never keeps dead scene references.
 
@@ -318,7 +332,8 @@ func to_dictionary() -> Dictionary:
   - `blend_duration`
   - `blend_hint`
 - own collision and silhouette helpers
-- dispatch Redux observability updates
+- dispatch Redux observability updates (`U_VCamActions` → `vcam` slice)
+- publish ECS lifecycle events through `U_ECSEventBus` (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`)
 - clear runtime state and silhouettes when gameplay scenes unload or all cameras unregister
 
 **Dependency pattern**
@@ -358,7 +373,8 @@ func to_dictionary() -> Dictionary:
 **System responsibilities**
 
 - resolve `I_VCamManager`
-- read gameplay look input from Redux via the existing input pipeline
+- read gameplay look input from Redux via the existing input pipeline (`gameplay.look_input`)
+- resolve follow targets using `C_VCamComponent` NodePath exports first; fall back to entity queries (`M_ECSManager.get_entity_by_id()` or `get_entities_by_tag()`) when NodePaths are empty — enables dynamic target assignment (e.g., follow the entity tagged `"player"`)
 - evaluate the active vCam every tick
 - when a blend is active, also evaluate the outgoing vCam every tick
 - resolve a `Node3D` fixed anchor for each vCam (`fixed_anchor_path` when set, entity root default otherwise) before mode evaluation
@@ -565,8 +581,18 @@ static func compute_camera_correction(
 
 1. If `camera_manager.is_blend_active()` is true, suspend all vCam transform writes.
 2. Otherwise, pass the blended or unblended result into `camera_manager.apply_main_camera_transform(...)`.
-3. Update `C_CameraStateComponent.base_fov` with the vCam-authored FOV.
+3. Update `C_CameraStateComponent.base_fov` with the vCam-authored FOV (use `set_base_fov()` setter which clamps to valid range).
 4. Let `S_CameraStateSystem` remain the sole writer of `camera.fov`.
+
+**QB rule context enrichment**
+
+After vCam state is dispatched to Redux, `S_CameraStateSystem` can read vCam fields from the `vcam` slice when building its rule evaluation context. Enrich the camera context with:
+
+- `vcam_active_mode` — enables rules like "reduce FOV zone effect during first-person mode"
+- `vcam_is_blending` — enables rules like "suppress shake during camera blends"
+- `vcam_active_vcam_id` — enables per-vCam rule targeting
+
+This requires modifying `S_CameraStateSystem._build_camera_context()` to read from the `vcam` slice via `U_VCamSelectors`. Camera rules remain authored in `.tres` files using the standard `RS_Rule` + condition/effect pattern — no vCam-specific rule engine is needed.
 
 ## Phase 5: Occlusion and Silhouette
 

@@ -70,12 +70,16 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 
 ### Dependencies
 
-- `M_CameraManager`
-- `M_StateStore`
-- `BaseECSComponent`
-- `BaseECSSystem`
-- `U_ServiceLocator`
-- `PhysicsDirectSpaceState3D`
+- `M_CameraManager` (shake-safe transform API, named shake sources via `set_shake_source()` / `clear_shake_source()`, transition blend gating via `is_blend_active()`)
+- `M_StateStore` (transient `vcam` slice, persisted `vfx` slice for silhouette toggle)
+- `S_CameraStateSystem` (QB-driven FOV composition, shake trauma decay; vCam enriches its rule context with `vcam_active_mode` / `vcam_is_blending`)
+- `C_CameraStateComponent` (vCam writes `base_fov`; system owns `target_fov`, `shake_trauma`, `fov_blend_speed`)
+- `BaseECSComponent` / `BaseECSSystem`
+- `BaseECSEntity` (entity ID and tag system for dynamic follow target resolution via `M_ECSManager.get_entity_by_id()` / `get_entities_by_tag()`)
+- `U_ECSEventBus` / `U_ECSEventNames` (vCam publishes lifecycle events: active changed, blend started/completed, recovery)
+- `U_ServiceLocator` (manager discovery: `camera_manager`, `state_store`, `ecs_manager`)
+- `PhysicsDirectSpaceState3D` (occlusion raycasting)
+- QB Rule Engine (`U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, `U_RuleValidator`) — camera rules can condition on vCam context fields
 - existing gameplay input pipeline (`S_InputSystem`, `U_InputActions`, gameplay `look_input`)
 - existing mobile controls pipeline (`UI_MobileControls`, `S_TouchscreenSystem`, `settings.input_settings.touchscreen_settings`)
 

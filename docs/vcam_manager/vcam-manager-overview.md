@@ -110,11 +110,13 @@ Does not own:
 
 Owns:
 
-- reading current `look_input` from Redux
+- reading current `look_input` from Redux (`gameplay.look_input` from `S_InputSystem` / `S_TouchscreenSystem`)
 - evaluating the active vCam every physics tick
 - evaluating the outgoing vCam as well when a blend is active
 - updating `runtime_yaw` and `runtime_pitch` on the correct component
 - applying soft-zone correction before results are submitted
+- resolving follow targets using entity queries (`M_ECSManager.get_entity_by_id()`, `get_entities_by_tag()`) as fallback when `C_VCamComponent` NodePath exports are empty
+- applying rotation continuity policy on mode switches
 
 ### `M_CameraManager`
 
@@ -129,9 +131,10 @@ Remains the low-level camera runtime owner:
 
 Remains the FOV and trauma owner:
 
-- QB-driven camera rules
-- base-FOV composition
+- QB-driven camera rules (rules can now condition on `vcam_active_mode` and `vcam_is_blending` from the enriched context)
+- base-FOV composition (vCam writes `C_CameraStateComponent.base_fov`; `S_CameraStateSystem` blends toward `target_fov` and applies `camera.fov`)
 - final `camera.fov` application
+- shake trauma decay (`C_CameraStateComponent.shake_trauma` decays at 2.0/sec; `M_CameraManager` applies shake offsets through named `set_shake_source()` / `clear_shake_source()`)
 
 ## Interaction Flow
 
@@ -159,8 +162,15 @@ M_VCamManager._physics_process(delta)
   -> dispatch transient vcam slice updates
 
 S_CameraStateSystem.process_tick(delta)
-  -> reads camera-state component
+  -> reads camera-state component (QB rule context now includes vcam state for mode-aware rules)
   -> applies final camera.fov
+
+U_ECSEventBus
+  <- M_VCamManager publishes vCam lifecycle events:
+     EVENT_VCAM_ACTIVE_CHANGED, EVENT_VCAM_BLEND_STARTED,
+     EVENT_VCAM_BLEND_COMPLETED, EVENT_VCAM_RECOVERY
+  <- other systems (S_GameEventSystem, S_CameraStateSystem) can subscribe
+     to react to camera orchestration changes through the standard event pattern
 ```
 
 ## Public API
@@ -177,6 +187,31 @@ func submit_evaluated_camera(vcam_id: StringName, result: Dictionary) -> void
 func get_blend_progress() -> float
 func is_blending() -> bool
 ```
+
+### ECS Event Bus Integration
+
+`M_VCamManager` publishes lifecycle events through `U_ECSEventBus` using constants defined in `U_ECSEventNames`:
+
+| Event Constant | Payload | Published When |
+|------|---------|---------------|
+| `EVENT_VCAM_ACTIVE_CHANGED` | `{vcam_id: StringName, previous_vcam_id: StringName, mode: String}` | active vCam selection changes |
+| `EVENT_VCAM_BLEND_STARTED` | `{from_vcam_id: StringName, to_vcam_id: StringName, duration: float}` | a vCam-to-vCam blend begins |
+| `EVENT_VCAM_BLEND_COMPLETED` | `{vcam_id: StringName}` | a blend finishes or cuts |
+| `EVENT_VCAM_RECOVERY` | `{reason: String, vcam_id: StringName}` | recovery policy activates (target freed, anchor invalid, etc.) |
+
+These events complement the Redux `vcam` slice. Redux provides snapshot-style observability; ECS events provide the reactive channel that `S_GameEventSystem`, `S_CameraStateSystem`, and QB rules can subscribe to.
+
+### QB Rule Context Enrichment
+
+`S_CameraStateSystem` builds a context dictionary for QB rule evaluation. vCam enriches this context so camera rules can be mode-aware:
+
+| Context Key | Type | Source |
+|------|------|--------|
+| `vcam_active_mode` | `String` | `U_VCamSelectors.get_active_mode(state)` |
+| `vcam_is_blending` | `bool` | `U_VCamSelectors.is_blending(state)` |
+| `vcam_active_vcam_id` | `StringName` | `U_VCamSelectors.get_active_vcam_id(state)` |
+
+This enables rules like "reduce FOV zone intensity during blends" or "suppress shake in first-person mode" without coupling `S_CameraStateSystem` to vCam internals — rules simply read context fields.
 
 ### `M_CameraManager` additions required by vCam
 
@@ -377,6 +412,15 @@ Use a helper patterned after `U_CinemaGradePreview`:
 - frees itself at runtime
 
 This intentionally avoids a new `scripts/tools` category.
+
+## Entity-Based Target Resolution
+
+`C_VCamComponent` supports two target resolution strategies:
+
+1. **NodePath exports** (primary): `follow_target_path`, `look_at_target_path`, `fixed_anchor_path` — resolved via `get_node_or_null()` per the standard ECS component pattern.
+2. **Entity ID fallback**: when NodePath exports are empty, `S_VCamSystem` can resolve targets through `M_ECSManager.get_entity_by_id(target_entity_id)` or `M_ECSManager.get_entities_by_tag(tag)`. This enables dynamic target assignment (e.g., follow the entity tagged `"player"`) without hard-coded scene paths.
+
+Entity resolution uses the existing `BaseECSEntity` ID and tag system documented in AGENTS.md. `S_VCamSystem` queries the ECS manager that the gameplay scene owns.
 
 ## File Layout
 
