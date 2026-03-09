@@ -199,8 +199,12 @@ func is_blend_active() -> bool
 | `blend_progress` | `float` | `0.0..1.0` |
 | `is_blending` | `bool` | whether live vCam blending is active |
 | `silhouette_active_count` | `int` | number of active silhouette overrides |
+| `blend_from_vcam_id` | `StringName` | debug: source vCam during an active blend |
+| `blend_to_vcam_id` | `StringName` | debug: destination vCam during an active blend |
+| `active_target_valid` | `bool` | debug: whether the active vCam's follow target is currently valid |
+| `last_recovery_reason` | `String` | debug: reason for last recovery action (e.g. `"target_freed"`, `"anchor_invalid"`) |
 
-This slice is whole-slice transient. It is not save data and not a player settings surface.
+This slice is whole-slice transient. It is not save data and not a player settings surface. The `blend_from/to`, `active_target_valid`, and `last_recovery_reason` fields are debug-only and may be omitted in release builds.
 
 ### Persisted VFX setting
 
@@ -242,6 +246,18 @@ This slice is whole-slice transient. It is not save data and not a player settin
 
 On mobile, that same `look_input` must come from drag-look through the existing touchscreen input path rather than through a separate vCam-only control scheme.
 
+## Rotation Continuity Contract
+
+When switching between camera modes, `runtime_yaw` and `runtime_pitch` follow these rules:
+
+- **Orbit → First-Person**: carry `runtime_yaw` as-is so the player keeps facing the same world direction. Reset `runtime_pitch` to `0.0` (level horizon) since orbit pitch semantics differ from first-person pitch.
+- **First-Person → Orbit**: carry `runtime_yaw` as-is. Reset `runtime_pitch` to `0.0` (authored orbit pitch takes over).
+- **Orbit → Fixed**: rotation state is irrelevant to fixed cameras. Preserve `runtime_yaw`/`runtime_pitch` on the outgoing component so they are intact if the player returns to that vCam.
+- **Fixed → Orbit / First-Person**: reseed `runtime_yaw` to the authored yaw of the incoming vCam. Reset `runtime_pitch` to `0.0`. The camera should land at its authored default rather than inheriting stale rotation from a previous session.
+- **Same-mode switch** (e.g. orbit → orbit): carry both `runtime_yaw` and `runtime_pitch` when the two cameras share the same follow target. When they follow different targets, reseed to authored angles.
+
+`S_VCamSystem` is responsible for applying this policy during `set_active_vcam()`. The contract is: no disorienting heading jumps on any common transition.
+
 ## Soft-Zone System
 
 Soft-zone behavior is still defined in normalized screen space, but the implementation has to be projection-aware.
@@ -272,6 +288,18 @@ Correct blend behavior:
 - apply `RS_VCamBlendHint.ease_type`
 - if `cut_on_distance_threshold > 0.0` and the evaluated camera positions are farther apart than the threshold, cut immediately instead of blending
 
+### Reentrant Switch (Mid-Blend Interruption)
+
+If `set_active_vcam(...)` is called while a blend is already active:
+
+- the current blended pose becomes the new "from" pose (snapshot the interpolated result at the moment of interruption)
+- the newly requested vCam becomes the new "to" target
+- `previous_vcam_id` updates to reflect the interrupted blend's source
+- blend progress resets to `0.0` with the new target's blend hint
+- the old outgoing vCam stops being evaluated (only the snapshot and the new incoming vCam are live)
+
+This prevents pops from restarting a blend from the original source position and avoids wedged blend state from rapid switching.
+
 ## Mobile Drag-Look Contract
 
 Mobile support is not complete unless the shared `gameplay.look_input` path works for touch.
@@ -285,6 +313,35 @@ Required behavior:
 - `S_InputSystem` must not overwrite touchscreen gameplay input with zero payloads from `TouchscreenSource`.
 - Mobile drag-look settings persist through `settings.input_settings.touchscreen_settings`, not the `vcam` slice.
 - `S_VCamSystem` remains device-agnostic and simply consumes the shared `look_input` value.
+
+## Runtime Recovery Policy
+
+When a target or vCam becomes invalid during gameplay, the system follows these rules:
+
+### Follow target freed or disappeared
+
+- hold the last valid evaluated pose for up to 1 physics frame
+- if the target remains invalid, cut to the highest-priority vCam that still has a valid target
+- if no valid vCam exists, hold the last valid camera pose (do not snap to origin)
+
+### Fixed anchor freed
+
+- fall back to the vCam host entity-root `Node3D` (the standard anchor fallback)
+- if the entity root is also invalid, hold the last valid pose and log a warning
+
+### vCam becomes invalid mid-blend
+
+- if the outgoing vCam is freed: complete the blend immediately (cut to the incoming result)
+- if the incoming vCam is freed: cancel the blend and hold the outgoing pose; trigger priority reselection
+- if both are freed: hold the last valid blended pose and clear blend state
+
+### Scene transition
+
+- clear all silhouettes
+- clear blend state
+- do not carry stale vCam references across scene boundaries
+
+`M_VCamManager` is responsible for checking validity before each evaluation tick. Invalid states must never produce NaN transforms or crash the pipeline.
 
 ## Collision and Silhouette
 
@@ -300,6 +357,13 @@ Required behavior:
 - use `assets/shaders/sh_vcam_silhouette_shader.gdshader`
 - store original override state so restoration is deterministic
 - clear all overrides when no active gameplay vCam exists or a scene swap invalidates the previous result set
+
+### Stability (Anti-Flicker)
+
+- maintain a "stable occluder set" — only add/remove occluders when their status has been consistent for at least 2 consecutive physics frames (debounce)
+- when the occluder set is unchanged from the previous frame, skip material override application entirely (no per-frame churn)
+- grace-frame removal: when an occluder leaves the ray, keep its silhouette for 2 additional frames before restoring the original material
+- this prevents visible flicker when an occluder repeatedly crosses the ray boundary or when raycast results jitter frame-to-frame
 
 ## Editor Preview
 

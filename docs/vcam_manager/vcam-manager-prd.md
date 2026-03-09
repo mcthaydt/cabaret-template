@@ -107,6 +107,10 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 | touchscreen input gets overwritten by zeros | gate `S_InputSystem` so touch gameplay input remains owned by `S_TouchscreenSystem` when touchscreen is active |
 | silhouette field persists but players cannot control it | add silhouette toggle wiring + localization in `UI_VFXSettingsOverlay` |
 | detector works in isolation but misses gameplay occluders | migrate authored scene/prefab camera blockers to layer 6 `vcam_occludable` |
+| active follow target freed or disappears during gameplay | define system-level recovery policy: hold last valid pose, cut to fallback vCam, or reseat to entity root |
+| fixed anchor freed after scene churn | guard anchor resolution every tick; fall back to entity root or hold last valid pose |
+| outgoing or incoming vCam becomes invalid mid-blend | clear blend immediately and cut to whichever side is still valid |
+| silhouette flicker on marginal occluders | add debounce / hysteresis / grace-frame logic so silhouette set stays stable frame-to-frame |
 
 ### Compatibility
 
@@ -130,13 +134,18 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - silhouette enablement persists through the existing VFX/global-settings flow
 - mobile drag-look feeds the same `gameplay.look_input` path and remains configurable through touchscreen settings
 - editor rule-of-thirds preview is visible in the editor and absent at runtime
+- mode switches preserve facing direction when appropriate, or intentionally reseed to authored angles by explicit policy — no disorienting camera heading jumps
+- occlusion silhouettes remain stable and do not flicker on marginal blockers
+- no avoidable per-frame allocations in steady-state camera evaluation
+- occlusion pass stays within frame-time budget (no regression in frame pacing from blend + soft-zone + occlusion combined)
+- a new switch mid-blend produces a visually coherent transition, not a pop or wedged state
 
 ## Open Questions
 
 | Question | Status |
 |----------|--------|
-| Should silhouette color/opacity be globally configurable in VFX settings now or later? | Open |
-| Should orbit mode eventually support authored zoom behavior? | Open |
+| Should silhouette color/opacity be globally configurable in VFX settings now or later? | Deferred to post-v1. Ship with a single authored color/opacity in the shader; add VFX-settings configurability only if player feedback requests it. |
+| Should orbit mode eventually support authored zoom behavior? | Deferred to post-v1. Orbit distance is authored and static for v1; zoom tuning can be added later without breaking the resource contract. |
 
 ## Resolved Decisions
 

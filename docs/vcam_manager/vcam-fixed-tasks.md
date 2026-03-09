@@ -253,9 +253,27 @@ These checks gate Phase 6C completion for fixed mode:
   - Verify camera does NOT rotate from player input
   - Verify this holds for both `track_target = true` and `track_target = false` configurations
 
+### Manual Validation (Feel — Fixed)
+
+These checks gate Phase 13 cross-mode QA completion:
+
+- [ ] **MT-63**: Entering fixed is intentionally authored (camera lands at authored position/rotation exactly)
+  - Switch from orbit or first-person to fixed
+  - Verify camera blend ends at the exact authored anchor position
+  - Verify no drift or jitter after landing
+- [ ] **MT-64**: Leaving fixed preserves expected heading / reseeds intentionally
+  - Switch from fixed to orbit: verify orbit reseeds to authored yaw/pitch (not stale pre-fixed rotation)
+  - Switch from fixed to first-person: verify first-person reseeds to authored defaults
+- [ ] **MT-65**: Fixed anchor freed at runtime: camera recovers gracefully
+  - Free or remove the fixed anchor node while fixed vCam is active
+  - Verify camera falls back to entity root or holds last valid pose
+  - Verify no crash or NaN camera state
+
+---
+
 ### Manual Validation (Blend — Fixed)
 
-These checks gate Phase 9E completion:
+These checks gate Phase 9F completion:
 
 - [ ] **MT-19**: Switching from orbit to fixed blends smoothly (no snap)
   - Trigger a vCam switch from orbit to fixed

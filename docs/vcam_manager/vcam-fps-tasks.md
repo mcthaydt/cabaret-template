@@ -252,9 +252,28 @@ These checks gate Phase 7D completion for first-person mode:
   - Verify player moves while camera rotates independently
   - Verify no touch ID conflicts or gesture stealing
 
+### Manual Validation (Feel — First-Person)
+
+These checks gate Phase 13 cross-mode QA completion:
+
+- [ ] **MT-66**: Entering first-person preserves intended facing direction
+  - Switch from orbit to first-person
+  - Verify camera yaw carries from orbit (player keeps facing the same world direction)
+  - Verify pitch resets to level horizon
+- [ ] **MT-67**: Shake recovery lands at correct view direction
+  - Trigger screen shake while first-person is active
+  - After shake completes, verify camera is at exact pre-shake orientation
+  - Verify no accumulated drift from shake offsets
+- [ ] **MT-68**: Follow target loss / respawn does not jerk camera
+  - Free the follow target while first-person is active
+  - Verify camera holds last valid pose
+  - Respawn the target, verify camera resumes at head offset without snap
+
+---
+
 ### Manual Validation (Blend — First-Person)
 
-These checks gate Phase 9E completion:
+These checks gate Phase 9F completion:
 
 - [ ] **MT-20**: Switching from fixed to first-person blends smoothly
   - Trigger a vCam switch from fixed to first-person

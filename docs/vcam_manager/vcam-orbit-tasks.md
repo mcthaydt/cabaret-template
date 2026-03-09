@@ -210,9 +210,30 @@ These checks gate Phase 7D completion for orbit mode:
   - Verify drag-look continues uninterrupted
   - Verify button press registers correctly
 
+### Manual Validation (Feel — Orbit)
+
+These checks gate Phase 13 cross-mode QA completion:
+
+- [ ] **MT-59**: Switching into orbit keeps expected facing direction (no heading pop)
+  - Switch from first-person or fixed to orbit
+  - Verify camera lands at expected yaw (carried from first-person, or reseeded from authored for fixed)
+  - Verify no single-frame snap to a different heading
+- [ ] **MT-60**: Rapid repeated switching into/out of orbit does not pop
+  - Toggle orbit ↔ fixed ↔ orbit rapidly
+  - Verify every transition is smooth or intentionally authored
+- [ ] **MT-61**: Orbit resumes from expected heading after returning from fixed
+  - Enter orbit, rotate camera, switch to fixed, switch back to orbit
+  - Verify orbit resumes at authored angles (not stale rotation from before the fixed switch)
+- [ ] **MT-62**: Orbit follow target disappears / respawns: camera recovers gracefully
+  - Remove or free the follow target while orbit is active
+  - Verify camera holds last valid pose, does not snap to origin
+  - Respawn the target, verify camera resumes following without jerk
+
+---
+
 ### Manual Validation (Blend — Orbit)
 
-These checks gate Phase 9E completion:
+These checks gate Phase 9F completion:
 
 - [ ] **MT-19**: Switching from orbit to fixed blends smoothly (no snap)
   - Trigger a vCam switch from orbit to fixed

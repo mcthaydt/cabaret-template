@@ -95,6 +95,13 @@
 - touch gameplay input can be silently overwritten if `S_InputSystem` continues processing `TouchscreenSource` zero payloads
 - silhouette persistence can ship without user control if `UI_VFXSettingsOverlay` is not updated alongside state/actions/reducer/selectors
 - collision detector can appear correct in tests but fail in gameplay if authored occluding geometry is not migrated to layer 6 `vcam_occludable`
+- **orientation continuity**: mode switches can cause disorienting heading jumps if rotation carry/reseed policy is not implemented in `S_VCamSystem` (see overview Rotation Continuity Contract)
+- **reentrant blend**: a second `set_active_vcam()` during an active blend can pop or wedge blend state if mid-blend interruption semantics are not implemented
+- **invalid target recovery**: freed follow targets or fixed anchors during gameplay can produce NaN transforms or crashes if per-tick validity checks are missing
+- **silhouette flicker**: occluders on marginal ray boundaries can cause per-frame material churn without debounce/hysteresis logic in `U_VCamSilhouetteHelper`
+- **performance**: per-frame dictionary allocations in blend evaluation, soft-zone, and occlusion can cause frame-pacing regressions on mobile without reuse patterns
+- silhouette color/opacity configurability is deferred to post-v1 (ship with single authored shader values)
+- orbit zoom behavior is deferred to post-v1 (static authored distance for v1)
 
 ## Links
 

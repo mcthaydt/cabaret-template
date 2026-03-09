@@ -389,6 +389,20 @@ Before starting Phase 0, verify:
   - Resolve manager, read look input, evaluate modes, submit results
   - All tests should pass
 
+- [ ] **Task 6A.3 (Red)**: Write tests for rotation continuity on mode switch
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test orbit → first-person carries `runtime_yaw`, resets `runtime_pitch` to `0.0`
+  - Test first-person → orbit carries `runtime_yaw`, resets `runtime_pitch` to `0.0`
+  - Test orbit → fixed preserves outgoing component's `runtime_yaw`/`runtime_pitch`
+  - Test fixed → orbit reseeds `runtime_yaw` to authored yaw, resets `runtime_pitch` to `0.0`
+  - Test same-mode switch with same target carries both yaw/pitch
+  - Test same-mode switch with different target reseeds to authored angles
+  - **Target: 6 tests**
+
+- [ ] **Task 6A.4 (Green)**: Implement rotation continuity policy in S_VCamSystem
+  - Apply carry/reset/reseed rules based on mode transition type (per overview Rotation Continuity Contract)
+  - All tests should pass
+
 ---
 
 ### Phase 6B: Scene Wiring
@@ -404,6 +418,23 @@ Before starting Phase 0, verify:
 - [ ] **Task 6B.3**: Wire C_VCamComponent to camera template
   - Modify `scenes/templates/tmpl_camera.tscn`: add default `C_VCamComponent` with `cfg_default_orbit.tres`
   - Verify template remains backward compatible with `C_CameraStateComponent`
+
+---
+
+### Phase 6B2: Runtime Recovery Tests
+
+- [ ] **Task 6B2.1 (Red)**: Write tests for invalid-target recovery
+  - Add to `tests/unit/managers/test_vcam_manager.gd` or `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test active follow target freed during play: holds last valid pose, triggers reselection
+  - Test fixed anchor missing after scene churn: falls back to entity root
+  - Test `active_target_valid` selector reflects current validity
+  - Test `last_recovery_reason` is set on recovery events
+  - **Target: 4 tests**
+
+- [ ] **Task 6B2.2 (Green)**: Implement runtime recovery
+  - Add per-tick validity checks in `S_VCamSystem` and `M_VCamManager`
+  - Dispatch `update_target_validity` and `record_recovery` actions
+  - All tests should pass
 
 ---
 
@@ -619,7 +650,36 @@ Settings checks (mode-agnostic):
 
 ---
 
-### Phase 9E: Manual Validation (Blend + Shake Coexistence)
+### Phase 9E: Reentrant Blend and Blend Recovery
+
+- [ ] **Task 9E.1 (Red)**: Write tests for reentrant blend (mid-blend interruption)
+  - Add to `tests/unit/managers/test_vcam_manager.gd`
+  - Test second `set_active_vcam()` during active blend snapshots current blended pose as new "from"
+  - Test reentrant switch resets blend progress to `0.0`
+  - Test reentrant switch updates `previous_vcam_id`
+  - Test rapid triple-switch sequence produces coherent final state (no wedged blend)
+  - **Target: 4 tests**
+
+- [ ] **Task 9E.2 (Green)**: Implement reentrant blend in M_VCamManager
+  - Snapshot current blended pose on re-entry
+  - Update blend state with new target
+  - All tests should pass
+
+- [ ] **Task 9E.3 (Red)**: Write tests for blend recovery on invalid vCam
+  - Add to `tests/unit/managers/test_vcam_manager.gd`
+  - Test outgoing vCam freed during blend: blend completes immediately (cut to incoming)
+  - Test incoming vCam freed during blend: blend cancelled, hold outgoing pose, trigger reselection
+  - Test both vCams freed during blend: hold last valid pose, clear blend state
+  - **Target: 3 tests**
+
+- [ ] **Task 9E.4 (Green)**: Implement blend recovery
+  - Add validity checks before blend evaluation each tick
+  - Dispatch `record_recovery` on recovery events
+  - All tests should pass
+
+---
+
+### Phase 9F: Manual Validation (Blend + Shake Coexistence)
 
 Mode-specific blend checks are tracked in their respective subtask files:
 - Orbit blend (MT-19, 21, 32): [vcam-orbit-tasks.md](vcam-orbit-tasks.md)
@@ -631,6 +691,8 @@ Cross-mode checks (mode-agnostic):
 - [ ] **MT-22**: `cut_on_distance_threshold` triggers instant cut when cameras far apart
 - [ ] **MT-23**: vCam blend does not fight scene-transition blend (suspends during transition)
 - [ ] **MT-34**: vCam + shake + scene-transition blend all coexist cleanly
+- [ ] **MT-43**: Rapid repeated switching does not pop or wedge blend state
+- [ ] **MT-44**: Mid-blend re-switch transitions smoothly from current interpolated pose
 
 ---
 
@@ -702,6 +764,24 @@ Cross-mode checks (mode-agnostic):
 
 ---
 
+### Phase 10C2: Anti-Flicker and Stability Tests
+
+- [ ] **Task 10C2.1 (Red)**: Write tests for occlusion anti-flicker
+  - Add to `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` or `tests/unit/managers/test_vcam_manager.gd`
+  - Test same occluder rapidly entering/leaving ray does not cause per-frame material churn (grace-frame removal)
+  - Test occluder must be detected for 2 consecutive frames before silhouette is applied (debounce)
+  - Test silhouette count does not thrash when blocker set is unchanged
+  - Test no material override reapplication when stable occluder set is unchanged from previous frame
+  - Test multiple occluders swapping order frame-to-frame does not cause flicker
+  - **Target: 5 tests**
+
+- [ ] **Task 10C2.2 (Green)**: Implement anti-flicker behavior
+  - Add debounce/grace-frame logic to `U_VCamSilhouetteHelper`
+  - Skip override application when occluder set is unchanged
+  - All tests should pass
+
+---
+
 ### Phase 10D: Manual Validation (Occlusion + Silhouette)
 
 - [ ] **MT-27**: Wall between camera and player shows silhouette shader
@@ -709,6 +789,8 @@ Cross-mode checks (mode-agnostic):
 - [ ] **MT-29**: Silhouette clears when obstruction removed
 - [ ] **MT-30**: Silhouette toggle in VFX settings disables/enables silhouettes
 - [ ] **MT-31**: Silhouettes clear on scene transition (no stale overrides)
+- [ ] **MT-45**: Silhouettes remain stable near cover edges (no flicker on marginal blockers)
+- [ ] **MT-46**: No visible per-frame churn when standing behind a stationary occluder
 
 ---
 
@@ -790,11 +872,24 @@ Cross-mode checks (mode-agnostic):
 
 ---
 
+- [ ] **Task 12.6**: Create observability integration tests
+  - Create or extend `tests/integration/vcam/test_vcam_state.gd`
+  - Test `blend_from_vcam_id` and `blend_to_vcam_id` populated during blend
+  - Test `active_target_valid` reflects follow target status
+  - Test `last_recovery_reason` set on target-loss recovery
+  - Test debug fields cleared after blend completion
+  - **Target: 4 tests**
+
+---
+
 ### Phase 12A: Manual Validation (Redux Observability)
 
 - [ ] **MT-40**: `vcam.active_vcam_id` updates when active camera changes
 - [ ] **MT-41**: `vcam.is_blending` is true during blend, false after completion
 - [ ] **MT-42**: `vcam.silhouette_active_count` reflects active silhouette count
+- [ ] **MT-47**: `vcam.blend_from_vcam_id` / `blend_to_vcam_id` show correct values during blend
+- [ ] **MT-48**: `vcam.active_target_valid` goes false when target is freed
+- [ ] **MT-49**: `vcam.last_recovery_reason` populated after a recovery event
 
 ---
 
@@ -818,10 +913,23 @@ Cross-mode checks (mode-agnostic):
   - Update subtask files with `[x]` marks
   - Update `docs/vcam_manager/vcam-manager-overview.md` if needed
 
-- [ ] **Task 13.5**: Run full test gates
+- [ ] **Task 13.5**: Cross-mode feel QA (manual)
+  - [ ] **MT-50**: Heading continuity after orbit → first-person switch (player keeps facing same direction)
+  - [ ] **MT-51**: Heading continuity after first-person → orbit switch
+  - [ ] **MT-52**: Fixed → orbit landing uses authored angles (no stale rotation inherited)
+  - [ ] **MT-53**: Rapid repeated cross-mode switching does not pop or produce disorienting heading jumps
+  - [ ] **MT-54**: Graceful recovery on follow target loss / respawn (no camera jerk)
+  - [ ] **MT-55**: First frame after scene load feels correct (no single-frame snap to wrong pose)
+
+- [ ] **Task 13.6**: Performance regression checks (manual)
+  - [ ] **MT-56**: Long scene with many potential occluders: no frame-pacing spikes from occlusion pass
+  - [ ] **MT-57**: Rapid switching stress test: no allocation spikes from blend/silhouette churn
+  - [ ] **MT-58**: Steady-state camera (no switch, no occlusion change): verify no per-frame dictionary allocations in profiler
+
+- [ ] **Task 13.7**: Run full test gates
   - Run `tests/unit/style/test_style_enforcement.gd`
-  - Run all new vCam unit suites
-  - Run all new vCam integration suites
+  - Run all new vCam unit suites (including anti-flicker, reentrant blend, recovery tests)
+  - Run all new vCam integration suites (including observability debug fields)
   - Run camera-manager regression tests
   - Run touchscreen/mobile control regression tests
   - Run input system regression tests

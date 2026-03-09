@@ -125,6 +125,10 @@ func to_dictionary() -> Dictionary:
 		"blend_progress": 1.0,
 		"is_blending": false,
 		"silhouette_active_count": 0,
+		"blend_from_vcam_id": &"",
+		"blend_to_vcam_id": &"",
+		"active_target_valid": true,
+		"last_recovery_reason": "",
 	}
 ```
 
@@ -152,10 +156,12 @@ func to_dictionary() -> Dictionary:
 **Reducer behavior**
 
 - `set_active_runtime`: updates `active_vcam_id` and `active_mode`
-- `start_blend`: sets `is_blending = true`, `blend_progress = 0.0`, `previous_vcam_id`
+- `start_blend`: sets `is_blending = true`, `blend_progress = 0.0`, `previous_vcam_id`, `blend_from_vcam_id`, `blend_to_vcam_id`
 - `update_blend`: clamps `progress` to `0.0..1.0`
-- `complete_blend`: clears `previous_vcam_id`, resets `blend_progress = 1.0`
+- `complete_blend`: clears `previous_vcam_id`, `blend_from_vcam_id`, `blend_to_vcam_id`, resets `blend_progress = 1.0`
 - `update_silhouette_count`: stores a non-negative count
+- `update_target_validity`: sets `active_target_valid`
+- `record_recovery`: sets `last_recovery_reason`
 
 ### Commit 0.4: selectors, store export, and transient slice registration
 
@@ -335,6 +341,7 @@ func to_dictionary() -> Dictionary:
   - `fov`
   - `mode_name`
 - Null and invalid-resource cases return `{}` without warning-channel noise.
+- If the follow target or fixed anchor is an invalid (freed) object reference, return `{}` immediately without crashing.
 - Fixed-mode `use_world_anchor = true` reads world transform from `C_VCamComponent.fixed_anchor_path` when authored; otherwise falls back to vCam host entity root. It must not read transform from `C_VCamComponent` (which extends `Node`).
 
 ### Commit 2.4: `S_VCamSystem`
@@ -352,6 +359,8 @@ func to_dictionary() -> Dictionary:
 - when a blend is active, also evaluate the outgoing vCam every tick
 - resolve a `Node3D` fixed anchor for each vCam (`fixed_anchor_path` when set, entity root default otherwise) before mode evaluation
 - update `runtime_yaw` and `runtime_pitch` on the component that owns the rotation context
+- apply rotation continuity policy on mode switches (see overview Rotation Continuity Contract): carry, reset, or reseed yaw/pitch based on mode transition type
+- validate follow target and fixed anchor before evaluation each tick; dispatch `update_target_validity` and `record_recovery` on state changes
 - submit evaluated results back to `M_VCamManager`
 
 **Input contract**
@@ -450,6 +459,12 @@ static func compute_camera_correction(
 5. Reproject that corrected screen point back into world space at the same camera-space depth.
 6. Return the world-space camera correction vector needed to preserve framing.
 
+**Performance notes**
+
+- Avoid allocating new `Vector2`/`Vector3` temporaries each call; reuse locals.
+- Skip the projection step entirely when no soft zone resource is assigned.
+- Cache viewport size per frame rather than querying it per-vCam.
+
 **Why the original draft was wrong**
 
 - It assumed `target_screen_pos` existed without defining the world-to-screen projection step.
@@ -503,6 +518,23 @@ static func compute_camera_correction(
 - During the blend, `S_VCamSystem` continues evaluating both cameras each frame.
 - `M_VCamManager` blends the two live results in `_physics_process`.
 - If the blend hint says to cut, skip interpolation and complete immediately.
+
+**Reentrant switch (mid-blend interruption)**
+
+- If `set_active_vcam(...)` is called while a blend is already active, snapshot the current blended pose as the new "from" pose, reset blend progress to `0.0`, and target the newly requested vCam.
+- The old outgoing vCam stops being evaluated; only the snapshot and the new incoming vCam are live.
+- `previous_vcam_id` updates to reflect the interrupted blend's source.
+
+**Invalid vCam during blend**
+
+- If the outgoing vCam becomes invalid (freed): complete the blend immediately (cut to incoming result).
+- If the incoming vCam becomes invalid (freed): cancel the blend, hold the outgoing pose, trigger priority reselection.
+- If both are freed: hold the last valid blended pose, clear blend state, dispatch `record_recovery("blend_both_invalid")`.
+
+**Performance notes**
+
+- Reuse the blend result dictionary across frames instead of allocating a new one each tick.
+- Skip blend evaluation entirely when `blend_progress >= 1.0`.
 
 ### Commit 4.3: Shake-safe integration with `M_CameraManager`
 
@@ -588,6 +620,11 @@ static func compute_camera_correction(
 - Apply silhouette overrides to `GeometryInstance3D`.
 - Preserve and restore original override state cleanly.
 - Track active count for Redux observability.
+- Implement anti-flicker behavior:
+  - Maintain a stable occluder set; only add an occluder after it has been detected for 2 consecutive frames.
+  - Grace-frame removal: keep silhouette for 2 frames after the occluder leaves the ray before restoring the original material.
+  - When the occluder set is unchanged from the previous frame, skip material override application entirely (no per-frame churn).
+  - Avoid material/shader instance allocation when applying the same override to the same node.
 
 ### Commit 5.3: Per-tick occlusion integration
 
@@ -603,6 +640,13 @@ static func compute_camera_correction(
 - apply silhouettes only when the persisted VFX toggle is enabled
 - dispatch `U_VCamActions.update_silhouette_count(...)` on count changes
 - clear all silhouettes when gameplay ends, no active vCam exists, or scene transition ownership changes
+- validate follow target is still valid before occlusion detection each tick; skip detection if target is invalid
+
+**Performance notes**
+
+- Reuse the occluder result array across frames instead of allocating a new one each tick.
+- Skip occlusion detection entirely when silhouettes are disabled or no active vCam exists.
+- Do not reapply material overrides when the stable occluder set is unchanged from the previous frame.
 
 ## Phase 6: Editor Preview
 
