@@ -140,7 +140,7 @@ Remains the FOV and trauma owner:
 
 ```text
 S_InputSystem
-  -> dispatches gameplay.look_input (mouse + optional arrow key look)
+  -> dispatches gameplay.look_input (mouse + optional keyboard look via look_* actions)
 
 S_TouchscreenSystem
   -> dispatches gameplay.look_input for mobile drag-look using UI_MobileControls
@@ -251,8 +251,8 @@ This slice is whole-slice transient. It is not save data and not a player settin
 
 | Slice | Field | Purpose |
 |------|-------|---------|
-| `settings.input_settings.mouse_settings` | `arrow_key_look_enabled` | enable arrow keys as camera rotation input |
-| `settings.input_settings.mouse_settings` | `arrow_key_look_speed` | arrow key look speed multiplier (default 2.0) |
+| `settings.input_settings.mouse_settings` | `keyboard_look_enabled` | enable keyboard look actions (`look_left/right/up/down`) as camera rotation input |
+| `settings.input_settings.mouse_settings` | `keyboard_look_speed` | keyboard look speed multiplier (default 2.0) |
 
 ### Persisted mobile look settings
 
@@ -360,20 +360,28 @@ Required behavior:
 - Mobile drag-look settings persist through `settings.input_settings.touchscreen_settings`, not the `vcam` slice.
 - `S_VCamSystem` remains device-agnostic and simply consumes the shared `look_input` value.
 
-## Arrow-Key Look Contract
+## Keyboard Look Contract
 
-Arrow keys are an optional alternative input for camera rotation on keyboard/mouse, complementing mouse look.
+Keyboard look is an optional alternative input for camera rotation on keyboard/mouse, complementing mouse look.
+
+The project has input profiles that remap keys (default: WASD=movement/arrows=UI, alternate: arrows=movement/WASD=UI). To stay profile-aware, keyboard look uses dedicated `look_left`, `look_right`, `look_up`, `look_down` input actions — not `ui_*` actions — so each profile can bind them to the appropriate physical keys.
 
 Required behavior:
 
-- `KeyboardMouseSource` checks `arrow_key_look_enabled` from `mouse_settings` each tick.
-- When enabled, arrow keys (`ui_left`, `ui_right`, `ui_up`, `ui_down`) contribute to `look_input` as a fixed-rate delta scaled by `arrow_key_look_speed * delta`.
-- Arrow key look is additive with mouse look — both sources combine into the same `look_input` vector.
-- `arrow_key_look_speed` defaults to `2.0` and is clamped to `0.1–10.0`.
-- Arrow key look respects the existing `invert_y_axis` setting from `mouse_settings`.
+- Four new input actions are registered in `project.godot`: `look_left`, `look_right`, `look_up`, `look_down`.
+- Each `RS_InputProfile` includes bindings for these actions:
+  - **Default keyboard**: arrow keys (matching the non-movement keys).
+  - **Alternate keyboard**: WASD (matching the non-movement keys in that layout).
+  - **Gamepad profiles**: right stick already feeds `look_input` via `GamepadSource`; `look_*` actions are not bound on gamepad.
+  - **Touchscreen**: not applicable; drag-look feeds `look_input` directly.
+- `KeyboardMouseSource` checks `keyboard_look_enabled` from `mouse_settings` each tick.
+- When enabled, reads `look_left`/`look_right`/`look_up`/`look_down` action strength and produces a fixed-rate delta scaled by `keyboard_look_speed * delta`.
+- Keyboard look is additive with mouse look — both sources combine into the same `look_input` vector.
+- `keyboard_look_speed` defaults to `2.0` and is clamped to `0.1–10.0`.
+- Keyboard look respects the existing `invert_y_axis` setting from `mouse_settings`.
 - Settings persist through `settings.input_settings.mouse_settings`, not the `vcam` slice.
 - `S_VCamSystem` remains input-source-agnostic and simply consumes the shared `look_input` value.
-- New input actions are NOT required — arrow key look uses the existing `ui_left`/`ui_right`/`ui_up`/`ui_down` actions already defined in `project.godot`.
+- Because bindings live in profiles, rebinding camera-look keys works through the existing rebind system without special-casing.
 
 ## Runtime Recovery Policy
 
@@ -505,4 +513,4 @@ resources/display/vcam/*.tres
 | blend correctness | evaluate both cameras live during blends |
 | soft-zone math | projection-based correction |
 | naming/style | use `scripts/resources/display/vcam`, `scripts/utils/display`, `sh_*_shader.gdshader` |
-| arrow key look | optional keyboard camera rotation via `ui_left/right/up/down`, settings in `mouse_settings` |
+| keyboard look | optional keyboard camera rotation via dedicated `look_*` actions bound per-profile, settings in `mouse_settings` |

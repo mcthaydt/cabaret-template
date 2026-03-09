@@ -73,7 +73,7 @@
 ## Next Steps
 
 1. Implement Phase 0 Commit 0.0: add persisted touchscreen drag-look settings and patch the touchscreen settings overlay (`test_u_input_reducer.gd` path).
-1b. Implement Phase 0 Commit 0.0b: add arrow-key look settings to `mouse_settings`, implement in `KeyboardMouseSource`, and expose in settings UI.
+1b. Implement Phase 0 Commit 0.0b: register `look_left/right/up/down` actions, bind per-profile (default=arrows, alternate=WASD), add keyboard look settings to `mouse_settings`, implement in `KeyboardMouseSource`, and expose in settings UI.
 2. Implement Phase 0 Commit 0.1: add persisted `vfx.occlusion_silhouette_enabled`, wire it into VFX settings UI, and add localization keys across all UI locales.
 3. Implement Phase 0 Commit 0.2: create `RS_VCamInitialState` and `cfg_default_vcam_initial_state.tres`.
 4. Implement Phase 0 Commit 0.3: create vCam actions and reducer.
@@ -87,7 +87,7 @@
 - vCam does not replace `M_CameraManager`.
 - vCam does not replace `S_CameraStateSystem`.
 - vCam does not bypass the gameplay input pipeline.
-- Arrow-key look is an optional keyboard input source that feeds the same `gameplay.look_input` path; settings live in `mouse_settings`.
+- Keyboard look uses dedicated `look_*` actions (not `ui_*`) so bindings stay correct across input profiles; settings live in `mouse_settings`.
 - vCam does not treat mobile as special at the camera layer; touch look must still feed the shared `gameplay.look_input` path.
 - vCam does not persist runtime slice state.
 - vCam does not write `camera.fov` directly.
