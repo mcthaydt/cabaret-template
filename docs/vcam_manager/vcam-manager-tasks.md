@@ -1,10 +1,10 @@
 # vCam Manager — Task Index
 
 **Progress:** 5 / 5 documentation tasks complete; 0 implementation tasks complete
-**Estimated Test Count:** ~339 checks (about 281 automated tests + 58 manual checks)
+**Estimated Test Count:** ~375 checks (about 317 automated tests + 58 manual checks + 11 feel QA checks)
 **Status note:** Strict TDD (Red/Green/Refactor). Each camera mode has a dedicated phase. Mobile drag-look is a hard prerequisite for orbit/first-person completion.
 **Manual QA cadence:** Manual checks are embedded in the relevant implementation phases (no standalone manual-testing phase).
-**Quality gaps addressed:** Orientation continuity, blend interruption, invalid-target recovery, occlusion anti-flicker, performance budget, observability expansion, open-question resolution, cross-mode feel QA.
+**Quality gaps addressed:** Orientation continuity, blend interruption, invalid-target recovery, occlusion anti-flicker, performance budget, observability expansion, open-question resolution, cross-mode feel QA, **second-order dynamics for natural camera motion**.
 
 ---
 
@@ -12,7 +12,7 @@
 
 | File | Scope | Phases |
 |------|-------|--------|
-| [vcam-base-tasks.md](vcam-base-tasks.md) | Shared infrastructure: state/persistence, base resources, component/interface/manager, ECS system, scene wiring, mobile drag-look, soft zone, blend, occlusion, editor preview, integration tests, regression/docs | 0, 1, 5, 6, 7, 8, 9, 10, 11, 12, 13 |
+| [vcam-base-tasks.md](vcam-base-tasks.md) | Shared infrastructure: state/persistence, base resources, **second-order dynamics**, response tuning, component/interface/manager, ECS system, scene wiring, mobile drag-look, soft zone, blend, occlusion, editor preview, integration tests, regression/docs | 0, 1, 5, 6, 7, 8, 9, 10, 11, 12, 13 |
 | [vcam-orbit-tasks.md](vcam-orbit-tasks.md) | Orbit camera mode: resource, evaluator, default preset, manual checks | 2 |
 | [vcam-fps-tasks.md](vcam-fps-tasks.md) | First-person camera mode: resource, evaluator, refactor pass, manual checks | 3 |
 | [vcam-fixed-tasks.md](vcam-fixed-tasks.md) | Fixed camera mode: resource, evaluator, final evaluator refactor, manual checks | 4 |
@@ -24,7 +24,7 @@
 | Task Phase | File | Description | Plan Commits |
 |------------|------|-------------|--------------|
 | 0 | Base | State and Persistence | 0.0 – 0.4 |
-| 1 | Base | Base Authoring Resources (Soft Zone + Blend Hint) | 1.1 (partial) |
+| 1 | Base | Base Authoring Resources (Soft Zone + Blend Hint + Second-Order Dynamics + Response) | 1.1 (partial) |
 | 2 | Orbit | Orbit Camera Mode (creates `U_VCamModeEvaluator`) | 1.1 (partial), 2.3 (partial) |
 | 3 | FPS | First-Person Camera Mode (extends evaluator) | 1.1 (partial), 2.3 (partial) |
 | 4 | Fixed | Fixed Camera Mode (extends evaluator, final refactor) | 1.1 (partial), 2.3 (partial) |

@@ -240,7 +240,7 @@ Before starting Phase 0, verify:
 
 ## Phase 1: Base Authoring Resources (Soft Zone + Blend Hint)
 
-**Exit Criteria:** All ~14 resource tests pass, default `.tres` instances created
+**Exit Criteria:** All ~42 tests pass (7 soft zone + 7 blend hint + 13 second-order dynamics 1D + 7 second-order dynamics 3D + 8 response resource), default `.tres` instances created
 
 ### Phase 1A: RS_VCamSoftZone
 
@@ -291,9 +291,139 @@ Before starting Phase 0, verify:
 
 ---
 
+### Phase 1D: Second-Order Dynamics Utility
+
+> **Why:** Simple lerp/slerp damping produces robotic camera motion with no natural overshoot, settling, or responsiveness. Second-order dynamics model a mass-spring-damper system that gives camera follow, tracking, and soft-zone correction physically plausible motion with tuneable character (snappy, smooth, bouncy).
+
+- [ ] **Task 1D.1 (Red)**: Write tests for U_SecondOrderDynamics
+  - Create `tests/unit/utils/test_second_order_dynamics.gd`
+  - Test initial state: output matches initial value (no jump on first frame)
+  - Test step toward target: output moves toward target over multiple steps
+  - Test convergence: after many steps, output approximates target within epsilon
+  - Test critically damped (zeta=1.0): output reaches target without overshoot
+  - Test under-damped (zeta=0.3): output overshoots target then settles
+  - Test over-damped (zeta=2.0): output approaches target slower than critical, no overshoot
+  - Test zero delta: step with `dt=0.0` returns current value unchanged
+  - Test large delta: step with very large `dt` does not produce NaN or explosion (stability)
+  - Test negative frequency clamped to minimum (no division by zero or negative sqrt)
+  - Test `reset(new_value)` immediately sets output to new value with zero velocity
+  - Test frequency controls speed: higher `f` reaches target faster
+  - Test initial response `r > 0`: output reacts immediately in the direction of the target on the first step (no initial lag)
+  - Test initial response `r = 0`: output starts with zero velocity (gradual start)
+  - **Target: 13 tests**
+
+- [ ] **Task 1D.2 (Green)**: Implement U_SecondOrderDynamics
+  - Create `scripts/utils/math/u_second_order_dynamics.gd`
+  - Add `class_name U_SecondOrderDynamics`
+  - Instance-based (not static) — each consumer creates its own instance with independent state
+  - Constructor: `func _init(f: float, zeta: float, r: float, initial_value: float = 0.0)`
+    - `f` — natural frequency (Hz); controls speed of response. Higher = faster. Typical: 1.0–5.0
+    - `zeta` — damping ratio. 0 = undamped oscillation, 0–1 = underdamped (overshoot), 1 = critically damped, >1 = overdamped
+    - `r` — initial response. 0 = gradual start, 1 = immediate start, >1 = anticipation (overshoots initial direction)
+  - Methods:
+    - `func step(target: float, dt: float) -> float` — advance simulation, return new value
+    - `func reset(value: float) -> void` — snap to value with zero velocity
+    - `func get_value() -> float` — current output
+    - `func get_velocity() -> float` — current rate of change
+  - Internal state: `_y` (position), `_yd` (velocity), `_prev_target`, precomputed constants `_k1`, `_k2`, `_k3`
+  - Stability guard: clamp `dt` and use semi-implicit Euler to prevent explosion at low framerates
+  - All tests should pass
+
+  **Core math contract (semi-implicit Euler):**
+  ```gdscript
+  # Precomputed constants from f, zeta, r:
+  var _w := TAU * f        # angular frequency
+  var _k1 := zeta / (PI * f)         # damping term
+  var _k2 := 1.0 / (_w * _w)        # spring term
+  var _k3 := r * zeta / (_w)        # initial response term
+
+  func step(target: float, dt: float) -> float:
+      if dt <= 0.0:
+          return _y
+      # Estimate target velocity
+      var td := (target - _prev_target) / dt
+      _prev_target = target
+      # Stability clamp for k2
+      var stable_k2 := maxf(_k2, maxf(dt * dt / 2.0 + dt * _k1 / 2.0, dt * _k1))
+      # Semi-implicit Euler integration
+      _y += dt * _yd
+      _yd += dt * (target + _k3 * td - _y - _k1 * _yd) / stable_k2
+      return _y
+  ```
+
+- [ ] **Task 1D.3**: Run style enforcement tests
+  - `tests/unit/style/test_style_enforcement.gd` passes with new files
+  - Verify `u_second_order_dynamics.gd` is in `scripts/utils/math/`
+
+---
+
+### Phase 1E: U_SecondOrderDynamics3D (Vector3 Wrapper)
+
+- [ ] **Task 1E.1 (Red)**: Write tests for U_SecondOrderDynamics3D
+  - Create `tests/unit/utils/test_second_order_dynamics_3d.gd`
+  - Test initial state: output matches initial `Vector3`
+  - Test step toward target: output moves toward target `Vector3`
+  - Test convergence: after many steps, each axis approximates target within epsilon
+  - Test axes are independent: stepping X does not affect Y or Z
+  - Test `reset(new_value)` snaps all three axes
+  - Test critically damped motion on all axes simultaneously
+  - Test under-damped produces overshoot on all three axes
+  - **Target: 7 tests**
+
+- [ ] **Task 1E.2 (Green)**: Implement U_SecondOrderDynamics3D
+  - Create `scripts/utils/math/u_second_order_dynamics_3d.gd`
+  - Add `class_name U_SecondOrderDynamics3D`
+  - Wraps three `U_SecondOrderDynamics` instances (x, y, z)
+  - Constructor: `func _init(f: float, zeta: float, r: float, initial_value: Vector3 = Vector3.ZERO)`
+  - Methods:
+    - `func step(target: Vector3, dt: float) -> Vector3`
+    - `func reset(value: Vector3) -> void`
+    - `func get_value() -> Vector3`
+  - All tests should pass
+
+- [ ] **Task 1E.3**: Run style enforcement tests
+
+---
+
+### Phase 1F: RS_VCamResponse Resource
+
+- [ ] **Task 1F.1 (Red)**: Write tests for RS_VCamResponse
+  - Create `tests/unit/resources/display/vcam/test_vcam_response.gd`
+  - Test `follow_frequency` field exists with default `3.0`
+  - Test `follow_damping` field exists with default `0.7` (slightly underdamped for natural feel)
+  - Test `follow_initial_response` field exists with default `1.0` (immediate reaction)
+  - Test `rotation_frequency` field exists with default `4.0`
+  - Test `rotation_damping` field exists with default `1.0` (critically damped — no rotational wobble)
+  - Test `rotation_initial_response` field exists with default `1.0`
+  - Test `frequency` values must be positive (reject 0.0 and negative)
+  - Test `damping` values must be non-negative (0.0 = undamped oscillation is valid but extreme)
+  - **Target: 8 tests**
+
+- [ ] **Task 1F.2 (Green)**: Implement RS_VCamResponse
+  - Create `scripts/resources/display/vcam/rs_vcam_response.gd`
+  - Extend `Resource`
+  - Add `class_name RS_VCamResponse`
+  - All `@export` fields with sensible defaults:
+    - `follow_frequency: float = 3.0` — how fast position tracks target (Hz)
+    - `follow_damping: float = 0.7` — position damping ratio (< 1 = slight overshoot, 1 = critical, > 1 = sluggish)
+    - `follow_initial_response: float = 1.0` — position initial response (0 = gradual, 1 = immediate)
+    - `rotation_frequency: float = 4.0` — how fast rotation tracks target (Hz)
+    - `rotation_damping: float = 1.0` — rotation damping ratio
+    - `rotation_initial_response: float = 1.0` — rotation initial response
+  - All tests should pass
+
+- [ ] **Task 1F.3**: Create default response resource instance
+  - Create `resources/display/vcam/cfg_default_response.tres`
+  - Set all fields to defaults (follow: f=3.0, z=0.7, r=1.0; rotation: f=4.0, z=1.0, r=1.0)
+  - Verify resource loads without errors
+
+- [ ] **Task 1F.4**: Run style enforcement tests
+
+---
+
 ## Phase 5: Component, Interface, and Manager Core
 
-**Exit Criteria:** All ~29 tests pass (11 component + 8 interface/manager registration + 10 manager active-selection), `M_VCamManager` registered with ServiceLocator
+**Exit Criteria:** All ~30 tests pass (12 component + 8 interface/manager registration + 10 manager active-selection), `M_VCamManager` registered with ServiceLocator
 
 ### Phase 5A: C_VCamComponent
 
@@ -309,13 +439,14 @@ Before starting Phase 0, verify:
   - Test `look_at_target_path` export exists (NodePath)
   - Test `soft_zone` export exists (Resource type)
   - Test `blend_hint` export exists (Resource type)
+  - Test `response` export exists (Resource type, RS_VCamResponse)
   - Test `is_active` export exists with default `true`
-  - **Target: 11 tests**
+  - **Target: 12 tests**
 
 - [ ] **Task 5A.2 (Green)**: Implement C_VCamComponent
   - Create `scripts/ecs/components/c_vcam_component.gd`
   - Extend `BaseECSComponent`, set `COMPONENT_TYPE`
-  - Add all exports and runtime-only `runtime_yaw`, `runtime_pitch` vars
+  - Add all exports (including `response: RS_VCamResponse`) and runtime-only `runtime_yaw`, `runtime_pitch` vars
   - Implement null-safe `get_follow_target()` and `get_look_at_target()` typed getters
   - All tests should pass
 
@@ -379,7 +510,7 @@ Before starting Phase 0, verify:
 
 ## Phase 6: vCam System (ECS) and Scene Wiring
 
-**Exit Criteria:** All ~12 system tests pass, `S_VCamSystem` reads look input from Redux, evaluates active/outgoing vcams, submits results to manager, scene wiring complete, desktop manual camera checks pass (`MT-01..MT-04`, `MT-09..MT-15`, `MT-18`)
+**Exit Criteria:** All ~26 system tests pass (12 core + 6 rotation continuity + 8 second-order dynamics), `S_VCamSystem` reads look input from Redux, evaluates active/outgoing vcams, applies second-order dynamics smoothing via `RS_VCamResponse`, submits results to manager, scene wiring complete, desktop manual camera checks pass (`MT-01..MT-04`, `MT-09..MT-15`, `MT-18`)
 
 ### Phase 6A: S_VCamSystem
 
@@ -404,6 +535,57 @@ Before starting Phase 0, verify:
   - Extend `BaseECSSystem`, implement `process_tick(delta)`
   - Resolve manager, read look input, evaluate modes, submit results
   - All tests should pass
+
+### Phase 6A2: Second-Order Dynamics Integration in S_VCamSystem
+
+> **Why:** The evaluator computes instantaneous "ideal" poses (where the camera *should* be). Without smoothing, the camera teleports to the ideal pose every frame. Second-order dynamics make the camera *pursue* the ideal pose with physically plausible motion — slight overshoot on fast follow, smooth settling, no robotic snapping.
+
+- [ ] **Task 6A2.1 (Red)**: Write tests for second-order dynamics camera smoothing
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test with `RS_VCamResponse` assigned: submitted position does NOT match raw evaluator position on first frame after target moves (smoothing active)
+  - Test with `RS_VCamResponse` assigned: submitted position converges toward evaluator position over multiple ticks
+  - Test with underdamped follow (zeta=0.5): position overshoots target then settles
+  - Test with critically damped follow (zeta=1.0): position reaches target without overshoot
+  - Test with `RS_VCamResponse = null` on component: raw evaluator output submitted directly (no smoothing, backward compatible)
+  - Test rotation smoothing: camera rotation converges toward evaluated rotation over ticks
+  - Test `reset()` called on mode switch: dynamics snap to new evaluator pose (no residual momentum from previous mode)
+  - Test dynamics reset on follow target change (new target = fresh dynamics, no lerp from old target position)
+  - **Target: 8 tests**
+
+- [ ] **Task 6A2.2 (Green)**: Implement second-order dynamics in S_VCamSystem
+  - Per active vCam, maintain `U_SecondOrderDynamics3D` for position and `U_SecondOrderDynamics` for each Euler component of rotation
+  - On each `process_tick(delta)`:
+    1. Evaluate ideal pose via `U_VCamModeEvaluator` (unchanged)
+    2. If `component.response` is not null, step dynamics toward ideal pose
+    3. Submit smoothed result to manager
+  - Create/reset dynamics instances:
+    - On first evaluation of a vCam: create dynamics with initial value = evaluator output
+    - On mode switch / target change: `reset()` to snap dynamics to new ideal pose
+    - On `response` resource change: recreate dynamics with new parameters
+  - If `response` is null, pass evaluator output through directly (zero overhead, backward compatible)
+  - All tests should pass
+
+  **Integration pattern:**
+  ```gdscript
+  # Per vCam runtime state (keyed by vcam_id)
+  var _follow_dynamics: Dictionary = {}  # vcam_id -> U_SecondOrderDynamics3D
+  var _rotation_dynamics: Dictionary = {}  # vcam_id -> {yaw: U_SecondOrderDynamics, pitch: U_SecondOrderDynamics, roll: U_SecondOrderDynamics}
+
+  func _smooth_result(vcam_id: StringName, component: C_VCamComponent, raw_result: Dictionary, delta: float) -> Dictionary:
+      if component.response == null:
+          return raw_result
+      var resp := component.response as RS_VCamResponse
+      # Position smoothing
+      if not _follow_dynamics.has(vcam_id):
+          _follow_dynamics[vcam_id] = U_SecondOrderDynamics3D.new(
+              resp.follow_frequency, resp.follow_damping, resp.follow_initial_response,
+              raw_result.transform.origin)
+      var smooth_pos := _follow_dynamics[vcam_id].step(raw_result.transform.origin, delta)
+      # Rotation smoothing (decompose basis to euler, smooth each axis, recompose)
+      # ... similar pattern with rotation_frequency/damping/initial_response ...
+      var smoothed_xform := Transform3D(smooth_basis, smooth_pos)
+      return {transform = smoothed_xform, fov = raw_result.fov, mode_name = raw_result.mode_name}
+  ```
 
 - [ ] **Task 6A.3 (Red)**: Write tests for rotation continuity on mode switch
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
@@ -562,6 +744,7 @@ Settings checks (mode-agnostic):
   - Create `scripts/managers/helpers/u_vcam_soft_zone.gd`
   - Implement `static func compute_camera_correction(camera, follow_world_pos, desired_transform, soft_zone, delta) -> Vector3`
   - Project follow target, test zone membership, reproject correction
+  - **Note:** The `damping` field on `RS_VCamSoftZone` controls correction magnitude (how aggressively the camera corrects when the target enters the soft zone). The temporal smoothing of that correction is handled by the second-order dynamics in `S_VCamSystem` (Phase 6A2) — the soft zone helper computes the instantaneous correction vector, and the dynamics smooth the resulting camera position over time.
   - All tests should pass
 
 ---
@@ -937,12 +1120,25 @@ Cross-mode checks (mode-agnostic):
   - [ ] **MT-54**: Graceful recovery on follow target loss / respawn (no camera jerk)
   - [ ] **MT-55**: First frame after scene load feels correct (no single-frame snap to wrong pose)
 
-- [ ] **Task 13.6**: Performance regression checks (manual)
+- [ ] **Task 13.6**: Second-order dynamics feel QA (manual)
+  - [ ] **MT-70**: Orbit follow with default response (f=3.0, z=0.7): camera has subtle overshoot when player reverses direction suddenly, settles naturally
+  - [ ] **MT-71**: Orbit follow with high frequency (f=6.0): camera tracks tightly, minimal lag
+  - [ ] **MT-72**: Orbit follow with low frequency (f=1.0): camera floats lazily behind player, cinematic feel
+  - [ ] **MT-73**: First-person with response: head bob absorbs landing impacts with spring-like settling
+  - [ ] **MT-74**: Fixed tracking with response: camera tracks moving player with natural ease-in/ease-out, no robotic lerp
+  - [ ] **MT-75**: Response with zeta=0.3 (bouncy): visible overshoot, oscillation settling — intentionally exaggerated, verifies dynamics are working
+  - [ ] **MT-76**: Response with zeta=1.5 (overdamped): sluggish but no overshoot — verifies overdamped path
+  - [ ] **MT-77**: No response resource assigned (null): camera behaves identically to raw evaluator output (backward compatible, no smoothing)
+  - [ ] **MT-78**: Dynamics reset on mode switch: no residual momentum carried from previous mode (camera doesn't swing wildly on switch)
+  - [ ] **MT-79**: Dynamics reset on scene load: first frame starts at correct position (no fly-in from origin)
+
+- [ ] **Task 13.7**: Performance regression checks (manual)
   - [ ] **MT-56**: Long scene with many potential occluders: no frame-pacing spikes from occlusion pass
   - [ ] **MT-57**: Rapid switching stress test: no allocation spikes from blend/silhouette churn
   - [ ] **MT-58**: Steady-state camera (no switch, no occlusion change): verify no per-frame dictionary allocations in profiler
+  - [ ] **MT-80**: Second-order dynamics per-tick cost: verify no measurable frame time increase vs null response (dynamics are 6 multiplies + 4 adds per axis per tick)
 
-- [ ] **Task 13.7**: Run full test gates
+- [ ] **Task 13.8**: Run full test gates
   - Run `tests/unit/style/test_style_enforcement.gd`
   - Run all new vCam unit suites (including anti-flicker, reentrant blend, recovery tests)
   - Run all new vCam integration suites (including observability debug fields)
@@ -967,6 +1163,11 @@ Cross-mode checks (mode-agnostic):
 - [ ] Verify all three camera modes evaluate correctly in isolation (unit tests) and end-to-end (integration tests)
 - [ ] Verify `S_CameraStateSystem` remains the sole writer of `camera.fov`
 - [ ] Verify `M_CameraManager` shake hierarchy is not disturbed by vCam transform writes
+- [ ] Verify second-order dynamics are instance-per-vCam (no shared state between different vCam components)
+- [ ] Verify dynamics `reset()` is called on mode switch, target change, and scene load (no residual momentum)
+- [ ] Verify null `RS_VCamResponse` on component produces identical behavior to pre-dynamics implementation (backward compatible)
+- [ ] Verify dynamics do not allocate per-frame (all instances are pre-created and reused)
+- [ ] Verify rotation smoothing decomposes to Euler → smooth → recompose correctly without gimbal lock at typical camera angles
 
 ---
 
@@ -982,7 +1183,10 @@ Cross-mode checks (mode-agnostic):
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs/systems -gselect=input_system -ginclude_subdirs=true -gexit
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ui -gselect=vfx_settings_overlay -ginclude_subdirs=true -gexit
 
-# Run vcam unit tests (resources)
+# Run second-order dynamics tests
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/utils -gselect=test_second_order -ginclude_subdirs=true -gexit
+
+# Run vcam unit tests (resources including RS_VCamResponse)
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -ginclude_subdirs=true -gexit
 
 # Run vcam unit tests (manager + helpers)
