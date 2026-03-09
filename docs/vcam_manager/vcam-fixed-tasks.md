@@ -41,7 +41,7 @@ Before starting Phase 4, verify:
 
 ## Phase 4: Fixed Camera Mode
 
-**Exit Criteria:** All ~19 fixed tests pass (8 resource + 11 evaluator), default preset created, fixed evaluation produces correct transforms for both anchor modes (world anchor and follow-offset) and tracking configurations (runtime manual checks deferred to Phase 6C after scene wiring), evaluator refactored for clarity across all three modes
+**Exit Criteria:** All ~28 fixed tests pass (13 resource + 15 evaluator), default preset created, fixed evaluation produces correct transforms for both anchor modes (world anchor and follow-offset) and tracking configurations (runtime manual checks deferred to Phase 6C after scene wiring), evaluator refactored for clarity across all three modes
 
 ### Phase 4A: RS_VCamModeFixed Resource
 
@@ -67,7 +67,19 @@ Before starting Phase 4, verify:
   - Test `follow_offset` field exists with default `Vector3(0, 3, 5)`
     - Verify type is `Vector3`
   - Test `follow_offset` is only consumed when `use_world_anchor = false`
-  - **Target: 8 tests**
+  - Test `use_path` field exists with default `false`
+    - Verify type is `bool`
+  - Test `path_max_speed` field exists with default `10.0`
+    - Verify type is `float`
+  - Test `path_max_speed` must be non-negative
+    - Set path_max_speed to -1.0, verify validation rejects
+    - Set path_max_speed to 0.0, verify it is accepted (instant)
+  - Test `path_damping` field exists with default `5.0`
+    - Verify type is `float`
+  - Test `path_damping` must be non-negative
+    - Set path_damping to -1.0, verify validation rejects
+    - Set path_damping to 0.0, verify it is accepted (no smoothing)
+  - **Target: 13 tests**
 
 - [ ] **Task 4A.2 (Green)**: Implement RS_VCamModeFixed
   - Create `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd`
@@ -79,6 +91,9 @@ Before starting Phase 4, verify:
     - `fov: float = 75.0` — authored field of view
     - `tracking_damping: float = 5.0` — smoothing factor for target tracking rotation (0.0 = instant snap)
     - `follow_offset: Vector3 = Vector3(0, 3, 5)` — offset from follow target when `use_world_anchor = false`; ignored when `use_world_anchor = true`
+    - `use_path: bool = false` — when true, camera follows a Path3D; `use_world_anchor` and `follow_offset` are ignored
+    - `path_max_speed: float = 10.0` — max speed along path (units/sec), 0.0 = instant
+    - `path_damping: float = 5.0` — smoothing factor for path progress
   - All tests should pass
 
 - [ ] **Task 4A.3**: Run style enforcement tests
@@ -130,7 +145,21 @@ Before starting Phase 4, verify:
   - Test `use_world_anchor = false` with null follow target returns `{}`
     - Set `use_world_anchor = false`, pass `follow_target = null`
     - Verify `result == {}`
-  - **Target: 11 tests**
+  - Test `use_path = true` with path-resolved anchor uses anchor position and basis (path tangent)
+    - Set `use_path = true`, provide a `Node3D` as `fixed_anchor` (simulating a resolved `PathFollow3D`)
+    - Assert `result.transform.origin` matches anchor's `global_position`
+    - Assert `result.transform.basis` matches anchor's `global_transform.basis` (path tangent)
+  - Test `use_path = true` ignores `track_target = true` (camera still faces path tangent)
+    - Set `use_path = true`, `track_target = true`, provide anchor and follow target at different positions
+    - Assert camera faces along anchor basis, NOT toward follow target
+  - Test `use_path = true` with null `fixed_anchor` returns `{}`
+    - Set `use_path = true`, pass `fixed_anchor = null`
+    - Verify `result == {}`
+  - Test `use_path = true` ignores `follow_offset` and `use_world_anchor` values
+    - Set `use_path = true`, `use_world_anchor = false`, `follow_offset = Vector3(99, 99, 99)`
+    - Provide a `Node3D` anchor at a known position
+    - Assert `result.transform.origin` matches anchor position (not follow target + offset)
+  - **Target: 15 tests**
 
   **Test helper setup pattern:**
   ```gdscript
@@ -164,6 +193,7 @@ Before starting Phase 4, verify:
   - Extend `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with fixed mode branch
   - Handle fixed mode branch:
     - Guard: return `{}` if mode is null
+    - When `mode.use_path == true`: treat as `use_world_anchor = true` + `track_target = false` (camera uses path-resolved anchor position and basis); return `{}` if `fixed_anchor` is null
     - Guard: return `{}` if `use_world_anchor = true` and `fixed_anchor` is null
     - Guard: return `{}` if `use_world_anchor = false` and `follow_target` is null
     - Camera position = `fixed_anchor.global_position` (when `use_world_anchor = true`)
@@ -178,6 +208,14 @@ Before starting Phase 4, verify:
 
   **Fixed transform construction contract:**
   ```gdscript
+  # Path mode: S_VCamSystem passes PathFollow3D as fixed_anchor
+  # Treat as world-anchor + no tracking (camera faces path tangent)
+  if mode.use_path:
+      if fixed_anchor == null:
+          return {}
+      var camera_xform := Transform3D(fixed_anchor.global_transform.basis, fixed_anchor.global_position)
+      return {transform = camera_xform, fov = mode.fov, mode_name = "fixed"}
+
   var pos: Vector3
   var default_basis: Basis
 
@@ -257,6 +295,8 @@ Before starting Phase 4, verify:
 - [ ] Verify the evaluator's `fixed_anchor` parameter is null-safe when mode is not fixed (orbit/first-person ignore it)
 - [ ] Verify `follow_offset` is ignored when `use_world_anchor = true` (camera uses fixed anchor position regardless of `follow_offset` value)
 - [ ] Verify `fixed_anchor` parameter is ignored when `use_world_anchor = false` (camera uses follow target + offset regardless of anchor)
+- [ ] Verify `path_max_speed` and `path_damping` are NOT consumed by evaluator (consumed by `S_VCamSystem`)
+- [ ] Verify `use_path = true` forces path-tangent facing regardless of `track_target` value
 
 ---
 
@@ -305,6 +345,16 @@ These checks gate Phase 13 cross-mode QA completion:
   - Verify camera does NOT respond to look input (mouse/right-stick)
   - Verify `track_target = true` causes camera to look at player from the offset position
   - Verify `track_target = false` keeps camera facing its default direction at the offset position
+- [ ] **MT-69B**: Fixed camera with `use_path = true` follows Path3D smoothly
+  - Place a Path3D in scene, set `path_node_path` on vCam component
+  - Move player along/across path, verify camera follows at closest point
+  - Verify camera speed is clamped to `path_max_speed`
+  - Verify camera faces along path tangent direction
+  - Verify `track_target` setting has no effect
+- [ ] **MT-69C**: Path-following with closed vs open path
+  - Test with a closed (looping) Path3D
+  - Verify camera wraps smoothly around the loop
+  - Test with an open path, verify camera clamps to endpoints
 
 ---
 
@@ -352,6 +402,8 @@ These checks gate Phase 9F completion:
 6. Do not forget the zero-distance edge case: if the fixed anchor and follow target are at exactly the same position with `track_target = true`, the look direction is zero-length. Guard this to avoid NaN in the basis.
 7. Do not forget to verify orbit and first-person regression after extending the evaluator. Adding a third branch must not break existing mode evaluations.
 8. Do not confuse the final refactor (Task 4B.4) with adding new functionality. It is strictly a code quality pass — all tests must pass before and after with identical behavior.
+9. Do not resolve `Path3D` or compute path progress inside the evaluator. Path resolution and progress smoothing are `S_VCamSystem`'s responsibility. The evaluator only sees a pre-resolved `PathFollow3D` as `fixed_anchor`.
+10. Do not apply `path_max_speed` or `path_damping` in the evaluator. These are consumed by `S_VCamSystem`.
 
 ---
 

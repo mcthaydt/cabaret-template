@@ -225,6 +225,9 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
   - fixed world anchor, optional target tracking
   - `follow_offset: Vector3 = Vector3(0, 3, 5)` — consumed only when `use_world_anchor = false`
   - When `use_world_anchor = false`, camera positions at `follow_target.global_position + follow_offset`
+  - `use_path: bool = false` — when true, camera follows a `Path3D`; `use_world_anchor` and `follow_offset` are ignored
+  - `path_max_speed: float = 10.0` — max travel speed along the path (units/sec), 0.0 = instant
+  - `path_damping: float = 5.0` — second-order smoothing for path progress changes
 - `RS_VCamModeFirstPerson`
   - use `look_multiplier`, not `mouse_sensitivity`
   - input already arrives pre-scaled from the input pipeline
@@ -261,6 +264,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
   - `follow_target_entity_id: StringName` — entity ID fallback for dynamic target resolution via `M_ECSManager.get_entity_by_id()`
   - `follow_target_tag: StringName` — tag fallback for target resolution via `M_ECSManager.get_entities_by_tag()`
   - `look_at_target_path: NodePath`
+  - `path_node_path: NodePath` — resolved to `Path3D` by `S_VCamSystem` for path-following fixed cameras
   - `soft_zone: Resource`
   - `blend_hint: Resource`
   - `is_active: bool`
@@ -362,6 +366,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 - If the follow target or fixed anchor is an invalid (freed) object reference, return `{}` immediately without crashing.
 - Fixed-mode `use_world_anchor = true` reads world transform from `C_VCamComponent.fixed_anchor_path` when authored; otherwise falls back to vCam host entity root. It must not read transform from `C_VCamComponent` (which extends `Node`).
 - Fixed-mode `use_world_anchor = false` positions at `follow_target.global_position + mode.follow_offset`. Returns `{}` if follow target is null. `track_target` still applies; `runtime_yaw`/`runtime_pitch` still ignored.
+- Fixed-mode `use_path = true`: evaluator treats this as `use_world_anchor = true` + `track_target = false` (the path-resolved `PathFollow3D` is passed as `fixed_anchor` by `S_VCamSystem`). Returns `{}` if `fixed_anchor` is null.
 
 ### Commit 2.4: `S_VCamSystem`
 
@@ -378,6 +383,11 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 - evaluate the active vCam every tick
 - when a blend is active, also evaluate the outgoing vCam every tick
 - resolve a `Node3D` fixed anchor for each vCam (`fixed_anchor_path` when set, entity root default otherwise) before mode evaluation
+- for path-enabled fixed vCams (`use_path = true`):
+  - resolve `Path3D` from `C_VCamComponent.path_node_path`
+  - maintain a `PathFollow3D` child per path-enabled vCam
+  - each tick: compute closest point on curve to follow target, smooth progress via `path_max_speed` + `path_damping`, update `PathFollow3D.progress`
+  - pass the `PathFollow3D` as `fixed_anchor` to evaluator
 - update `runtime_yaw` and `runtime_pitch` on the component that owns the rotation context
 - apply rotation continuity policy on mode switches (see overview Rotation Continuity Contract): carry, reset, or reseed yaw/pitch based on mode transition type
 - validate follow target and fixed anchor before evaluation each tick; dispatch `update_target_validity` and `record_recovery` on state changes

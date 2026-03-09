@@ -458,7 +458,7 @@ Before starting Phase 0, verify:
 
 ## Phase 5: Component, Interface, and Manager Core
 
-**Exit Criteria:** All ~30 tests pass (12 component + 8 interface/manager registration + 10 manager active-selection), `M_VCamManager` registered with ServiceLocator
+**Exit Criteria:** All ~33 tests pass (15 component + 8 interface/manager registration + 10 manager active-selection), `M_VCamManager` registered with ServiceLocator
 
 ### Phase 5A: C_VCamComponent
 
@@ -474,16 +474,17 @@ Before starting Phase 0, verify:
   - Test `follow_target_entity_id` export exists (StringName, default `&""`) — entity ID fallback for dynamic target resolution via `M_ECSManager.get_entity_by_id()`
   - Test `follow_target_tag` export exists (StringName, default `&""`) — tag fallback for target resolution via `M_ECSManager.get_entities_by_tag()`
   - Test `look_at_target_path` export exists (NodePath)
+  - Test `path_node_path` export exists (NodePath)
   - Test `soft_zone` export exists (Resource type)
   - Test `blend_hint` export exists (Resource type)
   - Test `response` export exists (Resource type, RS_VCamResponse)
   - Test `is_active` export exists with default `true`
-  - **Target: 14 tests**
+  - **Target: 15 tests**
 
 - [ ] **Task 5A.2 (Green)**: Implement C_VCamComponent
   - Create `scripts/ecs/components/c_vcam_component.gd`
   - Extend `BaseECSComponent`, set `COMPONENT_TYPE`
-  - Add all exports (including `response: RS_VCamResponse`, `follow_target_entity_id`, `follow_target_tag`) and runtime-only `runtime_yaw`, `runtime_pitch` vars
+  - Add all exports (including `response: RS_VCamResponse`, `follow_target_entity_id`, `follow_target_tag`, `path_node_path: NodePath`) and runtime-only `runtime_yaw`, `runtime_pitch` vars
   - Implement null-safe `get_follow_target()` and `get_look_at_target()` typed getters
   - Target resolution priority in `S_VCamSystem`: NodePath → entity ID → tag → null (recovery)
   - All tests should pass

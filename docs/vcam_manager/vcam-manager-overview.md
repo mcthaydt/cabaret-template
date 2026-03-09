@@ -267,8 +267,11 @@ This slice is whole-slice transient. It is not save data and not a player settin
 
 - When `use_world_anchor = true` (default): camera uses a fixed world anchor. Anchor comes from `C_VCamComponent.fixed_anchor_path` when set, with fallback to the vCam host entity-root `Node3D`. Useful for room cameras and authored framing.
 - When `use_world_anchor = false`: camera maintains a constant `follow_offset` from the follow target — useful for simple chase cameras or over-shoulder views without player rotation. Position = `follow_target.global_position + follow_offset`. Returns invalid if follow target is null.
+- When `use_path = true`: camera follows a `Path3D` node, finding the closest point on the curve to the follow target. Movement along the path is smoothed via `path_max_speed` (max travel speed in units/sec, 0.0 = instant) and `path_damping` (second-order smoothing factor). Camera faces along the path tangent direction; `track_target` is forced off. Requires `C_VCamComponent.path_node_path` to be set. When `use_path = true`, both `use_world_anchor` and `follow_offset` are ignored.
 - `follow_offset: Vector3 = Vector3(0, 3, 5)` — only consumed when `use_world_anchor = false`
-- optional tracking toward the follow target (`track_target`) applies in both anchor modes
+- `path_max_speed: float = 10.0` — max travel speed along the path (units/sec), 0.0 = instant
+- `path_damping: float = 5.0` — second-order smoothing for path progress changes
+- optional tracking toward the follow target (`track_target`) applies in both anchor modes; forced off when `use_path = true` (camera faces path tangent)
 - `runtime_yaw`/`runtime_pitch` are always ignored (fixed cameras never respond to player input)
 
 ### `RS_VCamModeFirstPerson`

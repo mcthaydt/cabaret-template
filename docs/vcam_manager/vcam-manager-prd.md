@@ -34,6 +34,7 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - Handle occlusion with silhouettes instead of camera push-in.
 - Provide an editor-only rule-of-thirds preview.
 - Expose active runtime camera state through Redux without persisting it incorrectly.
+- Allow fixed cameras to optionally follow an authored `Path3D`, driven by player proximity with speed-clamped smoothing.
 
 ## Non-Goals
 
@@ -41,7 +42,7 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - Replacing `S_CameraStateSystem`
 - Replacing `S_InputSystem`
 - Adding cinematic timeline tooling
-- Adding camera path editors or spline tooling
+- Adding camera path **editors** or spline authoring tooling
 - Adding dolly/push-in collision response
 - Supporting split-screen or 2D camera flows
 
