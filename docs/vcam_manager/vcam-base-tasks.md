@@ -73,6 +73,40 @@ Before starting Phase 0, verify:
 
 ---
 
+### Phase 0A2: Arrow-Key Look Settings Prerequisite
+
+- [ ] **Task 0A2.1 (Red)**: Write tests for arrow-key look settings in mouse_settings
+  - Modify `tests/unit/input_manager/test_u_input_reducer.gd` (or create new test file)
+  - Test `arrow_key_look_enabled` field exists in `mouse_settings` with default `false`
+  - Test `arrow_key_look_speed` field exists in `mouse_settings` with default `2.0`
+  - Test reducer handles `set_arrow_key_look_enabled` action with bool
+  - Test reducer handles `set_arrow_key_look_speed` action with valid float
+  - Test reducer clamps `arrow_key_look_speed` to valid range (0.1–10.0)
+  - Test reducer ignores unknown action (returns same state)
+  - **Target: 6 tests**
+
+- [ ] **Task 0A2.2 (Green)**: Implement arrow-key look settings
+  - Modify `scripts/state/reducers/u_input_reducer.gd`: add `arrow_key_look_enabled: false` and `arrow_key_look_speed: 2.0` to `DEFAULT_INPUT_SETTINGS_STATE.mouse_settings`
+  - Modify `scripts/state/actions/u_input_actions.gd`: add `ACTION_SET_ARROW_KEY_LOOK_ENABLED` and `ACTION_SET_ARROW_KEY_LOOK_SPEED`
+  - Modify `scripts/state/reducers/u_input_reducer.gd`: add action handling
+  - All tests should pass
+
+- [ ] **Task 0A2.3 (Green)**: Implement arrow-key look in KeyboardMouseSource
+  - Modify `scripts/input/sources/keyboard_mouse_source.gd`:
+    - Add `arrow_key_look_enabled: bool = false` and `arrow_key_look_speed: float = 2.0` properties
+    - In `capture_input(delta)`, when `arrow_key_look_enabled`, read `ui_left`/`ui_right`/`ui_up`/`ui_down` and produce an arrow-key look delta: `Vector2(arrow_x, arrow_y) * arrow_key_look_speed * delta`
+    - Add arrow-key delta to `look_delta` (additive with mouse)
+    - Respect `invert_y_axis` from `mouse_settings` for the arrow-key Y component
+  - Modify `scripts/ecs/systems/s_input_system.gd`: read `arrow_key_look_enabled` and `arrow_key_look_speed` from `mouse_settings` state and pass to `KeyboardMouseSource` each tick (same pattern as `mouse_sensitivity`)
+
+- [ ] **Task 0A2.4**: Expose arrow-key look in settings UI
+  - Modify the mouse/keyboard settings overlay (if one exists) or the relevant settings screen to expose:
+    - Toggle for "Arrow Key Camera Rotation" (maps to `arrow_key_look_enabled`)
+    - Slider for "Arrow Key Look Speed" (maps to `arrow_key_look_speed`, range 0.1–10.0)
+  - Settings should be grayed out / hidden when `arrow_key_look_enabled` is false
+
+---
+
 ### Phase 0B: Persisted Silhouette Toggle in VFX Settings
 
 - [ ] **Task 0B.1 (Red)**: Write tests for `occlusion_silhouette_enabled` in VFX state

@@ -72,6 +72,32 @@ After every completed phase, update docs immediately so written guidance matches
 - Mobile drag-look is part of the input system, not the vCam runtime.
 - Orbit and first-person cameras are not truly complete on mobile until drag-look settings exist.
 
+### Commit 0.0b: Arrow-key look settings prerequisite
+
+**Files to modify**
+
+- `scripts/state/actions/u_input_actions.gd`
+- `scripts/state/reducers/u_input_reducer.gd`
+- `scripts/input/sources/keyboard_mouse_source.gd`
+- `scripts/ecs/systems/s_input_system.gd`
+- `tests/unit/input_manager/test_u_input_reducer.gd`
+
+**Behavior**
+
+- Extend `settings.input_settings.mouse_settings` with arrow-key look settings:
+  - `arrow_key_look_enabled: bool = false`
+  - `arrow_key_look_speed: float = 2.0` (clamped 0.1–10.0)
+- `KeyboardMouseSource` reads arrow-key state (`ui_left`/`ui_right`/`ui_up`/`ui_down`) each tick when enabled, producing a fixed-rate delta scaled by `arrow_key_look_speed * delta`.
+- Arrow-key look is additive with mouse look — both combine into the same `look_input` vector.
+- Arrow-key Y component respects `invert_y_axis` from `mouse_settings`.
+- `S_InputSystem` reads `arrow_key_look_enabled` and `arrow_key_look_speed` from Redux `mouse_settings` and passes them to the source each tick (same pattern as `mouse_sensitivity`).
+- Expose settings in the mouse/keyboard settings UI overlay.
+
+**Why**
+
+- Arrow keys provide an alternative camera rotation input for players who prefer keyboard-only control or accessibility needs.
+- Feeds the same `gameplay.look_input` path, keeping `S_VCamSystem` input-source-agnostic.
+
 ### Commit 0.1: Persisted silhouette toggle in VFX settings
 
 **Files to modify**
@@ -243,6 +269,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 - `S_InputSystem` already dispatches scaled `look_input` through the gameplay slice.
 - `S_TouchscreenSystem` must dispatch the same `look_input` field for mobile drag-look.
+- `KeyboardMouseSource` optionally adds arrow-key look delta into the same `look_input` when `arrow_key_look_enabled` is true.
 - Reusing the name `mouse_sensitivity` inside the vCam resource would blur the line between global input settings and per-vCam authored behavior.
 
 ### Commit 1.2: `C_VCamComponent`
@@ -750,7 +777,7 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 4. Do not write `camera.global_transform` directly from vCam. Go through `M_CameraManager.apply_main_camera_transform(...)` so shake layering survives.
 5. Do not freeze the outgoing camera transform at blend start. Evaluate both cameras live during blends.
 6. Do not use raw normalized-screen deltas as world-space camera offsets. Soft-zone math must account for depth and projection.
-7. Do not bypass the existing input pipeline. Consume `gameplay.look_input` produced by `S_InputSystem` and touchscreen drag-look once `S_TouchscreenSystem` is extended.
+7. Do not bypass the existing input pipeline. Consume `gameplay.look_input` produced by `S_InputSystem` (mouse + optional arrow keys) and touchscreen drag-look once `S_TouchscreenSystem` is extended.
 8. Do not treat mobile as automatically covered by that input contract. `S_TouchscreenSystem` currently hard-codes look input to zero, so mobile drag-look must be implemented explicitly.
 9. Do not rely on scene-tree order to “fix” mobile touch input. `S_InputSystem` currently resolves `TouchscreenSource`, which returns zeros, so it must be explicitly gated from overwriting touchscreen gameplay input.
 10. Do not introduce `scripts/tools` or `assets/shaders/vcam_*.gdshader` paths that fight the current style guide. Use `scripts/utils/display/` and `sh_*_shader.gdshader`.
