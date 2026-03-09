@@ -1,7 +1,7 @@
 # vCam Manager — Task Index
 
 **Progress:** 5 / 5 documentation tasks complete; 0 implementation tasks complete
-**Estimated Test Count:** ~375 checks (about 317 automated tests + 58 manual checks + 11 feel QA checks)
+**Estimated Test Count:** ~420 checks (about 340 automated tests + 80 manual checks including game-feel QA)
 **Status note:** Strict TDD (Red/Green/Refactor). Each camera mode has a dedicated phase. Mobile drag-look is a hard prerequisite for orbit/first-person completion.
 **Manual QA cadence:** Manual checks are embedded in the relevant implementation phases (no standalone manual-testing phase).
 **Quality gaps addressed:** Orientation continuity, blend interruption, invalid-target recovery, occlusion anti-flicker, performance budget, observability expansion, open-question resolution, cross-mode feel QA, **second-order dynamics for natural camera motion**.
