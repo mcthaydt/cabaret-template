@@ -183,12 +183,13 @@ Before starting Phase 0, verify:
   - Test `to_dictionary()` returns `blend_to_vcam_id` as `&""`
   - Test `to_dictionary()` returns `active_target_valid` as `true`
   - Test `to_dictionary()` returns `last_recovery_reason` as `""`
-  - Test `to_dictionary()` returns exactly 10 keys
-  - **Target: 11 tests**
+  - Test `to_dictionary()` returns `in_fov_zone` as `false`
+  - Test `to_dictionary()` returns exactly 11 keys
+  - **Target: 12 tests**
 
 - [ ] **Task 0C.2 (Green)**: Implement RS_VCamInitialState
   - Create `scripts/resources/state/rs_vcam_initial_state.gd`
-  - Implement `to_dictionary()` returning all 10 fields
+  - Implement `to_dictionary()` returning all 11 fields (including `in_fov_zone: false`)
   - All tests should pass
 
 - [ ] **Task 0C.3**: Create default resource instance
@@ -208,11 +209,12 @@ Before starting Phase 0, verify:
   - Test `update_silhouette_count(count)` action structure
   - Test `update_target_validity(valid)` action structure
   - Test `record_recovery(reason)` action structure
-  - **Target: 7 tests**
+  - Test `update_fov_zone(in_zone)` action structure
+  - **Target: 8 tests**
 
 - [ ] **Task 0D.2 (Green)**: Implement U_VCamActions
   - Create `scripts/state/actions/u_vcam_actions.gd`
-  - Add 7 action type constants and static creator functions
+  - Add 8 action type constants and static creator functions (including `update_fov_zone`)
   - All tests should pass
 
 - [ ] **Task 0D.2a**: Add vCam event constants to U_ECSEventNames
@@ -236,9 +238,10 @@ Before starting Phase 0, verify:
   - Test `update_silhouette_count` with negative clamps to 0
   - Test `update_target_validity` sets `active_target_valid` to provided bool
   - Test `record_recovery` sets `last_recovery_reason` to provided string
+  - Test `update_fov_zone` sets `in_fov_zone` to provided bool
   - Test reducer returns same state for unknown action
   - Test reducer immutability (old state reference != new state reference)
-  - **Target: 12 tests**
+  - **Target: 13 tests**
 
 - [ ] **Task 0D.4 (Green)**: Implement U_VCamReducer
   - Create `scripts/state/reducers/u_vcam_reducer.gd`
@@ -270,11 +273,13 @@ Before starting Phase 0, verify:
   - Test `is_active_target_valid(state)` returns `true` when missing
   - Test `get_last_recovery_reason(state)` returns value from state
   - Test `get_last_recovery_reason(state)` returns `""` when missing
-  - **Target: 21 tests**
+  - Test `is_in_fov_zone(state)` returns value from state
+  - Test `is_in_fov_zone(state)` returns `false` when missing
+  - **Target: 23 tests**
 
 - [ ] **Task 0E.2 (Green)**: Implement U_VCamSelectors
   - Create `scripts/state/selectors/u_vcam_selectors.gd`
-  - All selectors null-safe and slice-safe (including 4 debug-field selectors: `get_blend_from_vcam_id`, `get_blend_to_vcam_id`, `is_active_target_valid`, `get_last_recovery_reason`)
+  - All selectors null-safe and slice-safe (including 4 debug-field selectors: `get_blend_from_vcam_id`, `get_blend_to_vcam_id`, `is_active_target_valid`, `get_last_recovery_reason`, plus `is_in_fov_zone`)
   - All tests should pass
 
 - [ ] **Task 0E.3**: Integrate vcam slice with M_StateStore
@@ -287,6 +292,30 @@ Before starting Phase 0, verify:
   - Verify `vcam` slice appears in `get_state()` output
   - Verify `vcam` slice is registered as transient
   - Verify `vcam` is NOT included in global settings persistence
+
+---
+
+### Phase 0F: Camera Slice Migration (`in_fov_zone`)
+
+> **Context:** The informal `camera` slice previously tracked `in_fov_zone` via `S_CameraStateSystem`. This field now lives in `state.vcam.in_fov_zone`. This phase migrates all reads and updates all tests.
+
+- [ ] **Task 0F.1**: Migrate `S_CameraStateSystem` reads of `state.camera.in_fov_zone`
+  - Modify `scripts/ecs/systems/s_camera_state_system.gd`: replace reads of `state.camera.in_fov_zone` with `U_VCamSelectors.is_in_fov_zone(state)` (or `state.vcam.in_fov_zone`)
+  - Update any `S_CameraStateSystem` code that dispatches `set_slice("camera", ...)` for `in_fov_zone` to use `U_VCamActions.update_fov_zone(in_zone)` instead
+
+- [ ] **Task 0F.2**: Update tests that reference `state.camera`
+  - Grep for `set_slice("camera"` and `state.camera` in test files
+  - Update any test that sets up `camera.in_fov_zone` to use `vcam.in_fov_zone` instead
+  - Verify no remaining references to `state.camera` slice exist in the codebase
+
+- [ ] **Task 0F.3**: Retire informal `camera` slice
+  - Remove any `camera` slice registration if one exists
+  - Add `DEV_PITFALLS.md` note: "The informal `camera` slice is retired. `in_fov_zone` lives in `state.vcam.in_fov_zone`. Do not re-introduce `state.camera`."
+
+- [ ] **Task 0F.4**: Verify migration
+  - Run full test suite: no test references `state.camera` or `set_slice("camera", ...)`
+  - `U_VCamSelectors.is_in_fov_zone(state)` returns correct values through the full dispatch/reduce/select cycle
+  - **Target: 2 verification tests**
 
 ---
 
@@ -669,6 +698,8 @@ Before starting Phase 0, verify:
 
 ### Phase 6A3: QB-Driven Camera Feel (FOV Breathing + Landing Impact)
 
+> **Indexed as Phase 8 in [vcam-manager-tasks.md](vcam-manager-tasks.md).**
+
 > **Why:** Leverages the existing QB rule engine (`S_CameraStateSystem` + `C_CameraStateComponent`) and ECS event bus instead of building bespoke feel systems. Rules are authored as `.tres` files — designers can tune camera feel without code changes.
 
 #### Phase 6A3a: C_CameraStateComponent Extensions
@@ -688,6 +719,15 @@ Before starting Phase 0, verify:
     - `@export var speed_fov_bonus: float = 0.0` — current speed-driven FOV addition (set by QB rule)
     - `@export var speed_fov_max_bonus: float = 15.0` — max speed FOV bonus (clamp ceiling)
   - All tests should pass
+
+  **Composition specification:**
+  - **FOV formula:** `target_fov = base_fov + clamp(speed_fov_bonus, 0.0, speed_fov_max_bonus)` — `base_fov` is set by vCam (via `M_VCamManager`), `speed_fov_bonus` is set by the QB speed-FOV rule, `S_CameraStateSystem` applies the composition.
+  - **Landing impact offset ownership:** `landing_impact_offset` is applied by `S_VCamSystem` (position offset on the evaluated camera pose), NOT by `S_CameraStateSystem` (which owns shake, not spatial offsets). This keeps shake and impact in separate stages.
+  - **Stacking order (three stages, no conflict):**
+    1. **FP pitch dip** (before evaluator): `S_VCamSystem` adds `_landing_pitch_offset` to `runtime_pitch` before calling the evaluator — affects the rotation input to the evaluation.
+    2. **Position offset** (after evaluator): `S_VCamSystem` reads `landing_impact_offset` from `C_CameraStateComponent` and adds it to the evaluated camera position — affects the final world-space position.
+    3. **Shake** (after submit): `M_CameraManager` applies shake offsets through `ShakeParent` after `apply_main_camera_transform()` — a completely independent transform layer.
+  - These three stages are ordered and non-conflicting: pitch dip rotates the view, position offset moves the camera, and shake vibrates the final result.
 
 #### Phase 6A3b: FOV Breathing via QB Rule
 
@@ -862,6 +902,36 @@ Before starting Phase 0, verify:
 
 ---
 
+### Phase 7B2: Touch Look Active Redux Flag
+
+> **Context:** Touch input gating uses `gameplay.touch_look_active` so `S_InputSystem` can deterministically skip look dispatch when touchscreen drag-look is active, without relying on device-type heuristics.
+
+- [ ] **Task 7B2.1**: Add `touch_look_active` to gameplay slice
+  - Modify `scripts/resources/state/rs_gameplay_initial_state.gd` (or relevant initial state): add `touch_look_active: bool = false`
+  - Add action `U_GameplayActions.set_touch_look_active(active: bool)`
+  - Add reducer case in `u_gameplay_reducer.gd`
+  - Add selector `U_GameplaySelectors.is_touch_look_active(state) -> bool` (returns `false` when missing)
+
+- [ ] **Task 7B2.2**: Dispatch flag from S_TouchscreenSystem
+  - Modify `scripts/ecs/systems/s_touchscreen_system.gd`:
+    - Dispatch `set_touch_look_active(true)` when drag-look gesture begins
+    - Dispatch `set_touch_look_active(false)` when drag-look gesture ends (touch released)
+
+- [ ] **Task 7B2.3**: Gate S_InputSystem look dispatch
+  - Modify `scripts/ecs/systems/s_input_system.gd`:
+    - Read `U_GameplaySelectors.is_touch_look_active(state)` each tick
+    - When `true`, skip look input dispatch (touchscreen owns look)
+    - When `false`, dispatch look input normally
+
+- [ ] **Task 7B2.4**: Write tests for touch look flag
+  - Test `touch_look_active` defaults to `false`
+  - Test `set_touch_look_active(true)` sets flag
+  - Test `S_TouchscreenSystem` dispatches flag on drag start/end
+  - Test `S_InputSystem` skips look dispatch when `touch_look_active` is `true`
+  - **Target: 4 tests**
+
+---
+
 ### Phase 7C: S_InputSystem Zero-Clobber Guard
 
 - [ ] **Task 7C.1 (Red)**: Write tests for input system touchscreen guard
@@ -948,15 +1018,17 @@ Settings checks (mode-agnostic):
 
 ### Phase 9C: Shake-Safe Camera-Manager Integration
 
+> **Note:** `apply_main_camera_transform()` and `is_blend_active()` are **new API — Phase 9**. They do not exist on `M_CameraManager` today.
+
 - [ ] **Task 9C.1 (Red)**: Write tests for camera-manager API extension
   - Modify `tests/integration/camera_system/test_camera_manager.gd`
-  - Test `apply_main_camera_transform(xform)` updates camera base pose without breaking shake offset
-  - Test `is_blend_active()` returns true during scene-transition blends
-  - Test `is_blend_active()` returns false when no transition blend active
+  - Test `apply_main_camera_transform(xform)` (new API) updates camera base pose without breaking shake offset
+  - Test `is_blend_active()` (new API) returns true during scene-transition blends
+  - Test `is_blend_active()` (new API) returns false when no transition blend active
   - **Target: 3 tests**
 
-- [ ] **Task 9C.2 (Green)**: Implement camera-manager API
-  - Modify `scripts/interfaces/i_camera_manager.gd`: add method signatures
+- [ ] **Task 9C.2 (Green)**: Implement camera-manager API (new methods)
+  - Modify `scripts/interfaces/i_camera_manager.gd`: add method signatures for `apply_main_camera_transform()` and `is_blend_active()`
   - Modify `scripts/managers/m_camera_manager.gd`: implement `apply_main_camera_transform()` and `is_blend_active()`
   - Modify `tests/mocks/mock_camera_manager.gd`: add mock implementations
   - All tests should pass
@@ -1041,6 +1113,12 @@ Cross-mode checks (mode-agnostic):
 
 ### Phase 10A: U_VCamCollisionDetector
 
+- [ ] **Task 10A.0 (Pre-requisite)**: Inventory occludable geometry in gameplay scenes
+  - Before implementing collision detection, audit all gameplay scenes (`scenes/gameplay/`, `scenes/prefabs/`) for geometry that should occlude camera-to-target line of sight
+  - Document which `MeshInstance3D` and `CSGShape3D` nodes need layer 6 (`vcam_occludable`) migration
+  - Identify any geometry that should NOT be on the occlusion layer (triggers, zones, small detail props)
+  - This audit prevents discovering missing occluder assignments late in Phase 10A.3
+
 - [ ] **Task 10A.1 (Red)**: Write tests for collision detector
   - Create `tests/unit/managers/helpers/test_vcam_collision_detector.gd`
   - Test empty result when nothing between camera and target
@@ -1066,6 +1144,8 @@ Cross-mode checks (mode-agnostic):
 
 ### Phase 10B: U_VCamSilhouetteHelper
 
+> **Visual intent:** Solid-color silhouette visible through occluding geometry. Exact shader implementation determined during Phase 10.
+
 - [ ] **Task 10B.1 (Red)**: Write tests for silhouette helper
   - Create `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd`
   - Test `apply_silhouette()` sets shader override on `GeometryInstance3D`
@@ -1084,6 +1164,33 @@ Cross-mode checks (mode-agnostic):
 
 ---
 
+### Phase 10B2: VFX Manager Silhouette Routing
+
+> **Context:** Silhouette rendering routes through `M_VFXManager` (detection stays in vCam). This follows the existing VFX event-request pattern (`U_ScreenShake`, damage flash, etc.) so silhouette lifecycle inherits player gating and transition blocking.
+
+- [ ] **Task 10B2.1**: Add `EVENT_SILHOUETTE_UPDATE_REQUEST` event constant
+  - Modify `scripts/events/ecs/u_ecs_event_names.gd`: add `EVENT_SILHOUETTE_UPDATE_REQUEST := &"silhouette_update_request"`
+  - Payload: `{occluders: Array[GeometryInstance3D], enabled: bool}`
+
+- [ ] **Task 10B2.2**: Publish silhouette requests from M_VCamManager
+  - Modify `scripts/managers/m_vcam_manager.gd`:
+    - After occlusion detection each tick, publish `EVENT_SILHOUETTE_UPDATE_REQUEST` through `U_ECSEventBus` with the current occluder set
+    - Do NOT apply silhouettes directly — delegate to VFX manager
+
+- [ ] **Task 10B2.3**: Subscribe and delegate in M_VFXManager
+  - Modify `scripts/managers/m_vfx_manager.gd`:
+    - Subscribe to `EVENT_SILHOUETTE_UPDATE_REQUEST`
+    - Delegate to `U_VCamSilhouetteHelper` for actual material override application/removal
+    - Apply standard player gating (`_is_player_entity()`) and transition blocking (`_is_transition_blocked()`) before processing
+
+- [ ] **Task 10B2.4**: Verify routing
+  - Test silhouette updates flow through VFX manager (not applied directly by vCam manager)
+  - Test player gating applies to silhouette requests
+  - Test transition blocking suppresses silhouette updates during scene transitions
+  - **Target: 3 tests**
+
+---
+
 ### Phase 10C: Per-Tick Occlusion Integration
 
 - [ ] **Task 10C.1 (Red)**: Write tests for occlusion in M_VCamManager
@@ -1097,7 +1204,7 @@ Cross-mode checks (mode-agnostic):
   - **Target: 6 tests**
 
 - [ ] **Task 10C.2 (Green)**: Implement per-tick occlusion
-  - Extend `m_vcam_manager.gd`: detect occluders, consult VFX selector, apply/remove silhouettes
+  - Extend `m_vcam_manager.gd`: detect occluders, consult VFX selector, publish `EVENT_SILHOUETTE_UPDATE_REQUEST` (silhouette application is routed through `M_VFXManager` via Phase 10B2, not applied directly)
   - Dispatch silhouette count updates
   - All tests should pass
 
@@ -1286,6 +1393,20 @@ Cross-mode checks (mode-agnostic):
   - [ ] **MT-57**: Rapid switching stress test: no allocation spikes from blend/silhouette churn
   - [ ] **MT-58**: Steady-state camera (no switch, no occlusion change): verify no per-frame dictionary allocations in profiler
   - [ ] **MT-80**: Second-order dynamics per-tick cost: verify no measurable frame time increase vs null response (dynamics are 6 multiplies + 4 adds per axis per tick)
+
+---
+
+## Test Directory Convention
+
+vCam tests follow the existing project test layout:
+
+```text
+tests/unit/vcam/              — unit tests for vCam-specific logic (mirrors production layout)
+tests/unit/vcam/resources/    — test resource instances (.tres) used by vCam unit tests
+tests/integration/vcam/       — integration tests (full pipeline, cross-system)
+```
+
+Unit tests for shared infrastructure (state, ECS components/systems, managers) live in their existing directories (`tests/unit/state/`, `tests/unit/ecs/`, `tests/unit/managers/`) alongside other feature tests. The `tests/unit/vcam/` directory is for vCam-only helpers and resources that don't fit an existing category.
 
 - [ ] **Task 13.8**: Run full test gates
   - Run `tests/unit/style/test_style_enforcement.gd`

@@ -26,6 +26,9 @@
 - Entity-based target resolution added: `C_VCamComponent` supports `follow_target_entity_id` and `follow_target_tag` exports as fallbacks when NodePath is empty. `S_VCamSystem` resolves targets via `M_ECSManager.get_entity_by_id()` / `get_entities_by_tag()`, leveraging the existing `BaseECSEntity` ID/tag system.
 - QB rule context enrichment: `S_CameraStateSystem._build_camera_context()` is extended with `vcam_active_mode`, `vcam_is_blending`, `vcam_active_vcam_id` so camera rules can condition on vCam state using standard `RS_ConditionContextField`.
 - Per-phase doc cadence is now explicit and mandatory: update continuation prompt + tasks after each phase, and update AGENTS/DEV_PITFALLS when new stable contracts or pitfalls appear.
+- Camera slice migration: `in_fov_zone` migrated from the informal `camera` slice into the transient `vcam` slice (`state.vcam.in_fov_zone`). Phase 0F updates all `S_CameraStateSystem` reads and retires the `camera` slice. Tests that used `set_slice("camera", ...)` must be updated.
+- Touch look gating: `gameplay.touch_look_active` Redux flag added. `S_TouchscreenSystem` sets it on drag start/end; `S_InputSystem` skips look dispatch when true. This replaces device-type heuristics for touch input gating.
+- Silhouette rendering routes through `M_VFXManager`: vCam publishes `EVENT_SILHOUETTE_UPDATE_REQUEST`, VFX manager subscribes and delegates to `U_VCamSilhouetteHelper`. This inherits existing player gating and transition blocking.
 - Naming paths now follow the repo style guide:
   - `scripts/resources/display/vcam/`
   - `scripts/utils/display/`
@@ -78,7 +81,7 @@
 3. Implement Phase 0 Commit 0.2: create `RS_VCamInitialState` and `cfg_default_vcam_initial_state.tres`.
 4. Implement Phase 0 Commit 0.3: create vCam actions and reducer.
 5. Implement Phase 0 Commit 0.4: add selectors, wire the new state export in `M_StateStore`, register `vcam` as transient, and patch `scenes/root.tscn`.
-6. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
+6. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
 7. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
 8. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
@@ -97,6 +100,9 @@
 - vCam publishes lifecycle events through `U_ECSEventBus`, not just Redux — enabling reactive integration with QB rules and other systems.
 - QB camera rules can condition on vCam state via enriched context fields (`vcam_active_mode`, `vcam_is_blending`) — no vCam-specific rule types needed.
 - Follow target resolution uses existing entity ID/tag system as fallback when NodePaths are empty.
+- The informal `camera` slice is retired. `in_fov_zone` lives in `state.vcam.in_fov_zone` (not `state.camera`).
+- Touch input gating uses `gameplay.touch_look_active` Redux flag, not device-type checks.
+- Silhouette rendering lifecycle is owned by `M_VFXManager` (detection in vCam, rendering in VFX). This follows the `U_ScreenShake` helper pattern.
 
 ## Known Risks
 

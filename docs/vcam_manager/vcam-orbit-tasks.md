@@ -259,6 +259,12 @@ Before starting Phase 2, verify:
 - [ ] **Task 2C3.2 (Green)**: Implement U_VCamSoftZone
   - Create `scripts/managers/helpers/u_vcam_soft_zone.gd`
   - Implement `static func compute_camera_correction(camera, follow_world_pos, desired_transform, soft_zone, delta) -> Vector3`
+  - **Projection method contract:**
+    - Use `camera.unproject_position(follow_world_pos)` to project the follow target to screen space from the desired camera pose
+    - Use `camera.project_position(corrected_screen_point, depth)` to reproject back to world space
+    - All zone tests use normalized viewport coordinates (`screen_pos / viewport_size`)
+    - **Near-plane guard:** Check `(follow_world_pos - cam_pos).dot(-cam_basis.z) > 0.0` before projecting. If the target is behind the near plane, skip correction for that tick.
+    - **Hysteresis state tracking:** `S_VCamSystem` maintains per-vCam `_in_dead_zone: bool` (per axis X/Y) and passes it to the helper. The helper uses `dead_zone + hysteresis_margin` as exit threshold and `dead_zone - hysteresis_margin` as entry threshold to prevent correction toggling at the boundary.
   - Project follow target, test zone membership, reproject correction
   - **Note:** The `damping` field on `RS_VCamSoftZone` controls correction magnitude (how aggressively the camera corrects when the target enters the soft zone). The temporal smoothing of that correction is handled by the second-order dynamics in `S_VCamSystem` (Phase 6A2) — the soft zone helper computes the instantaneous correction vector, and the dynamics smooth the resulting camera position over time.
   - All tests should pass

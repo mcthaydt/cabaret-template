@@ -164,6 +164,7 @@ func to_dictionary() -> Dictionary:
 		"blend_to_vcam_id": &"",
 		"active_target_valid": true,
 		"last_recovery_reason": "",
+		"in_fov_zone": false,
 	}
 ```
 
@@ -171,6 +172,7 @@ func to_dictionary() -> Dictionary:
 
 - This slice is runtime-only observability for debugging and UI.
 - It is not save data and not a player settings surface.
+- `in_fov_zone` migrates from the informal `camera` slice. Phase 0F updates all `S_CameraStateSystem` reads and tests that reference `state.camera.in_fov_zone` to use `state.vcam.in_fov_zone` instead. The `update_fov_zone` action, reducer case, and `is_in_fov_zone` selector are added in Phases 0D/0E.
 
 ### Commit 0.3: vCam actions and reducer
 
@@ -612,7 +614,7 @@ static func compute_camera_correction(
 - `tests/integration/camera_system/test_camera_manager.gd`
 - `tests/unit/managers/test_vcam_manager.gd`
 
-**New camera-manager API**
+**New camera-manager API** (these methods are **new — Phase 9**; they do not exist on `M_CameraManager` today)
 
 - `apply_main_camera_transform(xform: Transform3D) -> void`
 - `is_blend_active() -> bool`
@@ -849,6 +851,19 @@ resources/display/vcam/
   cfg_default_orbit.tres
   cfg_default_soft_zone.tres
   cfg_default_blend_hint.tres
+
+tests/unit/vcam/
+  (mirrors production layout; unit tests for vCam state, resources, components, systems, managers, helpers)
+
+tests/unit/vcam/resources/
+  (test resource instances used by vCam unit tests)
+
+tests/integration/vcam/
+  test_vcam_state.gd
+  test_vcam_runtime.gd
+  test_vcam_blend.gd
+  test_vcam_mobile.gd
+  test_vcam_occlusion.gd
 
 tests/unit/
   state/

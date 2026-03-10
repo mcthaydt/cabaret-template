@@ -216,9 +216,11 @@ This enables rules like "reduce FOV zone intensity during blends" or "suppress s
 ### `M_CameraManager` additions required by vCam
 
 ```gdscript
-func apply_main_camera_transform(xform: Transform3D) -> void
-func is_blend_active() -> bool
+func apply_main_camera_transform(xform: Transform3D) -> void  # new API — Phase 9
+func is_blend_active() -> bool                                 # new API — Phase 9
 ```
+
+Both methods are **new API — Phase 9**. They do not exist on `M_CameraManager` today and must be implemented as part of Phase 9C (Shake-Safe Camera-Manager Integration).
 
 `apply_main_camera_transform(...)` exists specifically so gameplay camera motion can coexist with `ShakeParent`-based shake.
 
@@ -238,6 +240,9 @@ func is_blend_active() -> bool
 | `blend_to_vcam_id` | `StringName` | debug: destination vCam during an active blend |
 | `active_target_valid` | `bool` | debug: whether the active vCam's follow target is currently valid |
 | `last_recovery_reason` | `String` | debug: reason for last recovery action (e.g. `"target_freed"`, `"anchor_invalid"`) |
+| `in_fov_zone` | `bool` | `false` — whether the active vCam's follow target is inside an FOV zone (migrated from informal `camera` slice; see Phase 0F migration) |
+
+> **Migration note (camera slice → vcam):** The informal `camera` slice previously tracked `in_fov_zone` via `S_CameraStateSystem`. That field now lives in `state.vcam.in_fov_zone`. Phase 0F migrates all `S_CameraStateSystem` reads of `state.camera.in_fov_zone` to `state.vcam.in_fov_zone` and retires the informal `camera` slice. Tests that use `set_slice("camera", ...)` must be updated.
 
 This slice is whole-slice transient. It is not save data and not a player settings surface. The `blend_from/to`, `active_target_valid`, and `last_recovery_reason` fields are debug-only and may be omitted in release builds.
 
@@ -317,6 +322,17 @@ Correct process:
 5. Reproject that point back into world space at the same camera-space depth.
 6. Convert the difference into a world-space correction applied to the desired camera pose.
 
+### Projection Method Details
+
+- Use `camera.unproject_position(follow_world_pos)` to get the screen-space position of the follow target from the desired camera pose.
+- Use `camera.project_position(screen_point, depth)` to convert a corrected screen point back into world space at the same camera-space depth.
+- All zone tests use normalized viewport coordinates (`screen_pos / viewport_size`), not pixel coordinates.
+- **Near-plane guard:** Before projecting, verify the follow target is in front of the camera using a dot-product check: `(follow_world_pos - camera_pos).dot(-camera_basis.z) > 0.0`. If the target is behind the near plane, skip soft-zone correction entirely for that tick.
+- **Hysteresis state machine:** Track `_in_dead_zone: bool` per axis (X/Y) to implement enter/exit thresholds:
+  - Enter dead zone (stop correcting) at `dead_zone_size + hysteresis_margin`
+  - Exit dead zone (start correcting) at `dead_zone_size - hysteresis_margin`
+  - This prevents correction toggling when the target oscillates at the dead zone boundary.
+
 What the implementation must not do:
 
 - assume `target_screen_pos` already exists without a projection step
@@ -345,6 +361,25 @@ If `set_active_vcam(...)` is called while a blend is already active:
 - the old outgoing vCam stops being evaluated (only the snapshot and the new incoming vCam are live)
 
 This prevents pops from restarting a blend from the original source position and avoids wedged blend state from rapid switching.
+
+## Complete RS_VCamResponse Contract
+
+`RS_VCamResponse` is the per-vCam response tuning resource. It controls second-order dynamics for camera follow and mode-specific game-feel features. All fields are `@export` with sensible defaults so an untuned response still feels reasonable.
+
+| Field | Type | Default | Phase Introduced | Notes |
+|-------|------|---------|-----------------|-------|
+| `follow_frequency` | `float` | `3.0` | 1F | Second-order dynamics frequency (Hz) for position follow |
+| `follow_damping` | `float` | `0.7` | 1F | Damping ratio for position follow (< 1 = underdamped/bouncy, 1 = critical, > 1 = overdamped) |
+| `follow_initial_response` | `float` | `0.5` | 1F | Initial velocity response (0 = smooth start, 1 = immediate) |
+| `rotation_frequency` | `float` | `5.0` | 1F | Second-order dynamics frequency for rotation follow |
+| `rotation_damping` | `float` | `1.0` | 1F | Damping ratio for rotation follow |
+| `look_ahead_distance` | `float` | `0.0` | 2C1 | Max world-space offset in follow target's movement direction (0 = disabled, orbit only) |
+| `look_ahead_smoothing` | `float` | `3.0` | 2C1 | Hz for look-ahead offset dynamics (orbit only) |
+| `auto_level_speed` | `float` | `0.0` | 2C2 | Degrees/sec pitch decays toward horizon when no look input (0 = disabled, orbit only) |
+| `auto_level_delay` | `float` | `1.0` | 2C2 | Seconds of zero look input before auto-level begins (orbit only) |
+| `landing_impact_scale` | `float` | `1.0` | 6A3c | Multiplier for QB-driven landing impact offset on this vCam (0 = suppress) |
+
+> **Note:** Fields introduced in Phases 2C1 and 2C2 are added to the resource when those orbit game-feel features are implemented. Fields are shown here holistically for reference; the implementation adds them incrementally.
 
 ## Mobile Drag-Look Contract
 

@@ -130,10 +130,13 @@
 - vCam Runtime Contracts (Documentation Sweep 2026-03)
   - Gameplay camera orchestration authority lives in `docs/vcam_manager/*`; keep camera-runtime behavior aligned to those docs.
   - Fixed-mode anchors resolve from `C_VCamComponent.fixed_anchor_path` first, then fallback to the vCam host entity-root `Node3D`; never use component transform as the fixed anchor source.
-  - `M_CameraManager` integration for gameplay vCam flow is `apply_main_camera_transform(xform)` with `is_blend_active()` gating for transition blends.
+  - `M_CameraManager` integration for gameplay vCam flow is `apply_main_camera_transform(xform)` [new — Phase 9] with `is_blend_active()` [new — Phase 9] gating for transition blends. Both methods must be implemented before vCam can submit gameplay transforms.
+  - `in_fov_zone` lives in `state.vcam.in_fov_zone` (not the informal `camera` slice, which is retired). Phase 0F migrates all reads.
   - Occlusion silhouette preference persists in `vfx.occlusion_silhouette_enabled` and is surfaced in `UI_VFXSettingsOverlay` with localization keys.
   - Occlusion rollout is complete only when both physics-layer naming (`vcam_occludable`) and authored-scene blocker migration are done.
   - Shared look-input contract is `gameplay.look_input`; `S_TouchscreenSystem` owns touchscreen look dispatch and `S_InputSystem` must not zero-clobber touchscreen-owned move/look payloads.
+  - Touch look gating contract: `gameplay.touch_look_active` Redux flag gates `S_InputSystem` look dispatch. `S_TouchscreenSystem` sets `true` on drag start, `false` on drag end. `S_InputSystem` skips look dispatch when the flag is `true`.
+  - Silhouette rendering routes through `M_VFXManager`: vCam detection publishes `EVENT_SILHOUETTE_UPDATE_REQUEST`, VFX manager subscribes and delegates to `U_VCamSilhouetteHelper` (follows the `U_ScreenShake` helper pattern). This inherits player gating + transition blocking from `M_VFXManager`.
 - **Testing with Dependency Injection (Phase 10B-8)**
   - Systems support `@export` dependency injection for isolated testing with mocks.
   - **Inject ECS manager**: All systems inherit `@export var ecs_manager: I_ECSManager` from BaseECSSystem.

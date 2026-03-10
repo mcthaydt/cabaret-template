@@ -12,7 +12,7 @@
 
 | File | Scope | Phases |
 |------|-------|--------|
-| [vcam-base-tasks.md](vcam-base-tasks.md) | Shared infrastructure: state/persistence, **ECS event bus constants**, base resources, **second-order dynamics**, response tuning, component/interface/manager, ECS system, scene wiring, mobile drag-look, blend, **QB rule context enrichment**, **shared game feel (FOV breathing, landing impact)**, occlusion, editor preview, integration tests, regression/docs | 0, 1, 5, 6, 7, 9, 10, 11, 12, 13 |
+| [vcam-base-tasks.md](vcam-base-tasks.md) | Shared infrastructure: state/persistence, **ECS event bus constants**, base resources, **second-order dynamics**, response tuning, component/interface/manager, ECS system, scene wiring, mobile drag-look, blend, **QB rule context enrichment**, **shared game feel (FOV breathing, landing impact)**, occlusion, editor preview, integration tests, regression/docs | 0, 1, 5, 6, 7, 8, 9, 10, 11, 12, 13 |
 | [vcam-orbit-tasks.md](vcam-orbit-tasks.md) | Orbit camera mode: resource, evaluator, default preset, **orbit game feel (look-ahead, auto-level, soft zone, hysteresis)**, manual checks | 2 |
 | [vcam-fps-tasks.md](vcam-fps-tasks.md) | First-person camera mode: resource, evaluator, refactor pass, **FP game feel (strafe tilt, head bob, landing head dip)**, manual checks | 3 |
 | [vcam-fixed-tasks.md](vcam-fixed-tasks.md) | Fixed camera mode: resource, evaluator, final evaluator refactor, manual checks | 4 |
@@ -31,6 +31,7 @@
 | 5 | Base | Component, Interface, and Manager Core | 1.2, 2.1, 2.2 |
 | 6 | Base | vCam System (ECS) and Scene Wiring | 2.4, 2.5 |
 | 7 | Base | Mobile Drag-Look | 2.4a |
+| 8 | Base | QB-Driven Camera Feel | 6A3 (within base-tasks) |
 | 9 | Base | Live Blend Evaluation and Camera-Manager Integration | 4.1, 4.2, 4.3 |
 | 10 | Base | Occlusion and Silhouette | 5.1, 5.1a, 5.2, 5.3 |
 | 11 | Base | Editor Preview | 6.1 |

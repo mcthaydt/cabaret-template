@@ -335,13 +335,19 @@ Before starting Phase 3, verify:
   - Gate: only apply when active mode is first-person
   - All tests should pass
 
+  **4-stage pipeline ordering (FP landing feel):**
+  1. **FP pitch dip** (before evaluator): `S_VCamSystem` adds `_landing_pitch_offset` to `runtime_pitch` before calling the evaluator. This rotates the view downward on impact.
+  2. **Evaluator**: `U_VCamModeEvaluator.evaluate()` processes the modified `runtime_pitch` as normal input.
+  3. **Position offset** (after evaluator): `S_VCamSystem` reads `C_CameraStateComponent.landing_impact_offset` and adds it to the evaluated camera position. This moves the camera down.
+  4. **Shake** (after submit): `M_CameraManager` applies shake offsets through `ShakeParent` after `apply_main_camera_transform()`. This vibrates the final result.
+
   **Relationship to shared landing impact:**
-  - Shared landing impact (Phase 6A3c): vertical position dip (camera drops down) — works in all modes
-  - FP landing head dip (this phase): pitch rotation dip (camera looks down) — first-person only
+  - Shared landing impact (Phase 6A3c): vertical position dip (camera drops down) — works in all modes (stage 3)
+  - FP landing head dip (this phase): pitch rotation dip (camera looks down) — first-person only (stage 1)
   - Both stack with screen shake for a three-layer landing feel:
-    - Position dip (low-frequency, gut-punch)
-    - Pitch dip (medium-frequency, embodied nod)
-    - Screen shake (high-frequency, violent vibration)
+    - Pitch dip (stage 1, medium-frequency, embodied nod) — FP only
+    - Position dip (stage 3, low-frequency, gut-punch) — all modes
+    - Screen shake (stage 4, high-frequency, violent vibration) — all modes
 
 ---
 

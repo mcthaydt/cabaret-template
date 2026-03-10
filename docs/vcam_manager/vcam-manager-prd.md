@@ -71,7 +71,7 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 
 ### Dependencies
 
-- `M_CameraManager` (shake-safe transform API, named shake sources via `set_shake_source()` / `clear_shake_source()`, transition blend gating via `is_blend_active()`)
+- `M_CameraManager` (shake-safe transform API via `apply_main_camera_transform()` [new — Phase 9], named shake sources via `set_shake_source()` / `clear_shake_source()`, transition blend gating via `is_blend_active()` [new — Phase 9])
 - `M_StateStore` (transient `vcam` slice, persisted `vfx` slice for silhouette toggle)
 - `S_CameraStateSystem` (QB-driven FOV composition, shake trauma decay; vCam enriches its rule context with `vcam_active_mode` / `vcam_is_blending`)
 - `C_CameraStateComponent` (vCam writes `base_fov`; system owns `target_fov`, `shake_trauma`, `fov_blend_speed`)
