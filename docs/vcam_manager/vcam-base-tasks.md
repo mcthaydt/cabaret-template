@@ -924,7 +924,7 @@ Before starting Phase 0, verify:
 - [x] **Task 6B.2**: Wire S_VCamSystem to gameplay scenes
   - Modify `scenes/templates/tmpl_base_scene.tscn`: add `S_VCamSystem` under `Systems/Core`
   - Modify `scenes/gameplay/gameplay_base.tscn`: add `S_VCamSystem` if not inherited
-  - Completion note (2026-03-10): Added `S_VCamSystem` to both template and gameplay baseline under `Systems/Core` with `execution_priority = 100` so it runs after movement systems and before feedback systems.
+  - Completion note (2026-03-10): Added `S_VCamSystem` to template and gameplay scene system trees under `Systems/Core` with `execution_priority = 100` so it runs after movement systems and before feedback systems (`tmpl_base_scene`, `gameplay_base`, `gameplay_bar`, `gameplay_alleyway`).
 
 - [x] **Task 6B.3**: Wire C_VCamComponent to camera template
   - Modify `scenes/templates/tmpl_camera.tscn`: add default `C_VCamComponent` with `cfg_default_orbit.tres`

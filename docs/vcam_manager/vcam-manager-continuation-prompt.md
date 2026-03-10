@@ -105,7 +105,7 @@
 - Completed Phase 6B:
   - Added `M_VCamManager` node to `scenes/root.tscn`.
   - Updated `scripts/root.gd` ServiceLocator bootstrap to register `vcam_manager` and declare `vcam_manager -> {state_store, camera_manager}` dependencies.
-  - Added `S_VCamSystem` to `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` under `Systems/Core` with `execution_priority = 100` (after movement, before feedback).
+  - Added `S_VCamSystem` to `scenes/templates/tmpl_base_scene.tscn` and gameplay scene system trees (`scenes/gameplay/gameplay_base.tscn`, `scenes/gameplay/gameplay_bar.tscn`, `scenes/gameplay/gameplay_alleyway.tscn`) under `Systems/Core` with `execution_priority = 100` (after movement, before feedback).
   - Added default `C_VCamComponent` to `scenes/templates/tmpl_camera.tscn` with `cfg_default_orbit.tres` plus default soft-zone/blend/response resources and `follow_target_entity_id = &"player"`.
 - Completed Phase 6A2:
   - Extended `scripts/ecs/systems/s_vcam_system.gd` with per-vCam response smoothing state: `U_SecondOrderDynamics3D` for position and per-axis `U_SecondOrderDynamics` for rotation.
