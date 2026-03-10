@@ -51,6 +51,7 @@
 [ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="25_screen_shake_publisher"]
 [ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="26_damage_flash_publisher"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_vcam_system.gd" id="52_vcam_system"]
 [ext_resource type="Script" uid="uid://cdheqmcyhlh2j" path="res://scripts/ecs/systems/s_checkpoint_handler_system.gd" id="42_checkpoint_handler_system"]
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/cfg_sp_base.tres" id="51_base_spawn_meta"]
@@ -134,6 +135,10 @@ require_captured_cursor = true
 
 [node name="S_TouchscreenSystem" type="Node" parent="Systems/Core" unique_id=1564579047]
 script = ExtResource("24_touchscreen_system")
+
+[node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=2018845168]
+script = ExtResource("52_vcam_system")
+execution_priority = 100
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1928596962]
 script = ExtResource("9_health")

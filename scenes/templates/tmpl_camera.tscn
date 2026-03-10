@@ -2,6 +2,11 @@
 
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="1_ecsentity"]
 [ext_resource type="Script" uid="uid://bl087ewsncoym" path="res://scripts/ecs/components/c_camera_state_component.gd" id="2_camera_state"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_vcam_component.gd" id="3_vcam_component"]
+[ext_resource type="Resource" path="res://resources/display/vcam/cfg_default_orbit.tres" id="4_vcam_mode"]
+[ext_resource type="Resource" path="res://resources/display/vcam/cfg_default_soft_zone.tres" id="5_vcam_soft_zone"]
+[ext_resource type="Resource" path="res://resources/display/vcam/cfg_default_blend_hint.tres" id="6_vcam_blend_hint"]
+[ext_resource type="Resource" path="res://resources/display/vcam/cfg_default_response.tres" id="7_vcam_response"]
 
 [node name="E_CameraRoot" type="Node3D" unique_id=246158049]
 script = ExtResource("1_ecsentity")
@@ -15,3 +20,13 @@ current = true
 
 [node name="C_CameraStateComponent" type="Node" parent="Components" unique_id=1323051184]
 script = ExtResource("2_camera_state")
+
+[node name="C_VCamComponent" type="Node" parent="Components" unique_id=1905097927]
+script = ExtResource("3_vcam_component")
+vcam_id = &"camera_main"
+priority = 10
+mode = ExtResource("4_vcam_mode")
+follow_target_entity_id = &"player"
+soft_zone = ExtResource("5_vcam_soft_zone")
+blend_hint = ExtResource("6_vcam_blend_hint")
+response = ExtResource("7_vcam_response")

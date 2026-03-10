@@ -78,6 +78,23 @@ func get_entity_by_id(_id: StringName) -> Node:
 	push_error("I_ECSManager.get_entity_by_id not implemented")
 	return null
 
+## Get entities by a single tag.
+##
+## @param tag: StringName tag to look up
+## @return Array[Node]: Entities that currently have the tag
+func get_entities_by_tag(_tag: StringName) -> Array[Node]:
+	push_error("I_ECSManager.get_entities_by_tag not implemented")
+	return []
+
+## Get entities by multiple tags.
+##
+## @param tags: Array[StringName] tags to query
+## @param match_all: false = ANY tag, true = ALL tags
+## @return Array[Node]: Matching entities
+func get_entities_by_tags(_tags: Array[StringName], _match_all: bool = false) -> Array[Node]:
+	push_error("I_ECSManager.get_entities_by_tags not implemented")
+	return []
+
 ## Mark systems as dirty to trigger re-sorting
 ##
 ## Used when system priority changes at runtime

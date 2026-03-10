@@ -22,6 +22,7 @@ var _registered_systems: Array[BaseECSSystem] = []
 var _entity_cache: Dictionary = {}  # Node → Node (cached entity roots)
 var _systems_dirty: bool = false
 var _entity_by_id: Dictionary = {}  # StringName → Node (entity ID lookup)
+var _entities_by_tag: Dictionary = {}  # StringName → Array[Node]
 
 func get_components(component_type: StringName) -> Array:
 	if not _components.has(component_type):
@@ -108,6 +109,41 @@ func update_entity_tags(_entity: Node) -> void:
 func get_entity_by_id(id: StringName) -> Node:
 	return _entity_by_id.get(id, null) as Node
 
+func get_entities_by_tag(tag: StringName) -> Array[Node]:
+	var entries: Variant = _entities_by_tag.get(tag, [])
+	if entries is Array:
+		return (entries as Array).duplicate()
+	return []
+
+func get_entities_by_tags(tags: Array[StringName], match_all: bool = false) -> Array[Node]:
+	var results: Array[Node] = []
+	if tags.is_empty():
+		return results
+
+	if match_all:
+		var candidates: Dictionary = {}
+		for tag in tags:
+			var tagged_entities: Array[Node] = get_entities_by_tag(tag)
+			for entity in tagged_entities:
+				candidates[entity] = int(candidates.get(entity, 0)) + 1
+		for entity_variant in candidates.keys():
+			var entity := entity_variant as Node
+			if entity == null:
+				continue
+			if int(candidates.get(entity, 0)) == tags.size():
+				results.append(entity)
+		return results
+
+	var seen: Dictionary = {}
+	for tag in tags:
+		var tagged_entities: Array[Node] = get_entities_by_tag(tag)
+		for entity in tagged_entities:
+			if seen.has(entity):
+				continue
+			seen[entity] = true
+			results.append(entity)
+	return results
+
 func mark_systems_dirty() -> void:
 	_systems_dirty = true
 
@@ -134,10 +170,22 @@ func reset() -> void:
 	_entity_cache.clear()
 	_systems_dirty = false
 	_entity_by_id.clear()
+	_entities_by_tag.clear()
 
 ## Register an entity by ID (test helper)
 func register_entity_id(entity_id: StringName, entity: Node) -> void:
 	_entity_by_id[entity_id] = entity
+
+## Register an entity for tag lookups (test helper).
+func register_entity_tag(tag: StringName, entity: Node) -> void:
+	if entity == null:
+		return
+	if not _entities_by_tag.has(tag):
+		_entities_by_tag[tag] = []
+	var tagged_entities: Array = _entities_by_tag[tag]
+	if tagged_entities.has(entity):
+		return
+	tagged_entities.append(entity)
 
 ## Find the entity root for a component
 func _find_entity_root(component: BaseECSComponent) -> Node:
