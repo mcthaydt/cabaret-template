@@ -4,3 +4,5 @@
 
 [resource]
 script = ExtResource("1")
+look_drag_sensitivity = 1.0
+invert_look_y = false

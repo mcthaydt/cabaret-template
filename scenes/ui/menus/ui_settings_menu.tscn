@@ -87,6 +87,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Gamepad Settings"
 
+[node name="KeyboardMouseSettingsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Keyboard/Mouse Settings"
+
 [node name="TouchscreenSettingsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=1523316640]
 unique_name_in_owner = true
 layout_mode = 2

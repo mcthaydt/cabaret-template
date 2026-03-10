@@ -19,6 +19,8 @@ const ACTION_UPDATE_GAMEPAD_DEADZONE := StringName("input/update_gamepad_deadzon
 const ACTION_TOGGLE_VIBRATION := StringName("input/toggle_vibration")
 const ACTION_SET_VIBRATION_INTENSITY := StringName("input/set_vibration_intensity")
 const ACTION_UPDATE_MOUSE_SENSITIVITY := StringName("input/update_mouse_sensitivity")
+const ACTION_SET_KEYBOARD_LOOK_ENABLED := StringName("input/set_keyboard_look_enabled")
+const ACTION_SET_KEYBOARD_LOOK_SPEED := StringName("input/set_keyboard_look_speed")
 const ACTION_UPDATE_ACCESSIBILITY := StringName("input/update_accessibility")
 const ACTION_LOAD_INPUT_SETTINGS := StringName("input/load_input_settings")
 const ACTION_REMOVE_ACTION_BINDINGS := StringName("input/remove_action_bindings")
@@ -70,6 +72,12 @@ static func _static_init() -> void:
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_MOUSE_SENSITIVITY, {
 		"required_fields": ["sensitivity"]
+	})
+	U_ActionRegistry.register_action(ACTION_SET_KEYBOARD_LOOK_ENABLED, {
+		"required_fields": ["enabled"]
+	})
+	U_ActionRegistry.register_action(ACTION_SET_KEYBOARD_LOOK_SPEED, {
+		"required_fields": ["speed"]
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_ACCESSIBILITY, {
 		"required_fields": ["field", "value"]
@@ -230,6 +238,24 @@ static func update_mouse_sensitivity(sensitivity: float) -> Dictionary:
 		"type": ACTION_UPDATE_MOUSE_SENSITIVITY,
 		"payload": {
 			"sensitivity": sensitivity
+		}
+	}
+
+## Enable/disable keyboard camera rotation input.
+static func set_keyboard_look_enabled(enabled: bool) -> Dictionary:
+	return {
+		"type": ACTION_SET_KEYBOARD_LOOK_ENABLED,
+		"payload": {
+			"enabled": enabled
+		}
+	}
+
+## Update keyboard look speed multiplier.
+static func set_keyboard_look_speed(speed: float) -> Dictionary:
+	return {
+		"type": ACTION_SET_KEYBOARD_LOOK_SPEED,
+		"payload": {
+			"speed": speed
 		}
 	}
 

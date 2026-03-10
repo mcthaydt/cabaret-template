@@ -104,11 +104,15 @@ static func _sanitize_loaded_settings(data: Dictionary) -> Dictionary:
 		sanitized["mouse_settings"] = _sanitize_float_fields(
 			data["mouse_settings"],
 			{
-				"sensitivity": Vector2(0.1, 5.0)
+				"sensitivity": Vector2(0.1, 5.0),
+				"keyboard_look_speed": Vector2(0.1, 10.0)
 			}
 		)
 		sanitized["mouse_settings"]["invert_y_axis"] = bool(
 			(data["mouse_settings"] as Dictionary).get("invert_y_axis", false)
+		)
+		sanitized["mouse_settings"]["keyboard_look_enabled"] = bool(
+			(data["mouse_settings"] as Dictionary).get("keyboard_look_enabled", false)
 		)
 
 	if data.has("touchscreen_settings") and data["touchscreen_settings"] is Dictionary:

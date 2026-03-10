@@ -16,6 +16,8 @@ const INPUT_SETTINGS_ACTIONS := [
 	"input/toggle_vibration",
 	"input/set_vibration_intensity",
 	"input/update_mouse_sensitivity",
+	"input/set_keyboard_look_enabled",
+	"input/set_keyboard_look_speed",
 	"input/update_accessibility",
 	"input/load_input_settings",
 	"input/remove_action_bindings",

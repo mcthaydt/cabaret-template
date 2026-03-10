@@ -15,6 +15,8 @@ const LABEL_BUTTON_SIZE_KEY := &"settings.touchscreen.label.button_size"
 const LABEL_JOYSTICK_OPACITY_KEY := &"settings.touchscreen.label.joystick_opacity"
 const LABEL_BUTTON_OPACITY_KEY := &"settings.touchscreen.label.button_opacity"
 const LABEL_JOYSTICK_DEADZONE_KEY := &"settings.touchscreen.label.joystick_deadzone"
+const LABEL_LOOK_SENSITIVITY_KEY := &"settings.touchscreen.label.look_sensitivity"
+const LABEL_INVERT_LOOK_Y_KEY := &"settings.touchscreen.label.invert_look_y"
 const BUTTON_EDIT_LAYOUT_KEY := &"settings.touchscreen.button.edit_layout"
 const BUTTON_RESET_DEFAULTS_KEY := &"settings.touchscreen.button.reset_defaults"
 
@@ -23,6 +25,8 @@ const TOOLTIP_BUTTON_SIZE_KEY := &"settings.touchscreen.tooltip.button_size"
 const TOOLTIP_JOYSTICK_OPACITY_KEY := &"settings.touchscreen.tooltip.joystick_opacity"
 const TOOLTIP_BUTTON_OPACITY_KEY := &"settings.touchscreen.tooltip.button_opacity"
 const TOOLTIP_JOYSTICK_DEADZONE_KEY := &"settings.touchscreen.tooltip.joystick_deadzone"
+const TOOLTIP_LOOK_SENSITIVITY_KEY := &"settings.touchscreen.tooltip.look_sensitivity"
+const TOOLTIP_INVERT_LOOK_Y_KEY := &"settings.touchscreen.tooltip.invert_look_y"
 const TOOLTIP_PREVIEW_KEY := &"settings.touchscreen.tooltip.preview"
 const TOOLTIP_EDIT_LAYOUT_KEY := &"settings.touchscreen.tooltip.edit_layout"
 
@@ -37,23 +41,30 @@ const TOOLTIP_EDIT_LAYOUT_KEY := &"settings.touchscreen.tooltip.edit_layout"
 @onready var _joystick_opacity_row: HBoxContainer = %JoystickOpacityRow
 @onready var _button_opacity_row: HBoxContainer = %ButtonOpacityRow
 @onready var _joystick_deadzone_row: HBoxContainer = %JoystickDeadzoneRow
+@onready var _look_sensitivity_row: HBoxContainer = %LookSensitivityRow
+@onready var _invert_look_y_row: HBoxContainer = %InvertLookYRow
 @onready var _joystick_size_text_label: Label = %JoystickSizeLabel
 @onready var _button_size_text_label: Label = %ButtonSizeLabel
 @onready var _joystick_opacity_text_label: Label = %JoystickOpacityLabel
 @onready var _button_opacity_text_label: Label = %ButtonOpacityLabel
 @onready var _joystick_deadzone_text_label: Label = %JoystickDeadzoneLabel
+@onready var _look_sensitivity_text_label: Label = %LookSensitivityLabel
+@onready var _invert_look_y_text_label: Label = %InvertLookYLabel
 
 @onready var _joystick_size_slider: HSlider = %JoystickSizeSlider
 @onready var _button_size_slider: HSlider = %ButtonSizeSlider
 @onready var _joystick_opacity_slider: HSlider = %JoystickOpacitySlider
 @onready var _button_opacity_slider: HSlider = %ButtonOpacitySlider
 @onready var _joystick_deadzone_slider: HSlider = %JoystickDeadzoneSlider
+@onready var _look_sensitivity_slider: HSlider = %LookSensitivitySlider
+@onready var _invert_look_y_check: CheckButton = %InvertLookYCheck
 
 @onready var _joystick_size_label: Label = %JoystickSizeValue
 @onready var _button_size_label: Label = %ButtonSizeValue
 @onready var _joystick_opacity_label: Label = %JoystickOpacityValue
 @onready var _button_opacity_label: Label = %ButtonOpacityValue
 @onready var _joystick_deadzone_label: Label = %JoystickDeadzoneValue
+@onready var _look_sensitivity_label: Label = %LookSensitivityValue
 
 @onready var _preview_container: Control = %PreviewContainer
 @onready var _apply_button: Button = %ApplyButton
@@ -133,6 +144,8 @@ func _apply_theme_tokens() -> void:
 		_joystick_opacity_row,
 		_button_opacity_row,
 		_joystick_deadzone_row,
+		_look_sensitivity_row,
+		_invert_look_y_row,
 		_button_row,
 	]
 	for row in compact_rows:
@@ -148,6 +161,8 @@ func _apply_theme_tokens() -> void:
 		_joystick_opacity_text_label,
 		_button_opacity_text_label,
 		_joystick_deadzone_text_label,
+		_look_sensitivity_text_label,
+		_invert_look_y_text_label,
 	]
 	for row_label in row_labels:
 		if row_label != null:
@@ -159,6 +174,7 @@ func _apply_theme_tokens() -> void:
 		_joystick_opacity_label,
 		_button_opacity_label,
 		_joystick_deadzone_label,
+		_look_sensitivity_label,
 	]
 	for value_label in value_labels:
 		if value_label == null:
@@ -168,6 +184,8 @@ func _apply_theme_tokens() -> void:
 
 	if _cancel_button != null:
 		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
+	if _invert_look_y_check != null:
+		_invert_look_y_check.add_theme_font_size_override(&"font_size", config.section_header)
 	if _reset_button != null:
 		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
 	if _edit_layout_button != null:
@@ -251,6 +269,10 @@ func _configure_focus_neighbors() -> void:
 		vertical_controls.append(_button_opacity_slider)
 	if _joystick_deadzone_slider != null:
 		vertical_controls.append(_joystick_deadzone_slider)
+	if _look_sensitivity_slider != null:
+		vertical_controls.append(_look_sensitivity_slider)
+	if _invert_look_y_check != null:
+		vertical_controls.append(_invert_look_y_check)
 
 	if not vertical_controls.is_empty():
 		U_FocusConfigurator.configure_vertical_focus(vertical_controls, false)
@@ -267,7 +289,11 @@ func _configure_focus_neighbors() -> void:
 
 	if not buttons.is_empty():
 		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
-		var top_control: Control = _joystick_deadzone_slider
+		var top_control: Control = _invert_look_y_check
+		if top_control == null:
+			top_control = _look_sensitivity_slider
+		if top_control == null:
+			top_control = _joystick_deadzone_slider
 		if top_control != null:
 			# Use Apply as the primary down target; fall back to first button if missing.
 			var down_target: Control = _apply_button if _apply_button != null else buttons[0]
@@ -317,6 +343,18 @@ func _connect_signals() -> void:
 			U_UISoundPlayer.play_slider_tick()
 		_update_preview_from_sliders()
 	)
+	_look_sensitivity_slider.value_changed.connect(func(value: float) -> void:
+		_has_local_edits = true
+		_log_local_slider_edit("look_drag_sensitivity", value)
+		_update_slider_label(_look_sensitivity_label, value)
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
+	)
+	_invert_look_y_check.toggled.connect(func(_enabled: bool) -> void:
+		_has_local_edits = true
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
+	)
 
 	_apply_button.pressed.connect(_on_apply_pressed)
 	_cancel_button.pressed.connect(_on_cancel_pressed)
@@ -348,6 +386,16 @@ func _configure_tooltips() -> void:
 		_joystick_deadzone_slider.tooltip_text = _localize_with_fallback(
 			TOOLTIP_JOYSTICK_DEADZONE_KEY,
 			"Adjust joystick deadzone before input registers."
+		)
+	if _look_sensitivity_slider != null:
+		_look_sensitivity_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_LOOK_SENSITIVITY_KEY,
+			"Adjust drag sensitivity for touchscreen camera look."
+		)
+	if _invert_look_y_check != null:
+		_invert_look_y_check.tooltip_text = _localize_with_fallback(
+			TOOLTIP_INVERT_LOOK_Y_KEY,
+			"Invert vertical touchscreen look drag."
 		)
 	if _preview_container != null:
 		_preview_container.tooltip_text = _localize_with_fallback(
@@ -404,6 +452,8 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 		var joystick_opacity_from_state := float(settings.get("virtual_joystick_opacity", _joystick_opacity_slider.value))
 		var button_opacity_from_state := float(settings.get("button_opacity", _button_opacity_slider.value))
 		var joystick_deadzone_from_state := float(settings.get("joystick_deadzone", _joystick_deadzone_slider.value))
+		var look_sensitivity_from_state := float(settings.get("look_drag_sensitivity", _look_sensitivity_slider.value))
+		var invert_look_y_from_state := bool(settings.get("invert_look_y", _invert_look_y_check.button_pressed))
 
 		if not is_equal_approx(_joystick_size_slider.value, joystick_size_from_state):
 			overridden_fields.append("virtual_joystick_size")
@@ -415,9 +465,13 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 			overridden_fields.append("button_opacity")
 		if not is_equal_approx(_joystick_deadzone_slider.value, joystick_deadzone_from_state):
 			overridden_fields.append("joystick_deadzone")
+		if not is_equal_approx(_look_sensitivity_slider.value, look_sensitivity_from_state):
+			overridden_fields.append("look_drag_sensitivity")
+		if _invert_look_y_check.button_pressed != invert_look_y_from_state:
+			overridden_fields.append("invert_look_y")
 
-			if not overridden_fields.is_empty() and action_type != U_InputActions.ACTION_UPDATE_TOUCHSCREEN_SETTINGS and action_type != StringName(""):
-				_override_log_count += 1
+		if not overridden_fields.is_empty() and action_type != U_InputActions.ACTION_UPDATE_TOUCHSCREEN_SETTINGS and action_type != StringName(""):
+			_override_log_count += 1
 
 	_updating_from_state = true
 	if not settings.is_empty():
@@ -426,12 +480,15 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 		_joystick_opacity_slider.value = float(settings.get("virtual_joystick_opacity", _joystick_opacity_slider.value))
 		_button_opacity_slider.value = float(settings.get("button_opacity", _button_opacity_slider.value))
 		_joystick_deadzone_slider.value = float(settings.get("joystick_deadzone", _joystick_deadzone_slider.value))
+		_look_sensitivity_slider.value = float(settings.get("look_drag_sensitivity", _look_sensitivity_slider.value))
+		_invert_look_y_check.button_pressed = bool(settings.get("invert_look_y", _invert_look_y_check.button_pressed))
 
 	_update_slider_label(_joystick_size_label, _joystick_size_slider.value)
 	_update_slider_label(_button_size_label, _button_size_slider.value)
 	_update_slider_label(_joystick_opacity_label, _joystick_opacity_slider.value)
 	_update_slider_label(_button_opacity_label, _button_opacity_slider.value)
 	_update_slider_label(_joystick_deadzone_label, _joystick_deadzone_slider.value)
+	_update_slider_label(_look_sensitivity_label, _look_sensitivity_slider.value)
 
 	_updating_from_state = false
 	_update_preview_from_sliders()
@@ -448,6 +505,8 @@ func _on_apply_pressed() -> void:
 	var joystick_opacity := float(_joystick_opacity_slider.value)
 	var button_opacity := float(_button_opacity_slider.value)
 	var joystick_deadzone := float(_joystick_deadzone_slider.value)
+	var look_drag_sensitivity := float(_look_sensitivity_slider.value)
+	var invert_look_y := bool(_invert_look_y_check.button_pressed)
 
 	var settings_updates := {
 		"virtual_joystick_size": joystick_size,
@@ -455,6 +514,8 @@ func _on_apply_pressed() -> void:
 		"virtual_joystick_opacity": joystick_opacity,
 		"button_opacity": button_opacity,
 		"joystick_deadzone": joystick_deadzone,
+		"look_drag_sensitivity": look_drag_sensitivity,
+		"invert_look_y": invert_look_y,
 	}
 
 	store.dispatch(U_InputActions.update_touchscreen_settings(settings_updates))
@@ -473,12 +534,15 @@ func _on_reset_pressed() -> void:
 	_joystick_opacity_slider.value = _defaults.virtual_joystick_opacity
 	_button_opacity_slider.value = _defaults.button_opacity
 	_joystick_deadzone_slider.value = _defaults.joystick_deadzone
+	_look_sensitivity_slider.value = _defaults.look_drag_sensitivity
+	_invert_look_y_check.button_pressed = _defaults.invert_look_y
 
 	_update_slider_label(_joystick_size_label, _joystick_size_slider.value)
 	_update_slider_label(_button_size_label, _button_size_slider.value)
 	_update_slider_label(_joystick_opacity_label, _joystick_opacity_slider.value)
 	_update_slider_label(_button_opacity_label, _button_opacity_slider.value)
 	_update_slider_label(_joystick_deadzone_label, _joystick_deadzone_slider.value)
+	_update_slider_label(_look_sensitivity_label, _look_sensitivity_slider.value)
 
 	_update_preview_from_sliders()
 
@@ -493,6 +557,8 @@ func _on_reset_pressed() -> void:
 			"virtual_joystick_opacity": _defaults.virtual_joystick_opacity,
 			"button_opacity": _defaults.button_opacity,
 			"joystick_deadzone": _defaults.joystick_deadzone,
+			"look_drag_sensitivity": _defaults.look_drag_sensitivity,
+			"invert_look_y": _defaults.invert_look_y,
 		}))
 	_has_local_edits = false
 
@@ -514,7 +580,9 @@ func _is_position_only_settings_update(settings_payload: Dictionary) -> bool:
 		"button_size",
 		"virtual_joystick_opacity",
 		"button_opacity",
-		"joystick_deadzone"
+		"joystick_deadzone",
+		"look_drag_sensitivity",
+		"invert_look_y",
 	]
 	for field in slider_fields:
 		if settings_payload.has(field):
@@ -564,6 +632,10 @@ func _localize_labels() -> void:
 		_button_opacity_text_label.text = _localize_with_fallback(LABEL_BUTTON_OPACITY_KEY, "Button Opacity")
 	if _joystick_deadzone_text_label != null:
 		_joystick_deadzone_text_label.text = _localize_with_fallback(LABEL_JOYSTICK_DEADZONE_KEY, "Joystick Deadzone")
+	if _look_sensitivity_text_label != null:
+		_look_sensitivity_text_label.text = _localize_with_fallback(LABEL_LOOK_SENSITIVITY_KEY, "Look Drag Sensitivity")
+	if _invert_look_y_text_label != null:
+		_invert_look_y_text_label.text = _localize_with_fallback(LABEL_INVERT_LOOK_Y_KEY, "Invert Look Y")
 
 	if _cancel_button != null:
 		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")

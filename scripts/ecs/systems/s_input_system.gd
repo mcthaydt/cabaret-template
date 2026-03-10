@@ -19,6 +19,10 @@ const DeviceType := U_DeviceTypeConstants.DeviceType
 @export var positive_x_action: StringName = StringName("move_right")
 @export var negative_z_action: StringName = StringName("move_forward")
 @export var positive_z_action: StringName = StringName("move_backward")
+@export var look_left_action: StringName = StringName("look_left")
+@export var look_right_action: StringName = StringName("look_right")
+@export var look_up_action: StringName = StringName("look_up")
+@export var look_down_action: StringName = StringName("look_down")
 @export var jump_action: StringName = StringName("jump")
 @export var sprint_action: StringName = StringName("sprint")
 @export var interact_action: StringName = StringName("interact")
@@ -179,6 +183,10 @@ func _validate_required_actions() -> void:
 		positive_x_action,
 		negative_z_action,
 		positive_z_action,
+		look_left_action,
+		look_right_action,
+		look_up_action,
+		look_down_action,
 		jump_action,
 		sprint_action,
 		interact_action,
@@ -256,6 +264,9 @@ func _apply_settings_from_state(state: Dictionary) -> void:
 
 	var mouse_settings := U_InputSelectors.get_mouse_settings(state)
 	var mouse_sensitivity := clampf(float(mouse_settings.get("sensitivity", 1.0)), 0.0, 20.0)
+	var invert_y_axis := bool(mouse_settings.get("invert_y_axis", false))
+	var keyboard_look_enabled := bool(mouse_settings.get("keyboard_look_enabled", false))
+	var keyboard_look_speed := clampf(float(mouse_settings.get("keyboard_look_speed", 2.0)), 0.1, 10.0)
 
 	var gamepad_settings := U_InputSelectors.get_gamepad_settings(state)
 	_gamepad_settings_cache = gamepad_settings.duplicate(true)
@@ -265,6 +276,13 @@ func _apply_settings_from_state(state: Dictionary) -> void:
 		var keyboard_mouse_source := _input_device_manager.get_input_source_for_device(DeviceType.KEYBOARD_MOUSE) as KeyboardMouseSource
 		if keyboard_mouse_source:
 			keyboard_mouse_source.set_sensitivity(mouse_sensitivity)
+			keyboard_mouse_source.set_invert_y_axis(invert_y_axis)
+			keyboard_mouse_source.set_keyboard_look_enabled(keyboard_look_enabled)
+			keyboard_mouse_source.set_keyboard_look_speed(keyboard_look_speed)
+			keyboard_mouse_source.look_left_action = look_left_action
+			keyboard_mouse_source.look_right_action = look_right_action
+			keyboard_mouse_source.look_up_action = look_up_action
+			keyboard_mouse_source.look_down_action = look_down_action
 
 		var gamepad_source := _input_device_manager.get_input_source_for_device(DeviceType.GAMEPAD) as GamepadSource
 		if gamepad_source:

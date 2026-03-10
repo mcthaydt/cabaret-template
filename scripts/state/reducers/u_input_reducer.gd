@@ -32,6 +32,8 @@ const DEFAULT_INPUT_SETTINGS_STATE := {
 	"mouse_settings": {
 		"sensitivity": 1.0,
 		"invert_y_axis": false,
+		"keyboard_look_enabled": false,
+		"keyboard_look_speed": 2.0,
 	},
 	"touchscreen_settings": {
 		"virtual_joystick_size": 1.0,
@@ -40,6 +42,8 @@ const DEFAULT_INPUT_SETTINGS_STATE := {
 		"button_size": 1.0,
 		"joystick_deadzone": 0.15,
 		"button_opacity": 0.8,
+		"look_drag_sensitivity": 1.0,
+		"invert_look_y": false,
 		"custom_joystick_position": Vector2(-1, -1),
 		"custom_button_positions": {},
 		"custom_button_sizes": {},
@@ -236,6 +240,19 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 			mouse_settings["sensitivity"] = float(mouse_payload.get("sensitivity", 1.0))
 			return _with_values(current, {"mouse_settings": mouse_settings})
 
+		U_InputActions.ACTION_SET_KEYBOARD_LOOK_ENABLED:
+			var keyboard_enabled_payload: Dictionary = action.get("payload", {})
+			var keyboard_enabled_settings: Dictionary = _duplicate_dict(current.get("mouse_settings", {}))
+			keyboard_enabled_settings["keyboard_look_enabled"] = bool(keyboard_enabled_payload.get("enabled", false))
+			return _with_values(current, {"mouse_settings": keyboard_enabled_settings})
+
+		U_InputActions.ACTION_SET_KEYBOARD_LOOK_SPEED:
+			var keyboard_speed_payload: Dictionary = action.get("payload", {})
+			var keyboard_speed_settings: Dictionary = _duplicate_dict(current.get("mouse_settings", {}))
+			var keyboard_speed: float = clampf(float(keyboard_speed_payload.get("speed", 2.0)), 0.1, 10.0)
+			keyboard_speed_settings["keyboard_look_speed"] = keyboard_speed
+			return _with_values(current, {"mouse_settings": keyboard_speed_settings})
+
 		U_InputActions.ACTION_UPDATE_ACCESSIBILITY:
 			var accessibility_payload: Dictionary = action.get("payload", {})
 			var field: String = String(accessibility_payload.get("field", ""))
@@ -251,7 +268,7 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 			if settings_updates.is_empty():
 				return current
 			var touchscreen_settings: Dictionary = _duplicate_dict(current.get("touchscreen_settings", {}))
-			touchscreen_settings.merge(settings_updates, true)
+			touchscreen_settings.merge(_sanitize_touchscreen_settings(settings_updates), true)
 			return _with_values(current, {"touchscreen_settings": touchscreen_settings})
 
 		U_InputActions.ACTION_SAVE_VIRTUAL_CONTROL_POSITION:
@@ -286,10 +303,10 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 				updates["gamepad_settings"] = _duplicate_dict(load_payload["gamepad_settings"])
 
 			if load_payload.has("mouse_settings") and load_payload["mouse_settings"] is Dictionary:
-				updates["mouse_settings"] = _duplicate_dict(load_payload["mouse_settings"])
+				updates["mouse_settings"] = _sanitize_mouse_settings(_duplicate_dict(load_payload["mouse_settings"]))
 
 			if load_payload.has("touchscreen_settings") and load_payload["touchscreen_settings"] is Dictionary:
-				updates["touchscreen_settings"] = _duplicate_dict(load_payload["touchscreen_settings"])
+				updates["touchscreen_settings"] = _sanitize_touchscreen_settings(_duplicate_dict(load_payload["touchscreen_settings"]))
 
 			if load_payload.has("accessibility") and load_payload["accessibility"] is Dictionary:
 				updates["accessibility"] = _duplicate_dict(load_payload["accessibility"])
@@ -484,6 +501,20 @@ static func _normalize_custom_bindings_by_profile(value: Variant) -> Dictionary:
 			if not profile_bindings.is_empty():
 				normalized[profile_id] = profile_bindings
 	return normalized
+
+static func _sanitize_mouse_settings(source: Dictionary) -> Dictionary:
+	var sanitized := source.duplicate(true)
+	sanitized["keyboard_look_enabled"] = bool(sanitized.get("keyboard_look_enabled", false))
+	sanitized["keyboard_look_speed"] = clampf(float(sanitized.get("keyboard_look_speed", 2.0)), 0.1, 10.0)
+	return sanitized
+
+static func _sanitize_touchscreen_settings(source: Dictionary) -> Dictionary:
+	var sanitized := source.duplicate(true)
+	if sanitized.has("look_drag_sensitivity"):
+		sanitized["look_drag_sensitivity"] = clampf(float(sanitized.get("look_drag_sensitivity", 1.0)), 0.1, 5.0)
+	if sanitized.has("invert_look_y"):
+		sanitized["invert_look_y"] = bool(sanitized.get("invert_look_y", false))
+	return sanitized
 
 ## Returns device type category for an event dictionary.
 ## Returns: "keyboard", "mouse", "gamepad", or "unknown"

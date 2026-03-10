@@ -14,6 +14,22 @@ action_mappings = {
 "physical_keycode": 32,
 "type": "key"
 }],
+"look_down": [{
+"physical_keycode": 83,
+"type": "key"
+}],
+"look_left": [{
+"physical_keycode": 65,
+"type": "key"
+}],
+"look_right": [{
+"physical_keycode": 68,
+"type": "key"
+}],
+"look_up": [{
+"physical_keycode": 87,
+"type": "key"
+}],
 "move_backward": [{
 "physical_keycode": 4194322,
 "type": "key"

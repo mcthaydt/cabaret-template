@@ -221,6 +221,21 @@ func test_reserved_actions_show_as_disabled() -> void:
 	assert_not_null(jump_replace)
 	assert_false(jump_replace.disabled, "Non-reserved action should support replace")
 
+func test_camera_category_includes_look_actions() -> void:
+	var overlay: Node = OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+
+	var rows_value: Variant = overlay.get("_action_rows")
+	assert_true(rows_value is Dictionary, "Overlay should expose action rows dictionary")
+	if not (rows_value is Dictionary):
+		return
+	var rows: Dictionary = rows_value as Dictionary
+	assert_true(rows.has(StringName("look_left")), "Look Left should be listed in camera actions")
+	assert_true(rows.has(StringName("look_right")), "Look Right should be listed in camera actions")
+	assert_true(rows.has(StringName("look_up")), "Look Up should be listed in camera actions")
+	assert_true(rows.has(StringName("look_down")), "Look Down should be listed in camera actions")
+
 func test_close_button_requests_settings_scene_when_no_overlays() -> void:
 	var overlay: Node = OverlayScene.instantiate()
 	add_child_autofree(overlay)

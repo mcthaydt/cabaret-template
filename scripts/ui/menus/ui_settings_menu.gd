@@ -20,6 +20,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_conf
 @onready var _back_button: Button = %BackButton
 @onready var _input_profiles_button: Button = %InputProfilesButton
 @onready var _gamepad_settings_button: Button = %GamepadSettingsButton
+@onready var _keyboard_mouse_settings_button: Button = %KeyboardMouseSettingsButton
 @onready var _touchscreen_settings_button: Button = %TouchscreenSettingsButton
 @onready var _vfx_settings_button: Button = %VFXSettingsButton
 @onready var _display_settings_button: Button = %DisplaySettingsButton
@@ -30,6 +31,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_conf
 const SETTINGS_OVERLAY_ID := StringName("settings_menu_overlay")
 const OVERLAY_INPUT_PROFILE := StringName("input_profile_selector")
 const OVERLAY_GAMEPAD_SETTINGS := StringName("gamepad_settings")
+const OVERLAY_KEYBOARD_MOUSE_SETTINGS := StringName("keyboard_mouse_settings")
 const OVERLAY_TOUCHSCREEN_SETTINGS := StringName("touchscreen_settings")
 const OVERLAY_VFX_SETTINGS := StringName("vfx_settings")
 const OVERLAY_DISPLAY_SETTINGS := StringName("display_settings")
@@ -58,6 +60,8 @@ func _on_panel_ready() -> void:
 		_input_profiles_button.pressed.connect(_on_input_profiles_pressed)
 	if _gamepad_settings_button != null and not _gamepad_settings_button.pressed.is_connected(_on_gamepad_settings_pressed):
 		_gamepad_settings_button.pressed.connect(_on_gamepad_settings_pressed)
+	if _keyboard_mouse_settings_button != null and not _keyboard_mouse_settings_button.pressed.is_connected(_on_keyboard_mouse_settings_pressed):
+		_keyboard_mouse_settings_button.pressed.connect(_on_keyboard_mouse_settings_pressed)
 	if _touchscreen_settings_button != null and not _touchscreen_settings_button.pressed.is_connected(_on_touchscreen_settings_pressed):
 		_touchscreen_settings_button.pressed.connect(_on_touchscreen_settings_pressed)
 	if _vfx_settings_button != null and not _vfx_settings_button.pressed.is_connected(_on_vfx_settings_pressed):
@@ -106,6 +110,10 @@ func _on_input_profiles_pressed() -> void:
 func _on_gamepad_settings_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	_open_settings_target(OVERLAY_GAMEPAD_SETTINGS, StringName("gamepad_settings"))
+
+func _on_keyboard_mouse_settings_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
+	_open_settings_target(OVERLAY_KEYBOARD_MOUSE_SETTINGS, StringName("keyboard_mouse_settings"))
 
 func _on_touchscreen_settings_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
@@ -171,6 +179,8 @@ func _update_button_visibility(state: Dictionary) -> void:
 		# out of the way when the user is actively using a gamepad, even
 		# on mobile / emulated-mobile builds.
 		_touchscreen_settings_button.visible = is_mobile_context and not is_gamepad_active
+	if _keyboard_mouse_settings_button != null:
+		_keyboard_mouse_settings_button.visible = device_type != M_InputDeviceManager.DeviceType.TOUCHSCREEN
 	if _rebind_controls_button != null:
 		# Rebind Controls is not relevant in pure touchscreen usage; hide it
 		# whenever the active device is touchscreen.
@@ -184,6 +194,8 @@ func _configure_focus_neighbors() -> void:
 		buttons.append(_input_profiles_button)
 	if _gamepad_settings_button != null and _gamepad_settings_button.visible:
 		buttons.append(_gamepad_settings_button)
+	if _keyboard_mouse_settings_button != null and _keyboard_mouse_settings_button.visible:
+		buttons.append(_keyboard_mouse_settings_button)
 	if _touchscreen_settings_button != null and _touchscreen_settings_button.visible:
 		buttons.append(_touchscreen_settings_button)
 	if _vfx_settings_button != null and _vfx_settings_button.visible:
@@ -284,6 +296,8 @@ func _localize_labels() -> void:
 		_input_profiles_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.input_profiles")
 	if _gamepad_settings_button != null:
 		_gamepad_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.gamepad")
+	if _keyboard_mouse_settings_button != null:
+		_keyboard_mouse_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.keyboard_mouse")
 	if _touchscreen_settings_button != null:
 		_touchscreen_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.touchscreen")
 	if _vfx_settings_button != null:

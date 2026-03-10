@@ -263,7 +263,7 @@ func _cleanup_input_settings_files() -> void:
 		dir.remove(TEST_SAVEGAME_PATH.get_file())
 
 func _reset_input_map() -> void:
-	var actions := ["jump", "interact", "move_forward", "move_backward", "move_left", "move_right", "sprint"]
+	var actions := ["jump", "interact", "move_forward", "move_backward", "move_left", "move_right", "sprint", "look_left", "look_right", "look_up", "look_down"]
 	for action_name in actions:
 		var action := StringName(action_name)
 		if InputMap.has_action(action):

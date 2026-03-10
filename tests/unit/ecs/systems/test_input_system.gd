@@ -16,6 +16,10 @@ func before_all() -> void:
 	_ensure_action("move_right")
 	_ensure_action("move_forward")
 	_ensure_action("move_backward")
+	_ensure_action("look_left")
+	_ensure_action("look_right")
+	_ensure_action("look_up")
+	_ensure_action("look_down")
 	_ensure_action("jump")
 	_ensure_action("sprint")
 
@@ -28,6 +32,10 @@ func after_each() -> void:
 	Input.action_release("move_right")
 	Input.action_release("move_forward")
 	Input.action_release("move_backward")
+	Input.action_release("look_left")
+	Input.action_release("look_right")
+	Input.action_release("look_up")
+	Input.action_release("look_down")
 	Input.action_release("jump")
 	Input.action_release("sprint")
 	# Call parent to clear ServiceLocator
@@ -176,6 +184,25 @@ func test_mouse_sensitivity_updates_from_settings_slice() -> void:
 	var input_state: Dictionary = gameplay.get("input", {})
 	var look_vector: Vector2 = input_state.get("look_input", Vector2.ZERO)
 	assert_almost_eq(look_vector.x, 2.5, 0.0001)
+	assert_almost_eq(look_vector.y, 0.0, 0.0001)
+
+func test_keyboard_look_settings_update_look_input_when_enabled() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
+	var store: M_StateStore = context["store"] as M_StateStore
+
+	store.dispatch(U_InputActions.set_keyboard_look_enabled(true))
+	store.dispatch(U_InputActions.set_keyboard_look_speed(3.0))
+	await _pump()
+
+	Input.action_press("look_right")
+	manager._physics_process(0.5)
+
+	var gameplay := store.get_slice(StringName("gameplay"))
+	var input_state: Dictionary = gameplay.get("input", {})
+	var look_vector: Vector2 = input_state.get("look_input", Vector2.ZERO)
+	assert_almost_eq(look_vector.x, 1.5, 0.0001)
 	assert_almost_eq(look_vector.y, 0.0, 0.0001)
 
 func test_gamepad_motion_updates_component_and_store() -> void:
