@@ -202,7 +202,7 @@ func test_keyboard_look_settings_update_look_input_when_enabled() -> void:
 	var gameplay := store.get_slice(StringName("gameplay"))
 	var input_state: Dictionary = gameplay.get("input", {})
 	var look_vector: Vector2 = input_state.get("look_input", Vector2.ZERO)
-	assert_almost_eq(look_vector.x, 1.5, 0.0001)
+	assert_almost_eq(look_vector.x, 3.0, 0.0001)
 	assert_almost_eq(look_vector.y, 0.0, 0.0001)
 
 func test_gamepad_motion_updates_component_and_store() -> void:

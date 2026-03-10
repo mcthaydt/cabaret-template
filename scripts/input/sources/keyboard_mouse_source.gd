@@ -47,7 +47,7 @@ func is_active() -> bool:
 	var current_time := U_ECSUtils.get_current_time()
 	return (current_time - _last_input_time) < 5.0
 
-func capture_input(delta: float) -> Dictionary:
+func capture_input(_delta: float) -> Dictionary:
 	# Capture keyboard movement vector
 	var keyboard_vector := Input.get_vector(
 		negative_x_action,
@@ -68,13 +68,14 @@ func capture_input(delta: float) -> Dictionary:
 	# Mouse look delta (immediate, event-driven)
 	var look_delta := _mouse_delta * _mouse_sensitivity
 
-	# Keyboard look delta (continuous, frame-scaled)
+	# Keyboard look delta (continuous). Keep this in per-tick units to match
+	# how S_VCamSystem consumes look_input from gamepad/mouse sources.
 	if _keyboard_look_enabled:
 		var keyboard_look_x: float = Input.get_action_strength(look_right_action) - Input.get_action_strength(look_left_action)
 		var keyboard_look_y: float = Input.get_action_strength(look_down_action) - Input.get_action_strength(look_up_action)
 		if _invert_y_axis:
 			keyboard_look_y *= -1.0
-		var keyboard_look_delta: Vector2 = Vector2(keyboard_look_x, keyboard_look_y) * _keyboard_look_speed * max(delta, 0.0)
+		var keyboard_look_delta: Vector2 = Vector2(keyboard_look_x, keyboard_look_y) * _keyboard_look_speed
 		look_delta += keyboard_look_delta
 
 	# Update last input time if any input detected

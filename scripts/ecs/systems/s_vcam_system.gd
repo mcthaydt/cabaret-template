@@ -24,6 +24,8 @@ const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
 
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
+@export var debug_rotation_logging: bool = false
+@export_range(0.05, 5.0, 0.05) var debug_rotation_log_interval_sec: float = 0.25
 
 var _state_store: I_StateStore = null
 var _vcam_manager: Node = null
@@ -40,20 +42,28 @@ var _last_active_vcam_id: StringName = StringName("")
 var _landing_recovery_dynamics = null
 var _landing_recovery_state_id: int = 0
 var _landing_recovery_frequency_hz: float = -1.0
+var _debug_rotation_log_cooldown_sec: float = 0.0
+var _debug_state_log_cooldown_sec: float = 0.0
 
 func process_tick(delta: float) -> void:
+	if debug_rotation_logging:
+		_debug_rotation_log_cooldown_sec = maxf(_debug_rotation_log_cooldown_sec - maxf(delta, 0.0), 0.0)
+		_debug_state_log_cooldown_sec = maxf(_debug_state_log_cooldown_sec - maxf(delta, 0.0), 0.0)
 	var manager := _resolve_vcam_manager()
 	if manager == null:
+		_debug_log_vcam_state("blocked: no vcam_manager service", StringName(""), Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
 		return
 
 	var active_vcam_id: StringName = manager.get_active_vcam_id()
 	if active_vcam_id == StringName(""):
+		_debug_log_vcam_state("blocked: active_vcam_id is empty", StringName(""), Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
 		return
 
 	var vcam_index: Dictionary = _build_vcam_index()
 	if vcam_index.is_empty():
+		_debug_log_vcam_state("blocked: vcam_index is empty", active_vcam_id, Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
 		return
 	_prune_path_helpers(vcam_index)
@@ -61,6 +71,7 @@ func process_tick(delta: float) -> void:
 	_apply_rotation_continuity_policy(active_vcam_id, vcam_index, manager)
 
 	var look_input: Vector2 = _read_look_input()
+	_debug_log_vcam_state("tick", active_vcam_id, look_input)
 	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
 	_evaluate_and_submit(active_vcam_id, vcam_index, look_input, landing_offset, manager, delta)
 
@@ -501,10 +512,27 @@ func _update_runtime_rotation(
 
 		var rotation_speed: float = maxf(float(orbit_values.get("rotation_speed", 0.0)), 0.0)
 		if has_look_input:
+			var previous_yaw: float = component.runtime_yaw
+			var previous_pitch: float = component.runtime_pitch
 			if not lock_x_rotation:
 				component.runtime_yaw += look_input.x * rotation_speed
 			if not lock_y_rotation:
 				component.runtime_pitch += look_input.y * rotation_speed
+			_debug_log_rotation(
+				vcam_id,
+				"orbit input=%s allow=%s lock_x=%s lock_y=%s speed=%.3f yaw=%.3f->%.3f pitch=%.3f->%.3f"
+				% [
+					str(look_input),
+					str(bool(orbit_values.get("allow_player_rotation", true))),
+					str(lock_x_rotation),
+					str(lock_y_rotation),
+					rotation_speed,
+					previous_yaw,
+					component.runtime_yaw,
+					previous_pitch,
+					component.runtime_pitch,
+				]
+			)
 			_orbit_no_look_input_timers[vcam_id] = 0.0
 			return
 		if lock_y_rotation:
@@ -537,8 +565,22 @@ func _update_runtime_rotation(
 			"look_multiplier": 1.0,
 		})
 		var look_multiplier: float = maxf(float(first_person_values.get("look_multiplier", 1.0)), 0.0001)
+		var previous_fp_yaw: float = component.runtime_yaw
+		var previous_fp_pitch: float = component.runtime_pitch
 		component.runtime_yaw += look_input.x * look_multiplier
 		component.runtime_pitch += look_input.y * look_multiplier
+		_debug_log_rotation(
+			vcam_id,
+			"first_person input=%s multiplier=%.3f yaw=%.3f->%.3f pitch=%.3f->%.3f"
+			% [
+				str(look_input),
+				look_multiplier,
+				previous_fp_yaw,
+				component.runtime_yaw,
+				previous_fp_pitch,
+				component.runtime_pitch,
+			]
+		)
 
 func _apply_orbit_look_ahead(
 	vcam_id: StringName,
@@ -1156,3 +1198,24 @@ func _report_issue(message: String) -> void:
 		_debug_issues.remove_at(0)
 	_debug_issues.append(message)
 	print_verbose("S_VCamSystem: %s" % message)
+
+func _debug_log_rotation(vcam_id: StringName, message: String) -> void:
+	if not debug_rotation_logging:
+		return
+	if _debug_rotation_log_cooldown_sec > 0.0:
+		return
+	var interval: float = maxf(debug_rotation_log_interval_sec, 0.05)
+	_debug_rotation_log_cooldown_sec = interval
+	print("S_VCamSystem[debug] %s: %s" % [str(vcam_id), message])
+
+func _debug_log_vcam_state(message: String, active_vcam_id: StringName, look_input: Vector2) -> void:
+	if not debug_rotation_logging:
+		return
+	if _debug_state_log_cooldown_sec > 0.0:
+		return
+	var interval: float = maxf(debug_rotation_log_interval_sec, 0.05)
+	_debug_state_log_cooldown_sec = interval
+	print(
+		"S_VCamSystem[debug] state: %s active_vcam_id=%s look_input=%s"
+		% [message, str(active_vcam_id), str(look_input)]
+	)

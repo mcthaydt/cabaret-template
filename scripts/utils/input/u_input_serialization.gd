@@ -4,7 +4,8 @@ class_name U_InputSerialization
 
 const SAVE_PATH := "user://input_settings.json"
 const BACKUP_PATH := "user://input_settings.json.backup"
-const CURRENT_VERSION := "1.0.0"
+const CURRENT_VERSION := "1.1.0"
+const KEYBOARD_LOOK_MIGRATION_VERSION := "1.1.0"
 
 static func load_settings() -> Dictionary:
 	if not FileAccess.file_exists(SAVE_PATH):
@@ -71,8 +72,8 @@ static func _prepare_save_payload(settings: Dictionary) -> Dictionary:
 
 static func _sanitize_loaded_settings(data: Dictionary) -> Dictionary:
 	var sanitized: Dictionary = {}
-	var version := String(data.get("version", CURRENT_VERSION))
-	sanitized["version"] = version
+	var version := String(data.get("version", "0.0.0"))
+	sanitized["version"] = CURRENT_VERSION
 
 	if data.has("active_profile_id"):
 		sanitized["active_profile_id"] = String(data["active_profile_id"])
@@ -101,6 +102,7 @@ static func _sanitize_loaded_settings(data: Dictionary) -> Dictionary:
 		)
 
 	if data.has("mouse_settings") and data["mouse_settings"] is Dictionary:
+		var source_mouse_settings := data["mouse_settings"] as Dictionary
 		sanitized["mouse_settings"] = _sanitize_float_fields(
 			data["mouse_settings"],
 			{
@@ -109,11 +111,13 @@ static func _sanitize_loaded_settings(data: Dictionary) -> Dictionary:
 			}
 		)
 		sanitized["mouse_settings"]["invert_y_axis"] = bool(
-			(data["mouse_settings"] as Dictionary).get("invert_y_axis", false)
+			source_mouse_settings.get("invert_y_axis", false)
 		)
 		sanitized["mouse_settings"]["keyboard_look_enabled"] = bool(
-			(data["mouse_settings"] as Dictionary).get("keyboard_look_enabled", true)
+			source_mouse_settings.get("keyboard_look_enabled", true)
 		)
+		if _should_migrate_keyboard_look_enabled(version, source_mouse_settings):
+			sanitized["mouse_settings"]["keyboard_look_enabled"] = true
 
 	if data.has("touchscreen_settings") and data["touchscreen_settings"] is Dictionary:
 		var touch := (data["touchscreen_settings"] as Dictionary).duplicate(true)
@@ -278,6 +282,30 @@ static func _to_string_name(value: Variant) -> StringName:
 	if value is StringName:
 		return value
 	return StringName(String(value))
+
+static func _should_migrate_keyboard_look_enabled(version: String, mouse_settings: Dictionary) -> bool:
+	if not _is_version_less_than(version, KEYBOARD_LOOK_MIGRATION_VERSION):
+		return false
+	if not mouse_settings.has("keyboard_look_enabled"):
+		return false
+	return not bool(mouse_settings.get("keyboard_look_enabled", true))
+
+static func _is_version_less_than(left: String, right: String) -> bool:
+	var left_parts: Array = left.split(".")
+	var right_parts: Array = right.split(".")
+	var max_parts: int = maxi(left_parts.size(), right_parts.size())
+	for i in range(max_parts):
+		var left_value: int = 0
+		var right_value: int = 0
+		if i < left_parts.size():
+			left_value = int(left_parts[i])
+		if i < right_parts.size():
+			right_value = int(right_parts[i])
+		if left_value < right_value:
+			return true
+		if left_value > right_value:
+			return false
+	return false
 
 static func _backup_corrupted_file(raw_text: String) -> void:
 	var dir := DirAccess.open("user://")

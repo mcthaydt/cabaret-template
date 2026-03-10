@@ -1,6 +1,7 @@
 extends GutTest
 
 const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
+const U_INPUT_SERIALIZATION := preload("res://scripts/utils/input/u_input_serialization.gd")
 
 func before_each() -> void:
 	_cleanup_global_settings_files()
@@ -131,6 +132,38 @@ func test_load_handles_missing_touchscreen_fields_gracefully() -> void:
 	var input_settings: Dictionary = loaded.get("input_settings", {})
 	var touchscreen: Dictionary = input_settings.get("touchscreen_settings", {})
 	assert_not_null(touchscreen, "Empty touchscreen_settings should load without error")
+
+func test_deserialize_migrates_legacy_keyboard_look_disabled_state_to_enabled() -> void:
+	var legacy := {
+		"version": "1.0.0",
+		"mouse_settings": {
+			"keyboard_look_enabled": false,
+			"keyboard_look_speed": 2.0
+		}
+	}
+
+	var deserialized: Dictionary = U_INPUT_SERIALIZATION.deserialize_settings(legacy)
+	var mouse_settings: Dictionary = deserialized.get("mouse_settings", {})
+	assert_true(
+		bool(mouse_settings.get("keyboard_look_enabled", false)),
+		"Legacy 1.0.0 payload should migrate keyboard look to enabled"
+	)
+
+func test_deserialize_preserves_explicit_keyboard_look_disabled_for_current_version() -> void:
+	var current := {
+		"version": "1.1.0",
+		"mouse_settings": {
+			"keyboard_look_enabled": false,
+			"keyboard_look_speed": 2.0
+		}
+	}
+
+	var deserialized: Dictionary = U_INPUT_SERIALIZATION.deserialize_settings(current)
+	var mouse_settings: Dictionary = deserialized.get("mouse_settings", {})
+	assert_false(
+		bool(mouse_settings.get("keyboard_look_enabled", true)),
+		"Current-version payload should preserve explicit disabled preference"
+	)
 
 func _cleanup_global_settings_files() -> void:
 	var dir := DirAccess.open("user://")

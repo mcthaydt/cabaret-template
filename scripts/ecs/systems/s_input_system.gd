@@ -28,6 +28,8 @@ const DeviceType := U_DeviceTypeConstants.DeviceType
 @export var interact_action: StringName = StringName("interact")
 @export var input_deadzone: float = 0.15
 @export var require_captured_cursor: bool = false
+@export var debug_input_logging: bool = false
+@export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -43,6 +45,7 @@ var _gamepad_settings_cache: Dictionary = {}
 var _sprint_toggle_enabled: bool = false
 var _sprint_toggled_on: bool = false
 var _sprint_button_was_pressed: bool = false
+var _debug_log_cooldown_sec: float = 0.0
 
 func on_configured() -> void:
 	_validate_required_actions()
@@ -59,8 +62,11 @@ func _ensure_input_device_manager() -> void:
 	_input_device_manager = U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
 
 func process_tick(_delta: float) -> void:
+	if debug_input_logging:
+		_debug_log_cooldown_sec = maxf(_debug_log_cooldown_sec - maxf(_delta, 0.0), 0.0)
 	_validate_required_actions()
 	if not _actions_valid:
+		_debug_log_input("blocked: required input actions are invalid")
 		return
 	_ensure_state_store_ready()
 	_ensure_input_device_manager()
@@ -81,9 +87,13 @@ func process_tick(_delta: float) -> void:
 	# Only gate input on cursor capture for desktop platforms.
 	if not OS.has_feature("mobile"):
 		if require_captured_cursor and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+			_debug_log_input(
+				"blocked: require_captured_cursor=true mouse_mode=%s" % _mouse_mode_to_string(Input.mouse_mode)
+			)
 			return
 
 	if not _is_gameplay_active_for_inputs():
+		_debug_log_input("blocked: gameplay input gate is inactive")
 		return
 
 	# Get active input source and delegate input capture
@@ -92,6 +102,10 @@ func process_tick(_delta: float) -> void:
 		input_source = _input_device_manager.get_input_source_for_device(active_device_type)
 
 	if input_source == null:
+		_debug_log_input(
+			"blocked: no input source for active_device=%s"
+			% _device_type_to_string(active_device_type)
+		)
 		return
 
 	# Capture input from active source
@@ -101,6 +115,7 @@ func process_tick(_delta: float) -> void:
 	var jump_pressed: bool = input_data.get("jump_pressed", false)
 	var jump_just_pressed: bool = input_data.get("jump_just_pressed", false)
 	var sprint_button_pressed: bool = input_data.get("sprint_pressed", false)
+	_debug_log_capture_snapshot(state, active_device_type, input_source, look_delta)
 
 	# Apply sprint toggle if enabled
 	var sprint_pressed := _compute_sprint_pressed(sprint_button_pressed)
@@ -296,3 +311,79 @@ func _teardown_store_subscription() -> void:
 
 func _exit_tree() -> void:
 	_teardown_store_subscription()
+
+func _debug_log_capture_snapshot(
+	state: Dictionary,
+	active_device_type: int,
+	input_source: I_InputSource,
+	look_delta: Vector2
+) -> void:
+	if not debug_input_logging:
+		return
+	var look_left_strength: float = Input.get_action_strength(look_left_action)
+	var look_right_strength: float = Input.get_action_strength(look_right_action)
+	var look_up_strength: float = Input.get_action_strength(look_up_action)
+	var look_down_strength: float = Input.get_action_strength(look_down_action)
+
+	var mouse_settings: Dictionary = U_InputSelectors.get_mouse_settings(state)
+	var profile_id: String = U_InputSelectors.get_active_profile_id(state)
+	var source_name: String = "null"
+	if input_source != null:
+		var source_script: Script = input_source.get_script() as Script
+		if source_script != null:
+			source_name = source_script.resource_path.get_file()
+	var message := (
+		"capture: device=%s source=%s profile=%s keyboard_look_enabled=%s keyboard_look_speed=%.3f "
+		+ "look_strengths(L/R/U/D)=%.2f/%.2f/%.2f/%.2f look_events(L/R/U/D)=%d/%d/%d/%d look_delta=%s"
+	) % [
+		_device_type_to_string(active_device_type),
+		source_name,
+		profile_id,
+		str(bool(mouse_settings.get("keyboard_look_enabled", true))),
+		float(mouse_settings.get("keyboard_look_speed", 2.0)),
+		look_left_strength,
+		look_right_strength,
+		look_up_strength,
+		look_down_strength,
+		InputMap.action_get_events(look_left_action).size(),
+		InputMap.action_get_events(look_right_action).size(),
+		InputMap.action_get_events(look_up_action).size(),
+		InputMap.action_get_events(look_down_action).size(),
+		str(look_delta),
+	]
+	_debug_log_input(message)
+
+func _debug_log_input(message: String) -> void:
+	if not debug_input_logging:
+		return
+	if _debug_log_cooldown_sec > 0.0:
+		return
+	var interval: float = maxf(debug_log_interval_sec, 0.05)
+	_debug_log_cooldown_sec = interval
+	print("S_InputSystem[debug]: %s" % message)
+
+func _device_type_to_string(device_type: int) -> String:
+	match device_type:
+		DeviceType.KEYBOARD_MOUSE:
+			return "keyboard_mouse"
+		DeviceType.GAMEPAD:
+			return "gamepad"
+		DeviceType.TOUCHSCREEN:
+			return "touchscreen"
+		_:
+			return "unknown(%d)" % device_type
+
+func _mouse_mode_to_string(mouse_mode: int) -> String:
+	match mouse_mode:
+		Input.MOUSE_MODE_VISIBLE:
+			return "visible"
+		Input.MOUSE_MODE_HIDDEN:
+			return "hidden"
+		Input.MOUSE_MODE_CAPTURED:
+			return "captured"
+		Input.MOUSE_MODE_CONFINED:
+			return "confined"
+		Input.MOUSE_MODE_CONFINED_HIDDEN:
+			return "confined_hidden"
+		_:
+			return "unknown(%d)" % mouse_mode
