@@ -34,7 +34,7 @@ const ACTION_CATEGORIES := {
 	"movement": ["move_left", "move_right", "move_forward", "move_backward", "jump", "crouch", "sprint", "test_jump"],
 	"combat": ["attack", "defend", "special_attack"],
 	"ui": ["interact", "menu", "inventory", "ui_up", "ui_down", "ui_left", "ui_right"],
-	"camera": ["look_up", "look_down", "look_left", "look_right", "camera_up", "camera_down", "camera_left", "camera_right", "zoom_in", "zoom_out"]
+	"camera": ["look_up", "look_down", "look_left", "look_right", "zoom_in", "zoom_out"]
 }
 
 # Actions to exclude from the overlay (built-in Godot actions users shouldn't rebind)

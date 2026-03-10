@@ -32,6 +32,8 @@ func before_each() -> void:
 	last_slice_name = StringName()
 
 	store = M_StateStore.new()
+	store.settings = RS_StateStoreSettings.new()
+	store.settings.enable_persistence = false
 	# Set up initial state for testing
 	var initial_state: RS_GameplayInitialState = RS_GameplayInitialState.new()
 	store.gameplay_initial_state = initial_state
