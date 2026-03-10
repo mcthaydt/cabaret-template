@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, and 1F are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, and response-tuning resource defaults). Next implementation target is Phase 2A (orbit mode resource/evaluator baseline).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, and 2B are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, and orbit mode baseline resource/evaluator wiring). Next implementation target is Phase 3A (first-person mode resource/evaluator baseline).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -62,6 +62,13 @@
   - Added `scripts/resources/display/vcam/rs_vcam_response.gd` (`RS_VCamResponse`) with follow/rotation second-order tuning fields.
   - Added `tests/unit/resources/display/vcam/test_vcam_response.gd` (8 tests) covering defaults and resolved non-negative/positive clamp behavior.
   - Added `resources/display/vcam/cfg_default_response.tres` with Phase 1F defaults (`follow: 3.0/0.7/1.0`, `rotation: 4.0/1.0/1.0`).
+- Completed Phase 2A:
+  - Added `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (`RS_VCamModeOrbit`) with authored orbit defaults (`distance`, `authored_pitch`, `authored_yaw`, `allow_player_rotation`, `rotation_speed`, `fov`).
+  - Added `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (8 tests) for orbit resource defaults and baseline constraints.
+- Completed Phase 2B:
+  - Added `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (`U_VCamModeEvaluator`) with orbit-mode evaluation branch and null-safe invalid-input guards.
+  - Added `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (10 tests) for orbit transform/FOV/mode-name outputs, authored/runtime rotation behavior, and invalid-input handling.
+  - Added `resources/display/vcam/cfg_default_orbit.tres` with baseline orbit defaults for scene/template wiring.
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -115,6 +122,11 @@
   - `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd`
   - `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd`
   - `tests/unit/style/test_style_enforcement.gd`
+- Validation run (green, Phases 2A/2B):
+  - `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd`
+  - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
+  - `tests/unit` (`-gselect=test_vcam_mode`)
+  - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
 
@@ -147,6 +159,9 @@
   - `scripts/resources/display/vcam/`
   - `scripts/utils/display/`
   - `assets/shaders/sh_vcam_silhouette_shader.gdshader`
+- Orbit mode baseline is now explicit:
+  - `RS_VCamModeOrbit` is authored in `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` with default preset `resources/display/vcam/cfg_default_orbit.tres`.
+  - `U_VCamModeEvaluator.evaluate(...)` now returns `{transform, fov, mode_name}` for orbit resources and returns `{}` for null/invalid inputs without warning noise.
 
 ## Required Reading
 
@@ -197,11 +212,12 @@
 
 ## Next Steps
 
-1. Start Phase 2A from `docs/vcam_manager/vcam-orbit-tasks.md`: implement orbit mode resource/evaluator branch and default preset wiring.
-2. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
-3. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
-4. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
-5. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+1. Start Phase 3A from `docs/vcam_manager/vcam-fps-tasks.md`: implement first-person mode resource/evaluator branch and default preset wiring.
+2. Continue to fixed-mode baseline (`docs/vcam_manager/vcam-fixed-tasks.md`) after first-person evaluator coverage is green so the shared evaluator supports all three mode branches before system wiring.
+3. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
+4. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
+5. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
+6. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 

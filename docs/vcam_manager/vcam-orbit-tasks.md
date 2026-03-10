@@ -10,17 +10,17 @@
 
 Before starting Phase 2, verify:
 
-- [ ] **PRE-1**: Phase 0 and Phase 1 are fully complete (all base state, persistence, and authoring resource tests pass)
-- [ ] **PRE-2**: Read required documentation
+- [x] **PRE-1**: Phase 0 and Phase 1 are fully complete (all base state, persistence, and authoring resource tests pass)
+- [x] **PRE-2**: Read required documentation
   - Read `docs/vcam_manager/vcam-manager-plan.md` (Commit 1.1, Commit 2.3 sections)
   - Read `docs/vcam_manager/vcam-manager-overview.md` (Camera Modes > RS_VCamModeOrbit)
   - Read `docs/vcam_manager/vcam-manager-prd.md` (orbit requirements)
   - Read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md`
-- [ ] **PRE-3**: Understand existing patterns by reading:
+- [x] **PRE-3**: Understand existing patterns by reading:
   - `scripts/resources/display/vcam/rs_vcam_soft_zone.gd` (resource pattern from Phase 1)
   - `scripts/resources/display/vcam/rs_vcam_blend_hint.gd` (resource pattern from Phase 1)
   - Any existing `tests/unit/resources/display/vcam/` tests (test pattern from Phase 1)
-- [ ] **PRE-4**: Verify branch is `vcam` and working tree is clean
+- [x] **PRE-4**: Verify branch is `vcam` and working tree is clean
 
 ---
 
@@ -40,7 +40,7 @@ Before starting Phase 2, verify:
 
 ### Phase 2A: RS_VCamModeOrbit Resource
 
-- [ ] **Task 2A.1 (Red)**: Write tests for RS_VCamModeOrbit
+- [x] **Task 2A.1 (Red)**: Write tests for RS_VCamModeOrbit
   - Create `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd`
   - Test `distance` field exists with default (e.g. 5.0)
   - Test `authored_pitch` field exists with default (e.g. -20.0 degrees)
@@ -52,7 +52,7 @@ Before starting Phase 2, verify:
   - Test `fov` must be within valid range (1.0-179.0)
   - **Target: 8 tests**
 
-- [ ] **Task 2A.2 (Green)**: Implement RS_VCamModeOrbit
+- [x] **Task 2A.2 (Green)**: Implement RS_VCamModeOrbit
   - Create `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd`
   - Extend `Resource`
   - Add `class_name RS_VCamModeOrbit`
@@ -65,7 +65,7 @@ Before starting Phase 2, verify:
     - `fov: float = 75.0`
   - All tests should pass
 
-- [ ] **Task 2A.3**: Run style enforcement tests
+- [x] **Task 2A.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with new files
   - Verify file naming follows `rs_` prefix convention
   - Verify script is in `scripts/resources/display/vcam/` per style guide
@@ -74,7 +74,7 @@ Before starting Phase 2, verify:
 
 ### Phase 2B: Orbit Mode Evaluator
 
-- [ ] **Task 2B.1 (Red)**: Write tests for orbit evaluation in U_VCamModeEvaluator
+- [x] **Task 2B.1 (Red)**: Write tests for orbit evaluation in U_VCamModeEvaluator
   - Create `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
   - Test orbit evaluation with default settings returns a valid `transform` key (is `Transform3D`)
   - Test orbit evaluation returns correct `fov` key matching resource (`75.0`)
@@ -112,7 +112,7 @@ Before starting Phase 2, verify:
   var result := U_VCamModeEvaluator.evaluate(mode, follow_target, null, 0.0, 0.0)
   ```
 
-- [ ] **Task 2B.2 (Green)**: Implement orbit evaluation in U_VCamModeEvaluator
+- [x] **Task 2B.2 (Green)**: Implement orbit evaluation in U_VCamModeEvaluator
   - Create `scripts/managers/helpers/u_vcam_mode_evaluator.gd`
   - Add `class_name U_VCamModeEvaluator`
   - Implement `static func evaluate(mode: Resource, follow_target: Node3D, look_at_target: Node3D, runtime_yaw: float, runtime_pitch: float, fixed_anchor: Node3D = null) -> Dictionary`
@@ -138,7 +138,7 @@ Before starting Phase 2, verify:
   )
   ```
 
-- [ ] **Task 2B.3**: Create default orbit resource instance
+- [x] **Task 2B.3**: Create default orbit resource instance
   - Create `resources/display/vcam/cfg_default_orbit.tres`
   - Set all fields to resource defaults (distance=5.0, authored_pitch=-20.0, authored_yaw=0.0, allow_player_rotation=true, rotation_speed=2.0, fov=75.0)
   - Verify resource loads without errors:
@@ -148,10 +148,16 @@ Before starting Phase 2, verify:
     assert_is(res, RS_VCamModeOrbit)
     ```
 
-- [ ] **Task 2B.4**: Run style enforcement tests
+- [x] **Task 2B.4**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with all new files
   - Verify `u_vcam_mode_evaluator.gd` is in `scripts/managers/helpers/` per file structure
   - Verify test file is in `tests/unit/managers/helpers/`
+
+**Completion notes (March 10, 2026):**
+- Added `RS_VCamModeOrbit` resource + defaults tests (`8/8` passing).
+- Added `U_VCamModeEvaluator` orbit branch + evaluator tests (`10/10` passing).
+- Added `cfg_default_orbit.tres`.
+- Verified combined mode baseline tests (`test_vcam_mode`, `18/18` passing) and style suite (`15/15` passing).
 
 ---
 

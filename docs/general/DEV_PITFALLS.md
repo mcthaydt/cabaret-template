@@ -192,6 +192,11 @@
 - **Do not re-introduce `state.camera.in_fov_zone`**: Phase 0F moved runtime and QB camera tests to `state.vcam.in_fov_zone` and updated `cfg_camera_zone_fov_rule.tres` accordingly. Bringing back the legacy path causes FOV rule drift and split-brain camera state.
   - **Fix pattern**: read FOV-zone state through `U_VCamSelectors.is_in_fov_zone(state)` and seed tests via `set_slice(StringName("vcam"), {"in_fov_zone": ...})`.
 
+## vCam Orbit Evaluator Pitfalls
+
+- **Looking straight up/down can break orbit camera orientation if `Vector3.UP` is always used as the look-at up-vector**: At near-vertical view directions (`abs(direction.dot(Vector3.UP)) ~= 1`), `looking_at(...)` can hit a degenerate basis and produce unstable orientation.
+  - **Fix pattern**: in `U_VCamModeEvaluator`, detect near-parallel forward/up vectors and switch to a fallback up-vector (for example `Vector3.FORWARD`) before constructing the look-at transform.
+
 ## Character Lighting Pitfalls
 
 - **Cache invalidation is required on `scene/swapped` for lighting managers**: Character lighting caches that are built from `ActiveSceneContainer/<GameplayScene>/Lighting` can go stale after a scene transition unless the manager listens to `state_store.action_dispatched` and marks cache state dirty when action type is `scene/swapped`. Without this, zone lists/default profile data can continue referencing the previous scene.
