@@ -1,7 +1,7 @@
 # vCam Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.6)
-**Status**: Documentation rebaselined after audit, implementation not started
+**Status**: Phases 0A-0F complete (through camera-slice migration); Phase 1 implementation pending
 **Methodology**: Test-driven, integration-first where scene wiring matters
 
 ## Overview
@@ -22,7 +22,7 @@ The corrected implementation contract is:
 - During vCam-to-vCam blends, both the outgoing and incoming cameras are evaluated live every tick so moving cameras blend correctly.
 - New vCam resources live under `scripts/resources/display/vcam/` and the editor preview lives under `scripts/utils/display/`, which fits the current style guide and style-enforcement rules without inventing new categories.
 - Mobile camera look must extend the existing `UI_MobileControls` + `S_TouchscreenSystem` + `settings.input_settings.touchscreen_settings` path instead of creating a vCam-specific touch-input stack.
-- The `state.camera.in_fov_zone` migration is still pending. As of March 10, 2026, `S_CameraStateSystem` and QB camera tests still read the legacy `camera` slice.
+- The `state.camera.in_fov_zone` migration is complete: `S_CameraStateSystem`, camera-zone QB rule config, and QB camera tests now use `state.vcam.in_fov_zone`.
 - Keyboard-look work is incomplete unless it also patches `U_InputMapBootstrapper`, `tests/unit/input/test_input_map.gd`, `U_GlobalSettingsSerialization`, `U_RebindActionListBuilder`, and the UI locale action keys.
 - Soft-zone projection and occlusion raycasts must use the active gameplay camera viewport and `World3D` inside `GameViewport`, not the persistent root manager node's viewport/world.
 - Same-frame apply must not depend on root `_physics_process` ordering against gameplay ECS. `S_VCamSystem` submits the authoritative current-frame camera result, and `M_VCamManager` consumes only that handoff.
@@ -206,7 +206,7 @@ func to_dictionary() -> Dictionary:
 
 - This slice is runtime-only observability for debugging and UI.
 - It is not save data and not a player settings surface.
-- `in_fov_zone` is the planned home for the existing informal `camera`-slice flag. Phase 0F updates all `S_CameraStateSystem` reads and tests that reference `state.camera.in_fov_zone` to use `state.vcam.in_fov_zone` instead. The `update_fov_zone` action, reducer case, and `is_in_fov_zone` selector are added in Phases 0D/0E.
+- `in_fov_zone` is the canonical home for the FOV-zone flag and is read from `state.vcam.in_fov_zone` in runtime and tests. The `update_fov_zone` action, reducer case, and `is_in_fov_zone` selector are provided by Phases 0D/0E.
 
 ### Commit 0.3: vCam actions and reducer
 
@@ -832,7 +832,7 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 1. Do not register only the component and forget the runtime scene wiring. `M_VCamManager` in root plus `S_VCamSystem` in gameplay are both required.
 2. Do not persist the `vcam` slice. It is transient runtime observability.
 3. Do not store the silhouette toggle in `vcam`. Persist it in `vfx`.
-4. Do not claim the `camera`-slice migration is already done. As of March 10, 2026, `S_CameraStateSystem` and QB tests still read `state.camera.in_fov_zone`.
+4. Do not re-introduce legacy `camera`-slice reads for FOV-zone state. Runtime/tests now read `state.vcam.in_fov_zone`.
 5. Do not write `camera.global_transform` directly from vCam. Go through `M_CameraManager.apply_main_camera_transform(...)` so shake layering survives.
 6. Do not freeze the outgoing camera transform at blend start. Evaluate both cameras live during blends.
 7. Do not use raw normalized-screen deltas as world-space camera offsets. Soft-zone math must account for depth and projection.

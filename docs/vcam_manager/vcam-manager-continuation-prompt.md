@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, and 0E are complete as of March 10, 2026 (touchscreen drag-look persistence, keyboard-look action/settings/UI plumbing, persisted VFX silhouette toggle wiring, `RS_VCamInitialState`, vCam actions/reducer + event constants, and selector/store/root transient wiring). Next implementation target is Phase 0F (`camera.in_fov_zone` migration to `state.vcam.in_fov_zone`).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, and 0F are complete as of March 10, 2026 (touchscreen drag-look persistence, keyboard-look action/settings/UI plumbing, persisted VFX silhouette toggle wiring, `RS_VCamInitialState`, vCam actions/reducer + event constants, selector/store/root transient wiring, and `in_fov_zone` migration to `state.vcam.in_fov_zone`). Next implementation target is Phase 1A (base authoring resources: soft zone + blend hint).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -39,6 +39,10 @@
   - Registered `vcam` in `U_StateSliceManager` with `is_transient = true` and reducer hookup to `U_VCamReducer`.
   - Patched `scenes/root.tscn` so `M_StateStore.vcam_initial_state` references `cfg_default_vcam_initial_state.tres`.
   - Added integration assertions proving `vcam` exists at runtime, is marked transient, is excluded from save payloads, and is excluded from global-settings serialization.
+- Completed Phase 0F:
+  - Patched `S_CameraStateSystem` to resolve FOV-zone state through `U_VCamSelectors.is_in_fov_zone(state)` instead of legacy `state.camera` reads.
+  - Updated `resources/qb/camera/cfg_camera_zone_fov_rule.tres` to `state_path = "vcam.in_fov_zone"` so rule-driven FOV behavior matches migrated runtime state.
+  - Updated QB camera unit/integration tests to seed `set_slice("vcam", {"in_fov_zone": ...})` and removed remaining non-doc `camera.in_fov_zone` references.
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -73,6 +77,10 @@
   - `tests/unit/state/test_state_persistence.gd`
   - `tests/unit/state/test_global_settings_persistence.gd`
   - `tests/unit/style/test_style_enforcement.gd`
+- Validation run (green, Phase 0F):
+  - `tests/unit/qb/test_camera_state_system.gd`
+  - `tests/integration/qb/test_camera_shake_pipeline.gd`
+  - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
 
@@ -96,7 +104,7 @@
 - Entity-based target resolution added: `C_VCamComponent` supports `follow_target_entity_id` and `follow_target_tag` exports as fallbacks when NodePath is empty. `S_VCamSystem` resolves targets via `M_ECSManager.get_entity_by_id()` / `get_entities_by_tag()`, leveraging the existing `BaseECSEntity` ID/tag system. Multiple tag matches resolve to the first valid ECS-registration-order match and emit a debug warning.
 - QB rule context enrichment: `S_CameraStateSystem._build_camera_context()` is extended with `vcam_active_mode`, `vcam_is_blending`, `vcam_active_vcam_id` so camera rules can condition on vCam state using standard `RS_ConditionContextField`.
 - Per-phase doc cadence is now explicit and mandatory: update continuation prompt + tasks after each phase, and update AGENTS/DEV_PITFALLS when new stable contracts or pitfalls appear.
-- Camera slice migration is now explicitly marked pending: as of March 10, 2026, `S_CameraStateSystem` and QB camera tests still read `state.camera.in_fov_zone`. Phase 0F updates those reads and only then retires the `camera` slice.
+- Camera slice migration is complete: `S_CameraStateSystem`, default QB camera-zone rule config, and QB camera tests now use `state.vcam.in_fov_zone`; legacy runtime/test reads of `state.camera.in_fov_zone` are retired.
 - Touch look gating uses a planned `gameplay.touch_look_active` Redux flag. If implemented as a top-level gameplay field, it must be registered as transient so it does not persist through save/load or shell handoff.
 - Keyboard-look scope is now complete: patch `U_InputMapBootstrapper`, `tests/unit/input/test_input_map.gd`, `U_GlobalSettingsSerialization`, `U_RebindActionListBuilder`, locale action keys, and a new `UI_KeyboardMouseSettingsOverlay` instead of treating the settings surface as optional.
 - Same-frame camera apply is now explicit: `S_VCamSystem` submits the authoritative current-frame result, and `M_VCamManager` consumes that handoff instead of relying on root `_physics_process` order against gameplay ECS.
@@ -155,7 +163,7 @@
 
 ## Next Steps
 
-1. Implement Phase 0F before claiming camera-slice migration is done: patch `S_CameraStateSystem`, `tests/unit/qb/test_camera_state_system.gd`, and any remaining `set_slice("camera", ...)` usage to `state.vcam.in_fov_zone`.
+1. Start Phase 1A by implementing `RS_VCamSoftZone` (resource + defaults + tests) and `RS_VCamBlendHint` foundations per `docs/vcam_manager/vcam-base-tasks.md`.
 2. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
 3. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
 4. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
@@ -177,7 +185,7 @@
 - vCam publishes lifecycle events through `U_ECSEventBus`, not just Redux — enabling reactive integration with QB rules and other systems.
 - QB camera rules can condition on vCam state via enriched context fields (`vcam_active_mode`, `vcam_is_blending`) — no vCam-specific rule types needed.
 - Follow target resolution uses existing entity ID/tag system as fallback when NodePaths are empty. Multiple tag matches resolve to the first valid ECS-registration-order match and emit a debug warning.
-- The informal `camera` slice is not retired yet. Phase 0F must migrate `in_fov_zone` reads to `state.vcam.in_fov_zone` before docs can claim that retirement.
+- The informal `camera` slice is retired for FOV-zone observability. `in_fov_zone` now lives in `state.vcam.in_fov_zone`; do not reintroduce `state.camera.in_fov_zone` reads.
 - Touch input gating uses `gameplay.touch_look_active` Redux flag, not device-type checks, and that flag stays transient if implemented in the gameplay slice.
 - Projection math and occlusion raycasts use the active gameplay camera viewport/world inside `GameViewport`.
 - Silhouette rendering lifecycle is owned by `M_VFXManager` (detection in vCam, rendering in VFX) via `{entity_id, occluders, enabled}` request payload. This follows the `U_ScreenShake` helper pattern.

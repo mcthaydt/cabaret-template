@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-06
 **Updated**: 2026-03-10
-**Status**: Documentation rebaselined after audit, implementation not started
+**Status**: Phases 0A-0F complete (state/persistence foundations); mode implementation phases pending
 
 ## Summary
 
@@ -47,7 +47,7 @@ M_CameraManager + C_CameraStateComponent + S_CameraStateSystem
 - `UI_VFXSettingsOverlay` already exists (`scripts/ui/settings/ui_vfx_settings_overlay.gd`), but it currently has no silhouette toggle row, so the vCam delivery must include VFX settings UI wiring plus localization keys.
 - `settings.input_settings.touchscreen_settings` is already the persisted home for mobile control tuning, so drag-look sensitivity and invert-Y belong there, not in `vcam`.
 - Existing gameplay scenes use both `MeshInstance3D` and `CSGBox3D`-style geometry, so occlusion logic cannot assume mesh-only scene content.
-- As of March 10, 2026, `scripts/ecs/systems/s_camera_state_system.gd` and `tests/unit/qb/test_camera_state_system.gd` still read `state.camera.in_fov_zone`, so the `state.vcam.in_fov_zone` migration remains pending Phase 0F work.
+- Phase 0F completed the FOV-zone migration: `S_CameraStateSystem`, default camera-zone QB rule config, and QB camera tests now read `state.vcam.in_fov_zone`.
 - `scripts/input/u_input_map_bootstrapper.gd`, `tests/unit/input/test_input_map.gd`, `scripts/ui/helpers/u_rebind_action_list_builder.gd`, and the existing UI locale action labels still know about `camera_*` actions, not the planned `look_*` family.
 - Gameplay runs inside `scenes/root.tscn/GameViewportContainer/GameViewport`. Soft-zone projection and occlusion raycasts must use that active gameplay viewport and `World3D`, never the root manager node's viewport/world.
 
@@ -259,9 +259,9 @@ Both methods are **new API — Phase 9**. They do not exist on `M_CameraManager`
 | `blend_to_vcam_id` | `StringName` | debug: destination vCam during an active blend |
 | `active_target_valid` | `bool` | debug: whether the active vCam's follow target is currently valid |
 | `last_recovery_reason` | `String` | debug: reason for last recovery action (e.g. `"target_freed"`, `"anchor_invalid"`) |
-| `in_fov_zone` | `bool` | `false` — planned home for whether the active vCam's follow target is inside an FOV zone once Phase 0F migrates legacy `state.camera` reads |
+| `in_fov_zone` | `bool` | `false` — canonical runtime flag for whether the active vCam's follow target is inside an FOV zone |
 
-> **Migration note (camera slice → vcam):** The informal `camera` slice still tracks `in_fov_zone` in code today. As of March 10, 2026, `S_CameraStateSystem` and QB tests still read `state.camera.in_fov_zone`. Phase 0F migrates those reads to `state.vcam.in_fov_zone` and only then retires the informal `camera` slice.
+> **Migration note (camera slice → vcam):** Phase 0F retired legacy runtime/test `state.camera.in_fov_zone` reads. Use `state.vcam.in_fov_zone` and `U_VCamSelectors.is_in_fov_zone(state)` for FOV-zone state.
 
 This slice is whole-slice transient. It is not save data and not a player settings surface. The `blend_from/to`, `active_target_valid`, and `last_recovery_reason` fields are debug-only and may be omitted in release builds.
 

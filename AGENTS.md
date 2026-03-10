@@ -111,7 +111,7 @@
   - Selection contract: rules with empty `decision_group` fire independently; grouped rules compete by score, then priority, then `rule_id` alphabetical tiebreak.
   - Trigger contract: `trigger_mode` supports `tick`, `event`, and `both`; event subscriptions are derived from `RS_ConditionEventName.expected_event_name` (not rule-level `trigger_event` metadata), and event consumers fan out contexts per relevant entity/payload with cooldown/rising-edge/one-shot gating via tracker state.
   - Context/path contract: conditions/effects resolve context paths through `U_PathResolver` and must not rely on method-call fallback behavior.
-  - Camera baseline pattern: `S_CameraStateSystem` captures authored baseline FOV into `C_CameraStateComponent.base_fov` and restores it when `camera.in_fov_zone` is false.
+  - Camera baseline pattern: `S_CameraStateSystem` captures authored baseline FOV into `C_CameraStateComponent.base_fov` and restores it when `state.vcam.in_fov_zone` is false.
   - Pause gate pattern: character pause gate rules (`cfg_pause_gate_paused/shell/transitioning`) share `decision_group = &"pause_gate"` so exactly one winner applies the same gate effect each tick.
   - Composite condition pattern (Phase 9): use `RS_ConditionComposite` for nested logical grouping (`ALL` for AND/product, `ANY` for OR/max). Keep nesting <= 8 and validate through `U_RuleValidator` (empty composite children are invalid).
 - VFX Event Requests (Phase 1 refactor)
@@ -131,7 +131,7 @@
   - Gameplay camera orchestration authority lives in `docs/vcam_manager/*`; keep camera-runtime behavior aligned to those docs.
   - Fixed-mode anchors resolve from `C_VCamComponent.fixed_anchor_path` first, then fallback to the vCam host entity-root `Node3D`; never use component transform as the fixed anchor source.
   - `M_CameraManager` integration for gameplay vCam flow is `apply_main_camera_transform(xform)` [new — Phase 9] with `is_blend_active()` [new — Phase 9] gating for transition blends. Both methods must be implemented before vCam can submit gameplay transforms.
-  - `in_fov_zone` migration to `state.vcam.in_fov_zone` is planned in Phase 0F; until then, do not claim the informal `camera` slice is retired.
+  - `in_fov_zone` now lives in `state.vcam.in_fov_zone`; do not reintroduce legacy `state.camera.in_fov_zone` reads in runtime or tests.
   - Occlusion silhouette preference persists in `vfx.occlusion_silhouette_enabled` and is surfaced in `UI_VFXSettingsOverlay` with localization keys.
   - Occlusion rollout is complete only when both physics-layer naming (`vcam_occludable`) and authored-scene blocker migration are done.
   - Shared look-input contract is `gameplay.look_input`; `S_TouchscreenSystem` owns touchscreen look dispatch and `S_InputSystem` must not zero-clobber touchscreen-owned move/look payloads.

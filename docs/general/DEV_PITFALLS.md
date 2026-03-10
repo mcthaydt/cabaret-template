@@ -183,9 +183,11 @@
 
 ## QB Camera Rule Pitfalls
 
-- **Hardcoded fallback FOV can override authored scene cameras**: If `S_CameraStateSystem` falls back to a constant FOV (for example `75.0`) when `camera.in_fov_zone` is false, scenes authored with cinematic FOV values (`28.8`, `65`, etc.) will look unexpectedly zoomed out after startup or after leaving a zone.
+- **Hardcoded fallback FOV can override authored scene cameras**: If `S_CameraStateSystem` falls back to a constant FOV (for example `75.0`) when `state.vcam.in_fov_zone` is false, scenes authored with cinematic FOV values (`28.8`, `65`, etc.) will look unexpectedly zoomed out after startup or after leaving a zone.
   - **Fix pattern**: capture baseline FOV from the active `Camera3D` into `C_CameraStateComponent.base_fov` and restore that baseline when no FOV zone rule is active.
   - **Regression check**: keep a unit test that enters/exits a zone and asserts the camera returns to the authored baseline FOV.
+- **Do not re-introduce `state.camera.in_fov_zone`**: Phase 0F moved runtime and QB camera tests to `state.vcam.in_fov_zone` and updated `cfg_camera_zone_fov_rule.tres` accordingly. Bringing back the legacy path causes FOV rule drift and split-brain camera state.
+  - **Fix pattern**: read FOV-zone state through `U_VCamSelectors.is_in_fov_zone(state)` and seed tests via `set_slice(StringName("vcam"), {"in_fov_zone": ...})`.
 
 ## Character Lighting Pitfalls
 

@@ -346,26 +346,30 @@ Before starting Phase 0, verify:
 
 ### Phase 0F: Camera Slice Migration (`in_fov_zone`)
 
-> **Context:** The informal `camera` slice still tracks `in_fov_zone` in code today. This phase migrates those remaining reads to `state.vcam.in_fov_zone` and updates all tests.
+> **Context:** Phase 0F migrated `in_fov_zone` reads to `state.vcam.in_fov_zone` and retired legacy runtime/test reads of `state.camera.in_fov_zone`.
 
-- [ ] **Task 0F.1**: Migrate `S_CameraStateSystem` reads of `state.camera.in_fov_zone`
+- [x] **Task 0F.1**: Migrate `S_CameraStateSystem` reads of `state.camera.in_fov_zone`
   - Modify `scripts/ecs/systems/s_camera_state_system.gd`: replace reads of `state.camera.in_fov_zone` with `U_VCamSelectors.is_in_fov_zone(state)` (or `state.vcam.in_fov_zone`)
   - Update any `S_CameraStateSystem` code that dispatches `set_slice("camera", ...)` for `in_fov_zone` to use `U_VCamActions.update_fov_zone(in_zone)` instead
+  - Completion note (2026-03-10): `S_CameraStateSystem._is_fov_zone_active(...)` now reads through `U_VCamSelectors.is_in_fov_zone(state)`.
 
-- [ ] **Task 0F.2**: Update tests that reference `state.camera`
+- [x] **Task 0F.2**: Update tests that reference `state.camera`
   - Grep for `set_slice("camera"` and `state.camera` in test files
   - Explicitly update `tests/unit/qb/test_camera_state_system.gd` and any integration/QB camera tests that seed the legacy slice
   - Update any test that sets up `camera.in_fov_zone` to use `vcam.in_fov_zone` instead
   - Verify no remaining references to `state.camera` slice exist in the codebase
+  - Completion note (2026-03-10): Updated QB unit/integration camera tests to seed `vcam.in_fov_zone` and verified no non-doc references remain.
 
-- [ ] **Task 0F.3**: Retire informal `camera` slice
+- [x] **Task 0F.3**: Retire informal `camera` slice
   - Remove any `camera` slice registration if one exists
   - Add `DEV_PITFALLS.md` note: "The informal `camera` slice is retired. `in_fov_zone` lives in `state.vcam.in_fov_zone`. Do not re-introduce `state.camera`."
+  - Completion note (2026-03-10): Updated docs/contracts to treat `state.vcam.in_fov_zone` as canonical runtime source and added a guardrail pitfall note.
 
-- [ ] **Task 0F.4**: Verify migration
+- [x] **Task 0F.4**: Verify migration
   - Run full test suite: no test references `state.camera` or `set_slice("camera", ...)`
   - `U_VCamSelectors.is_in_fov_zone(state)` returns correct values through the full dispatch/reduce/select cycle
   - **Target: 2 verification tests**
+  - Completion note (2026-03-10): Passed `tests/unit/qb/test_camera_state_system.gd`, `tests/integration/qb/test_camera_shake_pipeline.gd`, and `tests/unit/style/test_style_enforcement.gd`.
 
 ---
 

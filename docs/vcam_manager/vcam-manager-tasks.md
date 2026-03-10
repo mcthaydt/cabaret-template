@@ -1,6 +1,6 @@
 # vCam Manager — Task Index
 
-**Progress:** 5 / 5 documentation tasks complete; Phases 0A + 0A2 + 0B + 0C + 0D + 0E complete, Phase 0F next
+**Progress:** 5 / 5 documentation tasks complete; Phases 0A + 0A2 + 0B + 0C + 0D + 0E + 0F complete, Phase 1A next
 **Estimated Test Count:** ~440 checks (about 360 automated tests + 80 manual checks including game-feel QA)
 **Status note:** Strict TDD (Red/Green/Refactor). Each camera mode has a dedicated phase. Mobile drag-look is a hard prerequisite for orbit/first-person completion.
 **Manual QA cadence:** Manual checks are embedded in the relevant implementation phases (no standalone manual-testing phase).
@@ -52,7 +52,7 @@
 - [x] Correct blend, shake, and soft-zone architecture to match repo reality
 - [x] Align file paths and naming with the current style guide
 - [x] Make mobile drag-look a hard requirement for rotatable orbit and first-person support
-- [x] Keep the `state.camera` to `state.vcam` migration explicitly pending until code/tests are actually migrated
+- [x] Complete the `state.camera` to `state.vcam` migration in runtime/tests and retire legacy references
 - [x] Enumerate the missing keyboard-look touchpoints: InputMap bootstrap, tests, rebinding UI/category wiring, localization, and settings-save triggers
 - [x] Specify the gameplay `SubViewport` / `World3D` and same-frame handoff contracts explicitly
 - [x] Standardize silhouette ownership as detect in vCam, render in VFX, with `{entity_id, occluders, enabled}` payload

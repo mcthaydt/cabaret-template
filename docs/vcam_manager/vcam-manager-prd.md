@@ -5,7 +5,7 @@
 - **Feature name**: Virtual Camera (vCam) Manager
 - **Project**: Cabaret Template (Godot 4.6)
 - **Target release**: TBD
-- **Status**: Documentation rebaselined after audit, implementation not started
+- **Status**: Phases 0A-0F complete (state/persistence foundations); mode implementation phases pending
 
 ## Problem Statement
 
@@ -97,7 +97,7 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - if `gameplay.touch_look_active` is kept as a top-level gameplay field, it must be registered as transient so it does not persist through save/load or shell transitions.
 - vCam motion feeds into a new shake-safe `M_CameraManager.apply_main_camera_transform(...)` API rather than writing `camera.global_transform` directly.
 - vCam-authored FOV writes go to `C_CameraStateComponent.base_fov`; `S_CameraStateSystem` remains the final FOV writer.
-- the `state.camera.in_fov_zone` to `state.vcam.in_fov_zone` migration is still pending. Docs must continue to label Phase 0F as required until `S_CameraStateSystem` and its QB tests are updated.
+- the `state.camera.in_fov_zone` to `state.vcam.in_fov_zone` migration is complete. Keep runtime/tests on `vcam` and do not reintroduce legacy `camera`-slice reads.
 - soft-zone projection and occlusion raycasts use the active gameplay camera's viewport and `World3D` inside the root `GameViewport` `SubViewport`, never the persistent manager node's viewport/world.
 - same-frame camera apply must not depend on root-vs-gameplay `_physics_process` tree order. `S_VCamSystem` submits evaluated results as the explicit handoff, and `M_VCamManager` consumes only current-frame submissions.
 - `use_path` helpers such as `PathFollow3D` stay scene-local in the gameplay world, not under the persistent root manager.
