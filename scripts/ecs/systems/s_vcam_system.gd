@@ -10,10 +10,14 @@ const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_orde
 const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
 const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
 const RS_VCAM_MODE_FIXED_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
+
+const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
+const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
 
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
@@ -27,6 +31,9 @@ var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_t
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
 var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
+var _landing_recovery_dynamics = null
+var _landing_recovery_state_id: int = 0
+var _landing_recovery_frequency_hz: float = -1.0
 
 func process_tick(delta: float) -> void:
 	var manager := _resolve_vcam_manager()
@@ -48,7 +55,8 @@ func process_tick(delta: float) -> void:
 	_apply_rotation_continuity_policy(active_vcam_id, vcam_index, manager)
 
 	var look_input: Vector2 = _read_look_input()
-	_evaluate_and_submit(active_vcam_id, vcam_index, look_input, manager, delta)
+	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
+	_evaluate_and_submit(active_vcam_id, vcam_index, look_input, landing_offset, manager, delta)
 
 	if not manager.is_blending():
 		return
@@ -56,7 +64,7 @@ func process_tick(delta: float) -> void:
 	var previous_vcam_id: StringName = manager.get_previous_vcam_id()
 	if previous_vcam_id == StringName("") or previous_vcam_id == active_vcam_id:
 		return
-	_evaluate_and_submit(previous_vcam_id, vcam_index, look_input, manager, delta)
+	_evaluate_and_submit(previous_vcam_id, vcam_index, look_input, landing_offset, manager, delta)
 
 func get_debug_issues() -> Array[String]:
 	return _debug_issues.duplicate()
@@ -64,6 +72,7 @@ func get_debug_issues() -> Array[String]:
 func _exit_tree() -> void:
 	_teardown_path_helpers()
 	_clear_all_smoothing_state()
+	_clear_landing_impact_recovery_state()
 	_last_active_vcam_id = StringName("")
 
 func _apply_rotation_continuity_policy(
@@ -183,6 +192,7 @@ func _evaluate_and_submit(
 	vcam_id: StringName,
 	vcam_index: Dictionary,
 	look_input: Vector2,
+	landing_offset: Vector3,
 	manager: I_VCAM_MANAGER,
 	delta: float
 ) -> void:
@@ -221,7 +231,151 @@ func _evaluate_and_submit(
 		result,
 		delta
 	)
-	manager.submit_evaluated_camera(vcam_id, smoothed_result)
+	var final_result: Dictionary = _apply_landing_impact_offset(smoothed_result, landing_offset)
+	manager.submit_evaluated_camera(vcam_id, final_result)
+
+func _apply_landing_impact_offset(result: Dictionary, landing_offset: Vector3) -> Dictionary:
+	if landing_offset.is_zero_approx():
+		return result
+	var transform_variant: Variant = result.get("transform", null)
+	if not (transform_variant is Transform3D):
+		return result
+	var transform: Transform3D = transform_variant as Transform3D
+	var offset_result: Dictionary = result.duplicate(true)
+	var offset_transform := transform
+	offset_transform.origin += landing_offset
+	offset_result["transform"] = offset_transform
+	return offset_result
+
+func _resolve_landing_impact_offset(delta: float) -> Vector3:
+	var camera_state: Object = _resolve_primary_camera_state_component()
+	if camera_state == null:
+		_clear_landing_impact_recovery_state()
+		return Vector3.ZERO
+
+	var current_offset: Vector3 = _read_camera_state_vector3(camera_state, "landing_impact_offset", Vector3.ZERO)
+	if current_offset.is_zero_approx():
+		_clear_landing_impact_recovery_state()
+		return Vector3.ZERO
+
+	var recovery_speed_hz: float = maxf(
+		_get_camera_state_float(
+			camera_state,
+			"landing_impact_recovery_speed",
+			C_CAMERA_STATE_COMPONENT.DEFAULT_LANDING_IMPACT_RECOVERY_SPEED
+		),
+		0.0
+	)
+	if recovery_speed_hz <= 0.0:
+		_clear_landing_impact_recovery_state()
+		return current_offset
+
+	var camera_state_id: int = camera_state.get_instance_id()
+	var needs_rebuild: bool = (
+		_landing_recovery_dynamics == null
+		or _landing_recovery_state_id != camera_state_id
+		or not is_equal_approx(_landing_recovery_frequency_hz, recovery_speed_hz)
+	)
+	if needs_rebuild:
+		_landing_recovery_dynamics = U_SECOND_ORDER_DYNAMICS_3D.new(
+			recovery_speed_hz,
+			1.0,
+			1.0,
+			current_offset
+		)
+		_landing_recovery_state_id = camera_state_id
+		_landing_recovery_frequency_hz = recovery_speed_hz
+		if delta <= 0.0:
+			return current_offset
+
+	var recovered_offset: Vector3 = _landing_recovery_dynamics.step(Vector3.ZERO, delta)
+	if recovered_offset.length_squared() <= 0.000001:
+		recovered_offset = Vector3.ZERO
+		_clear_landing_impact_recovery_state()
+
+	_write_camera_state_vector3(camera_state, "landing_impact_offset", recovered_offset)
+	return recovered_offset
+
+func _clear_landing_impact_recovery_state() -> void:
+	_landing_recovery_dynamics = null
+	_landing_recovery_state_id = 0
+	_landing_recovery_frequency_hz = -1.0
+
+func _resolve_primary_camera_state_component() -> Object:
+	var queries: Array = query_entities([CAMERA_STATE_TYPE])
+	var fallback: Object = null
+	for query_variant in queries:
+		if query_variant == null or not (query_variant is Object):
+			continue
+		var query: Object = query_variant as Object
+		if not query.has_method("get_component"):
+			continue
+		var camera_state_variant: Variant = query.call("get_component", CAMERA_STATE_TYPE)
+		if not (camera_state_variant is Object):
+			continue
+		var camera_state: Object = camera_state_variant as Object
+		if fallback == null:
+			fallback = camera_state
+		if _is_primary_camera_query(query):
+			return camera_state
+	return fallback
+
+func _is_primary_camera_query(query: Object) -> bool:
+	if query.has_method("get_entity_id"):
+		var entity_id: StringName = _variant_to_string_name(query.call("get_entity_id"))
+		if entity_id == PRIMARY_CAMERA_ENTITY_ID:
+			return true
+	if query.has_method("get_tags"):
+		var tags_variant: Variant = query.call("get_tags")
+		if tags_variant is Array:
+			var tags: Array = tags_variant as Array
+			return tags.has(PRIMARY_CAMERA_ENTITY_ID) or tags.has(String(PRIMARY_CAMERA_ENTITY_ID))
+	return false
+
+func _get_camera_state_float(camera_state: Object, property_name: String, fallback: float) -> float:
+	if camera_state == null:
+		return fallback
+	if not _object_has_property(camera_state, property_name):
+		return fallback
+	var value: Variant = camera_state.get(property_name)
+	if value is float or value is int:
+		return float(value)
+	return fallback
+
+func _read_camera_state_vector3(camera_state: Object, property_name: String, fallback: Vector3) -> Vector3:
+	if camera_state == null:
+		return fallback
+	if not _object_has_property(camera_state, property_name):
+		return fallback
+	var value: Variant = camera_state.get(property_name)
+	if value is Vector3:
+		return value as Vector3
+	return fallback
+
+func _write_camera_state_vector3(camera_state: Object, property_name: String, value: Vector3) -> void:
+	if camera_state == null:
+		return
+	if not _object_has_property(camera_state, property_name):
+		return
+	camera_state.set(property_name, value)
+
+func _object_has_property(object_value: Object, property_name: String) -> bool:
+	var properties: Array[Dictionary] = object_value.get_property_list()
+	for property_info in properties:
+		var name_variant: Variant = property_info.get("name", "")
+		if str(name_variant) == property_name:
+			return true
+	return false
+
+func _variant_to_string_name(value: Variant) -> StringName:
+	if value is StringName:
+		return value as StringName
+	if value is String:
+		var text: String = value
+		if text.is_empty():
+			return StringName("")
+		return StringName(text)
+	return StringName("")
 
 func _build_vcam_index() -> Dictionary:
 	var index: Dictionary = {}

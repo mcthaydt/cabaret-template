@@ -41,6 +41,7 @@ const DEFAULT_RULE_DEFINITIONS := [
 	preload("res://resources/qb/camera/cfg_camera_shake_rule.tres"),
 	preload("res://resources/qb/camera/cfg_camera_zone_fov_rule.tres"),
 	preload("res://resources/qb/camera/cfg_camera_speed_fov_rule.tres"),
+	preload("res://resources/qb/camera/cfg_camera_landing_impact_rule.tres"),
 ]
 
 @export var camera_manager: I_CAMERA_MANAGER = null
@@ -168,8 +169,8 @@ func _on_event_received(event_name: StringName, event_data: Dictionary) -> void:
 	_tracker.cleanup_stale_contexts(active_context_keys)
 	_apply_camera_state(contexts, 0.0)
 
-func _evaluate_context(context: Dictionary, trigger_mode: String, _event_name: StringName) -> void:
-	var applicable_rules: Array = _get_applicable_rules(trigger_mode)
+func _evaluate_context(context: Dictionary, trigger_mode: String, event_name: StringName) -> void:
+	var applicable_rules: Array = _get_applicable_rules(trigger_mode, event_name)
 	if applicable_rules.is_empty():
 		return
 
@@ -188,7 +189,7 @@ func _evaluate_context(context: Dictionary, trigger_mode: String, _event_name: S
 	_execute_effects(winners, context)
 	_mark_fired_rules(winners, context)
 
-func _get_applicable_rules(trigger_mode: String) -> Array:
+func _get_applicable_rules(trigger_mode: String, event_name: StringName = StringName()) -> Array:
 	var applicable_rules: Array = []
 	for rule_variant in _active_rules:
 		if rule_variant == null or not (rule_variant is Object):
@@ -203,9 +204,19 @@ func _get_applicable_rules(trigger_mode: String) -> Array:
 		if trigger_mode == TRIGGER_MODE_EVENT:
 			if rule_trigger_mode != TRIGGER_MODE_EVENT and rule_trigger_mode != TRIGGER_MODE_BOTH:
 				continue
+			if event_name != StringName() and not _rule_handles_event(rule_variant, event_name):
+				continue
 			applicable_rules.append(rule_variant)
 
 	return applicable_rules
+
+func _rule_handles_event(rule_variant: Variant, event_name: StringName) -> bool:
+	if event_name == StringName():
+		return true
+	var event_names: Array[StringName] = _extract_event_names_from_rule(rule_variant)
+	if event_names.is_empty():
+		return false
+	return event_names.has(event_name)
 
 func _apply_state_gates(applicable_rules: Array, scored: Array[Dictionary], context: Dictionary) -> Array[Dictionary]:
 	var context_key: StringName = _context_key_for_context(context)

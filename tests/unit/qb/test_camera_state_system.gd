@@ -29,7 +29,7 @@ func test_default_rules_loaded_and_pass_validation() -> void:
 	var valid_rules_variant: Variant = report.get("valid_rules", [])
 	assert_true(valid_rules_variant is Array)
 	var valid_rules: Array = valid_rules_variant as Array
-	assert_eq(valid_rules.size(), 3)
+	assert_eq(valid_rules.size(), 4)
 
 	var rule_ids: Array[StringName] = []
 	for rule_variant in valid_rules:
@@ -39,6 +39,7 @@ func test_default_rules_loaded_and_pass_validation() -> void:
 	assert_true(rule_ids.has(StringName("camera_shake")))
 	assert_true(rule_ids.has(StringName("camera_zone_fov")))
 	assert_true(rule_ids.has(StringName("camera_speed_fov")))
+	assert_true(rule_ids.has(StringName("camera_landing_impact")))
 
 func test_shake_trauma_added_on_entity_death_event() -> void:
 	var fixture: Dictionary = _create_fixture()
@@ -197,6 +198,57 @@ func test_fov_blend_speed_smooths_speed_fov_transition() -> void:
 
 	assert_almost_eq(camera_manager.main_camera.fov, 93.0, 0.001)
 	assert_true(camera_manager.main_camera.fov < 105.0)
+
+func test_landing_event_sets_max_landing_impact_offset() -> void:
+	var fixture: Dictionary = _create_fixture([], [], 90.0)
+	var camera_state: C_CameraStateComponent = fixture.get("camera_state") as C_CameraStateComponent
+	assert_not_null(camera_state)
+
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_ENTITY_LANDED, {
+		"entity_id": StringName("player"),
+		"fall_speed": 30.0,
+	})
+
+	assert_almost_eq(camera_state.landing_impact_offset.x, 0.0, 0.0001)
+	assert_almost_eq(camera_state.landing_impact_offset.y, -0.3, 0.0001)
+	assert_almost_eq(camera_state.landing_impact_offset.z, 0.0, 0.0001)
+
+func test_landing_event_scales_landing_impact_offset_by_fall_speed() -> void:
+	var fixture: Dictionary = _create_fixture([], [], 90.0)
+	var camera_state: C_CameraStateComponent = fixture.get("camera_state") as C_CameraStateComponent
+	assert_not_null(camera_state)
+
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_ENTITY_LANDED, {
+		"entity_id": StringName("player"),
+		"fall_speed": 17.5,
+	})
+
+	assert_almost_eq(camera_state.landing_impact_offset.y, -0.15, 0.0001)
+
+func test_landing_event_below_threshold_resets_landing_impact_offset_to_zero() -> void:
+	var fixture: Dictionary = _create_fixture([], [], 90.0)
+	var camera_state: C_CameraStateComponent = fixture.get("camera_state") as C_CameraStateComponent
+	assert_not_null(camera_state)
+	camera_state.landing_impact_offset = Vector3(0.0, -0.2, 0.0)
+
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_ENTITY_LANDED, {
+		"entity_id": StringName("player"),
+		"fall_speed": 1.0,
+	})
+
+	assert_true(camera_state.landing_impact_offset.is_equal_approx(Vector3.ZERO))
+
+func test_non_landing_event_does_not_change_landing_impact_offset() -> void:
+	var fixture: Dictionary = _create_fixture([], [], 90.0)
+	var camera_state: C_CameraStateComponent = fixture.get("camera_state") as C_CameraStateComponent
+	assert_not_null(camera_state)
+	camera_state.landing_impact_offset = Vector3(0.0, -0.12, 0.0)
+
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_ENTITY_DEATH, {
+		"entity_id": StringName("player"),
+	})
+
+	assert_almost_eq(camera_state.landing_impact_offset.y, -0.12, 0.0001)
 
 func test_baseline_fov_captured_from_authored_camera_on_first_tick() -> void:
 	var fixture: Dictionary = _create_fixture([], [], 82.3)

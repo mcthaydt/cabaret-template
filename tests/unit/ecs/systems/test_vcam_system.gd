@@ -3,6 +3,7 @@ extends BaseTest
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const S_VCAM_SYSTEM := preload("res://scripts/ecs/systems/s_vcam_system.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
@@ -606,6 +607,91 @@ func test_follow_target_change_resets_response_dynamics() -> void:
 
 	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
 
+func test_landing_impact_offset_is_added_to_submitted_position() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LandingImpactTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_landing_offset"), mode, follow_target)
+	_create_camera_state_component(ecs_manager, Vector3(0.0, -0.3, 0.0), 0.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_landing_offset")
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_landing_offset"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	assert_almost_eq(submitted.origin.x, raw_transform.origin.x, 0.0001)
+	assert_almost_eq(submitted.origin.y, raw_transform.origin.y - 0.3, 0.0001)
+	assert_almost_eq(submitted.origin.z, raw_transform.origin.z, 0.0001)
+
+func test_landing_impact_offset_recovers_toward_zero_over_time() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LandingRecoverTarget", Vector3.ZERO)
+	await _create_vcam_component(ecs_manager, StringName("cam_landing_recover"), _new_orbit_mode(), follow_target)
+	var camera_state: C_CameraStateComponent = _create_camera_state_component(
+		ecs_manager,
+		Vector3(0.0, -0.3, 0.0),
+		8.0
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_landing_recover")
+	var initial_y: float = camera_state.landing_impact_offset.y
+	for _i in range(15):
+		ecs_manager._physics_process(0.016)
+
+	assert_true(camera_state.landing_impact_offset.y > initial_y)
+	assert_true(camera_state.landing_impact_offset.y <= 0.0)
+
+func test_landing_impact_recovery_is_critically_damped_without_positive_overshoot() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LandingDampedTarget", Vector3.ZERO)
+	await _create_vcam_component(ecs_manager, StringName("cam_landing_damped"), _new_orbit_mode(), follow_target)
+	var camera_state: C_CameraStateComponent = _create_camera_state_component(
+		ecs_manager,
+		Vector3(0.0, -0.3, 0.0),
+		8.0
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_landing_damped")
+	var max_y: float = -INF
+	for _i in range(180):
+		ecs_manager._physics_process(0.016)
+		max_y = maxf(max_y, camera_state.landing_impact_offset.y)
+
+	assert_true(max_y <= 0.0001)
+	assert_true(camera_state.landing_impact_offset.y > -0.01)
+
+func test_zero_landing_impact_offset_adds_no_extra_position() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LandingZeroTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_landing_zero"), mode, follow_target)
+	_create_camera_state_component(ecs_manager, Vector3.ZERO, 8.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_landing_zero")
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_landing_zero"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
+
 func test_rotation_continuity_orbit_to_first_person_carries_yaw_and_resets_pitch() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -900,6 +986,25 @@ func _create_path_node(parent: Node3D, name: String) -> Path3D:
 	parent.add_child(path)
 	autofree(path)
 	return path
+
+func _create_camera_state_component(
+	ecs_manager: M_ECSManager,
+	landing_impact_offset: Vector3,
+	recovery_speed_hz: float
+) -> C_CameraStateComponent:
+	var camera_entity := BASE_ECS_ENTITY.new()
+	camera_entity.name = "E_Camera"
+	ecs_manager.add_child(camera_entity)
+	autofree(camera_entity)
+
+	var component := C_CAMERA_STATE_COMPONENT.new()
+	component.landing_impact_offset = landing_impact_offset
+	component.landing_impact_recovery_speed = recovery_speed_hz
+	camera_entity.add_child(component)
+	autofree(component)
+	ecs_manager.register_component(component)
+
+	return component
 
 func _create_vcam_component(
 	ecs_manager: M_ECSManager,

@@ -89,6 +89,25 @@ func test_scale_by_rule_score_multiplies_numeric_value() -> void:
 
 	assert_almost_eq(component.get("float_field", -1.0), 4.0, 0.0001)
 
+func test_scale_by_rule_score_multiplies_vector3_value() -> void:
+	var effect: Variant = _make_effect()
+	effect.field_name = StringName("vector3_field")
+	effect.value_type = "vector3"
+	effect.vector3_value = Vector3(0.0, -0.3, 0.0)
+	effect.scale_by_rule_score = true
+	var component: Dictionary = {
+		"vector3_field": Vector3.ZERO
+	}
+	var context: Dictionary = _make_context(component)
+	context["rule_score"] = 0.5
+
+	effect.execute(context)
+
+	var stored: Vector3 = component.get("vector3_field", Vector3.ZERO) as Vector3
+	assert_almost_eq(stored.x, 0.0, 0.0001)
+	assert_almost_eq(stored.y, -0.15, 0.0001)
+	assert_almost_eq(stored.z, 0.0, 0.0001)
+
 func test_missing_component_in_context_is_no_op() -> void:
 	var effect: Variant = _make_effect()
 	effect.float_value = 0.5
@@ -144,3 +163,19 @@ func test_all_value_types_resolve_correctly() -> void:
 	string_name_effect.string_name_value = StringName("player")
 	string_name_effect.execute(context)
 	assert_eq(component.get("string_name_field", StringName()), StringName("player"))
+
+	var vector2_effect: Variant = _make_effect()
+	vector2_effect.field_name = StringName("vector2_field")
+	vector2_effect.value_type = "vector2"
+	vector2_effect.vector2_value = Vector2(1.0, -2.0)
+	component["vector2_field"] = Vector2.ZERO
+	vector2_effect.execute(context)
+	assert_eq(component.get("vector2_field", Vector2.ZERO), Vector2(1.0, -2.0))
+
+	var vector3_effect: Variant = _make_effect()
+	vector3_effect.field_name = StringName("vector3_field")
+	vector3_effect.value_type = "vector3"
+	vector3_effect.vector3_value = Vector3(3.0, -4.0, 5.0)
+	component["vector3_field"] = Vector3.ZERO
+	vector3_effect.execute(context)
+	assert_eq(component.get("vector3_field", Vector3.ZERO), Vector3(3.0, -4.0, 5.0))
