@@ -862,7 +862,7 @@ Before starting Phase 0, verify:
 
 > Subscribes to existing `EVENT_ENTITY_LANDED` (already published by physics with `fall_speed` payload). On landing, a QB rule sets `landing_impact_offset` on `C_CameraStateComponent`. `S_VCamSystem` reads and applies this offset, then recovers via second-order dynamics.
 
-- [ ] **Task 6A3c.1 (Red)**: Write tests for landing impact rule
+- [x] **Task 6A3c.1 (Red)**: Write tests for landing impact rule
   - Add to `tests/unit/qb/test_camera_state_system.gd`
   - Test event rule triggers on `EVENT_ENTITY_LANDED` via `RS_ConditionEventName`
   - Test `RS_ConditionEventPayload` reads `fall_speed` and normalizes to 0.0–1.0 (min=landing_threshold, max=landing_max_speed per existing `RS_ScreenShakeTuning` conventions)
@@ -871,16 +871,18 @@ Before starting Phase 0, verify:
   - Test `landing_impact_offset` is non-zero immediately after landing event
   - Test `landing_impact_offset` recovers toward `Vector3.ZERO` over subsequent ticks (tested in S_VCamSystem)
   - **Target: 5 tests**
+  - Completion note (2026-03-10): Expanded `tests/unit/qb/test_camera_state_system.gd` with landing-rule coverage for event matching, normalized fall-speed scaling, below-threshold reset behavior, and non-landing event isolation.
 
-- [ ] **Task 6A3c.2 (Red)**: Write tests for landing impact recovery in S_VCamSystem
+- [x] **Task 6A3c.2 (Red)**: Write tests for landing impact recovery in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test `landing_impact_offset` is added to evaluated camera position each tick
   - Test when `landing_impact_offset != Vector3.ZERO`: second-order dynamics drive offset back toward zero at `landing_impact_recovery_speed` Hz
   - Test recovery is critically damped (no bouncing — a single smooth dip and return)
   - Test `landing_impact_offset = Vector3.ZERO` produces zero additional offset (no overhead when idle)
   - **Target: 4 tests**
+  - Completion note (2026-03-10): Added 4 `S_VCamSystem` tests for offset application, zero-offset passthrough, critically damped recovery, and per-tick offset writeback toward zero.
 
-- [ ] **Task 6A3c.3 (Green)**: Implement landing impact
+- [x] **Task 6A3c.3 (Green)**: Implement landing impact
   - Create QB rule `.tres`:
     - Create `resources/qb/camera/cfg_camera_landing_impact_rule.tres`
     - Trigger: `event` mode
@@ -894,6 +896,7 @@ Before starting Phase 0, verify:
     - Drive `landing_impact_offset` toward `Vector3.ZERO` via `U_SecondOrderDynamics3D` at `landing_impact_recovery_speed` Hz (critically damped, r=1.0)
     - Write recovered offset back to component each tick
   - All tests should pass
+  - Completion note (2026-03-10): Added `cfg_camera_landing_impact_rule.tres` to camera defaults, extended `RS_EffectSetField` with `vector3` literals + score scaling, event-name prefiltering in `S_CameraStateSystem` event evaluation, and landing-offset apply/recover logic in `S_VCamSystem` using `U_SecondOrderDynamics3D`.
 
   **Existing infrastructure reused:**
   - `EVENT_ENTITY_LANDED` event (already published by physics with `fall_speed` payload)

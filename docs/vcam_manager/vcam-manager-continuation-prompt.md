@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, and 6A3b are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, and QB-driven speed-FOV composition/rule integration). Next implementation target is Phase 6A3c (landing-impact QB/event composition).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, and 6A3c are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, and QB-driven speed-FOV + landing-impact composition/rule integration). Next implementation target is Phase 8 (orbit game-feel pass).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -127,6 +127,12 @@
   - Patched `S_CameraStateSystem._resolve_target_fov()` to compose `base_target + clamp(speed_fov_bonus, 0.0, speed_fov_max_bonus)` and clamp/write back invalid bonus values.
   - Extended QB effect execution with winner-score context and added `RS_EffectSetField` score scaling (`scale_by_rule_score`) so speed-FOV rules can map normalized condition score to authored max bonus.
   - Expanded `tests/unit/qb/test_camera_state_system.gd` with 6 speed-FOV coverage tests and `tests/unit/qb/test_effect_set_field.gd` with score-scaling coverage.
+- Completed Phase 6A3c:
+  - Added `resources/qb/camera/cfg_camera_landing_impact_rule.tres` (`camera_landing_impact`) and registered it in `S_CameraStateSystem.DEFAULT_RULE_DEFINITIONS`.
+  - Extended `RS_EffectSetField` with `vector3` literal support plus rule-score scaling for vector values, enabling score-scaled `landing_impact_offset` writes.
+  - Patched `S_CameraStateSystem` event evaluation to prefilter event rules by subscribed event name before scoring, preventing cross-event side effects when score thresholds allow zero-score winners.
+  - Added landing impact application/recovery in `S_VCamSystem`: reads `C_CameraStateComponent.landing_impact_offset`, applies offset to evaluated transforms, and recovers/writes back toward `Vector3.ZERO` via `U_SecondOrderDynamics3D` at `landing_impact_recovery_speed`.
+  - Expanded tests in `tests/unit/qb/test_camera_state_system.gd`, `tests/unit/ecs/systems/test_vcam_system.gd`, and `tests/unit/qb/test_effect_set_field.gd` for landing-rule scaling and recovery behavior.
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -223,11 +229,16 @@
   - `tests/unit/qb/test_effect_set_field.gd` (`-gselect=test_effect_set_field`, 7/7 passing)
   - `tests/unit/qb/test_camera_state_system.gd` (`-gselect=test_camera_state_system`, 16/16 passing)
   - `tests/unit/style/test_style_enforcement.gd` (`-gselect=test_style_enforcement`, 13/13 passing)
+- Validation run (green, Phase 6A3c):
+  - `tests/unit/qb/test_effect_set_field.gd` (`-gselect=test_effect_set_field`, 8/8 passing)
+  - `tests/unit/qb/test_camera_state_system.gd` (`-gselect=test_camera_state_system`, 20/20 passing)
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`-gselect=test_vcam_system`, 35/35 passing)
+  - `tests/unit/style/test_style_enforcement.gd` (`-gselect=test_style_enforcement`, 13/13 passing)
 
 ## What Changed In The Docs
 
 - Runtime wiring is now explicit: `M_VCamManager` belongs in `scenes/root.tscn`, and `S_VCamSystem` belongs in gameplay system trees.
-- vCam top-level docs are now status-aligned: overview/PRD/task index/continuation now mark Phases 2A-5 plus 6A/6B/6A2/6A.3/6A3a/6A3b complete, with Phase 6A3c as next.
+- vCam top-level docs are now status-aligned: overview/PRD/task index/continuation now mark Phases 2A-5 plus 6A/6B/6A2/6A.3/6A3a/6A3b/6A3c complete, with Phase 8 as next.
 - `S_VCamSystem` baseline contract is now implementation-backed: manager resolution, target resolution fallback order, blend-aware active/outgoing evaluation, and same-frame submission are in code/tests.
 - `S_VCamSystem` response-smoothing contract is now implementation-backed: `RS_VCamResponse` drives position/rotation second-order smoothing, response-null passthrough keeps backward compatibility, and mode/target/response transitions reset or recreate smoothing state deterministically.
 - `S_VCamSystem` rotation-continuity contract is now implementation-backed: active-vCam switches apply transition-aware carry/reset/reseed of `runtime_yaw`/`runtime_pitch`, with same-target carry in same-mode transitions and authored-angle reseed when targets differ.
@@ -332,7 +343,7 @@
 
 ## Next Steps
 
-1. Continue base-camera Phase 6A3c (landing-impact composition via QB/event flow) before orbit/fps game-feel follow-on passes.
+1. Start Phase 8 from `docs/vcam_manager/vcam-base-tasks.md` (orbit game-feel pass: tuned rotation damping/yaw recenter behavior, authoring fields, and validation coverage).
 2. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
 3. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
 4. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.

@@ -193,6 +193,9 @@
   - **Fix pattern**: read FOV-zone state through `U_VCamSelectors.is_in_fov_zone(state)` and seed tests via `set_slice(StringName("vcam"), {"in_fov_zone": ...})`.
 - **Speed-FOV rules can leave stale bonus when score hits 0 if thresholding skips the winner**: `U_RuleScorer` drops rules when `score <= score_threshold`; with default `score_threshold = 0.0`, stationary speed produces no winner and `speed_fov_bonus` can stick from the previous frame.
   - **Fix pattern**: for continuous speed breathing, either set `score_threshold` below zero (current `cfg_camera_speed_fov_rule.tres` uses `-1.0`) so score `0.0` still executes and writes zero, or add an explicit reset rule.
+- **Event-mode camera rules can cross-fire on unrelated events when zero-score winners are allowed**: If a rule uses `trigger_mode = "event"` with `score_threshold < 0.0`, it can still win with score `0.0`; without event-name prefiltering, unrelated events (for example `entity_death`) can execute effects authored for another event (for example landing-impact offset).
+  - **Fix pattern**: in `S_CameraStateSystem`, prefilter event rules by subscribed event name before scoring/selection (via `RS_ConditionEventName` extraction), then run winner selection on only matching rules.
+  - **Regression check**: keep a test that publishes a non-landing event and asserts `landing_impact_offset` is unchanged.
 
 ## vCam Orbit Evaluator Pitfalls
 
