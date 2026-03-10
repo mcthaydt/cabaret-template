@@ -28,6 +28,10 @@ const EVENT_OBJECTIVE_VICTORY_TRIGGERED := StringName("objective_victory_trigger
 const EVENT_DIRECTIVE_STARTED := StringName("directive_started")
 const EVENT_DIRECTIVE_COMPLETED := StringName("directive_completed")
 const EVENT_BEAT_ADVANCED := StringName("beat_advanced")
+const EVENT_VCAM_ACTIVE_CHANGED := StringName("vcam_active_changed")
+const EVENT_VCAM_BLEND_STARTED := StringName("vcam_blend_started")
+const EVENT_VCAM_BLEND_COMPLETED := StringName("vcam_blend_completed")
+const EVENT_VCAM_RECOVERY := StringName("vcam_recovery")
 
 # Service Names
 const SERVICE_VFX_MANAGER := StringName("vfx_manager")
