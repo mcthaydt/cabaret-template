@@ -6,7 +6,7 @@
 script = ExtResource("1_j0vk8")
 follow_frequency = 1.86
 follow_damping = 0.85
-rotation_frequency = 3.99
+rotation_frequency = 4.8
 rotation_damping = 0.9
 look_ahead_distance = 0.22
 look_ahead_smoothing = 1.77

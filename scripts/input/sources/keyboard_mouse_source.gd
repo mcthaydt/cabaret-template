@@ -97,7 +97,8 @@ func capture_input(_delta: float) -> Dictionary:
 	return result
 
 func set_mouse_delta(delta: Vector2) -> void:
-	_mouse_delta = delta
+	# Accumulate all mouse motion events between capture ticks.
+	_mouse_delta += delta
 
 func set_sensitivity(sensitivity: float) -> void:
 	_mouse_sensitivity = clampf(sensitivity, 0.0, 20.0)
