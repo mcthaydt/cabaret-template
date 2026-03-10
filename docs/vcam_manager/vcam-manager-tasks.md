@@ -1,11 +1,11 @@
 # vCam Manager — Task Index
 
-**Progress:** 5 / 5 documentation tasks complete; Phases 0A + 0A2 + 0B + 0C + 0D + 0E + 0F + 1A + 1B + 1C + 1D + 1E + 1F + 2A + 2B + 3A + 3B + 4A + 4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + 2C1 + 2C2 + 2C3 + 2C4 + 2C5 + Orbit UX improvement follow-up pass complete; next implementation target is mobile drag-look/touch gating prerequisite work, then Phase 9 FPS feel.
+**Progress:** 5 / 5 documentation tasks complete; Phases 0A + 0A2 + 0B + 0C + 0D + 0E + 0F + 1A + 1B + 1C + 1D + 1E + 1F + 2A + 2B + 3A + 3B + 4A + 4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + 2C1 + 2C2 + 2C3 + 2C4 + 2C5 + Orbit UX improvement follow-up pass + Movement-Style Camera Smoothing follow-up pass complete; next implementation target is mobile drag-look/touch gating prerequisite work, then Phase 9 FPS feel.
 **Estimated Test Count:** ~440 checks (about 360 automated tests + 80 manual checks including game-feel QA)
 **Status note:** Strict TDD (Red/Green/Refactor). Each camera mode has a dedicated phase. Mobile drag-look is a hard prerequisite for orbit/first-person completion.
 **Manual QA cadence:** Manual checks are embedded in the relevant implementation phases (no standalone manual-testing phase).
 **Quality gaps addressed:** Orientation continuity, blend interruption, invalid-target recovery, occlusion anti-flicker, performance budget, observability expansion, open-question resolution, cross-mode feel QA, **second-order dynamics for natural camera motion**, **ECS event bus integration**, **QB rule context enrichment**, **entity-based target resolution**, **mode-specific game feel (orbit: look-ahead/auto-level/soft zone; FP: strafe tilt/head bob/landing dip)**.
-**Latest completion note (March 10, 2026):** Orbit UX follow-up pass added missing interior/exterior `S_VCamSystem` scene wiring, active-vCam `fov` to `C_CameraStateComponent.base_fov` runtime sync (with clamp/no-op guards), balanced default orbit/response/soft-zone retuning, and updated reducer/test coverage for new gamepad look defaults.
+**Latest completion note (March 10, 2026):** Movement-Style Camera Smoothing follow-up pass moved orbit/first-person evaluator rotation inputs to per-vCam spring-damper look smoothing (while keeping `runtime_yaw`/`runtime_pitch` as raw targets), reset look momentum on mode/target/response changes, kept fixed-mode rotation smoothing unchanged, and added `test_vcam_system` coverage for raw-runtime contract, first-frame smoothing, convergence, reset behavior, and null-response passthrough (`62/62` passing; style `15/15` passing).
 
 ---
 

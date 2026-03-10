@@ -746,6 +746,7 @@ Before starting Phase 0, verify:
   - If `response` is null, pass evaluator output through directly (zero overhead, backward compatible)
   - All tests should pass
   - Completion note (2026-03-10): `S_VCamSystem` now applies `RS_VCamResponse`-driven second-order smoothing (position + per-axis rotation), recreates dynamics on response changes, resets dynamics on mode/follow-target changes, unwraps Euler targets for rotation continuity in smoothing space, and passes raw evaluator output through when `response` is null.
+  - Follow-up addendum (2026-03-10): orbit/first-person look now uses dedicated movement-style spring-damper smoothing at evaluator input time while `runtime_yaw`/`runtime_pitch` remain raw targets; fixed-mode rotation smoothing remains on the existing response path to avoid double-softness.
 
   **Integration pattern:**
 
