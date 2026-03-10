@@ -296,11 +296,13 @@ translations = {
 "settings.touchscreen.tooltip.preview": "Pré-visualiza as configurações touch atuais.",
 "settings.vfx.button.reset_defaults": "Redefinir para Padrões",
 "settings.vfx.label.damage_flash": "Flash de Dano",
+"settings.vfx.label.occlusion_silhouette": "Silhueta por Oclusão",
 "settings.vfx.label.particles": "Partículas",
 "settings.vfx.label.screen_shake": "Tremor de Tela",
 "settings.vfx.label.shake_intensity": "Intensidade do Tremor",
 "settings.vfx.title": "Config. de Efeitos Visuais",
 "settings.vfx.tooltip.damage_flash": "Pisca a tela ao receber dano.",
+"settings.vfx.tooltip.occlusion_silhouette": "Exibe a silhueta do personagem quando estiver oculto.",
 "settings.vfx.tooltip.particles": "Exibe efeitos de partículas.",
 "settings.vfx.tooltip.screen_shake": "Ativa o feedback de tremor da câmera.",
 "settings.vfx.tooltip.shake_intensity": "Ajusta a intensidade do tremor da câmera."

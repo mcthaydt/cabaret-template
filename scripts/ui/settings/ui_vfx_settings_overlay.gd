@@ -16,12 +16,14 @@ const LABEL_SCREEN_SHAKE_KEY := &"settings.vfx.label.screen_shake"
 const LABEL_SHAKE_INTENSITY_KEY := &"settings.vfx.label.shake_intensity"
 const LABEL_DAMAGE_FLASH_KEY := &"settings.vfx.label.damage_flash"
 const LABEL_PARTICLES_KEY := &"settings.vfx.label.particles"
+const LABEL_OCCLUSION_SILHOUETTE_KEY := &"settings.vfx.label.occlusion_silhouette"
 const BUTTON_RESET_DEFAULTS_KEY := &"settings.vfx.button.reset_defaults"
 
 const TOOLTIP_SCREEN_SHAKE_KEY := &"settings.vfx.tooltip.screen_shake"
 const TOOLTIP_SHAKE_INTENSITY_KEY := &"settings.vfx.tooltip.shake_intensity"
 const TOOLTIP_DAMAGE_FLASH_KEY := &"settings.vfx.tooltip.damage_flash"
 const TOOLTIP_PARTICLES_KEY := &"settings.vfx.tooltip.particles"
+const TOOLTIP_OCCLUSION_SILHOUETTE_KEY := &"settings.vfx.tooltip.occlusion_silhouette"
 
 @onready var _main_panel: PanelContainer = $CenterContainer/Panel
 @onready var _main_panel_content: VBoxContainer = $CenterContainer/Panel/VBox
@@ -34,12 +36,15 @@ const TOOLTIP_PARTICLES_KEY := &"settings.vfx.tooltip.particles"
 @onready var _flash_enabled_label: Label = $CenterContainer/Panel/VBox/FlashEnabledRow/FlashEnabledLabel
 @onready var _particles_enabled_row: HBoxContainer = $CenterContainer/Panel/VBox/ParticlesEnabledRow
 @onready var _particles_enabled_label: Label = $CenterContainer/Panel/VBox/ParticlesEnabledRow/ParticlesEnabledLabel
+@onready var _silhouette_enabled_row: HBoxContainer = $CenterContainer/Panel/VBox/SilhouetteEnabledRow
+@onready var _silhouette_enabled_label: Label = $CenterContainer/Panel/VBox/SilhouetteEnabledRow/SilhouetteEnabledLabel
 @onready var _button_row: HBoxContainer = $CenterContainer/Panel/VBox/ButtonRow
 @onready var _shake_enabled_toggle: CheckButton = %ShakeEnabledToggle
 @onready var _intensity_slider: HSlider = %IntensitySlider
 @onready var _intensity_percentage: Label = %IntensityPercentage
 @onready var _flash_enabled_toggle: CheckButton = %FlashEnabledToggle
 @onready var _particles_enabled_toggle: CheckButton = %ParticlesEnabledToggle
+@onready var _silhouette_enabled_toggle: CheckButton = %SilhouetteEnabledToggle
 @onready var _apply_button: Button = %ApplyButton
 @onready var _cancel_button: Button = %CancelButton
 @onready var _reset_button: Button = %ResetButton
@@ -96,6 +101,7 @@ func _apply_theme_tokens() -> void:
 		_shake_intensity_row,
 		_flash_enabled_row,
 		_particles_enabled_row,
+		_silhouette_enabled_row,
 		_button_row,
 	]
 	for row in compact_rows:
@@ -112,12 +118,16 @@ func _apply_theme_tokens() -> void:
 		_flash_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
 	if _particles_enabled_label != null:
 		_particles_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _silhouette_enabled_label != null:
+		_silhouette_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
 	if _shake_enabled_toggle != null:
 		_shake_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
 	if _flash_enabled_toggle != null:
 		_flash_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
 	if _particles_enabled_toggle != null:
 		_particles_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
+	if _silhouette_enabled_toggle != null:
+		_silhouette_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
 	if _intensity_percentage != null:
 		_intensity_percentage.add_theme_font_size_override(&"font_size", config.body_small)
 		_intensity_percentage.add_theme_color_override(&"font_color", config.text_secondary)
@@ -138,6 +148,8 @@ func _configure_focus_neighbors() -> void:
 		vertical_controls.append(_flash_enabled_toggle)
 	if _particles_enabled_toggle != null:
 		vertical_controls.append(_particles_enabled_toggle)
+	if _silhouette_enabled_toggle != null:
+		vertical_controls.append(_silhouette_enabled_toggle)
 
 	if not vertical_controls.is_empty():
 		U_FocusConfigurator.configure_vertical_focus(vertical_controls, false)
@@ -176,6 +188,8 @@ func _connect_control_signals() -> void:
 		_flash_enabled_toggle.toggled.connect(_on_flash_enabled_toggled)
 	if _particles_enabled_toggle != null and not _particles_enabled_toggle.toggled.is_connected(_on_particles_enabled_toggled):
 		_particles_enabled_toggle.toggled.connect(_on_particles_enabled_toggled)
+	if _silhouette_enabled_toggle != null and not _silhouette_enabled_toggle.toggled.is_connected(_on_silhouette_enabled_toggled):
+		_silhouette_enabled_toggle.toggled.connect(_on_silhouette_enabled_toggled)
 	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
 		_apply_button.pressed.connect(_on_apply_pressed)
 	if _cancel_button != null and not _cancel_button.pressed.is_connected(_on_cancel_pressed):
@@ -203,6 +217,11 @@ func _configure_tooltips() -> void:
 		_particles_enabled_toggle.tooltip_text = _localize_with_fallback(
 			TOOLTIP_PARTICLES_KEY,
 			"Shows particle effects."
+		)
+	if _silhouette_enabled_toggle != null:
+		_silhouette_enabled_toggle.tooltip_text = _localize_with_fallback(
+			TOOLTIP_OCCLUSION_SILHOUETTE_KEY,
+			"Shows character silhouettes when occluded."
 		)
 
 func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
@@ -234,6 +253,8 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 
 	if _particles_enabled_toggle != null:
 		_particles_enabled_toggle.button_pressed = U_VFXSelectors.is_particles_enabled(state)
+	if _silhouette_enabled_toggle != null:
+		_silhouette_enabled_toggle.button_pressed = U_VFXSelectors.is_occlusion_silhouette_enabled(state)
 
 	_updating_from_state = false
 
@@ -268,6 +289,12 @@ func _on_particles_enabled_toggled(_pressed: bool) -> void:
 		return
 	_has_local_edits = true
 
+func _on_silhouette_enabled_toggled(_pressed: bool) -> void:
+	# Changes only apply when user clicks Apply button
+	if _updating_from_state:
+		return
+	_has_local_edits = true
+
 func _on_apply_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	var store := get_store()
@@ -281,12 +308,14 @@ func _on_apply_pressed() -> void:
 	var shake_intensity := _intensity_slider.value
 	var flash_enabled := _flash_enabled_toggle.button_pressed
 	var particles_enabled := _particles_enabled_toggle.button_pressed
+	var silhouette_enabled := _silhouette_enabled_toggle.button_pressed
 
 	_has_local_edits = false
 	store.dispatch(U_VFXActions.set_screen_shake_enabled(shake_enabled))
 	store.dispatch(U_VFXActions.set_screen_shake_intensity(shake_intensity))
 	store.dispatch(U_VFXActions.set_damage_flash_enabled(flash_enabled))
 	store.dispatch(U_VFXActions.set_particles_enabled(particles_enabled))
+	store.dispatch(U_VFXActions.set_occlusion_silhouette_enabled(silhouette_enabled))
 	_close_overlay()
 
 func _on_reset_pressed() -> void:
@@ -297,6 +326,7 @@ func _on_reset_pressed() -> void:
 	_intensity_slider.value = defaults.screen_shake_intensity
 	_flash_enabled_toggle.button_pressed = defaults.damage_flash_enabled
 	_particles_enabled_toggle.button_pressed = defaults.particles_enabled
+	_silhouette_enabled_toggle.button_pressed = defaults.occlusion_silhouette_enabled
 
 	_update_percentage_label(_intensity_slider.value)
 	_update_vfx_settings_preview_from_ui()
@@ -309,6 +339,7 @@ func _on_reset_pressed() -> void:
 		store.dispatch(U_VFXActions.set_screen_shake_intensity(defaults.screen_shake_intensity))
 		store.dispatch(U_VFXActions.set_damage_flash_enabled(defaults.damage_flash_enabled))
 		store.dispatch(U_VFXActions.set_particles_enabled(defaults.particles_enabled))
+		store.dispatch(U_VFXActions.set_occlusion_silhouette_enabled(defaults.occlusion_silhouette_enabled))
 
 func _close_overlay() -> void:
 	_clear_vfx_settings_preview()
@@ -346,6 +377,7 @@ func _update_vfx_settings_preview_from_ui() -> void:
 		"screen_shake_enabled": _shake_enabled_toggle.button_pressed if _shake_enabled_toggle != null else true,
 		"screen_shake_intensity": _intensity_slider.value if _intensity_slider != null else 1.0,
 		"damage_flash_enabled": _flash_enabled_toggle.button_pressed if _flash_enabled_toggle != null else true,
+		"occlusion_silhouette_enabled": _silhouette_enabled_toggle.button_pressed if _silhouette_enabled_toggle != null else true,
 	})
 
 func _clear_vfx_settings_preview() -> void:
@@ -372,6 +404,11 @@ func _localize_labels() -> void:
 		_flash_enabled_label.text = _localize_with_fallback(LABEL_DAMAGE_FLASH_KEY, "Damage Flash")
 	if _particles_enabled_label != null:
 		_particles_enabled_label.text = _localize_with_fallback(LABEL_PARTICLES_KEY, "Particles")
+	if _silhouette_enabled_label != null:
+		_silhouette_enabled_label.text = _localize_with_fallback(
+			LABEL_OCCLUSION_SILHOUETTE_KEY,
+			"Occlusion Silhouette"
+		)
 
 	if _apply_button != null:
 		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")

@@ -295,11 +295,13 @@ translations = {
 "settings.touchscreen.tooltip.preview": "Preview current touchscreen control settings.",
 "settings.vfx.button.reset_defaults": "Reset to Defaults",
 "settings.vfx.label.damage_flash": "Damage Flash",
+"settings.vfx.label.occlusion_silhouette": "Occlusion Silhouette",
 "settings.vfx.label.particles": "Particles",
 "settings.vfx.label.screen_shake": "Screen Shake",
 "settings.vfx.label.shake_intensity": "Shake Intensity",
 "settings.vfx.title": "Visual Effects Settings",
 "settings.vfx.tooltip.damage_flash": "Flashes the screen when taking damage.",
+"settings.vfx.tooltip.occlusion_silhouette": "Shows character silhouettes when occluded.",
 "settings.vfx.tooltip.particles": "Shows particle effects.",
 "settings.vfx.tooltip.screen_shake": "Enables camera shake feedback.",
 "settings.vfx.tooltip.shake_intensity": "Adjusts camera shake strength."

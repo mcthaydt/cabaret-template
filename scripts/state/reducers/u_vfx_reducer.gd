@@ -12,6 +12,7 @@ const DEFAULT_VFX_STATE := {
 	"screen_shake_intensity": 1.0,
 	"damage_flash_enabled": true,
 	"particles_enabled": true,
+	"occlusion_silhouette_enabled": true,
 }
 
 const MIN_INTENSITY := 0.0
@@ -45,6 +46,11 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var payload: Dictionary = action.get("payload", {})
 			var enabled := bool(payload.get("enabled", true))
 			return _with_values(current, {"particles_enabled": enabled})
+
+		U_VFXActions.ACTION_SET_OCCLUSION_SILHOUETTE_ENABLED:
+			var payload: Dictionary = action.get("payload", {})
+			var enabled := bool(payload.get("enabled", true))
+			return _with_values(current, {"occlusion_silhouette_enabled": enabled})
 
 		_:
 			return null

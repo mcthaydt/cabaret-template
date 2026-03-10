@@ -296,11 +296,13 @@ translations = {
 "settings.touchscreen.tooltip.preview": "現在のタッチ操作設定をプレビューします。",
 "settings.vfx.button.reset_defaults": "デフォルトにリセット",
 "settings.vfx.label.damage_flash": "被ダメージフラッシュ",
+"settings.vfx.label.occlusion_silhouette": "遮蔽シルエット",
 "settings.vfx.label.particles": "パーティクル",
 "settings.vfx.label.screen_shake": "画面揺れ",
 "settings.vfx.label.shake_intensity": "揺れの強さ",
 "settings.vfx.title": "視覚効果設定",
 "settings.vfx.tooltip.damage_flash": "ダメージを受けたときに画面をフラッシュ表示します。",
+"settings.vfx.tooltip.occlusion_silhouette": "遮蔽物の背後にいるときにキャラクターのシルエットを表示します。",
 "settings.vfx.tooltip.particles": "パーティクル効果を表示します。",
 "settings.vfx.tooltip.screen_shake": "カメラ揺れの演出を有効にします。",
 "settings.vfx.tooltip.shake_intensity": "カメラ揺れの強さを調整します。"

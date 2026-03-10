@@ -296,11 +296,13 @@ translations = {
 "settings.touchscreen.tooltip.preview": "Vista previa de la configuración táctil actual.",
 "settings.vfx.button.reset_defaults": "Restablecer Predeterminados",
 "settings.vfx.label.damage_flash": "Destello de Daño",
+"settings.vfx.label.occlusion_silhouette": "Silueta por Oclusión",
 "settings.vfx.label.particles": "Partículas",
 "settings.vfx.label.screen_shake": "Sacudida de Pantalla",
 "settings.vfx.label.shake_intensity": "Intensidad de Sacudida",
 "settings.vfx.title": "Ajustes de Efectos Visuales",
 "settings.vfx.tooltip.damage_flash": "Hace parpadear la pantalla al recibir daño.",
+"settings.vfx.tooltip.occlusion_silhouette": "Muestra la silueta del personaje cuando queda oculto.",
 "settings.vfx.tooltip.particles": "Muestra efectos de partículas.",
 "settings.vfx.tooltip.screen_shake": "Activa la retroalimentación de sacudida de cámara.",
 "settings.vfx.tooltip.shake_intensity": "Ajusta la intensidad de la sacudida de cámara."

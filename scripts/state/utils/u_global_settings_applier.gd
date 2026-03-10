@@ -101,6 +101,12 @@ static func _apply_vfx(store: I_StateStore, vfx: Dictionary) -> void:
 		store.dispatch(U_VFX_ACTIONS.set_damage_flash_enabled(bool(vfx.get("damage_flash_enabled", true))))
 	if vfx.has("particles_enabled"):
 		store.dispatch(U_VFX_ACTIONS.set_particles_enabled(bool(vfx.get("particles_enabled", true))))
+	if vfx.has("occlusion_silhouette_enabled"):
+		store.dispatch(
+			U_VFX_ACTIONS.set_occlusion_silhouette_enabled(
+				bool(vfx.get("occlusion_silhouette_enabled", true))
+			)
+		)
 
 static func _apply_localization(store: I_StateStore, settings: Dictionary) -> void:
 	if settings.has("current_locale"):

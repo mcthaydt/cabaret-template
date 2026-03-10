@@ -11,12 +11,14 @@ const ACTION_SET_SCREEN_SHAKE_ENABLED := StringName("vfx/set_screen_shake_enable
 const ACTION_SET_SCREEN_SHAKE_INTENSITY := StringName("vfx/set_screen_shake_intensity")
 const ACTION_SET_DAMAGE_FLASH_ENABLED := StringName("vfx/set_damage_flash_enabled")
 const ACTION_SET_PARTICLES_ENABLED := StringName("vfx/set_particles_enabled")
+const ACTION_SET_OCCLUSION_SILHOUETTE_ENABLED := StringName("vfx/set_occlusion_silhouette_enabled")
 
 static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_SCREEN_SHAKE_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_SCREEN_SHAKE_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_DAMAGE_FLASH_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_PARTICLES_ENABLED)
+	U_ActionRegistry.register_action(ACTION_SET_OCCLUSION_SILHOUETTE_ENABLED)
 
 ## Enable or disable screen shake effect
 static func set_screen_shake_enabled(enabled: bool) -> Dictionary:
@@ -52,6 +54,16 @@ static func set_damage_flash_enabled(enabled: bool) -> Dictionary:
 static func set_particles_enabled(enabled: bool) -> Dictionary:
 	return {
 		"type": ACTION_SET_PARTICLES_ENABLED,
+		"payload": {
+			"enabled": enabled
+		},
+		"immediate": true
+	}
+
+## Enable or disable occlusion silhouette rendering
+static func set_occlusion_silhouette_enabled(enabled: bool) -> Dictionary:
+	return {
+		"type": ACTION_SET_OCCLUSION_SILHOUETTE_ENABLED,
 		"payload": {
 			"enabled": enabled
 		},
