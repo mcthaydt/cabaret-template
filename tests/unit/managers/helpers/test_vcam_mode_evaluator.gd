@@ -2,9 +2,13 @@ extends GutTest
 
 const EVALUATOR_SCRIPT := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 const MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
+const FIRST_PERSON_MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
 
 func _new_mode() -> Resource:
 	return MODE_SCRIPT.new()
+
+func _new_first_person_mode() -> Resource:
+	return FIRST_PERSON_MODE_SCRIPT.new()
 
 func _new_follow_target(position: Vector3 = Vector3.ZERO) -> Node3D:
 	var follow_target := Node3D.new()
@@ -130,5 +134,118 @@ func test_orbit_returns_empty_result_when_mode_is_null() -> void:
 	var follow_target: Node3D = _new_follow_target()
 
 	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(null, follow_target, null, 0.0, 0.0)
+
+	assert_eq(result.size(), 0)
+
+func test_first_person_returns_transform() -> void:
+	var follow_target: Node3D = _new_follow_target(Vector3(5.0, 0.0, 10.0))
+	var mode: Resource = _new_first_person_mode()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+
+	assert_true(result.has("transform"))
+	var transform_value: Variant = result.get("transform")
+	assert_true(transform_value is Transform3D)
+
+func test_first_person_returns_fov_from_mode() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_first_person_mode()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+
+	assert_almost_eq(float(result.get("fov", 0.0)), 75.0, 0.0001)
+
+func test_first_person_returns_mode_name() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_first_person_mode()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+
+	assert_eq(String(result.get("mode_name", "")), "first_person")
+
+func test_first_person_position_uses_head_offset() -> void:
+	var follow_target: Node3D = _new_follow_target(Vector3(5.0, 0.0, 10.0))
+	var mode: Resource = _new_first_person_mode()
+	mode.set("head_offset", Vector3(0.0, 1.7, 0.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	assert_almost_eq(camera_transform.origin.x, 5.0, 0.001)
+	assert_almost_eq(camera_transform.origin.y, 1.7, 0.001)
+	assert_almost_eq(camera_transform.origin.z, 10.0, 0.001)
+
+func test_first_person_applies_runtime_yaw_rotation() -> void:
+	var follow_target: Node3D = _new_follow_target(Vector3(5.0, 0.0, 10.0))
+	var mode: Resource = _new_first_person_mode()
+	mode.set("head_offset", Vector3(0.0, 1.7, 0.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 90.0, 0.0)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var forward: Vector3 = -camera_transform.basis.z.normalized()
+	var expected_forward: Vector3 = (Basis.IDENTITY.rotated(Vector3.UP, deg_to_rad(90.0)) * Vector3(0.0, 0.0, -1.0)).normalized()
+
+	assert_almost_eq(forward.dot(expected_forward), 1.0, 0.001)
+	assert_almost_eq(camera_transform.origin.x, 5.0, 0.001)
+	assert_almost_eq(camera_transform.origin.y, 1.7, 0.001)
+	assert_almost_eq(camera_transform.origin.z, 10.0, 0.001)
+
+func test_first_person_applies_runtime_pitch_rotation() -> void:
+	var follow_target: Node3D = _new_follow_target(Vector3(5.0, 0.0, 10.0))
+	var mode: Resource = _new_first_person_mode()
+	mode.set("head_offset", Vector3(0.0, 1.7, 0.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, -30.0)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var forward: Vector3 = -camera_transform.basis.z.normalized()
+
+	assert_almost_eq(forward.y, -0.5, 0.001)
+	assert_almost_eq(camera_transform.origin.x, 5.0, 0.001)
+	assert_almost_eq(camera_transform.origin.y, 1.7, 0.001)
+	assert_almost_eq(camera_transform.origin.z, 10.0, 0.001)
+
+func test_first_person_clamps_pitch_to_minimum() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_first_person_mode()
+	mode.set("pitch_min", -89.0)
+	mode.set("pitch_max", 89.0)
+
+	var clamped_result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, -100.0)
+	var boundary_result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, -89.0)
+	var clamped_transform: Transform3D = clamped_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var boundary_transform: Transform3D = boundary_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var clamped_forward: Vector3 = -clamped_transform.basis.z.normalized()
+	var boundary_forward: Vector3 = -boundary_transform.basis.z.normalized()
+
+	assert_almost_eq(clamped_forward.dot(boundary_forward), 1.0, 0.001)
+
+func test_first_person_pitch_at_min_boundary_is_stable() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_first_person_mode()
+	mode.set("pitch_min", -89.0)
+	mode.set("pitch_max", 89.0)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, -89.0)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var forward: Vector3 = -camera_transform.basis.z.normalized()
+
+	assert_almost_eq(forward.y, -sin(deg_to_rad(89.0)), 0.001)
+
+func test_first_person_pitch_at_max_boundary_is_stable() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_first_person_mode()
+	mode.set("pitch_min", -89.0)
+	mode.set("pitch_max", 89.0)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 89.0)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var forward: Vector3 = -camera_transform.basis.z.normalized()
+
+	assert_almost_eq(forward.y, sin(deg_to_rad(89.0)), 0.001)
+
+func test_first_person_returns_empty_result_when_follow_target_is_null() -> void:
+	var mode: Resource = _new_first_person_mode()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, null, null, 0.0, 0.0)
 
 	assert_eq(result.size(), 0)

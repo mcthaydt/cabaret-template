@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RS_VCamModeFirstPerson" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd" id="1_7n0w2"]
+
+[resource]
+script = ExtResource("1_7n0w2")
+head_offset = Vector3(0, 1.7, 0)
+look_multiplier = 1.0
+pitch_min = -89.0
+pitch_max = 89.0
+fov = 75.0
