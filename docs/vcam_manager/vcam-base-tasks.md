@@ -720,7 +720,7 @@ Before starting Phase 0, verify:
 
 > **Why:** The evaluator computes instantaneous "ideal" poses (where the camera *should* be). Without smoothing, the camera teleports to the ideal pose every frame. Second-order dynamics make the camera *pursue* the ideal pose with physically plausible motion — slight overshoot on fast follow, smooth settling, no robotic snapping.
 
-- [ ] **Task 6A2.1 (Red)**: Write tests for second-order dynamics camera smoothing
+- [x] **Task 6A2.1 (Red)**: Write tests for second-order dynamics camera smoothing
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test with `RS_VCamResponse` assigned: submitted position does NOT match raw evaluator position on first frame after target moves (smoothing active)
   - Test with `RS_VCamResponse` assigned: submitted position converges toward evaluator position over multiple ticks
@@ -731,8 +731,9 @@ Before starting Phase 0, verify:
   - Test `reset()` called on mode switch: dynamics snap to new evaluator pose (no residual momentum from previous mode)
   - Test dynamics reset on follow target change (new target = fresh dynamics, no lerp from old target position)
   - **Target: 8 tests**
+  - Completion note (2026-03-10): Added 8 Phase 6A2 tests to `tests/unit/ecs/systems/test_vcam_system.gd` covering active smoothing, convergence, damping behavior (under/critical), null-response passthrough, rotation convergence, and reset-on-mode/target change semantics.
 
-- [ ] **Task 6A2.2 (Green)**: Implement second-order dynamics in S_VCamSystem
+- [x] **Task 6A2.2 (Green)**: Implement second-order dynamics in S_VCamSystem
   - Per active vCam, maintain `U_SecondOrderDynamics3D` for position and `U_SecondOrderDynamics` for each Euler component of rotation
   - On each `process_tick(delta)`:
     1. Evaluate ideal pose via `U_VCamModeEvaluator` (unchanged)
@@ -744,6 +745,7 @@ Before starting Phase 0, verify:
     - On `response` resource change: recreate dynamics with new parameters
   - If `response` is null, pass evaluator output through directly (zero overhead, backward compatible)
   - All tests should pass
+  - Completion note (2026-03-10): `S_VCamSystem` now applies `RS_VCamResponse`-driven second-order smoothing (position + per-axis rotation), recreates dynamics on response changes, resets dynamics on mode/follow-target changes, unwraps Euler targets for rotation continuity in smoothing space, and passes raw evaluator output through when `response` is null.
 
   **Integration pattern:**
 

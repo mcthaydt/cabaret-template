@@ -983,6 +983,9 @@
 
 - **Touch look ownership must stay in `S_TouchscreenSystem`**: `gameplay.look_input` is shared across devices. If `S_InputSystem` keeps dispatching zero touchscreen payloads while touchscreen is active, it clobbers drag-look and breaks mobile orbit/first-person camera control.
 
+- **Second-order rotation smoothing needs angle unwrapping and deterministic reset boundaries**: Smoothing Euler angles directly from `Basis.get_euler()` without unwrapping can pick the long path across `-PI/PI`, causing sudden spins. Reusing smoothing state across mode switches or follow-target changes can also drag stale momentum into a new camera context.
+  - **Fix pattern**: unwrap each target axis against the previous target angle before stepping rotation dynamics, recreate dynamics when response tuning changes, and `reset()` dynamics on mode/follow-target transitions so first frame after a context switch snaps to the new evaluated pose.
+
 ## UI Manager / Input Manager Boundary (Phase 4b - T075)
 
 The Input Manager and UI Manager have clear, separated responsibilities. Violating this boundary causes double-handling, race conditions, and unpredictable pause behavior.
