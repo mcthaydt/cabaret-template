@@ -796,21 +796,23 @@ Before starting Phase 0, verify:
 
 #### Phase 6A3a: C_CameraStateComponent Extensions
 
-- [ ] **Task 6A3a.1 (Red)**: Write tests for new camera state fields
+- [x] **Task 6A3a.1 (Red)**: Write tests for new camera state fields
   - Add to `tests/unit/ecs/components/test_camera_state_component.gd` (or existing camera state tests)
   - Test `landing_impact_offset` field exists with default `Vector3.ZERO`
   - Test `landing_impact_recovery_speed` field exists with default `8.0` (Hz — second-order dynamics frequency for settling)
   - Test `speed_fov_bonus` field exists with default `0.0` (added to target_fov by speed-based rules)
   - Test `speed_fov_max_bonus` field exists with default `15.0` (clamped ceiling for speed FOV)
   - **Target: 4 tests**
+  - Completion note (2026-03-10): Added `tests/unit/ecs/components/test_camera_state_component.gd` with default/export coverage for `landing_impact_offset`, `landing_impact_recovery_speed`, `speed_fov_bonus`, and `speed_fov_max_bonus`.
 
-- [ ] **Task 6A3a.2 (Green)**: Implement new fields on C_CameraStateComponent
+- [x] **Task 6A3a.2 (Green)**: Implement new fields on C_CameraStateComponent
   - Modify `scripts/ecs/components/c_camera_state_component.gd`:
     - `@export var landing_impact_offset: Vector3 = Vector3.ZERO` — transient vertical offset applied to camera on landing
     - `@export var landing_impact_recovery_speed: float = 8.0` — second-order dynamics frequency for offset recovery
     - `@export var speed_fov_bonus: float = 0.0` — current speed-driven FOV addition (set by QB rule)
     - `@export var speed_fov_max_bonus: float = 15.0` — max speed FOV bonus (clamp ceiling)
   - All tests should pass
+  - Completion note (2026-03-10): Added the four 6A3a fields/constants to `C_CameraStateComponent`, and extended `reset_state()` + `get_snapshot()` to include landing-impact and speed-FOV runtime data.
 
   **Composition specification:**
   - **FOV formula:** `target_fov = base_fov + clamp(speed_fov_bonus, 0.0, speed_fov_max_bonus)` — `base_fov` is set by vCam (via `M_VCamManager`), `speed_fov_bonus` is set by the QB speed-FOV rule, `S_CameraStateSystem` applies the composition.
