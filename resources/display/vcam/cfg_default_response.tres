@@ -4,14 +4,11 @@
 
 [resource]
 script = ExtResource("1_j0vk8")
-follow_frequency = 1.86
-follow_damping = 0.85
+follow_frequency = 2.8
+follow_damping = 0.92
 rotation_frequency = 4.8
 rotation_damping = 0.9
-look_ahead_distance = 0.12
+look_ahead_distance = 0.02
 look_ahead_smoothing = 1.77
-look_input_deadzone = 0.02
-look_input_hold_sec = 0.06
-look_input_release_decay = 25.0
-orbit_look_bypass_enable_speed = 0.15
-orbit_look_bypass_disable_speed = 0.3
+orbit_look_bypass_enable_speed = 2.5
+orbit_look_bypass_disable_speed = 3.5

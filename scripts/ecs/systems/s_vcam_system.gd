@@ -14,6 +14,7 @@ const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
+const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
 const RS_VCAM_MODE_FIXED_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
@@ -289,6 +290,7 @@ func _evaluate_and_submit(
 		mode,
 		follow_target,
 		result,
+		has_active_look_input,
 		delta
 	)
 	var soft_zone_result: Dictionary = _apply_orbit_soft_zone(
@@ -309,6 +311,19 @@ func _evaluate_and_submit(
 		has_active_look_input
 	)
 	var final_result: Dictionary = _apply_landing_impact_offset(smoothed_result, landing_offset)
+	_debug_log_camera_offset_breakdown(
+		vcam_id,
+		mode,
+		look_input,
+		filtered_look_input,
+		has_active_look_input,
+		response_values,
+		result,
+		look_ahead_result,
+		soft_zone_result,
+		smoothed_result,
+		final_result
+	)
 	if vcam_id == manager.get_active_vcam_id():
 		_write_active_camera_base_fov_from_result(final_result)
 	manager.submit_evaluated_camera(vcam_id, final_result)
@@ -653,6 +668,7 @@ func _apply_orbit_look_ahead(
 	mode: Resource,
 	follow_target: Node3D,
 	result: Dictionary,
+	has_active_look_input: bool,
 	delta: float
 ) -> Dictionary:
 	if component == null or mode == null:
@@ -669,6 +685,9 @@ func _apply_orbit_look_ahead(
 	if look_ahead_distance <= 0.0:
 		_clear_look_ahead_state_for_vcam(vcam_id)
 		return result
+	if has_active_look_input:
+		_clear_look_ahead_state_for_vcam(vcam_id)
+		return result
 
 	var target_id: int = _get_node_instance_id(follow_target)
 	if target_id == 0:
@@ -677,23 +696,22 @@ func _apply_orbit_look_ahead(
 
 	var current_position: Vector3 = follow_target.global_position
 	var state: Dictionary = _get_or_create_look_ahead_state(vcam_id, target_id, current_position)
-	var previous_position: Vector3 = state.get("last_target_position", current_position) as Vector3
 	state["last_target_position"] = current_position
 
-	var displacement: Vector3 = current_position - previous_position
-	if displacement.length_squared() <= LOOK_AHEAD_MOVEMENT_EPSILON_SQ:
-		_debug_log_look_ahead_motion_state(vcam_id, false, follow_target, displacement, Vector3.ZERO)
+	var velocity_sample: Dictionary = _resolve_look_ahead_movement_velocity(follow_target)
+	var has_velocity: bool = bool(velocity_sample.get("has_velocity", false))
+	var velocity_variant: Variant = velocity_sample.get("velocity", Vector3.ZERO)
+	var velocity: Vector3 = velocity_variant as Vector3 if velocity_variant is Vector3 else Vector3.ZERO
+	if (not has_velocity) or velocity.length_squared() <= LOOK_AHEAD_MOVEMENT_EPSILON_SQ:
+		_debug_log_look_ahead_motion_state(vcam_id, false, follow_target, velocity, Vector3.ZERO)
 		state["current_offset"] = Vector3.ZERO
 		state["dynamics"] = null
 		state["smoothing_hz"] = -1.0
 		_look_ahead_state[vcam_id] = state
 		return result
 
-	var velocity: Vector3 = displacement
-	if delta > 0.0:
-		velocity = displacement / delta
 	var desired_offset: Vector3 = velocity.normalized() * look_ahead_distance
-	_debug_log_look_ahead_motion_state(vcam_id, true, follow_target, displacement, desired_offset)
+	_debug_log_look_ahead_motion_state(vcam_id, true, follow_target, velocity, desired_offset)
 
 	var smoothing_hz: float = maxf(float(response_values.get("look_ahead_smoothing", 3.0)), 0.0)
 	var current_offset: Vector3 = state.get("current_offset", Vector3.ZERO) as Vector3
@@ -723,6 +741,131 @@ func _apply_orbit_look_ahead(
 	if smoothed_offset.is_zero_approx():
 		return result
 	return _apply_position_offset(result, smoothed_offset)
+
+func _resolve_look_ahead_movement_velocity(follow_target: Node3D) -> Dictionary:
+	if follow_target == null or not is_instance_valid(follow_target):
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+
+	var entity: Node = U_ECS_UTILS.find_entity_root(follow_target)
+	if entity != null and is_instance_valid(entity):
+		var entity_id: StringName = U_ECS_UTILS.get_entity_id(entity)
+		var state_velocity: Dictionary = _read_gameplay_entity_velocity(entity_id)
+		if bool(state_velocity.get("has_velocity", false)):
+			return state_velocity
+
+		var movement_velocity: Dictionary = _read_entity_movement_component_velocity(entity)
+		if bool(movement_velocity.get("has_velocity", false)):
+			return movement_velocity
+
+		var body_velocity: Dictionary = _read_entity_character_body_velocity(entity)
+		if bool(body_velocity.get("has_velocity", false)):
+			return body_velocity
+
+	return _read_character_body_velocity(follow_target)
+
+func _read_gameplay_entity_velocity(entity_id: StringName) -> Dictionary:
+	if entity_id == StringName(""):
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+
+	var store := _resolve_state_store()
+	if store == null:
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+
+	var state: Dictionary = store.get_state()
+	var gameplay_variant: Variant = state.get("gameplay", {})
+	if not (gameplay_variant is Dictionary):
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+	var gameplay := gameplay_variant as Dictionary
+
+	var entities_variant: Variant = gameplay.get("entities", {})
+	if not (entities_variant is Dictionary):
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+	var entities := entities_variant as Dictionary
+
+	var entity_state_variant: Variant = entities.get(String(entity_id), null)
+	if not (entity_state_variant is Dictionary):
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+	var entity_state := entity_state_variant as Dictionary
+	if not entity_state.has("velocity"):
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+
+	var velocity_variant: Variant = entity_state.get("velocity", Vector3.ZERO)
+	if velocity_variant is Vector3:
+		return {
+			"has_velocity": true,
+			"velocity": velocity_variant as Vector3,
+		}
+	if velocity_variant is Vector2:
+		var velocity_2d := velocity_variant as Vector2
+		return {
+			"has_velocity": true,
+			"velocity": Vector3(velocity_2d.x, 0.0, velocity_2d.y),
+		}
+	return {"has_velocity": false, "velocity": Vector3.ZERO}
+
+func _read_entity_movement_component_velocity(entity: Node) -> Dictionary:
+	var movement_component: Node = _find_node_with_script(entity, C_MOVEMENT_COMPONENT_SCRIPT)
+	if movement_component == null:
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+	if not movement_component.has_method("get_horizontal_dynamics_velocity"):
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+
+	var velocity_variant: Variant = movement_component.call("get_horizontal_dynamics_velocity")
+	if not (velocity_variant is Vector2):
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+	var velocity_2d := velocity_variant as Vector2
+	return {
+		"has_velocity": true,
+		"velocity": Vector3(velocity_2d.x, 0.0, velocity_2d.y),
+	}
+
+func _read_entity_character_body_velocity(entity: Node) -> Dictionary:
+	var character_body: CharacterBody3D = _find_character_body_recursive(entity)
+	if character_body == null or not is_instance_valid(character_body):
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+	return {
+		"has_velocity": true,
+		"velocity": character_body.velocity,
+	}
+
+func _read_character_body_velocity(node: Node) -> Dictionary:
+	if not (node is CharacterBody3D):
+		return {"has_velocity": false, "velocity": Vector3.ZERO}
+	var body := node as CharacterBody3D
+	return {
+		"has_velocity": true,
+		"velocity": body.velocity,
+	}
+
+func _find_node_with_script(root: Node, script: Script) -> Node:
+	if root == null or script == null:
+		return null
+	if root.get_script() == script:
+		return root
+
+	for child_variant in root.get_children():
+		var child := child_variant as Node
+		if child == null:
+			continue
+		var found: Node = _find_node_with_script(child, script)
+		if found != null:
+			return found
+	return null
+
+func _find_character_body_recursive(root: Node) -> CharacterBody3D:
+	if root == null:
+		return null
+	if root is CharacterBody3D:
+		return root as CharacterBody3D
+
+	for child_variant in root.get_children():
+		var child := child_variant as Node
+		if child == null:
+			continue
+		var found: CharacterBody3D = _find_character_body_recursive(child)
+		if found != null and is_instance_valid(found):
+			return found
+	return null
 
 func _get_or_create_look_ahead_state(
 	vcam_id: StringName,
@@ -1801,7 +1944,7 @@ func _debug_log_look_ahead_motion_state(
 	vcam_id: StringName,
 	is_moving: bool,
 	follow_target: Node3D,
-	displacement: Vector3,
+	movement_velocity: Vector3,
 	desired_offset: Vector3
 ) -> void:
 	if not debug_rotation_logging:
@@ -1831,11 +1974,11 @@ func _debug_log_look_ahead_motion_state(
 						gameplay_velocity = velocity_variant as Vector3
 
 	print(
-		"S_VCamSystem[debug] look_ahead_motion: vcam_id=%s is_moving=%s displacement_len=%.5f desired_offset_len=%.5f gameplay_entity_id=%s gameplay_is_moving=%s gameplay_velocity=%s"
+		"S_VCamSystem[debug] look_ahead_motion: vcam_id=%s is_moving=%s movement_speed=%.5f desired_offset_len=%.5f gameplay_entity_id=%s gameplay_is_moving=%s gameplay_velocity=%s"
 		% [
 			String(vcam_id),
 			str(is_moving),
-			displacement.length(),
+			movement_velocity.length(),
 			desired_offset.length(),
 			String(gameplay_entity_id),
 			str(gameplay_is_moving),
@@ -1996,7 +2139,124 @@ func _debug_log_landing_offset_state(landing_offset: Vector3) -> void:
 			landing_offset.length(),
 			str(landing_offset),
 		]
+		)
+
+func _debug_log_camera_offset_breakdown(
+	vcam_id: StringName,
+	mode: Resource,
+	raw_look_input: Vector2,
+	filtered_look_input: Vector2,
+	has_active_look_input: bool,
+	response_values: Dictionary,
+	raw_result: Dictionary,
+	look_ahead_result: Dictionary,
+	soft_zone_result: Dictionary,
+	smoothed_result: Dictionary,
+	final_result: Dictionary
+) -> void:
+	if not debug_rotation_logging:
+		return
+	if mode == null:
+		return
+
+	var mode_script := mode.get_script() as Script
+	if mode_script == null:
+		return
+
+	var raw_origin_state: Dictionary = _extract_result_origin(raw_result)
+	var look_ahead_origin_state: Dictionary = _extract_result_origin(look_ahead_result)
+	var soft_zone_origin_state: Dictionary = _extract_result_origin(soft_zone_result)
+	var smoothed_origin_state: Dictionary = _extract_result_origin(smoothed_result)
+	var final_origin_state: Dictionary = _extract_result_origin(final_result)
+	if (
+		not bool(raw_origin_state.get("valid", false))
+		or not bool(look_ahead_origin_state.get("valid", false))
+		or not bool(soft_zone_origin_state.get("valid", false))
+		or not bool(smoothed_origin_state.get("valid", false))
+		or not bool(final_origin_state.get("valid", false))
+	):
+		return
+
+	var raw_origin: Vector3 = raw_origin_state.get("origin", Vector3.ZERO) as Vector3
+	var look_ahead_origin: Vector3 = look_ahead_origin_state.get("origin", Vector3.ZERO) as Vector3
+	var soft_zone_origin: Vector3 = soft_zone_origin_state.get("origin", Vector3.ZERO) as Vector3
+	var smoothed_origin: Vector3 = smoothed_origin_state.get("origin", Vector3.ZERO) as Vector3
+	var final_origin: Vector3 = final_origin_state.get("origin", Vector3.ZERO) as Vector3
+
+	var look_ahead_offset_len: float = raw_origin.distance_to(look_ahead_origin)
+	var soft_zone_offset_len: float = look_ahead_origin.distance_to(soft_zone_origin)
+	var smoothing_offset_len: float = soft_zone_origin.distance_to(smoothed_origin)
+	var landing_offset_len: float = smoothed_origin.distance_to(final_origin)
+	var total_offset_vec: Vector3 = final_origin - raw_origin
+	var total_offset_len: float = total_offset_vec.length()
+
+	var look_filter_variant: Variant = _look_input_filter_state.get(vcam_id, {})
+	var filter_state: Dictionary = look_filter_variant as Dictionary if look_filter_variant is Dictionary else {}
+	var filter_hold_sec: float = float(filter_state.get("hold_timer_sec", 0.0))
+	var filter_active: bool = bool(filter_state.get("input_active", false))
+
+	var motion_state_variant: Variant = _follow_target_motion_state.get(vcam_id, {})
+	var motion_state: Dictionary = motion_state_variant as Dictionary if motion_state_variant is Dictionary else {}
+	var follow_speed_mps: float = float(motion_state.get("speed_mps", 0.0))
+	var bypass_active: bool = bool(_debug_position_smoothing_bypass_by_vcam.get(vcam_id, false))
+	var soft_zone_status: String = String(_debug_soft_zone_status.get(vcam_id, "unknown"))
+
+	var look_ahead_distance: float = maxf(float(response_values.get("look_ahead_distance", 0.0)), 0.0)
+	var bypass_enable_speed: float = maxf(
+		float(response_values.get("orbit_look_bypass_enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)),
+		0.0
 	)
+	var bypass_disable_speed: float = maxf(
+		float(response_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
+		bypass_enable_speed
+	)
+	var soft_zone_active: bool = soft_zone_offset_len > 0.00001
+
+	_debug_log_rotation(
+		vcam_id,
+		"offset_breakdown mode=%s raw_look=%s filtered_look=%s filter_active=%s has_active_look=%s hold_sec=%.3f speed_mps=%.3f bypass=%s soft_zone_status=%s soft_zone_active=%s offsets={look_ahead:%.5f,soft_zone:%.5f,smoothing:%.5f,landing:%.5f,total:%.5f,total_vec:%s} tuning={look_ahead_distance:%.3f,bypass_enable:%.3f,bypass_disable:%.3f}"
+		% [
+			_get_debug_mode_label(mode_script),
+			str(raw_look_input),
+			str(filtered_look_input),
+			str(filter_active),
+			str(has_active_look_input),
+			filter_hold_sec,
+			follow_speed_mps,
+			str(bypass_active),
+			soft_zone_status,
+			str(soft_zone_active),
+			look_ahead_offset_len,
+			soft_zone_offset_len,
+			smoothing_offset_len,
+			landing_offset_len,
+			total_offset_len,
+			str(total_offset_vec),
+			look_ahead_distance,
+			bypass_enable_speed,
+			bypass_disable_speed,
+		]
+	)
+
+func _extract_result_origin(result: Dictionary) -> Dictionary:
+	if result.is_empty():
+		return {
+			"valid": false,
+			"origin": Vector3.ZERO,
+		}
+
+	var transform_variant: Variant = result.get("transform", null)
+	if not (transform_variant is Transform3D):
+		return {
+			"valid": false,
+			"origin": Vector3.ZERO,
+		}
+
+	var transform_value: Transform3D = transform_variant as Transform3D
+	return {
+		"valid": true,
+		"origin": transform_value.origin,
+	}
 
 func _report_issue(message: String) -> void:
 	if _debug_issues.size() >= 64:
