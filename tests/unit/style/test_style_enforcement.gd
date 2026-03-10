@@ -522,6 +522,17 @@ func test_gameplay_scenes_do_not_embed_hud_instances() -> void:
 
 	assert_eq(violations.size(), 0, message)
 
+func test_vcam_debug_logging_not_enabled_in_authored_scenes() -> void:
+	var violations: Array[String] = []
+	_collect_scene_text_match_violations("res://scenes/gameplay", "debug_rotation_logging = true", violations)
+	_collect_scene_text_match_violations("res://scenes/templates", "debug_rotation_logging = true", violations)
+
+	var message := "Authored scenes must not enable S_VCamSystem debug_rotation_logging"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+
+	assert_eq(violations.size(), 0, message)
+
 # Helper functions for prefix validation
 
 func _check_directory_prefixes(dir_path: String, allowed_prefixes: Array, violations: Array[String]) -> void:
@@ -692,6 +703,38 @@ func _scene_embeds_hud_overlay(path: String) -> bool:
 
 	file.close()
 	return false
+
+func _collect_scene_text_match_violations(
+	dir_path: String,
+	needle: String,
+	violations: Array[String]
+) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_scene_text_match_violations(path, needle, violations)
+		elif entry.ends_with(".tscn"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				entry = dir.get_next()
+				continue
+			var found := false
+			while not file.eof_reached():
+				if file.get_line().find(needle) != -1:
+					found = true
+					break
+			file.close()
+			if found:
+				violations.append("%s contains '%s'" % [path, needle])
+		entry = dir.get_next()
+	dir.list_dir_end()
 
 func _count_theme_override_lines(path: String) -> int:
 	var file := FileAccess.open(path, FileAccess.READ)
