@@ -209,11 +209,17 @@
 
 ## vCam Orbit Feel Pitfalls
 
+- **Bursty look streams can thrash look-spring and smoothing gates if activity is derived from raw zero/non-zero frames only**: Mouse/touch/right-stick samples can arrive in bursts with intermittent zero frames; treating every zero as "input stopped" causes repeated spring state transitions and visible roughness.
+  - **Fix pattern**: in `S_VCamSystem`, maintain per-vCam look activity filter state (`_look_input_filter_state`) and derive active-input from response-tuned deadzone/hold/decay (`look_input_deadzone`, `look_input_hold_sec`, `look_input_release_decay`) while keeping runtime yaw/pitch accumulation raw-input driven.
+
 - **Auto-level can fight active player look input if the idle timer does not reset every non-zero look frame**: Orbit recentering should only start after continuous idle time; if timer reset is missed, pitch can decay while the player is still looking.
   - **Fix pattern**: in `S_VCamSystem`, reset per-vCam no-look timer on every non-zero `look_input` tick before evaluating auto-level delay/speed.
 
 - **Look-ahead can leak stale offsets across mode/target changes**: Reusing previous velocity/offset state when switching targets or switching to non-orbit modes causes incorrect camera drift on the next tick.
   - **Fix pattern**: clear per-vCam look-ahead state whenever mode is non-orbit, look-ahead is disabled, or follow-target identity changes.
+
+- **Always bypassing orbit follow-position smoothing during look input makes moving rotation feel harsh**: The old `has_active_look_input` bypass is good for stationary no-lag framing, but it removes useful smoothing while the follow target is translating.
+  - **Fix pattern**: gate orbit bypass by follow-target speed with hysteresis (`orbit_look_bypass_enable_speed`, `orbit_look_bypass_disable_speed`) using per-vCam sampled target motion state; keep bypass for slow/stationary movement and keep smoothing active while moving.
 
 ## vCam Soft-Zone Pitfalls
 

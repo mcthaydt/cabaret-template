@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5, the Orbit UX improvement follow-up pass, and the Movement-Style Camera Smoothing follow-up pass are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning, scene parity fixes for interior/exterior vCam runtime wiring, active-vCam `fov` -> `C_CameraStateComponent.base_fov` sync, balanced orbit/gamepad default retuning, and movement-style look smoothing for orbit/first-person rotation). Next implementation target is mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, and the Camera Look Smoothing Parity pass are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning, scene parity fixes for interior/exterior vCam runtime wiring, active-vCam `fov` -> `C_CameraStateComponent.base_fov` sync, balanced orbit/gamepad default retuning, movement-style look smoothing for orbit/first-person rotation, and response-tuned look-activity filtering plus speed-aware orbit follow bypass hysteresis). Next implementation target is mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel.
 
 ## Orbit UX Improvement Pass (March 10, 2026)
 
@@ -44,6 +44,26 @@
 - Validation run (green):
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`-gselect=test_vcam_system`, `62/62` passing)
   - `tests/unit/style/test_style_enforcement.gd` (`15/15` passing)
+
+## Camera Look Smoothing Parity Pass (March 10, 2026)
+
+- Extended `RS_VCamResponse` with response-driven look feel controls:
+  - `look_input_deadzone`, `look_input_hold_sec`, `look_input_release_decay`
+  - `orbit_look_bypass_enable_speed`, `orbit_look_bypass_disable_speed` (disable speed clamped to `>=` enable speed)
+- Retuned `resources/display/vcam/cfg_default_response.tres` to include conservative defaults for the new look filter and speed-aware orbit bypass fields.
+- Patched `S_VCamSystem` with per-vCam look-input activity filtering state (`_look_input_filter_state`) that keeps bursty look streams active through a short hold/decay window for smoothing/gating decisions without adding extra runtime yaw/pitch accumulation.
+- Added per-vCam follow-target motion sampling (`_follow_target_motion_state`) and replaced orbit's unconditional look-input bypass with speed-aware hysteresis gating:
+  - stationary/slow targets keep the no-lag bypass behavior,
+  - moving targets keep follow-position smoothing active while rotating.
+- Expanded regression coverage in `tests/unit/ecs/systems/test_vcam_system.gd`:
+  - first-person + orbit look-hold continuity checks (no extra runtime rotation),
+  - look-release decay deactivation,
+  - moving-target bypass disablement,
+  - bypass hysteresis between enable/disable thresholds.
+- Validation run (green):
+  - `tests/unit/resources/display/vcam/test_vcam_response.gd` (`15/15` passing)
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`70/70` passing)
+  - `tests/unit/style/test_style_enforcement.gd` (`16/16` passing)
 
 ## Phase 0 Progress (March 10, 2026)
 
