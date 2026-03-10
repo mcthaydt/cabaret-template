@@ -1644,7 +1644,11 @@ func _step_smoothing_state(
 			mode_script,
 			has_active_look_input,
 			raw_transform.origin,
-			follow_dynamics
+			follow_dynamics,
+			follow_target_speed_mps,
+			response_values,
+			previous_bypass,
+			bypass_non_fixed_position_smoothing
 		)
 
 	# Orbit look input intentionally bypasses follow-position smoothing while rotating.
@@ -2092,7 +2096,11 @@ func _debug_log_position_smoothing_gate_transition(
 	mode_script: Script,
 	has_active_look_input: bool,
 	raw_position: Vector3,
-	follow_dynamics: Variant
+	follow_dynamics: Variant,
+	follow_target_speed_mps: float,
+	response_values: Dictionary,
+	previous_bypass: bool,
+	current_bypass: bool
 ) -> void:
 	if not debug_rotation_logging:
 		return
@@ -2102,12 +2110,25 @@ func _debug_log_position_smoothing_gate_transition(
 		if cached_variant is Vector3:
 			cached_position = cached_variant as Vector3
 	var mode_label: String = _get_debug_mode_label(mode_script)
+	var enable_speed: float = maxf(
+		float(response_values.get("orbit_look_bypass_enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)),
+		0.0
+	)
+	var disable_speed: float = maxf(
+		float(response_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
+		enable_speed
+	)
 	print(
-		"S_VCamSystem[debug] smoothing_gate: vcam_id=%s mode=%s active_input=%s raw_pos=%s cached_pos=%s offset_len=%.5f"
+		"S_VCamSystem[debug] smoothing_gate: vcam_id=%s mode=%s active_input=%s bypass=%s->%s speed_mps=%.3f thresholds={enable:%.3f,disable:%.3f} raw_pos=%s cached_pos=%s offset_len=%.5f"
 		% [
 			String(vcam_id),
 			mode_label,
 			str(has_active_look_input),
+			str(previous_bypass),
+			str(current_bypass),
+			follow_target_speed_mps,
+			enable_speed,
+			disable_speed,
 			str(raw_position),
 			str(cached_position),
 			raw_position.distance_to(cached_position),
