@@ -215,6 +215,19 @@ func test_time_slice_registered_with_expected_transient_fields() -> void:
 	assert_true(time_config.transient_fields.has(StringName("active_channels")))
 	assert_true(time_config.transient_fields.has(StringName("timescale")))
 
+func test_vcam_slice_registered_as_transient_and_present_in_state() -> void:
+	var full_state: Dictionary = store.get_state()
+	assert_true(full_state.has("vcam"), "Store state should include vcam slice")
+
+	var vcam_slice: Dictionary = store.get_slice(StringName("vcam"))
+	assert_true(vcam_slice.has("active_vcam_id"), "vcam slice should include active_vcam_id")
+	assert_true(vcam_slice.has("in_fov_zone"), "vcam slice should include in_fov_zone")
+
+	var configs: Dictionary = store.get_slice_configs()
+	var vcam_config: RS_StateSliceConfig = configs.get(StringName("vcam"))
+	assert_not_null(vcam_config, "vcam slice config should be registered")
+	assert_true(vcam_config.is_transient, "vcam slice should be transient")
+
 func test_register_slice_adds_to_state() -> void:
 	var config: RS_StateSliceConfig = RS_StateSliceConfig.new(StringName("gameplay"))
 	config.initial_state = {"health": 100, "score": 0}

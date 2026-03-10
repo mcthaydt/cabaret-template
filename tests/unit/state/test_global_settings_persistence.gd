@@ -144,6 +144,22 @@ func test_legacy_audio_and_input_settings_migrate() -> void:
 	var active_profile := U_INPUT_SELECTORS.get_active_profile_id(state)
 	assert_eq(String(active_profile), "default", "Migrated input settings should apply to state")
 
+func test_build_settings_from_state_excludes_vcam_slice() -> void:
+	var state := {
+		"vcam": {
+			"active_vcam_id": StringName("vcam_orbit"),
+			"active_mode": "orbit",
+			"is_blending": true,
+		},
+		"vfx": {
+			"screen_shake_enabled": true,
+		},
+	}
+
+	var settings := U_GLOBAL_SETTINGS_SERIALIZATION.build_settings_from_state(state)
+	assert_false(settings.has("vcam"), "Transient vcam slice should never be included in global settings payloads")
+	assert_true(settings.has("vfx"), "Persisted vfx settings should still be included")
+
 func _create_state_store() -> M_StateStore:
 	var store := M_STATE_STORE.new()
 	store.settings = RS_STATE_STORE_SETTINGS.new()

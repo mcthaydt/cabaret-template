@@ -44,6 +44,7 @@
 [ext_resource type="Resource" uid="uid://xn3e3t3x7lad" path="res://resources/state/cfg_default_objectives_initial_state.tres" id="42_objectives_state"]
 [ext_resource type="Resource" uid="uid://nbd84s2mk7ye" path="res://resources/state/cfg_default_scene_director_initial_state.tres" id="43_scene_director_state"]
 [ext_resource type="Resource" uid="uid://dmbf02gq12jfj" path="res://resources/cfg_game_config.tres" id="44_game_config"]
+[ext_resource type="Resource" path="res://resources/state/cfg_default_vcam_initial_state.tres" id="45_vcam_state"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
@@ -61,6 +62,7 @@ gameplay_initial_state = ExtResource("2_gameplay_state")
 scene_initial_state = ExtResource("5_scene_state")
 settings_initial_state = ExtResource("15_settings_state")
 debug_initial_state = ExtResource("19_debug_state")
+vcam_initial_state = ExtResource("45_vcam_state")
 vfx_initial_state = ExtResource("24_vfx_state")
 audio_initial_state = ExtResource("26_audio_state")
 display_initial_state = ExtResource("29_display_state")

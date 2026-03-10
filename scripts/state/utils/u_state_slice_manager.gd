@@ -8,6 +8,7 @@ class_name U_StateSliceManager
 ## validation, and reducer application.
 
 const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")
+const U_VCAM_REDUCER := preload("res://scripts/state/reducers/u_vcam_reducer.gd")
 const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")
 const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
 const U_LOCALIZATION_REDUCER := preload("res://scripts/state/reducers/u_localization_reducer.gd")
@@ -16,6 +17,7 @@ const U_OBJECTIVES_REDUCER := preload("res://scripts/state/reducers/u_objectives
 const U_SCENE_DIRECTOR_REDUCER := preload("res://scripts/state/reducers/u_scene_director_reducer.gd")
 const RS_OBJECTIVES_INITIAL_STATE := preload("res://scripts/resources/state/rs_objectives_initial_state.gd")
 const RS_SCENE_DIRECTOR_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_director_initial_state.gd")
+const RS_VCAM_INITIAL_STATE := preload("res://scripts/resources/state/rs_vcam_initial_state.gd")
 
 ## Initialize core slices based on the provided initial state resources.
 ##
@@ -30,6 +32,7 @@ static func initialize_slices(
 	gameplay_initial_state: RS_GameplayInitialState,
 	scene_initial_state: RS_SceneInitialState,
 	debug_initial_state: RS_DebugInitialState,
+	vcam_initial_state: Resource = null,
 	vfx_initial_state: RS_VFXInitialState = null,
 	audio_initial_state: RS_AudioInitialState = null,
 	display_initial_state: Resource = null,
@@ -112,6 +115,25 @@ static func initialize_slices(
 		debug_config.dependencies = []
 		debug_config.transient_fields = []
 		register_slice(slice_configs, state, debug_config)
+
+	# vCam slice (transient runtime observability)
+	if vcam_initial_state == null:
+		vcam_initial_state = RS_VCAM_INITIAL_STATE.new()
+	if vcam_initial_state != null:
+		if not vcam_initial_state.has_method("to_dictionary"):
+			push_error("U_StateSliceManager: vcam_initial_state missing to_dictionary()")
+		else:
+			var vcam_initial_dict: Variant = vcam_initial_state.call("to_dictionary")
+			if vcam_initial_dict is Dictionary:
+				var vcam_config := RS_StateSliceConfig.new(StringName("vcam"))
+				vcam_config.reducer = Callable(U_VCAM_REDUCER, "reduce")
+				vcam_config.initial_state = (vcam_initial_dict as Dictionary).duplicate(true)
+				vcam_config.dependencies = []
+				vcam_config.transient_fields = []
+				vcam_config.is_transient = true
+				register_slice(slice_configs, state, vcam_config)
+			else:
+				push_error("U_StateSliceManager: vcam_initial_state.to_dictionary() must return Dictionary")
 
 	# Objectives slice
 	if objectives_initial_state == null:

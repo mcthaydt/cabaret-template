@@ -65,6 +65,7 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 @export var scene_initial_state: RS_SceneInitialState
 @export var settings_initial_state: RS_SettingsInitialState
 @export var debug_initial_state: RS_DebugInitialState
+@export var vcam_initial_state: Resource
 @export var vfx_initial_state: RS_VFXInitialState
 @export var audio_initial_state: RS_AudioInitialState
 @export var display_initial_state: Resource
@@ -387,6 +388,7 @@ func _initialize_slices() -> void:
 		gameplay_initial_state,
 		scene_initial_state,
 		debug_initial_state,
+		vcam_initial_state,
 		vfx_initial_state,
 		audio_initial_state,
 		display_initial_state,
