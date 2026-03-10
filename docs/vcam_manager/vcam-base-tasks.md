@@ -578,11 +578,11 @@ Before starting Phase 0, verify:
 
 ## Phase 5: Component, Interface, and Manager Core
 
-**Exit Criteria:** All ~33 tests pass (15 component + 8 interface/manager registration + 10 manager active-selection), `M_VCamManager` registered with ServiceLocator
+**Exit Criteria:** All ~34 tests pass (15 component + 8 interface/manager registration + 11 manager active-selection), `M_VCamManager` registered with ServiceLocator
 
 ### Phase 5A: C_VCamComponent
 
-- [ ] **Task 5A.1 (Red)**: Write tests for C_VCamComponent
+- [x] **Task 5A.1 (Red)**: Write tests for C_VCamComponent
   - Create `tests/unit/ecs/components/test_vcam_component.gd`
   - Test extends `BaseECSComponent`
   - Test `COMPONENT_TYPE` constant is `&"VCamComponent"`
@@ -600,20 +600,22 @@ Before starting Phase 0, verify:
   - Test `response` export exists (Resource type, RS_VCamResponse)
   - Test `is_active` export exists with default `true`
   - **Target: 15 tests**
+  - Completion note (2026-03-10): Added `tests/unit/ecs/components/test_vcam_component.gd` with 15 assertions covering component type and all required exports/defaults.
 
-- [ ] **Task 5A.2 (Green)**: Implement C_VCamComponent
+- [x] **Task 5A.2 (Green)**: Implement C_VCamComponent
   - Create `scripts/ecs/components/c_vcam_component.gd`
   - Extend `BaseECSComponent`, set `COMPONENT_TYPE`
   - Add all exports (including `response: RS_VCamResponse`, `follow_target_entity_id`, `follow_target_tag`, `path_node_path: NodePath`) and runtime-only `runtime_yaw`, `runtime_pitch` vars
   - Implement null-safe `get_follow_target()` and `get_look_at_target()` typed getters
   - Target resolution priority in `S_VCamSystem`: NodePath → entity ID → tag → null (recovery)
   - All tests should pass
+  - Completion note (2026-03-10): Added `scripts/ecs/components/c_vcam_component.gd` with full export surface (including entity-id/tag/path fallbacks), runtime yaw/pitch fields, null-safe target/anchor/path getters, mode-name helper, and auto register/unregister integration with `M_VCamManager`.
 
 ---
 
 ### Phase 5B: I_VCamManager Interface
 
-- [ ] **Task 5B.1**: Create I_VCamManager interface
+- [x] **Task 5B.1**: Create I_VCamManager interface
   - Create `scripts/interfaces/i_vcam_manager.gd`
   - Define all 8 interface methods with `push_error` defaults:
     - `register_vcam(vcam)`
@@ -624,12 +626,13 @@ Before starting Phase 0, verify:
     - `submit_evaluated_camera(vcam_id, result)`
     - `get_blend_progress()`
     - `is_blending()`
+  - Completion note (2026-03-10): Added `scripts/interfaces/i_vcam_manager.gd` with all 8 required methods and `push_error` default implementations.
 
 ---
 
 ### Phase 5C: M_VCamManager Core (Registration and Active Selection)
 
-- [ ] **Task 5C.1 (Red)**: Write tests for M_VCamManager registration
+- [x] **Task 5C.1 (Red)**: Write tests for M_VCamManager registration
   - Create `tests/unit/managers/test_vcam_manager.gd`
   - Test extends `I_VCamManager`
   - Test registers with ServiceLocator as `vcam_manager`
@@ -640,13 +643,15 @@ Before starting Phase 0, verify:
   - Test unregistering the active vcam clears active state
   - Test unregistering all vcams clears all state
   - **Target: 8 tests**
+  - Completion note (2026-03-10): Added registration-focused coverage in `tests/unit/managers/test_vcam_manager.gd` (interface extension, service registration, duplicate rejection, unregister/reset paths).
 
-- [ ] **Task 5C.2 (Green)**: Implement M_VCamManager registration
+- [x] **Task 5C.2 (Green)**: Implement M_VCamManager registration
   - Create `scripts/managers/m_vcam_manager.gd` extending `I_VCamManager`
   - Implement registration dictionary, ServiceLocator registration
   - All tests should pass
+  - Completion note (2026-03-10): Implemented `M_VCamManager` core registry maps (`_vcams_by_id`, `_registered_vcams`), ServiceLocator registration as `vcam_manager`, and unregister/runtime-state cleanup behavior.
 
-- [ ] **Task 5C.3 (Red)**: Write tests for M_VCamManager active selection
+- [x] **Task 5C.3 (Red)**: Write tests for M_VCamManager active selection
   - Add to `tests/unit/managers/test_vcam_manager.gd`
   - Test `set_active_vcam()` by explicit ID sets active vcam
   - Test `set_active_vcam()` with unknown ID logs error and does nothing
@@ -660,12 +665,14 @@ Before starting Phase 0, verify:
   - Test changing `is_active` to false on the active vcam triggers reselection
   - Test priority reselection after unregister picks next highest
   - **Target: 11 tests**
+  - Completion note (2026-03-10): Added active-selection coverage in `tests/unit/managers/test_vcam_manager.gd` for explicit selection, unknown-id no-op, priority/tie-break rules, inactive filtering, reselection, Redux dispatch, and ECS event publication.
 
-- [ ] **Task 5C.4 (Green)**: Implement M_VCamManager active selection
+- [x] **Task 5C.4 (Green)**: Implement M_VCamManager active selection
   - Add active selection logic with explicit override and priority fallback
   - Add Redux dispatch integration (injection-first, ServiceLocator fallback)
   - Publish `U_ECSEventBus.publish(U_ECSEventNames.EVENT_VCAM_ACTIVE_CHANGED, payload)` on active vCam change
   - All tests should pass
+  - Completion note (2026-03-10): Implemented explicit-override + priority-based active selection with ascending `vcam_id` tie-break, inactive exclusion, runtime reselection on physics ticks, store dispatch via `U_VCamActions.set_active_runtime(...)`, ECS `EVENT_VCAM_ACTIVE_CHANGED` publishing, and `submit_evaluated_camera(...)` storage for same-frame handoff.
 
 ---
 

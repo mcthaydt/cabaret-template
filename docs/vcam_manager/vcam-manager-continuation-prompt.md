@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, and 4B are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, and orbit/first-person/fixed baseline resource+evaluator wiring). Next implementation target is Phase 5 (component/interface/manager core in `vcam-base-tasks.md`).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, and 5 are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, and component/interface/manager core wiring). Next implementation target is Phase 6 (`S_VCamSystem` + scene wiring in `vcam-base-tasks.md`).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -83,6 +83,19 @@
   - Extended `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with fixed evaluation branch (world-anchor mode, follow-offset mode, path mode, runtime yaw/pitch ignore contract, and null-safe guards).
   - Extended `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` with fixed coverage (15 new tests, 35 total evaluator tests).
   - Added `resources/display/vcam/cfg_default_fixed.tres` with baseline fixed defaults.
+- Completed Phase 5:
+  - Added `scripts/ecs/components/c_vcam_component.gd` (`C_VCamComponent`) with full authoring exports (`vcam_id`, priority/mode/paths, entity-id/tag follow fallbacks, soft-zone/blend/response resources, `is_active`) and runtime orientation fields (`runtime_yaw`, `runtime_pitch`).
+  - Added null-safe component getters (`get_follow_target`, `get_look_at_target`, `get_fixed_anchor`, `get_path_node`) plus `get_mode_name()` normalization for runtime observability/event payloads.
+  - Added ServiceLocator-driven vCam-manager registration lifecycle in `C_VCamComponent` (`register_vcam` on ready/registration, `unregister_vcam` on exit) so persistent manager references are cleaned up on scene unload.
+  - Added `scripts/interfaces/i_vcam_manager.gd` with the 8-method manager contract (`register/unregister`, active selection, blend observability, same-frame submission API).
+  - Added `scripts/managers/m_vcam_manager.gd` with core registry, ServiceLocator registration, explicit-id and priority-based active selection, deterministic tie-break (`vcam_id` ascending), inactive-camera exclusion, and re-selection on runtime state changes.
+  - Added `M_VCamManager` observability/event integration:
+    - Redux dispatch via `U_VCamActions.set_active_runtime(...)` (injection-first store lookup with ServiceLocator fallback).
+    - ECS publish via `U_ECSEventBus.publish(U_ECSEventNames.EVENT_VCAM_ACTIVE_CHANGED, {...})`.
+    - Same-frame handoff API stubbed via `submit_evaluated_camera(vcam_id, result)` for Phase 6 system integration.
+  - Added Phase 5 tests:
+    - `tests/unit/ecs/components/test_vcam_component.gd` (15 tests).
+    - `tests/unit/managers/test_vcam_manager.gd` (19 tests: registration + active selection + dispatch/event coverage).
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -151,6 +164,10 @@
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
   - `tests/unit` (`-gselect=test_vcam_mode`)
   - `tests/unit/style/test_style_enforcement.gd`
+- Validation run (green, Phase 5):
+  - `tests/unit/ecs/components/test_vcam_component.gd`
+  - `tests/unit/managers/test_vcam_manager.gd`
+  - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
 
@@ -192,6 +209,14 @@
 - Fixed baseline is now explicit:
   - `RS_VCamModeFixed` is authored in `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd` with default preset `resources/display/vcam/cfg_default_fixed.tres`.
   - `U_VCamModeEvaluator.evaluate(...)` now supports fixed world-anchor, follow-offset, and path branches while ignoring runtime yaw/pitch for fixed mode.
+- Phase 5 component/interface/manager core is now explicit:
+  - `C_VCamComponent` is authored in `scripts/ecs/components/c_vcam_component.gd` with mode/target/anchor/path/response exports and runtime yaw/pitch fields.
+  - `I_VCamManager` (`scripts/interfaces/i_vcam_manager.gd`) defines the 8-method core manager API used by upcoming `S_VCamSystem`.
+  - `M_VCamManager` (`scripts/managers/m_vcam_manager.gd`) now owns registration and active-vcam selection core.
+- Active-selection runtime contract is now explicit:
+  - Selection order is `set_active_vcam` explicit override first, then highest `priority`, then ascending `vcam_id` tie-break.
+  - Components with `is_active = false` are excluded from selection and trigger reselection when active ownership changes.
+  - Active changes publish both Redux observability (`vcam/set_active_runtime`) and ECS lifecycle events (`EVENT_VCAM_ACTIVE_CHANGED`).
 
 ## Required Reading
 
@@ -242,7 +267,7 @@
 
 ## Next Steps
 
-1. Start Phase 5 from `docs/vcam_manager/vcam-base-tasks.md`: implement `C_VCamComponent`, `I_VCamManager`, and `M_VCamManager` core wiring.
+1. Start Phase 6 from `docs/vcam_manager/vcam-base-tasks.md`: implement `S_VCamSystem` core evaluation/submission flow and scene wiring (`root.tscn`, templates, gameplay baselines).
 2. Keep orbit/first-person game-feel phases (2C/3C) queued behind base Phase 6A2 per dependency (`S_VCamSystem` second-order runtime integration first).
 3. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
 4. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
