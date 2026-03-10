@@ -4,7 +4,31 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Documentation has been rebaselined after a repo audit on March 10, 2026. Implementation has not started. Begin with state and persistence prerequisites before vCam runtime wiring.
+- **Status summary**: Phase 0A and Phase 0A2 are complete as of March 10, 2026 (touchscreen drag-look persistence + keyboard-look action/settings/UI plumbing). Next implementation target is Phase 0B (`vfx.occlusion_silhouette_enabled` persistence and VFX settings integration).
+
+## Phase 0 Progress (March 10, 2026)
+
+- Completed Phase 0A:
+  - Persisted touchscreen look settings (`look_drag_sensitivity`, `invert_look_y`) through reducer/serialization paths.
+  - Patched `UI_TouchscreenSettingsOverlay` scene/controller for new controls, localization, and apply/reset flow.
+  - Updated touchscreen settings resource defaults and unit/UI localization tests.
+- Completed Phase 0A2:
+  - Added dedicated `look_left/right/up/down` actions to InputMap bootstrap and keyboard profiles.
+  - Added keyboard-look action/reducer/serialization plumbing in input settings.
+  - Extended `KeyboardMouseSource` + `S_InputSystem` to emit keyboard-look through shared `gameplay.look_input`.
+  - Added `UI_KeyboardMouseSettingsOverlay` + scene-registry/UI-registry wiring + settings-menu entrypoint.
+  - Updated rebind action category/localization surface and added overlay/unit/integration tests.
+- Validation run (green):
+  - `tests/unit/input_manager/test_u_input_reducer.gd`
+  - `tests/unit/input/test_input_map.gd`
+  - `tests/unit/resources/test_rs_touchscreen_settings.gd`
+  - `tests/unit/ecs/systems/test_input_system.gd`
+  - `tests/unit/ui/test_touchscreen_settings_overlay.gd`
+  - `tests/unit/ui/test_touchscreen_settings_overlay_localization.gd`
+  - `tests/unit/ui/test_input_rebinding_overlay.gd`
+  - `tests/unit/ui/test_keyboard_mouse_settings_overlay.gd`
+  - `tests/unit/integration/test_rebinding_flow.gd`
+  - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
 
@@ -87,17 +111,15 @@
 
 ## Next Steps
 
-1. Implement Phase 0 Commit 0.0: add persisted touchscreen drag-look settings and patch the touchscreen settings overlay (`test_u_input_reducer.gd` path).
-1b. Implement Phase 0 Commit 0.0b: register `look_left/right/up/down` actions, patch `U_InputMapBootstrapper` and `test_input_map.gd`, bind per-profile (default=arrows, alternate=WASD), add keyboard look settings to `mouse_settings`, implement in `KeyboardMouseSource`, register save-trigger actions, update rebind/localization surfaces, and create the new keyboard/mouse settings overlay.
-2. Implement Phase 0 Commit 0.1: add persisted `vfx.occlusion_silhouette_enabled`, wire it into VFX settings UI, and add localization keys across all UI locales.
-3. Implement Phase 0 Commit 0.2: create `RS_VCamInitialState` and `cfg_default_vcam_initial_state.tres`.
-4. Implement Phase 0 Commit 0.3: create vCam actions and reducer.
-5. Implement Phase 0 Commit 0.4: add selectors, wire the new state export in `M_StateStore`, register `vcam` as transient, and patch `scenes/root.tscn`.
-6. Implement Phase 0F before claiming camera-slice migration is done: patch `S_CameraStateSystem`, `tests/unit/qb/test_camera_state_system.gd`, and any remaining `set_slice("camera", ...)` usage to `state.vcam.in_fov_zone`.
-7. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
-8. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
-9. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
-10. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+1. Implement Phase 0 Commit 0.1: add persisted `vfx.occlusion_silhouette_enabled`, wire it into VFX settings UI, and add localization keys across all UI locales.
+2. Implement Phase 0 Commit 0.2: create `RS_VCamInitialState` and `cfg_default_vcam_initial_state.tres`.
+3. Implement Phase 0 Commit 0.3: create vCam actions and reducer.
+4. Implement Phase 0 Commit 0.4: add selectors, wire the new state export in `M_StateStore`, register `vcam` as transient, and patch `scenes/root.tscn`.
+5. Implement Phase 0F before claiming camera-slice migration is done: patch `S_CameraStateSystem`, `tests/unit/qb/test_camera_state_system.gd`, and any remaining `set_slice("camera", ...)` usage to `state.vcam.in_fov_zone`.
+6. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
+7. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
+8. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
+9. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 

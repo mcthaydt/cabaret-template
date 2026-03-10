@@ -8,29 +8,32 @@
 
 Before starting Phase 0, verify:
 
-- [ ] **PRE-1**: Read required documentation
+- [x] **PRE-1**: Read required documentation
   - Read `AGENTS.md`, `docs/general/DEV_PITFALLS.md`, `docs/general/STYLE_GUIDE.md`
   - Read `docs/vcam_manager/vcam-manager-plan.md`, `vcam-manager-overview.md`, `vcam-manager-prd.md`
   - Read `scripts/managers/m_camera_manager.gd` and `scripts/interfaces/i_camera_manager.gd`
   - Read `scripts/ecs/systems/s_input_system.gd` and `scripts/ecs/systems/s_touchscreen_system.gd`
   - Read `scripts/state/utils/u_state_slice_manager.gd`
+  - Completion note (2026-03-10): Required reading completed before Phase 0 implementation edits.
 
-- [ ] **PRE-2**: Understand existing patterns by reading:
+- [x] **PRE-2**: Understand existing patterns by reading:
   - `scripts/state/m_state_store.gd` (export pattern, initialize_slices call)
   - `scripts/resources/state/rs_vfx_initial_state.gd` (existing vfx initial state pattern)
   - `scripts/managers/m_camera_manager.gd` (shake-parent hierarchy, transition blends)
   - `scripts/ui/hud/ui_mobile_controls.gd` (existing touch control flow)
   - `scripts/utils/display/u_cinema_grade_preview.gd` (editor preview pattern)
   - `tests/mocks/mock_camera_manager.gd` (mock pattern for camera manager)
+  - Completion note (2026-03-10): Existing input/camera/settings patterns were reviewed and reused for Phase 0A/0A2.
 
-- [ ] **PRE-3**: Verify branch is `vcam` and working tree is clean
+- [x] **PRE-3**: Verify branch is `vcam` and working tree is clean
+  - Completion note (2026-03-10): Phase 0 work started on branch `vcam` from a clean working tree.
 
 ---
 
 ## Per-Phase Documentation Cadence (Mandatory)
 
-- [ ] **DOC-1**: After each completed phase, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.
-- [ ] **DOC-2**: After each completed phase, update the relevant subtask file with `[x]` marks and completion notes.
+- [x] **DOC-1**: After each completed phase, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.
+- [x] **DOC-2**: After each completed phase, update the relevant subtask file with `[x]` marks and completion notes.
 - [ ] **DOC-3**: Update `AGENTS.md` when new stable vCam architecture/pattern contracts emerge.
 - [ ] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with new pitfalls discovered during vCam implementation.
 - [ ] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
@@ -43,7 +46,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0A: Touchscreen Drag-Look Settings Prerequisite
 
-- [ ] **Task 0A.1 (Red)**: Write tests for touchscreen drag-look settings
+- [x] **Task 0A.1 (Red)**: Write tests for touchscreen drag-look settings
   - Modify `tests/unit/input_manager/test_u_input_reducer.gd` (or create new test file)
   - Modify `tests/unit/resources/test_rs_touchscreen_settings.gd`
   - Test `look_drag_sensitivity` field exists in touchscreen settings with default `1.0`
@@ -53,14 +56,16 @@ Before starting Phase 0, verify:
   - Test reducer handles `set_invert_look_y` action with bool
   - Test reducer ignores unknown action (returns same state)
   - **Target: 6 tests**
+  - Completion note (2026-03-10): Added/updated assertions in `test_u_input_reducer.gd` and `test_rs_touchscreen_settings.gd` for `look_drag_sensitivity` and `invert_look_y` defaults/behavior.
 
-- [ ] **Task 0A.2 (Green)**: Implement touchscreen drag-look settings
+- [x] **Task 0A.2 (Green)**: Implement touchscreen drag-look settings
   - Modify `scripts/resources/input/rs_touchscreen_settings.gd`: add `look_drag_sensitivity: float = 1.0`, `invert_look_y: bool = false`
   - Modify `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`: set new defaults
   - Modify `scripts/state/reducers/u_input_reducer.gd`: add action handling
   - All tests should pass
+  - Completion note (2026-03-10): Added touchscreen look settings fields and reducer/state sanitization support in input reducer and serialization.
 
-- [ ] **Task 0A.3 (Red)**: Write tests for touchscreen settings overlay updates
+- [x] **Task 0A.3 (Red)**: Write tests for touchscreen settings overlay updates
   - Modify `tests/unit/ui/test_touchscreen_settings_overlay.gd`
   - Modify `tests/unit/ui/test_touchscreen_settings_overlay_localization.gd`
   - Test overlay displays drag-look sensitivity slider
@@ -69,17 +74,19 @@ Before starting Phase 0, verify:
   - Test overlay apply persists look settings
   - Test localization updates the new drag-look control labels/tooltips
   - **Target: 5 tests**
+  - Completion note (2026-03-10): Updated touchscreen overlay/unit localization tests to cover the new look sensitivity slider and invert-Y toggle.
 
-- [ ] **Task 0A.4 (Green)**: Implement touchscreen settings overlay changes
+- [x] **Task 0A.4 (Green)**: Implement touchscreen settings overlay changes
   - Modify `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`: add drag-look sensitivity slider and invert-Y toggle
   - Modify UI locale resources for the new touchscreen look strings
   - All tests should pass
+  - Completion note (2026-03-10): Added overlay controls/wiring, theme/localization/tooltips, and dispatch handling for touchscreen drag-look settings.
 
 ---
 
 ### Phase 0A2: Keyboard Look Settings Prerequisite
 
-- [ ] **Task 0A2.1**: Register dedicated look actions in project.godot and input profiles
+- [x] **Task 0A2.1**: Register dedicated look actions in project.godot and input profiles
   - Add `look_left`, `look_right`, `look_up`, `look_down` input actions to `project.godot`
   - Modify `scripts/input/u_input_map_bootstrapper.gd`: add `look_*` actions to `REQUIRED_ACTIONS`
   - Modify `tests/unit/input/test_input_map.gd`: verify bootstrap/runtime input-map coverage for the new actions
@@ -88,8 +95,9 @@ Before starting Phase 0, verify:
   - Update `resources/input/profiles/cfg_alternate_keyboard.tres`: bind `look_left/right/up/down` to WASD (the non-movement keys in that layout)
   - Update `resources/input/profiles/cfg_accessibility_keyboard.tres`: match default or alternate as appropriate
   - Gamepad and touchscreen profiles: leave `look_*` unbound (right stick and drag-look already feed `look_input` directly)
+  - Completion note (2026-03-10): Added `look_*` actions to `project.godot`, bootstrapper required-actions, input-map tests, and keyboard profile bindings (default/accessibility arrows, alternate WASD).
 
-- [ ] **Task 0A2.2 (Red)**: Write tests for keyboard look settings in mouse_settings
+- [x] **Task 0A2.2 (Red)**: Write tests for keyboard look settings in mouse_settings
   - Modify `tests/unit/input_manager/test_u_input_reducer.gd` (or create new test file)
   - Test `keyboard_look_enabled` field exists in `mouse_settings` with default `false`
   - Test `keyboard_look_speed` field exists in `mouse_settings` with default `2.0`
@@ -98,23 +106,26 @@ Before starting Phase 0, verify:
   - Test reducer clamps `keyboard_look_speed` to valid range (0.1–10.0)
   - Test reducer ignores unknown action (returns same state)
   - **Target: 6 tests**
+  - Completion note (2026-03-10): Added reducer tests for keyboard-look defaults, update actions, and clamping.
 
-- [ ] **Task 0A2.3 (Green)**: Implement keyboard look settings
+- [x] **Task 0A2.3 (Green)**: Implement keyboard look settings
   - Modify `scripts/state/reducers/u_input_reducer.gd`: add `keyboard_look_enabled: false` and `keyboard_look_speed: 2.0` to `DEFAULT_INPUT_SETTINGS_STATE.mouse_settings`
   - Modify `scripts/state/actions/u_input_actions.gd`: add `ACTION_SET_KEYBOARD_LOOK_ENABLED` and `ACTION_SET_KEYBOARD_LOOK_SPEED`
   - Modify `scripts/state/reducers/u_input_reducer.gd`: add action handling
   - Modify `scripts/utils/u_global_settings_serialization.gd`: add the keyboard-look settings actions to `INPUT_SETTINGS_ACTIONS`
   - All tests should pass
+  - Completion note (2026-03-10): Added keyboard-look actions/reducer handling and persisted-settings trigger wiring.
 
-- [ ] **Task 0A2.4 (Green)**: Implement keyboard look in KeyboardMouseSource
+- [x] **Task 0A2.4 (Green)**: Implement keyboard look in KeyboardMouseSource
   - Modify `scripts/input/sources/keyboard_mouse_source.gd`:
     - Add `keyboard_look_enabled: bool = false` and `keyboard_look_speed: float = 2.0` properties
     - In `capture_input(delta)`, when `keyboard_look_enabled`, read `look_left`/`look_right`/`look_up`/`look_down` action strength and produce a keyboard look delta: `Vector2(look_x, look_y) * keyboard_look_speed * delta`
     - Add keyboard look delta to `look_delta` (additive with mouse)
     - Respect `invert_y_axis` from `mouse_settings` for the keyboard look Y component
   - Modify `scripts/ecs/systems/s_input_system.gd`: read `keyboard_look_enabled` and `keyboard_look_speed` from `mouse_settings` state and pass to `KeyboardMouseSource` each tick (same pattern as `mouse_sensitivity`)
+  - Completion note (2026-03-10): Implemented additive keyboard-look path in `KeyboardMouseSource` and state-driven wiring in `S_InputSystem` (including look-action names).
 
-- [ ] **Task 0A2.5**: Expose keyboard look in settings UI
+- [x] **Task 0A2.5**: Expose keyboard look in settings UI
   - Create `scripts/ui/overlays/ui_keyboard_mouse_settings_overlay.gd`
   - Create `scenes/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn`
   - Create `resources/ui_screens/cfg_keyboard_mouse_settings_overlay.tres`
@@ -124,11 +135,13 @@ Before starting Phase 0, verify:
     - Slider for "Keyboard Look Speed" (maps to `keyboard_look_speed`, range 0.1–10.0)
   - Speed slider should be grayed out / hidden when `keyboard_look_enabled` is false
   - Because bindings live in profiles, the actual keys shown depend on the active profile — rebinding works through the existing rebind system
+  - Completion note (2026-03-10): Added new keyboard/mouse settings overlay scene/script/registry entries, linked from settings menu, with enabled-state gating and dedicated unit coverage.
 
-- [ ] **Task 0A2.6**: Patch rebinding UI and localization for `look_*`
+- [x] **Task 0A2.6**: Patch rebinding UI and localization for `look_*`
   - Modify `scripts/ui/helpers/u_rebind_action_list_builder.gd`: replace legacy `camera_*` coverage with `look_*` under the camera category
   - Modify `resources/localization/cfg_locale_*_ui.tres`: add `input.action.look_left`, `input.action.look_right`, `input.action.look_up`, `input.action.look_down`
   - Modify `tests/unit/ui/test_input_rebinding_overlay.gd` and `tests/unit/integration/test_rebinding_flow.gd` to cover the new camera action names
+  - Completion note (2026-03-10): Added `look_*` actions to the camera rebind category, added locale strings across all UI locales, and updated rebind overlay/integration tests.
 
 ---
 

@@ -41,6 +41,9 @@
 - **Use `RS_UIThemeConfig` + `U_UIThemeBuilder` tokens for shared UI styling, not inline `theme_override_*` scene edits**: Reintroducing scene-local overrides in polished UI screens bypasses the unified theme pipeline and causes style drift across menus/overlays.
   - **Fix pattern**: apply spacing/typography/panel tokens in controller scripts (`_apply_theme_tokens()` style methods) and keep scene files free of non-semantic inline overrides.
 
+- **Store subscriptions can mutate bound controls between sequential dispatches in the same UI handler**: In settings overlays, calling `store.dispatch(...)` for one field can synchronously trigger `_on_state_changed(...)`, which may repopulate UI controls before the next dispatch reads its value.
+  - **Fix pattern**: snapshot all UI control values to local variables first, then dispatch actions using those snapshots.
+
 - **Motion resources are opt-in and must preserve no-op behavior when unset**: Assigning motion logic unconditionally can change legacy navigation/animation behavior on screens that intentionally do not opt in.
   - **Fix pattern**: keep `motion_set` nullable and treat `null` as a strict no-op (no automatic signal binding and no tween playback).
 
