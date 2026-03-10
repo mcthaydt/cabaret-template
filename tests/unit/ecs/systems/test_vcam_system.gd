@@ -713,6 +713,275 @@ func test_orbit_rotation_input_does_not_add_follow_position_lag_when_target_stat
 		"Orbit rotation input should not add extra follow-position lag when follow target is stationary"
 	)
 
+func test_look_filter_hold_keeps_first_person_input_active_without_extra_runtime_rotation() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_FPHoldTarget", Vector3.ZERO)
+	var mode := _new_first_person_mode(1.0)
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_fp_hold"), mode, follow_target)
+	component.response = _new_response(
+		3.0,
+		0.7,
+		1.0,
+		4.0,
+		1.0,
+		1.0,
+		0.0,
+		3.0,
+		0.0,
+		1.0,
+		0.01,
+		0.08,
+		100.0
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_fp_hold")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(12.0, 0.0)})
+	ecs_manager._physics_process(0.016)
+	assert_almost_eq(component.runtime_yaw, 12.0, 0.0001)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	ecs_manager._physics_process(0.016)
+	assert_almost_eq(
+		component.runtime_yaw,
+		12.0,
+		0.0001,
+		"Hold/decay filtering should not add extra runtime yaw when raw input is zero"
+	)
+	var look_state_all: Dictionary = system.get("_look_rotation_state") as Dictionary
+	var look_state := look_state_all.get(StringName("cam_fp_hold"), {}) as Dictionary
+	assert_true(bool(look_state.get("input_active", false)), "Hold window should keep look input active")
+
+func test_look_filter_hold_keeps_orbit_input_active_without_extra_runtime_rotation() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitHoldTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode(true, 1.0)
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_orbit_hold"), mode, follow_target)
+	component.response = _new_response(
+		3.0,
+		0.7,
+		1.0,
+		4.0,
+		1.0,
+		1.0,
+		0.0,
+		3.0,
+		0.0,
+		1.0,
+		0.01,
+		0.08,
+		100.0
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_hold")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(8.0, 0.0)})
+	ecs_manager._physics_process(0.016)
+	assert_almost_eq(component.runtime_yaw, 8.0, 0.0001)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	ecs_manager._physics_process(0.016)
+	assert_almost_eq(
+		component.runtime_yaw,
+		8.0,
+		0.0001,
+		"Hold/decay filtering should not add extra runtime yaw when raw orbit input is zero"
+	)
+	var look_state_all: Dictionary = system.get("_look_rotation_state") as Dictionary
+	var look_state := look_state_all.get(StringName("cam_orbit_hold"), {}) as Dictionary
+	assert_true(bool(look_state.get("input_active", false)), "Hold window should keep orbit look input active")
+
+func test_look_filter_release_decay_deactivates_input_after_hold_window() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_FPDecayTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_fp_decay"),
+		_new_first_person_mode(1.0),
+		follow_target
+	)
+	component.response = _new_response(
+		3.0,
+		0.7,
+		1.0,
+		4.0,
+		1.0,
+		1.0,
+		0.0,
+		3.0,
+		0.0,
+		1.0,
+		0.01,
+		0.02,
+		100.0
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_fp_decay")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(10.0, 0.0)})
+	ecs_manager._physics_process(0.016)
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	for _i in range(8):
+		ecs_manager._physics_process(0.02)
+
+	var look_state_all: Dictionary = system.get("_look_rotation_state") as Dictionary
+	var look_state := look_state_all.get(StringName("cam_fp_decay"), {}) as Dictionary
+	assert_false(bool(look_state.get("input_active", true)), "Release decay should eventually clear active look state")
+
+func test_orbit_moving_target_disables_position_smoothing_bypass_during_look_input() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitMovingBypassTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode(true, 1.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_moving_bypass"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(
+		1.0,
+		0.7,
+		1.0,
+		4.0,
+		1.0,
+		1.0,
+		0.0,
+		3.0,
+		0.0,
+		1.0,
+		0.01,
+		0.0,
+		25.0,
+		0.15,
+		0.3
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_moving_bypass")
+	ecs_manager._physics_process(0.016)
+
+	follow_target.global_position = Vector3(1.0, 0.0, 0.0)
+	store.set_slice(StringName("input"), {"look_input": Vector2(2.0, 0.0)})
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var bypass_state_all: Dictionary = system.get("_debug_position_smoothing_bypass_by_vcam") as Dictionary
+	assert_false(
+		bool(bypass_state_all.get(StringName("cam_orbit_moving_bypass"), true)),
+		"Moving follow target should disable orbit position smoothing bypass"
+	)
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_orbit_moving_bypass"))
+	var look_state_all: Dictionary = system.get("_look_rotation_state") as Dictionary
+	var look_state := look_state_all.get(StringName("cam_orbit_moving_bypass"), {}) as Dictionary
+	var smoothed_yaw: float = float(look_state.get("smoothed_yaw", component.runtime_yaw))
+	var smoothed_pitch: float = float(look_state.get("smoothed_pitch", component.runtime_pitch))
+	var expected_result: Dictionary = U_VCAM_MODE_EVALUATOR.evaluate(
+		mode,
+		follow_target,
+		component.get_look_at_target(),
+		smoothed_yaw,
+		smoothed_pitch,
+		component.get_fixed_anchor()
+	)
+	var expected_transform := expected_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	assert_true(
+		submitted.origin.distance_to(expected_transform.origin) > 0.001,
+		"Moving target should keep follow-position smoothing active while rotating"
+	)
+
+func test_orbit_position_smoothing_bypass_hysteresis_uses_enable_and_disable_speeds() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitBypassHysteresisTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode(true, 1.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_bypass_hysteresis"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(
+		1.0,
+		0.7,
+		1.0,
+		4.0,
+		1.0,
+		1.0,
+		0.0,
+		3.0,
+		0.0,
+		1.0,
+		0.01,
+		0.0,
+		25.0,
+		0.15,
+		0.3
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_bypass_hysteresis")
+	store.set_slice(StringName("input"), {"look_input": Vector2(1.0, 0.0)})
+	ecs_manager._physics_process(1.0)
+
+	follow_target.global_position = Vector3(0.1, 0.0, 0.0)
+	ecs_manager._physics_process(1.0)
+	var bypass_state_all: Dictionary = system.get("_debug_position_smoothing_bypass_by_vcam") as Dictionary
+	assert_true(bool(bypass_state_all.get(StringName("cam_orbit_bypass_hysteresis"), false)))
+
+	follow_target.global_position = Vector3(0.38, 0.0, 0.0)
+	ecs_manager._physics_process(1.0)
+	bypass_state_all = system.get("_debug_position_smoothing_bypass_by_vcam") as Dictionary
+	assert_true(
+		bool(bypass_state_all.get(StringName("cam_orbit_bypass_hysteresis"), false)),
+		"Bypass should remain enabled in the hysteresis band while previously active"
+	)
+
+	follow_target.global_position = Vector3(0.75, 0.0, 0.0)
+	ecs_manager._physics_process(1.0)
+	bypass_state_all = system.get("_debug_position_smoothing_bypass_by_vcam") as Dictionary
+	assert_false(
+		bool(bypass_state_all.get(StringName("cam_orbit_bypass_hysteresis"), true)),
+		"Bypass should disable once speed exceeds the disable threshold"
+	)
+
+	follow_target.global_position = Vector3(1.02, 0.0, 0.0)
+	ecs_manager._physics_process(1.0)
+	bypass_state_all = system.get("_debug_position_smoothing_bypass_by_vcam") as Dictionary
+	assert_false(
+		bool(bypass_state_all.get(StringName("cam_orbit_bypass_hysteresis"), true)),
+		"Bypass should stay disabled in the hysteresis band until speed falls below enable threshold"
+	)
+
 func test_orbit_look_release_does_not_pop_follow_position() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -1980,7 +2249,12 @@ func _new_response(
 	look_ahead_distance: float = 0.0,
 	look_ahead_smoothing: float = 3.0,
 	auto_level_speed: float = 0.0,
-	auto_level_delay: float = 1.0
+	auto_level_delay: float = 1.0,
+	look_input_deadzone: float = 0.02,
+	look_input_hold_sec: float = 0.06,
+	look_input_release_decay: float = 25.0,
+	orbit_look_bypass_enable_speed: float = 0.15,
+	orbit_look_bypass_disable_speed: float = 0.3
 ) -> Resource:
 	var response := RS_VCAM_RESPONSE.new()
 	response.follow_frequency = follow_frequency
@@ -1993,6 +2267,11 @@ func _new_response(
 	response.look_ahead_smoothing = look_ahead_smoothing
 	response.auto_level_speed = auto_level_speed
 	response.auto_level_delay = auto_level_delay
+	response.look_input_deadzone = look_input_deadzone
+	response.look_input_hold_sec = look_input_hold_sec
+	response.look_input_release_decay = look_input_release_decay
+	response.orbit_look_bypass_enable_speed = orbit_look_bypass_enable_speed
+	response.orbit_look_bypass_disable_speed = orbit_look_bypass_disable_speed
 	return response
 
 func _new_soft_zone(

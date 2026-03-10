@@ -15,8 +15,18 @@ const MIN_FREQUENCY_HZ: float = 0.0001
 @export var look_ahead_smoothing: float = 3.0
 @export var auto_level_speed: float = 0.0
 @export var auto_level_delay: float = 1.0
+@export var look_input_deadzone: float = 0.02
+@export var look_input_hold_sec: float = 0.06
+@export var look_input_release_decay: float = 25.0
+@export var orbit_look_bypass_enable_speed: float = 0.15
+@export var orbit_look_bypass_disable_speed: float = 0.3
 
 func get_resolved_values() -> Dictionary:
+	var resolved_orbit_bypass_enable_speed: float = maxf(orbit_look_bypass_enable_speed, 0.0)
+	var resolved_orbit_bypass_disable_speed: float = maxf(
+		orbit_look_bypass_disable_speed,
+		resolved_orbit_bypass_enable_speed
+	)
 	return {
 		"follow_frequency": maxf(follow_frequency, MIN_FREQUENCY_HZ),
 		"follow_damping": maxf(follow_damping, 0.0),
@@ -28,4 +38,9 @@ func get_resolved_values() -> Dictionary:
 		"look_ahead_smoothing": maxf(look_ahead_smoothing, 0.0),
 		"auto_level_speed": maxf(auto_level_speed, 0.0),
 		"auto_level_delay": maxf(auto_level_delay, 0.0),
+		"look_input_deadzone": maxf(look_input_deadzone, 0.0),
+		"look_input_hold_sec": maxf(look_input_hold_sec, 0.0),
+		"look_input_release_decay": maxf(look_input_release_decay, 0.0),
+		"orbit_look_bypass_enable_speed": resolved_orbit_bypass_enable_speed,
+		"orbit_look_bypass_disable_speed": resolved_orbit_bypass_disable_speed,
 	}
