@@ -1,7 +1,7 @@
 # vCam Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.6)
-**Status**: Phases 0A-0F + 1A-1D complete (state/persistence + base authoring resources + scalar second-order dynamics); Phase 1E next
+**Status**: Phases 0A-0F + 1A-1E complete (state/persistence + base authoring resources + scalar/vector second-order dynamics); Phase 1F next
 **Methodology**: Test-driven, integration-first where scene wiring matters
 
 ## Overview

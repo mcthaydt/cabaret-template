@@ -502,7 +502,7 @@ Before starting Phase 0, verify:
 
 ### Phase 1E: U_SecondOrderDynamics3D (Vector3 Wrapper)
 
-- [ ] **Task 1E.1 (Red)**: Write tests for U_SecondOrderDynamics3D
+- [x] **Task 1E.1 (Red)**: Write tests for U_SecondOrderDynamics3D
   - Create `tests/unit/utils/test_second_order_dynamics_3d.gd`
   - Test initial state: output matches initial `Vector3`
   - Test step toward target: output moves toward target `Vector3`
@@ -512,8 +512,9 @@ Before starting Phase 0, verify:
   - Test critically damped motion on all axes simultaneously
   - Test under-damped produces overshoot on all three axes
   - **Target: 7 tests**
+  - Completion note (2026-03-10): Added `test_second_order_dynamics_3d.gd` with 7 tests covering convergence, axis independence, reset semantics, and damping-regime behavior.
 
-- [ ] **Task 1E.2 (Green)**: Implement U_SecondOrderDynamics3D
+- [x] **Task 1E.2 (Green)**: Implement U_SecondOrderDynamics3D
   - Create `scripts/utils/math/u_second_order_dynamics_3d.gd`
   - Add `class_name U_SecondOrderDynamics3D`
   - Wraps three `U_SecondOrderDynamics` instances (x, y, z)
@@ -523,8 +524,10 @@ Before starting Phase 0, verify:
     - `func reset(value: Vector3) -> void`
     - `func get_value() -> Vector3`
   - All tests should pass
+  - Completion note (2026-03-10): Added `U_SecondOrderDynamics3D` as a lightweight 3-axis wrapper around `U_SecondOrderDynamics`.
 
-- [ ] **Task 1E.3**: Run style enforcement tests
+- [x] **Task 1E.3**: Run style enforcement tests
+  - Completion note (2026-03-10): `tests/unit/style/test_style_enforcement.gd` passed with the new vector wrapper utility.
 
 ---
 
