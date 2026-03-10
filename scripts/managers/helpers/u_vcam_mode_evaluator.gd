@@ -45,8 +45,10 @@ static func _evaluate_orbit(
 	var total_yaw: float = float(resolved_values.get("authored_yaw", 0.0))
 	var total_pitch: float = float(resolved_values.get("authored_pitch", 0.0))
 	if bool(resolved_values.get("allow_player_rotation", true)):
-		total_yaw += runtime_yaw
-		total_pitch += runtime_pitch
+		if not bool(resolved_values.get("lock_x_rotation", false)):
+			total_yaw += runtime_yaw
+		if not bool(resolved_values.get("lock_y_rotation", true)):
+			total_pitch += runtime_pitch
 
 	var pitch_rad: float = deg_to_rad(total_pitch)
 	var yaw_rad: float = deg_to_rad(total_yaw)
@@ -94,6 +96,8 @@ static func _resolve_orbit_values(mode: Resource) -> Dictionary:
 			"authored_pitch": float(mode.get("authored_pitch")),
 			"authored_yaw": float(mode.get("authored_yaw")),
 			"allow_player_rotation": bool(mode.get("allow_player_rotation")),
+			"lock_x_rotation": bool(mode.get("lock_x_rotation")) if "lock_x_rotation" in mode else false,
+			"lock_y_rotation": bool(mode.get("lock_y_rotation")) if "lock_y_rotation" in mode else true,
 			"fov": float(mode.get("fov")),
 		}
 

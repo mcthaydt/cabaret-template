@@ -129,6 +129,50 @@ func test_updates_runtime_rotation_for_orbit_when_enabled() -> void:
 	assert_almost_eq(component.runtime_yaw, 2.0, 0.0001)
 	assert_almost_eq(component.runtime_pitch, 4.0, 0.0001)
 
+func test_orbit_lock_x_rotation_prevents_runtime_yaw_updates() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(2.0, -3.0)})
+	var follow_target := _create_target_entity(ecs_manager, "E_TargetOrbitLockX", Vector3.ZERO)
+	var orbit_mode := _new_orbit_mode(true, 1.5)
+	orbit_mode.lock_x_rotation = true
+	orbit_mode.lock_y_rotation = false
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_orbit_lock_x"), orbit_mode, follow_target)
+
+	component.runtime_yaw = 9.0
+	component.runtime_pitch = 1.0
+	vcam_manager.active_vcam_id = StringName("cam_orbit_lock_x")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(component.runtime_yaw, 0.0, 0.0001)
+	assert_almost_eq(component.runtime_pitch, -3.5, 0.0001)
+
+func test_orbit_lock_y_rotation_prevents_runtime_pitch_updates() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(1.5, 4.0)})
+	var follow_target := _create_target_entity(ecs_manager, "E_TargetOrbitLockY", Vector3.ZERO)
+	var orbit_mode := _new_orbit_mode(true, 2.0)
+	orbit_mode.lock_x_rotation = false
+	orbit_mode.lock_y_rotation = true
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_orbit_lock_y"), orbit_mode, follow_target)
+
+	component.runtime_yaw = -2.0
+	component.runtime_pitch = 6.0
+	vcam_manager.active_vcam_id = StringName("cam_orbit_lock_y")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(component.runtime_yaw, 1.0, 0.0001)
+	assert_almost_eq(component.runtime_pitch, 0.0, 0.0001)
+
 func test_does_not_update_orbit_rotation_when_player_rotation_disabled() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -1470,6 +1514,8 @@ func _create_vcam_component(
 func _new_orbit_mode(allow_rotation: bool = true, rotation_speed: float = 1.0) -> Resource:
 	var mode := RS_VCAM_MODE_ORBIT.new()
 	mode.allow_player_rotation = allow_rotation
+	mode.lock_x_rotation = false
+	mode.lock_y_rotation = false
 	mode.rotation_speed = rotation_speed
 	mode.distance = 5.0
 	mode.authored_pitch = -20.0

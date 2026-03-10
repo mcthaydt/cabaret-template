@@ -63,11 +63,11 @@
   - Added `tests/unit/resources/display/vcam/test_vcam_response.gd` (8 tests) covering defaults and resolved non-negative/positive clamp behavior.
   - Added `resources/display/vcam/cfg_default_response.tres` with Phase 1F defaults (`follow: 3.0/0.7/1.0`, `rotation: 4.0/1.0/1.0`).
 - Completed Phase 2A:
-  - Added `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (`RS_VCamModeOrbit`) with authored orbit defaults (`distance`, `authored_pitch`, `authored_yaw`, `allow_player_rotation`, `rotation_speed`, `fov`) plus `get_resolved_values()` clamp/sanitation helper for deterministic runtime reads.
-  - Added/expanded `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (11 tests) for defaults, baseline constraints, and resolved-value safety behavior.
+  - Added `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (`RS_VCamModeOrbit`) with authored orbit defaults (`distance`, `authored_pitch`, `authored_yaw`, `allow_player_rotation`, `lock_x_rotation`, `lock_y_rotation`, `rotation_speed`, `fov`) plus `get_resolved_values()` clamp/sanitation helper for deterministic runtime reads.
+  - Added/expanded `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (14 tests) for defaults, baseline constraints, axis-lock defaults, and resolved-value safety behavior.
 - Completed Phase 2B:
   - Added `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (`U_VCamModeEvaluator`) with orbit-mode evaluation branch, resolved-value consumption, and null-safe invalid-input guards.
-  - Added/expanded `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (12 orbit tests, 37 evaluator tests total) for transform/FOV/mode-name outputs, authored/runtime rotation behavior, and invalid-input handling.
+  - Added/expanded `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (14 orbit tests, 39 evaluator tests total) for transform/FOV/mode-name outputs, authored/runtime rotation behavior, and invalid-input handling.
   - Added `resources/display/vcam/cfg_default_orbit.tres` with baseline orbit defaults for scene/template wiring.
 - Completed Phase 3A:
   - Added `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` (`RS_VCamModeFirstPerson`) with defaults (`head_offset`, `look_multiplier`, `pitch_min`, `pitch_max`, `fov`) and `get_resolved_values()` clamping/ordering helpers.
@@ -307,7 +307,7 @@
   - `assets/shaders/sh_vcam_silhouette_shader.gdshader`
 - Orbit mode baseline is now explicit:
   - `RS_VCamModeOrbit` is authored in `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` with default preset `resources/display/vcam/cfg_default_orbit.tres`.
-  - `RS_VCamModeOrbit.get_resolved_values()` now provides canonical orbit clamp/sanitation reads (`distance`, `fov`, authored angles).
+  - `RS_VCamModeOrbit.get_resolved_values()` now provides canonical orbit clamp/sanitation reads (`distance`, `fov`, authored angles) and axis-lock flags (`lock_x_rotation`, `lock_y_rotation`).
   - `U_VCamModeEvaluator.evaluate(...)` now consumes orbit resolved values, returns `{transform, fov, mode_name}` for orbit resources, and returns `{}` for null/invalid inputs without warning noise.
 - First-person baseline is now explicit:
   - `RS_VCamModeFirstPerson` is authored in `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` with default preset `resources/display/vcam/cfg_default_first_person.tres`.

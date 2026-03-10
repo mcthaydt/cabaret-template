@@ -73,14 +73,14 @@ func test_reset_restores_defaults_and_dispatches() -> void:
 
 	var enabled_check: CheckButton = overlay.get_node("%KeyboardLookEnabledCheck")
 	var speed_slider: HSlider = overlay.get_node("%KeyboardLookSpeedSlider")
-	enabled_check.button_pressed = true
+	enabled_check.button_pressed = false
 	speed_slider.value = 8.0
 
 	_store.dispatched_actions.clear()
 	overlay.call("_on_reset_pressed")
 	await _pump()
 
-	assert_false(enabled_check.button_pressed)
+	assert_true(enabled_check.button_pressed)
 	assert_almost_eq(speed_slider.value, 2.0, 0.001)
 	assert_eq(_store.dispatched_actions.size(), 2)
 	assert_eq(_store.dispatched_actions[0].get("type"), U_InputActions.ACTION_SET_KEYBOARD_LOOK_ENABLED)

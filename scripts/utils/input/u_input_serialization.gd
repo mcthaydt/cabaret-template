@@ -112,7 +112,7 @@ static func _sanitize_loaded_settings(data: Dictionary) -> Dictionary:
 			(data["mouse_settings"] as Dictionary).get("invert_y_axis", false)
 		)
 		sanitized["mouse_settings"]["keyboard_look_enabled"] = bool(
-			(data["mouse_settings"] as Dictionary).get("keyboard_look_enabled", false)
+			(data["mouse_settings"] as Dictionary).get("keyboard_look_enabled", true)
 		)
 
 	if data.has("touchscreen_settings") and data["touchscreen_settings"] is Dictionary:

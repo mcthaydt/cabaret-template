@@ -15,7 +15,7 @@ const BUTTON_REBIND_LOOK_KEY := &"settings.keyboard_mouse.button.rebind_look"
 const TOOLTIP_KEYBOARD_LOOK_ENABLED_KEY := &"settings.keyboard_mouse.tooltip.keyboard_look_enabled"
 const TOOLTIP_KEYBOARD_LOOK_SPEED_KEY := &"settings.keyboard_mouse.tooltip.keyboard_look_speed"
 
-const DEFAULT_KEYBOARD_LOOK_ENABLED: bool = false
+const DEFAULT_KEYBOARD_LOOK_ENABLED: bool = true
 const DEFAULT_KEYBOARD_LOOK_SPEED: float = 2.0
 
 @onready var _main_panel: PanelContainer = %MainPanel

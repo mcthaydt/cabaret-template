@@ -11,7 +11,7 @@ var _mouse_delta: Vector2 = Vector2.ZERO
 var _last_input_time: float = 0.0
 var _mouse_sensitivity: float = 1.0
 var _input_deadzone: float = 0.15
-var _keyboard_look_enabled: bool = false
+var _keyboard_look_enabled: bool = true
 var _keyboard_look_speed: float = 2.0
 var _invert_y_axis: bool = false
 

@@ -27,6 +27,14 @@ func test_allow_player_rotation_default_is_true() -> void:
 	var mode: Resource = _new_mode()
 	assert_true(bool(mode.get("allow_player_rotation")))
 
+func test_lock_x_rotation_default_is_false() -> void:
+	var mode: Resource = _new_mode()
+	assert_false(bool(mode.get("lock_x_rotation")))
+
+func test_lock_y_rotation_default_is_true() -> void:
+	var mode: Resource = _new_mode()
+	assert_true(bool(mode.get("lock_y_rotation")))
+
 func test_rotation_speed_default_is_two() -> void:
 	var mode: Resource = _new_mode()
 	assert_almost_eq(float(mode.get("rotation_speed")), 2.0, 0.0001)
@@ -74,3 +82,12 @@ func test_non_finite_values_resolve_deterministically() -> void:
 	assert_almost_eq(float(resolved.get("authored_pitch", 0.0)), -20.0, 0.0001)
 	assert_almost_eq(float(resolved.get("authored_yaw", 1.0)), 0.0, 0.0001)
 	assert_almost_eq(float(resolved.get("rotation_speed", -1.0)), 0.0, 0.0001)
+
+func test_resolved_values_include_rotation_lock_flags() -> void:
+	var mode: Resource = _new_mode()
+	mode.set("lock_x_rotation", true)
+	mode.set("lock_y_rotation", false)
+
+	var resolved: Dictionary = _resolved(mode)
+	assert_true(bool(resolved.get("lock_x_rotation", false)))
+	assert_false(bool(resolved.get("lock_y_rotation", true)))

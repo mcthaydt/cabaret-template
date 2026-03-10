@@ -32,7 +32,7 @@ const DEFAULT_INPUT_SETTINGS_STATE := {
 	"mouse_settings": {
 		"sensitivity": 1.0,
 		"invert_y_axis": false,
-		"keyboard_look_enabled": false,
+		"keyboard_look_enabled": true,
 		"keyboard_look_speed": 2.0,
 	},
 	"touchscreen_settings": {
@@ -504,7 +504,7 @@ static func _normalize_custom_bindings_by_profile(value: Variant) -> Dictionary:
 
 static func _sanitize_mouse_settings(source: Dictionary) -> Dictionary:
 	var sanitized := source.duplicate(true)
-	sanitized["keyboard_look_enabled"] = bool(sanitized.get("keyboard_look_enabled", false))
+	sanitized["keyboard_look_enabled"] = bool(sanitized.get("keyboard_look_enabled", true))
 	sanitized["keyboard_look_speed"] = clampf(float(sanitized.get("keyboard_look_speed", 2.0)), 0.1, 10.0)
 	return sanitized
 

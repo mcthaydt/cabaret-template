@@ -4,6 +4,7 @@ const M_VCAM_MANAGER := preload("res://scripts/managers/m_vcam_manager.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
+const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
@@ -286,10 +287,62 @@ func test_pruned_invalid_active_vcam_publishes_previous_active_id() -> void:
 	assert_eq(payload.get("vcam_id", StringName("")), StringName("cam_low"))
 	assert_eq(payload.get("previous_vcam_id", StringName("")), StringName("cam_high"))
 
-func _create_manager(injected_store: I_StateStore = null) -> M_VCamManager:
+func test_submit_evaluated_camera_applies_active_transform_to_camera_manager() -> void:
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+
+	var manager := await _create_manager(null, camera_manager)
+	var camera_a := _create_vcam(StringName("cam_a"), 5)
+	manager.register_vcam(camera_a)
+
+	var expected := Transform3D(Basis.IDENTITY, Vector3(1.25, 2.5, -3.75))
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": expected})
+
+	assert_eq(camera_manager.apply_main_transform_calls, 1, "Active submission should be applied to camera manager")
+	assert_eq(camera_manager.last_main_transform, expected, "Applied camera transform should match submission")
+
+func test_submit_evaluated_camera_does_not_apply_for_inactive_vcam() -> void:
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+
+	var manager := await _create_manager(null, camera_manager)
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5))
+	manager.register_vcam(_create_vcam(StringName("cam_b"), 1))
+
+	manager.submit_evaluated_camera(
+		StringName("cam_b"),
+		{"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 1.0, 2.0))}
+	)
+
+	assert_eq(camera_manager.apply_main_transform_calls, 0, "Non-active submissions must not drive main camera")
+
+func test_submit_evaluated_camera_respects_camera_blend_gate() -> void:
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	camera_manager.blend_active = true
+	add_child(camera_manager)
+	autofree(camera_manager)
+
+	var manager := await _create_manager(null, camera_manager)
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5))
+
+	manager.submit_evaluated_camera(
+		StringName("cam_a"),
+		{"transform": Transform3D(Basis.IDENTITY, Vector3(4.0, 5.0, 6.0))}
+	)
+
+	assert_eq(camera_manager.apply_main_transform_calls, 0, "Blend-active camera manager should ignore gameplay apply")
+
+func _create_manager(
+	injected_store: I_StateStore = null,
+	injected_camera_manager: I_CameraManager = null
+) -> M_VCamManager:
 	var manager := M_VCAM_MANAGER.new()
 	if injected_store != null:
 		manager.state_store = injected_store
+	if injected_camera_manager != null:
+		manager.camera_manager = injected_camera_manager
 	add_child(manager)
 	autofree(manager)
 	await get_tree().process_frame

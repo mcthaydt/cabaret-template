@@ -5,6 +5,8 @@ class_name RS_VCamModeOrbit
 const DEFAULT_AUTHORED_PITCH: float = -20.0
 const DEFAULT_AUTHORED_YAW: float = 0.0
 const DEFAULT_FOV: float = 75.0
+const DEFAULT_LOCK_X_ROTATION: bool = false
+const DEFAULT_LOCK_Y_ROTATION: bool = true
 const MIN_DISTANCE: float = 0.0
 const MIN_FOV: float = 1.0
 const MAX_FOV: float = 179.0
@@ -13,6 +15,8 @@ const MAX_FOV: float = 179.0
 @export_range(-90.0, 90.0, 0.01) var authored_pitch: float = DEFAULT_AUTHORED_PITCH
 @export_range(-360.0, 360.0, 0.01) var authored_yaw: float = DEFAULT_AUTHORED_YAW
 @export var allow_player_rotation: bool = true
+@export var lock_x_rotation: bool = DEFAULT_LOCK_X_ROTATION
+@export var lock_y_rotation: bool = DEFAULT_LOCK_Y_ROTATION
 @export_range(0.0, 20.0, 0.01) var rotation_speed: float = 2.0
 @export_range(1.0, 179.0, 0.01) var fov: float = DEFAULT_FOV
 
@@ -27,6 +31,8 @@ func get_resolved_values() -> Dictionary:
 		"authored_pitch": resolved_pitch,
 		"authored_yaw": resolved_yaw,
 		"allow_player_rotation": allow_player_rotation,
+		"lock_x_rotation": lock_x_rotation,
+		"lock_y_rotation": lock_y_rotation,
 		"rotation_speed": maxf(resolved_rotation_speed, 0.0),
 		"fov": clampf(resolved_fov, MIN_FOV, MAX_FOV),
 	}

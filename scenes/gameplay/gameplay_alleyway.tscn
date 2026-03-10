@@ -49,7 +49,6 @@
 [ext_resource type="Script" uid="uid://csqsmkkv5ite7" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
 [ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
 [ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
@@ -80,6 +79,7 @@
 [ext_resource type="Resource" uid="uid://b2on1westv2qd" path="res://resources/lighting/zones/cfg_character_light_zone_alleyway_moonlight.tres" id="69_character_light_zone_moon_config"]
 [ext_resource type="Resource" uid="uid://b0alttd2vv4ah" path="res://resources/lighting/zones/cfg_character_light_zone_alleyway_street_warm.tres" id="70_character_light_zone_street_config"]
 [ext_resource type="Resource" uid="uid://bdnpanvebpptm" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_alleyway.tres" id="71_character_light_zone_goal_config"]
+[ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
@@ -385,7 +385,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 7.147382)
 
 [node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0" unique_id=1000261679]
 transform = Transform3D(0.99999994, 0, 0, 0, 0.8660254, 0.49999997, 0, -0.5, 0.8660253, -1.2474375, 6.117, 1.6184931)
-fov = 28.8
+fov = 28.8415
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=616346955]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.386, 1.497, -5.739)

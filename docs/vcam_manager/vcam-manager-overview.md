@@ -291,6 +291,8 @@ This slice is whole-slice transient. It is not save data and not a player settin
 
 - authored distance/pitch/yaw
 - optional player rotation
+- per-axis rotation locks (`lock_x_rotation`, `lock_y_rotation`) for yaw/pitch input gating
+- default preset keeps `lock_y_rotation = true`
 - `rotation_speed` is used only when player rotation is enabled
 - authored FOV feeds `C_CameraStateComponent.base_fov`
 

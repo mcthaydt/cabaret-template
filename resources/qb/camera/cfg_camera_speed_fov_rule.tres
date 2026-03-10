@@ -1,14 +1,13 @@
-[gd_resource type="Resource" script_class="RS_Rule" format=3]
+[gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://btpm4xikloxwq"]
 
-[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_component_field.gd" id="1_65x2n"]
-[ext_resource type="Script" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="2_j3wwh"]
-[ext_resource type="Script" path="res://scripts/resources/qb/rs_rule.gd" id="3_iw607"]
+[ext_resource type="Script" uid="uid://d3ig84jkjjkpv" path="res://scripts/resources/qb/conditions/rs_condition_component_field.gd" id="1_65x2n"]
+[ext_resource type="Script" uid="uid://baf360oqwp7v5" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="2_j3wwh"]
+[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="3_iw607"]
 
 [sub_resource type="Resource" id="Resource_q4qj4"]
 script = ExtResource("1_65x2n")
 component_type = &"C_MovementComponent"
 field_path = "speed_magnitude"
-range_min = 0.0
 range_max = 9.0
 
 [sub_resource type="Resource" id="Resource_0ihwf"]
@@ -18,12 +17,11 @@ field_name = &"speed_fov_bonus"
 float_value = 15.0
 scale_by_rule_score = true
 use_clamp = true
-clamp_min = 0.0
 clamp_max = 15.0
 
 [resource]
 script = ExtResource("3_iw607")
 rule_id = &"camera_speed_fov"
-score_threshold = -1.0
 conditions = Array[Resource]([SubResource("Resource_q4qj4")])
 effects = Array[Resource]([SubResource("Resource_0ihwf")])
+score_threshold = -1.0

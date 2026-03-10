@@ -102,10 +102,47 @@ func test_orbit_applies_runtime_rotation_when_enabled() -> void:
 	mode.set("authored_pitch", -20.0)
 	mode.set("authored_yaw", 0.0)
 	mode.set("allow_player_rotation", true)
+	mode.set("lock_y_rotation", false)
 
 	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 90.0, -10.0)
 	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
 	var expected_position: Vector3 = _compute_expected_offset(5.0, -30.0, 90.0)
+
+	assert_almost_eq(camera_transform.origin.x, expected_position.x, 0.001)
+	assert_almost_eq(camera_transform.origin.y, expected_position.y, 0.001)
+	assert_almost_eq(camera_transform.origin.z, expected_position.z, 0.001)
+
+func test_orbit_lock_x_rotation_ignores_runtime_yaw() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_mode()
+	mode.set("distance", 5.0)
+	mode.set("authored_pitch", -20.0)
+	mode.set("authored_yaw", 15.0)
+	mode.set("allow_player_rotation", true)
+	mode.set("lock_x_rotation", true)
+	mode.set("lock_y_rotation", false)
+
+	var with_runtime: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 90.0, -10.0)
+	var expected_position: Vector3 = _compute_expected_offset(5.0, -30.0, 15.0)
+	var camera_transform: Transform3D = with_runtime.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	assert_almost_eq(camera_transform.origin.x, expected_position.x, 0.001)
+	assert_almost_eq(camera_transform.origin.y, expected_position.y, 0.001)
+	assert_almost_eq(camera_transform.origin.z, expected_position.z, 0.001)
+
+func test_orbit_lock_y_rotation_ignores_runtime_pitch() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_mode()
+	mode.set("distance", 5.0)
+	mode.set("authored_pitch", -20.0)
+	mode.set("authored_yaw", 10.0)
+	mode.set("allow_player_rotation", true)
+	mode.set("lock_x_rotation", false)
+	mode.set("lock_y_rotation", true)
+
+	var with_runtime: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 30.0, -25.0)
+	var expected_position: Vector3 = _compute_expected_offset(5.0, -20.0, 40.0)
+	var camera_transform: Transform3D = with_runtime.get("transform", Transform3D.IDENTITY) as Transform3D
 
 	assert_almost_eq(camera_transform.origin.x, expected_position.x, 0.001)
 	assert_almost_eq(camera_transform.origin.y, expected_position.y, 0.001)

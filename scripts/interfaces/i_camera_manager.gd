@@ -16,6 +16,21 @@ func get_main_camera() -> Camera3D:
 	push_error("I_CameraManager.get_main_camera not implemented")
 	return null
 
+## Apply a gameplay-authored world transform to the active main camera.
+##
+## This is the vCam handoff API used by M_VCamManager.
+##
+## @param _transform: Desired world transform for the main camera baseline
+func apply_main_camera_transform(_transform: Transform3D) -> void:
+	push_error("I_CameraManager.apply_main_camera_transform not implemented")
+
+## Return whether a transition-camera blend is currently in progress.
+##
+## When true, gameplay camera writes should be suspended.
+func is_blend_active() -> bool:
+	push_error("I_CameraManager.is_blend_active not implemented")
+	return false
+
 ## Initialize and find the camera in a scene
 ##
 ## Finds camera in the scene subtree and registers it as main camera.

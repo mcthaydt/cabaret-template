@@ -91,7 +91,7 @@ func test_fov_blending_lerps_main_camera_toward_target() -> void:
 	})
 	system.process_tick(0.25)
 
-	assert_almost_eq(camera_manager.main_camera.fov, 75.0, 0.001)
+	assert_almost_eq(camera_manager.main_camera.fov, 82.5, 0.001)
 
 func test_speed_fov_rule_sets_bonus_from_movement_speed() -> void:
 	var fixture: Dictionary = _create_fixture(

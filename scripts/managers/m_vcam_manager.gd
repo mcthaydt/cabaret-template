@@ -121,6 +121,7 @@ func submit_evaluated_camera(vcam_id: StringName, result: Dictionary) -> void:
 	if result == null:
 		return
 	_submitted_results[vcam_id] = result.duplicate(true)
+	_try_apply_active_submission(vcam_id)
 
 func get_blend_progress() -> float:
 	return _blend_progress
@@ -321,6 +322,28 @@ func _resolve_ecs_manager() -> I_ECS_MANAGER:
 		return _ecs_manager
 	_ecs_manager = U_SERVICE_LOCATOR.try_get_service(StringName("ecs_manager")) as I_ECS_MANAGER
 	return _ecs_manager
+
+func _try_apply_active_submission(vcam_id: StringName) -> void:
+	if vcam_id == StringName(""):
+		return
+	if vcam_id != _active_vcam_id:
+		return
+
+	var camera_mgr: I_CAMERA_MANAGER = _resolve_camera_manager()
+	if camera_mgr == null:
+		return
+	if camera_mgr.is_blend_active():
+		return
+
+	var result_variant: Variant = _submitted_results.get(vcam_id, {})
+	if not (result_variant is Dictionary):
+		return
+	var result := result_variant as Dictionary
+	var transform_variant: Variant = result.get("transform", null)
+	if not (transform_variant is Transform3D):
+		return
+
+	camera_mgr.apply_main_camera_transform(transform_variant as Transform3D)
 
 func _report_issue(message: String) -> void:
 	print_verbose("M_VCamManager: %s" % message)

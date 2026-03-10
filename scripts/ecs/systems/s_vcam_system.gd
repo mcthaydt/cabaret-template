@@ -484,17 +484,31 @@ func _update_runtime_rotation(
 	if mode_script == RS_VCAM_MODE_ORBIT_SCRIPT:
 		var orbit_values: Dictionary = _resolve_mode_values(mode, {
 			"allow_player_rotation": true,
+			"lock_x_rotation": false,
+			"lock_y_rotation": true,
 			"rotation_speed": 0.0,
 		})
 		if not bool(orbit_values.get("allow_player_rotation", true)):
 			_orbit_no_look_input_timers.erase(vcam_id)
 			return
 
+		var lock_x_rotation: bool = bool(orbit_values.get("lock_x_rotation", false))
+		var lock_y_rotation: bool = bool(orbit_values.get("lock_y_rotation", true))
+		if lock_x_rotation:
+			component.runtime_yaw = 0.0
+		if lock_y_rotation:
+			component.runtime_pitch = 0.0
+
 		var rotation_speed: float = maxf(float(orbit_values.get("rotation_speed", 0.0)), 0.0)
 		if has_look_input:
-			component.runtime_yaw += look_input.x * rotation_speed
-			component.runtime_pitch += look_input.y * rotation_speed
+			if not lock_x_rotation:
+				component.runtime_yaw += look_input.x * rotation_speed
+			if not lock_y_rotation:
+				component.runtime_pitch += look_input.y * rotation_speed
 			_orbit_no_look_input_timers[vcam_id] = 0.0
+			return
+		if lock_y_rotation:
+			_orbit_no_look_input_timers.erase(vcam_id)
 			return
 
 		var no_look_timer: float = float(_orbit_no_look_input_timers.get(vcam_id, 0.0))

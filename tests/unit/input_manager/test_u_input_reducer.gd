@@ -192,7 +192,7 @@ func test_mouse_settings_have_keyboard_look_defaults() -> void:
 	var mouse_settings: Dictionary = settings.get("mouse_settings", {})
 	assert_true(mouse_settings.has("keyboard_look_enabled"), "Should have keyboard_look_enabled field")
 	assert_true(mouse_settings.has("keyboard_look_speed"), "Should have keyboard_look_speed field")
-	assert_false(bool(mouse_settings.get("keyboard_look_enabled", true)))
+	assert_true(bool(mouse_settings.get("keyboard_look_enabled", false)))
 	assert_almost_eq(float(mouse_settings.get("keyboard_look_speed", 0.0)), 2.0, 0.0001)
 
 func test_reduce_settings_returns_null_for_unhandled_action() -> void:

@@ -265,7 +265,7 @@ func _apply_settings_from_state(state: Dictionary) -> void:
 	var mouse_settings := U_InputSelectors.get_mouse_settings(state)
 	var mouse_sensitivity := clampf(float(mouse_settings.get("sensitivity", 1.0)), 0.0, 20.0)
 	var invert_y_axis := bool(mouse_settings.get("invert_y_axis", false))
-	var keyboard_look_enabled := bool(mouse_settings.get("keyboard_look_enabled", false))
+	var keyboard_look_enabled := bool(mouse_settings.get("keyboard_look_enabled", true))
 	var keyboard_look_speed := clampf(float(mouse_settings.get("keyboard_look_speed", 2.0)), 0.1, 10.0)
 
 	var gamepad_settings := U_InputSelectors.get_gamepad_settings(state)
