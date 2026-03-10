@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, and 0F are complete as of March 10, 2026 (touchscreen drag-look persistence, keyboard-look action/settings/UI plumbing, persisted VFX silhouette toggle wiring, `RS_VCamInitialState`, vCam actions/reducer + event constants, selector/store/root transient wiring, and `in_fov_zone` migration to `state.vcam.in_fov_zone`). Next implementation target is Phase 1A (base authoring resources: soft zone + blend hint).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, and 1C are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, and base vCam authoring resource foundations with defaults). Next implementation target is Phase 1D (`U_SecondOrderDynamics`).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -43,6 +43,15 @@
   - Patched `S_CameraStateSystem` to resolve FOV-zone state through `U_VCamSelectors.is_in_fov_zone(state)` instead of legacy `state.camera` reads.
   - Updated `resources/qb/camera/cfg_camera_zone_fov_rule.tres` to `state_path = "vcam.in_fov_zone"` so rule-driven FOV behavior matches migrated runtime state.
   - Updated QB camera unit/integration tests to seed `set_slice("vcam", {"in_fov_zone": ...})` and removed remaining non-doc `camera.in_fov_zone` references.
+- Completed Phase 1A:
+  - Added `RS_VCamSoftZone` (`scripts/resources/display/vcam/rs_vcam_soft_zone.gd`) with exported dead-zone/soft-zone dimensions and damping defaults.
+  - Added `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd` (7 tests) for default values and bounds/order guards.
+- Completed Phase 1B:
+  - Added `RS_VCamBlendHint` (`scripts/resources/display/vcam/rs_vcam_blend_hint.gd`) with blend/tween fields and `is_instant_cut()` helper.
+  - Added `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd` (7 tests) for defaults, non-negative constraints, and zero-duration cut semantics.
+- Completed Phase 1C:
+  - Added `resources/display/vcam/cfg_default_soft_zone.tres`.
+  - Added `resources/display/vcam/cfg_default_blend_hint.tres`.
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -80,6 +89,10 @@
 - Validation run (green, Phase 0F):
   - `tests/unit/qb/test_camera_state_system.gd`
   - `tests/integration/qb/test_camera_shake_pipeline.gd`
+  - `tests/unit/style/test_style_enforcement.gd`
+- Validation run (green, Phases 1A/1B/1C):
+  - `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd`
+  - `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd`
   - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
@@ -163,7 +176,7 @@
 
 ## Next Steps
 
-1. Start Phase 1A by implementing `RS_VCamSoftZone` (resource + defaults + tests) and `RS_VCamBlendHint` foundations per `docs/vcam_manager/vcam-base-tasks.md`.
+1. Start Phase 1D by implementing `U_SecondOrderDynamics` (`scripts/utils/math/u_second_order_dynamics.gd`) and `tests/unit/utils/test_second_order_dynamics.gd` per `docs/vcam_manager/vcam-base-tasks.md`.
 2. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
 3. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
 4. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.

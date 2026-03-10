@@ -379,7 +379,7 @@ Before starting Phase 0, verify:
 
 ### Phase 1A: RS_VCamSoftZone
 
-- [ ] **Task 1A.1 (Red)**: Write tests for RS_VCamSoftZone
+- [x] **Task 1A.1 (Red)**: Write tests for RS_VCamSoftZone
   - Create `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd`
   - Test `dead_zone_width` field exists with default (e.g. 0.1)
   - Test `dead_zone_height` field exists with default (e.g. 0.1)
@@ -389,17 +389,19 @@ Before starting Phase 0, verify:
   - Test all values are non-negative
   - Test soft zone dimensions >= dead zone dimensions conceptually
   - **Target: 7 tests**
+  - Completion note (2026-03-10): Added `test_vcam_soft_zone.gd` with 7 assertions covering defaults, non-negative bounds, and zone-size ordering.
 
-- [ ] **Task 1A.2 (Green)**: Implement RS_VCamSoftZone
+- [x] **Task 1A.2 (Green)**: Implement RS_VCamSoftZone
   - Create `scripts/resources/display/vcam/rs_vcam_soft_zone.gd`
   - All `@export` fields with sensible defaults
   - All tests should pass
+  - Completion note (2026-03-10): Added `RS_VCamSoftZone` with exported dead-zone/soft-zone dimensions and damping defaults.
 
 ---
 
 ### Phase 1B: RS_VCamBlendHint
 
-- [ ] **Task 1B.1 (Red)**: Write tests for RS_VCamBlendHint
+- [x] **Task 1B.1 (Red)**: Write tests for RS_VCamBlendHint
   - Create `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd`
   - Test `blend_duration` field exists with default (e.g. 1.0)
   - Test `ease_type` field exists with default (e.g. `Tween.EASE_IN_OUT`)
@@ -409,20 +411,23 @@ Before starting Phase 0, verify:
   - Test `cut_on_distance_threshold` is non-negative
   - Test zero `blend_duration` means instant cut
   - **Target: 7 tests**
+  - Completion note (2026-03-10): Added `test_vcam_blend_hint.gd` with 7 assertions for defaults, bounds, and instant-cut behavior.
 
-- [ ] **Task 1B.2 (Green)**: Implement RS_VCamBlendHint
+- [x] **Task 1B.2 (Green)**: Implement RS_VCamBlendHint
   - Create `scripts/resources/display/vcam/rs_vcam_blend_hint.gd`
   - All `@export` fields with sensible defaults
   - All tests should pass
+  - Completion note (2026-03-10): Added `RS_VCamBlendHint` with blend/tween fields and `is_instant_cut()` helper.
 
 ---
 
 ### Phase 1C: Default Preset Resources
 
-- [ ] **Task 1C.1**: Create default resource instances
+- [x] **Task 1C.1**: Create default resource instances
   - Create `resources/display/vcam/cfg_default_soft_zone.tres`
   - Create `resources/display/vcam/cfg_default_blend_hint.tres`
   - Verify resources load without errors
+  - Completion note (2026-03-10): Added both default vCam resource presets and validated via new resource unit suites + style gate.
 
 ---
 

@@ -5,7 +5,7 @@
 - **Feature name**: Virtual Camera (vCam) Manager
 - **Project**: Cabaret Template (Godot 4.6)
 - **Target release**: TBD
-- **Status**: Phases 0A-0F complete (state/persistence foundations); mode implementation phases pending
+- **Status**: Phases 0A-0F + 1A-1C complete (state/persistence + base authoring resource foundations); dynamics/mode phases pending
 
 ## Problem Statement
 
