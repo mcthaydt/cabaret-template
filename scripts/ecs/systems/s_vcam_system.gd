@@ -311,19 +311,6 @@ func _evaluate_and_submit(
 		has_active_look_input
 	)
 	var final_result: Dictionary = _apply_landing_impact_offset(smoothed_result, landing_offset)
-	_debug_log_camera_offset_breakdown(
-		vcam_id,
-		mode,
-		look_input,
-		filtered_look_input,
-		has_active_look_input,
-		response_values,
-		result,
-		look_ahead_result,
-		soft_zone_result,
-		smoothed_result,
-		final_result
-	)
 	if vcam_id == manager.get_active_vcam_id():
 		_write_active_camera_base_fov_from_result(final_result)
 	manager.submit_evaluated_camera(vcam_id, final_result)
@@ -1644,11 +1631,7 @@ func _step_smoothing_state(
 			mode_script,
 			has_active_look_input,
 			raw_transform.origin,
-			follow_dynamics,
-			follow_target_speed_mps,
-			response_values,
-			previous_bypass,
-			bypass_non_fixed_position_smoothing
+			follow_dynamics
 		)
 
 	# Orbit look input intentionally bypasses follow-position smoothing while rotating.
@@ -2096,11 +2079,7 @@ func _debug_log_position_smoothing_gate_transition(
 	mode_script: Script,
 	has_active_look_input: bool,
 	raw_position: Vector3,
-	follow_dynamics: Variant,
-	follow_target_speed_mps: float,
-	response_values: Dictionary,
-	previous_bypass: bool,
-	current_bypass: bool
+	follow_dynamics: Variant
 ) -> void:
 	if not debug_rotation_logging:
 		return
@@ -2110,25 +2089,12 @@ func _debug_log_position_smoothing_gate_transition(
 		if cached_variant is Vector3:
 			cached_position = cached_variant as Vector3
 	var mode_label: String = _get_debug_mode_label(mode_script)
-	var enable_speed: float = maxf(
-		float(response_values.get("orbit_look_bypass_enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)),
-		0.0
-	)
-	var disable_speed: float = maxf(
-		float(response_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
-		enable_speed
-	)
 	print(
-		"S_VCamSystem[debug] smoothing_gate: vcam_id=%s mode=%s active_input=%s bypass=%s->%s speed_mps=%.3f thresholds={enable:%.3f,disable:%.3f} raw_pos=%s cached_pos=%s offset_len=%.5f"
+		"S_VCamSystem[debug] smoothing_gate: vcam_id=%s mode=%s active_input=%s raw_pos=%s cached_pos=%s offset_len=%.5f"
 		% [
 			String(vcam_id),
 			mode_label,
 			str(has_active_look_input),
-			str(previous_bypass),
-			str(current_bypass),
-			follow_target_speed_mps,
-			enable_speed,
-			disable_speed,
 			str(raw_position),
 			str(cached_position),
 			raw_position.distance_to(cached_position),
@@ -2159,125 +2125,8 @@ func _debug_log_landing_offset_state(landing_offset: Vector3) -> void:
 			"active" if status == 1 else "inactive",
 			landing_offset.length(),
 			str(landing_offset),
-		]
+			]
 		)
-
-func _debug_log_camera_offset_breakdown(
-	vcam_id: StringName,
-	mode: Resource,
-	raw_look_input: Vector2,
-	filtered_look_input: Vector2,
-	has_active_look_input: bool,
-	response_values: Dictionary,
-	raw_result: Dictionary,
-	look_ahead_result: Dictionary,
-	soft_zone_result: Dictionary,
-	smoothed_result: Dictionary,
-	final_result: Dictionary
-) -> void:
-	if not debug_rotation_logging:
-		return
-	if mode == null:
-		return
-
-	var mode_script := mode.get_script() as Script
-	if mode_script == null:
-		return
-
-	var raw_origin_state: Dictionary = _extract_result_origin(raw_result)
-	var look_ahead_origin_state: Dictionary = _extract_result_origin(look_ahead_result)
-	var soft_zone_origin_state: Dictionary = _extract_result_origin(soft_zone_result)
-	var smoothed_origin_state: Dictionary = _extract_result_origin(smoothed_result)
-	var final_origin_state: Dictionary = _extract_result_origin(final_result)
-	if (
-		not bool(raw_origin_state.get("valid", false))
-		or not bool(look_ahead_origin_state.get("valid", false))
-		or not bool(soft_zone_origin_state.get("valid", false))
-		or not bool(smoothed_origin_state.get("valid", false))
-		or not bool(final_origin_state.get("valid", false))
-	):
-		return
-
-	var raw_origin: Vector3 = raw_origin_state.get("origin", Vector3.ZERO) as Vector3
-	var look_ahead_origin: Vector3 = look_ahead_origin_state.get("origin", Vector3.ZERO) as Vector3
-	var soft_zone_origin: Vector3 = soft_zone_origin_state.get("origin", Vector3.ZERO) as Vector3
-	var smoothed_origin: Vector3 = smoothed_origin_state.get("origin", Vector3.ZERO) as Vector3
-	var final_origin: Vector3 = final_origin_state.get("origin", Vector3.ZERO) as Vector3
-
-	var look_ahead_offset_len: float = raw_origin.distance_to(look_ahead_origin)
-	var soft_zone_offset_len: float = look_ahead_origin.distance_to(soft_zone_origin)
-	var smoothing_offset_len: float = soft_zone_origin.distance_to(smoothed_origin)
-	var landing_offset_len: float = smoothed_origin.distance_to(final_origin)
-	var total_offset_vec: Vector3 = final_origin - raw_origin
-	var total_offset_len: float = total_offset_vec.length()
-
-	var look_filter_variant: Variant = _look_input_filter_state.get(vcam_id, {})
-	var filter_state: Dictionary = look_filter_variant as Dictionary if look_filter_variant is Dictionary else {}
-	var filter_hold_sec: float = float(filter_state.get("hold_timer_sec", 0.0))
-	var filter_active: bool = bool(filter_state.get("input_active", false))
-
-	var motion_state_variant: Variant = _follow_target_motion_state.get(vcam_id, {})
-	var motion_state: Dictionary = motion_state_variant as Dictionary if motion_state_variant is Dictionary else {}
-	var follow_speed_mps: float = float(motion_state.get("speed_mps", 0.0))
-	var bypass_active: bool = bool(_debug_position_smoothing_bypass_by_vcam.get(vcam_id, false))
-	var soft_zone_status: String = String(_debug_soft_zone_status.get(vcam_id, "unknown"))
-
-	var look_ahead_distance: float = maxf(float(response_values.get("look_ahead_distance", 0.0)), 0.0)
-	var bypass_enable_speed: float = maxf(
-		float(response_values.get("orbit_look_bypass_enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)),
-		0.0
-	)
-	var bypass_disable_speed: float = maxf(
-		float(response_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
-		bypass_enable_speed
-	)
-	var soft_zone_active: bool = soft_zone_offset_len > 0.00001
-
-	_debug_log_rotation(
-		vcam_id,
-		"offset_breakdown mode=%s raw_look=%s filtered_look=%s filter_active=%s has_active_look=%s hold_sec=%.3f speed_mps=%.3f bypass=%s soft_zone_status=%s soft_zone_active=%s offsets={look_ahead:%.5f,soft_zone:%.5f,smoothing:%.5f,landing:%.5f,total:%.5f,total_vec:%s} tuning={look_ahead_distance:%.3f,bypass_enable:%.3f,bypass_disable:%.3f}"
-		% [
-			_get_debug_mode_label(mode_script),
-			str(raw_look_input),
-			str(filtered_look_input),
-			str(filter_active),
-			str(has_active_look_input),
-			filter_hold_sec,
-			follow_speed_mps,
-			str(bypass_active),
-			soft_zone_status,
-			str(soft_zone_active),
-			look_ahead_offset_len,
-			soft_zone_offset_len,
-			smoothing_offset_len,
-			landing_offset_len,
-			total_offset_len,
-			str(total_offset_vec),
-			look_ahead_distance,
-			bypass_enable_speed,
-			bypass_disable_speed,
-		]
-	)
-
-func _extract_result_origin(result: Dictionary) -> Dictionary:
-	if result.is_empty():
-		return {
-			"valid": false,
-			"origin": Vector3.ZERO,
-		}
-
-	var transform_variant: Variant = result.get("transform", null)
-	if not (transform_variant is Transform3D):
-		return {
-			"valid": false,
-			"origin": Vector3.ZERO,
-		}
-
-	var transform_value: Transform3D = transform_variant as Transform3D
-	return {
-		"valid": true,
-		"origin": transform_value.origin,
-	}
 
 func _report_issue(message: String) -> void:
 	if _debug_issues.size() >= 64:

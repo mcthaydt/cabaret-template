@@ -99,7 +99,6 @@ script = ExtResource("1_pybrx")
 
 [node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=967520144]
 script = ExtResource("23_vcam_system")
-debug_rotation_logging = true
 execution_priority = 100
 
 [node name="Physics" type="Node" parent="Systems" unique_id=369931067]
