@@ -210,6 +210,14 @@
 - **Look-ahead can leak stale offsets across mode/target changes**: Reusing previous velocity/offset state when switching targets or switching to non-orbit modes causes incorrect camera drift on the next tick.
   - **Fix pattern**: clear per-vCam look-ahead state whenever mode is non-orbit, look-ahead is disabled, or follow-target identity changes.
 
+## vCam Soft-Zone Pitfalls
+
+- **Clearing dead-zone hysteresis state on response-null paths causes boundary jitter**: `S_VCamSystem` can run with `response = null` (raw evaluator passthrough). If soft-zone hysteresis state is tied to response-smoothing resets, dead-zone enter/exit history is wiped every tick and correction toggles at the boundary.
+  - **Fix pattern**: keep `_soft_zone_dead_zone_state` lifecycle independent from response smoothing state; clear it only on vCam prune/removal or when orbit/soft-zone gating disables correction.
+
+- **Projection helpers must evaluate from the desired camera pose and restore camera transform after calculations**: Running `unproject_position`/`project_position` against the wrong transform (or leaking the temporary transform) causes incorrect correction vectors and can desync live camera state.
+  - **Fix pattern**: in `U_VCamSoftZone`, compute depth against `desired_transform`, temporarily project using that transform, then restore the original camera transform before returning.
+
 ## vCam First-Person Evaluator Pitfalls
 
 - **Do not defer first-person pitch clamping to `S_VCamSystem`**: First-person vertical limits are authored per mode resource (`pitch_min`, `pitch_max`). If clamping is deferred, direct evaluator consumers can exceed limits and produce invalid view ranges.

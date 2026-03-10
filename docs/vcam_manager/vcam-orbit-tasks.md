@@ -257,7 +257,7 @@ Before starting Phase 2, verify:
 
 **Exit Criteria:** All ~14 soft zone tests pass (10 base + 4 hysteresis), correction is projection-aware with dead zone hysteresis, handles multiple viewport sizes and depths
 
-- [ ] **Task 2C3.1 (Red)**: Write tests for U_VCamSoftZone
+- [x] **Task 2C3.1 (Red)**: Write tests for U_VCamSoftZone
   - Create `tests/unit/managers/helpers/test_vcam_soft_zone.gd`
   - Test target inside dead zone produces zero correction
   - Test target in soft zone produces damped non-zero correction
@@ -270,8 +270,9 @@ Before starting Phase 2, verify:
   - Test zero-size dead zone means any offset triggers correction
   - Test full-viewport soft zone means no clamping
   - **Target: 10 tests**
+  - Completion note (2026-03-10): Added `tests/unit/managers/helpers/test_vcam_soft_zone.gd` with 10 projection/damping/depth/viewport baseline tests plus the 2C4 hysteresis scenarios (14 total helper tests).
 
-- [ ] **Task 2C3.2 (Green)**: Implement U_VCamSoftZone
+- [x] **Task 2C3.2 (Green)**: Implement U_VCamSoftZone
   - Create `scripts/managers/helpers/u_vcam_soft_zone.gd`
   - Implement `static func compute_camera_correction(camera, follow_world_pos, desired_transform, soft_zone, delta) -> Vector3`
   - **Projection method contract:**
@@ -284,6 +285,7 @@ Before starting Phase 2, verify:
   - Project follow target, test zone membership, reproject correction
   - **Note:** The `damping` field on `RS_VCamSoftZone` controls correction magnitude (how aggressively the camera corrects when the target enters the soft zone). The temporal smoothing of that correction is handled by the second-order dynamics in `S_VCamSystem` (Phase 6A2) — the soft zone helper computes the instantaneous correction vector, and the dynamics smooth the resulting camera position over time.
   - All tests should pass
+  - Completion note (2026-03-10): Added `scripts/managers/helpers/u_vcam_soft_zone.gd` with projection-aware correction (`unproject_position` + `project_position`), near-plane guard, damping-scaled soft-zone correction, hard-zone clamp, and optional dead-zone state handoff for hysteresis.
 
 ---
 
@@ -291,37 +293,41 @@ Before starting Phase 2, verify:
 
 > **Why:** Without hysteresis, a target oscillating exactly at the dead zone boundary causes per-frame correction toggling (jitter). Hysteresis uses slightly different enter/exit thresholds — the dead zone is smaller to enter (correction starts) and larger to exit (correction stops), preventing boundary flutter.
 
-- [ ] **Task 2C4.1**: Add `hysteresis_margin` field to RS_VCamSoftZone
+- [x] **Task 2C4.1**: Add `hysteresis_margin` field to RS_VCamSoftZone
   - Modify `scripts/resources/display/vcam/rs_vcam_soft_zone.gd`:
     - `@export var hysteresis_margin: float = 0.02` — fraction of screen space added/subtracted to dead zone for enter/exit thresholds
   - Modify existing tests to verify field exists with default
+  - Completion note (2026-03-10): Extended `RS_VCamSoftZone` with `hysteresis_margin` and `get_resolved_values()` clamping; updated `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd` for default/non-negative coverage.
 
-- [ ] **Task 2C4.2 (Red)**: Write tests for hysteresis behavior
+- [x] **Task 2C4.2 (Red)**: Write tests for hysteresis behavior
   - Add to `tests/unit/managers/helpers/test_vcam_soft_zone.gd`
-  - Test target crossing INTO dead zone boundary: correction stops at `dead_zone + hysteresis_margin` (slightly past boundary)
-  - Test target crossing OUT OF dead zone boundary: correction starts at `dead_zone - hysteresis_margin` (slightly before boundary)
+  - Test target crossing OUT OF dead zone boundary: correction starts only after `dead_zone + hysteresis_margin` (stay-in-dead hysteresis)
+  - Test target crossing INTO dead zone boundary: correction stops only after `dead_zone - hysteresis_margin` (re-enter-dead hysteresis)
   - Test target oscillating at exact dead zone boundary (alternating +/- epsilon): correction state remains stable (no per-frame toggling)
   - Test `hysteresis_margin = 0.0` behaves identically to non-hysteresis (backward compatible)
   - **Target: 4 tests**
+  - Completion note (2026-03-10): Added 4 hysteresis tests to `test_vcam_soft_zone` covering exit-threshold behavior, entry-threshold behavior, oscillation stability, and `hysteresis_margin = 0.0` compatibility.
 
-- [ ] **Task 2C4.3 (Green)**: Implement hysteresis in U_VCamSoftZone
+- [x] **Task 2C4.3 (Green)**: Implement hysteresis in U_VCamSoftZone
   - Track per-axis `_was_in_dead_zone` state (bool pair for X/Y)
   - Use `dead_zone + hysteresis_margin` as exit threshold (stay in dead zone longer)
   - Use `dead_zone - hysteresis_margin` as entry threshold (leave dead zone slightly early)
   - **Note:** `_was_in_dead_zone` is per-call state passed as an optional parameter or tracked externally by `S_VCamSystem` (helper remains stateless)
   - All tests should pass
+  - Completion note (2026-03-10): `U_VCamSoftZone` now applies per-axis Schmitt-style dead-zone hysteresis (`exit = dead + margin`, `entry = dead - margin`) with helper-managed state handoff.
 
 ---
 
 ### Phase 2C5: Soft Zone Integration
 
-- [ ] **Task 2C5.1**: Integrate soft-zone correction into S_VCamSystem
+- [x] **Task 2C5.1**: Integrate soft-zone correction into S_VCamSystem
   - Modify `scripts/ecs/systems/s_vcam_system.gd`: apply correction to evaluated transform before submitting
   - Gate: only apply when active mode is orbit and component has a soft zone resource
-  - Add 2 regression tests to `test_vcam_system.gd`:
+  - Add regression tests to `test_vcam_system.gd`:
     - Test soft zone correction is applied when orbit component has soft zone resource
     - Test no correction when component has no soft zone resource
     - Test no correction when active mode is first-person (even if soft zone resource is set)
+  - Completion note (2026-03-10): `S_VCamSystem` now applies orbit-only soft-zone correction before response smoothing using `U_VCamSoftZone`, tracks per-vCam dead-zone state (`_soft_zone_dead_zone_state`), and includes 3 system regression tests for enabled/disabled/non-orbit gating.
 
 ---
 
