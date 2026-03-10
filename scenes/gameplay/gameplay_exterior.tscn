@@ -191,7 +191,6 @@ script = ExtResource("24_touchscreen_system")
 
 [node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=1589217004]
 script = ExtResource("72_vcam_system")
-debug_rotation_logging = true
 execution_priority = 100
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1912819351]
