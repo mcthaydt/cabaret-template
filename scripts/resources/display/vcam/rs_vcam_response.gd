@@ -11,6 +11,10 @@ const MIN_FREQUENCY_HZ: float = 0.0001
 @export var rotation_frequency: float = 4.0
 @export var rotation_damping: float = 1.0
 @export var rotation_initial_response: float = 1.0
+@export var look_ahead_distance: float = 0.0
+@export var look_ahead_smoothing: float = 3.0
+@export var auto_level_speed: float = 0.0
+@export var auto_level_delay: float = 1.0
 
 func get_resolved_values() -> Dictionary:
 	return {
@@ -20,4 +24,8 @@ func get_resolved_values() -> Dictionary:
 		"rotation_frequency": maxf(rotation_frequency, MIN_FREQUENCY_HZ),
 		"rotation_damping": maxf(rotation_damping, 0.0),
 		"rotation_initial_response": rotation_initial_response,
+		"look_ahead_distance": maxf(look_ahead_distance, 0.0),
+		"look_ahead_smoothing": maxf(look_ahead_smoothing, 0.0),
+		"auto_level_speed": maxf(auto_level_speed, 0.0),
+		"auto_level_delay": maxf(auto_level_delay, 0.0),
 	}

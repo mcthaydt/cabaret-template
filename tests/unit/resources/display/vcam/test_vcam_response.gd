@@ -29,6 +29,16 @@ func test_rotation_initial_response_default_is_one() -> void:
 	var response := _new_response()
 	assert_almost_eq(float(response.get("rotation_initial_response")), 1.0, 0.0001)
 
+func test_look_ahead_defaults_are_zero_distance_and_three_hz_smoothing() -> void:
+	var response := _new_response()
+	assert_almost_eq(float(response.get("look_ahead_distance")), 0.0, 0.0001)
+	assert_almost_eq(float(response.get("look_ahead_smoothing")), 3.0, 0.0001)
+
+func test_auto_level_defaults_are_zero_speed_and_one_second_delay() -> void:
+	var response := _new_response()
+	assert_almost_eq(float(response.get("auto_level_speed")), 0.0, 0.0001)
+	assert_almost_eq(float(response.get("auto_level_delay")), 1.0, 0.0001)
+
 func test_frequency_values_are_clamped_to_positive_minimum() -> void:
 	var response := _new_response()
 	response.set("follow_frequency", 0.0)
@@ -44,3 +54,15 @@ func test_damping_values_are_clamped_to_non_negative() -> void:
 	var resolved := response.call("get_resolved_values") as Dictionary
 	assert_almost_eq(float(resolved.get("follow_damping", -1.0)), 0.0, 0.0001)
 	assert_almost_eq(float(resolved.get("rotation_damping", -1.0)), 0.0, 0.0001)
+
+func test_look_ahead_and_auto_level_values_are_clamped_to_non_negative() -> void:
+	var response := _new_response()
+	response.set("look_ahead_distance", -1.0)
+	response.set("look_ahead_smoothing", -4.0)
+	response.set("auto_level_speed", -5.0)
+	response.set("auto_level_delay", -2.0)
+	var resolved := response.call("get_resolved_values") as Dictionary
+	assert_almost_eq(float(resolved.get("look_ahead_distance", -1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(resolved.get("look_ahead_smoothing", -1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(resolved.get("auto_level_speed", -1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(resolved.get("auto_level_delay", -1.0)), 0.0, 0.0001)

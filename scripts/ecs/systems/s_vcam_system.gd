@@ -29,6 +29,8 @@ var _follow_dynamics: Dictionary = {}  # StringName -> U_SecondOrderDynamics3D
 var _rotation_dynamics: Dictionary = {}  # StringName -> {x, y, z}
 var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_target_id, response_signature}
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
+var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
+var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
 var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
 var _landing_recovery_dynamics = null
@@ -73,6 +75,8 @@ func _exit_tree() -> void:
 	_teardown_path_helpers()
 	_clear_all_smoothing_state()
 	_clear_landing_impact_recovery_state()
+	_look_ahead_state.clear()
+	_orbit_no_look_input_timers.clear()
 	_last_active_vcam_id = StringName("")
 
 func _apply_rotation_continuity_policy(
@@ -211,7 +215,7 @@ func _evaluate_and_submit(
 		if fixed_anchor == null:
 			return
 
-	_update_runtime_rotation(component, mode, look_input)
+	_update_runtime_rotation(vcam_id, component, mode, look_input, delta)
 	var look_at_target: Node3D = component.get_look_at_target()
 	var result: Dictionary = U_VCAM_MODE_EVALUATOR.evaluate(
 		mode,
@@ -223,12 +227,20 @@ func _evaluate_and_submit(
 	)
 	if result.is_empty():
 		return
-	var smoothed_result: Dictionary = _apply_response_smoothing(
+	var look_ahead_result: Dictionary = _apply_orbit_look_ahead(
 		vcam_id,
 		component,
 		mode,
 		follow_target,
 		result,
+		delta
+	)
+	var smoothed_result: Dictionary = _apply_response_smoothing(
+		vcam_id,
+		component,
+		mode,
+		follow_target,
+		look_ahead_result,
 		delta
 	)
 	var final_result: Dictionary = _apply_landing_impact_offset(smoothed_result, landing_offset)
@@ -237,15 +249,7 @@ func _evaluate_and_submit(
 func _apply_landing_impact_offset(result: Dictionary, landing_offset: Vector3) -> Dictionary:
 	if landing_offset.is_zero_approx():
 		return result
-	var transform_variant: Variant = result.get("transform", null)
-	if not (transform_variant is Transform3D):
-		return result
-	var transform: Transform3D = transform_variant as Transform3D
-	var offset_result: Dictionary = result.duplicate(true)
-	var offset_transform := transform
-	offset_transform.origin += landing_offset
-	offset_result["transform"] = offset_transform
-	return offset_result
+	return _apply_position_offset(result, landing_offset)
 
 func _resolve_landing_impact_offset(delta: float) -> Vector3:
 	var camera_state: Object = _resolve_primary_camera_state_component()
@@ -452,25 +456,55 @@ func _resolve_entity_target(entity: Node) -> Node3D:
 		return body_target
 	return null
 
-func _update_runtime_rotation(component: C_VCamComponent, mode: Resource, look_input: Vector2) -> void:
+func _update_runtime_rotation(
+	vcam_id: StringName,
+	component: C_VCamComponent,
+	mode: Resource,
+	look_input: Vector2,
+	delta: float
+) -> void:
 	if component == null or mode == null:
-		return
-	if look_input == Vector2.ZERO:
 		return
 
 	var mode_script := mode.get_script() as Script
+	var has_look_input: bool = not look_input.is_zero_approx()
 	if mode_script == RS_VCAM_MODE_ORBIT_SCRIPT:
 		var orbit_values: Dictionary = _resolve_mode_values(mode, {
 			"allow_player_rotation": true,
 			"rotation_speed": 0.0,
 		})
 		if not bool(orbit_values.get("allow_player_rotation", true)):
+			_orbit_no_look_input_timers.erase(vcam_id)
 			return
+
 		var rotation_speed: float = maxf(float(orbit_values.get("rotation_speed", 0.0)), 0.0)
-		component.runtime_yaw += look_input.x * rotation_speed
-		component.runtime_pitch += look_input.y * rotation_speed
+		if has_look_input:
+			component.runtime_yaw += look_input.x * rotation_speed
+			component.runtime_pitch += look_input.y * rotation_speed
+			_orbit_no_look_input_timers[vcam_id] = 0.0
+			return
+
+		var no_look_timer: float = float(_orbit_no_look_input_timers.get(vcam_id, 0.0))
+		no_look_timer += maxf(delta, 0.0)
+		_orbit_no_look_input_timers[vcam_id] = no_look_timer
+
+		var response_values: Dictionary = _resolve_component_response_values(component)
+		var auto_level_speed: float = maxf(float(response_values.get("auto_level_speed", 0.0)), 0.0)
+		if auto_level_speed <= 0.0:
+			return
+		var auto_level_delay: float = maxf(float(response_values.get("auto_level_delay", 1.0)), 0.0)
+		if no_look_timer < auto_level_delay:
+			return
+		component.runtime_pitch = move_toward(
+			component.runtime_pitch,
+			0.0,
+			auto_level_speed * maxf(delta, 0.0)
+		)
 		return
 
+	_orbit_no_look_input_timers.erase(vcam_id)
+	if not has_look_input:
+		return
 	if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
 		var first_person_values: Dictionary = _resolve_mode_values(mode, {
 			"look_multiplier": 1.0,
@@ -478,6 +512,121 @@ func _update_runtime_rotation(component: C_VCamComponent, mode: Resource, look_i
 		var look_multiplier: float = maxf(float(first_person_values.get("look_multiplier", 1.0)), 0.0001)
 		component.runtime_yaw += look_input.x * look_multiplier
 		component.runtime_pitch += look_input.y * look_multiplier
+
+func _apply_orbit_look_ahead(
+	vcam_id: StringName,
+	component: C_VCamComponent,
+	mode: Resource,
+	follow_target: Node3D,
+	result: Dictionary,
+	delta: float
+) -> Dictionary:
+	if component == null or mode == null:
+		return result
+	if mode.get_script() != RS_VCAM_MODE_ORBIT_SCRIPT:
+		_clear_look_ahead_state_for_vcam(vcam_id)
+		return result
+	if follow_target == null or not is_instance_valid(follow_target):
+		_clear_look_ahead_state_for_vcam(vcam_id)
+		return result
+
+	var response_values: Dictionary = _resolve_component_response_values(component)
+	var look_ahead_distance: float = maxf(float(response_values.get("look_ahead_distance", 0.0)), 0.0)
+	if look_ahead_distance <= 0.0:
+		_clear_look_ahead_state_for_vcam(vcam_id)
+		return result
+
+	var target_id: int = _get_node_instance_id(follow_target)
+	if target_id == 0:
+		_clear_look_ahead_state_for_vcam(vcam_id)
+		return result
+
+	var current_position: Vector3 = follow_target.global_position
+	var state: Dictionary = _get_or_create_look_ahead_state(vcam_id, target_id, current_position)
+	var previous_position: Vector3 = state.get("last_target_position", current_position) as Vector3
+	state["last_target_position"] = current_position
+
+	var velocity: Vector3 = Vector3.ZERO
+	if delta > 0.0:
+		velocity = (current_position - previous_position) / delta
+	var desired_offset: Vector3 = Vector3.ZERO
+	if velocity.length_squared() > 0.000001:
+		desired_offset = velocity.normalized() * look_ahead_distance
+
+	var smoothing_hz: float = maxf(float(response_values.get("look_ahead_smoothing", 3.0)), 0.0)
+	var current_offset: Vector3 = state.get("current_offset", Vector3.ZERO) as Vector3
+	var smoothed_offset: Vector3 = desired_offset
+	if smoothing_hz > 0.0:
+		var rebuild_dynamics: bool = (
+			not state.has("dynamics")
+			or state.get("dynamics", null) == null
+			or not is_equal_approx(float(state.get("smoothing_hz", -1.0)), smoothing_hz)
+		)
+		if rebuild_dynamics:
+			state["dynamics"] = U_SECOND_ORDER_DYNAMICS_3D.new(smoothing_hz, 1.0, 0.0, current_offset)
+			state["smoothing_hz"] = smoothing_hz
+		var dynamics = state.get("dynamics", null)
+		if dynamics != null:
+			smoothed_offset = dynamics.step(desired_offset, maxf(delta, 0.0))
+	else:
+		state["dynamics"] = null
+		state["smoothing_hz"] = 0.0
+
+	if smoothed_offset.length_squared() > (look_ahead_distance * look_ahead_distance):
+		smoothed_offset = smoothed_offset.normalized() * look_ahead_distance
+
+	state["current_offset"] = smoothed_offset
+	_look_ahead_state[vcam_id] = state
+
+	if smoothed_offset.is_zero_approx():
+		return result
+	return _apply_position_offset(result, smoothed_offset)
+
+func _get_or_create_look_ahead_state(
+	vcam_id: StringName,
+	follow_target_id: int,
+	current_position: Vector3
+) -> Dictionary:
+	var state_variant: Variant = _look_ahead_state.get(vcam_id, {})
+	var state: Dictionary = {}
+	if state_variant is Dictionary:
+		state = (state_variant as Dictionary).duplicate(true)
+
+	var previous_target_id: int = int(state.get("follow_target_id", 0))
+	if state.is_empty() or previous_target_id != follow_target_id:
+		state = {
+			"follow_target_id": follow_target_id,
+			"last_target_position": current_position,
+			"current_offset": Vector3.ZERO,
+			"smoothing_hz": -1.0,
+			"dynamics": null,
+		}
+		_look_ahead_state[vcam_id] = state
+	return state
+
+func _clear_look_ahead_state_for_vcam(vcam_id: StringName) -> void:
+	_look_ahead_state.erase(vcam_id)
+
+func _resolve_component_response_values(component: C_VCamComponent) -> Dictionary:
+	if component == null:
+		return {}
+	var response := component.response as Resource
+	if response == null:
+		return {}
+	if response.get_script() != RS_VCAM_RESPONSE_SCRIPT:
+		return {}
+	return _resolve_response_values(response)
+
+func _apply_position_offset(result: Dictionary, offset: Vector3) -> Dictionary:
+	var transform_variant: Variant = result.get("transform", null)
+	if not (transform_variant is Transform3D):
+		return result
+	var transform := transform_variant as Transform3D
+	var offset_result: Dictionary = result.duplicate(true)
+	var offset_transform := transform
+	offset_transform.origin += offset
+	offset_result["transform"] = offset_transform
+	return offset_result
 
 func _resolve_mode_values(mode: Resource, fallback: Dictionary) -> Dictionary:
 	var resolved_values: Dictionary = {}
@@ -571,6 +720,22 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
+	for vcam_id_variant in _look_ahead_state.keys():
+		var vcam_id := vcam_id_variant as StringName
+		if vcam_index.has(vcam_id):
+			continue
+		if stale_ids.has(vcam_id):
+			continue
+		stale_ids.append(vcam_id)
+
+	for vcam_id_variant in _orbit_no_look_input_timers.keys():
+		var vcam_id := vcam_id_variant as StringName
+		if vcam_index.has(vcam_id):
+			continue
+		if stale_ids.has(vcam_id):
+			continue
+		stale_ids.append(vcam_id)
+
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
 
@@ -587,12 +752,16 @@ func _clear_all_smoothing_state() -> void:
 	_rotation_dynamics.clear()
 	_smoothing_metadata.clear()
 	_rotation_target_cache.clear()
+	_look_ahead_state.clear()
+	_orbit_no_look_input_timers.clear()
 
 func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_follow_dynamics.erase(vcam_id)
 	_rotation_dynamics.erase(vcam_id)
 	_smoothing_metadata.erase(vcam_id)
 	_rotation_target_cache.erase(vcam_id)
+	_look_ahead_state.erase(vcam_id)
+	_orbit_no_look_input_timers.erase(vcam_id)
 
 func _apply_response_smoothing(
 	vcam_id: StringName,
@@ -739,6 +908,10 @@ func _resolve_response_values(response: Resource) -> Dictionary:
 			"rotation_frequency": maxf(float(response.get("rotation_frequency")), 0.0001),
 			"rotation_damping": maxf(float(response.get("rotation_damping")), 0.0),
 			"rotation_initial_response": float(response.get("rotation_initial_response")),
+			"look_ahead_distance": maxf(float(response.get("look_ahead_distance")), 0.0),
+			"look_ahead_smoothing": maxf(float(response.get("look_ahead_smoothing")), 0.0),
+			"auto_level_speed": maxf(float(response.get("auto_level_speed")), 0.0),
+			"auto_level_delay": maxf(float(response.get("auto_level_delay")), 0.0),
 		}
 	return resolved_values
 

@@ -10,4 +10,7 @@ follow_initial_response = 1.0
 rotation_frequency = 4.0
 rotation_damping = 1.0
 rotation_initial_response = 1.0
-
+look_ahead_distance = 0.0
+look_ahead_smoothing = 3.0
+auto_level_speed = 0.0
+auto_level_delay = 1.0
