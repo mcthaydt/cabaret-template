@@ -44,11 +44,11 @@ M_CameraManager + C_CameraStateComponent + S_CameraStateSystem
 - Because of that `ShakeParent`, vCam must not write `camera.global_transform` directly.
 - `C_CameraStateComponent` and `S_CameraStateSystem` already exist and already own FOV composition and shake-trauma behavior.
 - `U_GlobalSettingsSerialization` already persists the `vfx` slice, so player-facing silhouette enablement belongs there.
-- `UI_VFXSettingsOverlay` already exists (`scripts/ui/settings/ui_vfx_settings_overlay.gd`), but it currently has no silhouette toggle row, so the vCam delivery must include VFX settings UI wiring plus localization keys.
+- `UI_VFXSettingsOverlay` already exists (`scripts/ui/settings/ui_vfx_settings_overlay.gd`) and now includes a persisted silhouette toggle row (`vfx.occlusion_silhouette_enabled`) with localization coverage.
 - `settings.input_settings.touchscreen_settings` is already the persisted home for mobile control tuning, so drag-look sensitivity and invert-Y belong there, not in `vcam`.
 - Existing gameplay scenes use both `MeshInstance3D` and `CSGBox3D`-style geometry, so occlusion logic cannot assume mesh-only scene content.
 - Phase 0F completed the FOV-zone migration: `S_CameraStateSystem`, default camera-zone QB rule config, and QB camera tests now read `state.vcam.in_fov_zone`.
-- `scripts/input/u_input_map_bootstrapper.gd`, `tests/unit/input/test_input_map.gd`, `scripts/ui/helpers/u_rebind_action_list_builder.gd`, and the existing UI locale action labels still know about `camera_*` actions, not the planned `look_*` family.
+- `scripts/input/u_input_map_bootstrapper.gd`, `tests/unit/input/test_input_map.gd`, and the UI locale action labels now include the `look_*` action family for keyboard-look flows; rebind camera categorization should stay aligned to `look_*` as the canonical camera action names.
 - Gameplay runs inside `scenes/root.tscn/GameViewportContainer/GameViewport`. Soft-zone projection and occlusion raycasts must use that active gameplay viewport and `World3D`, never the root manager node's viewport/world.
 
 ## Runtime Wiring

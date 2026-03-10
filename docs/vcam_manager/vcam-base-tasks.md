@@ -34,9 +34,12 @@ Before starting Phase 0, verify:
 
 - [x] **DOC-1**: After each completed phase, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.
 - [x] **DOC-2**: After each completed phase, update the relevant subtask file with `[x]` marks and completion notes.
-- [ ] **DOC-3**: Update `AGENTS.md` when new stable vCam architecture/pattern contracts emerge.
-- [ ] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with new pitfalls discovered during vCam implementation.
-- [ ] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
+- [x] **DOC-3**: Update `AGENTS.md` when new stable vCam architecture/pattern contracts emerge.
+  - Completion note (2026-03-10): Added Phase 0F/1D/1E/1F vCam runtime contracts (FOV-zone source, second-order dynamics, response resource contract) to `AGENTS.md`.
+- [x] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with new pitfalls discovered during vCam implementation.
+  - Completion note (2026-03-10): Added vCam-specific guardrails for `state.vcam.in_fov_zone` migration and occlusion-layer rollout pitfalls.
+- [x] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
+  - Completion note (2026-03-10): Phase 0/1 work follows docs-first/code-next commit separation (documentation commits alternate with implementation commits on `vcam` branch).
 
 ---
 
