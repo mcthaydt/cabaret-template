@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, and 2B are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, and orbit mode baseline resource/evaluator wiring). Next implementation target is Phase 3A (first-person mode resource/evaluator baseline).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, and 3B are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit baseline resource/evaluator wiring, and first-person baseline resource/evaluator wiring). Next implementation target is Phase 4A (fixed mode resource/evaluator baseline).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -69,6 +69,13 @@
   - Added `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (`U_VCamModeEvaluator`) with orbit-mode evaluation branch and null-safe invalid-input guards.
   - Added `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (10 tests) for orbit transform/FOV/mode-name outputs, authored/runtime rotation behavior, and invalid-input handling.
   - Added `resources/display/vcam/cfg_default_orbit.tres` with baseline orbit defaults for scene/template wiring.
+- Completed Phase 3A:
+  - Added `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` (`RS_VCamModeFirstPerson`) with defaults (`head_offset`, `look_multiplier`, `pitch_min`, `pitch_max`, `fov`) and `get_resolved_values()` clamping/ordering helpers.
+  - Added `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd` (8 tests) for defaults and resolved constraint behavior (`fov`, `look_multiplier`, pitch-bound ordering).
+- Completed Phase 3B:
+  - Extended `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with first-person evaluation branch (position from `follow_target + head_offset`, yaw/pitch basis construction, in-evaluator pitch clamp, and null-safe guards).
+  - Extended `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` with first-person coverage (10 new tests, 20 total evaluator tests).
+  - Added `resources/display/vcam/cfg_default_first_person.tres` with baseline first-person defaults.
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -127,6 +134,11 @@
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
   - `tests/unit` (`-gselect=test_vcam_mode`)
   - `tests/unit/style/test_style_enforcement.gd`
+- Validation run (green, Phases 3A/3B):
+  - `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd`
+  - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
+  - `tests/unit` (`-gselect=test_vcam_mode`)
+  - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
 
@@ -162,6 +174,9 @@
 - Orbit mode baseline is now explicit:
   - `RS_VCamModeOrbit` is authored in `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` with default preset `resources/display/vcam/cfg_default_orbit.tres`.
   - `U_VCamModeEvaluator.evaluate(...)` now returns `{transform, fov, mode_name}` for orbit resources and returns `{}` for null/invalid inputs without warning noise.
+- First-person baseline is now explicit:
+  - `RS_VCamModeFirstPerson` is authored in `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` with default preset `resources/display/vcam/cfg_default_first_person.tres`.
+  - `U_VCamModeEvaluator.evaluate(...)` now returns `{transform, fov, mode_name}` for first-person resources, clamps runtime pitch to authored min/max in evaluator, and returns `{}` for null/invalid inputs without warning noise.
 
 ## Required Reading
 
@@ -212,8 +227,8 @@
 
 ## Next Steps
 
-1. Start Phase 3A from `docs/vcam_manager/vcam-fps-tasks.md`: implement first-person mode resource/evaluator branch and default preset wiring.
-2. Continue to fixed-mode baseline (`docs/vcam_manager/vcam-fixed-tasks.md`) after first-person evaluator coverage is green so the shared evaluator supports all three mode branches before system wiring.
+1. Start Phase 4A from `docs/vcam_manager/vcam-fixed-tasks.md`: implement fixed mode resource/evaluator branch so `U_VCamModeEvaluator` supports all three mode baselines.
+2. Keep Phase 3C (first-person game feel) queued behind base Phase 6A2 per dependency (`S_VCamSystem` second-order runtime integration first).
 3. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
 4. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
 5. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
@@ -224,6 +239,7 @@
 - vCam does not replace `M_CameraManager`.
 - vCam does not replace `S_CameraStateSystem`.
 - vCam does not bypass the gameplay input pipeline.
+- First-person pitch clamp is evaluator-owned (`U_VCamModeEvaluator`), while first-person `look_multiplier` scaling remains system-owned (`S_VCamSystem`) to avoid double-scaling runtime angles.
 - Keyboard look uses dedicated `look_*` actions (not `ui_*`) so bindings stay correct across input profiles; settings live in `mouse_settings`.
 - Keyboard-look work is not complete unless the InputMap bootstrapper, input-map tests, rebind category/action labels, localization keys, and settings-save triggers are patched together.
 - vCam does not treat mobile as special at the camera layer; touch look must still feed the shared `gameplay.look_input` path.

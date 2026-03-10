@@ -10,18 +10,18 @@
 
 Before starting Phase 3, verify:
 
-- [ ] **PRE-1**: Phase 2 (orbit) is fully complete (all 18 orbit tests pass, evaluator exists and handles orbit mode)
-- [ ] **PRE-2**: Read required documentation
+- [x] **PRE-1**: Phase 2 (orbit) is fully complete (all 18 orbit tests pass, evaluator exists and handles orbit mode)
+- [x] **PRE-2**: Read required documentation
   - Read `docs/vcam_manager/vcam-manager-plan.md` (Commit 1.1, Commit 2.3 sections — first-person notes)
   - Read `docs/vcam_manager/vcam-manager-overview.md` (Camera Modes > RS_VCamModeFirstPerson)
   - Read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md`
-- [ ] **PRE-3**: Understand existing patterns by reading:
+- [x] **PRE-3**: Understand existing patterns by reading:
   - `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (resource pattern from Phase 2)
   - `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (evaluator pattern from Phase 2)
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (test pattern from Phase 2)
   - `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (resource test pattern)
-- [ ] **PRE-4**: Verify branch is `vcam` and working tree is clean
-- [ ] **PRE-5**: Verify orbit tests still pass before extending the evaluator:
+- [x] **PRE-4**: Verify branch is `vcam` and working tree is clean
+- [x] **PRE-5**: Verify orbit tests still pass before extending the evaluator:
   ```bash
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gselect=test_vcam_mode -ginclude_subdirs=true -gexit
   ```
@@ -44,7 +44,7 @@ Before starting Phase 3, verify:
 
 ### Phase 3A: RS_VCamModeFirstPerson Resource
 
-- [ ] **Task 3A.1 (Red)**: Write tests for RS_VCamModeFirstPerson
+- [x] **Task 3A.1 (Red)**: Write tests for RS_VCamModeFirstPerson
   - Create `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd`
   - Test `head_offset` field exists with default (e.g. `Vector3(0, 1.7, 0)`)
     - Verify type is `Vector3`
@@ -69,7 +69,7 @@ Before starting Phase 3, verify:
     - Set pitch_min = 10.0, pitch_max = -10.0, verify validation catches inversion
   - **Target: 8 tests**
 
-- [ ] **Task 3A.2 (Green)**: Implement RS_VCamModeFirstPerson
+- [x] **Task 3A.2 (Green)**: Implement RS_VCamModeFirstPerson
   - Create `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd`
   - Extend `Resource`
   - Add `class_name RS_VCamModeFirstPerson`
@@ -81,7 +81,7 @@ Before starting Phase 3, verify:
     - `fov: float = 75.0` — authored field of view
   - All tests should pass
 
-- [ ] **Task 3A.3**: Run style enforcement tests
+- [x] **Task 3A.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with new files
   - Verify file naming follows `rs_` prefix convention
   - Verify script is in `scripts/resources/display/vcam/` per style guide
@@ -90,7 +90,7 @@ Before starting Phase 3, verify:
 
 ### Phase 3B: First-Person Mode Evaluator
 
-- [ ] **Task 3B.1 (Red)**: Write tests for first-person evaluation in U_VCamModeEvaluator
+- [x] **Task 3B.1 (Red)**: Write tests for first-person evaluation in U_VCamModeEvaluator
   - Add to existing `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
   - Test first-person evaluation returns a valid `transform` key (is `Transform3D`)
   - Test first-person evaluation returns correct `fov` key matching resource (`75.0`)
@@ -137,7 +137,7 @@ Before starting Phase 3, verify:
   var result := U_VCamModeEvaluator.evaluate(mode, follow_target, null, 45.0, -15.0)
   ```
 
-- [ ] **Task 3B.2 (Green)**: Implement first-person evaluation in U_VCamModeEvaluator
+- [x] **Task 3B.2 (Green)**: Implement first-person evaluation in U_VCamModeEvaluator
   - Extend `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with first-person branch
   - Handle first-person mode branch:
     - Guard: return `{}` if mode is null or follow_target is null
@@ -165,7 +165,7 @@ Before starting Phase 3, verify:
   var xform := Transform3D(basis, pos)
   ```
 
-- [ ] **Task 3B.3**: Create default first-person resource instance
+- [x] **Task 3B.3**: Create default first-person resource instance
   - Create `resources/display/vcam/cfg_default_first_person.tres`
   - Set all fields to resource defaults (head_offset=Vector3(0,1.7,0), look_multiplier=1.0, pitch_min=-89.0, pitch_max=89.0, fov=75.0)
   - Verify resource loads without errors:
@@ -175,7 +175,7 @@ Before starting Phase 3, verify:
     assert_is(res, RS_VCamModeFirstPerson)
     ```
 
-- [ ] **Task 3B.4 (Refactor)**: Review U_VCamModeEvaluator for clarity
+- [x] **Task 3B.4 (Refactor)**: Review U_VCamModeEvaluator for clarity
   - Review evaluator now that it handles two modes (orbit + first-person)
   - Ensure both mode branches are clean and well-separated
   - Verify null/invalid resource handling is consistent across modes:
@@ -186,7 +186,7 @@ Before starting Phase 3, verify:
   - No new functionality, only code quality
   - All existing tests still pass after refactor
 
-- [ ] **Task 3B.5**: Run full regression
+- [x] **Task 3B.5**: Run full regression
   - Run orbit resource tests (no regressions)
   - Run orbit evaluator tests (no regressions)
   - Run first-person resource tests
@@ -196,6 +196,14 @@ Before starting Phase 3, verify:
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gselect=test_vcam_mode -ginclude_subdirs=true -gexit
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -ginclude_subdirs=true -gexit
   ```
+
+**Completion notes (March 10, 2026):**
+- Added `RS_VCamModeFirstPerson` with resolved-value clamping/order helpers for `look_multiplier`, `fov`, and pitch bounds.
+- Added first-person resource tests (`8/8` passing).
+- Extended `U_VCamModeEvaluator` with first-person evaluation (head-offset position, yaw/pitch basis, evaluator-side pitch clamping, null-safe guards).
+- Extended evaluator tests with first-person coverage (`20/20` evaluator tests passing).
+- Added `cfg_default_first_person.tres`.
+- Verified mode regression suite (`test_vcam_mode`, `36/36` passing) and style suite (`15/15` passing).
 
 ---
 

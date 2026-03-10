@@ -197,6 +197,13 @@
 - **Looking straight up/down can break orbit camera orientation if `Vector3.UP` is always used as the look-at up-vector**: At near-vertical view directions (`abs(direction.dot(Vector3.UP)) ~= 1`), `looking_at(...)` can hit a degenerate basis and produce unstable orientation.
   - **Fix pattern**: in `U_VCamModeEvaluator`, detect near-parallel forward/up vectors and switch to a fallback up-vector (for example `Vector3.FORWARD`) before constructing the look-at transform.
 
+## vCam First-Person Evaluator Pitfalls
+
+- **Do not defer first-person pitch clamping to `S_VCamSystem`**: First-person vertical limits are authored per mode resource (`pitch_min`, `pitch_max`). If clamping is deferred, direct evaluator consumers can exceed limits and produce invalid view ranges.
+  - **Fix pattern**: clamp `runtime_pitch` inside `U_VCamModeEvaluator` for first-person branches using resolved mode bounds before building the yaw/pitch basis.
+- **Do not consume `look_multiplier` in evaluator helpers**: Evaluator functions should only convert resolved runtime yaw/pitch inputs into transforms. Applying `look_multiplier` in evaluator code double-scales input and diverges from shared input pipeline behavior.
+  - **Fix pattern**: keep `look_multiplier` application in `S_VCamSystem` when updating component runtime rotation state; evaluator consumes already-computed runtime angles.
+
 ## Character Lighting Pitfalls
 
 - **Cache invalidation is required on `scene/swapped` for lighting managers**: Character lighting caches that are built from `ActiveSceneContainer/<GameplayScene>/Lighting` can go stale after a scene transition unless the manager listens to `state_store.action_dispatched` and marks cache state dirty when action type is `scene/swapped`. Without this, zone lists/default profile data can continue referencing the previous scene.
