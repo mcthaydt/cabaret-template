@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-06
 **Updated**: 2026-03-10
-**Status**: Phases 0A-0F + 1A-1E complete (state/persistence + base authoring resources + scalar/vector second-order dynamics); response/mode phases pending
+**Status**: Phases 0A-0F + 1A-1F complete (state/persistence + base authoring resources + dynamics + response tuning); mode phases pending
 
 ## Summary
 
@@ -390,9 +390,10 @@ This prevents pops from restarting a blend from the original source position and
 |-------|------|---------|-----------------|-------|
 | `follow_frequency` | `float` | `3.0` | 1F | Second-order dynamics frequency (Hz) for position follow |
 | `follow_damping` | `float` | `0.7` | 1F | Damping ratio for position follow (< 1 = underdamped/bouncy, 1 = critical, > 1 = overdamped) |
-| `follow_initial_response` | `float` | `0.5` | 1F | Initial velocity response (0 = smooth start, 1 = immediate) |
-| `rotation_frequency` | `float` | `5.0` | 1F | Second-order dynamics frequency for rotation follow |
+| `follow_initial_response` | `float` | `1.0` | 1F | Initial velocity response (0 = smooth start, 1 = immediate) |
+| `rotation_frequency` | `float` | `4.0` | 1F | Second-order dynamics frequency for rotation follow |
 | `rotation_damping` | `float` | `1.0` | 1F | Damping ratio for rotation follow |
+| `rotation_initial_response` | `float` | `1.0` | 1F | Initial response term for rotation smoothing |
 | `look_ahead_distance` | `float` | `0.0` | 2C1 | Max world-space offset in follow target's movement direction (0 = disabled, orbit only) |
 | `look_ahead_smoothing` | `float` | `3.0` | 2C1 | Hz for look-ahead offset dynamics (orbit only) |
 | `auto_level_speed` | `float` | `0.0` | 2C2 | Degrees/sec pitch decays toward horizon when no look input (0 = disabled, orbit only) |

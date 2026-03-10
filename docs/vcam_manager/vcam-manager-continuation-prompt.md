@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, and 1E are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base vCam authoring resource foundations, scalar second-order dynamics, and Vector3 second-order dynamics wrapper). Next implementation target is Phase 1F (`RS_VCamResponse`).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, and 1F are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, and response-tuning resource defaults). Next implementation target is Phase 2A (orbit mode resource/evaluator baseline).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -58,6 +58,10 @@
 - Completed Phase 1E:
   - Added `scripts/utils/math/u_second_order_dynamics_3d.gd` (`U_SecondOrderDynamics3D`) as a 3-axis wrapper over `U_SecondOrderDynamics`.
   - Added `tests/unit/utils/test_second_order_dynamics_3d.gd` (7 tests) covering vector convergence, axis independence, reset, and damping-regime behavior.
+- Completed Phase 1F:
+  - Added `scripts/resources/display/vcam/rs_vcam_response.gd` (`RS_VCamResponse`) with follow/rotation second-order tuning fields.
+  - Added `tests/unit/resources/display/vcam/test_vcam_response.gd` (8 tests) covering defaults and resolved non-negative/positive clamp behavior.
+  - Added `resources/display/vcam/cfg_default_response.tres` with Phase 1F defaults (`follow: 3.0/0.7/1.0`, `rotation: 4.0/1.0/1.0`).
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -105,6 +109,11 @@
   - `tests/unit/style/test_style_enforcement.gd`
 - Validation run (green, Phase 1E):
   - `tests/unit/utils/test_second_order_dynamics_3d.gd`
+  - `tests/unit/style/test_style_enforcement.gd`
+- Validation run (green, Phase 1F):
+  - `tests/unit/resources/display/vcam/test_vcam_response.gd`
+  - `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd`
+  - `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd`
   - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
@@ -188,7 +197,7 @@
 
 ## Next Steps
 
-1. Start Phase 1F by implementing `RS_VCamResponse` (`scripts/resources/display/vcam/rs_vcam_response.gd`), its unit suite, and default preset resource per `docs/vcam_manager/vcam-base-tasks.md`.
+1. Start Phase 2A from `docs/vcam_manager/vcam-orbit-tasks.md`: implement orbit mode resource/evaluator branch and default preset wiring.
 2. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
 3. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
 4. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
