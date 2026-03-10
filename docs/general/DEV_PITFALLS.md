@@ -197,6 +197,11 @@
   - **Fix pattern**: in `S_CameraStateSystem`, prefilter event rules by subscribed event name before scoring/selection (via `RS_ConditionEventName` extraction), then run winner selection on only matching rules.
   - **Regression check**: keep a test that publishes a non-landing event and asserts `landing_impact_offset` is unchanged.
 
+## vCam Scene Wiring Pitfalls
+
+- **Gameplay scenes can silently ship without orbit runtime if `S_VCamSystem` is missing**: Scenes that instance `tmpl_camera.tscn` still need `S_VCamSystem` in `Systems/Core`; without it, camera look/follow behavior and active-vCam FOV propagation never run in those scenes.
+  - **Fix pattern**: keep `S_VCamSystem` present with `execution_priority = 100` in every gameplay scene that uses `E_CameraRoot`/`C_VCamComponent`, and add scene-registration assertions that check for `Systems/Core/S_VCamSystem`.
+
 ## vCam Orbit Evaluator Pitfalls
 
 - **Looking straight up/down can break orbit camera orientation if `Vector3.UP` is always used as the look-at up-vector**: At near-vertical view directions (`abs(direction.dot(Vector3.UP)) ~= 1`), `looking_at(...)` can hit a degenerate basis and produce unstable orientation.
