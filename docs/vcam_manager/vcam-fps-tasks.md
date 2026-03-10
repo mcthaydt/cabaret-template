@@ -1,6 +1,6 @@
 # vCam First-Person — Task Checklist
 
-**Scope:** First-person camera mode — resource, evaluator, evaluator refactor, FP-specific game feel (strafe tilt, head bob, landing head dip), and manual validation.
+**Scope:** First-person camera mode — resource, evaluator, evaluator refactor, then later FP-specific game feel (strafe tilt, head bob, landing head dip), and manual validation.
 
 **Depends on:** Phase 2B (orbit evaluator creates `U_VCamModeEvaluator`) must be complete before Phase 3 extends it.
 

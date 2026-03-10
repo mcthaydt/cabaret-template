@@ -5,7 +5,7 @@
 - **Feature name**: Virtual Camera (vCam) Manager
 - **Project**: Cabaret Template (Godot 4.6)
 - **Target release**: TBD
-- **Status**: Documentation remediated, implementation not started
+- **Status**: Documentation rebaselined after audit, implementation not started
 
 ## Problem Statement
 
@@ -92,9 +92,16 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - persisted silhouette enablement belongs in `vfx`.
 - persisted mobile drag-look tuning belongs in `settings.input_settings.touchscreen_settings`.
 - fixed-mode world anchors resolve from `C_VCamComponent.fixed_anchor_path` when set, with fallback to the vCam host entity-root `Node3D`; do not read `C_VCamComponent` transform assumptions.
+- `follow_target_tag` fallback is deterministic: first valid ECS-registration-order match wins, with a debug warning when multiple matches exist. Use `follow_target_entity_id` when deterministic targeting matters.
 - `S_TouchscreenSystem` owns touchscreen gameplay look dispatch, and `S_InputSystem` must not overwrite it with zero touchscreen-source payloads.
+- if `gameplay.touch_look_active` is kept as a top-level gameplay field, it must be registered as transient so it does not persist through save/load or shell transitions.
 - vCam motion feeds into a new shake-safe `M_CameraManager.apply_main_camera_transform(...)` API rather than writing `camera.global_transform` directly.
 - vCam-authored FOV writes go to `C_CameraStateComponent.base_fov`; `S_CameraStateSystem` remains the final FOV writer.
+- the `state.camera.in_fov_zone` to `state.vcam.in_fov_zone` migration is still pending. Docs must continue to label Phase 0F as required until `S_CameraStateSystem` and its QB tests are updated.
+- soft-zone projection and occlusion raycasts use the active gameplay camera's viewport and `World3D` inside the root `GameViewport` `SubViewport`, never the persistent manager node's viewport/world.
+- same-frame camera apply must not depend on root-vs-gameplay `_physics_process` tree order. `S_VCamSystem` submits evaluated results as the explicit handoff, and `M_VCamManager` consumes only current-frame submissions.
+- `use_path` helpers such as `PathFollow3D` stay scene-local in the gameplay world, not under the persistent root manager.
+- silhouette rendering routes through `M_VFXManager`. vCam publishes `EVENT_SILHOUETTE_UPDATE_REQUEST` with `{entity_id, occluders, enabled}` so VFX can reuse existing player gating and transition blocking.
 - occluder rollout requires both naming physics layer 6 (`vcam_occludable`) and migrating authored occluding geometry in gameplay/prefab scenes onto that layer.
 
 ### Risks and Mitigations
@@ -110,10 +117,15 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 | mobile orbit/first-person ship half-finished | extend `UI_MobileControls` and `S_TouchscreenSystem` so drag-look writes shared `gameplay.look_input` |
 | touch-look conflicts with movement/buttons | claim a dedicated look touch only when the touch starts outside joystick/button hit regions |
 | touchscreen input gets overwritten by zeros | gate `S_InputSystem` so touch gameplay input remains owned by `S_TouchscreenSystem` when touchscreen is active |
+| keyboard-look plan updates only profiles but not runtime plumbing | patch `U_InputMapBootstrapper`, input-map tests, settings-save triggers, rebind category wiring, and localization together |
 | silhouette field persists but players cannot control it | add silhouette toggle wiring + localization in `UI_VFXSettingsOverlay` |
+| root manager computes projection/raycast math in the wrong world | always use the active gameplay camera viewport and gameplay `World3D` from `GameViewport` |
+| same-frame apply depends on scene-tree order | define an explicit current-frame handoff from `S_VCamSystem` into `M_VCamManager` rather than relying on root `_physics_process` ordering |
 | detector works in isolation but misses gameplay occluders | migrate authored scene/prefab camera blockers to layer 6 `vcam_occludable` |
 | active follow target freed or disappears during gameplay | define system-level recovery policy: hold last valid pose, cut to fallback vCam, or reseat to entity root |
 | fixed anchor freed after scene churn | guard anchor resolution every tick; fall back to entity root or hold last valid pose |
+| `follow_target_tag` becomes ambiguous after scene changes | resolve first valid registration-order match, warn in debug, recommend `follow_target_entity_id` where determinism matters |
+| `use_path` keeps moving after target loss | treat invalid follow target as normal recovery; do not fabricate path progress from stale data |
 | outgoing or incoming vCam becomes invalid mid-blend | clear blend immediately and cut to whichever side is still valid |
 | silhouette flicker on marginal occluders | add debounce / hysteresis / grace-frame logic so silhouette set stays stable frame-to-frame |
 
@@ -164,3 +176,5 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 | blend correctness | evaluate both cameras live during blends |
 | style alignment | use display resource/util directories and `sh_*_shader.gdshader` |
 | fixed-mode anchor source | use `fixed_anchor_path` first, then host entity-root `Node3D` fallback; never component transform |
+| silhouette ownership | detect in vCam, render in `M_VFXManager` via `{entity_id, occluders, enabled}` requests |
+| gameplay viewport contract | projection and raycasts use the active gameplay camera viewport/world inside `GameViewport` |

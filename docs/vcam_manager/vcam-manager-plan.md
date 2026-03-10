@@ -1,7 +1,7 @@
 # vCam Manager - Implementation Plan
 
-**Project**: Cabaret Template (Godot 4.6)  
-**Status**: Documentation remediated with gap patching, implementation not started  
+**Project**: Cabaret Template (Godot 4.6)
+**Status**: Documentation rebaselined after audit, implementation not started
 **Methodology**: Test-driven, integration-first where scene wiring matters
 
 ## Overview
@@ -22,6 +22,12 @@ The corrected implementation contract is:
 - During vCam-to-vCam blends, both the outgoing and incoming cameras are evaluated live every tick so moving cameras blend correctly.
 - New vCam resources live under `scripts/resources/display/vcam/` and the editor preview lives under `scripts/utils/display/`, which fits the current style guide and style-enforcement rules without inventing new categories.
 - Mobile camera look must extend the existing `UI_MobileControls` + `S_TouchscreenSystem` + `settings.input_settings.touchscreen_settings` path instead of creating a vCam-specific touch-input stack.
+- The `state.camera.in_fov_zone` migration is still pending. As of March 10, 2026, `S_CameraStateSystem` and QB camera tests still read the legacy `camera` slice.
+- Keyboard-look work is incomplete unless it also patches `U_InputMapBootstrapper`, `tests/unit/input/test_input_map.gd`, `U_GlobalSettingsSerialization`, `U_RebindActionListBuilder`, and the UI locale action keys.
+- Soft-zone projection and occlusion raycasts must use the active gameplay camera viewport and `World3D` inside `GameViewport`, not the persistent root manager node's viewport/world.
+- Same-frame apply must not depend on root `_physics_process` ordering against gameplay ECS. `S_VCamSystem` submits the authoritative current-frame camera result, and `M_VCamManager` consumes only that handoff.
+- `PathFollow3D` helpers for `use_path` stay scene-local in the gameplay world, not under the persistent root manager.
+- Silhouette rendering routes through `M_VFXManager`. vCam publishes `EVENT_SILHOUETTE_UPDATE_REQUEST` with `{entity_id, occluders, enabled}` so VFX can reuse existing player gating and transition blocking.
 
 ## Runtime Wiring
 
@@ -56,8 +62,15 @@ After every completed phase, update docs immediately so written guidance matches
 - `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`
 - `scripts/state/reducers/u_input_reducer.gd`
 - `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`
+- `resources/localization/cfg_locale_en_ui.tres`
+- `resources/localization/cfg_locale_es_ui.tres`
+- `resources/localization/cfg_locale_ja_ui.tres`
+- `resources/localization/cfg_locale_pt_ui.tres`
+- `resources/localization/cfg_locale_zh_CN_ui.tres`
+- `tests/unit/resources/test_rs_touchscreen_settings.gd`
 - `tests/unit/input_manager/test_u_input_reducer.gd`
 - `tests/unit/ui/test_touchscreen_settings_overlay.gd`
+- `tests/unit/ui/test_touchscreen_settings_overlay_localization.gd`
 
 **Behavior**
 
@@ -66,6 +79,7 @@ After every completed phase, update docs immediately so written guidance matches
   - `invert_look_y: bool = false`
 - Keep these settings in the existing input-settings domain. Do not add vCam-specific copies.
 - Extend the touchscreen settings overlay so mobile users can tune drag-look without entering a separate camera settings flow.
+- Add localization keys and overlay-localization coverage for the new touchscreen look controls.
 
 **Why**
 
@@ -77,18 +91,36 @@ After every completed phase, update docs immediately so written guidance matches
 **Files to modify**
 
 - `project.godot` (new `look_left`/`look_right`/`look_up`/`look_down` input actions)
+- `scripts/input/u_input_map_bootstrapper.gd`
 - `resources/input/profiles/cfg_default_keyboard.tres` (bind `look_*` to arrow keys)
 - `resources/input/profiles/cfg_alternate_keyboard.tres` (bind `look_*` to WASD)
 - `resources/input/profiles/cfg_accessibility_keyboard.tres` (bind `look_*` appropriately)
 - `scripts/state/actions/u_input_actions.gd`
 - `scripts/state/reducers/u_input_reducer.gd`
+- `scripts/utils/u_global_settings_serialization.gd`
 - `scripts/input/sources/keyboard_mouse_source.gd`
 - `scripts/ecs/systems/s_input_system.gd`
+- `scripts/ui/helpers/u_rebind_action_list_builder.gd`
+- `scripts/ui/menus/ui_settings_menu.gd`
+- `scenes/ui/menus/ui_settings_menu.tscn`
+- `scripts/ui/overlays/ui_keyboard_mouse_settings_overlay.gd`
+- `scenes/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn`
+- `resources/ui_screens/cfg_keyboard_mouse_settings_overlay.tres`
+- `resources/localization/cfg_locale_en_ui.tres`
+- `resources/localization/cfg_locale_es_ui.tres`
+- `resources/localization/cfg_locale_ja_ui.tres`
+- `resources/localization/cfg_locale_pt_ui.tres`
+- `resources/localization/cfg_locale_zh_CN_ui.tres`
 - `tests/unit/input_manager/test_u_input_reducer.gd`
+- `tests/unit/input/test_input_map.gd`
+- `tests/unit/ui/test_input_rebinding_overlay.gd`
+- `tests/unit/integration/test_rebinding_flow.gd`
+- `tests/unit/ui/test_keyboard_mouse_settings_overlay.gd` (create if missing)
 
 **Behavior**
 
 - Register four dedicated input actions: `look_left`, `look_right`, `look_up`, `look_down`.
+- Extend `U_InputMapBootstrapper.REQUIRED_ACTIONS` and `tests/unit/input/test_input_map.gd` so bootstrap/runtime validation knows about the new actions too.
 - Bind them per profile so they always map to the non-movement keys:
   - Default keyboard: arrow keys. Alternate keyboard: WASD.
 - Extend `settings.input_settings.mouse_settings` with keyboard look settings:
@@ -98,8 +130,10 @@ After every completed phase, update docs immediately so written guidance matches
 - Keyboard look is additive with mouse look — both combine into the same `look_input` vector.
 - Keyboard look Y component respects `invert_y_axis` from `mouse_settings`.
 - `S_InputSystem` reads `keyboard_look_enabled` and `keyboard_look_speed` from Redux `mouse_settings` and passes them to the source each tick (same pattern as `mouse_sensitivity`).
-- Expose settings in the mouse/keyboard settings UI overlay.
-- Because bindings live in `RS_InputProfile`, rebinding camera-look keys works through the existing rebind system without special-casing.
+- Because this plan introduces dedicated keyboard-look settings actions, extend `U_GlobalSettingsSerialization.INPUT_SETTINGS_ACTIONS` so they trigger the existing settings-save pipeline.
+- Expose settings in a new `UI_KeyboardMouseSettingsOverlay` wired from `UI_SettingsMenu`; there is no pre-existing mouse/keyboard overlay in this repo.
+- Update `U_RebindActionListBuilder` so `look_*` appears under the camera category, and add `input.action.look_*` locale keys across all supported UI locale resources.
+- Because bindings live in `RS_InputProfile`, rebinding camera-look keys works through the existing rebind system once the camera category and locale keys are patched.
 
 **Why**
 
@@ -172,7 +206,7 @@ func to_dictionary() -> Dictionary:
 
 - This slice is runtime-only observability for debugging and UI.
 - It is not save data and not a player settings surface.
-- `in_fov_zone` migrates from the informal `camera` slice. Phase 0F updates all `S_CameraStateSystem` reads and tests that reference `state.camera.in_fov_zone` to use `state.vcam.in_fov_zone` instead. The `update_fov_zone` action, reducer case, and `is_in_fov_zone` selector are added in Phases 0D/0E.
+- `in_fov_zone` is the planned home for the existing informal `camera`-slice flag. Phase 0F updates all `S_CameraStateSystem` reads and tests that reference `state.camera.in_fov_zone` to use `state.vcam.in_fov_zone` instead. The `update_fov_zone` action, reducer case, and `is_in_fov_zone` selector are added in Phases 0D/0E.
 
 ### Commit 0.3: vCam actions and reducer
 
@@ -313,7 +347,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 **Behavior**
 
 - Resolve follow/look targets with null-safe typed getters.
-- Target resolution priority (applied by `S_VCamSystem`): `follow_target_path` NodePath → `follow_target_entity_id` via `M_ECSManager.get_entity_by_id()` → `follow_target_tag` via `M_ECSManager.get_entities_by_tag()` → null (triggers recovery). This leverages the existing `BaseECSEntity` ID and tag system for dynamic target assignment.
+- Target resolution priority (applied by `S_VCamSystem`): `follow_target_path` NodePath → `follow_target_entity_id` via `M_ECSManager.get_entity_by_id()` → `follow_target_tag` via `M_ECSManager.get_entities_by_tag()` → null (triggers recovery). When tag lookup returns multiple valid entities, use the first valid ECS-registration-order match and emit a debug warning recommending `follow_target_entity_id`. This leverages the existing `BaseECSEntity` ID and tag system for dynamic target assignment.
 - Register with `M_VCamManager` on readiness/registration.
 - Unregister on `_exit_tree()` so the persistent manager never keeps dead scene references.
 
@@ -373,7 +407,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
   - `blend_elapsed`
   - `blend_duration`
   - `blend_hint`
-- own collision and silhouette helpers
+- own collision detection and silhouette-request bookkeeping
 - dispatch Redux observability updates (`U_VCamActions` → `vcam` slice)
 - publish ECS lifecycle events through `U_ECSEventBus` (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`)
 - clear runtime state and silhouettes when gameplay scenes unload or all cameras unregister
@@ -417,19 +451,21 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 - resolve `I_VCamManager`
 - read gameplay look input from Redux via the existing input pipeline (`gameplay.look_input`)
-- resolve follow targets using `C_VCamComponent` NodePath exports first; fall back to entity queries (`M_ECSManager.get_entity_by_id()` or `get_entities_by_tag()`) when NodePaths are empty — enables dynamic target assignment (e.g., follow the entity tagged `"player"`)
+- run after input and movement systems so camera evaluation sees current-frame gameplay input and target transforms
+- resolve follow targets using `C_VCamComponent` NodePath exports first; fall back to entity queries (`M_ECSManager.get_entity_by_id()` or `get_entities_by_tag()`) when NodePaths are empty — enables dynamic target assignment (e.g., follow the entity tagged `"player"`). If tag lookup returns multiple valid entities, use the first valid ECS-registration-order match and emit a debug warning.
 - evaluate the active vCam every tick
 - when a blend is active, also evaluate the outgoing vCam every tick
 - resolve a `Node3D` fixed anchor for each vCam (`fixed_anchor_path` when set, entity root default otherwise) before mode evaluation
 - for path-enabled fixed vCams (`use_path = true`):
   - resolve `Path3D` from `C_VCamComponent.path_node_path`
-  - maintain a `PathFollow3D` child per path-enabled vCam
+  - maintain a scene-local `PathFollow3D` child per path-enabled vCam in the gameplay world
   - each tick: compute closest point on curve to follow target, smooth progress via `path_max_speed` + `path_damping`, update `PathFollow3D.progress`
+  - if the follow target is invalid, do not fabricate path progress; enter the standard invalid-target recovery path instead
   - pass the `PathFollow3D` as `fixed_anchor` to evaluator
 - update `runtime_yaw` and `runtime_pitch` on the component that owns the rotation context
 - apply rotation continuity policy on mode switches (see overview Rotation Continuity Contract): carry, reset, or reseed yaw/pitch based on mode transition type
 - validate follow target and fixed anchor before evaluation each tick; dispatch `update_target_validity` and `record_recovery` on state changes
-- submit evaluated results back to `M_VCamManager`
+- submit evaluated results back to `M_VCamManager` as the explicit same-frame handoff; do not rely on root `_physics_process` order to make camera apply happen "after" gameplay ECS
 
 **Input contract**
 
@@ -460,6 +496,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 - A touch that begins elsewhere becomes a drag-look gesture.
 - `UI_MobileControls` exposes per-frame `look_delta`.
 - `S_TouchscreenSystem` dispatches `U_InputActions.update_look_input(look_delta)` and updates look action strength instead of hard-coding `look_input` and look strength to zero.
+- `S_TouchscreenSystem` also owns `gameplay.touch_look_active` start/end dispatch. If this flag remains a top-level gameplay field, add it to `U_StateSliceManager` gameplay `transient_fields`.
 - Apply persisted `look_drag_sensitivity` and `invert_look_y` from `settings.input_settings.touchscreen_settings`.
 - Clear mobile look delta after each dispatch so state remains delta-based like mouse and right-stick input.
 - `S_InputSystem` must not overwrite touchscreen gameplay input with `TouchscreenSource.capture_input()` zeros. When the active device type is touchscreen, gameplay move/look/jump/sprint dispatch for touch input is owned by `S_TouchscreenSystem`.
@@ -521,7 +558,7 @@ static func compute_camera_correction(
 **Algorithm**
 
 1. Temporarily reason about the desired camera pose.
-2. Project the follow target into viewport coordinates.
+2. Project the follow target into viewport coordinates using the active gameplay camera's viewport inside `GameViewport`.
 3. Convert to normalized screen coordinates for dead/soft/hard zone tests.
 4. Clamp toward the nearest allowed point inside the configured zone.
 5. Reproject that corrected screen point back into world space at the same camera-space depth.
@@ -532,6 +569,7 @@ static func compute_camera_correction(
 - Avoid allocating new `Vector2`/`Vector3` temporaries each call; reuse locals.
 - Skip the projection step entirely when no soft zone resource is assigned.
 - Cache viewport size per frame rather than querying it per-vCam.
+- Never use the root manager node's viewport for this math. The active gameplay camera viewport is authoritative.
 
 **Why the original draft was wrong**
 
@@ -585,6 +623,7 @@ static func compute_camera_correction(
 - `set_active_vcam(...)` starts a blend between vCam IDs, not between cached transforms.
 - During the blend, `S_VCamSystem` continues evaluating both cameras each frame.
 - `M_VCamManager` blends the two live results in `_physics_process`.
+- Blend/apply correctness must not depend on root-vs-gameplay `_physics_process` order. `M_VCamManager` consumes the latest submission tagged for the current physics frame and never applies stale results just because its root tick ran first.
 - If the blend hint says to cut, skip interpolation and complete immediately.
 
 **Reentrant switch (mid-blend interruption)**
@@ -632,6 +671,8 @@ static func compute_camera_correction(
 3. Update `C_CameraStateComponent.base_fov` with the vCam-authored FOV (use `set_base_fov()` setter which clamps to valid range).
 4. Let `S_CameraStateSystem` remain the sole writer of `camera.fov`.
 
+This flow consumes the latest result that `S_VCamSystem` submitted for the active physics frame. Do not rely on root scene-tree order to make `_physics_process` line up by accident.
+
 **QB rule context enrichment**
 
 After vCam state is dispatched to Redux, `S_CameraStateSystem` can read vCam fields from the `vcam` slice when building its rule evaluation context. Enrich the camera context with:
@@ -660,6 +701,7 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 - Name physics layer 6 `vcam_occludable`.
 - Detect `GeometryInstance3D` occluders, not only `MeshInstance3D`.
 - Support the geometry types already used heavily in this repo, especially `CSGBox3D`.
+- Raycasts use the active gameplay camera's `World3D` / `direct_space_state`, not the persistent root manager's world.
 
 **Tests**
 
@@ -698,27 +740,32 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 - Apply silhouette overrides to `GeometryInstance3D`.
 - Preserve and restore original override state cleanly.
 - Track active count for Redux observability.
+- This helper is owned by `M_VFXManager`, not by `M_VCamManager`.
 - Implement anti-flicker behavior:
   - Maintain a stable occluder set; only add an occluder after it has been detected for 2 consecutive frames.
   - Grace-frame removal: keep silhouette for 2 frames after the occluder leaves the ray before restoring the original material.
   - When the occluder set is unchanged from the previous frame, skip material override application entirely (no per-frame churn).
   - Avoid material/shader instance allocation when applying the same override to the same node.
 
-### Commit 5.3: Per-tick occlusion integration
+### Commit 5.3: VFX-routed occlusion integration
 
 **Files to modify**
 
 - `scripts/managers/m_vcam_manager.gd`
+- `scripts/managers/m_vfx_manager.gd`
+- `scripts/events/ecs/u_ecs_event_names.gd`
 - `tests/unit/managers/test_vcam_manager.gd`
 
 **Behavior**
 
 - detect occluders between follow target and final camera pose
 - consult `U_VFXSelectors.is_occlusion_silhouette_enabled(state)`
-- apply silhouettes only when the persisted VFX toggle is enabled
+- publish `EVENT_SILHOUETTE_UPDATE_REQUEST` only when the persisted VFX toggle is enabled
+- use payload `{entity_id, occluders, enabled}` so `M_VFXManager` can reuse existing player gating and transition blocking
 - dispatch `U_VCamActions.update_silhouette_count(...)` on count changes
 - clear all silhouettes when gameplay ends, no active vCam exists, or scene transition ownership changes
 - validate follow target is still valid before occlusion detection each tick; skip detection if target is invalid
+- use the active gameplay camera world for raycasts; never use the root manager node's world
 
 **Performance notes**
 
@@ -785,18 +832,24 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 1. Do not register only the component and forget the runtime scene wiring. `M_VCamManager` in root plus `S_VCamSystem` in gameplay are both required.
 2. Do not persist the `vcam` slice. It is transient runtime observability.
 3. Do not store the silhouette toggle in `vcam`. Persist it in `vfx`.
-4. Do not write `camera.global_transform` directly from vCam. Go through `M_CameraManager.apply_main_camera_transform(...)` so shake layering survives.
-5. Do not freeze the outgoing camera transform at blend start. Evaluate both cameras live during blends.
-6. Do not use raw normalized-screen deltas as world-space camera offsets. Soft-zone math must account for depth and projection.
-7. Do not bypass the existing input pipeline. Consume `gameplay.look_input` produced by `S_InputSystem` (mouse + optional keyboard look via `look_*` actions) and touchscreen drag-look once `S_TouchscreenSystem` is extended.
-15. Do not hardcode `ui_left`/`ui_right`/`ui_up`/`ui_down` for camera rotation. These actions swap between profiles (default: arrow keys, alternate: WASD). Use dedicated `look_left`/`look_right`/`look_up`/`look_down` actions instead.
-8. Do not treat mobile as automatically covered by that input contract. `S_TouchscreenSystem` currently hard-codes look input to zero, so mobile drag-look must be implemented explicitly.
-9. Do not rely on scene-tree order to “fix” mobile touch input. `S_InputSystem` currently resolves `TouchscreenSource`, which returns zeros, so it must be explicitly gated from overwriting touchscreen gameplay input.
-10. Do not introduce `scripts/tools` or `assets/shaders/vcam_*.gdshader` paths that fight the current style guide. Use `scripts/utils/display/` and `sh_*_shader.gdshader`.
-11. Do not assume occluders are only `MeshInstance3D`. Current gameplay scenes use `CSGBox3D` extensively.
-12. Do not forget to update `tests/mocks/mock_camera_manager.gd` when `I_CameraManager` grows new methods.
-13. Do not stop at state wiring for `occlusion_silhouette_enabled`; wire it into `UI_VFXSettingsOverlay` and localization resources so players can control it.
-14. Do not assume naming physics layer 6 is enough; migrate authored occluder geometry to that layer in scenes/prefabs.
+4. Do not claim the `camera`-slice migration is already done. As of March 10, 2026, `S_CameraStateSystem` and QB tests still read `state.camera.in_fov_zone`.
+5. Do not write `camera.global_transform` directly from vCam. Go through `M_CameraManager.apply_main_camera_transform(...)` so shake layering survives.
+6. Do not freeze the outgoing camera transform at blend start. Evaluate both cameras live during blends.
+7. Do not use raw normalized-screen deltas as world-space camera offsets. Soft-zone math must account for depth and projection.
+8. Do not use the root manager node's viewport or world for soft-zone projection or occlusion raycasts. Use the active gameplay camera viewport and gameplay `World3D`.
+9. Do not bypass the existing input pipeline. Consume `gameplay.look_input` produced by `S_InputSystem` (mouse + optional keyboard look via `look_*` actions) and touchscreen drag-look once `S_TouchscreenSystem` is extended.
+10. Do not hardcode `ui_left`/`ui_right`/`ui_up`/`ui_down` for camera rotation. These actions swap between profiles (default: arrow keys, alternate: WASD). Use dedicated `look_left`/`look_right`/`look_up`/`look_down` actions instead.
+11. Do not ship keyboard-look docs that stop at profile resources. Patch `U_InputMapBootstrapper`, input-map tests, settings-save triggers, rebind category wiring, and locale keys together.
+12. Do not treat mobile as automatically covered by that input contract. `S_TouchscreenSystem` currently hard-codes look input to zero, so mobile drag-look must be implemented explicitly.
+13. Do not let `gameplay.touch_look_active` persist accidentally. If the flag stays in the gameplay slice, register it as transient.
+14. Do not rely on scene-tree order to “fix” mobile touch input or vCam apply timing. Define explicit gating and same-frame handoff behavior.
+15. Do not introduce `scripts/tools` or `assets/shaders/vcam_*.gdshader` paths that fight the current style guide. Use `scripts/utils/display/` and `sh_*_shader.gdshader`.
+16. Do not assume occluders are only `MeshInstance3D`. Current gameplay scenes use `CSGBox3D` extensively.
+17. Do not forget to update `tests/mocks/mock_camera_manager.gd` when `I_CameraManager` grows new methods.
+18. Do not stop at state wiring for `occlusion_silhouette_enabled`; wire it into `UI_VFXSettingsOverlay` and localization resources so players can control it.
+19. Do not assume naming physics layer 6 is enough; migrate authored occluder geometry to that layer in scenes/prefabs.
+20. Do not parent `PathFollow3D` helpers under the persistent root manager. They must live in the gameplay world and die with the gameplay scene.
+21. Do not treat `follow_target_tag` as inherently deterministic when multiple entities share a tag. Resolve first valid registration-order match and warn in debug.
 
 ## File Structure
 

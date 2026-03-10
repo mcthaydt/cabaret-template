@@ -1,6 +1,6 @@
 # vCam Fixed — Task Checklist
 
-**Scope:** Fixed camera mode — resource, evaluator, and manual validation.
+**Scope:** Fixed camera mode — resource, evaluator, and manual validation, with `use_path` helpers staying scene-local in the gameplay world.
 
 **Depends on:** Phase 3B (first-person evaluator extends `U_VCamModeEvaluator`) must be complete before Phase 4B extends it further.
 
@@ -186,6 +186,7 @@ Before starting Phase 4, verify:
   **Fixed-anchor resolution contract (enforced in evaluator tests):**
   - The evaluator receives a pre-resolved `Node3D` as `fixed_anchor`
   - Resolution order (`fixed_anchor_path` -> entity root) is handled by `S_VCamSystem` (Phase 6), not the evaluator
+  - For `use_path`, that pre-resolved anchor is a scene-local `PathFollow3D` that lives in the gameplay world, not under the persistent root manager
   - The evaluator simply uses whichever `Node3D` it is given
   - If `fixed_anchor` is null and `use_world_anchor = true`, return `{}`
 
@@ -404,6 +405,8 @@ These checks gate Phase 9F completion:
 8. Do not confuse the final refactor (Task 4B.4) with adding new functionality. It is strictly a code quality pass — all tests must pass before and after with identical behavior.
 9. Do not resolve `Path3D` or compute path progress inside the evaluator. Path resolution and progress smoothing are `S_VCamSystem`'s responsibility. The evaluator only sees a pre-resolved `PathFollow3D` as `fixed_anchor`.
 10. Do not apply `path_max_speed` or `path_damping` in the evaluator. These are consumed by `S_VCamSystem`.
+11. Do not parent `PathFollow3D` helpers under the persistent root manager. They must live in the gameplay world so their transforms and lifetime match the gameplay scene.
+12. Do not keep advancing `use_path` progress after the follow target becomes invalid. Enter the standard invalid-target recovery path instead of fabricating path progress from stale data.
 
 ---
 

@@ -1,15 +1,17 @@
 # vCam Manager Overview
 
-**Project**: Cabaret Template (Godot 4.6)  
-**Created**: 2026-03-06  
-**Updated**: 2026-03-07  
-**Status**: Documentation remediated, implementation not started
+**Project**: Cabaret Template (Godot 4.6)
+**Created**: 2026-03-06
+**Updated**: 2026-03-10
+**Status**: Documentation rebaselined after audit, implementation not started
 
 ## Summary
 
 The vCam Manager is a gameplay camera orchestration layer inspired by Cinemachine. It adds virtual-camera authoring and selection on top of the current camera stack without replacing the existing low-level camera manager or QB camera-state systems.
 
 For this feature to be complete, player-controlled orbit and first-person camera behavior must also work on mobile through drag-look, not only on mouse and gamepad.
+
+This overview is a planning contract for work that still needs to be implemented. It is not a claim that every migration described below already exists in the codebase today.
 
 The corrected stack is:
 
@@ -29,7 +31,7 @@ M_VCamManager
 M_CameraManager + C_CameraStateComponent + S_CameraStateSystem
 ```
 
-`M_VCamManager` chooses which virtual camera should drive gameplay, owns live vCam-to-vCam blend state, manages occlusion silhouettes, and publishes runtime observability into Redux. `M_CameraManager` still owns scene-transition blending and shake layering. `S_CameraStateSystem` still owns the final `camera.fov` write.
+`M_VCamManager` chooses which virtual camera should drive gameplay, owns live vCam-to-vCam blend state, detects occluders, routes silhouette requests through VFX, and publishes runtime observability into Redux. `M_CameraManager` still owns scene-transition blending and shake layering. `S_CameraStateSystem` still owns the final `camera.fov` write.
 
 ## Repo Reality Checks
 
@@ -45,6 +47,9 @@ M_CameraManager + C_CameraStateComponent + S_CameraStateSystem
 - `UI_VFXSettingsOverlay` already exists (`scripts/ui/settings/ui_vfx_settings_overlay.gd`), but it currently has no silhouette toggle row, so the vCam delivery must include VFX settings UI wiring plus localization keys.
 - `settings.input_settings.touchscreen_settings` is already the persisted home for mobile control tuning, so drag-look sensitivity and invert-Y belong there, not in `vcam`.
 - Existing gameplay scenes use both `MeshInstance3D` and `CSGBox3D`-style geometry, so occlusion logic cannot assume mesh-only scene content.
+- As of March 10, 2026, `scripts/ecs/systems/s_camera_state_system.gd` and `tests/unit/qb/test_camera_state_system.gd` still read `state.camera.in_fov_zone`, so the `state.vcam.in_fov_zone` migration remains pending Phase 0F work.
+- `scripts/input/u_input_map_bootstrapper.gd`, `tests/unit/input/test_input_map.gd`, `scripts/ui/helpers/u_rebind_action_list_builder.gd`, and the existing UI locale action labels still know about `camera_*` actions, not the planned `look_*` family.
+- Gameplay runs inside `scenes/root.tscn/GameViewportContainer/GameViewport`. Soft-zone projection and occlusion raycasts must use that active gameplay viewport and `World3D`, never the root manager node's viewport/world.
 
 ## Runtime Wiring
 
@@ -97,7 +102,7 @@ Owns:
 - active vCam selection
 - vCam blend state
 - Redux `vcam` observability updates
-- occlusion detection and silhouette application
+- occlusion detection and silhouette request publication to `M_VFXManager`
 - final handoff of gameplay transform data into `M_CameraManager`
 
 Does not own:
@@ -116,6 +121,9 @@ Owns:
 - updating `runtime_yaw` and `runtime_pitch` on the correct component
 - applying soft-zone correction before results are submitted
 - resolving follow targets using entity queries (`M_ECSManager.get_entity_by_id()`, `get_entities_by_tag()`) as fallback when `C_VCamComponent` NodePath exports are empty
+- resolving `follow_target_tag` deterministically when multiple entities match: first valid ECS-registration-order match, plus a debug warning recommending `follow_target_entity_id` when deterministic targeting matters
+- owning any `PathFollow3D` helper state for `use_path` fixed cameras inside the gameplay scene world, not under the persistent root manager
+- submitting the latest evaluated result as the same-frame handoff into `M_VCamManager`
 - applying rotation continuity policy on mode switches
 
 ### `M_CameraManager`
@@ -154,11 +162,12 @@ S_VCamSystem.process_tick(delta)
   -> submit evaluated camera result(s) back to M_VCamManager
 
 M_VCamManager._physics_process(delta)
+  -> consume the most recent same-frame submission from S_VCamSystem
   -> if M_CameraManager.is_blend_active(): suspend gameplay camera writes
   -> select live blended result or active result
   -> M_CameraManager.apply_main_camera_transform(transform)
   -> update C_CameraStateComponent.base_fov
-  -> detect occluders and apply silhouettes if vfx.occlusion_silhouette_enabled
+  -> detect occluders in gameplay World3D and publish EVENT_SILHOUETTE_UPDATE_REQUEST
   -> dispatch transient vcam slice updates
 
 S_CameraStateSystem.process_tick(delta)
@@ -169,9 +178,19 @@ U_ECSEventBus
   <- M_VCamManager publishes vCam lifecycle events:
      EVENT_VCAM_ACTIVE_CHANGED, EVENT_VCAM_BLEND_STARTED,
      EVENT_VCAM_BLEND_COMPLETED, EVENT_VCAM_RECOVERY
+  <- M_VCamManager also publishes EVENT_SILHOUETTE_UPDATE_REQUEST
+     with {entity_id, occluders, enabled}
   <- other systems (S_GameEventSystem, S_CameraStateSystem) can subscribe
      to react to camera orchestration changes through the standard event pattern
 ```
+
+## Runtime Contracts
+
+- `S_VCamSystem` runs after gameplay input and movement systems so camera evaluation sees current-frame `look_input` and current-frame target transforms.
+- Soft-zone projection/reprojection uses the active gameplay camera's viewport from `GameViewport`, never the root manager node's viewport.
+- Occlusion raycasts use the active gameplay camera's `World3D` / `PhysicsDirectSpaceState3D`, never the persistent root manager's world.
+- Same-frame correctness must not depend on scene-tree `_physics_process` order between root managers and gameplay ECS. `submit_evaluated_camera(...)` is the explicit handoff path, and `M_VCamManager` applies only the latest result submitted for the active physics frame.
+- Any `PathFollow3D` helper created for `use_path` lives under the gameplay scene or vCam host entity so it shares the gameplay world and is destroyed with that scene.
 
 ## Public API
 
@@ -240,9 +259,9 @@ Both methods are **new API — Phase 9**. They do not exist on `M_CameraManager`
 | `blend_to_vcam_id` | `StringName` | debug: destination vCam during an active blend |
 | `active_target_valid` | `bool` | debug: whether the active vCam's follow target is currently valid |
 | `last_recovery_reason` | `String` | debug: reason for last recovery action (e.g. `"target_freed"`, `"anchor_invalid"`) |
-| `in_fov_zone` | `bool` | `false` — whether the active vCam's follow target is inside an FOV zone (migrated from informal `camera` slice; see Phase 0F migration) |
+| `in_fov_zone` | `bool` | `false` — planned home for whether the active vCam's follow target is inside an FOV zone once Phase 0F migrates legacy `state.camera` reads |
 
-> **Migration note (camera slice → vcam):** The informal `camera` slice previously tracked `in_fov_zone` via `S_CameraStateSystem`. That field now lives in `state.vcam.in_fov_zone`. Phase 0F migrates all `S_CameraStateSystem` reads of `state.camera.in_fov_zone` to `state.vcam.in_fov_zone` and retires the informal `camera` slice. Tests that use `set_slice("camera", ...)` must be updated.
+> **Migration note (camera slice → vcam):** The informal `camera` slice still tracks `in_fov_zone` in code today. As of March 10, 2026, `S_CameraStateSystem` and QB tests still read `state.camera.in_fov_zone`. Phase 0F migrates those reads to `state.vcam.in_fov_zone` and only then retires the informal `camera` slice.
 
 This slice is whole-slice transient. It is not save data and not a player settings surface. The `blend_from/to`, `active_target_valid`, and `last_recovery_reason` fields are debug-only and may be omitted in release builds.
 
@@ -280,6 +299,7 @@ This slice is whole-slice transient. It is not save data and not a player settin
 - When `use_world_anchor = true` (default): camera uses a fixed world anchor. Anchor comes from `C_VCamComponent.fixed_anchor_path` when set, with fallback to the vCam host entity-root `Node3D`. Useful for room cameras and authored framing.
 - When `use_world_anchor = false`: camera maintains a constant `follow_offset` from the follow target — useful for simple chase cameras or over-shoulder views without player rotation. Position = `follow_target.global_position + follow_offset`. Returns invalid if follow target is null.
 - When `use_path = true`: camera follows a `Path3D` node, finding the closest point on the curve to the follow target. Movement along the path is smoothed via `path_max_speed` (max travel speed in units/sec, 0.0 = instant) and `path_damping` (second-order smoothing factor). Camera faces along the path tangent direction; `track_target` is forced off. Requires `C_VCamComponent.path_node_path` to be set. When `use_path = true`, both `use_world_anchor` and `follow_offset` are ignored.
+- When `use_path = true` and the follow target is invalid, `S_VCamSystem` falls back to the standard invalid-target recovery policy. It does not fabricate path progress from stale data.
 - `follow_offset: Vector3 = Vector3(0, 3, 5)` — only consumed when `use_world_anchor = false`
 - `path_max_speed: float = 10.0` — max travel speed along the path (units/sec), 0.0 = instant
 - `path_damping: float = 5.0` — second-order smoothing for path progress changes
@@ -393,6 +413,7 @@ Required behavior:
 - `S_TouchscreenSystem` dispatches `U_InputActions.update_look_input(look_delta)` each tick for touchscreen mode.
 - `S_InputSystem` must not overwrite touchscreen gameplay input with zero payloads from `TouchscreenSource`.
 - Mobile drag-look settings persist through `settings.input_settings.touchscreen_settings`, not the `vcam` slice.
+- If `gameplay.touch_look_active` is added as a top-level gameplay flag, it must be registered as transient in `U_StateSliceManager` and reset on load/handoff. It must not persist through save/load accidentally.
 - `S_VCamSystem` remains device-agnostic and simply consumes the shared `look_input` value.
 
 ## Keyboard Look Contract
@@ -404,6 +425,7 @@ The project has input profiles that remap keys (default: WASD=movement/arrows=UI
 Required behavior:
 
 - Four new input actions are registered in `project.godot`: `look_left`, `look_right`, `look_up`, `look_down`.
+- `scripts/input/u_input_map_bootstrapper.gd` adds the same four actions to `REQUIRED_ACTIONS`, and `tests/unit/input/test_input_map.gd` is updated so bootstrap coverage matches the profile resources.
 - Each `RS_InputProfile` includes bindings for these actions:
   - **Default keyboard**: arrow keys (matching the non-movement keys).
   - **Alternate keyboard**: WASD (matching the non-movement keys in that layout).
@@ -415,8 +437,10 @@ Required behavior:
 - `keyboard_look_speed` defaults to `2.0` and is clamped to `0.1–10.0`.
 - Keyboard look respects the existing `invert_y_axis` setting from `mouse_settings`.
 - Settings persist through `settings.input_settings.mouse_settings`, not the `vcam` slice.
+- If dedicated `set_keyboard_look_*` actions are introduced, add them to `scripts/utils/u_global_settings_serialization.gd` `INPUT_SETTINGS_ACTIONS` so changes trigger the existing settings-save flow.
 - `S_VCamSystem` remains input-source-agnostic and simply consumes the shared `look_input` value.
-- Because bindings live in profiles, rebinding camera-look keys works through the existing rebind system without special-casing.
+- `scripts/ui/helpers/u_rebind_action_list_builder.gd` must list `look_*` under the camera category, and the `input.action.look_*` localization keys must be added across the supported `cfg_locale_*_ui.tres` files.
+- Because there is no existing mouse/keyboard settings overlay in this repo, keyboard-look settings live in a new `UI_KeyboardMouseSettingsOverlay` wired from `UI_SettingsMenu`, not as an implicit "if one exists" follow-up.
 
 ## Runtime Recovery Policy
 
@@ -452,6 +476,7 @@ When a target or vCam becomes invalid during gameplay, the system follows these 
 ### Detection
 
 - cast against physics layer 6 named `vcam_occludable`
+- raycasts use the active gameplay camera's `World3D` / `direct_space_state`
 - detect `GeometryInstance3D` occluders
 - support `MeshInstance3D` and `CSGShape3D`
 - migrate authored occluding geometry in gameplay/prefab scenes onto layer 6; naming the layer in `project.godot` alone is not sufficient
@@ -459,6 +484,8 @@ When a target or vCam becomes invalid during gameplay, the system follows these 
 ### Rendering
 
 - use `assets/shaders/sh_vcam_silhouette_shader.gdshader`
+- `M_VCamManager` does not apply materials directly. It publishes `EVENT_SILHOUETTE_UPDATE_REQUEST` with `{entity_id, occluders, enabled}`.
+- `M_VFXManager` owns rendering, applies existing player gating and transition blocking, and delegates actual material override work to `U_VCamSilhouetteHelper`.
 - store original override state so restoration is deterministic
 - clear all overrides when no active gameplay vCam exists or a scene swap invalidates the previous result set
 
@@ -487,6 +514,7 @@ This intentionally avoids a new `scripts/tools` category.
 
 1. **NodePath exports** (primary): `follow_target_path`, `look_at_target_path`, `fixed_anchor_path` — resolved via `get_node_or_null()` per the standard ECS component pattern.
 2. **Entity ID fallback**: when NodePath exports are empty, `S_VCamSystem` can resolve targets through `M_ECSManager.get_entity_by_id(target_entity_id)` or `M_ECSManager.get_entities_by_tag(tag)`. This enables dynamic target assignment (e.g., follow the entity tagged `"player"`) without hard-coded scene paths.
+3. **Multiple tag matches**: if `follow_target_tag` resolves more than one valid entity, use the first valid ECS-registration-order match and emit a debug warning. Use `follow_target_entity_id` when deterministic targeting matters across scene-authoring changes.
 
 Entity resolution uses the existing `BaseECSEntity` ID and tag system documented in AGENTS.md. `S_VCamSystem` queries the ECS manager that the gameplay scene owns.
 
@@ -549,3 +577,4 @@ resources/display/vcam/*.tres
 | soft-zone math | projection-based correction |
 | naming/style | use `scripts/resources/display/vcam`, `scripts/utils/display`, `sh_*_shader.gdshader` |
 | keyboard look | optional keyboard camera rotation via dedicated `look_*` actions bound per-profile, settings in `mouse_settings` |
+| silhouette ownership | detect in vCam, render in `M_VFXManager` via `{entity_id, occluders, enabled}` request payload |

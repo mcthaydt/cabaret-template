@@ -1,6 +1,6 @@
 # vCam Orbit — Task Checklist
 
-**Scope:** Orbit camera mode — resource, evaluator, default preset, orbit-specific game feel (look-ahead, auto-level, soft zone, hysteresis), and manual validation.
+**Scope:** Orbit camera mode — resource, evaluator, default preset, then later orbit-specific game feel (look-ahead, auto-level, soft zone, hysteresis), and manual validation.
 
 **Depends on:** Phase 1 (base resources) must be complete before Phase 2B evaluator tests.
 
@@ -260,6 +260,7 @@ Before starting Phase 2, verify:
   - Create `scripts/managers/helpers/u_vcam_soft_zone.gd`
   - Implement `static func compute_camera_correction(camera, follow_world_pos, desired_transform, soft_zone, delta) -> Vector3`
   - **Projection method contract:**
+    - Use the active gameplay camera viewport inside `GameViewport`; never use the persistent root manager node's viewport for this helper
     - Use `camera.unproject_position(follow_world_pos)` to project the follow target to screen space from the desired camera pose
     - Use `camera.project_position(corrected_screen_point, depth)` to reproject back to world space
     - All zone tests use normalized viewport coordinates (`screen_pos / viewport_size`)
@@ -453,8 +454,9 @@ These checks gate Phase 9F completion:
 2. Do not consume `rotation_speed` inside the evaluator. The evaluator receives pre-computed `runtime_yaw`/`runtime_pitch`; `rotation_speed` is consumed by `S_VCamSystem` when updating those runtime values (Phase 6).
 3. Do not use `look_at()` directly on `Transform3D` — use `Transform3D.IDENTITY.looking_at_from_position()` or construct the basis manually to avoid Godot's `look_at` up-vector restrictions.
 4. Do not skip the `allow_player_rotation = false` guard in the evaluator. When disabled, `runtime_yaw` and `runtime_pitch` must be ignored entirely.
-5. Do not forget to handle the edge case where `distance` is zero or negative — return `{}` rather than producing NaN transforms.
-6. Do not add pitch clamping to the resource or evaluator. Pitch clamping is applied by `S_VCamSystem` when updating `runtime_pitch` on the component (Phase 6). The evaluator trusts whatever pitch values it receives.
+5. Do not compute orbit soft-zone projection against the root manager viewport. Always use the active gameplay camera viewport inside `GameViewport`.
+6. Do not forget to handle the edge case where `distance` is zero or negative — return `{}` rather than producing NaN transforms.
+7. Do not add pitch clamping to the resource or evaluator. Pitch clamping is applied by `S_VCamSystem` when updating `runtime_pitch` on the component (Phase 6). The evaluator trusts whatever pitch values it receives.
 
 ---
 

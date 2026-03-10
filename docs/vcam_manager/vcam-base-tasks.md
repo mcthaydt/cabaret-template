@@ -39,12 +39,13 @@ Before starting Phase 0, verify:
 
 ## Phase 0: State and Persistence
 
-**Exit Criteria:** All ~74 Redux/UI tests pass, `vcam` slice registered as transient in `M_StateStore`, `vfx.occlusion_silhouette_enabled` persisted, VFX settings exposes the silhouette toggle, touchscreen drag-look settings persisted, no console errors
+**Exit Criteria:** All ~74 Redux/UI tests pass, `vcam` slice registered as transient in `M_StateStore`, `vfx.occlusion_silhouette_enabled` persisted, VFX settings exposes the silhouette toggle, touchscreen drag-look settings persisted with localization coverage, no console errors
 
 ### Phase 0A: Touchscreen Drag-Look Settings Prerequisite
 
 - [ ] **Task 0A.1 (Red)**: Write tests for touchscreen drag-look settings
   - Modify `tests/unit/input_manager/test_u_input_reducer.gd` (or create new test file)
+  - Modify `tests/unit/resources/test_rs_touchscreen_settings.gd`
   - Test `look_drag_sensitivity` field exists in touchscreen settings with default `1.0`
   - Test `invert_look_y` field exists in touchscreen settings with default `false`
   - Test reducer handles `set_look_drag_sensitivity` action with valid float
@@ -61,14 +62,17 @@ Before starting Phase 0, verify:
 
 - [ ] **Task 0A.3 (Red)**: Write tests for touchscreen settings overlay updates
   - Modify `tests/unit/ui/test_touchscreen_settings_overlay.gd`
+  - Modify `tests/unit/ui/test_touchscreen_settings_overlay_localization.gd`
   - Test overlay displays drag-look sensitivity slider
   - Test overlay displays invert-Y toggle
   - Test overlay preview dispatches look sensitivity changes
   - Test overlay apply persists look settings
-  - **Target: 4 tests**
+  - Test localization updates the new drag-look control labels/tooltips
+  - **Target: 5 tests**
 
 - [ ] **Task 0A.4 (Green)**: Implement touchscreen settings overlay changes
   - Modify `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`: add drag-look sensitivity slider and invert-Y toggle
+  - Modify UI locale resources for the new touchscreen look strings
   - All tests should pass
 
 ---
@@ -77,6 +81,8 @@ Before starting Phase 0, verify:
 
 - [ ] **Task 0A2.1**: Register dedicated look actions in project.godot and input profiles
   - Add `look_left`, `look_right`, `look_up`, `look_down` input actions to `project.godot`
+  - Modify `scripts/input/u_input_map_bootstrapper.gd`: add `look_*` actions to `REQUIRED_ACTIONS`
+  - Modify `tests/unit/input/test_input_map.gd`: verify bootstrap/runtime input-map coverage for the new actions
   - Default bindings: arrow keys (matching default keyboard profile convention)
   - Update `resources/input/profiles/cfg_default_keyboard.tres`: bind `look_left/right/up/down` to arrow keys
   - Update `resources/input/profiles/cfg_alternate_keyboard.tres`: bind `look_left/right/up/down` to WASD (the non-movement keys in that layout)
@@ -97,6 +103,7 @@ Before starting Phase 0, verify:
   - Modify `scripts/state/reducers/u_input_reducer.gd`: add `keyboard_look_enabled: false` and `keyboard_look_speed: 2.0` to `DEFAULT_INPUT_SETTINGS_STATE.mouse_settings`
   - Modify `scripts/state/actions/u_input_actions.gd`: add `ACTION_SET_KEYBOARD_LOOK_ENABLED` and `ACTION_SET_KEYBOARD_LOOK_SPEED`
   - Modify `scripts/state/reducers/u_input_reducer.gd`: add action handling
+  - Modify `scripts/utils/u_global_settings_serialization.gd`: add the keyboard-look settings actions to `INPUT_SETTINGS_ACTIONS`
   - All tests should pass
 
 - [ ] **Task 0A2.4 (Green)**: Implement keyboard look in KeyboardMouseSource
@@ -108,11 +115,20 @@ Before starting Phase 0, verify:
   - Modify `scripts/ecs/systems/s_input_system.gd`: read `keyboard_look_enabled` and `keyboard_look_speed` from `mouse_settings` state and pass to `KeyboardMouseSource` each tick (same pattern as `mouse_sensitivity`)
 
 - [ ] **Task 0A2.5**: Expose keyboard look in settings UI
-  - Modify the mouse/keyboard settings overlay (if one exists) or the relevant settings screen to expose:
+  - Create `scripts/ui/overlays/ui_keyboard_mouse_settings_overlay.gd`
+  - Create `scenes/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn`
+  - Create `resources/ui_screens/cfg_keyboard_mouse_settings_overlay.tres`
+  - Modify `scripts/ui/menus/ui_settings_menu.gd` and `scenes/ui/menus/ui_settings_menu.tscn` to open the new overlay
+  - Expose:
     - Toggle for "Keyboard Camera Rotation" (maps to `keyboard_look_enabled`)
     - Slider for "Keyboard Look Speed" (maps to `keyboard_look_speed`, range 0.1–10.0)
   - Speed slider should be grayed out / hidden when `keyboard_look_enabled` is false
   - Because bindings live in profiles, the actual keys shown depend on the active profile — rebinding works through the existing rebind system
+
+- [ ] **Task 0A2.6**: Patch rebinding UI and localization for `look_*`
+  - Modify `scripts/ui/helpers/u_rebind_action_list_builder.gd`: replace legacy `camera_*` coverage with `look_*` under the camera category
+  - Modify `resources/localization/cfg_locale_*_ui.tres`: add `input.action.look_left`, `input.action.look_right`, `input.action.look_up`, `input.action.look_down`
+  - Modify `tests/unit/ui/test_input_rebinding_overlay.gd` and `tests/unit/integration/test_rebinding_flow.gd` to cover the new camera action names
 
 ---
 
@@ -297,7 +313,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0F: Camera Slice Migration (`in_fov_zone`)
 
-> **Context:** The informal `camera` slice previously tracked `in_fov_zone` via `S_CameraStateSystem`. This field now lives in `state.vcam.in_fov_zone`. This phase migrates all reads and updates all tests.
+> **Context:** The informal `camera` slice still tracks `in_fov_zone` in code today. This phase migrates those remaining reads to `state.vcam.in_fov_zone` and updates all tests.
 
 - [ ] **Task 0F.1**: Migrate `S_CameraStateSystem` reads of `state.camera.in_fov_zone`
   - Modify `scripts/ecs/systems/s_camera_state_system.gd`: replace reads of `state.camera.in_fov_zone` with `U_VCamSelectors.is_in_fov_zone(state)` (or `state.vcam.in_fov_zone`)
@@ -305,6 +321,7 @@ Before starting Phase 0, verify:
 
 - [ ] **Task 0F.2**: Update tests that reference `state.camera`
   - Grep for `set_slice("camera"` and `state.camera` in test files
+  - Explicitly update `tests/unit/qb/test_camera_state_system.gd` and any integration/QB camera tests that seed the legacy slice
   - Update any test that sets up `camera.in_fov_zone` to use `vcam.in_fov_zone` instead
   - Verify no remaining references to `state.camera` slice exist in the codebase
 
@@ -617,15 +634,21 @@ Before starting Phase 0, verify:
   - Test evaluates outgoing vCam too when `manager.is_blending()` is true
   - Test resolves follow target from NodePath export first, then falls back to entity query (`M_ECSManager.get_entity_by_id()`) when path is empty
   - Test resolves follow target by tag (`M_ECSManager.get_entities_by_tag()`) as last fallback
+  - Test multiple valid tag matches resolve to the first valid ECS-registration-order entity and emit a debug warning
+  - Test `use_path` helper is created in the gameplay scene world, not parented under the persistent root manager
+  - Test `use_path` with invalid follow target enters standard recovery and does not fabricate path progress
   - Test does nothing when no active vCam exists
   - Test does nothing when manager is not found
-  - **Target: 14 tests**
+  - **Target: 17 tests**
 
 - [ ] **Task 6A.2 (Green)**: Implement S_VCamSystem
   - Create `scripts/ecs/systems/s_vcam_system.gd`
   - Extend `BaseECSSystem`, implement `process_tick(delta)`
+  - Order the system after gameplay input/movement so current-frame state and target transforms are available before camera evaluation
   - Resolve manager, read look input, evaluate modes, submit results
-  - Target resolution priority: NodePath export → `M_ECSManager.get_entity_by_id(target_entity_id)` → `M_ECSManager.get_entities_by_tag(target_tag)` → null (triggers recovery)
+  - Target resolution priority: NodePath export → `M_ECSManager.get_entity_by_id(target_entity_id)` → `M_ECSManager.get_entities_by_tag(target_tag)` → null (triggers recovery). If tag lookup returns multiple valid entities, use the first valid ECS-registration-order match and emit a debug warning.
+  - Keep any `PathFollow3D` helper scene-local in the gameplay world
+  - Submit results as the same-frame handoff to `M_VCamManager`; do not rely on root `_physics_process` ordering
   - All tests should pass
 
 ### Phase 6A2: Second-Order Dynamics Integration in S_VCamSystem
@@ -911,6 +934,7 @@ Before starting Phase 0, verify:
   - Add action `U_GameplayActions.set_touch_look_active(active: bool)`
   - Add reducer case in `u_gameplay_reducer.gd`
   - Add selector `U_GameplaySelectors.is_touch_look_active(state) -> bool` (returns `false` when missing)
+  - Modify `scripts/state/utils/u_state_slice_manager.gd`: add `touch_look_active` to gameplay `transient_fields` so it never persists through save/load or shell handoff
 
 - [ ] **Task 7B2.2**: Dispatch flag from S_TouchscreenSystem
   - Modify `scripts/ecs/systems/s_touchscreen_system.gd`:
@@ -928,7 +952,8 @@ Before starting Phase 0, verify:
   - Test `set_touch_look_active(true)` sets flag
   - Test `S_TouchscreenSystem` dispatches flag on drag start/end
   - Test `S_InputSystem` skips look dispatch when `touch_look_active` is `true`
-  - **Target: 4 tests**
+  - Test gameplay slice registration marks `touch_look_active` transient
+  - **Target: 5 tests**
 
 ---
 
@@ -1011,6 +1036,7 @@ Settings checks (mode-agnostic):
 - [ ] **Task 9B.2 (Green)**: Implement live blend in M_VCamManager
   - Extend manager with blend state tracking, elapsed time, blend evaluation
   - Process blend progression in `_physics_process`
+  - Consume only the latest result submitted for the active physics frame; do not rely on root-vs-gameplay `_physics_process` tree order
   - Publish `EVENT_VCAM_BLEND_STARTED` on blend start, `EVENT_VCAM_BLEND_COMPLETED` on completion
   - All tests should pass
 
@@ -1043,11 +1069,13 @@ Settings checks (mode-agnostic):
   - Test vCam calls `camera_manager.apply_main_camera_transform()` when blend inactive
   - Test vCam updates `C_CameraStateComponent.base_fov` with evaluated FOV
   - Test vCam does NOT write `camera.fov` directly (leaves that to `S_CameraStateSystem`)
-  - **Target: 4 tests**
+  - Test vCam does not apply stale previous-frame results when a current-frame submission is missing
+  - **Target: 5 tests**
 
 - [ ] **Task 9D.2 (Green)**: Implement vCam apply flow in M_VCamManager
   - Route final blended/unblended result through `camera_manager.apply_main_camera_transform()`
   - Set `C_CameraStateComponent.base_fov` (use `set_base_fov()` setter)
+  - Consume the current-frame `S_VCamSystem` handoff rather than depending on root scene-tree order
   - All tests should pass
 
 - [ ] **Task 9D.3**: Enrich `S_CameraStateSystem` QB rule context with vCam state
@@ -1170,18 +1198,18 @@ Cross-mode checks (mode-agnostic):
 
 - [ ] **Task 10B2.1**: Add `EVENT_SILHOUETTE_UPDATE_REQUEST` event constant
   - Modify `scripts/events/ecs/u_ecs_event_names.gd`: add `EVENT_SILHOUETTE_UPDATE_REQUEST := &"silhouette_update_request"`
-  - Payload: `{occluders: Array[GeometryInstance3D], enabled: bool}`
+  - Payload: `{entity_id: StringName, occluders: Array[GeometryInstance3D], enabled: bool}`
 
 - [ ] **Task 10B2.2**: Publish silhouette requests from M_VCamManager
   - Modify `scripts/managers/m_vcam_manager.gd`:
-    - After occlusion detection each tick, publish `EVENT_SILHOUETTE_UPDATE_REQUEST` through `U_ECSEventBus` with the current occluder set
+    - After occlusion detection each tick, publish `EVENT_SILHOUETTE_UPDATE_REQUEST` through `U_ECSEventBus` with the current occluder set plus `entity_id`
     - Do NOT apply silhouettes directly — delegate to VFX manager
 
 - [ ] **Task 10B2.3**: Subscribe and delegate in M_VFXManager
   - Modify `scripts/managers/m_vfx_manager.gd`:
     - Subscribe to `EVENT_SILHOUETTE_UPDATE_REQUEST`
     - Delegate to `U_VCamSilhouetteHelper` for actual material override application/removal
-    - Apply standard player gating (`_is_player_entity()`) and transition blocking (`_is_transition_blocked()`) before processing
+    - Apply standard player gating (`_is_player_entity()`) and transition blocking (`_is_transition_blocked()`) before processing; `entity_id` in the payload is what makes existing player gating work
 
 - [ ] **Task 10B2.4**: Verify routing
   - Test silhouette updates flow through VFX manager (not applied directly by vCam manager)
@@ -1204,7 +1232,7 @@ Cross-mode checks (mode-agnostic):
   - **Target: 6 tests**
 
 - [ ] **Task 10C.2 (Green)**: Implement per-tick occlusion
-  - Extend `m_vcam_manager.gd`: detect occluders, consult VFX selector, publish `EVENT_SILHOUETTE_UPDATE_REQUEST` (silhouette application is routed through `M_VFXManager` via Phase 10B2, not applied directly)
+  - Extend `m_vcam_manager.gd`: detect occluders in the active gameplay camera `World3D`, consult VFX selector, publish `EVENT_SILHOUETTE_UPDATE_REQUEST` (silhouette application is routed through `M_VFXManager` via Phase 10B2, not applied directly)
   - Dispatch silhouette count updates
   - All tests should pass
 
