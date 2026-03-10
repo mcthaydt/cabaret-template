@@ -172,14 +172,15 @@ Before starting Phase 2, verify:
 
 > **Why:** In third-person orbit, the camera trails behind the player. Look-ahead offsets the camera ahead in the movement direction so the player can see more of where they're going. This is an orbit-only concept — first-person cameras ARE the player's eyes and don't need predictive offset.
 
-- [ ] **Task 2C1.1**: Add look-ahead fields to RS_VCamResponse
+- [x] **Task 2C1.1**: Add look-ahead fields to RS_VCamResponse
   - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
     - `@export var look_ahead_distance: float = 0.0` — max world-space offset in the follow target's movement direction (0 = disabled)
     - `@export var look_ahead_smoothing: float = 3.0` — Hz for look-ahead offset second-order dynamics (prevents jitter on direction changes)
   - Add tests verifying fields exist with defaults and non-negative validation
   - **Target: 3 tests**
+  - Completion note (2026-03-10): Added `look_ahead_distance` and `look_ahead_smoothing` exports to `RS_VCamResponse`, added resolved-value clamping, and expanded `tests/unit/resources/display/vcam/test_vcam_response.gd` with defaults/clamp coverage.
 
-- [ ] **Task 2C1.2 (Red)**: Write tests for look-ahead in S_VCamSystem
+- [x] **Task 2C1.2 (Red)**: Write tests for look-ahead in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test `look_ahead_distance = 0.0`: no offset applied (disabled)
   - Test `look_ahead_distance > 0.0` with moving follow target: camera position shifts in the target's velocity direction
@@ -191,15 +192,17 @@ Before starting Phase 2, verify:
   - Test look-ahead resets on mode switch / target change (no stale velocity)
   - Test look-ahead is a no-op for first-person mode (only applies to orbit)
   - **Target: 7 tests**
+  - Completion note (2026-03-10): Added 7 look-ahead tests to `test_vcam_system` for disable/enable behavior, movement-direction offset, clamp bounds, stationary zero-offset behavior, mode/target reset, and first-person no-op gating.
 
-- [ ] **Task 2C1.3 (Green)**: Implement look-ahead in S_VCamSystem
+- [x] **Task 2C1.3 (Green)**: Implement look-ahead in S_VCamSystem
   - Track follow target velocity via frame-to-frame position delta (do not depend on physics velocity — follow target may not have a body)
   - Compute look-ahead offset: `velocity.normalized() * look_ahead_distance` (clamped to `look_ahead_distance`)
-  - Smooth the offset through a dedicated `U_SecondOrderDynamics3D` instance (using `look_ahead_smoothing` Hz, critically damped, r=0.5)
+  - Smooth the offset through a dedicated `U_SecondOrderDynamics3D` instance (using `look_ahead_smoothing` Hz, critically damped, `r=0.0`)
   - Add smoothed offset to the evaluated camera position BEFORE the main follow dynamics
   - Gate: only apply when active mode is orbit (skip for first-person and fixed)
   - Reset look-ahead dynamics on mode switch / target change
   - All tests should pass
+  - Completion note (2026-03-10): `S_VCamSystem` now applies orbit-only look-ahead pre-smoothing with per-vCam state (`_look_ahead_state`), frame-delta velocity estimation, response-driven distance/smoothing tuning, and deterministic state clears on mode/target/disabled paths.
 
   **Look-ahead integration point:**
   ```gdscript
@@ -218,14 +221,15 @@ Before starting Phase 2, verify:
 
 > **Why:** In orbit mode, the camera can drift to awkward pitch angles after the player stops actively looking. Auto-level gradually returns the camera pitch to the horizon when no look input is active. This is orbit-specific because first-person pitch drift is the player's own view direction (resetting it feels like the game is fighting the player).
 
-- [ ] **Task 2C2.1**: Add auto-level fields to RS_VCamResponse
+- [x] **Task 2C2.1**: Add auto-level fields to RS_VCamResponse
   - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
     - `@export var auto_level_speed: float = 0.0` — degrees/sec pitch decays toward horizon when no look input active (0 = disabled)
     - `@export var auto_level_delay: float = 1.0` — seconds of zero look input before auto-level begins
   - Add tests verifying fields exist with defaults and non-negative validation
   - **Target: 4 tests**
+  - Completion note (2026-03-10): Added `auto_level_speed` and `auto_level_delay` exports + resolved-value non-negative clamps in `RS_VCamResponse`, covered by expanded response tests.
 
-- [ ] **Task 2C2.2 (Red)**: Write tests for auto-level in S_VCamSystem
+- [x] **Task 2C2.2 (Red)**: Write tests for auto-level in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test `auto_level_speed = 0.0`: pitch stays at current value indefinitely (disabled)
   - Test `auto_level_speed > 0.0` with zero look input for > `auto_level_delay` seconds: `runtime_pitch` decays toward `0.0`
@@ -234,14 +238,16 @@ Before starting Phase 2, verify:
   - Test auto-level respects `auto_level_speed` rate (degrees/sec — after 1 second at speed=30, pitch should decay ~30 degrees)
   - Test auto-level is a no-op for first-person and fixed modes
   - **Target: 6 tests**
+  - Completion note (2026-03-10): Added 6 auto-level tests to `test_vcam_system` for disable/enable timing, active-look suppression, timer-reset behavior, speed-rate validation, and non-orbit gating.
 
-- [ ] **Task 2C2.3 (Green)**: Implement auto-level in S_VCamSystem
+- [x] **Task 2C2.3 (Green)**: Implement auto-level in S_VCamSystem
   - Track per-vCam `_no_look_input_timer` (float, incremented when look input is zero, reset when non-zero)
   - When timer exceeds `auto_level_delay` and `auto_level_speed > 0.0`:
     - `runtime_pitch = move_toward(runtime_pitch, 0.0, auto_level_speed * delta)`
   - Apply BEFORE evaluator call (pitch is an input to evaluation, not a post-process)
   - Gate: only apply for orbit mode (skip for first-person and fixed)
   - All tests should pass
+  - Completion note (2026-03-10): `S_VCamSystem` now tracks per-vCam no-look timers (`_orbit_no_look_input_timers`) and applies orbit-only pitch recentering after configurable delay using `auto_level_speed`, with timer reset on active look input.
 
 ---
 

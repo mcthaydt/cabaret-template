@@ -202,6 +202,14 @@
 - **Looking straight up/down can break orbit camera orientation if `Vector3.UP` is always used as the look-at up-vector**: At near-vertical view directions (`abs(direction.dot(Vector3.UP)) ~= 1`), `looking_at(...)` can hit a degenerate basis and produce unstable orientation.
   - **Fix pattern**: in `U_VCamModeEvaluator`, detect near-parallel forward/up vectors and switch to a fallback up-vector (for example `Vector3.FORWARD`) before constructing the look-at transform.
 
+## vCam Orbit Feel Pitfalls
+
+- **Auto-level can fight active player look input if the idle timer does not reset every non-zero look frame**: Orbit recentering should only start after continuous idle time; if timer reset is missed, pitch can decay while the player is still looking.
+  - **Fix pattern**: in `S_VCamSystem`, reset per-vCam no-look timer on every non-zero `look_input` tick before evaluating auto-level delay/speed.
+
+- **Look-ahead can leak stale offsets across mode/target changes**: Reusing previous velocity/offset state when switching targets or switching to non-orbit modes causes incorrect camera drift on the next tick.
+  - **Fix pattern**: clear per-vCam look-ahead state whenever mode is non-orbit, look-ahead is disabled, or follow-target identity changes.
+
 ## vCam First-Person Evaluator Pitfalls
 
 - **Do not defer first-person pitch clamping to `S_VCamSystem`**: First-person vertical limits are authored per mode resource (`pitch_min`, `pitch_max`). If clamping is deferred, direct evaluator consumers can exceed limits and produce invalid view ranges.
