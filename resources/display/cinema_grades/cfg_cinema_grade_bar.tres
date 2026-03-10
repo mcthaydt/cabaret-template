@@ -1,19 +1,20 @@
-[gd_resource type="Resource" script_class="RS_SceneCinemaGrade" format=3 uid="uid://byi87fqns2dfa"]
+[gd_resource type="Resource" script_class="RS_SceneCinemaGrade" format=3]
 
-[ext_resource type="Script" uid="uid://bav03g4a1nlfc" path="res://scripts/resources/display/rs_scene_cinema_grade.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/display/rs_scene_cinema_grade.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")
 scene_id = &"bar"
-filter_preset = "dramatic_cold"
-filter_intensity = 0.7
-exposure = -0.35
-brightness = -0.06
-contrast = 1.14
-brilliance = 0.09
+filter_preset = "vivid_warm"
+filter_intensity = 0.76
+exposure = -1.01
+brightness = 0.09
+contrast = 1.15
+brilliance = 0.07
 highlights = 0.15
 shadows = -0.06
-vibrance = 0.01
-warmth = 0.09
-tint = -0.21
+saturation = 1.13
+vibrance = -0.05
+warmth = 0.56
+tint = 0.28
 sharpness = 0.09
