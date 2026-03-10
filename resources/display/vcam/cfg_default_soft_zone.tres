@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_hb3af")
-dead_zone_width = 0.18
-dead_zone_height = 0.16
-soft_zone_width = 0.55
-soft_zone_height = 0.48
-damping = 3.0
-hysteresis_margin = 0.03
+dead_zone_width = 0.08
+dead_zone_height = 0.07
+soft_zone_width = 0.24
+soft_zone_height = 0.21
+damping = 1.33
+hysteresis_margin = 0.013

@@ -199,7 +199,7 @@ func test_gamepad_settings_have_balanced_orbit_defaults() -> void:
 	var settings := _make_settings_state()
 	var gamepad_settings: Dictionary = settings.get("gamepad_settings", {})
 	assert_almost_eq(float(gamepad_settings.get("right_stick_deadzone", 0.0)), 0.16, 0.0001)
-	assert_almost_eq(float(gamepad_settings.get("right_stick_sensitivity", 0.0)), 1.15, 0.0001)
+	assert_almost_eq(float(gamepad_settings.get("right_stick_sensitivity", 0.0)), 0.51, 0.0001)
 	assert_eq(int(gamepad_settings.get("deadzone_curve", -1)), 1)
 
 func test_reduce_settings_returns_null_for_unhandled_action() -> void:

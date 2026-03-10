@@ -26,7 +26,7 @@ const DEFAULT_INPUT_SETTINGS_STATE := {
 		"vibration_enabled": true,
 		"vibration_intensity": 1.0,
 		"invert_y_axis": false,
-		"right_stick_sensitivity": 1.15,
+		"right_stick_sensitivity": 0.51,
 		"deadzone_curve": 1,
 	},
 	"mouse_settings": {
