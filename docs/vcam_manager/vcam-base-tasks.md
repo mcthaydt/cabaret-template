@@ -240,7 +240,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0D: vCam Actions and Reducer
 
-- [ ] **Task 0D.1 (Red)**: Write tests for U_VCamActions
+- [x] **Task 0D.1 (Red)**: Write tests for U_VCamActions
   - Create `tests/unit/state/test_vcam_actions.gd`
   - Test `set_active_runtime(vcam_id, mode)` action structure has correct type and payload
   - Test `start_blend(previous_id)` action structure
@@ -251,13 +251,15 @@ Before starting Phase 0, verify:
   - Test `record_recovery(reason)` action structure
   - Test `update_fov_zone(in_zone)` action structure
   - **Target: 8 tests**
+  - Completion note (2026-03-10): Added `test_vcam_actions.gd` with 8 action-structure tests covering all Phase 0D creators, including `update_fov_zone`.
 
-- [ ] **Task 0D.2 (Green)**: Implement U_VCamActions
+- [x] **Task 0D.2 (Green)**: Implement U_VCamActions
   - Create `scripts/state/actions/u_vcam_actions.gd`
   - Add 8 action type constants and static creator functions (including `update_fov_zone`)
   - All tests should pass
+  - Completion note (2026-03-10): Added `U_VCamActions` constants, registry registration in `_static_init()`, and immediate action creators for runtime/blend/silhouette/target/recovery/FOV-zone updates.
 
-- [ ] **Task 0D.2a**: Add vCam event constants to U_ECSEventNames
+- [x] **Task 0D.2a**: Add vCam event constants to U_ECSEventNames
   - Modify `scripts/events/ecs/u_ecs_event_names.gd`
   - Add `EVENT_VCAM_ACTIVE_CHANGED := &"vcam_active_changed"`
   - Add `EVENT_VCAM_BLEND_STARTED := &"vcam_blend_started"`
@@ -265,8 +267,9 @@ Before starting Phase 0, verify:
   - Add `EVENT_VCAM_RECOVERY := &"vcam_recovery"`
   - Follow existing `EVENT_*` naming and `StringName` pattern
   - These events are published by `M_VCamManager` through `U_ECSEventBus` so `S_GameEventSystem`, `S_CameraStateSystem`, and QB rules can subscribe to vCam lifecycle changes
+  - Completion note (2026-03-10): Added all four vCam lifecycle constants to `U_ECSEventNames` using the existing `StringName` event pattern.
 
-- [ ] **Task 0D.3 (Red)**: Write tests for U_VCamReducer
+- [x] **Task 0D.3 (Red)**: Write tests for U_VCamReducer
   - Create `tests/unit/state/test_vcam_reducer.gd`
   - Test `set_active_runtime` updates `active_vcam_id` and `active_mode`
   - Test `start_blend` sets `is_blending = true`, `blend_progress = 0.0`, `previous_vcam_id`
@@ -282,11 +285,13 @@ Before starting Phase 0, verify:
   - Test reducer returns same state for unknown action
   - Test reducer immutability (old state reference != new state reference)
   - **Target: 13 tests**
+  - Completion note (2026-03-10): Added `test_vcam_reducer.gd` with 13 tests covering blend lifecycle, clamps, recovery/target/FOV updates, unknown-action behavior, and immutability.
 
-- [ ] **Task 0D.4 (Green)**: Implement U_VCamReducer
+- [x] **Task 0D.4 (Green)**: Implement U_VCamReducer
   - Create `scripts/state/reducers/u_vcam_reducer.gd`
   - Implement `reduce(state, action)` with match statement
   - All tests should pass
+  - Completion note (2026-03-10): Added `U_VCamReducer` defaults + reducer branches for all vCam actions with blend-progress and silhouette clamps, safe payload normalization, and unchanged-state return on unknown actions.
 
 ---
 

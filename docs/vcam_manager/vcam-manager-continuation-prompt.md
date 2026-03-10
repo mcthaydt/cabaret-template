@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, and 0C are complete as of March 10, 2026 (touchscreen drag-look persistence, keyboard-look action/settings/UI plumbing, persisted VFX silhouette toggle wiring, and new `RS_VCamInitialState` defaults). Next implementation target is Phase 0D (vCam actions + reducer).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, and 0D are complete as of March 10, 2026 (touchscreen drag-look persistence, keyboard-look action/settings/UI plumbing, persisted VFX silhouette toggle wiring, `RS_VCamInitialState`, and vCam actions/reducer + event constants). Next implementation target is Phase 0E (selectors + state-store/root wiring + transient registration).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -28,6 +28,11 @@
   - Added `scripts/resources/state/rs_vcam_initial_state.gd` with the full 11-field runtime observability contract (including `in_fov_zone`).
   - Added `resources/state/cfg_default_vcam_initial_state.tres` for upcoming state-store/root wiring.
   - Added `tests/unit/state/test_vcam_initial_state.gd` with 12 assertions covering default values and key count.
+- Completed Phase 0D:
+  - Added `scripts/state/actions/u_vcam_actions.gd` with 8 registered action creators (`set_active_runtime`, blend lifecycle, silhouette count, target validity, recovery reason, `update_fov_zone`).
+  - Added `scripts/state/reducers/u_vcam_reducer.gd` with full state-default merge + action handling (`blend_progress` clamp, silhouette non-negative clamp, unknown action unchanged-state return).
+  - Added vCam ECS event constants to `scripts/events/ecs/u_ecs_event_names.gd` (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`).
+  - Added new tests `tests/unit/state/test_vcam_actions.gd` (8) and `tests/unit/state/test_vcam_reducer.gd` (13).
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -51,6 +56,11 @@
 - Validation run (green, Phase 0C):
   - `tests/unit/state/test_vcam_initial_state.gd`
   - `tests/unit/style/test_style_enforcement.gd`
+- Validation run (green, Phase 0D):
+  - `tests/unit/state/test_vcam_actions.gd`
+  - `tests/unit/state/test_vcam_reducer.gd`
+  - `tests/unit/state/test_action_registry.gd`
+  - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
 
@@ -70,7 +80,7 @@
 - Occlusion rollout is now explicit: naming layer 6 `vcam_occludable` is not enough; authored occluding geometry in gameplay/prefab scenes must be migrated to that layer.
 - Stale test paths were corrected (`test_u_input_reducer.gd`, `test_input_system.gd`, `tests/integration/camera_system/test_camera_manager.gd`).
 - ECS Event Bus integration added: `M_VCamManager` publishes lifecycle events (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`) through `U_ECSEventBus` so `S_GameEventSystem`, `S_CameraStateSystem`, and QB rules can subscribe to vCam state changes.
-- vCam event constants must be added to `scripts/events/ecs/u_ecs_event_names.gd` following existing `EVENT_*` pattern.
+- vCam event constants are now added to `scripts/events/ecs/u_ecs_event_names.gd` following existing `EVENT_*` pattern.
 - Entity-based target resolution added: `C_VCamComponent` supports `follow_target_entity_id` and `follow_target_tag` exports as fallbacks when NodePath is empty. `S_VCamSystem` resolves targets via `M_ECSManager.get_entity_by_id()` / `get_entities_by_tag()`, leveraging the existing `BaseECSEntity` ID/tag system. Multiple tag matches resolve to the first valid ECS-registration-order match and emit a debug warning.
 - QB rule context enrichment: `S_CameraStateSystem._build_camera_context()` is extended with `vcam_active_mode`, `vcam_is_blending`, `vcam_active_vcam_id` so camera rules can condition on vCam state using standard `RS_ConditionContextField`.
 - Per-phase doc cadence is now explicit and mandatory: update continuation prompt + tasks after each phase, and update AGENTS/DEV_PITFALLS when new stable contracts or pitfalls appear.
@@ -133,13 +143,12 @@
 
 ## Next Steps
 
-1. Implement Phase 0 Commit 0.3: create vCam actions and reducer.
-2. Implement Phase 0 Commit 0.4: add selectors, wire the new state export in `M_StateStore`, register `vcam` as transient, and patch `scenes/root.tscn`.
-3. Implement Phase 0F before claiming camera-slice migration is done: patch `S_CameraStateSystem`, `tests/unit/qb/test_camera_state_system.gd`, and any remaining `set_slice("camera", ...)` usage to `state.vcam.in_fov_zone`.
-4. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
-5. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
-6. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
-7. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+1. Implement Phase 0 Commit 0.4 / Phase 0E: add selectors, wire the new state export in `M_StateStore`, register `vcam` as transient, and patch `scenes/root.tscn`.
+2. Implement Phase 0F before claiming camera-slice migration is done: patch `S_CameraStateSystem`, `tests/unit/qb/test_camera_state_system.gd`, and any remaining `set_slice("camera", ...)` usage to `state.vcam.in_fov_zone`.
+3. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
+4. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
+5. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
+6. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 
