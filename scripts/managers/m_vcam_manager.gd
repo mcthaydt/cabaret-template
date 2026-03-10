@@ -1,0 +1,332 @@
+@icon("res://assets/editor_icons/icn_manager.svg")
+extends "res://scripts/interfaces/i_vcam_manager.gd"
+class_name M_VCamManager
+
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
+const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
+
+@export var state_store: I_StateStore = null
+@export var camera_manager: I_CAMERA_MANAGER = null
+@export var ecs_manager: I_ECS_MANAGER = null
+
+var _state_store: I_StateStore = null
+var _camera_manager: I_CAMERA_MANAGER = null
+var _ecs_manager: I_ECS_MANAGER = null
+
+var _vcams_by_id: Dictionary = {}
+var _registered_vcams: Dictionary = {}
+var _submitted_results: Dictionary = {}
+
+var _active_vcam_id: StringName = StringName("")
+var _previous_vcam_id: StringName = StringName("")
+var _explicit_vcam_id: StringName = StringName("")
+var _blend_progress: float = 1.0
+var _is_blending_active: bool = false
+var _blend_duration: float = 0.0
+var _blend_elapsed: float = 0.0
+
+func _ready() -> void:
+	var service_name := StringName("vcam_manager")
+	var existing := U_SERVICE_LOCATOR.try_get_service(service_name)
+	if existing != self:
+		U_SERVICE_LOCATOR.register(service_name, self)
+	_state_store = _resolve_state_store()
+	_camera_manager = _resolve_camera_manager()
+	_ecs_manager = _resolve_ecs_manager()
+	set_physics_process(true)
+	_refresh_active_selection()
+
+func _physics_process(_delta: float) -> void:
+	_refresh_active_selection()
+
+func register_vcam(vcam: Node) -> void:
+	if vcam == null or not is_instance_valid(vcam):
+		_report_issue("register_vcam received invalid vcam instance")
+		return
+
+	var resolved_vcam_id := _resolve_vcam_id(vcam)
+	if resolved_vcam_id == StringName(""):
+		_report_issue("register_vcam rejected component with empty vcam_id")
+		return
+
+	if _vcams_by_id.has(resolved_vcam_id):
+		var existing: Variant = _vcams_by_id.get(resolved_vcam_id, null)
+		if existing == vcam:
+			return
+		_report_issue("register_vcam rejected duplicate vcam_id '%s'" % String(resolved_vcam_id))
+		return
+
+	if _registered_vcams.has(vcam):
+		var previous_id := _registered_vcams.get(vcam, StringName("")) as StringName
+		if previous_id != StringName("") and _vcams_by_id.get(previous_id, null) == vcam:
+			_vcams_by_id.erase(previous_id)
+
+	_registered_vcams[vcam] = resolved_vcam_id
+	_vcams_by_id[resolved_vcam_id] = vcam
+	_refresh_active_selection()
+
+func unregister_vcam(vcam: Node) -> void:
+	if vcam == null or not is_instance_valid(vcam):
+		return
+	if not _registered_vcams.has(vcam):
+		return
+
+	var vcam_id := _registered_vcams.get(vcam, StringName("")) as StringName
+	_registered_vcams.erase(vcam)
+	if _vcams_by_id.get(vcam_id, null) == vcam:
+		_vcams_by_id.erase(vcam_id)
+	_submitted_results.erase(vcam_id)
+
+	if _explicit_vcam_id == vcam_id:
+		_explicit_vcam_id = StringName("")
+	if _active_vcam_id == vcam_id:
+		_active_vcam_id = StringName("")
+	if _previous_vcam_id == vcam_id:
+		_previous_vcam_id = StringName("")
+
+	if _vcams_by_id.is_empty():
+		_clear_runtime_state()
+		return
+	_refresh_active_selection()
+
+func set_active_vcam(vcam_id: StringName, blend_duration: float = -1.0) -> void:
+	if blend_duration >= 0.0:
+		_blend_duration = maxf(blend_duration, 0.0)
+		_blend_elapsed = 0.0
+
+	if vcam_id == StringName(""):
+		_explicit_vcam_id = StringName("")
+		_refresh_active_selection()
+		return
+
+	if not _vcams_by_id.has(vcam_id):
+		_report_issue("set_active_vcam ignored unknown vcam_id '%s'" % String(vcam_id))
+		return
+
+	_explicit_vcam_id = vcam_id
+	_refresh_active_selection()
+
+func get_active_vcam_id() -> StringName:
+	return _active_vcam_id
+
+func get_previous_vcam_id() -> StringName:
+	return _previous_vcam_id
+
+func submit_evaluated_camera(vcam_id: StringName, result: Dictionary) -> void:
+	if vcam_id == StringName(""):
+		return
+	if result == null:
+		return
+	_submitted_results[vcam_id] = result.duplicate(true)
+
+func get_blend_progress() -> float:
+	return _blend_progress
+
+func is_blending() -> bool:
+	return _is_blending_active
+
+func get_active_vcam() -> Node:
+	return _vcams_by_id.get(_active_vcam_id, null) as Node
+
+func get_vcam(vcam_id: StringName) -> Node:
+	return _vcams_by_id.get(vcam_id, null) as Node
+
+func _refresh_active_selection() -> void:
+	_prune_invalid_registrations()
+	var next_active_id := _determine_next_active_id()
+	if next_active_id == _active_vcam_id:
+		return
+	_set_active_vcam_internal(next_active_id)
+
+func _determine_next_active_id() -> StringName:
+	if _explicit_vcam_id != StringName(""):
+		var explicit_vcam := _vcams_by_id.get(_explicit_vcam_id, null) as Node
+		if _is_vcam_selectable(explicit_vcam):
+			return _explicit_vcam_id
+	_explicit_vcam_id = StringName("")
+	return _select_highest_priority_vcam()
+
+func _select_highest_priority_vcam() -> StringName:
+	var best_vcam_id: StringName = StringName("")
+	var best_priority: int = -2147483648
+
+	for vcam_id_variant in _vcams_by_id.keys():
+		var vcam_id := vcam_id_variant as StringName
+		var vcam := _vcams_by_id.get(vcam_id, null) as Node
+		if not _is_vcam_selectable(vcam):
+			continue
+
+		var vcam_priority := _get_vcam_priority(vcam)
+		var choose_candidate := false
+		if best_vcam_id == StringName(""):
+			choose_candidate = true
+		elif vcam_priority > best_priority:
+			choose_candidate = true
+		elif vcam_priority == best_priority and String(vcam_id) < String(best_vcam_id):
+			choose_candidate = true
+
+		if choose_candidate:
+			best_vcam_id = vcam_id
+			best_priority = vcam_priority
+
+	return best_vcam_id
+
+func _set_active_vcam_internal(next_vcam_id: StringName) -> void:
+	var previous_vcam_id := _active_vcam_id
+	_active_vcam_id = next_vcam_id
+	_previous_vcam_id = previous_vcam_id
+
+	var active_mode := _get_mode_name_for_vcam(next_vcam_id)
+	_dispatch_active_runtime(next_vcam_id, active_mode)
+	_publish_active_changed(next_vcam_id, previous_vcam_id, active_mode)
+
+func _dispatch_active_runtime(vcam_id: StringName, mode_name: String) -> void:
+	var store := _resolve_state_store()
+	if store == null:
+		return
+	store.dispatch(U_VCAM_ACTIONS.set_active_runtime(vcam_id, mode_name))
+
+func _publish_active_changed(vcam_id: StringName, previous_vcam_id: StringName, mode_name: String) -> void:
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED, {
+		"vcam_id": vcam_id,
+		"previous_vcam_id": previous_vcam_id,
+		"mode": mode_name,
+	})
+
+func _clear_runtime_state() -> void:
+	var previous_vcam_id := _active_vcam_id
+	_active_vcam_id = StringName("")
+	_previous_vcam_id = StringName("")
+	_explicit_vcam_id = StringName("")
+	_submitted_results.clear()
+	_blend_progress = 1.0
+	_is_blending_active = false
+	_blend_duration = 0.0
+	_blend_elapsed = 0.0
+	_dispatch_active_runtime(StringName(""), "")
+	if previous_vcam_id != StringName(""):
+		_publish_active_changed(StringName(""), previous_vcam_id, "")
+
+func _prune_invalid_registrations() -> void:
+	var stale_vcams: Array = []
+	for vcam_variant in _registered_vcams.keys():
+		var vcam := vcam_variant as Node
+		if vcam == null or not is_instance_valid(vcam):
+			stale_vcams.append(vcam_variant)
+
+	for stale_variant in stale_vcams:
+		var stale_vcam := stale_variant as Node
+		var stale_id := _registered_vcams.get(stale_vcam, StringName("")) as StringName
+		_registered_vcams.erase(stale_vcam)
+		if stale_id != StringName("") and _vcams_by_id.get(stale_id, null) == stale_vcam:
+			_vcams_by_id.erase(stale_id)
+		_submitted_results.erase(stale_id)
+
+	if _explicit_vcam_id != StringName("") and not _vcams_by_id.has(_explicit_vcam_id):
+		_explicit_vcam_id = StringName("")
+	if _active_vcam_id != StringName("") and not _vcams_by_id.has(_active_vcam_id):
+		_active_vcam_id = StringName("")
+	if _previous_vcam_id != StringName("") and not _vcams_by_id.has(_previous_vcam_id):
+		_previous_vcam_id = StringName("")
+
+func _is_vcam_selectable(vcam: Node) -> bool:
+	if vcam == null:
+		return false
+	if not is_instance_valid(vcam):
+		return false
+	if "is_active" in vcam and not bool(vcam.get("is_active")):
+		return false
+	return true
+
+func _resolve_vcam_id(vcam: Node) -> StringName:
+	if vcam == null:
+		return StringName("")
+	if "vcam_id" in vcam:
+		var id_variant: Variant = vcam.get("vcam_id")
+		if id_variant is StringName:
+			var typed_id := id_variant as StringName
+			if typed_id != StringName(""):
+				return typed_id
+		var raw_id := String(id_variant)
+		if not raw_id.is_empty():
+			return StringName(raw_id)
+	var fallback_id := String(vcam.name)
+	if fallback_id.is_empty():
+		return StringName("")
+	return StringName(fallback_id.to_snake_case())
+
+func _get_vcam_priority(vcam: Node) -> int:
+	if vcam == null:
+		return 0
+	if "priority" in vcam:
+		return int(vcam.get("priority"))
+	return 0
+
+func _get_mode_name_for_vcam(vcam_id: StringName) -> String:
+	if vcam_id == StringName(""):
+		return ""
+	var vcam := _vcams_by_id.get(vcam_id, null) as Node
+	if vcam == null or not is_instance_valid(vcam):
+		return ""
+
+	if vcam.has_method("get_mode_name"):
+		return str(vcam.call("get_mode_name"))
+
+	if "mode" not in vcam:
+		return ""
+	var mode_variant: Variant = vcam.get("mode")
+	if not (mode_variant is Resource):
+		return ""
+
+	return _resolve_mode_name(mode_variant as Resource)
+
+func _resolve_mode_name(mode: Resource) -> String:
+	if mode == null:
+		return ""
+	var mode_script := mode.get_script() as Script
+	if mode_script == null:
+		return ""
+	var global_name := mode_script.get_global_name()
+	if not global_name.is_empty():
+		if global_name.begins_with("RS_VCamMode"):
+			return global_name.trim_prefix("RS_VCamMode").to_snake_case()
+		return global_name.to_snake_case()
+	var file_name := mode_script.resource_path.get_file().get_basename()
+	if file_name.begins_with("rs_vcam_mode_"):
+		return file_name.trim_prefix("rs_vcam_mode_")
+	return file_name
+
+func _resolve_state_store() -> I_StateStore:
+	if _state_store != null and is_instance_valid(_state_store):
+		return _state_store
+	if state_store != null and is_instance_valid(state_store):
+		_state_store = state_store
+		return _state_store
+	_state_store = U_STATE_UTILS.try_get_store(self)
+	return _state_store
+
+func _resolve_camera_manager() -> I_CAMERA_MANAGER:
+	if _camera_manager != null and is_instance_valid(_camera_manager):
+		return _camera_manager
+	if camera_manager != null and is_instance_valid(camera_manager):
+		_camera_manager = camera_manager
+		return _camera_manager
+	_camera_manager = U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
+	return _camera_manager
+
+func _resolve_ecs_manager() -> I_ECS_MANAGER:
+	if _ecs_manager != null and is_instance_valid(_ecs_manager):
+		return _ecs_manager
+	if ecs_manager != null and is_instance_valid(ecs_manager):
+		_ecs_manager = ecs_manager
+		return _ecs_manager
+	_ecs_manager = U_SERVICE_LOCATOR.try_get_service(StringName("ecs_manager")) as I_ECS_MANAGER
+	return _ecs_manager
+
+func _report_issue(message: String) -> void:
+	print_verbose("M_VCamManager: %s" % message)
