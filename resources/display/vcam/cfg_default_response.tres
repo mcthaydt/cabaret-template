@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RS_VCamResponse" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/display/vcam/rs_vcam_response.gd" id="1_j0vk8"]
+
+[resource]
+script = ExtResource("1_j0vk8")
+follow_frequency = 3.0
+follow_damping = 0.7
+follow_initial_response = 1.0
+rotation_frequency = 4.0
+rotation_damping = 1.0
+rotation_initial_response = 1.0
+
