@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, and 5 are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, and component/interface/manager core wiring). Next implementation target is Phase 6 (`S_VCamSystem` + scene wiring in `vcam-base-tasks.md`).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, and 5 are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, and component/interface/manager core wiring). Next implementation target is Phase 6 (`S_VCamSystem` + scene wiring in `vcam-base-tasks.md`).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -63,11 +63,11 @@
   - Added `tests/unit/resources/display/vcam/test_vcam_response.gd` (8 tests) covering defaults and resolved non-negative/positive clamp behavior.
   - Added `resources/display/vcam/cfg_default_response.tres` with Phase 1F defaults (`follow: 3.0/0.7/1.0`, `rotation: 4.0/1.0/1.0`).
 - Completed Phase 2A:
-  - Added `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (`RS_VCamModeOrbit`) with authored orbit defaults (`distance`, `authored_pitch`, `authored_yaw`, `allow_player_rotation`, `rotation_speed`, `fov`).
-  - Added `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (8 tests) for orbit resource defaults and baseline constraints.
+  - Added `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (`RS_VCamModeOrbit`) with authored orbit defaults (`distance`, `authored_pitch`, `authored_yaw`, `allow_player_rotation`, `rotation_speed`, `fov`) plus `get_resolved_values()` clamp/sanitation helper for deterministic runtime reads.
+  - Added/expanded `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (11 tests) for defaults, baseline constraints, and resolved-value safety behavior.
 - Completed Phase 2B:
-  - Added `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (`U_VCamModeEvaluator`) with orbit-mode evaluation branch and null-safe invalid-input guards.
-  - Added `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (10 tests) for orbit transform/FOV/mode-name outputs, authored/runtime rotation behavior, and invalid-input handling.
+  - Added `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (`U_VCamModeEvaluator`) with orbit-mode evaluation branch, resolved-value consumption, and null-safe invalid-input guards.
+  - Added/expanded `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (12 orbit tests, 37 evaluator tests total) for transform/FOV/mode-name outputs, authored/runtime rotation behavior, and invalid-input handling.
   - Added `resources/display/vcam/cfg_default_orbit.tres` with baseline orbit defaults for scene/template wiring.
 - Completed Phase 3A:
   - Added `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` (`RS_VCamModeFirstPerson`) with defaults (`head_offset`, `look_multiplier`, `pitch_min`, `pitch_max`, `fov`) and `get_resolved_values()` clamping/ordering helpers.
@@ -84,18 +84,18 @@
   - Extended `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` with fixed coverage (15 new tests, 35 total evaluator tests).
   - Added `resources/display/vcam/cfg_default_fixed.tres` with baseline fixed defaults.
 - Completed Phase 5:
-  - Added `scripts/ecs/components/c_vcam_component.gd` (`C_VCamComponent`) with full authoring exports (`vcam_id`, priority/mode/paths, entity-id/tag follow fallbacks, soft-zone/blend/response resources, `is_active`) and runtime orientation fields (`runtime_yaw`, `runtime_pitch`).
+  - Added `scripts/ecs/components/c_vcam_component.gd` (`C_VCamComponent`) with full authoring exports (`vcam_id`, priority/mode/paths, entity-id/tag follow fallbacks, soft-zone/blend/response resources, `is_active`), strict `RS_VCamResponse` export hint/guarding, and runtime orientation fields (`runtime_yaw`, `runtime_pitch`).
   - Added null-safe component getters (`get_follow_target`, `get_look_at_target`, `get_fixed_anchor`, `get_path_node`) plus `get_mode_name()` normalization for runtime observability/event payloads.
   - Added ServiceLocator-driven vCam-manager registration lifecycle in `C_VCamComponent` (`register_vcam` on ready/registration, `unregister_vcam` on exit) so persistent manager references are cleaned up on scene unload.
   - Added `scripts/interfaces/i_vcam_manager.gd` with the 8-method manager contract (`register/unregister`, active selection, blend observability, same-frame submission API).
-  - Added `scripts/managers/m_vcam_manager.gd` with core registry, ServiceLocator registration, explicit-id and priority-based active selection, deterministic tie-break (`vcam_id` ascending), inactive-camera exclusion, and re-selection on runtime state changes.
+  - Added `scripts/managers/m_vcam_manager.gd` with core registry, ServiceLocator registration, explicit-id and priority-based active selection, deterministic tie-break (`vcam_id` ascending), inactive-camera exclusion, re-selection on runtime state changes, and active-clear event correctness for unregister/pruned-active flows.
   - Added `M_VCamManager` observability/event integration:
     - Redux dispatch via `U_VCamActions.set_active_runtime(...)` (injection-first store lookup with ServiceLocator fallback).
     - ECS publish via `U_ECSEventBus.publish(U_ECSEventNames.EVENT_VCAM_ACTIVE_CHANGED, {...})`.
     - Same-frame handoff API stubbed via `submit_evaluated_camera(vcam_id, result)` for Phase 6 system integration.
   - Added Phase 5 tests:
     - `tests/unit/ecs/components/test_vcam_component.gd` (15 tests).
-    - `tests/unit/managers/test_vcam_manager.gd` (19 tests: registration + active selection + dispatch/event coverage).
+    - `tests/unit/managers/test_vcam_manager.gd` (22 tests: registration + active selection + clear/recovery transition + dispatch/event coverage).
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -168,10 +168,16 @@
   - `tests/unit/ecs/components/test_vcam_component.gd`
   - `tests/unit/managers/test_vcam_manager.gd`
   - `tests/unit/style/test_style_enforcement.gd`
+- Validation run (green, Phase 2A-5 gap-closure hardening):
+  - `tests/unit` (`-gselect=test_vcam_mode`)
+  - `tests/unit/ecs/components` (`-gselect=test_vcam_component`)
+  - `tests/unit/managers` (`-gselect=test_vcam_manager`)
+  - `tests/unit/style` (`-ginclude_subdirs=true`)
 
 ## What Changed In The Docs
 
 - Runtime wiring is now explicit: `M_VCamManager` belongs in `scenes/root.tscn`, and `S_VCamSystem` belongs in gameplay system trees.
+- vCam top-level docs are now status-aligned: overview/PRD/task index/continuation all mark Phases 2A-5 complete and Phase 6 as next.
 - The `vcam` Redux slice is now defined as transient runtime observability only.
 - The silhouette enable/disable toggle moved to the persisted `vfx` slice.
 - VFX settings UI integration is now explicit: wire the silhouette toggle into `UI_VFXSettingsOverlay` (`scripts/ui/settings/ui_vfx_settings_overlay.gd` + `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`) and localize it in all `cfg_locale_*_ui.tres` files.
@@ -202,7 +208,8 @@
   - `assets/shaders/sh_vcam_silhouette_shader.gdshader`
 - Orbit mode baseline is now explicit:
   - `RS_VCamModeOrbit` is authored in `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` with default preset `resources/display/vcam/cfg_default_orbit.tres`.
-  - `U_VCamModeEvaluator.evaluate(...)` now returns `{transform, fov, mode_name}` for orbit resources and returns `{}` for null/invalid inputs without warning noise.
+  - `RS_VCamModeOrbit.get_resolved_values()` now provides canonical orbit clamp/sanitation reads (`distance`, `fov`, authored angles).
+  - `U_VCamModeEvaluator.evaluate(...)` now consumes orbit resolved values, returns `{transform, fov, mode_name}` for orbit resources, and returns `{}` for null/invalid inputs without warning noise.
 - First-person baseline is now explicit:
   - `RS_VCamModeFirstPerson` is authored in `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` with default preset `resources/display/vcam/cfg_default_first_person.tres`.
   - `U_VCamModeEvaluator.evaluate(...)` now returns `{transform, fov, mode_name}` for first-person resources, clamps runtime pitch to authored min/max in evaluator, and returns `{}` for null/invalid inputs without warning noise.
@@ -216,7 +223,7 @@
 - Active-selection runtime contract is now explicit:
   - Selection order is `set_active_vcam` explicit override first, then highest `priority`, then ascending `vcam_id` tie-break.
   - Components with `is_active = false` are excluded from selection and trigger reselection when active ownership changes.
-  - Active changes publish both Redux observability (`vcam/set_active_runtime`) and ECS lifecycle events (`EVENT_VCAM_ACTIVE_CHANGED`).
+  - Active changes publish both Redux observability (`vcam/set_active_runtime`) and ECS lifecycle events (`EVENT_VCAM_ACTIVE_CHANGED`), including clear transitions to empty active IDs when the active vCam is removed.
 
 ## Required Reading
 

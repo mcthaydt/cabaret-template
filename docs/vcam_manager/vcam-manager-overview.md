@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-06
 **Updated**: 2026-03-10
-**Status**: Phases 0A-0F + 1A-1F complete (state/persistence + base authoring resources + dynamics + response tuning); mode phases pending
+**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core); Phase 6 next
 
 ## Summary
 
@@ -11,7 +11,7 @@ The vCam Manager is a gameplay camera orchestration layer inspired by Cinemachin
 
 For this feature to be complete, player-controlled orbit and first-person camera behavior must also work on mobile through drag-look, not only on mouse and gamepad.
 
-This overview is a planning contract for work that still needs to be implemented. It is not a claim that every migration described below already exists in the codebase today.
+This overview mixes implemented phase contracts and upcoming phase planning. Completed phases above are reflected in code/tests; later phases remain implementation targets.
 
 The corrected stack is:
 

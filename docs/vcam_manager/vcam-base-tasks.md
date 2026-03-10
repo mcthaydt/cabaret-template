@@ -578,7 +578,7 @@ Before starting Phase 0, verify:
 
 ## Phase 5: Component, Interface, and Manager Core
 
-**Exit Criteria:** All ~34 tests pass (15 component + 8 interface/manager registration + 11 manager active-selection), `M_VCamManager` registered with ServiceLocator
+**Exit Criteria:** All ~37 tests pass (15 component + 8 interface/manager registration + 11 manager active-selection + 3 manager active-clear/recovery transition checks), `M_VCamManager` registered with ServiceLocator
 
 ### Phase 5A: C_VCamComponent
 
@@ -609,7 +609,7 @@ Before starting Phase 0, verify:
   - Implement null-safe `get_follow_target()` and `get_look_at_target()` typed getters
   - Target resolution priority in `S_VCamSystem`: NodePath → entity ID → tag → null (recovery)
   - All tests should pass
-  - Completion note (2026-03-10): Added `scripts/ecs/components/c_vcam_component.gd` with full export surface (including entity-id/tag/path fallbacks), runtime yaw/pitch fields, null-safe target/anchor/path getters, mode-name helper, and auto register/unregister integration with `M_VCamManager`.
+  - Completion note (2026-03-10): Added `scripts/ecs/components/c_vcam_component.gd` with full export surface (including entity-id/tag/path fallbacks), `RS_VCamResponse`-typed export hint + runtime guard for `response`, runtime yaw/pitch fields, null-safe target/anchor/path getters, mode-name helper, and auto register/unregister integration with `M_VCamManager`.
 
 ---
 
@@ -672,7 +672,8 @@ Before starting Phase 0, verify:
   - Add Redux dispatch integration (injection-first, ServiceLocator fallback)
   - Publish `U_ECSEventBus.publish(U_ECSEventNames.EVENT_VCAM_ACTIVE_CHANGED, payload)` on active vCam change
   - All tests should pass
-  - Completion note (2026-03-10): Implemented explicit-override + priority-based active selection with ascending `vcam_id` tie-break, inactive exclusion, runtime reselection on physics ticks, store dispatch via `U_VCamActions.set_active_runtime(...)`, ECS `EVENT_VCAM_ACTIVE_CHANGED` publishing, and `submit_evaluated_camera(...)` storage for same-frame handoff.
+  - Completion note (2026-03-10): Implemented explicit-override + priority-based active selection with ascending `vcam_id` tie-break, inactive exclusion, runtime reselection on physics ticks, store dispatch via `U_VCamActions.set_active_runtime(...)`, ECS `EVENT_VCAM_ACTIVE_CHANGED` publishing (including active-clear transitions to empty IDs), and `submit_evaluated_camera(...)` storage for same-frame handoff.
+  - Gap-closure addendum (2026-03-10): Added transition-accuracy tests for unregister/pruned-active paths so `previous_vcam_id` is preserved when reseating/clearing active state (`22/22` manager tests passing).
 
 ---
 

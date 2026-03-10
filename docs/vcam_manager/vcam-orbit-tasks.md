@@ -26,17 +26,19 @@ Before starting Phase 2, verify:
 
 ## Per-Phase Documentation Cadence (Mandatory)
 
-- [ ] **DOC-1**: After Phase 2 completion, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.
-- [ ] **DOC-2**: After Phase 2 completion, update this file (`vcam-orbit-tasks.md`) with `[x]` marks and completion notes.
-- [ ] **DOC-3**: Update `AGENTS.md` if orbit evaluation reveals new stable architecture/pattern contracts.
-- [ ] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any orbit-specific pitfalls discovered.
-- [ ] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
+- [x] **DOC-1**: After Phase 2 completion, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.
+- [x] **DOC-2**: After Phase 2 completion, update this file (`vcam-orbit-tasks.md`) with `[x]` marks and completion notes.
+- [x] **DOC-3**: Update `AGENTS.md` if orbit evaluation reveals new stable architecture/pattern contracts.
+- [x] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any orbit-specific pitfalls discovered.
+- [x] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
+
+**Documentation completion note (March 10, 2026):** Continuation/tasks docs updated and synchronized, AGENTS vCam runtime contracts updated for orbit resolved-values behavior, and no new orbit-specific DEV_PITFALLS additions were required in this pass.
 
 ---
 
 ## Phase 2: Orbit Camera Mode
 
-**Exit Criteria:** All ~18 orbit tests pass (8 resource + 10 evaluator), orbit evaluation produces correct transforms for all authored configurations (runtime manual checks deferred to Phase 6C after scene wiring)
+**Exit Criteria:** All ~23 orbit tests pass (11 resource + 12 evaluator), orbit evaluation produces correct transforms for all authored configurations (runtime manual checks deferred to Phase 6C after scene wiring)
 
 ### Phase 2A: RS_VCamModeOrbit Resource
 
@@ -50,7 +52,7 @@ Before starting Phase 2, verify:
   - Test `fov` field exists with default (e.g. 75.0)
   - Test `distance` must be positive (reject zero or negative)
   - Test `fov` must be within valid range (1.0-179.0)
-  - **Target: 8 tests**
+  - **Target: 11 tests** (8 baseline + 3 resolved-value safety checks)
 
 - [x] **Task 2A.2 (Green)**: Implement RS_VCamModeOrbit
   - Create `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd`
@@ -93,7 +95,7 @@ Before starting Phase 2, verify:
   - Test orbit with zero distance returns empty dictionary (invalid config)
   - Test orbit with null follow target returns empty dictionary
   - Test orbit with null mode resource returns empty dictionary without warnings (no `push_warning` or `push_error` in output)
-  - **Target: 10 tests**
+  - **Target: 12 tests** (10 baseline + 2 resolved-value evaluator checks)
 
   **Test helper setup pattern:**
   ```gdscript
@@ -154,10 +156,11 @@ Before starting Phase 2, verify:
   - Verify test file is in `tests/unit/managers/helpers/`
 
 **Completion notes (March 10, 2026):**
-- Added `RS_VCamModeOrbit` resource + defaults tests (`8/8` passing).
-- Added `U_VCamModeEvaluator` orbit branch + evaluator tests (`10/10` passing).
+- Added `RS_VCamModeOrbit` resource + resolved-values clamp/sanitation helper with expanded resource tests (`11/11` passing).
+- Added `U_VCamModeEvaluator` orbit branch + resolved-value consumption with expanded evaluator coverage (`12/12` orbit assertions, `37/37` evaluator tests passing total).
 - Added `cfg_default_orbit.tres`.
-- Verified combined mode baseline tests (`test_vcam_mode`, `18/18` passing) and style suite (`15/15` passing).
+- Added `test_vcam_mode_presets.gd` to validate default mode preset loading (`3/3` passing).
+- Verified combined mode baseline tests (`test_vcam_mode`, `72/72` passing) and style suite (`15/15` passing).
 
 ---
 

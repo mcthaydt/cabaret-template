@@ -30,11 +30,13 @@ Before starting Phase 3, verify:
 
 ## Per-Phase Documentation Cadence (Mandatory)
 
-- [ ] **DOC-1**: After Phase 3 completion, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.
-- [ ] **DOC-2**: After Phase 3 completion, update this file (`vcam-fps-tasks.md`) with `[x]` marks and completion notes.
-- [ ] **DOC-3**: Update `AGENTS.md` if first-person evaluation reveals new stable architecture/pattern contracts.
-- [ ] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any first-person-specific pitfalls discovered.
-- [ ] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
+- [x] **DOC-1**: After Phase 3 completion, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.
+- [x] **DOC-2**: After Phase 3 completion, update this file (`vcam-fps-tasks.md`) with `[x]` marks and completion notes.
+- [x] **DOC-3**: Update `AGENTS.md` if first-person evaluation reveals new stable architecture/pattern contracts.
+- [x] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any first-person-specific pitfalls discovered.
+- [x] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
+
+**Documentation completion note (March 10, 2026):** Continuation/tasks docs are synchronized for Phase 3 completion, AGENTS vCam contracts remain aligned, and no additional first-person-specific DEV_PITFALLS entries were identified in this phase.
 
 ---
 
