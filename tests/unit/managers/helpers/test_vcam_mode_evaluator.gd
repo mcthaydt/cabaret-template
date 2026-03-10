@@ -3,6 +3,7 @@ extends GutTest
 const EVALUATOR_SCRIPT := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 const MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const FIRST_PERSON_MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
+const FIXED_MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 
 func _new_mode() -> Resource:
 	return MODE_SCRIPT.new()
@@ -10,11 +11,25 @@ func _new_mode() -> Resource:
 func _new_first_person_mode() -> Resource:
 	return FIRST_PERSON_MODE_SCRIPT.new()
 
+func _new_fixed_mode() -> Resource:
+	return FIXED_MODE_SCRIPT.new()
+
 func _new_follow_target(position: Vector3 = Vector3.ZERO) -> Node3D:
 	var follow_target := Node3D.new()
 	add_child_autofree(follow_target)
 	follow_target.global_position = position
 	return follow_target
+
+func _new_fixed_anchor(position: Vector3 = Vector3.ZERO, basis: Basis = Basis.IDENTITY) -> Node3D:
+	var fixed_anchor := Node3D.new()
+	add_child_autofree(fixed_anchor)
+	fixed_anchor.global_transform = Transform3D(basis, position)
+	return fixed_anchor
+
+func _assert_basis_matches(lhs: Basis, rhs: Basis, epsilon: float = 0.001) -> void:
+	assert_almost_eq(lhs.x.normalized().dot(rhs.x.normalized()), 1.0, epsilon)
+	assert_almost_eq(lhs.y.normalized().dot(rhs.y.normalized()), 1.0, epsilon)
+	assert_almost_eq(lhs.z.normalized().dot(rhs.z.normalized()), 1.0, epsilon)
 
 func _compute_expected_offset(distance: float, pitch_deg: float, yaw_deg: float) -> Vector3:
 	var pitch_rad: float = deg_to_rad(pitch_deg)
@@ -249,3 +264,190 @@ func test_first_person_returns_empty_result_when_follow_target_is_null() -> void
 	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, null, null, 0.0, 0.0)
 
 	assert_eq(result.size(), 0)
+
+func test_fixed_world_anchor_uses_anchor_position() -> void:
+	var mode: Resource = _new_fixed_mode()
+	var follow_target: Node3D = _new_follow_target(Vector3(2.0, 1.0, 0.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(10.0, 5.0, -3.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	assert_almost_eq(camera_transform.origin.x, 10.0, 0.001)
+	assert_almost_eq(camera_transform.origin.y, 5.0, 0.001)
+	assert_almost_eq(camera_transform.origin.z, -3.0, 0.001)
+
+func test_fixed_returns_fov_from_mode() -> void:
+	var mode: Resource = _new_fixed_mode()
+	var follow_target: Node3D = _new_follow_target()
+	var fixed_anchor: Node3D = _new_fixed_anchor()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+
+	assert_almost_eq(float(result.get("fov", 0.0)), 75.0, 0.0001)
+
+func test_fixed_returns_mode_name() -> void:
+	var mode: Resource = _new_fixed_mode()
+	var follow_target: Node3D = _new_follow_target()
+	var fixed_anchor: Node3D = _new_fixed_anchor()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+
+	assert_eq(String(result.get("mode_name", "")), "fixed")
+
+func test_fixed_with_tracking_looks_toward_follow_target() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("track_target", true)
+	var follow_target: Node3D = _new_follow_target(Vector3(0.0, 0.0, 0.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(10.0, 5.0, 0.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var forward: Vector3 = -camera_transform.basis.z.normalized()
+	var to_target: Vector3 = (follow_target.global_position - camera_transform.origin).normalized()
+
+	assert_almost_eq(forward.dot(to_target), 1.0, 0.001)
+
+func test_fixed_without_tracking_keeps_anchor_basis() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("track_target", false)
+	var follow_target: Node3D = _new_follow_target(Vector3(0.0, 0.0, 0.0))
+	var anchor_basis := Basis(Vector3.UP, deg_to_rad(35.0)).rotated(Vector3.RIGHT, deg_to_rad(-15.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(2.0, 3.0, 4.0), anchor_basis)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	_assert_basis_matches(camera_transform.basis, anchor_basis)
+
+func test_fixed_tracking_with_null_follow_target_falls_back_to_anchor_basis() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("track_target", true)
+	var anchor_basis := Basis(Vector3.UP, deg_to_rad(20.0)).rotated(Vector3.RIGHT, deg_to_rad(-10.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(1.0, 2.0, 3.0), anchor_basis)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, null, null, 0.0, 0.0, fixed_anchor)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	_assert_basis_matches(camera_transform.basis, anchor_basis)
+
+func test_fixed_ignores_runtime_yaw_and_pitch() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("track_target", false)
+	var follow_target: Node3D = _new_follow_target()
+	var anchor_basis := Basis(Vector3.UP, deg_to_rad(-40.0)).rotated(Vector3.RIGHT, deg_to_rad(12.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(1.0, 2.0, 3.0), anchor_basis)
+
+	var with_runtime: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 90.0, -45.0, fixed_anchor)
+	var without_runtime: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+	var with_runtime_transform: Transform3D = with_runtime.get("transform", Transform3D.IDENTITY) as Transform3D
+	var without_runtime_transform: Transform3D = without_runtime.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	assert_almost_eq(with_runtime_transform.origin.distance_to(without_runtime_transform.origin), 0.0, 0.001)
+	_assert_basis_matches(with_runtime_transform.basis, without_runtime_transform.basis)
+
+func test_fixed_follow_offset_mode_positions_from_follow_target() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("use_world_anchor", false)
+	mode.set("follow_offset", Vector3(0.0, 3.0, 5.0))
+	var follow_target: Node3D = _new_follow_target(Vector3(10.0, 0.0, 0.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(50.0, 50.0, 50.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	assert_almost_eq(camera_transform.origin.x, 10.0, 0.001)
+	assert_almost_eq(camera_transform.origin.y, 3.0, 0.001)
+	assert_almost_eq(camera_transform.origin.z, 5.0, 0.001)
+
+func test_fixed_follow_offset_mode_with_tracking_looks_at_follow_target() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("use_world_anchor", false)
+	mode.set("track_target", true)
+	mode.set("follow_offset", Vector3(0.0, 3.0, 5.0))
+	var follow_target: Node3D = _new_follow_target(Vector3(0.0, 0.0, 0.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(100.0, 100.0, 100.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var forward: Vector3 = -camera_transform.basis.z.normalized()
+	var to_target: Vector3 = (follow_target.global_position - camera_transform.origin).normalized()
+
+	assert_almost_eq(forward.dot(to_target), 1.0, 0.001)
+
+func test_fixed_follow_offset_mode_with_null_follow_target_returns_empty() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("use_world_anchor", false)
+	mode.set("follow_offset", Vector3(0.0, 3.0, 5.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(10.0, 5.0, -3.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, null, null, 0.0, 0.0, fixed_anchor)
+
+	assert_eq(result.size(), 0)
+
+func test_fixed_use_path_uses_anchor_position_and_basis() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("use_path", true)
+	var anchor_basis := Basis(Vector3.UP, deg_to_rad(60.0)).rotated(Vector3.RIGHT, deg_to_rad(-5.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(3.0, 4.0, 5.0), anchor_basis)
+	var follow_target: Node3D = _new_follow_target(Vector3(0.0, 0.0, 0.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	assert_almost_eq(camera_transform.origin.x, 3.0, 0.001)
+	assert_almost_eq(camera_transform.origin.y, 4.0, 0.001)
+	assert_almost_eq(camera_transform.origin.z, 5.0, 0.001)
+	_assert_basis_matches(camera_transform.basis, anchor_basis)
+
+func test_fixed_use_path_ignores_track_target() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("use_path", true)
+	mode.set("track_target", true)
+	var anchor_basis := Basis(Vector3.UP, deg_to_rad(60.0)).rotated(Vector3.RIGHT, deg_to_rad(-5.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(3.0, 4.0, 5.0), anchor_basis)
+	var follow_target: Node3D = _new_follow_target(Vector3(50.0, 0.0, 0.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	_assert_basis_matches(camera_transform.basis, anchor_basis)
+
+func test_fixed_use_path_with_null_anchor_returns_empty() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("use_path", true)
+	var follow_target: Node3D = _new_follow_target()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, null)
+
+	assert_eq(result.size(), 0)
+
+func test_fixed_use_path_ignores_follow_offset_and_use_world_anchor_flags() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("use_path", true)
+	mode.set("use_world_anchor", false)
+	mode.set("follow_offset", Vector3(99.0, 99.0, 99.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(7.0, 8.0, 9.0), Basis(Vector3.UP, deg_to_rad(10.0)))
+	var follow_target: Node3D = _new_follow_target(Vector3(1.0, 2.0, 3.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	assert_almost_eq(camera_transform.origin.x, 7.0, 0.001)
+	assert_almost_eq(camera_transform.origin.y, 8.0, 0.001)
+	assert_almost_eq(camera_transform.origin.z, 9.0, 0.001)
+
+func test_fixed_tracking_handles_zero_length_direction_without_nan() -> void:
+	var mode: Resource = _new_fixed_mode()
+	mode.set("track_target", true)
+	var anchor_basis := Basis(Vector3.UP, deg_to_rad(42.0)).rotated(Vector3.RIGHT, deg_to_rad(-8.0))
+	var fixed_anchor: Node3D = _new_fixed_anchor(Vector3(4.0, 5.0, 6.0), anchor_basis)
+	var follow_target: Node3D = _new_follow_target(Vector3(4.0, 5.0, 6.0))
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0, fixed_anchor)
+	var camera_transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	_assert_basis_matches(camera_transform.basis, anchor_basis)
+	assert_true(camera_transform.basis.x.is_finite())
+	assert_true(camera_transform.basis.y.is_finite())
+	assert_true(camera_transform.basis.z.is_finite())

@@ -3,6 +3,7 @@ class_name U_VCamModeEvaluator
 
 const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
+const RS_VCAM_MODE_FIXED_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 const MIN_DIRECTION_LENGTH_SQUARED: float = 0.000001
 const PARALLEL_UP_DOT_THRESHOLD: float = 0.999
 
@@ -12,7 +13,7 @@ static func evaluate(
 	look_at_target: Node3D,
 	runtime_yaw: float,
 	runtime_pitch: float,
-	_fixed_anchor: Node3D = null
+	fixed_anchor: Node3D = null
 ) -> Dictionary:
 	if mode == null:
 		return {}
@@ -21,6 +22,8 @@ static func evaluate(
 		return _evaluate_orbit(mode, follow_target, look_at_target, runtime_yaw, runtime_pitch)
 	if mode.get_script() == RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
 		return _evaluate_first_person(mode, follow_target, runtime_yaw, runtime_pitch)
+	if mode.get_script() == RS_VCAM_MODE_FIXED_SCRIPT:
+		return _evaluate_fixed(mode, follow_target, fixed_anchor)
 
 	return {}
 
@@ -123,3 +126,79 @@ static func _resolve_first_person_values(mode: Resource) -> Dictionary:
 			"fov": float(mode.get("fov")),
 		}
 	return resolved_values
+
+static func _evaluate_fixed(
+	mode: Resource,
+	follow_target: Node3D,
+	fixed_anchor: Node3D
+) -> Dictionary:
+	var resolved_values: Dictionary = _resolve_fixed_values(mode)
+	var use_path: bool = bool(resolved_values.get("use_path", false))
+	var use_world_anchor: bool = bool(resolved_values.get("use_world_anchor", true))
+	var track_target: bool = bool(resolved_values.get("track_target", false))
+	var camera_position: Vector3
+	var default_basis: Basis
+
+	if use_path:
+		if fixed_anchor == null or not is_instance_valid(fixed_anchor):
+			return {}
+		camera_position = fixed_anchor.global_position
+		default_basis = fixed_anchor.global_transform.basis
+		track_target = false
+	elif use_world_anchor:
+		if fixed_anchor == null or not is_instance_valid(fixed_anchor):
+			return {}
+		camera_position = fixed_anchor.global_position
+		default_basis = fixed_anchor.global_transform.basis
+	else:
+		if follow_target == null or not is_instance_valid(follow_target):
+			return {}
+		var follow_offset: Vector3 = resolved_values.get("follow_offset", Vector3.ZERO) as Vector3
+		camera_position = follow_target.global_position + follow_offset
+		default_basis = Basis.IDENTITY
+
+	var camera_basis: Basis = default_basis
+	if track_target and follow_target != null and is_instance_valid(follow_target):
+		camera_basis = _build_look_at_basis_or_fallback(
+			camera_position,
+			follow_target.global_position,
+			default_basis
+		)
+
+	return {
+		"transform": Transform3D(camera_basis, camera_position),
+		"fov": float(resolved_values.get("fov", 75.0)),
+		"mode_name": "fixed",
+	}
+
+static func _resolve_fixed_values(mode: Resource) -> Dictionary:
+	var resolved_values: Dictionary = {}
+	if mode != null and mode.has_method("get_resolved_values"):
+		var resolved_variant: Variant = mode.call("get_resolved_values")
+		if resolved_variant is Dictionary:
+			resolved_values = resolved_variant as Dictionary
+
+	if resolved_values.is_empty():
+		resolved_values = {
+			"use_world_anchor": bool(mode.get("use_world_anchor")),
+			"track_target": bool(mode.get("track_target")),
+			"fov": float(mode.get("fov")),
+			"follow_offset": mode.get("follow_offset"),
+			"use_path": bool(mode.get("use_path")),
+		}
+	return resolved_values
+
+static func _build_look_at_basis_or_fallback(
+	from_position: Vector3,
+	to_position: Vector3,
+	fallback_basis: Basis
+) -> Basis:
+	var direction: Vector3 = to_position - from_position
+	if direction.length_squared() <= MIN_DIRECTION_LENGTH_SQUARED:
+		return fallback_basis
+
+	var forward: Vector3 = direction.normalized()
+	var up_vector: Vector3 = Vector3.UP
+	if absf(forward.dot(up_vector)) >= PARALLEL_UP_DOT_THRESHOLD:
+		up_vector = Vector3.FORWARD
+	return Transform3D(Basis.IDENTITY, from_position).looking_at(to_position, up_vector).basis
