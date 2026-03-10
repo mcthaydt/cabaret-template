@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, and 0D are complete as of March 10, 2026 (touchscreen drag-look persistence, keyboard-look action/settings/UI plumbing, persisted VFX silhouette toggle wiring, `RS_VCamInitialState`, and vCam actions/reducer + event constants). Next implementation target is Phase 0E (selectors + state-store/root wiring + transient registration).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, and 0E are complete as of March 10, 2026 (touchscreen drag-look persistence, keyboard-look action/settings/UI plumbing, persisted VFX silhouette toggle wiring, `RS_VCamInitialState`, vCam actions/reducer + event constants, and selector/store/root transient wiring). Next implementation target is Phase 0F (`camera.in_fov_zone` migration to `state.vcam.in_fov_zone`).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -33,6 +33,12 @@
   - Added `scripts/state/reducers/u_vcam_reducer.gd` with full state-default merge + action handling (`blend_progress` clamp, silhouette non-negative clamp, unknown action unchanged-state return).
   - Added vCam ECS event constants to `scripts/events/ecs/u_ecs_event_names.gd` (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`).
   - Added new tests `tests/unit/state/test_vcam_actions.gd` (8) and `tests/unit/state/test_vcam_reducer.gd` (13).
+- Completed Phase 0E:
+  - Added `scripts/state/selectors/u_vcam_selectors.gd` and `tests/unit/state/test_vcam_selectors.gd` (23 tests) for null-safe vCam runtime/selector access.
+  - Wired `vcam_initial_state` export into `M_StateStore` and `U_StateSliceManager.initialize_slices(...)`.
+  - Registered `vcam` in `U_StateSliceManager` with `is_transient = true` and reducer hookup to `U_VCamReducer`.
+  - Patched `scenes/root.tscn` so `M_StateStore.vcam_initial_state` references `cfg_default_vcam_initial_state.tres`.
+  - Added integration assertions proving `vcam` exists at runtime, is marked transient, is excluded from save payloads, and is excluded from global-settings serialization.
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -60,6 +66,12 @@
   - `tests/unit/state/test_vcam_actions.gd`
   - `tests/unit/state/test_vcam_reducer.gd`
   - `tests/unit/state/test_action_registry.gd`
+  - `tests/unit/style/test_style_enforcement.gd`
+- Validation run (green, Phase 0E):
+  - `tests/unit/state/test_vcam_selectors.gd`
+  - `tests/unit/state/test_m_state_store.gd`
+  - `tests/unit/state/test_state_persistence.gd`
+  - `tests/unit/state/test_global_settings_persistence.gd`
   - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
@@ -143,12 +155,11 @@
 
 ## Next Steps
 
-1. Implement Phase 0 Commit 0.4 / Phase 0E: add selectors, wire the new state export in `M_StateStore`, register `vcam` as transient, and patch `scenes/root.tscn`.
-2. Implement Phase 0F before claiming camera-slice migration is done: patch `S_CameraStateSystem`, `tests/unit/qb/test_camera_state_system.gd`, and any remaining `set_slice("camera", ...)` usage to `state.vcam.in_fov_zone`.
-3. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
-4. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
-5. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
-6. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+1. Implement Phase 0F before claiming camera-slice migration is done: patch `S_CameraStateSystem`, `tests/unit/qb/test_camera_state_system.gd`, and any remaining `set_slice("camera", ...)` usage to `state.vcam.in_fov_zone`.
+2. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
+3. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
+4. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
+5. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 

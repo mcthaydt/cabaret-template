@@ -297,7 +297,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0E: Selectors, Store Export, and Transient Slice Registration
 
-- [ ] **Task 0E.1 (Red)**: Write tests for U_VCamSelectors
+- [x] **Task 0E.1 (Red)**: Write tests for U_VCamSelectors
   - Create `tests/unit/state/test_vcam_selectors.gd`
   - Test `get_active_vcam_id(state)` returns value from state
   - Test `get_active_vcam_id(state)` returns `&""` when slice missing
@@ -321,22 +321,26 @@ Before starting Phase 0, verify:
   - Test `is_in_fov_zone(state)` returns value from state
   - Test `is_in_fov_zone(state)` returns `false` when missing
   - **Target: 23 tests**
+  - Completion note (2026-03-10): Added `test_vcam_selectors.gd` with 23 tests covering all selector defaults/fields and state immutability.
 
-- [ ] **Task 0E.2 (Green)**: Implement U_VCamSelectors
+- [x] **Task 0E.2 (Green)**: Implement U_VCamSelectors
   - Create `scripts/state/selectors/u_vcam_selectors.gd`
   - All selectors null-safe and slice-safe (including 4 debug-field selectors: `get_blend_from_vcam_id`, `get_blend_to_vcam_id`, `is_active_target_valid`, `get_last_recovery_reason`, plus `is_in_fov_zone`)
   - All tests should pass
+  - Completion note (2026-03-10): Added `U_VCamSelectors` with null-safe accessors for all runtime and debug fields, including `is_in_fov_zone`.
 
-- [ ] **Task 0E.3**: Integrate vcam slice with M_StateStore
+- [x] **Task 0E.3**: Integrate vcam slice with M_StateStore
   - Modify `scripts/state/m_state_store.gd`: add `@export var vcam_initial_state: Resource`
   - Modify `scripts/state/utils/u_state_slice_manager.gd`: add `vcam` slice registration with `is_transient = true`
   - Modify `scenes/root.tscn`: assign `cfg_default_vcam_initial_state.tres`
+  - Completion note (2026-03-10): Wired `vcam_initial_state` through `M_StateStore`/`U_StateSliceManager`, registered `vcam` as transient, and assigned `cfg_default_vcam_initial_state.tres` in `scenes/root.tscn`.
 
-- [ ] **Task 0E.4**: Verify integration
+- [x] **Task 0E.4**: Verify integration
   - Run existing state tests (no regressions)
   - Verify `vcam` slice appears in `get_state()` output
   - Verify `vcam` slice is registered as transient
   - Verify `vcam` is NOT included in global settings persistence
+  - Completion note (2026-03-10): Added/updated state integration assertions in `test_m_state_store.gd`, `test_state_persistence.gd`, and `test_global_settings_persistence.gd`; all targeted suites passed.
 
 ---
 
