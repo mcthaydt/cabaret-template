@@ -135,6 +135,7 @@
   - Occlusion silhouette preference persists in `vfx.occlusion_silhouette_enabled` and is surfaced in `UI_VFXSettingsOverlay` with localization keys.
   - Occlusion rollout is complete only when both physics-layer naming (`vcam_occludable`) and authored-scene blocker migration are done.
   - Shared look-input contract is `gameplay.look_input`; `S_TouchscreenSystem` owns touchscreen look dispatch and `S_InputSystem` must not zero-clobber touchscreen-owned move/look payloads.
+  - Second-order dynamics contract (Phase 1D): use `U_SecondOrderDynamics` (`scripts/utils/math/u_second_order_dynamics.gd`) for scalar camera response smoothing with `(f, zeta, r)` tuning, frequency clamp (`MIN_FREQUENCY_HZ`), and large-delta stability guard (`MAX_STEP_DELTA_SEC`).
   - Keyboard-look contract (Phase 0A2): use dedicated `look_left/right/up/down` actions (not `ui_*`); settings live in `settings.input_settings.mouse_settings` (`keyboard_look_enabled`, `keyboard_look_speed`) and surface through `UI_KeyboardMouseSettingsOverlay`.
   - Touch look gating contract: `gameplay.touch_look_active` Redux flag gates `S_InputSystem` look dispatch. `S_TouchscreenSystem` sets `true` on drag start, `false` on drag end. `S_InputSystem` skips look dispatch when the flag is `true`.
   - Silhouette rendering routes through `M_VFXManager`: vCam detection publishes `EVENT_SILHOUETTE_UPDATE_REQUEST`, VFX manager subscribes and delegates to `U_VCamSilhouetteHelper` (follows the `U_ScreenShake` helper pattern). This inherits player gating + transition blocking from `M_VFXManager`.

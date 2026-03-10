@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-06
 **Updated**: 2026-03-10
-**Status**: Phases 0A-0F + 1A-1C complete (state/persistence + base authoring resource foundations); dynamics/mode phases pending
+**Status**: Phases 0A-0F + 1A-1D complete (state/persistence + base authoring resources + scalar second-order dynamics); vector dynamics/mode phases pending
 
 ## Summary
 

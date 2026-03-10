@@ -435,7 +435,7 @@ Before starting Phase 0, verify:
 
 > **Why:** Simple lerp/slerp damping produces robotic camera motion with no natural overshoot, settling, or responsiveness. Second-order dynamics model a mass-spring-damper system that gives camera follow, tracking, and soft-zone correction physically plausible motion with tuneable character (snappy, smooth, bouncy).
 
-- [ ] **Task 1D.1 (Red)**: Write tests for U_SecondOrderDynamics
+- [x] **Task 1D.1 (Red)**: Write tests for U_SecondOrderDynamics
   - Create `tests/unit/utils/test_second_order_dynamics.gd`
   - Test initial state: output matches initial value (no jump on first frame)
   - Test step toward target: output moves toward target over multiple steps
@@ -451,8 +451,9 @@ Before starting Phase 0, verify:
   - Test initial response `r > 0`: output reacts immediately in the direction of the target on the first step (no initial lag)
   - Test initial response `r = 0`: output starts with zero velocity (gradual start)
   - **Target: 13 tests**
+  - Completion note (2026-03-10): Added `test_second_order_dynamics.gd` with 13 tests covering convergence, damping regimes, stability guards, reset behavior, and response tuning.
 
-- [ ] **Task 1D.2 (Green)**: Implement U_SecondOrderDynamics
+- [x] **Task 1D.2 (Green)**: Implement U_SecondOrderDynamics
   - Create `scripts/utils/math/u_second_order_dynamics.gd`
   - Add `class_name U_SecondOrderDynamics`
   - Instance-based (not static) — each consumer creates its own instance with independent state
@@ -490,10 +491,12 @@ Before starting Phase 0, verify:
       _yd += dt * (target + _k3 * td - _y - _k1 * _yd) / stable_k2
       return _y
   ```
+  - Completion note (2026-03-10): Added `U_SecondOrderDynamics` with semi-implicit integration, frequency clamp, large-`dt` guard, and finite-value fallback handling.
 
-- [ ] **Task 1D.3**: Run style enforcement tests
+- [x] **Task 1D.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with new files
   - Verify `u_second_order_dynamics.gd` is in `scripts/utils/math/`
+  - Completion note (2026-03-10): `tests/unit/style/test_style_enforcement.gd` passed after adding `scripts/utils/math/u_second_order_dynamics.gd`.
 
 ---
 
