@@ -204,6 +204,13 @@
 - **Do not consume `look_multiplier` in evaluator helpers**: Evaluator functions should only convert resolved runtime yaw/pitch inputs into transforms. Applying `look_multiplier` in evaluator code double-scales input and diverges from shared input pipeline behavior.
   - **Fix pattern**: keep `look_multiplier` application in `S_VCamSystem` when updating component runtime rotation state; evaluator consumes already-computed runtime angles.
 
+## vCam Fixed Evaluator Pitfalls
+
+- **Do not apply player look input (`runtime_yaw`/`runtime_pitch`) in fixed mode**: Fixed cameras are authored/architectural viewpoints. Letting runtime look rotate fixed evaluations breaks mode boundaries and causes cross-mode carryover bugs.
+  - **Fix pattern**: ignore runtime yaw/pitch entirely in fixed branches and derive orientation only from authored anchor basis or explicit `track_target` look-at.
+- **`use_path` mode must not track follow target orientation**: Path-follow fixed cameras are expected to face path tangent. If `track_target` is honored in path mode, camera headings jitter and diverge from authored rail direction.
+  - **Fix pattern**: in evaluator logic, treat `use_path` as anchor-basis orientation with `track_target` forced off; path progress/smoothing stays in `S_VCamSystem`.
+
 ## Character Lighting Pitfalls
 
 - **Cache invalidation is required on `scene/swapped` for lighting managers**: Character lighting caches that are built from `ActiveSceneContainer/<GameplayScene>/Lighting` can go stale after a scene transition unless the manager listens to `state_store.action_dispatched` and marks cache state dirty when action type is `scene/swapped`. Without this, zone lists/default profile data can continue referencing the previous scene.

@@ -10,19 +10,19 @@
 
 Before starting Phase 4, verify:
 
-- [ ] **PRE-1**: Phase 2 (orbit) and Phase 3 (first-person) are fully complete (all 36 mode tests pass, evaluator handles both modes)
-- [ ] **PRE-2**: Read required documentation
+- [x] **PRE-1**: Phase 2 (orbit) and Phase 3 (first-person) are fully complete (all 36 mode tests pass, evaluator handles both modes)
+- [x] **PRE-2**: Read required documentation
   - Read `docs/vcam_manager/vcam-manager-plan.md` (Commit 1.1, Commit 2.3 sections — fixed-mode notes)
   - Read `docs/vcam_manager/vcam-manager-overview.md` (Camera Modes > RS_VCamModeFixed)
   - Read `AGENTS.md` (vCam Runtime Contracts — fixed-mode anchor resolution)
   - Read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md`
-- [ ] **PRE-3**: Understand existing patterns by reading:
+- [x] **PRE-3**: Understand existing patterns by reading:
   - `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (resource pattern from Phase 2)
   - `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` (resource pattern from Phase 3)
   - `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (evaluator with orbit + first-person branches)
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (existing evaluator tests)
-- [ ] **PRE-4**: Verify branch is `vcam` and working tree is clean
-- [ ] **PRE-5**: Verify orbit + first-person tests still pass before extending the evaluator:
+- [x] **PRE-4**: Verify branch is `vcam` and working tree is clean
+- [x] **PRE-5**: Verify orbit + first-person tests still pass before extending the evaluator:
   ```bash
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gselect=test_vcam_mode -ginclude_subdirs=true -gexit
   ```
@@ -45,7 +45,7 @@ Before starting Phase 4, verify:
 
 ### Phase 4A: RS_VCamModeFixed Resource
 
-- [ ] **Task 4A.1 (Red)**: Write tests for RS_VCamModeFixed
+- [x] **Task 4A.1 (Red)**: Write tests for RS_VCamModeFixed
   - Create `tests/unit/resources/display/vcam/test_vcam_mode_fixed.gd`
   - Test `use_world_anchor` field exists with default `true`
     - Verify type is `bool`
@@ -81,7 +81,7 @@ Before starting Phase 4, verify:
     - Set path_damping to 0.0, verify it is accepted (no smoothing)
   - **Target: 13 tests**
 
-- [ ] **Task 4A.2 (Green)**: Implement RS_VCamModeFixed
+- [x] **Task 4A.2 (Green)**: Implement RS_VCamModeFixed
   - Create `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd`
   - Extend `Resource`
   - Add `class_name RS_VCamModeFixed`
@@ -96,7 +96,7 @@ Before starting Phase 4, verify:
     - `path_damping: float = 5.0` — smoothing factor for path progress
   - All tests should pass
 
-- [ ] **Task 4A.3**: Run style enforcement tests
+- [x] **Task 4A.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with new files
   - Verify file naming follows `rs_` prefix convention
   - Verify script is in `scripts/resources/display/vcam/` per style guide
@@ -105,7 +105,7 @@ Before starting Phase 4, verify:
 
 ### Phase 4B: Fixed Mode Evaluator
 
-- [ ] **Task 4B.1 (Red)**: Write tests for fixed evaluation in U_VCamModeEvaluator
+- [x] **Task 4B.1 (Red)**: Write tests for fixed evaluation in U_VCamModeEvaluator
   - Add to existing `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
   - Test fixed evaluation with `use_world_anchor = true` uses resolved fixed-anchor `Node3D` transform
     - Create a `Node3D` as the fixed anchor at a known world position (e.g. `Vector3(10, 5, -3)`)
@@ -190,7 +190,7 @@ Before starting Phase 4, verify:
   - The evaluator simply uses whichever `Node3D` it is given
   - If `fixed_anchor` is null and `use_world_anchor = true`, return `{}`
 
-- [ ] **Task 4B.2 (Green)**: Implement fixed evaluation in U_VCamModeEvaluator
+- [x] **Task 4B.2 (Green)**: Implement fixed evaluation in U_VCamModeEvaluator
   - Extend `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with fixed mode branch
   - Handle fixed mode branch:
     - Guard: return `{}` if mode is null
@@ -243,7 +243,7 @@ Before starting Phase 4, verify:
 
   **Note on `tracking_damping`**: The damping value is NOT consumed by the evaluator. Damping is applied by `S_VCamSystem` (Phase 6) which interpolates the tracking rotation over time. The evaluator computes the instantaneous target rotation for the current frame.
 
-- [ ] **Task 4B.3**: Create default fixed resource instance
+- [x] **Task 4B.3**: Create default fixed resource instance
   - Create `resources/display/vcam/cfg_default_fixed.tres`
   - Set all fields to resource defaults (use_world_anchor=true, track_target=false, fov=75.0, tracking_damping=5.0, follow_offset=Vector3(0,3,5))
   - Verify resource loads without errors:
@@ -253,7 +253,7 @@ Before starting Phase 4, verify:
     assert_is(res, RS_VCamModeFixed)
     ```
 
-- [ ] **Task 4B.4 (Refactor)**: Final review of U_VCamModeEvaluator across all three modes
+- [x] **Task 4B.4 (Refactor)**: Final review of U_VCamModeEvaluator across all three modes
   - Review evaluator now that it handles all three modes (orbit + first-person + fixed)
   - Ensure all three mode branches are clean and well-separated
   - Verify null/invalid resource handling is consistent across all modes:
@@ -267,7 +267,7 @@ Before starting Phase 4, verify:
   - No new functionality, only code quality
   - All existing tests still pass after refactor
 
-- [ ] **Task 4B.5**: Run full regression across all modes
+- [x] **Task 4B.5**: Run full regression across all modes
   - Run orbit resource tests (no regressions)
   - Run orbit evaluator tests (no regressions)
   - Run first-person resource tests (no regressions)
@@ -279,6 +279,14 @@ Before starting Phase 4, verify:
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gselect=test_vcam_mode -ginclude_subdirs=true -gexit
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -ginclude_subdirs=true -gexit
   ```
+
+**Completion notes (March 10, 2026):**
+- Added `RS_VCamModeFixed` with resolved-value clamping for `fov`, `tracking_damping`, `path_max_speed`, and `path_damping`.
+- Added fixed resource tests (`13/13` passing).
+- Extended `U_VCamModeEvaluator` with fixed branches for world-anchor, follow-offset, and path-anchor evaluation.
+- Extended evaluator tests with fixed coverage (`35/35` evaluator tests passing total).
+- Added `cfg_default_fixed.tres`.
+- Verified mode regression suite (`test_vcam_mode`, `64/64` passing) and style suite (`15/15` passing).
 
 ---
 

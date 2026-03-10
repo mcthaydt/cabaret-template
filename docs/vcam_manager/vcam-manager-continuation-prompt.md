@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, and 3B are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit baseline resource/evaluator wiring, and first-person baseline resource/evaluator wiring). Next implementation target is Phase 4A (fixed mode resource/evaluator baseline).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, and 4B are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, and orbit/first-person/fixed baseline resource+evaluator wiring). Next implementation target is Phase 5 (component/interface/manager core in `vcam-base-tasks.md`).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -76,6 +76,13 @@
   - Extended `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with first-person evaluation branch (position from `follow_target + head_offset`, yaw/pitch basis construction, in-evaluator pitch clamp, and null-safe guards).
   - Extended `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` with first-person coverage (10 new tests, 20 total evaluator tests).
   - Added `resources/display/vcam/cfg_default_first_person.tres` with baseline first-person defaults.
+- Completed Phase 4A:
+  - Added `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd` (`RS_VCamModeFixed`) with fixed-camera defaults (`use_world_anchor`, `track_target`, `fov`, `tracking_damping`, `follow_offset`, `use_path`, `path_max_speed`, `path_damping`) and `get_resolved_values()` clamp helpers.
+  - Added `tests/unit/resources/display/vcam/test_vcam_mode_fixed.gd` (13 tests) for fixed resource defaults and resolved constraint behavior.
+- Completed Phase 4B:
+  - Extended `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with fixed evaluation branch (world-anchor mode, follow-offset mode, path mode, runtime yaw/pitch ignore contract, and null-safe guards).
+  - Extended `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` with fixed coverage (15 new tests, 35 total evaluator tests).
+  - Added `resources/display/vcam/cfg_default_fixed.tres` with baseline fixed defaults.
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -139,6 +146,11 @@
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
   - `tests/unit` (`-gselect=test_vcam_mode`)
   - `tests/unit/style/test_style_enforcement.gd`
+- Validation run (green, Phases 4A/4B):
+  - `tests/unit/resources/display/vcam/test_vcam_mode_fixed.gd`
+  - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
+  - `tests/unit` (`-gselect=test_vcam_mode`)
+  - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
 
@@ -177,6 +189,9 @@
 - First-person baseline is now explicit:
   - `RS_VCamModeFirstPerson` is authored in `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` with default preset `resources/display/vcam/cfg_default_first_person.tres`.
   - `U_VCamModeEvaluator.evaluate(...)` now returns `{transform, fov, mode_name}` for first-person resources, clamps runtime pitch to authored min/max in evaluator, and returns `{}` for null/invalid inputs without warning noise.
+- Fixed baseline is now explicit:
+  - `RS_VCamModeFixed` is authored in `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd` with default preset `resources/display/vcam/cfg_default_fixed.tres`.
+  - `U_VCamModeEvaluator.evaluate(...)` now supports fixed world-anchor, follow-offset, and path branches while ignoring runtime yaw/pitch for fixed mode.
 
 ## Required Reading
 
@@ -227,8 +242,8 @@
 
 ## Next Steps
 
-1. Start Phase 4A from `docs/vcam_manager/vcam-fixed-tasks.md`: implement fixed mode resource/evaluator branch so `U_VCamModeEvaluator` supports all three mode baselines.
-2. Keep Phase 3C (first-person game feel) queued behind base Phase 6A2 per dependency (`S_VCamSystem` second-order runtime integration first).
+1. Start Phase 5 from `docs/vcam_manager/vcam-base-tasks.md`: implement `C_VCamComponent`, `I_VCamManager`, and `M_VCamManager` core wiring.
+2. Keep orbit/first-person game-feel phases (2C/3C) queued behind base Phase 6A2 per dependency (`S_VCamSystem` second-order runtime integration first).
 3. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
 4. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
 5. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
@@ -247,6 +262,7 @@
 - vCam does not write `camera.fov` directly.
 - vCam does not write `camera.global_transform` directly.
 - vCam blends are live blends between two evaluated cameras, not frozen-transform lerps.
+- Fixed mode ignores player runtime look angles (`runtime_yaw`/`runtime_pitch`); path mode uses anchor/path tangent orientation and ignores `track_target`.
 - fixed-mode world anchoring resolves from `fixed_anchor_path` first, then host entity-root `Node3D` fallback; not from component transform assumptions.
 - vCam publishes lifecycle events through `U_ECSEventBus`, not just Redux — enabling reactive integration with QB rules and other systems.
 - QB camera rules can condition on vCam state via enriched context fields (`vcam_active_mode`, `vcam_is_blending`) — no vCam-specific rule types needed.
