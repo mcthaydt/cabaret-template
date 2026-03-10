@@ -268,6 +268,8 @@ func _evaluate_and_submit(
 		delta
 	)
 	var final_result: Dictionary = _apply_landing_impact_offset(smoothed_result, landing_offset)
+	if vcam_id == manager.get_active_vcam_id():
+		_write_active_camera_base_fov_from_result(final_result)
 	manager.submit_evaluated_camera(vcam_id, final_result)
 
 func _apply_landing_impact_offset(result: Dictionary, landing_offset: Vector3) -> Dictionary:
@@ -347,6 +349,26 @@ func _resolve_primary_camera_state_component() -> Object:
 		if _is_primary_camera_query(query):
 			return camera_state
 	return fallback
+
+func _write_active_camera_base_fov_from_result(result: Dictionary) -> void:
+	if result.is_empty():
+		return
+
+	var fov_variant: Variant = result.get("fov", null)
+	if not (fov_variant is float or fov_variant is int):
+		return
+
+	var fov_value: float = float(fov_variant)
+	if is_nan(fov_value) or is_inf(fov_value):
+		return
+
+	var camera_state: Object = _resolve_primary_camera_state_component()
+	if camera_state == null:
+		return
+	if not _object_has_property(camera_state, "base_fov"):
+		return
+
+	camera_state.set("base_fov", clampf(fov_value, 1.0, 179.0))
 
 func _is_primary_camera_query(query: Object) -> bool:
 	if query.has_method("get_entity_id"):

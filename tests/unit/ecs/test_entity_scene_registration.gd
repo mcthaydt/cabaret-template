@@ -73,6 +73,11 @@ func _find_entity_by_id(root: Node, id: StringName) -> BaseECSEntity:
 			return found
 	return null
 
+func _assert_core_system_exists(scene: Node, system_name: StringName) -> void:
+	var node_path := NodePath("Systems/Core/%s" % String(system_name))
+	var system_node: Node = scene.get_node_or_null(node_path)
+	assert_not_null(system_node, "Scene should include %s under Systems/Core" % String(system_name))
+
 func test_tmpl_base_scene_registers_player_and_camera() -> void:
 	var scene := SCENE_BASE.instantiate()
 	add_child_autofree(scene)
@@ -90,6 +95,8 @@ func test_gameplay_exterior_entities_register_ids_and_tags() -> void:
 	add_child_autofree(scene)
 	await _await_ecs_registration()
 
+	_assert_core_system_exists(scene, StringName("S_VCamSystem"))
+
 	var expected: Dictionary = {
 		StringName("door_to_house"): [StringName("trigger"), StringName("door")],
 		StringName("deathzone_exterior"): [StringName("hazard"), StringName("death")],
@@ -106,6 +113,8 @@ func test_gameplay_interior_entities_register_ids_and_tags() -> void:
 	var scene := SCENE_INTERIOR.instantiate()
 	add_child_autofree(scene)
 	await _await_ecs_registration()
+
+	_assert_core_system_exists(scene, StringName("S_VCamSystem"))
 
 	var expected: Dictionary = {
 		StringName("door_to_exterior"): [StringName("trigger"), StringName("door")],

@@ -1174,6 +1174,72 @@ func test_zero_landing_impact_offset_adds_no_extra_position() -> void:
 	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
 	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
 
+func test_active_vcam_fov_updates_primary_camera_state_base_fov() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_BaseFovTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	mode.fov = 63.0
+	await _create_vcam_component(ecs_manager, StringName("cam_base_fov_sync"), mode, follow_target)
+	var camera_state: C_CameraStateComponent = _create_camera_state_component(
+		ecs_manager,
+		Vector3.ZERO,
+		8.0
+	)
+	camera_state.base_fov = 0.0
+
+	vcam_manager.active_vcam_id = StringName("cam_base_fov_sync")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(camera_state.base_fov, 63.0, 0.0001)
+
+func test_active_vcam_fov_clamps_base_fov_to_supported_range() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_BaseFovClampTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	mode.fov = 999.0
+	await _create_vcam_component(ecs_manager, StringName("cam_base_fov_clamp"), mode, follow_target)
+	var camera_state: C_CameraStateComponent = _create_camera_state_component(
+		ecs_manager,
+		Vector3.ZERO,
+		8.0
+	)
+	camera_state.base_fov = 40.0
+
+	vcam_manager.active_vcam_id = StringName("cam_base_fov_clamp")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(camera_state.base_fov, 179.0, 0.0001)
+
+func test_missing_or_invalid_fov_result_does_not_change_base_fov() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var camera_state: C_CameraStateComponent = _create_camera_state_component(
+		ecs_manager,
+		Vector3.ZERO,
+		8.0
+	)
+	camera_state.base_fov = 77.0
+
+	system.call("_write_active_camera_base_fov_from_result", {})
+	assert_almost_eq(camera_state.base_fov, 77.0, 0.0001)
+
+	system.call("_write_active_camera_base_fov_from_result", {"fov": NAN})
+	assert_almost_eq(camera_state.base_fov, 77.0, 0.0001)
+
+	system.call("_write_active_camera_base_fov_from_result", {"fov": "bad"})
+	assert_almost_eq(camera_state.base_fov, 77.0, 0.0001)
+
 func test_rotation_continuity_orbit_to_first_person_carries_yaw_and_resets_pitch() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)

@@ -21,13 +21,13 @@ const DEFAULT_INPUT_SETTINGS_STATE := {
 	"custom_bindings_by_profile": {},
 	"gamepad_settings": {
 		"left_stick_deadzone": 0.2,
-		"right_stick_deadzone": 0.2,
+		"right_stick_deadzone": 0.16,
 		"trigger_deadzone": 0.1,
 		"vibration_enabled": true,
 		"vibration_intensity": 1.0,
 		"invert_y_axis": false,
-		"right_stick_sensitivity": 1.0,
-		"deadzone_curve": 0,
+		"right_stick_sensitivity": 1.15,
+		"deadzone_curve": 1,
 	},
 	"mouse_settings": {
 		"sensitivity": 1.0,
