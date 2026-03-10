@@ -208,7 +208,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0C: vCam Initial State Resource
 
-- [ ] **Task 0C.1 (Red)**: Write tests for RS_VCamInitialState
+- [x] **Task 0C.1 (Red)**: Write tests for RS_VCamInitialState
   - Create `tests/unit/state/test_vcam_initial_state.gd`
   - Test `to_dictionary()` returns `active_vcam_id` as `&""`
   - Test `to_dictionary()` returns `active_mode` as `""`
@@ -223,15 +223,18 @@ Before starting Phase 0, verify:
   - Test `to_dictionary()` returns `in_fov_zone` as `false`
   - Test `to_dictionary()` returns exactly 11 keys
   - **Target: 12 tests**
+  - Completion note (2026-03-10): Added `test_vcam_initial_state.gd` with 12 assertions covering all expected dictionary defaults and key count.
 
-- [ ] **Task 0C.2 (Green)**: Implement RS_VCamInitialState
+- [x] **Task 0C.2 (Green)**: Implement RS_VCamInitialState
   - Create `scripts/resources/state/rs_vcam_initial_state.gd`
   - Implement `to_dictionary()` returning all 11 fields (including `in_fov_zone: false`)
   - All tests should pass
+  - Completion note (2026-03-10): Added `RS_VCamInitialState` with exported runtime observability fields and `to_dictionary()` output matching the Phase 0C contract.
 
-- [ ] **Task 0C.3**: Create default resource instance
+- [x] **Task 0C.3**: Create default resource instance
   - Create `resources/state/cfg_default_vcam_initial_state.tres`
   - Set all fields to defaults
+  - Completion note (2026-03-10): Added `cfg_default_vcam_initial_state.tres` bound to `RS_VCamInitialState` for root/store wiring in the next phase.
 
 ---
 
