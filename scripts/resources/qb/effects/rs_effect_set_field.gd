@@ -20,6 +20,8 @@ const U_PATH_RESOLVER := preload("res://scripts/utils/qb/u_path_resolver.gd")
 @export_group("Dynamic Value")
 @export var use_context_value: bool = false
 @export var context_value_path: String = ""
+@export var scale_by_rule_score: bool = false
+@export var rule_score_context_path: String = "rule_score"
 
 @export_group("Clamp")
 @export var use_clamp: bool = false
@@ -44,6 +46,9 @@ func execute(context: Dictionary) -> void:
 		return
 
 	var base_value: Variant = _resolve_value(context)
+	if base_value == null:
+		return
+	base_value = _apply_rule_score_scale(base_value, context)
 	if base_value == null:
 		return
 
@@ -94,6 +99,25 @@ func _resolve_literal_value() -> Variant:
 			return string_name_value
 		_:
 			return null
+
+func _apply_rule_score_scale(value: Variant, context: Dictionary) -> Variant:
+	if not scale_by_rule_score:
+		return value
+	if not _is_numeric(value):
+		return null
+
+	var score_path: String = rule_score_context_path
+	if score_path.is_empty():
+		score_path = "rule_score"
+	var score_variant: Variant = U_PATH_RESOLVER.resolve(context, score_path)
+	if score_variant == null or not _is_numeric(score_variant):
+		return value
+
+	var score: float = clampf(float(score_variant), 0.0, 1.0)
+	var scaled_value: float = float(value) * score
+	if value is int:
+		return int(round(scaled_value))
+	return scaled_value
 
 func _read_field_value(component: Variant, target_field_name: StringName) -> Variant:
 	var key_text: String = String(target_field_name)

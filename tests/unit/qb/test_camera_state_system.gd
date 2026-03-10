@@ -7,6 +7,7 @@ const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 
 const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 
 const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
 const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
@@ -28,7 +29,7 @@ func test_default_rules_loaded_and_pass_validation() -> void:
 	var valid_rules_variant: Variant = report.get("valid_rules", [])
 	assert_true(valid_rules_variant is Array)
 	var valid_rules: Array = valid_rules_variant as Array
-	assert_eq(valid_rules.size(), 2)
+	assert_eq(valid_rules.size(), 3)
 
 	var rule_ids: Array[StringName] = []
 	for rule_variant in valid_rules:
@@ -37,6 +38,7 @@ func test_default_rules_loaded_and_pass_validation() -> void:
 		rule_ids.append(rule_variant.get("rule_id") as StringName)
 	assert_true(rule_ids.has(StringName("camera_shake")))
 	assert_true(rule_ids.has(StringName("camera_zone_fov")))
+	assert_true(rule_ids.has(StringName("camera_speed_fov")))
 
 func test_shake_trauma_added_on_entity_death_event() -> void:
 	var fixture: Dictionary = _create_fixture()
@@ -89,6 +91,112 @@ func test_fov_blending_lerps_main_camera_toward_target() -> void:
 	system.process_tick(0.25)
 
 	assert_almost_eq(camera_manager.main_camera.fov, 75.0, 0.001)
+
+func test_speed_fov_rule_sets_bonus_from_movement_speed() -> void:
+	var fixture: Dictionary = _create_fixture(
+		[],
+		[
+			{"name": "E_Camera", "tags": [], "movement_velocity": Vector2(4.5, 0.0)},
+		],
+		90.0
+	)
+	var system: Variant = fixture.get("system", null)
+	var camera_state: C_CameraStateComponent = fixture.get("camera_state") as C_CameraStateComponent
+	assert_not_null(system)
+	assert_not_null(camera_state)
+
+	system.process_tick(0.016)
+
+	assert_almost_eq(camera_state.speed_fov_bonus, 7.5, 0.001)
+
+func test_stationary_speed_sets_speed_fov_bonus_to_zero() -> void:
+	var fixture: Dictionary = _create_fixture(
+		[],
+		[
+			{"name": "E_Camera", "tags": [], "movement_velocity": Vector2.ZERO},
+		],
+		90.0
+	)
+	var system: Variant = fixture.get("system", null)
+	var camera_state: C_CameraStateComponent = fixture.get("camera_state") as C_CameraStateComponent
+	assert_not_null(system)
+	assert_not_null(camera_state)
+
+	system.process_tick(0.016)
+
+	assert_almost_eq(camera_state.speed_fov_bonus, 0.0, 0.001)
+
+func test_speed_fov_bonus_is_clamped_to_component_max() -> void:
+	var fixture: Dictionary = _create_fixture(
+		[],
+		[
+			{
+				"name": "E_Camera",
+				"tags": [],
+				"movement_velocity": Vector2(99.0, 0.0),
+				"speed_fov_max_bonus": 8.0,
+			},
+		],
+		90.0
+	)
+	var system: Variant = fixture.get("system", null)
+	var camera_state: C_CameraStateComponent = fixture.get("camera_state") as C_CameraStateComponent
+	assert_not_null(system)
+	assert_not_null(camera_state)
+
+	system.process_tick(0.016)
+
+	assert_almost_eq(camera_state.speed_fov_bonus, 8.0, 0.001)
+
+func test_resolve_target_fov_adds_speed_fov_bonus_to_base_target() -> void:
+	var fixture: Dictionary = _create_fixture(
+		[],
+		[
+			{
+				"name": "E_Camera",
+				"tags": [],
+				"movement_velocity": Vector2(4.5, 0.0),
+				"fov_blend_speed": 99.0,
+			},
+		],
+		90.0
+	)
+	var system: Variant = fixture.get("system", null)
+	var camera_manager: MockCameraManager = fixture.get("camera_manager") as MockCameraManager
+	var camera_state: C_CameraStateComponent = fixture.get("camera_state") as C_CameraStateComponent
+	assert_not_null(system)
+	assert_not_null(camera_manager)
+	assert_not_null(camera_manager.main_camera)
+	assert_not_null(camera_state)
+
+	system.process_tick(0.25)
+
+	assert_almost_eq(camera_state.target_fov, 97.5, 0.001)
+	assert_almost_eq(camera_manager.main_camera.fov, 97.5, 0.001)
+
+func test_fov_blend_speed_smooths_speed_fov_transition() -> void:
+	var fixture: Dictionary = _create_fixture(
+		[],
+		[
+			{
+				"name": "E_Camera",
+				"tags": [],
+				"movement_velocity": Vector2(9.0, 0.0),
+				"fov_blend_speed": 2.0,
+			},
+		],
+		90.0
+	)
+	var system: Variant = fixture.get("system", null)
+	var camera_manager: MockCameraManager = fixture.get("camera_manager") as MockCameraManager
+	assert_not_null(system)
+	assert_not_null(camera_manager)
+	assert_not_null(camera_manager.main_camera)
+
+	system.process_tick(0.1)
+
+	assert_almost_eq(camera_manager.main_camera.fov, 93.0, 0.001)
+	assert_true(camera_manager.main_camera.fov < 105.0)
 
 func test_baseline_fov_captured_from_authored_camera_on_first_tick() -> void:
 	var fixture: Dictionary = _create_fixture([], [], 82.3)
@@ -324,9 +432,26 @@ func _register_camera_entity(ecs_manager: MockECSManager, spec: Dictionary) -> D
 		camera_state.shake_trauma = float(spec.get("shake_trauma", C_CAMERA_STATE_COMPONENT.DEFAULT_SHAKE_TRAUMA))
 	if spec.has("fov_blend_speed"):
 		camera_state.fov_blend_speed = float(spec.get("fov_blend_speed", C_CAMERA_STATE_COMPONENT.DEFAULT_FOV_BLEND_SPEED))
+	if spec.has("speed_fov_max_bonus"):
+		camera_state.speed_fov_max_bonus = float(spec.get("speed_fov_max_bonus", C_CAMERA_STATE_COMPONENT.DEFAULT_SPEED_FOV_MAX_BONUS))
 
 	entity.add_child(camera_state)
 	ecs_manager.add_component_to_entity(entity, camera_state)
+
+	if spec.has("movement_velocity"):
+		var movement_component := C_MOVEMENT_COMPONENT.new()
+		autofree(movement_component)
+		var velocity_variant: Variant = spec.get("movement_velocity", Vector2.ZERO)
+		var movement_velocity: Vector2 = Vector2.ZERO
+		if velocity_variant is Vector2:
+			movement_velocity = velocity_variant as Vector2
+		elif velocity_variant is Vector3:
+			var velocity_3d: Vector3 = velocity_variant as Vector3
+			movement_velocity = Vector2(velocity_3d.x, velocity_3d.z)
+		movement_component.set_horizontal_dynamics_velocity(movement_velocity)
+		entity.add_child(movement_component)
+		ecs_manager.add_component_to_entity(entity, movement_component)
+
 	ecs_manager.register_entity_id(entity.get_entity_id(), entity)
 
 	return {

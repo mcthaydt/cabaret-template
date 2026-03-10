@@ -74,6 +74,21 @@ func test_use_context_value_reads_value_from_context_path() -> void:
 
 	assert_almost_eq(component.get("float_field", -1.0), 0.75, 0.0001)
 
+func test_scale_by_rule_score_multiplies_numeric_value() -> void:
+	var effect: Variant = _make_effect()
+	effect.float_value = 10.0
+	effect.scale_by_rule_score = true
+	effect.rule_score_context_path = "rule_score"
+	var component: Dictionary = {
+		"float_field": 0.0
+	}
+	var context: Dictionary = _make_context(component)
+	context["rule_score"] = 0.4
+
+	effect.execute(context)
+
+	assert_almost_eq(component.get("float_field", -1.0), 4.0, 0.0001)
+
 func test_missing_component_in_context_is_no_op() -> void:
 	var effect: Variant = _make_effect()
 	effect.float_value = 0.5
