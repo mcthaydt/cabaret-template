@@ -66,7 +66,7 @@ func test_fov_zone_sets_target_fov_when_redux_flag_true() -> void:
 	assert_not_null(system)
 	assert_not_null(camera_state)
 
-	store.set_slice(StringName("camera"), {
+	store.set_slice(StringName("vcam"), {
 		"in_fov_zone": true,
 	})
 	system.process_tick(0.016)
@@ -83,7 +83,7 @@ func test_fov_blending_lerps_main_camera_toward_target() -> void:
 	assert_not_null(camera_manager)
 	assert_not_null(camera_manager.main_camera)
 
-	store.set_slice(StringName("camera"), {
+	store.set_slice(StringName("vcam"), {
 		"in_fov_zone": true,
 	})
 	system.process_tick(0.25)
@@ -113,13 +113,13 @@ func test_baseline_fov_restored_when_zone_becomes_inactive() -> void:
 	assert_not_null(camera_manager.main_camera)
 	assert_not_null(camera_state)
 
-	store.set_slice(StringName("camera"), {
+	store.set_slice(StringName("vcam"), {
 		"in_fov_zone": true,
 	})
 	system.process_tick(1.0)
 	assert_almost_eq(camera_manager.main_camera.fov, 60.0, 0.001)
 
-	store.set_slice(StringName("camera"), {
+	store.set_slice(StringName("vcam"), {
 		"in_fov_zone": false,
 	})
 	system.process_tick(1.0)
@@ -139,7 +139,7 @@ func test_designer_rules_via_export_are_evaluated_alongside_defaults() -> void:
 	assert_not_null(system)
 	assert_not_null(camera_state)
 
-	store.set_slice(StringName("camera"), {
+	store.set_slice(StringName("vcam"), {
 		"in_fov_zone": true,
 	})
 	system.process_tick(0.016)
@@ -215,7 +215,7 @@ func test_primary_camera_selection_prefers_entity_id_or_camera_tag() -> void:
 	assert_not_null(camera_manager_by_id)
 	assert_not_null(camera_manager_by_id.main_camera)
 
-	store_by_id.set_slice(StringName("camera"), {"in_fov_zone": true})
+	store_by_id.set_slice(StringName("vcam"), {"in_fov_zone": true})
 	system_by_id.process_tick(1.0)
 	assert_almost_eq(camera_manager_by_id.main_camera.fov, 60.0, 0.001)
 
@@ -235,14 +235,14 @@ func test_primary_camera_selection_prefers_entity_id_or_camera_tag() -> void:
 	assert_not_null(camera_manager_by_tag)
 	assert_not_null(camera_manager_by_tag.main_camera)
 
-	store_by_tag.set_slice(StringName("camera"), {"in_fov_zone": true})
+	store_by_tag.set_slice(StringName("vcam"), {"in_fov_zone": true})
 	system_by_tag.process_tick(1.0)
 	assert_almost_eq(camera_manager_by_tag.main_camera.fov, 30.0, 0.001)
 
 func _create_fixture(designer_rules: Array = [], entity_specs: Array = [], main_camera_fov: float = 90.0) -> Dictionary:
 	var store := MOCK_STATE_STORE.new()
 	autofree(store)
-	store.set_slice(StringName("camera"), {
+	store.set_slice(StringName("vcam"), {
 		"in_fov_zone": false,
 	})
 

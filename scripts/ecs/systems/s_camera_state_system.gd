@@ -5,6 +5,7 @@ class_name S_CameraStateSystem
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
@@ -467,17 +468,7 @@ func _is_fov_zone_active(context: Dictionary) -> bool:
 		state_variant = _get_context_value(context, "redux_state")
 	if not (state_variant is Dictionary):
 		return false
-	var state: Dictionary = state_variant as Dictionary
-
-	var camera_slice_variant: Variant = _get_context_value(state, "camera")
-	if not (camera_slice_variant is Dictionary):
-		return false
-	var camera_slice: Dictionary = camera_slice_variant as Dictionary
-
-	var in_zone_variant: Variant = _get_context_value(camera_slice, "in_fov_zone")
-	if in_zone_variant is bool:
-		return in_zone_variant
-	return false
+	return U_VCAM_SELECTORS.is_in_fov_zone(state_variant as Dictionary)
 
 func _write_target_fov(camera_state: Variant, value: float) -> void:
 	if camera_state is Object and (camera_state as Object).has_method("set_target_fov"):

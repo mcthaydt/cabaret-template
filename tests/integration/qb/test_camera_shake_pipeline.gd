@@ -49,7 +49,7 @@ func _setup_fixture() -> Dictionary:
 
 	var store := MOCK_STATE_STORE.new()
 	autofree(store)
-	store.set_slice(StringName("camera"), {
+	store.set_slice(StringName("vcam"), {
 		"in_fov_zone": false,
 	})
 
