@@ -9,6 +9,8 @@ const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
 const RS_VCAM_MODE_FIXED := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
+const RS_VCAM_RESPONSE := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
+const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 
 class VCamManagerStub extends I_VCamManager:
 	var active_vcam_id: StringName = StringName("")
@@ -373,6 +375,237 @@ func test_use_path_with_invalid_follow_target_preserves_progress_and_skips_submi
 	assert_eq(vcam_manager.submit_calls, 0, "Invalid path target should enter recovery and skip submission")
 	assert_almost_eq(helper.progress, progress_before, 0.0001, "Path progress should not advance without a valid follow target")
 
+func test_response_smoothing_offsets_first_frame_after_target_moves() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_SmoothTarget", Vector3.ZERO)
+	var mode := _new_first_person_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_response_active"), mode, follow_target)
+	component.response = _new_response()
+
+	vcam_manager.active_vcam_id = StringName("cam_response_active")
+	ecs_manager._physics_process(0.016)
+
+	follow_target.global_position = Vector3(12.0, 0.0, 0.0)
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_response_active"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	assert_true(
+		submitted.origin.distance_to(raw_transform.origin) > 0.001,
+		"First frame after target movement should use smoothed position, not raw evaluator output"
+	)
+
+func test_response_smoothing_converges_toward_raw_pose_over_ticks() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_ConvergeTarget", Vector3.ZERO)
+	var mode := _new_first_person_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_response_converge"), mode, follow_target)
+	component.response = _new_response(3.0, 0.7, 1.0, 4.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_response_converge")
+	ecs_manager._physics_process(0.016)
+
+	follow_target.global_position = Vector3(10.0, 0.0, 0.0)
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var first_transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_response_converge"))
+	var first_error: float = first_transform.origin.distance_to(raw_transform.origin)
+
+	for _i in range(120):
+		ecs_manager._physics_process(0.016)
+
+	var final_transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_response_converge"))
+	var final_error: float = final_transform.origin.distance_to(raw_transform.origin)
+
+	assert_true(final_error < first_error, "Smoothed position should approach raw evaluator pose over time")
+	assert_true(final_error < 0.05, "Smoothed position should settle close to raw evaluator pose")
+
+func test_underdamped_follow_overshoots_then_settles() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_UnderdampedTarget", Vector3.ZERO)
+	var mode := _new_first_person_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_response_under"), mode, follow_target)
+	component.response = _new_response(2.0, 0.5, 1.0, 4.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_response_under")
+	ecs_manager._physics_process(0.016)
+
+	follow_target.global_position = Vector3(10.0, 0.0, 0.0)
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var raw_x: float = raw_transform.origin.x
+	var max_x: float = -INF
+
+	for _i in range(300):
+		ecs_manager._physics_process(0.016)
+		var sample: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_response_under"))
+		max_x = maxf(max_x, sample.origin.x)
+
+	var final_transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_response_under"))
+	assert_true(max_x > raw_x + 0.01, "Underdamped follow should overshoot target position")
+	assert_almost_eq(final_transform.origin.x, raw_x, 0.15)
+
+func test_critical_damped_follow_does_not_overshoot() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_CriticalTarget", Vector3.ZERO)
+	var mode := _new_first_person_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_response_critical"), mode, follow_target)
+	component.response = _new_response(2.0, 1.0, 1.0, 4.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_response_critical")
+	ecs_manager._physics_process(0.016)
+
+	follow_target.global_position = Vector3(10.0, 0.0, 0.0)
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var raw_x: float = raw_transform.origin.x
+	var max_x: float = -INF
+
+	for _i in range(300):
+		ecs_manager._physics_process(0.016)
+		var sample: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_response_critical"))
+		max_x = maxf(max_x, sample.origin.x)
+
+	var final_transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_response_critical"))
+	assert_true(max_x <= raw_x + 0.005, "Critically damped follow should avoid overshoot")
+	assert_almost_eq(final_transform.origin.x, raw_x, 0.1)
+
+func test_null_response_submits_raw_evaluator_output() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_NullResponseTarget", Vector3(3.0, 0.0, -1.0))
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_null_response"), mode, follow_target)
+	component.response = null
+
+	vcam_manager.active_vcam_id = StringName("cam_null_response")
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_null_response"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
+
+func test_rotation_smoothing_converges_to_evaluated_rotation() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_RotationTarget", Vector3.ZERO)
+	var mode := _new_first_person_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_rotation_response"), mode, follow_target)
+	component.response = _new_response(6.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_rotation_response")
+	ecs_manager._physics_process(0.016)
+
+	component.runtime_yaw = 90.0
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var first_transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_rotation_response"))
+	var first_error: float = _rotation_error(first_transform, raw_transform)
+
+	for _i in range(180):
+		ecs_manager._physics_process(0.016)
+
+	var final_transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_rotation_response"))
+	var final_error: float = _rotation_error(final_transform, raw_transform)
+
+	assert_true(first_error > 0.001, "First frame after rotation change should be smoothed")
+	assert_true(final_error < first_error, "Smoothed rotation should converge toward raw evaluator rotation")
+	assert_true(final_error < 0.01, "Smoothed rotation should settle near raw evaluator rotation")
+
+func test_mode_switch_resets_response_dynamics_without_residual_momentum() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_ModeSwitchTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_mode_reset"),
+		_new_orbit_mode(),
+		follow_target
+	)
+	component.response = _new_response(1.5, 0.7, 1.0, 1.5, 0.8, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_mode_reset")
+	ecs_manager._physics_process(0.016)
+
+	follow_target.global_position = Vector3(9.0, 0.0, 0.0)
+	for _i in range(8):
+		ecs_manager._physics_process(0.016)
+
+	component.mode = _new_first_person_mode()
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_mode_reset"))
+	var raw_result: Dictionary = _evaluate_raw_result(component.mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
+
+func test_follow_target_change_resets_response_dynamics() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var first_target := _create_target_entity(ecs_manager, "E_ResetTargetA", Vector3.ZERO)
+	var second_target := _create_target_entity(ecs_manager, "E_ResetTargetB", Vector3(15.0, 0.0, 0.0))
+	var mode := _new_first_person_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_target_reset"), mode, first_target)
+	component.response = _new_response(1.5, 0.7, 1.0, 1.5, 0.8, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_target_reset")
+	ecs_manager._physics_process(0.016)
+
+	first_target.global_position = Vector3(8.0, 0.0, 0.0)
+	for _i in range(8):
+		ecs_manager._physics_process(0.016)
+
+	component.follow_target_path = second_target.get_path()
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_target_reset"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, second_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
+
 func test_does_nothing_when_no_active_vcam_exists() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -502,6 +735,47 @@ func _new_fixed_path_mode() -> Resource:
 	mode.use_world_anchor = true
 	mode.track_target = false
 	return mode
+
+func _new_response(
+	follow_frequency: float = 3.0,
+	follow_damping: float = 0.7,
+	follow_initial_response: float = 1.0,
+	rotation_frequency: float = 4.0,
+	rotation_damping: float = 1.0,
+	rotation_initial_response: float = 1.0
+) -> Resource:
+	var response := RS_VCAM_RESPONSE.new()
+	response.follow_frequency = follow_frequency
+	response.follow_damping = follow_damping
+	response.follow_initial_response = follow_initial_response
+	response.rotation_frequency = rotation_frequency
+	response.rotation_damping = rotation_damping
+	response.rotation_initial_response = rotation_initial_response
+	return response
+
+func _evaluate_raw_result(mode: Resource, follow_target: Node3D, component: C_VCamComponent) -> Dictionary:
+	return U_VCAM_MODE_EVALUATOR.evaluate(
+		mode,
+		follow_target,
+		component.get_look_at_target(),
+		component.runtime_yaw,
+		component.runtime_pitch,
+		component.get_fixed_anchor()
+	)
+
+func _extract_submission_transform(vcam_manager: VCamManagerStub, vcam_id: StringName) -> Transform3D:
+	var result: Dictionary = vcam_manager.get_submission(vcam_id)
+	var transform_variant: Variant = result.get("transform", Transform3D.IDENTITY)
+	return transform_variant as Transform3D
+
+func _rotation_error(lhs: Transform3D, rhs: Transform3D) -> float:
+	return lhs.basis.get_rotation_quaternion().angle_to(rhs.basis.get_rotation_quaternion())
+
+func _assert_transform_close(lhs: Transform3D, rhs: Transform3D, origin_tolerance: float, basis_tolerance: float) -> void:
+	assert_true(lhs.origin.distance_to(rhs.origin) <= origin_tolerance)
+	assert_true(lhs.basis.x.distance_to(rhs.basis.x) <= basis_tolerance)
+	assert_true(lhs.basis.y.distance_to(rhs.basis.y) <= basis_tolerance)
+	assert_true(lhs.basis.z.distance_to(rhs.basis.z) <= basis_tolerance)
 
 func _expected_orbit_position(target_position: Vector3) -> Vector3:
 	var distance: float = 5.0
