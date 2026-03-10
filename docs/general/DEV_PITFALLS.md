@@ -201,6 +201,8 @@
 
 - **Gameplay scenes can silently ship without orbit runtime if `S_VCamSystem` is missing**: Scenes that instance `tmpl_camera.tscn` still need `S_VCamSystem` in `Systems/Core`; without it, camera look/follow behavior and active-vCam FOV propagation never run in those scenes.
   - **Fix pattern**: keep `S_VCamSystem` present with `execution_priority = 100` in every gameplay scene that uses `E_CameraRoot`/`C_VCamComponent`, and add scene-registration assertions that check for `Systems/Core/S_VCamSystem`.
+- **Leaving `debug_rotation_logging = true` in authored scenes can flood runtime logs and hide real signal in QA runs**: Temporary diagnostics are useful while tuning, but scene-level overrides keep logging enabled by default for everyone and can skew runtime profiling.
+  - **Fix pattern**: rely on `S_VCamSystem` default (`false`) and remove `.tscn` overrides after diagnostics; keep a style guard test that fails on authored `debug_rotation_logging = true` lines.
 
 ## vCam Orbit Evaluator Pitfalls
 

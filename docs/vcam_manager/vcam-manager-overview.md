@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-06
 **Updated**: 2026-03-10
-**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 (2C1/2C2/2C3/2C4/2C5) complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact rule integration + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass); next target is mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel
+**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 (2C1/2C2/2C3/2C4/2C5) + movement-style look smoothing + camera look smoothing parity + post-`0f51c36` retune doc/test catch-up complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact rule integration + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + tuned orbit follow-bypass guard coverage); next target is mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel
 
 ## Summary
 
@@ -400,10 +400,16 @@ This prevents pops from restarting a blend from the original source position and
 | `look_ahead_smoothing` | `float` | `3.0` | 2C1 | Hz for look-ahead offset dynamics (orbit only) |
 | `auto_level_speed` | `float` | `0.0` | 2C2 | Degrees/sec pitch decays toward horizon when no look input (0 = disabled, orbit only) |
 | `auto_level_delay` | `float` | `1.0` | 2C2 | Seconds of zero look input before auto-level begins (orbit only) |
+| `look_input_deadzone` | `float` | `0.02` | Parity pass | Deadzone used by vCam look-input activity filtering (gating only; runtime yaw/pitch remains raw-input driven) |
+| `look_input_hold_sec` | `float` | `0.06` | Parity pass | Hold window that keeps look-input activity "active" through bursty zero frames |
+| `look_input_release_decay` | `float` | `25.0` | Parity pass | Decay rate toward zero after hold expires for activity filtering |
+| `orbit_look_bypass_enable_speed` | `float` | `0.15` | Parity pass | Orbit follow-position bypass enable threshold (m/s) while look input is active |
+| `orbit_look_bypass_disable_speed` | `float` | `0.3` | Parity pass | Orbit follow-position bypass disable threshold (m/s), clamped to `>= enable` for hysteresis |
 | `landing_impact_scale` | `float` | `1.0` | 6A3c | Multiplier for QB-driven landing impact offset on this vCam (0 = suppress) |
 
 > **Note:** Orbit-feel Phase 2C is now fully landed (`2C1`/`2C2`/`2C3`/`2C4`/`2C5`): look-ahead + auto-level + projection soft-zone + dead-zone hysteresis + runtime integration.
 > Look-ahead direction is movement-velocity driven (`state.gameplay.entities[*].velocity` primary source, movement-component/body fallback) and intentionally ignores follow-target transform deltas to avoid rotation-only offsets.
+> Post-`0f51c36` tuning baseline in `cfg_default_response.tres` is currently `follow=3.8/1.0`, `rotation=4.8/0.9`, `look_ahead_distance=0.02`, `look_ahead_smoothing=1.77`, `orbit_look_bypass_enable_speed=7.0`, `orbit_look_bypass_disable_speed=8.5`.
 
 ## Mobile Drag-Look Contract
 

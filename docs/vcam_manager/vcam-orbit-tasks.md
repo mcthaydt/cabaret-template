@@ -32,7 +32,12 @@ Before starting Phase 2, verify:
 - [x] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any orbit-specific pitfalls discovered.
 - [x] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
 
-**Documentation completion note (March 10, 2026):** Continuation/tasks docs updated and synchronized, AGENTS vCam runtime contracts updated for orbit resolved-values behavior, and no new orbit-specific DEV_PITFALLS additions were required in this pass.
+**Documentation completion note (March 10, 2026):** Continuation/tasks docs updated and synchronized, AGENTS vCam runtime contracts updated for orbit resolved-values behavior, and post-`0f51c36` retune docs/tests now pin the active `cfg_default_response.tres` baseline plus authored-scene debug-logging defaults.
+
+### Post-0f51 Retune Audit (March 10, 2026)
+
+- [x] Added preset coverage for `cfg_default_response.tres` tuned orbit response values in `tests/unit/resources/display/vcam/test_vcam_mode_presets.gd`
+- [x] Added style guard to fail on authored `debug_rotation_logging = true` overrides in gameplay/template scenes (`tests/unit/style/test_style_enforcement.gd`)
 
 ---
 

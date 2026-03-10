@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, and the Camera Look Smoothing Parity pass are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning, scene parity fixes for interior/exterior vCam runtime wiring, active-vCam `fov` -> `C_CameraStateComponent.base_fov` sync, balanced orbit/gamepad default retuning, movement-style look smoothing for orbit/first-person rotation, and response-tuned look-activity filtering plus speed-aware orbit follow bypass hysteresis). Next implementation target is mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, and the post-`0f51c36` orbit retune doc/test catch-up pass are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning, scene parity fixes for interior/exterior vCam runtime wiring, active-vCam `fov` -> `C_CameraStateComponent.base_fov` sync, balanced orbit/gamepad default retuning, movement-style look smoothing for orbit/first-person rotation, response-tuned look-activity filtering plus speed-aware orbit follow bypass hysteresis, and explicit regression coverage for tuned response presets + authored-scene debug logging defaults). Next implementation target is mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel.
 
 ## Orbit UX Improvement Pass (March 10, 2026)
 
@@ -12,7 +12,7 @@
 - Patched `S_VCamSystem` so the active vCam writes evaluated `fov` into the primary camera-state `base_fov` each tick (`1..179` clamp, missing/invalid value no-op).
 - Retuned global defaults for a balanced locked-pitch orbit pass:
   - `cfg_default_orbit.tres`: `distance=9.0`, `authored_pitch=-24.0`, `lock_y_rotation=true`, `rotation_speed=1.6`, `fov=65.0`
-  - `cfg_default_response.tres`: `follow=4.2/0.85/1.0`, `rotation=9.0/0.9/1.0`, `look_ahead_distance=0.5`, `look_ahead_smoothing=4.0`
+  - `cfg_default_response.tres` (superseded by later post-`0f51c36` tuning): `follow=4.2/0.85/1.0`, `rotation=9.0/0.9/1.0`, `look_ahead_distance=0.5`, `look_ahead_smoothing=4.0`
   - `cfg_default_soft_zone.tres`: `dead_zone=0.18/0.16`, `soft_zone=0.55/0.48`, `damping=3.0`, `hysteresis_margin=0.03`
   - `U_InputReducer` gamepad defaults: `right_stick_deadzone=0.16`, `right_stick_sensitivity=1.15`, `deadzone_curve=1`
 - Added regression coverage:
@@ -64,6 +64,21 @@
   - `tests/unit/resources/display/vcam/test_vcam_response.gd` (`15/15` passing)
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`70/70` passing)
   - `tests/unit/style/test_style_enforcement.gd` (`16/16` passing)
+
+## Post-0f51 Orbit Retune Doc/Test Catch-up (March 10, 2026)
+
+- Synced continuation/overview/tasks docs with the current tuned orbit response baseline in `cfg_default_response.tres`:
+  - `follow_frequency=3.8`, `follow_damping=1.0`
+  - `rotation_frequency=4.8`, `rotation_damping=0.9`
+  - `look_ahead_distance=0.02`, `look_ahead_smoothing=1.77`
+  - `orbit_look_bypass_enable_speed=7.0`, `orbit_look_bypass_disable_speed=8.5`
+- Added preset regression coverage in `tests/unit/resources/display/vcam/test_vcam_mode_presets.gd` for:
+  - `cfg_default_response.tres` load/type contract (`RS_VCamResponse`)
+  - tuned baseline value assertions for the fields above
+- Added style-guard coverage in `tests/unit/style/test_style_enforcement.gd` to fail if authored scenes re-enable `debug_rotation_logging = true`.
+- Validation run (green):
+  - `tests/unit/resources/display/vcam/test_vcam_mode_presets.gd`
+  - `tests/unit/style/test_style_enforcement.gd`
 
 ## Phase 0 Progress (March 10, 2026)
 
