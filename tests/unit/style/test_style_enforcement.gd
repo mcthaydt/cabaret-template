@@ -457,6 +457,61 @@ func test_scene_organization_gameplay_structure() -> void:
 	assert_true(has_spawn_points_in_entities,
 		"Spawn points must be under Entities node per SCENE_ORGANIZATION_GUIDE.md")
 
+func test_character_template_defines_camera_follow_anchor() -> void:
+	var character_scene := load("res://scenes/templates/tmpl_character.tscn") as PackedScene
+	assert_not_null(character_scene, "Character template scene must exist")
+
+	var character_instance := character_scene.instantiate() as Node
+	assert_not_null(character_instance, "Character template must instantiate")
+	add_child_autofree(character_instance)
+
+	var follow_anchor := character_instance.get_node_or_null("Player_Body/CameraFollowAnchor") as Node3D
+	assert_not_null(
+		follow_anchor,
+		"tmpl_character.tscn must define Player_Body/CameraFollowAnchor for vCam follow targeting"
+	)
+	if follow_anchor != null:
+		assert_true(
+			follow_anchor.transform.origin.is_zero_approx(),
+			"CameraFollowAnchor should stay at Player_Body origin unless intentionally authored otherwise"
+		)
+
+func test_camera_template_uses_camera_follow_anchor_path() -> void:
+	var camera_scene := load("res://scenes/templates/tmpl_camera.tscn") as PackedScene
+	assert_not_null(camera_scene, "Camera template scene must exist")
+
+	var camera_instance := camera_scene.instantiate() as Node
+	assert_not_null(camera_instance, "Camera template must instantiate")
+	add_child_autofree(camera_instance)
+
+	var vcam_component := camera_instance.get_node_or_null("Components/C_VCamComponent")
+	assert_not_null(vcam_component, "tmpl_camera.tscn must include Components/C_VCamComponent")
+	if vcam_component != null:
+		assert_eq(
+			vcam_component.follow_target_path,
+			NodePath("../../../E_Player/Player_Body/CameraFollowAnchor"),
+			"C_VCamComponent.follow_target_path should target CameraFollowAnchor"
+		)
+
+func test_prefab_player_inherits_camera_follow_anchor() -> void:
+	var player_prefab := load("res://scenes/prefabs/prefab_player.tscn") as PackedScene
+	assert_not_null(player_prefab, "Player prefab scene must exist")
+
+	var player_instance := player_prefab.instantiate() as Node
+	assert_not_null(player_instance, "Player prefab must instantiate")
+	add_child_autofree(player_instance)
+
+	var follow_anchor := player_instance.get_node_or_null("Player_Body/CameraFollowAnchor") as Node3D
+	assert_not_null(
+		follow_anchor,
+		"prefab_player.tscn must include Player_Body/CameraFollowAnchor (inherited from tmpl_character)"
+	)
+	if follow_anchor != null:
+		assert_true(
+			follow_anchor.transform.origin.is_zero_approx(),
+			"prefab_player CameraFollowAnchor should stay at Player_Body origin unless intentionally authored otherwise"
+		)
+
 func test_gameplay_scenes_do_not_embed_hud_instances() -> void:
 	var violations: Array[String] = []
 	_collect_gameplay_hud_embedding_violations("res://scenes/gameplay", violations)

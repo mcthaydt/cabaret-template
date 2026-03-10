@@ -1,19 +1,20 @@
-[gd_resource type="Resource" script_class="RS_UIMotionSet" format=3]
+[gd_resource type="Resource" script_class="RS_UIMotionSet" format=3 uid="uid://diws5nytknsue"]
 
-[ext_resource type="Script" path="res://scripts/resources/ui/rs_ui_motion_set.gd" id="1_motion_set"]
-[ext_resource type="Script" path="res://scripts/resources/ui/rs_ui_motion_preset.gd" id="2_motion_preset"]
+[ext_resource type="Script" uid="uid://cu5sr5qe1yst4" path="res://scripts/resources/ui/rs_ui_motion_set.gd" id="1_motion_set"]
+[ext_resource type="Script" uid="uid://bywbkktihcmqf" path="res://scripts/resources/ui/rs_ui_motion_preset.gd" id="2_motion_preset"]
 
 [sub_resource type="Resource" id="MotionPreset_toast_fade_in"]
 script = ExtResource("2_motion_preset")
 property_path = "modulate:a"
 from_value = 0.0
 to_value = 1.0
-duration_sec = 0.2
 transition_type = 0
 ease_type = 0
 
 [sub_resource type="Resource" id="MotionPreset_toast_hold"]
 script = ExtResource("2_motion_preset")
+from_value = null
+to_value = null
 interval_sec = 1.0
 
 [sub_resource type="Resource" id="MotionPreset_toast_fade_out"]

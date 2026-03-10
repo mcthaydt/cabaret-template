@@ -1,14 +1,6 @@
-[gd_resource type="Resource" script_class="RS_VCamModeFixed" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_VCamModeFixed" format=3 uid="uid://bb4rnl6vaopef"]
 
-[ext_resource type="Script" path="res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd" id="1_k6n8l"]
+[ext_resource type="Script" uid="uid://ci80ov58065i4" path="res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd" id="1_k6n8l"]
 
 [resource]
 script = ExtResource("1_k6n8l")
-use_world_anchor = true
-track_target = false
-fov = 75.0
-tracking_damping = 5.0
-follow_offset = Vector3(0, 3, 5)
-use_path = false
-path_max_speed = 10.0
-path_damping = 5.0

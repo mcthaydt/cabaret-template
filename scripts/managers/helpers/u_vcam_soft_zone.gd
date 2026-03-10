@@ -39,6 +39,9 @@ static func compute_camera_correction_with_state(
 	var result: Dictionary = {
 		"correction": Vector3.ZERO,
 		"dead_zone_state": next_dead_zone_state,
+		"normalized_screen_pos": Vector2.ZERO,
+		"corrected_normalized_pos": Vector2.ZERO,
+		"depth": 0.0,
 	}
 	if camera == null or not is_instance_valid(camera):
 		return result
@@ -69,6 +72,7 @@ static func compute_camera_correction_with_state(
 	var depth: float = (follow_world_pos - desired_origin).dot(desired_forward)
 	if depth <= 0.0:
 		return result
+	result["depth"] = depth
 
 	var previous_transform: Transform3D = camera.global_transform
 	camera.global_transform = desired_transform
@@ -78,6 +82,7 @@ static func compute_camera_correction_with_state(
 		screen_pos.x / viewport_size.x,
 		screen_pos.y / viewport_size.y
 	)
+	result["normalized_screen_pos"] = normalized_screen_pos
 
 	var axis_x_result: Dictionary = _resolve_axis(
 		normalized_screen_pos.x,
@@ -102,6 +107,7 @@ static func compute_camera_correction_with_state(
 		float(axis_x_result.get("value", normalized_screen_pos.x)),
 		float(axis_y_result.get("value", normalized_screen_pos.y))
 	)
+	result["corrected_normalized_pos"] = corrected_normalized
 	if corrected_normalized.distance_squared_to(normalized_screen_pos) > EPSILON:
 		var corrected_screen := Vector2(
 			corrected_normalized.x * viewport_size.x,

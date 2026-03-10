@@ -664,6 +664,120 @@ func test_response_smoothing_offsets_first_frame_after_target_moves() -> void:
 		"First frame after target movement should use smoothed position, not raw evaluator output"
 	)
 
+func test_orbit_rotation_input_does_not_add_follow_position_lag_when_target_stationary() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitStationaryTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_stationary_rotation"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(1.0, 0.7, 1.0, 4.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_stationary_rotation")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(2.0, 0.0)})
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_orbit_stationary_rotation"))
+	var look_state_all: Dictionary = system.get("_look_rotation_state") as Dictionary
+	var look_state := look_state_all.get(StringName("cam_orbit_stationary_rotation"), {}) as Dictionary
+	assert_false(look_state.is_empty(), "Orbit look smoothing state should exist after look input")
+
+	var smoothed_yaw: float = float(look_state.get("smoothed_yaw", component.runtime_yaw))
+	var smoothed_pitch: float = float(look_state.get("smoothed_pitch", component.runtime_pitch))
+	var expected_result: Dictionary = U_VCAM_MODE_EVALUATOR.evaluate(
+		mode,
+		follow_target,
+		component.get_look_at_target(),
+		smoothed_yaw,
+		smoothed_pitch,
+		component.get_fixed_anchor()
+	)
+	var expected_transform := expected_result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	assert_almost_eq(
+		submitted.origin.distance_to(expected_transform.origin),
+		0.0,
+		0.0001,
+		"Orbit rotation input should not add extra follow-position lag when follow target is stationary"
+	)
+
+func test_orbit_look_release_does_not_pop_follow_position() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitReleaseTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_release_handoff"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(1.0, 0.7, 1.0, 4.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_release_handoff")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(2.0, 0.0)})
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_orbit_release_handoff"))
+	var look_state_all: Dictionary = system.get("_look_rotation_state") as Dictionary
+	var look_state := look_state_all.get(StringName("cam_orbit_release_handoff"), {}) as Dictionary
+	assert_false(look_state.is_empty(), "Look smoothing state should exist on release tick")
+	var smoothed_yaw: float = float(look_state.get("smoothed_yaw", component.runtime_yaw))
+	var smoothed_pitch: float = float(look_state.get("smoothed_pitch", component.runtime_pitch))
+	var expected_result: Dictionary = U_VCAM_MODE_EVALUATOR.evaluate(
+		mode,
+		follow_target,
+		component.get_look_at_target(),
+		smoothed_yaw,
+		smoothed_pitch,
+		component.get_fixed_anchor()
+	)
+	var expected_transform := expected_result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	assert_almost_eq(
+		submitted.origin.distance_to(expected_transform.origin),
+		0.0,
+		0.0001,
+		"First frame after releasing orbit look input should not apply follow-position lag"
+	)
+
+	var follow_dynamics_all: Dictionary = system.get("_follow_dynamics") as Dictionary
+	var follow_dynamics_variant: Variant = follow_dynamics_all.get(StringName("cam_orbit_release_handoff"), null)
+	assert_true(follow_dynamics_variant is Object, "Follow dynamics should exist for orbit camera")
+	var dynamics_object := follow_dynamics_variant as Object
+	var cached_value_variant: Variant = dynamics_object.call("get_value")
+	assert_true(cached_value_variant is Vector3, "Follow dynamics should expose Vector3 cached value")
+	var cached_position := cached_value_variant as Vector3
+	assert_almost_eq(
+		cached_position.distance_to(expected_transform.origin),
+		0.0,
+		0.0001,
+		"Follow dynamics cache should be reset to release-frame raw position"
+	)
+
 func test_response_smoothing_converges_toward_raw_pose_over_ticks() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -984,6 +1098,46 @@ func test_orbit_look_ahead_stationary_target_keeps_zero_offset() -> void:
 	var state := look_ahead_state.get(StringName("cam_look_ahead_stationary"), {}) as Dictionary
 	var offset := state.get("current_offset", Vector3.ONE) as Vector3
 	assert_true(offset.is_zero_approx())
+
+func test_orbit_look_ahead_clears_offset_when_target_stops() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LookAheadStopTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_look_ahead_stop"),
+		_new_orbit_mode(),
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 4.0, 1.0, 1.0, 2.0, 0.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_look_ahead_stop")
+	ecs_manager._physics_process(0.016)
+
+	follow_target.global_position = Vector3(5.0, 0.0, 0.0)
+	ecs_manager._physics_process(0.016)
+
+	var moving_state_all: Dictionary = system.get("_look_ahead_state") as Dictionary
+	var moving_state := moving_state_all.get(StringName("cam_look_ahead_stop"), {}) as Dictionary
+	var moving_offset := moving_state.get("current_offset", Vector3.ZERO) as Vector3
+	assert_true(
+		moving_offset.length() > 1.9,
+		"Look-ahead offset should be non-zero while target is moving"
+	)
+
+	ecs_manager._physics_process(0.016)
+
+	var stopped_state_all: Dictionary = system.get("_look_ahead_state") as Dictionary
+	var stopped_state := stopped_state_all.get(StringName("cam_look_ahead_stop"), {}) as Dictionary
+	var stopped_offset := stopped_state.get("current_offset", Vector3.ONE) as Vector3
+	assert_true(
+		stopped_offset.is_zero_approx(),
+		"Look-ahead offset should clear when target stops moving"
+	)
 
 func test_orbit_look_ahead_clears_state_on_mode_switch() -> void:
 	var context: Dictionary = await _setup_context()

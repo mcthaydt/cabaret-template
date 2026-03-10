@@ -15,8 +15,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 background_color = Color(0.114, 0.114, 0.129, 0.5)
-motion_set = ExtResource("2_motion_set")
 motion_target_path = NodePath("CenterContainer/Panel")
+motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=731155615]
 script = ExtResource("ui_scale_root")

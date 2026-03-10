@@ -48,7 +48,6 @@
 [ext_resource type="Script" uid="uid://csqsmkkv5ite7" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
 [ext_resource type="Script" uid="uid://dbegk7lwqi6r0" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="28_jpc3c"]
 [ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
 [ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
@@ -81,6 +80,7 @@
 [ext_resource type="Resource" uid="uid://cu1ht8hp7ldi3" path="res://resources/lighting/cfg_character_lighting_profile_exterior.tres" id="69_character_lighting_profile"]
 [ext_resource type="Script" uid="uid://ditrnsmje8qar" path="res://scripts/gameplay/inter_character_light_zone.gd" id="70_character_light_zone_script"]
 [ext_resource type="Resource" uid="uid://6u8rguj7enh" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_exterior.tres" id="71_character_light_zone_goal_config"]
+[ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -191,6 +191,7 @@ script = ExtResource("24_touchscreen_system")
 
 [node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=1589217004]
 script = ExtResource("72_vcam_system")
+debug_rotation_logging = true
 execution_priority = 100
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1912819351]
