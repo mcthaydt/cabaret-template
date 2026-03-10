@@ -11,6 +11,7 @@ const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vca
 const RS_VCAM_MODE_FIRST_PERSON := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
 const RS_VCAM_MODE_FIXED := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 const RS_VCAM_RESPONSE := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
+const RS_VCAM_SOFT_ZONE := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 
 class VCamManagerStub extends I_VCamManager:
@@ -974,6 +975,76 @@ func test_orbit_auto_level_is_noop_for_first_person_and_fixed_modes() -> void:
 		ecs_manager._physics_process(0.016)
 	assert_almost_eq(fixed_component.runtime_pitch, -9.0, 0.0001)
 
+func test_orbit_soft_zone_applies_correction_when_resource_is_present() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	_create_projection_camera()
+	await _pump()
+	var follow_target := _create_target_entity(ecs_manager, "E_SoftZoneFollow", Vector3.ZERO)
+	var look_target := _create_target_entity(ecs_manager, "E_SoftZoneLook", Vector3(10.0, 0.0, -10.0))
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_soft_zone_enabled"), mode, follow_target)
+	component.look_at_target_path = look_target.get_path()
+	component.soft_zone = _new_soft_zone(0.1, 0.1, 0.4, 0.4, 20.0)
+	component.response = null
+
+	vcam_manager.active_vcam_id = StringName("cam_soft_zone_enabled")
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_soft_zone_enabled"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	assert_true(submitted.origin.distance_to(raw_transform.origin) > 0.001)
+
+func test_orbit_soft_zone_noops_when_resource_is_missing() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	_create_projection_camera()
+	await _pump()
+	var follow_target := _create_target_entity(ecs_manager, "E_SoftZoneNoResFollow", Vector3.ZERO)
+	var look_target := _create_target_entity(ecs_manager, "E_SoftZoneNoResLook", Vector3(10.0, 0.0, -10.0))
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_soft_zone_disabled"), mode, follow_target)
+	component.look_at_target_path = look_target.get_path()
+	component.soft_zone = null
+	component.response = null
+
+	vcam_manager.active_vcam_id = StringName("cam_soft_zone_disabled")
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_soft_zone_disabled"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
+
+func test_soft_zone_is_noop_for_first_person_mode() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	_create_projection_camera()
+	await _pump()
+	var follow_target := _create_target_entity(ecs_manager, "E_SoftZoneFirstPersonFollow", Vector3.ZERO)
+	var mode := _new_first_person_mode()
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_soft_zone_first_person"), mode, follow_target)
+	component.soft_zone = _new_soft_zone(0.1, 0.1, 0.4, 0.4, 20.0)
+	component.response = null
+
+	vcam_manager.active_vcam_id = StringName("cam_soft_zone_first_person")
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_soft_zone_first_person"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
+
 func test_landing_impact_offset_is_added_to_submitted_position() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -1441,6 +1512,30 @@ func _new_response(
 	response.auto_level_speed = auto_level_speed
 	response.auto_level_delay = auto_level_delay
 	return response
+
+func _new_soft_zone(
+	dead_zone_width: float = 0.1,
+	dead_zone_height: float = 0.1,
+	soft_zone_width: float = 0.4,
+	soft_zone_height: float = 0.4,
+	damping: float = 2.0,
+	hysteresis_margin: float = 0.02
+) -> Resource:
+	var soft_zone := RS_VCAM_SOFT_ZONE.new()
+	soft_zone.dead_zone_width = dead_zone_width
+	soft_zone.dead_zone_height = dead_zone_height
+	soft_zone.soft_zone_width = soft_zone_width
+	soft_zone.soft_zone_height = soft_zone_height
+	soft_zone.damping = damping
+	soft_zone.hysteresis_margin = hysteresis_margin
+	return soft_zone
+
+func _create_projection_camera() -> Camera3D:
+	var camera := Camera3D.new()
+	add_child(camera)
+	autofree(camera)
+	camera.current = true
+	return camera
 
 func _evaluate_raw_result(mode: Resource, follow_target: Node3D, component: C_VCamComponent) -> Dictionary:
 	return U_VCAM_MODE_EVALUATOR.evaluate(

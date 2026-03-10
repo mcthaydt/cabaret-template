@@ -6,15 +6,18 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_INPUT_SELECTORS := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
+const U_VCAM_SOFT_ZONE := preload("res://scripts/managers/helpers/u_vcam_soft_zone.gd")
 const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
 const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
+const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
 const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
 const RS_VCAM_MODE_FIXED_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
+const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
@@ -31,6 +34,7 @@ var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_t
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
 var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
 var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
+var _soft_zone_dead_zone_state: Dictionary = {}  # StringName -> {x: bool, y: bool}
 var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
 var _landing_recovery_dynamics = null
@@ -77,6 +81,7 @@ func _exit_tree() -> void:
 	_clear_landing_impact_recovery_state()
 	_look_ahead_state.clear()
 	_orbit_no_look_input_timers.clear()
+	_soft_zone_dead_zone_state.clear()
 	_last_active_vcam_id = StringName("")
 
 func _apply_rotation_continuity_policy(
@@ -235,12 +240,20 @@ func _evaluate_and_submit(
 		result,
 		delta
 	)
-	var smoothed_result: Dictionary = _apply_response_smoothing(
+	var soft_zone_result: Dictionary = _apply_orbit_soft_zone(
 		vcam_id,
 		component,
 		mode,
 		follow_target,
 		look_ahead_result,
+		delta
+	)
+	var smoothed_result: Dictionary = _apply_response_smoothing(
+		vcam_id,
+		component,
+		mode,
+		follow_target,
+		soft_zone_result,
 		delta
 	)
 	var final_result: Dictionary = _apply_landing_impact_offset(smoothed_result, landing_offset)
@@ -607,6 +620,85 @@ func _get_or_create_look_ahead_state(
 func _clear_look_ahead_state_for_vcam(vcam_id: StringName) -> void:
 	_look_ahead_state.erase(vcam_id)
 
+func _apply_orbit_soft_zone(
+	vcam_id: StringName,
+	component: C_VCamComponent,
+	mode: Resource,
+	follow_target: Node3D,
+	result: Dictionary,
+	delta: float
+) -> Dictionary:
+	if component == null or mode == null:
+		return result
+	if mode.get_script() != RS_VCAM_MODE_ORBIT_SCRIPT:
+		_clear_soft_zone_dead_zone_state_for_vcam(vcam_id)
+		return result
+	if follow_target == null or not is_instance_valid(follow_target):
+		_clear_soft_zone_dead_zone_state_for_vcam(vcam_id)
+		return result
+	if component.soft_zone == null:
+		_clear_soft_zone_dead_zone_state_for_vcam(vcam_id)
+		return result
+	if component.soft_zone.get_script() != RS_VCAM_SOFT_ZONE_SCRIPT:
+		_clear_soft_zone_dead_zone_state_for_vcam(vcam_id)
+		return result
+
+	var transform_variant: Variant = result.get("transform", null)
+	if not (transform_variant is Transform3D):
+		return result
+	var desired_transform := transform_variant as Transform3D
+
+	var projection_camera: Camera3D = _resolve_projection_camera()
+	if projection_camera == null:
+		return result
+
+	var dead_zone_state: Dictionary = _get_soft_zone_dead_zone_state(vcam_id)
+	var correction_result: Dictionary = U_VCAM_SOFT_ZONE.compute_camera_correction_with_state(
+		projection_camera,
+		follow_target.global_position,
+		desired_transform,
+		component.soft_zone as Resource,
+		delta,
+		dead_zone_state
+	)
+	var next_state_variant: Variant = correction_result.get("dead_zone_state", dead_zone_state)
+	if next_state_variant is Dictionary:
+		_soft_zone_dead_zone_state[vcam_id] = (next_state_variant as Dictionary).duplicate(true)
+	var correction_variant: Variant = correction_result.get("correction", Vector3.ZERO)
+	if not (correction_variant is Vector3):
+		return result
+	var correction := correction_variant as Vector3
+	if correction.is_zero_approx():
+		return result
+	return _apply_position_offset(result, correction)
+
+func _resolve_projection_camera() -> Camera3D:
+	var camera_manager_service := U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
+	if camera_manager_service != null and is_instance_valid(camera_manager_service):
+		var main_camera: Camera3D = camera_manager_service.get_main_camera()
+		if main_camera != null and is_instance_valid(main_camera):
+			return main_camera
+
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return null
+	var viewport_camera: Camera3D = viewport.get_camera_3d()
+	if viewport_camera == null or not is_instance_valid(viewport_camera):
+		return null
+	return viewport_camera
+
+func _get_soft_zone_dead_zone_state(vcam_id: StringName) -> Dictionary:
+	var state_variant: Variant = _soft_zone_dead_zone_state.get(vcam_id, {})
+	if state_variant is Dictionary:
+		return (state_variant as Dictionary).duplicate(true)
+	return {
+		"x": false,
+		"y": false,
+	}
+
+func _clear_soft_zone_dead_zone_state_for_vcam(vcam_id: StringName) -> void:
+	_soft_zone_dead_zone_state.erase(vcam_id)
+
 func _resolve_component_response_values(component: C_VCamComponent) -> Dictionary:
 	if component == null:
 		return {}
@@ -736,8 +828,17 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
+	for vcam_id_variant in _soft_zone_dead_zone_state.keys():
+		var vcam_id := vcam_id_variant as StringName
+		if vcam_index.has(vcam_id):
+			continue
+		if stale_ids.has(vcam_id):
+			continue
+		stale_ids.append(vcam_id)
+
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
+		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
 
 func _teardown_path_helpers() -> void:
 	for helper_variant in _path_follow_helpers.values():
