@@ -147,41 +147,47 @@ Before starting Phase 0, verify:
 
 ### Phase 0B: Persisted Silhouette Toggle in VFX Settings
 
-- [ ] **Task 0B.1 (Red)**: Write tests for `occlusion_silhouette_enabled` in VFX state
+- [x] **Task 0B.1 (Red)**: Write tests for `occlusion_silhouette_enabled` in VFX state
   - Modify `tests/unit/state/test_vfx_initial_state.gd`
   - Test `occlusion_silhouette_enabled` field exists with default `true`
   - Test `to_dictionary()` includes `occlusion_silhouette_enabled`
   - **Target: 2 tests**
+  - Completion note (2026-03-10): Added initial-state coverage for `occlusion_silhouette_enabled` field presence/type and dictionary export.
 
-- [ ] **Task 0B.2 (Green)**: Add field to RS_VFXInitialState
+- [x] **Task 0B.2 (Green)**: Add field to RS_VFXInitialState
   - Modify `scripts/resources/state/rs_vfx_initial_state.gd`: add `@export var occlusion_silhouette_enabled: bool = true`
   - All tests should pass
+  - Completion note (2026-03-10): Added exported occlusion silhouette default field and included it in `to_dictionary()`.
 
-- [ ] **Task 0B.3 (Red)**: Write tests for VFX actions and reducer
+- [x] **Task 0B.3 (Red)**: Write tests for VFX actions and reducer
   - Modify `tests/unit/state/test_vfx_reducer.gd`
   - Test `set_occlusion_silhouette_enabled` action structure
   - Test reducer sets `occlusion_silhouette_enabled = true`
   - Test reducer sets `occlusion_silhouette_enabled = false`
   - Test reducer returns same state for unrelated action
   - **Target: 4 tests**
+  - Completion note (2026-03-10): Added action-structure and reducer true/false coverage, plus default/preservation assertions for the new field.
 
-- [ ] **Task 0B.4 (Green)**: Implement VFX action and reducer
+- [x] **Task 0B.4 (Green)**: Implement VFX action and reducer
   - Modify `scripts/state/actions/u_vfx_actions.gd`: add `ACTION_SET_OCCLUSION_SILHOUETTE_ENABLED`
   - Modify `scripts/state/reducers/u_vfx_reducer.gd`: handle action
   - All tests should pass
+  - Completion note (2026-03-10): Added action constant/creator registration and reducer handling with default-state merge support.
 
-- [ ] **Task 0B.5 (Red)**: Write tests for VFX selector
+- [x] **Task 0B.5 (Red)**: Write tests for VFX selector
   - Modify `tests/unit/state/test_vfx_selectors.gd`
   - Test `is_occlusion_silhouette_enabled()` returns value from state
   - Test selector returns `true` when slice missing (default)
   - Test selector returns `true` when field missing (default)
   - **Target: 3 tests**
+  - Completion note (2026-03-10): Added selector coverage for enabled/disabled and missing-slice/field default behavior.
 
-- [ ] **Task 0B.6 (Green)**: Implement VFX selector
+- [x] **Task 0B.6 (Green)**: Implement VFX selector
   - Modify `scripts/state/selectors/u_vfx_selectors.gd`: add `is_occlusion_silhouette_enabled(state)`
   - All tests should pass
+  - Completion note (2026-03-10): Implemented `U_VFXSelectors.is_occlusion_silhouette_enabled(...)` with safe default `true`.
 
-- [ ] **Task 0B.7 (Red)**: Write tests for VFX settings overlay silhouette toggle
+- [x] **Task 0B.7 (Red)**: Write tests for VFX settings overlay silhouette toggle
   - Create/modify `tests/unit/ui/test_vfx_settings_overlay.gd`
   - Modify `tests/unit/ui/test_vfx_settings_overlay_localization.gd`
   - Test overlay renders a silhouette toggle bound to `occlusion_silhouette_enabled`
@@ -189,12 +195,14 @@ Before starting Phase 0, verify:
   - Test Reset restores silhouette toggle to default (`true`)
   - Test localization updates silhouette label/tooltip keys
   - **Target: 4 tests**
+  - Completion note (2026-03-10): Expanded integration/localization coverage for silhouette toggle init/apply/cancel/reset and localized label/tooltip updates.
 
-- [ ] **Task 0B.8 (Green)**: Implement VFX settings overlay silhouette toggle
+- [x] **Task 0B.8 (Green)**: Implement VFX settings overlay silhouette toggle
   - Modify `scripts/ui/settings/ui_vfx_settings_overlay.gd`: add control wiring, apply/reset/localization handling
   - Modify `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`: add silhouette toggle row
   - Modify all UI locale resources under `resources/localization/cfg_locale_*_ui.tres` for new silhouette label/tooltip keys
   - All tests should pass
+  - Completion note (2026-03-10): Added silhouette toggle UI row and controller wiring, localized strings across all UI locales, and global-settings apply dispatch support.
 
 ---
 

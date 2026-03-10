@@ -1,6 +1,6 @@
 # vCam Manager — Task Index
 
-**Progress:** 5 / 5 documentation tasks complete; Phase 0A + 0A2 complete, Phase 0B next
+**Progress:** 5 / 5 documentation tasks complete; Phases 0A + 0A2 + 0B complete, Phase 0C next
 **Estimated Test Count:** ~440 checks (about 360 automated tests + 80 manual checks including game-feel QA)
 **Status note:** Strict TDD (Red/Green/Refactor). Each camera mode has a dedicated phase. Mobile drag-look is a hard prerequisite for orbit/first-person completion.
 **Manual QA cadence:** Manual checks are embedded in the relevant implementation phases (no standalone manual-testing phase).
