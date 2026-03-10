@@ -827,7 +827,7 @@ Before starting Phase 0, verify:
 
 > Reuses existing `S_CameraStateSystem` tick evaluation + `C_CameraStateComponent.target_fov` + `fov_blend_speed`. The rule reads player velocity magnitude from a movement component and sets `speed_fov_bonus`, which `S_CameraStateSystem` adds to `target_fov`.
 
-- [ ] **Task 6A3b.1 (Red)**: Write tests for speed-based FOV rule
+- [x] **Task 6A3b.1 (Red)**: Write tests for speed-based FOV rule
   - Add to `tests/unit/qb/test_camera_state_system.gd`
   - Test tick rule with `RS_ConditionComponentField` reading velocity magnitude from `C_MovementComponent` (or `C_InputComponent` move vector length as proxy)
   - Test effect sets `speed_fov_bonus` on `C_CameraStateComponent` via `RS_EffectSetField`
@@ -836,8 +836,9 @@ Before starting Phase 0, verify:
   - Test stationary player produces `speed_fov_bonus = 0.0`
   - Test `fov_blend_speed` smooths the FOV transition (no instant snap)
   - **Target: 6 tests**
+  - Completion note (2026-03-10): Expanded `tests/unit/qb/test_camera_state_system.gd` with six 6A3b assertions covering speed-rule score application, stationary reset, `speed_fov_bonus` clamping, target-FOV composition, and blend smoothing.
 
-- [ ] **Task 6A3b.2 (Green)**: Implement FOV breathing
+- [x] **Task 6A3b.2 (Green)**: Implement FOV breathing
   - Modify `scripts/ecs/systems/s_camera_state_system.gd`:
     - `_resolve_target_fov()` adds `camera_state.speed_fov_bonus` to the resolved FOV
     - Clamp `speed_fov_bonus` to `[0.0, speed_fov_max_bonus]` before adding
@@ -849,6 +850,7 @@ Before starting Phase 0, verify:
     - Effect: `RS_EffectSetField` — `component_type = C_CameraStateComponent`, `field = speed_fov_bonus`, `operation = set`, `value = 15.0` (max bonus, scaled by condition score)
   - Add rule to `S_CameraStateSystem.DEFAULT_RULE_DEFINITIONS` or inject via export
   - All tests should pass
+  - Completion note (2026-03-10): Added `resources/qb/camera/cfg_camera_speed_fov_rule.tres`, registered it in `S_CameraStateSystem.DEFAULT_RULE_DEFINITIONS`, added movement-speed context plumbing for `RS_ConditionComponentField`, and extended `RS_EffectSetField` + camera rule execution context with rule-score scaling so `speed_fov_bonus` tracks normalized speed continuously.
 
   **Existing infrastructure reused:**
   - `RS_ConditionComponentField` (reads component field, normalizes to 0–1)

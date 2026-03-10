@@ -191,6 +191,8 @@
   - **Regression check**: keep a unit test that enters/exits a zone and asserts the camera returns to the authored baseline FOV.
 - **Do not re-introduce `state.camera.in_fov_zone`**: Phase 0F moved runtime and QB camera tests to `state.vcam.in_fov_zone` and updated `cfg_camera_zone_fov_rule.tres` accordingly. Bringing back the legacy path causes FOV rule drift and split-brain camera state.
   - **Fix pattern**: read FOV-zone state through `U_VCamSelectors.is_in_fov_zone(state)` and seed tests via `set_slice(StringName("vcam"), {"in_fov_zone": ...})`.
+- **Speed-FOV rules can leave stale bonus when score hits 0 if thresholding skips the winner**: `U_RuleScorer` drops rules when `score <= score_threshold`; with default `score_threshold = 0.0`, stationary speed produces no winner and `speed_fov_bonus` can stick from the previous frame.
+  - **Fix pattern**: for continuous speed breathing, either set `score_threshold` below zero (current `cfg_camera_speed_fov_rule.tres` uses `-1.0`) so score `0.0` still executes and writes zero, or add an explicit reset rule.
 
 ## vCam Orbit Evaluator Pitfalls
 
