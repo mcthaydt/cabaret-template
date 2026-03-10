@@ -82,6 +82,55 @@ func test_unregistering_active_vcam_clears_active_state() -> void:
 
 	assert_eq(manager.get_active_vcam_id(), StringName(""), "Active id should clear when active vcam unregisters")
 
+func test_unregistering_active_vcam_with_replacement_publishes_previous_active_id() -> void:
+	var manager := await _create_manager()
+	var camera_high := _create_vcam(StringName("cam_high"), 10)
+	var camera_low := _create_vcam(StringName("cam_low"), 1)
+	manager.register_vcam(camera_high)
+	manager.register_vcam(camera_low)
+	assert_eq(manager.get_active_vcam_id(), StringName("cam_high"))
+	U_ECS_EVENT_BUS.clear_history()
+
+	manager.unregister_vcam(camera_high)
+
+	assert_eq(manager.get_active_vcam_id(), StringName("cam_low"))
+	var history: Array = U_ECS_EVENT_BUS.get_event_history()
+	assert_eq(history.size(), 1, "Unregister reselection should publish one active-changed event")
+	var event_payload := history[0] as Dictionary
+	assert_eq(event_payload.get("name", StringName("")), U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED)
+	var payload := event_payload.get("payload", {}) as Dictionary
+	assert_eq(payload.get("vcam_id", StringName("")), StringName("cam_low"))
+	assert_eq(payload.get("previous_vcam_id", StringName("")), StringName("cam_high"))
+
+func test_unregistering_last_active_vcam_publishes_clear_event_and_runtime_clear_action() -> void:
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var manager := await _create_manager(store)
+	var camera_a := _create_vcam(StringName("cam_a"), 5)
+	manager.register_vcam(camera_a)
+	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
+
+	manager.unregister_vcam(camera_a)
+
+	assert_eq(manager.get_active_vcam_id(), StringName(""), "Active id should clear when last vcam unregisters")
+	var history: Array = U_ECS_EVENT_BUS.get_event_history()
+	assert_eq(history.size(), 1, "Unregistering last active vcam should publish clear event")
+	var event_payload := history[0] as Dictionary
+	assert_eq(event_payload.get("name", StringName("")), U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED)
+	var payload := event_payload.get("payload", {}) as Dictionary
+	assert_eq(payload.get("vcam_id", StringName("")), StringName(""))
+	assert_eq(payload.get("previous_vcam_id", StringName("")), StringName("cam_a"))
+
+	var actions := store.get_dispatched_actions()
+	assert_true(actions.size() > 0, "Active clear should dispatch runtime clear action")
+	var last_action: Dictionary = actions[actions.size() - 1]
+	assert_eq(last_action.get("type", StringName("")), U_VCAM_ACTIONS.ACTION_SET_ACTIVE_RUNTIME)
+	var action_payload := last_action.get("payload", {}) as Dictionary
+	assert_eq(action_payload.get("vcam_id", StringName("")), StringName(""))
+	assert_eq(str(action_payload.get("mode", "__missing__")), "")
+
 func test_unregistering_all_vcams_clears_all_state() -> void:
 	var manager := await _create_manager()
 	var camera_a := _create_vcam(StringName("cam_a"), 5)
@@ -214,6 +263,28 @@ func test_priority_reselection_after_unregister_picks_next_highest() -> void:
 	manager.unregister_vcam(camera_high)
 
 	assert_eq(manager.get_active_vcam_id(), StringName("cam_low"), "Next-highest priority camera should become active")
+
+func test_pruned_invalid_active_vcam_publishes_previous_active_id() -> void:
+	var manager := await _create_manager()
+	var camera_low := _create_vcam(StringName("cam_low"), 1, true)
+	var camera_high := _create_vcam(StringName("cam_high"), 8, true)
+	manager.register_vcam(camera_low)
+	manager.register_vcam(camera_high)
+	assert_eq(manager.get_active_vcam_id(), StringName("cam_high"))
+	U_ECS_EVENT_BUS.clear_history()
+
+	camera_high.queue_free()
+	await get_tree().process_frame
+	manager._physics_process(0.016)
+
+	assert_eq(manager.get_active_vcam_id(), StringName("cam_low"))
+	var history: Array = U_ECS_EVENT_BUS.get_event_history()
+	assert_eq(history.size(), 1, "Pruned active vcam should publish one active-changed event")
+	var event_payload := history[0] as Dictionary
+	assert_eq(event_payload.get("name", StringName("")), U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED)
+	var payload := event_payload.get("payload", {}) as Dictionary
+	assert_eq(payload.get("vcam_id", StringName("")), StringName("cam_low"))
+	assert_eq(payload.get("previous_vcam_id", StringName("")), StringName("cam_high"))
 
 func _create_manager(injected_store: I_StateStore = null) -> M_VCamManager:
 	var manager := M_VCAM_MANAGER.new()

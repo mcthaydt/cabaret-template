@@ -84,8 +84,6 @@ func unregister_vcam(vcam: Node) -> void:
 
 	if _explicit_vcam_id == vcam_id:
 		_explicit_vcam_id = StringName("")
-	if _active_vcam_id == vcam_id:
-		_active_vcam_id = StringName("")
 	if _previous_vcam_id == vcam_id:
 		_previous_vcam_id = StringName("")
 
@@ -229,10 +227,6 @@ func _prune_invalid_registrations() -> void:
 
 	if _explicit_vcam_id != StringName("") and not _vcams_by_id.has(_explicit_vcam_id):
 		_explicit_vcam_id = StringName("")
-	if _active_vcam_id != StringName("") and not _vcams_by_id.has(_active_vcam_id):
-		_active_vcam_id = StringName("")
-	if _previous_vcam_id != StringName("") and not _vcams_by_id.has(_previous_vcam_id):
-		_previous_vcam_id = StringName("")
 
 func _is_vcam_selectable(vcam: Node) -> bool:
 	if vcam == null:

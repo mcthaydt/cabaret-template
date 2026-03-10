@@ -37,13 +37,14 @@ static func _evaluate_orbit(
 	if follow_target == null or not is_instance_valid(follow_target):
 		return {}
 
-	var distance: float = float(mode.get("distance"))
+	var resolved_values: Dictionary = _resolve_orbit_values(mode)
+	var distance: float = float(resolved_values.get("distance", 0.0))
 	if distance <= 0.0:
 		return {}
 
-	var total_yaw: float = float(mode.get("authored_yaw"))
-	var total_pitch: float = float(mode.get("authored_pitch"))
-	if bool(mode.get("allow_player_rotation")):
+	var total_yaw: float = float(resolved_values.get("authored_yaw", 0.0))
+	var total_pitch: float = float(resolved_values.get("authored_pitch", 0.0))
+	if bool(resolved_values.get("allow_player_rotation", true)):
 		total_yaw += runtime_yaw
 		total_pitch += runtime_pitch
 
@@ -76,9 +77,27 @@ static func _evaluate_orbit(
 	)
 	return {
 		"transform": camera_transform,
-		"fov": float(mode.get("fov")),
+		"fov": float(resolved_values.get("fov", 75.0)),
 		"mode_name": "orbit",
 	}
+
+static func _resolve_orbit_values(mode: Resource) -> Dictionary:
+	var resolved_values: Dictionary = {}
+	if mode != null and mode.has_method("get_resolved_values"):
+		var resolved_variant: Variant = mode.call("get_resolved_values")
+		if resolved_variant is Dictionary:
+			resolved_values = resolved_variant as Dictionary
+
+	if resolved_values.is_empty():
+		resolved_values = {
+			"distance": float(mode.get("distance")),
+			"authored_pitch": float(mode.get("authored_pitch")),
+			"authored_yaw": float(mode.get("authored_yaw")),
+			"allow_player_rotation": bool(mode.get("allow_player_rotation")),
+			"fov": float(mode.get("fov")),
+		}
+
+	return resolved_values
 
 static func _evaluate_first_person(
 	mode: Resource,

@@ -138,6 +138,24 @@ func test_orbit_returns_empty_result_when_distance_is_zero() -> void:
 
 	assert_eq(result.size(), 0)
 
+func test_orbit_returns_empty_result_when_distance_resolves_non_positive() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_mode()
+	mode.set("distance", -5.0)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+
+	assert_eq(result.size(), 0)
+
+func test_orbit_uses_resolved_fov_when_authored_fov_is_invalid() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_mode()
+	mode.set("fov", 180.0)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+
+	assert_almost_eq(float(result.get("fov", 0.0)), 179.0, 0.0001)
+
 func test_orbit_returns_empty_result_when_follow_target_is_null() -> void:
 	var mode: Resource = _new_mode()
 

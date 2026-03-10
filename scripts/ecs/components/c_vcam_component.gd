@@ -5,6 +5,7 @@ class_name C_VCamComponent
 const COMPONENT_TYPE := StringName("VCamComponent")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
+const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 
 @export var vcam_id: StringName = StringName("")
 @export var priority: int = 0
@@ -17,13 +18,24 @@ const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
 @export_node_path("Path3D") var path_node_path: NodePath
 @export var soft_zone: Resource = null
 @export var blend_hint: Resource = null
-@export var response: Resource = null
+@export_custom(PROPERTY_HINT_RESOURCE_TYPE, "RS_VCamResponse") var response: Resource:
+	set(value):
+		if value == null:
+			_response = null
+			return
+		if value.get_script() == RS_VCAM_RESPONSE_SCRIPT:
+			_response = value
+			return
+		push_warning("C_VCamComponent.response expects RS_VCamResponse")
+	get:
+		return _response
 @export var is_active: bool = true
 
 var runtime_yaw: float = 0.0
 var runtime_pitch: float = 0.0
 
 var _vcam_manager: Node = null
+var _response: Resource = null
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
