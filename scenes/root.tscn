@@ -44,7 +44,7 @@
 [ext_resource type="Resource" uid="uid://xn3e3t3x7lad" path="res://resources/state/cfg_default_objectives_initial_state.tres" id="42_objectives_state"]
 [ext_resource type="Resource" uid="uid://nbd84s2mk7ye" path="res://resources/state/cfg_default_scene_director_initial_state.tres" id="43_scene_director_state"]
 [ext_resource type="Resource" uid="uid://dmbf02gq12jfj" path="res://resources/cfg_game_config.tres" id="44_game_config"]
-[ext_resource type="Resource" path="res://resources/state/cfg_default_vcam_initial_state.tres" id="45_vcam_state"]
+[ext_resource type="Resource" uid="uid://bgnybbenm5glv" path="res://resources/state/cfg_default_vcam_initial_state.tres" id="45_vcam_state"]
 [ext_resource type="Script" uid="uid://c78dpu840c4x2" path="res://scripts/managers/m_vcam_manager.gd" id="46_vcam_manager"]
 
 [node name="Root" type="Node" unique_id=409084781]

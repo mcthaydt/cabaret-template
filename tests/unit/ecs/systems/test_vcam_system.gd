@@ -1283,6 +1283,7 @@ func test_orbit_look_ahead_applies_offset_in_movement_direction() -> void:
 	autofree_context(context)
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
 
 	var follow_target := _create_target_entity(ecs_manager, "E_LookAheadDirectionTarget", Vector3.ZERO)
 	var mode := _new_orbit_mode()
@@ -1297,7 +1298,7 @@ func test_orbit_look_ahead_applies_offset_in_movement_direction() -> void:
 	vcam_manager.active_vcam_id = StringName("cam_look_ahead_direction")
 	ecs_manager._physics_process(0.016)
 
-	follow_target.global_position = Vector3(5.0, 0.0, 0.0)
+	_set_gameplay_entity_velocity(store, follow_target, Vector3(5.0, 0.0, 0.0))
 	component.response.rotation_frequency = 4.1
 	vcam_manager.clear_submissions()
 	ecs_manager._physics_process(0.016)
@@ -1311,11 +1312,44 @@ func test_orbit_look_ahead_applies_offset_in_movement_direction() -> void:
 	assert_almost_eq(offset.y, 0.0, 0.0001)
 	assert_almost_eq(offset.z, 0.0, 0.0001)
 
+func test_orbit_look_ahead_does_not_apply_while_look_input_is_active() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LookAheadWhileRotatingTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_look_ahead_while_rotating"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 4.0, 1.0, 1.0, 2.0, 0.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_look_ahead_while_rotating")
+	ecs_manager._physics_process(0.016)
+
+	_set_gameplay_entity_velocity(store, follow_target, Vector3(5.0, 0.0, 0.0))
+	store.set_slice(StringName("input"), {"look_input": Vector2(1.0, 0.0)})
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var look_ahead_state: Dictionary = system.get("_look_ahead_state") as Dictionary
+	assert_false(
+		look_ahead_state.has(StringName("cam_look_ahead_while_rotating")),
+		"Look-ahead state should clear while camera rotation input is active"
+	)
+
 func test_orbit_look_ahead_offset_magnitude_is_clamped_to_distance() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
 
 	var follow_target := _create_target_entity(ecs_manager, "E_LookAheadClampTarget", Vector3.ZERO)
 	var mode := _new_orbit_mode()
@@ -1330,7 +1364,7 @@ func test_orbit_look_ahead_offset_magnitude_is_clamped_to_distance() -> void:
 	vcam_manager.active_vcam_id = StringName("cam_look_ahead_clamp")
 	ecs_manager._physics_process(0.016)
 
-	follow_target.global_position = Vector3(100.0, 0.0, 0.0)
+	_set_gameplay_entity_velocity(store, follow_target, Vector3(100.0, 0.0, 0.0))
 	component.response.rotation_frequency = 4.1
 	vcam_manager.clear_submissions()
 	ecs_manager._physics_process(0.016)
@@ -1349,6 +1383,7 @@ func test_orbit_look_ahead_stationary_target_keeps_zero_offset() -> void:
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
 	var system: S_VCamSystem = context["system"] as S_VCamSystem
+	var store: MockStateStore = context["store"] as MockStateStore
 
 	var follow_target := _create_target_entity(ecs_manager, "E_LookAheadStationaryTarget", Vector3.ZERO)
 	var component := await _create_vcam_component(
@@ -1358,6 +1393,7 @@ func test_orbit_look_ahead_stationary_target_keeps_zero_offset() -> void:
 		follow_target
 	)
 	component.response = _new_response(1000.0, 1.0, 1.0, 4.0, 1.0, 1.0, 2.0, 0.0)
+	_set_gameplay_entity_velocity(store, follow_target, Vector3.ZERO, false)
 
 	vcam_manager.active_vcam_id = StringName("cam_look_ahead_stationary")
 	ecs_manager._physics_process(0.016)
@@ -1374,6 +1410,7 @@ func test_orbit_look_ahead_clears_offset_when_target_stops() -> void:
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
 	var system: S_VCamSystem = context["system"] as S_VCamSystem
+	var store: MockStateStore = context["store"] as MockStateStore
 
 	var follow_target := _create_target_entity(ecs_manager, "E_LookAheadStopTarget", Vector3.ZERO)
 	var component := await _create_vcam_component(
@@ -1387,7 +1424,7 @@ func test_orbit_look_ahead_clears_offset_when_target_stops() -> void:
 	vcam_manager.active_vcam_id = StringName("cam_look_ahead_stop")
 	ecs_manager._physics_process(0.016)
 
-	follow_target.global_position = Vector3(5.0, 0.0, 0.0)
+	_set_gameplay_entity_velocity(store, follow_target, Vector3(5.0, 0.0, 0.0))
 	ecs_manager._physics_process(0.016)
 
 	var moving_state_all: Dictionary = system.get("_look_ahead_state") as Dictionary
@@ -1398,6 +1435,7 @@ func test_orbit_look_ahead_clears_offset_when_target_stops() -> void:
 		"Look-ahead offset should be non-zero while target is moving"
 	)
 
+	_set_gameplay_entity_velocity(store, follow_target, Vector3.ZERO, false)
 	ecs_manager._physics_process(0.016)
 
 	var stopped_state_all: Dictionary = system.get("_look_ahead_state") as Dictionary
@@ -1414,6 +1452,7 @@ func test_orbit_look_ahead_clears_state_on_mode_switch() -> void:
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
 	var system: S_VCamSystem = context["system"] as S_VCamSystem
+	var store: MockStateStore = context["store"] as MockStateStore
 
 	var follow_target := _create_target_entity(ecs_manager, "E_LookAheadModeSwitchTarget", Vector3.ZERO)
 	var component := await _create_vcam_component(
@@ -1426,7 +1465,7 @@ func test_orbit_look_ahead_clears_state_on_mode_switch() -> void:
 
 	vcam_manager.active_vcam_id = StringName("cam_look_ahead_mode_switch")
 	ecs_manager._physics_process(0.016)
-	follow_target.global_position = Vector3(5.0, 0.0, 0.0)
+	_set_gameplay_entity_velocity(store, follow_target, Vector3(5.0, 0.0, 0.0))
 	component.response.rotation_frequency = 4.1
 	ecs_manager._physics_process(0.016)
 
@@ -1445,6 +1484,7 @@ func test_orbit_look_ahead_resets_when_follow_target_changes() -> void:
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
 	var system: S_VCamSystem = context["system"] as S_VCamSystem
+	var store: MockStateStore = context["store"] as MockStateStore
 
 	var first_target := _create_target_entity(ecs_manager, "E_LookAheadResetTargetA", Vector3.ZERO)
 	var second_target := _create_target_entity(ecs_manager, "E_LookAheadResetTargetB", Vector3(10.0, 0.0, 0.0))
@@ -1458,9 +1498,10 @@ func test_orbit_look_ahead_resets_when_follow_target_changes() -> void:
 
 	vcam_manager.active_vcam_id = StringName("cam_look_ahead_reset")
 	ecs_manager._physics_process(0.016)
-	first_target.global_position = Vector3(6.0, 0.0, 0.0)
+	_set_gameplay_entity_velocity(store, first_target, Vector3(6.0, 0.0, 0.0))
 	ecs_manager._physics_process(0.016)
 
+	_set_gameplay_entity_velocity(store, second_target, Vector3.ZERO, false)
 	component.follow_target_path = second_target.get_path()
 	ecs_manager._physics_process(0.016)
 
@@ -1497,6 +1538,48 @@ func test_orbit_look_ahead_is_noop_for_first_person_mode() -> void:
 
 	var look_ahead_state: Dictionary = system.get("_look_ahead_state") as Dictionary
 	assert_false(look_ahead_state.has(StringName("cam_look_ahead_fp")))
+
+func test_orbit_look_ahead_ignores_rotation_only_target_motion() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_entity := _create_target_entity(ecs_manager, "E_LookAheadRotationOnlyTarget", Vector3.ZERO)
+	var follow_marker := Node3D.new()
+	follow_marker.name = "FollowMarker"
+	follow_marker.position = Vector3(0.0, 0.0, 1.5)
+	follow_entity.add_child(follow_marker)
+	autofree(follow_marker)
+	await _pump()
+
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_look_ahead_rotation_only"),
+		mode,
+		follow_marker
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 4.0, 1.0, 1.0, 2.0, 0.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_look_ahead_rotation_only")
+	_set_gameplay_entity_velocity(store, follow_entity, Vector3.ZERO, false)
+	ecs_manager._physics_process(0.016)
+
+	follow_entity.rotate_y(PI * 0.5)
+	component.response.rotation_frequency = 4.1
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_look_ahead_rotation_only"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_marker, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var offset: Vector3 = submitted.origin - raw_transform.origin
+	assert_true(
+		offset.is_zero_approx(),
+		"Look-ahead should remain zero when target rotates in place without movement velocity"
+	)
 
 func test_orbit_auto_level_disabled_when_speed_is_zero() -> void:
 	var context: Dictionary = await _setup_context()
@@ -2163,6 +2246,37 @@ func _create_target_entity(
 	autofree(entity)
 	entity.global_position = position
 	return entity
+
+func _set_gameplay_entity_velocity(
+	store: MockStateStore,
+	entity: BaseECSEntity,
+	velocity: Vector3,
+	is_moving: bool = true
+) -> void:
+	if store == null or entity == null or not is_instance_valid(entity):
+		return
+
+	var gameplay_slice: Dictionary = store.get_slice(StringName("gameplay"))
+	var entities_variant: Variant = gameplay_slice.get("entities", {})
+	var entities: Dictionary = {}
+	if entities_variant is Dictionary:
+		entities = (entities_variant as Dictionary).duplicate(true)
+
+	var entity_id: String = String(entity.get_entity_id())
+	var entity_state_variant: Variant = entities.get(entity_id, {})
+	var entity_state: Dictionary = {}
+	if entity_state_variant is Dictionary:
+		entity_state = (entity_state_variant as Dictionary).duplicate(true)
+
+	entity_state["velocity"] = velocity
+	entity_state["is_moving"] = is_moving
+	entities[entity_id] = entity_state
+	gameplay_slice["entities"] = entities
+
+	if not gameplay_slice.has("player_entity_id"):
+		gameplay_slice["player_entity_id"] = entity_id
+
+	store.set_slice(StringName("gameplay"), gameplay_slice)
 
 func _create_path_node(parent: Node3D, name: String) -> Path3D:
 	var path := Path3D.new()

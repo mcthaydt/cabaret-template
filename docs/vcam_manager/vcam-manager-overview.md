@@ -403,6 +403,7 @@ This prevents pops from restarting a blend from the original source position and
 | `landing_impact_scale` | `float` | `1.0` | 6A3c | Multiplier for QB-driven landing impact offset on this vCam (0 = suppress) |
 
 > **Note:** Orbit-feel Phase 2C is now fully landed (`2C1`/`2C2`/`2C3`/`2C4`/`2C5`): look-ahead + auto-level + projection soft-zone + dead-zone hysteresis + runtime integration.
+> Look-ahead direction is movement-velocity driven (`state.gameplay.entities[*].velocity` primary source, movement-component/body fallback) and intentionally ignores follow-target transform deltas to avoid rotation-only offsets.
 
 ## Mobile Drag-Look Contract
 

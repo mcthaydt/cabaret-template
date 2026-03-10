@@ -141,6 +141,8 @@ func test_input_system_dispatches_state_updates_to_store() -> void:
 	Input.action_press("move_forward")
 	Input.action_press("jump")
 	Input.action_press("sprint")
+	store.dispatch(U_InputActions.update_mouse_sensitivity(1.0))
+	await _pump()
 
 	# Simulate mouse motion through input device manager (it delegates to keyboard/mouse source)
 	var motion := InputEventMouseMotion.new()

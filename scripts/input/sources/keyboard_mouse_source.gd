@@ -9,7 +9,7 @@ extends I_InputSource
 
 var _mouse_delta: Vector2 = Vector2.ZERO
 var _last_input_time: float = 0.0
-var _mouse_sensitivity: float = 1.0
+var _mouse_sensitivity: float = 0.6
 var _input_deadzone: float = 0.15
 var _keyboard_look_enabled: bool = true
 var _keyboard_look_speed: float = 2.0
@@ -27,7 +27,7 @@ var look_down_action: StringName = StringName("look_down")
 var jump_action: StringName = StringName("jump")
 var sprint_action: StringName = StringName("sprint")
 
-func _init(sensitivity: float = 1.0, deadzone: float = 0.15) -> void:
+func _init(sensitivity: float = 0.6, deadzone: float = 0.15) -> void:
 	_mouse_sensitivity = sensitivity
 	_input_deadzone = deadzone
 
@@ -101,7 +101,7 @@ func set_mouse_delta(delta: Vector2) -> void:
 	_mouse_delta += delta
 
 func set_sensitivity(sensitivity: float) -> void:
-	_mouse_sensitivity = clampf(sensitivity, 0.0, 20.0)
+	_mouse_sensitivity = clampf(sensitivity, 0.1, 5.0)
 
 func set_keyboard_look_enabled(enabled: bool) -> void:
 	_keyboard_look_enabled = enabled

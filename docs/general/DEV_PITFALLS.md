@@ -218,6 +218,12 @@
 - **Look-ahead can leak stale offsets across mode/target changes**: Reusing previous velocity/offset state when switching targets or switching to non-orbit modes causes incorrect camera drift on the next tick.
   - **Fix pattern**: clear per-vCam look-ahead state whenever mode is non-orbit, look-ahead is disabled, or follow-target identity changes.
 
+- **Look-ahead can falsely trigger while rotating in place if velocity is derived from follow-target transform deltas**: Orbit follow markers are often offset child nodes; yaw-only rotation can move those markers in world space without actual movement, producing unwanted look-ahead drift.
+  - **Fix pattern**: source look-ahead direction from movement velocity (`state.gameplay.entities[*].velocity` first, movement-component/body fallback) and avoid transform-delta velocity for look-ahead decisions.
+
+- **Look-ahead can fight active camera rotation input if not explicitly gated**: Applying movement look-ahead while the player is actively rotating camera yaw/pitch compounds framing offsets and feels over-steered.
+  - **Fix pattern**: in `S_VCamSystem`, gate orbit look-ahead on filtered look-input inactivity and clear per-vCam look-ahead state while filtered look input is active.
+
 - **Always bypassing orbit follow-position smoothing during look input makes moving rotation feel harsh**: The old `has_active_look_input` bypass is good for stationary no-lag framing, but it removes useful smoothing while the follow target is translating.
   - **Fix pattern**: gate orbit bypass by follow-target speed with hysteresis (`orbit_look_bypass_enable_speed`, `orbit_look_bypass_disable_speed`) using per-vCam sampled target motion state; keep bypass for slow/stationary movement and keep smoothing active while moving.
 

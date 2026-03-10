@@ -194,8 +194,8 @@
   - Expanded tests in `tests/unit/qb/test_camera_state_system.gd`, `tests/unit/ecs/systems/test_vcam_system.gd`, and `tests/unit/qb/test_effect_set_field.gd` for landing-rule scaling and recovery behavior.
 - Completed Phase 2C1:
   - Extended `RS_VCamResponse` with `look_ahead_distance` + `look_ahead_smoothing`, including non-negative resolved-value clamping.
-  - Extended `S_VCamSystem` with orbit-only look-ahead state (`_look_ahead_state`) using frame-to-frame target velocity deltas and pre-smoothing position offsets before main response smoothing.
-  - Added look-ahead coverage to `tests/unit/ecs/systems/test_vcam_system.gd` (disabled path, moving offset, clamp bound, stationary zero-offset, mode-switch clear, target-switch reset, first-person no-op).
+  - Extended `S_VCamSystem` with orbit-only look-ahead state (`_look_ahead_state`) using movement velocity samples (`state.gameplay.entities[*].velocity` first, then movement-component/body fallback) and pre-smoothing position offsets before main response smoothing.
+  - Added look-ahead coverage to `tests/unit/ecs/systems/test_vcam_system.gd` (disabled path, moving offset, clamp bound, stationary zero-offset, mode-switch clear, target-switch reset, first-person no-op, rotation-only target motion no-op).
   - Updated `resources/display/vcam/cfg_default_response.tres` with explicit defaults for look-ahead fields.
 - Completed Phase 2C2:
   - Extended `RS_VCamResponse` with `auto_level_speed` + `auto_level_delay`, including non-negative resolved-value clamping.
@@ -332,7 +332,7 @@
 - `S_VCamSystem` movement-style look smoothing contract is now implementation-backed for orbit/first-person: runtime yaw/pitch remain raw targets on `C_VCamComponent`, evaluator rotation is fed by per-vCam spring-damper look state, and fixed-mode rotation smoothing remains owned by response smoothing.
 - `RS_VCamResponse` orbit-feel contract is now implementation-backed: `look_ahead_distance`, `look_ahead_smoothing`, `auto_level_speed`, and `auto_level_delay` are authored/clamped fields with defaults persisted in `cfg_default_response.tres`.
 - `S_VCamSystem` rotation-continuity contract is now implementation-backed: active-vCam switches apply transition-aware carry/reset/reseed of `runtime_yaw`/`runtime_pitch`, with same-target carry in same-mode transitions and authored-angle reseed when targets differ.
-- `S_VCamSystem` orbit game-feel contract is now implementation-backed for Phase 2C1-2C5: look-ahead offsets are applied before main response smoothing using per-vCam target-velocity state, auto-level pitch recentering is orbit-only with delayed activation and look-input reset behavior, and projection-based soft-zone correction (with per-vCam dead-zone hysteresis state) is applied before response smoothing.
+- `S_VCamSystem` orbit game-feel contract is now implementation-backed for Phase 2C1-2C5: look-ahead offsets are applied before main response smoothing using per-vCam movement-velocity state (not follow-target transform deltas), auto-level pitch recentering is orbit-only with delayed activation and look-input reset behavior, and projection-based soft-zone correction (with per-vCam dead-zone hysteresis state) is applied before response smoothing.
 - `U_VCamSoftZone` now defines the canonical projection/reprojection helper contract for orbit framing correction, including near-plane skip behavior and damping/hysteresis handling.
 - `C_CameraStateComponent` now exposes landing-impact and speed-FOV fields required by the Phase 6A3 QB feel pipeline, and includes those fields in component reset/snapshot behavior.
 - `S_CameraStateSystem` speed-FOV composition is now implementation-backed: movement-speed rule context, score-scaled `RS_EffectSetField` writes, and target-FOV composition/clamping now flow through the default `camera_speed_fov` QB rule.

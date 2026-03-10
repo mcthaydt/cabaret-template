@@ -195,14 +195,15 @@ Before starting Phase 2, verify:
   - Completion note (2026-03-10): Added 7 look-ahead tests to `test_vcam_system` for disable/enable behavior, movement-direction offset, clamp bounds, stationary zero-offset behavior, mode/target reset, and first-person no-op gating.
 
 - [x] **Task 2C1.3 (Green)**: Implement look-ahead in S_VCamSystem
-  - Track follow target velocity via frame-to-frame position delta (do not depend on physics velocity — follow target may not have a body)
+  - Resolve movement velocity from gameplay snapshots first (`state.gameplay.entities[*].velocity`), with movement-component/body fallback when state is unavailable
+  - Do not derive look-ahead direction from follow-target transform deltas (prevents rotation-only offsets on local follow markers)
   - Compute look-ahead offset: `velocity.normalized() * look_ahead_distance` (clamped to `look_ahead_distance`)
   - Smooth the offset through a dedicated `U_SecondOrderDynamics3D` instance (using `look_ahead_smoothing` Hz, critically damped, `r=0.0`)
   - Add smoothed offset to the evaluated camera position BEFORE the main follow dynamics
   - Gate: only apply when active mode is orbit (skip for first-person and fixed)
   - Reset look-ahead dynamics on mode switch / target change
   - All tests should pass
-  - Completion note (2026-03-10): `S_VCamSystem` now applies orbit-only look-ahead pre-smoothing with per-vCam state (`_look_ahead_state`), frame-delta velocity estimation, response-driven distance/smoothing tuning, and deterministic state clears on mode/target/disabled paths.
+  - Completion note (2026-03-10): `S_VCamSystem` now applies orbit-only look-ahead pre-smoothing with per-vCam state (`_look_ahead_state`), movement-velocity sampling (state first, then component/body fallback), response-driven distance/smoothing tuning, and deterministic state clears on mode/target/disabled paths.
 
   **Look-ahead integration point:**
   ```gdscript
@@ -349,7 +350,7 @@ Before starting Phase 2, verify:
 
 ### Cross-Cutting Checks (Orbit Game Feel)
 
-- [ ] Verify look-ahead reads follow target velocity from frame-to-frame position delta (does NOT depend on physics body `linear_velocity`)
+- [ ] Verify look-ahead reads movement velocity from gameplay state snapshots first, with movement-component/body fallback, and does NOT use follow-target transform deltas
 - [ ] Verify look-ahead offset is smoothed through its own `U_SecondOrderDynamics3D` instance (not the main follow dynamics)
 - [ ] Verify look-ahead is gated to orbit mode only (no-op for first-person and fixed)
 - [ ] Verify auto-level only activates after `auto_level_delay` seconds of zero look input (not immediately)

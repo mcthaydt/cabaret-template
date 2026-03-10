@@ -7,14 +7,19 @@ const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.g
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"settings.keyboard_mouse.title"
+const LABEL_MOUSE_SENSITIVITY_KEY := &"settings.keyboard_mouse.label.mouse_sensitivity"
 const LABEL_KEYBOARD_LOOK_ENABLED_KEY := &"settings.keyboard_mouse.label.keyboard_look_enabled"
 const LABEL_KEYBOARD_LOOK_SPEED_KEY := &"settings.keyboard_mouse.label.keyboard_look_speed"
 const BUTTON_RESET_DEFAULTS_KEY := &"settings.keyboard_mouse.button.reset_defaults"
 const BUTTON_REBIND_LOOK_KEY := &"settings.keyboard_mouse.button.rebind_look"
 
+const TOOLTIP_MOUSE_SENSITIVITY_KEY := &"settings.keyboard_mouse.tooltip.mouse_sensitivity"
 const TOOLTIP_KEYBOARD_LOOK_ENABLED_KEY := &"settings.keyboard_mouse.tooltip.keyboard_look_enabled"
 const TOOLTIP_KEYBOARD_LOOK_SPEED_KEY := &"settings.keyboard_mouse.tooltip.keyboard_look_speed"
 
+const DEFAULT_MOUSE_SENSITIVITY: float = 0.6
+const MIN_MOUSE_SENSITIVITY: float = 0.1
+const MAX_MOUSE_SENSITIVITY: float = 5.0
 const DEFAULT_KEYBOARD_LOOK_ENABLED: bool = true
 const DEFAULT_KEYBOARD_LOOK_SPEED: float = 2.0
 
@@ -22,9 +27,13 @@ const DEFAULT_KEYBOARD_LOOK_SPEED: float = 2.0
 @onready var _main_panel_padding: MarginContainer = %MainPanelPadding
 @onready var _main_panel_content: VBoxContainer = %MainPanelContent
 @onready var _title_label: Label = %HeadingLabel
+@onready var _mouse_sensitivity_row: HBoxContainer = %MouseSensitivityRow
 @onready var _keyboard_look_enabled_row: HBoxContainer = %KeyboardLookEnabledRow
 @onready var _keyboard_look_speed_row: HBoxContainer = %KeyboardLookSpeedRow
 @onready var _button_row: HBoxContainer = %ButtonRow
+@onready var _mouse_sensitivity_label: Label = %MouseSensitivityLabel
+@onready var _mouse_sensitivity_slider: HSlider = %MouseSensitivitySlider
+@onready var _mouse_sensitivity_value_label: Label = %MouseSensitivityValue
 @onready var _keyboard_look_enabled_label: Label = %KeyboardLookEnabledLabel
 @onready var _keyboard_look_speed_label: Label = %KeyboardLookSpeedLabel
 @onready var _keyboard_look_enabled_check: CheckButton = %KeyboardLookEnabledCheck
@@ -83,6 +92,7 @@ func _apply_theme_tokens() -> void:
 		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
 
 	var compact_rows: Array[HBoxContainer] = [
+		_mouse_sensitivity_row,
 		_keyboard_look_enabled_row,
 		_keyboard_look_speed_row,
 		_button_row,
@@ -93,10 +103,15 @@ func _apply_theme_tokens() -> void:
 
 	if _title_label != null:
 		_title_label.add_theme_font_size_override(&"font_size", config.heading)
+	if _mouse_sensitivity_label != null:
+		_mouse_sensitivity_label.add_theme_font_size_override(&"font_size", config.section_header)
 	if _keyboard_look_enabled_label != null:
 		_keyboard_look_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
 	if _keyboard_look_speed_label != null:
 		_keyboard_look_speed_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _mouse_sensitivity_value_label != null:
+		_mouse_sensitivity_value_label.add_theme_font_size_override(&"font_size", config.body_small)
+		_mouse_sensitivity_value_label.add_theme_color_override(&"font_color", config.text_secondary)
 	if _keyboard_look_speed_value_label != null:
 		_keyboard_look_speed_value_label.add_theme_font_size_override(&"font_size", config.body_small)
 		_keyboard_look_speed_value_label.add_theme_color_override(&"font_color", config.text_secondary)
@@ -113,6 +128,8 @@ func _apply_theme_tokens() -> void:
 
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
+	if _mouse_sensitivity_slider != null:
+		vertical_controls.append(_mouse_sensitivity_slider)
 	if _keyboard_look_enabled_check != null:
 		vertical_controls.append(_keyboard_look_enabled_check)
 	if _keyboard_look_speed_slider != null:
@@ -134,6 +151,10 @@ func _configure_focus_neighbors() -> void:
 	if not buttons.is_empty():
 		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
 		var top_control: Control = _keyboard_look_speed_slider
+		if top_control != null and top_control.focus_mode == Control.FOCUS_NONE:
+			top_control = _mouse_sensitivity_slider
+		if top_control == null:
+			top_control = _mouse_sensitivity_slider
 		if top_control == null:
 			top_control = _keyboard_look_enabled_check
 		if top_control != null:
@@ -144,6 +165,8 @@ func _configure_focus_neighbors() -> void:
 				button.focus_neighbor_bottom = button.get_path_to(top_control)
 
 func _connect_control_signals() -> void:
+	if not _mouse_sensitivity_slider.value_changed.is_connected(_on_mouse_sensitivity_changed):
+		_mouse_sensitivity_slider.value_changed.connect(_on_mouse_sensitivity_changed)
 	if not _keyboard_look_enabled_check.toggled.is_connected(_on_keyboard_look_enabled_toggled):
 		_keyboard_look_enabled_check.toggled.connect(_on_keyboard_look_enabled_toggled)
 	if not _keyboard_look_speed_slider.value_changed.is_connected(_on_keyboard_look_speed_changed):
@@ -158,6 +181,11 @@ func _connect_control_signals() -> void:
 		_rebind_button.pressed.connect(_on_rebind_pressed)
 
 func _configure_tooltips() -> void:
+	if _mouse_sensitivity_slider != null:
+		_mouse_sensitivity_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_MOUSE_SENSITIVITY_KEY,
+			"Adjust camera rotation sensitivity for mouse look input."
+		)
 	if _keyboard_look_enabled_check != null:
 		_keyboard_look_enabled_check.tooltip_text = _localize_with_fallback(
 			TOOLTIP_KEYBOARD_LOOK_ENABLED_KEY,
@@ -176,15 +204,26 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	var mouse_settings := U_InputSelectors.get_mouse_settings(state)
 	_updating_from_state = true
 	if not mouse_settings.is_empty():
+		_mouse_sensitivity_slider.value = clampf(
+			float(mouse_settings.get("sensitivity", DEFAULT_MOUSE_SENSITIVITY)),
+			MIN_MOUSE_SENSITIVITY,
+			MAX_MOUSE_SENSITIVITY
+		)
 		_keyboard_look_enabled_check.button_pressed = bool(mouse_settings.get("keyboard_look_enabled", DEFAULT_KEYBOARD_LOOK_ENABLED))
 		_keyboard_look_speed_slider.value = clampf(
 			float(mouse_settings.get("keyboard_look_speed", DEFAULT_KEYBOARD_LOOK_SPEED)),
 			0.1,
 			10.0
 		)
+	_update_slider_label(_mouse_sensitivity_value_label, _mouse_sensitivity_slider.value)
 	_update_slider_label(_keyboard_look_speed_value_label, _keyboard_look_speed_slider.value)
 	_apply_keyboard_look_enabled_state(_keyboard_look_enabled_check.button_pressed)
 	_updating_from_state = false
+
+func _on_mouse_sensitivity_changed(value: float) -> void:
+	_update_slider_label(_mouse_sensitivity_value_label, value)
+	if not _updating_from_state:
+		U_UISoundPlayer.play_slider_tick()
 
 func _on_keyboard_look_enabled_toggled(enabled: bool) -> void:
 	_apply_keyboard_look_enabled_state(enabled)
@@ -209,8 +248,10 @@ func _on_apply_pressed() -> void:
 		_close_overlay()
 		return
 	
+	var mouse_sensitivity: float = _mouse_sensitivity_slider.value
 	var keyboard_look_enabled: bool = _keyboard_look_enabled_check.button_pressed
 	var keyboard_look_speed: float = _keyboard_look_speed_slider.value
+	store.dispatch(U_InputActions.update_mouse_sensitivity(mouse_sensitivity))
 	store.dispatch(U_InputActions.set_keyboard_look_enabled(keyboard_look_enabled))
 	store.dispatch(U_InputActions.set_keyboard_look_speed(keyboard_look_speed))
 	_close_overlay()
@@ -221,6 +262,8 @@ func _on_cancel_pressed() -> void:
 
 func _on_reset_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
+	_mouse_sensitivity_slider.value = DEFAULT_MOUSE_SENSITIVITY
+	_update_slider_label(_mouse_sensitivity_value_label, _mouse_sensitivity_slider.value)
 	_keyboard_look_enabled_check.button_pressed = DEFAULT_KEYBOARD_LOOK_ENABLED
 	_keyboard_look_speed_slider.value = DEFAULT_KEYBOARD_LOOK_SPEED
 	_update_slider_label(_keyboard_look_speed_value_label, _keyboard_look_speed_slider.value)
@@ -228,6 +271,7 @@ func _on_reset_pressed() -> void:
 
 	var store := get_store()
 	if store != null:
+		store.dispatch(U_InputActions.update_mouse_sensitivity(DEFAULT_MOUSE_SENSITIVITY))
 		store.dispatch(U_InputActions.set_keyboard_look_enabled(DEFAULT_KEYBOARD_LOOK_ENABLED))
 		store.dispatch(U_InputActions.set_keyboard_look_speed(DEFAULT_KEYBOARD_LOOK_SPEED))
 
@@ -274,6 +318,11 @@ func _on_locale_changed(_locale: StringName) -> void:
 func _localize_labels() -> void:
 	if _title_label != null:
 		_title_label.text = _localize_with_fallback(TITLE_KEY, "Keyboard/Mouse Settings")
+	if _mouse_sensitivity_label != null:
+		_mouse_sensitivity_label.text = _localize_with_fallback(
+			LABEL_MOUSE_SENSITIVITY_KEY,
+			"Mouse Sensitivity"
+		)
 	if _keyboard_look_enabled_label != null:
 		_keyboard_look_enabled_label.text = _localize_with_fallback(
 			LABEL_KEYBOARD_LOOK_ENABLED_KEY,

@@ -190,6 +190,7 @@ func test_touchscreen_settings_have_required_default_fields() -> void:
 func test_mouse_settings_have_keyboard_look_defaults() -> void:
 	var settings := _make_settings_state()
 	var mouse_settings: Dictionary = settings.get("mouse_settings", {})
+	assert_almost_eq(float(mouse_settings.get("sensitivity", 0.0)), 0.6, 0.0001)
 	assert_true(mouse_settings.has("keyboard_look_enabled"), "Should have keyboard_look_enabled field")
 	assert_true(mouse_settings.has("keyboard_look_speed"), "Should have keyboard_look_speed field")
 	assert_true(bool(mouse_settings.get("keyboard_look_enabled", false)))

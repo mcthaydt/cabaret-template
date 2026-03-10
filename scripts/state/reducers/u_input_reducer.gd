@@ -30,7 +30,7 @@ const DEFAULT_INPUT_SETTINGS_STATE := {
 		"deadzone_curve": 1,
 	},
 	"mouse_settings": {
-		"sensitivity": 1.0,
+		"sensitivity": 0.6,
 		"invert_y_axis": false,
 		"keyboard_look_enabled": true,
 		"keyboard_look_speed": 2.0,
@@ -237,7 +237,7 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 		U_InputActions.ACTION_UPDATE_MOUSE_SENSITIVITY:
 			var mouse_payload: Dictionary = action.get("payload", {})
 			var mouse_settings: Dictionary = _duplicate_dict(current.get("mouse_settings", {}))
-			mouse_settings["sensitivity"] = float(mouse_payload.get("sensitivity", 1.0))
+			mouse_settings["sensitivity"] = clampf(float(mouse_payload.get("sensitivity", 0.6)), 0.1, 5.0)
 			return _with_values(current, {"mouse_settings": mouse_settings})
 
 		U_InputActions.ACTION_SET_KEYBOARD_LOOK_ENABLED:
@@ -504,6 +504,7 @@ static func _normalize_custom_bindings_by_profile(value: Variant) -> Dictionary:
 
 static func _sanitize_mouse_settings(source: Dictionary) -> Dictionary:
 	var sanitized := source.duplicate(true)
+	sanitized["sensitivity"] = clampf(float(sanitized.get("sensitivity", 0.6)), 0.1, 5.0)
 	sanitized["keyboard_look_enabled"] = bool(sanitized.get("keyboard_look_enabled", true))
 	sanitized["keyboard_look_speed"] = clampf(float(sanitized.get("keyboard_look_speed", 2.0)), 0.1, 10.0)
 	return sanitized
