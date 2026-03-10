@@ -1,16 +1,12 @@
-[gd_resource type="Resource" script_class="RS_VCamResponse" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_VCamResponse" format=3 uid="uid://bya5pusmeeom1"]
 
-[ext_resource type="Script" path="res://scripts/resources/display/vcam/rs_vcam_response.gd" id="1_j0vk8"]
+[ext_resource type="Script" uid="uid://dpqbu17n47p18" path="res://scripts/resources/display/vcam/rs_vcam_response.gd" id="1_j0vk8"]
 
 [resource]
 script = ExtResource("1_j0vk8")
 follow_frequency = 1.86
 follow_damping = 0.85
-follow_initial_response = 1.0
 rotation_frequency = 3.99
 rotation_damping = 0.9
-rotation_initial_response = 1.0
 look_ahead_distance = 0.22
 look_ahead_smoothing = 1.77
-auto_level_speed = 0.0
-auto_level_delay = 1.0

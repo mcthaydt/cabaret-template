@@ -49,7 +49,6 @@
 [ext_resource type="Script" uid="uid://csqsmkkv5ite7" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
 [ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
 [ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
@@ -75,6 +74,7 @@
 [ext_resource type="Resource" uid="uid://5wk0u8qgkwo1" path="res://resources/lighting/zones/cfg_character_light_zone_bar_warm.tres" id="68_character_light_zone_warm_config"]
 [ext_resource type="Resource" uid="uid://c230upatsnrwh" path="res://resources/lighting/zones/cfg_character_light_zone_bar_entrance_cool.tres" id="69_character_light_zone_entrance_config"]
 [ext_resource type="Resource" uid="uid://d81vvi18th06" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_bar.tres" id="70_character_light_zone_goal_config"]
+[ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
@@ -257,16 +257,6 @@ config = ExtResource("69_character_light_zone_entrance_config")
 script = ExtResource("55_cinema_preview")
 cinema_grade = ExtResource("56_cinema_grade")
 
-[node name="BarLight_Warm" type="OmniLight3D" parent="Lighting" unique_id=999999902]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-light_color = Color(1, 0.7, 0.4, 1)
-light_energy = 2.0
-omni_range = 10.0
-
-[node name="EntranceLight_Cool" type="OmniLight3D" parent="Lighting" unique_id=999999903]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, -1)
-light_color = Color(0.4, 0.6, 1, 1)
-
 [node name="Managers" type="Node" parent="." unique_id=1732814566]
 script = ExtResource("12_klon2")
 
@@ -306,7 +296,7 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.019804, 0.9881649, -4.0965447)
 script = ExtResource("44_victory_controller")
 config = ExtResource("62_victory_config")
-visual_paths = Array[NodePath]([NodePath("Visual"), NodePath(""), NodePath("GlowLight")])
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath(""), NodePath("")])
 entity_id = &"goalzone_bar"
 tags = Array[StringName]([&"objective", &"goal"])
 
@@ -320,11 +310,6 @@ material = ExtResource("53_fade_goal")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.63254166)
 script = ExtResource("67_character_light_zone_script")
 config = ExtResource("70_character_light_zone_goal_config")
-
-[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_GoalZone" unique_id=1169942121]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.63254166)
-light_color = Color(1, 0.87451, 0.364706, 1)
-light_energy = 2.0
 
 [node name="E_Player" parent="Entities" unique_id=526145796 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2181439, 1, 0.6794058)

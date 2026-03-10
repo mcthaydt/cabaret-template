@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="RS_VCamSoftZone" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_VCamSoftZone" format=3 uid="uid://di7grdc78eh1y"]
 
-[ext_resource type="Script" path="res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd" id="1_hb3af"]
+[ext_resource type="Script" uid="uid://r0ndoc5qfki1" path="res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd" id="1_hb3af"]
 
 [resource]
 script = ExtResource("1_hb3af")
