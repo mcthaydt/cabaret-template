@@ -606,6 +606,215 @@ func test_follow_target_change_resets_response_dynamics() -> void:
 
 	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
 
+func test_rotation_continuity_orbit_to_first_person_carries_yaw_and_resets_pitch() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_ContinuityOrbitToFP", Vector3.ZERO)
+	var orbit_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_out"),
+		_new_orbit_mode(),
+		follow_target
+	)
+	var first_person_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_fp_in"),
+		_new_first_person_mode(),
+		follow_target
+	)
+	orbit_component.runtime_yaw = 42.0
+	orbit_component.runtime_pitch = -18.0
+	first_person_component.runtime_yaw = -5.0
+	first_person_component.runtime_pitch = 9.0
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_out")
+	ecs_manager._physics_process(0.016)
+	vcam_manager.previous_vcam_id = StringName("cam_orbit_out")
+	vcam_manager.active_vcam_id = StringName("cam_fp_in")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(first_person_component.runtime_yaw, 42.0, 0.0001)
+	assert_almost_eq(first_person_component.runtime_pitch, 0.0, 0.0001)
+
+func test_rotation_continuity_first_person_to_orbit_carries_yaw_and_resets_pitch() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_ContinuityFPToOrbit", Vector3.ZERO)
+	var first_person_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_fp_out"),
+		_new_first_person_mode(),
+		follow_target
+	)
+	var orbit_in_mode := _new_orbit_mode()
+	orbit_in_mode.authored_yaw = 35.0
+	orbit_in_mode.authored_pitch = -22.0
+	var orbit_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_in"),
+		orbit_in_mode,
+		follow_target
+	)
+	first_person_component.runtime_yaw = -27.5
+	first_person_component.runtime_pitch = 13.0
+	orbit_component.runtime_yaw = 100.0
+	orbit_component.runtime_pitch = -55.0
+
+	vcam_manager.active_vcam_id = StringName("cam_fp_out")
+	ecs_manager._physics_process(0.016)
+	vcam_manager.previous_vcam_id = StringName("cam_fp_out")
+	vcam_manager.active_vcam_id = StringName("cam_orbit_in")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(orbit_component.runtime_yaw, -27.5, 0.0001)
+	assert_almost_eq(orbit_component.runtime_pitch, 0.0, 0.0001)
+
+func test_rotation_continuity_orbit_to_fixed_preserves_outgoing_rotation_state() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_ContinuityOrbitToFixed", Vector3.ZERO)
+	var orbit_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_keep"),
+		_new_orbit_mode(),
+		follow_target
+	)
+	var fixed_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_fixed_in"),
+		RS_VCAM_MODE_FIXED.new(),
+		follow_target
+	)
+	orbit_component.runtime_yaw = 19.0
+	orbit_component.runtime_pitch = -7.0
+	fixed_component.runtime_yaw = 2.0
+	fixed_component.runtime_pitch = 3.0
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_keep")
+	ecs_manager._physics_process(0.016)
+	vcam_manager.previous_vcam_id = StringName("cam_orbit_keep")
+	vcam_manager.active_vcam_id = StringName("cam_fixed_in")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(orbit_component.runtime_yaw, 19.0, 0.0001)
+	assert_almost_eq(orbit_component.runtime_pitch, -7.0, 0.0001)
+
+func test_rotation_continuity_fixed_to_orbit_reseeds_to_authored_yaw_and_zero_pitch() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_ContinuityFixedToOrbit", Vector3.ZERO)
+	var fixed_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_fixed_out"),
+		RS_VCAM_MODE_FIXED.new(),
+		follow_target
+	)
+	var orbit_mode := _new_orbit_mode()
+	orbit_mode.authored_yaw = 28.0
+	orbit_mode.authored_pitch = -15.0
+	var orbit_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_reseed"),
+		orbit_mode,
+		follow_target
+	)
+	fixed_component.runtime_yaw = 80.0
+	fixed_component.runtime_pitch = -40.0
+	orbit_component.runtime_yaw = -11.0
+	orbit_component.runtime_pitch = 6.0
+
+	vcam_manager.active_vcam_id = StringName("cam_fixed_out")
+	ecs_manager._physics_process(0.016)
+	vcam_manager.previous_vcam_id = StringName("cam_fixed_out")
+	vcam_manager.active_vcam_id = StringName("cam_orbit_reseed")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(orbit_component.runtime_yaw, 28.0, 0.0001)
+	assert_almost_eq(orbit_component.runtime_pitch, 0.0, 0.0001)
+
+func test_rotation_continuity_same_mode_same_target_carries_yaw_and_pitch() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var shared_target := _create_target_entity(ecs_manager, "E_ContinuitySharedTarget", Vector3.ZERO)
+	var orbit_a := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_shared_a"),
+		_new_orbit_mode(),
+		shared_target
+	)
+	var orbit_b := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_shared_b"),
+		_new_orbit_mode(),
+		shared_target
+	)
+	orbit_a.runtime_yaw = 14.0
+	orbit_a.runtime_pitch = -4.0
+	orbit_b.runtime_yaw = 100.0
+	orbit_b.runtime_pitch = 100.0
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_shared_a")
+	ecs_manager._physics_process(0.016)
+	vcam_manager.previous_vcam_id = StringName("cam_orbit_shared_a")
+	vcam_manager.active_vcam_id = StringName("cam_orbit_shared_b")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(orbit_b.runtime_yaw, 14.0, 0.0001)
+	assert_almost_eq(orbit_b.runtime_pitch, -4.0, 0.0001)
+
+func test_rotation_continuity_same_mode_different_target_reseeds_to_authored_angles() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var first_target := _create_target_entity(ecs_manager, "E_ContinuityTargetA", Vector3.ZERO)
+	var second_target := _create_target_entity(ecs_manager, "E_ContinuityTargetB", Vector3(5.0, 0.0, 0.0))
+
+	var orbit_out := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_target_a"),
+		_new_orbit_mode(),
+		first_target
+	)
+	var orbit_in_mode := _new_orbit_mode()
+	orbit_in_mode.authored_yaw = 33.0
+	orbit_in_mode.authored_pitch = -12.0
+	var orbit_in := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_target_b"),
+		orbit_in_mode,
+		second_target
+	)
+	orbit_out.runtime_yaw = -70.0
+	orbit_out.runtime_pitch = 25.0
+	orbit_in.runtime_yaw = 2.0
+	orbit_in.runtime_pitch = 3.0
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_target_a")
+	ecs_manager._physics_process(0.016)
+	vcam_manager.previous_vcam_id = StringName("cam_orbit_target_a")
+	vcam_manager.active_vcam_id = StringName("cam_orbit_target_b")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(orbit_in.runtime_yaw, 33.0, 0.0001)
+	assert_almost_eq(orbit_in.runtime_pitch, -12.0, 0.0001)
+
 func test_does_nothing_when_no_active_vcam_exists() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)

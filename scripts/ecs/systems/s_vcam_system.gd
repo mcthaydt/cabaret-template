@@ -26,21 +26,26 @@ var _rotation_dynamics: Dictionary = {}  # StringName -> {x, y, z}
 var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_target_id, response_signature}
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
 var _debug_issues: Array[String] = []
+var _last_active_vcam_id: StringName = StringName("")
 
 func process_tick(delta: float) -> void:
 	var manager := _resolve_vcam_manager()
 	if manager == null:
+		_last_active_vcam_id = StringName("")
 		return
 
 	var active_vcam_id: StringName = manager.get_active_vcam_id()
 	if active_vcam_id == StringName(""):
+		_last_active_vcam_id = StringName("")
 		return
 
 	var vcam_index: Dictionary = _build_vcam_index()
 	if vcam_index.is_empty():
+		_last_active_vcam_id = StringName("")
 		return
 	_prune_path_helpers(vcam_index)
 	_prune_smoothing_state(vcam_index)
+	_apply_rotation_continuity_policy(active_vcam_id, vcam_index, manager)
 
 	var look_input: Vector2 = _read_look_input()
 	_evaluate_and_submit(active_vcam_id, vcam_index, look_input, manager, delta)
@@ -59,6 +64,120 @@ func get_debug_issues() -> Array[String]:
 func _exit_tree() -> void:
 	_teardown_path_helpers()
 	_clear_all_smoothing_state()
+	_last_active_vcam_id = StringName("")
+
+func _apply_rotation_continuity_policy(
+	active_vcam_id: StringName,
+	vcam_index: Dictionary,
+	manager: I_VCAM_MANAGER
+) -> void:
+	if _last_active_vcam_id == active_vcam_id:
+		return
+
+	var incoming_component := vcam_index.get(active_vcam_id, null) as C_VCamComponent
+	if incoming_component == null or not is_instance_valid(incoming_component):
+		_last_active_vcam_id = active_vcam_id
+		return
+
+	var outgoing_vcam_id: StringName = manager.get_previous_vcam_id()
+	if outgoing_vcam_id == StringName("") or outgoing_vcam_id == active_vcam_id:
+		outgoing_vcam_id = _last_active_vcam_id
+	if outgoing_vcam_id == StringName("") or outgoing_vcam_id == active_vcam_id:
+		_last_active_vcam_id = active_vcam_id
+		return
+
+	var outgoing_component := vcam_index.get(outgoing_vcam_id, null) as C_VCamComponent
+	if outgoing_component == null or not is_instance_valid(outgoing_component):
+		_last_active_vcam_id = active_vcam_id
+		return
+
+	_apply_rotation_transition(outgoing_component, incoming_component)
+	_last_active_vcam_id = active_vcam_id
+
+func _apply_rotation_transition(outgoing_component: C_VCamComponent, incoming_component: C_VCamComponent) -> void:
+	if outgoing_component == null or incoming_component == null:
+		return
+	if outgoing_component.mode == null or incoming_component.mode == null:
+		return
+
+	var outgoing_mode_script := outgoing_component.mode.get_script() as Script
+	var incoming_mode_script := incoming_component.mode.get_script() as Script
+	if outgoing_mode_script == null or incoming_mode_script == null:
+		return
+
+	if outgoing_mode_script == incoming_mode_script:
+		_apply_same_mode_rotation_transition(outgoing_component, incoming_component)
+		return
+
+	if (
+		outgoing_mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
+		and incoming_mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT
+	):
+		incoming_component.runtime_yaw = outgoing_component.runtime_yaw
+		incoming_component.runtime_pitch = 0.0
+		return
+
+	if (
+		outgoing_mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT
+		and incoming_mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
+	):
+		incoming_component.runtime_yaw = outgoing_component.runtime_yaw
+		incoming_component.runtime_pitch = 0.0
+		return
+
+	if (
+		outgoing_mode_script == RS_VCAM_MODE_FIXED_SCRIPT
+		and (
+			incoming_mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
+			or incoming_mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT
+		)
+	):
+		var authored_angles: Vector2 = _resolve_authored_rotation(incoming_component.mode)
+		incoming_component.runtime_yaw = authored_angles.x
+		incoming_component.runtime_pitch = 0.0
+
+func _apply_same_mode_rotation_transition(
+	outgoing_component: C_VCamComponent,
+	incoming_component: C_VCamComponent
+) -> void:
+	if _components_share_follow_target(outgoing_component, incoming_component):
+		incoming_component.runtime_yaw = outgoing_component.runtime_yaw
+		incoming_component.runtime_pitch = outgoing_component.runtime_pitch
+		return
+
+	var authored_angles: Vector2 = _resolve_authored_rotation(incoming_component.mode)
+	incoming_component.runtime_yaw = authored_angles.x
+	incoming_component.runtime_pitch = authored_angles.y
+
+func _components_share_follow_target(
+	outgoing_component: C_VCamComponent,
+	incoming_component: C_VCamComponent
+) -> bool:
+	if outgoing_component == null or incoming_component == null:
+		return false
+
+	var outgoing_target: Node3D = _resolve_follow_target(outgoing_component)
+	var incoming_target: Node3D = _resolve_follow_target(incoming_component)
+	if outgoing_target == null or incoming_target == null:
+		return false
+	return _get_node_instance_id(outgoing_target) == _get_node_instance_id(incoming_target)
+
+func _resolve_authored_rotation(mode: Resource) -> Vector2:
+	if mode == null:
+		return Vector2.ZERO
+
+	var mode_script := mode.get_script() as Script
+	if mode_script == RS_VCAM_MODE_ORBIT_SCRIPT:
+		var orbit_values: Dictionary = _resolve_mode_values(mode, {
+			"authored_yaw": 0.0,
+			"authored_pitch": 0.0,
+		})
+		return Vector2(
+			float(orbit_values.get("authored_yaw", 0.0)),
+			float(orbit_values.get("authored_pitch", 0.0))
+		)
+
+	return Vector2.ZERO
 
 func _evaluate_and_submit(
 	vcam_id: StringName,
