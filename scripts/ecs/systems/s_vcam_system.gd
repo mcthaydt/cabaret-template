@@ -33,6 +33,7 @@ var _path_follow_helpers: Dictionary = {}  # StringName -> PathFollow3D
 var _follow_dynamics: Dictionary = {}  # StringName -> U_SecondOrderDynamics3D
 var _rotation_dynamics: Dictionary = {}  # StringName -> {x, y, z}
 var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_target_id, response_signature}
+var _look_rotation_state: Dictionary = {}  # StringName -> {smoothed_yaw, smoothed_pitch, yaw_velocity, pitch_velocity, mode_script, follow_target_id, response_signature}
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
 var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
 var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
@@ -232,13 +233,22 @@ func _evaluate_and_submit(
 			return
 
 	_update_runtime_rotation(vcam_id, component, mode, look_input, delta)
+	var response_values: Dictionary = _resolve_component_response_values(component)
+	var runtime_rotation: Vector2 = _resolve_runtime_rotation_for_evaluation(
+		vcam_id,
+		component,
+		mode,
+		follow_target,
+		response_values,
+		delta
+	)
 	var look_at_target: Node3D = component.get_look_at_target()
 	var result: Dictionary = U_VCAM_MODE_EVALUATOR.evaluate(
 		mode,
 		follow_target,
 		look_at_target,
-		component.runtime_yaw,
-		component.runtime_pitch,
+		runtime_rotation.x,
+		runtime_rotation.y,
 		fixed_anchor
 	)
 	if result.is_empty():
@@ -914,6 +924,14 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
+	for vcam_id_variant in _look_rotation_state.keys():
+		var vcam_id := vcam_id_variant as StringName
+		if vcam_index.has(vcam_id):
+			continue
+		if stale_ids.has(vcam_id):
+			continue
+		stale_ids.append(vcam_id)
+
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
 		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
@@ -930,6 +948,7 @@ func _clear_all_smoothing_state() -> void:
 	_follow_dynamics.clear()
 	_rotation_dynamics.clear()
 	_smoothing_metadata.clear()
+	_look_rotation_state.clear()
 	_rotation_target_cache.clear()
 	_look_ahead_state.clear()
 	_orbit_no_look_input_timers.clear()
@@ -938,9 +957,153 @@ func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_follow_dynamics.erase(vcam_id)
 	_rotation_dynamics.erase(vcam_id)
 	_smoothing_metadata.erase(vcam_id)
+	_look_rotation_state.erase(vcam_id)
 	_rotation_target_cache.erase(vcam_id)
 	_look_ahead_state.erase(vcam_id)
 	_orbit_no_look_input_timers.erase(vcam_id)
+
+func _resolve_runtime_rotation_for_evaluation(
+	vcam_id: StringName,
+	component: C_VCamComponent,
+	mode: Resource,
+	follow_target: Node3D,
+	response_values: Dictionary,
+	delta: float
+) -> Vector2:
+	if component == null or mode == null:
+		return Vector2.ZERO
+
+	var target_rotation := Vector2(component.runtime_yaw, component.runtime_pitch)
+	var mode_script := mode.get_script() as Script
+	if not _is_look_rotation_smoothing_mode(mode_script):
+		_clear_look_rotation_state_for_vcam(vcam_id)
+		return target_rotation
+	if response_values.is_empty():
+		_clear_look_rotation_state_for_vcam(vcam_id)
+		return target_rotation
+
+	var rotation_frequency: float = maxf(float(response_values.get("rotation_frequency", 0.0)), 0.0)
+	if rotation_frequency <= 0.0:
+		_clear_look_rotation_state_for_vcam(vcam_id)
+		return target_rotation
+	var rotation_damping: float = maxf(float(response_values.get("rotation_damping", 0.0)), 0.0)
+
+	var follow_target_id: int = _get_node_instance_id(follow_target)
+	var response_signature: Array[float] = _build_response_signature(response_values)
+	var state: Dictionary = _get_look_rotation_state(vcam_id)
+	if (
+		state.is_empty()
+		or _did_mode_change(state, mode_script)
+		or _did_follow_target_change(state, follow_target_id)
+		or _did_response_change(state, response_signature)
+	):
+		_set_look_rotation_state(vcam_id, target_rotation, Vector2.ZERO, mode_script, follow_target_id, response_signature)
+		return target_rotation
+
+	var smoothed_rotation: Vector2 = Vector2(
+		float(state.get("smoothed_yaw", target_rotation.x)),
+		float(state.get("smoothed_pitch", target_rotation.y))
+	)
+	var rotation_velocity: Vector2 = Vector2(
+		float(state.get("yaw_velocity", 0.0)),
+		float(state.get("pitch_velocity", 0.0))
+	)
+	if delta <= 0.0:
+		return smoothed_rotation
+
+	var step_dt: float = minf(maxf(delta, 0.0), U_SECOND_ORDER_DYNAMICS.MAX_STEP_DELTA_SEC)
+	var yaw_step: Dictionary = _step_second_order_angle(
+		smoothed_rotation.x,
+		target_rotation.x,
+		rotation_velocity.x,
+		rotation_frequency,
+		rotation_damping,
+		step_dt
+	)
+	var pitch_step: Dictionary = _step_second_order_angle(
+		smoothed_rotation.y,
+		target_rotation.y,
+		rotation_velocity.y,
+		rotation_frequency,
+		rotation_damping,
+		step_dt
+	)
+	smoothed_rotation = Vector2(
+		float(yaw_step.get("value", target_rotation.x)),
+		float(pitch_step.get("value", target_rotation.y))
+	)
+	rotation_velocity = Vector2(
+		float(yaw_step.get("velocity", 0.0)),
+		float(pitch_step.get("velocity", 0.0))
+	)
+	_set_look_rotation_state(
+		vcam_id,
+		smoothed_rotation,
+		rotation_velocity,
+		mode_script,
+		follow_target_id,
+		response_signature
+	)
+	return smoothed_rotation
+
+func _step_second_order_angle(
+	current_value: float,
+	target_value: float,
+	current_velocity: float,
+	frequency_hz: float,
+	damping_ratio: float,
+	delta: float
+) -> Dictionary:
+	var omega: float = TAU * maxf(frequency_hz, 0.0)
+	if omega <= 0.0:
+		return {
+			"value": target_value,
+			"velocity": 0.0,
+		}
+
+	var error: float = wrapf(target_value - current_value, -180.0, 180.0)
+	var accel: float = (omega * omega * error) - (2.0 * damping_ratio * omega * current_velocity)
+	var next_velocity: float = current_velocity + accel * delta
+	var next_value: float = current_value + next_velocity * delta
+	if is_nan(next_value) or is_inf(next_value):
+		next_value = target_value
+	if is_nan(next_velocity) or is_inf(next_velocity):
+		next_velocity = 0.0
+
+	return {
+		"value": next_value,
+		"velocity": next_velocity,
+	}
+
+func _is_look_rotation_smoothing_mode(mode_script: Script) -> bool:
+	return mode_script == RS_VCAM_MODE_ORBIT_SCRIPT or mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT
+
+func _get_look_rotation_state(vcam_id: StringName) -> Dictionary:
+	var state_variant: Variant = _look_rotation_state.get(vcam_id, {})
+	if state_variant is Dictionary:
+		return (state_variant as Dictionary).duplicate(true)
+	return {}
+
+func _set_look_rotation_state(
+	vcam_id: StringName,
+	smoothed_rotation: Vector2,
+	rotation_velocity: Vector2,
+	mode_script: Script,
+	follow_target_id: int,
+	response_signature: Array[float]
+) -> void:
+	_look_rotation_state[vcam_id] = {
+		"smoothed_yaw": smoothed_rotation.x,
+		"smoothed_pitch": smoothed_rotation.y,
+		"yaw_velocity": rotation_velocity.x,
+		"pitch_velocity": rotation_velocity.y,
+		"mode_script": mode_script,
+		"follow_target_id": follow_target_id,
+		"response_signature": response_signature.duplicate(),
+	}
+
+func _clear_look_rotation_state_for_vcam(vcam_id: StringName) -> void:
+	_look_rotation_state.erase(vcam_id)
 
 func _apply_response_smoothing(
 	vcam_id: StringName,
@@ -991,13 +1154,14 @@ func _apply_response_smoothing(
 		return raw_result
 
 	_set_smoothing_metadata(vcam_id, mode_script, follow_target_id, response_signature)
-	return _step_smoothing_state(vcam_id, raw_result, raw_transform, target_euler, delta)
+	return _step_smoothing_state(vcam_id, raw_result, raw_transform, target_euler, mode_script, delta)
 
 func _step_smoothing_state(
 	vcam_id: StringName,
 	raw_result: Dictionary,
 	raw_transform: Transform3D,
 	target_euler: Vector3,
+	mode_script: Script,
 	delta: float
 ) -> Dictionary:
 	var follow_dynamics: Variant = _follow_dynamics.get(vcam_id, null)
@@ -1010,6 +1174,12 @@ func _step_smoothing_state(
 	var rotation_entry := rotation_entry_variant as Dictionary
 
 	var smooth_position: Vector3 = follow_dynamics.step(raw_transform.origin, delta)
+	if mode_script != RS_VCAM_MODE_FIXED_SCRIPT:
+		var smooth_transform_non_fixed := Transform3D(raw_transform.basis.orthonormalized(), smooth_position)
+		var non_fixed_result: Dictionary = raw_result.duplicate(true)
+		non_fixed_result["transform"] = smooth_transform_non_fixed
+		return non_fixed_result
+
 	var smooth_x: float = _step_rotation_axis(rotation_entry, StringName("x"), target_euler.x, delta)
 	var smooth_y: float = _step_rotation_axis(rotation_entry, StringName("y"), target_euler.y, delta)
 	var smooth_z: float = _step_rotation_axis(rotation_entry, StringName("z"), target_euler.z, delta)

@@ -209,6 +209,30 @@ func test_updates_first_person_rotation_using_look_multiplier() -> void:
 	assert_almost_eq(component.runtime_yaw, 2.0, 0.0001)
 	assert_almost_eq(component.runtime_pitch, -1.0, 0.0001)
 
+func test_runtime_rotation_values_remain_raw_targets_with_response_enabled() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(1.5, -0.75)})
+	var follow_target := _create_target_entity(ecs_manager, "E_RawRuntimeResponseTarget", Vector3.ZERO)
+	var orbit_mode := _new_orbit_mode(true, 2.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_raw_runtime_response"),
+		orbit_mode,
+		follow_target
+	)
+	component.response = _new_response(3.0, 0.7, 1.0, 1.25, 0.85, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_raw_runtime_response")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(component.runtime_yaw, 3.0, 0.0001)
+	assert_almost_eq(component.runtime_pitch, -1.5, 0.0001)
+
 func test_submits_evaluated_result_to_manager() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -420,6 +444,198 @@ func test_use_path_with_invalid_follow_target_preserves_progress_and_skips_submi
 
 	assert_eq(vcam_manager.submit_calls, 0, "Invalid path target should enter recovery and skip submission")
 	assert_almost_eq(helper.progress, progress_before, 0.0001, "Path progress should not advance without a valid follow target")
+
+func test_look_smoothing_offsets_first_frame_after_large_look_input_jump() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LookSmoothingJumpTarget", Vector3.ZERO)
+	var mode := _new_first_person_mode(1.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_look_smoothing_jump"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_look_smoothing_jump")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(45.0, 0.0)})
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(component.runtime_yaw, 45.0, 0.0001)
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_look_smoothing_jump"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	assert_true(
+		_rotation_error(submitted, raw_transform) > 0.001,
+		"First frame after look jump should be smoothed, not raw target rotation"
+	)
+
+func test_look_smoothing_converges_toward_raw_rotation_over_ticks() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LookSmoothingConvergeTarget", Vector3.ZERO)
+	var mode := _new_first_person_mode(1.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_look_smoothing_converge"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_look_smoothing_converge")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(60.0, 0.0)})
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var first_transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_look_smoothing_converge"))
+	var first_error: float = _rotation_error(first_transform, raw_transform)
+	for _i in range(180):
+		ecs_manager._physics_process(0.016)
+
+	var final_transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_look_smoothing_converge"))
+	var final_error: float = _rotation_error(final_transform, raw_transform)
+
+	assert_true(first_error > 0.001, "Look smoothing should introduce non-zero first-frame rotation error")
+	assert_true(final_error < first_error, "Look smoothing should converge toward raw evaluator rotation")
+	assert_true(final_error < 0.01, "Look smoothing should settle close to raw evaluator rotation")
+
+func test_mode_switch_resets_look_smoothing_without_residual_momentum() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LookSmoothingModeResetTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_look_smoothing_mode_reset"),
+		_new_first_person_mode(1.0),
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_look_smoothing_mode_reset")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(55.0, 0.0)})
+	ecs_manager._physics_process(0.016)
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	for _i in range(6):
+		ecs_manager._physics_process(0.016)
+
+	component.mode = _new_orbit_mode()
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_look_smoothing_mode_reset"))
+	var raw_result: Dictionary = _evaluate_raw_result(component.mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
+
+func test_follow_target_change_resets_look_smoothing_state() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var first_target := _create_target_entity(ecs_manager, "E_LookSmoothingTargetA", Vector3.ZERO)
+	var second_target := _create_target_entity(ecs_manager, "E_LookSmoothingTargetB", Vector3(5.0, 0.0, 0.0))
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_look_smoothing_target_reset"),
+		_new_first_person_mode(1.0),
+		first_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_look_smoothing_target_reset")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(40.0, 0.0)})
+	ecs_manager._physics_process(0.016)
+	var pre_state: Dictionary = (system.get("_look_rotation_state") as Dictionary).get(
+		StringName("cam_look_smoothing_target_reset"),
+		{}
+	) as Dictionary
+	assert_true(absf(float(pre_state.get("yaw_velocity", 0.0))) > 0.0001)
+
+	component.follow_target_path = second_target.get_path()
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	ecs_manager._physics_process(0.016)
+
+	var post_state: Dictionary = (system.get("_look_rotation_state") as Dictionary).get(
+		StringName("cam_look_smoothing_target_reset"),
+		{}
+	) as Dictionary
+	assert_eq(int(post_state.get("follow_target_id", 0)), second_target.get_instance_id())
+	assert_almost_eq(float(post_state.get("yaw_velocity", 1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(post_state.get("pitch_velocity", 1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(post_state.get("smoothed_yaw", -999.0)), component.runtime_yaw, 0.0001)
+	assert_almost_eq(float(post_state.get("smoothed_pitch", -999.0)), component.runtime_pitch, 0.0001)
+
+func test_response_change_resets_look_smoothing_state() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LookSmoothingResponseTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_look_smoothing_response_reset"),
+		_new_first_person_mode(1.0),
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_look_smoothing_response_reset")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(35.0, 0.0)})
+	ecs_manager._physics_process(0.016)
+	var pre_state: Dictionary = (system.get("_look_rotation_state") as Dictionary).get(
+		StringName("cam_look_smoothing_response_reset"),
+		{}
+	) as Dictionary
+	assert_true(absf(float(pre_state.get("yaw_velocity", 0.0))) > 0.0001)
+
+	var response := component.response as RS_VCAM_RESPONSE
+	response.rotation_frequency = 2.5
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	ecs_manager._physics_process(0.016)
+
+	var post_state: Dictionary = (system.get("_look_rotation_state") as Dictionary).get(
+		StringName("cam_look_smoothing_response_reset"),
+		{}
+	) as Dictionary
+	assert_ne(pre_state.get("response_signature", []), post_state.get("response_signature", []))
+	assert_almost_eq(float(post_state.get("yaw_velocity", 1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(post_state.get("pitch_velocity", 1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(post_state.get("smoothed_yaw", -999.0)), component.runtime_yaw, 0.0001)
+	assert_almost_eq(float(post_state.get("smoothed_pitch", -999.0)), component.runtime_pitch, 0.0001)
 
 func test_response_smoothing_offsets_first_frame_after_target_moves() -> void:
 	var context: Dictionary = await _setup_context()
