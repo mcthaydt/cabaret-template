@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, and 5 are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, and component/interface/manager core wiring). Next implementation target is Phase 6 (`S_VCamSystem` + scene wiring in `vcam-base-tasks.md`).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, and 6B are complete as of March 10, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, and runtime scene wiring). Next implementation target is Phase 6A2 (second-order dynamics integration in `S_VCamSystem`).
 
 ## Phase 0 Progress (March 10, 2026)
 
@@ -96,6 +96,17 @@
   - Added Phase 5 tests:
     - `tests/unit/ecs/components/test_vcam_component.gd` (15 tests).
     - `tests/unit/managers/test_vcam_manager.gd` (22 tests: registration + active selection + clear/recovery transition + dispatch/event coverage).
+- Completed Phase 6A:
+  - Added `scripts/ecs/systems/s_vcam_system.gd` with ServiceLocator/injection lookup for `I_VCamManager`, Redux look-input consumption, orbit/first-person runtime angle updates, active/outgoing vCam evaluation during blends, and same-frame submission via `submit_evaluated_camera(...)`.
+  - Implemented follow-target resolution priority in `S_VCamSystem`: `follow_target_path` -> `follow_target_entity_id` (`get_entity_by_id`) -> `follow_target_tag` (`get_entities_by_tag`) -> recovery.
+  - Added gameplay-local fixed-path helper handling in `S_VCamSystem` (`PathFollow3D` under authored `Path3D`), including invalid-target recovery behavior that does not fabricate new path progress.
+  - Added `tests/unit/ecs/systems/test_vcam_system.gd` with 17 tests covering the full Phase 6A contract.
+  - Extended ECS manager interface/mocks with `get_entities_by_tag(...)` / `get_entities_by_tags(...)` for typed target-resolution queries in systems/tests.
+- Completed Phase 6B:
+  - Added `M_VCamManager` node to `scenes/root.tscn`.
+  - Updated `scripts/root.gd` ServiceLocator bootstrap to register `vcam_manager` and declare `vcam_manager -> {state_store, camera_manager}` dependencies.
+  - Added `S_VCamSystem` to `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` under `Systems/Core` with `execution_priority = 100` (after movement, before feedback).
+  - Added default `C_VCamComponent` to `scenes/templates/tmpl_camera.tscn` with `cfg_default_orbit.tres` plus default soft-zone/blend/response resources and `follow_target_entity_id = &"player"`.
 - Validation run (green):
   - `tests/unit/input_manager/test_u_input_reducer.gd`
   - `tests/unit/input/test_input_map.gd`
@@ -173,11 +184,18 @@
   - `tests/unit/ecs/components` (`-gselect=test_vcam_component`)
   - `tests/unit/managers` (`-gselect=test_vcam_manager`)
   - `tests/unit/style` (`-ginclude_subdirs=true`)
+- Validation run (green, Phase 6A/6B):
+  - `tests/unit/ecs/systems/test_vcam_system.gd`
+  - `tests/unit/managers/test_vcam_manager.gd`
+  - `tests/unit/ecs/components/test_vcam_component.gd`
+  - `tests/unit/style/test_style_enforcement.gd`
 
 ## What Changed In The Docs
 
 - Runtime wiring is now explicit: `M_VCamManager` belongs in `scenes/root.tscn`, and `S_VCamSystem` belongs in gameplay system trees.
-- vCam top-level docs are now status-aligned: overview/PRD/task index/continuation all mark Phases 2A-5 complete and Phase 6 as next.
+- vCam top-level docs are now status-aligned: overview/PRD/task index/continuation now mark Phases 2A-5 plus 6A/6B complete, with Phase 6A2 as next.
+- `S_VCamSystem` baseline contract is now implementation-backed: manager resolution, target resolution fallback order, blend-aware active/outgoing evaluation, and same-frame submission are in code/tests.
+- Runtime scene wiring is now landed in authored scenes: `M_VCamManager` in root, `S_VCamSystem` in template/gameplay system trees, and `C_VCamComponent` defaults in `tmpl_camera.tscn`.
 - The `vcam` Redux slice is now defined as transient runtime observability only.
 - The silhouette enable/disable toggle moved to the persisted `vfx` slice.
 - VFX settings UI integration is now explicit: wire the silhouette toggle into `UI_VFXSettingsOverlay` (`scripts/ui/settings/ui_vfx_settings_overlay.gd` + `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`) and localize it in all `cfg_locale_*_ui.tres` files.
@@ -239,6 +257,7 @@
 - `tests/mocks/mock_camera_manager.gd`
 - `scripts/ecs/systems/s_input_system.gd`
 - `scripts/ecs/systems/s_touchscreen_system.gd`
+- `scripts/ecs/systems/s_vcam_system.gd`
 - `scripts/input/u_input_map_bootstrapper.gd`
 - `scripts/ecs/systems/s_camera_state_system.gd` (QB rule context, FOV composition, shake trauma)
 - `scripts/ecs/components/c_camera_state_component.gd` (base_fov, target_fov, shake_trauma API)
@@ -263,6 +282,7 @@
 - `tests/unit/input_manager/test_u_input_reducer.gd`
 - `tests/unit/input/test_input_map.gd`
 - `tests/unit/ecs/systems/test_input_system.gd`
+- `tests/unit/ecs/systems/test_vcam_system.gd`
 - `tests/unit/qb/test_camera_state_system.gd`
 - `tests/unit/ui/test_touchscreen_settings_overlay_localization.gd`
 - `tests/unit/ui/test_input_rebinding_overlay.gd`
@@ -274,10 +294,10 @@
 
 ## Next Steps
 
-1. Start Phase 6 from `docs/vcam_manager/vcam-base-tasks.md`: implement `S_VCamSystem` core evaluation/submission flow and scene wiring (`root.tscn`, templates, gameplay baselines).
+1. Start Phase 6A2 from `docs/vcam_manager/vcam-base-tasks.md`: integrate `RS_VCamResponse`-driven second-order dynamics into `S_VCamSystem` (position + rotation smoothing, reset rules on mode/target/response changes).
 2. Keep orbit/first-person game-feel phases (2C/3C) queued behind base Phase 6A2 per dependency (`S_VCamSystem` second-order runtime integration first).
 3. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
-4. When wiring `S_VCamSystem`, make its node order explicit after input/movement and preserve the same-frame handoff contract instead of relying on root `_physics_process` order.
+4. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending smoothing/recovery work.
 5. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
 6. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 

@@ -683,7 +683,7 @@ Before starting Phase 0, verify:
 
 ### Phase 6A: S_VCamSystem
 
-- [ ] **Task 6A.1 (Red)**: Write tests for S_VCamSystem
+- [x] **Task 6A.1 (Red)**: Write tests for S_VCamSystem
   - Create `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test extends `BaseECSSystem`
   - Test resolves `I_VCamManager` via ServiceLocator
@@ -703,8 +703,9 @@ Before starting Phase 0, verify:
   - Test does nothing when no active vCam exists
   - Test does nothing when manager is not found
   - **Target: 17 tests**
+  - Completion note (2026-03-10): Added `tests/unit/ecs/systems/test_vcam_system.gd` with 17 focused tests covering manager resolution, look-input rotation updates, active/outgoing evaluation, NodePath/entity/tag target resolution order, path-helper behavior, and no-op guard paths.
 
-- [ ] **Task 6A.2 (Green)**: Implement S_VCamSystem
+- [x] **Task 6A.2 (Green)**: Implement S_VCamSystem
   - Create `scripts/ecs/systems/s_vcam_system.gd`
   - Extend `BaseECSSystem`, implement `process_tick(delta)`
   - Order the system after gameplay input/movement so current-frame state and target transforms are available before camera evaluation
@@ -713,6 +714,7 @@ Before starting Phase 0, verify:
   - Keep any `PathFollow3D` helper scene-local in the gameplay world
   - Submit results as the same-frame handoff to `M_VCamManager`; do not rely on root `_physics_process` ordering
   - All tests should pass
+  - Completion note (2026-03-10): Added `scripts/ecs/systems/s_vcam_system.gd` with ServiceLocator/injection manager resolution, Redux look-input consumption, orbit/first-person runtime angle updates (`rotation_speed`/`look_multiplier` system-owned), active+previous blend evaluation/submission, NodePath→entity ID→tag target fallback, and gameplay-local `PathFollow3D` helper management for fixed `use_path`.
 
 ### Phase 6A2: Second-Order Dynamics Integration in S_VCamSystem
 
@@ -903,17 +905,20 @@ Before starting Phase 0, verify:
 
 ### Phase 6B: Scene Wiring
 
-- [ ] **Task 6B.1**: Wire M_VCamManager to root scene
+- [x] **Task 6B.1**: Wire M_VCamManager to root scene
   - Modify `scenes/root.tscn`: add `M_VCamManager` under `Managers`
   - Modify `scripts/root.gd`: register via `_register_if_exists()`
+  - Completion note (2026-03-10): Added `M_VCamManager` to `scenes/root.tscn`, registered `vcam_manager` service in `scripts/root.gd`, and declared `vcam_manager -> {state_store, camera_manager}` service dependencies.
 
-- [ ] **Task 6B.2**: Wire S_VCamSystem to gameplay scenes
+- [x] **Task 6B.2**: Wire S_VCamSystem to gameplay scenes
   - Modify `scenes/templates/tmpl_base_scene.tscn`: add `S_VCamSystem` under `Systems/Core`
   - Modify `scenes/gameplay/gameplay_base.tscn`: add `S_VCamSystem` if not inherited
+  - Completion note (2026-03-10): Added `S_VCamSystem` to both template and gameplay baseline under `Systems/Core` with `execution_priority = 100` so it runs after movement systems and before feedback systems.
 
-- [ ] **Task 6B.3**: Wire C_VCamComponent to camera template
+- [x] **Task 6B.3**: Wire C_VCamComponent to camera template
   - Modify `scenes/templates/tmpl_camera.tscn`: add default `C_VCamComponent` with `cfg_default_orbit.tres`
   - Verify template remains backward compatible with `C_CameraStateComponent`
+  - Completion note (2026-03-10): Added `C_VCamComponent` to `tmpl_camera.tscn` with `cfg_default_orbit.tres` plus default soft-zone/blend/response resources and `follow_target_entity_id = &"player"`; existing `C_CameraStateComponent` remained intact.
 
 ---
 
