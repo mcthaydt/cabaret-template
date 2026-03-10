@@ -5,7 +5,7 @@
 - **Feature name**: Virtual Camera (vCam) Manager
 - **Project**: Cabaret Template (Godot 4.6)
 - **Target release**: TBD
-- **Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration); Phase 6A.3 next
+- **Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests); Phase 6A3a next
 
 ## Problem Statement
 

@@ -770,7 +770,7 @@ Before starting Phase 0, verify:
       return {transform = smoothed_xform, fov = raw_result.fov, mode_name = raw_result.mode_name}
   ```
 
-- [ ] **Task 6A.3 (Red)**: Write tests for rotation continuity on mode switch
+- [x] **Task 6A.3 (Red)**: Write tests for rotation continuity on mode switch
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test orbit → first-person carries `runtime_yaw`, resets `runtime_pitch` to `0.0`
   - Test first-person → orbit carries `runtime_yaw`, resets `runtime_pitch` to `0.0`
@@ -779,10 +779,12 @@ Before starting Phase 0, verify:
   - Test same-mode switch with same target carries both yaw/pitch
   - Test same-mode switch with different target reseeds to authored angles
   - **Target: 6 tests**
+  - Completion note (2026-03-10): Added 6 rotation-continuity tests to `tests/unit/ecs/systems/test_vcam_system.gd` covering orbit↔first-person carry/reset, orbit→fixed outgoing preservation, fixed→orbit authored reseed, and same-mode target-aware carry/reseed behavior.
 
-- [ ] **Task 6A.4 (Green)**: Implement rotation continuity policy in S_VCamSystem
+- [x] **Task 6A.4 (Green)**: Implement rotation continuity policy in S_VCamSystem
   - Apply carry/reset/reseed rules based on mode transition type (per overview Rotation Continuity Contract)
   - All tests should pass
+  - Completion note (2026-03-10): `S_VCamSystem` now applies transition-aware yaw/pitch continuity on active-vCam switches, including same-mode shared-target carry and authored-angle reseed fallback for target changes.
 
 ---
 

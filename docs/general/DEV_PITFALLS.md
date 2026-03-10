@@ -986,6 +986,9 @@
 - **Second-order rotation smoothing needs angle unwrapping and deterministic reset boundaries**: Smoothing Euler angles directly from `Basis.get_euler()` without unwrapping can pick the long path across `-PI/PI`, causing sudden spins. Reusing smoothing state across mode switches or follow-target changes can also drag stale momentum into a new camera context.
   - **Fix pattern**: unwrap each target axis against the previous target angle before stepping rotation dynamics, recreate dynamics when response tuning changes, and `reset()` dynamics on mode/follow-target transitions so first frame after a context switch snaps to the new evaluated pose.
 
+- **Mode switches can inherit stale runtime orientation without explicit continuity policy**: Swapping active vCams without transition-aware carry/reset/reseed rules can cause heading pops (for example, fixed -> orbit inheriting old runtime yaw/pitch, or same-mode target swaps preserving the wrong orientation context).
+  - **Fix pattern**: apply continuity policy before evaluation on active-id changes in `S_VCamSystem`: orbit↔first-person carry yaw + reset pitch, fixed→orbit/first-person reseed incoming yaw/pitch to authored defaults, and same-mode switches carry only when both vCams resolve the same follow target (otherwise reseed).
+
 ## UI Manager / Input Manager Boundary (Phase 4b - T075)
 
 The Input Manager and UI Manager have clear, separated responsibilities. Violating this boundary causes double-handling, race conditions, and unpredictable pause behavior.
