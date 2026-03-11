@@ -341,7 +341,7 @@ Before starting Phase 2, verify:
 
 > **Why:** Orbit camera height tied directly to player/root transform can bob during jumps or jitter on uneven ground. Ground-relative anchoring keeps the camera's vertical reference stable while airborne and only re-anchors when the player lands on meaningfully different terrain.
 
-- [ ] **Task 2C6.1**: Add ground-relative fields to RS_VCamResponse
+- [x] **Task 2C6.1**: Add ground-relative fields to RS_VCamResponse
   - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
     - `@export var ground_relative_enabled: bool = false` — enables dual-anchor ground-relative orbit height behavior
     - `@export var ground_reanchor_min_height_delta: float = 0.5` — minimum landed height delta (meters) required before re-anchoring camera ground baseline
@@ -349,8 +349,9 @@ Before starting Phase 2, verify:
     - `@export var ground_anchor_blend_hz: float = 4.0` — smoothing frequency for ground-anchor updates/re-anchors
   - Add tests verifying fields exist, defaults are stable, and resolved-value clamps are non-negative where applicable
   - **Target: 5 tests**
+  - Completion note (2026-03-11): Added all four ground-relative exports to `RS_VCamResponse` and extended resolved-value clamping/coverage in `tests/unit/resources/display/vcam/test_vcam_response.gd` (`20/20` passing).
 
-- [ ] **Task 2C6.2 (Red)**: Write tests for ground-relative positioning in S_VCamSystem
+- [x] **Task 2C6.2 (Red)**: Write tests for ground-relative positioning in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test jump bob suppression: while airborne, camera vertical anchor remains stable even when player body/root Y changes
   - Test airborne vertical lock: no per-frame camera Y chase while character remains ungrounded
@@ -359,8 +360,9 @@ Before starting Phase 2, verify:
   - Test uneven terrain stability over short slope/step traversal without micro-bobbing
   - Test non-orbit mode is a strict no-op
   - **Target: 6 tests**
+  - Completion note (2026-03-11): Added 6 `2C6` regression tests in `test_vcam_system` covering airborne lock, landing-threshold behavior, uneven-terrain stability, and non-orbit no-op behavior.
 
-- [ ] **Task 2C6.3 (Green)**: Implement ground-relative positioning in S_VCamSystem
+- [x] **Task 2C6.3 (Green)**: Implement ground-relative positioning in S_VCamSystem
   - Add per-vCam dual-anchor runtime state (`follow anchor` + `ground anchor`)
   - Resolve grounded state from existing movement/character grounding signals and lock camera vertical anchor while airborne
   - Probe/update ground anchor only when grounded and valid ground reference exists (bounded by `ground_probe_max_distance`)
@@ -368,6 +370,7 @@ Before starting Phase 2, verify:
   - Smooth anchor changes with dedicated dynamics using `ground_anchor_blend_hz`
   - Gate: orbit mode only, and only when `ground_relative_enabled = true`
   - All tests should pass
+  - Completion note (2026-03-11): `S_VCamSystem` now applies orbit-only ground-relative dual-anchor behavior via `_ground_relative_state`, grounded-state resolution (`state.gameplay.entities[*].is_on_floor` first, character/body fallback), grounded-only probe/re-anchor rules, and dedicated anchor blending with `U_SecondOrderDynamics`.
 
 ---
 

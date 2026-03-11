@@ -229,6 +229,9 @@
 - **Always bypassing orbit follow-position smoothing during look input makes moving rotation feel harsh**: The old `has_active_look_input` bypass is good for stationary no-lag framing, but it removes useful smoothing while the follow target is translating.
   - **Fix pattern**: gate orbit bypass by follow-target speed with hysteresis (`orbit_look_bypass_enable_speed`, `orbit_look_bypass_disable_speed`) using per-vCam sampled target motion state; keep bypass for slow/stationary movement and keep smoothing active while moving.
 
+- **Ground-relative anchors can drift if ground reference is sampled while airborne or re-anchored without a landing threshold**: Updating anchor reference every frame while the target is in the air reintroduces jump bob and defeats the dual-anchor contract.
+  - **Fix pattern**: in `S_VCamSystem`, sample/probe ground reference only while grounded, lock vertical anchor while airborne, and only re-anchor on landing transitions when `height_delta >= ground_reanchor_min_height_delta`.
+
 ## vCam Soft-Zone Pitfalls
 
 - **Clearing dead-zone hysteresis state on response-null paths causes boundary jitter**: `S_VCamSystem` can run with `response = null` (raw evaluator passthrough). If soft-zone hysteresis state is tied to response-smoothing resets, dead-zone enter/exit history is wiped every tick and correction toggles at the boundary.
