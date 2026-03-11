@@ -12,3 +12,7 @@ look_ahead_distance = 0.02
 look_ahead_smoothing = 1.77
 orbit_look_bypass_enable_speed = 7.0
 orbit_look_bypass_disable_speed = 8.5
+ground_relative_enabled = true
+ground_reanchor_min_height_delta = 0.5
+ground_probe_max_distance = 12.0
+ground_anchor_blend_hz = 4.0

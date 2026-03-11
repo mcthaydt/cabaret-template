@@ -44,3 +44,7 @@ func test_default_response_preset_matches_orbit_tuning_baseline() -> void:
 	assert_almost_eq(float(preset.get("look_ahead_smoothing")), 1.77, 0.0001)
 	assert_almost_eq(float(preset.get("orbit_look_bypass_enable_speed")), 7.0, 0.0001)
 	assert_almost_eq(float(preset.get("orbit_look_bypass_disable_speed")), 8.5, 0.0001)
+	assert_true(bool(preset.get("ground_relative_enabled")))
+	assert_almost_eq(float(preset.get("ground_reanchor_min_height_delta")), 0.5, 0.0001)
+	assert_almost_eq(float(preset.get("ground_probe_max_distance")), 12.0, 0.0001)
+	assert_almost_eq(float(preset.get("ground_anchor_blend_hz")), 4.0, 0.0001)
