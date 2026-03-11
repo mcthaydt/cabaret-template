@@ -97,9 +97,9 @@ func ensure_runtime_defaults() -> void:
 		panel_button_prompt = _create_box(bg_panel, accent_primary, 1, 8)
 
 	if progress_bar_bg == null:
-		progress_bar_bg = _create_box(health_bg, bg_panel_light, 1, 8)
+		progress_bar_bg = _create_box(health_bg, bg_panel_light, 1, 2)
 	if progress_bar_fill == null:
-		progress_bar_fill = _create_box(success, success, 1, 8)
+		progress_bar_fill = _create_box(success, success, 1, 2)
 	if slider_bg == null:
 		slider_bg = _create_box(slider_bg_color, bg_panel_light, 1, 6)
 	if slider_fill == null:
