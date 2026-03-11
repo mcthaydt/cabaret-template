@@ -1,11 +1,12 @@
 # vCam Manager — Task Index
 
-**Progress:** 5 / 5 documentation tasks complete; Phases 0A + 0A2 + 0B + 0C + 0D + 0E + 0F + 1A + 1B + 1C + 1D + 1E + 1F + 2A + 2B + 3A + 3B + 4A + 4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + 2C1 + 2C2 + 2C3 + 2C4 + 2C5 + Orbit UX improvement follow-up pass + Movement-Style Camera Smoothing follow-up pass + Camera Look Smoothing Parity pass complete; next implementation target is mobile drag-look/touch gating prerequisite work, then Phase 9 FPS feel.
+**Progress:** 5 / 5 documentation tasks complete; Phases 0A + 0A2 + 0B + 0C + 0D + 0E + 0F + 1A + 1B + 1C + 1D + 1E + 1F + 2A + 2B + 3A + 3B + 4A + 4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + 2C1 + 2C2 + 2C3 + 2C4 + 2C5 + Orbit UX improvement follow-up pass + Movement-Style Camera Smoothing follow-up pass + Camera Look Smoothing Parity pass complete; next implementation target is Orbit Phase 2C follow-up (`2C6` ground-relative positioning, `2C7` release-smoothing enhancement, `2C8` button recenter), then mobile drag-look/touch gating prerequisite work, then Phase 9 FPS feel.
 **Estimated Test Count:** ~440 checks (about 360 automated tests + 80 manual checks including game-feel QA)
 **Status note:** Strict TDD (Red/Green/Refactor). Each camera mode has a dedicated phase. Mobile drag-look is a hard prerequisite for orbit/first-person completion.
 **Manual QA cadence:** Manual checks are embedded in the relevant implementation phases (no standalone manual-testing phase).
-**Quality gaps addressed:** Orientation continuity, blend interruption, invalid-target recovery, occlusion anti-flicker, performance budget, observability expansion, open-question resolution, cross-mode feel QA, **second-order dynamics for natural camera motion**, **ECS event bus integration**, **QB rule context enrichment**, **entity-based target resolution**, **mode-specific game feel (orbit: look-ahead/auto-level/soft zone; FP: strafe tilt/head bob/landing dip)**.
+**Quality gaps addressed:** Orientation continuity, blend interruption, invalid-target recovery, occlusion anti-flicker, performance budget, observability expansion, open-question resolution, cross-mode feel QA, **second-order dynamics for natural camera motion**, **ECS event bus integration**, **QB rule context enrichment**, **entity-based target resolution**, **mode-specific game feel (orbit: look-ahead/auto-level/soft zone/hysteresis with planned ground-relative/release-smoothing/button-recenter follow-up; FP: strafe tilt/head bob/landing dip)**.
 **Latest completion note (March 10, 2026):** Post-`0f51c36` orbit retune doc/test catch-up synchronized docs with the live `cfg_default_response.tres` baseline (`follow=3.8/1.0`, `rotation=4.8/0.9`, `look_ahead_distance=0.02`, `look_ahead_smoothing=1.77`, `orbit_look_bypass_enable_speed=7.0`, `orbit_look_bypass_disable_speed=8.5`) and added regression guards for response preset values + authored-scene vCam debug logging defaults (`test_vcam_mode_presets`, `test_style_enforcement`).
+**Latest planning note (March 11, 2026):** Orbit follow-up backlog tasks `2C6/2C7/2C8` were integrated into `vcam-orbit-tasks.md` and promoted to the immediate next implementation target.
 
 ---
 
@@ -14,7 +15,7 @@
 | File | Scope | Phases |
 |------|-------|--------|
 | [vcam-base-tasks.md](vcam-base-tasks.md) | Shared infrastructure: state/persistence, **ECS event bus constants**, base resources, **second-order dynamics**, response tuning, component/interface/manager, ECS system, scene wiring, mobile drag-look, blend, **QB rule context enrichment**, **shared game feel (FOV breathing, landing impact)**, occlusion, editor preview, integration tests, regression/docs | 0, 1, 5, 6, 7, 8, 9, 10, 11, 12, 13 |
-| [vcam-orbit-tasks.md](vcam-orbit-tasks.md) | Orbit camera mode: resource, evaluator, default preset, then later **orbit game feel (look-ahead, auto-level, soft zone, hysteresis)** after base Phase 6A2 | 2, 8 |
+| [vcam-orbit-tasks.md](vcam-orbit-tasks.md) | Orbit camera mode: resource, evaluator, default preset, then later **orbit game feel (look-ahead, auto-level, soft zone, hysteresis)** plus follow-up backlog (**ground-relative positioning, release smoothing, button recenter**) after base Phase 6A2 | 2, 8 |
 | [vcam-fps-tasks.md](vcam-fps-tasks.md) | First-person camera mode: resource, evaluator, refactor pass, then later **FP game feel (strafe tilt, head bob, landing head dip)** after base Phase 6A2 | 3, 9 |
 | [vcam-fixed-tasks.md](vcam-fixed-tasks.md) | Fixed camera mode: resource, evaluator, final evaluator refactor, manual checks | 4 |
 
@@ -32,7 +33,7 @@
 | 5 | Base | Component, Interface, and Manager Core | 1.2, 2.1, 2.2 |
 | 6 | Base | vCam System, scene wiring, and mobile drag-look/touch gating | 2.4, 2.4a, 2.5 |
 | 7 | Base | Shared response and same-frame smoothing in `S_VCamSystem` | 1F, 6A2 |
-| 8 | Orbit | Orbit game feel (look-ahead, auto-level, soft zone, hysteresis) | Phase 2C |
+| 8 | Orbit | Orbit game feel core + follow-up backlog (look-ahead, auto-level, soft zone, hysteresis, ground-relative positioning, release smoothing, button recenter) | Phase 2C (`2C1-2C8`) |
 | 9 | FPS | FP game feel (strafe tilt, head bob, landing head dip) | Phase 3C |
 | 10 | Base | QB-Driven Camera Feel | 6A3 (within base-tasks) |
 | 11 | Base | Live Blend Evaluation and Camera-Manager Integration | 4.1, 4.2, 4.3 |

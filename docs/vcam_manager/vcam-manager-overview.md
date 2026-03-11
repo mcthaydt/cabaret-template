@@ -2,8 +2,8 @@
 
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-06
-**Updated**: 2026-03-10
-**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 (2C1/2C2/2C3/2C4/2C5) + movement-style look smoothing + camera look smoothing parity + post-`0f51c36` retune doc/test catch-up complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact rule integration + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + tuned orbit follow-bypass guard coverage); next target is mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel
+**Updated**: 2026-03-11
+**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5`) + movement-style look smoothing + camera look smoothing parity + post-`0f51c36` retune doc/test catch-up complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact rule integration + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + tuned orbit follow-bypass guard coverage); next target is Orbit Phase 2C follow-up (`2C6` ground-relative positioning, `2C7` release-smoothing enhancement, `2C8` button recenter), then mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel
 
 ## Summary
 
@@ -407,7 +407,8 @@ This prevents pops from restarting a blend from the original source position and
 | `orbit_look_bypass_disable_speed` | `float` | `0.3` | Parity pass | Orbit follow-position bypass disable threshold (m/s), clamped to `>= enable` for hysteresis |
 | `landing_impact_scale` | `float` | `1.0` | 6A3c | Multiplier for QB-driven landing impact offset on this vCam (0 = suppress) |
 
-> **Note:** Orbit-feel Phase 2C is now fully landed (`2C1`/`2C2`/`2C3`/`2C4`/`2C5`): look-ahead + auto-level + projection soft-zone + dead-zone hysteresis + runtime integration.
+> **Note:** Orbit-feel Phase 2C core is landed (`2C1`/`2C2`/`2C3`/`2C4`/`2C5`): look-ahead + auto-level + projection soft-zone + dead-zone hysteresis + runtime integration.
+> Orbit follow-up backlog `2C6`/`2C7`/`2C8` (ground-relative positioning, look-release smoothing enhancement, button recenter) is planned as the next implementation pass.
 > Look-ahead direction is movement-velocity driven (`state.gameplay.entities[*].velocity` primary source, movement-component/body fallback) and intentionally ignores follow-target transform deltas to avoid rotation-only offsets.
 > Post-`0f51c36` tuning baseline in `cfg_default_response.tres` is currently `follow=3.8/1.0`, `rotation=4.8/0.9`, `look_ahead_distance=0.02`, `look_ahead_smoothing=1.77`, `orbit_look_bypass_enable_speed=7.0`, `orbit_look_bypass_disable_speed=8.5`.
 

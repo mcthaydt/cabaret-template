@@ -1,6 +1,6 @@
 # vCam Orbit — Task Checklist
 
-**Scope:** Orbit camera mode — resource, evaluator, default preset, then later orbit-specific game feel (look-ahead, auto-level, soft zone, hysteresis), and manual validation.
+**Scope:** Orbit camera mode — resource, evaluator, default preset, then later orbit-specific game feel (look-ahead, auto-level, soft zone, hysteresis, ground-relative anchoring, look-release smoothing, button recenter), and manual validation.
 
 **Depends on:** Phase 1 (base resources) must be complete before Phase 2B evaluator tests.
 
@@ -337,6 +337,98 @@ Before starting Phase 2, verify:
 
 ---
 
+### Phase 2C6: Ground-Relative Positioning
+
+> **Why:** Orbit camera height tied directly to player/root transform can bob during jumps or jitter on uneven ground. Ground-relative anchoring keeps the camera's vertical reference stable while airborne and only re-anchors when the player lands on meaningfully different terrain.
+
+- [ ] **Task 2C6.1**: Add ground-relative fields to RS_VCamResponse
+  - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
+    - `@export var ground_relative_enabled: bool = false` — enables dual-anchor ground-relative orbit height behavior
+    - `@export var ground_reanchor_min_height_delta: float = 0.5` — minimum landed height delta (meters) required before re-anchoring camera ground baseline
+    - `@export var ground_probe_max_distance: float = 12.0` — max downward probe distance used to detect ground reference
+    - `@export var ground_anchor_blend_hz: float = 4.0` — smoothing frequency for ground-anchor updates/re-anchors
+  - Add tests verifying fields exist, defaults are stable, and resolved-value clamps are non-negative where applicable
+  - **Target: 5 tests**
+
+- [ ] **Task 2C6.2 (Red)**: Write tests for ground-relative positioning in S_VCamSystem
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test jump bob suppression: while airborne, camera vertical anchor remains stable even when player body/root Y changes
+  - Test airborne vertical lock: no per-frame camera Y chase while character remains ungrounded
+  - Test thresholded re-anchor: landing on a surface with `height_delta < ground_reanchor_min_height_delta` does not re-anchor
+  - Test significant terrain change: landing with `height_delta >= ground_reanchor_min_height_delta` re-anchors smoothly
+  - Test uneven terrain stability over short slope/step traversal without micro-bobbing
+  - Test non-orbit mode is a strict no-op
+  - **Target: 6 tests**
+
+- [ ] **Task 2C6.3 (Green)**: Implement ground-relative positioning in S_VCamSystem
+  - Add per-vCam dual-anchor runtime state (`follow anchor` + `ground anchor`)
+  - Resolve grounded state from existing movement/character grounding signals and lock camera vertical anchor while airborne
+  - Probe/update ground anchor only when grounded and valid ground reference exists (bounded by `ground_probe_max_distance`)
+  - Re-anchor only when landed height delta meets/exceeds `ground_reanchor_min_height_delta`; otherwise preserve previous anchor
+  - Smooth anchor changes with dedicated dynamics using `ground_anchor_blend_hz`
+  - Gate: orbit mode only, and only when `ground_relative_enabled = true`
+  - All tests should pass
+
+---
+
+### Phase 2C7: Input Smoothing (Enhancement)
+
+> **Why:** Orbit look release can feel abrupt if rotation immediately stops when input drops to zero. A release-damping pass should decelerate rotation naturally, with axis-specific control and explicit stop-threshold clamping to avoid drift.
+
+- [ ] **Task 2C7.1**: Add look-release damping fields to RS_VCamResponse
+  - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
+    - `@export var look_release_yaw_damping: float = 10.0` — damping applied to yaw velocity after look input release
+    - `@export var look_release_pitch_damping: float = 12.0` — damping applied to pitch velocity after look input release
+    - `@export var look_release_stop_threshold: float = 0.05` — absolute velocity threshold below which release velocity snaps to zero
+  - Add tests verifying field defaults and non-negative resolved-value clamping
+  - **Target: 4 tests**
+
+- [ ] **Task 2C7.2 (Red)**: Write tests for look-release smoothing in S_VCamSystem
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test natural deceleration after look input release (no hard stop in one frame)
+  - Test asymmetric damping: yaw and pitch settle at different rates when damping values differ
+  - Test stop threshold: near-zero rotational velocity clamps to zero and does not drift
+  - Test orbit-only gating (first-person/fixed remain unchanged by this orbit pass)
+  - **Target: 4 tests**
+
+- [ ] **Task 2C7.3 (Green)**: Implement look-release smoothing enhancement in S_VCamSystem
+  - Reuse existing look-smoothing velocity state (`yaw_velocity` / `pitch_velocity`) rather than introducing a replacement pipeline
+  - On look-input release, apply per-axis damping (`look_release_yaw_damping`, `look_release_pitch_damping`) to rotational velocities
+  - Clamp small release velocities to zero via `look_release_stop_threshold` to prevent micro-drift
+  - Keep runtime yaw/pitch authority and current look-smoothing contracts intact (enhancement only)
+  - Gate: orbit mode only
+  - All tests should pass
+
+---
+
+### Phase 2C8: Camera Centering (Button Only)
+
+> **Why:** Players need a quick orientation recovery action that recenters the camera behind the character without manual stick/mouse correction. This pass adds explicit button-driven recentering only (no idle auto-center behavior).
+
+- [ ] **Task 2C8.1**: Add `camera_center` input action + wiring
+  - Add `camera_center` InputMap action in `project.godot`
+  - Wire the action through existing input-source/system paths so `S_VCamSystem` can consume a recenter trigger without bypassing the input pipeline
+  - Add/adjust input profile coverage tests so bindings and action availability are validated
+  - **Target: 3 tests**
+
+- [ ] **Task 2C8.2 (Red)**: Write tests for button recentering in S_VCamSystem
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test pressing center button starts a recenter operation from arbitrary yaw
+  - Test centering completes smoothly in ~`0.3s` (interpolated, no snap)
+  - Test manual look input is ignored/overridden while centering is active
+  - Test re-pressing center during active centering restarts interpolation deterministically from the current runtime pose
+  - **Target: 4 tests**
+
+- [ ] **Task 2C8.3 (Green)**: Implement button recentering in S_VCamSystem
+  - Add per-vCam centering runtime state (active flag, start yaw/pitch, target yaw, elapsed time)
+  - On `camera_center` trigger, compute target yaw that places camera behind player/follow heading and start a ~`0.3s` interpolation window
+  - While centering is active, suppress manual look-driven runtime rotation updates for that vCam
+  - Support safe restart/cancel semantics when recenter is triggered again mid-operation
+  - Explicitly do not add idle/timer-based auto-centering in this phase
+  - All tests should pass
+
+---
+
 ### Manual Validation (Orbit Game Feel)
 
 - [ ] **MT-24**: Player in dead zone: camera does not move
@@ -350,6 +442,15 @@ Before starting Phase 2, verify:
 - [ ] **MT-86**: Auto-level interrupted: player provides look input during auto-level, auto-level stops immediately and delay timer resets
 - [ ] **MT-87**: Auto-level disabled (speed=0): pitch stays wherever the player left it indefinitely
 - [ ] **MT-95**: Dead zone hysteresis: target oscillating at dead zone boundary does NOT cause per-frame correction jitter
+- [ ] **MT-107**: Ground-relative jump stability: camera vertical anchor remains stable while player jumps/airborne
+- [ ] **MT-108**: Ground-relative minor landing delta: no re-anchor when landing height change is below threshold
+- [ ] **MT-109**: Ground-relative major landing delta: smooth re-anchor when landing height change exceeds threshold
+- [ ] **MT-110**: Release smoothing deceleration: camera rotation eases out naturally after look input release
+- [ ] **MT-111**: Asymmetric release damping: yaw and pitch settle at distinct configured rates
+- [ ] **MT-112**: Release stop threshold: near-zero rotational velocity clamps cleanly to zero (no drift)
+- [ ] **MT-113**: Button recenter start: pressing `camera_center` begins behind-player recenter from arbitrary yaw
+- [ ] **MT-114**: Button recenter interpolation: camera aligns behind player in ~`0.3s` with no visible snap
+- [ ] **MT-115**: Button recenter restart: pressing `camera_center` again during recenter restarts deterministically
 
 ---
 
@@ -362,6 +463,12 @@ Before starting Phase 2, verify:
 - [ ] Verify auto-level is gated to orbit mode only (no-op for first-person and fixed)
 - [ ] Verify soft zone correction is gated to orbit mode only
 - [ ] Verify dead zone hysteresis margin is backward compatible (`hysteresis_margin = 0.0` produces identical behavior to no hysteresis)
+- [ ] Verify ground-relative mode locks vertical anchor while airborne and does not chase per-frame player Y motion during jumps
+- [ ] Verify ground-relative re-anchor occurs only when landed terrain height delta meets/exceeds `ground_reanchor_min_height_delta`
+- [ ] Verify ground-anchor updates are smoothed using `ground_anchor_blend_hz` and bounded by `ground_probe_max_distance`
+- [ ] Verify look-release damping uses axis-specific controls (`look_release_yaw_damping`, `look_release_pitch_damping`) and stop-threshold clamp (`look_release_stop_threshold`)
+- [ ] Verify `camera_center` trigger flows through the shared input pipeline and does not bypass `S_InputSystem`/state-driven input contracts
+- [ ] Verify centering remains button-only in this phase (no idle auto-center timer behavior)
 
 ---
 
@@ -484,6 +591,9 @@ These checks gate Phase 9F completion:
 5. Do not compute orbit soft-zone projection against the root manager viewport. Always use the active gameplay camera viewport inside `GameViewport`.
 6. Do not forget to handle the edge case where `distance` is zero or negative — return `{}` rather than producing NaN transforms.
 7. Do not add pitch clamping to the resource or evaluator. Pitch clamping is applied by `S_VCamSystem` when updating `runtime_pitch` on the component (Phase 6). The evaluator trusts whatever pitch values it receives.
+8. Do not let ground-relative anchoring sample/overwrite vertical anchor while airborne. Airborne camera height should stay locked until a grounded re-anchor decision is made.
+9. Do not implement button recenter as an instantaneous yaw snap. Recenter must interpolate over the authored short duration (~`0.3s`) for orientation continuity.
+10. Do not leave release smoothing without a stop threshold. Without velocity clamping near zero, low-amplitude drift can persist after input release.
 
 ---
 
