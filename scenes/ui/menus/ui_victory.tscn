@@ -13,10 +13,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
-motion_set = ExtResource("2_motion_set")
 background_shader_preset = "retro_grid"
-background_shader_intensity = 0.5
 background_shader_speed = 1.05
+motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=416542716]
 script = ExtResource("ui_scale_root")
