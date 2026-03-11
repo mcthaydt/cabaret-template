@@ -178,14 +178,16 @@ func _resolve_center_panel_motion_target() -> Control:
 	return center
 
 func _has_backdrop_layer() -> bool:
-	var background := get_node_or_null("Background")
-	if background is ColorRect:
-		return true
-	var overlay_background := get_node_or_null("OverlayBackground")
-	if overlay_background is ColorRect:
-		return true
-	var color_rect := get_node_or_null("ColorRect")
-	return color_rect is ColorRect
+	return _resolve_background_rect() != null
+
+func _resolve_background_rect() -> ColorRect:
+	var background := get_node_or_null("Background") as ColorRect
+	if background != null:
+		return background
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		return overlay_background
+	return get_node_or_null("ColorRect") as ColorRect
 
 func _find_center_container_with_panel(root: Node) -> Control:
 	for child in root.get_children():
@@ -221,7 +223,7 @@ func _setup_background_shader() -> void:
 	if preset_mode < 0:
 		return
 
-	_background_rect = get_node_or_null("Background") as ColorRect
+	_background_rect = _resolve_background_rect()
 	if _background_rect == null:
 		return
 

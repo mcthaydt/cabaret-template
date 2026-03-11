@@ -3,6 +3,7 @@ extends GutTest
 const SettingsMenuScene := preload("res://scenes/ui/menus/ui_settings_menu.tscn")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -94,6 +95,33 @@ func test_embedded_mode_uses_no_dim_background() -> void:
 		0.001,
 		"Embedded settings mode should not apply dim background"
 	)
+
+func test_standalone_scene_uses_opaque_shader_background() -> void:
+	var store := await _create_state_store()
+	var config := RS_UI_THEME_CONFIG.new()
+	config.bg_base = Color(0.2, 0.25, 0.3, 1.0)
+	U_UI_THEME_BUILDER.active_config = config
+
+	store.dispatch(U_SceneActions.transition_completed(StringName("settings_menu")))
+	await wait_process_frames(2)
+
+	var settings_menu := await _create_settings_menu()
+	var overlay_background := settings_menu.get_node_or_null("OverlayBackground") as ColorRect
+	assert_not_null(overlay_background, "Settings menu should create an overlay background panel")
+	if overlay_background == null:
+		return
+
+	assert_almost_eq(
+		overlay_background.color.a,
+		1.0,
+		0.001,
+		"Standalone settings scene should render an opaque shader background"
+	)
+
+	var material := overlay_background.material as ShaderMaterial
+	assert_not_null(material, "Standalone settings scene should assign backdrop shader material")
+	if material != null:
+		assert_eq(material.shader, MENU_FULLSCREEN_SHADER, "Standalone settings background should use shared menu shader")
 
 func test_gamepad_settings_button_visible_when_gamepad_connected() -> void:
 	await _create_state_store()

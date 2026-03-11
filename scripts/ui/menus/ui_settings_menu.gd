@@ -38,6 +38,7 @@ const OVERLAY_DISPLAY_SETTINGS := StringName("display_settings")
 const OVERLAY_AUDIO_SETTINGS := StringName("audio_settings")
 const OVERLAY_INPUT_REBINDING := StringName("input_rebinding")
 const OVERLAY_LOCALIZATION_SETTINGS := StringName("localization_settings")
+const SETTINGS_SCENE_ID := StringName("settings_menu")
 
 var _last_device_type: int = -1
 var _consume_next_nav: bool = false
@@ -275,7 +276,12 @@ func _refresh_background_dim() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if config_resource is RS_UI_THEME_CONFIG:
 		base_color = (config_resource as RS_UI_THEME_CONFIG).bg_base
-	base_color.a = 0.7 if _is_overlay_context() else 0.0
+	if _is_overlay_context():
+		base_color.a = 0.7
+	elif _is_standalone_settings_scene():
+		base_color.a = 1.0
+	else:
+		base_color.a = 0.0
 	background_color = base_color
 
 	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
@@ -288,6 +294,14 @@ func _is_overlay_context() -> bool:
 		return false
 	var nav_slice: Dictionary = store.get_state().get("navigation", {})
 	return U_NavigationSelectors.get_top_overlay_id(nav_slice) == SETTINGS_OVERLAY_ID
+
+func _is_standalone_settings_scene() -> bool:
+	var store := get_store()
+	if store == null:
+		return false
+	var scene_slice: Dictionary = store.get_state().get("scene", {})
+	var current_scene_id: StringName = scene_slice.get("current_scene_id", StringName(""))
+	return current_scene_id == SETTINGS_SCENE_ID
 
 func _localize_labels() -> void:
 	if _title_label != null:

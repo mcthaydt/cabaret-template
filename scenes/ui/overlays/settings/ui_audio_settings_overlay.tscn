@@ -18,6 +18,9 @@ script = ExtResource("1_ui_audio_settings_overlay_script")
 background_color = Color(0.114, 0.114, 0.129, 0.5)
 motion_target_path = NodePath("CenterContainer/Panel")
 motion_set = ExtResource("3_motion_set")
+background_shader_preset = "scanline_drift"
+background_shader_intensity = 0.24
+background_shader_speed = 0.8
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=678091063]
 script = ExtResource("ui_scale_root")
