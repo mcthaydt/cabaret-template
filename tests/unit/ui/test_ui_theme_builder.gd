@@ -53,6 +53,13 @@ func test_build_theme_applies_panel_styles() -> void:
 	var panel := theme.get_stylebox(&"panel", &"PanelContainer")
 
 	assert_true(panel is StyleBoxFlat, "PanelContainer panel stylebox should be StyleBoxFlat")
+	if panel is StyleBoxFlat:
+		assert_almost_eq(
+			(panel as StyleBoxFlat).bg_color.a,
+			_config.panel_section_opacity,
+			0.001,
+			"PanelContainer panel should honor configurable section translucency"
+		)
 
 func test_build_theme_applies_dialog_window_panel_styles() -> void:
 	var theme := U_UI_THEME_BUILDER.build_theme(_config)

@@ -52,6 +52,7 @@ class_name RS_UIThemeConfig
 @export var button_disabled: StyleBoxFlat
 
 @export_group("Panel Styles")
+@export_range(0.0, 1.0, 0.01) var panel_section_opacity: float = 0.78
 @export var panel_section: StyleBoxFlat
 @export var panel_signpost: StyleBoxFlat
 @export var panel_button_prompt: StyleBoxFlat
@@ -86,7 +87,9 @@ func ensure_runtime_defaults() -> void:
 		button_disabled = _create_box(bg_surface, text_disabled, 1, 10)
 
 	if panel_section == null:
-		panel_section = _create_box(bg_panel, bg_panel_light, 1, 12)
+		var panel_section_bg := bg_panel
+		panel_section_bg.a = clampf(panel_section_bg.a * panel_section_opacity, 0.0, 1.0)
+		panel_section = _create_box(panel_section_bg, bg_panel_light, 1, 12)
 		panel_section.set_expand_margin_all(1)
 	if panel_signpost == null:
 		panel_signpost = _create_box(bg_panel, golden, 1, 12)
