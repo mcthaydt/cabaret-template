@@ -9,6 +9,7 @@ const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
+const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
 
 @export var state_store: I_StateStore = null
 @export var camera_manager: I_CAMERA_MANAGER = null
@@ -29,6 +30,16 @@ var _blend_progress: float = 1.0
 var _is_blending_active: bool = false
 var _blend_duration: float = 0.0
 var _blend_elapsed: float = 0.0
+var _last_physics_delta: float = 0.0
+var _startup_blend_pending_vcam_id: StringName = StringName("")
+var _startup_blend_active: bool = false
+var _startup_blend_vcam_id: StringName = StringName("")
+var _startup_blend_from_transform: Transform3D = Transform3D.IDENTITY
+var _startup_blend_duration_sec: float = 0.0
+var _startup_blend_elapsed_sec: float = 0.0
+var _startup_blend_trans_type: int = int(Tween.TRANS_CUBIC)
+var _startup_blend_ease_type: int = int(Tween.EASE_IN_OUT)
+var _startup_blend_cut_on_distance_threshold: float = 0.0
 
 func _ready() -> void:
 	var service_name := StringName("vcam_manager")
@@ -42,6 +53,7 @@ func _ready() -> void:
 	_refresh_active_selection()
 
 func _physics_process(_delta: float) -> void:
+	_last_physics_delta = maxf(_delta, 0.0)
 	_refresh_active_selection()
 
 func register_vcam(vcam: Node) -> void:
@@ -179,6 +191,7 @@ func _set_active_vcam_internal(next_vcam_id: StringName) -> void:
 	var previous_vcam_id := _active_vcam_id
 	_active_vcam_id = next_vcam_id
 	_previous_vcam_id = previous_vcam_id
+	_queue_startup_blend_if_needed(next_vcam_id, previous_vcam_id)
 
 	var active_mode := _get_mode_name_for_vcam(next_vcam_id)
 	_dispatch_active_runtime(next_vcam_id, active_mode)
@@ -207,6 +220,8 @@ func _clear_runtime_state() -> void:
 	_is_blending_active = false
 	_blend_duration = 0.0
 	_blend_elapsed = 0.0
+	_last_physics_delta = 0.0
+	_clear_startup_blend_state()
 	_dispatch_active_runtime(StringName(""), "")
 	if previous_vcam_id != StringName(""):
 		_publish_active_changed(StringName(""), previous_vcam_id, "")
@@ -334,6 +349,7 @@ func _try_apply_active_submission(vcam_id: StringName) -> void:
 		return
 	if camera_mgr.is_blend_active():
 		return
+	_try_startup_blend_if_pending(vcam_id, camera_mgr)
 
 	var result_variant: Variant = _submitted_results.get(vcam_id, {})
 	if not (result_variant is Dictionary):
@@ -342,8 +358,142 @@ func _try_apply_active_submission(vcam_id: StringName) -> void:
 	var transform_variant: Variant = result.get("transform", null)
 	if not (transform_variant is Transform3D):
 		return
+	var target_transform := transform_variant as Transform3D
+	var applied_transform: Transform3D = _resolve_startup_blend_transform(vcam_id, target_transform)
+	camera_mgr.apply_main_camera_transform(applied_transform)
 
-	camera_mgr.apply_main_camera_transform(transform_variant as Transform3D)
+func _queue_startup_blend_if_needed(next_vcam_id: StringName, previous_vcam_id: StringName) -> void:
+	_clear_startup_blend_runtime()
+	_startup_blend_pending_vcam_id = StringName("")
+	if next_vcam_id == StringName(""):
+		return
+	# Startup blend is only applied for first activation in a scene.
+	if previous_vcam_id == StringName(""):
+		_startup_blend_pending_vcam_id = next_vcam_id
+
+func _try_startup_blend_if_pending(vcam_id: StringName, camera_mgr: I_CAMERA_MANAGER) -> void:
+	if vcam_id == StringName("") or camera_mgr == null:
+		return
+	if _startup_blend_active:
+		return
+	if _startup_blend_pending_vcam_id != vcam_id:
+		return
+	var settings: Dictionary = _resolve_startup_blend_settings(vcam_id)
+	var duration_sec: float = float(settings.get("duration_sec", 0.0))
+	if duration_sec <= 0.0:
+		_startup_blend_pending_vcam_id = StringName("")
+		return
+	var main_camera: Camera3D = camera_mgr.get_main_camera()
+	if main_camera == null or not is_instance_valid(main_camera):
+		return
+	_startup_blend_active = true
+	_startup_blend_vcam_id = vcam_id
+	_startup_blend_from_transform = main_camera.global_transform
+	_startup_blend_duration_sec = duration_sec
+	_startup_blend_elapsed_sec = 0.0
+	_startup_blend_trans_type = int(settings.get("trans_type", int(Tween.TRANS_CUBIC)))
+	_startup_blend_ease_type = int(settings.get("ease_type", int(Tween.EASE_IN_OUT)))
+	_startup_blend_cut_on_distance_threshold = maxf(float(settings.get("cut_on_distance_threshold", 0.0)), 0.0)
+	_startup_blend_pending_vcam_id = StringName("")
+
+func _resolve_startup_blend_settings(vcam_id: StringName) -> Dictionary:
+	var defaults := {
+		"duration_sec": 0.0,
+		"trans_type": int(Tween.TRANS_CUBIC),
+		"ease_type": int(Tween.EASE_IN_OUT),
+		"cut_on_distance_threshold": 0.0,
+	}
+	if vcam_id == StringName(""):
+		return defaults
+	var vcam := _vcams_by_id.get(vcam_id, null) as Node
+	if vcam == null or not is_instance_valid(vcam):
+		return defaults
+	if not ("blend_hint" in vcam):
+		return defaults
+	var hint_variant: Variant = vcam.get("blend_hint")
+	if not (hint_variant is Resource):
+		return defaults
+	var hint := hint_variant as Resource
+	if hint.get_script() != RS_VCAM_BLEND_HINT_SCRIPT:
+		return defaults
+	defaults["duration_sec"] = maxf(float(hint.get("blend_duration")), 0.0)
+	defaults["trans_type"] = int(hint.get("trans_type"))
+	defaults["ease_type"] = int(hint.get("ease_type"))
+	defaults["cut_on_distance_threshold"] = maxf(float(hint.get("cut_on_distance_threshold")), 0.0)
+	return defaults
+
+func _resolve_startup_blend_transform(vcam_id: StringName, target_transform: Transform3D) -> Transform3D:
+	if not _startup_blend_active:
+		return target_transform
+	if _startup_blend_vcam_id != vcam_id:
+		_clear_startup_blend_runtime()
+		return target_transform
+	var distance_to_target: float = _startup_blend_from_transform.origin.distance_to(target_transform.origin)
+	if (
+		_startup_blend_cut_on_distance_threshold > 0.0
+		and distance_to_target > _startup_blend_cut_on_distance_threshold
+	):
+		_clear_startup_blend_runtime()
+		return target_transform
+	if _startup_blend_duration_sec <= 0.0:
+		_clear_startup_blend_runtime()
+		return target_transform
+
+	var dt: float = _last_physics_delta
+	if dt <= 0.0:
+		dt = 1.0 / float(maxi(Engine.physics_ticks_per_second, 1))
+	_startup_blend_elapsed_sec = minf(_startup_blend_elapsed_sec + dt, _startup_blend_duration_sec)
+	var weight: float = _compute_startup_blend_weight(
+		_startup_blend_elapsed_sec,
+		_startup_blend_duration_sec,
+		_startup_blend_trans_type,
+		_startup_blend_ease_type
+	)
+
+	var from_basis: Basis = _startup_blend_from_transform.basis.orthonormalized()
+	var to_basis: Basis = target_transform.basis.orthonormalized()
+	var blended_basis: Basis = from_basis.slerp(to_basis, weight).orthonormalized()
+	var blended_origin: Vector3 = _startup_blend_from_transform.origin.lerp(target_transform.origin, weight)
+	var blended_transform := Transform3D(blended_basis, blended_origin)
+
+	if _startup_blend_elapsed_sec >= _startup_blend_duration_sec:
+		_clear_startup_blend_runtime()
+		return target_transform
+	return blended_transform
+
+func _compute_startup_blend_weight(
+	elapsed_sec: float,
+	duration_sec: float,
+	trans_type: int,
+	ease_type: int
+) -> float:
+	if duration_sec <= 0.0:
+		return 1.0
+	var eased_value: Variant = Tween.interpolate_value(
+		0.0,
+		1.0,
+		clampf(elapsed_sec, 0.0, duration_sec),
+		duration_sec,
+		trans_type,
+		ease_type
+	)
+	if eased_value is float or eased_value is int:
+		return clampf(float(eased_value), 0.0, 1.0)
+	return clampf(elapsed_sec / duration_sec, 0.0, 1.0)
+
+func _clear_startup_blend_runtime() -> void:
+	_startup_blend_active = false
+	_startup_blend_vcam_id = StringName("")
+	_startup_blend_from_transform = Transform3D.IDENTITY
+	_startup_blend_duration_sec = 0.0
+	_startup_blend_elapsed_sec = 0.0
+	_startup_blend_trans_type = int(Tween.TRANS_CUBIC)
+	_startup_blend_ease_type = int(Tween.EASE_IN_OUT)
+	_startup_blend_cut_on_distance_threshold = 0.0
+
+func _clear_startup_blend_state() -> void:
+	_startup_blend_pending_vcam_id = StringName("")
+	_clear_startup_blend_runtime()
 
 func _report_issue(message: String) -> void:
 	print_verbose("M_VCamManager: %s" % message)

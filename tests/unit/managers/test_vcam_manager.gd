@@ -6,6 +6,7 @@ const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
+const RS_VCAM_BLEND_HINT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
@@ -334,6 +335,61 @@ func test_submit_evaluated_camera_respects_camera_blend_gate() -> void:
 
 	assert_eq(camera_manager.apply_main_transform_calls, 0, "Blend-active camera manager should ignore gameplay apply")
 
+func test_submit_evaluated_camera_startup_blend_lerps_from_main_camera_transform() -> void:
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	var main_camera := Camera3D.new()
+	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3.ZERO)
+	camera_manager.main_camera = main_camera
+	add_child(camera_manager)
+	add_child(main_camera)
+	autofree(camera_manager)
+	autofree(main_camera)
+
+	var manager := await _create_manager(null, camera_manager)
+	var startup_blend := RS_VCAM_BLEND_HINT.new()
+	startup_blend.blend_duration = 0.5
+	startup_blend.trans_type = Tween.TRANS_LINEAR
+	startup_blend.ease_type = Tween.EASE_IN_OUT
+	var camera_a := _create_vcam(StringName("cam_a"), 5, true, startup_blend)
+	manager.register_vcam(camera_a)
+	manager._physics_process(0.1)
+
+	var target := Transform3D(Basis.IDENTITY, Vector3(10.0, 0.0, 0.0))
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": target})
+
+	assert_eq(camera_manager.apply_main_transform_calls, 1, "Startup blend should still apply camera transform")
+	assert_true(
+		camera_manager.last_main_transform.origin.x > 0.0 and camera_manager.last_main_transform.origin.x < 10.0,
+		"Startup blend should interpolate between current and target positions"
+	)
+
+func test_submit_evaluated_camera_startup_blend_can_cut_on_distance_threshold() -> void:
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	var main_camera := Camera3D.new()
+	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3.ZERO)
+	camera_manager.main_camera = main_camera
+	add_child(camera_manager)
+	add_child(main_camera)
+	autofree(camera_manager)
+	autofree(main_camera)
+
+	var manager := await _create_manager(null, camera_manager)
+	var startup_blend := RS_VCAM_BLEND_HINT.new()
+	startup_blend.blend_duration = 1.0
+	startup_blend.cut_on_distance_threshold = 0.5
+	var camera_a := _create_vcam(StringName("cam_a"), 5, true, startup_blend)
+	manager.register_vcam(camera_a)
+	manager._physics_process(0.1)
+
+	var target := Transform3D(Basis.IDENTITY, Vector3(3.0, 0.0, 0.0))
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": target})
+
+	assert_eq(
+		camera_manager.last_main_transform,
+		target,
+		"Large startup offset should instant-cut when cut threshold is exceeded"
+	)
+
 func _create_manager(
 	injected_store: I_StateStore = null,
 	injected_camera_manager: I_CameraManager = null
@@ -348,12 +404,18 @@ func _create_manager(
 	await get_tree().process_frame
 	return manager
 
-func _create_vcam(vcam_id: StringName, priority: int, active: bool = true) -> C_VCamComponent:
+func _create_vcam(
+	vcam_id: StringName,
+	priority: int,
+	active: bool = true,
+	blend_hint: Resource = null
+) -> C_VCamComponent:
 	var component := C_VCAM_COMPONENT.new()
 	component.vcam_id = vcam_id
 	component.priority = priority
 	component.is_active = active
 	component.mode = RS_VCAM_MODE_ORBIT.new()
+	component.blend_hint = blend_hint
 	add_child(component)
 	autofree(component)
 	return component
