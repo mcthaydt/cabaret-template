@@ -50,6 +50,22 @@ func test_orbit_bypass_speed_defaults_are_expected() -> void:
 	assert_almost_eq(float(response.get("orbit_look_bypass_enable_speed")), 0.15, 0.0001)
 	assert_almost_eq(float(response.get("orbit_look_bypass_disable_speed")), 0.3, 0.0001)
 
+func test_ground_relative_enabled_defaults_to_false() -> void:
+	var response := _new_response()
+	assert_false(bool(response.get("ground_relative_enabled")))
+
+func test_ground_reanchor_height_delta_default_is_point_five() -> void:
+	var response := _new_response()
+	assert_almost_eq(float(response.get("ground_reanchor_min_height_delta")), 0.5, 0.0001)
+
+func test_ground_probe_max_distance_default_is_twelve() -> void:
+	var response := _new_response()
+	assert_almost_eq(float(response.get("ground_probe_max_distance")), 12.0, 0.0001)
+
+func test_ground_anchor_blend_default_is_four_hz() -> void:
+	var response := _new_response()
+	assert_almost_eq(float(response.get("ground_anchor_blend_hz")), 4.0, 0.0001)
+
 func test_frequency_values_are_clamped_to_positive_minimum() -> void:
 	var response := _new_response()
 	response.set("follow_frequency", 0.0)
@@ -95,3 +111,15 @@ func test_orbit_bypass_disable_speed_is_clamped_to_enable_speed_floor() -> void:
 	var resolved := response.call("get_resolved_values") as Dictionary
 	assert_almost_eq(float(resolved.get("orbit_look_bypass_enable_speed", -1.0)), 0.4, 0.0001)
 	assert_almost_eq(float(resolved.get("orbit_look_bypass_disable_speed", -1.0)), 0.4, 0.0001)
+
+func test_ground_relative_resolved_values_clamp_non_negative_fields() -> void:
+	var response := _new_response()
+	response.set("ground_relative_enabled", true)
+	response.set("ground_reanchor_min_height_delta", -2.0)
+	response.set("ground_probe_max_distance", -3.0)
+	response.set("ground_anchor_blend_hz", -4.0)
+	var resolved := response.call("get_resolved_values") as Dictionary
+	assert_true(bool(resolved.get("ground_relative_enabled", false)))
+	assert_almost_eq(float(resolved.get("ground_reanchor_min_height_delta", -1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(resolved.get("ground_probe_max_distance", -1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(resolved.get("ground_anchor_blend_hz", -1.0)), 0.0, 0.0001)

@@ -20,6 +20,10 @@ const MIN_FREQUENCY_HZ: float = 0.0001
 @export var look_input_release_decay: float = 25.0
 @export var orbit_look_bypass_enable_speed: float = 0.15
 @export var orbit_look_bypass_disable_speed: float = 0.3
+@export var ground_relative_enabled: bool = false
+@export var ground_reanchor_min_height_delta: float = 0.5
+@export var ground_probe_max_distance: float = 12.0
+@export var ground_anchor_blend_hz: float = 4.0
 
 func get_resolved_values() -> Dictionary:
 	var resolved_orbit_bypass_enable_speed: float = maxf(orbit_look_bypass_enable_speed, 0.0)
@@ -43,4 +47,8 @@ func get_resolved_values() -> Dictionary:
 		"look_input_release_decay": maxf(look_input_release_decay, 0.0),
 		"orbit_look_bypass_enable_speed": resolved_orbit_bypass_enable_speed,
 		"orbit_look_bypass_disable_speed": resolved_orbit_bypass_disable_speed,
+		"ground_relative_enabled": ground_relative_enabled,
+		"ground_reanchor_min_height_delta": maxf(ground_reanchor_min_height_delta, 0.0),
+		"ground_probe_max_distance": maxf(ground_probe_max_distance, 0.0),
+		"ground_anchor_blend_hz": maxf(ground_anchor_blend_hz, 0.0),
 	}

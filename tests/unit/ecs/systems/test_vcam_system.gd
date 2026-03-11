@@ -1811,6 +1811,270 @@ func test_soft_zone_is_noop_for_first_person_mode() -> void:
 	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
 	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
 
+func test_orbit_ground_relative_jump_bob_suppression_while_airborne() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_GroundRelativeJumpTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ground_relative_jump"),
+		_new_orbit_mode(),
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1000.0, 1.0, 1.0)
+	component.response.set("ground_relative_enabled", true)
+	component.response.set("ground_reanchor_min_height_delta", 0.5)
+	component.response.set("ground_anchor_blend_hz", 0.0)
+
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	vcam_manager.active_vcam_id = StringName("cam_ground_relative_jump")
+	ecs_manager._physics_process(0.016)
+	var baseline_transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ground_relative_jump"))
+
+	_set_gameplay_entity_floor_state(store, follow_target, false)
+	follow_target.global_position = Vector3(0.0, 2.5, 0.0)
+	ecs_manager._physics_process(0.016)
+	var airborne_transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ground_relative_jump"))
+
+	assert_almost_eq(airborne_transform.origin.y, baseline_transform.origin.y, 0.001)
+
+func test_orbit_ground_relative_airborne_vertical_lock_prevents_per_frame_y_chase() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_GroundRelativeAirborneLockTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ground_relative_airborne_lock"),
+		_new_orbit_mode(),
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1000.0, 1.0, 1.0)
+	component.response.set("ground_relative_enabled", true)
+	component.response.set("ground_reanchor_min_height_delta", 0.5)
+	component.response.set("ground_anchor_blend_hz", 0.0)
+
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	vcam_manager.active_vcam_id = StringName("cam_ground_relative_airborne_lock")
+	ecs_manager._physics_process(0.016)
+	var baseline_y: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ground_relative_airborne_lock")
+	).origin.y
+
+	_set_gameplay_entity_floor_state(store, follow_target, false)
+	var airborne_heights: Array[float] = [1.5, 2.2, 3.1, 4.0]
+	for height in airborne_heights:
+		follow_target.global_position = Vector3(0.0, height, 0.0)
+		ecs_manager._physics_process(0.016)
+		var current_y: float = _extract_submission_transform(
+			vcam_manager,
+			StringName("cam_ground_relative_airborne_lock")
+		).origin.y
+		assert_almost_eq(current_y, baseline_y, 0.001)
+
+func test_orbit_ground_relative_minor_landing_height_delta_does_not_reanchor() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_GroundRelativeMinorLandingTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ground_relative_minor_landing"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1000.0, 1.0, 1.0)
+	component.response.set("ground_relative_enabled", true)
+	component.response.set("ground_reanchor_min_height_delta", 0.5)
+	component.response.set("ground_anchor_blend_hz", 0.0)
+
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	vcam_manager.active_vcam_id = StringName("cam_ground_relative_minor_landing")
+	ecs_manager._physics_process(0.016)
+	var baseline_y: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ground_relative_minor_landing")
+	).origin.y
+
+	_set_gameplay_entity_floor_state(store, follow_target, false)
+	follow_target.global_position = Vector3(0.0, 1.2, 0.0)
+	ecs_manager._physics_process(0.016)
+
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	follow_target.global_position = Vector3(0.0, 0.3, 0.0)
+	ecs_manager._physics_process(0.016)
+	var landed_transform: Transform3D = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ground_relative_minor_landing")
+	)
+	var raw_transform := _evaluate_raw_result(mode, follow_target, component).get(
+		"transform",
+		Transform3D.IDENTITY
+	) as Transform3D
+
+	assert_almost_eq(landed_transform.origin.y, baseline_y, 0.001)
+	assert_true(
+		absf(raw_transform.origin.y - baseline_y) > 0.2,
+		"Minor landing should keep prior anchor instead of snapping to raw follow height"
+	)
+
+func test_orbit_ground_relative_major_landing_height_delta_reanchors_smoothly() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_GroundRelativeMajorLandingTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ground_relative_major_landing"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1000.0, 1.0, 1.0)
+	component.response.set("ground_relative_enabled", true)
+	component.response.set("ground_reanchor_min_height_delta", 0.5)
+	component.response.set("ground_anchor_blend_hz", 4.0)
+
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	vcam_manager.active_vcam_id = StringName("cam_ground_relative_major_landing")
+	ecs_manager._physics_process(0.016)
+	var baseline_y: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ground_relative_major_landing")
+	).origin.y
+
+	_set_gameplay_entity_floor_state(store, follow_target, false)
+	follow_target.global_position = Vector3(0.0, 1.4, 0.0)
+	ecs_manager._physics_process(0.016)
+
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	follow_target.global_position = Vector3(0.0, 2.0, 0.0)
+	ecs_manager._physics_process(0.016)
+	var first_landing_y: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ground_relative_major_landing")
+	).origin.y
+	var target_y: float = (_evaluate_raw_result(mode, follow_target, component).get(
+		"transform",
+		Transform3D.IDENTITY
+	) as Transform3D).origin.y
+
+	for _i in range(30):
+		ecs_manager._physics_process(0.016)
+	var early_reanchor_y: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ground_relative_major_landing")
+	).origin.y
+
+	assert_true(
+		first_landing_y <= target_y,
+		"Landing tick should not overshoot the new target anchor height"
+	)
+	assert_true(
+		first_landing_y < target_y,
+		"Re-anchor should not snap to the final target on the landing tick"
+	)
+	assert_true(
+		early_reanchor_y > baseline_y,
+		"Major landing should move upward toward the new anchor over early re-anchor frames"
+	)
+
+	for _i in range(240):
+		ecs_manager._physics_process(0.016)
+	var settled_y: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ground_relative_major_landing")
+	).origin.y
+	assert_almost_eq(settled_y, target_y, 0.03)
+
+func test_orbit_ground_relative_uneven_ground_stays_stable_without_micro_bob() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_GroundRelativeUnevenTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ground_relative_uneven"),
+		_new_orbit_mode(),
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1000.0, 1.0, 1.0)
+	component.response.set("ground_relative_enabled", true)
+	component.response.set("ground_reanchor_min_height_delta", 0.5)
+	component.response.set("ground_anchor_blend_hz", 4.0)
+
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	vcam_manager.active_vcam_id = StringName("cam_ground_relative_uneven")
+	ecs_manager._physics_process(0.016)
+	var baseline_y: float = _extract_submission_transform(vcam_manager, StringName("cam_ground_relative_uneven")).origin.y
+
+	var short_step_heights: Array[float] = [0.1, 0.2, 0.25, 0.35, 0.45]
+	var max_drift: float = 0.0
+	for height in short_step_heights:
+		follow_target.global_position = Vector3(0.0, height, 0.0)
+		_set_gameplay_entity_floor_state(store, follow_target, true)
+		ecs_manager._physics_process(0.016)
+		var current_y: float = _extract_submission_transform(vcam_manager, StringName("cam_ground_relative_uneven")).origin.y
+		max_drift = maxf(max_drift, absf(current_y - baseline_y))
+
+	assert_true(max_drift < 0.03, "Small uneven-ground traversal should not introduce vertical micro-bob")
+
+func test_ground_relative_is_strict_noop_for_non_orbit_modes() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_GroundRelativeNoopModeTarget", Vector3.ZERO)
+	var mode := _new_first_person_mode()
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ground_relative_noop_mode"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1000.0, 1.0, 1.0)
+	component.response.set("ground_relative_enabled", true)
+	component.response.set("ground_reanchor_min_height_delta", 0.5)
+	component.response.set("ground_anchor_blend_hz", 4.0)
+
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	vcam_manager.active_vcam_id = StringName("cam_ground_relative_noop_mode")
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ground_relative_noop_mode"))
+	var raw_transform := _evaluate_raw_result(mode, follow_target, component).get(
+		"transform",
+		Transform3D.IDENTITY
+	) as Transform3D
+	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
+
+	var ground_relative_state: Dictionary = system.get("_ground_relative_state") as Dictionary
+	assert_false(
+		ground_relative_state.has(StringName("cam_ground_relative_noop_mode")),
+		"Ground-relative state must not be created for non-orbit modes"
+	)
+
 func test_landing_impact_offset_is_added_to_submitted_position() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -2278,6 +2542,34 @@ func _set_gameplay_entity_velocity(
 
 	store.set_slice(StringName("gameplay"), gameplay_slice)
 
+func _set_gameplay_entity_floor_state(
+	store: MockStateStore,
+	entity: BaseECSEntity,
+	is_on_floor: bool
+) -> void:
+	if store == null or entity == null or not is_instance_valid(entity):
+		return
+
+	var gameplay_slice: Dictionary = store.get_slice(StringName("gameplay"))
+	var entities_variant: Variant = gameplay_slice.get("entities", {})
+	var entities: Dictionary = {}
+	if entities_variant is Dictionary:
+		entities = (entities_variant as Dictionary).duplicate(true)
+
+	var entity_id: String = String(entity.get_entity_id())
+	var entity_state_variant: Variant = entities.get(entity_id, {})
+	var entity_state: Dictionary = {}
+	if entity_state_variant is Dictionary:
+		entity_state = (entity_state_variant as Dictionary).duplicate(true)
+
+	entity_state["is_on_floor"] = is_on_floor
+	entities[entity_id] = entity_state
+	gameplay_slice["entities"] = entities
+	if not gameplay_slice.has("player_entity_id"):
+		gameplay_slice["player_entity_id"] = entity_id
+
+	store.set_slice(StringName("gameplay"), gameplay_slice)
+
 func _create_path_node(parent: Node3D, name: String) -> Path3D:
 	var path := Path3D.new()
 	path.name = name
@@ -2368,7 +2660,11 @@ func _new_response(
 	look_input_hold_sec: float = 0.06,
 	look_input_release_decay: float = 25.0,
 	orbit_look_bypass_enable_speed: float = 0.15,
-	orbit_look_bypass_disable_speed: float = 0.3
+	orbit_look_bypass_disable_speed: float = 0.3,
+	ground_relative_enabled: bool = false,
+	ground_reanchor_min_height_delta: float = 0.5,
+	ground_probe_max_distance: float = 12.0,
+	ground_anchor_blend_hz: float = 4.0
 ) -> Resource:
 	var response := RS_VCAM_RESPONSE.new()
 	response.follow_frequency = follow_frequency
@@ -2386,6 +2682,10 @@ func _new_response(
 	response.look_input_release_decay = look_input_release_decay
 	response.orbit_look_bypass_enable_speed = orbit_look_bypass_enable_speed
 	response.orbit_look_bypass_disable_speed = orbit_look_bypass_disable_speed
+	response.ground_relative_enabled = ground_relative_enabled
+	response.ground_reanchor_min_height_delta = ground_reanchor_min_height_delta
+	response.ground_probe_max_distance = ground_probe_max_distance
+	response.ground_anchor_blend_hz = ground_anchor_blend_hz
 	return response
 
 func _new_soft_zone(

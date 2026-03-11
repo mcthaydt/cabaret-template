@@ -15,6 +15,7 @@ const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd"
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
 const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_CHARACTER_STATE_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
 const RS_VCAM_MODE_FIXED_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
@@ -46,6 +47,7 @@ var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_t
 var _look_rotation_state: Dictionary = {}  # StringName -> {smoothed_yaw, smoothed_pitch, yaw_velocity, pitch_velocity, mode_script, follow_target_id, response_signature}
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
 var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
+var _ground_relative_state: Dictionary = {}  # StringName -> {follow_target_id, ground_anchor_y, ground_anchor_target_y, follow_anchor_y_offset, last_ground_reference_y, was_grounded, blend_hz, dynamics}
 var _look_input_filter_state: Dictionary = {}  # StringName -> {filtered_input, hold_timer_sec, input_active}
 var _follow_target_motion_state: Dictionary = {}  # StringName -> {follow_target_id, last_position, speed_mps}
 var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
@@ -110,6 +112,7 @@ func _exit_tree() -> void:
 	_clear_all_smoothing_state()
 	_clear_landing_impact_recovery_state()
 	_look_ahead_state.clear()
+	_ground_relative_state.clear()
 	_orbit_no_look_input_timers.clear()
 	_soft_zone_dead_zone_state.clear()
 	_last_active_vcam_id = StringName("")
@@ -293,12 +296,21 @@ func _evaluate_and_submit(
 		has_active_look_input,
 		delta
 	)
-	var soft_zone_result: Dictionary = _apply_orbit_soft_zone(
+	var ground_relative_result: Dictionary = _apply_orbit_ground_relative(
 		vcam_id,
 		component,
 		mode,
 		follow_target,
 		look_ahead_result,
+		response_values,
+		delta
+	)
+	var soft_zone_result: Dictionary = _apply_orbit_soft_zone(
+		vcam_id,
+		component,
+		mode,
+		follow_target,
+		ground_relative_result,
 		delta
 	)
 	var smoothed_result: Dictionary = _apply_response_smoothing(
@@ -879,6 +891,244 @@ func _get_or_create_look_ahead_state(
 func _clear_look_ahead_state_for_vcam(vcam_id: StringName) -> void:
 	_look_ahead_state.erase(vcam_id)
 
+func _apply_orbit_ground_relative(
+	vcam_id: StringName,
+	component: C_VCamComponent,
+	mode: Resource,
+	follow_target: Node3D,
+	result: Dictionary,
+	response_values: Dictionary,
+	delta: float
+) -> Dictionary:
+	if component == null or mode == null:
+		_clear_ground_relative_state_for_vcam(vcam_id)
+		return result
+	if mode.get_script() != RS_VCAM_MODE_ORBIT_SCRIPT:
+		_clear_ground_relative_state_for_vcam(vcam_id)
+		return result
+	if follow_target == null or not is_instance_valid(follow_target):
+		_clear_ground_relative_state_for_vcam(vcam_id)
+		return result
+	if response_values.is_empty():
+		_clear_ground_relative_state_for_vcam(vcam_id)
+		return result
+	if not bool(response_values.get("ground_relative_enabled", false)):
+		_clear_ground_relative_state_for_vcam(vcam_id)
+		return result
+
+	var transform_variant: Variant = result.get("transform", null)
+	if not (transform_variant is Transform3D):
+		return result
+
+	var follow_target_id: int = _get_node_instance_id(follow_target)
+	if follow_target_id == 0:
+		_clear_ground_relative_state_for_vcam(vcam_id)
+		return result
+
+	var follow_y: float = follow_target.global_position.y
+	var state: Dictionary = _get_or_create_ground_relative_state(vcam_id, follow_target_id, follow_y)
+
+	var grounded: bool = _resolve_follow_target_grounded_state(follow_target)
+	var probe_max_distance: float = maxf(float(response_values.get("ground_probe_max_distance", 0.0)), 0.0)
+	var ground_reference_y: float = follow_y
+	var has_ground_reference: bool = false
+	if grounded:
+		var probe_result: Dictionary = _probe_ground_reference_height(follow_target, probe_max_distance)
+		has_ground_reference = bool(probe_result.get("valid", false))
+		if has_ground_reference:
+			ground_reference_y = float(probe_result.get("height", follow_y))
+
+	var initialized: bool = bool(state.get("initialized", false))
+	var ground_anchor_y: float = float(state.get("ground_anchor_y", follow_y))
+	var ground_anchor_target_y: float = float(state.get("ground_anchor_target_y", ground_anchor_y))
+	var follow_anchor_y_offset: float = float(state.get("follow_anchor_y_offset", 0.0))
+	var last_ground_reference_y: float = float(state.get("last_ground_reference_y", ground_anchor_target_y))
+	var was_grounded: bool = bool(state.get("was_grounded", grounded))
+	if not initialized:
+		var initial_ground_reference_y: float = ground_reference_y if has_ground_reference else follow_y
+		ground_anchor_y = initial_ground_reference_y
+		ground_anchor_target_y = initial_ground_reference_y
+		follow_anchor_y_offset = follow_y - initial_ground_reference_y
+		last_ground_reference_y = initial_ground_reference_y
+		initialized = true
+	elif grounded and has_ground_reference and not was_grounded:
+		var reanchor_min_height_delta: float = maxf(
+			float(response_values.get("ground_reanchor_min_height_delta", 0.0)),
+			0.0
+		)
+		var landing_height_delta: float = absf(ground_reference_y - last_ground_reference_y)
+		if landing_height_delta >= reanchor_min_height_delta:
+			ground_anchor_target_y = ground_reference_y
+			follow_anchor_y_offset = follow_y - ground_reference_y
+			last_ground_reference_y = ground_reference_y
+
+	var blend_hz: float = maxf(float(response_values.get("ground_anchor_blend_hz", 0.0)), 0.0)
+	var previous_blend_hz: float = float(state.get("blend_hz", -1.0))
+	var dynamics: Variant = state.get("dynamics", null)
+	if blend_hz <= 0.0:
+		dynamics = null
+		ground_anchor_y = ground_anchor_target_y
+	else:
+		var needs_rebuild: bool = dynamics == null or not is_equal_approx(previous_blend_hz, blend_hz)
+		if needs_rebuild:
+			dynamics = U_SECOND_ORDER_DYNAMICS.new(blend_hz, 1.0, 1.0, ground_anchor_y)
+		if delta > 0.0 and dynamics != null:
+			ground_anchor_y = float(dynamics.step(ground_anchor_target_y, delta))
+		else:
+			ground_anchor_y = ground_anchor_target_y
+	if is_nan(ground_anchor_y) or is_inf(ground_anchor_y):
+		ground_anchor_y = ground_anchor_target_y
+	if is_nan(ground_anchor_target_y) or is_inf(ground_anchor_target_y):
+		ground_anchor_target_y = ground_anchor_y
+
+	state["initialized"] = initialized
+	state["follow_target_id"] = follow_target_id
+	state["ground_anchor_y"] = ground_anchor_y
+	state["ground_anchor_target_y"] = ground_anchor_target_y
+	state["follow_anchor_y_offset"] = follow_anchor_y_offset
+	state["last_ground_reference_y"] = last_ground_reference_y
+	state["was_grounded"] = grounded
+	state["blend_hz"] = blend_hz
+	state["dynamics"] = dynamics
+	_ground_relative_state[vcam_id] = state
+
+	var anchored_follow_y: float = ground_anchor_y + follow_anchor_y_offset
+	var y_offset: float = anchored_follow_y - follow_y
+	if absf(y_offset) <= 0.000001:
+		return result
+	return _apply_position_offset(result, Vector3(0.0, y_offset, 0.0))
+
+func _get_or_create_ground_relative_state(
+	vcam_id: StringName,
+	follow_target_id: int,
+	follow_y: float
+) -> Dictionary:
+	var state_variant: Variant = _ground_relative_state.get(vcam_id, {})
+	var state: Dictionary = {}
+	if state_variant is Dictionary:
+		state = (state_variant as Dictionary).duplicate(true)
+
+	var previous_target_id: int = int(state.get("follow_target_id", 0))
+	if state.is_empty() or previous_target_id != follow_target_id:
+		state = {
+			"initialized": false,
+			"follow_target_id": follow_target_id,
+			"ground_anchor_y": follow_y,
+			"ground_anchor_target_y": follow_y,
+			"follow_anchor_y_offset": 0.0,
+			"last_ground_reference_y": follow_y,
+			"was_grounded": false,
+			"blend_hz": -1.0,
+			"dynamics": null,
+		}
+		_ground_relative_state[vcam_id] = state
+	return state
+
+func _clear_ground_relative_state_for_vcam(vcam_id: StringName) -> void:
+	_ground_relative_state.erase(vcam_id)
+
+func _resolve_follow_target_grounded_state(follow_target: Node3D) -> bool:
+	if follow_target == null or not is_instance_valid(follow_target):
+		return false
+
+	var entity_root: Node = U_ECS_UTILS.find_entity_root(follow_target)
+	if entity_root != null and is_instance_valid(entity_root):
+		var entity_id: StringName = U_ECS_UTILS.get_entity_id(entity_root)
+		var state_grounded: Dictionary = _read_gameplay_entity_is_on_floor(entity_id)
+		if bool(state_grounded.get("has_value", false)):
+			return bool(state_grounded.get("is_on_floor", false))
+
+		var character_state: Node = _find_node_with_script(entity_root, C_CHARACTER_STATE_COMPONENT_SCRIPT)
+		if character_state != null and _object_has_property(character_state, "is_grounded"):
+			var grounded_variant: Variant = character_state.get("is_grounded")
+			if grounded_variant is bool:
+				return grounded_variant as bool
+			if grounded_variant is int:
+				return int(grounded_variant) != 0
+
+	var body: CharacterBody3D = _find_character_body_recursive(follow_target)
+	if body == null or not is_instance_valid(body):
+		return false
+	return body.is_on_floor()
+
+func _read_gameplay_entity_is_on_floor(entity_id: StringName) -> Dictionary:
+	if entity_id == StringName(""):
+		return {"has_value": false, "is_on_floor": false}
+
+	var store := _resolve_state_store()
+	if store == null:
+		return {"has_value": false, "is_on_floor": false}
+
+	var state: Dictionary = store.get_state()
+	var gameplay_variant: Variant = state.get("gameplay", {})
+	if not (gameplay_variant is Dictionary):
+		return {"has_value": false, "is_on_floor": false}
+	var gameplay := gameplay_variant as Dictionary
+
+	var entities_variant: Variant = gameplay.get("entities", {})
+	if not (entities_variant is Dictionary):
+		return {"has_value": false, "is_on_floor": false}
+	var entities := entities_variant as Dictionary
+
+	var entity_state_variant: Variant = entities.get(String(entity_id), null)
+	if not (entity_state_variant is Dictionary):
+		return {"has_value": false, "is_on_floor": false}
+	var entity_state := entity_state_variant as Dictionary
+	if not entity_state.has("is_on_floor"):
+		return {"has_value": false, "is_on_floor": false}
+
+	var on_floor_variant: Variant = entity_state.get("is_on_floor", false)
+	if on_floor_variant is bool:
+		return {"has_value": true, "is_on_floor": on_floor_variant as bool}
+	if on_floor_variant is int:
+		return {"has_value": true, "is_on_floor": int(on_floor_variant) != 0}
+	return {"has_value": false, "is_on_floor": false}
+
+func _probe_ground_reference_height(follow_target: Node3D, max_distance: float) -> Dictionary:
+	if follow_target == null or not is_instance_valid(follow_target):
+		return {"valid": false, "height": 0.0}
+	if max_distance <= 0.0:
+		return {"valid": false, "height": follow_target.global_position.y}
+
+	var fallback_height: float = follow_target.global_position.y
+	var world: World3D = follow_target.get_world_3d()
+	if world == null:
+		return {"valid": true, "height": fallback_height}
+	var space_state: PhysicsDirectSpaceState3D = world.direct_space_state
+	if space_state == null:
+		return {"valid": true, "height": fallback_height}
+
+	var ray_from: Vector3 = follow_target.global_position + (Vector3.UP * 0.1)
+	var ray_to: Vector3 = ray_from + (Vector3.DOWN * max_distance)
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(ray_from, ray_to)
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	var entity_root: Node = U_ECS_UTILS.find_entity_root(follow_target)
+	var exclude_rids: Array[RID] = []
+	if entity_root != null and is_instance_valid(entity_root):
+		var entity_collision := entity_root as CollisionObject3D
+		if entity_collision != null:
+			exclude_rids.append(entity_collision.get_rid())
+	var follow_collision := follow_target as CollisionObject3D
+	if follow_collision != null:
+		var follow_rid: RID = follow_collision.get_rid()
+		if not exclude_rids.has(follow_rid):
+			exclude_rids.append(follow_rid)
+	if exclude_rids.is_empty():
+		var follow_body: CharacterBody3D = _find_character_body_recursive(follow_target)
+		if follow_body != null and is_instance_valid(follow_body):
+			exclude_rids.append(follow_body.get_rid())
+	query.exclude = exclude_rids
+
+	var hit: Dictionary = space_state.intersect_ray(query)
+	if hit.is_empty():
+		return {"valid": true, "height": fallback_height}
+	var hit_position_variant: Variant = hit.get("position", Vector3.ZERO)
+	if not (hit_position_variant is Vector3):
+		return {"valid": true, "height": fallback_height}
+	var hit_position := hit_position_variant as Vector3
+	return {"valid": true, "height": hit_position.y}
+
 func _apply_orbit_soft_zone(
 	vcam_id: StringName,
 	component: C_VCamComponent,
@@ -1226,6 +1476,14 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
+	for vcam_id_variant in _ground_relative_state.keys():
+		var vcam_id := vcam_id_variant as StringName
+		if vcam_index.has(vcam_id):
+			continue
+		if stale_ids.has(vcam_id):
+			continue
+		stale_ids.append(vcam_id)
+
 	for vcam_id_variant in _look_input_filter_state.keys():
 		var vcam_id := vcam_id_variant as StringName
 		if vcam_index.has(vcam_id):
@@ -1285,6 +1543,7 @@ func _clear_all_smoothing_state() -> void:
 	_look_rotation_state.clear()
 	_rotation_target_cache.clear()
 	_look_ahead_state.clear()
+	_ground_relative_state.clear()
 	_look_input_filter_state.clear()
 	_follow_target_motion_state.clear()
 	_orbit_no_look_input_timers.clear()
@@ -1302,6 +1561,7 @@ func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_look_rotation_state.erase(vcam_id)
 	_rotation_target_cache.erase(vcam_id)
 	_look_ahead_state.erase(vcam_id)
+	_ground_relative_state.erase(vcam_id)
 	_look_input_filter_state.erase(vcam_id)
 	_follow_target_motion_state.erase(vcam_id)
 	_orbit_no_look_input_timers.erase(vcam_id)
@@ -1762,6 +2022,19 @@ func _resolve_response_values(response: Resource) -> Dictionary:
 				float(response.get("orbit_look_bypass_disable_speed")),
 				0.0
 			),
+			"ground_relative_enabled": bool(response.get("ground_relative_enabled")),
+			"ground_reanchor_min_height_delta": maxf(
+				float(response.get("ground_reanchor_min_height_delta")),
+				0.0
+			),
+			"ground_probe_max_distance": maxf(
+				float(response.get("ground_probe_max_distance")),
+				0.0
+			),
+			"ground_anchor_blend_hz": maxf(
+				float(response.get("ground_anchor_blend_hz")),
+				0.0
+			),
 		}
 		var resolved_disable_speed: float = maxf(
 			float(resolved_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
@@ -1783,6 +2056,10 @@ func _build_response_signature(response_values: Dictionary) -> Array[float]:
 		float(response_values.get("look_input_release_decay", DEFAULT_LOOK_INPUT_RELEASE_DECAY)),
 		float(response_values.get("orbit_look_bypass_enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)),
 		float(response_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
+		1.0 if bool(response_values.get("ground_relative_enabled", false)) else 0.0,
+		float(response_values.get("ground_reanchor_min_height_delta", 0.0)),
+		float(response_values.get("ground_probe_max_distance", 0.0)),
+		float(response_values.get("ground_anchor_blend_hz", 0.0)),
 	]
 
 func _get_smoothing_metadata(vcam_id: StringName) -> Dictionary:
