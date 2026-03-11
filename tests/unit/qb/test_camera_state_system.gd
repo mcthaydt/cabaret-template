@@ -13,6 +13,7 @@ const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
 const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
 const CONDITION_ENTITY_TAG := preload("res://scripts/resources/qb/conditions/rs_condition_entity_tag.gd")
 const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
+const SPEED_FOV_RULE := preload("res://resources/qb/camera/cfg_camera_speed_fov_rule.tres")
 
 func before_each() -> void:
 	U_ECSEventBus.reset()
@@ -108,7 +109,11 @@ func test_speed_fov_rule_sets_bonus_from_movement_speed() -> void:
 
 	system.process_tick(0.016)
 
-	assert_almost_eq(camera_state.speed_fov_bonus, 7.5, 0.001)
+	var expected_bonus: float = _compute_speed_fov_bonus_after_component_clamp(
+		4.5,
+		camera_state.speed_fov_max_bonus
+	)
+	assert_almost_eq(camera_state.speed_fov_bonus, expected_bonus, 0.001)
 
 func test_stationary_speed_sets_speed_fov_bonus_to_zero() -> void:
 	var fixture: Dictionary = _create_fixture(
@@ -125,9 +130,17 @@ func test_stationary_speed_sets_speed_fov_bonus_to_zero() -> void:
 
 	system.process_tick(0.016)
 
-	assert_almost_eq(camera_state.speed_fov_bonus, 0.0, 0.001)
+	var expected_bonus: float = _compute_speed_fov_bonus_after_component_clamp(
+		0.0,
+		camera_state.speed_fov_max_bonus
+	)
+	assert_almost_eq(camera_state.speed_fov_bonus, expected_bonus, 0.001)
 
 func test_speed_fov_bonus_is_clamped_to_component_max() -> void:
+	var rule_bonus_at_high_speed: float = _compute_speed_fov_rule_bonus(99.0)
+	assert_gt(rule_bonus_at_high_speed, 0.0, "Speed-FOV rule should produce a positive bonus at high speed")
+	var forced_max_bonus: float = maxf(rule_bonus_at_high_speed * 0.5, 0.1)
+
 	var fixture: Dictionary = _create_fixture(
 		[],
 		[
@@ -135,7 +148,7 @@ func test_speed_fov_bonus_is_clamped_to_component_max() -> void:
 				"name": "E_Camera",
 				"tags": [],
 				"movement_velocity": Vector2(99.0, 0.0),
-				"speed_fov_max_bonus": 8.0,
+				"speed_fov_max_bonus": forced_max_bonus,
 			},
 		],
 		90.0
@@ -147,7 +160,11 @@ func test_speed_fov_bonus_is_clamped_to_component_max() -> void:
 
 	system.process_tick(0.016)
 
-	assert_almost_eq(camera_state.speed_fov_bonus, 8.0, 0.001)
+	var expected_bonus: float = _compute_speed_fov_bonus_after_component_clamp(
+		99.0,
+		forced_max_bonus
+	)
+	assert_almost_eq(camera_state.speed_fov_bonus, expected_bonus, 0.001)
 
 func test_resolve_target_fov_adds_speed_fov_bonus_to_base_target() -> void:
 	var fixture: Dictionary = _create_fixture(
@@ -172,8 +189,13 @@ func test_resolve_target_fov_adds_speed_fov_bonus_to_base_target() -> void:
 
 	system.process_tick(0.25)
 
-	assert_almost_eq(camera_state.target_fov, 97.5, 0.001)
-	assert_almost_eq(camera_manager.main_camera.fov, 97.5, 0.001)
+	var expected_bonus: float = _compute_speed_fov_bonus_after_component_clamp(
+		4.5,
+		camera_state.speed_fov_max_bonus
+	)
+	var expected_target_fov: float = 90.0 + expected_bonus
+	assert_almost_eq(camera_state.target_fov, expected_target_fov, 0.001)
+	assert_almost_eq(camera_manager.main_camera.fov, expected_target_fov, 0.001)
 
 func test_fov_blend_speed_smooths_speed_fov_transition() -> void:
 	var fixture: Dictionary = _create_fixture(
@@ -190,14 +212,22 @@ func test_fov_blend_speed_smooths_speed_fov_transition() -> void:
 	)
 	var system: Variant = fixture.get("system", null)
 	var camera_manager: MockCameraManager = fixture.get("camera_manager") as MockCameraManager
+	var camera_state: C_CameraStateComponent = fixture.get("camera_state") as C_CameraStateComponent
 	assert_not_null(system)
 	assert_not_null(camera_manager)
 	assert_not_null(camera_manager.main_camera)
+	assert_not_null(camera_state)
 
 	system.process_tick(0.1)
 
-	assert_almost_eq(camera_manager.main_camera.fov, 93.0, 0.001)
-	assert_true(camera_manager.main_camera.fov < 105.0)
+	var expected_bonus: float = _compute_speed_fov_bonus_after_component_clamp(
+		9.0,
+		camera_state.speed_fov_max_bonus
+	)
+	var expected_target_fov: float = 90.0 + expected_bonus
+	var expected_fov: float = lerpf(90.0, expected_target_fov, clampf(2.0 * 0.1, 0.0, 1.0))
+	assert_almost_eq(camera_manager.main_camera.fov, expected_fov, 0.001)
+	assert_true(camera_manager.main_camera.fov < expected_target_fov)
 
 func test_landing_event_sets_max_landing_impact_offset() -> void:
 	var fixture: Dictionary = _create_fixture([], [], 90.0)
@@ -510,6 +540,71 @@ func _register_camera_entity(ecs_manager: MockECSManager, spec: Dictionary) -> D
 		"entity": entity,
 		"camera_state": camera_state,
 	}
+
+func _compute_speed_fov_rule_bonus(speed_magnitude: float) -> float:
+	var rule_resource: Resource = SPEED_FOV_RULE
+	if rule_resource == null:
+		return 0.0
+
+	var conditions_variant: Variant = rule_resource.get("conditions")
+	if not (conditions_variant is Array):
+		return 0.0
+	var conditions: Array = conditions_variant as Array
+	if conditions.is_empty():
+		return 0.0
+	var condition_variant: Variant = conditions[0]
+	if condition_variant == null or not (condition_variant is Object):
+		return 0.0
+	var condition := condition_variant as Object
+	var range_min: float = _read_object_float(condition, "range_min", 0.0)
+	var range_max: float = _read_object_float(condition, "range_max", 1.0)
+	var score: float = 0.0
+	if is_equal_approx(range_min, range_max):
+		score = 1.0 if speed_magnitude >= range_min else 0.0
+	else:
+		score = clampf((speed_magnitude - range_min) / (range_max - range_min), 0.0, 1.0)
+
+	var threshold: float = _read_object_float(rule_resource, "score_threshold", 0.0)
+	if score <= threshold:
+		return 0.0
+
+	var effects_variant: Variant = rule_resource.get("effects")
+	if not (effects_variant is Array):
+		return 0.0
+	var effects: Array = effects_variant as Array
+	if effects.is_empty():
+		return 0.0
+	var effect_variant: Variant = effects[0]
+	if effect_variant == null or not (effect_variant is Object):
+		return 0.0
+	var effect := effect_variant as Object
+	var bonus: float = _read_object_float(effect, "float_value", 0.0)
+	if _read_object_bool(effect, "scale_by_rule_score", false):
+		bonus *= score
+	if _read_object_bool(effect, "use_clamp", false):
+		var clamp_min: float = _read_object_float(effect, "clamp_min", 0.0)
+		var clamp_max: float = _read_object_float(effect, "clamp_max", 1.0)
+		bonus = clampf(bonus, clamp_min, clamp_max)
+	return maxf(bonus, 0.0)
+
+func _compute_speed_fov_bonus_after_component_clamp(speed_magnitude: float, component_max_bonus: float) -> float:
+	return clampf(_compute_speed_fov_rule_bonus(speed_magnitude), 0.0, maxf(component_max_bonus, 0.0))
+
+func _read_object_float(object_value: Object, property_name: String, fallback: float) -> float:
+	if object_value == null:
+		return fallback
+	var value: Variant = object_value.get(property_name)
+	if value is float or value is int:
+		return float(value)
+	return fallback
+
+func _read_object_bool(object_value: Object, property_name: String, fallback: bool) -> bool:
+	if object_value == null:
+		return fallback
+	var value: Variant = object_value.get(property_name)
+	if value is bool:
+		return bool(value)
+	return fallback
 
 func _make_constant_condition() -> RS_ConditionConstant:
 	var condition := CONDITION_CONSTANT.new()

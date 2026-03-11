@@ -6,6 +6,9 @@ const M_LOCALIZATION_MANAGER := preload("res://scripts/managers/m_localization_m
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const I_LOCALIZATION_MANAGER := preload("res://scripts/interfaces/i_localization_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const LOCALE_DIFFERENTIATED_KEY := &"menu.settings.back_to_main"
+const EN_LOCALE_DIFFERENTIATED_VALUE := "Back to Main Menu"
+const ES_LOCALE_DIFFERENTIATED_VALUE := "Volver al Menú Principal"
 
 var _manager: Node
 var _store: Node
@@ -79,7 +82,11 @@ func test_settings_applied_on_ready() -> void:
 	await _setup_manager_with_store({"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
 
 	assert_eq(_manager.get_locale(), &"en", "Manager should load locale from store on ready")
-	assert_eq(_manager.translate(&"menu.main.title"), "Main Menu", "Ready apply should load locale catalog")
+	assert_eq(
+		_manager.translate(LOCALE_DIFFERENTIATED_KEY),
+		EN_LOCALE_DIFFERENTIATED_VALUE,
+		"Ready apply should load locale catalog"
+	)
 
 func test_hash_prevents_redundant_applies() -> void:
 	var loc_state := {"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false}
@@ -356,14 +363,14 @@ func test_clear_preview_reverts_to_store_state() -> void:
 func test_translate_returns_populated_translation() -> void:
 	await _setup_manager_with_store({"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
 
-	var result: String = _manager.translate(&"menu.main.title")
-	assert_eq(result, "Main Menu", "translate() should return populated English translation")
+	var result: String = _manager.translate(LOCALE_DIFFERENTIATED_KEY)
+	assert_eq(result, EN_LOCALE_DIFFERENTIATED_VALUE, "translate() should return populated English translation")
 
 func test_translate_spanish_locale() -> void:
 	await _setup_manager_with_store({"current_locale": &"es", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
 
-	var result: String = _manager.translate(&"menu.main.title")
-	assert_eq(result, "Menú Principal", "translate() should return Spanish translation for es locale")
+	var result: String = _manager.translate(LOCALE_DIFFERENTIATED_KEY)
+	assert_eq(result, ES_LOCALE_DIFFERENTIATED_VALUE, "translate() should return Spanish translation for es locale")
 
 # --- Helpers ---
 

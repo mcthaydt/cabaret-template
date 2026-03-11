@@ -505,12 +505,12 @@ func _resolve_follow_target(component: C_VCamComponent) -> Node3D:
 	if node_target != null and is_instance_valid(node_target):
 		return node_target
 
-	var ecs_manager: I_ECSManager = get_manager()
-	if ecs_manager == null:
+	var manager_ref: I_ECSManager = get_manager()
+	if manager_ref == null:
 		return null
 
 	if component.follow_target_entity_id != StringName(""):
-		var entity_target: Node = ecs_manager.get_entity_by_id(component.follow_target_entity_id)
+		var entity_target: Node = manager_ref.get_entity_by_id(component.follow_target_entity_id)
 		var resolved_entity_target: Node3D = _resolve_entity_target(entity_target)
 		if resolved_entity_target != null:
 			return resolved_entity_target
@@ -518,7 +518,7 @@ func _resolve_follow_target(component: C_VCamComponent) -> Node3D:
 	if component.follow_target_tag == StringName(""):
 		return null
 
-	var tagged_entities: Array[Node] = ecs_manager.get_entities_by_tag(component.follow_target_tag)
+	var tagged_entities: Array[Node] = manager_ref.get_entities_by_tag(component.follow_target_tag)
 	if tagged_entities.is_empty():
 		return null
 
