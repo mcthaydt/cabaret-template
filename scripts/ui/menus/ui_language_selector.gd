@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_utility.svg")
-extends BaseMenuScreen
+extends "res://scripts/ui/base/base_menu_screen.gd"
 class_name UI_LanguageSelector
 
 ## Language Selector UI Controller (Phase 0.5B)

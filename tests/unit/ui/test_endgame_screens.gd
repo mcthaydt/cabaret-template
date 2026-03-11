@@ -8,6 +8,7 @@ const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_acti
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
 
 
 
@@ -40,6 +41,10 @@ func test_game_over_has_motion_and_theme_tokens_when_active_config_set() -> void
 	assert_eq(title_label.get_theme_font_size(&"font_size"), 58, "Title should use theme title size token")
 	assert_eq(death_count_label.get_theme_font_size(&"font_size"), 34, "Death count should use theme heading size token")
 	assert_true(background.color.is_equal_approx(config.bg_base), "Background should use theme bg_base token")
+	var game_over_material := background.material as ShaderMaterial
+	assert_not_null(game_over_material, "Game over should apply configured fullscreen backdrop shader")
+	if game_over_material != null:
+		assert_eq(game_over_material.shader, MENU_FULLSCREEN_SHADER, "Game over backdrop should use shared shader")
 
 func test_victory_has_motion_and_theme_tokens_when_active_config_set() -> void:
 	var store := await _create_state_store()
@@ -62,6 +67,10 @@ func test_victory_has_motion_and_theme_tokens_when_active_config_set() -> void:
 	assert_eq(title_label.get_theme_font_size(&"font_size"), 60, "Victory title should use theme title size token")
 	assert_eq(completed_label.get_theme_font_size(&"font_size"), 32, "Victory stats should use theme heading size token")
 	assert_true(background.color.is_equal_approx(config.bg_base), "Victory background should use theme bg_base token")
+	var victory_material := background.material as ShaderMaterial
+	assert_not_null(victory_material, "Victory should apply configured fullscreen backdrop shader")
+	if victory_material != null:
+		assert_eq(victory_material.shader, MENU_FULLSCREEN_SHADER, "Victory backdrop should use shared shader")
 
 func test_game_over_retry_returns_to_gameplay() -> void:
 	var store := await _create_state_store()
@@ -198,6 +207,10 @@ func test_credits_has_motion_and_theme_tokens_when_active_config_set() -> void:
 	assert_eq(footer_label.get_theme_font_size(&"font_size"), 15, "Credits footer should use theme caption size token")
 	assert_eq(content_vbox.get_theme_constant(&"separation"), 29, "Credits spacing should use separation_medium token")
 	assert_true(background.color.is_equal_approx(config.bg_base), "Credits background should use theme bg_base token")
+	var credits_material := background.material as ShaderMaterial
+	assert_not_null(credits_material, "Credits should apply configured fullscreen backdrop shader")
+	if credits_material != null:
+		assert_eq(credits_material.shader, MENU_FULLSCREEN_SHADER, "Credits backdrop should use shared shader")
 
 func test_credits_auto_return_dispatches_navigation() -> void:
 	var store := await _create_state_store()

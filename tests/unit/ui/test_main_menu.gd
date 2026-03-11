@@ -3,6 +3,7 @@ extends GutTest
 const MainMenuScene := preload("res://scenes/ui/menus/ui_main_menu.tscn")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -49,6 +50,10 @@ func test_applies_theme_tokens_when_active_config_present() -> void:
 		background.color.is_equal_approx(config.bg_base),
 		"Background color should use the bg_base token from the active theme config"
 	)
+	var material := background.material as ShaderMaterial
+	assert_not_null(material, "Main menu should apply configured fullscreen backdrop shader")
+	if material != null:
+		assert_eq(material.shader, MENU_FULLSCREEN_SHADER, "Main menu backdrop should use shared shader")
 
 func test_main_panel_visible_by_default() -> void:
 	var store := await _create_state_store()

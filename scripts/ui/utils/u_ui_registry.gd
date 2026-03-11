@@ -6,6 +6,12 @@ class_name U_UIRegistry
 ## Loads RS_UIScreenDefinition resources from disk and provides lookup helpers
 ## used by navigation reducers/selectors.
 
+# Ensure base UI inheritance stack is loaded before screen definitions.
+const BASE_PANEL_SCRIPT := preload("res://scripts/ui/base/base_panel.gd")
+const BASE_MENU_SCREEN_SCRIPT := preload("res://scripts/ui/base/base_menu_screen.gd")
+const BASE_OVERLAY_SCRIPT := preload("res://scripts/ui/base/base_overlay.gd")
+const UI_SAVE_LOAD_MENU_SCRIPT := preload("res://scripts/ui/overlays/ui_save_load_menu.gd")
+
 # Preload all UI screen definitions (required for exported builds)
 const MAIN_MENU_SCREEN := preload("res://resources/ui_screens/cfg_main_menu_screen.tres")
 const GAME_OVER_SCREEN := preload("res://resources/ui_screens/cfg_game_over_screen.tres")
