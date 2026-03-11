@@ -108,7 +108,7 @@ translations = {
 "menu.main.new_game_confirm": "开始新游戏？当前进度将会丢失。",
 "menu.main.quit": "退出",
 "menu.main.settings": "设置",
-"menu.main.title": "主菜单",
+"menu.main.title": "Cabaret Template",
 "menu.pause.load": "加载",
 "menu.pause.quit": "返回菜单",
 "menu.pause.resume": "继续",

@@ -108,7 +108,7 @@ translations = {
 "menu.main.new_game_confirm": "新しいゲームを始めますか？現在の進行状況は失われます。",
 "menu.main.quit": "終了",
 "menu.main.settings": "設定",
-"menu.main.title": "メインメニュー",
+"menu.main.title": "Cabaret Template",
 "menu.pause.load": "ロード",
 "menu.pause.quit": "メニューに戻る",
 "menu.pause.resume": "再開",

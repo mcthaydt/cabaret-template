@@ -108,7 +108,7 @@ translations = {
 "menu.main.new_game_confirm": "¿Iniciar nueva partida? Se perderá el progreso actual.",
 "menu.main.quit": "Salir",
 "menu.main.settings": "Ajustes",
-"menu.main.title": "Menú Principal",
+"menu.main.title": "Cabaret Template",
 "menu.pause.load": "Cargar",
 "menu.pause.quit": "Volver al Menú",
 "menu.pause.resume": "Reanudar",
