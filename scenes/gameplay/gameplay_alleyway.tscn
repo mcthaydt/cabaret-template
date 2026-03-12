@@ -62,14 +62,12 @@
 [ext_resource type="Resource" uid="uid://cvgjhiir8koeu" path="res://resources/spawn_metadata/cfg_sp_exterior_checkpoint.tres" id="52_exterior_checkpoint_spawn_meta"]
 [ext_resource type="Resource" uid="uid://t1jgkqtr1hke" path="res://resources/spawn_metadata/cfg_sp_exterior_exit_from_house.tres" id="53_exterior_exit_from_house_spawn_meta"]
 [ext_resource type="Resource" uid="uid://xfndjst2gnk5" path="res://resources/spawn_metadata/cfg_sp_exterior_exit_from_bar.tres" id="54_exterior_exit_from_bar_spawn_meta"]
-[ext_resource type="Material" uid="uid://dtyyrgwkln3r4" path="res://assets/materials/mat_fade_hazard.tres" id="55_fade_hazard"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="56_fade_goal"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="57_fade_door"]
 [ext_resource type="Script" uid="uid://dpeat44fqshck" path="res://scripts/utils/display/u_cinema_grade_preview.gd" id="58_cinema_preview"]
 [ext_resource type="Resource" uid="uid://bpq4a7ypphxic" path="res://resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres" id="59_cinema_grade"]
 [ext_resource type="Resource" uid="uid://gfpbj6b08vmj" path="res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres" id="60_door_config"]
 [ext_resource type="Resource" uid="uid://di0webt8oc8bj" path="res://resources/interactions/checkpoints/cfg_checkpoint_alleyway.tres" id="61_checkpoint_config"]
-[ext_resource type="Resource" uid="uid://bhpts5ki7j6uv" path="res://resources/interactions/hazards/cfg_hazard_spike_trap.tres" id="62_hazard_config"]
 [ext_resource type="Resource" uid="uid://jnsl17rpawoy" path="res://resources/interactions/endgame/cfg_endgame_goal_alleyway.tres" id="63_endgame_config"]
 [ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="64_hazard_death_config"]
 [ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="65_lighting_group"]
@@ -83,14 +81,29 @@
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
-ambient_light_source = 3
+tonemap_mode = 3
+tonemap_exposure = 0.89
 ssao_enabled = true
 ssil_enabled = true
 sdfgi_enabled = true
 glow_enabled = true
+glow_normalized = true
+glow_intensity = 0.66
 glow_bloom = 1.0
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.8440008, 0.399447, 0.2702732, 1)
+fog_light_energy = 0.25
+fog_sun_scatter = 0.37
+fog_density = 1.0
 fog_sky_affect = 0.0
-volumetric_fog_enabled = true
+fog_height = -172.14
+fog_depth_curve = 0.65975356
+volumetric_fog_density = 0.18
+volumetric_fog_albedo = Color(0.49218434, 0.52147424, 0.7017026, 1)
+volumetric_fog_anisotropy = 0.07
+volumetric_fog_length = 4.42
+volumetric_fog_detail_spread = 3.4460962
 volumetric_fog_sky_affect = 0.0
 
 [node name="GameplayRoot" type="Node3D" unique_id=118760861]
@@ -305,40 +318,6 @@ script = ExtResource("44_hazard_controller")
 config = ExtResource("64_hazard_death_config")
 entity_id = &"deathzone_alleyway"
 tags = Array[StringName]([&"hazard", &"death"])
-
-[node name="E_SpikeTrapA" type="Node3D" parent="Entities/Hazards" unique_id=2072822935]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8646226, 0, -2.5110316)
-script = ExtResource("44_hazard_controller")
-config = ExtResource("62_hazard_config")
-visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
-entity_id = &"spiketrap_a"
-tags = Array[StringName]([&"hazard", &"trap"])
-
-[node name="MeshInstance3D" type="CSGBox3D" parent="Entities/Hazards/E_SpikeTrapA" unique_id=1048643914]
-size = Vector3(1.5, 0.5, 1.5)
-material = ExtResource("55_fade_hazard")
-
-[node name="SpikeTips" type="CSGCylinder3D" parent="Entities/Hazards/E_SpikeTrapA" unique_id=2069655188]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-height = 1.0
-material = ExtResource("55_fade_hazard")
-
-[node name="E_SpikeTrapB" type="Node3D" parent="Entities/Hazards" unique_id=353656775]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -3.834928)
-script = ExtResource("44_hazard_controller")
-config = ExtResource("62_hazard_config")
-visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
-entity_id = &"spiketrap_b"
-tags = Array[StringName]([&"hazard", &"trap"])
-
-[node name="MeshInstance3D" type="CSGBox3D" parent="Entities/Hazards/E_SpikeTrapB" unique_id=2139788207]
-size = Vector3(1.5, 0.5, 1.5)
-material = ExtResource("55_fade_hazard")
-
-[node name="SpikeTips" type="CSGCylinder3D" parent="Entities/Hazards/E_SpikeTrapB" unique_id=1209266588]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-height = 1.0
-material = ExtResource("55_fade_hazard")
 
 [node name="Objectives" type="Node" parent="Entities" unique_id=1431982543]
 script = ExtResource("16_8qi87")
