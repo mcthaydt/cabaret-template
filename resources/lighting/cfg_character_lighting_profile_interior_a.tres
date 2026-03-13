@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_CharacterLightingProfile" format=3]
+[gd_resource type="Resource" script_class="RS_CharacterLightingProfile" format=3 uid="uid://dl0w8p663hthp"]
 
 [ext_resource type="Script" uid="uid://4r0gfjs52qar" path="res://scripts/resources/lighting/rs_character_lighting_profile.gd" id="1"]
 
@@ -6,5 +6,4 @@
 script = ExtResource("1")
 profile_id = &"interior_a_default"
 tint = Color(0.9, 0.88, 0.82, 1)
-intensity = 1.0
 blend_smoothing = 0.2
