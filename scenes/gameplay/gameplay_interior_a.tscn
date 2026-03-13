@@ -1,0 +1,576 @@
+[gd_scene format=3 uid="uid://dswa0wook52e4"]
+
+[ext_resource type="Script" uid="uid://bgrjdxph5gqqh" path="res://scripts/ecs/systems/s_camera_state_system.gd" id="1_camera_state_system"]
+[ext_resource type="Script" uid="uid://tl3oy7blmu20" path="res://scripts/ecs/systems/s_character_state_system.gd" id="1_character_rule_manager"]
+[ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
+[ext_resource type="Script" uid="uid://drmqto4u8pr8d" path="res://scripts/ecs/systems/s_game_event_system.gd" id="1_game_event_system"]
+[ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
+[ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
+[ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
+[ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
+[ext_resource type="Script" uid="uid://gaammkurp23b" path="res://scripts/scene_structure/marker_systems_group.gd" id="3_ph0bl"]
+[ext_resource type="Script" uid="uid://cg10jkb2k5551" path="res://scripts/scene_structure/marker_systems_core_group.gd" id="3_systems_core"]
+[ext_resource type="Script" uid="uid://dl32cj7p543rh" path="res://scripts/scene_structure/marker_systems_feedback_group.gd" id="3_systems_feedback"]
+[ext_resource type="Script" uid="uid://wp8ordbinat2" path="res://scripts/scene_structure/marker_systems_movement_group.gd" id="3_systems_movement"]
+[ext_resource type="Script" uid="uid://ceou3w83ojcku" path="res://scripts/scene_structure/marker_systems_physics_group.gd" id="3_systems_physics"]
+[ext_resource type="Script" uid="uid://b85bi31g464hs" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
+[ext_resource type="Script" uid="uid://h5ym8nprt7dw" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
+[ext_resource type="Script" uid="uid://dtyibtpldqj48" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
+[ext_resource type="Script" uid="uid://cxvneotjjmt2h" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
+[ext_resource type="Script" uid="uid://bybk18c838a4x" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
+[ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
+[ext_resource type="Script" uid="uid://c5tv5b4g5a2ya" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
+[ext_resource type="Script" uid="uid://ddf4k6uippbnm" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
+[ext_resource type="Script" uid="uid://dciojb5mih6gh" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
+[ext_resource type="Script" uid="uid://vxfou682xmrp" path="res://scripts/ecs/systems/s_death_handler_system.gd" id="9_death_handler"]
+[ext_resource type="Script" uid="uid://vbqdwstwybck" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
+[ext_resource type="Script" uid="uid://bxqd4f7hk7hte" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
+[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
+[ext_resource type="Script" uid="uid://qeq48m3npch6" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
+[ext_resource type="Resource" uid="uid://cqh2bvx4r8jw6" path="res://resources/base_settings/audio/cfg_jump_sound_default.tres" id="9_jump_sound_settings"]
+[ext_resource type="Script" uid="uid://bneiabwmn5nl7" path="res://scripts/ecs/systems/s_playtime_system.gd" id="9_playtime"]
+[ext_resource type="Script" uid="uid://bkxfcc8idt6ld" path="res://scripts/ecs/systems/s_victory_handler_system.gd" id="9_victory"]
+[ext_resource type="Script" uid="uid://bry3i70sfhmiv" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
+[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
+[ext_resource type="Script" uid="uid://dcninbk24e6ve" path="res://scripts/ecs/systems/s_landing_sound_system.gd" id="10_landing_sound"]
+[ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/base_settings/audio/cfg_landing_sound_default.tres" id="10_landing_sound_settings"]
+[ext_resource type="Script" uid="uid://bcy243ogwqv5f" path="res://scripts/ecs/systems/s_death_sound_system.gd" id="11_death_sound"]
+[ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/base_settings/audio/cfg_death_sound_default.tres" id="11_death_sound_settings"]
+[ext_resource type="Script" uid="uid://buguhw0x2x6og" path="res://scripts/ecs/systems/s_checkpoint_sound_system.gd" id="12_checkpoint_sound"]
+[ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/base_settings/audio/cfg_checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
+[ext_resource type="Script" uid="uid://d0omtagbm74cs" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
+[ext_resource type="Script" uid="uid://dfn1e3onqcmj4" path="res://scripts/ecs/systems/s_victory_sound_system.gd" id="13_victory_sound"]
+[ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/base_settings/audio/cfg_victory_sound_default.tres" id="13_victory_sound_settings"]
+[ext_resource type="Script" uid="uid://b3qbubetb1sko" path="res://scripts/ecs/systems/s_footstep_sound_system.gd" id="14_footstep_sound"]
+[ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/base_settings/audio/cfg_footstep_sound_default.tres" id="14_footstep_sound_settings"]
+[ext_resource type="Script" uid="uid://bdp7886fufa8v" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
+[ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
+[ext_resource type="Script" uid="uid://csqsmkkv5ite7" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
+[ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
+[ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
+[ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
+[ext_resource type="Script" uid="uid://cdheqmcyhlh2j" path="res://scripts/ecs/systems/s_checkpoint_handler_system.gd" id="42_checkpoint_handler_system"]
+[ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
+[ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/cfg_sp_interior_a.tres" id="51_interior_a_spawn_meta"]
+[ext_resource type="Script" uid="uid://bob8u843dmbh7" path="res://scripts/scene_structure/marker_components_group.gd" id="60_txck2"]
+[ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="61_hazard_config"]
+[ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="64_lighting_group"]
+[ext_resource type="Script" uid="uid://v1205hibt78y" path="res://scripts/scene_structure/marker_character_lighting_settings.gd" id="65_character_lighting_settings_script"]
+[ext_resource type="Resource" path="res://resources/lighting/cfg_character_lighting_profile_interior_a.tres" id="66_character_lighting_profile"]
+[ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
+
+[sub_resource type="Environment" id="Environment_interior_a"]
+background_mode = 1
+ambient_light_source = 3
+
+[node name="GameplayRoot" type="Node3D" unique_id=1115187414]
+script = ExtResource("1_f2o31")
+
+[node name="SceneObjects" type="Node3D" parent="." unique_id=1089805488]
+script = ExtResource("2_ph0bl")
+
+[node name="MasterBedroom" type="Node3D" parent="SceneObjects" unique_id=1166286119]
+
+[node name="Floors" type="Node3D" parent="SceneObjects/MasterBedroom" unique_id=1560863504]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=465177608]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=933918614]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 0)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D14" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1533863732]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D15" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1475499375]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 4)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D16" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1072143947]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, 4)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D17" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1846081608]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, 2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D18" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1188704716]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, 0)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D26" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1989280012]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, 4)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D27" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=414825887]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, 2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D28" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=770930656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, 0)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D19" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1336347042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D29" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=616929001]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D20" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1565969223]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D21" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1048085037]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, 0)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D22" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=430461323]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, 2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D23" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1232298402]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, 2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D24" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=289779846]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, 4)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D30" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1716780346]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D31" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=2012255835]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, 0)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D32" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1164617177]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, 2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D33" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=990601266]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, 4)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D25" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=954113162]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, 4)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1427895226]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 0)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=2087243811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, 0)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=599898176]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D10" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1043454539]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D11" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1099261201]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D12" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1185186911]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D13" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=508569560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D6" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=339518388]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D7" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1604913839]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 2)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D8" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1809014523]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 4)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="CSGBox3D9" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=49261498]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 4)
+use_collision = true
+size = Vector3(2, 0.1, 2)
+
+[node name="Walls" type="Node3D" parent="SceneObjects/MasterBedroom" unique_id=363866353]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=555683831]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1479216546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1573002126]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=648293505]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=244446761]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D6" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=197711586]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D7" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1219977451]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D8" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1150622789]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D9" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=857943089]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D10" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=440165480]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D11" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=110448119]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D12" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=376957079]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D13" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=836038560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D14" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=169035774]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 4, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D15" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=788134619]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D22" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1070016366]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D23" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1288795901]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D24" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1045597349]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 4, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D16" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1017395444]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 4, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D17" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1646970090]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D18" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1262197400]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 4, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D19" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1063359240]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D20" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=374550645]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="CSGBox3D21" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1882519315]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 4, 5)
+use_collision = true
+size = Vector3(2, 2, 0.1)
+
+[node name="Objects" type="Node3D" parent="SceneObjects/MasterBedroom" unique_id=1882312523]
+
+[node name="Cabinet" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Objects" unique_id=1978668123]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1, 2)
+use_collision = true
+size = Vector3(2, 4, 6)
+
+[node name="Painting" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Objects" unique_id=830617816]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2.5, 4.9)
+use_collision = true
+size = Vector3(4, 3, 0.1)
+
+[node name="Bed" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Objects" unique_id=531135]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -0.45, 3)
+use_collision = true
+size = Vector3(4, 1, 4)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SceneObjects" unique_id=818920077]
+transform = Transform3D(-0.25881904, 0, 0.9659258, 0, 1, 0, -0.9659258, 0, -0.25881904, 0, 4, 0)
+
+[node name="Environment" type="Node" parent="." unique_id=1767168511]
+script = ExtResource("2_8soux")
+
+[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=1602916997]
+environment = SubResource("Environment_interior_a")
+
+[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=503938397]
+transform = Transform3D(1, 0, 0, 0, 0.9385653, 0.34510165, 0, -0.34510165, 0.9385653, 0, 0, 0)
+light_color = Color(0.9, 0.85, 0.75, 1)
+light_energy = 8.0
+light_indirect_energy = 3.0
+
+[node name="Lighting" type="Node" parent="." unique_id=422493408]
+script = ExtResource("64_lighting_group")
+
+[node name="CharacterLightingSettings" type="Node" parent="Lighting" unique_id=1656380382]
+script = ExtResource("65_character_lighting_settings_script")
+default_profile = ExtResource("66_character_lighting_profile")
+
+[node name="Systems" type="Node" parent="." unique_id=1088815343]
+script = ExtResource("3_ph0bl")
+
+[node name="Core" type="Node" parent="Systems" unique_id=524074479]
+script = ExtResource("3_systems_core")
+
+[node name="S_CharacterStateSystem" type="Node" parent="Systems/Core" unique_id=1998760519]
+script = ExtResource("1_character_rule_manager")
+
+[node name="S_GameEventSystem" type="Node" parent="Systems/Core" unique_id=1282207980]
+script = ExtResource("1_game_event_system")
+
+[node name="S_CameraStateSystem" type="Node" parent="Systems/Core" unique_id=967321144]
+script = ExtResource("1_camera_state_system")
+
+[node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=1495369316]
+script = ExtResource("1_pybrx")
+require_captured_cursor = true
+
+[node name="S_TouchscreenSystem" type="Node" parent="Systems/Core" unique_id=778023767]
+script = ExtResource("24_touchscreen_system")
+
+[node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=417065310]
+script = ExtResource("72_vcam_system")
+execution_priority = 100
+
+[node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1948608298]
+script = ExtResource("9_health")
+execution_priority = 200
+
+[node name="S_DeathHandlerSystem" type="Node" parent="Systems/Core" unique_id=616260759]
+script = ExtResource("9_death_handler")
+
+[node name="S_DamageSystem" type="Node" parent="Systems/Core" unique_id=1871942154]
+script = ExtResource("9_damage")
+execution_priority = 250
+
+[node name="S_VictoryHandlerSystem" type="Node" parent="Systems/Core" unique_id=1592574368]
+script = ExtResource("9_victory")
+execution_priority = 300
+
+[node name="S_PlaytimeSystem" type="Node" parent="Systems/Core" unique_id=1069964628]
+script = ExtResource("9_playtime")
+execution_priority = 200
+
+[node name="S_SceneTriggerSystem" type="Node" parent="Systems/Core" unique_id=1544232941]
+script = ExtResource("20_scene_trigger_system")
+
+[node name="S_CheckpointHandlerSystem" type="Node" parent="Systems/Core" unique_id=556760800]
+script = ExtResource("42_checkpoint_handler_system")
+
+[node name="Physics" type="Node" parent="Systems" unique_id=1635369148]
+script = ExtResource("3_systems_physics")
+
+[node name="S_GravitySystem" type="Node" parent="Systems/Physics" unique_id=406109061]
+script = ExtResource("3_xnqit")
+execution_priority = 60
+
+[node name="S_JumpSystem" type="Node" parent="Systems/Physics" unique_id=1353220530]
+script = ExtResource("2_rfthe")
+execution_priority = 75
+
+[node name="Movement" type="Node" parent="Systems" unique_id=561019550]
+script = ExtResource("3_systems_movement")
+
+[node name="S_MovementSystem" type="Node" parent="Systems/Movement" unique_id=135391574]
+script = ExtResource("4_vry44")
+execution_priority = 50
+
+[node name="S_FloatingSystem" type="Node" parent="Systems/Movement" unique_id=1122089207]
+script = ExtResource("6_tnjgn")
+execution_priority = 70
+
+[node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement" unique_id=739528828]
+script = ExtResource("5_r0a6q")
+execution_priority = 80
+
+[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems/Movement" unique_id=891795431]
+script = ExtResource("7_awem0")
+execution_priority = 90
+
+[node name="Feedback" type="Node" parent="Systems" unique_id=690369831]
+script = ExtResource("3_systems_feedback")
+
+[node name="S_LandingIndicatorSystem" type="Node" parent="Systems/Feedback" unique_id=319920174]
+script = ExtResource("8_ey5t3")
+execution_priority = 110
+
+[node name="S_JumpParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1437837618]
+script = ExtResource("9_jump_particles")
+settings = ExtResource("9_jump_particles_settings")
+execution_priority = 120
+
+[node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1941112087]
+script = ExtResource("9_jump_sound")
+settings = ExtResource("9_jump_sound_settings")
+execution_priority = 121
+
+[node name="S_LandingSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1725192427]
+script = ExtResource("10_landing_sound")
+settings = ExtResource("10_landing_sound_settings")
+execution_priority = 122
+
+[node name="S_DeathSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1605191197]
+script = ExtResource("11_death_sound")
+settings = ExtResource("11_death_sound_settings")
+execution_priority = 123
+
+[node name="S_CheckpointSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1264019214]
+script = ExtResource("12_checkpoint_sound")
+settings = ExtResource("12_checkpoint_sound_settings")
+execution_priority = 124
+
+[node name="S_VictorySoundSystem" type="Node" parent="Systems/Feedback" unique_id=780133842]
+script = ExtResource("13_victory_sound")
+settings = ExtResource("13_victory_sound_settings")
+execution_priority = 125
+
+[node name="S_FootstepSoundSystem" type="Node" parent="Systems/Feedback" unique_id=293273227]
+script = ExtResource("14_footstep_sound")
+settings = ExtResource("14_footstep_sound_settings")
+execution_priority = 126
+
+[node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1004648771]
+script = ExtResource("10_landing_particles")
+settings = ExtResource("10_landing_particles_settings")
+execution_priority = 122
+
+[node name="S_ScreenShakePublisherSystem" type="Node" parent="Systems/Feedback" unique_id=892477188]
+script = ExtResource("29_screen_shake_publisher")
+
+[node name="S_DamageFlashPublisherSystem" type="Node" parent="Systems/Feedback" unique_id=697191434]
+script = ExtResource("30_damage_flash_publisher")
+
+[node name="Managers" type="Node" parent="." unique_id=1552100596]
+script = ExtResource("12_klon2")
+
+[node name="M_ECSManager" type="Node" parent="Managers" unique_id=1972855868]
+script = ExtResource("6_0e7m3")
+
+[node name="Entities" type="Node" parent="." unique_id=466846441]
+script = ExtResource("16_8qi87")
+
+[node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=562097446]
+script = ExtResource("21_spawnpoints")
+
+[node name="sp_default" type="Node3D" parent="Entities/SpawnPoints" unique_id=1846607069]
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("51_interior_a_spawn_meta")
+
+[node name="Hazards" type="Node" parent="Entities" unique_id=1994997753]
+script = ExtResource("16_8qi87")
+
+[node name="E_DeathZone" type="Node3D" parent="Entities/Hazards" unique_id=1956829571]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
+script = ExtResource("44_hazard_controller")
+config = ExtResource("61_hazard_config")
+entity_id = &"deathzone_interior_a"
+tags = Array[StringName]([&"hazard", &"death"])
+
+[node name="E_Player" parent="Entities" unique_id=2103531623 instance=ExtResource("7_4wxy1")]
+
+[node name="E_CameraRoot" parent="Entities" unique_id=1805216211 instance=ExtResource("19_ph0bl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+
+[node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0" unique_id=1000261679]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0000002, 0)
+fov = 65.0
+
+[node name="Components" parent="Entities/E_CameraRoot" index="1" unique_id=1874295737]
+script = ExtResource("60_txck2")
+
+[editable path="Entities/E_CameraRoot"]

@@ -187,6 +187,7 @@ func _is_gameplay_scene(scene_id: StringName) -> bool:
 		StringName("alleyway"),
 		StringName("gameplay_base"),
 		StringName("interior_house"),
+		StringName("interior_a"),
 		StringName("scene1"),
 		StringName("scene2"),
 		StringName("scene3"),
