@@ -2075,6 +2075,61 @@ func test_ground_relative_is_strict_noop_for_non_orbit_modes() -> void:
 		"Ground-relative state must not be created for non-orbit modes"
 	)
 
+func test_orbit_ground_relative_reanchors_after_airborne_spawn_then_floor_to_platform() -> void:
+	# Regression: initialization mid-air set last_ground_reference_y to follow_y at spawn (0.0),
+	# so floor-to-platform height deltas were always compared against that stale baseline and
+	# always fell below the threshold — the camera anchor never updated after landing anywhere.
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	# Spawn at Y=0, airborne — matches the real bug's starting condition.
+	var follow_target := _create_target_entity(ecs_manager, "E_GroundRelativeSpawnAirborneTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_gr_spawn_airborne"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1000.0, 1.0, 1.0)
+	component.response.set("ground_relative_enabled", true)
+	component.response.set("ground_reanchor_min_height_delta", 1.0)
+	component.response.set("ground_anchor_blend_hz", 0.0)
+
+	# Tick while airborne — state should not initialize yet.
+	_set_gameplay_entity_floor_state(store, follow_target, false)
+	vcam_manager.active_vcam_id = StringName("cam_gr_spawn_airborne")
+	ecs_manager._physics_process(0.016)
+
+	# Land on floor at Y=0 — first real grounded contact, anchor initializes to 0.0.
+	follow_target.global_position = Vector3(0.0, 0.0, 0.0)
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	ecs_manager._physics_process(0.016)
+	var floor_y: float = _extract_submission_transform(vcam_manager, StringName("cam_gr_spawn_airborne")).origin.y
+
+	# Jump (airborne).
+	_set_gameplay_entity_floor_state(store, follow_target, false)
+	follow_target.global_position = Vector3(0.0, 1.5, 0.0)
+	ecs_manager._physics_process(0.016)
+
+	# Land on elevated platform at Y=2.0 — delta from floor (0.0) is 2.0 >= threshold (1.0),
+	# so camera must re-anchor to the new surface.
+	follow_target.global_position = Vector3(0.0, 2.0, 0.0)
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	# Run enough ticks for the follow dynamics to settle at the new anchor position.
+	# (Semi-implicit Euler at 1000Hz needs several ticks to converge from rest.)
+	for _i in range(60):
+		ecs_manager._physics_process(0.016)
+	var platform_y: float = _extract_submission_transform(vcam_manager, StringName("cam_gr_spawn_airborne")).origin.y
+
+	assert_true(
+		platform_y > floor_y + 0.5,
+		"Camera must re-anchor when landing on a platform 2.0m above the floor (got floor_y=%.3f platform_y=%.3f)" % [floor_y, platform_y]
+	)
+
 func test_landing_impact_offset_is_added_to_submitted_position() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)

@@ -945,12 +945,18 @@ func _apply_orbit_ground_relative(
 	var last_ground_reference_y: float = float(state.get("last_ground_reference_y", ground_anchor_target_y))
 	var was_grounded: bool = bool(state.get("was_grounded", grounded))
 	if not initialized:
-		var initial_ground_reference_y: float = ground_reference_y if has_ground_reference else follow_y
-		ground_anchor_y = initial_ground_reference_y
-		ground_anchor_target_y = initial_ground_reference_y
-		follow_anchor_y_offset = follow_y - initial_ground_reference_y
-		last_ground_reference_y = initial_ground_reference_y
-		initialized = true
+		if grounded and has_ground_reference:
+			# First real grounded contact — initialize anchor from actual ground surface.
+			ground_anchor_y = ground_reference_y
+			ground_anchor_target_y = ground_reference_y
+			follow_anchor_y_offset = follow_y - ground_reference_y
+			last_ground_reference_y = ground_reference_y
+			initialized = true
+		else:
+			# Still airborne or no probe hit — hold at follow_y, no correction yet.
+			ground_anchor_y = follow_y
+			ground_anchor_target_y = follow_y
+			follow_anchor_y_offset = 0.0
 	elif grounded and has_ground_reference and not was_grounded:
 		var reanchor_min_height_delta: float = maxf(
 			float(response_values.get("ground_reanchor_min_height_delta", 0.0)),
