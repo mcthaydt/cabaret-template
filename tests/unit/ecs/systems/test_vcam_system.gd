@@ -2736,6 +2736,123 @@ func _assert_transform_close(lhs: Transform3D, rhs: Transform3D, origin_toleranc
 	assert_true(lhs.basis.y.distance_to(rhs.basis.y) <= basis_tolerance)
 	assert_true(lhs.basis.z.distance_to(rhs.basis.z) <= basis_tolerance)
 
+func test_orbit_position_smoothing_bypass_ignores_vertical_velocity() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitVerticalBypassTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode(true, 1.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_vertical_bypass"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(
+		1.0, 0.7, 1.0,
+		4.0, 1.0, 1.0,
+		0.0, 3.0,
+		0.0, 1.0,
+		0.01, 0.0, 25.0,
+		0.15, 0.3
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_vertical_bypass")
+	store.set_slice(StringName("input"), {"look_input": Vector2(1.0, 0.0)})
+	ecs_manager._physics_process(0.016)
+
+	# Move target purely vertically (simulating a jump) — large Y displacement
+	follow_target.global_position = Vector3(0.0, 2.0, 0.0)
+	ecs_manager._physics_process(0.016)
+
+	var bypass_state_all: Dictionary = system.get("_debug_position_smoothing_bypass_by_vcam") as Dictionary
+	assert_true(
+		bool(bypass_state_all.get(StringName("cam_orbit_vertical_bypass"), false)),
+		"Pure vertical movement (jumping) should NOT disable orbit position smoothing bypass"
+	)
+
+func test_orbit_position_smoothing_bypass_still_disables_for_horizontal_movement() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitHorizBypassTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode(true, 1.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_horiz_bypass"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(
+		1.0, 0.7, 1.0,
+		4.0, 1.0, 1.0,
+		0.0, 3.0,
+		0.0, 1.0,
+		0.01, 0.0, 25.0,
+		0.15, 0.3
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_horiz_bypass")
+	store.set_slice(StringName("input"), {"look_input": Vector2(1.0, 0.0)})
+	ecs_manager._physics_process(0.016)
+
+	# Move target horizontally at high speed — should still disable bypass
+	follow_target.global_position = Vector3(2.0, 0.0, 0.0)
+	ecs_manager._physics_process(0.016)
+
+	var bypass_state_all: Dictionary = system.get("_debug_position_smoothing_bypass_by_vcam") as Dictionary
+	assert_false(
+		bool(bypass_state_all.get(StringName("cam_orbit_horiz_bypass"), true)),
+		"Horizontal movement should still disable orbit position smoothing bypass"
+	)
+
+func test_orbit_position_smoothing_bypass_ignores_vertical_component_of_mixed_movement() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitMixedBypassTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode(true, 1.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_mixed_bypass"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(
+		1.0, 0.7, 1.0,
+		4.0, 1.0, 1.0,
+		0.0, 3.0,
+		0.0, 1.0,
+		0.01, 0.0, 25.0,
+		0.15, 0.3
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_mixed_bypass")
+	store.set_slice(StringName("input"), {"look_input": Vector2(1.0, 0.0)})
+	ecs_manager._physics_process(0.016)
+
+	# Small horizontal + large vertical — horizontal speed alone is below threshold
+	follow_target.global_position = Vector3(0.001, 5.0, 0.001)
+	ecs_manager._physics_process(0.016)
+
+	var bypass_state_all: Dictionary = system.get("_debug_position_smoothing_bypass_by_vcam") as Dictionary
+	assert_true(
+		bool(bypass_state_all.get(StringName("cam_orbit_mixed_bypass"), false)),
+		"Small horizontal + large vertical should keep bypass enabled (only horizontal counts)"
+	)
+
 func _expected_orbit_position(target_position: Vector3) -> Vector3:
 	var distance: float = 5.0
 	var pitch_rad: float = deg_to_rad(-20.0)

@@ -1333,7 +1333,8 @@ func _sample_follow_target_speed(vcam_id: StringName, follow_target: Node3D, del
 
 	var previous_position: Vector3 = state.get("last_position", current_position) as Vector3
 	var displacement: Vector3 = current_position - previous_position
-	var speed_mps: float = displacement.length() / delta
+	var horizontal_displacement := Vector3(displacement.x, 0.0, displacement.z)
+	var speed_mps: float = horizontal_displacement.length() / delta
 	state["follow_target_id"] = follow_target_id
 	state["last_position"] = current_position
 	state["speed_mps"] = speed_mps
