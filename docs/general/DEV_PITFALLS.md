@@ -232,6 +232,9 @@
 - **Ground-relative anchors can drift if ground reference is sampled while airborne or re-anchored without a landing threshold**: Updating anchor reference every frame while the target is in the air reintroduces jump bob and defeats the dual-anchor contract.
   - **Fix pattern**: in `S_VCamSystem`, sample/probe ground reference only while grounded, lock vertical anchor while airborne, and only re-anchor on landing transitions when `height_delta >= ground_reanchor_min_height_delta`.
 
+- **Button recenter can silently cancel when centering state is coupled to response-smoothing cleanup**: Orbit recenter is allowed when `response == null` (raw evaluator passthrough). If centering state is cleared from response-null smoothing paths, button recenter restarts or drops every tick and never completes.
+  - **Fix pattern**: keep `_orbit_centering_state` lifecycle independent from response smoothing state; prune it only on vCam removal/prune, not on response-null smoothing resets.
+
 ## vCam Soft-Zone Pitfalls
 
 - **Clearing dead-zone hysteresis state on response-null paths causes boundary jitter**: `S_VCamSystem` can run with `response = null` (raw evaluator passthrough). If soft-zone hysteresis state is tied to response-smoothing resets, dead-zone enter/exit history is wiped every tick and correction toggles at the boundary.
