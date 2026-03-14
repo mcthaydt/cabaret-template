@@ -30,6 +30,9 @@ const MIN_IDLE_LOOK_SETTLE_DEG_PER_SEC: float = 45.0
 const DEFAULT_LOOK_INPUT_DEADZONE: float = 0.02
 const DEFAULT_LOOK_INPUT_HOLD_SEC: float = 0.06
 const DEFAULT_LOOK_INPUT_RELEASE_DECAY: float = 25.0
+const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
+const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0
+const DEFAULT_LOOK_RELEASE_STOP_THRESHOLD: float = 0.05
 const DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED: float = 0.15
 const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3
 
@@ -1645,7 +1648,7 @@ func _resolve_runtime_rotation_for_evaluation(
 		float(state.get("pitch_velocity", 0.0))
 	)
 	var previous_input_active: bool = bool(state.get("input_active", has_active_look_input))
-	if previous_input_active and not has_active_look_input:
+	if previous_input_active and not has_active_look_input and mode_script != RS_VCAM_MODE_ORBIT_SCRIPT:
 		smoothed_rotation = target_rotation
 		rotation_velocity = Vector2.ZERO
 	if delta <= 0.0:
@@ -1653,6 +1656,69 @@ func _resolve_runtime_rotation_for_evaluation(
 
 	var step_dt: float = minf(maxf(delta, 0.0), U_SECOND_ORDER_DYNAMICS.MAX_STEP_DELTA_SEC)
 	if not has_active_look_input:
+		if mode_script == RS_VCAM_MODE_ORBIT_SCRIPT:
+			var release_yaw_damping: float = maxf(
+				float(response_values.get("look_release_yaw_damping", DEFAULT_LOOK_RELEASE_YAW_DAMPING)),
+				0.0
+			)
+			var release_pitch_damping: float = maxf(
+				float(response_values.get("look_release_pitch_damping", DEFAULT_LOOK_RELEASE_PITCH_DAMPING)),
+				0.0
+			)
+			var release_stop_threshold: float = maxf(
+				float(response_values.get("look_release_stop_threshold", DEFAULT_LOOK_RELEASE_STOP_THRESHOLD)),
+				0.0
+			)
+			var yaw_release_step: Dictionary = _step_orbit_release_axis(
+				smoothed_rotation.x,
+				target_rotation.x,
+				rotation_velocity.x,
+				rotation_frequency,
+				rotation_damping,
+				release_yaw_damping,
+				release_stop_threshold,
+				step_dt
+			)
+			var pitch_release_step: Dictionary = _step_orbit_release_axis(
+				smoothed_rotation.y,
+				target_rotation.y,
+				rotation_velocity.y,
+				rotation_frequency,
+				rotation_damping,
+				release_pitch_damping,
+				release_stop_threshold,
+				step_dt
+			)
+			smoothed_rotation = Vector2(
+				float(yaw_release_step.get("value", target_rotation.x)),
+				float(pitch_release_step.get("value", target_rotation.y))
+			)
+			rotation_velocity = Vector2(
+				float(yaw_release_step.get("velocity", 0.0)),
+				float(pitch_release_step.get("velocity", 0.0))
+			)
+			_set_look_rotation_state(
+				vcam_id,
+				smoothed_rotation,
+				rotation_velocity,
+				mode_script,
+				follow_target_id,
+				response_signature,
+				has_active_look_input
+			)
+			_debug_log_look_spring_state(
+				vcam_id,
+				"orbit_release",
+				has_active_look_input,
+				target_rotation,
+				smoothed_rotation,
+				rotation_velocity,
+				rotation_frequency,
+				rotation_damping,
+				delta
+			)
+			return smoothed_rotation
+
 		var idle_settle_speed_deg_per_sec: float = maxf(
 			rotation_frequency * IDLE_LOOK_SETTLE_DEG_PER_HZ,
 			MIN_IDLE_LOOK_SETTLE_DEG_PER_SEC
@@ -1728,6 +1794,58 @@ func _resolve_runtime_rotation_for_evaluation(
 		delta
 	)
 	return smoothed_rotation
+
+func _step_orbit_release_axis(
+	current_value: float,
+	target_value: float,
+	current_velocity: float,
+	frequency_hz: float,
+	damping_ratio: float,
+	release_damping: float,
+	stop_threshold: float,
+	delta: float
+) -> Dictionary:
+	var axis_step: Dictionary = _step_second_order_angle(
+		current_value,
+		target_value,
+		current_velocity,
+		frequency_hz,
+		damping_ratio,
+		delta
+	)
+	var next_value: float = float(axis_step.get("value", target_value))
+	var next_velocity: float = float(axis_step.get("velocity", 0.0))
+	next_velocity = _apply_release_velocity_damping(
+		next_velocity,
+		release_damping,
+		stop_threshold,
+		delta
+	)
+	if is_equal_approx(next_velocity, 0.0):
+		var remaining_error: float = absf(wrapf(target_value - next_value, -180.0, 180.0))
+		var settle_epsilon: float = maxf(stop_threshold * maxf(delta, 0.0), 0.0001)
+		if remaining_error <= settle_epsilon:
+			next_value = target_value
+
+	return {
+		"value": next_value,
+		"velocity": next_velocity,
+	}
+
+func _apply_release_velocity_damping(
+	velocity: float,
+	damping_per_sec: float,
+	stop_threshold: float,
+	delta: float
+) -> float:
+	var next_velocity: float = velocity
+	var resolved_damping: float = maxf(damping_per_sec, 0.0)
+	var resolved_threshold: float = maxf(stop_threshold, 0.0)
+	if resolved_damping > 0.0 and delta > 0.0:
+		next_velocity *= exp(-resolved_damping * delta)
+	if absf(next_velocity) <= resolved_threshold:
+		return 0.0
+	return next_velocity
 
 func _step_second_order_angle(
 	current_value: float,
@@ -2021,6 +2139,18 @@ func _resolve_response_values(response: Resource) -> Dictionary:
 				float(response.get("look_input_release_decay")),
 				0.0
 			),
+			"look_release_yaw_damping": maxf(
+				float(response.get("look_release_yaw_damping")),
+				0.0
+			),
+			"look_release_pitch_damping": maxf(
+				float(response.get("look_release_pitch_damping")),
+				0.0
+			),
+			"look_release_stop_threshold": maxf(
+				float(response.get("look_release_stop_threshold")),
+				0.0
+			),
 			"orbit_look_bypass_enable_speed": maxf(
 				float(response.get("orbit_look_bypass_enable_speed")),
 				0.0
@@ -2061,6 +2191,9 @@ func _build_response_signature(response_values: Dictionary) -> Array[float]:
 		float(response_values.get("look_input_deadzone", DEFAULT_LOOK_INPUT_DEADZONE)),
 		float(response_values.get("look_input_hold_sec", DEFAULT_LOOK_INPUT_HOLD_SEC)),
 		float(response_values.get("look_input_release_decay", DEFAULT_LOOK_INPUT_RELEASE_DECAY)),
+		float(response_values.get("look_release_yaw_damping", DEFAULT_LOOK_RELEASE_YAW_DAMPING)),
+		float(response_values.get("look_release_pitch_damping", DEFAULT_LOOK_RELEASE_PITCH_DAMPING)),
+		float(response_values.get("look_release_stop_threshold", DEFAULT_LOOK_RELEASE_STOP_THRESHOLD)),
 		float(response_values.get("orbit_look_bypass_enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)),
 		float(response_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
 		1.0 if bool(response_values.get("ground_relative_enabled", false)) else 0.0,

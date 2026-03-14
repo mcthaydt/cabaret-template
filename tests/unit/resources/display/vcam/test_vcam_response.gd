@@ -45,6 +45,18 @@ func test_look_input_filter_defaults_match_expected_values() -> void:
 	assert_almost_eq(float(response.get("look_input_hold_sec")), 0.06, 0.0001)
 	assert_almost_eq(float(response.get("look_input_release_decay")), 25.0, 0.0001)
 
+func test_look_release_yaw_damping_default_is_ten() -> void:
+	var response := _new_response()
+	assert_almost_eq(float(response.get("look_release_yaw_damping")), 10.0, 0.0001)
+
+func test_look_release_pitch_damping_default_is_twelve() -> void:
+	var response := _new_response()
+	assert_almost_eq(float(response.get("look_release_pitch_damping")), 12.0, 0.0001)
+
+func test_look_release_stop_threshold_default_is_point_zero_five() -> void:
+	var response := _new_response()
+	assert_almost_eq(float(response.get("look_release_stop_threshold")), 0.05, 0.0001)
+
 func test_orbit_bypass_speed_defaults_are_expected() -> void:
 	var response := _new_response()
 	assert_almost_eq(float(response.get("orbit_look_bypass_enable_speed")), 0.15, 0.0001)
@@ -103,6 +115,16 @@ func test_look_input_filter_values_are_clamped_to_non_negative() -> void:
 	assert_almost_eq(float(resolved.get("look_input_deadzone", -1.0)), 0.0, 0.0001)
 	assert_almost_eq(float(resolved.get("look_input_hold_sec", -1.0)), 0.0, 0.0001)
 	assert_almost_eq(float(resolved.get("look_input_release_decay", -1.0)), 0.0, 0.0001)
+
+func test_look_release_values_are_clamped_to_non_negative() -> void:
+	var response := _new_response()
+	response.set("look_release_yaw_damping", -10.0)
+	response.set("look_release_pitch_damping", -12.0)
+	response.set("look_release_stop_threshold", -0.05)
+	var resolved := response.call("get_resolved_values") as Dictionary
+	assert_almost_eq(float(resolved.get("look_release_yaw_damping", -1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(resolved.get("look_release_pitch_damping", -1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(resolved.get("look_release_stop_threshold", -1.0)), 0.0, 0.0001)
 
 func test_orbit_bypass_disable_speed_is_clamped_to_enable_speed_floor() -> void:
 	var response := _new_response()

@@ -18,6 +18,9 @@ const MIN_FREQUENCY_HZ: float = 0.0001
 @export var look_input_deadzone: float = 0.02
 @export var look_input_hold_sec: float = 0.06
 @export var look_input_release_decay: float = 25.0
+@export var look_release_yaw_damping: float = 10.0
+@export var look_release_pitch_damping: float = 12.0
+@export var look_release_stop_threshold: float = 0.05
 @export var orbit_look_bypass_enable_speed: float = 0.15
 @export var orbit_look_bypass_disable_speed: float = 0.3
 @export var ground_relative_enabled: bool = false
@@ -45,6 +48,9 @@ func get_resolved_values() -> Dictionary:
 		"look_input_deadzone": maxf(look_input_deadzone, 0.0),
 		"look_input_hold_sec": maxf(look_input_hold_sec, 0.0),
 		"look_input_release_decay": maxf(look_input_release_decay, 0.0),
+		"look_release_yaw_damping": maxf(look_release_yaw_damping, 0.0),
+		"look_release_pitch_damping": maxf(look_release_pitch_damping, 0.0),
+		"look_release_stop_threshold": maxf(look_release_stop_threshold, 0.0),
 		"orbit_look_bypass_enable_speed": resolved_orbit_bypass_enable_speed,
 		"orbit_look_bypass_disable_speed": resolved_orbit_bypass_disable_speed,
 		"ground_relative_enabled": ground_relative_enabled,

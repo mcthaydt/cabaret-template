@@ -637,6 +637,214 @@ func test_response_change_resets_look_smoothing_state() -> void:
 	assert_almost_eq(float(post_state.get("smoothed_yaw", -999.0)), component.runtime_yaw, 0.0001)
 	assert_almost_eq(float(post_state.get("smoothed_pitch", -999.0)), component.runtime_pitch, 0.0001)
 
+func test_orbit_release_smoothing_preserves_velocity_then_decelerates() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitReleaseDampingTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_release_damping"),
+		_new_orbit_mode(true, 1.0),
+		follow_target
+	)
+	component.response = _new_response()
+	component.response.look_input_hold_sec = 0.0
+	component.response.look_input_release_decay = 10000.0
+	component.response.look_release_yaw_damping = 8.0
+	component.response.look_release_pitch_damping = 8.0
+	component.response.look_release_stop_threshold = 0.0
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_release_damping")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(6.0, 3.0)})
+	ecs_manager._physics_process(0.016)
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	ecs_manager._physics_process(0.016)
+	var release_state := (system.get("_look_rotation_state") as Dictionary).get(
+		StringName("cam_orbit_release_damping"),
+		{}
+	) as Dictionary
+	var first_release_velocity_yaw: float = absf(float(release_state.get("yaw_velocity", 0.0)))
+	var first_release_velocity_pitch: float = absf(float(release_state.get("pitch_velocity", 0.0)))
+	assert_true(first_release_velocity_yaw > 0.0001, "Release tick should keep non-zero yaw velocity")
+	assert_true(first_release_velocity_pitch > 0.0001, "Release tick should keep non-zero pitch velocity")
+
+	ecs_manager._physics_process(0.016)
+	var post_release_state := (system.get("_look_rotation_state") as Dictionary).get(
+		StringName("cam_orbit_release_damping"),
+		{}
+	) as Dictionary
+	var second_release_velocity_yaw: float = absf(float(post_release_state.get("yaw_velocity", 0.0)))
+	var second_release_velocity_pitch: float = absf(float(post_release_state.get("pitch_velocity", 0.0)))
+	assert_true(
+		second_release_velocity_yaw < first_release_velocity_yaw,
+		"Yaw release velocity should decelerate after input release"
+	)
+	assert_true(
+		second_release_velocity_pitch < first_release_velocity_pitch,
+		"Pitch release velocity should decelerate after input release"
+	)
+
+func test_orbit_release_smoothing_supports_asymmetric_axis_damping() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitReleaseAsymTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_release_asymmetric"),
+		_new_orbit_mode(true, 1.0),
+		follow_target
+	)
+	component.response = _new_response()
+	component.response.look_input_hold_sec = 0.0
+	component.response.look_input_release_decay = 10000.0
+	component.response.look_release_yaw_damping = 1.0
+	component.response.look_release_pitch_damping = 30.0
+	component.response.look_release_stop_threshold = 0.0
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_release_asymmetric")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(8.0, 8.0)})
+	ecs_manager._physics_process(0.016)
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	ecs_manager._physics_process(0.016)
+	var release_state := (system.get("_look_rotation_state") as Dictionary).get(
+		StringName("cam_orbit_release_asymmetric"),
+		{}
+	) as Dictionary
+	var yaw_velocity_abs: float = absf(float(release_state.get("yaw_velocity", 0.0)))
+	var pitch_velocity_abs: float = absf(float(release_state.get("pitch_velocity", 0.0)))
+	assert_true(yaw_velocity_abs > 0.0001, "Asymmetric test requires non-zero yaw velocity on release")
+	assert_true(
+		yaw_velocity_abs > (pitch_velocity_abs * 1.5),
+		"Lower yaw damping should retain more release velocity than higher pitch damping"
+	)
+
+func test_orbit_release_smoothing_stop_threshold_clamps_velocity_and_prevents_drift() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OrbitReleaseThresholdTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_orbit_release_threshold"),
+		_new_orbit_mode(true, 1.0),
+		follow_target
+	)
+	component.response = _new_response()
+	component.response.look_input_hold_sec = 0.0
+	component.response.look_input_release_decay = 10000.0
+	component.response.look_release_yaw_damping = 18.0
+	component.response.look_release_pitch_damping = 18.0
+	component.response.look_release_stop_threshold = 0.05
+
+	vcam_manager.active_vcam_id = StringName("cam_orbit_release_threshold")
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(6.0, 4.0)})
+	ecs_manager._physics_process(0.016)
+	ecs_manager._physics_process(0.016)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	for _i in range(180):
+		ecs_manager._physics_process(0.016)
+
+	var settled_state := (system.get("_look_rotation_state") as Dictionary).get(
+		StringName("cam_orbit_release_threshold"),
+		{}
+	) as Dictionary
+	assert_almost_eq(float(settled_state.get("yaw_velocity", 1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(settled_state.get("pitch_velocity", 1.0)), 0.0, 0.0001)
+	var settled_yaw: float = float(settled_state.get("smoothed_yaw", 0.0))
+	var settled_pitch: float = float(settled_state.get("smoothed_pitch", 0.0))
+
+	for _j in range(60):
+		ecs_manager._physics_process(0.016)
+	var post_state := (system.get("_look_rotation_state") as Dictionary).get(
+		StringName("cam_orbit_release_threshold"),
+		{}
+	) as Dictionary
+	assert_almost_eq(float(post_state.get("smoothed_yaw", 1.0)), settled_yaw, 0.0001)
+	assert_almost_eq(float(post_state.get("smoothed_pitch", 1.0)), settled_pitch, 0.0001)
+
+func test_orbit_release_smoothing_is_gated_to_orbit_mode() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_ReleaseModeGateTarget", Vector3.ZERO)
+	var first_person_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_release_mode_gate_fp"),
+		_new_first_person_mode(1.0),
+		follow_target
+	)
+	first_person_component.response = _new_response()
+	first_person_component.response.look_input_hold_sec = 0.0
+	first_person_component.response.look_input_release_decay = 10000.0
+	first_person_component.response.look_release_yaw_damping = 0.5
+	first_person_component.response.look_release_pitch_damping = 0.5
+	first_person_component.response.look_release_stop_threshold = 0.0
+
+	vcam_manager.active_vcam_id = StringName("cam_release_mode_gate_fp")
+	ecs_manager._physics_process(0.016)
+	store.set_slice(StringName("input"), {"look_input": Vector2(5.0, 5.0)})
+	ecs_manager._physics_process(0.016)
+	ecs_manager._physics_process(0.016)
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	ecs_manager._physics_process(0.016)
+
+	var fp_state := (system.get("_look_rotation_state") as Dictionary).get(
+		StringName("cam_release_mode_gate_fp"),
+		{}
+	) as Dictionary
+	assert_almost_eq(
+		float(fp_state.get("yaw_velocity", 1.0)),
+		0.0,
+		0.0001,
+		"First-person release behavior should remain unchanged by orbit-only release damping"
+	)
+	assert_almost_eq(float(fp_state.get("pitch_velocity", 1.0)), 0.0, 0.0001)
+
+	var fixed_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_release_mode_gate_fixed"),
+		_new_fixed_path_mode(),
+		follow_target
+	)
+	fixed_component.response = _new_response()
+	vcam_manager.active_vcam_id = StringName("cam_release_mode_gate_fixed")
+	store.set_slice(StringName("input"), {"look_input": Vector2(5.0, 5.0)})
+	ecs_manager._physics_process(0.016)
+	var look_state_all: Dictionary = system.get("_look_rotation_state") as Dictionary
+	assert_false(
+		look_state_all.has(StringName("cam_release_mode_gate_fixed")),
+		"Fixed mode should not use look smoothing/release state"
+	)
+
 func test_response_smoothing_offsets_first_frame_after_target_moves() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
