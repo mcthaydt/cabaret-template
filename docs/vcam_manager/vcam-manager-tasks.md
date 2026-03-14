@@ -1,12 +1,12 @@
 # vCam Manager — Task Index
 
-**Progress:** 5 / 5 documentation tasks complete; Phases 0A + 0A2 + 0B + 0C + 0D + 0E + 0F + 1A + 1B + 1C + 1D + 1E + 1F + 2A + 2B + 3A + 3B + 4A + 4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + 2C1 + 2C2 + 2C3 + 2C4 + 2C5 + 2C6 + Orbit UX improvement follow-up pass + Movement-Style Camera Smoothing follow-up pass + Camera Look Smoothing Parity pass complete; next implementation target is Orbit Phase 2C follow-up (`2C7` release-smoothing enhancement, `2C8` button recenter), then mobile drag-look/touch gating prerequisite work, then Phase 9 FPS feel.
+**Progress:** 5 / 5 documentation tasks complete; Phases 0A + 0A2 + 0B + 0C + 0D + 0E + 0F + 1A + 1B + 1C + 1D + 1E + 1F + 2A + 2B + 3A + 3B + 4A + 4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + 2C1 + 2C2 + 2C3 + 2C4 + 2C5 + 2C6 + 2C7 + Orbit UX improvement follow-up pass + Movement-Style Camera Smoothing follow-up pass + Camera Look Smoothing Parity pass complete; next implementation target is Orbit `2C8` button recenter, then mobile drag-look/touch gating prerequisite work, then Phase 9 FPS feel.
 **Estimated Test Count:** ~440 checks (about 360 automated tests + 80 manual checks including game-feel QA)
 **Status note:** Strict TDD (Red/Green/Refactor). Each camera mode has a dedicated phase. Mobile drag-look is a hard prerequisite for orbit/first-person completion.
 **Manual QA cadence:** Manual checks are embedded in the relevant implementation phases (no standalone manual-testing phase).
 **Quality gaps addressed:** Orientation continuity, blend interruption, invalid-target recovery, occlusion anti-flicker, performance budget, observability expansion, open-question resolution, cross-mode feel QA, **second-order dynamics for natural camera motion**, **ECS event bus integration**, **QB rule context enrichment**, **entity-based target resolution**, **mode-specific game feel (orbit: look-ahead/auto-level/soft zone/hysteresis + ground-relative positioning with planned release-smoothing/button-recenter follow-up; FP: strafe tilt/head bob/landing dip)**.
-**Latest completion note (March 11, 2026):** Orbit `2C6` landed: `RS_VCamResponse` now exports/clamps ground-relative tuning fields, `S_VCamSystem` now applies orbit-only dual-anchor vertical locking/re-anchor blending, and regression coverage expanded (`test_vcam_response` `20/20`, `test_vcam_system` `78/78`, `test_style_enforcement` `17/17`).
-**Latest planning note (March 11, 2026):** Orbit follow-up backlog now targets `2C7/2C8` (release-smoothing enhancement + button recenter) as the immediate implementation pass.
+**Latest completion note (March 14, 2026):** Orbit `2C7` landed: `RS_VCamResponse` now exports/clamps release-smoothing fields (`look_release_yaw_damping`, `look_release_pitch_damping`, `look_release_stop_threshold`), `S_VCamSystem` now applies orbit-only release damping using existing look-smoothing velocity state, and regression coverage expanded (`test_vcam_response` `24/24`, `test_vcam_system` `86/86`).
+**Latest planning note (March 14, 2026):** Orbit follow-up backlog now targets `2C8` (button recenter) as the immediate implementation pass.
 
 ---
 

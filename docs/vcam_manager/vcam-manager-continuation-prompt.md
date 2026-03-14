@@ -4,16 +4,35 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, and the post-`0f51c36` orbit retune doc/test catch-up pass are complete as of March 11, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning plus ground-relative dual-anchor behavior, scene parity fixes for interior/exterior vCam runtime wiring, active-vCam `fov` -> `C_CameraStateComponent.base_fov` sync, balanced orbit/gamepad default retuning, movement-style look smoothing for orbit/first-person rotation, response-tuned look-activity filtering plus speed-aware orbit follow bypass hysteresis, and explicit regression coverage for tuned response presets + authored-scene debug logging defaults). Next implementation target is Orbit Phase 2C follow-up (`2C7` release-smoothing enhancement, `2C8` button recenter), then mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, and the post-`0f51c36` orbit retune doc/test catch-up pass are complete as of March 14, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning plus ground-relative dual-anchor behavior, orbit release-smoothing enhancement with axis-specific damping + stop-threshold clamping, scene parity fixes for interior/exterior vCam runtime wiring, active-vCam `fov` -> `C_CameraStateComponent.base_fov` sync, balanced orbit/gamepad default retuning, movement-style look smoothing for orbit/first-person rotation, response-tuned look-activity filtering plus speed-aware orbit follow bypass hysteresis, and explicit regression coverage for tuned response presets + authored-scene debug logging defaults). Next implementation target is Orbit `2C8` button recenter, then mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel.
 
-## Next Planned Work (March 11, 2026)
+## Next Planned Work (March 14, 2026)
 
 - Orbit follow-up backlog tasks are now documented in `docs/vcam_manager/vcam-orbit-tasks.md`:
-  - `2C7`: input-smoothing enhancement (axis-specific release damping + stop-threshold clamp)
   - `2C8`: camera centering with dedicated `camera_center` action (button-only, no idle auto-center)
 - Execution order after this backlog remains unchanged:
   - mobile drag-look/touch gating prerequisite work
   - Phase 9 first-person feel
+
+## Orbit Input Release Smoothing (Phase 2C7, March 14, 2026)
+
+- Extended `RS_VCamResponse` with orbit release-smoothing fields:
+  - `look_release_yaw_damping`
+  - `look_release_pitch_damping`
+  - `look_release_stop_threshold`
+  - `get_resolved_values()` now clamps all three fields to non-negative values.
+- Patched `S_VCamSystem` orbit look-release path in `_resolve_runtime_rotation_for_evaluation(...)`:
+  - reuses existing look-smoothing velocity state (`yaw_velocity` / `pitch_velocity`),
+  - applies axis-specific release damping after input release,
+  - clamps low-amplitude release velocities to zero via `look_release_stop_threshold`,
+  - remains orbit-only (first-person/fixed behavior unchanged).
+- Added regression coverage:
+  - `tests/unit/resources/display/vcam/test_vcam_response.gd`: +4 tests for new defaults/clamps (`24/24` total)
+  - `tests/unit/ecs/systems/test_vcam_system.gd`: +4 tests for deceleration, asymmetric damping, stop-threshold clamp/no-drift, and orbit-only gating (`86/86` total)
+- Validation run:
+  - `tests/unit/resources/display/vcam/test_vcam_response.gd` (`24/24` passing)
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`86/86` passing)
+  - `tests/unit/style/test_style_enforcement.gd` (`16/17` passing; pre-existing failure in `scenes/ui/hud/ui_hud_overlay.tscn` inline theme overrides)
 
 ## Orbit Ground-Relative Positioning (Phase 2C6, March 11, 2026)
 
@@ -378,7 +397,7 @@
 
 - Runtime wiring is now explicit: `M_VCamManager` belongs in `scenes/root.tscn`, and `S_VCamSystem` belongs in gameplay system trees.
 - vCam top-level docs are now status-aligned: overview/PRD/task index/continuation now mark Phases 2A-5 plus 6A/6B/6A2/6A.3/6A3a/6A3b/6A3c and Phase 8 orbit feel subphases 2C1-2C6 complete.
-- Orbit follow-up backlog planning is now explicit: `docs/vcam_manager/vcam-orbit-tasks.md` now marks `2C6` complete and queues `2C7`/`2C8` (release-smoothing enhancement, button recenter) as the immediate next implementation target.
+- Orbit follow-up backlog planning is now explicit: `docs/vcam_manager/vcam-orbit-tasks.md` now marks `2C7` complete and queues `2C8` (button recenter) as the immediate next implementation target.
 - `S_VCamSystem` baseline contract is now implementation-backed: manager resolution, target resolution fallback order, blend-aware active/outgoing evaluation, and same-frame submission are in code/tests.
 - `S_VCamSystem` response-smoothing contract is now implementation-backed: `RS_VCamResponse` drives position/rotation second-order smoothing, response-null passthrough keeps backward compatibility, and mode/target/response transitions reset or recreate smoothing state deterministically.
 - `S_VCamSystem` movement-style look smoothing contract is now implementation-backed for orbit/first-person: runtime yaw/pitch remain raw targets on `C_VCamComponent`, evaluator rotation is fed by per-vCam spring-damper look state, and fixed-mode rotation smoothing remains owned by response smoothing.
@@ -488,13 +507,12 @@
 
 ## Next Steps
 
-1. Implement Orbit `2C7` in `S_VCamSystem`/`RS_VCamResponse`: release-damping enhancement (axis-specific yaw/pitch damping + stop-threshold clamp) with dedicated regression coverage.
-2. Implement Orbit `2C8`: `camera_center` input action wiring plus button-driven recenter interpolation in `S_VCamSystem` (no idle auto-center).
-3. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
-4. Start Phase 9 first-person feel (`docs/vcam_manager/vcam-fps-tasks.md`): strafe tilt, head bob, and landing head dip on top of the existing response pipeline.
-5. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
-6. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
-7. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+1. Implement Orbit `2C8`: `camera_center` input action wiring plus button-driven recenter interpolation in `S_VCamSystem` (no idle auto-center).
+2. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
+3. Start Phase 9 first-person feel (`docs/vcam_manager/vcam-fps-tasks.md`): strafe tilt, head bob, and landing head dip on top of the existing response pipeline.
+4. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
+5. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
+6. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 

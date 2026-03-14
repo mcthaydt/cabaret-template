@@ -378,29 +378,32 @@ Before starting Phase 2, verify:
 
 > **Why:** Orbit look release can feel abrupt if rotation immediately stops when input drops to zero. A release-damping pass should decelerate rotation naturally, with axis-specific control and explicit stop-threshold clamping to avoid drift.
 
-- [ ] **Task 2C7.1**: Add look-release damping fields to RS_VCamResponse
+- [x] **Task 2C7.1**: Add look-release damping fields to RS_VCamResponse
   - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
     - `@export var look_release_yaw_damping: float = 10.0` — damping applied to yaw velocity after look input release
     - `@export var look_release_pitch_damping: float = 12.0` — damping applied to pitch velocity after look input release
     - `@export var look_release_stop_threshold: float = 0.05` — absolute velocity threshold below which release velocity snaps to zero
   - Add tests verifying field defaults and non-negative resolved-value clamping
   - **Target: 4 tests**
+  - Completion note (2026-03-14): Added `look_release_yaw_damping`, `look_release_pitch_damping`, and `look_release_stop_threshold` exports to `RS_VCamResponse`, clamped all three in `get_resolved_values()`, and expanded `test_vcam_response` with defaults/clamp coverage (`24/24` passing).
 
-- [ ] **Task 2C7.2 (Red)**: Write tests for look-release smoothing in S_VCamSystem
+- [x] **Task 2C7.2 (Red)**: Write tests for look-release smoothing in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test natural deceleration after look input release (no hard stop in one frame)
   - Test asymmetric damping: yaw and pitch settle at different rates when damping values differ
   - Test stop threshold: near-zero rotational velocity clamps to zero and does not drift
   - Test orbit-only gating (first-person/fixed remain unchanged by this orbit pass)
   - **Target: 4 tests**
+  - Completion note (2026-03-14): Added 4 `2C7` regressions in `test_vcam_system` covering release deceleration continuity, asymmetric yaw/pitch damping behavior, stop-threshold clamp with no post-settle drift, and orbit-only gating.
 
-- [ ] **Task 2C7.3 (Green)**: Implement look-release smoothing enhancement in S_VCamSystem
+- [x] **Task 2C7.3 (Green)**: Implement look-release smoothing enhancement in S_VCamSystem
   - Reuse existing look-smoothing velocity state (`yaw_velocity` / `pitch_velocity`) rather than introducing a replacement pipeline
   - On look-input release, apply per-axis damping (`look_release_yaw_damping`, `look_release_pitch_damping`) to rotational velocities
   - Clamp small release velocities to zero via `look_release_stop_threshold` to prevent micro-drift
   - Keep runtime yaw/pitch authority and current look-smoothing contracts intact (enhancement only)
   - Gate: orbit mode only
   - All tests should pass
+  - Completion note (2026-03-14): `S_VCamSystem` now keeps orbit release momentum by reusing `yaw_velocity`/`pitch_velocity`, applies axis-specific release damping (`look_release_*_damping`) plus `look_release_stop_threshold` clamp, and leaves first-person/fixed no-input behavior unchanged. Validation: `test_vcam_response` (`24/24`) and `test_vcam_system` (`86/86`) passing.
 
 ---
 
