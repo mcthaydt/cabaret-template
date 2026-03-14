@@ -432,6 +432,205 @@ Before starting Phase 2, verify:
 
 ---
 
+### Phase 2C9: RS_RoomFadeSettings Resource + C_RoomFadeGroupComponent (Data Layer)
+
+> **Why:** Xenogears-style room wall/ceiling fading: when the orbit camera looks at the back side of a wall or ceiling, that geometry alpha-dissolves so the player remains visible. This complements (not replaces) Phase 10 silhouette occlusion — walls/ceilings use room fading, other occluders use silhouettes.
+
+**Exit Criteria:** All ~18 tests pass (7 resource + 11 component), resource exposes resolved values, component collects mesh targets and provides world-space fade normal
+
+- [ ] **Task 2C9.1 (Red)**: Write tests for RS_RoomFadeSettings resource
+  - Create `tests/unit/resources/display/vcam/test_room_fade_settings.gd`
+  - Test `fade_dot_threshold` field exists with default (e.g. `0.3`)
+  - Test `fade_speed` field exists with default (e.g. `4.0`)
+  - Test `min_alpha` field exists with default (e.g. `0.05`)
+  - Test `fade_dot_threshold` is clamped to `0.0..1.0` by `get_resolved_values()`
+  - Test `fade_speed` is clamped non-negative by `get_resolved_values()`
+  - Test `min_alpha` is clamped to `0.0..1.0` by `get_resolved_values()`
+  - Test `get_resolved_values()` returns dictionary with all expected keys
+  - **Target: 7 tests**
+
+- [ ] **Task 2C9.2 (Green)**: Implement RS_RoomFadeSettings resource
+  - Create `scripts/resources/display/vcam/rs_room_fade_settings.gd`
+  - Extend `Resource`
+  - Add `class_name RS_RoomFadeSettings`
+  - All `@export` fields with sensible defaults:
+    - `fade_dot_threshold: float = 0.3` — dot product threshold above which geometry begins fading (camera looking at back side)
+    - `fade_speed: float = 4.0` — alpha change rate per second
+    - `min_alpha: float = 0.05` — minimum alpha when fully faded (never fully invisible for visual grounding)
+  - Implement `get_resolved_values() -> Dictionary` with clamped outputs
+  - All tests should pass
+
+- [ ] **Task 2C9.3 (Red)**: Write tests for C_RoomFadeGroupComponent
+  - Create `tests/unit/ecs/components/test_room_fade_group_component.gd`
+  - Test `group_tag` field exists with default `StringName("")`
+  - Test `fade_normal` field exists with default `Vector3(0, 0, -1)` (outward-facing wall normal in local space)
+  - Test `settings` field accepts `RS_RoomFadeSettings` resource (nullable)
+  - Test `current_alpha` initializes to `1.0` (fully opaque)
+  - Test `COMPONENT_TYPE` is `StringName("RoomFadeGroup")`
+  - Test `collect_mesh_targets()` returns `Array[MeshInstance3D]` from sibling/child hierarchy
+  - Test `collect_mesh_targets()` skips nodes without valid mesh resources
+  - Test `get_fade_normal_world()` returns `fade_normal` transformed by the component's parent global basis
+  - Test `get_fade_normal_world()` returns normalized vector even if `fade_normal` is not unit length
+  - Test component extends `BaseECSComponent`
+  - Test `get_snapshot()` includes `group_tag`, `fade_normal`, `current_alpha`
+  - **Target: 11 tests**
+
+- [ ] **Task 2C9.4 (Green)**: Implement C_RoomFadeGroupComponent
+  - Create `scripts/ecs/components/c_room_fade_group_component.gd`
+  - Extend `BaseECSComponent`
+  - Add `class_name C_RoomFadeGroupComponent`
+  - `const COMPONENT_TYPE := StringName("RoomFadeGroup")`
+  - Exports:
+    - `group_tag: StringName = &""` — optional tag for grouping multiple fade surfaces
+    - `fade_normal: Vector3 = Vector3(0, 0, -1)` — authored outward-facing normal in local space
+    - `settings: RS_RoomFadeSettings` — per-group tuning (nullable, system uses default if null)
+  - Runtime state:
+    - `current_alpha: float = 1.0` — current fade alpha (1.0 = opaque, min_alpha = faded)
+  - Methods:
+    - `collect_mesh_targets() -> Array[MeshInstance3D]` — recursively gathers mesh instances from parent entity
+    - `get_fade_normal_world() -> Vector3` — transforms `fade_normal` by parent global basis, normalized
+    - `get_snapshot() -> Dictionary` — includes `group_tag`, `fade_normal`, `current_alpha`
+  - All tests should pass
+
+- [ ] **Task 2C9.5**: Create default RS_RoomFadeSettings resource instance
+  - Create `resources/display/vcam/cfg_default_room_fade.tres`
+  - Set all fields to resource defaults (`fade_dot_threshold=0.3`, `fade_speed=4.0`, `min_alpha=0.05`)
+  - Verify resource loads without errors
+
+- [ ] **Task 2C9.6**: Run style enforcement tests
+  - `tests/unit/style/test_style_enforcement.gd` passes with all new files
+  - Verify file naming follows conventions (`rs_` prefix for resource, `c_` prefix for component)
+  - Verify scripts are in correct directories per style guide
+
+---
+
+### Phase 2C10: S_RoomFadeSystem + U_RoomFadeMaterialApplier + Shader (Logic + Rendering)
+
+> **Why:** The system computes per-group fade decisions based on camera-vs-wall dot product, the material applier manages shader overrides for alpha dissolve, and the shader provides the classic Xenogears translucent wall aesthetic.
+
+**Exit Criteria:** All ~16 tests pass (6 material applier + 10 system), system runs after camera evaluation, shader produces correct alpha dissolve
+
+> **Architecture note:** `S_RoomFadeSystem` is a standalone system, NOT inside `S_VCamSystem`. Room fading consumes camera output (rendering concern), it doesn't produce camera transforms. `S_VCamSystem` is already 2900+ lines. Separate system enables isolated testing. `execution_priority` must be set after `S_VCamSystem` to ensure camera transform is evaluated before fade decisions.
+
+- [ ] **Task 2C10.1**: Create `sh_room_fade.gdshader`
+  - Create `assets/shaders/sh_room_fade.gdshader`
+  - Spatial shader with `blend_mix`, `depth_draw_opaque`
+  - Uniforms:
+    - `uniform float fade_alpha : hint_range(0.0, 1.0) = 1.0;`
+    - `uniform sampler2D albedo_texture : source_color;`
+    - `uniform vec4 albedo_color : source_color = vec4(1.0);`
+  - Fragment:
+    - Sample albedo texture and multiply by `albedo_color`
+    - Set `ALPHA = fade_alpha * base_alpha`
+    - Use `ALPHA_SCISSOR_THRESHOLD` for clean cutoff at very low alpha
+  - Render priority hint for correct transparency sorting
+
+- [ ] **Task 2C10.2 (Red)**: Write tests for U_RoomFadeMaterialApplier
+  - Create `tests/unit/lighting/test_room_fade_material_applier.gd`
+  - Test `apply_fade_material()` replaces original material with `ShaderMaterial` using `sh_room_fade.gdshader`
+  - Test `apply_fade_material()` carries forward `albedo_texture` from original `StandardMaterial3D`
+  - Test `apply_fade_material()` caches original material for restoration
+  - Test `update_fade_alpha()` sets `fade_alpha` uniform on applied shader material
+  - Test `restore_original_materials()` restores cached originals and clears cache
+  - Test `restore_original_materials()` is safe to call when no materials are cached (no-op)
+  - **Target: 6 tests**
+
+- [ ] **Task 2C10.3 (Green)**: Implement U_RoomFadeMaterialApplier
+  - Create `scripts/utils/lighting/u_room_fade_material_applier.gd`
+  - Add `class_name U_RoomFadeMaterialApplier`
+  - Follow `U_CharacterLightingMaterialApplier` pattern:
+    - Cache original `material_override` per `MeshInstance3D` (dictionary keyed by instance ID) — note: this caches `material_override` only, not per-surface-slot materials
+    - Resolve source material for albedo texture extraction using priority: `material_override` → surface override materials → mesh built-in surface materials (same as `U_CharacterLightingMaterialApplier._resolve_source_material()`)
+    - `apply_fade_material(targets: Array[MeshInstance3D])` — for each target, cache original `material_override`, create `ShaderMaterial` with `sh_room_fade.gdshader`, carry forward `albedo_texture` from resolved source material, set as `material_override`
+    - `update_fade_alpha(targets: Array[MeshInstance3D], alpha: float)` — set `fade_alpha` uniform on each target's current shader material
+    - `restore_original_materials(targets: Array[MeshInstance3D])` — restore cached `material_override` values, clear cache entries
+  - All tests should pass
+
+- [ ] **Task 2C10.4 (Red)**: Write tests for S_RoomFadeSystem
+  - Add to `tests/unit/ecs/systems/test_room_fade_system.gd`
+  - Test system discovers `C_RoomFadeGroupComponent` instances via ECS manager
+  - Test dot product computation: `dot(-camera_basis.z, fade_normal_world)` above threshold triggers fade-down
+  - Test dot product below threshold triggers fade-up (restore toward opaque)
+  - Test `current_alpha` decreases at `fade_speed` rate per second when fading
+  - Test `current_alpha` increases at `fade_speed` rate per second when restoring
+  - Test `current_alpha` clamps to `[min_alpha, 1.0]` range
+  - Test system uses default `RS_RoomFadeSettings` when component `settings` is null
+  - Test system is a no-op when no `C_RoomFadeGroupComponent` instances exist
+  - Test system is a no-op when active camera mode is not orbit (first-person/fixed restore all faded geometry immediately)
+  - Test mode switch from orbit to non-orbit restores all groups to `current_alpha = 1.0`
+  - **Target: 10 tests**
+
+- [ ] **Task 2C10.5 (Green)**: Implement S_RoomFadeSystem
+  - Create `scripts/ecs/systems/s_room_fade_system.gd`
+  - Extend `BaseECSSystem`
+  - Add `class_name S_RoomFadeSystem`
+  - `execution_priority` after `S_VCamSystem` (e.g. `110`)
+  - In `process_tick(delta)`:
+    - Read active camera transform from the live `Camera3D` node via `camera_manager` service (`camera_manager.get_main_camera().global_transform`), with `get_viewport().get_camera_3d()` fallback (camera transform is NOT in Redux state — it lives on the node)
+    - Read active camera mode from Redux `state.vcam` to gate orbit-only behavior
+    - Query all `C_RoomFadeGroupComponent` instances
+    - For each group:
+      - Compute `dot(-camera_basis.z, component.get_fade_normal_world())`
+      - If dot > `fade_dot_threshold` (camera looking at back side): decrease `current_alpha` toward `min_alpha` at `fade_speed * delta`
+      - Else: increase `current_alpha` toward `1.0` at `fade_speed * delta`
+      - Clamp `current_alpha` to `[min_alpha, 1.0]`
+      - Update material alpha via `U_RoomFadeMaterialApplier`
+    - Non-orbit mode: restore all groups to `1.0` immediately
+  - Lazy-init material applier state on first tick per component
+  - All tests should pass
+
+- [ ] **Task 2C10.6**: Run style enforcement tests
+  - `tests/unit/style/test_style_enforcement.gd` passes with all new files
+  - Verify system naming follows `s_` prefix convention
+  - Verify utility naming follows `u_` prefix convention
+  - Verify shader is in `assets/shaders/`
+
+---
+
+### Phase 2C11: Integration + Polish
+
+> **Why:** Verify room fading works end-to-end with multiple groups, ceiling support, mode switching, and coexistence with silhouette occlusion. Ensure mobile compatibility and document scene template wiring.
+
+**Exit Criteria:** All ~7 integration tests pass, no regressions in existing orbit/silhouette tests
+
+- [ ] **Task 2C11.1 (Red)**: Write integration tests
+  - Create `tests/unit/ecs/systems/test_room_fade_integration.gd`
+  - Test orbit-only gating: room fade is active in orbit mode, inactive in first-person/fixed
+  - Test multi-group independence: two groups with different normals fade independently based on camera angle
+  - Test ceiling support: group with `fade_normal = Vector3(0, -1, 0)` (downward-facing ceiling normal) fades when camera looks up
+  - Test mode-switch cleanup: switching from orbit to first-person restores all groups to opaque within one tick
+  - Test coexistence with silhouette occlusion: room fade components and silhouette occluders can exist simultaneously without conflict
+  - Test per-group settings override: group A uses custom `RS_RoomFadeSettings` while group B uses default; each respects its own tuning
+  - Test material restoration completeness: after full restore, mesh materials match their original pre-fade state
+  - **Target: 7 tests**
+
+- [ ] **Task 2C11.2 (Green)**: Fix any failing integration tests
+  - Address edge cases discovered during integration testing
+  - Verify no regressions in existing orbit tests (`test_vcam_system.gd`, `test_vcam_soft_zone.gd`)
+  - Verify no regressions in silhouette occlusion tests
+  - All tests should pass
+
+- [ ] **Task 2C11.3**: Scene template wiring documentation
+  - Document how to add `C_RoomFadeGroupComponent` to wall/ceiling meshes in gameplay scenes
+  - Document `S_RoomFadeSystem` placement in `Systems/Core` with correct `execution_priority`
+  - Document `fade_normal` authoring conventions (outward-facing, local space)
+  - Note: actual scene wiring deferred to runtime integration phase
+
+- [ ] **Task 2C11.4**: Mobile compatibility verification
+  - Verify `sh_room_fade.gdshader` compiles on mobile renderers (Compatibility / Mobile)
+  - Verify `cfg_default_room_fade.tres` loads without runtime directory scanning (preload-safe)
+  - Verify material applier handles mobile shader fallback gracefully
+
+- [ ] **Task 2C11.5**: Run full regression gate
+  - All Phase 2C9 tests pass (~18)
+  - All Phase 2C10 tests pass (~16)
+  - All Phase 2C11 integration tests pass (~7)
+  - All existing orbit tests pass (no regressions)
+  - Style enforcement passes
+  - **Total new tests: ~41**
+
+---
+
 ### Manual Validation (Orbit Game Feel)
 
 - [ ] **MT-24**: Player in dead zone: camera does not move
@@ -454,6 +653,15 @@ Before starting Phase 2, verify:
 - [ ] **MT-113**: Button recenter start: pressing `camera_center` begins behind-player recenter from arbitrary yaw
 - [ ] **MT-114**: Button recenter interpolation: camera aligns behind player in ~`0.3s` with no visible snap
 - [ ] **MT-115**: Button recenter restart: pressing `camera_center` again during recenter restarts deterministically
+- [ ] **MT-116**: Room fade basic: orbit camera behind a wall causes that wall to alpha-dissolve, player remains visible
+- [ ] **MT-117**: Room fade restore: moving orbit camera to front of wall restores full opacity smoothly
+- [ ] **MT-118**: Room fade ceiling: looking up in orbit mode fades ceiling geometry with downward-facing normal
+- [ ] **MT-119**: Room fade multi-group: two adjacent walls with different normals fade independently based on camera angle
+- [ ] **MT-120**: Room fade mode switch: switching from orbit to first-person immediately restores all faded geometry to opaque
+- [ ] **MT-121**: Room fade min alpha: fully faded wall still shows faint geometry at `min_alpha` (not fully invisible)
+- [ ] **MT-122**: Room fade speed: adjusting `fade_speed` in settings changes how quickly walls dissolve and restore
+- [ ] **MT-123**: Room fade coexistence: silhouette occlusion and room fade both active simultaneously without visual conflict
+- [ ] **MT-124**: Room fade mobile: wall fading shader renders correctly on mobile/Compatibility renderer
 
 ---
 
@@ -472,6 +680,15 @@ Before starting Phase 2, verify:
 - [ ] Verify look-release damping uses axis-specific controls (`look_release_yaw_damping`, `look_release_pitch_damping`) and stop-threshold clamp (`look_release_stop_threshold`)
 - [ ] Verify `camera_center` trigger flows through the shared input pipeline and does not bypass `S_InputSystem`/state-driven input contracts
 - [ ] Verify centering remains button-only in this phase (no idle auto-center timer behavior)
+- [ ] Verify `S_RoomFadeSystem` is a standalone system with `execution_priority` after `S_VCamSystem` (not embedded inside `S_VCamSystem`)
+- [ ] Verify room fade dot product uses `dot(-camera_basis.z, wall_outward_normal)` convention (positive = camera looking at back side)
+- [ ] Verify `C_RoomFadeGroupComponent.fade_normal` is author-placed in local space, not auto-detected from mesh geometry
+- [ ] Verify `U_RoomFadeMaterialApplier` caches original materials and restores them cleanly on cleanup (follows `U_CharacterLightingMaterialApplier` pattern)
+- [ ] Verify room fading is orbit-only gated: first-person/fixed modes restore all faded geometry immediately
+- [ ] Verify room fading coexists with Phase 10 silhouette occlusion without material/shader conflicts
+- [ ] Verify `sh_room_fade.gdshader` uses `blend_mix` + `depth_draw_opaque` + `ALPHA_SCISSOR_THRESHOLD` for correct transparency
+- [ ] Verify `cfg_default_room_fade.tres` uses `const` preload pattern for mobile compatibility (no runtime directory scanning)
+- [ ] Verify `current_alpha` is clamped to `[min_alpha, 1.0]` and never reaches `0.0` (always slightly visible for visual grounding)
 
 ---
 
@@ -581,6 +798,24 @@ These checks gate Phase 9F completion:
 
 # Run style enforcement after adding new files
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -ginclude_subdirs=true -gexit
+
+# Run room fade settings resource tests
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -gselect=test_room_fade_settings -ginclude_subdirs=true -gexit
+
+# Run room fade group component tests
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs/components -gselect=test_room_fade_group_component -ginclude_subdirs=true -gexit
+
+# Run room fade system tests
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs/systems -gselect=test_room_fade_system -ginclude_subdirs=true -gexit
+
+# Run room fade material applier tests
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/lighting -gselect=test_room_fade_material_applier -ginclude_subdirs=true -gexit
+
+# Run room fade integration tests
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs/systems -gselect=test_room_fade_integration -ginclude_subdirs=true -gexit
+
+# Run all room fade tests together
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gselect=test_room_fade -ginclude_subdirs=true -gexit
 ```
 
 ---
@@ -597,6 +832,34 @@ These checks gate Phase 9F completion:
 8. Do not let ground-relative anchoring sample/overwrite vertical anchor while airborne. Airborne camera height should stay locked until a grounded re-anchor decision is made.
 9. Do not implement button recenter as an instantaneous yaw snap. Recenter must interpolate over the authored short duration (~`0.3s`) for orientation continuity.
 10. Do not leave release smoothing without a stop threshold. Without velocity clamping near zero, low-amplitude drift can persist after input release.
+11. Do not embed room fading logic inside `S_VCamSystem`. Room fading is a rendering concern that consumes camera output; it belongs in a standalone `S_RoomFadeSystem` with `execution_priority` after `S_VCamSystem`.
+12. Do not auto-detect fade normals from mesh geometry. Author-placed `fade_normal` on `C_RoomFadeGroupComponent` gives artistic control over which direction triggers fading.
+13. Do not use raycasts for room fade decisions. The tagged ECS group approach with authored normals is deterministic and cheaper than per-frame raycasts.
+14. Do not let `current_alpha` reach `0.0`. Use `min_alpha` floor so faded geometry remains faintly visible for spatial grounding (classic Xenogears aesthetic).
+15. Do not forget to restore materials on mode switch. When switching from orbit to first-person/fixed, all faded groups must immediately restore to `current_alpha = 1.0` and original materials.
+16. Do not apply room fade shader to materials that are already `ShaderMaterial` without checking for conflicts with silhouette occlusion shaders. Cache and restore original materials cleanly.
+17. Do not compute `get_fade_normal_world()` without normalizing the result. Non-unit `fade_normal` exports would produce incorrect dot product magnitudes.
+18. Do not run `S_RoomFadeSystem` before `S_VCamSystem`. The fade system needs the post-evaluation camera transform; running it before camera evaluation produces stale-frame decisions.
+19. Do not use `depth_draw_alpha_prepass` in `sh_room_fade.gdshader`. Use `depth_draw_opaque` with `ALPHA_SCISSOR_THRESHOLD` for correct transparency sorting without the prepass overhead.
+20. Do not forget mobile compatibility for the shader. Verify `sh_room_fade.gdshader` compiles under the Compatibility renderer, and ensure `cfg_default_room_fade.tres` is preload-safe (no `DirAccess` scanning).
+
+---
+
+## New Files (Room Fade — Phases 2C9/2C10/2C11)
+
+| File | Type | Directory |
+|------|------|-----------|
+| `rs_room_fade_settings.gd` | Resource script | `scripts/resources/display/vcam/` |
+| `cfg_default_room_fade.tres` | Resource instance | `resources/display/vcam/` |
+| `c_room_fade_group_component.gd` | Component script | `scripts/ecs/components/` |
+| `s_room_fade_system.gd` | System script | `scripts/ecs/systems/` |
+| `u_room_fade_material_applier.gd` | Utility script | `scripts/utils/lighting/` |
+| `sh_room_fade.gdshader` | Shader | `assets/shaders/` |
+| `test_room_fade_settings.gd` | Test | `tests/unit/resources/display/vcam/` |
+| `test_room_fade_group_component.gd` | Test | `tests/unit/ecs/components/` |
+| `test_room_fade_system.gd` | Test | `tests/unit/ecs/systems/` |
+| `test_room_fade_material_applier.gd` | Test | `tests/unit/lighting/` |
+| `test_room_fade_integration.gd` | Test | `tests/unit/ecs/systems/` |
 
 ---
 
