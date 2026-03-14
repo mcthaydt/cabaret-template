@@ -235,6 +235,7 @@ func test_camera_category_includes_look_actions() -> void:
 	assert_true(rows.has(StringName("look_right")), "Look Right should be listed in camera actions")
 	assert_true(rows.has(StringName("look_up")), "Look Up should be listed in camera actions")
 	assert_true(rows.has(StringName("look_down")), "Look Down should be listed in camera actions")
+	assert_true(rows.has(StringName("camera_center")), "Camera Center should be listed in camera actions")
 
 func test_close_button_requests_settings_scene_when_no_overlays() -> void:
 	var overlay: Node = OverlayScene.instantiate()

@@ -7,6 +7,7 @@ class_name U_InputActions
 
 const ACTION_UPDATE_MOVE_INPUT := StringName("input/update_move_input")
 const ACTION_UPDATE_LOOK_INPUT := StringName("input/update_look_input")
+const ACTION_UPDATE_CAMERA_CENTER_STATE := StringName("input/update_camera_center_state")
 const ACTION_UPDATE_JUMP_STATE := StringName("input/update_jump_state")
 const ACTION_UPDATE_SPRINT_STATE := StringName("input/update_sprint_state")
 const ACTION_DEVICE_CHANGED := StringName("input/device_changed")
@@ -38,6 +39,9 @@ static func _static_init() -> void:
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_LOOK_INPUT, {
 		"required_fields": ["look_delta"]
+	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_CAMERA_CENTER_STATE, {
+		"required_fields": ["just_pressed"]
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_JUMP_STATE, {
 		"required_fields": ["pressed", "just_pressed"]
@@ -111,6 +115,15 @@ static func update_look_input(look_delta: Vector2) -> Dictionary:
 		"type": ACTION_UPDATE_LOOK_INPUT,
 		"payload": {
 			"look_delta": look_delta
+		}
+	}
+
+## Update camera-center just-pressed state (edge-triggered per tick).
+static func update_camera_center_state(just_pressed: bool) -> Dictionary:
+	return {
+		"type": ACTION_UPDATE_CAMERA_CENTER_STATE,
+		"payload": {
+			"just_pressed": just_pressed
 		}
 	}
 

@@ -135,6 +135,7 @@ func _dispatch_state(store: I_StateStore, move_vector: Vector2, jump_pressed: bo
 	if store == null or not is_instance_valid(store):
 		return
 	store.dispatch(U_InputActions.update_move_input(move_vector))
+	store.dispatch(U_InputActions.update_camera_center_state(false))
 	store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
 	store.dispatch(U_InputActions.update_sprint_state(sprint_pressed))
 

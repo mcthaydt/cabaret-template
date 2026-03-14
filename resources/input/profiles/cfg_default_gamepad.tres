@@ -15,6 +15,10 @@ action_mappings = {
 "button_index": 0,
 "type": "joypad_button"
 }],
+"camera_center": [{
+"button_index": 10,
+"type": "joypad_button"
+}],
 "move_backward": [{
 "axis": 1,
 "axis_value": 1.0,

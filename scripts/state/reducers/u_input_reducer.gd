@@ -10,6 +10,7 @@ const DEFAULT_GAMEPLAY_INPUT_STATE := {
 	"touchscreen_enabled": false,
 	"move_input": Vector2.ZERO,
 	"look_input": Vector2.ZERO,
+	"camera_center_just_pressed": false,
 	"jump_pressed": false,
 	"jump_just_pressed": false,
 	"sprint_pressed": false,
@@ -72,6 +73,7 @@ static func reduce_gameplay_input(state: Dictionary, action: Dictionary) -> Vari
 			return _with_values(current, {
 				"move_input": Vector2.ZERO,
 				"look_input": Vector2.ZERO,
+				"camera_center_just_pressed": false,
 				"jump_pressed": false,
 				"jump_just_pressed": false,
 				"sprint_pressed": false,
@@ -87,6 +89,12 @@ static func reduce_gameplay_input(state: Dictionary, action: Dictionary) -> Vari
 			var look_payload: Dictionary = action.get("payload", {})
 			return _with_values(current, {
 				"look_input": look_payload.get("look_delta", Vector2.ZERO)
+			})
+
+		U_InputActions.ACTION_UPDATE_CAMERA_CENTER_STATE:
+			var center_payload: Dictionary = action.get("payload", {})
+			return _with_values(current, {
+				"camera_center_just_pressed": bool(center_payload.get("just_pressed", false))
 			})
 
 		U_InputActions.ACTION_UPDATE_JUMP_STATE:

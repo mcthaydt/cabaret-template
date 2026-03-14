@@ -868,6 +868,161 @@ func test_orbit_release_smoothing_is_gated_to_orbit_mode() -> void:
 		"Fixed mode should not use look smoothing/release state"
 	)
 
+func test_camera_center_button_starts_orbit_recentering_from_arbitrary_yaw() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_CenterStartTarget", Vector3.ZERO)
+	follow_target.rotation_degrees.y = 90.0
+	var orbit_mode := _new_orbit_mode(true, 1.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_center_start"),
+		orbit_mode,
+		follow_target
+	)
+	component.runtime_yaw = -120.0
+
+	var expected_target: float = float(
+		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, component.runtime_yaw)
+	)
+	vcam_manager.active_vcam_id = StringName("cam_center_start")
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
+	ecs_manager._physics_process(0.016)
+
+	var center_state := (system.get("_orbit_centering_state") as Dictionary).get(
+		StringName("cam_center_start"),
+		{}
+	) as Dictionary
+	assert_false(center_state.is_empty(), "camera_center should create per-vCam centering state")
+	var initial_error: float = absf(wrapf(expected_target - (-120.0), -180.0, 180.0))
+	var current_error: float = absf(wrapf(expected_target - component.runtime_yaw, -180.0, 180.0))
+	assert_true(current_error < initial_error, "First centering tick should reduce yaw error toward target")
+	assert_true(current_error > 0.1, "Centering should not snap to target on first frame")
+
+func test_camera_center_recenters_over_short_interpolation_window_without_snap() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_CenterWindowTarget", Vector3.ZERO)
+	var orbit_mode := _new_orbit_mode(true, 1.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_center_window"),
+		orbit_mode,
+		follow_target
+	)
+	component.runtime_yaw = -170.0
+
+	var expected_target: float = float(
+		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, component.runtime_yaw)
+	)
+	vcam_manager.active_vcam_id = StringName("cam_center_window")
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
+	ecs_manager._physics_process(0.016)
+
+	var error_after_first_tick: float = absf(wrapf(expected_target - component.runtime_yaw, -180.0, 180.0))
+	assert_true(error_after_first_tick > 0.1, "Recentering should start with interpolation, not an instant cut")
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": false})
+	for _i in range(20):
+		ecs_manager._physics_process(0.016)
+
+	var final_error: float = absf(wrapf(expected_target - component.runtime_yaw, -180.0, 180.0))
+	assert_true(final_error <= 0.05, "Recentering should complete near 0.3s")
+	var center_state_all: Dictionary = system.get("_orbit_centering_state") as Dictionary
+	assert_false(center_state_all.has(StringName("cam_center_window")), "Centering state should clear after completion")
+
+func test_camera_center_ignores_manual_look_input_while_centering_active() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_CenterInputGateTarget", Vector3.ZERO)
+	var orbit_mode := _new_orbit_mode(true, 1.5)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_center_input_gate"),
+		orbit_mode,
+		follow_target
+	)
+	component.runtime_yaw = 145.0
+
+	var expected_target: float = float(
+		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, component.runtime_yaw)
+	)
+	vcam_manager.active_vcam_id = StringName("cam_center_input_gate")
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
+	ecs_manager._physics_process(0.016)
+	var yaw_after_start: float = component.runtime_yaw
+	var error_after_start: float = absf(wrapf(expected_target - yaw_after_start, -180.0, 180.0))
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(400.0, 0.0), "camera_center_just_pressed": false})
+	ecs_manager._physics_process(0.016)
+	var error_after_manual_input: float = absf(wrapf(expected_target - component.runtime_yaw, -180.0, 180.0))
+	assert_true(
+		error_after_manual_input <= error_after_start,
+		"Manual look input should not pull orbit yaw away while centering is active"
+	)
+	assert_true(
+		(system.get("_orbit_centering_state") as Dictionary).has(StringName("cam_center_input_gate")),
+		"Centering should remain active while interpolating"
+	)
+
+func test_camera_center_retrigger_restarts_from_current_pose_deterministically() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+	var system: S_VCamSystem = context["system"] as S_VCamSystem
+
+	var follow_target := _create_target_entity(ecs_manager, "E_CenterRestartTarget", Vector3.ZERO)
+	var orbit_mode := _new_orbit_mode(true, 1.0)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_center_restart"),
+		orbit_mode,
+		follow_target
+	)
+	component.runtime_yaw = -135.0
+
+	vcam_manager.active_vcam_id = StringName("cam_center_restart")
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
+	ecs_manager._physics_process(0.016)
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": false})
+	for _i in range(4):
+		ecs_manager._physics_process(0.016)
+
+	var yaw_before_restart: float = component.runtime_yaw
+	follow_target.rotation_degrees.y = 135.0
+	var restart_target: float = float(
+		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, yaw_before_restart)
+	)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
+	ecs_manager._physics_process(0.016)
+
+	var center_state := (system.get("_orbit_centering_state") as Dictionary).get(
+		StringName("cam_center_restart"),
+		{}
+	) as Dictionary
+	assert_false(center_state.is_empty())
+	assert_almost_eq(float(center_state.get("start_yaw", 9999.0)), yaw_before_restart, 0.001)
+	assert_almost_eq(float(center_state.get("target_yaw", 9999.0)), restart_target, 0.001)
+	assert_true(float(center_state.get("elapsed_sec", 1.0)) <= 0.02)
+
 func test_response_smoothing_offsets_first_frame_after_target_moves() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -2894,7 +3049,7 @@ func _setup_context(register_vcam_service: bool = true) -> Dictionary:
 	var store := MOCK_STATE_STORE.new()
 	add_child(store)
 	autofree(store)
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": false})
 	await _pump()
 
 	U_ServiceLocator.register(StringName("state_store"), store)

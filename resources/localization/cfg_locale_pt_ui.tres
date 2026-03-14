@@ -59,6 +59,7 @@ translations = {
 "input.action.look_left": "Olhar para Esquerda",
 "input.action.look_right": "Olhar para Direita",
 "input.action.look_up": "Olhar para Cima",
+"input.action.camera_center": "Centralizar Câmera",
 "input.action.menu": "Menu",
 "input.action.move": "Mover",
 "input.action.move_backward": "Mover para trás",

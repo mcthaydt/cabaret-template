@@ -23,6 +23,11 @@ func test_update_look_input_returns_payload() -> void:
 	assert_almost_eq(payload.get("look_delta", Vector2.ZERO).x, SAMPLE_LOOK.x, 0.0001)
 	assert_almost_eq(payload.get("look_delta", Vector2.ZERO).y, SAMPLE_LOOK.y, 0.0001)
 
+func test_update_camera_center_state_returns_payload() -> void:
+	var action := U_InputActions.update_camera_center_state(true)
+	var payload := _assert_action_structure(action, U_InputActions.ACTION_UPDATE_CAMERA_CENTER_STATE)
+	assert_true(payload.get("just_pressed", false))
+
 func test_update_jump_state_includes_press_flags() -> void:
 	var action := U_InputActions.update_jump_state(true, false)
 	var payload := _assert_action_structure(action, U_InputActions.ACTION_UPDATE_JUMP_STATE)
@@ -128,6 +133,7 @@ func test_created_actions_validate_with_action_registry() -> void:
 	var actions := [
 		U_InputActions.update_move_input(SAMPLE_MOVE),
 		U_InputActions.update_look_input(SAMPLE_LOOK),
+		U_InputActions.update_camera_center_state(true),
 		U_InputActions.update_jump_state(true, true),
 		U_InputActions.update_sprint_state(false),
 		U_InputActions.device_changed(0, -1),
@@ -159,6 +165,7 @@ func _get_action_constants() -> Array[StringName]:
 	return [
 		U_InputActions.ACTION_UPDATE_MOVE_INPUT,
 		U_InputActions.ACTION_UPDATE_LOOK_INPUT,
+		U_InputActions.ACTION_UPDATE_CAMERA_CENTER_STATE,
 		U_InputActions.ACTION_UPDATE_JUMP_STATE,
 		U_InputActions.ACTION_UPDATE_SPRINT_STATE,
 		U_InputActions.ACTION_DEVICE_CHANGED,

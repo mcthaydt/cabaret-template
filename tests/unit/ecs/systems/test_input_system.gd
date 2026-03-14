@@ -20,6 +20,7 @@ func before_all() -> void:
 	_ensure_action("look_right")
 	_ensure_action("look_up")
 	_ensure_action("look_down")
+	_ensure_action("camera_center")
 	_ensure_action("jump")
 	_ensure_action("sprint")
 
@@ -36,6 +37,7 @@ func after_each() -> void:
 	Input.action_release("look_right")
 	Input.action_release("look_up")
 	Input.action_release("look_down")
+	Input.action_release("camera_center")
 	Input.action_release("jump")
 	Input.action_release("sprint")
 	# Call parent to clear ServiceLocator
@@ -206,6 +208,19 @@ func test_keyboard_look_settings_update_look_input_when_enabled() -> void:
 	var look_vector: Vector2 = input_state.get("look_input", Vector2.ZERO)
 	assert_almost_eq(look_vector.x, 3.0, 0.0001)
 	assert_almost_eq(look_vector.y, 0.0, 0.0001)
+
+func test_camera_center_just_pressed_is_dispatched_when_pressed() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
+	var store: M_StateStore = context["store"] as M_StateStore
+
+	Input.action_press("camera_center")
+	manager._physics_process(0.016)
+
+	var gameplay := store.get_slice(StringName("gameplay"))
+	var input_state: Dictionary = gameplay.get("input", {})
+	assert_true(bool(input_state.get("camera_center_just_pressed", false)))
 
 func test_gamepad_motion_updates_component_and_store() -> void:
 	var context: Dictionary = await _setup_entity()

@@ -10,6 +10,7 @@ func test_required_actions_exist_in_project_input_map() -> void:
 		StringName("look_right"),
 		StringName("look_up"),
 		StringName("look_down"),
+		StringName("camera_center"),
 		StringName("jump"),
 		StringName("sprint"),
 		StringName("interact"),

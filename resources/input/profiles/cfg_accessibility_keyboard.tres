@@ -14,6 +14,10 @@ action_mappings = {
 "physical_keycode": 32,
 "type": "key"
 }],
+"camera_center": [{
+"physical_keycode": 67,
+"type": "key"
+}],
 "look_down": [{
 "physical_keycode": 4194322,
 "type": "key"

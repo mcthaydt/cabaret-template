@@ -24,6 +24,7 @@ var _invert_right_stick_y: bool = false
 var _deadzone_curve: int = RS_GamepadSettings.DeadzoneCurve.LINEAR
 
 # Action names
+var camera_center_action: StringName = StringName("camera_center")
 var jump_action: StringName = StringName("jump")
 var sprint_action: StringName = StringName("sprint")
 
@@ -54,6 +55,7 @@ func is_active() -> bool:
 
 func capture_input(_delta: float) -> Dictionary:
 	# Capture button states
+	var camera_center_just_pressed := Input.is_action_just_pressed(camera_center_action)
 	var jump_pressed := Input.is_action_pressed(jump_action)
 	var jump_just_pressed := Input.is_action_just_pressed(jump_action)
 	var sprint_pressed := Input.is_action_pressed(sprint_action)
@@ -62,12 +64,19 @@ func capture_input(_delta: float) -> Dictionary:
 	var look_delta := _right_stick_processed * _right_stick_sensitivity
 
 	# Update last input time if any input detected
-	if not _left_stick_processed.is_zero_approx() or not _right_stick_processed.is_zero_approx() or jump_pressed or sprint_pressed:
+	if (
+		not _left_stick_processed.is_zero_approx()
+		or not _right_stick_processed.is_zero_approx()
+		or camera_center_just_pressed
+		or jump_pressed
+		or sprint_pressed
+	):
 		_last_input_time = U_ECSUtils.get_current_time()
 
 	return {
 		"move_input": _left_stick_processed,
 		"look_input": look_delta,
+		"camera_center_just_pressed": camera_center_just_pressed,
 		"jump_pressed": jump_pressed,
 		"jump_just_pressed": jump_just_pressed,
 		"sprint_pressed": sprint_pressed,

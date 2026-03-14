@@ -200,6 +200,7 @@ func _ensure_default_actions() -> void:
 	_ensure_action(StringName("move_right"), KEY_D)
 	_ensure_action(StringName("move_forward"), KEY_W)
 	_ensure_action(StringName("move_backward"), KEY_S)
+	_ensure_action(StringName("camera_center"), KEY_C)
 	_ensure_action(StringName("jump"), KEY_SPACE)
 	_ensure_action(StringName("sprint"), KEY_SHIFT)
 

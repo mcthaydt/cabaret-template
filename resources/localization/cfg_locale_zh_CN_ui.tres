@@ -59,6 +59,7 @@ translations = {
 "input.action.look_left": "视角左移",
 "input.action.look_right": "视角右移",
 "input.action.look_up": "视角上移",
+"input.action.camera_center": "镜头回中",
 "input.action.menu": "菜单",
 "input.action.move": "移动",
 "input.action.move_backward": "后退",

@@ -10,6 +10,7 @@ const SAMPLE_STATE := {
 			"touchscreen_enabled": false,
 			"move_input": Vector2(0.25, -0.75),
 			"look_input": Vector2(1.0, -0.5),
+			"camera_center_just_pressed": true,
 			"jump_pressed": true,
 			"jump_just_pressed": false,
 			"sprint_pressed": true,
@@ -74,6 +75,12 @@ func test_get_look_input_returns_value() -> void:
 
 func test_get_look_input_defaults_to_zero_vector() -> void:
 	assert_eq(U_InputSelectors.get_look_input({}), Vector2.ZERO)
+
+func test_is_camera_center_just_pressed_returns_flag() -> void:
+	assert_true(U_InputSelectors.is_camera_center_just_pressed(SAMPLE_STATE))
+
+func test_is_camera_center_just_pressed_defaults_to_false() -> void:
+	assert_false(U_InputSelectors.is_camera_center_just_pressed({}))
 
 func test_is_jump_pressed_returns_flag() -> void:
 	assert_true(U_InputSelectors.is_jump_pressed(SAMPLE_STATE))

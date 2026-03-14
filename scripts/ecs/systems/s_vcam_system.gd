@@ -36,6 +36,7 @@ const DEFAULT_LOOK_RELEASE_STOP_THRESHOLD: float = 0.05
 const ORBIT_RELEASE_SIGN_FLIP_SETTLE_ERROR_DEG: float = 0.25
 const DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED: float = 0.15
 const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3
+const ORBIT_CENTER_DURATION_SEC: float = 0.3
 
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
@@ -55,6 +56,7 @@ var _ground_relative_state: Dictionary = {}  # StringName -> {follow_target_id, 
 var _look_input_filter_state: Dictionary = {}  # StringName -> {filtered_input, hold_timer_sec, input_active}
 var _follow_target_motion_state: Dictionary = {}  # StringName -> {follow_target_id, last_position, speed_mps}
 var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
+var _orbit_centering_state: Dictionary = {}  # StringName -> {start_yaw,start_pitch,target_yaw,target_pitch,elapsed_sec,duration_sec}
 var _soft_zone_dead_zone_state: Dictionary = {}  # StringName -> {x: bool, y: bool}
 var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
@@ -97,9 +99,18 @@ func process_tick(delta: float) -> void:
 	_apply_rotation_continuity_policy(active_vcam_id, vcam_index, manager)
 
 	var look_input: Vector2 = _read_look_input()
+	var camera_center_just_pressed: bool = _read_camera_center_just_pressed()
 	_debug_log_vcam_state("tick", active_vcam_id, look_input)
 	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
-	_evaluate_and_submit(active_vcam_id, vcam_index, look_input, landing_offset, manager, delta)
+	_evaluate_and_submit(
+		active_vcam_id,
+		vcam_index,
+		look_input,
+		camera_center_just_pressed,
+		landing_offset,
+		manager,
+		delta
+	)
 
 	if not manager.is_blending():
 		return
@@ -107,7 +118,15 @@ func process_tick(delta: float) -> void:
 	var previous_vcam_id: StringName = manager.get_previous_vcam_id()
 	if previous_vcam_id == StringName("") or previous_vcam_id == active_vcam_id:
 		return
-	_evaluate_and_submit(previous_vcam_id, vcam_index, look_input, landing_offset, manager, delta)
+	_evaluate_and_submit(
+		previous_vcam_id,
+		vcam_index,
+		look_input,
+		false,
+		landing_offset,
+		manager,
+		delta
+	)
 
 func get_debug_issues() -> Array[String]:
 	return _debug_issues.duplicate()
@@ -239,6 +258,7 @@ func _evaluate_and_submit(
 	vcam_id: StringName,
 	vcam_index: Dictionary,
 	look_input: Vector2,
+	camera_center_just_pressed: bool,
 	landing_offset: Vector3,
 	manager: I_VCAM_MANAGER,
 	delta: float
@@ -270,7 +290,18 @@ func _evaluate_and_submit(
 		filtered_look_input,
 		response_values
 	)
-	_update_runtime_rotation(vcam_id, component, mode, look_input, has_active_look_input, delta)
+	_update_runtime_rotation(
+		vcam_id,
+		component,
+		mode,
+		follow_target,
+		look_input,
+		has_active_look_input,
+		camera_center_just_pressed,
+		delta
+	)
+	if _is_orbit_centering_active(vcam_id):
+		has_active_look_input = false
 	_debug_log_look_input_transition(vcam_id, filtered_look_input)
 	var runtime_rotation: Vector2 = _resolve_runtime_rotation_for_evaluation(
 		vcam_id,
@@ -568,8 +599,10 @@ func _update_runtime_rotation(
 	vcam_id: StringName,
 	component: C_VCamComponent,
 	mode: Resource,
+	follow_target: Node3D,
 	look_input: Vector2,
 	has_look_input: bool,
+	camera_center_just_pressed: bool,
 	delta: float
 ) -> void:
 	if component == null or mode == null:
@@ -585,14 +618,22 @@ func _update_runtime_rotation(
 		})
 		if not bool(orbit_values.get("allow_player_rotation", true)):
 			_orbit_no_look_input_timers.erase(vcam_id)
+			_orbit_centering_state.erase(vcam_id)
 			return
 
 		var lock_x_rotation: bool = bool(orbit_values.get("lock_x_rotation", false))
 		var lock_y_rotation: bool = bool(orbit_values.get("lock_y_rotation", true))
 		if lock_x_rotation:
 			component.runtime_yaw = 0.0
+			_orbit_centering_state.erase(vcam_id)
 		if lock_y_rotation:
 			component.runtime_pitch = 0.0
+
+		if camera_center_just_pressed and not lock_x_rotation:
+			_start_orbit_centering(vcam_id, component, mode, follow_target)
+		if _step_orbit_centering(vcam_id, component, delta):
+			_orbit_no_look_input_timers[vcam_id] = 0.0
+			return
 
 		var rotation_speed: float = maxf(float(orbit_values.get("rotation_speed", 0.0)), 0.0)
 		if has_look_input:
@@ -642,6 +683,7 @@ func _update_runtime_rotation(
 		return
 
 	_orbit_no_look_input_timers.erase(vcam_id)
+	_orbit_centering_state.erase(vcam_id)
 	if not has_look_input:
 		return
 	if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
@@ -665,6 +707,93 @@ func _update_runtime_rotation(
 				component.runtime_pitch,
 			]
 		)
+
+func _start_orbit_centering(
+	vcam_id: StringName,
+	component: C_VCamComponent,
+	mode: Resource,
+	follow_target: Node3D
+) -> void:
+	if component == null or mode == null:
+		return
+
+	var start_yaw: float = component.runtime_yaw
+	var start_pitch: float = component.runtime_pitch
+	var target_yaw: float = _resolve_orbit_center_target_yaw(mode, follow_target, start_yaw)
+	_orbit_centering_state[vcam_id] = {
+		"start_yaw": start_yaw,
+		"start_pitch": start_pitch,
+		"target_yaw": target_yaw,
+		"target_pitch": start_pitch,
+		"elapsed_sec": 0.0,
+		"duration_sec": ORBIT_CENTER_DURATION_SEC,
+	}
+
+func _step_orbit_centering(vcam_id: StringName, component: C_VCamComponent, delta: float) -> bool:
+	if component == null:
+		return false
+
+	var state_variant: Variant = _orbit_centering_state.get(vcam_id, {})
+	if not (state_variant is Dictionary):
+		return false
+	var state := state_variant as Dictionary
+	if state.is_empty():
+		return false
+
+	var start_yaw: float = float(state.get("start_yaw", component.runtime_yaw))
+	var start_pitch: float = float(state.get("start_pitch", component.runtime_pitch))
+	var target_yaw: float = float(state.get("target_yaw", start_yaw))
+	var target_pitch: float = float(state.get("target_pitch", start_pitch))
+	var duration_sec: float = maxf(float(state.get("duration_sec", ORBIT_CENTER_DURATION_SEC)), 0.0001)
+	var elapsed_sec: float = float(state.get("elapsed_sec", 0.0))
+	if delta > 0.0:
+		elapsed_sec += delta
+	state["elapsed_sec"] = elapsed_sec
+	_orbit_centering_state[vcam_id] = state
+
+	var raw_t: float = clampf(elapsed_sec / duration_sec, 0.0, 1.0)
+	var smooth_t: float = raw_t * raw_t * (3.0 - (2.0 * raw_t))
+	var yaw_delta: float = wrapf(target_yaw - start_yaw, -180.0, 180.0)
+	component.runtime_yaw = start_yaw + (yaw_delta * smooth_t)
+	component.runtime_pitch = lerpf(start_pitch, target_pitch, smooth_t)
+
+	if raw_t >= 1.0:
+		component.runtime_yaw = start_yaw + yaw_delta
+		component.runtime_pitch = target_pitch
+		_orbit_centering_state.erase(vcam_id)
+	return true
+
+func _resolve_orbit_center_target_yaw(
+	mode: Resource,
+	follow_target: Node3D,
+	current_runtime_yaw: float
+) -> float:
+	if mode == null:
+		return current_runtime_yaw
+
+	var authored_yaw: float = 0.0
+	var orbit_values: Dictionary = _resolve_mode_values(mode, {
+		"authored_yaw": 0.0,
+	})
+	authored_yaw = float(orbit_values.get("authored_yaw", 0.0))
+
+	if follow_target == null or not is_instance_valid(follow_target):
+		return current_runtime_yaw
+
+	var behind_direction: Vector3 = follow_target.global_transform.basis.z
+	var planar_length_sq: float = (behind_direction.x * behind_direction.x) + (behind_direction.z * behind_direction.z)
+	if planar_length_sq <= 0.000001:
+		return current_runtime_yaw
+
+	var target_total_yaw: float = rad_to_deg(atan2(behind_direction.x, behind_direction.z))
+	var target_runtime_yaw: float = target_total_yaw - authored_yaw
+	return current_runtime_yaw + wrapf(target_runtime_yaw - current_runtime_yaw, -180.0, 180.0)
+
+func _is_orbit_centering_active(vcam_id: StringName) -> bool:
+	var state_variant: Variant = _orbit_centering_state.get(vcam_id, {})
+	if not (state_variant is Dictionary):
+		return false
+	return not (state_variant as Dictionary).is_empty()
 
 func _apply_orbit_look_ahead(
 	vcam_id: StringName,
@@ -1564,6 +1693,14 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
+	for vcam_id_variant in _orbit_centering_state.keys():
+		var vcam_id := vcam_id_variant as StringName
+		if vcam_index.has(vcam_id):
+			continue
+		if stale_ids.has(vcam_id):
+			continue
+		stale_ids.append(vcam_id)
+
 	for vcam_id_variant in _soft_zone_dead_zone_state.keys():
 		var vcam_id := vcam_id_variant as StringName
 		if vcam_index.has(vcam_id):
@@ -1582,6 +1719,7 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
+		_orbit_centering_state.erase(stale_id)
 		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
 
 func _teardown_path_helpers() -> void:
@@ -1603,6 +1741,7 @@ func _clear_all_smoothing_state() -> void:
 	_look_input_filter_state.clear()
 	_follow_target_motion_state.clear()
 	_orbit_no_look_input_timers.clear()
+	_orbit_centering_state.clear()
 	_debug_follow_target_ids.clear()
 	_debug_look_ahead_motion_state.clear()
 	_debug_soft_zone_status.clear()
@@ -2430,6 +2569,13 @@ func _read_look_input() -> Vector2:
 		return Vector2.ZERO
 	var state: Dictionary = store.get_state()
 	return U_INPUT_SELECTORS.get_look_input(state)
+
+func _read_camera_center_just_pressed() -> bool:
+	var store := _resolve_state_store()
+	if store == null:
+		return false
+	var state: Dictionary = store.get_state()
+	return U_INPUT_SELECTORS.is_camera_center_just_pressed(state)
 
 func _debug_log_follow_target_resolution(
 	vcam_id: StringName,

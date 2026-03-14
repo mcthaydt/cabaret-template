@@ -17,6 +17,13 @@ func test_update_look_input_replaces_vector() -> void:
 	assert_not_null(reduced)
 	assert_eq(reduced.get("look_input"), Vector2(1.5, 0.25))
 
+func test_update_camera_center_state_sets_just_pressed_flag() -> void:
+	var state := _make_gameplay_state()
+	var action := U_InputActions.update_camera_center_state(true)
+	var reduced: Variant = INPUT_REDUCER.reduce_gameplay_input(state, action)
+	assert_not_null(reduced)
+	assert_true(bool(reduced.get("camera_center_just_pressed", false)))
+
 func test_update_jump_state_sets_flags() -> void:
 	var state := _make_gameplay_state()
 	var action := U_InputActions.update_jump_state(true, true)
