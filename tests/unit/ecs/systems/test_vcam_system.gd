@@ -787,6 +787,29 @@ func test_orbit_release_smoothing_stop_threshold_clamps_velocity_and_prevents_dr
 	assert_almost_eq(float(post_state.get("smoothed_yaw", 1.0)), settled_yaw, 0.0001)
 	assert_almost_eq(float(post_state.get("smoothed_pitch", 1.0)), settled_pitch, 0.0001)
 
+func test_orbit_release_axis_settles_when_near_target_crossing_would_flip_error() -> void:
+	var system := S_VCAM_SYSTEM.new()
+	autofree(system)
+	system.debug_rotation_logging = false
+
+	var result_variant: Variant = system.call(
+		"_step_orbit_release_axis",
+		StringName("cam_orbit_release_axis_settle"),
+		"yaw",
+		-0.1,
+		0.0,
+		60.0,
+		4.8,
+		0.9,
+		10.0,
+		0.05,
+		0.0167
+	)
+	assert_true(result_variant is Dictionary)
+	var result := result_variant as Dictionary
+	assert_almost_eq(float(result.get("value", 1.0)), 0.0, 0.0001)
+	assert_almost_eq(float(result.get("velocity", 1.0)), 0.0, 0.0001)
+
 func test_orbit_release_smoothing_is_gated_to_orbit_mode() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -1056,6 +1079,50 @@ func test_look_filter_release_decay_deactivates_input_after_hold_window() -> voi
 	var look_state_all: Dictionary = system.get("_look_rotation_state") as Dictionary
 	var look_state := look_state_all.get(StringName("cam_fp_decay"), {}) as Dictionary
 	assert_false(bool(look_state.get("input_active", true)), "Release decay should eventually clear active look state")
+
+func test_look_filter_large_spike_release_decay_clears_activity_promptly() -> void:
+	var system := S_VCAM_SYSTEM.new()
+	autofree(system)
+	system.debug_rotation_logging = false
+
+	var response_values := {
+		"look_input_deadzone": 0.02,
+		"look_input_hold_sec": 0.06,
+		"look_input_release_decay": 25.0,
+	}
+	var vcam_id := StringName("cam_look_filter_spike")
+
+	var first_filtered_variant: Variant = system.call(
+		"_resolve_filtered_look_input",
+		vcam_id,
+		Vector2(-217.0, 194.0),
+		response_values,
+		0.016
+	)
+	assert_true(first_filtered_variant is Vector2)
+	var first_filtered := first_filtered_variant as Vector2
+	assert_true(first_filtered.length() > 200.0)
+
+	for _i in range(48):
+		system.call(
+			"_resolve_filtered_look_input",
+			vcam_id,
+			Vector2.ZERO,
+			response_values,
+			0.016
+		)
+
+	var filter_state_all: Dictionary = system.get("_look_input_filter_state") as Dictionary
+	var filter_state := filter_state_all.get(vcam_id, {}) as Dictionary
+	assert_false(
+		bool(filter_state.get("input_active", true)),
+		"Large one-frame look spikes should decay to inactive within a short release window"
+	)
+	var filtered_input := filter_state.get("filtered_input", Vector2.ONE) as Vector2
+	assert_true(
+		filtered_input.length() < 0.02,
+		"Filtered look magnitude should settle near zero after the decay window"
+	)
 
 func test_orbit_moving_target_disables_position_smoothing_bypass_during_look_input() -> void:
 	var context: Dictionary = await _setup_context()
@@ -1519,6 +1586,37 @@ func test_orbit_look_ahead_applies_offset_in_movement_direction() -> void:
 	assert_true(offset.x > 1.9, "Look-ahead should shift orbit camera ahead in positive X when target moves +X")
 	assert_almost_eq(offset.y, 0.0, 0.0001)
 	assert_almost_eq(offset.z, 0.0, 0.0001)
+
+func test_orbit_look_ahead_ignores_vertical_only_velocity() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var follow_target := _create_target_entity(ecs_manager, "E_LookAheadVerticalOnlyTarget", Vector3.ZERO)
+	var mode := _new_orbit_mode()
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_look_ahead_vertical_only"),
+		mode,
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 4.0, 1.0, 1.0, 2.0, 0.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_look_ahead_vertical_only")
+	ecs_manager._physics_process(0.016)
+
+	_set_gameplay_entity_velocity(store, follow_target, Vector3(0.0, -5.0, 0.0))
+	vcam_manager.clear_submissions()
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_look_ahead_vertical_only"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var offset: Vector3 = submitted.origin - raw_transform.origin
+
+	assert_almost_eq(offset.length(), 0.0, 0.0001)
 
 func test_orbit_look_ahead_does_not_apply_while_look_input_is_active() -> void:
 	var context: Dictionary = await _setup_context()
@@ -2338,6 +2436,68 @@ func test_orbit_ground_relative_reanchors_after_airborne_spawn_then_floor_to_pla
 		"Camera must re-anchor when landing on a platform 2.0m above the floor (got floor_y=%.3f platform_y=%.3f)" % [floor_y, platform_y]
 	)
 
+func test_orbit_ground_relative_first_grounded_contact_after_airborne_descent_has_no_large_vertical_pop() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	var ground := StaticBody3D.new()
+	ground.name = "GroundProbeSurface"
+	add_child(ground)
+	autofree(ground)
+	ground.global_position = Vector3(0.0, -1.0, 0.0)
+
+	var ground_shape := CollisionShape3D.new()
+	var box_shape := BoxShape3D.new()
+	box_shape.size = Vector3(30.0, 0.1, 30.0)
+	ground_shape.shape = box_shape
+	ground.add_child(ground_shape)
+	autofree(ground_shape)
+	await _pump()
+	await _pump()
+
+	var follow_target := _create_target_entity(ecs_manager, "E_GroundRelativeFirstContactTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ground_relative_first_contact"),
+		_new_orbit_mode(),
+		follow_target
+	)
+	component.response = _new_response(1000.0, 1.0, 1.0, 1000.0, 1.0, 1.0)
+	component.response.set("ground_relative_enabled", true)
+	component.response.set("ground_reanchor_min_height_delta", 0.5)
+	component.response.set("ground_probe_max_distance", 12.0)
+	component.response.set("ground_anchor_blend_hz", 4.0)
+
+	_set_gameplay_entity_floor_state(store, follow_target, false)
+	vcam_manager.active_vcam_id = StringName("cam_ground_relative_first_contact")
+
+	var airborne_heights: Array[float] = [-0.01667, -0.05000, -0.10000, -0.13832, -0.16852, -0.19273]
+	for height in airborne_heights:
+		follow_target.global_position = Vector3(0.0, height, 0.0)
+		ecs_manager._physics_process(0.016)
+
+	var pre_landing_transform: Transform3D = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ground_relative_first_contact")
+	)
+
+	_set_gameplay_entity_floor_state(store, follow_target, true)
+	follow_target.global_position = Vector3(0.0, -0.21231, 0.0)
+	ecs_manager._physics_process(0.016)
+	var first_grounded_transform: Transform3D = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ground_relative_first_contact")
+	)
+
+	var vertical_step: float = first_grounded_transform.origin.y - pre_landing_transform.origin.y
+	assert_true(
+		absf(vertical_step) < 0.12,
+		"First grounded tick should not apply a large vertical correction (step=%.5f)" % [vertical_step]
+	)
+
 func test_landing_impact_offset_is_added_to_submitted_position() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -2746,6 +2906,7 @@ func _setup_context(register_vcam_service: bool = true) -> Dictionary:
 		U_ServiceLocator.register(StringName("vcam_manager"), vcam_manager)
 
 	var system := S_VCAM_SYSTEM.new()
+	system.debug_rotation_logging = false
 	ecs_manager.add_child(system)
 	autofree(system)
 	await _pump()

@@ -33,6 +33,7 @@ const DEFAULT_LOOK_INPUT_RELEASE_DECAY: float = 25.0
 const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
 const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0
 const DEFAULT_LOOK_RELEASE_STOP_THRESHOLD: float = 0.05
+const ORBIT_RELEASE_SIGN_FLIP_SETTLE_ERROR_DEG: float = 0.25
 const DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED: float = 0.15
 const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3
 
@@ -705,16 +706,17 @@ func _apply_orbit_look_ahead(
 	var has_velocity: bool = bool(velocity_sample.get("has_velocity", false))
 	var velocity_variant: Variant = velocity_sample.get("velocity", Vector3.ZERO)
 	var velocity: Vector3 = velocity_variant as Vector3 if velocity_variant is Vector3 else Vector3.ZERO
-	if (not has_velocity) or velocity.length_squared() <= LOOK_AHEAD_MOVEMENT_EPSILON_SQ:
-		_debug_log_look_ahead_motion_state(vcam_id, false, follow_target, velocity, Vector3.ZERO)
+	var planar_velocity := Vector3(velocity.x, 0.0, velocity.z)
+	if (not has_velocity) or planar_velocity.length_squared() <= LOOK_AHEAD_MOVEMENT_EPSILON_SQ:
+		_debug_log_look_ahead_motion_state(vcam_id, false, follow_target, planar_velocity, Vector3.ZERO)
 		state["current_offset"] = Vector3.ZERO
 		state["dynamics"] = null
 		state["smoothing_hz"] = -1.0
 		_look_ahead_state[vcam_id] = state
 		return result
 
-	var desired_offset: Vector3 = velocity.normalized() * look_ahead_distance
-	_debug_log_look_ahead_motion_state(vcam_id, true, follow_target, velocity, desired_offset)
+	var desired_offset: Vector3 = planar_velocity.normalized() * look_ahead_distance
+	_debug_log_look_ahead_motion_state(vcam_id, true, follow_target, planar_velocity, desired_offset)
 
 	var smoothing_hz: float = maxf(float(response_values.get("look_ahead_smoothing", 3.0)), 0.0)
 	var current_offset: Vector3 = state.get("current_offset", Vector3.ZERO) as Vector3
@@ -948,6 +950,10 @@ func _apply_orbit_ground_relative(
 	var follow_anchor_y_offset: float = float(state.get("follow_anchor_y_offset", 0.0))
 	var last_ground_reference_y: float = float(state.get("last_ground_reference_y", ground_anchor_target_y))
 	var was_grounded: bool = bool(state.get("was_grounded", grounded))
+	var blend_hz: float = maxf(float(response_values.get("ground_anchor_blend_hz", 0.0)), 0.0)
+	var previous_blend_hz: float = float(state.get("blend_hz", -1.0))
+	var dynamics: Variant = state.get("dynamics", null)
+	var reset_dynamics: bool = false
 	if not initialized:
 		if grounded and has_ground_reference:
 			# First real grounded contact — initialize anchor from actual ground surface.
@@ -956,11 +962,24 @@ func _apply_orbit_ground_relative(
 			follow_anchor_y_offset = follow_y - ground_reference_y
 			last_ground_reference_y = ground_reference_y
 			initialized = true
+			reset_dynamics = true
 		else:
-			# Still airborne or no probe hit — hold at follow_y, no correction yet.
+			# Still airborne or no probe hit — keep strict no-op while uninitialized.
 			ground_anchor_y = follow_y
 			ground_anchor_target_y = follow_y
 			follow_anchor_y_offset = 0.0
+			dynamics = null
+			state["initialized"] = false
+			state["follow_target_id"] = follow_target_id
+			state["ground_anchor_y"] = ground_anchor_y
+			state["ground_anchor_target_y"] = ground_anchor_target_y
+			state["follow_anchor_y_offset"] = follow_anchor_y_offset
+			state["last_ground_reference_y"] = last_ground_reference_y
+			state["was_grounded"] = grounded
+			state["blend_hz"] = blend_hz
+			state["dynamics"] = dynamics
+			_ground_relative_state[vcam_id] = state
+			return result
 	elif grounded and has_ground_reference and not was_grounded:
 		var reanchor_min_height_delta: float = maxf(
 			float(response_values.get("ground_reanchor_min_height_delta", 0.0)),
@@ -971,15 +990,17 @@ func _apply_orbit_ground_relative(
 			ground_anchor_target_y = ground_reference_y
 			follow_anchor_y_offset = follow_y - ground_reference_y
 			last_ground_reference_y = ground_reference_y
+			reset_dynamics = true
 
-	var blend_hz: float = maxf(float(response_values.get("ground_anchor_blend_hz", 0.0)), 0.0)
-	var previous_blend_hz: float = float(state.get("blend_hz", -1.0))
-	var dynamics: Variant = state.get("dynamics", null)
 	if blend_hz <= 0.0:
 		dynamics = null
 		ground_anchor_y = ground_anchor_target_y
 	else:
-		var needs_rebuild: bool = dynamics == null or not is_equal_approx(previous_blend_hz, blend_hz)
+		var needs_rebuild: bool = (
+			dynamics == null
+			or not is_equal_approx(previous_blend_hz, blend_hz)
+			or reset_dynamics
+		)
 		if needs_rebuild:
 			dynamics = U_SECOND_ORDER_DYNAMICS.new(blend_hz, 1.0, 1.0, ground_anchor_y)
 		if delta > 0.0 and dynamics != null:
@@ -1294,7 +1315,8 @@ func _resolve_filtered_look_input(
 		hold_timer_sec = maxf(hold_timer_sec - maxf(delta, 0.0), 0.0)
 		if hold_timer_sec <= 0.0:
 			if release_decay > 0.0 and delta > 0.0:
-				filtered_input = filtered_input.move_toward(Vector2.ZERO, release_decay * delta)
+				var decay_factor: float = clampf(release_decay * delta, 0.0, 1.0)
+				filtered_input = filtered_input.lerp(Vector2.ZERO, decay_factor)
 			else:
 				filtered_input = Vector2.ZERO
 		input_active = _is_filtered_look_input_active(filtered_input, response_values)
@@ -1869,6 +1891,7 @@ func _step_orbit_release_axis(
 	stop_threshold: float,
 	delta: float
 ) -> Dictionary:
+	var error_before: float = wrapf(target_value - current_value, -180.0, 180.0)
 	var axis_step: Dictionary = _step_second_order_angle(
 		current_value,
 		target_value,
@@ -1902,6 +1925,11 @@ func _step_orbit_release_axis(
 		)
 		if remaining_error <= settle_epsilon:
 			next_value = target_value
+	var error_after: float = wrapf(target_value - next_value, -180.0, 180.0)
+	var crossed_target: bool = error_before * error_after < 0.0
+	if crossed_target and absf(error_before) <= ORBIT_RELEASE_SIGN_FLIP_SETTLE_ERROR_DEG:
+		next_value = target_value
+		next_velocity = 0.0
 
 	return {
 		"value": next_value,
