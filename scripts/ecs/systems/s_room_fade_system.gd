@@ -21,7 +21,7 @@ var material_applier: Variant = null
 var _camera_manager: I_CAMERA_MANAGER = null
 var _state_store: I_STATE_STORE = null
 var _material_applier: Variant = null
-var _tracked_targets: Dictionary = {}  # int -> MeshInstance3D
+var _tracked_targets: Dictionary = {}  # int -> Node3D (MeshInstance3D or CSGShape3D)
 
 func _init() -> void:
 	execution_priority = 110
@@ -59,7 +59,7 @@ func process_tick(delta: float) -> void:
 			continue
 		var component: Object = component_variant as Object
 
-		var targets: Array[MeshInstance3D] = _collect_mesh_targets(component)
+		var targets: Array = _collect_mesh_targets(component)
 		if targets.is_empty():
 			continue
 
@@ -75,12 +75,12 @@ func process_tick(delta: float) -> void:
 			next_alpha = move_toward(next_alpha, target_alpha, fade_speed * resolved_delta)
 		next_alpha = clampf(next_alpha, min_alpha, 1.0)
 		component.set("current_alpha", next_alpha)
-
 		applier.update_fade_alpha(targets, next_alpha)
 
-		for target in targets:
-			if target == null or not is_instance_valid(target):
+		for target_variant in targets:
+			if not _is_supported_target(target_variant):
 				continue
+			var target: Node3D = target_variant as Node3D
 			active_targets[target.get_instance_id()] = target
 
 	_restore_stale_targets(active_targets)
@@ -155,7 +155,7 @@ func _resolve_settings(component: Object) -> Dictionary:
 		"min_alpha": 0.05,
 	}
 
-func _collect_mesh_targets(component: Object) -> Array[MeshInstance3D]:
+func _collect_mesh_targets(component: Object) -> Array:
 	if component == null:
 		return []
 	if not component.has_method("collect_mesh_targets"):
@@ -164,10 +164,10 @@ func _collect_mesh_targets(component: Object) -> Array[MeshInstance3D]:
 	if not (targets_variant is Array):
 		return []
 
-	var targets: Array[MeshInstance3D] = []
+	var targets: Array = []
 	for target_variant in targets_variant as Array:
-		if target_variant is MeshInstance3D:
-			targets.append(target_variant as MeshInstance3D)
+		if _is_supported_target(target_variant):
+			targets.append(target_variant)
 	return targets
 
 func _resolve_world_normal(component: Object) -> Vector3:
@@ -196,7 +196,7 @@ func _is_orbit_mode_active() -> bool:
 	return active_mode == "orbit"
 
 func _restore_components_to_opaque(components: Array) -> void:
-	var restore_targets: Array[MeshInstance3D] = []
+	var restore_targets: Array = []
 	var seen_targets: Dictionary = {}
 
 	for component_variant in components:
@@ -206,10 +206,11 @@ func _restore_components_to_opaque(components: Array) -> void:
 			continue
 		var component: Object = component_variant as Object
 		component.set("current_alpha", 1.0)
-		var targets: Array[MeshInstance3D] = _collect_mesh_targets(component)
-		for target in targets:
-			if target == null or not is_instance_valid(target):
+		var targets: Array = _collect_mesh_targets(component)
+		for target_variant in targets:
+			if not _is_supported_target(target_variant):
 				continue
+			var target: Node3D = target_variant as Node3D
 			var target_id: int = target.get_instance_id()
 			if seen_targets.has(target_id):
 				continue
@@ -217,11 +218,9 @@ func _restore_components_to_opaque(components: Array) -> void:
 			restore_targets.append(target)
 
 	for target_variant in _tracked_targets.values():
-		if not (target_variant is MeshInstance3D):
+		if not _is_supported_target(target_variant):
 			continue
-		var tracked_target: MeshInstance3D = target_variant as MeshInstance3D
-		if tracked_target == null or not is_instance_valid(tracked_target):
-			continue
+		var tracked_target: Node3D = target_variant as Node3D
 		var tracked_id: int = tracked_target.get_instance_id()
 		if seen_targets.has(tracked_id):
 			continue
@@ -239,18 +238,25 @@ func _restore_stale_targets(active_targets: Dictionary) -> void:
 		_tracked_targets = active_targets.duplicate()
 		return
 
-	var stale_targets: Array[MeshInstance3D] = []
+	var stale_targets: Array = []
 	for target_id_variant in _tracked_targets.keys():
 		var target_id: int = int(target_id_variant)
 		if active_targets.has(target_id):
 			continue
 		var target_variant: Variant = _tracked_targets.get(target_id, null)
-		if target_variant is MeshInstance3D:
-			var mesh_target: MeshInstance3D = target_variant as MeshInstance3D
-			if mesh_target != null and is_instance_valid(mesh_target):
-				stale_targets.append(mesh_target)
+		if _is_supported_target(target_variant):
+			stale_targets.append(target_variant)
 
 	if not stale_targets.is_empty():
 		applier.restore_original_materials(stale_targets)
 
 	_tracked_targets = active_targets.duplicate()
+
+func _is_supported_target(target_variant: Variant) -> bool:
+	if target_variant is MeshInstance3D:
+		var mesh_target: MeshInstance3D = target_variant as MeshInstance3D
+		return mesh_target != null and is_instance_valid(mesh_target)
+	if target_variant is CSGShape3D:
+		var csg_target: CSGShape3D = target_variant as CSGShape3D
+		return csg_target != null and is_instance_valid(csg_target)
+	return false

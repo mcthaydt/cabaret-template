@@ -60,6 +60,8 @@
 [ext_resource type="Script" uid="uid://v1205hibt78y" path="res://scripts/scene_structure/marker_character_lighting_settings.gd" id="65_character_lighting_settings_script"]
 [ext_resource type="Resource" path="res://resources/lighting/cfg_character_lighting_profile_interior_a.tres" id="66_character_lighting_profile"]
 [ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
+[ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="73_room_fade_group_component"]
+[ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="74_room_fade_system"]
 
 [sub_resource type="Environment" id="Environment_interior_a"]
 background_mode = 1
@@ -281,6 +283,10 @@ use_collision = true
 size = Vector3(2, 0.1, 2)
 
 [node name="Walls" type="Node3D" parent="SceneObjects/MasterBedroom" unique_id=363866353]
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/MasterBedroom/Walls" unique_id=1206643552]
+script = ExtResource("73_room_fade_group_component")
+group_tag = &"master_bedroom_walls"
 
 [node name="CSGBox3D" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=555683831]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
@@ -739,6 +745,10 @@ script = ExtResource("24_touchscreen_system")
 [node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=417065310]
 script = ExtResource("72_vcam_system")
 execution_priority = 100
+
+[node name="S_RoomFadeSystem" type="Node" parent="Systems/Core" unique_id=696779724]
+script = ExtResource("74_room_fade_system")
+execution_priority = 110
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1948608298]
 script = ExtResource("9_health")

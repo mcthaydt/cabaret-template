@@ -57,7 +57,7 @@ func test_collect_mesh_targets_returns_mesh_instances_in_entity_hierarchy() -> v
 	nested_parent.add_child(nested_mesh)
 	autofree(nested_mesh)
 
-	var targets: Array[MeshInstance3D] = component.collect_mesh_targets()
+	var targets: Array = component.collect_mesh_targets()
 	assert_eq(targets.size(), 2)
 	assert_true(targets.has(direct_mesh))
 	assert_true(targets.has(nested_mesh))
@@ -80,10 +80,27 @@ func test_collect_mesh_targets_skips_mesh_instances_without_mesh_resource() -> v
 	entity_root.add_child(valid_mesh)
 	autofree(valid_mesh)
 
-	var targets: Array[MeshInstance3D] = component.collect_mesh_targets()
+	var targets: Array = component.collect_mesh_targets()
 	assert_eq(targets.size(), 1)
 	assert_true(targets.has(valid_mesh))
 	assert_false(targets.has(missing_mesh))
+
+func test_collect_mesh_targets_includes_csg_shapes() -> void:
+	var entity_root := Node3D.new()
+	add_child(entity_root)
+	autofree(entity_root)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity_root.add_child(component)
+	autofree(component)
+
+	var csg_wall := CSGBox3D.new()
+	entity_root.add_child(csg_wall)
+	autofree(csg_wall)
+
+	var targets: Array = component.collect_mesh_targets()
+	assert_eq(targets.size(), 1)
+	assert_true(targets.has(csg_wall))
 
 func test_get_fade_normal_world_transforms_local_normal_by_parent_basis() -> void:
 	var entity_root := Node3D.new()

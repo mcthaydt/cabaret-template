@@ -16,16 +16,16 @@ class RoomFadeMaterialApplierStub extends RefCounted:
 	var last_updated_target_count: int = 0
 	var last_restore_target_count: int = 0
 
-	func apply_fade_material(targets: Array[MeshInstance3D]) -> void:
+	func apply_fade_material(targets: Array) -> void:
 		apply_calls += 1
 		last_updated_target_count = targets.size()
 
-	func update_fade_alpha(targets: Array[MeshInstance3D], alpha: float) -> void:
+	func update_fade_alpha(targets: Array, alpha: float) -> void:
 		update_calls += 1
 		last_updated_alpha = alpha
 		last_updated_target_count = targets.size()
 
-	func restore_original_materials(targets: Array[MeshInstance3D]) -> void:
+	func restore_original_materials(targets: Array) -> void:
 		restore_calls += 1
 		last_restore_target_count = targets.size()
 
@@ -265,6 +265,24 @@ func test_system_uses_viewport_camera_fallback_when_camera_manager_main_is_null(
 	assert_eq(applier.update_calls, 1)
 	assert_eq(applier.restore_calls, 0)
 
+func test_system_supports_csg_room_fade_targets() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+
+	var room_component: Variant = _register_room_fade_group(ecs_manager, "E_RoomFadeL", true)
+	room_component.fade_normal = Vector3(0.0, 0.0, -1.0)
+	room_component.current_alpha = 1.0
+	system.process_tick(0.2)
+
+	assert_eq(applier.apply_calls, 1)
+	assert_eq(applier.update_calls, 1)
+	assert_lt(room_component.current_alpha, 1.0)
+
 func _create_fixture() -> Dictionary:
 	var room_fade_system_script := _room_fade_system_script()
 	if room_fade_system_script == null:
@@ -306,7 +324,7 @@ func _create_fixture() -> Dictionary:
 		"applier": applier,
 	}
 
-func _register_room_fade_group(ecs_manager: MockECSManager, entity_name: String) -> Variant:
+func _register_room_fade_group(ecs_manager: MockECSManager, entity_name: String, use_csg_target: bool = false) -> Variant:
 	var entity := BASE_ECS_ENTITY.new()
 	entity.name = entity_name
 	add_child(entity)
@@ -317,9 +335,14 @@ func _register_room_fade_group(ecs_manager: MockECSManager, entity_name: String)
 	autofree(component)
 	ecs_manager.add_component_to_entity(entity, component)
 
-	var mesh_instance := MeshInstance3D.new()
-	mesh_instance.mesh = BoxMesh.new()
-	entity.add_child(mesh_instance)
-	autofree(mesh_instance)
+	if use_csg_target:
+		var csg_wall := CSGBox3D.new()
+		entity.add_child(csg_wall)
+		autofree(csg_wall)
+	else:
+		var mesh_instance := MeshInstance3D.new()
+		mesh_instance.mesh = BoxMesh.new()
+		entity.add_child(mesh_instance)
+		autofree(mesh_instance)
 
 	return component

@@ -29,8 +29,8 @@ var _settings: Resource = null
 func _init() -> void:
 	component_type = COMPONENT_TYPE
 
-func collect_mesh_targets() -> Array[MeshInstance3D]:
-	var targets: Array[MeshInstance3D] = []
+func collect_mesh_targets() -> Array:
+	var targets: Array = []
 	var entity_root := U_ECS_UTILS.find_entity_root(self)
 	var search_root: Node = entity_root
 	if search_root == null:
@@ -56,11 +56,13 @@ func get_snapshot() -> Dictionary:
 		"current_alpha": current_alpha,
 	}
 
-func _collect_mesh_targets_recursive(node: Node, targets: Array[MeshInstance3D]) -> void:
+func _collect_mesh_targets_recursive(node: Node, targets: Array) -> void:
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
 		if mesh_instance.mesh != null:
 			targets.append(mesh_instance)
+	elif node is CSGShape3D:
+		targets.append(node as CSGShape3D)
 	var children: Array = node.get_children()
 	for child_variant in children:
 		if child_variant is Node:

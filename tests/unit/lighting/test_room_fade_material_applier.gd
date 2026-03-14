@@ -138,3 +138,25 @@ func test_restore_original_materials_is_safe_when_nothing_cached() -> void:
 	applier.restore_original_materials([mesh_instance])
 	assert_eq(applier.get_cached_mesh_count(), 0)
 	assert_null(mesh_instance.material_override)
+
+func test_apply_and_restore_supports_csg_shapes() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var original_material := StandardMaterial3D.new()
+	original_material.albedo_texture = _create_test_texture()
+	var csg_shape := CSGBox3D.new()
+	csg_shape.material = original_material
+	autofree(csg_shape)
+
+	applier.apply_fade_material([csg_shape])
+	assert_true(csg_shape.material is ShaderMaterial)
+	applier.update_fade_alpha([csg_shape], 0.4)
+	var fade_material := csg_shape.material as ShaderMaterial
+	assert_not_null(fade_material)
+	assert_almost_eq(float(fade_material.get_shader_parameter(PARAM_FADE_ALPHA)), 0.4, 0.0001)
+
+	applier.restore_original_materials([csg_shape])
+	assert_eq(csg_shape.material, original_material)
