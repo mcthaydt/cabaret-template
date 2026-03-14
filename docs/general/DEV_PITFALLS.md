@@ -235,6 +235,12 @@
 - **Button recenter can silently cancel when centering state is coupled to response-smoothing cleanup**: Orbit recenter is allowed when `response == null` (raw evaluator passthrough). If centering state is cleared from response-null smoothing paths, button recenter restarts or drops every tick and never completes.
   - **Fix pattern**: keep `_orbit_centering_state` lifecycle independent from response smoothing state; prune it only on vCam removal/prune, not on response-null smoothing resets.
 
+- **Room fade can leak translucent geometry into first-person/fixed if mode gating only disables updates without restoring materials**: Simply skipping fade updates outside orbit leaves shader overrides and partial alpha active from previous orbit ticks.
+  - **Fix pattern**: in `S_RoomFadeSystem`, treat non-orbit ticks as a full cleanup path: set each group `current_alpha = 1.0`, restore original materials through `U_RoomFadeMaterialApplier`, and clear tracked target cache.
+
+- **Room fade can silently stop in tests/runtime scaffolds when camera lookup assumes `camera_manager.get_main_camera()` is always valid**: Some harnesses and transitional scene states only expose the active camera through the viewport, not the manager slot.
+  - **Fix pattern**: resolve camera in `S_RoomFadeSystem` by manager main camera first, then fallback to `get_viewport().get_camera_3d()` before deciding camera is unavailable.
+
 ## vCam Soft-Zone Pitfalls
 
 - **Clearing dead-zone hysteresis state on response-null paths causes boundary jitter**: `S_VCamSystem` can run with `response = null` (raw evaluator passthrough). If soft-zone hysteresis state is tied to response-smoothing resets, dead-zone enter/exit history is wiped every tick and correction toggles at the boundary.

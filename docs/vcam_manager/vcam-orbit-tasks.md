@@ -524,7 +524,7 @@ Before starting Phase 2, verify:
 
 > **Architecture note:** `S_RoomFadeSystem` is a standalone system, NOT inside `S_VCamSystem`. Room fading consumes camera output (rendering concern), it doesn't produce camera transforms. `S_VCamSystem` is already 2900+ lines. Separate system enables isolated testing. `execution_priority` must be set after `S_VCamSystem` to ensure camera transform is evaluated before fade decisions.
 
-- [ ] **Task 2C10.1**: Create `sh_room_fade.gdshader`
+- [x] **Task 2C10.1**: Create `sh_room_fade.gdshader`
   - Create `assets/shaders/sh_room_fade.gdshader`
   - Spatial shader with `blend_mix`, `depth_draw_opaque`
   - Uniforms:
@@ -536,8 +536,9 @@ Before starting Phase 2, verify:
     - Set `ALPHA = fade_alpha * base_alpha`
     - Use `ALPHA_SCISSOR_THRESHOLD` for clean cutoff at very low alpha
   - Render priority hint for correct transparency sorting
+  - Completion note (2026-03-14): Added `assets/shaders/sh_room_fade.gdshader` with `blend_mix` + `depth_draw_opaque`, room-fade uniforms (`fade_alpha`, `albedo_texture`, `albedo_color`), and alpha/scissor fragment handling for low-alpha cutoff.
 
-- [ ] **Task 2C10.2 (Red)**: Write tests for U_RoomFadeMaterialApplier
+- [x] **Task 2C10.2 (Red)**: Write tests for U_RoomFadeMaterialApplier
   - Create `tests/unit/lighting/test_room_fade_material_applier.gd`
   - Test `apply_fade_material()` replaces original material with `ShaderMaterial` using `sh_room_fade.gdshader`
   - Test `apply_fade_material()` carries forward `albedo_texture` from original `StandardMaterial3D`
@@ -546,19 +547,21 @@ Before starting Phase 2, verify:
   - Test `restore_original_materials()` restores cached originals and clears cache
   - Test `restore_original_materials()` is safe to call when no materials are cached (no-op)
   - **Target: 6 tests**
+  - Completion note (2026-03-14): Added `tests/unit/lighting/test_room_fade_material_applier.gd` with 6 assertions covering shader replacement, albedo carry-forward, cache/restore lifecycle, and restore no-op safety.
 
-- [ ] **Task 2C10.3 (Green)**: Implement U_RoomFadeMaterialApplier
+- [x] **Task 2C10.3 (Green)**: Implement U_RoomFadeMaterialApplier
   - Create `scripts/utils/lighting/u_room_fade_material_applier.gd`
   - Add `class_name U_RoomFadeMaterialApplier`
   - Follow `U_CharacterLightingMaterialApplier` pattern:
     - Cache original `material_override` per `MeshInstance3D` (dictionary keyed by instance ID) — note: this caches `material_override` only, not per-surface-slot materials
     - Resolve source material for albedo texture extraction using priority: `material_override` → surface override materials → mesh built-in surface materials (same as `U_CharacterLightingMaterialApplier._resolve_source_material()`)
     - `apply_fade_material(targets: Array[MeshInstance3D])` — for each target, cache original `material_override`, create `ShaderMaterial` with `sh_room_fade.gdshader`, carry forward `albedo_texture` from resolved source material, set as `material_override`
-    - `update_fade_alpha(targets: Array[MeshInstance3D], alpha: float)` — set `fade_alpha` uniform on each target's current shader material
-    - `restore_original_materials(targets: Array[MeshInstance3D])` — restore cached `material_override` values, clear cache entries
+  - `update_fade_alpha(targets: Array[MeshInstance3D], alpha: float)` — set `fade_alpha` uniform on each target's current shader material
+  - `restore_original_materials(targets: Array[MeshInstance3D])` — restore cached `material_override` values, clear cache entries
   - All tests should pass
+  - Completion note (2026-03-14): Implemented `U_RoomFadeMaterialApplier` with per-mesh override caching, source-material resolution priority (`material_override` -> surface override -> mesh surface), shader material application, fade-alpha updates, and deterministic restoration/pruning.
 
-- [ ] **Task 2C10.4 (Red)**: Write tests for S_RoomFadeSystem
+- [x] **Task 2C10.4 (Red)**: Write tests for S_RoomFadeSystem
   - Add to `tests/unit/ecs/systems/test_room_fade_system.gd`
   - Test system discovers `C_RoomFadeGroupComponent` instances via ECS manager
   - Test dot product computation: `dot(-camera_basis.z, fade_normal_world)` above threshold triggers fade-down
@@ -570,9 +573,10 @@ Before starting Phase 2, verify:
   - Test system is a no-op when no `C_RoomFadeGroupComponent` instances exist
   - Test system is a no-op when active camera mode is not orbit (first-person/fixed restore all faded geometry immediately)
   - Test mode switch from orbit to non-orbit restores all groups to `current_alpha = 1.0`
-  - **Target: 10 tests**
+  - **Target: 10+ tests**
+  - Completion note (2026-03-14): Expanded `tests/unit/ecs/systems/test_room_fade_system.gd` to 12 tests, including orbit fade/restore behavior, default-settings fallback, stale-target cleanup, non-orbit immediate-restore gating, and viewport-camera fallback when camera-manager main camera is absent.
 
-- [ ] **Task 2C10.5 (Green)**: Implement S_RoomFadeSystem
+- [x] **Task 2C10.5 (Green)**: Implement S_RoomFadeSystem
   - Create `scripts/ecs/systems/s_room_fade_system.gd`
   - Extend `BaseECSSystem`
   - Add `class_name S_RoomFadeSystem`
@@ -590,12 +594,19 @@ Before starting Phase 2, verify:
     - Non-orbit mode: restore all groups to `1.0` immediately
   - Lazy-init material applier state on first tick per component
   - All tests should pass
+  - Completion note (2026-03-14): Implemented `S_RoomFadeSystem` as a standalone post-vCam system (`execution_priority = 110`) with camera-manager + viewport camera resolution, Redux `state.vcam.active_mode` orbit-only gating, per-group dot-threshold fade solve, default room-fade settings fallback, non-orbit full restore (`current_alpha = 1.0` + material restoration), and stale-target cleanup.
 
-- [ ] **Task 2C10.6**: Run style enforcement tests
+- [x] **Task 2C10.6**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with all new files
   - Verify system naming follows `s_` prefix convention
   - Verify utility naming follows `u_` prefix convention
   - Verify shader is in `assets/shaders/`
+  - Completion note (2026-03-14): Style suite rerun remains at known pre-existing HUD inline-theme debt (`16/17`), while new room-fade files satisfy naming/path enforcement.
+
+**Completion notes (March 14, 2026):**
+- Added `sh_room_fade.gdshader`, `U_RoomFadeMaterialApplier`, and `S_RoomFadeSystem` with orbit-only fade/restore behavior and post-vCam execution ordering (`110`).
+- Added/expanded room-fade runtime coverage (`test_room_fade_material_applier` `6/6`, `test_room_fade_system` `12/12`) including non-orbit immediate restore and viewport-camera fallback behavior.
+- Re-ran room-fade focused regression gate (`test_room_fade_settings` `7/7`, `test_room_fade_group_component` `11/11`, `test_room_fade_material_applier` `6/6`, `test_room_fade_system` `12/12`), with style suite unchanged at known pre-existing HUD theme override failure (`16/17`).
 
 ---
 
@@ -692,15 +703,15 @@ Before starting Phase 2, verify:
 - [ ] Verify look-release damping uses axis-specific controls (`look_release_yaw_damping`, `look_release_pitch_damping`) and stop-threshold clamp (`look_release_stop_threshold`)
 - [x] Verify `camera_center` trigger flows through the shared input pipeline and does not bypass `S_InputSystem`/state-driven input contracts
 - [x] Verify centering remains button-only in this phase (no idle auto-center timer behavior)
-- [ ] Verify `S_RoomFadeSystem` is a standalone system with `execution_priority` after `S_VCamSystem` (not embedded inside `S_VCamSystem`)
-- [ ] Verify room fade dot product uses `dot(-camera_basis.z, wall_outward_normal)` convention (positive = camera looking at back side)
-- [ ] Verify `C_RoomFadeGroupComponent.fade_normal` is author-placed in local space, not auto-detected from mesh geometry
-- [ ] Verify `U_RoomFadeMaterialApplier` caches original materials and restores them cleanly on cleanup (follows `U_CharacterLightingMaterialApplier` pattern)
-- [ ] Verify room fading is orbit-only gated: first-person/fixed modes restore all faded geometry immediately
+- [x] Verify `S_RoomFadeSystem` is a standalone system with `execution_priority` after `S_VCamSystem` (not embedded inside `S_VCamSystem`)
+- [x] Verify room fade dot product uses `dot(-camera_basis.z, wall_outward_normal)` convention (positive = camera looking at back side)
+- [x] Verify `C_RoomFadeGroupComponent.fade_normal` is author-placed in local space, not auto-detected from mesh geometry
+- [x] Verify `U_RoomFadeMaterialApplier` caches original materials and restores them cleanly on cleanup (follows `U_CharacterLightingMaterialApplier` pattern)
+- [x] Verify room fading is orbit-only gated: first-person/fixed modes restore all faded geometry immediately
 - [ ] Verify room fading coexists with Phase 10 silhouette occlusion without material/shader conflicts
-- [ ] Verify `sh_room_fade.gdshader` uses `blend_mix` + `depth_draw_opaque` + `ALPHA_SCISSOR_THRESHOLD` for correct transparency
-- [ ] Verify `cfg_default_room_fade.tres` uses `const` preload pattern for mobile compatibility (no runtime directory scanning)
-- [ ] Verify `current_alpha` is clamped to `[min_alpha, 1.0]` and never reaches `0.0` (always slightly visible for visual grounding)
+- [x] Verify `sh_room_fade.gdshader` uses `blend_mix` + `depth_draw_opaque` + `ALPHA_SCISSOR_THRESHOLD` for correct transparency
+- [x] Verify `cfg_default_room_fade.tres` uses `const` preload pattern for mobile compatibility (no runtime directory scanning)
+- [x] Verify `current_alpha` is clamped to `[min_alpha, 1.0]` and never reaches `0.0` (always slightly visible for visual grounding)
 
 ---
 

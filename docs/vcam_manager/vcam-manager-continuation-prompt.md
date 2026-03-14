@@ -4,17 +4,36 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, and the post-`0f51c36` orbit retune doc/test catch-up pass are complete as of March 14, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning plus ground-relative dual-anchor behavior, orbit release-smoothing enhancement with axis-specific damping + stop-threshold clamping, orbit button recenter pipeline + interpolation landing, room-fade data-layer resource/component scaffolding, scene parity fixes for interior/exterior vCam runtime wiring, active-vCam `fov` -> `C_CameraStateComponent.base_fov` sync, balanced orbit/gamepad default retuning, movement-style look smoothing for orbit/first-person rotation, response-tuned look-activity filtering plus speed-aware orbit follow bypass hysteresis, and explicit regression coverage for tuned response presets + authored-scene debug logging defaults). Next implementation target is Orbit `2C10` room-fade system/material/shader work, then Orbit `2C11` integration/manual QA.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, and the post-`0f51c36` orbit retune doc/test catch-up pass are complete as of March 14, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning plus ground-relative dual-anchor behavior, orbit release-smoothing enhancement with axis-specific damping + stop-threshold clamping, orbit button recenter pipeline + interpolation landing, room-fade data-layer resource/component scaffolding, room-fade shader/material/system runtime logic with orbit-only gating and non-orbit restoration, scene parity fixes for interior/exterior vCam runtime wiring, active-vCam `fov` -> `C_CameraStateComponent.base_fov` sync, balanced orbit/gamepad default retuning, movement-style look smoothing for orbit/first-person rotation, response-tuned look-activity filtering plus speed-aware orbit follow bypass hysteresis, and explicit regression coverage for tuned response presets + authored-scene debug logging defaults). Next implementation target is Orbit `2C11` integration/manual QA, then mobile drag-look/touch gating prerequisite work.
 
 ## Next Planned Work (March 14, 2026)
 
-- Orbit follow-up backlog `2C9` is now complete in `docs/vcam_manager/vcam-orbit-tasks.md`.
+- Orbit follow-up backlog `2C10` is now complete in `docs/vcam_manager/vcam-orbit-tasks.md`.
 - Immediate implementation target:
-  - Orbit `2C10` room-fade logic/rendering (`S_RoomFadeSystem` + `U_RoomFadeMaterialApplier` + `sh_room_fade.gdshader`)
-- Then:
   - Orbit `2C11` room-fade integration/manual QA
+- Then:
   - mobile drag-look/touch gating prerequisite work
   - Phase 9 first-person feel
+
+## Orbit Room Fade Runtime (Phase 2C10, March 14, 2026)
+
+- Added room-fade runtime/rendering stack:
+  - `assets/shaders/sh_room_fade.gdshader`
+  - `scripts/utils/lighting/u_room_fade_material_applier.gd`
+  - `scripts/ecs/systems/s_room_fade_system.gd`
+- Runtime contracts implemented:
+  - `sh_room_fade.gdshader` uses `blend_mix` + `depth_draw_opaque`, room-fade uniforms (`fade_alpha`, `albedo_texture`, `albedo_color`), and alpha scissor cutoff.
+  - `U_RoomFadeMaterialApplier` caches/restores `material_override`, resolves source albedo (`material_override` -> surface override -> mesh surface), applies shader overrides, and updates per-target `fade_alpha`.
+  - `S_RoomFadeSystem` runs as a standalone post-vCam system (`execution_priority = 110`), resolves camera from `camera_manager.get_main_camera()` with `Viewport.get_camera_3d()` fallback, gates to orbit via `state.vcam.active_mode`, computes fade using `dot(-camera_basis.z, wall_normal)`, and restores groups/materials immediately outside orbit mode.
+- Added regression coverage:
+  - `tests/unit/lighting/test_room_fade_material_applier.gd` (`6/6` passing)
+  - `tests/unit/ecs/systems/test_room_fade_system.gd` (`12/12` passing)
+- Validation run:
+  - `tests/unit/resources/display/vcam/test_room_fade_settings.gd` (`7/7` passing)
+  - `tests/unit/ecs/components/test_room_fade_group_component.gd` (`11/11` passing)
+  - `tests/unit/lighting/test_room_fade_material_applier.gd` (`6/6` passing)
+  - `tests/unit/ecs/systems/test_room_fade_system.gd` (`12/12` passing)
+  - `tests/unit/style/test_style_enforcement.gd` (`16/17` passing; pre-existing inline theme override failure in `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## Orbit Room Fade Data Layer (Phase 2C9, March 14, 2026)
 
@@ -448,8 +467,8 @@
 ## What Changed In The Docs
 
 - Runtime wiring is now explicit: `M_VCamManager` belongs in `scenes/root.tscn`, and `S_VCamSystem` belongs in gameplay system trees.
-- vCam top-level docs are now status-aligned: overview/PRD/task index/continuation now mark Phases 2A-5 plus 6A/6B/6A2/6A.3/6A3a/6A3b/6A3c and Phase 8 orbit feel/data subphases 2C1-2C9 complete.
-- Orbit follow-up backlog planning is now explicit: `docs/vcam_manager/vcam-orbit-tasks.md` now marks `2C9` complete and sets `2C10` room-fade logic/rendering as the immediate next implementation target.
+- vCam top-level docs are now status-aligned: overview/PRD/task index/continuation now mark Phases 2A-5 plus 6A/6B/6A2/6A.3/6A3a/6A3b/6A3c and Phase 8 orbit feel/data/runtime subphases 2C1-2C10 complete.
+- Orbit follow-up backlog planning is now explicit: `docs/vcam_manager/vcam-orbit-tasks.md` now marks `2C10` complete and sets `2C11` room-fade integration/manual QA as the immediate next implementation target.
 - `S_VCamSystem` baseline contract is now implementation-backed: manager resolution, target resolution fallback order, blend-aware active/outgoing evaluation, and same-frame submission are in code/tests.
 - `S_VCamSystem` response-smoothing contract is now implementation-backed: `RS_VCamResponse` drives position/rotation second-order smoothing, response-null passthrough keeps backward compatibility, and mode/target/response transitions reset or recreate smoothing state deterministically.
 - `S_VCamSystem` movement-style look smoothing contract is now implementation-backed for orbit/first-person: runtime yaw/pitch remain raw targets on `C_VCamComponent`, evaluator rotation is fed by per-vCam spring-damper look state, and fixed-mode rotation smoothing remains owned by response smoothing.
@@ -523,6 +542,7 @@
 - `scripts/ecs/systems/s_input_system.gd`
 - `scripts/ecs/systems/s_touchscreen_system.gd`
 - `scripts/ecs/systems/s_vcam_system.gd`
+- `scripts/ecs/systems/s_room_fade_system.gd`
 - `scripts/input/u_input_map_bootstrapper.gd`
 - `scripts/ecs/systems/s_camera_state_system.gd` (QB rule context, FOV composition, shake trauma)
 - `scripts/ecs/components/c_camera_state_component.gd` (base_fov, target_fov, shake_trauma API)
@@ -539,6 +559,7 @@
 - `scripts/ui/overlays/ui_input_rebinding_overlay.gd`
 - `scripts/ui/settings/ui_vfx_settings_overlay.gd`
 - `scripts/resources/input/rs_touchscreen_settings.gd`
+- `scripts/utils/lighting/u_room_fade_material_applier.gd`
 - `resources/localization/cfg_locale_en_ui.tres`
 - `resources/localization/cfg_locale_es_ui.tres`
 - `resources/localization/cfg_locale_ja_ui.tres`
@@ -548,6 +569,8 @@
 - `tests/unit/input/test_input_map.gd`
 - `tests/unit/ecs/systems/test_input_system.gd`
 - `tests/unit/ecs/systems/test_vcam_system.gd`
+- `tests/unit/ecs/systems/test_room_fade_system.gd`
+- `tests/unit/lighting/test_room_fade_material_applier.gd`
 - `tests/unit/qb/test_camera_state_system.gd`
 - `tests/unit/ui/test_touchscreen_settings_overlay_localization.gd`
 - `tests/unit/ui/test_input_rebinding_overlay.gd`
@@ -559,13 +582,12 @@
 
 ## Next Steps
 
-1. Implement Orbit `2C10` room-fade logic/rendering: add `S_RoomFadeSystem`, `U_RoomFadeMaterialApplier`, and `sh_room_fade.gdshader` as a standalone post-vCam evaluation system.
-2. Implement Orbit `2C11` integration/manual QA: wire scene-authoring usage, integration tests, and manual validation checklist for room fade coexistence with silhouettes.
-3. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
-4. Start Phase 9 first-person feel (`docs/vcam_manager/vcam-fps-tasks.md`): strafe tilt, head bob, and landing head dip on top of the existing response pipeline.
-5. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
-6. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
-7. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+1. Implement Orbit `2C11` integration/manual QA: add `test_room_fade_integration.gd`, verify coexistence with silhouettes, and complete room-fade manual validation/polish checks.
+2. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
+3. Start Phase 9 first-person feel (`docs/vcam_manager/vcam-fps-tasks.md`): strafe tilt, head bob, and landing head dip on top of the existing response pipeline.
+4. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
+5. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
+6. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 
