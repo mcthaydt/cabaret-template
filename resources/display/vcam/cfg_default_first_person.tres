@@ -4,3 +4,6 @@
 
 [resource]
 script = ExtResource("1_7n0w2")
+head_offset = Vector3(0, 2.4, -0.2)
+pitch_min = -60.0
+pitch_max = 60.0

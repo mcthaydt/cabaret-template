@@ -63,6 +63,7 @@
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="73_room_fade_group_component"]
 [ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="74_room_fade_system"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="75_base_ecs_entity"]
+[ext_resource type="Resource" uid="uid://c4bl8t15fyjgg" path="res://resources/display/vcam/cfg_default_first_person.tres" id="76_vcam_first_person_mode"]
 
 [sub_resource type="Environment" id="Environment_interior_a"]
 background_mode = 1
@@ -895,5 +896,8 @@ fov = 65.0
 
 [node name="Components" parent="Entities/E_CameraRoot" index="1" unique_id=1874295737]
 script = ExtResource("60_txck2")
+
+[node name="C_VCamComponent" parent="Entities/E_CameraRoot/Components" index="1" unique_id=1905097927]
+mode = ExtResource("76_vcam_first_person_mode")
 
 [editable path="Entities/E_CameraRoot"]
