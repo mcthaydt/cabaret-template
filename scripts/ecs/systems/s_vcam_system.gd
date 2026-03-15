@@ -1371,7 +1371,10 @@ func _update_runtime_rotation(
 		var previous_fp_yaw: float = component.runtime_yaw
 		var previous_fp_pitch: float = component.runtime_pitch
 		component.runtime_yaw += look_input.x * look_multiplier
-		component.runtime_pitch += look_input.y * look_multiplier
+		var pitch_delta: float = look_input.y * look_multiplier
+		if mode_script == RS_VCAM_MODE_OTS_SCRIPT:
+			pitch_delta *= -1.0
+		component.runtime_pitch += pitch_delta
 		var mode_label: String = "first_person" if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT else "ots"
 		_debug_log_rotation(
 			vcam_id,
