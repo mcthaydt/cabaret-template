@@ -643,7 +643,7 @@ Before starting Phase 3, verify:
 - [x] Verify sprint disable checked before speed calculation
 - [x] Verify all state reverts on mode switch
 - [x] Verify aim input works on gamepad (L2/LT), mouse (right-click), and mobile (long press)
-- [ ] Verify long press excludes joystick touch area on mobile
+- [x] Verify long press excludes joystick touch area on mobile
 - [x] Verify reticle fade syncs with `aim_blend_duration`
 - [x] Verify blend duration read from OTS resource, not hardcoded
 
@@ -681,15 +681,15 @@ Before starting Phase 3, verify:
 
 ### Cross-Cutting Checks (OTS)
 
-- [ ] Verify `RS_VCamModeOTS` resource can be assigned to `C_VCamComponent.mode` export (type compatibility)
-- [ ] Verify OTS evaluator does not import or depend on any scene-tree nodes beyond the passed `follow_target`
-- [ ] Verify evaluator remains fully static (no instance state, no side effects) after adding OTS branch
-- [ ] Verify `cfg_default_ots.tres` loads on both desktop and mobile (no runtime directory scanning)
-- [ ] Verify OTS evaluation handles edge case: `pitch_min == pitch_max` (locked vertical angle) without crash
-- [ ] Verify OTS evaluation handles edge case: `shoulder_offset = Vector3.ZERO` (camera directly behind entity) works correctly
-- [ ] Verify `look_multiplier` field exists on resource but is NOT consumed by the evaluator (consumed later by `S_VCamSystem` in Phase 6)
-- [ ] Verify pitch clamping happens inside the evaluator, not deferred to `S_VCamSystem`
-- [ ] Verify orbit evaluation still works identically after OTS branch is added (no shared state pollution)
+- [x] Verify `RS_VCamModeOTS` resource can be assigned to `C_VCamComponent.mode` export (type compatibility)
+- [x] Verify OTS evaluator does not import or depend on any scene-tree nodes beyond the passed `follow_target`
+- [x] Verify evaluator remains fully static (no instance state, no side effects) after adding OTS branch
+- [x] Verify `cfg_default_ots.tres` loads on both desktop and mobile (no runtime directory scanning)
+- [x] Verify OTS evaluation handles edge case: `pitch_min == pitch_max` (locked vertical angle) without crash
+- [x] Verify OTS evaluation handles edge case: `shoulder_offset = Vector3.ZERO` (camera directly behind entity) works correctly
+- [x] Verify `look_multiplier` field exists on resource but is NOT consumed by the evaluator (consumed later by `S_VCamSystem` in Phase 6)
+- [x] Verify pitch clamping happens inside the evaluator, not deferred to `S_VCamSystem`
+- [x] Verify orbit evaluation still works identically after OTS branch is added (no shared state pollution)
 
 ---
 
