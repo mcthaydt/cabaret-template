@@ -258,6 +258,11 @@
 - **Do not consume `look_multiplier` in evaluator helpers**: Evaluator functions should only convert resolved runtime yaw/pitch inputs into transforms. Applying `look_multiplier` in evaluator code double-scales input and diverges from shared input pipeline behavior.
   - **Fix pattern**: keep `look_multiplier` application in `S_VCamSystem` when updating component runtime rotation state; evaluator consumes already-computed runtime angles.
 
+## vCam OTS Collision Pitfalls
+
+- **`cast_motion(...)` spherecasts can miss near-wall cases when the probe starts already intersecting geometry**: In tight OTS framing, the cast origin can begin overlapping an obstacle. Relying only on motion sweep can report no hit, so the camera fails to clamp and clips.
+  - **Fix pattern**: run an initial-overlap `intersect_shape(...)` check at cast origin before `cast_motion(...)`; treat overlap as hit-distance `0.0`, then apply minimum-distance floor logic.
+
 ## vCam Fixed Evaluator Pitfalls
 
 - **Do not apply player look input (`runtime_yaw`/`runtime_pitch`) in fixed mode**: Fixed cameras are authored/architectural viewpoints. Letting runtime look rotate fixed evaluations breaks mode boundaries and causes cross-mode carryover bugs.

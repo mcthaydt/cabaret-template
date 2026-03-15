@@ -4,15 +4,16 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset is in progress: Phases 3A (`RS_VCamModeOTS` resource) and 3B (OTS evaluator + default preset) are now complete (March 15, 2026); next target is Phase 3C OTS game feel.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset is in progress: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), and 3C1 (OTS collision avoidance) are now complete (March 15, 2026); next target is Phase 3C2 shoulder sway.
 
 ## Next Planned Work (March 15, 2026)
 
 - Orbit follow-up backlog `2C11` is now complete in `docs/vcam_manager/vcam-orbit-tasks.md`.
 - Mobile drag-look/touch gating prerequisites are complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
 - Phase 3 reset: first-person camera mode replaced with RE4-style OTS (over-the-shoulder). Phase 9 game feel also reset for OTS-specific features.
+- Phase 3C1 collision avoidance is now complete in `S_VCamSystem` with unit coverage and no-op regression gating.
 - Immediate implementation target:
-  - Phase 3C1: OTS collision avoidance in `S_VCamSystem` (`docs/vcam_manager/vcam-ots-tasks.md`)
+  - Phase 3C2: OTS shoulder sway in `S_VCamSystem` (`docs/vcam_manager/vcam-ots-tasks.md`)
 
 ## OTS Mode Replacement (March 14, 2026)
 
@@ -58,6 +59,33 @@
 - Validation run:
   - `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (`14/14`)
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (`49/49`)
+  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
+  - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
+
+## OTS Collision Avoidance (Phase 3C1, March 15, 2026)
+
+- Added OTS collision-avoidance pass in `S_VCamSystem`:
+  - new pipeline step `_apply_ots_collision_avoidance(...)` runs after evaluator output and before downstream submission.
+  - mode-gated to `RS_VCamModeOTS` (non-OTS modes are strict no-ops and clear stale collision state).
+- Collision query/runtime contract implemented:
+  - collision checks run against gameplay physics space via `follow_target.get_world_3d().direct_space_state`.
+  - spherecast path uses `PhysicsDirectSpaceState3D.cast_motion(...)` with `collision_probe_radius`.
+  - initial-overlap guard uses `intersect_shape(...)` (treat overlap as hit-distance `0.0`).
+  - zero-radius fallback uses raycast.
+  - on hit, distance clamps to `hit_distance - collision_probe_radius` with minimum distance floor (`0.1`).
+- Recovery/runtime state implemented:
+  - per-vCam `_ots_collision_state` tracks `follow_target_id`, `recovery_speed_hz`, `current_distance`, and reused `U_SecondOrderDynamics`.
+  - recovery is smooth when obstruction clears; hit frames clamp immediately to avoid clipping.
+  - stale-vCam prune and non-OTS paths clear collision state.
+- New/updated coverage in `tests/unit/ecs/systems/test_vcam_system.gd`:
+  - no-collision full-distance behavior
+  - obstructed clamp behavior
+  - probe-radius off-axis sensitivity behavior
+  - minimum-distance floor behavior
+  - smooth recovery-after-clear behavior
+  - orbit/fixed no-op gating behavior
+- Validation run:
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`107/107`)
   - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
@@ -623,6 +651,7 @@
 - `S_VCamSystem` movement-style look smoothing contract is now implementation-backed for orbit/OTS: runtime yaw/pitch remain raw targets on `C_VCamComponent`, evaluator rotation is fed by per-vCam spring-damper look state, and fixed-mode rotation smoothing remains owned by response smoothing.
 - _`RS_VCamModeFirstPerson` strafe-tilt authoring contract was implementation-backed but is now superseded by OTS mode replacement (March 14, 2026)._
 - _`S_VCamSystem` first-person strafe-tilt runtime contract was implementation-backed for Phase 9/3C1 but is now superseded by OTS shoulder sway (March 14, 2026)._
+- `S_VCamSystem` OTS collision-avoidance contract is now implementation-backed for Phase 3C1: gameplay-world spherecast + initial-overlap guard, per-vCam collision distance state (`_ots_collision_state`), immediate hit clamping with minimum distance floor, smooth recovery via `U_SecondOrderDynamics`, and non-OTS/stale-vCam state cleanup.
 - `RS_VCamResponse` orbit-feel contract is now implementation-backed: `look_ahead_distance`, `look_ahead_smoothing`, `auto_level_speed`, and `auto_level_delay` are authored/clamped fields with defaults persisted in `cfg_default_response.tres`.
 - `S_VCamSystem` rotation-continuity contract is now implementation-backed: active-vCam switches apply transition-aware carry/reset/reseed of `runtime_yaw`/`runtime_pitch`, with same-target carry in same-mode transitions and authored-angle reseed when targets differ.
 - `S_VCamSystem` orbit game-feel contract is now implementation-backed for Phase 2C1-2C5: look-ahead offsets are applied before main response smoothing using per-vCam movement-velocity state (not follow-target transform deltas), auto-level pitch recentering is orbit-only with delayed activation and look-input reset behavior, and projection-based soft-zone correction (with per-vCam dead-zone hysteresis state) is applied before response smoothing.
@@ -735,7 +764,7 @@
 
 ## Next Steps
 
-1. Implement Phase 3C OTS game feel (`docs/vcam_manager/vcam-ots-tasks.md`) starting with 3C1 collision avoidance, then 3C2 shoulder sway, then 3C3 landing camera response.
+1. Continue Phase 3C OTS game feel (`docs/vcam_manager/vcam-ots-tasks.md`) with 3C2 shoulder sway, then 3C3 landing camera response.
 2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
 3. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
 4. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.

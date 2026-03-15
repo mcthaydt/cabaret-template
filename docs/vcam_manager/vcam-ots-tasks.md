@@ -257,7 +257,7 @@ Before starting Phase 3, verify:
 
 > **Why:** The camera sits close behind the character, so wall/obstacle collision is the most visible OTS artifact. A spherecast from the follow target toward the desired camera position detects obstructions, and the camera distance is clamped to prevent clipping. Smooth recovery via second-order dynamics prevents the camera from snapping back when the obstruction clears.
 
-- [ ] **Task 3C1.1**: Add collision avoidance fields to RS_VCamModeOTS
+- [x] **Task 3C1.1**: Add collision avoidance fields to RS_VCamModeOTS
   - Fields already present from 3A.2:
     - `collision_probe_radius: float = 0.15` — spherecast radius for collision avoidance
     - `collision_recovery_speed: float = 8.0` — Hz for distance recovery after obstruction clears
@@ -265,8 +265,9 @@ Before starting Phase 3, verify:
   - Test `collision_probe_radius` must be non-negative
   - Test `collision_recovery_speed` must be positive
   - **Target: ~4 tests**
+  - **Completion note (March 15, 2026):** Coverage already existed in `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`test_collision_probe_radius_default_is_zero_point_fifteen`, clamp behavior, and positive recovery-speed behavior).
 
-- [ ] **Task 3C1.2 (Red)**: Write tests for collision avoidance in S_VCamSystem
+- [x] **Task 3C1.2 (Red)**: Write tests for collision avoidance in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test no collision: camera stays at full `camera_distance`
   - Test wall between target and camera: camera distance clamps to hit point minus margin
@@ -277,8 +278,9 @@ Before starting Phase 3, verify:
   - Test collision avoidance is a no-op for orbit and fixed modes
   - Test collision avoidance uses gameplay `World3D` physics space
   - **Target: ~8 tests**
+  - **Completion note (March 15, 2026):** Added 6 `S_VCamSystem` coverage tests for no-collision, obstruction clamp, probe-radius sensitivity, minimum-distance floor, recovery-after-clear, and non-OTS no-op gating.
 
-- [ ] **Task 3C1.3 (Green)**: Implement collision avoidance in S_VCamSystem
+- [x] **Task 3C1.3 (Green)**: Implement collision avoidance in S_VCamSystem
   - Spherecast from follow target toward desired camera position
   - If hit, clamp distance to `hit_distance - margin`
   - Smooth recovery via `U_SecondOrderDynamics` at `collision_recovery_speed` Hz
@@ -314,6 +316,14 @@ Before starting Phase 3, verify:
   # Reposition camera at smooth_distance along cast direction
   result.transform.origin = target_pos + cast_dir * smooth_distance
   ```
+  - **Completion note (March 15, 2026):**
+    - `S_VCamSystem` now runs OTS-only collision adjustment in `_apply_ots_collision_avoidance(...)` after evaluator output and before downstream submission.
+    - Collision queries use `follow_target.get_world_3d().direct_space_state` with spherecast (`cast_motion`) plus initial-overlap handling (`intersect_shape`) and ray fallback for zero probe radius.
+    - Runtime state is tracked per-vCam in `_ots_collision_state` (`follow_target_id`, `recovery_speed_hz`, `current_distance`, `dynamics`) and is cleared on non-OTS mode and stale-vCam prune paths.
+  - **Validation run (March 15, 2026):**
+    - `tests/unit/ecs/systems/test_vcam_system.gd` (`107/107`)
+    - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
+    - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ---
 
@@ -419,15 +429,15 @@ Before starting Phase 3, verify:
 
 ### Cross-Cutting Checks (OTS Game Feel)
 
-- [ ] Verify collision avoidance spherecast uses gameplay `World3D` physics space
-- [ ] Verify collision avoidance minimum distance floor prevents camera passing through character
-- [ ] Verify collision avoidance dynamics reset on mode switch (no residual state)
+- [x] Verify collision avoidance spherecast uses gameplay `World3D` physics space
+- [x] Verify collision avoidance minimum distance floor prevents camera passing through character
+- [x] Verify collision avoidance dynamics reset on mode switch (no residual state)
 - [ ] Verify shoulder sway is gated to OTS mode only (no-op for orbit and fixed)
 - [ ] Verify shoulder sway reads lateral input from the same `gameplay.move_input` used by movement systems
 - [ ] Verify shoulder sway dynamics reset on mode switch (no residual roll from previous mode)
 - [ ] Verify landing camera response stacks with shared landing impact (both apply simultaneously)
 - [ ] Verify landing camera response is gated to OTS mode only
-- [ ] Verify all OTS game feel dynamics instances are pre-created and reused (zero per-frame allocations)
+- [x] Verify all OTS game feel dynamics instances are pre-created and reused (zero per-frame allocations)
 
 ---
 
