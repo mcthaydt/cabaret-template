@@ -178,8 +178,11 @@ static func _evaluate_ots(
 	var shoulder_offset: Vector3 = resolved_values.get("shoulder_offset", Vector3.ZERO) as Vector3
 	var rotated_offset: Vector3 = shoulder_offset.rotated(Vector3.UP, yaw_rad)
 	var camera_distance: float = float(resolved_values.get("camera_distance", 0.0))
-	var back_direction: Vector3 = basis.z
-	var camera_position: Vector3 = follow_target.global_position + rotated_offset + (back_direction * camera_distance)
+	var pitch_influence: float = float(resolved_values.get("pitch_position_influence", 0.2))
+	var yaw_back: Vector3 = Basis.IDENTITY.rotated(Vector3.UP, yaw_rad).z
+	var full_back: Vector3 = basis.z
+	var position_back: Vector3 = yaw_back.lerp(full_back, pitch_influence).normalized()
+	var camera_position: Vector3 = follow_target.global_position + rotated_offset + (position_back * camera_distance)
 	return {
 		"transform": Transform3D(basis, camera_position),
 		"fov": float(resolved_values.get("fov", 60.0)),
@@ -199,6 +202,7 @@ static func _resolve_ots_values(mode: Resource) -> Dictionary:
 		resolved_values = {
 			"shoulder_offset": mode.get("shoulder_offset"),
 			"camera_distance": maxf(float(mode.get("camera_distance")), 0.0),
+			"pitch_position_influence": clampf(float(mode.get("pitch_position_influence")), 0.0, 1.0),
 			"pitch_min": minf(fallback_pitch_min, fallback_pitch_max),
 			"pitch_max": maxf(fallback_pitch_min, fallback_pitch_max),
 			"fov": clampf(float(mode.get("fov")), 1.0, 179.0),

@@ -49,7 +49,8 @@ func _compute_expected_ots_transform(
 	shoulder_offset: Vector3,
 	camera_distance: float,
 	runtime_yaw: float,
-	runtime_pitch: float
+	runtime_pitch: float,
+	pitch_position_influence: float = 0.2
 ) -> Transform3D:
 	var yaw_rad: float = deg_to_rad(runtime_yaw)
 	var pitch_rad: float = deg_to_rad(runtime_pitch)
@@ -57,7 +58,10 @@ func _compute_expected_ots_transform(
 	basis = basis.rotated(Vector3.UP, yaw_rad)
 	basis = basis.rotated(basis.x, pitch_rad)
 	var rotated_offset: Vector3 = shoulder_offset.rotated(Vector3.UP, yaw_rad)
-	var origin: Vector3 = follow_position + rotated_offset + (basis.z * camera_distance)
+	var yaw_back: Vector3 = Basis.IDENTITY.rotated(Vector3.UP, yaw_rad).z
+	var full_back: Vector3 = basis.z
+	var position_back: Vector3 = yaw_back.lerp(full_back, pitch_position_influence).normalized()
+	var origin: Vector3 = follow_position + rotated_offset + (position_back * camera_distance)
 	return Transform3D(basis, origin)
 
 func test_orbit_returns_transform() -> void:
@@ -699,6 +703,65 @@ func test_fixed_use_path_ignores_follow_offset_and_use_world_anchor_flags() -> v
 	assert_almost_eq(camera_transform.origin.x, 7.0, 0.001)
 	assert_almost_eq(camera_transform.origin.y, 8.0, 0.001)
 	assert_almost_eq(camera_transform.origin.z, 9.0, 0.001)
+
+func test_ots_pitch_influence_zero_keeps_camera_at_same_y_regardless_of_pitch() -> void:
+	var follow_target: Node3D = _new_follow_target(Vector3(0.0, 0.0, 0.0))
+	var mode: Resource = _new_ots_mode()
+	mode.set("pitch_position_influence", 0.0)
+	mode.set("shoulder_offset", Vector3(0.3, 1.6, -0.5))
+	mode.set("camera_distance", 1.8)
+
+	var result_flat: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+	var result_down: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, -60.0)
+	var y_flat: float = (result_flat.get("transform", Transform3D.IDENTITY) as Transform3D).origin.y
+	var y_down: float = (result_down.get("transform", Transform3D.IDENTITY) as Transform3D).origin.y
+
+	assert_almost_eq(y_flat, y_down, 0.001)
+
+func test_ots_pitch_influence_one_matches_full_pitch_position() -> void:
+	var follow_pos := Vector3(5.0, 0.0, 10.0)
+	var follow_target: Node3D = _new_follow_target(follow_pos)
+	var mode: Resource = _new_ots_mode()
+	mode.set("pitch_position_influence", 1.0)
+	mode.set("shoulder_offset", Vector3(0.3, 1.6, -0.5))
+	mode.set("camera_distance", 1.8)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 45.0, -30.0)
+	var transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var expected: Transform3D = _compute_expected_ots_transform(
+		follow_pos, Vector3(0.3, 1.6, -0.5), 1.8, 45.0, -30.0, 1.0
+	)
+
+	assert_almost_eq(transform.origin.x, expected.origin.x, 0.001)
+	assert_almost_eq(transform.origin.y, expected.origin.y, 0.001)
+	assert_almost_eq(transform.origin.z, expected.origin.z, 0.001)
+
+func test_ots_basis_identical_regardless_of_pitch_influence() -> void:
+	var follow_target: Node3D = _new_follow_target(Vector3(0.0, 0.0, 0.0))
+	var mode_low: Resource = _new_ots_mode()
+	mode_low.set("pitch_position_influence", 0.0)
+	var mode_high: Resource = _new_ots_mode()
+	mode_high.set("pitch_position_influence", 1.0)
+
+	var result_low: Dictionary = EVALUATOR_SCRIPT.evaluate(mode_low, follow_target, null, 30.0, -45.0)
+	var result_high: Dictionary = EVALUATOR_SCRIPT.evaluate(mode_high, follow_target, null, 30.0, -45.0)
+	var basis_low: Basis = (result_low.get("transform", Transform3D.IDENTITY) as Transform3D).basis
+	var basis_high: Basis = (result_high.get("transform", Transform3D.IDENTITY) as Transform3D).basis
+
+	_assert_basis_matches(basis_low, basis_high)
+
+func test_ots_default_influence_keeps_camera_above_one_meter_at_steep_pitch() -> void:
+	var follow_target: Node3D = _new_follow_target(Vector3(0.0, 0.0, 0.0))
+	var mode: Resource = _new_ots_mode()
+	mode.set("shoulder_offset", Vector3(0.3, 1.6, -0.5))
+	mode.set("camera_distance", 1.8)
+	mode.set("pitch_min", -60.0)
+	mode.set("pitch_max", 50.0)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, -60.0)
+	var camera_y: float = (result.get("transform", Transform3D.IDENTITY) as Transform3D).origin.y
+
+	assert_true(camera_y > 1.0, "Camera should stay above 1.0m at -60 pitch with default influence")
 
 func test_fixed_tracking_handles_zero_length_direction_without_nan() -> void:
 	var mode: Resource = _new_fixed_mode()

@@ -12,6 +12,7 @@ const DEFAULT_LANDING_DIP_RECOVERY_SPEED: float = 6.0
 
 @export var shoulder_offset: Vector3 = Vector3(0.3, 1.6, -0.5)
 @export var camera_distance: float = 1.8
+@export var pitch_position_influence: float = 0.2
 @export var look_multiplier: float = 1.0
 @export var pitch_min: float = -60.0
 @export var pitch_max: float = 50.0
@@ -33,6 +34,7 @@ func get_resolved_values() -> Dictionary:
 	return {
 		"shoulder_offset": shoulder_offset,
 		"camera_distance": maxf(camera_distance, 0.0),
+		"pitch_position_influence": clampf(pitch_position_influence, 0.0, 1.0),
 		"look_multiplier": maxf(look_multiplier, MIN_LOOK_MULTIPLIER),
 		"pitch_min": resolved_pitch_min,
 		"pitch_max": resolved_pitch_max,

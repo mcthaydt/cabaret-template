@@ -25,6 +25,22 @@ func test_camera_distance_default_is_one_point_eight() -> void:
 	var mode: Resource = _new_mode()
 	assert_almost_eq(float(mode.get("camera_distance")), 1.8, 0.0001)
 
+func test_pitch_position_influence_default_is_zero_point_two() -> void:
+	var mode: Resource = _new_mode()
+	assert_almost_eq(float(mode.get("pitch_position_influence")), 0.2, 0.0001)
+
+func test_pitch_position_influence_clamps_to_zero_floor() -> void:
+	var mode: Resource = _new_mode()
+	mode.set("pitch_position_influence", -0.5)
+	var resolved: Dictionary = _resolved(mode)
+	assert_almost_eq(float(resolved.get("pitch_position_influence", 1.0)), 0.0, 0.0001)
+
+func test_pitch_position_influence_clamps_to_one_ceiling() -> void:
+	var mode: Resource = _new_mode()
+	mode.set("pitch_position_influence", 2.0)
+	var resolved: Dictionary = _resolved(mode)
+	assert_almost_eq(float(resolved.get("pitch_position_influence", 0.0)), 1.0, 0.0001)
+
 func test_look_multiplier_default_is_one() -> void:
 	var mode: Resource = _new_mode()
 	assert_almost_eq(float(mode.get("look_multiplier")), 1.0, 0.0001)
