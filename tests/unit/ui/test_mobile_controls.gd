@@ -328,7 +328,7 @@ func test_aim_long_press_state_clears_on_release() -> void:
 	_press_mobile_touch(controls, 75, press_position)
 	await get_tree().create_timer(UI_MobileControls.AIM_LONG_PRESS_THRESHOLD_SEC - 0.1).timeout
 	_release_mobile_touch(controls, 75, press_position)
-	assert_false(controls.consume_aim_pressed(), "Short press after long-press toggle should not toggle aim off")
+	assert_true(controls.consume_aim_pressed(), "Aim should still be ON — short press should not toggle aim off")
 
 func test_aim_long_press_drift_within_tolerance_still_triggers() -> void:
 	var store := await _create_state_store()
