@@ -18,12 +18,14 @@ const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_mov
 const C_CHARACTER_STATE_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
+const RS_VCAM_MODE_OTS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
 const RS_VCAM_MODE_FIXED_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
+const OTS_MIN_CAMERA_DISTANCE: float = 0.1
 const LOOK_AHEAD_MOVEMENT_EPSILON_SQ: float = 0.000001
 const IDLE_LOOK_SETTLE_DEG_PER_HZ: float = 20.0
 const MIN_IDLE_LOOK_SETTLE_DEG_PER_SEC: float = 45.0
@@ -54,6 +56,7 @@ var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped 
 var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
 var _ground_relative_state: Dictionary = {}  # StringName -> {follow_target_id, ground_anchor_y, ground_anchor_target_y, follow_anchor_y_offset, last_ground_reference_y, was_grounded, blend_hz, dynamics}
 var _first_person_strafe_tilt_state: Dictionary = {}  # StringName -> {dynamics, smoothing_hz}
+var _ots_collision_state: Dictionary = {}  # StringName -> {follow_target_id, recovery_speed_hz, current_distance, dynamics}
 var _look_input_filter_state: Dictionary = {}  # StringName -> {filtered_input, hold_timer_sec, input_active}
 var _follow_target_motion_state: Dictionary = {}  # StringName -> {follow_target_id, last_position, speed_mps}
 var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
@@ -329,6 +332,7 @@ func _evaluate_and_submit(
 	if result.is_empty():
 		return
 	result = _apply_first_person_strafe_tilt(vcam_id, mode, result, move_input, delta)
+	result = _apply_ots_collision_avoidance(vcam_id, mode, follow_target, result, delta)
 	var look_ahead_result: Dictionary = _apply_orbit_look_ahead(
 		vcam_id,
 		component,
@@ -452,6 +456,235 @@ func _ensure_first_person_strafe_tilt_state(vcam_id: StringName, smoothing_hz: f
 
 func _clear_first_person_strafe_tilt_state_for_vcam(vcam_id: StringName) -> void:
 	_first_person_strafe_tilt_state.erase(vcam_id)
+
+func _apply_ots_collision_avoidance(
+	vcam_id: StringName,
+	mode: Resource,
+	follow_target: Node3D,
+	result: Dictionary,
+	delta: float
+) -> Dictionary:
+	if mode == null or result.is_empty():
+		_clear_ots_collision_state_for_vcam(vcam_id)
+		return result
+
+	var mode_script := mode.get_script() as Script
+	if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
+		_clear_ots_collision_state_for_vcam(vcam_id)
+		return result
+	if follow_target == null or not is_instance_valid(follow_target):
+		_clear_ots_collision_state_for_vcam(vcam_id)
+		return result
+
+	var transform_variant: Variant = result.get("transform", null)
+	if not (transform_variant is Transform3D):
+		_clear_ots_collision_state_for_vcam(vcam_id)
+		return result
+	var desired_transform := transform_variant as Transform3D
+	var cast_offset: Vector3 = desired_transform.origin - follow_target.global_position
+	var desired_distance: float = cast_offset.length()
+	if desired_distance <= 0.0:
+		_clear_ots_collision_state_for_vcam(vcam_id)
+		return result
+
+	var world: World3D = follow_target.get_world_3d()
+	if world == null:
+		_clear_ots_collision_state_for_vcam(vcam_id)
+		return result
+	var space_state: PhysicsDirectSpaceState3D = world.direct_space_state
+	if space_state == null:
+		_clear_ots_collision_state_for_vcam(vcam_id)
+		return result
+
+	var mode_values: Dictionary = _resolve_mode_values(mode, {
+		"collision_probe_radius": 0.15,
+		"collision_recovery_speed": 8.0,
+	})
+	var probe_radius: float = maxf(float(mode_values.get("collision_probe_radius", 0.15)), 0.0)
+	var recovery_speed_hz: float = maxf(float(mode_values.get("collision_recovery_speed", 8.0)), 0.0001)
+	var follow_target_id: int = _get_node_instance_id(follow_target)
+	var state: Dictionary = _get_or_create_ots_collision_state(
+		vcam_id,
+		follow_target_id,
+		desired_distance,
+		recovery_speed_hz
+	)
+	var dynamics: Variant = state.get("dynamics", null)
+
+	var hit_data: Dictionary = _resolve_ots_collision_hit_distance(
+		space_state,
+		follow_target,
+		cast_offset,
+		probe_radius
+	)
+	var has_hit: bool = bool(hit_data.get("hit", false))
+	var hit_distance: float = float(hit_data.get("distance", desired_distance))
+	var target_distance: float = desired_distance
+	if has_hit:
+		target_distance = clampf(hit_distance - probe_radius, OTS_MIN_CAMERA_DISTANCE, desired_distance)
+
+	var resolved_distance: float = target_distance
+	if dynamics != null and delta > 0.0:
+		resolved_distance = float(dynamics.step(target_distance, delta))
+	if has_hit:
+		resolved_distance = minf(resolved_distance, target_distance)
+	resolved_distance = clampf(resolved_distance, OTS_MIN_CAMERA_DISTANCE, desired_distance)
+	if is_nan(resolved_distance) or is_inf(resolved_distance):
+		resolved_distance = target_distance
+
+	state["current_distance"] = resolved_distance
+	_ots_collision_state[vcam_id] = state
+
+	var adjusted_transform := desired_transform
+	adjusted_transform.origin = follow_target.global_position + cast_offset.normalized() * resolved_distance
+	var adjusted_result: Dictionary = result.duplicate(true)
+	adjusted_result["transform"] = adjusted_transform
+	return adjusted_result
+
+func _get_or_create_ots_collision_state(
+	vcam_id: StringName,
+	follow_target_id: int,
+	initial_distance: float,
+	recovery_speed_hz: float
+) -> Dictionary:
+	var state_variant: Variant = _ots_collision_state.get(vcam_id, {})
+	var state: Dictionary = {}
+	if state_variant is Dictionary:
+		state = (state_variant as Dictionary).duplicate(true)
+
+	var current_distance: float = maxf(float(state.get("current_distance", initial_distance)), OTS_MIN_CAMERA_DISTANCE)
+	var previous_target_id: int = int(state.get("follow_target_id", 0))
+	var previous_recovery_hz: float = float(state.get("recovery_speed_hz", -1.0))
+	var dynamics: Variant = state.get("dynamics", null)
+	if state.is_empty() or previous_target_id != follow_target_id:
+		current_distance = maxf(initial_distance, OTS_MIN_CAMERA_DISTANCE)
+		dynamics = U_SECOND_ORDER_DYNAMICS.new(recovery_speed_hz, 1.0, 1.0, current_distance)
+	elif dynamics == null or not is_equal_approx(previous_recovery_hz, recovery_speed_hz):
+		dynamics = U_SECOND_ORDER_DYNAMICS.new(recovery_speed_hz, 1.0, 1.0, current_distance)
+
+	state["follow_target_id"] = follow_target_id
+	state["recovery_speed_hz"] = recovery_speed_hz
+	state["current_distance"] = current_distance
+	state["dynamics"] = dynamics
+	return state
+
+func _resolve_ots_collision_hit_distance(
+	space_state: PhysicsDirectSpaceState3D,
+	follow_target: Node3D,
+	cast_offset: Vector3,
+	probe_radius: float
+) -> Dictionary:
+	var cast_distance: float = cast_offset.length()
+	if cast_distance <= 0.0:
+		return {
+			"hit": false,
+			"distance": 0.0,
+		}
+
+	var cast_origin: Vector3 = follow_target.global_position
+	var cast_direction: Vector3 = cast_offset / cast_distance
+	var exclude_rids: Array[RID] = _build_ots_collision_exclude_rids(follow_target)
+	if probe_radius <= 0.0:
+		return _resolve_ots_collision_hit_distance_with_ray(
+			space_state,
+			cast_origin,
+			cast_direction,
+			cast_distance,
+			exclude_rids
+		)
+
+	var shape := SphereShape3D.new()
+	shape.radius = probe_radius
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = shape
+	query.transform = Transform3D(Basis.IDENTITY, cast_origin)
+	query.motion = cast_direction * cast_distance
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.exclude = exclude_rids
+
+	var overlap_query := PhysicsShapeQueryParameters3D.new()
+	overlap_query.shape = shape
+	overlap_query.transform = Transform3D(Basis.IDENTITY, cast_origin)
+	overlap_query.collide_with_areas = false
+	overlap_query.collide_with_bodies = true
+	overlap_query.exclude = exclude_rids
+	var initial_overlaps: Array[Dictionary] = space_state.intersect_shape(overlap_query, 1)
+	if not initial_overlaps.is_empty():
+		return {
+			"hit": true,
+			"distance": 0.0,
+		}
+
+	var motion_result: PackedFloat32Array = space_state.cast_motion(query)
+	if motion_result.size() == 0:
+		return {
+			"hit": false,
+			"distance": cast_distance,
+		}
+	var safe_fraction: float = clampf(float(motion_result[0]), 0.0, 1.0)
+	if safe_fraction >= 1.0:
+		return {
+			"hit": false,
+			"distance": cast_distance,
+		}
+	return {
+		"hit": true,
+		"distance": maxf(cast_distance * safe_fraction, 0.0),
+	}
+
+func _resolve_ots_collision_hit_distance_with_ray(
+	space_state: PhysicsDirectSpaceState3D,
+	cast_origin: Vector3,
+	cast_direction: Vector3,
+	cast_distance: float,
+	exclude_rids: Array[RID]
+) -> Dictionary:
+	var ray_to: Vector3 = cast_origin + cast_direction * cast_distance
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(cast_origin, ray_to)
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.exclude = exclude_rids
+	var hit: Dictionary = space_state.intersect_ray(query)
+	if hit.is_empty():
+		return {
+			"hit": false,
+			"distance": cast_distance,
+		}
+
+	var hit_position_variant: Variant = hit.get("position", ray_to)
+	if not (hit_position_variant is Vector3):
+		return {
+			"hit": false,
+			"distance": cast_distance,
+		}
+	var hit_position := hit_position_variant as Vector3
+	return {
+		"hit": true,
+		"distance": maxf(cast_origin.distance_to(hit_position), 0.0),
+	}
+
+func _build_ots_collision_exclude_rids(follow_target: Node3D) -> Array[RID]:
+	var exclude_rids: Array[RID] = []
+	var entity_root: Node = U_ECS_UTILS.find_entity_root(follow_target)
+	if entity_root != null and is_instance_valid(entity_root):
+		var entity_collision := entity_root as CollisionObject3D
+		if entity_collision != null:
+			exclude_rids.append(entity_collision.get_rid())
+
+	var follow_collision := follow_target as CollisionObject3D
+	if follow_collision != null:
+		var follow_rid: RID = follow_collision.get_rid()
+		if not exclude_rids.has(follow_rid):
+			exclude_rids.append(follow_rid)
+	if exclude_rids.is_empty():
+		var follow_body: CharacterBody3D = _find_character_body_recursive(follow_target)
+		if follow_body != null and is_instance_valid(follow_body):
+			exclude_rids.append(follow_body.get_rid())
+	return exclude_rids
+
+func _clear_ots_collision_state_for_vcam(vcam_id: StringName) -> void:
+	_ots_collision_state.erase(vcam_id)
 
 func _resolve_landing_impact_offset(delta: float) -> Vector3:
 	var camera_state: Object = _resolve_primary_camera_state_component()
@@ -1760,6 +1993,14 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
+	for vcam_id_variant in _ots_collision_state.keys():
+		var vcam_id := vcam_id_variant as StringName
+		if vcam_index.has(vcam_id):
+			continue
+		if stale_ids.has(vcam_id):
+			continue
+		stale_ids.append(vcam_id)
+
 	for vcam_id_variant in _look_input_filter_state.keys():
 		var vcam_id := vcam_id_variant as StringName
 		if vcam_index.has(vcam_id):
@@ -1811,6 +2052,7 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
 		_clear_first_person_strafe_tilt_state_for_vcam(stale_id)
+		_clear_ots_collision_state_for_vcam(stale_id)
 		_orbit_centering_state.erase(stale_id)
 		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
 
@@ -1831,6 +2073,7 @@ func _clear_all_smoothing_state() -> void:
 	_look_ahead_state.clear()
 	_ground_relative_state.clear()
 	_first_person_strafe_tilt_state.clear()
+	_ots_collision_state.clear()
 	_look_input_filter_state.clear()
 	_follow_target_motion_state.clear()
 	_orbit_no_look_input_timers.clear()

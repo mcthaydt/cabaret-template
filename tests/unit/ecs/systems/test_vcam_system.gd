@@ -9,6 +9,7 @@ const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
+const RS_VCAM_MODE_OTS := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
 const RS_VCAM_MODE_FIXED := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 const RS_VCAM_RESPONSE := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 const RS_VCAM_SOFT_ZONE := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
@@ -400,6 +401,219 @@ func test_first_person_strafe_tilt_is_noop_for_orbit_and_fixed_modes() -> void:
 	var fixed_raw_result: Dictionary = _evaluate_raw_result(fixed_mode, fixed_target, fixed_component)
 	var fixed_raw_transform := fixed_raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
 	_assert_transform_close(fixed_submitted, fixed_raw_transform, 0.0001, 0.0001)
+
+func test_ots_collision_avoidance_keeps_full_distance_when_unobstructed() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSNoCollisionTarget", Vector3.ZERO)
+	var mode := _new_ots_mode()
+	mode.shoulder_offset = Vector3.ZERO
+	mode.camera_distance = 4.0
+	mode.collision_probe_radius = 0.2
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_ots_no_collision"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_no_collision")
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_no_collision"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	assert_almost_eq(submitted.origin.distance_to(follow_target.global_position), 4.0, 0.02)
+	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
+
+func test_ots_collision_avoidance_clamps_distance_when_obstructed() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var obstacle := _create_box_obstacle("OTSWall", Vector3(0.0, 0.0, 2.0), Vector3(2.0, 2.0, 0.2))
+	await _pump()
+	await _pump()
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSCollisionTarget", Vector3.ZERO)
+	var mode := _new_ots_mode()
+	mode.shoulder_offset = Vector3.ZERO
+	mode.camera_distance = 4.0
+	mode.collision_probe_radius = 0.15
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_collision"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_collision")
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_collision"))
+	var distance_to_target: float = submitted.origin.distance_to(follow_target.global_position)
+	assert_true(distance_to_target < 3.0, "Collision should clamp distance when wall is behind target")
+	assert_true(distance_to_target >= 0.099, "Clamped distance should stay above the minimum floor")
+	assert_not_null(obstacle)
+
+func test_ots_collision_avoidance_probe_radius_affects_off_axis_obstacles() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	_create_box_obstacle("OTSOffAxis", Vector3(0.30, 0.0, 2.0), Vector3(0.10, 2.0, 0.2))
+	await _pump()
+	await _pump()
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSProbeRadiusTarget", Vector3.ZERO)
+	var small_probe_mode := _new_ots_mode()
+	small_probe_mode.shoulder_offset = Vector3.ZERO
+	small_probe_mode.camera_distance = 4.0
+	small_probe_mode.collision_probe_radius = 0.05
+	var large_probe_mode := _new_ots_mode()
+	large_probe_mode.shoulder_offset = Vector3.ZERO
+	large_probe_mode.camera_distance = 4.0
+	large_probe_mode.collision_probe_radius = 0.40
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_probe_small"), small_probe_mode, follow_target)
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_probe_large"), large_probe_mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_probe_small")
+	ecs_manager._physics_process(0.016)
+	var small_probe_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_probe_small")
+	).origin.distance_to(follow_target.global_position)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_probe_large")
+	ecs_manager._physics_process(0.016)
+	var large_probe_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_probe_large")
+	).origin.distance_to(follow_target.global_position)
+
+	assert_true(small_probe_distance > 3.8, "Small probe should miss this off-axis blocker")
+	assert_true(
+		large_probe_distance < (small_probe_distance - 0.6),
+		"Larger probe radius should detect off-axis blocker and clamp camera distance"
+	)
+
+func test_ots_collision_avoidance_applies_minimum_distance_floor() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	_create_box_obstacle("OTSVeryNearWall", Vector3(0.0, 0.0, 0.04), Vector3(2.0, 2.0, 0.08))
+	await _pump()
+	await _pump()
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSMinFloorTarget", Vector3.ZERO)
+	var mode := _new_ots_mode()
+	mode.shoulder_offset = Vector3.ZERO
+	mode.camera_distance = 1.0
+	mode.collision_probe_radius = 0.25
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_min_floor"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_min_floor")
+	ecs_manager._physics_process(0.016)
+
+	var distance_to_target: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_min_floor")
+	).origin.distance_to(follow_target.global_position)
+	assert_true(distance_to_target >= 0.099, "Collision clamp should honor minimum distance floor")
+	assert_true(
+		distance_to_target < 0.50,
+		"Camera should still pull close when obstruction is extremely near (distance=%.3f)" % [distance_to_target]
+	)
+
+func test_ots_collision_avoidance_recovers_smoothly_after_obstruction_clears() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var obstacle := _create_box_obstacle("OTSRecoverWall", Vector3(0.0, 0.0, 2.0), Vector3(2.0, 2.0, 0.2))
+	await _pump()
+	await _pump()
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSRecoverTarget", Vector3.ZERO)
+	var mode := _new_ots_mode()
+	mode.shoulder_offset = Vector3.ZERO
+	mode.camera_distance = 4.0
+	mode.collision_probe_radius = 0.15
+	mode.collision_recovery_speed = 2.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_recover"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_recover")
+	ecs_manager._physics_process(0.016)
+	var blocked_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_recover")
+	).origin.distance_to(follow_target.global_position)
+
+	obstacle.queue_free()
+	await _pump()
+	await _pump()
+
+	ecs_manager._physics_process(0.016)
+	var first_recovery_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_recover")
+	).origin.distance_to(follow_target.global_position)
+	for _i in range(120):
+		ecs_manager._physics_process(0.016)
+	var settled_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_recover")
+	).origin.distance_to(follow_target.global_position)
+
+	assert_true(first_recovery_distance > blocked_distance, "Distance should start recovering once obstruction clears")
+	assert_true(first_recovery_distance < 3.9, "Recovery should be smooth, not an instant full snap-out")
+	assert_true(settled_distance > first_recovery_distance, "Recovery should continue over subsequent ticks")
+	assert_almost_eq(settled_distance, 4.0, 0.05)
+
+func test_ots_collision_avoidance_is_noop_for_orbit_and_fixed_modes() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	_create_box_obstacle("OTSNoopModesWall", Vector3(0.0, 0.0, 2.0), Vector3(4.0, 6.0, 0.2))
+	await _pump()
+	await _pump()
+
+	var orbit_target := _create_target_entity(ecs_manager, "E_OTSNoopOrbitTarget", Vector3.ZERO)
+	var orbit_mode := _new_orbit_mode(false, 0.0)
+	var orbit_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ots_noop_orbit"),
+		orbit_mode,
+		orbit_target
+	)
+	vcam_manager.active_vcam_id = StringName("cam_ots_noop_orbit")
+	ecs_manager._physics_process(0.016)
+	var orbit_submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_noop_orbit"))
+	var orbit_raw := _evaluate_raw_result(orbit_mode, orbit_target, orbit_component).get(
+		"transform",
+		Transform3D.IDENTITY
+	) as Transform3D
+	_assert_transform_close(orbit_submitted, orbit_raw, 0.0001, 0.0001)
+
+	var fixed_target := _create_target_entity(ecs_manager, "E_OTSNoopFixedTarget", Vector3.ZERO)
+	var fixed_mode := RS_VCAM_MODE_FIXED.new()
+	fixed_mode.use_world_anchor = false
+	fixed_mode.follow_offset = Vector3(0.0, 0.0, 4.0)
+	fixed_mode.track_target = false
+	var fixed_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ots_noop_fixed"),
+		fixed_mode,
+		fixed_target
+	)
+	vcam_manager.active_vcam_id = StringName("cam_ots_noop_fixed")
+	ecs_manager._physics_process(0.016)
+	var fixed_submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_noop_fixed"))
+	var fixed_raw := _evaluate_raw_result(fixed_mode, fixed_target, fixed_component).get(
+		"transform",
+		Transform3D.IDENTITY
+	) as Transform3D
+	_assert_transform_close(fixed_submitted, fixed_raw, 0.0001, 0.0001)
 
 func test_runtime_rotation_values_remain_raw_targets_with_response_enabled() -> void:
 	var context: Dictionary = await _setup_context()
@@ -3351,6 +3565,21 @@ func _create_path_node(parent: Node3D, name: String) -> Path3D:
 	autofree(path)
 	return path
 
+func _create_box_obstacle(name: String, position: Vector3, size: Vector3) -> StaticBody3D:
+	var obstacle := StaticBody3D.new()
+	obstacle.name = name
+	add_child(obstacle)
+	autofree(obstacle)
+	obstacle.global_position = position
+
+	var collision_shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	collision_shape.shape = box
+	obstacle.add_child(collision_shape)
+	autofree(collision_shape)
+	return obstacle
+
 func _create_camera_state_component(
 	ecs_manager: M_ECSManager,
 	landing_impact_offset: Vector3,
@@ -3406,6 +3635,11 @@ func _new_orbit_mode(allow_rotation: bool = true, rotation_speed: float = 1.0) -
 
 func _new_first_person_mode(look_multiplier: float = 1.0) -> Resource:
 	var mode := RS_VCAM_MODE_FIRST_PERSON.new()
+	mode.look_multiplier = look_multiplier
+	return mode
+
+func _new_ots_mode(look_multiplier: float = 1.0) -> Resource:
+	var mode := RS_VCAM_MODE_OTS.new()
 	mode.look_multiplier = look_multiplier
 	return mode
 
