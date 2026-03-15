@@ -33,9 +33,11 @@ Before starting Phase 3, verify:
 - [x] **DOC-1**: After each completed phase, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.  
   - Phase 3A update completed (March 15, 2026): continuation prompt now marks OTS 3A complete and 3B as next target.
   - Phase 3B update completed (March 15, 2026): continuation prompt now marks OTS 3B complete and 3C as next target.
+  - Phase 3C2 update completed (March 15, 2026): continuation prompt now marks OTS 3C2 complete and 3C3 as next target.
 - [x] **DOC-2**: After each completed phase, update this file (`vcam-ots-tasks.md`) with `[x]` marks and completion notes.  
   - Phase 3A checklist + validation notes updated (March 15, 2026).
   - Phase 3B checklist + validation notes updated (March 15, 2026).
+  - Phase 3C2 checklist + validation notes updated (March 15, 2026).
 - [x] **DOC-3**: Update `AGENTS.md` if OTS evaluation reveals new stable architecture/pattern contracts.  
   - No new AGENTS deltas from 3A; current OTS resource contract already matched implementation targets.
 - [x] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any OTS-specific pitfalls discovered.  
@@ -331,15 +333,16 @@ Before starting Phase 3, verify:
 
 > **Why:** Subtle camera roll when strafing left/right creates a sense of physicality and movement weight from the third-person OTS perspective. Same pattern as the old first-person strafe tilt but renamed and contextualized for OTS. The roll angle is proportional to lateral input, smoothed through second-order dynamics.
 
-- [ ] **Task 3C2.1**: Add shoulder sway fields to RS_VCamModeOTS
+- [x] **Task 3C2.1**: Add shoulder sway fields to RS_VCamModeOTS
   - Fields already present from 3A.2:
     - `shoulder_sway_angle: float = 0.0` — max roll angle in degrees when strafing at full speed (0 = disabled)
     - `shoulder_sway_smoothing: float = 6.0` — Hz for sway second-order dynamics (higher = snappier response)
   - Add tests verifying fields exist with defaults
   - Test `shoulder_sway_angle` must be non-negative
   - **Target: ~3 tests**
+  - **Completion note (March 15, 2026):** Added `test_shoulder_sway_angle_resolves_non_negative` in `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18` total).
 
-- [ ] **Task 3C2.2 (Red)**: Write tests for shoulder sway in S_VCamSystem
+- [x] **Task 3C2.2 (Red)**: Write tests for shoulder sway in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test `shoulder_sway_angle = 0.0`: no roll applied (disabled)
   - Test strafing left (negative lateral input): camera rolls in the strafing direction (negative roll)
@@ -349,8 +352,9 @@ Before starting Phase 3, verify:
   - Test sway smoothly returns to zero when lateral input stops (second-order dynamics)
   - Test shoulder sway is a no-op for orbit and fixed modes
   - **Target: ~7 tests**
+  - **Completion note (March 15, 2026):** Added 7 OTS shoulder-sway tests in `tests/unit/ecs/systems/test_vcam_system.gd` (disabled, left/right sign, scaling, authored max-angle, recovery, and non-OTS no-op gating).
 
-- [ ] **Task 3C2.3 (Green)**: Implement shoulder sway in S_VCamSystem
+- [x] **Task 3C2.3 (Green)**: Implement shoulder sway in S_VCamSystem
   - Read lateral component of `gameplay.move_input` (the X component in the player's local frame)
   - Compute target roll: `lateral_input * shoulder_sway_angle`
   - Smooth through a dedicated `U_SecondOrderDynamics` instance at `shoulder_sway_smoothing` Hz (critically damped)
@@ -369,6 +373,14 @@ Before starting Phase 3, verify:
   var roll_rad := deg_to_rad(smooth_roll)
   result_basis = result_basis.rotated(result_basis.z, roll_rad)
   ```
+  - **Completion note (March 15, 2026):**
+    - `S_VCamSystem` now applies OTS-only sway via `_apply_ots_shoulder_sway(...)` after evaluator output and before collision/smoothing.
+    - Roll target is driven by shared `input.move_input.x` and smoothed per-vCam through `_shoulder_sway_state` (`U_SecondOrderDynamics` keyed by `vcam_id`).
+    - Sway state is cleared when mode is not OTS, when authored angle is disabled, and during stale-vCam prune/clear paths.
+  - **Validation run (March 15, 2026):**
+    - `tests/unit/ecs/systems/test_vcam_system.gd` (`115/115`)
+    - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
+    - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ---
 
@@ -622,9 +634,9 @@ Before starting Phase 3, verify:
 - [x] Verify collision avoidance spherecast uses gameplay `World3D` physics space
 - [x] Verify collision avoidance minimum distance floor prevents camera passing through character
 - [x] Verify collision avoidance dynamics reset on mode switch (no residual state)
-- [ ] Verify shoulder sway is gated to OTS mode only (no-op for orbit and fixed)
-- [ ] Verify shoulder sway reads lateral input from the same `gameplay.move_input` used by movement systems
-- [ ] Verify shoulder sway dynamics reset on mode switch (no residual roll from previous mode)
+- [x] Verify shoulder sway is gated to OTS mode only (no-op for orbit and fixed)
+- [x] Verify shoulder sway reads lateral input from the same `gameplay.move_input` used by movement systems
+- [x] Verify shoulder sway dynamics reset on mode switch (no residual roll from previous mode)
 - [ ] Verify landing camera response stacks with shared landing impact (both apply simultaneously)
 - [ ] Verify landing camera response is gated to OTS mode only
 - [x] Verify all OTS game feel dynamics instances are pre-created and reused (zero per-frame allocations)
