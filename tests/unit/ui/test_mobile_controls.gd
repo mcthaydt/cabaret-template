@@ -295,6 +295,60 @@ func test_dragging_beyond_threshold_cancels_aim_long_press_toggle() -> void:
 	assert_false(controls.consume_aim_pressed(), "Long press should not toggle after drag drift exceeds threshold")
 	_release_mobile_touch(controls, 72, cancel_drag.position)
 
+func test_short_press_below_threshold_does_not_toggle_aim() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var press_position := _get_empty_tap_position(controls)
+	_press_mobile_touch(controls, 73, press_position)
+	await get_tree().create_timer(UI_MobileControls.AIM_LONG_PRESS_THRESHOLD_SEC - 0.1).timeout
+	_release_mobile_touch(controls, 73, press_position)
+	assert_false(controls.consume_aim_pressed(), "Short press below threshold should not toggle aim")
+
+func test_aim_long_press_state_clears_on_release() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var press_position := _get_empty_tap_position(controls)
+	_press_mobile_touch(controls, 74, press_position)
+	await get_tree().create_timer(UI_MobileControls.AIM_LONG_PRESS_THRESHOLD_SEC + 0.05).timeout
+	assert_true(controls.consume_aim_pressed(), "First long press should toggle aim on")
+	_release_mobile_touch(controls, 74, press_position)
+
+	_press_mobile_touch(controls, 75, press_position)
+	await get_tree().create_timer(UI_MobileControls.AIM_LONG_PRESS_THRESHOLD_SEC - 0.1).timeout
+	_release_mobile_touch(controls, 75, press_position)
+	assert_false(controls.consume_aim_pressed(), "Short press after long-press toggle should not toggle aim off")
+
+func test_aim_long_press_drift_within_tolerance_still_triggers() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var start := _get_empty_tap_position(controls)
+	_press_mobile_touch(controls, 76, start)
+	var small_drag := InputEventScreenDrag.new()
+	small_drag.index = 76
+	small_drag.position = start + Vector2(UI_MobileControls.AIM_LONG_PRESS_MAX_DRIFT_PX - 5.0, 0.0)
+	controls._input(small_drag)
+	await get_tree().create_timer(UI_MobileControls.AIM_LONG_PRESS_THRESHOLD_SEC + 0.05).timeout
+	assert_true(controls.consume_aim_pressed(), "Drift within tolerance should still trigger aim toggle")
+	_release_mobile_touch(controls, 76, small_drag.position)
+
 func test_drag_look_reports_delta_and_active_state() -> void:
 	var store := await _create_state_store()
 	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
