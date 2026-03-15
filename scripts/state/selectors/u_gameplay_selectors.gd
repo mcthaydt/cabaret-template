@@ -14,3 +14,7 @@ static func get_is_paused(gameplay_state: Dictionary) -> bool:
 ## Get the last activated checkpoint spawn point ID
 static func get_last_checkpoint(gameplay_state: Dictionary) -> StringName:
 	return gameplay_state.get("last_checkpoint", StringName(""))
+
+## Get whether touchscreen drag-look is actively driving look input.
+static func is_touch_look_active(gameplay_state: Dictionary) -> bool:
+	return bool(gameplay_state.get("touch_look_active", false))

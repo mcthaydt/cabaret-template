@@ -222,6 +222,44 @@ func test_camera_center_just_pressed_is_dispatched_when_pressed() -> void:
 	var input_state: Dictionary = gameplay.get("input", {})
 	assert_true(bool(input_state.get("camera_center_just_pressed", false)))
 
+func test_touchscreen_active_device_does_not_clobber_existing_input_state() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
+	var store: M_StateStore = context["store"] as M_StateStore
+
+	store.dispatch(U_InputActions.update_move_input(Vector2(0.4, -0.3)))
+	store.dispatch(U_InputActions.update_look_input(Vector2(2.0, -1.0)))
+	store.dispatch(U_InputActions.device_changed(U_DeviceTypeConstants.DeviceType.TOUCHSCREEN, -1))
+	await _pump()
+
+	manager._physics_process(0.016)
+
+	var gameplay := store.get_slice(StringName("gameplay"))
+	var input_state: Dictionary = gameplay.get("input", {})
+	assert_almost_eq((input_state.get("move_input", Vector2.ZERO) as Vector2).x, 0.4, 0.0001)
+	assert_almost_eq((input_state.get("move_input", Vector2.ZERO) as Vector2).y, -0.3, 0.0001)
+	assert_almost_eq((input_state.get("look_input", Vector2.ZERO) as Vector2).x, 2.0, 0.0001)
+	assert_almost_eq((input_state.get("look_input", Vector2.ZERO) as Vector2).y, -1.0, 0.0001)
+
+func test_touch_look_active_flag_keeps_input_system_from_overwriting_look_state() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
+	var store: M_StateStore = context["store"] as M_StateStore
+
+	store.dispatch(U_InputActions.update_look_input(Vector2(5.0, 1.0)))
+	store.dispatch(U_GameplayActions.set_touch_look_active(true))
+	store.dispatch(U_InputActions.device_changed(U_DeviceTypeConstants.DeviceType.TOUCHSCREEN, -1))
+	await _pump()
+
+	manager._physics_process(0.016)
+
+	var gameplay := store.get_slice(StringName("gameplay"))
+	var look_input: Vector2 = gameplay.get("input", {}).get("look_input", Vector2.ZERO)
+	assert_almost_eq(look_input.x, 5.0, 0.0001)
+	assert_almost_eq(look_input.y, 1.0, 0.0001)
+
 func test_gamepad_motion_updates_component_and_store() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)

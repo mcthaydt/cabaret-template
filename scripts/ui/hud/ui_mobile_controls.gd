@@ -48,6 +48,12 @@ var _is_signpost_visibility_blocked: bool = false
 var _pending_camera_center_just_pressed: bool = false
 var _last_empty_space_tap_time_sec: float = -1.0
 var _last_empty_space_tap_position: Vector2 = Vector2.ZERO
+var _look_touch_id: int = -1
+var _look_touch_last_position: Vector2 = Vector2.ZERO
+var _pending_look_delta: Vector2 = Vector2.ZERO
+var _touch_look_active: bool = false
+var _look_drag_sensitivity: float = 1.0
+var _invert_look_y: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -107,6 +113,7 @@ func _exit_tree() -> void:
 	_pending_camera_center_just_pressed = false
 	_last_empty_space_tap_time_sec = -1.0
 	_last_empty_space_tap_position = Vector2.ZERO
+	_reset_look_touch_state(true)
 	_unregister_from_input_device_manager()
 
 func _on_locale_changed(_locale: StringName) -> void:
@@ -115,17 +122,28 @@ func _on_locale_changed(_locale: StringName) -> void:
 			button._refresh_label()
 
 func _input(event: InputEvent) -> void:
-	if not (event is InputEventScreenTouch):
-		return
-	var touch := event as InputEventScreenTouch
-	if not touch.pressed:
-		return
-	_handle_empty_space_tap(touch.position)
+	if event is InputEventScreenTouch:
+		var touch := event as InputEventScreenTouch
+		if touch.pressed:
+			_handle_empty_space_tap(touch.position)
+			_handle_look_touch_press(touch)
+		else:
+			_handle_look_touch_release(touch)
+	elif event is InputEventScreenDrag:
+		_handle_look_touch_drag(event as InputEventScreenDrag)
 
 func consume_camera_center_just_pressed() -> bool:
 	var just_pressed := _pending_camera_center_just_pressed
 	_pending_camera_center_just_pressed = false
 	return just_pressed
+
+func consume_look_delta() -> Vector2:
+	var look_delta := _pending_look_delta
+	_pending_look_delta = Vector2.ZERO
+	return look_delta
+
+func is_touch_look_active() -> bool:
+	return _touch_look_active or not _pending_look_delta.is_zero_approx()
 
 func _should_enable() -> bool:
 	if force_enable:
@@ -201,6 +219,46 @@ func _can_process_gameplay_touch() -> bool:
 		return true
 	return U_SceneRegistry.get_scene_type(_current_scene_id) == U_SceneRegistry.SceneType.GAMEPLAY
 
+func _handle_look_touch_press(event: InputEventScreenTouch) -> void:
+	if _look_touch_id != -1:
+		return
+	if not _can_process_gameplay_touch():
+		return
+	if _is_touch_over_virtual_controls(event.position):
+		return
+	_look_touch_id = event.index
+	_look_touch_last_position = event.position
+	_touch_look_active = false
+
+func _handle_look_touch_drag(event: InputEventScreenDrag) -> void:
+	if _look_touch_id == -1 or event.index != _look_touch_id:
+		return
+	if not _can_process_gameplay_touch():
+		_reset_look_touch_state(true)
+		return
+	var drag_delta: Vector2 = event.position - _look_touch_last_position
+	_look_touch_last_position = event.position
+	if drag_delta.is_zero_approx():
+		return
+	_touch_look_active = true
+	var look_delta := drag_delta * _look_drag_sensitivity
+	if _invert_look_y:
+		look_delta.y *= -1.0
+	_pending_look_delta += look_delta
+	_on_input_activity()
+
+func _handle_look_touch_release(event: InputEventScreenTouch) -> void:
+	if _look_touch_id == -1 or event.index != _look_touch_id:
+		return
+	_reset_look_touch_state(false)
+
+func _reset_look_touch_state(clear_pending_delta: bool) -> void:
+	_look_touch_id = -1
+	_look_touch_last_position = Vector2.ZERO
+	_touch_look_active = false
+	if clear_pending_delta:
+		_pending_look_delta = Vector2.ZERO
+
 func _load_touchscreen_profile() -> RS_InputProfile:
 	var resource := ResourceLoader.load(DEFAULT_TOUCHSCREEN_PROFILE_PATH)
 	if resource is RS_InputProfile:
@@ -268,6 +326,13 @@ func _normalize_device_type(device_type: int) -> int:
 	return device_type
 
 func _apply_touchscreen_settings(settings: Dictionary) -> void:
+	_look_drag_sensitivity = clampf(
+		float(settings.get("look_drag_sensitivity", _default_touchscreen_settings.look_drag_sensitivity)),
+		0.1,
+		5.0
+	)
+	_invert_look_y = bool(settings.get("invert_look_y", _default_touchscreen_settings.invert_look_y))
+
 	if _joystick != null:
 		var joystick_scale: float = float(settings.get("virtual_joystick_size", 1.0))
 		_joystick.scale = Vector2.ONE * max(joystick_scale, 0.01)
@@ -380,6 +445,7 @@ func _update_navigation_state(state: Dictionary) -> void:
 		_awaiting_transition_signal = false
 	if not _can_process_gameplay_touch():
 		_reset_double_tap_state()
+		_reset_look_touch_state(true)
 
 func _update_visibility() -> void:
 	# Always show controls when editing, regardless of device type

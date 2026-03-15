@@ -97,12 +97,14 @@ func test_initial_state_loads_from_resource() -> void:
 	var gameplay_slice: Dictionary = store.get_slice(StringName("gameplay"))
 	assert_eq(gameplay_slice.get("paused"), true, "Paused should match resource")
 	assert_eq(gameplay_slice.get("gravity_scale"), 1.5, "Gravity scale should match resource")
+	assert_false(bool(gameplay_slice.get("touch_look_active", true)), "touch_look_active should default false")
 
 func test_reset_progress_restores_initial_fields() -> void:
 	var state: Dictionary = {
 		"paused": true,
 		"move_input": Vector2.ONE,
 		"look_input": Vector2(3.0, -2.0),
+		"touch_look_active": true,
 		"jump_pressed": true,
 		"jump_just_pressed": true,
 		"player_health": 12.0,
@@ -120,6 +122,7 @@ func test_reset_progress_restores_initial_fields() -> void:
 	assert_false(result.get("paused", true), "Reset should unpause gameplay")
 	assert_eq(result.get("move_input", Vector2.ONE), Vector2.ZERO, "Reset should clear move input")
 	assert_eq(result.get("look_input", Vector2.ONE), Vector2.ZERO, "Reset should clear look input")
+	assert_false(bool(result.get("touch_look_active", true)), "Reset should clear touch_look_active")
 	assert_false(result.get("jump_pressed", true), "Reset should clear jump_pressed")
 	assert_false(result.get("jump_just_pressed", true), "Reset should clear jump_just_pressed")
 
@@ -156,6 +159,11 @@ func test_apply_input_action_handles_null_state() -> void:
 	var input_state: Dictionary = result.get("input", {})
 	assert_almost_eq((input_state.get("move_input", Vector2.ZERO) as Vector2).x, 0.25, 0.0001)
 	assert_almost_eq((input_state.get("move_input", Vector2.ZERO) as Vector2).y, -0.75, 0.0001)
+
+func test_set_touch_look_active_updates_gameplay_flag() -> void:
+	var state: Dictionary = {"touch_look_active": false, "entities": {}}
+	var result: Dictionary = U_GameplayReducer.reduce(state, U_GameplayActions.set_touch_look_active(true))
+	assert_true(bool(result.get("touch_look_active", false)), "Reducer should set touch_look_active true")
 
 ## Phase 16.5: Mock data tests removed - using entity coordination pattern instead
 ## Tests for entity snapshots are in test_entity_coordination.gd

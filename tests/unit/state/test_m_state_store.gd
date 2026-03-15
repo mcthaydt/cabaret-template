@@ -217,6 +217,15 @@ func test_time_slice_registered_with_expected_transient_fields() -> void:
 	assert_true(time_config.transient_fields.has(StringName("active_channels")))
 	assert_true(time_config.transient_fields.has(StringName("timescale")))
 
+func test_gameplay_slice_marks_touch_look_active_transient() -> void:
+	var configs: Dictionary = store.get_slice_configs()
+	var gameplay_config: RS_StateSliceConfig = configs.get(StringName("gameplay"))
+	assert_not_null(gameplay_config, "Gameplay slice config should be registered")
+	assert_true(
+		gameplay_config.transient_fields.has(StringName("touch_look_active")),
+		"touch_look_active should be transient"
+	)
+
 func test_vcam_slice_registered_as_transient_and_present_in_state() -> void:
 	var full_state: Dictionary = store.get_state()
 	assert_true(full_state.has("vcam"), "Store state should include vcam slice")

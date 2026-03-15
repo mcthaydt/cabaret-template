@@ -172,6 +172,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			reset_state.paused = false
 			reset_state.move_input = Vector2.ZERO
 			reset_state.look_input = Vector2.ZERO
+			reset_state.touch_look_active = false
 			reset_state.jump_pressed = false
 			reset_state.jump_just_pressed = false
 
@@ -232,6 +233,11 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			var new_state: Dictionary = state.duplicate(true)
 			new_state.death_in_progress = bool(action.get("payload", false))
 			return new_state
+
+		U_GameplayActions.ACTION_SET_TOUCH_LOOK_ACTIVE:
+			var touch_look_state: Dictionary = state.duplicate(true)
+			touch_look_state.touch_look_active = bool(action.get("payload", false))
+			return touch_look_state
 
 		U_TransitionActions.ACTION_TRANSITION_TO_GAMEPLAY:
 			# Apply menu config to gameplay state

@@ -256,6 +256,49 @@ func test_double_tap_outside_timing_or_distance_thresholds_does_not_trigger_came
 		"Taps outside distance threshold should not trigger camera_center"
 	)
 
+func test_drag_look_reports_delta_and_active_state() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var start := _get_empty_tap_position(controls)
+	var end := start + Vector2(24.0, -10.0)
+	_drag_mobile_controls(controls, 60, start, end)
+
+	assert_true(controls.is_touch_look_active(), "Drag gesture should mark touch look as active")
+	var look_delta: Vector2 = controls.consume_look_delta()
+	assert_almost_eq(look_delta.x, 24.0, 0.001, "Drag X delta should be tracked")
+	assert_almost_eq(look_delta.y, -10.0, 0.001, "Drag Y delta should be tracked")
+	assert_true(controls.consume_look_delta().is_zero_approx(), "Look delta should be one-shot per consume")
+
+	_release_mobile_touch(controls, 60, end)
+	assert_false(controls.is_touch_look_active(), "Releasing drag touch should clear active state")
+
+func test_drag_look_applies_sensitivity_and_invert_y() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	store.dispatch(U_InputActions.update_touchscreen_settings({
+		"look_drag_sensitivity": 2.0,
+		"invert_look_y": true,
+	}))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var start := _get_empty_tap_position(controls)
+	var end := start + Vector2(8.0, 5.0)
+	_drag_mobile_controls(controls, 61, start, end)
+	var look_delta: Vector2 = controls.consume_look_delta()
+
+	assert_almost_eq(look_delta.x, 16.0, 0.001, "Sensitivity should scale drag X")
+	assert_almost_eq(look_delta.y, -10.0, 0.001, "Invert Y should flip and scale drag Y")
+
 func _create_controls(configure: Callable = Callable()) -> Node:
 	var controls := MobileControlsScene.instantiate()
 	if configure != Callable() and configure.is_valid():
@@ -294,6 +337,29 @@ func _tap_mobile_controls(controls: UI_MobileControls, touch_id: int, position: 
 	pressed.position = position
 	controls._input(pressed)
 
+	var released := InputEventScreenTouch.new()
+	released.index = touch_id
+	released.pressed = false
+	released.position = position
+	controls._input(released)
+
+func _drag_mobile_controls(controls: UI_MobileControls, touch_id: int, start: Vector2, finish: Vector2) -> void:
+	if controls == null:
+		return
+	var pressed := InputEventScreenTouch.new()
+	pressed.index = touch_id
+	pressed.pressed = true
+	pressed.position = start
+	controls._input(pressed)
+
+	var drag := InputEventScreenDrag.new()
+	drag.index = touch_id
+	drag.position = finish
+	controls._input(drag)
+
+func _release_mobile_touch(controls: UI_MobileControls, touch_id: int, position: Vector2) -> void:
+	if controls == null:
+		return
 	var released := InputEventScreenTouch.new()
 	released.index = touch_id
 	released.pressed = false

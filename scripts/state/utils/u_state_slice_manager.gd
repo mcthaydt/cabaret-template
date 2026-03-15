@@ -92,6 +92,7 @@ static func initialize_slices(
 			StringName("input"),
 			StringName("move_input"),
 			StringName("look_input"),
+			StringName("touch_look_active"),
 			StringName("jump_pressed"),
 			StringName("jump_just_pressed"),
 			StringName("sprint_pressed"),

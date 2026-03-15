@@ -97,6 +97,18 @@ func process_tick(_delta: float) -> void:
 		_debug_log_input("blocked: gameplay input gate is inactive")
 		return
 
+	if active_device_type == DeviceType.TOUCHSCREEN:
+		var gameplay_state_variant: Variant = state.get("gameplay", {})
+		var gameplay_state: Dictionary = {}
+		if gameplay_state_variant is Dictionary:
+			gameplay_state = gameplay_state_variant as Dictionary
+		var touch_look_active := U_GameplaySelectors.is_touch_look_active(gameplay_state)
+		if touch_look_active:
+			_debug_log_input("blocked: touchscreen drag-look active; S_TouchscreenSystem owns input dispatch")
+		else:
+			_debug_log_input("blocked: touchscreen active device; S_TouchscreenSystem owns input dispatch")
+		return
+
 	# Get active input source and delegate input capture
 	var input_source: I_InputSource = null
 	if _input_device_manager:
