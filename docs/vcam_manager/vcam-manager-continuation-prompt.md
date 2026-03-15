@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset is in progress: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), and 3C3 (OTS landing camera response) are now complete (March 15, 2026); next target is Phase 3C4 OTS aiming behavior.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset implementation is now complete: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), 3C3 (OTS landing camera response), and full 3C4 aiming scope (`3C4.1-3C4.11`: aim activation/input plumbing/movement+rotation integrations + reticle + default OTS movement preset) are implementation-complete as of March 15, 2026.
 
 ## Next Planned Work (March 15, 2026)
 
@@ -14,8 +14,9 @@
 - Phase 3C1 collision avoidance is now complete in `S_VCamSystem` with unit coverage and no-op regression gating.
 - Phase 3C2 shoulder sway is now complete in `S_VCamSystem` with per-vCam sway dynamics state and OTS-only no-op gating coverage.
 - Phase 3C3 landing camera response is now complete in `S_VCamSystem` with event-driven OTS distance compression and stacked shared-impact coverage.
-- Immediate implementation target:
-  - Phase 3C4: OTS aiming behavior in `S_VCamSystem` + movement/rotation/UI integrations (`docs/vcam_manager/vcam-ots-tasks.md`)
+- Phase 3C4 aiming scope is now implementation-complete: slice 1 (aim activation + input plumbing + movement/rotation integrations) plus reticle UI (`3C4.9`/`3C4.10`) and default OTS movement preset (`3C4.11`) are landed with targeted coverage.
+- Immediate validation target:
+  - Run manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`), with emphasis on mobile long-press joystick exclusion and reticle fade behavior in gameplay.
 
 ## OTS Mode Replacement (March 14, 2026)
 
@@ -140,6 +141,68 @@
 - Validation run:
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`122/122`)
   - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
+  - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
+
+## OTS Aiming Activation + Movement/Rotation Integration (Phase 3C4 slice, March 15, 2026)
+
+- Added OTS aiming authoring fields in `RS_VCamModeOTS`:
+  - `movement_profile`, `disable_sprint`, `lock_facing_to_camera`, `aim_blend_duration`.
+  - `get_resolved_values()` now includes aiming passthrough/clamp values.
+- Added `aim` input plumbing end-to-end:
+  - `project.godot` + `U_InputMapBootstrapper` required action coverage.
+  - Input profiles updated (gamepad LT + mouse right button defaults).
+  - `U_InputActions`/`U_InputReducer`/`U_InputSelectors` + `C_InputComponent` now carry `aim_pressed`.
+  - `I_InputSource`, keyboard/gamepad/touchscreen sources, `S_InputSystem`, and `S_TouchscreenSystem` now propagate `aim_pressed`.
+  - `UI_MobileControls` now supports empty-space long-press aim toggle (`consume_aim_pressed()`), consumed by `S_TouchscreenSystem`.
+- Added OTS aim activation in `S_VCamSystem`:
+  - reads `input.aim_pressed` each tick.
+  - `_process_aim_activation(...)` switches to OTS while aim is held and restores previous camera on release.
+  - blend duration is read from OTS `aim_blend_duration` (min-clamped), not hardcoded.
+  - OTS target selection prefers matching follow target before priority/id tie-break.
+- Added OTS movement integration in `S_MovementSystem`:
+  - resolves active OTS vCam via `state.vcam.active_vcam_id`.
+  - applies `movement_profile` override when present.
+  - enforces `disable_sprint` before speed calculation.
+- Added OTS facing-lock integration in `S_RotateToInputSystem`:
+  - resolves active OTS vCam via `state.vcam.active_vcam_id`.
+  - when `lock_facing_to_camera` is true, desired yaw follows active camera yaw.
+  - lock path preserves facing updates when move input is zero; non-OTS path unchanged.
+- New/updated coverage:
+  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`22/22`)
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`127/127`)
+  - `tests/unit/ecs/systems/test_movement_system.gd` (`13/13`)
+  - `tests/unit/ecs/systems/test_rotate_to_input_system.gd` (`6/6`)
+  - input/mobile pipeline coverage across:
+    - `test_input_map`, `test_u_input_actions`, `test_u_input_reducer`, `test_u_input_selectors`
+    - `test_input_system`, `test_s_touchscreen_system`, `test_mobile_controls`
+    - rebind/profile/integration suites touching required-action resets and category surfacing.
+- Validation run:
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`127/127`)
+  - `tests/unit/ecs/systems/test_input_system.gd` (`14/14`)
+  - `tests/unit/ecs/systems/test_s_touchscreen_system.gd` (`8/8`)
+  - `tests/unit/ui/test_mobile_controls.gd` (`16/16`)
+  - `tests/unit/ecs/systems/test_movement_system.gd` (`13/13`)
+  - `tests/unit/ecs/systems/test_rotate_to_input_system.gd` (`6/6`)
+  - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
+
+## OTS Reticle + Default Movement Preset (Phase 3C4.9/3C4.10/3C4.11, March 15, 2026)
+
+- Added OTS reticle HUD implementation:
+  - `scenes/ui/hud/ui_hud_overlay.tscn` now includes centered `OTSReticleContainer` + `ReticleDot` nodes (hidden by default).
+  - `UI_HudController` now updates reticle visibility/fade from `state.vcam.active_mode` with gameplay+pause gating.
+  - Reticle fade durations resolve from authored OTS `aim_blend_duration` using active vCam mode data, with `0.15s` fallback.
+- Added OTS reticle coverage:
+  - `tests/unit/ui/hud/test_ots_reticle.gd` (`4/4`) verifies hidden outside OTS, fade-in/fade-out duration behavior, and center-screen anchoring.
+- Added default OTS movement preset:
+  - `resources/base_settings/gameplay/cfg_ots_movement_default.tres` (`RS_MovementSettings`) with reduced-speed OTS defaults.
+  - `resources/display/vcam/cfg_default_ots.tres` now references `cfg_ots_movement_default.tres` through `movement_profile`.
+- Extended OTS mode resource coverage:
+  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` now includes preset load/value/reference checks (`24/24`).
+- Validation run:
+  - `tests/unit/ui/hud/test_ots_reticle.gd` (`4/4`)
+  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`24/24`)
+  - `tests/unit/ui` (`-gselect=test_hud`, `28/28`)
+  - `tests/unit/ecs/systems/test_movement_system.gd` (`13/13`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## Previous: First-Person Strafe Tilt (Phase 9 / 3C1, March 15, 2026) — SUPERSEDED
@@ -707,6 +770,7 @@
 - `S_VCamSystem` OTS collision-avoidance contract is now implementation-backed for Phase 3C1: gameplay-world spherecast + initial-overlap guard, per-vCam collision distance state (`_ots_collision_state`), immediate hit clamping with minimum distance floor, smooth recovery via `U_SecondOrderDynamics`, and non-OTS/stale-vCam state cleanup.
 - `S_VCamSystem` OTS shoulder-sway contract is now implementation-backed for Phase 3C2: reads shared `input.move_input.x`, applies OTS-only roll target (`move_input.x * shoulder_sway_angle`), smooths via per-vCam `U_SecondOrderDynamics` state (`_shoulder_sway_state`), and clears/reset state on non-OTS, disabled-angle, and stale-vCam prune paths.
 - `S_VCamSystem` OTS landing-response contract is now implementation-backed for Phase 3C3: subscribes to `EVENT_ENTITY_LANDED`, normalizes player landing fall speed (`5..30`) to OTS dip strength, applies OTS-only distance compression via per-vCam `_ots_landing_response_state` (`U_SecondOrderDynamics`), stacks with shared `landing_impact_offset`, and clears/reset state on non-OTS/disabled/stale paths.
+- Phase 3C4 aiming slice 1 is now implementation-backed: `RS_VCamModeOTS` aiming exports, `aim` input action plumbing (desktop/mobile), `S_VCamSystem` aim enter/exit switching with authored `aim_blend_duration`, `S_MovementSystem` OTS movement-profile + sprint gating, and `S_RotateToInputSystem` OTS camera-facing lock are all landed with tests.
 - `RS_VCamResponse` orbit-feel contract is now implementation-backed: `look_ahead_distance`, `look_ahead_smoothing`, `auto_level_speed`, and `auto_level_delay` are authored/clamped fields with defaults persisted in `cfg_default_response.tres`.
 - `S_VCamSystem` rotation-continuity contract is now implementation-backed: active-vCam switches apply transition-aware carry/reset/reseed of `runtime_yaw`/`runtime_pitch`, with same-target carry in same-mode transitions and authored-angle reseed when targets differ.
 - `S_VCamSystem` orbit game-feel contract is now implementation-backed for Phase 2C1-2C5: look-ahead offsets are applied before main response smoothing using per-vCam movement-velocity state (not follow-target transform deltas), auto-level pitch recentering is orbit-only with delayed activation and look-input reset behavior, and projection-based soft-zone correction (with per-vCam dead-zone hysteresis state) is applied before response smoothing.
@@ -750,7 +814,7 @@
 - OTS baseline (replaces first-person, March 15, 2026):
   - `RS_VCamModeOTS` is now authored in `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`; `get_resolved_values()` is the canonical OTS clamp/order read path for evaluator/runtime consumers.
   - `U_VCamModeEvaluator.evaluate(...)` now includes the OTS branch and returns `{transform, fov, mode_name: "ots"}` with shoulder-offset rotation and evaluator-owned pitch clamping.
-  - OTS game feel implementation status in `S_VCamSystem`: collision avoidance (3C1), shoulder sway (3C2), and landing camera response (3C3) complete; next target is OTS aiming behavior (3C4).
+  - OTS game-feel/aiming implementation status: collision avoidance (3C1), shoulder sway (3C2), landing camera response (3C3), and full 3C4 aiming scope (aim activation/input plumbing/movement+rotation integrations + reticle UI + default movement preset) are implementation-complete.
 - Fixed baseline is now explicit:
   - `RS_VCamModeFixed` is authored in `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd` with default preset `resources/display/vcam/cfg_default_fixed.tres`.
   - `U_VCamModeEvaluator.evaluate(...)` now supports fixed world-anchor, follow-offset, and path branches while ignoring runtime yaw/pitch for fixed mode.
@@ -778,6 +842,8 @@
 - `scripts/ecs/systems/s_input_system.gd`
 - `scripts/ecs/systems/s_touchscreen_system.gd`
 - `scripts/ecs/systems/s_vcam_system.gd`
+- `scripts/ecs/systems/s_movement_system.gd`
+- `scripts/ecs/systems/s_rotate_to_input_system.gd`
 - `scripts/ecs/systems/s_room_fade_system.gd`
 - `scripts/input/u_input_map_bootstrapper.gd`
 - `scripts/ecs/systems/s_camera_state_system.gd` (QB rule context, FOV composition, shake trauma)
@@ -805,6 +871,11 @@
 - `tests/unit/input/test_input_map.gd`
 - `tests/unit/ecs/systems/test_input_system.gd`
 - `tests/unit/ecs/systems/test_vcam_system.gd`
+- `tests/unit/ecs/systems/test_movement_system.gd`
+- `tests/unit/ecs/systems/test_rotate_to_input_system.gd`
+- `tests/unit/ecs/systems/test_s_touchscreen_system.gd`
+- `tests/unit/ui/test_mobile_controls.gd`
+- `tests/unit/ui/hud/test_ots_reticle.gd`
 - `tests/unit/ecs/systems/test_room_fade_system.gd`
 - `tests/unit/ecs/systems/test_room_fade_integration.gd`
 - `tests/unit/lighting/test_room_fade_material_applier.gd`
@@ -819,7 +890,7 @@
 
 ## Next Steps
 
-1. Continue Phase 3C OTS game feel (`docs/vcam_manager/vcam-ots-tasks.md`) with 3C4 OTS aiming behavior.
+1. Run manual OTS aiming QA in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`), especially joystick-area long-press exclusion and reticle fade behavior during live camera switching.
 2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
 3. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
 4. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.

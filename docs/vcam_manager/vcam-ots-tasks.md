@@ -440,7 +440,7 @@ Before starting Phase 3, verify:
 
 > **Why:** RE4-style OTS aiming requires a full behavioral package: aim input triggers orbit↔OTS switch with a fast blend, movement slows to a dedicated profile, character locks facing to camera yaw, sprint is disabled, and a dot reticle fades in. This phase adds the aim-hold activation loop, movement profile override, facing lock, and reticle HUD element.
 
-- [ ] **Task 3C4.1**: Add aiming exports to RS_VCamModeOTS
+- [x] **Task 3C4.1**: Add aiming exports to RS_VCamModeOTS
   - Modify `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`:
     - `@export var movement_profile: RS_MovementSettings` — nullable, null = use base settings
     - `@export var disable_sprint: bool = true`
@@ -453,13 +453,15 @@ Before starting Phase 3, verify:
     - `"movement_profile": movement_profile` — nullable passthrough
   - Tests: field defaults and `get_resolved_values()` clamp behavior
   - **Target: ~6 tests**
+  - **Completion note (March 15, 2026):** `RS_VCamModeOTS` now exports `movement_profile`, `disable_sprint`, `lock_facing_to_camera`, and `aim_blend_duration`; `get_resolved_values()` includes passthrough/clamp coverage. `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` now passes `22/22`.
 
-- [ ] **Task 3C4.2**: Add aim input action
+- [x] **Task 3C4.2**: Add aim input action
   - Desktop: `aim` mapped to L2/LT (gamepad) + right mouse button
   - Mobile: long press (outside joystick area) toggles OTS on/off
   - Input map config + mobile touch detection
+  - **Completion note (March 15, 2026):** Added `aim` action through InputMap/bootstrap + profiles (`project.godot`, `U_InputMapBootstrapper`, input profile resources), input reducers/selectors/action creators (`input.aim_pressed`), keyboard/gamepad/touch input-source capture, `S_InputSystem` dispatch, and `UI_MobileControls` long-press aim toggle consumed by `S_TouchscreenSystem`.
 
-- [ ] **Task 3C4.3 (Red)**: Write tests for aim-hold OTS activation
+- [x] **Task 3C4.3 (Red)**: Write tests for aim-hold OTS activation
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test desktop aim pressed: orbit switches to OTS transition
   - Test desktop aim released: OTS switches back to orbit transition
@@ -468,8 +470,9 @@ Before starting Phase 3, verify:
   - Test blend uses `aim_blend_duration`, not default `blend_duration`
   - Test previous mode is stored and restored on aim release
   - **Target: ~6 tests**
+  - **Completion note (March 15, 2026):** Added `S_VCamSystem` aim-activation coverage in `tests/unit/ecs/systems/test_vcam_system.gd` for aim enter/exit switching, no-OTS no-op, follow-target matching preference, and minimum blend-duration clamping.
 
-- [ ] **Task 3C4.4 (Green)**: Implement aim-hold OTS activation in S_VCamSystem
+- [x] **Task 3C4.4 (Green)**: Implement aim-hold OTS activation in S_VCamSystem
   - Desktop: hold-to-aim via input action
   - Mobile: long press toggle (exclude joystick touch area)
   - On aim enter: switch active vCam mode to OTS with `aim_blend_duration`
@@ -490,8 +493,9 @@ Before starting Phase 3, verify:
   var blend_duration: float = resolved.aim_blend_duration
   # ... aim enter/exit with blend_duration
   ```
+  - **Completion note (March 15, 2026):** `S_VCamSystem` now reads `input.aim_pressed`, runs `_process_aim_activation(...)` on both blend/non-blend ticks, selects OTS target cameras through `_find_aim_target_ots_vcam_id(...)`, and restores the previous camera via `_aim_restore_vcam_id` with OTS-authored `aim_blend_duration`.
 
-- [ ] **Task 3C4.5 (Red)**: Write tests for movement profile application
+- [x] **Task 3C4.5 (Red)**: Write tests for movement profile application
   - Add to `tests/unit/ecs/systems/test_movement_system.gd`
   - Test no profile (null): base RS_MovementSettings used
   - Test profile present and OTS active: profile values override base
@@ -500,8 +504,9 @@ Before starting Phase 3, verify:
   - Test non-OTS modes ignore movement_profile entirely
   - Test instant switch: no interpolation on movement settings change
   - **Target: ~6 tests**
+  - **Completion note (March 15, 2026):** Added movement-system coverage in `tests/unit/ecs/systems/test_movement_system.gd` for null-profile fallback, OTS profile override, immediate revert on OTS exit, sprint-disable gating, and non-OTS no-op behavior.
 
-- [ ] **Task 3C4.6 (Green)**: Implement movement profile switching in S_MovementSystem
+- [x] **Task 3C4.6 (Green)**: Implement movement profile switching in S_MovementSystem
   - `S_MovementSystem` queries `C_VCamComponent` via ECS manager, reads `.mode` as `RS_VCamModeOTS`
   - OTS active + profile non-null → use profile values
   - OTS active + `disable_sprint` → ignore sprint input
@@ -525,8 +530,9 @@ Before starting Phase 3, verify:
   # INSERT: if OTS active + disable_sprint, force is_sprinting = false
   var current_max_speed: float = movement_component.settings.max_speed
   ```
+  - **Completion note (March 15, 2026):** `S_MovementSystem` now resolves active OTS state from `state.vcam.active_vcam_id`, applies `movement_profile` overrides when present, and hard-disables sprint speed when `disable_sprint` is true.
 
-- [ ] **Task 3C4.7 (Red)**: Write tests for facing lock to camera yaw
+- [x] **Task 3C4.7 (Red)**: Write tests for facing lock to camera yaw
   - Add to `tests/unit/ecs/systems/test_rotate_to_input_system.gd`
   - Test `lock_facing_to_camera=true` and OTS active: character yaw targets camera yaw
   - Test smooth rotation using existing turn speed (not instant snap)
@@ -535,8 +541,9 @@ Before starting Phase 3, verify:
   - Test strafing does not change facing direction
   - Test exit OTS: reverts to movement-direction facing
   - **Target: ~6 tests**
+  - **Completion note (March 15, 2026):** Added rotate-system coverage in `tests/unit/ecs/systems/test_rotate_to_input_system.gd` for OTS lock behavior with no-input camera-facing, strafe-invariant facing, and mode-exit reversion to movement-direction yaw.
 
-- [ ] **Task 3C4.8 (Green)**: Implement facing lock in S_RotateToInputSystem
+- [x] **Task 3C4.8 (Green)**: Implement facing lock in S_RotateToInputSystem
   - `S_RotateToInputSystem` queries `C_VCamComponent` via ECS manager, reads `.mode` as `RS_VCamModeOTS`
   - OTS + `lock_facing_to_camera=true` → desired yaw = camera yaw (not movement direction)
   - Override "reset on no input" — maintain facing when stationary
@@ -552,22 +559,25 @@ Before starting Phase 3, verify:
   # Query vcam_components, find active vcam, check mode is RS_VCamModeOTS
   # If OTS active + lock_facing_to_camera, return camera forward yaw instead
   ```
+  - **Completion note (March 15, 2026):** `S_RotateToInputSystem` now resolves active OTS mode from `state.vcam.active_vcam_id` + `C_VCamComponent` lookup, enforces camera-yaw facing when `lock_facing_to_camera` is enabled, and skips the zero-input early reset while lock is active.
 
-- [ ] **Task 3C4.9 (Red)**: Write tests for dot reticle
+- [x] **Task 3C4.9 (Red)**: Write tests for dot reticle
   - Add to `tests/unit/ui/hud/test_ots_reticle.gd`
   - Test hidden when not in OTS
   - Test fades in (alpha 0 to 1) over `aim_blend_duration` on OTS entry
   - Test fades out (alpha 1 to 0) over `aim_blend_duration` on OTS exit
   - Test centered on screen
   - **Target: ~4 tests**
+  - **Completion note (March 15, 2026):** Added `tests/unit/ui/hud/test_ots_reticle.gd` with 4 focused HUD tests (hidden outside OTS, fade-in duration, fade-out duration, centered layout) and explicit OTS `aim_blend_duration` sync assertions.
 
-- [ ] **Task 3C4.10 (Green)**: Implement dot reticle
+- [x] **Task 3C4.10 (Green)**: Implement dot reticle
   - Screen-space HUD element (TextureRect or ColorRect), centered
   - Listens for OTS activation/deactivation
   - Fades alpha synced with `aim_blend_duration`
   - Hidden by default
+  - **Completion note (March 15, 2026):** `UI_HudController` now drives `OTSReticleContainer` visibility/fading from `state.vcam.active_mode` with pause/gameplay gating and OTS `aim_blend_duration` resolution from the active vCam mode (fallback `0.15s`), and `scenes/ui/hud/ui_hud_overlay.tscn` now includes a centered dot reticle node hidden by default.
 
-- [ ] **Task 3C4.11**: Create default OTS movement settings preset
+- [x] **Task 3C4.11**: Create default OTS movement settings preset
   - Create `resources/base_settings/gameplay/cfg_ots_movement_default.tres`
   - Type: `RS_MovementSettings` with OTS overrides:
     - `max_speed = 3.0` (reduced from default 6.0)
@@ -587,12 +597,25 @@ Before starting Phase 3, verify:
     - `air_control_scale = 0.3`
     - `slope_limit_degrees = 50.0`
   - Verify resource loads without errors
+  - **Completion note (March 15, 2026):** Added `cfg_ots_movement_default.tres`, wired it into `resources/display/vcam/cfg_default_ots.tres` via `movement_profile`, and extended `test_vcam_mode_ots` with preset load/value/reference assertions.
 
-- [ ] **DOC**: Update `docs/vcam_manager/vcam-manager-continuation-prompt.md` and this file with Phase 3C4 completion status.
+- [x] **DOC**: Update `docs/vcam_manager/vcam-manager-continuation-prompt.md` and this file with Phase 3C4 completion status.
 
-- [ ] **Task 3C4.12**: Update AGENTS.md with OTS aiming contracts
+- [x] **Task 3C4.12**: Update AGENTS.md with OTS aiming contracts
   - Add movement system vcam awareness contract (S_MovementSystem queries C_VCamComponent for OTS movement profile override and sprint gating)
   - Add rotation system vcam awareness contract (S_RotateToInputSystem queries C_VCamComponent for OTS facing lock)
+
+- **Validation run (March 15, 2026):**
+  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`24/24`)
+  - `tests/unit/ui/hud/test_ots_reticle.gd` (`4/4`)
+  - `tests/unit/ui` (`-gselect=test_hud`, `28/28`)
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`127/127`)
+  - `tests/unit/ecs/systems/test_input_system.gd` (`14/14`)
+  - `tests/unit/ecs/systems/test_s_touchscreen_system.gd` (`8/8`)
+  - `tests/unit/ui/test_mobile_controls.gd` (`16/16`)
+  - `tests/unit/ecs/systems/test_movement_system.gd` (`13/13`)
+  - `tests/unit/ecs/systems/test_rotate_to_input_system.gd` (`6/6`)
+  - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ---
 
@@ -615,14 +638,14 @@ Before starting Phase 3, verify:
 
 ### Cross-Cutting Checks (OTS Aiming Behavior)
 
-- [ ] Verify movement profile only applies when OTS is active
-- [ ] Verify facing lock uses existing second-order dynamics
-- [ ] Verify sprint disable checked before speed calculation
-- [ ] Verify all state reverts on mode switch
-- [ ] Verify aim input works on gamepad (L2/LT), mouse (right-click), and mobile (long press)
+- [x] Verify movement profile only applies when OTS is active
+- [x] Verify facing lock uses existing second-order dynamics
+- [x] Verify sprint disable checked before speed calculation
+- [x] Verify all state reverts on mode switch
+- [x] Verify aim input works on gamepad (L2/LT), mouse (right-click), and mobile (long press)
 - [ ] Verify long press excludes joystick touch area on mobile
-- [ ] Verify reticle fade syncs with `aim_blend_duration`
-- [ ] Verify blend duration read from OTS resource, not hardcoded
+- [x] Verify reticle fade syncs with `aim_blend_duration`
+- [x] Verify blend duration read from OTS resource, not hardcoded
 
 ---
 
