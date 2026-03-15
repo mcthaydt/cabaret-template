@@ -390,6 +390,48 @@ func test_submit_evaluated_camera_startup_blend_can_cut_on_distance_threshold() 
 		"Large startup offset should instant-cut when cut threshold is exceeded"
 	)
 
+func test_submit_evaluated_camera_publishes_silhouette_update_request_event() -> void:
+	var store := MOCK_STATE_STORE.new()
+	store.set_slice(StringName("gameplay"), {
+		"player_entity_id": "player",
+	})
+	add_child(store)
+	autofree(store)
+
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+
+	var manager := await _create_manager(store, camera_manager)
+	var camera_a := _create_vcam(StringName("cam_a"), 5)
+	var follow_target := Node3D.new()
+	camera_a.add_child(follow_target)
+	autofree(follow_target)
+	await get_tree().process_frame
+	camera_a.follow_target_path = camera_a.get_path_to(follow_target)
+
+	U_ECS_EVENT_BUS.clear_history()
+	manager.submit_evaluated_camera(
+		StringName("cam_a"),
+		{"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 1.0, 4.0))}
+	)
+
+	var history: Array = U_ECS_EVENT_BUS.get_event_history()
+	var found_request: bool = false
+	for event_variant in history:
+		if not (event_variant is Dictionary):
+			continue
+		var event_payload := event_variant as Dictionary
+		if event_payload.get("name", StringName("")) != U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST:
+			continue
+		var payload := event_payload.get("payload", {}) as Dictionary
+		assert_eq(payload.get("entity_id", StringName("")), StringName("player"))
+		assert_true(payload.get("occluders", []) is Array)
+		assert_eq(payload.get("enabled", false), true)
+		found_request = true
+		break
+	assert_true(found_request, "Submitting active camera should publish silhouette request payload")
+
 func _create_manager(
 	injected_store: I_StateStore = null,
 	injected_camera_manager: I_CameraManager = null

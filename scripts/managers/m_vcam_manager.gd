@@ -10,6 +10,9 @@ const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.g
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
 const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
+const U_VCAM_COLLISION_DETECTOR := preload("res://scripts/managers/helpers/u_vcam_collision_detector.gd")
+
+const VCAM_OCCLUSION_COLLISION_MASK: int = 1 << 5
 
 @export var state_store: I_StateStore = null
 @export var camera_manager: I_CAMERA_MANAGER = null
@@ -361,6 +364,93 @@ func _try_apply_active_submission(vcam_id: StringName) -> void:
 	var target_transform := transform_variant as Transform3D
 	var applied_transform: Transform3D = _resolve_startup_blend_transform(vcam_id, target_transform)
 	camera_mgr.apply_main_camera_transform(applied_transform)
+	_publish_silhouette_update_request_for_active_vcam(vcam_id, applied_transform)
+
+func _publish_silhouette_update_request_for_active_vcam(
+	vcam_id: StringName,
+	camera_transform: Transform3D
+) -> void:
+	var vcam := _vcams_by_id.get(vcam_id, null) as Node
+	var entity_id: StringName = _resolve_silhouette_entity_id(vcam)
+	var follow_target: Node3D = _resolve_follow_target_for_vcam(vcam)
+	if follow_target == null or not is_instance_valid(follow_target):
+		_publish_silhouette_update_request(entity_id, [], false)
+		return
+
+	var world: World3D = follow_target.get_world_3d()
+	if world == null:
+		_publish_silhouette_update_request(entity_id, [], false)
+		return
+	var space_state: PhysicsDirectSpaceState3D = world.direct_space_state
+	if space_state == null:
+		_publish_silhouette_update_request(entity_id, [], false)
+		return
+
+	var occluders_variant: Variant = U_VCAM_COLLISION_DETECTOR.detect_occluders(
+		space_state,
+		camera_transform.origin,
+		follow_target.global_position,
+		VCAM_OCCLUSION_COLLISION_MASK
+	)
+	var occluders: Array = []
+	if occluders_variant is Array:
+		occluders = (occluders_variant as Array).duplicate(false)
+	_publish_silhouette_update_request(entity_id, occluders, true)
+
+func _publish_silhouette_update_request(entity_id: StringName, occluders: Array, enabled: bool) -> void:
+	var safe_occluders: Array = []
+	for occluder_variant in occluders:
+		if not (occluder_variant is GeometryInstance3D):
+			continue
+		var occluder := occluder_variant as GeometryInstance3D
+		if occluder == null or not is_instance_valid(occluder):
+			continue
+		safe_occluders.append(occluder)
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
+		"entity_id": entity_id,
+		"occluders": safe_occluders,
+		"enabled": enabled,
+	})
+
+func _resolve_follow_target_for_vcam(vcam: Node) -> Node3D:
+	if vcam == null or not is_instance_valid(vcam):
+		return null
+	if not vcam.has_method("get_follow_target"):
+		return null
+	var follow_target_variant: Variant = vcam.call("get_follow_target")
+	if follow_target_variant is Node3D:
+		var follow_target := follow_target_variant as Node3D
+		if follow_target != null and is_instance_valid(follow_target):
+			return follow_target
+	return null
+
+func _resolve_silhouette_entity_id(vcam: Node) -> StringName:
+	if vcam != null and is_instance_valid(vcam) and "follow_target_entity_id" in vcam:
+		var entity_id_variant: Variant = vcam.get("follow_target_entity_id")
+		if entity_id_variant is StringName:
+			var entity_id := entity_id_variant as StringName
+			if entity_id != StringName(""):
+				return entity_id
+		var raw_id: String = str(entity_id_variant)
+		if not raw_id.is_empty():
+			return StringName(raw_id)
+	return _resolve_player_entity_id()
+
+func _resolve_player_entity_id() -> StringName:
+	var store := _resolve_state_store()
+	if store == null:
+		return StringName("")
+	var state: Dictionary = store.get_state()
+	var gameplay_variant: Variant = state.get("gameplay", {})
+	if not (gameplay_variant is Dictionary):
+		return StringName("")
+	var gameplay := gameplay_variant as Dictionary
+	var player_entity_variant: Variant = gameplay.get("player_entity_id", "")
+	var player_entity_text: String = str(player_entity_variant)
+	if player_entity_text.is_empty():
+		return StringName("")
+	return StringName(player_entity_text)
 
 func _queue_startup_blend_if_needed(next_vcam_id: StringName, previous_vcam_id: StringName) -> void:
 	_clear_startup_blend_runtime()

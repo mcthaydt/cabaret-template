@@ -13,6 +13,7 @@ const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/managers/helpers/u_vcam_silhouette_helper.gd")
 const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/overlays/ui_damage_flash_overlay.tscn")
 const SCREEN_SHAKE_TUNING := preload("res://resources/vfx/cfg_screen_shake_tuning.tres")
 const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/cfg_screen_shake_config.tres")
@@ -58,6 +59,7 @@ var _trauma_decay_rate: float = 2.0
 ## Request queues for deterministic processing
 var _shake_requests: Array = []
 var _flash_requests: Array = []
+var _silhouette_requests: Array = []
 
 ## Unsubscribe callables for ECS event subscriptions
 var _event_unsubscribes: Array[Callable] = []
@@ -70,6 +72,7 @@ var _last_shell: StringName = StringName("")
 var _preview_settings: Dictionary = {}
 var _is_previewing: bool = false
 var _effects_container: Node = null
+var _silhouette_helper: Variant = null
 
 func _ready() -> void:
 	# Run even when game is paused (VFX should be visible in pause menu)
@@ -119,6 +122,12 @@ func _ready() -> void:
 		U_ECS_EVENT_NAMES.EVENT_DAMAGE_FLASH_REQUEST,
 		_on_damage_flash_request
 	))
+	_event_unsubscribes.append(U_ECS_EVENT_BUS.subscribe(
+		U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST,
+		_on_silhouette_update_request
+	))
+
+	_silhouette_helper = U_VCAM_SILHOUETTE_HELPER.new()
 
 	# Subscribe to state changes to cancel flash when leaving gameplay
 	if _state_store != null:
@@ -133,6 +142,8 @@ func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
 		_store_unsubscribe.call()
 		_store_unsubscribe = Callable()
+	if _silhouette_helper != null and _silhouette_helper.has_method("remove_all_silhouettes"):
+		_silhouette_helper.call("remove_all_silhouettes")
 
 ## Add trauma to the current trauma level
 ##
@@ -258,6 +269,10 @@ func _physics_process(delta: float) -> void:
 		_process_flash_request(request)
 	_flash_requests.clear()
 
+	for request in _silhouette_requests:
+		_process_silhouette_request(request)
+	_silhouette_requests.clear()
+
 	# Decay trauma over time (2.0/sec rate)
 	_trauma = maxf(_trauma - _trauma_decay_rate * delta, 0.0)
 
@@ -300,6 +315,22 @@ func _on_damage_flash_request(event_data: Dictionary) -> void:
 
 	_flash_requests.append(event_data)
 
+## Event handler for silhouette update request events
+func _on_silhouette_update_request(event_data: Dictionary) -> void:
+	if _state_store == null or _silhouette_helper == null:
+		return
+
+	var payload: Dictionary = event_data.get("payload", {})
+	var entity_id: StringName = StringName(str(payload.get("entity_id", "")))
+
+	# Gating: player-only and transition check
+	if not _is_player_entity(entity_id):
+		return
+	if _is_transition_blocked():
+		return
+
+	_silhouette_requests.append(event_data)
+
 func _process_shake_request(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
 	var trauma_amount: float = float(payload.get("trauma_amount", 0.0))
@@ -313,3 +344,23 @@ func _process_flash_request(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
 	var intensity: float = float(payload.get("intensity", 1.0))
 	_damage_flash.trigger_flash(intensity)
+
+func _process_silhouette_request(event_data: Dictionary) -> void:
+	if _silhouette_helper == null:
+		return
+
+	var payload: Dictionary = event_data.get("payload", {})
+	var enabled: bool = bool(payload.get("enabled", true))
+	if not enabled:
+		_silhouette_helper.call("remove_all_silhouettes")
+		return
+
+	var occluders_variant: Variant = payload.get("occluders", [])
+	var occluders: Array = []
+	if occluders_variant is Array:
+		occluders = (occluders_variant as Array).duplicate(false)
+
+	_silhouette_helper.call("remove_all_silhouettes")
+	for occluder_variant in occluders:
+		if occluder_variant is GeometryInstance3D:
+			_silhouette_helper.call("apply_silhouette", occluder_variant as GeometryInstance3D)

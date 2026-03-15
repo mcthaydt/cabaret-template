@@ -6,6 +6,7 @@ class_name U_ECSEventNames
 # VFX Events
 const EVENT_SCREEN_SHAKE_REQUEST := StringName("screen_shake_request")
 const EVENT_DAMAGE_FLASH_REQUEST := StringName("damage_flash_request")
+const EVENT_SILHOUETTE_UPDATE_REQUEST := StringName("silhouette_update_request")
 
 # Gameplay Events
 const EVENT_HEALTH_CHANGED := StringName("health_changed")
