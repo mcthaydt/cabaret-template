@@ -56,6 +56,7 @@ var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped 
 var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
 var _ground_relative_state: Dictionary = {}  # StringName -> {follow_target_id, ground_anchor_y, ground_anchor_target_y, follow_anchor_y_offset, last_ground_reference_y, was_grounded, blend_hz, dynamics}
 var _first_person_strafe_tilt_state: Dictionary = {}  # StringName -> {dynamics, smoothing_hz}
+var _shoulder_sway_state: Dictionary = {}  # StringName -> {dynamics, smoothing_hz}
 var _ots_collision_state: Dictionary = {}  # StringName -> {follow_target_id, recovery_speed_hz, current_distance, dynamics}
 var _look_input_filter_state: Dictionary = {}  # StringName -> {filtered_input, hold_timer_sec, input_active}
 var _follow_target_motion_state: Dictionary = {}  # StringName -> {follow_target_id, last_position, speed_mps}
@@ -332,6 +333,7 @@ func _evaluate_and_submit(
 	if result.is_empty():
 		return
 	result = _apply_first_person_strafe_tilt(vcam_id, mode, result, move_input, delta)
+	result = _apply_ots_shoulder_sway(vcam_id, mode, result, move_input, delta)
 	result = _apply_ots_collision_avoidance(vcam_id, mode, follow_target, result, delta)
 	var look_ahead_result: Dictionary = _apply_orbit_look_ahead(
 		vcam_id,
@@ -456,6 +458,85 @@ func _ensure_first_person_strafe_tilt_state(vcam_id: StringName, smoothing_hz: f
 
 func _clear_first_person_strafe_tilt_state_for_vcam(vcam_id: StringName) -> void:
 	_first_person_strafe_tilt_state.erase(vcam_id)
+
+func _apply_ots_shoulder_sway(
+	vcam_id: StringName,
+	mode: Resource,
+	result: Dictionary,
+	move_input: Vector2,
+	delta: float
+) -> Dictionary:
+	if mode == null or result.is_empty():
+		_clear_ots_shoulder_sway_state_for_vcam(vcam_id)
+		return result
+
+	var mode_script := mode.get_script() as Script
+	if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
+		_clear_ots_shoulder_sway_state_for_vcam(vcam_id)
+		return result
+
+	var transform_variant: Variant = result.get("transform", null)
+	if not (transform_variant is Transform3D):
+		_clear_ots_shoulder_sway_state_for_vcam(vcam_id)
+		return result
+
+	var mode_values: Dictionary = _resolve_mode_values(mode, {
+		"shoulder_sway_angle": 0.0,
+		"shoulder_sway_smoothing": 6.0,
+	})
+	var shoulder_sway_angle: float = maxf(float(mode_values.get("shoulder_sway_angle", 0.0)), 0.0)
+	if shoulder_sway_angle <= 0.0:
+		_clear_ots_shoulder_sway_state_for_vcam(vcam_id)
+		return result
+
+	var shoulder_sway_smoothing: float = maxf(float(mode_values.get("shoulder_sway_smoothing", 6.0)), 0.0)
+	var clamped_lateral_input: float = clampf(move_input.x, -1.0, 1.0)
+	var target_roll_deg: float = clamped_lateral_input * shoulder_sway_angle
+	var smoothed_roll_deg: float = target_roll_deg
+
+	if shoulder_sway_smoothing > 0.0 and delta > 0.0:
+		var state: Dictionary = _ensure_ots_shoulder_sway_state(vcam_id, shoulder_sway_smoothing)
+		var dynamics_variant: Variant = state.get("dynamics", null)
+		if dynamics_variant != null:
+			smoothed_roll_deg = float(dynamics_variant.step(target_roll_deg, delta))
+	else:
+		_clear_ots_shoulder_sway_state_for_vcam(vcam_id)
+
+	var transformed := transform_variant as Transform3D
+	var roll_rad: float = deg_to_rad(smoothed_roll_deg)
+	transformed.basis = transformed.basis.rotated(transformed.basis.z, roll_rad).orthonormalized()
+	var swayed_result: Dictionary = result.duplicate(true)
+	swayed_result["transform"] = transformed
+	return swayed_result
+
+func _ensure_ots_shoulder_sway_state(vcam_id: StringName, smoothing_hz: float) -> Dictionary:
+	var existing_state_variant: Variant = _shoulder_sway_state.get(vcam_id, {})
+	if existing_state_variant is Dictionary:
+		var existing_state := existing_state_variant as Dictionary
+		var existing_hz: float = float(existing_state.get("smoothing_hz", -1.0))
+		var existing_dynamics: Variant = existing_state.get("dynamics", null)
+		if existing_dynamics != null and is_equal_approx(existing_hz, smoothing_hz):
+			return existing_state
+
+		var initial_roll_deg: float = 0.0
+		if existing_dynamics != null and existing_dynamics.has_method("get_value"):
+			initial_roll_deg = float(existing_dynamics.call("get_value"))
+		var rebuilt_state: Dictionary = {
+			"dynamics": U_SECOND_ORDER_DYNAMICS.new(smoothing_hz, 1.0, 1.0, initial_roll_deg),
+			"smoothing_hz": smoothing_hz,
+		}
+		_shoulder_sway_state[vcam_id] = rebuilt_state
+		return rebuilt_state
+
+	var created_state: Dictionary = {
+		"dynamics": U_SECOND_ORDER_DYNAMICS.new(smoothing_hz, 1.0, 1.0, 0.0),
+		"smoothing_hz": smoothing_hz,
+	}
+	_shoulder_sway_state[vcam_id] = created_state
+	return created_state
+
+func _clear_ots_shoulder_sway_state_for_vcam(vcam_id: StringName) -> void:
+	_shoulder_sway_state.erase(vcam_id)
 
 func _apply_ots_collision_avoidance(
 	vcam_id: StringName,
@@ -2043,6 +2124,14 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
+	for vcam_id_variant in _shoulder_sway_state.keys():
+		var vcam_id := vcam_id_variant as StringName
+		if vcam_index.has(vcam_id):
+			continue
+		if stale_ids.has(vcam_id):
+			continue
+		stale_ids.append(vcam_id)
+
 	for vcam_id_variant in _ots_collision_state.keys():
 		var vcam_id := vcam_id_variant as StringName
 		if vcam_index.has(vcam_id):
@@ -2102,6 +2191,7 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
 		_clear_first_person_strafe_tilt_state_for_vcam(stale_id)
+		_clear_ots_shoulder_sway_state_for_vcam(stale_id)
 		_clear_ots_collision_state_for_vcam(stale_id)
 		_orbit_centering_state.erase(stale_id)
 		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
@@ -2123,6 +2213,7 @@ func _clear_all_smoothing_state() -> void:
 	_look_ahead_state.clear()
 	_ground_relative_state.clear()
 	_first_person_strafe_tilt_state.clear()
+	_shoulder_sway_state.clear()
 	_ots_collision_state.clear()
 	_look_input_filter_state.clear()
 	_follow_target_motion_state.clear()

@@ -96,6 +96,12 @@ func test_shoulder_sway_defaults_match_expected_values() -> void:
 	assert_almost_eq(float(mode.get("shoulder_sway_angle")), 0.0, 0.0001)
 	assert_almost_eq(float(mode.get("shoulder_sway_smoothing")), 6.0, 0.0001)
 
+func test_shoulder_sway_angle_resolves_non_negative() -> void:
+	var mode: Resource = _new_mode()
+	mode.set("shoulder_sway_angle", -2.0)
+	var resolved: Dictionary = _resolved(mode)
+	assert_almost_eq(float(resolved.get("shoulder_sway_angle", 1.0)), 0.0, 0.0001)
+
 func test_landing_dip_defaults_match_expected_values() -> void:
 	var mode: Resource = _new_mode()
 	assert_almost_eq(float(mode.get("landing_dip_distance")), 0.0, 0.0001)

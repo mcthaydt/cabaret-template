@@ -402,6 +402,199 @@ func test_first_person_strafe_tilt_is_noop_for_orbit_and_fixed_modes() -> void:
 	var fixed_raw_transform := fixed_raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
 	_assert_transform_close(fixed_submitted, fixed_raw_transform, 0.0001, 0.0001)
 
+func test_ots_shoulder_sway_is_disabled_when_angle_is_zero() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "move_input": Vector2(1.0, 0.0)})
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSShoulderSwayDisabled", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_sway_angle = 0.0
+	mode.shoulder_sway_smoothing = 6.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_shoulder_sway_disabled"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_shoulder_sway_disabled")
+	for _i in range(30):
+		ecs_manager._physics_process(0.016)
+
+	var transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_shoulder_sway_disabled"))
+	assert_almost_eq(_extract_roll_degrees(transform), 0.0, 0.001)
+
+func test_ots_shoulder_sway_rolls_negative_when_strafing_left() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "move_input": Vector2(-1.0, 0.0)})
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSShoulderSwayLeft", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_sway_angle = 10.0
+	mode.shoulder_sway_smoothing = 8.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_shoulder_sway_left"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_shoulder_sway_left")
+	for _i in range(120):
+		ecs_manager._physics_process(0.016)
+
+	var transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_shoulder_sway_left"))
+	assert_true(_extract_roll_degrees(transform) < -0.5)
+
+func test_ots_shoulder_sway_rolls_positive_when_strafing_right() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "move_input": Vector2(1.0, 0.0)})
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSShoulderSwayRight", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_sway_angle = 10.0
+	mode.shoulder_sway_smoothing = 8.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_shoulder_sway_right"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_shoulder_sway_right")
+	for _i in range(120):
+		ecs_manager._physics_process(0.016)
+
+	var transform: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_shoulder_sway_right"))
+	assert_true(_extract_roll_degrees(transform) > 0.5)
+
+func test_ots_shoulder_sway_scales_with_lateral_input_strength() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "move_input": Vector2(0.25, 0.0)})
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSShoulderSwayScale", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_sway_angle = 12.0
+	mode.shoulder_sway_smoothing = 10.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_shoulder_sway_scale"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_shoulder_sway_scale")
+	for _i in range(120):
+		ecs_manager._physics_process(0.016)
+	var partial_roll: float = absf(
+		_extract_roll_degrees(_extract_submission_transform(vcam_manager, StringName("cam_ots_shoulder_sway_scale")))
+	)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "move_input": Vector2(1.0, 0.0)})
+	for _j in range(120):
+		ecs_manager._physics_process(0.016)
+	var full_roll: float = absf(
+		_extract_roll_degrees(_extract_submission_transform(vcam_manager, StringName("cam_ots_shoulder_sway_scale")))
+	)
+
+	assert_true(full_roll > (partial_roll + 0.5))
+	assert_true(full_roll <= 12.25)
+
+func test_ots_shoulder_sway_does_not_exceed_authored_max_angle() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "move_input": Vector2(1.0, 0.0)})
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSShoulderSwayMax", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_sway_angle = 8.0
+	mode.shoulder_sway_smoothing = 12.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_shoulder_sway_max"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_shoulder_sway_max")
+	for _i in range(180):
+		ecs_manager._physics_process(0.016)
+
+	var roll: float = absf(
+		_extract_roll_degrees(_extract_submission_transform(vcam_manager, StringName("cam_ots_shoulder_sway_max")))
+	)
+	assert_true(roll <= 8.1)
+
+func test_ots_shoulder_sway_returns_to_zero_when_lateral_input_stops() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "move_input": Vector2(1.0, 0.0)})
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSShoulderSwayReturn", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_sway_angle = 10.0
+	mode.shoulder_sway_smoothing = 6.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_shoulder_sway_return"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_shoulder_sway_return")
+	for _i in range(120):
+		ecs_manager._physics_process(0.016)
+	var active_roll: float = absf(
+		_extract_roll_degrees(_extract_submission_transform(vcam_manager, StringName("cam_ots_shoulder_sway_return")))
+	)
+	assert_true(active_roll > 0.5)
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "move_input": Vector2.ZERO})
+	for _j in range(150):
+		ecs_manager._physics_process(0.016)
+	var settled_roll: float = absf(
+		_extract_roll_degrees(_extract_submission_transform(vcam_manager, StringName("cam_ots_shoulder_sway_return")))
+	)
+	assert_true(settled_roll < active_roll)
+	assert_true(settled_roll < 0.1)
+
+func test_ots_shoulder_sway_is_noop_for_orbit_and_fixed_modes() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "move_input": Vector2(1.0, 0.0)})
+	var orbit_target := _create_target_entity(ecs_manager, "E_OTSShoulderSwayNoopOrbit", Vector3.ZERO)
+	var orbit_mode := _new_orbit_mode(false, 0.0)
+	var orbit_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ots_shoulder_sway_noop_orbit"),
+		orbit_mode,
+		orbit_target
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_shoulder_sway_noop_orbit")
+	ecs_manager._physics_process(0.016)
+
+	var orbit_submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_shoulder_sway_noop_orbit"))
+	var orbit_raw_result: Dictionary = _evaluate_raw_result(orbit_mode, orbit_target, orbit_component)
+	var orbit_raw_transform := orbit_raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	_assert_transform_close(orbit_submitted, orbit_raw_transform, 0.0001, 0.0001)
+
+	var fixed_target := _create_target_entity(ecs_manager, "E_OTSShoulderSwayNoopFixed", Vector3.ZERO)
+	var fixed_mode := RS_VCAM_MODE_FIXED.new()
+	fixed_mode.use_world_anchor = false
+	fixed_mode.follow_offset = Vector3(0.0, 0.0, 4.0)
+	fixed_mode.track_target = false
+	var fixed_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ots_shoulder_sway_noop_fixed"),
+		fixed_mode,
+		fixed_target
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_shoulder_sway_noop_fixed")
+	ecs_manager._physics_process(0.016)
+
+	var fixed_submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_shoulder_sway_noop_fixed"))
+	var fixed_raw_result: Dictionary = _evaluate_raw_result(fixed_mode, fixed_target, fixed_component)
+	var fixed_raw_transform := fixed_raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	_assert_transform_close(fixed_submitted, fixed_raw_transform, 0.0001, 0.0001)
+
 func test_ots_collision_avoidance_keeps_full_distance_when_unobstructed() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
