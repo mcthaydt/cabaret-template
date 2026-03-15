@@ -4,15 +4,43 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, and the 2C8 input-consistency/icon-coverage follow-up are complete as of March 15, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning plus ground-relative dual-anchor behavior, orbit release-smoothing enhancement with axis-specific damping + stop-threshold clamping, orbit button recenter pipeline + interpolation landing, camera-center binding/icon consistency and touchscreen double-tap recenter support, room-fade data-layer resource/component scaffolding, room-fade shader/material/system runtime logic with orbit-only gating/non-orbit restoration, and room-fade integration/polish validation including multi-group/ceiling/mode-switch/coexistence/material-restore coverage). Next implementation target is mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Next implementation target is Phase 9 first-person feel.
 
 ## Next Planned Work (March 15, 2026)
 
 - Orbit follow-up backlog `2C11` is now complete in `docs/vcam_manager/vcam-orbit-tasks.md`.
+- Mobile drag-look/touch gating prerequisites are complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
 - Immediate implementation target:
-  - mobile drag-look/touch gating prerequisite work
-- Then:
   - Phase 9 first-person feel
+
+## Mobile Drag-Look + Touch Gating (Phase 7A/7B/7B2/7C, March 15, 2026)
+
+- Runtime input ownership updates:
+  - `UI_MobileControls` now tracks dedicated free-screen drag-look touches and exposes `consume_look_delta()` + `is_touch_look_active()`.
+  - `S_TouchscreenSystem` now dispatches `U_InputActions.update_look_input(...)` from touch drag deltas and updates component look action strength.
+  - `S_TouchscreenSystem` now dispatches `U_GameplayActions.set_touch_look_active(...)` on gesture lifecycle transitions.
+  - `S_InputSystem` now hard-gates active touchscreen ticks so touch-owned move/look/button state is not zero-clobbered by `TouchscreenSource`.
+- State/store contract updates:
+  - `gameplay.touch_look_active` added to `RS_GameplayInitialState`, `U_GameplayActions`, `U_GameplayReducer`, and `U_GameplaySelectors`.
+  - `U_StateSliceManager` now marks `touch_look_active` transient in gameplay slice config.
+- New/updated coverage:
+  - `test_mobile_controls` (drag-look delta + consume lifecycle + sensitivity/invert)
+  - `test_s_touchscreen_system` (look dispatch + sensitivity/invert + one-shot delta + active flag lifecycle)
+  - `test_input_system` (touchscreen no-clobber guard + touch-look-active preservation)
+  - `test_gameplay_slice_reducers`, `test_state_selectors`, `test_m_state_store` (flag reducer/selector/transient config coverage)
+- Validation run:
+  - `tests/unit/ui/test_mobile_controls.gd` (`14/14`)
+  - `tests/unit/ecs/systems/test_s_touchscreen_system.gd` (`7/7`)
+  - `tests/unit/ecs/systems/test_input_system.gd` (`13/13`)
+  - `tests/unit/state/test_gameplay_slice_reducers.gd` (`10/10`)
+  - `tests/unit/state/test_state_selectors.gd` (`7/7`)
+  - `tests/unit/state/test_m_state_store.gd` (`29/29`)
+  - `tests/unit/state/test_state_persistence.gd` (`9/9`)
+  - `tests/integration/state/test_state_persistence.gd` (`2/2`)
+  - `tests/unit/state/test_action_registry.gd` (`14/14`)
+  - `tests/unit/state/test_u_gameplay_actions.gd` (`7/7`)
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`94/94`)
+  - `tests/unit/style/test_style_enforcement.gd` remains at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## Orbit Camera Center Input Consistency + Icon Coverage (Follow-up, March 15, 2026)
 
@@ -516,7 +544,7 @@
 
 - Runtime wiring is now explicit: `M_VCamManager` belongs in `scenes/root.tscn`, and `S_VCamSystem` belongs in gameplay system trees.
 - vCam top-level docs are now status-aligned: overview/PRD/task index/continuation now mark Phases 2A-5 plus 6A/6B/6A2/6A.3/6A3a/6A3b/6A3c and Phase 8 orbit feel/data/runtime subphases 2C1-2C11 complete.
-- Orbit follow-up backlog planning is now explicit: `docs/vcam_manager/vcam-orbit-tasks.md` now marks `2C11` complete and sets mobile drag-look/touch gating as the immediate next implementation target.
+- Orbit follow-up backlog planning is now explicit: `docs/vcam_manager/vcam-orbit-tasks.md` marks `2C11` complete, and mobile drag-look/touch gating prerequisites are now complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
 - `S_VCamSystem` baseline contract is now implementation-backed: manager resolution, target resolution fallback order, blend-aware active/outgoing evaluation, and same-frame submission are in code/tests.
 - `S_VCamSystem` response-smoothing contract is now implementation-backed: `RS_VCamResponse` drives position/rotation second-order smoothing, response-null passthrough keeps backward compatibility, and mode/target/response transitions reset or recreate smoothing state deterministically.
 - `S_VCamSystem` movement-style look smoothing contract is now implementation-backed for orbit/first-person: runtime yaw/pitch remain raw targets on `C_VCamComponent`, evaluator rotation is fed by per-vCam spring-damper look state, and fixed-mode rotation smoothing remains owned by response smoothing.
@@ -548,7 +576,7 @@
 - QB rule context enrichment: `S_CameraStateSystem._build_camera_context()` is extended with `vcam_active_mode`, `vcam_is_blending`, `vcam_active_vcam_id` so camera rules can condition on vCam state using standard `RS_ConditionContextField`.
 - Per-phase doc cadence is now explicit and mandatory: update continuation prompt + tasks after each phase, and update AGENTS/DEV_PITFALLS when new stable contracts or pitfalls appear.
 - Camera slice migration is complete: `S_CameraStateSystem`, default QB camera-zone rule config, and QB camera tests now use `state.vcam.in_fov_zone`; legacy runtime/test reads of `state.camera.in_fov_zone` are retired.
-- Touch look gating uses a planned `gameplay.touch_look_active` Redux flag. If implemented as a top-level gameplay field, it must be registered as transient so it does not persist through save/load or shell handoff.
+- Touch look gating now uses the top-level gameplay `touch_look_active` Redux flag, and the field is registered as transient so it does not persist through save/load or shell handoff.
 - Keyboard-look scope is now complete: patch `U_InputMapBootstrapper`, `tests/unit/input/test_input_map.gd`, `U_GlobalSettingsSerialization`, `U_RebindActionListBuilder`, locale action keys, and a new `UI_KeyboardMouseSettingsOverlay` instead of treating the settings surface as optional.
 - Same-frame camera apply is now explicit: `S_VCamSystem` submits the authoritative current-frame result, and `M_VCamManager` consumes that handoff instead of relying on root `_physics_process` order against gameplay ECS.
 - Silhouette rendering routes through `M_VFXManager`: vCam publishes `EVENT_SILHOUETTE_UPDATE_REQUEST` with `{entity_id, occluders, enabled}`, VFX manager subscribes and delegates to `U_VCamSilhouetteHelper`. This is what lets existing player gating and transition blocking apply.
@@ -631,11 +659,10 @@
 
 ## Next Steps
 
-1. Before considering orbit/first-person done, implement mobile drag-look in `UI_MobileControls` and `S_TouchscreenSystem`, wire `gameplay.touch_look_active` Redux flag for input gating, make that flag transient, and gate `S_InputSystem` so touch input is not clobbered (`tests/unit/ecs/systems/test_input_system.gd`).
-2. Start Phase 9 first-person feel (`docs/vcam_manager/vcam-fps-tasks.md`): strafe tilt, head bob, and landing head dip on top of the existing response pipeline.
-3. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
-4. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
-5. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+1. Start Phase 9 first-person feel (`docs/vcam_manager/vcam-fps-tasks.md`): strafe tilt, head bob, and landing head dip on top of the existing response pipeline.
+2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
+3. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
+4. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 
@@ -660,7 +687,7 @@
 - QB camera rules can condition on vCam state via enriched context fields (`vcam_active_mode`, `vcam_is_blending`) — no vCam-specific rule types needed.
 - Follow target resolution uses existing entity ID/tag system as fallback when NodePaths are empty. Multiple tag matches resolve to the first valid ECS-registration-order match and emit a debug warning.
 - The informal `camera` slice is retired for FOV-zone observability. `in_fov_zone` now lives in `state.vcam.in_fov_zone`; do not reintroduce `state.camera.in_fov_zone` reads.
-- Touch input gating uses `gameplay.touch_look_active` Redux flag, not device-type checks, and that flag stays transient if implemented in the gameplay slice.
+- Touch input ownership is `S_TouchscreenSystem` when `active_device == TOUCHSCREEN`, with `gameplay.touch_look_active` used as transient observability/gating state for drag-look lifecycle.
 - Projection math and occlusion raycasts use the active gameplay camera viewport/world inside `GameViewport`.
 - Silhouette rendering lifecycle is owned by `M_VFXManager` (detection in vCam, rendering in VFX) via `{entity_id, occluders, enabled}` request payload. This follows the `U_ScreenShake` helper pattern.
 

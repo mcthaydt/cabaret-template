@@ -965,7 +965,7 @@ Before starting Phase 0, verify:
 
 ### Phase 7A: UI_MobileControls Look Touch Tracking
 
-- [ ] **Task 7A.1 (Red)**: Write tests for mobile look touch
+- [x] **Task 7A.1 (Red)**: Write tests for mobile look touch
   - Create or modify `tests/unit/ui/test_mobile_controls.gd`
   - Test touch starting outside joystick/buttons becomes look gesture
   - Test touch starting on joystick stays owned by joystick
@@ -976,32 +976,36 @@ Before starting Phase 0, verify:
   - Test multiple button presses during look touch do not conflict
   - Test second free-screen touch while look active is ignored
   - **Target: 8 tests**
+  - Completion note (2026-03-15): Expanded `test_mobile_controls.gd` with drag-look coverage for delta emission/consume lifecycle and settings-driven sensitivity/invert behavior.
 
-- [ ] **Task 7A.2 (Green)**: Implement look touch tracking
+- [x] **Task 7A.2 (Green)**: Implement look touch tracking
   - Modify `scripts/ui/hud/ui_mobile_controls.gd`
   - Track dedicated `_look_touch_id` separate from joystick and button touches
   - Expose per-frame `look_delta: Vector2`
   - Clear delta after each consumption
   - All tests should pass
+  - Completion note (2026-03-15): `UI_MobileControls` now tracks dedicated free-screen look touches (`_look_touch_id`), accumulates per-frame look deltas with settings-driven sensitivity/invert-Y, and exposes `consume_look_delta()` + `is_touch_look_active()`.
 
 ---
 
 ### Phase 7B: S_TouchscreenSystem Look Dispatch
 
-- [ ] **Task 7B.1 (Red)**: Write tests for touchscreen look dispatch
+- [x] **Task 7B.1 (Red)**: Write tests for touchscreen look dispatch
   - Modify `tests/unit/ecs/systems/test_s_touchscreen_system.gd`
   - Test dispatches `U_InputActions.update_look_input(look_delta)` when drag-look active
   - Test applies `look_drag_sensitivity` from persisted touchscreen settings
   - Test applies `invert_look_y` from persisted touchscreen settings
   - Test clears look delta after dispatch (delta-based like mouse)
   - **Target: 4 tests**
+  - Completion note (2026-03-15): Added drag-look dispatch tests in `test_s_touchscreen_system.gd` for look dispatch, sensitivity/invert behavior, one-shot delta consumption, and touch-look active lifecycle.
 
-- [ ] **Task 7B.2 (Green)**: Implement touchscreen look dispatch
+- [x] **Task 7B.2 (Green)**: Implement touchscreen look dispatch
   - Modify `scripts/ecs/systems/s_touchscreen_system.gd`
   - Read `look_delta` from `UI_MobileControls`
   - Apply sensitivity and invert-Y from settings
   - Dispatch via `U_InputActions.update_look_input()`
   - All tests should pass
+  - Completion note (2026-03-15): `S_TouchscreenSystem` now consumes `UI_MobileControls` drag-look deltas and dispatches them via `U_InputActions.update_look_input(...)`, with component look-strength updates tied to drag magnitude.
 
 ---
 
@@ -1009,48 +1013,68 @@ Before starting Phase 0, verify:
 
 > **Context:** Touch input gating uses `gameplay.touch_look_active` so `S_InputSystem` can deterministically skip look dispatch when touchscreen drag-look is active, without relying on device-type heuristics.
 
-- [ ] **Task 7B2.1**: Add `touch_look_active` to gameplay slice
+- [x] **Task 7B2.1**: Add `touch_look_active` to gameplay slice
   - Modify `scripts/resources/state/rs_gameplay_initial_state.gd` (or relevant initial state): add `touch_look_active: bool = false`
   - Add action `U_GameplayActions.set_touch_look_active(active: bool)`
   - Add reducer case in `u_gameplay_reducer.gd`
   - Add selector `U_GameplaySelectors.is_touch_look_active(state) -> bool` (returns `false` when missing)
   - Modify `scripts/state/utils/u_state_slice_manager.gd`: add `touch_look_active` to gameplay `transient_fields` so it never persists through save/load or shell handoff
+  - Completion note (2026-03-15): Added gameplay touch-look flag state/action/reducer/selector wiring and marked `touch_look_active` transient in `U_StateSliceManager`.
 
-- [ ] **Task 7B2.2**: Dispatch flag from S_TouchscreenSystem
+- [x] **Task 7B2.2**: Dispatch flag from S_TouchscreenSystem
   - Modify `scripts/ecs/systems/s_touchscreen_system.gd`:
     - Dispatch `set_touch_look_active(true)` when drag-look gesture begins
     - Dispatch `set_touch_look_active(false)` when drag-look gesture ends (touch released)
+  - Completion note (2026-03-15): `S_TouchscreenSystem` now dispatches `U_GameplayActions.set_touch_look_active(...)` on state transitions via `_dispatch_touch_look_active_if_changed(...)`.
 
-- [ ] **Task 7B2.3**: Gate S_InputSystem look dispatch
+- [x] **Task 7B2.3**: Gate S_InputSystem look dispatch
   - Modify `scripts/ecs/systems/s_input_system.gd`:
     - Read `U_GameplaySelectors.is_touch_look_active(state)` each tick
     - When `true`, skip look input dispatch (touchscreen owns look)
     - When `false`, dispatch look input normally
+  - Completion note (2026-03-15): `S_InputSystem` now reads `U_GameplaySelectors.is_touch_look_active(...)` and exits early on touchscreen-owned frames, preventing desktop/gamepad source paths from clobbering touchscreen-owned look/move payloads.
 
-- [ ] **Task 7B2.4**: Write tests for touch look flag
+- [x] **Task 7B2.4**: Write tests for touch look flag
   - Test `touch_look_active` defaults to `false`
   - Test `set_touch_look_active(true)` sets flag
   - Test `S_TouchscreenSystem` dispatches flag on drag start/end
   - Test `S_InputSystem` skips look dispatch when `touch_look_active` is `true`
   - Test gameplay slice registration marks `touch_look_active` transient
   - **Target: 5 tests**
+  - Completion note (2026-03-15): Added coverage in `test_gameplay_slice_reducers.gd`, `test_state_selectors.gd`, `test_s_touchscreen_system.gd`, `test_input_system.gd`, and `test_m_state_store.gd`.
 
 ---
 
 ### Phase 7C: S_InputSystem Zero-Clobber Guard
 
-- [ ] **Task 7C.1 (Red)**: Write tests for input system touchscreen guard
+- [x] **Task 7C.1 (Red)**: Write tests for input system touchscreen guard
   - Modify `tests/unit/ecs/systems/test_input_system.gd`
   - Test when active device is touchscreen, `S_InputSystem` does NOT dispatch zero `look_input`
   - Test when active device is touchscreen, `S_InputSystem` does NOT dispatch zero `move_input`
   - Test when active device is keyboard/mouse, `S_InputSystem` dispatches normally
   - Test when active device is gamepad, `S_InputSystem` dispatches normally
   - **Target: 4 tests**
+  - Completion note (2026-03-15): Added guard coverage in `test_input_system.gd` for touchscreen no-clobber behavior and touch-look-active preservation.
 
-- [ ] **Task 7C.2 (Green)**: Implement input system guard
+- [x] **Task 7C.2 (Green)**: Implement input system guard
   - Modify `scripts/ecs/systems/s_input_system.gd`
   - Gate `TouchscreenSource` dispatch when touchscreen is the active device type
   - All tests should pass
+  - Completion note (2026-03-15): `S_InputSystem` now exits early when `active_device == TOUCHSCREEN`, keeping `S_TouchscreenSystem` as the sole owner of touch-driven move/look/button dispatch.
+
+**Validation run (2026-03-15):**
+- `tests/unit/ui/test_mobile_controls.gd` (`14/14` passing)
+- `tests/unit/ecs/systems/test_s_touchscreen_system.gd` (`7/7` passing)
+- `tests/unit/ecs/systems/test_input_system.gd` (`13/13` passing)
+- `tests/unit/state/test_gameplay_slice_reducers.gd` (`10/10` passing)
+- `tests/unit/state/test_state_selectors.gd` (`7/7` passing)
+- `tests/unit/state/test_m_state_store.gd` (`29/29` passing)
+- `tests/unit/state/test_state_persistence.gd` (`9/9` passing)
+- `tests/integration/state/test_state_persistence.gd` (`2/2` passing)
+- `tests/unit/state/test_action_registry.gd` (`14/14` passing)
+- `tests/unit/state/test_u_gameplay_actions.gd` (`7/7` passing)
+- `tests/unit/ecs/systems/test_vcam_system.gd` (`94/94` passing)
+- `tests/unit/style/test_style_enforcement.gd` remains at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ---
 

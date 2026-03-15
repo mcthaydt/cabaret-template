@@ -5,7 +5,7 @@
 - **Feature name**: Virtual Camera (vCam) Manager
 - **Project**: Cabaret Template (Godot 4.6)
 - **Target release**: TBD
-- **Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11`) complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact composition/rule wiring + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering + room-fade integration/polish validation); next target is mobile drag-look/touch gating prerequisites, then Phase 9 first-person feel
+- **Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11`) + mobile drag-look/touch gating prerequisites complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact composition/rule wiring + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering + room-fade integration/polish validation + touch look dispatch + `touch_look_active` transient gating + input no-clobber guard); next target is Phase 9 first-person feel
 
 ## Problem Statement
 
@@ -94,7 +94,7 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - fixed-mode world anchors resolve from `C_VCamComponent.fixed_anchor_path` when set, with fallback to the vCam host entity-root `Node3D`; do not read `C_VCamComponent` transform assumptions.
 - `follow_target_tag` fallback is deterministic: first valid ECS-registration-order match wins, with a debug warning when multiple matches exist. Use `follow_target_entity_id` when deterministic targeting matters.
 - `S_TouchscreenSystem` owns touchscreen gameplay look dispatch, and `S_InputSystem` must not overwrite it with zero touchscreen-source payloads.
-- if `gameplay.touch_look_active` is kept as a top-level gameplay field, it must be registered as transient so it does not persist through save/load or shell transitions.
+- `gameplay.touch_look_active` is a top-level gameplay transient field and must not persist through save/load or shell transitions.
 - vCam motion feeds into a new shake-safe `M_CameraManager.apply_main_camera_transform(...)` API rather than writing `camera.global_transform` directly.
 - vCam-authored FOV writes go to `C_CameraStateComponent.base_fov`; `S_CameraStateSystem` remains the final FOV writer.
 - the `state.camera.in_fov_zone` to `state.vcam.in_fov_zone` migration is complete. Keep runtime/tests on `vcam` and do not reintroduce legacy `camera`-slice reads.

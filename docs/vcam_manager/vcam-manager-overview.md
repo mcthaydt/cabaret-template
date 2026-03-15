@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-06
 **Updated**: 2026-03-15
-**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11`) + movement-style look smoothing + camera look smoothing parity + post-`0f51c36` retune doc/test catch-up complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact rule integration + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + tuned orbit follow-bypass guard coverage + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering + room-fade integration/polish validation); next target is mobile drag-look/touch gating prerequisites, then Phase 9 first-person feel
+**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11`) + movement-style look smoothing + camera look smoothing parity + post-`0f51c36` retune doc/test catch-up + mobile drag-look/touch gating prerequisites complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact rule integration + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + tuned orbit follow-bypass guard coverage + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering + room-fade integration/polish validation + touch look dispatch + `touch_look_active` transient gating + input no-clobber guard); next target is Phase 9 first-person feel
 
 ## Summary
 
@@ -38,7 +38,7 @@ M_CameraManager + C_CameraStateComponent + S_CameraStateSystem
 - `scenes/root.tscn` is the persistent app root. Long-lived managers live there.
 - Gameplay scenes own their own `M_ECSManager`.
 - `S_InputSystem` already captures `look_input` and dispatches it into the gameplay slice.
-- `S_TouchscreenSystem` currently handles move/jump/sprint only and hard-codes look strength to `0.0`, so mobile drag-look is still a required dependency for vCam parity.
+- `S_TouchscreenSystem` now owns touchscreen drag-look dispatch (`update_look_input`) and touch-look lifecycle (`gameplay.touch_look_active`) so mobile orbit/first-person uses the same shared look path as desktop/gamepad.
 - `M_CameraManager` is already registered in `U_ServiceLocator` as `camera_manager`.
 - `M_CameraManager` may insert a `ShakeParent` above the active camera to apply screen shake.
 - Because of that `ShakeParent`, vCam must not write `camera.global_transform` directly.
@@ -412,7 +412,7 @@ This prevents pops from restarting a blend from the original source position and
 | `landing_impact_scale` | `float` | `1.0` | 6A3c | Multiplier for QB-driven landing impact offset on this vCam (0 = suppress) |
 
 > **Note:** Orbit-feel Phase 2C core + ground-relative follow-up is landed (`2C1`/`2C2`/`2C3`/`2C4`/`2C5`/`2C6`): look-ahead + auto-level + projection soft-zone + dead-zone hysteresis + ground-relative vertical anchoring + runtime integration.
-> Orbit follow-up backlog now marks `2C11` complete; immediate implementation target is mobile drag-look/touch gating prerequisites.
+> Orbit follow-up backlog `2C11` and mobile drag-look/touch gating prerequisites are complete; immediate implementation target is Phase 9 first-person feel.
 > Look-ahead direction is movement-velocity driven (`state.gameplay.entities[*].velocity` primary source, movement-component/body fallback) and intentionally ignores follow-target transform deltas to avoid rotation-only offsets.
 > Post-`0f51c36` tuning baseline in `cfg_default_response.tres` is currently `follow=3.8/1.0`, `rotation=4.8/0.9`, `look_ahead_distance=0.02`, `look_ahead_smoothing=1.77`, `orbit_look_bypass_enable_speed=7.0`, `orbit_look_bypass_disable_speed=8.5`.
 
@@ -428,7 +428,7 @@ Required behavior:
 - `S_TouchscreenSystem` dispatches `U_InputActions.update_look_input(look_delta)` each tick for touchscreen mode.
 - `S_InputSystem` must not overwrite touchscreen gameplay input with zero payloads from `TouchscreenSource`.
 - Mobile drag-look settings persist through `settings.input_settings.touchscreen_settings`, not the `vcam` slice.
-- If `gameplay.touch_look_active` is added as a top-level gameplay flag, it must be registered as transient in `U_StateSliceManager` and reset on load/handoff. It must not persist through save/load accidentally.
+- `gameplay.touch_look_active` is a transient gameplay flag (registered in `U_StateSliceManager`) and must not persist through save/load or handoff payloads.
 - `S_VCamSystem` remains device-agnostic and simply consumes the shared `look_input` value.
 
 ## Keyboard Look Contract
