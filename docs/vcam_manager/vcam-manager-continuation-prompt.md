@@ -21,6 +21,7 @@
   - Post-Phase maintenance completed (March 15, 2026): OTS vertical framing bugfix landed via TDD (runtime OTS pitch now clamps to authored bounds in `S_VCamSystem`; default `cfg_default_ots.tres` tuned to head-level framing with higher shoulder anchor, pullback distance, and tighter pitch range).
   - Post-phase QA hardening (March 15, 2026): added explicit mobile guard `test_long_press_over_virtual_controls_does_not_toggle_aim` in `tests/unit/ui/test_mobile_controls.gd` (suite now `20/20`) to lock joystick-area long-press exclusion before manual MT-109/MT-110 checks.
   - Post-phase QA hardening (March 15, 2026): added explicit camera-relative OTS strafe guard `test_ots_uses_camera_relative_strafe_direction` in `tests/unit/ecs/systems/test_movement_system.gd` (suite now `14/14`) to backstop MT-112 before live manual runs.
+  - Post-phase style debt cleanup (March 15, 2026): removed remaining HUD scene inline `theme_override_*` usage from `scenes/ui/hud/ui_hud_overlay.tscn` and moved semantic LIFE-label styling to `UI_HudController._apply_theme_tokens()`; style enforcement now passes fully (`17/17`).
 
 ## OTS Mode Replacement (March 14, 2026)
 
