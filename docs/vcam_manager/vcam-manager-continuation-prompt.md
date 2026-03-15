@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset implementation is now complete: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), 3C3 (OTS landing camera response), and full 3C4 aiming scope (`3C4.1-3C4.11`: aim activation/input plumbing/movement+rotation integrations + reticle + default OTS movement preset) are implementation-complete as of March 15, 2026.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset implementation is now complete: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), 3C3 (OTS landing camera response), and full 3C4 aiming scope (`3C4.1-3C4.11`: aim activation/input plumbing/movement+rotation integrations + reticle + default OTS movement preset) are implementation-complete as of March 15, 2026. Phase 10A detector groundwork is now complete: Task `10A.1` (collision-detector Red tests) and Task `10A.2` (collision-detector Green implementation + layer-name wiring) are landed as of March 15, 2026.
 
 ## Next Planned Work (March 15, 2026)
 
@@ -16,12 +16,31 @@
 - Phase 3C3 landing camera response is now complete in `S_VCamSystem` with event-driven OTS distance compression and stacked shared-impact coverage.
 - Phase 3C4 aiming scope is now implementation-complete: slice 1 (aim activation + input plumbing + movement/rotation integrations) plus reticle UI (`3C4.9`/`3C4.10`) and default OTS movement preset (`3C4.11`) are landed with targeted coverage.
 - Phase 10A occlusion authored-scene prerequisites are complete: Task `10A.0` inventory + Task `10A.3` layer-6 (`vcam_occludable`) migration are now landed across gameplay/prefab scenes with post-migration audit `missing_count=0`.
+- Phase 10A collision detector Red/Green is complete: added `tests/unit/managers/helpers/test_vcam_collision_detector.gd` and `scripts/managers/helpers/u_vcam_collision_detector.gd`, plus `project.godot` layer naming for `3d_physics/layer_6 = "vcam_occludable"`.
 - Immediate validation target:
   - Manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`) are now marked complete (March 15, 2026, user-directed pass), including the joystick-exclusion/reticle-fade focus points.
   - Post-Phase maintenance completed (March 15, 2026): OTS vertical framing bugfix landed via TDD (runtime OTS pitch now clamps to authored bounds in `S_VCamSystem`; default `cfg_default_ots.tres` tuned to head-level framing with higher shoulder anchor, pullback distance, and tighter pitch range).
   - Post-phase QA hardening (March 15, 2026): added explicit mobile guard `test_long_press_over_virtual_controls_does_not_toggle_aim` in `tests/unit/ui/test_mobile_controls.gd` (suite now `20/20`) to lock joystick-area long-press exclusion before manual MT-109/MT-110 checks.
   - Post-phase QA hardening (March 15, 2026): added explicit camera-relative OTS strafe guard `test_ots_uses_camera_relative_strafe_direction` in `tests/unit/ecs/systems/test_movement_system.gd` (suite now `14/14`) to backstop MT-112 before live manual runs.
   - Post-phase style debt cleanup (March 15, 2026): removed remaining HUD scene inline `theme_override_*` usage from `scenes/ui/hud/ui_hud_overlay.tscn` and moved semantic LIFE-label styling to `UI_HudController._apply_theme_tokens()`; style enforcement now passes fully (`17/17`).
+  - Phase 10A detector validation completed (March 15, 2026): `tests/unit/managers/helpers/test_vcam_collision_detector.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) are green.
+
+## vCam Collision Detector (Phase 10A.1/10A.2, March 15, 2026)
+
+- Added detector test coverage:
+  - `tests/unit/managers/helpers/test_vcam_collision_detector.gd` (`6/6`)
+- Added detector implementation:
+  - `scripts/managers/helpers/u_vcam_collision_detector.gd` (`U_VCamCollisionDetector`)
+- Runtime/data contract implemented:
+  - `detect_occluders(space_state, from, to, collision_mask)` performs iterative ray-hit collection with per-hit exclusions so multiple blockers are returned along one segment.
+  - Explicit collision-layer filtering is enforced against the provided `collision_mask` (protects behavior in mocked/stubbed test environments).
+  - Collider-to-geometry resolution maps collision bodies to descendant `GeometryInstance3D` targets (covers mesh + CSG authoring patterns).
+  - Freed/invalid colliders are skipped safely without warning-channel noise or crashes.
+- Project settings update:
+  - `project.godot`: added `layer_names/3d_physics/layer_6 = "vcam_occludable"`.
+- Validation run:
+  - `tests/unit/managers/helpers/test_vcam_collision_detector.gd` (`6/6`)
+  - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## OTS Mode Replacement (March 14, 2026)
 
@@ -869,6 +888,7 @@
 - `scripts/utils/display/u_cinema_grade_preview.gd`
 - `scripts/ui/helpers/u_rebind_action_list_builder.gd`
 - `scripts/managers/m_vfx_manager.gd`
+- `scripts/managers/helpers/u_vcam_collision_detector.gd`
 - `scripts/ui/hud/ui_mobile_controls.gd`
 - `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`
 - `scripts/ui/overlays/ui_input_rebinding_overlay.gd`
@@ -889,6 +909,7 @@
 - `tests/unit/ecs/systems/test_s_touchscreen_system.gd`
 - `tests/unit/ui/test_mobile_controls.gd`
 - `tests/unit/ui/hud/test_ots_reticle.gd`
+- `tests/unit/managers/helpers/test_vcam_collision_detector.gd`
 - `tests/unit/ecs/systems/test_room_fade_system.gd`
 - `tests/unit/ecs/systems/test_room_fade_integration.gd`
 - `tests/unit/lighting/test_room_fade_material_applier.gd`
@@ -903,7 +924,7 @@
 
 ## Next Steps
 
-1. Start Phase `10A.1/10A.2`: add `U_VCamCollisionDetector` Red/Green coverage (`tests/unit/managers/helpers/test_vcam_collision_detector.gd`) and implementation (`scripts/managers/helpers/u_vcam_collision_detector.gd`) against the now-migrated layer-6 scene baseline.
+1. Start Phase `10B.1/10B.2`: add silhouette-helper Red/Green coverage (`tests/unit/managers/helpers/test_vcam_silhouette_helper.gd`) and implementation (`scripts/managers/helpers/u_vcam_silhouette_helper.gd` + `assets/shaders/sh_vcam_silhouette_shader.gdshader`) to consume `10A` detector output.
 2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
 3. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 

@@ -134,6 +134,7 @@
   - `in_fov_zone` now lives in `state.vcam.in_fov_zone`; do not reintroduce legacy `state.camera.in_fov_zone` reads in runtime or tests.
   - Occlusion silhouette preference persists in `vfx.occlusion_silhouette_enabled` and is surfaced in `UI_VFXSettingsOverlay` with localization keys.
   - Occlusion rollout is complete only when both physics-layer naming (`vcam_occludable`) and authored-scene blocker migration are done.
+  - Occlusion detector contract (Phase 10A): `U_VCamCollisionDetector` (`scripts/managers/helpers/u_vcam_collision_detector.gd`) is the canonical helper for line-of-sight blocker discovery; it must iterate ray hits with exclusions to return all blockers on the segment, enforce the provided collision mask, resolve collision bodies to `GeometryInstance3D` descendants, and skip freed/invalid colliders safely.
   - Shared look-input contract is `gameplay.look_input`; `S_TouchscreenSystem` owns touchscreen look dispatch and `S_InputSystem` must not zero-clobber touchscreen-owned move/look payloads.
   - Second-order dynamics contract (Phase 1D): use `U_SecondOrderDynamics` (`scripts/utils/math/u_second_order_dynamics.gd`) for scalar camera response smoothing with `(f, zeta, r)` tuning, frequency clamp (`MIN_FREQUENCY_HZ`), and large-delta stability guard (`MAX_STEP_DELTA_SEC`).
   - Vector dynamics contract (Phase 1E): use `U_SecondOrderDynamics3D` (`scripts/utils/math/u_second_order_dynamics_3d.gd`) as the canonical Vector3 wrapper so x/y/z smoothing stays consistent with scalar dynamics behavior.

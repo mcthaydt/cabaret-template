@@ -1252,7 +1252,7 @@ Cross-mode checks (mode-agnostic):
   - This audit prevents discovering missing occluder assignments late in Phase 10A.3
   - Completion note (March 15, 2026): Completed scripted scene audit for collision-capable occluder candidates (`CSG*` with `use_collision=true`, `StaticBody3D`) and captured 143 missing layer-6 assignments across gameplay/prefab scenes before migration.
 
-- [ ] **Task 10A.1 (Red)**: Write tests for collision detector
+- [x] **Task 10A.1 (Red)**: Write tests for collision detector
   - Create `tests/unit/managers/helpers/test_vcam_collision_detector.gd`
   - Test empty result when nothing between camera and target
   - Test MeshInstance3D occluder detected on layer 6
@@ -1261,12 +1261,15 @@ Cross-mode checks (mode-agnostic):
   - Test invalid or freed collider skipped safely (no crash)
   - Test multiple occluders returns all of them
   - **Target: 6 tests**
+  - Completion note (March 15, 2026): Added `test_vcam_collision_detector.gd` with 6 Red assertions covering empty rays, mesh/CSG occluder detection, wrong-layer filtering, freed-collider safety, and multi-hit aggregation.
 
-- [ ] **Task 10A.2 (Green)**: Implement U_VCamCollisionDetector
+- [x] **Task 10A.2 (Green)**: Implement U_VCamCollisionDetector
   - Create `scripts/managers/helpers/u_vcam_collision_detector.gd`
   - Modify `project.godot`: name physics layer 6 as `vcam_occludable`
   - Implement `static func detect_occluders(space_state, from, to, collision_mask) -> Array`
   - All tests should pass
+  - Completion note (March 15, 2026): Added `U_VCamCollisionDetector.detect_occluders(...)` with iterative ray-hit collection, layer-mask validation, geometry-node resolution (`StaticBody3D` collider -> `GeometryInstance3D` descendant), and freed-collider guards; set `project.godot` layer name `3d_physics/layer_6 = "vcam_occludable"`.
+  - Validation note (March 15, 2026): `tests/unit/managers/helpers/test_vcam_collision_detector.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) pass.
 
 - [x] **Task 10A.3**: Roll out layer-6 occluder tagging in authored scenes
   - Modify `scenes/gameplay/gameplay_base.tscn` and any gameplay/prefab scenes used in vCam flows where geometry should occlude camera line-of-sight
