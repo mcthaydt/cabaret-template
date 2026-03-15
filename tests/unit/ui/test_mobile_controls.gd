@@ -276,6 +276,23 @@ func test_long_press_empty_space_toggles_aim_on_and_off() -> void:
 	assert_false(controls.consume_aim_pressed(), "Second long press should toggle aim off")
 	_release_mobile_touch(controls, 71, press_position)
 
+func test_long_press_over_virtual_controls_does_not_toggle_aim() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var joystick := controls.get_node_or_null("Controls/VirtualJoystick") as Control
+	assert_not_null(joystick, "Virtual joystick should exist")
+	var over_joystick := joystick.get_global_rect().position + (joystick.get_global_rect().size * 0.5)
+	_press_mobile_touch(controls, 77, over_joystick)
+	await get_tree().create_timer(UI_MobileControls.AIM_LONG_PRESS_THRESHOLD_SEC + 0.05).timeout
+	assert_false(controls.consume_aim_pressed(), "Long press over joystick should not toggle aim")
+	_release_mobile_touch(controls, 77, over_joystick)
+
 func test_dragging_beyond_threshold_cancels_aim_long_press_toggle() -> void:
 	var store := await _create_state_store()
 	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
