@@ -1,7 +1,9 @@
 extends GutTest
 
 const MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
+const MOVEMENT_SETTINGS_SCRIPT := preload("res://scripts/resources/ecs/rs_movement_settings.gd")
 const DEFAULT_OTS_PATH := "res://resources/display/vcam/cfg_default_ots.tres"
+const DEFAULT_OTS_MOVEMENT_PATH := "res://resources/base_settings/gameplay/cfg_ots_movement_default.tres"
 
 func _new_mode() -> Resource:
 	return MODE_SCRIPT.new()
@@ -117,7 +119,60 @@ func test_landing_dip_recovery_speed_resolves_to_positive_value() -> void:
 	var resolved_zero: Dictionary = _resolved(mode)
 	assert_true(float(resolved_zero.get("landing_dip_recovery_speed", 0.0)) > 0.0)
 
+func test_aiming_defaults_match_expected_values() -> void:
+	var mode: Resource = _new_mode()
+	assert_eq(mode.get("movement_profile"), null)
+	assert_true(bool(mode.get("disable_sprint")))
+	assert_true(bool(mode.get("lock_facing_to_camera")))
+	assert_almost_eq(float(mode.get("aim_blend_duration")), 0.15, 0.0001)
+
+func test_aim_blend_duration_resolves_to_positive_minimum() -> void:
+	var mode: Resource = _new_mode()
+	mode.set("aim_blend_duration", -1.0)
+	var resolved_negative: Dictionary = _resolved(mode)
+	assert_almost_eq(float(resolved_negative.get("aim_blend_duration", 0.0)), 0.01, 0.0001)
+
+	mode.set("aim_blend_duration", 0.0)
+	var resolved_zero: Dictionary = _resolved(mode)
+	assert_almost_eq(float(resolved_zero.get("aim_blend_duration", 0.0)), 0.01, 0.0001)
+
+func test_aiming_bool_flags_passthrough_through_resolved_values() -> void:
+	var mode: Resource = _new_mode()
+	mode.set("disable_sprint", false)
+	mode.set("lock_facing_to_camera", false)
+	var resolved: Dictionary = _resolved(mode)
+	assert_false(bool(resolved.get("disable_sprint", true)))
+	assert_false(bool(resolved.get("lock_facing_to_camera", true)))
+
+func test_movement_profile_passthrough_through_resolved_values() -> void:
+	var mode: Resource = _new_mode()
+	var movement_profile := MOVEMENT_SETTINGS_SCRIPT.new()
+	mode.set("movement_profile", movement_profile)
+	var resolved: Dictionary = _resolved(mode)
+	assert_eq(resolved.get("movement_profile", null), movement_profile)
+
 func test_default_ots_preset_loads_as_ots_mode() -> void:
 	var preset := load(DEFAULT_OTS_PATH) as Resource
 	assert_not_null(preset, "Default OTS preset should load")
 	assert_true(preset.get_script() == MODE_SCRIPT, "Default OTS preset should use RS_VCamModeOTS")
+
+func test_default_ots_movement_profile_preset_loads_with_expected_values() -> void:
+	var movement_profile := load(DEFAULT_OTS_MOVEMENT_PATH) as Resource
+	assert_not_null(movement_profile, "Default OTS movement preset should load")
+	assert_true(
+		movement_profile.get_script() == MOVEMENT_SETTINGS_SCRIPT,
+		"Default OTS movement preset should use RS_MovementSettings"
+	)
+	assert_almost_eq(float(movement_profile.get("max_speed")), 3.0, 0.0001)
+	assert_almost_eq(float(movement_profile.get("sprint_speed_multiplier")), 1.0, 0.0001)
+	assert_almost_eq(float(movement_profile.get("slope_limit_degrees")), 50.0, 0.0001)
+
+func test_default_ots_preset_references_ots_movement_profile() -> void:
+	var preset := load(DEFAULT_OTS_PATH) as Resource
+	assert_not_null(preset, "Default OTS preset should load")
+	var movement_profile: Resource = preset.get("movement_profile") as Resource
+	assert_not_null(movement_profile, "Default OTS preset should reference movement profile")
+	assert_true(
+		movement_profile.get_script() == MOVEMENT_SETTINGS_SCRIPT,
+		"Default OTS movement profile should use RS_MovementSettings"
+	)

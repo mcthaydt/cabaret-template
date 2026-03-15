@@ -1,7 +1,9 @@
 [gd_resource type="Resource" script_class="RS_VCamModeOTS" format=3 uid="uid://cbophn3ub4xgd"]
 
 [ext_resource type="Script" uid="uid://2nhflcqifxc1" path="res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd" id="1_7ra2w"]
+[ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_ots_movement_default.tres" id="2_ots_move"]
 
 [resource]
 script = ExtResource("1_7ra2w")
 shoulder_offset = Vector3(0.25, 2.2, -1)
+movement_profile = ExtResource("2_ots_move")

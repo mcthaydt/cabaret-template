@@ -7,6 +7,9 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_conf
 const RS_UI_MOTION_SET := preload("res://scripts/resources/ui/rs_ui_motion_set.gd")
 const RS_UI_MOTION_PRESET := preload("res://scripts/resources/ui/rs_ui_motion_preset.gd")
 const U_UI_MOTION := preload("res://scripts/ui/utils/u_ui_motion.gd")
+const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
+const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+const RS_VCAM_MODE_OTS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
 
 @export var checkpoint_toast_motion_set: Resource = preload("res://resources/ui/motions/cfg_motion_hud_checkpoint_toast.tres")
 @export var signpost_fade_in_preset: Resource = preload("res://resources/ui/motions/cfg_motion_hud_signpost_fade_in.tres")
@@ -31,6 +34,7 @@ const U_UI_MOTION := preload("res://scripts/ui/utils/u_ui_motion.gd")
 @onready var signpost_margin_container: MarginContainer = $SignpostPanelContainer/PanelContainer/MarginContainer
 @onready var signpost_message_label: Label = $SignpostPanelContainer/PanelContainer/MarginContainer/SignpostMessage
 @onready var interact_prompt: UI_ButtonPrompt = $MarginContainer/InteractPrompt
+@onready var ots_reticle_container: Control = $OTSReticleContainer
 
 const SIGNPOST_DEFAULT_DURATION_SEC: float = 3.0
 const SIGNPOST_MIN_DURATION_SEC: float = 0.05
@@ -40,6 +44,8 @@ const SIGNPOST_BLOCKER_COOLDOWN_SEC: float = 0.15
 const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
 const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.35
 const CHECKPOINT_TOAST_UNBLOCK_COOLDOWN_SEC: float = 0.3
+const DEFAULT_OTS_RETICLE_FADE_DURATION_SEC: float = 0.15
+const MIN_OTS_RETICLE_FADE_DURATION_SEC: float = 0.01
 
 var _store: I_StateStore = null
 var _player_entity_id: String = "player"
@@ -61,13 +67,18 @@ var _autosave_spinner_hide_request_id: int = 0
 var _signpost_panel_active: bool = false
 var _checkpoint_toast_tween: Tween = null
 var _signpost_panel_tween: Tween = null
+var _ots_reticle_tween: Tween = null
 var _health_bar_fill_style: StyleBoxFlat = null
 var _pending_prompt_localization_refresh: bool = false
+var _ots_reticle_visible_target: bool = false
+var _last_vcam_active_mode: String = ""
+var _last_ots_aim_blend_duration_sec: float = DEFAULT_OTS_RETICLE_FADE_DURATION_SEC
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_apply_theme_tokens()
 	_localize_static_labels()
+	_hide_ots_reticle_immediate()
 	_store = U_StateUtils.get_store(self)
 
 	if _store == null:
@@ -142,6 +153,7 @@ func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> voi
 		_hide_checkpoint_toast_immediate()
 		_hide_autosave_spinner()
 		_hide_signpost_panel()
+		_hide_ots_reticle_immediate()
 		# Force unblock interact when paused (no interactions possible anyway)
 		U_InteractBlocker.force_unblock()
 		return
@@ -213,6 +225,7 @@ func _apply_theme_tokens() -> void:
 
 func _update_display(state: Dictionary) -> void:
 	_sync_visibility(state)
+	_update_ots_reticle(state)
 	if not visible:
 		return
 	pause_label.text = ""
@@ -232,6 +245,7 @@ func _sync_visibility(state: Dictionary) -> void:
 	_hide_checkpoint_toast_immediate()
 	_hide_autosave_spinner()
 	_hide_signpost_panel()
+	_hide_ots_reticle_immediate()
 	U_InteractBlocker.force_unblock()
 
 func _should_show_hud(state: Dictionary) -> bool:
@@ -748,3 +762,131 @@ func _update_health_bar_colors(__state: Dictionary, health: float, max_health: f
 
 	# Apply the color to the health bar fill
 	_health_bar_fill_style.bg_color = target_color
+
+func _update_ots_reticle(state: Dictionary) -> void:
+	if ots_reticle_container == null:
+		return
+	var active_mode: String = U_VCAM_SELECTORS.get_active_mode(state)
+	var active_vcam_id: StringName = U_VCAM_SELECTORS.get_active_vcam_id(state)
+	var should_show: bool = _should_show_ots_reticle(state, active_mode)
+
+	if active_mode == "ots":
+		_last_ots_aim_blend_duration_sec = _resolve_ots_aim_blend_duration_sec(
+			active_vcam_id,
+			_last_ots_aim_blend_duration_sec
+		)
+
+	if should_show == _ots_reticle_visible_target:
+		_last_vcam_active_mode = active_mode
+		return
+
+	var fade_duration_sec: float = _last_ots_aim_blend_duration_sec
+	if should_show:
+		fade_duration_sec = _resolve_ots_aim_blend_duration_sec(
+			active_vcam_id,
+			_last_ots_aim_blend_duration_sec
+		)
+		_last_ots_aim_blend_duration_sec = fade_duration_sec
+	elif _last_vcam_active_mode != "ots":
+		fade_duration_sec = DEFAULT_OTS_RETICLE_FADE_DURATION_SEC
+
+	_set_ots_reticle_visibility(should_show, fade_duration_sec)
+	_ots_reticle_visible_target = should_show
+	_last_vcam_active_mode = active_mode
+
+func _should_show_ots_reticle(state: Dictionary, active_mode: String) -> bool:
+	if not visible:
+		return false
+	if _is_paused(state):
+		return false
+	return active_mode == "ots"
+
+func _set_ots_reticle_visibility(should_show: bool, fade_duration_sec: float) -> void:
+	if ots_reticle_container == null:
+		return
+	_cancel_ots_reticle_tween()
+
+	var clamped_duration: float = maxf(fade_duration_sec, 0.0)
+	var target_alpha: float = 1.0 if should_show else 0.0
+	if should_show:
+		ots_reticle_container.visible = true
+	elif not ots_reticle_container.visible:
+		return
+
+	if clamped_duration <= 0.0:
+		var immediate_modulate := ots_reticle_container.modulate
+		immediate_modulate.a = target_alpha
+		ots_reticle_container.modulate = immediate_modulate
+		if not should_show:
+			ots_reticle_container.visible = false
+		return
+
+	_ots_reticle_tween = create_tween()
+	_ots_reticle_tween.tween_property(ots_reticle_container, "modulate:a", target_alpha, clamped_duration)
+	if should_show:
+		_ots_reticle_tween.finished.connect(func() -> void:
+			_ots_reticle_tween = null
+		)
+	else:
+		_ots_reticle_tween.finished.connect(func() -> void:
+			_ots_reticle_tween = null
+			if ots_reticle_container != null:
+				ots_reticle_container.visible = false
+		)
+
+func _hide_ots_reticle_immediate() -> void:
+	_cancel_ots_reticle_tween()
+	if ots_reticle_container == null:
+		return
+	var hidden_modulate := ots_reticle_container.modulate
+	hidden_modulate.a = 0.0
+	ots_reticle_container.modulate = hidden_modulate
+	ots_reticle_container.visible = false
+	_ots_reticle_visible_target = false
+
+func _cancel_ots_reticle_tween() -> void:
+	if _ots_reticle_tween == null:
+		return
+	if is_instance_valid(_ots_reticle_tween):
+		_ots_reticle_tween.kill()
+	_ots_reticle_tween = null
+
+func _resolve_ots_aim_blend_duration_sec(active_vcam_id: StringName, fallback_sec: float) -> float:
+	var default_duration_sec: float = maxf(fallback_sec, DEFAULT_OTS_RETICLE_FADE_DURATION_SEC)
+	if active_vcam_id == StringName(""):
+		return default_duration_sec
+
+	var ecs_manager_variant: Variant = U_ServiceLocator.try_get_service(StringName("ecs_manager"))
+	if not (ecs_manager_variant is Object):
+		return default_duration_sec
+	var ecs_manager_obj := ecs_manager_variant as Object
+	if ecs_manager_obj == null:
+		return default_duration_sec
+	if not ecs_manager_obj.has_method("get_components"):
+		return default_duration_sec
+
+	var components_variant: Variant = ecs_manager_obj.call("get_components", C_VCAM_COMPONENT.COMPONENT_TYPE)
+	if not (components_variant is Array):
+		return default_duration_sec
+	var components: Array = components_variant as Array
+	for component_variant in components:
+		var vcam_component := component_variant as C_VCamComponent
+		if vcam_component == null or not is_instance_valid(vcam_component):
+			continue
+		if vcam_component.vcam_id != active_vcam_id:
+			continue
+		if vcam_component.mode == null:
+			return default_duration_sec
+		var mode_script: Script = vcam_component.mode.get_script() as Script
+		if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
+			return default_duration_sec
+		var resolved_variant: Variant = vcam_component.mode.call("get_resolved_values")
+		if not (resolved_variant is Dictionary):
+			return default_duration_sec
+		var resolved := resolved_variant as Dictionary
+		return maxf(
+			float(resolved.get("aim_blend_duration", DEFAULT_OTS_RETICLE_FADE_DURATION_SEC)),
+			MIN_OTS_RETICLE_FADE_DURATION_SEC
+		)
+
+	return default_duration_sec
