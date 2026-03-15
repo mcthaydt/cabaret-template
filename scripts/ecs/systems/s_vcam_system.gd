@@ -1386,7 +1386,10 @@ func _update_runtime_rotation(
 		var look_multiplier: float = maxf(float(look_mode_values.get("look_multiplier", 1.0)), 0.0001)
 		var previous_fp_yaw: float = component.runtime_yaw
 		var previous_fp_pitch: float = component.runtime_pitch
-		component.runtime_yaw += look_input.x * look_multiplier
+		var yaw_delta: float = look_input.x * look_multiplier
+		if mode_script == RS_VCAM_MODE_OTS_SCRIPT:
+			yaw_delta *= -1.0
+		component.runtime_yaw += yaw_delta
 		var pitch_delta: float = look_input.y * look_multiplier
 		if mode_script == RS_VCAM_MODE_OTS_SCRIPT:
 			pitch_delta *= -1.0

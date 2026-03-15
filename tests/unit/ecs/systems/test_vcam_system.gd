@@ -229,7 +229,7 @@ func test_updates_first_person_rotation_using_look_multiplier() -> void:
 	assert_almost_eq(component.runtime_yaw, 2.0, 0.0001)
 	assert_almost_eq(component.runtime_pitch, -1.0, 0.0001)
 
-func test_updates_ots_rotation_using_look_multiplier_with_non_inverted_pitch() -> void:
+func test_updates_ots_rotation_using_look_multiplier_with_non_inverted_pitch_and_non_inverted_horizontal() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
@@ -244,8 +244,25 @@ func test_updates_ots_rotation_using_look_multiplier_with_non_inverted_pitch() -
 	vcam_manager.active_vcam_id = StringName("cam_ots")
 	ecs_manager._physics_process(0.016)
 
-	assert_almost_eq(component.runtime_yaw, 2.0, 0.0001)
+	assert_almost_eq(component.runtime_yaw, -2.0, 0.0001)
 	assert_almost_eq(component.runtime_pitch, -1.0, 0.0001)
+
+func test_updates_ots_rotation_with_negative_horizontal_input_rotates_positive_runtime_yaw() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
+
+	store.set_slice(StringName("input"), {"look_input": Vector2(-1.0, 0.0)})
+	var follow_target := _create_target_entity(ecs_manager, "E_TargetOTSHorizontal", Vector3.ZERO)
+	var ots_mode := _new_ots_mode(2.0)
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_ots_horizontal"), ots_mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_horizontal")
+	ecs_manager._physics_process(0.016)
+
+	assert_almost_eq(component.runtime_yaw, 2.0, 0.0001)
 
 func test_ots_runtime_pitch_clamps_to_lower_bound_during_input_accumulation() -> void:
 	var context: Dictionary = await _setup_context()
