@@ -197,6 +197,65 @@ func test_gamepad_used_in_menu_keeps_controls_hidden_after_close() -> void:
 	await wait_process_frames(2)
 	assert_false(controls.visible, "BUG FIX: Controls should stay hidden after closing pause with gamepad (not reappear)")
 
+func test_double_tap_empty_space_triggers_one_shot_camera_center() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var tap_position := _get_empty_tap_position(controls)
+	_tap_mobile_controls(controls, 30, tap_position)
+	_tap_mobile_controls(controls, 31, tap_position + Vector2(12.0, 4.0))
+
+	assert_true(controls.consume_camera_center_just_pressed(), "Double-tap in empty gameplay space should trigger camera_center")
+	assert_false(controls.consume_camera_center_just_pressed(), "camera_center tap signal should be one-shot")
+
+func test_double_tap_over_virtual_controls_does_not_trigger_camera_center() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var joystick := controls.get_node_or_null("Controls/VirtualJoystick") as Control
+	assert_not_null(joystick, "Virtual joystick should exist")
+	var over_joystick := joystick.get_global_rect().position + (joystick.get_global_rect().size * 0.5)
+	_tap_mobile_controls(controls, 40, over_joystick)
+	_tap_mobile_controls(controls, 41, over_joystick)
+
+	assert_false(controls.consume_camera_center_just_pressed(), "Double-tap over joystick should not trigger camera_center")
+
+func test_double_tap_outside_timing_or_distance_thresholds_does_not_trigger_camera_center() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var tap_position := _get_empty_tap_position(controls)
+	_tap_mobile_controls(controls, 50, tap_position)
+	await get_tree().create_timer(UI_MobileControls.DOUBLE_TAP_MAX_INTERVAL_SEC + 0.05).timeout
+	_tap_mobile_controls(controls, 51, tap_position)
+	assert_false(
+		controls.consume_camera_center_just_pressed(),
+		"Taps outside interval threshold should not trigger camera_center"
+	)
+
+	await get_tree().create_timer(UI_MobileControls.DOUBLE_TAP_MAX_INTERVAL_SEC + 0.05).timeout
+	_tap_mobile_controls(controls, 52, tap_position)
+	_tap_mobile_controls(controls, 53, tap_position + Vector2(UI_MobileControls.DOUBLE_TAP_MAX_DISTANCE_PX + 20.0, 0.0))
+	assert_false(
+		controls.consume_camera_center_just_pressed(),
+		"Taps outside distance threshold should not trigger camera_center"
+	)
+
 func _create_controls(configure: Callable = Callable()) -> Node:
 	var controls := MobileControlsScene.instantiate()
 	if configure != Callable() and configure.is_valid():
@@ -225,6 +284,43 @@ func _find_button(buttons: Array, action: StringName) -> UI_VirtualButton:
 		if button is UI_VirtualButton and (button as UI_VirtualButton).action == action:
 			return button as UI_VirtualButton
 	return null
+
+func _tap_mobile_controls(controls: UI_MobileControls, touch_id: int, position: Vector2) -> void:
+	if controls == null:
+		return
+	var pressed := InputEventScreenTouch.new()
+	pressed.index = touch_id
+	pressed.pressed = true
+	pressed.position = position
+	controls._input(pressed)
+
+	var released := InputEventScreenTouch.new()
+	released.index = touch_id
+	released.pressed = false
+	released.position = position
+	controls._input(released)
+
+func _get_empty_tap_position(controls: UI_MobileControls) -> Vector2:
+	var viewport_size: Vector2 = controls.get_viewport().get_visible_rect().size
+	var candidates := [
+		Vector2(viewport_size.x * 0.5, viewport_size.y * 0.2),
+		Vector2(viewport_size.x * 0.5, viewport_size.y * 0.5),
+		Vector2(viewport_size.x * 0.5, viewport_size.y * 0.8),
+	]
+	for candidate in candidates:
+		if not _is_position_over_controls(controls, candidate):
+			return candidate
+	return candidates[0]
+
+func _is_position_over_controls(controls: UI_MobileControls, position: Vector2) -> bool:
+	var joystick := controls.get_node_or_null("Controls/VirtualJoystick") as Control
+	if joystick != null and joystick.get_global_rect().has_point(position):
+		return true
+	for button in controls.get_buttons():
+		var control := button as Control
+		if control != null and control.get_global_rect().has_point(position):
+			return true
+	return false
 
 func assert_vector_almost_eq(a: Vector2, b: Vector2, tolerance: float, message: String = "") -> void:
 	assert_almost_eq(a.x, b.x, tolerance, message + " (x)")

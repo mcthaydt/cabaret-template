@@ -18,6 +18,8 @@ const SIGNPOST_MESSAGE_EVENT := StringName("signpost_message")
 const SIGNPOST_DEFAULT_DURATION_SEC: float = 3.0
 const SIGNPOST_MIN_DURATION_SEC: float = 0.05
 const SIGNPOST_VISIBILITY_BUFFER_SEC: float = 0.35
+const DOUBLE_TAP_MAX_INTERVAL_SEC: float = 0.30
+const DOUBLE_TAP_MAX_DISTANCE_PX: float = 72.0
 
 var _state_store: I_StateStore = null
 var _unsubscribe: Callable = Callable()
@@ -43,10 +45,14 @@ var _overlay_input_logged: bool = false
 var _awaiting_transition_signal: bool = false  # True when waiting for transition_visual_complete
 var _signpost_hide_until_sec: float = -1.0
 var _is_signpost_visibility_blocked: bool = false
+var _pending_camera_center_just_pressed: bool = false
+var _last_empty_space_tap_time_sec: float = -1.0
+var _last_empty_space_tap_position: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process(true)
+	set_process_input(true)
 	visible = false
 
 	if not _should_enable():
@@ -98,12 +104,28 @@ func _exit_tree() -> void:
 	_fade_elapsed = 0.0
 	_signpost_hide_until_sec = -1.0
 	_is_signpost_visibility_blocked = false
+	_pending_camera_center_just_pressed = false
+	_last_empty_space_tap_time_sec = -1.0
+	_last_empty_space_tap_position = Vector2.ZERO
 	_unregister_from_input_device_manager()
 
 func _on_locale_changed(_locale: StringName) -> void:
 	for button in _buttons:
 		if button != null and button.has_method("_refresh_label"):
 			button._refresh_label()
+
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventScreenTouch):
+		return
+	var touch := event as InputEventScreenTouch
+	if not touch.pressed:
+		return
+	_handle_empty_space_tap(touch.position)
+
+func consume_camera_center_just_pressed() -> bool:
+	var just_pressed := _pending_camera_center_just_pressed
+	_pending_camera_center_just_pressed = false
+	return just_pressed
 
 func _should_enable() -> bool:
 	if force_enable:
@@ -127,6 +149,57 @@ func _is_emulate_mode() -> bool:
 		return true
 	var args: PackedStringArray = OS.get_cmdline_args()
 	return args.has("--emulate-mobile")
+
+func _handle_empty_space_tap(position: Vector2) -> void:
+	if not _can_process_gameplay_touch():
+		_reset_double_tap_state()
+		return
+	if _is_touch_over_virtual_controls(position):
+		_reset_double_tap_state()
+		return
+
+	var now_sec := U_ECSUtils.get_current_time()
+	if _last_empty_space_tap_time_sec >= 0.0:
+		var elapsed_sec := now_sec - _last_empty_space_tap_time_sec
+		var distance_px := _last_empty_space_tap_position.distance_to(position)
+		if elapsed_sec <= DOUBLE_TAP_MAX_INTERVAL_SEC and distance_px <= DOUBLE_TAP_MAX_DISTANCE_PX:
+			_pending_camera_center_just_pressed = true
+			_reset_double_tap_state()
+			return
+
+	_last_empty_space_tap_time_sec = now_sec
+	_last_empty_space_tap_position = position
+
+func _reset_double_tap_state() -> void:
+	_last_empty_space_tap_time_sec = -1.0
+	_last_empty_space_tap_position = Vector2.ZERO
+
+func _is_touch_over_virtual_controls(position: Vector2) -> bool:
+	if _joystick != null and is_instance_valid(_joystick) and _joystick.get_global_rect().has_point(position):
+		return true
+	for button in _buttons:
+		if button == null or not is_instance_valid(button):
+			continue
+		if button.get_global_rect().has_point(position):
+			return true
+	return false
+
+func _can_process_gameplay_touch() -> bool:
+	if _awaiting_transition_signal:
+		return false
+	if _device_type != M_InputDeviceManager.DeviceType.TOUCHSCREEN:
+		return false
+	if _current_shell != SHELL_GAMEPLAY:
+		return false
+	if _has_overlay_active or _is_edit_overlay_active:
+		return false
+	if _is_transitioning:
+		return false
+	if _is_signpost_visibility_blocked:
+		return false
+	if force_enable:
+		return true
+	return U_SceneRegistry.get_scene_type(_current_scene_id) == U_SceneRegistry.SceneType.GAMEPLAY
 
 func _load_touchscreen_profile() -> RS_InputProfile:
 	var resource := ResourceLoader.load(DEFAULT_TOUCHSCREEN_PROFILE_PATH)
@@ -305,6 +378,8 @@ func _update_navigation_state(state: Dictionary) -> void:
 	# This handles test environments without real SceneManager or missed signals
 	if was_transitioning and not _is_transitioning and _awaiting_transition_signal:
 		_awaiting_transition_signal = false
+	if not _can_process_gameplay_touch():
+		_reset_double_tap_state()
 
 func _update_visibility() -> void:
 	# Always show controls when editing, regardless of device type

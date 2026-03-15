@@ -8,7 +8,7 @@ profile_name = "input.profile.default_gamepad.name"
 device_type = 1
 action_mappings = {
 "camera_center": [{
-"button_index": 10,
+"button_index": 8,
 "type": "joypad_button"
 }],
 "interact": [{

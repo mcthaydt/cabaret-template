@@ -169,6 +169,42 @@ func test_interact_prompt_reflects_custom_binding() -> void:
 func test_jump_prompt_reflects_custom_binding() -> void:
 	await _assert_prompt_updates_binding_label(StringName("jump"), "Jump", Key.KEY_Q)
 
+func test_camera_center_gamepad_prompt_icon_tracks_live_rebind() -> void:
+	var action := StringName("camera_center")
+	var original_events := _capture_action_events(action)
+	_set_action_binding_to_gamepad_button(action, JOY_BUTTON_RIGHT_STICK)
+	_button_prompt.call("show_prompt", action, "Center Camera")
+	await _await_frames(1)
+
+	_device_manager._on_joy_connection_changed(0, true)
+	await _await_frames(1)
+	var motion := InputEventJoypadMotion.new()
+	motion.device = 0
+	motion.axis = JOY_AXIS_RIGHT_X
+	motion.axis_value = 0.5
+	_device_manager._input(motion)
+	await _await_frames(1)
+
+	var text_icon_texture: TextureRect = _button_prompt.get_node("TextIcon/ButtonIcon")
+	assert_not_null(text_icon_texture.texture, "R3 default binding should render an icon")
+	if text_icon_texture.texture != null:
+		assert_true(
+			text_icon_texture.texture.resource_path.contains("button_rs"),
+			"camera_center should display right-stick icon when bound to R3"
+		)
+
+	_set_action_binding_to_gamepad_button(action, JOY_BUTTON_RIGHT_SHOULDER)
+	_button_prompt.call("show_prompt", action, "Center Camera")
+	await _await_frames(1)
+	assert_not_null(text_icon_texture.texture, "Rebound gamepad binding should still resolve to an icon")
+	if text_icon_texture.texture != null:
+		assert_true(
+			text_icon_texture.texture.resource_path.contains("button_rb"),
+			"camera_center should follow rebound gamepad icon at runtime"
+		)
+
+	_restore_action_events(action, original_events)
+
 func test_show_prompt_displays_texture_when_available() -> void:
 	_button_prompt.call("show_prompt", StringName("interact"), "Open Door")
 	await _await_frames(1)
@@ -355,9 +391,8 @@ func _assert_prompt_updates_binding_label(action: StringName, prompt: String, ke
 	assert_true(is_instance_valid(text_icon), "Text icon should remain valid while prompt active")
 	assert_true(is_instance_valid(label), "Label should remain valid while prompt active")
 	assert_true(text_icon.visible, "Text icon should be visible for default binding")
-	# Texture should be visible if available
-	var has_texture := U_ButtonPromptRegistry.get_prompt(action, DeviceType.KEYBOARD_MOUSE) != null
-	if has_texture:
+	var default_texture := U_ButtonPromptRegistry.get_prompt_for_current_binding(action, DeviceType.KEYBOARD_MOUSE)
+	if default_texture != null:
 		assert_true(text_icon_texture.visible, "Texture should be visible when available")
 	else:
 		assert_eq(text_icon_label.text, U_ButtonPromptRegistry.get_binding_label(action, DeviceType.KEYBOARD_MOUSE),
@@ -374,15 +409,14 @@ func _assert_prompt_updates_binding_label(action: StringName, prompt: String, ke
 	label = _button_prompt.get_node("Text")
 
 	assert_true(text_icon.visible, "Text icon should remain visible after rebinding")
-	# Texture remains shown if registered for action (even if binding changed)
-	if has_texture:
-		assert_true(text_icon_texture.visible, "Texture should remain visible after rebinding")
-		assert_not_null(text_icon_texture.texture, "Texture should still be loaded")
-		# Note: Texture may not match new binding, but it's registered for the action
+	var rebound_texture := U_ButtonPromptRegistry.get_prompt_for_current_binding(action, DeviceType.KEYBOARD_MOUSE)
+	if rebound_texture != null:
+		assert_true(text_icon_texture.visible, "Texture should be visible when rebound key has a mapped glyph")
+		assert_not_null(text_icon_texture.texture, "Texture should load from rebound binding when available")
 	else:
 		assert_false(text_icon_texture.visible, "Texture should be hidden when not available")
 		assert_true(text_icon_label.visible, "Text label should be visible as fallback")
-		assert_eq(text_icon_label.text, OS.get_keycode_string(keycode),
+		assert_eq(text_icon_label.text, U_ButtonPromptRegistry.get_binding_label(action, DeviceType.KEYBOARD_MOUSE),
 			"Text icon should display rebound key label")
 	assert_eq(label.text, prompt, "Prompt text should remain provided label")
 
@@ -397,3 +431,12 @@ func _set_action_binding_to_key(action: StringName, keycode: int) -> void:
 	key_event.keycode = keycode
 	key_event.physical_keycode = keycode
 	InputMap.action_add_event(action, key_event)
+
+func _set_action_binding_to_gamepad_button(action: StringName, button_index: int) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	for event in InputMap.action_get_events(action).duplicate():
+		InputMap.action_erase_event(action, event)
+	var joy_event := InputEventJoypadButton.new()
+	joy_event.button_index = button_index
+	InputMap.action_add_event(action, joy_event)

@@ -4,6 +4,7 @@ class_name U_ButtonPromptRegistry
 const DEVICE_KEYBOARD_MOUSE := 0
 const DEVICE_GAMEPAD := 1
 const DEVICE_TOUCHSCREEN := 2
+const U_INPUT_EVENT_DISPLAY := preload("res://scripts/utils/input/u_input_event_display.gd")
 
 static var _prompt_registry: Dictionary = {}
 static var _initialized: bool = false
@@ -42,6 +43,8 @@ static func _initialize_registry() -> void:
 
 	_assign_prompt(StringName("sprint"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_shift.png")
 	_assign_prompt(StringName("sprint"), DEVICE_GAMEPAD, gamepad_base + "button_ls.png", "L3")
+	_assign_prompt(StringName("camera_center"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_c.png", "C")
+	_assign_prompt(StringName("camera_center"), DEVICE_GAMEPAD, gamepad_base + "button_rs.png", "R3")
 
 	_assign_prompt(StringName("pause"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_escape.png")
 	_assign_prompt(StringName("pause"), DEVICE_GAMEPAD, gamepad_base + "button_start.png")
@@ -109,6 +112,13 @@ static func get_prompt(action: StringName, device: int) -> Texture2D:
 	entry["texture"] = texture
 	_set_device_entry(action, device, entry)
 	return texture
+
+static func get_prompt_for_current_binding(action: StringName, device: int) -> Texture2D:
+	_ensure_initialized()
+	var texture := _get_binding_texture(action, device)
+	if texture != null:
+		return texture
+	return get_prompt(action, device)
 
 static func get_prompt_text(action: StringName, device: int) -> String:
 	_ensure_initialized()
@@ -180,6 +190,32 @@ static func _label_from_gamepad_events(events: Array) -> String:
 			return _gamepad_axis_to_label((event as InputEventJoypadMotion).axis)
 	return ""
 
+static func _get_binding_texture(action: StringName, device: int) -> Texture2D:
+	if device == DEVICE_TOUCHSCREEN:
+		return null
+	var action_name := String(action)
+	if not InputMap.has_action(action_name):
+		return null
+	var events := InputMap.action_get_events(action_name)
+	for event in events:
+		if not _event_matches_device(event, device):
+			continue
+		var texture := U_INPUT_EVENT_DISPLAY.get_texture_for_event(event)
+		if texture != null:
+			return texture
+	return null
+
+static func _event_matches_device(event: InputEvent, device: int) -> bool:
+	match device:
+		DEVICE_KEYBOARD_MOUSE:
+			return event is InputEventKey or event is InputEventMouseButton
+		DEVICE_GAMEPAD:
+			return event is InputEventJoypadButton or event is InputEventJoypadMotion
+		DEVICE_TOUCHSCREEN:
+			return event is InputEventScreenTouch or event is InputEventScreenDrag
+		_:
+			return false
+
 static func _mouse_button_to_label(button_index: int) -> String:
 	match button_index:
 		1:
@@ -193,40 +229,36 @@ static func _mouse_button_to_label(button_index: int) -> String:
 
 static func _gamepad_button_to_label(button_index: int) -> String:
 	match button_index:
-		0:
-			return "South"
-		1:
-			return "East"
-		2:
-			return "West"
-		3:
-			return "North"
-		4:
-			return "L1"
-		5:
-			return "R1"
-		6:
-			return "L2"
-		7:
-			return "R2"
-		8:
+		JOY_BUTTON_A:
+			return "A"
+		JOY_BUTTON_B:
+			return "B"
+		JOY_BUTTON_X:
+			return "X"
+		JOY_BUTTON_Y:
+			return "Y"
+		JOY_BUTTON_BACK:
 			return "Select"
-		9:
-			return "Start"
-		10:
-			return "L3"
-		11:
-			return "R3"
-		12:
-			return "D-Pad Up"
-		13:
-			return "D-Pad Down"
-		14:
-			return "D-Pad Left"
-		15:
-			return "D-Pad Right"
-		16:
+		JOY_BUTTON_GUIDE:
 			return "Guide"
+		JOY_BUTTON_START:
+			return "Start"
+		JOY_BUTTON_LEFT_STICK:
+			return "L3"
+		JOY_BUTTON_RIGHT_STICK:
+			return "R3"
+		JOY_BUTTON_LEFT_SHOULDER:
+			return "L1"
+		JOY_BUTTON_RIGHT_SHOULDER:
+			return "R1"
+		JOY_BUTTON_DPAD_UP:
+			return "D-Pad Up"
+		JOY_BUTTON_DPAD_DOWN:
+			return "D-Pad Down"
+		JOY_BUTTON_DPAD_LEFT:
+			return "D-Pad Left"
+		JOY_BUTTON_DPAD_RIGHT:
+			return "D-Pad Right"
 		_:
 			return "Button %d" % button_index
 

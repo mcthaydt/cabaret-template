@@ -110,7 +110,7 @@ func _refresh_prompt() -> void:
 
 		if _text_icon_panel != null:
 			# Try texture first, fall back to text
-			var texture := U_ButtonPromptRegistry.get_prompt(_action, _device_type)
+			var texture := U_ButtonPromptRegistry.get_prompt_for_current_binding(_action, _device_type)
 			var has_texture := texture != null
 			var has_binding_label := not binding_label.is_empty()
 

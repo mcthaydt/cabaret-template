@@ -46,8 +46,16 @@ func process_tick(__delta: float) -> void:
 	var jump_pressed := _get_button_pressed(StringName("jump"))
 	var sprint_pressed := _get_button_pressed(StringName("sprint"))
 	var jump_just_pressed := jump_pressed and not _last_jump_pressed
+	var camera_center_just_pressed := _consume_camera_center_just_pressed()
 
-	_dispatch_state(store, move_vector, jump_pressed, jump_just_pressed, sprint_pressed)
+	_dispatch_state(
+		store,
+		move_vector,
+		jump_pressed,
+		jump_just_pressed,
+		sprint_pressed,
+		camera_center_just_pressed
+	)
 	_update_components(move_vector, jump_just_pressed, sprint_pressed)
 
 	_last_jump_pressed = jump_pressed
@@ -131,11 +139,23 @@ func _get_button_pressed(action: StringName) -> bool:
 		return false
 	return button.is_pressed()
 
-func _dispatch_state(store: I_StateStore, move_vector: Vector2, jump_pressed: bool, jump_just_pressed: bool, sprint_pressed: bool) -> void:
+func _consume_camera_center_just_pressed() -> bool:
+	if _mobile_controls == null or not is_instance_valid(_mobile_controls):
+		return false
+	return _mobile_controls.consume_camera_center_just_pressed()
+
+func _dispatch_state(
+	store: I_StateStore,
+	move_vector: Vector2,
+	jump_pressed: bool,
+	jump_just_pressed: bool,
+	sprint_pressed: bool,
+	camera_center_just_pressed: bool
+) -> void:
 	if store == null or not is_instance_valid(store):
 		return
 	store.dispatch(U_InputActions.update_move_input(move_vector))
-	store.dispatch(U_InputActions.update_camera_center_state(false))
+	store.dispatch(U_InputActions.update_camera_center_state(camera_center_just_pressed))
 	store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
 	store.dispatch(U_InputActions.update_sprint_state(sprint_pressed))
 
