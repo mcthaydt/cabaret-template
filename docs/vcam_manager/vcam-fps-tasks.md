@@ -219,7 +219,7 @@ Before starting Phase 3, verify:
 
 > **Why:** Subtle camera roll when strafing left/right creates a strong sense of physicality and speed. Common in modern FPS games (Doom, Titanfall, Mirror's Edge). The roll angle is proportional to lateral input, smoothed through second-order dynamics.
 
-- [ ] **Task 3C1.1**: Add strafe tilt fields to RS_VCamModeFirstPerson
+- [x] **Task 3C1.1**: Add strafe tilt fields to RS_VCamModeFirstPerson
   - Modify `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd`:
     - `@export var strafe_tilt_angle: float = 0.0` — max roll angle in degrees when strafing at full speed (0 = disabled)
     - `@export var strafe_tilt_smoothing: float = 6.0` — Hz for tilt second-order dynamics (higher = snappier response)
@@ -227,7 +227,7 @@ Before starting Phase 3, verify:
   - Test `strafe_tilt_angle` must be non-negative
   - **Target: 3 tests**
 
-- [ ] **Task 3C1.2 (Red)**: Write tests for strafe tilt in S_VCamSystem
+- [x] **Task 3C1.2 (Red)**: Write tests for strafe tilt in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test `strafe_tilt_angle = 0.0`: no roll applied (disabled)
   - Test strafing left (negative lateral input): camera rolls in the strafing direction (negative roll)
@@ -238,7 +238,7 @@ Before starting Phase 3, verify:
   - Test strafe tilt is a no-op for orbit and fixed modes
   - **Target: 7 tests**
 
-- [ ] **Task 3C1.3 (Green)**: Implement strafe tilt in S_VCamSystem
+- [x] **Task 3C1.3 (Green)**: Implement strafe tilt in S_VCamSystem
   - Read lateral component of `gameplay.move_input` (the X component in the player's local frame)
   - Compute target roll: `lateral_input * strafe_tilt_angle`
   - Smooth through a dedicated `U_SecondOrderDynamics` instance at `strafe_tilt_smoothing` Hz (critically damped)
@@ -257,6 +257,15 @@ Before starting Phase 3, verify:
   var roll_rad := deg_to_rad(smooth_roll)
   result_basis = result_basis.rotated(result_basis.z, roll_rad)
   ```
+
+**Completion notes (March 15, 2026):**
+- `RS_VCamModeFirstPerson` now exports `strafe_tilt_angle` and `strafe_tilt_smoothing`; resolved values clamp both fields to non-negative.
+- `S_VCamSystem` now reads shared `move_input` from `U_InputSelectors` and applies first-person-only strafe roll via `_apply_first_person_strafe_tilt(...)` after evaluator yaw/pitch construction.
+- Strafe tilt runtime state is per-vCam (`_first_person_strafe_tilt_state`) with `U_SecondOrderDynamics` smoothing keyed by `vcam_id`; stale/mode-disabled paths clear state.
+- Added/updated coverage:
+  - `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd`: `11/11` (includes +3 strafe field/default/clamp tests)
+  - `tests/unit/ecs/systems/test_vcam_system.gd`: `101/101` (includes +7 strafe tilt behavior tests)
+- Style suite unchanged at known pre-existing HUD inline-theme debt: `tests/unit/style/test_style_enforcement.gd` `16/17` (`scenes/ui/hud/ui_hud_overlay.tscn`).
 
 ---
 
@@ -379,9 +388,9 @@ Before starting Phase 3, verify:
 
 ### Cross-Cutting Checks (First-Person Game Feel)
 
-- [ ] Verify strafe tilt is gated to first-person mode only (no-op for orbit and fixed)
-- [ ] Verify strafe tilt reads lateral input from the same `gameplay.move_input` used by movement systems
-- [ ] Verify strafe tilt dynamics reset on mode switch (no residual roll from previous mode)
+- [x] Verify strafe tilt is gated to first-person mode only (no-op for orbit and fixed)
+- [x] Verify strafe tilt reads lateral input from the same `gameplay.move_input` used by movement systems
+- [x] Verify strafe tilt dynamics reset on mode switch (no residual roll from previous mode)
 - [ ] Verify head bob is distance-driven, not time-driven (stopping freezes the phase)
 - [ ] Verify head bob is gated to first-person mode only
 - [ ] Verify head bob speed threshold prevents micro-drift oscillation

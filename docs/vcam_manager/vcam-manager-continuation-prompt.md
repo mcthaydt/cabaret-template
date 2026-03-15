@@ -4,14 +4,38 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Next implementation target is Phase 9 first-person feel.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 9 first-person feel is in progress (`3C1` strafe tilt complete on March 15, 2026; next target `3C2` head bob).
 
 ## Next Planned Work (March 15, 2026)
 
 - Orbit follow-up backlog `2C11` is now complete in `docs/vcam_manager/vcam-orbit-tasks.md`.
 - Mobile drag-look/touch gating prerequisites are complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
 - Immediate implementation target:
-  - Phase 9 first-person feel
+  - Phase 9 first-person feel (`3C2` head bob)
+
+## First-Person Strafe Tilt (Phase 9 / 3C1, March 15, 2026)
+
+- Added first-person authored strafe-tilt fields:
+  - `RS_VCamModeFirstPerson` now exports `strafe_tilt_angle` and `strafe_tilt_smoothing`.
+  - `get_resolved_values()` now clamps both fields non-negative.
+- Runtime strafe-tilt integration:
+  - `S_VCamSystem` now reads `move_input` via `U_InputSelectors.get_move_input(state)`.
+  - Added first-person-only roll application after evaluator output and before downstream smoothing (`_apply_first_person_strafe_tilt(...)`).
+  - Roll target is `move_input.x * strafe_tilt_angle`, smoothed with per-vCam `U_SecondOrderDynamics` state keyed by `vcam_id`.
+  - Strafe-tilt state resets when mode is not first-person, when authored angle is disabled (`0.0`), and during stale-vCam prune/clear.
+- New/updated coverage:
+  - `test_vcam_mode_first_person` +3 tests for strafe-tilt defaults/clamp (`11/11` total).
+  - `test_vcam_system` +7 tests for first-person strafe-tilt behavior (`101/101` total):
+    - disabled-path no-op
+    - left/right sign
+    - partial/full input scaling
+    - authored max-angle bound
+    - release-to-zero recovery
+    - orbit/fixed no-op gating
+- Validation run:
+  - `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd` (`11/11`)
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`101/101`)
+  - `tests/unit/style/test_style_enforcement.gd` remains at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## Mobile Drag-Look + Touch Gating (Phase 7A/7B/7B2/7C, March 15, 2026)
 
@@ -548,6 +572,8 @@
 - `S_VCamSystem` baseline contract is now implementation-backed: manager resolution, target resolution fallback order, blend-aware active/outgoing evaluation, and same-frame submission are in code/tests.
 - `S_VCamSystem` response-smoothing contract is now implementation-backed: `RS_VCamResponse` drives position/rotation second-order smoothing, response-null passthrough keeps backward compatibility, and mode/target/response transitions reset or recreate smoothing state deterministically.
 - `S_VCamSystem` movement-style look smoothing contract is now implementation-backed for orbit/first-person: runtime yaw/pitch remain raw targets on `C_VCamComponent`, evaluator rotation is fed by per-vCam spring-damper look state, and fixed-mode rotation smoothing remains owned by response smoothing.
+- `RS_VCamModeFirstPerson` strafe-tilt authoring contract is now implementation-backed: `strafe_tilt_angle` and `strafe_tilt_smoothing` are authored/clamped fields consumed by runtime first-person feel.
+- `S_VCamSystem` first-person strafe-tilt runtime contract is now implementation-backed for Phase 9/3C1: roll target is driven by shared `input.move_input.x`, smoothed by per-vCam `U_SecondOrderDynamics` state keyed by `vcam_id`, applied after evaluator yaw/pitch construction, and gated to first-person mode.
 - `RS_VCamResponse` orbit-feel contract is now implementation-backed: `look_ahead_distance`, `look_ahead_smoothing`, `auto_level_speed`, and `auto_level_delay` are authored/clamped fields with defaults persisted in `cfg_default_response.tres`.
 - `S_VCamSystem` rotation-continuity contract is now implementation-backed: active-vCam switches apply transition-aware carry/reset/reseed of `runtime_yaw`/`runtime_pitch`, with same-target carry in same-mode transitions and authored-angle reseed when targets differ.
 - `S_VCamSystem` orbit game-feel contract is now implementation-backed for Phase 2C1-2C5: look-ahead offsets are applied before main response smoothing using per-vCam movement-velocity state (not follow-target transform deltas), auto-level pitch recentering is orbit-only with delayed activation and look-input reset behavior, and projection-based soft-zone correction (with per-vCam dead-zone hysteresis state) is applied before response smoothing.
@@ -659,7 +685,7 @@
 
 ## Next Steps
 
-1. Start Phase 9 first-person feel (`docs/vcam_manager/vcam-fps-tasks.md`): strafe tilt, head bob, and landing head dip on top of the existing response pipeline.
+1. Continue Phase 9 first-person feel (`docs/vcam_manager/vcam-fps-tasks.md`): implement `3C2` head bob, then `3C3` landing head dip on top of the existing response pipeline.
 2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
 3. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
 4. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
