@@ -237,7 +237,7 @@
 - **Button recenter can silently cancel when centering state is coupled to response-smoothing cleanup**: Orbit recenter is allowed when `response == null` (raw evaluator passthrough). If centering state is cleared from response-null smoothing paths, button recenter restarts or drops every tick and never completes.
   - **Fix pattern**: keep `_orbit_centering_state` lifecycle independent from response smoothing state; prune it only on vCam removal/prune, not on response-null smoothing resets.
 
-- **Room fade can leak translucent geometry into first-person/fixed if mode gating only disables updates without restoring materials**: Simply skipping fade updates outside orbit leaves shader overrides and partial alpha active from previous orbit ticks.
+- **Room fade can leak translucent geometry into OTS/fixed if mode gating only disables updates without restoring materials**: Simply skipping fade updates outside orbit leaves shader overrides and partial alpha active from previous orbit ticks.
   - **Fix pattern**: in `S_RoomFadeSystem`, treat non-orbit ticks as a full cleanup path: set each group `current_alpha = 1.0`, restore original materials through `U_RoomFadeMaterialApplier`, and clear tracked target cache.
 
 - **Room fade can silently stop in tests/runtime scaffolds when camera lookup assumes `camera_manager.get_main_camera()` is always valid**: Some harnesses and transitional scene states only expose the active camera through the viewport, not the manager slot.
@@ -251,10 +251,10 @@
 - **Projection helpers must evaluate from the desired camera pose and restore camera transform after calculations**: Running `unproject_position`/`project_position` against the wrong transform (or leaking the temporary transform) causes incorrect correction vectors and can desync live camera state.
   - **Fix pattern**: in `U_VCamSoftZone`, compute depth against `desired_transform`, temporarily project using that transform, then restore the original camera transform before returning.
 
-## vCam First-Person Evaluator Pitfalls
+## vCam OTS Evaluator Pitfalls
 
-- **Do not defer first-person pitch clamping to `S_VCamSystem`**: First-person vertical limits are authored per mode resource (`pitch_min`, `pitch_max`). If clamping is deferred, direct evaluator consumers can exceed limits and produce invalid view ranges.
-  - **Fix pattern**: clamp `runtime_pitch` inside `U_VCamModeEvaluator` for first-person branches using resolved mode bounds before building the yaw/pitch basis.
+- **Do not defer OTS pitch clamping to `S_VCamSystem`**: OTS vertical limits are authored per mode resource (`pitch_min`, `pitch_max`). If clamping is deferred, direct evaluator consumers can exceed limits and produce invalid view ranges.
+  - **Fix pattern**: clamp `runtime_pitch` inside `U_VCamModeEvaluator` for OTS branches using resolved mode bounds before building the yaw/pitch basis.
 - **Do not consume `look_multiplier` in evaluator helpers**: Evaluator functions should only convert resolved runtime yaw/pitch inputs into transforms. Applying `look_multiplier` in evaluator code double-scales input and diverges from shared input pipeline behavior.
   - **Fix pattern**: keep `look_multiplier` application in `S_VCamSystem` when updating component runtime rotation state; evaluator consumes already-computed runtime angles.
 
@@ -828,7 +828,7 @@
 
 - **M_SceneManager automatically manages cursor state**: As of Phase 3, M_SceneManager automatically sets cursor visibility based on scene type when scenes load:
   - **UI/Menu/End-game scenes**: Cursor is visible and unlocked (for button clicks)
-  - **Gameplay scenes**: Cursor is locked and hidden (for first-person controls)
+  - **Gameplay scenes**: Cursor is locked and hidden (for gameplay camera controls)
 
   DO NOT manually call `M_CursorManager.set_cursor_state()` in scene scripts unless you have a specific override requirement. The automatic management happens in `M_SceneManager._update_cursor_for_scene()` which is called after every scene transition. This prevents the common pitfall of loading a menu scene with a locked cursor (making buttons unclickable) or loading gameplay with a visible cursor (breaking immersion).
 
@@ -1035,13 +1035,13 @@
 
 - **`vcam_occludable` naming alone does not enable real occlusion behavior**: After defining physics layer schema, migrate authored camera-blocking geometry in gameplay/prefab scenes onto that layer. Leaving blockers on old layers makes silhouette tests pass in isolation but fail in live scenes.
 
-- **Touch look ownership must stay in `S_TouchscreenSystem`**: `gameplay.look_input` is shared across devices. If `S_InputSystem` keeps dispatching zero touchscreen payloads while touchscreen is active, it clobbers drag-look and breaks mobile orbit/first-person camera control.
+- **Touch look ownership must stay in `S_TouchscreenSystem`**: `gameplay.look_input` is shared across devices. If `S_InputSystem` keeps dispatching zero touchscreen payloads while touchscreen is active, it clobbers drag-look and breaks mobile orbit/OTS camera control.
 
 - **Second-order rotation smoothing needs angle unwrapping and deterministic reset boundaries**: Smoothing Euler angles directly from `Basis.get_euler()` without unwrapping can pick the long path across `-PI/PI`, causing sudden spins. Reusing smoothing state across mode switches or follow-target changes can also drag stale momentum into a new camera context.
   - **Fix pattern**: unwrap each target axis against the previous target angle before stepping rotation dynamics, recreate dynamics when response tuning changes, and `reset()` dynamics on mode/follow-target transitions so first frame after a context switch snaps to the new evaluated pose.
 
 - **Mode switches can inherit stale runtime orientation without explicit continuity policy**: Swapping active vCams without transition-aware carry/reset/reseed rules can cause heading pops (for example, fixed -> orbit inheriting old runtime yaw/pitch, or same-mode target swaps preserving the wrong orientation context).
-  - **Fix pattern**: apply continuity policy before evaluation on active-id changes in `S_VCamSystem`: orbit↔first-person carry yaw + reset pitch, fixed→orbit/first-person reseed incoming yaw/pitch to authored defaults, and same-mode switches carry only when both vCams resolve the same follow target (otherwise reseed).
+  - **Fix pattern**: apply continuity policy before evaluation on active-id changes in `S_VCamSystem`: orbit↔OTS carry yaw + reset pitch, fixed→orbit/OTS reseed incoming yaw/pitch to authored defaults, and same-mode switches carry only when both vCams resolve the same follow target (otherwise reseed).
 
 ## UI Manager / Input Manager Boundary (Phase 4b - T075)
 

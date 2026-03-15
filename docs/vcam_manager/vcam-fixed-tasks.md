@@ -2,7 +2,7 @@
 
 **Scope:** Fixed camera mode — resource, evaluator, and manual validation, with `use_path` helpers staying scene-local in the gameplay world.
 
-**Depends on:** Phase 3B (first-person evaluator extends `U_VCamModeEvaluator`) must be complete before Phase 4B extends it further.
+**Depends on:** Phase 3B (OTS evaluator extends `U_VCamModeEvaluator`) must be complete before Phase 4B extends it further.
 
 ---
 
@@ -10,7 +10,7 @@
 
 Before starting Phase 4, verify:
 
-- [x] **PRE-1**: Phase 2 (orbit) and Phase 3 (first-person) are fully complete (all 36 mode tests pass, evaluator handles both modes)
+- [x] **PRE-1**: Phase 2 (orbit) and Phase 3 (OTS) are fully complete (all mode tests pass, evaluator handles both modes)
 - [x] **PRE-2**: Read required documentation
   - Read `docs/vcam_manager/vcam-manager-plan.md` (Commit 1.1, Commit 2.3 sections — fixed-mode notes)
   - Read `docs/vcam_manager/vcam-manager-overview.md` (Camera Modes > RS_VCamModeFixed)
@@ -18,11 +18,11 @@ Before starting Phase 4, verify:
   - Read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md`
 - [x] **PRE-3**: Understand existing patterns by reading:
   - `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (resource pattern from Phase 2)
-  - `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` (resource pattern from Phase 3)
-  - `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (evaluator with orbit + first-person branches)
+  - `scripts/resources/display/vcam/rs_vcam_mode_ots.gd` (resource pattern from Phase 3)
+  - `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (evaluator with orbit + OTS branches)
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (existing evaluator tests)
 - [x] **PRE-4**: Verify branch is `vcam` and working tree is clean
-- [x] **PRE-5**: Verify orbit + first-person tests still pass before extending the evaluator:
+- [x] **PRE-5**: Verify orbit + OTS tests still pass before extending the evaluator:
   ```bash
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gselect=test_vcam_mode -ginclude_subdirs=true -gexit
   ```
@@ -207,7 +207,7 @@ Before starting Phase 4, verify:
     - Ignore `runtime_yaw` and `runtime_pitch` entirely (fixed cameras do not rotate with player input)
     - Return `{transform = camera_xform, fov = mode.fov, mode_name = "fixed"}`
   - All tests should pass
-  - Verify orbit and first-person tests still pass (no regressions)
+  - Verify orbit and OTS tests still pass (no regressions)
 
   **Fixed transform construction contract:**
   ```gdscript
@@ -256,11 +256,11 @@ Before starting Phase 4, verify:
     ```
 
 - [x] **Task 4B.4 (Refactor)**: Final review of U_VCamModeEvaluator across all three modes
-  - Review evaluator now that it handles all three modes (orbit + first-person + fixed)
+  - Review evaluator now that it handles all three modes (orbit + OTS + fixed)
   - Ensure all three mode branches are clean and well-separated
   - Verify null/invalid resource handling is consistent across all modes:
     - All modes return `{}` for null mode resource
-    - Orbit and first-person return `{}` for null follow_target
+    - Orbit and OTS return `{}` for null follow_target
     - Fixed returns `{}` for null fixed_anchor when `use_world_anchor = true`
     - No mode emits warnings for null resources
   - Verify no shared mutable state between mode evaluations
@@ -272,8 +272,8 @@ Before starting Phase 4, verify:
 - [x] **Task 4B.5**: Run full regression across all modes
   - Run orbit resource tests (no regressions)
   - Run orbit evaluator tests (no regressions)
-  - Run first-person resource tests (no regressions)
-  - Run first-person evaluator tests (no regressions)
+  - Run OTS resource tests (no regressions)
+  - Run OTS evaluator tests (no regressions)
   - Run fixed resource tests
   - Run fixed evaluator tests
   - Run style enforcement tests
@@ -302,8 +302,8 @@ Before starting Phase 4, verify:
 - [ ] Verify fixed evaluation handles edge case: fixed anchor with non-identity scale does not produce distorted camera basis
 - [ ] Verify `tracking_damping` field exists on resource but is NOT consumed by the evaluator (consumed later by `S_VCamSystem` in Phase 6)
 - [ ] Verify `runtime_yaw` and `runtime_pitch` are truly ignored — fixed cameras must never respond to player look input
-- [ ] Verify orbit and first-person evaluation still work identically after fixed branch is added (no shared state pollution)
-- [ ] Verify the evaluator's `fixed_anchor` parameter is null-safe when mode is not fixed (orbit/first-person ignore it)
+- [ ] Verify orbit and OTS evaluation still work identically after fixed branch is added (no shared state pollution)
+- [ ] Verify the evaluator's `fixed_anchor` parameter is null-safe when mode is not fixed (orbit/OTS ignore it)
 - [ ] Verify `follow_offset` is ignored when `use_world_anchor = true` (camera uses fixed anchor position regardless of `follow_offset` value)
 - [ ] Verify `fixed_anchor` parameter is ignored when `use_world_anchor = false` (camera uses follow target + offset regardless of anchor)
 - [ ] Verify `path_max_speed` and `path_damping` are NOT consumed by evaluator (consumed by `S_VCamSystem`)
@@ -340,12 +340,12 @@ These checks gate Phase 6C completion for fixed mode:
 These checks gate Phase 13 cross-mode QA completion:
 
 - [ ] **MT-63**: Entering fixed is intentionally authored (camera lands at authored position/rotation exactly)
-  - Switch from orbit or first-person to fixed
+  - Switch from orbit or OTS to fixed
   - Verify camera blend ends at the exact authored anchor position
   - Verify no drift or jitter after landing
 - [ ] **MT-64**: Leaving fixed preserves expected heading / reseeds intentionally
   - Switch from fixed to orbit: verify orbit reseeds to authored yaw/pitch (not stale pre-fixed rotation)
-  - Switch from fixed to first-person: verify first-person reseeds to authored defaults
+  - Switch from fixed to OTS: verify OTS reseeds to authored defaults
 - [ ] **MT-65**: Fixed anchor freed at runtime: camera recovers gracefully
   - Free or remove the fixed anchor node while fixed vCam is active
   - Verify camera falls back to entity root or holds last valid pose
@@ -388,10 +388,10 @@ These checks gate Phase 9F completion:
 # Run fixed resource tests
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_fixed -ginclude_subdirs=true -gexit
 
-# Run evaluator tests (includes orbit + first-person + fixed)
+# Run evaluator tests (includes orbit + OTS + fixed)
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers/helpers -gselect=test_vcam_mode_evaluator -ginclude_subdirs=true -gexit
 
-# Run all mode-related tests together (orbit + first-person + fixed)
+# Run all mode-related tests together (orbit + OTS + fixed)
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gselect=test_vcam_mode -ginclude_subdirs=true -gexit
 
 # Run style enforcement after adding new files
@@ -411,7 +411,7 @@ These checks gate Phase 9F completion:
 4. Do not allow `runtime_yaw`/`runtime_pitch` to affect fixed camera evaluation. Fixed cameras are architect-controlled, not player-controlled. The evaluator must ignore these values entirely for fixed mode.
 5. Do not use `look_at()` directly on the fixed camera node. Use `Transform3D.IDENTITY.looking_at_from_position()` to construct the tracking basis, avoiding Godot's `look_at` up-vector edge cases when target is directly above or below the camera.
 6. Do not forget the zero-distance edge case: if the fixed anchor and follow target are at exactly the same position with `track_target = true`, the look direction is zero-length. Guard this to avoid NaN in the basis.
-7. Do not forget to verify orbit and first-person regression after extending the evaluator. Adding a third branch must not break existing mode evaluations.
+7. Do not forget to verify orbit and OTS regression after extending the evaluator. Adding a third branch must not break existing mode evaluations.
 8. Do not confuse the final refactor (Task 4B.4) with adding new functionality. It is strictly a code quality pass — all tests must pass before and after with identical behavior.
 9. Do not resolve `Path3D` or compute path progress inside the evaluator. Path resolution and progress smoothing are `S_VCamSystem`'s responsibility. The evaluator only sees a pre-resolved `PathFollow3D` as `fixed_anchor`.
 10. Do not apply `path_max_speed` or `path_damping` in the evaluator. These are consumed by `S_VCamSystem`.

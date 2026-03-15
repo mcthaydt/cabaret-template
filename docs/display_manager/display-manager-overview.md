@@ -13,7 +13,7 @@ The Display Manager handles visual post-processing effects, graphics quality set
 ## Camera Ownership Boundary (vCam Alignment)
 
 - Gameplay camera orchestration source of truth is `docs/vcam_manager/*`.
-- Display Manager does not define gameplay camera follow/orbit/fixed/first-person behavior.
+- Display Manager does not define gameplay camera follow/orbit/fixed/OTS behavior.
 - Display Manager does not own `M_CameraManager.apply_main_camera_transform(...)` or vCam blend-state decisions.
 - Display Manager remains responsible for display-domain post-process and accessibility rendering only.
 

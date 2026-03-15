@@ -175,7 +175,7 @@ Before starting Phase 2, verify:
 
 ### Phase 2C1: Look-Ahead (Predictive Offset)
 
-> **Why:** In third-person orbit, the camera trails behind the player. Look-ahead offsets the camera ahead in the movement direction so the player can see more of where they're going. This is an orbit-only concept — first-person cameras ARE the player's eyes and don't need predictive offset.
+> **Why:** In third-person orbit, the camera trails behind the player. Look-ahead offsets the camera ahead in the movement direction so the player can see more of where they're going. This is an orbit-only concept — OTS cameras already have their own shoulder-offset framing and don't need predictive offset.
 
 - [x] **Task 2C1.1**: Add look-ahead fields to RS_VCamResponse
   - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
@@ -195,7 +195,7 @@ Before starting Phase 2, verify:
   - Test look-ahead direction changes smoothly when target reverses (second-order dynamics at `look_ahead_smoothing` Hz prevents snap)
   - Test stationary target produces zero look-ahead offset
   - Test look-ahead resets on mode switch / target change (no stale velocity)
-  - Test look-ahead is a no-op for first-person mode (only applies to orbit)
+  - Test look-ahead is a no-op for OTS mode (only applies to orbit)
   - **Target: 7 tests**
   - Completion note (2026-03-10): Added 7 look-ahead tests to `test_vcam_system` for disable/enable behavior, movement-direction offset, clamp bounds, stationary zero-offset behavior, mode/target reset, and first-person no-op gating.
 
@@ -205,7 +205,7 @@ Before starting Phase 2, verify:
   - Compute look-ahead offset: `velocity.normalized() * look_ahead_distance` (clamped to `look_ahead_distance`)
   - Smooth the offset through a dedicated `U_SecondOrderDynamics3D` instance (using `look_ahead_smoothing` Hz, critically damped, `r=0.0`)
   - Add smoothed offset to the evaluated camera position BEFORE the main follow dynamics
-  - Gate: only apply when active mode is orbit (skip for first-person and fixed)
+  - Gate: only apply when active mode is orbit (skip for OTS and fixed)
   - Reset look-ahead dynamics on mode switch / target change
   - All tests should pass
   - Completion note (2026-03-10): `S_VCamSystem` now applies orbit-only look-ahead pre-smoothing with per-vCam state (`_look_ahead_state`), movement-velocity sampling (state first, then component/body fallback), response-driven distance/smoothing tuning, and deterministic state clears on mode/target/disabled paths.
@@ -225,7 +225,7 @@ Before starting Phase 2, verify:
 
 ### Phase 2C2: Auto-Level (Horizon Correction)
 
-> **Why:** In orbit mode, the camera can drift to awkward pitch angles after the player stops actively looking. Auto-level gradually returns the camera pitch to the horizon when no look input is active. This is orbit-specific because first-person pitch drift is the player's own view direction (resetting it feels like the game is fighting the player).
+> **Why:** In orbit mode, the camera can drift to awkward pitch angles after the player stops actively looking. Auto-level gradually returns the camera pitch to the horizon when no look input is active. This is orbit-specific because OTS pitch drift is the player's own aimed view direction (resetting it feels like the game is fighting the player).
 
 - [x] **Task 2C2.1**: Add auto-level fields to RS_VCamResponse
   - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
@@ -242,7 +242,7 @@ Before starting Phase 2, verify:
   - Test auto-level does NOT activate while look input is non-zero (player is actively looking)
   - Test auto-level delay timer resets each frame that look input is non-zero
   - Test auto-level respects `auto_level_speed` rate (degrees/sec — after 1 second at speed=30, pitch should decay ~30 degrees)
-  - Test auto-level is a no-op for first-person and fixed modes
+  - Test auto-level is a no-op for OTS and fixed modes
   - **Target: 6 tests**
   - Completion note (2026-03-10): Added 6 auto-level tests to `test_vcam_system` for disable/enable timing, active-look suppression, timer-reset behavior, speed-rate validation, and non-orbit gating.
 
@@ -251,7 +251,7 @@ Before starting Phase 2, verify:
   - When timer exceeds `auto_level_delay` and `auto_level_speed > 0.0`:
     - `runtime_pitch = move_toward(runtime_pitch, 0.0, auto_level_speed * delta)`
   - Apply BEFORE evaluator call (pitch is an input to evaluation, not a post-process)
-  - Gate: only apply for orbit mode (skip for first-person and fixed)
+  - Gate: only apply for orbit mode (skip for OTS and fixed)
   - All tests should pass
   - Completion note (2026-03-10): `S_VCamSystem` now tracks per-vCam no-look timers (`_orbit_no_look_input_timers`) and applies orbit-only pitch recentering after configurable delay using `auto_level_speed`, with timer reset on active look input.
 
@@ -332,7 +332,7 @@ Before starting Phase 2, verify:
   - Add regression tests to `test_vcam_system.gd`:
     - Test soft zone correction is applied when orbit component has soft zone resource
     - Test no correction when component has no soft zone resource
-    - Test no correction when active mode is first-person (even if soft zone resource is set)
+    - Test no correction when active mode is OTS (even if soft zone resource is set)
   - Completion note (2026-03-10): `S_VCamSystem` now applies orbit-only soft-zone correction before response smoothing using `U_VCamSoftZone`, tracks per-vCam dead-zone state (`_soft_zone_dead_zone_state`), and includes 3 system regression tests for enabled/disabled/non-orbit gating.
 
 ---
@@ -392,7 +392,7 @@ Before starting Phase 2, verify:
   - Test natural deceleration after look input release (no hard stop in one frame)
   - Test asymmetric damping: yaw and pitch settle at different rates when damping values differ
   - Test stop threshold: near-zero rotational velocity clamps to zero and does not drift
-  - Test orbit-only gating (first-person/fixed remain unchanged by this orbit pass)
+  - Test orbit-only gating (OTS/fixed remain unchanged by this orbit pass)
   - **Target: 4 tests**
   - Completion note (2026-03-14): Added 4 `2C7` regressions in `test_vcam_system` covering release deceleration continuity, asymmetric yaw/pitch damping behavior, stop-threshold clamp with no post-settle drift, and orbit-only gating.
 
@@ -615,7 +615,7 @@ Before starting Phase 2, verify:
   - Test `current_alpha` clamps to `[min_alpha, 1.0]` range
   - Test system uses default `RS_RoomFadeSettings` when component `settings` is null
   - Test system is a no-op when no `C_RoomFadeGroupComponent` instances exist
-  - Test system is a no-op when active camera mode is not orbit (first-person/fixed restore all faded geometry immediately)
+  - Test system is a no-op when active camera mode is not orbit (OTS/fixed restore all faded geometry immediately)
   - Test mode switch from orbit to non-orbit restores all groups to `current_alpha = 1.0`
   - **Target: 10+ tests**
   - Completion note (2026-03-14): Expanded `tests/unit/ecs/systems/test_room_fade_system.gd` to 12 tests, including orbit fade/restore behavior, default-settings fallback, stale-target cleanup, non-orbit immediate-restore gating, and viewport-camera fallback when camera-manager main camera is absent.
@@ -662,10 +662,10 @@ Before starting Phase 2, verify:
 
 - [x] **Task 2C11.1 (Red)**: Write integration tests
   - Create `tests/unit/ecs/systems/test_room_fade_integration.gd`
-  - Test orbit-only gating: room fade is active in orbit mode, inactive in first-person/fixed
+  - Test orbit-only gating: room fade is active in orbit mode, inactive in OTS/fixed
   - Test multi-group independence: two groups with different normals fade independently based on camera angle
   - Test ceiling support: group with `fade_normal = Vector3(0, -1, 0)` (downward-facing ceiling normal) fades when camera looks up
-  - Test mode-switch cleanup: switching from orbit to first-person restores all groups to opaque within one tick
+  - Test mode-switch cleanup: switching from orbit to OTS restores all groups to opaque within one tick
   - Test coexistence with silhouette occlusion: room fade components and silhouette occluders can exist simultaneously without conflict
   - Test per-group settings override: group A uses custom `RS_RoomFadeSettings` while group B uses default; each respects its own tuning
   - Test material restoration completeness: after full restore, mesh materials match their original pre-fade state
@@ -729,7 +729,7 @@ Before starting Phase 2, verify:
 - [ ] **MT-117**: Room fade restore: moving orbit camera to front of wall restores full opacity smoothly
 - [ ] **MT-118**: Room fade ceiling: looking up in orbit mode fades ceiling geometry with downward-facing normal
 - [ ] **MT-119**: Room fade multi-group: two adjacent walls with different normals fade independently based on camera angle
-- [ ] **MT-120**: Room fade mode switch: switching from orbit to first-person immediately restores all faded geometry to opaque
+- [ ] **MT-120**: Room fade mode switch: switching from orbit to OTS immediately restores all faded geometry to opaque
 - [ ] **MT-121**: Room fade min alpha: fully faded wall still shows faint geometry at `min_alpha` (not fully invisible)
 - [ ] **MT-122**: Room fade speed: adjusting `fade_speed` in settings changes how quickly walls dissolve and restore
 - [ ] **MT-123**: Room fade coexistence: silhouette occlusion and room fade both active simultaneously without visual conflict
@@ -741,9 +741,9 @@ Before starting Phase 2, verify:
 
 - [ ] Verify look-ahead reads movement velocity from gameplay state snapshots first, with movement-component/body fallback, and does NOT use follow-target transform deltas
 - [ ] Verify look-ahead offset is smoothed through its own `U_SecondOrderDynamics3D` instance (not the main follow dynamics)
-- [ ] Verify look-ahead is gated to orbit mode only (no-op for first-person and fixed)
+- [ ] Verify look-ahead is gated to orbit mode only (no-op for OTS and fixed)
 - [ ] Verify auto-level only activates after `auto_level_delay` seconds of zero look input (not immediately)
-- [ ] Verify auto-level is gated to orbit mode only (no-op for first-person and fixed)
+- [ ] Verify auto-level is gated to orbit mode only (no-op for OTS and fixed)
 - [ ] Verify soft zone correction is gated to orbit mode only
 - [ ] Verify dead zone hysteresis margin is backward compatible (`hysteresis_margin = 0.0` produces identical behavior to no hysteresis)
 - [ ] Verify ground-relative mode locks vertical anchor while airborne and does not chase per-frame player Y motion during jumps
@@ -756,7 +756,7 @@ Before starting Phase 2, verify:
 - [x] Verify room fade dot product uses `dot(-camera_basis.z, wall_outward_normal)` convention (positive = camera looking at back side)
 - [x] Verify `C_RoomFadeGroupComponent.fade_normal` is author-placed in local space, not auto-detected from mesh geometry
 - [x] Verify `U_RoomFadeMaterialApplier` caches original materials and restores them cleanly on cleanup (follows `U_CharacterLightingMaterialApplier` pattern)
-- [x] Verify room fading is orbit-only gated: first-person/fixed modes restore all faded geometry immediately
+- [x] Verify room fading is orbit-only gated: OTS/fixed modes restore all faded geometry immediately
 - [x] Verify room fading coexists with Phase 10 silhouette occlusion without material/shader conflicts
 - [x] Verify `sh_room_fade.gdshader` uses `blend_mix` + `depth_draw_never` (no alpha-scissor path) to match the current room-fade render contract
 - [x] Verify `cfg_default_room_fade.tres` uses `const` preload pattern for mobile compatibility (no runtime directory scanning)
@@ -824,8 +824,8 @@ These checks gate Phase 7D completion for orbit mode:
 These checks gate Phase 13 cross-mode QA completion:
 
 - [ ] **MT-59**: Switching into orbit keeps expected facing direction (no heading pop)
-  - Switch from first-person or fixed to orbit
-  - Verify camera lands at expected yaw (carried from first-person, or reseeded from authored for fixed)
+  - Switch from OTS or fixed to orbit
+  - Verify camera lands at expected yaw (carried from OTS, or reseeded from authored for fixed)
   - Verify no single-frame snap to a different heading
 - [ ] **MT-60**: Rapid repeated switching into/out of orbit does not pop
   - Toggle orbit ↔ fixed ↔ orbit rapidly
@@ -908,7 +908,7 @@ These checks gate Phase 9F completion:
 12. Do not auto-detect fade normals from mesh geometry. Author-placed `fade_normal` on `C_RoomFadeGroupComponent` gives artistic control over which direction triggers fading.
 13. Do not use raycasts for room fade decisions. The tagged ECS group approach with authored normals is deterministic and cheaper than per-frame raycasts.
 14. Do not let `current_alpha` reach `0.0`. Use `min_alpha` floor so faded geometry remains faintly visible for spatial grounding (classic Xenogears aesthetic).
-15. Do not forget to restore materials on mode switch. When switching from orbit to first-person/fixed, all faded groups must immediately restore to `current_alpha = 1.0` and original materials.
+15. Do not forget to restore materials on mode switch. When switching from orbit to OTS/fixed, all faded groups must immediately restore to `current_alpha = 1.0` and original materials.
 16. Do not apply room fade shader to materials that are already `ShaderMaterial` without checking for conflicts with silhouette occlusion shaders. Cache and restore original materials cleanly.
 17. Do not compute `get_fade_normal_world()` without normalizing the result. Non-unit `fade_normal` exports would produce incorrect dot product magnitudes.
 18. Do not run `S_RoomFadeSystem` before `S_VCamSystem`. The fade system needs the post-evaluation camera transform; running it before camera evaluation produces stale-frame decisions.

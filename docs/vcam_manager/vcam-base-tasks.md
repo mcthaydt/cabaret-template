@@ -692,7 +692,7 @@ Before starting Phase 0, verify:
   - Test updates `runtime_yaw` on orbit component when `allow_player_rotation = true`
   - Test updates `runtime_pitch` on orbit component when `allow_player_rotation = true`
   - Test does NOT update yaw/pitch on orbit when `allow_player_rotation = false`
-  - Test updates yaw/pitch on first-person component using `look_multiplier`
+  - Test updates yaw/pitch on OTS component using `look_multiplier`
   - Test submits evaluated result to `M_VCamManager.submit_evaluated_camera()`
   - Test evaluates outgoing vCam too when `manager.is_blending()` is true
   - Test resolves follow target from NodePath export first, then falls back to entity query (`M_ECSManager.get_entity_by_id()`) when path is empty
@@ -1187,7 +1187,7 @@ Settings checks (mode-agnostic):
   - Add `vcam_active_mode` from `U_VCamSelectors.get_active_mode(state)`
   - Add `vcam_is_blending` from `U_VCamSelectors.is_blending(state)`
   - Add `vcam_active_vcam_id` from `U_VCamSelectors.get_active_vcam_id(state)`
-  - This enables QB camera rules to condition on vCam state (e.g., "reduce FOV zone effect in first-person mode", "suppress shake during blends")
+  - This enables QB camera rules to condition on vCam state (e.g., "reduce FOV zone effect in OTS mode", "suppress shake during blends")
   - Rules use standard `RS_ConditionContextField` to read these fields — no vCam-specific condition types needed
   - Write regression tests verifying existing camera rules still pass with enriched context
 
@@ -1418,7 +1418,7 @@ Cross-mode checks (mode-agnostic):
   - Test S_VCamSystem finds manager via ServiceLocator
   - Test orbit vCam evaluates and submits results through full pipeline
   - Test fixed vCam evaluates and submits results
-  - Test first-person vCam evaluates and submits results
+  - Test OTS vCam evaluates and submits results
   - Test switching active vcams triggers blend
   - Test blend completes and active vcam updates
   - **Target: 7 tests**
@@ -1435,7 +1435,7 @@ Cross-mode checks (mode-agnostic):
 - [ ] **Task 12.4**: Create mobile drag-look integration tests
   - Create `tests/integration/vcam/test_vcam_mobile.gd`
   - Test drag-look feeds orbit camera through gameplay.look_input
-  - Test drag-look feeds first-person camera through gameplay.look_input
+  - Test drag-look feeds OTS camera through gameplay.look_input
   - Test simultaneous move + look on separate touches
   - Test S_InputSystem does not clobber touchscreen look_input
   - Test touchscreen settings overlay updates drag-look sensitivity
@@ -1492,8 +1492,8 @@ Cross-mode checks (mode-agnostic):
   - Update `docs/vcam_manager/vcam-manager-overview.md` if needed
 
 - [ ] **Task 13.5**: Cross-mode feel QA (manual)
-  - [ ] **MT-50**: Heading continuity after orbit → first-person switch (player keeps facing same direction)
-  - [ ] **MT-51**: Heading continuity after first-person → orbit switch
+  - [ ] **MT-50**: Heading continuity after orbit → OTS switch (player keeps facing same direction)
+  - [ ] **MT-51**: Heading continuity after OTS → orbit switch
   - [ ] **MT-52**: Fixed → orbit landing uses authored angles (no stale rotation inherited)
   - [ ] **MT-53**: Rapid repeated cross-mode switching does not pop or produce disorienting heading jumps
   - [ ] **MT-54**: Graceful recovery on follow target loss / respawn (no camera jerk)
@@ -1556,7 +1556,7 @@ Unit tests for shared infrastructure (state, ECS components/systems, managers) l
 - [ ] Verify no direct `camera.global_transform` writes remain in vCam code paths
 - [ ] Verify moving-to-moving blends stay live instead of blending from a frozen origin transform
 - [ ] Verify silhouettes restore cleanly on scene swap, vCam deactivation, and freed occluders
-- [ ] Verify first-person and orbit look consume the existing input pipeline instead of polling raw input directly
+- [ ] Verify OTS and orbit look consume the existing input pipeline instead of polling raw input directly
 - [ ] Verify mobile drag-look supports simultaneous move joystick + look touch + button presses without gesture conflicts
 - [ ] Verify mobile drag-look settings persist through the existing touchscreen settings flow
 - [ ] Verify `S_InputSystem` no longer overwrites touchscreen move/look input with zero payloads
