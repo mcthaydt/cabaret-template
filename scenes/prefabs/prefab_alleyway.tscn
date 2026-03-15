@@ -53,6 +53,7 @@ data = PackedVector3Array(-0.39499998, -0.1434, -0.1962, -0.3351, -0.1004, -0.19
 mesh = SubResource("ArrayMesh_3lqhf")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="1" unique_id=626446286]
+collision_layer = 33
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=1671392700]
 transform = Transform3D(17, 0, 0, 0, 17, 0, 0, 0, 17, 0, 2.4162946, 0)

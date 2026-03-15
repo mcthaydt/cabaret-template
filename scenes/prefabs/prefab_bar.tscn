@@ -55,6 +55,7 @@ size = Vector3(12.314087, 1, 13.698364)
 [node name="NewInterior" type="Node3D" unique_id=1438821753]
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=538729418]
+collision_layer = 33
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1092398494]
 transform = Transform3D(12.999999, 0, 0, 0, 12.999999, 0, 0, 0, 12.999999, -3, 1.9658058, 0)
@@ -65,6 +66,7 @@ transform = Transform3D(13, 0, 0, 0, 13, 0, 0, 0, 13, -3, 1.9658058, 0)
 mesh = SubResource("ArrayMesh_bf3wo")
 
 [node name="StaticBody3D2" type="StaticBody3D" parent="." unique_id=821039526]
+collision_layer = 33
 
 [node name="CollisionShape3D2" type="CollisionShape3D" parent="StaticBody3D2" unique_id=627679376]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9730835, -0.48206663, -0.634459)

@@ -87,30 +87,35 @@ script = ExtResource("2_ysyyo")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 material_override = SubResource("StandardMaterial3D_floor")
 use_collision = true
+collision_layer = 33
 size = Vector3(28, 1, 20)
 
 [node name="SO_WallBack" type="CSGBox3D" parent="SceneObjects" unique_id=1065109321]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -10)
 material_override = SubResource("StandardMaterial3D_wall")
 use_collision = true
+collision_layer = 33
 size = Vector3(28, 4, 0.5)
 
 [node name="SO_WallLeft" type="CSGBox3D" parent="SceneObjects" unique_id=1801190146]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 2, 0)
 material_override = SubResource("StandardMaterial3D_wall")
 use_collision = true
+collision_layer = 33
 size = Vector3(0.5, 4, 20)
 
 [node name="SO_WallRight" type="CSGBox3D" parent="SceneObjects" unique_id=1535011716]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 2, 0)
 material_override = SubResource("StandardMaterial3D_wall")
 use_collision = true
+collision_layer = 33
 size = Vector3(0.5, 4, 20)
 
 [node name="SO_WallFront" type="CSGBox3D" parent="SceneObjects" unique_id=1775219621]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 10)
 material_override = SubResource("StandardMaterial3D_wall")
 use_collision = true
+collision_layer = 33
 size = Vector3(28, 4, 0.5)
 
 [node name="Environment" type="Node" parent="." unique_id=1767168511]

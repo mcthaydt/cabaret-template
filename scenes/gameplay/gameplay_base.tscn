@@ -82,23 +82,27 @@ script = ExtResource("2_ph0bl")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
 material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
+collision_layer = 33
 size = Vector3(25, 1, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
 [node name="SO_Block" type="CSGBox3D" parent="SceneObjects" unique_id=1640726565]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6780934, -0.77378076, 0)
 use_collision = true
+collision_layer = 33
 material = SubResource("StandardMaterial3D_748a2")
 
 [node name="SO_Block2" type="CSGBox3D" parent="SceneObjects" unique_id=1966144604]
 transform = Transform3D(0.89320666, 0.44964638, 0, -0.44964638, 0.89320666, 0, 0, 0, 1, -5.180423, -0.7959937, -0.10645056)
 use_collision = true
+collision_layer = 33
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
 
 [node name="SO_Block3" type="CSGBox3D" parent="SceneObjects" unique_id=1755739387]
 transform = Transform3D(0.99974185, -0.022722274, 0, 0.022722274, 0.99974185, 0, 0, 0, 1, -5.180423, 0.09107876, -3.1731567)
 use_collision = true
+collision_layer = 33
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
 

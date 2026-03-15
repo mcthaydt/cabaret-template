@@ -82,206 +82,247 @@ script = ExtResource("2_ph0bl")
 [node name="CSGBox3D" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=465177608]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D2" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=933918614]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D14" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1533863732]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D15" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1475499375]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D16" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1072143947]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D17" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1846081608]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D18" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1188704716]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D26" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1989280012]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D27" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=414825887]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D28" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=770930656]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D19" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1336347042]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D29" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=616929001]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D20" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1565969223]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D21" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1048085037]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D22" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=430461323]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D23" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1232298402]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D24" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=289779846]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D30" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1716780346]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D31" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=2012255835]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D32" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1164617177]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D33" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=990601266]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D25" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=954113162]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D3" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1427895226]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D4" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=2087243811]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D5" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=599898176]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D10" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1043454539]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D11" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1099261201]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D12" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1185186911]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D34" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=200449063]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D35" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=56226449]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D36" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1494467131]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D37" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=227658536]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D38" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1956303859]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D39" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=237212313]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D40" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=649427766]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D41" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=500930884]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D13" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=508569560]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D6" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=339518388]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D7" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1604913839]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D8" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=1809014523]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="CSGBox3D9" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Floors" unique_id=49261498]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 0.1, 2)
 
 [node name="Walls" type="Node3D" parent="SceneObjects/MasterBedroom" unique_id=363866353]
@@ -293,391 +334,469 @@ script = ExtResource("73_room_fade_group_component")
 [node name="CSGBox3D" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=555683831]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D3" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1479216546]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D5" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1573002126]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D2" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=648293505]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D4" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=244446761]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D6" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=197711586]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D7" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1219977451]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D8" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1150622789]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D9" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=857943089]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D10" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=440165480]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D11" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=110448119]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D12" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=376957079]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D13" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=836038560]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D14" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=169035774]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 4, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D15" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=788134619]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D38" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=946984798]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D39" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1678117943]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D41" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1409521071]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 4, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D42" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=2040883652]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D43" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=903972103]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D44" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1221129073]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D45" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=606437362]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D46" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1964221271]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D47" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1251472570]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 4, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D48" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1184998337]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D49" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=934807519]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D50" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=702155052]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D51" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=2009470848]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D52" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=979330165]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D53" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=439825766]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 4, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D54" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=469109090]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D55" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=73338011]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D56" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=268668557]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 4, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D57" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=561219801]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D58" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=920629552]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D59" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=826667390]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D62" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=575473321]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 4, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D63" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1855120110]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D64" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=211168073]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D65" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=84097930]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 4, -5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D22" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1070016366]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D25" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=808667808]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 0, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D26" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=991031852]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 2, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D27" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=750692221]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D28" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=889156123]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D29" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1552928370]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 0, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D30" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1042893905]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 2, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D31" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=238738003]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D32" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=317563409]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 0, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D33" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1109265708]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 2, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D34" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1171885277]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D35" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1746586696]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 0, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D36" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=264689967]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 2, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D37" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1929063190]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D60" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=414539075]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D61" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=491000162]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D66" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=2051750182]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D67" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1225679454]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D68" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=94194212]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D69" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1811507030]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D70" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=323973157]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D71" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1963808393]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D72" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=178150971]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, 0)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D73" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=2097960458]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D74" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=681549239]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D75" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1846662145]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D76" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=408189372]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D77" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1724237637]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D78" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=14674302]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, 4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D40" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1598260167]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, -4)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D23" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1288795901]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D24" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1045597349]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 4, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D16" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1017395444]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 4, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D17" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1646970090]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D18" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1262197400]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 4, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D19" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1063359240]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D20" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=374550645]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="CSGBox3D21" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Walls" unique_id=1882519315]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 4, 5)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 2, 0.1)
 
 [node name="Objects" type="Node3D" parent="SceneObjects/MasterBedroom" unique_id=1882312523]
@@ -685,16 +804,19 @@ size = Vector3(2, 2, 0.1)
 [node name="Cabinet" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Objects" unique_id=1978668123]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.9, 1, 2)
 use_collision = true
+collision_layer = 33
 size = Vector3(2, 4, 6)
 
 [node name="Painting" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Objects" unique_id=830617816]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2.5, 4.9)
 use_collision = true
+collision_layer = 33
 size = Vector3(4, 3, 0.1)
 
 [node name="Bed" type="CSGBox3D" parent="SceneObjects/MasterBedroom/Objects" unique_id=531135]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -0.45, 3)
 use_collision = true
+collision_layer = 33
 size = Vector3(4, 1, 4)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="SceneObjects" unique_id=818920077]
