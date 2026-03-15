@@ -382,6 +382,42 @@ func test_ots_disable_sprint_ignores_sprint_input() -> void:
 	assert_almost_eq(body.velocity.x, 5.0, 0.01)
 	assert_false(bool(movement.get_last_debug_snapshot().get("is_sprinting", true)))
 
+func test_ots_uses_camera_relative_strafe_direction() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var movement: C_MovementComponent = context["movement"]
+	var input: C_InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var manager: M_ECSManager = context["manager"]
+	var store: M_StateStore = context["store"]
+
+	movement.settings.use_second_order_dynamics = false
+	movement.settings.max_speed = 5.0
+	movement.settings.acceleration = 100.0
+
+	var camera := Camera3D.new()
+	manager.add_child(camera)
+	autofree(camera)
+	await _pump()
+	camera.current = true
+	camera.global_transform = Transform3D(Basis.IDENTITY.rotated(Vector3.UP, PI * 0.5), Vector3.ZERO)
+
+	var ots_mode: RS_VCamModeOTS = OTSModeScript.new()
+	await _create_vcam_component(manager, StringName("cam_ots_camera_relative"), ots_mode)
+	_set_active_vcam(store, StringName("cam_ots_camera_relative"), "ots")
+
+	body.velocity = Vector3.ZERO
+	input.set_move_vector(Vector2.RIGHT)
+	manager._physics_process(0.1)
+
+	var velocity_horizontal := Vector2(body.velocity.x, body.velocity.z).normalized()
+	var expected_right: Vector3 = camera.global_transform.basis.x.normalized()
+	var expected_horizontal := Vector2(expected_right.x, expected_right.z).normalized()
+	assert_true(
+		velocity_horizontal.distance_to(expected_horizontal) <= 0.05,
+		"OTS strafe input should move along camera-right direction"
+	)
+
 func test_non_ots_active_mode_ignores_ots_movement_profile() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
