@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset implementation is now complete: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), 3C3 (OTS landing camera response), and full 3C4 aiming scope (`3C4.1-3C4.11`: aim activation/input plumbing/movement+rotation integrations + reticle + default OTS movement preset) are implementation-complete as of March 15, 2026. Phase 10A detector groundwork is now complete: Task `10A.1` (collision-detector Red tests) and Task `10A.2` (collision-detector Green implementation + layer-name wiring) are landed as of March 15, 2026. Phase 10B silhouette-helper foundation is now complete: Task `10B.1` (silhouette-helper Red tests) and Task `10B.2` (silhouette-helper Green implementation + shader asset) are landed as of March 15, 2026.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset implementation is now complete: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), 3C3 (OTS landing camera response), and full 3C4 aiming scope (`3C4.1-3C4.11`: aim activation/input plumbing/movement+rotation integrations + reticle + default OTS movement preset) are implementation-complete as of March 15, 2026. Phase 10A detector groundwork is now complete: Task `10A.1` (collision-detector Red tests) and Task `10A.2` (collision-detector Green implementation + layer-name wiring) are landed as of March 15, 2026. Phase 10B silhouette-helper foundation is now complete: Task `10B.1` (silhouette-helper Red tests) and Task `10B.2` (silhouette-helper Green implementation + shader asset) are landed as of March 15, 2026. Phase 10B2 routing groundwork is now complete: Tasks `10B2.1-10B2.4` (event constant + manager publish/subscribe wiring + routing verification) are landed as of March 15, 2026.
 
 ## Next Planned Work (March 15, 2026)
 
@@ -18,6 +18,7 @@
 - Phase 10A occlusion authored-scene prerequisites are complete: Task `10A.0` inventory + Task `10A.3` layer-6 (`vcam_occludable`) migration are now landed across gameplay/prefab scenes with post-migration audit `missing_count=0`.
 - Phase 10A collision detector Red/Green is complete: added `tests/unit/managers/helpers/test_vcam_collision_detector.gd` and `scripts/managers/helpers/u_vcam_collision_detector.gd`, plus `project.godot` layer naming for `3d_physics/layer_6 = "vcam_occludable"`.
 - Phase 10B silhouette helper Red/Green is complete: added `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd`, `scripts/managers/helpers/u_vcam_silhouette_helper.gd`, and `assets/shaders/sh_vcam_silhouette_shader.gdshader`.
+- Phase 10B2 silhouette routing is complete: `EVENT_SILHOUETTE_UPDATE_REQUEST` now routes from `M_VCamManager` publish to `M_VFXManager` subscribe/delegate paths with player/transition gating and unit coverage.
 - Immediate validation target:
   - Manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`) are now marked complete (March 15, 2026, user-directed pass), including the joystick-exclusion/reticle-fade focus points.
   - Post-Phase maintenance completed (March 15, 2026): OTS vertical framing bugfix landed via TDD (runtime OTS pitch now clamps to authored bounds in `S_VCamSystem`; default `cfg_default_ots.tres` tuned to head-level framing with higher shoulder anchor, pullback distance, and tighter pitch range).
@@ -26,6 +27,7 @@
   - Post-phase style debt cleanup (March 15, 2026): removed remaining HUD scene inline `theme_override_*` usage from `scenes/ui/hud/ui_hud_overlay.tscn` and moved semantic LIFE-label styling to `UI_HudController._apply_theme_tokens()`; style enforcement now passes fully (`17/17`).
   - Phase 10A detector validation completed (March 15, 2026): `tests/unit/managers/helpers/test_vcam_collision_detector.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) are green.
   - Phase 10B helper validation completed (March 15, 2026): `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) are green.
+  - Phase 10B2 routing validation completed (March 15, 2026): `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`), `tests/unit/managers/test_vcam_manager.gd` (`28/28`), aggregate `test_vfx_manager*` suites (`44/44`), and style enforcement (`17/17`) are green.
 
 ## vCam Collision Detector (Phase 10A.1/10A.2, March 15, 2026)
 
@@ -58,6 +60,22 @@
   - Invalid/freed target inputs are strict no-op paths (no warning-channel noise).
 - Validation run:
   - `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` (`6/6`)
+  - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## vCam Silhouette Routing (Phase 10B2.1-10B2.4, March 15, 2026)
+
+- Added event constant:
+  - `scripts/events/ecs/u_ecs_event_names.gd`: `EVENT_SILHOUETTE_UPDATE_REQUEST`
+- Added manager routing implementation:
+  - `M_VCamManager` publishes `EVENT_SILHOUETTE_UPDATE_REQUEST` payloads (`entity_id`, `occluders`, `enabled`) after occluder detection in the active-camera submission flow.
+  - `M_VFXManager` subscribes to `EVENT_SILHOUETTE_UPDATE_REQUEST`, applies player/transition gating on ingress, and delegates material-override lifecycle to `U_VCamSilhouetteHelper`.
+- Added/updated coverage:
+  - `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`) for routing and gating.
+  - `tests/unit/managers/test_vcam_manager.gd` includes silhouette publish assertion in active submission flow.
+- Validation run:
+  - `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`)
+  - `tests/unit/managers/test_vcam_manager.gd` (`28/28`)
+  - `tests/unit/managers` (`-gselect=test_vfx_manager`, `44/44`)
   - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## OTS Mode Replacement (March 14, 2026)
@@ -934,6 +952,7 @@
 - `tests/unit/ecs/systems/test_room_fade_integration.gd`
 - `tests/unit/lighting/test_room_fade_material_applier.gd`
 - `tests/unit/qb/test_camera_state_system.gd`
+- `tests/unit/managers/test_vfx_manager_silhouette_routing.gd`
 - `tests/unit/ui/test_touchscreen_settings_overlay_localization.gd`
 - `tests/unit/ui/test_input_rebinding_overlay.gd`
 - `tests/integration/camera_system/test_camera_manager.gd`
@@ -944,7 +963,7 @@
 
 ## Next Steps
 
-1. Start Phase `10B2.1-10B2.3`: wire silhouette event routing (`EVENT_SILHOUETTE_UPDATE_REQUEST`) through `M_VCamManager` publish + `M_VFXManager` subscribe/delegate using `U_VCamSilhouetteHelper`.
+1. Start Phase `10C.1/10C.2`: add per-tick occlusion integration tests/implementation in `M_VCamManager` (consult `vfx.occlusion_silhouette_enabled`, publish silhouette updates only when enabled, and dispatch `vcam/update_silhouette_count` on change).
 2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
 3. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 

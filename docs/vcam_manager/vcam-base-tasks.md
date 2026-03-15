@@ -1309,26 +1309,31 @@ Cross-mode checks (mode-agnostic):
 
 > **Context:** Silhouette rendering routes through `M_VFXManager` (detection stays in vCam). This follows the existing VFX event-request pattern (`U_ScreenShake`, damage flash, etc.) so silhouette lifecycle inherits player gating and transition blocking.
 
-- [ ] **Task 10B2.1**: Add `EVENT_SILHOUETTE_UPDATE_REQUEST` event constant
+- [x] **Task 10B2.1**: Add `EVENT_SILHOUETTE_UPDATE_REQUEST` event constant
   - Modify `scripts/events/ecs/u_ecs_event_names.gd`: add `EVENT_SILHOUETTE_UPDATE_REQUEST := &"silhouette_update_request"`
   - Payload: `{entity_id: StringName, occluders: Array[GeometryInstance3D], enabled: bool}`
+  - Completion note (March 15, 2026): Added `EVENT_SILHOUETTE_UPDATE_REQUEST` to `U_ECSEventNames` for vCam→VFX silhouette routing.
 
-- [ ] **Task 10B2.2**: Publish silhouette requests from M_VCamManager
+- [x] **Task 10B2.2**: Publish silhouette requests from M_VCamManager
   - Modify `scripts/managers/m_vcam_manager.gd`:
     - After occlusion detection each tick, publish `EVENT_SILHOUETTE_UPDATE_REQUEST` through `U_ECSEventBus` with the current occluder set plus `entity_id`
     - Do NOT apply silhouettes directly — delegate to VFX manager
+  - Completion note (March 15, 2026): `M_VCamManager` now resolves per-tick occluders via `U_VCamCollisionDetector.detect_occluders(...)` during active-camera submission and publishes `EVENT_SILHOUETTE_UPDATE_REQUEST` payloads (`entity_id`, `occluders`, `enabled`) through `U_ECSEventBus` without applying materials directly.
 
-- [ ] **Task 10B2.3**: Subscribe and delegate in M_VFXManager
+- [x] **Task 10B2.3**: Subscribe and delegate in M_VFXManager
   - Modify `scripts/managers/m_vfx_manager.gd`:
     - Subscribe to `EVENT_SILHOUETTE_UPDATE_REQUEST`
     - Delegate to `U_VCamSilhouetteHelper` for actual material override application/removal
     - Apply standard player gating (`_is_player_entity()`) and transition blocking (`_is_transition_blocked()`) before processing; `entity_id` in the payload is what makes existing player gating work
+  - Completion note (March 15, 2026): `M_VFXManager` now subscribes to `EVENT_SILHOUETTE_UPDATE_REQUEST`, applies existing player/transition gating on ingress, and delegates application/restoration to `U_VCamSilhouetteHelper` in the physics request-processing path.
 
-- [ ] **Task 10B2.4**: Verify routing
+- [x] **Task 10B2.4**: Verify routing
   - Test silhouette updates flow through VFX manager (not applied directly by vCam manager)
   - Test player gating applies to silhouette requests
   - Test transition blocking suppresses silhouette updates during scene transitions
   - **Target: 3 tests**
+  - Completion note (March 15, 2026): Added `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`) for routing/gating behavior and extended `tests/unit/managers/test_vcam_manager.gd` with silhouette request publish coverage.
+  - Validation note (March 15, 2026): `test_vfx_manager` aggregate (`44/44`), `test_vcam_manager` (`28/28`), and `test_style_enforcement` (`17/17`) pass.
 
 ---
 
