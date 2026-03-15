@@ -1,6 +1,7 @@
 extends GutTest
 
 const MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
+const DEFAULT_OTS_PATH := "res://resources/display/vcam/cfg_default_ots.tres"
 
 func _new_mode() -> Resource:
 	return MODE_SCRIPT.new()
@@ -109,3 +110,8 @@ func test_landing_dip_recovery_speed_resolves_to_positive_value() -> void:
 	mode.set("landing_dip_recovery_speed", 0.0)
 	var resolved_zero: Dictionary = _resolved(mode)
 	assert_true(float(resolved_zero.get("landing_dip_recovery_speed", 0.0)) > 0.0)
+
+func test_default_ots_preset_loads_as_ots_mode() -> void:
+	var preset := load(DEFAULT_OTS_PATH) as Resource
+	assert_not_null(preset, "Default OTS preset should load")
+	assert_true(preset.get_script() == MODE_SCRIPT, "Default OTS preset should use RS_VCamModeOTS")

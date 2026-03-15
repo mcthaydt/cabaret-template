@@ -3,6 +3,7 @@ extends GutTest
 const EVALUATOR_SCRIPT := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 const MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const FIRST_PERSON_MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
+const OTS_MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
 const FIXED_MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 
 func _new_mode() -> Resource:
@@ -10,6 +11,9 @@ func _new_mode() -> Resource:
 
 func _new_first_person_mode() -> Resource:
 	return FIRST_PERSON_MODE_SCRIPT.new()
+
+func _new_ots_mode() -> Resource:
+	return OTS_MODE_SCRIPT.new()
 
 func _new_fixed_mode() -> Resource:
 	return FIXED_MODE_SCRIPT.new()
@@ -39,6 +43,22 @@ func _compute_expected_offset(distance: float, pitch_deg: float, yaw_deg: float)
 		-distance * sin(pitch_rad),
 		distance * cos(pitch_rad) * cos(yaw_rad)
 	)
+
+func _compute_expected_ots_transform(
+	follow_position: Vector3,
+	shoulder_offset: Vector3,
+	camera_distance: float,
+	runtime_yaw: float,
+	runtime_pitch: float
+) -> Transform3D:
+	var yaw_rad: float = deg_to_rad(runtime_yaw)
+	var pitch_rad: float = deg_to_rad(runtime_pitch)
+	var basis := Basis.IDENTITY
+	basis = basis.rotated(Vector3.UP, yaw_rad)
+	basis = basis.rotated(basis.x, pitch_rad)
+	var rotated_offset: Vector3 = shoulder_offset.rotated(Vector3.UP, yaw_rad)
+	var origin: Vector3 = follow_position + rotated_offset + (basis.z * camera_distance)
+	return Transform3D(basis, origin)
 
 func test_orbit_returns_transform() -> void:
 	var follow_target: Node3D = _new_follow_target()
@@ -315,6 +335,135 @@ func test_first_person_pitch_at_max_boundary_is_stable() -> void:
 
 func test_first_person_returns_empty_result_when_follow_target_is_null() -> void:
 	var mode: Resource = _new_first_person_mode()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, null, null, 0.0, 0.0)
+
+	assert_eq(result.size(), 0)
+
+func test_ots_returns_transform() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_ots_mode()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+
+	assert_true(result.has("transform"))
+	var transform_value: Variant = result.get("transform")
+	assert_true(transform_value is Transform3D)
+
+func test_ots_returns_fov_from_mode() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_ots_mode()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+
+	assert_almost_eq(float(result.get("fov", 0.0)), 60.0, 0.0001)
+
+func test_ots_returns_mode_name() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_ots_mode()
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+
+	assert_eq(String(result.get("mode_name", "")), "ots")
+
+func test_ots_position_matches_expected_offset_and_back_distance() -> void:
+	var follow_target: Node3D = _new_follow_target(Vector3(5.0, 0.0, 10.0))
+	var mode: Resource = _new_ots_mode()
+	mode.set("shoulder_offset", Vector3(0.3, 1.6, -0.5))
+	mode.set("camera_distance", 1.8)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 0.0)
+	var transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var expected: Transform3D = _compute_expected_ots_transform(
+		follow_target.global_position,
+		Vector3(0.3, 1.6, -0.5),
+		1.8,
+		0.0,
+		0.0
+	)
+
+	assert_almost_eq(transform.origin.x, expected.origin.x, 0.001)
+	assert_almost_eq(transform.origin.y, expected.origin.y, 0.001)
+	assert_almost_eq(transform.origin.z, expected.origin.z, 0.001)
+
+func test_ots_applies_runtime_yaw_rotation() -> void:
+	var follow_target: Node3D = _new_follow_target(Vector3(5.0, 0.0, 10.0))
+	var mode: Resource = _new_ots_mode()
+	mode.set("shoulder_offset", Vector3(0.3, 1.6, -0.5))
+	mode.set("camera_distance", 1.8)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 90.0, 0.0)
+	var transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var expected: Transform3D = _compute_expected_ots_transform(
+		follow_target.global_position,
+		Vector3(0.3, 1.6, -0.5),
+		1.8,
+		90.0,
+		0.0
+	)
+
+	assert_almost_eq(transform.origin.x, expected.origin.x, 0.001)
+	assert_almost_eq(transform.origin.y, expected.origin.y, 0.001)
+	assert_almost_eq(transform.origin.z, expected.origin.z, 0.001)
+	_assert_basis_matches(transform.basis, expected.basis)
+
+func test_ots_applies_runtime_pitch_rotation() -> void:
+	var follow_target: Node3D = _new_follow_target(Vector3(5.0, 0.0, 10.0))
+	var mode: Resource = _new_ots_mode()
+	mode.set("pitch_min", -60.0)
+	mode.set("pitch_max", 50.0)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, -30.0)
+	var transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var expected: Transform3D = _compute_expected_ots_transform(
+		follow_target.global_position,
+		Vector3(0.3, 1.6, -0.5),
+		1.8,
+		0.0,
+		-30.0
+	)
+
+	_assert_basis_matches(transform.basis, expected.basis)
+
+func test_ots_clamps_pitch_to_minimum() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_ots_mode()
+	mode.set("pitch_min", -60.0)
+	mode.set("pitch_max", 50.0)
+
+	var clamped_result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, -100.0)
+	var boundary_result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, -60.0)
+	var clamped_transform: Transform3D = clamped_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var boundary_transform: Transform3D = boundary_result.get("transform", Transform3D.IDENTITY) as Transform3D
+
+	_assert_basis_matches(clamped_transform.basis, boundary_transform.basis)
+
+func test_ots_pitch_at_min_boundary_is_stable() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_ots_mode()
+	mode.set("pitch_min", -60.0)
+	mode.set("pitch_max", 50.0)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, -60.0)
+	var transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var forward: Vector3 = -transform.basis.z.normalized()
+
+	assert_almost_eq(forward.y, -sin(deg_to_rad(60.0)), 0.001)
+
+func test_ots_pitch_at_max_boundary_is_stable() -> void:
+	var follow_target: Node3D = _new_follow_target()
+	var mode: Resource = _new_ots_mode()
+	mode.set("pitch_min", -60.0)
+	mode.set("pitch_max", 50.0)
+
+	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, follow_target, null, 0.0, 50.0)
+	var transform: Transform3D = result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var forward: Vector3 = -transform.basis.z.normalized()
+
+	assert_almost_eq(forward.y, sin(deg_to_rad(50.0)), 0.001)
+
+func test_ots_returns_empty_result_when_follow_target_is_null() -> void:
+	var mode: Resource = _new_ots_mode()
 
 	var result: Dictionary = EVALUATOR_SCRIPT.evaluate(mode, null, null, 0.0, 0.0)
 

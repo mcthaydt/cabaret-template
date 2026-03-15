@@ -3,6 +3,7 @@ class_name U_VCamModeEvaluator
 
 const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
+const RS_VCAM_MODE_OTS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
 const RS_VCAM_MODE_FIXED_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 const MIN_DIRECTION_LENGTH_SQUARED: float = 0.000001
 const PARALLEL_UP_DOT_THRESHOLD: float = 0.999
@@ -22,6 +23,8 @@ static func evaluate(
 		return _evaluate_orbit(mode, follow_target, look_at_target, runtime_yaw, runtime_pitch)
 	if mode.get_script() == RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
 		return _evaluate_first_person(mode, follow_target, runtime_yaw, runtime_pitch)
+	if mode.get_script() == RS_VCAM_MODE_OTS_SCRIPT:
+		return _evaluate_ots(mode, follow_target, runtime_yaw, runtime_pitch)
 	if mode.get_script() == RS_VCAM_MODE_FIXED_SCRIPT:
 		return _evaluate_fixed(mode, follow_target, fixed_anchor)
 
@@ -147,6 +150,58 @@ static func _resolve_first_person_values(mode: Resource) -> Dictionary:
 			"pitch_min": minf(fallback_pitch_min, fallback_pitch_max),
 			"pitch_max": maxf(fallback_pitch_min, fallback_pitch_max),
 			"fov": float(mode.get("fov")),
+		}
+	return resolved_values
+
+static func _evaluate_ots(
+	mode: Resource,
+	follow_target: Node3D,
+	runtime_yaw: float,
+	runtime_pitch: float
+) -> Dictionary:
+	if follow_target == null or not is_instance_valid(follow_target):
+		return {}
+
+	var resolved_values: Dictionary = _resolve_ots_values(mode)
+	var clamped_pitch: float = clampf(
+		runtime_pitch,
+		float(resolved_values.get("pitch_min", -60.0)),
+		float(resolved_values.get("pitch_max", 50.0))
+	)
+
+	var yaw_rad: float = deg_to_rad(runtime_yaw)
+	var pitch_rad: float = deg_to_rad(clamped_pitch)
+	var basis := Basis.IDENTITY
+	basis = basis.rotated(Vector3.UP, yaw_rad)
+	basis = basis.rotated(basis.x, pitch_rad)
+
+	var shoulder_offset: Vector3 = resolved_values.get("shoulder_offset", Vector3.ZERO) as Vector3
+	var rotated_offset: Vector3 = shoulder_offset.rotated(Vector3.UP, yaw_rad)
+	var camera_distance: float = float(resolved_values.get("camera_distance", 0.0))
+	var back_direction: Vector3 = basis.z
+	var camera_position: Vector3 = follow_target.global_position + rotated_offset + (back_direction * camera_distance)
+	return {
+		"transform": Transform3D(basis, camera_position),
+		"fov": float(resolved_values.get("fov", 60.0)),
+		"mode_name": "ots",
+	}
+
+static func _resolve_ots_values(mode: Resource) -> Dictionary:
+	var resolved_values: Dictionary = {}
+	if mode != null and mode.has_method("get_resolved_values"):
+		var resolved_variant: Variant = mode.call("get_resolved_values")
+		if resolved_variant is Dictionary:
+			resolved_values = resolved_variant as Dictionary
+
+	if resolved_values.is_empty():
+		var fallback_pitch_min: float = float(mode.get("pitch_min"))
+		var fallback_pitch_max: float = float(mode.get("pitch_max"))
+		resolved_values = {
+			"shoulder_offset": mode.get("shoulder_offset"),
+			"camera_distance": maxf(float(mode.get("camera_distance")), 0.0),
+			"pitch_min": minf(fallback_pitch_min, fallback_pitch_max),
+			"pitch_max": maxf(fallback_pitch_min, fallback_pitch_max),
+			"fov": clampf(float(mode.get("fov")), 1.0, 179.0),
 		}
 	return resolved_values
 
