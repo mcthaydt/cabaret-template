@@ -1284,7 +1284,7 @@ Cross-mode checks (mode-agnostic):
 
 > **Visual intent:** Solid-color silhouette visible through occluding geometry. Exact shader implementation determined during Phase 10.
 
-- [ ] **Task 10B.1 (Red)**: Write tests for silhouette helper
+- [x] **Task 10B.1 (Red)**: Write tests for silhouette helper
   - Create `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd`
   - Test `apply_silhouette()` sets shader override on `GeometryInstance3D`
   - Test `apply_silhouette()` preserves original material state for later restoration
@@ -1293,12 +1293,15 @@ Cross-mode checks (mode-agnostic):
   - Test `get_active_count()` returns correct count
   - Test applying silhouette to freed node is safely handled
   - **Target: 6 tests**
+  - Completion note (March 15, 2026): Added `test_vcam_silhouette_helper.gd` with 6 Red assertions covering apply/restore lifecycle, tracked-count observability, and freed-node safety handling.
 
-- [ ] **Task 10B.2 (Green)**: Implement U_VCamSilhouetteHelper
+- [x] **Task 10B.2 (Green)**: Implement U_VCamSilhouetteHelper
   - Create `scripts/managers/helpers/u_vcam_silhouette_helper.gd`
   - Create `assets/shaders/sh_vcam_silhouette_shader.gdshader`
   - Store original override state, apply shader override, restore on removal
   - All tests should pass
+  - Completion note (March 15, 2026): Added `U_VCamSilhouetteHelper` with tracked weakref entries, idempotent silhouette application, deterministic material restoration (`remove_silhouette`/`remove_all_silhouettes`), and safe no-op behavior for invalid/freed targets; added `sh_vcam_silhouette_shader.gdshader` for silhouette material overrides.
+  - Validation note (March 15, 2026): `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) pass.
 
 ---
 
