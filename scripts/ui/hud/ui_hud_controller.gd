@@ -18,6 +18,7 @@ const RS_VCAM_MODE_OTS_SCRIPT := preload("res://scripts/resources/display/vcam/r
 @onready var hud_margin_container: MarginContainer = $MarginContainer
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_container: HBoxContainer = $MarginContainer/VBoxContainer/HealthContainer
+@onready var life_label: Label = $MarginContainer/VBoxContainer/HealthContainer/LifeLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthContainer/HealthBar
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthContainer/HealthBar/HealthLabel
 @onready var toast_container: Control = $MarginContainer/ToastContainer
@@ -182,6 +183,12 @@ func _apply_theme_tokens() -> void:
 
 	if pause_label != null:
 		pause_label.add_theme_font_size_override(&"font_size", config.heading)
+	if health_container != null:
+		health_container.add_theme_constant_override(&"separation", config.separation_compact)
+	if life_label != null:
+		life_label.add_theme_color_override(&"font_color", config.accent_primary)
+		life_label.add_theme_color_override(&"font_outline_color", config.bg_base)
+		life_label.add_theme_constant_override(&"outline_size", 4)
 	if health_label != null:
 		health_label.add_theme_font_size_override(&"font_size", config.body_small)
 
