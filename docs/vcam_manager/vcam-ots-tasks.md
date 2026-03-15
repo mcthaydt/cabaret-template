@@ -411,6 +411,195 @@ Before starting Phase 3, verify:
 
 ---
 
+### Phase 3C4: OTS Aiming Behavior (RE4-Style)
+
+> **Why:** RE4-style OTS aiming requires a full behavioral package: aim input triggers orbit↔OTS switch with a fast blend, movement slows to a dedicated profile, character locks facing to camera yaw, sprint is disabled, and a dot reticle fades in. This phase adds the aim-hold activation loop, movement profile override, facing lock, and reticle HUD element.
+
+- [ ] **Task 3C4.1**: Add aiming exports to RS_VCamModeOTS
+  - Modify `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`:
+    - `@export var movement_profile: RS_MovementSettings` — nullable, null = use base settings
+    - `@export var disable_sprint: bool = true`
+    - `@export var lock_facing_to_camera: bool = true`
+    - `@export var aim_blend_duration: float = 0.15`
+  - Update `get_resolved_values()` to include:
+    - `"aim_blend_duration": maxf(aim_blend_duration, 0.01)` — clamped positive
+    - `"disable_sprint": disable_sprint` — bool passthrough
+    - `"lock_facing_to_camera": lock_facing_to_camera` — bool passthrough
+    - `"movement_profile": movement_profile` — nullable passthrough
+  - Tests: field defaults and `get_resolved_values()` clamp behavior
+  - **Target: ~6 tests**
+
+- [ ] **Task 3C4.2**: Add aim input action
+  - Desktop: `aim` mapped to L2/LT (gamepad) + right mouse button
+  - Mobile: long press (outside joystick area) toggles OTS on/off
+  - Input map config + mobile touch detection
+
+- [ ] **Task 3C4.3 (Red)**: Write tests for aim-hold OTS activation
+  - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
+  - Test desktop aim pressed: orbit switches to OTS transition
+  - Test desktop aim released: OTS switches back to orbit transition
+  - Test mobile long press: toggles OTS on, another long press toggles off
+  - Test mobile long press outside joystick area only: no accidental aim while moving
+  - Test blend uses `aim_blend_duration`, not default `blend_duration`
+  - Test previous mode is stored and restored on aim release
+  - **Target: ~6 tests**
+
+- [ ] **Task 3C4.4 (Green)**: Implement aim-hold OTS activation in S_VCamSystem
+  - Desktop: hold-to-aim via input action
+  - Mobile: long press toggle (exclude joystick touch area)
+  - On aim enter: switch active vCam mode to OTS with `aim_blend_duration`
+  - On aim exit: switch back to orbit with `aim_blend_duration`
+  - Store previous mode to restore on release
+
+  **Aim activation integration point (in `process_tick`, after evaluation):**
+  ```gdscript
+  const RS_VCAM_MODE_OTS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
+
+  # Gate: only process aim activation for OTS-capable vCams
+  var mode_script := mode.get_script() as Script
+  if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
+      return  # not OTS, skip aim activation
+
+  var ots_mode := mode as RS_VCamModeOTS
+  var resolved := ots_mode.get_resolved_values()
+  var blend_duration: float = resolved.aim_blend_duration
+  # ... aim enter/exit with blend_duration
+  ```
+
+- [ ] **Task 3C4.5 (Red)**: Write tests for movement profile application
+  - Add to `tests/unit/ecs/systems/test_movement_system.gd`
+  - Test no profile (null): base RS_MovementSettings used
+  - Test profile present and OTS active: profile values override base
+  - Test exit OTS: reverts to base immediately (no blend)
+  - Test `disable_sprint=true` and OTS active: sprint input ignored
+  - Test non-OTS modes ignore movement_profile entirely
+  - Test instant switch: no interpolation on movement settings change
+  - **Target: ~6 tests**
+
+- [ ] **Task 3C4.6 (Green)**: Implement movement profile switching in S_MovementSystem
+  - `S_MovementSystem` queries `C_VCamComponent` via ECS manager, reads `.mode` as `RS_VCamModeOTS`
+  - OTS active + profile non-null → use profile values
+  - OTS active + `disable_sprint` → ignore sprint input
+  - Instant switch, no interpolation
+
+  **Movement profile integration point (in `process_tick`):**
+  ```gdscript
+  const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+  const VCAM_TYPE := C_VCAM_COMPONENT.COMPONENT_TYPE
+
+  # After getting movement_component and input_component:
+  var vcam_components: Array = get_components(VCAM_TYPE)
+  # Find active vcam, check mode is RS_VCamModeOTS, read .movement_profile
+  # If OTS active + movement_profile non-null, override movement settings
+  # If OTS active + disable_sprint, force is_sprinting = false
+  ```
+
+  **Sprint gating insertion point (~line 105):**
+  ```gdscript
+  var is_sprinting := input_component.is_sprinting()
+  # INSERT: if OTS active + disable_sprint, force is_sprinting = false
+  var current_max_speed: float = movement_component.settings.max_speed
+  ```
+
+- [ ] **Task 3C4.7 (Red)**: Write tests for facing lock to camera yaw
+  - Add to `tests/unit/ecs/systems/test_rotate_to_input_system.gd`
+  - Test `lock_facing_to_camera=true` and OTS active: character yaw targets camera yaw
+  - Test smooth rotation using existing turn speed (not instant snap)
+  - Test maintains facing with zero movement input
+  - Test strafing does not change facing direction
+  - Test exit OTS: reverts to movement-direction facing
+  - **Target: ~5 tests**
+
+- [ ] **Task 3C4.8 (Green)**: Implement facing lock in S_RotateToInputSystem
+  - `S_RotateToInputSystem` queries `C_VCamComponent` via ECS manager, reads `.mode` as `RS_VCamModeOTS`
+  - OTS + `lock_facing_to_camera=true` → desired yaw = camera yaw (not movement direction)
+  - Override "reset on no input" — maintain facing when stationary
+  - Use existing turn speed / second-order dynamics
+  - Revert on mode switch
+
+  **Facing lock integration point (in `_get_desired_direction()`):**
+  ```gdscript
+  const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+  const VCAM_TYPE := C_VCAM_COMPONENT.COMPONENT_TYPE
+
+  # Before camera-relative direction calc:
+  # Query vcam_components, find active vcam, check mode is RS_VCamModeOTS
+  # If OTS active + lock_facing_to_camera, return camera forward yaw instead
+  ```
+
+- [ ] **Task 3C4.9 (Red)**: Write tests for dot reticle
+  - Add to `tests/unit/ui/hud/test_ots_reticle.gd`
+  - Test hidden when not in OTS
+  - Test fades in (alpha 0 to 1) over `aim_blend_duration` on OTS entry
+  - Test fades out (alpha 1 to 0) over `aim_blend_duration` on OTS exit
+  - Test centered on screen
+  - **Target: ~4 tests**
+
+- [ ] **Task 3C4.10 (Green)**: Implement dot reticle
+  - Screen-space HUD element (TextureRect or ColorRect), centered
+  - Listens for OTS activation/deactivation
+  - Fades alpha synced with `aim_blend_duration`
+  - Hidden by default
+
+- [ ] **Task 3C4.11**: Create default OTS movement settings preset
+  - Create `resources/base_settings/gameplay/cfg_ots_movement_default.tres`
+  - Type: `RS_MovementSettings` with OTS overrides:
+    - `max_speed = 3.0` (reduced from default 6.0)
+    - `sprint_speed_multiplier = 1.0` (no sprint bonus)
+    - `acceleration = 20.0`
+    - `deceleration = 25.0`
+    - `use_second_order_dynamics = true`
+    - `response_frequency = 1.0`
+    - `damping_ratio = 0.5`
+    - `grounded_damping_multiplier = 1.5`
+    - `air_damping_multiplier = 0.75`
+    - `grounded_friction = 30.0`
+    - `air_friction = 5.0`
+    - `strafe_friction_scale = 1.0`
+    - `forward_friction_scale = 1.0`
+    - `support_grace_time = 0.25`
+    - `air_control_scale = 0.3`
+    - `slope_limit_degrees = 50.0`
+  - Verify resource loads without errors
+
+- [ ] **DOC**: Update `docs/vcam_manager/vcam-manager-continuation-prompt.md` and this file with Phase 3C4 completion status.
+
+- [ ] **Task 3C4.12**: Update AGENTS.md with OTS aiming contracts
+  - Add movement system vcam awareness contract (S_MovementSystem queries C_VCamComponent for OTS movement profile override and sprint gating)
+  - Add rotation system vcam awareness contract (S_RotateToInputSystem queries C_VCamComponent for OTS facing lock)
+
+---
+
+### Manual Validation (OTS Aiming Behavior)
+
+- [ ] **MT-107**: L2/right-click enters OTS with fast blend
+- [ ] **MT-108**: Releasing aim exits OTS to orbit with fast blend
+- [ ] **MT-109**: Mobile long press (outside joystick) toggles OTS on
+- [ ] **MT-110**: Mobile long press again toggles OTS off
+- [ ] **MT-111**: Character faces camera direction while OTS active
+- [ ] **MT-112**: WASD strafes relative to aim direction
+- [ ] **MT-113**: Sprint disabled during OTS
+- [ ] **MT-114**: Movement speed reduced during OTS
+- [ ] **MT-115**: Exiting OTS reverts to normal movement + rotation
+- [ ] **MT-116**: Dot reticle fades in on OTS entry
+- [ ] **MT-117**: Dot reticle fades out on OTS exit
+- [ ] **MT-118**: Reticle stays centered on screen
+
+---
+
+### Cross-Cutting Checks (OTS Aiming Behavior)
+
+- [ ] Verify movement profile only applies when OTS is active
+- [ ] Verify facing lock uses existing second-order dynamics
+- [ ] Verify sprint disable checked before speed calculation
+- [ ] Verify all state reverts on mode switch
+- [ ] Verify aim input works on gamepad (L2/LT), mouse (right-click), and mobile (long press)
+- [ ] Verify long press excludes joystick touch area on mobile
+- [ ] Verify reticle fade syncs with `aim_blend_duration`
+- [ ] Verify blend duration read from OTS resource, not hardcoded
+
+---
+
 ### Manual Validation (OTS Game Feel)
 
 - [ ] **MT-96**: Shoulder sway while moving left: camera tilts subtly in strafe direction
