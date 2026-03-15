@@ -636,6 +636,13 @@ Before starting Phase 3, verify:
   - `tests/unit/ecs/systems/test_rotate_to_input_system.gd` (`6/6`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
+- **Validation run (March 15, 2026, post-phase hardening):**
+  - Added mobile exclusion regression `test_long_press_over_virtual_controls_does_not_toggle_aim` in `tests/unit/ui/test_mobile_controls.gd`.
+  - `tests/unit/ui/test_mobile_controls.gd` (`20/20`)
+  - `tests/unit/ecs/systems/test_s_touchscreen_system.gd` (`8/8`)
+  - `tests/unit/ui/hud/test_ots_reticle.gd` (`4/4`)
+  - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
+
 ---
 
 ### Manual Validation (OTS Aiming Behavior)
@@ -663,6 +670,7 @@ Before starting Phase 3, verify:
 - [x] Verify all state reverts on mode switch
 - [x] Verify aim input works on gamepad (L2/LT), mouse (right-click), and mobile (long press)
 - [x] Verify long press excludes joystick touch area on mobile
+  - Covered by `tests/unit/ui/test_mobile_controls.gd::test_long_press_over_virtual_controls_does_not_toggle_aim`.
 - [x] Verify reticle fade syncs with `aim_blend_duration`
 - [x] Verify blend duration read from OTS resource, not hardcoded
 
