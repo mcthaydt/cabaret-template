@@ -2,8 +2,8 @@
 
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-06
-**Updated**: 2026-03-14
-**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10`) + movement-style look smoothing + camera look smoothing parity + post-`0f51c36` retune doc/test catch-up complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact rule integration + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + tuned orbit follow-bypass guard coverage + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering); next target is Orbit `2C11` integration/manual QA, then mobile drag-look/touch gating prerequisites
+**Updated**: 2026-03-15
+**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11`) + movement-style look smoothing + camera look smoothing parity + post-`0f51c36` retune doc/test catch-up complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact rule integration + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + tuned orbit follow-bypass guard coverage + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering + room-fade integration/polish validation); next target is mobile drag-look/touch gating prerequisites, then Phase 9 first-person feel
 
 ## Summary
 
@@ -412,7 +412,7 @@ This prevents pops from restarting a blend from the original source position and
 | `landing_impact_scale` | `float` | `1.0` | 6A3c | Multiplier for QB-driven landing impact offset on this vCam (0 = suppress) |
 
 > **Note:** Orbit-feel Phase 2C core + ground-relative follow-up is landed (`2C1`/`2C2`/`2C3`/`2C4`/`2C5`/`2C6`): look-ahead + auto-level + projection soft-zone + dead-zone hysteresis + ground-relative vertical anchoring + runtime integration.
-> Orbit follow-up backlog now marks `2C10` complete; immediate implementation target is `2C11` integration/manual QA.
+> Orbit follow-up backlog now marks `2C11` complete; immediate implementation target is mobile drag-look/touch gating prerequisites.
 > Look-ahead direction is movement-velocity driven (`state.gameplay.entities[*].velocity` primary source, movement-component/body fallback) and intentionally ignores follow-target transform deltas to avoid rotation-only offsets.
 > Post-`0f51c36` tuning baseline in `cfg_default_response.tres` is currently `follow=3.8/1.0`, `rotation=4.8/0.9`, `look_ahead_distance=0.02`, `look_ahead_smoothing=1.77`, `orbit_look_bypass_enable_speed=7.0`, `orbit_look_bypass_disable_speed=8.5`.
 
