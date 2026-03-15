@@ -1,18 +1,7 @@
-[gd_resource type="Resource" script_class="RS_VCamModeOTS" format=3]
+[gd_resource type="Resource" script_class="RS_VCamModeOTS" format=3 uid="uid://cbophn3ub4xgd"]
 
-[ext_resource type="Script" path="res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd" id="1_7ra2w"]
+[ext_resource type="Script" uid="uid://2nhflcqifxc1" path="res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd" id="1_7ra2w"]
 
 [resource]
 script = ExtResource("1_7ra2w")
-shoulder_offset = Vector3(0.3, 1.6, -0.5)
-camera_distance = 1.8
-look_multiplier = 1.0
-pitch_min = -60.0
-pitch_max = 50.0
-fov = 60.0
-collision_probe_radius = 0.15
-collision_recovery_speed = 8.0
-shoulder_sway_angle = 0.0
-shoulder_sway_smoothing = 6.0
-landing_dip_distance = 0.0
-landing_dip_recovery_speed = 6.0
+shoulder_offset = Vector3(0.25, 2.2, -1)

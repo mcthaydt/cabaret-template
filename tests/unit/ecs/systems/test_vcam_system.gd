@@ -424,6 +424,40 @@ func test_ots_collision_avoidance_keeps_full_distance_when_unobstructed() -> voi
 	assert_almost_eq(submitted.origin.distance_to(follow_target.global_position), 4.0, 0.02)
 	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
 
+func test_ots_collision_avoidance_uses_shoulder_pivot_for_initial_overlap_guard() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var floor_obstacle := _create_box_obstacle("OTSFloorGuard", Vector3(0.0, -0.3, 0.0), Vector3(12.0, 0.6, 12.0))
+	await _pump()
+	await _pump()
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSShoulderPivotTarget", Vector3.ZERO)
+	var mode := _new_ots_mode()
+	mode.shoulder_offset = Vector3(0.3, 1.6, -0.5)
+	mode.camera_distance = 2.0
+	mode.collision_probe_radius = 0.2
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_ots_floor_guard"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_floor_guard")
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_floor_guard"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var expected_pivot: Vector3 = follow_target.global_position + (Vector3.UP * mode.shoulder_offset.y)
+	var expected_distance: float = raw_transform.origin.distance_to(expected_pivot)
+	var submitted_distance: float = submitted.origin.distance_to(expected_pivot)
+
+	assert_almost_eq(submitted_distance, expected_distance, 0.05)
+	assert_true(
+		submitted_distance > 1.4,
+		"Floor overlap at follow-target origin should not collapse OTS distance when shoulder pivot is elevated"
+	)
+	assert_not_null(floor_obstacle)
+
 func test_ots_collision_avoidance_clamps_distance_when_obstructed() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)

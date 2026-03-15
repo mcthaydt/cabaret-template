@@ -63,7 +63,7 @@
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="73_room_fade_group_component"]
 [ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="74_room_fade_system"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="75_base_ecs_entity"]
-[ext_resource type="Resource" uid="uid://d5t1q3gs5a7n" path="res://resources/display/vcam/cfg_default_ots.tres" id="76_vcam_ots_mode"]
+[ext_resource type="Resource" uid="uid://cbophn3ub4xgd" path="res://resources/display/vcam/cfg_default_ots.tres" id="76_vcam_ots_mode"]
 
 [sub_resource type="Environment" id="Environment_interior_a"]
 background_mode = 1
