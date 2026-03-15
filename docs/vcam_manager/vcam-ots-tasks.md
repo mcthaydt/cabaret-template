@@ -32,8 +32,10 @@ Before starting Phase 3, verify:
 
 - [x] **DOC-1**: After each completed phase, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.  
   - Phase 3A update completed (March 15, 2026): continuation prompt now marks OTS 3A complete and 3B as next target.
+  - Phase 3B update completed (March 15, 2026): continuation prompt now marks OTS 3B complete and 3C as next target.
 - [x] **DOC-2**: After each completed phase, update this file (`vcam-ots-tasks.md`) with `[x]` marks and completion notes.  
   - Phase 3A checklist + validation notes updated (March 15, 2026).
+  - Phase 3B checklist + validation notes updated (March 15, 2026).
 - [x] **DOC-3**: Update `AGENTS.md` if OTS evaluation reveals new stable architecture/pattern contracts.  
   - No new AGENTS deltas from 3A; current OTS resource contract already matched implementation targets.
 - [x] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any OTS-specific pitfalls discovered.  
@@ -108,7 +110,7 @@ Before starting Phase 3, verify:
 
 ### Phase 3B: OTS Mode Evaluator
 
-- [ ] **Task 3B.1 (Red)**: Write tests for OTS evaluation in U_VCamModeEvaluator
+- [x] **Task 3B.1 (Red)**: Write tests for OTS evaluation in U_VCamModeEvaluator
   - Add to existing `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
   - Test OTS evaluation returns a valid `transform` key (is `Transform3D`)
   - Test OTS evaluation returns correct `fov` key matching resource (`60.0`)
@@ -136,7 +138,7 @@ Before starting Phase 3, verify:
     - Pass `runtime_pitch = 50.0` exactly
     - Verify pitch is exactly at boundary, not overshooting
   - Test OTS with null follow target returns empty dictionary
-  - **Target: ~10 tests**
+  - **Completion note (March 15, 2026):** Added OTS evaluator coverage in `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (`49/49` total) including transform/fov/mode-name contract, yaw/pitch behavior, pitch clamping/boundaries, and null-target guards.
 
   **Test helper setup pattern:**
   ```gdscript
@@ -166,7 +168,7 @@ Before starting Phase 3, verify:
   5. Build basis from yaw + pitch
   6. Return `{transform, fov, mode_name: "ots"}`
 
-- [ ] **Task 3B.2 (Green)**: Implement OTS evaluation in U_VCamModeEvaluator
+- [x] **Task 3B.2 (Green)**: Implement OTS evaluation in U_VCamModeEvaluator
   - Extend `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with OTS branch
   - Handle OTS mode branch:
     - Guard: return `{}` if mode is null or follow_target is null
@@ -180,6 +182,7 @@ Before starting Phase 3, verify:
     - Return `{transform = camera_xform, fov = mode.fov, mode_name = "ots"}`
   - All tests should pass
   - Verify orbit tests still pass (no regressions)
+  - **Completion note (March 15, 2026):** `U_VCamModeEvaluator` now dispatches `RS_VCamModeOTS` and evaluates OTS using resolved pitch bounds + yaw-rotated shoulder offset + back-distance positioning, returning `{transform, fov, mode_name: "ots"}`.
 
   **OTS transform construction contract:**
   ```gdscript
@@ -201,7 +204,7 @@ Before starting Phase 3, verify:
   var xform := Transform3D(basis, pos)
   ```
 
-- [ ] **Task 3B.3**: Create default OTS resource instance
+- [x] **Task 3B.3**: Create default OTS resource instance
   - Create `resources/display/vcam/cfg_default_ots.tres`
   - Set all fields to resource defaults (shoulder_offset=Vector3(0.3,1.6,-0.5), camera_distance=1.8, look_multiplier=1.0, pitch_min=-60.0, pitch_max=50.0, fov=60.0, collision_probe_radius=0.15, collision_recovery_speed=8.0, shoulder_sway_angle=0.0, shoulder_sway_smoothing=6.0, landing_dip_distance=0.0, landing_dip_recovery_speed=6.0)
   - Verify resource loads without errors:
@@ -210,8 +213,9 @@ Before starting Phase 3, verify:
     assert_not_null(res)
     assert_is(res, RS_VCamModeOTS)
     ```
+  - **Completion note (March 15, 2026):** Added `resources/display/vcam/cfg_default_ots.tres` and default-preset load assertion in `test_vcam_mode_ots.gd` (`17/17` total).
 
-- [ ] **Task 3B.4 (Refactor)**: Review U_VCamModeEvaluator for clarity
+- [x] **Task 3B.4 (Refactor)**: Review U_VCamModeEvaluator for clarity
   - Review evaluator now that it handles two modes (orbit + OTS)
   - Ensure both mode branches are clean and well-separated
   - Verify null/invalid resource handling is consistent across modes:
@@ -221,17 +225,25 @@ Before starting Phase 3, verify:
   - Verify no shared mutable state between mode evaluations
   - No new functionality, only code quality
   - All existing tests still pass after refactor
+  - **Completion note (March 15, 2026):** Added `_resolve_ots_values(...)` helper and kept branch-local pure evaluation with null-safe `{}` behavior to mirror existing orbit/fixed contracts.
 
-- [ ] **Task 3B.5**: Run full regression
+- [x] **Task 3B.5**: Run full regression
   - Run orbit resource tests (no regressions)
   - Run orbit evaluator tests (no regressions)
   - Run OTS resource tests
   - Run OTS evaluator tests
   - Run style enforcement tests
   ```bash
-  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gselect=test_vcam_mode -ginclude_subdirs=true -gexit
-  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -ginclude_subdirs=true -gexit
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_orbit -ginclude_subdirs=true -gexit
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers/helpers -gselect=test_vcam_mode_evaluator -ginclude_subdirs=true -gexit
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_ots -ginclude_subdirs=true -gexit
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -gselect=test_style_enforcement -ginclude_subdirs=true -gexit
   ```
+  - **Completion note (March 15, 2026):**
+    - `test_vcam_mode_orbit`: `14/14`
+    - `test_vcam_mode_evaluator`: `49/49`
+    - `test_vcam_mode_ots`: `17/17`
+    - style suite unchanged at known pre-existing HUD inline-theme failure: `16/17` in `scenes/ui/hud/ui_hud_overlay.tscn`
 
 ---
 

@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset is in progress: Phase 3A `RS_VCamModeOTS` resource is now complete (March 15, 2026); next target is Phase 3B OTS evaluator.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset is in progress: Phases 3A (`RS_VCamModeOTS` resource) and 3B (OTS evaluator + default preset) are now complete (March 15, 2026); next target is Phase 3C OTS game feel.
 
 ## Next Planned Work (March 15, 2026)
 
@@ -12,7 +12,7 @@
 - Mobile drag-look/touch gating prerequisites are complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
 - Phase 3 reset: first-person camera mode replaced with RE4-style OTS (over-the-shoulder). Phase 9 game feel also reset for OTS-specific features.
 - Immediate implementation target:
-  - Phase 3B: OTS evaluator updates in `U_VCamModeEvaluator` + default OTS preset resource (`docs/vcam_manager/vcam-ots-tasks.md`)
+  - Phase 3C1: OTS collision avoidance in `S_VCamSystem` (`docs/vcam_manager/vcam-ots-tasks.md`)
 
 ## OTS Mode Replacement (March 14, 2026)
 
@@ -39,9 +39,26 @@
   - collision/landing recovery speeds resolve positive
   - distance/radius/sway/dip magnitudes resolve non-negative
 - New coverage:
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`16/16` passing)
+  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`17/17` passing, includes default preset load contract)
 - Validation run:
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`16/16`)
+  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
+  - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
+
+## OTS Mode Evaluator (Phase 3B, March 15, 2026)
+
+- Added OTS evaluator branch in `U_VCamModeEvaluator`:
+  - mode dispatch now handles `RS_VCamModeOTS`
+  - OTS evaluation builds yaw/pitch basis, clamps pitch via resolved bounds, rotates shoulder offset by yaw, and positions camera with `basis.z * camera_distance`
+  - returns `{transform, fov, mode_name = "ots"}` and remains null-target safe (`{}`) without warning-channel output
+- Added `_resolve_ots_values(...)` fallback path to preserve evaluator behavior when resolved dictionaries are unavailable.
+- Added default preset resource:
+  - `resources/display/vcam/cfg_default_ots.tres`
+- Expanded evaluator coverage:
+  - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` now includes OTS transform/fov/mode-name, yaw/pitch application, pitch clamp/boundary, and null-target tests (`49/49` total).
+- Validation run:
+  - `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (`14/14`)
+  - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (`49/49`)
+  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## Previous: First-Person Strafe Tilt (Phase 9 / 3C1, March 15, 2026) — SUPERSEDED
@@ -648,7 +665,7 @@
   - `U_VCamModeEvaluator.evaluate(...)` now consumes orbit resolved values, returns `{transform, fov, mode_name}` for orbit resources, and returns `{}` for null/invalid inputs without warning noise.
 - OTS baseline (replaces first-person, March 15, 2026):
   - `RS_VCamModeOTS` is now authored in `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`; `get_resolved_values()` is the canonical OTS clamp/order read path for evaluator/runtime consumers.
-  - `U_VCamModeEvaluator.evaluate(...)` OTS branch remains the next implementation target and will return `{transform, fov, mode_name: "ots"}` with shoulder-offset rotation and pitch clamping in evaluator space.
+  - `U_VCamModeEvaluator.evaluate(...)` now includes the OTS branch and returns `{transform, fov, mode_name: "ots"}` with shoulder-offset rotation and evaluator-owned pitch clamping.
   - OTS game feel (collision avoidance, shoulder sway, landing camera response) will be system-level concerns in `S_VCamSystem`.
 - Fixed baseline is now explicit:
   - `RS_VCamModeFixed` is authored in `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd` with default preset `resources/display/vcam/cfg_default_fixed.tres`.
@@ -718,7 +735,7 @@
 
 ## Next Steps
 
-1. Implement Phase 3B OTS evaluator (`docs/vcam_manager/vcam-ots-tasks.md`), then Phase 3C OTS game feel (collision avoidance, shoulder sway, landing camera response).
+1. Implement Phase 3C OTS game feel (`docs/vcam_manager/vcam-ots-tasks.md`) starting with 3C1 collision avoidance, then 3C2 shoulder sway, then 3C3 landing camera response.
 2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
 3. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
 4. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
