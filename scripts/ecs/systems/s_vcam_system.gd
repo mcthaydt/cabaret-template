@@ -481,11 +481,6 @@ func _apply_ots_collision_avoidance(
 		_clear_ots_collision_state_for_vcam(vcam_id)
 		return result
 	var desired_transform := transform_variant as Transform3D
-	var cast_offset: Vector3 = desired_transform.origin - follow_target.global_position
-	var desired_distance: float = cast_offset.length()
-	if desired_distance <= 0.0:
-		_clear_ots_collision_state_for_vcam(vcam_id)
-		return result
 
 	var world: World3D = follow_target.get_world_3d()
 	if world == null:
@@ -497,9 +492,18 @@ func _apply_ots_collision_avoidance(
 		return result
 
 	var mode_values: Dictionary = _resolve_mode_values(mode, {
+		"shoulder_offset": Vector3.ZERO,
+		"camera_distance": 0.0,
 		"collision_probe_radius": 0.15,
 		"collision_recovery_speed": 8.0,
 	})
+	var cast_origin: Vector3 = _resolve_ots_collision_cast_origin(desired_transform, follow_target, mode_values)
+	var cast_offset: Vector3 = desired_transform.origin - cast_origin
+	var desired_distance: float = cast_offset.length()
+	if desired_distance <= 0.0:
+		_clear_ots_collision_state_for_vcam(vcam_id)
+		return result
+
 	var probe_radius: float = maxf(float(mode_values.get("collision_probe_radius", 0.15)), 0.0)
 	var recovery_speed_hz: float = maxf(float(mode_values.get("collision_recovery_speed", 8.0)), 0.0001)
 	var follow_target_id: int = _get_node_instance_id(follow_target)
@@ -514,6 +518,7 @@ func _apply_ots_collision_avoidance(
 	var hit_data: Dictionary = _resolve_ots_collision_hit_distance(
 		space_state,
 		follow_target,
+		cast_origin,
 		cast_offset,
 		probe_radius
 	)
@@ -536,10 +541,36 @@ func _apply_ots_collision_avoidance(
 	_ots_collision_state[vcam_id] = state
 
 	var adjusted_transform := desired_transform
-	adjusted_transform.origin = follow_target.global_position + cast_offset.normalized() * resolved_distance
+	adjusted_transform.origin = cast_origin + cast_offset.normalized() * resolved_distance
 	var adjusted_result: Dictionary = result.duplicate(true)
 	adjusted_result["transform"] = adjusted_transform
 	return adjusted_result
+
+func _resolve_ots_collision_cast_origin(
+	desired_transform: Transform3D,
+	follow_target: Node3D,
+	mode_values: Dictionary
+) -> Vector3:
+	var fallback_origin: Vector3 = follow_target.global_position
+	if mode_values.is_empty():
+		return fallback_origin
+
+	var shoulder_offset_variant: Variant = mode_values.get("shoulder_offset", Vector3.ZERO)
+	if shoulder_offset_variant is Vector3:
+		var shoulder_offset := shoulder_offset_variant as Vector3
+		if not is_nan(shoulder_offset.y) and not is_inf(shoulder_offset.y):
+			# Keep collision origin on the target centerline while lifting to shoulder height.
+			# This avoids floor-origin overlap and prevents near-hit clamps from collapsing into shoulder geometry.
+			return fallback_origin + (Vector3.UP * shoulder_offset.y)
+
+	var camera_distance: float = maxf(float(mode_values.get("camera_distance", 0.0)), 0.0)
+	if camera_distance <= 0.0:
+		return fallback_origin
+
+	var back_direction: Vector3 = desired_transform.basis.z
+	if back_direction.length_squared() <= 0.000001:
+		return fallback_origin
+	return desired_transform.origin - back_direction.normalized() * camera_distance
 
 func _get_or_create_ots_collision_state(
 	vcam_id: StringName,
@@ -571,6 +602,7 @@ func _get_or_create_ots_collision_state(
 func _resolve_ots_collision_hit_distance(
 	space_state: PhysicsDirectSpaceState3D,
 	follow_target: Node3D,
+	cast_origin: Vector3,
 	cast_offset: Vector3,
 	probe_radius: float
 ) -> Dictionary:
@@ -581,7 +613,6 @@ func _resolve_ots_collision_hit_distance(
 			"distance": 0.0,
 		}
 
-	var cast_origin: Vector3 = follow_target.global_position
 	var cast_direction: Vector3 = cast_offset / cast_distance
 	var exclude_rids: Array[RID] = _build_ots_collision_exclude_rids(follow_target)
 	if probe_radius <= 0.0:
@@ -670,18 +701,37 @@ func _build_ots_collision_exclude_rids(follow_target: Node3D) -> Array[RID]:
 	if entity_root != null and is_instance_valid(entity_root):
 		var entity_collision := entity_root as CollisionObject3D
 		if entity_collision != null:
-			exclude_rids.append(entity_collision.get_rid())
+			_append_unique_collision_rid(exclude_rids, entity_collision)
+
+	# Follow targets are often non-collision anchors under CharacterBody3D.
+	# Walk parent chain so we still exclude the owning player body.
+	var current: Node = follow_target
+	while current != null:
+		var chain_collision := current as CollisionObject3D
+		if chain_collision != null:
+			_append_unique_collision_rid(exclude_rids, chain_collision)
+		if entity_root != null and current == entity_root:
+			break
+		current = current.get_parent()
 
 	var follow_collision := follow_target as CollisionObject3D
 	if follow_collision != null:
-		var follow_rid: RID = follow_collision.get_rid()
-		if not exclude_rids.has(follow_rid):
-			exclude_rids.append(follow_rid)
+		_append_unique_collision_rid(exclude_rids, follow_collision)
 	if exclude_rids.is_empty():
 		var follow_body: CharacterBody3D = _find_character_body_recursive(follow_target)
 		if follow_body != null and is_instance_valid(follow_body):
-			exclude_rids.append(follow_body.get_rid())
+			_append_unique_collision_rid(exclude_rids, follow_body)
 	return exclude_rids
+
+func _append_unique_collision_rid(exclude_rids: Array[RID], collision_object: CollisionObject3D) -> void:
+	if collision_object == null or not is_instance_valid(collision_object):
+		return
+	var rid: RID = collision_object.get_rid()
+	if not rid.is_valid():
+		return
+	if exclude_rids.has(rid):
+		return
+	exclude_rids.append(rid)
 
 func _clear_ots_collision_state_for_vcam(vcam_id: StringName) -> void:
 	_ots_collision_state.erase(vcam_id)
