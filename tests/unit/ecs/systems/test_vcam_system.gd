@@ -14,6 +14,8 @@ const RS_VCAM_MODE_FIXED := preload("res://scripts/resources/display/vcam/rs_vca
 const RS_VCAM_RESPONSE := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 const RS_VCAM_SOFT_ZONE := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 
 class VCamManagerStub extends I_VCamManager:
 	var active_vcam_id: StringName = StringName("")
@@ -3286,6 +3288,249 @@ func test_orbit_ground_relative_first_grounded_contact_after_airborne_descent_ha
 		"First grounded tick should not apply a large vertical correction (step=%.5f)" % [vertical_step]
 	)
 
+func test_ots_landing_camera_response_is_disabled_when_dip_distance_is_zero() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSLandingDisabledTarget", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_offset = Vector3.ZERO
+	mode.camera_distance = 4.0
+	mode.landing_dip_distance = 0.0
+	mode.landing_dip_recovery_speed = 8.0
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_ots_landing_disabled"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_landing_disabled")
+	ecs_manager._physics_process(0.016)
+	_publish_player_landing_event(30.0)
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_landing_disabled"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
+
+func test_ots_landing_camera_response_reduces_distance_on_landing_event() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSLandingReduceTarget", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_offset = Vector3.ZERO
+	mode.camera_distance = 4.0
+	mode.landing_dip_distance = 0.8
+	mode.landing_dip_recovery_speed = 6.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_landing_reduce"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_landing_reduce")
+	ecs_manager._physics_process(0.016)
+	var baseline_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_landing_reduce")
+	).origin.distance_to(follow_target.global_position)
+
+	_publish_player_landing_event(30.0)
+	ecs_manager._physics_process(0.016)
+	var dipped_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_landing_reduce")
+	).origin.distance_to(follow_target.global_position)
+
+	assert_true(dipped_distance < baseline_distance)
+	assert_true(dipped_distance <= (baseline_distance - 0.3))
+
+func test_ots_landing_camera_response_scales_with_fall_speed() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSLandingScaleTarget", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_offset = Vector3.ZERO
+	mode.camera_distance = 4.0
+	mode.landing_dip_distance = 1.0
+	mode.landing_dip_recovery_speed = 8.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_landing_scale"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_landing_scale")
+	ecs_manager._physics_process(0.016)
+
+	_publish_player_landing_event(10.0)
+	ecs_manager._physics_process(0.016)
+	var low_speed_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_landing_scale")
+	).origin.distance_to(follow_target.global_position)
+
+	_publish_player_landing_event(30.0)
+	ecs_manager._physics_process(0.016)
+	var high_speed_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_landing_scale")
+	).origin.distance_to(follow_target.global_position)
+
+	assert_true(high_speed_distance < low_speed_distance)
+
+func test_ots_landing_camera_response_recovers_toward_normal_distance() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSLandingRecoverTarget", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_offset = Vector3.ZERO
+	mode.camera_distance = 4.0
+	mode.landing_dip_distance = 0.8
+	mode.landing_dip_recovery_speed = 4.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_landing_recover"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_landing_recover")
+	ecs_manager._physics_process(0.016)
+	var baseline_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_landing_recover")
+	).origin.distance_to(follow_target.global_position)
+
+	_publish_player_landing_event(30.0)
+	ecs_manager._physics_process(0.016)
+	var dipped_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_landing_recover")
+	).origin.distance_to(follow_target.global_position)
+
+	for _i in range(180):
+		ecs_manager._physics_process(0.016)
+	var recovered_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_landing_recover")
+	).origin.distance_to(follow_target.global_position)
+
+	assert_true(dipped_distance < baseline_distance)
+	assert_true(recovered_distance > dipped_distance)
+	assert_almost_eq(recovered_distance, baseline_distance, 0.05)
+
+func test_ots_landing_camera_response_recovery_is_critically_damped_without_overshoot() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSLandingDampedTarget", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_offset = Vector3.ZERO
+	mode.camera_distance = 4.0
+	mode.landing_dip_distance = 1.0
+	mode.landing_dip_recovery_speed = 6.0
+	await _create_vcam_component(ecs_manager, StringName("cam_ots_landing_damped"), mode, follow_target)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_landing_damped")
+	ecs_manager._physics_process(0.016)
+	var baseline_distance: float = _extract_submission_transform(
+		vcam_manager,
+		StringName("cam_ots_landing_damped")
+	).origin.distance_to(follow_target.global_position)
+
+	_publish_player_landing_event(30.0)
+	var max_distance: float = -INF
+	for _i in range(180):
+		ecs_manager._physics_process(0.016)
+		var distance_now: float = _extract_submission_transform(
+			vcam_manager,
+			StringName("cam_ots_landing_damped")
+		).origin.distance_to(follow_target.global_position)
+		max_distance = maxf(max_distance, distance_now)
+
+	assert_true(max_distance <= (baseline_distance + 0.001))
+	assert_almost_eq(
+		_extract_submission_transform(vcam_manager, StringName("cam_ots_landing_damped")).origin.distance_to(
+			follow_target.global_position
+		),
+		baseline_distance,
+		0.05
+	)
+
+func test_ots_landing_camera_response_stacks_with_shared_landing_impact_offset() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_OTSLandingStackTarget", Vector3.ZERO)
+	var mode := _new_ots_mode(1.0)
+	mode.shoulder_offset = Vector3.ZERO
+	mode.camera_distance = 4.0
+	mode.landing_dip_distance = 0.8
+	mode.landing_dip_recovery_speed = 6.0
+	var component := await _create_vcam_component(ecs_manager, StringName("cam_ots_landing_stack"), mode, follow_target)
+	_create_camera_state_component(ecs_manager, Vector3(0.0, -0.3, 0.0), 0.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_ots_landing_stack")
+	ecs_manager._physics_process(0.016)
+	_publish_player_landing_event(30.0)
+	ecs_manager._physics_process(0.016)
+
+	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_landing_stack"))
+	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
+	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var raw_planar_distance: float = Vector2(raw_transform.origin.x, raw_transform.origin.z).length()
+	var submitted_planar_distance: float = Vector2(submitted.origin.x, submitted.origin.z).length()
+
+	assert_almost_eq(submitted.origin.y, raw_transform.origin.y - 0.3, 0.01)
+	assert_true(submitted_planar_distance < raw_planar_distance)
+
+func test_ots_landing_camera_response_is_noop_for_orbit_and_fixed_modes() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var orbit_target := _create_target_entity(ecs_manager, "E_OTSLandingNoopOrbitTarget", Vector3.ZERO)
+	var orbit_mode := _new_orbit_mode(false, 0.0)
+	var orbit_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ots_landing_noop_orbit"),
+		orbit_mode,
+		orbit_target
+	)
+	vcam_manager.active_vcam_id = StringName("cam_ots_landing_noop_orbit")
+	ecs_manager._physics_process(0.016)
+	_publish_player_landing_event(30.0)
+	ecs_manager._physics_process(0.016)
+	var orbit_submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_landing_noop_orbit"))
+	var orbit_raw := _evaluate_raw_result(orbit_mode, orbit_target, orbit_component).get(
+		"transform",
+		Transform3D.IDENTITY
+	) as Transform3D
+	_assert_transform_close(orbit_submitted, orbit_raw, 0.0001, 0.0001)
+
+	var fixed_target := _create_target_entity(ecs_manager, "E_OTSLandingNoopFixedTarget", Vector3.ZERO)
+	var fixed_mode := RS_VCAM_MODE_FIXED.new()
+	fixed_mode.use_world_anchor = false
+	fixed_mode.follow_offset = Vector3(0.0, 0.0, 4.0)
+	fixed_mode.track_target = false
+	var fixed_component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_ots_landing_noop_fixed"),
+		fixed_mode,
+		fixed_target
+	)
+	vcam_manager.active_vcam_id = StringName("cam_ots_landing_noop_fixed")
+	ecs_manager._physics_process(0.016)
+	_publish_player_landing_event(30.0)
+	ecs_manager._physics_process(0.016)
+	var fixed_submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ots_landing_noop_fixed"))
+	var fixed_raw := _evaluate_raw_result(fixed_mode, fixed_target, fixed_component).get(
+		"transform",
+		Transform3D.IDENTITY
+	) as Transform3D
+	_assert_transform_close(fixed_submitted, fixed_raw, 0.0001, 0.0001)
+
 func test_landing_impact_offset_is_added_to_submitted_position() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -3806,6 +4051,12 @@ func _create_box_obstacle(name: String, position: Vector3, size: Vector3) -> Sta
 	obstacle.add_child(collision_shape)
 	autofree(collision_shape)
 	return obstacle
+
+func _publish_player_landing_event(fall_speed: float) -> void:
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_ENTITY_LANDED, {
+		"entity_id": StringName("player"),
+		"fall_speed": fall_speed,
+	})
 
 func _create_camera_state_component(
 	ecs_manager: M_ECSManager,
