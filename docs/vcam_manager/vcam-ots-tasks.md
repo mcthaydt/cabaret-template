@@ -638,6 +638,10 @@ Before starting Phase 3, verify:
 
 - **Validation run (March 15, 2026, post-phase hardening):**
   - Added mobile exclusion regression `test_long_press_over_virtual_controls_does_not_toggle_aim` in `tests/unit/ui/test_mobile_controls.gd`.
+  - Added camera-relative OTS movement regression `test_ots_uses_camera_relative_strafe_direction` in `tests/unit/ecs/systems/test_movement_system.gd`.
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`131/131`)
+  - `tests/unit/ecs/systems/test_movement_system.gd` (`14/14`)
+  - `tests/unit/ecs/systems/test_rotate_to_input_system.gd` (`6/6`)
   - `tests/unit/ui/test_mobile_controls.gd` (`20/20`)
   - `tests/unit/ecs/systems/test_s_touchscreen_system.gd` (`8/8`)
   - `tests/unit/ui/hud/test_ots_reticle.gd` (`4/4`)
@@ -671,6 +675,8 @@ Before starting Phase 3, verify:
 - [x] Verify aim input works on gamepad (L2/LT), mouse (right-click), and mobile (long press)
 - [x] Verify long press excludes joystick touch area on mobile
   - Covered by `tests/unit/ui/test_mobile_controls.gd::test_long_press_over_virtual_controls_does_not_toggle_aim`.
+- [x] Verify OTS strafe remains camera-relative while aimed
+  - Covered by `tests/unit/ecs/systems/test_movement_system.gd::test_ots_uses_camera_relative_strafe_direction`.
 - [x] Verify reticle fade syncs with `aim_blend_duration`
 - [x] Verify blend duration read from OTS resource, not hardcoded
 

@@ -19,6 +19,7 @@
   - Run manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`), with emphasis on mobile long-press joystick exclusion and reticle fade behavior in gameplay.
   - Post-Phase maintenance completed (March 15, 2026): OTS vertical framing bugfix landed via TDD (runtime OTS pitch now clamps to authored bounds in `S_VCamSystem`; default `cfg_default_ots.tres` tuned to head-level framing with higher shoulder anchor, pullback distance, and tighter pitch range).
   - Post-phase QA hardening (March 15, 2026): added explicit mobile guard `test_long_press_over_virtual_controls_does_not_toggle_aim` in `tests/unit/ui/test_mobile_controls.gd` (suite now `20/20`) to lock joystick-area long-press exclusion before manual MT-109/MT-110 checks.
+  - Post-phase QA hardening (March 15, 2026): added explicit camera-relative OTS strafe guard `test_ots_uses_camera_relative_strafe_direction` in `tests/unit/ecs/systems/test_movement_system.gd` (suite now `14/14`) to backstop MT-112 before live manual runs.
 
 ## OTS Mode Replacement (March 14, 2026)
 
@@ -188,6 +189,9 @@
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 - Post-phase QA hardening run (March 15, 2026):
   - `tests/unit/ui/test_mobile_controls.gd` (`20/20`) with new joystick-area long-press exclusion regression.
+  - `tests/unit/ecs/systems/test_movement_system.gd` (`14/14`) with new camera-relative OTS strafe regression.
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`131/131`)
+  - `tests/unit/ecs/systems/test_rotate_to_input_system.gd` (`6/6`)
   - `tests/unit/ecs/systems/test_s_touchscreen_system.gd` (`8/8`)
   - `tests/unit/ui/hud/test_ots_reticle.gd` (`4/4`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
