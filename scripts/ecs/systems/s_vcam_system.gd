@@ -53,6 +53,7 @@ var _look_rotation_state: Dictionary = {}  # StringName -> {smoothed_yaw, smooth
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
 var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
 var _ground_relative_state: Dictionary = {}  # StringName -> {follow_target_id, ground_anchor_y, ground_anchor_target_y, follow_anchor_y_offset, last_ground_reference_y, was_grounded, blend_hz, dynamics}
+var _first_person_strafe_tilt_state: Dictionary = {}  # StringName -> {dynamics, smoothing_hz}
 var _look_input_filter_state: Dictionary = {}  # StringName -> {filtered_input, hold_timer_sec, input_active}
 var _follow_target_motion_state: Dictionary = {}  # StringName -> {follow_target_id, last_position, speed_mps}
 var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
@@ -99,6 +100,7 @@ func process_tick(delta: float) -> void:
 	_apply_rotation_continuity_policy(active_vcam_id, vcam_index, manager)
 
 	var look_input: Vector2 = _read_look_input()
+	var move_input: Vector2 = _read_move_input()
 	var camera_center_just_pressed: bool = _read_camera_center_just_pressed()
 	_debug_log_vcam_state("tick", active_vcam_id, look_input)
 	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
@@ -106,6 +108,7 @@ func process_tick(delta: float) -> void:
 		active_vcam_id,
 		vcam_index,
 		look_input,
+		move_input,
 		camera_center_just_pressed,
 		landing_offset,
 		manager,
@@ -122,6 +125,7 @@ func process_tick(delta: float) -> void:
 		previous_vcam_id,
 		vcam_index,
 		look_input,
+		move_input,
 		false,
 		landing_offset,
 		manager,
@@ -258,6 +262,7 @@ func _evaluate_and_submit(
 	vcam_id: StringName,
 	vcam_index: Dictionary,
 	look_input: Vector2,
+	move_input: Vector2,
 	camera_center_just_pressed: bool,
 	landing_offset: Vector3,
 	manager: I_VCAM_MANAGER,
@@ -323,6 +328,7 @@ func _evaluate_and_submit(
 	)
 	if result.is_empty():
 		return
+	result = _apply_first_person_strafe_tilt(vcam_id, mode, result, move_input, delta)
 	var look_ahead_result: Dictionary = _apply_orbit_look_ahead(
 		vcam_id,
 		component,
@@ -369,6 +375,83 @@ func _apply_landing_impact_offset(result: Dictionary, landing_offset: Vector3) -
 		return result
 	_debug_log_landing_offset_state(landing_offset)
 	return _apply_position_offset(result, landing_offset)
+
+func _apply_first_person_strafe_tilt(
+	vcam_id: StringName,
+	mode: Resource,
+	result: Dictionary,
+	move_input: Vector2,
+	delta: float
+) -> Dictionary:
+	if mode == null or result.is_empty():
+		return result
+
+	var mode_script := mode.get_script() as Script
+	if mode_script != RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
+		_clear_first_person_strafe_tilt_state_for_vcam(vcam_id)
+		return result
+
+	var transform_variant: Variant = result.get("transform", null)
+	if not (transform_variant is Transform3D):
+		return result
+
+	var first_person_values: Dictionary = _resolve_mode_values(mode, {
+		"strafe_tilt_angle": 0.0,
+		"strafe_tilt_smoothing": 6.0,
+	})
+	var strafe_tilt_angle: float = maxf(float(first_person_values.get("strafe_tilt_angle", 0.0)), 0.0)
+	if strafe_tilt_angle <= 0.0:
+		_clear_first_person_strafe_tilt_state_for_vcam(vcam_id)
+		return result
+
+	var strafe_tilt_smoothing: float = maxf(float(first_person_values.get("strafe_tilt_smoothing", 6.0)), 0.0)
+	var clamped_lateral_input: float = clampf(move_input.x, -1.0, 1.0)
+	var target_roll_deg: float = clamped_lateral_input * strafe_tilt_angle
+	var smoothed_roll_deg: float = target_roll_deg
+
+	if strafe_tilt_smoothing > 0.0 and delta > 0.0:
+		var state: Dictionary = _ensure_first_person_strafe_tilt_state(vcam_id, strafe_tilt_smoothing)
+		var dynamics_variant: Variant = state.get("dynamics", null)
+		if dynamics_variant != null:
+			smoothed_roll_deg = float(dynamics_variant.step(target_roll_deg, delta))
+	else:
+		_clear_first_person_strafe_tilt_state_for_vcam(vcam_id)
+
+	var transformed := transform_variant as Transform3D
+	var roll_rad: float = deg_to_rad(smoothed_roll_deg)
+	transformed.basis = transformed.basis.rotated(transformed.basis.z, roll_rad).orthonormalized()
+	var tilted_result: Dictionary = result.duplicate(true)
+	tilted_result["transform"] = transformed
+	return tilted_result
+
+func _ensure_first_person_strafe_tilt_state(vcam_id: StringName, smoothing_hz: float) -> Dictionary:
+	var existing_state_variant: Variant = _first_person_strafe_tilt_state.get(vcam_id, {})
+	if existing_state_variant is Dictionary:
+		var existing_state := existing_state_variant as Dictionary
+		var existing_hz: float = float(existing_state.get("smoothing_hz", -1.0))
+		var existing_dynamics: Variant = existing_state.get("dynamics", null)
+		if existing_dynamics != null and is_equal_approx(existing_hz, smoothing_hz):
+			return existing_state
+
+		var initial_roll_deg: float = 0.0
+		if existing_dynamics != null and existing_dynamics.has_method("get_value"):
+			initial_roll_deg = float(existing_dynamics.call("get_value"))
+		var rebuilt_state: Dictionary = {
+			"dynamics": U_SECOND_ORDER_DYNAMICS.new(smoothing_hz, 1.0, 1.0, initial_roll_deg),
+			"smoothing_hz": smoothing_hz,
+		}
+		_first_person_strafe_tilt_state[vcam_id] = rebuilt_state
+		return rebuilt_state
+
+	var created_state: Dictionary = {
+		"dynamics": U_SECOND_ORDER_DYNAMICS.new(smoothing_hz, 1.0, 1.0, 0.0),
+		"smoothing_hz": smoothing_hz,
+	}
+	_first_person_strafe_tilt_state[vcam_id] = created_state
+	return created_state
+
+func _clear_first_person_strafe_tilt_state_for_vcam(vcam_id: StringName) -> void:
+	_first_person_strafe_tilt_state.erase(vcam_id)
 
 func _resolve_landing_impact_offset(delta: float) -> Vector3:
 	var camera_state: Object = _resolve_primary_camera_state_component()
@@ -1669,6 +1752,14 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
+	for vcam_id_variant in _first_person_strafe_tilt_state.keys():
+		var vcam_id := vcam_id_variant as StringName
+		if vcam_index.has(vcam_id):
+			continue
+		if stale_ids.has(vcam_id):
+			continue
+		stale_ids.append(vcam_id)
+
 	for vcam_id_variant in _look_input_filter_state.keys():
 		var vcam_id := vcam_id_variant as StringName
 		if vcam_index.has(vcam_id):
@@ -1719,6 +1810,7 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
+		_clear_first_person_strafe_tilt_state_for_vcam(stale_id)
 		_orbit_centering_state.erase(stale_id)
 		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
 
@@ -1738,6 +1830,7 @@ func _clear_all_smoothing_state() -> void:
 	_rotation_target_cache.clear()
 	_look_ahead_state.clear()
 	_ground_relative_state.clear()
+	_first_person_strafe_tilt_state.clear()
 	_look_input_filter_state.clear()
 	_follow_target_motion_state.clear()
 	_orbit_no_look_input_timers.clear()
@@ -2569,6 +2662,13 @@ func _read_look_input() -> Vector2:
 		return Vector2.ZERO
 	var state: Dictionary = store.get_state()
 	return U_INPUT_SELECTORS.get_look_input(state)
+
+func _read_move_input() -> Vector2:
+	var store := _resolve_state_store()
+	if store == null:
+		return Vector2.ZERO
+	var state: Dictionary = store.get_state()
+	return U_INPUT_SELECTORS.get_move_input(state)
 
 func _read_camera_center_just_pressed() -> bool:
 	var store := _resolve_state_store()
