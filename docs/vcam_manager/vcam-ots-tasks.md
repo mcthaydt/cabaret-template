@@ -505,10 +505,11 @@ Before starting Phase 3, verify:
   - Add to `tests/unit/ecs/systems/test_rotate_to_input_system.gd`
   - Test `lock_facing_to_camera=true` and OTS active: character yaw targets camera yaw
   - Test smooth rotation using existing turn speed (not instant snap)
+  - Test character facing toward camera on OTS entry: smoothly rotates to face camera-forward within turn speed
   - Test maintains facing with zero movement input
   - Test strafing does not change facing direction
   - Test exit OTS: reverts to movement-direction facing
-  - **Target: ~5 tests**
+  - **Target: ~6 tests**
 
 - [ ] **Task 3C4.8 (Green)**: Implement facing lock in S_RotateToInputSystem
   - `S_RotateToInputSystem` queries `C_VCamComponent` via ECS manager, reads `.mode` as `RS_VCamModeOTS`
