@@ -4,15 +4,15 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset: first-person mode replaced with OTS (over-the-shoulder) as of March 14, 2026; next target is Phase 3A RS_VCamModeOTS resource.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset is in progress: Phase 3A `RS_VCamModeOTS` resource is now complete (March 15, 2026); next target is Phase 3B OTS evaluator.
 
-## Next Planned Work (March 14, 2026)
+## Next Planned Work (March 15, 2026)
 
 - Orbit follow-up backlog `2C11` is now complete in `docs/vcam_manager/vcam-orbit-tasks.md`.
 - Mobile drag-look/touch gating prerequisites are complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
 - Phase 3 reset: first-person camera mode replaced with RE4-style OTS (over-the-shoulder). Phase 9 game feel also reset for OTS-specific features.
 - Immediate implementation target:
-  - Phase 3A: `RS_VCamModeOTS` resource (`docs/vcam_manager/vcam-ots-tasks.md`)
+  - Phase 3B: OTS evaluator updates in `U_VCamModeEvaluator` + default OTS preset resource (`docs/vcam_manager/vcam-ots-tasks.md`)
 
 ## OTS Mode Replacement (March 14, 2026)
 
@@ -22,6 +22,27 @@
 - Phase 3 (resource + evaluator) and Phase 9 (game feel) are fully reset since the mode changes fundamentally.
 - Previous first-person strafe tilt work is superseded by OTS shoulder sway (same concept, different context).
 - See `docs/vcam_manager/vcam-ots-tasks.md` for complete task breakdown.
+
+## OTS Mode Resource (Phase 3A, March 15, 2026)
+
+- Added OTS mode resource:
+  - `scripts/resources/display/vcam/rs_vcam_mode_ots.gd` (`RS_VCamModeOTS`)
+- Authoring/runtime fields implemented:
+  - `shoulder_offset`, `camera_distance`, `look_multiplier`, `pitch_min`, `pitch_max`, `fov`
+  - `collision_probe_radius`, `collision_recovery_speed`
+  - `shoulder_sway_angle`, `shoulder_sway_smoothing`
+  - `landing_dip_distance`, `landing_dip_recovery_speed`
+- `get_resolved_values()` now enforces OTS clamp/order contract:
+  - `look_multiplier` resolves positive
+  - `pitch_min`/`pitch_max` resolve ordered bounds
+  - `fov` resolves into `1.0..179.0`
+  - collision/landing recovery speeds resolve positive
+  - distance/radius/sway/dip magnitudes resolve non-negative
+- New coverage:
+  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`16/16` passing)
+- Validation run:
+  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`16/16`)
+  - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## Previous: First-Person Strafe Tilt (Phase 9 / 3C1, March 15, 2026) — SUPERSEDED
 
@@ -376,10 +397,10 @@
   - Added `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (`U_VCamModeEvaluator`) with orbit-mode evaluation branch, resolved-value consumption, and null-safe invalid-input guards.
   - Added/expanded `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (14 orbit tests, 39 evaluator tests total) for transform/FOV/mode-name outputs, authored/runtime rotation behavior, and invalid-input handling.
   - Added `resources/display/vcam/cfg_default_orbit.tres` with baseline orbit defaults for scene/template wiring.
-- Completed Phase 3A:
+- Completed Legacy Phase 3A (Superseded):
   - Added `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` (`RS_VCamModeFirstPerson`) with defaults (`head_offset`, `look_multiplier`, `pitch_min`, `pitch_max`, `fov`) and `get_resolved_values()` clamping/ordering helpers.
   - Added `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd` (8 tests) for defaults and resolved constraint behavior (`fov`, `look_multiplier`, pitch-bound ordering).
-- Completed Phase 3B:
+- Completed Legacy Phase 3B (Superseded):
   - Extended `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with first-person evaluation branch (position from `follow_target + head_offset`, yaw/pitch basis construction, in-evaluator pitch clamp, and null-safe guards).
   - Extended `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` with first-person coverage (10 new tests, 20 total evaluator tests).
   - Added `resources/display/vcam/cfg_default_first_person.tres` with baseline first-person defaults.
@@ -625,9 +646,9 @@
   - `RS_VCamModeOrbit` is authored in `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` with default preset `resources/display/vcam/cfg_default_orbit.tres`.
   - `RS_VCamModeOrbit.get_resolved_values()` now provides canonical orbit clamp/sanitation reads (`distance`, `fov`, authored angles) and axis-lock flags (`lock_x_rotation`, `lock_y_rotation`).
   - `U_VCamModeEvaluator.evaluate(...)` now consumes orbit resolved values, returns `{transform, fov, mode_name}` for orbit resources, and returns `{}` for null/invalid inputs without warning noise.
-- OTS baseline (replaces first-person, March 14, 2026):
-  - `RS_VCamModeOTS` will be authored in `scripts/resources/display/vcam/rs_vcam_mode_ots.gd` with default preset `resources/display/vcam/cfg_default_ots.tres`.
-  - `U_VCamModeEvaluator.evaluate(...)` will return `{transform, fov, mode_name: "ots"}` for OTS resources, with shoulder offset rotation and pitch clamping in the evaluator.
+- OTS baseline (replaces first-person, March 15, 2026):
+  - `RS_VCamModeOTS` is now authored in `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`; `get_resolved_values()` is the canonical OTS clamp/order read path for evaluator/runtime consumers.
+  - `U_VCamModeEvaluator.evaluate(...)` OTS branch remains the next implementation target and will return `{transform, fov, mode_name: "ots"}` with shoulder-offset rotation and pitch clamping in evaluator space.
   - OTS game feel (collision avoidance, shoulder sway, landing camera response) will be system-level concerns in `S_VCamSystem`.
 - Fixed baseline is now explicit:
   - `RS_VCamModeFixed` is authored in `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd` with default preset `resources/display/vcam/cfg_default_fixed.tres`.
@@ -697,7 +718,7 @@
 
 ## Next Steps
 
-1. Implement Phase 3A RS_VCamModeOTS resource (`docs/vcam_manager/vcam-ots-tasks.md`), then Phase 3B OTS evaluator, then Phase 3C OTS game feel (collision avoidance, shoulder sway, landing camera response).
+1. Implement Phase 3B OTS evaluator (`docs/vcam_manager/vcam-ots-tasks.md`), then Phase 3C OTS game feel (collision avoidance, shoulder sway, landing camera response).
 2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
 3. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
 4. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.

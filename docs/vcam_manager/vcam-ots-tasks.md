@@ -30,11 +30,15 @@ Before starting Phase 3, verify:
 
 ## Per-Phase Documentation Cadence (Mandatory)
 
-- [ ] **DOC-1**: After Phase 3 completion, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.
-- [ ] **DOC-2**: After Phase 3 completion, update this file (`vcam-ots-tasks.md`) with `[x]` marks and completion notes.
-- [ ] **DOC-3**: Update `AGENTS.md` if OTS evaluation reveals new stable architecture/pattern contracts.
-- [ ] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any OTS-specific pitfalls discovered.
-- [ ] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
+- [x] **DOC-1**: After each completed phase, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.  
+  - Phase 3A update completed (March 15, 2026): continuation prompt now marks OTS 3A complete and 3B as next target.
+- [x] **DOC-2**: After each completed phase, update this file (`vcam-ots-tasks.md`) with `[x]` marks and completion notes.  
+  - Phase 3A checklist + validation notes updated (March 15, 2026).
+- [x] **DOC-3**: Update `AGENTS.md` if OTS evaluation reveals new stable architecture/pattern contracts.  
+  - No new AGENTS deltas from 3A; current OTS resource contract already matched implementation targets.
+- [x] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any OTS-specific pitfalls discovered.  
+  - No new 3A pitfalls discovered.
+- [x] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
 
 ---
 
@@ -44,7 +48,7 @@ Before starting Phase 3, verify:
 
 ### Phase 3A: RS_VCamModeOTS Resource
 
-- [ ] **Task 3A.1 (Red)**: Write tests for RS_VCamModeOTS
+- [x] **Task 3A.1 (Red)**: Write tests for RS_VCamModeOTS
   - Create `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd`
   - Test `shoulder_offset` field exists with default `Vector3(0.3, 1.6, -0.5)`
     - Verify type is `Vector3`
@@ -72,9 +76,10 @@ Before starting Phase 3, verify:
     - Set pitch_min = 10.0, pitch_max = -10.0, verify validation catches inversion
   - Test `collision_probe_radius` field exists with default `0.15`
     - Verify type is `float`
-  - **Target: ~10 tests**
+  - Added landing-dip baseline coverage (`landing_dip_distance`, `landing_dip_recovery_speed`) to match AGENTS OTS resource contract.
+  - **Completion note (March 15, 2026):** `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` added with `16/16` passing.
 
-- [ ] **Task 3A.2 (Green)**: Implement RS_VCamModeOTS
+- [x] **Task 3A.2 (Green)**: Implement RS_VCamModeOTS
   - Create `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`
   - Extend `Resource`
   - Add `class_name RS_VCamModeOTS`
@@ -89,10 +94,13 @@ Before starting Phase 3, verify:
     - `collision_recovery_speed: float = 8.0` — Hz for distance recovery after obstruction clears
     - `shoulder_sway_angle: float = 0.0` — max roll angle in degrees when strafing (0 = disabled)
     - `shoulder_sway_smoothing: float = 6.0` — Hz for sway second-order dynamics
+    - `landing_dip_distance: float = 0.0` — authored landing dip magnitude for future OTS feel pass
+    - `landing_dip_recovery_speed: float = 6.0` — Hz for landing dip recovery
+  - `get_resolved_values()` implemented with clamp/order guarantees (positive look/recovery, ordered pitch bounds, `fov` clamped to `1..179`, non-negative magnitudes).
   - All tests should pass
 
-- [ ] **Task 3A.3**: Run style enforcement tests
-  - `tests/unit/style/test_style_enforcement.gd` passes with new files
+- [x] **Task 3A.3**: Run style enforcement tests
+  - `tests/unit/style/test_style_enforcement.gd` remains unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
   - Verify file naming follows `rs_` prefix convention
   - Verify script is in `scripts/resources/display/vcam/` per style guide
 
@@ -195,7 +203,7 @@ Before starting Phase 3, verify:
 
 - [ ] **Task 3B.3**: Create default OTS resource instance
   - Create `resources/display/vcam/cfg_default_ots.tres`
-  - Set all fields to resource defaults (shoulder_offset=Vector3(0.3,1.6,-0.5), camera_distance=1.8, look_multiplier=1.0, pitch_min=-60.0, pitch_max=50.0, fov=60.0, collision_probe_radius=0.15, collision_recovery_speed=8.0, shoulder_sway_angle=0.0, shoulder_sway_smoothing=6.0)
+  - Set all fields to resource defaults (shoulder_offset=Vector3(0.3,1.6,-0.5), camera_distance=1.8, look_multiplier=1.0, pitch_min=-60.0, pitch_max=50.0, fov=60.0, collision_probe_radius=0.15, collision_recovery_speed=8.0, shoulder_sway_angle=0.0, shoulder_sway_smoothing=6.0, landing_dip_distance=0.0, landing_dip_recovery_speed=6.0)
   - Verify resource loads without errors:
     ```gdscript
     var res := load("res://resources/display/vcam/cfg_default_ots.tres")
