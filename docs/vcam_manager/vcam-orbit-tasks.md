@@ -939,7 +939,7 @@ These checks gate Phase 9F completion:
 
 - [Main Task Index](vcam-manager-tasks.md)
 - [Base Tasks](vcam-base-tasks.md)
-- [First-Person Tasks](vcam-fps-tasks.md)
+- [OTS Tasks](vcam-ots-tasks.md)
 - [Fixed Tasks](vcam-fixed-tasks.md)
 - [Plan](vcam-manager-plan.md)
 - [Overview](vcam-manager-overview.md)

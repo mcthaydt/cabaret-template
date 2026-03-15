@@ -1,7 +1,7 @@
 # vCam Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.6)
-**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11`) + mobile drag-look/touch gating prerequisites + Phase 9/3C1 first-person strafe tilt complete (state/persistence + base authoring resources + dynamics + response tuning + orbit/first-person/fixed evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact composition/rule wiring + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering + room-fade integration/polish validation + mobile drag-look dispatch + `touch_look_active` transient gating + `S_InputSystem` zero-clobber guard + first-person move-input strafe tilt smoothing); next target is Phase 9/3C2 head bob
+**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11`) + mobile drag-look/touch gating prerequisites complete (state/persistence + base authoring resources + dynamics + response tuning + orbit/fixed evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact composition/rule wiring + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering + room-fade integration/polish validation + mobile drag-look dispatch + `touch_look_active` transient gating + `S_InputSystem` zero-clobber guard). Phase 3 reset: first-person replaced with OTS (over-the-shoulder); next target is Phase 3A RS_VCamModeOTS resource
 **Methodology**: Test-driven, integration-first where scene wiring matters
 
 ## Overview
@@ -13,7 +13,7 @@ The corrected implementation contract is:
 - `M_VCamManager` is a persistent root manager under `scenes/root.tscn/Managers`.
 - `S_VCamSystem` is a gameplay ECS system under `Systems/Core`.
 - `C_VCamComponent` remains the authoring surface for virtual cameras in gameplay scenes.
-- Mobile drag-look is a hard requirement for `allow_player_rotation` orbit cameras and first-person cameras.
+- Mobile drag-look is a hard requirement for `allow_player_rotation` orbit cameras and OTS cameras.
 - The `vcam` Redux slice is transient runtime observability only.
 - The player-facing silhouette toggle lives in the persisted `vfx` slice, not `vcam`.
 - `M_CameraManager` keeps ownership of scene-transition blends and shake layering.
@@ -84,7 +84,7 @@ After every completed phase, update docs immediately so written guidance matches
 **Why**
 
 - Mobile drag-look is part of the input system, not the vCam runtime.
-- Orbit and first-person cameras are not truly complete on mobile until drag-look settings exist.
+- Orbit and OTS cameras are not truly complete on mobile until drag-look settings exist.
 
 ### Commit 0.0b: Keyboard look settings prerequisite
 
@@ -278,12 +278,12 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 - `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd`
 - `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd`
-- `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd`
+- `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`
 - `scripts/resources/display/vcam/rs_vcam_soft_zone.gd`
 - `scripts/resources/display/vcam/rs_vcam_blend_hint.gd`
 - `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd`
 - `tests/unit/resources/display/vcam/test_vcam_mode_fixed.gd`
-- `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd`
+- `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd`
 - `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd`
 - `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd`
 
@@ -299,7 +299,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
   - `use_path: bool = false` — when true, camera follows a `Path3D`; `use_world_anchor` and `follow_offset` are ignored
   - `path_max_speed: float = 10.0` — max travel speed along the path (units/sec), 0.0 = instant
   - `path_damping: float = 5.0` — second-order smoothing for path progress changes
-- `RS_VCamModeFirstPerson`
+- `RS_VCamModeOTS`
   - use `look_multiplier`, not `mouse_sensitivity`
   - input already arrives pre-scaled from the input pipeline
 - `RS_VCamSoftZone`
@@ -513,7 +513,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 **Why**
 
 - The current touchscreen path only drives move/jump/sprint.
-- Rotatable orbit and first-person cameras are blocked on mobile until touch drag-look feeds the shared `gameplay.look_input` path.
+- Rotatable orbit and OTS cameras are blocked on mobile until touch drag-look feeds the shared `gameplay.look_input` path.
 
 ### Commit 2.5: Scene wiring
 
@@ -677,7 +677,7 @@ This flow consumes the latest result that `S_VCamSystem` submitted for the activ
 
 After vCam state is dispatched to Redux, `S_CameraStateSystem` can read vCam fields from the `vcam` slice when building its rule evaluation context. Enrich the camera context with:
 
-- `vcam_active_mode` — enables rules like "reduce FOV zone effect during first-person mode"
+- `vcam_active_mode` — enables rules like "reduce FOV zone effect during OTS mode"
 - `vcam_is_blending` — enables rules like "suppress shake during camera blends"
 - `vcam_active_vcam_id` — enables per-vCam rule targeting
 
@@ -875,7 +875,7 @@ scripts/ecs/systems/
 scripts/resources/display/vcam/
   rs_vcam_mode_orbit.gd
   rs_vcam_mode_fixed.gd
-  rs_vcam_mode_first_person.gd
+  rs_vcam_mode_ots.gd
   rs_vcam_soft_zone.gd
   rs_vcam_blend_hint.gd
 
@@ -930,7 +930,7 @@ tests/unit/
   resources/display/vcam/
     test_vcam_mode_orbit.gd
     test_vcam_mode_fixed.gd
-    test_vcam_mode_first_person.gd
+    test_vcam_mode_ots.gd
     test_vcam_soft_zone.gd
     test_vcam_blend_hint.gd
   managers/

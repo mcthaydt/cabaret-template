@@ -4,20 +4,31 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 9 first-person feel is in progress (`3C1` strafe tilt complete on March 15, 2026; next target `3C2` head bob).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset: first-person mode replaced with OTS (over-the-shoulder) as of March 14, 2026; next target is Phase 3A RS_VCamModeOTS resource.
 
-## Next Planned Work (March 15, 2026)
+## Next Planned Work (March 14, 2026)
 
 - Orbit follow-up backlog `2C11` is now complete in `docs/vcam_manager/vcam-orbit-tasks.md`.
 - Mobile drag-look/touch gating prerequisites are complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
+- Phase 3 reset: first-person camera mode replaced with RE4-style OTS (over-the-shoulder). Phase 9 game feel also reset for OTS-specific features.
 - Immediate implementation target:
-  - Phase 9 first-person feel (`3C2` head bob)
+  - Phase 3A: `RS_VCamModeOTS` resource (`docs/vcam_manager/vcam-ots-tasks.md`)
 
-## First-Person Strafe Tilt (Phase 9 / 3C1, March 15, 2026)
+## OTS Mode Replacement (March 14, 2026)
 
+- First-person camera mode (`RS_VCamModeFirstPerson`) replaced with RE4-style OTS (over-the-shoulder) camera (`RS_VCamModeOTS`).
+- The OTS camera is "always aimed" — the default framing IS the tight shoulder view, no ADS toggle.
+- Camera sits behind and to one side of the character with collision avoidance to prevent wall clipping.
+- Phase 3 (resource + evaluator) and Phase 9 (game feel) are fully reset since the mode changes fundamentally.
+- Previous first-person strafe tilt work is superseded by OTS shoulder sway (same concept, different context).
+- See `docs/vcam_manager/vcam-ots-tasks.md` for complete task breakdown.
+
+## Previous: First-Person Strafe Tilt (Phase 9 / 3C1, March 15, 2026) — SUPERSEDED
+
+- _This section is retained for historical context. The first-person mode has been replaced with OTS._
 - Added first-person authored strafe-tilt fields:
-  - `RS_VCamModeFirstPerson` now exports `strafe_tilt_angle` and `strafe_tilt_smoothing`.
-  - `get_resolved_values()` now clamps both fields non-negative.
+  - `RS_VCamModeFirstPerson` exported `strafe_tilt_angle` and `strafe_tilt_smoothing`.
+  - `get_resolved_values()` clamped both fields non-negative.
 - Runtime strafe-tilt integration:
   - `S_VCamSystem` now reads `move_input` via `U_InputSelectors.get_move_input(state)`.
   - Added first-person-only roll application after evaluator output and before downstream smoothing (`_apply_first_person_strafe_tilt(...)`).
@@ -571,9 +582,9 @@
 - Orbit follow-up backlog planning is now explicit: `docs/vcam_manager/vcam-orbit-tasks.md` marks `2C11` complete, and mobile drag-look/touch gating prerequisites are now complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
 - `S_VCamSystem` baseline contract is now implementation-backed: manager resolution, target resolution fallback order, blend-aware active/outgoing evaluation, and same-frame submission are in code/tests.
 - `S_VCamSystem` response-smoothing contract is now implementation-backed: `RS_VCamResponse` drives position/rotation second-order smoothing, response-null passthrough keeps backward compatibility, and mode/target/response transitions reset or recreate smoothing state deterministically.
-- `S_VCamSystem` movement-style look smoothing contract is now implementation-backed for orbit/first-person: runtime yaw/pitch remain raw targets on `C_VCamComponent`, evaluator rotation is fed by per-vCam spring-damper look state, and fixed-mode rotation smoothing remains owned by response smoothing.
-- `RS_VCamModeFirstPerson` strafe-tilt authoring contract is now implementation-backed: `strafe_tilt_angle` and `strafe_tilt_smoothing` are authored/clamped fields consumed by runtime first-person feel.
-- `S_VCamSystem` first-person strafe-tilt runtime contract is now implementation-backed for Phase 9/3C1: roll target is driven by shared `input.move_input.x`, smoothed by per-vCam `U_SecondOrderDynamics` state keyed by `vcam_id`, applied after evaluator yaw/pitch construction, and gated to first-person mode.
+- `S_VCamSystem` movement-style look smoothing contract is now implementation-backed for orbit/OTS: runtime yaw/pitch remain raw targets on `C_VCamComponent`, evaluator rotation is fed by per-vCam spring-damper look state, and fixed-mode rotation smoothing remains owned by response smoothing.
+- _`RS_VCamModeFirstPerson` strafe-tilt authoring contract was implementation-backed but is now superseded by OTS mode replacement (March 14, 2026)._
+- _`S_VCamSystem` first-person strafe-tilt runtime contract was implementation-backed for Phase 9/3C1 but is now superseded by OTS shoulder sway (March 14, 2026)._
 - `RS_VCamResponse` orbit-feel contract is now implementation-backed: `look_ahead_distance`, `look_ahead_smoothing`, `auto_level_speed`, and `auto_level_delay` are authored/clamped fields with defaults persisted in `cfg_default_response.tres`.
 - `S_VCamSystem` rotation-continuity contract is now implementation-backed: active-vCam switches apply transition-aware carry/reset/reseed of `runtime_yaw`/`runtime_pitch`, with same-target carry in same-mode transitions and authored-angle reseed when targets differ.
 - `S_VCamSystem` orbit game-feel contract is now implementation-backed for Phase 2C1-2C5: look-ahead offsets are applied before main response smoothing using per-vCam movement-velocity state (not follow-target transform deltas), auto-level pitch recentering is orbit-only with delayed activation and look-input reset behavior, and projection-based soft-zone correction (with per-vCam dead-zone hysteresis state) is applied before response smoothing.
@@ -589,7 +600,7 @@
 - The camera integration now requires a shake-safe `M_CameraManager.apply_main_camera_transform(...)` API instead of direct `camera.global_transform` writes.
 - Soft-zone math is now defined as projection-based rather than basis-vector offset math.
 - Soft-zone projection and occlusion raycasts are now explicitly tied to the active gameplay camera viewport and `World3D` inside `GameViewport`, not the root manager node's viewport/world.
-- Mobile drag-look is now a hard requirement for rotatable orbit and first-person support.
+- Mobile drag-look is now a hard requirement for rotatable orbit and OTS support.
 - Mobile drag-look settings belong in `settings.input_settings.touchscreen_settings`, and the touch look path must extend `UI_MobileControls` plus `S_TouchscreenSystem`.
 - `S_InputSystem` must be gated so it does not overwrite touchscreen gameplay input with zero `TouchscreenSource` payloads.
 - Fixed-mode anchor ownership is now explicit: fixed cameras must resolve `C_VCamComponent.fixed_anchor_path` first, then fall back to a vCam host entity-root `Node3D`; never read component transform.
@@ -614,9 +625,10 @@
   - `RS_VCamModeOrbit` is authored in `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` with default preset `resources/display/vcam/cfg_default_orbit.tres`.
   - `RS_VCamModeOrbit.get_resolved_values()` now provides canonical orbit clamp/sanitation reads (`distance`, `fov`, authored angles) and axis-lock flags (`lock_x_rotation`, `lock_y_rotation`).
   - `U_VCamModeEvaluator.evaluate(...)` now consumes orbit resolved values, returns `{transform, fov, mode_name}` for orbit resources, and returns `{}` for null/invalid inputs without warning noise.
-- First-person baseline is now explicit:
-  - `RS_VCamModeFirstPerson` is authored in `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` with default preset `resources/display/vcam/cfg_default_first_person.tres`.
-  - `U_VCamModeEvaluator.evaluate(...)` now returns `{transform, fov, mode_name}` for first-person resources, clamps runtime pitch to authored min/max in evaluator, and returns `{}` for null/invalid inputs without warning noise.
+- OTS baseline (replaces first-person, March 14, 2026):
+  - `RS_VCamModeOTS` will be authored in `scripts/resources/display/vcam/rs_vcam_mode_ots.gd` with default preset `resources/display/vcam/cfg_default_ots.tres`.
+  - `U_VCamModeEvaluator.evaluate(...)` will return `{transform, fov, mode_name: "ots"}` for OTS resources, with shoulder offset rotation and pitch clamping in the evaluator.
+  - OTS game feel (collision avoidance, shoulder sway, landing camera response) will be system-level concerns in `S_VCamSystem`.
 - Fixed baseline is now explicit:
   - `RS_VCamModeFixed` is authored in `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd` with default preset `resources/display/vcam/cfg_default_fixed.tres`.
   - `U_VCamModeEvaluator.evaluate(...)` now supports fixed world-anchor, follow-offset, and path branches while ignoring runtime yaw/pitch for fixed mode.
@@ -685,7 +697,7 @@
 
 ## Next Steps
 
-1. Continue Phase 9 first-person feel (`docs/vcam_manager/vcam-fps-tasks.md`): implement `3C2` head bob, then `3C3` landing head dip on top of the existing response pipeline.
+1. Implement Phase 3A RS_VCamModeOTS resource (`docs/vcam_manager/vcam-ots-tasks.md`), then Phase 3B OTS evaluator, then Phase 3C OTS game feel (collision avoidance, shoulder sway, landing camera response).
 2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
 3. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
 4. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
@@ -695,7 +707,7 @@
 - vCam does not replace `M_CameraManager`.
 - vCam does not replace `S_CameraStateSystem`.
 - vCam does not bypass the gameplay input pipeline.
-- First-person pitch clamp is evaluator-owned (`U_VCamModeEvaluator`), while first-person `look_multiplier` scaling remains system-owned (`S_VCamSystem`) to avoid double-scaling runtime angles.
+- OTS pitch clamp is evaluator-owned (`U_VCamModeEvaluator`), while OTS `look_multiplier` scaling remains system-owned (`S_VCamSystem`) to avoid double-scaling runtime angles.
 - Keyboard look uses dedicated `look_*` actions (not `ui_*`) so bindings stay correct across input profiles; settings live in `mouse_settings`.
 - Keyboard-look work is not complete unless the InputMap bootstrapper, input-map tests, rebind category/action labels, localization keys, and settings-save triggers are patched together.
 - vCam does not treat mobile as special at the camera layer; touch look must still feed the shared `gameplay.look_input` path.
@@ -704,7 +716,7 @@
 - vCam does not write `camera.global_transform` directly.
 - vCam blends are live blends between two evaluated cameras, not frozen-transform lerps.
 - `S_VCamSystem` response smoothing is per-vCam state keyed by `vcam_id` and must recreate/reset on response/mode/target transitions; null `response` must remain a raw-evaluator passthrough path.
-- Orbit/first-person look smoothing uses a separate per-vCam spring-damper state keyed by `vcam_id`; `runtime_yaw`/`runtime_pitch` stay raw input targets while evaluator rotation consumes smoothed values.
+- Orbit/OTS look smoothing uses a separate per-vCam spring-damper state keyed by `vcam_id`; `runtime_yaw`/`runtime_pitch` stay raw input targets while evaluator rotation consumes smoothed values.
 - Soft-zone hysteresis state is per-vCam state keyed by `vcam_id` and should persist independently of response-smoothing resets (`_soft_zone_dead_zone_state` must not be cleared just because `response == null`).
 - Orbit ground-relative anchoring is per-vCam state keyed by `vcam_id` (`_ground_relative_state`) and must only sample/update ground reference while grounded; airborne ticks must not overwrite anchor state.
 - Fixed mode ignores player runtime look angles (`runtime_yaw`/`runtime_pitch`); path mode uses anchor/path tangent orientation and ignores `track_target`.
@@ -723,7 +735,7 @@
 - soft-zone math can drift if depth-aware reprojection is skipped
 - silhouettes can leak on scene swap if the persistent manager keeps stale occluder references
 - root/gameplay scene wiring can be missed if only templates are edited
-- orbit/first-person can appear “done” on desktop while still being broken on mobile if `S_TouchscreenSystem` continues to dispatch zero look input
+- orbit/OTS can appear “done” on desktop while still being broken on mobile if `S_TouchscreenSystem` continues to dispatch zero look input
 - touch-look can conflict with joystick/buttons if `UI_MobileControls` does not claim a dedicated free-screen look touch
 - touch gameplay input can be silently overwritten if `S_InputSystem` continues processing `TouchscreenSource` zero payloads
 - silhouette persistence can ship without user control if `UI_VFXSettingsOverlay` is not updated alongside state/actions/reducer/selectors

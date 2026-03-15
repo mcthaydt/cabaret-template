@@ -5,7 +5,7 @@
 - **Feature name**: Virtual Camera (vCam) Manager
 - **Project**: Cabaret Template (Godot 4.6)
 - **Target release**: TBD
-- **Status**: Phases 0A-0F + 1A-1F + 2A-2B + 3A-3B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11`) + mobile drag-look/touch gating prerequisites + Phase 9/3C1 first-person strafe tilt complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact composition/rule wiring + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering + room-fade integration/polish validation + touch look dispatch + `touch_look_active` transient gating + input no-clobber guard + first-person move-input strafe tilt smoothing); next target is Phase 9/3C2 head bob
+- **Status**: Phases 0A-0F + 1A-1F + 2A-2B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11`) + mobile drag-look/touch gating prerequisites complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact composition/rule wiring + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering + room-fade integration/polish validation + touch look dispatch + `touch_look_active` transient gating + input no-clobber guard). Phase 3 reset: first-person replaced with OTS (over-the-shoulder); next target is Phase 3A RS_VCamModeOTS resource
 
 ## Problem Statement
 
@@ -17,19 +17,20 @@ The project already has:
 
 What it does not yet have is a gameplay-facing virtual camera orchestration layer. Without that layer, teams still have to build common camera behaviors from scratch:
 
-- reusable orbit, fixed, and first-person camera modes
+- reusable orbit, fixed, and OTS (over-the-shoulder) camera modes
 - soft-zone follow behavior
 - smooth vCam-to-vCam blending
 - occlusion handling when walls block the player
 - editor framing tools
-- a mobile drag-look path that can drive rotatable orbit and first-person cameras
+- a mobile drag-look path that can drive rotatable orbit and OTS cameras
 
 ## Goals
 
 - Add a Cinemachine-style gameplay camera layer above the existing camera stack.
-- Support orbit, fixed, and first-person virtual cameras as resource-driven behaviors.
+- Support orbit, fixed, and OTS (over-the-shoulder) virtual cameras as resource-driven behaviors.
 - Reuse the existing gameplay input pipeline for player-controlled look.
 - Ensure that same look pipeline works on mobile via drag-look, not just mouse and gamepad.
+- Support OTS collision avoidance to prevent wall clipping in tight shoulder-camera views.
 - Blend smoothly between virtual cameras, including moving-to-moving blends.
 - Handle occlusion with silhouettes instead of camera push-in.
 - Provide an editor-only rule-of-thirds preview.
@@ -43,7 +44,7 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - Replacing `S_InputSystem`
 - Adding cinematic timeline tooling
 - Adding camera path **editors** or spline authoring tooling
-- Adding dolly/push-in collision response
+- Adding general-purpose dolly/push-in collision response (OTS collision avoidance is scoped to the OTS mode only, not a general dolly collision system)
 - Supporting split-screen or 2D camera flows
 
 ## User Experience Notes
@@ -64,8 +65,8 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - camera transitions feel intentional instead of snapping
 - walls between the player and camera become readable silhouettes instead of causing lost visibility
 - players can enable/disable silhouette behavior from the existing VFX settings screen
-- player-controlled orbit and first-person look reuse the same input profile and sensitivity pipeline as the rest of gameplay
-- on mobile, dragging on free screen space should rotate orbit and first-person cameras while still allowing simultaneous move-joystick and button input
+- player-controlled orbit and OTS look reuse the same input profile and sensitivity pipeline as the rest of gameplay
+- on mobile, dragging on free screen space should rotate orbit and OTS cameras while still allowing simultaneous move-joystick and button input
 
 ## Technical Considerations
 
@@ -114,7 +115,8 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 | silhouette logic ignores common repo geometry | support `GeometryInstance3D`, including `CSGShape3D` |
 | persistence leaks runtime state | keep `vcam` fully transient and store only player-facing toggle in `vfx` |
 | docs describe wiring that never reaches runtime | explicitly patch `root.tscn`, `tmpl_base_scene.tscn`, and `gameplay_base.tscn` |
-| mobile orbit/first-person ship half-finished | extend `UI_MobileControls` and `S_TouchscreenSystem` so drag-look writes shared `gameplay.look_input` |
+| mobile orbit/OTS ship half-finished | extend `UI_MobileControls` and `S_TouchscreenSystem` so drag-look writes shared `gameplay.look_input` |
+| OTS collision avoidance + screen shake interaction | verify spherecast collision avoidance and shake layering do not conflict; collision clamps distance before shake offsets apply |
 | touch-look conflicts with movement/buttons | claim a dedicated look touch only when the touch starts outside joystick/button hit regions |
 | touchscreen input gets overwritten by zeros | gate `S_InputSystem` so touch gameplay input remains owned by `S_TouchscreenSystem` when touchscreen is active |
 | keyboard-look plan updates only profiles but not runtime plumbing | patch `U_InputMapBootstrapper`, input-map tests, settings-save triggers, rebind category wiring, and localization together |

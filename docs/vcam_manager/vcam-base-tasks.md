@@ -955,7 +955,7 @@ Before starting Phase 0, verify:
 ### Phase 6C: Manual Validation (Desktop Camera Modes)
 
 > Mode-specific manual checks are listed in their respective subtask files.
-> See: [vcam-orbit-tasks.md](vcam-orbit-tasks.md), [vcam-fixed-tasks.md](vcam-fixed-tasks.md), [vcam-fps-tasks.md](vcam-fps-tasks.md)
+> See: [vcam-orbit-tasks.md](vcam-orbit-tasks.md), [vcam-fixed-tasks.md](vcam-fixed-tasks.md), [vcam-ots-tasks.md](vcam-ots-tasks.md)
 
 ---
 
@@ -1082,7 +1082,7 @@ Before starting Phase 0, verify:
 
 Mode-specific mobile checks are tracked in their respective subtask files:
 - Orbit mobile (MT-05..08): [vcam-orbit-tasks.md](vcam-orbit-tasks.md)
-- First-person mobile (MT-16, 17): [vcam-fps-tasks.md](vcam-fps-tasks.md)
+- OTS mobile (MT-16, 17): [vcam-ots-tasks.md](vcam-ots-tasks.md)
 
 Settings checks (mode-agnostic):
 
@@ -1227,7 +1227,7 @@ Settings checks (mode-agnostic):
 Mode-specific blend checks are tracked in their respective subtask files:
 - Orbit blend (MT-19, 21, 32): [vcam-orbit-tasks.md](vcam-orbit-tasks.md)
 - Fixed blend (MT-19, 20): [vcam-fixed-tasks.md](vcam-fixed-tasks.md)
-- First-person blend (MT-20, 33): [vcam-fps-tasks.md](vcam-fps-tasks.md)
+- OTS blend (MT-20, 33): [vcam-ots-tasks.md](vcam-ots-tasks.md)
 
 Cross-mode checks (mode-agnostic):
 
@@ -1622,7 +1622,7 @@ Unit tests for shared infrastructure (state, ECS components/systems, managers) l
 - [Main Task Index](vcam-manager-tasks.md)
 - [Orbit Tasks](vcam-orbit-tasks.md)
 - [Fixed Tasks](vcam-fixed-tasks.md)
-- [First-Person Tasks](vcam-fps-tasks.md)
+- [OTS Tasks](vcam-ots-tasks.md)
 - [Plan](vcam-manager-plan.md)
 - [Overview](vcam-manager-overview.md)
 - [PRD](vcam-manager-prd.md)

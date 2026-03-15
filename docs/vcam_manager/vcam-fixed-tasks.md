@@ -378,7 +378,7 @@ These checks gate Phase 9F completion:
   - Verify smooth interpolation of both position and rotation over `blend_duration`
   - Verify no visible snap or teleport
   - Verify camera lands exactly at fixed anchor position
-- [ ] **MT-20**: (see [vcam-fps-tasks.md](vcam-fps-tasks.md) — fixed-to-first-person blend is owned by the first-person mode task file)
+- [ ] **MT-20**: (see [vcam-ots-tasks.md](vcam-ots-tasks.md) — fixed-to-OTS blend is owned by the OTS mode task file)
 
 ---
 
@@ -425,7 +425,7 @@ These checks gate Phase 9F completion:
 - [Main Task Index](vcam-manager-tasks.md)
 - [Base Tasks](vcam-base-tasks.md)
 - [Orbit Tasks](vcam-orbit-tasks.md)
-- [First-Person Tasks](vcam-fps-tasks.md)
+- [OTS Tasks](vcam-ots-tasks.md)
 - [Plan](vcam-manager-plan.md)
 - [Overview](vcam-manager-overview.md)
 - [PRD](vcam-manager-prd.md)
