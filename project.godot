@@ -25,6 +25,10 @@ window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="viewport"
 
+[layer_names]
+
+3d_physics/layer_6="vcam_occludable"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/IVX_VertexColorImportSwapper/plugin.cfg", "res://addons/gut/plugin.cfg")
