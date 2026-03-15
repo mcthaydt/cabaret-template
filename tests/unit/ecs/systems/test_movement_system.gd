@@ -5,6 +5,10 @@ const MovementComponentScript = preload("res://scripts/ecs/components/c_movement
 const MovementSystemScript = preload("res://scripts/ecs/systems/s_movement_system.gd")
 const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
 const FloatingComponentScript = preload("res://scripts/ecs/components/c_floating_component.gd")
+const VCamComponentScript = preload("res://scripts/ecs/components/c_vcam_component.gd")
+const OTSModeScript = preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
+const OrbitModeScript = preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
+const U_VCAM_ACTIONS = preload("res://scripts/state/actions/u_vcam_actions.gd")
 const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 class FakeBody extends CharacterBody3D:
@@ -290,3 +294,130 @@ func test_movement_system_processes_without_manual_wiring() -> void:
 	manager._physics_process(0.1)
 
 	assert_true(body.velocity.x > 0.0, "Movement System should use query_entities to retrieve input component without manual wiring.")
+
+func test_ots_active_with_null_profile_uses_base_movement_settings() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var movement: C_MovementComponent = context["movement"]
+	var input: C_InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var manager: M_ECSManager = context["manager"]
+	var store: M_StateStore = context["store"]
+
+	movement.settings.use_second_order_dynamics = false
+	movement.settings.max_speed = 5.0
+	movement.settings.acceleration = 100.0
+	input.set_move_vector(Vector2.RIGHT)
+	input.set_sprint_pressed(false)
+
+	var ots_mode: RS_VCamModeOTS = OTSModeScript.new()
+	ots_mode.movement_profile = null
+	ots_mode.disable_sprint = false
+	await _create_vcam_component(manager, StringName("cam_ots_base"), ots_mode)
+	_set_active_vcam(store, StringName("cam_ots_base"), "ots")
+	body.velocity = Vector3.ZERO
+	manager._physics_process(0.1)
+
+	assert_almost_eq(body.velocity.x, 5.0, 0.01)
+
+func test_ots_movement_profile_overrides_base_settings_when_active() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var movement: C_MovementComponent = context["movement"]
+	var input: C_InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var manager: M_ECSManager = context["manager"]
+	var store: M_StateStore = context["store"]
+
+	movement.settings.use_second_order_dynamics = false
+	movement.settings.max_speed = 6.0
+	movement.settings.acceleration = 100.0
+	input.set_move_vector(Vector2.RIGHT)
+	input.set_sprint_pressed(false)
+
+	var profile := RS_MovementSettings.new()
+	profile.max_speed = 2.5
+	profile.acceleration = 100.0
+	profile.use_second_order_dynamics = false
+
+	var ots_mode: RS_VCamModeOTS = OTSModeScript.new()
+	ots_mode.movement_profile = profile
+	ots_mode.disable_sprint = false
+	await _create_vcam_component(manager, StringName("cam_ots_profile"), ots_mode)
+	_set_active_vcam(store, StringName("cam_ots_profile"), "ots")
+
+	body.velocity = Vector3.ZERO
+	manager._physics_process(0.1)
+	assert_almost_eq(body.velocity.x, 2.5, 0.01)
+
+	body.velocity = Vector3.ZERO
+	_set_active_vcam(store, StringName(""), "")
+	manager._physics_process(0.1)
+	assert_almost_eq(body.velocity.x, 6.0, 0.01)
+
+func test_ots_disable_sprint_ignores_sprint_input() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var movement: C_MovementComponent = context["movement"]
+	var input: C_InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var manager: M_ECSManager = context["manager"]
+	var store: M_StateStore = context["store"]
+
+	movement.settings.use_second_order_dynamics = false
+	movement.settings.max_speed = 5.0
+	movement.settings.sprint_speed_multiplier = 2.0
+	movement.settings.acceleration = 100.0
+	input.set_move_vector(Vector2.RIGHT)
+	input.set_sprint_pressed(true)
+
+	var ots_mode: RS_VCamModeOTS = OTSModeScript.new()
+	ots_mode.disable_sprint = true
+	await _create_vcam_component(manager, StringName("cam_ots_disable_sprint"), ots_mode)
+	_set_active_vcam(store, StringName("cam_ots_disable_sprint"), "ots")
+
+	body.velocity = Vector3.ZERO
+	manager._physics_process(0.1)
+
+	assert_almost_eq(body.velocity.x, 5.0, 0.01)
+	assert_false(bool(movement.get_last_debug_snapshot().get("is_sprinting", true)))
+
+func test_non_ots_active_mode_ignores_ots_movement_profile() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var movement: C_MovementComponent = context["movement"]
+	var input: C_InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var manager: M_ECSManager = context["manager"]
+	var store: M_StateStore = context["store"]
+
+	movement.settings.use_second_order_dynamics = false
+	movement.settings.max_speed = 5.0
+	movement.settings.sprint_speed_multiplier = 2.0
+	movement.settings.acceleration = 100.0
+	input.set_move_vector(Vector2.RIGHT)
+	input.set_sprint_pressed(true)
+
+	await _create_vcam_component(manager, StringName("cam_orbit_active"), OrbitModeScript.new())
+	_set_active_vcam(store, StringName("cam_orbit_active"), "orbit")
+
+	body.velocity = Vector3.ZERO
+	manager._physics_process(0.1)
+	assert_almost_eq(body.velocity.x, 10.0, 0.01)
+
+func _create_vcam_component(manager: M_ECSManager, vcam_id: StringName, mode: Resource) -> C_VCamComponent:
+	var entity := Node3D.new()
+	entity.name = "E_%sVcam" % String(vcam_id)
+	manager.add_child(entity)
+	autofree(entity)
+	await _pump()
+
+	var component := VCamComponentScript.new()
+	component.vcam_id = vcam_id
+	component.mode = mode
+	entity.add_child(component)
+	await _pump()
+	return component
+
+func _set_active_vcam(store: M_StateStore, vcam_id: StringName, mode: String) -> void:
+	store.dispatch(U_VCAM_ACTIONS.set_active_runtime(vcam_id, mode))

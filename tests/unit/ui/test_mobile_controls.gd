@@ -256,6 +256,45 @@ func test_double_tap_outside_timing_or_distance_thresholds_does_not_trigger_came
 		"Taps outside distance threshold should not trigger camera_center"
 	)
 
+func test_long_press_empty_space_toggles_aim_on_and_off() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var press_position := _get_empty_tap_position(controls)
+	_press_mobile_touch(controls, 70, press_position)
+	await get_tree().create_timer(UI_MobileControls.AIM_LONG_PRESS_THRESHOLD_SEC + 0.05).timeout
+	assert_true(controls.consume_aim_pressed(), "First long press should toggle aim on")
+	_release_mobile_touch(controls, 70, press_position)
+
+	_press_mobile_touch(controls, 71, press_position)
+	await get_tree().create_timer(UI_MobileControls.AIM_LONG_PRESS_THRESHOLD_SEC + 0.05).timeout
+	assert_false(controls.consume_aim_pressed(), "Second long press should toggle aim off")
+	_release_mobile_touch(controls, 71, press_position)
+
+func test_dragging_beyond_threshold_cancels_aim_long_press_toggle() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+
+	var start := _get_empty_tap_position(controls)
+	_press_mobile_touch(controls, 72, start)
+	var cancel_drag := InputEventScreenDrag.new()
+	cancel_drag.index = 72
+	cancel_drag.position = start + Vector2(UI_MobileControls.AIM_LONG_PRESS_MAX_DRIFT_PX + 20.0, 0.0)
+	controls._input(cancel_drag)
+	await get_tree().create_timer(UI_MobileControls.AIM_LONG_PRESS_THRESHOLD_SEC + 0.05).timeout
+	assert_false(controls.consume_aim_pressed(), "Long press should not toggle after drag drift exceeds threshold")
+	_release_mobile_touch(controls, 72, cancel_drag.position)
+
 func test_drag_look_reports_delta_and_active_state() -> void:
 	var store := await _create_state_store()
 	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
@@ -356,6 +395,15 @@ func _drag_mobile_controls(controls: UI_MobileControls, touch_id: int, start: Ve
 	drag.index = touch_id
 	drag.position = finish
 	controls._input(drag)
+
+func _press_mobile_touch(controls: UI_MobileControls, touch_id: int, position: Vector2) -> void:
+	if controls == null:
+		return
+	var pressed := InputEventScreenTouch.new()
+	pressed.index = touch_id
+	pressed.pressed = true
+	pressed.position = position
+	controls._input(pressed)
 
 func _release_mobile_touch(controls: UI_MobileControls, touch_id: int, position: Vector2) -> void:
 	if controls == null:

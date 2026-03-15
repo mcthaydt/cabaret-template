@@ -46,6 +46,7 @@ translations = {
 "hud.loading_tip_pause": "Consejo: Pulsa ESC para pausar",
 "hud.loading_tip_settings": "Consejo: Ajusta la configuración en el menú de pausa",
 "input.action.attack": "Ataque",
+"input.action.aim": "Apuntar",
 "input.action.camera_center": "Centrar Cámara",
 "input.action.camera_down": "Cámara Abajo",
 "input.action.camera_left": "Cámara Izquierda",

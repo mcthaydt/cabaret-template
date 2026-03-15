@@ -46,6 +46,7 @@ translations = {
 "hud.loading_tip_pause": "ヒント：ESCキーでポーズ",
 "hud.loading_tip_settings": "ヒント：ポーズメニューからいつでも設定を変更できます",
 "input.action.attack": "攻撃",
+"input.action.aim": "照準",
 "input.action.camera_center": "カメラ中央",
 "input.action.camera_down": "カメラ下",
 "input.action.camera_left": "カメラ左",

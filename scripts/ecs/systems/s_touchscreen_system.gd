@@ -49,6 +49,7 @@ func process_tick(__delta: float) -> void:
 
 	var move_vector := _get_move_vector()
 	var look_delta := _consume_look_delta()
+	var aim_pressed := _consume_aim_pressed()
 	var touch_look_active := _is_touch_look_active()
 	var jump_pressed := _get_button_pressed(StringName("jump"))
 	var sprint_pressed := _get_button_pressed(StringName("sprint"))
@@ -59,13 +60,14 @@ func process_tick(__delta: float) -> void:
 		store,
 		move_vector,
 		look_delta,
+		aim_pressed,
 		touch_look_active,
 		jump_pressed,
 		jump_just_pressed,
 		sprint_pressed,
 		camera_center_just_pressed
 	)
-	_update_components(move_vector, look_delta, jump_just_pressed, sprint_pressed)
+	_update_components(move_vector, look_delta, aim_pressed, jump_just_pressed, sprint_pressed)
 
 	_last_jump_pressed = jump_pressed
 
@@ -158,6 +160,11 @@ func _consume_look_delta() -> Vector2:
 		return Vector2.ZERO
 	return _mobile_controls.consume_look_delta()
 
+func _consume_aim_pressed() -> bool:
+	if _mobile_controls == null or not is_instance_valid(_mobile_controls):
+		return false
+	return _mobile_controls.consume_aim_pressed()
+
 func _is_touch_look_active() -> bool:
 	if _mobile_controls == null or not is_instance_valid(_mobile_controls):
 		return false
@@ -167,6 +174,7 @@ func _dispatch_state(
 	store: I_StateStore,
 	move_vector: Vector2,
 	look_delta: Vector2,
+	aim_pressed: bool,
 	touch_look_active: bool,
 	jump_pressed: bool,
 	jump_just_pressed: bool,
@@ -177,6 +185,7 @@ func _dispatch_state(
 		return
 	store.dispatch(U_InputActions.update_move_input(move_vector))
 	store.dispatch(U_InputActions.update_look_input(look_delta))
+	store.dispatch(U_InputActions.update_aim_state(aim_pressed))
 	store.dispatch(U_InputActions.update_camera_center_state(camera_center_just_pressed))
 	store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
 	store.dispatch(U_InputActions.update_sprint_state(sprint_pressed))
@@ -193,6 +202,7 @@ func _dispatch_touch_look_active_if_changed(store: I_StateStore, active: bool) -
 func _update_components(
 	move_vector: Vector2,
 	look_delta: Vector2,
+	aim_pressed: bool,
 	jump_just_pressed: bool,
 	sprint_pressed: bool
 ) -> void:
@@ -206,6 +216,7 @@ func _update_components(
 			continue
 
 		input_component.set_move_vector(move_vector)
+		input_component.set_aim_pressed(aim_pressed)
 		input_component.set_sprint_pressed(sprint_pressed)
 		if jump_just_pressed:
 			input_component.set_jump_pressed(true)

@@ -35,6 +35,7 @@ func is_active() -> bool:
 ## {
 ##   move_input: Vector2,
 ##   look_input: Vector2,
+##   aim_pressed: bool,
 ##   camera_center_just_pressed: bool,
 ##   jump_pressed: bool,
 ##   jump_just_pressed: bool,
@@ -45,6 +46,7 @@ func capture_input(_delta: float) -> Dictionary:
 	return {
 		"move_input": Vector2.ZERO,
 		"look_input": Vector2.ZERO,
+		"aim_pressed": false,
 		"camera_center_just_pressed": false,
 		"jump_pressed": false,
 		"jump_just_pressed": false,

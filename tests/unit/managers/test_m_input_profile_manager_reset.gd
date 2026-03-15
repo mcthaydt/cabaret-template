@@ -6,7 +6,7 @@ var _manager: M_InputProfileManager
 
 func before_each() -> void:
 	_cleanup_input_settings_files()
-	_clear_actions(["sprint", "jump", "camera_center"])
+	_clear_actions(["sprint", "jump", "aim", "camera_center"])
 
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
@@ -29,7 +29,7 @@ func after_each() -> void:
 		_store.queue_free()
 	_store = null
 	_manager = null
-	_clear_actions(["sprint", "jump", "camera_center"])
+	_clear_actions(["sprint", "jump", "aim", "camera_center"])
 	_cleanup_input_settings_files()
 	await _pump()
 

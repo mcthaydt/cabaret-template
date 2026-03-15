@@ -23,6 +23,7 @@ const DeviceType := U_DeviceTypeConstants.DeviceType
 @export var look_right_action: StringName = StringName("look_right")
 @export var look_up_action: StringName = StringName("look_up")
 @export var look_down_action: StringName = StringName("look_down")
+@export var aim_action: StringName = StringName("aim")
 @export var camera_center_action: StringName = StringName("camera_center")
 @export var jump_action: StringName = StringName("jump")
 @export var sprint_action: StringName = StringName("sprint")
@@ -125,6 +126,7 @@ func process_tick(_delta: float) -> void:
 	var input_data := input_source.capture_input(_delta)
 	var final_movement: Vector2 = input_data.get("move_input", Vector2.ZERO)
 	var look_delta: Vector2 = input_data.get("look_input", Vector2.ZERO)
+	var aim_pressed: bool = bool(input_data.get("aim_pressed", false))
 	var camera_center_just_pressed: bool = bool(input_data.get("camera_center_just_pressed", false))
 	var jump_pressed: bool = input_data.get("jump_pressed", false)
 	var jump_just_pressed: bool = input_data.get("jump_just_pressed", false)
@@ -138,6 +140,7 @@ func process_tick(_delta: float) -> void:
 	if store:
 		store.dispatch(U_InputActions.update_move_input(final_movement))
 		store.dispatch(U_InputActions.update_look_input(look_delta))
+		store.dispatch(U_InputActions.update_aim_state(aim_pressed))
 		store.dispatch(U_InputActions.update_camera_center_state(camera_center_just_pressed))
 		store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
 		store.dispatch(U_InputActions.update_sprint_state(sprint_pressed))
@@ -153,6 +156,7 @@ func process_tick(_delta: float) -> void:
 			continue
 
 		input_component.set_move_vector(final_movement)
+		input_component.set_aim_pressed(aim_pressed)
 		input_component.set_sprint_pressed(sprint_pressed)
 		if jump_just_pressed:
 			input_component.set_jump_pressed(true)
@@ -217,6 +221,7 @@ func _validate_required_actions() -> void:
 		look_right_action,
 		look_up_action,
 		look_down_action,
+		aim_action,
 		camera_center_action,
 		jump_action,
 		sprint_action,
@@ -314,11 +319,13 @@ func _apply_settings_from_state(state: Dictionary) -> void:
 			keyboard_mouse_source.look_right_action = look_right_action
 			keyboard_mouse_source.look_up_action = look_up_action
 			keyboard_mouse_source.look_down_action = look_down_action
+			keyboard_mouse_source.aim_action = aim_action
 			keyboard_mouse_source.camera_center_action = camera_center_action
 
 		var gamepad_source := _input_device_manager.get_input_source_for_device(DeviceType.GAMEPAD) as GamepadSource
 		if gamepad_source:
 			gamepad_source.apply_settings(gamepad_settings)
+			gamepad_source.aim_action = aim_action
 			gamepad_source.camera_center_action = camera_center_action
 
 func _teardown_store_subscription() -> void:

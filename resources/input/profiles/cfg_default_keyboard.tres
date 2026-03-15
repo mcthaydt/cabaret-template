@@ -6,6 +6,10 @@
 script = ExtResource("1")
 profile_name = "input.profile.default_keyboard.name"
 action_mappings = {
+"aim": [{
+"button_index": 2,
+"type": "mouse_button"
+}],
 "camera_center": [{
 "physical_keycode": 67,
 "type": "key"

@@ -20,6 +20,8 @@ const SIGNPOST_MIN_DURATION_SEC: float = 0.05
 const SIGNPOST_VISIBILITY_BUFFER_SEC: float = 0.35
 const DOUBLE_TAP_MAX_INTERVAL_SEC: float = 0.30
 const DOUBLE_TAP_MAX_DISTANCE_PX: float = 72.0
+const AIM_LONG_PRESS_THRESHOLD_SEC: float = 0.35
+const AIM_LONG_PRESS_MAX_DRIFT_PX: float = 28.0
 
 var _state_store: I_StateStore = null
 var _unsubscribe: Callable = Callable()
@@ -46,8 +48,13 @@ var _awaiting_transition_signal: bool = false  # True when waiting for transitio
 var _signpost_hide_until_sec: float = -1.0
 var _is_signpost_visibility_blocked: bool = false
 var _pending_camera_center_just_pressed: bool = false
+var _aim_pressed: bool = false
 var _last_empty_space_tap_time_sec: float = -1.0
 var _last_empty_space_tap_position: Vector2 = Vector2.ZERO
+var _aim_touch_id: int = -1
+var _aim_touch_start_time_sec: float = -1.0
+var _aim_touch_start_position: Vector2 = Vector2.ZERO
+var _aim_touch_consumed: bool = false
 var _look_touch_id: int = -1
 var _look_touch_last_position: Vector2 = Vector2.ZERO
 var _pending_look_delta: Vector2 = Vector2.ZERO
@@ -111,8 +118,10 @@ func _exit_tree() -> void:
 	_signpost_hide_until_sec = -1.0
 	_is_signpost_visibility_blocked = false
 	_pending_camera_center_just_pressed = false
+	_aim_pressed = false
 	_last_empty_space_tap_time_sec = -1.0
 	_last_empty_space_tap_position = Vector2.ZERO
+	_clear_aim_long_press_state()
 	_reset_look_touch_state(true)
 	_unregister_from_input_device_manager()
 
@@ -127,15 +136,21 @@ func _input(event: InputEvent) -> void:
 		if touch.pressed:
 			_handle_empty_space_tap(touch.position)
 			_handle_look_touch_press(touch)
+			_handle_aim_long_press_touch_press(touch)
 		else:
+			_handle_aim_long_press_touch_release(touch)
 			_handle_look_touch_release(touch)
 	elif event is InputEventScreenDrag:
 		_handle_look_touch_drag(event as InputEventScreenDrag)
+		_handle_aim_long_press_touch_drag(event as InputEventScreenDrag)
 
 func consume_camera_center_just_pressed() -> bool:
 	var just_pressed := _pending_camera_center_just_pressed
 	_pending_camera_center_just_pressed = false
 	return just_pressed
+
+func consume_aim_pressed() -> bool:
+	return _aim_pressed
 
 func consume_look_delta() -> Vector2:
 	var look_delta := _pending_look_delta
@@ -251,6 +266,51 @@ func _handle_look_touch_release(event: InputEventScreenTouch) -> void:
 	if _look_touch_id == -1 or event.index != _look_touch_id:
 		return
 	_reset_look_touch_state(false)
+
+func _handle_aim_long_press_touch_press(event: InputEventScreenTouch) -> void:
+	if _aim_touch_id != -1:
+		return
+	if not _can_process_gameplay_touch():
+		return
+	if _is_touch_over_virtual_controls(event.position):
+		return
+	_aim_touch_id = event.index
+	_aim_touch_start_time_sec = U_ECSUtils.get_current_time()
+	_aim_touch_start_position = event.position
+	_aim_touch_consumed = false
+
+func _handle_aim_long_press_touch_drag(event: InputEventScreenDrag) -> void:
+	if _aim_touch_id == -1 or event.index != _aim_touch_id:
+		return
+	if _aim_touch_consumed:
+		return
+	if event.position.distance_to(_aim_touch_start_position) > AIM_LONG_PRESS_MAX_DRIFT_PX:
+		_clear_aim_long_press_state()
+
+func _handle_aim_long_press_touch_release(event: InputEventScreenTouch) -> void:
+	if _aim_touch_id == -1 or event.index != _aim_touch_id:
+		return
+	_clear_aim_long_press_state()
+
+func _clear_aim_long_press_state() -> void:
+	_aim_touch_id = -1
+	_aim_touch_start_time_sec = -1.0
+	_aim_touch_start_position = Vector2.ZERO
+	_aim_touch_consumed = false
+
+func _update_aim_long_press_toggle() -> void:
+	if _aim_touch_id == -1 or _aim_touch_consumed:
+		return
+	if not _can_process_gameplay_touch():
+		return
+	if _aim_touch_start_time_sec < 0.0:
+		return
+	var held_duration_sec: float = U_ECSUtils.get_current_time() - _aim_touch_start_time_sec
+	if held_duration_sec < AIM_LONG_PRESS_THRESHOLD_SEC:
+		return
+	_aim_pressed = not _aim_pressed
+	_aim_touch_consumed = true
+	_on_input_activity()
 
 func _reset_look_touch_state(clear_pending_delta: bool) -> void:
 	_look_touch_id = -1
@@ -445,6 +505,8 @@ func _update_navigation_state(state: Dictionary) -> void:
 		_awaiting_transition_signal = false
 	if not _can_process_gameplay_touch():
 		_reset_double_tap_state()
+		_aim_pressed = false
+		_clear_aim_long_press_state()
 		_reset_look_touch_state(true)
 
 func _update_visibility() -> void:
@@ -519,6 +581,7 @@ func _on_input_activity(__data: Variant = null) -> void:
 	_is_fading = true
 
 func _process(_delta: float) -> void:
+	_update_aim_long_press_toggle()
 	_update_signpost_visibility_gate()
 	if _controls_root == null or not _is_fading:
 		return

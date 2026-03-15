@@ -24,6 +24,7 @@ var _invert_right_stick_y: bool = false
 var _deadzone_curve: int = RS_GamepadSettings.DeadzoneCurve.LINEAR
 
 # Action names
+var aim_action: StringName = StringName("aim")
 var camera_center_action: StringName = StringName("camera_center")
 var jump_action: StringName = StringName("jump")
 var sprint_action: StringName = StringName("sprint")
@@ -55,6 +56,7 @@ func is_active() -> bool:
 
 func capture_input(_delta: float) -> Dictionary:
 	# Capture button states
+	var aim_pressed := Input.is_action_pressed(aim_action)
 	var camera_center_just_pressed := Input.is_action_just_pressed(camera_center_action)
 	var jump_pressed := Input.is_action_pressed(jump_action)
 	var jump_just_pressed := Input.is_action_just_pressed(jump_action)
@@ -67,6 +69,7 @@ func capture_input(_delta: float) -> Dictionary:
 	if (
 		not _left_stick_processed.is_zero_approx()
 		or not _right_stick_processed.is_zero_approx()
+		or aim_pressed
 		or camera_center_just_pressed
 		or jump_pressed
 		or sprint_pressed
@@ -76,6 +79,7 @@ func capture_input(_delta: float) -> Dictionary:
 	return {
 		"move_input": _left_stick_processed,
 		"look_input": look_delta,
+		"aim_pressed": aim_pressed,
 		"camera_center_just_pressed": camera_center_just_pressed,
 		"jump_pressed": jump_pressed,
 		"jump_just_pressed": jump_just_pressed,

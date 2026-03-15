@@ -4,6 +4,7 @@ class_name RS_VCamModeOTS
 
 const MIN_LOOK_MULTIPLIER: float = 0.0001
 const MIN_POSITIVE_FREQUENCY: float = 0.0001
+const MIN_AIM_BLEND_DURATION: float = 0.01
 const MIN_FOV: float = 1.0
 const MAX_FOV: float = 179.0
 const DEFAULT_SHOULDER_SWAY_SMOOTHING: float = 6.0
@@ -21,6 +22,10 @@ const DEFAULT_LANDING_DIP_RECOVERY_SPEED: float = 6.0
 @export var shoulder_sway_smoothing: float = DEFAULT_SHOULDER_SWAY_SMOOTHING
 @export var landing_dip_distance: float = 0.0
 @export var landing_dip_recovery_speed: float = DEFAULT_LANDING_DIP_RECOVERY_SPEED
+@export var movement_profile: RS_MovementSettings = null
+@export var disable_sprint: bool = true
+@export var lock_facing_to_camera: bool = true
+@export var aim_blend_duration: float = 0.15
 
 func get_resolved_values() -> Dictionary:
 	var resolved_pitch_min: float = minf(pitch_min, pitch_max)
@@ -38,4 +43,8 @@ func get_resolved_values() -> Dictionary:
 		"shoulder_sway_smoothing": maxf(shoulder_sway_smoothing, 0.0),
 		"landing_dip_distance": maxf(landing_dip_distance, 0.0),
 		"landing_dip_recovery_speed": maxf(landing_dip_recovery_speed, MIN_POSITIVE_FREQUENCY),
+		"movement_profile": movement_profile,
+		"disable_sprint": disable_sprint,
+		"lock_facing_to_camera": lock_facing_to_camera,
+		"aim_blend_duration": maxf(aim_blend_duration, MIN_AIM_BLEND_DURATION),
 	}
