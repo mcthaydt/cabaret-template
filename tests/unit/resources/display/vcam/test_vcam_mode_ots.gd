@@ -192,3 +192,14 @@ func test_default_ots_preset_references_ots_movement_profile() -> void:
 		movement_profile.get_script() == MOVEMENT_SETTINGS_SCRIPT,
 		"Default OTS movement profile should use RS_MovementSettings"
 	)
+
+func test_default_ots_preset_uses_grounded_vertical_framing_values() -> void:
+	var preset := load(DEFAULT_OTS_PATH) as Resource
+	assert_not_null(preset, "Default OTS preset should load")
+	var shoulder_offset: Vector3 = preset.get("shoulder_offset") as Vector3
+	assert_almost_eq(shoulder_offset.x, 0.25, 0.0001)
+	assert_almost_eq(shoulder_offset.y, 2.0, 0.0001)
+	assert_almost_eq(shoulder_offset.z, -1.2, 0.0001)
+	assert_almost_eq(float(preset.get("camera_distance")), 2.2, 0.0001)
+	assert_almost_eq(float(preset.get("pitch_min")), -35.0, 0.0001)
+	assert_almost_eq(float(preset.get("pitch_max")), 25.0, 0.0001)

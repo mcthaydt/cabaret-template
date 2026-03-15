@@ -49,6 +49,7 @@ const DEFAULT_OTS_AIM_BLEND_DURATION: float = 0.15
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
 @export var debug_rotation_logging: bool = false
+@export var debug_ots_vertical_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_rotation_log_interval_sec: float = 0.25
 
 var _state_store: I_StateStore = null
@@ -77,11 +78,14 @@ var _landing_recovery_state_id: int = 0
 var _landing_recovery_frequency_hz: float = -1.0
 var _debug_rotation_log_cooldown_sec: float = 0.0
 var _debug_state_log_cooldown_sec: float = 0.0
+var _debug_ots_vertical_log_cooldown_sec: float = 0.0
 var _debug_follow_target_ids: Dictionary = {}  # StringName -> int
 var _debug_look_ahead_motion_state: Dictionary = {}  # StringName -> bool
 var _debug_soft_zone_status: Dictionary = {}  # StringName -> String reason/state
 var _debug_landing_offset_status: int = -1  # -1 unknown, 0 inactive, 1 active
 var _debug_last_look_input_by_vcam: Dictionary = {}  # StringName -> Vector2
+var _debug_ots_profile_signature_by_vcam: Dictionary = {}  # StringName -> String
+var _debug_ots_pitch_clamped_by_vcam: Dictionary = {}  # StringName -> bool
 var _debug_position_smoothing_bypass_by_vcam: Dictionary = {}  # StringName -> bool
 var _debug_last_look_spring_stage_by_vcam: Dictionary = {}  # StringName -> String
 var _event_unsubscribers: Array[Callable] = []
@@ -96,6 +100,8 @@ func process_tick(delta: float) -> void:
 	if debug_rotation_logging:
 		_debug_rotation_log_cooldown_sec = maxf(_debug_rotation_log_cooldown_sec - maxf(delta, 0.0), 0.0)
 		_debug_state_log_cooldown_sec = maxf(_debug_state_log_cooldown_sec - maxf(delta, 0.0), 0.0)
+	if debug_ots_vertical_logging:
+		_debug_ots_vertical_log_cooldown_sec = maxf(_debug_ots_vertical_log_cooldown_sec - maxf(delta, 0.0), 0.0)
 	var manager := _resolve_vcam_manager()
 	if manager == null:
 		_debug_log_vcam_state("blocked: no vcam_manager service", StringName(""), Vector2.ZERO)
@@ -445,6 +451,16 @@ func _evaluate_and_submit(
 	)
 	if result.is_empty():
 		return
+	_debug_log_ots_vertical_diagnostics(
+		vcam_id,
+		mode,
+		follow_target,
+		look_input,
+		filtered_look_input,
+		has_active_look_input,
+		runtime_rotation,
+		result
+	)
 	result = _apply_first_person_strafe_tilt(vcam_id, mode, result, move_input, delta)
 	result = _apply_ots_shoulder_sway(vcam_id, mode, result, move_input, delta)
 	result = _apply_ots_collision_avoidance(vcam_id, mode, follow_target, result, delta)
@@ -1375,6 +1391,16 @@ func _update_runtime_rotation(
 		if mode_script == RS_VCAM_MODE_OTS_SCRIPT:
 			pitch_delta *= -1.0
 		component.runtime_pitch += pitch_delta
+		if mode_script == RS_VCAM_MODE_OTS_SCRIPT:
+			var ots_values: Dictionary = _resolve_mode_values(mode, {
+				"pitch_min": -60.0,
+				"pitch_max": 50.0,
+			})
+			component.runtime_pitch = clampf(
+				component.runtime_pitch,
+				float(ots_values.get("pitch_min", -60.0)),
+				float(ots_values.get("pitch_max", 50.0))
+			)
 		var mode_label: String = "first_person" if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT else "ots"
 		_debug_log_rotation(
 			vcam_id,
@@ -2581,6 +2607,8 @@ func _clear_all_smoothing_state() -> void:
 	_debug_soft_zone_status.clear()
 	_debug_landing_offset_status = -1
 	_debug_last_look_input_by_vcam.clear()
+	_debug_ots_profile_signature_by_vcam.clear()
+	_debug_ots_pitch_clamped_by_vcam.clear()
 	_debug_position_smoothing_bypass_by_vcam.clear()
 	_debug_last_look_spring_stage_by_vcam.clear()
 	_landing_response_event_serial = 0
@@ -2601,6 +2629,8 @@ func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_debug_look_ahead_motion_state.erase(vcam_id)
 	_debug_soft_zone_status.erase(vcam_id)
 	_debug_last_look_input_by_vcam.erase(vcam_id)
+	_debug_ots_profile_signature_by_vcam.erase(vcam_id)
+	_debug_ots_pitch_clamped_by_vcam.erase(vcam_id)
 	_debug_position_smoothing_bypass_by_vcam.erase(vcam_id)
 	_debug_last_look_spring_stage_by_vcam.erase(vcam_id)
 
@@ -3573,6 +3603,133 @@ func _debug_log_look_input_transition(vcam_id: StringName, look_input: Vector2) 
 		)
 
 	_debug_last_look_input_by_vcam[vcam_id] = look_input
+
+func _debug_log_ots_vertical_diagnostics(
+	vcam_id: StringName,
+	mode: Resource,
+	follow_target: Node3D,
+	raw_look_input: Vector2,
+	filtered_look_input: Vector2,
+	has_active_look_input: bool,
+	runtime_rotation: Vector2,
+	evaluator_result: Dictionary
+) -> void:
+	if not debug_rotation_logging and not debug_ots_vertical_logging:
+		return
+	if mode == null:
+		return
+	var mode_script := mode.get_script() as Script
+	if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
+		_debug_ots_profile_signature_by_vcam.erase(vcam_id)
+		_debug_ots_pitch_clamped_by_vcam.erase(vcam_id)
+		return
+
+	var mode_values: Dictionary = _resolve_mode_values(mode, {
+		"shoulder_offset": Vector3.ZERO,
+		"camera_distance": 0.0,
+		"pitch_position_influence": 0.2,
+		"look_multiplier": 1.0,
+		"pitch_min": -60.0,
+		"pitch_max": 50.0,
+		"fov": 60.0,
+	})
+	var pitch_min: float = float(mode_values.get("pitch_min", -60.0))
+	var pitch_max: float = float(mode_values.get("pitch_max", 50.0))
+	var clamped_pitch: float = clampf(runtime_rotation.y, pitch_min, pitch_max)
+	var clamp_delta: float = runtime_rotation.y - clamped_pitch
+	var clamp_active: bool = not is_equal_approx(clamp_delta, 0.0)
+	var previous_clamp_active: bool = bool(_debug_ots_pitch_clamped_by_vcam.get(vcam_id, clamp_active))
+	_debug_ots_pitch_clamped_by_vcam[vcam_id] = clamp_active
+
+	var shoulder_offset_variant: Variant = mode_values.get("shoulder_offset", Vector3.ZERO)
+	var shoulder_offset: Vector3 = shoulder_offset_variant as Vector3 if shoulder_offset_variant is Vector3 else Vector3.ZERO
+	var camera_distance: float = float(mode_values.get("camera_distance", 0.0))
+	var pitch_position_influence: float = float(mode_values.get("pitch_position_influence", 0.2))
+	var look_multiplier: float = float(mode_values.get("look_multiplier", 1.0))
+	var resolved_fov: float = float(mode_values.get("fov", 60.0))
+
+	var profile_signature: String = "%.3f|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f" % [
+		pitch_min,
+		pitch_max,
+		look_multiplier,
+		shoulder_offset.x,
+		shoulder_offset.y,
+		shoulder_offset.z,
+		camera_distance,
+		pitch_position_influence,
+		resolved_fov,
+	]
+	var previous_signature: String = str(_debug_ots_profile_signature_by_vcam.get(vcam_id, ""))
+	if previous_signature != profile_signature:
+		_debug_ots_profile_signature_by_vcam[vcam_id] = profile_signature
+		print(
+			"S_VCamSystem[debug] ots_profile: vcam_id=%s pitch=[%.2f,%.2f] look_multiplier=%.3f shoulder_offset=%s camera_distance=%.3f pitch_position_influence=%.3f fov=%.2f"
+			% [
+				str(vcam_id),
+				pitch_min,
+				pitch_max,
+				look_multiplier,
+				str(shoulder_offset),
+				camera_distance,
+				pitch_position_influence,
+				resolved_fov,
+			]
+		)
+
+	var transform_variant: Variant = evaluator_result.get("transform", null)
+	if not (transform_variant is Transform3D):
+		return
+	var transform := transform_variant as Transform3D
+	var forward: Vector3 = -transform.basis.z
+	var look_dir: String = "level"
+	if forward.y > 0.001:
+		look_dir = "up"
+	elif forward.y < -0.001:
+		look_dir = "down"
+
+	var follow_height_delta: float = 0.0
+	if follow_target != null and is_instance_valid(follow_target):
+		follow_height_delta = transform.origin.y - follow_target.global_position.y
+
+	if previous_clamp_active != clamp_active:
+		print(
+			"S_VCamSystem[debug] ots_pitch_clamp_state: vcam_id=%s active=%s runtime_pitch=%.3f clamped_pitch=%.3f clamp_delta=%.3f limits=[%.3f,%.3f]"
+			% [
+				str(vcam_id),
+				str(clamp_active),
+				runtime_rotation.y,
+				clamped_pitch,
+				clamp_delta,
+				pitch_min,
+				pitch_max,
+			]
+		)
+
+	var vertical_message: String = (
+		"ots_vertical raw_y=%.4f filtered_y=%.4f active_input=%s runtime_pitch=%.3f clamped_pitch=%.3f limits=[%.3f,%.3f] look_multiplier=%.3f clamp_active=%s follow_height_delta=%.3f forward_y=%.4f look_dir=%s"
+		% [
+			raw_look_input.y,
+			filtered_look_input.y,
+			str(has_active_look_input),
+			runtime_rotation.y,
+			clamped_pitch,
+			pitch_min,
+			pitch_max,
+			look_multiplier,
+			str(clamp_active),
+			follow_height_delta,
+			forward.y,
+			look_dir,
+		]
+	)
+	if debug_rotation_logging:
+		_debug_log_rotation(vcam_id, vertical_message)
+		return
+	if _debug_ots_vertical_log_cooldown_sec > 0.0:
+		return
+	var interval: float = maxf(debug_rotation_log_interval_sec, 0.05)
+	_debug_ots_vertical_log_cooldown_sec = interval
+	print("S_VCamSystem[debug] %s: %s" % [str(vcam_id), vertical_message])
 
 func _debug_log_look_filter_state_transition(
 	vcam_id: StringName,

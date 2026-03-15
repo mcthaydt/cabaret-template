@@ -255,6 +255,25 @@ Before starting Phase 3, verify:
 
 **Depends on:** Phase 6A2 (second-order dynamics in S_VCamSystem) and Phase 3B (OTS evaluator) must be complete before implementing OTS feel features.
 
+### Post-Phase Maintenance (March 15, 2026)
+
+- [x] **Task M-OTS-1 (TDD bugfix): Clamp OTS runtime pitch state + tune default vertical framing**
+  - Added failing system tests in `tests/unit/ecs/systems/test_vcam_system.gd`:
+    - `test_ots_runtime_pitch_clamps_to_lower_bound_during_input_accumulation`
+    - `test_ots_runtime_pitch_clamps_to_upper_bound_during_input_accumulation`
+  - Added failing preset-tuning test in `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd`:
+    - `test_default_ots_preset_uses_grounded_vertical_framing_values`
+  - Implemented fix in `S_VCamSystem`:
+    - OTS branch now clamps `component.runtime_pitch` to authored `pitch_min`/`pitch_max` immediately after input accumulation (pre-evaluator).
+  - Tuned default OTS preset in `resources/display/vcam/cfg_default_ots.tres`:
+    - `shoulder_offset` set to `Vector3(0.25, 2.0, -1.2)` (moved camera anchor closer to head while keeping pullback for tight FOV framing)
+    - `camera_distance` set to `2.2`
+    - `pitch_min` set to `-35.0`
+    - `pitch_max` set to `25.0`
+  - Validation:
+    - `tests/unit/ecs/systems/test_vcam_system.gd` (`130/130`)
+    - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`28/28`)
+
 > **Why OTS-specific?** Over-the-shoulder game feel differs from both orbit and first-person. The camera sits behind and beside the character in a tight shoulder view — collision avoidance is critical to prevent wall clipping, shoulder sway provides embodied movement feedback from the third-person perspective, and landing camera response uses distance compression rather than pitch dip since the camera is external to the character.
 
 ### Phase 3C1: Collision Avoidance (Most Critical OTS Feature)

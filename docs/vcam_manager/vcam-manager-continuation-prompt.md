@@ -17,6 +17,7 @@
 - Phase 3C4 aiming scope is now implementation-complete: slice 1 (aim activation + input plumbing + movement/rotation integrations) plus reticle UI (`3C4.9`/`3C4.10`) and default OTS movement preset (`3C4.11`) are landed with targeted coverage.
 - Immediate validation target:
   - Run manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`), with emphasis on mobile long-press joystick exclusion and reticle fade behavior in gameplay.
+  - Post-Phase maintenance completed (March 15, 2026): OTS vertical framing bugfix landed via TDD (runtime OTS pitch now clamps to authored bounds in `S_VCamSystem`; default `cfg_default_ots.tres` tuned to head-level framing with higher shoulder anchor, pullback distance, and tighter pitch range).
 
 ## OTS Mode Replacement (March 14, 2026)
 
