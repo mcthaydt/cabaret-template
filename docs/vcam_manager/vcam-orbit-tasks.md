@@ -438,6 +438,50 @@ Before starting Phase 2, verify:
 
 ---
 
+### Phase 2C8 Follow-up: Input Consistency + Icon Coverage (March 15, 2026)
+
+> **Why:** Align default bindings with locked intent (`sprint=L3`, `camera_center=R3`), keep labels/icons canonical with Godot 4.6 constants, and expose touchscreen recenter via empty-space double-tap while keeping recenter in the shared input pipeline.
+
+- [x] **Task 2C8F.1**: Lock default bindings to intent (`camera_center=R3`, `sprint=L3`)
+  - Updated `project.godot` `camera_center` joypad default from index `10` to `JOY_BUTTON_RIGHT_STICK` (`8`).
+  - Updated `resources/input/profiles/cfg_default_gamepad.tres` and `cfg_accessibility_gamepad.tres` to bind `camera_center` to `JOY_BUTTON_RIGHT_STICK` (`8`).
+  - Left `sprint` bound to `JOY_BUTTON_LEFT_STICK` (`7`) unchanged.
+
+- [x] **Task 2C8F.2**: Canonicalize gamepad label mapping and prompt icon behavior
+  - `U_ButtonPromptRegistry._gamepad_button_to_label(...)` now uses Godot joypad constants (not legacy hardcoded index assumptions).
+  - Added explicit `camera_center` prompt defaults: keyboard `key_c` + gamepad `button_rs` (`R3`).
+  - Prompt icon resolution is now binding-aware (`InputMap` binding texture first, registry fallback second) via `U_ButtonPromptRegistry.get_prompt_for_current_binding(...)`.
+  - Added keyboard glyph support for `KEY_C` in `U_InputEventDisplay.get_texture_for_event(...)`.
+
+- [x] **Task 2C8F.3**: Add touchscreen empty-space double-tap recenter
+  - `UI_MobileControls` now detects empty-space double-tap with:
+    - `DOUBLE_TAP_MAX_INTERVAL_SEC = 0.30`
+    - `DOUBLE_TAP_MAX_DISTANCE_PX = 72.0`
+  - Added one-shot public API: `consume_camera_center_just_pressed() -> bool`.
+  - `S_TouchscreenSystem` now dispatches `U_InputActions.update_camera_center_state(...)` from that one-shot consume path.
+  - Tap-over-controls and out-of-threshold taps do not trigger recenter.
+
+- [x] **Task 2C8F.4**: Add coverage and validation runs
+  - Added/updated tests:
+    - `tests/unit/input_manager/test_u_button_prompt_registry.gd`
+    - `tests/unit/ui/test_button_prompt.gd`
+    - `tests/unit/ui/test_mobile_controls.gd`
+    - `tests/unit/ecs/systems/test_s_touchscreen_system.gd`
+    - `tests/unit/managers/test_m_input_profile_manager_reset.gd`
+    - `tests/unit/resources/test_rs_input_profile.gd`
+  - Validation run:
+    - `tests/unit/input_manager` (`102/102` passing)
+    - `tests/unit/ui/test_button_prompt.gd` (`15/15` passing)
+    - `tests/unit/ui/test_hud_button_prompts.gd` (`3/3` passing)
+    - `tests/unit/ui/test_mobile_controls.gd` (`12/12` passing)
+    - `tests/unit/ecs/systems/test_s_touchscreen_system.gd` (`4/4` passing)
+    - `tests/unit/ecs/systems/test_vcam_system.gd` (`94/94` passing)
+    - `tests/unit/managers/test_m_input_profile_manager_reset.gd` (`1/1` passing)
+    - `tests/unit/resources/test_rs_input_profile.gd` (`8/8` passing)
+    - `tests/unit/style/test_style_enforcement.gd` (`16/17`; unchanged pre-existing `ui_hud_overlay.tscn` inline-theme failure)
+
+---
+
 ### Phase 2C9: RS_RoomFadeSettings Resource + C_RoomFadeGroupComponent (Data Layer)
 
 > **Why:** Xenogears-style room wall/ceiling fading: when the orbit camera looks at the back side of a wall or ceiling, that geometry alpha-dissolves so the player remains visible. This complements (not replaces) Phase 10 silhouette occlusion — walls/ceilings use room fading, other occluders use silhouettes.

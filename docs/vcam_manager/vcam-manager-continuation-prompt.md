@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, and the post-`0f51c36` orbit retune doc/test catch-up pass are complete as of March 15, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning plus ground-relative dual-anchor behavior, orbit release-smoothing enhancement with axis-specific damping + stop-threshold clamping, orbit button recenter pipeline + interpolation landing, room-fade data-layer resource/component scaffolding, room-fade shader/material/system runtime logic with orbit-only gating/non-orbit restoration, and room-fade integration/polish validation including multi-group/ceiling/mode-switch/coexistence/material-restore coverage). Next implementation target is mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 3A, 3B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, and the 2C8 input-consistency/icon-coverage follow-up are complete as of March 15, 2026 (touchscreen/keyboard look prerequisites, vCam runtime state plumbing, FOV-zone migration, base authoring resources, scalar/vector dynamics utilities, response-tuning resource defaults, orbit/first-person/fixed baseline resource+evaluator wiring, Phase 2A-5 gap-closure hardening, component/interface/manager core wiring, `S_VCamSystem` baseline implementation, runtime scene wiring, response-driven second-order smoothing integration, rotation-continuity carry/reset/reseed policy coverage, camera-state landing-impact scaffolding, QB-driven speed-FOV + landing-impact composition/rule integration, full orbit look-ahead/auto-level/soft-zone/hysteresis runtime tuning plus ground-relative dual-anchor behavior, orbit release-smoothing enhancement with axis-specific damping + stop-threshold clamping, orbit button recenter pipeline + interpolation landing, camera-center binding/icon consistency and touchscreen double-tap recenter support, room-fade data-layer resource/component scaffolding, room-fade shader/material/system runtime logic with orbit-only gating/non-orbit restoration, and room-fade integration/polish validation including multi-group/ceiling/mode-switch/coexistence/material-restore coverage). Next implementation target is mobile drag-look/touch gating prerequisite work, then Phase 9 first-person feel.
 
 ## Next Planned Work (March 15, 2026)
 
@@ -13,6 +13,36 @@
   - mobile drag-look/touch gating prerequisite work
 - Then:
   - Phase 9 first-person feel
+
+## Orbit Camera Center Input Consistency + Icon Coverage (Follow-up, March 15, 2026)
+
+- Default binding alignment:
+  - `camera_center` default gamepad binding is now `JOY_BUTTON_RIGHT_STICK` (`R3`, index `8`) in `project.godot`, `cfg_default_gamepad.tres`, and `cfg_accessibility_gamepad.tres`.
+  - `sprint` remains `JOY_BUTTON_LEFT_STICK` (`L3`, index `7`).
+- Prompt/icon contract updates:
+  - `U_ButtonPromptRegistry` now uses Godot joypad constants for label mapping (canonical `L3`/`R3`/`R1` behavior).
+  - Added explicit `camera_center` prompt defaults: keyboard `key_c` glyph and gamepad `button_rs` (`R3`).
+  - Gameplay prompts are now binding-aware: resolve icon from current `InputMap` event first, fallback to registry defaults second.
+  - Added `KEY_C` texture support in `U_InputEventDisplay`.
+- Touchscreen recenter input:
+  - `UI_MobileControls` now supports empty-space double-tap recenter (`0.30s` max interval, `72px` max distance) and exposes one-shot `consume_camera_center_just_pressed()`.
+  - `S_TouchscreenSystem` now dispatches `update_camera_center_state(...)` from this one-shot consume path instead of hardcoded `false`.
+- New/updated coverage:
+  - `test_u_button_prompt_registry` (constant mapping + camera-center icon defaults + binding-aware icon resolution)
+  - `test_button_prompt` (live gamepad rebind icon tracking for `camera_center`)
+  - `test_mobile_controls` (double-tap success/over-control reject/threshold reject + one-shot consume)
+  - `test_s_touchscreen_system` (double-tap dispatches one-frame `camera_center_just_pressed`)
+  - `test_m_input_profile_manager_reset` + `test_rs_input_profile` (default `camera_center=R3`, `sprint=L3`)
+- Validation run:
+  - `tests/unit/input_manager` (`102/102`)
+  - `tests/unit/ui/test_button_prompt.gd` (`15/15`)
+  - `tests/unit/ui/test_hud_button_prompts.gd` (`3/3`)
+  - `tests/unit/ui/test_mobile_controls.gd` (`12/12`)
+  - `tests/unit/ecs/systems/test_s_touchscreen_system.gd` (`4/4`)
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`94/94`)
+  - `tests/unit/managers/test_m_input_profile_manager_reset.gd` (`1/1`)
+  - `tests/unit/resources/test_rs_input_profile.gd` (`8/8`)
+  - `tests/unit/style/test_style_enforcement.gd` remains unchanged at known pre-existing HUD inline-theme failure (`16/17`).
 
 ## Orbit Room Fade Integration + Polish (Phase 2C11, March 15, 2026)
 

@@ -27,9 +27,11 @@ This document is the **single source of truth** for how ECS nodes (systems/compo
 | `S_InputSystem` | `U_InputActions.update_look_input(Vector2)` | per physics tick | Mouse delta / right-stick. |
 | `S_InputSystem` | `U_InputActions.update_jump_state(bool, bool)` | per physics tick | `(pressed, just_pressed)` form. |
 | `S_InputSystem` | `U_InputActions.update_sprint_state(bool)` | per physics tick | Supports accessibility sprint toggle via settings. |
+| `S_InputSystem` | `U_InputActions.update_camera_center_state(bool)` | per physics tick | Edge-triggered `camera_center_just_pressed` from keyboard/mouse/gamepad sources. |
 | `S_TouchscreenSystem` | `U_InputActions.update_move_input(Vector2)` | per physics tick (touchscreen active) | Only runs when active device is touchscreen. |
 | `S_TouchscreenSystem` | `U_InputActions.update_jump_state(bool, bool)` | per physics tick (touchscreen active) | Button-derived jump edge detection. |
 | `S_TouchscreenSystem` | `U_InputActions.update_sprint_state(bool)` | per physics tick (touchscreen active) | Touch sprint button. |
+| `S_TouchscreenSystem` | `U_InputActions.update_camera_center_state(bool)` | per physics tick (touchscreen active) | Consumes one-shot recenter requests from `UI_MobileControls` empty-space double-tap input. |
 
 ### Gameplay slice (`U_GameplayActions`)
 
