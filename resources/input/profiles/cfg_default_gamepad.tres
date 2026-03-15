@@ -7,16 +7,16 @@ script = ExtResource("1")
 profile_name = "input.profile.default_gamepad.name"
 device_type = 1
 action_mappings = {
+"camera_center": [{
+"button_index": 10,
+"type": "joypad_button"
+}],
 "interact": [{
 "button_index": 2,
 "type": "joypad_button"
 }],
 "jump": [{
 "button_index": 0,
-"type": "joypad_button"
-}],
-"camera_center": [{
-"button_index": 10,
 "type": "joypad_button"
 }],
 "move_backward": [{
