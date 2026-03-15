@@ -15,8 +15,9 @@
 - Phase 3C2 shoulder sway is now complete in `S_VCamSystem` with per-vCam sway dynamics state and OTS-only no-op gating coverage.
 - Phase 3C3 landing camera response is now complete in `S_VCamSystem` with event-driven OTS distance compression and stacked shared-impact coverage.
 - Phase 3C4 aiming scope is now implementation-complete: slice 1 (aim activation + input plumbing + movement/rotation integrations) plus reticle UI (`3C4.9`/`3C4.10`) and default OTS movement preset (`3C4.11`) are landed with targeted coverage.
+- Phase 10A occlusion authored-scene prerequisites are complete: Task `10A.0` inventory + Task `10A.3` layer-6 (`vcam_occludable`) migration are now landed across gameplay/prefab scenes with post-migration audit `missing_count=0`.
 - Immediate validation target:
-  - Run manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`), with emphasis on mobile long-press joystick exclusion and reticle fade behavior in gameplay.
+  - Manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`) are now marked complete (March 15, 2026, user-directed pass), including the joystick-exclusion/reticle-fade focus points.
   - Post-Phase maintenance completed (March 15, 2026): OTS vertical framing bugfix landed via TDD (runtime OTS pitch now clamps to authored bounds in `S_VCamSystem`; default `cfg_default_ots.tres` tuned to head-level framing with higher shoulder anchor, pullback distance, and tighter pitch range).
   - Post-phase QA hardening (March 15, 2026): added explicit mobile guard `test_long_press_over_virtual_controls_does_not_toggle_aim` in `tests/unit/ui/test_mobile_controls.gd` (suite now `20/20`) to lock joystick-area long-press exclusion before manual MT-109/MT-110 checks.
   - Post-phase QA hardening (March 15, 2026): added explicit camera-relative OTS strafe guard `test_ots_uses_camera_relative_strafe_direction` in `tests/unit/ecs/systems/test_movement_system.gd` (suite now `14/14`) to backstop MT-112 before live manual runs.
@@ -901,10 +902,9 @@
 
 ## Next Steps
 
-1. Run manual OTS aiming QA in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`), especially joystick-area long-press exclusion and reticle fade behavior during live camera switching.
+1. Start Phase `10A.1/10A.2`: add `U_VCamCollisionDetector` Red/Green coverage (`tests/unit/managers/helpers/test_vcam_collision_detector.gd`) and implementation (`scripts/managers/helpers/u_vcam_collision_detector.gd`) against the now-migrated layer-6 scene baseline.
 2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
-3. During occlusion work, migrate authored occluding geometry to physics layer 6 in gameplay/prefab scenes; do not stop at `project.godot` layer naming.
-4. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+3. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 

@@ -1245,11 +1245,12 @@ Cross-mode checks (mode-agnostic):
 
 ### Phase 10A: U_VCamCollisionDetector
 
-- [ ] **Task 10A.0 (Pre-requisite)**: Inventory occludable geometry in gameplay scenes
+- [x] **Task 10A.0 (Pre-requisite)**: Inventory occludable geometry in gameplay scenes
   - Before implementing collision detection, audit all gameplay scenes (`scenes/gameplay/`, `scenes/prefabs/`) for geometry that should occlude camera-to-target line of sight
   - Document which `MeshInstance3D` and `CSGShape3D` nodes need layer 6 (`vcam_occludable`) migration
   - Identify any geometry that should NOT be on the occlusion layer (triggers, zones, small detail props)
   - This audit prevents discovering missing occluder assignments late in Phase 10A.3
+  - Completion note (March 15, 2026): Completed scripted scene audit for collision-capable occluder candidates (`CSG*` with `use_collision=true`, `StaticBody3D`) and captured 143 missing layer-6 assignments across gameplay/prefab scenes before migration.
 
 - [ ] **Task 10A.1 (Red)**: Write tests for collision detector
   - Create `tests/unit/managers/helpers/test_vcam_collision_detector.gd`
@@ -1267,10 +1268,12 @@ Cross-mode checks (mode-agnostic):
   - Implement `static func detect_occluders(space_state, from, to, collision_mask) -> Array`
   - All tests should pass
 
-- [ ] **Task 10A.3**: Roll out layer-6 occluder tagging in authored scenes
+- [x] **Task 10A.3**: Roll out layer-6 occluder tagging in authored scenes
   - Modify `scenes/gameplay/gameplay_base.tscn` and any gameplay/prefab scenes used in vCam flows where geometry should occlude camera line-of-sight
   - Ensure only camera-blocking geometry uses layer 6 `vcam_occludable` (do not move trigger/zone-only nodes onto this layer)
   - Re-run scene/style gates after scene edits
+  - Completion note (March 15, 2026): Applied `collision_layer = 33` migration for audited occluders in `scenes/gameplay/gameplay_base.tscn`, `scenes/gameplay/gameplay_exterior.tscn`, `scenes/gameplay/gameplay_interior_base.tscn`, `scenes/gameplay/gameplay_interior_house.tscn`, `scenes/gameplay/gameplay_interior_a.tscn`, `scenes/prefabs/prefab_alleyway.tscn`, and `scenes/prefabs/prefab_bar.tscn`; post-migration audit reports `missing_count=0`.
+  - Validation note (March 15, 2026): `tests/unit/style/test_style_enforcement.gd` remains at the known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`) with no new scene organization failures.
 
 ---
 

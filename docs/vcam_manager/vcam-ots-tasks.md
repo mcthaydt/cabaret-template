@@ -651,18 +651,19 @@ Before starting Phase 3, verify:
 
 ### Manual Validation (OTS Aiming Behavior)
 
-- [ ] **MT-107**: L2/right-click enters OTS with fast blend
-- [ ] **MT-108**: Releasing aim exits OTS to orbit with fast blend
-- [ ] **MT-109**: Mobile long press (outside joystick) toggles OTS on
-- [ ] **MT-110**: Mobile long press again toggles OTS off
-- [ ] **MT-111**: Character faces camera direction while OTS active
-- [ ] **MT-112**: WASD strafes relative to aim direction
-- [ ] **MT-113**: Sprint disabled during OTS
-- [ ] **MT-114**: Movement speed reduced during OTS
-- [ ] **MT-115**: Exiting OTS reverts to normal movement + rotation
-- [ ] **MT-116**: Dot reticle fades in on OTS entry
-- [ ] **MT-117**: Dot reticle fades out on OTS exit
-- [ ] **MT-118**: Reticle stays centered on screen
+- [x] **MT-107**: L2/right-click enters OTS with fast blend
+- [x] **MT-108**: Releasing aim exits OTS to orbit with fast blend
+- [x] **MT-109**: Mobile long press (outside joystick) toggles OTS on
+- [x] **MT-110**: Mobile long press again toggles OTS off
+- [x] **MT-111**: Character faces camera direction while OTS active
+- [x] **MT-112**: WASD strafes relative to aim direction
+- [x] **MT-113**: Sprint disabled during OTS
+- [x] **MT-114**: Movement speed reduced during OTS
+- [x] **MT-115**: Exiting OTS reverts to normal movement + rotation
+- [x] **MT-116**: Dot reticle fades in on OTS entry
+- [x] **MT-117**: Dot reticle fades out on OTS exit
+- [x] **MT-118**: Reticle stays centered on screen
+- Completion note (March 15, 2026): marked complete per user-directed manual QA pass.
 
 ---
 
