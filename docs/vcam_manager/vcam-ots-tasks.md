@@ -34,10 +34,12 @@ Before starting Phase 3, verify:
   - Phase 3A update completed (March 15, 2026): continuation prompt now marks OTS 3A complete and 3B as next target.
   - Phase 3B update completed (March 15, 2026): continuation prompt now marks OTS 3B complete and 3C as next target.
   - Phase 3C2 update completed (March 15, 2026): continuation prompt now marks OTS 3C2 complete and 3C3 as next target.
+  - Phase 3C3 update completed (March 15, 2026): continuation prompt now marks OTS 3C3 complete and 3C4 as next target.
 - [x] **DOC-2**: After each completed phase, update this file (`vcam-ots-tasks.md`) with `[x]` marks and completion notes.  
   - Phase 3A checklist + validation notes updated (March 15, 2026).
   - Phase 3B checklist + validation notes updated (March 15, 2026).
   - Phase 3C2 checklist + validation notes updated (March 15, 2026).
+  - Phase 3C3 checklist + validation notes updated (March 15, 2026).
 - [x] **DOC-3**: Update `AGENTS.md` if OTS evaluation reveals new stable architecture/pattern contracts.  
   - No new AGENTS deltas from 3A; current OTS resource contract already matched implementation targets.
 - [x] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any OTS-specific pitfalls discovered.  
@@ -388,14 +390,15 @@ Before starting Phase 3, verify:
 
 > **Why:** While the shared landing impact (Phase 6A3c) applies a camera dip via QB rules to any mode, OTS benefits from an additional external-view landing response — a temporary camera distance reduction on impact that creates a visual "punch-in" effect. This stacks with the shared position dip and screen shake for a layered landing feel, but uses distance compression rather than an embodied pitch dip since the camera is external to the character.
 
-- [ ] **Task 3C3.1**: Add landing response fields to RS_VCamModeOTS
+- [x] **Task 3C3.1**: Add landing response fields to RS_VCamModeOTS
   - Modify `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`:
     - `@export var landing_dip_distance: float = 0.0` — temporary distance reduction on hard landing in world units (0 = disabled)
     - `@export var landing_dip_recovery_speed: float = 6.0` — Hz for distance recovery second-order dynamics
   - Add tests verifying fields exist with defaults
   - **Target: ~2 tests**
+  - **Completion note (March 15, 2026):** Landing response fields and baseline defaults were already present from Phase 3A; field/default coverage remains in `test_landing_dip_defaults_match_expected_values` and `test_landing_dip_recovery_speed_resolves_to_positive_value` (`18/18` total).
 
-- [ ] **Task 3C3.2 (Red)**: Write tests for landing camera response
+- [x] **Task 3C3.2 (Red)**: Write tests for landing camera response
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test `landing_dip_distance = 0.0`: no distance change on landing (disabled)
   - Test landing event with `landing_dip_distance > 0`: camera distance temporarily reduces
@@ -404,8 +407,9 @@ Before starting Phase 3, verify:
   - Test recovery is critically damped (single smooth return, no distance oscillation)
   - Test landing camera response is a no-op for orbit and fixed modes
   - **Target: ~6 tests**
+  - **Completion note (March 15, 2026):** Added 7 OTS landing-response tests in `tests/unit/ecs/systems/test_vcam_system.gd` (disabled path, event trigger, fall-speed scaling, recovery, no-overshoot, shared-impact stack behavior, and non-OTS no-op gating).
 
-- [ ] **Task 3C3.3 (Green)**: Implement landing camera response in S_VCamSystem
+- [x] **Task 3C3.3 (Green)**: Implement landing camera response in S_VCamSystem
   - Subscribe to `EVENT_ENTITY_LANDED` (same event as shared landing impact)
   - On landing, set per-vCam `_landing_distance_offset` to `landing_dip_distance * normalized_fall_speed`
   - Each tick, drive `_landing_distance_offset` toward `0.0` via `U_SecondOrderDynamics` at `landing_dip_recovery_speed` Hz (critically damped)
@@ -420,6 +424,15 @@ Before starting Phase 3, verify:
     - Distance punch-in (medium-frequency, visual intensity ramp) — OTS only
     - Position dip (low-frequency, gut-punch) — all modes
     - Screen shake (high-frequency, violent vibration) — all modes
+  - **Completion note (March 15, 2026):**
+    - `S_VCamSystem` now subscribes to `EVENT_ENTITY_LANDED` and drives OTS dip events through `_landing_response_event_serial` / `_landing_response_event_normalized`.
+    - OTS response path `_apply_ots_landing_camera_response(...)` now applies event-driven distance compression with per-vCam `_ots_landing_response_state` (`U_SecondOrderDynamics`) and recovery via `landing_dip_recovery_speed`.
+    - Compression uses the OTS cast-origin/direction contract and stacks with shared `landing_impact_offset` in the final submission path.
+    - Non-OTS, disabled-distance, invalid-target, and stale-vCam paths clear landing-response state.
+  - **Validation run (March 15, 2026):**
+    - `tests/unit/ecs/systems/test_vcam_system.gd` (`122/122`)
+    - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
+    - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ---
 
@@ -637,8 +650,8 @@ Before starting Phase 3, verify:
 - [x] Verify shoulder sway is gated to OTS mode only (no-op for orbit and fixed)
 - [x] Verify shoulder sway reads lateral input from the same `gameplay.move_input` used by movement systems
 - [x] Verify shoulder sway dynamics reset on mode switch (no residual roll from previous mode)
-- [ ] Verify landing camera response stacks with shared landing impact (both apply simultaneously)
-- [ ] Verify landing camera response is gated to OTS mode only
+- [x] Verify landing camera response stacks with shared landing impact (both apply simultaneously)
+- [x] Verify landing camera response is gated to OTS mode only
 - [x] Verify all OTS game feel dynamics instances are pre-created and reused (zero per-frame allocations)
 
 ---
