@@ -12,6 +12,7 @@ const U_ROOM_FADE_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_ro
 const DEFAULT_ROOM_FADE_SETTINGS := preload("res://resources/display/vcam/cfg_default_room_fade.tres")
 
 const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
+const MIN_NORMAL_LENGTH_SQUARED := 0.000001
 
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_STATE_STORE = null
@@ -22,6 +23,7 @@ var _camera_manager: I_CAMERA_MANAGER = null
 var _state_store: I_STATE_STORE = null
 var _material_applier: Variant = null
 var _tracked_targets: Dictionary = {}  # int -> Node3D (MeshInstance3D or CSGShape3D)
+var _target_alpha_by_id: Dictionary = {}  # int -> float
 
 func _init() -> void:
 	execution_priority = 110
@@ -35,7 +37,8 @@ func process_tick(delta: float) -> void:
 		_restore_stale_targets({})
 		return
 
-	if not _is_orbit_mode_active():
+	var mode_info: Dictionary = _get_active_mode_info()
+	if not bool(mode_info.get("is_orbit", false)):
 		_restore_components_to_opaque(components)
 		return
 
@@ -66,27 +69,39 @@ func process_tick(delta: float) -> void:
 		applier.apply_fade_material(targets)
 
 		var settings: Dictionary = _resolve_settings(component)
-		var target_alpha: float = _resolve_target_alpha(camera_forward, _resolve_world_normal(component), settings)
 		var min_alpha: float = clampf(float(settings.get("min_alpha", 0.05)), 0.0, 1.0)
 		var fade_speed: float = maxf(float(settings.get("fade_speed", 4.0)), 0.0)
-		var current_alpha: float = float(component.get("current_alpha"))
-		var next_alpha: float = current_alpha
-		if fade_speed > 0.0:
-			next_alpha = move_toward(next_alpha, target_alpha, fade_speed * resolved_delta)
-		next_alpha = clampf(next_alpha, min_alpha, 1.0)
-		component.set("current_alpha", next_alpha)
-		applier.update_fade_alpha(targets, next_alpha)
+		var component_alpha_sum: float = 0.0
+		var component_alpha_count: int = 0
 
 		for target_variant in targets:
 			if not _is_supported_target(target_variant):
 				continue
 			var target: Node3D = target_variant as Node3D
-			active_targets[target.get_instance_id()] = target
+			var target_id: int = target.get_instance_id()
+			var target_normal: Vector3 = _resolve_target_world_normal(component, target, targets.size())
+			var dot_value: float = camera_forward.dot(target_normal)
+			var target_alpha: float = _resolve_target_alpha(camera_forward, target_normal, settings)
+			var current_alpha: float = _resolve_current_target_alpha(target_id, component)
+			var next_alpha: float = current_alpha
+			if fade_speed > 0.0:
+				next_alpha = move_toward(next_alpha, target_alpha, fade_speed * resolved_delta)
+			next_alpha = clampf(next_alpha, min_alpha, 1.0)
+
+			_target_alpha_by_id[target_id] = next_alpha
+			applier.update_fade_alpha([target], next_alpha)
+			active_targets[target_id] = target
+			component_alpha_sum += next_alpha
+			component_alpha_count += 1
+
+		if component_alpha_count > 0:
+			component.set("current_alpha", component_alpha_sum / float(component_alpha_count))
 
 	_restore_stale_targets(active_targets)
 
 func _exit_tree() -> void:
 	_restore_stale_targets({})
+	_target_alpha_by_id.clear()
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 	if camera_manager != null:
@@ -187,13 +202,58 @@ func _resolve_target_alpha(camera_forward: Vector3, wall_normal: Vector3, settin
 		return min_alpha
 	return 1.0
 
-func _is_orbit_mode_active() -> bool:
+func _resolve_target_world_normal(component: Object, target: Node3D, target_count: int) -> Vector3:
+	var component_normal: Vector3 = _resolve_world_normal(component)
+	if target == null or not is_instance_valid(target):
+		return component_normal
+	if target_count <= 1:
+		return component_normal
+
+	var component_origin: Vector3 = _resolve_component_origin(component, target)
+	var inward_planar: Vector3 = component_origin - target.global_position
+	inward_planar.y = 0.0
+	if inward_planar.length_squared() <= MIN_NORMAL_LENGTH_SQUARED:
+		return component_normal
+	return inward_planar.normalized()
+
+func _resolve_component_origin(component: Object, fallback_target: Node3D) -> Vector3:
+	if component is Node:
+		var component_node := component as Node
+		if component_node != null:
+			var parent_node := component_node.get_parent() as Node3D
+			if parent_node != null and is_instance_valid(parent_node):
+				return parent_node.global_position
+			var component_node_3d := component_node as Node3D
+			if component_node_3d != null and is_instance_valid(component_node_3d):
+				return component_node_3d.global_position
+
+	if fallback_target != null and is_instance_valid(fallback_target):
+		return fallback_target.global_position
+	return Vector3.ZERO
+
+func _resolve_current_target_alpha(target_id: int, component: Object) -> float:
+	if _target_alpha_by_id.has(target_id):
+		return float(_target_alpha_by_id.get(target_id, 1.0))
+	if component != null:
+		return float(component.get("current_alpha"))
+	return 1.0
+
+func _get_active_mode_info() -> Dictionary:
 	var store: I_STATE_STORE = _resolve_state_store()
 	if store == null:
-		return false
+		return {
+			"has_store": false,
+			"active_mode": "",
+			"is_orbit": false,
+		}
+
 	var state: Dictionary = store.get_state()
 	var active_mode: String = U_VCAM_SELECTORS.get_active_mode(state).to_lower()
-	return active_mode == "orbit"
+	return {
+		"has_store": true,
+		"active_mode": active_mode,
+		"is_orbit": active_mode == "orbit",
+	}
 
 func _restore_components_to_opaque(components: Array) -> void:
 	var restore_targets: Array = []
@@ -215,6 +275,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 			if seen_targets.has(target_id):
 				continue
 			seen_targets[target_id] = true
+			_target_alpha_by_id.erase(target_id)
 			restore_targets.append(target)
 
 	for target_variant in _tracked_targets.values():
@@ -225,12 +286,14 @@ func _restore_components_to_opaque(components: Array) -> void:
 		if seen_targets.has(tracked_id):
 			continue
 		seen_targets[tracked_id] = true
+		_target_alpha_by_id.erase(tracked_id)
 		restore_targets.append(tracked_target)
 
 	var applier: Variant = _resolve_material_applier()
 	if applier != null and not restore_targets.is_empty():
 		applier.restore_original_materials(restore_targets)
 	_tracked_targets.clear()
+	_target_alpha_by_id.clear()
 
 func _restore_stale_targets(active_targets: Dictionary) -> void:
 	var applier: Variant = _resolve_material_applier()
@@ -246,6 +309,7 @@ func _restore_stale_targets(active_targets: Dictionary) -> void:
 		var target_variant: Variant = _tracked_targets.get(target_id, null)
 		if _is_supported_target(target_variant):
 			stale_targets.append(target_variant)
+		_target_alpha_by_id.erase(target_id)
 
 	if not stale_targets.is_empty():
 		applier.restore_original_materials(stale_targets)

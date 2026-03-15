@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode blend_mix, depth_draw_opaque;
+render_mode blend_mix, depth_draw_never;
 
 uniform float fade_alpha : hint_range(0.0, 1.0) = 1.0;
 uniform sampler2D albedo_texture : source_color;
@@ -9,5 +9,4 @@ void fragment() {
 	vec4 albedo_sample = texture(albedo_texture, UV) * albedo_color;
 	ALBEDO = albedo_sample.rgb;
 	ALPHA = fade_alpha * albedo_sample.a;
-	ALPHA_SCISSOR_THRESHOLD = 0.01;
 }

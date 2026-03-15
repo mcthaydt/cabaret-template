@@ -42,8 +42,8 @@ func test_apply_fade_material_replaces_override_with_room_fade_shader() -> void:
 	assert_not_null(override_material.shader)
 	var shader_code: String = override_material.shader.code
 	assert_true(shader_code.find("blend_mix") >= 0, "Shader should enable blend_mix render mode.")
-	assert_true(shader_code.find("depth_draw_opaque") >= 0, "Shader should enable depth_draw_opaque render mode.")
-	assert_true(shader_code.find("ALPHA_SCISSOR_THRESHOLD") >= 0, "Shader should set ALPHA_SCISSOR_THRESHOLD.")
+	assert_true(shader_code.find("depth_draw_never") >= 0, "Shader should disable depth writes for transparent fades.")
+	assert_eq(shader_code.find("ALPHA_SCISSOR_THRESHOLD"), -1, "Room-fade shader should not use alpha scissor cutoff.")
 
 func test_apply_fade_material_carries_forward_albedo_texture() -> void:
 	var script_obj := _applier_script()

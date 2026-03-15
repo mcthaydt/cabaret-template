@@ -15,6 +15,7 @@ class RoomFadeMaterialApplierStub extends RefCounted:
 	var last_updated_alpha: float = -1.0
 	var last_updated_target_count: int = 0
 	var last_restore_target_count: int = 0
+	var updated_alpha_by_target_id: Dictionary = {}
 
 	func apply_fade_material(targets: Array) -> void:
 		apply_calls += 1
@@ -24,6 +25,11 @@ class RoomFadeMaterialApplierStub extends RefCounted:
 		update_calls += 1
 		last_updated_alpha = alpha
 		last_updated_target_count = targets.size()
+		for target_variant in targets:
+			var target := target_variant as Node3D
+			if target == null:
+				continue
+			updated_alpha_by_target_id[target.get_instance_id()] = alpha
 
 	func restore_original_materials(targets: Array) -> void:
 		restore_calls += 1
@@ -283,6 +289,38 @@ func test_system_supports_csg_room_fade_targets() -> void:
 	assert_eq(applier.update_calls, 1)
 	assert_lt(room_component.current_alpha, 1.0)
 
+func test_multi_target_group_applies_distinct_target_alphas_by_target_position() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+
+	var setup: Dictionary = _register_room_fade_group_with_opposite_csg_targets(ecs_manager, "E_RoomFadeMulti")
+	var room_component = setup.get("component")
+	var front_target: Node3D = setup.get("front_target") as Node3D
+	var back_target: Node3D = setup.get("back_target") as Node3D
+	assert_not_null(room_component)
+	assert_not_null(front_target)
+	assert_not_null(back_target)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	room_component.settings = settings
+	room_component.current_alpha = 1.0
+
+	system.process_tick(0.1)
+
+	var front_alpha: float = float(applier.updated_alpha_by_target_id.get(front_target.get_instance_id(), -1.0))
+	var back_alpha: float = float(applier.updated_alpha_by_target_id.get(back_target.get_instance_id(), -1.0))
+	assert_gt(front_alpha, -0.5, "Expected front target alpha update to be captured.")
+	assert_gt(back_alpha, -0.5, "Expected back target alpha update to be captured.")
+	assert_lt(front_alpha, back_alpha, "Opposite-side targets should not share identical fade behavior.")
+
 func _create_fixture() -> Dictionary:
 	var room_fade_system_script := _room_fade_system_script()
 	if room_fade_system_script == null:
@@ -346,3 +384,30 @@ func _register_room_fade_group(ecs_manager: MockECSManager, entity_name: String,
 		autofree(mesh_instance)
 
 	return component
+
+func _register_room_fade_group_with_opposite_csg_targets(ecs_manager: MockECSManager, entity_name: String) -> Dictionary:
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = entity_name
+	add_child(entity)
+	autofree(entity)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity.add_child(component)
+	autofree(component)
+	ecs_manager.add_component_to_entity(entity, component)
+
+	var front_target := CSGBox3D.new()
+	front_target.position = Vector3(0.0, 0.0, 5.0)
+	entity.add_child(front_target)
+	autofree(front_target)
+
+	var back_target := CSGBox3D.new()
+	back_target.position = Vector3(0.0, 0.0, -5.0)
+	entity.add_child(back_target)
+	autofree(back_target)
+
+	return {
+		"component": component,
+		"front_target": front_target,
+		"back_target": back_target,
+	}
