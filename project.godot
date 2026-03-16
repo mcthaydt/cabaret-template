@@ -25,10 +25,6 @@ window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="viewport"
 
-[layer_names]
-
-3d_physics/layer_6="vcam_occludable"
-
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/IVX_VertexColorImportSwapper/plugin.cfg", "res://addons/gut/plugin.cfg")
@@ -236,6 +232,10 @@ camera_center={
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":8,"pressure":0.0,"pressed":false,"script":null)
 ]
 }
+
+[layer_names]
+
+3d_physics/layer_6="vcam_occludable"
 
 [physics]
 

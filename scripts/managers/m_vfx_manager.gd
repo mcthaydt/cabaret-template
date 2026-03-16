@@ -8,6 +8,7 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
+const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
@@ -35,6 +36,7 @@ const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/cfg_screen_shake_confi
 ## Injected dependencies (for testing)
 @export var state_store: I_StateStore = null
 @export var camera_manager: I_CAMERA_MANAGER = null
+@export var ecs_manager: I_ECS_MANAGER = null
 
 ## StateStore dependency for accessing VFX settings
 var _state_store: I_StateStore = null
@@ -72,7 +74,8 @@ var _last_shell: StringName = StringName("")
 var _preview_settings: Dictionary = {}
 var _is_previewing: bool = false
 var _effects_container: Node = null
-var _silhouette_helper: Variant = null
+var _silhouette_helper: U_VCamSilhouetteHelper = null
+var _ecs_manager: I_ECS_MANAGER = null
 
 func _ready() -> void:
 	# Run even when game is paused (VFX should be visible in pause menu)
@@ -142,8 +145,8 @@ func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
 		_store_unsubscribe.call()
 		_store_unsubscribe = Callable()
-	if _silhouette_helper != null and _silhouette_helper.has_method("remove_all_silhouettes"):
-		_silhouette_helper.call("remove_all_silhouettes")
+	if _silhouette_helper != null:
+		_silhouette_helper.remove_all_silhouettes()
 
 ## Add trauma to the current trauma level
 ##
@@ -352,7 +355,7 @@ func _process_silhouette_request(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
 	var enabled: bool = bool(payload.get("enabled", true))
 	if not enabled:
-		_silhouette_helper.call("remove_all_silhouettes")
+		_silhouette_helper.remove_all_silhouettes()
 		return
 
 	var occluders_variant: Variant = payload.get("occluders", [])
@@ -360,7 +363,26 @@ func _process_silhouette_request(event_data: Dictionary) -> void:
 	if occluders_variant is Array:
 		occluders = (occluders_variant as Array).duplicate(false)
 
-	_silhouette_helper.call("remove_all_silhouettes")
-	for occluder_variant in occluders:
-		if occluder_variant is GeometryInstance3D:
-			_silhouette_helper.call("apply_silhouette", occluder_variant as GeometryInstance3D)
+	if occluders.is_empty():
+		_silhouette_helper.remove_all_silhouettes()
+		return
+
+	var entity_id: StringName = StringName(str(payload.get("entity_id", "")))
+	var resolved_ecs: I_ECS_MANAGER = _resolve_ecs_manager()
+	if resolved_ecs == null:
+		return
+	var entity_node: Node = resolved_ecs.get_entity_by_id(entity_id)
+	if entity_node == null:
+		return
+
+	_silhouette_helper.remove_all_silhouettes()
+	_silhouette_helper.apply_silhouette(entity_node)
+
+func _resolve_ecs_manager() -> I_ECS_MANAGER:
+	if _ecs_manager != null and is_instance_valid(_ecs_manager):
+		return _ecs_manager
+	if ecs_manager != null and is_instance_valid(ecs_manager):
+		_ecs_manager = ecs_manager
+		return _ecs_manager
+	_ecs_manager = U_SERVICE_LOCATOR.try_get_service(StringName("ecs_manager")) as I_ECS_MANAGER
+	return _ecs_manager
