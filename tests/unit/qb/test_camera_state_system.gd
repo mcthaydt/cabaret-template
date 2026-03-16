@@ -429,6 +429,29 @@ func test_primary_camera_selection_prefers_entity_id_or_camera_tag() -> void:
 	system_by_tag.process_tick(1.0)
 	assert_almost_eq(camera_manager_by_tag.main_camera.fov, 30.0, 0.001)
 
+func test_camera_context_includes_vcam_runtime_fields_for_qb_rules() -> void:
+	var fixture: Dictionary = _create_fixture([], [], 90.0)
+	var store: MockStateStore = fixture.get("store") as MockStateStore
+	var system: Variant = fixture.get("system", null)
+	assert_not_null(store)
+	assert_not_null(system)
+
+	store.set_slice(StringName("vcam"), {
+		"in_fov_zone": false,
+		"active_mode": "ots",
+		"is_blending": true,
+		"active_vcam_id": StringName("cam_aim"),
+	})
+
+	var contexts_variant: Variant = system.call("_build_camera_contexts", {})
+	assert_true(contexts_variant is Array)
+	var contexts: Array = contexts_variant as Array
+	assert_false(contexts.is_empty())
+	var context: Dictionary = contexts[0] as Dictionary
+	assert_eq(String(context.get("vcam_active_mode", "")), "ots")
+	assert_eq(bool(context.get("vcam_is_blending", false)), true)
+	assert_eq(context.get("vcam_active_vcam_id", StringName("")), StringName("cam_aim"))
+
 func _create_fixture(designer_rules: Array = [], entity_specs: Array = [], main_camera_fov: float = 90.0) -> Dictionary:
 	var store := MOCK_STATE_STORE.new()
 	autofree(store)

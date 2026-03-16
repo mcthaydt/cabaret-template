@@ -366,6 +366,9 @@ func _attach_camera_context(
 
 	context["redux_state"] = redux_state.duplicate(true)
 	context["state"] = context["redux_state"]
+	context["vcam_active_mode"] = U_VCAM_SELECTORS.get_active_mode(redux_state)
+	context["vcam_is_blending"] = U_VCAM_SELECTORS.is_blending(redux_state)
+	context["vcam_active_vcam_id"] = U_VCAM_SELECTORS.get_active_vcam_id(redux_state)
 	if store != null:
 		context["state_store"] = store
 

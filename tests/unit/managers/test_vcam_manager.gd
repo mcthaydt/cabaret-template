@@ -602,6 +602,305 @@ func test_scene_transition_blend_clears_active_silhouettes() -> void:
 	assert_false(payload.is_empty(), "Scene-transition blend should publish silhouette clear request")
 	assert_eq(payload.get("enabled", true), false, "Transition clear request should disable silhouettes")
 
+func test_set_active_vcam_starts_live_blend_and_publishes_started_event() -> void:
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var manager := await _create_manager(store)
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 0.5
+	var camera_a := _create_vcam(StringName("cam_a"), 5, true, hint)
+	var camera_b := _create_vcam(StringName("cam_b"), 1, true, hint)
+	manager.register_vcam(camera_a)
+	manager.register_vcam(camera_b)
+	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
+
+	manager.set_active_vcam(StringName("cam_b"))
+
+	assert_true(manager.is_blending(), "Switch should start a live blend when duration is positive")
+	assert_almost_eq(manager.get_blend_progress(), 0.0, 0.0001)
+	assert_eq(manager.get_previous_vcam_id(), StringName("cam_a"))
+	var started_event: Dictionary = _find_last_event_by_name(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_STARTED)
+	assert_false(started_event.is_empty(), "Blend start should publish EVENT_VCAM_BLEND_STARTED")
+	var payload := started_event.get("payload", {}) as Dictionary
+	assert_eq(payload.get("from_vcam_id", StringName("")), StringName("cam_a"))
+	assert_eq(payload.get("to_vcam_id", StringName("")), StringName("cam_b"))
+	assert_almost_eq(float(payload.get("duration", -1.0)), 0.5, 0.0001)
+
+	var start_action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_START_BLEND
+	)
+	assert_false(start_action.is_empty(), "Blend start should dispatch vcam/start_blend")
+
+func test_blend_progress_advances_and_completes_with_completed_event() -> void:
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var manager := await _create_manager(store)
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 0.4
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5, true, hint))
+	manager.register_vcam(_create_vcam(StringName("cam_b"), 1, true, hint))
+	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
+
+	manager.set_active_vcam(StringName("cam_b"))
+	manager._physics_process(0.2)
+
+	assert_true(manager.get_blend_progress() > 0.0 and manager.get_blend_progress() < 1.0)
+
+	manager._physics_process(0.3)
+
+	assert_false(manager.is_blending(), "Blend should complete after elapsed duration")
+	assert_almost_eq(manager.get_blend_progress(), 1.0, 0.0001)
+	var completed_event: Dictionary = _find_last_event_by_name(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_COMPLETED)
+	assert_false(completed_event.is_empty(), "Blend completion should publish EVENT_VCAM_BLEND_COMPLETED")
+	var payload := completed_event.get("payload", {}) as Dictionary
+	assert_eq(payload.get("vcam_id", StringName("")), StringName("cam_b"))
+	var complete_action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_COMPLETE_BLEND
+	)
+	assert_false(complete_action.is_empty(), "Blend completion should dispatch vcam/complete_blend")
+
+func test_blend_applies_from_two_live_results_not_frozen_outgoing_pose() -> void:
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+	var manager := await _create_manager(null, camera_manager)
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 1.0
+	hint.trans_type = Tween.TRANS_LINEAR
+	hint.ease_type = Tween.EASE_IN_OUT
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5, true, hint))
+	manager.register_vcam(_create_vcam(StringName("cam_b"), 1, true, hint))
+	manager.set_active_vcam(StringName("cam_b"))
+	manager._physics_process(0.5)
+
+	manager.submit_evaluated_camera(StringName("cam_b"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(10.0, 0.0, 0.0)),
+		"fov": 70.0,
+	})
+	manager.submit_evaluated_camera(StringName("cam_a"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, 0.0)),
+		"fov": 70.0,
+	})
+	var first_x: float = camera_manager.last_main_transform.origin.x
+	assert_almost_eq(first_x, 5.0, 0.0001)
+
+	manager.submit_evaluated_camera(StringName("cam_b"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(10.0, 0.0, 0.0)),
+		"fov": 70.0,
+	})
+	manager.submit_evaluated_camera(StringName("cam_a"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(100.0, 0.0, 0.0)),
+		"fov": 70.0,
+	})
+	var second_x: float = camera_manager.last_main_transform.origin.x
+	assert_gt(second_x, 40.0, "Outgoing camera submission should stay live during blend")
+
+func test_set_active_vcam_with_zero_duration_cuts_without_blend_state() -> void:
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var manager := await _create_manager(store)
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 1.0
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5, true, hint))
+	manager.register_vcam(_create_vcam(StringName("cam_b"), 1, true, hint))
+	store.clear_dispatched_actions()
+	U_ECS_EVENT_BUS.clear_history()
+
+	manager.set_active_vcam(StringName("cam_b"), 0.0)
+
+	assert_false(manager.is_blending(), "Zero-duration switch should cut immediately")
+	assert_almost_eq(manager.get_blend_progress(), 1.0, 0.0001)
+	var start_action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_START_BLEND
+	)
+	assert_true(start_action.is_empty(), "Cut should not dispatch start_blend")
+
+func test_apply_flow_does_not_apply_previous_frame_submission_when_current_frame_missing() -> void:
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+	var manager := await _create_manager(null, camera_manager)
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5))
+
+	manager.submit_evaluated_camera(
+		StringName("cam_a"),
+		{"transform": Transform3D(Basis.IDENTITY, Vector3(1.0, 0.0, 0.0))}
+	)
+	assert_eq(camera_manager.apply_main_transform_calls, 1)
+
+	await wait_physics_frames(1)
+
+	assert_eq(
+		camera_manager.apply_main_transform_calls,
+		1,
+		"Manager should skip stale previous-frame submissions when no new handoff is present"
+	)
+
+func test_reentrant_blend_uses_snapshot_source_and_resets_progress() -> void:
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+	var manager := await _create_manager(null, camera_manager)
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 1.0
+	hint.trans_type = Tween.TRANS_LINEAR
+	hint.ease_type = Tween.EASE_IN_OUT
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5, true, hint))
+	manager.register_vcam(_create_vcam(StringName("cam_b"), 4, true, hint))
+	manager.register_vcam(_create_vcam(StringName("cam_c"), 3, true, hint))
+	manager.set_active_vcam(StringName("cam_b"))
+	manager._physics_process(0.5)
+	manager.submit_evaluated_camera(StringName("cam_b"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(10.0, 0.0, 0.0)),
+		"fov": 70.0,
+	})
+	manager.submit_evaluated_camera(StringName("cam_a"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, 0.0)),
+		"fov": 70.0,
+	})
+	var snapshot_x: float = camera_manager.last_main_transform.origin.x
+	assert_almost_eq(snapshot_x, 5.0, 0.0001)
+
+	manager.set_active_vcam(StringName("cam_c"))
+	assert_true(manager.is_blending())
+	assert_almost_eq(manager.get_blend_progress(), 0.0, 0.0001, "Reentry should reset blend progress")
+
+	manager._physics_process(0.5)
+	manager.submit_evaluated_camera(StringName("cam_c"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(20.0, 0.0, 0.0)),
+		"fov": 70.0,
+	})
+	var reentered_x: float = camera_manager.last_main_transform.origin.x
+	assert_true(
+		reentered_x > snapshot_x and reentered_x < 20.0,
+		"Reentrant blend should interpolate from the blended snapshot toward the new target"
+	)
+
+func test_rapid_reentrant_switches_do_not_wedge_blend_state() -> void:
+	var manager := await _create_manager()
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 0.5
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5, true, hint))
+	manager.register_vcam(_create_vcam(StringName("cam_b"), 4, true, hint))
+	manager.register_vcam(_create_vcam(StringName("cam_c"), 3, true, hint))
+	manager.register_vcam(_create_vcam(StringName("cam_d"), 2, true, hint))
+
+	manager.set_active_vcam(StringName("cam_b"))
+	manager.set_active_vcam(StringName("cam_c"))
+	manager.set_active_vcam(StringName("cam_d"))
+	assert_true(manager.is_blending())
+
+	manager._physics_process(0.8)
+
+	assert_false(manager.is_blending(), "Rapid reentry should still converge and clear blend state")
+	assert_eq(manager.get_active_vcam_id(), StringName("cam_d"))
+
+func test_recovery_when_outgoing_vcam_is_freed_completes_to_incoming() -> void:
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var manager := await _create_manager(store)
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 1.0
+	var camera_a := _create_vcam(StringName("cam_a"), 5, true, hint)
+	var camera_b := _create_vcam(StringName("cam_b"), 4, true, hint)
+	manager.register_vcam(camera_a)
+	manager.register_vcam(camera_b)
+	store.clear_dispatched_actions()
+
+	manager.set_active_vcam(StringName("cam_b"))
+	camera_a.queue_free()
+	await get_tree().process_frame
+	manager._physics_process(0.016)
+
+	assert_false(manager.is_blending())
+	assert_eq(manager.get_active_vcam_id(), StringName("cam_b"))
+	var recovery_action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_RECORD_RECOVERY
+	)
+	var payload := recovery_action.get("payload", {}) as Dictionary
+	assert_eq(String(payload.get("reason", "")), "blend_from_invalid")
+
+func test_recovery_when_incoming_vcam_is_freed_cancels_blend_and_reselects() -> void:
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var manager := await _create_manager(store)
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 1.0
+	var camera_a := _create_vcam(StringName("cam_a"), 5, true, hint)
+	var camera_b := _create_vcam(StringName("cam_b"), 4, true, hint)
+	manager.register_vcam(camera_a)
+	manager.register_vcam(camera_b)
+	store.clear_dispatched_actions()
+
+	manager.set_active_vcam(StringName("cam_b"))
+	camera_b.queue_free()
+	await get_tree().process_frame
+	manager._physics_process(0.016)
+
+	assert_false(manager.is_blending())
+	assert_eq(manager.get_active_vcam_id(), StringName("cam_a"))
+	var recovery_action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_RECORD_RECOVERY
+	)
+	var payload := recovery_action.get("payload", {}) as Dictionary
+	assert_eq(String(payload.get("reason", "")), "blend_to_invalid")
+
+func test_recovery_when_both_blend_vcams_are_freed_records_both_invalid() -> void:
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+	var manager := await _create_manager(store, camera_manager)
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 1.0
+	hint.trans_type = Tween.TRANS_LINEAR
+	hint.ease_type = Tween.EASE_IN_OUT
+	var camera_a := _create_vcam(StringName("cam_a"), 5, true, hint)
+	var camera_b := _create_vcam(StringName("cam_b"), 4, true, hint)
+	manager.register_vcam(camera_a)
+	manager.register_vcam(camera_b)
+	manager.set_active_vcam(StringName("cam_b"))
+	manager._physics_process(0.5)
+	manager.submit_evaluated_camera(StringName("cam_b"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(10.0, 0.0, 0.0)),
+		"fov": 70.0,
+	})
+	manager.submit_evaluated_camera(StringName("cam_a"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, 0.0)),
+		"fov": 70.0,
+	})
+	var held_x: float = camera_manager.last_main_transform.origin.x
+	store.clear_dispatched_actions()
+
+	camera_a.queue_free()
+	camera_b.queue_free()
+	await get_tree().process_frame
+	manager._physics_process(0.016)
+
+	assert_false(manager.is_blending())
+	assert_eq(manager.get_active_vcam_id(), StringName(""))
+	assert_almost_eq(camera_manager.last_main_transform.origin.x, held_x, 0.0001)
+	var recovery_action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_RECORD_RECOVERY
+	)
+	var payload := recovery_action.get("payload", {}) as Dictionary
+	assert_eq(String(payload.get("reason", "")), "blend_both_invalid")
+
 func _create_manager(
 	injected_store: I_StateStore = null,
 	injected_camera_manager: I_CameraManager = null

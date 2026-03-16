@@ -320,7 +320,7 @@ func apply_main_camera_transform(transform: Transform3D) -> void:
 	shake_parent.rotation = shake_rotation
 
 func is_blend_active() -> bool:
-	return _transition_camera != null and _transition_camera.current
+	return _camera_blend_tween != null and _camera_blend_tween.is_running()
 
 func register_main_camera(camera: Camera3D) -> void:
 	if camera != null and is_instance_valid(camera):

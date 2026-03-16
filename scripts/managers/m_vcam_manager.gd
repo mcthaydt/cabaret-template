@@ -12,6 +12,7 @@ const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd"
 const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
 const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
 const U_VCAM_COLLISION_DETECTOR := preload("res://scripts/managers/helpers/u_vcam_collision_detector.gd")
+const U_VCAM_BLEND_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_blend_evaluator.gd")
 
 const VCAM_OCCLUSION_COLLISION_MASK: int = 1 << 5
 
@@ -34,6 +35,15 @@ var _blend_progress: float = 1.0
 var _is_blending_active: bool = false
 var _blend_duration: float = 0.0
 var _blend_elapsed: float = 0.0
+var _blend_trans_type: int = int(Tween.TRANS_LINEAR)
+var _blend_ease_type: int = int(Tween.EASE_IN_OUT)
+var _blend_cut_on_distance_threshold: float = 0.0
+var _pending_blend_duration_override: float = -1.0
+var _blend_from_snapshot_result: Dictionary = {}
+var _blend_hint_runtime: Resource = null
+var _blend_result_cache: Dictionary = {}
+var _last_applied_frame: int = -1
+var _last_valid_applied_result: Dictionary = {}
 var _last_physics_delta: float = 0.0
 var _startup_blend_pending_vcam_id: StringName = StringName("")
 var _startup_blend_active: bool = false
@@ -62,6 +72,8 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	_last_physics_delta = maxf(_delta, 0.0)
 	_refresh_active_selection()
+	_advance_live_blend(_last_physics_delta)
+	_try_apply_for_current_frame()
 
 func register_vcam(vcam: Node) -> void:
 	if vcam == null or not is_instance_valid(vcam):
@@ -107,31 +119,37 @@ func unregister_vcam(vcam: Node) -> void:
 		_previous_vcam_id = StringName("")
 
 	if _vcams_by_id.is_empty():
+		if _is_blending_active:
+			_record_recovery("blend_both_invalid")
 		_clear_runtime_state()
+		return
+	if _is_blending_active:
 		return
 	_refresh_active_selection()
 
 func set_active_vcam(vcam_id: StringName, blend_duration: float = -1.0) -> void:
-	if blend_duration >= 0.0:
-		_blend_duration = maxf(blend_duration, 0.0)
-		_blend_elapsed = 0.0
-
 	if vcam_id == StringName(""):
+		_pending_blend_duration_override = maxf(blend_duration, 0.0) if blend_duration >= 0.0 else -1.0
 		_explicit_vcam_id = StringName("")
 		_refresh_active_selection()
+		_pending_blend_duration_override = -1.0
 		return
 
 	if not _vcams_by_id.has(vcam_id):
 		_report_issue("set_active_vcam ignored unknown vcam_id '%s'" % String(vcam_id))
 		return
 
+	_pending_blend_duration_override = maxf(blend_duration, 0.0) if blend_duration >= 0.0 else -1.0
 	_explicit_vcam_id = vcam_id
 	_refresh_active_selection()
+	_pending_blend_duration_override = -1.0
 
 func get_active_vcam_id() -> StringName:
 	return _active_vcam_id
 
 func get_previous_vcam_id() -> StringName:
+	if _is_blending_active and not _blend_from_snapshot_result.is_empty():
+		return StringName("")
 	return _previous_vcam_id
 
 func submit_evaluated_camera(vcam_id: StringName, result: Dictionary) -> void:
@@ -139,8 +157,11 @@ func submit_evaluated_camera(vcam_id: StringName, result: Dictionary) -> void:
 		return
 	if result == null:
 		return
-	_submitted_results[vcam_id] = result.duplicate(true)
-	_try_apply_active_submission(vcam_id)
+	_submitted_results[vcam_id] = {
+		"result": result.duplicate(true),
+		"frame": Engine.get_physics_frames(),
+	}
+	_try_apply_for_current_frame()
 
 func get_blend_progress() -> float:
 	return _blend_progress
@@ -156,6 +177,7 @@ func get_vcam(vcam_id: StringName) -> Node:
 
 func _refresh_active_selection() -> void:
 	_prune_invalid_registrations()
+	_recover_invalid_live_blend_members()
 	var next_active_id := _determine_next_active_id()
 	if next_active_id == _active_vcam_id:
 		return
@@ -196,13 +218,158 @@ func _select_highest_priority_vcam() -> StringName:
 
 func _set_active_vcam_internal(next_vcam_id: StringName) -> void:
 	var previous_vcam_id := _active_vcam_id
+	var blend_duration_override: float = _pending_blend_duration_override
+	_pending_blend_duration_override = -1.0
 	_active_vcam_id = next_vcam_id
 	_previous_vcam_id = previous_vcam_id
+	_last_applied_frame = -1
 	_queue_startup_blend_if_needed(next_vcam_id, previous_vcam_id)
+	_configure_live_blend_transition(previous_vcam_id, next_vcam_id, blend_duration_override)
 
 	var active_mode := _get_mode_name_for_vcam(next_vcam_id)
 	_dispatch_active_runtime(next_vcam_id, active_mode)
 	_publish_active_changed(next_vcam_id, previous_vcam_id, active_mode)
+
+func _configure_live_blend_transition(
+	from_vcam_id: StringName,
+	to_vcam_id: StringName,
+	duration_override: float
+) -> void:
+	if from_vcam_id == to_vcam_id:
+		return
+	if to_vcam_id == StringName("") or from_vcam_id == StringName(""):
+		_clear_live_blend_runtime()
+		return
+	if not _vcams_by_id.has(from_vcam_id):
+		_clear_live_blend_runtime()
+		return
+
+	var settings: Dictionary = _resolve_live_blend_settings(to_vcam_id, duration_override)
+	var duration_sec: float = maxf(float(settings.get("duration_sec", 0.0)), 0.0)
+	if duration_sec <= 0.0:
+		var was_blending: bool = _is_blending_active
+		_clear_live_blend_runtime()
+		if was_blending:
+			_dispatch_blend_complete()
+			_publish_blend_completed(to_vcam_id)
+		return
+
+	var reentrant_snapshot: Dictionary = {}
+	if _is_blending_active:
+		reentrant_snapshot = _capture_reentrant_blend_snapshot()
+
+	_begin_live_blend(from_vcam_id, to_vcam_id, settings, reentrant_snapshot)
+
+func _resolve_live_blend_settings(vcam_id: StringName, duration_override: float) -> Dictionary:
+	var settings: Dictionary = _resolve_startup_blend_settings(vcam_id)
+	var duration_sec: float = maxf(float(settings.get("duration_sec", 0.0)), 0.0)
+	if duration_override >= 0.0:
+		duration_sec = maxf(duration_override, 0.0)
+	settings["duration_sec"] = duration_sec
+	return settings
+
+func _capture_reentrant_blend_snapshot() -> Dictionary:
+	if not _last_valid_applied_result.is_empty():
+		return _last_valid_applied_result.duplicate(true)
+
+	var current_frame: int = Engine.get_physics_frames()
+	var blended_result: Dictionary = _resolve_blend_result_for_frame(current_frame)
+	if not blended_result.is_empty():
+		return blended_result.duplicate(true)
+
+	var active_result: Dictionary = _get_submitted_result_for_frame(_active_vcam_id, current_frame)
+	if not active_result.is_empty():
+		return active_result.duplicate(true)
+	return {}
+
+func _begin_live_blend(
+	from_vcam_id: StringName,
+	to_vcam_id: StringName,
+	settings: Dictionary,
+	reentrant_snapshot: Dictionary
+) -> void:
+	_clear_startup_blend_runtime()
+	_is_blending_active = true
+	_blend_duration = maxf(float(settings.get("duration_sec", 0.0)), 0.0)
+	_blend_elapsed = 0.0
+	_blend_progress = 0.0
+	_blend_trans_type = int(settings.get("trans_type", int(Tween.TRANS_LINEAR)))
+	_blend_ease_type = int(settings.get("ease_type", int(Tween.EASE_IN_OUT)))
+	_blend_cut_on_distance_threshold = maxf(float(settings.get("cut_on_distance_threshold", 0.0)), 0.0)
+	_blend_result_cache.clear()
+	_blend_from_snapshot_result = reentrant_snapshot.duplicate(true) if not reentrant_snapshot.is_empty() else {}
+
+	var hint := RS_VCAM_BLEND_HINT_SCRIPT.new()
+	hint.trans_type = _blend_trans_type
+	hint.ease_type = _blend_ease_type
+	hint.cut_on_distance_threshold = _blend_cut_on_distance_threshold
+	_blend_hint_runtime = hint
+
+	_dispatch_blend_started(from_vcam_id)
+	_publish_blend_started(from_vcam_id, to_vcam_id, _blend_duration)
+
+func _advance_live_blend(delta: float) -> void:
+	if not _is_blending_active:
+		return
+	if _blend_duration <= 0.0:
+		_finish_live_blend(_active_vcam_id, true)
+		return
+
+	var dt: float = maxf(delta, 0.0)
+	_blend_elapsed = minf(_blend_elapsed + dt, _blend_duration)
+	var next_progress: float = clampf(_blend_elapsed / _blend_duration, 0.0, 1.0)
+	if not is_equal_approx(next_progress, _blend_progress):
+		_blend_progress = next_progress
+		_dispatch_blend_progress(_blend_progress)
+
+	if _blend_progress >= 1.0:
+		_finish_live_blend(_active_vcam_id, true)
+
+func _finish_live_blend(vcam_id: StringName, publish_completed_event: bool) -> void:
+	var was_blending: bool = _is_blending_active
+	_clear_live_blend_runtime()
+	if not was_blending:
+		return
+	_dispatch_blend_complete()
+	if publish_completed_event:
+		_publish_blend_completed(vcam_id)
+
+func _clear_live_blend_runtime() -> void:
+	_blend_progress = 1.0
+	_is_blending_active = false
+	_blend_duration = 0.0
+	_blend_elapsed = 0.0
+	_blend_trans_type = int(Tween.TRANS_LINEAR)
+	_blend_ease_type = int(Tween.EASE_IN_OUT)
+	_blend_cut_on_distance_threshold = 0.0
+	_blend_from_snapshot_result.clear()
+	_blend_result_cache.clear()
+	_blend_hint_runtime = null
+
+func _recover_invalid_live_blend_members() -> void:
+	if not _is_blending_active:
+		return
+
+	var has_to_vcam: bool = _active_vcam_id != StringName("") and _vcams_by_id.has(_active_vcam_id)
+	var has_from_vcam: bool = true
+	if _blend_from_snapshot_result.is_empty():
+		has_from_vcam = _previous_vcam_id != StringName("") and _vcams_by_id.has(_previous_vcam_id)
+
+	if has_from_vcam and has_to_vcam:
+		return
+
+	if has_to_vcam and not has_from_vcam:
+		_record_recovery("blend_from_invalid")
+		_finish_live_blend(_active_vcam_id, true)
+		return
+
+	if has_from_vcam and not has_to_vcam:
+		_record_recovery("blend_to_invalid")
+		_finish_live_blend(_active_vcam_id, false)
+		return
+
+	_record_recovery("blend_both_invalid")
+	_finish_live_blend(_active_vcam_id, false)
 
 func _dispatch_active_runtime(vcam_id: StringName, mode_name: String) -> void:
 	var store := _resolve_state_store()
@@ -210,11 +377,51 @@ func _dispatch_active_runtime(vcam_id: StringName, mode_name: String) -> void:
 		return
 	store.dispatch(U_VCAM_ACTIONS.set_active_runtime(vcam_id, mode_name))
 
+func _dispatch_blend_started(previous_vcam_id: StringName) -> void:
+	var store := _resolve_state_store()
+	if store == null:
+		return
+	store.dispatch(U_VCAM_ACTIONS.start_blend(previous_vcam_id))
+
+func _dispatch_blend_progress(progress: float) -> void:
+	var store := _resolve_state_store()
+	if store == null:
+		return
+	store.dispatch(U_VCAM_ACTIONS.update_blend(progress))
+
+func _dispatch_blend_complete() -> void:
+	var store := _resolve_state_store()
+	if store == null:
+		return
+	store.dispatch(U_VCAM_ACTIONS.complete_blend())
+
+func _record_recovery(reason: String) -> void:
+	var store := _resolve_state_store()
+	if store != null:
+		store.dispatch(U_VCAM_ACTIONS.record_recovery(reason))
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_RECOVERY, {
+		"reason": reason,
+		"active_vcam_id": _active_vcam_id,
+		"previous_vcam_id": _previous_vcam_id,
+	})
+
 func _publish_active_changed(vcam_id: StringName, previous_vcam_id: StringName, mode_name: String) -> void:
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED, {
 		"vcam_id": vcam_id,
 		"previous_vcam_id": previous_vcam_id,
 		"mode": mode_name,
+	})
+
+func _publish_blend_started(from_vcam_id: StringName, to_vcam_id: StringName, duration: float) -> void:
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_STARTED, {
+		"from_vcam_id": from_vcam_id,
+		"to_vcam_id": to_vcam_id,
+		"duration": duration,
+	})
+
+func _publish_blend_completed(vcam_id: StringName) -> void:
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_COMPLETED, {
+		"vcam_id": vcam_id,
 	})
 
 func _clear_runtime_state() -> void:
@@ -224,11 +431,11 @@ func _clear_runtime_state() -> void:
 	_previous_vcam_id = StringName("")
 	_explicit_vcam_id = StringName("")
 	_submitted_results.clear()
-	_blend_progress = 1.0
-	_is_blending_active = false
-	_blend_duration = 0.0
-	_blend_elapsed = 0.0
+	_clear_live_blend_runtime()
 	_last_physics_delta = 0.0
+	_pending_blend_duration_override = -1.0
+	_last_applied_frame = -1
+	_last_valid_applied_result.clear()
 	_clear_startup_blend_state()
 	_dispatch_active_runtime(StringName(""), "")
 	if previous_vcam_id != StringName(""):
@@ -346,31 +553,102 @@ func _resolve_ecs_manager() -> I_ECS_MANAGER:
 	_ecs_manager = U_SERVICE_LOCATOR.try_get_service(StringName("ecs_manager")) as I_ECS_MANAGER
 	return _ecs_manager
 
-func _try_apply_active_submission(vcam_id: StringName) -> void:
-	if vcam_id == StringName(""):
+func _try_apply_for_current_frame() -> void:
+	if _active_vcam_id == StringName(""):
 		return
-	if vcam_id != _active_vcam_id:
-		return
+	var frame_id: int = Engine.get_physics_frames()
 
 	var camera_mgr: I_CAMERA_MANAGER = _resolve_camera_manager()
 	if camera_mgr == null:
 		return
 	if camera_mgr.is_blend_active():
-		_clear_silhouettes_for_vcam(vcam_id)
+		_clear_silhouettes_for_vcam(_active_vcam_id)
 		return
-	_try_startup_blend_if_pending(vcam_id, camera_mgr)
 
-	var result_variant: Variant = _submitted_results.get(vcam_id, {})
-	if not (result_variant is Dictionary):
+	var result: Dictionary = _resolve_result_for_frame(frame_id)
+	if result.is_empty():
 		return
-	var result := result_variant as Dictionary
 	var transform_variant: Variant = result.get("transform", null)
 	if not (transform_variant is Transform3D):
 		return
+
 	var target_transform := transform_variant as Transform3D
-	var applied_transform: Transform3D = _resolve_startup_blend_transform(vcam_id, target_transform)
+	var applied_transform: Transform3D = target_transform
+	if not _is_blending_active:
+		_try_startup_blend_if_pending(_active_vcam_id, camera_mgr)
+		applied_transform = _resolve_startup_blend_transform(_active_vcam_id, target_transform)
+
 	camera_mgr.apply_main_camera_transform(applied_transform)
-	_publish_silhouette_update_request_for_active_vcam(vcam_id, applied_transform)
+	_last_applied_frame = frame_id
+	_last_valid_applied_result = result.duplicate(true)
+	_publish_silhouette_update_request_for_active_vcam(_active_vcam_id, applied_transform)
+
+func _resolve_result_for_frame(frame_id: int) -> Dictionary:
+	if _active_vcam_id == StringName(""):
+		return {}
+	if _is_blending_active:
+		return _resolve_blend_result_for_frame(frame_id)
+	return _get_submitted_result_for_frame(_active_vcam_id, frame_id)
+
+func _resolve_blend_result_for_frame(frame_id: int) -> Dictionary:
+	var to_result: Dictionary = _get_submitted_result_for_frame(_active_vcam_id, frame_id)
+	if to_result.is_empty():
+		return {}
+
+	var from_result: Dictionary = {}
+	if _blend_from_snapshot_result.is_empty():
+		if _previous_vcam_id == StringName(""):
+			return to_result
+		from_result = _get_submitted_result_for_frame(_previous_vcam_id, frame_id)
+		if from_result.is_empty():
+			return {}
+	else:
+		from_result = _blend_from_snapshot_result
+
+	if _should_cut_current_blend(from_result, to_result):
+		_finish_live_blend(_active_vcam_id, true)
+		return to_result
+
+	var hint: Resource = _blend_hint_runtime
+	if hint == null:
+		var fallback_hint := RS_VCAM_BLEND_HINT_SCRIPT.new()
+		fallback_hint.trans_type = _blend_trans_type
+		fallback_hint.ease_type = _blend_ease_type
+		fallback_hint.cut_on_distance_threshold = _blend_cut_on_distance_threshold
+		hint = fallback_hint
+
+	var blended: Dictionary = U_VCAM_BLEND_EVALUATOR.blend(from_result, to_result, hint, _blend_progress)
+	_blend_result_cache.clear()
+	for key in blended.keys():
+		_blend_result_cache[key] = blended[key]
+	return _blend_result_cache
+
+func _should_cut_current_blend(from_result: Dictionary, to_result: Dictionary) -> bool:
+	if _blend_cut_on_distance_threshold <= 0.0:
+		return false
+	var from_transform_variant: Variant = from_result.get("transform", null)
+	var to_transform_variant: Variant = to_result.get("transform", null)
+	if not (from_transform_variant is Transform3D) or not (to_transform_variant is Transform3D):
+		return false
+	var from_transform := from_transform_variant as Transform3D
+	var to_transform := to_transform_variant as Transform3D
+	var distance: float = from_transform.origin.distance_to(to_transform.origin)
+	return distance > _blend_cut_on_distance_threshold
+
+func _get_submitted_result_for_frame(vcam_id: StringName, frame_id: int) -> Dictionary:
+	if vcam_id == StringName(""):
+		return {}
+	var entry_variant: Variant = _submitted_results.get(vcam_id, {})
+	if not (entry_variant is Dictionary):
+		return {}
+	var entry: Dictionary = entry_variant as Dictionary
+	var submitted_frame: int = int(entry.get("frame", -1))
+	if submitted_frame != frame_id:
+		return {}
+	var result_variant: Variant = entry.get("result", {})
+	if result_variant is Dictionary:
+		return result_variant as Dictionary
+	return {}
 
 func _publish_silhouette_update_request_for_active_vcam(
 	vcam_id: StringName,

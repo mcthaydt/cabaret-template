@@ -204,6 +204,56 @@ func test_blend_cameras_handles_instant_duration() -> void:
 	var distance := transition_camera.global_position.distance_to(new_camera.global_position)
 	assert_lt(distance, 0.1, "Instant blend should immediately position camera")
 
+func test_apply_main_camera_transform_preserves_active_shake_offset() -> void:
+	var scene := Node3D.new()
+	add_child_autofree(scene)
+	var main_camera := Camera3D.new()
+	scene.add_child(main_camera)
+	camera_manager.register_main_camera(main_camera)
+	main_camera.current = true
+
+	camera_manager.apply_shake_offset(Vector2(5.0, 3.0), 0.05)
+	var shake_parent: Node3D = camera_manager.get_shake_parent_for_camera(main_camera)
+	assert_not_null(shake_parent, "Main camera should be wrapped by a shake parent after shake is applied")
+	assert_not_null(shake_parent)
+	if shake_parent == null:
+		return
+	var shake_position_before: Vector3 = shake_parent.position
+	var shake_rotation_before: Vector3 = shake_parent.rotation
+
+	var target_transform := Transform3D(Basis.IDENTITY, Vector3(3.0, 2.0, -6.0))
+	camera_manager.apply_main_camera_transform(target_transform)
+
+	assert_almost_eq(shake_parent.position, shake_position_before, Vector3(0.0001, 0.0001, 0.0001))
+	assert_almost_eq(shake_parent.rotation, shake_rotation_before, Vector3(0.0001, 0.0001, 0.0001))
+
+	camera_manager.clear_shake_source(StringName("vfx"))
+	assert_almost_eq(
+		main_camera.global_transform.origin,
+		target_transform.origin,
+		Vector3(0.001, 0.001, 0.001),
+		"Clearing shake should reveal the transform applied by apply_main_camera_transform"
+	)
+
+func test_is_blend_active_returns_true_during_transition_blend() -> void:
+	var old_scene := Node3D.new()
+	add_child_autofree(old_scene)
+	var old_camera := Camera3D.new()
+	old_scene.add_child(old_camera)
+
+	var new_scene := Node3D.new()
+	add_child_autofree(new_scene)
+	var new_camera := Camera3D.new()
+	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
+
+	camera_manager.blend_cameras(old_scene, new_scene, 0.2)
+
+	assert_true(camera_manager.is_blend_active(), "Transition blend should set is_blend_active() true")
+
+func test_is_blend_active_returns_false_when_no_transition_blend_active() -> void:
+	assert_false(camera_manager.is_blend_active(), "No active transition blend should report false")
+
 ## ============================================================================
 ## Camera State Tests (T233)
 ## ============================================================================
