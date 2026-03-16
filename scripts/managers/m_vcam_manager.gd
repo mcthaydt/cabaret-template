@@ -5,6 +5,7 @@ class_name M_VCamManager
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
+const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
@@ -43,6 +44,9 @@ var _startup_blend_elapsed_sec: float = 0.0
 var _startup_blend_trans_type: int = int(Tween.TRANS_CUBIC)
 var _startup_blend_ease_type: int = int(Tween.EASE_IN_OUT)
 var _startup_blend_cut_on_distance_threshold: float = 0.0
+var _occluder_results_cache: Array = []
+var _last_silhouette_count: int = 0
+var _silhouette_clear_published: bool = false
 
 func _ready() -> void:
 	var service_name := StringName("vcam_manager")
@@ -215,6 +219,7 @@ func _publish_active_changed(vcam_id: StringName, previous_vcam_id: StringName, 
 
 func _clear_runtime_state() -> void:
 	var previous_vcam_id := _active_vcam_id
+	_clear_all_silhouettes(_resolve_player_entity_id())
 	_active_vcam_id = StringName("")
 	_previous_vcam_id = StringName("")
 	_explicit_vcam_id = StringName("")
@@ -351,6 +356,7 @@ func _try_apply_active_submission(vcam_id: StringName) -> void:
 	if camera_mgr == null:
 		return
 	if camera_mgr.is_blend_active():
+		_clear_silhouettes_for_vcam(vcam_id)
 		return
 	_try_startup_blend_if_pending(vcam_id, camera_mgr)
 
@@ -372,19 +378,31 @@ func _publish_silhouette_update_request_for_active_vcam(
 ) -> void:
 	var vcam := _vcams_by_id.get(vcam_id, null) as Node
 	var entity_id: StringName = _resolve_silhouette_entity_id(vcam)
-	var follow_target: Node3D = _resolve_follow_target_for_vcam(vcam)
-	if follow_target == null or not is_instance_valid(follow_target):
-		_publish_silhouette_update_request(entity_id, [], false)
+	if not _is_occlusion_silhouette_enabled():
+		_clear_all_silhouettes(entity_id)
 		return
 
+	var follow_target: Node3D = _resolve_follow_target_for_vcam(vcam)
+	if follow_target == null or not is_instance_valid(follow_target):
+		_clear_all_silhouettes(entity_id)
+		return
+
+	var occluders := _detect_occluders_for_silhouette(camera_transform, follow_target)
+	var safe_occluders := _sanitize_occluders(occluders)
+	_publish_silhouette_update_request(entity_id, safe_occluders, true)
+	_publish_silhouette_count_if_changed(safe_occluders.size())
+	_silhouette_clear_published = false
+
+func _detect_occluders_for_silhouette(camera_transform: Transform3D, follow_target: Node3D) -> Array:
+	_occluder_results_cache.clear()
+	if follow_target == null or not is_instance_valid(follow_target):
+		return _occluder_results_cache
 	var world: World3D = follow_target.get_world_3d()
 	if world == null:
-		_publish_silhouette_update_request(entity_id, [], false)
-		return
+		return _occluder_results_cache
 	var space_state: PhysicsDirectSpaceState3D = world.direct_space_state
 	if space_state == null:
-		_publish_silhouette_update_request(entity_id, [], false)
-		return
+		return _occluder_results_cache
 
 	var occluders_variant: Variant = U_VCAM_COLLISION_DETECTOR.detect_occluders(
 		space_state,
@@ -392,12 +410,13 @@ func _publish_silhouette_update_request_for_active_vcam(
 		follow_target.global_position,
 		VCAM_OCCLUSION_COLLISION_MASK
 	)
-	var occluders: Array = []
-	if occluders_variant is Array:
-		occluders = (occluders_variant as Array).duplicate(false)
-	_publish_silhouette_update_request(entity_id, occluders, true)
+	if not (occluders_variant is Array):
+		return _occluder_results_cache
+	for occluder_variant in occluders_variant as Array:
+		_occluder_results_cache.append(occluder_variant)
+	return _occluder_results_cache
 
-func _publish_silhouette_update_request(entity_id: StringName, occluders: Array, enabled: bool) -> void:
+func _sanitize_occluders(occluders: Array) -> Array:
 	var safe_occluders: Array = []
 	for occluder_variant in occluders:
 		if not (occluder_variant is GeometryInstance3D):
@@ -406,10 +425,39 @@ func _publish_silhouette_update_request(entity_id: StringName, occluders: Array,
 		if occluder == null or not is_instance_valid(occluder):
 			continue
 		safe_occluders.append(occluder)
+	return safe_occluders
 
+func _publish_silhouette_count_if_changed(next_count: int) -> void:
+	var normalized_count: int = maxi(next_count, 0)
+	if normalized_count == _last_silhouette_count:
+		return
+	_last_silhouette_count = normalized_count
+	var store := _resolve_state_store()
+	if store == null:
+		return
+	store.dispatch(U_VCAM_ACTIONS.update_silhouette_count(normalized_count))
+
+func _clear_silhouettes_for_vcam(vcam_id: StringName) -> void:
+	var vcam := _vcams_by_id.get(vcam_id, null) as Node
+	_clear_all_silhouettes(_resolve_silhouette_entity_id(vcam))
+
+func _clear_all_silhouettes(entity_id: StringName) -> void:
+	if _silhouette_clear_published and _last_silhouette_count == 0:
+		return
+	_publish_silhouette_update_request(entity_id, [], false)
+	_publish_silhouette_count_if_changed(0)
+	_silhouette_clear_published = true
+
+func _is_occlusion_silhouette_enabled() -> bool:
+	var store := _resolve_state_store()
+	if store == null:
+		return true
+	return U_VFX_SELECTORS.is_occlusion_silhouette_enabled(store.get_state())
+
+func _publish_silhouette_update_request(entity_id: StringName, occluders: Array, enabled: bool) -> void:
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
 		"entity_id": entity_id,
-		"occluders": safe_occluders,
+		"occluders": occluders,
 		"enabled": enabled,
 	})
 

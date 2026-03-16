@@ -12,6 +12,21 @@ const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 
+class VCamManagerOcclusionStub extends M_VCAM_MANAGER:
+	var test_follow_target: Node3D = null
+	var test_occluders: Array = []
+
+	func _resolve_follow_target_for_vcam(_vcam: Node) -> Node3D:
+		if test_follow_target != null and is_instance_valid(test_follow_target):
+			return test_follow_target
+		return null
+
+	func _detect_occluders_for_silhouette(
+		_camera_transform: Transform3D,
+		_follow_target: Node3D
+	) -> Array:
+		return test_occluders.duplicate(false)
+
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
 	U_ECS_EVENT_BUS.reset()
@@ -118,9 +133,8 @@ func test_unregistering_last_active_vcam_publishes_clear_event_and_runtime_clear
 
 	assert_eq(manager.get_active_vcam_id(), StringName(""), "Active id should clear when last vcam unregisters")
 	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	assert_eq(history.size(), 1, "Unregistering last active vcam should publish clear event")
-	var event_payload := history[0] as Dictionary
-	assert_eq(event_payload.get("name", StringName("")), U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED)
+	var event_payload := _find_last_event_by_name(U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED)
+	assert_false(event_payload.is_empty(), "Unregistering last active vcam should publish active-clear event")
 	var payload := event_payload.get("payload", {}) as Dictionary
 	assert_eq(payload.get("vcam_id", StringName("")), StringName(""))
 	assert_eq(payload.get("previous_vcam_id", StringName("")), StringName("cam_a"))
@@ -432,11 +446,181 @@ func test_submit_evaluated_camera_publishes_silhouette_update_request_event() ->
 		break
 	assert_true(found_request, "Submitting active camera should publish silhouette request payload")
 
+func test_submit_evaluated_camera_includes_detected_occluders_when_silhouette_enabled() -> void:
+	var store := MOCK_STATE_STORE.new()
+	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
+	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
+	add_child(store)
+	autofree(store)
+
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+
+	var manager := await _create_occlusion_test_manager(store, camera_manager)
+	var camera_a := _create_vcam(StringName("cam_a"), 5)
+	manager.register_vcam(camera_a)
+	var follow_target := Node3D.new()
+	add_child(follow_target)
+	autofree(follow_target)
+	manager.test_follow_target = follow_target
+	var occluder_a := _create_mesh_occluder()
+	var occluder_b := _create_mesh_occluder()
+	manager.test_occluders = [occluder_a, occluder_b]
+
+	U_ECS_EVENT_BUS.clear_history()
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
+
+	var payload := _find_last_silhouette_payload()
+	assert_false(payload.is_empty(), "Silhouette event should be published when toggle is enabled")
+	assert_eq(payload.get("enabled", false), true, "Silhouette request should remain enabled")
+	var occluders := payload.get("occluders", []) as Array
+	assert_eq(occluders.size(), 2, "Detected occluders should be forwarded in payload")
+
+func test_submit_evaluated_camera_disables_silhouette_when_vfx_toggle_is_off() -> void:
+	var store := MOCK_STATE_STORE.new()
+	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
+	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": false})
+	add_child(store)
+	autofree(store)
+
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+
+	var manager := await _create_occlusion_test_manager(store, camera_manager)
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5))
+	var follow_target := Node3D.new()
+	add_child(follow_target)
+	autofree(follow_target)
+	manager.test_follow_target = follow_target
+	manager.test_occluders = [_create_mesh_occluder()]
+
+	U_ECS_EVENT_BUS.clear_history()
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
+
+	var payload := _find_last_silhouette_payload()
+	assert_false(payload.is_empty(), "Silhouette disable request should be published when toggle is off")
+	assert_eq(payload.get("enabled", true), false, "Silhouette request should disable rendering when toggle is off")
+	var occluders := payload.get("occluders", []) as Array
+	assert_eq(occluders.size(), 0, "Disabled request should not carry occluders")
+
+func test_submit_evaluated_camera_dispatches_silhouette_count_only_when_count_changes() -> void:
+	var store := MOCK_STATE_STORE.new()
+	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
+	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
+	add_child(store)
+	autofree(store)
+
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+
+	var manager := await _create_occlusion_test_manager(store, camera_manager)
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5))
+	var follow_target := Node3D.new()
+	add_child(follow_target)
+	autofree(follow_target)
+	manager.test_follow_target = follow_target
+	var occluder := _create_mesh_occluder()
+
+	manager.test_occluders = [occluder]
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
+	var first_count_action := _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_UPDATE_SILHOUETTE_COUNT
+	)
+	assert_false(first_count_action.is_empty(), "First count change should dispatch silhouette count action")
+	var first_payload := first_count_action.get("payload", {}) as Dictionary
+	assert_eq(int(first_payload.get("count", -1)), 1, "First dispatch should report one active silhouette")
+
+	store.clear_dispatched_actions()
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
+	assert_eq(store.get_dispatched_actions().size(), 0, "Unchanged silhouette count should not dispatch")
+
+	manager.test_occluders = []
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
+	var reset_count_action := _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_UPDATE_SILHOUETTE_COUNT
+	)
+	assert_false(reset_count_action.is_empty(), "Count drop should dispatch update action")
+	var reset_payload := reset_count_action.get("payload", {}) as Dictionary
+	assert_eq(int(reset_payload.get("count", -1)), 0, "Count change should dispatch zero silhouettes")
+
+func test_unregistering_active_vcam_publishes_silhouette_clear_request() -> void:
+	var store := MOCK_STATE_STORE.new()
+	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
+	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
+	add_child(store)
+	autofree(store)
+
+	var manager := await _create_occlusion_test_manager(store)
+	var camera_a := _create_vcam(StringName("cam_a"), 5)
+	manager.register_vcam(camera_a)
+	var follow_target := Node3D.new()
+	add_child(follow_target)
+	autofree(follow_target)
+	manager.test_follow_target = follow_target
+	manager.test_occluders = [_create_mesh_occluder()]
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
+	U_ECS_EVENT_BUS.clear_history()
+
+	manager.unregister_vcam(camera_a)
+
+	var payload := _find_last_silhouette_payload()
+	assert_false(payload.is_empty(), "Unregistering active vcam should publish silhouette clear request")
+	assert_eq(payload.get("enabled", true), false, "Unregister clear request should disable silhouettes")
+	var occluders := payload.get("occluders", []) as Array
+	assert_eq(occluders.size(), 0, "Clear request should not include occluders")
+
+func test_scene_transition_blend_clears_active_silhouettes() -> void:
+	var store := MOCK_STATE_STORE.new()
+	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
+	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
+	add_child(store)
+	autofree(store)
+
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+
+	var manager := await _create_occlusion_test_manager(store, camera_manager)
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5))
+	var follow_target := Node3D.new()
+	add_child(follow_target)
+	autofree(follow_target)
+	manager.test_follow_target = follow_target
+	manager.test_occluders = [_create_mesh_occluder()]
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
+	U_ECS_EVENT_BUS.clear_history()
+
+	camera_manager.blend_active = true
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
+
+	var payload := _find_last_silhouette_payload()
+	assert_false(payload.is_empty(), "Scene-transition blend should publish silhouette clear request")
+	assert_eq(payload.get("enabled", true), false, "Transition clear request should disable silhouettes")
+
 func _create_manager(
 	injected_store: I_StateStore = null,
 	injected_camera_manager: I_CameraManager = null
 ) -> M_VCamManager:
 	var manager := M_VCAM_MANAGER.new()
+	if injected_store != null:
+		manager.state_store = injected_store
+	if injected_camera_manager != null:
+		manager.camera_manager = injected_camera_manager
+	add_child(manager)
+	autofree(manager)
+	await get_tree().process_frame
+	return manager
+
+func _create_occlusion_test_manager(
+	injected_store: I_StateStore = null,
+	injected_camera_manager: I_CameraManager = null
+) -> VCamManagerOcclusionStub:
+	var manager := VCamManagerOcclusionStub.new()
 	if injected_store != null:
 		manager.state_store = injected_store
 	if injected_camera_manager != null:
@@ -461,3 +645,43 @@ func _create_vcam(
 	add_child(component)
 	autofree(component)
 	return component
+
+func _create_mesh_occluder() -> MeshInstance3D:
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = BoxMesh.new()
+	add_child(mesh)
+	autofree(mesh)
+	return mesh
+
+func _find_last_silhouette_payload() -> Dictionary:
+	var history: Array = U_ECS_EVENT_BUS.get_event_history()
+	for i in range(history.size() - 1, -1, -1):
+		var event_variant: Variant = history[i]
+		if not (event_variant is Dictionary):
+			continue
+		var event_payload := event_variant as Dictionary
+		if event_payload.get("name", StringName("")) != U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST:
+			continue
+		return (event_payload.get("payload", {}) as Dictionary).duplicate(true)
+	return {}
+
+func _find_last_event_by_name(event_name: StringName) -> Dictionary:
+	var history: Array = U_ECS_EVENT_BUS.get_event_history()
+	for i in range(history.size() - 1, -1, -1):
+		var event_variant: Variant = history[i]
+		if not (event_variant is Dictionary):
+			continue
+		var event_payload := event_variant as Dictionary
+		if event_payload.get("name", StringName("")) == event_name:
+			return event_payload.duplicate(true)
+	return {}
+
+func _find_last_action_by_type(actions: Array, action_type: StringName) -> Dictionary:
+	for i in range(actions.size() - 1, -1, -1):
+		var action_variant: Variant = actions[i]
+		if not (action_variant is Dictionary):
+			continue
+		var action := action_variant as Dictionary
+		if action.get("type", StringName("")) == action_type:
+			return action.duplicate(true)
+	return {}
