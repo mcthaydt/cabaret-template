@@ -1038,11 +1038,17 @@
 
 - **Do not write gameplay camera transforms directly to `camera.global_transform`**: vCam runtime motion must flow through `M_CameraManager.apply_main_camera_transform(...)` so `ShakeParent` layering and transition-camera behavior stay intact.
 
+- **`is_blend_active()` must reflect transition tween state, not camera-current state**: Using `TransitionCamera.current` as the blend-active source can report false positives when no transition tween is running (for example startup/headless camera-current quirks), which incorrectly blocks gameplay camera writes.
+  - **Fix pattern**: drive `is_blend_active()` from active transition tween state (`_camera_blend_tween != null && _camera_blend_tween.is_running()`).
+
 - **Fixed mode must resolve authored anchors via component path first**: `C_VCamComponent` is a `Node`, not the authored world anchor. For fixed cameras, resolve `fixed_anchor_path` to a `Node3D` first and fallback to the vCam host entity-root `Node3D`; do not read component transform as anchor data.
 
 - **`vcam_occludable` naming alone does not enable real occlusion behavior**: After defining physics layer schema, migrate authored camera-blocking geometry in gameplay/prefab scenes onto that layer. Leaving blockers on old layers makes silhouette tests pass in isolation but fail in live scenes.
 
 - **Touch look ownership must stay in `S_TouchscreenSystem`**: `gameplay.look_input` is shared across devices. If `S_InputSystem` keeps dispatching zero touchscreen payloads while touchscreen is active, it clobbers drag-look and breaks mobile orbit/OTS camera control.
+
+- **Live vCam apply must ignore stale submissions from previous physics frames**: Root/gameplay `_physics_process` ordering can vary; if `M_VCamManager` applies the last cached result without frame-gating, camera motion can lag or hitch one frame behind gameplay evaluation.
+  - **Fix pattern**: stamp each `submit_evaluated_camera(...)` result with `Engine.get_physics_frames()` and only apply results that match the current frame.
 
 - **Second-order rotation smoothing needs angle unwrapping and deterministic reset boundaries**: Smoothing Euler angles directly from `Basis.get_euler()` without unwrapping can pick the long path across `-PI/PI`, causing sudden spins. Reusing smoothing state across mode switches or follow-target changes can also drag stale momentum into a new camera context.
   - **Fix pattern**: unwrap each target axis against the previous target angle before stepping rotation dynamics, recreate dynamics when response tuning changes, and `reset()` dynamics on mode/follow-target transitions so first frame after a context switch snaps to the new evaluated pose.

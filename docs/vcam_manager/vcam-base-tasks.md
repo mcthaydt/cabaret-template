@@ -1100,7 +1100,7 @@ Settings checks (mode-agnostic):
 
 ### Phase 9A: U_VCamBlendEvaluator
 
-- [ ] **Task 9A.1 (Red)**: Write tests for U_VCamBlendEvaluator
+- [x] **Task 9A.1 (Red)**: Write tests for U_VCamBlendEvaluator
   - Create `tests/unit/managers/helpers/test_vcam_blend_evaluator.gd`
   - Test blend at progress 0.0 returns `from_result` transform
   - Test blend at progress 1.0 returns `to_result` transform
@@ -1113,17 +1113,19 @@ Settings checks (mode-agnostic):
   - Test blend with empty from_result returns to_result
   - Test blend with empty to_result returns from_result
   - **Target: 10 tests**
+  - Completion note (March 15, 2026): Added `test_vcam_blend_evaluator.gd` with 10 assertions covering transform/FOV interpolation endpoints, easing behavior, cut-threshold behavior, and empty-input fallbacks.
 
-- [ ] **Task 9A.2 (Green)**: Implement U_VCamBlendEvaluator
+- [x] **Task 9A.2 (Green)**: Implement U_VCamBlendEvaluator
   - Create `scripts/managers/helpers/u_vcam_blend_evaluator.gd`
   - Implement `static func blend(from_result, to_result, hint, progress) -> Dictionary`
   - All tests should pass
+  - Completion note (March 15, 2026): Added `U_VCamBlendEvaluator` with hint-aware transform/FOV blending, distance-cut handling, and null/empty fallback behavior.
 
 ---
 
 ### Phase 9B: Live Blend State in M_VCamManager
 
-- [ ] **Task 9B.1 (Red)**: Write tests for live blend in M_VCamManager
+- [x] **Task 9B.1 (Red)**: Write tests for live blend in M_VCamManager
   - Add to `tests/unit/managers/test_vcam_manager.gd`
   - Test `set_active_vcam()` starts blend between old and new vcam IDs
   - Test `set_active_vcam()` publishes `EVENT_VCAM_BLEND_STARTED` through `U_ECSEventBus` with `{from_vcam_id, to_vcam_id, duration}` payload
@@ -1136,13 +1138,15 @@ Settings checks (mode-agnostic):
   - Test blend result is computed from two live results (not frozen transforms)
   - Test `set_active_vcam()` with `blend_duration = 0.0` cuts immediately (no blend)
   - **Target: 10 tests**
+  - Completion note (March 15, 2026): Expanded `test_vcam_manager.gd` with blend-start/progress/completion/event assertions, live outgoing-result evaluation coverage, and instant-cut coverage.
 
-- [ ] **Task 9B.2 (Green)**: Implement live blend in M_VCamManager
+- [x] **Task 9B.2 (Green)**: Implement live blend in M_VCamManager
   - Extend manager with blend state tracking, elapsed time, blend evaluation
   - Process blend progression in `_physics_process`
   - Consume only the latest result submitted for the active physics frame; do not rely on root-vs-gameplay `_physics_process` tree order
   - Publish `EVENT_VCAM_BLEND_STARTED` on blend start, `EVENT_VCAM_BLEND_COMPLETED` on completion
   - All tests should pass
+  - Completion note (March 15, 2026): `M_VCamManager` now tracks live blend lifecycle (`duration/elapsed/progress`), dispatches Redux blend actions, publishes blend lifecycle ECS events, and blends active/outgoing evaluated results via `U_VCamBlendEvaluator`.
 
 ---
 
@@ -1150,24 +1154,26 @@ Settings checks (mode-agnostic):
 
 > **Note:** `apply_main_camera_transform()` and `is_blend_active()` are **new API — Phase 9**. They do not exist on `M_CameraManager` today.
 
-- [ ] **Task 9C.1 (Red)**: Write tests for camera-manager API extension
+- [x] **Task 9C.1 (Red)**: Write tests for camera-manager API extension
   - Modify `tests/integration/camera_system/test_camera_manager.gd`
   - Test `apply_main_camera_transform(xform)` (new API) updates camera base pose without breaking shake offset
   - Test `is_blend_active()` (new API) returns true during scene-transition blends
   - Test `is_blend_active()` (new API) returns false when no transition blend active
   - **Target: 3 tests**
+  - Completion note (March 15, 2026): Added three camera-manager integration assertions for shake-safe transform application and `is_blend_active()` true/false behavior.
 
-- [ ] **Task 9C.2 (Green)**: Implement camera-manager API (new methods)
+- [x] **Task 9C.2 (Green)**: Implement camera-manager API (new methods)
   - Modify `scripts/interfaces/i_camera_manager.gd`: add method signatures for `apply_main_camera_transform()` and `is_blend_active()`
   - Modify `scripts/managers/m_camera_manager.gd`: implement `apply_main_camera_transform()` and `is_blend_active()`
   - Modify `tests/mocks/mock_camera_manager.gd`: add mock implementations
   - All tests should pass
+  - Completion note (March 15, 2026): Existing API wiring was retained; `M_CameraManager.is_blend_active()` now keys off active transition tween state (`_camera_blend_tween.is_running()`) so idle transition-camera current-state does not report false positives.
 
 ---
 
 ### Phase 9D: vCam Apply Flow
 
-- [ ] **Task 9D.1 (Red)**: Write tests for vCam camera application
+- [x] **Task 9D.1 (Red)**: Write tests for vCam camera application
   - Add to `tests/unit/managers/test_vcam_manager.gd`
   - Test vCam suspends transform writes when `camera_manager.is_blend_active()` is true
   - Test vCam calls `camera_manager.apply_main_camera_transform()` when blend inactive
@@ -1175,14 +1181,16 @@ Settings checks (mode-agnostic):
   - Test vCam does NOT write `camera.fov` directly (leaves that to `S_CameraStateSystem`)
   - Test vCam does not apply stale previous-frame results when a current-frame submission is missing
   - **Target: 5 tests**
+  - Completion note (March 15, 2026): Manager tests now explicitly cover transition-blend apply gating and stale-frame handoff suppression in addition to active-camera transform routing.
 
-- [ ] **Task 9D.2 (Green)**: Implement vCam apply flow in M_VCamManager
+- [x] **Task 9D.2 (Green)**: Implement vCam apply flow in M_VCamManager
   - Route final blended/unblended result through `camera_manager.apply_main_camera_transform()`
   - Set `C_CameraStateComponent.base_fov` (use `set_base_fov()` setter)
   - Consume the current-frame `S_VCamSystem` handoff rather than depending on root scene-tree order
   - All tests should pass
+  - Completion note (March 15, 2026): `M_VCamManager` now consumes frame-stamped submissions (`Engine.get_physics_frames`) and skips stale-frame data; gameplay camera writes remain routed exclusively through `camera_manager.apply_main_camera_transform()`.
 
-- [ ] **Task 9D.3**: Enrich `S_CameraStateSystem` QB rule context with vCam state
+- [x] **Task 9D.3**: Enrich `S_CameraStateSystem` QB rule context with vCam state
   - Modify `scripts/ecs/systems/s_camera_state_system.gd` `_build_camera_context()` method
   - Add `vcam_active_mode` from `U_VCamSelectors.get_active_mode(state)`
   - Add `vcam_is_blending` from `U_VCamSelectors.is_blending(state)`
@@ -1190,35 +1198,40 @@ Settings checks (mode-agnostic):
   - This enables QB camera rules to condition on vCam state (e.g., "reduce FOV zone effect in OTS mode", "suppress shake during blends")
   - Rules use standard `RS_ConditionContextField` to read these fields — no vCam-specific condition types needed
   - Write regression tests verifying existing camera rules still pass with enriched context
+  - Completion note (March 15, 2026): `_attach_camera_context()` now emits `vcam_active_mode`, `vcam_is_blending`, and `vcam_active_vcam_id`; `test_camera_state_system.gd` gained explicit context-field coverage with existing suite regressions remaining green.
 
 ---
 
 ### Phase 9E: Reentrant Blend and Blend Recovery
 
-- [ ] **Task 9E.1 (Red)**: Write tests for reentrant blend (mid-blend interruption)
+- [x] **Task 9E.1 (Red)**: Write tests for reentrant blend (mid-blend interruption)
   - Add to `tests/unit/managers/test_vcam_manager.gd`
   - Test second `set_active_vcam()` during active blend snapshots current blended pose as new "from"
   - Test reentrant switch resets blend progress to `0.0`
   - Test reentrant switch updates `previous_vcam_id`
   - Test rapid triple-switch sequence produces coherent final state (no wedged blend)
   - **Target: 4 tests**
+  - Completion note (March 15, 2026): Added reentrant manager tests for snapshot-source carryover, progress reset on interruption, and rapid multi-switch convergence.
 
-- [ ] **Task 9E.2 (Green)**: Implement reentrant blend in M_VCamManager
+- [x] **Task 9E.2 (Green)**: Implement reentrant blend in M_VCamManager
   - Snapshot current blended pose on re-entry
   - Update blend state with new target
   - All tests should pass
+  - Completion note (March 15, 2026): `M_VCamManager` now captures reentrant snapshot-from-result state and starts the replacement blend from that snapshot (old outgoing vCam no longer required for reentry).
 
-- [ ] **Task 9E.3 (Red)**: Write tests for blend recovery on invalid vCam
+- [x] **Task 9E.3 (Red)**: Write tests for blend recovery on invalid vCam
   - Add to `tests/unit/managers/test_vcam_manager.gd`
   - Test outgoing vCam freed during blend: blend completes immediately (cut to incoming)
   - Test incoming vCam freed during blend: blend cancelled, hold outgoing pose, trigger reselection
   - Test both vCams freed during blend: hold last valid pose, clear blend state
   - **Target: 3 tests**
+  - Completion note (March 15, 2026): Added manager tests for all invalid-endpoint recovery branches (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`) with state/event assertions.
 
-- [ ] **Task 9E.4 (Green)**: Implement blend recovery
+- [x] **Task 9E.4 (Green)**: Implement blend recovery
   - Add validity checks before blend evaluation each tick
   - Dispatch `record_recovery` on recovery events
   - All tests should pass
+  - Completion note (March 15, 2026): Blend recovery now records reasoned recovery actions/events and resolves invalid endpoints without wedged blend state (complete-to-incoming, cancel/reselect, or clear/hold-last-valid).
 
 ---
 

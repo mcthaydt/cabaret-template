@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset implementation is now complete: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), 3C3 (OTS landing camera response), and full 3C4 aiming scope (`3C4.1-3C4.11`: aim activation/input plumbing/movement+rotation integrations + reticle + default OTS movement preset) are implementation-complete as of March 15, 2026. Phase 10A detector groundwork is now complete: Task `10A.1` (collision-detector Red tests) and Task `10A.2` (collision-detector Green implementation + layer-name wiring) are landed as of March 15, 2026. Phase 10B silhouette-helper foundation is now complete: Task `10B.1` (silhouette-helper Red tests) and Task `10B.2` (silhouette-helper Green implementation + shader asset) are landed as of March 15, 2026. Phase 10B2 routing groundwork is now complete: Tasks `10B2.1-10B2.4` (event constant + manager publish/subscribe wiring + routing verification) are landed as of March 15, 2026. Phase 10C per-tick occlusion integration is now complete: Tasks `10C.1/10C.2` (toggle-gated per-tick publish flow + silhouette-count dispatch-on-change + clear paths) are landed as of March 15, 2026.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset implementation is now complete: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), 3C3 (OTS landing camera response), and full 3C4 aiming scope (`3C4.1-3C4.11`: aim activation/input plumbing/movement+rotation integrations + reticle + default OTS movement preset) are implementation-complete as of March 15, 2026. Phase 9 (`9A-9E`) is now implementation-complete as of March 15, 2026 (live blend evaluator, manager blend lifecycle/recovery, shake-safe camera-manager API validation, apply-flow stale-frame gating, and QB context enrichment).
 
 ## Next Planned Work (March 15, 2026)
 
@@ -15,87 +15,37 @@
 - Phase 3C2 shoulder sway is now complete in `S_VCamSystem` with per-vCam sway dynamics state and OTS-only no-op gating coverage.
 - Phase 3C3 landing camera response is now complete in `S_VCamSystem` with event-driven OTS distance compression and stacked shared-impact coverage.
 - Phase 3C4 aiming scope is now implementation-complete: slice 1 (aim activation + input plumbing + movement/rotation integrations) plus reticle UI (`3C4.9`/`3C4.10`) and default OTS movement preset (`3C4.11`) are landed with targeted coverage.
-- Phase 10A occlusion authored-scene prerequisites are complete: Task `10A.0` inventory + Task `10A.3` layer-6 (`vcam_occludable`) migration are now landed across gameplay/prefab scenes with post-migration audit `missing_count=0`.
-- Phase 10A collision detector Red/Green is complete: added `tests/unit/managers/helpers/test_vcam_collision_detector.gd` and `scripts/managers/helpers/u_vcam_collision_detector.gd`, plus `project.godot` layer naming for `3d_physics/layer_6 = "vcam_occludable"`.
-- Phase 10B silhouette helper Red/Green is complete: added `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd`, `scripts/managers/helpers/u_vcam_silhouette_helper.gd`, and `assets/shaders/sh_vcam_silhouette_shader.gdshader`.
-- Phase 10B2 silhouette routing is complete: `EVENT_SILHOUETTE_UPDATE_REQUEST` now routes from `M_VCamManager` publish to `M_VFXManager` subscribe/delegate paths with player/transition gating and unit coverage.
-- Phase 10C per-tick occlusion integration is complete: `M_VCamManager` now consults `vfx.occlusion_silhouette_enabled`, forwards deterministic occluder payloads only when enabled, clears silhouettes on transition-blend/disable/unregister paths, and dispatches `vcam/update_silhouette_count` only when the active count changes.
+- Phase 9 (`9A-9E`) completion is now landed in code/tests/docs; manual blend validation (`9F`) remains pending.
 - Immediate validation target:
   - Manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`) are now marked complete (March 15, 2026, user-directed pass), including the joystick-exclusion/reticle-fade focus points.
   - Post-Phase maintenance completed (March 15, 2026): OTS vertical framing bugfix landed via TDD (runtime OTS pitch now clamps to authored bounds in `S_VCamSystem`; default `cfg_default_ots.tres` tuned to head-level framing with higher shoulder anchor, pullback distance, and tighter pitch range).
   - Post-phase QA hardening (March 15, 2026): added explicit mobile guard `test_long_press_over_virtual_controls_does_not_toggle_aim` in `tests/unit/ui/test_mobile_controls.gd` (suite now `20/20`) to lock joystick-area long-press exclusion before manual MT-109/MT-110 checks.
   - Post-phase QA hardening (March 15, 2026): added explicit camera-relative OTS strafe guard `test_ots_uses_camera_relative_strafe_direction` in `tests/unit/ecs/systems/test_movement_system.gd` (suite now `14/14`) to backstop MT-112 before live manual runs.
   - Post-phase style debt cleanup (March 15, 2026): removed remaining HUD scene inline `theme_override_*` usage from `scenes/ui/hud/ui_hud_overlay.tscn` and moved semantic LIFE-label styling to `UI_HudController._apply_theme_tokens()`; style enforcement now passes fully (`17/17`).
-  - Phase 10A detector validation completed (March 15, 2026): `tests/unit/managers/helpers/test_vcam_collision_detector.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) are green.
-  - Phase 10B helper validation completed (March 15, 2026): `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) are green.
-  - Phase 10B2 routing validation completed (March 15, 2026): `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`), `tests/unit/managers/test_vcam_manager.gd` (`28/28`), aggregate `test_vfx_manager*` suites (`44/44`), and style enforcement (`17/17`) are green.
-  - Phase 10C validation completed (March 15, 2026): `tests/unit/managers/test_vcam_manager.gd` (`33/33`), `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`), and `tests/unit/style/test_style_enforcement.gd` (`17/17`) are green.
+  - Phase 9 implementation coverage is now complete (`9A-9E`); remaining phase target is manual validation checklist `9F` (`MT-22/23/34/43/44`).
 
-## vCam Collision Detector (Phase 10A.1/10A.2, March 15, 2026)
+## Phase 9 Live Blend Evaluation + Integration (March 15, 2026)
 
-- Added detector test coverage:
-  - `tests/unit/managers/helpers/test_vcam_collision_detector.gd` (`6/6`)
-- Added detector implementation:
-  - `scripts/managers/helpers/u_vcam_collision_detector.gd` (`U_VCamCollisionDetector`)
-- Runtime/data contract implemented:
-  - `detect_occluders(space_state, from, to, collision_mask)` performs iterative ray-hit collection with per-hit exclusions so multiple blockers are returned along one segment.
-  - Explicit collision-layer filtering is enforced against the provided `collision_mask` (protects behavior in mocked/stubbed test environments).
-  - Collider-to-geometry resolution maps collision bodies to descendant `GeometryInstance3D` targets (covers mesh + CSG authoring patterns).
-  - Freed/invalid colliders are skipped safely without warning-channel noise or crashes.
-- Project settings update:
-  - `project.godot`: added `layer_names/3d_physics/layer_6 = "vcam_occludable"`.
+- Added blend helper:
+  - `scripts/managers/helpers/u_vcam_blend_evaluator.gd`
+  - `tests/unit/managers/helpers/test_vcam_blend_evaluator.gd` (`10/10`)
+- `M_VCamManager` live blend/runtime integration is now implementation-backed:
+  - blend lifecycle dispatch/event flow (`start/update/complete`, `EVENT_VCAM_BLEND_STARTED/COMPLETED`)
+  - frame-stamped handoff gating (`Engine.get_physics_frames`) so stale previous-frame submissions are ignored
+  - reentrant blend snapshot handoff (mid-blend `set_active_vcam()` starts from current blended pose)
+  - invalid-endpoint recovery (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`) via `record_recovery` + `EVENT_VCAM_RECOVERY`
+  - camera apply continues to route through `camera_manager.apply_main_camera_transform(...)` and transition-blend gating via `is_blend_active()`
+- Camera-manager integration validation:
+  - `tests/integration/camera_system/test_camera_manager.gd` now covers shake-safe `apply_main_camera_transform(...)` and `is_blend_active()` true/false semantics.
+  - `M_CameraManager.is_blend_active()` now keys off active transition tween state (`_camera_blend_tween.is_running()`).
+- QB context enrichment completed:
+  - `S_CameraStateSystem._attach_camera_context(...)` now provides `vcam_active_mode`, `vcam_is_blending`, and `vcam_active_vcam_id`.
+  - `tests/unit/qb/test_camera_state_system.gd` includes explicit coverage for new context keys.
 - Validation run:
-  - `tests/unit/managers/helpers/test_vcam_collision_detector.gd` (`6/6`)
-  - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
-
-## vCam Silhouette Helper (Phase 10B.1/10B.2, March 15, 2026)
-
-- Added silhouette-helper test coverage:
-  - `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` (`6/6`)
-- Added silhouette-helper implementation:
-  - `scripts/managers/helpers/u_vcam_silhouette_helper.gd` (`U_VCamSilhouetteHelper`)
-  - `assets/shaders/sh_vcam_silhouette_shader.gdshader`
-- Runtime/data contract implemented:
-  - `apply_silhouette(...)` now applies shader overrides to `GeometryInstance3D` targets.
-  - Original material state is captured once per target and restored deterministically by `remove_silhouette(...)` and `remove_all_silhouettes()`.
-  - Tracked-target observability is exposed through `get_active_count()`.
-  - Invalid/freed target inputs are strict no-op paths (no warning-channel noise).
-- Validation run:
-  - `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` (`6/6`)
-  - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
-
-## vCam Silhouette Routing (Phase 10B2.1-10B2.4, March 15, 2026)
-
-- Added event constant:
-  - `scripts/events/ecs/u_ecs_event_names.gd`: `EVENT_SILHOUETTE_UPDATE_REQUEST`
-- Added manager routing implementation:
-  - `M_VCamManager` publishes `EVENT_SILHOUETTE_UPDATE_REQUEST` payloads (`entity_id`, `occluders`, `enabled`) after occluder detection in the active-camera submission flow.
-  - `M_VFXManager` subscribes to `EVENT_SILHOUETTE_UPDATE_REQUEST`, applies player/transition gating on ingress, and delegates material-override lifecycle to `U_VCamSilhouetteHelper`.
-- Added/updated coverage:
-  - `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`) for routing and gating.
-  - `tests/unit/managers/test_vcam_manager.gd` includes silhouette publish assertion in active submission flow.
-- Validation run:
-  - `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`)
-  - `tests/unit/managers/test_vcam_manager.gd` (`28/28`)
-  - `tests/unit/managers` (`-gselect=test_vfx_manager`, `44/44`)
-  - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
-
-## vCam Per-Tick Occlusion Integration (Phase 10C.1/10C.2, March 15, 2026)
-
-- Added per-tick occlusion integration coverage in `tests/unit/managers/test_vcam_manager.gd`:
-  - occluder payload forwarding when silhouettes are enabled
-  - VFX-toggle disabled path publishes clear requests (`enabled=false`, empty occluders)
-  - `vcam/update_silhouette_count` dispatches only on count changes
-  - clear-on-active-unregister and clear-on-scene-transition-blend behavior
-- Added manager integration in `scripts/managers/m_vcam_manager.gd`:
-  - consults `U_VFXSelectors.is_occlusion_silhouette_enabled(...)` before occluder detection
-  - skips detection and publishes clear requests when toggle is disabled, follow target is invalid, or camera-manager transition blend is active
-  - dispatches `U_VCamActions.update_silhouette_count(...)` only when the count changes
-  - clears silhouettes/count when runtime vCam state is fully cleared (last unregister path)
-  - reuses cached occluder-array storage for per-tick detection output
-- Validation run:
-  - `tests/unit/managers/test_vcam_manager.gd` (`33/33`)
-  - `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`)
+  - `tests/unit/managers/helpers/test_vcam_blend_evaluator.gd` (`10/10`)
+  - `tests/unit/managers/test_vcam_manager.gd` (`43/43`)
+  - `tests/unit/qb/test_camera_state_system.gd` (`21/21`)
+  - `tests/integration/camera_system/test_camera_manager.gd` (`16/16`)
   - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## OTS Mode Replacement (March 14, 2026)
@@ -871,6 +821,7 @@
 - The silhouette enable/disable toggle moved to the persisted `vfx` slice.
 - VFX settings UI integration is now explicit: wire the silhouette toggle into `UI_VFXSettingsOverlay` (`scripts/ui/settings/ui_vfx_settings_overlay.gd` + `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`) and localize it in all `cfg_locale_*_ui.tres` files.
 - The blend design now evaluates both outgoing and incoming cameras live during blends.
+- Live blend manager behavior is now implementation-backed: `M_VCamManager` blends frame-stamped active/outgoing submissions, supports reentrant snapshot interruption, and dispatches recovery reasons for invalid blend endpoints.
 - The camera integration now requires a shake-safe `M_CameraManager.apply_main_camera_transform(...)` API instead of direct `camera.global_transform` writes.
 - Soft-zone math is now defined as projection-based rather than basis-vector offset math.
 - Soft-zone projection and occlusion raycasts are now explicitly tied to the active gameplay camera viewport and `World3D` inside `GameViewport`, not the root manager node's viewport/world.
@@ -879,7 +830,6 @@
 - `S_InputSystem` must be gated so it does not overwrite touchscreen gameplay input with zero `TouchscreenSource` payloads.
 - Fixed-mode anchor ownership is now explicit: fixed cameras must resolve `C_VCamComponent.fixed_anchor_path` first, then fall back to a vCam host entity-root `Node3D`; never read component transform.
 - Path-follow helpers for `use_path` stay scene-local in the gameplay world; do not parent them under the persistent root manager.
-- Occlusion rollout is now explicit: naming layer 6 `vcam_occludable` is not enough; authored occluding geometry in gameplay/prefab scenes must be migrated to that layer.
 - Stale test paths were corrected (`test_u_input_reducer.gd`, `test_input_system.gd`, `tests/integration/camera_system/test_camera_manager.gd`).
 - ECS Event Bus integration added: `M_VCamManager` publishes lifecycle events (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`) through `U_ECSEventBus` so `S_GameEventSystem`, `S_CameraStateSystem`, and QB rules can subscribe to vCam state changes.
 - vCam event constants are now added to `scripts/events/ecs/u_ecs_event_names.gd` following existing `EVENT_*` pattern.
@@ -890,11 +840,9 @@
 - Touch look gating now uses the top-level gameplay `touch_look_active` Redux flag, and the field is registered as transient so it does not persist through save/load or shell handoff.
 - Keyboard-look scope is now complete: patch `U_InputMapBootstrapper`, `tests/unit/input/test_input_map.gd`, `U_GlobalSettingsSerialization`, `U_RebindActionListBuilder`, locale action keys, and a new `UI_KeyboardMouseSettingsOverlay` instead of treating the settings surface as optional.
 - Same-frame camera apply is now explicit: `S_VCamSystem` submits the authoritative current-frame result, and `M_VCamManager` consumes that handoff instead of relying on root `_physics_process` order against gameplay ECS.
-- Silhouette rendering routes through `M_VFXManager`: vCam publishes `EVENT_SILHOUETTE_UPDATE_REQUEST` with `{entity_id, occluders, enabled}`, VFX manager subscribes and delegates to `U_VCamSilhouetteHelper`. This is what lets existing player gating and transition blocking apply.
 - Naming paths now follow the repo style guide:
   - `scripts/resources/display/vcam/`
   - `scripts/utils/display/`
-  - `assets/shaders/sh_vcam_silhouette_shader.gdshader`
 - Orbit mode baseline is now explicit:
   - `RS_VCamModeOrbit` is authored in `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` with default preset `resources/display/vcam/cfg_default_orbit.tres`.
   - `RS_VCamModeOrbit.get_resolved_values()` now provides canonical orbit clamp/sanitation reads (`distance`, `fov`, authored angles) and axis-lock flags (`lock_x_rotation`, `lock_y_rotation`).
@@ -944,8 +892,6 @@
 - `scripts/utils/display/u_cinema_grade_preview.gd`
 - `scripts/ui/helpers/u_rebind_action_list_builder.gd`
 - `scripts/managers/m_vfx_manager.gd`
-- `scripts/managers/helpers/u_vcam_collision_detector.gd`
-- `scripts/managers/helpers/u_vcam_silhouette_helper.gd`
 - `scripts/ui/hud/ui_mobile_controls.gd`
 - `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`
 - `scripts/ui/overlays/ui_input_rebinding_overlay.gd`
@@ -966,13 +912,10 @@
 - `tests/unit/ecs/systems/test_s_touchscreen_system.gd`
 - `tests/unit/ui/test_mobile_controls.gd`
 - `tests/unit/ui/hud/test_ots_reticle.gd`
-- `tests/unit/managers/helpers/test_vcam_collision_detector.gd`
-- `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd`
 - `tests/unit/ecs/systems/test_room_fade_system.gd`
 - `tests/unit/ecs/systems/test_room_fade_integration.gd`
 - `tests/unit/lighting/test_room_fade_material_applier.gd`
 - `tests/unit/qb/test_camera_state_system.gd`
-- `tests/unit/managers/test_vfx_manager_silhouette_routing.gd`
 - `tests/unit/ui/test_touchscreen_settings_overlay_localization.gd`
 - `tests/unit/ui/test_input_rebinding_overlay.gd`
 - `tests/integration/camera_system/test_camera_manager.gd`
@@ -983,9 +926,10 @@
 
 ## Next Steps
 
-1. Start Phase `10C2.1/10C2.2`: add anti-flicker silhouette stability tests/implementation (2-frame debounce, 2-frame grace-frame removal, and no-op fast paths when the stable occluder set is unchanged).
-2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
-3. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+1. Run/manual-complete Phase `9F` blend validation checklist (`MT-22/23/34/43/44`) across orbit/fixed/OTS flows.
+2. Start Phase `10A+` occlusion/silhouette execution (detector/helper integration, authored layer migration completion, anti-flicker/runtime performance checks).
+3. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and frame-stamped handoff contract while extending post-Phase-9 behavior.
+4. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 
@@ -1025,7 +969,6 @@
 - touch gameplay input can be silently overwritten if `S_InputSystem` continues processing `TouchscreenSource` zero payloads
 - silhouette persistence can ship without user control if `UI_VFXSettingsOverlay` is not updated alongside state/actions/reducer/selectors
 - keyboard look can appear implemented but still fail in runtime/profile/rebind flows if `U_InputMapBootstrapper`, `test_input_map.gd`, `U_RebindActionListBuilder`, locale keys, or save-trigger actions are left behind
-- collision detector can appear correct in tests but fail in gameplay if authored occluding geometry is not migrated to layer 6 `vcam_occludable`
 - gameplay camera math can pass isolated helper tests but still fail in live scenes if projection/raycast work accidentally uses the persistent root manager's viewport/world instead of the gameplay `SubViewport`
 - same-frame camera application can hitch or lag a frame if implementation relies on root `_physics_process` tree order instead of the explicit `S_VCamSystem` -> `M_VCamManager` handoff
 - **orientation continuity**: mode switches can cause disorienting heading jumps if rotation carry/reseed policy regresses in `S_VCamSystem` (see overview Rotation Continuity Contract)

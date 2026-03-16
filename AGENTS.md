@@ -131,6 +131,9 @@
   - Gameplay camera orchestration authority lives in `docs/vcam_manager/*`; keep camera-runtime behavior aligned to those docs.
   - Fixed-mode anchors resolve from `C_VCamComponent.fixed_anchor_path` first, then fallback to the vCam host entity-root `Node3D`; never use component transform as the fixed anchor source.
   - `M_CameraManager` integration for gameplay vCam flow is `apply_main_camera_transform(xform)` [new — Phase 9] with `is_blend_active()` [new — Phase 9] gating for transition blends. Both methods must be implemented before vCam can submit gameplay transforms.
+  - Live blend lifecycle contract (Phase 9): `M_VCamManager` owns vCam-to-vCam blend state (`duration/elapsed/progress`), dispatches `U_VCamActions` blend lifecycle actions, publishes `EVENT_VCAM_BLEND_STARTED` / `EVENT_VCAM_BLEND_COMPLETED`, and blends active/outgoing evaluated results through `U_VCamBlendEvaluator`.
+  - Frame-handoff contract (Phase 9): `M_VCamManager` must consume frame-stamped submissions (`Engine.get_physics_frames`) and ignore stale previous-frame results; gameplay apply remains `camera_manager.apply_main_camera_transform(...)` only.
+  - Reentrant/recovery contract (Phase 9): mid-blend `set_active_vcam()` snapshots the current blended pose as the new "from" source, and invalid blend endpoints must route to `record_recovery` / `EVENT_VCAM_RECOVERY` reasons (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`) without wedged blend state.
   - `in_fov_zone` now lives in `state.vcam.in_fov_zone`; do not reintroduce legacy `state.camera.in_fov_zone` reads in runtime or tests.
   - Occlusion silhouette preference persists in `vfx.occlusion_silhouette_enabled` and is surfaced in `UI_VFXSettingsOverlay` with localization keys.
   - Occlusion rollout is complete only when both physics-layer naming (`vcam_occludable`) and authored-scene blocker migration are done.
