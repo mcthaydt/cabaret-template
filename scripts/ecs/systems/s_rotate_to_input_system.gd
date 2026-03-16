@@ -246,6 +246,9 @@ func _resolve_active_ots_facing_lock(store: I_StateStore) -> Dictionary:
 	if active_vcam_id == StringName(""):
 		return {}
 
+	var is_blending: bool = bool(vcam_state.get("is_blending", false))
+	var blend_progress: float = float(vcam_state.get("blend_progress", 1.0))
+
 	var components: Array = get_components(C_VCAM_COMPONENT.COMPONENT_TYPE)
 	for entry in components:
 		var vcam_component := entry as C_VCamComponent
@@ -261,6 +264,10 @@ func _resolve_active_ots_facing_lock(store: I_StateStore) -> Dictionary:
 
 		var resolved: Dictionary = vcam_component.mode.get_resolved_values()
 		if not bool(resolved.get("lock_facing_to_camera", true)):
+			return {}
+
+		var blend_weight: float = blend_progress if is_blending else 1.0
+		if blend_weight < 0.9:
 			return {}
 
 		var camera: Camera3D = ECS_UTILS.get_active_camera(self)

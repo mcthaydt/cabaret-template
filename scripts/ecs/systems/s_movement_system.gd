@@ -106,20 +106,25 @@ func process_tick(delta: float) -> void:
 
 		var input_vector: Vector2 = input_component.move_vector
 		var settings: RS_MovementSettings = movement_component.settings
+		var base_settings: RS_MovementSettings = settings
 		var ots_profile_variant: Variant = ots_movement_state.get("movement_profile", null)
+		var blend_weight: float = float(ots_movement_state.get("blend_weight", 1.0))
 		if ots_profile_variant is RS_MovementSettings:
 			settings = ots_profile_variant as RS_MovementSettings
 		if settings == null:
 			continue
 		var is_sprinting := input_component.is_sprinting()
-		if bool(ots_movement_state.get("disable_sprint", false)):
+		if bool(ots_movement_state.get("disable_sprint", false)) and blend_weight >= 0.8:
 			is_sprinting = false
 		var current_max_speed: float = settings.max_speed
+		if blend_weight < 1.0 and base_settings != null and settings != base_settings:
+			current_max_speed = lerpf(base_settings.max_speed, settings.max_speed, blend_weight)
 		if is_sprinting:
-			var sprint_multiplier: float = settings.sprint_speed_multiplier
+			var sprint_settings: RS_MovementSettings = base_settings if blend_weight < 1.0 else settings
+			var sprint_multiplier: float = sprint_settings.sprint_speed_multiplier
 			if sprint_multiplier <= 0.0:
 				sprint_multiplier = 1.0
-			current_max_speed = settings.max_speed * sprint_multiplier
+			current_max_speed = current_max_speed * sprint_multiplier
 
 		var has_input: bool = input_vector.length() > 0.0
 		var desired_velocity: Vector3 = Vector3.ZERO
@@ -362,6 +367,9 @@ func _resolve_active_ots_movement_state(store: I_StateStore) -> Dictionary:
 	if active_vcam_id == StringName(""):
 		return {}
 
+	var is_blending: bool = bool(vcam_state.get("is_blending", false))
+	var blend_progress: float = float(vcam_state.get("blend_progress", 1.0))
+
 	var components: Array = get_components(C_VCAM_COMPONENT.COMPONENT_TYPE)
 	for entry in components:
 		var vcam_component := entry as C_VCamComponent
@@ -375,9 +383,11 @@ func _resolve_active_ots_movement_state(store: I_StateStore) -> Dictionary:
 		if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
 			return {}
 		var resolved: Dictionary = vcam_component.mode.get_resolved_values()
+		var blend_weight: float = blend_progress if is_blending else 1.0
 		return {
 			"movement_profile": resolved.get("movement_profile", null),
 			"disable_sprint": bool(resolved.get("disable_sprint", false)),
+			"blend_weight": blend_weight,
 		}
 	return {}
 

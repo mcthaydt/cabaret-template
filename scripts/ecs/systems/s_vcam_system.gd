@@ -44,7 +44,7 @@ const ORBIT_CENTER_DURATION_SEC: float = 0.3
 const OTS_LANDING_FALL_SPEED_MIN: float = 5.0
 const OTS_LANDING_FALL_SPEED_MAX: float = 30.0
 const OTS_LANDING_RESPONSE_EPSILON: float = 0.0001
-const DEFAULT_OTS_AIM_BLEND_DURATION: float = 0.15
+const DEFAULT_OTS_AIM_BLEND_DURATION: float = 0.35
 
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
@@ -322,7 +322,14 @@ func _apply_rotation_transition(outgoing_component: C_VCamComponent, incoming_co
 
 	if _is_look_driven_mode_script(outgoing_mode_script) and _is_look_driven_mode_script(incoming_mode_script):
 		incoming_component.runtime_yaw = outgoing_component.runtime_yaw
-		incoming_component.runtime_pitch = 0.0
+		var incoming_values: Dictionary = _resolve_mode_values(incoming_component.mode, {})
+		var pitch_min_deg: float = float(incoming_values.get("pitch_min", -89.0))
+		var pitch_max_deg: float = float(incoming_values.get("pitch_max", 89.0))
+		incoming_component.runtime_pitch = clampf(
+			outgoing_component.runtime_pitch,
+			pitch_min_deg,
+			pitch_max_deg
+		)
 		return
 
 	if (
@@ -1480,7 +1487,7 @@ func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, ai
 	if not vcam_index.has(restore_vcam_id):
 		return
 
-	var exit_blend_duration: float = _resolve_ots_aim_blend_duration(active_mode)
+	var exit_blend_duration: float = _resolve_ots_aim_exit_blend_duration(active_mode)
 	manager.set_active_vcam(restore_vcam_id, exit_blend_duration)
 
 func _find_aim_target_ots_vcam_id(
@@ -1545,6 +1552,14 @@ func _resolve_ots_aim_blend_duration(mode: Resource) -> float:
 		"aim_blend_duration": DEFAULT_OTS_AIM_BLEND_DURATION,
 	})
 	return maxf(float(mode_values.get("aim_blend_duration", DEFAULT_OTS_AIM_BLEND_DURATION)), 0.01)
+
+func _resolve_ots_aim_exit_blend_duration(mode: Resource) -> float:
+	if not _is_ots_mode(mode):
+		return DEFAULT_OTS_AIM_BLEND_DURATION
+	var mode_values: Dictionary = _resolve_mode_values(mode, {
+		"aim_exit_blend_duration": 0.2,
+	})
+	return maxf(float(mode_values.get("aim_exit_blend_duration", 0.2)), 0.01)
 
 func _start_orbit_centering(
 	vcam_id: StringName,

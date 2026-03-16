@@ -3922,9 +3922,9 @@ func test_rotation_continuity_orbit_to_first_person_carries_yaw_and_resets_pitch
 	ecs_manager._physics_process(0.016)
 
 	assert_almost_eq(first_person_component.runtime_yaw, 42.0, 0.0001)
-	assert_almost_eq(first_person_component.runtime_pitch, 0.0, 0.0001)
+	assert_almost_eq(first_person_component.runtime_pitch, -18.0, 0.0001)
 
-func test_rotation_continuity_first_person_to_orbit_carries_yaw_and_resets_pitch() -> void:
+func test_rotation_continuity_first_person_to_orbit_carries_yaw_and_carries_pitch() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
@@ -3958,7 +3958,7 @@ func test_rotation_continuity_first_person_to_orbit_carries_yaw_and_resets_pitch
 	ecs_manager._physics_process(0.016)
 
 	assert_almost_eq(orbit_component.runtime_yaw, -27.5, 0.0001)
-	assert_almost_eq(orbit_component.runtime_pitch, 0.0, 0.0001)
+	assert_almost_eq(orbit_component.runtime_pitch, 13.0, 0.0001)
 
 func test_rotation_continuity_orbit_to_fixed_preserves_outgoing_rotation_state() -> void:
 	var context: Dictionary = await _setup_context()

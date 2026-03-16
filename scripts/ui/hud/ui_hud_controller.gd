@@ -45,7 +45,7 @@ const SIGNPOST_BLOCKER_COOLDOWN_SEC: float = 0.15
 const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
 const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.35
 const CHECKPOINT_TOAST_UNBLOCK_COOLDOWN_SEC: float = 0.3
-const DEFAULT_OTS_RETICLE_FADE_DURATION_SEC: float = 0.15
+const DEFAULT_OTS_RETICLE_FADE_DURATION_SEC: float = 0.35
 const MIN_OTS_RETICLE_FADE_DURATION_SEC: float = 0.01
 
 var _store: I_StateStore = null
@@ -73,6 +73,7 @@ var _health_bar_fill_style: StyleBoxFlat = null
 var _pending_prompt_localization_refresh: bool = false
 var _ots_reticle_visible_target: bool = false
 var _last_vcam_active_mode: String = ""
+var _last_ots_vcam_id: StringName = StringName("")
 var _last_ots_aim_blend_duration_sec: float = DEFAULT_OTS_RETICLE_FADE_DURATION_SEC
 
 func _ready() -> void:
@@ -778,6 +779,7 @@ func _update_ots_reticle(state: Dictionary) -> void:
 	var should_show: bool = _should_show_ots_reticle(state, active_mode)
 
 	if active_mode == "ots":
+		_last_ots_vcam_id = active_vcam_id
 		_last_ots_aim_blend_duration_sec = _resolve_ots_aim_blend_duration_sec(
 			active_vcam_id,
 			_last_ots_aim_blend_duration_sec
@@ -794,7 +796,12 @@ func _update_ots_reticle(state: Dictionary) -> void:
 			_last_ots_aim_blend_duration_sec
 		)
 		_last_ots_aim_blend_duration_sec = fade_duration_sec
-	elif _last_vcam_active_mode != "ots":
+	elif _last_vcam_active_mode == "ots":
+		fade_duration_sec = _resolve_ots_aim_exit_blend_duration_sec(
+			_last_ots_vcam_id,
+			_last_ots_aim_blend_duration_sec
+		)
+	else:
 		fade_duration_sec = DEFAULT_OTS_RETICLE_FADE_DURATION_SEC
 
 	_set_ots_reticle_visibility(should_show, fade_duration_sec)
@@ -893,6 +900,46 @@ func _resolve_ots_aim_blend_duration_sec(active_vcam_id: StringName, fallback_se
 		var resolved := resolved_variant as Dictionary
 		return maxf(
 			float(resolved.get("aim_blend_duration", DEFAULT_OTS_RETICLE_FADE_DURATION_SEC)),
+			MIN_OTS_RETICLE_FADE_DURATION_SEC
+		)
+
+	return default_duration_sec
+
+func _resolve_ots_aim_exit_blend_duration_sec(active_vcam_id: StringName, fallback_sec: float) -> float:
+	var default_duration_sec: float = maxf(fallback_sec, MIN_OTS_RETICLE_FADE_DURATION_SEC)
+	if active_vcam_id == StringName(""):
+		return default_duration_sec
+
+	var ecs_manager_variant: Variant = U_ServiceLocator.try_get_service(StringName("ecs_manager"))
+	if not (ecs_manager_variant is Object):
+		return default_duration_sec
+	var ecs_manager_obj := ecs_manager_variant as Object
+	if ecs_manager_obj == null:
+		return default_duration_sec
+	if not ecs_manager_obj.has_method("get_components"):
+		return default_duration_sec
+
+	var components_variant: Variant = ecs_manager_obj.call("get_components", C_VCAM_COMPONENT.COMPONENT_TYPE)
+	if not (components_variant is Array):
+		return default_duration_sec
+	var components: Array = components_variant as Array
+	for component_variant in components:
+		var vcam_component := component_variant as C_VCamComponent
+		if vcam_component == null or not is_instance_valid(vcam_component):
+			continue
+		if vcam_component.vcam_id != active_vcam_id:
+			continue
+		if vcam_component.mode == null:
+			return default_duration_sec
+		var mode_script: Script = vcam_component.mode.get_script() as Script
+		if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
+			return default_duration_sec
+		var resolved_variant: Variant = vcam_component.mode.call("get_resolved_values")
+		if not (resolved_variant is Dictionary):
+			return default_duration_sec
+		var resolved := resolved_variant as Dictionary
+		return maxf(
+			float(resolved.get("aim_exit_blend_duration", 0.2)),
 			MIN_OTS_RETICLE_FADE_DURATION_SEC
 		)
 
