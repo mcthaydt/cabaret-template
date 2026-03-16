@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset implementation is now complete: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), 3C3 (OTS landing camera response), and full 3C4 aiming scope (`3C4.1-3C4.11`: aim activation/input plumbing/movement+rotation integrations + reticle + default OTS movement preset) are implementation-complete as of March 15, 2026. Phase 10A detector groundwork is now complete: Task `10A.1` (collision-detector Red tests) and Task `10A.2` (collision-detector Green implementation + layer-name wiring) are landed as of March 15, 2026. Phase 10B silhouette-helper foundation is now complete: Task `10B.1` (silhouette-helper Red tests) and Task `10B.2` (silhouette-helper Green implementation + shader asset) are landed as of March 15, 2026. Phase 10B2 routing groundwork is now complete: Tasks `10B2.1-10B2.4` (event constant + manager publish/subscribe wiring + routing verification) are landed as of March 15, 2026.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset implementation is now complete: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), 3C3 (OTS landing camera response), and full 3C4 aiming scope (`3C4.1-3C4.11`: aim activation/input plumbing/movement+rotation integrations + reticle + default OTS movement preset) are implementation-complete as of March 15, 2026. Phase 10A detector groundwork is now complete: Task `10A.1` (collision-detector Red tests) and Task `10A.2` (collision-detector Green implementation + layer-name wiring) are landed as of March 15, 2026. Phase 10B silhouette-helper foundation is now complete: Task `10B.1` (silhouette-helper Red tests) and Task `10B.2` (silhouette-helper Green implementation + shader asset) are landed as of March 15, 2026. Phase 10B2 routing groundwork is now complete: Tasks `10B2.1-10B2.4` (event constant + manager publish/subscribe wiring + routing verification) are landed as of March 15, 2026. Phase 10C per-tick occlusion integration is now complete: Tasks `10C.1/10C.2` (toggle-gated per-tick publish flow + silhouette-count dispatch-on-change + clear paths) are landed as of March 15, 2026.
 
 ## Next Planned Work (March 15, 2026)
 
@@ -19,6 +19,7 @@
 - Phase 10A collision detector Red/Green is complete: added `tests/unit/managers/helpers/test_vcam_collision_detector.gd` and `scripts/managers/helpers/u_vcam_collision_detector.gd`, plus `project.godot` layer naming for `3d_physics/layer_6 = "vcam_occludable"`.
 - Phase 10B silhouette helper Red/Green is complete: added `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd`, `scripts/managers/helpers/u_vcam_silhouette_helper.gd`, and `assets/shaders/sh_vcam_silhouette_shader.gdshader`.
 - Phase 10B2 silhouette routing is complete: `EVENT_SILHOUETTE_UPDATE_REQUEST` now routes from `M_VCamManager` publish to `M_VFXManager` subscribe/delegate paths with player/transition gating and unit coverage.
+- Phase 10C per-tick occlusion integration is complete: `M_VCamManager` now consults `vfx.occlusion_silhouette_enabled`, forwards deterministic occluder payloads only when enabled, clears silhouettes on transition-blend/disable/unregister paths, and dispatches `vcam/update_silhouette_count` only when the active count changes.
 - Immediate validation target:
   - Manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`) are now marked complete (March 15, 2026, user-directed pass), including the joystick-exclusion/reticle-fade focus points.
   - Post-Phase maintenance completed (March 15, 2026): OTS vertical framing bugfix landed via TDD (runtime OTS pitch now clamps to authored bounds in `S_VCamSystem`; default `cfg_default_ots.tres` tuned to head-level framing with higher shoulder anchor, pullback distance, and tighter pitch range).
@@ -28,6 +29,7 @@
   - Phase 10A detector validation completed (March 15, 2026): `tests/unit/managers/helpers/test_vcam_collision_detector.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) are green.
   - Phase 10B helper validation completed (March 15, 2026): `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) are green.
   - Phase 10B2 routing validation completed (March 15, 2026): `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`), `tests/unit/managers/test_vcam_manager.gd` (`28/28`), aggregate `test_vfx_manager*` suites (`44/44`), and style enforcement (`17/17`) are green.
+  - Phase 10C validation completed (March 15, 2026): `tests/unit/managers/test_vcam_manager.gd` (`33/33`), `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`), and `tests/unit/style/test_style_enforcement.gd` (`17/17`) are green.
 
 ## vCam Collision Detector (Phase 10A.1/10A.2, March 15, 2026)
 
@@ -76,6 +78,24 @@
   - `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`)
   - `tests/unit/managers/test_vcam_manager.gd` (`28/28`)
   - `tests/unit/managers` (`-gselect=test_vfx_manager`, `44/44`)
+  - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## vCam Per-Tick Occlusion Integration (Phase 10C.1/10C.2, March 15, 2026)
+
+- Added per-tick occlusion integration coverage in `tests/unit/managers/test_vcam_manager.gd`:
+  - occluder payload forwarding when silhouettes are enabled
+  - VFX-toggle disabled path publishes clear requests (`enabled=false`, empty occluders)
+  - `vcam/update_silhouette_count` dispatches only on count changes
+  - clear-on-active-unregister and clear-on-scene-transition-blend behavior
+- Added manager integration in `scripts/managers/m_vcam_manager.gd`:
+  - consults `U_VFXSelectors.is_occlusion_silhouette_enabled(...)` before occluder detection
+  - skips detection and publishes clear requests when toggle is disabled, follow target is invalid, or camera-manager transition blend is active
+  - dispatches `U_VCamActions.update_silhouette_count(...)` only when the count changes
+  - clears silhouettes/count when runtime vCam state is fully cleared (last unregister path)
+  - reuses cached occluder-array storage for per-tick detection output
+- Validation run:
+  - `tests/unit/managers/test_vcam_manager.gd` (`33/33`)
+  - `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`)
   - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## OTS Mode Replacement (March 14, 2026)
@@ -963,7 +983,7 @@
 
 ## Next Steps
 
-1. Start Phase `10C.1/10C.2`: add per-tick occlusion integration tests/implementation in `M_VCamManager` (consult `vfx.occlusion_silhouette_enabled`, publish silhouette updates only when enabled, and dispatch `vcam/update_silhouette_count` on change).
+1. Start Phase `10C2.1/10C2.2`: add anti-flicker silhouette stability tests/implementation (2-frame debounce, 2-frame grace-frame removal, and no-op fast paths when the stable occluder set is unchanged).
 2. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and the same-frame handoff contract while extending continuity/recovery work.
 3. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 

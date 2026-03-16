@@ -1339,7 +1339,7 @@ Cross-mode checks (mode-agnostic):
 
 ### Phase 10C: Per-Tick Occlusion Integration
 
-- [ ] **Task 10C.1 (Red)**: Write tests for occlusion in M_VCamManager
+- [x] **Task 10C.1 (Red)**: Write tests for occlusion in M_VCamManager
   - Add to `tests/unit/managers/test_vcam_manager.gd`
   - Test occluders detected between follow target and camera get silhouettes
   - Test silhouettes only applied when `vfx.occlusion_silhouette_enabled` is true
@@ -1348,11 +1348,14 @@ Cross-mode checks (mode-agnostic):
   - Test all silhouettes cleared when active vcam unregisters
   - Test all silhouettes cleared on scene transition
   - **Target: 6 tests**
+  - Completion note (March 15, 2026): Extended `tests/unit/managers/test_vcam_manager.gd` with six 10C Red assertions for toggle gating, deterministic occluder payload forwarding, silhouette-count dispatch-on-change, and clear-on-unregister/transition behavior (`33/33` suite total).
 
-- [ ] **Task 10C.2 (Green)**: Implement per-tick occlusion
+- [x] **Task 10C.2 (Green)**: Implement per-tick occlusion
   - Extend `m_vcam_manager.gd`: detect occluders in the active gameplay camera `World3D`, consult VFX selector, publish `EVENT_SILHOUETTE_UPDATE_REQUEST` (silhouette application is routed through `M_VFXManager` via Phase 10B2, not applied directly)
   - Dispatch silhouette count updates
   - All tests should pass
+  - Completion note (March 15, 2026): `M_VCamManager` now gates per-tick occlusion by `U_VFXSelectors.is_occlusion_silhouette_enabled(...)`, routes disable/clear requests for disabled or transition-blend-active ticks, reuses an internal occluder-result cache for detection, and dispatches `U_VCamActions.update_silhouette_count(...)` only when the active count changes.
+  - Validation note (March 15, 2026): `tests/unit/managers/test_vcam_manager.gd` (`33/33`), `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`), and `tests/unit/style/test_style_enforcement.gd` (`17/17`) pass.
 
 ---
 
