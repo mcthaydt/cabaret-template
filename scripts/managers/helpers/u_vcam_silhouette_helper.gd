@@ -12,6 +12,8 @@ func apply_silhouette(target_variant: Variant) -> void:
 	var target: GeometryInstance3D = _resolve_live_geometry(target_variant)
 	if target == null:
 		return
+	if _has_foreign_shader_material(target):
+		return
 	_prune_invalid_targets()
 
 	var target_id: int = target.get_instance_id()
@@ -134,3 +136,19 @@ func _resolve_live_geometry(target_variant: Variant) -> GeometryInstance3D:
 	if not (target_variant is GeometryInstance3D):
 		return null
 	return target_variant as GeometryInstance3D
+
+func _has_foreign_shader_material(target: GeometryInstance3D) -> bool:
+	if target == null or not is_instance_valid(target):
+		return false
+	var csg := target as CSGShape3D
+	if csg != null:
+		if csg.material is ShaderMaterial:
+			var shader_mat := csg.material as ShaderMaterial
+			if shader_mat.shader != _shader:
+				return true
+		return false
+	if target.material_override is ShaderMaterial:
+		var shader_mat := target.material_override as ShaderMaterial
+		if shader_mat.shader != _shader:
+			return true
+	return false

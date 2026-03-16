@@ -671,6 +671,7 @@ func _publish_silhouette_update_request_for_active_vcam(
 
 	var occluders := _detect_occluders_for_silhouette(camera_transform, follow_target)
 	var safe_occluders := _sanitize_occluders(occluders)
+
 	_publish_silhouette_update_request(entity_id, safe_occluders, true)
 	_publish_silhouette_count_if_changed(safe_occluders.size())
 	_silhouette_clear_published = false

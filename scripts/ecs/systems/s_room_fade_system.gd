@@ -413,6 +413,8 @@ func _restore_components_to_opaque(components: Array) -> void:
 		_target_alpha_by_id.erase(tracked_id)
 		restore_targets.append(tracked_target)
 
+
+
 	var applier: Variant = _resolve_material_applier()
 	if applier != null and not restore_targets.is_empty():
 		applier.restore_original_materials(restore_targets)

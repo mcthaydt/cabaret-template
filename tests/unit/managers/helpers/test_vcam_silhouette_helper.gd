@@ -83,3 +83,63 @@ func test_apply_silhouette_on_freed_node_is_safe() -> void:
 	helper.remove_all_silhouettes()
 
 	assert_eq(helper.get_active_count(), 0)
+
+func test_apply_silhouette_skips_mesh_with_existing_non_silhouette_shader_override() -> void:
+	var helper := U_VCAM_SILHOUETTE_HELPER.new()
+	var target := _create_mesh_target()
+	var foreign_shader := ShaderMaterial.new()
+	foreign_shader.shader = Shader.new()
+	target.material_override = foreign_shader
+
+	helper.apply_silhouette(target)
+
+	assert_eq(target.material_override, foreign_shader, "Should not replace existing non-silhouette shader override")
+	assert_eq(helper.get_active_count(), 0, "Should not track target with foreign shader override")
+
+func test_apply_silhouette_skips_csg_with_existing_non_silhouette_shader_material() -> void:
+	var helper := U_VCAM_SILHOUETTE_HELPER.new()
+	var target := CSGBox3D.new()
+	autofree(target)
+	var foreign_shader := ShaderMaterial.new()
+	foreign_shader.shader = Shader.new()
+	target.material = foreign_shader
+
+	helper.apply_silhouette(target)
+
+	assert_eq(target.material, foreign_shader, "Should not replace existing non-silhouette shader on CSG")
+	assert_eq(helper.get_active_count(), 0, "Should not track CSG target with foreign shader")
+
+func test_apply_silhouette_still_works_on_mesh_with_standard_material_override() -> void:
+	var helper := U_VCAM_SILHOUETTE_HELPER.new()
+	var target := _create_mesh_target()
+	var standard_mat := StandardMaterial3D.new()
+	target.material_override = standard_mat
+
+	helper.apply_silhouette(target)
+
+	assert_true(target.material_override is ShaderMaterial, "Should apply silhouette shader over StandardMaterial3D")
+	assert_eq(helper.get_active_count(), 1)
+	helper.remove_silhouette(target)
+	assert_eq(target.material_override, standard_mat, "Should restore StandardMaterial3D after removal")
+
+func test_apply_silhouette_still_works_on_mesh_with_null_override() -> void:
+	var helper := U_VCAM_SILHOUETTE_HELPER.new()
+	var target := _create_mesh_target()
+	assert_null(target.material_override)
+
+	helper.apply_silhouette(target)
+
+	assert_true(target.material_override is ShaderMaterial, "Should apply silhouette shader when override is null")
+	assert_eq(helper.get_active_count(), 1)
+
+func test_apply_silhouette_reapplies_to_target_already_silhouetted() -> void:
+	var helper := U_VCAM_SILHOUETTE_HELPER.new()
+	var target := _create_mesh_target()
+
+	helper.apply_silhouette(target)
+	var first_shader := target.material_override
+
+	helper.apply_silhouette(target)
+
+	assert_eq(target.material_override, first_shader, "Should keep same silhouette shader on reapply")
+	assert_eq(helper.get_active_count(), 1, "Should not double-track")
