@@ -901,6 +901,69 @@ func test_recovery_when_both_blend_vcams_are_freed_records_both_invalid() -> voi
 	var payload := recovery_action.get("payload", {}) as Dictionary
 	assert_eq(String(payload.get("reason", "")), "blend_both_invalid")
 
+func test_live_blend_suppresses_occlusion_and_clears_silhouettes() -> void:
+	var store := MOCK_STATE_STORE.new()
+	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
+	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
+	add_child(store)
+	autofree(store)
+
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+
+	var manager := await _create_occlusion_test_manager(store, camera_manager)
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 1.0
+	hint.trans_type = Tween.TRANS_LINEAR
+	hint.ease_type = Tween.EASE_IN_OUT
+
+	var camera_orbit := _create_vcam(StringName("cam_orbit"), 5, true, hint)
+	var camera_ots := _create_vcam(StringName("cam_ots"), 1, true, hint)
+	manager.register_vcam(camera_orbit)
+	manager.register_vcam(camera_ots)
+
+	# Set up occlusion so orbit produces 2 occluders
+	var follow_target := Node3D.new()
+	add_child(follow_target)
+	autofree(follow_target)
+	manager.test_follow_target = follow_target
+	var occluder_a := _create_mesh_occluder()
+	var occluder_b := _create_mesh_occluder()
+	manager.test_occluders = [occluder_a, occluder_b]
+
+	# Confirm orbit publishes occluders normally
+	manager.submit_evaluated_camera(StringName("cam_orbit"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 5.0, -10.0)),
+	})
+	var pre_blend_payload := _find_last_silhouette_payload()
+	assert_eq((pre_blend_payload.get("occluders", []) as Array).size(), 2,
+		"Pre-blend orbit should publish detected occluders")
+
+	# Start blend from orbit → ots
+	manager.set_active_vcam(StringName("cam_ots"))
+	assert_true(manager.is_blending(), "Blend should be active after set_active_vcam")
+	U_ECS_EVENT_BUS.clear_history()
+
+	# Submit during blend — occluders should be suppressed
+	manager.submit_evaluated_camera(StringName("cam_ots"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 2.0, -2.0)),
+		"fov": 60.0,
+	})
+	manager.submit_evaluated_camera(StringName("cam_orbit"), {
+		"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 5.0, -10.0)),
+		"fov": 70.0,
+	})
+
+	var during_blend_payload := _find_last_silhouette_payload()
+	assert_false(during_blend_payload.is_empty(),
+		"Silhouette clear request should be published during blend")
+	assert_eq(during_blend_payload.get("enabled", true), false,
+		"Silhouette request during blend should disable silhouettes")
+	var during_occluders := during_blend_payload.get("occluders", []) as Array
+	assert_eq(during_occluders.size(), 0,
+		"No occluders should be published during blend")
+
 func _create_manager(
 	injected_store: I_StateStore = null,
 	injected_camera_manager: I_CameraManager = null

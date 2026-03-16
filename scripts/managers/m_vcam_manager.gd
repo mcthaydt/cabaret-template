@@ -660,6 +660,10 @@ func _publish_silhouette_update_request_for_active_vcam(
 		_clear_all_silhouettes(entity_id)
 		return
 
+	if _is_blending_active:
+		_clear_all_silhouettes(entity_id)
+		return
+
 	var follow_target: Node3D = _resolve_follow_target_for_vcam(vcam)
 	if follow_target == null or not is_instance_valid(follow_target):
 		_clear_all_silhouettes(entity_id)
