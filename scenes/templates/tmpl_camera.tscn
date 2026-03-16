@@ -7,6 +7,7 @@
 [ext_resource type="Resource" uid="uid://di7grdc78eh1y" path="res://resources/display/vcam/cfg_default_soft_zone.tres" id="5_vcam_soft_zone"]
 [ext_resource type="Resource" uid="uid://bt6j3uwuawu6k" path="res://resources/display/vcam/cfg_default_blend_hint.tres" id="6_vcam_blend_hint"]
 [ext_resource type="Resource" uid="uid://bya5pusmeeom1" path="res://resources/display/vcam/cfg_default_response.tres" id="7_vcam_response"]
+[ext_resource type="Resource" uid="uid://cbophn3ub4xgd" path="res://resources/display/vcam/cfg_default_ots.tres" id="8_vcam_mode_ots"]
 
 [node name="E_CameraRoot" type="Node3D" unique_id=246158049]
 script = ExtResource("1_ecsentity")
@@ -26,6 +27,16 @@ script = ExtResource("3_vcam_component")
 vcam_id = &"camera_main"
 priority = 10
 mode = ExtResource("4_vcam_mode")
+follow_target_path = NodePath("../../../E_Player/Player_Body/CameraFollowAnchor")
+soft_zone = ExtResource("5_vcam_soft_zone")
+blend_hint = ExtResource("6_vcam_blend_hint")
+response = ExtResource("7_vcam_response")
+
+[node name="C_VCamOTSComponent" type="Node" parent="Components"]
+script = ExtResource("3_vcam_component")
+vcam_id = &"camera_ots"
+priority = 10
+mode = ExtResource("8_vcam_mode_ots")
 follow_target_path = NodePath("../../../E_Player/Player_Body/CameraFollowAnchor")
 soft_zone = ExtResource("5_vcam_soft_zone")
 blend_hint = ExtResource("6_vcam_blend_hint")

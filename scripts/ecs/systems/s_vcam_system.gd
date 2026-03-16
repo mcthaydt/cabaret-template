@@ -92,6 +92,8 @@ var _event_unsubscribers: Array[Callable] = []
 var _landing_response_event_serial: int = 0
 var _landing_response_event_normalized: float = 0.0
 var _aim_restore_vcam_id: StringName = StringName("")
+var _aim_toggled_on: bool = false
+var _aim_prev_pressed: bool = false
 
 func on_configured() -> void:
 	_subscribe_events()
@@ -174,6 +176,8 @@ func _exit_tree() -> void:
 	_soft_zone_dead_zone_state.clear()
 	_last_active_vcam_id = StringName("")
 	_aim_restore_vcam_id = StringName("")
+	_aim_toggled_on = false
+	_aim_prev_pressed = false
 
 func _subscribe_events() -> void:
 	_unsubscribe_events()
@@ -1420,24 +1424,33 @@ func _update_runtime_rotation(
 		)
 
 func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, aim_pressed: bool) -> void:
+	var aim_just_pressed: bool = aim_pressed and not _aim_prev_pressed
+	_aim_prev_pressed = aim_pressed
+
 	if manager == null or vcam_index.is_empty():
 		_aim_restore_vcam_id = StringName("")
+		_aim_toggled_on = false
 		return
 
 	var active_vcam_id: StringName = manager.get_active_vcam_id()
 	if active_vcam_id == StringName(""):
 		_aim_restore_vcam_id = StringName("")
+		_aim_toggled_on = false
 		return
 
 	var active_component := vcam_index.get(active_vcam_id, null) as C_VCamComponent
 	if active_component == null or not is_instance_valid(active_component):
 		_aim_restore_vcam_id = StringName("")
+		_aim_toggled_on = false
+		return
+
+	if not aim_just_pressed:
 		return
 
 	var active_mode: Resource = active_component.mode
 	var active_is_ots: bool = _is_ots_mode(active_mode)
 
-	if aim_pressed:
+	if not _aim_toggled_on:
 		if active_is_ots:
 			return
 		var target_ots_id: StringName = _find_aim_target_ots_vcam_id(active_vcam_id, active_component, vcam_index)
@@ -1448,10 +1461,12 @@ func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, ai
 			return
 
 		_aim_restore_vcam_id = active_vcam_id
+		_aim_toggled_on = true
 		var enter_blend_duration: float = _resolve_ots_aim_blend_duration(target_component.mode)
 		manager.set_active_vcam(target_ots_id, enter_blend_duration)
 		return
 
+	_aim_toggled_on = false
 	if _aim_restore_vcam_id == StringName(""):
 		return
 	if not active_is_ots:
