@@ -665,6 +665,31 @@ func test_blend_progress_advances_and_completes_with_completed_event() -> void:
 	)
 	assert_false(complete_action.is_empty(), "Blend completion should dispatch vcam/complete_blend")
 
+func test_blend_completes_despite_float_accumulation_undershooting_duration() -> void:
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var manager := await _create_manager(store)
+	var hint := RS_VCAM_BLEND_HINT.new()
+	hint.blend_duration = 0.2
+	manager.register_vcam(_create_vcam(StringName("cam_a"), 5, true, hint))
+	manager.register_vcam(_create_vcam(StringName("cam_b"), 1, true, hint))
+	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
+
+	manager.set_active_vcam(StringName("cam_b"))
+
+	# Step with 1/60 increments — 12 * (1.0/60.0) = 0.19999999999999998 in IEEE 754,
+	# which undershoots 0.200 and can leave _blend_progress at ~0.999999 forever.
+	var dt: float = 1.0 / 60.0
+	for i in range(15):
+		manager._physics_process(dt)
+
+	assert_false(manager.is_blending(), "Blend must complete even when float accumulation undershoots duration")
+	assert_almost_eq(manager.get_blend_progress(), 1.0, 0.001)
+	var completed_event: Dictionary = _find_last_event_by_name(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_COMPLETED)
+	assert_false(completed_event.is_empty(), "Blend completion event must fire despite float precision edge case")
+
 func test_blend_applies_from_two_live_results_not_frozen_outgoing_pose() -> void:
 	var camera_manager := MOCK_CAMERA_MANAGER.new()
 	add_child(camera_manager)

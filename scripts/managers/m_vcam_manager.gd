@@ -318,11 +318,12 @@ func _advance_live_blend(delta: float) -> void:
 	var dt: float = maxf(delta, 0.0)
 	_blend_elapsed = minf(_blend_elapsed + dt, _blend_duration)
 	var next_progress: float = clampf(_blend_elapsed / _blend_duration, 0.0, 1.0)
-	if not is_equal_approx(next_progress, _blend_progress):
-		_blend_progress = next_progress
+	var should_dispatch: bool = not is_equal_approx(next_progress, _blend_progress)
+	_blend_progress = next_progress
+	if should_dispatch:
 		_dispatch_blend_progress(_blend_progress)
 
-	if _blend_progress >= 1.0:
+	if _blend_progress >= 1.0 or is_equal_approx(_blend_elapsed, _blend_duration):
 		_finish_live_blend(_active_vcam_id, true)
 
 func _finish_live_blend(vcam_id: StringName, publish_completed_event: bool) -> void:
