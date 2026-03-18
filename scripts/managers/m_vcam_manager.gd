@@ -300,8 +300,8 @@ func _begin_live_blend(
 	_blend_from_snapshot_result = reentrant_snapshot.duplicate(true) if not reentrant_snapshot.is_empty() else {}
 
 	var hint := RS_VCAM_BLEND_HINT_SCRIPT.new()
-	hint.trans_type = _blend_trans_type
-	hint.ease_type = _blend_ease_type
+	hint.trans_type = _blend_trans_type as Tween.TransitionType
+	hint.ease_type = _blend_ease_type as Tween.EaseType
 	hint.cut_on_distance_threshold = _blend_cut_on_distance_threshold
 	_blend_hint_runtime = hint
 
@@ -613,8 +613,8 @@ func _resolve_blend_result_for_frame(frame_id: int) -> Dictionary:
 	var hint: Resource = _blend_hint_runtime
 	if hint == null:
 		var fallback_hint := RS_VCAM_BLEND_HINT_SCRIPT.new()
-		fallback_hint.trans_type = _blend_trans_type
-		fallback_hint.ease_type = _blend_ease_type
+		fallback_hint.trans_type = _blend_trans_type as Tween.TransitionType
+		fallback_hint.ease_type = _blend_ease_type as Tween.EaseType
 		fallback_hint.cut_on_distance_threshold = _blend_cut_on_distance_threshold
 		hint = fallback_hint
 
