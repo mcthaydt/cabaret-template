@@ -357,6 +357,41 @@ func test_multi_target_group_does_not_fade_side_wall_for_forward_looking_camera(
 	assert_almost_eq(front_alpha, 0.05, 0.0001, "Front wall should fade at this camera heading.")
 	assert_almost_eq(side_alpha, 1.0, 0.0001, "Side wall should stay opaque at this camera heading.")
 
+func test_system_caches_target_normals_across_ticks() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+	assert_not_null(ecs_manager)
+
+	_register_room_fade_group(ecs_manager, "E_RoomFadeNormalCache")
+	system.process_tick(0.1)
+	var cached_normals_after_first: Dictionary = system._cached_normals.duplicate()
+	assert_false(cached_normals_after_first.is_empty(), "Should have cached normals after first tick.")
+
+	system.process_tick(0.1)
+	var cached_normals_after_second: Dictionary = system._cached_normals.duplicate()
+	assert_eq(cached_normals_after_first.size(), cached_normals_after_second.size(),
+		"Normal cache size should remain stable across ticks with same targets.")
+
+func test_system_invalidates_normal_cache_when_targets_change() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	assert_not_null(system)
+	assert_not_null(ecs_manager)
+	assert_not_null(applier)
+
+	_register_room_fade_group(ecs_manager, "E_RoomFadeNormalInvalidate")
+	system.process_tick(0.1)
+	assert_false(system._cached_normals.is_empty())
+
+	ecs_manager.clear_all_components()
+	system.process_tick(0.1)
+	assert_true(system._cached_normals.is_empty(),
+		"Normal cache should be cleared when targets become stale.")
+
 func _create_fixture() -> Dictionary:
 	var room_fade_system_script := _room_fade_system_script()
 	if room_fade_system_script == null:

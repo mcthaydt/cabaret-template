@@ -147,6 +147,59 @@ func test_get_snapshot_contains_group_tag_fade_normal_and_current_alpha() -> voi
 	assert_eq(snapshot.get("fade_normal", Vector3.ZERO), Vector3(0.0, 1.0, 0.0))
 	assert_almost_eq(float(snapshot.get("current_alpha", -1.0)), 0.35, 0.0001)
 
+func test_collect_mesh_targets_returns_cached_results_on_second_call() -> void:
+	var entity_root := Node3D.new()
+	add_child(entity_root)
+	autofree(entity_root)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity_root.add_child(component)
+	autofree(component)
+
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = BoxMesh.new()
+	entity_root.add_child(mesh)
+	autofree(mesh)
+
+	var first_result: Array = component.collect_mesh_targets()
+	var second_result: Array = component.collect_mesh_targets()
+	assert_eq(first_result.size(), 1)
+	assert_eq(first_result, second_result, "Second call should return cached results.")
+	assert_true(component.is_target_cache_valid(), "Cache should be valid after collection.")
+
+func test_invalidate_target_cache_forces_fresh_collection() -> void:
+	var entity_root := Node3D.new()
+	add_child(entity_root)
+	autofree(entity_root)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity_root.add_child(component)
+	autofree(component)
+
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = BoxMesh.new()
+	entity_root.add_child(mesh)
+	autofree(mesh)
+
+	var first_result: Array = component.collect_mesh_targets()
+	assert_eq(first_result.size(), 1)
+
+	component.invalidate_target_cache()
+
+	var new_mesh := MeshInstance3D.new()
+	new_mesh.mesh = BoxMesh.new()
+	entity_root.add_child(new_mesh)
+	autofree(new_mesh)
+
+	var second_result: Array = component.collect_mesh_targets()
+	assert_eq(second_result.size(), 2)
+	assert_true(second_result.has(new_mesh))
+
+func test_collect_mesh_targets_cache_is_empty_initially() -> void:
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	autofree(component)
+	assert_false(component.is_target_cache_valid())
+
 func _has_property(object: Object, property_name: String) -> bool:
 	for property_variant in object.get_property_list():
 		if not (property_variant is Dictionary):

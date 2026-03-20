@@ -29,6 +29,7 @@ var _state_store: I_STATE_STORE = null
 var _material_applier: Variant = null
 var _tracked_targets: Dictionary = {}  # int -> Node3D (MeshInstance3D or CSGShape3D)
 var _target_alpha_by_id: Dictionary = {}  # int -> float
+var _cached_normals: Dictionary = {}  # int -> Vector3
 var _debug_tick_counter: int = 0
 
 func _init() -> void:
@@ -100,9 +101,16 @@ func process_tick(delta: float) -> void:
 				continue
 			var target: Node3D = target_variant as Node3D
 			var target_id: int = target.get_instance_id()
-			var target_normal_data: Dictionary = _resolve_target_world_normal_info(component, target, targets.size())
-			var target_normal: Vector3 = target_normal_data.get("normal", Vector3.FORWARD) as Vector3
-			var target_normal_source: String = str(target_normal_data.get("source", "unknown"))
+			var target_normal: Vector3
+			var target_normal_source: String
+			if _cached_normals.has(target_id):
+				target_normal = _cached_normals[target_id] as Vector3
+				target_normal_source = "cached"
+			else:
+				var target_normal_data: Dictionary = _resolve_target_world_normal_info(component, target, targets.size())
+				target_normal = target_normal_data.get("normal", Vector3.FORWARD) as Vector3
+				target_normal_source = str(target_normal_data.get("source", "unknown"))
+				_cached_normals[target_id] = target_normal
 			var dot_value: float = camera_forward.dot(target_normal)
 			var target_alpha: float = _resolve_target_alpha(camera_forward, target_normal, settings)
 			var current_alpha: float = _resolve_current_target_alpha(target_id, component)
@@ -151,6 +159,7 @@ func process_tick(delta: float) -> void:
 func _exit_tree() -> void:
 	_restore_stale_targets({})
 	_target_alpha_by_id.clear()
+	_cached_normals.clear()
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 	if camera_manager != null:
@@ -421,6 +430,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 		applier.restore_original_materials(restore_targets)
 	_tracked_targets.clear()
 	_target_alpha_by_id.clear()
+	_cached_normals.clear()
 
 func _restore_stale_targets(active_targets: Dictionary) -> void:
 	var applier: Variant = _resolve_material_applier()
@@ -437,6 +447,7 @@ func _restore_stale_targets(active_targets: Dictionary) -> void:
 		if _is_supported_target(target_variant):
 			stale_targets.append(target_variant)
 		_target_alpha_by_id.erase(target_id)
+		_cached_normals.erase(target_id)
 
 	if not stale_targets.is_empty():
 		applier.restore_original_materials(stale_targets)

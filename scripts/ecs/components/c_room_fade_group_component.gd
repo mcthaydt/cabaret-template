@@ -25,11 +25,15 @@ const RS_ROOM_FADE_SETTINGS_SCRIPT := preload(
 var current_alpha: float = 1.0
 
 var _settings: Resource = null
+var _cached_targets: Array = []
+var _cache_valid: bool = false
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
 
 func collect_mesh_targets() -> Array:
+	if _cache_valid:
+		return _cached_targets
 	var targets: Array = []
 	var entity_root := U_ECS_UTILS.find_entity_root(self)
 	var search_root: Node = entity_root
@@ -38,7 +42,15 @@ func collect_mesh_targets() -> Array:
 	if search_root == null:
 		return targets
 	_collect_mesh_targets_recursive(search_root, targets)
-	return targets
+	_cached_targets = targets
+	_cache_valid = true
+	return _cached_targets
+
+func invalidate_target_cache() -> void:
+	_cache_valid = false
+
+func is_target_cache_valid() -> bool:
+	return _cache_valid
 
 func get_fade_normal_world() -> Vector3:
 	var world_normal := fade_normal

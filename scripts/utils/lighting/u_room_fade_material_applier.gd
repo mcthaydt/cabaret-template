@@ -12,6 +12,11 @@ const TARGET_TYPE_CSG := "csg"
 var _material_cache: Dictionary = {}
 var _shader: Shader = SH_ROOM_FADE
 
+func is_fade_applied(target: Node3D) -> bool:
+	if target == null or not is_instance_valid(target):
+		return false
+	return _material_cache.has(target.get_instance_id())
+
 func apply_fade_material(targets: Array) -> void:
 	_prune_invalid_cache_entries()
 	for target_variant in targets:
@@ -46,6 +51,8 @@ func _apply_mesh_fade_material(mesh_instance: MeshInstance3D) -> void:
 		return
 	if mesh_instance.mesh == null:
 		return
+	if _material_cache.has(mesh_instance.get_instance_id()):
+		return
 
 	var source_material := _resolve_mesh_source_material(mesh_instance)
 	var albedo_texture: Texture2D = _extract_albedo_texture(source_material)
@@ -57,6 +64,8 @@ func _apply_mesh_fade_material(mesh_instance: MeshInstance3D) -> void:
 
 func _apply_csg_fade_material(csg_shape: CSGShape3D) -> void:
 	if csg_shape == null or not is_instance_valid(csg_shape):
+		return
+	if _material_cache.has(csg_shape.get_instance_id()):
 		return
 
 	var source_material := _resolve_csg_source_material(csg_shape)

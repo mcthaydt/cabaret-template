@@ -139,6 +139,69 @@ func test_restore_original_materials_is_safe_when_nothing_cached() -> void:
 	assert_eq(applier.get_cached_mesh_count(), 0)
 	assert_null(mesh_instance.material_override)
 
+func test_apply_fade_material_skips_reconfiguration_for_already_applied_target() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = _create_test_texture()
+	var mesh_instance := _create_mesh_instance(material)
+	autofree(mesh_instance)
+
+	applier.apply_fade_material([mesh_instance])
+	applier.update_fade_alpha([mesh_instance], 0.5)
+
+	applier.apply_fade_material([mesh_instance])
+
+	var override_material := mesh_instance.material_override as ShaderMaterial
+	assert_not_null(override_material)
+	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_FADE_ALPHA)), 0.5, 0.0001,
+		"Alpha should remain 0.5 after second apply (not reset to 1.0).")
+
+func test_is_fade_applied_returns_true_after_apply() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = _create_test_texture()
+	var mesh_instance := _create_mesh_instance(material)
+	autofree(mesh_instance)
+
+	applier.apply_fade_material([mesh_instance])
+	assert_true(applier.is_fade_applied(mesh_instance))
+
+func test_is_fade_applied_returns_false_before_apply() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var mesh_instance := _create_mesh_instance(null)
+	autofree(mesh_instance)
+
+	assert_false(applier.is_fade_applied(mesh_instance))
+
+func test_is_fade_applied_returns_false_after_restore() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = _create_test_texture()
+	var mesh_instance := _create_mesh_instance(material)
+	autofree(mesh_instance)
+
+	applier.apply_fade_material([mesh_instance])
+	assert_true(applier.is_fade_applied(mesh_instance))
+
+	applier.restore_original_materials([mesh_instance])
+	assert_false(applier.is_fade_applied(mesh_instance))
+
 func test_apply_and_restore_supports_csg_shapes() -> void:
 	var script_obj := _applier_script()
 	if script_obj == null:
