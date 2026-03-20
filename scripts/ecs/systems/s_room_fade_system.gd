@@ -9,6 +9,7 @@ const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd"
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const RS_ROOM_FADE_SETTINGS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_room_fade_settings.gd")
 const U_ROOM_FADE_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_room_fade_material_applier.gd")
+const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
 const DEFAULT_ROOM_FADE_SETTINGS := preload("res://resources/display/vcam/cfg_default_room_fade.tres")
 
 const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
@@ -71,6 +72,9 @@ func process_tick(delta: float) -> void:
 	var camera_forward: Vector3 = -main_camera.global_transform.basis.z
 	var active_targets: Dictionary = {}
 	var resolved_delta: float = maxf(delta, 0.0)
+
+	components = _filter_components_by_active_room(components)
+
 	if should_log_debug:
 		_debug_log_tick_header(mode_info, main_camera, camera_forward, components.size(), resolved_delta)
 
@@ -277,12 +281,14 @@ func _resolve_target_world_normal_info(component: Object, target: Node3D, target
 			"source": "component_single_target",
 		}
 
+	var component_origin: Vector3 = _resolve_component_origin(component, target)
+	var inward_raw: Vector3 = component_origin - target.global_position
+
 	var csg_axis_normal_data: Dictionary = _resolve_csg_box_thin_axis_normal_info(component, target)
 	if not csg_axis_normal_data.is_empty():
 		return csg_axis_normal_data
 
-	var component_origin: Vector3 = _resolve_component_origin(component, target)
-	var inward_planar: Vector3 = component_origin - target.global_position
+	var inward_planar: Vector3 = inward_raw
 	inward_planar.y = 0.0
 	if inward_planar.length_squared() <= MIN_NORMAL_LENGTH_SQUARED:
 		return {
@@ -570,4 +576,65 @@ func _describe_node(node: Node) -> String:
 
 func _format_vector3(value: Vector3) -> String:
 	return "(%.2f, %.2f, %.2f)" % [value.x, value.y, value.z]
+
+func _filter_components_by_active_room(components: Array) -> Array:
+	if components.size() <= 1:
+		return components
+
+	var player_data: Dictionary = _resolve_player_position_data()
+	if player_data.is_empty():
+		return components
+	var player_position: Vector3 = player_data.get("position", Vector3.ZERO) as Vector3
+
+	var matching: Array = []
+	for component_variant in components:
+		if component_variant == null or not is_instance_valid(component_variant):
+			continue
+		if not (component_variant is Object):
+			continue
+		var component: Object = component_variant as Object
+		var targets: Array = _collect_mesh_targets(component)
+		if targets.is_empty():
+			continue
+		var room_aabb: AABB = _resolve_room_aabb_from_targets(targets)
+		var expanded: AABB = room_aabb.grow(2.0)
+		if expanded.has_point(player_position):
+			matching.append(component_variant)
+
+	if matching.is_empty():
+		return components
+	return matching
+
+func _resolve_room_aabb_from_targets(targets: Array) -> AABB:
+	var first_valid: Node3D = null
+	for target_variant in targets:
+		if _is_supported_target(target_variant):
+			first_valid = target_variant as Node3D
+			break
+	if first_valid == null:
+		return AABB()
+
+	var result: AABB = AABB(first_valid.global_position, Vector3.ZERO)
+	for target_variant in targets:
+		if not _is_supported_target(target_variant):
+			continue
+		var target: Node3D = target_variant as Node3D
+		result = result.expand(target.global_position)
+	return result
+
+func _resolve_player_position_data() -> Dictionary:
+	var store: I_STATE_STORE = _resolve_state_store()
+	if store == null:
+		return {}
+	var state: Dictionary = store.get_state()
+	var player_id: String = U_ENTITY_SELECTORS.get_player_entity_id(state)
+	if player_id.is_empty():
+		return {}
+	var entity: Dictionary = U_ENTITY_SELECTORS.get_entity(state, player_id)
+	if entity.is_empty():
+		return {}
+	var position_variant: Variant = entity.get("position", null)
+	if position_variant is Vector3:
+		return {"position": position_variant as Vector3}
+	return {}
 

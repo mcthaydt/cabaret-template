@@ -374,6 +374,136 @@ func test_system_caches_target_normals_across_ticks() -> void:
 	assert_eq(cached_normals_after_first.size(), cached_normals_after_second.size(),
 		"Normal cache size should remain stable across ticks with same targets.")
 
+func test_multi_room_only_fades_room_closest_to_player() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+	assert_not_null(store)
+
+	var room_a_setup: Dictionary = _register_room_fade_group_at_position(
+		ecs_manager, "E_RoomA", Vector3(0.0, 0.0, 0.0)
+	)
+	var room_b_setup: Dictionary = _register_room_fade_group_at_position(
+		ecs_manager, "E_RoomB", Vector3(30.0, 0.0, 0.0)
+	)
+	var room_a_target: Node3D = room_a_setup.get("target") as Node3D
+	var room_b_target: Node3D = room_b_setup.get("target") as Node3D
+	assert_not_null(room_a_target)
+	assert_not_null(room_b_target)
+
+	_set_player_position(store, Vector3(1.0, 0.0, 0.0))
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	room_a_setup.get("component").settings = settings
+	room_b_setup.get("component").settings = settings
+
+	system.process_tick(0.1)
+
+	var room_a_alpha: float = float(applier.updated_alpha_by_target_id.get(room_a_target.get_instance_id(), -1.0))
+	var room_b_alpha: float = float(applier.updated_alpha_by_target_id.get(room_b_target.get_instance_id(), -1.0))
+	assert_lt(room_a_alpha, 1.0, "Room A (near player) target should be faded.")
+	assert_true(
+		room_b_alpha < 0.0 or room_b_alpha >= 1.0,
+		"Room B (far from player) target should NOT be faded. Got alpha=%s" % str(room_b_alpha)
+	)
+
+func test_multi_room_switches_active_room_when_player_moves() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+	assert_not_null(store)
+
+	var room_a_setup: Dictionary = _register_room_fade_group_at_position(
+		ecs_manager, "E_RoomSwitchA", Vector3(0.0, 0.0, 0.0)
+	)
+	var room_b_setup: Dictionary = _register_room_fade_group_at_position(
+		ecs_manager, "E_RoomSwitchB", Vector3(30.0, 0.0, 0.0)
+	)
+	var room_a_target: Node3D = room_a_setup.get("target") as Node3D
+	var room_b_target: Node3D = room_b_setup.get("target") as Node3D
+	var room_a_component = room_a_setup.get("component")
+	var room_b_component = room_b_setup.get("component")
+	assert_not_null(room_a_target)
+	assert_not_null(room_b_target)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	room_a_component.settings = settings
+	room_b_component.settings = settings
+
+	_set_player_position(store, Vector3(1.0, 0.0, 0.0))
+	system.process_tick(0.1)
+
+	var room_a_alpha_first: float = float(applier.updated_alpha_by_target_id.get(room_a_target.get_instance_id(), -1.0))
+	assert_lt(room_a_alpha_first, 1.0, "Room A should be faded when player is near.")
+
+	_set_player_position(store, Vector3(31.0, 0.0, 0.0))
+	applier.updated_alpha_by_target_id.clear()
+	system.process_tick(0.1)
+
+	var room_b_alpha_second: float = float(applier.updated_alpha_by_target_id.get(room_b_target.get_instance_id(), -1.0))
+	assert_lt(room_b_alpha_second, 1.0, "Room B should be faded after player moved near it.")
+	assert_eq(applier.restore_calls, 1, "Room A targets should have been restored after player left.")
+
+func test_multi_room_falls_back_to_all_rooms_when_no_player_position() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+
+	_register_room_fade_group_at_position(ecs_manager, "E_FallbackA", Vector3(0.0, 0.0, 0.0))
+	_register_room_fade_group_at_position(ecs_manager, "E_FallbackB", Vector3(30.0, 0.0, 0.0))
+
+	system.process_tick(0.1)
+
+	assert_eq(applier.apply_calls, 2, "Both rooms should be processed when no player position is available.")
+
+func test_multi_room_falls_back_when_player_position_is_not_vector3() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+	assert_not_null(store)
+
+	_register_room_fade_group_at_position(ecs_manager, "E_StringPosA", Vector3(0.0, 0.0, 0.0))
+	_register_room_fade_group_at_position(ecs_manager, "E_StringPosB", Vector3(30.0, 0.0, 0.0))
+
+	store.set_slice("gameplay", {
+		"player_entity_id": "player",
+		"entities": {
+			"player": {
+				"entity_type": "player",
+				"position": "(1.0, 0.0, 0.0)",
+			}
+		}
+	})
+
+	system.process_tick(0.1)
+
+	assert_eq(applier.apply_calls, 2, "Both rooms should be processed when position is not Vector3.")
+
 func test_system_invalidates_normal_cache_when_targets_change() -> void:
 	var fixture := _create_fixture()
 	var system = fixture.get("system")
@@ -514,3 +644,43 @@ func _register_room_fade_group_with_front_and_side_csg_targets(
 		"front_target": front_target,
 		"side_target": side_target,
 	}
+
+func _register_room_fade_group_at_position(
+	ecs_manager: MockECSManager,
+	entity_name: String,
+	world_position: Vector3
+) -> Dictionary:
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = entity_name
+	add_child(entity)
+	autofree(entity)
+	entity.global_position = world_position
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	component.fade_normal = Vector3(0.0, 0.0, -1.0)
+	component.current_alpha = 1.0
+	entity.add_child(component)
+	autofree(component)
+	ecs_manager.add_component_to_entity(entity, component)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = BoxMesh.new()
+	entity.add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	return {
+		"entity": entity,
+		"component": component,
+		"target": mesh_instance,
+	}
+
+func _set_player_position(store: MockStateStore, position: Vector3) -> void:
+	store.set_slice("gameplay", {
+		"player_entity_id": "player",
+		"entities": {
+			"player": {
+				"entity_type": "player",
+				"position": position,
+			}
+		}
+	})
