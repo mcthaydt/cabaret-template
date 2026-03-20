@@ -183,6 +183,9 @@ material = SubResource("StandardMaterial3D_oyk2i")
 [node name="Walls" type="Node3D" parent="SceneObjects/BedroomArea/MasterBathroom" unique_id=1798264491]
 script = ExtResource("75_base_ecs_entity")
 
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BedroomArea/MasterBathroom/Walls"]
+script = ExtResource("73_room_fade_group_component")
+
 [node name="CSGBox3D74" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=319842911]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, 4)
 use_collision = true
@@ -1182,6 +1185,9 @@ material = SubResource("StandardMaterial3D_rwkwx")
 [node name="Walls" type="Node3D" parent="SceneObjects/BedroomArea/WalkInCloset" unique_id=1590252101]
 script = ExtResource("75_base_ecs_entity")
 
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BedroomArea/WalkInCloset/Walls"]
+script = ExtResource("73_room_fade_group_component")
+
 [node name="CSGBox3D70" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1318414733]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -5)
 use_collision = true
@@ -2143,6 +2149,10 @@ size = Vector3(2, 0.1, 2)
 material = SubResource("StandardMaterial3D_oyk2i")
 
 [node name="Walls" type="Node3D" parent="SceneObjects/EntertainmentArea" unique_id=1951832570]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/EntertainmentArea/Walls"]
+script = ExtResource("73_room_fade_group_component")
 
 [node name="CSGBox3D70" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=385630598]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -6)
@@ -3012,6 +3022,10 @@ size = Vector3(2, 0.1, 2)
 material = SubResource("StandardMaterial3D_oyk2i")
 
 [node name="Walls" type="Node3D" parent="SceneObjects/GymArea" unique_id=1945246005]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/GymArea/Walls"]
+script = ExtResource("73_room_fade_group_component")
 
 [node name="CSGBox3D139" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1991132398]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 0, -12)
@@ -3909,6 +3923,10 @@ size = Vector3(2, 0.1, 2)
 material = SubResource("StandardMaterial3D_oyk2i")
 
 [node name="Walls" type="Node3D" parent="SceneObjects/BalconyArea" unique_id=756545815]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BalconyArea/Walls"]
+script = ExtResource("73_room_fade_group_component")
 
 [node name="CSGBox3D144" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1241113526]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 0, -22)
@@ -4435,6 +4453,10 @@ size = Vector3(2, 0.1, 2)
 material = SubResource("StandardMaterial3D_oyk2i")
 
 [node name="Walls" type="Node3D" parent="SceneObjects/OfficeArea" unique_id=1617913564]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/OfficeArea/Walls"]
+script = ExtResource("73_room_fade_group_component")
 
 [node name="CSGBox3D154" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1383677629]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -26)

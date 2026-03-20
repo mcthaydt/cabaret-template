@@ -40,6 +40,7 @@ func on_configured() -> void:
 func process_tick(delta: float) -> void:
 	var should_log_debug: bool = _should_log_debug_tick()
 	var components: Array = _get_room_fade_components()
+
 	if components.is_empty():
 		if should_log_debug:
 			_debug_log_skip("no_components", {})
@@ -558,3 +559,4 @@ func _describe_node(node: Node) -> String:
 
 func _format_vector3(value: Vector3) -> String:
 	return "(%.2f, %.2f, %.2f)" % [value.x, value.y, value.z]
+
