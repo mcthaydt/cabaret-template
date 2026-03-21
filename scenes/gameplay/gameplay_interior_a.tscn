@@ -68,6 +68,8 @@
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="73_room_fade_group_component"]
 [ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="74_room_fade_system"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="75_base_ecs_entity"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_region_visibility_component.gd" id="76_region_visibility_component"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_region_visibility_system.gd" id="77_region_visibility_system"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oyk2i"]
 shading_mode = 0
@@ -105,6 +107,11 @@ script = ExtResource("1_f2o31")
 script = ExtResource("2_ph0bl")
 
 [node name="BedroomArea" type="Node3D" parent="SceneObjects" unique_id=1187321511]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/BedroomArea"]
+script = ExtResource("76_region_visibility_component")
+region_tag = &"bedroom_area"
 
 [node name="MasterBathroom" type="Node3D" parent="SceneObjects/BedroomArea" unique_id=442700941]
 
@@ -1452,6 +1459,11 @@ material = SubResource("StandardMaterial3D_oyk2i")
 [node name="Objects" type="Node3D" parent="SceneObjects/BedroomArea/WalkInCloset" unique_id=619555083]
 
 [node name="EntertainmentArea" type="Node3D" parent="SceneObjects" unique_id=1304355819]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/EntertainmentArea"]
+script = ExtResource("76_region_visibility_component")
+region_tag = &"entertainment_area"
 
 [node name="Floors" type="Node3D" parent="SceneObjects/EntertainmentArea" unique_id=1234714061]
 
@@ -2773,6 +2785,11 @@ material = SubResource("StandardMaterial3D_gm3uw")
 [node name="Objects" type="Node3D" parent="SceneObjects/EntertainmentArea" unique_id=2029887445]
 
 [node name="GymArea" type="Node3D" parent="SceneObjects" unique_id=1120193734]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/GymArea"]
+script = ExtResource("76_region_visibility_component")
+region_tag = &"gym_area"
 
 [node name="Floors" type="Node3D" parent="SceneObjects/GymArea" unique_id=1005525011]
 
@@ -3429,6 +3446,11 @@ material = SubResource("StandardMaterial3D_gm3uw")
 [node name="Objects" type="Node3D" parent="SceneObjects/GymArea" unique_id=524600765]
 
 [node name="BalconyArea" type="Node3D" parent="SceneObjects" unique_id=1239045793]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/BalconyArea"]
+script = ExtResource("76_region_visibility_component")
+region_tag = &"balcony_area"
 
 [node name="Floors" type="Node3D" parent="SceneObjects/BalconyArea" unique_id=461188807]
 
@@ -4099,6 +4121,11 @@ material = SubResource("StandardMaterial3D_gm3uw")
 [node name="Objects" type="Node3D" parent="SceneObjects/BalconyArea" unique_id=775345341]
 
 [node name="OfficeArea" type="Node3D" parent="SceneObjects" unique_id=248894745]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/OfficeArea"]
+script = ExtResource("76_region_visibility_component")
+region_tag = &"office_area"
 
 [node name="Floors" type="Node3D" parent="SceneObjects/OfficeArea" unique_id=1229035368]
 
@@ -4904,6 +4931,9 @@ script = ExtResource("24_touchscreen_system")
 [node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=417065310]
 script = ExtResource("72_vcam_system")
 execution_priority = 100
+
+[node name="S_RegionVisibilitySystem" type="Node" parent="Systems/Core"]
+script = ExtResource("77_region_visibility_system")
 
 [node name="S_RoomFadeSystem" type="Node" parent="Systems/Core" unique_id=696779724]
 script = ExtResource("74_room_fade_system")
