@@ -611,6 +611,18 @@
 - **Always add explicit types when pulling Variants**: Helpers such as `C_InputComponent.get_move_vector()` or `Time.get_ticks_msec()` return Variants. Define locals with `: Vector2`, `: float`, etc., instead of relying on inference, otherwise the parser fails with "typed as Variant" errors.
 - **Annotate Callable results**: `Callable.call()` and similar helpers also return Variants. When reducers or action handlers return dictionaries, capture them with explicit types (e.g., `var next_state: Dictionary = root.call(...)`) so tests load without Variant inference errors.
 - **Respect tab indentation in scripts**: Godot scripts under `res://` expect tabs. Mixing spaces causes parse errors that look unrelated to the actual change, so configure your editor accordingly before editing `.gd` files.
+- **Typed return functions must guard `Dictionary.get()` Variant results**: When a function has a typed return (e.g., `-> Vector3`), `Dictionary.get("key", Vector3.ZERO)` still returns `Variant`. If the stored value is the wrong type (e.g., a `String` instead of `Vector3`), Godot errors at runtime: `Trying to return value of type "String" from a function whose return type is "Vector3"`. **Solution**: Always validate before returning:
+  ```gdscript
+  # WRONG - crashes if "position" holds a non-Vector3 value:
+  static func get_entity_position(state: Dictionary, entity_id: Variant) -> Vector3:
+      return get_entity(state, entity_id).get("position", Vector3.ZERO)
+
+  # CORRECT - type-check the Variant before returning:
+  static func get_entity_position(state: Dictionary, entity_id: Variant) -> Vector3:
+      var value: Variant = get_entity(state, entity_id).get("position", Vector3.ZERO)
+      return value as Vector3 if value is Vector3 else Vector3.ZERO
+  ```
+  This applies to any selector or accessor that reads Variant values from Redux state dictionaries and returns a typed value. The `Dictionary.get()` default parameter does NOT enforce the return type — it only provides a fallback when the key is missing, not when the key exists with the wrong type.
 - **Don't call `super._exit_tree()` unless the parent script defines it**: Calling `super._exit_tree()` only works when the parent script implements `_exit_tree()`. If the parent script does not define it, Godot fails to compile with `Cannot call the parent class' virtual function "_exit_tree()" because it hasn't been defined.` Prefer omitting the `super` call or adding an `_exit_tree()` stub to the parent script.
 
 ## ECS System Pitfalls

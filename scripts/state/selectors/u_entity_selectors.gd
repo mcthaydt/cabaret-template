@@ -21,17 +21,20 @@ static func get_entity(state: Dictionary, entity_id: Variant) -> Dictionary:
 ## Get entity position
 ## entity_id: accepts String or StringName
 static func get_entity_position(state: Dictionary, entity_id: Variant) -> Vector3:
-	return get_entity(state, entity_id).get("position", Vector3.ZERO)
+	var value: Variant = get_entity(state, entity_id).get("position", Vector3.ZERO)
+	return value as Vector3 if value is Vector3 else Vector3.ZERO
 
 ## Get entity velocity
 ## entity_id: accepts String or StringName
 static func get_entity_velocity(state: Dictionary, entity_id: Variant) -> Vector3:
-	return get_entity(state, entity_id).get("velocity", Vector3.ZERO)
+	var value: Variant = get_entity(state, entity_id).get("velocity", Vector3.ZERO)
+	return value as Vector3 if value is Vector3 else Vector3.ZERO
 
 ## Get entity rotation
 ## entity_id: accepts String or StringName
 static func get_entity_rotation(state: Dictionary, entity_id: Variant) -> Vector3:
-	return get_entity(state, entity_id).get("rotation", Vector3.ZERO)
+	var value: Variant = get_entity(state, entity_id).get("rotation", Vector3.ZERO)
+	return value as Vector3 if value is Vector3 else Vector3.ZERO
 
 ## Check if entity is on floor
 ## entity_id: accepts String or StringName
