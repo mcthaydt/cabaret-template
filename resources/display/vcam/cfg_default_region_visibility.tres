@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="RS_RegionVisibilitySettings" format=3]
+[gd_resource type="Resource" script_class="RS_RegionVisibilitySettings" format=3 uid="uid://dnyg0m6w4s5iq"]
 
-[ext_resource type="Script" path="res://scripts/resources/display/vcam/rs_region_visibility_settings.gd" id="1_rvs"]
+[ext_resource type="Script" uid="uid://bhcu76o2xti4v" path="res://scripts/resources/display/vcam/rs_region_visibility_settings.gd" id="1_rvs"]
 
 [resource]
 script = ExtResource("1_rvs")

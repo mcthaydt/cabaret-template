@@ -20,6 +20,9 @@ class RoomFadeMaterialApplierStub extends RefCounted:
 	var last_updated_target_count: int = 0
 	var last_restore_target_count: int = 0
 
+	func invalidate_externally_removed() -> void:
+		pass
+
 	func apply_fade_material(targets: Array) -> void:
 		apply_calls += 1
 		last_updated_target_count = targets.size()

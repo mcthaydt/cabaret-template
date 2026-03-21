@@ -129,6 +129,7 @@ size_flags_vertical = 8
 visible = false
 modulate = Color(1, 1, 1, 0)
 layout_mode = 3
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -153,8 +154,8 @@ offset_right = 1.5
 offset_bottom = 1.5
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(1, 1, 1, 0.95)
 mouse_filter = 2
+color = Color(1, 1, 1, 0.95)
 
 [node name="SignpostPanelContainer" type="Control" parent="." unique_id=222387715]
 visible = false

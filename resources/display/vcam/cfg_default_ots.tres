@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="RS_VCamModeOTS" format=3 uid="uid://cbophn3ub4xgd"]
 
 [ext_resource type="Script" uid="uid://2nhflcqifxc1" path="res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd" id="1_7ra2w"]
-[ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_ots_movement_default.tres" id="2_ots_move"]
+[ext_resource type="Resource" uid="uid://br4qtvu7f4l8b" path="res://resources/base_settings/gameplay/cfg_ots_movement_default.tres" id="2_ots_move"]
 
 [resource]
 script = ExtResource("1_7ra2w")
-shoulder_offset = Vector3(0.25, 2.0, -1.2)
+shoulder_offset = Vector3(0.25, 2, -1.2)
 camera_distance = 2.2
 pitch_min = -35.0
 pitch_max = 25.0

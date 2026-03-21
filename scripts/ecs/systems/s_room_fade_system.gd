@@ -31,6 +31,7 @@ var _material_applier: Variant = null
 var _tracked_targets: Dictionary = {}  # int -> Node3D (MeshInstance3D or CSGShape3D)
 var _target_alpha_by_id: Dictionary = {}  # int -> float
 var _cached_normals: Dictionary = {}  # int -> Vector3
+var _cached_centroids: Dictionary = {}  # int (component instance id) -> Vector3
 var _debug_tick_counter: int = 0
 
 func _init() -> void:
@@ -72,6 +73,7 @@ func process_tick(delta: float) -> void:
 	var camera_forward: Vector3 = -main_camera.global_transform.basis.z
 	var active_targets: Dictionary = {}
 	var resolved_delta: float = maxf(delta, 0.0)
+	_cached_centroids.clear()
 
 	components = _filter_components_by_active_room(components)
 
@@ -79,6 +81,8 @@ func process_tick(delta: float) -> void:
 		_debug_log_tick_header(mode_info, main_camera, camera_forward, components.size(), resolved_delta)
 
 	for component_variant in components:
+		if should_log_debug and component_variant != null and is_instance_valid(component_variant) and component_variant is Object:
+			_debug_log_normal_diagnosis(component_variant as Object)
 		if component_variant == null or not is_instance_valid(component_variant):
 			continue
 		if not (component_variant is Object):
@@ -89,6 +93,7 @@ func process_tick(delta: float) -> void:
 		if targets.is_empty():
 			continue
 
+		_cache_component_centroid(component, targets)
 		applier.invalidate_externally_removed()
 		applier.apply_fade_material(targets)
 
@@ -166,6 +171,7 @@ func _exit_tree() -> void:
 	_restore_stale_targets({})
 	_target_alpha_by_id.clear()
 	_cached_normals.clear()
+	_cached_centroids.clear()
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 	if camera_manager != null:
@@ -358,7 +364,25 @@ func _resolve_csg_box_thin_axis_world_candidates(csg_box: CSGBox3D) -> Array:
 		axes.append(csg_box.global_basis.z.normalized())
 	return axes
 
+func _cache_component_centroid(component: Object, targets: Array) -> void:
+	var component_id: int = component.get_instance_id()
+	if _cached_centroids.has(component_id):
+		return
+	var sum := Vector3.ZERO
+	var count: int = 0
+	for target_variant in targets:
+		if _is_supported_target(target_variant):
+			sum += (target_variant as Node3D).global_position
+			count += 1
+	if count > 0:
+		_cached_centroids[component_id] = sum / float(count)
+
 func _resolve_component_origin(component: Object, fallback_target: Node3D) -> Vector3:
+	if component != null:
+		var component_id: int = component.get_instance_id()
+		if _cached_centroids.has(component_id):
+			return _cached_centroids[component_id] as Vector3
+
 	if component is Node:
 		var component_node := component as Node
 		if component_node != null:
@@ -642,3 +666,63 @@ func _resolve_player_position_data() -> Dictionary:
 		return {"position": position_variant as Vector3}
 	return {}
 
+func _debug_log_normal_diagnosis(component: Object) -> void:
+	# Hypothesis A: fade_normal export doesn't account for room rotation
+	var raw_fade_normal: Vector3 = Vector3.FORWARD
+	if component.has_method("get") and true:
+		raw_fade_normal = component.get("fade_normal") as Vector3
+	var world_normal_from_component: Vector3 = Vector3.FORWARD
+	if component.has_method("get_fade_normal_world"):
+		world_normal_from_component = component.call("get_fade_normal_world") as Vector3
+
+	var parent_basis_euler: Vector3 = Vector3.ZERO
+	var parent_global_pos: Vector3 = Vector3.ZERO
+	if component is Node:
+		var parent_node := (component as Node).get_parent() as Node3D
+		if parent_node != null and is_instance_valid(parent_node):
+			parent_basis_euler = parent_node.global_basis.get_euler()
+			parent_global_pos = parent_node.global_position
+
+	print("[RoomFadeDiag] component=%s" % _describe_object(component))
+	print("[RoomFadeDiag]   raw_fade_normal=%s  world_normal=%s" % [
+		_format_vector3(raw_fade_normal),
+		_format_vector3(world_normal_from_component),
+	])
+	print("[RoomFadeDiag]   parent_rotation_deg=%s  parent_pos=%s" % [
+		_format_vector3(Vector3(
+			rad_to_deg(parent_basis_euler.x),
+			rad_to_deg(parent_basis_euler.y),
+			rad_to_deg(parent_basis_euler.z),
+		)),
+		_format_vector3(parent_global_pos),
+	])
+
+	# Hypothesis B: multi-target inward-planar origin is wrong
+	var targets: Array = _collect_mesh_targets(component)
+	if targets.size() > 1:
+		var fallback_target: Node3D = null
+		if _is_supported_target(targets[0]):
+			fallback_target = targets[0] as Node3D
+		var comp_origin: Vector3 = _resolve_component_origin(component, fallback_target)
+		print("[RoomFadeDiag]   target_count=%d  component_origin=%s" % [
+			targets.size(),
+			_format_vector3(comp_origin),
+		])
+		var sample_count: int = mini(targets.size(), 4)
+		for i in range(sample_count):
+			if not _is_supported_target(targets[i]):
+				continue
+			var t: Node3D = targets[i] as Node3D
+			var inward_raw: Vector3 = comp_origin - t.global_position
+			var inward_planar: Vector3 = inward_raw
+			inward_planar.y = 0.0
+			var resolved_info: Dictionary = _resolve_target_world_normal_info(component, t, targets.size())
+			print("[RoomFadeDiag]   target[%d]=%s  pos=%s  inward_raw=%s  inward_planar=%s  resolved_normal=%s  source=%s" % [
+				i,
+				_describe_node(t),
+				_format_vector3(t.global_position),
+				_format_vector3(inward_raw),
+				_format_vector3(inward_planar),
+				_format_vector3(resolved_info.get("normal", Vector3.ZERO) as Vector3),
+				str(resolved_info.get("source", "unknown")),
+			])

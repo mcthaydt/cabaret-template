@@ -17,6 +17,9 @@ class RoomFadeMaterialApplierStub extends RefCounted:
 	var last_restore_target_count: int = 0
 	var updated_alpha_by_target_id: Dictionary = {}
 
+	func invalidate_externally_removed() -> void:
+		pass
+
 	func apply_fade_material(targets: Array) -> void:
 		apply_calls += 1
 		last_updated_target_count = targets.size()
@@ -522,6 +525,91 @@ func test_system_invalidates_normal_cache_when_targets_change() -> void:
 	assert_true(system._cached_normals.is_empty(),
 		"Normal cache should be cleared when targets become stale.")
 
+func test_csg_normals_use_target_centroid_not_world_origin() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var main_camera: Camera3D = fixture.get("main_camera") as Camera3D
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+	assert_not_null(main_camera)
+
+	# Room centered at (-16, 0, -10), far from world origin.
+	# North wall at z=-5 and south wall at z=-15.
+	# Camera looks -Z (south). North wall is behind camera → should stay opaque.
+	# South wall is in front of camera → should fade.
+	var setup: Dictionary = _register_room_fade_group_offset_csg(
+		ecs_manager, "E_OffOriginRoom", Vector3(-16.0, 0.0, -10.0)
+	)
+	var north_target: Node3D = setup.get("north_target") as Node3D
+	var south_target: Node3D = setup.get("south_target") as Node3D
+	var component = setup.get("component")
+	assert_not_null(north_target)
+	assert_not_null(south_target)
+	assert_not_null(component)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	component.settings = settings
+	component.current_alpha = 1.0
+
+	# Camera looking -Z
+	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(-16.0, 5.0, 0.0))
+	main_camera.look_at(Vector3(-16.0, 0.0, -10.0), Vector3.UP)
+
+	system.process_tick(0.1)
+
+	var north_alpha: float = float(applier.updated_alpha_by_target_id.get(north_target.get_instance_id(), -1.0))
+	var south_alpha: float = float(applier.updated_alpha_by_target_id.get(south_target.get_instance_id(), -1.0))
+	assert_gt(north_alpha, -0.5, "Expected north target alpha update.")
+	assert_gt(south_alpha, -0.5, "Expected south target alpha update.")
+	# North wall should be opaque (camera looks away from its inward face)
+	assert_almost_eq(north_alpha, 1.0, 0.01, "North wall should stay opaque when camera looks -Z.")
+	# South wall should fade (camera looks toward its inward face)
+	assert_almost_eq(south_alpha, 0.05, 0.01, "South wall should fade when camera looks -Z.")
+
+func test_csg_normals_correct_for_room_at_origin() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var main_camera: Camera3D = fixture.get("main_camera") as Camera3D
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+	assert_not_null(main_camera)
+
+	# Same layout but at origin — sanity check that the fix doesn't regress.
+	var setup: Dictionary = _register_room_fade_group_offset_csg(
+		ecs_manager, "E_OriginRoom", Vector3(0.0, 0.0, 0.0)
+	)
+	var north_target: Node3D = setup.get("north_target") as Node3D
+	var south_target: Node3D = setup.get("south_target") as Node3D
+	var component = setup.get("component")
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	component.settings = settings
+	component.current_alpha = 1.0
+
+	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(0.0, 5.0, 10.0))
+	main_camera.look_at(Vector3(0.0, 0.0, 0.0), Vector3.UP)
+
+	system.process_tick(0.1)
+
+	var north_alpha: float = float(applier.updated_alpha_by_target_id.get(north_target.get_instance_id(), -1.0))
+	var south_alpha: float = float(applier.updated_alpha_by_target_id.get(south_target.get_instance_id(), -1.0))
+	assert_gt(north_alpha, -0.5, "Expected north target alpha update.")
+	assert_gt(south_alpha, -0.5, "Expected south target alpha update.")
+	assert_almost_eq(north_alpha, 1.0, 0.01, "North wall should stay opaque when camera looks -Z.")
+	assert_almost_eq(south_alpha, 0.05, 0.01, "South wall should fade when camera looks -Z.")
+
 func _create_fixture() -> Dictionary:
 	var room_fade_system_script := _room_fade_system_script()
 	if room_fade_system_script == null:
@@ -672,6 +760,43 @@ func _register_room_fade_group_at_position(
 		"entity": entity,
 		"component": component,
 		"target": mesh_instance,
+	}
+
+func _register_room_fade_group_offset_csg(
+	ecs_manager: MockECSManager,
+	entity_name: String,
+	center: Vector3
+) -> Dictionary:
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = entity_name
+	add_child(entity)
+	autofree(entity)
+	entity.global_position = center
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity.add_child(component)
+	autofree(component)
+	ecs_manager.add_component_to_entity(entity, component)
+
+	# North wall: thin in Z, offset +5 Z from center
+	var north_target := CSGBox3D.new()
+	north_target.size = Vector3(4.0, 4.0, 0.1)
+	north_target.position = Vector3(0.0, 0.0, 5.0)
+	entity.add_child(north_target)
+	autofree(north_target)
+
+	# South wall: thin in Z, offset -5 Z from center
+	var south_target := CSGBox3D.new()
+	south_target.size = Vector3(4.0, 4.0, 0.1)
+	south_target.position = Vector3(0.0, 0.0, -5.0)
+	entity.add_child(south_target)
+	autofree(south_target)
+
+	return {
+		"entity": entity,
+		"component": component,
+		"north_target": north_target,
+		"south_target": south_target,
 	}
 
 func _set_player_position(store: MockStateStore, position: Vector3) -> void:

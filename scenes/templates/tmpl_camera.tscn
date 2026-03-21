@@ -32,7 +32,7 @@ soft_zone = ExtResource("5_vcam_soft_zone")
 blend_hint = ExtResource("6_vcam_blend_hint")
 response = ExtResource("7_vcam_response")
 
-[node name="C_VCamOTSComponent" type="Node" parent="Components"]
+[node name="C_VCamOTSComponent" type="Node" parent="Components" unique_id=884248736]
 script = ExtResource("3_vcam_component")
 vcam_id = &"camera_ots"
 priority = 10
