@@ -189,6 +189,19 @@ func test_get_snapshot_includes_region_tag_alpha_and_active() -> void:
 	assert_almost_eq(float(snapshot.get("current_alpha", -1.0)), 0.5, 0.0001)
 	assert_true(bool(snapshot.get("is_active_region", false)))
 
+func test_is_near_region_defaults_to_false() -> void:
+	var component := C_REGION_VISIBILITY_COMPONENT.new()
+	autofree(component)
+	assert_false(component.is_near_region)
+
+func test_snapshot_includes_is_near_region() -> void:
+	var component := C_REGION_VISIBILITY_COMPONENT.new()
+	autofree(component)
+	component.is_near_region = true
+	var snapshot := component.get_snapshot()
+	assert_true(snapshot.has("is_near_region"))
+	assert_true(bool(snapshot.get("is_near_region", false)))
+
 func test_cache_is_invalid_initially() -> void:
 	var component := C_REGION_VISIBILITY_COMPONENT.new()
 	autofree(component)

@@ -349,6 +349,231 @@ func test_is_region_faded() -> void:
 	assert_false(bool(system.is_region_faded(&"region_a")), "Active region should not be faded.")
 	assert_true(bool(system.is_region_faded(&"region_b")), "Inactive region should be faded.")
 
+# --- Three-Tier Zones ---
+
+func test_player_in_inner_zone_is_active_not_near() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	var setup := _register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
+	var settings := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings.inner_aabb_grow = 1.0
+	settings.aabb_grow = 6.0
+	settings.fade_speed = 100.0
+	(setup.get("component")).settings = settings
+	_set_player_position(store, Vector3.ZERO)
+
+	system.process_tick(1.0)
+	var component = setup.get("component")
+	assert_true(component.is_active_region, "Player at origin should be in inner zone.")
+	assert_false(component.is_near_region, "Player in inner zone should not be near.")
+	assert_almost_eq(component.current_alpha, 1.0, 0.0001)
+
+func test_player_in_outer_zone_is_near_not_active() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	var setup := _register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
+	var settings := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings.inner_aabb_grow = 1.0
+	settings.aabb_grow = 6.0
+	settings.near_alpha = 0.5
+	settings.fade_speed = 100.0
+	(setup.get("component")).settings = settings
+	_set_player_position(store, Vector3(2.0, 0.0, 0.0))
+
+	system.process_tick(1.0)
+	var component = setup.get("component")
+	assert_false(component.is_active_region, "Player at 2.0 should be outside inner zone (grow=1.0).")
+	assert_true(component.is_near_region, "Player at 2.0 should be inside outer zone (grow=3.0).")
+
+func test_player_outside_both_zones_is_neither() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	var setup := _register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
+	var settings := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings.inner_aabb_grow = 1.0
+	settings.aabb_grow = 6.0
+	(setup.get("component")).settings = settings
+	_set_player_position(store, Vector3(100.0, 0.0, 0.0))
+
+	system.process_tick(0.1)
+	var component = setup.get("component")
+	assert_false(component.is_active_region)
+	assert_false(component.is_near_region)
+
+func test_near_region_fades_to_near_alpha() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	var setup := _register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
+	var settings := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings.inner_aabb_grow = 1.0
+	settings.aabb_grow = 6.0
+	settings.near_alpha = 0.5
+	settings.fade_speed = 100.0
+	(setup.get("component")).settings = settings
+	_set_player_position(store, Vector3(2.0, 0.0, 0.0))
+
+	system.process_tick(1.0)
+	var component = setup.get("component")
+	assert_almost_eq(component.current_alpha, 0.5, 0.0001, "Near region should fade to near_alpha.")
+
+func test_far_region_fades_to_min_alpha() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	var setup := _register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
+	var settings := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings.inner_aabb_grow = 1.0
+	settings.aabb_grow = 6.0
+	settings.min_alpha = 0.1
+	settings.fade_speed = 100.0
+	(setup.get("component")).settings = settings
+	_set_player_position(store, Vector3(100.0, 0.0, 0.0))
+
+	system.process_tick(1.0)
+	var component = setup.get("component")
+	assert_almost_eq(component.current_alpha, 0.1, 0.0001, "Far region should fade to min_alpha.")
+
+func test_transition_near_to_active() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	var setup := _register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
+	var settings := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings.inner_aabb_grow = 1.0
+	settings.aabb_grow = 6.0
+	settings.near_alpha = 0.5
+	settings.fade_speed = 100.0
+	(setup.get("component")).settings = settings
+
+	_set_player_position(store, Vector3(2.0, 0.0, 0.0))
+	system.process_tick(1.0)
+	var component = setup.get("component")
+	assert_almost_eq(component.current_alpha, 0.5, 0.0001, "Should be at near_alpha.")
+
+	_set_player_position(store, Vector3.ZERO)
+	system.process_tick(1.0)
+	assert_almost_eq(component.current_alpha, 1.0, 0.0001, "Should fade up to opaque.")
+
+func test_transition_active_to_near() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	var setup := _register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
+	var settings := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings.inner_aabb_grow = 1.0
+	settings.aabb_grow = 6.0
+	settings.near_alpha = 0.5
+	settings.fade_speed = 100.0
+	(setup.get("component")).settings = settings
+
+	_set_player_position(store, Vector3.ZERO)
+	system.process_tick(1.0)
+	var component = setup.get("component")
+	assert_almost_eq(component.current_alpha, 1.0, 0.0001)
+
+	_set_player_position(store, Vector3(2.0, 0.0, 0.0))
+	system.process_tick(1.0)
+	assert_almost_eq(component.current_alpha, 0.5, 0.0001, "Should fade down to near_alpha.")
+
+func test_get_near_region_tags() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	var settings_a := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings_a.inner_aabb_grow = 1.0
+	settings_a.aabb_grow = 3.0
+	var setup_a := _register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
+	(setup_a.get("component")).settings = settings_a
+
+	var settings_b := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings_b.inner_aabb_grow = 1.0
+	settings_b.aabb_grow = 5.0
+	var setup_b := _register_region(ecs_manager, "E_RegionB", Vector3(4.0, 0.0, 0.0), &"region_b")
+	(setup_b.get("component")).settings = settings_b
+
+	_set_player_position(store, Vector3.ZERO)
+	system.process_tick(0.1)
+
+	var near_tags: Array = system.get_near_region_tags()
+	assert_false(near_tags.has(&"region_a"), "Active region should not be in near tags.")
+	assert_true(near_tags.has(&"region_b"), "Region_b at 4.0 away with outer grow=5.0 should be near.")
+
+func test_active_tags_exclude_near() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	var settings := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings.inner_aabb_grow = 1.0
+	settings.aabb_grow = 5.0
+	var setup_a := _register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
+	(setup_a.get("component")).settings = settings
+
+	var settings_b := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings_b.inner_aabb_grow = 1.0
+	settings_b.aabb_grow = 5.0
+	var setup_b := _register_region(ecs_manager, "E_RegionB", Vector3(4.0, 0.0, 0.0), &"region_b")
+	(setup_b.get("component")).settings = settings_b
+
+	_set_player_position(store, Vector3.ZERO)
+	system.process_tick(0.1)
+
+	var active_tags: Array = system.get_active_region_tags()
+	assert_true(active_tags.has(&"region_a"))
+	assert_false(active_tags.has(&"region_b"), "Near region should not be in active tags.")
+
+func test_applier_called_for_near_regions() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: MaterialApplierStub = fixture.get("applier") as MaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	var setup := _register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
+	var settings := RS_REGION_VISIBILITY_SETTINGS.new()
+	settings.inner_aabb_grow = 1.0
+	settings.aabb_grow = 6.0
+	settings.near_alpha = 0.5
+	settings.fade_speed = 100.0
+	(setup.get("component")).settings = settings
+	_set_player_position(store, Vector3(2.0, 0.0, 0.0))
+
+	system.process_tick(1.0)
+	assert_gt(applier.apply_calls, 0, "Should apply fade material to near region.")
+	assert_gt(applier.update_calls, 0, "Should update fade alpha on near region.")
+	assert_almost_eq(applier.last_updated_alpha, 0.5, 0.0001, "Alpha should be near_alpha.")
+
 # --- Fixture Helpers ---
 
 func _create_fixture() -> Dictionary:

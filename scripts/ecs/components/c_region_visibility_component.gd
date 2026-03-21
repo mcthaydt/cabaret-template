@@ -23,6 +23,7 @@ const RS_REGION_VISIBILITY_SETTINGS_SCRIPT := preload(
 
 var current_alpha: float = 1.0
 var is_active_region: bool = false
+var is_near_region: bool = false
 
 var _settings: Resource = null
 var _cached_targets: Array = []
@@ -86,6 +87,7 @@ func get_snapshot() -> Dictionary:
 		"region_tag": region_tag,
 		"current_alpha": current_alpha,
 		"is_active_region": is_active_region,
+		"is_near_region": is_near_region,
 	}
 
 func _collect_mesh_targets_recursive(node: Node, targets: Array) -> void:

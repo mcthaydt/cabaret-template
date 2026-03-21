@@ -31,6 +31,7 @@ var _material_applier: Variant = null
 var _tracked_targets: Dictionary = {}
 var _target_alpha_by_id: Dictionary = {}
 var _active_region_tags: Array[StringName] = []
+var _near_region_tags: Array[StringName] = []
 var _region_alpha_by_tag: Dictionary = {}
 
 func _init() -> void:
@@ -59,6 +60,7 @@ func process_tick(delta: float) -> void:
 	var active_targets: Dictionary = {}
 	var resolved_delta: float = maxf(delta, 0.0)
 	var new_active_tags: Array[StringName] = []
+	var new_near_tags: Array[StringName] = []
 
 	for component_variant in components:
 		if component_variant == null or not is_instance_valid(component_variant):
@@ -74,19 +76,33 @@ func process_tick(delta: float) -> void:
 		var settings: Dictionary = _resolve_settings(component)
 		var fade_speed: float = maxf(float(settings.get("fade_speed", 3.0)), 0.0)
 		var min_alpha: float = clampf(float(settings.get("min_alpha", 0.0)), 0.0, 1.0)
-		var aabb_grow: float = maxf(float(settings.get("aabb_grow", 2.0)), 0.0)
+		var near_alpha: float = clampf(float(settings.get("near_alpha", 0.5)), 0.0, 1.0)
+		var aabb_grow: float = maxf(float(settings.get("aabb_grow", 3.0)), 0.0)
+		var inner_aabb_grow: float = maxf(float(settings.get("inner_aabb_grow", 1.0)), 0.0)
 		var aabb_vertical_shrink: float = maxf(float(settings.get("aabb_vertical_shrink", 0.5)), 0.0)
 
-		var is_active: bool = true
+		var is_in_inner: bool = true
+		var is_in_outer: bool = false
 		if has_player:
-			is_active = _is_player_in_region(component, targets, player_position, aabb_grow, aabb_vertical_shrink)
-		component.set("is_active_region", is_active)
+			is_in_inner = _is_player_in_zone(component, targets, player_position, inner_aabb_grow, aabb_vertical_shrink)
+			if not is_in_inner:
+				is_in_outer = _is_player_in_zone(component, targets, player_position, aabb_grow, aabb_vertical_shrink)
+		component.set("is_active_region", is_in_inner)
+		component.set("is_near_region", is_in_outer)
 
 		var region_tag: StringName = component.get("region_tag") as StringName
-		if is_active and region_tag != StringName(""):
+		if is_in_inner and region_tag != StringName(""):
 			new_active_tags.append(region_tag)
+		if is_in_outer and region_tag != StringName(""):
+			new_near_tags.append(region_tag)
 
-		var target_alpha: float = 1.0 if is_active else min_alpha
+		var target_alpha: float
+		if is_in_inner:
+			target_alpha = 1.0
+		elif is_in_outer:
+			target_alpha = near_alpha
+		else:
+			target_alpha = min_alpha
 		var current_alpha: float = float(component.get("current_alpha"))
 		var next_alpha: float = current_alpha
 		if fade_speed > 0.0:
@@ -110,10 +126,14 @@ func process_tick(delta: float) -> void:
 				_target_alpha_by_id[target_id] = next_alpha
 
 	_active_region_tags = new_active_tags
+	_near_region_tags = new_near_tags
 	_restore_stale_targets(active_targets)
 
 func get_active_region_tags() -> Array[StringName]:
 	return _active_region_tags.duplicate()
+
+func get_near_region_tags() -> Array[StringName]:
+	return _near_region_tags.duplicate()
 
 func is_region_faded(region_tag: StringName) -> bool:
 	if not _region_alpha_by_tag.has(region_tag):
@@ -123,6 +143,7 @@ func is_region_faded(region_tag: StringName) -> bool:
 func _exit_tree() -> void:
 	_restore_stale_targets({})
 	_target_alpha_by_id.clear()
+	_near_region_tags.clear()
 	_region_alpha_by_tag.clear()
 
 func _resolve_state_store() -> I_STATE_STORE:
@@ -186,7 +207,9 @@ func _resolve_settings(component: Object) -> Dictionary:
 	return {
 		"fade_speed": 3.0,
 		"min_alpha": 0.0,
-		"aabb_grow": 2.0,
+		"near_alpha": 0.5,
+		"aabb_grow": 6.0,
+		"inner_aabb_grow": 1.0,
 		"aabb_vertical_shrink": 0.5,
 	}
 
@@ -205,7 +228,7 @@ func _collect_mesh_targets(component: Object) -> Array:
 			targets.append(target_variant)
 	return targets
 
-func _is_player_in_region(
+func _is_player_in_zone(
 	component: Object,
 	targets: Array,
 	player_position: Vector3,
@@ -252,6 +275,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 		var component: Object = component_variant as Object
 		component.set("current_alpha", 1.0)
 		component.set("is_active_region", true)
+		component.set("is_near_region", false)
 		var targets: Array = _collect_mesh_targets(component)
 		for target_variant in targets:
 			if not _is_supported_target(target_variant):
@@ -281,6 +305,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 	_tracked_targets.clear()
 	_target_alpha_by_id.clear()
 	_active_region_tags.clear()
+	_near_region_tags.clear()
 	_region_alpha_by_tag.clear()
 
 func _restore_stale_targets(active_targets: Dictionary) -> void:
