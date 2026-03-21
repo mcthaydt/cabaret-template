@@ -703,6 +703,42 @@ Before starting Phase 2, verify:
 
 ---
 
+### Phase 2C11A: Shared-Wall Ownership Guard + Scene Audit (March 21, 2026)
+
+> **Why:** Shared-room boundaries can accidentally map one mesh target to multiple room-fade groups. Without arbitration, last-writer alpha/material updates cause non-deterministic wall fading.
+
+**Exit Criteria:** Shared targets are deterministic at runtime, gameplay scene authoring is explicit across all six room-fade groups, and ownership audit tests pass.
+
+- [x] **Task 2C11A.1 (Red)**: Add duplicate-ownership runtime test
+  - Extend `tests/unit/ecs/systems/test_room_fade_system.gd`
+  - Add test with two room-fade components sharing one target
+  - Assert first-owner wins, duplicate updates are skipped, and warning path is exercised
+  - Completion note (2026-03-21): Added `test_duplicate_target_ownership_keeps_first_component_and_skips_duplicate_updates`.
+
+- [x] **Task 2C11A.2 (Red)**: Add gameplay scene ownership audit test
+  - Create `tests/unit/ecs/systems/test_room_fade_scene_audit.gd`
+  - Load `scenes/gameplay/gameplay_interior_a.tscn`
+  - Assert all room-fade targets have single-group ownership with explicit diagnostics
+  - Assert all six room-fade groups exist and have explicit unique `group_tag` values
+  - Completion note (2026-03-21): Added scene-audit coverage with duplicate-target + `group_tag` validation.
+
+- [x] **Task 2C11A.3 (Green)**: Implement ownership arbitration in `S_RoomFadeSystem`
+  - Add per-tick ownership pre-pass before alpha/material writes
+  - Ownership rule: first component in filtered processing order owns target
+  - Duplicate owners skip target processing and emit warn+continue diagnostics (de-duplicated per target/component pair per tick)
+  - Completion note (2026-03-21): Runtime now processes only owned targets; duplicate owners are skipped deterministically.
+
+- [x] **Task 2C11A.4 (Green)**: Update `gameplay_interior_a.tscn` room-fade authoring
+  - Audit all six room-fade groups (`MasterBathroom`, `MasterBedroom`, `WalkInCloset`, `EntertainmentArea`, `GymArea`, `OfficeArea`)
+  - Author explicit unique `group_tag` per group to lock ownership boundaries
+  - Completion note (2026-03-21): Added unique `group_tag` values for all six groups.
+
+- [x] **Task 2C11A.5**: Regression reruns
+  - Re-run `test_room_fade_integration`, `test_room_fade_system`, `test_room_fade_scene_audit`, and `test_style_enforcement`
+  - Completion note (2026-03-21): `test_room_fade_integration` `7/7`, `test_room_fade_scene_audit` `1/1`; `test_room_fade_system` `22/24` with two pre-existing CSG-direction expectation failures; style remains pre-existing debt (`16/17`, path-space violation).
+
+---
+
 ### Manual Validation (Orbit Game Feel)
 
 - [ ] **MT-24**: Player in dead zone: camera does not move
@@ -758,6 +794,7 @@ Before starting Phase 2, verify:
 - [x] Verify `U_RoomFadeMaterialApplier` caches original materials and restores them cleanly on cleanup (follows `U_CharacterLightingMaterialApplier` pattern)
 - [x] Verify room fading is orbit-only gated: OTS/fixed modes restore all faded geometry immediately
 - [x] Verify room fading coexists with Phase 10 silhouette occlusion without material/shader conflicts
+- [x] Verify room-fade runtime enforces deterministic single-target ownership (first-owner wins, duplicate owners warn+skip)
 - [x] Verify `sh_room_fade.gdshader` uses `blend_mix` + `depth_draw_never` (no alpha-scissor path) to match the current room-fade render contract
 - [x] Verify `cfg_default_room_fade.tres` uses `const` preload pattern for mobile compatibility (no runtime directory scanning)
 - [x] Verify `current_alpha` is clamped to `[min_alpha, 1.0]` and never reaches `0.0` (always slightly visible for visual grounding)
@@ -914,6 +951,7 @@ These checks gate Phase 9F completion:
 18. Do not run `S_RoomFadeSystem` before `S_VCamSystem`. The fade system needs the post-evaluation camera transform; running it before camera evaluation produces stale-frame decisions.
 19. Do not use `depth_draw_alpha_prepass` in `sh_room_fade.gdshader`. Keep the room-fade shader on the current `blend_mix + depth_draw_never` contract unless the render pipeline is intentionally redesigned.
 20. Do not forget mobile compatibility for the shader. Verify `sh_room_fade.gdshader` compiles under the Compatibility renderer, and ensure `cfg_default_room_fade.tres` is preload-safe (no `DirAccess` scanning).
+21. Do not allow the same render target to be owned by multiple `C_RoomFadeGroupComponent` instances. If shared boundaries are intentional, split geometry per room-side and keep `group_tag` explicit/unique.
 
 ---
 
@@ -932,6 +970,7 @@ These checks gate Phase 9F completion:
 | `test_room_fade_system.gd` | Test | `tests/unit/ecs/systems/` |
 | `test_room_fade_material_applier.gd` | Test | `tests/unit/lighting/` |
 | `test_room_fade_integration.gd` | Test | `tests/unit/ecs/systems/` |
+| `test_room_fade_scene_audit.gd` | Test | `tests/unit/ecs/systems/` |
 
 ---
 

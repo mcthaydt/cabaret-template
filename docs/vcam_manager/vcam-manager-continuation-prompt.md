@@ -327,6 +327,23 @@
   - `tests/unit/resources/test_rs_input_profile.gd` (`8/8`)
   - `tests/unit/style/test_style_enforcement.gd` remains unchanged at known pre-existing HUD inline-theme failure (`16/17`).
 
+## Orbit Room Fade Shared-Wall Ownership Hardening (Phase 2C11A, March 21, 2026)
+
+- Added deterministic shared-target ownership in `S_RoomFadeSystem`:
+  - Per-tick pre-pass now assigns each fade target to the first component in filtered processing order.
+  - Duplicate owners are skipped (first-owner-wins) and emit warn-and-continue diagnostics.
+  - Warning emission is de-duplicated per target/component pair per tick.
+- Added/expanded test coverage:
+  - `tests/unit/ecs/systems/test_room_fade_system.gd`: added duplicate-ownership regression (`test_duplicate_target_ownership_keeps_first_component_and_skips_duplicate_updates`).
+  - `tests/unit/ecs/systems/test_room_fade_scene_audit.gd`: added gameplay-scene ownership audit for `gameplay_interior_a.tscn` (single-owner targets + explicit unique `group_tag` per room-fade group).
+- Scene authoring update (`scenes/gameplay/gameplay_interior_a.tscn`):
+  - Authored explicit unique `group_tag` values on all six room-fade groups (`MasterBathroom`, `MasterBedroom`, `WalkInCloset`, `EntertainmentArea`, `GymArea`, `OfficeArea`) to make ownership boundaries explicit.
+- Validation run:
+  - `test_room_fade_integration`: `7/7` passing.
+  - `test_room_fade_scene_audit`: `1/1` passing.
+  - `test_room_fade_system`: `22/24` passing (`test_csg_normals_use_target_centroid_not_world_origin` + `test_csg_normals_correct_for_room_at_origin` remain red as pre-existing baseline drift unrelated to shared-ownership changes).
+  - `test_style_enforcement`: `16/17` passing (known pre-existing path-space failure under `res://assets/textures/Prototype Grids PNG`).
+
 ## Orbit Room Fade Integration + Polish (Phase 2C11, March 15, 2026)
 
 - Added integration coverage:

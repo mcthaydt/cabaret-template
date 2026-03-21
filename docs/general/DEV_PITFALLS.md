@@ -245,6 +245,9 @@
 - **Room fade can silently stop in tests/runtime scaffolds when camera lookup assumes `camera_manager.get_main_camera()` is always valid**: Some harnesses and transitional scene states only expose the active camera through the viewport, not the manager slot.
   - **Fix pattern**: resolve camera in `S_RoomFadeSystem` by manager main camera first, then fallback to `get_viewport().get_camera_3d()` before deciding camera is unavailable.
 
+- **Shared wall targets can receive conflicting room-fade alpha/material writes when multiple `C_RoomFadeGroupComponent` instances collect the same mesh**: Without explicit ownership arbitration, later components in the tick overwrite earlier updates and produce non-deterministic fade behavior.
+  - **Fix pattern**: in `S_RoomFadeSystem`, run a per-tick ownership pre-pass so the first component in filtered order owns each target, skip duplicate owners with warn+continue diagnostics, and keep `group_tag` explicit/unique in authored room-fade groups.
+
 ## vCam Soft-Zone Pitfalls
 
 - **Clearing dead-zone hysteresis state on response-null paths causes boundary jitter**: `S_VCamSystem` can run with `response = null` (raw evaluator passthrough). If soft-zone hysteresis state is tied to response-smoothing resets, dead-zone enter/exit history is wiped every tick and correction toggles at the boundary.
