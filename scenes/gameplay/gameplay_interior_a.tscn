@@ -68,8 +68,8 @@
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="73_room_fade_group_component"]
 [ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="74_room_fade_system"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="75_base_ecs_entity"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_region_visibility_component.gd" id="76_region_visibility_component"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_region_visibility_system.gd" id="77_region_visibility_system"]
+[ext_resource type="Script" uid="uid://b7o3qydjxfyts" path="res://scripts/ecs/components/c_region_visibility_component.gd" id="76_region_visibility_component"]
+[ext_resource type="Script" uid="uid://btf32kqffvu02" path="res://scripts/ecs/systems/s_region_visibility_system.gd" id="77_region_visibility_system"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oyk2i"]
 shading_mode = 0
@@ -109,7 +109,7 @@ script = ExtResource("2_ph0bl")
 [node name="BedroomArea" type="Node3D" parent="SceneObjects" unique_id=1187321511]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/BedroomArea"]
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/BedroomArea" unique_id=1253645955]
 script = ExtResource("76_region_visibility_component")
 region_tag = &"bedroom_area"
 
@@ -190,7 +190,7 @@ material = SubResource("StandardMaterial3D_oyk2i")
 [node name="Walls" type="Node3D" parent="SceneObjects/BedroomArea/MasterBathroom" unique_id=1798264491]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BedroomArea/MasterBathroom/Walls"]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1584195292]
 script = ExtResource("73_room_fade_group_component")
 
 [node name="CSGBox3D74" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=319842911]
@@ -1192,7 +1192,7 @@ material = SubResource("StandardMaterial3D_rwkwx")
 [node name="Walls" type="Node3D" parent="SceneObjects/BedroomArea/WalkInCloset" unique_id=1590252101]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BedroomArea/WalkInCloset/Walls"]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=428647089]
 script = ExtResource("73_room_fade_group_component")
 
 [node name="CSGBox3D70" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1318414733]
@@ -1461,7 +1461,7 @@ material = SubResource("StandardMaterial3D_oyk2i")
 [node name="EntertainmentArea" type="Node3D" parent="SceneObjects" unique_id=1304355819]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/EntertainmentArea"]
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/EntertainmentArea" unique_id=207093671]
 script = ExtResource("76_region_visibility_component")
 region_tag = &"entertainment_area"
 
@@ -2163,7 +2163,7 @@ material = SubResource("StandardMaterial3D_oyk2i")
 [node name="Walls" type="Node3D" parent="SceneObjects/EntertainmentArea" unique_id=1951832570]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/EntertainmentArea/Walls"]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/EntertainmentArea/Walls" unique_id=398247881]
 script = ExtResource("73_room_fade_group_component")
 
 [node name="CSGBox3D70" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=385630598]
@@ -2348,27 +2348,6 @@ collision_layer = 33
 size = Vector3(2, 2, 0.1)
 material = SubResource("StandardMaterial3D_gm3uw")
 
-[node name="CSGBox3D100" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1892959357]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -16)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D101" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=94695049]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -16)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D102" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=535019706]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -16)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
 [node name="CSGBox3D103" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1578580908]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -16)
 use_collision = true
@@ -2385,13 +2364,6 @@ material = SubResource("StandardMaterial3D_gm3uw")
 
 [node name="CSGBox3D105" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1542941930]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -16)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D108" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=230022834]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -18)
 use_collision = true
 collision_layer = 33
 size = Vector3(2, 2, 0.1)
@@ -2418,13 +2390,6 @@ collision_layer = 33
 size = Vector3(2, 2, 0.1)
 material = SubResource("StandardMaterial3D_gm3uw")
 
-[node name="CSGBox3D114" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=18393018]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -20)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
 [node name="CSGBox3D115" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=2035507401]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -20)
 use_collision = true
@@ -2446,27 +2411,6 @@ collision_layer = 33
 size = Vector3(2, 2, 0.1)
 material = SubResource("StandardMaterial3D_gm3uw")
 
-[node name="CSGBox3D118" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=460544090]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -22)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D119" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1688541916]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -22)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D120" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1381376301]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -22)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
 [node name="CSGBox3D121" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=430810473]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -22)
 use_collision = true
@@ -2483,27 +2427,6 @@ material = SubResource("StandardMaterial3D_gm3uw")
 
 [node name="CSGBox3D123" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=539521838]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -22)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D124" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1292580050]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -24)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D125" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1542309490]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -24)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D126" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1571114784]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -24)
 use_collision = true
 collision_layer = 33
 size = Vector3(2, 2, 0.1)
@@ -2787,7 +2710,7 @@ material = SubResource("StandardMaterial3D_gm3uw")
 [node name="GymArea" type="Node3D" parent="SceneObjects" unique_id=1120193734]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/GymArea"]
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/GymArea" unique_id=2032469232]
 script = ExtResource("76_region_visibility_component")
 region_tag = &"gym_area"
 
@@ -3041,7 +2964,7 @@ material = SubResource("StandardMaterial3D_oyk2i")
 [node name="Walls" type="Node3D" parent="SceneObjects/GymArea" unique_id=1945246005]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/GymArea/Walls"]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/GymArea/Walls" unique_id=870317717]
 script = ExtResource("73_room_fade_group_component")
 
 [node name="CSGBox3D139" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1991132398]
@@ -3448,7 +3371,7 @@ material = SubResource("StandardMaterial3D_gm3uw")
 [node name="BalconyArea" type="Node3D" parent="SceneObjects" unique_id=1239045793]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/BalconyArea"]
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/BalconyArea" unique_id=1244107163]
 script = ExtResource("76_region_visibility_component")
 region_tag = &"balcony_area"
 
@@ -3947,8 +3870,176 @@ material = SubResource("StandardMaterial3D_oyk2i")
 [node name="Walls" type="Node3D" parent="SceneObjects/BalconyArea" unique_id=756545815]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BalconyArea/Walls"]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BalconyArea/Walls" unique_id=1952790491]
 script = ExtResource("73_room_fade_group_component")
+
+[node name="CSGBox3D100" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1892959357]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D101" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=94695049]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D102" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=535019706]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D108" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=230022834]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D114" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=18393018]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D118" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=460544090]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D119" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1688541916]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D120" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1381376301]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D124" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1292580050]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D139" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1542309490]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D140" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1571114784]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D154" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1383677629]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D155" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1218452246]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D156" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=283306070]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D164" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=707892938]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D165" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=411306194]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D166" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=116463678]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D168" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=2094224531]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D174" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1496859685]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D175" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1633670654]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D176" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1013220201]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D177" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=643293111]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D178" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1768699863]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D192" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=500511922]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
 
 [node name="CSGBox3D144" type="CSGBox3D" parent="SceneObjects/BalconyArea/Walls" unique_id=1241113526]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 0, -22)
@@ -4123,7 +4214,7 @@ material = SubResource("StandardMaterial3D_gm3uw")
 [node name="OfficeArea" type="Node3D" parent="SceneObjects" unique_id=248894745]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/OfficeArea"]
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/OfficeArea" unique_id=942587034]
 script = ExtResource("76_region_visibility_component")
 region_tag = &"office_area"
 
@@ -4482,29 +4573,8 @@ material = SubResource("StandardMaterial3D_oyk2i")
 [node name="Walls" type="Node3D" parent="SceneObjects/OfficeArea" unique_id=1617913564]
 script = ExtResource("75_base_ecs_entity")
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/OfficeArea/Walls"]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/OfficeArea/Walls" unique_id=22060526]
 script = ExtResource("73_room_fade_group_component")
-
-[node name="CSGBox3D154" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1383677629]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -26)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D155" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1218452246]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -28)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D156" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=283306070]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -32)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
 
 [node name="CSGBox3D158" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1711988442]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -34)
@@ -4548,34 +4618,6 @@ collision_layer = 33
 size = Vector3(2, 2, 0.1)
 material = SubResource("StandardMaterial3D_gm3uw")
 
-[node name="CSGBox3D164" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=707892938]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -26)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D165" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=411306194]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -28)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D166" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=116463678]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -32)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D168" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=2094224531]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -34)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
 [node name="CSGBox3D169" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=487051335]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -26)
 use_collision = true
@@ -4606,41 +4648,6 @@ material = SubResource("StandardMaterial3D_gm3uw")
 
 [node name="CSGBox3D173" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=929134048]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -34)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D174" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1496859685]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -26)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D175" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1633670654]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -28)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D176" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1013220201]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -30)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D177" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=643293111]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -32)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D178" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1768699863]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -34)
 use_collision = true
 collision_layer = 33
 size = Vector3(2, 2, 0.1)
@@ -4739,13 +4746,6 @@ material = SubResource("StandardMaterial3D_gm3uw")
 
 [node name="CSGBox3D191" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1081642847]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -35)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 2, 0.1)
-material = SubResource("StandardMaterial3D_gm3uw")
-
-[node name="CSGBox3D192" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=500511922]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -35)
 use_collision = true
 collision_layer = 33
 size = Vector3(2, 2, 0.1)
@@ -4932,7 +4932,7 @@ script = ExtResource("24_touchscreen_system")
 script = ExtResource("72_vcam_system")
 execution_priority = 100
 
-[node name="S_RegionVisibilitySystem" type="Node" parent="Systems/Core"]
+[node name="S_RegionVisibilitySystem" type="Node" parent="Systems/Core" unique_id=1231167952]
 script = ExtResource("77_region_visibility_system")
 
 [node name="S_RoomFadeSystem" type="Node" parent="Systems/Core" unique_id=696779724]
