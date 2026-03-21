@@ -598,6 +598,8 @@ func _filter_components_by_active_room(components: Array) -> Array:
 			continue
 		var room_aabb: AABB = _resolve_room_aabb_from_targets(targets)
 		var expanded: AABB = room_aabb.grow(2.0)
+		expanded.position.y = room_aabb.position.y - 0.5
+		expanded.size.y = room_aabb.size.y + 1.0
 		if expanded.has_point(player_position):
 			matching.append(component_variant)
 

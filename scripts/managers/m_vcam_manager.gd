@@ -13,6 +13,9 @@ const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
 const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
 const U_VCAM_COLLISION_DETECTOR := preload("res://scripts/managers/helpers/u_vcam_collision_detector.gd")
 const U_VCAM_BLEND_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_blend_evaluator.gd")
+const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
+	"res://scripts/ecs/components/c_room_fade_group_component.gd"
+)
 
 const VCAM_OCCLUSION_COLLISION_MASK: int = 1 << 5
 
@@ -708,8 +711,27 @@ func _sanitize_occluders(occluders: Array) -> Array:
 		var occluder := occluder_variant as GeometryInstance3D
 		if occluder == null or not is_instance_valid(occluder):
 			continue
+		if _is_occluder_room_faded(occluder):
+			continue
 		safe_occluders.append(occluder)
 	return safe_occluders
+
+func _is_occluder_room_faded(occluder: GeometryInstance3D) -> bool:
+	var parent := occluder.get_parent()
+	if parent == null:
+		return false
+	for child_variant in parent.get_children():
+		if child_variant == null or not is_instance_valid(child_variant):
+			continue
+		if not (child_variant is Node):
+			continue
+		var child := child_variant as Node
+		if child.get_script() != C_ROOM_FADE_GROUP_COMPONENT_SCRIPT:
+			continue
+		var alpha: float = child.get("current_alpha")
+		if alpha < 1.0:
+			return true
+	return false
 
 func _publish_silhouette_count_if_changed(next_count: int) -> void:
 	var normalized_count: int = maxi(next_count, 0)
