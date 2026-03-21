@@ -38,6 +38,12 @@ class RoomFadeMaterialApplierStub extends RefCounted:
 		restore_calls += 1
 		last_restore_target_count = targets.size()
 
+class DuplicateOwnershipWarningRecorder extends RefCounted:
+	var messages: Array[String] = []
+
+	func record(message: String) -> void:
+		messages.append(message)
+
 func _room_fade_system_script() -> Script:
 	var script_obj := load(ROOM_FADE_SYSTEM_PATH) as Script
 	assert_not_null(script_obj, "Room fade system should load: %s" % ROOM_FADE_SYSTEM_PATH)
@@ -359,6 +365,64 @@ func test_multi_target_group_does_not_fade_side_wall_for_forward_looking_camera(
 	assert_gt(side_alpha, -0.5, "Expected side target alpha update to be captured.")
 	assert_almost_eq(front_alpha, 0.05, 0.0001, "Front wall should fade at this camera heading.")
 	assert_almost_eq(side_alpha, 1.0, 0.0001, "Side wall should stay opaque at this camera heading.")
+
+func test_duplicate_target_ownership_keeps_first_component_and_skips_duplicate_updates() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+
+	var warning_recorder := DuplicateOwnershipWarningRecorder.new()
+	system.duplicate_target_warning_handler = Callable(warning_recorder, "record")
+
+	var setup: Dictionary = _register_room_fade_group_with_duplicate_components(
+		ecs_manager,
+		"E_RoomFadeDuplicateOwnership"
+	)
+	var first_component = setup.get("first_component")
+	var second_component = setup.get("second_component")
+	var shared_target: MeshInstance3D = setup.get("target") as MeshInstance3D
+	assert_not_null(first_component)
+	assert_not_null(second_component)
+	assert_not_null(shared_target)
+
+	var first_settings := RS_ROOM_FADE_SETTINGS.new()
+	first_settings.fade_dot_threshold = 0.3
+	first_settings.fade_speed = 100.0
+	first_settings.min_alpha = 0.05
+	first_component.settings = first_settings
+	first_component.current_alpha = 1.0
+
+	var second_settings := RS_ROOM_FADE_SETTINGS.new()
+	second_settings.fade_dot_threshold = 0.3
+	second_settings.fade_speed = 100.0
+	second_settings.min_alpha = 0.6
+	second_component.settings = second_settings
+	second_component.current_alpha = 1.0
+
+	system.process_tick(0.1)
+
+	var shared_target_alpha: float = float(
+		applier.updated_alpha_by_target_id.get(shared_target.get_instance_id(), -1.0)
+	)
+	assert_eq(applier.apply_calls, 1, "Only the first owner should apply fade material.")
+	assert_eq(applier.update_calls, 1, "Only the first owner should update alpha for a shared target.")
+	assert_almost_eq(shared_target_alpha, 0.05, 0.0001, "Shared target should use first owner settings.")
+	assert_almost_eq(float(first_component.current_alpha), 0.05, 0.0001)
+	assert_almost_eq(
+		float(second_component.current_alpha),
+		1.0,
+		0.0001,
+		"Duplicate owner should be skipped and remain unchanged."
+	)
+	assert_eq(warning_recorder.messages.size(), 1, "Duplicate ownership should emit one warning per pair per tick.")
+	assert_true(
+		warning_recorder.messages[0].find("duplicate") >= 0,
+		"Warning should describe duplicate room-fade ownership."
+	)
 
 func test_system_caches_target_normals_across_ticks() -> void:
 	var fixture := _create_fixture()
@@ -797,6 +861,37 @@ func _register_room_fade_group_offset_csg(
 		"component": component,
 		"north_target": north_target,
 		"south_target": south_target,
+	}
+
+func _register_room_fade_group_with_duplicate_components(
+	ecs_manager: MockECSManager,
+	entity_name: String
+) -> Dictionary:
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = entity_name
+	add_child(entity)
+	autofree(entity)
+
+	var first_component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity.add_child(first_component)
+	autofree(first_component)
+	ecs_manager.add_component_to_entity(entity, first_component)
+
+	var second_component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity.add_child(second_component)
+	autofree(second_component)
+	ecs_manager.add_component_to_entity(entity, second_component)
+
+	var shared_target := MeshInstance3D.new()
+	shared_target.mesh = BoxMesh.new()
+	entity.add_child(shared_target)
+	autofree(shared_target)
+
+	return {
+		"entity": entity,
+		"first_component": first_component,
+		"second_component": second_component,
+		"target": shared_target,
 	}
 
 func _set_player_position(store: MockStateStore, position: Vector3) -> void:

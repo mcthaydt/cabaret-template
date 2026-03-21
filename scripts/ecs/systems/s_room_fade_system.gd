@@ -24,6 +24,7 @@ const DEBUG_MAX_TARGET_LOGS_PER_COMPONENT := 8
 @export var debug_room_fade_log_interval_frames: int = 60
 
 var material_applier: Variant = null
+var duplicate_target_warning_handler: Callable = Callable()
 
 var _camera_manager: I_CAMERA_MANAGER = null
 var _state_store: I_STATE_STORE = null
@@ -76,6 +77,8 @@ func process_tick(delta: float) -> void:
 	_cached_centroids.clear()
 
 	components = _filter_components_by_active_room(components)
+	var target_ownership: Dictionary = _build_target_ownership(components)
+	var owned_targets_by_component: Dictionary = target_ownership.get("owned_targets_by_component", {})
 
 	if should_log_debug:
 		_debug_log_tick_header(mode_info, main_camera, camera_forward, components.size(), resolved_delta)
@@ -88,8 +91,12 @@ func process_tick(delta: float) -> void:
 		if not (component_variant is Object):
 			continue
 		var component: Object = component_variant as Object
+		var component_id: int = component.get_instance_id()
 
-		var targets: Array = _collect_mesh_targets(component)
+		var owned_targets_variant: Variant = owned_targets_by_component.get(component_id, [])
+		var targets: Array = []
+		if owned_targets_variant is Array:
+			targets = owned_targets_variant as Array
 		if targets.is_empty():
 			continue
 
@@ -254,6 +261,90 @@ func _collect_mesh_targets(component: Object) -> Array:
 		if _is_supported_target(target_variant):
 			targets.append(target_variant)
 	return targets
+
+func _build_target_ownership(components: Array) -> Dictionary:
+	var owned_targets_by_component: Dictionary = {}  # int -> Array[Node3D]
+	var owner_component_by_target_id: Dictionary = {}  # int -> Object
+	var warning_pairs: Dictionary = {}  # String(target_id:component_id) -> true
+
+	for component_variant in components:
+		if component_variant == null or not is_instance_valid(component_variant):
+			continue
+		if not (component_variant is Object):
+			continue
+		var component: Object = component_variant as Object
+		var component_id: int = component.get_instance_id()
+		var targets: Array = _collect_mesh_targets(component)
+		if targets.is_empty():
+			continue
+
+		var owned_targets: Array = []
+		var seen_targets_for_component: Dictionary = {}  # int -> true
+		for target_variant in targets:
+			if not _is_supported_target(target_variant):
+				continue
+			var target: Node3D = target_variant as Node3D
+			var target_id: int = target.get_instance_id()
+			if seen_targets_for_component.has(target_id):
+				continue
+			seen_targets_for_component[target_id] = true
+
+			if not owner_component_by_target_id.has(target_id):
+				owner_component_by_target_id[target_id] = component
+				owned_targets.append(target)
+				continue
+
+			var owner_variant: Variant = owner_component_by_target_id.get(target_id, null)
+			var owner_component := owner_variant as Object
+			if owner_component == null or not is_instance_valid(owner_component):
+				owner_component_by_target_id[target_id] = component
+				owned_targets.append(target)
+				continue
+			if owner_component == component:
+				continue
+
+			_warn_duplicate_target_ownership_once_per_tick(
+				component,
+				owner_component,
+				target,
+				warning_pairs
+			)
+
+		if not owned_targets.is_empty():
+			owned_targets_by_component[component_id] = owned_targets
+
+	return {
+		"owned_targets_by_component": owned_targets_by_component,
+	}
+
+func _warn_duplicate_target_ownership_once_per_tick(
+	component: Object,
+	owner_component: Object,
+	target: Node3D,
+	warning_pairs: Dictionary
+) -> void:
+	if component == null or owner_component == null or target == null:
+		return
+	var pair_key: String = "%d:%d" % [target.get_instance_id(), component.get_instance_id()]
+	if warning_pairs.has(pair_key):
+		return
+	warning_pairs[pair_key] = true
+
+	var message := (
+		"S_RoomFadeSystem: duplicate room-fade target ownership skipped for target=%s owner=%s skipped=%s"
+		% [
+			_describe_node(target),
+			_describe_object(owner_component),
+			_describe_object(component),
+		]
+	)
+	_emit_duplicate_target_warning(message)
+
+func _emit_duplicate_target_warning(message: String) -> void:
+	if duplicate_target_warning_handler.is_valid():
+		duplicate_target_warning_handler.call(message)
+		return
+	push_warning(message)
 
 func _resolve_world_normal(component: Object) -> Vector3:
 	if component == null:
