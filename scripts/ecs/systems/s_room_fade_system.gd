@@ -21,7 +21,7 @@ const DEBUG_MAX_TARGET_LOGS_PER_COMPONENT := 8
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_STATE_STORE = null
 @export var debug_room_fade_logging: bool = false
-@export var debug_room_fade_log_interval_frames: int = 20
+@export var debug_room_fade_log_interval_frames: int = 60
 
 var material_applier: Variant = null
 
@@ -89,6 +89,7 @@ func process_tick(delta: float) -> void:
 		if targets.is_empty():
 			continue
 
+		applier.invalidate_externally_removed()
 		applier.apply_fade_material(targets)
 
 		var settings: Dictionary = _resolve_settings(component)
@@ -127,6 +128,7 @@ func process_tick(delta: float) -> void:
 
 			_target_alpha_by_id[target_id] = next_alpha
 			applier.update_fade_alpha([target], next_alpha)
+
 			active_targets[target_id] = target
 			component_alpha_sum += next_alpha
 			component_alpha_count += 1

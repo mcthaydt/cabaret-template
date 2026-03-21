@@ -42,6 +42,36 @@ func restore_original_materials(targets: Array) -> void:
 		_restore_target_material(target_variant)
 	_prune_invalid_cache_entries()
 
+func invalidate_externally_removed() -> void:
+	var stale_keys: Array[int] = []
+	var keys: Array = _material_cache.keys()
+	for key_variant in keys:
+		var cache_key: int = int(key_variant)
+		var entry: Dictionary = _get_cached_entry_by_key(cache_key)
+		if entry.is_empty():
+			stale_keys.append(cache_key)
+			continue
+		var target: Node3D = _get_cached_target(cache_key)
+		if target == null:
+			stale_keys.append(cache_key)
+			continue
+		var cached_shader_variant: Variant = entry.get("shader_material", null)
+		if not (cached_shader_variant is ShaderMaterial):
+			stale_keys.append(cache_key)
+			continue
+		var cached_shader: ShaderMaterial = cached_shader_variant as ShaderMaterial
+		var target_type: String = str(entry.get("target_type", ""))
+		if target_type == TARGET_TYPE_MESH and target is MeshInstance3D:
+			var mesh_target := target as MeshInstance3D
+			if mesh_target.material_override != cached_shader:
+				stale_keys.append(cache_key)
+		elif target_type == TARGET_TYPE_CSG and target is CSGShape3D:
+			var csg_target := target as CSGShape3D
+			if csg_target.material != cached_shader:
+				stale_keys.append(cache_key)
+	for cache_key in stale_keys:
+		_material_cache.erase(cache_key)
+
 func get_cached_mesh_count() -> int:
 	_prune_invalid_cache_entries()
 	return _material_cache.size()
