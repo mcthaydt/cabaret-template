@@ -1409,19 +1409,22 @@ Cross-mode checks (mode-agnostic):
 
 **Exit Criteria:** Rule-of-thirds preview visible in editor, absent at runtime, style tests pass
 
-- [ ] **Task 11.1**: Create U_VCamRuleOfThirdsPreview
+- [x] **Task 11.1**: Create U_VCamRuleOfThirdsPreview
   - Create `scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`
   - `@tool`, extends `Node`
   - Creates `CanvasLayer` + drawing child internally
   - `queue_free()` outside editor (zero runtime cost)
   - Follow `U_CinemaGradePreview` pattern
+  - Completion note (March 22, 2026): Added `U_VCamRuleOfThirdsPreview` as an editor-only helper (`@tool`) with an internal `CanvasLayer` + drawing control that renders a rule-of-thirds grid and `queue_free()` runtime teardown when `Engine.is_editor_hint()` is false.
 
-- [ ] **Task 11.2**: Add preview to camera template
+- [x] **Task 11.2**: Add preview to camera template
   - Modify `scenes/templates/tmpl_camera.tscn`: add preview helper node
   - Verify preview node frees itself at runtime
+  - Completion note (March 22, 2026): Wired `U_VCamRuleOfThirdsPreview` into `scenes/templates/tmpl_camera.tscn` at the camera-root level so authors see framing guides in-editor while runtime instances self-remove.
 
-- [ ] **Task 11.3**: Run style enforcement tests
+- [x] **Task 11.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with new files
+  - Validation note (March 22, 2026): `tests/unit/style/test_style_enforcement.gd` passes (`17/17`) after Phase 11 preview wiring.
 
 ---
 

@@ -4,9 +4,9 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete. Phase 3 reset implementation is complete (3A/3B/3C1/3C2/3C3/3C4.1-3C4.11). Phase 9 (`9A-9E`) is implementation-complete, and Phase 10 occlusion pipeline now has implementation coverage through 10A/10B/10B2/10C/10C2 (anti-flicker debounce + grace removal) as of March 21, 2026.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete. Phase 3 reset implementation is complete (3A/3B/3C1/3C2/3C3/3C4.1-3C4.11). Phase 9 (`9A-9E`) is implementation-complete, Phase 10 occlusion pipeline has implementation coverage through 10A/10B/10B2/10C/10C2 (anti-flicker debounce + grace removal), and Phase 11 editor preview implementation (`11.1`/`11.2`/`11.3`) is complete as of March 22, 2026.
 
-## Next Planned Work (March 21, 2026)
+## Next Planned Work (March 22, 2026)
 
 - Orbit follow-up backlog `2C11` is now complete in `docs/vcam_manager/vcam-orbit-tasks.md`.
 - Mobile drag-look/touch gating prerequisites are complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
@@ -17,6 +17,7 @@
 - Phase 3C4 aiming scope is now implementation-complete: slice 1 (aim activation + input plumbing + movement/rotation integrations) plus reticle UI (`3C4.9`/`3C4.10`) and default OTS movement preset (`3C4.11`) are landed with targeted coverage.
 - Phase 9 (`9A-9E`) completion is landed in code/tests/docs; manual blend validation (`9F`) remains pending.
 - Phase 10C2 anti-flicker/stability is now implementation-complete (March 21, 2026): `U_VCamSilhouetteHelper.update_silhouettes(...)` applies two-frame debounce + one-frame grace removal and `M_VFXManager` now avoids per-frame clear/reapply churn on stable occluder sets.
+- Phase 11 editor preview implementation (`11.1`/`11.2`/`11.3`) is now complete (March 22, 2026): `U_VCamRuleOfThirdsPreview` is wired in `tmpl_camera.tscn` and runtime teardown is self-managed via `queue_free()` outside editor.
 - Immediate validation target:
   - Manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`) are now marked complete (March 15, 2026, user-directed pass), including the joystick-exclusion/reticle-fade focus points.
   - Post-Phase maintenance completed (March 15, 2026): OTS vertical framing bugfix landed via TDD (runtime OTS pitch now clamps to authored bounds in `S_VCamSystem`; default `cfg_default_ots.tres` tuned to head-level framing with higher shoulder anchor, pullback distance, and tighter pitch range).
@@ -42,6 +43,17 @@
 - Regression validation run:
   - `tests/unit/managers/test_vfx_manager.gd` (`49/49`)
   - `tests/unit/managers/test_vcam_manager.gd` (`49/49`)
+  - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Phase 11 Editor Preview (March 22, 2026)
+
+- Added editor-only rule-of-thirds preview helper:
+  - `scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`
+  - `@tool` `Node` with internal `CanvasLayer` + drawing control grid overlay
+  - runtime path self-cleans with `queue_free()` when `Engine.is_editor_hint()` is false
+- Added template wiring:
+  - `scenes/templates/tmpl_camera.tscn` now includes `U_VCamRuleOfThirdsPreview` under camera root
+- Validation run:
   - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Phase 9 Live Blend Evaluation + Integration (March 15, 2026)
@@ -854,6 +866,7 @@
 - `C_CameraStateComponent` now exposes landing-impact and speed-FOV fields required by the Phase 6A3 QB feel pipeline, and includes those fields in component reset/snapshot behavior.
 - `S_CameraStateSystem` speed-FOV composition is now implementation-backed: movement-speed rule context, score-scaled `RS_EffectSetField` writes, and target-FOV composition/clamping now flow through the default `camera_speed_fov` QB rule.
 - Runtime scene wiring is now landed in authored scenes: `M_VCamManager` in root, `S_VCamSystem` in template/gameplay system trees, and `C_VCamComponent` defaults in `tmpl_camera.tscn`.
+- Phase 11 editor preview wiring is now implementation-backed: `U_VCamRuleOfThirdsPreview` (`scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`) is wired into `tmpl_camera.tscn`, renders an editor-only thirds grid via internal `CanvasLayer`, and self-frees outside editor for zero runtime cost.
 - The `vcam` Redux slice is now defined as transient runtime observability only.
 - The silhouette enable/disable toggle moved to the persisted `vfx` slice.
 - VFX settings UI integration is now explicit: wire the silhouette toggle into `UI_VFXSettingsOverlay` (`scripts/ui/settings/ui_vfx_settings_overlay.gd` + `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`) and localize it in all `cfg_locale_*_ui.tres` files.
@@ -927,6 +940,7 @@
 - `scripts/state/utils/u_state_slice_manager.gd`
 - `scripts/utils/u_global_settings_serialization.gd`
 - `scripts/utils/display/u_cinema_grade_preview.gd`
+- `scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`
 - `scripts/ui/helpers/u_rebind_action_list_builder.gd`
 - `scripts/managers/m_vfx_manager.gd`
 - `scripts/ui/hud/ui_mobile_controls.gd`
@@ -965,9 +979,10 @@
 
 1. Run/manual-complete Phase `9F` blend validation checklist (`MT-22/23/34/43/44`) across orbit/fixed/OTS flows.
 2. Run/manual-complete Phase `10D` occlusion/silhouette checklist (`MT-27/28/29/30/31/45/46`) now that Phase `10C2` anti-flicker implementation is landed.
-3. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and frame-stamped handoff contract while extending post-Phase-9 behavior.
-4. Start Phase `11` editor preview (`U_VCamRuleOfThirdsPreview`) after Phase `9F` and `10D` manual validation pass.
-5. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+3. Run/manual-complete Phase `11A` editor-preview checklist (`MT-38/39`) to verify editor-visible + runtime-hidden behavior.
+4. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and frame-stamped handoff contract while extending post-Phase-9 behavior.
+5. Start Phase `12` integration-test implementation (`12.1`-`12.6`) after manual validation backlog is closed.
+6. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 
