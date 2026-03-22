@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="RS_VCamModeFirstPerson" format=3 uid="uid://c4bl8t15fyjgg"]
-
-[ext_resource type="Script" uid="uid://blpainrljuvnn" path="res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd" id="1_7n0w2"]
-
-[resource]
-script = ExtResource("1_7n0w2")
-head_offset = Vector3(0, 2.4, -0.2)
-pitch_min = -60.0
-pitch_max = 60.0

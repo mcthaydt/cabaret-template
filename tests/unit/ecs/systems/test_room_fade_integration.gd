@@ -14,7 +14,7 @@ func _room_fade_system_script() -> Script:
 	return script_obj
 
 func test_orbit_only_gating_enables_room_fade_only_in_orbit_mode() -> void:
-	var fixture := _create_fixture("first_person")
+	var fixture := _create_fixture("custom_mode")
 	var system = fixture.get("system")
 	var store: MockStateStore = fixture.get("state_store") as MockStateStore
 	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
@@ -128,7 +128,7 @@ func test_mode_switch_cleanup_restores_all_groups_to_opaque_within_one_tick() ->
 	assert_true(target_a.material_override is ShaderMaterial)
 	assert_true(target_b.material_override is ShaderMaterial)
 
-	store.set_slice("vcam", {"active_mode": "first_person"})
+	store.set_slice("vcam", {"active_mode": "custom_mode"})
 	system.process_tick(0.1)
 
 	assert_eq(component_a.current_alpha, 1.0)
@@ -166,7 +166,7 @@ func test_room_fade_restores_existing_silhouette_like_shader_override_without_co
 	assert_true(target.material_override is ShaderMaterial)
 	assert_ne(target.material_override, silhouette_material, "Room fade should temporarily replace the silhouette override.")
 
-	store.set_slice("vcam", {"active_mode": "first_person"})
+	store.set_slice("vcam", {"active_mode": "custom_mode"})
 	system.process_tick(0.1)
 	assert_eq(target.material_override, silhouette_material, "Mode switch restore should recover the original silhouette material.")
 
@@ -244,7 +244,7 @@ func test_material_restoration_completeness_recovers_mesh_and_csg_original_mater
 	assert_lt(float(mesh_component.current_alpha), 1.0)
 	assert_lt(float(csg_component.current_alpha), 1.0)
 
-	store.set_slice("vcam", {"active_mode": "first_person"})
+	store.set_slice("vcam", {"active_mode": "custom_mode"})
 	system.process_tick(0.1)
 
 	assert_eq(mesh_component.current_alpha, 1.0)

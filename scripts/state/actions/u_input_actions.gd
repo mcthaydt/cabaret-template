@@ -7,7 +7,6 @@ class_name U_InputActions
 
 const ACTION_UPDATE_MOVE_INPUT := StringName("input/update_move_input")
 const ACTION_UPDATE_LOOK_INPUT := StringName("input/update_look_input")
-const ACTION_UPDATE_AIM_STATE := StringName("input/update_aim_state")
 const ACTION_UPDATE_CAMERA_CENTER_STATE := StringName("input/update_camera_center_state")
 const ACTION_UPDATE_JUMP_STATE := StringName("input/update_jump_state")
 const ACTION_UPDATE_SPRINT_STATE := StringName("input/update_sprint_state")
@@ -40,9 +39,6 @@ static func _static_init() -> void:
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_LOOK_INPUT, {
 		"required_fields": ["look_delta"]
-	})
-	U_ActionRegistry.register_action(ACTION_UPDATE_AIM_STATE, {
-		"required_fields": ["pressed"]
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_CAMERA_CENTER_STATE, {
 		"required_fields": ["just_pressed"]
@@ -119,15 +115,6 @@ static func update_look_input(look_delta: Vector2) -> Dictionary:
 		"type": ACTION_UPDATE_LOOK_INPUT,
 		"payload": {
 			"look_delta": look_delta
-		}
-	}
-
-## Update aim button held state.
-static func update_aim_state(pressed: bool) -> Dictionary:
-	return {
-		"type": ACTION_UPDATE_AIM_STATE,
-		"payload": {
-			"pressed": pressed
 		}
 	}
 

@@ -253,7 +253,7 @@ func test_system_restores_to_opaque_when_active_mode_is_not_orbit() -> void:
 	assert_lt(room_component.current_alpha, 1.0)
 	assert_eq(applier.restore_calls, 0)
 
-	store.set_slice("vcam", {"active_mode": "first_person"})
+	store.set_slice("vcam", {"active_mode": "custom_mode"})
 	system.process_tick(0.1)
 
 	assert_eq(room_component.current_alpha, 1.0)

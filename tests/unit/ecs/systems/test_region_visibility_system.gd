@@ -93,7 +93,7 @@ func test_restores_opaque_when_leaving_orbit() -> void:
 	var component = setup.get("component")
 	assert_lt(component.current_alpha, 1.0, "Should have faded inactive region.")
 
-	store.set_slice("vcam", {"active_mode": "first_person"})
+	store.set_slice("vcam", {"active_mode": "custom_mode"})
 	system.process_tick(0.1)
 	assert_almost_eq(component.current_alpha, 1.0, 0.0001, "Should restore to opaque.")
 	assert_gt(applier.restore_calls, 0, "Should call restore.")

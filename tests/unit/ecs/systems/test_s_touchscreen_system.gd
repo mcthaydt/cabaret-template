@@ -160,26 +160,6 @@ func test_drag_look_applies_touchscreen_sensitivity_and_invert() -> void:
 	assert_almost_eq(look_input.x, 15.0, 0.001, "Sensitivity should scale touch look X")
 	assert_almost_eq(look_input.y, -9.0, 0.001, "Invert Y should flip/scaled touch look Y")
 
-func test_dispatches_aim_pressed_from_mobile_controls() -> void:
-	var context := await _setup_touchscreen_scene()
-	autofree_context(context)
-	var store: M_StateStore = context["store"]
-	var controls: UI_MobileControls = context["controls"]
-	var manager: M_ECSManager = context["manager"]
-	var component: C_InputComponent = context["component"]
-
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
-	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
-	await _await_frames(2)
-
-	controls.set("_aim_pressed", true)
-	manager._physics_process(0.016)
-
-	var gameplay_slice := store.get_slice(StringName("gameplay"))
-	var input_slice: Dictionary = gameplay_slice.get("input", {})
-	assert_true(bool(input_slice.get("aim_pressed", false)))
-	assert_true(component.aim_pressed)
-
 func test_drag_look_delta_is_one_shot_per_tick() -> void:
 	var context := await _setup_touchscreen_scene()
 	autofree_context(context)

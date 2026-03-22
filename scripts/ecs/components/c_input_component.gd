@@ -10,7 +10,6 @@ enum DeviceType {
 }
 
 var move_vector: Vector2 = Vector2.ZERO
-var aim_pressed: bool = false
 var jump_pressed: bool = false
 var sprint_pressed: bool = false
 var _jump_requested: bool = false
@@ -23,9 +22,6 @@ func _init() -> void:
 
 func set_move_vector(value: Vector2) -> void:
 	move_vector = value
-
-func set_aim_pressed(pressed: bool) -> void:
-	aim_pressed = pressed
 
 func set_jump_pressed(pressed: bool) -> void:
 	jump_pressed = pressed

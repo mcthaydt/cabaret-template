@@ -41,7 +41,6 @@ func capture_input(__delta: float) -> Dictionary:
 	return {
 		"move_input": Vector2.ZERO,
 		"look_input": Vector2.ZERO,
-		"aim_pressed": false,
 		"camera_center_just_pressed": false,
 		"jump_pressed": false,
 		"jump_just_pressed": false,

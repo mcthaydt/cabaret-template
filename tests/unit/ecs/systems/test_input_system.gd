@@ -134,21 +134,6 @@ func test_input_system_sets_sprint_flag_on_press() -> void:
 
 	assert_true(component.sprint_pressed)
 
-func test_input_system_dispatches_aim_pressed_to_component_and_store() -> void:
-	var context: Dictionary = await _setup_entity()
-	autofree_context(context)
-	var component: C_InputComponent = context["component"] as C_InputComponent
-	var manager: M_ECSManager = context["manager"] as M_ECSManager
-	var store: M_StateStore = context["store"] as M_StateStore
-
-	Input.action_press("aim")
-	manager._physics_process(0.016)
-
-	assert_true(component.aim_pressed)
-	var gameplay := store.get_slice(StringName("gameplay"))
-	var input_state: Dictionary = gameplay.get("input", {})
-	assert_true(bool(input_state.get("aim_pressed", false)))
-
 func test_input_system_dispatches_state_updates_to_store() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)

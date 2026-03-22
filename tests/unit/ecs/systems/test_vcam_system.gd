@@ -8,7 +8,6 @@ const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
-const RS_VCAM_MODE_FIRST_PERSON := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
 const RS_VCAM_RESPONSE := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 const RS_VCAM_SOFT_ZONE := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
@@ -208,134 +207,6 @@ func test_does_not_update_orbit_rotation_when_player_rotation_disabled() -> void
 
 	assert_almost_eq(component.runtime_yaw, 0.0, 0.0001)
 	assert_almost_eq(component.runtime_pitch, 0.0, 0.0001)
-
-func test_updates_first_person_rotation_using_look_multiplier() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var store: MockStateStore = context["store"] as MockStateStore
-
-	store.set_slice(StringName("input"), {"look_input": Vector2(1.0, -0.5)})
-	var follow_target := _create_target_entity(ecs_manager, "E_TargetFP", Vector3.ZERO)
-	var first_person_mode := _new_first_person_mode(2.0)
-	var component := await _create_vcam_component(ecs_manager, StringName("cam_fp"), first_person_mode, follow_target)
-
-	vcam_manager.active_vcam_id = StringName("cam_fp")
-	ecs_manager._physics_process(0.016)
-
-	assert_almost_eq(component.runtime_yaw, 2.0, 0.0001)
-	assert_almost_eq(component.runtime_pitch, -1.0, 0.0001)
-
-func test_aim_pressed_switches_active_vcam_from_orbit_to_first_person_with_aim_blend_duration() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var store: MockStateStore = context["store"] as MockStateStore
-
-	var follow_target := _create_target_entity(ecs_manager, "E_AimSwitchTarget", Vector3.ZERO)
-	await _create_vcam_component(ecs_manager, StringName("cam_orbit_aim"), _new_orbit_mode(), follow_target)
-	var first_person_mode := _new_first_person_mode(1.0)
-	first_person_mode.aim_blend_duration = 0.22
-	await _create_vcam_component(ecs_manager, StringName("cam_first_person_aim"), first_person_mode, follow_target)
-
-	vcam_manager.active_vcam_id = StringName("cam_orbit_aim")
-	vcam_manager.clear_set_active_calls()
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": true, "camera_center_just_pressed": false})
-	ecs_manager._physics_process(0.016)
-
-	assert_eq(vcam_manager.active_vcam_id, StringName("cam_first_person_aim"))
-	var set_active_call: Dictionary = vcam_manager.get_last_set_active_call()
-	assert_eq(set_active_call.get("vcam_id", StringName("")), StringName("cam_first_person_aim"))
-	assert_almost_eq(float(set_active_call.get("blend_duration", 0.0)), 0.22, 0.0001)
-
-func test_aim_release_restores_previous_vcam_with_first_person_aim_exit_blend_duration() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var store: MockStateStore = context["store"] as MockStateStore
-
-	var follow_target := _create_target_entity(ecs_manager, "E_AimRestoreTarget", Vector3.ZERO)
-	await _create_vcam_component(ecs_manager, StringName("cam_orbit_restore"), _new_orbit_mode(), follow_target)
-	var first_person_mode := _new_first_person_mode(1.0)
-	first_person_mode.aim_blend_duration = 0.18
-	first_person_mode.aim_exit_blend_duration = 0.27
-	await _create_vcam_component(ecs_manager, StringName("cam_first_person_restore"), first_person_mode, follow_target)
-
-	vcam_manager.active_vcam_id = StringName("cam_orbit_restore")
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": true, "camera_center_just_pressed": false})
-	ecs_manager._physics_process(0.016)
-	assert_eq(vcam_manager.active_vcam_id, StringName("cam_first_person_restore"))
-
-	vcam_manager.clear_set_active_calls()
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": false, "camera_center_just_pressed": false})
-	ecs_manager._physics_process(0.016)
-
-	assert_eq(vcam_manager.active_vcam_id, StringName("cam_orbit_restore"))
-	var set_active_call: Dictionary = vcam_manager.get_last_set_active_call()
-	assert_eq(set_active_call.get("vcam_id", StringName("")), StringName("cam_orbit_restore"))
-	assert_almost_eq(float(set_active_call.get("blend_duration", 0.0)), 0.27, 0.0001)
-
-func test_aim_activation_noops_when_no_first_person_target_exists() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var store: MockStateStore = context["store"] as MockStateStore
-
-	var follow_target := _create_target_entity(ecs_manager, "E_AimNoFPTarget", Vector3.ZERO)
-	await _create_vcam_component(ecs_manager, StringName("cam_orbit_only"), _new_orbit_mode(), follow_target)
-
-	vcam_manager.active_vcam_id = StringName("cam_orbit_only")
-	vcam_manager.clear_set_active_calls()
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": true, "camera_center_just_pressed": false})
-	ecs_manager._physics_process(0.016)
-
-	assert_eq(vcam_manager.active_vcam_id, StringName("cam_orbit_only"))
-	assert_true(vcam_manager.set_active_calls.is_empty())
-
-func test_aim_activation_prefers_first_person_vcam_with_matching_follow_target() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var store: MockStateStore = context["store"] as MockStateStore
-
-	var target_a := _create_target_entity(ecs_manager, "E_AimTargetA", Vector3.ZERO)
-	var target_b := _create_target_entity(ecs_manager, "E_AimTargetB", Vector3(2.0, 0.0, 0.0))
-	await _create_vcam_component(ecs_manager, StringName("cam_orbit_match"), _new_orbit_mode(), target_a)
-	await _create_vcam_component(ecs_manager, StringName("cam_fp_other"), _new_first_person_mode(), target_b)
-	await _create_vcam_component(ecs_manager, StringName("cam_fp_match"), _new_first_person_mode(), target_a)
-
-	vcam_manager.active_vcam_id = StringName("cam_orbit_match")
-	vcam_manager.clear_set_active_calls()
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": true, "camera_center_just_pressed": false})
-	ecs_manager._physics_process(0.016)
-
-	assert_eq(vcam_manager.active_vcam_id, StringName("cam_fp_match"))
-
-func test_aim_blend_duration_clamps_to_minimum_when_authored_non_positive() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var store: MockStateStore = context["store"] as MockStateStore
-
-	var follow_target := _create_target_entity(ecs_manager, "E_AimBlendClampTarget", Vector3.ZERO)
-	await _create_vcam_component(ecs_manager, StringName("cam_orbit_clamp"), _new_orbit_mode(), follow_target)
-	var first_person_mode := _new_first_person_mode()
-	first_person_mode.aim_blend_duration = 0.0
-	await _create_vcam_component(ecs_manager, StringName("cam_fp_clamp"), first_person_mode, follow_target)
-
-	vcam_manager.active_vcam_id = StringName("cam_orbit_clamp")
-	vcam_manager.clear_set_active_calls()
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": true, "camera_center_just_pressed": false})
-	ecs_manager._physics_process(0.016)
-
-	var set_active_call: Dictionary = vcam_manager.get_last_set_active_call()
-	assert_almost_eq(float(set_active_call.get("blend_duration", -1.0)), 0.01, 0.0001)
 
 func test_runtime_rotation_values_remain_raw_targets_with_response_enabled() -> void:
 	var context: Dictionary = await _setup_context()
@@ -590,7 +461,7 @@ func test_look_smoothing_offsets_first_frame_after_large_look_input_jump() -> vo
 	var store: MockStateStore = context["store"] as MockStateStore
 
 	var follow_target := _create_target_entity(ecs_manager, "E_LookSmoothingJumpTarget", Vector3.ZERO)
-	var mode := _new_first_person_mode(1.0)
+	var mode := _new_orbit_mode(true, 1.0)
 	var component := await _create_vcam_component(
 		ecs_manager,
 		StringName("cam_look_smoothing_jump"),
@@ -623,7 +494,7 @@ func test_look_smoothing_converges_toward_raw_rotation_over_ticks() -> void:
 	var store: MockStateStore = context["store"] as MockStateStore
 
 	var follow_target := _create_target_entity(ecs_manager, "E_LookSmoothingConvergeTarget", Vector3.ZERO)
-	var mode := _new_first_person_mode(1.0)
+	var mode := _new_orbit_mode(true, 1.0)
 	var component := await _create_vcam_component(
 		ecs_manager,
 		StringName("cam_look_smoothing_converge"),
@@ -654,40 +525,6 @@ func test_look_smoothing_converges_toward_raw_rotation_over_ticks() -> void:
 	assert_true(final_error < first_error, "Look smoothing should converge toward raw evaluator rotation")
 	assert_true(final_error < 0.01, "Look smoothing should settle close to raw evaluator rotation")
 
-func test_mode_switch_resets_look_smoothing_without_residual_momentum() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var store: MockStateStore = context["store"] as MockStateStore
-
-	var follow_target := _create_target_entity(ecs_manager, "E_LookSmoothingModeResetTarget", Vector3.ZERO)
-	var component := await _create_vcam_component(
-		ecs_manager,
-		StringName("cam_look_smoothing_mode_reset"),
-		_new_first_person_mode(1.0),
-		follow_target
-	)
-	component.response = _new_response(1000.0, 1.0, 1.0, 1.0, 1.0, 1.0)
-
-	vcam_manager.active_vcam_id = StringName("cam_look_smoothing_mode_reset")
-	ecs_manager._physics_process(0.016)
-
-	store.set_slice(StringName("input"), {"look_input": Vector2(55.0, 0.0)})
-	ecs_manager._physics_process(0.016)
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
-	for _i in range(6):
-		ecs_manager._physics_process(0.016)
-
-	component.mode = _new_orbit_mode()
-	vcam_manager.clear_submissions()
-	ecs_manager._physics_process(0.016)
-
-	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_look_smoothing_mode_reset"))
-	var raw_result: Dictionary = _evaluate_raw_result(component.mode, follow_target, component)
-	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
-	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
-
 func test_follow_target_change_resets_look_smoothing_state() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -701,7 +538,7 @@ func test_follow_target_change_resets_look_smoothing_state() -> void:
 	var component := await _create_vcam_component(
 		ecs_manager,
 		StringName("cam_look_smoothing_target_reset"),
-		_new_first_person_mode(1.0),
+		_new_orbit_mode(true, 1.0),
 		first_target
 	)
 	component.response = _new_response(1000.0, 1.0, 1.0, 1.0, 1.0, 1.0)
@@ -743,7 +580,7 @@ func test_response_change_resets_look_smoothing_state() -> void:
 	var component := await _create_vcam_component(
 		ecs_manager,
 		StringName("cam_look_smoothing_response_reset"),
-		_new_first_person_mode(1.0),
+		_new_orbit_mode(true, 1.0),
 		follow_target
 	)
 	component.response = _new_response(1000.0, 1.0, 1.0, 1.0, 1.0, 1.0)
@@ -947,48 +784,6 @@ func test_orbit_release_axis_settles_when_near_target_crossing_would_flip_error(
 	assert_almost_eq(float(result.get("value", 1.0)), 0.0, 0.0001)
 	assert_almost_eq(float(result.get("velocity", 1.0)), 0.0, 0.0001)
 
-func test_orbit_release_smoothing_is_gated_to_orbit_mode() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var store: MockStateStore = context["store"] as MockStateStore
-	var system: S_VCamSystem = context["system"] as S_VCamSystem
-
-	var follow_target := _create_target_entity(ecs_manager, "E_ReleaseModeGateTarget", Vector3.ZERO)
-	var first_person_component := await _create_vcam_component(
-		ecs_manager,
-		StringName("cam_release_mode_gate_fp"),
-		_new_first_person_mode(1.0),
-		follow_target
-	)
-	first_person_component.response = _new_response()
-	first_person_component.response.look_input_hold_sec = 0.0
-	first_person_component.response.look_input_release_decay = 10000.0
-	first_person_component.response.look_release_yaw_damping = 0.5
-	first_person_component.response.look_release_pitch_damping = 0.5
-	first_person_component.response.look_release_stop_threshold = 0.0
-
-	vcam_manager.active_vcam_id = StringName("cam_release_mode_gate_fp")
-	ecs_manager._physics_process(0.016)
-	store.set_slice(StringName("input"), {"look_input": Vector2(5.0, 5.0)})
-	ecs_manager._physics_process(0.016)
-	ecs_manager._physics_process(0.016)
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
-	ecs_manager._physics_process(0.016)
-
-	var fp_state := (system.get("_look_rotation_state") as Dictionary).get(
-		StringName("cam_release_mode_gate_fp"),
-		{}
-	) as Dictionary
-	assert_almost_eq(
-		float(fp_state.get("yaw_velocity", 1.0)),
-		0.0,
-		0.0001,
-		"First-person release behavior should remain unchanged by orbit-only release damping"
-	)
-	assert_almost_eq(float(fp_state.get("pitch_velocity", 1.0)), 0.0, 0.0001)
-
 func test_camera_center_button_starts_orbit_recentering_from_arbitrary_yaw() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -1053,7 +848,7 @@ func test_camera_center_recenters_over_short_interpolation_window_without_snap()
 	var error_after_first_tick: float = absf(wrapf(expected_target - component.runtime_yaw, -180.0, 180.0))
 	assert_true(error_after_first_tick > 0.1, "Recentering should start with interpolation, not an instant cut")
 
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": false, "camera_center_just_pressed": false})
+	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": false})
 	for _i in range(20):
 		ecs_manager._physics_process(0.016)
 
@@ -1151,7 +946,7 @@ func test_response_smoothing_offsets_first_frame_after_target_moves() -> void:
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
 
 	var follow_target := _create_target_entity(ecs_manager, "E_SmoothTarget", Vector3.ZERO)
-	var mode := _new_first_person_mode()
+	var mode := _new_orbit_mode()
 	var component := await _create_vcam_component(ecs_manager, StringName("cam_response_active"), mode, follow_target)
 	component.response = _new_response()
 
@@ -1219,52 +1014,6 @@ func test_orbit_rotation_input_does_not_add_follow_position_lag_when_target_stat
 		"Orbit rotation input should not add extra follow-position lag when follow target is stationary"
 	)
 
-func test_look_filter_hold_keeps_first_person_input_active_without_extra_runtime_rotation() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var store: MockStateStore = context["store"] as MockStateStore
-	var system: S_VCamSystem = context["system"] as S_VCamSystem
-
-	var follow_target := _create_target_entity(ecs_manager, "E_FPHoldTarget", Vector3.ZERO)
-	var mode := _new_first_person_mode(1.0)
-	var component := await _create_vcam_component(ecs_manager, StringName("cam_fp_hold"), mode, follow_target)
-	component.response = _new_response(
-		3.0,
-		0.7,
-		1.0,
-		4.0,
-		1.0,
-		1.0,
-		0.0,
-		3.0,
-		0.0,
-		1.0,
-		0.01,
-		0.08,
-		100.0
-	)
-
-	vcam_manager.active_vcam_id = StringName("cam_fp_hold")
-	ecs_manager._physics_process(0.016)
-
-	store.set_slice(StringName("input"), {"look_input": Vector2(12.0, 0.0)})
-	ecs_manager._physics_process(0.016)
-	assert_almost_eq(component.runtime_yaw, 12.0, 0.0001)
-
-	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO})
-	ecs_manager._physics_process(0.016)
-	assert_almost_eq(
-		component.runtime_yaw,
-		12.0,
-		0.0001,
-		"Hold/decay filtering should not add extra runtime yaw when raw input is zero"
-	)
-	var look_state_all: Dictionary = system.get("_look_rotation_state") as Dictionary
-	var look_state := look_state_all.get(StringName("cam_fp_hold"), {}) as Dictionary
-	assert_true(bool(look_state.get("input_active", false)), "Hold window should keep look input active")
-
 func test_look_filter_hold_keeps_orbit_input_active_without_extra_runtime_rotation() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -1323,7 +1072,7 @@ func test_look_filter_release_decay_deactivates_input_after_hold_window() -> voi
 	var component := await _create_vcam_component(
 		ecs_manager,
 		StringName("cam_fp_decay"),
-		_new_first_person_mode(1.0),
+		_new_orbit_mode(true, 1.0),
 		follow_target
 	)
 	component.response = _new_response(
@@ -1602,7 +1351,7 @@ func test_response_smoothing_converges_toward_raw_pose_over_ticks() -> void:
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
 
 	var follow_target := _create_target_entity(ecs_manager, "E_ConvergeTarget", Vector3.ZERO)
-	var mode := _new_first_person_mode()
+	var mode := _new_orbit_mode()
 	var component := await _create_vcam_component(ecs_manager, StringName("cam_response_converge"), mode, follow_target)
 	component.response = _new_response(3.0, 0.7, 1.0, 4.0, 1.0, 1.0)
 
@@ -1634,7 +1383,7 @@ func test_critical_damped_follow_does_not_overshoot() -> void:
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
 
 	var follow_target := _create_target_entity(ecs_manager, "E_CriticalTarget", Vector3.ZERO)
-	var mode := _new_first_person_mode()
+	var mode := _new_orbit_mode()
 	var component := await _create_vcam_component(ecs_manager, StringName("cam_response_critical"), mode, follow_target)
 	component.response = _new_response(2.0, 1.0, 1.0, 4.0, 1.0, 1.0)
 
@@ -1683,7 +1432,7 @@ func test_rotation_smoothing_converges_to_evaluated_rotation() -> void:
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
 
 	var follow_target := _create_target_entity(ecs_manager, "E_RotationTarget", Vector3.ZERO)
-	var mode := _new_first_person_mode()
+	var mode := _new_orbit_mode()
 	var component := await _create_vcam_component(ecs_manager, StringName("cam_rotation_response"), mode, follow_target)
 	component.response = _new_response(6.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
@@ -1709,38 +1458,6 @@ func test_rotation_smoothing_converges_to_evaluated_rotation() -> void:
 	assert_true(final_error < first_error, "Smoothed rotation should converge toward raw evaluator rotation")
 	assert_true(final_error < 0.01, "Smoothed rotation should settle near raw evaluator rotation")
 
-func test_mode_switch_resets_response_dynamics_without_residual_momentum() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-
-	var follow_target := _create_target_entity(ecs_manager, "E_ModeSwitchTarget", Vector3.ZERO)
-	var component := await _create_vcam_component(
-		ecs_manager,
-		StringName("cam_mode_reset"),
-		_new_orbit_mode(),
-		follow_target
-	)
-	component.response = _new_response(1.5, 0.7, 1.0, 1.5, 0.8, 1.0)
-
-	vcam_manager.active_vcam_id = StringName("cam_mode_reset")
-	ecs_manager._physics_process(0.016)
-
-	follow_target.global_position = Vector3(9.0, 0.0, 0.0)
-	for _i in range(8):
-		ecs_manager._physics_process(0.016)
-
-	component.mode = _new_first_person_mode()
-	vcam_manager.clear_submissions()
-	ecs_manager._physics_process(0.016)
-
-	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_mode_reset"))
-	var raw_result: Dictionary = _evaluate_raw_result(component.mode, follow_target, component)
-	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
-
-	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
-
 func test_follow_target_change_resets_response_dynamics() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -1749,7 +1466,7 @@ func test_follow_target_change_resets_response_dynamics() -> void:
 
 	var first_target := _create_target_entity(ecs_manager, "E_ResetTargetA", Vector3.ZERO)
 	var second_target := _create_target_entity(ecs_manager, "E_ResetTargetB", Vector3(15.0, 0.0, 0.0))
-	var mode := _new_first_person_mode()
+	var mode := _new_orbit_mode()
 	var component := await _create_vcam_component(ecs_manager, StringName("cam_target_reset"), mode, first_target)
 	component.response = _new_response(1.5, 0.7, 1.0, 1.5, 0.8, 1.0)
 
@@ -1996,38 +1713,6 @@ func test_orbit_look_ahead_clears_offset_when_target_stops() -> void:
 		"Look-ahead offset should clear when target stops moving"
 	)
 
-func test_orbit_look_ahead_clears_state_on_mode_switch() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var system: S_VCamSystem = context["system"] as S_VCamSystem
-	var store: MockStateStore = context["store"] as MockStateStore
-
-	var follow_target := _create_target_entity(ecs_manager, "E_LookAheadModeSwitchTarget", Vector3.ZERO)
-	var component := await _create_vcam_component(
-		ecs_manager,
-		StringName("cam_look_ahead_mode_switch"),
-		_new_orbit_mode(),
-		follow_target
-	)
-	component.response = _new_response(1000.0, 1.0, 1.0, 4.0, 1.0, 1.0, 2.0, 0.0)
-
-	vcam_manager.active_vcam_id = StringName("cam_look_ahead_mode_switch")
-	ecs_manager._physics_process(0.016)
-	_set_gameplay_entity_velocity(store, follow_target, Vector3(5.0, 0.0, 0.0))
-	component.response.rotation_frequency = 4.1
-	ecs_manager._physics_process(0.016)
-
-	var pre_switch_state: Dictionary = system.get("_look_ahead_state") as Dictionary
-	assert_true(pre_switch_state.has(StringName("cam_look_ahead_mode_switch")))
-
-	component.mode = _new_first_person_mode()
-	ecs_manager._physics_process(0.016)
-
-	var post_switch_state: Dictionary = system.get("_look_ahead_state") as Dictionary
-	assert_false(post_switch_state.has(StringName("cam_look_ahead_mode_switch")))
-
 func test_orbit_look_ahead_resets_when_follow_target_changes() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
@@ -2062,32 +1747,6 @@ func test_orbit_look_ahead_resets_when_follow_target_changes() -> void:
 	assert_eq(int(state.get("follow_target_id", 0)), second_target.get_instance_id())
 	var current_offset := state.get("current_offset", Vector3.ONE) as Vector3
 	assert_true(current_offset.is_zero_approx(), "Target swap should reset look-ahead offset state")
-
-func test_orbit_look_ahead_is_noop_for_first_person_mode() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var system: S_VCamSystem = context["system"] as S_VCamSystem
-
-	var follow_target := _create_target_entity(ecs_manager, "E_LookAheadFPModeTarget", Vector3.ZERO)
-	var mode := _new_first_person_mode()
-	var component := await _create_vcam_component(
-		ecs_manager,
-		StringName("cam_look_ahead_fp"),
-		mode,
-		follow_target
-	)
-	component.response = _new_response(1000.0, 1.0, 1.0, 4.0, 1.0, 1.0, 2.0, 0.0)
-
-	vcam_manager.active_vcam_id = StringName("cam_look_ahead_fp")
-	ecs_manager._physics_process(0.016)
-	follow_target.global_position = Vector3(5.0, 0.0, 0.0)
-	component.response.rotation_frequency = 4.1
-	ecs_manager._physics_process(0.016)
-
-	var look_ahead_state: Dictionary = system.get("_look_ahead_state") as Dictionary
-	assert_false(look_ahead_state.has(StringName("cam_look_ahead_fp")))
 
 func test_orbit_look_ahead_ignores_rotation_only_target_motion() -> void:
 	var context: Dictionary = await _setup_context()
@@ -2300,28 +1959,6 @@ func test_orbit_soft_zone_noops_when_resource_is_missing() -> void:
 	ecs_manager._physics_process(0.016)
 
 	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_soft_zone_disabled"))
-	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
-	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
-	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
-
-func test_soft_zone_is_noop_for_first_person_mode() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-
-	_create_projection_camera()
-	await _pump()
-	var follow_target := _create_target_entity(ecs_manager, "E_SoftZoneFirstPersonFollow", Vector3.ZERO)
-	var mode := _new_first_person_mode()
-	var component := await _create_vcam_component(ecs_manager, StringName("cam_soft_zone_first_person"), mode, follow_target)
-	component.soft_zone = _new_soft_zone(0.1, 0.1, 0.4, 0.4, 20.0)
-	component.response = null
-
-	vcam_manager.active_vcam_id = StringName("cam_soft_zone_first_person")
-	ecs_manager._physics_process(0.016)
-
-	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_soft_zone_first_person"))
 	var raw_result: Dictionary = _evaluate_raw_result(mode, follow_target, component)
 	var raw_transform := raw_result.get("transform", Transform3D.IDENTITY) as Transform3D
 	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
@@ -2551,44 +2188,6 @@ func test_orbit_ground_relative_uneven_ground_stays_stable_without_micro_bob() -
 		max_drift = maxf(max_drift, absf(current_y - baseline_y))
 
 	assert_true(max_drift < 0.03, "Small uneven-ground traversal should not introduce vertical micro-bob")
-
-func test_ground_relative_is_strict_noop_for_non_orbit_modes() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-	var system: S_VCamSystem = context["system"] as S_VCamSystem
-	var store: MockStateStore = context["store"] as MockStateStore
-
-	var follow_target := _create_target_entity(ecs_manager, "E_GroundRelativeNoopModeTarget", Vector3.ZERO)
-	var mode := _new_first_person_mode()
-	var component := await _create_vcam_component(
-		ecs_manager,
-		StringName("cam_ground_relative_noop_mode"),
-		mode,
-		follow_target
-	)
-	component.response = _new_response(1000.0, 1.0, 1.0, 1000.0, 1.0, 1.0)
-	component.response.set("ground_relative_enabled", true)
-	component.response.set("ground_reanchor_min_height_delta", 0.5)
-	component.response.set("ground_anchor_blend_hz", 4.0)
-
-	_set_gameplay_entity_floor_state(store, follow_target, true)
-	vcam_manager.active_vcam_id = StringName("cam_ground_relative_noop_mode")
-	ecs_manager._physics_process(0.016)
-
-	var submitted: Transform3D = _extract_submission_transform(vcam_manager, StringName("cam_ground_relative_noop_mode"))
-	var raw_transform := _evaluate_raw_result(mode, follow_target, component).get(
-		"transform",
-		Transform3D.IDENTITY
-	) as Transform3D
-	_assert_transform_close(submitted, raw_transform, 0.0001, 0.0001)
-
-	var ground_relative_state: Dictionary = system.get("_ground_relative_state") as Dictionary
-	assert_false(
-		ground_relative_state.has(StringName("cam_ground_relative_noop_mode")),
-		"Ground-relative state must not be created for non-orbit modes"
-	)
 
 func test_orbit_ground_relative_reanchors_after_airborne_spawn_then_floor_to_platform() -> void:
 	# Regression: initialization mid-air set last_ground_reference_y to follow_y at spawn (0.0),
@@ -2857,75 +2456,6 @@ func test_missing_or_invalid_fov_result_does_not_change_base_fov() -> void:
 
 	system.call("_write_active_camera_base_fov_from_result", {"fov": "bad"})
 	assert_almost_eq(camera_state.base_fov, 77.0, 0.0001)
-
-func test_rotation_continuity_orbit_to_first_person_carries_yaw_and_resets_pitch() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-
-	var follow_target := _create_target_entity(ecs_manager, "E_ContinuityOrbitToFP", Vector3.ZERO)
-	var orbit_component := await _create_vcam_component(
-		ecs_manager,
-		StringName("cam_orbit_out"),
-		_new_orbit_mode(),
-		follow_target
-	)
-	var first_person_component := await _create_vcam_component(
-		ecs_manager,
-		StringName("cam_fp_in"),
-		_new_first_person_mode(),
-		follow_target
-	)
-	orbit_component.runtime_yaw = 42.0
-	orbit_component.runtime_pitch = -18.0
-	first_person_component.runtime_yaw = -5.0
-	first_person_component.runtime_pitch = 9.0
-
-	vcam_manager.active_vcam_id = StringName("cam_orbit_out")
-	ecs_manager._physics_process(0.016)
-	vcam_manager.previous_vcam_id = StringName("cam_orbit_out")
-	vcam_manager.active_vcam_id = StringName("cam_fp_in")
-	ecs_manager._physics_process(0.016)
-
-	assert_almost_eq(first_person_component.runtime_yaw, 42.0, 0.0001)
-	assert_almost_eq(first_person_component.runtime_pitch, -18.0, 0.0001)
-
-func test_rotation_continuity_first_person_to_orbit_carries_yaw_and_carries_pitch() -> void:
-	var context: Dictionary = await _setup_context()
-	autofree_context(context)
-	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
-	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
-
-	var follow_target := _create_target_entity(ecs_manager, "E_ContinuityFPToOrbit", Vector3.ZERO)
-	var first_person_component := await _create_vcam_component(
-		ecs_manager,
-		StringName("cam_fp_out"),
-		_new_first_person_mode(),
-		follow_target
-	)
-	var orbit_in_mode := _new_orbit_mode()
-	orbit_in_mode.authored_yaw = 35.0
-	orbit_in_mode.authored_pitch = -22.0
-	var orbit_component := await _create_vcam_component(
-		ecs_manager,
-		StringName("cam_orbit_in"),
-		orbit_in_mode,
-		follow_target
-	)
-	first_person_component.runtime_yaw = -27.5
-	first_person_component.runtime_pitch = 13.0
-	orbit_component.runtime_yaw = 100.0
-	orbit_component.runtime_pitch = -55.0
-
-	vcam_manager.active_vcam_id = StringName("cam_fp_out")
-	ecs_manager._physics_process(0.016)
-	vcam_manager.previous_vcam_id = StringName("cam_fp_out")
-	vcam_manager.active_vcam_id = StringName("cam_orbit_in")
-	ecs_manager._physics_process(0.016)
-
-	assert_almost_eq(orbit_component.runtime_yaw, -27.5, 0.0001)
-	assert_almost_eq(orbit_component.runtime_pitch, 13.0, 0.0001)
 
 func test_rotation_continuity_same_mode_same_target_carries_yaw_and_pitch() -> void:
 	var context: Dictionary = await _setup_context()
@@ -3206,11 +2736,6 @@ func _new_orbit_mode(allow_rotation: bool = true, rotation_speed: float = 1.0) -
 	mode.distance = 5.0
 	mode.authored_pitch = -20.0
 	mode.authored_yaw = 0.0
-	return mode
-
-func _new_first_person_mode(look_multiplier: float = 1.0) -> Resource:
-	var mode := RS_VCAM_MODE_FIRST_PERSON.new()
-	mode.look_multiplier = look_multiplier
 	return mode
 
 func _new_response(

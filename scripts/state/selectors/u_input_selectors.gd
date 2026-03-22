@@ -26,9 +26,6 @@ static func get_look_input(state: Dictionary) -> Vector2:
 		return value
 	return Vector2.ZERO
 
-static func is_aim_pressed(state: Dictionary) -> bool:
-	return bool(_get_input_state(state).get("aim_pressed", false))
-
 static func is_camera_center_just_pressed(state: Dictionary) -> bool:
 	return bool(_get_input_state(state).get("camera_center_just_pressed", false))
 

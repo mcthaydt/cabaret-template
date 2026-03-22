@@ -20,7 +20,6 @@ const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera
 const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_CHARACTER_STATE_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
-const RS_VCAM_MODE_FIRST_PERSON_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
 const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
 
@@ -39,7 +38,6 @@ const ORBIT_RELEASE_SIGN_FLIP_SETTLE_ERROR_DEG: float = 0.25
 const DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED: float = 0.15
 const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3
 const ORBIT_CENTER_DURATION_SEC: float = 0.3
-const DEFAULT_AIM_BLEND_DURATION: float = 0.15
 
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
@@ -55,7 +53,6 @@ var _look_rotation_state: Dictionary = {}  # StringName -> {smoothed_yaw, smooth
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
 var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
 var _ground_relative_state: Dictionary = {}  # StringName -> {follow_target_id, ground_anchor_y, ground_anchor_target_y, follow_anchor_y_offset, last_ground_reference_y, was_grounded, blend_hz, dynamics}
-var _first_person_strafe_tilt_state: Dictionary = {}  # StringName -> {dynamics, smoothing_hz}
 var _look_input_filter_state: Dictionary = {}  # StringName -> {filtered_input, hold_timer_sec, input_active}
 var _follow_target_motion_state: Dictionary = {}  # StringName -> {follow_target_id, last_position, speed_mps}
 var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
@@ -79,9 +76,6 @@ var _debug_last_look_input_by_vcam: Dictionary = {}  # StringName -> Vector2
 var _debug_position_smoothing_bypass_by_vcam: Dictionary = {}  # StringName -> bool
 var _debug_last_look_spring_stage_by_vcam: Dictionary = {}  # StringName -> String
 var _event_unsubscribers: Array[Callable] = []
-var _aim_restore_vcam_id: StringName = StringName("")
-var _aim_toggled_on: bool = false
-var _aim_prev_pressed: bool = false
 
 func on_configured() -> void:
 	_subscribe_events()
@@ -112,7 +106,6 @@ func process_tick(delta: float) -> void:
 
 	var look_input: Vector2 = _read_look_input()
 	var move_input: Vector2 = _read_move_input()
-	var aim_pressed: bool = _read_aim_pressed()
 	var camera_center_just_pressed: bool = _read_camera_center_just_pressed()
 	_debug_log_vcam_state("tick", active_vcam_id, look_input)
 	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
@@ -128,12 +121,10 @@ func process_tick(delta: float) -> void:
 	)
 
 	if not manager.is_blending():
-		_process_aim_activation(vcam_index, manager, aim_pressed)
 		return
 
 	var previous_vcam_id: StringName = manager.get_previous_vcam_id()
 	if previous_vcam_id == StringName("") or previous_vcam_id == active_vcam_id:
-		_process_aim_activation(vcam_index, manager, aim_pressed)
 		return
 	_evaluate_and_submit(
 		previous_vcam_id,
@@ -145,7 +136,6 @@ func process_tick(delta: float) -> void:
 		manager,
 		delta
 	)
-	_process_aim_activation(vcam_index, manager, aim_pressed)
 
 func get_debug_issues() -> Array[String]:
 	return _debug_issues.duplicate()
@@ -162,9 +152,6 @@ func _exit_tree() -> void:
 	_last_active_target_valid = true
 	_last_target_recovery_reason = ""
 	_last_target_recovery_vcam_id = StringName("")
-	_aim_restore_vcam_id = StringName("")
-	_aim_toggled_on = false
-	_aim_prev_pressed = false
 
 func _subscribe_events() -> void:
 	_unsubscribe_events()
@@ -217,26 +204,6 @@ func _apply_rotation_transition(outgoing_component: C_VCamComponent, incoming_co
 	if outgoing_mode_script == incoming_mode_script:
 		_apply_same_mode_rotation_transition(outgoing_component, incoming_component)
 		return
-
-	if _is_look_driven_mode_script(outgoing_mode_script) and _is_look_driven_mode_script(incoming_mode_script):
-		incoming_component.runtime_yaw = outgoing_component.runtime_yaw
-		var incoming_values: Dictionary = _resolve_mode_values(incoming_component.mode, {})
-		var pitch_min_deg: float = float(incoming_values.get("pitch_min", -89.0))
-		var pitch_max_deg: float = float(incoming_values.get("pitch_max", 89.0))
-		incoming_component.runtime_pitch = clampf(
-			outgoing_component.runtime_pitch,
-			pitch_min_deg,
-			pitch_max_deg
-		)
-		return
-
-func _is_look_driven_mode_script(mode_script: Script) -> bool:
-	if mode_script == null:
-		return false
-	return (
-		mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
-		or mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT
-	)
 
 func _apply_same_mode_rotation_transition(
 	outgoing_component: C_VCamComponent,
@@ -351,7 +318,6 @@ func _evaluate_and_submit(
 		_update_active_target_observability(vcam_id, manager, false, "evaluation_failed")
 		return
 	_update_active_target_observability(vcam_id, manager, true)
-	result = _apply_first_person_strafe_tilt(vcam_id, mode, result, move_input, delta)
 	var look_ahead_result: Dictionary = _apply_orbit_look_ahead(
 		vcam_id,
 		component,
@@ -398,83 +364,6 @@ func _apply_landing_impact_offset(result: Dictionary, landing_offset: Vector3) -
 		return result
 	_debug_log_landing_offset_state(landing_offset)
 	return _apply_position_offset(result, landing_offset)
-
-func _apply_first_person_strafe_tilt(
-	vcam_id: StringName,
-	mode: Resource,
-	result: Dictionary,
-	move_input: Vector2,
-	delta: float
-) -> Dictionary:
-	if mode == null or result.is_empty():
-		return result
-
-	var mode_script := mode.get_script() as Script
-	if mode_script != RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
-		_clear_first_person_strafe_tilt_state_for_vcam(vcam_id)
-		return result
-
-	var transform_variant: Variant = result.get("transform", null)
-	if not (transform_variant is Transform3D):
-		return result
-
-	var first_person_values: Dictionary = _resolve_mode_values(mode, {
-		"strafe_tilt_angle": 0.0,
-		"strafe_tilt_smoothing": 6.0,
-	})
-	var strafe_tilt_angle: float = maxf(float(first_person_values.get("strafe_tilt_angle", 0.0)), 0.0)
-	if strafe_tilt_angle <= 0.0:
-		_clear_first_person_strafe_tilt_state_for_vcam(vcam_id)
-		return result
-
-	var strafe_tilt_smoothing: float = maxf(float(first_person_values.get("strafe_tilt_smoothing", 6.0)), 0.0)
-	var clamped_lateral_input: float = clampf(move_input.x, -1.0, 1.0)
-	var target_roll_deg: float = clamped_lateral_input * strafe_tilt_angle
-	var smoothed_roll_deg: float = target_roll_deg
-
-	if strafe_tilt_smoothing > 0.0 and delta > 0.0:
-		var state: Dictionary = _ensure_first_person_strafe_tilt_state(vcam_id, strafe_tilt_smoothing)
-		var dynamics_variant: Variant = state.get("dynamics", null)
-		if dynamics_variant != null:
-			smoothed_roll_deg = float(dynamics_variant.step(target_roll_deg, delta))
-	else:
-		_clear_first_person_strafe_tilt_state_for_vcam(vcam_id)
-
-	var transformed := transform_variant as Transform3D
-	var roll_rad: float = deg_to_rad(smoothed_roll_deg)
-	transformed.basis = transformed.basis.rotated(transformed.basis.z, roll_rad).orthonormalized()
-	var tilted_result: Dictionary = result.duplicate(true)
-	tilted_result["transform"] = transformed
-	return tilted_result
-
-func _ensure_first_person_strafe_tilt_state(vcam_id: StringName, smoothing_hz: float) -> Dictionary:
-	var existing_state_variant: Variant = _first_person_strafe_tilt_state.get(vcam_id, {})
-	if existing_state_variant is Dictionary:
-		var existing_state := existing_state_variant as Dictionary
-		var existing_hz: float = float(existing_state.get("smoothing_hz", -1.0))
-		var existing_dynamics: Variant = existing_state.get("dynamics", null)
-		if existing_dynamics != null and is_equal_approx(existing_hz, smoothing_hz):
-			return existing_state
-
-		var initial_roll_deg: float = 0.0
-		if existing_dynamics != null and existing_dynamics.has_method("get_value"):
-			initial_roll_deg = float(existing_dynamics.call("get_value"))
-		var rebuilt_state: Dictionary = {
-			"dynamics": U_SECOND_ORDER_DYNAMICS.new(smoothing_hz, 1.0, 1.0, initial_roll_deg),
-			"smoothing_hz": smoothing_hz,
-		}
-		_first_person_strafe_tilt_state[vcam_id] = rebuilt_state
-		return rebuilt_state
-
-	var created_state: Dictionary = {
-		"dynamics": U_SECOND_ORDER_DYNAMICS.new(smoothing_hz, 1.0, 1.0, 0.0),
-		"smoothing_hz": smoothing_hz,
-	}
-	_first_person_strafe_tilt_state[vcam_id] = created_state
-	return created_state
-
-func _clear_first_person_strafe_tilt_state_for_vcam(vcam_id: StringName) -> void:
-	_first_person_strafe_tilt_state.erase(vcam_id)
 
 func _resolve_landing_impact_offset(delta: float) -> Vector3:
 	var camera_state: Object = _resolve_primary_camera_state_component()
@@ -790,161 +679,6 @@ func _update_runtime_rotation(
 
 	_orbit_no_look_input_timers.erase(vcam_id)
 	_orbit_centering_state.erase(vcam_id)
-	if not has_look_input:
-		return
-	if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
-		var look_mode_values: Dictionary = _resolve_mode_values(mode, {
-			"look_multiplier": 1.0,
-		})
-		var look_multiplier: float = maxf(float(look_mode_values.get("look_multiplier", 1.0)), 0.0001)
-		var previous_fp_yaw: float = component.runtime_yaw
-		var previous_fp_pitch: float = component.runtime_pitch
-		component.runtime_yaw += look_input.x * look_multiplier
-		component.runtime_pitch += look_input.y * look_multiplier
-		_debug_log_rotation(
-			vcam_id,
-			"first_person input=%s multiplier=%.3f yaw=%.3f->%.3f pitch=%.3f->%.3f"
-			% [
-				str(look_input),
-				look_multiplier,
-				previous_fp_yaw,
-				component.runtime_yaw,
-				previous_fp_pitch,
-				component.runtime_pitch,
-			]
-		)
-
-func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, aim_pressed: bool) -> void:
-	var aim_just_pressed: bool = aim_pressed and not _aim_prev_pressed
-	var aim_just_released: bool = (not aim_pressed) and _aim_prev_pressed
-	_aim_prev_pressed = aim_pressed
-
-	if manager == null or vcam_index.is_empty():
-		_aim_restore_vcam_id = StringName("")
-		_aim_toggled_on = false
-		return
-
-	var active_vcam_id: StringName = manager.get_active_vcam_id()
-	if active_vcam_id == StringName(""):
-		_aim_restore_vcam_id = StringName("")
-		_aim_toggled_on = false
-		return
-
-	var active_component := vcam_index.get(active_vcam_id, null) as C_VCamComponent
-	if active_component == null or not is_instance_valid(active_component):
-		_aim_restore_vcam_id = StringName("")
-		_aim_toggled_on = false
-		return
-
-	var active_mode: Resource = active_component.mode
-	var active_is_first_person: bool = _is_first_person_mode(active_mode)
-
-	if aim_just_pressed:
-		if active_is_first_person:
-			return
-		var target_fp_id: StringName = _find_aim_target_fp_vcam_id(active_vcam_id, active_component, vcam_index)
-		if target_fp_id == StringName("") or target_fp_id == active_vcam_id:
-			return
-		var target_component := vcam_index.get(target_fp_id, null) as C_VCamComponent
-		if target_component == null or not is_instance_valid(target_component):
-			return
-
-		_aim_restore_vcam_id = active_vcam_id
-		_aim_toggled_on = true
-		var enter_blend_duration: float = _resolve_aim_blend_duration(target_component.mode)
-		manager.set_active_vcam(target_fp_id, enter_blend_duration)
-		return
-
-	if not aim_just_released:
-		return
-
-	_aim_toggled_on = false
-	if _aim_restore_vcam_id == StringName(""):
-		return
-	if not active_is_first_person:
-		_aim_restore_vcam_id = StringName("")
-		return
-
-	var restore_vcam_id: StringName = _aim_restore_vcam_id
-	_aim_restore_vcam_id = StringName("")
-	if restore_vcam_id == StringName("") or restore_vcam_id == active_vcam_id:
-		return
-	if not vcam_index.has(restore_vcam_id):
-		return
-
-	var exit_blend_duration: float = _resolve_aim_exit_blend_duration(active_mode)
-	manager.set_active_vcam(restore_vcam_id, exit_blend_duration)
-
-func _find_aim_target_fp_vcam_id(
-	active_vcam_id: StringName,
-	active_component: C_VCamComponent,
-	vcam_index: Dictionary
-) -> StringName:
-	if active_component == null or not is_instance_valid(active_component):
-		return StringName("")
-
-	var active_target: Node3D = _resolve_follow_target(active_component)
-	var active_target_id: int = _get_node_instance_id(active_target)
-	var best_vcam_id: StringName = StringName("")
-	var best_priority: int = -2147483648
-	var best_matches_target: bool = false
-
-	for vcam_id_variant in vcam_index.keys():
-		var candidate_vcam_id := vcam_id_variant as StringName
-		if candidate_vcam_id == active_vcam_id:
-			continue
-		var candidate := vcam_index.get(candidate_vcam_id, null) as C_VCamComponent
-		if candidate == null or not is_instance_valid(candidate):
-			continue
-		if not candidate.is_active:
-			continue
-		if not _is_first_person_mode(candidate.mode):
-			continue
-
-		var matches_target: bool = false
-		if active_target_id != 0:
-			var candidate_target: Node3D = _resolve_follow_target(candidate)
-			matches_target = _get_node_instance_id(candidate_target) == active_target_id
-
-		var should_select: bool = false
-		if best_vcam_id == StringName(""):
-			should_select = true
-		elif matches_target and not best_matches_target:
-			should_select = true
-		elif matches_target == best_matches_target:
-			if candidate.priority > best_priority:
-				should_select = true
-			elif candidate.priority == best_priority and String(candidate_vcam_id) < String(best_vcam_id):
-				should_select = true
-
-		if should_select:
-			best_vcam_id = candidate_vcam_id
-			best_priority = candidate.priority
-			best_matches_target = matches_target
-
-	return best_vcam_id
-
-func _is_first_person_mode(mode: Resource) -> bool:
-	if mode == null:
-		return false
-	var mode_script := mode.get_script() as Script
-	return mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT
-
-func _resolve_aim_blend_duration(mode: Resource) -> float:
-	if not _is_first_person_mode(mode):
-		return DEFAULT_AIM_BLEND_DURATION
-	var mode_values: Dictionary = _resolve_mode_values(mode, {
-		"aim_blend_duration": DEFAULT_AIM_BLEND_DURATION,
-	})
-	return maxf(float(mode_values.get("aim_blend_duration", DEFAULT_AIM_BLEND_DURATION)), 0.01)
-
-func _resolve_aim_exit_blend_duration(mode: Resource) -> float:
-	if not _is_first_person_mode(mode):
-		return DEFAULT_AIM_BLEND_DURATION
-	var mode_values: Dictionary = _resolve_mode_values(mode, {
-		"aim_exit_blend_duration": 0.2,
-	})
-	return maxf(float(mode_values.get("aim_exit_blend_duration", 0.2)), 0.01)
 
 func _start_orbit_centering(
 	vcam_id: StringName,
@@ -1850,14 +1584,6 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
-	for vcam_id_variant in _first_person_strafe_tilt_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
 	for vcam_id_variant in _look_input_filter_state.keys():
 		var vcam_id := vcam_id_variant as StringName
 		if vcam_index.has(vcam_id):
@@ -1908,7 +1634,6 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
-		_clear_first_person_strafe_tilt_state_for_vcam(stale_id)
 		_orbit_centering_state.erase(stale_id)
 		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
 
@@ -1920,7 +1645,6 @@ func _clear_all_smoothing_state() -> void:
 	_rotation_target_cache.clear()
 	_look_ahead_state.clear()
 	_ground_relative_state.clear()
-	_first_person_strafe_tilt_state.clear()
 	_look_input_filter_state.clear()
 	_follow_target_motion_state.clear()
 	_orbit_no_look_input_timers.clear()
@@ -2308,10 +2032,7 @@ func _move_toward_angle_degrees(current_value: float, target_value: float, max_d
 	return current_value + clamped_delta
 
 func _is_look_rotation_smoothing_mode(mode_script: Script) -> bool:
-	return (
-		mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
-		or mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT
-	)
+	return mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
 
 func _get_look_rotation_state(vcam_id: StringName) -> Dictionary:
 	var state_variant: Variant = _look_rotation_state.get(vcam_id, {})
@@ -2761,11 +2482,7 @@ func _is_follow_target_required(mode: Resource) -> bool:
 	if mode == null:
 		return false
 	var mode_script := mode.get_script() as Script
-	if mode_script == RS_VCAM_MODE_ORBIT_SCRIPT:
-		return true
-	if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
-		return true
-	return false
+	return mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
 
 func _resolve_state_store() -> I_StateStore:
 	if _state_store != null and is_instance_valid(_state_store):
@@ -2789,13 +2506,6 @@ func _read_move_input() -> Vector2:
 		return Vector2.ZERO
 	var state: Dictionary = store.get_state()
 	return U_INPUT_SELECTORS.get_move_input(state)
-
-func _read_aim_pressed() -> bool:
-	var store := _resolve_state_store()
-	if store == null:
-		return false
-	var state: Dictionary = store.get_state()
-	return U_INPUT_SELECTORS.is_aim_pressed(state)
 
 func _read_camera_center_just_pressed() -> bool:
 	var store := _resolve_state_store()
