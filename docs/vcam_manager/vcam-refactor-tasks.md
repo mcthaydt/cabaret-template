@@ -635,18 +635,25 @@ Completion notes (2026-03-22):
 
 ### Phase 5A: Update AGENTS.md
 
-- [ ] **Task 5A.1**: Remove stale mode contracts
+- [x] **Task 5A.1**: Remove stale mode contracts
   - OTS mode resource, evaluator, collision, shoulder sway, landing response
   - OTS movement-profile, facing-lock, reticle, default movement preset
   - Fixed mode resource, evaluator, anchor resolution, path following
   - First-person mode resource, aim activation, aim blend, strafe tilt
   - Aim pipeline contracts (touch aim, input source aim_pressed)
 
-- [ ] **Task 5A.2**: Add helper architecture contracts
+- [x] **Task 5A.2**: Add helper architecture contracts
   - Document 5 extracted system helpers and blend manager helper
   - Document coordinator pipeline pattern
   - Simplify evaluator contract (orbit only, no fixed_anchor param)
   - Update rotation continuity contract for orbit-only
+
+Completion notes (2026-03-22):
+- Updated `AGENTS.md` vCam runtime section to reflect current orbit-only refactor architecture:
+  - added canonical helper-stack contract for `S_VCamSystem` decomposition (`U_VCamLookInput`, `U_VCamRotation`, `U_VCamOrbitEffects`, `U_VCamResponseSmoother`, `U_VCamLandingImpact`) plus coordinator support helpers.
+  - added `U_VCamBlendManager` ownership/delegation contract for live/startup blend state machine behavior in `M_VCamManager`.
+  - updated blend lifecycle contract wording to reflect `M_VCamManager` -> `U_VCamBlendManager` -> `U_VCamBlendEvaluator` flow.
+- Confirmed stale OTS/fixed/first-person/aim mode contracts are no longer present in `AGENTS.md`.
 
 ### Phase 5B: Dead code sweep
 

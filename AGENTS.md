@@ -129,8 +129,16 @@
   - `UI_VFXSettingsOverlay` pushes preview updates on toggle/slider changes and calls `trigger_test_shake()` on intensity changes; preview is cleared on cancel or overlay exit.
 - vCam Runtime Contracts (Documentation Sweep 2026-03)
   - Gameplay camera orchestration authority lives in `docs/vcam_manager/*`; keep camera-runtime behavior aligned to those docs.
+  - Refactor architecture contract (Phase 2A-2H / 3A): `S_VCamSystem` is a coordinator and should delegate feature state/runtime to focused helpers instead of reintroducing a monolith. Canonical helper stack:
+    - `U_VCamLookInput` (look-input activity filtering + lifecycle)
+    - `U_VCamRotation` (runtime yaw/pitch continuity + look smoothing/release + recenter state)
+    - `U_VCamOrbitEffects` (look-ahead, ground-relative anchoring, soft-zone, motion gating)
+    - `U_VCamResponseSmoother` (response smoothing state/signatures + lifecycle)
+    - `U_VCamLandingImpact` (landing event normalization + landing-offset recovery)
+    - Coordinator support helpers: `U_VCamRuntimeContext`, `U_VCamRuntimeState`, `U_VCamRuntimeServices`, `U_VCamEffectPipeline`, `U_VCamDebug`
   - `M_CameraManager` integration for gameplay vCam flow is `apply_main_camera_transform(xform)` [new — Phase 9] with `is_blend_active()` [new — Phase 9] gating for transition blends. Both methods must be implemented before vCam can submit gameplay transforms.
-  - Live blend lifecycle contract (Phase 9): `M_VCamManager` owns vCam-to-vCam blend state (`duration/elapsed/progress`), dispatches `U_VCamActions` blend lifecycle actions, publishes `EVENT_VCAM_BLEND_STARTED` / `EVENT_VCAM_BLEND_COMPLETED`, and blends active/outgoing evaluated results through `U_VCamBlendEvaluator`.
+  - Blend manager helper contract (Phase 3A): `U_VCamBlendManager` (`scripts/managers/helpers/u_vcam_blend_manager.gd`) is the canonical owner of live-blend/startup-blend state machines (configure/advance/recover/startup queue+resolve/clear). `M_VCamManager` must delegate blend runtime state transitions to this helper.
+  - Live blend lifecycle contract (Phase 9 + 3A): `M_VCamManager` dispatches `U_VCamActions` blend lifecycle actions, publishes `EVENT_VCAM_BLEND_STARTED` / `EVENT_VCAM_BLEND_COMPLETED`, and blends active/outgoing evaluated results via `U_VCamBlendManager` (which uses `U_VCamBlendEvaluator` for transform/FOV interpolation).
   - Blend observability ordering contract (Phase 12): `M_VCamManager` must dispatch `U_VCamActions.set_active_runtime(...)` before `U_VCamActions.start_blend(...)` during active-camera switches so reducer `blend_to_vcam_id` resolves to the incoming active camera.
   - Frame-handoff contract (Phase 9): `M_VCamManager` must consume frame-stamped submissions (`Engine.get_physics_frames`) and ignore stale previous-frame results; gameplay apply remains `camera_manager.apply_main_camera_transform(...)` only.
   - Reentrant/recovery contract (Phase 9): mid-blend `set_active_vcam()` snapshots the current blended pose as the new "from" source, and invalid blend endpoints must route to `record_recovery` / `EVENT_VCAM_RECOVERY` reasons (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`) without wedged blend state.
