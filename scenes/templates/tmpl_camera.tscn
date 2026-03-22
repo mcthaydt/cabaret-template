@@ -8,7 +8,7 @@
 [ext_resource type="Resource" uid="uid://bt6j3uwuawu6k" path="res://resources/display/vcam/cfg_default_blend_hint.tres" id="6_vcam_blend_hint"]
 [ext_resource type="Resource" uid="uid://bya5pusmeeom1" path="res://resources/display/vcam/cfg_default_response.tres" id="7_vcam_response"]
 [ext_resource type="Resource" uid="uid://cbophn3ub4xgd" path="res://resources/display/vcam/cfg_default_ots.tres" id="8_vcam_mode_ots"]
-[ext_resource type="Script" path="res://scripts/utils/display/u_vcam_rule_of_thirds_preview.gd" id="9_rule_of_thirds_preview"]
+[ext_resource type="Script" uid="uid://dlrywqnajp0ab" path="res://scripts/utils/display/u_vcam_rule_of_thirds_preview.gd" id="9_rule_of_thirds_preview"]
 
 [node name="E_CameraRoot" type="Node3D" unique_id=246158049]
 script = ExtResource("1_ecsentity")
@@ -18,7 +18,7 @@ tags = Array[StringName]([&"camera"])
 [node name="E_PlayerCamera" type="Camera3D" parent="." unique_id=1000261679]
 current = true
 
-[node name="U_VCamRuleOfThirdsPreview" type="Node" parent="."]
+[node name="U_VCamRuleOfThirdsPreview" type="Node" parent="." unique_id=2059473292]
 script = ExtResource("9_rule_of_thirds_preview")
 
 [node name="Components" type="Node" parent="." unique_id=1874295737]

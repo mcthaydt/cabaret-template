@@ -46,7 +46,6 @@
 [ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/base_settings/audio/cfg_footstep_sound_default.tres" id="14_footstep_sound_settings"]
 [ext_resource type="Script" uid="uid://bdp7886fufa8v" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
-[ext_resource type="Script" path="res://scripts/utils/display/u_vcam_rule_of_thirds_preview.gd" id="99_rule_of_thirds_preview"]
 [ext_resource type="Script" uid="uid://csqsmkkv5ite7" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
@@ -350,9 +349,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 7.147382)
 [node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0" unique_id=1000261679]
 transform = Transform3D(0.99999994, 0, 0, 0, 0.8660254, 0.49999997, 0, -0.5, 0.8660253, -1.2474375, 6.117, 1.6184931)
 fov = 28.8415
-
-[node name="U_VCamRuleOfThirdsPreview" parent="Entities/E_CameraRoot" index="1"]
-script = ExtResource("99_rule_of_thirds_preview")
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=616346955]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.386, 1.497, -5.739)
