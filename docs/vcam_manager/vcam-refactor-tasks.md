@@ -115,13 +115,26 @@ Completion notes (2026-03-22):
 
 ### Phase 1C: Remove OTS + Fixed from evaluator
 
-- [ ] **Task 1C.1**: Simplify `u_vcam_mode_evaluator.gd`
+- [x] **Task 1C.1**: Simplify `u_vcam_mode_evaluator.gd`
   - Delete `RS_VCAM_MODE_OTS_SCRIPT` and `RS_VCAM_MODE_FIXED_SCRIPT` constants
   - Remove OTS/fixed branches from `evaluate()` function
   - Remove `fixed_anchor` parameter from `evaluate()` signature
   - Delete `_evaluate_ots`, `_resolve_ots_values`
   - Delete `_evaluate_fixed`, `_resolve_fixed_values`, `_build_look_at_basis_or_fallback`
   - Only orbit + first-person remain
+
+Completion notes (2026-03-22):
+- `U_VCamModeEvaluator` now supports only orbit + first-person:
+  - removed OTS/fixed script constants and dispatch branches
+  - removed `fixed_anchor` from `evaluate(...)` signature
+  - removed OTS/fixed helper paths (`_evaluate_ots`, `_resolve_ots_values`, `_evaluate_fixed`, `_resolve_fixed_values`, `_build_look_at_basis_or_fallback`)
+- Updated evaluator call sites touched by Phase 1C signature change:
+  - `tests/unit/ecs/systems/test_vcam_system.gd` helper expectations now call `evaluate(...)` with orbit/first-person signature only
+  - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` now covers orbit + first-person + unsupported-mode guard (OTS/fixed evaluator assertions removed)
+- Validation runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (`25/25`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 1D: Remove OTS from external systems
 

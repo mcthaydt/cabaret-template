@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1B` are complete; Phase `1C` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1C` are complete; Phase `1D` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1C`-`1H`).
-- Immediate implementation target: Phase `1C` in `u_vcam_mode_evaluator.gd` (remove OTS/fixed evaluation paths and `fixed_anchor` signature).
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1D`-`1H`).
+- Immediate implementation target: Phase `1D` external-system cleanup (`s_movement_system.gd`, `s_rotate_to_input_system.gd`, and `ui_hud_controller.gd` OTS removal).
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -44,6 +44,21 @@
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd -gunit_test_name=aim` (`5/5`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Refactor Phase 1C (March 22, 2026)
+
+- Completed evaluator simplification pass in `u_vcam_mode_evaluator.gd`:
+  - removed OTS/fixed script constants (`RS_VCAM_MODE_OTS_SCRIPT`, `RS_VCAM_MODE_FIXED_SCRIPT`)
+  - removed OTS/fixed evaluation dispatch branches from `evaluate(...)`
+  - removed `fixed_anchor` parameter from `evaluate(...)` signature
+  - removed OTS/fixed helpers (`_evaluate_ots`, `_resolve_ots_values`, `_evaluate_fixed`, `_resolve_fixed_values`, `_build_look_at_basis_or_fallback`)
+- Updated evaluator call sites and coverage for the new contract:
+  - `tests/unit/ecs/systems/test_vcam_system.gd` evaluator expectation helpers now call 5-arg `evaluate(...)`
+  - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` now targets orbit/first-person only and includes unsupported-mode guard coverage
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (`25/25`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Phase 12 Integration Tests (March 22, 2026)
