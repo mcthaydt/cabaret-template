@@ -1299,10 +1299,10 @@ Cross-mode checks (mode-agnostic):
 
 - [x] **Task 10B.1 (Red)**: Write tests for silhouette helper
   - Create `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd`
-  - Test `apply_silhouette()` sets shader override on `GeometryInstance3D`
+  - Test `apply_silhouette()` sets silhouette transparency on `GeometryInstance3D`
   - Test `apply_silhouette()` preserves original material state for later restoration
-  - Test `remove_silhouette()` restores original material override
-  - Test `remove_all_silhouettes()` cleans up all tracked overrides
+  - Test `remove_silhouette()` restores original transparency/material state
+  - Test `remove_all_silhouettes()` cleans up all tracked silhouette state
   - Test `get_active_count()` returns correct count
   - Test applying silhouette to freed node is safely handled
   - **Target: 6 tests**
@@ -1311,9 +1311,9 @@ Cross-mode checks (mode-agnostic):
 - [x] **Task 10B.2 (Green)**: Implement U_VCamSilhouetteHelper
   - Create `scripts/managers/helpers/u_vcam_silhouette_helper.gd`
   - Create `assets/shaders/sh_vcam_silhouette_shader.gdshader`
-  - Store original override state, apply shader override, restore on removal
+  - Store original transparency/material state, apply silhouette visibility state, restore on removal
   - All tests should pass
-  - Completion note (March 15, 2026): Added `U_VCamSilhouetteHelper` with tracked weakref entries, idempotent silhouette application, deterministic material restoration (`remove_silhouette`/`remove_all_silhouettes`), and safe no-op behavior for invalid/freed targets; added `sh_vcam_silhouette_shader.gdshader` for silhouette material overrides.
+  - Completion note (March 15, 2026): Added `U_VCamSilhouetteHelper` with tracked weakref entries, idempotent silhouette application, deterministic transparency/material restoration (`remove_silhouette`/`remove_all_silhouettes`), and safe no-op behavior for invalid/freed targets; shader-based silhouette overrides remain deferred.
   - Validation note (March 15, 2026): `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) pass.
 
 ---
@@ -1357,17 +1357,17 @@ Cross-mode checks (mode-agnostic):
   - Test occluders detected between follow target and camera get silhouettes
   - Test silhouettes only applied when `vfx.occlusion_silhouette_enabled` is true
   - Test silhouettes NOT applied when `vfx.occlusion_silhouette_enabled` is false
-  - Test `vcam/update_silhouette_count` dispatched on count change
+  - Test `EVENT_SILHOUETTE_UPDATE_REQUEST` payload remains deterministic across count changes
   - Test all silhouettes cleared when active vcam unregisters
   - Test all silhouettes cleared on scene transition
   - **Target: 6 tests**
-  - Completion note (March 15, 2026): Extended `tests/unit/managers/test_vcam_manager.gd` with six 10C Red assertions for toggle gating, deterministic occluder payload forwarding, silhouette-count dispatch-on-change, and clear-on-unregister/transition behavior (`33/33` suite total).
+  - Completion note (March 15, 2026): Extended `tests/unit/managers/test_vcam_manager.gd` with six 10C Red assertions for toggle gating, deterministic occluder payload forwarding, and clear-on-unregister/transition behavior (`33/33` suite total).
 
 - [x] **Task 10C.2 (Green)**: Implement per-tick occlusion
   - Extend `m_vcam_manager.gd`: detect occluders in the active gameplay camera `World3D`, consult VFX selector, publish `EVENT_SILHOUETTE_UPDATE_REQUEST` (silhouette application is routed through `M_VFXManager` via Phase 10B2, not applied directly)
-  - Dispatch silhouette count updates
+  - Dispatch silhouette count updates (ownership moved to `M_VFXManager` in Phase 10C2 so count reflects post-debounce rendered silhouettes)
   - All tests should pass
-  - Completion note (March 15, 2026): `M_VCamManager` now gates per-tick occlusion by `U_VFXSelectors.is_occlusion_silhouette_enabled(...)`, routes disable/clear requests for disabled or transition-blend-active ticks, reuses an internal occluder-result cache for detection, and dispatches `U_VCamActions.update_silhouette_count(...)` only when the active count changes.
+  - Completion note (March 15, 2026): `M_VCamManager` now gates per-tick occlusion by `U_VFXSelectors.is_occlusion_silhouette_enabled(...)`, routes disable/clear requests for disabled or transition-blend-active ticks, and reuses an internal occluder-result cache for detection. (Phase 10C2 moved `vcam/update_silhouette_count` dispatch to `M_VFXManager`.)
   - Validation note (March 15, 2026): `tests/unit/managers/test_vcam_manager.gd` (`33/33`), `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`3/3`), and `tests/unit/style/test_style_enforcement.gd` (`17/17`) pass.
 
 ---
@@ -1388,14 +1388,14 @@ Cross-mode checks (mode-agnostic):
   - Add debounce/grace-frame logic to `U_VCamSilhouetteHelper`
   - Skip override application when occluder set is unchanged
   - All tests should pass
-  - Completion note (March 21, 2026): `U_VCamSilhouetteHelper` now exposes `update_silhouettes(...)` with 2-frame apply debounce + 1-frame removal grace and order-insensitive target-set tracking; `M_VFXManager` now delegates silhouette payload processing through that API instead of clearing/reapplying every frame.
-  - Validation note (March 21, 2026): `test_vcam_silhouette_helper` (`16/16`), `test_vfx_manager_silhouette_routing` (`5/5`), `test_vfx_manager` (`46/46`), `test_vcam_manager` (`49/49`), and `test_style_enforcement` (`17/17`) pass.
+  - Completion note (March 21, 2026): `U_VCamSilhouetteHelper` now exposes `update_silhouettes(...)` with 2-frame apply debounce + 1-frame removal grace and order-insensitive target-set tracking; `M_VFXManager` now delegates silhouette payload processing through that API instead of clearing/reapplying every frame, bypasses transition-block gating for explicit clear requests, and owns `vcam/update_silhouette_count` dispatch from helper active-count state.
+  - Validation note (March 21, 2026): `test_vcam_silhouette_helper` (`16/16`), `test_vfx_manager_silhouette_routing` (`8/8`), `test_vfx_manager` (`49/49`), `test_vcam_manager` (`49/49`), and `test_style_enforcement` (`17/17`) pass.
 
 ---
 
 ### Phase 10D: Manual Validation (Occlusion + Silhouette)
 
-- [ ] **MT-27**: Wall between camera and player shows silhouette shader
+- [ ] **MT-27**: Wall between camera and player shows silhouette effect
 - [ ] **MT-28**: CSG geometry occluder shows silhouette
 - [ ] **MT-29**: Silhouette clears when obstruction removed
 - [ ] **MT-30**: Silhouette toggle in VFX settings disables/enables silhouettes

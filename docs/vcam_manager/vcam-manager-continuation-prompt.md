@@ -34,11 +34,13 @@
   - order-insensitive/stable-set handling to avoid reapplying unchanged occluders each frame
 - Updated `M_VFXManager` silhouette path:
   - `_process_silhouette_request(...)` now delegates payload updates to `update_silhouettes(...)` instead of always `remove_all + apply` per tick
+  - explicit `enabled=false` clear requests bypass transition-block gating so stale silhouettes can be torn down during transitions
+  - `vcam/update_silhouette_count` now dispatches from post-filtered helper state (`get_active_count()`), aligning observability with rendered silhouettes
 - New/updated coverage:
   - `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` (`16/16`)
-  - `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`5/5`)
+  - `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`8/8`)
 - Regression validation run:
-  - `tests/unit/managers/test_vfx_manager.gd` (`46/46`)
+  - `tests/unit/managers/test_vfx_manager.gd` (`49/49`)
   - `tests/unit/managers/test_vcam_manager.gd` (`49/49`)
   - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
 

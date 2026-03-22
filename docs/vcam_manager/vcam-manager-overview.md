@@ -503,17 +503,16 @@ When a target or vCam becomes invalid during gameplay, the system follows these 
 
 ### Rendering
 
-- use `assets/shaders/sh_vcam_silhouette_shader.gdshader`
 - `M_VCamManager` does not apply materials directly. It publishes `EVENT_SILHOUETTE_UPDATE_REQUEST` with `{entity_id, occluders, enabled}`.
-- `M_VFXManager` owns rendering, applies existing player gating and transition blocking, and delegates actual material override work to `U_VCamSilhouetteHelper`.
-- store original override state so restoration is deterministic
+- `M_VFXManager` owns rendering, applies existing player gating and transition blocking, and delegates actual silhouette lifecycle work to `U_VCamSilhouetteHelper`.
+- current runtime silhouette implementation is transparency-based (`GeometryInstance3D.transparency`) with deterministic restoration; shader/material-override silhouette rendering remains deferred
 - clear all overrides when no active gameplay vCam exists or a scene swap invalidates the previous result set
 
 ### Stability (Anti-Flicker)
 
 - maintain a "stable occluder set" — only add/remove occluders when their status has been consistent for at least 2 consecutive physics frames (debounce)
 - when the occluder set is unchanged from the previous frame, skip material override application entirely (no per-frame churn)
-- grace-frame removal: when an occluder leaves the ray, keep its silhouette for 2 additional frames before restoring the original material
+- grace-frame removal: when an occluder leaves the ray, keep its silhouette for 1 additional frame before restoring the original material
 - this prevents visible flicker when an occluder repeatedly crosses the ray boundary or when raycast results jitter frame-to-frame
 
 ## Editor Preview

@@ -1063,6 +1063,12 @@
 - **Per-frame silhouette clear/reapply causes visible edge flicker and material churn**: Rebuilding silhouettes every tick (`remove_all_silhouettes()` followed by reapply of the same set) can flicker when occluders hover on ray boundaries and does unnecessary override churn even when blockers are unchanged.
   - **Fix pattern**: route per-tick updates through `U_VCamSilhouetteHelper.update_silhouettes(...)` so silhouettes use debounce/grace semantics (2-frame apply, 1-frame removal) and order-insensitive stable-set no-op behavior.
 
+- **Transition-block gating can accidentally drop silhouette clear events**: If `M_VFXManager` rejects all silhouette events while `scene.is_transitioning`, an `enabled=false` clear request published during transition can be ignored, leaving stale silhouettes active.
+  - **Fix pattern**: keep transition/player gating for `enabled=true` updates, but always process explicit clear requests (`enabled=false`) so teardown is deterministic during scene transitions.
+
+- **`vcam.silhouette_active_count` should reflect rendered silhouettes, not pre-filter detection**: Dispatching count from `M_VCamManager` before debounce/grace filtering can report non-zero while no silhouette is yet visible.
+  - **Fix pattern**: dispatch `U_VCamActions.update_silhouette_count(...)` from `M_VFXManager` using `U_VCamSilhouetteHelper.get_active_count()` after update processing.
+
 - **Touch look ownership must stay in `S_TouchscreenSystem`**: `gameplay.look_input` is shared across devices. If `S_InputSystem` keeps dispatching zero touchscreen payloads while touchscreen is active, it clobbers drag-look and breaks mobile orbit/OTS camera control.
 
 - **Live vCam apply must ignore stale submissions from previous physics frames**: Root/gameplay `_physics_process` ordering can vary; if `M_VCamManager` applies the last cached result without frame-gating, camera motion can lag or hitch one frame behind gameplay evaluation.
