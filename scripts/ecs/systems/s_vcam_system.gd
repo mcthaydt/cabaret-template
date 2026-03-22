@@ -9,8 +9,8 @@ const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_INPUT_SELECTORS := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
-const U_VCAM_SOFT_ZONE := preload("res://scripts/managers/helpers/u_vcam_soft_zone.gd")
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
+const U_VCAM_ORBIT_EFFECTS := preload("res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd")
 const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
@@ -27,7 +27,6 @@ const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
-const LOOK_AHEAD_MOVEMENT_EPSILON_SQ: float = 0.000001
 const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
 const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0
 const DEFAULT_LOOK_RELEASE_STOP_THRESHOLD: float = 0.05
@@ -42,15 +41,12 @@ const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3
 var _state_store: I_StateStore = null
 var _vcam_manager: Node = null
 var _rotation_helper = U_VCAM_ROTATION.new()
+var _orbit_effects_helper = U_VCAM_ORBIT_EFFECTS.new()
 var _follow_dynamics: Dictionary = {}  # StringName -> U_SecondOrderDynamics3D
 var _rotation_dynamics: Dictionary = {}  # StringName -> {x, y, z}
 var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_target_id, response_signature}
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
-var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
-var _ground_relative_state: Dictionary = {}  # StringName -> {follow_target_id, ground_anchor_y, ground_anchor_target_y, follow_anchor_y_offset, last_ground_reference_y, was_grounded, blend_hz, dynamics}
 var _look_input_helper = U_VCAM_LOOK_INPUT.new()
-var _follow_target_motion_state: Dictionary = {}  # StringName -> {follow_target_id, last_position, speed_mps}
-var _soft_zone_dead_zone_state: Dictionary = {}  # StringName -> {x: bool, y: bool}
 var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
 var _last_active_target_valid: bool = true
@@ -66,7 +62,6 @@ var _debug_look_ahead_motion_state: Dictionary = {}  # StringName -> bool
 var _debug_soft_zone_status: Dictionary = {}  # StringName -> String reason/state
 var _debug_landing_offset_status: int = -1  # -1 unknown, 0 inactive, 1 active
 var _debug_last_look_input_by_vcam: Dictionary = {}  # StringName -> Vector2
-var _debug_position_smoothing_bypass_by_vcam: Dictionary = {}  # StringName -> bool
 var _event_unsubscribers: Array[Callable] = []
 
 var _look_rotation_state: Dictionary:
@@ -76,6 +71,26 @@ var _look_rotation_state: Dictionary:
 var _orbit_centering_state: Dictionary:
 	get:
 		return _rotation_helper.get_orbit_centering_state_snapshot()
+
+var _look_ahead_state: Dictionary:
+	get:
+		return _orbit_effects_helper.get_look_ahead_state_snapshot()
+
+var _ground_relative_state: Dictionary:
+	get:
+		return _orbit_effects_helper.get_ground_relative_state_snapshot()
+
+var _follow_target_motion_state: Dictionary:
+	get:
+		return _orbit_effects_helper.get_follow_target_motion_state_snapshot()
+
+var _soft_zone_dead_zone_state: Dictionary:
+	get:
+		return _orbit_effects_helper.get_soft_zone_dead_zone_state_snapshot()
+
+var _debug_position_smoothing_bypass_by_vcam: Dictionary:
+	get:
+		return _orbit_effects_helper.get_position_smoothing_bypass_snapshot()
 
 func on_configured() -> void:
 	_subscribe_events()
@@ -144,9 +159,6 @@ func _exit_tree() -> void:
 	_unsubscribe_events()
 	_clear_all_smoothing_state()
 	_clear_landing_impact_recovery_state()
-	_look_ahead_state.clear()
-	_ground_relative_state.clear()
-	_soft_zone_dead_zone_state.clear()
 	_last_active_vcam_id = StringName("")
 	_last_active_target_valid = true
 	_last_target_recovery_reason = ""
@@ -560,77 +572,20 @@ func _apply_orbit_look_ahead(
 	has_active_look_input: bool,
 	delta: float
 ) -> Dictionary:
-	if component == null or mode == null:
-		return result
-	if mode.get_script() != RS_VCAM_MODE_ORBIT_SCRIPT:
-		_clear_look_ahead_state_for_vcam(vcam_id)
-		return result
-	if follow_target == null or not is_instance_valid(follow_target):
-		_clear_look_ahead_state_for_vcam(vcam_id)
-		return result
-
 	var response_values: Dictionary = _resolve_component_response_values(component)
-	var look_ahead_distance: float = maxf(float(response_values.get("look_ahead_distance", 0.0)), 0.0)
-	if look_ahead_distance <= 0.0:
-		_clear_look_ahead_state_for_vcam(vcam_id)
-		return result
-	if has_active_look_input:
-		_clear_look_ahead_state_for_vcam(vcam_id)
-		return result
-
-	var target_id: int = _get_node_instance_id(follow_target)
-	if target_id == 0:
-		_clear_look_ahead_state_for_vcam(vcam_id)
-		return result
-
-	var current_position: Vector3 = follow_target.global_position
-	var state: Dictionary = _get_or_create_look_ahead_state(vcam_id, target_id, current_position)
-	state["last_target_position"] = current_position
-
-	var velocity_sample: Dictionary = _resolve_look_ahead_movement_velocity(follow_target)
-	var has_velocity: bool = bool(velocity_sample.get("has_velocity", false))
-	var velocity_variant: Variant = velocity_sample.get("velocity", Vector3.ZERO)
-	var velocity: Vector3 = velocity_variant as Vector3 if velocity_variant is Vector3 else Vector3.ZERO
-	var planar_velocity := Vector3(velocity.x, 0.0, velocity.z)
-	if (not has_velocity) or planar_velocity.length_squared() <= LOOK_AHEAD_MOVEMENT_EPSILON_SQ:
-		_debug_log_look_ahead_motion_state(vcam_id, false, follow_target, planar_velocity, Vector3.ZERO)
-		state["current_offset"] = Vector3.ZERO
-		state["dynamics"] = null
-		state["smoothing_hz"] = -1.0
-		_look_ahead_state[vcam_id] = state
-		return result
-
-	var desired_offset: Vector3 = planar_velocity.normalized() * look_ahead_distance
-	_debug_log_look_ahead_motion_state(vcam_id, true, follow_target, planar_velocity, desired_offset)
-
-	var smoothing_hz: float = maxf(float(response_values.get("look_ahead_smoothing", 3.0)), 0.0)
-	var current_offset: Vector3 = state.get("current_offset", Vector3.ZERO) as Vector3
-	var smoothed_offset: Vector3 = desired_offset
-	if smoothing_hz > 0.0:
-		var rebuild_dynamics: bool = (
-			not state.has("dynamics")
-			or state.get("dynamics", null) == null
-			or not is_equal_approx(float(state.get("smoothing_hz", -1.0)), smoothing_hz)
-		)
-		if rebuild_dynamics:
-			state["dynamics"] = U_SECOND_ORDER_DYNAMICS_3D.new(smoothing_hz, 1.0, 0.0, current_offset)
-			state["smoothing_hz"] = smoothing_hz
-		var dynamics = state.get("dynamics", null)
-		if dynamics != null:
-			smoothed_offset = dynamics.step(desired_offset, maxf(delta, 0.0))
-	else:
-		state["dynamics"] = null
-		state["smoothing_hz"] = 0.0
-
-	if smoothed_offset.length_squared() > (look_ahead_distance * look_ahead_distance):
-		smoothed_offset = smoothed_offset.normalized() * look_ahead_distance
-
-	state["current_offset"] = smoothed_offset
-	_look_ahead_state[vcam_id] = state
-
-	if smoothed_offset.is_zero_approx():
-		return result
-	return _apply_position_offset(result, smoothed_offset)
+	return _orbit_effects_helper.apply_orbit_look_ahead(
+		vcam_id,
+		mode,
+		RS_VCAM_MODE_ORBIT_SCRIPT,
+		follow_target,
+		result,
+		response_values,
+		has_active_look_input,
+		delta,
+		Callable(self, "_resolve_look_ahead_movement_velocity"),
+		Callable(self, "_apply_position_offset"),
+		Callable(self, "_debug_log_look_ahead_motion_state")
+	)
 
 func _resolve_look_ahead_movement_velocity(follow_target: Node3D) -> Dictionary:
 	if follow_target == null or not is_instance_valid(follow_target):
@@ -757,31 +712,6 @@ func _find_character_body_recursive(root: Node) -> CharacterBody3D:
 			return found
 	return null
 
-func _get_or_create_look_ahead_state(
-	vcam_id: StringName,
-	follow_target_id: int,
-	current_position: Vector3
-) -> Dictionary:
-	var state_variant: Variant = _look_ahead_state.get(vcam_id, {})
-	var state: Dictionary = {}
-	if state_variant is Dictionary:
-		state = (state_variant as Dictionary).duplicate(true)
-
-	var previous_target_id: int = int(state.get("follow_target_id", 0))
-	if state.is_empty() or previous_target_id != follow_target_id:
-		state = {
-			"follow_target_id": follow_target_id,
-			"last_target_position": current_position,
-			"current_offset": Vector3.ZERO,
-			"smoothing_hz": -1.0,
-			"dynamics": null,
-		}
-		_look_ahead_state[vcam_id] = state
-	return state
-
-func _clear_look_ahead_state_for_vcam(vcam_id: StringName) -> void:
-	_look_ahead_state.erase(vcam_id)
-
 func _apply_orbit_ground_relative(
 	vcam_id: StringName,
 	component: C_VCamComponent,
@@ -791,157 +721,18 @@ func _apply_orbit_ground_relative(
 	response_values: Dictionary,
 	delta: float
 ) -> Dictionary:
-	if component == null or mode == null:
-		_clear_ground_relative_state_for_vcam(vcam_id)
-		return result
-	if mode.get_script() != RS_VCAM_MODE_ORBIT_SCRIPT:
-		_clear_ground_relative_state_for_vcam(vcam_id)
-		return result
-	if follow_target == null or not is_instance_valid(follow_target):
-		_clear_ground_relative_state_for_vcam(vcam_id)
-		return result
-	if response_values.is_empty():
-		_clear_ground_relative_state_for_vcam(vcam_id)
-		return result
-	if not bool(response_values.get("ground_relative_enabled", false)):
-		_clear_ground_relative_state_for_vcam(vcam_id)
-		return result
-
-	var transform_variant: Variant = result.get("transform", null)
-	if not (transform_variant is Transform3D):
-		return result
-
-	var follow_target_id: int = _get_node_instance_id(follow_target)
-	if follow_target_id == 0:
-		_clear_ground_relative_state_for_vcam(vcam_id)
-		return result
-
-	var follow_y: float = follow_target.global_position.y
-	var state: Dictionary = _get_or_create_ground_relative_state(vcam_id, follow_target_id, follow_y)
-
-	var grounded: bool = _resolve_follow_target_grounded_state(follow_target)
-	var probe_max_distance: float = maxf(float(response_values.get("ground_probe_max_distance", 0.0)), 0.0)
-	var ground_reference_y: float = follow_y
-	var has_ground_reference: bool = false
-	if grounded:
-		var probe_result: Dictionary = _probe_ground_reference_height(follow_target, probe_max_distance)
-		has_ground_reference = bool(probe_result.get("valid", false))
-		if has_ground_reference:
-			ground_reference_y = float(probe_result.get("height", follow_y))
-
-	var initialized: bool = bool(state.get("initialized", false))
-	var ground_anchor_y: float = float(state.get("ground_anchor_y", follow_y))
-	var ground_anchor_target_y: float = float(state.get("ground_anchor_target_y", ground_anchor_y))
-	var follow_anchor_y_offset: float = float(state.get("follow_anchor_y_offset", 0.0))
-	var last_ground_reference_y: float = float(state.get("last_ground_reference_y", ground_anchor_target_y))
-	var was_grounded: bool = bool(state.get("was_grounded", grounded))
-	var blend_hz: float = maxf(float(response_values.get("ground_anchor_blend_hz", 0.0)), 0.0)
-	var previous_blend_hz: float = float(state.get("blend_hz", -1.0))
-	var dynamics: Variant = state.get("dynamics", null)
-	var reset_dynamics: bool = false
-	if not initialized:
-		if grounded and has_ground_reference:
-			# First real grounded contact — initialize anchor from actual ground surface.
-			ground_anchor_y = ground_reference_y
-			ground_anchor_target_y = ground_reference_y
-			follow_anchor_y_offset = follow_y - ground_reference_y
-			last_ground_reference_y = ground_reference_y
-			initialized = true
-			reset_dynamics = true
-		else:
-			# Still airborne or no probe hit — keep strict no-op while uninitialized.
-			ground_anchor_y = follow_y
-			ground_anchor_target_y = follow_y
-			follow_anchor_y_offset = 0.0
-			dynamics = null
-			state["initialized"] = false
-			state["follow_target_id"] = follow_target_id
-			state["ground_anchor_y"] = ground_anchor_y
-			state["ground_anchor_target_y"] = ground_anchor_target_y
-			state["follow_anchor_y_offset"] = follow_anchor_y_offset
-			state["last_ground_reference_y"] = last_ground_reference_y
-			state["was_grounded"] = grounded
-			state["blend_hz"] = blend_hz
-			state["dynamics"] = dynamics
-			_ground_relative_state[vcam_id] = state
-			return result
-	elif grounded and has_ground_reference and not was_grounded:
-		var reanchor_min_height_delta: float = maxf(
-			float(response_values.get("ground_reanchor_min_height_delta", 0.0)),
-			0.0
-		)
-		var landing_height_delta: float = absf(ground_reference_y - last_ground_reference_y)
-		if landing_height_delta >= reanchor_min_height_delta:
-			ground_anchor_target_y = ground_reference_y
-			follow_anchor_y_offset = follow_y - ground_reference_y
-			last_ground_reference_y = ground_reference_y
-			reset_dynamics = true
-
-	if blend_hz <= 0.0:
-		dynamics = null
-		ground_anchor_y = ground_anchor_target_y
-	else:
-		var needs_rebuild: bool = (
-			dynamics == null
-			or not is_equal_approx(previous_blend_hz, blend_hz)
-			or reset_dynamics
-		)
-		if needs_rebuild:
-			dynamics = U_SECOND_ORDER_DYNAMICS.new(blend_hz, 1.0, 1.0, ground_anchor_y)
-		if delta > 0.0 and dynamics != null:
-			ground_anchor_y = float(dynamics.step(ground_anchor_target_y, delta))
-		else:
-			ground_anchor_y = ground_anchor_target_y
-	if is_nan(ground_anchor_y) or is_inf(ground_anchor_y):
-		ground_anchor_y = ground_anchor_target_y
-	if is_nan(ground_anchor_target_y) or is_inf(ground_anchor_target_y):
-		ground_anchor_target_y = ground_anchor_y
-
-	state["initialized"] = initialized
-	state["follow_target_id"] = follow_target_id
-	state["ground_anchor_y"] = ground_anchor_y
-	state["ground_anchor_target_y"] = ground_anchor_target_y
-	state["follow_anchor_y_offset"] = follow_anchor_y_offset
-	state["last_ground_reference_y"] = last_ground_reference_y
-	state["was_grounded"] = grounded
-	state["blend_hz"] = blend_hz
-	state["dynamics"] = dynamics
-	_ground_relative_state[vcam_id] = state
-
-	var anchored_follow_y: float = ground_anchor_y + follow_anchor_y_offset
-	var y_offset: float = anchored_follow_y - follow_y
-	if absf(y_offset) <= 0.000001:
-		return result
-	return _apply_position_offset(result, Vector3(0.0, y_offset, 0.0))
-
-func _get_or_create_ground_relative_state(
-	vcam_id: StringName,
-	follow_target_id: int,
-	follow_y: float
-) -> Dictionary:
-	var state_variant: Variant = _ground_relative_state.get(vcam_id, {})
-	var state: Dictionary = {}
-	if state_variant is Dictionary:
-		state = (state_variant as Dictionary).duplicate(true)
-
-	var previous_target_id: int = int(state.get("follow_target_id", 0))
-	if state.is_empty() or previous_target_id != follow_target_id:
-		state = {
-			"initialized": false,
-			"follow_target_id": follow_target_id,
-			"ground_anchor_y": follow_y,
-			"ground_anchor_target_y": follow_y,
-			"follow_anchor_y_offset": 0.0,
-			"last_ground_reference_y": follow_y,
-			"was_grounded": false,
-			"blend_hz": -1.0,
-			"dynamics": null,
-		}
-		_ground_relative_state[vcam_id] = state
-	return state
-
-func _clear_ground_relative_state_for_vcam(vcam_id: StringName) -> void:
-	_ground_relative_state.erase(vcam_id)
+	return _orbit_effects_helper.apply_orbit_ground_relative(
+		vcam_id,
+		mode,
+		RS_VCAM_MODE_ORBIT_SCRIPT,
+		follow_target,
+		result,
+		response_values,
+		delta,
+		Callable(self, "_resolve_follow_target_grounded_state"),
+		Callable(self, "_probe_ground_reference_height"),
+		Callable(self, "_apply_position_offset")
+	)
 
 func _resolve_follow_target_grounded_state(follow_target: Node3D) -> bool:
 	if follow_target == null or not is_instance_valid(follow_target):
@@ -1053,59 +844,23 @@ func _apply_orbit_soft_zone(
 	result: Dictionary,
 	delta: float
 ) -> Dictionary:
-	if component == null or mode == null:
-		_debug_log_soft_zone_status(vcam_id, "skipped_missing_component_or_mode", Vector3.ZERO)
-		return result
-	if mode.get_script() != RS_VCAM_MODE_ORBIT_SCRIPT:
-		_clear_soft_zone_dead_zone_state_for_vcam(vcam_id)
-		_debug_log_soft_zone_status(vcam_id, "skipped_non_orbit_mode", Vector3.ZERO)
-		return result
-	if follow_target == null or not is_instance_valid(follow_target):
-		_clear_soft_zone_dead_zone_state_for_vcam(vcam_id)
-		_debug_log_soft_zone_status(vcam_id, "skipped_missing_follow_target", Vector3.ZERO)
-		return result
-	if component.soft_zone == null:
-		_clear_soft_zone_dead_zone_state_for_vcam(vcam_id)
-		_debug_log_soft_zone_status(vcam_id, "skipped_no_soft_zone_resource", Vector3.ZERO)
-		return result
-	if component.soft_zone.get_script() != RS_VCAM_SOFT_ZONE_SCRIPT:
-		_clear_soft_zone_dead_zone_state_for_vcam(vcam_id)
-		_debug_log_soft_zone_status(vcam_id, "skipped_invalid_soft_zone_resource", Vector3.ZERO)
-		return result
-
-	var transform_variant: Variant = result.get("transform", null)
-	if not (transform_variant is Transform3D):
-		_debug_log_soft_zone_status(vcam_id, "skipped_missing_transform", Vector3.ZERO)
-		return result
-	var desired_transform := transform_variant as Transform3D
-
-	var projection_camera: Camera3D = _resolve_projection_camera()
-	if projection_camera == null:
-		_debug_log_soft_zone_status(vcam_id, "skipped_missing_projection_camera", Vector3.ZERO)
-		return result
-
-	var dead_zone_state: Dictionary = _get_soft_zone_dead_zone_state(vcam_id)
-	var correction_result: Dictionary = U_VCAM_SOFT_ZONE.compute_camera_correction_with_state(
-		projection_camera,
-		follow_target.global_position,
-		desired_transform,
-		component.soft_zone as Resource,
+	var soft_zone: Resource = null
+	if component != null:
+		soft_zone = component.soft_zone as Resource
+	return _orbit_effects_helper.apply_orbit_soft_zone(
+		vcam_id,
+		mode,
+		RS_VCAM_MODE_ORBIT_SCRIPT,
+		follow_target,
+		soft_zone,
+		RS_VCAM_SOFT_ZONE_SCRIPT,
+		result,
 		delta,
-		dead_zone_state
+		Callable(self, "_resolve_projection_camera"),
+		Callable(self, "_apply_position_offset"),
+		Callable(self, "_debug_log_soft_zone_status"),
+		Callable(self, "_debug_log_soft_zone_metrics")
 	)
-	var next_state_variant: Variant = correction_result.get("dead_zone_state", dead_zone_state)
-	if next_state_variant is Dictionary:
-		_soft_zone_dead_zone_state[vcam_id] = (next_state_variant as Dictionary).duplicate(true)
-	var correction_variant: Variant = correction_result.get("correction", Vector3.ZERO)
-	if not (correction_variant is Vector3):
-		return result
-	var correction := correction_variant as Vector3
-	_debug_log_soft_zone_metrics(vcam_id, correction_result, correction)
-	if correction.is_zero_approx():
-		_debug_log_soft_zone_status(vcam_id, "inactive_zero_correction", correction)
-		return result
-	_debug_log_soft_zone_status(vcam_id, "active_correction", correction)
-	return _apply_position_offset(result, correction)
 
 func _resolve_projection_camera() -> Camera3D:
 	var camera_manager_service := U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
@@ -1122,18 +877,6 @@ func _resolve_projection_camera() -> Camera3D:
 		return null
 	return viewport_camera
 
-func _get_soft_zone_dead_zone_state(vcam_id: StringName) -> Dictionary:
-	var state_variant: Variant = _soft_zone_dead_zone_state.get(vcam_id, {})
-	if state_variant is Dictionary:
-		return (state_variant as Dictionary).duplicate(true)
-	return {
-		"x": false,
-		"y": false,
-	}
-
-func _clear_soft_zone_dead_zone_state_for_vcam(vcam_id: StringName) -> void:
-	_soft_zone_dead_zone_state.erase(vcam_id)
-
 func _resolve_component_response_values(component: C_VCamComponent) -> Dictionary:
 	if component == null:
 		return {}
@@ -1145,71 +888,7 @@ func _resolve_component_response_values(component: C_VCamComponent) -> Dictionar
 	return _resolve_response_values(response)
 
 func _sample_follow_target_speed(vcam_id: StringName, follow_target: Node3D, delta: float) -> float:
-	if follow_target == null or not is_instance_valid(follow_target):
-		_follow_target_motion_state.erase(vcam_id)
-		return 0.0
-	if delta <= 0.0:
-		return 0.0
-
-	var follow_target_id: int = _get_node_instance_id(follow_target)
-	if follow_target_id == 0:
-		_follow_target_motion_state.erase(vcam_id)
-		return 0.0
-
-	var current_position: Vector3 = follow_target.global_position
-	var state_variant: Variant = _follow_target_motion_state.get(vcam_id, {})
-	if not (state_variant is Dictionary):
-		_follow_target_motion_state[vcam_id] = {
-			"follow_target_id": follow_target_id,
-			"last_position": current_position,
-			"speed_mps": 0.0,
-		}
-		return 0.0
-
-	var state := (state_variant as Dictionary).duplicate(true)
-	var previous_target_id: int = int(state.get("follow_target_id", 0))
-	if previous_target_id != follow_target_id:
-		_follow_target_motion_state[vcam_id] = {
-			"follow_target_id": follow_target_id,
-			"last_position": current_position,
-			"speed_mps": 0.0,
-		}
-		return 0.0
-
-	var previous_position: Vector3 = state.get("last_position", current_position) as Vector3
-	var displacement: Vector3 = current_position - previous_position
-	var horizontal_displacement := Vector3(displacement.x, 0.0, displacement.z)
-	var speed_mps: float = horizontal_displacement.length() / delta
-	state["follow_target_id"] = follow_target_id
-	state["last_position"] = current_position
-	state["speed_mps"] = speed_mps
-	_follow_target_motion_state[vcam_id] = state
-	return speed_mps
-
-func _should_bypass_orbit_position_smoothing(
-	vcam_id: StringName,
-	mode_script: Script,
-	has_active_look_input: bool,
-	follow_target_speed_mps: float,
-	response_values: Dictionary
-) -> bool:
-	if mode_script != RS_VCAM_MODE_ORBIT_SCRIPT:
-		return false
-	if not has_active_look_input:
-		return false
-
-	var enable_speed: float = maxf(
-		float(response_values.get("orbit_look_bypass_enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)),
-		0.0
-	)
-	var disable_speed: float = maxf(
-		float(response_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
-		enable_speed
-	)
-	var was_bypassing: bool = bool(_debug_position_smoothing_bypass_by_vcam.get(vcam_id, false))
-	if was_bypassing:
-		return follow_target_speed_mps <= disable_speed
-	return follow_target_speed_mps <= enable_speed
+	return _orbit_effects_helper.sample_follow_target_speed(vcam_id, follow_target, delta)
 
 func _apply_position_offset(result: Dictionary, offset: Vector3) -> Dictionary:
 	var transform_variant: Variant = result.get("transform", null)
@@ -1257,77 +936,39 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
-	for vcam_id_variant in _look_ahead_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
-	for vcam_id_variant in _ground_relative_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
-	for vcam_id_variant in _follow_target_motion_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
-	for vcam_id_variant in _soft_zone_dead_zone_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
 		_rotation_helper.clear_centering_state_for_vcam(stale_id)
-		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
 	_look_input_helper.prune(vcam_index.keys())
 	_rotation_helper.prune(vcam_index.keys())
+	_orbit_effects_helper.prune(vcam_index.keys())
 
 func _clear_all_smoothing_state() -> void:
 	_follow_dynamics.clear()
 	_rotation_dynamics.clear()
 	_smoothing_metadata.clear()
 	_rotation_target_cache.clear()
-	_look_ahead_state.clear()
-	_ground_relative_state.clear()
 	_look_input_helper.clear_all()
-	_follow_target_motion_state.clear()
+	_orbit_effects_helper.clear_all()
 	_rotation_helper.clear_all()
 	_debug_follow_target_ids.clear()
 	_debug_look_ahead_motion_state.clear()
 	_debug_soft_zone_status.clear()
 	_debug_landing_offset_status = -1
 	_debug_last_look_input_by_vcam.clear()
-	_debug_position_smoothing_bypass_by_vcam.clear()
 
 func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_follow_dynamics.erase(vcam_id)
 	_rotation_dynamics.erase(vcam_id)
 	_smoothing_metadata.erase(vcam_id)
 	_rotation_target_cache.erase(vcam_id)
-	_look_ahead_state.erase(vcam_id)
-	_ground_relative_state.erase(vcam_id)
 	_look_input_helper.clear_for_vcam(vcam_id)
-	_follow_target_motion_state.erase(vcam_id)
+	_orbit_effects_helper.clear_for_vcam(vcam_id)
 	_rotation_helper.clear_rotation_state_for_vcam(vcam_id)
 	_debug_follow_target_ids.erase(vcam_id)
 	_debug_look_ahead_motion_state.erase(vcam_id)
 	_debug_soft_zone_status.erase(vcam_id)
 	_debug_last_look_input_by_vcam.erase(vcam_id)
-	_debug_position_smoothing_bypass_by_vcam.erase(vcam_id)
 
 func _resolve_runtime_rotation_for_evaluation(
 	vcam_id: StringName,
@@ -1464,28 +1105,27 @@ func _step_smoothing_state(
 	if follow_dynamics == null:
 		return raw_result
 
-	var bypass_non_fixed_position_smoothing: bool = _should_bypass_orbit_position_smoothing(
+	var bypass_state: Dictionary = _orbit_effects_helper.update_orbit_position_smoothing_bypass(
 		vcam_id,
 		mode_script,
+		RS_VCAM_MODE_ORBIT_SCRIPT,
 		has_active_look_input,
 		follow_target_speed_mps,
-		response_values
+		response_values,
+		DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED,
+		DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED
 	)
-	var bypass_enable_speed: float = maxf(
-		float(response_values.get("orbit_look_bypass_enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)),
-		0.0
+	var bypass_non_fixed_position_smoothing: bool = bool(bypass_state.get("bypass", false))
+	var bypass_enable_speed: float = float(
+		bypass_state.get("enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)
 	)
-	var bypass_disable_speed: float = maxf(
-		float(response_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
-		bypass_enable_speed
+	var bypass_disable_speed: float = float(
+		bypass_state.get("disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)
 	)
-	var has_previous_bypass_state: bool = _debug_position_smoothing_bypass_by_vcam.has(vcam_id)
-	var previous_bypass_variant: Variant = _debug_position_smoothing_bypass_by_vcam.get(
-		vcam_id,
-		bypass_non_fixed_position_smoothing
+	var has_previous_bypass_state: bool = bool(
+		bypass_state.get("had_previous_bypass_state", false)
 	)
-	var previous_bypass: bool = bool(previous_bypass_variant)
-	_debug_position_smoothing_bypass_by_vcam[vcam_id] = bypass_non_fixed_position_smoothing
+	var previous_bypass: bool = bool(bypass_state.get("previous_bypass", false))
 	if previous_bypass != bypass_non_fixed_position_smoothing:
 		_debug_log_position_smoothing_gate_transition(
 			vcam_id,
