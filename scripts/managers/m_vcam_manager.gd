@@ -62,7 +62,6 @@ var _startup_blend_trans_type: int = int(Tween.TRANS_CUBIC)
 var _startup_blend_ease_type: int = int(Tween.EASE_IN_OUT)
 var _startup_blend_cut_on_distance_threshold: float = 0.0
 var _occluder_results_cache: Array = []
-var _last_silhouette_count: int = 0
 var _silhouette_clear_published: bool = false
 
 func _ready() -> void:
@@ -709,7 +708,6 @@ func _publish_silhouette_update_request_for_active_vcam(
 	)
 
 	_publish_silhouette_update_request(entity_id, safe_occluders, true)
-	_publish_silhouette_count_if_changed(safe_occluders.size())
 	_silhouette_clear_published = false
 
 func _detect_occluders_for_silhouette(
@@ -805,25 +803,14 @@ func _get_occluder_room_fade_state(occluder: GeometryInstance3D) -> Dictionary:
 		"is_faded": false,
 	}
 
-func _publish_silhouette_count_if_changed(next_count: int) -> void:
-	var normalized_count: int = maxi(next_count, 0)
-	if normalized_count == _last_silhouette_count:
-		return
-	_last_silhouette_count = normalized_count
-	var store := _resolve_state_store()
-	if store == null:
-		return
-	store.dispatch(U_VCAM_ACTIONS.update_silhouette_count(normalized_count))
-
 func _clear_silhouettes_for_vcam(vcam_id: StringName) -> void:
 	var vcam := _vcams_by_id.get(vcam_id, null) as Node
 	_clear_all_silhouettes(_resolve_silhouette_entity_id(vcam))
 
 func _clear_all_silhouettes(entity_id: StringName) -> void:
-	if _silhouette_clear_published and _last_silhouette_count == 0:
+	if _silhouette_clear_published:
 		return
 	_publish_silhouette_update_request(entity_id, [], false)
-	_publish_silhouette_count_if_changed(0)
 	_silhouette_clear_published = true
 
 func _is_occlusion_silhouette_enabled() -> bool:

@@ -10,6 +10,7 @@ const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.g
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
+const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
@@ -73,6 +74,7 @@ var _preview_settings: Dictionary = {}
 var _is_previewing: bool = false
 var _effects_container: Node = null
 var _silhouette_helper: U_VCamSilhouetteHelper = null
+var _last_silhouette_count: int = 0
 
 func _ready() -> void:
 	# Run even when game is paused (VFX should be visible in pause menu)
@@ -85,6 +87,8 @@ func _ready() -> void:
 		_state_store = U_STATE_UTILS.try_get_store(self)
 	if _state_store == null:
 		print_verbose("M_VFXManager: StateStore not found. VFX settings will not be applied.")
+	else:
+		_last_silhouette_count = _resolve_state_silhouette_count(_state_store.get_state())
 
 	# Discover Camera Manager dependency (VFX Phase 3: T3.2, injection first)
 	if camera_manager != null:
@@ -144,6 +148,7 @@ func _exit_tree() -> void:
 		_store_unsubscribe = Callable()
 	if _silhouette_helper != null:
 		_silhouette_helper.remove_all_silhouettes()
+	_dispatch_silhouette_count_if_changed(0)
 
 ## Add trauma to the current trauma level
 ##
@@ -321,11 +326,20 @@ func _on_silhouette_update_request(event_data: Dictionary) -> void:
 		return
 
 	var payload: Dictionary = event_data.get("payload", {})
+	var enabled: bool = bool(payload.get("enabled", true))
 	var entity_id: StringName = StringName(str(payload.get("entity_id", "")))
 
-	# Gating: player-only and transition check
+	# Keep player-only ownership for all silhouette requests.
 	if not _is_player_entity(entity_id):
 		return
+
+	# Explicit clear requests must always pass through so stale silhouettes are removed
+	# even if gameplay is currently transition-blocked.
+	if not enabled:
+		_silhouette_requests.append(event_data)
+		return
+
+	# Gating: player-only and transition check
 	if _is_transition_blocked():
 		return
 
@@ -354,3 +368,20 @@ func _process_silhouette_request(event_data: Dictionary) -> void:
 
 	var occluders_variant: Variant = payload.get("occluders", [])
 	_silhouette_helper.update_silhouettes(occluders_variant, enabled)
+	_dispatch_silhouette_count_if_changed(_silhouette_helper.get_active_count())
+
+func _resolve_state_silhouette_count(state: Dictionary) -> int:
+	var vcam_variant: Variant = state.get("vcam", {})
+	if not (vcam_variant is Dictionary):
+		return 0
+	var vcam: Dictionary = vcam_variant as Dictionary
+	return maxi(int(vcam.get("silhouette_active_count", 0)), 0)
+
+func _dispatch_silhouette_count_if_changed(next_count: int) -> void:
+	if _state_store == null:
+		return
+	var normalized_count: int = maxi(next_count, 0)
+	if normalized_count == _last_silhouette_count:
+		return
+	_last_silhouette_count = normalized_count
+	_state_store.dispatch(U_VCAM_ACTIONS.update_silhouette_count(normalized_count))

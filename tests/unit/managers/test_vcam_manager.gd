@@ -507,7 +507,7 @@ func test_submit_evaluated_camera_disables_silhouette_when_vfx_toggle_is_off() -
 	var occluders := payload.get("occluders", []) as Array
 	assert_eq(occluders.size(), 0, "Disabled request should not carry occluders")
 
-func test_submit_evaluated_camera_dispatches_silhouette_count_only_when_count_changes() -> void:
+func test_submit_evaluated_camera_does_not_dispatch_silhouette_count_action() -> void:
 	var store := MOCK_STATE_STORE.new()
 	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
 	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
@@ -528,27 +528,13 @@ func test_submit_evaluated_camera_dispatches_silhouette_count_only_when_count_ch
 
 	manager.test_occluders = [occluder]
 	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
-	var first_count_action := _find_last_action_by_type(
-		store.get_dispatched_actions(),
-		U_VCAM_ACTIONS.ACTION_UPDATE_SILHOUETTE_COUNT
+	assert_true(
+		_find_last_action_by_type(
+			store.get_dispatched_actions(),
+			U_VCAM_ACTIONS.ACTION_UPDATE_SILHOUETTE_COUNT
+		).is_empty(),
+		"Silhouette count dispatch is owned by M_VFXManager after debounce/grace filtering"
 	)
-	assert_false(first_count_action.is_empty(), "First count change should dispatch silhouette count action")
-	var first_payload := first_count_action.get("payload", {}) as Dictionary
-	assert_eq(int(first_payload.get("count", -1)), 1, "First dispatch should report one active silhouette")
-
-	store.clear_dispatched_actions()
-	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
-	assert_eq(store.get_dispatched_actions().size(), 0, "Unchanged silhouette count should not dispatch")
-
-	manager.test_occluders = []
-	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
-	var reset_count_action := _find_last_action_by_type(
-		store.get_dispatched_actions(),
-		U_VCAM_ACTIONS.ACTION_UPDATE_SILHOUETTE_COUNT
-	)
-	assert_false(reset_count_action.is_empty(), "Count drop should dispatch update action")
-	var reset_payload := reset_count_action.get("payload", {}) as Dictionary
-	assert_eq(int(reset_payload.get("count", -1)), 0, "Count change should dispatch zero silhouettes")
 
 func test_unregistering_active_vcam_publishes_silhouette_clear_request() -> void:
 	var store := MOCK_STATE_STORE.new()
