@@ -11,9 +11,9 @@ const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
 const U_VCAM_ORBIT_EFFECTS := preload("res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd")
+const U_VCAM_RESPONSE_SMOOTHER := preload("res://scripts/ecs/systems/helpers/u_vcam_response_smoother.gd")
 const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
 const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
@@ -42,10 +42,7 @@ var _state_store: I_StateStore = null
 var _vcam_manager: Node = null
 var _rotation_helper = U_VCAM_ROTATION.new()
 var _orbit_effects_helper = U_VCAM_ORBIT_EFFECTS.new()
-var _follow_dynamics: Dictionary = {}  # StringName -> U_SecondOrderDynamics3D
-var _rotation_dynamics: Dictionary = {}  # StringName -> {x, y, z}
-var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_target_id, response_signature}
-var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
+var _response_smoother = U_VCAM_RESPONSE_SMOOTHER.new()
 var _look_input_helper = U_VCAM_LOOK_INPUT.new()
 var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
@@ -91,6 +88,22 @@ var _soft_zone_dead_zone_state: Dictionary:
 var _debug_position_smoothing_bypass_by_vcam: Dictionary:
 	get:
 		return _orbit_effects_helper.get_position_smoothing_bypass_snapshot()
+
+var _follow_dynamics: Dictionary:
+	get:
+		return _response_smoother.get_follow_dynamics_snapshot()
+
+var _rotation_dynamics: Dictionary:
+	get:
+		return _response_smoother.get_rotation_dynamics_snapshot()
+
+var _smoothing_metadata: Dictionary:
+	get:
+		return _response_smoother.get_smoothing_metadata_snapshot()
+
+var _rotation_target_cache: Dictionary:
+	get:
+		return _response_smoother.get_rotation_target_cache_snapshot()
 
 func on_configured() -> void:
 	_subscribe_events()
@@ -940,14 +953,12 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 		_clear_smoothing_state_for_vcam(stale_id)
 		_rotation_helper.clear_centering_state_for_vcam(stale_id)
 	_look_input_helper.prune(vcam_index.keys())
+	_response_smoother.prune(vcam_index.keys())
 	_rotation_helper.prune(vcam_index.keys())
 	_orbit_effects_helper.prune(vcam_index.keys())
 
 func _clear_all_smoothing_state() -> void:
-	_follow_dynamics.clear()
-	_rotation_dynamics.clear()
-	_smoothing_metadata.clear()
-	_rotation_target_cache.clear()
+	_response_smoother.clear_all()
 	_look_input_helper.clear_all()
 	_orbit_effects_helper.clear_all()
 	_rotation_helper.clear_all()
@@ -958,10 +969,7 @@ func _clear_all_smoothing_state() -> void:
 	_debug_last_look_input_by_vcam.clear()
 
 func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
-	_follow_dynamics.erase(vcam_id)
-	_rotation_dynamics.erase(vcam_id)
-	_smoothing_metadata.erase(vcam_id)
-	_rotation_target_cache.erase(vcam_id)
+	_response_smoother.clear_for_vcam(vcam_id)
 	_look_input_helper.clear_for_vcam(vcam_id)
 	_orbit_effects_helper.clear_for_vcam(vcam_id)
 	_rotation_helper.clear_rotation_state_for_vcam(vcam_id)
@@ -1043,180 +1051,31 @@ func _apply_response_smoothing(
 	if mode == null:
 		return raw_result
 
-	var raw_transform_variant: Variant = raw_result.get("transform", null)
-	if not (raw_transform_variant is Transform3D):
-		return raw_result
-	var raw_transform := raw_transform_variant as Transform3D
-
-	var response := component.response as Resource
-	if response == null:
+	var response_values: Dictionary = _resolve_component_response_values(component)
+	if response_values.is_empty():
 		_clear_smoothing_state_for_vcam(vcam_id)
 		return raw_result
-	if response.get_script() != RS_VCAM_RESPONSE_SCRIPT:
-		_clear_smoothing_state_for_vcam(vcam_id)
-		return raw_result
-
-	var response_values: Dictionary = _resolve_response_values(response)
 	var response_signature: Array[float] = _build_response_signature(response_values)
 	var mode_script := mode.get_script() as Script
 	var follow_target_id: int = _get_node_instance_id(follow_target)
 	var follow_target_speed_mps: float = _sample_follow_target_speed(vcam_id, follow_target, delta)
-	var raw_euler: Vector3 = raw_transform.basis.get_euler()
-	var target_euler: Vector3 = _resolve_unwrapped_target_euler(vcam_id, raw_euler)
-	var metadata: Dictionary = _get_smoothing_metadata(vcam_id)
-	var has_state: bool = _follow_dynamics.has(vcam_id) and _rotation_dynamics.has(vcam_id)
-	var response_changed: bool = _did_response_change(metadata, response_signature)
-
-	if not has_state or response_changed:
-		_create_smoothing_state(vcam_id, response_values, raw_transform.origin, target_euler)
-		_set_smoothing_metadata(vcam_id, mode_script, follow_target_id, response_signature)
-		return raw_result
-
-	var mode_changed: bool = _did_mode_change(metadata, mode_script)
-	var target_changed: bool = _did_follow_target_change(metadata, follow_target_id)
-	if mode_changed or target_changed:
-		_reset_smoothing_state(vcam_id, raw_transform.origin, target_euler)
-		_set_smoothing_metadata(vcam_id, mode_script, follow_target_id, response_signature)
-		return raw_result
-
-	_set_smoothing_metadata(vcam_id, mode_script, follow_target_id, response_signature)
-	return _step_smoothing_state(
-		vcam_id,
-		raw_result,
-		raw_transform,
-		mode_script,
-		delta,
-		has_active_look_input,
-		response_values,
-		follow_target_speed_mps
-	)
-
-func _step_smoothing_state(
-	vcam_id: StringName,
-	raw_result: Dictionary,
-	raw_transform: Transform3D,
-	mode_script: Script,
-	delta: float,
-	has_active_look_input: bool,
-	response_values: Dictionary,
-	follow_target_speed_mps: float
-) -> Dictionary:
-	var follow_dynamics: Variant = _follow_dynamics.get(vcam_id, null)
-	if follow_dynamics == null:
-		return raw_result
-
-	var bypass_state: Dictionary = _orbit_effects_helper.update_orbit_position_smoothing_bypass(
+	return _response_smoother.apply_response_smoothing(
 		vcam_id,
 		mode_script,
 		RS_VCAM_MODE_ORBIT_SCRIPT,
-		has_active_look_input,
+		follow_target_id,
 		follow_target_speed_mps,
+		raw_result,
+		delta,
+		has_active_look_input,
 		response_values,
+		response_signature,
+		Callable(_orbit_effects_helper, "update_orbit_position_smoothing_bypass"),
 		DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED,
-		DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED
+		DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED,
+		Callable(self, "_debug_log_position_smoothing_gate_transition"),
+		Callable(self, "_debug_log_rotation")
 	)
-	var bypass_non_fixed_position_smoothing: bool = bool(bypass_state.get("bypass", false))
-	var bypass_enable_speed: float = float(
-		bypass_state.get("enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)
-	)
-	var bypass_disable_speed: float = float(
-		bypass_state.get("disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)
-	)
-	var has_previous_bypass_state: bool = bool(
-		bypass_state.get("had_previous_bypass_state", false)
-	)
-	var previous_bypass: bool = bool(bypass_state.get("previous_bypass", false))
-	if previous_bypass != bypass_non_fixed_position_smoothing:
-		_debug_log_position_smoothing_gate_transition(
-			vcam_id,
-			mode_script,
-			has_active_look_input,
-			raw_transform.origin,
-			follow_dynamics,
-			follow_target_speed_mps,
-			bypass_enable_speed,
-			bypass_disable_speed,
-			previous_bypass,
-			bypass_non_fixed_position_smoothing
-		)
-
-	# Orbit look input intentionally bypasses follow-position smoothing while rotating.
-	# When input is released, reset to current raw position so the first smoothed tick does not pop.
-	var released_orbit_bypass_this_tick: bool = (
-		has_previous_bypass_state
-		and previous_bypass
-		and not bypass_non_fixed_position_smoothing
-		and mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
-	)
-	if released_orbit_bypass_this_tick:
-		follow_dynamics.reset(raw_transform.origin)
-		_debug_log_rotation(
-			vcam_id,
-			"smoothing_gate_handoff: orbit bypass released, resetting follow dynamics to raw position"
-		)
-		return raw_result
-
-	if bypass_non_fixed_position_smoothing:
-		follow_dynamics.reset(raw_transform.origin)
-		return raw_result
-
-	var smooth_position: Vector3 = follow_dynamics.step(raw_transform.origin, delta)
-	var smooth_transform := Transform3D(raw_transform.basis.orthonormalized(), smooth_position)
-	var smoothed_result: Dictionary = raw_result.duplicate(true)
-	smoothed_result["transform"] = smooth_transform
-	return smoothed_result
-
-func _create_smoothing_state(
-	vcam_id: StringName,
-	response_values: Dictionary,
-	initial_position: Vector3,
-	initial_euler: Vector3
-) -> void:
-	var follow_frequency: float = float(response_values.get("follow_frequency", 3.0))
-	var follow_damping: float = float(response_values.get("follow_damping", 0.7))
-	var follow_response: float = float(response_values.get("follow_initial_response", 1.0))
-	var rotation_frequency: float = float(response_values.get("rotation_frequency", 4.0))
-	var rotation_damping: float = float(response_values.get("rotation_damping", 1.0))
-	var rotation_response: float = float(response_values.get("rotation_initial_response", 1.0))
-
-	_follow_dynamics[vcam_id] = U_SECOND_ORDER_DYNAMICS_3D.new(
-		follow_frequency,
-		follow_damping,
-		follow_response,
-		initial_position
-	)
-	_rotation_dynamics[vcam_id] = {
-		"x": U_SECOND_ORDER_DYNAMICS.new(rotation_frequency, rotation_damping, rotation_response, initial_euler.x),
-		"y": U_SECOND_ORDER_DYNAMICS.new(rotation_frequency, rotation_damping, rotation_response, initial_euler.y),
-		"z": U_SECOND_ORDER_DYNAMICS.new(rotation_frequency, rotation_damping, rotation_response, initial_euler.z),
-	}
-	_rotation_target_cache[vcam_id] = initial_euler
-
-func _reset_smoothing_state(vcam_id: StringName, position: Vector3, euler: Vector3) -> void:
-	var follow_dynamics: Variant = _follow_dynamics.get(vcam_id, null)
-	if follow_dynamics != null:
-		follow_dynamics.reset(position)
-
-	var rotation_entry_variant: Variant = _rotation_dynamics.get(vcam_id, {})
-	if rotation_entry_variant is Dictionary:
-		var rotation_entry := rotation_entry_variant as Dictionary
-		_reset_rotation_axis(rotation_entry, StringName("x"), euler.x)
-		_reset_rotation_axis(rotation_entry, StringName("y"), euler.y)
-		_reset_rotation_axis(rotation_entry, StringName("z"), euler.z)
-
-	_rotation_target_cache[vcam_id] = euler
-
-func _step_rotation_axis(rotation_entry: Dictionary, key: StringName, target: float, delta: float) -> float:
-	var axis_dynamics: Variant = rotation_entry.get(key, null)
-	if axis_dynamics == null:
-		return target
-	return float(axis_dynamics.step(target, delta))
-
-func _reset_rotation_axis(rotation_entry: Dictionary, key: StringName, value: float) -> void:
-	var axis_dynamics: Variant = rotation_entry.get(key, null)
-	if axis_dynamics == null:
-		return
-	axis_dynamics.reset(value)
 
 func _resolve_response_values(response: Resource) -> Dictionary:
 	var resolved_values: Dictionary = {}
@@ -1312,83 +1171,12 @@ func _build_response_signature(response_values: Dictionary) -> Array[float]:
 		float(response_values.get("ground_anchor_blend_hz", 0.0)),
 	]
 
-func _get_smoothing_metadata(vcam_id: StringName) -> Dictionary:
-	var metadata_variant: Variant = _smoothing_metadata.get(vcam_id, {})
-	if metadata_variant is Dictionary:
-		return (metadata_variant as Dictionary).duplicate(true)
-	return {}
-
-func _set_smoothing_metadata(
-	vcam_id: StringName,
-	mode_script: Script,
-	follow_target_id: int,
-	response_signature: Array[float]
-) -> void:
-	_smoothing_metadata[vcam_id] = {
-		"mode_script": mode_script,
-		"follow_target_id": follow_target_id,
-		"response_signature": response_signature.duplicate(),
-	}
-
-func _did_mode_change(metadata: Dictionary, mode_script: Script) -> bool:
-	if metadata.is_empty():
-		return false
-	var previous_mode_variant: Variant = metadata.get("mode_script", null)
-	if previous_mode_variant == null:
-		return mode_script != null
-	var previous_mode := previous_mode_variant as Script
-	return previous_mode != mode_script
-
-func _did_follow_target_change(metadata: Dictionary, follow_target_id: int) -> bool:
-	if metadata.is_empty():
-		return false
-	var previous_target_id: int = int(metadata.get("follow_target_id", 0))
-	return previous_target_id != follow_target_id
-
-func _did_response_change(metadata: Dictionary, response_signature: Array[float]) -> bool:
-	if metadata.is_empty():
-		return false
-	var previous_signature_variant: Variant = metadata.get("response_signature", [])
-	if not (previous_signature_variant is Array):
-		return true
-	var previous_signature := previous_signature_variant as Array
-	if previous_signature.size() != response_signature.size():
-		return true
-	for index in range(response_signature.size()):
-		if not is_equal_approx(float(previous_signature[index]), response_signature[index]):
-			return true
-	return false
-
-func _resolve_unwrapped_target_euler(vcam_id: StringName, target_euler: Vector3) -> Vector3:
-	if not _rotation_target_cache.has(vcam_id):
-		_rotation_target_cache[vcam_id] = target_euler
-		return target_euler
-
-	var previous_target := _rotation_target_cache.get(vcam_id, target_euler) as Vector3
-	var unwrapped_target := Vector3(
-		_unwrap_angle_to_reference(target_euler.x, previous_target.x),
-		_unwrap_angle_to_reference(target_euler.y, previous_target.y),
-		_unwrap_angle_to_reference(target_euler.z, previous_target.z)
-	)
-	_rotation_target_cache[vcam_id] = unwrapped_target
-	return unwrapped_target
-
-func _unwrap_angle_to_reference(target_angle: float, reference_angle: float) -> float:
-	return reference_angle + wrapf(target_angle - reference_angle, -PI, PI)
-
 func _get_node_instance_id(node: Node) -> int:
 	if node == null:
 		return 0
 	if not is_instance_valid(node):
 		return 0
 	return node.get_instance_id()
-
-func _compose_basis_from_euler(euler: Vector3) -> Basis:
-	var basis := Basis.IDENTITY
-	basis = basis.rotated(Vector3.UP, euler.y)
-	basis = basis.rotated(basis.x, euler.x)
-	basis = basis.rotated(basis.z, euler.z)
-	return basis.orthonormalized()
 
 func _resolve_vcam_manager() -> I_VCAM_MANAGER:
 	if _vcam_manager != null and is_instance_valid(_vcam_manager):
