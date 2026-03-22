@@ -936,19 +936,26 @@ Before starting Phase 0, verify:
 
 ### Phase 6B2: Runtime Recovery Tests
 
-- [ ] **Task 6B2.1 (Red)**: Write tests for invalid-target recovery
+- [x] **Task 6B2.1 (Red)**: Write tests for invalid-target recovery
   - Add to `tests/unit/managers/test_vcam_manager.gd` or `tests/unit/ecs/systems/test_vcam_system.gd`
   - Test active follow target freed during play: holds last valid pose, triggers reselection
   - Test fixed anchor missing after scene churn: falls back to entity root
   - Test `active_target_valid` selector reflects current validity
   - Test `last_recovery_reason` is set on recovery events
   - **Target: 4 tests**
+  - Completion note (2026-03-22): Added `test_active_follow_target_loss_holds_last_submission_and_requests_reselection` and `test_fixed_world_anchor_missing_falls_back_to_entity_root` to `tests/unit/ecs/systems/test_vcam_system.gd`; existing integration coverage in `tests/integration/vcam/test_vcam_state.gd` already covered selector observability (`active_target_valid`, `last_recovery_reason`) for target-loss paths.
 
-- [ ] **Task 6B2.2 (Green)**: Implement runtime recovery
+- [x] **Task 6B2.2 (Green)**: Implement runtime recovery
   - Add per-tick validity checks in `S_VCamSystem` and `M_VCamManager`
   - Dispatch `update_target_validity` and `record_recovery` Redux actions
   - Publish `EVENT_VCAM_RECOVERY` through `U_ECSEventBus` with `{reason, vcam_id}` payload so other systems can react (e.g., `S_GameEventSystem` rules that trigger effects on camera recovery)
   - All tests should pass
+  - Completion note (2026-03-22): `S_VCamSystem` now resolves fixed world anchors with entity-root fallback (`U_ECSUtils.find_entity_root(...)`), publishes `EVENT_VCAM_RECOVERY` with `{reason, vcam_id}` on active target/anchor/evaluator failures, and requests manager reselection once per unique recovery transition; `M_VCamManager._record_recovery(...)` event payload now also includes `vcam_id`.
+  - Validation run (2026-03-22):
+    - `tests/unit/ecs/systems/test_vcam_system.gd` (`133/133`)
+    - `tests/integration/vcam/test_vcam_state.gd` (`9/9`)
+    - `tests/unit/managers` (`-gselect=test_vcam_manager`, `49/49`)
+    - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ---
 

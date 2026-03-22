@@ -4,7 +4,7 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete. Phase 3 reset implementation is complete (3A/3B/3C1/3C2/3C3/3C4.1-3C4.11). Phase 9 (`9A-9F`) is complete, Phase 10 occlusion pipeline (`10A/10B/10B2/10C/10C2/10D`) is complete, Phase 11 editor preview (`11.1`/`11.2`/`11.3`) plus manual validation (`11A`) is complete, Phase 12 integration implementation (`12.1`-`12.6`) is complete, Phase 12A observability validation (`MT-40/41/42/47/48/49`) is complete, and Phase 13 regression/docs closure (`13.1`-`13.8`) is complete as of March 22, 2026.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6B2, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete. Phase 3 reset implementation is complete (3A/3B/3C1/3C2/3C3/3C4.1-3C4.11). Phase 9 (`9A-9F`) is complete, Phase 10 occlusion pipeline (`10A/10B/10B2/10C/10C2/10D`) is complete, Phase 11 editor preview (`11.1`/`11.2`/`11.3`) plus manual validation (`11A`) is complete, Phase 12 integration implementation (`12.1`-`12.6`) is complete, Phase 12A observability validation (`MT-40/41/42/47/48/49`) is complete, and Phase 13 regression/docs closure (`13.1`-`13.8`) is complete as of March 22, 2026.
 
 ## Next Planned Work (March 22, 2026)
 
@@ -31,6 +31,21 @@
   - `tests/integration/vcam` (`29/29`)
   - `tests/unit/managers` (`-gselect=test_vcam_manager`, `49/49`)
   - `tests/unit/style` (`-gselect=test_style_enforcement`, `17/17`)
+
+## Phase 6B2 Runtime Recovery Closure (March 22, 2026)
+
+- Added runtime-recovery regression coverage in `tests/unit/ecs/systems/test_vcam_system.gd`:
+  - `test_active_follow_target_loss_holds_last_submission_and_requests_reselection`
+  - `test_fixed_world_anchor_missing_falls_back_to_entity_root`
+- Recovery implementation hardening:
+  - `S_VCamSystem` now resolves fixed world-anchor fallback from the vCam host entity root when `fixed_anchor_path` is missing/invalid.
+  - Active target/anchor/evaluator failure paths now publish `EVENT_VCAM_RECOVERY` with `{reason, vcam_id}` and request manager reselection.
+  - `M_VCamManager._record_recovery(...)` event payload now includes `vcam_id` in addition to existing active/previous IDs.
+- Validation run (March 22, 2026):
+  - `tests/unit/ecs/systems/test_vcam_system.gd` (`133/133`)
+  - `tests/integration/vcam/test_vcam_state.gd` (`9/9`)
+  - `tests/unit/managers` (`-gselect=test_vcam_manager`, `49/49`)
+  - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Phase 12A Observability Validation (March 22, 2026)
 
