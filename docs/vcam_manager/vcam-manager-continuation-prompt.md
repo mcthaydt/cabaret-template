@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phase `2A` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2B` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phases `2A`-`2B` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2C` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 2 helper extraction (`2B` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: Phase `2B` (`U_VCamRotation`) Red/Green/Refactor extraction from `s_vcam_system.gd`.
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 2 helper extraction (`2C` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
+- Immediate implementation target: Phase `2C` (`U_VCamOrbitEffects`) Red/Green/Refactor extraction from `s_vcam_system.gd`.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -148,6 +148,22 @@
   - `tests/unit/style/test_style_enforcement.gd` now allows `u_` scripts in `res://scripts/ecs/systems/helpers`
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_look_input.gd` (`8/8`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Refactor Phase 2B (March 22, 2026)
+
+- Completed rotation helper extraction (`U_VCamRotation`):
+  - added `scripts/ecs/systems/helpers/u_vcam_rotation.gd` with continuity handoff, orbit runtime rotation updates, look spring/release smoothing, orbit recenter state, and helper lifecycle APIs
+  - extracted/owned helper state for look-smoothing + centering runtime (`_look_rotation_state`, `_orbit_no_look_input_timers`, `_orbit_centering_state`)
+  - `S_VCamSystem` now delegates continuity/update/evaluation rotation paths to `_rotation_helper`
+- Added helper coverage:
+  - `tests/unit/ecs/systems/helpers/test_vcam_rotation.gd` (`8/8`)
+- Compatibility hardening during refactor:
+  - retained thin wrappers in `S_VCamSystem` for `_step_orbit_release_axis(...)` and `_resolve_orbit_center_target_yaw(...)` to keep existing unit-test hook surfaces stable
+  - preserved centering lifecycle independence from response-smoothing cleanup by splitting helper clear APIs (`clear_rotation_state_for_vcam` vs centering clear)
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_rotation.gd` (`8/8`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
@@ -1173,8 +1189,8 @@
 
 ## Next Steps
 
-1. Execute Phase `2B` Red/Green/Refactor (`U_VCamRotation` extraction + dedicated helper tests).
-2. Continue Phase `2C`-`2F` helper extraction in sequence with per-helper TDD cadence.
+1. Execute Phase `2C` Red/Green/Refactor (`U_VCamOrbitEffects` extraction + dedicated helper tests).
+2. Continue Phase `2D`-`2F` helper extraction in sequence with per-helper TDD cadence.
 3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
 
 ## Key Decisions To Preserve

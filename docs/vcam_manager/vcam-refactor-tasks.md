@@ -353,7 +353,7 @@ Completion notes (2026-03-22):
 
 ### Phase 2B: Extract `u_vcam_rotation.gd`
 
-- [ ] **Task 2B.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_rotation.gd`
+- [x] **Task 2B.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_rotation.gd`
   - Test continuity policy carries yaw across same-mode switches
   - Test orbit↔first-person carries yaw, resets pitch
   - Test different-target switches reseed to authored angles
@@ -362,12 +362,31 @@ Completion notes (2026-03-22):
   - Test prune/clear lifecycle
   - **Target: ~12 tests**
 
-- [ ] **Task 2B.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_rotation.gd`
+- [x] **Task 2B.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_rotation.gd`
   - Extract rotation continuity, runtime yaw/pitch management, look smoothing springs, orbit centering, release damping
   - Move `_look_rotation_state`, `_rotation_target_cache`, `_orbit_centering_state`, `_orbit_no_look_input_timers`
 
-- [ ] **Task 2B.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamRotation`
+- [x] **Task 2B.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamRotation`
   - Verify all existing tests pass
+
+Completion notes (2026-03-22):
+- Added `scripts/ecs/systems/helpers/u_vcam_rotation.gd` (`U_VCamRotation`) with extracted:
+  - active-camera continuity handoff policy (same-mode carry / authored reseed)
+  - orbit runtime yaw/pitch update flow (lock handling, player look, delayed auto-level)
+  - orbit button recenter lifecycle/state (`_orbit_centering_state`)
+  - look spring + release damping evaluation (`_look_rotation_state`)
+  - helper lifecycle APIs (`prune`, `clear_all`, `clear_for_vcam`)
+- Added dedicated helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_rotation.gd` (`8/8`).
+- Refactored `S_VCamSystem` to delegate rotation behaviors to `_rotation_helper`:
+  - continuity policy now routes through helper
+  - runtime rotation update + center/release smoothing now route through helper
+  - rotation-state cleanup/prune now includes helper lifecycle calls
+  - compatibility wrappers retained for `_step_orbit_release_axis(...)` and `_resolve_orbit_center_target_yaw(...)` to preserve existing unit-test hooks
+  - `_look_rotation_state` and `_orbit_centering_state` now expose helper-backed snapshots for existing test introspection
+- Validation runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_rotation.gd` (`8/8`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 2C: Extract `u_vcam_orbit_effects.gd`
 
