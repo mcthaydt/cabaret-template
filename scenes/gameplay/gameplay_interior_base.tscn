@@ -59,6 +59,7 @@
 [ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="57_eropg"]
 [ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="58_b02xr"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="59_qu3gu"]
+[ext_resource type="Script" path="res://scripts/utils/display/u_vcam_rule_of_thirds_preview.gd" id="99_rule_of_thirds_preview"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 shading_mode = 2
@@ -306,5 +307,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 7)
 
 [node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0" unique_id=1000261679]
 fov = 65.0
+
+[node name="U_VCamRuleOfThirdsPreview" parent="Entities/E_CameraRoot" index="1"]
+script = ExtResource("99_rule_of_thirds_preview")
 
 [editable path="Entities/E_CameraRoot"]
