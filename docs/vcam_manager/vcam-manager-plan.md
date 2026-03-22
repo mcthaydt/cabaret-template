@@ -737,13 +737,13 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 
 **Contract**
 
-- Apply silhouette overrides to `GeometryInstance3D`.
-- Preserve and restore original override state cleanly.
+- Apply silhouette visibility to `GeometryInstance3D` (current runtime path is transparency-based).
+- Preserve and restore original transparency/material state cleanly.
 - Track active count for Redux observability.
 - This helper is owned by `M_VFXManager`, not by `M_VCamManager`.
 - Implement anti-flicker behavior:
   - Maintain a stable occluder set; only add an occluder after it has been detected for 2 consecutive frames.
-  - Grace-frame removal: keep silhouette for 2 frames after the occluder leaves the ray before restoring the original material.
+  - Grace-frame removal: keep silhouette for 1 additional frame after the occluder leaves the ray before restoring the original state.
   - When the occluder set is unchanged from the previous frame, skip material override application entirely (no per-frame churn).
   - Avoid material/shader instance allocation when applying the same override to the same node.
 
@@ -761,8 +761,8 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 - detect occluders between follow target and final camera pose
 - consult `U_VFXSelectors.is_occlusion_silhouette_enabled(state)`
 - publish `EVENT_SILHOUETTE_UPDATE_REQUEST` only when the persisted VFX toggle is enabled
-- use payload `{entity_id, occluders, enabled}` so `M_VFXManager` can reuse existing player gating and transition blocking
-- dispatch `U_VCamActions.update_silhouette_count(...)` on count changes
+- use payload `{entity_id, occluders, enabled}` so `M_VFXManager` can reuse existing player gating/transition blocking for apply updates and still honor explicit clear events during transitions
+- dispatch `U_VCamActions.update_silhouette_count(...)` from `M_VFXManager` using helper post-filtered active count
 - clear all silhouettes when gameplay ends, no active vCam exists, or scene transition ownership changes
 - validate follow target is still valid before occlusion detection each tick; skip detection if target is invalid
 - use the active gameplay camera world for raycasts; never use the root manager node's world
