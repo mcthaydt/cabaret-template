@@ -24,6 +24,15 @@ func test_silhouette_event_sets_transparency_on_occluders() -> void:
 		"enabled": true,
 	})
 	manager._physics_process(0.0)
+	assert_almost_eq(target.transparency, 0.0, 0.001,
+		"First detection frame should not apply silhouette due debounce")
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
+		"entity_id": StringName("player"),
+		"occluders": [target],
+		"enabled": true,
+	})
+	manager._physics_process(0.0)
 
 	assert_almost_eq(target.transparency, U_VCamSilhouetteHelper.DEFAULT_SILHOUETTE_TRANSPARENCY, 0.001,
 		"VFX manager should set transparency on occluder from event payload")
@@ -33,6 +42,12 @@ func test_silhouette_disable_restores_transparency() -> void:
 	var target := _create_mesh_target()
 	var original_transparency: float = target.transparency
 
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
+		"entity_id": StringName("player"),
+		"occluders": [target],
+		"enabled": true,
+	})
+	manager._physics_process(0.0)
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
 		"entity_id": StringName("player"),
 		"occluders": [target],
@@ -56,6 +71,12 @@ func test_silhouette_preserves_material_override() -> void:
 	var original_material := StandardMaterial3D.new()
 	target.material_override = original_material
 
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
+		"entity_id": StringName("player"),
+		"occluders": [target],
+		"enabled": true,
+	})
+	manager._physics_process(0.0)
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
 		"entity_id": StringName("player"),
 		"occluders": [target],

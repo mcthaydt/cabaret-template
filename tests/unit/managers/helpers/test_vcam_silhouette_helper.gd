@@ -144,3 +144,58 @@ func test_foreign_shader_override_preserved_through_cycle() -> void:
 	helper.remove_silhouette(target)
 
 	assert_eq(target.material_override, foreign_shader, "Foreign shader should survive apply/remove cycle")
+
+func test_update_silhouettes_requires_two_consecutive_frames_before_apply() -> void:
+	var helper := U_VCAM_SILHOUETTE_HELPER.new()
+	var target := _create_mesh_target()
+
+	helper.update_silhouettes([target], true)
+	assert_almost_eq(target.transparency, 0.0, 0.001, "First detection frame should not apply silhouette yet")
+	assert_eq(helper.get_active_count(), 0)
+
+	helper.update_silhouettes([target], true)
+	assert_almost_eq(target.transparency, U_VCamSilhouetteHelper.DEFAULT_SILHOUETTE_TRANSPARENCY, 0.001)
+	assert_eq(helper.get_active_count(), 1)
+
+func test_update_silhouettes_uses_single_frame_grace_before_removal() -> void:
+	var helper := U_VCAM_SILHOUETTE_HELPER.new()
+	var target := _create_mesh_target()
+
+	helper.update_silhouettes([target], true)
+	helper.update_silhouettes([target], true)
+	assert_eq(helper.get_active_count(), 1)
+
+	helper.update_silhouettes([], true)
+	assert_eq(helper.get_active_count(), 1, "One missing frame should keep silhouette active")
+	assert_almost_eq(target.transparency, U_VCamSilhouetteHelper.DEFAULT_SILHOUETTE_TRANSPARENCY, 0.001)
+
+	helper.update_silhouettes([], true)
+	assert_eq(helper.get_active_count(), 0, "Second missing frame should clear silhouette")
+	assert_almost_eq(target.transparency, 0.0, 0.001)
+
+func test_update_silhouettes_does_not_reapply_when_occluders_unchanged() -> void:
+	var helper := U_VCAM_SILHOUETTE_HELPER.new()
+	var target := _create_mesh_target()
+
+	helper.update_silhouettes([target], true)
+	helper.update_silhouettes([target], true)
+	assert_eq(helper.get_active_count(), 1)
+
+	target.transparency = 0.25
+	helper.update_silhouettes([target], true)
+	assert_almost_eq(target.transparency, 0.25, 0.001, "Stable occluder set should not force reapply every frame")
+	assert_eq(helper.get_active_count(), 1)
+
+func test_update_silhouettes_ignores_order_changes_without_flicker() -> void:
+	var helper := U_VCAM_SILHOUETTE_HELPER.new()
+	var first := _create_mesh_target()
+	var second := _create_mesh_target()
+
+	helper.update_silhouettes([first, second], true)
+	helper.update_silhouettes([second, first], true)
+	assert_eq(helper.get_active_count(), 2)
+	assert_almost_eq(first.transparency, U_VCamSilhouetteHelper.DEFAULT_SILHOUETTE_TRANSPARENCY, 0.001)
+	assert_almost_eq(second.transparency, U_VCamSilhouetteHelper.DEFAULT_SILHOUETTE_TRANSPARENCY, 0.001)
+
+	helper.update_silhouettes([first, second], true)
+	assert_eq(helper.get_active_count(), 2, "Order-only changes should not churn active silhouettes")

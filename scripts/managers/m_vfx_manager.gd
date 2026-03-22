@@ -351,16 +351,6 @@ func _process_silhouette_request(event_data: Dictionary) -> void:
 
 	var payload: Dictionary = event_data.get("payload", {})
 	var enabled: bool = bool(payload.get("enabled", true))
-	if not enabled:
-		_silhouette_helper.remove_all_silhouettes()
-		return
 
 	var occluders_variant: Variant = payload.get("occluders", [])
-	var occluders: Array = []
-	if occluders_variant is Array:
-		occluders = (occluders_variant as Array).duplicate(false)
-
-	_silhouette_helper.remove_all_silhouettes()
-	for occluder_variant in occluders:
-		if occluder_variant is GeometryInstance3D:
-			_silhouette_helper.apply_silhouette(occluder_variant as GeometryInstance3D)
+	_silhouette_helper.update_silhouettes(occluders_variant, enabled)
