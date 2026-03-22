@@ -11,6 +11,7 @@ const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vca
 const RS_VCAM_RESPONSE := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 const RS_VCAM_SOFT_ZONE := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
+const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 
@@ -1105,9 +1106,7 @@ func test_look_filter_release_decay_deactivates_input_after_hold_window() -> voi
 	assert_false(bool(look_state.get("input_active", true)), "Release decay should eventually clear active look state")
 
 func test_look_filter_large_spike_release_decay_clears_activity_promptly() -> void:
-	var system := S_VCAM_SYSTEM.new()
-	autofree(system)
-	system.debug_rotation_logging = false
+	var helper := U_VCAM_LOOK_INPUT.new()
 
 	var response_values := {
 		"look_input_deadzone": 0.02,
@@ -1116,27 +1115,23 @@ func test_look_filter_large_spike_release_decay_clears_activity_promptly() -> vo
 	}
 	var vcam_id := StringName("cam_look_filter_spike")
 
-	var first_filtered_variant: Variant = system.call(
-		"_resolve_filtered_look_input",
+	var first_filtered: Vector2 = helper.filter_look_input(
 		vcam_id,
 		Vector2(-217.0, 194.0),
 		response_values,
 		0.016
 	)
-	assert_true(first_filtered_variant is Vector2)
-	var first_filtered := first_filtered_variant as Vector2
 	assert_true(first_filtered.length() > 200.0)
 
 	for _i in range(48):
-		system.call(
-			"_resolve_filtered_look_input",
+		helper.filter_look_input(
 			vcam_id,
 			Vector2.ZERO,
 			response_values,
 			0.016
 		)
 
-	var filter_state_all: Dictionary = system.get("_look_input_filter_state") as Dictionary
+	var filter_state_all: Dictionary = helper.get_state_snapshot()
 	var filter_state := filter_state_all.get(vcam_id, {}) as Dictionary
 	assert_false(
 		bool(filter_state.get("input_active", true)),

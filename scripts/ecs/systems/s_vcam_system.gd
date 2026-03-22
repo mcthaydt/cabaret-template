@@ -10,6 +10,7 @@ const U_INPUT_SELECTORS := preload("res://scripts/state/selectors/u_input_select
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 const U_VCAM_SOFT_ZONE := preload("res://scripts/managers/helpers/u_vcam_soft_zone.gd")
+const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
 const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
@@ -28,9 +29,6 @@ const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
 const LOOK_AHEAD_MOVEMENT_EPSILON_SQ: float = 0.000001
 const IDLE_LOOK_SETTLE_DEG_PER_HZ: float = 20.0
 const MIN_IDLE_LOOK_SETTLE_DEG_PER_SEC: float = 45.0
-const DEFAULT_LOOK_INPUT_DEADZONE: float = 0.02
-const DEFAULT_LOOK_INPUT_HOLD_SEC: float = 0.06
-const DEFAULT_LOOK_INPUT_RELEASE_DECAY: float = 25.0
 const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
 const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0
 const DEFAULT_LOOK_RELEASE_STOP_THRESHOLD: float = 0.05
@@ -53,7 +51,7 @@ var _look_rotation_state: Dictionary = {}  # StringName -> {smoothed_yaw, smooth
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
 var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
 var _ground_relative_state: Dictionary = {}  # StringName -> {follow_target_id, ground_anchor_y, ground_anchor_target_y, follow_anchor_y_offset, last_ground_reference_y, was_grounded, blend_hz, dynamics}
-var _look_input_filter_state: Dictionary = {}  # StringName -> {filtered_input, hold_timer_sec, input_active}
+var _look_input_helper = U_VCAM_LOOK_INPUT.new()
 var _follow_target_motion_state: Dictionary = {}  # StringName -> {follow_target_id, last_position, speed_mps}
 var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
 var _orbit_centering_state: Dictionary = {}  # StringName -> {start_yaw,start_pitch,target_yaw,target_pitch,elapsed_sec,duration_sec}
@@ -274,13 +272,14 @@ func _evaluate_and_submit(
 		return
 
 	var response_values: Dictionary = _resolve_component_response_values(component)
-	var filtered_look_input: Vector2 = _resolve_filtered_look_input(
+	_look_input_helper.debug_enabled = debug_rotation_logging
+	var filtered_look_input: Vector2 = _look_input_helper.filter_look_input(
 		vcam_id,
 		look_input,
 		response_values,
 		delta
 	)
-	var has_active_look_input: bool = _is_filtered_look_input_active(
+	var has_active_look_input: bool = _look_input_helper.is_active(
 		filtered_look_input,
 		response_values
 	)
@@ -1360,101 +1359,6 @@ func _resolve_component_response_values(component: C_VCamComponent) -> Dictionar
 		return {}
 	return _resolve_response_values(response)
 
-func _resolve_filtered_look_input(
-	vcam_id: StringName,
-	raw_look_input: Vector2,
-	response_values: Dictionary,
-	delta: float
-) -> Vector2:
-	if response_values.is_empty():
-		var raw_active_without_response: bool = not raw_look_input.is_zero_approx()
-		_look_input_filter_state[vcam_id] = {
-			"filtered_input": raw_look_input,
-			"hold_timer_sec": 0.0,
-			"input_active": raw_active_without_response,
-			"raw_input_active": raw_active_without_response,
-		}
-		return raw_look_input
-
-	var deadzone: float = maxf(
-		float(response_values.get("look_input_deadzone", DEFAULT_LOOK_INPUT_DEADZONE)),
-		0.0
-	)
-	var hold_sec: float = maxf(
-		float(response_values.get("look_input_hold_sec", DEFAULT_LOOK_INPUT_HOLD_SEC)),
-		0.0
-	)
-	var release_decay: float = maxf(
-		float(response_values.get("look_input_release_decay", DEFAULT_LOOK_INPUT_RELEASE_DECAY)),
-		0.0
-	)
-
-	var state_variant: Variant = _look_input_filter_state.get(vcam_id, {})
-	var filtered_input: Vector2 = Vector2.ZERO
-	var hold_timer_sec: float = 0.0
-	var input_active: bool = false
-	var previous_raw_input_active: bool = false
-	var previous_filtered_input: Vector2 = Vector2.ZERO
-	var previous_input_active: bool = false
-	if state_variant is Dictionary:
-		var state := state_variant as Dictionary
-		var filtered_variant: Variant = state.get("filtered_input", Vector2.ZERO)
-		if filtered_variant is Vector2:
-			filtered_input = filtered_variant as Vector2
-			previous_filtered_input = filtered_input
-		hold_timer_sec = maxf(float(state.get("hold_timer_sec", 0.0)), 0.0)
-		input_active = bool(state.get("input_active", false))
-		previous_input_active = input_active
-		previous_raw_input_active = bool(state.get("raw_input_active", false))
-
-	var has_raw_input: bool = _is_filtered_look_input_active(raw_look_input, response_values)
-	if has_raw_input:
-		filtered_input = raw_look_input
-		hold_timer_sec = hold_sec
-		input_active = true
-	else:
-		hold_timer_sec = maxf(hold_timer_sec - maxf(delta, 0.0), 0.0)
-		if hold_timer_sec <= 0.0:
-			if release_decay > 0.0 and delta > 0.0:
-				var decay_factor: float = clampf(release_decay * delta, 0.0, 1.0)
-				filtered_input = filtered_input.lerp(Vector2.ZERO, decay_factor)
-			else:
-				filtered_input = Vector2.ZERO
-		input_active = _is_filtered_look_input_active(filtered_input, response_values)
-		if not input_active and filtered_input.length_squared() <= deadzone * deadzone:
-			filtered_input = Vector2.ZERO
-
-	_debug_log_look_filter_state_transition(
-		vcam_id,
-		raw_look_input,
-		filtered_input,
-		has_raw_input,
-		previous_raw_input_active,
-		previous_input_active,
-		input_active,
-		previous_filtered_input,
-		hold_timer_sec,
-		deadzone,
-		hold_sec,
-		release_decay
-	)
-	_look_input_filter_state[vcam_id] = {
-		"filtered_input": filtered_input,
-		"hold_timer_sec": hold_timer_sec,
-		"input_active": input_active,
-		"raw_input_active": has_raw_input,
-	}
-	return filtered_input
-
-func _is_filtered_look_input_active(look_input: Vector2, response_values: Dictionary) -> bool:
-	if response_values.is_empty():
-		return not look_input.is_zero_approx()
-	var deadzone: float = maxf(
-		float(response_values.get("look_input_deadzone", DEFAULT_LOOK_INPUT_DEADZONE)),
-		0.0
-	)
-	return look_input.length_squared() > deadzone * deadzone
-
 func _sample_follow_target_speed(vcam_id: StringName, follow_target: Node3D, delta: float) -> float:
 	if follow_target == null or not is_instance_valid(follow_target):
 		_follow_target_motion_state.erase(vcam_id)
@@ -1584,14 +1488,6 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
-	for vcam_id_variant in _look_input_filter_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
 	for vcam_id_variant in _follow_target_motion_state.keys():
 		var vcam_id := vcam_id_variant as StringName
 		if vcam_index.has(vcam_id):
@@ -1636,6 +1532,7 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 		_clear_smoothing_state_for_vcam(stale_id)
 		_orbit_centering_state.erase(stale_id)
 		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
+	_look_input_helper.prune(vcam_index.keys())
 
 func _clear_all_smoothing_state() -> void:
 	_follow_dynamics.clear()
@@ -1645,7 +1542,7 @@ func _clear_all_smoothing_state() -> void:
 	_rotation_target_cache.clear()
 	_look_ahead_state.clear()
 	_ground_relative_state.clear()
-	_look_input_filter_state.clear()
+	_look_input_helper.clear_all()
 	_follow_target_motion_state.clear()
 	_orbit_no_look_input_timers.clear()
 	_orbit_centering_state.clear()
@@ -1665,7 +1562,7 @@ func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_rotation_target_cache.erase(vcam_id)
 	_look_ahead_state.erase(vcam_id)
 	_ground_relative_state.erase(vcam_id)
-	_look_input_filter_state.erase(vcam_id)
+	_look_input_helper.clear_for_vcam(vcam_id)
 	_follow_target_motion_state.erase(vcam_id)
 	_orbit_no_look_input_timers.erase(vcam_id)
 	_debug_follow_target_ids.erase(vcam_id)
@@ -2330,9 +2227,9 @@ func _build_response_signature(response_values: Dictionary) -> Array[float]:
 		float(response_values.get("rotation_frequency", 4.0)),
 		float(response_values.get("rotation_damping", 1.0)),
 		float(response_values.get("rotation_initial_response", 1.0)),
-		float(response_values.get("look_input_deadzone", DEFAULT_LOOK_INPUT_DEADZONE)),
-		float(response_values.get("look_input_hold_sec", DEFAULT_LOOK_INPUT_HOLD_SEC)),
-		float(response_values.get("look_input_release_decay", DEFAULT_LOOK_INPUT_RELEASE_DECAY)),
+		float(response_values.get("look_input_deadzone", U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_DEADZONE)),
+		float(response_values.get("look_input_hold_sec", U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_HOLD_SEC)),
+		float(response_values.get("look_input_release_decay", U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_RELEASE_DECAY)),
 		float(response_values.get("look_release_yaw_damping", DEFAULT_LOOK_RELEASE_YAW_DAMPING)),
 		float(response_values.get("look_release_pitch_damping", DEFAULT_LOOK_RELEASE_PITCH_DAMPING)),
 		float(response_values.get("look_release_stop_threshold", DEFAULT_LOOK_RELEASE_STOP_THRESHOLD)),
@@ -2652,51 +2549,6 @@ func _debug_log_look_input_transition(vcam_id: StringName, look_input: Vector2) 
 		)
 
 	_debug_last_look_input_by_vcam[vcam_id] = look_input
-
-func _debug_log_look_filter_state_transition(
-	vcam_id: StringName,
-	raw_look_input: Vector2,
-	filtered_look_input: Vector2,
-	raw_input_active: bool,
-	previous_raw_input_active: bool,
-	previous_filtered_active: bool,
-	filtered_active: bool,
-	previous_filtered_input: Vector2,
-	hold_timer_sec: float,
-	deadzone: float,
-	hold_sec: float,
-	release_decay: float
-) -> void:
-	if not debug_rotation_logging:
-		return
-
-	var raw_changed: bool = previous_raw_input_active != raw_input_active
-	var filtered_changed: bool = previous_filtered_active != filtered_active
-	var release_tail_active: bool = (
-		not raw_input_active
-		and filtered_active
-		and hold_timer_sec <= 0.0
-		and filtered_look_input.length() > deadzone
-	)
-	if not raw_changed and not filtered_changed and not release_tail_active:
-		return
-
-	print(
-		"S_VCamSystem[debug] look_filter: vcam_id=%s raw=%s raw_active=%s filtered=%s prev_filtered=%s filtered_active=%s->%s hold_timer=%.4f deadzone=%.4f hold=%.4f decay=%.4f"
-		% [
-			String(vcam_id),
-			str(raw_look_input),
-			str(raw_input_active),
-			str(filtered_look_input),
-			str(previous_filtered_input),
-			str(previous_filtered_active),
-			str(filtered_active),
-			hold_timer_sec,
-			deadzone,
-			hold_sec,
-			release_decay,
-		]
-	)
 
 func _debug_log_look_spring_stage_transition(
 	vcam_id: StringName,
