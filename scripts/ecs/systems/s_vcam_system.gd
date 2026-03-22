@@ -21,7 +21,6 @@ const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_mov
 const C_CHARACTER_STATE_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
-const RS_VCAM_MODE_FIXED_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
 
@@ -49,7 +48,6 @@ const DEFAULT_AIM_BLEND_DURATION: float = 0.15
 
 var _state_store: I_StateStore = null
 var _vcam_manager: Node = null
-var _path_follow_helpers: Dictionary = {}  # StringName -> PathFollow3D
 var _follow_dynamics: Dictionary = {}  # StringName -> U_SecondOrderDynamics3D
 var _rotation_dynamics: Dictionary = {}  # StringName -> {x, y, z}
 var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_target_id, response_signature}
@@ -109,7 +107,6 @@ func process_tick(delta: float) -> void:
 		_debug_log_vcam_state("blocked: vcam_index is empty", active_vcam_id, Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
 		return
-	_prune_path_helpers(vcam_index)
 	_prune_smoothing_state(vcam_index)
 	_apply_rotation_continuity_policy(active_vcam_id, vcam_index, manager)
 
@@ -155,7 +152,6 @@ func get_debug_issues() -> Array[String]:
 
 func _exit_tree() -> void:
 	_unsubscribe_events()
-	_teardown_path_helpers()
 	_clear_all_smoothing_state()
 	_clear_landing_impact_recovery_state()
 	_look_ahead_state.clear()
@@ -234,14 +230,6 @@ func _apply_rotation_transition(outgoing_component: C_VCamComponent, incoming_co
 		)
 		return
 
-	if (
-		outgoing_mode_script == RS_VCAM_MODE_FIXED_SCRIPT
-		and _is_look_driven_mode_script(incoming_mode_script)
-	):
-		var authored_angles: Vector2 = _resolve_authored_rotation(incoming_component.mode)
-		incoming_component.runtime_yaw = authored_angles.x
-		incoming_component.runtime_pitch = 0.0
-
 func _is_look_driven_mode_script(mode_script: Script) -> bool:
 	if mode_script == null:
 		return false
@@ -313,26 +301,9 @@ func _evaluate_and_submit(
 
 	var follow_target: Node3D = _resolve_follow_target(component)
 	_debug_log_follow_target_resolution(vcam_id, component, follow_target)
-	var mode_values: Dictionary = _resolve_mode_values(mode, {})
-	var follow_target_required: bool = _is_follow_target_required(mode, mode_values)
+	var follow_target_required: bool = _is_follow_target_required(mode)
 	if follow_target_required and (follow_target == null or not is_instance_valid(follow_target)):
 		_update_active_target_observability(vcam_id, manager, false, "target_freed")
-		return
-
-	var fixed_anchor: Node3D = _resolve_fixed_anchor_for_component(component, mode, mode_values)
-	if _is_path_fixed_mode(mode):
-		fixed_anchor = _resolve_or_create_path_anchor(component, follow_target)
-		if fixed_anchor == null:
-			_update_active_target_observability(vcam_id, manager, false, "path_anchor_invalid")
-			return
-	else:
-		if _is_fixed_anchor_required(mode, mode_values):
-			if fixed_anchor == null or not is_instance_valid(fixed_anchor):
-				_update_active_target_observability(vcam_id, manager, false, "anchor_invalid")
-				return
-
-	if fixed_anchor != null and not is_instance_valid(fixed_anchor):
-		_update_active_target_observability(vcam_id, manager, false, "anchor_invalid")
 		return
 
 	var response_values: Dictionary = _resolve_component_response_values(component)
@@ -374,8 +345,7 @@ func _evaluate_and_submit(
 		follow_target,
 		look_at_target,
 		runtime_rotation.x,
-		runtime_rotation.y,
-		fixed_anchor
+		runtime_rotation.y
 	)
 	if result.is_empty():
 		_update_active_target_observability(vcam_id, manager, false, "evaluation_failed")
@@ -1839,80 +1809,6 @@ func _resolve_mode_values(mode: Resource, fallback: Dictionary) -> Dictionary:
 		return fallback.duplicate(true)
 	return resolved_values
 
-func _is_path_fixed_mode(mode: Resource) -> bool:
-	if mode == null:
-		return false
-	var mode_script := mode.get_script() as Script
-	if mode_script != RS_VCAM_MODE_FIXED_SCRIPT:
-		return false
-	var fixed_values: Dictionary = _resolve_mode_values(mode, {"use_path": false})
-	return bool(fixed_values.get("use_path", false))
-
-func _resolve_or_create_path_anchor(component: C_VCamComponent, follow_target: Node3D) -> Node3D:
-	if component == null:
-		return null
-
-	var path_node: Path3D = component.get_path_node()
-	if path_node == null or not is_instance_valid(path_node):
-		return null
-
-	var vcam_id: StringName = _resolve_component_vcam_id(component)
-	if vcam_id == StringName(""):
-		return null
-
-	var helper := _path_follow_helpers.get(vcam_id, null) as PathFollow3D
-	if helper == null or not is_instance_valid(helper):
-		helper = PathFollow3D.new()
-		helper.name = "PathFollow_%s" % String(vcam_id)
-		path_node.add_child(helper)
-		_path_follow_helpers[vcam_id] = helper
-	elif helper.get_parent() != path_node:
-		if helper.get_parent() != null:
-			helper.get_parent().remove_child(helper)
-		path_node.add_child(helper)
-
-	if follow_target == null or not is_instance_valid(follow_target):
-		return null
-	if path_node.curve == null:
-		return null
-
-	var local_target_position: Vector3 = path_node.to_local(follow_target.global_position)
-	helper.progress = path_node.curve.get_closest_offset(local_target_position)
-	return helper
-
-func _resolve_fixed_anchor_for_component(
-	component: C_VCamComponent,
-	mode: Resource,
-	mode_values: Dictionary
-) -> Node3D:
-	if component == null:
-		return null
-	var fixed_anchor: Node3D = component.get_fixed_anchor()
-	if fixed_anchor != null and is_instance_valid(fixed_anchor):
-		return fixed_anchor
-	if not _is_fixed_anchor_required(mode, mode_values):
-		return fixed_anchor
-	var entity_root: Node = U_ECS_UTILS.find_entity_root(component)
-	if entity_root == null or not is_instance_valid(entity_root):
-		return null
-	return entity_root as Node3D
-
-func _prune_path_helpers(vcam_index: Dictionary) -> void:
-	var stale_ids: Array[StringName] = []
-	for vcam_id_variant in _path_follow_helpers.keys():
-		var vcam_id := vcam_id_variant as StringName
-		var helper := _path_follow_helpers.get(vcam_id, null) as PathFollow3D
-		if helper == null or not is_instance_valid(helper):
-			stale_ids.append(vcam_id)
-			continue
-		if not vcam_index.has(vcam_id):
-			stale_ids.append(vcam_id)
-			helper.queue_free()
-			continue
-
-	for stale_id in stale_ids:
-		_path_follow_helpers.erase(stale_id)
-
 func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 	var stale_ids: Array[StringName] = []
 
@@ -2015,14 +1911,6 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 		_clear_first_person_strafe_tilt_state_for_vcam(stale_id)
 		_orbit_centering_state.erase(stale_id)
 		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
-
-func _teardown_path_helpers() -> void:
-	for helper_variant in _path_follow_helpers.values():
-		var helper := helper_variant as PathFollow3D
-		if helper == null or not is_instance_valid(helper):
-			continue
-		helper.queue_free()
-	_path_follow_helpers.clear()
 
 func _clear_all_smoothing_state() -> void:
 	_follow_dynamics.clear()
@@ -2510,7 +2398,6 @@ func _apply_response_smoothing(
 		vcam_id,
 		raw_result,
 		raw_transform,
-		target_euler,
 		mode_script,
 		delta,
 		has_active_look_input,
@@ -2522,7 +2409,6 @@ func _step_smoothing_state(
 	vcam_id: StringName,
 	raw_result: Dictionary,
 	raw_transform: Transform3D,
-	target_euler: Vector3,
 	mode_script: Script,
 	delta: float,
 	has_active_look_input: bool,
@@ -2532,11 +2418,6 @@ func _step_smoothing_state(
 	var follow_dynamics: Variant = _follow_dynamics.get(vcam_id, null)
 	if follow_dynamics == null:
 		return raw_result
-
-	var rotation_entry_variant: Variant = _rotation_dynamics.get(vcam_id, {})
-	if not (rotation_entry_variant is Dictionary):
-		return raw_result
-	var rotation_entry := rotation_entry_variant as Dictionary
 
 	var bypass_non_fixed_position_smoothing: bool = _should_bypass_orbit_position_smoothing(
 		vcam_id,
@@ -2595,18 +2476,7 @@ func _step_smoothing_state(
 		return raw_result
 
 	var smooth_position: Vector3 = follow_dynamics.step(raw_transform.origin, delta)
-	if mode_script != RS_VCAM_MODE_FIXED_SCRIPT:
-		var smooth_transform_non_fixed := Transform3D(raw_transform.basis.orthonormalized(), smooth_position)
-		var non_fixed_result: Dictionary = raw_result.duplicate(true)
-		non_fixed_result["transform"] = smooth_transform_non_fixed
-		return non_fixed_result
-
-	var smooth_x: float = _step_rotation_axis(rotation_entry, StringName("x"), target_euler.x, delta)
-	var smooth_y: float = _step_rotation_axis(rotation_entry, StringName("y"), target_euler.y, delta)
-	var smooth_z: float = _step_rotation_axis(rotation_entry, StringName("z"), target_euler.z, delta)
-	var smooth_basis: Basis = _compose_basis_from_euler(Vector3(smooth_x, smooth_y, smooth_z))
-
-	var smooth_transform := Transform3D(smooth_basis, smooth_position)
+	var smooth_transform := Transform3D(raw_transform.basis.orthonormalized(), smooth_position)
 	var smoothed_result: Dictionary = raw_result.duplicate(true)
 	smoothed_result["transform"] = smooth_transform
 	return smoothed_result
@@ -2887,7 +2757,7 @@ func _update_active_target_observability(
 	})
 	manager.set_active_vcam(StringName(""))
 
-func _is_follow_target_required(mode: Resource, mode_values: Dictionary) -> bool:
+func _is_follow_target_required(mode: Resource) -> bool:
 	if mode == null:
 		return false
 	var mode_script := mode.get_script() as Script
@@ -2895,21 +2765,7 @@ func _is_follow_target_required(mode: Resource, mode_values: Dictionary) -> bool
 		return true
 	if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
 		return true
-	if mode_script != RS_VCAM_MODE_FIXED_SCRIPT:
-		return false
-	var use_path: bool = bool(mode_values.get("use_path", false))
-	if use_path:
-		return true
-	var use_world_anchor: bool = bool(mode_values.get("use_world_anchor", true))
-	return not use_world_anchor
-
-func _is_fixed_anchor_required(mode: Resource, mode_values: Dictionary) -> bool:
-	if mode == null:
-		return false
-	var mode_script := mode.get_script() as Script
-	if mode_script != RS_VCAM_MODE_FIXED_SCRIPT:
-		return false
-	return bool(mode_values.get("use_world_anchor", true))
+	return false
 
 func _resolve_state_store() -> I_StateStore:
 	if _state_store != null and is_instance_valid(_state_store):
