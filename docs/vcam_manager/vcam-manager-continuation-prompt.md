@@ -4,11 +4,11 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1H` are complete; Phase `2A` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1I` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2A` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 2 helper extraction (`2A` onward).
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 2 helper extraction (`2A` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
 - Immediate implementation target: Phase `2A` (`U_VCamLookInput`) Red/Green/Refactor extraction from `s_vcam_system.gd`.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
@@ -118,6 +118,21 @@
   - documentation cadence completed (`vcam-refactor-tasks.md` + this continuation prompt)
   - `AGENTS.md` Stage-1 contract cleanup removed stale OTS/fixed mode guidance and aligned vCam runtime contracts to orbit + first-person only
 - Phase 2 is now unblocked (`2A` helper extraction kickoff).
+
+## Refactor Phase 1I (March 22, 2026)
+
+- Completed first-person mode + aim pipeline removal (orbit is now the sole mode):
+  - `s_vcam_system.gd`: removed FP mode script const, aim state vars, all aim/FP functions (~300 lines), FP branches from rotation/mode-gating helpers, simplified mode checks to orbit-only
+  - `u_vcam_mode_evaluator.gd`: removed FP const, dispatch branch, `_evaluate_first_person()`, `_resolve_first_person_values()`
+  - Input/state layer: removed `aim_pressed` from `c_input_component.gd`, `s_input_system.gd`, `u_input_actions.gd`, `u_input_reducer.gd`, `u_input_selectors.gd`, and all three input sources + interface
+  - External systems: removed aim from `s_touchscreen_system.gd` and `ui_mobile_controls.gd` (aim long-press handling)
+  - Deleted: `rs_vcam_mode_first_person.gd`, `cfg_default_first_person.tres`, `test_vcam_mode_first_person.gd`
+  - Updated `tmpl_camera.tscn`: removed FP ext_resource + `C_VCamFirstPersonComponent` node
+  - Test cleanup: removed FP/aim tests from evaluator, system, input, touchscreen, reducer, selector, mobile controls suites; removed mode-switch/mode-gating tests that required non-orbit mode; replaced `"first_person"` mode strings with `"custom_mode"` in room-fade/region-visibility tests
+  - `AGENTS.md`: removed FP mode resource contract, aim activation contract, touch aim contract, updated orbit release-smoothing and rotation continuity contracts for orbit-only
+  - Dropped Phase 2F (`u_vcam_first_person_effects.gd`) and Phase 4 (Enhance First-Person) from roadmap
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3405/3414` passing, `9` pending baseline)
 
 ## Phase 12 Integration Tests (March 22, 2026)
 

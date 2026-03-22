@@ -1,6 +1,6 @@
 # vCam Refactor — Task Checklist
 
-**Scope:** Full architectural refactor of the vCam system — remove OTS + Fixed modes, decompose the 4,102-line `s_vcam_system.gd` God object into focused helpers, extract blend management from `m_vcam_manager.gd`, enhance first-person mode, and update contracts/documentation.
+**Scope:** Full architectural refactor of the vCam system — remove OTS, Fixed, and First-Person modes (orbit is the sole shipping mode), decompose the `s_vcam_system.gd` God object into focused helpers, extract blend management from `m_vcam_manager.gd`, and update contracts/documentation.
 
 **Quality target:** Match the modularity of `M_SaveManager` (740 lines + 4 helpers) and `M_SceneManager` (1,172 lines + 7 helpers). Each file 200–500 lines, single responsibility, TDD where applicable.
 
@@ -29,9 +29,9 @@ Before starting Phase 1, verify:
 
 ---
 
-## Phase 1: Remove OTS + Fixed Modes
+## Phase 1: Remove OTS + Fixed + First-Person Modes
 
-**Exit Criteria:** All remaining tests pass. Only orbit + first-person modes remain. Zero references to OTS/fixed in production code. Aim activation repurposed: `aim_pressed` toggles to dedicated first-person vCam.
+**Exit Criteria:** All remaining tests pass. Orbit is the sole mode. Zero references to OTS/fixed/first-person in production code. Aim pipeline (`aim_pressed`) removed entirely.
 
 ### Phase 1A: Remove OTS from s_vcam_system.gd
 
@@ -265,11 +265,54 @@ Completion notes (2026-03-22):
   - this task file updated through `1H`
   - `AGENTS.md` Stage-1 cleanup removed stale OTS/fixed vCam contracts and aligned runtime guidance to orbit + first-person
 
+### Phase 1I: Remove First-Person Mode + Aim Pipeline
+
+- [x] **Task 1I-A**: Remove FP from `s_vcam_system.gd`
+  - Removed `RS_VCAM_MODE_FIRST_PERSON_SCRIPT` const, `DEFAULT_AIM_BLEND_DURATION` const, `_first_person_strafe_tilt_state` dict
+  - Removed aim state vars (`_aim_restore_vcam_id`, `_aim_toggled_on`, `_aim_prev_pressed`)
+  - Removed all aim/FP functions (`_apply_first_person_strafe_tilt`, `_ensure_first_person_strafe_tilt_state`, `_clear_first_person_strafe_tilt_state_for_vcam`, `_process_aim_activation`, `_find_aim_target_fp_vcam_id`, `_is_first_person_mode`, `_resolve_aim_blend_duration`, `_resolve_aim_exit_blend_duration`, `_read_aim_pressed`, `_is_look_driven_mode_script`)
+  - Removed FP branch from `_update_runtime_rotation` and cross-mode rotation transition
+  - Simplified mode-gated helpers to orbit-only checks
+
+- [x] **Task 1I-B**: Remove FP from `u_vcam_mode_evaluator.gd`
+  - Removed `RS_VCAM_MODE_FIRST_PERSON_SCRIPT` const, FP dispatch branch, `_evaluate_first_person()`, `_resolve_first_person_values()`
+
+- [x] **Task 1I-C**: Remove aim from input/state layer
+  - `c_input_component.gd`: removed `aim_pressed` + `set_aim_pressed()`
+  - `s_input_system.gd`: removed `aim_action` export, aim capture/dispatch/validation
+  - `u_input_actions.gd`: removed `ACTION_UPDATE_AIM_STATE` + `update_aim_state()`
+  - `u_input_reducer.gd`: removed `aim_pressed` from state + reduction
+  - `u_input_selectors.gd`: removed `is_aim_pressed()`
+  - Input sources (`keyboard_mouse_source.gd`, `gamepad_source.gd`, `touchscreen_source.gd`, `i_input_source.gd`): removed `aim_pressed` from payloads/contracts
+
+- [x] **Task 1I-D**: Remove aim from external systems
+  - `s_touchscreen_system.gd`: removed aim dispatch/consume
+  - `ui_mobile_controls.gd`: removed all aim long-press state/constants/functions
+
+- [x] **Task 1I-E**: Delete FP resources + update scene
+  - Deleted `rs_vcam_mode_first_person.gd` + `cfg_default_first_person.tres`
+  - Updated `tmpl_camera.tscn`: removed FP ext_resource + `C_VCamFirstPersonComponent` node
+
+- [x] **Task 1I-F**: Update tests
+  - Deleted `test_vcam_mode_first_person.gd`
+  - Removed FP/aim tests from evaluator, system, input, touchscreen, reducer, selector, mobile controls suites
+  - Removed mode-switch/mode-gating tests that required non-orbit mode (orbit-only makes them untestable)
+  - Replaced `"first_person"` mode strings with `"custom_mode"` in room-fade/region-visibility tests
+
+- [x] **Task 1I-G**: Commit + update docs
+
+Completion notes (2026-03-22):
+- First-person mode and entire aim pipeline (`aim_pressed`) removed from all production code, tests, resources, and scenes.
+- Orbit is now the sole vCam mode. Mode evaluator dispatches orbit only; unsupported modes return empty dict.
+- Full test suite: 3405 passing, 9 pending (platform/tween skips).
+- Phase 2F (`u_vcam_first_person_effects.gd`) and Phase 4 (Enhance First-Person) dropped from roadmap.
+- Phase 5 dead-code sweep updated to include FP patterns.
+
 ---
 
 ## Phase 2: Extract Helpers from s_vcam_system.gd (TDD)
 
-**Exit Criteria:** `s_vcam_system.gd` is ~400–600 lines. Six extracted helpers each have dedicated unit tests. All existing system/integration tests pass unchanged.
+**Exit Criteria:** `s_vcam_system.gd` is ~400–600 lines. Five extracted helpers each have dedicated unit tests. All existing system/integration tests pass unchanged.
 
 **TDD cadence per helper:** Write unit tests (Red) → Extract code to pass them (Green) → Clean up (Refactor) → Verify existing tests still pass.
 
@@ -364,26 +407,13 @@ Completion notes (2026-03-22):
 - [ ] **Task 2E.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamLandingImpact`
   - Verify all existing tests pass
 
-### Phase 2F: Extract `u_vcam_first_person_effects.gd` *(prerequisite for Phase 4B.2)*
-
-- [ ] **Task 2F.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_first_person_effects.gd`
-  - Test strafe tilt applies roll from lateral movement
-  - Test strafe tilt smooths with second-order dynamics
-  - Test zero tilt angle disables effect
-  - Test prune/clear lifecycle
-  - **Target: ~6 tests**
-
-- [ ] **Task 2F.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_first_person_effects.gd`
-  - Extract strafe tilt functions and `_first_person_strafe_tilt_state`
-
-- [ ] **Task 2F.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamFirstPersonEffects`
-  - Verify all existing tests pass
+### Phase 2F: ~~Extract `u_vcam_first_person_effects.gd`~~ *(DROPPED — Phase 1I removed first-person mode)*
 
 ### Phase 2G: Refactor s_vcam_system.gd as Coordinator
 
 - [ ] **Task 2G.1**: Refactor `_evaluate_and_submit` as thin pipeline
   - Replace all inline logic with helper delegation calls
-  - Pipeline: look_input → rotation → evaluate → fp_effects → orbit_effects → smoother → landing → submit
+  - Pipeline: look_input → rotation → evaluate → orbit_effects → smoother → landing → submit
 
 - [ ] **Task 2G.2**: Refactor prune/clear as coordinator
   - Replace per-dict pruning with `helper.prune()` calls
@@ -433,62 +463,33 @@ Completion notes (2026-03-22):
 
 ---
 
-## Phase 4: Enhance First-Person Mode (TDD)
-
-**Exit Criteria:** First-person is a solid secondary camera mode with opt-in enhancements. All tests pass.
-
-### Phase 4A: First-person enhancement tests
-
-- [ ] **Task 4A.1 (Red)**: Write/update first-person tests
-  - Update `tests/unit/ecs/systems/helpers/test_vcam_first_person_effects.gd` for any new effects
-  - Update `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd` for new resource exports
-  - Candidate features (all opt-in, default 0.0 = disabled):
-    - Sprint FOV boost (`sprint_fov_boost: float`)
-    - Landing head dip (`landing_head_dip: float`)
-
-### Phase 4B: Implement enhancements
-
-- [ ] **Task 4B.1 (Green)**: Add new exports to `rs_vcam_mode_first_person.gd`
-  - Add opt-in exports with defaults that disable the feature
-  - Add to `get_resolved_values()` with validation
-
-- [ ] **Task 4B.2 (Green)**: Implement effects in `u_vcam_first_person_effects.gd` *(depends on Phase 2F)*
-  - Wire new effects through the helper API
-  - Verify all tests pass
-
-### Phase 4C: Phase 4 commit + docs
-
-- [ ] **Task 4C.1**: Commit Phase 4 implementation
-- [ ] **Task 4C.2**: Update continuation prompt and this task file with Phase 4 completion notes
+## ~~Phase 4: Enhance First-Person Mode~~ *(DROPPED — Phase 1I removed first-person mode)*
 
 ---
 
-## Phase 5: Cleanup & Contracts
+## Phase 4 (renumbered): Cleanup & Contracts
 
-**Exit Criteria:** Full test suite green. No stale OTS/fixed references in production code. AGENTS.md reflects refactored architecture. Continuation prompt up to date.
+**Exit Criteria:** Full test suite green. No stale OTS/fixed/FP/aim references in production code. AGENTS.md reflects refactored architecture. Continuation prompt up to date.
 
 ### Phase 5A: Update AGENTS.md
 
-- [ ] **Task 5A.1**: Remove OTS contracts (~15 entries)
+- [ ] **Task 5A.1**: Remove stale mode contracts
   - OTS mode resource, evaluator, collision, shoulder sway, landing response
   - OTS movement-profile, facing-lock, reticle, default movement preset
-  - OTS-specific references in shared contracts (rotation continuity, look smoothing, etc.)
-  - Note: aim activation contracts stay — repurposed for FP toggle
-
-- [ ] **Task 5A.2**: Remove Fixed mode contracts (~5 entries)
   - Fixed mode resource, evaluator, anchor resolution, path following
+  - First-person mode resource, aim activation, aim blend, strafe tilt
+  - Aim pipeline contracts (touch aim, input source aim_pressed)
 
-- [ ] **Task 5A.3**: Add helper architecture contracts
-  - Document 6 extracted system helpers and blend manager helper
+- [ ] **Task 5A.2**: Add helper architecture contracts
+  - Document 5 extracted system helpers and blend manager helper
   - Document coordinator pipeline pattern
-  - Simplify evaluator contract (2 modes, no fixed_anchor param)
-  - Document `aim_pressed` → FP toggle contract (aim activation flow, FP vCam component in scene, aim blend duration exports on `rs_vcam_mode_first_person.gd`)
+  - Simplify evaluator contract (orbit only, no fixed_anchor param)
+  - Update rotation continuity contract for orbit-only
 
 ### Phase 5B: Dead code sweep
 
 - [ ] **Task 5B.1**: Grep for stale references
-  - Patterns to sweep (expect zero hits in production code): `RS_VCAM_MODE_OTS`, `RS_VCAM_MODE_FIXED`, `_ots_`, `OTSReticle`, `shoulder_sway`, `path_follow_helper`, `cfg_default_ots`, `cfg_default_fixed`, `cfg_ots_movement`, `ots_collision`, `C_VCamOTSComponent`, `_is_ots_mode`, `_evaluate_ots`, `_evaluate_fixed`, `_resolve_ots_values`, `_resolve_fixed_values`
-  - Patterns that SHOULD exist (do NOT flag): `aim_pressed`, `aim_toggled`, `aim_restore`, `_aim_restore_vcam_id`, `_aim_toggled_on`, `_aim_prev_pressed`, `_read_aim_pressed`, `aim_blend_duration`, `aim_exit_blend_duration`
+  - Patterns to sweep (expect zero hits in production code): `RS_VCAM_MODE_OTS`, `RS_VCAM_MODE_FIXED`, `RS_VCAM_MODE_FIRST_PERSON`, `_ots_`, `OTSReticle`, `shoulder_sway`, `path_follow_helper`, `cfg_default_ots`, `cfg_default_fixed`, `cfg_default_first_person`, `cfg_ots_movement`, `ots_collision`, `C_VCamOTSComponent`, `C_VCamFirstPersonComponent`, `_is_ots_mode`, `_is_first_person_mode`, `_evaluate_ots`, `_evaluate_fixed`, `_evaluate_first_person`, `_resolve_ots_values`, `_resolve_fixed_values`, `_resolve_first_person_values`, `aim_pressed`, `aim_toggled`, `aim_restore`, `_aim_restore_vcam_id`, `_aim_toggled_on`, `_aim_prev_pressed`, `_read_aim_pressed`, `aim_blend_duration`, `aim_exit_blend_duration`, `consume_aim`, `update_aim_state`, `strafe_tilt`, `head_offset`, `look_multiplier`
   - Verify zero hits for stale patterns in production code (test mocks/historical docs excluded)
 
 - [ ] **Task 5B.2**: Verify no orphaned files
@@ -502,12 +503,12 @@ Completion notes (2026-03-22):
 ### Phase 5C: Update documentation
 
 - [ ] **Task 5C.1**: Update `docs/vcam_manager/vcam-manager-overview.md`
-  - Remove OTS/fixed mode descriptions
+  - Remove OTS/fixed/first-person mode descriptions
   - Add helper architecture section
-  - Document 2-mode system (orbit + first-person)
+  - Document orbit-only mode system
 
 - [ ] **Task 5C.2**: Update `docs/vcam_manager/vcam-manager-continuation-prompt.md`
-  - Reflect refactored architecture (2 modes, helper-based system, blend manager extraction)
+  - Reflect refactored architecture (orbit-only, helper-based system, blend manager extraction)
   - Mark all refactor phases complete with dates
 
 - [ ] **Task 5C.3**: Mark this task file complete
