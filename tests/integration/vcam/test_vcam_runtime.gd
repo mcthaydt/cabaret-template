@@ -27,8 +27,6 @@ const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
-const RS_VCAM_MODE_FIXED := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
-const RS_VCAM_MODE_OTS := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
 const RS_VCAM_BLEND_HINT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
 
 func before_each() -> void:
@@ -83,45 +81,6 @@ func test_orbit_vcam_evaluates_and_submits_through_runtime_pipeline() -> void:
 	assert_false(submitted.is_empty(), "Orbit vCam should submit evaluated results")
 	assert_eq(String(submitted.get("mode_name", "")), "orbit")
 	assert_true(camera_manager.apply_main_transform_calls > 0, "Submitted orbit transform should route through camera manager")
-
-func test_fixed_vcam_evaluates_and_submits_through_runtime_pipeline() -> void:
-	var fixture := await _create_runtime_fixture()
-	autofree_context(fixture)
-	var ecs_manager: M_ECSManager = fixture["ecs_manager"] as M_ECSManager
-	var manager: M_VCamManager = fixture["manager"] as M_VCamManager
-	var camera_manager: MockCameraManager = fixture["camera_manager"] as MockCameraManager
-
-	var target := _create_target_entity(ecs_manager, StringName("player"), Vector3.ZERO)
-	var fixed_mode := _new_fixed_mode()
-	await _create_vcam_component(ecs_manager, StringName("cam_fixed_runtime"), fixed_mode, target, 20, 0.0)
-	manager.set_active_vcam(StringName("cam_fixed_runtime"))
-
-	ecs_manager._physics_process(0.016)
-	manager._physics_process(0.016)
-
-	var submitted := _get_submitted_result(manager, StringName("cam_fixed_runtime"))
-	assert_false(submitted.is_empty(), "Fixed vCam should submit evaluated results")
-	assert_eq(String(submitted.get("mode_name", "")), "fixed")
-	assert_true(camera_manager.apply_main_transform_calls > 0, "Fixed-mode result should route through camera manager")
-
-func test_ots_vcam_evaluates_and_submits_through_runtime_pipeline() -> void:
-	var fixture := await _create_runtime_fixture()
-	autofree_context(fixture)
-	var ecs_manager: M_ECSManager = fixture["ecs_manager"] as M_ECSManager
-	var manager: M_VCamManager = fixture["manager"] as M_VCamManager
-	var camera_manager: MockCameraManager = fixture["camera_manager"] as MockCameraManager
-
-	var target := _create_target_entity(ecs_manager, StringName("player"), Vector3.ZERO)
-	await _create_vcam_component(ecs_manager, StringName("cam_ots_runtime"), _new_ots_mode(), target, 20, 0.0)
-	manager.set_active_vcam(StringName("cam_ots_runtime"))
-
-	ecs_manager._physics_process(0.016)
-	manager._physics_process(0.016)
-
-	var submitted := _get_submitted_result(manager, StringName("cam_ots_runtime"))
-	assert_false(submitted.is_empty(), "OTS vCam should submit evaluated results")
-	assert_eq(String(submitted.get("mode_name", "")), "ots")
-	assert_true(camera_manager.apply_main_transform_calls > 0, "OTS-mode result should route through camera manager")
 
 func test_switching_active_vcams_starts_blend_runtime_state() -> void:
 	var fixture := await _create_runtime_fixture()
@@ -281,19 +240,6 @@ func _new_orbit_mode() -> RS_VCamModeOrbit:
 	mode.allow_player_rotation = false
 	mode.distance = 5.0
 	mode.authored_pitch = -20.0
-	return mode
-
-func _new_fixed_mode() -> RS_VCamModeFixed:
-	var mode := RS_VCAM_MODE_FIXED.new()
-	mode.use_world_anchor = false
-	mode.track_target = false
-	mode.follow_offset = Vector3(0.0, 1.5, 0.0)
-	return mode
-
-func _new_ots_mode() -> RS_VCamModeOTS:
-	var mode := RS_VCAM_MODE_OTS.new()
-	mode.camera_distance = 4.0
-	mode.shoulder_offset = Vector3(0.5, 1.6, 0.0)
 	return mode
 
 func _submit_result(manager: M_VCamManager, vcam_id: StringName, origin: Vector3) -> void:

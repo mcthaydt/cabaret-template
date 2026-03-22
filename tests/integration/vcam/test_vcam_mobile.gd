@@ -27,7 +27,6 @@ const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
-const RS_VCAM_MODE_OTS := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
 
 class VCamManagerStub extends I_VCamManager:
 	var active_vcam_id: StringName = StringName("")
@@ -88,26 +87,6 @@ func test_drag_look_feeds_orbit_camera_through_shared_gameplay_look_input() -> v
 	assert_almost_eq(look_input.x, 18.0, 0.001)
 	assert_almost_eq(look_input.y, -7.0, 0.001)
 	assert_true(absf(component.runtime_yaw) > 0.1, "Orbit runtime yaw should update from touchscreen look input")
-
-func test_drag_look_feeds_ots_camera_through_shared_gameplay_look_input() -> void:
-	var fixture := await _setup_mobile_vcam_fixture(_new_ots_mode(), false)
-	autofree_context(fixture)
-	var controls: UI_MobileControls = fixture["controls"] as UI_MobileControls
-	var ecs_manager: M_ECSManager = fixture["ecs_manager"] as M_ECSManager
-	var store: M_StateStore = fixture["store"] as M_StateStore
-	var component: C_VCamComponent = fixture["component"] as C_VCamComponent
-
-	var start := _get_empty_space_position(controls)
-	var finish := start + Vector2(12.0, 5.0)
-	_drag_mobile_controls(controls, 31, start, finish)
-
-	ecs_manager._physics_process(0.016)
-
-	var gameplay_slice: Dictionary = store.get_slice(StringName("gameplay"))
-	var input_slice: Dictionary = gameplay_slice.get("input", {})
-	var look_input: Vector2 = input_slice.get("look_input", Vector2.ZERO)
-	assert_false(look_input.is_zero_approx(), "Touch drag should dispatch look input for OTS mode as well")
-	assert_true(absf(component.runtime_yaw) > 0.1, "OTS runtime yaw should update from touchscreen look input")
 
 func test_touchscreen_move_and_look_work_simultaneously_on_separate_touches() -> void:
 	var fixture := await _setup_mobile_vcam_fixture(_new_orbit_mode(), false)
@@ -299,13 +278,6 @@ func _new_orbit_mode() -> RS_VCamModeOrbit:
 	mode.lock_y_rotation = false
 	mode.rotation_speed = 1.0
 	mode.distance = 5.0
-	return mode
-
-func _new_ots_mode() -> RS_VCamModeOTS:
-	var mode := RS_VCAM_MODE_OTS.new()
-	mode.look_multiplier = 1.0
-	mode.camera_distance = 4.0
-	mode.shoulder_offset = Vector3(0.5, 1.6, 0.0)
 	return mode
 
 func _await_store_ready(store: M_StateStore) -> void:

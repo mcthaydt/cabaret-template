@@ -932,9 +932,9 @@ func test_live_blend_suppresses_occlusion_and_clears_silhouettes() -> void:
 	hint.ease_type = Tween.EASE_IN_OUT
 
 	var camera_orbit := _create_vcam(StringName("cam_orbit"), 5, true, hint)
-	var camera_ots := _create_vcam(StringName("cam_ots"), 1, true, hint)
+	var camera_secondary := _create_vcam(StringName("cam_secondary"), 1, true, hint)
 	manager.register_vcam(camera_orbit)
-	manager.register_vcam(camera_ots)
+	manager.register_vcam(camera_secondary)
 
 	# Set up occlusion so orbit produces 2 occluders
 	var follow_target := Node3D.new()
@@ -953,13 +953,13 @@ func test_live_blend_suppresses_occlusion_and_clears_silhouettes() -> void:
 	assert_eq((pre_blend_payload.get("occluders", []) as Array).size(), 2,
 		"Pre-blend orbit should publish detected occluders")
 
-	# Start blend from orbit → ots
-	manager.set_active_vcam(StringName("cam_ots"))
+	# Start blend from orbit -> secondary camera
+	manager.set_active_vcam(StringName("cam_secondary"))
 	assert_true(manager.is_blending(), "Blend should be active after set_active_vcam")
 	U_ECS_EVENT_BUS.clear_history()
 
 	# Submit during blend — occluders should be suppressed
-	manager.submit_evaluated_camera(StringName("cam_ots"), {
+	manager.submit_evaluated_camera(StringName("cam_secondary"), {
 		"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 2.0, -2.0)),
 		"fov": 60.0,
 	})
