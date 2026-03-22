@@ -9,12 +9,12 @@ const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_INPUT_SELECTORS := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
+const U_VCAM_LANDING_IMPACT := preload("res://scripts/ecs/systems/helpers/u_vcam_landing_impact.gd")
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
 const U_VCAM_ORBIT_EFFECTS := preload("res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd")
 const U_VCAM_RESPONSE_SMOOTHER := preload("res://scripts/ecs/systems/helpers/u_vcam_response_smoother.gd")
 const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
@@ -44,14 +44,12 @@ var _rotation_helper = U_VCAM_ROTATION.new()
 var _orbit_effects_helper = U_VCAM_ORBIT_EFFECTS.new()
 var _response_smoother = U_VCAM_RESPONSE_SMOOTHER.new()
 var _look_input_helper = U_VCAM_LOOK_INPUT.new()
+var _landing_impact_helper = U_VCAM_LANDING_IMPACT.new()
 var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
 var _last_active_target_valid: bool = true
 var _last_target_recovery_reason: String = ""
 var _last_target_recovery_vcam_id: StringName = StringName("")
-var _landing_recovery_dynamics = null
-var _landing_recovery_state_id: int = 0
-var _landing_recovery_frequency_hz: float = -1.0
 var _debug_rotation_log_cooldown_sec: float = 0.0
 var _debug_state_log_cooldown_sec: float = 0.0
 var _debug_follow_target_ids: Dictionary = {}  # StringName -> int
@@ -171,7 +169,7 @@ func get_debug_issues() -> Array[String]:
 func _exit_tree() -> void:
 	_unsubscribe_events()
 	_clear_all_smoothing_state()
-	_clear_landing_impact_recovery_state()
+	_landing_impact_helper.clear_state()
 	_last_active_vcam_id = StringName("")
 	_last_active_target_valid = true
 	_last_target_recovery_reason = ""
@@ -319,65 +317,23 @@ func _evaluate_and_submit(
 	manager.submit_evaluated_camera(vcam_id, final_result)
 
 func _apply_landing_impact_offset(result: Dictionary, landing_offset: Vector3) -> Dictionary:
-	if landing_offset.is_zero_approx():
-		_debug_log_landing_offset_state(landing_offset)
-		return result
 	_debug_log_landing_offset_state(landing_offset)
-	return _apply_position_offset(result, landing_offset)
+	return _landing_impact_helper.apply_offset(
+		result,
+		landing_offset,
+		Callable(self, "_apply_position_offset")
+	)
 
 func _resolve_landing_impact_offset(delta: float) -> Vector3:
 	var camera_state: Object = _resolve_primary_camera_state_component()
-	if camera_state == null:
-		_clear_landing_impact_recovery_state()
-		return Vector3.ZERO
-
-	var current_offset: Vector3 = _read_camera_state_vector3(camera_state, "landing_impact_offset", Vector3.ZERO)
-	if current_offset.is_zero_approx():
-		_clear_landing_impact_recovery_state()
-		return Vector3.ZERO
-
-	var recovery_speed_hz: float = maxf(
-		_get_camera_state_float(
-			camera_state,
-			"landing_impact_recovery_speed",
-			C_CAMERA_STATE_COMPONENT.DEFAULT_LANDING_IMPACT_RECOVERY_SPEED
-		),
-		0.0
+	return _landing_impact_helper.resolve_offset(
+		delta,
+		camera_state,
+		Callable(self, "_read_camera_state_vector3"),
+		Callable(self, "_get_camera_state_float"),
+		Callable(self, "_write_camera_state_vector3"),
+		C_CAMERA_STATE_COMPONENT.DEFAULT_LANDING_IMPACT_RECOVERY_SPEED
 	)
-	if recovery_speed_hz <= 0.0:
-		_clear_landing_impact_recovery_state()
-		return current_offset
-
-	var camera_state_id: int = camera_state.get_instance_id()
-	var needs_rebuild: bool = (
-		_landing_recovery_dynamics == null
-		or _landing_recovery_state_id != camera_state_id
-		or not is_equal_approx(_landing_recovery_frequency_hz, recovery_speed_hz)
-	)
-	if needs_rebuild:
-		_landing_recovery_dynamics = U_SECOND_ORDER_DYNAMICS_3D.new(
-			recovery_speed_hz,
-			1.0,
-			1.0,
-			current_offset
-		)
-		_landing_recovery_state_id = camera_state_id
-		_landing_recovery_frequency_hz = recovery_speed_hz
-		if delta <= 0.0:
-			return current_offset
-
-	var recovered_offset: Vector3 = _landing_recovery_dynamics.step(Vector3.ZERO, delta)
-	if recovered_offset.length_squared() <= 0.000001:
-		recovered_offset = Vector3.ZERO
-		_clear_landing_impact_recovery_state()
-
-	_write_camera_state_vector3(camera_state, "landing_impact_offset", recovered_offset)
-	return recovered_offset
-
-func _clear_landing_impact_recovery_state() -> void:
-	_landing_recovery_dynamics = null
-	_landing_recovery_state_id = 0
-	_landing_recovery_frequency_hz = -1.0
 
 func _resolve_primary_camera_state_component() -> Object:
 	var queries: Array = query_entities([CAMERA_STATE_TYPE])
