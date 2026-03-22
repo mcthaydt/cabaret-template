@@ -14,8 +14,8 @@ const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_loo
 const U_VCAM_ORBIT_EFFECTS := preload("res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd")
 const U_VCAM_RESPONSE_SMOOTHER := preload("res://scripts/ecs/systems/helpers/u_vcam_response_smoother.gd")
 const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation.gd")
+const U_VCAM_DEBUG := preload("res://scripts/ecs/systems/helpers/u_vcam_debug.gd")
 const U_VCAM_RUNTIME_CONTEXT := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_context.gd")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
@@ -43,19 +43,12 @@ var _orbit_effects_helper = U_VCAM_ORBIT_EFFECTS.new()
 var _response_smoother = U_VCAM_RESPONSE_SMOOTHER.new()
 var _look_input_helper = U_VCAM_LOOK_INPUT.new()
 var _landing_impact_helper = U_VCAM_LANDING_IMPACT.new()
+var _debug_helper = U_VCAM_DEBUG.new()
 var _runtime_context_helper = U_VCAM_RUNTIME_CONTEXT.new()
-var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
 var _last_active_target_valid: bool = true
 var _last_target_recovery_reason: String = ""
 var _last_target_recovery_vcam_id: StringName = StringName("")
-var _debug_rotation_log_cooldown_sec: float = 0.0
-var _debug_state_log_cooldown_sec: float = 0.0
-var _debug_follow_target_ids: Dictionary = {}  # StringName -> int
-var _debug_look_ahead_motion_state: Dictionary = {}  # StringName -> bool
-var _debug_soft_zone_status: Dictionary = {}  # StringName -> String reason/state
-var _debug_landing_offset_status: int = -1  # -1 unknown, 0 inactive, 1 active
-var _debug_last_look_input_by_vcam: Dictionary = {}  # StringName -> Vector2
 var _event_unsubscribers: Array[Callable] = []
 
 var _look_rotation_state: Dictionary:
@@ -103,27 +96,27 @@ var _rotation_target_cache: Dictionary:
 		return _response_smoother.get_rotation_target_cache_snapshot()
 
 func on_configured() -> void:
+	_debug_helper.set_state_store_provider(Callable(self, "_resolve_state_store"))
 	_subscribe_events()
 
 func process_tick(delta: float) -> void:
-	if debug_rotation_logging:
-		_debug_rotation_log_cooldown_sec = maxf(_debug_rotation_log_cooldown_sec - maxf(delta, 0.0), 0.0)
-		_debug_state_log_cooldown_sec = maxf(_debug_state_log_cooldown_sec - maxf(delta, 0.0), 0.0)
+	_debug_helper.configure(debug_rotation_logging, debug_rotation_log_interval_sec)
+	_debug_helper.tick(delta)
 	var manager := _resolve_vcam_manager()
 	if manager == null:
-		_debug_log_vcam_state("blocked: no vcam_manager service", StringName(""), Vector2.ZERO)
+		_debug_helper.log_vcam_state("blocked: no vcam_manager service", StringName(""), Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
 		return
 
 	var active_vcam_id: StringName = manager.get_active_vcam_id()
 	if active_vcam_id == StringName(""):
-		_debug_log_vcam_state("blocked: active_vcam_id is empty", StringName(""), Vector2.ZERO)
+		_debug_helper.log_vcam_state("blocked: active_vcam_id is empty", StringName(""), Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
 		return
 
 	var vcam_index: Dictionary = _build_vcam_index()
 	if vcam_index.is_empty():
-		_debug_log_vcam_state("blocked: vcam_index is empty", active_vcam_id, Vector2.ZERO)
+		_debug_helper.log_vcam_state("blocked: vcam_index is empty", active_vcam_id, Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
 		return
 	_prune_smoothing_state(vcam_index)
@@ -132,7 +125,7 @@ func process_tick(delta: float) -> void:
 	var look_input: Vector2 = _read_look_input()
 	var move_input: Vector2 = _read_move_input()
 	var camera_center_just_pressed: bool = _read_camera_center_just_pressed()
-	_debug_log_vcam_state("tick", active_vcam_id, look_input)
+	_debug_helper.log_vcam_state("tick", active_vcam_id, look_input)
 	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
 	_evaluate_and_submit(
 		active_vcam_id,
@@ -163,7 +156,7 @@ func process_tick(delta: float) -> void:
 	)
 
 func get_debug_issues() -> Array[String]:
-	return _debug_issues.duplicate()
+	return _debug_helper.get_debug_issues()
 
 func _exit_tree() -> void:
 	_unsubscribe_events()
@@ -261,7 +254,7 @@ func _prepare_vcam_pipeline_state(
 		return {}
 
 	var follow_target: Node3D = _resolve_follow_target(component)
-	_debug_log_follow_target_resolution(vcam_id, component, follow_target)
+	_debug_helper.log_follow_target_resolution(vcam_id, component, follow_target)
 	var follow_target_required: bool = _is_follow_target_required(mode)
 	if follow_target_required and (follow_target == null or not is_instance_valid(follow_target)):
 		_update_active_target_observability(vcam_id, manager, false, "target_freed")
@@ -292,7 +285,7 @@ func _prepare_vcam_pipeline_state(
 	)
 	if _rotation_helper.is_orbit_centering_active(vcam_id):
 		has_active_look_input = false
-	_debug_log_look_input_transition(vcam_id, filtered_look_input)
+	_debug_helper.log_look_input_transition(vcam_id, filtered_look_input)
 
 	return {
 		"component": component,
@@ -394,7 +387,7 @@ func _apply_vcam_effect_pipeline(
 	return _apply_landing_impact_offset(smoothed_result, landing_offset)
 
 func _apply_landing_impact_offset(result: Dictionary, landing_offset: Vector3) -> Dictionary:
-	_debug_log_landing_offset_state(landing_offset)
+	_debug_helper.log_landing_offset_state(landing_offset)
 	return _landing_impact_helper.apply_offset(
 		result,
 		landing_offset,
@@ -452,7 +445,7 @@ func _resolve_follow_target(component: C_VCamComponent) -> Node3D:
 	return _runtime_context_helper.resolve_follow_target(
 		component,
 		get_manager(),
-		Callable(self, "_report_issue")
+		Callable(_debug_helper, "report_issue")
 	)
 
 func _update_runtime_rotation(
@@ -502,7 +495,7 @@ func _apply_orbit_look_ahead(
 		delta,
 		Callable(self, "_resolve_look_ahead_movement_velocity"),
 		Callable(self, "_apply_position_offset"),
-		Callable(self, "_debug_log_look_ahead_motion_state")
+		Callable(_debug_helper, "log_look_ahead_motion_state")
 	)
 
 func _resolve_look_ahead_movement_velocity(follow_target: Node3D) -> Dictionary:
@@ -564,22 +557,33 @@ func _apply_orbit_soft_zone(
 		delta,
 		Callable(self, "_resolve_projection_camera"),
 		Callable(self, "_apply_position_offset"),
-		Callable(self, "_debug_log_soft_zone_status"),
-		Callable(self, "_debug_log_soft_zone_metrics")
+		Callable(_debug_helper, "log_soft_zone_status"),
+		Callable(_debug_helper, "log_soft_zone_metrics")
 	)
 
 func _resolve_projection_camera() -> Camera3D:
 	return _runtime_context_helper.resolve_projection_camera(self)
 
 func _resolve_component_response_values(component: C_VCamComponent) -> Dictionary:
-	if component == null:
-		return {}
-	var response := component.response as Resource
-	if response == null:
-		return {}
-	if response.get_script() != RS_VCAM_RESPONSE_SCRIPT:
-		return {}
-	return _resolve_response_values(response)
+	return _response_smoother.resolve_component_response_values(
+		component,
+		RS_VCAM_RESPONSE_SCRIPT,
+		DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED,
+		DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED
+	)
+
+func _build_response_signature(response_values: Dictionary) -> Array[float]:
+	return _response_smoother.build_response_signature(
+		response_values,
+		U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_DEADZONE,
+		U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_HOLD_SEC,
+		U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_RELEASE_DECAY,
+		DEFAULT_LOOK_RELEASE_YAW_DAMPING,
+		DEFAULT_LOOK_RELEASE_PITCH_DAMPING,
+		DEFAULT_LOOK_RELEASE_STOP_THRESHOLD,
+		DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED,
+		DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED
+	)
 
 func _sample_follow_target_speed(vcam_id: StringName, follow_target: Node3D, delta: float) -> float:
 	return _orbit_effects_helper.sample_follow_target_speed(vcam_id, follow_target, delta)
@@ -611,55 +615,21 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 	_response_smoother.prune(active_vcam_ids)
 	_rotation_helper.prune(active_vcam_ids)
 	_orbit_effects_helper.prune(active_vcam_ids)
-	_prune_debug_tracking(active_vcam_ids)
+	_debug_helper.prune(active_vcam_ids)
 
 func _clear_all_smoothing_state() -> void:
 	_response_smoother.clear_all()
 	_look_input_helper.clear_all()
 	_orbit_effects_helper.clear_all()
 	_rotation_helper.clear_all()
-	_debug_follow_target_ids.clear()
-	_debug_look_ahead_motion_state.clear()
-	_debug_soft_zone_status.clear()
-	_debug_landing_offset_status = -1
-	_debug_last_look_input_by_vcam.clear()
+	_debug_helper.clear_all()
 
 func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_response_smoother.clear_for_vcam(vcam_id)
 	_look_input_helper.clear_for_vcam(vcam_id)
 	_orbit_effects_helper.clear_for_vcam(vcam_id)
 	_rotation_helper.clear_rotation_state_for_vcam(vcam_id)
-	_clear_debug_tracking_for_vcam(vcam_id)
-
-func _prune_debug_tracking(active_vcam_ids: Array) -> void:
-	_prune_debug_dictionary(_debug_follow_target_ids, active_vcam_ids)
-	_prune_debug_dictionary(_debug_look_ahead_motion_state, active_vcam_ids)
-	_prune_debug_dictionary(_debug_soft_zone_status, active_vcam_ids)
-	_prune_debug_dictionary(_debug_last_look_input_by_vcam, active_vcam_ids)
-
-func _prune_debug_dictionary(debug_map: Dictionary, active_vcam_ids: Array) -> void:
-	var keep_ids: Dictionary = {}
-	for vcam_id_variant in active_vcam_ids:
-		var keep_id: StringName = StringName(str(vcam_id_variant))
-		if keep_id == StringName(""):
-			continue
-		keep_ids[keep_id] = true
-
-	var stale_ids: Array[StringName] = []
-	for vcam_id_variant in debug_map.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if keep_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
-	for stale_id in stale_ids:
-		debug_map.erase(stale_id)
-
-func _clear_debug_tracking_for_vcam(vcam_id: StringName) -> void:
-	_debug_follow_target_ids.erase(vcam_id)
-	_debug_look_ahead_motion_state.erase(vcam_id)
-	_debug_soft_zone_status.erase(vcam_id)
-	_debug_last_look_input_by_vcam.erase(vcam_id)
+	_debug_helper.clear_for_vcam(vcam_id)
 
 func _resolve_runtime_rotation_for_evaluation(
 	vcam_id: StringName,
@@ -756,103 +726,9 @@ func _apply_response_smoothing(
 		Callable(_orbit_effects_helper, "update_orbit_position_smoothing_bypass"),
 		DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED,
 		DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED,
-		Callable(self, "_debug_log_position_smoothing_gate_transition"),
-		Callable(self, "_debug_log_rotation")
+		Callable(_debug_helper, "log_position_smoothing_gate_transition"),
+		Callable(_debug_helper, "log_rotation")
 	)
-
-func _resolve_response_values(response: Resource) -> Dictionary:
-	var resolved_values: Dictionary = {}
-	if response.has_method("get_resolved_values"):
-		var resolved_variant: Variant = response.call("get_resolved_values")
-		if resolved_variant is Dictionary:
-			resolved_values = (resolved_variant as Dictionary).duplicate(true)
-
-	if resolved_values.is_empty():
-		resolved_values = {
-			"follow_frequency": maxf(float(response.get("follow_frequency")), 0.0001),
-			"follow_damping": maxf(float(response.get("follow_damping")), 0.0),
-			"follow_initial_response": float(response.get("follow_initial_response")),
-			"rotation_frequency": maxf(float(response.get("rotation_frequency")), 0.0001),
-			"rotation_damping": maxf(float(response.get("rotation_damping")), 0.0),
-			"rotation_initial_response": float(response.get("rotation_initial_response")),
-			"look_ahead_distance": maxf(float(response.get("look_ahead_distance")), 0.0),
-			"look_ahead_smoothing": maxf(float(response.get("look_ahead_smoothing")), 0.0),
-			"auto_level_speed": maxf(float(response.get("auto_level_speed")), 0.0),
-			"auto_level_delay": maxf(float(response.get("auto_level_delay")), 0.0),
-			"look_input_deadzone": maxf(
-				float(response.get("look_input_deadzone")),
-				0.0
-			),
-			"look_input_hold_sec": maxf(
-				float(response.get("look_input_hold_sec")),
-				0.0
-			),
-			"look_input_release_decay": maxf(
-				float(response.get("look_input_release_decay")),
-				0.0
-			),
-			"look_release_yaw_damping": maxf(
-				float(response.get("look_release_yaw_damping")),
-				0.0
-			),
-			"look_release_pitch_damping": maxf(
-				float(response.get("look_release_pitch_damping")),
-				0.0
-			),
-			"look_release_stop_threshold": maxf(
-				float(response.get("look_release_stop_threshold")),
-				0.0
-			),
-			"orbit_look_bypass_enable_speed": maxf(
-				float(response.get("orbit_look_bypass_enable_speed")),
-				0.0
-			),
-			"orbit_look_bypass_disable_speed": maxf(
-				float(response.get("orbit_look_bypass_disable_speed")),
-				0.0
-			),
-			"ground_relative_enabled": bool(response.get("ground_relative_enabled")),
-			"ground_reanchor_min_height_delta": maxf(
-				float(response.get("ground_reanchor_min_height_delta")),
-				0.0
-			),
-			"ground_probe_max_distance": maxf(
-				float(response.get("ground_probe_max_distance")),
-				0.0
-			),
-			"ground_anchor_blend_hz": maxf(
-				float(response.get("ground_anchor_blend_hz")),
-				0.0
-			),
-		}
-		var resolved_disable_speed: float = maxf(
-			float(resolved_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
-			float(resolved_values.get("orbit_look_bypass_enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED))
-		)
-		resolved_values["orbit_look_bypass_disable_speed"] = resolved_disable_speed
-	return resolved_values
-
-func _build_response_signature(response_values: Dictionary) -> Array[float]:
-	return [
-		float(response_values.get("follow_frequency", 3.0)),
-		float(response_values.get("follow_damping", 0.7)),
-		float(response_values.get("follow_initial_response", 1.0)),
-		float(response_values.get("rotation_frequency", 4.0)),
-		float(response_values.get("rotation_damping", 1.0)),
-		float(response_values.get("rotation_initial_response", 1.0)),
-		float(response_values.get("look_input_deadzone", U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_DEADZONE)),
-		float(response_values.get("look_input_hold_sec", U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_HOLD_SEC)),
-		float(response_values.get("look_input_release_decay", U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_RELEASE_DECAY)),
-		float(response_values.get("look_release_yaw_damping", DEFAULT_LOOK_RELEASE_YAW_DAMPING)),
-		float(response_values.get("look_release_pitch_damping", DEFAULT_LOOK_RELEASE_PITCH_DAMPING)),
-		float(response_values.get("look_release_stop_threshold", DEFAULT_LOOK_RELEASE_STOP_THRESHOLD)),
-		float(response_values.get("orbit_look_bypass_enable_speed", DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED)),
-		float(response_values.get("orbit_look_bypass_disable_speed", DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED)),
-		1.0 if bool(response_values.get("ground_relative_enabled", false)) else 0.0,
-		float(response_values.get("ground_reanchor_min_height_delta", 0.0)),
-		float(response_values.get("ground_probe_max_distance", 0.0)),
-		float(response_values.get("ground_anchor_blend_hz", 0.0)),
-	]
 
 func _get_node_instance_id(node: Node) -> int:
 	if node == null:
@@ -948,237 +824,3 @@ func _read_camera_center_just_pressed() -> bool:
 		return false
 	var state: Dictionary = store.get_state()
 	return U_INPUT_SELECTORS.is_camera_center_just_pressed(state)
-
-func _debug_log_follow_target_resolution(
-	vcam_id: StringName,
-	component: C_VCamComponent,
-	follow_target: Node3D
-) -> void:
-	if not debug_rotation_logging:
-		return
-	var target_id: int = _get_node_instance_id(follow_target)
-	var previous_target_id: int = int(_debug_follow_target_ids.get(vcam_id, -1))
-	if previous_target_id == target_id:
-		return
-	_debug_follow_target_ids[vcam_id] = target_id
-
-	var resolved_path: String = "<null>"
-	if follow_target != null and is_instance_valid(follow_target):
-		resolved_path = String(follow_target.get_path())
-	var configured_path: String = String(component.follow_target_path)
-	var fallback_entity_id: String = String(component.follow_target_entity_id)
-	var fallback_tag: String = String(component.follow_target_tag)
-	print(
-		"S_VCamSystem[debug] follow_target: vcam_id=%s configured_path=%s fallback_entity_id=%s fallback_tag=%s resolved_path=%s resolved_id=%d"
-		% [
-			String(vcam_id),
-			configured_path,
-			fallback_entity_id,
-			fallback_tag,
-			resolved_path,
-			target_id,
-		]
-	)
-
-func _debug_log_look_ahead_motion_state(
-	vcam_id: StringName,
-	is_moving: bool,
-	follow_target: Node3D,
-	movement_velocity: Vector3,
-	desired_offset: Vector3
-) -> void:
-	if not debug_rotation_logging:
-		return
-	var had_state: bool = _debug_look_ahead_motion_state.has(vcam_id)
-	var previous_state: bool = bool(_debug_look_ahead_motion_state.get(vcam_id, false))
-	_debug_look_ahead_motion_state[vcam_id] = is_moving
-	if had_state and previous_state == is_moving:
-		return
-
-	var gameplay_is_moving: bool = false
-	var gameplay_velocity: Vector3 = Vector3.ZERO
-	var gameplay_entity_id: StringName = StringName("")
-	if follow_target != null and is_instance_valid(follow_target):
-		var entity: Node = U_ECS_UTILS.find_entity_root(follow_target)
-		if entity != null and is_instance_valid(entity):
-			gameplay_entity_id = U_ECS_UTILS.get_entity_id(entity)
-			var store := _resolve_state_store()
-			if store != null:
-				var state: Dictionary = store.get_state()
-				var gameplay_entities: Dictionary = state.get("gameplay", {}).get("entities", {})
-				var entity_state: Dictionary = gameplay_entities.get(String(gameplay_entity_id), {})
-				if not entity_state.is_empty():
-					gameplay_is_moving = bool(entity_state.get("is_moving", false))
-					var velocity_variant: Variant = entity_state.get("velocity", Vector3.ZERO)
-					if velocity_variant is Vector3:
-						gameplay_velocity = velocity_variant as Vector3
-
-	print(
-		"S_VCamSystem[debug] look_ahead_motion: vcam_id=%s is_moving=%s movement_speed=%.5f desired_offset_len=%.5f gameplay_entity_id=%s gameplay_is_moving=%s gameplay_velocity=%s"
-		% [
-			String(vcam_id),
-			str(is_moving),
-			movement_velocity.length(),
-			desired_offset.length(),
-			String(gameplay_entity_id),
-			str(gameplay_is_moving),
-			str(gameplay_velocity),
-		]
-	)
-
-func _debug_log_soft_zone_status(vcam_id: StringName, status: String, correction: Vector3) -> void:
-	if not debug_rotation_logging:
-		return
-	var previous_status: String = String(_debug_soft_zone_status.get(vcam_id, ""))
-	if previous_status == status:
-		return
-	_debug_soft_zone_status[vcam_id] = status
-
-	print(
-		"S_VCamSystem[debug] soft_zone: vcam_id=%s status=%s correction_len=%.5f correction=%s"
-		% [
-			String(vcam_id),
-			status,
-			correction.length(),
-			str(correction),
-		]
-	)
-
-func _debug_log_soft_zone_metrics(vcam_id: StringName, correction_result: Dictionary, correction: Vector3) -> void:
-	if not debug_rotation_logging:
-		return
-	var normalized_variant: Variant = correction_result.get("normalized_screen_pos", Vector2.ZERO)
-	var corrected_variant: Variant = correction_result.get("corrected_normalized_pos", Vector2.ZERO)
-	var dead_zone_variant: Variant = correction_result.get("dead_zone_state", {})
-	var normalized_screen_pos: Vector2 = normalized_variant as Vector2 if normalized_variant is Vector2 else Vector2.ZERO
-	var corrected_normalized_pos: Vector2 = corrected_variant as Vector2 if corrected_variant is Vector2 else Vector2.ZERO
-	var dead_zone_state: Dictionary = dead_zone_variant as Dictionary if dead_zone_variant is Dictionary else {}
-	_debug_log_rotation(
-		vcam_id,
-		"soft_zone_metrics norm=%s corrected=%s correction_len=%.5f dead_zone={x:%s,y:%s}"
-		% [
-			str(normalized_screen_pos),
-			str(corrected_normalized_pos),
-			correction.length(),
-			str(bool(dead_zone_state.get("x", false))),
-			str(bool(dead_zone_state.get("y", false))),
-		]
-	)
-
-func _debug_log_look_input_transition(vcam_id: StringName, look_input: Vector2) -> void:
-	if not debug_rotation_logging:
-		return
-	var previous_variant: Variant = _debug_last_look_input_by_vcam.get(vcam_id, Vector2.ZERO)
-	var previous_input: Vector2 = previous_variant as Vector2 if previous_variant is Vector2 else Vector2.ZERO
-	var previously_active: bool = not previous_input.is_zero_approx()
-	var currently_active: bool = not look_input.is_zero_approx()
-
-	if previously_active and not currently_active:
-		print(
-			"S_VCamSystem[debug] look_input_stop: vcam_id=%s previous=%s prev_len=%.5f"
-			% [String(vcam_id), str(previous_input), previous_input.length()]
-		)
-	elif not previously_active and currently_active:
-		print(
-			"S_VCamSystem[debug] look_input_start: vcam_id=%s current=%s len=%.5f"
-			% [String(vcam_id), str(look_input), look_input.length()]
-		)
-	elif not currently_active and look_input.length_squared() > 0.0:
-		_debug_log_rotation(
-			vcam_id,
-			"look_input_noise raw=%s len=%.6f"
-			% [str(look_input), look_input.length()]
-		)
-
-	_debug_last_look_input_by_vcam[vcam_id] = look_input
-
-func _debug_log_position_smoothing_gate_transition(
-	vcam_id: StringName,
-	mode_script: Script,
-	has_active_look_input: bool,
-	raw_position: Vector3,
-	follow_dynamics: Variant,
-	follow_target_speed_mps: float,
-	enable_speed: float,
-	disable_speed: float,
-	previous_bypass: bool,
-	current_bypass: bool
-) -> void:
-	if not debug_rotation_logging:
-		return
-	var cached_position: Vector3 = raw_position
-	if follow_dynamics != null and follow_dynamics.has_method("get_value"):
-		var cached_variant: Variant = follow_dynamics.call("get_value")
-		if cached_variant is Vector3:
-			cached_position = cached_variant as Vector3
-	var mode_label: String = _get_debug_mode_label(mode_script)
-	print(
-		"S_VCamSystem[debug] smoothing_gate: vcam_id=%s mode=%s active_input=%s bypass=%s->%s speed=%.4f thresholds=(%.4f,%.4f) raw_pos=%s cached_pos=%s offset_len=%.5f"
-		% [
-			String(vcam_id),
-			mode_label,
-			str(has_active_look_input),
-			str(previous_bypass),
-			str(current_bypass),
-			follow_target_speed_mps,
-			enable_speed,
-			disable_speed,
-			str(raw_position),
-			str(cached_position),
-			raw_position.distance_to(cached_position),
-		]
-	)
-
-func _get_debug_mode_label(mode_script: Script) -> String:
-	if mode_script == null:
-		return "<null>"
-	var global_name: String = mode_script.get_global_name()
-	if not global_name.is_empty():
-		return global_name
-	var resource_path: String = mode_script.resource_path
-	if not resource_path.is_empty():
-		return resource_path.get_file().get_basename()
-	return "<anonymous>"
-
-func _debug_log_landing_offset_state(landing_offset: Vector3) -> void:
-	if not debug_rotation_logging:
-		return
-	var status: int = 1 if not landing_offset.is_zero_approx() else 0
-	if _debug_landing_offset_status == status:
-		return
-	_debug_landing_offset_status = status
-	print(
-		"S_VCamSystem[debug] landing_offset: status=%s offset_len=%.5f offset=%s"
-		% [
-			"active" if status == 1 else "inactive",
-			landing_offset.length(),
-			str(landing_offset),
-			]
-		)
-
-func _report_issue(message: String) -> void:
-	if _debug_issues.size() >= 64:
-		_debug_issues.remove_at(0)
-	_debug_issues.append(message)
-	print_verbose("S_VCamSystem: %s" % message)
-
-func _debug_log_rotation(vcam_id: StringName, message: String) -> void:
-	if not debug_rotation_logging:
-		return
-	if _debug_rotation_log_cooldown_sec > 0.0:
-		return
-	var interval: float = maxf(debug_rotation_log_interval_sec, 0.05)
-	_debug_rotation_log_cooldown_sec = interval
-	print("S_VCamSystem[debug] %s: %s" % [str(vcam_id), message])
-
-func _debug_log_vcam_state(message: String, active_vcam_id: StringName, look_input: Vector2) -> void:
-	if not debug_rotation_logging:
-		return
-	if _debug_state_log_cooldown_sec > 0.0:
-		return
-	var interval: float = maxf(debug_rotation_log_interval_sec, 0.05)
-	_debug_state_log_cooldown_sec = interval
-	print(
-		"S_VCamSystem[debug] state: %s active_vcam_id=%s look_input=%s"
-		% [message, str(active_vcam_id), str(look_input)]
-	)

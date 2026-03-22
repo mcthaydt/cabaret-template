@@ -4,6 +4,9 @@ const U_VCAM_RESPONSE_SMOOTHER := preload("res://scripts/ecs/systems/helpers/u_v
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_RESPONSE := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 
+class ResponseHolder extends RefCounted:
+	var response: Resource = null
+
 var _bypass_state: Dictionary = {}
 var _gate_transition_count: int = 0
 var _release_log_count: int = 0
@@ -500,3 +503,72 @@ func test_prune_clear_for_vcam_and_clear_all_lifecycle() -> void:
 	assert_true(helper.get_rotation_dynamics_snapshot().is_empty())
 	assert_true(helper.get_smoothing_metadata_snapshot().is_empty())
 	assert_true(helper.get_rotation_target_cache_snapshot().is_empty())
+
+func test_resolve_component_response_values_returns_empty_for_invalid_component_or_script() -> void:
+	var helper := U_VCAM_RESPONSE_SMOOTHER.new()
+	assert_eq(
+		helper.resolve_component_response_values(
+			null,
+			RS_VCAM_RESPONSE,
+			1.0,
+			2.0
+		),
+		{}
+	)
+
+	var holder := ResponseHolder.new()
+	holder.response = RS_VCAM_RESPONSE.new()
+	assert_eq(
+		helper.resolve_component_response_values(
+			holder,
+			RS_VCAM_MODE_ORBIT,
+			1.0,
+			2.0
+		),
+		{}
+	)
+
+func test_resolve_component_response_values_clamps_disable_speed_against_enable() -> void:
+	var helper := U_VCAM_RESPONSE_SMOOTHER.new()
+	var response := RS_VCAM_RESPONSE.new()
+	response.orbit_look_bypass_enable_speed = 6.0
+	response.orbit_look_bypass_disable_speed = 2.0
+	var holder := ResponseHolder.new()
+	holder.response = response
+	var values: Dictionary = helper.resolve_component_response_values(
+		holder,
+		RS_VCAM_RESPONSE,
+		1.0,
+		2.0
+	)
+	assert_false(values.is_empty())
+	assert_almost_eq(float(values.get("orbit_look_bypass_enable_speed", 0.0)), 6.0, 0.0001)
+	assert_almost_eq(float(values.get("orbit_look_bypass_disable_speed", 0.0)), 6.0, 0.0001)
+
+func test_build_response_signature_includes_look_and_ground_relative_fields() -> void:
+	var helper := U_VCAM_RESPONSE_SMOOTHER.new()
+	var values: Dictionary = {
+		"ground_relative_enabled": true,
+		"ground_reanchor_min_height_delta": 1.5,
+		"ground_probe_max_distance": 9.0,
+		"ground_anchor_blend_hz": 7.0,
+	}
+	var signature: Array[float] = helper.build_response_signature(
+		values,
+		0.11,
+		0.22,
+		0.33,
+		0.44,
+		0.55,
+		0.66,
+		0.77,
+		0.88
+	)
+	assert_eq(signature.size(), 18)
+	assert_almost_eq(signature[6], 0.11, 0.0001)
+	assert_almost_eq(signature[7], 0.22, 0.0001)
+	assert_almost_eq(signature[8], 0.33, 0.0001)
+	assert_almost_eq(signature[14], 1.0, 0.0001)
+	assert_almost_eq(signature[15], 1.5, 0.0001)
+	assert_almost_eq(signature[16], 9.0, 0.0001)
+	assert_almost_eq(signature[17], 7.0, 0.0001)

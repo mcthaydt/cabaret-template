@@ -9,6 +9,60 @@ var _rotation_dynamics: Dictionary = {}  # StringName -> {x, y, z}
 var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_target_id, response_signature}
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
 
+func resolve_component_response_values(
+	component: Object,
+	response_script: Script,
+	default_orbit_look_bypass_enable_speed: float,
+	default_orbit_look_bypass_disable_speed: float
+) -> Dictionary:
+	if component == null:
+		return {}
+	var response_variant: Variant = component.get("response")
+	if not (response_variant is Resource):
+		return {}
+	var response := response_variant as Resource
+	if response == null:
+		return {}
+	if response.get_script() != response_script:
+		return {}
+	return _resolve_response_values(
+		response,
+		default_orbit_look_bypass_enable_speed,
+		default_orbit_look_bypass_disable_speed
+	)
+
+func build_response_signature(
+	response_values: Dictionary,
+	default_look_input_deadzone: float,
+	default_look_input_hold_sec: float,
+	default_look_input_release_decay: float,
+	default_look_release_yaw_damping: float,
+	default_look_release_pitch_damping: float,
+	default_look_release_stop_threshold: float,
+	default_orbit_look_bypass_enable_speed: float,
+	default_orbit_look_bypass_disable_speed: float
+) -> Array[float]:
+	return [
+		float(response_values.get("follow_frequency", 3.0)),
+		float(response_values.get("follow_damping", 0.7)),
+		float(response_values.get("follow_initial_response", 1.0)),
+		float(response_values.get("rotation_frequency", 4.0)),
+		float(response_values.get("rotation_damping", 1.0)),
+		float(response_values.get("rotation_initial_response", 1.0)),
+		float(response_values.get("look_input_deadzone", default_look_input_deadzone)),
+		float(response_values.get("look_input_hold_sec", default_look_input_hold_sec)),
+		float(response_values.get("look_input_release_decay", default_look_input_release_decay)),
+		float(response_values.get("look_release_yaw_damping", default_look_release_yaw_damping)),
+		float(response_values.get("look_release_pitch_damping", default_look_release_pitch_damping)),
+		float(response_values.get("look_release_stop_threshold", default_look_release_stop_threshold)),
+		float(response_values.get("orbit_look_bypass_enable_speed", default_orbit_look_bypass_enable_speed)),
+		float(response_values.get("orbit_look_bypass_disable_speed", default_orbit_look_bypass_disable_speed)),
+		1.0 if bool(response_values.get("ground_relative_enabled", false)) else 0.0,
+		float(response_values.get("ground_reanchor_min_height_delta", 0.0)),
+		float(response_values.get("ground_probe_max_distance", 0.0)),
+		float(response_values.get("ground_anchor_blend_hz", 0.0)),
+	]
+
 func apply_response_smoothing(
 	vcam_id: StringName,
 	mode_script: Script,
@@ -261,6 +315,93 @@ func _reset_rotation_axis(rotation_entry: Dictionary, key: StringName, value: fl
 	if axis_dynamics == null:
 		return
 	axis_dynamics.reset(value)
+
+func _resolve_response_values(
+	response: Resource,
+	default_orbit_look_bypass_enable_speed: float,
+	default_orbit_look_bypass_disable_speed: float
+) -> Dictionary:
+	var resolved_values: Dictionary = {}
+	if response.has_method("get_resolved_values"):
+		var resolved_variant: Variant = response.call("get_resolved_values")
+		if resolved_variant is Dictionary:
+			resolved_values = (resolved_variant as Dictionary).duplicate(true)
+
+	if resolved_values.is_empty():
+		resolved_values = {
+			"follow_frequency": maxf(float(response.get("follow_frequency")), 0.0001),
+			"follow_damping": maxf(float(response.get("follow_damping")), 0.0),
+			"follow_initial_response": float(response.get("follow_initial_response")),
+			"rotation_frequency": maxf(float(response.get("rotation_frequency")), 0.0001),
+			"rotation_damping": maxf(float(response.get("rotation_damping")), 0.0),
+			"rotation_initial_response": float(response.get("rotation_initial_response")),
+			"look_ahead_distance": maxf(float(response.get("look_ahead_distance")), 0.0),
+			"look_ahead_smoothing": maxf(float(response.get("look_ahead_smoothing")), 0.0),
+			"auto_level_speed": maxf(float(response.get("auto_level_speed")), 0.0),
+			"auto_level_delay": maxf(float(response.get("auto_level_delay")), 0.0),
+			"look_input_deadzone": maxf(
+				float(response.get("look_input_deadzone")),
+				0.0
+			),
+			"look_input_hold_sec": maxf(
+				float(response.get("look_input_hold_sec")),
+				0.0
+			),
+			"look_input_release_decay": maxf(
+				float(response.get("look_input_release_decay")),
+				0.0
+			),
+			"look_release_yaw_damping": maxf(
+				float(response.get("look_release_yaw_damping")),
+				0.0
+			),
+			"look_release_pitch_damping": maxf(
+				float(response.get("look_release_pitch_damping")),
+				0.0
+			),
+			"look_release_stop_threshold": maxf(
+				float(response.get("look_release_stop_threshold")),
+				0.0
+			),
+			"orbit_look_bypass_enable_speed": maxf(
+				float(response.get("orbit_look_bypass_enable_speed")),
+				0.0
+			),
+			"orbit_look_bypass_disable_speed": maxf(
+				float(response.get("orbit_look_bypass_disable_speed")),
+				0.0
+			),
+			"ground_relative_enabled": bool(response.get("ground_relative_enabled")),
+			"ground_reanchor_min_height_delta": maxf(
+				float(response.get("ground_reanchor_min_height_delta")),
+				0.0
+			),
+			"ground_probe_max_distance": maxf(
+				float(response.get("ground_probe_max_distance")),
+				0.0
+			),
+			"ground_anchor_blend_hz": maxf(
+				float(response.get("ground_anchor_blend_hz")),
+				0.0
+			),
+		}
+
+	var resolved_disable_speed: float = maxf(
+		float(
+			resolved_values.get(
+				"orbit_look_bypass_disable_speed",
+				default_orbit_look_bypass_disable_speed
+			)
+		),
+		float(
+			resolved_values.get(
+				"orbit_look_bypass_enable_speed",
+				default_orbit_look_bypass_enable_speed
+			)
+		)
+	)
+	resolved_values["orbit_look_bypass_disable_speed"] = resolved_disable_speed
+	return resolved_values
 
 func _get_smoothing_metadata(vcam_id: StringName) -> Dictionary:
 	var metadata_variant: Variant = _smoothing_metadata.get(vcam_id, {})
