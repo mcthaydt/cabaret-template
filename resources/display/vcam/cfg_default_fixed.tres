@@ -1,6 +1,0 @@
-[gd_resource type="Resource" script_class="RS_VCamModeFixed" format=3 uid="uid://bb4rnl6vaopef"]
-
-[ext_resource type="Script" uid="uid://ci80ov58065i4" path="res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd" id="1_k6n8l"]
-
-[resource]
-script = ExtResource("1_k6n8l")

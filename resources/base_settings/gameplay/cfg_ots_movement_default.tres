@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="RS_MovementSettings" format=3 uid="uid://br4qtvu7f4l8b"]
-
-[ext_resource type="Script" uid="uid://cgg18lw8rwn8m" path="res://scripts/resources/ecs/rs_movement_settings.gd" id="1_rs_movement_settings"]
-
-[resource]
-script = ExtResource("1_rs_movement_settings")
-max_speed = 3.0
-sprint_speed_multiplier = 1.0
