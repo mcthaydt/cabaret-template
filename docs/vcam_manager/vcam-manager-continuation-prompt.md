@@ -1037,11 +1037,11 @@
 
 ## Next Steps
 
-1. Run Phase `12A` manual observability validation (`MT-40/41/42/47/48/49`) and record checklist results in `docs/vcam_manager/vcam-base-tasks.md`.
-2. Start Phase `13` regression/doc closure (`13.1`-`13.8`), preserving current frame-handoff and silhouette update contracts.
-3. Keep `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and `M_VFXManager` silhouette routing (`U_VCamSilhouetteHelper.update_silhouettes(...)`) unchanged while adding regressions.
+1. No additional implementation phases are queued; treat the vCam checklist as closed until new scope is added.
+2. For any future vCam follow-up, preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and frame-stamped handoff behavior.
+3. For any future silhouette follow-up, keep `M_VFXManager` routing on `U_VCamSilhouetteHelper.update_silhouettes(...)` (no per-frame clear/reapply regressions).
 4. Keep editor preview behavior editor-only (`Engine.is_editor_hint()` gating + runtime `queue_free()`).
-5. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+5. If new scope is added, update continuation prompt + tasks at phase completion and commit docs separately from implementation changes.
 
 ## Key Decisions To Preserve
 
