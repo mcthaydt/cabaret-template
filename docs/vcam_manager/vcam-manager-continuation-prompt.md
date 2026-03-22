@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phases `2A`-`2E` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2G` is next (`2F` dropped).
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phases `2A`-`2E` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2G` is in progress (`2F` dropped).
 
 ## Next Planned Work (March 22, 2026)
 
 - Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through Phase 2 coordinator cleanup (`2G` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: Phase `2G` coordinator cleanup pass in `s_vcam_system.gd` after helper extraction.
+- Immediate implementation target: finish Phase `2G.3` by reducing remaining coordinator/orphaned code in `s_vcam_system.gd` and closing the file-size/decomposition target.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -216,6 +216,31 @@
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_landing_impact.gd` (`6/6`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Refactor Phase 2G (March 22, 2026, In Progress)
+
+- Completed coordinator pass for `2G.1` and `2G.2` in `S_VCamSystem`:
+  - `_evaluate_and_submit(...)` now coordinates explicit stage functions:
+    - `_prepare_vcam_pipeline_state(...)`
+    - `_evaluate_vcam_mode_result(...)`
+    - `_apply_vcam_effect_pipeline(...)`
+  - prune/clear lifecycle is now helper-driven (`helper.prune(...)`) instead of per-snapshot stale-id loops.
+  - debug tracking cleanup now routes through coordinator helpers (`_prune_debug_tracking`, `_prune_debug_dictionary`, `_clear_debug_tracking_for_vcam`).
+- Additional `2G.3` decomposition progress landed:
+  - added `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd` and moved non-coordinator runtime-context logic out of `S_VCamSystem`:
+    - follow-target resolution fallback chain + multi-tag ambiguity reporting
+    - look-ahead velocity sourcing helpers
+    - grounded/probe helpers for orbit ground-relative flow
+    - projection-camera + primary camera-state resolution
+    - camera-state read/write + base-fov sync utilities
+  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` to `1185`.
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_landing_impact.gd` (`6/6`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3446/3455` passing, `9` pending baseline)
+- Remaining `2G.3` item:
+  - `scripts/ecs/systems/s_vcam_system.gd` is still above the target size (`1185` lines) and needs further extraction/decomposition before Phase `2G` can be closed.
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1186,6 +1211,7 @@
 - `scripts/ecs/systems/s_input_system.gd`
 - `scripts/ecs/systems/s_touchscreen_system.gd`
 - `scripts/ecs/systems/s_vcam_system.gd`
+- `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd`
 - `scripts/ecs/systems/s_movement_system.gd`
 - `scripts/ecs/systems/s_rotate_to_input_system.gd`
 - `scripts/ecs/systems/s_room_fade_system.gd`
@@ -1239,8 +1265,9 @@
 
 ## Next Steps
 
-1. Execute Phase `2G` coordinator cleanup in `s_vcam_system.gd` now that helper extraction through `2E` is complete.
-2. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
+1. Finish Phase `2G.3` by extracting additional `S_VCamSystem` coordinator/orphaned logic until the file-size/decomposition target is met.
+2. Once `2G` is complete, execute Phase `2H` (implementation commit + docs closure for Phase 2).
+3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
 
 ## Key Decisions To Preserve
 

@@ -494,11 +494,11 @@ Completion notes (2026-03-22):
 
 ### Phase 2G: Refactor s_vcam_system.gd as Coordinator
 
-- [ ] **Task 2G.1**: Refactor `_evaluate_and_submit` as thin pipeline
+- [x] **Task 2G.1**: Refactor `_evaluate_and_submit` as thin pipeline
   - Replace all inline logic with helper delegation calls
   - Pipeline: look_input → rotation → evaluate → orbit_effects → smoother → landing → submit
 
-- [ ] **Task 2G.2**: Refactor prune/clear as coordinator
+- [x] **Task 2G.2**: Refactor prune/clear as coordinator
   - Replace per-dict pruning with `helper.prune()` calls
   - Replace per-dict clearing with `helper.clear_all()` / `helper.clear_for_vcam()` calls
 
@@ -506,6 +506,28 @@ Completion notes (2026-03-22):
   - Remove orphaned helper functions, unused imports, dead state vars
   - Verify file is ~400–600 lines
   - Run full test suite — verify all green
+
+Progress notes (2026-03-22):
+- Completed `2G.1` coordinator pipeline pass in `S_VCamSystem`:
+  - `_evaluate_and_submit(...)` now orchestrates three explicit coordinator stages:
+    - `_prepare_vcam_pipeline_state(...)`
+    - `_evaluate_vcam_mode_result(...)`
+    - `_apply_vcam_effect_pipeline(...)`
+  - Runtime stage order is now explicit and helper-driven: look-input filter -> runtime rotation update -> evaluator -> orbit effects -> response smoothing -> landing offset -> submit.
+- Completed `2G.2` prune/clear coordinator pass:
+  - `_prune_smoothing_state(...)` now delegates stale-state pruning through helper APIs (`prune(...)`) instead of snapshot dictionary loops.
+  - Added debug-map pruning helpers (`_prune_debug_tracking`, `_prune_debug_dictionary`) and centralized per-vcam debug cleanup (`_clear_debug_tracking_for_vcam`).
+- `2G.3` remains in progress:
+  - Extracted runtime-context responsibilities from `S_VCamSystem` into `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd`:
+    - follow-target resolution (NodePath -> entity_id -> tag fallback + multi-tag debug issue)
+    - look-ahead velocity sourcing (gameplay slice -> movement component -> character body fallback)
+    - grounded/probe utilities for orbit ground-relative behavior
+    - projection-camera and primary camera-state resolution utilities
+    - camera-state read/write helpers and base-fov sync write path
+  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` to `1185` while preserving coordinator wrappers.
+  - Full suite regression gate completed:
+    - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3446/3455` passing, `9` pending baseline).
+  - Remaining item: `s_vcam_system.gd` is not yet within the ~`400`-`600` line target and still needs additional extraction/decomposition cleanup.
 
 ### Phase 2H: Phase 2 commit + docs
 
