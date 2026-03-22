@@ -9,7 +9,7 @@
 ## Next Planned Work (March 22, 2026)
 
 - Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through Phase 2 coordinator cleanup (`2G` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: finish Phase `2G.3` by reducing remaining coordinator/orphaned code in `s_vcam_system.gd` from the current `782` lines to the file-size/decomposition target.
+- Immediate implementation target: finish Phase `2G.3` by reducing remaining coordinator/orphaned code in `s_vcam_system.gd` from the current `728` lines to the file-size/decomposition target.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -242,14 +242,20 @@
   - added `scripts/ecs/systems/helpers/u_vcam_runtime_state.gd` and moved runtime-state coordination out of `S_VCamSystem`:
     - active-target observability + recovery dispatch/publish/reselect flow
     - shared input reads (`look_input`, `move_input`, `camera_center_just_pressed`)
-  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782`.
+  - added `scripts/ecs/systems/helpers/u_vcam_runtime_services.gd` and moved runtime-services/index utility responsibilities out of `S_VCamSystem`:
+    - service/store resolution (`resolve_vcam_manager`, `resolve_state_store`)
+    - vCam indexing/id helpers (`build_vcam_index`, `resolve_component_vcam_id`)
+    - coordinator utility gates (`is_follow_target_required`, `get_node_instance_id`)
+    - retained `_vcam_manager`/`_state_store` as thin compatibility caches in `S_VCamSystem` for existing integration/unit test probe surfaces
+  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782` -> `728`.
 - Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/integration/vcam/test_vcam_runtime.gd` (`5/5`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`11/11`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
   - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3449/3458` passing, `9` pending baseline)
 - Remaining `2G.3` item:
-  - `scripts/ecs/systems/s_vcam_system.gd` is still above the target size (`782` lines) and needs further extraction/decomposition before Phase `2G` can be closed.
+  - `scripts/ecs/systems/s_vcam_system.gd` is still above the target size (`728` lines) and needs further extraction/decomposition before Phase `2G` can be closed.
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1274,7 +1280,7 @@
 
 ## Next Steps
 
-1. Finish Phase `2G.3` by extracting additional `S_VCamSystem` coordinator/orphaned logic until the file-size/decomposition target is met (`782` lines currently).
+1. Finish Phase `2G.3` by extracting additional `S_VCamSystem` coordinator/orphaned logic until the file-size/decomposition target is met (`728` lines currently).
 2. Once `2G` is complete, execute Phase `2H` (implementation commit + docs closure for Phase 2).
 3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
 
