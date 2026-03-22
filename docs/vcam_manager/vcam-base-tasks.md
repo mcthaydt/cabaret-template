@@ -1509,7 +1509,7 @@ Completion note (March 22, 2026): Phase 12 integration coverage is implementatio
 
 Additional implementation hardening landed during Green/Refactor:
 - `M_VCamManager._set_active_vcam_internal(...)` now dispatches `vcam/set_active_runtime` before `vcam/start_blend` so `blend_to_vcam_id` reflects the incoming active camera during live blends.
-- `S_VCamSystem` now updates `vcam.active_target_valid` + `vcam.last_recovery_reason` for target/anchor/evaluator failure paths (`target_freed`, `path_anchor_invalid`, `anchor_invalid`, `evaluation_failed`) and clears the flags when validity is restored.
+- `S_VCamSystem` now updates `vcam.active_target_valid` + `vcam.last_recovery_reason` for target/anchor/evaluator failure paths (`target_freed`, `path_anchor_invalid`, `anchor_invalid`, `evaluation_failed`), then restores `active_target_valid = true` on successful evaluation while preserving `last_recovery_reason` as the latest recovery signal.
 
 Validation run (March 22, 2026):
 - `tests/integration/vcam` (`29/29`)
