@@ -2032,8 +2032,7 @@ func test_orbit_rotation_input_does_not_add_follow_position_lag_when_target_stat
 		follow_target,
 		component.get_look_at_target(),
 		smoothed_yaw,
-		smoothed_pitch,
-		component.get_fixed_anchor()
+		smoothed_pitch
 	)
 	var expected_transform := expected_result.get("transform", Transform3D.IDENTITY) as Transform3D
 
@@ -2281,8 +2280,7 @@ func test_orbit_moving_target_disables_position_smoothing_bypass_during_look_inp
 		follow_target,
 		component.get_look_at_target(),
 		smoothed_yaw,
-		smoothed_pitch,
-		component.get_fixed_anchor()
+		smoothed_pitch
 	)
 	var expected_transform := expected_result.get("transform", Transform3D.IDENTITY) as Transform3D
 	assert_true(
@@ -2396,8 +2394,7 @@ func test_orbit_look_release_does_not_pop_follow_position() -> void:
 		follow_target,
 		component.get_look_at_target(),
 		smoothed_yaw,
-		smoothed_pitch,
-		component.get_fixed_anchor()
+		smoothed_pitch
 	)
 	var expected_transform := expected_result.get("transform", Transform3D.IDENTITY) as Transform3D
 
@@ -4511,8 +4508,7 @@ func _evaluate_raw_result(mode: Resource, follow_target: Node3D, component: C_VC
 		follow_target,
 		component.get_look_at_target(),
 		component.runtime_yaw,
-		component.runtime_pitch,
-		component.get_fixed_anchor()
+		component.runtime_pitch
 	)
 
 func _extract_submission_transform(vcam_manager: VCamManagerStub, vcam_id: StringName) -> Transform3D:
