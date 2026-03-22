@@ -408,6 +408,7 @@ func _record_recovery(reason: String) -> void:
 		store.dispatch(U_VCAM_ACTIONS.record_recovery(reason))
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_RECOVERY, {
 		"reason": reason,
+		"vcam_id": _active_vcam_id,
 		"active_vcam_id": _active_vcam_id,
 		"previous_vcam_id": _previous_vcam_id,
 	})

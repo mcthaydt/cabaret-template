@@ -1289,6 +1289,106 @@ func test_use_path_with_invalid_follow_target_preserves_progress_and_skips_submi
 	assert_eq(vcam_manager.submit_calls, 0, "Invalid path target should enter recovery and skip submission")
 	assert_almost_eq(helper.progress, progress_before, 0.0001, "Path progress should not advance without a valid follow target")
 
+func test_active_follow_target_loss_holds_last_submission_and_requests_reselection() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var follow_target := _create_target_entity(ecs_manager, "E_RecoveryFollowTarget", Vector3.ZERO)
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_recovery_target_loss"),
+		_new_orbit_mode(),
+		follow_target
+	)
+
+	vcam_manager.active_vcam_id = StringName("cam_recovery_target_loss")
+	vcam_manager.clear_set_active_calls()
+	ecs_manager._physics_process(0.016)
+
+	var initial_result: Dictionary = vcam_manager.get_submission(StringName("cam_recovery_target_loss"))
+	assert_false(initial_result.is_empty(), "Expected an initial valid submission before recovery")
+	var initial_transform := initial_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	var initial_submit_calls: int = vcam_manager.submit_calls
+	var history_start: int = U_ECS_EVENT_BUS.get_event_history().size()
+
+	component.follow_target_path = NodePath("")
+	component.follow_target_entity_id = StringName("")
+	component.follow_target_tag = StringName("")
+	ecs_manager._physics_process(0.016)
+
+	assert_eq(
+		vcam_manager.submit_calls,
+		initial_submit_calls,
+		"Target loss should skip new submission and keep the last valid pose active"
+	)
+	var held_result: Dictionary = vcam_manager.get_submission(StringName("cam_recovery_target_loss"))
+	var held_transform := held_result.get("transform", Transform3D.IDENTITY) as Transform3D
+	_assert_transform_close(held_transform, initial_transform, 0.0001, 0.0001)
+
+	var reselection_call: Dictionary = vcam_manager.get_last_set_active_call()
+	assert_eq(
+		reselection_call.get("vcam_id", StringName("missing")),
+		StringName(""),
+		"Invalid active target should request manager reselection"
+	)
+
+	var recovery_payload: Dictionary = {}
+	var history: Array = U_ECS_EVENT_BUS.get_event_history()
+	for index in range(history_start, history.size()):
+		var event_variant: Variant = history[index]
+		if not (event_variant is Dictionary):
+			continue
+		var event: Dictionary = event_variant as Dictionary
+		if event.get("name", StringName("")) != U_ECS_EVENT_NAMES.EVENT_VCAM_RECOVERY:
+			continue
+		var payload_variant: Variant = event.get("payload", {})
+		if payload_variant is Dictionary:
+			recovery_payload = (payload_variant as Dictionary).duplicate(true)
+			break
+	assert_false(recovery_payload.is_empty(), "Target-loss recovery should publish EVENT_VCAM_RECOVERY")
+	assert_eq(String(recovery_payload.get("reason", "")), "target_freed")
+	assert_eq(
+		recovery_payload.get("vcam_id", StringName("")),
+		StringName("cam_recovery_target_loss")
+	)
+
+func test_fixed_world_anchor_missing_falls_back_to_entity_root() -> void:
+	var context: Dictionary = await _setup_context()
+	autofree_context(context)
+	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
+	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+
+	var fixed_mode := RS_VCAM_MODE_FIXED.new()
+	fixed_mode.use_world_anchor = true
+	fixed_mode.use_path = false
+	fixed_mode.track_target = false
+	var component := await _create_vcam_component(
+		ecs_manager,
+		StringName("cam_fixed_anchor_fallback"),
+		fixed_mode
+	)
+	component.fixed_anchor_path = NodePath("MissingAnchor")
+	var host_entity := component.get_parent() as Node3D
+	assert_not_null(host_entity, "Expected vCam host entity root for fallback resolution")
+	host_entity.global_position = Vector3(4.0, 1.5, -2.0)
+
+	vcam_manager.active_vcam_id = StringName("cam_fixed_anchor_fallback")
+	vcam_manager.clear_set_active_calls()
+	ecs_manager._physics_process(0.016)
+
+	var result: Dictionary = vcam_manager.get_submission(StringName("cam_fixed_anchor_fallback"))
+	assert_false(result.is_empty(), "Fixed world-anchor fallback should still evaluate and submit")
+	var submitted := result.get("transform", Transform3D.IDENTITY) as Transform3D
+	assert_almost_eq(submitted.origin.x, host_entity.global_position.x, 0.001)
+	assert_almost_eq(submitted.origin.y, host_entity.global_position.y, 0.001)
+	assert_almost_eq(submitted.origin.z, host_entity.global_position.z, 0.001)
+	assert_true(
+		vcam_manager.set_active_calls.is_empty(),
+		"Entity-root anchor fallback should avoid triggering recovery reselection"
+	)
+
 func test_look_smoothing_offsets_first_frame_after_large_look_input_jump() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)

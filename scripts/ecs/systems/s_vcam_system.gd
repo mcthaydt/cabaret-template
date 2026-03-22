@@ -76,6 +76,7 @@ var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
 var _last_active_target_valid: bool = true
 var _last_target_recovery_reason: String = ""
+var _last_target_recovery_vcam_id: StringName = StringName("")
 var _landing_recovery_dynamics = null
 var _landing_recovery_state_id: int = 0
 var _landing_recovery_frequency_hz: float = -1.0
@@ -180,6 +181,7 @@ func _exit_tree() -> void:
 	_last_active_vcam_id = StringName("")
 	_last_active_target_valid = true
 	_last_target_recovery_reason = ""
+	_last_target_recovery_vcam_id = StringName("")
 	_aim_restore_vcam_id = StringName("")
 	_aim_toggled_on = false
 	_aim_prev_pressed = false
@@ -423,7 +425,7 @@ func _evaluate_and_submit(
 		_update_active_target_observability(vcam_id, manager, false, "target_freed")
 		return
 
-	var fixed_anchor: Node3D = component.get_fixed_anchor()
+	var fixed_anchor: Node3D = _resolve_fixed_anchor_for_component(component, mode, mode_values)
 	if _is_path_fixed_mode(mode):
 		fixed_anchor = _resolve_or_create_path_anchor(component, follow_target)
 		if fixed_anchor == null:
@@ -2489,6 +2491,23 @@ func _resolve_or_create_path_anchor(component: C_VCamComponent, follow_target: N
 	helper.progress = path_node.curve.get_closest_offset(local_target_position)
 	return helper
 
+func _resolve_fixed_anchor_for_component(
+	component: C_VCamComponent,
+	mode: Resource,
+	mode_values: Dictionary
+) -> Node3D:
+	if component == null:
+		return null
+	var fixed_anchor: Node3D = component.get_fixed_anchor()
+	if fixed_anchor != null and is_instance_valid(fixed_anchor):
+		return fixed_anchor
+	if not _is_fixed_anchor_required(mode, mode_values):
+		return fixed_anchor
+	var entity_root: Node = U_ECS_UTILS.find_entity_root(component)
+	if entity_root == null or not is_instance_valid(entity_root):
+		return null
+	return entity_root as Node3D
+
 func _prune_path_helpers(vcam_index: Dictionary) -> void:
 	var stale_ids: Array[StringName] = []
 	for vcam_id_variant in _path_follow_helpers.keys():
@@ -3492,20 +3511,29 @@ func _update_active_target_observability(
 	if vcam_id != manager.get_active_vcam_id():
 		return
 	var store := _resolve_state_store()
-	if store == null:
-		return
 	if _last_active_target_valid != is_valid:
 		_last_active_target_valid = is_valid
-		store.dispatch(U_VCAM_ACTIONS.update_target_validity(is_valid))
+		if store != null:
+			store.dispatch(U_VCAM_ACTIONS.update_target_validity(is_valid))
 	if is_valid:
 		_last_target_recovery_reason = ""
+		_last_target_recovery_vcam_id = StringName("")
 		return
 	if recovery_reason.is_empty():
 		return
-	if recovery_reason == _last_target_recovery_reason:
+	if recovery_reason == _last_target_recovery_reason and vcam_id == _last_target_recovery_vcam_id:
 		return
 	_last_target_recovery_reason = recovery_reason
-	store.dispatch(U_VCAM_ACTIONS.record_recovery(recovery_reason))
+	_last_target_recovery_vcam_id = vcam_id
+	if store != null:
+		store.dispatch(U_VCAM_ACTIONS.record_recovery(recovery_reason))
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_RECOVERY, {
+		"reason": recovery_reason,
+		"vcam_id": vcam_id,
+		"active_vcam_id": manager.get_active_vcam_id(),
+		"previous_vcam_id": manager.get_previous_vcam_id(),
+	})
+	manager.set_active_vcam(StringName(""))
 
 func _is_follow_target_required(mode: Resource, mode_values: Dictionary) -> bool:
 	if mode == null:
