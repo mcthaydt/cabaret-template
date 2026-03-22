@@ -366,6 +366,108 @@ func test_multi_target_group_does_not_fade_side_wall_for_forward_looking_camera(
 	assert_almost_eq(front_alpha, 0.05, 0.0001, "Front wall should fade at this camera heading.")
 	assert_almost_eq(side_alpha, 1.0, 0.0001, "Side wall should stay opaque at this camera heading.")
 
+func test_side_wall_outside_camera_player_corridor_stays_opaque_even_if_dot_threshold_is_met() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	var main_camera: Camera3D = fixture.get("main_camera") as Camera3D
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+	assert_not_null(store)
+	assert_not_null(main_camera)
+
+	var setup: Dictionary = _register_room_fade_group_with_front_and_side_csg_targets(
+		ecs_manager,
+		"E_RoomFadeCorridorGate"
+	)
+	var room_component = setup.get("component")
+	var front_target: Node3D = setup.get("front_target") as Node3D
+	var side_target: Node3D = setup.get("side_target") as Node3D
+	assert_not_null(room_component)
+	assert_not_null(front_target)
+	assert_not_null(side_target)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	room_component.settings = settings
+	room_component.current_alpha = 1.0
+
+	_set_player_position(store, Vector3(0.0, 0.0, 0.0))
+	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(5.0, 6.0, 10.0))
+	main_camera.look_at(Vector3(0.0, 0.0, 0.0), Vector3.UP)
+
+	system.process_tick(0.1)
+
+	var front_alpha: float = float(applier.updated_alpha_by_target_id.get(front_target.get_instance_id(), -1.0))
+	var side_alpha: float = float(applier.updated_alpha_by_target_id.get(side_target.get_instance_id(), -1.0))
+	assert_gt(front_alpha, -0.5, "Expected front target alpha update to be captured.")
+	assert_gt(side_alpha, -0.5, "Expected side target alpha update to be captured.")
+	assert_almost_eq(front_alpha, 0.05, 0.0001, "Front wall should still fade.")
+	assert_almost_eq(
+		side_alpha,
+		1.0,
+		0.0001,
+		"Side wall should stay opaque when it is outside the camera-player occlusion corridor."
+	)
+
+func test_side_wall_bucket_continuity_fades_all_segments_when_one_segment_is_in_corridor() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	var main_camera: Camera3D = fixture.get("main_camera") as Camera3D
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+	assert_not_null(store)
+	assert_not_null(main_camera)
+
+	var setup: Dictionary = _register_room_fade_group_with_two_side_csg_targets(
+		ecs_manager,
+		"E_RoomFadeCorridorContinuity"
+	)
+	var room_component = setup.get("component")
+	var corridor_side_target: Node3D = setup.get("corridor_side_target") as Node3D
+	var out_of_corridor_side_target: Node3D = setup.get("out_of_corridor_side_target") as Node3D
+	assert_not_null(room_component)
+	assert_not_null(corridor_side_target)
+	assert_not_null(out_of_corridor_side_target)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	room_component.settings = settings
+	room_component.current_alpha = 1.0
+
+	_set_player_position(store, Vector3(0.0, 0.0, 0.0))
+	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(5.0, 6.0, 10.0))
+	main_camera.look_at(Vector3(0.0, 0.0, 0.0), Vector3.UP)
+
+	system.process_tick(0.1)
+
+	var corridor_alpha: float = float(
+		applier.updated_alpha_by_target_id.get(corridor_side_target.get_instance_id(), -1.0)
+	)
+	var out_of_corridor_alpha: float = float(
+		applier.updated_alpha_by_target_id.get(out_of_corridor_side_target.get_instance_id(), -1.0)
+	)
+	assert_gt(corridor_alpha, -0.5, "Expected in-corridor side target alpha update.")
+	assert_gt(out_of_corridor_alpha, -0.5, "Expected out-of-corridor side target alpha update.")
+	assert_almost_eq(corridor_alpha, 0.05, 0.0001, "In-corridor side segment should fade.")
+	assert_almost_eq(
+		out_of_corridor_alpha,
+		0.05,
+		0.0001,
+		"Out-of-corridor side segment should fade when a sibling side segment already intersects the corridor."
+	)
+
 func test_duplicate_target_ownership_keeps_first_component_and_skips_duplicate_updates() -> void:
 	var fixture := _create_fixture()
 	var system = fixture.get("system")
@@ -795,6 +897,45 @@ func _register_room_fade_group_with_front_and_side_csg_targets(
 		"component": component,
 		"front_target": front_target,
 		"side_target": side_target,
+	}
+
+func _register_room_fade_group_with_two_side_csg_targets(
+	ecs_manager: MockECSManager,
+	entity_name: String
+) -> Dictionary:
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = entity_name
+	add_child(entity)
+	autofree(entity)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity.add_child(component)
+	autofree(component)
+	ecs_manager.add_component_to_entity(entity, component)
+
+	var front_target := CSGBox3D.new()
+	front_target.size = Vector3(2.0, 2.0, 0.1)
+	front_target.position = Vector3(0.0, 0.0, 5.0)
+	entity.add_child(front_target)
+	autofree(front_target)
+
+	var corridor_side_target := CSGBox3D.new()
+	corridor_side_target.size = Vector3(2.0, 2.0, 0.1)
+	corridor_side_target.transform = Transform3D(Basis(Vector3.UP, PI * 0.5), Vector3(4.0, 0.0, 6.0))
+	entity.add_child(corridor_side_target)
+	autofree(corridor_side_target)
+
+	var out_of_corridor_side_target := CSGBox3D.new()
+	out_of_corridor_side_target.size = Vector3(2.0, 2.0, 0.1)
+	out_of_corridor_side_target.transform = Transform3D(Basis(Vector3.UP, PI * 0.5), Vector3(7.0, 0.0, 4.0))
+	entity.add_child(out_of_corridor_side_target)
+	autofree(out_of_corridor_side_target)
+
+	return {
+		"component": component,
+		"front_target": front_target,
+		"corridor_side_target": corridor_side_target,
+		"out_of_corridor_side_target": out_of_corridor_side_target,
 	}
 
 func _register_room_fade_group_at_position(

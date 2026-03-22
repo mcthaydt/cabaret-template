@@ -18,10 +18,14 @@ const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
 )
 
 const VCAM_OCCLUSION_COLLISION_MASK: int = 1 << 5
+const DEBUG_OCCLUSION_MAX_PATHS: int = 8
 
 @export var state_store: I_StateStore = null
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var ecs_manager: I_ECS_MANAGER = null
+@export var debug_occlusion_logging: bool = false
+@export var debug_occlusion_log_interval_frames: int = 1
+@export var debug_occlusion_target_filter: StringName = StringName("")
 
 var _state_store: I_StateStore = null
 var _camera_manager: I_CAMERA_MANAGER = null
@@ -660,27 +664,60 @@ func _publish_silhouette_update_request_for_active_vcam(
 ) -> void:
 	var vcam := _vcams_by_id.get(vcam_id, null) as Node
 	var entity_id: StringName = _resolve_silhouette_entity_id(vcam)
+	var follow_target: Node3D = _resolve_follow_target_for_vcam(vcam)
+	var emit_debug_logs: bool = _should_emit_occlusion_debug(vcam_id, follow_target)
+	var debug_context: String = _build_occlusion_debug_context(vcam_id, follow_target)
+
 	if not _is_occlusion_silhouette_enabled():
+		_debug_log_occlusion(
+			emit_debug_logs,
+			"%s clear reason=vfx_toggle_off entity_id=%s" % [debug_context, str(entity_id)]
+		)
 		_clear_all_silhouettes(entity_id)
 		return
 
 	if _is_blending_active:
+		_debug_log_occlusion(
+			emit_debug_logs,
+			"%s clear reason=blend_active entity_id=%s" % [debug_context, str(entity_id)]
+		)
 		_clear_all_silhouettes(entity_id)
 		return
 
-	var follow_target: Node3D = _resolve_follow_target_for_vcam(vcam)
 	if follow_target == null or not is_instance_valid(follow_target):
+		_debug_log_occlusion(
+			emit_debug_logs,
+			"%s clear reason=no_follow_target entity_id=%s" % [debug_context, str(entity_id)]
+		)
 		_clear_all_silhouettes(entity_id)
 		return
 
-	var occluders := _detect_occluders_for_silhouette(camera_transform, follow_target)
-	var safe_occluders := _sanitize_occluders(occluders)
+	var occluders := _detect_occluders_for_silhouette(
+		camera_transform,
+		follow_target,
+		emit_debug_logs,
+		debug_context
+	)
+	var safe_occluders := _sanitize_occluders(occluders, emit_debug_logs, debug_context)
+	_debug_log_occlusion_summary(
+		emit_debug_logs,
+		debug_context,
+		camera_transform.origin,
+		follow_target.global_position,
+		occluders,
+		safe_occluders
+	)
 
 	_publish_silhouette_update_request(entity_id, safe_occluders, true)
 	_publish_silhouette_count_if_changed(safe_occluders.size())
 	_silhouette_clear_published = false
 
-func _detect_occluders_for_silhouette(camera_transform: Transform3D, follow_target: Node3D) -> Array:
+func _detect_occluders_for_silhouette(
+	camera_transform: Transform3D,
+	follow_target: Node3D,
+	debug_enabled: bool = false,
+	debug_context: String = ""
+) -> Array:
 	_occluder_results_cache.clear()
 	if follow_target == null or not is_instance_valid(follow_target):
 		return _occluder_results_cache
@@ -695,7 +732,9 @@ func _detect_occluders_for_silhouette(camera_transform: Transform3D, follow_targ
 		space_state,
 		camera_transform.origin,
 		follow_target.global_position,
-		VCAM_OCCLUSION_COLLISION_MASK
+		VCAM_OCCLUSION_COLLISION_MASK,
+		debug_enabled,
+		debug_context
 	)
 	if not (occluders_variant is Array):
 		return _occluder_results_cache
@@ -703,23 +742,51 @@ func _detect_occluders_for_silhouette(camera_transform: Transform3D, follow_targ
 		_occluder_results_cache.append(occluder_variant)
 	return _occluder_results_cache
 
-func _sanitize_occluders(occluders: Array) -> Array:
+func _sanitize_occluders(
+	occluders: Array,
+	debug_enabled: bool = false,
+	debug_context: String = ""
+) -> Array:
 	var safe_occluders: Array = []
 	for occluder_variant in occluders:
 		if not (occluder_variant is GeometryInstance3D):
+			_debug_log_occlusion(
+				debug_enabled,
+				"%s sanitize skip reason=not_geometry value=%s" % [debug_context, str(occluder_variant)]
+			)
 			continue
 		var occluder := occluder_variant as GeometryInstance3D
 		if occluder == null or not is_instance_valid(occluder):
+			_debug_log_occlusion(
+				debug_enabled,
+				"%s sanitize skip reason=invalid_geometry value=%s" % [debug_context, str(occluder_variant)]
+			)
 			continue
-		if _is_occluder_room_faded(occluder):
+		var room_fade_state: Dictionary = _get_occluder_room_fade_state(occluder)
+		if bool(room_fade_state.get("is_faded", false)):
+			_debug_log_occlusion(
+				debug_enabled,
+				"%s sanitize skip reason=room_faded occluder=%s alpha=%.3f room_fade=%s" % [
+					debug_context,
+					str(occluder.get_path()),
+					float(room_fade_state.get("alpha", 1.0)),
+					str(room_fade_state.get("component_path", "")),
+				]
+			)
 			continue
 		safe_occluders.append(occluder)
 	return safe_occluders
 
 func _is_occluder_room_faded(occluder: GeometryInstance3D) -> bool:
+	var room_fade_state: Dictionary = _get_occluder_room_fade_state(occluder)
+	return bool(room_fade_state.get("is_faded", false))
+
+func _get_occluder_room_fade_state(occluder: GeometryInstance3D) -> Dictionary:
 	var parent := occluder.get_parent()
 	if parent == null:
-		return false
+		return {
+			"is_faded": false,
+		}
 	for child_variant in parent.get_children():
 		if child_variant == null or not is_instance_valid(child_variant):
 			continue
@@ -728,10 +795,15 @@ func _is_occluder_room_faded(occluder: GeometryInstance3D) -> bool:
 		var child := child_variant as Node
 		if child.get_script() != C_ROOM_FADE_GROUP_COMPONENT_SCRIPT:
 			continue
-		var alpha: float = child.get("current_alpha")
-		if alpha < 1.0:
-			return true
-	return false
+		var alpha: float = float(child.get("current_alpha"))
+		return {
+			"is_faded": alpha < 1.0,
+			"alpha": alpha,
+			"component_path": str(child.get_path()),
+		}
+	return {
+		"is_faded": false,
+	}
 
 func _publish_silhouette_count_if_changed(next_count: int) -> void:
 	var normalized_count: int = maxi(next_count, 0)
@@ -938,6 +1010,84 @@ func _clear_startup_blend_runtime() -> void:
 func _clear_startup_blend_state() -> void:
 	_startup_blend_pending_vcam_id = StringName("")
 	_clear_startup_blend_runtime()
+
+func _should_emit_occlusion_debug(vcam_id: StringName, follow_target: Node3D = null) -> bool:
+	if not debug_occlusion_logging:
+		return false
+	var interval_frames: int = maxi(debug_occlusion_log_interval_frames, 1)
+	var current_frame: int = Engine.get_physics_frames()
+	if current_frame % interval_frames != 0:
+		return false
+	var filter_text: String = str(debug_occlusion_target_filter)
+	if filter_text.is_empty():
+		return true
+	if str(vcam_id) == filter_text:
+		return true
+	if follow_target == null or not is_instance_valid(follow_target):
+		return false
+	var target_name: String = follow_target.name
+	var target_path: String = str(follow_target.get_path())
+	if target_name == filter_text:
+		return true
+	return target_path.contains(filter_text)
+
+func _build_occlusion_debug_context(vcam_id: StringName, follow_target: Node3D) -> String:
+	var target_path: String = "<none>"
+	if follow_target != null and is_instance_valid(follow_target):
+		target_path = str(follow_target.get_path())
+	return "frame=%d vcam=%s target=%s" % [
+		Engine.get_physics_frames(),
+		str(vcam_id),
+		target_path,
+	]
+
+func _debug_log_occlusion_summary(
+	enabled: bool,
+	context: String,
+	from: Vector3,
+	to: Vector3,
+	raw_occluders: Array,
+	safe_occluders: Array
+) -> void:
+	if not enabled:
+		return
+	_debug_log_occlusion(
+		true,
+		"%s ray_mode=single_center_ray from=%s to=%s distance=%.3f raw_count=%d safe_count=%d" % [
+			context,
+			str(from),
+			str(to),
+			from.distance_to(to),
+			raw_occluders.size(),
+			safe_occluders.size(),
+		]
+	)
+	_debug_log_occlusion(
+		true,
+		"%s raw_paths=%s" % [context, str(_collect_occluder_paths(raw_occluders))]
+	)
+	_debug_log_occlusion(
+		true,
+		"%s safe_paths=%s" % [context, str(_collect_occluder_paths(safe_occluders))]
+	)
+
+func _collect_occluder_paths(occluders: Array) -> Array[String]:
+	var paths: Array[String] = []
+	for occluder_variant in occluders:
+		if paths.size() >= DEBUG_OCCLUSION_MAX_PATHS:
+			break
+		if not (occluder_variant is GeometryInstance3D):
+			continue
+		var occluder := occluder_variant as GeometryInstance3D
+		if occluder == null or not is_instance_valid(occluder):
+			continue
+		paths.append(str(occluder.get_path()))
+	return paths
+
+func _debug_log_occlusion(enabled: bool, message: String) -> void:
+	if not enabled:
+		return
+	print("[VCAM_OCCLUSION][VCamManager] %s" % message)
 
 func _report_issue(message: String) -> void:
 	print_verbose("M_VCamManager: %s" % message)

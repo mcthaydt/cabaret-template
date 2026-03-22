@@ -4293,8 +4293,6 @@ script = ExtResource("77_region_visibility_system")
 
 [node name="S_RoomFadeSystem" type="Node" parent="Systems/Core" unique_id=696779724]
 script = ExtResource("74_room_fade_system")
-debug_room_fade_logging = true
-debug_room_fade_log_interval_frames = 30
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1948608298]
 script = ExtResource("9_health")

@@ -2,22 +2,44 @@ extends RefCounted
 class_name U_VCamCollisionDetector
 
 const MAX_RAYCAST_HITS: int = 32
+const DEBUG_MAX_GEOMETRY_PATHS: int = 6
 
 static func detect_occluders(
 	space_state: Object,
 	from: Vector3,
 	to: Vector3,
-	collision_mask: int
+	collision_mask: int,
+	debug_enabled: bool = false,
+	debug_context: String = ""
 ) -> Array:
 	var occluders: Array = []
 	if space_state == null:
+		_debug_log(debug_enabled, debug_context, "detect_occluders skipped: space_state is null")
 		return occluders
 	if collision_mask <= 0:
+		_debug_log(
+			debug_enabled,
+			debug_context,
+			"detect_occluders skipped: invalid collision_mask=%d" % collision_mask
+		)
 		return occluders
 	if from.is_equal_approx(to):
+		_debug_log(debug_enabled, debug_context, "detect_occluders skipped: from == to")
 		return occluders
 	if not space_state.has_method("intersect_ray"):
+		_debug_log(debug_enabled, debug_context, "detect_occluders skipped: space_state missing intersect_ray")
 		return occluders
+
+	_debug_log(
+		debug_enabled,
+		debug_context,
+		"detect_occluders start from=%s to=%s distance=%.3f mask=%d" % [
+			str(from),
+			str(to),
+			from.distance_to(to),
+			collision_mask,
+		]
+	)
 
 	var exclude_rids: Array[RID] = []
 	var hit_count: int = 0
@@ -30,29 +52,88 @@ static func detect_occluders(
 
 		var hit_variant: Variant = space_state.call("intersect_ray", query)
 		if not (hit_variant is Dictionary):
+			_debug_log(
+				debug_enabled,
+				debug_context,
+				"raycast terminated: intersect_ray returned non-dictionary at iteration=%d" % hit_count
+			)
 			break
 		var hit: Dictionary = hit_variant as Dictionary
 		if hit.is_empty():
+			_debug_log(debug_enabled, debug_context, "raycast terminated: empty hit at iteration=%d" % hit_count)
 			break
 
 		_append_hit_rid_to_exclude(hit, exclude_rids)
 
 		var collider_variant: Variant = hit.get("collider", null)
 		if not _is_live_object(collider_variant):
+			_debug_log(
+				debug_enabled,
+				debug_context,
+				"hit[%d] skipped: collider is invalid/freed (%s)" % [hit_count, str(collider_variant)]
+			)
 			hit_count += 1
 			continue
 		var collider: Object = collider_variant as Object
 
 		var collision_layer: int = _resolve_collision_layer(collider)
 		if collision_layer >= 0 and (collision_layer & collision_mask) == 0:
+			_debug_log(
+				debug_enabled,
+				debug_context,
+				"hit[%d] skipped: collider=%s layer=%d not in mask=%d" % [
+					hit_count,
+					_describe_object(collider),
+					collision_layer,
+					collision_mask,
+				]
+			)
 			hit_count += 1
 			continue
 
 		var occluder: GeometryInstance3D = _resolve_occluder_geometry(collider)
+		if debug_enabled:
+			var collider_node := collider as Node
+			if collider_node != null:
+				var geometry_count: int = _count_geometry_descendants(collider_node)
+				var geometry_paths: Array[String] = []
+				_collect_geometry_paths(collider_node, geometry_paths, DEBUG_MAX_GEOMETRY_PATHS)
+				_debug_log(
+					true,
+					debug_context,
+					"hit[%d] collider=%s geometry_descendants=%d sample_paths=%s selected_occluder=%s" % [
+						hit_count,
+						_describe_object(collider),
+						geometry_count,
+						str(geometry_paths),
+						_describe_object(occluder),
+					]
+				)
+			else:
+				_debug_log(
+					true,
+					debug_context,
+					"hit[%d] collider=%s selected_occluder=%s" % [
+						hit_count,
+						_describe_object(collider),
+						_describe_object(occluder),
+					]
+				)
 		if occluder != null and is_instance_valid(occluder) and not occluders.has(occluder):
 			occluders.append(occluder)
+		elif debug_enabled:
+			_debug_log(
+				true,
+				debug_context,
+				"hit[%d] did not append occluder (null/duplicate/invalid)" % hit_count
+			)
 
 		hit_count += 1
+	_debug_log(
+		debug_enabled,
+		debug_context,
+		"detect_occluders complete: hits=%d occluders=%d" % [hit_count, occluders.size()]
+	)
 	return occluders
 
 static func _append_hit_rid_to_exclude(hit: Dictionary, exclude_rids: Array[RID]) -> void:
@@ -111,6 +192,61 @@ static func _find_geometry_descendant(node: Node) -> GeometryInstance3D:
 		if found != null:
 			return found
 	return null
+
+static func _count_geometry_descendants(node: Node) -> int:
+	if node == null or not is_instance_valid(node):
+		return 0
+	var count: int = 0
+	if node is GeometryInstance3D:
+		count += 1
+	for child_variant in node.get_children():
+		var child := child_variant as Node
+		if child == null:
+			continue
+		count += _count_geometry_descendants(child)
+	return count
+
+static func _collect_geometry_paths(node: Node, output: Array[String], limit: int) -> void:
+	if node == null or not is_instance_valid(node):
+		return
+	if output.size() >= limit:
+		return
+	if node is GeometryInstance3D:
+		output.append(str(node.get_path()))
+		if output.size() >= limit:
+			return
+	for child_variant in node.get_children():
+		var child := child_variant as Node
+		if child == null:
+			continue
+		_collect_geometry_paths(child, output, limit)
+		if output.size() >= limit:
+			return
+
+static func _describe_object(value: Variant) -> String:
+	if not _is_live_object(value):
+		return "<invalid>"
+	var obj := value as Object
+	if obj == null:
+		return "<null>"
+	var node := obj as Node
+	if node == null:
+		return "%s#%d" % [obj.get_class(), obj.get_instance_id()]
+	var path_text: String = "<off_tree>"
+	if node.is_inside_tree():
+		path_text = str(node.get_path())
+	return "%s(%s)#%d" % [node.get_class(), path_text, node.get_instance_id()]
+
+static func _debug_log(enabled: bool, context: String, message: String) -> void:
+	if not enabled:
+		return
+	var context_text: String = context if not context.is_empty() else "default"
+	print(
+		"[VCAM_OCCLUSION][CollisionDetector][%s] %s" % [
+			context_text,
+			message,
+		]
+	)
 
 static func _object_has_property(target: Object, property_name: StringName) -> bool:
 	if target == null or not is_instance_valid(target):

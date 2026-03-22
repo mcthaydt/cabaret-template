@@ -17,11 +17,18 @@ const MIN_NORMAL_LENGTH_SQUARED := 0.000001
 const THIN_AXIS_SIZE_EPSILON := 0.0001
 const DEBUG_DOT_MARGIN := 0.12
 const DEBUG_MAX_TARGET_LOGS_PER_COMPONENT := 8
+const OCCLUSION_CORRIDOR_MARGIN := 1.2
+const OCCLUSION_CORRIDOR_MIN_RADIUS := 0.8
+const OCCLUSION_CORRIDOR_MAX_RADIUS := 4.0
+const OCCLUSION_CORRIDOR_SEGMENT_EPSILON := 0.000001
 
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_STATE_STORE = null
 @export var debug_room_fade_logging: bool = false
 @export var debug_room_fade_log_interval_frames: int = 60
+@export var debug_room_fade_group_filter: StringName = StringName("")
+@export var debug_room_fade_only_faded_targets: bool = true
+@export var debug_room_fade_emit_ray_relation: bool = true
 
 var material_applier: Variant = null
 var duplicate_target_warning_handler: Callable = Callable()
@@ -72,9 +79,13 @@ func process_tick(delta: float) -> void:
 		return
 
 	var camera_forward: Vector3 = -main_camera.global_transform.basis.z
+	var camera_position: Vector3 = main_camera.global_transform.origin
 	var active_targets: Dictionary = {}
 	var resolved_delta: float = maxf(delta, 0.0)
 	_cached_centroids.clear()
+	var player_data: Dictionary = _resolve_player_position_data()
+	var has_player_position: bool = player_data.has("position")
+	var player_position: Vector3 = player_data.get("position", Vector3.ZERO) as Vector3
 
 	components = _filter_components_by_active_room(components)
 	var target_ownership: Dictionary = _build_target_ownership(components)
@@ -84,13 +95,14 @@ func process_tick(delta: float) -> void:
 		_debug_log_tick_header(mode_info, main_camera, camera_forward, components.size(), resolved_delta)
 
 	for component_variant in components:
-		if should_log_debug and component_variant != null and is_instance_valid(component_variant) and component_variant is Object:
-			_debug_log_normal_diagnosis(component_variant as Object)
 		if component_variant == null or not is_instance_valid(component_variant):
 			continue
 		if not (component_variant is Object):
 			continue
 		var component: Object = component_variant as Object
+		var should_log_component_debug: bool = _should_log_component_debug(should_log_debug, component)
+		if should_log_component_debug:
+			_debug_log_normal_diagnosis(component)
 		var component_id: int = component.get_instance_id()
 
 		var owned_targets_variant: Variant = owned_targets_by_component.get(component_id, [])
@@ -112,6 +124,9 @@ func process_tick(delta: float) -> void:
 		var component_alpha_count: int = 0
 		var faded_target_count: int = 0
 		var debug_target_logs: Array[String] = []
+		var faded_normal_bucket_counts: Dictionary = {}
+		var target_eval_infos: Array[Dictionary] = []
+		var bucket_has_corridor_hit: Dictionary = {}
 
 		for target_variant in targets:
 			if not _is_supported_target(target_variant):
@@ -128,8 +143,49 @@ func process_tick(delta: float) -> void:
 				target_normal = target_normal_data.get("normal", Vector3.FORWARD) as Vector3
 				target_normal_source = str(target_normal_data.get("source", "unknown"))
 				_cached_normals[target_id] = target_normal
+
 			var dot_value: float = camera_forward.dot(target_normal)
-			var target_alpha: float = _resolve_target_alpha(camera_forward, target_normal, settings)
+			var bucket_key: String = _resolve_normal_bucket_key(target_normal)
+			var target_alpha_before_corridor: float = _resolve_target_alpha(camera_forward, target_normal, settings)
+			var corridor_pass: bool = true
+			if target_alpha_before_corridor < 1.0 and has_player_position:
+				corridor_pass = _passes_camera_player_occlusion_corridor(target, camera_position, player_position)
+				if corridor_pass:
+					bucket_has_corridor_hit[bucket_key] = true
+
+			target_eval_infos.append({
+				"target": target,
+				"target_id": target_id,
+				"target_normal": target_normal,
+				"target_normal_source": target_normal_source,
+				"dot_value": dot_value,
+				"bucket_key": bucket_key,
+				"target_alpha_before_corridor": target_alpha_before_corridor,
+				"corridor_pass": corridor_pass,
+			})
+
+		for target_info_variant in target_eval_infos:
+			if not (target_info_variant is Dictionary):
+				continue
+			var target_info: Dictionary = target_info_variant as Dictionary
+			var target: Node3D = target_info.get("target", null) as Node3D
+			if target == null or not is_instance_valid(target):
+				continue
+			var target_id: int = int(target_info.get("target_id", -1))
+			if target_id < 0:
+				continue
+			var target_normal: Vector3 = target_info.get("target_normal", Vector3.FORWARD) as Vector3
+			var target_normal_source: String = str(target_info.get("target_normal_source", "unknown"))
+			var dot_value: float = float(target_info.get("dot_value", 0.0))
+			var bucket_key: String = str(target_info.get("bucket_key", ""))
+			var target_alpha: float = float(target_info.get("target_alpha_before_corridor", 1.0))
+			var corridor_pass: bool = bool(target_info.get("corridor_pass", true))
+
+			if target_alpha < 1.0 and has_player_position and not corridor_pass:
+				var bucket_continuity_hit: bool = bool(bucket_has_corridor_hit.get(bucket_key, false))
+				if not bucket_continuity_hit:
+					target_alpha = 1.0
+
 			var current_alpha: float = _resolve_current_target_alpha(target_id, component)
 			var next_alpha: float = current_alpha
 			if fade_speed > 0.0:
@@ -137,6 +193,7 @@ func process_tick(delta: float) -> void:
 			next_alpha = clampf(next_alpha, min_alpha, 1.0)
 			if target_alpha < 1.0:
 				faded_target_count += 1
+				faded_normal_bucket_counts[bucket_key] = int(faded_normal_bucket_counts.get(bucket_key, 0)) + 1
 
 			_target_alpha_by_id[target_id] = next_alpha
 			applier.update_fade_alpha([target], next_alpha)
@@ -144,7 +201,7 @@ func process_tick(delta: float) -> void:
 			active_targets[target_id] = target
 			component_alpha_sum += next_alpha
 			component_alpha_count += 1
-			if should_log_debug and _should_log_target_decision(dot_value, threshold, target_alpha):
+			if should_log_component_debug and _should_log_target_decision(dot_value, threshold, target_alpha):
 				if debug_target_logs.size() < DEBUG_MAX_TARGET_LOGS_PER_COMPONENT:
 					debug_target_logs.append(_format_target_debug_line(
 						target,
@@ -156,11 +213,24 @@ func process_tick(delta: float) -> void:
 						current_alpha,
 						next_alpha
 					))
+					var target_diag_lines: Array[String] = _build_target_diagnostic_lines(
+						target,
+						target_normal,
+						target_normal_source,
+						dot_value,
+						threshold,
+						target_alpha,
+						camera_position,
+						player_position,
+						has_player_position
+					)
+					for diag_line in target_diag_lines:
+						debug_target_logs.append(diag_line)
 
 		if component_alpha_count > 0:
 			var component_average_alpha: float = component_alpha_sum / float(component_alpha_count)
 			component.set("current_alpha", component_average_alpha)
-			if should_log_debug:
+			if should_log_component_debug:
 				_debug_log_component_summary(
 					component,
 					targets,
@@ -171,6 +241,7 @@ func process_tick(delta: float) -> void:
 					fade_speed,
 					debug_target_logs
 				)
+				_debug_log_faded_normal_bucket_summary(component, faded_normal_bucket_counts)
 
 	_restore_stale_targets(active_targets)
 
@@ -362,6 +433,51 @@ func _resolve_target_alpha(camera_forward: Vector3, wall_normal: Vector3, settin
 	if dot_value > threshold:
 		return min_alpha
 	return 1.0
+
+func _passes_camera_player_occlusion_corridor(
+	target: Node3D,
+	camera_position: Vector3,
+	player_position: Vector3
+) -> bool:
+	if target == null or not is_instance_valid(target):
+		return false
+
+	var camera_planar := Vector2(camera_position.x, camera_position.z)
+	var player_planar := Vector2(player_position.x, player_position.z)
+	var target_planar := Vector2(target.global_position.x, target.global_position.z)
+	var segment: Vector2 = player_planar - camera_planar
+	var segment_length_sq: float = segment.length_squared()
+	if segment_length_sq <= OCCLUSION_CORRIDOR_SEGMENT_EPSILON:
+		return true
+
+	var to_target: Vector2 = target_planar - camera_planar
+	var segment_t: float = to_target.dot(segment) / segment_length_sq
+	if segment_t < 0.0 or segment_t > 1.0:
+		return false
+
+	var closest_point: Vector2 = camera_planar + segment * segment_t
+	var distance_to_segment: float = target_planar.distance_to(closest_point)
+	var corridor_radius: float = _resolve_target_occlusion_corridor_radius(target)
+	return distance_to_segment <= corridor_radius
+
+func _resolve_target_occlusion_corridor_radius(target: Node3D) -> float:
+	var planar_extent: float = 0.0
+	if target is CSGBox3D:
+		var csg_target: CSGBox3D = target as CSGBox3D
+		planar_extent = _resolve_planar_extent_from_half_size(csg_target.global_basis, csg_target.size.abs() * 0.5)
+	elif target is MeshInstance3D:
+		var mesh_target: MeshInstance3D = target as MeshInstance3D
+		if mesh_target.mesh != null:
+			var half_size: Vector3 = mesh_target.mesh.get_aabb().size.abs() * 0.5
+			planar_extent = _resolve_planar_extent_from_half_size(mesh_target.global_basis, half_size)
+
+	var resolved_radius: float = planar_extent + OCCLUSION_CORRIDOR_MARGIN
+	return clampf(resolved_radius, OCCLUSION_CORRIDOR_MIN_RADIUS, OCCLUSION_CORRIDOR_MAX_RADIUS)
+
+func _resolve_planar_extent_from_half_size(basis: Basis, half_size: Vector3) -> float:
+	var x_axis_planar_len: float = Vector2(basis.x.x, basis.x.z).length()
+	var z_axis_planar_len: float = Vector2(basis.z.x, basis.z.z).length()
+	return (half_size.x * x_axis_planar_len) + (half_size.z * z_axis_planar_len)
 
 func _resolve_target_world_normal(component: Object, target: Node3D, target_count: int) -> Vector3:
 	var normal_data: Dictionary = _resolve_target_world_normal_info(component, target, target_count)
@@ -594,9 +710,28 @@ func _should_log_debug_tick() -> bool:
 	return _debug_tick_counter % interval == 0
 
 func _should_log_target_decision(dot_value: float, threshold: float, target_alpha: float) -> bool:
+	if debug_room_fade_only_faded_targets:
+		return target_alpha < 1.0
 	if target_alpha < 1.0:
 		return true
 	return absf(dot_value - threshold) <= DEBUG_DOT_MARGIN
+
+func _should_log_component_debug(should_log_debug: bool, component: Object) -> bool:
+	if not should_log_debug:
+		return false
+	if component == null or not is_instance_valid(component):
+		return false
+	if debug_room_fade_group_filter == StringName(""):
+		return true
+	return _resolve_component_group_tag(component) == debug_room_fade_group_filter
+
+func _resolve_component_group_tag(component: Object) -> StringName:
+	if component == null:
+		return StringName("")
+	var tag_variant: Variant = component.get("group_tag")
+	if tag_variant is StringName:
+		return tag_variant as StringName
+	return StringName("")
 
 func _debug_log_skip(reason: String, mode_info: Dictionary) -> void:
 	print(
@@ -659,6 +794,28 @@ func _debug_log_component_summary(
 	for log_line in target_logs:
 		print(log_line)
 
+func _debug_log_faded_normal_bucket_summary(component: Object, bucket_counts: Dictionary) -> void:
+	if bucket_counts.is_empty():
+		return
+	var buckets: Array[String] = []
+	var axis_seen: Dictionary = {}
+	for key_variant in bucket_counts.keys():
+		var bucket_key: String = str(key_variant)
+		var count: int = int(bucket_counts.get(bucket_key, 0))
+		buckets.append("%s:%d" % [bucket_key, count])
+		axis_seen[_normal_bucket_axis(bucket_key)] = true
+	var has_perpendicular: bool = axis_seen.size() > 1
+	if not has_perpendicular:
+		return
+	buckets.sort()
+	print(
+		"[RoomFadeDiag] component=%s faded_normal_buckets=%s perpendicular_axes=%s" % [
+			_describe_object(component),
+			",".join(buckets),
+			str(has_perpendicular),
+		]
+	)
+
 func _format_target_debug_line(
 	target: Node3D,
 	target_normal_source: String,
@@ -680,6 +837,125 @@ func _format_target_debug_line(
 		current_alpha,
 		next_alpha,
 	]
+
+func _build_target_diagnostic_lines(
+	target: Node3D,
+	target_normal: Vector3,
+	target_normal_source: String,
+	dot_value: float,
+	threshold: float,
+	target_alpha: float,
+	camera_position: Vector3,
+	player_position: Vector3,
+	has_player_position: bool
+) -> Array[String]:
+	var lines: Array[String] = []
+	if target == null or not is_instance_valid(target):
+		return lines
+	if target_alpha >= 1.0:
+		return lines
+	var target_pos: Vector3 = target.global_position
+
+	var dist_camera_to_target: float = camera_position.distance_to(target_pos)
+	var dist_camera_to_player: float = -1.0
+	var along_player_ray: float = -1.0
+	var is_between_camera_and_player: bool = false
+	var distance_to_camera_player_ray: float = -1.0
+	if has_player_position:
+		dist_camera_to_player = camera_position.distance_to(player_position)
+		if dist_camera_to_player > 0.0001:
+			var ray_dir: Vector3 = (player_position - camera_position) / dist_camera_to_player
+			var to_target: Vector3 = target_pos - camera_position
+			along_player_ray = to_target.dot(ray_dir)
+			is_between_camera_and_player = along_player_ray >= 0.0 and along_player_ray <= dist_camera_to_player
+			var closest_point: Vector3 = camera_position + ray_dir * along_player_ray
+			distance_to_camera_player_ray = target_pos.distance_to(closest_point)
+
+	lines.append(
+		"[RoomFadeDiag] target=%s dot=%.3f threshold=%.3f target_alpha=%.3f source=%s normal=%s camera_pos=%s player_pos=%s target_pos=%s" % [
+			_describe_node(target),
+			dot_value,
+			threshold,
+			target_alpha,
+			target_normal_source,
+			_format_vector3(target_normal),
+			_format_vector3(camera_position),
+			_format_vector3(player_position) if has_player_position else "<unavailable>",
+			_format_vector3(target_pos),
+		]
+	)
+	if debug_room_fade_emit_ray_relation:
+		lines.append(
+			"[RoomFadeDiag]   relation dist_camera_to_target=%.3f dist_camera_to_player=%.3f along_player_ray=%.3f is_between_camera_and_player=%s distance_to_camera_player_ray=%.3f" % [
+				dist_camera_to_target,
+				dist_camera_to_player,
+				along_player_ray,
+				str(is_between_camera_and_player),
+				distance_to_camera_player_ray,
+			]
+		)
+
+	if target is CSGBox3D:
+		var csg_target: CSGBox3D = target as CSGBox3D
+		var thin_axis_label: String = _resolve_csg_thin_axis_label(csg_target, target_normal)
+		lines.append(
+			"[RoomFadeDiag]   thin_geometry type=CSGBox3D size=%s thin_axis=%s source=%s" % [
+				_format_vector3(csg_target.size.abs()),
+				thin_axis_label,
+				target_normal_source,
+			]
+		)
+	return lines
+
+func _resolve_normal_bucket_key(normal: Vector3) -> String:
+	var ax: float = absf(normal.x)
+	var ay: float = absf(normal.y)
+	var az: float = absf(normal.z)
+	if ax >= ay and ax >= az:
+		return "+X" if normal.x >= 0.0 else "-X"
+	if ay >= ax and ay >= az:
+		return "+Y" if normal.y >= 0.0 else "-Y"
+	return "+Z" if normal.z >= 0.0 else "-Z"
+
+func _normal_bucket_axis(bucket_key: String) -> String:
+	if bucket_key.ends_with("X"):
+		return "X"
+	if bucket_key.ends_with("Y"):
+		return "Y"
+	return "Z"
+
+func _resolve_csg_thin_axis_label(csg_box: CSGBox3D, target_normal: Vector3) -> String:
+	if csg_box == null or not is_instance_valid(csg_box):
+		return "none"
+	var size: Vector3 = csg_box.size.abs()
+	var smallest_axis_size: float = minf(size.x, minf(size.y, size.z))
+	var candidates: Array[String] = []
+	if absf(size.x - smallest_axis_size) <= THIN_AXIS_SIZE_EPSILON:
+		candidates.append("X")
+	if absf(size.y - smallest_axis_size) <= THIN_AXIS_SIZE_EPSILON:
+		candidates.append("Y")
+	if absf(size.z - smallest_axis_size) <= THIN_AXIS_SIZE_EPSILON:
+		candidates.append("Z")
+	if candidates.is_empty():
+		return "none"
+	if candidates.size() == 1:
+		return candidates[0]
+
+	var best_axis: String = candidates[0]
+	var best_alignment: float = -1.0
+	for candidate in candidates:
+		var axis_vec: Vector3 = Vector3.ZERO
+		if candidate == "X":
+			axis_vec = csg_box.global_basis.x.normalized()
+		elif candidate == "Y":
+			axis_vec = csg_box.global_basis.y.normalized()
+		else:
+			axis_vec = csg_box.global_basis.z.normalized()
+		var alignment: float = absf(axis_vec.dot(target_normal))
+		if alignment > best_alignment:
+			best_alignment = alignment
+			best_axis = candidate
+	return "%s(multi)" % best_axis
 
 func _describe_object(obj: Variant) -> String:
 	if obj is Node:

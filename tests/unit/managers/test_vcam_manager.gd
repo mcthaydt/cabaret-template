@@ -23,7 +23,9 @@ class VCamManagerOcclusionStub extends M_VCAM_MANAGER:
 
 	func _detect_occluders_for_silhouette(
 		_camera_transform: Transform3D,
-		_follow_target: Node3D
+		_follow_target: Node3D,
+		_debug_enabled: bool = false,
+		_debug_context: String = ""
 	) -> Array:
 		return test_occluders.duplicate(false)
 
