@@ -312,7 +312,7 @@ func test_ots_runtime_pitch_clamps_to_upper_bound_during_input_accumulation() ->
 
 	assert_almost_eq(component.runtime_pitch, 20.0, 0.0001)
 
-func test_aim_pressed_switches_active_vcam_from_orbit_to_ots_with_aim_blend_duration() -> void:
+func test_aim_pressed_switches_active_vcam_from_orbit_to_first_person_with_aim_blend_duration() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
@@ -321,21 +321,21 @@ func test_aim_pressed_switches_active_vcam_from_orbit_to_ots_with_aim_blend_dura
 
 	var follow_target := _create_target_entity(ecs_manager, "E_AimSwitchTarget", Vector3.ZERO)
 	await _create_vcam_component(ecs_manager, StringName("cam_orbit_aim"), _new_orbit_mode(), follow_target)
-	var ots_mode := _new_ots_mode(1.0)
-	ots_mode.aim_blend_duration = 0.22
-	await _create_vcam_component(ecs_manager, StringName("cam_ots_aim"), ots_mode, follow_target)
+	var first_person_mode := _new_first_person_mode(1.0)
+	first_person_mode.aim_blend_duration = 0.22
+	await _create_vcam_component(ecs_manager, StringName("cam_first_person_aim"), first_person_mode, follow_target)
 
 	vcam_manager.active_vcam_id = StringName("cam_orbit_aim")
 	vcam_manager.clear_set_active_calls()
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": true, "camera_center_just_pressed": false})
 	ecs_manager._physics_process(0.016)
 
-	assert_eq(vcam_manager.active_vcam_id, StringName("cam_ots_aim"))
+	assert_eq(vcam_manager.active_vcam_id, StringName("cam_first_person_aim"))
 	var set_active_call: Dictionary = vcam_manager.get_last_set_active_call()
-	assert_eq(set_active_call.get("vcam_id", StringName("")), StringName("cam_ots_aim"))
+	assert_eq(set_active_call.get("vcam_id", StringName("")), StringName("cam_first_person_aim"))
 	assert_almost_eq(float(set_active_call.get("blend_duration", 0.0)), 0.22, 0.0001)
 
-func test_aim_release_restores_previous_vcam_with_ots_aim_blend_duration() -> void:
+func test_aim_release_restores_previous_vcam_with_first_person_aim_exit_blend_duration() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
@@ -344,14 +344,15 @@ func test_aim_release_restores_previous_vcam_with_ots_aim_blend_duration() -> vo
 
 	var follow_target := _create_target_entity(ecs_manager, "E_AimRestoreTarget", Vector3.ZERO)
 	await _create_vcam_component(ecs_manager, StringName("cam_orbit_restore"), _new_orbit_mode(), follow_target)
-	var ots_mode := _new_ots_mode(1.0)
-	ots_mode.aim_blend_duration = 0.18
-	await _create_vcam_component(ecs_manager, StringName("cam_ots_restore"), ots_mode, follow_target)
+	var first_person_mode := _new_first_person_mode(1.0)
+	first_person_mode.aim_blend_duration = 0.18
+	first_person_mode.aim_exit_blend_duration = 0.27
+	await _create_vcam_component(ecs_manager, StringName("cam_first_person_restore"), first_person_mode, follow_target)
 
 	vcam_manager.active_vcam_id = StringName("cam_orbit_restore")
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": true, "camera_center_just_pressed": false})
 	ecs_manager._physics_process(0.016)
-	assert_eq(vcam_manager.active_vcam_id, StringName("cam_ots_restore"))
+	assert_eq(vcam_manager.active_vcam_id, StringName("cam_first_person_restore"))
 
 	vcam_manager.clear_set_active_calls()
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": false, "camera_center_just_pressed": false})
@@ -360,16 +361,16 @@ func test_aim_release_restores_previous_vcam_with_ots_aim_blend_duration() -> vo
 	assert_eq(vcam_manager.active_vcam_id, StringName("cam_orbit_restore"))
 	var set_active_call: Dictionary = vcam_manager.get_last_set_active_call()
 	assert_eq(set_active_call.get("vcam_id", StringName("")), StringName("cam_orbit_restore"))
-	assert_almost_eq(float(set_active_call.get("blend_duration", 0.0)), 0.18, 0.0001)
+	assert_almost_eq(float(set_active_call.get("blend_duration", 0.0)), 0.27, 0.0001)
 
-func test_aim_activation_noops_when_no_ots_target_exists() -> void:
+func test_aim_activation_noops_when_no_first_person_target_exists() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
 	var store: MockStateStore = context["store"] as MockStateStore
 
-	var follow_target := _create_target_entity(ecs_manager, "E_AimNoOTSTarget", Vector3.ZERO)
+	var follow_target := _create_target_entity(ecs_manager, "E_AimNoFPTarget", Vector3.ZERO)
 	await _create_vcam_component(ecs_manager, StringName("cam_orbit_only"), _new_orbit_mode(), follow_target)
 
 	vcam_manager.active_vcam_id = StringName("cam_orbit_only")
@@ -380,7 +381,7 @@ func test_aim_activation_noops_when_no_ots_target_exists() -> void:
 	assert_eq(vcam_manager.active_vcam_id, StringName("cam_orbit_only"))
 	assert_true(vcam_manager.set_active_calls.is_empty())
 
-func test_aim_activation_prefers_ots_vcam_with_matching_follow_target() -> void:
+func test_aim_activation_prefers_first_person_vcam_with_matching_follow_target() -> void:
 	var context: Dictionary = await _setup_context()
 	autofree_context(context)
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
@@ -390,15 +391,15 @@ func test_aim_activation_prefers_ots_vcam_with_matching_follow_target() -> void:
 	var target_a := _create_target_entity(ecs_manager, "E_AimTargetA", Vector3.ZERO)
 	var target_b := _create_target_entity(ecs_manager, "E_AimTargetB", Vector3(2.0, 0.0, 0.0))
 	await _create_vcam_component(ecs_manager, StringName("cam_orbit_match"), _new_orbit_mode(), target_a)
-	await _create_vcam_component(ecs_manager, StringName("cam_ots_other"), _new_ots_mode(), target_b)
-	await _create_vcam_component(ecs_manager, StringName("cam_ots_match"), _new_ots_mode(), target_a)
+	await _create_vcam_component(ecs_manager, StringName("cam_fp_other"), _new_first_person_mode(), target_b)
+	await _create_vcam_component(ecs_manager, StringName("cam_fp_match"), _new_first_person_mode(), target_a)
 
 	vcam_manager.active_vcam_id = StringName("cam_orbit_match")
 	vcam_manager.clear_set_active_calls()
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "aim_pressed": true, "camera_center_just_pressed": false})
 	ecs_manager._physics_process(0.016)
 
-	assert_eq(vcam_manager.active_vcam_id, StringName("cam_ots_match"))
+	assert_eq(vcam_manager.active_vcam_id, StringName("cam_fp_match"))
 
 func test_aim_blend_duration_clamps_to_minimum_when_authored_non_positive() -> void:
 	var context: Dictionary = await _setup_context()
@@ -409,9 +410,9 @@ func test_aim_blend_duration_clamps_to_minimum_when_authored_non_positive() -> v
 
 	var follow_target := _create_target_entity(ecs_manager, "E_AimBlendClampTarget", Vector3.ZERO)
 	await _create_vcam_component(ecs_manager, StringName("cam_orbit_clamp"), _new_orbit_mode(), follow_target)
-	var ots_mode := _new_ots_mode()
-	ots_mode.aim_blend_duration = 0.0
-	await _create_vcam_component(ecs_manager, StringName("cam_ots_clamp"), ots_mode, follow_target)
+	var first_person_mode := _new_first_person_mode()
+	first_person_mode.aim_blend_duration = 0.0
+	await _create_vcam_component(ecs_manager, StringName("cam_fp_clamp"), first_person_mode, follow_target)
 
 	vcam_manager.active_vcam_id = StringName("cam_orbit_clamp")
 	vcam_manager.clear_set_active_calls()

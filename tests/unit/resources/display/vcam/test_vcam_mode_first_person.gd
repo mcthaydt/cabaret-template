@@ -42,6 +42,14 @@ func test_strafe_tilt_smoothing_default_is_six() -> void:
 	var mode: Resource = _new_mode()
 	assert_almost_eq(float(mode.get("strafe_tilt_smoothing")), 6.0, 0.0001)
 
+func test_aim_blend_duration_default_is_zero_point_fifteen() -> void:
+	var mode: Resource = _new_mode()
+	assert_almost_eq(float(mode.get("aim_blend_duration")), 0.15, 0.0001)
+
+func test_aim_exit_blend_duration_default_is_zero_point_two() -> void:
+	var mode: Resource = _new_mode()
+	assert_almost_eq(float(mode.get("aim_exit_blend_duration")), 0.2, 0.0001)
+
 func test_fov_resolves_to_valid_range() -> void:
 	var mode: Resource = _new_mode()
 	mode.set("fov", 0.0)
@@ -75,3 +83,11 @@ func test_strafe_tilt_angle_resolves_to_non_negative_value() -> void:
 	mode.set("strafe_tilt_angle", -15.0)
 	var resolved: Dictionary = _resolved(mode)
 	assert_almost_eq(float(resolved.get("strafe_tilt_angle", 1.0)), 0.0, 0.0001)
+
+func test_aim_blend_durations_resolve_to_minimum_positive_value() -> void:
+	var mode: Resource = _new_mode()
+	mode.set("aim_blend_duration", 0.0)
+	mode.set("aim_exit_blend_duration", -2.0)
+	var resolved: Dictionary = _resolved(mode)
+	assert_almost_eq(float(resolved.get("aim_blend_duration", 0.0)), 0.01, 0.0001)
+	assert_almost_eq(float(resolved.get("aim_exit_blend_duration", 0.0)), 0.01, 0.0001)

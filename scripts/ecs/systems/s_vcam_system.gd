@@ -21,14 +21,12 @@ const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_mov
 const C_CHARACTER_STATE_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_MODE_FIRST_PERSON_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_first_person.gd")
-const RS_VCAM_MODE_OTS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
 const RS_VCAM_MODE_FIXED_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_fixed.gd")
 const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
-const OTS_MIN_CAMERA_DISTANCE: float = 0.1
 const LOOK_AHEAD_MOVEMENT_EPSILON_SQ: float = 0.000001
 const IDLE_LOOK_SETTLE_DEG_PER_HZ: float = 20.0
 const MIN_IDLE_LOOK_SETTLE_DEG_PER_SEC: float = 45.0
@@ -42,15 +40,11 @@ const ORBIT_RELEASE_SIGN_FLIP_SETTLE_ERROR_DEG: float = 0.25
 const DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED: float = 0.15
 const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3
 const ORBIT_CENTER_DURATION_SEC: float = 0.3
-const OTS_LANDING_FALL_SPEED_MIN: float = 5.0
-const OTS_LANDING_FALL_SPEED_MAX: float = 30.0
-const OTS_LANDING_RESPONSE_EPSILON: float = 0.0001
-const DEFAULT_OTS_AIM_BLEND_DURATION: float = 0.15
+const DEFAULT_AIM_BLEND_DURATION: float = 0.15
 
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
 @export var debug_rotation_logging: bool = false
-@export var debug_ots_vertical_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_rotation_log_interval_sec: float = 0.25
 
 var _state_store: I_StateStore = null
@@ -64,9 +58,6 @@ var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped 
 var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
 var _ground_relative_state: Dictionary = {}  # StringName -> {follow_target_id, ground_anchor_y, ground_anchor_target_y, follow_anchor_y_offset, last_ground_reference_y, was_grounded, blend_hz, dynamics}
 var _first_person_strafe_tilt_state: Dictionary = {}  # StringName -> {dynamics, smoothing_hz}
-var _shoulder_sway_state: Dictionary = {}  # StringName -> {dynamics, smoothing_hz}
-var _ots_collision_state: Dictionary = {}  # StringName -> {follow_target_id, recovery_speed_hz, current_distance, dynamics}
-var _ots_landing_response_state: Dictionary = {}  # StringName -> {follow_target_id, recovery_speed_hz, current_offset, dynamics, last_event_serial}
 var _look_input_filter_state: Dictionary = {}  # StringName -> {filtered_input, hold_timer_sec, input_active}
 var _follow_target_motion_state: Dictionary = {}  # StringName -> {follow_target_id, last_position, speed_mps}
 var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
@@ -82,19 +73,14 @@ var _landing_recovery_state_id: int = 0
 var _landing_recovery_frequency_hz: float = -1.0
 var _debug_rotation_log_cooldown_sec: float = 0.0
 var _debug_state_log_cooldown_sec: float = 0.0
-var _debug_ots_vertical_log_cooldown_sec: float = 0.0
 var _debug_follow_target_ids: Dictionary = {}  # StringName -> int
 var _debug_look_ahead_motion_state: Dictionary = {}  # StringName -> bool
 var _debug_soft_zone_status: Dictionary = {}  # StringName -> String reason/state
 var _debug_landing_offset_status: int = -1  # -1 unknown, 0 inactive, 1 active
 var _debug_last_look_input_by_vcam: Dictionary = {}  # StringName -> Vector2
-var _debug_ots_profile_signature_by_vcam: Dictionary = {}  # StringName -> String
-var _debug_ots_pitch_clamped_by_vcam: Dictionary = {}  # StringName -> bool
 var _debug_position_smoothing_bypass_by_vcam: Dictionary = {}  # StringName -> bool
 var _debug_last_look_spring_stage_by_vcam: Dictionary = {}  # StringName -> String
 var _event_unsubscribers: Array[Callable] = []
-var _landing_response_event_serial: int = 0
-var _landing_response_event_normalized: float = 0.0
 var _aim_restore_vcam_id: StringName = StringName("")
 var _aim_toggled_on: bool = false
 var _aim_prev_pressed: bool = false
@@ -106,8 +92,6 @@ func process_tick(delta: float) -> void:
 	if debug_rotation_logging:
 		_debug_rotation_log_cooldown_sec = maxf(_debug_rotation_log_cooldown_sec - maxf(delta, 0.0), 0.0)
 		_debug_state_log_cooldown_sec = maxf(_debug_state_log_cooldown_sec - maxf(delta, 0.0), 0.0)
-	if debug_ots_vertical_logging:
-		_debug_ots_vertical_log_cooldown_sec = maxf(_debug_ots_vertical_log_cooldown_sec - maxf(delta, 0.0), 0.0)
 	var manager := _resolve_vcam_manager()
 	if manager == null:
 		_debug_log_vcam_state("blocked: no vcam_manager service", StringName(""), Vector2.ZERO)
@@ -188,101 +172,12 @@ func _exit_tree() -> void:
 
 func _subscribe_events() -> void:
 	_unsubscribe_events()
-	var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_ENTITY_LANDED,
-		_on_entity_landed
-	)
-	if unsubscribe.is_valid():
-		_event_unsubscribers.append(unsubscribe)
 
 func _unsubscribe_events() -> void:
 	for unsubscribe in _event_unsubscribers:
 		if unsubscribe.is_valid():
 			unsubscribe.call()
 	_event_unsubscribers.clear()
-
-func _on_entity_landed(event_data: Dictionary) -> void:
-	var payload: Dictionary = _extract_event_payload(event_data)
-	if payload.is_empty():
-		return
-	if not _is_player_landing_payload(payload):
-		return
-
-	var raw_fall_speed: float = _extract_landing_fall_speed(payload)
-	if raw_fall_speed <= 0.0:
-		return
-
-	var normalized_fall_speed: float = _normalize_landing_fall_speed(raw_fall_speed)
-	if normalized_fall_speed <= 0.0:
-		return
-
-	_landing_response_event_serial += 1
-	_landing_response_event_normalized = normalized_fall_speed
-
-func _extract_event_payload(event_data: Dictionary) -> Dictionary:
-	if event_data.is_empty():
-		return {}
-	var payload_variant: Variant = event_data.get("payload", event_data)
-	if payload_variant is Dictionary:
-		return (payload_variant as Dictionary).duplicate(true)
-	return {}
-
-func _is_player_landing_payload(payload: Dictionary) -> bool:
-	var player_entity_id: StringName = _read_player_entity_id_from_state()
-	var payload_entity_id: StringName = _extract_payload_entity_id(payload)
-	if payload_entity_id == StringName(""):
-		return false
-
-	var normalized_entity_id: String = String(payload_entity_id).to_lower()
-	var normalized_player_id: String = String(player_entity_id).to_lower()
-	if normalized_player_id.is_empty():
-		normalized_player_id = "player"
-	if normalized_entity_id == normalized_player_id:
-		return true
-	return normalized_entity_id.contains("player")
-
-func _read_player_entity_id_from_state() -> StringName:
-	var store := _resolve_state_store()
-	if store == null:
-		return StringName("player")
-	var state: Dictionary = store.get_state()
-	var gameplay_variant: Variant = state.get("gameplay", {})
-	if gameplay_variant is Dictionary:
-		var gameplay: Dictionary = gameplay_variant as Dictionary
-		return _variant_to_string_name(gameplay.get("player_entity_id", StringName("player")))
-	return StringName("player")
-
-func _extract_payload_entity_id(payload: Dictionary) -> StringName:
-	if payload.has("entity_id"):
-		return _variant_to_string_name(payload.get("entity_id", StringName("")))
-
-	var entity_variant: Variant = payload.get("entity", null)
-	if entity_variant is Node:
-		var entity_node := entity_variant as Node
-		var entity_root: Node = U_ECS_UTILS.find_entity_root(entity_node)
-		if entity_root != null and is_instance_valid(entity_root):
-			return U_ECS_UTILS.get_entity_id(entity_root)
-		return _variant_to_string_name(entity_node.name)
-	return StringName("")
-
-func _extract_landing_fall_speed(payload: Dictionary) -> float:
-	if payload.has("fall_speed"):
-		return absf(float(payload.get("fall_speed", 0.0)))
-	if payload.has("vertical_velocity"):
-		return absf(float(payload.get("vertical_velocity", 0.0)))
-	if payload.has("velocity"):
-		var velocity_variant: Variant = payload.get("velocity", Vector3.ZERO)
-		if velocity_variant is Vector3:
-			var velocity := velocity_variant as Vector3
-			return absf(velocity.y)
-	return 0.0
-
-func _normalize_landing_fall_speed(fall_speed: float) -> float:
-	if fall_speed <= OTS_LANDING_FALL_SPEED_MIN:
-		return 0.0
-	if fall_speed >= OTS_LANDING_FALL_SPEED_MAX:
-		return 1.0
-	return inverse_lerp(OTS_LANDING_FALL_SPEED_MIN, OTS_LANDING_FALL_SPEED_MAX, fall_speed)
 
 func _apply_rotation_continuity_policy(
 	active_vcam_id: StringName,
@@ -353,7 +248,6 @@ func _is_look_driven_mode_script(mode_script: Script) -> bool:
 	return (
 		mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
 		or mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT
-		or mode_script == RS_VCAM_MODE_OTS_SCRIPT
 	)
 
 func _apply_same_mode_rotation_transition(
@@ -487,19 +381,7 @@ func _evaluate_and_submit(
 		_update_active_target_observability(vcam_id, manager, false, "evaluation_failed")
 		return
 	_update_active_target_observability(vcam_id, manager, true)
-	_debug_log_ots_vertical_diagnostics(
-		vcam_id,
-		mode,
-		follow_target,
-		look_input,
-		filtered_look_input,
-		has_active_look_input,
-		runtime_rotation,
-		result
-	)
 	result = _apply_first_person_strafe_tilt(vcam_id, mode, result, move_input, delta)
-	result = _apply_ots_shoulder_sway(vcam_id, mode, result, move_input, delta)
-	result = _apply_ots_collision_avoidance(vcam_id, mode, follow_target, result, delta)
 	var look_ahead_result: Dictionary = _apply_orbit_look_ahead(
 		vcam_id,
 		component,
@@ -535,14 +417,7 @@ func _evaluate_and_submit(
 		delta,
 		has_active_look_input
 	)
-	var ots_landing_result: Dictionary = _apply_ots_landing_camera_response(
-		vcam_id,
-		mode,
-		follow_target,
-		smoothed_result,
-		delta
-	)
-	var final_result: Dictionary = _apply_landing_impact_offset(ots_landing_result, landing_offset)
+	var final_result: Dictionary = _apply_landing_impact_offset(smoothed_result, landing_offset)
 	if vcam_id == manager.get_active_vcam_id():
 		_write_active_camera_base_fov_from_result(final_result)
 	manager.submit_evaluated_camera(vcam_id, final_result)
@@ -630,474 +505,6 @@ func _ensure_first_person_strafe_tilt_state(vcam_id: StringName, smoothing_hz: f
 
 func _clear_first_person_strafe_tilt_state_for_vcam(vcam_id: StringName) -> void:
 	_first_person_strafe_tilt_state.erase(vcam_id)
-
-func _apply_ots_shoulder_sway(
-	vcam_id: StringName,
-	mode: Resource,
-	result: Dictionary,
-	move_input: Vector2,
-	delta: float
-) -> Dictionary:
-	if mode == null or result.is_empty():
-		_clear_ots_shoulder_sway_state_for_vcam(vcam_id)
-		return result
-
-	var mode_script := mode.get_script() as Script
-	if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
-		_clear_ots_shoulder_sway_state_for_vcam(vcam_id)
-		return result
-
-	var transform_variant: Variant = result.get("transform", null)
-	if not (transform_variant is Transform3D):
-		_clear_ots_shoulder_sway_state_for_vcam(vcam_id)
-		return result
-
-	var mode_values: Dictionary = _resolve_mode_values(mode, {
-		"shoulder_sway_angle": 0.0,
-		"shoulder_sway_smoothing": 6.0,
-	})
-	var shoulder_sway_angle: float = maxf(float(mode_values.get("shoulder_sway_angle", 0.0)), 0.0)
-	if shoulder_sway_angle <= 0.0:
-		_clear_ots_shoulder_sway_state_for_vcam(vcam_id)
-		return result
-
-	var shoulder_sway_smoothing: float = maxf(float(mode_values.get("shoulder_sway_smoothing", 6.0)), 0.0)
-	var clamped_lateral_input: float = clampf(move_input.x, -1.0, 1.0)
-	var target_roll_deg: float = clamped_lateral_input * shoulder_sway_angle
-	var smoothed_roll_deg: float = target_roll_deg
-
-	if shoulder_sway_smoothing > 0.0 and delta > 0.0:
-		var state: Dictionary = _ensure_ots_shoulder_sway_state(vcam_id, shoulder_sway_smoothing)
-		var dynamics_variant: Variant = state.get("dynamics", null)
-		if dynamics_variant != null:
-			smoothed_roll_deg = float(dynamics_variant.step(target_roll_deg, delta))
-	else:
-		_clear_ots_shoulder_sway_state_for_vcam(vcam_id)
-
-	var transformed := transform_variant as Transform3D
-	var roll_rad: float = deg_to_rad(smoothed_roll_deg)
-	transformed.basis = transformed.basis.rotated(transformed.basis.z, roll_rad).orthonormalized()
-	var swayed_result: Dictionary = result.duplicate(true)
-	swayed_result["transform"] = transformed
-	return swayed_result
-
-func _ensure_ots_shoulder_sway_state(vcam_id: StringName, smoothing_hz: float) -> Dictionary:
-	var existing_state_variant: Variant = _shoulder_sway_state.get(vcam_id, {})
-	if existing_state_variant is Dictionary:
-		var existing_state := existing_state_variant as Dictionary
-		var existing_hz: float = float(existing_state.get("smoothing_hz", -1.0))
-		var existing_dynamics: Variant = existing_state.get("dynamics", null)
-		if existing_dynamics != null and is_equal_approx(existing_hz, smoothing_hz):
-			return existing_state
-
-		var initial_roll_deg: float = 0.0
-		if existing_dynamics != null and existing_dynamics.has_method("get_value"):
-			initial_roll_deg = float(existing_dynamics.call("get_value"))
-		var rebuilt_state: Dictionary = {
-			"dynamics": U_SECOND_ORDER_DYNAMICS.new(smoothing_hz, 1.0, 1.0, initial_roll_deg),
-			"smoothing_hz": smoothing_hz,
-		}
-		_shoulder_sway_state[vcam_id] = rebuilt_state
-		return rebuilt_state
-
-	var created_state: Dictionary = {
-		"dynamics": U_SECOND_ORDER_DYNAMICS.new(smoothing_hz, 1.0, 1.0, 0.0),
-		"smoothing_hz": smoothing_hz,
-	}
-	_shoulder_sway_state[vcam_id] = created_state
-	return created_state
-
-func _clear_ots_shoulder_sway_state_for_vcam(vcam_id: StringName) -> void:
-	_shoulder_sway_state.erase(vcam_id)
-
-func _apply_ots_collision_avoidance(
-	vcam_id: StringName,
-	mode: Resource,
-	follow_target: Node3D,
-	result: Dictionary,
-	delta: float
-) -> Dictionary:
-	if mode == null or result.is_empty():
-		_clear_ots_collision_state_for_vcam(vcam_id)
-		return result
-
-	var mode_script := mode.get_script() as Script
-	if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
-		_clear_ots_collision_state_for_vcam(vcam_id)
-		return result
-	if follow_target == null or not is_instance_valid(follow_target):
-		_clear_ots_collision_state_for_vcam(vcam_id)
-		return result
-
-	var transform_variant: Variant = result.get("transform", null)
-	if not (transform_variant is Transform3D):
-		_clear_ots_collision_state_for_vcam(vcam_id)
-		return result
-	var desired_transform := transform_variant as Transform3D
-
-	var world: World3D = follow_target.get_world_3d()
-	if world == null:
-		_clear_ots_collision_state_for_vcam(vcam_id)
-		return result
-	var space_state: PhysicsDirectSpaceState3D = world.direct_space_state
-	if space_state == null:
-		_clear_ots_collision_state_for_vcam(vcam_id)
-		return result
-
-	var mode_values: Dictionary = _resolve_mode_values(mode, {
-		"shoulder_offset": Vector3.ZERO,
-		"camera_distance": 0.0,
-		"collision_probe_radius": 0.15,
-		"collision_recovery_speed": 8.0,
-	})
-	var cast_origin: Vector3 = _resolve_ots_collision_cast_origin(desired_transform, follow_target, mode_values)
-	var cast_offset: Vector3 = desired_transform.origin - cast_origin
-	var desired_distance: float = cast_offset.length()
-	if desired_distance <= 0.0:
-		_clear_ots_collision_state_for_vcam(vcam_id)
-		return result
-
-	var probe_radius: float = maxf(float(mode_values.get("collision_probe_radius", 0.15)), 0.0)
-	var recovery_speed_hz: float = maxf(float(mode_values.get("collision_recovery_speed", 8.0)), 0.0001)
-	var follow_target_id: int = _get_node_instance_id(follow_target)
-	var state: Dictionary = _get_or_create_ots_collision_state(
-		vcam_id,
-		follow_target_id,
-		desired_distance,
-		recovery_speed_hz
-	)
-	var dynamics: Variant = state.get("dynamics", null)
-
-	var hit_data: Dictionary = _resolve_ots_collision_hit_distance(
-		space_state,
-		follow_target,
-		cast_origin,
-		cast_offset,
-		probe_radius
-	)
-	var has_hit: bool = bool(hit_data.get("hit", false))
-	var hit_distance: float = float(hit_data.get("distance", desired_distance))
-	var target_distance: float = desired_distance
-	if has_hit:
-		target_distance = clampf(hit_distance - probe_radius, OTS_MIN_CAMERA_DISTANCE, desired_distance)
-
-	var resolved_distance: float = target_distance
-	if dynamics != null and delta > 0.0:
-		resolved_distance = float(dynamics.step(target_distance, delta))
-	if has_hit:
-		resolved_distance = minf(resolved_distance, target_distance)
-	resolved_distance = clampf(resolved_distance, OTS_MIN_CAMERA_DISTANCE, desired_distance)
-	if is_nan(resolved_distance) or is_inf(resolved_distance):
-		resolved_distance = target_distance
-
-	state["current_distance"] = resolved_distance
-	_ots_collision_state[vcam_id] = state
-
-	var adjusted_transform := desired_transform
-	adjusted_transform.origin = cast_origin + cast_offset.normalized() * resolved_distance
-	var adjusted_result: Dictionary = result.duplicate(true)
-	adjusted_result["transform"] = adjusted_transform
-	return adjusted_result
-
-func _resolve_ots_collision_cast_origin(
-	desired_transform: Transform3D,
-	follow_target: Node3D,
-	mode_values: Dictionary
-) -> Vector3:
-	var fallback_origin: Vector3 = follow_target.global_position
-	if mode_values.is_empty():
-		return fallback_origin
-
-	var shoulder_offset_variant: Variant = mode_values.get("shoulder_offset", Vector3.ZERO)
-	if shoulder_offset_variant is Vector3:
-		var shoulder_offset := shoulder_offset_variant as Vector3
-		if not is_nan(shoulder_offset.y) and not is_inf(shoulder_offset.y):
-			# Keep collision origin on the target centerline while lifting to shoulder height.
-			# This avoids floor-origin overlap and prevents near-hit clamps from collapsing into shoulder geometry.
-			return fallback_origin + (Vector3.UP * shoulder_offset.y)
-
-	var camera_distance: float = maxf(float(mode_values.get("camera_distance", 0.0)), 0.0)
-	if camera_distance <= 0.0:
-		return fallback_origin
-
-	var back_direction: Vector3 = desired_transform.basis.z
-	if back_direction.length_squared() <= 0.000001:
-		return fallback_origin
-	return desired_transform.origin - back_direction.normalized() * camera_distance
-
-func _get_or_create_ots_collision_state(
-	vcam_id: StringName,
-	follow_target_id: int,
-	initial_distance: float,
-	recovery_speed_hz: float
-) -> Dictionary:
-	var state_variant: Variant = _ots_collision_state.get(vcam_id, {})
-	var state: Dictionary = {}
-	if state_variant is Dictionary:
-		state = (state_variant as Dictionary).duplicate(true)
-
-	var current_distance: float = maxf(float(state.get("current_distance", initial_distance)), OTS_MIN_CAMERA_DISTANCE)
-	var previous_target_id: int = int(state.get("follow_target_id", 0))
-	var previous_recovery_hz: float = float(state.get("recovery_speed_hz", -1.0))
-	var dynamics: Variant = state.get("dynamics", null)
-	if state.is_empty() or previous_target_id != follow_target_id:
-		current_distance = maxf(initial_distance, OTS_MIN_CAMERA_DISTANCE)
-		dynamics = U_SECOND_ORDER_DYNAMICS.new(recovery_speed_hz, 1.0, 1.0, current_distance)
-	elif dynamics == null or not is_equal_approx(previous_recovery_hz, recovery_speed_hz):
-		dynamics = U_SECOND_ORDER_DYNAMICS.new(recovery_speed_hz, 1.0, 1.0, current_distance)
-
-	state["follow_target_id"] = follow_target_id
-	state["recovery_speed_hz"] = recovery_speed_hz
-	state["current_distance"] = current_distance
-	state["dynamics"] = dynamics
-	return state
-
-func _resolve_ots_collision_hit_distance(
-	space_state: PhysicsDirectSpaceState3D,
-	follow_target: Node3D,
-	cast_origin: Vector3,
-	cast_offset: Vector3,
-	probe_radius: float
-) -> Dictionary:
-	var cast_distance: float = cast_offset.length()
-	if cast_distance <= 0.0:
-		return {
-			"hit": false,
-			"distance": 0.0,
-		}
-
-	var cast_direction: Vector3 = cast_offset / cast_distance
-	var exclude_rids: Array[RID] = _build_ots_collision_exclude_rids(follow_target)
-	if probe_radius <= 0.0:
-		return _resolve_ots_collision_hit_distance_with_ray(
-			space_state,
-			cast_origin,
-			cast_direction,
-			cast_distance,
-			exclude_rids
-		)
-
-	var shape := SphereShape3D.new()
-	shape.radius = probe_radius
-	var query := PhysicsShapeQueryParameters3D.new()
-	query.shape = shape
-	query.transform = Transform3D(Basis.IDENTITY, cast_origin)
-	query.motion = cast_direction * cast_distance
-	query.collide_with_areas = false
-	query.collide_with_bodies = true
-	query.exclude = exclude_rids
-
-	var overlap_query := PhysicsShapeQueryParameters3D.new()
-	overlap_query.shape = shape
-	overlap_query.transform = Transform3D(Basis.IDENTITY, cast_origin)
-	overlap_query.collide_with_areas = false
-	overlap_query.collide_with_bodies = true
-	overlap_query.exclude = exclude_rids
-	var initial_overlaps: Array[Dictionary] = space_state.intersect_shape(overlap_query, 1)
-	if not initial_overlaps.is_empty():
-		return {
-			"hit": true,
-			"distance": 0.0,
-		}
-
-	var motion_result: PackedFloat32Array = space_state.cast_motion(query)
-	if motion_result.size() == 0:
-		return {
-			"hit": false,
-			"distance": cast_distance,
-		}
-	var safe_fraction: float = clampf(float(motion_result[0]), 0.0, 1.0)
-	if safe_fraction >= 1.0:
-		return {
-			"hit": false,
-			"distance": cast_distance,
-		}
-	return {
-		"hit": true,
-		"distance": maxf(cast_distance * safe_fraction, 0.0),
-	}
-
-func _resolve_ots_collision_hit_distance_with_ray(
-	space_state: PhysicsDirectSpaceState3D,
-	cast_origin: Vector3,
-	cast_direction: Vector3,
-	cast_distance: float,
-	exclude_rids: Array[RID]
-) -> Dictionary:
-	var ray_to: Vector3 = cast_origin + cast_direction * cast_distance
-	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(cast_origin, ray_to)
-	query.collide_with_areas = false
-	query.collide_with_bodies = true
-	query.exclude = exclude_rids
-	var hit: Dictionary = space_state.intersect_ray(query)
-	if hit.is_empty():
-		return {
-			"hit": false,
-			"distance": cast_distance,
-		}
-
-	var hit_position_variant: Variant = hit.get("position", ray_to)
-	if not (hit_position_variant is Vector3):
-		return {
-			"hit": false,
-			"distance": cast_distance,
-		}
-	var hit_position := hit_position_variant as Vector3
-	return {
-		"hit": true,
-		"distance": maxf(cast_origin.distance_to(hit_position), 0.0),
-	}
-
-func _build_ots_collision_exclude_rids(follow_target: Node3D) -> Array[RID]:
-	var exclude_rids: Array[RID] = []
-	var entity_root: Node = U_ECS_UTILS.find_entity_root(follow_target)
-	if entity_root != null and is_instance_valid(entity_root):
-		var entity_collision := entity_root as CollisionObject3D
-		if entity_collision != null:
-			_append_unique_collision_rid(exclude_rids, entity_collision)
-
-	# Follow targets are often non-collision anchors under CharacterBody3D.
-	# Walk parent chain so we still exclude the owning player body.
-	var current: Node = follow_target
-	while current != null:
-		var chain_collision := current as CollisionObject3D
-		if chain_collision != null:
-			_append_unique_collision_rid(exclude_rids, chain_collision)
-		if entity_root != null and current == entity_root:
-			break
-		current = current.get_parent()
-
-	var follow_collision := follow_target as CollisionObject3D
-	if follow_collision != null:
-		_append_unique_collision_rid(exclude_rids, follow_collision)
-	if exclude_rids.is_empty():
-		var follow_body: CharacterBody3D = _find_character_body_recursive(follow_target)
-		if follow_body != null and is_instance_valid(follow_body):
-			_append_unique_collision_rid(exclude_rids, follow_body)
-	return exclude_rids
-
-func _append_unique_collision_rid(exclude_rids: Array[RID], collision_object: CollisionObject3D) -> void:
-	if collision_object == null or not is_instance_valid(collision_object):
-		return
-	var rid: RID = collision_object.get_rid()
-	if not rid.is_valid():
-		return
-	if exclude_rids.has(rid):
-		return
-	exclude_rids.append(rid)
-
-func _clear_ots_collision_state_for_vcam(vcam_id: StringName) -> void:
-	_ots_collision_state.erase(vcam_id)
-
-func _apply_ots_landing_camera_response(
-	vcam_id: StringName,
-	mode: Resource,
-	follow_target: Node3D,
-	result: Dictionary,
-	delta: float
-) -> Dictionary:
-	if mode == null or result.is_empty():
-		_clear_ots_landing_response_state_for_vcam(vcam_id)
-		return result
-
-	var mode_script := mode.get_script() as Script
-	if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
-		_clear_ots_landing_response_state_for_vcam(vcam_id)
-		return result
-	if follow_target == null or not is_instance_valid(follow_target):
-		_clear_ots_landing_response_state_for_vcam(vcam_id)
-		return result
-
-	var transform_variant: Variant = result.get("transform", null)
-	if not (transform_variant is Transform3D):
-		_clear_ots_landing_response_state_for_vcam(vcam_id)
-		return result
-	var current_transform := transform_variant as Transform3D
-
-	var mode_values: Dictionary = _resolve_mode_values(mode, {
-		"shoulder_offset": Vector3.ZERO,
-		"camera_distance": 0.0,
-		"landing_dip_distance": 0.0,
-		"landing_dip_recovery_speed": 6.0,
-	})
-	var landing_dip_distance: float = maxf(float(mode_values.get("landing_dip_distance", 0.0)), 0.0)
-	if landing_dip_distance <= 0.0:
-		_clear_ots_landing_response_state_for_vcam(vcam_id)
-		return result
-
-	var recovery_speed_hz: float = maxf(float(mode_values.get("landing_dip_recovery_speed", 6.0)), 0.0001)
-	var follow_target_id: int = _get_node_instance_id(follow_target)
-	var state: Dictionary = _get_or_create_ots_landing_response_state(
-		vcam_id,
-		follow_target_id,
-		recovery_speed_hz
-	)
-	var dynamics: Variant = state.get("dynamics", null)
-	var current_offset: float = maxf(float(state.get("current_offset", 0.0)), 0.0)
-
-	if _landing_response_event_serial > 0:
-		var last_event_serial: int = int(state.get("last_event_serial", -1))
-		if last_event_serial != _landing_response_event_serial:
-			var triggered_offset: float = landing_dip_distance * clampf(_landing_response_event_normalized, 0.0, 1.0)
-			current_offset = maxf(current_offset, triggered_offset)
-			if dynamics != null and dynamics.has_method("reset"):
-				dynamics.call("reset", current_offset)
-			state["last_event_serial"] = _landing_response_event_serial
-
-	if current_offset > 0.0 and dynamics != null and delta > 0.0:
-		current_offset = maxf(float(dynamics.step(0.0, delta)), 0.0)
-	if current_offset <= OTS_LANDING_RESPONSE_EPSILON:
-		current_offset = 0.0
-
-	state["current_offset"] = current_offset
-	_ots_landing_response_state[vcam_id] = state
-	if current_offset <= 0.0:
-		return result
-
-	var cast_origin: Vector3 = _resolve_ots_collision_cast_origin(current_transform, follow_target, mode_values)
-	var cast_offset: Vector3 = current_transform.origin - cast_origin
-	var cast_distance: float = cast_offset.length()
-	if cast_distance <= 0.0:
-		return result
-
-	var reduced_distance: float = maxf(cast_distance - current_offset, OTS_MIN_CAMERA_DISTANCE)
-	var adjusted_transform := current_transform
-	adjusted_transform.origin = cast_origin + cast_offset.normalized() * reduced_distance
-	var adjusted_result: Dictionary = result.duplicate(true)
-	adjusted_result["transform"] = adjusted_transform
-	return adjusted_result
-
-func _get_or_create_ots_landing_response_state(
-	vcam_id: StringName,
-	follow_target_id: int,
-	recovery_speed_hz: float
-) -> Dictionary:
-	var state_variant: Variant = _ots_landing_response_state.get(vcam_id, {})
-	var state: Dictionary = {}
-	if state_variant is Dictionary:
-		state = (state_variant as Dictionary).duplicate(true)
-
-	var current_offset: float = maxf(float(state.get("current_offset", 0.0)), 0.0)
-	var previous_target_id: int = int(state.get("follow_target_id", 0))
-	var previous_recovery_hz: float = float(state.get("recovery_speed_hz", -1.0))
-	var dynamics: Variant = state.get("dynamics", null)
-	var last_event_serial: int = int(state.get("last_event_serial", -1))
-	if state.is_empty() or previous_target_id != follow_target_id:
-		current_offset = 0.0
-		dynamics = U_SECOND_ORDER_DYNAMICS.new(recovery_speed_hz, 1.0, 1.0, current_offset)
-		last_event_serial = _landing_response_event_serial
-	elif dynamics == null or not is_equal_approx(previous_recovery_hz, recovery_speed_hz):
-		dynamics = U_SECOND_ORDER_DYNAMICS.new(recovery_speed_hz, 1.0, 1.0, current_offset)
-
-	state["follow_target_id"] = follow_target_id
-	state["recovery_speed_hz"] = recovery_speed_hz
-	state["current_offset"] = current_offset
-	state["dynamics"] = dynamics
-	state["last_event_serial"] = last_event_serial
-	return state
-
-func _clear_ots_landing_response_state_for_vcam(vcam_id: StringName) -> void:
-	_ots_landing_response_state.erase(vcam_id)
 
 func _resolve_landing_impact_offset(delta: float) -> Vector3:
 	var camera_state: Object = _resolve_primary_camera_state_component()
@@ -1415,37 +822,19 @@ func _update_runtime_rotation(
 	_orbit_centering_state.erase(vcam_id)
 	if not has_look_input:
 		return
-	if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT or mode_script == RS_VCAM_MODE_OTS_SCRIPT:
+	if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
 		var look_mode_values: Dictionary = _resolve_mode_values(mode, {
 			"look_multiplier": 1.0,
 		})
 		var look_multiplier: float = maxf(float(look_mode_values.get("look_multiplier", 1.0)), 0.0001)
 		var previous_fp_yaw: float = component.runtime_yaw
 		var previous_fp_pitch: float = component.runtime_pitch
-		var yaw_delta: float = look_input.x * look_multiplier
-		if mode_script == RS_VCAM_MODE_OTS_SCRIPT:
-			yaw_delta *= -1.0
-		component.runtime_yaw += yaw_delta
-		var pitch_delta: float = look_input.y * look_multiplier
-		if mode_script == RS_VCAM_MODE_OTS_SCRIPT:
-			pitch_delta *= -1.0
-		component.runtime_pitch += pitch_delta
-		if mode_script == RS_VCAM_MODE_OTS_SCRIPT:
-			var ots_values: Dictionary = _resolve_mode_values(mode, {
-				"pitch_min": -60.0,
-				"pitch_max": 50.0,
-			})
-			component.runtime_pitch = clampf(
-				component.runtime_pitch,
-				float(ots_values.get("pitch_min", -60.0)),
-				float(ots_values.get("pitch_max", 50.0))
-			)
-		var mode_label: String = "first_person" if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT else "ots"
+		component.runtime_yaw += look_input.x * look_multiplier
+		component.runtime_pitch += look_input.y * look_multiplier
 		_debug_log_rotation(
 			vcam_id,
-			"%s input=%s multiplier=%.3f yaw=%.3f->%.3f pitch=%.3f->%.3f"
+			"first_person input=%s multiplier=%.3f yaw=%.3f->%.3f pitch=%.3f->%.3f"
 			% [
-				mode_label,
 				str(look_input),
 				look_multiplier,
 				previous_fp_yaw,
@@ -1478,22 +867,22 @@ func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, ai
 		return
 
 	var active_mode: Resource = active_component.mode
-	var active_is_ots: bool = _is_ots_mode(active_mode)
+	var active_is_first_person: bool = _is_first_person_mode(active_mode)
 
 	if aim_just_pressed:
-		if active_is_ots:
+		if active_is_first_person:
 			return
-		var target_ots_id: StringName = _find_aim_target_ots_vcam_id(active_vcam_id, active_component, vcam_index)
-		if target_ots_id == StringName("") or target_ots_id == active_vcam_id:
+		var target_fp_id: StringName = _find_aim_target_fp_vcam_id(active_vcam_id, active_component, vcam_index)
+		if target_fp_id == StringName("") or target_fp_id == active_vcam_id:
 			return
-		var target_component := vcam_index.get(target_ots_id, null) as C_VCamComponent
+		var target_component := vcam_index.get(target_fp_id, null) as C_VCamComponent
 		if target_component == null or not is_instance_valid(target_component):
 			return
 
 		_aim_restore_vcam_id = active_vcam_id
 		_aim_toggled_on = true
-		var enter_blend_duration: float = _resolve_ots_aim_blend_duration(target_component.mode)
-		manager.set_active_vcam(target_ots_id, enter_blend_duration)
+		var enter_blend_duration: float = _resolve_aim_blend_duration(target_component.mode)
+		manager.set_active_vcam(target_fp_id, enter_blend_duration)
 		return
 
 	if not aim_just_released:
@@ -1502,7 +891,7 @@ func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, ai
 	_aim_toggled_on = false
 	if _aim_restore_vcam_id == StringName(""):
 		return
-	if not active_is_ots:
+	if not active_is_first_person:
 		_aim_restore_vcam_id = StringName("")
 		return
 
@@ -1513,10 +902,10 @@ func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, ai
 	if not vcam_index.has(restore_vcam_id):
 		return
 
-	var exit_blend_duration: float = _resolve_ots_aim_blend_duration(active_mode)
+	var exit_blend_duration: float = _resolve_aim_exit_blend_duration(active_mode)
 	manager.set_active_vcam(restore_vcam_id, exit_blend_duration)
 
-func _find_aim_target_ots_vcam_id(
+func _find_aim_target_fp_vcam_id(
 	active_vcam_id: StringName,
 	active_component: C_VCamComponent,
 	vcam_index: Dictionary
@@ -1539,7 +928,7 @@ func _find_aim_target_ots_vcam_id(
 			continue
 		if not candidate.is_active:
 			continue
-		if not _is_ots_mode(candidate.mode):
+		if not _is_first_person_mode(candidate.mode):
 			continue
 
 		var matches_target: bool = false
@@ -1565,23 +954,23 @@ func _find_aim_target_ots_vcam_id(
 
 	return best_vcam_id
 
-func _is_ots_mode(mode: Resource) -> bool:
+func _is_first_person_mode(mode: Resource) -> bool:
 	if mode == null:
 		return false
 	var mode_script := mode.get_script() as Script
-	return mode_script == RS_VCAM_MODE_OTS_SCRIPT
+	return mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT
 
-func _resolve_ots_aim_blend_duration(mode: Resource) -> float:
-	if not _is_ots_mode(mode):
-		return DEFAULT_OTS_AIM_BLEND_DURATION
+func _resolve_aim_blend_duration(mode: Resource) -> float:
+	if not _is_first_person_mode(mode):
+		return DEFAULT_AIM_BLEND_DURATION
 	var mode_values: Dictionary = _resolve_mode_values(mode, {
-		"aim_blend_duration": DEFAULT_OTS_AIM_BLEND_DURATION,
+		"aim_blend_duration": DEFAULT_AIM_BLEND_DURATION,
 	})
-	return maxf(float(mode_values.get("aim_blend_duration", DEFAULT_OTS_AIM_BLEND_DURATION)), 0.01)
+	return maxf(float(mode_values.get("aim_blend_duration", DEFAULT_AIM_BLEND_DURATION)), 0.01)
 
-func _resolve_ots_aim_exit_blend_duration(mode: Resource) -> float:
-	if not _is_ots_mode(mode):
-		return DEFAULT_OTS_AIM_BLEND_DURATION
+func _resolve_aim_exit_blend_duration(mode: Resource) -> float:
+	if not _is_first_person_mode(mode):
+		return DEFAULT_AIM_BLEND_DURATION
 	var mode_values: Dictionary = _resolve_mode_values(mode, {
 		"aim_exit_blend_duration": 0.2,
 	})
@@ -2573,30 +1962,6 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
-	for vcam_id_variant in _shoulder_sway_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
-	for vcam_id_variant in _ots_collision_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
-	for vcam_id_variant in _ots_landing_response_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
 	for vcam_id_variant in _look_input_filter_state.keys():
 		var vcam_id := vcam_id_variant as StringName
 		if vcam_index.has(vcam_id):
@@ -2648,9 +2013,6 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
 		_clear_first_person_strafe_tilt_state_for_vcam(stale_id)
-		_clear_ots_shoulder_sway_state_for_vcam(stale_id)
-		_clear_ots_collision_state_for_vcam(stale_id)
-		_clear_ots_landing_response_state_for_vcam(stale_id)
 		_orbit_centering_state.erase(stale_id)
 		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
 
@@ -2671,9 +2033,6 @@ func _clear_all_smoothing_state() -> void:
 	_look_ahead_state.clear()
 	_ground_relative_state.clear()
 	_first_person_strafe_tilt_state.clear()
-	_shoulder_sway_state.clear()
-	_ots_collision_state.clear()
-	_ots_landing_response_state.clear()
 	_look_input_filter_state.clear()
 	_follow_target_motion_state.clear()
 	_orbit_no_look_input_timers.clear()
@@ -2683,12 +2042,8 @@ func _clear_all_smoothing_state() -> void:
 	_debug_soft_zone_status.clear()
 	_debug_landing_offset_status = -1
 	_debug_last_look_input_by_vcam.clear()
-	_debug_ots_profile_signature_by_vcam.clear()
-	_debug_ots_pitch_clamped_by_vcam.clear()
 	_debug_position_smoothing_bypass_by_vcam.clear()
 	_debug_last_look_spring_stage_by_vcam.clear()
-	_landing_response_event_serial = 0
-	_landing_response_event_normalized = 0.0
 
 func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_follow_dynamics.erase(vcam_id)
@@ -2705,8 +2060,6 @@ func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_debug_look_ahead_motion_state.erase(vcam_id)
 	_debug_soft_zone_status.erase(vcam_id)
 	_debug_last_look_input_by_vcam.erase(vcam_id)
-	_debug_ots_profile_signature_by_vcam.erase(vcam_id)
-	_debug_ots_pitch_clamped_by_vcam.erase(vcam_id)
 	_debug_position_smoothing_bypass_by_vcam.erase(vcam_id)
 	_debug_last_look_spring_stage_by_vcam.erase(vcam_id)
 
@@ -3070,7 +2423,6 @@ func _is_look_rotation_smoothing_mode(mode_script: Script) -> bool:
 	return (
 		mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
 		or mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT
-		or mode_script == RS_VCAM_MODE_OTS_SCRIPT
 	)
 
 func _get_look_rotation_state(vcam_id: StringName) -> Dictionary:
@@ -3543,8 +2895,6 @@ func _is_follow_target_required(mode: Resource, mode_values: Dictionary) -> bool
 		return true
 	if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
 		return true
-	if mode_script == RS_VCAM_MODE_OTS_SCRIPT:
-		return true
 	if mode_script != RS_VCAM_MODE_FIXED_SCRIPT:
 		return false
 	var use_path: bool = bool(mode_values.get("use_path", false))
@@ -3740,133 +3090,6 @@ func _debug_log_look_input_transition(vcam_id: StringName, look_input: Vector2) 
 		)
 
 	_debug_last_look_input_by_vcam[vcam_id] = look_input
-
-func _debug_log_ots_vertical_diagnostics(
-	vcam_id: StringName,
-	mode: Resource,
-	follow_target: Node3D,
-	raw_look_input: Vector2,
-	filtered_look_input: Vector2,
-	has_active_look_input: bool,
-	runtime_rotation: Vector2,
-	evaluator_result: Dictionary
-) -> void:
-	if not debug_rotation_logging and not debug_ots_vertical_logging:
-		return
-	if mode == null:
-		return
-	var mode_script := mode.get_script() as Script
-	if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
-		_debug_ots_profile_signature_by_vcam.erase(vcam_id)
-		_debug_ots_pitch_clamped_by_vcam.erase(vcam_id)
-		return
-
-	var mode_values: Dictionary = _resolve_mode_values(mode, {
-		"shoulder_offset": Vector3.ZERO,
-		"camera_distance": 0.0,
-		"pitch_position_influence": 0.2,
-		"look_multiplier": 1.0,
-		"pitch_min": -60.0,
-		"pitch_max": 50.0,
-		"fov": 60.0,
-	})
-	var pitch_min: float = float(mode_values.get("pitch_min", -60.0))
-	var pitch_max: float = float(mode_values.get("pitch_max", 50.0))
-	var clamped_pitch: float = clampf(runtime_rotation.y, pitch_min, pitch_max)
-	var clamp_delta: float = runtime_rotation.y - clamped_pitch
-	var clamp_active: bool = not is_equal_approx(clamp_delta, 0.0)
-	var previous_clamp_active: bool = bool(_debug_ots_pitch_clamped_by_vcam.get(vcam_id, clamp_active))
-	_debug_ots_pitch_clamped_by_vcam[vcam_id] = clamp_active
-
-	var shoulder_offset_variant: Variant = mode_values.get("shoulder_offset", Vector3.ZERO)
-	var shoulder_offset: Vector3 = shoulder_offset_variant as Vector3 if shoulder_offset_variant is Vector3 else Vector3.ZERO
-	var camera_distance: float = float(mode_values.get("camera_distance", 0.0))
-	var pitch_position_influence: float = float(mode_values.get("pitch_position_influence", 0.2))
-	var look_multiplier: float = float(mode_values.get("look_multiplier", 1.0))
-	var resolved_fov: float = float(mode_values.get("fov", 60.0))
-
-	var profile_signature: String = "%.3f|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f" % [
-		pitch_min,
-		pitch_max,
-		look_multiplier,
-		shoulder_offset.x,
-		shoulder_offset.y,
-		shoulder_offset.z,
-		camera_distance,
-		pitch_position_influence,
-		resolved_fov,
-	]
-	var previous_signature: String = str(_debug_ots_profile_signature_by_vcam.get(vcam_id, ""))
-	if previous_signature != profile_signature:
-		_debug_ots_profile_signature_by_vcam[vcam_id] = profile_signature
-		print(
-			"S_VCamSystem[debug] ots_profile: vcam_id=%s pitch=[%.2f,%.2f] look_multiplier=%.3f shoulder_offset=%s camera_distance=%.3f pitch_position_influence=%.3f fov=%.2f"
-			% [
-				str(vcam_id),
-				pitch_min,
-				pitch_max,
-				look_multiplier,
-				str(shoulder_offset),
-				camera_distance,
-				pitch_position_influence,
-				resolved_fov,
-			]
-		)
-
-	var transform_variant: Variant = evaluator_result.get("transform", null)
-	if not (transform_variant is Transform3D):
-		return
-	var transform := transform_variant as Transform3D
-	var forward: Vector3 = -transform.basis.z
-	var look_dir: String = "level"
-	if forward.y > 0.001:
-		look_dir = "up"
-	elif forward.y < -0.001:
-		look_dir = "down"
-
-	var follow_height_delta: float = 0.0
-	if follow_target != null and is_instance_valid(follow_target):
-		follow_height_delta = transform.origin.y - follow_target.global_position.y
-
-	if previous_clamp_active != clamp_active:
-		print(
-			"S_VCamSystem[debug] ots_pitch_clamp_state: vcam_id=%s active=%s runtime_pitch=%.3f clamped_pitch=%.3f clamp_delta=%.3f limits=[%.3f,%.3f]"
-			% [
-				str(vcam_id),
-				str(clamp_active),
-				runtime_rotation.y,
-				clamped_pitch,
-				clamp_delta,
-				pitch_min,
-				pitch_max,
-			]
-		)
-
-	var vertical_message: String = (
-		"ots_vertical raw_y=%.4f filtered_y=%.4f active_input=%s runtime_pitch=%.3f clamped_pitch=%.3f limits=[%.3f,%.3f] look_multiplier=%.3f clamp_active=%s follow_height_delta=%.3f forward_y=%.4f look_dir=%s"
-		% [
-			raw_look_input.y,
-			filtered_look_input.y,
-			str(has_active_look_input),
-			runtime_rotation.y,
-			clamped_pitch,
-			pitch_min,
-			pitch_max,
-			look_multiplier,
-			str(clamp_active),
-			follow_height_delta,
-			forward.y,
-			look_dir,
-		]
-	)
-	if debug_rotation_logging:
-		_debug_log_rotation(vcam_id, vertical_message)
-		return
-	if _debug_ots_vertical_log_cooldown_sec > 0.0:
-		return
-	var interval: float = maxf(debug_rotation_log_interval_sec, 0.05)
-	_debug_ots_vertical_log_cooldown_sec = interval
-	print("S_VCamSystem[debug] %s: %s" % [str(vcam_id), vertical_message])
 
 func _debug_log_look_filter_state_transition(
 	vcam_id: StringName,
