@@ -27,11 +27,6 @@ func test_mode_export_exists() -> void:
 	autofree(component)
 	assert_true(_has_property(component, "mode"), "mode export should exist")
 
-func test_fixed_anchor_path_export_exists() -> void:
-	var component := C_VCAM_COMPONENT.new()
-	autofree(component)
-	assert_true(_has_property(component, "fixed_anchor_path"), "fixed_anchor_path export should exist")
-
 func test_follow_target_path_export_exists() -> void:
 	var component := C_VCAM_COMPONENT.new()
 	autofree(component)
@@ -51,11 +46,6 @@ func test_look_at_target_path_export_exists() -> void:
 	var component := C_VCAM_COMPONENT.new()
 	autofree(component)
 	assert_true(_has_property(component, "look_at_target_path"), "look_at_target_path export should exist")
-
-func test_path_node_path_export_exists() -> void:
-	var component := C_VCAM_COMPONENT.new()
-	autofree(component)
-	assert_true(_has_property(component, "path_node_path"), "path_node_path export should exist")
 
 func test_soft_zone_export_exists() -> void:
 	var component := C_VCAM_COMPONENT.new()

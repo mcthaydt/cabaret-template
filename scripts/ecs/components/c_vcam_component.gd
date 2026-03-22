@@ -10,12 +10,10 @@ const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/r
 @export var vcam_id: StringName = StringName("")
 @export var priority: int = 0
 @export var mode: Resource = null
-@export_node_path("Node3D") var fixed_anchor_path: NodePath
 @export_node_path("Node3D") var follow_target_path: NodePath
 @export var follow_target_entity_id: StringName = StringName("")
 @export var follow_target_tag: StringName = StringName("")
 @export_node_path("Node3D") var look_at_target_path: NodePath
-@export_node_path("Path3D") var path_node_path: NodePath
 @export var soft_zone: Resource = null
 @export var blend_hint: Resource = null
 @export_custom(PROPERTY_HINT_RESOURCE_TYPE, "RS_VCamResponse") var response: Resource:
@@ -60,16 +58,6 @@ func get_look_at_target() -> Node3D:
 	if look_at_target_path.is_empty():
 		return null
 	return get_node_or_null(look_at_target_path) as Node3D
-
-func get_fixed_anchor() -> Node3D:
-	if fixed_anchor_path.is_empty():
-		return null
-	return get_node_or_null(fixed_anchor_path) as Node3D
-
-func get_path_node() -> Path3D:
-	if path_node_path.is_empty():
-		return null
-	return get_node_or_null(path_node_path) as Path3D
 
 func get_mode_name() -> String:
 	if mode == null:
