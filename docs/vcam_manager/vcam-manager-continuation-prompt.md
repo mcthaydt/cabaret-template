@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phases `2A`-`2C` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2D` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phases `2A`-`2D` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2E` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 2 helper extraction (`2D` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: Phase `2D` (`U_VCamResponseSmoother`) Red/Green/Refactor extraction from `s_vcam_system.gd`.
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 2 helper extraction (`2E` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
+- Immediate implementation target: Phase `2E` (`U_VCamLandingImpact`) Red/Green/Refactor extraction from `s_vcam_system.gd`.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -180,6 +180,23 @@
   - `tests/unit/ecs/systems/helpers/test_vcam_orbit_effects.gd` (`11/11`)
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_orbit_effects.gd` (`11/11`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Refactor Phase 2D (March 22, 2026)
+
+- Completed response-smoother helper extraction (`U_VCamResponseSmoother`):
+  - added `scripts/ecs/systems/helpers/u_vcam_response_smoother.gd` with response smoothing flow, per-vCam dynamics state, smoothing metadata transitions, and euler unwrapping cache
+  - helper lifecycle APIs (`prune`, `clear_all`, `clear_for_vcam`) now own response-smoothing state cleanup
+- `S_VCamSystem` refactor wiring:
+  - `_apply_response_smoothing` now delegates to `_response_smoother`
+  - helper now owns `_follow_dynamics`, `_rotation_dynamics`, `_smoothing_metadata`, and `_rotation_target_cache`
+  - orbit smoothing-bypass handoff remains integrated via helper callback to orbit-effects bypass tracking
+  - compatibility snapshots used by existing system tests remain available via helper-backed getters
+- Added helper coverage:
+  - `tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`8/8`)
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`8/8`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
@@ -1205,8 +1222,8 @@
 
 ## Next Steps
 
-1. Execute Phase `2D` Red/Green/Refactor (`U_VCamResponseSmoother` extraction + dedicated helper tests).
-2. Continue Phase `2E`-`2G` helper extraction in sequence with per-helper TDD cadence.
+1. Execute Phase `2E` Red/Green/Refactor (`U_VCamLandingImpact` extraction + dedicated helper tests).
+2. Continue Phase `2G` coordinator cleanup once helper extraction phases are complete.
 3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
 
 ## Key Decisions To Preserve

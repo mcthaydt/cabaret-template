@@ -426,7 +426,7 @@ Completion notes (2026-03-22):
 
 ### Phase 2D: Extract `u_vcam_response_smoother.gd`
 
-- [ ] **Task 2D.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd`
+- [x] **Task 2D.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd`
   - Test smoothing applies position dynamics
   - Test null response bypasses smoothing (raw passthrough)
   - Test mode change resets dynamics
@@ -434,12 +434,30 @@ Completion notes (2026-03-22):
   - Test euler unwrapping avoids long-path spins
   - **Target: ~10 tests**
 
-- [ ] **Task 2D.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_response_smoother.gd`
+- [x] **Task 2D.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_response_smoother.gd`
   - Extract response smoothing, follow/rotation dynamics, smoothing metadata, euler unwrapping, basis composition
   - Move `_follow_dynamics`, `_rotation_dynamics`, `_smoothing_metadata`
 
-- [ ] **Task 2D.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamResponseSmoother`
+- [x] **Task 2D.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamResponseSmoother`
   - Verify all existing tests pass
+
+Completion notes (2026-03-22):
+- Added `scripts/ecs/systems/helpers/u_vcam_response_smoother.gd` (`U_VCamResponseSmoother`) with extracted:
+  - response smoothing orchestration and per-vCam dynamic state ownership
+  - smoothing metadata + response/mode/target change reset handling
+  - euler unwrapping cache for rotation continuity
+  - orbit position-smoothing bypass handoff support via callback integration
+  - helper lifecycle APIs (`prune`, `clear_all`, `clear_for_vcam`) + state snapshots
+- Added dedicated helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`8/8`).
+- Refactored `S_VCamSystem` to delegate Phase 2D responsibilities to `_response_smoother`:
+  - `_apply_response_smoothing` now routes through helper API
+  - helper now owns `_follow_dynamics`, `_rotation_dynamics`, `_smoothing_metadata`, and `_rotation_target_cache`
+  - compatibility snapshots for existing system tests remain available through helper-backed getters
+  - smoothing lifecycle (`prune`/`clear`) now delegates to helper APIs
+- Validation runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`8/8`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 2E: Extract `u_vcam_landing_impact.gd`
 
