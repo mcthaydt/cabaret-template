@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phases `2A`-`2E` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2G` is in progress (`2F` dropped).
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phases `2A`-`2H` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed; `2F` dropped). Phase 3 helper extraction is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through Phase 2 coordinator cleanup (`2G` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: finish Phase `2G.3` by reducing remaining coordinator/orphaned code in `s_vcam_system.gd` from the current `728` lines to the file-size/decomposition target.
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 3 blend-manager decomposition (`3A` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
+- Immediate implementation target: Phase `3A` (`U_VCamBlendManager`) Red/Green/Refactor extraction from `m_vcam_manager.gd`.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -217,7 +217,7 @@
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
-## Refactor Phase 2G (March 22, 2026, In Progress)
+## Refactor Phase 2G (March 22, 2026, Complete)
 
 - Completed coordinator pass for `2G.1` and `2G.2` in `S_VCamSystem`:
   - `_evaluate_and_submit(...)` now coordinates explicit stage functions:
@@ -247,15 +247,26 @@
     - vCam indexing/id helpers (`build_vcam_index`, `resolve_component_vcam_id`)
     - coordinator utility gates (`is_follow_target_required`, `get_node_instance_id`)
     - retained `_vcam_manager`/`_state_store` as thin compatibility caches in `S_VCamSystem` for existing integration/unit test probe surfaces
-  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782` -> `728`.
+  - added `scripts/ecs/systems/helpers/u_vcam_effect_pipeline.gd` and moved effect-pipeline coordination out of `S_VCamSystem`:
+    - orbit effect sequencing (`look_ahead`, `ground_relative`, `soft_zone`)
+    - response-value/signature plumbing + response smoothing application
+    - landing-offset apply path + shared transform-offset utility
+  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782` -> `728` -> `528`.
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gtest=res://tests/integration/vcam/test_vcam_runtime.gd` (`5/5`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`11/11`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
   - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3449/3458` passing, `9` pending baseline)
-- Remaining `2G.3` item:
-  - `scripts/ecs/systems/s_vcam_system.gd` is still above the target size (`728` lines) and needs further extraction/decomposition before Phase `2G` can be closed.
+
+## Refactor Phase 2H (March 22, 2026, Complete)
+
+- Completed Phase 2 commit + docs closure:
+  - implementation commits landed for final `2G.3` extraction:
+    - `207d8f16` (`U_VCamRuntimeServices` extraction)
+    - `04cafaa4` (`U_VCamEffectPipeline` extraction, `S_VCamSystem` now `528` lines)
+  - documentation cadence completed (`vcam-refactor-tasks.md` + this continuation prompt)
+- Phase 3 is now unblocked (`3A` blend helper extraction kickoff).
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1280,9 +1291,9 @@
 
 ## Next Steps
 
-1. Finish Phase `2G.3` by extracting additional `S_VCamSystem` coordinator/orphaned logic until the file-size/decomposition target is met (`728` lines currently).
-2. Once `2G` is complete, execute Phase `2H` (implementation commit + docs closure for Phase 2).
-3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
+1. Execute Phase `3A` Red/Green/Refactor for `U_VCamBlendManager` extraction from `M_VCamManager`.
+2. Continue through Phase `3B` manager wiring and Phase `3C` state migration once `3A` helper extraction is complete.
+3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `3`-`5`.
 
 ## Key Decisions To Preserve
 

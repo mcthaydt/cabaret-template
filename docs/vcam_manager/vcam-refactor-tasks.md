@@ -502,7 +502,7 @@ Completion notes (2026-03-22):
   - Replace per-dict pruning with `helper.prune()` calls
   - Replace per-dict clearing with `helper.clear_all()` / `helper.clear_for_vcam()` calls
 
-- [ ] **Task 2G.3**: Clean up remaining coordinator code
+- [x] **Task 2G.3**: Clean up remaining coordinator code
   - Remove orphaned helper functions, unused imports, dead state vars
   - Verify file is ~400–600 lines
   - Run full test suite — verify all green
@@ -517,7 +517,7 @@ Progress notes (2026-03-22):
 - Completed `2G.2` prune/clear coordinator pass:
   - `_prune_smoothing_state(...)` now delegates stale-state pruning through helper APIs (`prune(...)`) instead of snapshot dictionary loops.
   - Added debug-map pruning helpers (`_prune_debug_tracking`, `_prune_debug_dictionary`) and centralized per-vcam debug cleanup (`_clear_debug_tracking_for_vcam`).
-- `2G.3` remains in progress:
+- Completed `2G.3` coordinator decomposition closure:
   - Extracted runtime-context responsibilities from `S_VCamSystem` into `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd`:
     - follow-target resolution (NodePath -> entity_id -> tag fallback + multi-tag debug issue)
     - look-ahead velocity sourcing (gameplay slice -> movement component -> character body fallback)
@@ -541,19 +541,31 @@ Progress notes (2026-03-22):
     - moved vCam index/id utilities (`build_vcam_index`, `resolve_component_vcam_id`) out of `S_VCamSystem`
     - moved follow-target-required and node-instance-id utility helpers out of `S_VCamSystem`
     - retained `_vcam_manager`/`_state_store` as thin compatibility cache fields in `S_VCamSystem` for existing integration/unit test contract surfaces
-  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782` -> `728` while preserving coordinator wrappers.
+  - Extracted effect pipeline coordination into `scripts/ecs/systems/helpers/u_vcam_effect_pipeline.gd`:
+    - moved orbit effect sequencing (`look_ahead`, `ground_relative`, `soft_zone`) out of `S_VCamSystem`
+    - moved response-value/signature plumbing + response smoothing application out of `S_VCamSystem`
+    - moved landing-impact apply-offset path and shared transform-offset helper out of `S_VCamSystem`
+    - `S_VCamSystem` now delegates `_apply_vcam_effect_pipeline(...)` to `_effect_pipeline_helper`
+  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782` -> `728` -> `528` while preserving compatibility wrappers (`_step_orbit_release_axis`, `_resolve_orbit_center_target_yaw`) and test probe caches (`_vcam_manager`, `_state_store`).
   - Validation additions for this extraction pass:
     - `tools/run_gut_suite.sh -gtest=res://tests/integration/vcam/test_vcam_runtime.gd` (`5/5`)
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
-  - Full suite regression gate completed:
+  - Full suite regression gate re-run after final extraction:
     - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3449/3458` passing, `9` pending baseline).
-  - Remaining item: `s_vcam_system.gd` is not yet within the ~`400`-`600` line target (`728` current) and still needs additional extraction/decomposition cleanup.
 
 ### Phase 2H: Phase 2 commit + docs
 
-- [ ] **Task 2H.1**: Commit Phase 2 implementation
-- [ ] **Task 2H.2**: Update continuation prompt and this task file with Phase 2 completion notes
+- [x] **Task 2H.1**: Commit Phase 2 implementation
+- [x] **Task 2H.2**: Update continuation prompt and this task file with Phase 2 completion notes
+
+Completion notes (2026-03-22):
+- Phase 2 helper extraction/coordinator cleanup implementation is now committed through:
+  - `207d8f16` (runtime services helper extraction)
+  - `04cafaa4` (effect pipeline helper extraction + `S_VCamSystem` down to `528` lines)
+- Phase 2 docs/status closure is complete:
+  - continuation prompt + task checklist updated through `2H`
+  - Phase 3 helper extraction kickoff (`3A`) is now unblocked.
 
 ---
 
