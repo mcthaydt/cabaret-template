@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1D` are complete; Phase `1E` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1E` are complete; Phase `1F` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1E`-`1H`).
-- Immediate implementation target: Phase `1E` in `c_vcam_component.gd` (remove fixed-anchor/path exports and getters).
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1F`-`1H`).
+- Immediate implementation target: Phase `1F` resource/scene cleanup (delete OTS/fixed resources and remove OTS HUD/template scene nodes).
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -73,6 +73,17 @@
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_movement_system.gd` (`9/9`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_rotate_to_input_system.gd` (`3/3`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Refactor Phase 1E (March 22, 2026)
+
+- Completed component fixed-mode export cleanup in `c_vcam_component.gd`:
+  - removed `fixed_anchor_path` and `path_node_path` exports
+  - removed `get_fixed_anchor()` and `get_path_node()` getters
+- Updated component test expectations:
+  - `tests/unit/ecs/components/test_vcam_component.gd` no longer asserts fixed/path exports
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_vcam_component.gd` (`13/13`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Phase 12 Integration Tests (March 22, 2026)

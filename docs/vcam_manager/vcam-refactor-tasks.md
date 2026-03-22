@@ -166,9 +166,19 @@ Completion notes (2026-03-22):
 
 ### Phase 1E: Remove Fixed from component
 
-- [ ] **Task 1E.1**: Simplify `c_vcam_component.gd`
+- [x] **Task 1E.1**: Simplify `c_vcam_component.gd`
   - Remove `fixed_anchor_path` export and `path_node_path` export
   - Remove `get_fixed_anchor()` and `get_path_node()` getters
+
+Completion notes (2026-03-22):
+- `C_VCamComponent` fixed-mode bridge exports/getters are removed:
+  - removed `fixed_anchor_path` and `path_node_path` exports
+  - removed `get_fixed_anchor()` and `get_path_node()` helpers
+- Updated component contract tests:
+  - removed fixed/path export expectations from `tests/unit/ecs/components/test_vcam_component.gd`
+- Validation runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_vcam_component.gd` (`13/13`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 1F: Delete resources and scene nodes
 
