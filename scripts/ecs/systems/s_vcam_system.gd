@@ -2,8 +2,6 @@
 extends BaseECSSystem
 class_name S_VCamSystem
 
-const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 const U_VCAM_LANDING_IMPACT := preload("res://scripts/ecs/systems/helpers/u_vcam_landing_impact.gd")
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
@@ -13,6 +11,7 @@ const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotat
 const U_VCAM_DEBUG := preload("res://scripts/ecs/systems/helpers/u_vcam_debug.gd")
 const U_VCAM_RUNTIME_CONTEXT := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_context.gd")
 const U_VCAM_RUNTIME_STATE := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_state.gd")
+const U_VCAM_RUNTIME_SERVICES := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
@@ -33,8 +32,6 @@ const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3
 @export var debug_rotation_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_rotation_log_interval_sec: float = 0.25
 
-var _state_store: I_StateStore = null
-var _vcam_manager: Node = null
 var _rotation_helper = U_VCAM_ROTATION.new()
 var _orbit_effects_helper = U_VCAM_ORBIT_EFFECTS.new()
 var _response_smoother = U_VCAM_RESPONSE_SMOOTHER.new()
@@ -43,6 +40,9 @@ var _landing_impact_helper = U_VCAM_LANDING_IMPACT.new()
 var _debug_helper = U_VCAM_DEBUG.new()
 var _runtime_context_helper = U_VCAM_RUNTIME_CONTEXT.new()
 var _runtime_state_helper = U_VCAM_RUNTIME_STATE.new()
+var _runtime_services_helper = U_VCAM_RUNTIME_SERVICES.new()
+var _state_store: I_StateStore = null
+var _vcam_manager: I_VCAM_MANAGER = null
 var _last_active_vcam_id: StringName = StringName("")
 var _event_unsubscribers: Array[Callable] = []
 
@@ -91,13 +91,15 @@ var _rotation_target_cache: Dictionary:
 		return _response_smoother.get_rotation_target_cache_snapshot()
 
 func on_configured() -> void:
-	_debug_helper.set_state_store_provider(Callable(self, "_resolve_state_store"))
+	_runtime_services_helper.configure(self, state_store, vcam_manager)
+	_debug_helper.set_state_store_provider(Callable(_runtime_services_helper, "resolve_state_store"))
 	_subscribe_events()
 
 func process_tick(delta: float) -> void:
 	_debug_helper.configure(debug_rotation_logging, debug_rotation_log_interval_sec)
 	_debug_helper.tick(delta)
-	var manager := _resolve_vcam_manager()
+	var manager := _runtime_services_helper.resolve_vcam_manager()
+	_vcam_manager = manager
 	if manager == null:
 		_debug_helper.log_vcam_state("blocked: no vcam_manager service", StringName(""), Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
@@ -109,7 +111,9 @@ func process_tick(delta: float) -> void:
 		_last_active_vcam_id = StringName("")
 		return
 
-	var vcam_index: Dictionary = _build_vcam_index()
+	var vcam_index: Dictionary = _runtime_services_helper.build_vcam_index(
+		get_components(C_VCAM_COMPONENT.COMPONENT_TYPE)
+	)
 	if vcam_index.is_empty():
 		_debug_helper.log_vcam_state("blocked: vcam_index is empty", active_vcam_id, Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
@@ -117,7 +121,8 @@ func process_tick(delta: float) -> void:
 	_prune_smoothing_state(vcam_index)
 	_apply_rotation_continuity_policy(active_vcam_id, vcam_index, manager)
 
-	var store := _resolve_state_store()
+	var store := _runtime_services_helper.resolve_state_store()
+	_state_store = store
 	var look_input: Vector2 = _runtime_state_helper.read_look_input(store)
 	var move_input: Vector2 = _runtime_state_helper.read_move_input(store)
 	var camera_center_just_pressed: bool = _runtime_state_helper.read_camera_center_just_pressed(store)
@@ -158,6 +163,8 @@ func _exit_tree() -> void:
 	_unsubscribe_events()
 	_clear_all_smoothing_state()
 	_landing_impact_helper.clear_state()
+	_state_store = null
+	_vcam_manager = null
 	_last_active_vcam_id = StringName("")
 	_runtime_state_helper.reset_observability_state()
 
@@ -249,14 +256,17 @@ func _prepare_vcam_pipeline_state(
 
 	var follow_target: Node3D = _resolve_follow_target(component)
 	_debug_helper.log_follow_target_resolution(vcam_id, component, follow_target)
-	var follow_target_required: bool = _is_follow_target_required(mode)
+	var follow_target_required: bool = _runtime_services_helper.is_follow_target_required(
+		mode,
+		RS_VCAM_MODE_ORBIT_SCRIPT
+	)
 	if follow_target_required and (follow_target == null or not is_instance_valid(follow_target)):
 		_runtime_state_helper.update_active_target_observability(
 			vcam_id,
 			manager,
 			false,
 			"target_freed",
-			_resolve_state_store()
+			_runtime_services_helper.resolve_state_store()
 		)
 		return {}
 
@@ -334,7 +344,7 @@ func _evaluate_vcam_mode_result(
 			manager,
 			false,
 			"evaluation_failed",
-			_resolve_state_store()
+			_runtime_services_helper.resolve_state_store()
 		)
 		return {}
 	_runtime_state_helper.update_active_target_observability(
@@ -342,7 +352,7 @@ func _evaluate_vcam_mode_result(
 		manager,
 		true,
 		"",
-		_resolve_state_store()
+		_runtime_services_helper.resolve_state_store()
 	)
 	return result
 
@@ -428,31 +438,6 @@ func _write_active_camera_base_fov_from_result(result: Dictionary) -> void:
 	var camera_state: Object = _resolve_primary_camera_state_component()
 	_runtime_context_helper.write_active_camera_base_fov_from_result(result, camera_state)
 
-func _build_vcam_index() -> Dictionary:
-	var index: Dictionary = {}
-	var components: Array = get_components(C_VCAM_COMPONENT.COMPONENT_TYPE)
-	for entry in components:
-		var component := entry as C_VCamComponent
-		if component == null:
-			continue
-		var vcam_id: StringName = _resolve_component_vcam_id(component)
-		if vcam_id == StringName(""):
-			continue
-		if index.has(vcam_id):
-			continue
-		index[vcam_id] = component
-	return index
-
-func _resolve_component_vcam_id(component: C_VCamComponent) -> StringName:
-	if component == null:
-		return StringName("")
-	if component.vcam_id != StringName(""):
-		return component.vcam_id
-	var fallback_id := String(component.name)
-	if fallback_id.is_empty():
-		return StringName("")
-	return StringName(fallback_id.to_snake_case())
-
 func _resolve_follow_target(component: C_VCamComponent) -> Node3D:
 	return _runtime_context_helper.resolve_follow_target(
 		component,
@@ -513,7 +498,7 @@ func _apply_orbit_look_ahead(
 func _resolve_look_ahead_movement_velocity(follow_target: Node3D) -> Dictionary:
 	return _runtime_context_helper.resolve_look_ahead_movement_velocity(
 		follow_target,
-		_resolve_state_store()
+		_runtime_services_helper.resolve_state_store()
 	)
 
 func _apply_orbit_ground_relative(
@@ -541,7 +526,7 @@ func _apply_orbit_ground_relative(
 func _resolve_follow_target_grounded_state(follow_target: Node3D) -> bool:
 	return _runtime_context_helper.resolve_follow_target_grounded_state(
 		follow_target,
-		_resolve_state_store()
+		_runtime_services_helper.resolve_state_store()
 	)
 
 func _probe_ground_reference_height(follow_target: Node3D, max_distance: float) -> Dictionary:
@@ -722,7 +707,7 @@ func _apply_response_smoothing(
 		return raw_result
 	var response_signature: Array[float] = _build_response_signature(response_values)
 	var mode_script := mode.get_script() as Script
-	var follow_target_id: int = _get_node_instance_id(follow_target)
+	var follow_target_id: int = _runtime_services_helper.get_node_instance_id(follow_target)
 	var follow_target_speed_mps: float = _sample_follow_target_speed(vcam_id, follow_target, delta)
 	return _response_smoother.apply_response_smoothing(
 		vcam_id,
@@ -741,42 +726,3 @@ func _apply_response_smoothing(
 		Callable(_debug_helper, "log_position_smoothing_gate_transition"),
 		Callable(_debug_helper, "log_rotation")
 	)
-
-func _get_node_instance_id(node: Node) -> int:
-	if node == null:
-		return 0
-	if not is_instance_valid(node):
-		return 0
-	return node.get_instance_id()
-
-func _resolve_vcam_manager() -> I_VCAM_MANAGER:
-	if _vcam_manager != null and is_instance_valid(_vcam_manager):
-		return _vcam_manager as I_VCAM_MANAGER
-
-	if vcam_manager != null and is_instance_valid(vcam_manager):
-		_vcam_manager = vcam_manager
-		return _vcam_manager as I_VCAM_MANAGER
-
-	var service: Node = U_SERVICE_LOCATOR.try_get_service(StringName("vcam_manager"))
-	if service == null or not is_instance_valid(service):
-		return null
-	if not (service is I_VCAM_MANAGER):
-		return null
-
-	_vcam_manager = service
-	return _vcam_manager as I_VCAM_MANAGER
-
-func _is_follow_target_required(mode: Resource) -> bool:
-	if mode == null:
-		return false
-	var mode_script := mode.get_script() as Script
-	return mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
-
-func _resolve_state_store() -> I_StateStore:
-	if _state_store != null and is_instance_valid(_state_store):
-		return _state_store
-	if state_store != null and is_instance_valid(state_store):
-		_state_store = state_store
-		return _state_store
-	_state_store = U_STATE_UTILS.try_get_store(self)
-	return _state_store
