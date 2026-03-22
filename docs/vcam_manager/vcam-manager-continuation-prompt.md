@@ -4,15 +4,35 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). New refactor scope is now active in `docs/vcam_manager/vcam-refactor-tasks.md`; no refactor phases are marked complete yet.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phase `1A` are complete; Phase `1B` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: execute `docs/vcam_manager/vcam-refactor-tasks.md`, starting with `PRE-1`/`PRE-2`, then Phase 1 (`1A`-`1H`).
-- Immediate implementation target: Phase `1A` in `s_vcam_system.gd` (remove OTS paths and repurpose `aim_pressed` flow to first-person).
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1B`-`1H`).
+- Immediate implementation target: Phase `1B` in `s_vcam_system.gd` (remove fixed-mode runtime paths).
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
+
+## Refactor Phase 1A (March 22, 2026)
+
+- Completed `s_vcam_system.gd` OTS runtime removal pass:
+  - removed OTS constants/imports/state dictionaries/debug dictionaries
+  - removed OTS pipeline calls (`_apply_ots_shoulder_sway`, `_apply_ots_collision_avoidance`, `_apply_ots_landing_camera_response`)
+  - removed OTS helper/debug methods and OTS branches from shared mode checks/smoothing cleanup paths
+- Repurposed aim activation to first-person:
+  - `_find_aim_target_ots_vcam_id` -> `_find_aim_target_fp_vcam_id`
+  - `_resolve_ots_aim_blend_duration` -> `_resolve_aim_blend_duration`
+  - `_resolve_ots_aim_exit_blend_duration` -> `_resolve_aim_exit_blend_duration`
+  - `aim_pressed` now selects first-person vCam on press and restores prior vCam on release
+- Added first-person aim blend authoring fields in `RS_VCamModeFirstPerson`:
+  - `aim_blend_duration` default `0.15`
+  - `aim_exit_blend_duration` default `0.2`
+  - both resolved via `maxf(..., 0.01)`
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd -gunit_test_name=aim` (`5/5`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1037,18 +1057,17 @@
 
 ## Next Steps
 
-1. Complete `PRE-1` and `PRE-2` in `docs/vcam_manager/vcam-refactor-tasks.md`.
-2. Execute Phase `1A`-`1F` (remove OTS/fixed runtime/resource/scene paths and repurpose aim activation to first-person).
-3. Execute Phase `1G` (test updates + full validation run, including style enforcement).
-4. Execute Phase `1H` (implementation commit, continuation prompt/task updates, and AGENTS.md Stage-1 contract cleanup).
-5. Continue phase-by-phase through refactor Phases `2`-`5` with mandatory doc cadence and separate docs commits.
+1. Execute Phase `1B`-`1F` (remove remaining fixed/OTS runtime/resource/scene paths).
+2. Execute Phase `1G` (comprehensive test updates + full validation run, including style enforcement).
+3. Execute Phase `1H` (Phase 1 implementation commit, then docs updates and AGENTS.md Stage-1 contract cleanup in a separate docs commit).
+4. Continue phase-by-phase through refactor Phases `2`-`5` with mandatory doc cadence and separate docs commits.
 
 ## Key Decisions To Preserve
 
 - vCam does not replace `M_CameraManager`.
 - vCam does not replace `S_CameraStateSystem`.
 - vCam does not bypass the gameplay input pipeline.
-- OTS pitch clamp is evaluator-owned (`U_VCamModeEvaluator`), while OTS `look_multiplier` scaling remains system-owned (`S_VCamSystem`) to avoid double-scaling runtime angles.
+- Refactor Phase 1A contract: `aim_pressed` now targets first-person vCams only; enter/exit blend durations are authored on `RS_VCamModeFirstPerson` (`aim_blend_duration`, `aim_exit_blend_duration`) and resolved via `S_VCamSystem` aim helpers.
 - Keyboard look uses dedicated `look_*` actions (not `ui_*`) so bindings stay correct across input profiles; settings live in `mouse_settings`.
 - Keyboard-look work is not complete unless the InputMap bootstrapper, input-map tests, rebind category/action labels, localization keys, and settings-save triggers are patched together.
 - vCam does not treat mobile as special at the camera layer; touch look must still feed the shared `gameplay.look_input` path.

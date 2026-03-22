@@ -10,13 +10,13 @@
 
 Before starting Phase 1, verify:
 
-- [ ] **PRE-1**: Read required documentation
+- [x] **PRE-1**: Read required documentation
   - Read `AGENTS.md`, `docs/general/DEV_PITFALLS.md`, `docs/general/STYLE_GUIDE.md`
   - Read `docs/vcam_manager/vcam-manager-overview.md` and `vcam-manager-continuation-prompt.md`
   - Read `scripts/ecs/systems/s_vcam_system.gd` (understand full evaluation pipeline)
   - Read `scripts/managers/m_vcam_manager.gd` (understand blend + registration)
 
-- [ ] **PRE-2**: Verify branch is `vcam` and working tree is clean
+- [x] **PRE-2**: Verify branch is `vcam` and working tree is clean
 
 ---
 
@@ -35,17 +35,17 @@ Before starting Phase 1, verify:
 
 ### Phase 1A: Remove OTS from s_vcam_system.gd
 
-- [ ] **Task 1A.1**: Remove OTS constants and imports
+- [x] **Task 1A.1**: Remove OTS constants and imports
   - Delete `RS_VCAM_MODE_OTS_SCRIPT` const (line 24)
   - Delete `OTS_MIN_CAMERA_DISTANCE`, `OTS_LANDING_FALL_SPEED_MIN/MAX`, `OTS_LANDING_RESPONSE_EPSILON`, `DEFAULT_OTS_AIM_BLEND_DURATION` constants
   - Delete `debug_ots_vertical_logging` export and `_debug_ots_vertical_log_cooldown_sec`
 
-- [ ] **Task 1A.2**: Remove OTS state dictionaries
+- [x] **Task 1A.2**: Remove OTS state dictionaries
   - Delete `_shoulder_sway_state`, `_ots_collision_state`, `_ots_landing_response_state` dicts
   - Delete `_debug_ots_profile_signature_by_vcam`, `_debug_ots_pitch_clamped_by_vcam` dicts
   - Keep `_aim_restore_vcam_id`, `_aim_toggled_on`, `_aim_prev_pressed` — repurposed for FP aim toggle (Task 1A.5)
 
-- [ ] **Task 1A.3**: Remove OTS functions
+- [x] **Task 1A.3**: Remove OTS functions
   - Delete shoulder sway functions (`_apply_ots_shoulder_sway`, `_ensure_ots_shoulder_sway_state`, `_clear_ots_shoulder_sway_state_for_vcam`)
   - Delete collision avoidance functions (`_apply_ots_collision_avoidance` and all cast/state/hit/exclude helpers)
   - Delete landing response functions (`_apply_ots_landing_camera_response` and state helpers)
@@ -54,14 +54,14 @@ Before starting Phase 1, verify:
   - Note: `_read_aim_pressed` (line 3587) stays — aim pipeline retained
   - Delete OTS debug logging (`_debug_log_ots_vertical_diagnostics`)
 
-- [ ] **Task 1A.4**: Remove OTS branches from shared functions
+- [x] **Task 1A.4**: Remove OTS branches from shared functions
   - Remove OTS from `_evaluate_and_submit` pipeline (shoulder sway, collision, landing response calls)
   - Remove OTS-specific mode checks from `process_tick`; keep `_process_aim_activation` call (repurposed in Task 1A.5)
   - Remove OTS from `_is_look_driven_mode_script`, `_is_look_rotation_smoothing_mode`, `_is_follow_target_required`
   - Remove OTS from `_prune_smoothing_state`, `_clear_all_smoothing_state`, `_clear_smoothing_state_for_vcam`
   - Remove OTS from `_exit_tree` cleanup
 
-- [ ] **Task 1A.5**: Repurpose aim activation to target first-person mode
+- [x] **Task 1A.5**: Repurpose aim activation to target first-person mode
   - Rename `_find_aim_target_ots_vcam_id` → `_find_aim_target_fp_vcam_id`
   - Change mode search: check `mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT` instead of OTS
   - Rename `DEFAULT_OTS_AIM_BLEND_DURATION` → `DEFAULT_AIM_BLEND_DURATION`
@@ -70,10 +70,20 @@ Before starting Phase 1, verify:
   - Update `_process_aim_activation`: on press find FP vCam, on release restore previous vCam
   - Update all OTS mode checks in aim flow to use FP mode checks
 
-- [ ] **Task 1A.6**: Add aim blend duration exports to `rs_vcam_mode_first_person.gd`
+- [x] **Task 1A.6**: Add aim blend duration exports to `rs_vcam_mode_first_person.gd`
   - Add `@export var aim_blend_duration: float = 0.15`
   - Add `@export var aim_exit_blend_duration: float = 0.2`
   - Add both to `get_resolved_values()` with `maxf(..., 0.01)` validation
+
+Completion notes (2026-03-22):
+- `S_VCamSystem` no longer contains OTS runtime/state/debug paths (shoulder sway, collision avoidance, landing camera response, OTS diagnostics, and OTS mode branches removed).
+- Aim activation was repurposed to first-person (`_find_aim_target_fp_vcam_id`, `_resolve_aim_blend_duration`, `_resolve_aim_exit_blend_duration`) and now switches orbit -> first-person on press, then restores prior camera on release.
+- `RS_VCamModeFirstPerson` now exports `aim_blend_duration` + `aim_exit_blend_duration` with resolved minimum clamp (`0.01`).
+- Updated aim-focused system tests and first-person resource tests for new behavior.
+- Validation runs:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd -gunit_test_name=aim` (`5/5`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 1B: Remove Fixed mode from s_vcam_system.gd
 
