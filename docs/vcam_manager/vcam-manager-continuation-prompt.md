@@ -4,9 +4,9 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete as of March 15, 2026. Phase 3 reset implementation is now complete: Phases 3A (`RS_VCamModeOTS` resource), 3B (OTS evaluator + default preset), 3C1 (OTS collision avoidance), 3C2 (OTS shoulder sway), 3C3 (OTS landing camera response), and full 3C4 aiming scope (`3C4.1-3C4.11`: aim activation/input plumbing/movement+rotation integrations + reticle + default OTS movement preset) are implementation-complete as of March 15, 2026. Phase 9 (`9A-9E`) is now implementation-complete as of March 15, 2026 (live blend evaluator, manager blend lifecycle/recovery, shake-safe camera-manager API validation, apply-flow stale-frame gating, and QB context enrichment).
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete. Phase 3 reset implementation is complete (3A/3B/3C1/3C2/3C3/3C4.1-3C4.11). Phase 9 (`9A-9E`) is implementation-complete, and Phase 10 occlusion pipeline now has implementation coverage through 10A/10B/10B2/10C/10C2 (anti-flicker debounce + grace removal) as of March 21, 2026.
 
-## Next Planned Work (March 15, 2026)
+## Next Planned Work (March 21, 2026)
 
 - Orbit follow-up backlog `2C11` is now complete in `docs/vcam_manager/vcam-orbit-tasks.md`.
 - Mobile drag-look/touch gating prerequisites are complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
@@ -15,14 +15,32 @@
 - Phase 3C2 shoulder sway is now complete in `S_VCamSystem` with per-vCam sway dynamics state and OTS-only no-op gating coverage.
 - Phase 3C3 landing camera response is now complete in `S_VCamSystem` with event-driven OTS distance compression and stacked shared-impact coverage.
 - Phase 3C4 aiming scope is now implementation-complete: slice 1 (aim activation + input plumbing + movement/rotation integrations) plus reticle UI (`3C4.9`/`3C4.10`) and default OTS movement preset (`3C4.11`) are landed with targeted coverage.
-- Phase 9 (`9A-9E`) completion is now landed in code/tests/docs; manual blend validation (`9F`) remains pending.
+- Phase 9 (`9A-9E`) completion is landed in code/tests/docs; manual blend validation (`9F`) remains pending.
+- Phase 10C2 anti-flicker/stability is now implementation-complete (March 21, 2026): `U_VCamSilhouetteHelper.update_silhouettes(...)` applies two-frame debounce + one-frame grace removal and `M_VFXManager` now avoids per-frame clear/reapply churn on stable occluder sets.
 - Immediate validation target:
   - Manual OTS aiming checks in `docs/vcam_manager/vcam-ots-tasks.md` (`MT-107` through `MT-118`) are now marked complete (March 15, 2026, user-directed pass), including the joystick-exclusion/reticle-fade focus points.
   - Post-Phase maintenance completed (March 15, 2026): OTS vertical framing bugfix landed via TDD (runtime OTS pitch now clamps to authored bounds in `S_VCamSystem`; default `cfg_default_ots.tres` tuned to head-level framing with higher shoulder anchor, pullback distance, and tighter pitch range).
   - Post-phase QA hardening (March 15, 2026): added explicit mobile guard `test_long_press_over_virtual_controls_does_not_toggle_aim` in `tests/unit/ui/test_mobile_controls.gd` (suite now `20/20`) to lock joystick-area long-press exclusion before manual MT-109/MT-110 checks.
   - Post-phase QA hardening (March 15, 2026): added explicit camera-relative OTS strafe guard `test_ots_uses_camera_relative_strafe_direction` in `tests/unit/ecs/systems/test_movement_system.gd` (suite now `14/14`) to backstop MT-112 before live manual runs.
   - Post-phase style debt cleanup (March 15, 2026): removed remaining HUD scene inline `theme_override_*` usage from `scenes/ui/hud/ui_hud_overlay.tscn` and moved semantic LIFE-label styling to `UI_HudController._apply_theme_tokens()`; style enforcement now passes fully (`17/17`).
-  - Phase 9 implementation coverage is now complete (`9A-9E`); remaining phase target is manual validation checklist `9F` (`MT-22/23/34/43/44`).
+  - Phase 9 implementation coverage is complete (`9A-9E`); remaining phase target is manual validation checklist `9F` (`MT-22/23/34/43/44`).
+  - Phase 10 remaining target is manual occlusion/silhouette checklist `10D` (`MT-27/28/29/30/31/45/46`).
+
+## Phase 10C2 Anti-Flicker + Stability (March 21, 2026)
+
+- Added anti-flicker silhouette lifecycle in `U_VCamSilhouetteHelper`:
+  - new `update_silhouettes(occluders, enabled)` API with two-frame apply debounce
+  - one-frame grace removal before clearing missing occluders
+  - order-insensitive/stable-set handling to avoid reapplying unchanged occluders each frame
+- Updated `M_VFXManager` silhouette path:
+  - `_process_silhouette_request(...)` now delegates payload updates to `update_silhouettes(...)` instead of always `remove_all + apply` per tick
+- New/updated coverage:
+  - `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` (`16/16`)
+  - `tests/unit/managers/test_vfx_manager_silhouette_routing.gd` (`5/5`)
+- Regression validation run:
+  - `tests/unit/managers/test_vfx_manager.gd` (`46/46`)
+  - `tests/unit/managers/test_vcam_manager.gd` (`49/49`)
+  - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Phase 9 Live Blend Evaluation + Integration (March 15, 2026)
 
@@ -944,9 +962,10 @@
 ## Next Steps
 
 1. Run/manual-complete Phase `9F` blend validation checklist (`MT-22/23/34/43/44`) across orbit/fixed/OTS flows.
-2. Start Phase `10A+` occlusion/silhouette execution (detector/helper integration, authored layer migration completion, anti-flicker/runtime performance checks).
+2. Run/manual-complete Phase `10D` occlusion/silhouette checklist (`MT-27/28/29/30/31/45/46`) now that Phase `10C2` anti-flicker implementation is landed.
 3. Preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and frame-stamped handoff contract while extending post-Phase-9 behavior.
-4. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
+4. Start Phase `11` editor preview (`U_VCamRuleOfThirdsPreview`) after Phase `9F` and `10D` manual validation pass.
+5. After each completed phase, update continuation prompt + tasks immediately and commit docs separately from implementation.
 
 ## Key Decisions To Preserve
 

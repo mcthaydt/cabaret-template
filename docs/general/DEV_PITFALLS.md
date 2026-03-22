@@ -1060,6 +1060,9 @@
 
 - **`vcam_occludable` naming alone does not enable real occlusion behavior**: After defining physics layer schema, migrate authored camera-blocking geometry in gameplay/prefab scenes onto that layer. Leaving blockers on old layers makes silhouette tests pass in isolation but fail in live scenes.
 
+- **Per-frame silhouette clear/reapply causes visible edge flicker and material churn**: Rebuilding silhouettes every tick (`remove_all_silhouettes()` followed by reapply of the same set) can flicker when occluders hover on ray boundaries and does unnecessary override churn even when blockers are unchanged.
+  - **Fix pattern**: route per-tick updates through `U_VCamSilhouetteHelper.update_silhouettes(...)` so silhouettes use debounce/grace semantics (2-frame apply, 1-frame removal) and order-insensitive stable-set no-op behavior.
+
 - **Touch look ownership must stay in `S_TouchscreenSystem`**: `gameplay.look_input` is shared across devices. If `S_InputSystem` keeps dispatching zero touchscreen payloads while touchscreen is active, it clobbers drag-look and breaks mobile orbit/OTS camera control.
 
 - **Live vCam apply must ignore stale submissions from previous physics frames**: Root/gameplay `_physics_process` ordering can vary; if `M_VCamManager` applies the last cached result without frame-gating, camera motion can lag or hitch one frame behind gameplay evaluation.

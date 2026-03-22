@@ -1374,7 +1374,7 @@ Cross-mode checks (mode-agnostic):
 
 ### Phase 10C2: Anti-Flicker and Stability Tests
 
-- [ ] **Task 10C2.1 (Red)**: Write tests for occlusion anti-flicker
+- [x] **Task 10C2.1 (Red)**: Write tests for occlusion anti-flicker
   - Add to `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` or `tests/unit/managers/test_vcam_manager.gd`
   - Test same occluder rapidly entering/leaving ray does not cause per-frame material churn (grace-frame removal)
   - Test occluder must be detected for 2 consecutive frames before silhouette is applied (debounce)
@@ -1382,11 +1382,14 @@ Cross-mode checks (mode-agnostic):
   - Test no material override reapplication when stable occluder set is unchanged from previous frame
   - Test multiple occluders swapping order frame-to-frame does not cause flicker
   - **Target: 5 tests**
+  - Completion note (March 21, 2026): Added anti-flicker coverage to `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd` for 2-frame debounce, 1-frame grace removal, unchanged-set no-reapply behavior, and order-insensitive occluder updates (`16/16` suite total).
 
-- [ ] **Task 10C2.2 (Green)**: Implement anti-flicker behavior
+- [x] **Task 10C2.2 (Green)**: Implement anti-flicker behavior
   - Add debounce/grace-frame logic to `U_VCamSilhouetteHelper`
   - Skip override application when occluder set is unchanged
   - All tests should pass
+  - Completion note (March 21, 2026): `U_VCamSilhouetteHelper` now exposes `update_silhouettes(...)` with 2-frame apply debounce + 1-frame removal grace and order-insensitive target-set tracking; `M_VFXManager` now delegates silhouette payload processing through that API instead of clearing/reapplying every frame.
+  - Validation note (March 21, 2026): `test_vcam_silhouette_helper` (`16/16`), `test_vfx_manager_silhouette_routing` (`5/5`), `test_vfx_manager` (`46/46`), `test_vcam_manager` (`49/49`), and `test_style_enforcement` (`17/17`) pass.
 
 ---
 
