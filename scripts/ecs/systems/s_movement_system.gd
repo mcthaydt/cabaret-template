@@ -11,8 +11,6 @@ const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_cha
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
-const RS_VCAM_MODE_OTS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -41,7 +39,6 @@ func process_tick(delta: float) -> void:
 	var current_physics_frame: int = Engine.get_physics_frames()
 	var spawn_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, SPAWN_STATE_TYPE)
 	var character_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, CHARACTER_STATE_TYPE)
-	var ots_movement_state: Dictionary = _resolve_active_ots_movement_state(store)
 
 	# Pull every entity that has movement + input; floating is optional for support checks.
 	var entities: Array = manager.query_entities(
@@ -106,22 +103,12 @@ func process_tick(delta: float) -> void:
 
 		var input_vector: Vector2 = input_component.move_vector
 		var settings: RS_MovementSettings = movement_component.settings
-		var base_settings: RS_MovementSettings = settings
-		var ots_profile_variant: Variant = ots_movement_state.get("movement_profile", null)
-		var blend_weight: float = float(ots_movement_state.get("blend_weight", 1.0))
-		if ots_profile_variant is RS_MovementSettings:
-			settings = ots_profile_variant as RS_MovementSettings
 		if settings == null:
 			continue
 		var is_sprinting := input_component.is_sprinting()
-		if bool(ots_movement_state.get("disable_sprint", false)) and blend_weight >= 0.8:
-			is_sprinting = false
 		var current_max_speed: float = settings.max_speed
-		if blend_weight < 1.0 and base_settings != null and settings != base_settings:
-			current_max_speed = lerpf(base_settings.max_speed, settings.max_speed, blend_weight)
 		if is_sprinting:
-			var sprint_settings: RS_MovementSettings = base_settings if blend_weight < 1.0 else settings
-			var sprint_multiplier: float = sprint_settings.sprint_speed_multiplier
+			var sprint_multiplier: float = settings.sprint_speed_multiplier
 			if sprint_multiplier <= 0.0:
 				sprint_multiplier = 1.0
 			current_max_speed = current_max_speed * sprint_multiplier
@@ -353,43 +340,6 @@ func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
 		return Vector3.ZERO
 	n = n.normalized()
 	return vector - n * vector.dot(n)
-
-func _resolve_active_ots_movement_state(store: I_StateStore) -> Dictionary:
-	if store == null or not is_instance_valid(store):
-		return {}
-
-	var state: Dictionary = store.get_state()
-	var vcam_variant: Variant = state.get("vcam", {})
-	if not (vcam_variant is Dictionary):
-		return {}
-	var vcam_state := vcam_variant as Dictionary
-	var active_vcam_id: StringName = vcam_state.get("active_vcam_id", StringName(""))
-	if active_vcam_id == StringName(""):
-		return {}
-
-	var is_blending: bool = bool(vcam_state.get("is_blending", false))
-	var blend_progress: float = float(vcam_state.get("blend_progress", 1.0))
-
-	var components: Array = get_components(C_VCAM_COMPONENT.COMPONENT_TYPE)
-	for entry in components:
-		var vcam_component := entry as C_VCamComponent
-		if vcam_component == null or not is_instance_valid(vcam_component):
-			continue
-		if vcam_component.vcam_id != active_vcam_id:
-			continue
-		if vcam_component.mode == null:
-			return {}
-		var mode_script := vcam_component.mode.get_script() as Script
-		if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
-			return {}
-		var resolved: Dictionary = vcam_component.mode.get_resolved_values()
-		var blend_weight: float = blend_progress if is_blending else 1.0
-		return {
-			"movement_profile": resolved.get("movement_profile", null),
-			"disable_sprint": bool(resolved.get("disable_sprint", false)),
-			"blend_weight": blend_weight,
-		}
-	return {}
 
 ## Phase 16: Get entity ID from body for state coordination
 func _get_entity_id(body: Node) -> String:

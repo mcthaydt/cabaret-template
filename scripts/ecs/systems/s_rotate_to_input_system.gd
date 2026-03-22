@@ -8,8 +8,6 @@ const ROTATE_TYPE := StringName("C_RotateToInputComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
-const RS_VCAM_MODE_OTS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -54,7 +52,6 @@ func process_tick(delta: float) -> void:
 			INPUT_TYPE,
 		]
 	)
-	var ots_facing_lock: Dictionary = _resolve_active_ots_facing_lock(store)
 
 	for entity_query in entities:
 		var entity_id: StringName = entity_query.get_entity_id()
@@ -83,8 +80,7 @@ func process_tick(delta: float) -> void:
 			continue
 
 		var move_vector := input_component.move_vector
-		var lock_facing_to_camera: bool = bool(ots_facing_lock.get("enabled", false))
-		if move_vector.length() == 0.0 and not lock_facing_to_camera:
+		if move_vector.length() == 0.0:
 			if can_log:
 				print("S_RotateToInputSystem: move_vector zero. entity=%s yaw=%.2f" % [
 					"%s" % [entity_id],
@@ -93,14 +89,10 @@ func process_tick(delta: float) -> void:
 			component.reset_rotation_state()
 			continue
 
-		var desired_yaw: float = 0.0
-		if lock_facing_to_camera:
-			desired_yaw = float(ots_facing_lock.get("camera_yaw", target.global_rotation.y))
-		else:
-			var desired_direction := _get_desired_direction(move_vector, target)
-			if desired_direction.length() == 0.0:
-				continue
-			desired_yaw = atan2(-desired_direction.x, -desired_direction.z)
+		var desired_direction := _get_desired_direction(move_vector, target)
+		if desired_direction.length() == 0.0:
+			continue
+		var desired_yaw: float = atan2(-desired_direction.x, -desired_direction.z)
 		var current_rotation := target.global_rotation
 		if can_log:
 			var velocity_yaw: float = 0.0
@@ -232,57 +224,6 @@ func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
 	if normal.length() == 0.0:
 		return Vector3.ZERO
 	return vector - normal * vector.dot(normal)
-
-func _resolve_active_ots_facing_lock(store: I_StateStore) -> Dictionary:
-	if store == null or not is_instance_valid(store):
-		return {}
-
-	var state: Dictionary = store.get_state()
-	var vcam_variant: Variant = state.get("vcam", {})
-	if not (vcam_variant is Dictionary):
-		return {}
-	var vcam_state := vcam_variant as Dictionary
-	var active_vcam_id: StringName = vcam_state.get("active_vcam_id", StringName(""))
-	if active_vcam_id == StringName(""):
-		return {}
-
-	var is_blending: bool = bool(vcam_state.get("is_blending", false))
-	var blend_progress: float = float(vcam_state.get("blend_progress", 1.0))
-
-	var components: Array = get_components(C_VCAM_COMPONENT.COMPONENT_TYPE)
-	for entry in components:
-		var vcam_component := entry as C_VCamComponent
-		if vcam_component == null or not is_instance_valid(vcam_component):
-			continue
-		if vcam_component.vcam_id != active_vcam_id:
-			continue
-		if vcam_component.mode == null:
-			return {}
-		var mode_script := vcam_component.mode.get_script() as Script
-		if mode_script != RS_VCAM_MODE_OTS_SCRIPT:
-			return {}
-
-		var resolved: Dictionary = vcam_component.mode.get_resolved_values()
-		if not bool(resolved.get("lock_facing_to_camera", true)):
-			return {}
-
-		var blend_weight: float = blend_progress if is_blending else 1.0
-		if blend_weight < 0.9:
-			return {}
-
-		var camera: Camera3D = ECS_UTILS.get_active_camera(self)
-		if camera == null:
-			return {}
-		var camera_forward: Vector3 = -camera.global_transform.basis.z
-		camera_forward.y = 0.0
-		if camera_forward.length_squared() <= 0.000001:
-			return {}
-		camera_forward = camera_forward.normalized()
-		return {
-			"enabled": true,
-			"camera_yaw": atan2(-camera_forward.x, -camera_forward.z),
-		}
-	return {}
 
 ## Phase 16: Get entity ID from node for state coordination
 func _get_entity_id(node: Node) -> String:
