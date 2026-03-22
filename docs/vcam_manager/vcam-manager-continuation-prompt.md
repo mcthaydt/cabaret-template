@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, Phases `2A`-`2H`, and Phase `3A` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed; `2F` dropped). Phase 3 docs/commit closure (`3B`) is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, Phases `2A`-`2H`, and Phases `3A`-`3B` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed; `2F` dropped). Phase 4 cleanup/contracts is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through Phase 3 blend-manager decomposition and closure (`3B` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: Phase `3B` implementation/docs commit closure for completed `3A` blend-manager extraction.
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 4 cleanup/contracts (`5A` onward in the checklist). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
+- Immediate implementation target: Phase `5A` AGENTS contract cleanup + helper-architecture contract additions.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -287,6 +287,14 @@
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/test_vcam_manager.gd` (`45/45`)
   - `tools/run_gut_suite.sh -gtest=res://tests/integration/vcam/test_vcam_blend.gd` (`5/5`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Refactor Phase 3B (March 22, 2026, Complete)
+
+- Completed Phase 3 commit + docs closure:
+  - implementation commit landed: `f72a38c5`
+  - docs/status commit landed: `4e141746`
+  - refactor checklist + continuation prompt now reflect Phase 3 completion
+- Phase 4 cleanup/contracts work is now unblocked (`5A` onward in `vcam-refactor-tasks.md`).
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1313,9 +1321,9 @@
 
 ## Next Steps
 
-1. Execute Phase `3B` commit/docs closure for completed Phase `3A` blend-manager extraction.
-2. Begin the next decomposition slice after `3B` closure (state migration follow-up per `vcam-refactor-tasks.md`).
-3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `3`-`5`.
+1. Execute Phase `5A.1` and `5A.2` in `vcam-refactor-tasks.md` (AGENTS cleanup + helper-architecture contracts).
+2. Continue with Phase `5B` cleanup sweeps (stale-reference grep + orphan checks + response-field audit).
+3. Keep mandatory per-phase doc cadence and separate docs commits through Phase `5`.
 
 ## Key Decisions To Preserve
 

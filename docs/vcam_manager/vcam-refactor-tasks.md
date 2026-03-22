@@ -612,8 +612,16 @@ Completion notes (2026-03-22):
 
 ### Phase 3B: Phase 3 commit + docs
 
-- [ ] **Task 3B.1**: Commit Phase 3 implementation
-- [ ] **Task 3B.2**: Update continuation prompt and this task file with Phase 3 completion notes
+- [x] **Task 3B.1**: Commit Phase 3 implementation
+- [x] **Task 3B.2**: Update continuation prompt and this task file with Phase 3 completion notes
+
+Completion notes (2026-03-22):
+- Phase 3 implementation commit landed:
+  - `f72a38c5` (`refactor(vcam): extract blend runtime into U_VCamBlendManager`)
+- Phase 3 docs/status commit landed:
+  - `4e141746` (`docs(vcam): record Phase 3A blend-manager extraction`)
+- Continuation prompt and task checklist are now updated through `3B`.
+- Phase 4 cleanup/contracts work is now unblocked (starting at `5A` in this checklist).
 
 ---
 
