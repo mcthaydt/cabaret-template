@@ -176,6 +176,9 @@
 - **Tween pause mode is not reliably introspectable in tests**: In this Godot runtime, `Tween.get_pause_mode()` is unavailable and reading `tween.get("pause_mode")` can return `null`. Prefer behavior-focused assertions (for example tween created/valid and expected fade outcome) instead of inspecting tween pause mode internals.
 - **ServiceLocator-only container discovery requires explicit test registrations**: Scene/display/UI code paths that now resolve `hud_layer`, `active_scene_container`, `ui_overlay_stack`, `transition_overlay`, `loading_overlay`, `post_process_overlay`, and `game_viewport` via `U_ServiceLocator` will fail to initialize in test harnesses that only add nodes to the tree. Register these services in `before_each` when constructing lightweight scene scaffolds.
 
+- **Standalone touchscreen-settings overlay tests can silently leave gameplay shell**: `UI_TouchscreenSettingsOverlay._close_overlay()` falls back to `set_shell(main_menu, settings_menu)` when `navigation.overlay_stack` is empty. Tests that instantiate the overlay directly (without pushing it on overlay stack) can pass Apply, then unintentionally move out of gameplay before drag-look assertions run.
+  - **Fix pattern**: in standalone tests, either (a) seed/push overlay-stack state before Apply so close path pops overlay, or (b) explicitly dispatch `start_game(...)` + touchscreen `device_changed(...)` before sampling touch look input.
+
 ## Scene Director Pitfalls
 
 - **`gameplay/reset_progress` is not an objectives reset**: Dispatching `U_GameplayActions.reset_progress()` clears gameplay progression fields but does not rebuild objective statuses/event log. Endgame Continue/retry flows must route through the run-reset contract (`U_RunActions.reset_run`) so `M_RunCoordinator` can call `M_ObjectivesManager.reset_for_new_run(...)` and re-arm root objectives (`bar_complete` active, `final_complete` inactive) with an empty objective event log.

@@ -1443,9 +1443,9 @@ Completion note (March 22, 2026): Manual editor-preview checklist passed (`MT-38
 
 ## Phase 12: Integration Tests
 
-**Exit Criteria:** All ~25 integration tests pass
+**Exit Criteria:** All 29 integration tests pass
 
-- [ ] **Task 12.1**: Create vCam state integration tests
+- [x] **Task 12.1**: Create vCam state integration tests
   - Create `tests/integration/vcam/test_vcam_state.gd`
   - Test vcam slice registered as transient
   - Test vcam slice NOT in global settings persistence
@@ -1454,7 +1454,7 @@ Completion note (March 22, 2026): Manual editor-preview checklist passed (`MT-38
   - Test actions dispatch and selectors read correctly end-to-end
   - **Target: 5 tests**
 
-- [ ] **Task 12.2**: Create vCam runtime integration tests
+- [x] **Task 12.2**: Create vCam runtime integration tests
   - Create `tests/integration/vcam/test_vcam_runtime.gd`
   - Test M_VCamManager registers with ServiceLocator from root scene
   - Test S_VCamSystem finds manager via ServiceLocator
@@ -1465,7 +1465,7 @@ Completion note (March 22, 2026): Manual editor-preview checklist passed (`MT-38
   - Test blend completes and active vcam updates
   - **Target: 7 tests**
 
-- [ ] **Task 12.3**: Create vCam blend integration tests
+- [x] **Task 12.3**: Create vCam blend integration tests
   - Create `tests/integration/vcam/test_vcam_blend.gd`
   - Test moving-to-moving blend stays live (not frozen transforms)
   - Test cut-on-distance triggers immediate cut
@@ -1474,7 +1474,7 @@ Completion note (March 22, 2026): Manual editor-preview checklist passed (`MT-38
   - Test vCam resumes writes after camera-manager transition completes
   - **Target: 5 tests**
 
-- [ ] **Task 12.4**: Create mobile drag-look integration tests
+- [x] **Task 12.4**: Create mobile drag-look integration tests
   - Create `tests/integration/vcam/test_vcam_mobile.gd`
   - Test drag-look feeds orbit camera through gameplay.look_input
   - Test drag-look feeds OTS camera through gameplay.look_input
@@ -1484,7 +1484,7 @@ Completion note (March 22, 2026): Manual editor-preview checklist passed (`MT-38
   - Test invert_look_y inverts vertical drag direction
   - **Target: 6 tests**
 
-- [ ] **Task 12.5**: Create occlusion integration tests
+- [x] **Task 12.5**: Create occlusion integration tests
   - Create `tests/integration/vcam/test_vcam_occlusion.gd`
   - Test silhouette applied to mesh occluder at runtime
   - Test silhouette cleared on scene swap
@@ -1492,13 +1492,29 @@ Completion note (March 22, 2026): Manual editor-preview checklist passed (`MT-38
 
 ---
 
-- [ ] **Task 12.6**: Create observability integration tests
+- [x] **Task 12.6**: Create observability integration tests
   - Create or extend `tests/integration/vcam/test_vcam_state.gd`
   - Test `blend_from_vcam_id` and `blend_to_vcam_id` populated during blend
   - Test `active_target_valid` reflects follow target status
   - Test `last_recovery_reason` set on target-loss recovery
   - Test debug fields cleared after blend completion
   - **Target: 4 tests**
+
+Completion note (March 22, 2026): Phase 12 integration coverage is implementation-complete with five new suites under `tests/integration/vcam/`:
+- `test_vcam_state.gd` (`9/9`)
+- `test_vcam_runtime.gd` (`7/7`)
+- `test_vcam_blend.gd` (`5/5`)
+- `test_vcam_mobile.gd` (`6/6`)
+- `test_vcam_occlusion.gd` (`2/2`)
+
+Additional implementation hardening landed during Green/Refactor:
+- `M_VCamManager._set_active_vcam_internal(...)` now dispatches `vcam/set_active_runtime` before `vcam/start_blend` so `blend_to_vcam_id` reflects the incoming active camera during live blends.
+- `S_VCamSystem` now updates `vcam.active_target_valid` + `vcam.last_recovery_reason` for target/anchor/evaluator failure paths (`target_freed`, `path_anchor_invalid`, `anchor_invalid`, `evaluation_failed`) and clears the flags when validity is restored.
+
+Validation run (March 22, 2026):
+- `tests/integration/vcam` (`29/29`)
+- `tests/unit/managers` (`-gselect=test_vcam_manager`, `49/49`)
+- `tests/unit/style` (`-gselect=test_style_enforcement`, `17/17`)
 
 ---
 
