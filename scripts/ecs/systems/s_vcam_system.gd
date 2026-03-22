@@ -3,11 +3,7 @@ extends BaseECSSystem
 class_name S_VCamSystem
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_INPUT_SELECTORS := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 const U_VCAM_LANDING_IMPACT := preload("res://scripts/ecs/systems/helpers/u_vcam_landing_impact.gd")
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
@@ -16,6 +12,7 @@ const U_VCAM_RESPONSE_SMOOTHER := preload("res://scripts/ecs/systems/helpers/u_v
 const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation.gd")
 const U_VCAM_DEBUG := preload("res://scripts/ecs/systems/helpers/u_vcam_debug.gd")
 const U_VCAM_RUNTIME_CONTEXT := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_context.gd")
+const U_VCAM_RUNTIME_STATE := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_state.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
@@ -45,10 +42,8 @@ var _look_input_helper = U_VCAM_LOOK_INPUT.new()
 var _landing_impact_helper = U_VCAM_LANDING_IMPACT.new()
 var _debug_helper = U_VCAM_DEBUG.new()
 var _runtime_context_helper = U_VCAM_RUNTIME_CONTEXT.new()
+var _runtime_state_helper = U_VCAM_RUNTIME_STATE.new()
 var _last_active_vcam_id: StringName = StringName("")
-var _last_active_target_valid: bool = true
-var _last_target_recovery_reason: String = ""
-var _last_target_recovery_vcam_id: StringName = StringName("")
 var _event_unsubscribers: Array[Callable] = []
 
 var _look_rotation_state: Dictionary:
@@ -122,9 +117,10 @@ func process_tick(delta: float) -> void:
 	_prune_smoothing_state(vcam_index)
 	_apply_rotation_continuity_policy(active_vcam_id, vcam_index, manager)
 
-	var look_input: Vector2 = _read_look_input()
-	var move_input: Vector2 = _read_move_input()
-	var camera_center_just_pressed: bool = _read_camera_center_just_pressed()
+	var store := _resolve_state_store()
+	var look_input: Vector2 = _runtime_state_helper.read_look_input(store)
+	var move_input: Vector2 = _runtime_state_helper.read_move_input(store)
+	var camera_center_just_pressed: bool = _runtime_state_helper.read_camera_center_just_pressed(store)
 	_debug_helper.log_vcam_state("tick", active_vcam_id, look_input)
 	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
 	_evaluate_and_submit(
@@ -163,9 +159,7 @@ func _exit_tree() -> void:
 	_clear_all_smoothing_state()
 	_landing_impact_helper.clear_state()
 	_last_active_vcam_id = StringName("")
-	_last_active_target_valid = true
-	_last_target_recovery_reason = ""
-	_last_target_recovery_vcam_id = StringName("")
+	_runtime_state_helper.reset_observability_state()
 
 func _subscribe_events() -> void:
 	_unsubscribe_events()
@@ -257,7 +251,13 @@ func _prepare_vcam_pipeline_state(
 	_debug_helper.log_follow_target_resolution(vcam_id, component, follow_target)
 	var follow_target_required: bool = _is_follow_target_required(mode)
 	if follow_target_required and (follow_target == null or not is_instance_valid(follow_target)):
-		_update_active_target_observability(vcam_id, manager, false, "target_freed")
+		_runtime_state_helper.update_active_target_observability(
+			vcam_id,
+			manager,
+			false,
+			"target_freed",
+			_resolve_state_store()
+		)
 		return {}
 
 	var response_values: Dictionary = _resolve_component_response_values(component)
@@ -329,9 +329,21 @@ func _evaluate_vcam_mode_result(
 		runtime_rotation.y
 	)
 	if result.is_empty():
-		_update_active_target_observability(vcam_id, manager, false, "evaluation_failed")
+		_runtime_state_helper.update_active_target_observability(
+			vcam_id,
+			manager,
+			false,
+			"evaluation_failed",
+			_resolve_state_store()
+		)
 		return {}
-	_update_active_target_observability(vcam_id, manager, true)
+	_runtime_state_helper.update_active_target_observability(
+		vcam_id,
+		manager,
+		true,
+		"",
+		_resolve_state_store()
+	)
 	return result
 
 func _apply_vcam_effect_pipeline(
@@ -754,41 +766,6 @@ func _resolve_vcam_manager() -> I_VCAM_MANAGER:
 	_vcam_manager = service
 	return _vcam_manager as I_VCAM_MANAGER
 
-func _update_active_target_observability(
-	vcam_id: StringName,
-	manager: I_VCAM_MANAGER,
-	is_valid: bool,
-	recovery_reason: String = ""
-) -> void:
-	if manager == null:
-		return
-	if vcam_id != manager.get_active_vcam_id():
-		return
-	var store := _resolve_state_store()
-	if _last_active_target_valid != is_valid:
-		_last_active_target_valid = is_valid
-		if store != null:
-			store.dispatch(U_VCAM_ACTIONS.update_target_validity(is_valid))
-	if is_valid:
-		_last_target_recovery_reason = ""
-		_last_target_recovery_vcam_id = StringName("")
-		return
-	if recovery_reason.is_empty():
-		return
-	if recovery_reason == _last_target_recovery_reason and vcam_id == _last_target_recovery_vcam_id:
-		return
-	_last_target_recovery_reason = recovery_reason
-	_last_target_recovery_vcam_id = vcam_id
-	if store != null:
-		store.dispatch(U_VCAM_ACTIONS.record_recovery(recovery_reason))
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_RECOVERY, {
-		"reason": recovery_reason,
-		"vcam_id": vcam_id,
-		"active_vcam_id": manager.get_active_vcam_id(),
-		"previous_vcam_id": manager.get_previous_vcam_id(),
-	})
-	manager.set_active_vcam(StringName(""))
-
 func _is_follow_target_required(mode: Resource) -> bool:
 	if mode == null:
 		return false
@@ -803,24 +780,3 @@ func _resolve_state_store() -> I_StateStore:
 		return _state_store
 	_state_store = U_STATE_UTILS.try_get_store(self)
 	return _state_store
-
-func _read_look_input() -> Vector2:
-	var store := _resolve_state_store()
-	if store == null:
-		return Vector2.ZERO
-	var state: Dictionary = store.get_state()
-	return U_INPUT_SELECTORS.get_look_input(state)
-
-func _read_move_input() -> Vector2:
-	var store := _resolve_state_store()
-	if store == null:
-		return Vector2.ZERO
-	var state: Dictionary = store.get_state()
-	return U_INPUT_SELECTORS.get_move_input(state)
-
-func _read_camera_center_just_pressed() -> bool:
-	var store := _resolve_state_store()
-	if store == null:
-		return false
-	var state: Dictionary = store.get_state()
-	return U_INPUT_SELECTORS.is_camera_center_just_pressed(state)
