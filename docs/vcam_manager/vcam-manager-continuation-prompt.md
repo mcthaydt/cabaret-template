@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1C` are complete; Phase `1D` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1D` are complete; Phase `1E` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1D`-`1H`).
-- Immediate implementation target: Phase `1D` external-system cleanup (`s_movement_system.gd`, `s_rotate_to_input_system.gd`, and `ui_hud_controller.gd` OTS removal).
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1E`-`1H`).
+- Immediate implementation target: Phase `1E` in `c_vcam_component.gd` (remove fixed-anchor/path exports and getters).
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -59,6 +59,20 @@
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (`25/25`)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Refactor Phase 1D (March 22, 2026)
+
+- Completed external-system OTS removal pass:
+  - `S_MovementSystem` no longer resolves OTS movement profile/sprint overrides; removed OTS mode constant + `_resolve_active_ots_movement_state(...)`.
+  - `S_RotateToInputSystem` no longer resolves OTS facing-lock state; removed OTS mode constant + `_resolve_active_ots_facing_lock(...)`.
+  - `UI_HudController` no longer contains OTS reticle runtime logic (imports, state, tween helpers, and update-path calls removed).
+- Updated unit coverage aligned to removed external OTS contracts:
+  - `tests/unit/ecs/systems/test_movement_system.gd` OTS override tests removed.
+  - `tests/unit/ecs/systems/test_rotate_to_input_system.gd` OTS lock-facing tests removed.
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_movement_system.gd` (`9/9`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_rotate_to_input_system.gd` (`3/3`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Phase 12 Integration Tests (March 22, 2026)

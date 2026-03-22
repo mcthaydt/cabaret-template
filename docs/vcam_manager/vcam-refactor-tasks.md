@@ -138,18 +138,31 @@ Completion notes (2026-03-22):
 
 ### Phase 1D: Remove OTS from external systems
 
-- [ ] **Task 1D.1**: Clean `s_movement_system.gd`
+- [x] **Task 1D.1**: Clean `s_movement_system.gd`
   - Delete `RS_VCAM_MODE_OTS_SCRIPT` const
   - Remove OTS movement profile resolution call and `_resolve_active_ots_movement_state` function
 
-- [ ] **Task 1D.2**: Clean `s_rotate_to_input_system.gd`
+- [x] **Task 1D.2**: Clean `s_rotate_to_input_system.gd`
   - Delete `RS_VCAM_MODE_OTS_SCRIPT` const
   - Remove OTS facing lock resolution and `_resolve_active_ots_facing_lock` function
 
-- [ ] **Task 1D.3**: Clean `ui_hud_controller.gd`
+- [x] **Task 1D.3**: Clean `ui_hud_controller.gd`
   - Delete `RS_VCAM_MODE_OTS_SCRIPT` const and OTS reticle @onready vars
   - Delete all OTS reticle constants, state, and functions
   - Remove OTS reticle calls from `_ready`/`_update` paths
+
+Completion notes (2026-03-22):
+- External OTS integrations are removed from runtime code:
+  - `S_MovementSystem` no longer resolves OTS movement overrides (`movement_profile`, `disable_sprint`, blend-weight gating); sprint/max-speed now use movement component settings only.
+  - `S_RotateToInputSystem` no longer resolves OTS camera-facing lock overrides; desired yaw is always derived from move input direction.
+  - `UI_HudController` no longer contains OTS reticle runtime logic (imports, state, tweening, visibility/fade helpers, and update calls removed).
+- Updated impacted unit suites to match Phase 1D contracts:
+  - removed OTS-specific movement override tests from `test_movement_system.gd`
+  - removed OTS lock-facing tests from `test_rotate_to_input_system.gd`
+- Validation runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_movement_system.gd` (`9/9`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_rotate_to_input_system.gd` (`3/3`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 1E: Remove Fixed from component
 
