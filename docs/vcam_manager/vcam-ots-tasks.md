@@ -789,15 +789,17 @@ These checks gate Phase 13 cross-mode QA completion:
 
 These checks gate Phase 9F completion:
 
-- [ ] **MT-20**: Switching from fixed to OTS blends smoothly
+- [x] **MT-20**: Switching from fixed to OTS blends smoothly
   - Trigger a vCam switch from fixed to OTS
   - Verify smooth interpolation over `blend_duration`
   - Verify no visible snap or teleport
   - Verify OTS camera lands at correct shoulder-offset position
-- [ ] **MT-33**: Screen shake during OTS camera works
+- [x] **MT-33**: Screen shake during OTS camera works
   - Trigger screen shake while OTS camera is active
   - Verify shake is visible and feels correct from OTS perspective
   - Verify camera returns to correct position/orientation after shake completes
+
+Completion note (March 22, 2026): OTS manual blend checklist passed (`MT-20/33`).
 
 ---
 

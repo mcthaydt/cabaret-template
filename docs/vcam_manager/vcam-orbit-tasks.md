@@ -881,15 +881,17 @@ These checks gate Phase 13 cross-mode QA completion:
 
 These checks gate Phase 9F completion:
 
-- [ ] **MT-19**: (see [vcam-fixed-tasks.md](vcam-fixed-tasks.md) — orbit-to-fixed blend is owned by the fixed mode task file)
-- [ ] **MT-21**: Switching between two moving orbit cameras blends live (not frozen)
+- [x] **MT-19**: (see [vcam-fixed-tasks.md](vcam-fixed-tasks.md) — orbit-to-fixed blend is owned by the fixed mode task file)
+- [x] **MT-21**: Switching between two moving orbit cameras blends live (not frozen)
   - Have two orbit cameras following moving targets
   - Switch between them
   - Verify blend shows both cameras' live positions (not a frozen origin transform)
-- [ ] **MT-32**: Screen shake during orbit camera works (shake visible, returns to correct position)
+- [x] **MT-32**: Screen shake during orbit camera works (shake visible, returns to correct position)
   - Trigger screen shake (e.g. via damage) while orbit camera is active
   - Verify shake is visible and feels correct
   - Verify camera returns to correct orbit position after shake completes
+
+Completion note (March 22, 2026): Orbit manual blend checklist passed (`MT-19/21/32`).
 
 ---
 

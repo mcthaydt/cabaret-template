@@ -373,12 +373,14 @@ These checks gate Phase 13 cross-mode QA completion:
 
 These checks gate Phase 9F completion:
 
-- [ ] **MT-19**: Switching from orbit to fixed blends smoothly (no snap)
+- [x] **MT-19**: Switching from orbit to fixed blends smoothly (no snap)
   - Trigger a vCam switch from orbit to fixed
   - Verify smooth interpolation of both position and rotation over `blend_duration`
   - Verify no visible snap or teleport
   - Verify camera lands exactly at fixed anchor position
-- [ ] **MT-20**: (see [vcam-ots-tasks.md](vcam-ots-tasks.md) — fixed-to-OTS blend is owned by the OTS mode task file)
+- [x] **MT-20**: (see [vcam-ots-tasks.md](vcam-ots-tasks.md) — fixed-to-OTS blend is owned by the OTS mode task file)
+
+Completion note (March 22, 2026): Fixed manual blend checklist passed (`MT-19/20`).
 
 ---
 

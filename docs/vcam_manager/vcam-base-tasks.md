@@ -1244,11 +1244,13 @@ Mode-specific blend checks are tracked in their respective subtask files:
 
 Cross-mode checks (mode-agnostic):
 
-- [ ] **MT-22**: `cut_on_distance_threshold` triggers instant cut when cameras far apart
-- [ ] **MT-23**: vCam blend does not fight scene-transition blend (suspends during transition)
-- [ ] **MT-34**: vCam + shake + scene-transition blend all coexist cleanly
-- [ ] **MT-43**: Rapid repeated switching does not pop or wedge blend state
-- [ ] **MT-44**: Mid-blend re-switch transitions smoothly from current interpolated pose
+- [x] **MT-22**: `cut_on_distance_threshold` triggers instant cut when cameras far apart
+- [x] **MT-23**: vCam blend does not fight scene-transition blend (suspends during transition)
+- [x] **MT-34**: vCam + shake + scene-transition blend all coexist cleanly
+- [x] **MT-43**: Rapid repeated switching does not pop or wedge blend state
+- [x] **MT-44**: Mid-blend re-switch transitions smoothly from current interpolated pose
+
+Completion note (March 22, 2026): Manual blend validation checklist passed across orbit/fixed/OTS flows (`MT-22/23/34/43/44`).
 
 ---
 
@@ -1395,13 +1397,15 @@ Cross-mode checks (mode-agnostic):
 
 ### Phase 10D: Manual Validation (Occlusion + Silhouette)
 
-- [ ] **MT-27**: Wall between camera and player shows silhouette effect
-- [ ] **MT-28**: CSG geometry occluder shows silhouette
-- [ ] **MT-29**: Silhouette clears when obstruction removed
-- [ ] **MT-30**: Silhouette toggle in VFX settings disables/enables silhouettes
-- [ ] **MT-31**: Silhouettes clear on scene transition (no stale overrides)
-- [ ] **MT-45**: Silhouettes remain stable near cover edges (no flicker on marginal blockers)
-- [ ] **MT-46**: No visible per-frame churn when standing behind a stationary occluder
+- [x] **MT-27**: Wall between camera and player shows silhouette effect
+- [x] **MT-28**: CSG geometry occluder shows silhouette
+- [x] **MT-29**: Silhouette clears when obstruction removed
+- [x] **MT-30**: Silhouette toggle in VFX settings disables/enables silhouettes
+- [x] **MT-31**: Silhouettes clear on scene transition (no stale overrides)
+- [x] **MT-45**: Silhouettes remain stable near cover edges (no flicker on marginal blockers)
+- [x] **MT-46**: No visible per-frame churn when standing behind a stationary occluder
+
+Completion note (March 22, 2026): Manual occlusion/silhouette checklist passed (`MT-27/28/29/30/31/45/46`).
 
 ---
 
@@ -1430,8 +1434,10 @@ Cross-mode checks (mode-agnostic):
 
 ### Phase 11A: Manual Validation (Editor Preview)
 
-- [ ] **MT-38**: Rule-of-thirds grid visible in editor viewport on camera template
-- [ ] **MT-39**: Rule-of-thirds grid NOT visible at runtime
+- [x] **MT-38**: Rule-of-thirds grid visible in editor viewport on camera template
+- [x] **MT-39**: Rule-of-thirds grid NOT visible at runtime
+
+Completion note (March 22, 2026): Manual editor-preview checklist passed (`MT-38/39`).
 
 ---
 
