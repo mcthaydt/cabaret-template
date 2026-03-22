@@ -87,20 +87,31 @@ Completion notes (2026-03-22):
 
 ### Phase 1B: Remove Fixed mode from s_vcam_system.gd
 
-- [ ] **Task 1B.1**: Remove Fixed constants, state, and imports
+- [x] **Task 1B.1**: Remove Fixed constants, state, and imports
   - Delete `RS_VCAM_MODE_FIXED_SCRIPT` const
   - Delete `_path_follow_helpers` dictionary
 
-- [ ] **Task 1B.2**: Remove Fixed functions
+- [x] **Task 1B.2**: Remove Fixed functions
   - Delete `_is_path_fixed_mode`, `_resolve_or_create_path_anchor`, `_resolve_fixed_anchor_for_component`
   - Delete `_prune_path_helpers`, `_teardown_path_helpers`
 
-- [ ] **Task 1B.3**: Remove Fixed branches from shared functions
+- [x] **Task 1B.3**: Remove Fixed branches from shared functions
   - Remove fixed branch from `_apply_rotation_transition`
   - Remove fixed branch from `_is_follow_target_required`, `_is_fixed_anchor_required` (delete entire function)
   - Remove fixed branch from `_evaluate_and_submit` (fixed anchor resolution)
   - Remove fixed-mode smoothing branch from `_step_smoothing_state`
   - Remove `_teardown_path_helpers` from `_exit_tree`, `_prune_path_helpers` from `process_tick`
+
+Completion notes (2026-03-22):
+- `S_VCamSystem` fixed-mode runtime scaffolding is removed:
+  - removed fixed mode script constant + `_path_follow_helpers` state
+  - removed fixed helper methods (`_is_path_fixed_mode`, `_resolve_or_create_path_anchor`, `_resolve_fixed_anchor_for_component`, `_prune_path_helpers`, `_teardown_path_helpers`, `_is_fixed_anchor_required`)
+  - removed fixed branches from `_evaluate_and_submit`, `_apply_rotation_transition`, `_is_follow_target_required`, and `_step_smoothing_state`
+- `S_VCamSystem` now treats follow targets as required only for orbit and first-person paths.
+- Validation runs:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd -gunit_test_name=aim` (`5/5`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 1C: Remove OTS + Fixed from evaluator
 

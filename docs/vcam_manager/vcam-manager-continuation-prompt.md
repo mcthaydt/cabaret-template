@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phase `1A` are complete; Phase `1B` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1B` are complete; Phase `1C` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1B`-`1H`).
-- Immediate implementation target: Phase `1B` in `s_vcam_system.gd` (remove fixed-mode runtime paths).
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1C`-`1H`).
+- Immediate implementation target: Phase `1C` in `u_vcam_mode_evaluator.gd` (remove OTS/fixed evaluation paths and `fixed_anchor` signature).
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -29,6 +29,18 @@
   - `aim_blend_duration` default `0.15`
   - `aim_exit_blend_duration` default `0.2`
   - both resolved via `maxf(..., 0.01)`
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd -gunit_test_name=aim` (`5/5`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Refactor Phase 1B (March 22, 2026)
+
+- Completed fixed-mode runtime removal pass in `s_vcam_system.gd`:
+  - removed fixed mode import/constant and `_path_follow_helpers` state
+  - removed fixed helper methods (`_is_path_fixed_mode`, `_resolve_or_create_path_anchor`, `_resolve_fixed_anchor_for_component`, `_prune_path_helpers`, `_teardown_path_helpers`, `_is_fixed_anchor_required`)
+  - removed fixed branches from `_evaluate_and_submit`, `_apply_rotation_transition`, `_is_follow_target_required`, and `_step_smoothing_state`
+- `S_VCamSystem` follow-target-required gating now only includes orbit and first-person modes.
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd -gunit_test_name=aim` (`5/5`)
@@ -1057,7 +1069,7 @@
 
 ## Next Steps
 
-1. Execute Phase `1B`-`1F` (remove remaining fixed/OTS runtime/resource/scene paths).
+1. Execute Phase `1C`-`1F` (remove remaining fixed/OTS evaluator/resource/scene paths).
 2. Execute Phase `1G` (comprehensive test updates + full validation run, including style enforcement).
 3. Execute Phase `1H` (Phase 1 implementation commit, then docs updates and AGENTS.md Stage-1 contract cleanup in a separate docs commit).
 4. Continue phase-by-phase through refactor Phases `2`-`5` with mandatory doc cadence and separate docs commits.
