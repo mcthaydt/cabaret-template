@@ -7,6 +7,11 @@ const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 const GRID_LINE_COLOR := Color(1.0, 1.0, 1.0, 0.35)
 const GRID_LINE_WIDTH := 1.5
 
+@export var preview_enabled: bool = true:
+	set(value):
+		preview_enabled = value
+		_apply_visibility()
+
 class RuleOfThirdsGrid extends Control:
 	var line_color: Color = Color(1.0, 1.0, 1.0, 0.35)
 	var line_width: float = 1.5
@@ -45,6 +50,7 @@ func _ready() -> void:
 		queue_free()
 		return
 	_setup_preview()
+	_apply_visibility()
 
 func _exit_tree() -> void:
 	_teardown_preview()
@@ -68,6 +74,7 @@ func _setup_preview() -> void:
 
 	_preview_layer.add_child(_preview_grid)
 	_editor_viewport_3d.add_child(_preview_layer)
+	_apply_visibility()
 
 func _teardown_preview() -> void:
 	if _preview_layer != null and is_instance_valid(_preview_layer):
@@ -75,3 +82,7 @@ func _teardown_preview() -> void:
 	_preview_layer = null
 	_preview_grid = null
 	_editor_viewport_3d = null
+
+func _apply_visibility() -> void:
+	if _preview_layer != null:
+		_preview_layer.visible = preview_enabled
