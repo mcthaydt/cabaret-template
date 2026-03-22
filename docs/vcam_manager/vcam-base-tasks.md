@@ -1553,42 +1553,46 @@ Completion note (March 22, 2026): Phase 12A observability checklist is validated
   - Update `docs/vcam_manager/vcam-manager-continuation-prompt.md`
   - Update subtask files with `[x]` marks
   - Update `docs/vcam_manager/vcam-manager-overview.md` if needed
-  - Completion note (March 22, 2026): Updated continuation/status docs for Phase 12A completion and Phase 13 closure progress (remaining manual QA backlog explicitly called out).
+  - Completion note (March 22, 2026): Updated continuation/status docs for Phase 12A completion and full Phase 13 closure.
 
-- [ ] **Task 13.5**: Cross-mode feel QA (manual)
-  - [ ] **MT-50**: Heading continuity after orbit → OTS switch (player keeps facing same direction)
-  - [ ] **MT-51**: Heading continuity after OTS → orbit switch
-  - [ ] **MT-52**: Fixed → orbit landing uses authored angles (no stale rotation inherited)
-  - [ ] **MT-53**: Rapid repeated cross-mode switching does not pop or produce disorienting heading jumps
-  - [ ] **MT-54**: Graceful recovery on follow target loss / respawn (no camera jerk)
-  - [ ] **MT-55**: First frame after scene load feels correct (no single-frame snap to wrong pose)
+- [x] **Task 13.5**: Cross-mode feel QA (manual)
+  - [x] **MT-50**: Heading continuity after orbit → OTS switch (player keeps facing same direction)
+  - [x] **MT-51**: Heading continuity after OTS → orbit switch
+  - [x] **MT-52**: Fixed → orbit landing uses authored angles (no stale rotation inherited)
+  - [x] **MT-53**: Rapid repeated cross-mode switching does not pop or produce disorienting heading jumps
+  - [x] **MT-54**: Graceful recovery on follow target loss / respawn (no camera jerk)
+  - [x] **MT-55**: First frame after scene load feels correct (no single-frame snap to wrong pose)
+  - Completion note (March 22, 2026): Marked complete per manual QA sign-off request.
 
-- [ ] **Task 13.6**: Second-order dynamics feel QA (manual)
-  - [ ] **MT-70**: Orbit follow with default response (f=3.0, z=0.7): camera has subtle overshoot when player reverses direction suddenly, settles naturally
-  - [ ] **MT-71**: Orbit follow with high frequency (f=6.0): camera tracks tightly, minimal lag
-  - [ ] **MT-72**: Orbit follow with low frequency (f=1.0): camera floats lazily behind player, cinematic feel
-  - [ ] **MT-73**: First-person with response: head bob absorbs landing impacts with spring-like settling
-  - [ ] **MT-74**: Fixed tracking with response: camera tracks moving player with natural ease-in/ease-out, no robotic lerp
-  - [ ] **MT-75**: Response with zeta=0.3 (bouncy): visible overshoot, oscillation settling — intentionally exaggerated, verifies dynamics are working
-  - [ ] **MT-76**: Response with zeta=1.5 (overdamped): sluggish but no overshoot — verifies overdamped path
-  - [ ] **MT-77**: No response resource assigned (null): camera behaves identically to raw evaluator output (backward compatible, no smoothing)
-  - [ ] **MT-78**: Dynamics reset on mode switch: no residual momentum carried from previous mode (camera doesn't swing wildly on switch)
-  - [ ] **MT-79**: Dynamics reset on scene load: first frame starts at correct position (no fly-in from origin)
+- [x] **Task 13.6**: Second-order dynamics feel QA (manual)
+  - [x] **MT-70**: Orbit follow with default response (f=3.0, z=0.7): camera has subtle overshoot when player reverses direction suddenly, settles naturally
+  - [x] **MT-71**: Orbit follow with high frequency (f=6.0): camera tracks tightly, minimal lag
+  - [x] **MT-72**: Orbit follow with low frequency (f=1.0): camera floats lazily behind player, cinematic feel
+  - [x] **MT-73**: First-person with response: head bob absorbs landing impacts with spring-like settling
+  - [x] **MT-74**: Fixed tracking with response: camera tracks moving player with natural ease-in/ease-out, no robotic lerp
+  - [x] **MT-75**: Response with zeta=0.3 (bouncy): visible overshoot, oscillation settling — intentionally exaggerated, verifies dynamics are working
+  - [x] **MT-76**: Response with zeta=1.5 (overdamped): sluggish but no overshoot — verifies overdamped path
+  - [x] **MT-77**: No response resource assigned (null): camera behaves identically to raw evaluator output (backward compatible, no smoothing)
+  - [x] **MT-78**: Dynamics reset on mode switch: no residual momentum carried from previous mode (camera doesn't swing wildly on switch)
+  - [x] **MT-79**: Dynamics reset on scene load: first frame starts at correct position (no fly-in from origin)
+  - Completion note (March 22, 2026): Marked complete per manual QA sign-off request.
 
-- [ ] **Task 13.6b**: QB-driven camera feel QA (manual)
-  - [ ] **MT-88**: FOV breathing while sprinting: FOV widens subtly (e.g. 75 → ~85) as speed increases
-  - [ ] **MT-89**: FOV breathing while stationary: FOV returns to base value smoothly (existing `fov_blend_speed` handles transition)
-  - [ ] **MT-90**: FOV breathing response curve: FOV ramps gradually at walk speed, aggressively at sprint speed (non-linear curve)
-  - [ ] **MT-91**: Landing impact dip: camera dips briefly on hard landing, springs back via second-order dynamics
-  - [ ] **MT-92**: Landing impact scales with fall speed: light landing = barely noticeable dip, hard landing = pronounced dip
-  - [ ] **MT-93**: Landing impact + shake coexistence: both landing dip (low-frequency) and shake (high-frequency) visible simultaneously, compound feel
-  - [ ] **MT-94**: Landing impact on soft landing (below threshold): no camera dip (condition score = 0)
+- [x] **Task 13.6b**: QB-driven camera feel QA (manual)
+  - [x] **MT-88**: FOV breathing while sprinting: FOV widens subtly (e.g. 75 → ~85) as speed increases
+  - [x] **MT-89**: FOV breathing while stationary: FOV returns to base value smoothly (existing `fov_blend_speed` handles transition)
+  - [x] **MT-90**: FOV breathing response curve: FOV ramps gradually at walk speed, aggressively at sprint speed (non-linear curve)
+  - [x] **MT-91**: Landing impact dip: camera dips briefly on hard landing, springs back via second-order dynamics
+  - [x] **MT-92**: Landing impact scales with fall speed: light landing = barely noticeable dip, hard landing = pronounced dip
+  - [x] **MT-93**: Landing impact + shake coexistence: both landing dip (low-frequency) and shake (high-frequency) visible simultaneously, compound feel
+  - [x] **MT-94**: Landing impact on soft landing (below threshold): no camera dip (condition score = 0)
+  - Completion note (March 22, 2026): Marked complete per manual QA sign-off request.
 
-- [ ] **Task 13.7**: Performance regression checks (manual)
-  - [ ] **MT-56**: Long scene with many potential occluders: no frame-pacing spikes from occlusion pass
-  - [ ] **MT-57**: Rapid switching stress test: no allocation spikes from blend/silhouette churn
-  - [ ] **MT-58**: Steady-state camera (no switch, no occlusion change): verify no per-frame dictionary allocations in profiler
-  - [ ] **MT-80**: Second-order dynamics per-tick cost: verify no measurable frame time increase vs null response (dynamics are 6 multiplies + 4 adds per axis per tick)
+- [x] **Task 13.7**: Performance regression checks (manual)
+  - [x] **MT-56**: Long scene with many potential occluders: no frame-pacing spikes from occlusion pass
+  - [x] **MT-57**: Rapid switching stress test: no allocation spikes from blend/silhouette churn
+  - [x] **MT-58**: Steady-state camera (no switch, no occlusion change): verify no per-frame dictionary allocations in profiler
+  - [x] **MT-80**: Second-order dynamics per-tick cost: verify no measurable frame time increase vs null response (dynamics are 6 multiplies + 4 adds per axis per tick)
+  - Completion note (March 22, 2026): Marked complete per manual QA sign-off request.
 
 ---
 

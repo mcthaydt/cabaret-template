@@ -417,7 +417,7 @@ This prevents pops from restarting a blend from the original source position and
 | `landing_impact_scale` | `float` | `1.0` | 6A3c | Multiplier for QB-driven landing impact offset on this vCam (0 = suppress) |
 
 > **Note:** Orbit-feel Phase 2C core + ground-relative follow-up is landed (`2C1`/`2C2`/`2C3`/`2C4`/`2C5`/`2C6`): look-ahead + auto-level + projection soft-zone + dead-zone hysteresis + ground-relative vertical anchoring + runtime integration.
-> Orbit follow-up backlog `2C11`, mobile drag-look/touch gating prerequisites, OTS Phase 3 reset/game-feel scope, Phase 10 occlusion pipeline, Phase 11 editor preview, Phase 12 integration coverage, and Phase 12A observability validation are complete; immediate implementation focus is the remaining Phase 13 manual QA backlog (`13.5/13.6/13.6b/13.7`).
+> Orbit follow-up backlog `2C11`, mobile drag-look/touch gating prerequisites, OTS Phase 3 reset/game-feel scope, Phase 10 occlusion pipeline, Phase 11 editor preview, Phase 12 integration coverage, Phase 12A observability validation, and full Phase 13 regression/docs closure are complete.
 > Look-ahead direction is movement-velocity driven (`state.gameplay.entities[*].velocity` primary source, movement-component/body fallback) and intentionally ignores follow-target transform deltas to avoid rotation-only offsets.
 > Post-`0f51c36` tuning baseline in `cfg_default_response.tres` is currently `follow=3.8/1.0`, `rotation=4.8/0.9`, `look_ahead_distance=0.02`, `look_ahead_smoothing=1.77`, `orbit_look_bypass_enable_speed=7.0`, `orbit_look_bypass_disable_speed=8.5`.
 

@@ -4,14 +4,14 @@
 
 - **Feature / story**: Virtual Camera (vCam) Manager
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete. Phase 3 reset implementation is complete (3A/3B/3C1/3C2/3C3/3C4.1-3C4.11). Phase 9 (`9A-9F`) is complete, Phase 10 occlusion pipeline (`10A/10B/10B2/10C/10C2/10D`) is complete, Phase 11 editor preview (`11.1`/`11.2`/`11.3`) plus manual validation (`11A`) is complete, Phase 12 integration implementation (`12.1`-`12.6`) is complete, and Phase 12A observability validation (`MT-40/41/42/47/48/49`) is complete as of March 22, 2026.
+- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete. Phase 3 reset implementation is complete (3A/3B/3C1/3C2/3C3/3C4.1-3C4.11). Phase 9 (`9A-9F`) is complete, Phase 10 occlusion pipeline (`10A/10B/10B2/10C/10C2/10D`) is complete, Phase 11 editor preview (`11.1`/`11.2`/`11.3`) plus manual validation (`11A`) is complete, Phase 12 integration implementation (`12.1`-`12.6`) is complete, Phase 12A observability validation (`MT-40/41/42/47/48/49`) is complete, and Phase 13 regression/docs closure (`13.1`-`13.8`) is complete as of March 22, 2026.
 
 ## Next Planned Work (March 22, 2026)
 
 - Phase 12A observability validation is complete in `docs/vcam_manager/vcam-base-tasks.md`.
-- Phase 13 regression/docs closure is partially complete (`13.1`, `13.2`, `13.3`, `13.4`, `13.8` done; manual QA `13.5/13.6/13.6b/13.7` pending).
-- Next implementation focus: execute the remaining manual QA backlog (`MT-50..58`, `MT-70..80`, `MT-88..94`) and record outcomes in the base tasks checklist.
-- Keep `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and frame-stamped handoff contract stable while Phase 13 expands regressions.
+- Phase 13 regression/docs closure is complete in `docs/vcam_manager/vcam-base-tasks.md`.
+- Next implementation focus: none required for the current checklist; treat vCam docs/tasks as closed until new scope is added.
+- Keep `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and frame-stamped handoff contract stable for any follow-up regressions.
 - Keep silhouette routing on `U_VCamSilhouetteHelper.update_silhouettes(...)` (no per-frame clear/reapply regressions).
 - Keep editor preview behavior editor-only (`Engine.is_editor_hint()` gating + runtime `queue_free()`).
 
@@ -39,13 +39,17 @@
   - `tests/integration/vcam/test_vcam_state.gd` (`9/9`) covers active-camera, blend-state, blend debug fields, target-validity, and recovery-reason observability.
   - `tests/integration/vcam/test_vcam_occlusion.gd` (`2/2`) covers silhouette lifecycle updates that drive `vcam.silhouette_active_count`.
 
-## Phase 13 Regression + Docs Closure (Automated Gates, March 22, 2026)
+## Phase 13 Regression + Docs Closure (March 22, 2026)
 
 - Completed items:
   - `13.1` camera-manager regression coverage (shake-safe apply path + transition blend observability)
   - `13.2` AGENTS review (no additional stable contracts discovered in this closure pass)
   - `13.3` DEV_PITFALLS review (no new pitfalls discovered in this closure pass)
   - `13.4` documentation status refresh
+  - `13.5` cross-mode feel QA (manual) marked complete per manual QA sign-off request
+  - `13.6` second-order dynamics feel QA (manual) marked complete per manual QA sign-off request
+  - `13.6b` QB-driven camera feel QA (manual) marked complete per manual QA sign-off request
+  - `13.7` performance regression checks (manual) marked complete per manual QA sign-off request
   - `13.8` automated regression/test gates
 - Validation run (March 22, 2026):
   - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
