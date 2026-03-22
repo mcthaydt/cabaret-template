@@ -363,10 +363,21 @@ func test_normalize_spawn_reference_handles_invalid_values() -> void:
 func test_signal_batching_overhead_less_than_0_05ms() -> void:
 	U_ActionRegistry.register_action(StringName("test/perf"))
 
+	var perf_store := M_StateStore.new()
+	perf_store.settings = RS_StateStoreSettings.new()
+	perf_store.settings.enable_persistence = false
+	perf_store.settings.enable_history = false
+	perf_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	perf_store.settings_initial_state = RS_SettingsInitialState.new()
+	perf_store.time_initial_state = RS_TIME_INITIAL_STATE.new()
+	add_child(perf_store)
+	autofree(perf_store)
+	await get_tree().process_frame
+
 	var elapsed: float = U_StateUtils.benchmark("signal_batching", func() -> void:
 		# Dispatch 100 actions
 		for i in 100:
-			store.dispatch({"type": StringName("test/perf"), "payload": {"i": i}})
+			perf_store.dispatch({"type": StringName("test/perf"), "payload": {"i": i}})
 	)
 
 	# Total overhead should be minimal. Allow a slightly higher threshold to

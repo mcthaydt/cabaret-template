@@ -44,7 +44,7 @@ const ORBIT_CENTER_DURATION_SEC: float = 0.3
 const OTS_LANDING_FALL_SPEED_MIN: float = 5.0
 const OTS_LANDING_FALL_SPEED_MAX: float = 30.0
 const OTS_LANDING_RESPONSE_EPSILON: float = 0.0001
-const DEFAULT_OTS_AIM_BLEND_DURATION: float = 0.35
+const DEFAULT_OTS_AIM_BLEND_DURATION: float = 0.15
 
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
@@ -1432,6 +1432,7 @@ func _update_runtime_rotation(
 
 func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, aim_pressed: bool) -> void:
 	var aim_just_pressed: bool = aim_pressed and not _aim_prev_pressed
+	var aim_just_released: bool = (not aim_pressed) and _aim_prev_pressed
 	_aim_prev_pressed = aim_pressed
 
 	if manager == null or vcam_index.is_empty():
@@ -1451,13 +1452,10 @@ func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, ai
 		_aim_toggled_on = false
 		return
 
-	if not aim_just_pressed:
-		return
-
 	var active_mode: Resource = active_component.mode
 	var active_is_ots: bool = _is_ots_mode(active_mode)
 
-	if not _aim_toggled_on:
+	if aim_just_pressed:
 		if active_is_ots:
 			return
 		var target_ots_id: StringName = _find_aim_target_ots_vcam_id(active_vcam_id, active_component, vcam_index)
@@ -1471,6 +1469,9 @@ func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, ai
 		_aim_toggled_on = true
 		var enter_blend_duration: float = _resolve_ots_aim_blend_duration(target_component.mode)
 		manager.set_active_vcam(target_ots_id, enter_blend_duration)
+		return
+
+	if not aim_just_released:
 		return
 
 	_aim_toggled_on = false
@@ -1487,7 +1488,7 @@ func _process_aim_activation(vcam_index: Dictionary, manager: I_VCAM_MANAGER, ai
 	if not vcam_index.has(restore_vcam_id):
 		return
 
-	var exit_blend_duration: float = _resolve_ots_aim_exit_blend_duration(active_mode)
+	var exit_blend_duration: float = _resolve_ots_aim_blend_duration(active_mode)
 	manager.set_active_vcam(restore_vcam_id, exit_blend_duration)
 
 func _find_aim_target_ots_vcam_id(

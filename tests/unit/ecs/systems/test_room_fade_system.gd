@@ -704,8 +704,8 @@ func test_csg_normals_use_target_centroid_not_world_origin() -> void:
 
 	# Room centered at (-16, 0, -10), far from world origin.
 	# North wall at z=-5 and south wall at z=-15.
-	# Camera looks -Z (south). North wall is behind camera → should stay opaque.
-	# South wall is in front of camera → should fade.
+	# Camera looks -Z (south). North wall is in front of camera → should fade.
+	# South wall is behind camera → should stay opaque.
 	var setup: Dictionary = _register_room_fade_group_offset_csg(
 		ecs_manager, "E_OffOriginRoom", Vector3(-16.0, 0.0, -10.0)
 	)
@@ -733,10 +733,10 @@ func test_csg_normals_use_target_centroid_not_world_origin() -> void:
 	var south_alpha: float = float(applier.updated_alpha_by_target_id.get(south_target.get_instance_id(), -1.0))
 	assert_gt(north_alpha, -0.5, "Expected north target alpha update.")
 	assert_gt(south_alpha, -0.5, "Expected south target alpha update.")
-	# North wall should be opaque (camera looks away from its inward face)
-	assert_almost_eq(north_alpha, 1.0, 0.01, "North wall should stay opaque when camera looks -Z.")
-	# South wall should fade (camera looks toward its inward face)
-	assert_almost_eq(south_alpha, 0.05, 0.01, "South wall should fade when camera looks -Z.")
+	# North wall should fade (camera looks toward its inward face)
+	assert_almost_eq(north_alpha, 0.05, 0.01, "North wall should fade when camera looks -Z.")
+	# South wall should stay opaque (camera looks away from its inward face)
+	assert_almost_eq(south_alpha, 1.0, 0.01, "South wall should stay opaque when camera looks -Z.")
 
 func test_csg_normals_correct_for_room_at_origin() -> void:
 	var fixture := _create_fixture()
@@ -773,8 +773,8 @@ func test_csg_normals_correct_for_room_at_origin() -> void:
 	var south_alpha: float = float(applier.updated_alpha_by_target_id.get(south_target.get_instance_id(), -1.0))
 	assert_gt(north_alpha, -0.5, "Expected north target alpha update.")
 	assert_gt(south_alpha, -0.5, "Expected south target alpha update.")
-	assert_almost_eq(north_alpha, 1.0, 0.01, "North wall should stay opaque when camera looks -Z.")
-	assert_almost_eq(south_alpha, 0.05, 0.01, "South wall should fade when camera looks -Z.")
+	assert_almost_eq(north_alpha, 0.05, 0.01, "North wall should fade when camera looks -Z.")
+	assert_almost_eq(south_alpha, 1.0, 0.01, "South wall should stay opaque when camera looks -Z.")
 
 func _create_fixture() -> Dictionary:
 	var room_fade_system_script := _room_fade_system_script()

@@ -17,16 +17,16 @@
 [ext_resource type="Script" uid="uid://h5ym8nprt7dw" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
 [ext_resource type="Script" uid="uid://dtyibtpldqj48" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
 [ext_resource type="Script" uid="uid://cxvneotjjmt2h" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
-[ext_resource type="Texture2D" uid="uid://emedu6pq2lwj" path="res://assets/textures/Prototype Grids PNG/Light/texture_06.png" id="6_jh1j5"]
+[ext_resource type="Texture2D" uid="uid://emedu6pq2lwj" path="res://assets/textures/prototype_grids_png/Light/tex_texture_06.png" id="6_jh1j5"]
 [ext_resource type="Script" uid="uid://bybk18c838a4x" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
 [ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
 [ext_resource type="Script" uid="uid://c5tv5b4g5a2ya" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
-[ext_resource type="Texture2D" uid="uid://bln3t6p8asyk3" path="res://assets/textures/Prototype Grids PNG/Purple/texture_01.png" id="7_oyk2i"]
+[ext_resource type="Texture2D" uid="uid://bln3t6p8asyk3" path="res://assets/textures/prototype_grids_png/Purple/tex_texture_01.png" id="7_oyk2i"]
 [ext_resource type="Script" uid="uid://ddf4k6uippbnm" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
-[ext_resource type="Texture2D" uid="uid://b1r5ab5wgdm2q" path="res://assets/textures/Prototype Grids PNG/Orange/texture_01.png" id="8_fq7ll"]
+[ext_resource type="Texture2D" uid="uid://b1r5ab5wgdm2q" path="res://assets/textures/prototype_grids_png/Orange/tex_texture_01.png" id="8_fq7ll"]
 [ext_resource type="Script" uid="uid://dciojb5mih6gh" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
 [ext_resource type="Script" uid="uid://vxfou682xmrp" path="res://scripts/ecs/systems/s_death_handler_system.gd" id="9_death_handler"]
-[ext_resource type="Texture2D" uid="uid://bqnushigljekn" path="res://assets/textures/Prototype Grids PNG/Red/texture_03.png" id="9_fq7ll"]
+[ext_resource type="Texture2D" uid="uid://bqnushigljekn" path="res://assets/textures/prototype_grids_png/Red/tex_texture_03.png" id="9_fq7ll"]
 [ext_resource type="Script" uid="uid://vbqdwstwybck" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
 [ext_resource type="Script" uid="uid://bxqd4f7hk7hte" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
 [ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
@@ -71,7 +71,7 @@
 [ext_resource type="Script" uid="uid://btf32kqffvu02" path="res://scripts/ecs/systems/s_region_visibility_system.gd" id="77_region_visibility_system"]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_ocmnx"]
-load_path = "res://.godot/imported/texture_03.png-080bd45ef23712d7c9c88c9b0e55f16c.s3tc.ctex"
+load_path = "res://.godot/imported/tex_texture_03.png-5a4a6a513c462a051455bfabcd4a01f2.s3tc.ctex"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oyk2i"]
 shading_mode = 0

@@ -369,11 +369,9 @@ func _initialize_settings() -> void:
 			settings.max_history_size = history_size
 	
 	# Check if history is enabled
-	var enable_history: bool = true
+	var enable_history: bool = settings.enable_history
 	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_HISTORY):
-		enable_history = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, true)
-	else:
-		enable_history = true  # Default to enabled in debug builds
+		enable_history = bool(ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, enable_history))
 
 	_action_history_buffer.configure(settings.max_history_size, enable_history)
 

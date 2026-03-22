@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, depth_draw_never;
+render_mode unshaded, blend_mix, depth_draw_never;
 
 uniform float fade_alpha : hint_range(0.0, 1.0) = 1.0;
 uniform sampler2D albedo_texture : source_color;

@@ -26,7 +26,7 @@ const DEFAULT_LANDING_DIP_RECOVERY_SPEED: float = 6.0
 @export var movement_profile: RS_MovementSettings = null
 @export var disable_sprint: bool = true
 @export var lock_facing_to_camera: bool = true
-@export var aim_blend_duration: float = 0.35
+@export var aim_blend_duration: float = 0.15
 @export var aim_exit_blend_duration: float = 0.2
 
 func get_resolved_values() -> Dictionary:

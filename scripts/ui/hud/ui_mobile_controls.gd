@@ -49,6 +49,7 @@ var _signpost_hide_until_sec: float = -1.0
 var _is_signpost_visibility_blocked: bool = false
 var _pending_camera_center_just_pressed: bool = false
 var _aim_pressed: bool = false
+var _runtime_time_sec: float = 0.0
 var _last_empty_space_tap_time_sec: float = -1.0
 var _last_empty_space_tap_position: Vector2 = Vector2.ZERO
 var _aim_touch_id: int = -1
@@ -67,6 +68,7 @@ func _ready() -> void:
 	set_process(true)
 	set_process_input(true)
 	visible = false
+	_runtime_time_sec = 0.0
 
 	if not _should_enable():
 		queue_free()
@@ -119,6 +121,7 @@ func _exit_tree() -> void:
 	_is_signpost_visibility_blocked = false
 	_pending_camera_center_just_pressed = false
 	_aim_pressed = false
+	_runtime_time_sec = 0.0
 	_last_empty_space_tap_time_sec = -1.0
 	_last_empty_space_tap_position = Vector2.ZERO
 	_clear_aim_long_press_state()
@@ -191,7 +194,7 @@ func _handle_empty_space_tap(position: Vector2) -> void:
 		_reset_double_tap_state()
 		return
 
-	var now_sec := U_ECSUtils.get_current_time()
+	var now_sec: float = _runtime_time_sec
 	if _last_empty_space_tap_time_sec >= 0.0:
 		var elapsed_sec := now_sec - _last_empty_space_tap_time_sec
 		var distance_px := _last_empty_space_tap_position.distance_to(position)
@@ -275,7 +278,7 @@ func _handle_aim_long_press_touch_press(event: InputEventScreenTouch) -> void:
 	if _is_touch_over_virtual_controls(event.position):
 		return
 	_aim_touch_id = event.index
-	_aim_touch_start_time_sec = U_ECSUtils.get_current_time()
+	_aim_touch_start_time_sec = _runtime_time_sec
 	_aim_touch_start_position = event.position
 	_aim_touch_consumed = false
 
@@ -305,7 +308,7 @@ func _update_aim_long_press_toggle() -> void:
 		return
 	if _aim_touch_start_time_sec < 0.0:
 		return
-	var held_duration_sec: float = U_ECSUtils.get_current_time() - _aim_touch_start_time_sec
+	var held_duration_sec: float = _runtime_time_sec - _aim_touch_start_time_sec
 	if held_duration_sec < AIM_LONG_PRESS_THRESHOLD_SEC:
 		return
 	_aim_pressed = not _aim_pressed
@@ -581,6 +584,7 @@ func _on_input_activity(__data: Variant = null) -> void:
 	_is_fading = true
 
 func _process(_delta: float) -> void:
+	_runtime_time_sec += maxf(_delta, 0.0)
 	_update_aim_long_press_toggle()
 	_update_signpost_visibility_gate()
 	if _controls_root == null or not _is_fading:
@@ -612,7 +616,7 @@ func _on_signpost_message(payload: Variant) -> void:
 	if message_text.is_empty():
 		return
 	var duration_sec: float = _resolve_signpost_duration(data)
-	var hide_until: float = U_ECSUtils.get_current_time() + duration_sec + SIGNPOST_VISIBILITY_BUFFER_SEC
+	var hide_until: float = _runtime_time_sec + duration_sec + SIGNPOST_VISIBILITY_BUFFER_SEC
 	_signpost_hide_until_sec = maxf(_signpost_hide_until_sec, hide_until)
 	_update_signpost_visibility_gate()
 
@@ -637,7 +641,7 @@ func _resolve_signpost_duration(payload: Dictionary) -> float:
 func _update_signpost_visibility_gate() -> void:
 	var blocked: bool = false
 	if _signpost_hide_until_sec >= 0.0:
-		blocked = U_ECSUtils.get_current_time() < _signpost_hide_until_sec
+		blocked = _runtime_time_sec < _signpost_hide_until_sec
 		if not blocked:
 			_signpost_hide_until_sec = -1.0
 	if blocked == _is_signpost_visibility_blocked:
