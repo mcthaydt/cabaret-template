@@ -2,18 +2,17 @@
 
 ## Current Focus
 
-- **Feature / story**: Virtual Camera (vCam) Manager
+- **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Phases 0A, 0A2, 0B, 0C, 0D, 0E, 0F, 1A, 1B, 1C, 1D, 1E, 1F, 2A, 2B, 4A, 4B, 5, 6A, 6B, 6B2, 6A2, 6A.3, 6A3a, 6A3b, 6A3c, plus Phase 8 orbit subphases 2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11, the Orbit UX improvement follow-up pass, the Movement-Style Camera Smoothing follow-up pass, the Camera Look Smoothing Parity pass, the post-`0f51c36` orbit retune doc/test catch-up pass, the 2C8 input-consistency/icon-coverage follow-up, and the mobile drag-look/touch gating prerequisite work (Phase 7A/7B/7B2/7C) are complete. Phase 3 reset implementation is complete (3A/3B/3C1/3C2/3C3/3C4.1-3C4.11). Phase 9 (`9A-9F`) is complete, Phase 10 occlusion pipeline (`10A/10B/10B2/10C/10C2/10D`) is complete, Phase 11 editor preview (`11.1`/`11.2`/`11.3`) plus manual validation (`11A`) is complete, Phase 12 integration implementation (`12.1`-`12.6`) is complete, Phase 12A observability validation (`MT-40/41/42/47/48/49`) is complete, and Phase 13 regression/docs closure (`13.1`-`13.8`) is complete as of March 22, 2026.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). New refactor scope is now active in `docs/vcam_manager/vcam-refactor-tasks.md`; no refactor phases are marked complete yet.
 
 ## Next Planned Work (March 22, 2026)
 
-- Phase 12A observability validation is complete in `docs/vcam_manager/vcam-base-tasks.md`.
-- Phase 13 regression/docs closure is complete in `docs/vcam_manager/vcam-base-tasks.md`.
-- Next implementation focus: none required for the current checklist; treat vCam docs/tasks as closed until new scope is added.
-- Keep `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and frame-stamped handoff contract stable for any follow-up regressions.
-- Keep silhouette routing on `U_VCamSilhouetteHelper.update_silhouettes(...)` (no per-frame clear/reapply regressions).
-- Keep editor preview behavior editor-only (`Engine.is_editor_hint()` gating + runtime `queue_free()`).
+- Primary objective: execute `docs/vcam_manager/vcam-refactor-tasks.md`, starting with `PRE-1`/`PRE-2`, then Phase 1 (`1A`-`1H`).
+- Immediate implementation target: Phase `1A` in `s_vcam_system.gd` (remove OTS paths and repurpose `aim_pressed` flow to first-person).
+- Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
+- After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
+- Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -976,6 +975,7 @@
 - `docs/vcam_manager/vcam-manager-overview.md`
 - `docs/vcam_manager/vcam-manager-prd.md`
 - `docs/vcam_manager/vcam-manager-tasks.md`
+- `docs/vcam_manager/vcam-refactor-tasks.md`
 - `scripts/managers/m_vcam_manager.gd`
 - `scripts/managers/m_camera_manager.gd`
 - `scripts/interfaces/i_camera_manager.gd`
@@ -1037,11 +1037,11 @@
 
 ## Next Steps
 
-1. No additional implementation phases are queued; treat the vCam checklist as closed until new scope is added.
-2. For any future vCam follow-up, preserve `S_VCamSystem` ordering (`execution_priority = 100`, after movement) and frame-stamped handoff behavior.
-3. For any future silhouette follow-up, keep `M_VFXManager` routing on `U_VCamSilhouetteHelper.update_silhouettes(...)` (no per-frame clear/reapply regressions).
-4. Keep editor preview behavior editor-only (`Engine.is_editor_hint()` gating + runtime `queue_free()`).
-5. If new scope is added, update continuation prompt + tasks at phase completion and commit docs separately from implementation changes.
+1. Complete `PRE-1` and `PRE-2` in `docs/vcam_manager/vcam-refactor-tasks.md`.
+2. Execute Phase `1A`-`1F` (remove OTS/fixed runtime/resource/scene paths and repurpose aim activation to first-person).
+3. Execute Phase `1G` (test updates + full validation run, including style enforcement).
+4. Execute Phase `1H` (implementation commit, continuation prompt/task updates, and AGENTS.md Stage-1 contract cleanup).
+5. Continue phase-by-phase through refactor Phases `2`-`5` with mandatory doc cadence and separate docs commits.
 
 ## Key Decisions To Preserve
 
