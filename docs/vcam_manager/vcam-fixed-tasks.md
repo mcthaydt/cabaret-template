@@ -315,22 +315,22 @@ Before starting Phase 4, verify:
 
 These checks gate Phase 6C completion for fixed mode:
 
-- [ ] **MT-09**: Fixed camera stays at authored world position
+- [x] **MT-09**: Fixed camera stays at authored world position
   - Place a fixed vCam in the scene with `use_world_anchor = true`
   - Launch game, verify camera is at the authored position
   - Move player around, verify camera position does NOT change
   - Verify camera does not drift or jitter over time
-- [ ] **MT-10**: Fixed camera with `track_target = true` rotates to follow player
+- [x] **MT-10**: Fixed camera with `track_target = true` rotates to follow player
   - Set `track_target = true` on the fixed vCam resource
   - Move player around the scene
   - Verify camera smoothly rotates to keep player in view
   - Verify `tracking_damping` controls the smoothness (higher = smoother, 0 = instant)
-- [ ] **MT-11**: Fixed camera with `track_target = false` keeps authored rotation
+- [x] **MT-11**: Fixed camera with `track_target = false` keeps authored rotation
   - Set `track_target = false` on the fixed vCam resource
   - Move player around
   - Verify camera rotation stays fixed at the authored angle
   - Verify player can walk out of frame (camera does not follow)
-- [ ] **MT-12**: Fixed camera does not respond to look input
+- [x] **MT-12**: Fixed camera does not respond to look input
   - With fixed vCam active, move mouse or right stick
   - Verify camera does NOT rotate from player input
   - Verify this holds for both `track_target = true` and `track_target = false` configurations
@@ -339,30 +339,30 @@ These checks gate Phase 6C completion for fixed mode:
 
 These checks gate Phase 13 cross-mode QA completion:
 
-- [ ] **MT-63**: Entering fixed is intentionally authored (camera lands at authored position/rotation exactly)
+- [x] **MT-63**: Entering fixed is intentionally authored (camera lands at authored position/rotation exactly)
   - Switch from orbit or OTS to fixed
   - Verify camera blend ends at the exact authored anchor position
   - Verify no drift or jitter after landing
-- [ ] **MT-64**: Leaving fixed preserves expected heading / reseeds intentionally
+- [x] **MT-64**: Leaving fixed preserves expected heading / reseeds intentionally
   - Switch from fixed to orbit: verify orbit reseeds to authored yaw/pitch (not stale pre-fixed rotation)
   - Switch from fixed to OTS: verify OTS reseeds to authored defaults
-- [ ] **MT-65**: Fixed anchor freed at runtime: camera recovers gracefully
+- [x] **MT-65**: Fixed anchor freed at runtime: camera recovers gracefully
   - Free or remove the fixed anchor node while fixed vCam is active
   - Verify camera falls back to entity root or holds last valid pose
   - Verify no crash or NaN camera state
-- [ ] **MT-69**: Fixed camera with `use_world_anchor = false` follows player at configured offset
+- [x] **MT-69**: Fixed camera with `use_world_anchor = false` follows player at configured offset
   - Set `use_world_anchor = false` and `follow_offset = Vector3(0, 3, 5)` on the fixed vCam resource
   - Move player around, verify camera maintains constant offset from player
   - Verify camera does NOT respond to look input (mouse/right-stick)
   - Verify `track_target = true` causes camera to look at player from the offset position
   - Verify `track_target = false` keeps camera facing its default direction at the offset position
-- [ ] **MT-69B**: Fixed camera with `use_path = true` follows Path3D smoothly
+- [x] **MT-69B**: Fixed camera with `use_path = true` follows Path3D smoothly
   - Place a Path3D in scene, set `path_node_path` on vCam component
   - Move player along/across path, verify camera follows at closest point
   - Verify camera speed is clamped to `path_max_speed`
   - Verify camera faces along path tangent direction
   - Verify `track_target` setting has no effect
-- [ ] **MT-69C**: Path-following with closed vs open path
+- [x] **MT-69C**: Path-following with closed vs open path
   - Test with a closed (looping) Path3D
   - Verify camera wraps smoothly around the loop
   - Test with an open path, verify camera clamps to endpoints

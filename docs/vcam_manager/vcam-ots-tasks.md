@@ -685,17 +685,17 @@ Before starting Phase 3, verify:
 
 ### Manual Validation (OTS Game Feel)
 
-- [ ] **MT-96**: Shoulder sway while moving left: camera tilts subtly in strafe direction
-- [ ] **MT-97**: Shoulder sway while moving right: camera tilts subtly in strafe direction
-- [ ] **MT-98**: Shoulder sway returns to level when lateral input stops (no lingering roll)
-- [ ] **MT-99**: Shoulder sway disabled (angle=0): camera stays level during strafing
-- [ ] **MT-100**: Collision avoidance: camera pulls in when wall is behind character
-- [ ] **MT-101**: Collision avoidance: camera smoothly recovers to full distance when wall clears
-- [ ] **MT-102**: Collision avoidance: camera does not clip through thin walls
-- [ ] **MT-103**: Collision avoidance: minimum distance floor prevents camera inside character mesh
-- [ ] **MT-104**: Landing camera response on hard landing: brief distance compression, springs back smoothly
-- [ ] **MT-105**: Landing camera response + shared impact + shake: all three layers visible simultaneously, compound feel
-- [ ] **MT-106**: Landing camera response disabled (dip=0): no distance change on landing (shared position dip + shake still work)
+- [x] **MT-96**: Shoulder sway while moving left: camera tilts subtly in strafe direction
+- [x] **MT-97**: Shoulder sway while moving right: camera tilts subtly in strafe direction
+- [x] **MT-98**: Shoulder sway returns to level when lateral input stops (no lingering roll)
+- [x] **MT-99**: Shoulder sway disabled (angle=0): camera stays level during strafing
+- [x] **MT-100**: Collision avoidance: camera pulls in when wall is behind character
+- [x] **MT-101**: Collision avoidance: camera smoothly recovers to full distance when wall clears
+- [x] **MT-102**: Collision avoidance: camera does not clip through thin walls
+- [x] **MT-103**: Collision avoidance: minimum distance floor prevents camera inside character mesh
+- [x] **MT-104**: Landing camera response on hard landing: brief distance compression, springs back smoothly
+- [x] **MT-105**: Landing camera response + shared impact + shake: all three layers visible simultaneously, compound feel
+- [x] **MT-106**: Landing camera response disabled (dip=0): no distance change on landing (shared position dip + shake still work)
 
 ---
 
@@ -731,22 +731,22 @@ Before starting Phase 3, verify:
 
 These checks gate Phase 6C completion for OTS mode:
 
-- [ ] **MT-13**: OTS camera positioned behind and beside player at shoulder offset
+- [x] **MT-13**: OTS camera positioned behind and beside player at shoulder offset
   - Launch game with OTS vCam active
   - Verify camera is behind and to one side of the character at configured `shoulder_offset`
   - Move player, verify camera follows at shoulder position
   - Change `shoulder_offset` in resource, verify camera position changes
-- [ ] **MT-14**: OTS camera rotates with mouse/right-stick look input
+- [x] **MT-14**: OTS camera rotates with mouse/right-stick look input
   - Move mouse horizontally, verify camera orbits around character maintaining shoulder offset
   - Move mouse vertically, verify camera pitches up/down
   - Use right stick on gamepad, verify same behavior
   - Verify rotation feels responsive and matches expected speed
-- [ ] **MT-15**: OTS camera pitch is clamped at min/max boundaries
+- [x] **MT-15**: OTS camera pitch is clamped at min/max boundaries
   - Look all the way down, verify pitch stops at `pitch_min`
   - Look all the way up, verify pitch stops at `pitch_max`
   - Verify no jitter or oscillation at pitch boundaries
   - Verify camera does not flip upside down
-- [ ] **MT-18**: OTS `look_multiplier` scales rotation speed
+- [x] **MT-18**: OTS `look_multiplier` scales rotation speed
   - Set `look_multiplier = 0.5`, verify camera rotates at half speed
   - Set `look_multiplier = 2.0`, verify camera rotates at double speed
   - Verify feel is consistent across mouse and gamepad
@@ -755,12 +755,12 @@ These checks gate Phase 6C completion for OTS mode:
 
 These checks gate Phase 7D completion for OTS mode:
 
-- [ ] **MT-16**: OTS camera on mobile: drag-look rotates view
+- [x] **MT-16**: OTS camera on mobile: drag-look rotates view
   - Touch and drag on empty screen area
   - Verify camera rotates around character maintaining shoulder offset
   - Verify sensitivity matches `look_drag_sensitivity` touchscreen setting
   - Verify `invert_look_y` works when enabled
-- [ ] **MT-17**: OTS camera on mobile: simultaneous move + look works
+- [x] **MT-17**: OTS camera on mobile: simultaneous move + look works
   - Hold move joystick with one finger
   - Drag-look with another finger simultaneously
   - Verify player moves while camera rotates independently
@@ -770,15 +770,15 @@ These checks gate Phase 7D completion for OTS mode:
 
 These checks gate Phase 13 cross-mode QA completion:
 
-- [ ] **MT-66**: Entering OTS preserves intended facing direction
+- [x] **MT-66**: Entering OTS preserves intended facing direction
   - Switch from orbit to OTS
   - Verify camera yaw carries from orbit (player keeps facing the same world direction)
   - Verify pitch resets to level horizon
-- [ ] **MT-67**: Shake recovery lands at correct view direction
+- [x] **MT-67**: Shake recovery lands at correct view direction
   - Trigger screen shake while OTS is active
   - After shake completes, verify camera is at exact pre-shake orientation
   - Verify no accumulated drift from shake offsets
-- [ ] **MT-68**: Follow target loss / respawn does not jerk camera
+- [x] **MT-68**: Follow target loss / respawn does not jerk camera
   - Free the follow target while OTS is active
   - Verify camera holds last valid pose
   - Respawn the target, verify camera resumes at shoulder offset without snap

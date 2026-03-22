@@ -741,35 +741,35 @@ Before starting Phase 2, verify:
 
 ### Manual Validation (Orbit Game Feel)
 
-- [ ] **MT-24**: Player in dead zone: camera does not move
-- [ ] **MT-25**: Player in soft zone: camera follows with damped lag
-- [ ] **MT-26**: Player near screen edge: camera corrects to keep player in frame
-- [ ] **MT-81**: Look-ahead active while sprinting: camera leads slightly ahead of player movement direction
-- [ ] **MT-82**: Look-ahead direction reversal: when player reverses, look-ahead offset smoothly swings to new direction (no snap)
-- [ ] **MT-83**: Look-ahead stationary: when player stops, look-ahead offset settles back to zero
-- [ ] **MT-84**: Look-ahead disabled (distance=0): no offset applied, camera centered on follow target
-- [ ] **MT-85**: Auto-level active: after 2 seconds of no look input, camera pitch slowly returns to horizon
-- [ ] **MT-86**: Auto-level interrupted: player provides look input during auto-level, auto-level stops immediately and delay timer resets
-- [ ] **MT-87**: Auto-level disabled (speed=0): pitch stays wherever the player left it indefinitely
-- [ ] **MT-95**: Dead zone hysteresis: target oscillating at dead zone boundary does NOT cause per-frame correction jitter
-- [ ] **MT-107**: Ground-relative jump stability: camera vertical anchor remains stable while player jumps/airborne
-- [ ] **MT-108**: Ground-relative minor landing delta: no re-anchor when landing height change is below threshold
-- [ ] **MT-109**: Ground-relative major landing delta: smooth re-anchor when landing height change exceeds threshold
-- [ ] **MT-110**: Release smoothing deceleration: camera rotation eases out naturally after look input release
-- [ ] **MT-111**: Asymmetric release damping: yaw and pitch settle at distinct configured rates
-- [ ] **MT-112**: Release stop threshold: near-zero rotational velocity clamps cleanly to zero (no drift)
-- [ ] **MT-113**: Button recenter start: pressing `camera_center` begins behind-player recenter from arbitrary yaw
-- [ ] **MT-114**: Button recenter interpolation: camera aligns behind player in ~`0.3s` with no visible snap
-- [ ] **MT-115**: Button recenter restart: pressing `camera_center` again during recenter restarts deterministically
-- [ ] **MT-116**: Room fade basic: orbit camera behind a wall causes that wall to alpha-dissolve, player remains visible
-- [ ] **MT-117**: Room fade restore: moving orbit camera to front of wall restores full opacity smoothly
-- [ ] **MT-118**: Room fade ceiling: looking up in orbit mode fades ceiling geometry with downward-facing normal
-- [ ] **MT-119**: Room fade multi-group: two adjacent walls with different normals fade independently based on camera angle
-- [ ] **MT-120**: Room fade mode switch: switching from orbit to OTS immediately restores all faded geometry to opaque
-- [ ] **MT-121**: Room fade min alpha: fully faded wall still shows faint geometry at `min_alpha` (not fully invisible)
-- [ ] **MT-122**: Room fade speed: adjusting `fade_speed` in settings changes how quickly walls dissolve and restore
-- [ ] **MT-123**: Room fade coexistence: silhouette occlusion and room fade both active simultaneously without visual conflict
-- [ ] **MT-124**: Room fade mobile: wall fading shader renders correctly on mobile/Compatibility renderer
+- [x] **MT-24**: Player in dead zone: camera does not move
+- [x] **MT-25**: Player in soft zone: camera follows with damped lag
+- [x] **MT-26**: Player near screen edge: camera corrects to keep player in frame
+- [x] **MT-81**: Look-ahead active while sprinting: camera leads slightly ahead of player movement direction
+- [x] **MT-82**: Look-ahead direction reversal: when player reverses, look-ahead offset smoothly swings to new direction (no snap)
+- [x] **MT-83**: Look-ahead stationary: when player stops, look-ahead offset settles back to zero
+- [x] **MT-84**: Look-ahead disabled (distance=0): no offset applied, camera centered on follow target
+- [x] **MT-85**: Auto-level active: after 2 seconds of no look input, camera pitch slowly returns to horizon
+- [x] **MT-86**: Auto-level interrupted: player provides look input during auto-level, auto-level stops immediately and delay timer resets
+- [x] **MT-87**: Auto-level disabled (speed=0): pitch stays wherever the player left it indefinitely
+- [x] **MT-95**: Dead zone hysteresis: target oscillating at dead zone boundary does NOT cause per-frame correction jitter
+- [x] **MT-107**: Ground-relative jump stability: camera vertical anchor remains stable while player jumps/airborne
+- [x] **MT-108**: Ground-relative minor landing delta: no re-anchor when landing height change is below threshold
+- [x] **MT-109**: Ground-relative major landing delta: smooth re-anchor when landing height change exceeds threshold
+- [x] **MT-110**: Release smoothing deceleration: camera rotation eases out naturally after look input release
+- [x] **MT-111**: Asymmetric release damping: yaw and pitch settle at distinct configured rates
+- [x] **MT-112**: Release stop threshold: near-zero rotational velocity clamps cleanly to zero (no drift)
+- [x] **MT-113**: Button recenter start: pressing `camera_center` begins behind-player recenter from arbitrary yaw
+- [x] **MT-114**: Button recenter interpolation: camera aligns behind player in ~`0.3s` with no visible snap
+- [x] **MT-115**: Button recenter restart: pressing `camera_center` again during recenter restarts deterministically
+- [x] **MT-116**: Room fade basic: orbit camera behind a wall causes that wall to alpha-dissolve, player remains visible
+- [x] **MT-117**: Room fade restore: moving orbit camera to front of wall restores full opacity smoothly
+- [x] **MT-118**: Room fade ceiling: looking up in orbit mode fades ceiling geometry with downward-facing normal
+- [x] **MT-119**: Room fade multi-group: two adjacent walls with different normals fade independently based on camera angle
+- [x] **MT-120**: Room fade mode switch: switching from orbit to OTS immediately restores all faded geometry to opaque
+- [x] **MT-121**: Room fade min alpha: fully faded wall still shows faint geometry at `min_alpha` (not fully invisible)
+- [x] **MT-122**: Room fade speed: adjusting `fade_speed` in settings changes how quickly walls dissolve and restore
+- [x] **MT-123**: Room fade coexistence: silhouette occlusion and room fade both active simultaneously without visual conflict
+- [x] **MT-124**: Room fade mobile: wall fading shader renders correctly on mobile/Compatibility renderer
 
 ---
 
@@ -817,19 +817,19 @@ Before starting Phase 2, verify:
 
 These checks gate Phase 6C completion for orbit mode:
 
-- [ ] **MT-01**: Orbit camera follows player at configured distance and pitch
+- [x] **MT-01**: Orbit camera follows player at configured distance and pitch
   - Launch game, verify camera maintains orbit distance from player
   - Move player, verify camera follows at constant offset
   - Change `distance` in resource, verify offset changes
-- [ ] **MT-02**: Orbit camera rotates horizontally with mouse/right-stick look input
+- [x] **MT-02**: Orbit camera rotates horizontally with mouse/right-stick look input
   - Move mouse horizontally, verify camera orbits around player on Y axis
   - Use right stick on gamepad, verify same behavior
   - Verify rotation speed matches `rotation_speed` resource value
-- [ ] **MT-03**: Orbit camera rotates vertically with mouse/right-stick look input (pitch clamped)
+- [x] **MT-03**: Orbit camera rotates vertically with mouse/right-stick look input (pitch clamped)
   - Move mouse vertically, verify camera adjusts pitch angle
   - Verify pitch does not go below horizon or above directly overhead (reasonable clamping)
   - Verify camera always looks at the follow target during pitch changes
-- [ ] **MT-04**: Orbit camera with `allow_player_rotation = false` stays at authored angle
+- [x] **MT-04**: Orbit camera with `allow_player_rotation = false` stays at authored angle
   - Set `allow_player_rotation = false` on the orbit resource
   - Move mouse/right-stick, verify camera does NOT rotate
   - Verify camera stays locked at `authored_pitch` and `authored_yaw`
@@ -838,19 +838,19 @@ These checks gate Phase 6C completion for orbit mode:
 
 These checks gate Phase 7D completion for orbit mode:
 
-- [ ] **MT-05**: Orbit camera on mobile: drag-look rotates camera horizontally
+- [x] **MT-05**: Orbit camera on mobile: drag-look rotates camera horizontally
   - Touch and drag on empty screen area (not joystick/buttons)
   - Verify camera orbits horizontally around player
   - Verify drag speed matches `look_drag_sensitivity` setting
-- [ ] **MT-06**: Orbit camera on mobile: drag-look rotates camera vertically
+- [x] **MT-06**: Orbit camera on mobile: drag-look rotates camera vertically
   - Touch and drag vertically on empty screen area
   - Verify camera adjusts pitch angle
   - Verify pitch clamping works on mobile
-- [ ] **MT-07**: Orbit camera on mobile: simultaneous move joystick + drag-look works
+- [x] **MT-07**: Orbit camera on mobile: simultaneous move joystick + drag-look works
   - Hold move joystick with one finger
   - Drag-look with another finger simultaneously
   - Verify both inputs work independently without conflict
-- [ ] **MT-08**: Orbit camera on mobile: pressing button during drag-look does not disrupt
+- [x] **MT-08**: Orbit camera on mobile: pressing button during drag-look does not disrupt
   - Start a drag-look gesture
   - While dragging, press a virtual button (jump/sprint)
   - Verify drag-look continues uninterrupted
@@ -860,17 +860,17 @@ These checks gate Phase 7D completion for orbit mode:
 
 These checks gate Phase 13 cross-mode QA completion:
 
-- [ ] **MT-59**: Switching into orbit keeps expected facing direction (no heading pop)
+- [x] **MT-59**: Switching into orbit keeps expected facing direction (no heading pop)
   - Switch from OTS or fixed to orbit
   - Verify camera lands at expected yaw (carried from OTS, or reseeded from authored for fixed)
   - Verify no single-frame snap to a different heading
-- [ ] **MT-60**: Rapid repeated switching into/out of orbit does not pop
+- [x] **MT-60**: Rapid repeated switching into/out of orbit does not pop
   - Toggle orbit ↔ fixed ↔ orbit rapidly
   - Verify every transition is smooth or intentionally authored
-- [ ] **MT-61**: Orbit resumes from expected heading after returning from fixed
+- [x] **MT-61**: Orbit resumes from expected heading after returning from fixed
   - Enter orbit, rotate camera, switch to fixed, switch back to orbit
   - Verify orbit resumes at authored angles (not stale rotation from before the fixed switch)
-- [ ] **MT-62**: Orbit follow target disappears / respawns: camera recovers gracefully
+- [x] **MT-62**: Orbit follow target disappears / respawns: camera recovers gracefully
   - Remove or free the follow target while orbit is active
   - Verify camera holds last valid pose, does not snap to origin
   - Respawn the target, verify camera resumes following without jerk

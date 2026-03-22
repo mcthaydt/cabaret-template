@@ -1086,9 +1086,9 @@ Mode-specific mobile checks are tracked in their respective subtask files:
 
 Settings checks (mode-agnostic):
 
-- [ ] **MT-35**: Drag-look sensitivity slider in touchscreen settings changes rotation speed
-- [ ] **MT-36**: Invert-Y toggle in touchscreen settings inverts vertical drag direction
-- [ ] **MT-37**: Drag-look settings persist after quit and relaunch
+- [x] **MT-35**: Drag-look sensitivity slider in touchscreen settings changes rotation speed
+- [x] **MT-36**: Invert-Y toggle in touchscreen settings inverts vertical drag direction
+- [x] **MT-37**: Drag-look settings persist after quit and relaunch
 
 ---
 
