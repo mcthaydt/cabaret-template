@@ -38,6 +38,7 @@ class RuleOfThirdsGrid extends Control:
 
 var _preview_layer: CanvasLayer = null
 var _preview_grid: RuleOfThirdsGrid = null
+var _editor_viewport_3d: SubViewport = null
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
@@ -45,8 +46,15 @@ func _ready() -> void:
 		return
 	_setup_preview()
 
+func _exit_tree() -> void:
+	_teardown_preview()
+
 func _setup_preview() -> void:
 	if _preview_layer != null:
+		return
+
+	_editor_viewport_3d = EditorInterface.get_editor_viewport_3d(0)
+	if _editor_viewport_3d == null:
 		return
 
 	_preview_layer = CanvasLayer.new()
@@ -59,5 +67,11 @@ func _setup_preview() -> void:
 	_preview_grid.line_width = GRID_LINE_WIDTH
 
 	_preview_layer.add_child(_preview_grid)
-	add_child(_preview_layer)
+	_editor_viewport_3d.add_child(_preview_layer)
 
+func _teardown_preview() -> void:
+	if _preview_layer != null and is_instance_valid(_preview_layer):
+		_preview_layer.queue_free()
+	_preview_layer = null
+	_preview_grid = null
+	_editor_viewport_3d = null
