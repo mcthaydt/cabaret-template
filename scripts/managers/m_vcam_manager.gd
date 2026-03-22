@@ -12,7 +12,7 @@ const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd"
 const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
 const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
 const U_VCAM_COLLISION_DETECTOR := preload("res://scripts/managers/helpers/u_vcam_collision_detector.gd")
-const U_VCAM_BLEND_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_blend_evaluator.gd")
+const U_VCAM_BLEND_MANAGER := preload("res://scripts/managers/helpers/u_vcam_blend_manager.gd")
 const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
 	"res://scripts/ecs/components/c_room_fade_group_component.gd"
 )
@@ -38,29 +38,13 @@ var _submitted_results: Dictionary = {}
 var _active_vcam_id: StringName = StringName("")
 var _previous_vcam_id: StringName = StringName("")
 var _explicit_vcam_id: StringName = StringName("")
-var _blend_progress: float = 1.0
-var _is_blending_active: bool = false
-var _blend_duration: float = 0.0
-var _blend_elapsed: float = 0.0
-var _blend_trans_type: int = int(Tween.TRANS_LINEAR)
-var _blend_ease_type: int = int(Tween.EASE_IN_OUT)
-var _blend_cut_on_distance_threshold: float = 0.0
 var _pending_blend_duration_override: float = -1.0
-var _blend_from_snapshot_result: Dictionary = {}
-var _blend_hint_runtime: Resource = null
-var _blend_result_cache: Dictionary = {}
+var _blend_manager: Variant = U_VCAM_BLEND_MANAGER.new()
+var _blend_trans_type: int = int(Tween.TRANS_LINEAR)  # Compatibility test probe
+var _blend_ease_type: int = int(Tween.EASE_IN_OUT)  # Compatibility test probe
 var _last_applied_frame: int = -1
 var _last_valid_applied_result: Dictionary = {}
 var _last_physics_delta: float = 0.0
-var _startup_blend_pending_vcam_id: StringName = StringName("")
-var _startup_blend_active: bool = false
-var _startup_blend_vcam_id: StringName = StringName("")
-var _startup_blend_from_transform: Transform3D = Transform3D.IDENTITY
-var _startup_blend_duration_sec: float = 0.0
-var _startup_blend_elapsed_sec: float = 0.0
-var _startup_blend_trans_type: int = int(Tween.TRANS_CUBIC)
-var _startup_blend_ease_type: int = int(Tween.EASE_IN_OUT)
-var _startup_blend_cut_on_distance_threshold: float = 0.0
 var _occluder_results_cache: Array = []
 var _silhouette_clear_published: bool = false
 
@@ -125,11 +109,11 @@ func unregister_vcam(vcam: Node) -> void:
 		_previous_vcam_id = StringName("")
 
 	if _vcams_by_id.is_empty():
-		if _is_blending_active:
+		if _blend_manager.is_active():
 			_record_recovery("blend_both_invalid")
 		_clear_runtime_state()
 		return
-	if _is_blending_active:
+	if _blend_manager.is_active():
 		return
 	_refresh_active_selection()
 
@@ -154,7 +138,7 @@ func get_active_vcam_id() -> StringName:
 	return _active_vcam_id
 
 func get_previous_vcam_id() -> StringName:
-	if _is_blending_active and not _blend_from_snapshot_result.is_empty():
+	if _blend_manager.is_active() and _blend_manager.has_from_snapshot_result():
 		return StringName("")
 	return _previous_vcam_id
 
@@ -170,10 +154,10 @@ func submit_evaluated_camera(vcam_id: StringName, result: Dictionary) -> void:
 	_try_apply_for_current_frame()
 
 func get_blend_progress() -> float:
-	return _blend_progress
+	return _blend_manager.get_progress()
 
 func is_blending() -> bool:
-	return _is_blending_active
+	return _blend_manager.is_active()
 
 func get_active_vcam() -> Node:
 	return _vcams_by_id.get(_active_vcam_id, null) as Node
@@ -244,27 +228,34 @@ func _configure_live_blend_transition(
 	if from_vcam_id == to_vcam_id:
 		return
 	if to_vcam_id == StringName("") or from_vcam_id == StringName(""):
-		_clear_live_blend_runtime()
+		_blend_manager.configure_transition(from_vcam_id, to_vcam_id, {})
+		_sync_blend_debug_cache()
 		return
 	if not _vcams_by_id.has(from_vcam_id):
-		_clear_live_blend_runtime()
+		_blend_manager.configure_transition(from_vcam_id, StringName(""), {})
+		_sync_blend_debug_cache()
 		return
-
 	var settings: Dictionary = _resolve_live_blend_settings(to_vcam_id, duration_override)
-	var duration_sec: float = maxf(float(settings.get("duration_sec", 0.0)), 0.0)
-	if duration_sec <= 0.0:
-		var was_blending: bool = _is_blending_active
-		_clear_live_blend_runtime()
-		if was_blending:
-			_dispatch_blend_complete()
-			_publish_blend_completed(to_vcam_id)
-		return
 
 	var reentrant_snapshot: Dictionary = {}
-	if _is_blending_active:
+	if _blend_manager.is_active():
 		reentrant_snapshot = _capture_reentrant_blend_snapshot()
 
-	_begin_live_blend(from_vcam_id, to_vcam_id, settings, reentrant_snapshot)
+	var configure_result: Dictionary = _blend_manager.configure_transition(
+		from_vcam_id,
+		to_vcam_id,
+		settings,
+		reentrant_snapshot
+	)
+	_sync_blend_debug_cache()
+	var status: String = str(configure_result.get("status", ""))
+	if status == "started":
+		_dispatch_blend_started(from_vcam_id)
+		_publish_blend_started(from_vcam_id, to_vcam_id, float(configure_result.get("duration", 0.0)))
+		return
+	if status == "completed":
+		_dispatch_blend_complete()
+		_publish_blend_completed(to_vcam_id)
 
 func _resolve_live_blend_settings(vcam_id: StringName, duration_override: float) -> Dictionary:
 	var settings: Dictionary = _resolve_startup_blend_settings(vcam_id)
@@ -288,95 +279,41 @@ func _capture_reentrant_blend_snapshot() -> Dictionary:
 		return active_result.duplicate(true)
 	return {}
 
-func _begin_live_blend(
-	from_vcam_id: StringName,
-	to_vcam_id: StringName,
-	settings: Dictionary,
-	reentrant_snapshot: Dictionary
-) -> void:
-	_clear_startup_blend_runtime()
-	_is_blending_active = true
-	_blend_duration = maxf(float(settings.get("duration_sec", 0.0)), 0.0)
-	_blend_elapsed = 0.0
-	_blend_progress = 0.0
-	_blend_trans_type = int(settings.get("trans_type", int(Tween.TRANS_LINEAR)))
-	_blend_ease_type = int(settings.get("ease_type", int(Tween.EASE_IN_OUT)))
-	_blend_cut_on_distance_threshold = maxf(float(settings.get("cut_on_distance_threshold", 0.0)), 0.0)
-	_blend_result_cache.clear()
-	_blend_from_snapshot_result = reentrant_snapshot.duplicate(true) if not reentrant_snapshot.is_empty() else {}
-
-	var hint := RS_VCAM_BLEND_HINT_SCRIPT.new()
-	hint.trans_type = _blend_trans_type as Tween.TransitionType
-	hint.ease_type = _blend_ease_type as Tween.EaseType
-	hint.cut_on_distance_threshold = _blend_cut_on_distance_threshold
-	_blend_hint_runtime = hint
-
-	_dispatch_blend_started(from_vcam_id)
-	_publish_blend_started(from_vcam_id, to_vcam_id, _blend_duration)
-
 func _advance_live_blend(delta: float) -> void:
-	if not _is_blending_active:
+	var advance_result: Dictionary = _blend_manager.advance(delta)
+	_sync_blend_debug_cache()
+	var status: String = str(advance_result.get("status", ""))
+	if status == "":
 		return
-	if _blend_duration <= 0.0:
-		_finish_live_blend(_active_vcam_id, true)
+	if status == "progress":
+		_dispatch_blend_progress(float(advance_result.get("progress", _blend_manager.get_progress())))
 		return
-
-	var dt: float = maxf(delta, 0.0)
-	_blend_elapsed = minf(_blend_elapsed + dt, _blend_duration)
-	var next_progress: float = clampf(_blend_elapsed / _blend_duration, 0.0, 1.0)
-	var should_dispatch: bool = not is_equal_approx(next_progress, _blend_progress)
-	_blend_progress = next_progress
-	if should_dispatch:
-		_dispatch_blend_progress(_blend_progress)
-
-	if _blend_progress >= 1.0 or is_equal_approx(_blend_elapsed, _blend_duration):
-		_finish_live_blend(_active_vcam_id, true)
-
-func _finish_live_blend(vcam_id: StringName, publish_completed_event: bool) -> void:
-	var was_blending: bool = _is_blending_active
-	_clear_live_blend_runtime()
-	if not was_blending:
-		return
-	_dispatch_blend_complete()
-	if publish_completed_event:
-		_publish_blend_completed(vcam_id)
-
-func _clear_live_blend_runtime() -> void:
-	_blend_progress = 1.0
-	_is_blending_active = false
-	_blend_duration = 0.0
-	_blend_elapsed = 0.0
-	_blend_trans_type = int(Tween.TRANS_LINEAR)
-	_blend_ease_type = int(Tween.EASE_IN_OUT)
-	_blend_cut_on_distance_threshold = 0.0
-	_blend_from_snapshot_result.clear()
-	_blend_result_cache.clear()
-	_blend_hint_runtime = null
+	if status == "completed":
+		_dispatch_blend_complete()
+		_publish_blend_completed(_active_vcam_id)
 
 func _recover_invalid_live_blend_members() -> void:
-	if not _is_blending_active:
+	if not _blend_manager.is_active():
 		return
 
 	var has_to_vcam: bool = _active_vcam_id != StringName("") and _vcams_by_id.has(_active_vcam_id)
 	var has_from_vcam: bool = true
-	if _blend_from_snapshot_result.is_empty():
+	if not _blend_manager.has_from_snapshot_result():
 		has_from_vcam = _previous_vcam_id != StringName("") and _vcams_by_id.has(_previous_vcam_id)
 
-	if has_from_vcam and has_to_vcam:
+	var recovery_result: Dictionary = _blend_manager.recover_invalid_members(has_to_vcam, has_from_vcam)
+	_sync_blend_debug_cache()
+	if recovery_result.is_empty():
 		return
 
-	if has_to_vcam and not has_from_vcam:
-		_record_recovery("blend_from_invalid")
-		_finish_live_blend(_active_vcam_id, true)
-		return
+	_record_recovery(str(recovery_result.get("reason", "")))
+	_dispatch_blend_complete()
+	if bool(recovery_result.get("publish_completed_event", false)):
+		_publish_blend_completed(_active_vcam_id)
 
-	if has_from_vcam and not has_to_vcam:
-		_record_recovery("blend_to_invalid")
-		_finish_live_blend(_active_vcam_id, false)
-		return
-
-	_record_recovery("blend_both_invalid")
-	_finish_live_blend(_active_vcam_id, false)
+func _sync_blend_debug_cache() -> void:
+	_blend_trans_type = int(_blend_manager.get_transition_type())
+	_blend_ease_type = int(_blend_manager.get_ease_type())
 
 func _dispatch_active_runtime(vcam_id: StringName, mode_name: String) -> void:
 	var store := _resolve_state_store()
@@ -439,12 +376,12 @@ func _clear_runtime_state() -> void:
 	_previous_vcam_id = StringName("")
 	_explicit_vcam_id = StringName("")
 	_submitted_results.clear()
-	_clear_live_blend_runtime()
+	_blend_manager.clear()
+	_sync_blend_debug_cache()
 	_last_physics_delta = 0.0
 	_pending_blend_duration_override = -1.0
 	_last_applied_frame = -1
 	_last_valid_applied_result.clear()
-	_clear_startup_blend_state()
 	_dispatch_active_runtime(StringName(""), "")
 	if previous_vcam_id != StringName(""):
 		_publish_active_changed(StringName(""), previous_vcam_id, "")
@@ -582,9 +519,13 @@ func _try_apply_for_current_frame() -> void:
 
 	var target_transform := transform_variant as Transform3D
 	var applied_transform: Transform3D = target_transform
-	if not _is_blending_active:
+	if not _blend_manager.is_active():
 		_try_startup_blend_if_pending(_active_vcam_id, camera_mgr)
-		applied_transform = _resolve_startup_blend_transform(_active_vcam_id, target_transform)
+		applied_transform = _blend_manager.resolve_startup_transform(
+			_active_vcam_id,
+			target_transform,
+			_last_physics_delta
+		)
 
 	camera_mgr.apply_main_camera_transform(applied_transform)
 	_last_applied_frame = frame_id
@@ -594,7 +535,7 @@ func _try_apply_for_current_frame() -> void:
 func _resolve_result_for_frame(frame_id: int) -> Dictionary:
 	if _active_vcam_id == StringName(""):
 		return {}
-	if _is_blending_active:
+	if _blend_manager.is_active():
 		return _resolve_blend_result_for_frame(frame_id)
 	return _get_submitted_result_for_frame(_active_vcam_id, frame_id)
 
@@ -604,44 +545,18 @@ func _resolve_blend_result_for_frame(frame_id: int) -> Dictionary:
 		return {}
 
 	var from_result: Dictionary = {}
-	if _blend_from_snapshot_result.is_empty():
+	if not _blend_manager.has_from_snapshot_result():
 		if _previous_vcam_id == StringName(""):
 			return to_result
 		from_result = _get_submitted_result_for_frame(_previous_vcam_id, frame_id)
 		if from_result.is_empty():
 			return {}
-	else:
-		from_result = _blend_from_snapshot_result
 
-	if _should_cut_current_blend(from_result, to_result):
-		_finish_live_blend(_active_vcam_id, true)
-		return to_result
-
-	var hint: Resource = _blend_hint_runtime
-	if hint == null:
-		var fallback_hint := RS_VCAM_BLEND_HINT_SCRIPT.new()
-		fallback_hint.trans_type = _blend_trans_type as Tween.TransitionType
-		fallback_hint.ease_type = _blend_ease_type as Tween.EaseType
-		fallback_hint.cut_on_distance_threshold = _blend_cut_on_distance_threshold
-		hint = fallback_hint
-
-	var blended: Dictionary = U_VCAM_BLEND_EVALUATOR.blend(from_result, to_result, hint, _blend_progress)
-	_blend_result_cache.clear()
-	for key in blended.keys():
-		_blend_result_cache[key] = blended[key]
-	return _blend_result_cache
-
-func _should_cut_current_blend(from_result: Dictionary, to_result: Dictionary) -> bool:
-	if _blend_cut_on_distance_threshold <= 0.0:
-		return false
-	var from_transform_variant: Variant = from_result.get("transform", null)
-	var to_transform_variant: Variant = to_result.get("transform", null)
-	if not (from_transform_variant is Transform3D) or not (to_transform_variant is Transform3D):
-		return false
-	var from_transform := from_transform_variant as Transform3D
-	var to_transform := to_transform_variant as Transform3D
-	var distance: float = from_transform.origin.distance_to(to_transform.origin)
-	return distance > _blend_cut_on_distance_threshold
+	var blended_result: Dictionary = _blend_manager.resolve_blend_result(from_result, to_result)
+	if _blend_manager.consume_completed_on_cut_with_publish():
+		_dispatch_blend_complete()
+		_publish_blend_completed(_active_vcam_id)
+	return blended_result
 
 func _get_submitted_result_for_frame(vcam_id: StringName, frame_id: int) -> Dictionary:
 	if vcam_id == StringName(""):
@@ -676,7 +591,7 @@ func _publish_silhouette_update_request_for_active_vcam(
 		_clear_all_silhouettes(entity_id)
 		return
 
-	if _is_blending_active:
+	if _blend_manager.is_active():
 		_debug_log_occlusion(
 			emit_debug_logs,
 			"%s clear reason=blend_active entity_id=%s" % [debug_context, str(entity_id)]
@@ -867,38 +782,20 @@ func _resolve_player_entity_id() -> StringName:
 	return StringName(player_entity_text)
 
 func _queue_startup_blend_if_needed(next_vcam_id: StringName, previous_vcam_id: StringName) -> void:
-	_clear_startup_blend_runtime()
-	_startup_blend_pending_vcam_id = StringName("")
-	if next_vcam_id == StringName(""):
-		return
-	# Startup blend is only applied for first activation in a scene.
-	if previous_vcam_id == StringName(""):
-		_startup_blend_pending_vcam_id = next_vcam_id
+	_blend_manager.queue_startup_blend(next_vcam_id, previous_vcam_id)
 
 func _try_startup_blend_if_pending(vcam_id: StringName, camera_mgr: I_CAMERA_MANAGER) -> void:
 	if vcam_id == StringName("") or camera_mgr == null:
 		return
-	if _startup_blend_active:
-		return
-	if _startup_blend_pending_vcam_id != vcam_id:
-		return
 	var settings: Dictionary = _resolve_startup_blend_settings(vcam_id)
-	var duration_sec: float = float(settings.get("duration_sec", 0.0))
-	if duration_sec <= 0.0:
-		_startup_blend_pending_vcam_id = StringName("")
-		return
 	var main_camera: Camera3D = camera_mgr.get_main_camera()
 	if main_camera == null or not is_instance_valid(main_camera):
 		return
-	_startup_blend_active = true
-	_startup_blend_vcam_id = vcam_id
-	_startup_blend_from_transform = main_camera.global_transform
-	_startup_blend_duration_sec = duration_sec
-	_startup_blend_elapsed_sec = 0.0
-	_startup_blend_trans_type = int(settings.get("trans_type", int(Tween.TRANS_CUBIC)))
-	_startup_blend_ease_type = int(settings.get("ease_type", int(Tween.EASE_IN_OUT)))
-	_startup_blend_cut_on_distance_threshold = maxf(float(settings.get("cut_on_distance_threshold", 0.0)), 0.0)
-	_startup_blend_pending_vcam_id = StringName("")
+	_blend_manager.start_startup_blend_if_pending(
+		vcam_id,
+		main_camera.global_transform,
+		settings
+	)
 
 func _resolve_startup_blend_settings(vcam_id: StringName) -> Dictionary:
 	var defaults := {
@@ -925,79 +822,6 @@ func _resolve_startup_blend_settings(vcam_id: StringName) -> Dictionary:
 	defaults["ease_type"] = int(hint.get("ease_type"))
 	defaults["cut_on_distance_threshold"] = maxf(float(hint.get("cut_on_distance_threshold")), 0.0)
 	return defaults
-
-func _resolve_startup_blend_transform(vcam_id: StringName, target_transform: Transform3D) -> Transform3D:
-	if not _startup_blend_active:
-		return target_transform
-	if _startup_blend_vcam_id != vcam_id:
-		_clear_startup_blend_runtime()
-		return target_transform
-	var distance_to_target: float = _startup_blend_from_transform.origin.distance_to(target_transform.origin)
-	if (
-		_startup_blend_cut_on_distance_threshold > 0.0
-		and distance_to_target > _startup_blend_cut_on_distance_threshold
-	):
-		_clear_startup_blend_runtime()
-		return target_transform
-	if _startup_blend_duration_sec <= 0.0:
-		_clear_startup_blend_runtime()
-		return target_transform
-
-	var dt: float = _last_physics_delta
-	if dt <= 0.0:
-		dt = 1.0 / float(maxi(Engine.physics_ticks_per_second, 1))
-	_startup_blend_elapsed_sec = minf(_startup_blend_elapsed_sec + dt, _startup_blend_duration_sec)
-	var weight: float = _compute_startup_blend_weight(
-		_startup_blend_elapsed_sec,
-		_startup_blend_duration_sec,
-		_startup_blend_trans_type,
-		_startup_blend_ease_type
-	)
-
-	var from_basis: Basis = _startup_blend_from_transform.basis.orthonormalized()
-	var to_basis: Basis = target_transform.basis.orthonormalized()
-	var blended_basis: Basis = from_basis.slerp(to_basis, weight).orthonormalized()
-	var blended_origin: Vector3 = _startup_blend_from_transform.origin.lerp(target_transform.origin, weight)
-	var blended_transform := Transform3D(blended_basis, blended_origin)
-
-	if _startup_blend_elapsed_sec >= _startup_blend_duration_sec:
-		_clear_startup_blend_runtime()
-		return target_transform
-	return blended_transform
-
-func _compute_startup_blend_weight(
-	elapsed_sec: float,
-	duration_sec: float,
-	trans_type: int,
-	ease_type: int
-) -> float:
-	if duration_sec <= 0.0:
-		return 1.0
-	var eased_value: Variant = Tween.interpolate_value(
-		0.0,
-		1.0,
-		clampf(elapsed_sec, 0.0, duration_sec),
-		duration_sec,
-		trans_type,
-		ease_type
-	)
-	if eased_value is float or eased_value is int:
-		return clampf(float(eased_value), 0.0, 1.0)
-	return clampf(elapsed_sec / duration_sec, 0.0, 1.0)
-
-func _clear_startup_blend_runtime() -> void:
-	_startup_blend_active = false
-	_startup_blend_vcam_id = StringName("")
-	_startup_blend_from_transform = Transform3D.IDENTITY
-	_startup_blend_duration_sec = 0.0
-	_startup_blend_elapsed_sec = 0.0
-	_startup_blend_trans_type = int(Tween.TRANS_CUBIC)
-	_startup_blend_ease_type = int(Tween.EASE_IN_OUT)
-	_startup_blend_cut_on_distance_threshold = 0.0
-
-func _clear_startup_blend_state() -> void:
-	_startup_blend_pending_vcam_id = StringName("")
-	_clear_startup_blend_runtime()
 
 func _should_emit_occlusion_debug(vcam_id: StringName, follow_target: Node3D = null) -> bool:
 	if not debug_occlusion_logging:
