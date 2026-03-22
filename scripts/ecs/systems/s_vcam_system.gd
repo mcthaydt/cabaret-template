@@ -9,6 +9,7 @@ const U_VCAM_ORBIT_EFFECTS := preload("res://scripts/ecs/systems/helpers/u_vcam_
 const U_VCAM_RESPONSE_SMOOTHER := preload("res://scripts/ecs/systems/helpers/u_vcam_response_smoother.gd")
 const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation.gd")
 const U_VCAM_DEBUG := preload("res://scripts/ecs/systems/helpers/u_vcam_debug.gd")
+const U_VCAM_EFFECT_PIPELINE := preload("res://scripts/ecs/systems/helpers/u_vcam_effect_pipeline.gd")
 const U_VCAM_RUNTIME_CONTEXT := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_context.gd")
 const U_VCAM_RUNTIME_STATE := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_state.gd")
 const U_VCAM_RUNTIME_SERVICES := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd")
@@ -21,11 +22,6 @@ const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
-const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
-const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0
-const DEFAULT_LOOK_RELEASE_STOP_THRESHOLD: float = 0.05
-const DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED: float = 0.15
-const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3
 
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
@@ -38,6 +34,7 @@ var _response_smoother = U_VCAM_RESPONSE_SMOOTHER.new()
 var _look_input_helper = U_VCAM_LOOK_INPUT.new()
 var _landing_impact_helper = U_VCAM_LANDING_IMPACT.new()
 var _debug_helper = U_VCAM_DEBUG.new()
+var _effect_pipeline_helper = U_VCAM_EFFECT_PIPELINE.new()
 var _runtime_context_helper = U_VCAM_RUNTIME_CONTEXT.new()
 var _runtime_state_helper = U_VCAM_RUNTIME_STATE.new()
 var _runtime_services_helper = U_VCAM_RUNTIME_SERVICES.new()
@@ -92,6 +89,18 @@ var _rotation_target_cache: Dictionary:
 
 func on_configured() -> void:
 	_runtime_services_helper.configure(self, state_store, vcam_manager)
+	_effect_pipeline_helper.configure(
+		self,
+		_orbit_effects_helper,
+		_response_smoother,
+		_landing_impact_helper,
+		_debug_helper,
+		_runtime_context_helper,
+		_runtime_services_helper,
+		RS_VCAM_MODE_ORBIT_SCRIPT,
+		RS_VCAM_SOFT_ZONE_SCRIPT,
+		RS_VCAM_RESPONSE_SCRIPT
+	)
 	_debug_helper.set_state_store_provider(Callable(_runtime_services_helper, "resolve_state_store"))
 	_subscribe_events()
 
@@ -270,7 +279,7 @@ func _prepare_vcam_pipeline_state(
 		)
 		return {}
 
-	var response_values: Dictionary = _resolve_component_response_values(component)
+	var response_values: Dictionary = _effect_pipeline_helper.resolve_component_response_values(component)
 	_look_input_helper.debug_enabled = debug_rotation_logging
 	var filtered_look_input: Vector2 = _look_input_helper.filter_look_input(
 		vcam_id,
@@ -315,7 +324,7 @@ func _evaluate_vcam_mode_result(
 	var mode := pipeline_state.get("mode", null) as Resource
 	var follow_target := pipeline_state.get("follow_target", null) as Node3D
 	var response_values: Dictionary = pipeline_state.get("response_values", {}) as Dictionary
-	var response_signature: Array[float] = _build_response_signature(response_values)
+	var response_signature: Array[float] = _effect_pipeline_helper.build_response_signature(response_values)
 	var has_active_look_input: bool = bool(pipeline_state.get("has_active_look_input", false))
 	if component == null or mode == null:
 		return {}
@@ -363,57 +372,13 @@ func _apply_vcam_effect_pipeline(
 	landing_offset: Vector3,
 	delta: float
 ) -> Dictionary:
-	var component := pipeline_state.get("component", null) as C_VCamComponent
-	var mode := pipeline_state.get("mode", null) as Resource
-	var follow_target := pipeline_state.get("follow_target", null) as Node3D
-	var response_values: Dictionary = pipeline_state.get("response_values", {}) as Dictionary
-	var has_active_look_input: bool = bool(pipeline_state.get("has_active_look_input", false))
-	if component == null or mode == null:
-		return mode_result
-
-	var look_ahead_result: Dictionary = _apply_orbit_look_ahead(
+	return _effect_pipeline_helper.apply_vcam_effect_pipeline(
 		vcam_id,
-		component,
-		mode,
-		follow_target,
+		pipeline_state,
 		mode_result,
-		has_active_look_input,
-		delta
-	)
-	var ground_relative_result: Dictionary = _apply_orbit_ground_relative(
-		vcam_id,
-		component,
-		mode,
-		follow_target,
-		look_ahead_result,
-		response_values,
-		delta
-	)
-	var soft_zone_result: Dictionary = _apply_orbit_soft_zone(
-		vcam_id,
-		component,
-		mode,
-		follow_target,
-		ground_relative_result,
-		delta
-	)
-	var smoothed_result: Dictionary = _apply_response_smoothing(
-		vcam_id,
-		component,
-		mode,
-		follow_target,
-		soft_zone_result,
-		delta,
-		has_active_look_input
-	)
-	return _apply_landing_impact_offset(smoothed_result, landing_offset)
-
-func _apply_landing_impact_offset(result: Dictionary, landing_offset: Vector3) -> Dictionary:
-	_debug_helper.log_landing_offset_state(landing_offset)
-	return _landing_impact_helper.apply_offset(
-		result,
 		landing_offset,
-		Callable(self, "_apply_position_offset")
+		delta,
+		Callable(self, "_clear_smoothing_state_for_vcam")
 	)
 
 func _resolve_landing_impact_offset(delta: float) -> Vector3:
@@ -470,131 +435,6 @@ func _update_runtime_rotation(
 		Callable(self, "_resolve_mode_values"),
 		RS_VCAM_MODE_ORBIT_SCRIPT
 	)
-
-func _apply_orbit_look_ahead(
-	vcam_id: StringName,
-	component: C_VCamComponent,
-	mode: Resource,
-	follow_target: Node3D,
-	result: Dictionary,
-	has_active_look_input: bool,
-	delta: float
-) -> Dictionary:
-	var response_values: Dictionary = _resolve_component_response_values(component)
-	return _orbit_effects_helper.apply_orbit_look_ahead(
-		vcam_id,
-		mode,
-		RS_VCAM_MODE_ORBIT_SCRIPT,
-		follow_target,
-		result,
-		response_values,
-		has_active_look_input,
-		delta,
-		Callable(self, "_resolve_look_ahead_movement_velocity"),
-		Callable(self, "_apply_position_offset"),
-		Callable(_debug_helper, "log_look_ahead_motion_state")
-	)
-
-func _resolve_look_ahead_movement_velocity(follow_target: Node3D) -> Dictionary:
-	return _runtime_context_helper.resolve_look_ahead_movement_velocity(
-		follow_target,
-		_runtime_services_helper.resolve_state_store()
-	)
-
-func _apply_orbit_ground_relative(
-	vcam_id: StringName,
-	component: C_VCamComponent,
-	mode: Resource,
-	follow_target: Node3D,
-	result: Dictionary,
-	response_values: Dictionary,
-	delta: float
-) -> Dictionary:
-	return _orbit_effects_helper.apply_orbit_ground_relative(
-		vcam_id,
-		mode,
-		RS_VCAM_MODE_ORBIT_SCRIPT,
-		follow_target,
-		result,
-		response_values,
-		delta,
-		Callable(self, "_resolve_follow_target_grounded_state"),
-		Callable(self, "_probe_ground_reference_height"),
-		Callable(self, "_apply_position_offset")
-	)
-
-func _resolve_follow_target_grounded_state(follow_target: Node3D) -> bool:
-	return _runtime_context_helper.resolve_follow_target_grounded_state(
-		follow_target,
-		_runtime_services_helper.resolve_state_store()
-	)
-
-func _probe_ground_reference_height(follow_target: Node3D, max_distance: float) -> Dictionary:
-	return _runtime_context_helper.probe_ground_reference_height(follow_target, max_distance)
-
-func _apply_orbit_soft_zone(
-	vcam_id: StringName,
-	component: C_VCamComponent,
-	mode: Resource,
-	follow_target: Node3D,
-	result: Dictionary,
-	delta: float
-) -> Dictionary:
-	var soft_zone: Resource = null
-	if component != null:
-		soft_zone = component.soft_zone as Resource
-	return _orbit_effects_helper.apply_orbit_soft_zone(
-		vcam_id,
-		mode,
-		RS_VCAM_MODE_ORBIT_SCRIPT,
-		follow_target,
-		soft_zone,
-		RS_VCAM_SOFT_ZONE_SCRIPT,
-		result,
-		delta,
-		Callable(self, "_resolve_projection_camera"),
-		Callable(self, "_apply_position_offset"),
-		Callable(_debug_helper, "log_soft_zone_status"),
-		Callable(_debug_helper, "log_soft_zone_metrics")
-	)
-
-func _resolve_projection_camera() -> Camera3D:
-	return _runtime_context_helper.resolve_projection_camera(self)
-
-func _resolve_component_response_values(component: C_VCamComponent) -> Dictionary:
-	return _response_smoother.resolve_component_response_values(
-		component,
-		RS_VCAM_RESPONSE_SCRIPT,
-		DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED,
-		DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED
-	)
-
-func _build_response_signature(response_values: Dictionary) -> Array[float]:
-	return _response_smoother.build_response_signature(
-		response_values,
-		U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_DEADZONE,
-		U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_HOLD_SEC,
-		U_VCAM_LOOK_INPUT.DEFAULT_LOOK_INPUT_RELEASE_DECAY,
-		DEFAULT_LOOK_RELEASE_YAW_DAMPING,
-		DEFAULT_LOOK_RELEASE_PITCH_DAMPING,
-		DEFAULT_LOOK_RELEASE_STOP_THRESHOLD,
-		DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED,
-		DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED
-	)
-
-func _sample_follow_target_speed(vcam_id: StringName, follow_target: Node3D, delta: float) -> float:
-	return _orbit_effects_helper.sample_follow_target_speed(vcam_id, follow_target, delta)
-
-func _apply_position_offset(result: Dictionary, offset: Vector3) -> Dictionary:
-	var transform_variant: Variant = result.get("transform", null)
-	if not (transform_variant is Transform3D):
-		return result
-	var transform := transform_variant as Transform3D
-	var offset_result: Dictionary = result.duplicate(true)
-	var offset_transform := transform
-	offset_transform.origin += offset
-	offset_result["transform"] = offset_transform
-	return offset_result
 
 func _resolve_mode_values(mode: Resource, fallback: Dictionary) -> Dictionary:
 	var resolved_values: Dictionary = {}
@@ -685,44 +525,4 @@ func _resolve_orbit_center_target_yaw(
 		current_runtime_yaw,
 		Callable(self, "_resolve_mode_values"),
 		RS_VCAM_MODE_ORBIT_SCRIPT
-	)
-
-func _apply_response_smoothing(
-	vcam_id: StringName,
-	component: C_VCamComponent,
-	mode: Resource,
-	follow_target: Node3D,
-	raw_result: Dictionary,
-	delta: float,
-	has_active_look_input: bool
-) -> Dictionary:
-	if component == null:
-		return raw_result
-	if mode == null:
-		return raw_result
-
-	var response_values: Dictionary = _resolve_component_response_values(component)
-	if response_values.is_empty():
-		_clear_smoothing_state_for_vcam(vcam_id)
-		return raw_result
-	var response_signature: Array[float] = _build_response_signature(response_values)
-	var mode_script := mode.get_script() as Script
-	var follow_target_id: int = _runtime_services_helper.get_node_instance_id(follow_target)
-	var follow_target_speed_mps: float = _sample_follow_target_speed(vcam_id, follow_target, delta)
-	return _response_smoother.apply_response_smoothing(
-		vcam_id,
-		mode_script,
-		RS_VCAM_MODE_ORBIT_SCRIPT,
-		follow_target_id,
-		follow_target_speed_mps,
-		raw_result,
-		delta,
-		has_active_look_input,
-		response_values,
-		response_signature,
-		Callable(_orbit_effects_helper, "update_orbit_position_smoothing_bypass"),
-		DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED,
-		DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED,
-		Callable(_debug_helper, "log_position_smoothing_gate_transition"),
-		Callable(_debug_helper, "log_rotation")
 	)
