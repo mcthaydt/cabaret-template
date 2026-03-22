@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1E` are complete; Phase `1F` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1F` are complete; Phase `1G` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1F`-`1H`).
-- Immediate implementation target: Phase `1F` resource/scene cleanup (delete OTS/fixed resources and remove OTS HUD/template scene nodes).
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1G`-`1H`).
+- Immediate implementation target: Phase `1G` comprehensive test cleanup + full validation pass for the orbit/first-person-only runtime.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -85,6 +85,16 @@
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_vcam_component.gd` (`13/13`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Refactor Phase 1F (March 22, 2026)
+
+- Completed resource + scene cleanup for removed OTS/fixed paths:
+  - deleted production resources/scripts: `rs_vcam_mode_ots.gd`, `rs_vcam_mode_fixed.gd`, `cfg_default_ots.tres`, `cfg_default_fixed.tres`, `cfg_ots_movement_default.tres`
+  - `scenes/templates/tmpl_camera.tscn` now references `cfg_default_first_person.tres` and uses `C_VCamFirstPersonComponent` (`vcam_id = &"camera_first_person"`)
+  - `scenes/ui/hud/ui_hud_overlay.tscn` no longer includes `OTSReticleContainer` / `ReticleDot`
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -gselect=test_style_enforcement` (`17/17`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/test_entity_scene_registration.gd` (`3/3`)
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1109,10 +1119,9 @@
 
 ## Next Steps
 
-1. Execute Phase `1C`-`1F` (remove remaining fixed/OTS evaluator/resource/scene paths).
-2. Execute Phase `1G` (comprehensive test updates + full validation run, including style enforcement).
-3. Execute Phase `1H` (Phase 1 implementation commit, then docs updates and AGENTS.md Stage-1 contract cleanup in a separate docs commit).
-4. Continue phase-by-phase through refactor Phases `2`-`5` with mandatory doc cadence and separate docs commits.
+1. Execute Phase `1G` (comprehensive test updates + full validation run, including style enforcement).
+2. Execute Phase `1H` (Phase 1 implementation commit, then docs updates and AGENTS.md Stage-1 contract cleanup in a separate docs commit).
+3. Continue phase-by-phase through refactor Phases `2`-`5` with mandatory doc cadence and separate docs commits.
 
 ## Key Decisions To Preserve
 

@@ -182,7 +182,7 @@ Completion notes (2026-03-22):
 
 ### Phase 1F: Delete resources and scene nodes
 
-- [ ] **Task 1F.1**: Delete resource files
+- [x] **Task 1F.1**: Delete resource files
   - Delete `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`
   - Delete `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd`
   - Delete `resources/display/vcam/cfg_default_ots.tres`
@@ -190,15 +190,26 @@ Completion notes (2026-03-22):
   - Delete `resources/base_settings/gameplay/cfg_ots_movement_default.tres`
   - Note: `cfg_default_first_person.tres` already exists and is NOT deleted
 
-- [ ] **Task 1F.2**: Update `scenes/templates/tmpl_camera.tscn`
+- [x] **Task 1F.2**: Update `scenes/templates/tmpl_camera.tscn`
   - Remove C_VCamOTSComponent node and cfg_default_ots ext_resource
   - Add C_VCamFirstPersonComponent node (`c_vcam_component.gd` script) with:
     - `vcam_id = &"camera_first_person"`, `priority = 10`
     - `mode = cfg_default_first_person.tres`
     - Same `follow_target_path`, `soft_zone`, `blend_hint`, `response` as orbit vCam
 
-- [ ] **Task 1F.3**: Update `scenes/ui/hud/ui_hud_overlay.tscn`
+- [x] **Task 1F.3**: Update `scenes/ui/hud/ui_hud_overlay.tscn`
   - Remove OTSReticleContainer and ReticleDot nodes
+
+Completion notes (2026-03-22):
+- Removed OTS/fixed mode resource artifacts from production runtime:
+  - deleted scripts: `rs_vcam_mode_ots.gd`, `rs_vcam_mode_fixed.gd`
+  - deleted presets: `cfg_default_ots.tres`, `cfg_default_fixed.tres`, `cfg_ots_movement_default.tres`
+- Updated authored scenes to remove OTS wiring:
+  - `scenes/templates/tmpl_camera.tscn` now uses `cfg_default_first_person.tres` with `C_VCamFirstPersonComponent` (`vcam_id = &"camera_first_person"`).
+  - `scenes/ui/hud/ui_hud_overlay.tscn` no longer contains `OTSReticleContainer` / `ReticleDot`.
+- Validation runs:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -gselect=test_style_enforcement` (`17/17`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/test_entity_scene_registration.gd` (`3/3`)
 
 ### Phase 1G: Update tests
 
