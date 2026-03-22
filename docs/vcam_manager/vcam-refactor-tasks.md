@@ -533,10 +533,13 @@ Progress notes (2026-03-22):
     - moved component-response resolution/fallback dictionary building out of `S_VCamSystem`
     - moved response-signature construction (`look` + `ground_relative` fields) out of `S_VCamSystem`
     - expanded helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`11/11`)
-  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` while preserving coordinator wrappers.
+  - Extracted runtime input + target observability/recovery state into `scripts/ecs/systems/helpers/u_vcam_runtime_state.gd`:
+    - moved active-target validity/recovery dispatch + `EVENT_VCAM_RECOVERY` publish/reselection out of `S_VCamSystem`
+    - moved shared input reads (`look_input`, `move_input`, `camera_center_just_pressed`) behind helper APIs
+  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782` while preserving coordinator wrappers.
   - Full suite regression gate completed:
     - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3449/3458` passing, `9` pending baseline).
-  - Remaining item: `s_vcam_system.gd` is not yet within the ~`400`-`600` line target (`826` current) and still needs additional extraction/decomposition cleanup.
+  - Remaining item: `s_vcam_system.gd` is not yet within the ~`400`-`600` line target (`782` current) and still needs additional extraction/decomposition cleanup.
 
 ### Phase 2H: Phase 2 commit + docs
 
