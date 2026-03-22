@@ -11,6 +11,7 @@ const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 const U_VCAM_SOFT_ZONE := preload("res://scripts/managers/helpers/u_vcam_soft_zone.gd")
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
+const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
 const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
@@ -27,15 +28,11 @@ const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
 const LOOK_AHEAD_MOVEMENT_EPSILON_SQ: float = 0.000001
-const IDLE_LOOK_SETTLE_DEG_PER_HZ: float = 20.0
-const MIN_IDLE_LOOK_SETTLE_DEG_PER_SEC: float = 45.0
 const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
 const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0
 const DEFAULT_LOOK_RELEASE_STOP_THRESHOLD: float = 0.05
-const ORBIT_RELEASE_SIGN_FLIP_SETTLE_ERROR_DEG: float = 0.25
 const DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED: float = 0.15
 const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3
-const ORBIT_CENTER_DURATION_SEC: float = 0.3
 
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
@@ -44,17 +41,15 @@ const ORBIT_CENTER_DURATION_SEC: float = 0.3
 
 var _state_store: I_StateStore = null
 var _vcam_manager: Node = null
+var _rotation_helper = U_VCAM_ROTATION.new()
 var _follow_dynamics: Dictionary = {}  # StringName -> U_SecondOrderDynamics3D
 var _rotation_dynamics: Dictionary = {}  # StringName -> {x, y, z}
 var _smoothing_metadata: Dictionary = {}  # StringName -> {mode_script, follow_target_id, response_signature}
-var _look_rotation_state: Dictionary = {}  # StringName -> {smoothed_yaw, smoothed_pitch, yaw_velocity, pitch_velocity, mode_script, follow_target_id, response_signature}
 var _rotation_target_cache: Dictionary = {}  # StringName -> Vector3 (unwrapped radians)
 var _look_ahead_state: Dictionary = {}  # StringName -> {follow_target_id, last_target_position, current_offset, smoothing_hz, dynamics}
 var _ground_relative_state: Dictionary = {}  # StringName -> {follow_target_id, ground_anchor_y, ground_anchor_target_y, follow_anchor_y_offset, last_ground_reference_y, was_grounded, blend_hz, dynamics}
 var _look_input_helper = U_VCAM_LOOK_INPUT.new()
 var _follow_target_motion_state: Dictionary = {}  # StringName -> {follow_target_id, last_position, speed_mps}
-var _orbit_no_look_input_timers: Dictionary = {}  # StringName -> float seconds
-var _orbit_centering_state: Dictionary = {}  # StringName -> {start_yaw,start_pitch,target_yaw,target_pitch,elapsed_sec,duration_sec}
 var _soft_zone_dead_zone_state: Dictionary = {}  # StringName -> {x: bool, y: bool}
 var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
@@ -72,8 +67,15 @@ var _debug_soft_zone_status: Dictionary = {}  # StringName -> String reason/stat
 var _debug_landing_offset_status: int = -1  # -1 unknown, 0 inactive, 1 active
 var _debug_last_look_input_by_vcam: Dictionary = {}  # StringName -> Vector2
 var _debug_position_smoothing_bypass_by_vcam: Dictionary = {}  # StringName -> bool
-var _debug_last_look_spring_stage_by_vcam: Dictionary = {}  # StringName -> String
 var _event_unsubscribers: Array[Callable] = []
+
+var _look_rotation_state: Dictionary:
+	get:
+		return _rotation_helper.get_look_rotation_state_snapshot()
+
+var _orbit_centering_state: Dictionary:
+	get:
+		return _rotation_helper.get_orbit_centering_state_snapshot()
 
 func on_configured() -> void:
 	_subscribe_events()
@@ -144,7 +146,6 @@ func _exit_tree() -> void:
 	_clear_landing_impact_recovery_state()
 	_look_ahead_state.clear()
 	_ground_relative_state.clear()
-	_orbit_no_look_input_timers.clear()
 	_soft_zone_dead_zone_state.clear()
 	_last_active_vcam_id = StringName("")
 	_last_active_target_valid = true
@@ -165,86 +166,18 @@ func _apply_rotation_continuity_policy(
 	vcam_index: Dictionary,
 	manager: I_VCAM_MANAGER
 ) -> void:
-	if _last_active_vcam_id == active_vcam_id:
+	if manager == null:
 		return
-
-	var incoming_component := vcam_index.get(active_vcam_id, null) as C_VCamComponent
-	if incoming_component == null or not is_instance_valid(incoming_component):
-		_last_active_vcam_id = active_vcam_id
-		return
-
-	var outgoing_vcam_id: StringName = manager.get_previous_vcam_id()
-	if outgoing_vcam_id == StringName("") or outgoing_vcam_id == active_vcam_id:
-		outgoing_vcam_id = _last_active_vcam_id
-	if outgoing_vcam_id == StringName("") or outgoing_vcam_id == active_vcam_id:
-		_last_active_vcam_id = active_vcam_id
-		return
-
-	var outgoing_component := vcam_index.get(outgoing_vcam_id, null) as C_VCamComponent
-	if outgoing_component == null or not is_instance_valid(outgoing_component):
-		_last_active_vcam_id = active_vcam_id
-		return
-
-	_apply_rotation_transition(outgoing_component, incoming_component)
-	_last_active_vcam_id = active_vcam_id
-
-func _apply_rotation_transition(outgoing_component: C_VCamComponent, incoming_component: C_VCamComponent) -> void:
-	if outgoing_component == null or incoming_component == null:
-		return
-	if outgoing_component.mode == null or incoming_component.mode == null:
-		return
-
-	var outgoing_mode_script := outgoing_component.mode.get_script() as Script
-	var incoming_mode_script := incoming_component.mode.get_script() as Script
-	if outgoing_mode_script == null or incoming_mode_script == null:
-		return
-
-	if outgoing_mode_script == incoming_mode_script:
-		_apply_same_mode_rotation_transition(outgoing_component, incoming_component)
-		return
-
-func _apply_same_mode_rotation_transition(
-	outgoing_component: C_VCamComponent,
-	incoming_component: C_VCamComponent
-) -> void:
-	if _components_share_follow_target(outgoing_component, incoming_component):
-		incoming_component.runtime_yaw = outgoing_component.runtime_yaw
-		incoming_component.runtime_pitch = outgoing_component.runtime_pitch
-		return
-
-	var authored_angles: Vector2 = _resolve_authored_rotation(incoming_component.mode)
-	incoming_component.runtime_yaw = authored_angles.x
-	incoming_component.runtime_pitch = authored_angles.y
-
-func _components_share_follow_target(
-	outgoing_component: C_VCamComponent,
-	incoming_component: C_VCamComponent
-) -> bool:
-	if outgoing_component == null or incoming_component == null:
-		return false
-
-	var outgoing_target: Node3D = _resolve_follow_target(outgoing_component)
-	var incoming_target: Node3D = _resolve_follow_target(incoming_component)
-	if outgoing_target == null or incoming_target == null:
-		return false
-	return _get_node_instance_id(outgoing_target) == _get_node_instance_id(incoming_target)
-
-func _resolve_authored_rotation(mode: Resource) -> Vector2:
-	if mode == null:
-		return Vector2.ZERO
-
-	var mode_script := mode.get_script() as Script
-	if mode_script == RS_VCAM_MODE_ORBIT_SCRIPT:
-		var orbit_values: Dictionary = _resolve_mode_values(mode, {
-			"authored_yaw": 0.0,
-			"authored_pitch": 0.0,
-		})
-		return Vector2(
-			float(orbit_values.get("authored_yaw", 0.0)),
-			float(orbit_values.get("authored_pitch", 0.0))
-		)
-
-	return Vector2.ZERO
+	_rotation_helper.debug_enabled = debug_rotation_logging
+	_last_active_vcam_id = _rotation_helper.apply_rotation_continuity_policy(
+		active_vcam_id,
+		vcam_index,
+		manager.get_previous_vcam_id(),
+		_last_active_vcam_id,
+		Callable(self, "_resolve_follow_target"),
+		Callable(self, "_resolve_mode_values"),
+		RS_VCAM_MODE_ORBIT_SCRIPT
+	)
 
 func _evaluate_and_submit(
 	vcam_id: StringName,
@@ -272,6 +205,7 @@ func _evaluate_and_submit(
 		return
 
 	var response_values: Dictionary = _resolve_component_response_values(component)
+	var response_signature: Array[float] = _build_response_signature(response_values)
 	_look_input_helper.debug_enabled = debug_rotation_logging
 	var filtered_look_input: Vector2 = _look_input_helper.filter_look_input(
 		vcam_id,
@@ -291,9 +225,10 @@ func _evaluate_and_submit(
 		look_input,
 		has_active_look_input,
 		camera_center_just_pressed,
+		response_values,
 		delta
 	)
-	if _is_orbit_centering_active(vcam_id):
+	if _rotation_helper.is_orbit_centering_active(vcam_id):
 		has_active_look_input = false
 	_debug_log_look_input_transition(vcam_id, filtered_look_input)
 	var runtime_rotation: Vector2 = _resolve_runtime_rotation_for_evaluation(
@@ -302,6 +237,7 @@ func _evaluate_and_submit(
 		mode,
 		follow_target,
 		response_values,
+		response_signature,
 		has_active_look_input,
 		delta
 	)
@@ -597,174 +533,23 @@ func _update_runtime_rotation(
 	look_input: Vector2,
 	has_look_input: bool,
 	camera_center_just_pressed: bool,
+	response_values: Dictionary,
 	delta: float
 ) -> void:
-	if component == null or mode == null:
-		return
-
-	var mode_script := mode.get_script() as Script
-	if mode_script == RS_VCAM_MODE_ORBIT_SCRIPT:
-		var orbit_values: Dictionary = _resolve_mode_values(mode, {
-			"allow_player_rotation": true,
-			"lock_x_rotation": false,
-			"lock_y_rotation": true,
-			"rotation_speed": 0.0,
-		})
-		if not bool(orbit_values.get("allow_player_rotation", true)):
-			_orbit_no_look_input_timers.erase(vcam_id)
-			_orbit_centering_state.erase(vcam_id)
-			return
-
-		var lock_x_rotation: bool = bool(orbit_values.get("lock_x_rotation", false))
-		var lock_y_rotation: bool = bool(orbit_values.get("lock_y_rotation", true))
-		if lock_x_rotation:
-			component.runtime_yaw = 0.0
-			_orbit_centering_state.erase(vcam_id)
-		if lock_y_rotation:
-			component.runtime_pitch = 0.0
-
-		if camera_center_just_pressed and not lock_x_rotation:
-			_start_orbit_centering(vcam_id, component, mode, follow_target)
-		if _step_orbit_centering(vcam_id, component, delta):
-			_orbit_no_look_input_timers[vcam_id] = 0.0
-			return
-
-		var rotation_speed: float = maxf(float(orbit_values.get("rotation_speed", 0.0)), 0.0)
-		if has_look_input:
-			var previous_yaw: float = component.runtime_yaw
-			var previous_pitch: float = component.runtime_pitch
-			if not lock_x_rotation:
-				component.runtime_yaw += look_input.x * rotation_speed
-			if not lock_y_rotation:
-				component.runtime_pitch += look_input.y * rotation_speed
-			_debug_log_rotation(
-				vcam_id,
-				"orbit input=%s allow=%s lock_x=%s lock_y=%s speed=%.3f yaw=%.3f->%.3f pitch=%.3f->%.3f"
-				% [
-					str(look_input),
-					str(bool(orbit_values.get("allow_player_rotation", true))),
-					str(lock_x_rotation),
-					str(lock_y_rotation),
-					rotation_speed,
-					previous_yaw,
-					component.runtime_yaw,
-					previous_pitch,
-					component.runtime_pitch,
-				]
-			)
-			_orbit_no_look_input_timers[vcam_id] = 0.0
-			return
-		if lock_y_rotation:
-			_orbit_no_look_input_timers.erase(vcam_id)
-			return
-
-		var no_look_timer: float = float(_orbit_no_look_input_timers.get(vcam_id, 0.0))
-		no_look_timer += maxf(delta, 0.0)
-		_orbit_no_look_input_timers[vcam_id] = no_look_timer
-
-		var response_values: Dictionary = _resolve_component_response_values(component)
-		var auto_level_speed: float = maxf(float(response_values.get("auto_level_speed", 0.0)), 0.0)
-		if auto_level_speed <= 0.0:
-			return
-		var auto_level_delay: float = maxf(float(response_values.get("auto_level_delay", 1.0)), 0.0)
-		if no_look_timer < auto_level_delay:
-			return
-		component.runtime_pitch = move_toward(
-			component.runtime_pitch,
-			0.0,
-			auto_level_speed * maxf(delta, 0.0)
-		)
-		return
-
-	_orbit_no_look_input_timers.erase(vcam_id)
-	_orbit_centering_state.erase(vcam_id)
-
-func _start_orbit_centering(
-	vcam_id: StringName,
-	component: C_VCamComponent,
-	mode: Resource,
-	follow_target: Node3D
-) -> void:
-	if component == null or mode == null:
-		return
-
-	var start_yaw: float = component.runtime_yaw
-	var start_pitch: float = component.runtime_pitch
-	var target_yaw: float = _resolve_orbit_center_target_yaw(mode, follow_target, start_yaw)
-	_orbit_centering_state[vcam_id] = {
-		"start_yaw": start_yaw,
-		"start_pitch": start_pitch,
-		"target_yaw": target_yaw,
-		"target_pitch": start_pitch,
-		"elapsed_sec": 0.0,
-		"duration_sec": ORBIT_CENTER_DURATION_SEC,
-	}
-
-func _step_orbit_centering(vcam_id: StringName, component: C_VCamComponent, delta: float) -> bool:
-	if component == null:
-		return false
-
-	var state_variant: Variant = _orbit_centering_state.get(vcam_id, {})
-	if not (state_variant is Dictionary):
-		return false
-	var state := state_variant as Dictionary
-	if state.is_empty():
-		return false
-
-	var start_yaw: float = float(state.get("start_yaw", component.runtime_yaw))
-	var start_pitch: float = float(state.get("start_pitch", component.runtime_pitch))
-	var target_yaw: float = float(state.get("target_yaw", start_yaw))
-	var target_pitch: float = float(state.get("target_pitch", start_pitch))
-	var duration_sec: float = maxf(float(state.get("duration_sec", ORBIT_CENTER_DURATION_SEC)), 0.0001)
-	var elapsed_sec: float = float(state.get("elapsed_sec", 0.0))
-	if delta > 0.0:
-		elapsed_sec += delta
-	state["elapsed_sec"] = elapsed_sec
-	_orbit_centering_state[vcam_id] = state
-
-	var raw_t: float = clampf(elapsed_sec / duration_sec, 0.0, 1.0)
-	var smooth_t: float = raw_t * raw_t * (3.0 - (2.0 * raw_t))
-	var yaw_delta: float = wrapf(target_yaw - start_yaw, -180.0, 180.0)
-	component.runtime_yaw = start_yaw + (yaw_delta * smooth_t)
-	component.runtime_pitch = lerpf(start_pitch, target_pitch, smooth_t)
-
-	if raw_t >= 1.0:
-		component.runtime_yaw = start_yaw + yaw_delta
-		component.runtime_pitch = target_pitch
-		_orbit_centering_state.erase(vcam_id)
-	return true
-
-func _resolve_orbit_center_target_yaw(
-	mode: Resource,
-	follow_target: Node3D,
-	current_runtime_yaw: float
-) -> float:
-	if mode == null:
-		return current_runtime_yaw
-
-	var authored_yaw: float = 0.0
-	var orbit_values: Dictionary = _resolve_mode_values(mode, {
-		"authored_yaw": 0.0,
-	})
-	authored_yaw = float(orbit_values.get("authored_yaw", 0.0))
-
-	if follow_target == null or not is_instance_valid(follow_target):
-		return current_runtime_yaw
-
-	var behind_direction: Vector3 = follow_target.global_transform.basis.z
-	var planar_length_sq: float = (behind_direction.x * behind_direction.x) + (behind_direction.z * behind_direction.z)
-	if planar_length_sq <= 0.000001:
-		return current_runtime_yaw
-
-	var target_total_yaw: float = rad_to_deg(atan2(behind_direction.x, behind_direction.z))
-	var target_runtime_yaw: float = target_total_yaw - authored_yaw
-	return current_runtime_yaw + wrapf(target_runtime_yaw - current_runtime_yaw, -180.0, 180.0)
-
-func _is_orbit_centering_active(vcam_id: StringName) -> bool:
-	var state_variant: Variant = _orbit_centering_state.get(vcam_id, {})
-	if not (state_variant is Dictionary):
-		return false
-	return not (state_variant as Dictionary).is_empty()
+	_rotation_helper.debug_enabled = debug_rotation_logging
+	_rotation_helper.update_runtime_rotation(
+		vcam_id,
+		component,
+		mode,
+		follow_target,
+		look_input,
+		has_look_input,
+		camera_center_just_pressed,
+		response_values,
+		delta,
+		Callable(self, "_resolve_mode_values"),
+		RS_VCAM_MODE_ORBIT_SCRIPT
+	)
 
 func _apply_orbit_look_ahead(
 	vcam_id: StringName,
@@ -1496,31 +1281,7 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 			continue
 		stale_ids.append(vcam_id)
 
-	for vcam_id_variant in _orbit_no_look_input_timers.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
-	for vcam_id_variant in _orbit_centering_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
 	for vcam_id_variant in _soft_zone_dead_zone_state.keys():
-		var vcam_id := vcam_id_variant as StringName
-		if vcam_index.has(vcam_id):
-			continue
-		if stale_ids.has(vcam_id):
-			continue
-		stale_ids.append(vcam_id)
-
-	for vcam_id_variant in _look_rotation_state.keys():
 		var vcam_id := vcam_id_variant as StringName
 		if vcam_index.has(vcam_id):
 			continue
@@ -1530,47 +1291,43 @@ func _prune_smoothing_state(vcam_index: Dictionary) -> void:
 
 	for stale_id in stale_ids:
 		_clear_smoothing_state_for_vcam(stale_id)
-		_orbit_centering_state.erase(stale_id)
+		_rotation_helper.clear_centering_state_for_vcam(stale_id)
 		_clear_soft_zone_dead_zone_state_for_vcam(stale_id)
 	_look_input_helper.prune(vcam_index.keys())
+	_rotation_helper.prune(vcam_index.keys())
 
 func _clear_all_smoothing_state() -> void:
 	_follow_dynamics.clear()
 	_rotation_dynamics.clear()
 	_smoothing_metadata.clear()
-	_look_rotation_state.clear()
 	_rotation_target_cache.clear()
 	_look_ahead_state.clear()
 	_ground_relative_state.clear()
 	_look_input_helper.clear_all()
 	_follow_target_motion_state.clear()
-	_orbit_no_look_input_timers.clear()
-	_orbit_centering_state.clear()
+	_rotation_helper.clear_all()
 	_debug_follow_target_ids.clear()
 	_debug_look_ahead_motion_state.clear()
 	_debug_soft_zone_status.clear()
 	_debug_landing_offset_status = -1
 	_debug_last_look_input_by_vcam.clear()
 	_debug_position_smoothing_bypass_by_vcam.clear()
-	_debug_last_look_spring_stage_by_vcam.clear()
 
 func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_follow_dynamics.erase(vcam_id)
 	_rotation_dynamics.erase(vcam_id)
 	_smoothing_metadata.erase(vcam_id)
-	_look_rotation_state.erase(vcam_id)
 	_rotation_target_cache.erase(vcam_id)
 	_look_ahead_state.erase(vcam_id)
 	_ground_relative_state.erase(vcam_id)
 	_look_input_helper.clear_for_vcam(vcam_id)
 	_follow_target_motion_state.erase(vcam_id)
-	_orbit_no_look_input_timers.erase(vcam_id)
+	_rotation_helper.clear_rotation_state_for_vcam(vcam_id)
 	_debug_follow_target_ids.erase(vcam_id)
 	_debug_look_ahead_motion_state.erase(vcam_id)
 	_debug_soft_zone_status.erase(vcam_id)
 	_debug_last_look_input_by_vcam.erase(vcam_id)
 	_debug_position_smoothing_bypass_by_vcam.erase(vcam_id)
-	_debug_last_look_spring_stage_by_vcam.erase(vcam_id)
 
 func _resolve_runtime_rotation_for_evaluation(
 	vcam_id: StringName,
@@ -1578,249 +1335,26 @@ func _resolve_runtime_rotation_for_evaluation(
 	mode: Resource,
 	follow_target: Node3D,
 	response_values: Dictionary,
+	response_signature: Array[float],
 	has_active_look_input: bool,
 	delta: float
 ) -> Vector2:
-	if component == null or mode == null:
-		return Vector2.ZERO
-
-	var target_rotation := Vector2(component.runtime_yaw, component.runtime_pitch)
-	var mode_script := mode.get_script() as Script
-	if not _is_look_rotation_smoothing_mode(mode_script):
-		_clear_look_rotation_state_for_vcam(vcam_id)
-		return target_rotation
-	if response_values.is_empty():
-		_clear_look_rotation_state_for_vcam(vcam_id)
-		return target_rotation
-
-	var rotation_frequency: float = maxf(float(response_values.get("rotation_frequency", 0.0)), 0.0)
-	if rotation_frequency <= 0.0:
-		_clear_look_rotation_state_for_vcam(vcam_id)
-		return target_rotation
-	var rotation_damping: float = maxf(float(response_values.get("rotation_damping", 0.0)), 0.0)
-
-	var follow_target_id: int = _get_node_instance_id(follow_target)
-	var response_signature: Array[float] = _build_response_signature(response_values)
-	var state: Dictionary = _get_look_rotation_state(vcam_id)
-	if (
-		state.is_empty()
-		or _did_mode_change(state, mode_script)
-		or _did_follow_target_change(state, follow_target_id)
-		or _did_response_change(state, response_signature)
-	):
-		_set_look_rotation_state(
-			vcam_id,
-			target_rotation,
-			Vector2.ZERO,
-			mode_script,
-			follow_target_id,
-			response_signature,
-			has_active_look_input
-		)
-		_debug_log_look_spring_stage_transition(
-			vcam_id,
-			"reseed",
-			has_active_look_input,
-			target_rotation,
-			target_rotation,
-			Vector2.ZERO
-		)
-		_debug_log_look_spring_state(
-			vcam_id,
-			"reseed",
-			has_active_look_input,
-			target_rotation,
-			target_rotation,
-			Vector2.ZERO,
-			rotation_frequency,
-			rotation_damping,
-			delta
-		)
-		return target_rotation
-
-	var smoothed_rotation: Vector2 = Vector2(
-		float(state.get("smoothed_yaw", target_rotation.x)),
-		float(state.get("smoothed_pitch", target_rotation.y))
-	)
-	var rotation_velocity: Vector2 = Vector2(
-		float(state.get("yaw_velocity", 0.0)),
-		float(state.get("pitch_velocity", 0.0))
-	)
-	if delta <= 0.0:
-		return smoothed_rotation
-
-	var step_dt: float = minf(maxf(delta, 0.0), U_SECOND_ORDER_DYNAMICS.MAX_STEP_DELTA_SEC)
-	if not has_active_look_input:
-		if mode_script == RS_VCAM_MODE_ORBIT_SCRIPT:
-			var release_yaw_damping: float = maxf(
-				float(response_values.get("look_release_yaw_damping", DEFAULT_LOOK_RELEASE_YAW_DAMPING)),
-				0.0
-			)
-			var release_pitch_damping: float = maxf(
-				float(response_values.get("look_release_pitch_damping", DEFAULT_LOOK_RELEASE_PITCH_DAMPING)),
-				0.0
-			)
-			var release_stop_threshold: float = maxf(
-				float(response_values.get("look_release_stop_threshold", DEFAULT_LOOK_RELEASE_STOP_THRESHOLD)),
-				0.0
-			)
-			var yaw_release_step: Dictionary = _step_orbit_release_axis(
-				vcam_id,
-				"yaw",
-				smoothed_rotation.x,
-				target_rotation.x,
-				rotation_velocity.x,
-				rotation_frequency,
-				rotation_damping,
-				release_yaw_damping,
-				release_stop_threshold,
-				step_dt
-			)
-			var pitch_release_step: Dictionary = _step_orbit_release_axis(
-				vcam_id,
-				"pitch",
-				smoothed_rotation.y,
-				target_rotation.y,
-				rotation_velocity.y,
-				rotation_frequency,
-				rotation_damping,
-				release_pitch_damping,
-				release_stop_threshold,
-				step_dt
-			)
-			smoothed_rotation = Vector2(
-				float(yaw_release_step.get("value", target_rotation.x)),
-				float(pitch_release_step.get("value", target_rotation.y))
-			)
-			rotation_velocity = Vector2(
-				float(yaw_release_step.get("velocity", 0.0)),
-				float(pitch_release_step.get("velocity", 0.0))
-			)
-			_set_look_rotation_state(
-				vcam_id,
-				smoothed_rotation,
-				rotation_velocity,
-				mode_script,
-				follow_target_id,
-				response_signature,
-				has_active_look_input
-			)
-			_debug_log_look_spring_stage_transition(
-				vcam_id,
-				"orbit_release",
-				has_active_look_input,
-				target_rotation,
-				smoothed_rotation,
-				rotation_velocity
-			)
-			_debug_log_look_spring_state(
-				vcam_id,
-				"orbit_release",
-				has_active_look_input,
-				target_rotation,
-				smoothed_rotation,
-				rotation_velocity,
-				rotation_frequency,
-				rotation_damping,
-				delta
-			)
-			return smoothed_rotation
-
-		var idle_settle_speed_deg_per_sec: float = maxf(
-			rotation_frequency * IDLE_LOOK_SETTLE_DEG_PER_HZ,
-			MIN_IDLE_LOOK_SETTLE_DEG_PER_SEC
-		)
-		var max_idle_step_deg: float = idle_settle_speed_deg_per_sec * step_dt
-		smoothed_rotation = Vector2(
-			_move_toward_angle_degrees(smoothed_rotation.x, target_rotation.x, max_idle_step_deg),
-			_move_toward_angle_degrees(smoothed_rotation.y, target_rotation.y, max_idle_step_deg)
-		)
-		rotation_velocity = Vector2.ZERO
-		_set_look_rotation_state(
-			vcam_id,
-			smoothed_rotation,
-			rotation_velocity,
-			mode_script,
-			follow_target_id,
-			response_signature,
-			has_active_look_input
-		)
-		_debug_log_look_spring_stage_transition(
-			vcam_id,
-			"idle_settle",
-			has_active_look_input,
-			target_rotation,
-			smoothed_rotation,
-			rotation_velocity
-		)
-		_debug_log_look_spring_state(
-			vcam_id,
-			"idle_settle",
-			has_active_look_input,
-			target_rotation,
-			smoothed_rotation,
-			rotation_velocity,
-			rotation_frequency,
-			rotation_damping,
-			delta
-		)
-		return smoothed_rotation
-
-	var yaw_step: Dictionary = _step_second_order_angle(
-		smoothed_rotation.x,
-		target_rotation.x,
-		rotation_velocity.x,
-		rotation_frequency,
-		rotation_damping,
-		step_dt
-	)
-	var pitch_step: Dictionary = _step_second_order_angle(
-		smoothed_rotation.y,
-		target_rotation.y,
-		rotation_velocity.y,
-		rotation_frequency,
-		rotation_damping,
-		step_dt
-	)
-	var yaw_value: float = float(yaw_step.get("value", target_rotation.x))
-	var yaw_velocity_value: float = float(yaw_step.get("velocity", 0.0))
-	var pitch_value: float = float(pitch_step.get("value", target_rotation.y))
-	var pitch_velocity_value: float = float(pitch_step.get("velocity", 0.0))
-	smoothed_rotation = Vector2(yaw_value, pitch_value)
-	rotation_velocity = Vector2(yaw_velocity_value, pitch_velocity_value)
-	_set_look_rotation_state(
+	_rotation_helper.debug_enabled = debug_rotation_logging
+	return _rotation_helper.resolve_runtime_rotation_for_evaluation(
 		vcam_id,
-		smoothed_rotation,
-		rotation_velocity,
-		mode_script,
-		follow_target_id,
+		component,
+		mode,
+		follow_target,
+		response_values,
 		response_signature,
-		has_active_look_input
-	)
-	_debug_log_look_spring_stage_transition(
-		vcam_id,
-		"step",
 		has_active_look_input,
-		target_rotation,
-		smoothed_rotation,
-		rotation_velocity
+		delta,
+		RS_VCAM_MODE_ORBIT_SCRIPT
 	)
-	_debug_log_look_spring_state(
-		vcam_id,
-		"step",
-		has_active_look_input,
-		target_rotation,
-		smoothed_rotation,
-		rotation_velocity,
-		rotation_frequency,
-		rotation_damping,
-		delta
-	)
-	return smoothed_rotation
 
 func _step_orbit_release_axis(
-	vcam_id: StringName,
-	axis_label: String,
+	_vcam_id: StringName,
+	_axis_label: String,
 	current_value: float,
 	target_value: float,
 	current_velocity: float,
@@ -1830,132 +1364,29 @@ func _step_orbit_release_axis(
 	stop_threshold: float,
 	delta: float
 ) -> Dictionary:
-	var error_before: float = wrapf(target_value - current_value, -180.0, 180.0)
-	var axis_step: Dictionary = _step_second_order_angle(
+	return _rotation_helper.step_orbit_release_axis(
 		current_value,
 		target_value,
 		current_velocity,
 		frequency_hz,
 		damping_ratio,
-		delta
-	)
-	var next_value: float = float(axis_step.get("value", target_value))
-	var velocity_before_damping: float = float(axis_step.get("velocity", 0.0))
-	var next_velocity: float = velocity_before_damping
-	next_velocity = _apply_release_velocity_damping(
-		next_velocity,
 		release_damping,
 		stop_threshold,
 		delta
 	)
-	if is_equal_approx(next_velocity, 0.0):
-		var remaining_error: float = absf(wrapf(target_value - next_value, -180.0, 180.0))
-		var settle_epsilon: float = maxf(stop_threshold * maxf(delta, 0.0), 0.0001)
-		_debug_log_orbit_release_clamp(
-			vcam_id,
-			axis_label,
-			velocity_before_damping,
-			next_velocity,
-			stop_threshold,
-			release_damping,
-			remaining_error,
-			settle_epsilon,
-			delta
-		)
-		if remaining_error <= settle_epsilon:
-			next_value = target_value
-	var error_after: float = wrapf(target_value - next_value, -180.0, 180.0)
-	var crossed_target: bool = error_before * error_after < 0.0
-	if crossed_target and absf(error_before) <= ORBIT_RELEASE_SIGN_FLIP_SETTLE_ERROR_DEG:
-		next_value = target_value
-		next_velocity = 0.0
 
-	return {
-		"value": next_value,
-		"velocity": next_velocity,
-	}
-
-func _apply_release_velocity_damping(
-	velocity: float,
-	damping_per_sec: float,
-	stop_threshold: float,
-	delta: float
+func _resolve_orbit_center_target_yaw(
+	mode: Resource,
+	follow_target: Node3D,
+	current_runtime_yaw: float
 ) -> float:
-	var next_velocity: float = velocity
-	var resolved_damping: float = maxf(damping_per_sec, 0.0)
-	var resolved_threshold: float = maxf(stop_threshold, 0.0)
-	if resolved_damping > 0.0 and delta > 0.0:
-		next_velocity *= exp(-resolved_damping * delta)
-	if absf(next_velocity) <= resolved_threshold:
-		return 0.0
-	return next_velocity
-
-func _step_second_order_angle(
-	current_value: float,
-	target_value: float,
-	current_velocity: float,
-	frequency_hz: float,
-	damping_ratio: float,
-	delta: float
-) -> Dictionary:
-	var omega: float = TAU * maxf(frequency_hz, 0.0)
-	if omega <= 0.0:
-		return {
-			"value": target_value,
-			"velocity": 0.0,
-		}
-
-	var error: float = wrapf(target_value - current_value, -180.0, 180.0)
-	var accel: float = (omega * omega * error) - (2.0 * damping_ratio * omega * current_velocity)
-	var next_velocity: float = current_velocity + accel * delta
-	var next_value: float = current_value + next_velocity * delta
-	if is_nan(next_value) or is_inf(next_value):
-		next_value = target_value
-	if is_nan(next_velocity) or is_inf(next_velocity):
-		next_velocity = 0.0
-
-	return {
-		"value": next_value,
-		"velocity": next_velocity,
-	}
-
-func _move_toward_angle_degrees(current_value: float, target_value: float, max_delta: float) -> float:
-	var delta_to_target: float = wrapf(target_value - current_value, -180.0, 180.0)
-	var clamped_delta: float = clampf(delta_to_target, -max_delta, max_delta)
-	return current_value + clamped_delta
-
-func _is_look_rotation_smoothing_mode(mode_script: Script) -> bool:
-	return mode_script == RS_VCAM_MODE_ORBIT_SCRIPT
-
-func _get_look_rotation_state(vcam_id: StringName) -> Dictionary:
-	var state_variant: Variant = _look_rotation_state.get(vcam_id, {})
-	if state_variant is Dictionary:
-		return (state_variant as Dictionary).duplicate(true)
-	return {}
-
-func _set_look_rotation_state(
-	vcam_id: StringName,
-	smoothed_rotation: Vector2,
-	rotation_velocity: Vector2,
-	mode_script: Script,
-	follow_target_id: int,
-	response_signature: Array[float],
-	input_active: bool
-) -> void:
-	_look_rotation_state[vcam_id] = {
-		"smoothed_yaw": smoothed_rotation.x,
-		"smoothed_pitch": smoothed_rotation.y,
-		"yaw_velocity": rotation_velocity.x,
-		"pitch_velocity": rotation_velocity.y,
-		"mode_script": mode_script,
-		"follow_target_id": follow_target_id,
-		"response_signature": response_signature.duplicate(),
-		"input_active": input_active,
-	}
-
-func _clear_look_rotation_state_for_vcam(vcam_id: StringName) -> void:
-	_look_rotation_state.erase(vcam_id)
-	_debug_last_look_spring_stage_by_vcam.erase(vcam_id)
+	return _rotation_helper.resolve_orbit_center_target_yaw(
+		mode,
+		follow_target,
+		current_runtime_yaw,
+		Callable(self, "_resolve_mode_values"),
+		RS_VCAM_MODE_ORBIT_SCRIPT
+	)
 
 func _apply_response_smoothing(
 	vcam_id: StringName,
@@ -2549,103 +1980,6 @@ func _debug_log_look_input_transition(vcam_id: StringName, look_input: Vector2) 
 		)
 
 	_debug_last_look_input_by_vcam[vcam_id] = look_input
-
-func _debug_log_look_spring_stage_transition(
-	vcam_id: StringName,
-	stage: String,
-	has_active_look_input: bool,
-	target_rotation: Vector2,
-	smoothed_rotation: Vector2,
-	rotation_velocity: Vector2
-) -> void:
-	if not debug_rotation_logging:
-		return
-	var previous_stage: String = String(_debug_last_look_spring_stage_by_vcam.get(vcam_id, ""))
-	if previous_stage == stage:
-		return
-	_debug_last_look_spring_stage_by_vcam[vcam_id] = stage
-	var yaw_error_deg: float = wrapf(target_rotation.x - smoothed_rotation.x, -180.0, 180.0)
-	var pitch_error_deg: float = wrapf(target_rotation.y - smoothed_rotation.y, -180.0, 180.0)
-	print(
-		"S_VCamSystem[debug] look_spring_stage: vcam_id=%s stage=%s prev=%s active_input=%s error_deg=(%.3f,%.3f) vel=(%.3f,%.3f)"
-		% [
-			String(vcam_id),
-			stage,
-			previous_stage,
-			str(has_active_look_input),
-			yaw_error_deg,
-			pitch_error_deg,
-			rotation_velocity.x,
-			rotation_velocity.y,
-		]
-	)
-
-func _debug_log_orbit_release_clamp(
-	vcam_id: StringName,
-	axis_label: String,
-	velocity_before_damping: float,
-	velocity_after_damping: float,
-	stop_threshold: float,
-	release_damping: float,
-	remaining_error: float,
-	settle_epsilon: float,
-	delta: float
-) -> void:
-	if not debug_rotation_logging:
-		return
-	if not is_equal_approx(velocity_after_damping, 0.0):
-		return
-	if absf(velocity_before_damping) <= 0.0:
-		return
-	print(
-		"S_VCamSystem[debug] orbit_release_clamp: vcam_id=%s axis=%s vel_before=%.6f vel_after=%.6f threshold=%.6f damping=%.4f remaining_error=%.6f settle_epsilon=%.6f dt=%.4f"
-		% [
-			String(vcam_id),
-			axis_label,
-			velocity_before_damping,
-			velocity_after_damping,
-			stop_threshold,
-			release_damping,
-			remaining_error,
-			settle_epsilon,
-			delta,
-		]
-	)
-
-func _debug_log_look_spring_state(
-	vcam_id: StringName,
-	stage: String,
-	has_active_look_input: bool,
-	target_rotation: Vector2,
-	smoothed_rotation: Vector2,
-	rotation_velocity: Vector2,
-	rotation_frequency: float,
-	rotation_damping: float,
-	delta: float
-) -> void:
-	if not debug_rotation_logging:
-		return
-	var yaw_error_deg: float = wrapf(target_rotation.x - smoothed_rotation.x, -180.0, 180.0)
-	var pitch_error_deg: float = wrapf(target_rotation.y - smoothed_rotation.y, -180.0, 180.0)
-	if has_active_look_input and absf(yaw_error_deg) < 0.1 and absf(pitch_error_deg) < 0.1:
-		return
-	_debug_log_rotation(
-		vcam_id,
-		"look_spring stage=%s active_input=%s target=%s smoothed=%s error_deg=(%.3f,%.3f) vel=(%.3f,%.3f) f=%.3f z=%.3f dt=%.4f"
-		% [
-			stage,
-			str(has_active_look_input),
-			str(target_rotation),
-			str(smoothed_rotation),
-			yaw_error_deg,
-			pitch_error_deg,
-			rotation_velocity.x,
-			rotation_velocity.y,
-			rotation_frequency,
-			rotation_damping,
-			delta,
-		]
-	)
 
 func _debug_log_position_smoothing_gate_transition(
 	vcam_id: StringName,
