@@ -230,10 +230,10 @@ func _set_active_vcam_internal(next_vcam_id: StringName) -> void:
 	_previous_vcam_id = previous_vcam_id
 	_last_applied_frame = -1
 	_queue_startup_blend_if_needed(next_vcam_id, previous_vcam_id)
-	_configure_live_blend_transition(previous_vcam_id, next_vcam_id, blend_duration_override)
 
 	var active_mode := _get_mode_name_for_vcam(next_vcam_id)
 	_dispatch_active_runtime(next_vcam_id, active_mode)
+	_configure_live_blend_transition(previous_vcam_id, next_vcam_id, blend_duration_override)
 	_publish_active_changed(next_vcam_id, previous_vcam_id, active_mode)
 
 func _configure_live_blend_transition(

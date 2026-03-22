@@ -7,6 +7,7 @@ const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_INPUT_SELECTORS := preload("res://scripts/state/selectors/u_input_selectors.gd")
+const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 const U_VCAM_SOFT_ZONE := preload("res://scripts/managers/helpers/u_vcam_soft_zone.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
@@ -73,6 +74,8 @@ var _orbit_centering_state: Dictionary = {}  # StringName -> {start_yaw,start_pi
 var _soft_zone_dead_zone_state: Dictionary = {}  # StringName -> {x: bool, y: bool}
 var _debug_issues: Array[String] = []
 var _last_active_vcam_id: StringName = StringName("")
+var _last_active_target_valid: bool = true
+var _last_target_recovery_reason: String = ""
 var _landing_recovery_dynamics = null
 var _landing_recovery_state_id: int = 0
 var _landing_recovery_frequency_hz: float = -1.0
@@ -175,6 +178,8 @@ func _exit_tree() -> void:
 	_orbit_no_look_input_timers.clear()
 	_soft_zone_dead_zone_state.clear()
 	_last_active_vcam_id = StringName("")
+	_last_active_target_valid = true
+	_last_target_recovery_reason = ""
 	_aim_restore_vcam_id = StringName("")
 	_aim_toggled_on = false
 	_aim_prev_pressed = false
@@ -412,11 +417,27 @@ func _evaluate_and_submit(
 
 	var follow_target: Node3D = _resolve_follow_target(component)
 	_debug_log_follow_target_resolution(vcam_id, component, follow_target)
+	var mode_values: Dictionary = _resolve_mode_values(mode, {})
+	var follow_target_required: bool = _is_follow_target_required(mode, mode_values)
+	if follow_target_required and (follow_target == null or not is_instance_valid(follow_target)):
+		_update_active_target_observability(vcam_id, manager, false, "target_freed")
+		return
+
 	var fixed_anchor: Node3D = component.get_fixed_anchor()
 	if _is_path_fixed_mode(mode):
 		fixed_anchor = _resolve_or_create_path_anchor(component, follow_target)
 		if fixed_anchor == null:
+			_update_active_target_observability(vcam_id, manager, false, "path_anchor_invalid")
 			return
+	else:
+		if _is_fixed_anchor_required(mode, mode_values):
+			if fixed_anchor == null or not is_instance_valid(fixed_anchor):
+				_update_active_target_observability(vcam_id, manager, false, "anchor_invalid")
+				return
+
+	if fixed_anchor != null and not is_instance_valid(fixed_anchor):
+		_update_active_target_observability(vcam_id, manager, false, "anchor_invalid")
+		return
 
 	var response_values: Dictionary = _resolve_component_response_values(component)
 	var filtered_look_input: Vector2 = _resolve_filtered_look_input(
@@ -461,7 +482,9 @@ func _evaluate_and_submit(
 		fixed_anchor
 	)
 	if result.is_empty():
+		_update_active_target_observability(vcam_id, manager, false, "evaluation_failed")
 		return
+	_update_active_target_observability(vcam_id, manager, true)
 	_debug_log_ots_vertical_diagnostics(
 		vcam_id,
 		mode,
@@ -3457,6 +3480,58 @@ func _resolve_vcam_manager() -> I_VCAM_MANAGER:
 
 	_vcam_manager = service
 	return _vcam_manager as I_VCAM_MANAGER
+
+func _update_active_target_observability(
+	vcam_id: StringName,
+	manager: I_VCAM_MANAGER,
+	is_valid: bool,
+	recovery_reason: String = ""
+) -> void:
+	if manager == null:
+		return
+	if vcam_id != manager.get_active_vcam_id():
+		return
+	var store := _resolve_state_store()
+	if store == null:
+		return
+	if _last_active_target_valid != is_valid:
+		_last_active_target_valid = is_valid
+		store.dispatch(U_VCAM_ACTIONS.update_target_validity(is_valid))
+	if is_valid:
+		_last_target_recovery_reason = ""
+		return
+	if recovery_reason.is_empty():
+		return
+	if recovery_reason == _last_target_recovery_reason:
+		return
+	_last_target_recovery_reason = recovery_reason
+	store.dispatch(U_VCAM_ACTIONS.record_recovery(recovery_reason))
+
+func _is_follow_target_required(mode: Resource, mode_values: Dictionary) -> bool:
+	if mode == null:
+		return false
+	var mode_script := mode.get_script() as Script
+	if mode_script == RS_VCAM_MODE_ORBIT_SCRIPT:
+		return true
+	if mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT:
+		return true
+	if mode_script == RS_VCAM_MODE_OTS_SCRIPT:
+		return true
+	if mode_script != RS_VCAM_MODE_FIXED_SCRIPT:
+		return false
+	var use_path: bool = bool(mode_values.get("use_path", false))
+	if use_path:
+		return true
+	var use_world_anchor: bool = bool(mode_values.get("use_world_anchor", true))
+	return not use_world_anchor
+
+func _is_fixed_anchor_required(mode: Resource, mode_values: Dictionary) -> bool:
+	if mode == null:
+		return false
+	var mode_script := mode.get_script() as Script
+	if mode_script != RS_VCAM_MODE_FIXED_SCRIPT:
+		return false
+	return bool(mode_values.get("use_world_anchor", true))
 
 func _resolve_state_store() -> I_StateStore:
 	if _state_store != null and is_instance_valid(_state_store):
