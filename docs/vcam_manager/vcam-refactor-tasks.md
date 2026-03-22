@@ -390,7 +390,7 @@ Completion notes (2026-03-22):
 
 ### Phase 2C: Extract `u_vcam_orbit_effects.gd`
 
-- [ ] **Task 2C.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_orbit_effects.gd`
+- [x] **Task 2C.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_orbit_effects.gd`
   - Test look-ahead applies offset in movement direction
   - Test look-ahead clears when look input active
   - Test ground-relative tracks anchor on landing
@@ -400,12 +400,29 @@ Completion notes (2026-03-22):
   - Test position smoothing bypass for stationary targets
   - **Target: ~12 tests**
 
-- [ ] **Task 2C.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd`
+- [x] **Task 2C.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd`
   - Extract look-ahead, ground-relative, soft-zone dead zone, motion sampling, bypass logic
   - Move `_look_ahead_state`, `_ground_relative_state`, `_soft_zone_dead_zone_state`, `_follow_target_motion_state`
 
-- [ ] **Task 2C.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamOrbitEffects`
+- [x] **Task 2C.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamOrbitEffects`
   - Verify all existing tests pass
+
+Completion notes (2026-03-22):
+- Added `scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd` (`U_VCamOrbitEffects`) with extracted:
+  - orbit look-ahead state/offset logic
+  - orbit ground-relative anchor state/landing re-anchor logic
+  - orbit soft-zone correction + dead-zone hysteresis state ownership
+  - follow-target horizontal speed sampling and orbit position-smoothing bypass hysteresis tracking
+  - helper lifecycle APIs (`prune`, `clear_all`, `clear_for_vcam`) + state snapshots
+- Added dedicated helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_orbit_effects.gd` (`11/11`).
+- Refactored `S_VCamSystem` to delegate Phase 2C responsibilities to `_orbit_effects_helper`:
+  - `_apply_orbit_look_ahead`, `_apply_orbit_ground_relative`, `_apply_orbit_soft_zone`, follow-target speed sampling, and bypass hysteresis now route through helper APIs
+  - moved helper-owned per-vCam state out of `S_VCamSystem` internals while preserving compatibility snapshots used by existing tests
+  - smoothing-state prune/clear lifecycle now delegates orbit-effect cleanup through helper lifecycle methods
+- Validation runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_orbit_effects.gd` (`11/11`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 2D: Extract `u_vcam_response_smoother.gd`
 
