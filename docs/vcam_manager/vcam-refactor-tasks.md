@@ -524,10 +524,19 @@ Progress notes (2026-03-22):
     - grounded/probe utilities for orbit ground-relative behavior
     - projection-camera and primary camera-state resolution utilities
     - camera-state read/write helpers and base-fov sync write path
-  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` to `1185` while preserving coordinator wrappers.
+  - Extracted debug/logging concerns into `scripts/ecs/systems/helpers/u_vcam_debug.gd`:
+    - debug issue buffer + report path
+    - cooldown-driven rotation/state logging
+    - per-vCam debug tracking lifecycle (`prune`, `clear_all`, `clear_for_vcam`)
+    - follow-target / look-input / soft-zone / smoothing-gate / landing logging callbacks
+  - Extracted response-value/safety plumbing into `U_VCamResponseSmoother`:
+    - moved component-response resolution/fallback dictionary building out of `S_VCamSystem`
+    - moved response-signature construction (`look` + `ground_relative` fields) out of `S_VCamSystem`
+    - expanded helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`11/11`)
+  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` while preserving coordinator wrappers.
   - Full suite regression gate completed:
-    - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3446/3455` passing, `9` pending baseline).
-  - Remaining item: `s_vcam_system.gd` is not yet within the ~`400`-`600` line target and still needs additional extraction/decomposition cleanup.
+    - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3449/3458` passing, `9` pending baseline).
+  - Remaining item: `s_vcam_system.gd` is not yet within the ~`400`-`600` line target (`826` current) and still needs additional extraction/decomposition cleanup.
 
 ### Phase 2H: Phase 2 commit + docs
 

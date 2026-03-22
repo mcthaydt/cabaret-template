@@ -9,7 +9,7 @@
 ## Next Planned Work (March 22, 2026)
 
 - Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through Phase 2 coordinator cleanup (`2G` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: finish Phase `2G.3` by reducing remaining coordinator/orphaned code in `s_vcam_system.gd` and closing the file-size/decomposition target.
+- Immediate implementation target: finish Phase `2G.3` by reducing remaining coordinator/orphaned code in `s_vcam_system.gd` from the current `826` lines to the file-size/decomposition target.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -233,14 +233,20 @@
     - grounded/probe helpers for orbit ground-relative flow
     - projection-camera + primary camera-state resolution
     - camera-state read/write + base-fov sync utilities
-  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` to `1185`.
+  - added `scripts/ecs/systems/helpers/u_vcam_debug.gd` and moved debug/logging responsibilities out of `S_VCamSystem`:
+    - debug issue report/ring buffer lifecycle
+    - debug cooldown tracking + rotation/state log gating
+    - per-vCam debug map prune/clear lifecycle
+    - follow-target/soft-zone/look-input/smoothing-gate/landing debug callbacks
+  - expanded `U_VCamResponseSmoother` to own response-value resolution + response-signature construction used by `S_VCamSystem`, and added helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`11/11`).
+  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826`.
 - Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`11/11`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
-  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_landing_impact.gd` (`6/6`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
-  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3446/3455` passing, `9` pending baseline)
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3449/3458` passing, `9` pending baseline)
 - Remaining `2G.3` item:
-  - `scripts/ecs/systems/s_vcam_system.gd` is still above the target size (`1185` lines) and needs further extraction/decomposition before Phase `2G` can be closed.
+  - `scripts/ecs/systems/s_vcam_system.gd` is still above the target size (`826` lines) and needs further extraction/decomposition before Phase `2G` can be closed.
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1265,7 +1271,7 @@
 
 ## Next Steps
 
-1. Finish Phase `2G.3` by extracting additional `S_VCamSystem` coordinator/orphaned logic until the file-size/decomposition target is met.
+1. Finish Phase `2G.3` by extracting additional `S_VCamSystem` coordinator/orphaned logic until the file-size/decomposition target is met (`826` lines currently).
 2. Once `2G` is complete, execute Phase `2H` (implementation commit + docs closure for Phase 2).
 3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
 
