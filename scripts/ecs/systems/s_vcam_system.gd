@@ -1749,10 +1749,6 @@ func _resolve_runtime_rotation_for_evaluation(
 		float(state.get("yaw_velocity", 0.0)),
 		float(state.get("pitch_velocity", 0.0))
 	)
-	var previous_input_active: bool = bool(state.get("input_active", has_active_look_input))
-	if previous_input_active and not has_active_look_input and mode_script != RS_VCAM_MODE_ORBIT_SCRIPT:
-		smoothed_rotation = target_rotation
-		rotation_velocity = Vector2.ZERO
 	if delta <= 0.0:
 		return smoothed_rotation
 
