@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1F` are complete; Phase `1G` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1H` are complete; Phase `2A` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through remaining Phase 1 work (`1G`-`1H`).
-- Immediate implementation target: Phase `1G` comprehensive test cleanup + full validation pass for the orbit/first-person-only runtime.
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 2 helper extraction (`2A` onward).
+- Immediate implementation target: Phase `2A` (`U_VCamLookInput`) Red/Green/Refactor extraction from `s_vcam_system.gd`.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -95,6 +95,29 @@
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -gselect=test_style_enforcement` (`17/17`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/test_entity_scene_registration.gd` (`3/3`)
+
+## Refactor Phase 1G (March 22, 2026)
+
+- Completed test-suite migration to orbit + first-person runtime:
+  - deleted OTS/fixed mode resource suites: `test_vcam_mode_ots.gd`, `test_vcam_mode_fixed.gd`
+  - removed legacy OTS HUD suite: `tests/unit/ui/hud/test_ots_reticle.gd`
+  - `tests/unit/ecs/systems/test_vcam_system.gd` now excludes OTS/fixed scenarios and runs orbit/first-person coverage only (`94/94`)
+  - integration/resource suites updated to remove fixed/OTS preset/runtime paths (`test_vcam_runtime.gd`, `test_vcam_mobile.gd`, `test_vcam_mode_presets.gd`)
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`94/94`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/test_vcam_manager.gd` (`45/45`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/vcam` (`26/26`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam` (`91/91`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -gselect=test_style_enforcement` (`17/17`)
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3481/3490` passing, `9` pending baseline)
+
+## Refactor Phase 1H (March 22, 2026)
+
+- Completed Phase 1 closure tasks:
+  - implementation commits landed for Phase 1F + 1G (`a16a9b3e`, `d60a1142`)
+  - documentation cadence completed (`vcam-refactor-tasks.md` + this continuation prompt)
+  - `AGENTS.md` Stage-1 contract cleanup removed stale OTS/fixed mode guidance and aligned vCam runtime contracts to orbit + first-person only
+- Phase 2 is now unblocked (`2A` helper extraction kickoff).
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1099,7 +1122,6 @@
 - `tests/unit/ecs/systems/test_rotate_to_input_system.gd`
 - `tests/unit/ecs/systems/test_s_touchscreen_system.gd`
 - `tests/unit/ui/test_mobile_controls.gd`
-- `tests/unit/ui/hud/test_ots_reticle.gd`
 - `tests/unit/ecs/systems/test_room_fade_system.gd`
 - `tests/unit/ecs/systems/test_room_fade_integration.gd`
 - `tests/unit/lighting/test_room_fade_material_applier.gd`
@@ -1119,9 +1141,9 @@
 
 ## Next Steps
 
-1. Execute Phase `1G` (comprehensive test updates + full validation run, including style enforcement).
-2. Execute Phase `1H` (Phase 1 implementation commit, then docs updates and AGENTS.md Stage-1 contract cleanup in a separate docs commit).
-3. Continue phase-by-phase through refactor Phases `2`-`5` with mandatory doc cadence and separate docs commits.
+1. Execute Phase `2A` Red/Green/Refactor (`U_VCamLookInput` extraction + dedicated helper tests).
+2. Continue Phase `2B`-`2F` helper extraction in sequence with per-helper TDD cadence.
+3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
 
 ## Key Decisions To Preserve
 

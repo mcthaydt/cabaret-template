@@ -213,31 +213,57 @@ Completion notes (2026-03-22):
 
 ### Phase 1G: Update tests
 
-- [ ] **Task 1G.1**: Delete mode-specific test files
+- [x] **Task 1G.1**: Delete mode-specific test files
   - Delete `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd`
   - Delete `tests/unit/resources/display/vcam/test_vcam_mode_fixed.gd`
 
-- [ ] **Task 1G.2**: Update evaluator tests
+- [x] **Task 1G.2**: Update evaluator tests
   - Remove OTS/fixed test cases from `test_vcam_mode_evaluator.gd`
   - Update all `evaluate()` calls to remove `fixed_anchor` parameter
 
-- [ ] **Task 1G.3**: Update system tests
+- [x] **Task 1G.3**: Update system tests
   - Remove OTS/fixed-specific tests from `test_vcam_system.gd`
   - Add/update aim activation tests to verify `aim_pressed` toggles to FP vCam (not OTS)
 
-- [ ] **Task 1G.4**: Update manager and integration tests
+- [x] **Task 1G.4**: Update manager and integration tests
   - Remove OTS/fixed runtime paths from `test_vcam_manager.gd`
   - Remove fixed_anchor/path_node tests from `test_vcam_component.gd`
   - Remove OTS/fixed preset references from `test_vcam_mode_presets.gd`
   - Remove OTS/fixed paths from `test_vcam_runtime.gd`, `test_vcam_blend.gd`
 
-- [ ] **Task 1G.5**: Run full test suite — verify all green
+- [x] **Task 1G.5**: Run full test suite — verify all green
+
+Completion notes (2026-03-22):
+- Removed obsolete OTS/fixed test files and coverage:
+  - deleted `test_vcam_mode_ots.gd`, `test_vcam_mode_fixed.gd`, `test_ots_reticle.gd`
+  - `test_vcam_system.gd` now targets orbit/first-person-only behavior (`94/94`)
+- Updated integration/resource/manager suites for orbit+first-person runtime:
+  - `test_vcam_runtime.gd` fixed/OTS cases removed
+  - `test_vcam_mobile.gd` OTS drag-look case removed
+  - `test_vcam_mode_presets.gd` fixed preset assertions removed
+  - `test_vcam_manager.gd` secondary blend fixture naming normalized away from OTS labels
+- Validation runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`94/94`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/test_vcam_manager.gd` (`45/45`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/vcam` (`26/26`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam` (`91/91`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -gselect=test_style_enforcement` (`17/17`)
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3481/3490` passing, `9` pending baseline)
 
 ### Phase 1H: Phase 1 commit + docs
 
-- [ ] **Task 1H.1**: Commit Phase 1 implementation
-- [ ] **Task 1H.2**: Update continuation prompt and this task file with Phase 1 completion notes
-- [ ] **Task 1H.3**: Update AGENTS.md — remove deleted OTS/fixed contracts
+- [x] **Task 1H.1**: Commit Phase 1 implementation
+- [x] **Task 1H.2**: Update continuation prompt and this task file with Phase 1 completion notes
+- [x] **Task 1H.3**: Update AGENTS.md — remove deleted OTS/fixed contracts
+
+Completion notes (2026-03-22):
+- Phase 1 implementation is complete and committed through:
+  - `a16a9b3e` (Phase 1F implementation)
+  - `d60a1142` (Phase 1G test cleanup + validation alignment)
+- Phase 1 docs + contract cleanup is complete:
+  - `docs/vcam_manager/vcam-manager-continuation-prompt.md` updated to Phase-1-complete status
+  - this task file updated through `1H`
+  - `AGENTS.md` Stage-1 cleanup removed stale OTS/fixed vCam contracts and aligned runtime guidance to orbit + first-person
 
 ---
 
