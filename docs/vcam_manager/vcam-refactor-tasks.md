@@ -24,14 +24,14 @@ Before starting Phase 1, verify:
 
 - [ ] **DOC-1**: After each completed phase, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status.
 - [ ] **DOC-2**: After each completed phase, update this task file with `[x]` marks and completion notes.
-- [ ] **DOC-3**: Update `AGENTS.md` when architecture contracts change (Phase 1 removals, Phase 2/3 helper contracts).
+- [ ] **DOC-3**: Update `AGENTS.md` in two stages: (1) after Phase 1, remove deleted OTS/fixed contracts; (2) in Phase 5A, add new helper architecture contracts. Do NOT update AGENTS.md during Phases 2–4.
 - [ ] **DOC-4**: Commit documentation updates separately from implementation per AGENTS requirements.
 
 ---
 
 ## Phase 1: Remove OTS + Fixed Modes
 
-**Exit Criteria:** All remaining tests pass. Only orbit + first-person modes remain. Zero references to OTS/fixed in production code.
+**Exit Criteria:** All remaining tests pass. Only orbit + first-person modes remain. Zero references to OTS/fixed in production code. Aim activation repurposed: `aim_pressed` toggles to dedicated first-person vCam.
 
 ### Phase 1A: Remove OTS from s_vcam_system.gd
 
@@ -40,24 +40,40 @@ Before starting Phase 1, verify:
   - Delete `OTS_MIN_CAMERA_DISTANCE`, `OTS_LANDING_FALL_SPEED_MIN/MAX`, `OTS_LANDING_RESPONSE_EPSILON`, `DEFAULT_OTS_AIM_BLEND_DURATION` constants
   - Delete `debug_ots_vertical_logging` export and `_debug_ots_vertical_log_cooldown_sec`
 
-- [ ] **Task 1A.2**: Remove OTS state dictionaries and aim state
+- [ ] **Task 1A.2**: Remove OTS state dictionaries
   - Delete `_shoulder_sway_state`, `_ots_collision_state`, `_ots_landing_response_state` dicts
   - Delete `_debug_ots_profile_signature_by_vcam`, `_debug_ots_pitch_clamped_by_vcam` dicts
-  - Delete `_aim_restore_vcam_id`, `_aim_toggled_on`, `_aim_prev_pressed` vars
+  - Keep `_aim_restore_vcam_id`, `_aim_toggled_on`, `_aim_prev_pressed` — repurposed for FP aim toggle (Task 1A.5)
 
 - [ ] **Task 1A.3**: Remove OTS functions
   - Delete shoulder sway functions (`_apply_ots_shoulder_sway`, `_ensure_ots_shoulder_sway_state`, `_clear_ots_shoulder_sway_state_for_vcam`)
   - Delete collision avoidance functions (`_apply_ots_collision_avoidance` and all cast/state/hit/exclude helpers)
   - Delete landing response functions (`_apply_ots_landing_camera_response` and state helpers)
-  - Delete aim activation functions (`_process_aim_activation`, `_find_aim_target_ots_vcam_id`, `_is_ots_mode`, `_resolve_ots_aim_blend_duration`, `_resolve_ots_aim_exit_blend_duration`)
+  - Delete `_is_ots_mode`, `_resolve_ots_aim_blend_duration`, `_resolve_ots_aim_exit_blend_duration` (replaced in Task 1A.5)
+  - Keep `_process_aim_activation`, `_find_aim_target_ots_vcam_id` — repurposed in Task 1A.5
+  - Note: `_read_aim_pressed` (line 3587) stays — aim pipeline retained
   - Delete OTS debug logging (`_debug_log_ots_vertical_diagnostics`)
 
 - [ ] **Task 1A.4**: Remove OTS branches from shared functions
   - Remove OTS from `_evaluate_and_submit` pipeline (shoulder sway, collision, landing response calls)
-  - Remove OTS from `process_tick` (aim activation calls)
+  - Remove OTS-specific mode checks from `process_tick`; keep `_process_aim_activation` call (repurposed in Task 1A.5)
   - Remove OTS from `_is_look_driven_mode_script`, `_is_look_rotation_smoothing_mode`, `_is_follow_target_required`
   - Remove OTS from `_prune_smoothing_state`, `_clear_all_smoothing_state`, `_clear_smoothing_state_for_vcam`
   - Remove OTS from `_exit_tree` cleanup
+
+- [ ] **Task 1A.5**: Repurpose aim activation to target first-person mode
+  - Rename `_find_aim_target_ots_vcam_id` → `_find_aim_target_fp_vcam_id`
+  - Change mode search: check `mode_script == RS_VCAM_MODE_FIRST_PERSON_SCRIPT` instead of OTS
+  - Rename `DEFAULT_OTS_AIM_BLEND_DURATION` → `DEFAULT_AIM_BLEND_DURATION`
+  - Replace `_resolve_ots_aim_blend_duration` → `_resolve_aim_blend_duration` (reads from FP mode resource)
+  - Replace `_resolve_ots_aim_exit_blend_duration` → `_resolve_aim_exit_blend_duration` (reads from FP mode resource)
+  - Update `_process_aim_activation`: on press find FP vCam, on release restore previous vCam
+  - Update all OTS mode checks in aim flow to use FP mode checks
+
+- [ ] **Task 1A.6**: Add aim blend duration exports to `rs_vcam_mode_first_person.gd`
+  - Add `@export var aim_blend_duration: float = 0.15`
+  - Add `@export var aim_exit_blend_duration: float = 0.2`
+  - Add both to `get_resolved_values()` with `maxf(..., 0.01)` validation
 
 ### Phase 1B: Remove Fixed mode from s_vcam_system.gd
 
@@ -115,9 +131,14 @@ Before starting Phase 1, verify:
   - Delete `resources/display/vcam/cfg_default_ots.tres`
   - Delete `resources/display/vcam/cfg_default_fixed.tres`
   - Delete `resources/base_settings/gameplay/cfg_ots_movement_default.tres`
+  - Note: `cfg_default_first_person.tres` already exists and is NOT deleted
 
 - [ ] **Task 1F.2**: Update `scenes/templates/tmpl_camera.tscn`
   - Remove C_VCamOTSComponent node and cfg_default_ots ext_resource
+  - Add C_VCamFirstPersonComponent node (`c_vcam_component.gd` script) with:
+    - `vcam_id = &"camera_first_person"`, `priority = 10`
+    - `mode = cfg_default_first_person.tres`
+    - Same `follow_target_path`, `soft_zone`, `blend_hint`, `response` as orbit vCam
 
 - [ ] **Task 1F.3**: Update `scenes/ui/hud/ui_hud_overlay.tscn`
   - Remove OTSReticleContainer and ReticleDot nodes
@@ -134,6 +155,7 @@ Before starting Phase 1, verify:
 
 - [ ] **Task 1G.3**: Update system tests
   - Remove OTS/fixed-specific tests from `test_vcam_system.gd`
+  - Add/update aim activation tests to verify `aim_pressed` toggles to FP vCam (not OTS)
 
 - [ ] **Task 1G.4**: Update manager and integration tests
   - Remove OTS/fixed runtime paths from `test_vcam_manager.gd`
@@ -147,6 +169,7 @@ Before starting Phase 1, verify:
 
 - [ ] **Task 1H.1**: Commit Phase 1 implementation
 - [ ] **Task 1H.2**: Update continuation prompt and this task file with Phase 1 completion notes
+- [ ] **Task 1H.3**: Update AGENTS.md — remove deleted OTS/fixed contracts
 
 ---
 
@@ -247,7 +270,7 @@ Before starting Phase 1, verify:
 - [ ] **Task 2E.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamLandingImpact`
   - Verify all existing tests pass
 
-### Phase 2F: Extract `u_vcam_first_person_effects.gd`
+### Phase 2F: Extract `u_vcam_first_person_effects.gd` *(prerequisite for Phase 4B.2)*
 
 - [ ] **Task 2F.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_first_person_effects.gd`
   - Test strafe tilt applies roll from lateral movement
@@ -335,7 +358,7 @@ Before starting Phase 1, verify:
   - Add opt-in exports with defaults that disable the feature
   - Add to `get_resolved_values()` with validation
 
-- [ ] **Task 4B.2 (Green)**: Implement effects in `u_vcam_first_person_effects.gd`
+- [ ] **Task 4B.2 (Green)**: Implement effects in `u_vcam_first_person_effects.gd` *(depends on Phase 2F)*
   - Wire new effects through the helper API
   - Verify all tests pass
 
@@ -353,9 +376,10 @@ Before starting Phase 1, verify:
 ### Phase 5A: Update AGENTS.md
 
 - [ ] **Task 5A.1**: Remove OTS contracts (~15 entries)
-  - OTS mode resource, evaluator, collision, shoulder sway, landing response, aim activation
+  - OTS mode resource, evaluator, collision, shoulder sway, landing response
   - OTS movement-profile, facing-lock, reticle, default movement preset
   - OTS-specific references in shared contracts (rotation continuity, look smoothing, etc.)
+  - Note: aim activation contracts stay — repurposed for FP toggle
 
 - [ ] **Task 5A.2**: Remove Fixed mode contracts (~5 entries)
   - Fixed mode resource, evaluator, anchor resolution, path following
@@ -364,12 +388,14 @@ Before starting Phase 1, verify:
   - Document 6 extracted system helpers and blend manager helper
   - Document coordinator pipeline pattern
   - Simplify evaluator contract (2 modes, no fixed_anchor param)
+  - Document `aim_pressed` → FP toggle contract (aim activation flow, FP vCam component in scene, aim blend duration exports on `rs_vcam_mode_first_person.gd`)
 
 ### Phase 5B: Dead code sweep
 
 - [ ] **Task 5B.1**: Grep for stale references
-  - Search: `RS_VCAM_MODE_OTS`, `RS_VCAM_MODE_FIXED`, `_ots_`, `_fixed_`, `OTSReticle`, `aim_pressed`, `shoulder_sway`, `path_follow_helper`
-  - Verify zero hits in production code (test mocks/historical docs excluded)
+  - Patterns to sweep (expect zero hits in production code): `RS_VCAM_MODE_OTS`, `RS_VCAM_MODE_FIXED`, `_ots_`, `OTSReticle`, `shoulder_sway`, `path_follow_helper`, `cfg_default_ots`, `cfg_default_fixed`, `cfg_ots_movement`, `ots_collision`, `C_VCamOTSComponent`, `_is_ots_mode`, `_evaluate_ots`, `_evaluate_fixed`, `_resolve_ots_values`, `_resolve_fixed_values`
+  - Patterns that SHOULD exist (do NOT flag): `aim_pressed`, `aim_toggled`, `aim_restore`, `_aim_restore_vcam_id`, `_aim_toggled_on`, `_aim_prev_pressed`, `_read_aim_pressed`, `aim_blend_duration`, `aim_exit_blend_duration`
+  - Verify zero hits for stale patterns in production code (test mocks/historical docs excluded)
 
 - [ ] **Task 5B.2**: Verify no orphaned files
   - Check for orphaned `.uid` files for deleted scripts/resources
