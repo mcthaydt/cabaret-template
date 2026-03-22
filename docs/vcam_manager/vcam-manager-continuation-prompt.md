@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, and Phases `1A`-`1I` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2A` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phase `2A` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2B` is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 2 helper extraction (`2A` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: Phase `2A` (`U_VCamLookInput`) Red/Green/Refactor extraction from `s_vcam_system.gd`.
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 2 helper extraction (`2B` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
+- Immediate implementation target: Phase `2B` (`U_VCamRotation`) Red/Green/Refactor extraction from `s_vcam_system.gd`.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -133,6 +133,23 @@
   - Dropped Phase 2F (`u_vcam_first_person_effects.gd`) and Phase 4 (Enhance First-Person) from roadmap
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3405/3414` passing, `9` pending baseline)
+
+## Refactor Phase 2A (March 22, 2026)
+
+- Completed look-input helper extraction (`U_VCamLookInput`):
+  - added `scripts/ecs/systems/helpers/u_vcam_look_input.gd` with API (`filter_look_input`, `is_active`, `prune`, `clear_all`, `clear_for_vcam`)
+  - moved look-filter constants/state and look-filter transition debug logging out of `S_VCamSystem`
+  - `S_VCamSystem` now delegates look filtering and helper lifecycle (`prune`/`clear`) through `_look_input_helper`
+  - response-signature look-filter fallback defaults now reference helper constants
+- Added helper coverage:
+  - `tests/unit/ecs/systems/helpers/test_vcam_look_input.gd` (`8/8`)
+  - updated `tests/unit/ecs/systems/test_vcam_system.gd` look-filter spike decay regression to assert through helper API
+- Style enforcement update:
+  - `tests/unit/style/test_style_enforcement.gd` now allows `u_` scripts in `res://scripts/ecs/systems/helpers`
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_look_input.gd` (`8/8`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1156,8 +1173,8 @@
 
 ## Next Steps
 
-1. Execute Phase `2A` Red/Green/Refactor (`U_VCamLookInput` extraction + dedicated helper tests).
-2. Continue Phase `2B`-`2F` helper extraction in sequence with per-helper TDD cadence.
+1. Execute Phase `2B` Red/Green/Refactor (`U_VCamRotation` extraction + dedicated helper tests).
+2. Continue Phase `2C`-`2F` helper extraction in sequence with per-helper TDD cadence.
 3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
 
 ## Key Decisions To Preserve
@@ -1165,7 +1182,7 @@
 - vCam does not replace `M_CameraManager`.
 - vCam does not replace `S_CameraStateSystem`.
 - vCam does not bypass the gameplay input pipeline.
-- Refactor Phase 1A contract: `aim_pressed` now targets first-person vCams only; enter/exit blend durations are authored on `RS_VCamModeFirstPerson` (`aim_blend_duration`, `aim_exit_blend_duration`) and resolved via `S_VCamSystem` aim helpers.
+- Refactor Phase 1I contract: first-person mode and the `aim_pressed` pipeline are removed; orbit is the sole supported vCam mode.
 - Keyboard look uses dedicated `look_*` actions (not `ui_*`) so bindings stay correct across input profiles; settings live in `mouse_settings`.
 - Keyboard-look work is not complete unless the InputMap bootstrapper, input-map tests, rebind category/action labels, localization keys, and settings-save triggers are patched together.
 - vCam does not treat mobile as special at the camera layer; touch look must still feed the shared `gameplay.look_input` path.

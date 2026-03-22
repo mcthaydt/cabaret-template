@@ -318,7 +318,7 @@ Completion notes (2026-03-22):
 
 ### Phase 2A: Extract `u_vcam_look_input.gd`
 
-- [ ] **Task 2A.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_look_input.gd`
+- [x] **Task 2A.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_look_input.gd`
   - Test filter_look_input returns filtered vector with deadzone
   - Test hold timer accumulates during active input
   - Test release decay reduces filtered input over time
@@ -326,16 +326,30 @@ Completion notes (2026-03-22):
   - Test prune/clear_all/clear_for_vcam lifecycle
   - **Target: ~8 tests**
 
-- [ ] **Task 2A.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_look_input.gd`
+- [x] **Task 2A.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_look_input.gd`
   - Extract `_resolve_filtered_look_input`, `_is_filtered_look_input_active` from s_vcam_system.gd
   - Move `_look_input_filter_state` dict, look filter constants, debug log functions
   - API: `filter_look_input(vcam_id, raw_input, response_values, delta) -> Vector2`
   - API: `is_active(filtered_input, response_values) -> bool`
   - API: `prune(active_vcam_ids)`, `clear_all()`, `clear_for_vcam(vcam_id)`
 
-- [ ] **Task 2A.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamLookInput`
+- [x] **Task 2A.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamLookInput`
   - Replace inline calls with `_look_input_helper.filter_look_input(...)`
   - Verify all existing tests pass
+
+Completion notes (2026-03-22):
+- Added `scripts/ecs/systems/helpers/u_vcam_look_input.gd` (`U_VCamLookInput`) with extracted look-filter state + API (`filter_look_input`, `is_active`, `prune`, `clear_all`, `clear_for_vcam`).
+- Added dedicated helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_look_input.gd` (`8/8`).
+- Refactored `S_VCamSystem` to delegate look-input filtering/lifecycle to `_look_input_helper`:
+  - removed inlined look-filter constants/state/functions from `s_vcam_system.gd`
+  - replaced `_resolve_filtered_look_input` / `_is_filtered_look_input_active` call sites with helper APIs
+  - delegated prune/clear lifecycle to helper and reused helper defaults in response signatures
+- Updated style enforcement to recognize helper prefixing in `scripts/ecs/systems/helpers` (`u_`).
+- Updated `tests/unit/ecs/systems/test_vcam_system.gd` look-filter spike test to validate via `U_VCamLookInput` state snapshot.
+- Validation runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_look_input.gd` (`8/8`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 2B: Extract `u_vcam_rotation.gd`
 
