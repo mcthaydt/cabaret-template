@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phases `2A`-`2H` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed; `2F` dropped). Phase 3 helper extraction is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, Phases `2A`-`2H`, and Phase `3A` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed; `2F` dropped). Phase 3 docs/commit closure (`3B`) is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 3 blend-manager decomposition (`3A` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: Phase `3A` (`U_VCamBlendManager`) Red/Green/Refactor extraction from `m_vcam_manager.gd`.
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through Phase 3 blend-manager decomposition and closure (`3B` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
+- Immediate implementation target: Phase `3B` implementation/docs commit closure for completed `3A` blend-manager extraction.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -266,7 +266,27 @@
     - `207d8f16` (`U_VCamRuntimeServices` extraction)
     - `04cafaa4` (`U_VCamEffectPipeline` extraction, `S_VCamSystem` now `528` lines)
   - documentation cadence completed (`vcam-refactor-tasks.md` + this continuation prompt)
-- Phase 3 is now unblocked (`3A` blend helper extraction kickoff).
+- Phase 3A is now complete; Phase 3B docs/commit closure is next.
+
+## Refactor Phase 3A (March 22, 2026, Complete)
+
+- Completed `U_VCamBlendManager` helper extraction from `M_VCamManager` with Red/Green/Refactor cadence:
+  - added `scripts/managers/helpers/u_vcam_blend_manager.gd` to own live-blend and startup-blend state machines
+  - helper API now covers transition config/advance, blend-state queries, startup queue/resolve, reentrant snapshot sourcing, invalid-member recovery, and full clear lifecycle
+  - added compatibility completion signal for distance-threshold blend cuts so manager dispatch/event semantics remain unchanged
+- Added dedicated helper coverage:
+  - `tests/unit/managers/helpers/test_vcam_blend_manager.gd` (`10/10`)
+  - covers live transition setup, progress/completion, startup blend queue+transform behavior, invalid-member recovery reasons, and reentrant snapshot blend sourcing
+- Refactor wiring in `m_vcam_manager.gd`:
+  - removed inline live/startup blend state variables and transition/advance/recovery/startup state-machine internals
+  - manager now delegates blend runtime behavior to `_blend_manager`
+  - preserved observability/event ordering and existing integration probe surfaces (compatibility debug fields `_blend_trans_type`, `_blend_ease_type`)
+  - manager line count reduced to `905` lines (Phase 3 exit-size target `~600-700` remains follow-up work)
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/helpers/test_vcam_blend_manager.gd` (`10/10`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/test_vcam_manager.gd` (`45/45`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/integration/vcam/test_vcam_blend.gd` (`5/5`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1154,6 +1174,7 @@
 - Runtime wiring is now explicit: `M_VCamManager` belongs in `scenes/root.tscn`, and `S_VCamSystem` belongs in gameplay system trees.
 - Phase 12 integration coverage is now implementation-backed with dedicated `tests/integration/vcam/*` suites for state/runtime/blend/mobile/occlusion paths (`29/29` passing).
 - Blend observability ordering is now explicit: `M_VCamManager` dispatches `vcam/set_active_runtime` before `vcam/start_blend` so reducer `blend_to_vcam_id` reflects the incoming active camera during live blends.
+- Phase 3A blend decomposition is now implementation-backed: live/startup blend state machines are extracted to `U_VCamBlendManager`, and `M_VCamManager` delegates transition/advance/recovery/startup blend runtime through that helper while preserving blend lifecycle dispatch/event ordering.
 - vCam top-level docs are now status-aligned: overview/PRD/task index/continuation now mark Phases 2A-5 plus 6A/6B/6A2/6A.3/6A3a/6A3b/6A3c and Phase 8 orbit feel/data/runtime subphases 2C1-2C11 complete.
 - Orbit follow-up backlog planning is now explicit: `docs/vcam_manager/vcam-orbit-tasks.md` marks `2C11` complete, and mobile drag-look/touch gating prerequisites are now complete in `docs/vcam_manager/vcam-base-tasks.md` (Phase 7A/7B/7B2/7C).
 - `S_VCamSystem` baseline contract is now implementation-backed: manager resolution, target resolution fallback order, blend-aware active/outgoing evaluation, and same-frame submission are in code/tests.
@@ -1231,6 +1252,7 @@
 - `docs/vcam_manager/vcam-manager-tasks.md`
 - `docs/vcam_manager/vcam-refactor-tasks.md`
 - `scripts/managers/m_vcam_manager.gd`
+- `scripts/managers/helpers/u_vcam_blend_manager.gd`
 - `scripts/managers/m_camera_manager.gd`
 - `scripts/interfaces/i_camera_manager.gd`
 - `tests/mocks/mock_camera_manager.gd`
@@ -1291,8 +1313,8 @@
 
 ## Next Steps
 
-1. Execute Phase `3A` Red/Green/Refactor for `U_VCamBlendManager` extraction from `M_VCamManager`.
-2. Continue through Phase `3B` manager wiring and Phase `3C` state migration once `3A` helper extraction is complete.
+1. Execute Phase `3B` commit/docs closure for completed Phase `3A` blend-manager extraction.
+2. Begin the next decomposition slice after `3B` closure (state migration follow-up per `vcam-refactor-tasks.md`).
 3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `3`-`5`.
 
 ## Key Decisions To Preserve

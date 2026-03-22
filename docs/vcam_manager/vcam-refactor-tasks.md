@@ -575,7 +575,7 @@ Completion notes (2026-03-22):
 
 ### Phase 3A: Extract `u_vcam_blend_manager.gd`
 
-- [ ] **Task 3A.1 (Red)**: Write `tests/unit/managers/helpers/test_vcam_blend_manager.gd`
+- [x] **Task 3A.1 (Red)**: Write `tests/unit/managers/helpers/test_vcam_blend_manager.gd`
   - Test configure_transition sets up blend state
   - Test advance progresses blend and completes at duration
   - Test is_active/get_progress reflect blend state
@@ -584,15 +584,31 @@ Completion notes (2026-03-22):
   - Test reentrant blend snapshots current blended pose
   - **Target: ~10 tests**
 
-- [ ] **Task 3A.2 (Green)**: Create `scripts/managers/helpers/u_vcam_blend_manager.gd`
+- [x] **Task 3A.2 (Green)**: Create `scripts/managers/helpers/u_vcam_blend_manager.gd`
   - Extract live blend + startup blend state machines from m_vcam_manager.gd
   - Move all blend state variables
   - API: `configure_transition(...)`, `advance(delta)`, `is_active()`, `get_progress()`, `queue_startup_blend(...)`, `resolve_startup_transform(...)`, `recover_invalid_members(...)`, `clear()`
 
-- [ ] **Task 3A.3 (Refactor)**: Wire m_vcam_manager.gd to use `U_VCamBlendManager`
+- [x] **Task 3A.3 (Refactor)**: Wire m_vcam_manager.gd to use `U_VCamBlendManager`
   - Replace inline blend logic with helper delegation
   - Verify all existing blend tests pass
   - Verify manager is ~600–700 lines
+
+Completion notes (2026-03-22):
+- Added `tests/unit/managers/helpers/test_vcam_blend_manager.gd` (`10/10`) as the Phase 3A Red suite for:
+  - transition setup/progress/completion
+  - startup blend queue + transform resolution (including cut threshold)
+  - invalid-member recovery (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`)
+  - reentrant snapshot source behavior
+- Added `scripts/managers/helpers/u_vcam_blend_manager.gd` and extracted live/startup blend state machines out of `M_VCamManager`.
+- Refactored `scripts/managers/m_vcam_manager.gd` to delegate blend transition, advance, recovery, startup queue/resolve, and cut-completion handling to `_blend_manager` while preserving event/dispatch ordering.
+- Kept compatibility debug probe fields (`_blend_trans_type`, `_blend_ease_type`) in `M_VCamManager` for existing integration test surfaces.
+- `M_VCamManager` size after extraction is `905` lines; the Phase 3 exit-size target (`~600–700`) remains a follow-up item for the next decomposition pass.
+- Validation runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/helpers/test_vcam_blend_manager.gd` (`10/10`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/test_vcam_manager.gd` (`45/45`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/integration/vcam/test_vcam_blend.gd` (`5/5`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 3B: Phase 3 commit + docs
 
