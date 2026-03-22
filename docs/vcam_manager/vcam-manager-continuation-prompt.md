@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phases `2A`-`2D` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2E` is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, and Phases `2A`-`2E` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed). Phase `2G` is next (`2F` dropped).
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` into Phase 2 helper extraction (`2E` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: Phase `2E` (`U_VCamLandingImpact`) Red/Green/Refactor extraction from `s_vcam_system.gd`.
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` through Phase 2 coordinator cleanup (`2G` onward). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
+- Immediate implementation target: Phase `2G` coordinator cleanup pass in `s_vcam_system.gd` after helper extraction.
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -197,6 +197,23 @@
   - `tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`8/8`)
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`8/8`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
+
+## Refactor Phase 2E (March 22, 2026)
+
+- Completed landing-impact helper extraction (`U_VCamLandingImpact`):
+  - added `scripts/ecs/systems/helpers/u_vcam_landing_impact.gd` with landing event normalization/state (`record_landing_event`, `normalize_fall_speed`)
+  - helper now owns landing-impact recovery state and APIs (`resolve_offset`, `apply_offset`, `clear_state`)
+- `S_VCamSystem` refactor wiring:
+  - removed inline landing recovery members (`_landing_recovery_dynamics`, `_landing_recovery_state_id`, `_landing_recovery_frequency_hz`)
+  - `_resolve_landing_impact_offset(...)` now delegates to `_landing_impact_helper.resolve_offset(...)`
+  - `_apply_landing_impact_offset(...)` now delegates offset application to helper while retaining debug status logging
+  - `_exit_tree()` now clears landing helper state via `_landing_impact_helper.clear_state()`
+- Added helper coverage:
+  - `tests/unit/ecs/systems/helpers/test_vcam_landing_impact.gd` (`6/6`)
+- Validation run (March 22, 2026):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_landing_impact.gd` (`6/6`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
@@ -1222,9 +1239,8 @@
 
 ## Next Steps
 
-1. Execute Phase `2E` Red/Green/Refactor (`U_VCamLandingImpact` extraction + dedicated helper tests).
-2. Continue Phase `2G` coordinator cleanup once helper extraction phases are complete.
-3. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
+1. Execute Phase `2G` coordinator cleanup in `s_vcam_system.gd` now that helper extraction through `2E` is complete.
+2. Keep mandatory per-phase doc cadence and separate docs commits through Phases `2`-`5`.
 
 ## Key Decisions To Preserve
 

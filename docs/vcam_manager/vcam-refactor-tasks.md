@@ -461,19 +461,34 @@ Completion notes (2026-03-22):
 
 ### Phase 2E: Extract `u_vcam_landing_impact.gd`
 
-- [ ] **Task 2E.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_landing_impact.gd`
+- [x] **Task 2E.1 (Red)**: Write `tests/unit/ecs/systems/helpers/test_vcam_landing_impact.gd`
   - Test landing event normalizes fall speed to 0–1
   - Test resolve_offset returns recovery dynamics result
   - Test apply_offset modifies transform origin
   - Test clear resets all state
   - **Target: ~6 tests**
 
-- [ ] **Task 2E.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_landing_impact.gd`
+- [x] **Task 2E.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_landing_impact.gd`
   - Extract landing event handling, impact offset dynamics, recovery state
   - Move `_landing_recovery_dynamics`, `_landing_recovery_state_id`, `_landing_recovery_frequency_hz`, `_landing_response_event_serial/normalized`
 
-- [ ] **Task 2E.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamLandingImpact`
+- [x] **Task 2E.3 (Refactor)**: Wire s_vcam_system.gd to use `U_VCamLandingImpact`
   - Verify all existing tests pass
+
+Completion notes (2026-03-22):
+- Added `scripts/ecs/systems/helpers/u_vcam_landing_impact.gd` (`U_VCamLandingImpact`) with extracted:
+  - landing event normalization/state tracking (`record_landing_event`, `normalize_fall_speed`)
+  - landing-impact recovery state ownership (`_landing_recovery_dynamics`, state-id/frequency tracking)
+  - landing offset APIs (`resolve_offset`, `apply_offset`) plus helper lifecycle reset (`clear_state`)
+- Added dedicated helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_landing_impact.gd` (`6/6`).
+- Refactored `S_VCamSystem` to delegate Phase 2E responsibilities to `_landing_impact_helper`:
+  - removed inline landing-impact recovery state fields and `_clear_landing_impact_recovery_state(...)`
+  - `_resolve_landing_impact_offset(...)` now routes through helper callbacks
+  - `_apply_landing_impact_offset(...)` now delegates offset application to helper while preserving debug transition logging
+- Validation runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_landing_impact.gd` (`6/6`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 2F: ~~Extract `u_vcam_first_person_effects.gd`~~ *(DROPPED — Phase 1I removed first-person mode)*
 
