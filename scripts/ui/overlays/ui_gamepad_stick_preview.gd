@@ -16,7 +16,7 @@ var _left_raw: Vector2 = Vector2.ZERO
 var _right_raw: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(320, 200)
+	custom_minimum_size = Vector2(300, 160)
 
 func set_left_vector(value: Vector2) -> void:
 	_left_vector = value

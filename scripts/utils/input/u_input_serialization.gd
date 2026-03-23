@@ -91,7 +91,8 @@ static func _sanitize_loaded_settings(data: Dictionary) -> Dictionary:
 				"left_stick_deadzone": Vector2(0.0, 0.9),
 				"right_stick_deadzone": Vector2(0.0, 0.9),
 				"trigger_deadzone": Vector2(0.0, 0.9),
-				"vibration_intensity": Vector2(0.0, 1.0)
+				"vibration_intensity": Vector2(0.0, 1.0),
+				"right_stick_sensitivity": Vector2(0.1, 5.0)
 			}
 		)
 		sanitized["gamepad_settings"]["vibration_enabled"] = bool(

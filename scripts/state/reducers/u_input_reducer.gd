@@ -240,6 +240,13 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 					pad_settings["right_stick_deadzone"] = value
 			return _with_values(current, {"gamepad_settings": pad_settings})
 
+		U_InputActions.ACTION_UPDATE_GAMEPAD_SENSITIVITY:
+			var sensitivity_payload: Dictionary = action.get("payload", {})
+			var sensitivity_value: float = clampf(float(sensitivity_payload.get("sensitivity", 1.0)), 0.1, 5.0)
+			var pad_sensitivity_settings: Dictionary = _duplicate_dict(current.get("gamepad_settings", {}))
+			pad_sensitivity_settings["right_stick_sensitivity"] = sensitivity_value
+			return _with_values(current, {"gamepad_settings": pad_sensitivity_settings})
+
 		U_InputActions.ACTION_TOGGLE_VIBRATION:
 			var toggle_payload: Dictionary = action.get("payload", {})
 			var pad_toggle: Dictionary = _duplicate_dict(current.get("gamepad_settings", {}))

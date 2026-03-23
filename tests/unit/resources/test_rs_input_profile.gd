@@ -159,3 +159,40 @@ func test_default_gamepad_profiles_keep_sprint_on_left_stick() -> void:
 			if event is InputEventJoypadButton and (event as InputEventJoypadButton).button_index == JOY_BUTTON_LEFT_STICK:
 				has_l3 = true
 		assert_true(has_l3, "Profile %s should keep sprint on L3 by default" % profile_path)
+
+func test_default_gamepad_profiles_bind_look_actions_to_right_stick_axes() -> void:
+	var profiles := [
+		"res://resources/input/profiles/cfg_default_gamepad.tres",
+		"res://resources/input/profiles/cfg_accessibility_gamepad.tres"
+	]
+	var expected := {
+		StringName("look_left"): {"axis": JOY_AXIS_RIGHT_X, "axis_value": -1.0},
+		StringName("look_right"): {"axis": JOY_AXIS_RIGHT_X, "axis_value": 1.0},
+		StringName("look_up"): {"axis": JOY_AXIS_RIGHT_Y, "axis_value": -1.0},
+		StringName("look_down"): {"axis": JOY_AXIS_RIGHT_Y, "axis_value": 1.0},
+	}
+
+	for profile_path in profiles:
+		var profile: RS_InputProfile = load(profile_path)
+		assert_not_null(profile, "Profile loaded: %s" % profile_path)
+		for action_name in expected.keys():
+			var events := profile.get_events_for_action(action_name)
+			var action_expectation: Dictionary = expected[action_name]
+			var expected_axis: int = int(action_expectation.get("axis", -1))
+			var expected_axis_value: float = float(action_expectation.get("axis_value", 0.0))
+			var has_expected_axis := false
+			for event in events:
+				if event is InputEventJoypadMotion:
+					var motion := event as InputEventJoypadMotion
+					if motion.axis == expected_axis and is_equal_approx(motion.axis_value, expected_axis_value):
+						has_expected_axis = true
+						break
+			assert_true(
+				has_expected_axis,
+				"Profile %s action %s should use right-stick axis %d @ %.1f" % [
+					profile_path,
+					String(action_name),
+					expected_axis,
+					expected_axis_value
+				]
+			)

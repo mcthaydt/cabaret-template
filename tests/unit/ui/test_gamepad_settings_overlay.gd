@@ -97,6 +97,7 @@ func test_overlay_populates_values_from_store() -> void:
 	_store.dispatch(U_InputActions.update_gamepad_deadzone("right", 0.35))
 	_store.dispatch(U_InputActions.toggle_vibration(false))
 	_store.dispatch(U_InputActions.set_vibration_intensity(0.5))
+	_store.dispatch(U_InputActions.update_gamepad_sensitivity(1.75))
 	await _pump()
 
 	var overlay := OverlayScene.instantiate()
@@ -108,11 +109,13 @@ func test_overlay_populates_values_from_store() -> void:
 
 	var left_slider: HSlider = overlay.get_node("%LeftDeadzoneSlider")
 	var right_slider: HSlider = overlay.get_node("%RightDeadzoneSlider")
+	var right_sensitivity_slider: HSlider = overlay.get_node("%RightSensitivitySlider")
 	var vibration_checkbox: CheckButton = overlay.get_node("%VibrationCheck")
 	var vibration_slider: HSlider = overlay.get_node("%VibrationSlider")
 
 	assert_almost_eq(left_slider.value, 0.45, 0.001)
 	assert_almost_eq(right_slider.value, 0.35, 0.001)
+	assert_almost_eq(right_sensitivity_slider.value, 1.75, 0.001)
 	assert_false(vibration_checkbox.button_pressed)
 	assert_almost_eq(vibration_slider.value, 0.5, 0.001)
 
@@ -128,6 +131,8 @@ func test_apply_updates_state_settings() -> void:
 	left_slider.value = 0.6
 	var right_slider: HSlider = overlay.get_node("%RightDeadzoneSlider")
 	right_slider.value = 0.1
+	var right_sensitivity_slider: HSlider = overlay.get_node("%RightSensitivitySlider")
+	right_sensitivity_slider.value = 2.4
 	var vibration_checkbox: CheckButton = overlay.get_node("%VibrationCheck")
 	vibration_checkbox.button_pressed = false
 	var vibration_slider: HSlider = overlay.get_node("%VibrationSlider")
@@ -139,9 +144,14 @@ func test_apply_updates_state_settings() -> void:
 	await _pump()
 	await _pump()
 
-	assert_eq(_store.dispatched_actions.size(), 5, "Overlay should dispatch four input actions plus one navigation close action")
+	assert_eq(_store.dispatched_actions.size(), 6, "Overlay should dispatch five input actions plus one navigation close action")
 	var close_after := _count_navigation_close_or_return_actions()
 	assert_eq(close_after, close_before + 1, "Apply should dispatch a single navigation close/navigation return action")
+
+	var state: Dictionary = _store.get_state()
+	var input_settings: Dictionary = (state.get("settings", {}) as Dictionary).get("input_settings", {})
+	var gamepad_settings: Dictionary = input_settings.get("gamepad_settings", {})
+	assert_almost_eq(float(gamepad_settings.get("right_stick_sensitivity", 0.0)), 2.4, 0.001)
 
 func test_vibration_toggle_does_not_use_expand_fill_layout() -> void:
 	var overlay := OverlayScene.instantiate()
@@ -156,6 +166,21 @@ func test_vibration_toggle_does_not_use_expand_fill_layout() -> void:
 			vibration_checkbox.size_flags_horizontal,
 			Control.SIZE_EXPAND_FILL,
 			"Vibration toggle should not stretch across the full row"
+		)
+
+func test_overlay_layout_remains_compact_after_adding_sensitivity_row() -> void:
+	var overlay := OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+	await _pump()
+
+	var motion_host := overlay.get_node_or_null("%MainPanelMotionHost") as Control
+	assert_not_null(motion_host, "MainPanelMotionHost should exist")
+	if motion_host != null:
+		assert_lte(
+			motion_host.custom_minimum_size.y,
+			540.0,
+			"Gamepad settings panel should stay compact enough to avoid forcing scroll"
 		)
 
 func _pump() -> void:

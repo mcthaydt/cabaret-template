@@ -13,6 +13,7 @@ const INPUT_SETTINGS_ACTIONS := [
 	"input/rebind_action",
 	"input/reset_bindings",
 	"input/update_gamepad_deadzone",
+	"input/update_gamepad_sensitivity",
 	"input/toggle_vibration",
 	"input/set_vibration_intensity",
 	"input/update_mouse_sensitivity",

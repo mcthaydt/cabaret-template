@@ -38,7 +38,7 @@ grow_vertical = 2
 
 [node name="MainPanelMotionHost" type="Control" parent="CenterContainer" unique_id=1752036848]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(680, 560)
+custom_minimum_size = Vector2(640, 540)
 layout_mode = 2
 
 [node name="MainPanel" type="PanelContainer" parent="CenterContainer/MainPanelMotionHost" unique_id=1118604342]
@@ -114,6 +114,32 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "0.20"
+horizontal_alignment = 1
+
+[node name="RightSensitivityRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=508611092]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RightSensitivityLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/RightSensitivityRow" unique_id=2091205338]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RightSensitivitySlider" type="HSlider" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/RightSensitivityRow" unique_id=1307321548]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 5.0
+step = 0.01
+value = 1.0
+
+[node name="RightSensitivityValue" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/RightSensitivityRow" unique_id=874130593]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "1.00"
 horizontal_alignment = 1
 
 [node name="VibrationEnableRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=698681649]

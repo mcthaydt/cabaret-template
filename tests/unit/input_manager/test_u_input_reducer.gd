@@ -115,6 +115,27 @@ func test_update_gamepad_deadzone_updates_requested_stick() -> void:
 	var pad_settings: Dictionary = reduced.get("gamepad_settings", {})
 	assert_almost_eq(pad_settings.get("left_stick_deadzone", 0.0), 0.35, 0.0001)
 
+func test_update_gamepad_sensitivity_updates_and_clamps_value() -> void:
+	var settings := _make_settings_state()
+	var reduced_low: Variant = INPUT_REDUCER.reduce_input_settings(
+		settings,
+		U_InputActions.update_gamepad_sensitivity(0.01)
+	)
+	var reduced_high: Variant = INPUT_REDUCER.reduce_input_settings(
+		settings,
+		U_InputActions.update_gamepad_sensitivity(99.0)
+	)
+	assert_almost_eq(
+		float((reduced_low as Dictionary).get("gamepad_settings", {}).get("right_stick_sensitivity", 0.0)),
+		0.1,
+		0.0001
+	)
+	assert_almost_eq(
+		float((reduced_high as Dictionary).get("gamepad_settings", {}).get("right_stick_sensitivity", 0.0)),
+		5.0,
+		0.0001
+	)
+
 func test_toggle_vibration_updates_flag() -> void:
 	var settings := _make_settings_state()
 	var action := U_InputActions.toggle_vibration(false)

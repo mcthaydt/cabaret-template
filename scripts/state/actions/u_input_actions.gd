@@ -17,6 +17,7 @@ const ACTION_PROFILE_SWITCHED := StringName("input/profile_switched")
 const ACTION_REBIND_ACTION := StringName("input/rebind_action")
 const ACTION_RESET_BINDINGS := StringName("input/reset_bindings")
 const ACTION_UPDATE_GAMEPAD_DEADZONE := StringName("input/update_gamepad_deadzone")
+const ACTION_UPDATE_GAMEPAD_SENSITIVITY := StringName("input/update_gamepad_sensitivity")
 const ACTION_TOGGLE_VIBRATION := StringName("input/toggle_vibration")
 const ACTION_SET_VIBRATION_INTENSITY := StringName("input/set_vibration_intensity")
 const ACTION_UPDATE_MOUSE_SENSITIVITY := StringName("input/update_mouse_sensitivity")
@@ -70,6 +71,9 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_RESET_BINDINGS)
 	U_ActionRegistry.register_action(ACTION_UPDATE_GAMEPAD_DEADZONE, {
 		"required_fields": ["stick", "deadzone"]
+	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_GAMEPAD_SENSITIVITY, {
+		"required_fields": ["sensitivity"]
 	})
 	U_ActionRegistry.register_action(ACTION_TOGGLE_VIBRATION, {
 		"required_fields": ["enabled"]
@@ -229,6 +233,15 @@ static func update_gamepad_deadzone(stick: String, deadzone: float) -> Dictionar
 		"payload": {
 			"stick": stick,
 			"deadzone": deadzone
+		}
+	}
+
+## Update right stick camera sensitivity multiplier.
+static func update_gamepad_sensitivity(sensitivity: float) -> Dictionary:
+	return {
+		"type": ACTION_UPDATE_GAMEPAD_SENSITIVITY,
+		"payload": {
+			"sensitivity": sensitivity
 		}
 	}
 

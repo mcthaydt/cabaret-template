@@ -107,6 +107,11 @@ func test_update_gamepad_deadzone_payload_contains_stick_and_value() -> void:
 	assert_eq(payload.get("stick", ""), "left")
 	assert_almost_eq(payload.get("deadzone", 0.0), 0.42, 0.0001)
 
+func test_update_gamepad_sensitivity_payload_contains_value() -> void:
+	var action := U_InputActions.update_gamepad_sensitivity(1.8)
+	var payload := _assert_action_structure(action, U_InputActions.ACTION_UPDATE_GAMEPAD_SENSITIVITY)
+	assert_almost_eq(payload.get("sensitivity", 0.0), 1.8, 0.0001)
+
 func test_toggle_vibration_payload_contains_enabled_flag() -> void:
 	var action := U_InputActions.toggle_vibration(false)
 	var payload := _assert_action_structure(action, U_InputActions.ACTION_TOGGLE_VIBRATION)
@@ -185,6 +190,7 @@ func test_created_actions_validate_with_action_registry() -> void:
 		U_InputActions.rebind_action(StringName("move_forward"), {"type": "key", "keycode": 87}),
 		U_InputActions.reset_bindings(),
 		U_InputActions.update_gamepad_deadzone("right", 0.2),
+		U_InputActions.update_gamepad_sensitivity(1.1),
 		U_InputActions.toggle_vibration(true),
 		U_InputActions.set_vibration_intensity(0.5),
 		U_InputActions.update_mouse_sensitivity(0.9),
@@ -222,6 +228,7 @@ func _get_action_constants() -> Array[StringName]:
 		U_InputActions.ACTION_REBIND_ACTION,
 		U_InputActions.ACTION_RESET_BINDINGS,
 		U_InputActions.ACTION_UPDATE_GAMEPAD_DEADZONE,
+		U_InputActions.ACTION_UPDATE_GAMEPAD_SENSITIVITY,
 		U_InputActions.ACTION_TOGGLE_VIBRATION,
 		U_InputActions.ACTION_SET_VIBRATION_INTENSITY,
 		U_InputActions.ACTION_UPDATE_MOUSE_SENSITIVITY,

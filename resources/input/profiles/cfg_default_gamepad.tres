@@ -19,6 +19,26 @@ action_mappings = {
 "button_index": 0,
 "type": "joypad_button"
 }],
+"look_down": [{
+"axis": 3,
+"axis_value": 1.0,
+"type": "joypad_motion"
+}],
+"look_left": [{
+"axis": 2,
+"axis_value": -1.0,
+"type": "joypad_motion"
+}],
+"look_right": [{
+"axis": 2,
+"axis_value": 1.0,
+"type": "joypad_motion"
+}],
+"look_up": [{
+"axis": 3,
+"axis_value": -1.0,
+"type": "joypad_motion"
+}],
 "move_backward": [{
 "axis": 1,
 "axis_value": 1.0,
