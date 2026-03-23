@@ -28,6 +28,8 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_conf
 @onready var _language_settings_button: Button = %LanguageSettingsButton
 @onready var _rebind_controls_button: Button = %RebindControlsButton
 
+@export var emulate_mobile_override: bool = false
+
 const SETTINGS_OVERLAY_ID := StringName("settings_menu_overlay")
 const OVERLAY_INPUT_PROFILE := StringName("input_profile_selector")
 const OVERLAY_GAMEPAD_SETTINGS := StringName("gamepad_settings")
@@ -143,10 +145,7 @@ func _on_rebind_controls_pressed() -> void:
 func _update_button_visibility(state: Dictionary) -> void:
 	var has_gamepad: bool = U_InputSelectors.is_gamepad_connected(state)
 	var device_type: int = U_InputSelectors.get_active_device_type(state)
-	var is_mobile: bool = OS.has_feature("mobile")
-	var args: PackedStringArray = OS.get_cmdline_args()
-	var is_emulated_mobile: bool = args.has("--emulate-mobile")
-	var is_mobile_context: bool = is_mobile or is_emulated_mobile
+	var is_mobile_context: bool = _is_mobile_context()
 	var is_gamepad_active: bool = (device_type == M_InputDeviceManager.DeviceType.GAMEPAD)
 
 	if device_type != _last_device_type:
@@ -181,13 +180,23 @@ func _update_button_visibility(state: Dictionary) -> void:
 		# on mobile / emulated-mobile builds.
 		_touchscreen_settings_button.visible = is_mobile_context and not is_gamepad_active
 	if _keyboard_mouse_settings_button != null:
-		_keyboard_mouse_settings_button.visible = device_type != M_InputDeviceManager.DeviceType.TOUCHSCREEN
+		# Keyboard/Mouse settings are desktop-only and should never appear
+		# in mobile contexts, even when a gamepad is connected.
+		_keyboard_mouse_settings_button.visible = not is_mobile_context
 	if _rebind_controls_button != null:
 		# Rebind Controls is not relevant in pure touchscreen usage; hide it
 		# whenever the active device is touchscreen.
 		_rebind_controls_button.visible = device_type != M_InputDeviceManager.DeviceType.TOUCHSCREEN
 
 	_configure_focus_neighbors()
+
+func _is_mobile_context() -> bool:
+	if emulate_mobile_override:
+		return true
+	if OS.has_feature("mobile"):
+		return true
+	var args: PackedStringArray = OS.get_cmdline_args()
+	return args.has("--emulate-mobile")
 
 func _configure_focus_neighbors() -> void:
 	var buttons: Array[Control] = []

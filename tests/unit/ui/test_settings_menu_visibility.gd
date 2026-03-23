@@ -174,6 +174,37 @@ func test_rebind_controls_hidden_when_touchscreen_is_active() -> void:
 		"Rebind Controls should remain hidden when the active device is touchscreen, even if a gamepad is connected"
 	)
 
+func test_keyboard_mouse_settings_hidden_in_mobile_context() -> void:
+	await _create_state_store()
+	var settings_menu := await _create_settings_menu()
+	settings_menu.emulate_mobile_override = true
+
+	var keyboard_mouse_button: Button = settings_menu.get_node("%KeyboardMouseSettingsButton")
+
+	var state_keyboard_mouse_active := {
+		"input": {
+			"gamepad_connected": false,
+			"active_device_type": M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE,
+		}
+	}
+	settings_menu._update_button_visibility(state_keyboard_mouse_active)
+	assert_false(
+		keyboard_mouse_button.visible,
+		"Keyboard/Mouse Settings should be hidden in mobile context"
+	)
+
+	var state_gamepad_active := {
+		"input": {
+			"gamepad_connected": true,
+			"active_device_type": M_InputDeviceManager.DeviceType.GAMEPAD,
+		}
+	}
+	settings_menu._update_button_visibility(state_gamepad_active)
+	assert_false(
+		keyboard_mouse_button.visible,
+		"Keyboard/Mouse Settings should remain hidden in mobile context when gamepad is active"
+	)
+
 func _create_state_store() -> M_StateStore:
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
