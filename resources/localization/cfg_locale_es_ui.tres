@@ -45,7 +45,6 @@ translations = {
 "hud.loading_tip_movement": "Consejo: Usa WASD para moverte y Espacio para saltar",
 "hud.loading_tip_pause": "Consejo: Pulsa ESC para pausar",
 "hud.loading_tip_settings": "Consejo: Ajusta la configuración en el menú de pausa",
-"input.action.aim": "Apuntar",
 "input.action.attack": "Ataque",
 "input.action.camera_center": "Centrar Cámara",
 "input.action.camera_down": "Cámara Abajo",

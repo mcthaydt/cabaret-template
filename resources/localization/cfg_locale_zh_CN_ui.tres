@@ -45,7 +45,6 @@ translations = {
 "hud.loading_tip_movement": "提示：使用WASD移动，空格键跳跃",
 "hud.loading_tip_pause": "提示：按ESC键暂停游戏",
 "hud.loading_tip_settings": "提示：随时在暂停菜单中调整设置",
-"input.action.aim": "瞄准",
 "input.action.attack": "攻击",
 "input.action.camera_center": "镜头回中",
 "input.action.camera_down": "镜头下移",

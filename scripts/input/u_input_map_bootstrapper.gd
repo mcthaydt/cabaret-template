@@ -17,7 +17,6 @@ const REQUIRED_ACTIONS: Array[StringName] = [
 	StringName("look_right"),
 	StringName("look_up"),
 	StringName("look_down"),
-	StringName("aim"),
 	StringName("camera_center"),
 	StringName("jump"),
 	StringName("sprint"),

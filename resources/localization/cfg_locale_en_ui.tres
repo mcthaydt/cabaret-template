@@ -44,7 +44,6 @@ translations = {
 "hud.loading_tip_movement": "Tip: Use WASD to move and Space to jump",
 "hud.loading_tip_pause": "Tip: Press ESC to pause the game",
 "hud.loading_tip_settings": "Tip: Adjust settings anytime from the pause menu",
-"input.action.aim": "Aim",
 "input.action.attack": "Attack",
 "input.action.camera_center": "Center Camera",
 "input.action.camera_down": "Camera Down",
