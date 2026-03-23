@@ -233,8 +233,8 @@ func test_camera_category_includes_look_actions() -> void:
 	var rows: Dictionary = rows_value as Dictionary
 	assert_true(rows.has(StringName("look_left")), "Look Left should be listed in camera actions")
 	assert_true(rows.has(StringName("look_right")), "Look Right should be listed in camera actions")
-	assert_true(rows.has(StringName("look_up")), "Look Up should be listed in camera actions")
-	assert_true(rows.has(StringName("look_down")), "Look Down should be listed in camera actions")
+	assert_false(rows.has(StringName("look_up")), "Look Up should not be listed in camera actions (handled by right stick, not rebindable)")
+	assert_false(rows.has(StringName("look_down")), "Look Down should not be listed in camera actions (handled by right stick, not rebindable)")
 	assert_false(rows.has(StringName("aim")), "Aim should not be listed in camera actions")
 	assert_true(rows.has(StringName("camera_center")), "Camera Center should be listed in camera actions")
 

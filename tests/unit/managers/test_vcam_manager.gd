@@ -471,7 +471,7 @@ func test_submit_evaluated_camera_includes_detected_occluders_when_silhouette_en
 	manager.test_occluders = [occluder_a, occluder_b]
 
 	U_ECS_EVENT_BUS.clear_history()
-	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
+	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, 1.0))})
 
 	var payload := _find_last_silhouette_payload()
 	assert_false(payload.is_empty(), "Silhouette event should be published when toggle is enabled")

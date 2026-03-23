@@ -9,7 +9,7 @@ func test_defaults_match_spec() -> void:
 	assert_true(settings.vibration_enabled)
 	assert_almost_eq(settings.vibration_intensity, 1.0, 0.0001)
 	assert_false(settings.invert_y_axis)
-	assert_almost_eq(settings.right_stick_sensitivity, 1.0, 0.0001)
+	assert_almost_eq(settings.right_stick_sensitivity, 2.5, 0.0001)
 	assert_eq(settings.deadzone_curve, RS_GamepadSettings.DeadzoneCurve.LINEAR)
 
 func test_apply_deadzone_zeroes_values_below_threshold() -> void:
