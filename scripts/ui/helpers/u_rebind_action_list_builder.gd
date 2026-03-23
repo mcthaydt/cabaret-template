@@ -279,6 +279,15 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 			var inputmap_events: Array = InputMap.action_get_events(action)
 			filtered_events = _filter_events_by_category(inputmap_events, device_category)
 
+		# If InputMap also lacked events (custom actions like move/camera are
+		# not in Godot's default InputMap), try the device-specific profile
+		# directly so joystick icons appear for move/camera actions.
+		if filtered_events.is_empty() and not profile_events.is_empty():
+			var device_profile: RS_InputProfile = typed_overlay.get_profile_for_device_category(device_category)
+			if device_profile != null:
+				var device_profile_events: Array[InputEvent] = device_profile.get_events_for_action(action)
+				filtered_events = _filter_events_by_category(device_profile_events, device_category)
+
 		var display_events: Array = filtered_events
 		if display_events.is_empty():
 			display_events = source_events
