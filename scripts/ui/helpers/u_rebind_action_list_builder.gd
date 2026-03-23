@@ -269,16 +269,15 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 		else:
 			source_events = InputMap.action_get_events(action)
 
-		var filtered_events: Array[InputEvent] = []
-		for event in source_events:
-			if event is InputEvent:
-				var device_type: String = get_event_device_type(event as InputEvent)
-				if device_category == "gamepad":
-					if device_type == "gamepad":
-						filtered_events.append(event)
-				else:
-					if device_type == "keyboard" or device_type == "mouse" or device_type == "unknown":
-						filtered_events.append(event)
+		var filtered_events: Array[InputEvent] = _filter_events_by_category(source_events, device_category)
+
+		# When the profile lacked events for this device category, try InputMap
+		# as a secondary source. This handles the mobile case where the active
+		# profile is keyboard-only but InputMap contains gamepad bindings from
+		# a separate gamepad profile that was also applied.
+		if filtered_events.is_empty() and not profile_events.is_empty():
+			var inputmap_events: Array = InputMap.action_get_events(action)
+			filtered_events = _filter_events_by_category(inputmap_events, device_category)
 
 		var display_events: Array = filtered_events
 		if display_events.is_empty():
@@ -376,6 +375,19 @@ static func get_event_device_type(event: InputEvent) -> String:
 		return "gamepad"
 	else:
 		return "unknown"
+
+static func _filter_events_by_category(events: Array, category: String) -> Array[InputEvent]:
+	var result: Array[InputEvent] = []
+	for event in events:
+		if event is InputEvent:
+			var device_type: String = get_event_device_type(event as InputEvent)
+			if category == "gamepad":
+				if device_type == "gamepad":
+					result.append(event)
+			else:
+				if device_type == "keyboard" or device_type == "mouse" or device_type == "unknown":
+					result.append(event)
+	return result
 
 static func _collect_actions(overlay: Node) -> Array[StringName]:
 	var actions: Array[StringName] = []
