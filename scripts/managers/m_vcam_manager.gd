@@ -19,6 +19,8 @@ const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
 
 const VCAM_OCCLUSION_COLLISION_MASK: int = 1 << 5
 const DEBUG_OCCLUSION_MAX_PATHS: int = 8
+const OCCLUSION_DETECT_INTERVAL_FRAMES: int = 2
+const OCCLUSION_POSITION_THRESHOLD: float = 0.05
 
 @export var state_store: I_StateStore = null
 @export var camera_manager: I_CAMERA_MANAGER = null
@@ -47,6 +49,9 @@ var _last_valid_applied_result: Dictionary = {}
 var _last_physics_delta: float = 0.0
 var _occluder_results_cache: Array = []
 var _silhouette_clear_published: bool = false
+var _occlusion_frame_counter: int = 0
+var _last_occlusion_camera_pos: Vector3 = Vector3.ZERO
+var _last_occlusion_target_pos: Vector3 = Vector3.ZERO
 
 func _ready() -> void:
 	var service_name := StringName("vcam_manager")
@@ -607,6 +612,19 @@ func _publish_silhouette_update_request_for_active_vcam(
 		_clear_all_silhouettes(entity_id)
 		return
 
+	# --- Throttle: frame-skip ---
+	_occlusion_frame_counter += 1
+	var cam_pos: Vector3 = camera_transform.origin
+	var tgt_pos: Vector3 = follow_target.global_position
+	var cam_moved: bool = _last_occlusion_camera_pos.distance_to(cam_pos) >= OCCLUSION_POSITION_THRESHOLD
+	var tgt_moved: bool = _last_occlusion_target_pos.distance_to(tgt_pos) >= OCCLUSION_POSITION_THRESHOLD
+	var is_interval_frame: bool = (_occlusion_frame_counter % OCCLUSION_DETECT_INTERVAL_FRAMES) == 0
+	if not is_interval_frame and not cam_moved and not tgt_moved:
+		return
+
+	_last_occlusion_camera_pos = cam_pos
+	_last_occlusion_target_pos = tgt_pos
+
 	var occluders := _detect_occluders_for_silhouette(
 		camera_transform,
 		follow_target,
@@ -617,8 +635,8 @@ func _publish_silhouette_update_request_for_active_vcam(
 	_debug_log_occlusion_summary(
 		emit_debug_logs,
 		debug_context,
-		camera_transform.origin,
-		follow_target.global_position,
+		cam_pos,
+		tgt_pos,
 		occluders,
 		safe_occluders
 	)
@@ -728,6 +746,9 @@ func _clear_all_silhouettes(entity_id: StringName) -> void:
 		return
 	_publish_silhouette_update_request(entity_id, [], false)
 	_silhouette_clear_published = true
+	_occlusion_frame_counter = 0
+	_last_occlusion_camera_pos = Vector3.ZERO
+	_last_occlusion_target_pos = Vector3.ZERO
 
 func _is_occlusion_silhouette_enabled() -> bool:
 	var store := _resolve_state_store()

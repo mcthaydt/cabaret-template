@@ -1,7 +1,8 @@
 extends RefCounted
 class_name U_VCamCollisionDetector
 
-const MAX_RAYCAST_HITS: int = 32
+const MAX_RAYCAST_HITS: int = 8
+const MAX_GEOMETRY_SEARCH_DEPTH: int = 3
 const DEBUG_MAX_GEOMETRY_PATHS: int = 6
 
 static func detect_occluders(
@@ -175,20 +176,28 @@ static func _resolve_occluder_geometry(collider: Object) -> GeometryInstance3D:
 	var collider_node := collider as Node
 	if collider_node == null:
 		return null
-	return _find_geometry_descendant(collider_node)
+	return find_geometry_descendant(collider_node)
 
-static func _find_geometry_descendant(node: Node) -> GeometryInstance3D:
+static func find_geometry_descendant(
+	node: Node,
+	max_depth: int = MAX_GEOMETRY_SEARCH_DEPTH,
+	_current_depth: int = 0
+) -> GeometryInstance3D:
 	if node == null or not is_instance_valid(node):
 		return null
 	var geometry := node as GeometryInstance3D
 	if geometry != null:
 		return geometry
+	if _current_depth >= max_depth:
+		return null
 
 	for child_variant in node.get_children():
 		var child := child_variant as Node
 		if child == null:
 			continue
-		var found: GeometryInstance3D = _find_geometry_descendant(child)
+		var found: GeometryInstance3D = find_geometry_descendant(
+			child, max_depth, _current_depth + 1
+		)
 		if found != null:
 			return found
 	return null

@@ -112,6 +112,20 @@ func update_silhouettes(occluders_variant: Variant, enabled: bool = true) -> voi
 	for target_id in stale_ids:
 		_tracked_targets.erase(target_id)
 
+func has_same_targets(occluders: Array) -> bool:
+	var incoming_ids: Dictionary = {}
+	for target_variant in occluders:
+		var target: GeometryInstance3D = _resolve_live_geometry(target_variant)
+		if target == null:
+			continue
+		incoming_ids[target.get_instance_id()] = true
+	if incoming_ids.size() != _tracked_targets.size():
+		return false
+	for tracked_id in _tracked_targets.keys():
+		if not incoming_ids.has(tracked_id):
+			return false
+	return true
+
 func get_active_count() -> int:
 	_prune_invalid_targets()
 	var active_count: int = 0
