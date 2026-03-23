@@ -76,7 +76,6 @@ After every completed phase, update docs immediately so written guidance matches
 
 - Extend `settings.input_settings.touchscreen_settings` with persisted mobile look settings:
   - `look_drag_sensitivity: float = 1.0`
-  - `invert_look_y: bool = false`
 - Keep these settings in the existing input-settings domain. Do not add vCam-specific copies.
 - Extend the touchscreen settings overlay so mobile users can tune drag-look without entering a separate camera settings flow.
 - Add localization keys and overlay-localization coverage for the new touchscreen look controls.
@@ -497,7 +496,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 - `UI_MobileControls` exposes per-frame `look_delta`.
 - `S_TouchscreenSystem` dispatches `U_InputActions.update_look_input(look_delta)` and updates look action strength instead of hard-coding `look_input` and look strength to zero.
 - `S_TouchscreenSystem` also owns `gameplay.touch_look_active` start/end dispatch. If this flag remains a top-level gameplay field, add it to `U_StateSliceManager` gameplay `transient_fields`.
-- Apply persisted `look_drag_sensitivity` and `invert_look_y` from `settings.input_settings.touchscreen_settings`.
+- Apply persisted `look_drag_sensitivity` from `settings.input_settings.touchscreen_settings`.
 - Clear mobile look delta after each dispatch so state remains delta-based like mouse and right-stick input.
 - `S_InputSystem` must not overwrite touchscreen gameplay input with `TouchscreenSource.capture_input()` zeros. When the active device type is touchscreen, gameplay move/look/jump/sprint dispatch for touch input is owned by `S_TouchscreenSystem`.
 

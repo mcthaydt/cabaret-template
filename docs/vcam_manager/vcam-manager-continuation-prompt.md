@@ -952,7 +952,7 @@
 ## Phase 0 Progress (March 10, 2026)
 
 - Completed Phase 0A:
-  - Persisted touchscreen look settings (`look_drag_sensitivity`, `invert_look_y`) through reducer/serialization paths.
+  - Persisted touchscreen look settings (`look_drag_sensitivity`) through reducer/serialization paths.
   - Patched `UI_TouchscreenSettingsOverlay` scene/controller for new controls, localization, and apply/reset flow.
   - Updated touchscreen settings resource defaults and unit/UI localization tests.
 - Completed Phase 0A2:

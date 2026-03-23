@@ -296,8 +296,7 @@ This slice is whole-slice transient. It is not save data and not a player settin
 
 | Slice | Field | Purpose |
 |------|-------|---------|
-| `settings.input_settings.touchscreen_settings` | `look_drag_sensitivity` | mobile drag-look tuning |
-| `settings.input_settings.touchscreen_settings` | `invert_look_y` | mobile drag-look inversion |
+| `settings.input_settings.touchscreen_settings` | `look_drag_sensitivity` | mobile drag-look sensitivity tuning |
 
 ## Camera Modes
 

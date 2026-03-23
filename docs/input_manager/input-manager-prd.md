@@ -14,7 +14,7 @@
 - Shared look path is `gameplay.look_input` for keyboard/mouse, gamepad, and touchscreen.
 - `S_TouchscreenSystem` owns touchscreen look dispatch (drag-look) into that shared path.
 - `S_InputSystem` must not overwrite touchscreen-owned move/look with zero `TouchscreenSource` payloads while touchscreen is active.
-- Touch look tuning persists in `settings.input_settings.touchscreen_settings` (`look_drag_sensitivity`, `invert_look_y`).
+- Touch look tuning persists in `settings.input_settings.touchscreen_settings` (`look_drag_sensitivity`).
 - Legacy snippets below that use group-based manager discovery are historical; current implementation should use ServiceLocator lookups and typed injection-first helpers.
 
 ## Problem Statement

@@ -14,7 +14,7 @@
 - Shared look path is `gameplay.look_input` across desktop, gamepad, and touchscreen.
 - `S_TouchscreenSystem` owns touchscreen look dispatch from `UI_MobileControls` drag-look data.
 - `S_InputSystem` must not zero-clobber touchscreen move/look payloads when touchscreen is the active source.
-- Touch look tuning persists in `settings.input_settings.touchscreen_settings` (`look_drag_sensitivity`, `invert_look_y`) and feeds the shared look path.
+- Touch look tuning persists in `settings.input_settings.touchscreen_settings` (`look_drag_sensitivity`) and feeds the shared look path.
 - References below that imply group-based discovery or touchscreen look bypassing Redux should be treated as historical.
 
 The Input Manager system provides comprehensive multi-device input support for the game, enabling keyboard/mouse, gamepad, and touchscreen inputs with rebinding, profiles, and accessibility features. The system integrates with the existing ECS architecture and Redux-based M_StateStore while maintaining the project's no-autoload pattern. Key features include:

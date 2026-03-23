@@ -16,7 +16,7 @@
 - Shared camera look contract remains `gameplay.look_input`.
 - `S_TouchscreenSystem` owns touchscreen drag-look dispatch.
 - `S_InputSystem` must preserve touchscreen-owned move/look values when touchscreen is active (no zero-clobber).
-- Touch look persistence is in `settings.input_settings.touchscreen_settings` (`look_drag_sensitivity`, `invert_look_y`).
+- Touch look persistence is in `settings.input_settings.touchscreen_settings` (`look_drag_sensitivity`).
 - Historical notes that mention group-based manager lookup reflect pre-cleanup snapshots; implementation should use ServiceLocator/injection-first discovery.
 
 ## Phase 0: Research & Architecture Validation
