@@ -44,7 +44,6 @@ const DEFAULT_INPUT_SETTINGS_STATE := {
 		"joystick_deadzone": 0.15,
 		"button_opacity": 0.8,
 		"look_drag_sensitivity": 1.0,
-		"invert_look_y": false,
 		"custom_joystick_position": Vector2(-1, -1),
 		"custom_button_positions": {},
 		"custom_button_sizes": {},
@@ -522,7 +521,7 @@ static func _sanitize_touchscreen_settings(source: Dictionary) -> Dictionary:
 	if sanitized.has("look_drag_sensitivity"):
 		sanitized["look_drag_sensitivity"] = clampf(float(sanitized.get("look_drag_sensitivity", 1.0)), 0.1, 5.0)
 	if sanitized.has("invert_look_y"):
-		sanitized["invert_look_y"] = bool(sanitized.get("invert_look_y", false))
+		sanitized.erase("invert_look_y")
 	return sanitized
 
 ## Returns device type category for an event dictionary.

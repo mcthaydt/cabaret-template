@@ -53,7 +53,6 @@ var _look_touch_last_position: Vector2 = Vector2.ZERO
 var _pending_look_delta: Vector2 = Vector2.ZERO
 var _touch_look_active: bool = false
 var _look_drag_sensitivity: float = 1.0
-var _invert_look_y: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -244,8 +243,6 @@ func _handle_look_touch_drag(event: InputEventScreenDrag) -> void:
 		return
 	_touch_look_active = true
 	var look_delta := drag_delta * _look_drag_sensitivity
-	if _invert_look_y:
-		look_delta.y *= -1.0
 	_pending_look_delta += look_delta
 	_on_input_activity()
 
@@ -333,7 +330,6 @@ func _apply_touchscreen_settings(settings: Dictionary) -> void:
 		0.1,
 		5.0
 	)
-	_invert_look_y = bool(settings.get("invert_look_y", _default_touchscreen_settings.invert_look_y))
 
 	if _joystick != null:
 		var joystick_scale: float = float(settings.get("virtual_joystick_size", 1.0))

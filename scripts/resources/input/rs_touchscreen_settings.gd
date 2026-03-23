@@ -14,7 +14,6 @@ class_name RS_TouchscreenSettings
 @export_range(0.5, 2.0, 0.1) var button_size: float = 1.1
 @export_range(0.0, 1.0, 0.05) var button_opacity: float = 0.8
 @export_range(0.1, 5.0, 0.1) var look_drag_sensitivity: float = 1.0
-@export var invert_look_y: bool = false
 
 ## Applies a circular deadzone to a 2D touch/joystick vector.
 ## Rescales input from deadzone threshold to 1.0 into a 0.0-1.0 range.

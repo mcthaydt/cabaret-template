@@ -278,13 +278,12 @@ func test_drag_look_reports_delta_and_active_state() -> void:
 	_release_mobile_touch(controls, 60, end)
 	assert_false(controls.is_touch_look_active(), "Releasing drag touch should clear active state")
 
-func test_drag_look_applies_sensitivity_and_invert_y() -> void:
+func test_drag_look_applies_sensitivity() -> void:
 	var store := await _create_state_store()
 	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
 	store.dispatch(U_InputActions.update_touchscreen_settings({
 		"look_drag_sensitivity": 2.0,
-		"invert_look_y": true,
 	}))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
@@ -297,7 +296,7 @@ func test_drag_look_applies_sensitivity_and_invert_y() -> void:
 	var look_delta: Vector2 = controls.consume_look_delta()
 
 	assert_almost_eq(look_delta.x, 16.0, 0.001, "Sensitivity should scale drag X")
-	assert_almost_eq(look_delta.y, -10.0, 0.001, "Invert Y should flip and scale drag Y")
+	assert_almost_eq(look_delta.y, 10.0, 0.001, "Sensitivity should scale drag Y")
 
 func _create_controls(configure: Callable = Callable()) -> Node:
 	var controls := MobileControlsScene.instantiate()

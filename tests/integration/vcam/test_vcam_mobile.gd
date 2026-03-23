@@ -158,7 +158,7 @@ func test_touchscreen_settings_overlay_updates_drag_look_sensitivity() -> void:
 	var look_input: Vector2 = input_slice.get("look_input", Vector2.ZERO)
 	assert_almost_eq(look_input.x, 20.0, 0.001, "Applied overlay sensitivity should scale drag-look input")
 
-func test_invert_look_y_flips_vertical_drag_direction() -> void:
+func test_drag_look_y_uses_direct_touchscreen_direction() -> void:
 	var fixture := await _setup_mobile_vcam_fixture(_new_orbit_mode(), false)
 	autofree_context(fixture)
 	var controls: UI_MobileControls = fixture["controls"] as UI_MobileControls
@@ -167,7 +167,6 @@ func test_invert_look_y_flips_vertical_drag_direction() -> void:
 
 	store.dispatch(U_INPUT_ACTIONS.update_touchscreen_settings({
 		"look_drag_sensitivity": 1.0,
-		"invert_look_y": true,
 	}))
 	await _await_frames(1)
 
@@ -179,7 +178,7 @@ func test_invert_look_y_flips_vertical_drag_direction() -> void:
 	var gameplay_slice: Dictionary = store.get_slice(StringName("gameplay"))
 	var input_slice: Dictionary = gameplay_slice.get("input", {})
 	var look_input: Vector2 = input_slice.get("look_input", Vector2.ZERO)
-	assert_true(look_input.y < 0.0, "invert_look_y should flip positive drag Y to negative look_input.y")
+	assert_true(look_input.y > 0.0, "Positive touchscreen drag Y should remain positive")
 
 func _setup_mobile_vcam_fixture(mode: Resource, include_input_system: bool) -> Dictionary:
 	var store := M_STATE_STORE.new()

@@ -134,7 +134,7 @@ func test_drag_look_dispatches_look_input_and_active_flag() -> void:
 	gameplay_slice = store.get_slice(StringName("gameplay"))
 	assert_false(bool(gameplay_slice.get("touch_look_active", false)), "Touch look flag should reset on release")
 
-func test_drag_look_applies_touchscreen_sensitivity_and_invert() -> void:
+func test_drag_look_applies_touchscreen_sensitivity() -> void:
 	var context := await _setup_touchscreen_scene()
 	autofree_context(context)
 	var store: M_StateStore = context["store"]
@@ -145,7 +145,6 @@ func test_drag_look_applies_touchscreen_sensitivity_and_invert() -> void:
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	store.dispatch(U_InputActions.update_touchscreen_settings({
 		"look_drag_sensitivity": 1.5,
-		"invert_look_y": true,
 	}))
 	await _await_frames(2)
 
@@ -158,7 +157,7 @@ func test_drag_look_applies_touchscreen_sensitivity_and_invert() -> void:
 	var input_slice: Dictionary = gameplay_slice.get("input", {})
 	var look_input: Vector2 = input_slice.get("look_input", Vector2.ZERO)
 	assert_almost_eq(look_input.x, 15.0, 0.001, "Sensitivity should scale touch look X")
-	assert_almost_eq(look_input.y, -9.0, 0.001, "Invert Y should flip/scaled touch look Y")
+	assert_almost_eq(look_input.y, 9.0, 0.001, "Sensitivity should scale touch look Y")
 
 func test_drag_look_delta_is_one_shot_per_tick() -> void:
 	var context := await _setup_touchscreen_scene()

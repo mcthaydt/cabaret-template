@@ -88,7 +88,6 @@ func test_touchscreen_look_settings_persist_to_global_settings() -> void:
 
 	store.dispatch(U_INPUT_ACTIONS.update_touchscreen_settings({
 		"look_drag_sensitivity": 1.75,
-		"invert_look_y": true,
 	}))
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -101,10 +100,6 @@ func test_touchscreen_look_settings_persist_to_global_settings() -> void:
 		1.75,
 		0.001,
 		"Touchscreen look_drag_sensitivity should persist through global settings"
-	)
-	assert_true(
-		bool(touchscreen_settings.get("invert_look_y", false)),
-		"Touchscreen invert_look_y should persist through global settings"
 	)
 
 func test_vcam_actions_and_selectors_work_end_to_end() -> void:
