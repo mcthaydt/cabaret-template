@@ -67,15 +67,13 @@
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="73_room_fade_group_component"]
 [ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="74_room_fade_system"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="75_base_ecs_entity"]
+[ext_resource type="Texture2D" uid="uid://cu6nemmc82bo4" path="res://assets/textures/prototype_grids_png/Light/tex_texture_03.png" id="76_light_tex03"]
 [ext_resource type="Script" uid="uid://b7o3qydjxfyts" path="res://scripts/ecs/components/c_region_visibility_component.gd" id="76_region_visibility_component"]
 [ext_resource type="Script" uid="uid://btf32kqffvu02" path="res://scripts/ecs/systems/s_region_visibility_system.gd" id="77_region_visibility_system"]
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_ocmnx"]
-load_path = "res://.godot/imported/tex_texture_03.png-5a4a6a513c462a051455bfabcd4a01f2.s3tc.ctex"
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oyk2i"]
 shading_mode = 0
-albedo_texture = SubResource("CompressedTexture2D_ocmnx")
+albedo_texture = ExtResource("76_light_tex03")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gm3uw"]
 shading_mode = 0
@@ -654,13 +652,6 @@ material = SubResource("StandardMaterial3D_oyk2i")
 
 [node name="CSGBox3D41" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=500930884]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -4)
-use_collision = true
-collision_layer = 33
-size = Vector3(2, 0.1, 2)
-material = SubResource("StandardMaterial3D_oyk2i")
-
-[node name="CSGBox3D13" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=508569560]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -2)
 use_collision = true
 collision_layer = 33
 size = Vector3(2, 0.1, 2)
