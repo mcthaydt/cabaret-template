@@ -684,16 +684,25 @@ Completion notes (2026-03-22):
 
 ### Phase 5C: Update documentation
 
-- [ ] **Task 5C.1**: Update `docs/vcam_manager/vcam-manager-overview.md`
+- [x] **Task 5C.1**: Update `docs/vcam_manager/vcam-manager-overview.md`
   - Remove OTS/fixed/first-person mode descriptions
   - Add helper architecture section
   - Document orbit-only mode system
 
-- [ ] **Task 5C.2**: Update `docs/vcam_manager/vcam-manager-continuation-prompt.md`
+- [x] **Task 5C.2**: Update `docs/vcam_manager/vcam-manager-continuation-prompt.md`
   - Reflect refactored architecture (orbit-only, helper-based system, blend manager extraction)
   - Mark all refactor phases complete with dates
 
-- [ ] **Task 5C.3**: Mark this task file complete
+- [x] **Task 5C.3**: Mark this task file complete
+
+Completion notes (2026-03-22):
+- Overview cleanup completed:
+  - removed stale fixed/OTS/first-person mode descriptions and multi-mode continuity text.
+  - added helper architecture documentation for `S_VCamSystem` decomposition and `M_VCamManager` blend delegation through `U_VCamBlendManager`.
+  - documented orbit-only runtime mode contract across summary/goals/runtime sections.
+- Continuation prompt alignment completed:
+  - status/next-work now target final Phase `5D` closure.
+  - added explicit `Refactor Phase 5C (Complete)` section with architecture/doc cleanup outcomes.
 
 ### Phase 5D: Phase 5 commit
 

@@ -3,15 +3,15 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-06
 **Updated**: 2026-03-22
-**Status**: Phases 0A-0F + 1A-1F + 2A-2B + 4A-4B + 5 + 6A + 6B + 6A2 + 6A.3 + 6A3a + 6A3b + 6A3c + Phase 8 core (`2C1/2C2/2C3/2C4/2C5/2C6/2C7/2C8/2C9/2C10/2C11`) + movement-style look smoothing + camera look smoothing parity + post-`0f51c36` retune doc/test catch-up + mobile drag-look/touch gating prerequisites + full OTS Phase 3 reset (`3C1/3C2/3C3/3C4.1-3C4.11`) + Phase 10A collision-detector Red/Green groundwork (`10A.1`/`10A.2`) + Phase 10B silhouette-helper Red/Green foundation (`10B.1`/`10B.2`) + Phase 10B2 silhouette routing (`10B2.1-10B2.4`) + Phase 10C per-tick occlusion integration (`10C.1`/`10C.2`) + Phase 10C2 anti-flicker/stability (`10C2.1`/`10C2.2`) + Phase 11 editor preview (`11.1`/`11.2`/`11.3`) + Phase 12 integration tests (`12.1`-`12.6`) complete (state/persistence + base authoring resources + dynamics + response tuning + mode resource/evaluator baselines + component/interface/manager core + `S_VCamSystem` baseline + runtime scene wiring + response-driven second-order smoothing integration + rotation continuity policy/tests + camera-state landing-impact scaffolding + QB-driven speed-FOV and landing-impact rule integration + orbit look-ahead/auto-level/soft-zone/hysteresis feel pass + ground-relative dual-anchor positioning + tuned orbit follow-bypass guard coverage + orbit release-smoothing enhancement + button-driven recenter interpolation + room-fade data-layer scaffolding + room-fade runtime logic/rendering + room-fade integration/polish validation + touch look dispatch + `touch_look_active` transient gating + input no-clobber guard + OTS collision/sway/landing response + OTS aim activation/input plumbing + OTS movement/rotation integration + OTS reticle + default OTS movement preset + `U_VCamCollisionDetector` helper + layer-6 naming contract + `U_VCamSilhouetteHelper` helper + silhouette shader asset + event-routed silhouette lifecycle through `M_VFXManager` + vfx-toggle-gated per-tick occlusion publish flow + silhouette-count dispatch-on-change + teardown/transition clear paths + editor-only thirds-grid preview helper/template wiring + integration coverage for state/runtime/blend/mobile/occlusion paths).
+**Status**: Baseline vCam delivery is complete through Phase 13 (2026-03-22). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, Phases `2A`-`2H`, Phases `3A`-`3B`, and Phases `5A`-`5C` are complete. Runtime mode support is orbit-only with helper-based system decomposition and blend-manager extraction in place.
 
 ## Summary
 
 The vCam Manager is a gameplay camera orchestration layer inspired by Cinemachine. It adds virtual-camera authoring and selection on top of the current camera stack without replacing the existing low-level camera manager or QB camera-state systems.
 
-For this feature to be complete, player-controlled orbit and OTS camera behavior must also work on mobile through drag-look, not only on mouse and gamepad.
+For this feature to be complete, player-controlled orbit camera behavior must work on mobile through drag-look, not only on mouse and gamepad.
 
-This overview mixes implemented phase contracts and upcoming phase planning. Completed phases above are reflected in code/tests; later phases remain implementation targets.
+This overview reflects the implemented runtime contracts after the refactor cleanup pass.
 
 The corrected stack is:
 
@@ -22,7 +22,7 @@ Gameplay input and camera authorship
 S_InputSystem / S_TouchscreenSystem -> gameplay.look_input
         |
         v
-S_VCamSystem + C_VCamComponent + vCam mode resources
+S_VCamSystem + orbit helper stack + C_VCamComponent + RS_VCamModeOrbit
         |
         v
 M_VCamManager
@@ -31,14 +31,14 @@ M_VCamManager
 M_CameraManager + C_CameraStateComponent + S_CameraStateSystem
 ```
 
-`M_VCamManager` chooses which virtual camera should drive gameplay, owns live vCam-to-vCam blend state, detects occluders, routes silhouette requests through VFX, and publishes runtime observability into Redux. `M_CameraManager` still owns scene-transition blending and shake layering. `S_CameraStateSystem` still owns the final `camera.fov` write.
+`M_VCamManager` chooses which virtual camera should drive gameplay, delegates live vCam blend runtime to `U_VCamBlendManager`, detects occluders, routes silhouette requests through VFX, and publishes runtime observability into Redux. `M_CameraManager` still owns scene-transition blending and shake layering. `S_CameraStateSystem` still owns the final `camera.fov` write.
 
 ## Repo Reality Checks
 
 - `scenes/root.tscn` is the persistent app root. Long-lived managers live there.
 - Gameplay scenes own their own `M_ECSManager`.
 - `S_InputSystem` already captures `look_input` and dispatches it into the gameplay slice.
-- `S_TouchscreenSystem` now owns touchscreen drag-look dispatch (`update_look_input`) and touch-look lifecycle (`gameplay.touch_look_active`) so mobile orbit/OTS uses the same shared look path as desktop/gamepad.
+- `S_TouchscreenSystem` now owns touchscreen drag-look dispatch (`update_look_input`) and touch-look lifecycle (`gameplay.touch_look_active`) so mobile orbit uses the same shared look path as desktop/gamepad.
 - `M_CameraManager` is already registered in `U_ServiceLocator` as `camera_manager`.
 - `M_CameraManager` may insert a `ShakeParent` above the active camera to apply screen shake.
 - Because of that `ShakeParent`, vCam must not write `camera.global_transform` directly.
@@ -73,13 +73,13 @@ Updating only `tmpl_camera.tscn` is not enough.
 
 ## Goals
 
-- Support orbit, fixed, and OTS (over-the-shoulder) virtual camera modes.
+- Support orbit virtual camera mode as the sole runtime mode.
 - Support soft-zone follow behavior with dead-zone and damping.
 - Blend smoothly between virtual cameras.
 - Handle occluders with silhouettes instead of dolly push-in.
 - Provide an editor-only rule-of-thirds preview.
 - Expose active camera runtime state through a transient Redux slice.
-- Support mobile drag-look for rotatable orbit and OTS cameras.
+- Support mobile drag-look for rotatable orbit cameras.
 - Fit the existing scene-manager, state-store, and camera-manager architecture cleanly.
 
 ## Non-Goals
@@ -100,7 +100,7 @@ Owns:
 
 - registration and lifetime of active `C_VCamComponent` instances
 - active vCam selection
-- vCam blend state
+- vCam blend lifecycle coordination through `U_VCamBlendManager`
 - Redux `vcam` observability updates
 - occlusion detection and silhouette request publication to `M_VFXManager`
 - final handoff of gameplay transform data into `M_CameraManager`
@@ -122,9 +122,8 @@ Owns:
 - applying soft-zone correction before results are submitted
 - resolving follow targets using entity queries (`M_ECSManager.get_entity_by_id()`, `get_entities_by_tag()`) as fallback when `C_VCamComponent` NodePath exports are empty
 - resolving `follow_target_tag` deterministically when multiple entities match: first valid ECS-registration-order match, plus a debug warning recommending `follow_target_entity_id` when deterministic targeting matters
-- owning any `PathFollow3D` helper state for `use_path` fixed cameras inside the gameplay scene world, not under the persistent root manager
 - submitting the latest evaluated result as the same-frame handoff into `M_VCamManager`
-- applying rotation continuity policy on mode switches
+- applying orbit-only rotation continuity and recenter policy
 
 ### `M_CameraManager`
 
@@ -144,6 +143,23 @@ Remains the FOV and trauma owner:
 - final `camera.fov` application
 - shake trauma decay (`C_CameraStateComponent.shake_trauma` decays at 2.0/sec; `M_CameraManager` applies shake offsets through named `set_shake_source()` / `clear_shake_source()`)
 
+## Helper Architecture
+
+Refactor decomposition moved most vCam runtime logic into focused helpers, leaving `S_VCamSystem` and `M_VCamManager` as coordinators:
+
+- `S_VCamSystem` helper stack:
+  - `U_VCamLookInput`: look-input activity filtering lifecycle
+  - `U_VCamRotation`: orbit look smoothing/release and centering state
+  - `U_VCamOrbitEffects`: look-ahead, ground-relative anchoring, soft-zone state, and motion gating
+  - `U_VCamResponseSmoother`: response-value/signature construction and second-order smoothing
+  - `U_VCamLandingImpact`: landing-offset runtime normalization and recovery
+  - `U_VCamRuntimeContext`, `U_VCamRuntimeState`, `U_VCamRuntimeServices`, `U_VCamEffectPipeline`, `U_VCamDebug`: coordinator support, shared runtime reads/services, staged effect pipeline, and debug/reporting lifecycle
+- `M_VCamManager` helper stack:
+  - `U_VCamBlendManager`: blend-state machine ownership and frame-stamped blend result evaluation
+  - `U_VCamBlendEvaluator`: interpolation/easing math used by blend runtime
+
+This architecture is the canonical post-refactor contract for Phase 3+ and Phase 5 cleanup.
+
 ## Interaction Flow
 
 ```text
@@ -154,15 +170,14 @@ S_TouchscreenSystem
   -> dispatches gameplay.look_input for mobile drag-look using UI_MobileControls
 
 S_VCamSystem.process_tick(delta)
-  -> resolve active vCam from M_VCamManager
-  -> resolve outgoing vCam too when blend is active
-  -> update per-vCam runtime_yaw/runtime_pitch from gameplay.look_input
-  -> evaluate mode resource(s)
-  -> apply projection-based soft-zone correction
+  -> prepare runtime services/context/state through helper stack
+  -> evaluate active orbit vCam via U_VCamModeEvaluator
+  -> run staged effect pipeline (orbit effects + response smoothing + landing offset)
   -> submit evaluated camera result(s) back to M_VCamManager
 
 M_VCamManager._physics_process(delta)
   -> consume the most recent same-frame submission from S_VCamSystem
+  -> update live blend runtime via U_VCamBlendManager (active + previous IDs)
   -> if M_CameraManager.is_blend_active(): suspend gameplay camera writes
   -> select live blended result or active result
   -> M_CameraManager.apply_main_camera_transform(transform)
@@ -190,7 +205,6 @@ U_ECSEventBus
 - Soft-zone projection/reprojection uses the active gameplay camera's viewport from `GameViewport`, never the root manager node's viewport.
 - Occlusion raycasts use the active gameplay camera's `World3D` / `PhysicsDirectSpaceState3D`, never the persistent root manager's world.
 - Same-frame correctness must not depend on scene-tree `_physics_process` order between root managers and gameplay ECS. `submit_evaluated_camera(...)` is the explicit handoff path, and `M_VCamManager` applies only the latest result submitted for the active physics frame.
-- Any `PathFollow3D` helper created for `use_path` lives under the gameplay scene or vCam host entity so it shares the gameplay world and is destroyed with that scene.
 
 ## Public API
 
@@ -230,16 +244,16 @@ These events complement the Redux `vcam` slice. Redux provides snapshot-style ob
 | `vcam_is_blending` | `bool` | `U_VCamSelectors.is_blending(state)` |
 | `vcam_active_vcam_id` | `StringName` | `U_VCamSelectors.get_active_vcam_id(state)` |
 
-This enables rules like "reduce FOV zone intensity during blends" or "suppress shake in OTS mode" without coupling `S_CameraStateSystem` to vCam internals — rules simply read context fields.
+This enables rules like "reduce FOV zone intensity during blends" or "tune shake behavior while orbit is active" without coupling `S_CameraStateSystem` to vCam internals — rules simply read context fields.
 
-### `M_CameraManager` additions required by vCam
+### `M_CameraManager` gameplay APIs used by vCam
 
 ```gdscript
 func apply_main_camera_transform(xform: Transform3D) -> void  # new API — Phase 9
 func is_blend_active() -> bool                                 # new API — Phase 9
 ```
 
-Both methods are **new API — Phase 9**. They do not exist on `M_CameraManager` today and must be implemented as part of Phase 9C (Shake-Safe Camera-Manager Integration).
+Both methods are required for the gameplay vCam handoff path and are implementation-backed.
 
 `apply_main_camera_transform(...)` exists specifically so gameplay camera motion can coexist with `ShakeParent`-based shake.
 
@@ -289,52 +303,22 @@ This slice is whole-slice transient. It is not save data and not a player settin
 
 ### `RS_VCamModeOrbit`
 
-- authored distance/pitch/yaw
-- optional player rotation
-- per-axis rotation locks (`lock_x_rotation`, `lock_y_rotation`) for yaw/pitch input gating
-- default preset keeps `lock_y_rotation = true`
-- `rotation_speed` is used only when player rotation is enabled
-- authored FOV feeds `C_CameraStateComponent.base_fov`
-
-### `RS_VCamModeFixed`
-
-- When `use_world_anchor = true` (default): camera uses a fixed world anchor. Anchor comes from `C_VCamComponent.fixed_anchor_path` when set, with fallback to the vCam host entity-root `Node3D`. Useful for room cameras and authored framing.
-- When `use_world_anchor = false`: camera maintains a constant `follow_offset` from the follow target — useful for simple chase cameras or over-shoulder views without player rotation. Position = `follow_target.global_position + follow_offset`. Returns invalid if follow target is null.
-- When `use_path = true`: camera follows a `Path3D` node, finding the closest point on the curve to the follow target. Movement along the path is smoothed via `path_max_speed` (max travel speed in units/sec, 0.0 = instant) and `path_damping` (second-order smoothing factor). Camera faces along the path tangent direction; `track_target` is forced off. Requires `C_VCamComponent.path_node_path` to be set. When `use_path = true`, both `use_world_anchor` and `follow_offset` are ignored.
-- When `use_path = true` and the follow target is invalid, `S_VCamSystem` falls back to the standard invalid-target recovery policy. It does not fabricate path progress from stale data.
-- `follow_offset: Vector3 = Vector3(0, 3, 5)` — only consumed when `use_world_anchor = false`
-- `path_max_speed: float = 10.0` — max travel speed along the path (units/sec), 0.0 = instant
-- `path_damping: float = 5.0` — second-order smoothing for path progress changes
-- optional tracking toward the follow target (`track_target`) applies in both anchor modes; forced off when `use_path = true` (camera faces path tangent)
-- `runtime_yaw`/`runtime_pitch` are always ignored (fixed cameras never respond to player input)
-
-### `RS_VCamModeOTS`
-
-- RE4-style over-the-shoulder (always-aimed, no ADS toggle)
-- authored `shoulder_offset` (right/up/behind from entity origin)
-- authored `camera_distance` (distance behind character)
-- authored `look_multiplier`
-- pitch clamping (tighter than orbit for RE4-style constraint)
-- authored FOV feeds `C_CameraStateComponent.base_fov` (tighter than orbit for intimate framing)
-- collision avoidance via spherecast (`collision_probe_radius`, `collision_recovery_speed`)
-- shoulder sway roll on lateral movement (`shoulder_sway_angle`, `shoulder_sway_smoothing`)
-- landing camera distance compression (`landing_dip_distance`, `landing_dip_recovery_speed`)
-
-`look_multiplier` is a per-vCam authored multiplier. The input layer already provides scaled `look_input`.
-
-On mobile, that same `look_input` must come from drag-look through the existing touchscreen input path rather than through a separate vCam-only control scheme.
+- Orbit is the sole supported runtime mode after refactor Phase 1I.
+- Authored fields include distance, authored yaw/pitch, per-axis rotation locks, optional player rotation, and FOV.
+- `lock_y_rotation` remains `true` in the default preset baseline.
+- `rotation_speed` remains consumed by `S_VCamSystem` runtime rotation logic, not the mode evaluator.
+- Evaluator output always includes `{transform, fov, mode_name = "orbit"}` for valid inputs, and `{}` for invalid inputs.
+- Mobile and desktop/gamepad share the same `gameplay.look_input` path; no mode-specific mobile camera path exists.
 
 ## Rotation Continuity Contract
 
-When switching between camera modes, `runtime_yaw` and `runtime_pitch` follow these rules:
+With orbit-only runtime support, continuity is defined for orbit-to-orbit switches:
 
-- **Orbit → OTS**: carry `runtime_yaw` as-is so the player keeps facing the same world direction. Reset `runtime_pitch` to `0.0` (level horizon) since orbit pitch semantics differ from OTS pitch.
-- **OTS → Orbit**: carry `runtime_yaw` as-is. Reset `runtime_pitch` to `0.0` (authored orbit pitch takes over).
-- **Orbit → Fixed**: rotation state is irrelevant to fixed cameras. Preserve `runtime_yaw`/`runtime_pitch` on the outgoing component so they are intact if the player returns to that vCam.
-- **Fixed → Orbit / OTS**: reseed `runtime_yaw` to the authored yaw of the incoming vCam. Reset `runtime_pitch` to `0.0`. The camera should land at its authored default rather than inheriting stale rotation from a previous session.
-- **Same-mode switch** (e.g. orbit → orbit): carry both `runtime_yaw` and `runtime_pitch` when the two cameras share the same follow target. When they follow different targets, reseed to authored angles.
+- carry `runtime_yaw` and `runtime_pitch` when incoming and outgoing vCams share the same follow target.
+- reseed to incoming authored angles when follow targets differ.
+- preserve release smoothing / centering state lifecycles so recenter and look-release transitions remain deterministic across active-vCam switches.
 
-`S_VCamSystem` is responsible for applying this policy during `set_active_vcam()`. The contract is: no disorienting heading jumps on any common transition.
+`S_VCamSystem` owns this policy during active-camera handoff.
 
 ## Soft-Zone System
 
@@ -417,7 +401,7 @@ This prevents pops from restarting a blend from the original source position and
 | `landing_impact_scale` | `float` | `1.0` | 6A3c | Multiplier for QB-driven landing impact offset on this vCam (0 = suppress) |
 
 > **Note:** Orbit-feel Phase 2C core + ground-relative follow-up is landed (`2C1`/`2C2`/`2C3`/`2C4`/`2C5`/`2C6`): look-ahead + auto-level + projection soft-zone + dead-zone hysteresis + ground-relative vertical anchoring + runtime integration.
-> Orbit follow-up backlog `2C11`, mobile drag-look/touch gating prerequisites, OTS Phase 3 reset/game-feel scope, Phase 10 occlusion pipeline, Phase 11 editor preview, Phase 12 integration coverage, Phase 12A observability validation, and full Phase 13 regression/docs closure are complete.
+> Orbit follow-up backlog `2C11`, mobile drag-look/touch gating prerequisites, Phase 10 occlusion pipeline, Phase 11 editor preview, Phase 12 integration coverage, Phase 12A observability validation, and full Phase 13 regression/docs closure are complete.
 > Look-ahead direction is movement-velocity driven (`state.gameplay.entities[*].velocity` primary source, movement-component/body fallback) and intentionally ignores follow-target transform deltas to avoid rotation-only offsets.
 > Post-`0f51c36` tuning baseline in `cfg_default_response.tres` is currently `follow=3.8/1.0`, `rotation=4.8/0.9`, `look_ahead_distance=0.02`, `look_ahead_smoothing=1.77`, `orbit_look_bypass_enable_speed=7.0`, `orbit_look_bypass_disable_speed=8.5`.
 
@@ -471,17 +455,14 @@ When a target or vCam becomes invalid during gameplay, the system follows these 
 - hold the last valid evaluated pose for up to 1 physics frame
 - if the target remains invalid, cut to the highest-priority vCam that still has a valid target
 - if no valid vCam exists, hold the last valid camera pose (do not snap to origin)
-
-### Fixed anchor freed
-
-- fall back to the vCam host entity-root `Node3D` (the standard anchor fallback)
-- if the entity root is also invalid, hold the last valid pose and log a warning
+- publish recovery observability (`active_target_valid = false`, `last_recovery_reason = "target_freed"`) and request reselection
 
 ### vCam becomes invalid mid-blend
 
 - if the outgoing vCam is freed: complete the blend immediately (cut to the incoming result)
 - if the incoming vCam is freed: cancel the blend and hold the outgoing pose; trigger priority reselection
 - if both are freed: hold the last valid blended pose and clear blend state
+- publish `EVENT_VCAM_RECOVERY` reasons (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`)
 
 ### Scene transition
 
@@ -489,7 +470,7 @@ When a target or vCam becomes invalid during gameplay, the system follows these 
 - clear blend state
 - do not carry stale vCam references across scene boundaries
 
-`M_VCamManager` is responsible for checking validity before each evaluation tick. Invalid states must never produce NaN transforms or crash the pipeline.
+`S_VCamSystem` and `M_VCamManager` coordinate these recovery paths. Invalid states must never produce NaN transforms or crash the pipeline.
 
 ## Collision and Silhouette
 
@@ -531,7 +512,7 @@ This intentionally avoids a new `scripts/tools` category.
 
 `C_VCamComponent` supports two target resolution strategies:
 
-1. **NodePath exports** (primary): `follow_target_path`, `look_at_target_path`, `fixed_anchor_path` — resolved via `get_node_or_null()` per the standard ECS component pattern.
+1. **NodePath exports** (primary): `follow_target_path`, `look_at_target_path` — resolved via `get_node_or_null()` per the standard ECS component pattern.
 2. **Entity ID fallback**: when NodePath exports are empty, `S_VCamSystem` can resolve targets through `M_ECSManager.get_entity_by_id(target_entity_id)` or `M_ECSManager.get_entities_by_tag(tag)`. This enables dynamic target assignment (e.g., follow the entity tagged `"player"`) without hard-coded scene paths.
 3. **Multiple tag matches**: if `follow_target_tag` resolves more than one valid entity, use the first valid ECS-registration-order match and emit a debug warning. Use `follow_target_entity_id` when deterministic targeting matters across scene-authoring changes.
 
@@ -581,7 +562,7 @@ resources/display/vcam/*.tres
 - vCam gameplay motion and shake coexist
 - silhouettes work on both mesh and CSG occluders
 - VFX settings overlay exposes and persists `occlusion_silhouette_enabled` with localization coverage
-- mobile drag-look feeds orbit and OTS cameras through the same `gameplay.look_input` path
+- mobile drag-look feeds orbit cameras through the shared `gameplay.look_input` path
 
 ## Resolved Decisions
 
