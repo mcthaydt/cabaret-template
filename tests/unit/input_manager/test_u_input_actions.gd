@@ -23,10 +23,15 @@ func test_update_look_input_returns_payload() -> void:
 	assert_almost_eq(payload.get("look_delta", Vector2.ZERO).x, SAMPLE_LOOK.x, 0.0001)
 	assert_almost_eq(payload.get("look_delta", Vector2.ZERO).y, SAMPLE_LOOK.y, 0.0001)
 
-func test_update_aim_state_returns_payload() -> void:
-	var action := U_InputActions.update_aim_state(true)
-	var payload := _assert_action_structure(action, U_InputActions.ACTION_UPDATE_AIM_STATE)
-	assert_true(payload.get("pressed", false))
+func test_set_keyboard_look_enabled_returns_payload() -> void:
+	var action := U_InputActions.set_keyboard_look_enabled(true)
+	var payload := _assert_action_structure(action, U_InputActions.ACTION_SET_KEYBOARD_LOOK_ENABLED)
+	assert_true(payload.get("enabled", false))
+
+func test_set_keyboard_look_speed_returns_payload() -> void:
+	var action := U_InputActions.set_keyboard_look_speed(1.25)
+	var payload := _assert_action_structure(action, U_InputActions.ACTION_SET_KEYBOARD_LOOK_SPEED)
+	assert_almost_eq(payload.get("speed", 0.0), 1.25, 0.0001)
 
 func test_update_camera_center_state_returns_payload() -> void:
 	var action := U_InputActions.update_camera_center_state(true)
@@ -134,11 +139,37 @@ func test_save_virtual_control_position_accepts_vector2() -> void:
 	assert_almost_eq(stored_position.x, 120.0, 0.0001)
 	assert_almost_eq(stored_position.y, 450.0, 0.0001)
 
+func test_load_input_settings_returns_deep_copied_payload() -> void:
+	var source := {"mouse_settings": {"sensitivity": 1.1}}
+	var action := U_InputActions.load_input_settings(source)
+	var payload := _assert_action_structure(action, U_InputActions.ACTION_LOAD_INPUT_SETTINGS)
+	var loaded_mouse: Dictionary = payload.get("mouse_settings", {})
+	assert_almost_eq(float(loaded_mouse.get("sensitivity", 0.0)), 1.1, 0.0001)
+	(source.get("mouse_settings") as Dictionary)["sensitivity"] = 9.9
+	assert_almost_eq(float((payload.get("mouse_settings", {}) as Dictionary).get("sensitivity", 0.0)), 1.1, 0.0001)
+
+func test_remove_action_bindings_returns_payload() -> void:
+	var action := U_InputActions.remove_action_bindings(&"jump")
+	var payload := _assert_action_structure(action, U_InputActions.ACTION_REMOVE_ACTION_BINDINGS)
+	assert_eq(payload.get("action", &""), &"jump")
+
+func test_remove_event_from_action_returns_deep_copied_event_payload() -> void:
+	var event_dict := {"type": "key", "keycode": 32}
+	var action := U_InputActions.remove_event_from_action(&"jump", event_dict)
+	var payload := _assert_action_structure(action, U_InputActions.ACTION_REMOVE_EVENT_FROM_ACTION)
+	var payload_event: Dictionary = payload.get("event", {})
+	assert_eq(payload.get("action", &""), &"jump")
+	assert_eq(payload_event.get("type", ""), "key")
+	assert_eq(payload_event.get("keycode", 0), 32)
+	event_dict["keycode"] = 99
+	assert_eq((payload.get("event", {}) as Dictionary).get("keycode", 0), 32)
+
 func test_created_actions_validate_with_action_registry() -> void:
 	var actions := [
 		U_InputActions.update_move_input(SAMPLE_MOVE),
 		U_InputActions.update_look_input(SAMPLE_LOOK),
-		U_InputActions.update_aim_state(true),
+		U_InputActions.set_keyboard_look_enabled(true),
+		U_InputActions.set_keyboard_look_speed(1.25),
 		U_InputActions.update_camera_center_state(true),
 		U_InputActions.update_jump_state(true, true),
 		U_InputActions.update_sprint_state(false),
@@ -153,6 +184,9 @@ func test_created_actions_validate_with_action_registry() -> void:
 		U_InputActions.set_vibration_intensity(0.5),
 		U_InputActions.update_mouse_sensitivity(0.9),
 		U_InputActions.update_accessibility("sprint_toggle_mode", true),
+		U_InputActions.load_input_settings({"mouse_settings": {"sensitivity": 1.0}}),
+		U_InputActions.remove_action_bindings(&"jump"),
+		U_InputActions.remove_event_from_action(&"jump", {"type": "key", "keycode": 32}),
 		U_InputActions.update_touchscreen_settings({"button_size": 1.0}),
 		U_InputActions.save_virtual_control_position("jump", Vector2(800, 450)),
 	]
@@ -171,7 +205,8 @@ func _get_action_constants() -> Array[StringName]:
 	return [
 		U_InputActions.ACTION_UPDATE_MOVE_INPUT,
 		U_InputActions.ACTION_UPDATE_LOOK_INPUT,
-		U_InputActions.ACTION_UPDATE_AIM_STATE,
+		U_InputActions.ACTION_SET_KEYBOARD_LOOK_ENABLED,
+		U_InputActions.ACTION_SET_KEYBOARD_LOOK_SPEED,
 		U_InputActions.ACTION_UPDATE_CAMERA_CENTER_STATE,
 		U_InputActions.ACTION_UPDATE_JUMP_STATE,
 		U_InputActions.ACTION_UPDATE_SPRINT_STATE,
@@ -186,6 +221,9 @@ func _get_action_constants() -> Array[StringName]:
 		U_InputActions.ACTION_SET_VIBRATION_INTENSITY,
 		U_InputActions.ACTION_UPDATE_MOUSE_SENSITIVITY,
 		U_InputActions.ACTION_UPDATE_ACCESSIBILITY,
+		U_InputActions.ACTION_LOAD_INPUT_SETTINGS,
+		U_InputActions.ACTION_REMOVE_ACTION_BINDINGS,
+		U_InputActions.ACTION_REMOVE_EVENT_FROM_ACTION,
 		U_InputActions.ACTION_UPDATE_TOUCHSCREEN_SETTINGS,
 		U_InputActions.ACTION_SAVE_VIRTUAL_CONTROL_POSITION,
 	]
