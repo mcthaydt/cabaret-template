@@ -20,7 +20,7 @@ enum DeadzoneCurve {
 @export var vibration_enabled: bool = true
 @export_range(0.0, 1.0, 0.05) var vibration_intensity: float = 1.0
 @export var invert_y_axis: bool = false
-@export_range(0.1, 5.0, 0.1) var right_stick_sensitivity: float = 1.0
+@export_range(0.1, 5.0, 0.1) var right_stick_sensitivity: float = 2.5
 @export_enum("Linear:0", "Quadratic:1", "Cubic:2") var deadzone_curve: int = DeadzoneCurve.LINEAR
 
 ## Applies a circular deadzone and optional response curve to a 2D stick vector.

@@ -97,7 +97,7 @@ func test_overlay_populates_values_from_store() -> void:
 	_store.dispatch(U_InputActions.update_gamepad_deadzone("right", 0.35))
 	_store.dispatch(U_InputActions.toggle_vibration(false))
 	_store.dispatch(U_InputActions.set_vibration_intensity(0.5))
-	_store.dispatch(U_InputActions.update_gamepad_sensitivity(1.75))
+	_store.dispatch(U_InputActions.update_gamepad_sensitivity(1.8))
 	await _pump()
 
 	var overlay := OverlayScene.instantiate()
@@ -115,7 +115,7 @@ func test_overlay_populates_values_from_store() -> void:
 
 	assert_almost_eq(left_slider.value, 0.45, 0.001)
 	assert_almost_eq(right_slider.value, 0.35, 0.001)
-	assert_almost_eq(right_sensitivity_slider.value, 1.75, 0.001)
+	assert_almost_eq(right_sensitivity_slider.value, 1.8, 0.001)
 	assert_false(vibration_checkbox.button_pressed)
 	assert_almost_eq(vibration_slider.value, 0.5, 0.001)
 

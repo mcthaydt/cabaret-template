@@ -34,7 +34,7 @@ const ACTION_CATEGORIES := {
 	"movement": ["move_left", "move_right", "move_forward", "move_backward", "jump", "crouch", "sprint", "test_jump"],
 	"combat": ["attack", "defend", "special_attack"],
 	"ui": ["interact", "menu", "inventory", "ui_up", "ui_down", "ui_left", "ui_right"],
-	"camera": ["look_up", "look_down", "look_left", "look_right", "camera_center", "zoom_in", "zoom_out"]
+	"camera": ["look_left", "look_right", "camera_center", "zoom_in", "zoom_out"]
 }
 
 # Actions to exclude from the overlay (built-in Godot actions users shouldn't rebind)
@@ -75,6 +75,8 @@ const EXCLUDED_ACTIONS := [
 	"ui_swap_input_direction", "ui_colorpicker_delete_preset",
 	# Game-specific excluded actions
 	"pause",
+	# Camera look up/down is handled by the right stick on gamepad, not rebindable
+	"look_up", "look_down",
 	# Editor-specific
 	"editor", "editor_forward", "editor_backward"
 ]
@@ -253,9 +255,22 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 		for child in binding_container.get_children():
 			child.queue_free()
 
-		var events := InputMap.action_get_events(action)
+		# Prefer the active profile's events over InputMap so the rebind
+		# overlay shows the correct icons (e.g. stick icons on mobile
+		# instead of keyboard arrow keys mapped to d-pad icons).
+		var profile: RS_InputProfile = typed_overlay.get_active_profile()
+		var profile_events: Array[InputEvent] = []
+		if profile != null:
+			profile_events = profile.get_events_for_action(action)
+
+		var source_events: Array
+		if not profile_events.is_empty():
+			source_events = profile_events
+		else:
+			source_events = InputMap.action_get_events(action)
+
 		var filtered_events: Array[InputEvent] = []
-		for event in events:
+		for event in source_events:
 			if event is InputEvent:
 				var device_type: String = get_event_device_type(event as InputEvent)
 				if device_category == "gamepad":
@@ -267,7 +282,7 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 
 		var display_events: Array = filtered_events
 		if display_events.is_empty():
-			display_events = events
+			display_events = source_events
 
 		if display_events.is_empty():
 			var unbound_label := Label.new()
