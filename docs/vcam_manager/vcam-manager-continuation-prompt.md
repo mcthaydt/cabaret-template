@@ -4,12 +4,12 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, Phases `2A`-`2H`, Phases `3A`-`3B`, and Phase `5A` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed; `2F` dropped). Phase `5B` cleanup sweep is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, Phases `2A`-`2H`, Phases `3A`-`3B`, and Phases `5A`-`5B` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed; `2F` dropped). Phase `5C` docs cleanup is next.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` Phase 4 cleanup/contracts (`5B` onward in the checklist). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: Phase `5B` dead-code sweep (stale-reference grep + orphan file checks + response-field audit).
+- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` Phase 4 cleanup/contracts (`5C` onward in the checklist). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
+- Immediate implementation target: Phase `5C` documentation cleanup/status alignment (`vcam-manager-overview.md` + final checklist closure).
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
 - Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
@@ -303,6 +303,14 @@
   - added explicit helper-architecture contracts for `S_VCamSystem` decomposition and coordinator pattern.
   - added `U_VCamBlendManager` ownership/delegation contract for `M_VCamManager` blend state machine runtime.
 - Phase `5B` dead-code sweep is now the active cleanup target.
+
+## Refactor Phase 5B (March 22, 2026, Complete)
+
+- Completed dead-code + stale-reference sweep pass for Phase `5B`:
+  - production grep sweep (`scripts`/`scenes`/`resources`) found zero active references to removed OTS/fixed/first-person/aim pipeline symbols.
+  - no orphan `.uid` files or stale deleted-vCam-preset references were found.
+  - `RS_VCamResponse` audit confirmed orbit look-ahead, ground-relative, and orbit bypass fields remain consumed by runtime helper stack (`U_VCamOrbitEffects`, `U_VCamResponseSmoother`).
+- Phase `5C` documentation cleanup/status alignment is now the active target.
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1329,8 +1337,8 @@
 
 ## Next Steps
 
-1. Execute Phase `5B` cleanup sweeps (stale-reference grep + orphan checks + response-field audit).
-2. Continue with Phase `5C` documentation cleanup/status alignment.
+1. Execute Phase `5C.1` and `5C.2` documentation cleanup/status alignment (`vcam-manager-overview.md` + continuation prompt final alignment pass).
+2. Mark checklist completion in `5C.3`, then run final regression gates for `5D`.
 3. Keep mandatory per-phase doc cadence and separate docs commits through Phase `5`.
 
 ## Key Decisions To Preserve

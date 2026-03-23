@@ -657,17 +657,30 @@ Completion notes (2026-03-22):
 
 ### Phase 5B: Dead code sweep
 
-- [ ] **Task 5B.1**: Grep for stale references
+- [x] **Task 5B.1**: Grep for stale references
   - Patterns to sweep (expect zero hits in production code): `RS_VCAM_MODE_OTS`, `RS_VCAM_MODE_FIXED`, `RS_VCAM_MODE_FIRST_PERSON`, `_ots_`, `OTSReticle`, `shoulder_sway`, `path_follow_helper`, `cfg_default_ots`, `cfg_default_fixed`, `cfg_default_first_person`, `cfg_ots_movement`, `ots_collision`, `C_VCamOTSComponent`, `C_VCamFirstPersonComponent`, `_is_ots_mode`, `_is_first_person_mode`, `_evaluate_ots`, `_evaluate_fixed`, `_evaluate_first_person`, `_resolve_ots_values`, `_resolve_fixed_values`, `_resolve_first_person_values`, `aim_pressed`, `aim_toggled`, `aim_restore`, `_aim_restore_vcam_id`, `_aim_toggled_on`, `_aim_prev_pressed`, `_read_aim_pressed`, `aim_blend_duration`, `aim_exit_blend_duration`, `consume_aim`, `update_aim_state`, `strafe_tilt`, `head_offset`, `look_multiplier`
   - Verify zero hits for stale patterns in production code (test mocks/historical docs excluded)
 
-- [ ] **Task 5B.2**: Verify no orphaned files
+- [x] **Task 5B.2**: Verify no orphaned files
   - Check for orphaned `.uid` files for deleted scripts/resources
   - Verify no stale `.tres` references in scene files
 
-- [ ] **Task 5B.3**: Audit RS_VCamResponse
+- [x] **Task 5B.3**: Audit RS_VCamResponse
   - Verify orbit-specific fields (`look_ahead_*`, `ground_relative_*`, `orbit_look_bypass_*`) are still consumed
   - Remove any fields that no longer have consumers
+
+Completion notes (2026-03-22):
+- Completed stale-reference sweeps across production paths (`scripts`, `scenes`, `resources`):
+  - no matches for deleted OTS/fixed/first-person/aim mode-runtime symbols.
+  - no matches for removed resource identifiers (`cfg_default_ots`, `cfg_default_fixed`, `cfg_default_first_person`, `cfg_ots_movement_default`) in production paths.
+- Completed orphan checks:
+  - no orphan `.uid` files found for deleted vCam mode scripts/resources.
+  - no stale `.tres` references to deleted vCam mode presets in production paths.
+- Completed `RS_VCamResponse` consumer audit:
+  - orbit look-ahead (`look_ahead_*`) consumed by `U_VCamOrbitEffects`.
+  - ground-relative (`ground_relative_*`) consumed by `U_VCamOrbitEffects` and response-signature plumbing in `U_VCamResponseSmoother`.
+  - orbit moving-look bypass (`orbit_look_bypass_*`) consumed by `U_VCamOrbitEffects` and `U_VCamResponseSmoother`.
+  - no response fields removed in this pass (all fields remain consumed by runtime helpers).
 
 ### Phase 5C: Update documentation
 
