@@ -72,7 +72,7 @@ func test_noop_in_non_orbit_mode() -> void:
 	var store: MockStateStore = fixture.get("state_store") as MockStateStore
 	assert_not_null(system)
 
-	store.set_slice("vcam", {"active_mode": "ots"})
+	store.set_slice("vcam", {"active_mode": "custom_mode"})
 	_register_region(ecs_manager, "E_RegionA", Vector3.ZERO, &"region_a")
 	system.process_tick(0.1)
 

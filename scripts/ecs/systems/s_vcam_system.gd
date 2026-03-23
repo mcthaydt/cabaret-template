@@ -41,7 +41,6 @@ var _runtime_services_helper = U_VCAM_RUNTIME_SERVICES.new()
 var _state_store: I_StateStore = null
 var _vcam_manager: I_VCAM_MANAGER = null
 var _last_active_vcam_id: StringName = StringName("")
-var _event_unsubscribers: Array[Callable] = []
 
 var _look_rotation_state: Dictionary:
 	get:
@@ -102,7 +101,6 @@ func on_configured() -> void:
 		RS_VCAM_RESPONSE_SCRIPT
 	)
 	_debug_helper.set_state_store_provider(Callable(_runtime_services_helper, "resolve_state_store"))
-	_subscribe_events()
 
 func process_tick(delta: float) -> void:
 	_debug_helper.configure(debug_rotation_logging, debug_rotation_log_interval_sec)
@@ -169,7 +167,6 @@ func get_debug_issues() -> Array[String]:
 	return _debug_helper.get_debug_issues()
 
 func _exit_tree() -> void:
-	_unsubscribe_events()
 	_clear_all_smoothing_state()
 	_landing_impact_helper.clear_state()
 	_state_store = null
@@ -177,14 +174,6 @@ func _exit_tree() -> void:
 	_last_active_vcam_id = StringName("")
 	_runtime_state_helper.reset_observability_state()
 
-func _subscribe_events() -> void:
-	_unsubscribe_events()
-
-func _unsubscribe_events() -> void:
-	for unsubscribe in _event_unsubscribers:
-		if unsubscribe.is_valid():
-			unsubscribe.call()
-	_event_unsubscribers.clear()
 
 func _apply_rotation_continuity_policy(
 	active_vcam_id: StringName,

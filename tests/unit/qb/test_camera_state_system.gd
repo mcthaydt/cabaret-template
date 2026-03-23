@@ -438,9 +438,9 @@ func test_camera_context_includes_vcam_runtime_fields_for_qb_rules() -> void:
 
 	store.set_slice(StringName("vcam"), {
 		"in_fov_zone": false,
-		"active_mode": "ots",
+		"active_mode": "orbit",
 		"is_blending": true,
-		"active_vcam_id": StringName("cam_aim"),
+		"active_vcam_id": StringName("cam_orbit"),
 	})
 
 	var contexts_variant: Variant = system.call("_build_camera_contexts", {})
@@ -448,9 +448,9 @@ func test_camera_context_includes_vcam_runtime_fields_for_qb_rules() -> void:
 	var contexts: Array = contexts_variant as Array
 	assert_false(contexts.is_empty())
 	var context: Dictionary = contexts[0] as Dictionary
-	assert_eq(String(context.get("vcam_active_mode", "")), "ots")
+	assert_eq(String(context.get("vcam_active_mode", "")), "orbit")
 	assert_eq(bool(context.get("vcam_is_blending", false)), true)
-	assert_eq(context.get("vcam_active_vcam_id", StringName("")), StringName("cam_aim"))
+	assert_eq(context.get("vcam_active_vcam_id", StringName("")), StringName("cam_orbit"))
 
 func _create_fixture(designer_rules: Array = [], entity_specs: Array = [], main_camera_fov: float = 90.0) -> Dictionary:
 	var store := MOCK_STATE_STORE.new()
