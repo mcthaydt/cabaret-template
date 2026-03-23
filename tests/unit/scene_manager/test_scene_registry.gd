@@ -210,6 +210,7 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	U_SceneRegistry._scenes.erase(StringName("gameplay_base"))
 	U_SceneRegistry._scenes.erase(StringName("alleyway"))
 	U_SceneRegistry._scenes.erase(StringName("interior_house"))
+	U_SceneRegistry._scenes.erase(StringName("interior_a"))
 	U_SceneRegistry._scenes.erase(StringName("bar"))
 
 	U_SceneRegistry._backfill_default_gameplay_scenes()
@@ -225,6 +226,10 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	var interior: Dictionary = U_SceneRegistry.get_scene(StringName("interior_house"))
 	assert_false(interior.is_empty(), "interior_house should be registered by backfill")
 	assert_eq(String(interior.get("default_transition", "")), "loading", "interior_house backfill should prefer loading transition")
+
+	var interior_a: Dictionary = U_SceneRegistry.get_scene(StringName("interior_a"))
+	assert_false(interior_a.is_empty(), "interior_a should be registered by backfill")
+	assert_eq(String(interior_a.get("default_transition", "")), "loading", "interior_a backfill should prefer loading transition")
 
 	var bar: Dictionary = U_SceneRegistry.get_scene(StringName("bar"))
 	assert_false(bar.is_empty(), "bar should be registered by backfill")
