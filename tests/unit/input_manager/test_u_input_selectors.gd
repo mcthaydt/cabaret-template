@@ -73,6 +73,32 @@ func test_get_look_input_returns_value() -> void:
 	assert_almost_eq(look_input.x, 1.0, 0.0001)
 	assert_almost_eq(look_input.y, -0.5, 0.0001)
 
+func test_get_look_input_prefers_keyboard_channel_for_keyboard_device() -> void:
+	var state := {
+		"gameplay": {
+			"input": {
+				"active_device": U_DeviceTypeConstants.DeviceType.KEYBOARD_MOUSE,
+				"look_input": Vector2(9.0, 9.0),
+				"look_input_keyboard_mouse": Vector2(1.25, -0.75),
+				"look_input_gamepad": Vector2(-3.0, 2.0),
+			}
+		}
+	}
+	assert_eq(U_InputSelectors.get_look_input(state), Vector2(1.25, -0.75))
+
+func test_get_look_input_prefers_gamepad_channel_for_gamepad_device() -> void:
+	var state := {
+		"gameplay": {
+			"input": {
+				"active_device": U_DeviceTypeConstants.DeviceType.GAMEPAD,
+				"look_input": Vector2(9.0, 9.0),
+				"look_input_keyboard_mouse": Vector2(1.25, -0.75),
+				"look_input_gamepad": Vector2(-3.0, 2.0),
+			}
+		}
+	}
+	assert_eq(U_InputSelectors.get_look_input(state), Vector2(-3.0, 2.0))
+
 func test_get_look_input_defaults_to_zero_vector() -> void:
 	assert_eq(U_InputSelectors.get_look_input({}), Vector2.ZERO)
 

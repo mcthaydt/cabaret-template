@@ -10,6 +10,8 @@ const DEFAULT_GAMEPLAY_INPUT_STATE := {
 	"touchscreen_enabled": false,
 	"move_input": Vector2.ZERO,
 	"look_input": Vector2.ZERO,
+	"look_input_keyboard_mouse": Vector2.ZERO,
+	"look_input_gamepad": Vector2.ZERO,
 	"camera_center_just_pressed": false,
 	"jump_pressed": false,
 	"jump_just_pressed": false,
@@ -72,6 +74,8 @@ static func reduce_gameplay_input(state: Dictionary, action: Dictionary) -> Vari
 			return _with_values(current, {
 				"move_input": Vector2.ZERO,
 				"look_input": Vector2.ZERO,
+				"look_input_keyboard_mouse": Vector2.ZERO,
+				"look_input_gamepad": Vector2.ZERO,
 				"camera_center_just_pressed": false,
 				"jump_pressed": false,
 				"jump_just_pressed": false,
@@ -86,9 +90,16 @@ static func reduce_gameplay_input(state: Dictionary, action: Dictionary) -> Vari
 
 		U_InputActions.ACTION_UPDATE_LOOK_INPUT:
 			var look_payload: Dictionary = action.get("payload", {})
-			return _with_values(current, {
-				"look_input": look_payload.get("look_delta", Vector2.ZERO)
-			})
+			var look_delta: Vector2 = look_payload.get("look_delta", Vector2.ZERO)
+			var look_source: StringName = StringName(look_payload.get("source", StringName("")))
+			var updates := {
+				"look_input": look_delta
+			}
+			if look_source == U_InputActions.LOOK_SOURCE_KEYBOARD_MOUSE:
+				updates["look_input_keyboard_mouse"] = look_delta
+			elif look_source == U_InputActions.LOOK_SOURCE_GAMEPAD:
+				updates["look_input_gamepad"] = look_delta
+			return _with_values(current, updates)
 
 		U_InputActions.ACTION_UPDATE_CAMERA_CENTER_STATE:
 			var center_payload: Dictionary = action.get("payload", {})

@@ -23,6 +23,11 @@ func test_update_look_input_returns_payload() -> void:
 	assert_almost_eq(payload.get("look_delta", Vector2.ZERO).x, SAMPLE_LOOK.x, 0.0001)
 	assert_almost_eq(payload.get("look_delta", Vector2.ZERO).y, SAMPLE_LOOK.y, 0.0001)
 
+func test_update_look_input_includes_optional_source() -> void:
+	var action := U_InputActions.update_look_input(SAMPLE_LOOK, U_InputActions.LOOK_SOURCE_GAMEPAD)
+	var payload := _assert_action_structure(action, U_InputActions.ACTION_UPDATE_LOOK_INPUT)
+	assert_eq(payload.get("source", StringName("")), U_InputActions.LOOK_SOURCE_GAMEPAD)
+
 func test_set_keyboard_look_enabled_returns_payload() -> void:
 	var action := U_InputActions.set_keyboard_look_enabled(true)
 	var payload := _assert_action_structure(action, U_InputActions.ACTION_SET_KEYBOARD_LOOK_ENABLED)

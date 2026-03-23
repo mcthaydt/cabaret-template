@@ -137,7 +137,10 @@ func process_tick(_delta: float) -> void:
 	# Dispatch input to state store
 	if store:
 		store.dispatch(U_InputActions.update_move_input(final_movement))
-		store.dispatch(U_InputActions.update_look_input(look_delta))
+		var look_source := U_InputActions.LOOK_SOURCE_KEYBOARD_MOUSE
+		if active_device_type == DeviceType.GAMEPAD:
+			look_source = U_InputActions.LOOK_SOURCE_GAMEPAD
+		store.dispatch(U_InputActions.update_look_input(look_delta, look_source))
 		store.dispatch(U_InputActions.update_camera_center_state(camera_center_just_pressed))
 		store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
 		store.dispatch(U_InputActions.update_sprint_state(sprint_pressed))

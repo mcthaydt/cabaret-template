@@ -17,6 +17,24 @@ func test_update_look_input_replaces_vector() -> void:
 	assert_not_null(reduced)
 	assert_eq(reduced.get("look_input"), Vector2(1.5, 0.25))
 
+func test_update_look_input_routes_to_keyboard_channel_when_source_set() -> void:
+	var state := _make_gameplay_state()
+	var action := U_InputActions.update_look_input(Vector2(0.8, -0.4), U_InputActions.LOOK_SOURCE_KEYBOARD_MOUSE)
+	var reduced: Variant = INPUT_REDUCER.reduce_gameplay_input(state, action)
+	assert_not_null(reduced)
+	assert_eq(reduced.get("look_input"), Vector2(0.8, -0.4))
+	assert_eq(reduced.get("look_input_keyboard_mouse", Vector2.ZERO), Vector2(0.8, -0.4))
+	assert_eq(reduced.get("look_input_gamepad", Vector2.ONE), Vector2.ZERO)
+
+func test_update_look_input_routes_to_gamepad_channel_when_source_set() -> void:
+	var state := _make_gameplay_state()
+	var action := U_InputActions.update_look_input(Vector2(-0.3, 0.9), U_InputActions.LOOK_SOURCE_GAMEPAD)
+	var reduced: Variant = INPUT_REDUCER.reduce_gameplay_input(state, action)
+	assert_not_null(reduced)
+	assert_eq(reduced.get("look_input"), Vector2(-0.3, 0.9))
+	assert_eq(reduced.get("look_input_gamepad", Vector2.ZERO), Vector2(-0.3, 0.9))
+	assert_eq(reduced.get("look_input_keyboard_mouse", Vector2.ONE), Vector2.ZERO)
+
 func test_update_camera_center_state_sets_just_pressed_flag() -> void:
 	var state := _make_gameplay_state()
 	var action := U_InputActions.update_camera_center_state(true)
@@ -191,6 +209,13 @@ func test_touchscreen_settings_have_required_default_fields() -> void:
 	var button_opacities: Variant = touchscreen_settings.get("custom_button_opacities")
 	assert_true(button_opacities is Dictionary, "custom_button_opacities should be Dictionary")
 	assert_true(button_opacities.is_empty(), "custom_button_opacities should be empty by default")
+
+func test_gameplay_input_defaults_include_per_device_look_channels() -> void:
+	var state := _make_gameplay_state()
+	assert_true(state.has("look_input_keyboard_mouse"), "Gameplay input should track keyboard/mouse look channel")
+	assert_true(state.has("look_input_gamepad"), "Gameplay input should track gamepad look channel")
+	assert_eq(state.get("look_input_keyboard_mouse", Vector2.ONE), Vector2.ZERO)
+	assert_eq(state.get("look_input_gamepad", Vector2.ONE), Vector2.ZERO)
 
 func test_mouse_settings_have_keyboard_look_defaults() -> void:
 	var settings := _make_settings_state()

@@ -28,6 +28,9 @@ const ACTION_REMOVE_ACTION_BINDINGS := StringName("input/remove_action_bindings"
 const ACTION_REMOVE_EVENT_FROM_ACTION := StringName("input/remove_event_from_action")
 const ACTION_UPDATE_TOUCHSCREEN_SETTINGS := StringName("input/update_touchscreen_settings")
 const ACTION_SAVE_VIRTUAL_CONTROL_POSITION := StringName("input/save_virtual_control_position")
+const LOOK_SOURCE_KEYBOARD_MOUSE := StringName("keyboard_mouse")
+const LOOK_SOURCE_GAMEPAD := StringName("gamepad")
+const LOOK_SOURCE_TOUCHSCREEN := StringName("touchscreen")
 
 const REBIND_MODE_REPLACE := "replace"
 const REBIND_MODE_ADD := "add"
@@ -109,12 +112,14 @@ static func update_move_input(move_vector: Vector2) -> Dictionary:
 		}
 	}
 
-## Update look delta (mouse or right stick).
-static func update_look_input(look_delta: Vector2) -> Dictionary:
+## Update look delta (mouse, right stick, or touchscreen).
+## `source` is optional and allows reducers/selectors to keep per-device look channels.
+static func update_look_input(look_delta: Vector2, source: StringName = StringName("")) -> Dictionary:
 	return {
 		"type": ACTION_UPDATE_LOOK_INPUT,
 		"payload": {
-			"look_delta": look_delta
+			"look_delta": look_delta,
+			"source": source
 		}
 	}
 

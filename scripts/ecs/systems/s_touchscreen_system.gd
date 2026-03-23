@@ -176,7 +176,7 @@ func _dispatch_state(
 	if store == null or not is_instance_valid(store):
 		return
 	store.dispatch(U_InputActions.update_move_input(move_vector))
-	store.dispatch(U_InputActions.update_look_input(look_delta))
+	store.dispatch(U_InputActions.update_look_input(look_delta, U_InputActions.LOOK_SOURCE_TOUCHSCREEN))
 	store.dispatch(U_InputActions.update_camera_center_state(camera_center_just_pressed))
 	store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
 	store.dispatch(U_InputActions.update_sprint_state(sprint_pressed))

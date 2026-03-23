@@ -21,7 +21,15 @@ static func get_move_input(state: Dictionary) -> Vector2:
 	return Vector2.ZERO
 
 static func get_look_input(state: Dictionary) -> Vector2:
-	var value: Variant = _get_input_state(state).get("look_input", Vector2.ZERO)
+	var input_state := _get_input_state(state)
+	var active_device_type: int = get_active_device_type(state)
+
+	var value: Variant = input_state.get("look_input", Vector2.ZERO)
+	if active_device_type == U_DeviceTypeConstants.DeviceType.GAMEPAD:
+		value = input_state.get("look_input_gamepad", value)
+	elif active_device_type == U_DeviceTypeConstants.DeviceType.KEYBOARD_MOUSE:
+		value = input_state.get("look_input_keyboard_mouse", value)
+
 	if value is Vector2:
 		return value
 	return Vector2.ZERO
