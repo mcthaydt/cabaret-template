@@ -42,46 +42,57 @@ var _state_store: I_StateStore = null
 var _vcam_manager: I_VCAM_MANAGER = null
 var _last_active_vcam_id: StringName = StringName("")
 
+@warning_ignore("unused_private_class_variable")
 var _look_rotation_state: Dictionary:
 	get:
 		return _rotation_helper.get_look_rotation_state_snapshot()
 
+@warning_ignore("unused_private_class_variable")
 var _orbit_centering_state: Dictionary:
 	get:
 		return _rotation_helper.get_orbit_centering_state_snapshot()
 
+@warning_ignore("unused_private_class_variable")
 var _look_ahead_state: Dictionary:
 	get:
 		return _orbit_effects_helper.get_look_ahead_state_snapshot()
 
+@warning_ignore("unused_private_class_variable")
 var _ground_relative_state: Dictionary:
 	get:
 		return _orbit_effects_helper.get_ground_relative_state_snapshot()
 
+@warning_ignore("unused_private_class_variable")
 var _follow_target_motion_state: Dictionary:
 	get:
 		return _orbit_effects_helper.get_follow_target_motion_state_snapshot()
 
+@warning_ignore("unused_private_class_variable")
 var _soft_zone_dead_zone_state: Dictionary:
 	get:
 		return _orbit_effects_helper.get_soft_zone_dead_zone_state_snapshot()
 
+@warning_ignore("unused_private_class_variable")
 var _debug_position_smoothing_bypass_by_vcam: Dictionary:
 	get:
 		return _orbit_effects_helper.get_position_smoothing_bypass_snapshot()
 
+@warning_ignore("unused_private_class_variable")
 var _follow_dynamics: Dictionary:
 	get:
 		return _response_smoother.get_follow_dynamics_snapshot()
 
+@warning_ignore("unused_private_class_variable")
 var _rotation_dynamics: Dictionary:
 	get:
 		return _response_smoother.get_rotation_dynamics_snapshot()
 
+@warning_ignore("unused_private_class_variable")
 var _smoothing_metadata: Dictionary:
 	get:
 		return _response_smoother.get_smoothing_metadata_snapshot()
 
+@warning_ignore("unused_private_class_variable")
 var _rotation_target_cache: Dictionary:
 	get:
 		return _response_smoother.get_rotation_target_cache_snapshot()
@@ -239,7 +250,7 @@ func _prepare_vcam_pipeline_state(
 	vcam_id: StringName,
 	vcam_index: Dictionary,
 	look_input: Vector2,
-	move_input: Vector2,
+	_move_input: Vector2,
 	camera_center_just_pressed: bool,
 	manager: I_VCAM_MANAGER,
 	delta: float
