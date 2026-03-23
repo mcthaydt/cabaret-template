@@ -4,15 +4,15 @@
 
 - **Feature / story**: vCam Refactor (Mode Simplification + System Decomposition)
 - **Branch**: `vcam`
-- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, Phases `2A`-`2H`, Phases `3A`-`3B`, and Phases `5A`-`5C` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed; `2F` dropped). Phase `5D` final commit + regression gate is next.
+- **Status summary**: Baseline vCam delivery remains complete through Phase 13 (March 22, 2026). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, Phases `2A`-`2H`, Phases `3A`-`3B`, and Phases `5A`-`5D` are complete (orbit is the sole mode; OTS, Fixed, and First-Person removed; `2F` dropped). Phase 5 closure is complete.
 
 ## Next Planned Work (March 22, 2026)
 
-- Primary objective: continue executing `docs/vcam_manager/vcam-refactor-tasks.md` Phase 4 cleanup/contracts (`5D` final closure). Phase 2F (FP effects) and Phase 4 (Enhance FP) are dropped.
-- Immediate implementation target: Phase `5D` final full-suite validation and closure commit.
+- Primary objective: Phase 5 cleanup/contracts closure is complete; continue with next vCam roadmap item after refactor.
+- Immediate implementation target: none (await next scoped phase/story kickoff).
 - Preserve current runtime safety contracts during refactor: `S_VCamSystem` ordering (`execution_priority = 100`), frame-stamped handoff, silhouette routing via `U_VCamSilhouetteHelper.update_silhouettes(...)`, and editor-only preview gating.
 - After each completed refactor phase, update this continuation prompt and `docs/vcam_manager/vcam-refactor-tasks.md`, then commit docs separately from implementation.
-- Sections below remain pre-refactor baseline history until refactor Phase 5 documentation cleanup supersedes them.
+- Sections below are retained baseline history for audit/reference; top status and Phase 5 sections are authoritative for current refactor completion state.
 
 ## Refactor Phase 1A (March 22, 2026)
 
@@ -319,6 +319,16 @@
   - removed stale mode descriptions/contracts for deleted fixed/OTS/first-person pipelines from overview runtime sections.
   - continuation prompt + checklist status aligned to Phase `5C` completion.
 - Phase `5D` final validation/commit gate is now the active target.
+
+## Refactor Phase 5D (March 22, 2026, Complete)
+
+- Completed Phase 5 final validation/closure gate:
+  - full-suite run: `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true`.
+  - result: `3459/3468` passing, `9` pending baseline, `0` failing.
+- Completed Phase 5 docs/commit closure:
+  - `docs(vcam): complete Phase 5C documentation cleanup` (`fa254376`).
+  - this continuation/tasks update finalizes Phase `5D` closure status.
+- Refactor Phase 5 is now fully complete.
 
 ## Phase 12 Integration Tests (March 22, 2026)
 
@@ -1345,9 +1355,8 @@
 
 ## Next Steps
 
-1. Execute Phase `5D.2` final full-suite regression run (`tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true`).
-2. Close Phase `5D.1` by landing the final Phase 5 docs/status commit after green validation.
-3. Keep mandatory per-phase doc cadence and separate docs commits through Phase `5`.
+1. Start the next scoped vCam story after refactor closure (new checklist phase set).
+2. Keep mandatory per-phase doc cadence and separate docs/implementation commits for subsequent work.
 
 ## Key Decisions To Preserve
 

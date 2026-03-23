@@ -706,5 +706,13 @@ Completion notes (2026-03-22):
 
 ### Phase 5D: Phase 5 commit
 
-- [ ] **Task 5D.1**: Commit Phase 5 cleanup
-- [ ] **Task 5D.2**: Run final full test suite — verify all green
+- [x] **Task 5D.1**: Commit Phase 5 cleanup
+- [x] **Task 5D.2**: Run final full test suite — verify all green
+
+Completion notes (2026-03-22):
+- Final full-suite regression gate executed:
+  - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true`
+  - result: `3459/3468` passing, `9` pending baseline, `0` failing.
+- Phase 5 cleanup/docs closure commits landed:
+  - `fa254376` (`docs(vcam): complete Phase 5C documentation cleanup`)
+  - final Phase `5D` closure is recorded in this docs update.
