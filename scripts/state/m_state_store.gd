@@ -65,6 +65,7 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 @export var scene_initial_state: RS_SceneInitialState
 @export var settings_initial_state: RS_SettingsInitialState
 @export var debug_initial_state: RS_DebugInitialState
+@export var vcam_initial_state: Resource
 @export var vfx_initial_state: RS_VFXInitialState
 @export var audio_initial_state: RS_AudioInitialState
 @export var display_initial_state: Resource
@@ -368,11 +369,9 @@ func _initialize_settings() -> void:
 			settings.max_history_size = history_size
 	
 	# Check if history is enabled
-	var enable_history: bool = true
+	var enable_history: bool = settings.enable_history
 	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_HISTORY):
-		enable_history = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, true)
-	else:
-		enable_history = true  # Default to enabled in debug builds
+		enable_history = bool(ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, enable_history))
 
 	_action_history_buffer.configure(settings.max_history_size, enable_history)
 
@@ -387,6 +386,7 @@ func _initialize_slices() -> void:
 		gameplay_initial_state,
 		scene_initial_state,
 		debug_initial_state,
+		vcam_initial_state,
 		vfx_initial_state,
 		audio_initial_state,
 		display_initial_state,

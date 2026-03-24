@@ -70,6 +70,7 @@
 [ext_resource type="Script" uid="uid://ditrnsmje8qar" path="res://scripts/gameplay/inter_character_light_zone.gd" id="67_character_light_zone_script"]
 [ext_resource type="Resource" uid="uid://2mbi7nltqqdy" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_interior.tres" id="68_character_light_zone_goal_config"]
 [ext_resource type="Resource" uid="uid://cfrrg0a7vn7p1" path="res://resources/lighting/zones/cfg_character_light_zone_signpost_glow_interior.tres" id="69_character_light_zone_signpost_config"]
+[ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -104,6 +105,7 @@ script = ExtResource("2_ph0bl")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
 material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
+collision_layer = 33
 size = Vector3(25, 1, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
@@ -111,6 +113,7 @@ material = SubResource("StandardMaterial3D_748a2")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.4307995, 0)
 material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
+collision_layer = 33
 size = Vector3(25, 1, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
@@ -118,6 +121,7 @@ material = SubResource("StandardMaterial3D_748a2")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.810547, 3.571289, 0)
 material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
+collision_layer = 33
 size = Vector3(1.3789063, 12.142578, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
@@ -125,6 +129,7 @@ material = SubResource("StandardMaterial3D_748a2")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.48357, 3.571289, 0)
 material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
+collision_layer = 33
 size = Vector3(1.3789063, 12.142578, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
@@ -132,12 +137,14 @@ material = SubResource("StandardMaterial3D_748a2")
 transform = Transform3D(-0.010768487, 0, 0.999942, 0, 1, 0, -0.999942, 0, -0.010768487, -0.07457161, 3.571289, -12.845993)
 material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
+collision_layer = 33
 size = Vector3(1.3789063, 12.142578, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
 [node name="SO_Block3" type="CSGBox3D" parent="SceneObjects" unique_id=2071507774]
 transform = Transform3D(-0.69425654, -0.7197277, 0, 0.7197277, -0.69425654, 0, 0, 0, 1, -4.044385, 0.110826224, -3.1731567)
 use_collision = true
+collision_layer = 33
 size = Vector3(8, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
 
@@ -181,6 +188,10 @@ require_captured_cursor = true
 
 [node name="S_TouchscreenSystem" type="Node" parent="Systems/Core" unique_id=1804543642]
 script = ExtResource("24_touchscreen_system")
+
+[node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=1317759447]
+script = ExtResource("72_vcam_system")
+execution_priority = 100
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=701631179]
 script = ExtResource("9_health")

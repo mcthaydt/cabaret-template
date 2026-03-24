@@ -92,8 +92,7 @@ func process_tick(delta: float) -> void:
 		var desired_direction := _get_desired_direction(move_vector, target)
 		if desired_direction.length() == 0.0:
 			continue
-
-		var desired_yaw := atan2(-desired_direction.x, -desired_direction.z)
+		var desired_yaw: float = atan2(-desired_direction.x, -desired_direction.z)
 		var current_rotation := target.global_rotation
 		if can_log:
 			var velocity_yaw: float = 0.0

@@ -55,11 +55,13 @@ func test_health_bar_hides_when_menus_open() -> void:
 	autofree(hud)
 	await get_tree().process_frame
 
-	var health_bar: ProgressBar = hud.get_node("MarginContainer/VBoxContainer/HealthBar")
+	var health_container: HBoxContainer = hud.get_node("MarginContainer/VBoxContainer/HealthContainer")
+	var health_bar: ProgressBar = hud.get_node("MarginContainer/VBoxContainer/HealthContainer/HealthBar")
+	assert_not_null(health_container, "Health container should exist")
 	assert_not_null(health_bar, "Health bar should exist")
 
 	# Health bar should be visible during normal gameplay (no overlays)
-	assert_true(health_bar.visible, "Health bar should be visible when no menus are open")
+	assert_true(health_container.visible, "Health container should be visible when no menus are open")
 
 	# Simulate opening a menu by pushing an overlay via navigation actions
 	store.dispatch(U_NavigationActions.open_pause())
@@ -71,14 +73,14 @@ func test_health_bar_hides_when_menus_open() -> void:
 	assert_gt(overlay_stack.size(), 0, "Navigation overlay stack should not be empty")
 
 	# Health bar should now be hidden
-	assert_false(health_bar.visible, "Health bar should be hidden when menu is open")
+	assert_false(health_container.visible, "Health container should be hidden when menu is open")
 
 	# Simulate closing the menu
 	store.dispatch(U_NavigationActions.close_pause())
 	await wait_process_frames(5)
 
 	# Health bar should be visible again
-	assert_true(health_bar.visible, "Health bar should be visible again when menu is closed")
+	assert_true(health_container.visible, "Health container should be visible again when menu is closed")
 
 ## Test health bar stays hidden when transitioning from gameplay to main menu
 ## Reproduces bug: health bar flashes when quitting to main menu from pause
@@ -96,7 +98,9 @@ func test_health_bar_hidden_when_transitioning_to_main_menu() -> void:
 	autofree(hud)
 	await get_tree().process_frame
 
-	var health_bar: ProgressBar = hud.get_node("MarginContainer/VBoxContainer/HealthBar")
+	var health_container: HBoxContainer = hud.get_node("MarginContainer/VBoxContainer/HealthContainer")
+	var health_bar: ProgressBar = hud.get_node("MarginContainer/VBoxContainer/HealthContainer/HealthBar")
+	assert_not_null(health_container, "Health container should exist")
 	assert_not_null(health_bar, "Health bar should exist")
 
 	# Open pause menu
@@ -104,7 +108,7 @@ func test_health_bar_hidden_when_transitioning_to_main_menu() -> void:
 	await wait_process_frames(5)
 
 	# Health bar should be hidden
-	assert_false(health_bar.visible, "Health bar should be hidden when pause menu is open")
+	assert_false(health_container.visible, "Health container should be hidden when pause menu is open")
 
 	# Simulate clicking "Quit to Main Menu" - this clears overlays AND changes shell
 	store.dispatch(U_NavigationActions.return_to_main_menu())
@@ -112,7 +116,7 @@ func test_health_bar_hidden_when_transitioning_to_main_menu() -> void:
 
 	# Health bar should STAY hidden because we're transitioning to main menu shell
 	# The shell is now "main_menu" not "gameplay", so health bar remains hidden
-	assert_false(health_bar.visible, "Health bar should stay hidden when transitioning to main menu")
+	assert_false(health_container.visible, "Health container should stay hidden when transitioning to main menu")
 
 func test_hud_visibility_tracks_transition_state_and_shell() -> void:
 	var store := _create_store()

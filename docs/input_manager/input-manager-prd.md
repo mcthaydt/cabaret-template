@@ -6,7 +6,16 @@
 - Owner: Development Team
 - Target release: Launch (P0)
 - **Last Updated**: 2025-12-08
-- **Status**: ✅ **PRODUCTION READY** - All planned features implemented
+- **Status**: ✅ **PRODUCTION READY (baseline)** - vCam-alignment addendum documented
+
+## vCam Alignment Addendum (2026-03)
+
+- Gameplay camera-runtime authority is `docs/vcam_manager/*`; this PRD remains input-domain authority.
+- Shared look path is `gameplay.look_input` for keyboard/mouse, gamepad, and touchscreen.
+- `S_TouchscreenSystem` owns touchscreen look dispatch (drag-look) into that shared path.
+- `S_InputSystem` must not overwrite touchscreen-owned move/look with zero `TouchscreenSource` payloads while touchscreen is active.
+- Touch look tuning persists in `settings.input_settings.touchscreen_settings` (`look_drag_sensitivity`).
+- Legacy snippets below that use group-based manager discovery are historical; current implementation should use ServiceLocator lookups and typed injection-first helpers.
 
 ## Problem Statement
 
@@ -1652,7 +1661,7 @@ func _switch_device(new_device: DeviceType) -> void
 #### U_InputRebindUtils
 
 ```gdscript
-# scripts/input/u_input_rebind_utils.gd
+# scripts/utils/input/u_input_rebind_utils.gd
 class_name U_InputRebindUtils extends RefCounted
 
 # Validation result structure
@@ -1695,7 +1704,7 @@ static func dict_to_event(data: Dictionary) -> InputEvent
 #### U_ButtonPromptRegistry
 
 ```gdscript
-# scripts/input/u_button_prompt_registry.gd
+# scripts/ui/utils/u_button_prompt_registry.gd
 class_name U_ButtonPromptRegistry extends RefCounted
 
 # Prompt maps (action → device → Texture2D path)
@@ -1925,7 +1934,7 @@ func _gui_input(event: InputEvent) -> void:
 #### RS_InputProfile
 
 ```gdscript
-# scripts/input/resources/rs_input_profile.gd
+# scripts/resources/input/rs_input_profile.gd
 extends Resource
 class_name RS_InputProfile
 
@@ -2061,7 +2070,7 @@ func _dict_to_event(data: Dictionary) -> InputEvent:
 #### RS_GamepadSettings
 
 ```gdscript
-# scripts/input/resources/rs_gamepad_settings.gd
+# scripts/resources/input/rs_gamepad_settings.gd
 extends Resource
 class_name RS_GamepadSettings
 
@@ -2113,7 +2122,7 @@ func apply_deadzone(input: Vector2, deadzone: float) -> Vector2:
 #### RS_RebindSettings
 
 ```gdscript
-# scripts/input/resources/rs_rebind_settings.gd
+# scripts/resources/input/rs_rebind_settings.gd
 extends Resource
 class_name RS_RebindSettings
 
@@ -2152,7 +2161,7 @@ func should_warn(action: StringName) -> bool:
 #### RS_MouseSettings
 
 ```gdscript
-# scripts/input/resources/rs_mouse_settings.gd
+# scripts/resources/input/rs_mouse_settings.gd
 extends Resource
 class_name RS_MouseSettings
 
@@ -2188,7 +2197,7 @@ func apply_settings(delta: Vector2) -> Vector2:
 #### RS_TouchscreenSettings
 
 ```gdscript
-# scripts/input/resources/rs_touchscreen_settings.gd
+# scripts/resources/input/rs_touchscreen_settings.gd
 extends Resource
 class_name RS_TouchscreenSettings
 
@@ -2233,7 +2242,7 @@ tests/
 │       ├── test_u_input_rebind_utils.gd            # Rebind validation, conflict detection
 │       ├── test_u_input_actions.gd                 # Action creator validation
 │       ├── test_u_input_selectors.gd               # Selector query correctness
-│       ├── test_input_reducer.gd                   # Input slice reducer tests
+│       ├── test_u_input_reducer.gd                 # Input slice reducer tests
 │       ├── test_s_input_system.gd                  # Input capture and processing (EXISTING - 3 tests)
 │       ├── test_c_input_component.gd               # Component state management
 │       ├── test_c_gamepad_component.gd             # Gamepad state, vibration, deadzone
@@ -2626,10 +2635,10 @@ func _ready() -> void:
     print("Input Profile Manager initialized. Active profile: %s" % active_profile.profile_name)
 
 func _load_available_profiles() -> void:
-    available_profiles["default"] = load("res://resources/input_profiles/default.tres")
-    available_profiles["alternate"] = load("res://resources/input_profiles/alternate.tres")
-    available_profiles["accessibility"] = load("res://resources/input_profiles/accessibility.tres")
-    available_profiles["gamepad_generic"] = load("res://resources/input_profiles/gamepad_generic.tres")
+    available_profiles["default"] = load("res://resources/input/profiles/default.tres")
+    available_profiles["alternate"] = load("res://resources/input/profiles/alternate.tres")
+    available_profiles["accessibility"] = load("res://resources/input/profiles/accessibility.tres")
+    available_profiles["gamepad_generic"] = load("res://resources/input/profiles/gamepad_generic.tres")
 ```
 
 **Outcome**:

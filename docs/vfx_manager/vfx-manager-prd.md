@@ -1,12 +1,12 @@
 # VFX Manager PRD
 
-**Project**: Cabaret Template (Godot 4.5)
+**Project**: Cabaret Template (Godot 4.6)
 **Owner**: Development Team
 **Feature Branch**: `feature/vfx-manager`
 **Created**: 2026-01-01
 **Last Updated**: 2026-01-16
 **Target Release**: Phase 8 (Settings Preview)
-**Status**: IMPLEMENTED (Phases 0-8 complete)
+**Status**: IMPLEMENTED baseline (vCam-alignment addendum documented)
 **Version**: 1.3
 
 ## Problem Statement
@@ -48,6 +48,14 @@ Players currently experience no visual feedback for impactful gameplay events li
 8. **Particles Toggle**: Global enable/disable for particle VFX via Redux settings
 9. **Settings Preview**: Live preview for screen shake settings in the UI
 
+## vCam Alignment Addendum (2026-03)
+
+- Camera-runtime orchestration source of truth is `docs/vcam_manager/*`; this PRD remains authoritative for VFX-domain behavior.
+- `M_CameraManager.apply_shake_offset(...)` remains the VFX-owned camera integration surface.
+- vCam-owned gameplay camera APIs are `M_CameraManager.apply_main_camera_transform(...)` and `M_CameraManager.is_blend_active()`.
+- Persisted silhouette ownership is `vfx.occlusion_silhouette_enabled`, exposed in `UI_VFXSettingsOverlay` with localization keys.
+- Occlusion rollout requires both `vcam_occludable` layer schema and authored-scene migration of real camera blockers.
+
 ## Non-Goals
 
 - **Post-Processing Effects** (film grain, CRT, Lomo, bloom, vignette persistent effects) - Deferred to Display Manager
@@ -70,6 +78,7 @@ The VFX system SHALL define a Redux slice named `vfx` with the following fields:
 | `screen_shake_intensity` | float | 1.0 | 0.0-2.0 | Shake intensity multiplier |
 | `damage_flash_enabled` | bool | true | true/false | Damage flash effect toggle |
 | `particles_enabled` | bool | true | true/false | Global particle effects toggle |
+| `occlusion_silhouette_enabled` | bool | true | true/false | Player-facing vCam occlusion silhouette toggle |
 
 **FR-002: VFX Action Creators**
 The system SHALL provide action creators in `U_VFXActions`:
@@ -645,7 +654,7 @@ func _on_apply_pressed() -> void:
 **Objective**: Implement VFX Redux layer with immutable state management
 
 **Deliverables**:
-1. `scripts/state/resources/rs_vfx_initial_state.gd` - Initial state resource
+1. `scripts/resources/state/rs_vfx_initial_state.gd` - Initial state resource
 2. `scripts/state/actions/u_vfx_actions.gd` - 3 action creators
 3. `scripts/state/reducers/u_vfx_reducer.gd` - Reducer with clamping
 4. `scripts/state/selectors/u_vfx_selectors.gd` - 3 selector functions
@@ -768,7 +777,7 @@ func _on_apply_pressed() -> void:
 
 **Deliverables**:
 1. `scripts/managers/helpers/u_damage_flash.gd` - Flash helper
-2. `scenes/ui/ui_damage_flash_overlay.tscn` - CanvasLayer scene
+2. `scenes/ui/overlays/ui_damage_flash_overlay.tscn` - CanvasLayer scene
 3. `tests/unit/managers/helpers/test_damage_flash.gd` - 10 unit tests
 
 **Commit 1: Damage Flash Scene**

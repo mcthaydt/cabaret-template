@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cixccq2fphsgc"]
 
 [ext_resource type="Script" uid="uid://3hp7vaqgkdtf" path="res://scripts/ui/menus/ui_credits.gd" id="1"]
-[ext_resource type="Resource" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
 [ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
@@ -13,6 +13,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+background_shader_preset = "scanline_drift"
+background_shader_intensity = 0.43
+background_shader_speed = 0.85
 motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1899938166]

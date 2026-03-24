@@ -21,6 +21,7 @@ const INPUT_REDUCER := preload("res://scripts/state/reducers/u_input_reducer.gd"
 # Player input state (writable - single player)
 @export var move_input: Vector2 = Vector2.ZERO
 @export var look_input: Vector2 = Vector2.ZERO
+@export var touch_look_active: bool = false
 @export var jump_pressed: bool = false
 @export var jump_just_pressed: bool = false
 
@@ -72,6 +73,7 @@ func to_dictionary() -> Dictionary:
 		# Player input (writable)
 		"move_input": move_input,
 		"look_input": look_input,
+		"touch_look_active": touch_look_active,
 		"jump_pressed": jump_pressed,
 		"jump_just_pressed": jump_just_pressed,
 		# Player health/progression

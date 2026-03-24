@@ -300,6 +300,28 @@ func _get_active_camera() -> Camera3D:
 			return viewport_camera
 	return null
 
+func apply_main_camera_transform(transform: Transform3D) -> void:
+	var main_camera := get_main_camera()
+	if main_camera == null or not is_instance_valid(main_camera):
+		return
+
+	var shake_parent := get_shake_parent_for_camera(main_camera)
+	if shake_parent == null or not is_instance_valid(shake_parent):
+		main_camera.global_transform = transform
+		return
+
+	# Preserve active shake contribution while updating the baseline camera pose.
+	var shake_position: Vector3 = shake_parent.position
+	var shake_rotation: Vector3 = shake_parent.rotation
+	shake_parent.position = Vector3.ZERO
+	shake_parent.rotation = Vector3.ZERO
+	main_camera.global_transform = transform
+	shake_parent.position = shake_position
+	shake_parent.rotation = shake_rotation
+
+func is_blend_active() -> bool:
+	return _camera_blend_tween != null and _camera_blend_tween.is_running()
+
 func register_main_camera(camera: Camera3D) -> void:
 	if camera != null and is_instance_valid(camera):
 		_main_camera = camera

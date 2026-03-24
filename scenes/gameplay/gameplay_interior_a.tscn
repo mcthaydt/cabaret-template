@@ -1,0 +1,4434 @@
+[gd_scene format=3 uid="uid://dswa0wook52e4"]
+
+[ext_resource type="Script" uid="uid://bgrjdxph5gqqh" path="res://scripts/ecs/systems/s_camera_state_system.gd" id="1_camera_state_system"]
+[ext_resource type="Script" uid="uid://tl3oy7blmu20" path="res://scripts/ecs/systems/s_character_state_system.gd" id="1_character_rule_manager"]
+[ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
+[ext_resource type="Script" uid="uid://drmqto4u8pr8d" path="res://scripts/ecs/systems/s_game_event_system.gd" id="1_game_event_system"]
+[ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
+[ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
+[ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
+[ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
+[ext_resource type="Script" uid="uid://gaammkurp23b" path="res://scripts/scene_structure/marker_systems_group.gd" id="3_ph0bl"]
+[ext_resource type="Script" uid="uid://cg10jkb2k5551" path="res://scripts/scene_structure/marker_systems_core_group.gd" id="3_systems_core"]
+[ext_resource type="Script" uid="uid://dl32cj7p543rh" path="res://scripts/scene_structure/marker_systems_feedback_group.gd" id="3_systems_feedback"]
+[ext_resource type="Script" uid="uid://wp8ordbinat2" path="res://scripts/scene_structure/marker_systems_movement_group.gd" id="3_systems_movement"]
+[ext_resource type="Script" uid="uid://ceou3w83ojcku" path="res://scripts/scene_structure/marker_systems_physics_group.gd" id="3_systems_physics"]
+[ext_resource type="Script" uid="uid://b85bi31g464hs" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
+[ext_resource type="Script" uid="uid://h5ym8nprt7dw" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
+[ext_resource type="Script" uid="uid://dtyibtpldqj48" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
+[ext_resource type="Script" uid="uid://cxvneotjjmt2h" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
+[ext_resource type="Texture2D" uid="uid://emedu6pq2lwj" path="res://assets/textures/prototype_grids_png/Light/tex_texture_06.png" id="6_jh1j5"]
+[ext_resource type="Script" uid="uid://bybk18c838a4x" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
+[ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
+[ext_resource type="Script" uid="uid://c5tv5b4g5a2ya" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
+[ext_resource type="Texture2D" uid="uid://bln3t6p8asyk3" path="res://assets/textures/prototype_grids_png/Purple/tex_texture_01.png" id="7_oyk2i"]
+[ext_resource type="Script" uid="uid://ddf4k6uippbnm" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
+[ext_resource type="Texture2D" uid="uid://b1r5ab5wgdm2q" path="res://assets/textures/prototype_grids_png/Orange/tex_texture_01.png" id="8_fq7ll"]
+[ext_resource type="Script" uid="uid://dciojb5mih6gh" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
+[ext_resource type="Script" uid="uid://vxfou682xmrp" path="res://scripts/ecs/systems/s_death_handler_system.gd" id="9_death_handler"]
+[ext_resource type="Texture2D" uid="uid://bqnushigljekn" path="res://assets/textures/prototype_grids_png/Red/tex_texture_03.png" id="9_fq7ll"]
+[ext_resource type="Script" uid="uid://vbqdwstwybck" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
+[ext_resource type="Script" uid="uid://bxqd4f7hk7hte" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
+[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
+[ext_resource type="Script" uid="uid://qeq48m3npch6" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
+[ext_resource type="Resource" uid="uid://cqh2bvx4r8jw6" path="res://resources/base_settings/audio/cfg_jump_sound_default.tres" id="9_jump_sound_settings"]
+[ext_resource type="Script" uid="uid://bneiabwmn5nl7" path="res://scripts/ecs/systems/s_playtime_system.gd" id="9_playtime"]
+[ext_resource type="Script" uid="uid://bkxfcc8idt6ld" path="res://scripts/ecs/systems/s_victory_handler_system.gd" id="9_victory"]
+[ext_resource type="Script" uid="uid://bry3i70sfhmiv" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
+[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
+[ext_resource type="Script" uid="uid://dcninbk24e6ve" path="res://scripts/ecs/systems/s_landing_sound_system.gd" id="10_landing_sound"]
+[ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/base_settings/audio/cfg_landing_sound_default.tres" id="10_landing_sound_settings"]
+[ext_resource type="Script" uid="uid://bcy243ogwqv5f" path="res://scripts/ecs/systems/s_death_sound_system.gd" id="11_death_sound"]
+[ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/base_settings/audio/cfg_death_sound_default.tres" id="11_death_sound_settings"]
+[ext_resource type="Script" uid="uid://buguhw0x2x6og" path="res://scripts/ecs/systems/s_checkpoint_sound_system.gd" id="12_checkpoint_sound"]
+[ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/base_settings/audio/cfg_checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
+[ext_resource type="Script" uid="uid://d0omtagbm74cs" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
+[ext_resource type="Script" uid="uid://dfn1e3onqcmj4" path="res://scripts/ecs/systems/s_victory_sound_system.gd" id="13_victory_sound"]
+[ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/base_settings/audio/cfg_victory_sound_default.tres" id="13_victory_sound_settings"]
+[ext_resource type="Script" uid="uid://b3qbubetb1sko" path="res://scripts/ecs/systems/s_footstep_sound_system.gd" id="14_footstep_sound"]
+[ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/base_settings/audio/cfg_footstep_sound_default.tres" id="14_footstep_sound_settings"]
+[ext_resource type="Script" uid="uid://bdp7886fufa8v" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
+[ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
+[ext_resource type="Script" uid="uid://csqsmkkv5ite7" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
+[ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
+[ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
+[ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
+[ext_resource type="Script" uid="uid://cdheqmcyhlh2j" path="res://scripts/ecs/systems/s_checkpoint_handler_system.gd" id="42_checkpoint_handler_system"]
+[ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
+[ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" uid="uid://bsyk32fi3mvu3" path="res://resources/spawn_metadata/cfg_sp_interior_a.tres" id="51_interior_a_spawn_meta"]
+[ext_resource type="Script" uid="uid://bob8u843dmbh7" path="res://scripts/scene_structure/marker_components_group.gd" id="60_txck2"]
+[ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="61_hazard_config"]
+[ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="64_lighting_group"]
+[ext_resource type="Script" uid="uid://v1205hibt78y" path="res://scripts/scene_structure/marker_character_lighting_settings.gd" id="65_character_lighting_settings_script"]
+[ext_resource type="Resource" uid="uid://dl0w8p663hthp" path="res://resources/lighting/cfg_character_lighting_profile_interior_a.tres" id="66_character_lighting_profile"]
+[ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
+[ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="73_room_fade_group_component"]
+[ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="74_room_fade_system"]
+[ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="75_base_ecs_entity"]
+[ext_resource type="Texture2D" uid="uid://cu6nemmc82bo4" path="res://assets/textures/prototype_grids_png/Light/tex_texture_03.png" id="76_light_tex03"]
+[ext_resource type="Script" uid="uid://b7o3qydjxfyts" path="res://scripts/ecs/components/c_region_visibility_component.gd" id="76_region_visibility_component"]
+[ext_resource type="Script" uid="uid://btf32kqffvu02" path="res://scripts/ecs/systems/s_region_visibility_system.gd" id="77_region_visibility_system"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oyk2i"]
+shading_mode = 0
+albedo_texture = ExtResource("76_light_tex03")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gm3uw"]
+shading_mode = 0
+albedo_texture = ExtResource("6_jh1j5")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ocmnx"]
+shading_mode = 0
+albedo_texture = ExtResource("7_oyk2i")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fq7ll"]
+shading_mode = 0
+diffuse_mode = 3
+albedo_texture = ExtResource("6_jh1j5")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rwkwx"]
+shading_mode = 0
+albedo_texture = ExtResource("8_fq7ll")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_508nq"]
+shading_mode = 0
+albedo_texture = ExtResource("8_fq7ll")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lcht4"]
+shading_mode = 0
+albedo_texture = ExtResource("8_fq7ll")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7xnwg"]
+shading_mode = 0
+albedo_texture = ExtResource("8_fq7ll")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fes50"]
+shading_mode = 0
+albedo_texture = ExtResource("8_fq7ll")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hfffp"]
+shading_mode = 0
+albedo_texture = ExtResource("9_fq7ll")
+
+[sub_resource type="Environment" id="Environment_interior_a"]
+background_mode = 1
+ambient_light_source = 3
+
+[node name="GameplayRoot" type="Node3D" unique_id=1115187414]
+script = ExtResource("1_f2o31")
+
+[node name="SceneObjects" type="Node3D" parent="." unique_id=1089805488]
+script = ExtResource("2_ph0bl")
+
+[node name="BedroomArea" type="Node3D" parent="SceneObjects" unique_id=1187321511]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/BedroomArea" unique_id=1253645955]
+script = ExtResource("76_region_visibility_component")
+region_tag = &"bedroom_area"
+
+[node name="MasterBathroom" type="Node3D" parent="SceneObjects/BedroomArea" unique_id=442700941]
+
+[node name="Floors" type="Node3D" parent="SceneObjects/BedroomArea/MasterBathroom" unique_id=91765248]
+
+[node name="CSGBox3D42" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Floors" unique_id=2117106809]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D44" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Floors" unique_id=1045989752]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D45" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Floors" unique_id=162087182]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D46" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Floors" unique_id=472046769]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D47" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Floors" unique_id=113571747]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D48" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Floors" unique_id=816454728]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D49" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Floors" unique_id=1414800127]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D50" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Floors" unique_id=1273939227]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D51" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Floors" unique_id=1617998455]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D43" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Floors" unique_id=2115306912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="Walls" type="Node3D" parent="SceneObjects/BedroomArea/MasterBathroom" unique_id=1798264491]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1584195292]
+script = ExtResource("73_room_fade_group_component")
+group_tag = &"master_bathroom_walls"
+
+[node name="CSGBox3D74" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=319842911]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D75" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1408302317]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D79" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=2046737671]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D80" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=623885854]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D81" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1802343879]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D70" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=907064726]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D71" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=214511375]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D72" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=461506649]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D73" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1012383967]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D76" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1322519354]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D77" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1450508715]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D82" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1566866355]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D83" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1743182360]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D84" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1662932278]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D78" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1249505826]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D85" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=904230138]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D86" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1368226741]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D87" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1458530609]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D88" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=2032166437]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D89" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=295712865]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D90" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=744161353]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D91" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1063032186]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D92" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1195271758]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D93" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=165034068]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D94" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1232958138]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D95" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=2057156044]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D96" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBathroom/Walls" unique_id=1710962457]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="Objects" type="Node3D" parent="SceneObjects/BedroomArea/MasterBathroom" unique_id=1328318105]
+
+[node name="MasterBedroom" type="Node3D" parent="SceneObjects/BedroomArea" unique_id=1166286119]
+
+[node name="Floors" type="Node3D" parent="SceneObjects/BedroomArea/MasterBedroom" unique_id=1560863504]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=465177608]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=933918614]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D14" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1533863732]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D15" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1475499375]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D16" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1072143947]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D17" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1846081608]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D18" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1188704716]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D26" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1989280012]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D27" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=414825887]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D28" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=770930656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D19" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1336347042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D29" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=616929001]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D20" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1565969223]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D21" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1048085037]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D22" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=430461323]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D23" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1232298402]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D24" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=289779846]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D30" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1716780346]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D31" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=2012255835]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D32" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1164617177]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D33" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=990601266]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D25" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=954113162]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1427895226]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=2087243811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=599898176]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D10" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1043454539]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D11" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1099261201]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D12" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1185186911]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D34" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=200449063]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D35" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=56226449]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D36" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1494467131]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D37" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=227658536]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D38" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1956303859]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D39" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=237212313]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D40" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=649427766]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D41" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=500930884]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D6" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=339518388]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D7" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1604913839]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D8" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=1809014523]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D9" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Floors" unique_id=49261498]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="Walls" type="Node3D" parent="SceneObjects/BedroomArea/MasterBedroom" unique_id=363866353]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1206643552]
+script = ExtResource("73_room_fade_group_component")
+group_tag = &"master_bedroom_walls"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=555683831]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1479216546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1573002126]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=648293505]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=244446761]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D6" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=197711586]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D7" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1219977451]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D8" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1150622789]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D9" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=857943089]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_ocmnx")
+
+[node name="CSGBox3D10" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=440165480]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D11" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=110448119]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D12" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=376957079]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_ocmnx")
+
+[node name="CSGBox3D13" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=836038560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D14" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=169035774]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D15" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=788134619]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D38" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=946984798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D39" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1678117943]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D41" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1409521071]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D42" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=2040883652]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D43" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=903972103]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D44" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1221129073]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D45" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=606437362]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D46" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1964221271]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D47" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1251472570]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D50" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=702155052]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D53" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=439825766]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D56" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=268668557]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D57" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=561219801]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_fq7ll")
+
+[node name="CSGBox3D58" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=920629552]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D59" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=826667390]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D62" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=575473321]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D63" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1855120110]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D64" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=211168073]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D76" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1771691134]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D77" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=794305279]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D65" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=84097930]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D22" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1070016366]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D25" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=808667808]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 0, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D26" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=991031852]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 2, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D27" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=750692221]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D28" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=889156123]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D29" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1552928370]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 0, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D30" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1042893905]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 2, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D31" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=238738003]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D32" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=317563409]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 0, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D33" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1109265708]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 2, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D34" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1171885277]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D35" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1746586696]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 0, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D36" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=264689967]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 2, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D37" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1929063190]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D60" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=414539075]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D61" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=491000162]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D66" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=2051750182]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D67" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1225679454]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D68" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=94194212]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D69" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1811507030]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D72" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=178150971]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D73" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=2097960458]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D74" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=681549239]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D75" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1846662145]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D78" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=14674302]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D40" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1598260167]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 4, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D23" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1288795901]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D24" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1045597349]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D16" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1017395444]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D17" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1646970090]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D18" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1262197400]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D19" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1063359240]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D20" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=374550645]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D21" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Walls" unique_id=1882519315]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="Objects" type="Node3D" parent="SceneObjects/BedroomArea/MasterBedroom" unique_id=1882312523]
+
+[node name="Painting" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Objects" unique_id=830617816]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2.5, 4.9)
+use_collision = true
+collision_layer = 33
+size = Vector3(4, 3, 0.1)
+material = SubResource("StandardMaterial3D_ocmnx")
+
+[node name="Bed" type="CSGBox3D" parent="SceneObjects/BedroomArea/MasterBedroom/Objects" unique_id=531135]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -0.45, 3)
+use_collision = true
+collision_layer = 33
+size = Vector3(4, 1, 4)
+material = SubResource("StandardMaterial3D_rwkwx")
+
+[node name="WalkInCloset" type="Node3D" parent="SceneObjects/BedroomArea" unique_id=374709400]
+
+[node name="Walls" type="Node3D" parent="SceneObjects/BedroomArea/WalkInCloset" unique_id=1590252101]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=428647089]
+script = ExtResource("73_room_fade_group_component")
+group_tag = &"walk_in_closet_walls"
+
+[node name="CSGBox3D70" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1318414733]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D71" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=820709196]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D72" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=167737647]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D73" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1631255012]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D74" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1048963626]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 2, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D75" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=608849078]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 2, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D76" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=2113869540]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D77" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=2100086745]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 2, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D78" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1447850505]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D79" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=965432887]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4, -5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D80" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1664204472]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D81" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1792925918]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4, 5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D82" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1014940912]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 0, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D83" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1225758590]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 0, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D84" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1251428414]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 0, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D85" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1276402826]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 0, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D86" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1402277059]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 0, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D87" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1783059782]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 2, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D88" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1444945761]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 2, 3.9999998)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D89" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=553239907]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 2, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D90" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=174657801]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 2, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D91" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1652920835]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 2, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D92" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=883276006]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 4, -3.9999998)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D93" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1084171327]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 4, 3.9999998)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D94" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1658654016]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 4, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D95" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1455593630]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 4, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D96" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Walls" unique_id=1165788472]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 4, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="Floors" type="Node3D" parent="SceneObjects/BedroomArea/WalkInCloset" unique_id=1700897044]
+
+[node name="CSGBox3D42" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Floors" unique_id=1331323612]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D43" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Floors" unique_id=1719332506]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D44" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Floors" unique_id=81200366]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D45" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Floors" unique_id=548346197]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D46" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Floors" unique_id=2021830731]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D47" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Floors" unique_id=1095073362]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, -1, -4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D48" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Floors" unique_id=1903397612]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, -1, -2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D49" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Floors" unique_id=1021642621]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, -1, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D50" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Floors" unique_id=739088594]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, -1, 2)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D51" type="CSGBox3D" parent="SceneObjects/BedroomArea/WalkInCloset/Floors" unique_id=1807144815]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, -1, 4)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="Objects" type="Node3D" parent="SceneObjects/BedroomArea/WalkInCloset" unique_id=619555083]
+
+[node name="EntertainmentArea" type="Node3D" parent="SceneObjects" unique_id=1304355819]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/EntertainmentArea" unique_id=207093671]
+script = ExtResource("76_region_visibility_component")
+region_tag = &"entertainment_area"
+
+[node name="Floors" type="Node3D" parent="SceneObjects/EntertainmentArea" unique_id=1234714061]
+
+[node name="CSGBox3D52" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=357438623]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D61" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1609840706]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D62" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=214687617]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D63" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1547657266]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D64" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1034893493]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D65" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1198213955]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D66" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=800713984]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D67" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1440751365]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D68" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1666603385]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D69" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1255649769]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D70" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1635912654]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D71" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1463385328]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D72" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=949212158]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D73" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1347813973]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D74" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1571760410]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D75" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=808979730]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D76" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1315241181]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D141" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=881322139]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D142" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=424238279]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D143" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=393690807]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D77" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1583715631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D78" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=885613103]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D79" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=658613970]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D80" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=103299370]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D81" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1512679168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D82" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=585348015]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D83" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1972924882]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D84" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=762959777]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D85" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1734038178]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D86" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=405700595]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D87" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1251881968]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D88" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1319264066]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D89" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=544264533]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D90" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=812502691]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D91" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=516781949]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D92" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1680269336]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D93" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=372248117]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D94" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1740960814]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D95" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=261336837]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D96" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1007511312]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D97" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=736785127]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D98" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=327132976]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D99" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=800509790]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D100" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1284942665]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D101" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1733490172]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D102" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=2087609993]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D103" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=398252871]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D104" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=559465685]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D105" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=785224977]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D106" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1260785811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D107" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1308613667]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D108" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=170776662]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D109" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=232061750]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D110" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=225992172]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D111" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=726230614]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D112" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1819182464]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D113" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1221008356]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D114" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=506509522]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D115" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=76213228]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D116" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=340421754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D117" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1587216487]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D118" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=539199358]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D119" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1422971311]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D120" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=781510777]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D121" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=106240600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D122" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=856779530]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D123" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=775530344]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D124" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1323660561]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D125" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1330847452]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D126" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1618373602]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D127" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=815373792]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D128" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1819809915]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D129" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=510950191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D130" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1198494]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D131" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=426235249]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D132" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=2032020786]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D144" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=747442553]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D146" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=260069523]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D147" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=96931301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_508nq")
+
+[node name="CSGBox3D148" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1951628685]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_lcht4")
+
+[node name="CSGBox3D149" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1334765766]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_7xnwg")
+
+[node name="CSGBox3D150" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=415045880]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_fes50")
+
+[node name="CSGBox3D145" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1241837476]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D133" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1739485588]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D134" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=84400797]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D135" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1967808938]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D136" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=304440599]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D137" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=966999697]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D138" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=794284322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D139" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=931821165]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D140" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1915464858]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D53" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1887971759]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D54" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1435266685]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D55" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1964800457]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D56" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1695709830]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D57" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=76348638]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D58" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1242697913]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D59" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=760339608]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D60" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=1488207109]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D42" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Floors" unique_id=2057504921]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="Walls" type="Node3D" parent="SceneObjects/EntertainmentArea" unique_id=1951832570]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/EntertainmentArea/Walls" unique_id=398247881]
+script = ExtResource("73_room_fade_group_component")
+group_tag = &"entertainment_area_walls"
+
+[node name="CSGBox3D70" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=385630598]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D71" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1302061969]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D72" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=894007804]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D73" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1080970351]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D74" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=324781510]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D75" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=924166908]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D78" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1875047050]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D79" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=994338858]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D80" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1990158238]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D81" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1302673941]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D84" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1003890788]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D85" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1149940082]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D86" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1375340804]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D87" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=584541853]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D88" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=51174941]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D89" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=288500699]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D90" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1465175630]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D91" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1577364344]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D92" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1498886010]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D93" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=960613034]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D94" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1661814263]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D95" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=2106959629]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D96" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1872003324]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D97" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1676309603]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D98" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1883896674]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D99" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=883996124]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D103" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1578580908]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D104" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=454317278]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D105" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1542941930]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D109" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1161426114]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D110" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=59335744]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D111" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=46169392]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D115" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=2035507401]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D116" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=439360108]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D117" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=401819242]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D121" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=430810473]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D122" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=132161547]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D123" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=539521838]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D127" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=870058465]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D133" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=969174881]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 5, 0, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D134" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=330860067]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3, 0, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_hfffp")
+
+[node name="CSGBox3D128" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1983415732]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D129" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1311938506]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D130" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1048158805]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D131" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1483292839]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D132" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=335399716]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 4, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D135" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1533193918]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D136" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1130637052]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D137" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1153714650]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D138" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=540600639]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 4, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D139" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1758179379]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D160" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=131001319]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -23)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D161" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1413445179]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -23)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D162" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=842895863]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -23)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D163" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1428775704]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -23)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D164" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=408710884]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -23)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D165" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1030577601]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -23)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D140" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=71518435]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D141" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=200693090]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D142" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1976163933]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D143" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=971101807]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D144" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1277979178]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 4, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D145" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1516817862]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D146" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=476235729]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D147" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=508763353]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D148" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=45723905]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D149" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=42019645]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D150" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=756622800]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 4, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D151" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=476629345]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D152" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=412457352]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D153" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1182358317]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D154" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=153477143]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D155" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1586732642]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D156" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1373736685]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 4, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D157" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1036859663]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D158" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=2098308788]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D100" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1892959357]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D101" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=94695049]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D102" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=535019706]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -16)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D108" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=230022834]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -18)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D114" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=18393018]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -20)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D118" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=460544090]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D119" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1688541916]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D120" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1381376301]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -22)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D124" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1292580050]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D166" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1542309490]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D167" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1571114784]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -24)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D168" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1383677629]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D169" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1218452246]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D170" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=283306070]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D171" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=707892938]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D172" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=411306194]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D173" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=116463678]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D174" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=2094224531]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 2, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D175" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1496859685]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D176" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1633670654]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D177" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1013220201]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D178" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=643293111]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D179" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1768699863]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 4, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D180" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1711988442]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9, 0, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D159" type="CSGBox3D" parent="SceneObjects/EntertainmentArea/Walls" unique_id=1011531119]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 4, -25)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="Objects" type="Node3D" parent="SceneObjects/EntertainmentArea" unique_id=2029887445]
+
+[node name="GymArea" type="Node3D" parent="SceneObjects" unique_id=1120193734]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/GymArea" unique_id=2032469232]
+script = ExtResource("76_region_visibility_component")
+region_tag = &"gym_area"
+
+[node name="Floors" type="Node3D" parent="SceneObjects/GymArea" unique_id=1005525011]
+
+[node name="CSGBox3D144" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1296241967]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D172" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1668071874]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D173" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1988119019]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D174" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1323692272]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D175" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1111276229]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D176" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=290138812]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D177" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1361058106]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D178" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=290231613]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, -1, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D148" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1420864211]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D149" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1993507320]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D150" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=700644668]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D151" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=421568247]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D152" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=945572802]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D153" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1554382538]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, -1, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D154" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=983264209]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D155" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1425695531]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D156" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1414796107]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D157" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=327372998]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D158" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1127963219]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D159" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1379910084]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D160" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=603928629]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D161" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1404902659]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D162" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=561860670]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D163" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1074728113]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D164" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=114087311]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D165" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1484724125]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D166" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1588484692]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D167" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1920141323]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D168" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=30640549]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D169" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1113169421]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D170" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1065009196]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D171" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1296980411]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D145" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1589933219]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D146" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1937326718]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D147" type="CSGBox3D" parent="SceneObjects/GymArea/Floors" unique_id=1827392395]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="Walls" type="Node3D" parent="SceneObjects/GymArea" unique_id=1945246005]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/GymArea/Walls" unique_id=870317717]
+script = ExtResource("73_room_fade_group_component")
+group_tag = &"gym_area_walls"
+
+[node name="CSGBox3D139" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1991132398]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 0, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D140" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=59164703]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 0, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D141" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1021463685]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 0, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D142" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=141862149]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 0, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D143" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=27815459]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 0, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D144" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=362214794]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 2, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D145" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1957044928]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 2, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D146" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=2053319400]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 2, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D147" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=330535741]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 2, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D148" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1523411420]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 2, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D149" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1476481343]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 4, -12)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D150" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=383072515]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 4, -14)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D151" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=194866682]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 4, -10)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D152" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1646858703]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 4, -8)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D153" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1750782815]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -23, 4, -6)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D97" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=2036291554]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D118" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=542352996]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D119" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=106767402]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D120" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=922596348]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D121" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=2079556840]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D122" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1500748830]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D123" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1425121842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D124" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1657496216]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D125" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=563597625]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 2, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D126" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1268959228]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 2, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D127" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=115657975]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 2, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D128" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1733043664]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 2, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D129" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=342577190]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 2, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D130" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=2007487009]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D131" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1221804794]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 2, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D132" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1277118507]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 4, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D133" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=407123808]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D134" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=231595623]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 4, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D135" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1585401346]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 4, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D136" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1313312654]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 4, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D137" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1557454251]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 4, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D138" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=513667057]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 4, -15)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D98" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1242357599]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D99" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1280059212]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D100" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1734354640]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D101" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=2119101791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D102" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=2124702278]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D103" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=458027273]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D104" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=2010018362]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 2, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D105" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1549487538]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 2, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D106" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=225431913]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 2, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D107" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=558081825]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 2, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D108" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1064976633]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 2, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D109" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=605455891]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D110" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=467010350]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 2, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D111" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1532514054]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 4, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D112" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=944447219]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D113" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1086312502]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 4, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D114" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1955995490]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 4, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D115" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=1711354267]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 4, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D116" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=252201620]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 4, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D117" type="CSGBox3D" parent="SceneObjects/GymArea/Walls" unique_id=510325456]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 4, -5.5)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="Objects" type="Node3D" parent="SceneObjects/GymArea" unique_id=524600765]
+
+[node name="OfficeArea" type="Node3D" parent="SceneObjects" unique_id=248894745]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RegionVisibilityComponent" type="Node" parent="SceneObjects/OfficeArea" unique_id=942587034]
+script = ExtResource("76_region_visibility_component")
+region_tag = &"office_area"
+
+[node name="Floors" type="Node3D" parent="SceneObjects/OfficeArea" unique_id=1229035368]
+
+[node name="CSGBox3D247" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1529270548]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D248" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1110376961]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D249" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1853661443]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D250" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1216402789]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D251" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=801540093]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -1, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D292" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=784091887]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D293" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1224319229]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D294" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=554395148]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D295" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=2075734513]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D296" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1567232655]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -1, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D252" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1724518546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D253" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=48105522]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D254" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=2021505161]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D255" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1388698476]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D256" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1045441226]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D257" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1056770835]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D258" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=280926038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D259" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=443083353]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D260" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=984543801]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D261" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1883548809]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D262" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=228716871]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D263" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1349202321]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D264" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1626808066]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D265" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=623942381]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D266" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=544693096]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D267" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=960639091]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D268" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=303560628]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D269" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=912958824]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D270" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=259657981]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D271" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1686832945]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D272" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=725316624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D273" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1700980156]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D274" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1167185551]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D275" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1299931670]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D276" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1182247008]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D277" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=181577828]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D278" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=869345572]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D279" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=279715184]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D280" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=672575246]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D281" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=720358495]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D282" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=818494156]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D283" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1284607493]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D284" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1367345199]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D285" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1765281186]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D286" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=760254707]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D287" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=163728759]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D288" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=513471401]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D289" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=1567689644]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D290" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=872297227]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="CSGBox3D291" type="CSGBox3D" parent="SceneObjects/OfficeArea/Floors" unique_id=482322979]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -1, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 0.1, 2)
+material = SubResource("StandardMaterial3D_oyk2i")
+
+[node name="Walls" type="Node3D" parent="SceneObjects/OfficeArea" unique_id=1617913564]
+script = ExtResource("75_base_ecs_entity")
+
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/OfficeArea/Walls" unique_id=22060526]
+script = ExtResource("73_room_fade_group_component")
+group_tag = &"office_area_walls"
+
+[node name="CSGBox3D159" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1134489373]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D160" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1988386539]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D161" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1069109520]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D162" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=812845329]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D163" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1202232339]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 0, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D169" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=487051335]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D170" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=383401387]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D171" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=308323900]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D172" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1996855155]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D173" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=929134048]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 2, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D179" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1024873310]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -26)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D180" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=989210945]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -28)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D181" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=507458563]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -30)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D182" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1331305379]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -32)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D183" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1185775859]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11, 4, -34)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D167" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1028738870]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D184" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1401428100]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D185" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1475958704]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D186" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=74704437]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D187" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1917764258]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D188" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=724503526]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D189" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1056715894]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D190" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=911520084]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D191" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1081642847]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D192" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=251136563]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D193" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1857712029]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D194" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1341209234]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D195" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=874752185]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D196" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1949305635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D197" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1626255219]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D198" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=702748937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D199" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1280073797]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D200" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1722020120]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D201" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=216929671]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D202" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=2053242781]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D203" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=690228342]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 4, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D204" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=292776674]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D205" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=602362786]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 4, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D206" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=179611577]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D207" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1869432082]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 4, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D208" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=545018069]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D209" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=847154433]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 4, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D210" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=825616750]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D211" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=1999792699]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 4, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="CSGBox3D212" type="CSGBox3D" parent="SceneObjects/OfficeArea/Walls" unique_id=599919535]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 4, -35)
+use_collision = true
+collision_layer = 33
+size = Vector3(2, 2, 0.1)
+material = SubResource("StandardMaterial3D_gm3uw")
+
+[node name="Objects" type="Node3D" parent="SceneObjects/OfficeArea" unique_id=2129056485]
+
+[node name="Environment" type="Node" parent="." unique_id=1767168511]
+script = ExtResource("2_8soux")
+
+[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=1602916997]
+environment = SubResource("Environment_interior_a")
+
+[node name="Lighting" type="Node" parent="." unique_id=422493408]
+script = ExtResource("64_lighting_group")
+
+[node name="CharacterLightingSettings" type="Node" parent="Lighting" unique_id=1656380382]
+script = ExtResource("65_character_lighting_settings_script")
+default_profile = ExtResource("66_character_lighting_profile")
+
+[node name="Systems" type="Node" parent="." unique_id=1088815343]
+script = ExtResource("3_ph0bl")
+
+[node name="Core" type="Node" parent="Systems" unique_id=524074479]
+script = ExtResource("3_systems_core")
+
+[node name="S_CharacterStateSystem" type="Node" parent="Systems/Core" unique_id=1998760519]
+script = ExtResource("1_character_rule_manager")
+
+[node name="S_GameEventSystem" type="Node" parent="Systems/Core" unique_id=1282207980]
+script = ExtResource("1_game_event_system")
+
+[node name="S_CameraStateSystem" type="Node" parent="Systems/Core" unique_id=967321144]
+script = ExtResource("1_camera_state_system")
+
+[node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=1495369316]
+script = ExtResource("1_pybrx")
+require_captured_cursor = true
+
+[node name="S_TouchscreenSystem" type="Node" parent="Systems/Core" unique_id=778023767]
+script = ExtResource("24_touchscreen_system")
+
+[node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=417065310]
+script = ExtResource("72_vcam_system")
+execution_priority = 100
+
+[node name="S_RegionVisibilitySystem" type="Node" parent="Systems/Core" unique_id=1231167952]
+script = ExtResource("77_region_visibility_system")
+
+[node name="S_RoomFadeSystem" type="Node" parent="Systems/Core" unique_id=696779724]
+script = ExtResource("74_room_fade_system")
+
+[node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1948608298]
+script = ExtResource("9_health")
+execution_priority = 200
+
+[node name="S_DeathHandlerSystem" type="Node" parent="Systems/Core" unique_id=616260759]
+script = ExtResource("9_death_handler")
+
+[node name="S_DamageSystem" type="Node" parent="Systems/Core" unique_id=1871942154]
+script = ExtResource("9_damage")
+execution_priority = 250
+
+[node name="S_VictoryHandlerSystem" type="Node" parent="Systems/Core" unique_id=1592574368]
+script = ExtResource("9_victory")
+execution_priority = 300
+
+[node name="S_PlaytimeSystem" type="Node" parent="Systems/Core" unique_id=1069964628]
+script = ExtResource("9_playtime")
+execution_priority = 200
+
+[node name="S_SceneTriggerSystem" type="Node" parent="Systems/Core" unique_id=1544232941]
+script = ExtResource("20_scene_trigger_system")
+
+[node name="S_CheckpointHandlerSystem" type="Node" parent="Systems/Core" unique_id=556760800]
+script = ExtResource("42_checkpoint_handler_system")
+
+[node name="Physics" type="Node" parent="Systems" unique_id=1635369148]
+script = ExtResource("3_systems_physics")
+
+[node name="S_GravitySystem" type="Node" parent="Systems/Physics" unique_id=406109061]
+script = ExtResource("3_xnqit")
+execution_priority = 60
+
+[node name="S_JumpSystem" type="Node" parent="Systems/Physics" unique_id=1353220530]
+script = ExtResource("2_rfthe")
+execution_priority = 75
+
+[node name="Movement" type="Node" parent="Systems" unique_id=561019550]
+script = ExtResource("3_systems_movement")
+
+[node name="S_MovementSystem" type="Node" parent="Systems/Movement" unique_id=135391574]
+script = ExtResource("4_vry44")
+execution_priority = 50
+
+[node name="S_FloatingSystem" type="Node" parent="Systems/Movement" unique_id=1122089207]
+script = ExtResource("6_tnjgn")
+execution_priority = 70
+
+[node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement" unique_id=739528828]
+script = ExtResource("5_r0a6q")
+execution_priority = 80
+
+[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems/Movement" unique_id=891795431]
+script = ExtResource("7_awem0")
+execution_priority = 90
+
+[node name="Feedback" type="Node" parent="Systems" unique_id=690369831]
+script = ExtResource("3_systems_feedback")
+
+[node name="S_LandingIndicatorSystem" type="Node" parent="Systems/Feedback" unique_id=319920174]
+script = ExtResource("8_ey5t3")
+execution_priority = 110
+
+[node name="S_JumpParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1437837618]
+script = ExtResource("9_jump_particles")
+settings = ExtResource("9_jump_particles_settings")
+execution_priority = 120
+
+[node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1941112087]
+script = ExtResource("9_jump_sound")
+settings = ExtResource("9_jump_sound_settings")
+execution_priority = 121
+
+[node name="S_LandingSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1725192427]
+script = ExtResource("10_landing_sound")
+settings = ExtResource("10_landing_sound_settings")
+execution_priority = 122
+
+[node name="S_DeathSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1605191197]
+script = ExtResource("11_death_sound")
+settings = ExtResource("11_death_sound_settings")
+execution_priority = 123
+
+[node name="S_CheckpointSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1264019214]
+script = ExtResource("12_checkpoint_sound")
+settings = ExtResource("12_checkpoint_sound_settings")
+execution_priority = 124
+
+[node name="S_VictorySoundSystem" type="Node" parent="Systems/Feedback" unique_id=780133842]
+script = ExtResource("13_victory_sound")
+settings = ExtResource("13_victory_sound_settings")
+execution_priority = 125
+
+[node name="S_FootstepSoundSystem" type="Node" parent="Systems/Feedback" unique_id=293273227]
+script = ExtResource("14_footstep_sound")
+settings = ExtResource("14_footstep_sound_settings")
+execution_priority = 126
+
+[node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1004648771]
+script = ExtResource("10_landing_particles")
+settings = ExtResource("10_landing_particles_settings")
+execution_priority = 122
+
+[node name="S_ScreenShakePublisherSystem" type="Node" parent="Systems/Feedback" unique_id=892477188]
+script = ExtResource("29_screen_shake_publisher")
+
+[node name="S_DamageFlashPublisherSystem" type="Node" parent="Systems/Feedback" unique_id=697191434]
+script = ExtResource("30_damage_flash_publisher")
+
+[node name="Managers" type="Node" parent="." unique_id=1552100596]
+script = ExtResource("12_klon2")
+
+[node name="M_ECSManager" type="Node" parent="Managers" unique_id=1972855868]
+script = ExtResource("6_0e7m3")
+
+[node name="Entities" type="Node" parent="." unique_id=466846441]
+script = ExtResource("16_8qi87")
+
+[node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=562097446]
+script = ExtResource("21_spawnpoints")
+
+[node name="sp_default" type="Node3D" parent="Entities/SpawnPoints" unique_id=1846607069]
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("51_interior_a_spawn_meta")
+
+[node name="Hazards" type="Node" parent="Entities" unique_id=1994997753]
+script = ExtResource("16_8qi87")
+
+[node name="E_DeathZone" type="Node3D" parent="Entities/Hazards" unique_id=1956829571]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
+script = ExtResource("44_hazard_controller")
+config = ExtResource("61_hazard_config")
+entity_id = &"deathzone_interior_a"
+tags = Array[StringName]([&"hazard", &"death"])
+
+[node name="E_Player" parent="Entities" unique_id=2103531623 instance=ExtResource("7_4wxy1")]
+
+[node name="E_CameraRoot" parent="Entities" unique_id=1805216211 instance=ExtResource("19_ph0bl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+
+[node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0" unique_id=1000261679]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0000002, 0)
+fov = 65.0
+
+[node name="Components" parent="Entities/E_CameraRoot" index="2" unique_id=1874295737]
+script = ExtResource("60_txck2")
+
+[editable path="Entities/E_CameraRoot"]

@@ -6,6 +6,7 @@ class_name U_ECSEventNames
 # VFX Events
 const EVENT_SCREEN_SHAKE_REQUEST := StringName("screen_shake_request")
 const EVENT_DAMAGE_FLASH_REQUEST := StringName("damage_flash_request")
+const EVENT_SILHOUETTE_UPDATE_REQUEST := StringName("silhouette_update_request")
 
 # Gameplay Events
 const EVENT_HEALTH_CHANGED := StringName("health_changed")
@@ -28,6 +29,10 @@ const EVENT_OBJECTIVE_VICTORY_TRIGGERED := StringName("objective_victory_trigger
 const EVENT_DIRECTIVE_STARTED := StringName("directive_started")
 const EVENT_DIRECTIVE_COMPLETED := StringName("directive_completed")
 const EVENT_BEAT_ADVANCED := StringName("beat_advanced")
+const EVENT_VCAM_ACTIVE_CHANGED := StringName("vcam_active_changed")
+const EVENT_VCAM_BLEND_STARTED := StringName("vcam_blend_started")
+const EVENT_VCAM_BLEND_COMPLETED := StringName("vcam_blend_completed")
+const EVENT_VCAM_RECOVERY := StringName("vcam_recovery")
 
 # Service Names
 const SERVICE_VFX_MANAGER := StringName("vfx_manager")

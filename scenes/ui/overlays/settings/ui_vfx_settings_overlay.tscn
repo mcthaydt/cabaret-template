@@ -15,8 +15,11 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 background_color = Color(0.114, 0.114, 0.129, 0.5)
-motion_set = ExtResource("2_motion_set")
 motion_target_path = NodePath("CenterContainer/Panel")
+background_shader_preset = "scanline_drift"
+background_shader_intensity = 0.24
+background_shader_speed = 0.8
+motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=731155615]
 script = ExtResource("ui_scale_root")
@@ -119,6 +122,20 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="ParticlesEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow" unique_id=1201343904]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+button_pressed = true
+
+[node name="SilhouetteEnabledRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=2001137001]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SilhouetteEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/SilhouetteEnabledRow" unique_id=1948180139]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SilhouetteEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/SilhouetteEnabledRow" unique_id=1864562238]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

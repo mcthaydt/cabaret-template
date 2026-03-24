@@ -31,15 +31,26 @@ size_flags_horizontal = 0
 size_flags_vertical = 0
 
 [node name="PauseLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1244268701]
+visible = false
 layout_mode = 2
 
-[node name="HealthBar" type="ProgressBar" parent="MarginContainer/VBoxContainer" unique_id=51153183]
-custom_minimum_size = Vector2(280, 26)
+[node name="HealthContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=987654321]
 layout_mode = 2
+
+[node name="LifeLabel" type="Label" parent="MarginContainer/VBoxContainer/HealthContainer" unique_id=987654322]
+layout_mode = 2
+text = "LIFE"
+vertical_alignment = 1
+
+[node name="HealthBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/HealthContainer" unique_id=51153183]
+custom_minimum_size = Vector2(240, 12)
+layout_mode = 2
+size_flags_vertical = 4
 value = 100.0
 show_percentage = false
 
-[node name="HealthLabel" type="Label" parent="MarginContainer/VBoxContainer/HealthBar" unique_id=1471968397]
+[node name="HealthLabel" type="Label" parent="MarginContainer/VBoxContainer/HealthContainer/HealthBar" unique_id=1471968397]
+visible = false
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0

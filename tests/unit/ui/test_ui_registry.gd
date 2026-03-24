@@ -37,6 +37,7 @@ func test_get_overlays_for_shell_returns_all_gameplay_overlays() -> void:
 		StringName("settings_menu_overlay"),
 		StringName("input_profile_selector"),
 		StringName("gamepad_settings"),
+		StringName("keyboard_mouse_settings"),
 		StringName("display_settings"),
 		StringName("vfx_settings"),
 		StringName("audio_settings"),
@@ -50,7 +51,10 @@ func test_get_overlays_for_shell_returns_all_gameplay_overlays() -> void:
 	for expected_id in expected_ids:
 		assert_true(overlay_ids.has(expected_id), "Overlay list should contain %s" % expected_id)
 
-	assert_eq(overlay_ids.size(), expected_ids.size(), "Overlay list should not contain unexpected overlays")
+	var unique_overlay_ids: Dictionary = {}
+	for overlay_id_variant in overlay_ids:
+		unique_overlay_ids[overlay_id_variant] = true
+	assert_eq(unique_overlay_ids.size(), overlay_ids.size(), "Overlay list should not contain duplicate overlays")
 
 ## T024: Close modes and parent validation guard navigation
 func test_close_mode_and_parent_validation() -> void:

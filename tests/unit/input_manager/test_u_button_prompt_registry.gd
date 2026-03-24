@@ -86,5 +86,75 @@ func test_get_prompt_handles_device_type_mismatch() -> void:
 	if keyboard_texture != null and gamepad_texture != null:
 		assert_ne(keyboard_texture.resource_path, gamepad_texture.resource_path, "Different device types should return different textures")
 
+func test_camera_center_defaults_use_keyboard_c_and_gamepad_rs_icons() -> void:
+	var keyboard_texture := U_ButtonPromptRegistry.get_prompt(StringName("camera_center"), DEVICE_TYPE.KEYBOARD_MOUSE)
+	var gamepad_texture := U_ButtonPromptRegistry.get_prompt(StringName("camera_center"), DEVICE_TYPE.GAMEPAD)
+	assert_not_null(keyboard_texture, "camera_center should have a default keyboard glyph")
+	assert_not_null(gamepad_texture, "camera_center should have a default gamepad glyph")
+	if keyboard_texture != null:
+		assert_true(
+			keyboard_texture.resource_path.contains("key_c"),
+			"camera_center keyboard glyph should resolve to key_c"
+		)
+	if gamepad_texture != null:
+		assert_true(
+			gamepad_texture.resource_path.contains("button_rs"),
+			"camera_center gamepad glyph should resolve to button_rs"
+		)
+
+func test_gamepad_binding_labels_use_godot_button_constants() -> void:
+	assert_eq(int(JOY_BUTTON_LEFT_STICK), 7, "Godot constant JOY_BUTTON_LEFT_STICK should remain index 7")
+	assert_eq(int(JOY_BUTTON_RIGHT_STICK), 8, "Godot constant JOY_BUTTON_RIGHT_STICK should remain index 8")
+	assert_eq(int(JOY_BUTTON_RIGHT_SHOULDER), 10, "Godot constant JOY_BUTTON_RIGHT_SHOULDER should remain index 10")
+
+	var action := StringName("test_gamepad_label_action")
+	var original_events := _capture_action_events(action)
+	_set_gamepad_binding(action, JOY_BUTTON_LEFT_STICK)
+	assert_eq(U_ButtonPromptRegistry.get_binding_label(action, DEVICE_TYPE.GAMEPAD), "L3", "Left stick button should label as L3")
+	_set_gamepad_binding(action, JOY_BUTTON_RIGHT_STICK)
+	assert_eq(U_ButtonPromptRegistry.get_binding_label(action, DEVICE_TYPE.GAMEPAD), "R3", "Right stick button should label as R3")
+	_set_gamepad_binding(action, JOY_BUTTON_RIGHT_SHOULDER)
+	assert_eq(U_ButtonPromptRegistry.get_binding_label(action, DEVICE_TYPE.GAMEPAD), "R1", "Right shoulder button should label as R1")
+	_restore_action_events(action, original_events)
+
+func test_binding_aware_prompt_prefers_current_binding_texture_before_registry_default() -> void:
+	var action := StringName("camera_center")
+	var original_events := _capture_action_events(action)
+	_set_gamepad_binding(action, JOY_BUTTON_RIGHT_SHOULDER)
+	var rebound_texture := U_ButtonPromptRegistry.get_prompt_for_current_binding(action, DEVICE_TYPE.GAMEPAD)
+	assert_not_null(rebound_texture, "Binding-aware prompt lookup should return a texture for rebound actions")
+	if rebound_texture != null:
+		assert_true(
+			rebound_texture.resource_path.contains("button_rb"),
+			"Binding-aware prompt lookup should use current InputMap binding texture"
+		)
+	_restore_action_events(action, original_events)
+
+func _capture_action_events(action: StringName) -> Array[InputEvent]:
+	var results: Array[InputEvent] = []
+	if not InputMap.has_action(action):
+		return results
+	for event in InputMap.action_get_events(action):
+		if event is InputEvent:
+			results.append((event as InputEvent).duplicate(true))
+	return results
+
+func _restore_action_events(action: StringName, events: Array[InputEvent]) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	for event in InputMap.action_get_events(action).duplicate():
+		InputMap.action_erase_event(action, event)
+	for event in events:
+		InputMap.action_add_event(action, event)
+
+func _set_gamepad_binding(action: StringName, button_index: int) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	for event in InputMap.action_get_events(action).duplicate():
+		InputMap.action_erase_event(action, event)
+	var joy_event := InputEventJoypadButton.new()
+	joy_event.button_index = button_index
+	InputMap.action_add_event(action, joy_event)
+
 static func _reset_registry() -> void:
 	U_ButtonPromptRegistry._clear_for_tests()

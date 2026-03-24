@@ -1,5 +1,13 @@
 # VFX Manager - Continuation Prompt
 
+## vCam Alignment Addendum (2026-03)
+
+- Camera-runtime orchestration source of truth is `docs/vcam_manager/*`; this continuation prompt is VFX-domain only.
+- VFX keeps ownership of `M_CameraManager.apply_shake_offset(...)`.
+- vCam owns gameplay transform handoff via `apply_main_camera_transform(...)` and transition guard via `is_blend_active()`.
+- Persisted silhouette preference is `vfx.occlusion_silhouette_enabled` and UI ownership is `UI_VFXSettingsOverlay` with localization.
+- Occluder rollout requires `vcam_occludable` layer naming plus authored-scene migration of true camera blockers.
+
 ## Current Status (2026-01-16)
 
 - **Refactor status**: Phase 8 complete (UI Settings Preview). Verification pending.

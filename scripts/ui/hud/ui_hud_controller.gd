@@ -14,8 +14,10 @@ const U_UI_MOTION := preload("res://scripts/ui/utils/u_ui_motion.gd")
 
 @onready var hud_margin_container: MarginContainer = $MarginContainer
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
-@onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
-@onready var health_label: Label = $MarginContainer/VBoxContainer/HealthBar/HealthLabel
+@onready var health_container: HBoxContainer = $MarginContainer/VBoxContainer/HealthContainer
+@onready var life_label: Label = $MarginContainer/VBoxContainer/HealthContainer/LifeLabel
+@onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthContainer/HealthBar
+@onready var health_label: Label = $MarginContainer/VBoxContainer/HealthContainer/HealthBar/HealthLabel
 @onready var toast_container: Control = $MarginContainer/ToastContainer
 @onready var toast_margin_container: MarginContainer = $MarginContainer/ToastContainer/PanelContainer/MarginContainer
 @onready var checkpoint_toast: Label = $MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast
@@ -169,6 +171,12 @@ func _apply_theme_tokens() -> void:
 
 	if pause_label != null:
 		pause_label.add_theme_font_size_override(&"font_size", config.heading)
+	if health_container != null:
+		health_container.add_theme_constant_override(&"separation", config.separation_compact)
+	if life_label != null:
+		life_label.add_theme_color_override(&"font_color", config.accent_primary)
+		life_label.add_theme_color_override(&"font_outline_color", config.bg_base)
+		life_label.add_theme_constant_override(&"outline_size", 4)
 	if health_label != null:
 		health_label.add_theme_font_size_override(&"font_size", config.body_small)
 
@@ -244,12 +252,12 @@ func _should_show_hud(state: Dictionary) -> bool:
 	return shell == StringName("gameplay")
 
 func _update_health(state: Dictionary) -> void:
-	if health_bar == null:
+	if health_container == null or health_bar == null:
 		return
 
-	# Hide health bar when any menu/overlay is open
+	# Hide health container when any menu/overlay is open
 	if _is_paused(state):
-		health_bar.visible = false
+		health_container.visible = false
 		return
 
 	# Only show health bar during active gameplay shell
@@ -258,11 +266,11 @@ func _update_health(state: Dictionary) -> void:
 	var shell: StringName = navigation_state.get("shell", StringName())
 
 	if shell != StringName("gameplay"):
-		health_bar.visible = false
+		health_container.visible = false
 		return
 
 	# Show health bar during active gameplay
-	health_bar.visible = true
+	health_container.visible = true
 
 	var health: float = U_EntitySelectors.get_entity_health(state, _player_entity_id)
 	var max_health: float = U_EntitySelectors.get_entity_max_health(state, _player_entity_id)

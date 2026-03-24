@@ -29,6 +29,7 @@ const ACTION_RESET_PROGRESS := StringName("gameplay/reset_progress")
 const ACTION_RESET_AFTER_DEATH := StringName("gameplay/reset_after_death")
 const ACTION_INCREMENT_PLAYTIME := StringName("gameplay/increment_playtime")
 const ACTION_SET_DEATH_IN_PROGRESS := StringName("gameplay/set_death_in_progress")
+const ACTION_SET_TOUCH_LOOK_ACTIVE := StringName("gameplay/set_touch_look_active")
 
 ## Static initializer - automatically registers actions
 static func _static_init() -> void:
@@ -55,6 +56,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_RESET_AFTER_DEATH)
 	U_ActionRegistry.register_action(ACTION_INCREMENT_PLAYTIME)
 	U_ActionRegistry.register_action(ACTION_SET_DEATH_IN_PROGRESS)
+	U_ActionRegistry.register_action(ACTION_SET_TOUCH_LOOK_ACTIVE)
 
 ## Create a pause game action
 static func pause_game() -> Dictionary:
@@ -223,4 +225,11 @@ static func set_death_in_progress(value: bool) -> Dictionary:
 	return {
 		"type": ACTION_SET_DEATH_IN_PROGRESS,
 		"payload": value
+	}
+
+## Set touchscreen drag-look activity flag (transient gameplay state)
+static func set_touch_look_active(active: bool) -> Dictionary:
+	return {
+		"type": ACTION_SET_TOUCH_LOOK_ACTIVE,
+		"payload": active
 	}

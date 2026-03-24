@@ -13,6 +13,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_lang_selector_script")
+background_shader_preset = "arcade_noise"
+background_shader_intensity = 0.58
+background_shader_speed = 1.25
 motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1309674675]

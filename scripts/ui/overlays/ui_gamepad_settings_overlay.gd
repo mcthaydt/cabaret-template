@@ -9,6 +9,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_conf
 const TITLE_KEY := &"settings.gamepad.title"
 const LABEL_LEFT_DEADZONE_KEY := &"settings.gamepad.label.left_deadzone"
 const LABEL_RIGHT_DEADZONE_KEY := &"settings.gamepad.label.right_deadzone"
+const LABEL_ROTATE_SENSITIVITY_KEY := &"settings.gamepad.label.rotate_sensitivity"
 const LABEL_VIBRATION_ENABLED_KEY := &"settings.gamepad.label.vibration_enabled"
 const LABEL_VIBRATION_INTENSITY_KEY := &"settings.gamepad.label.vibration_intensity"
 const BUTTON_RESET_DEFAULTS_KEY := &"settings.gamepad.button.reset_defaults"
@@ -17,6 +18,7 @@ const PREVIEW_EXIT_PROMPT_KEY := &"settings.gamepad.preview.exit"
 
 const TOOLTIP_LEFT_DEADZONE_KEY := &"settings.gamepad.tooltip.left_deadzone"
 const TOOLTIP_RIGHT_DEADZONE_KEY := &"settings.gamepad.tooltip.right_deadzone"
+const TOOLTIP_ROTATE_SENSITIVITY_KEY := &"settings.gamepad.tooltip.rotate_sensitivity"
 const TOOLTIP_VIBRATION_ENABLED_KEY := &"settings.gamepad.tooltip.vibration_enabled"
 const TOOLTIP_VIBRATION_INTENSITY_KEY := &"settings.gamepad.tooltip.vibration_intensity"
 const TOOLTIP_PREVIEW_KEY := &"settings.gamepad.tooltip.preview"
@@ -29,17 +31,21 @@ const TOOLTIP_PREVIEW_KEY := &"settings.gamepad.tooltip.preview"
 @onready var _title_label: Label = %HeadingLabel
 @onready var _left_row: HBoxContainer = %LeftRow
 @onready var _right_row: HBoxContainer = %RightRow
+@onready var _sensitivity_row: HBoxContainer = %RightSensitivityRow
 @onready var _vibration_enable_row: HBoxContainer = %VibrationEnableRow
 @onready var _vibration_row: HBoxContainer = %VibrationRow
 @onready var _button_row: HBoxContainer = %ButtonRow
 @onready var _left_deadzone_label: Label = %LeftLabel
 @onready var _right_deadzone_label: Label = %RightLabel
+@onready var _sensitivity_text_label: Label = %RightSensitivityLabel
 @onready var _vibration_enabled_label: Label = %VibrationEnableLabel
 @onready var _vibration_intensity_label: Label = %VibrationLabel
 @onready var _left_slider: HSlider = %LeftDeadzoneSlider
 @onready var _right_slider: HSlider = %RightDeadzoneSlider
+@onready var _sensitivity_slider: HSlider = %RightSensitivitySlider
 @onready var _left_label: Label = %LeftDeadzoneValue
 @onready var _right_label: Label = %RightDeadzoneValue
+@onready var _sensitivity_label: Label = %RightSensitivityValue
 @onready var _vibration_checkbox: CheckButton = %VibrationCheck
 @onready var _vibration_slider: HSlider = %VibrationSlider
 @onready var _vibration_label: Label = %VibrationValue
@@ -103,6 +109,7 @@ func _apply_theme_tokens() -> void:
 	var compact_rows: Array[HBoxContainer] = [
 		_left_row,
 		_right_row,
+		_sensitivity_row,
 		_vibration_enable_row,
 		_vibration_row,
 		_button_row,
@@ -123,12 +130,17 @@ func _apply_theme_tokens() -> void:
 		_vibration_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
 	if _vibration_intensity_label != null:
 		_vibration_intensity_label.add_theme_font_size_override(&"font_size", config.section_header)
+	if _sensitivity_text_label != null:
+		_sensitivity_text_label.add_theme_font_size_override(&"font_size", config.section_header)
 	if _left_label != null:
 		_left_label.add_theme_font_size_override(&"font_size", config.body_small)
 		_left_label.add_theme_color_override(&"font_color", config.text_secondary)
 	if _right_label != null:
 		_right_label.add_theme_font_size_override(&"font_size", config.body_small)
 		_right_label.add_theme_color_override(&"font_color", config.text_secondary)
+	if _sensitivity_label != null:
+		_sensitivity_label.add_theme_font_size_override(&"font_size", config.body_small)
+		_sensitivity_label.add_theme_color_override(&"font_color", config.text_secondary)
 	if _vibration_label != null:
 		_vibration_label.add_theme_font_size_override(&"font_size", config.body_small)
 		_vibration_label.add_theme_color_override(&"font_color", config.text_secondary)
@@ -154,6 +166,8 @@ func _configure_focus_neighbors() -> void:
 		vertical_controls.append(_left_slider)
 	if _right_slider != null:
 		vertical_controls.append(_right_slider)
+	if _sensitivity_slider != null:
+		vertical_controls.append(_sensitivity_slider)
 	if _vibration_checkbox != null:
 		vertical_controls.append(_vibration_checkbox)
 	if _vibration_slider != null:
@@ -193,6 +207,11 @@ func _connect_control_signals() -> void:
 		if not _updating_from_state:
 			U_UISoundPlayer.play_slider_tick()
 	)
+	_sensitivity_slider.value_changed.connect(func(value: float) -> void:
+		_update_slider_label(_sensitivity_label, value)
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
+	)
 	_vibration_slider.value_changed.connect(func(value: float) -> void:
 		_update_slider_label(_vibration_label, value)
 		if not _updating_from_state:
@@ -214,6 +233,11 @@ func _configure_tooltips() -> void:
 		_right_slider.tooltip_text = _localize_with_fallback(
 			TOOLTIP_RIGHT_DEADZONE_KEY,
 			"Adjust deadzone for right stick camera/look."
+		)
+	if _sensitivity_slider != null:
+		_sensitivity_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_ROTATE_SENSITIVITY_KEY,
+			"Adjust right-stick camera rotation sensitivity."
 		)
 	if _vibration_checkbox != null:
 		_vibration_checkbox.tooltip_text = _localize_with_fallback(
@@ -259,10 +283,12 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	if not settings.is_empty():
 		_left_slider.value = float(settings.get("left_stick_deadzone", _left_slider.value))
 		_right_slider.value = float(settings.get("right_stick_deadzone", _right_slider.value))
+		_sensitivity_slider.value = float(settings.get("right_stick_sensitivity", _sensitivity_slider.value))
 		_vibration_checkbox.button_pressed = bool(settings.get("vibration_enabled", true))
 		_vibration_slider.value = float(settings.get("vibration_intensity", _vibration_slider.value))
 	_update_slider_label(_left_label, _left_slider.value)
 	_update_slider_label(_right_label, _right_slider.value)
+	_update_slider_label(_sensitivity_label, _sensitivity_slider.value)
 	_update_slider_label(_vibration_label, _vibration_slider.value)
 	_updating_from_state = false
 
@@ -287,11 +313,13 @@ func _on_apply_pressed() -> void:
 	# (dispatching triggers state_changed which can modify UI values)
 	var left_deadzone := _left_slider.value
 	var right_deadzone := _right_slider.value
+	var right_sensitivity := _sensitivity_slider.value
 	var vibration_enabled := _vibration_checkbox.button_pressed
 	var vibration_intensity := _vibration_slider.value
 
 	store.dispatch(U_InputActions.update_gamepad_deadzone("left", left_deadzone))
 	store.dispatch(U_InputActions.update_gamepad_deadzone("right", right_deadzone))
+	store.dispatch(U_InputActions.update_gamepad_sensitivity(right_sensitivity))
 	store.dispatch(U_InputActions.toggle_vibration(vibration_enabled))
 	store.dispatch(U_InputActions.set_vibration_intensity(vibration_intensity))
 	_close_overlay()
@@ -303,16 +331,19 @@ func _on_reset_pressed() -> void:
 
 	_left_slider.value = defaults.left_stick_deadzone
 	_right_slider.value = defaults.right_stick_deadzone
+	_sensitivity_slider.value = defaults.right_stick_sensitivity
 	_vibration_checkbox.button_pressed = defaults.vibration_enabled
 	_vibration_slider.value = defaults.vibration_intensity
 
 	_update_slider_label(_left_label, _left_slider.value)
 	_update_slider_label(_right_label, _right_slider.value)
+	_update_slider_label(_sensitivity_label, _sensitivity_slider.value)
 	_update_slider_label(_vibration_label, _vibration_slider.value)
 
 	if store != null:
 		store.dispatch(U_InputActions.update_gamepad_deadzone("left", defaults.left_stick_deadzone))
 		store.dispatch(U_InputActions.update_gamepad_deadzone("right", defaults.right_stick_deadzone))
+		store.dispatch(U_InputActions.update_gamepad_sensitivity(defaults.right_stick_sensitivity))
 		store.dispatch(U_InputActions.toggle_vibration(defaults.vibration_enabled))
 		store.dispatch(U_InputActions.set_vibration_intensity(defaults.vibration_intensity))
 
@@ -434,6 +465,8 @@ func _localize_labels() -> void:
 		_left_deadzone_label.text = _localize_with_fallback(LABEL_LEFT_DEADZONE_KEY, "Left Deadzone")
 	if _right_deadzone_label != null:
 		_right_deadzone_label.text = _localize_with_fallback(LABEL_RIGHT_DEADZONE_KEY, "Right Deadzone")
+	if _sensitivity_text_label != null:
+		_sensitivity_text_label.text = _localize_with_fallback(LABEL_ROTATE_SENSITIVITY_KEY, "Rotate Camera Sensitivity")
 	if _vibration_enabled_label != null:
 		_vibration_enabled_label.text = _localize_with_fallback(LABEL_VIBRATION_ENABLED_KEY, "Enable Vibration")
 	if _vibration_intensity_label != null:

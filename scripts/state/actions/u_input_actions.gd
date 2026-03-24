@@ -7,6 +7,7 @@ class_name U_InputActions
 
 const ACTION_UPDATE_MOVE_INPUT := StringName("input/update_move_input")
 const ACTION_UPDATE_LOOK_INPUT := StringName("input/update_look_input")
+const ACTION_UPDATE_CAMERA_CENTER_STATE := StringName("input/update_camera_center_state")
 const ACTION_UPDATE_JUMP_STATE := StringName("input/update_jump_state")
 const ACTION_UPDATE_SPRINT_STATE := StringName("input/update_sprint_state")
 const ACTION_DEVICE_CHANGED := StringName("input/device_changed")
@@ -16,15 +17,21 @@ const ACTION_PROFILE_SWITCHED := StringName("input/profile_switched")
 const ACTION_REBIND_ACTION := StringName("input/rebind_action")
 const ACTION_RESET_BINDINGS := StringName("input/reset_bindings")
 const ACTION_UPDATE_GAMEPAD_DEADZONE := StringName("input/update_gamepad_deadzone")
+const ACTION_UPDATE_GAMEPAD_SENSITIVITY := StringName("input/update_gamepad_sensitivity")
 const ACTION_TOGGLE_VIBRATION := StringName("input/toggle_vibration")
 const ACTION_SET_VIBRATION_INTENSITY := StringName("input/set_vibration_intensity")
 const ACTION_UPDATE_MOUSE_SENSITIVITY := StringName("input/update_mouse_sensitivity")
+const ACTION_SET_KEYBOARD_LOOK_ENABLED := StringName("input/set_keyboard_look_enabled")
+const ACTION_SET_KEYBOARD_LOOK_SPEED := StringName("input/set_keyboard_look_speed")
 const ACTION_UPDATE_ACCESSIBILITY := StringName("input/update_accessibility")
 const ACTION_LOAD_INPUT_SETTINGS := StringName("input/load_input_settings")
 const ACTION_REMOVE_ACTION_BINDINGS := StringName("input/remove_action_bindings")
 const ACTION_REMOVE_EVENT_FROM_ACTION := StringName("input/remove_event_from_action")
 const ACTION_UPDATE_TOUCHSCREEN_SETTINGS := StringName("input/update_touchscreen_settings")
 const ACTION_SAVE_VIRTUAL_CONTROL_POSITION := StringName("input/save_virtual_control_position")
+const LOOK_SOURCE_KEYBOARD_MOUSE := StringName("keyboard_mouse")
+const LOOK_SOURCE_GAMEPAD := StringName("gamepad")
+const LOOK_SOURCE_TOUCHSCREEN := StringName("touchscreen")
 
 const REBIND_MODE_REPLACE := "replace"
 const REBIND_MODE_ADD := "add"
@@ -36,6 +43,9 @@ static func _static_init() -> void:
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_LOOK_INPUT, {
 		"required_fields": ["look_delta"]
+	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_CAMERA_CENTER_STATE, {
+		"required_fields": ["just_pressed"]
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_JUMP_STATE, {
 		"required_fields": ["pressed", "just_pressed"]
@@ -62,6 +72,9 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_UPDATE_GAMEPAD_DEADZONE, {
 		"required_fields": ["stick", "deadzone"]
 	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_GAMEPAD_SENSITIVITY, {
+		"required_fields": ["sensitivity"]
+	})
 	U_ActionRegistry.register_action(ACTION_TOGGLE_VIBRATION, {
 		"required_fields": ["enabled"]
 	})
@@ -70,6 +83,12 @@ static func _static_init() -> void:
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_MOUSE_SENSITIVITY, {
 		"required_fields": ["sensitivity"]
+	})
+	U_ActionRegistry.register_action(ACTION_SET_KEYBOARD_LOOK_ENABLED, {
+		"required_fields": ["enabled"]
+	})
+	U_ActionRegistry.register_action(ACTION_SET_KEYBOARD_LOOK_SPEED, {
+		"required_fields": ["speed"]
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_ACCESSIBILITY, {
 		"required_fields": ["field", "value"]
@@ -97,12 +116,23 @@ static func update_move_input(move_vector: Vector2) -> Dictionary:
 		}
 	}
 
-## Update look delta (mouse or right stick).
-static func update_look_input(look_delta: Vector2) -> Dictionary:
+## Update look delta (mouse, right stick, or touchscreen).
+## `source` is optional and allows reducers/selectors to keep per-device look channels.
+static func update_look_input(look_delta: Vector2, source: StringName = StringName("")) -> Dictionary:
 	return {
 		"type": ACTION_UPDATE_LOOK_INPUT,
 		"payload": {
-			"look_delta": look_delta
+			"look_delta": look_delta,
+			"source": source
+		}
+	}
+
+## Update camera-center just-pressed state (edge-triggered per tick).
+static func update_camera_center_state(just_pressed: bool) -> Dictionary:
+	return {
+		"type": ACTION_UPDATE_CAMERA_CENTER_STATE,
+		"payload": {
+			"just_pressed": just_pressed
 		}
 	}
 
@@ -206,6 +236,15 @@ static func update_gamepad_deadzone(stick: String, deadzone: float) -> Dictionar
 		}
 	}
 
+## Update right stick camera sensitivity multiplier.
+static func update_gamepad_sensitivity(sensitivity: float) -> Dictionary:
+	return {
+		"type": ACTION_UPDATE_GAMEPAD_SENSITIVITY,
+		"payload": {
+			"sensitivity": sensitivity
+		}
+	}
+
 ## Enable/disable vibration globally.
 static func toggle_vibration(enabled: bool) -> Dictionary:
 	return {
@@ -230,6 +269,24 @@ static func update_mouse_sensitivity(sensitivity: float) -> Dictionary:
 		"type": ACTION_UPDATE_MOUSE_SENSITIVITY,
 		"payload": {
 			"sensitivity": sensitivity
+		}
+	}
+
+## Enable/disable keyboard camera rotation input.
+static func set_keyboard_look_enabled(enabled: bool) -> Dictionary:
+	return {
+		"type": ACTION_SET_KEYBOARD_LOOK_ENABLED,
+		"payload": {
+			"enabled": enabled
+		}
+	}
+
+## Update keyboard look speed multiplier.
+static func set_keyboard_look_speed(speed: float) -> Dictionary:
+	return {
+		"type": ACTION_SET_KEYBOARD_LOOK_SPEED,
+		"payload": {
+			"speed": speed
 		}
 	}
 

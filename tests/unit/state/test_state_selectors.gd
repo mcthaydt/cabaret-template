@@ -33,6 +33,20 @@ func test_get_is_paused_returns_false_when_field_missing() -> void:
 	
 	assert_false(is_paused, "Should return false when paused field missing (default)")
 
+func test_is_touch_look_active_returns_true_when_enabled() -> void:
+	var gameplay_state: Dictionary = {"touch_look_active": true, "entities": {}}
+
+	var is_active: bool = U_GameplaySelectors.is_touch_look_active(gameplay_state)
+
+	assert_true(is_active, "Should return true when touch_look_active is set")
+
+func test_is_touch_look_active_returns_false_when_missing() -> void:
+	var gameplay_state: Dictionary = {"entities": {}}
+
+	var is_active: bool = U_GameplaySelectors.is_touch_look_active(gameplay_state)
+
+	assert_false(is_active, "Should default to false when touch_look_active is missing")
+
 ## Test selectors are pure functions (same input = same output)
 func test_selectors_are_pure_functions() -> void:
 	var state: Dictionary = {"paused": true, "entities": {}}

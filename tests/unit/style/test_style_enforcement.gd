@@ -92,6 +92,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/managers": ["m_"],
 	"res://scripts/managers/helpers": ["u_"],
 	"res://scripts/ecs/systems": ["s_", "base_"], # s_*_system.gd plus base system scripts
+	"res://scripts/ecs/systems/helpers": ["u_"], # vCam/system helper utilities
 	"res://scripts/ecs/components": ["c_"],
 	"res://scripts/ecs/resources": ["rs_"],
 	"res://scripts/events/ecs": ["evn_", "base_", "u_"], # evn_ for typed events, base_ for BaseECSEvent, u_ for ECS event bus/names
@@ -457,11 +458,77 @@ func test_scene_organization_gameplay_structure() -> void:
 	assert_true(has_spawn_points_in_entities,
 		"Spawn points must be under Entities node per SCENE_ORGANIZATION_GUIDE.md")
 
+func test_character_template_defines_camera_follow_anchor() -> void:
+	var character_scene := load("res://scenes/templates/tmpl_character.tscn") as PackedScene
+	assert_not_null(character_scene, "Character template scene must exist")
+
+	var character_instance := character_scene.instantiate() as Node
+	assert_not_null(character_instance, "Character template must instantiate")
+	add_child_autofree(character_instance)
+
+	var follow_anchor := character_instance.get_node_or_null("Player_Body/CameraFollowAnchor") as Node3D
+	assert_not_null(
+		follow_anchor,
+		"tmpl_character.tscn must define Player_Body/CameraFollowAnchor for vCam follow targeting"
+	)
+	if follow_anchor != null:
+		assert_true(
+			follow_anchor.transform.origin.is_zero_approx(),
+			"CameraFollowAnchor should stay at Player_Body origin unless intentionally authored otherwise"
+		)
+
+func test_camera_template_uses_camera_follow_anchor_path() -> void:
+	var camera_scene := load("res://scenes/templates/tmpl_camera.tscn") as PackedScene
+	assert_not_null(camera_scene, "Camera template scene must exist")
+
+	var camera_instance := camera_scene.instantiate() as Node
+	assert_not_null(camera_instance, "Camera template must instantiate")
+	add_child_autofree(camera_instance)
+
+	var vcam_component := camera_instance.get_node_or_null("Components/C_VCamComponent")
+	assert_not_null(vcam_component, "tmpl_camera.tscn must include Components/C_VCamComponent")
+	if vcam_component != null:
+		assert_eq(
+			vcam_component.follow_target_path,
+			NodePath("../../../E_Player/Player_Body/CameraFollowAnchor"),
+			"C_VCamComponent.follow_target_path should target CameraFollowAnchor"
+		)
+
+func test_prefab_player_inherits_camera_follow_anchor() -> void:
+	var player_prefab := load("res://scenes/prefabs/prefab_player.tscn") as PackedScene
+	assert_not_null(player_prefab, "Player prefab scene must exist")
+
+	var player_instance := player_prefab.instantiate() as Node
+	assert_not_null(player_instance, "Player prefab must instantiate")
+	add_child_autofree(player_instance)
+
+	var follow_anchor := player_instance.get_node_or_null("Player_Body/CameraFollowAnchor") as Node3D
+	assert_not_null(
+		follow_anchor,
+		"prefab_player.tscn must include Player_Body/CameraFollowAnchor (inherited from tmpl_character)"
+	)
+	if follow_anchor != null:
+		assert_true(
+			follow_anchor.transform.origin.is_zero_approx(),
+			"prefab_player CameraFollowAnchor should stay at Player_Body origin unless intentionally authored otherwise"
+		)
+
 func test_gameplay_scenes_do_not_embed_hud_instances() -> void:
 	var violations: Array[String] = []
 	_collect_gameplay_hud_embedding_violations("res://scenes/gameplay", violations)
 
 	var message := "Gameplay scenes must not embed HUD instances (HUD is root-managed by M_SceneManager)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+
+	assert_eq(violations.size(), 0, message)
+
+func test_vcam_debug_logging_not_enabled_in_authored_scenes() -> void:
+	var violations: Array[String] = []
+	_collect_scene_text_match_violations("res://scenes/gameplay", "debug_rotation_logging = true", violations)
+	_collect_scene_text_match_violations("res://scenes/templates", "debug_rotation_logging = true", violations)
+
+	var message := "Authored scenes must not enable S_VCamSystem debug_rotation_logging"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 
@@ -637,6 +704,38 @@ func _scene_embeds_hud_overlay(path: String) -> bool:
 
 	file.close()
 	return false
+
+func _collect_scene_text_match_violations(
+	dir_path: String,
+	needle: String,
+	violations: Array[String]
+) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_scene_text_match_violations(path, needle, violations)
+		elif entry.ends_with(".tscn"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				entry = dir.get_next()
+				continue
+			var found := false
+			while not file.eof_reached():
+				if file.get_line().find(needle) != -1:
+					found = true
+					break
+			file.close()
+			if found:
+				violations.append("%s contains '%s'" % [path, needle])
+		entry = dir.get_next()
+	dir.list_dir_end()
 
 func _count_theme_override_lines(path: String) -> int:
 	var file := FileAccess.open(path, FileAccess.READ)

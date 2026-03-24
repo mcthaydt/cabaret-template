@@ -10,8 +10,7 @@ class_name UI_SaveLoadMenu
 ##
 ## Mode is determined by navigation.save_load_mode in Redux state.
 
-const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
-const PLACEHOLDER_TEXTURE := preload(PLACEHOLDER_TEXTURE_PATH)
+const PLACEHOLDER_TEXTURE_PATH: String = "res://resources/ui/tex_save_slot_placeholder.png"
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
@@ -55,6 +54,7 @@ var _cached_metadata: Array[Dictionary] = []
 
 ## Thumbnail async loading
 var _pending_thumbnail_loads: Dictionary = {} # TextureRect -> String (path)
+var _placeholder_texture: Texture2D = null
 
 
 ## Confirmation dialog state
@@ -74,10 +74,31 @@ var _pending_action: Dictionary = {} # {action: "save"|"delete", slot_id: String
 @onready var _loading_label: Label = %LoadingLabel
 
 func _ready() -> void:
+	_ensure_placeholder_texture_loaded()
 	super._ready()
 	_discover_save_manager()
 	_subscribe_to_events()
 	_refresh_ui()
+
+func _ensure_placeholder_texture_loaded() -> void:
+	if _placeholder_texture != null:
+		return
+
+	var loaded_resource: Resource = load(PLACEHOLDER_TEXTURE_PATH)
+	if loaded_resource is Texture2D:
+		_placeholder_texture = loaded_resource as Texture2D
+		return
+
+	if not FileAccess.file_exists(PLACEHOLDER_TEXTURE_PATH):
+		return
+
+	var image := Image.new()
+	var load_error: Error = image.load(PLACEHOLDER_TEXTURE_PATH)
+	if load_error == OK:
+		_placeholder_texture = ImageTexture.create_from_image(image)
+
+func _get_placeholder_texture() -> Texture2D:
+	return _placeholder_texture
 
 func _discover_save_manager() -> void:
 	_save_manager = U_ServiceLocator.try_get_service(StringName("save_manager"))
@@ -114,7 +135,7 @@ func _exit_tree() -> void:
 	_pending_thumbnail_loads.clear()
 	set_process(false)
 
-func _on_store_ready(store_ref: I_StateStore) -> void:
+func _on_store_ready(store_ref: M_StateStore) -> void:
 	if store_ref != null:
 		store_ref.slice_updated.connect(_on_slice_updated)
 		_read_mode_from_state()
@@ -206,7 +227,7 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 	thumbnail_rect.custom_minimum_size = Vector2(80, 45)
 	thumbnail_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	thumbnail_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	thumbnail_rect.texture = PLACEHOLDER_TEXTURE
+	thumbnail_rect.texture = _get_placeholder_texture()
 
 	# Create main save/load button (takes most of the space)
 	var main_button := Button.new()
@@ -355,7 +376,7 @@ func _load_thumbnail_async(texture_rect: TextureRect, path: String) -> void:
 		return
 
 	if path.is_empty() or not FileAccess.file_exists(path):
-		texture_rect.texture = PLACEHOLDER_TEXTURE
+		texture_rect.texture = _get_placeholder_texture()
 		_pending_thumbnail_loads.erase(texture_rect)
 		return
 
@@ -364,18 +385,18 @@ func _load_thumbnail_async(texture_rect: TextureRect, path: String) -> void:
 		if fallback_texture != null:
 			texture_rect.texture = fallback_texture
 		else:
-			texture_rect.texture = PLACEHOLDER_TEXTURE
+			texture_rect.texture = _get_placeholder_texture()
 		_pending_thumbnail_loads.erase(texture_rect)
 		return
 
-	texture_rect.texture = PLACEHOLDER_TEXTURE
+	texture_rect.texture = _get_placeholder_texture()
 	var request_error: Error = ResourceLoader.load_threaded_request(path)
 	if request_error != OK:
 		var fallback_texture := _load_texture_from_image(path)
 		if fallback_texture != null:
 			texture_rect.texture = fallback_texture
 		else:
-			texture_rect.texture = PLACEHOLDER_TEXTURE
+			texture_rect.texture = _get_placeholder_texture()
 		return
 
 	_pending_thumbnail_loads[texture_rect] = path
@@ -405,14 +426,14 @@ func _process(__delta: float) -> void:
 			if resource is Texture2D:
 				texture_rect.texture = resource
 			else:
-				texture_rect.texture = PLACEHOLDER_TEXTURE
+				texture_rect.texture = _get_placeholder_texture()
 			completed.append(texture_rect)
 		elif status == ResourceLoader.THREAD_LOAD_FAILED or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 			var fallback_texture := _load_texture_from_image(path)
 			if fallback_texture != null:
 				texture_rect.texture = fallback_texture
 			else:
-				texture_rect.texture = PLACEHOLDER_TEXTURE
+				texture_rect.texture = _get_placeholder_texture()
 			completed.append(texture_rect)
 
 	for texture_rect in completed:

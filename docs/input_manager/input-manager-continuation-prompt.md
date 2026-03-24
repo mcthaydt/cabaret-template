@@ -1,5 +1,14 @@
 # Input Manager Continuation Prompt
 
+## vCam Alignment Addendum (2026-03)
+
+- Gameplay camera-runtime source of truth is `docs/vcam_manager/*`; this continuation prompt is input-domain scoped.
+- Shared camera look contract remains `gameplay.look_input` across all devices.
+- `S_TouchscreenSystem` owns touchscreen drag-look dispatch into Redux.
+- `S_InputSystem` must not zero-clobber touchscreen-owned move/look payloads while touchscreen is active.
+- Touch look persistence remains `settings.input_settings.touchscreen_settings.look_drag_sensitivity`.
+- Treat any remaining group-based manager discovery snippets below as historical; use ServiceLocator/injection-first discovery in implementation.
+
 ## Current Focus: Phase 6 - Touchscreen Support
 
 - **Branch:** `input-manager`

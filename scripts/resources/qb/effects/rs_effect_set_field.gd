@@ -10,16 +10,20 @@ const U_PATH_RESOLVER := preload("res://scripts/utils/qb/u_path_resolver.gd")
 
 @export_group("Value")
 @export_enum("set", "add") var operation: String = "set"
-@export_enum("float", "int", "bool", "string", "string_name") var value_type: String = "float"
+@export_enum("float", "int", "bool", "string", "string_name", "vector2", "vector3") var value_type: String = "float"
 @export var float_value: float = 0.0
 @export var int_value: int = 0
 @export var bool_value: bool = false
 @export var string_value: String = ""
 @export var string_name_value: StringName
+@export var vector2_value: Vector2 = Vector2.ZERO
+@export var vector3_value: Vector3 = Vector3.ZERO
 
 @export_group("Dynamic Value")
 @export var use_context_value: bool = false
 @export var context_value_path: String = ""
+@export var scale_by_rule_score: bool = false
+@export var rule_score_context_path: String = "rule_score"
 
 @export_group("Clamp")
 @export var use_clamp: bool = false
@@ -44,6 +48,9 @@ func execute(context: Dictionary) -> void:
 		return
 
 	var base_value: Variant = _resolve_value(context)
+	if base_value == null:
+		return
+	base_value = _apply_rule_score_scale(base_value, context)
 	if base_value == null:
 		return
 
@@ -92,8 +99,36 @@ func _resolve_literal_value() -> Variant:
 			return string_value
 		"string_name":
 			return string_name_value
+		"vector2":
+			return vector2_value
+		"vector3":
+			return vector3_value
 		_:
 			return null
+
+func _apply_rule_score_scale(value: Variant, context: Dictionary) -> Variant:
+	if not scale_by_rule_score:
+		return value
+	if not _is_scalable(value):
+		return null
+
+	var score_path: String = rule_score_context_path
+	if score_path.is_empty():
+		score_path = "rule_score"
+	var score_variant: Variant = U_PATH_RESOLVER.resolve(context, score_path)
+	if score_variant == null or not _is_numeric(score_variant):
+		return value
+
+	var score: float = clampf(float(score_variant), 0.0, 1.0)
+	if value is Vector2:
+		return (value as Vector2) * score
+	if value is Vector3:
+		return (value as Vector3) * score
+
+	var scaled_value: float = float(value) * score
+	if value is int:
+		return int(round(scaled_value))
+	return scaled_value
 
 func _read_field_value(component: Variant, target_field_name: StringName) -> Variant:
 	var key_text: String = String(target_field_name)
@@ -139,6 +174,9 @@ func _object_has_property(object_value: Object, property_name: String) -> bool:
 
 func _is_numeric(value: Variant) -> bool:
 	return value is int or value is float
+
+func _is_scalable(value: Variant) -> bool:
+	return _is_numeric(value) or value is Vector2 or value is Vector3
 
 func _get_dict_value_string_or_name(dictionary: Dictionary, key: String) -> Variant:
 	if dictionary.has(key):

@@ -61,11 +61,11 @@ func test_audio_settings_overlay_keeps_panel_vertically_centered_after_enter() -
 	if panel == null:
 		return
 
-	var viewport_height: float = overlay.get_viewport_rect().size.y
 	var panel_center_y: float = panel.global_position.y + (panel.size.y * 0.5)
+	var expected_center_y: float = overlay.global_position.y + overlay.size.y * 0.5
 	assert_almost_eq(
 		panel_center_y,
-		viewport_height * 0.5,
+		expected_center_y,
 		2.0,
 		"Audio wrapper panel should remain vertically centered after enter animation"
 	)
@@ -94,11 +94,11 @@ func test_display_settings_overlay_keeps_panel_vertically_centered_after_enter()
 	if panel == null:
 		return
 
-	var viewport_height: float = overlay.get_viewport_rect().size.y
 	var panel_center_y: float = panel.global_position.y + (panel.size.y * 0.5)
+	var expected_center_y: float = overlay.global_position.y + overlay.size.y * 0.5
 	assert_almost_eq(
 		panel_center_y,
-		viewport_height * 0.5,
+		expected_center_y,
 		2.0,
 		"Display wrapper panel should remain vertically centered after enter animation"
 	)
@@ -127,11 +127,11 @@ func test_localization_settings_overlay_keeps_panel_vertically_centered_after_en
 	if panel == null:
 		return
 
-	var viewport_height: float = overlay.get_viewport_rect().size.y
 	var panel_center_y: float = panel.global_position.y + (panel.size.y * 0.5)
+	var expected_center_y: float = overlay.global_position.y + overlay.size.y * 0.5
 	assert_almost_eq(
 		panel_center_y,
-		viewport_height * 0.5,
+		expected_center_y,
 		2.0,
 		"Localization wrapper panel should remain vertically centered after enter animation"
 	)
@@ -159,11 +159,11 @@ func test_vfx_settings_overlay_keeps_panel_vertically_centered_after_enter() -> 
 	if panel == null:
 		return
 
-	var viewport_height: float = overlay.get_viewport_rect().size.y
 	var panel_center_y: float = panel.global_position.y + (panel.size.y * 0.5)
+	var expected_center_y: float = overlay.global_position.y + overlay.size.y * 0.5
 	assert_almost_eq(
 		panel_center_y,
-		viewport_height * 0.5,
+		expected_center_y,
 		2.0,
 		"VFX wrapper panel should remain vertically centered after enter animation"
 	)

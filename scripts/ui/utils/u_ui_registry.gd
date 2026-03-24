@@ -6,6 +6,12 @@ class_name U_UIRegistry
 ## Loads RS_UIScreenDefinition resources from disk and provides lookup helpers
 ## used by navigation reducers/selectors.
 
+# Ensure base UI inheritance stack is loaded before screen definitions.
+const BASE_PANEL_SCRIPT := preload("res://scripts/ui/base/base_panel.gd")
+const BASE_MENU_SCREEN_SCRIPT := preload("res://scripts/ui/base/base_menu_screen.gd")
+const BASE_OVERLAY_SCRIPT := preload("res://scripts/ui/base/base_overlay.gd")
+const UI_SAVE_LOAD_MENU_SCRIPT := preload("res://scripts/ui/overlays/ui_save_load_menu.gd")
+
 # Preload all UI screen definitions (required for exported builds)
 const MAIN_MENU_SCREEN := preload("res://resources/ui_screens/cfg_main_menu_screen.tres")
 const GAME_OVER_SCREEN := preload("res://resources/ui_screens/cfg_game_over_screen.tres")
@@ -16,6 +22,7 @@ const SETTINGS_MENU_OVERLAY := preload("res://resources/ui_screens/cfg_settings_
 const SAVE_LOAD_MENU_OVERLAY := preload("res://resources/ui_screens/cfg_save_load_menu_overlay.tres")
 const INPUT_PROFILE_SELECTOR_OVERLAY := preload("res://resources/ui_screens/cfg_input_profile_selector_overlay.tres")
 const GAMEPAD_SETTINGS_OVERLAY := preload("res://resources/ui_screens/cfg_gamepad_settings_overlay.tres")
+const KEYBOARD_MOUSE_SETTINGS_OVERLAY := preload("res://resources/ui_screens/cfg_keyboard_mouse_settings_overlay.tres")
 const TOUCHSCREEN_SETTINGS_OVERLAY := preload("res://resources/ui_screens/cfg_touchscreen_settings_overlay.tres")
 const INPUT_REBINDING_OVERLAY := preload("res://resources/ui_screens/cfg_input_rebinding_overlay.tres")
 const EDIT_TOUCH_CONTROLS_OVERLAY := preload("res://resources/ui_screens/cfg_edit_touch_controls_overlay.tres")
@@ -40,6 +47,7 @@ static func _register_all_screens() -> void:
 	_register_definition(SAVE_LOAD_MENU_OVERLAY as RS_UIScreenDefinition)
 	_register_definition(INPUT_PROFILE_SELECTOR_OVERLAY as RS_UIScreenDefinition)
 	_register_definition(GAMEPAD_SETTINGS_OVERLAY as RS_UIScreenDefinition)
+	_register_definition(KEYBOARD_MOUSE_SETTINGS_OVERLAY as RS_UIScreenDefinition)
 	_register_definition(TOUCHSCREEN_SETTINGS_OVERLAY as RS_UIScreenDefinition)
 	_register_definition(INPUT_REBINDING_OVERLAY as RS_UIScreenDefinition)
 	_register_definition(EDIT_TOUCH_CONTROLS_OVERLAY as RS_UIScreenDefinition)

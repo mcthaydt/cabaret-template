@@ -28,6 +28,7 @@
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dbegk7lwqi6r0" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="22_gamepad_vibration"]
+[ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="23_vcam_system"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -95,6 +96,10 @@ script = ExtResource("3_systems_core")
 
 [node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=163643062]
 script = ExtResource("1_pybrx")
+
+[node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=967520144]
+script = ExtResource("23_vcam_system")
+execution_priority = 100
 
 [node name="Physics" type="Node" parent="Systems" unique_id=369931067]
 script = ExtResource("3_systems_physics")

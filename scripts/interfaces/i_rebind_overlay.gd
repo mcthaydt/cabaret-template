@@ -52,3 +52,9 @@ func is_binding_custom(_action: StringName) -> bool:
 func get_active_profile() -> RS_InputProfile:
 	push_error("I_RebindOverlay.get_active_profile not implemented")
 	return null
+
+## Get a profile matching the given device category ("keyboard" or "gamepad").
+## Used as a fallback when the active profile lacks events for the current device.
+func get_profile_for_device_category(_category: String) -> RS_InputProfile:
+	push_error("I_RebindOverlay.get_profile_for_device_category not implemented")
+	return null

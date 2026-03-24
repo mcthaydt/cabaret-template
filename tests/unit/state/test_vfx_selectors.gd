@@ -162,7 +162,47 @@ func test_is_particles_enabled_missing_field() -> void:
 		"is_particles_enabled should return true (default) when field missing"
 	)
 
-# Test 16: Selectors are pure functions (same input = same output)
+# Test 16: is_occlusion_silhouette_enabled with valid state (enabled)
+func test_is_occlusion_silhouette_enabled_returns_true() -> void:
+	var state := _make_state(true, 1.0, true, true, true)
+	var result: bool = U_VFXSelectors.is_occlusion_silhouette_enabled(state)
+
+	assert_true(
+		result,
+		"is_occlusion_silhouette_enabled should return true when enabled"
+	)
+
+# Test 17: is_occlusion_silhouette_enabled with valid state (disabled)
+func test_is_occlusion_silhouette_enabled_returns_false() -> void:
+	var state := _make_state(true, 1.0, true, true, false)
+	var result: bool = U_VFXSelectors.is_occlusion_silhouette_enabled(state)
+
+	assert_false(
+		result,
+		"is_occlusion_silhouette_enabled should return false when disabled"
+	)
+
+# Test 18: is_occlusion_silhouette_enabled with missing vfx slice
+func test_is_occlusion_silhouette_enabled_missing_vfx_slice() -> void:
+	var state := {}
+	var result: bool = U_VFXSelectors.is_occlusion_silhouette_enabled(state)
+
+	assert_true(
+		result,
+		"is_occlusion_silhouette_enabled should return true (default) when vfx slice missing"
+	)
+
+# Test 19: is_occlusion_silhouette_enabled with missing field
+func test_is_occlusion_silhouette_enabled_missing_field() -> void:
+	var state := {"vfx": {"screen_shake_enabled": true}}
+	var result: bool = U_VFXSelectors.is_occlusion_silhouette_enabled(state)
+
+	assert_true(
+		result,
+		"is_occlusion_silhouette_enabled should return true (default) when field missing"
+	)
+
+# Test 20: Selectors are pure functions (same input = same output)
 func test_selectors_are_pure_functions() -> void:
 	var state := _make_state(false, 0.5, false)
 
@@ -177,6 +217,8 @@ func test_selectors_are_pure_functions() -> void:
 
 	var result1_particles: bool = U_VFXSelectors.is_particles_enabled(state)
 	var result2_particles: bool = U_VFXSelectors.is_particles_enabled(state)
+	var result1_silhouette: bool = U_VFXSelectors.is_occlusion_silhouette_enabled(state)
+	var result2_silhouette: bool = U_VFXSelectors.is_occlusion_silhouette_enabled(state)
 
 	assert_eq(
 		result1_enabled,
@@ -199,8 +241,13 @@ func test_selectors_are_pure_functions() -> void:
 		result2_particles,
 		"is_particles_enabled should return same result for same input"
 	)
+	assert_eq(
+		result1_silhouette,
+		result2_silhouette,
+		"is_occlusion_silhouette_enabled should return same result for same input"
+	)
 
-# Test 17: Selectors do not mutate state
+# Test 21: Selectors do not mutate state
 func test_selectors_do_not_mutate_state() -> void:
 	var original_state := _make_state(true, 1.5, true)
 	var state_copy: Dictionary = original_state.duplicate(true)
@@ -209,6 +256,7 @@ func test_selectors_do_not_mutate_state() -> void:
 	var _intensity: float = U_VFXSelectors.get_screen_shake_intensity(original_state)
 	var _flash: bool = U_VFXSelectors.is_damage_flash_enabled(original_state)
 	var _particles: bool = U_VFXSelectors.is_particles_enabled(original_state)
+	var _silhouette: bool = U_VFXSelectors.is_occlusion_silhouette_enabled(original_state)
 
 	assert_eq(
 		original_state,
@@ -221,13 +269,15 @@ func _make_state(
 	shake_enabled: bool,
 	shake_intensity: float,
 	flash_enabled: bool,
-	particles_enabled: bool = true
+	particles_enabled: bool = true,
+	occlusion_silhouette_enabled: bool = true
 ) -> Dictionary:
 	return {
 		"vfx": {
 			"screen_shake_enabled": shake_enabled,
 			"screen_shake_intensity": shake_intensity,
 			"damage_flash_enabled": flash_enabled,
-			"particles_enabled": particles_enabled
+			"particles_enabled": particles_enabled,
+			"occlusion_silhouette_enabled": occlusion_silhouette_enabled
 		}
 	}

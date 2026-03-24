@@ -6,7 +6,7 @@ var _manager: M_InputProfileManager
 
 func before_each() -> void:
 	_cleanup_input_settings_files()
-	_clear_actions(["sprint", "jump"])
+	_clear_actions(["sprint", "jump", "camera_center"])
 
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
@@ -29,12 +29,13 @@ func after_each() -> void:
 		_store.queue_free()
 	_store = null
 	_manager = null
-	_clear_actions(["sprint", "jump"])
+	_clear_actions(["sprint", "jump", "camera_center"])
 	_cleanup_input_settings_files()
 	await _pump()
 
 func test_reset_restores_keyboard_and_gamepad_defaults() -> void:
 	_ensure_action(StringName("sprint"))
+	_ensure_action(StringName("camera_center"))
 
 	# Wait for profiles to load
 	await _pump()
@@ -102,6 +103,21 @@ func test_reset_restores_keyboard_and_gamepad_defaults() -> void:
 
 	assert_true(has_keyboard_shift, "Should restore default keyboard Shift binding")
 	assert_true(has_gamepad_l3, "Should restore default gamepad L3 binding")
+
+	var camera_center_events: Array = InputMap.action_get_events("camera_center")
+	var has_keyboard_c := false
+	var has_gamepad_r3 := false
+	for event in camera_center_events:
+		if event is InputEventKey:
+			var key_event := event as InputEventKey
+			if key_event.physical_keycode == KEY_C:
+				has_keyboard_c = true
+		elif event is InputEventJoypadButton:
+			var joy_event := event as InputEventJoypadButton
+			if joy_event.button_index == JOY_BUTTON_RIGHT_STICK:
+				has_gamepad_r3 = true
+	assert_true(has_keyboard_c, "Should restore default keyboard C binding for camera_center")
+	assert_true(has_gamepad_r3, "Should restore default gamepad R3 binding for camera_center")
 
 	# Verify custom bindings cleared from Redux
 	var bindings: Dictionary = _get_store_custom_bindings()

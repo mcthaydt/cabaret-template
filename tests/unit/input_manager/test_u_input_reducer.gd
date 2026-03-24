@@ -17,6 +17,31 @@ func test_update_look_input_replaces_vector() -> void:
 	assert_not_null(reduced)
 	assert_eq(reduced.get("look_input"), Vector2(1.5, 0.25))
 
+func test_update_look_input_routes_to_keyboard_channel_when_source_set() -> void:
+	var state := _make_gameplay_state()
+	var action := U_InputActions.update_look_input(Vector2(0.8, -0.4), U_InputActions.LOOK_SOURCE_KEYBOARD_MOUSE)
+	var reduced: Variant = INPUT_REDUCER.reduce_gameplay_input(state, action)
+	assert_not_null(reduced)
+	assert_eq(reduced.get("look_input"), Vector2(0.8, -0.4))
+	assert_eq(reduced.get("look_input_keyboard_mouse", Vector2.ZERO), Vector2(0.8, -0.4))
+	assert_eq(reduced.get("look_input_gamepad", Vector2.ONE), Vector2.ZERO)
+
+func test_update_look_input_routes_to_gamepad_channel_when_source_set() -> void:
+	var state := _make_gameplay_state()
+	var action := U_InputActions.update_look_input(Vector2(-0.3, 0.9), U_InputActions.LOOK_SOURCE_GAMEPAD)
+	var reduced: Variant = INPUT_REDUCER.reduce_gameplay_input(state, action)
+	assert_not_null(reduced)
+	assert_eq(reduced.get("look_input"), Vector2(-0.3, 0.9))
+	assert_eq(reduced.get("look_input_gamepad", Vector2.ZERO), Vector2(-0.3, 0.9))
+	assert_eq(reduced.get("look_input_keyboard_mouse", Vector2.ONE), Vector2.ZERO)
+
+func test_update_camera_center_state_sets_just_pressed_flag() -> void:
+	var state := _make_gameplay_state()
+	var action := U_InputActions.update_camera_center_state(true)
+	var reduced: Variant = INPUT_REDUCER.reduce_gameplay_input(state, action)
+	assert_not_null(reduced)
+	assert_true(bool(reduced.get("camera_center_just_pressed", false)))
+
 func test_update_jump_state_sets_flags() -> void:
 	var state := _make_gameplay_state()
 	var action := U_InputActions.update_jump_state(true, true)
@@ -90,6 +115,27 @@ func test_update_gamepad_deadzone_updates_requested_stick() -> void:
 	var pad_settings: Dictionary = reduced.get("gamepad_settings", {})
 	assert_almost_eq(pad_settings.get("left_stick_deadzone", 0.0), 0.35, 0.0001)
 
+func test_update_gamepad_sensitivity_updates_and_clamps_value() -> void:
+	var settings := _make_settings_state()
+	var reduced_low: Variant = INPUT_REDUCER.reduce_input_settings(
+		settings,
+		U_InputActions.update_gamepad_sensitivity(0.01)
+	)
+	var reduced_high: Variant = INPUT_REDUCER.reduce_input_settings(
+		settings,
+		U_InputActions.update_gamepad_sensitivity(99.0)
+	)
+	assert_almost_eq(
+		float((reduced_low as Dictionary).get("gamepad_settings", {}).get("right_stick_sensitivity", 0.0)),
+		0.1,
+		0.0001
+	)
+	assert_almost_eq(
+		float((reduced_high as Dictionary).get("gamepad_settings", {}).get("right_stick_sensitivity", 0.0)),
+		5.0,
+		0.0001
+	)
+
 func test_toggle_vibration_updates_flag() -> void:
 	var settings := _make_settings_state()
 	var action := U_InputActions.toggle_vibration(false)
@@ -108,6 +154,19 @@ func test_update_mouse_sensitivity_updates_value() -> void:
 	var reduced: Variant = INPUT_REDUCER.reduce_input_settings(settings, action)
 	assert_almost_eq(reduced.get("mouse_settings", {}).get("sensitivity", 0.0), 1.7, 0.0001)
 
+func test_set_keyboard_look_enabled_updates_value() -> void:
+	var settings := _make_settings_state()
+	var action := U_InputActions.set_keyboard_look_enabled(true)
+	var reduced: Variant = INPUT_REDUCER.reduce_input_settings(settings, action)
+	assert_true(reduced.get("mouse_settings", {}).get("keyboard_look_enabled", false))
+
+func test_set_keyboard_look_speed_clamps_to_valid_range() -> void:
+	var settings := _make_settings_state()
+	var reduced_low: Variant = INPUT_REDUCER.reduce_input_settings(settings, U_InputActions.set_keyboard_look_speed(0.01))
+	assert_almost_eq(reduced_low.get("mouse_settings", {}).get("keyboard_look_speed", 0.0), 0.1, 0.0001)
+	var reduced_high: Variant = INPUT_REDUCER.reduce_input_settings(settings, U_InputActions.set_keyboard_look_speed(100.0))
+	assert_almost_eq(reduced_high.get("mouse_settings", {}).get("keyboard_look_speed", 0.0), 10.0, 0.0001)
+
 func test_update_accessibility_updates_field() -> void:
 	var settings := _make_settings_state()
 	var action := U_InputActions.update_accessibility("jump_buffer_time", 0.3)
@@ -116,12 +175,13 @@ func test_update_accessibility_updates_field() -> void:
 
 func test_update_touchscreen_settings_merges_fields() -> void:
 	var settings := _make_settings_state()
-	var updates := {"virtual_joystick_opacity": 0.9, "button_size": 1.5}
+	var updates := {"virtual_joystick_opacity": 0.9, "button_size": 1.5, "look_drag_sensitivity": 99.0}
 	var action := U_InputActions.update_touchscreen_settings(updates)
 	var reduced: Variant = INPUT_REDUCER.reduce_input_settings(settings, action)
 	var touchscreen_settings: Dictionary = reduced.get("touchscreen_settings", {})
 	assert_almost_eq(touchscreen_settings.get("virtual_joystick_opacity", 0.0), 0.9, 0.0001)
 	assert_almost_eq(touchscreen_settings.get("button_size", 0.0), 1.5, 0.0001)
+	assert_almost_eq(touchscreen_settings.get("look_drag_sensitivity", 0.0), 5.0, 0.0001, "look_drag_sensitivity should clamp to max")
 	assert_almost_eq(touchscreen_settings.get("joystick_deadzone", 0.0), 0.15, 0.0001, "Unmodified fields should retain defaults")
 
 func test_save_virtual_control_position_stores_vector2_directly() -> void:
@@ -153,12 +213,14 @@ func test_touchscreen_settings_have_required_default_fields() -> void:
 	var touchscreen_settings: Dictionary = settings.get("touchscreen_settings", {})
 	assert_true(touchscreen_settings.has("joystick_deadzone"), "Should have joystick_deadzone field")
 	assert_true(touchscreen_settings.has("button_opacity"), "Should have button_opacity field")
+	assert_true(touchscreen_settings.has("look_drag_sensitivity"), "Should have look_drag_sensitivity field")
 	assert_true(touchscreen_settings.has("custom_joystick_position"), "Should have custom_joystick_position field")
 	assert_true(touchscreen_settings.has("custom_button_positions"), "Should have custom_button_positions field")
 	assert_true(touchscreen_settings.has("custom_button_sizes"), "Should have custom_button_sizes field")
 	assert_true(touchscreen_settings.has("custom_button_opacities"), "Should have custom_button_opacities field")
 	assert_almost_eq(touchscreen_settings.get("joystick_deadzone", 0.0), 0.15, 0.0001)
 	assert_almost_eq(touchscreen_settings.get("button_opacity", 0.0), 0.8, 0.0001)
+	assert_almost_eq(touchscreen_settings.get("look_drag_sensitivity", 0.0), 1.0, 0.0001)
 	var joystick_pos: Variant = touchscreen_settings.get("custom_joystick_position")
 	assert_true(joystick_pos is Vector2, "custom_joystick_position should be Vector2")
 	assert_eq(joystick_pos, Vector2(-1, -1), "Default joystick position should be sentinel value (-1, -1)")
@@ -168,6 +230,29 @@ func test_touchscreen_settings_have_required_default_fields() -> void:
 	var button_opacities: Variant = touchscreen_settings.get("custom_button_opacities")
 	assert_true(button_opacities is Dictionary, "custom_button_opacities should be Dictionary")
 	assert_true(button_opacities.is_empty(), "custom_button_opacities should be empty by default")
+
+func test_gameplay_input_defaults_include_per_device_look_channels() -> void:
+	var state := _make_gameplay_state()
+	assert_true(state.has("look_input_keyboard_mouse"), "Gameplay input should track keyboard/mouse look channel")
+	assert_true(state.has("look_input_gamepad"), "Gameplay input should track gamepad look channel")
+	assert_eq(state.get("look_input_keyboard_mouse", Vector2.ONE), Vector2.ZERO)
+	assert_eq(state.get("look_input_gamepad", Vector2.ONE), Vector2.ZERO)
+
+func test_mouse_settings_have_keyboard_look_defaults() -> void:
+	var settings := _make_settings_state()
+	var mouse_settings: Dictionary = settings.get("mouse_settings", {})
+	assert_almost_eq(float(mouse_settings.get("sensitivity", 0.0)), 0.6, 0.0001)
+	assert_true(mouse_settings.has("keyboard_look_enabled"), "Should have keyboard_look_enabled field")
+	assert_true(mouse_settings.has("keyboard_look_speed"), "Should have keyboard_look_speed field")
+	assert_true(bool(mouse_settings.get("keyboard_look_enabled", false)))
+	assert_almost_eq(float(mouse_settings.get("keyboard_look_speed", 0.0)), 2.0, 0.0001)
+
+func test_gamepad_settings_have_balanced_orbit_defaults() -> void:
+	var settings := _make_settings_state()
+	var gamepad_settings: Dictionary = settings.get("gamepad_settings", {})
+	assert_almost_eq(float(gamepad_settings.get("right_stick_deadzone", 0.0)), 0.16, 0.0001)
+	assert_almost_eq(float(gamepad_settings.get("right_stick_sensitivity", 0.0)), 2.5, 0.0001)
+	assert_eq(int(gamepad_settings.get("deadzone_curve", -1)), 1)
 
 func test_reduce_settings_returns_null_for_unhandled_action() -> void:
 	var action := {"type": StringName("noop")}

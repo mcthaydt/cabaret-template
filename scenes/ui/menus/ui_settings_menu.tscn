@@ -14,6 +14,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_settings_menu_script")
 background_color = Color(0.114, 0.114, 0.129, 0.7)
+background_shader_preset = "scanline_drift"
+background_shader_intensity = 0.3
+background_shader_speed = 0.85
 motion_set = ExtResource("2_motion_set")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=163935902]
@@ -86,6 +89,11 @@ text = "Input Profiles"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Gamepad Settings"
+
+[node name="KeyboardMouseSettingsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=2032477070]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Keyboard/Mouse Settings"
 
 [node name="TouchscreenSettingsButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer/ButtonsVBox" unique_id=1523316640]
 unique_name_in_owner = true

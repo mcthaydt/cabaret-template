@@ -118,6 +118,7 @@ func test_overlay_populates_values_from_store() -> void:
 		"virtual_joystick_opacity": 0.6,
 		"button_opacity": 0.9,
 		"joystick_deadzone": 0.25,
+		"look_drag_sensitivity": 2.2,
 	}
 	_store.dispatch(U_InputActions.update_touchscreen_settings(settings))
 	await _pump()
@@ -132,6 +133,7 @@ func test_overlay_populates_values_from_store() -> void:
 	var joystick_opacity_slider: HSlider = overlay.get_node("%JoystickOpacitySlider")
 	var button_opacity_slider: HSlider = overlay.get_node("%ButtonOpacitySlider")
 	var joystick_deadzone_slider: HSlider = overlay.get_node("%JoystickDeadzoneSlider")
+	var look_sensitivity_slider: HSlider = overlay.get_node("%LookSensitivitySlider")
 	var expected_joystick_size: float = min(1.5, joystick_size_slider.max_value)
 	var expected_button_size: float = min(1.2, button_size_slider.max_value)
 
@@ -140,6 +142,7 @@ func test_overlay_populates_values_from_store() -> void:
 	assert_almost_eq(joystick_opacity_slider.value, 0.6, 0.001)
 	assert_almost_eq(button_opacity_slider.value, 0.9, 0.001)
 	assert_almost_eq(joystick_deadzone_slider.value, 0.25, 0.001)
+	assert_almost_eq(look_sensitivity_slider.value, 2.2, 0.001)
 
 func test_slider_updates_preview_in_real_time() -> void:
 	var overlay := OverlayScene.instantiate()
@@ -190,6 +193,7 @@ func test_apply_dispatches_update_to_store_and_closes_overlay() -> void:
 	var joystick_opacity_slider: HSlider = overlay.get_node("%JoystickOpacitySlider")
 	var button_opacity_slider: HSlider = overlay.get_node("%ButtonOpacitySlider")
 	var joystick_deadzone_slider: HSlider = overlay.get_node("%JoystickDeadzoneSlider")
+	var look_sensitivity_slider: HSlider = overlay.get_node("%LookSensitivitySlider")
 
 	var expected_joystick_size: float = min(1.6, joystick_size_slider.max_value)
 	var expected_button_size: float = min(1.1, button_size_slider.max_value)
@@ -198,6 +202,7 @@ func test_apply_dispatches_update_to_store_and_closes_overlay() -> void:
 	joystick_opacity_slider.value = 0.55
 	button_opacity_slider.value = 0.75
 	joystick_deadzone_slider.value = 0.2
+	look_sensitivity_slider.value = 2.4
 
 	_store.dispatched_actions.clear()
 	var close_count_before := _count_navigation_close_or_return_actions()
@@ -216,6 +221,7 @@ func test_apply_dispatches_update_to_store_and_closes_overlay() -> void:
 	assert_almost_eq(float(settings.get("virtual_joystick_opacity", 0.0)), 0.55, 0.001)
 	assert_almost_eq(float(settings.get("button_opacity", 0.0)), 0.75, 0.001)
 	assert_almost_eq(float(settings.get("joystick_deadzone", 0.0)), 0.2, 0.001)
+	assert_almost_eq(float(settings.get("look_drag_sensitivity", 0.0)), 2.4, 0.001)
 
 	var close_count_after := _count_navigation_close_or_return_actions()
 	assert_eq(close_count_after, close_count_before + 1,
@@ -232,12 +238,14 @@ func test_reset_restores_default_values_and_calls_profile_manager() -> void:
 	var joystick_opacity_slider: HSlider = overlay.get_node("%JoystickOpacitySlider")
 	var button_opacity_slider: HSlider = overlay.get_node("%ButtonOpacitySlider")
 	var joystick_deadzone_slider: HSlider = overlay.get_node("%JoystickDeadzoneSlider")
+	var look_sensitivity_slider: HSlider = overlay.get_node("%LookSensitivitySlider")
 
 	joystick_size_slider.value = min(1.8, joystick_size_slider.max_value)
 	button_size_slider.value = min(1.4, button_size_slider.max_value)
 	joystick_opacity_slider.value = 0.4
 	button_opacity_slider.value = 0.5
 	joystick_deadzone_slider.value = 0.3
+	look_sensitivity_slider.value = 3.0
 
 	overlay.call("_on_reset_pressed")
 	await _pump()
@@ -257,6 +265,7 @@ func test_reset_restores_default_values_and_calls_profile_manager() -> void:
 	assert_almost_eq(joystick_opacity_slider.value, 0.7, 0.001, "Joystick opacity should reset to default")
 	assert_almost_eq(button_opacity_slider.value, 0.8, 0.001, "Button opacity should reset to default")
 	assert_almost_eq(joystick_deadzone_slider.value, 0.15, 0.001, "Joystick deadzone should reset to default")
+	assert_almost_eq(look_sensitivity_slider.value, 1.0, 0.001, "Look drag sensitivity should reset to default")
 
 	assert_true(_profile_manager_mock.reset_called, "Profile manager should be called to reset touchscreen positions")
 
@@ -271,12 +280,14 @@ func test_reset_dispatches_default_settings_to_store() -> void:
 	var joystick_opacity_slider: HSlider = overlay.get_node("%JoystickOpacitySlider")
 	var button_opacity_slider: HSlider = overlay.get_node("%ButtonOpacitySlider")
 	var joystick_deadzone_slider: HSlider = overlay.get_node("%JoystickDeadzoneSlider")
+	var look_sensitivity_slider: HSlider = overlay.get_node("%LookSensitivitySlider")
 
 	joystick_size_slider.value = min(1.8, joystick_size_slider.max_value)
 	button_size_slider.value = min(1.4, button_size_slider.max_value)
 	joystick_opacity_slider.value = 0.4
 	button_opacity_slider.value = 0.5
 	joystick_deadzone_slider.value = 0.3
+	look_sensitivity_slider.value = 3.0
 
 	_store.dispatched_actions.clear()
 	overlay.call("_on_reset_pressed")
@@ -300,6 +311,7 @@ func test_reset_dispatches_default_settings_to_store() -> void:
 	assert_almost_eq(float(settings.get("virtual_joystick_opacity", -1.0)), 0.7, 0.001)
 	assert_almost_eq(float(settings.get("button_opacity", -1.0)), 0.8, 0.001)
 	assert_almost_eq(float(settings.get("joystick_deadzone", -1.0)), 0.15, 0.001)
+	assert_almost_eq(float(settings.get("look_drag_sensitivity", -1.0)), 1.0, 0.001)
 
 func test_cancel_discards_changes_and_closes_overlay() -> void:
 	var overlay := OverlayScene.instantiate()

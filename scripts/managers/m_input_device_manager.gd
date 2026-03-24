@@ -35,7 +35,6 @@ const GAMEPAD_SETTINGS_SCREEN_ID := StringName("gamepad_settings")
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process_input(true)
-	set_process_unhandled_input(true)
 	_register_input_sources()
 	_register_existing_gamepads()
 	_connect_joypad_signals()
@@ -135,9 +134,6 @@ func _input(event: InputEvent) -> void:
 		if _touchscreen_source:
 			_touchscreen_source.handle_touch_event()
 		_handle_touch_input()
-
-func _unhandled_input(event: InputEvent) -> void:
-	_input(event)
 
 func get_active_device() -> int:
 	return _active_device

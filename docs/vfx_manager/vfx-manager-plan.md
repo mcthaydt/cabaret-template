@@ -1,10 +1,18 @@
 # VFX Manager - Implementation Plan
 
-**Project**: Cabaret Template (Godot 4.5)
-**Status**: Implemented (Phases 0-8 complete)
+**Project**: Cabaret Template (Godot 4.6)
+**Status**: Implemented baseline (vCam-alignment addendum documented)
 **Estimated Duration**: 14 days
 **Test Count**: 103 tests (90 unit + 13 integration)
 **Methodology**: Test-Driven Development (Red-Green-Refactor)
+
+## vCam Alignment Addendum (2026-03)
+
+- Camera-runtime orchestration source of truth is `docs/vcam_manager/*`; this plan remains VFX-domain scoped.
+- VFX-owned camera API remains `M_CameraManager.apply_shake_offset(...)`.
+- vCam-owned gameplay transform APIs are `M_CameraManager.apply_main_camera_transform(...)` and `M_CameraManager.is_blend_active()`.
+- Persisted silhouette preference is `vfx.occlusion_silhouette_enabled` and UI ownership is `UI_VFXSettingsOverlay` localization-backed toggle.
+- Occlusion support depends on both layer naming (`vcam_occludable`) and authored scene migration of true camera blockers (tracked in vCam docs/tasks).
 
 ---
 
@@ -19,7 +27,7 @@ The VFX Manager provides screen-level visual effects (screen shake, damage flash
 ### Commit 1: VFX Initial State Resource
 
 **Files to create**:
-- `scripts/state/resources/rs_vfx_initial_state.gd`
+- `scripts/resources/state/rs_vfx_initial_state.gd`
 - `tests/unit/state/test_vfx_initial_state.gd` (6 tests)
 
 **Implementation**:
@@ -244,7 +252,7 @@ func apply_shake_offset(offset: Vector2, rotation: float) -> void:
 ### Damage Flash Scene & Script
 
 **Files to create**:
-- `scenes/ui/ui_damage_flash_overlay.tscn`
+- `scenes/ui/overlays/ui_damage_flash_overlay.tscn`
 - `scripts/managers/helpers/u_damage_flash.gd`
 - `tests/unit/managers/helpers/test_damage_flash.gd` (10 tests)
 

@@ -17,11 +17,15 @@ extends Resource
 @export_group("Particles")
 @export var particles_enabled: bool = true
 
+@export_group("Occlusion")
+@export var occlusion_silhouette_enabled: bool = true
+
 ## Converts this resource to a dictionary for merging with reducer defaults
 func to_dictionary() -> Dictionary:
 	return {
 		"screen_shake_enabled": screen_shake_enabled,
 		"screen_shake_intensity": screen_shake_intensity,
 		"damage_flash_enabled": damage_flash_enabled,
-		"particles_enabled": particles_enabled
+		"particles_enabled": particles_enabled,
+		"occlusion_silhouette_enabled": occlusion_silhouette_enabled
 	}

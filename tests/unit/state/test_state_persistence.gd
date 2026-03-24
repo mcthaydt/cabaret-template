@@ -267,6 +267,24 @@ func test_time_slice_transient_fields_excluded_and_world_clock_fields_persist() 
 	assert_eq(int(saved_time.get("world_day_count", -1)), 4)
 	assert_almost_eq(float(saved_time.get("world_time_speed", -1.0)), 2.0, 0.0001)
 
+func test_vcam_transient_slice_excluded_from_save() -> void:
+	store.dispatch(U_VCamActions.set_active_runtime(&"vcam_orbit", "orbit"))
+	store.dispatch(U_VCamActions.start_blend(&"vcam_fixed"))
+	store.dispatch(U_VCamActions.update_blend(0.35))
+
+	var vcam_slice: Dictionary = store.get_slice(StringName("vcam"))
+	assert_eq(vcam_slice.get("active_vcam_id"), StringName("vcam_orbit"), "vcam slice should update in runtime state")
+	assert_true(vcam_slice.get("is_blending", false), "vcam blend state should update in runtime state")
+
+	var save_result: Error = store.save_state(test_save_path)
+	assert_eq(save_result, OK, "Save should succeed")
+
+	var file: FileAccess = FileAccess.open(test_save_path, FileAccess.READ)
+	var parsed: Dictionary = JSON.parse_string(file.get_as_text()) as Dictionary
+	file.close()
+
+	assert_false(parsed.has("vcam"), "Transient vcam slice should be excluded from persisted state")
+
 func test_load_nonexistent_file_returns_error() -> void:
 	var result: Error = store.load_state("user://nonexistent_file.json")
 	assert_push_error("File does not exist")

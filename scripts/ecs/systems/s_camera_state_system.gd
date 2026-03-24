@@ -5,7 +5,9 @@ class_name S_CameraStateSystem
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
 const U_RULE_SELECTOR := preload("res://scripts/utils/qb/u_rule_selector.gd")
@@ -14,9 +16,12 @@ const U_RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
 const CONDITION_EVENT_NAME_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
+const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const CAMERA_MANAGER_SERVICE := StringName("camera_manager")
 const CAMERA_SHAKE_SOURCE := StringName("qb_camera_rule")
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
+const PRIMARY_PLAYER_ENTITY_ID := StringName("player")
+const RULE_SCORE_CONTEXT_KEY := "rule_score"
 
 const TRIGGER_MODE_TICK := "tick"
 const TRIGGER_MODE_EVENT := "event"
@@ -35,6 +40,8 @@ const SHAKE_PHASE_ROTATION: float = 0.7
 const DEFAULT_RULE_DEFINITIONS := [
 	preload("res://resources/qb/camera/cfg_camera_shake_rule.tres"),
 	preload("res://resources/qb/camera/cfg_camera_zone_fov_rule.tres"),
+	preload("res://resources/qb/camera/cfg_camera_speed_fov_rule.tres"),
+	preload("res://resources/qb/camera/cfg_camera_landing_impact_rule.tres"),
 ]
 
 @export var camera_manager: I_CAMERA_MANAGER = null
@@ -162,8 +169,8 @@ func _on_event_received(event_name: StringName, event_data: Dictionary) -> void:
 	_tracker.cleanup_stale_contexts(active_context_keys)
 	_apply_camera_state(contexts, 0.0)
 
-func _evaluate_context(context: Dictionary, trigger_mode: String, _event_name: StringName) -> void:
-	var applicable_rules: Array = _get_applicable_rules(trigger_mode)
+func _evaluate_context(context: Dictionary, trigger_mode: String, event_name: StringName) -> void:
+	var applicable_rules: Array = _get_applicable_rules(trigger_mode, event_name)
 	if applicable_rules.is_empty():
 		return
 
@@ -182,7 +189,7 @@ func _evaluate_context(context: Dictionary, trigger_mode: String, _event_name: S
 	_execute_effects(winners, context)
 	_mark_fired_rules(winners, context)
 
-func _get_applicable_rules(trigger_mode: String) -> Array:
+func _get_applicable_rules(trigger_mode: String, event_name: StringName = StringName()) -> Array:
 	var applicable_rules: Array = []
 	for rule_variant in _active_rules:
 		if rule_variant == null or not (rule_variant is Object):
@@ -197,9 +204,19 @@ func _get_applicable_rules(trigger_mode: String) -> Array:
 		if trigger_mode == TRIGGER_MODE_EVENT:
 			if rule_trigger_mode != TRIGGER_MODE_EVENT and rule_trigger_mode != TRIGGER_MODE_BOTH:
 				continue
+			if event_name != StringName() and not _rule_handles_event(rule_variant, event_name):
+				continue
 			applicable_rules.append(rule_variant)
 
 	return applicable_rules
+
+func _rule_handles_event(rule_variant: Variant, event_name: StringName) -> bool:
+	if event_name == StringName():
+		return true
+	var event_names: Array[StringName] = _extract_event_names_from_rule(rule_variant)
+	if event_names.is_empty():
+		return false
+	return event_names.has(event_name)
 
 func _apply_state_gates(applicable_rules: Array, scored: Array[Dictionary], context: Dictionary) -> Array[Dictionary]:
 	var context_key: StringName = _context_key_for_context(context)
@@ -243,9 +260,16 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 		var rule_variant: Variant = winner.get("rule", null)
 		if rule_variant == null or not (rule_variant is Object):
 			continue
+		var had_rule_score: bool = context.has(RULE_SCORE_CONTEXT_KEY)
+		var previous_rule_score: Variant = context.get(RULE_SCORE_CONTEXT_KEY, 1.0)
+		context[RULE_SCORE_CONTEXT_KEY] = _resolve_winner_score(winner)
 
 		var effects_variant: Variant = rule_variant.get("effects")
 		if not (effects_variant is Array):
+			if had_rule_score:
+				context[RULE_SCORE_CONTEXT_KEY] = previous_rule_score
+			else:
+				context.erase(RULE_SCORE_CONTEXT_KEY)
 			continue
 
 		for effect_variant in (effects_variant as Array):
@@ -254,6 +278,11 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 			if not effect_variant is I_Effect:
 				continue
 			effect_variant.call("execute", context)
+
+		if had_rule_score:
+			context[RULE_SCORE_CONTEXT_KEY] = previous_rule_score
+		else:
+			context.erase(RULE_SCORE_CONTEXT_KEY)
 
 func _mark_fired_rules(winners: Array[Dictionary], context: Dictionary) -> void:
 	var context_key: StringName = _context_key_for_context(context)
@@ -294,6 +323,7 @@ func _build_camera_contexts(base_context: Dictionary) -> Array:
 	var redux_state: Dictionary = {}
 	if store != null:
 		redux_state = store.get_state()
+	var movement_snapshot: Dictionary = _resolve_primary_movement_snapshot()
 
 	var entities: Array = query_entities([CAMERA_STATE_TYPE])
 	for entity_query_variant in entities:
@@ -308,7 +338,7 @@ func _build_camera_contexts(base_context: Dictionary) -> Array:
 			continue
 
 		var context: Dictionary = base_context.duplicate(true)
-		_attach_camera_context(context, entity_query, camera_state, redux_state, store)
+		_attach_camera_context(context, entity_query, camera_state, redux_state, store, movement_snapshot)
 		contexts.append(context)
 
 	return contexts
@@ -318,18 +348,27 @@ func _attach_camera_context(
 	entity_query: Object,
 	camera_state: Variant,
 	redux_state: Dictionary,
-	store: I_StateStore
+	store: I_StateStore,
+	movement_snapshot: Dictionary
 ) -> void:
 	context["camera_state_component"] = camera_state
 
 	var components: Dictionary = {}
 	components[CAMERA_STATE_TYPE] = camera_state
 	components[String(CAMERA_STATE_TYPE)] = camera_state
+	if not movement_snapshot.is_empty():
+		var movement_data: Dictionary = movement_snapshot.duplicate(true)
+		components[MOVEMENT_TYPE] = movement_data
+		components[String(MOVEMENT_TYPE)] = movement_data
+		context["movement_component"] = movement_data
 	context["components"] = components
 	context["component_data"] = components
 
 	context["redux_state"] = redux_state.duplicate(true)
 	context["state"] = context["redux_state"]
+	context["vcam_active_mode"] = U_VCAM_SELECTORS.get_active_mode(redux_state)
+	context["vcam_is_blending"] = U_VCAM_SELECTORS.is_blending(redux_state)
+	context["vcam_active_vcam_id"] = U_VCAM_SELECTORS.get_active_vcam_id(redux_state)
 	if store != null:
 		context["state_store"] = store
 
@@ -439,14 +478,16 @@ func _apply_fov_to_camera(camera: Camera3D, camera_state: Variant, context: Dict
 	camera.fov = lerpf(camera.fov, target_fov, alpha)
 
 func _resolve_target_fov(camera_state: Variant, context: Dictionary, baseline_fov: float) -> float:
-	if not _is_fov_zone_active(context):
-		return baseline_fov
-	var target_fov: float = _get_camera_state_float(
-		camera_state,
-		"target_fov",
-		C_CAMERA_STATE_COMPONENT.DEFAULT_TARGET_FOV
-	)
-	return clampf(target_fov, 1.0, 179.0)
+	var base_target_fov: float = baseline_fov
+	if _is_fov_zone_active(context):
+		base_target_fov = _get_camera_state_float(
+			camera_state,
+			"target_fov",
+			C_CAMERA_STATE_COMPONENT.DEFAULT_TARGET_FOV
+		)
+	var resolved_base_target_fov: float = clampf(base_target_fov, 1.0, 179.0)
+	var speed_fov_bonus: float = _resolve_speed_fov_bonus(camera_state)
+	return clampf(resolved_base_target_fov + speed_fov_bonus, 1.0, 179.0)
 
 func _ensure_baseline_fov(camera_state: Variant, fallback_fov: float) -> float:
 	var existing_baseline: float = _get_camera_state_float(
@@ -467,17 +508,7 @@ func _is_fov_zone_active(context: Dictionary) -> bool:
 		state_variant = _get_context_value(context, "redux_state")
 	if not (state_variant is Dictionary):
 		return false
-	var state: Dictionary = state_variant as Dictionary
-
-	var camera_slice_variant: Variant = _get_context_value(state, "camera")
-	if not (camera_slice_variant is Dictionary):
-		return false
-	var camera_slice: Dictionary = camera_slice_variant as Dictionary
-
-	var in_zone_variant: Variant = _get_context_value(camera_slice, "in_fov_zone")
-	if in_zone_variant is bool:
-		return in_zone_variant
-	return false
+	return U_VCAM_SELECTORS.is_in_fov_zone(state_variant as Dictionary)
 
 func _write_target_fov(camera_state: Variant, value: float) -> void:
 	if camera_state is Object and (camera_state as Object).has_method("set_target_fov"):
@@ -493,6 +524,33 @@ func _write_baseline_fov(camera_state: Variant, value: float) -> void:
 		return
 	if camera_state is Object:
 		(camera_state as Object).set("base_fov", clamped)
+
+func _resolve_speed_fov_bonus(camera_state: Variant) -> float:
+	var raw_bonus: float = _get_camera_state_float(
+		camera_state,
+		"speed_fov_bonus",
+		C_CAMERA_STATE_COMPONENT.DEFAULT_SPEED_FOV_BONUS
+	)
+	var max_bonus: float = maxf(
+		_get_camera_state_float(
+			camera_state,
+			"speed_fov_max_bonus",
+			C_CAMERA_STATE_COMPONENT.DEFAULT_SPEED_FOV_MAX_BONUS
+		),
+		0.0
+	)
+	var clamped_bonus: float = clampf(raw_bonus, 0.0, max_bonus)
+	if not is_equal_approx(clamped_bonus, raw_bonus):
+		_write_speed_fov_bonus(camera_state, clamped_bonus)
+	return clamped_bonus
+
+func _write_speed_fov_bonus(camera_state: Variant, value: float) -> void:
+	if camera_state == null or not (camera_state is Object):
+		return
+	var object_value: Object = camera_state as Object
+	if not _object_has_property(object_value, "speed_fov_bonus"):
+		return
+	object_value.set("speed_fov_bonus", maxf(value, 0.0))
 
 func _apply_trauma_shake(manager: I_CAMERA_MANAGER, camera_state: Variant, delta: float) -> void:
 	var trauma: float = clampf(_get_camera_state_float(camera_state, "shake_trauma", 0.0), 0.0, 1.0)
@@ -675,3 +733,59 @@ func _read_bool_property(object_value: Variant, property_name: String, fallback:
 	if value is bool:
 		return value
 	return fallback
+
+func _resolve_winner_score(winner: Dictionary) -> float:
+	var score_variant: Variant = winner.get("score", 1.0)
+	if score_variant is float or score_variant is int:
+		return clampf(float(score_variant), 0.0, 1.0)
+	return 1.0
+
+func _resolve_primary_movement_snapshot() -> Dictionary:
+	var movement_component: Variant = _resolve_primary_movement_component()
+	if movement_component == null:
+		return {}
+	return {
+		"speed_magnitude": _extract_movement_speed_magnitude(movement_component),
+	}
+
+func _resolve_primary_movement_component() -> Variant:
+	var movement_entities: Array = query_entities([MOVEMENT_TYPE])
+	var fallback_component: Variant = null
+	for entity_query_variant in movement_entities:
+		if entity_query_variant == null or not (entity_query_variant is Object):
+			continue
+		var entity_query: Object = entity_query_variant as Object
+		if not entity_query.has_method("get_component"):
+			continue
+		var movement_component: Variant = entity_query.call("get_component", MOVEMENT_TYPE)
+		if movement_component == null:
+			continue
+		if fallback_component == null:
+			fallback_component = movement_component
+		if _is_primary_player_query(entity_query):
+			return movement_component
+	return fallback_component
+
+func _is_primary_player_query(entity_query: Object) -> bool:
+	if entity_query.has_method("get_entity_id"):
+		var entity_id: StringName = _variant_to_string_name(entity_query.call("get_entity_id"))
+		if entity_id == PRIMARY_PLAYER_ENTITY_ID:
+			return true
+	if entity_query.has_method("get_tags"):
+		var tags_variant: Variant = entity_query.call("get_tags")
+		if tags_variant is Array:
+			var tags: Array = tags_variant as Array
+			return tags.has(PRIMARY_PLAYER_ENTITY_ID) or tags.has(String(PRIMARY_PLAYER_ENTITY_ID))
+	return false
+
+func _extract_movement_speed_magnitude(movement_component: Variant) -> float:
+	if movement_component == null or not (movement_component is Object):
+		return 0.0
+	var object_value: Object = movement_component as Object
+	if object_value.has_method("get_horizontal_dynamics_velocity"):
+		var velocity_variant: Variant = object_value.call("get_horizontal_dynamics_velocity")
+		if velocity_variant is Vector2:
+			return (velocity_variant as Vector2).length()
+		if velocity_variant is Vector3:
+			return (velocity_variant as Vector3).length()
+	return 0.0

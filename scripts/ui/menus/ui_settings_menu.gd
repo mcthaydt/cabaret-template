@@ -20,6 +20,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_conf
 @onready var _back_button: Button = %BackButton
 @onready var _input_profiles_button: Button = %InputProfilesButton
 @onready var _gamepad_settings_button: Button = %GamepadSettingsButton
+@onready var _keyboard_mouse_settings_button: Button = %KeyboardMouseSettingsButton
 @onready var _touchscreen_settings_button: Button = %TouchscreenSettingsButton
 @onready var _vfx_settings_button: Button = %VFXSettingsButton
 @onready var _display_settings_button: Button = %DisplaySettingsButton
@@ -27,15 +28,19 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_conf
 @onready var _language_settings_button: Button = %LanguageSettingsButton
 @onready var _rebind_controls_button: Button = %RebindControlsButton
 
+@export var emulate_mobile_override: bool = false
+
 const SETTINGS_OVERLAY_ID := StringName("settings_menu_overlay")
 const OVERLAY_INPUT_PROFILE := StringName("input_profile_selector")
 const OVERLAY_GAMEPAD_SETTINGS := StringName("gamepad_settings")
+const OVERLAY_KEYBOARD_MOUSE_SETTINGS := StringName("keyboard_mouse_settings")
 const OVERLAY_TOUCHSCREEN_SETTINGS := StringName("touchscreen_settings")
 const OVERLAY_VFX_SETTINGS := StringName("vfx_settings")
 const OVERLAY_DISPLAY_SETTINGS := StringName("display_settings")
 const OVERLAY_AUDIO_SETTINGS := StringName("audio_settings")
 const OVERLAY_INPUT_REBINDING := StringName("input_rebinding")
 const OVERLAY_LOCALIZATION_SETTINGS := StringName("localization_settings")
+const SETTINGS_SCENE_ID := StringName("settings_menu")
 
 var _last_device_type: int = -1
 var _consume_next_nav: bool = false
@@ -58,6 +63,8 @@ func _on_panel_ready() -> void:
 		_input_profiles_button.pressed.connect(_on_input_profiles_pressed)
 	if _gamepad_settings_button != null and not _gamepad_settings_button.pressed.is_connected(_on_gamepad_settings_pressed):
 		_gamepad_settings_button.pressed.connect(_on_gamepad_settings_pressed)
+	if _keyboard_mouse_settings_button != null and not _keyboard_mouse_settings_button.pressed.is_connected(_on_keyboard_mouse_settings_pressed):
+		_keyboard_mouse_settings_button.pressed.connect(_on_keyboard_mouse_settings_pressed)
 	if _touchscreen_settings_button != null and not _touchscreen_settings_button.pressed.is_connected(_on_touchscreen_settings_pressed):
 		_touchscreen_settings_button.pressed.connect(_on_touchscreen_settings_pressed)
 	if _vfx_settings_button != null and not _vfx_settings_button.pressed.is_connected(_on_vfx_settings_pressed):
@@ -107,6 +114,10 @@ func _on_gamepad_settings_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	_open_settings_target(OVERLAY_GAMEPAD_SETTINGS, StringName("gamepad_settings"))
 
+func _on_keyboard_mouse_settings_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
+	_open_settings_target(OVERLAY_KEYBOARD_MOUSE_SETTINGS, StringName("keyboard_mouse_settings"))
+
 func _on_touchscreen_settings_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	_open_settings_target(OVERLAY_TOUCHSCREEN_SETTINGS, StringName("touchscreen_settings"))
@@ -134,10 +145,7 @@ func _on_rebind_controls_pressed() -> void:
 func _update_button_visibility(state: Dictionary) -> void:
 	var has_gamepad: bool = U_InputSelectors.is_gamepad_connected(state)
 	var device_type: int = U_InputSelectors.get_active_device_type(state)
-	var is_mobile: bool = OS.has_feature("mobile")
-	var args: PackedStringArray = OS.get_cmdline_args()
-	var is_emulated_mobile: bool = args.has("--emulate-mobile")
-	var is_mobile_context: bool = is_mobile or is_emulated_mobile
+	var is_mobile_context: bool = _is_mobile_context()
 	var is_gamepad_active: bool = (device_type == M_InputDeviceManager.DeviceType.GAMEPAD)
 
 	if device_type != _last_device_type:
@@ -171,6 +179,10 @@ func _update_button_visibility(state: Dictionary) -> void:
 		# out of the way when the user is actively using a gamepad, even
 		# on mobile / emulated-mobile builds.
 		_touchscreen_settings_button.visible = is_mobile_context and not is_gamepad_active
+	if _keyboard_mouse_settings_button != null:
+		# Keyboard/Mouse settings are desktop-only and should never appear
+		# in mobile contexts, even when a gamepad is connected.
+		_keyboard_mouse_settings_button.visible = not is_mobile_context
 	if _rebind_controls_button != null:
 		# Rebind Controls is not relevant in pure touchscreen usage; hide it
 		# whenever the active device is touchscreen.
@@ -178,12 +190,22 @@ func _update_button_visibility(state: Dictionary) -> void:
 
 	_configure_focus_neighbors()
 
+func _is_mobile_context() -> bool:
+	if emulate_mobile_override:
+		return true
+	if OS.has_feature("mobile"):
+		return true
+	var args: PackedStringArray = OS.get_cmdline_args()
+	return args.has("--emulate-mobile")
+
 func _configure_focus_neighbors() -> void:
 	var buttons: Array[Control] = []
 	if _input_profiles_button != null and _input_profiles_button.visible:
 		buttons.append(_input_profiles_button)
 	if _gamepad_settings_button != null and _gamepad_settings_button.visible:
 		buttons.append(_gamepad_settings_button)
+	if _keyboard_mouse_settings_button != null and _keyboard_mouse_settings_button.visible:
+		buttons.append(_keyboard_mouse_settings_button)
 	if _touchscreen_settings_button != null and _touchscreen_settings_button.visible:
 		buttons.append(_touchscreen_settings_button)
 	if _vfx_settings_button != null and _vfx_settings_button.visible:
@@ -263,7 +285,12 @@ func _refresh_background_dim() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if config_resource is RS_UI_THEME_CONFIG:
 		base_color = (config_resource as RS_UI_THEME_CONFIG).bg_base
-	base_color.a = 0.7 if _is_overlay_context() else 0.0
+	if _is_overlay_context():
+		base_color.a = 0.7
+	elif _is_standalone_settings_scene():
+		base_color.a = 1.0
+	else:
+		base_color.a = 0.0
 	background_color = base_color
 
 	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
@@ -277,6 +304,14 @@ func _is_overlay_context() -> bool:
 	var nav_slice: Dictionary = store.get_state().get("navigation", {})
 	return U_NavigationSelectors.get_top_overlay_id(nav_slice) == SETTINGS_OVERLAY_ID
 
+func _is_standalone_settings_scene() -> bool:
+	var store := get_store()
+	if store == null:
+		return false
+	var scene_slice: Dictionary = store.get_state().get("scene", {})
+	var current_scene_id: StringName = scene_slice.get("current_scene_id", StringName(""))
+	return current_scene_id == SETTINGS_SCENE_ID
+
 func _localize_labels() -> void:
 	if _title_label != null:
 		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.title")
@@ -284,6 +319,8 @@ func _localize_labels() -> void:
 		_input_profiles_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.input_profiles")
 	if _gamepad_settings_button != null:
 		_gamepad_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.gamepad")
+	if _keyboard_mouse_settings_button != null:
+		_keyboard_mouse_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.keyboard_mouse")
 	if _touchscreen_settings_button != null:
 		_touchscreen_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.touchscreen")
 	if _vfx_settings_button != null:

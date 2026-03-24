@@ -143,14 +143,23 @@ func test_input_system_end_to_end_updates_store_and_component() -> void:
 
 	manager._physics_process(0.016)
 
-	var gameplay: Dictionary = store.get_state().get("gameplay", {})
+	var state_after_tick: Dictionary = store.get_state()
+	var gameplay: Dictionary = state_after_tick.get("gameplay", {})
 	var input_state: Dictionary = gameplay.get("input", {})
+	var settings_slice: Dictionary = state_after_tick.get("settings", {})
+	var input_settings: Dictionary = settings_slice.get("input_settings", {})
+	var mouse_settings: Dictionary = input_settings.get("mouse_settings", {})
+	var mouse_sensitivity: float = float(mouse_settings.get("sensitivity", 1.0))
+	var invert_y_axis: bool = bool(mouse_settings.get("invert_y_axis", false))
+	var expected_look: Vector2 = mouse_motion.relative * mouse_sensitivity
+	if invert_y_axis:
+		expected_look.y *= -1.0
 	assert_almost_eq((input_state.get("move_input", Vector2.ZERO) as Vector2).length(), 1.0, 0.01)
 	assert_true(input_state.get("jump_pressed", false))
 	assert_true(input_state.get("sprint_pressed", false))
 	var look_vector: Vector2 = input_state.get("look_input", Vector2.ZERO)
-	assert_almost_eq(look_vector.x, 4.0, 0.001)
-	assert_almost_eq(look_vector.y, -1.5, 0.001)
+	assert_almost_eq(look_vector.x, expected_look.x, 0.001)
+	assert_almost_eq(look_vector.y, expected_look.y, 0.001)
 	assert_almost_eq(component.move_vector.length(), 1.0, 0.01)
 	assert_true(component.jump_pressed)
 	assert_true(component.sprint_pressed)
@@ -191,6 +200,7 @@ func _ensure_default_actions() -> void:
 	_ensure_action(StringName("move_right"), KEY_D)
 	_ensure_action(StringName("move_forward"), KEY_W)
 	_ensure_action(StringName("move_backward"), KEY_S)
+	_ensure_action(StringName("camera_center"), KEY_C)
 	_ensure_action(StringName("jump"), KEY_SPACE)
 	_ensure_action(StringName("sprint"), KEY_SHIFT)
 

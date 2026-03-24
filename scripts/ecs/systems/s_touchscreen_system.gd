@@ -9,6 +9,7 @@ const INPUT_TYPE := StringName("C_InputComponent")
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
 const I_INPUT_DEVICE_MANAGER := preload("res://scripts/interfaces/i_input_device_manager.gd")
+const GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 
 @export var force_enable: bool = false
 @export var emulate_mobile_override: bool = false
@@ -18,6 +19,7 @@ var _mobile_controls: UI_MobileControls = null
 var _joystick: UI_VirtualJoystick = null
 var _button_map: Dictionary = {}
 var _last_jump_pressed: bool = false
+var _last_touch_look_active: bool = false
 
 func on_configured() -> void:
 	_ensure_state_store_ready()
@@ -33,22 +35,37 @@ func process_tick(__delta: float) -> void:
 
 	var state := store.get_state()
 	if _is_touchscreen_disabled(state):
+		_dispatch_touch_look_active_if_changed(store, false)
 		return
 
 	var active_device: int = U_InputSelectors.get_active_device_type(state)
 	if active_device != M_InputDeviceManager.DeviceType.TOUCHSCREEN:
+		_dispatch_touch_look_active_if_changed(store, false)
 		return  # Guard against race where device switched this frame
 
 	if not _ensure_controls_ready():
+		_dispatch_touch_look_active_if_changed(store, false)
 		return
 
 	var move_vector := _get_move_vector()
+	var look_delta := _consume_look_delta()
+	var touch_look_active := _is_touch_look_active()
 	var jump_pressed := _get_button_pressed(StringName("jump"))
 	var sprint_pressed := _get_button_pressed(StringName("sprint"))
 	var jump_just_pressed := jump_pressed and not _last_jump_pressed
+	var camera_center_just_pressed := _consume_camera_center_just_pressed()
 
-	_dispatch_state(store, move_vector, jump_pressed, jump_just_pressed, sprint_pressed)
-	_update_components(move_vector, jump_just_pressed, sprint_pressed)
+	_dispatch_state(
+		store,
+		move_vector,
+		look_delta,
+		touch_look_active,
+		jump_pressed,
+		jump_just_pressed,
+		sprint_pressed,
+		camera_center_just_pressed
+	)
+	_update_components(move_vector, look_delta, jump_just_pressed, sprint_pressed)
 
 	_last_jump_pressed = jump_pressed
 
@@ -131,16 +148,57 @@ func _get_button_pressed(action: StringName) -> bool:
 		return false
 	return button.is_pressed()
 
-func _dispatch_state(store: I_StateStore, move_vector: Vector2, jump_pressed: bool, jump_just_pressed: bool, sprint_pressed: bool) -> void:
+func _consume_camera_center_just_pressed() -> bool:
+	if _mobile_controls == null or not is_instance_valid(_mobile_controls):
+		return false
+	return _mobile_controls.consume_camera_center_just_pressed()
+
+func _consume_look_delta() -> Vector2:
+	if _mobile_controls == null or not is_instance_valid(_mobile_controls):
+		return Vector2.ZERO
+	return _mobile_controls.consume_look_delta()
+
+func _is_touch_look_active() -> bool:
+	if _mobile_controls == null or not is_instance_valid(_mobile_controls):
+		return false
+	return _mobile_controls.is_touch_look_active()
+
+func _dispatch_state(
+	store: I_StateStore,
+	move_vector: Vector2,
+	look_delta: Vector2,
+	touch_look_active: bool,
+	jump_pressed: bool,
+	jump_just_pressed: bool,
+	sprint_pressed: bool,
+	camera_center_just_pressed: bool
+) -> void:
 	if store == null or not is_instance_valid(store):
 		return
 	store.dispatch(U_InputActions.update_move_input(move_vector))
+	store.dispatch(U_InputActions.update_look_input(look_delta, U_InputActions.LOOK_SOURCE_TOUCHSCREEN))
+	store.dispatch(U_InputActions.update_camera_center_state(camera_center_just_pressed))
 	store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
 	store.dispatch(U_InputActions.update_sprint_state(sprint_pressed))
+	_dispatch_touch_look_active_if_changed(store, touch_look_active)
 
-func _update_components(move_vector: Vector2, jump_just_pressed: bool, sprint_pressed: bool) -> void:
+func _dispatch_touch_look_active_if_changed(store: I_StateStore, active: bool) -> void:
+	if store == null or not is_instance_valid(store):
+		return
+	if _last_touch_look_active == active:
+		return
+	_last_touch_look_active = active
+	store.dispatch(GAMEPLAY_ACTIONS.set_touch_look_active(active))
+
+func _update_components(
+	move_vector: Vector2,
+	look_delta: Vector2,
+	jump_just_pressed: bool,
+	sprint_pressed: bool
+) -> void:
 	var components := get_components(INPUT_TYPE)
 	var move_strength := clampf(move_vector.length(), 0.0, 1.0)
+	var look_strength := clampf(look_delta.length(), 0.0, 1.0)
 
 	for entry in components:
 		var input_component := entry as C_InputComponent
@@ -154,7 +212,7 @@ func _update_components(move_vector: Vector2, jump_just_pressed: bool, sprint_pr
 		input_component.set_device_type(M_InputDeviceManager.DeviceType.TOUCHSCREEN)
 		input_component.clear_action_strengths()
 		input_component.set_action_strength(ACTION_MOVE_STRENGTH, move_strength)
-		input_component.set_action_strength(ACTION_LOOK_STRENGTH, 0.0)
+		input_component.set_action_strength(ACTION_LOOK_STRENGTH, look_strength)
 
 func _is_touchscreen_disabled(state: Dictionary) -> bool:
 	return U_DebugSelectors.is_touchscreen_disabled(state)

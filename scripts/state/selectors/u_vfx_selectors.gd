@@ -29,3 +29,9 @@ static func is_damage_flash_enabled(state: Dictionary) -> bool:
 static func is_particles_enabled(state: Dictionary) -> bool:
 	var vfx: Dictionary = state.get("vfx", {})
 	return bool(vfx.get("particles_enabled", true))
+
+## Returns whether occlusion silhouette rendering is enabled
+## Defaults to true if vfx slice or field is missing
+static func is_occlusion_silhouette_enabled(state: Dictionary) -> bool:
+	var vfx: Dictionary = state.get("vfx", {})
+	return bool(vfx.get("occlusion_silhouette_enabled", true))

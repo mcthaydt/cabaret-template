@@ -12,15 +12,37 @@ class_name BaseMenuScreen
 ## directions simultaneously and doesn't provide echo/repeat like keyboard input.
 
 const ANALOG_STICK_REPEATER_PATH := "res://scripts/ui/utils/u_analog_stick_repeater.gd"
+const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
+
+const BACKGROUND_SHADER_PRESET_NONE := "none"
+const BACKGROUND_SHADER_PRESET_RETRO_GRID := "retro_grid"
+const BACKGROUND_SHADER_PRESET_SCANLINE_DRIFT := "scanline_drift"
+const BACKGROUND_SHADER_PRESET_ARCADE_NOISE := "arcade_noise"
+
+const SHADER_PARAM_PRESET_MODE := StringName("preset_mode")
+const SHADER_PARAM_EFFECT_INTENSITY := StringName("effect_intensity")
+const SHADER_PARAM_EFFECT_SPEED := StringName("effect_speed")
+
+const BACKGROUND_SHADER_PRESET_MODE_BY_ID := {
+	BACKGROUND_SHADER_PRESET_RETRO_GRID: 0,
+	BACKGROUND_SHADER_PRESET_SCANLINE_DRIFT: 1,
+	BACKGROUND_SHADER_PRESET_ARCADE_NOISE: 2,
+}
 
 const STICK_DEADZONE: float = 0.25 # Must match project.godot ui_* action deadzone
 
 var _stick_repeater: RefCounted = null
+var _background_rect: ColorRect = null
+var _background_shader_material: ShaderMaterial = null
 
 @export var motion_target_path: NodePath = NodePath()
+@export_enum("none", "retro_grid", "scanline_drift", "arcade_noise") var background_shader_preset: String = BACKGROUND_SHADER_PRESET_NONE
+@export_range(0.0, 1.0, 0.01) var background_shader_intensity: float = 0.5
+@export_range(0.0, 5.0, 0.01) var background_shader_speed: float = 1.0
 
 func _ready() -> void:
 	super._ready()
+	_setup_background_shader()
 
 	# Initialize analog stick repeater
 	var repeater_script: Script = load(ANALOG_STICK_REPEATER_PATH)
@@ -30,6 +52,8 @@ func _ready() -> void:
 			_stick_repeater.on_navigate = _navigate_focus
 
 func _process(delta: float) -> void:
+	_update_background_shader_state()
+
 	# Update analog stick repeater ONLY for analog input (not keyboard/D-pad)
 	# This prevents double-firing since keyboard/D-pad have built-in repeat
 	if _stick_repeater:
@@ -154,14 +178,16 @@ func _resolve_center_panel_motion_target() -> Control:
 	return center
 
 func _has_backdrop_layer() -> bool:
-	var background := get_node_or_null("Background")
-	if background is ColorRect:
-		return true
-	var overlay_background := get_node_or_null("OverlayBackground")
-	if overlay_background is ColorRect:
-		return true
-	var color_rect := get_node_or_null("ColorRect")
-	return color_rect is ColorRect
+	return _resolve_background_rect() != null
+
+func _resolve_background_rect() -> ColorRect:
+	var background := get_node_or_null("Background") as ColorRect
+	if background != null:
+		return background
+	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
+	if overlay_background != null:
+		return overlay_background
+	return get_node_or_null("ColorRect") as ColorRect
 
 func _find_center_container_with_panel(root: Node) -> Control:
 	for child in root.get_children():
@@ -188,3 +214,57 @@ func _find_panel_descendant(root: Node) -> PanelContainer:
 		if panel != null:
 			return panel
 	return null
+
+func _setup_background_shader() -> void:
+	if background_shader_preset == BACKGROUND_SHADER_PRESET_NONE:
+		return
+
+	var preset_mode := _get_background_shader_mode(background_shader_preset)
+	if preset_mode < 0:
+		return
+
+	_background_rect = _resolve_background_rect()
+	if _background_rect == null:
+		return
+
+	var shader_material := _background_rect.material as ShaderMaterial
+	if shader_material == null or shader_material.shader != MENU_FULLSCREEN_SHADER:
+		shader_material = ShaderMaterial.new()
+		shader_material.shader = MENU_FULLSCREEN_SHADER
+		_background_rect.material = shader_material
+
+	_background_shader_material = shader_material
+	_apply_background_shader_uniforms(preset_mode)
+
+func _update_background_shader_state() -> void:
+	if background_shader_preset == BACKGROUND_SHADER_PRESET_NONE:
+		return
+
+	if _background_rect == null or not is_instance_valid(_background_rect):
+		_setup_background_shader()
+
+	if _background_shader_material == null:
+		return
+
+	var preset_mode := _get_background_shader_mode(background_shader_preset)
+	if preset_mode < 0:
+		return
+	_apply_background_shader_uniforms(preset_mode)
+
+func _apply_background_shader_uniforms(preset_mode: int) -> void:
+	if _background_shader_material == null:
+		return
+	_background_shader_material.set_shader_parameter(SHADER_PARAM_PRESET_MODE, preset_mode)
+	_background_shader_material.set_shader_parameter(
+		SHADER_PARAM_EFFECT_INTENSITY,
+		clampf(background_shader_intensity, 0.0, 1.0)
+	)
+	_background_shader_material.set_shader_parameter(
+		SHADER_PARAM_EFFECT_SPEED,
+		clampf(background_shader_speed, 0.0, 5.0)
+	)
+
+func _get_background_shader_mode(preset: String) -> int:
+	if BACKGROUND_SHADER_PRESET_MODE_BY_ID.has(preset):
+		return int(BACKGROUND_SHADER_PRESET_MODE_BY_ID[preset])
+	return -1

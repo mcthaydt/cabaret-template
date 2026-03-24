@@ -19,11 +19,18 @@ const DeviceType := U_DeviceTypeConstants.DeviceType
 @export var positive_x_action: StringName = StringName("move_right")
 @export var negative_z_action: StringName = StringName("move_forward")
 @export var positive_z_action: StringName = StringName("move_backward")
+@export var look_left_action: StringName = StringName("look_left")
+@export var look_right_action: StringName = StringName("look_right")
+@export var look_up_action: StringName = StringName("look_up")
+@export var look_down_action: StringName = StringName("look_down")
+@export var camera_center_action: StringName = StringName("camera_center")
 @export var jump_action: StringName = StringName("jump")
 @export var sprint_action: StringName = StringName("sprint")
 @export var interact_action: StringName = StringName("interact")
 @export var input_deadzone: float = 0.15
 @export var require_captured_cursor: bool = false
+@export var debug_input_logging: bool = false
+@export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -39,6 +46,7 @@ var _gamepad_settings_cache: Dictionary = {}
 var _sprint_toggle_enabled: bool = false
 var _sprint_toggled_on: bool = false
 var _sprint_button_was_pressed: bool = false
+var _debug_log_cooldown_sec: float = 0.0
 
 func on_configured() -> void:
 	_validate_required_actions()
@@ -55,8 +63,11 @@ func _ensure_input_device_manager() -> void:
 	_input_device_manager = U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
 
 func process_tick(_delta: float) -> void:
+	if debug_input_logging:
+		_debug_log_cooldown_sec = maxf(_debug_log_cooldown_sec - maxf(_delta, 0.0), 0.0)
 	_validate_required_actions()
 	if not _actions_valid:
+		_debug_log_input("blocked: required input actions are invalid")
 		return
 	_ensure_state_store_ready()
 	_ensure_input_device_manager()
@@ -77,9 +88,25 @@ func process_tick(_delta: float) -> void:
 	# Only gate input on cursor capture for desktop platforms.
 	if not OS.has_feature("mobile"):
 		if require_captured_cursor and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+			_debug_log_input(
+				"blocked: require_captured_cursor=true mouse_mode=%s" % _mouse_mode_to_string(Input.mouse_mode)
+			)
 			return
 
 	if not _is_gameplay_active_for_inputs():
+		_debug_log_input("blocked: gameplay input gate is inactive")
+		return
+
+	if active_device_type == DeviceType.TOUCHSCREEN:
+		var gameplay_state_variant: Variant = state.get("gameplay", {})
+		var gameplay_state: Dictionary = {}
+		if gameplay_state_variant is Dictionary:
+			gameplay_state = gameplay_state_variant as Dictionary
+		var touch_look_active := U_GameplaySelectors.is_touch_look_active(gameplay_state)
+		if touch_look_active:
+			_debug_log_input("blocked: touchscreen drag-look active; S_TouchscreenSystem owns input dispatch")
+		else:
+			_debug_log_input("blocked: touchscreen active device; S_TouchscreenSystem owns input dispatch")
 		return
 
 	# Get active input source and delegate input capture
@@ -88,15 +115,21 @@ func process_tick(_delta: float) -> void:
 		input_source = _input_device_manager.get_input_source_for_device(active_device_type)
 
 	if input_source == null:
+		_debug_log_input(
+			"blocked: no input source for active_device=%s"
+			% _device_type_to_string(active_device_type)
+		)
 		return
 
 	# Capture input from active source
 	var input_data := input_source.capture_input(_delta)
 	var final_movement: Vector2 = input_data.get("move_input", Vector2.ZERO)
 	var look_delta: Vector2 = input_data.get("look_input", Vector2.ZERO)
+	var camera_center_just_pressed: bool = bool(input_data.get("camera_center_just_pressed", false))
 	var jump_pressed: bool = input_data.get("jump_pressed", false)
 	var jump_just_pressed: bool = input_data.get("jump_just_pressed", false)
 	var sprint_button_pressed: bool = input_data.get("sprint_pressed", false)
+	_debug_log_capture_snapshot(state, active_device_type, input_source, look_delta)
 
 	# Apply sprint toggle if enabled
 	var sprint_pressed := _compute_sprint_pressed(sprint_button_pressed)
@@ -104,7 +137,11 @@ func process_tick(_delta: float) -> void:
 	# Dispatch input to state store
 	if store:
 		store.dispatch(U_InputActions.update_move_input(final_movement))
-		store.dispatch(U_InputActions.update_look_input(look_delta))
+		var look_source := U_InputActions.LOOK_SOURCE_KEYBOARD_MOUSE
+		if active_device_type == DeviceType.GAMEPAD:
+			look_source = U_InputActions.LOOK_SOURCE_GAMEPAD
+		store.dispatch(U_InputActions.update_look_input(look_delta, look_source))
+		store.dispatch(U_InputActions.update_camera_center_state(camera_center_just_pressed))
 		store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
 		store.dispatch(U_InputActions.update_sprint_state(sprint_pressed))
 
@@ -179,6 +216,11 @@ func _validate_required_actions() -> void:
 		positive_x_action,
 		negative_z_action,
 		positive_z_action,
+		look_left_action,
+		look_right_action,
+		look_up_action,
+		look_down_action,
+		camera_center_action,
 		jump_action,
 		sprint_action,
 		interact_action,
@@ -255,7 +297,10 @@ func _apply_settings_from_state(state: Dictionary) -> void:
 		return
 
 	var mouse_settings := U_InputSelectors.get_mouse_settings(state)
-	var mouse_sensitivity := clampf(float(mouse_settings.get("sensitivity", 1.0)), 0.0, 20.0)
+	var mouse_sensitivity := clampf(float(mouse_settings.get("sensitivity", 0.6)), 0.1, 5.0)
+	var invert_y_axis := bool(mouse_settings.get("invert_y_axis", false))
+	var keyboard_look_enabled := bool(mouse_settings.get("keyboard_look_enabled", true))
+	var keyboard_look_speed := clampf(float(mouse_settings.get("keyboard_look_speed", 2.0)), 0.1, 10.0)
 
 	var gamepad_settings := U_InputSelectors.get_gamepad_settings(state)
 	_gamepad_settings_cache = gamepad_settings.duplicate(true)
@@ -265,10 +310,19 @@ func _apply_settings_from_state(state: Dictionary) -> void:
 		var keyboard_mouse_source := _input_device_manager.get_input_source_for_device(DeviceType.KEYBOARD_MOUSE) as KeyboardMouseSource
 		if keyboard_mouse_source:
 			keyboard_mouse_source.set_sensitivity(mouse_sensitivity)
+			keyboard_mouse_source.set_invert_y_axis(invert_y_axis)
+			keyboard_mouse_source.set_keyboard_look_enabled(keyboard_look_enabled)
+			keyboard_mouse_source.set_keyboard_look_speed(keyboard_look_speed)
+			keyboard_mouse_source.look_left_action = look_left_action
+			keyboard_mouse_source.look_right_action = look_right_action
+			keyboard_mouse_source.look_up_action = look_up_action
+			keyboard_mouse_source.look_down_action = look_down_action
+			keyboard_mouse_source.camera_center_action = camera_center_action
 
 		var gamepad_source := _input_device_manager.get_input_source_for_device(DeviceType.GAMEPAD) as GamepadSource
 		if gamepad_source:
 			gamepad_source.apply_settings(gamepad_settings)
+			gamepad_source.camera_center_action = camera_center_action
 
 func _teardown_store_subscription() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -278,3 +332,79 @@ func _teardown_store_subscription() -> void:
 
 func _exit_tree() -> void:
 	_teardown_store_subscription()
+
+func _debug_log_capture_snapshot(
+	state: Dictionary,
+	active_device_type: int,
+	input_source: I_InputSource,
+	look_delta: Vector2
+) -> void:
+	if not debug_input_logging:
+		return
+	var look_left_strength: float = Input.get_action_strength(look_left_action)
+	var look_right_strength: float = Input.get_action_strength(look_right_action)
+	var look_up_strength: float = Input.get_action_strength(look_up_action)
+	var look_down_strength: float = Input.get_action_strength(look_down_action)
+
+	var mouse_settings: Dictionary = U_InputSelectors.get_mouse_settings(state)
+	var profile_id: String = U_InputSelectors.get_active_profile_id(state)
+	var source_name: String = "null"
+	if input_source != null:
+		var source_script: Script = input_source.get_script() as Script
+		if source_script != null:
+			source_name = source_script.resource_path.get_file()
+	var message := (
+		"capture: device=%s source=%s profile=%s keyboard_look_enabled=%s keyboard_look_speed=%.3f "
+		+ "look_strengths(L/R/U/D)=%.2f/%.2f/%.2f/%.2f look_events(L/R/U/D)=%d/%d/%d/%d look_delta=%s"
+	) % [
+		_device_type_to_string(active_device_type),
+		source_name,
+		profile_id,
+		str(bool(mouse_settings.get("keyboard_look_enabled", true))),
+		float(mouse_settings.get("keyboard_look_speed", 2.0)),
+		look_left_strength,
+		look_right_strength,
+		look_up_strength,
+		look_down_strength,
+		InputMap.action_get_events(look_left_action).size(),
+		InputMap.action_get_events(look_right_action).size(),
+		InputMap.action_get_events(look_up_action).size(),
+		InputMap.action_get_events(look_down_action).size(),
+		str(look_delta),
+	]
+	_debug_log_input(message)
+
+func _debug_log_input(message: String) -> void:
+	if not debug_input_logging:
+		return
+	if _debug_log_cooldown_sec > 0.0:
+		return
+	var interval: float = maxf(debug_log_interval_sec, 0.05)
+	_debug_log_cooldown_sec = interval
+	print("S_InputSystem[debug]: %s" % message)
+
+func _device_type_to_string(device_type: int) -> String:
+	match device_type:
+		DeviceType.KEYBOARD_MOUSE:
+			return "keyboard_mouse"
+		DeviceType.GAMEPAD:
+			return "gamepad"
+		DeviceType.TOUCHSCREEN:
+			return "touchscreen"
+		_:
+			return "unknown(%d)" % device_type
+
+func _mouse_mode_to_string(mouse_mode: int) -> String:
+	match mouse_mode:
+		Input.MOUSE_MODE_VISIBLE:
+			return "visible"
+		Input.MOUSE_MODE_HIDDEN:
+			return "hidden"
+		Input.MOUSE_MODE_CAPTURED:
+			return "captured"
+		Input.MOUSE_MODE_CONFINED:
+			return "confined"
+		Input.MOUSE_MODE_CONFINED_HIDDEN:
+			return "confined_hidden"
+		_:
+			return "unknown(%d)" % mouse_mode

@@ -65,6 +65,10 @@ func test_vfx_slice_has_default_values() -> void:
 		state["vfx"]["particles_enabled"],
 		"particles_enabled should default to true"
 	)
+	assert_true(
+		state["vfx"]["occlusion_silhouette_enabled"],
+		"occlusion_silhouette_enabled should default to true"
+	)
 
 # Test 3: VFX actions mutate VFX slice
 func test_vfx_actions_mutate_vfx_slice() -> void:
@@ -74,6 +78,7 @@ func test_vfx_actions_mutate_vfx_slice() -> void:
 	# Dispatch action to disable screen shake
 	store.dispatch(U_VFXActions.set_screen_shake_enabled(false))
 	store.dispatch(U_VFXActions.set_particles_enabled(false))
+	store.dispatch(U_VFXActions.set_occlusion_silhouette_enabled(false))
 	await get_tree().process_frame
 
 	var state: Dictionary = store.get_state()
@@ -84,6 +89,10 @@ func test_vfx_actions_mutate_vfx_slice() -> void:
 	assert_false(
 		state["vfx"]["particles_enabled"],
 		"particles_enabled should be false after action"
+	)
+	assert_false(
+		state["vfx"]["occlusion_silhouette_enabled"],
+		"occlusion_silhouette_enabled should be false after action"
 	)
 
 # Test 4: VFX intensity action clamps values
@@ -155,6 +164,11 @@ func test_multiple_vfx_mutations_preserve_fields() -> void:
 	assert_true(
 		state["vfx"]["particles_enabled"],
 		"particles_enabled should remain true (preserved)"
+	)
+	# Verify silhouette setting was preserved
+	assert_true(
+		state["vfx"]["occlusion_silhouette_enabled"],
+		"occlusion_silhouette_enabled should remain true (preserved)"
 	)
 
 # Test 7: VFX slice is independent of other slices

@@ -3,6 +3,7 @@ extends GutTest
 const MainMenuScene := preload("res://scenes/ui/menus/ui_main_menu.tscn")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -49,6 +50,10 @@ func test_applies_theme_tokens_when_active_config_present() -> void:
 		background.color.is_equal_approx(config.bg_base),
 		"Background color should use the bg_base token from the active theme config"
 	)
+	var material := background.material as ShaderMaterial
+	assert_not_null(material, "Main menu should apply configured fullscreen backdrop shader")
+	if material != null:
+		assert_eq(material.shader, MENU_FULLSCREEN_SHADER, "Main menu backdrop should use shared shader")
 
 func test_main_panel_visible_by_default() -> void:
 	var store := await _create_state_store()
@@ -111,8 +116,8 @@ func test_play_button_dispatches_start_game_action() -> void:
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"),
 		"New Game button should move navigation shell to gameplay")
-	assert_eq(nav_slice.get("base_scene_id"), StringName("alleyway"),
-		"New Game button should target the alleyway scene by default")
+	assert_eq(nav_slice.get("base_scene_id"), StringName("interior_a"),
+		"New Game button should target the interior_a scene by default")
 
 func test_new_game_prompts_confirmation_when_saves_exist() -> void:
 	var store := await _create_state_store()
@@ -153,8 +158,8 @@ func test_new_game_confirmation_confirm_starts_game() -> void:
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"),
 		"Confirming New Game should start gameplay shell")
-	assert_eq(nav_slice.get("base_scene_id"), StringName("alleyway"),
-		"Confirming New Game should target the alleyway scene by default")
+	assert_eq(nav_slice.get("base_scene_id"), StringName("interior_a"),
+		"Confirming New Game should target the interior_a scene by default")
 
 func test_new_game_confirmation_cancel_does_nothing() -> void:
 	var store := await _create_state_store()

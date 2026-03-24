@@ -41,6 +41,9 @@
 - **Use `RS_UIThemeConfig` + `U_UIThemeBuilder` tokens for shared UI styling, not inline `theme_override_*` scene edits**: Reintroducing scene-local overrides in polished UI screens bypasses the unified theme pipeline and causes style drift across menus/overlays.
   - **Fix pattern**: apply spacing/typography/panel tokens in controller scripts (`_apply_theme_tokens()` style methods) and keep scene files free of non-semantic inline overrides.
 
+- **Store subscriptions can mutate bound controls between sequential dispatches in the same UI handler**: In settings overlays, calling `store.dispatch(...)` for one field can synchronously trigger `_on_state_changed(...)`, which may repopulate UI controls before the next dispatch reads its value.
+  - **Fix pattern**: snapshot all UI control values to local variables first, then dispatch actions using those snapshots.
+
 - **Motion resources are opt-in and must preserve no-op behavior when unset**: Assigning motion logic unconditionally can change legacy navigation/animation behavior on screens that intentionally do not opt in.
   - **Fix pattern**: keep `motion_set` nullable and treat `null` as a strict no-op (no automatic signal binding and no tween playback).
 
@@ -130,6 +133,9 @@
   - check property existence via `get_property_list()` first, then call `get("prop")`, or
   - call `get("prop")` and handle `null`/missing cases explicitly.
 
+- **Do not rely on `field` in property setters for this runtime**: In this project/runtime combo, using `field = ...` inside exported property setters can parse-fail (`Identifier "field" not declared in the current scope`) during headless GUT loads.
+  - **Fix pattern**: prefer explicit backing variables or expose a `get_resolved_values()` method that clamps/sanitizes exported values at read time.
+
 - **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via a script preload alias (for example `const FOO_SCRIPT := preload("res://path/foo.gd")`) until the class is reliably discovered/loaded.
 
 - **New `class_name` base scripts can fail in `extends` during headless runs**: Creating a fresh base script (for example `class_name RS_BaseCondition`) and immediately extending it with `extends RS_BaseCondition` in sibling scripts can fail under headless GUT parsing (`Parse Error: Could not find base class ...`) before the global class cache catches up. Prefer explicit path-based inheritance for new stacks (`extends "res://scripts/resources/qb/rs_base_condition.gd"`) during active refactors; keep `class_name` for inspector/type usage.
@@ -159,12 +165,19 @@
 ## Test Execution Pitfalls
 
 - **GUT needs recursive dirs**: `-gdir` is not recursive by default; suites in nested folders are silently skipped if you point at a parent. Always pass each test root explicitly (e.g., `-gdir=res://tests/unit -gdir=res://tests/integration`) or list the concrete leaf directories you added to ensure new suites actually run.
+- **Godot 4.6 CLI compatibility renderer flag is `gl_compatibility`, not `compatibility`**: Running headless checks with `--rendering-method compatibility` aborts early with an unknown-rendering-method error.
+  - **Fix pattern**: use `--rendering-method mobile` and/or `--rendering-method gl_compatibility` when validating shader/runtime behavior outside Forward+.
 - **Viewport capture fails in headless**: `Viewport.get_texture().get_image()` can error under the headless/dummy renderer (`Parameter "t" is null`). Tests that validate viewport screenshot capture should be marked `pending` when `OS.has_feature("headless")` or `DisplayServer.get_name() == "headless"` to avoid false failures.
 - **`M_StateStore` autoload can leak ambient state into unit tests**: `RS_StateStoreSettings.enable_persistence` defaults to `true`, so tests that create `M_StateStore` can auto-load `user://savegame.json` and emit normalization warnings (for example unknown spawn point warnings) as unexpected test errors. For tests not explicitly validating persistence, set `store.settings.enable_persistence = false` before adding the store node.
+- **`M_StateStore` does not expose `set_slice(...)` like `MockStateStore`**: Tests that use the real `M_StateStore` cannot seed slices with `set_slice` and will fail at runtime (`Invalid call. Nonexistent function 'set_slice'`).  
+  - **Fix pattern**: for real-store tests, seed state through reducer actions (`store.dispatch(...)`, for example `U_VCamActions.set_active_runtime(...)`); keep direct `set_slice(...)` usage scoped to `MockStateStore` fixtures.
 - **Do not assert raw `push_warning` output directly in QB/system tests**: Engine warnings are hard to capture reliably in headless runs. Expose/override a small warning hook in test doubles and assert captured messages there instead of parsing console logs.
 - **`push_warning(...)` can be treated as an unexpected test error in manager paths**: In some GUT flows, warnings emitted during exercised runtime branches are surfaced as test failures/noise even when behavior is otherwise correct. For validation-failure branches that are expected in tests (for example invalid scene-director beat graphs), prefer deterministic non-warning observability (return values/state flags/test hooks, or `print` if you only need debug output) so tests can assert behavior without warning-channel flakiness.
 - **Tween pause mode is not reliably introspectable in tests**: In this Godot runtime, `Tween.get_pause_mode()` is unavailable and reading `tween.get("pause_mode")` can return `null`. Prefer behavior-focused assertions (for example tween created/valid and expected fade outcome) instead of inspecting tween pause mode internals.
 - **ServiceLocator-only container discovery requires explicit test registrations**: Scene/display/UI code paths that now resolve `hud_layer`, `active_scene_container`, `ui_overlay_stack`, `transition_overlay`, `loading_overlay`, `post_process_overlay`, and `game_viewport` via `U_ServiceLocator` will fail to initialize in test harnesses that only add nodes to the tree. Register these services in `before_each` when constructing lightweight scene scaffolds.
+
+- **Standalone touchscreen-settings overlay tests can silently leave gameplay shell**: `UI_TouchscreenSettingsOverlay._close_overlay()` falls back to `set_shell(main_menu, settings_menu)` when `navigation.overlay_stack` is empty. Tests that instantiate the overlay directly (without pushing it on overlay stack) can pass Apply, then unintentionally move out of gameplay before drag-look assertions run.
+  - **Fix pattern**: in standalone tests, either (a) seed/push overlay-stack state before Apply so close path pops overlay, or (b) explicitly dispatch `start_game(...)` + touchscreen `device_changed(...)` before sampling touch look input.
 
 ## Scene Director Pitfalls
 
@@ -180,9 +193,90 @@
 
 ## QB Camera Rule Pitfalls
 
-- **Hardcoded fallback FOV can override authored scene cameras**: If `S_CameraStateSystem` falls back to a constant FOV (for example `75.0`) when `camera.in_fov_zone` is false, scenes authored with cinematic FOV values (`28.8`, `65`, etc.) will look unexpectedly zoomed out after startup or after leaving a zone.
+- **Hardcoded fallback FOV can override authored scene cameras**: If `S_CameraStateSystem` falls back to a constant FOV (for example `75.0`) when `state.vcam.in_fov_zone` is false, scenes authored with cinematic FOV values (`28.8`, `65`, etc.) will look unexpectedly zoomed out after startup or after leaving a zone.
   - **Fix pattern**: capture baseline FOV from the active `Camera3D` into `C_CameraStateComponent.base_fov` and restore that baseline when no FOV zone rule is active.
   - **Regression check**: keep a unit test that enters/exits a zone and asserts the camera returns to the authored baseline FOV.
+- **Do not re-introduce `state.camera.in_fov_zone`**: Phase 0F moved runtime and QB camera tests to `state.vcam.in_fov_zone` and updated `cfg_camera_zone_fov_rule.tres` accordingly. Bringing back the legacy path causes FOV rule drift and split-brain camera state.
+  - **Fix pattern**: read FOV-zone state through `U_VCamSelectors.is_in_fov_zone(state)` and seed tests via `set_slice(StringName("vcam"), {"in_fov_zone": ...})`.
+- **Speed-FOV rules can leave stale bonus when score hits 0 if thresholding skips the winner**: `U_RuleScorer` drops rules when `score <= score_threshold`; with default `score_threshold = 0.0`, stationary speed produces no winner and `speed_fov_bonus` can stick from the previous frame.
+  - **Fix pattern**: for continuous speed breathing, either set `score_threshold` below zero (current `cfg_camera_speed_fov_rule.tres` uses `-1.0`) so score `0.0` still executes and writes zero, or add an explicit reset rule.
+- **Event-mode camera rules can cross-fire on unrelated events when zero-score winners are allowed**: If a rule uses `trigger_mode = "event"` with `score_threshold < 0.0`, it can still win with score `0.0`; without event-name prefiltering, unrelated events (for example `entity_death`) can execute effects authored for another event (for example landing-impact offset).
+  - **Fix pattern**: in `S_CameraStateSystem`, prefilter event rules by subscribed event name before scoring/selection (via `RS_ConditionEventName` extraction), then run winner selection on only matching rules.
+  - **Regression check**: keep a test that publishes a non-landing event and asserts `landing_impact_offset` is unchanged.
+
+## vCam Scene Wiring Pitfalls
+
+- **Gameplay scenes can silently ship without orbit runtime if `S_VCamSystem` is missing**: Scenes that instance `tmpl_camera.tscn` still need `S_VCamSystem` in `Systems/Core`; without it, camera look/follow behavior and active-vCam FOV propagation never run in those scenes.
+  - **Fix pattern**: keep `S_VCamSystem` present with `execution_priority = 100` in every gameplay scene that uses `E_CameraRoot`/`C_VCamComponent`, and add scene-registration assertions that check for `Systems/Core/S_VCamSystem`.
+- **Leaving `debug_rotation_logging = true` in authored scenes can flood runtime logs and hide real signal in QA runs**: Temporary diagnostics are useful while tuning, but scene-level overrides keep logging enabled by default for everyone and can skew runtime profiling.
+  - **Fix pattern**: rely on `S_VCamSystem` default (`false`) and remove `.tscn` overrides after diagnostics; keep a style guard test that fails on authored `debug_rotation_logging = true` lines.
+
+## vCam Orbit Evaluator Pitfalls
+
+- **Looking straight up/down can break orbit camera orientation if `Vector3.UP` is always used as the look-at up-vector**: At near-vertical view directions (`abs(direction.dot(Vector3.UP)) ~= 1`), `looking_at(...)` can hit a degenerate basis and produce unstable orientation.
+  - **Fix pattern**: in `U_VCamModeEvaluator`, detect near-parallel forward/up vectors and switch to a fallback up-vector (for example `Vector3.FORWARD`) before constructing the look-at transform.
+
+## vCam Orbit Feel Pitfalls
+
+- **Bursty look streams can thrash look-spring and smoothing gates if activity is derived from raw zero/non-zero frames only**: Mouse/touch/right-stick samples can arrive in bursts with intermittent zero frames; treating every zero as "input stopped" causes repeated spring state transitions and visible roughness.
+  - **Fix pattern**: in `S_VCamSystem`, maintain per-vCam look activity filter state (`_look_input_filter_state`) and derive active-input from response-tuned deadzone/hold/decay (`look_input_deadzone`, `look_input_hold_sec`, `look_input_release_decay`) while keeping runtime yaw/pitch accumulation raw-input driven.
+
+- **Auto-level can fight active player look input if the idle timer does not reset every non-zero look frame**: Orbit recentering should only start after continuous idle time; if timer reset is missed, pitch can decay while the player is still looking.
+  - **Fix pattern**: in `S_VCamSystem`, reset per-vCam no-look timer on every non-zero `look_input` tick before evaluating auto-level delay/speed.
+
+- **Look-ahead can leak stale offsets across mode/target changes**: Reusing previous velocity/offset state when switching targets or switching to non-orbit modes causes incorrect camera drift on the next tick.
+  - **Fix pattern**: clear per-vCam look-ahead state whenever mode is non-orbit, look-ahead is disabled, or follow-target identity changes.
+
+- **Look-ahead can falsely trigger while rotating in place if velocity is derived from follow-target transform deltas**: Orbit follow markers are often offset child nodes; yaw-only rotation can move those markers in world space without actual movement, producing unwanted look-ahead drift.
+  - **Fix pattern**: source look-ahead direction from movement velocity (`state.gameplay.entities[*].velocity` first, movement-component/body fallback) and avoid transform-delta velocity for look-ahead decisions.
+
+- **Look-ahead can fight active camera rotation input if not explicitly gated**: Applying movement look-ahead while the player is actively rotating camera yaw/pitch compounds framing offsets and feels over-steered.
+  - **Fix pattern**: in `S_VCamSystem`, gate orbit look-ahead on filtered look-input inactivity and clear per-vCam look-ahead state while filtered look input is active.
+
+- **Always bypassing orbit follow-position smoothing during look input makes moving rotation feel harsh**: The old `has_active_look_input` bypass is good for stationary no-lag framing, but it removes useful smoothing while the follow target is translating.
+  - **Fix pattern**: gate orbit bypass by follow-target speed with hysteresis (`orbit_look_bypass_enable_speed`, `orbit_look_bypass_disable_speed`) using per-vCam sampled target motion state; keep bypass for slow/stationary movement and keep smoothing active while moving.
+
+- **Ground-relative anchors can drift if ground reference is sampled while airborne or re-anchored without a landing threshold**: Updating anchor reference every frame while the target is in the air reintroduces jump bob and defeats the dual-anchor contract.
+  - **Fix pattern**: in `S_VCamSystem`, sample/probe ground reference only while grounded, lock vertical anchor while airborne, and only re-anchor on landing transitions when `height_delta >= ground_reanchor_min_height_delta`.
+
+- **Button recenter can silently cancel when centering state is coupled to response-smoothing cleanup**: Orbit recenter is allowed when `response == null` (raw evaluator passthrough). If centering state is cleared from response-null smoothing paths, button recenter restarts or drops every tick and never completes.
+  - **Fix pattern**: keep `_orbit_centering_state` lifecycle independent from response smoothing state; prune it only on vCam removal/prune, not on response-null smoothing resets.
+
+- **Room fade can leak translucent geometry into OTS/fixed if mode gating only disables updates without restoring materials**: Simply skipping fade updates outside orbit leaves shader overrides and partial alpha active from previous orbit ticks.
+  - **Fix pattern**: in `S_RoomFadeSystem`, treat non-orbit ticks as a full cleanup path: set each group `current_alpha = 1.0`, restore original materials through `U_RoomFadeMaterialApplier`, and clear tracked target cache.
+
+- **Room fade can silently stop in tests/runtime scaffolds when camera lookup assumes `camera_manager.get_main_camera()` is always valid**: Some harnesses and transitional scene states only expose the active camera through the viewport, not the manager slot.
+  - **Fix pattern**: resolve camera in `S_RoomFadeSystem` by manager main camera first, then fallback to `get_viewport().get_camera_3d()` before deciding camera is unavailable.
+
+- **Shared wall targets can receive conflicting room-fade alpha/material writes when multiple `C_RoomFadeGroupComponent` instances collect the same mesh**: Without explicit ownership arbitration, later components in the tick overwrite earlier updates and produce non-deterministic fade behavior.
+  - **Fix pattern**: in `S_RoomFadeSystem`, run a per-tick ownership pre-pass so the first component in filtered order owns each target, skip duplicate owners with warn+continue diagnostics, and keep `group_tag` explicit/unique in authored room-fade groups.
+
+## vCam Soft-Zone Pitfalls
+
+- **Clearing dead-zone hysteresis state on response-null paths causes boundary jitter**: `S_VCamSystem` can run with `response = null` (raw evaluator passthrough). If soft-zone hysteresis state is tied to response-smoothing resets, dead-zone enter/exit history is wiped every tick and correction toggles at the boundary.
+  - **Fix pattern**: keep `_soft_zone_dead_zone_state` lifecycle independent from response smoothing state; clear it only on vCam prune/removal or when orbit/soft-zone gating disables correction.
+
+- **Projection helpers must evaluate from the desired camera pose and restore camera transform after calculations**: Running `unproject_position`/`project_position` against the wrong transform (or leaking the temporary transform) causes incorrect correction vectors and can desync live camera state.
+  - **Fix pattern**: in `U_VCamSoftZone`, compute depth against `desired_transform`, temporarily project using that transform, then restore the original camera transform before returning.
+
+## vCam OTS Evaluator Pitfalls
+
+- **Do not defer OTS pitch clamping to `S_VCamSystem`**: OTS vertical limits are authored per mode resource (`pitch_min`, `pitch_max`). If clamping is deferred, direct evaluator consumers can exceed limits and produce invalid view ranges.
+  - **Fix pattern**: clamp `runtime_pitch` inside `U_VCamModeEvaluator` for OTS branches using resolved mode bounds before building the yaw/pitch basis.
+- **Do not consume `look_multiplier` in evaluator helpers**: Evaluator functions should only convert resolved runtime yaw/pitch inputs into transforms. Applying `look_multiplier` in evaluator code double-scales input and diverges from shared input pipeline behavior.
+  - **Fix pattern**: keep `look_multiplier` application in `S_VCamSystem` when updating component runtime rotation state; evaluator consumes already-computed runtime angles.
+
+## vCam OTS Collision Pitfalls
+
+- **`cast_motion(...)` spherecasts can miss near-wall cases when the probe starts already intersecting geometry**: In tight OTS framing, the cast origin can begin overlapping an obstacle. Relying only on motion sweep can report no hit, so the camera fails to clamp and clips.
+  - **Fix pattern**: run an initial-overlap `intersect_shape(...)` check at cast origin before `cast_motion(...)`; treat overlap as hit-distance `0.0`, then apply minimum-distance floor logic.
+
+## vCam Fixed Evaluator Pitfalls
+
+- **Do not apply player look input (`runtime_yaw`/`runtime_pitch`) in fixed mode**: Fixed cameras are authored/architectural viewpoints. Letting runtime look rotate fixed evaluations breaks mode boundaries and causes cross-mode carryover bugs.
+  - **Fix pattern**: ignore runtime yaw/pitch entirely in fixed branches and derive orientation only from authored anchor basis or explicit `track_target` look-at.
+- **`use_path` mode must not track follow target orientation**: Path-follow fixed cameras are expected to face path tangent. If `track_target` is honored in path mode, camera headings jitter and diverge from authored rail direction.
+  - **Fix pattern**: in evaluator logic, treat `use_path` as anchor-basis orientation with `track_target` forced off; path progress/smoothing stays in `S_VCamSystem`.
 
 ## Character Lighting Pitfalls
 
@@ -523,6 +617,18 @@
 - **Always add explicit types when pulling Variants**: Helpers such as `C_InputComponent.get_move_vector()` or `Time.get_ticks_msec()` return Variants. Define locals with `: Vector2`, `: float`, etc., instead of relying on inference, otherwise the parser fails with "typed as Variant" errors.
 - **Annotate Callable results**: `Callable.call()` and similar helpers also return Variants. When reducers or action handlers return dictionaries, capture them with explicit types (e.g., `var next_state: Dictionary = root.call(...)`) so tests load without Variant inference errors.
 - **Respect tab indentation in scripts**: Godot scripts under `res://` expect tabs. Mixing spaces causes parse errors that look unrelated to the actual change, so configure your editor accordingly before editing `.gd` files.
+- **Typed return functions must guard `Dictionary.get()` Variant results**: When a function has a typed return (e.g., `-> Vector3`), `Dictionary.get("key", Vector3.ZERO)` still returns `Variant`. If the stored value is the wrong type (e.g., a `String` instead of `Vector3`), Godot errors at runtime: `Trying to return value of type "String" from a function whose return type is "Vector3"`. **Solution**: Always validate before returning:
+  ```gdscript
+  # WRONG - crashes if "position" holds a non-Vector3 value:
+  static func get_entity_position(state: Dictionary, entity_id: Variant) -> Vector3:
+      return get_entity(state, entity_id).get("position", Vector3.ZERO)
+
+  # CORRECT - type-check the Variant before returning:
+  static func get_entity_position(state: Dictionary, entity_id: Variant) -> Vector3:
+      var value: Variant = get_entity(state, entity_id).get("position", Vector3.ZERO)
+      return value as Vector3 if value is Vector3 else Vector3.ZERO
+  ```
+  This applies to any selector or accessor that reads Variant values from Redux state dictionaries and returns a typed value. The `Dictionary.get()` default parameter does NOT enforce the return type — it only provides a fallback when the key is missing, not when the key exists with the wrong type.
 - **Don't call `super._exit_tree()` unless the parent script defines it**: Calling `super._exit_tree()` only works when the parent script implements `_exit_tree()`. If the parent script does not define it, Godot fails to compile with `Cannot call the parent class' virtual function "_exit_tree()" because it hasn't been defined.` Prefer omitting the `super` call or adding an `_exit_tree()` stub to the parent script.
 
 ## ECS System Pitfalls
@@ -747,7 +853,7 @@
 
 - **M_SceneManager automatically manages cursor state**: As of Phase 3, M_SceneManager automatically sets cursor visibility based on scene type when scenes load:
   - **UI/Menu/End-game scenes**: Cursor is visible and unlocked (for button clicks)
-  - **Gameplay scenes**: Cursor is locked and hidden (for first-person controls)
+  - **Gameplay scenes**: Cursor is locked and hidden (for gameplay camera controls)
 
   DO NOT manually call `M_CursorManager.set_cursor_state()` in scene scripts unless you have a specific override requirement. The automatic management happens in `M_SceneManager._update_cursor_for_scene()` which is called after every scene transition. This prevents the common pitfall of loading a menu scene with a locked cursor (making buttons unclickable) or loading gameplay with a visible cursor (breaking immersion).
 
@@ -945,6 +1051,37 @@
 - **Pause is the only reserved binding**: `pause/ui_pause/ui_cancel` must keep ESC (keyboard) and Start (gamepad). RS_RebindSettings marks pause as non-rebindable; do not strip ESC/Start from `project.godot` or InputMap initialization when adding new actions. Both bindings are required for UI Manager navigation flows and tests.
 
 - **Mobile emulation flag is for desktop QA only**: Use `--emulate-mobile` to smoke test touchscreen UI on desktop; real device runs remain the source of truth. Do not ship builds with emulation flags enabled, and remember that device detection still relies on `M_InputDeviceManager` even when emulating.
+
+## vCam Integration Pitfalls
+
+- **Do not write gameplay camera transforms directly to `camera.global_transform`**: vCam runtime motion must flow through `M_CameraManager.apply_main_camera_transform(...)` so `ShakeParent` layering and transition-camera behavior stay intact.
+
+- **`is_blend_active()` must reflect transition tween state, not camera-current state**: Using `TransitionCamera.current` as the blend-active source can report false positives when no transition tween is running (for example startup/headless camera-current quirks), which incorrectly blocks gameplay camera writes.
+  - **Fix pattern**: drive `is_blend_active()` from active transition tween state (`_camera_blend_tween != null && _camera_blend_tween.is_running()`).
+
+- **Fixed mode must resolve authored anchors via component path first**: `C_VCamComponent` is a `Node`, not the authored world anchor. For fixed cameras, resolve `fixed_anchor_path` to a `Node3D` first and fallback to the vCam host entity-root `Node3D`; do not read component transform as anchor data.
+
+- **`vcam_occludable` naming alone does not enable real occlusion behavior**: After defining physics layer schema, migrate authored camera-blocking geometry in gameplay/prefab scenes onto that layer. Leaving blockers on old layers makes silhouette tests pass in isolation but fail in live scenes.
+
+- **Per-frame silhouette clear/reapply causes visible edge flicker and material churn**: Rebuilding silhouettes every tick (`remove_all_silhouettes()` followed by reapply of the same set) can flicker when occluders hover on ray boundaries and does unnecessary override churn even when blockers are unchanged.
+  - **Fix pattern**: route per-tick updates through `U_VCamSilhouetteHelper.update_silhouettes(...)` so silhouettes use debounce/grace semantics (2-frame apply, 1-frame removal) and order-insensitive stable-set no-op behavior.
+
+- **Transition-block gating can accidentally drop silhouette clear events**: If `M_VFXManager` rejects all silhouette events while `scene.is_transitioning`, an `enabled=false` clear request published during transition can be ignored, leaving stale silhouettes active.
+  - **Fix pattern**: keep transition/player gating for `enabled=true` updates, but always process explicit clear requests (`enabled=false`) so teardown is deterministic during scene transitions.
+
+- **`vcam.silhouette_active_count` should reflect rendered silhouettes, not pre-filter detection**: Dispatching count from `M_VCamManager` before debounce/grace filtering can report non-zero while no silhouette is yet visible.
+  - **Fix pattern**: dispatch `U_VCamActions.update_silhouette_count(...)` from `M_VFXManager` using `U_VCamSilhouetteHelper.get_active_count()` after update processing.
+
+- **Touch look ownership must stay in `S_TouchscreenSystem`**: `gameplay.look_input` is shared across devices. If `S_InputSystem` keeps dispatching zero touchscreen payloads while touchscreen is active, it clobbers drag-look and breaks mobile orbit/OTS camera control.
+
+- **Live vCam apply must ignore stale submissions from previous physics frames**: Root/gameplay `_physics_process` ordering can vary; if `M_VCamManager` applies the last cached result without frame-gating, camera motion can lag or hitch one frame behind gameplay evaluation.
+  - **Fix pattern**: stamp each `submit_evaluated_camera(...)` result with `Engine.get_physics_frames()` and only apply results that match the current frame.
+
+- **Second-order rotation smoothing needs angle unwrapping and deterministic reset boundaries**: Smoothing Euler angles directly from `Basis.get_euler()` without unwrapping can pick the long path across `-PI/PI`, causing sudden spins. Reusing smoothing state across mode switches or follow-target changes can also drag stale momentum into a new camera context.
+  - **Fix pattern**: unwrap each target axis against the previous target angle before stepping rotation dynamics, recreate dynamics when response tuning changes, and `reset()` dynamics on mode/follow-target transitions so first frame after a context switch snaps to the new evaluated pose.
+
+- **Mode switches can inherit stale runtime orientation without explicit continuity policy**: Swapping active vCams without transition-aware carry/reset/reseed rules can cause heading pops (for example, fixed -> orbit inheriting old runtime yaw/pitch, or same-mode target swaps preserving the wrong orientation context).
+  - **Fix pattern**: apply continuity policy before evaluation on active-id changes in `S_VCamSystem`: orbit↔OTS carry yaw + reset pitch, fixed→orbit/OTS reseed incoming yaw/pitch to authored defaults, and same-mode switches carry only when both vCams resolve the same follow target (otherwise reseed).
 
 ## UI Manager / Input Manager Boundary (Phase 4b - T075)
 

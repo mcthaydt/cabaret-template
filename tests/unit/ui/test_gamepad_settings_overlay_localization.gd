@@ -28,9 +28,11 @@ func before_each() -> void:
 	_localization_manager.translations = {
 		&"settings.gamepad.title": "Gamepad EN",
 		&"settings.gamepad.label.left_deadzone": "Left EN",
+		&"settings.gamepad.label.rotate_sensitivity": "Rotate EN",
 		&"settings.gamepad.preview.enter": "Press EN",
 		&"common.apply": "Apply EN",
 		&"settings.gamepad.tooltip.left_deadzone": "Left tooltip EN",
+		&"settings.gamepad.tooltip.rotate_sensitivity": "Rotate tooltip EN",
 	}
 	U_SERVICE_LOCATOR.register(StringName("localization_manager"), _localization_manager)
 
@@ -51,23 +53,29 @@ func test_locale_change_relocalizes_gamepad_labels_and_tooltips() -> void:
 
 	assert_eq(_overlay._title_label.text, "Gamepad EN")
 	assert_eq(_overlay._left_deadzone_label.text, "Left EN")
+	assert_eq(_overlay._sensitivity_text_label.text, "Rotate EN")
 	assert_eq(_overlay._apply_button.text, "Apply EN")
 	assert_eq(_overlay._left_slider.tooltip_text, "Left tooltip EN")
+	assert_eq(_overlay._sensitivity_slider.tooltip_text, "Rotate tooltip EN")
 	assert_eq(enter_prompt_label.text, "Press EN")
 
 	_localization_manager.translations[&"settings.gamepad.title"] = "Gamepad ES"
 	_localization_manager.translations[&"settings.gamepad.label.left_deadzone"] = "Izquierda"
+	_localization_manager.translations[&"settings.gamepad.label.rotate_sensitivity"] = "Giro ES"
 	_localization_manager.translations[&"settings.gamepad.preview.enter"] = "Presiona ES"
 	_localization_manager.translations[&"common.apply"] = "Aplicar"
 	_localization_manager.translations[&"settings.gamepad.tooltip.left_deadzone"] = "Tooltip izquierdo"
+	_localization_manager.translations[&"settings.gamepad.tooltip.rotate_sensitivity"] = "Tooltip giro"
 
 	_overlay._on_locale_changed(&"es")
 	await get_tree().process_frame
 
 	assert_eq(_overlay._title_label.text, "Gamepad ES")
 	assert_eq(_overlay._left_deadzone_label.text, "Izquierda")
+	assert_eq(_overlay._sensitivity_text_label.text, "Giro ES")
 	assert_eq(_overlay._apply_button.text, "Aplicar")
 	assert_eq(_overlay._left_slider.tooltip_text, "Tooltip izquierdo")
+	assert_eq(_overlay._sensitivity_slider.tooltip_text, "Tooltip giro")
 	assert_eq(enter_prompt_label.text, "Presiona ES")
 
 class MockLocalizationManager extends Node:

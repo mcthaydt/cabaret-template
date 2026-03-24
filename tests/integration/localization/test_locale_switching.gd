@@ -22,6 +22,9 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 
+const LOCALE_ASSERTION_KEY := &"menu.settings.back_to_main"
+const EXPECTED_ES_TEXT := "Volver al Menú Principal"
+
 var _store: M_StateStore
 var _loc_manager: M_LocalizationManager
 var _display_manager: M_DisplayManager
@@ -76,9 +79,9 @@ func test_locale_switch_updates_localize_result() -> void:
 	var state: Dictionary = _store.get_state()
 	assert_eq(U_LOCALIZATION_SELECTORS.get_locale(state), &"es", "Redux state locale should be es")
 
-	# Verify localize() returns actual Spanish translation
-	var result: String = U_LOCALIZATION_UTILS.localize(&"menu.main.title")
-	assert_eq(result, "Menú Principal", "localize() should return Spanish translation after locale switch")
+	# Verify localize() returns actual Spanish translation for a locale-differentiated key
+	var result: String = U_LOCALIZATION_UTILS.localize(LOCALE_ASSERTION_KEY)
+	assert_eq(result, EXPECTED_ES_TEXT, "localize() should return Spanish translation after locale switch")
 
 ## CJK locale dispatches auto-sets ui_scale_override to 1.1 via reducer.
 func test_cjk_locale_sets_ui_scale_override() -> void:

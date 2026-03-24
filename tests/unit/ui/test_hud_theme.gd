@@ -73,6 +73,35 @@ func test_signpost_golden_override_preserved() -> void:
 		"Signpost semantic golden color should come from active theme config"
 	)
 
+func test_life_label_semantic_overrides_are_script_applied() -> void:
+	var config := RS_UI_THEME_CONFIG.new()
+	config.accent_primary = Color(0.3, 0.9, 1.0, 1.0)
+	config.bg_base = Color(0.05, 0.06, 0.08, 1.0)
+	_hud = await _spawn_hud_with_config(config)
+
+	var life_label := _hud.get_node_or_null("MarginContainer/VBoxContainer/HealthContainer/LifeLabel") as Label
+	assert_not_null(life_label, "HUD should expose the LIFE label node")
+	if life_label == null:
+		return
+
+	assert_true(
+		life_label.has_theme_color_override(&"font_color"),
+		"LIFE label should set semantic font color in script"
+	)
+	assert_true(
+		life_label.get_theme_color(&"font_color").is_equal_approx(config.accent_primary),
+		"LIFE label font color should follow config.accent_primary"
+	)
+	assert_true(
+		life_label.get_theme_color(&"font_outline_color").is_equal_approx(config.bg_base),
+		"LIFE label outline color should follow config.bg_base"
+	)
+	assert_eq(
+		life_label.get_theme_constant(&"outline_size"),
+		4,
+		"LIFE label should keep readable outline size"
+	)
+
 func test_toast_uses_motion_resource() -> void:
 	var config := RS_UI_THEME_CONFIG.new()
 	U_UI_THEME_BUILDER.active_config = config

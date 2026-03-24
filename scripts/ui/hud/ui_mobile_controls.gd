@@ -18,7 +18,8 @@ const SIGNPOST_MESSAGE_EVENT := StringName("signpost_message")
 const SIGNPOST_DEFAULT_DURATION_SEC: float = 3.0
 const SIGNPOST_MIN_DURATION_SEC: float = 0.05
 const SIGNPOST_VISIBILITY_BUFFER_SEC: float = 0.35
-
+const DOUBLE_TAP_MAX_INTERVAL_SEC: float = 0.30
+const DOUBLE_TAP_MAX_DISTANCE_PX: float = 72.0
 var _state_store: I_StateStore = null
 var _unsubscribe: Callable = Callable()
 var _unsubscribe_signpost: Callable = Callable()
@@ -43,11 +44,22 @@ var _overlay_input_logged: bool = false
 var _awaiting_transition_signal: bool = false  # True when waiting for transition_visual_complete
 var _signpost_hide_until_sec: float = -1.0
 var _is_signpost_visibility_blocked: bool = false
+var _pending_camera_center_just_pressed: bool = false
+var _runtime_time_sec: float = 0.0
+var _last_empty_space_tap_time_sec: float = -1.0
+var _last_empty_space_tap_position: Vector2 = Vector2.ZERO
+var _look_touch_id: int = -1
+var _look_touch_last_position: Vector2 = Vector2.ZERO
+var _pending_look_delta: Vector2 = Vector2.ZERO
+var _touch_look_active: bool = false
+var _look_drag_sensitivity: float = 1.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process(true)
+	set_process_input(true)
 	visible = false
+	_runtime_time_sec = 0.0
 
 	if not _should_enable():
 		queue_free()
@@ -98,12 +110,41 @@ func _exit_tree() -> void:
 	_fade_elapsed = 0.0
 	_signpost_hide_until_sec = -1.0
 	_is_signpost_visibility_blocked = false
+	_pending_camera_center_just_pressed = false
+	_runtime_time_sec = 0.0
+	_last_empty_space_tap_time_sec = -1.0
+	_last_empty_space_tap_position = Vector2.ZERO
+	_reset_look_touch_state(true)
 	_unregister_from_input_device_manager()
 
 func _on_locale_changed(_locale: StringName) -> void:
 	for button in _buttons:
 		if button != null and button.has_method("_refresh_label"):
 			button._refresh_label()
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		var touch := event as InputEventScreenTouch
+		if touch.pressed:
+			_handle_empty_space_tap(touch.position)
+			_handle_look_touch_press(touch)
+		else:
+			_handle_look_touch_release(touch)
+	elif event is InputEventScreenDrag:
+		_handle_look_touch_drag(event as InputEventScreenDrag)
+
+func consume_camera_center_just_pressed() -> bool:
+	var just_pressed := _pending_camera_center_just_pressed
+	_pending_camera_center_just_pressed = false
+	return just_pressed
+
+func consume_look_delta() -> Vector2:
+	var look_delta := _pending_look_delta
+	_pending_look_delta = Vector2.ZERO
+	return look_delta
+
+func is_touch_look_active() -> bool:
+	return _touch_look_active or not _pending_look_delta.is_zero_approx()
 
 func _should_enable() -> bool:
 	if force_enable:
@@ -127,6 +168,95 @@ func _is_emulate_mode() -> bool:
 		return true
 	var args: PackedStringArray = OS.get_cmdline_args()
 	return args.has("--emulate-mobile")
+
+func _handle_empty_space_tap(position: Vector2) -> void:
+	if not _can_process_gameplay_touch():
+		_reset_double_tap_state()
+		return
+	if _is_touch_over_virtual_controls(position):
+		_reset_double_tap_state()
+		return
+
+	var now_sec: float = _runtime_time_sec
+	if _last_empty_space_tap_time_sec >= 0.0:
+		var elapsed_sec := now_sec - _last_empty_space_tap_time_sec
+		var distance_px := _last_empty_space_tap_position.distance_to(position)
+		if elapsed_sec <= DOUBLE_TAP_MAX_INTERVAL_SEC and distance_px <= DOUBLE_TAP_MAX_DISTANCE_PX:
+			_pending_camera_center_just_pressed = true
+			_reset_double_tap_state()
+			return
+
+	_last_empty_space_tap_time_sec = now_sec
+	_last_empty_space_tap_position = position
+
+func _reset_double_tap_state() -> void:
+	_last_empty_space_tap_time_sec = -1.0
+	_last_empty_space_tap_position = Vector2.ZERO
+
+func _is_touch_over_virtual_controls(position: Vector2) -> bool:
+	if _joystick != null and is_instance_valid(_joystick) and _joystick.get_global_rect().has_point(position):
+		return true
+	for button in _buttons:
+		if button == null or not is_instance_valid(button):
+			continue
+		if button.get_global_rect().has_point(position):
+			return true
+	return false
+
+func _can_process_gameplay_touch() -> bool:
+	if _awaiting_transition_signal:
+		return false
+	if _device_type != M_InputDeviceManager.DeviceType.TOUCHSCREEN:
+		return false
+	if _current_shell != SHELL_GAMEPLAY:
+		return false
+	if _has_overlay_active or _is_edit_overlay_active:
+		return false
+	if _is_transitioning:
+		return false
+	if _is_signpost_visibility_blocked:
+		return false
+	if force_enable:
+		return true
+	return U_SceneRegistry.get_scene_type(_current_scene_id) == U_SceneRegistry.SceneType.GAMEPLAY
+
+func _handle_look_touch_press(event: InputEventScreenTouch) -> void:
+	if _look_touch_id != -1:
+		return
+	if not _can_process_gameplay_touch():
+		return
+	if _is_touch_over_virtual_controls(event.position):
+		return
+	_look_touch_id = event.index
+	_look_touch_last_position = event.position
+	_touch_look_active = false
+
+func _handle_look_touch_drag(event: InputEventScreenDrag) -> void:
+	if _look_touch_id == -1 or event.index != _look_touch_id:
+		return
+	if not _can_process_gameplay_touch():
+		_reset_look_touch_state(true)
+		return
+	var drag_delta: Vector2 = event.position - _look_touch_last_position
+	_look_touch_last_position = event.position
+	if drag_delta.is_zero_approx():
+		return
+	_touch_look_active = true
+	var look_delta := drag_delta * _look_drag_sensitivity
+	_pending_look_delta += look_delta
+	_on_input_activity()
+
+func _handle_look_touch_release(event: InputEventScreenTouch) -> void:
+	if _look_touch_id == -1 or event.index != _look_touch_id:
+		return
+	_reset_look_touch_state(false)
+
+func _reset_look_touch_state(clear_pending_delta: bool) -> void:
+	_look_touch_id = -1
+	_look_touch_last_position = Vector2.ZERO
+	_touch_look_active = false
+	if clear_pending_delta:
+		_pending_look_delta = Vector2.ZERO
 
 func _load_touchscreen_profile() -> RS_InputProfile:
 	var resource := ResourceLoader.load(DEFAULT_TOUCHSCREEN_PROFILE_PATH)
@@ -195,6 +325,12 @@ func _normalize_device_type(device_type: int) -> int:
 	return device_type
 
 func _apply_touchscreen_settings(settings: Dictionary) -> void:
+	_look_drag_sensitivity = clampf(
+		float(settings.get("look_drag_sensitivity", _default_touchscreen_settings.look_drag_sensitivity)),
+		0.1,
+		5.0
+	)
+
 	if _joystick != null:
 		var joystick_scale: float = float(settings.get("virtual_joystick_size", 1.0))
 		_joystick.scale = Vector2.ONE * max(joystick_scale, 0.01)
@@ -305,6 +441,9 @@ func _update_navigation_state(state: Dictionary) -> void:
 	# This handles test environments without real SceneManager or missed signals
 	if was_transitioning and not _is_transitioning and _awaiting_transition_signal:
 		_awaiting_transition_signal = false
+	if not _can_process_gameplay_touch():
+		_reset_double_tap_state()
+		_reset_look_touch_state(true)
 
 func _update_visibility() -> void:
 	# Always show controls when editing, regardless of device type
@@ -378,6 +517,7 @@ func _on_input_activity(__data: Variant = null) -> void:
 	_is_fading = true
 
 func _process(_delta: float) -> void:
+	_runtime_time_sec += maxf(_delta, 0.0)
 	_update_signpost_visibility_gate()
 	if _controls_root == null or not _is_fading:
 		return
@@ -408,7 +548,7 @@ func _on_signpost_message(payload: Variant) -> void:
 	if message_text.is_empty():
 		return
 	var duration_sec: float = _resolve_signpost_duration(data)
-	var hide_until: float = U_ECSUtils.get_current_time() + duration_sec + SIGNPOST_VISIBILITY_BUFFER_SEC
+	var hide_until: float = _runtime_time_sec + duration_sec + SIGNPOST_VISIBILITY_BUFFER_SEC
 	_signpost_hide_until_sec = maxf(_signpost_hide_until_sec, hide_until)
 	_update_signpost_visibility_gate()
 
@@ -433,7 +573,7 @@ func _resolve_signpost_duration(payload: Dictionary) -> float:
 func _update_signpost_visibility_gate() -> void:
 	var blocked: bool = false
 	if _signpost_hide_until_sec >= 0.0:
-		blocked = U_ECSUtils.get_current_time() < _signpost_hide_until_sec
+		blocked = _runtime_time_sec < _signpost_hide_until_sec
 		if not blocked:
 			_signpost_hide_until_sec = -1.0
 	if blocked == _is_signpost_visibility_blocked:

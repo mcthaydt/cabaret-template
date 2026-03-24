@@ -10,6 +10,13 @@
 
 The Display Manager handles visual post-processing effects, graphics quality settings, UI scaling, and color blind accessibility features. It owns the post-processing overlay (CanvasLayer + shader) and provides preview APIs for settings UI.
 
+## Camera Ownership Boundary (vCam Alignment)
+
+- Gameplay camera orchestration source of truth is `docs/vcam_manager/*`.
+- Display Manager does not define gameplay camera follow/orbit/fixed/OTS behavior.
+- Display Manager does not own `M_CameraManager.apply_main_camera_transform(...)` or vCam blend-state decisions.
+- Display Manager remains responsible for display-domain post-process and accessibility rendering only.
+
 ## Repo Reality Checks
 
 - Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
@@ -60,6 +67,7 @@ The Display Manager handles visual post-processing effects, graphics quality set
 - Particle effects (ECS particle systems).
 - Audio settings (Audio Manager).
 - Camera blending (Camera Manager).
+- Gameplay vCam orchestration contracts (vCam Manager docs).
 
 ## Public API
 

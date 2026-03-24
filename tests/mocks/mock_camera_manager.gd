@@ -12,6 +12,9 @@ var last_rotation: float = 0.0
 var apply_calls: int = 0
 var main_camera: Camera3D = null
 var shake_sources: Dictionary = {}
+var last_main_transform: Transform3D = Transform3D.IDENTITY
+var apply_main_transform_calls: int = 0
+var blend_active: bool = false
 
 func _ready() -> void:
 	# Override to skip base setup and ServiceLocator registration.
@@ -19,6 +22,13 @@ func _ready() -> void:
 
 func get_main_camera() -> Camera3D:
 	return main_camera
+
+func apply_main_camera_transform(transform: Transform3D) -> void:
+	last_main_transform = transform
+	apply_main_transform_calls += 1
+
+func is_blend_active() -> bool:
+	return blend_active
 
 func initialize_scene_camera(_scene: Node) -> Camera3D:
 	return null
@@ -54,3 +64,6 @@ func reset() -> void:
 	last_rotation = 0.0
 	apply_calls = 0
 	shake_sources.clear()
+	last_main_transform = Transform3D.IDENTITY
+	apply_main_transform_calls = 0
+	blend_active = false

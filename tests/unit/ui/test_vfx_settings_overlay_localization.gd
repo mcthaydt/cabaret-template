@@ -27,8 +27,10 @@ func before_each() -> void:
 	_localization_manager.translations = {
 		&"settings.vfx.title": "VFX EN",
 		&"settings.vfx.label.screen_shake": "Screen Shake EN",
+		&"settings.vfx.label.occlusion_silhouette": "Silhouette EN",
 		&"common.apply": "Apply EN",
 		&"settings.vfx.tooltip.shake_intensity": "Shake tooltip EN",
+		&"settings.vfx.tooltip.occlusion_silhouette": "Silhouette tooltip EN",
 	}
 	U_SERVICE_LOCATOR.register(StringName("localization_manager"), _localization_manager)
 
@@ -47,21 +49,27 @@ func after_each() -> void:
 func test_locale_change_relocalizes_vfx_labels_and_tooltips() -> void:
 	assert_eq(_overlay._title_label.text, "VFX EN")
 	assert_eq(_overlay._shake_enabled_label.text, "Screen Shake EN")
+	assert_eq(_overlay._silhouette_enabled_label.text, "Silhouette EN")
 	assert_eq(_overlay._apply_button.text, "Apply EN")
 	assert_eq(_overlay._intensity_slider.tooltip_text, "Shake tooltip EN")
+	assert_eq(_overlay._silhouette_enabled_toggle.tooltip_text, "Silhouette tooltip EN")
 
 	_localization_manager.translations[&"settings.vfx.title"] = "VFX ES"
 	_localization_manager.translations[&"settings.vfx.label.screen_shake"] = "Sacudida"
+	_localization_manager.translations[&"settings.vfx.label.occlusion_silhouette"] = "Silueta"
 	_localization_manager.translations[&"common.apply"] = "Aplicar"
 	_localization_manager.translations[&"settings.vfx.tooltip.shake_intensity"] = "Tooltip de sacudida"
+	_localization_manager.translations[&"settings.vfx.tooltip.occlusion_silhouette"] = "Tooltip de silueta"
 
 	_overlay._on_locale_changed(&"es")
 	await get_tree().process_frame
 
 	assert_eq(_overlay._title_label.text, "VFX ES")
 	assert_eq(_overlay._shake_enabled_label.text, "Sacudida")
+	assert_eq(_overlay._silhouette_enabled_label.text, "Silueta")
 	assert_eq(_overlay._apply_button.text, "Aplicar")
 	assert_eq(_overlay._intensity_slider.tooltip_text, "Tooltip de sacudida")
+	assert_eq(_overlay._silhouette_enabled_toggle.tooltip_text, "Tooltip de silueta")
 
 class MockLocalizationManager extends Node:
 	var translations: Dictionary = {}

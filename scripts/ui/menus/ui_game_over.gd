@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_utility.svg")
-extends BaseMenuScreen
+extends "res://scripts/ui/base/base_menu_screen.gd"
 class_name UI_GameOver
 
 ## Game Over screen controller (Phase 9)

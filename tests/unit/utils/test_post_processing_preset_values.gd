@@ -2,6 +2,10 @@ extends GutTest
 
 ## Tests for post-processing preset intensity values
 
+const CFG_LIGHT_PRESET := preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_light.tres")
+const CFG_MEDIUM_PRESET := preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_medium.tres")
+const CFG_HEAVY_PRESET := preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_heavy.tres")
+
 
 func test_light_preset_has_lower_intensities() -> void:
 	# GIVEN: Light preset values
@@ -28,26 +32,29 @@ func test_medium_preset_has_default_values() -> void:
 	# GIVEN: Medium preset values
 	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
 
-	# THEN: Should match current defaults from cfg_display_initial_state.tres
-	assert_eq(medium.get("film_grain_intensity"), 0.1, "Medium film grain should be 0.1")
-	assert_eq(medium.get("crt_scanline_intensity"), 0.15, "Medium scanlines should be 0.15")
-	assert_eq(medium.get("crt_curvature"), 0.0, "Medium curvature should be 0.0")
-	assert_eq(medium.get("crt_chromatic_aberration"), 0.001, "Medium aberration should be 0.001")
-	assert_eq(medium.get("dither_intensity"), 1.0, "Medium dither should be 1.0")
+	# THEN: Should match canonical medium preset resource values
+	assert_eq(medium.get("film_grain_intensity"), CFG_MEDIUM_PRESET.film_grain_intensity, "Medium film grain should match preset resource")
+	assert_eq(medium.get("crt_scanline_intensity"), CFG_MEDIUM_PRESET.crt_scanline_intensity, "Medium scanlines should match preset resource")
+	assert_eq(medium.get("crt_curvature"), CFG_MEDIUM_PRESET.crt_curvature, "Medium curvature should match preset resource")
+	assert_eq(medium.get("crt_chromatic_aberration"), CFG_MEDIUM_PRESET.crt_chromatic_aberration, "Medium aberration should match preset resource")
+	assert_eq(medium.get("dither_intensity"), CFG_MEDIUM_PRESET.dither_intensity, "Medium dither should match preset resource")
 
 func test_get_value_returns_specific_field() -> void:
 	# WHEN: Getting a specific field from heavy preset
 	var grain: float = U_PostProcessingPresetValues.get_value("heavy", "film_grain_intensity")
 
 	# THEN: Should return the heavy preset's film grain intensity
-	assert_eq(grain, 0.35, "Heavy film grain should be 0.35")
+	assert_eq(grain, CFG_HEAVY_PRESET.film_grain_intensity, "Heavy film grain should match preset resource")
 
 func test_invalid_preset_returns_medium_defaults() -> void:
 	# WHEN: Getting values for invalid preset
 	var values := U_PostProcessingPresetValues.get_preset_values("invalid")
+	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
 
 	# THEN: Should return medium values as default
-	assert_eq(values.get("film_grain_intensity"), 0.1, "Should default to medium")
+	assert_eq(values.get("film_grain_intensity"), medium.get("film_grain_intensity"), "Should default to medium")
+	assert_eq(values.get("crt_scanline_intensity"), medium.get("crt_scanline_intensity"), "Should default to medium")
+	assert_eq(values.get("crt_chromatic_aberration"), medium.get("crt_chromatic_aberration"), "Should default to medium")
 
 func test_is_valid_preset() -> void:
 	# THEN: Valid presets should return true
@@ -65,3 +72,12 @@ func test_get_preset_names() -> void:
 	assert_true(names.has("medium"), "Should have medium")
 	assert_true(names.has("heavy"), "Should have heavy")
 	assert_eq(names.size(), 3, "Should have exactly 3 presets")
+
+func test_loaded_presets_match_canonical_resources() -> void:
+	var light := U_PostProcessingPresetValues.get_preset_values("light")
+	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
+	var heavy := U_PostProcessingPresetValues.get_preset_values("heavy")
+
+	assert_eq(light.get("film_grain_intensity"), CFG_LIGHT_PRESET.film_grain_intensity)
+	assert_eq(medium.get("film_grain_intensity"), CFG_MEDIUM_PRESET.film_grain_intensity)
+	assert_eq(heavy.get("film_grain_intensity"), CFG_HEAVY_PRESET.film_grain_intensity)

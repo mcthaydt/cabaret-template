@@ -109,6 +109,8 @@ static func get_texture_for_event(event: InputEvent) -> Texture2D:
 				key_name = "key_w"
 			KEY_A:
 				key_name = "key_a"
+			KEY_C:
+				key_name = "key_c"
 			KEY_S:
 				key_name = "key_s"
 			KEY_D:

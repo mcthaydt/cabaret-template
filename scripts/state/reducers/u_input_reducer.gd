@@ -10,6 +10,9 @@ const DEFAULT_GAMEPLAY_INPUT_STATE := {
 	"touchscreen_enabled": false,
 	"move_input": Vector2.ZERO,
 	"look_input": Vector2.ZERO,
+	"look_input_keyboard_mouse": Vector2.ZERO,
+	"look_input_gamepad": Vector2.ZERO,
+	"camera_center_just_pressed": false,
 	"jump_pressed": false,
 	"jump_just_pressed": false,
 	"sprint_pressed": false,
@@ -21,17 +24,19 @@ const DEFAULT_INPUT_SETTINGS_STATE := {
 	"custom_bindings_by_profile": {},
 	"gamepad_settings": {
 		"left_stick_deadzone": 0.2,
-		"right_stick_deadzone": 0.2,
+		"right_stick_deadzone": 0.16,
 		"trigger_deadzone": 0.1,
 		"vibration_enabled": true,
 		"vibration_intensity": 1.0,
 		"invert_y_axis": false,
-		"right_stick_sensitivity": 1.0,
-		"deadzone_curve": 0,
+		"right_stick_sensitivity": 2.5,
+		"deadzone_curve": 1,
 	},
 	"mouse_settings": {
-		"sensitivity": 1.0,
+		"sensitivity": 0.6,
 		"invert_y_axis": false,
+		"keyboard_look_enabled": true,
+		"keyboard_look_speed": 2.0,
 	},
 	"touchscreen_settings": {
 		"virtual_joystick_size": 1.0,
@@ -40,6 +45,7 @@ const DEFAULT_INPUT_SETTINGS_STATE := {
 		"button_size": 1.0,
 		"joystick_deadzone": 0.15,
 		"button_opacity": 0.8,
+		"look_drag_sensitivity": 1.0,
 		"custom_joystick_position": Vector2(-1, -1),
 		"custom_button_positions": {},
 		"custom_button_sizes": {},
@@ -68,6 +74,9 @@ static func reduce_gameplay_input(state: Dictionary, action: Dictionary) -> Vari
 			return _with_values(current, {
 				"move_input": Vector2.ZERO,
 				"look_input": Vector2.ZERO,
+				"look_input_keyboard_mouse": Vector2.ZERO,
+				"look_input_gamepad": Vector2.ZERO,
+				"camera_center_just_pressed": false,
 				"jump_pressed": false,
 				"jump_just_pressed": false,
 				"sprint_pressed": false,
@@ -81,8 +90,21 @@ static func reduce_gameplay_input(state: Dictionary, action: Dictionary) -> Vari
 
 		U_InputActions.ACTION_UPDATE_LOOK_INPUT:
 			var look_payload: Dictionary = action.get("payload", {})
+			var look_delta: Vector2 = look_payload.get("look_delta", Vector2.ZERO)
+			var look_source: StringName = StringName(look_payload.get("source", StringName("")))
+			var updates := {
+				"look_input": look_delta
+			}
+			if look_source == U_InputActions.LOOK_SOURCE_KEYBOARD_MOUSE:
+				updates["look_input_keyboard_mouse"] = look_delta
+			elif look_source == U_InputActions.LOOK_SOURCE_GAMEPAD:
+				updates["look_input_gamepad"] = look_delta
+			return _with_values(current, updates)
+
+		U_InputActions.ACTION_UPDATE_CAMERA_CENTER_STATE:
+			var center_payload: Dictionary = action.get("payload", {})
 			return _with_values(current, {
-				"look_input": look_payload.get("look_delta", Vector2.ZERO)
+				"camera_center_just_pressed": bool(center_payload.get("just_pressed", false))
 			})
 
 		U_InputActions.ACTION_UPDATE_JUMP_STATE:
@@ -218,6 +240,13 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 					pad_settings["right_stick_deadzone"] = value
 			return _with_values(current, {"gamepad_settings": pad_settings})
 
+		U_InputActions.ACTION_UPDATE_GAMEPAD_SENSITIVITY:
+			var sensitivity_payload: Dictionary = action.get("payload", {})
+			var sensitivity_value: float = clampf(float(sensitivity_payload.get("sensitivity", 1.0)), 0.1, 5.0)
+			var pad_sensitivity_settings: Dictionary = _duplicate_dict(current.get("gamepad_settings", {}))
+			pad_sensitivity_settings["right_stick_sensitivity"] = sensitivity_value
+			return _with_values(current, {"gamepad_settings": pad_sensitivity_settings})
+
 		U_InputActions.ACTION_TOGGLE_VIBRATION:
 			var toggle_payload: Dictionary = action.get("payload", {})
 			var pad_toggle: Dictionary = _duplicate_dict(current.get("gamepad_settings", {}))
@@ -233,8 +262,21 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 		U_InputActions.ACTION_UPDATE_MOUSE_SENSITIVITY:
 			var mouse_payload: Dictionary = action.get("payload", {})
 			var mouse_settings: Dictionary = _duplicate_dict(current.get("mouse_settings", {}))
-			mouse_settings["sensitivity"] = float(mouse_payload.get("sensitivity", 1.0))
+			mouse_settings["sensitivity"] = clampf(float(mouse_payload.get("sensitivity", 0.6)), 0.1, 5.0)
 			return _with_values(current, {"mouse_settings": mouse_settings})
+
+		U_InputActions.ACTION_SET_KEYBOARD_LOOK_ENABLED:
+			var keyboard_enabled_payload: Dictionary = action.get("payload", {})
+			var keyboard_enabled_settings: Dictionary = _duplicate_dict(current.get("mouse_settings", {}))
+			keyboard_enabled_settings["keyboard_look_enabled"] = bool(keyboard_enabled_payload.get("enabled", false))
+			return _with_values(current, {"mouse_settings": keyboard_enabled_settings})
+
+		U_InputActions.ACTION_SET_KEYBOARD_LOOK_SPEED:
+			var keyboard_speed_payload: Dictionary = action.get("payload", {})
+			var keyboard_speed_settings: Dictionary = _duplicate_dict(current.get("mouse_settings", {}))
+			var keyboard_speed: float = clampf(float(keyboard_speed_payload.get("speed", 2.0)), 0.1, 10.0)
+			keyboard_speed_settings["keyboard_look_speed"] = keyboard_speed
+			return _with_values(current, {"mouse_settings": keyboard_speed_settings})
 
 		U_InputActions.ACTION_UPDATE_ACCESSIBILITY:
 			var accessibility_payload: Dictionary = action.get("payload", {})
@@ -251,7 +293,7 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 			if settings_updates.is_empty():
 				return current
 			var touchscreen_settings: Dictionary = _duplicate_dict(current.get("touchscreen_settings", {}))
-			touchscreen_settings.merge(settings_updates, true)
+			touchscreen_settings.merge(_sanitize_touchscreen_settings(settings_updates), true)
 			return _with_values(current, {"touchscreen_settings": touchscreen_settings})
 
 		U_InputActions.ACTION_SAVE_VIRTUAL_CONTROL_POSITION:
@@ -286,10 +328,10 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 				updates["gamepad_settings"] = _duplicate_dict(load_payload["gamepad_settings"])
 
 			if load_payload.has("mouse_settings") and load_payload["mouse_settings"] is Dictionary:
-				updates["mouse_settings"] = _duplicate_dict(load_payload["mouse_settings"])
+				updates["mouse_settings"] = _sanitize_mouse_settings(_duplicate_dict(load_payload["mouse_settings"]))
 
 			if load_payload.has("touchscreen_settings") and load_payload["touchscreen_settings"] is Dictionary:
-				updates["touchscreen_settings"] = _duplicate_dict(load_payload["touchscreen_settings"])
+				updates["touchscreen_settings"] = _sanitize_touchscreen_settings(_duplicate_dict(load_payload["touchscreen_settings"]))
 
 			if load_payload.has("accessibility") and load_payload["accessibility"] is Dictionary:
 				updates["accessibility"] = _duplicate_dict(load_payload["accessibility"])
@@ -484,6 +526,21 @@ static func _normalize_custom_bindings_by_profile(value: Variant) -> Dictionary:
 			if not profile_bindings.is_empty():
 				normalized[profile_id] = profile_bindings
 	return normalized
+
+static func _sanitize_mouse_settings(source: Dictionary) -> Dictionary:
+	var sanitized := source.duplicate(true)
+	sanitized["sensitivity"] = clampf(float(sanitized.get("sensitivity", 0.6)), 0.1, 5.0)
+	sanitized["keyboard_look_enabled"] = bool(sanitized.get("keyboard_look_enabled", true))
+	sanitized["keyboard_look_speed"] = clampf(float(sanitized.get("keyboard_look_speed", 2.0)), 0.1, 10.0)
+	return sanitized
+
+static func _sanitize_touchscreen_settings(source: Dictionary) -> Dictionary:
+	var sanitized := source.duplicate(true)
+	if sanitized.has("look_drag_sensitivity"):
+		sanitized["look_drag_sensitivity"] = clampf(float(sanitized.get("look_drag_sensitivity", 1.0)), 0.1, 5.0)
+	if sanitized.has("invert_look_y"):
+		sanitized.erase("invert_look_y")
+	return sanitized
 
 ## Returns device type category for an event dictionary.
 ## Returns: "keyboard", "mouse", "gamepad", or "unknown"

@@ -102,13 +102,16 @@ func process_tick(delta: float) -> void:
 			continue
 
 		var input_vector: Vector2 = input_component.move_vector
+		var settings: RS_MovementSettings = movement_component.settings
+		if settings == null:
+			continue
 		var is_sprinting := input_component.is_sprinting()
-		var current_max_speed: float = movement_component.settings.max_speed
+		var current_max_speed: float = settings.max_speed
 		if is_sprinting:
-			var sprint_multiplier: float = movement_component.settings.sprint_speed_multiplier
+			var sprint_multiplier: float = settings.sprint_speed_multiplier
 			if sprint_multiplier <= 0.0:
 				sprint_multiplier = 1.0
-			current_max_speed = movement_component.settings.max_speed * sprint_multiplier
+			current_max_speed = current_max_speed * sprint_multiplier
 
 		var has_input: bool = input_vector.length() > 0.0
 		var desired_velocity: Vector3 = Vector3.ZERO
@@ -143,11 +146,11 @@ func process_tick(delta: float) -> void:
 
 		var support_active: bool = false
 		if floating_component != null:
-			support_active = floating_component.has_recent_support(current_time, movement_component.settings.support_grace_time)
+			support_active = floating_component.has_recent_support(current_time, settings.support_grace_time)
 
 		var accel_scale: float = 1.0
 		if floating_component != null and not support_active:
-			accel_scale *= max(movement_component.settings.air_control_scale, 0.0)
+			accel_scale *= max(settings.air_control_scale, 0.0)
 
 		var up_dir2: Vector3 = body.up_direction
 		if up_dir2.length() == 0.0:
@@ -163,28 +166,28 @@ func process_tick(delta: float) -> void:
 			if recent_n.length() > 0.0:
 				effective_normal = recent_n.normalized()
 
-		if effective_normal.length() > 0.0 and movement_component.settings.slope_limit_degrees > 0.0:
+		if effective_normal.length() > 0.0 and settings.slope_limit_degrees > 0.0:
 			var dot_up: float = clamp(effective_normal.dot(up_dir2), -1.0, 1.0)
 			var angle_deg: float = rad_to_deg(acos(dot_up))
-			if angle_deg > movement_component.settings.slope_limit_degrees:
+			if angle_deg > settings.slope_limit_degrees:
 				accel_scale *= clamp(dot_up, 0.0, 1.0)
 
-		var wants_second_order: bool = movement_component.settings.use_second_order_dynamics and movement_component.settings.response_frequency > 0.0
+		var wants_second_order: bool = settings.use_second_order_dynamics and settings.response_frequency > 0.0
 		if wants_second_order and has_input:
 			var desired_adjusted := desired_velocity * accel_scale
-			velocity = _apply_second_order_dynamics(movement_component, velocity, desired_adjusted, delta, support_active)
+			velocity = _apply_second_order_dynamics(movement_component, settings, velocity, desired_adjusted, delta, support_active)
 			velocity = _clamp_horizontal_speed(velocity, current_max_speed)
 		else:
 			if has_input:
-				velocity.x = move_toward(velocity.x, desired_velocity.x, movement_component.settings.acceleration * accel_scale * delta)
-				velocity.z = move_toward(velocity.z, desired_velocity.z, movement_component.settings.acceleration * accel_scale * delta)
+				velocity.x = move_toward(velocity.x, desired_velocity.x, settings.acceleration * accel_scale * delta)
+				velocity.z = move_toward(velocity.z, desired_velocity.z, settings.acceleration * accel_scale * delta)
 			else:
-				velocity.x = move_toward(velocity.x, 0.0, movement_component.settings.deceleration * delta)
-				velocity.z = move_toward(velocity.z, 0.0, movement_component.settings.deceleration * delta)
+				velocity.x = move_toward(velocity.x, 0.0, settings.deceleration * delta)
+				velocity.z = move_toward(velocity.z, 0.0, settings.deceleration * delta)
 			movement_component.reset_dynamics_state()
 
 		if not has_input:
-			velocity = _apply_horizontal_friction(movement_component, velocity, support_active, delta)
+			velocity = _apply_horizontal_friction(settings, velocity, support_active, delta)
 
 		velocity = _clamp_horizontal_speed(velocity, current_max_speed)
 
@@ -293,14 +296,14 @@ func _clamp_horizontal_speed(velocity: Vector3, max_speed: float) -> Vector3:
 		velocity.z = horizontal.z
 	return velocity
 
-func _apply_second_order_dynamics(component: C_MovementComponent, velocity: Vector3, desired_velocity: Vector3, delta: float, support_active: bool) -> Vector3:
-	var frequency: float = max(component.settings.response_frequency, 0.0)
+func _apply_second_order_dynamics(component: C_MovementComponent, settings: RS_MovementSettings, velocity: Vector3, desired_velocity: Vector3, delta: float, support_active: bool) -> Vector3:
+	var frequency: float = max(settings.response_frequency, 0.0)
 	if frequency <= 0.0:
 		component.reset_dynamics_state()
 		return velocity
 
-	var damping_base: float = max(component.settings.damping_ratio, 0.0)
-	var damping_multiplier: float = component.settings.grounded_damping_multiplier if support_active else component.settings.air_damping_multiplier
+	var damping_base: float = max(settings.damping_ratio, 0.0)
+	var damping_multiplier: float = settings.grounded_damping_multiplier if support_active else settings.air_damping_multiplier
 	var damping: float = damping_base * damping_multiplier
 	var omega: float = TAU * frequency
 	if omega <= 0.0:
@@ -319,13 +322,13 @@ func _apply_second_order_dynamics(component: C_MovementComponent, velocity: Vect
 	velocity.z = current_horizontal.y
 	return velocity
 
-func _apply_horizontal_friction(component: C_MovementComponent, velocity: Vector3, support_active: bool, delta: float) -> Vector3:
-	var base_friction: float = component.settings.grounded_friction if support_active else component.settings.air_friction
+func _apply_horizontal_friction(settings: RS_MovementSettings, velocity: Vector3, support_active: bool, delta: float) -> Vector3:
+	var base_friction: float = settings.grounded_friction if support_active else settings.air_friction
 	if base_friction <= 0.0:
 		return velocity
 
-	var strafe_friction: float = max(base_friction * component.settings.strafe_friction_scale, 0.0)
-	var forward_friction: float = max(base_friction * component.settings.forward_friction_scale, 0.0)
+	var strafe_friction: float = max(base_friction * settings.strafe_friction_scale, 0.0)
+	var forward_friction: float = max(base_friction * settings.forward_friction_scale, 0.0)
 
 	velocity.x = move_toward(velocity.x, 0.0, strafe_friction * delta)
 	velocity.z = move_toward(velocity.z, 0.0, forward_friction * delta)

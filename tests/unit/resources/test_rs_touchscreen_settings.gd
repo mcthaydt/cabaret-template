@@ -8,6 +8,7 @@ func test_defaults_match_spec() -> void:
 	assert_almost_eq(settings.virtual_joystick_opacity, 0.7, 0.0001, "Default joystick opacity should be 0.7")
 	assert_almost_eq(settings.button_size, 1.1, 0.0001, "Default button size should be 1.1")
 	assert_almost_eq(settings.button_opacity, 0.8, 0.0001, "Default button opacity should be 0.8")
+	assert_almost_eq(settings.look_drag_sensitivity, 1.0, 0.0001, "Default look drag sensitivity should be 1.0")
 
 func test_apply_touch_deadzone_zeroes_values_below_threshold() -> void:
 	var result := RS_TouchscreenSettings.apply_touch_deadzone(Vector2(0.05, 0.05), 0.15)

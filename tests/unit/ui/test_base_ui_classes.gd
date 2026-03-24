@@ -4,6 +4,7 @@ const OverlayStub := preload("res://tests/test_doubles/ui/overlay_stub.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const RS_UI_MOTION_SET := preload("res://scripts/resources/ui/rs_ui_motion_set.gd")
 const RS_UI_MOTION_PRESET := preload("res://scripts/resources/ui/rs_ui_motion_preset.gd")
+const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
 
 
 var _mock_audio_manager: MockAudioManager
@@ -267,6 +268,79 @@ func test_base_menu_screen_targets_center_container_when_backdrop_and_panel_exis
 	await wait_seconds(0.08)
 	assert_true(center_container.modulate.a > 0.01,
 		"Center container should animate alpha during enter tween")
+
+func test_base_menu_screen_applies_background_shader_material_when_preset_enabled() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	screen.background_shader_preset = "retro_grid"
+	screen.background_shader_intensity = 0.62
+	screen.background_shader_speed = 1.3
+
+	var background := ColorRect.new()
+	background.name = "Background"
+	background.color = Color(0.2, 0.15, 0.3, 1.0)
+	screen.add_child(background)
+
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+
+	var material := background.material as ShaderMaterial
+	assert_not_null(material, "Background shader preset should assign a ShaderMaterial")
+	if material == null:
+		return
+	assert_eq(material.shader, MENU_FULLSCREEN_SHADER, "Background shader should use shared fullscreen menu shader")
+	assert_eq(int(material.get_shader_parameter("preset_mode")), 0, "retro_grid preset should map to mode 0")
+	assert_almost_eq(float(material.get_shader_parameter("effect_intensity")), 0.62, 0.001,
+		"Shader intensity should use exported intensity")
+	assert_almost_eq(float(material.get_shader_parameter("effect_speed")), 1.3, 0.001,
+		"Shader speed should use exported speed")
+
+func test_base_menu_screen_background_shader_noop_when_preset_none_or_background_missing() -> void:
+	await _create_state_store()
+
+	var none_screen := BaseMenuScreen.new()
+	none_screen.background_shader_preset = "none"
+	var none_background := ColorRect.new()
+	none_background.name = "Background"
+	none_screen.add_child(none_background)
+	add_child_autofree(none_screen)
+
+	var missing_background_screen := BaseMenuScreen.new()
+	missing_background_screen.background_shader_preset = "retro_grid"
+	add_child_autofree(missing_background_screen)
+
+	await wait_process_frames(3)
+
+	assert_null(none_background.material, "Preset none should leave Background material untouched")
+	assert_null(
+		missing_background_screen.get("_background_shader_material"),
+		"Missing Background node should silently skip shader setup"
+	)
+
+func test_base_menu_screen_background_shader_preset_mode_mapping() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	screen.background_shader_preset = "retro_grid"
+
+	var background := ColorRect.new()
+	background.name = "Background"
+	screen.add_child(background)
+
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+
+	var material := background.material as ShaderMaterial
+	assert_not_null(material, "Preset should create shader material for mapping checks")
+	if material == null:
+		return
+
+	screen.background_shader_preset = "scanline_drift"
+	screen._update_background_shader_state()
+	assert_eq(int(material.get_shader_parameter("preset_mode")), 1, "scanline_drift should map to mode 1")
+
+	screen.background_shader_preset = "arcade_noise"
+	screen._update_background_shader_state()
+	assert_eq(int(material.get_shader_parameter("preset_mode")), 2, "arcade_noise should map to mode 2")
 
 func test_base_overlay_animates_dim_on_enter() -> void:
 	await _create_state_store()

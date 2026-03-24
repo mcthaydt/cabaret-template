@@ -731,3 +731,16 @@ func is_binding_custom(action: StringName) -> bool:
 
 func get_active_profile() -> RS_InputProfile:
 	return _get_active_profile()
+
+func get_profile_for_device_category(category: String) -> RS_InputProfile:
+	if _profile_manager == null:
+		return null
+	if not ("available_profiles" in _profile_manager):
+		return null
+	var profiles: Dictionary = _profile_manager.available_profiles
+	var target_device_type: int = 1 if category == "gamepad" else 0
+	for key in profiles.keys():
+		var profile := profiles[key] as RS_InputProfile
+		if profile != null and profile.device_type == target_device_type:
+			return profile
+	return null
