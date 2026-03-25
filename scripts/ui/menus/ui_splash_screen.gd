@@ -129,5 +129,10 @@ func _transition_to_next_scene() -> void:
 		var state: Dictionary = store.get_state()
 		if not U_LOCALIZATION_SELECTORS.has_selected_language(state):
 			next_scene = StringName("language_selector")
+	# Update navigation state so the reconciler doesn't conflict
+	if store != null:
+		var nav_actions_script: GDScript = preload("res://scripts/state/actions/u_navigation_actions.gd")
+		var shell := StringName("main_menu") if next_scene == StringName("main_menu") else StringName("boot")
+		store.dispatch(nav_actions_script.set_shell(shell, next_scene))
 	if scene_manager.has_method("transition_to_scene"):
 		scene_manager.call("transition_to_scene", next_scene, "fade", 2)

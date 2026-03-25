@@ -381,6 +381,9 @@ func _load_initial_scene() -> void:
 		var state: Dictionary = _store.get_state()
 		if U_LOCALIZATION_SELECTORS.has_selected_language(state):
 			scene_id = StringName("main_menu")
+	# Sync navigation state so the reconciler doesn't override the initial scene
+	if _store != null:
+		_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("boot"), scene_id))
 	transition_to_scene(scene_id, "instant", Priority.CRITICAL)
 
 ## Transition to a new scene
