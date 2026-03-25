@@ -127,6 +127,7 @@ func remove_current_scene(active_scene_container: Node) -> void:
 		return
 
 	for child in active_scene_container.get_children():
+		child.process_mode = Node.PROCESS_MODE_DISABLED
 		active_scene_container.remove_child(child)
 		child.queue_free()
 

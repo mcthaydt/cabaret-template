@@ -83,6 +83,12 @@ var _action_history_buffer := U_ACTION_HISTORY_BUFFER.new()
 var _debug_overlay: CanvasLayer = null
 var _is_ready: bool = false
 var _performance_metrics := U_STORE_PERFORMANCE_METRICS.new()
+
+## A2: Version-tracked state snapshot cache
+## Avoids redundant deep copies when get_state() is called multiple times between dispatches
+var _state_version: int = 0
+var _cached_state_snapshot: Dictionary = {}
+var _cached_state_version: int = -1
 var _global_settings_loading: bool = false
 var _global_settings_save_debounce: bool = false
 var _global_settings_last_hash: int = 0
@@ -445,16 +451,22 @@ func dispatch(action: Dictionary) -> void:
 		_pending_immediate_updates
 	)
 
+	# Invalidate cached get_state() snapshot (A2: version tracking)
+	_state_version += 1
+
 	# Record action in history AFTER reducer runs (includes state_after)
 	_action_history_buffer.record_action(action, _state)
 
 	# Create deep copy of action for subscribers
 	var action_copy: Dictionary = action.duplicate(true)
 
-	# Notify subscribers with new state
-	for subscriber in _subscribers:
-		var state_copy := _state.duplicate(true)
-		subscriber.call(action_copy, state_copy)
+	# A1: Share a single state snapshot across all subscribers instead of
+	# creating N deep copies (one per subscriber). Subscribers should treat
+	# state as read-only; mutations to the shared copy do not affect _state.
+	if not _subscribers.is_empty():
+		var state_snapshot := _state.duplicate(true)
+		for subscriber in _subscribers:
+			subscriber.call(action_copy, state_snapshot)
 
 	# Emit unbatched signal
 	action_dispatched.emit(action_copy)
@@ -508,9 +520,17 @@ func subscribe(callback: Callable) -> Callable:
 func unsubscribe(callback: Callable) -> void:
 	_subscribers.erase(callback)
 
-## Get current state (deep copy)
+## Get current state (cached deep copy — only rebuilds when state version changes)
+##
+## Returns a shallow copy of the cached snapshot so callers cannot corrupt
+## the cache by mutating the returned dictionary. The nested slice dictionaries
+## are still shared references from the deep copy, which is safe because
+## reducers always produce new slice dictionaries on change.
 func get_state() -> Dictionary:
-	return _state.duplicate(true)
+	if _cached_state_version != _state_version:
+		_cached_state_snapshot = _state.duplicate(true)
+		_cached_state_version = _state_version
+	return _cached_state_snapshot.duplicate(false)
 
 ## Get state with transient fields filtered out
 ##
