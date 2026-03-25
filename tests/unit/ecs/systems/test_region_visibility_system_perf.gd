@@ -20,10 +20,12 @@ class PerfTrackingApplierStub extends RefCounted:
 	var last_updated_alpha: float = -1.0
 	var last_updated_target_count: int = 0
 	var last_restore_target_count: int = 0
+	var apply_target_counts: Array[int] = []
 
 	func apply_fade_material(targets: Array) -> void:
 		apply_calls += 1
 		last_updated_target_count = targets.size()
+		apply_target_counts.append(targets.size())
 
 	func update_fade_alpha(targets: Array, alpha: float) -> void:
 		update_calls += 1
@@ -215,4 +217,68 @@ func test_multiple_ticks_do_not_accumulate_stale_overhead() -> void:
 		applier.update_calls, 5,
 		"update_fade_alpha should be called once per tick per faded component, got %d."
 		% applier.update_calls
+	)
+
+
+# --- Perf: _collect_mesh_targets should reuse cached results on subsequent ticks ---
+
+func test_collect_mesh_targets_does_not_refilter_on_second_tick() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: PerfTrackingApplierStub = fixture.get("applier") as PerfTrackingApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	_register_region(ecs_manager, "E_RegionA", Vector3(100.0, 0.0, 0.0), &"region_a", 10)
+	_set_player_position(store, Vector3.ZERO)
+
+	# Tick 1: system must discover and filter targets.
+	system.process_tick(0.016)
+	var first_tick_apply_count: int = applier.apply_calls
+
+	# Tick 2: targets unchanged — system should reuse cached filtered list.
+	# If _is_supported_target is called again, _collect_mesh_targets rebuilt the list.
+	# We verify by checking that apply_fade_material receives the same target count
+	# (not 0, which would mean targets were lost).
+	system.process_tick(0.016)
+	var second_tick_apply_count: int = applier.apply_calls - first_tick_apply_count
+
+	assert_eq(
+		second_tick_apply_count, first_tick_apply_count,
+		"Second tick should process same targets as first tick (cached), got first=%d second=%d."
+		% [first_tick_apply_count, second_tick_apply_count]
+	)
+	# Verify target count is stable across ticks.
+	assert_eq(
+		applier.apply_target_counts[0], applier.apply_target_counts[applier.apply_target_counts.size() - 1],
+		"Target count should be stable across ticks (no re-filtering loss)."
+	)
+
+
+# --- Perf: system should expose is_supported_target call count for validation ---
+
+func test_is_supported_target_not_called_on_cached_ticks() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	# Register 2 regions with 10 targets each = 20 targets.
+	_register_region(ecs_manager, "E_RegionA", Vector3(100.0, 0.0, 0.0), &"region_a", 10)
+	_register_region(ecs_manager, "E_RegionB", Vector3(-100.0, 0.0, 0.0), &"region_b", 10)
+	_set_player_position(store, Vector3.ZERO)
+
+	# Tick 1 populates cache. Tick 2-5 should reuse it.
+	for i in 5:
+		system.process_tick(0.016)
+
+	# After 5 ticks, _perf_is_supported_calls should be <= 20 (first tick only).
+	# If it's 100 (20 * 5), filtering happens every tick — the bug we're fixing.
+	var is_supported_calls: int = int(system.get("_perf_is_supported_calls"))
+	assert_lte(
+		is_supported_calls, 20,
+		"_is_supported_target should only run on first tick (cache miss), got %d calls over 5 ticks."
+		% is_supported_calls
 	)

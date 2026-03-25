@@ -41,6 +41,11 @@ var _target_alpha_by_id: Dictionary = {}  # int -> float
 var _cached_normals: Dictionary = {}  # int -> Vector3
 var _cached_centroids: Dictionary = {}  # int (component instance id) -> Vector3
 var _debug_tick_counter: int = 0
+var _filtered_targets_cache: Dictionary = {}  # int (component id) -> Array
+var _invalidate_tick_counter: int = 0
+const INVALIDATE_INTERVAL := 30
+
+var _perf_is_supported_calls: int = 0
 
 func _init() -> void:
 	execution_priority = 110
@@ -91,7 +96,9 @@ func process_tick(delta: float) -> void:
 	components = tick_data.get("filtered_components", []) as Array
 	var owned_targets_by_component: Dictionary = tick_data.get("owned_targets_by_component", {})
 
-	applier.invalidate_externally_removed()
+	_invalidate_tick_counter += 1
+	if _invalidate_tick_counter % INVALIDATE_INTERVAL == 0:
+		applier.invalidate_externally_removed()
 
 	if should_log_debug:
 		_debug_log_tick_header(mode_info, main_camera, camera_forward, components.size(), resolved_delta)
@@ -251,6 +258,7 @@ func _exit_tree() -> void:
 	_target_alpha_by_id.clear()
 	_cached_normals.clear()
 	_cached_centroids.clear()
+	_filtered_targets_cache.clear()
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 	if camera_manager != null:
@@ -324,14 +332,22 @@ func _collect_mesh_targets(component: Object) -> Array:
 		return []
 	if not component.has_method("collect_mesh_targets"):
 		return []
+
+	var component_id: int = component.get_instance_id()
+	var is_cache_valid: bool = component.has_method("is_target_cache_valid") and bool(component.call("is_target_cache_valid"))
+	if is_cache_valid and _filtered_targets_cache.has(component_id):
+		return _filtered_targets_cache[component_id] as Array
+
 	var targets_variant: Variant = component.call("collect_mesh_targets")
 	if not (targets_variant is Array):
 		return []
 
 	var targets: Array = []
 	for target_variant in targets_variant as Array:
+		_perf_is_supported_calls += 1
 		if _is_supported_target(target_variant):
 			targets.append(target_variant)
+	_filtered_targets_cache[component_id] = targets
 	return targets
 
 func _prepare_tick_data(components: Array, player_data: Dictionary) -> Dictionary:

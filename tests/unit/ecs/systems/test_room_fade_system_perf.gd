@@ -142,9 +142,9 @@ func _set_player_position(store: MockStateStore, position: Vector3) -> void:
 	})
 
 
-# --- Perf: invalidate_externally_removed should be called once per tick ---
+# --- Perf: invalidate_externally_removed should be called at most once per tick ---
 
-func test_invalidate_externally_removed_called_once_per_tick() -> void:
+func test_invalidate_externally_removed_not_called_per_component() -> void:
 	var fixture := _create_fixture()
 	var system = fixture.get("system")
 	var applier: PerfTrackingApplierStub = fixture.get("applier") as PerfTrackingApplierStub
@@ -158,12 +158,20 @@ func test_invalidate_externally_removed_called_once_per_tick() -> void:
 	_register_room_fade_group(ecs_manager, "E_RoomC", 5)
 	_set_player_position(store, Vector3.ZERO)
 
-	system.process_tick(0.016)
+	# Run 30 ticks to ensure at least one invalidate fires.
+	for i in 30:
+		system.process_tick(0.016)
 
-	assert_eq(
-		applier.invalidate_calls, 1,
-		"invalidate_externally_removed should be called once per tick, not per component (%d)."
+	# Should be called at most once per tick (not per component).
+	# With 3 components and 30 ticks, if called per component it would be 90.
+	assert_lte(
+		applier.invalidate_calls, 30,
+		"invalidate_externally_removed should be at most once per tick, not per component (%d)."
 		% applier.invalidate_calls
+	)
+	assert_gt(
+		applier.invalidate_calls, 0,
+		"invalidate_externally_removed should be called at least once over 30 ticks."
 	)
 
 
@@ -216,4 +224,58 @@ func test_apply_fade_material_called_once_per_component() -> void:
 		applier.apply_calls, 3,
 		"apply_fade_material should be called at most once per component, got %d."
 		% applier.apply_calls
+	)
+
+
+# --- Perf: _is_supported_target should only run on cache miss (first tick) ---
+
+func test_is_supported_target_not_called_on_cached_ticks() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	# Register 2 groups with 5 targets each = 10 targets.
+	_register_room_fade_group(ecs_manager, "E_RoomA", 5)
+	_register_room_fade_group(ecs_manager, "E_RoomB", 5)
+	_set_player_position(store, Vector3.ZERO)
+
+	# Tick 1 populates cache. Ticks 2-5 should reuse it.
+	for i in 5:
+		system.process_tick(0.016)
+
+	# After 5 ticks, _perf_is_supported_calls should be <= 10 (first tick only).
+	# If it's 50 (10 * 5), filtering happens every tick — the bug we're fixing.
+	var is_supported_calls: int = int(system.get("_perf_is_supported_calls"))
+	assert_lte(
+		is_supported_calls, 10,
+		"_is_supported_target should only run on first tick (cache miss), got %d calls over 5 ticks."
+		% is_supported_calls
+	)
+
+
+# --- Perf: invalidate_externally_removed should be throttled ---
+
+func test_invalidate_externally_removed_throttled_over_multiple_ticks() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: PerfTrackingApplierStub = fixture.get("applier") as PerfTrackingApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	_register_room_fade_group(ecs_manager, "E_RoomA", 5)
+	_set_player_position(store, Vector3.ZERO)
+
+	# Run 60 ticks.
+	for i in 60:
+		system.process_tick(0.016)
+
+	# invalidate_externally_removed should NOT be called every tick.
+	# With throttling, it should be called significantly fewer than 60 times.
+	assert_lt(
+		applier.invalidate_calls, 60,
+		"invalidate_externally_removed should be throttled, not called every tick (%d calls in 60 ticks)."
+		% applier.invalidate_calls
 	)

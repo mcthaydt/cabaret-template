@@ -12,6 +12,19 @@ const TARGET_TYPE_CSG := "csg"
 var _material_cache: Dictionary = {}
 var _shader: Shader = SH_ROOM_FADE
 
+func are_all_targets_applied(targets: Array) -> bool:
+	if targets.is_empty():
+		return true
+	for target_variant in targets:
+		if not (target_variant is Node3D):
+			return false
+		var target: Node3D = target_variant as Node3D
+		if target == null or not is_instance_valid(target):
+			return false
+		if not _material_cache.has(target.get_instance_id()):
+			return false
+	return true
+
 func is_fade_applied(target: Node3D) -> bool:
 	if target == null or not is_instance_valid(target):
 		return false

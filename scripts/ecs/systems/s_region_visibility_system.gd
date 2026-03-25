@@ -33,6 +33,9 @@ var _target_alpha_by_id: Dictionary = {}
 var _active_region_tags: Array[StringName] = []
 var _near_region_tags: Array[StringName] = []
 var _region_alpha_by_tag: Dictionary = {}
+var _filtered_targets_cache: Dictionary = {}  # int (component id) -> Array
+
+var _perf_is_supported_calls: int = 0
 
 func _init() -> void:
 	execution_priority = 100
@@ -146,6 +149,7 @@ func _exit_tree() -> void:
 	_target_alpha_by_id.clear()
 	_near_region_tags.clear()
 	_region_alpha_by_tag.clear()
+	_filtered_targets_cache.clear()
 
 func _resolve_state_store() -> I_STATE_STORE:
 	if _state_store != null and is_instance_valid(_state_store):
@@ -219,14 +223,22 @@ func _collect_mesh_targets(component: Object) -> Array:
 		return []
 	if not component.has_method("collect_mesh_targets"):
 		return []
+
+	var component_id: int = component.get_instance_id()
+	var is_cache_valid: bool = component.has_method("is_target_cache_valid") and bool(component.call("is_target_cache_valid"))
+	if is_cache_valid and _filtered_targets_cache.has(component_id):
+		return _filtered_targets_cache[component_id] as Array
+
 	var targets_variant: Variant = component.call("collect_mesh_targets")
 	if not (targets_variant is Array):
 		return []
 
 	var targets: Array = []
 	for target_variant in targets_variant as Array:
+		_perf_is_supported_calls += 1
 		if _is_supported_target(target_variant):
 			targets.append(target_variant)
+	_filtered_targets_cache[component_id] = targets
 	return targets
 
 func _is_player_in_zone(

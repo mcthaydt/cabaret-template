@@ -295,3 +295,74 @@ func test_update_single_fade_alpha_works_for_csg_shapes() -> void:
 	var fade_material := csg_shape.material as ShaderMaterial
 	assert_not_null(fade_material)
 	assert_almost_eq(float(fade_material.get_shader_parameter(PARAM_FADE_ALPHA)), 0.3, 0.0001)
+
+# --- Perf: are_all_targets_applied lets callers skip redundant apply_fade_material ---
+
+func test_are_all_targets_applied_returns_false_before_apply() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = _create_test_texture()
+	var mesh_a := _create_mesh_instance(material)
+	var mesh_b := _create_mesh_instance(material)
+	autofree(mesh_a)
+	autofree(mesh_b)
+
+	assert_false(
+		applier.are_all_targets_applied([mesh_a, mesh_b]),
+		"Should return false when no targets have been applied."
+	)
+
+func test_are_all_targets_applied_returns_true_after_full_apply() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = _create_test_texture()
+	var mesh_a := _create_mesh_instance(material)
+	var mesh_b := _create_mesh_instance(material)
+	autofree(mesh_a)
+	autofree(mesh_b)
+
+	applier.apply_fade_material([mesh_a, mesh_b])
+
+	assert_true(
+		applier.are_all_targets_applied([mesh_a, mesh_b]),
+		"Should return true when all targets are already applied."
+	)
+
+func test_are_all_targets_applied_returns_false_after_partial_apply() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = _create_test_texture()
+	var mesh_a := _create_mesh_instance(material)
+	var mesh_b := _create_mesh_instance(material)
+	autofree(mesh_a)
+	autofree(mesh_b)
+
+	applier.apply_fade_material([mesh_a])
+
+	assert_false(
+		applier.are_all_targets_applied([mesh_a, mesh_b]),
+		"Should return false when only some targets are applied."
+	)
+
+func test_are_all_targets_applied_returns_true_for_empty_array() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	assert_true(
+		applier.are_all_targets_applied([]),
+		"Should return true for empty target array."
+	)
