@@ -160,7 +160,7 @@ var _objective_victory_unsubscribe: Callable
 var skip_initial_scene_load: bool = false
 
 ## Initial scene to load on startup (configurable for testing)
-@export var initial_scene_id: StringName = StringName("main_menu")
+@export var initial_scene_id: StringName = StringName("splash_screen")
 
 func _debug_log(message: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
@@ -375,6 +375,7 @@ func _on_objective_victory(event: Dictionary) -> void:
 ## Load initial scene on startup
 func _load_initial_scene() -> void:
 	# Load initial scene (configurable via export var)
+	# Default is splash_screen which handles language_selector/main_menu redirect
 	var scene_id := initial_scene_id
 	if scene_id == StringName("language_selector") and _store != null:
 		var state: Dictionary = _store.get_state()
