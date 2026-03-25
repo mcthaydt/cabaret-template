@@ -21,8 +21,6 @@ boot_splash/minimum_display_time=5
 window/size/viewport_width=960
 window/size/viewport_height=600
 window/size/resizable=false
-window/size/window_width_override=1280
-window/size/window_height_override=720
 window/stretch/mode="viewport"
 
 [editor_plugins]
@@ -237,9 +235,13 @@ camera_center={
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
+textures/default_filters/use_nearest_mipmap_filter=true
+textures/decals/filter=0
+textures/light_projectors/filter=0
 textures/canvas_textures_default_texture_filter=2
 
 [state]
