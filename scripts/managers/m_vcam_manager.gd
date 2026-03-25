@@ -52,12 +52,14 @@ var _silhouette_clear_published: bool = false
 var _occlusion_frame_counter: int = 0
 var _last_occlusion_camera_pos: Vector3 = Vector3.ZERO
 var _last_occlusion_target_pos: Vector3 = Vector3.ZERO
+var _is_mobile: bool = false
 
 func _ready() -> void:
 	var service_name := StringName("vcam_manager")
 	var existing := U_SERVICE_LOCATOR.try_get_service(service_name)
 	if existing != self:
 		U_SERVICE_LOCATOR.register(service_name, self)
+	_is_mobile = OS.has_feature("mobile")
 	_state_store = _resolve_state_store()
 	_camera_manager = _resolve_camera_manager()
 	_ecs_manager = _resolve_ecs_manager()
@@ -751,6 +753,8 @@ func _clear_all_silhouettes(entity_id: StringName) -> void:
 	_last_occlusion_target_pos = Vector3.ZERO
 
 func _is_occlusion_silhouette_enabled() -> bool:
+	if _is_mobile:
+		return false
 	var store := _resolve_state_store()
 	if store == null:
 		return true

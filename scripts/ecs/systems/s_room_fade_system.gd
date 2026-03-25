@@ -44,11 +44,15 @@ var _debug_tick_counter: int = 0
 var _filtered_targets_cache: Dictionary = {}  # int (component id) -> Array
 var _invalidate_tick_counter: int = 0
 const INVALIDATE_INTERVAL := 30
+const MOBILE_TICK_INTERVAL: int = 4
 
 var _perf_is_supported_calls: int = 0
+var _is_mobile: bool = false
+var _mobile_tick_counter: int = 0
 
 func _init() -> void:
 	execution_priority = 110
+	_is_mobile = OS.has_feature("mobile")
 
 func on_configured() -> void:
 	_camera_manager = _resolve_camera_manager()
@@ -82,6 +86,11 @@ func process_tick(delta: float) -> void:
 		if should_log_debug:
 			_debug_log_skip("no_material_applier", mode_info)
 		return
+
+	if _is_mobile:
+		_mobile_tick_counter += 1
+		if (_mobile_tick_counter % MOBILE_TICK_INTERVAL) != 0:
+			return
 
 	var camera_forward: Vector3 = -main_camera.global_transform.basis.z
 	var camera_position: Vector3 = main_camera.global_transform.origin
@@ -131,125 +140,160 @@ func process_tick(delta: float) -> void:
 		var component_alpha_sum: float = 0.0
 		var component_alpha_count: int = 0
 		var faded_target_count: int = 0
-		var debug_target_logs: Array[String] = []
-		var faded_normal_bucket_counts: Dictionary = {}
-		var target_eval_infos: Array[Dictionary] = []
-		var bucket_has_corridor_hit: Dictionary = {}
 
-		for target_variant in targets:
-			if not (target_variant is Node3D) or not is_instance_valid(target_variant):
-				continue
-			var target: Node3D = target_variant as Node3D
-			var target_id: int = target.get_instance_id()
-			var target_normal: Vector3
-			var target_normal_source: String
-			if _cached_normals.has(target_id):
-				target_normal = _cached_normals[target_id] as Vector3
-				target_normal_source = "cached"
-			else:
-				var target_normal_data: Dictionary = _resolve_target_world_normal_info(component, target, targets.size())
-				target_normal = target_normal_data.get("normal", Vector3.FORWARD) as Vector3
-				target_normal_source = str(target_normal_data.get("source", "unknown"))
-				_cached_normals[target_id] = target_normal
+		if _is_mobile:
+			# Mobile: single-pass dot-product-only fade (no corridor, no buckets)
+			for target_variant in targets:
+				if not (target_variant is Node3D) or not is_instance_valid(target_variant):
+					continue
+				var target: Node3D = target_variant as Node3D
+				var target_id: int = target.get_instance_id()
+				var target_normal: Vector3
+				if _cached_normals.has(target_id):
+					target_normal = _cached_normals[target_id] as Vector3
+				else:
+					var target_normal_data: Dictionary = _resolve_target_world_normal_info(component, target, targets.size())
+					target_normal = target_normal_data.get("normal", Vector3.FORWARD) as Vector3
+					_cached_normals[target_id] = target_normal
 
-			var dot_value: float = camera_forward.dot(target_normal)
-			var bucket_key: String = _resolve_normal_bucket_key(target_normal)
-			var target_alpha_before_corridor: float = _resolve_target_alpha(camera_forward, target_normal, settings)
-			var corridor_pass: bool = true
-			if target_alpha_before_corridor < 1.0 and has_player_position:
-				corridor_pass = _passes_camera_player_occlusion_corridor(target, camera_position, player_position)
-				if corridor_pass:
-					bucket_has_corridor_hit[bucket_key] = true
+				var target_alpha: float = _resolve_target_alpha(camera_forward, target_normal, settings)
+				var current_alpha: float = _resolve_current_target_alpha(target_id, component)
+				var next_alpha: float = current_alpha
+				if fade_speed > 0.0:
+					next_alpha = move_toward(next_alpha, target_alpha, fade_speed * resolved_delta)
+				next_alpha = clampf(next_alpha, min_alpha, 1.0)
+				if target_alpha < 1.0:
+					faded_target_count += 1
 
-			target_eval_infos.append({
-				"target": target,
-				"target_id": target_id,
-				"target_normal": target_normal,
-				"target_normal_source": target_normal_source,
-				"dot_value": dot_value,
-				"bucket_key": bucket_key,
-				"target_alpha_before_corridor": target_alpha_before_corridor,
-				"corridor_pass": corridor_pass,
-			})
+				_target_alpha_by_id[target_id] = next_alpha
+				applier.update_single_fade_alpha(target, next_alpha)
 
-		for target_info_variant in target_eval_infos:
-			if not (target_info_variant is Dictionary):
-				continue
-			var target_info: Dictionary = target_info_variant as Dictionary
-			var target: Node3D = target_info.get("target", null) as Node3D
-			if target == null or not is_instance_valid(target):
-				continue
-			var target_id: int = int(target_info.get("target_id", -1))
-			if target_id < 0:
-				continue
-			var target_normal: Vector3 = target_info.get("target_normal", Vector3.FORWARD) as Vector3
-			var target_normal_source: String = str(target_info.get("target_normal_source", "unknown"))
-			var dot_value: float = float(target_info.get("dot_value", 0.0))
-			var bucket_key: String = str(target_info.get("bucket_key", ""))
-			var target_alpha: float = float(target_info.get("target_alpha_before_corridor", 1.0))
-			var corridor_pass: bool = bool(target_info.get("corridor_pass", true))
+				active_targets[target_id] = target
+				component_alpha_sum += next_alpha
+				component_alpha_count += 1
+		else:
+			# Desktop: two-pass evaluation with corridor + bucket continuity
+			var debug_target_logs: Array[String] = []
+			var faded_normal_bucket_counts: Dictionary = {}
+			var target_eval_infos: Array[Dictionary] = []
+			var bucket_has_corridor_hit: Dictionary = {}
 
-			if target_alpha < 1.0 and has_player_position and not corridor_pass:
-				var bucket_continuity_hit: bool = bool(bucket_has_corridor_hit.get(bucket_key, false))
-				if not bucket_continuity_hit:
-					target_alpha = 1.0
+			for target_variant in targets:
+				if not (target_variant is Node3D) or not is_instance_valid(target_variant):
+					continue
+				var target: Node3D = target_variant as Node3D
+				var target_id: int = target.get_instance_id()
+				var target_normal: Vector3
+				var target_normal_source: String
+				if _cached_normals.has(target_id):
+					target_normal = _cached_normals[target_id] as Vector3
+					target_normal_source = "cached"
+				else:
+					var target_normal_data: Dictionary = _resolve_target_world_normal_info(component, target, targets.size())
+					target_normal = target_normal_data.get("normal", Vector3.FORWARD) as Vector3
+					target_normal_source = str(target_normal_data.get("source", "unknown"))
+					_cached_normals[target_id] = target_normal
 
-			var current_alpha: float = _resolve_current_target_alpha(target_id, component)
-			var next_alpha: float = current_alpha
-			if fade_speed > 0.0:
-				next_alpha = move_toward(next_alpha, target_alpha, fade_speed * resolved_delta)
-			next_alpha = clampf(next_alpha, min_alpha, 1.0)
-			if target_alpha < 1.0:
-				faded_target_count += 1
-				faded_normal_bucket_counts[bucket_key] = int(faded_normal_bucket_counts.get(bucket_key, 0)) + 1
+				var dot_value: float = camera_forward.dot(target_normal)
+				var bucket_key: String = _resolve_normal_bucket_key(target_normal)
+				var target_alpha_before_corridor: float = _resolve_target_alpha(camera_forward, target_normal, settings)
+				var corridor_pass: bool = true
+				if target_alpha_before_corridor < 1.0 and has_player_position:
+					corridor_pass = _passes_camera_player_occlusion_corridor(target, camera_position, player_position)
+					if corridor_pass:
+						bucket_has_corridor_hit[bucket_key] = true
 
-			_target_alpha_by_id[target_id] = next_alpha
-			applier.update_single_fade_alpha(target, next_alpha)
+				target_eval_infos.append({
+					"target": target,
+					"target_id": target_id,
+					"target_normal": target_normal,
+					"target_normal_source": target_normal_source,
+					"dot_value": dot_value,
+					"bucket_key": bucket_key,
+					"target_alpha_before_corridor": target_alpha_before_corridor,
+					"corridor_pass": corridor_pass,
+				})
 
-			active_targets[target_id] = target
-			component_alpha_sum += next_alpha
-			component_alpha_count += 1
-			if should_log_component_debug and _should_log_target_decision(dot_value, threshold, target_alpha):
-				if debug_target_logs.size() < DEBUG_MAX_TARGET_LOGS_PER_COMPONENT:
-					debug_target_logs.append(_format_target_debug_line(
-						target,
-						target_normal_source,
-						target_normal,
-						dot_value,
-						threshold,
-						target_alpha,
-						current_alpha,
-						next_alpha
-					))
-					var target_diag_lines: Array[String] = _build_target_diagnostic_lines(
-						target,
-						target_normal,
-						target_normal_source,
-						dot_value,
-						threshold,
-						target_alpha,
-						camera_position,
-						player_position,
-						has_player_position
-					)
-					for diag_line in target_diag_lines:
-						debug_target_logs.append(diag_line)
+			for target_info_variant in target_eval_infos:
+				if not (target_info_variant is Dictionary):
+					continue
+				var target_info: Dictionary = target_info_variant as Dictionary
+				var target: Node3D = target_info.get("target", null) as Node3D
+				if target == null or not is_instance_valid(target):
+					continue
+				var target_id: int = int(target_info.get("target_id", -1))
+				if target_id < 0:
+					continue
+				var target_normal: Vector3 = target_info.get("target_normal", Vector3.FORWARD) as Vector3
+				var target_normal_source: String = str(target_info.get("target_normal_source", "unknown"))
+				var dot_value: float = float(target_info.get("dot_value", 0.0))
+				var bucket_key: String = str(target_info.get("bucket_key", ""))
+				var target_alpha: float = float(target_info.get("target_alpha_before_corridor", 1.0))
+				var corridor_pass: bool = bool(target_info.get("corridor_pass", true))
 
-		if component_alpha_count > 0:
-			var component_average_alpha: float = component_alpha_sum / float(component_alpha_count)
-			component.set("current_alpha", component_average_alpha)
-			if should_log_component_debug:
+				if target_alpha < 1.0 and has_player_position and not corridor_pass:
+					var bucket_continuity_hit: bool = bool(bucket_has_corridor_hit.get(bucket_key, false))
+					if not bucket_continuity_hit:
+						target_alpha = 1.0
+
+				var current_alpha: float = _resolve_current_target_alpha(target_id, component)
+				var next_alpha: float = current_alpha
+				if fade_speed > 0.0:
+					next_alpha = move_toward(next_alpha, target_alpha, fade_speed * resolved_delta)
+				next_alpha = clampf(next_alpha, min_alpha, 1.0)
+				if target_alpha < 1.0:
+					faded_target_count += 1
+					faded_normal_bucket_counts[bucket_key] = int(faded_normal_bucket_counts.get(bucket_key, 0)) + 1
+
+				_target_alpha_by_id[target_id] = next_alpha
+				applier.update_single_fade_alpha(target, next_alpha)
+
+				active_targets[target_id] = target
+				component_alpha_sum += next_alpha
+				component_alpha_count += 1
+				if should_log_component_debug and _should_log_target_decision(dot_value, threshold, target_alpha):
+					if debug_target_logs.size() < DEBUG_MAX_TARGET_LOGS_PER_COMPONENT:
+						debug_target_logs.append(_format_target_debug_line(
+							target,
+							target_normal_source,
+							target_normal,
+							dot_value,
+							threshold,
+							target_alpha,
+							current_alpha,
+							next_alpha
+						))
+						var target_diag_lines: Array[String] = _build_target_diagnostic_lines(
+							target,
+							target_normal,
+							target_normal_source,
+							dot_value,
+							threshold,
+							target_alpha,
+							camera_position,
+							player_position,
+							has_player_position
+						)
+						for diag_line in target_diag_lines:
+							debug_target_logs.append(diag_line)
+
+			if component_alpha_count > 0 and should_log_component_debug:
+				var desktop_average_alpha: float = component_alpha_sum / float(component_alpha_count)
 				_debug_log_component_summary(
 					component,
 					targets,
 					faded_target_count,
-					component_average_alpha,
+					desktop_average_alpha,
 					threshold,
 					min_alpha,
 					fade_speed,
 					debug_target_logs
 				)
 				_debug_log_faded_normal_bucket_summary(component, faded_normal_bucket_counts)
+
+		if component_alpha_count > 0:
+			var component_average_alpha: float = component_alpha_sum / float(component_alpha_count)
+			component.set("current_alpha", component_average_alpha)
 
 	_restore_stale_targets(active_targets)
 
