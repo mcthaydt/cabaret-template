@@ -32,9 +32,17 @@ class RoomFadeMaterialApplierStub extends RefCounted:
 		last_updated_alpha = alpha
 		last_updated_target_count = targets.size()
 
+	func update_single_fade_alpha(target: Node3D, alpha: float) -> void:
+		update_calls += 1
+		last_updated_alpha = alpha
+		last_updated_target_count = 1
+
 	func restore_original_materials(targets: Array) -> void:
 		restore_calls += 1
 		last_restore_target_count = targets.size()
+
+	func get_cached_mesh_count() -> int:
+		return 0
 
 func _room_fade_system_script() -> Script:
 	var script_obj := load(ROOM_FADE_SYSTEM_PATH) as Script

@@ -34,9 +34,19 @@ class RoomFadeMaterialApplierStub extends RefCounted:
 				continue
 			updated_alpha_by_target_id[target.get_instance_id()] = alpha
 
+	func update_single_fade_alpha(target: Node3D, alpha: float) -> void:
+		update_calls += 1
+		last_updated_alpha = alpha
+		last_updated_target_count = 1
+		if target != null:
+			updated_alpha_by_target_id[target.get_instance_id()] = alpha
+
 	func restore_original_materials(targets: Array) -> void:
 		restore_calls += 1
 		last_restore_target_count = targets.size()
+
+	func get_cached_mesh_count() -> int:
+		return 0
 
 class DuplicateOwnershipWarningRecorder extends RefCounted:
 	var messages: Array[String] = []

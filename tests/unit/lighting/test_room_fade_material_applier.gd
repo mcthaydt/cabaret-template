@@ -223,3 +223,75 @@ func test_apply_and_restore_supports_csg_shapes() -> void:
 
 	applier.restore_original_materials([csg_shape])
 	assert_eq(csg_shape.material, original_material)
+
+# --- Single-target update API ---
+
+func test_update_single_fade_alpha_sets_shader_parameter() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = _create_test_texture()
+	var mesh_instance := _create_mesh_instance(material)
+	autofree(mesh_instance)
+
+	applier.apply_fade_material([mesh_instance])
+	applier.update_single_fade_alpha(mesh_instance, 0.5)
+
+	var override_material := mesh_instance.material_override as ShaderMaterial
+	assert_not_null(override_material)
+	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_FADE_ALPHA)), 0.5, 0.0001)
+
+func test_update_single_fade_alpha_skips_uncached_target() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var mesh_instance := _create_mesh_instance(null)
+	autofree(mesh_instance)
+
+	# Should not error or crash when target has no cached fade material.
+	applier.update_single_fade_alpha(mesh_instance, 0.5)
+	assert_null(mesh_instance.material_override)
+
+func test_update_single_fade_alpha_clamps_alpha() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = _create_test_texture()
+	var mesh_instance := _create_mesh_instance(material)
+	autofree(mesh_instance)
+
+	applier.apply_fade_material([mesh_instance])
+	applier.update_single_fade_alpha(mesh_instance, -0.5)
+
+	var override_material := mesh_instance.material_override as ShaderMaterial
+	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_FADE_ALPHA)), 0.0, 0.0001)
+
+	applier.update_single_fade_alpha(mesh_instance, 1.5)
+	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_FADE_ALPHA)), 1.0, 0.0001)
+
+func test_update_single_fade_alpha_works_for_csg_shapes() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+
+	var original_material := StandardMaterial3D.new()
+	original_material.albedo_texture = _create_test_texture()
+	var csg_shape := CSGBox3D.new()
+	csg_shape.material = original_material
+	autofree(csg_shape)
+
+	applier.apply_fade_material([csg_shape])
+	applier.update_single_fade_alpha(csg_shape, 0.3)
+
+	var fade_material := csg_shape.material as ShaderMaterial
+	assert_not_null(fade_material)
+	assert_almost_eq(float(fade_material.get_shader_parameter(PARAM_FADE_ALPHA)), 0.3, 0.0001)

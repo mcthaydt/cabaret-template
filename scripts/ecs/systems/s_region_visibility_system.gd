@@ -119,11 +119,12 @@ func process_tick(delta: float) -> void:
 		applier.apply_fade_material(targets)
 		applier.update_fade_alpha(targets, next_alpha)
 		for target_variant in targets:
-			if _is_supported_target(target_variant):
-				var target: Node3D = target_variant as Node3D
-				var target_id: int = target.get_instance_id()
-				active_targets[target_id] = target
-				_target_alpha_by_id[target_id] = next_alpha
+			if not (target_variant is Node3D) or not is_instance_valid(target_variant):
+				continue
+			var target: Node3D = target_variant as Node3D
+			var target_id: int = target.get_instance_id()
+			active_targets[target_id] = target
+			_target_alpha_by_id[target_id] = next_alpha
 
 	_active_region_tags = new_active_tags
 	_near_region_tags = new_near_tags
@@ -247,9 +248,10 @@ func _is_player_in_zone(
 	return expanded.has_point(player_position)
 
 func _resolve_aabb_from_targets(targets: Array) -> AABB:
+	# Targets are pre-filtered by _collect_mesh_targets — skip redundant type checks.
 	var first_valid: Node3D = null
 	for target_variant in targets:
-		if _is_supported_target(target_variant):
+		if target_variant is Node3D and is_instance_valid(target_variant):
 			first_valid = target_variant as Node3D
 			break
 	if first_valid == null:
@@ -257,7 +259,7 @@ func _resolve_aabb_from_targets(targets: Array) -> AABB:
 
 	var result: AABB = AABB(first_valid.global_position, Vector3.ZERO)
 	for target_variant in targets:
-		if not _is_supported_target(target_variant):
+		if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 			continue
 		var target: Node3D = target_variant as Node3D
 		result = result.expand(target.global_position)
@@ -278,7 +280,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 		component.set("is_near_region", false)
 		var targets: Array = _collect_mesh_targets(component)
 		for target_variant in targets:
-			if not _is_supported_target(target_variant):
+			if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 				continue
 			var target: Node3D = target_variant as Node3D
 			var target_id: int = target.get_instance_id()
@@ -289,7 +291,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 			restore_targets.append(target)
 
 	for target_variant in _tracked_targets.values():
-		if not _is_supported_target(target_variant):
+		if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 			continue
 		var tracked_target: Node3D = target_variant as Node3D
 		var tracked_id: int = tracked_target.get_instance_id()
@@ -320,7 +322,7 @@ func _restore_stale_targets(active_targets: Dictionary) -> void:
 		if active_targets.has(target_id):
 			continue
 		var target_variant: Variant = _tracked_targets.get(target_id, null)
-		if _is_supported_target(target_variant):
+		if target_variant is Node3D and is_instance_valid(target_variant):
 			stale_targets.append(target_variant)
 		_target_alpha_by_id.erase(target_id)
 

@@ -87,9 +87,11 @@ func process_tick(delta: float) -> void:
 	var has_player_position: bool = player_data.has("position")
 	var player_position: Vector3 = player_data.get("position", Vector3.ZERO) as Vector3
 
-	components = _filter_components_by_active_room(components)
-	var target_ownership: Dictionary = _build_target_ownership(components)
-	var owned_targets_by_component: Dictionary = target_ownership.get("owned_targets_by_component", {})
+	var tick_data: Dictionary = _prepare_tick_data(components, player_data)
+	components = tick_data.get("filtered_components", []) as Array
+	var owned_targets_by_component: Dictionary = tick_data.get("owned_targets_by_component", {})
+
+	applier.invalidate_externally_removed()
 
 	if should_log_debug:
 		_debug_log_tick_header(mode_info, main_camera, camera_forward, components.size(), resolved_delta)
@@ -113,7 +115,6 @@ func process_tick(delta: float) -> void:
 			continue
 
 		_cache_component_centroid(component, targets)
-		applier.invalidate_externally_removed()
 		applier.apply_fade_material(targets)
 
 		var settings: Dictionary = _resolve_settings(component)
@@ -129,7 +130,7 @@ func process_tick(delta: float) -> void:
 		var bucket_has_corridor_hit: Dictionary = {}
 
 		for target_variant in targets:
-			if not _is_supported_target(target_variant):
+			if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 				continue
 			var target: Node3D = target_variant as Node3D
 			var target_id: int = target.get_instance_id()
@@ -196,7 +197,7 @@ func process_tick(delta: float) -> void:
 				faded_normal_bucket_counts[bucket_key] = int(faded_normal_bucket_counts.get(bucket_key, 0)) + 1
 
 			_target_alpha_by_id[target_id] = next_alpha
-			applier.update_fade_alpha([target], next_alpha)
+			applier.update_single_fade_alpha(target, next_alpha)
 
 			active_targets[target_id] = target
 			component_alpha_sum += next_alpha
@@ -333,28 +334,65 @@ func _collect_mesh_targets(component: Object) -> Array:
 			targets.append(target_variant)
 	return targets
 
-func _build_target_ownership(components: Array) -> Dictionary:
-	var owned_targets_by_component: Dictionary = {}  # int -> Array[Node3D]
-	var owner_component_by_target_id: Dictionary = {}  # int -> Object
-	var warning_pairs: Dictionary = {}  # String(target_id:component_id) -> true
+func _prepare_tick_data(components: Array, player_data: Dictionary) -> Dictionary:
+	# Single pass: collect targets once per component, filter by active room, and assign ownership.
+	var has_player: bool = player_data.has("position")
+	var player_position: Vector3 = player_data.get("position", Vector3.ZERO) as Vector3
+	var do_room_filter: bool = has_player and components.size() > 1
 
+	# Phase 1: collect targets + compute AABBs for room filtering.
+	var targets_by_component_id: Dictionary = {}  # int -> Array
+	var matching_components: Array = []
 	for component_variant in components:
 		if component_variant == null or not is_instance_valid(component_variant):
 			continue
 		if not (component_variant is Object):
 			continue
 		var component: Object = component_variant as Object
-		var component_id: int = component.get_instance_id()
 		var targets: Array = _collect_mesh_targets(component)
 		if targets.is_empty():
 			continue
+		var component_id: int = component.get_instance_id()
+		targets_by_component_id[component_id] = targets
+
+		if do_room_filter:
+			var room_aabb: AABB = _resolve_aabb_from_validated_targets(targets)
+			var expanded: AABB = room_aabb.grow(2.0)
+			expanded.position.y = room_aabb.position.y - 0.5
+			expanded.size.y = room_aabb.size.y + 1.0
+			if expanded.has_point(player_position):
+				matching_components.append(component_variant)
+		else:
+			matching_components.append(component_variant)
+
+	if do_room_filter and matching_components.is_empty():
+		matching_components = components
+
+	# Phase 2: assign ownership using pre-collected targets.
+	var owned_targets_by_component: Dictionary = {}  # int -> Array[Node3D]
+	var owner_component_by_target_id: Dictionary = {}  # int -> Object
+	var warning_pairs: Dictionary = {}
+
+	for component_variant in matching_components:
+		if component_variant == null or not is_instance_valid(component_variant):
+			continue
+		if not (component_variant is Object):
+			continue
+		var component: Object = component_variant as Object
+		var component_id: int = component.get_instance_id()
+		var targets_variant: Variant = targets_by_component_id.get(component_id, null)
+		if targets_variant == null or not (targets_variant is Array):
+			continue
+		var targets: Array = targets_variant as Array
 
 		var owned_targets: Array = []
-		var seen_targets_for_component: Dictionary = {}  # int -> true
+		var seen_targets_for_component: Dictionary = {}
 		for target_variant in targets:
-			if not _is_supported_target(target_variant):
+			if not (target_variant is Node3D):
 				continue
 			var target: Node3D = target_variant as Node3D
+			if not is_instance_valid(target):
+				continue
 			var target_id: int = target.get_instance_id()
 			if seen_targets_for_component.has(target_id):
 				continue
@@ -375,16 +413,14 @@ func _build_target_ownership(components: Array) -> Dictionary:
 				continue
 
 			_warn_duplicate_target_ownership_once_per_tick(
-				component,
-				owner_component,
-				target,
-				warning_pairs
+				component, owner_component, target, warning_pairs
 			)
 
 		if not owned_targets.is_empty():
 			owned_targets_by_component[component_id] = owned_targets
 
 	return {
+		"filtered_components": matching_components,
 		"owned_targets_by_component": owned_targets_by_component,
 	}
 
@@ -641,7 +677,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 		component.set("current_alpha", 1.0)
 		var targets: Array = _collect_mesh_targets(component)
 		for target_variant in targets:
-			if not _is_supported_target(target_variant):
+			if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 				continue
 			var target: Node3D = target_variant as Node3D
 			var target_id: int = target.get_instance_id()
@@ -652,7 +688,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 			restore_targets.append(target)
 
 	for target_variant in _tracked_targets.values():
-		if not _is_supported_target(target_variant):
+		if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 			continue
 		var tracked_target: Node3D = target_variant as Node3D
 		var tracked_id: int = tracked_target.get_instance_id()
@@ -683,7 +719,7 @@ func _restore_stale_targets(active_targets: Dictionary) -> void:
 		if active_targets.has(target_id):
 			continue
 		var target_variant: Variant = _tracked_targets.get(target_id, null)
-		if _is_supported_target(target_variant):
+		if target_variant is Node3D and is_instance_valid(target_variant):
 			stale_targets.append(target_variant)
 		_target_alpha_by_id.erase(target_id)
 		_cached_normals.erase(target_id)
@@ -1001,9 +1037,13 @@ func _filter_components_by_active_room(components: Array) -> Array:
 	return matching
 
 func _resolve_room_aabb_from_targets(targets: Array) -> AABB:
+	return _resolve_aabb_from_validated_targets(targets)
+
+func _resolve_aabb_from_validated_targets(targets: Array) -> AABB:
+	# Targets are pre-filtered by _collect_mesh_targets — skip redundant type checks.
 	var first_valid: Node3D = null
 	for target_variant in targets:
-		if _is_supported_target(target_variant):
+		if target_variant is Node3D and is_instance_valid(target_variant):
 			first_valid = target_variant as Node3D
 			break
 	if first_valid == null:
@@ -1011,7 +1051,7 @@ func _resolve_room_aabb_from_targets(targets: Array) -> AABB:
 
 	var result: AABB = AABB(first_valid.global_position, Vector3.ZERO)
 	for target_variant in targets:
-		if not _is_supported_target(target_variant):
+		if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 			continue
 		var target: Node3D = target_variant as Node3D
 		result = result.expand(target.global_position)

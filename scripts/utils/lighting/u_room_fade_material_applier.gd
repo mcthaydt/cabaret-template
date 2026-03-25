@@ -18,7 +18,6 @@ func is_fade_applied(target: Node3D) -> bool:
 	return _material_cache.has(target.get_instance_id())
 
 func apply_fade_material(targets: Array) -> void:
-	_prune_invalid_cache_entries()
 	for target_variant in targets:
 		if target_variant is MeshInstance3D:
 			_apply_mesh_fade_material(target_variant as MeshInstance3D)
@@ -36,6 +35,15 @@ func update_fade_alpha(targets: Array, alpha: float) -> void:
 		if shader_material == null:
 			continue
 		shader_material.set_shader_parameter(PARAM_FADE_ALPHA, resolved_alpha)
+
+func update_single_fade_alpha(target: Node3D, alpha: float) -> void:
+	var target_id: int = _resolve_target_id(target)
+	if target_id == -1:
+		return
+	var shader_material := _get_cached_shader_material(target_id)
+	if shader_material == null:
+		return
+	shader_material.set_shader_parameter(PARAM_FADE_ALPHA, clampf(alpha, 0.0, 1.0))
 
 func restore_original_materials(targets: Array) -> void:
 	for target_variant in targets:
