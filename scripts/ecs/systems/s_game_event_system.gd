@@ -10,6 +10,7 @@ const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker
 const U_RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
 const EFFECT_PUBLISH_EVENT_SCRIPT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
 const CONDITION_EVENT_NAME_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
+const CONDITION_COMPOSITE_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
 
 const TRIGGER_MODE_TICK := "tick"
 const TRIGGER_MODE_EVENT := "event"
@@ -339,22 +340,36 @@ func _extract_event_names_from_rule(rule_variant: Variant) -> Array[StringName]:
 		return event_names
 
 	for condition_variant in conditions_variant as Array:
-		var condition_event_name: StringName = _extract_event_name_from_condition(condition_variant)
-		if condition_event_name == StringName():
-			continue
-		if event_names.has(condition_event_name):
-			continue
-		event_names.append(condition_event_name)
+		_collect_event_names_from_condition(condition_variant, event_names)
 
 	return event_names
 
-func _extract_event_name_from_condition(condition_variant: Variant) -> StringName:
+func _collect_event_names_from_condition(condition_variant: Variant, event_names: Array[StringName]) -> void:
 	if condition_variant == null or not (condition_variant is Object):
-		return StringName()
+		return
 	var condition_object: Object = condition_variant as Object
-	if not _is_script_instance_of(condition_object, CONDITION_EVENT_NAME_SCRIPT):
-		return StringName()
-	return _read_string_name_property(condition_object, "expected_event_name")
+
+	if _is_script_instance_of(condition_object, CONDITION_EVENT_NAME_SCRIPT):
+		var condition_event_name: StringName = _read_string_name_property(
+			condition_object,
+			"expected_event_name"
+		)
+		if condition_event_name == StringName():
+			return
+		if event_names.has(condition_event_name):
+			return
+		event_names.append(condition_event_name)
+		return
+
+	if not _is_script_instance_of(condition_object, CONDITION_COMPOSITE_SCRIPT):
+		return
+
+	var children_variant: Variant = condition_object.get("children")
+	if not (children_variant is Array):
+		return
+
+	for child_condition_variant in children_variant as Array:
+		_collect_event_names_from_condition(child_condition_variant, event_names)
 
 func _resolve_store() -> I_StateStore:
 	if state_store != null:
