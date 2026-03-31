@@ -1,0 +1,192 @@
+# AI System Overview (GOAP / HTN)
+
+**Project**: Cabaret Template (Godot 4.6)
+**Created**: 2026-03-31
+**Last Updated**: 2026-03-31
+**Status**: PRE-IMPLEMENTATION (design phase)
+**Scope**: Quality-based NPC behavior selection using GOAP goals and HTN task decomposition, powered by QB Rule Manager v2
+
+## Summary
+
+The AI system provides data-driven NPC behavior through two complementary paradigms: **GOAP** (Goal-Oriented Action Planning) for goal selection and **HTN** (Hierarchical Task Network) for task decomposition. Each tick per NPC entity, QB v2 rules score candidate goals/behaviors (0.0-1.0), the winner becomes the active behavior, and an HTN planner decomposes compound tasks into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
+
+## Repo Reality Checks
+
+- QB Rule Manager v2 is fully implemented: `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, `U_RuleValidator` in `scripts/utils/qb/`
+- Existing QB consumers provide the pattern: `S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem` each compose QB utilities directly (no base-class inheritance)
+- Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, etc.) in `scripts/resources/qb/conditions/`
+- Typed effects (`RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetField`, etc.) in `scripts/resources/qb/effects/`
+- `U_PathResolver` handles dot-path traversal for component fields, Redux state, and event payloads
+- ECS pattern: systems extend `BaseECSSystem`, implement `process_tick(delta)`, query components via `get_components(StringName)`
+- Component pattern: extend `BaseECSComponent`, define `const COMPONENT_TYPE := StringName("...")`, use `@export` NodePaths with typed getters
+- Entity tags available via `M_ECSManager` for entity queries
+- ECS event bus (`U_ECSEventBus`) for decoupled gameplay events
+
+## Goals
+
+- Provide a general-purpose NPC behavior system driven entirely by `.tres` resource authoring (no hardcoded behavior logic)
+- Support GOAP goal selection: each NPC evaluates a set of goals per tick, QB scoring picks the active goal
+- Support HTN task decomposition: compound tasks decompose into ordered primitive tasks; primitive tasks map to concrete actions (move_to, wait, scan, animate)
+- Allow per-NPC behavior configuration via `C_AIBrainComponent` settings resource
+- Integrate with existing ECS systems (movement, animation, events) for action execution
+- Support cooldowns, one-shot behaviors, and salience (rising-edge) detection via existing QB v2 features
+- Enable cooperative and non-hostile NPC patterns (not just combat AI)
+
+## Non-Goals
+
+- No runtime pathfinding mesh generation (uses Godot's built-in `NavigationServer3D` or simple waypoint paths)
+- No blackboard system beyond what QB rule context provides (component fields + Redux state + event payloads)
+- No behavior trees — GOAP/HTN replaces BT; the QB scorer is the decision layer
+- No group coordination / squad AI (NPCs are individually autonomous)
+- No perception system (line-of-sight, hearing) — proximity and state-based conditions are sufficient for demo scope
+- No learning or adaptation (behaviors are static resource definitions)
+
+## Architecture
+
+```
+S_AIBehaviorSystem (scripts/ecs/systems/s_ai_behavior_system.gd)  [extends BaseECSSystem]
+  Composes:
+  ├── U_RuleScorer         (existing, scores goal rules 0.0-1.0)
+  ├── U_RuleSelector       (existing, picks winner from scored rules)
+  ├── U_RuleStateTracker   (existing, cooldowns + salience + one-shot)
+  └── U_HTNPlanner         (NEW, scripts/utils/ai/u_htn_planner.gd)  [extends RefCounted]
+        Decomposes compound tasks into primitive task queues
+
+C_AIBrainComponent (scripts/ecs/components/c_ai_brain_component.gd)  [extends BaseECSComponent]
+  @export var brain_settings: RS_AIBrainSettings
+  Runtime state:
+  ├── active_goal_id: StringName
+  ├── current_task_queue: Array[RS_AIPrimitiveTask]
+  ├── current_task_index: int
+  └── task_state: Dictionary  (per-task scratch data)
+
+Resources:
+  RS_AIBrainSettings  (scripts/resources/ai/rs_ai_brain_settings.gd)
+    ├── goals: Array[RS_AIGoal]         (candidate goals for this NPC)
+    ├── default_goal_id: StringName     (fallback when no goal scores > 0)
+    └── evaluation_interval: float      (ticks between full re-evaluations, default 0.5s)
+
+  RS_AIGoal  (scripts/resources/ai/rs_ai_goal.gd)
+    ├── goal_id: StringName
+    ├── conditions: Array[Resource]     (QB v2 typed conditions — scored 0.0-1.0)
+    ├── root_task: RS_AITask            (HTN entry point when this goal wins)
+    └── priority: int                   (tiebreaker)
+
+  RS_AITask  (scripts/resources/ai/rs_ai_task.gd)  [base class]
+    ├── task_id: StringName
+
+  RS_AICompoundTask  (scripts/resources/ai/rs_ai_compound_task.gd)  [extends RS_AITask]
+    ├── subtasks: Array[RS_AITask]      (ordered decomposition)
+    ├── method_conditions: Array[Resource]  (QB conditions for decomposition applicability)
+
+  RS_AIPrimitiveTask  (scripts/resources/ai/rs_ai_primitive_task.gd)  [extends RS_AITask]
+    ├── action_type: StringName         (e.g., "move_to", "wait", "scan", "animate", "publish_event")
+    ├── parameters: Dictionary          (action-specific: target_position, duration, event_name, etc.)
+    └── completion_condition: Resource   (optional QB condition for "is this task done?")
+```
+
+## Responsibilities & Boundaries
+
+### AI System owns
+
+- Per-NPC goal evaluation via QB v2 scoring each tick (or at `evaluation_interval`)
+- HTN decomposition of winning goal's root task into a primitive task queue
+- Primitive task execution lifecycle (start → tick → complete/fail → next)
+- Task state tracking per-NPC (active goal, task queue, progress)
+- Re-planning when goal changes mid-execution (abandon current queue, decompose new goal)
+
+### AI System depends on
+
+- `M_ECSManager`: Component queries, entity registration
+- QB v2 utilities: `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker` for goal scoring
+- `U_PathResolver`: Dot-path traversal for condition evaluation
+- Movement/physics systems: Primitive tasks like `move_to` set target positions that existing movement systems execute
+- Animation system (NEW): Primitive tasks like `animate` request animation states
+- ECS Event Bus: Primitive tasks like `publish_event` emit events for other systems to consume
+
+### AI System does NOT own
+
+- Navigation mesh / pathfinding computation (delegates to Godot `NavigationServer3D` or waypoint arrays)
+- Actual movement execution (sets targets; movement systems move the body)
+- Animation playback (requests states; animation system applies them)
+- Visual representation (NPC visuals are separate scene nodes)
+
+## Primitive Task Types (Initial Set)
+
+| Action Type | Parameters | Completion |
+|------------|-----------|------------|
+| `move_to` | `target_position: Vector3` or `target_node_path: NodePath` or `waypoint_index: int` | Reached within threshold distance |
+| `wait` | `duration: float` | Timer elapsed |
+| `scan` | `scan_duration: float`, `rotation_speed: float` | Duration elapsed |
+| `animate` | `animation_state: StringName` | Animation finished or interrupted |
+| `publish_event` | `event_name: StringName`, `payload: Dictionary` | Instant (fire and advance) |
+| `set_field` | `field_path: String`, `value: Variant` | Instant |
+
+## Demo Integration (Signal Lost)
+
+Three NPC archetypes prove the system:
+
+1. **Patrol Drone** (Power Core): GOAP with 2 goals — `patrol` (move between waypoints) and `investigate` (pause when player activates a node). QB scores `proximity_to_player` and `node_recently_activated`.
+
+2. **Sentry** (Comms Array): HTN with compound tasks — `guard_area` decomposes to [scan → patrol → scan], `investigate_disturbance` decomposes to [move_to_noise → scan → return]. QB scores `player_noise_level` and cooldown.
+
+3. **Guide Prism** (Nav Nexus): Cooperative GOAP with 3 goals — `show_path` (move to next platform), `encourage` (fly to respawn, pulse), `celebrate` (spin + particles at goal). QB scores `player_progress`, `player_fell_recently`, `is_at_goal`.
+
+## Implementation Phases
+
+### Phase 1: Core Resources & Brain Component
+- Create `RS_AIBrainSettings`, `RS_AIGoal`, `RS_AITask`, `RS_AICompoundTask`, `RS_AIPrimitiveTask` resource classes
+- Create `C_AIBrainComponent` with `@export brain_settings: RS_AIBrainSettings`
+- Unit tests for resource serialization and component registration
+
+### Phase 2: Goal Evaluation (QB Integration)
+- Create `S_AIBehaviorSystem` extending `BaseECSSystem`
+- Compose QB v2 utilities for goal scoring per-NPC per-tick
+- Goal selection: highest-scoring goal becomes active; ties broken by priority
+- Goal change detection: clear task queue on goal switch
+- Unit tests for goal scoring with mock conditions
+
+### Phase 3: HTN Planner
+- Create `U_HTNPlanner` (RefCounted) — decomposes compound tasks recursively into flat primitive task queue
+- Method condition evaluation for decomposition branching
+- Cycle detection (task referencing itself)
+- Unit tests for decomposition with various task trees
+
+### Phase 4: Primitive Task Execution
+- Task runner in `S_AIBehaviorSystem`: start current task → tick → check completion → advance
+- Implement initial primitive actions: `move_to`, `wait`, `scan`, `publish_event`, `set_field`
+- `animate` action deferred to Animation System integration
+- Integration tests with actual NPC entities
+
+### Phase 5: Demo NPCs
+- Author `.tres` resources for Patrol Drone, Sentry, and Guide Prism
+- Create NPC entity scenes with `C_AIBrainComponent` + visual CSG meshes
+- Wire into demo gameplay scenes
+- Playtest and tune QB rule scores, cooldowns, evaluation intervals
+
+## Verification Checklist
+
+1. NPC with 2+ goals switches behavior based on game state changes
+2. HTN decomposition produces correct primitive task sequence
+3. Primitive tasks execute and complete (move_to reaches target, wait elapses)
+4. Goal change mid-task-queue abandons old queue and starts new decomposition
+5. Cooldowns prevent goal thrashing (via `U_RuleStateTracker`)
+6. All 3 demo NPCs behave as designed in their respective rooms
+7. Style enforcement passes for all new files
+8. No performance regression with 3 simultaneous AI NPCs
+
+## Resolved Questions
+
+| Question | Decision |
+|----------|----------|
+| GOAP vs BT vs utility AI? | GOAP goals + HTN decomposition. QB v2 is the "utility AI" scoring layer. No behavior trees. |
+| Shared blackboard? | No. QB conditions already read component fields, Redux state, and event payloads via `U_PathResolver`. No separate blackboard needed. |
+| Navigation? | Godot `NavigationServer3D` for complex levels; simple waypoint arrays for demo NPCs. |
+| Perception? | Proximity + state-based conditions only. No raycasting LOS/hearing for demo scope. |
+
+## Links
+
+- [AI System Plan](ai-system-plan.md)
+- [AI System Tasks](ai-system-tasks.md)
+- [AI System Continuation Prompt](ai-system-continuation-prompt.md)
+- [QB Rule Manager v2 Overview](../qb_rule_manager/qb-v2-overview.md)
