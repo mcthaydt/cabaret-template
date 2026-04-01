@@ -194,6 +194,27 @@ func test_is_transitioning() -> void:
 	# Note: Actual transitioning state depends on implementation
 	assert_true(true, "is_transitioning method exists")
 
+## Test pause suppression flag is limited to current frame
+func test_suppress_pause_for_current_frame_expires_next_frame() -> void:
+	assert_false(
+		_manager.is_pause_suppressed_for_current_frame(),
+		"Pause suppression should be disabled by default"
+	)
+
+	_manager.suppress_pause_for_current_frame()
+
+	assert_true(
+		_manager.is_pause_suppressed_for_current_frame(),
+		"Pause suppression should be active on the frame it is requested"
+	)
+
+	await get_tree().process_frame
+
+	assert_false(
+		_manager.is_pause_suppressed_for_current_frame(),
+		"Pause suppression should clear on the next frame"
+	)
+
 ## Regression: queue_free during gameplay transition should not leave scene slice stuck transitioning
 func test_queue_free_during_gameplay_transition_clears_transition_state() -> void:
 	_manager.transition_to_scene(StringName("gameplay_base"), "instant")

@@ -27,6 +27,9 @@ func hint_preload_scene(_scene_path: String) -> void:
 func suppress_pause_for_current_frame() -> void:
 	pass
 
+func is_pause_suppressed_for_current_frame() -> bool:
+	return false
+
 func push_overlay(_scene_id: StringName, _force: bool = false) -> void:
 	pass
 

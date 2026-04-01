@@ -82,6 +82,8 @@ var _current_scene_id: StringName = StringName("")
 var _active_transition_target: StringName = StringName("")
 var _navigation_slice_connected: bool = false
 var _initial_navigation_synced: bool = false
+var _pause_suppressed_process_frame: int = -1
+var _pause_suppressed_physics_frame: int = -1
 
 ## Navigation reconciliation helper
 var _navigation_reconciler := U_NAVIGATION_RECONCILER.new()
@@ -717,8 +719,14 @@ func pop_overlay() -> void:
 ## Note: Stub implementation (Phase: Duck Typing Cleanup Phase 3)
 ## Full implementation would coordinate with M_TimeManager
 func suppress_pause_for_current_frame() -> void:
-	# TODO: Implement pause suppression logic
-	pass
+	_pause_suppressed_process_frame = Engine.get_process_frames()
+	_pause_suppressed_physics_frame = Engine.get_physics_frames()
+
+func is_pause_suppressed_for_current_frame() -> bool:
+	return (
+		_pause_suppressed_process_frame == Engine.get_process_frames()
+		and _pause_suppressed_physics_frame == Engine.get_physics_frames()
+	)
 
 ## Push overlay with automatic return navigation (Phase 6.5)
 ##

@@ -2,6 +2,9 @@
 extends I_UIInputHandler
 class_name M_UIInputHandler
 
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
+
 ## Thin UI input handler for context-based navigation routing
 ##
 ## Listens to ui_* actions and dispatches navigation actions based on current
@@ -42,6 +45,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## Handle ui_pause input (Start button - opens pause menu)
 func _handle_ui_pause() -> void:
+	if _is_pause_suppressed_for_current_frame():
+		return
+
 	var state: Dictionary = _store.get_state()
 	var nav_state: Dictionary = state.get("navigation", {})
 
@@ -54,6 +60,12 @@ func _handle_ui_pause() -> void:
 			# No overlays → open pause
 			_store.dispatch(U_NavigationActions.open_pause())
 		# If overlays already open, do nothing (ui_cancel handles closing them)
+
+func _is_pause_suppressed_for_current_frame() -> bool:
+	var scene_manager := U_SERVICE_LOCATOR.try_get_service(StringName("scene_manager")) as I_SCENE_MANAGER
+	if scene_manager == null:
+		return false
+	return scene_manager.is_pause_suppressed_for_current_frame()
 
 ## Handle ui_cancel input (B button - back/cancel in menus only)
 func _handle_ui_cancel() -> void:

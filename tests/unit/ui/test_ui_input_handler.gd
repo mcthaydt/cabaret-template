@@ -1,12 +1,41 @@
 extends GutTest
 
+const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
 
 var _store: M_StateStore = null
 var _input_handler: M_UIInputHandler = null
+var _scene_manager_stub: TestSceneManagerStub = null
+
+class TestSceneManagerStub extends I_SCENE_MANAGER:
+	var suppress_pause: bool = false
+
+	func is_transitioning() -> bool:
+		return false
+
+	func transition_to_scene(_scene_id: StringName, _transition_type: String = "fade", _priority: int = 0) -> void:
+		pass
+
+	func hint_preload_scene(_scene_path: String) -> void:
+		pass
+
+	func suppress_pause_for_current_frame() -> void:
+		suppress_pause = true
+
+	func is_pause_suppressed_for_current_frame() -> bool:
+		return suppress_pause
+
+	func push_overlay(_scene_id: StringName, _force: bool = false) -> void:
+		pass
+
+	func pop_overlay() -> void:
+		pass
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
 	_store = await _create_state_store()
+	_scene_manager_stub = TestSceneManagerStub.new()
+	add_child_autofree(_scene_manager_stub)
+	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager_stub)
 	_input_handler = await _create_input_handler()
 
 func after_each() -> void:
@@ -201,6 +230,20 @@ func test_ui_pause_identical_to_ui_cancel() -> void:
 	var overlay_stack: Array = nav_slice.get("overlay_stack", [])
 	assert_eq(overlay_stack.size(), 1, "ui_pause should behave identically to ui_cancel")
 	assert_eq(overlay_stack[0], StringName("pause_menu"), "Should open pause menu")
+
+
+func test_ui_pause_is_ignored_when_scene_manager_suppresses_current_frame() -> void:
+	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	await wait_process_frames(2)
+
+	_scene_manager_stub.suppress_pause = true
+
+	_simulate_ui_pause()
+	await wait_process_frames(2)
+
+	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
+	var overlay_stack: Array = nav_slice.get("overlay_stack", [])
+	assert_eq(overlay_stack.size(), 0, "ui_pause should be ignored while current-frame suppression is active")
 
 
 ## HELPER FUNCTIONS
