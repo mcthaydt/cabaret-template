@@ -14,8 +14,9 @@ The AI system provides data-driven NPC behavior through two complementary paradi
 
 - QB Rule Manager v2 is fully implemented: `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, `U_RuleValidator` in `scripts/utils/qb/`
 - Existing QB consumers provide the pattern: `S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem` each compose QB utilities directly (no base-class inheritance)
-- Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, etc.) in `scripts/resources/qb/conditions/`
-- Typed effects (`RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetField`, etc.) in `scripts/resources/qb/effects/`
+- Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, etc.) in `scripts/resources/qb/conditions/` — implement `I_Condition.evaluate(context)` for polymorphic dispatch
+- Typed effects (`RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetField`, etc.) in `scripts/resources/qb/effects/` — implement `I_Effect.execute(context)` for polymorphic dispatch
+- AI action types follow this same pattern: typed `RS_AIAction*` resources implement `I_AIAction` with `start()`, `tick()`, `is_complete()` for self-executing task logic
 - `U_PathResolver` handles dot-path traversal for component fields, Redux state, and event payloads
 - ECS pattern: systems extend `BaseECSSystem`, implement `process_tick(delta)`, query components via `get_components(StringName)`
 - Component pattern: extend `BaseECSComponent`, define `const COMPONENT_TYPE := StringName("...")`, use `@export` NodePaths with typed getters
@@ -80,9 +81,37 @@ Resources:
     ├── method_conditions: Array[Resource]  (QB conditions for decomposition applicability)
 
   RS_AIPrimitiveTask  (scripts/resources/ai/rs_ai_primitive_task.gd)  [extends RS_AITask]
-    ├── action_type: StringName         (e.g., "move_to", "wait", "scan", "animate", "publish_event")
-    ├── parameters: Dictionary          (action-specific: target_position, duration, event_name, etc.)
-    └── completion_condition: Resource   (optional QB condition for "is this task done?")
+    └── action: Resource                (I_AIAction — typed action resource with @export fields)
+
+  I_AIAction  (scripts/interfaces/i_ai_action.gd)  [interface]
+    ├── func start(context: Dictionary, task_state: Dictionary) -> void
+    ├── func tick(context: Dictionary, task_state: Dictionary, delta: float) -> void
+    └── func is_complete(context: Dictionary, task_state: Dictionary) -> bool
+
+  RS_AIActionMoveTo       (scripts/resources/ai/actions/rs_ai_action_move_to.gd)
+    ├── @export var target_position: Vector3
+    ├── @export var target_node_path: NodePath
+    ├── @export var waypoint_index: int = -1
+    └── @export var arrival_threshold: float = 0.5
+
+  RS_AIActionWait         (scripts/resources/ai/actions/rs_ai_action_wait.gd)
+    └── @export var duration: float = 1.0
+
+  RS_AIActionScan         (scripts/resources/ai/actions/rs_ai_action_scan.gd)
+    ├── @export var scan_duration: float = 2.0
+    └── @export var rotation_speed: float = 1.0
+
+  RS_AIActionAnimate      (scripts/resources/ai/actions/rs_ai_action_animate.gd)  [stub]
+    └── @export var animation_state: StringName
+
+  RS_AIActionPublishEvent (scripts/resources/ai/actions/rs_ai_action_publish_event.gd)
+    ├── @export var event_name: StringName
+    └── @export var payload: Dictionary
+
+  RS_AIActionSetField     (scripts/resources/ai/actions/rs_ai_action_set_field.gd)
+    ├── @export var field_path: String
+    ├── @export_enum("float", "int", "bool", "string", "string_name") var value_type: String = "float"
+    └── @export var float_value: float  (+ int_value, bool_value, etc.)
 ```
 
 ## Responsibilities & Boundaries
@@ -111,16 +140,18 @@ Resources:
 - Animation playback (requests states; animation system applies them)
 - Visual representation (NPC visuals are separate scene nodes)
 
-## Primitive Task Types (Initial Set)
+## Action Types (Initial Set)
 
-| Action Type | Parameters | Completion |
-|------------|-----------|------------|
-| `move_to` | `target_position: Vector3` or `target_node_path: NodePath` or `waypoint_index: int` | Reached within threshold distance |
-| `wait` | `duration: float` | Timer elapsed |
-| `scan` | `scan_duration: float`, `rotation_speed: float` | Duration elapsed |
-| `animate` | `animation_state: StringName` | Animation finished or interrupted |
-| `publish_event` | `event_name: StringName`, `payload: Dictionary` | Instant (fire and advance) |
-| `set_field` | `field_path: String`, `value: Variant` | Instant |
+Each action is a typed resource implementing `I_AIAction` with `@export` fields for inspector authoring. Actions self-execute via `start()`, `tick()`, `is_complete()` — the system dispatches polymorphically (no match blocks), matching the QB v2 `I_Condition`/`I_Effect` pattern.
+
+| Action Resource | Key Exports | Completion |
+|----------------|-------------|------------|
+| `RS_AIActionMoveTo` | `target_position`, `target_node_path`, `waypoint_index`, `arrival_threshold` | Reached within threshold distance |
+| `RS_AIActionWait` | `duration` | Timer elapsed |
+| `RS_AIActionScan` | `scan_duration`, `rotation_speed` | Duration elapsed |
+| `RS_AIActionAnimate` | `animation_state` | Stub: completes immediately (sets state field) |
+| `RS_AIActionPublishEvent` | `event_name`, `payload` | Instant (fire and advance) |
+| `RS_AIActionSetField` | `field_path`, `value_type`, typed value exports | Instant |
 
 ## Demo Integration (Signal Lost)
 
@@ -134,34 +165,35 @@ Three NPC archetypes prove the system:
 
 ## Implementation Phases
 
-### Phase 1: Core Resources & Brain Component
-- Create `RS_AIBrainSettings`, `RS_AIGoal`, `RS_AITask`, `RS_AICompoundTask`, `RS_AIPrimitiveTask` resource classes
+### Phase 1: Core Resources & Brain Component (M1–M3)
+- Create `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask` resource classes
+- Create `I_AIAction` interface with `start()`, `tick()`, `is_complete()` contract
+- Create `RS_AIGoal`, `RS_AIBrainSettings` resource classes
 - Create `C_AIBrainComponent` with `@export brain_settings: RS_AIBrainSettings`
 - Unit tests for resource serialization and component registration
 
-### Phase 2: Goal Evaluation (QB Integration)
+### Phase 2: Goal Evaluation & HTN Planner (M4–M5)
+- Create `U_HTNPlanner` (RefCounted) — decomposes compound tasks recursively into flat primitive task queue
+- Method condition evaluation for decomposition branching, cycle detection
 - Create `S_AIBehaviorSystem` extending `BaseECSSystem`
 - Compose QB v2 utilities for goal scoring per-NPC per-tick
 - Goal selection: highest-scoring goal becomes active; ties broken by priority
 - Goal change detection: clear task queue on goal switch
-- Unit tests for goal scoring with mock conditions
+- Unit tests for decomposition and goal scoring
 
-### Phase 3: HTN Planner
-- Create `U_HTNPlanner` (RefCounted) — decomposes compound tasks recursively into flat primitive task queue
-- Method condition evaluation for decomposition branching
-- Cycle detection (task referencing itself)
-- Unit tests for decomposition with various task trees
+### Phase 3: Typed Action Resources (M6–M7)
+- Create 6 typed action resources implementing `I_AIAction`: `RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate` (stub), `RS_AIActionPublishEvent`, `RS_AIActionSetField`
+- Each action resource has `@export` fields for inspector authoring and self-executing `start()`/`tick()`/`is_complete()` logic
+- Task runner in `S_AIBehaviorSystem` dispatches polymorphically (no match blocks)
+- Unit tests for each action in isolation
 
-### Phase 4: Primitive Task Execution
-- Task runner in `S_AIBehaviorSystem`: start current task → tick → check completion → advance
-- Implement initial primitive actions: `move_to`, `wait`, `scan`, `publish_event`, `set_field`
-- `animate` action deferred to Animation System integration
-- Integration tests with actual NPC entities
+### Phase 4: Integration & Demo Scenes (M8–M9)
+- End-to-end integration tests: goal evaluation → HTN decomposition → action execution → re-planning
+- Create 3 demo gameplay scenes (Power Core, Comms Array, Nav Nexus) with CSG geometry, waypoints, triggers
 
-### Phase 5: Demo NPCs
+### Phase 5: Demo NPC Authoring & Tuning (M10)
 - Author `.tres` resources for Patrol Drone, Sentry, and Guide Prism
-- Create NPC entity scenes with `C_AIBrainComponent` + visual CSG meshes
-- Wire into demo gameplay scenes
+- Wire NPC entity scenes with `C_AIBrainComponent` + visual CSG meshes into demo scenes
 - Playtest and tune QB rule scores, cooldowns, evaluation intervals
 
 ## Verification Checklist
