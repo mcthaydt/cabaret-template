@@ -3,8 +3,10 @@ extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const I_AI_ACTION := preload("res://scripts/interfaces/i_ai_action.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
 const RS_AI_GOAL := preload("res://scripts/resources/ai/rs_ai_goal.gd")
+const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/rs_ai_primitive_task.gd")
 const RS_RULE := preload("res://scripts/resources/qb/rs_rule.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
@@ -15,6 +17,7 @@ const U_HTN_PLANNER := preload("res://scripts/utils/ai/u_htn_planner.gd")
 
 const BRAIN_COMPONENT_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
 const GOAL_DECISION_GROUP := StringName("ai_goal")
+const ACTION_STARTED_STATE_KEY := "action_started"
 
 @export var state_store: I_StateStore = null
 
@@ -54,23 +57,74 @@ func process_tick(delta: float) -> void:
 	_tracker.cleanup_stale_contexts(active_context_keys)
 
 func _process_brain(brain: Variant, brain_settings: Resource, context: Dictionary, delta: float) -> void:
-	if not _should_evaluate_goals(brain, brain_settings, delta):
+	if _should_evaluate_goals(brain, brain_settings, delta):
+		var selected_goal: Resource = _select_goal(brain_settings, context)
+		if selected_goal != null:
+			var selected_goal_id: StringName = _read_goal_id(selected_goal)
+			if selected_goal_id != StringName():
+				var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
+				var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
+				if selected_goal_id != active_goal_id:
+					_replan_for_goal(brain, selected_goal, context)
+
+	_execute_current_task(brain, delta, context)
+
+func _execute_current_task(brain: Variant, delta: float, context: Dictionary) -> void:
+	var queue_variant: Variant = _read_object_property(brain, "current_task_queue")
+	if not (queue_variant is Array):
+		return
+	var queue: Array = queue_variant as Array
+	if queue.is_empty():
 		return
 
-	var selected_goal: Resource = _select_goal(brain_settings, context)
-	if selected_goal == null:
+	var current_task_index: int = _read_int_property(brain, "current_task_index", 0)
+	if current_task_index < 0 or current_task_index >= queue.size():
+		_finish_task_queue(brain)
 		return
 
-	var selected_goal_id: StringName = _read_goal_id(selected_goal)
-	if selected_goal_id == StringName():
+	var task_variant: Variant = queue[current_task_index]
+	if not (task_variant is RS_AI_PRIMITIVE_TASK):
 		return
 
-	var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
-	var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
-	if selected_goal_id == active_goal_id:
+	var task: Resource = task_variant as Resource
+	var action_variant: Variant = task.get("action")
+	if action_variant == null or not (action_variant is I_AI_ACTION):
 		return
 
-	_replan_for_goal(brain, selected_goal, context)
+	var task_state_variant: Variant = _read_object_property(brain, "task_state")
+	var task_state: Dictionary = {}
+	if task_state_variant is Dictionary:
+		task_state = task_state_variant as Dictionary
+
+	var action_started: bool = bool(task_state.get(ACTION_STARTED_STATE_KEY, false))
+	var action: Variant = action_variant
+	if not action_started:
+		action.start(context, task_state)
+		task_state[ACTION_STARTED_STATE_KEY] = true
+
+	action.tick(context, task_state, maxf(delta, 0.0))
+	brain.set("task_state", task_state)
+
+	var complete_variant: Variant = action.is_complete(context, task_state)
+	var is_complete: bool = complete_variant is bool and complete_variant
+	if not is_complete:
+		return
+
+	_advance_to_next_task(brain, current_task_index, queue.size())
+
+func _advance_to_next_task(brain: Variant, current_task_index: int, queue_size: int) -> void:
+	var next_task_index: int = current_task_index + 1
+	brain.set("task_state", {})
+	if next_task_index >= queue_size:
+		_finish_task_queue(brain)
+		return
+	brain.set("current_task_index", next_task_index)
+
+func _finish_task_queue(brain: Variant) -> void:
+	var empty_queue: Array[Resource] = []
+	brain.set("current_task_queue", empty_queue)
+	brain.set("current_task_index", 0)
+	brain.set("task_state", {})
 
 func _should_evaluate_goals(brain: Variant, brain_settings: Resource, delta: float) -> bool:
 	var evaluation_interval: float = maxf(_read_float_property(brain_settings, "evaluation_interval", 0.5), 0.0)
@@ -334,6 +388,16 @@ func _read_float_property(object_value: Variant, property_name: String, fallback
 	var value: Variant = _read_object_property(object_value, property_name)
 	if value is float or value is int:
 		return float(value)
+	return fallback
+
+func _read_int_property(object_value: Variant, property_name: String, fallback: int) -> int:
+	if object_value == null or not (object_value is Object):
+		return fallback
+	var value: Variant = _read_object_property(object_value, property_name)
+	if value is int:
+		return value
+	if value is float:
+		return int(value)
 	return fallback
 
 func _read_object_property(object_value: Variant, property_name: String) -> Variant:
