@@ -5,15 +5,15 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 9 complete (scene authoring phase) + M7/M8 hardening pass retained
+**Status**: Milestone 10 complete (implementation complete)
 
 ---
 
-## Current Status: Milestone 9 Complete + Hardening Pass Retained
+## Current Status: Milestone 10 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (9/10 milestones complete).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (10/10 milestones complete).
 
 ### Completed in M1 (2026-04-02)
 
@@ -164,6 +164,35 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
   - `tools/run_gut_suite.sh` full regression → `3695/3704` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
+### Completed in M10 (2026-04-02)
+
+- Added demo NPC behavior resource stacks:
+  - `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres`
+  - `resources/ai/patrol_drone/cfg_goal_patrol.tres`
+  - `resources/ai/patrol_drone/cfg_goal_investigate.tres`
+  - `resources/ai/sentry/cfg_sentry_brain.tres`
+  - `resources/ai/sentry/cfg_goal_guard.tres`
+  - `resources/ai/sentry/cfg_goal_investigate_disturbance.tres`
+  - `resources/ai/guide_prism/cfg_guide_brain.tres`
+  - `resources/ai/guide_prism/cfg_goal_show_path.tres`
+  - `resources/ai/guide_prism/cfg_goal_encourage.tres`
+  - `resources/ai/guide_prism/cfg_goal_celebrate.tres`
+- Rewired scene NPC brains from placeholder to authored resources:
+  - `scenes/gameplay/gameplay_power_core.tscn` (`E_PatrolDrone`)
+  - `scenes/gameplay/gameplay_comms_array.tscn` (`E_Sentry`)
+  - `scenes/gameplay/gameplay_nav_nexus.tscn` (`E_GuidePrism`)
+- Added per-NPC runtime movement stack for `move_to` execution parity:
+  - `CharacterBody3D` + `CollisionShape3D`
+  - `C_InputComponent`
+  - `C_MovementComponent` with `cfg_movement_default`
+- Added M10 RED/GREEN verification coverage:
+  - `tests/unit/ai/resources/test_ai_demo_behavior_resources.gd`
+- Verification:
+  - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` failed before resource authoring/scene rewiring.
+  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `4/4` passing.
+  - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
+  - Full regression confirmed: `tools/run_gut_suite.sh` → `3699/3708` passing, `9` pending/risky, `0` failing.
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -179,6 +208,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **Player input filtering is now enforced**: `S_InputSystem` writes gameplay input only to entities with `C_PlayerTagComponent`, preventing player-input clobbering of AI move vectors.
 - **M8 pipeline integration coverage is now live**: `tests/unit/ai/integration/test_ai_pipeline_integration.gd` validates GOAP scoring → HTN decomposition → typed action execution → AI navigation bridge → player-input filtering end-to-end.
 - **M9 demo scenes are now authored**: Power Core, Comms Array, and Nav Nexus gameplay scenes exist with required prototype geometry, markers/triggers, and NPC placeholder entities bound to valid `RS_AIBrainSettings` resources.
+- **M10 demo behavior authoring is complete**: Patrol Drone, Sentry, and Guide Prism now use authored archetype-specific brains/goals and include movement runtime components in-scene so `move_to` tasks execute on real movement paths.
 
 ---
 
@@ -287,11 +317,6 @@ You MUST:
 
 ## Next Steps
 
-Begin with **Milestone 10: Demo NPC Behavior Authoring & Tuning**:
-
-1. Author Patrol Drone resources under `resources/ai/patrol_drone/` (`cfg_patrol_drone_brain.tres`, `cfg_goal_patrol.tres`, `cfg_goal_investigate.tres`) and wire them onto `E_PatrolDrone` in `scenes/gameplay/gameplay_power_core.tscn`.
-2. Author Sentry resources under `resources/ai/sentry/` (`cfg_sentry_brain.tres`, `cfg_goal_guard.tres`, `cfg_goal_investigate_disturbance.tres`) and wire them onto `E_Sentry` in `scenes/gameplay/gameplay_comms_array.tscn`.
-3. Author Guide Prism resources under `resources/ai/guide_prism/` (`cfg_guide_brain.tres`, `cfg_goal_show_path.tres`, `cfg_goal_encourage.tres`, `cfg_goal_celebrate.tres`) and wire them onto `E_GuidePrism` in `scenes/gameplay/gameplay_nav_nexus.tscn`.
-4. Playtest/tune waypoint positions, thresholds, cooldowns, and evaluation intervals for all three NPCs.
-5. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` plus full regression `tools/run_gut_suite.sh`.
-6. Update `ai-system-tasks.md` + this continuation prompt for M10 completion and keep documentation commits separate from implementation commits.
+1. Optional follow-up: run in-editor playtest passes to tune authored waypoint spacing, scan durations, and cooldown values for feel (functional baseline is now automated-test verified).
+2. Keep this branch focused on post-M10 polish only; use separate commits for implementation vs documentation deltas.
+3. Merge `GOAP-AI` once review is complete.

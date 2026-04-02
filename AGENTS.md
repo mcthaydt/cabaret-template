@@ -124,6 +124,7 @@
   - Movement/stub action contract (M7): `RS_AIActionMoveTo` resolves waypoint/node/position targets and writes `task_state["ai_move_target"]`; `RS_AIActionScan` tracks scan timing in task state; `RS_AIActionAnimate` is a stub that sets `task_state["animation_state"]` and completes immediately.
   - AI navigation bridge contract (M7): `S_AINavigationSystem` (`scripts/ecs/systems/s_ai_navigation_system.gd`, `execution_priority = -5`) reads `task_state["ai_move_target"]`, computes XZ world direction, converts through active camera basis (fallback direct mapping when no camera), and writes `C_InputComponent.set_move_vector()` so NPC movement uses the same `S_MovementSystem` path as players.
   - Player-input isolation contract (M7): `S_InputSystem` queries `C_InputComponent` with required `C_PlayerTagComponent` so player input updates only player-tagged entities and does not clobber AI-authored move vectors.
+  - Demo scene authoring contract (M10): any NPC expected to execute `RS_AIActionMoveTo` in authored gameplay scenes must include a runtime movement stack (`CharacterBody3D`, `C_InputComponent`, and `C_MovementComponent` with valid movement settings). Brain-only placeholder entities without that stack will select goals but fail to progress movement tasks.
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.

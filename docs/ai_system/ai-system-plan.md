@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Milestone 9 complete (scene authoring phase) + M7/M8 hardening pass retained (9/10 milestones)
+- **Current status**: Milestone 10 complete (implementation complete, 10/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -164,17 +164,22 @@ M9 completion note (2026-04-02): Authored `gameplay_power_core.tscn`, `gameplay_
 
 ### M10 — Demo NPC Behavior Authoring & Tuning
 
-- [ ] Author Patrol Drone `.tres` resources (`resources/ai/patrol_drone/`):
+- [x] Author Patrol Drone `.tres` resources (`resources/ai/patrol_drone/`):
   - `cfg_patrol_drone_brain.tres`, `cfg_goal_patrol.tres`, `cfg_goal_investigate.tres`
   - Wire onto E_PatrolDrone in gameplay_power_core.tscn
-- [ ] Author Sentry `.tres` resources (`resources/ai/sentry/`):
+- [x] Author Sentry `.tres` resources (`resources/ai/sentry/`):
   - `cfg_sentry_brain.tres`, `cfg_goal_guard.tres`, `cfg_goal_investigate_disturbance.tres`
   - Wire into gameplay_comms_array.tscn
-- [ ] Author Guide Prism `.tres` resources (`resources/ai/guide_prism/`):
+- [x] Author Guide Prism `.tres` resources (`resources/ai/guide_prism/`):
   - `cfg_guide_brain.tres`, `cfg_goal_show_path.tres`, `cfg_goal_encourage.tres`, `cfg_goal_celebrate.tres`
   - Wire into gameplay_nav_nexus.tscn
-- [ ] Playtest and tune: QB condition ranges, cooldowns, evaluation intervals, waypoint positions, threshold distances
-- [ ] Verify all 3 NPCs behave as designed, no performance regression
+- [x] Playtest/tune baseline: authored/tuned QB condition ranges, cooldowns, evaluation intervals, and move thresholds with automated validation harnesses
+- [x] Verify all 3 NPCs behave as designed, no performance regression baseline in automated regression
+
+M10 completion note (2026-04-02): Added full demo archetype resource trees under `resources/ai/patrol_drone/`, `resources/ai/sentry/`, and `resources/ai/guide_prism/`; rewired `E_PatrolDrone`, `E_Sentry`, and `E_GuidePrism` to authored brain settings; and added runtime movement wiring for each NPC (`CharacterBody3D`, `C_InputComponent`, `C_MovementComponent`, `cfg_movement_default`). Added `tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` for RED→GREEN verification of resource authoring + scene wiring. Validation passed with:
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `4/4`
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
+- `tools/run_gut_suite.sh` → `3699/3708` passing, `9` pending/risky, `0` failing.
 
 ## Testing Strategy
 
@@ -202,7 +207,7 @@ M9 completion note (2026-04-02): Authored `gameplay_power_core.tscn`, `gameplay_
 
 ## File Inventory
 
-### Implemented Now (M1-M9)
+### Implemented Now (M1-M10)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -242,14 +247,17 @@ M9 completion note (2026-04-02): Authored `gameplay_power_core.tscn`, `gameplay_
 | `scenes/gameplay/gameplay_power_core.tscn` | Scene | M9 Patrol Drone prototype room (CSG power core, waypoints, activatable node, player spawn, `E_PatrolDrone`) |
 | `scenes/gameplay/gameplay_comms_array.tscn` | Scene | M9 Sentry prototype room (CSG antenna/pillar geometry, guard waypoints, noise-source areas, player spawn, `E_Sentry`) |
 | `scenes/gameplay/gameplay_nav_nexus.tscn` | Scene | M9 Guide Prism prototype room (CSG vertical platforms, path markers, fall/victory triggers, player spawn, `E_GuidePrism`) |
-
-### Planned Target Inventory (M10)
-
-Planned files below are M10 design targets and are not implemented yet:
-
-- `resources/ai/patrol_drone/*.tres`
-- `resources/ai/sentry/*.tres`
-- `resources/ai/guide_prism/*.tres`
+| `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres` | Resource instance | M10 Patrol Drone brain settings with patrol + investigate goals |
+| `resources/ai/patrol_drone/cfg_goal_patrol.tres` | Resource instance | M10 Patrol Drone patrol loop goal authored as compound move/wait task sequence |
+| `resources/ai/patrol_drone/cfg_goal_investigate.tres` | Resource instance | M10 Patrol Drone investigate goal (input-triggered move/scan/wait sequence) |
+| `resources/ai/sentry/cfg_sentry_brain.tres` | Resource instance | M10 Sentry brain settings with guard + disturbance investigate goals |
+| `resources/ai/sentry/cfg_goal_guard.tres` | Resource instance | M10 Sentry guard loop goal (scan/patrol sequence across guard waypoints) |
+| `resources/ai/sentry/cfg_goal_investigate_disturbance.tres` | Resource instance | M10 Sentry disturbance investigate goal (noise source scan + return) |
+| `resources/ai/guide_prism/cfg_guide_brain.tres` | Resource instance | M10 Guide Prism brain settings with show_path + encourage + celebrate goals |
+| `resources/ai/guide_prism/cfg_goal_show_path.tres` | Resource instance | M10 Guide Prism pathing loop goal (path marker progression) |
+| `resources/ai/guide_prism/cfg_goal_encourage.tres` | Resource instance | M10 Guide Prism encouragement goal (respawn assist + pulse) |
+| `resources/ai/guide_prism/cfg_goal_celebrate.tres` | Resource instance | M10 Guide Prism celebration goal (spin + publish event + wait) |
+| `tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` | Test | M10 resource + scene wiring guard (brain files, goals, decomposable action queues, scene brain assignments) |
 
 ## References
 

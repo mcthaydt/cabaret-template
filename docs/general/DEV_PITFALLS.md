@@ -1644,3 +1644,6 @@ func test_window_mode_fullscreen() -> void:
 
 - **`C_AIBrainComponent` rejects missing or wrong-type settings**: AI placeholder entities cannot leave `brain_settings` unset and cannot assign non-`RS_AIBrainSettings` resources. Registration is intentionally aborted in `_validate_required_settings()` when this contract is violated.
   - **Fix pattern**: for placeholders/demo scenes, assign a minimal valid `RS_AIBrainSettings` resource instead of `null`.
+
+- **`RS_AIActionMoveTo` stalls on scene-authored NPCs that lack movement runtime components**: goals can score and task queues can start, but without `CharacterBody3D` + `C_InputComponent` + `C_MovementComponent`, `S_AINavigationSystem` has no valid movement pipeline and the NPC never reaches move targets.
+  - **Fix pattern**: when wiring demo/scene NPCs, always author the full runtime movement stack and assign valid movement settings (`cfg_movement_default` or equivalent) in addition to `C_AIBrainComponent`.
