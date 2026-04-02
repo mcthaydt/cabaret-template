@@ -9,10 +9,10 @@ class_name RS_GameConfig
 ## without touching manager code.
 
 ## Scene to load when retrying (navigating back to start of run).
-@export var retry_scene_id: StringName = StringName("alleyway")
+@export var retry_scene_id: StringName = StringName("power_core")
 
 ## Route action name dispatched with run/reset to trigger a retry.
-@export var route_retry: StringName = StringName("retry_alleyway")
+@export var route_retry: StringName = StringName("retry")
 
 ## Objective set ID loaded at the start of a new run.
 @export var default_objective_set_id: StringName = StringName("default_progression")

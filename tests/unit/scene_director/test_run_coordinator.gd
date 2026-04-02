@@ -73,7 +73,7 @@ func test_run_reset_dispatches_gameplay_reset_then_retry_and_resets_objectives()
 	U_INTERACT_BLOCKER.block()
 	assert_true(U_INTERACT_BLOCKER.is_blocked())
 
-	_store.dispatch(U_RUN_ACTIONS.reset_run(StringName("retry_alleyway")))
+	_store.dispatch(U_RUN_ACTIONS.reset_run(StringName("retry")))
 	await wait_process_frames(1)
 
 	var actions: Array[Dictionary] = _store.get_dispatched_actions()
@@ -84,7 +84,10 @@ func test_run_reset_dispatches_gameplay_reset_then_retry_and_resets_objectives()
 	assert_true(retry_index >= 0, "Coordinator should dispatch navigation/retry")
 	assert_true(gameplay_index < retry_index, "gameplay/reset_progress should dispatch before navigation/retry")
 	if retry_index >= 0:
-		assert_eq(actions[retry_index].get("scene_id", StringName("")), StringName("alleyway"))
+		assert_eq(
+			actions[retry_index].get("scene_id", StringName("")),
+			coordinator.game_config.retry_scene_id
+		)
 	assert_eq(objectives_manager.reset_calls, 1)
 	assert_eq(objectives_manager.last_set_id, StringName("default_progression"))
 	assert_false(U_INTERACT_BLOCKER.is_blocked(), "Coordinator should force-unblock interact blocker")
@@ -95,7 +98,7 @@ func test_run_reset_without_objectives_manager_still_resets_and_retries() -> voi
 	add_child_autofree(coordinator)
 	await wait_process_frames(1)
 
-	_store.dispatch(U_RUN_ACTIONS.reset_run(StringName("retry_alleyway")))
+	_store.dispatch(U_RUN_ACTIONS.reset_run(StringName("retry")))
 	await wait_process_frames(1)
 
 	var actions: Array[Dictionary] = _store.get_dispatched_actions()
@@ -108,8 +111,8 @@ func test_reentrant_run_reset_requests_are_ignored_while_in_flight() -> void:
 	add_child_autofree(coordinator)
 	await wait_process_frames(1)
 
-	_store.dispatch(U_RUN_ACTIONS.reset_run(StringName("retry_alleyway")))
-	_store.dispatch(U_RUN_ACTIONS.reset_run(StringName("retry_alleyway")))
+	_store.dispatch(U_RUN_ACTIONS.reset_run(StringName("retry")))
+	_store.dispatch(U_RUN_ACTIONS.reset_run(StringName("retry")))
 	await wait_process_frames(1)
 
 	var actions: Array[Dictionary] = _store.get_dispatched_actions()

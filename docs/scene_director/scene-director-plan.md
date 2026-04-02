@@ -303,7 +303,7 @@ Create scene directives:
 
 ### 7A: Contract + State Updates
 
-- Add `U_RunActions.ACTION_RESET_RUN` and `reset_run(next_route := &"retry_alleyway")`
+- Add `U_RunActions.ACTION_RESET_RUN` and `reset_run(next_route := &"retry")`
 - Add `U_ObjectivesActions.ACTION_RESET_FOR_NEW_RUN` with payload `{ "set_id": StringName }`
 - Extend `U_ObjectivesReducer` with `ACTION_RESET_FOR_NEW_RUN` handling:
   - clear `statuses`
@@ -322,7 +322,7 @@ Create scene directives:
 ### 7C: Run Coordinator
 
 - Add `M_RunCoordinator` manager that subscribes to store `action_dispatched` and handles `run/reset`
-- `retry_alleyway` orchestration order:
+- `retry` orchestration order:
   1. `U_GameplayActions.reset_progress()`
   2. `U_InteractBlocker.force_unblock()`
   3. `M_ObjectivesManager.reset_for_new_run(&"default_progression")` (when available)

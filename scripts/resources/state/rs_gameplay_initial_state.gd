@@ -32,6 +32,7 @@ const INPUT_REDUCER := preload("res://scripts/state/reducers/u_input_reducer.gd"
 @export var death_count: int = 0
 @export var death_in_progress: bool = false  # Phase 0: Save Manager - blocks autosave during death
 @export var completed_areas: Array[String] = []
+@export var ai_demo_flags: Dictionary = {}
 @export var last_victory_objective: StringName = StringName("")
 @export var game_completed: bool = false
 @export var playtime_seconds: int = 0  # Phase 0: Save Manager - total playtime tracking
@@ -83,6 +84,7 @@ func to_dictionary() -> Dictionary:
 		"death_count": death_count,
 		"death_in_progress": death_in_progress,
 		"completed_areas": completed_areas.duplicate(true),
+		"ai_demo_flags": ai_demo_flags.duplicate(true),
 		"last_victory_objective": last_victory_objective,
 		"game_completed": game_completed,
 		"playtime_seconds": playtime_seconds,

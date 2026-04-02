@@ -64,6 +64,9 @@
 [ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="59_input_component"]
 [ext_resource type="Script" path="res://scripts/ecs/components/c_movement_component.gd" id="60_movement_component"]
 [ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_movement_default.tres" id="61_movement_settings"]
+[ext_resource type="Script" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
+[ext_resource type="Script" path="res://scripts/gameplay/inter_hazard_zone.gd" id="63_inter_hazard_zone"]
+[ext_resource type="Resource" path="res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres" id="64_nav_fall_hazard_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -370,12 +373,19 @@ script = ExtResource("16_8qi87")
 
 [node name="Inter_FallDetectionArea" type="Area3D" parent="Entities/Triggers"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -6, 0)
+script = ExtResource("63_inter_hazard_zone")
+area_path = NodePath(".")
+config = ExtResource("64_nav_fall_hazard_config")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/Triggers/Inter_FallDetectionArea"]
 shape = SubResource("BoxShape3D_fall_zone")
 
 [node name="Inter_VictoryZone" type="Area3D" parent="Entities/Triggers"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, 6.5)
+script = ExtResource("62_ai_demo_flag_zone")
+ai_flag_id = &"nav_goal_reached"
+completed_area_id = "nav_nexus"
+signpost_message = "gameplay.signpost.default_message"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/Triggers/Inter_VictoryZone"]
 shape = SubResource("BoxShape3D_victory_zone")

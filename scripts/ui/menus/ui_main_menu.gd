@@ -15,7 +15,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_conf
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
-const DEFAULT_GAMEPLAY_SCENE := StringName("interior_a")
+const DEFAULT_GAMEPLAY_SCENE := StringName("power_core")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 @onready var _title_label: Label = %TitleLabel

@@ -6,6 +6,9 @@ const CFG_ALLEYWAY_ENTRY := preload("res://resources/scene_registry/cfg_alleyway
 const CFG_INTERIOR_HOUSE_ENTRY := preload("res://resources/scene_registry/cfg_interior_house_entry.tres")
 const CFG_INTERIOR_A_ENTRY := preload("res://resources/scene_registry/cfg_interior_a_entry.tres")
 const CFG_BAR_ENTRY := preload("res://resources/scene_registry/cfg_bar_entry.tres")
+const CFG_POWER_CORE_ENTRY := preload("res://resources/scene_registry/cfg_power_core_entry.tres")
+const CFG_COMMS_ARRAY_ENTRY := preload("res://resources/scene_registry/cfg_comms_array_entry.tres")
+const CFG_NAV_NEXUS_ENTRY := preload("res://resources/scene_registry/cfg_nav_nexus_entry.tres")
 const CFG_UI_GAME_OVER_ENTRY := preload("res://resources/scene_registry/cfg_ui_game_over_entry.tres")
 const CFG_UI_VICTORY_ENTRY := preload("res://resources/scene_registry/cfg_ui_victory_entry.tres")
 const CFG_UI_CREDITS_ENTRY := preload("res://resources/scene_registry/cfg_ui_credits_entry.tres")
@@ -25,6 +28,9 @@ const PRELOADED_SCENE_REGISTRY_ENTRIES := [
 	CFG_INTERIOR_HOUSE_ENTRY,
 	CFG_INTERIOR_A_ENTRY,
 	CFG_BAR_ENTRY,
+	CFG_POWER_CORE_ENTRY,
+	CFG_COMMS_ARRAY_ENTRY,
+	CFG_NAV_NEXUS_ENTRY,
 	CFG_UI_GAME_OVER_ENTRY,
 	CFG_UI_VICTORY_ENTRY,
 	CFG_UI_CREDITS_ENTRY,
@@ -125,6 +131,33 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 		register_scene_callable.call(
 			StringName("bar"),
 			"res://scenes/gameplay/gameplay_bar.tscn",
+			U_SceneRegistry.SceneType.GAMEPLAY,
+			"loading",
+			6
+		)
+
+	if not scenes.has(StringName("power_core")):
+		register_scene_callable.call(
+			StringName("power_core"),
+			"res://scenes/gameplay/gameplay_power_core.tscn",
+			U_SceneRegistry.SceneType.GAMEPLAY,
+			"loading",
+			7
+		)
+
+	if not scenes.has(StringName("comms_array")):
+		register_scene_callable.call(
+			StringName("comms_array"),
+			"res://scenes/gameplay/gameplay_comms_array.tscn",
+			U_SceneRegistry.SceneType.GAMEPLAY,
+			"loading",
+			6
+		)
+
+	if not scenes.has(StringName("nav_nexus")):
+		register_scene_callable.call(
+			StringName("nav_nexus"),
+			"res://scenes/gameplay/gameplay_nav_nexus.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6

@@ -107,7 +107,7 @@ func test_skip_hint_shown_after_min_time() -> void:
 
 func test_gameplay_scene_path_resolves() -> void:
 	var path: String = splash._resolve_gameplay_scene_path()
-	# interior_a may or may not be registered depending on scene registry init
+	# power_core may or may not be registered depending on scene registry init
 	# Just verify the method doesn't crash and returns a String
 	assert_true(path is String, "Should return a String")
 

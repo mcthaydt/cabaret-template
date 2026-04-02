@@ -160,6 +160,24 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			area_state.completed_areas = areas
 			return area_state
 
+		U_GameplayActions.ACTION_SET_AI_DEMO_FLAG:
+			var payload_variant: Variant = action.get("payload", {})
+			if not (payload_variant is Dictionary):
+				return state
+			var payload: Dictionary = payload_variant as Dictionary
+			var flag_id: StringName = payload.get("flag_id", StringName(""))
+			if flag_id == StringName(""):
+				return state
+
+			var ai_flags_state: Dictionary = state.duplicate(true)
+			var flags_variant: Variant = ai_flags_state.get("ai_demo_flags", {})
+			var ai_demo_flags: Dictionary = {}
+			if flags_variant is Dictionary:
+				ai_demo_flags = (flags_variant as Dictionary).duplicate(true)
+			ai_demo_flags[flag_id] = bool(payload.get("value", true))
+			ai_flags_state["ai_demo_flags"] = ai_demo_flags
+			return ai_flags_state
+
 		U_GameplayActions.ACTION_GAME_COMPLETE:
 			var complete_state: Dictionary = state.duplicate(true)
 			complete_state.game_completed = true
@@ -179,6 +197,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			reset_state.player_health = max_health_reset
 			reset_state.death_count = 0
 			reset_state.completed_areas = []
+			reset_state.ai_demo_flags = {}
 			reset_state.last_victory_objective = StringName("")
 			reset_state.game_completed = false
 			reset_state.target_spawn_point = StringName("")

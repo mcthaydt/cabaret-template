@@ -111,6 +111,7 @@ func test_reset_progress_restores_initial_fields() -> void:
 		"player_max_health": 100.0,
 		"death_count": 5,
 		"completed_areas": ["alleyway", "interior_house"],
+		"ai_demo_flags": {"power_core_activated": true, "nav_goal_reached": true},
 		"last_victory_objective": StringName("final_goal"),
 		"game_completed": true,
 		"target_spawn_point": StringName("spawn_exit"),
@@ -130,6 +131,7 @@ func test_reset_progress_restores_initial_fields() -> void:
 		"Reset should restore player health to max")
 	assert_eq(int(result.get("death_count", -1)), 0, "Reset should clear death count")
 	assert_true(result.get("completed_areas", []).is_empty(), "Reset should clear completed areas")
+	assert_true(result.get("ai_demo_flags", {}).is_empty(), "Reset should clear ai_demo_flags")
 	assert_eq(result.get("last_victory_objective", StringName("sentinel")), StringName(""),
 		"Reset should clear last victory objective")
 	assert_false(result.get("game_completed", true), "Reset should clear game_completed")
@@ -149,7 +151,23 @@ func test_reset_progress_restores_initial_fields() -> void:
 
 	# Ensure original state untouched
 	assert_eq(state.get("completed_areas", []).size(), 2, "Original completed areas should remain unchanged")
+	assert_true(state.get("ai_demo_flags", {}).has("power_core_activated"), "Original ai_demo_flags should remain unchanged")
 	assert_true(state.get("entities", {}).has("E_Player"), "Original entities dictionary should remain intact")
+
+func test_set_ai_demo_flag_sets_and_updates_flag_dictionary() -> void:
+	var state: Dictionary = {"ai_demo_flags": {StringName("power_core_activated"): false}}
+	var action: Dictionary = U_GameplayActions.set_ai_demo_flag(StringName("power_core_activated"), true)
+
+	var result: Dictionary = U_GameplayReducer.reduce(state, action)
+
+	var flags_variant: Variant = result.get("ai_demo_flags", {})
+	assert_true(flags_variant is Dictionary, "Reducer should keep ai_demo_flags as a dictionary")
+	if not (flags_variant is Dictionary):
+		return
+	var flags: Dictionary = flags_variant as Dictionary
+	assert_true(bool(flags.get(StringName("power_core_activated"), false)), "Flag should be set true")
+	assert_false(bool(state.get("ai_demo_flags", {}).get("power_core_activated", true)),
+		"Original state should remain unchanged")
 
 func test_apply_input_action_handles_null_state() -> void:
 	var action := U_InputActions.update_move_input(Vector2(0.25, -0.75))

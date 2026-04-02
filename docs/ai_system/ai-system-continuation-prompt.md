@@ -160,9 +160,25 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - Power Core includes CSG power-core geometry, four waypoint markers, activatable Area3D, and `E_PatrolDrone` with `C_AIBrainComponent`.
   - Comms Array includes CSG antenna/pillar geometry, guard waypoints, two noise-source Area3Ds, and `E_Sentry` with `C_AIBrainComponent`.
   - Nav Nexus includes vertical CSG platforms, path markers, fall-detection Area3D, victory-zone Area3D, and `E_GuidePrism` with `C_AIBrainComponent`.
+- Post-audit integration pass completed:
+  - Added runtime trigger wiring for all demo trigger zones:
+    - `scripts/gameplay/inter_ai_demo_flag_zone.gd` on Power/Comms/Victory triggers for durable AI flags (`power_core_activated`, `comms_disturbance_heard`, `nav_goal_reached`)
+    - `Inter_FallDetectionArea` now uses `Inter_HazardZone` + `resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres`
+  - Added scene registry entries and mobile-safe preload/backfill coverage:
+    - `resources/scene_registry/cfg_power_core_entry.tres`
+    - `resources/scene_registry/cfg_comms_array_entry.tres`
+    - `resources/scene_registry/cfg_nav_nexus_entry.tres`
+    - `scripts/scene_management/helpers/u_scene_registry_loader.gd` preload manifest + backfill updated
+  - Updated default New Game location to `power_core`:
+    - `scripts/ui/menus/ui_main_menu.gd` (`DEFAULT_GAMEPLAY_SCENE`)
+    - `scripts/ui/menus/ui_splash_screen.gd` (`DEFAULT_GAMEPLAY_SCENE_ID`)
+    - `resources/cfg_game_config.tres` (`retry_scene_id = &"power_core"`)
 - Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/scene_manager/test_scene_registry.gd` → `24/24` passing (includes mobile preloaded-manifest assertions).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd` → `14/14` passing.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_splash_screen.gd` → `13/13` passing.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
-  - `tools/run_gut_suite.sh` full regression → `3695/3704` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+  - `tools/run_gut_suite.sh` full regression → `3704/3713` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ### Completed in M10 (2026-04-02)
 
@@ -189,9 +205,10 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/ai/resources/test_ai_demo_behavior_resources.gd`
 - Verification:
   - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` failed before resource authoring/scene rewiring.
-  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `4/4` passing.
+  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `6/6` passing (expanded to cover durable flag condition paths + trigger-zone runtime wiring).
+  - Gameplay-state guard coverage: `tools/run_gut_suite.sh -gtest=res://tests/unit/state/test_gameplay_slice_reducers.gd` → `11/11` passing (includes `gameplay/set_ai_demo_flag` + reset clearing).
   - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
-  - Full regression confirmed: `tools/run_gut_suite.sh` → `3699/3708` passing, `9` pending/risky, `0` failing.
+  - Full regression confirmed: `tools/run_gut_suite.sh` → `3704/3713` passing, `9` pending/risky, `0` failing.
 
 ### Key Design Decisions
 
@@ -208,7 +225,9 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **Player input filtering is now enforced**: `S_InputSystem` writes gameplay input only to entities with `C_PlayerTagComponent`, preventing player-input clobbering of AI move vectors.
 - **M8 pipeline integration coverage is now live**: `tests/unit/ai/integration/test_ai_pipeline_integration.gd` validates GOAP scoring → HTN decomposition → typed action execution → AI navigation bridge → player-input filtering end-to-end.
 - **M9 demo scenes are now authored**: Power Core, Comms Array, and Nav Nexus gameplay scenes exist with required prototype geometry, markers/triggers, and NPC placeholder entities bound to valid `RS_AIBrainSettings` resources.
-- **M10 demo behavior authoring is complete**: Patrol Drone, Sentry, and Guide Prism now use authored archetype-specific brains/goals and include movement runtime components in-scene so `move_to` tasks execute on real movement paths.
+- **M9 mobile-safe scene registration is complete**: Power Core/Comms Array/Nav Nexus are now first-class `scene_registry` entries and are included in the loader preload manifest/backfill safety net for mobile/web exports.
+- **M10 demo behavior integration is complete**: Patrol Drone, Sentry, and Guide Prism now use durable gameplay AI flags for investigate/celebrate gating, and trigger zones are runtime-wired (including Nav fall hazard + victory flagging) so authored behaviors execute reliably in-scene.
+- **Default new-game routing now targets the AI demo location**: New Game + splash preload + retry routing resolve to `power_core`.
 
 ---
 

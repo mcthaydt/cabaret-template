@@ -313,6 +313,51 @@ static func _dictionaries_equal(a: Dictionary, b: Dictionary) -> bool:
 	for key in a:
 		if not b.has(key):
 			return false
-		if a[key] != b[key]:
+		if not _variants_equal(a[key], b[key]):
 			return false
 	return true
+
+static func _arrays_equal(a: Array, b: Array) -> bool:
+	if a.size() != b.size():
+		return false
+	for i in range(a.size()):
+		if not _variants_equal(a[i], b[i]):
+			return false
+	return true
+
+static func _variants_equal(a: Variant, b: Variant) -> bool:
+	var type_a: int = typeof(a)
+	var type_b: int = typeof(b)
+	if type_a != type_b:
+		if _is_numeric_type(type_a) and _is_numeric_type(type_b):
+			return is_equal_approx(float(a), float(b))
+		return false
+
+	match type_a:
+		TYPE_DICTIONARY:
+			return _dictionaries_equal(a as Dictionary, b as Dictionary)
+		TYPE_ARRAY:
+			return _arrays_equal(a as Array, b as Array)
+		TYPE_FLOAT:
+			return is_equal_approx(float(a), float(b))
+		TYPE_VECTOR2:
+			return (a as Vector2).is_equal_approx(b as Vector2)
+		TYPE_VECTOR2I:
+			return (a as Vector2i) == (b as Vector2i)
+		TYPE_VECTOR3:
+			return (a as Vector3).is_equal_approx(b as Vector3)
+		TYPE_VECTOR3I:
+			return (a as Vector3i) == (b as Vector3i)
+		TYPE_VECTOR4:
+			return (a as Vector4).is_equal_approx(b as Vector4)
+		TYPE_VECTOR4I:
+			return (a as Vector4i) == (b as Vector4i)
+		TYPE_QUATERNION:
+			return (a as Quaternion).is_equal_approx(b as Quaternion)
+		TYPE_COLOR:
+			return (a as Color).is_equal_approx(b as Color)
+		_:
+			return a == b
+
+static func _is_numeric_type(type_id: int) -> bool:
+	return type_id == TYPE_INT or type_id == TYPE_FLOAT

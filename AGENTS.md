@@ -66,8 +66,8 @@
   - VICTORY objectives publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with `completion_event_payload` as-is.
   - `M_SceneManager` listens to `EVENT_OBJECTIVE_VICTORY_TRIGGERED` for endgame transitions; legacy direct `victory_executed` scene transitions are removed.
 - Reset-run orchestration pattern (Phase 7):
-  - `UI_Victory` Continue dispatches `U_RunActions.reset_run(&"retry_alleyway")` (do not chain gameplay/navigation reset actions directly in UI code).
-  - `M_RunCoordinatorManager` handles `run/reset` order: `gameplay/reset_progress` -> `U_InteractBlocker.force_unblock()` -> `objectives_manager.reset_for_new_run(&"default_progression")` -> `navigation/retry(&"alleyway")`.
+  - `UI_Victory` Continue dispatches `U_RunActions.reset_run(&"retry")` (do not chain gameplay/navigation reset actions directly in UI code).
+  - `M_RunCoordinatorManager` handles `run/reset` order: `gameplay/reset_progress` -> `U_InteractBlocker.force_unblock()` -> `objectives_manager.reset_for_new_run(&"default_progression")` -> `navigation/retry(game_config.retry_scene_id)` (currently `&"power_core"` in `resources/cfg_game_config.tres`).
   - Service-locator lookups in the reset path are type-cast to `I_ObjectivesManager` (no `has_method("reset_for_new_run")` duck-typing guards).
   - `M_ObjectivesManager.reset_for_new_run()` is the fresh objective-reset path (no persisted-status reconciliation); `load_objective_set()` remains the save/load reconciliation path.
   - Re-entrant `run/reset` requests are ignored while a reset is in-flight.
@@ -125,6 +125,7 @@
   - AI navigation bridge contract (M7): `S_AINavigationSystem` (`scripts/ecs/systems/s_ai_navigation_system.gd`, `execution_priority = -5`) reads `task_state["ai_move_target"]`, computes XZ world direction, converts through active camera basis (fallback direct mapping when no camera), and writes `C_InputComponent.set_move_vector()` so NPC movement uses the same `S_MovementSystem` path as players.
   - Player-input isolation contract (M7): `S_InputSystem` queries `C_InputComponent` with required `C_PlayerTagComponent` so player input updates only player-tagged entities and does not clobber AI-authored move vectors.
   - Demo scene authoring contract (M10): any NPC expected to execute `RS_AIActionMoveTo` in authored gameplay scenes must include a runtime movement stack (`CharacterBody3D`, `C_InputComponent`, and `C_MovementComponent` with valid movement settings). Brain-only placeholder entities without that stack will select goals but fail to progress movement tasks.
+  - Demo trigger gating contract (M10 audit follow-up): do not gate demo GOAP goals off transient one-frame input fields (for example `camera_center_just_pressed`). Use durable gameplay flags under `gameplay.ai_demo_flags.*` and drive them from authored trigger zones (`Inter_AIDemoFlagZone`) so evaluate-interval scheduling cannot miss triggers.
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.

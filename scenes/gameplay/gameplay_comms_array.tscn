@@ -64,6 +64,7 @@
 [ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="59_input_component"]
 [ext_resource type="Script" path="res://scripts/ecs/components/c_movement_component.gd" id="60_movement_component"]
 [ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_movement_default.tres" id="61_movement_settings"]
+[ext_resource type="Script" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -361,6 +362,10 @@ script = ExtResource("16_8qi87")
 
 [node name="Inter_NoiseSourceA" type="Area3D" parent="Entities/NoiseSources"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1, 4)
+script = ExtResource("62_ai_demo_flag_zone")
+ai_flag_id = &"comms_disturbance_heard"
+completed_area_id = "comms_array"
+signpost_message = "gameplay.signpost.default_message"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NoiseSources/Inter_NoiseSourceA"]
 shape = SubResource("SphereShape3D_noise_source")
@@ -371,6 +376,10 @@ material = SubResource("StandardMaterial3D_noise")
 
 [node name="Inter_NoiseSourceB" type="Area3D" parent="Entities/NoiseSources"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 5)
+script = ExtResource("62_ai_demo_flag_zone")
+ai_flag_id = &"comms_disturbance_heard"
+completed_area_id = "comms_array"
+signpost_message = "gameplay.signpost.default_message"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NoiseSources/Inter_NoiseSourceB"]
 shape = SubResource("SphereShape3D_noise_source")

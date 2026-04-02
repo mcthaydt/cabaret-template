@@ -1647,3 +1647,6 @@ func test_window_mode_fullscreen() -> void:
 
 - **`RS_AIActionMoveTo` stalls on scene-authored NPCs that lack movement runtime components**: goals can score and task queues can start, but without `CharacterBody3D` + `C_InputComponent` + `C_MovementComponent`, `S_AINavigationSystem` has no valid movement pipeline and the NPC never reaches move targets.
   - **Fix pattern**: when wiring demo/scene NPCs, always author the full runtime movement stack and assign valid movement settings (`cfg_movement_default` or equivalent) in addition to `C_AIBrainComponent`.
+
+- **Transient input booleans are unsafe as GOAP goal gates when evaluation is throttled**: gating goals on one-frame fields like `gameplay.input.camera_center_just_pressed` can be missed entirely when `RS_AIBrainSettings.evaluation_interval` is greater than the pulse window.
+  - **Fix pattern**: gate authored/demo goals on durable Redux flags (for example `gameplay.ai_demo_flags.*`) and set those flags from scene trigger zones (for example `Inter_AIDemoFlagZone`) instead of raw one-frame input pulses.

@@ -160,15 +160,15 @@ Each action is a typed resource implementing `I_AIAction` with `@export` fields 
 | `RS_AIActionPublishEvent` | `event_name`, `payload` | Instant (fire and advance) |
 | `RS_AIActionSetField` | `field_path`, `value_type`, typed value exports | Instant |
 
-## Planned Demo Integration (Signal Lost)
+## Demo Integration (Signal Lost)
 
-Three NPC archetypes are intended to prove the system:
+Three NPC archetypes are implemented to prove the system:
 
-1. **Patrol Drone** (Power Core): GOAP with 2 goals — `patrol` (move between waypoints) and `investigate` (pause when player activates a node). QB scores `proximity_to_player` and `node_recently_activated`.
+1. **Patrol Drone** (Power Core): GOAP with 2 goals — `patrol` (move between waypoints) and `investigate` (move/scan at activatable node). Investigate is gated by durable Redux flag `gameplay.ai_demo_flags.power_core_activated` (set by scene trigger), not one-frame input pulses.
 
-2. **Sentry** (Comms Array): HTN with compound tasks — `guard_area` decomposes to [scan → patrol → scan], `investigate_disturbance` decomposes to [move_to_noise → scan → return]. QB scores `player_noise_level` and cooldown.
+2. **Sentry** (Comms Array): HTN with compound tasks — `guard` decomposes to scan/patrol loops, `investigate_disturbance` decomposes to [move_to_noise → scan → return]. Investigate is gated by durable Redux flag `gameplay.ai_demo_flags.comms_disturbance_heard` (set by noise trigger zones).
 
-3. **Guide Prism** (Nav Nexus): Cooperative GOAP with 3 goals — `show_path` (move to next platform), `encourage` (fly to respawn, pulse), `celebrate` (spin + particles at goal). QB scores `player_progress`, `player_fell_recently`, `is_at_goal`.
+3. **Guide Prism** (Nav Nexus): Cooperative GOAP with 3 goals — `show_path` (move to path markers), `encourage` (respawn assist pulse on airborne/fall context), `celebrate` (spin + signpost event at goal). Celebrate is gated by `gameplay.ai_demo_flags.nav_goal_reached` (set by victory trigger zone).
 
 ## Implementation Phases
 

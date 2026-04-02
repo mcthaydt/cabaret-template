@@ -5,7 +5,7 @@ class_name UI_Victory
 ## Victory screen controller (Phase 9)
 ##
 ## Displays completion stats and dispatches navigation actions:
-## - Continue: Return to gameplay hub (alleyway).
+## - Continue: Return to configured gameplay retry scene via run/reset orchestration.
 ## - Credits: Skip to credits (visible after completion).
 ## - Menu: Return to main menu.
 
@@ -151,7 +151,7 @@ func _localize_labels() -> void:
 func _on_continue_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	_hide_immediately()
-	_dispatch_run_reset(StringName("retry_alleyway"))
+	_dispatch_run_reset(StringName("retry"))
 
 func _on_credits_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
@@ -212,7 +212,7 @@ func _dispatch_navigation(action: Dictionary) -> void:
 		return
 	store.dispatch(action)
 
-func _dispatch_run_reset(next_route: StringName = StringName("retry_alleyway")) -> void:
+func _dispatch_run_reset(next_route: StringName = StringName("retry")) -> void:
 	var store := get_store()
 	if store == null:
 		return

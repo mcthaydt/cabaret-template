@@ -67,6 +67,12 @@ static func _normalize_gameplay_slice(gameplay_slice: Dictionary) -> void:
 	var raw_completed: Variant = gameplay_slice.get("completed_areas", [])
 	gameplay_slice["completed_areas"] = sanitize_completed_areas(raw_completed)
 
+	var raw_ai_demo_flags: Variant = gameplay_slice.get("ai_demo_flags", {})
+	if raw_ai_demo_flags is Dictionary:
+		gameplay_slice["ai_demo_flags"] = (raw_ai_demo_flags as Dictionary).duplicate(true)
+	else:
+		gameplay_slice["ai_demo_flags"] = {}
+
 ## Validate a scene reference against the scene registry.
 ##
 ## Returns true if the scene exists in U_SceneRegistry, false otherwise.

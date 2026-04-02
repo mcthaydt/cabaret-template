@@ -160,7 +160,7 @@ M8 completion note (2026-04-02): Added `tests/unit/ai/integration/test_ai_pipeli
 - [x] Add NPC entity placeholders to each scene (CSG visuals + C_AIBrainComponent with a valid placeholder RS_AIBrainSettings resource assigned)
 - [x] Verify scenes load, player can spawn/move, style enforcement passes
 
-M9 completion note (2026-04-02): Authored `gameplay_power_core.tscn`, `gameplay_comms_array.tscn`, and `gameplay_nav_nexus.tscn` with required CSG prototype geometry, marker/trigger nodes, and placeholder NPC entities (`E_PatrolDrone`, `E_Sentry`, `E_GuidePrism`) each wired to a valid shared placeholder brain resource (`resources/ai/cfg_ai_brain_placeholder.tres`). Validation passed with style enforcement (`17/17`) and full regression baseline (`3695/3704` passing, `9` pending/risky, `0` failing).
+M9 completion note (2026-04-02): Authored `gameplay_power_core.tscn`, `gameplay_comms_array.tscn`, and `gameplay_nav_nexus.tscn` with required CSG prototype geometry, marker/trigger nodes, and placeholder NPC entities (`E_PatrolDrone`, `E_Sentry`, `E_GuidePrism`) each wired to a valid shared placeholder brain resource (`resources/ai/cfg_ai_brain_placeholder.tres`). Post-audit integration pass added runtime trigger wiring (`Inter_AIDemoFlagZone` durable AI flags + Nav fall hazard), scene-registry entries and loader preload/backfill coverage for mobile/web exports, and default new-game/retry routing to `power_core`. Validation passed with style enforcement (`17/17`) and targeted scene-registry/main-menu checks.
 
 ### M10 — Demo NPC Behavior Authoring & Tuning
 
@@ -177,9 +177,9 @@ M9 completion note (2026-04-02): Authored `gameplay_power_core.tscn`, `gameplay_
 - [x] Verify all 3 NPCs behave as designed, no performance regression baseline in automated regression
 
 M10 completion note (2026-04-02): Added full demo archetype resource trees under `resources/ai/patrol_drone/`, `resources/ai/sentry/`, and `resources/ai/guide_prism/`; rewired `E_PatrolDrone`, `E_Sentry`, and `E_GuidePrism` to authored brain settings; and added runtime movement wiring for each NPC (`CharacterBody3D`, `C_InputComponent`, `C_MovementComponent`, `cfg_movement_default`). Added `tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` for RED→GREEN verification of resource authoring + scene wiring. Validation passed with:
-- `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `4/4`
+- `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `6/6`
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
-- `tools/run_gut_suite.sh` → `3699/3708` passing, `9` pending/risky, `0` failing.
+- `tools/run_gut_suite.sh` → `3704/3713` passing, `9` pending/risky, `0` failing.
 
 ## Testing Strategy
 

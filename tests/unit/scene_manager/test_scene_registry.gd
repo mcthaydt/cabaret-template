@@ -6,6 +6,7 @@ extends GutTest
 ## Tests follow TDD discipline: written BEFORE implementation.
 
 const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
+const U_SceneRegistryLoader = preload("res://scripts/scene_management/helpers/u_scene_registry_loader.gd")
 
 func before_each() -> void:
 	# U_SceneRegistry is static, no setup needed
@@ -212,6 +213,9 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	U_SceneRegistry._scenes.erase(StringName("interior_house"))
 	U_SceneRegistry._scenes.erase(StringName("interior_a"))
 	U_SceneRegistry._scenes.erase(StringName("bar"))
+	U_SceneRegistry._scenes.erase(StringName("power_core"))
+	U_SceneRegistry._scenes.erase(StringName("comms_array"))
+	U_SceneRegistry._scenes.erase(StringName("nav_nexus"))
 
 	U_SceneRegistry._backfill_default_gameplay_scenes()
 
@@ -235,7 +239,52 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	assert_false(bar.is_empty(), "bar should be registered by backfill")
 	assert_eq(String(bar.get("default_transition", "")), "loading", "bar backfill should prefer loading transition")
 
+	var power_core: Dictionary = U_SceneRegistry.get_scene(StringName("power_core"))
+	assert_false(power_core.is_empty(), "power_core should be registered by backfill")
+	assert_eq(String(power_core.get("default_transition", "")), "loading", "power_core backfill should prefer loading transition")
+
+	var comms_array: Dictionary = U_SceneRegistry.get_scene(StringName("comms_array"))
+	assert_false(comms_array.is_empty(), "comms_array should be registered by backfill")
+	assert_eq(String(comms_array.get("default_transition", "")), "loading", "comms_array backfill should prefer loading transition")
+
+	var nav_nexus: Dictionary = U_SceneRegistry.get_scene(StringName("nav_nexus"))
+	assert_false(nav_nexus.is_empty(), "nav_nexus should be registered by backfill")
+	assert_eq(String(nav_nexus.get("default_transition", "")), "loading", "nav_nexus backfill should prefer loading transition")
+
 	U_SceneRegistry._scenes = scenes_backup
+
+func test_ai_demo_scene_entries_registered() -> void:
+	var power_core: Dictionary = U_SceneRegistry.get_scene(StringName("power_core"))
+	assert_false(power_core.is_empty(), "power_core scene should be registered")
+	assert_eq(String(power_core.get("path", "")), "res://scenes/gameplay/gameplay_power_core.tscn")
+	assert_eq(power_core.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
+
+	var comms_array: Dictionary = U_SceneRegistry.get_scene(StringName("comms_array"))
+	assert_false(comms_array.is_empty(), "comms_array scene should be registered")
+	assert_eq(String(comms_array.get("path", "")), "res://scenes/gameplay/gameplay_comms_array.tscn")
+	assert_eq(comms_array.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
+
+	var nav_nexus: Dictionary = U_SceneRegistry.get_scene(StringName("nav_nexus"))
+	assert_false(nav_nexus.is_empty(), "nav_nexus scene should be registered")
+	assert_eq(String(nav_nexus.get("path", "")), "res://scenes/gameplay/gameplay_nav_nexus.tscn")
+	assert_eq(nav_nexus.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
+
+func test_mobile_preloaded_scene_registry_manifest_includes_ai_demo_scenes() -> void:
+	var preloaded_entries: Array = U_SceneRegistryLoader.PRELOADED_SCENE_REGISTRY_ENTRIES
+	var manifest_scene_ids: Array[StringName] = []
+
+	for entry_variant in preloaded_entries:
+		var entry_resource := entry_variant as RS_SceneRegistryEntry
+		if entry_resource == null:
+			continue
+		manifest_scene_ids.append(entry_resource.scene_id)
+
+	assert_true(manifest_scene_ids.has(StringName("power_core")),
+		"Preloaded scene manifest should include power_core for mobile/web builds")
+	assert_true(manifest_scene_ids.has(StringName("comms_array")),
+		"Preloaded scene manifest should include comms_array for mobile/web builds")
+	assert_true(manifest_scene_ids.has(StringName("nav_nexus")),
+		"Preloaded scene manifest should include nav_nexus for mobile/web builds")
 
 ## Test localization settings UI scene is backfilled when registry resources are missing
 func test_localization_settings_scene_backfilled_when_missing() -> void:

@@ -352,9 +352,26 @@
   - `scenes/gameplay/gameplay_nav_nexus.tscn`
 - Added shared placeholder brain settings resource:
   - `resources/ai/cfg_ai_brain_placeholder.tres`
+- Filled scene-integration gaps:
+  - Wired runtime trigger behavior for all milestone demo trigger areas:
+    - `scripts/gameplay/inter_ai_demo_flag_zone.gd` now drives durable gameplay AI flags from Area3D triggers (`power_core_activated`, `comms_disturbance_heard`, `nav_goal_reached`).
+    - `Inter_FallDetectionArea` in Nav Nexus now uses `Inter_HazardZone` + `cfg_hazard_nav_nexus_fall` for actual fall/death behavior.
+- Registered demo scenes for runtime + export/mobile loading:
+  - Added scene registry entries:
+    - `resources/scene_registry/cfg_power_core_entry.tres`
+    - `resources/scene_registry/cfg_comms_array_entry.tres`
+    - `resources/scene_registry/cfg_nav_nexus_entry.tres`
+  - Added entries to `U_SceneRegistryLoader.PRELOADED_SCENE_REGISTRY_ENTRIES` + gameplay backfill safety net.
+- Assigned new gameplay start location:
+  - Main-menu New Game default switched to `power_core` (`UI_MainMenu.DEFAULT_GAMEPLAY_SCENE`).
+  - Splash-screen preload target switched to `power_core` (`UI_SplashScreen.DEFAULT_GAMEPLAY_SCENE_ID`).
+  - Root run-reset retry destination now resolves to `power_core` through `resources/cfg_game_config.tres`.
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
-  - `tools/run_gut_suite.sh` full regression → `3695/3704` passing, `9` pending/risky (headless/platform/mobile skips), `0` failing.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/scene_manager/test_scene_registry.gd` → `24/24` passing (includes mobile preloaded-manifest coverage for new scenes).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd` → `14/14` passing (New Game default scene now `power_core`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_splash_screen.gd` → `13/13` passing.
+  - `tools/run_gut_suite.sh` full regression → `3704/3713` passing, `9` pending/risky (headless/platform/mobile skips), `0` failing.
 
 ---
 
@@ -365,18 +382,18 @@
 - [x] **Commit 1** — Author Patrol Drone resources (`resources/ai/patrol_drone/`):
   - `cfg_patrol_drone_brain.tres` — RS_AIBrainSettings, default `&"patrol"`, interval `0.2`
   - `cfg_goal_patrol.tres` — RS_AIGoal, constant-gated patrol compound loop using waypoint node paths
-  - `cfg_goal_investigate.tres` — RS_AIGoal, input-triggered investigate sequence [move_to(activatable), scan(2.0), wait(1.0)]
+  - `cfg_goal_investigate.tres` — RS_AIGoal, durable-flag investigate sequence [move_to(activatable), scan(2.0), wait(1.0)]
   - Wired onto `E_PatrolDrone` in `gameplay_power_core.tscn`
 - [x] **Commit 2** — Author Sentry resources (`resources/ai/sentry/`):
   - `cfg_sentry_brain.tres` — default `&"guard"`
   - `cfg_goal_guard.tres` — guard loop [scan/patrol across guard waypoints]
-  - `cfg_goal_investigate_disturbance.tres` — sprint/noise-triggered investigate sequence [move_to(noise_source), scan(4.0), move_to(guard_post)]
+  - `cfg_goal_investigate_disturbance.tres` — durable-flag investigate sequence [move_to(noise_source), scan(4.0), move_to(guard_post)]
   - Wired into `gameplay_comms_array.tscn`
 - [x] **Commit 3** — Author Guide Prism resources (`resources/ai/guide_prism/`):
   - `cfg_guide_brain.tres` — default `&"show_path"`
   - `cfg_goal_show_path.tres` — path marker loop [move_to(next_marker), wait(1.0)] across A/B/C/D
   - `cfg_goal_encourage.tres` — airborne/fall-triggered support sequence [move_to(respawn_point), animate("pulse"), wait(1.5)]
-  - `cfg_goal_celebrate.tres` — completion-triggered sequence [animate("spin"), publish_event("guide_prism_celebration"), wait(3.0)]
+  - `cfg_goal_celebrate.tres` — completion-triggered sequence [animate("spin"), publish_event("signpost_message"), wait(3.0)]
   - Wired into `gameplay_nav_nexus.tscn`
 - [x] **Commit 4** — Tune/runtime-wire pass:
   - Added per-NPC runtime movement stack (`CharacterBody3D`, `C_InputComponent`, `C_MovementComponent` + `cfg_movement_default`) so `move_to` tasks progress instead of stalling
@@ -388,15 +405,15 @@
 - [x] Sentry authored with guard + investigate_disturbance goal set and scene wiring
 - [x] Guide Prism authored with show_path + encourage + celebrate goal set and scene wiring
 - [x] No regression in automated baseline (`tools/run_gut_suite.sh` stays green except known 9 pending/risky)
-- [x] Goal/task decomposition validity covered by M10 resource test (`4/4`)
-- [x] All unit + integration tests still green (`3699/3708` passing, `9` pending/risky, `0` failing)
+- [x] Goal/task decomposition + runtime trigger wiring validity covered by M10 resource test (`6/6`)
+- [x] All unit + integration tests still green (`3704/3713` passing, `9` pending/risky, `0` failing)
 - [x] `test_style_enforcement.gd` passes (`17/17`)
 
 **M10 Completion Notes (2026-04-02)**:
 - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` failed on missing resource files and placeholder-scene brain assignments.
-- GREEN confirmed: after resource authoring + scene rewiring, `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` passes `4/4`.
+- GREEN confirmed: after resource authoring + scene rewiring, `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` passes `6/6` (includes durable-goal-condition and trigger-zone script wiring assertions).
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes `17/17`.
-- Full regression confirmed: `tools/run_gut_suite.sh` now reports `3699/3708` passing, `9` pending/risky, and `0` failing.
+- Full regression confirmed: `tools/run_gut_suite.sh` now reports `3704/3713` passing, `9` pending/risky, and `0` failing.
 
 ---
 

@@ -16,7 +16,7 @@ const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_regist
 enum Phase { CRISPY_CABARET, GODOT_ENGINE, DONE }
 
 const MIN_DISPLAY_TIME := 2.0
-const DEFAULT_GAMEPLAY_SCENE_ID := StringName("interior_a")
+const DEFAULT_GAMEPLAY_SCENE_ID := StringName("power_core")
 
 @onready var _crispy_panel: Control = %CrispyCabaretPanel
 @onready var _godot_panel: Control = %GodotEnginePanel

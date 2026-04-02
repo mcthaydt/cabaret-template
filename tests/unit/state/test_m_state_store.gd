@@ -15,6 +15,9 @@ var slice_updated_count: int = 0
 var last_slice_name: StringName = StringName()
 const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
 
+func _mixed_type_slice_reducer(_current: Dictionary, _action: Dictionary) -> Dictionary:
+	return {"value": Vector2(1.0, -0.5)}
+
 func before_each() -> void:
 	# CRITICAL: Reset state bus between tests to prevent subscription leaks
 	U_StateEventBus.reset()
@@ -194,6 +197,21 @@ func test_get_slice_returns_deep_copy() -> void:
 	var slice2: Dictionary = store.get_slice(StringName("test_slice"))
 
 	assert_eq(slice2.get("value"), 100, "Modifying slice copy should not affect original")
+
+func test_dispatch_handles_mixed_type_slice_value_transitions_without_comparer_crash() -> void:
+	U_ActionRegistry.register_action(StringName("test/mixed_type_transition"))
+
+	var config := RS_StateSliceConfig.new(StringName("mixed_type_slice"))
+	config.initial_state = {"value": "legacy_value"}
+	config.reducer = Callable(self, "_mixed_type_slice_reducer")
+	store.register_slice(config)
+
+	store.dispatch({"type": StringName("test/mixed_type_transition"), "payload": null})
+
+	var updated_slice: Dictionary = store.get_slice(StringName("mixed_type_slice"))
+	var value: Variant = updated_slice.get("value", null)
+	assert_true(value is Vector2, "Reducer should be able to replace legacy String with Vector2 without crashing")
+	assert_eq(value, Vector2(1.0, -0.5), "Slice value should update to reducer output")
 
 func test_settings_slice_registered_and_updates_via_actions() -> void:
 	var settings_slice: Dictionary = store.get_slice(StringName("settings"))
