@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Milestone 8 complete (8/10 milestones)
+- **Current status**: Milestone 8 complete + M7/M8 hardening pass complete (8/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -137,7 +137,7 @@ M6 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/ac
 - [x] Modify `scripts/ecs/systems/s_input_system.gd`: add `C_PlayerTagComponent` to query filter so player input only writes to player-tagged entities (prevents clobbering AI move_vector)
 - [x] Verify style enforcement + full regression suite
 
-M7 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/actions/test_ai_actions_movement.gd` (7/7 passing), `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` (9/9 passing), and `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` (2/2 passing). `S_AINavigationSystem` now bridges `task_state["ai_move_target"]` to camera-relative `C_InputComponent.move_vector`, `S_InputSystem` now writes gameplay input only to `C_PlayerTagComponent` entities, style enforcement passed (17/17), and full-suite run now reports `3684/3693` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
+M7 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/actions/test_ai_actions_movement.gd` (now `10/10` after target-node-path hardening coverage), `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` (`9/9`), and `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` (`2/2`). Hardening pass updates include same-goal replay replanning when queue completion leaves no active tasks, per-context `one_shot` scoping (`rule_id + context_key`) via `U_RuleStateTracker`, and default shared-scene wiring of `S_AIBehaviorSystem(-10)` + `S_AINavigationSystem(-5)` in both `tmpl_base_scene.tscn` and `gameplay_base.tscn`. Style enforcement passed (`17/17`), and full-suite run now reports `3695/3704` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M8 — Integration Tests
 
@@ -150,7 +150,7 @@ M7 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/ac
 - [x] Fix bugs discovered during integration testing
 - [x] Verify all existing tests still pass (regression check)
 
-M8 completion note (2026-04-02): Added `tests/unit/ai/integration/test_ai_pipeline_integration.gd` with 5 end-to-end tests (patrol pipeline, mid-queue replanning, cooldown anti-thrash, default-goal fallback, and context-driven method-branch selection). RED confirmed on initial parse/runtime issues (headless-safe type annotations + scene-tree transform usage), then GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` passed `5/5`. Regression guards passed (`test_s_ai_behavior_system_goals.gd` `10/10`, `test_s_ai_behavior_system_tasks.gd` `6/6`, `test_ai_actions_movement.gd` `7/7`, `test_s_ai_navigation_system.gd` `9/9`, `test_s_input_system_ai_filter.gd` `2/2`), style enforcement passed (`17/17`), and full-suite run currently reports `3689/3698` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
+M8 completion note (2026-04-02): Added `tests/unit/ai/integration/test_ai_pipeline_integration.gd` with 6 end-to-end tests (patrol pipeline, real movement-system coupling, mid-queue replanning, cooldown anti-thrash, default-goal fallback, and context-driven method-branch selection). RED confirmed on initial parse/runtime issues (headless-safe type annotations + scene-tree transform usage), then GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` passed `6/6`. Regression guards passed (`test_s_ai_behavior_system_goals.gd` `12/12`, `test_s_ai_behavior_system_tasks.gd` `6/6`, `test_ai_actions_movement.gd` `10/10`, `test_s_ai_navigation_system.gd` `9/9`, `test_s_input_system_ai_filter.gd` `2/2`), style enforcement passed (`17/17`), and full-suite run currently reports `3695/3704` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M9 — Demo Scene Creation
 
@@ -218,20 +218,23 @@ M8 completion note (2026-04-02): Added `tests/unit/ai/integration/test_ai_pipeli
 | `scripts/resources/ai/actions/rs_ai_action_move_to.gd` | Resource | Movement action implementing `I_AIAction`; resolves waypoint/node/position targets and completion by XZ arrival threshold |
 | `scripts/resources/ai/actions/rs_ai_action_scan.gd` | Resource | Timed scan action implementing `I_AIAction`; tracks elapsed scan state and completion |
 | `scripts/resources/ai/actions/rs_ai_action_animate.gd` | Resource | Stub animation action implementing `I_AIAction`; writes animation state and completes immediately |
-| `scripts/ecs/systems/s_ai_behavior_system.gd` | System | Goal evaluation + task runner (`_execute_current_task`) composing `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, and `U_HTNPlanner` |
+| `scripts/ecs/systems/s_ai_behavior_system.gd` | System | Goal evaluation + task runner (`_execute_current_task`) composing `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, and `U_HTNPlanner`; includes same-goal replay replan when queue completes |
 | `scripts/ecs/systems/s_ai_navigation_system.gd` | System | AI movement bridge (`execution_priority = -5`) converting world-space move targets to camera-relative input vectors |
+| `scripts/utils/qb/u_rule_state_tracker.gd` | Utility | QB rule state helper with context-scoped `one_shot` tracking (`rule_id + context_key`) while preserving cooldown/rising-edge behavior |
 | `scripts/ecs/systems/s_input_system.gd` | System | Player-input writer now filtered to `C_PlayerTagComponent` entities to avoid AI move-vector clobbering |
+| `scenes/templates/tmpl_base_scene.tscn` | Scene | Shared base scene now wires `S_AIBehaviorSystem(-10)` and `S_AINavigationSystem(-5)` before `S_InputSystem(0)` |
+| `scenes/gameplay/gameplay_base.tscn` | Scene | Gameplay base now wires `S_AIBehaviorSystem(-10)` and `S_AINavigationSystem(-5)` before `S_InputSystem(0)` |
 | `tests/unit/ai/resources/test_rs_ai_task.gd` | Test | M1 resources + I_AIAction interface (includes `method_conditions` coverage) |
 | `tests/unit/ai/resources/test_rs_ai_goal.gd` | Test | M2 goal/brain settings resource coverage |
 | `tests/unit/ecs/components/test_c_ai_brain_component.gd` | Test | M3 component registration/runtime-state/validation coverage |
 | `tests/unit/ai/test_u_htn_planner.gd` | Test | M4 HTN decomposition coverage (primitive/compound/nested/method-conditions/cycle/max-depth) |
-| `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` | Test | M5 goal-loop coverage (highest scorer, priority tiebreak, fallback goal, re-plan on goal switch, interval throttling, cooldown/one-shot/rising-edge gates, no-brain safety) |
+| `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` | Test | M5 goal-loop coverage (highest scorer, priority tiebreak, fallback goal, re-plan on goal switch, same-goal replay after queue completion, interval throttling, cooldown/one-shot/rising-edge gates, per-context one-shot isolation, no-brain safety) |
 | `tests/unit/ai/actions/test_ai_actions_instant.gd` | Test | M6 instant action resource coverage (wait/event/set-field) |
-| `tests/unit/ai/actions/test_ai_actions_movement.gd` | Test | M7 movement/stub action coverage (move_to/scan/animate) |
+| `tests/unit/ai/actions/test_ai_actions_movement.gd` | Test | M7 movement/stub action coverage (move_to/scan/animate) including target_node_path context-resolution hardening |
 | `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` | Test | M6 task-runner coverage (dispatch, sequencing, completion reset, empty queue safety, invalid queue entry/action skip hardening) |
 | `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` | Test | M7 AI navigation bridge coverage (priority, target handling, camera transform, no-camera fallback) |
 | `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` | Test | M7 input filter coverage (`C_PlayerTagComponent` query gating) |
-| `tests/unit/ai/integration/test_ai_pipeline_integration.gd` | Test | M8 integration coverage for full GOAP→HTN→action pipeline, mid-queue replanning, cooldown gating, default fallback, and method-branch selection |
+| `tests/unit/ai/integration/test_ai_pipeline_integration.gd` | Test | M8 integration coverage for full GOAP→HTN→action pipeline, real movement-system coupling, mid-queue replanning, cooldown gating, default fallback, and method-branch selection |
 | `tests/mocks/mock_ai_action_track.gd` | Test helper | M6 mock action used to assert polymorphic runner call ordering/counters |
 
 ### Planned Target Inventory (M9-M10)

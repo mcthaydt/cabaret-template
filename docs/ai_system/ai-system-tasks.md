@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 8 complete (8/10 milestones)
+**Status**: Milestone 8 complete + M7/M8 hardening pass complete (8/10 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -252,13 +252,16 @@
 - [x] **Commit 5** — Verify style enforcement passes; run full test suite for regressions
 
 **M7 Verification**:
-- [x] All 7 action unit tests green
+- [x] All 10 action unit tests green
 - [x] All 9 navigation system tests green
 - [x] All 2 input filter tests green
 - [x] move_to resolves all 3 parameter variants (position, node_path, waypoint_index)
 - [x] S_AINavigationSystem bridges task_state["ai_move_target"] → C_InputComponent.move_vector via inverse camera transform
 - [x] NPCs use the same S_MovementSystem camera-relative code path as the player
 - [x] S_InputSystem only writes player input to C_PlayerTagComponent entities
+- [x] S_AIBehaviorSystem auto-replans when the same goal remains selected and the current task queue is empty (loop/replay behavior)
+- [x] one_shot gate spend is scoped per NPC context (`rule_id + context_key`), not globally per goal id
+- [x] Shared scene bases now wire AI runtime systems by default: `S_AIBehaviorSystem(-10)` then `S_AINavigationSystem(-5)` before `S_InputSystem(0)`
 - [x] Each action has typed @export fields visible in Godot inspector
 - [x] animate is explicitly minimal (stub only — sets state, completes immediately)
 - [x] All 6 action types now implemented and independently testable
@@ -266,12 +269,16 @@
 
 **M7 Completion Notes (2026-04-02)**:
 - RED confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` initially failed before action scripts existed.
-- GREEN confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` passes `7/7`.
+- GREEN confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` passes `10/10` after target-node-path hardening coverage.
 - RED confirmed (navigation/input): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` and `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` initially failed before M7 system/filter implementation.
 - GREEN confirmed (navigation/input): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` passes `9/9`; `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` passes `2/2`.
 - Regression adjustments completed for player-tag filtering: input integration tests now attach `C_PlayerTagComponent` where player-input writes are expected.
+- Hardening confirmed:
+  - same-goal replay behavior now replans when queue completion leaves no active tasks.
+  - one-shot gating now uses `rule_id + context_key` scoping for per-NPC isolation.
+  - shared base scenes now include `S_AIBehaviorSystem` and `S_AINavigationSystem` in the default system stack order.
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes `17/17`.
-- Full-suite regression run executed: `tools/run_gut_suite.sh` now reports `3684/3693` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+- Full-suite regression run executed: `tools/run_gut_suite.sh` now reports `3695/3704` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ---
 
@@ -288,18 +295,19 @@
 - [x] **Commit 2** — Fix bugs discovered during integration testing (if any)
 
 **M8 Verification**:
-- [x] All 5 integration tests green
+- [x] All 6 integration tests green
 - [x] Full pipeline works end-to-end
 - [x] Re-planning is clean (no leftover state)
+- [x] At least one pipeline scenario runs with real `S_MovementSystem` coupling (not simulation-only)
 - [x] All existing project tests still pass (regression)
 - [x] `test_style_enforcement.gd` passes
 
 **M8 Completion Notes (2026-04-02)**:
 - RED confirmed: first run of `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` failed on headless parse/runtime issues (typed class annotation resolution and nodes not mounted in-tree for `global_transform` usage).
-- GREEN confirmed: after applying headless-safe `Variant` annotations and mounting fixture systems/entities/camera in a test root, `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` passes `5/5`.
-- Regression guards passed: `test_s_ai_behavior_system_goals.gd` (`10/10`), `test_s_ai_behavior_system_tasks.gd` (`6/6`), `test_ai_actions_movement.gd` (`7/7`), `test_s_ai_navigation_system.gd` (`9/9`), `test_s_input_system_ai_filter.gd` (`2/2`).
+- GREEN confirmed: after applying headless-safe `Variant` annotations and mounting fixture systems/entities/camera in a test root, `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` passes `6/6` (includes real movement-system coupling coverage).
+- Regression guards passed: `test_s_ai_behavior_system_goals.gd` (`12/12`), `test_s_ai_behavior_system_tasks.gd` (`6/6`), `test_ai_actions_movement.gd` (`10/10`), `test_s_ai_navigation_system.gd` (`9/9`), `test_s_input_system_ai_filter.gd` (`2/2`).
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
-- Full-suite regression run executed: `tools/run_gut_suite.sh` now reports `3689/3698` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+- Full-suite regression run executed: `tools/run_gut_suite.sh` now reports `3695/3704` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ---
 
