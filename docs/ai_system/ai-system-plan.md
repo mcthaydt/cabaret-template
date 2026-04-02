@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Milestone 3 complete (3/10 milestones)
+- **Current status**: Milestone 4 complete (4/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -81,12 +81,14 @@ M3 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/c
 
 ### M4 — U_HTNPlanner
 
-- [ ] Write decomposition tests (single primitive, flat compound, nested compounds, method condition branching, cycle detection, empty/null input, max depth guard)
-- [ ] Implement `scripts/utils/ai/u_htn_planner.gd` extending RefCounted
+- [x] Write decomposition tests (single primitive, flat compound, nested compounds, method condition branching, cycle detection, empty/null input, max depth guard)
+- [x] Implement `scripts/utils/ai/u_htn_planner.gd` extending RefCounted
   - `static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) -> Array[Resource]`
   - Recursive `_decompose_recursive` with visited set for cycle detection
   - Uses `U_RuleScorer.score_rules()` to evaluate method_conditions for compound branch selection
-- [ ] Verify integration with existing U_RuleScorer for condition evaluation
+- [x] Verify integration with existing U_RuleScorer for condition evaluation
+
+M4 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/test_u_htn_planner.gd` (8/8 passing), style enforcement passed (17/17), and full-suite run currently reports `3641/3650` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M5 — Goal Evaluation Loop
 
@@ -190,7 +192,7 @@ M3 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/c
 
 ## File Inventory
 
-### Implemented Now (M1-M3)
+### Implemented Now (M1-M4)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -201,15 +203,16 @@ M3 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/c
 | `scripts/resources/ai/rs_ai_goal.gd` | Resource | Goal with conditions, root_task, priority |
 | `scripts/resources/ai/rs_ai_brain_settings.gd` | Resource | Brain settings with goals array, defaults, evaluation config |
 | `scripts/ecs/components/c_ai_brain_component.gd` | Component | AI brain ECS component with runtime state and required-settings validation |
+| `scripts/utils/ai/u_htn_planner.gd` | Utility | HTN decomposition utility with recursive flattening, cycle detection, and method-condition branch selection via `U_RuleScorer` |
 | `tests/unit/ai/resources/test_rs_ai_task.gd` | Test | M1 resources + I_AIAction interface (includes `method_conditions` coverage) |
 | `tests/unit/ai/resources/test_rs_ai_goal.gd` | Test | M2 goal/brain settings resource coverage |
 | `tests/unit/ecs/components/test_c_ai_brain_component.gd` | Test | M3 component registration/runtime-state/validation coverage |
+| `tests/unit/ai/test_u_htn_planner.gd` | Test | M4 HTN decomposition coverage (primitive/compound/nested/method-conditions/cycle/max-depth) |
 
-### Planned Target Inventory (M3-M10)
+### Planned Target Inventory (M5-M10)
 
 Planned files below are design targets and are not implemented yet:
 
-- `scripts/utils/ai/u_htn_planner.gd`
 - `scripts/ecs/systems/s_ai_behavior_system.gd`
 - `scripts/resources/ai/actions/rs_ai_action_wait.gd`
 - `scripts/resources/ai/actions/rs_ai_action_publish_event.gd`
@@ -218,7 +221,6 @@ Planned files below are design targets and are not implemented yet:
 - `scripts/resources/ai/actions/rs_ai_action_scan.gd`
 - `scripts/resources/ai/actions/rs_ai_action_animate.gd`
 - `scripts/ecs/systems/s_ai_navigation_system.gd`
-- `tests/unit/ai/test_u_htn_planner.gd`
 - `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd`
 - `tests/unit/ai/actions/test_ai_actions_instant.gd`
 - `tests/unit/ai/actions/test_ai_actions_movement.gd`

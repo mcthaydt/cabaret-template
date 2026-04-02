@@ -5,15 +5,15 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 3 complete (implementation phase)
+**Status**: Milestone 4 complete (implementation phase)
 
 ---
 
-## Current Status: Milestone 3 Complete
+## Current Status: Milestone 4 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (3/10 milestones complete).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (4/10 milestones complete).
 
 ### Completed in M1 (2026-04-02)
 
@@ -50,6 +50,17 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` → `5/5` passing.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
   - `tools/run_gut_suite.sh` run currently completes with `3633/3642` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+
+### Completed in M4 (2026-04-02)
+
+- Added `tests/unit/ai/test_u_htn_planner.gd` with the 8 required red-green decomposition tests.
+- Implemented:
+  - `scripts/utils/ai/u_htn_planner.gd`
+- Verification:
+  - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` failed with expected missing-script assertions for `u_htn_planner.gd`.
+  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` → `8/8` passing.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
+  - `tools/run_gut_suite.sh` run currently completes with `3641/3650` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ### Key Design Decisions
 
@@ -166,13 +177,10 @@ You MUST:
 
 ## Next Steps
 
-Begin with **Milestone 4: U_HTNPlanner**:
+Begin with **Milestone 5: Goal Evaluation Loop**:
 
-1. Create `tests/unit/ai/test_u_htn_planner.gd` with the 8 tests listed under M4 in `docs/ai_system/ai-system-tasks.md` (RED first).
-2. Implement `scripts/utils/ai/u_htn_planner.gd` (GREEN) with:
-   - `static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) -> Array[Resource]`
-   - recursive decomposition with cycle detection and max-depth guard
-   - method-condition evaluation via `U_RuleScorer.score_rules(...)`
-3. Run targeted M4 tests, then `tests/unit/style/test_style_enforcement.gd`.
+1. Create `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` with the 7 tests listed under M5 in `docs/ai_system/ai-system-tasks.md` (RED first).
+2. Implement `scripts/ecs/systems/s_ai_behavior_system.gd` (GREEN) to compose `U_RuleScorer`, `U_RuleSelector`, and `U_RuleStateTracker`, evaluate goals on `C_AIBrainComponent`, and re-plan via `U_HTNPlanner.decompose(...)` when the goal changes.
+3. Run targeted M5 tests, then `tests/unit/style/test_style_enforcement.gd`.
 4. Run full-suite regression check and document pre-existing unrelated pending/risky tests separately.
-5. Update `ai-system-tasks.md` + this continuation prompt immediately after M4 completion, then commit docs separately.
+5. Update `ai-system-tasks.md` + this continuation prompt immediately after M5 completion, then commit docs separately.

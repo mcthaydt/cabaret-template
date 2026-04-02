@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 3 complete (3/10 milestones)
+**Status**: Milestone 4 complete (4/10 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -100,7 +100,7 @@
 
 **Goal**: Recursive task decomposition utility. Flattens compound tasks into primitive task queues. Pure logic, no ECS dependency.
 
-- [ ] **Commit 1** — Create `tests/unit/ai/test_u_htn_planner.gd` with decomposition tests (TDD RED):
+- [x] **Commit 1** — Create `tests/unit/ai/test_u_htn_planner.gd` with decomposition tests (TDD RED):
   - `test_decompose_single_primitive_returns_itself`
   - `test_decompose_compound_flattens_subtasks`
   - `test_decompose_nested_compounds`
@@ -109,17 +109,23 @@
   - `test_decompose_empty_compound_returns_empty`
   - `test_decompose_null_task_returns_empty`
   - `test_max_depth_guard`
-- [ ] **Commit 2** — Implement `u_htn_planner.gd` (TDD GREEN):
+- [x] **Commit 2** — Implement `u_htn_planner.gd` (TDD GREEN):
   - `static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) -> Array[Resource]`
   - Recursive `_decompose_recursive` with visited set for cycle detection
   - Uses `U_RuleScorer.score_rules()` for method_conditions evaluation
 
 **M4 Verification**:
-- [ ] All 8 planner tests green
-- [ ] Cycle detection prevents infinite recursion
-- [ ] Method conditions correctly gate compound branch selection
-- [ ] Integrates with existing U_RuleScorer
-- [ ] `test_style_enforcement.gd` passes
+- [x] All 8 planner tests green
+- [x] Cycle detection prevents infinite recursion
+- [x] Method conditions correctly gate compound branch selection
+- [x] Integrates with existing U_RuleScorer
+- [x] `test_style_enforcement.gd` passes
+
+**M4 Completion Notes (2026-04-02)**:
+- RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` failed with expected missing-script assertions for `u_htn_planner.gd`.
+- GREEN confirmed: same test target passed `8/8` after implementing `scripts/utils/ai/u_htn_planner.gd`.
+- Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
+- Full-suite baseline run executed: `tools/run_gut_suite.sh` currently finishes `3641/3650` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
 
 ---
 

@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-31
 **Last Updated**: 2026-04-02
-**Status**: IMPLEMENTATION IN PROGRESS (M3 complete)
+**Status**: IMPLEMENTATION IN PROGRESS (M4 complete)
 **Scope**: Quality-based NPC behavior selection using GOAP goals and HTN task decomposition, powered by QB Rule Manager v2
 
 ## Summary
@@ -16,7 +16,7 @@ The AI system provides data-driven NPC behavior through two complementary paradi
 - Existing QB consumers provide the pattern: `S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem` each compose QB utilities directly (no base-class inheritance)
 - Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, etc.) in `scripts/resources/qb/conditions/` — implement `I_Condition.evaluate(context)` for polymorphic dispatch
 - Typed effects (`RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetField`, etc.) in `scripts/resources/qb/effects/` — implement `I_Effect.execute(context)` for polymorphic dispatch
-- M1-M3 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, `RS_AIBrainSettings`, and `C_AIBrainComponent`
+- M1-M4 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, `RS_AIBrainSettings`, `C_AIBrainComponent`, and `U_HTNPlanner`
 - M6/M7 planned: typed `RS_AIAction*` resources will implement `I_AIAction` with `start()`, `tick()`, `is_complete()` for self-executing task logic
 - `U_PathResolver` handles dot-path traversal for component fields, Redux state, and event payloads
 - ECS pattern: systems extend `BaseECSSystem`, implement `process_tick(delta)`, query components via `get_components(StringName)`
@@ -181,6 +181,8 @@ Three NPC archetypes are intended to prove the system:
 - Goal selection: highest-scoring goal becomes active; ties broken by priority
 - Goal change detection: clear task queue on goal switch
 - Unit tests for decomposition and goal scoring
+
+Phase status: M4 complete (`U_HTNPlanner` + decomposition tests), M5 pending.
 
 ### Phase 3: Typed Action Resources (M6–M7)
 - Create 6 typed action resources implementing `I_AIAction`: `RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate` (stub), `RS_AIActionPublishEvent`, `RS_AIActionSetField`
