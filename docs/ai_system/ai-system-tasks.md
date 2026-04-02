@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 2 complete (2/10 milestones)
+**Status**: Milestone 3 complete (3/10 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -70,23 +70,29 @@
 
 **Goal**: Create the ECS component that holds per-NPC AI runtime state. Follows BaseECSComponent conventions.
 
-- [ ] **Commit 1** — Create `tests/unit/ecs/components/test_c_ai_brain_component.gd` with component tests (TDD RED):
+- [x] **Commit 1** — Create `tests/unit/ecs/components/test_c_ai_brain_component.gd` with component tests (TDD RED):
   - `test_component_type_constant`
   - `test_brain_settings_export_is_assignable`
   - `test_runtime_state_defaults`
   - `test_registers_with_ecs_manager`
   - `test_validate_required_settings_fails_without_brain_settings`
-- [ ] **Commit 2** — Implement `c_ai_brain_component.gd` (TDD GREEN):
+- [x] **Commit 2** — Implement `c_ai_brain_component.gd` (TDD GREEN):
   - `const COMPONENT_TYPE := StringName("C_AIBrainComponent")`
-  - `@export var brain_settings: RS_AIBrainSettings`
+  - `@export_custom(PROPERTY_HINT_RESOURCE_TYPE, "RS_AIBrainSettings") var brain_settings: Resource`
   - Runtime vars: `active_goal_id`, `current_task_queue`, `current_task_index`, `task_state`, `evaluation_timer`
   - Override `_validate_required_settings()`
 
 **M3 Verification**:
-- [ ] All 5 component tests green
-- [ ] Component registers with M_ECSManager and is queryable via `get_components(&"C_AIBrainComponent")`
-- [ ] `_validate_required_settings()` rejects null brain_settings
-- [ ] `test_style_enforcement.gd` passes
+- [x] All 5 component tests green
+- [x] Component registers with M_ECSManager and is queryable via `get_components(&"C_AIBrainComponent")`
+- [x] `_validate_required_settings()` rejects null brain_settings
+- [x] `test_style_enforcement.gd` passes
+
+**M3 Completion Notes (2026-04-02)**:
+- RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` failed with expected missing-script assertions for `c_ai_brain_component.gd`.
+- GREEN confirmed: same test target passed `5/5` after implementing `c_ai_brain_component.gd`.
+- Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
+- Full-suite baseline run executed: `tools/run_gut_suite.sh` currently finishes `3633/3642` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
 
 ---
 

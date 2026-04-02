@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Milestone 2 complete (2/10 milestones)
+- **Current status**: Milestone 3 complete (3/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -69,13 +69,15 @@ M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/re
 
 ### M3 — C_AIBrainComponent
 
-- [ ] Write component tests (COMPONENT_TYPE constant, settings validation, runtime state defaults, ECS registration)
-- [ ] Implement `scripts/ecs/components/c_ai_brain_component.gd` extending BaseECSComponent
+- [x] Write component tests (COMPONENT_TYPE constant, settings validation, runtime state defaults, ECS registration)
+- [x] Implement `scripts/ecs/components/c_ai_brain_component.gd` extending BaseECSComponent
   - `const COMPONENT_TYPE := StringName("C_AIBrainComponent")`
-  - `@export var brain_settings: RS_AIBrainSettings`
+  - `@export_custom(PROPERTY_HINT_RESOURCE_TYPE, "RS_AIBrainSettings") var brain_settings: Resource`
   - Runtime vars: `active_goal_id`, `current_task_queue`, `current_task_index`, `task_state`, `evaluation_timer`
   - Override `_validate_required_settings()` to require brain_settings
-- [ ] Verify component registers with M_ECSManager and is queryable
+- [x] Verify component registers with M_ECSManager and is queryable
+
+M3 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/components/test_c_ai_brain_component.gd` (5/5 passing), style enforcement passed (17/17), and full-suite run currently reports `3633/3642` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M4 — U_HTNPlanner
 
@@ -188,7 +190,7 @@ M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/re
 
 ## File Inventory
 
-### Implemented Now (M1-M2)
+### Implemented Now (M1-M3)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -198,14 +200,15 @@ M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/re
 | `scripts/resources/ai/rs_ai_compound_task.gd` | Resource | Compound task with subtasks, method_conditions |
 | `scripts/resources/ai/rs_ai_goal.gd` | Resource | Goal with conditions, root_task, priority |
 | `scripts/resources/ai/rs_ai_brain_settings.gd` | Resource | Brain settings with goals array, defaults, evaluation config |
+| `scripts/ecs/components/c_ai_brain_component.gd` | Component | AI brain ECS component with runtime state and required-settings validation |
 | `tests/unit/ai/resources/test_rs_ai_task.gd` | Test | M1 resources + I_AIAction interface (includes `method_conditions` coverage) |
 | `tests/unit/ai/resources/test_rs_ai_goal.gd` | Test | M2 goal/brain settings resource coverage |
+| `tests/unit/ecs/components/test_c_ai_brain_component.gd` | Test | M3 component registration/runtime-state/validation coverage |
 
 ### Planned Target Inventory (M3-M10)
 
 Planned files below are design targets and are not implemented yet:
 
-- `scripts/ecs/components/c_ai_brain_component.gd`
 - `scripts/utils/ai/u_htn_planner.gd`
 - `scripts/ecs/systems/s_ai_behavior_system.gd`
 - `scripts/resources/ai/actions/rs_ai_action_wait.gd`
@@ -215,7 +218,6 @@ Planned files below are design targets and are not implemented yet:
 - `scripts/resources/ai/actions/rs_ai_action_scan.gd`
 - `scripts/resources/ai/actions/rs_ai_action_animate.gd`
 - `scripts/ecs/systems/s_ai_navigation_system.gd`
-- `tests/unit/ecs/components/test_c_ai_brain_component.gd`
 - `tests/unit/ai/test_u_htn_planner.gd`
 - `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd`
 - `tests/unit/ai/actions/test_ai_actions_instant.gd`

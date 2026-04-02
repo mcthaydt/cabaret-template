@@ -5,15 +5,15 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 2 complete (implementation phase)
+**Status**: Milestone 3 complete (implementation phase)
 
 ---
 
-## Current Status: Milestone 2 Complete
+## Current Status: Milestone 3 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (2/10 milestones complete).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (3/10 milestones complete).
 
 ### Completed in M1 (2026-04-02)
 
@@ -39,6 +39,17 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` → `5/5` passing.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
   - `tools/run_gut_suite.sh` run currently completes with `3627/3636` passing, `9` pending/risky (headless/platform skips), and `0` failing tests.
+
+### Completed in M3 (2026-04-02)
+
+- Added `tests/unit/ecs/components/test_c_ai_brain_component.gd` with the 5 required red-green component tests.
+- Implemented:
+  - `scripts/ecs/components/c_ai_brain_component.gd`
+- Verification:
+  - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` failed with expected missing-script assertions.
+  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` → `5/5` passing.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
+  - `tools/run_gut_suite.sh` run currently completes with `3633/3642` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ### Key Design Decisions
 
@@ -155,15 +166,13 @@ You MUST:
 
 ## Next Steps
 
-Begin with **Milestone 3: C_AIBrainComponent**:
+Begin with **Milestone 4: U_HTNPlanner**:
 
-1. Create `tests/unit/ecs/components/test_c_ai_brain_component.gd` with the 5 tests listed under M3 in `docs/ai_system/ai-system-tasks.md` (RED first).
-2. Implement `scripts/ecs/components/c_ai_brain_component.gd` (GREEN) with:
-   - `const COMPONENT_TYPE := StringName("C_AIBrainComponent")`
-   - `@export var brain_settings: RS_AIBrainSettings`
-   - runtime fields: `active_goal_id`, `current_task_queue`, `current_task_index`, `task_state`, `evaluation_timer`
-   - `_validate_required_settings()` guard for missing brain settings
-3. Verify ECS registration/query behavior via `M_ECSManager.get_components(&"C_AIBrainComponent")`.
-4. Run targeted M3 tests, then `tests/unit/style/test_style_enforcement.gd`.
-5. Run full-suite regression check and document pre-existing unrelated failures separately.
-6. Update `ai-system-tasks.md` + this continuation prompt immediately after M3 completion, then commit docs separately.
+1. Create `tests/unit/ai/test_u_htn_planner.gd` with the 8 tests listed under M4 in `docs/ai_system/ai-system-tasks.md` (RED first).
+2. Implement `scripts/utils/ai/u_htn_planner.gd` (GREEN) with:
+   - `static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) -> Array[Resource]`
+   - recursive decomposition with cycle detection and max-depth guard
+   - method-condition evaluation via `U_RuleScorer.score_rules(...)`
+3. Run targeted M4 tests, then `tests/unit/style/test_style_enforcement.gd`.
+4. Run full-suite regression check and document pre-existing unrelated pending/risky tests separately.
+5. Update `ai-system-tasks.md` + this continuation prompt immediately after M4 completion, then commit docs separately.

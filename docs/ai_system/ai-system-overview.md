@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-31
 **Last Updated**: 2026-04-02
-**Status**: IMPLEMENTATION IN PROGRESS (M2 complete)
+**Status**: IMPLEMENTATION IN PROGRESS (M3 complete)
 **Scope**: Quality-based NPC behavior selection using GOAP goals and HTN task decomposition, powered by QB Rule Manager v2
 
 ## Summary
@@ -16,7 +16,7 @@ The AI system provides data-driven NPC behavior through two complementary paradi
 - Existing QB consumers provide the pattern: `S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem` each compose QB utilities directly (no base-class inheritance)
 - Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, etc.) in `scripts/resources/qb/conditions/` — implement `I_Condition.evaluate(context)` for polymorphic dispatch
 - Typed effects (`RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetField`, etc.) in `scripts/resources/qb/effects/` — implement `I_Effect.execute(context)` for polymorphic dispatch
-- M1/M2 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, and `RS_AIBrainSettings`
+- M1-M3 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, `RS_AIBrainSettings`, and `C_AIBrainComponent`
 - M6/M7 planned: typed `RS_AIAction*` resources will implement `I_AIAction` with `start()`, `tick()`, `is_complete()` for self-executing task logic
 - `U_PathResolver` handles dot-path traversal for component fields, Redux state, and event payloads
 - ECS pattern: systems extend `BaseECSSystem`, implement `process_tick(delta)`, query components via `get_components(StringName)`
@@ -55,7 +55,7 @@ S_AIBehaviorSystem (scripts/ecs/systems/s_ai_behavior_system.gd)  [extends BaseE
         Decomposes compound tasks into primitive task queues
 
 C_AIBrainComponent (scripts/ecs/components/c_ai_brain_component.gd)  [extends BaseECSComponent]
-  @export var brain_settings: RS_AIBrainSettings
+  @export_custom(PROPERTY_HINT_RESOURCE_TYPE, "RS_AIBrainSettings") var brain_settings: Resource
   Runtime state:
   ├── active_goal_id: StringName
   ├── current_task_queue: Array[RS_AIPrimitiveTask]
@@ -170,7 +170,7 @@ Three NPC archetypes are intended to prove the system:
 - Create `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask` resource classes
 - Create `I_AIAction` interface with `start()`, `tick()`, `is_complete()` contract
 - Create `RS_AIGoal`, `RS_AIBrainSettings` resource classes
-- Create `C_AIBrainComponent` with `@export brain_settings: RS_AIBrainSettings`
+- Create `C_AIBrainComponent` with required brain-settings export and runtime state fields (completed in M3)
 - Unit tests for resource serialization and component registration
 
 ### Phase 2: Goal Evaluation & HTN Planner (M4–M5)
