@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Milestone 5 complete (5/10 milestones)
+- **Current status**: Milestone 6 complete (6/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -103,16 +103,18 @@ M5 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/s
 
 ### M6 — Typed Action Resources (Instant)
 
-- [ ] Write unit tests for each action resource in isolation (instantiate, call start/tick/is_complete with mock context and task_state):
+- [x] Write unit tests for each action resource in isolation (instantiate, call start/tick/is_complete with mock context and task_state):
   - RS_AIActionWait: completes after duration, tracks elapsed in task_state
   - RS_AIActionPublishEvent: fires event via U_ECSEventBus, completes immediately
   - RS_AIActionSetField: resolves target via U_PathResolver, sets value, completes immediately
-- [ ] Implement typed action resources in `scripts/resources/ai/actions/`:
+- [x] Implement typed action resources in `scripts/resources/ai/actions/`:
   - `rs_ai_action_wait.gd` — `@export var duration: float = 1.0`; tracks elapsed in task_state
   - `rs_ai_action_publish_event.gd` — `@export var event_name: StringName`, `@export var payload: Dictionary`
   - `rs_ai_action_set_field.gd` — `@export var field_path: String`, `@export_enum("float", "int", "bool", "string", "string_name") var value_type: String`, typed value exports
-- [ ] Write task runner tests (sequential queue advancement, queue completion resets state, empty queue safety, polymorphic dispatch via I_AIAction)
-- [ ] Implement polymorphic task runner in S_AIBehaviorSystem: `_execute_current_task(brain, delta, context)` — calls `action.start()`, `action.tick()`, `action.is_complete()` on current task's action resource (no match blocks)
+- [x] Write task runner tests (sequential queue advancement, queue completion resets state, empty queue safety, polymorphic dispatch via I_AIAction)
+- [x] Implement polymorphic task runner in S_AIBehaviorSystem: `_execute_current_task(brain, delta, context)` — calls `action.start()`, `action.tick()`, `action.is_complete()` on current task's action resource (no match blocks)
+
+M6 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/actions/test_ai_actions_instant.gd` (5/5 passing) and `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` (4/4 passing), style enforcement passed (17/17), goal-loop regression guard passed (`tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` 7/7), and full-suite run currently reports `3660/3669` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M7 — Typed Action Resources (Movement + Stub) + AI Navigation System
 
@@ -194,7 +196,7 @@ M5 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/s
 
 ## File Inventory
 
-### Implemented Now (M1-M5)
+### Implemented Now (M1-M6)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -206,25 +208,27 @@ M5 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/s
 | `scripts/resources/ai/rs_ai_brain_settings.gd` | Resource | Brain settings with goals array, defaults, evaluation config |
 | `scripts/ecs/components/c_ai_brain_component.gd` | Component | AI brain ECS component with runtime state and required-settings validation |
 | `scripts/utils/ai/u_htn_planner.gd` | Utility | HTN decomposition utility with recursive flattening, cycle detection, and method-condition branch selection via `U_RuleScorer` |
-| `scripts/ecs/systems/s_ai_behavior_system.gd` | System | Goal evaluation loop composing `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, and `U_HTNPlanner` with re-plan-on-goal-change behavior |
+| `scripts/resources/ai/actions/rs_ai_action_wait.gd` | Resource | Instant wait action implementing `I_AIAction`; tracks elapsed task state |
+| `scripts/resources/ai/actions/rs_ai_action_publish_event.gd` | Resource | Instant event action implementing `I_AIAction`; publishes via `U_ECSEventBus` |
+| `scripts/resources/ai/actions/rs_ai_action_set_field.gd` | Resource | Instant set-field action implementing `I_AIAction`; resolves targets with `U_PathResolver` |
+| `scripts/ecs/systems/s_ai_behavior_system.gd` | System | Goal evaluation + task runner (`_execute_current_task`) composing `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, and `U_HTNPlanner` |
 | `tests/unit/ai/resources/test_rs_ai_task.gd` | Test | M1 resources + I_AIAction interface (includes `method_conditions` coverage) |
 | `tests/unit/ai/resources/test_rs_ai_goal.gd` | Test | M2 goal/brain settings resource coverage |
 | `tests/unit/ecs/components/test_c_ai_brain_component.gd` | Test | M3 component registration/runtime-state/validation coverage |
 | `tests/unit/ai/test_u_htn_planner.gd` | Test | M4 HTN decomposition coverage (primitive/compound/nested/method-conditions/cycle/max-depth) |
 | `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` | Test | M5 goal-loop coverage (highest scorer, priority tiebreak, fallback goal, re-plan on goal switch, interval throttling, no-brain safety) |
+| `tests/unit/ai/actions/test_ai_actions_instant.gd` | Test | M6 instant action resource coverage (wait/event/set-field) |
+| `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` | Test | M6 task-runner coverage (dispatch, sequencing, completion reset, empty queue safety) |
+| `tests/mocks/mock_ai_action_track.gd` | Test helper | M6 mock action used to assert polymorphic runner call ordering/counters |
 
-### Planned Target Inventory (M6-M10)
+### Planned Target Inventory (M7-M10)
 
 Planned files below are design targets and are not implemented yet:
 
-- `scripts/resources/ai/actions/rs_ai_action_wait.gd`
-- `scripts/resources/ai/actions/rs_ai_action_publish_event.gd`
-- `scripts/resources/ai/actions/rs_ai_action_set_field.gd`
 - `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
 - `scripts/resources/ai/actions/rs_ai_action_scan.gd`
 - `scripts/resources/ai/actions/rs_ai_action_animate.gd`
 - `scripts/ecs/systems/s_ai_navigation_system.gd`
-- `tests/unit/ai/actions/test_ai_actions_instant.gd`
 - `tests/unit/ai/actions/test_ai_actions_movement.gd`
 - `tests/unit/ecs/systems/test_s_ai_navigation_system.gd`
 - `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd`

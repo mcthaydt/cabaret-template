@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-31
 **Last Updated**: 2026-04-02
-**Status**: IMPLEMENTATION IN PROGRESS (M5 complete)
+**Status**: IMPLEMENTATION IN PROGRESS (M6 complete)
 **Scope**: Quality-based NPC behavior selection using GOAP goals and HTN task decomposition, powered by QB Rule Manager v2
 
 ## Summary
@@ -16,9 +16,9 @@ The AI system provides data-driven NPC behavior through two complementary paradi
 - Existing QB consumers provide the pattern: `S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem` each compose QB utilities directly (no base-class inheritance)
 - Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, etc.) in `scripts/resources/qb/conditions/` — implement `I_Condition.evaluate(context)` for polymorphic dispatch
 - Typed effects (`RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetField`, etc.) in `scripts/resources/qb/effects/` — implement `I_Effect.execute(context)` for polymorphic dispatch
-- M1-M5 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, `RS_AIBrainSettings`, `C_AIBrainComponent`, `U_HTNPlanner`, and `S_AIBehaviorSystem` (goal evaluation + re-plan shell)
+- M1-M6 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, `RS_AIBrainSettings`, `C_AIBrainComponent`, `U_HTNPlanner`, `S_AIBehaviorSystem` (goal evaluation + task runner), and instant action resources (`RS_AIActionWait`, `RS_AIActionPublishEvent`, `RS_AIActionSetField`)
 - `C_AIBrainComponent` enforces required settings at runtime: `brain_settings` must be a valid `RS_AIBrainSettings` resource
-- M6/M7 planned: typed `RS_AIAction*` resources will implement `I_AIAction` with `start()`, `tick()`, `is_complete()` for self-executing task logic
+- M7 planned: movement/stub typed actions (`RS_AIActionMoveTo`, `RS_AIActionScan`, `RS_AIActionAnimate`) will extend the implemented `I_AIAction` task-runner flow
 - `U_PathResolver` handles dot-path traversal for component fields, Redux state, and event payloads
 - ECS pattern: systems extend `BaseECSSystem`, implement `process_tick(delta)`, query components via `get_components(StringName)`
 - Component pattern: extend `BaseECSComponent`, define `const COMPONENT_TYPE := StringName("...")`, use `@export` NodePaths with typed getters
@@ -183,7 +183,7 @@ Three NPC archetypes are intended to prove the system:
 - Goal change detection: clear task queue on goal switch
 - Unit tests for decomposition and goal scoring
 
-Phase status: M5 complete (`S_AIBehaviorSystem` + goal-loop tests).
+Phase status: M6 complete (`S_AIBehaviorSystem` goal loop + polymorphic task runner; instant actions + runner tests green).
 
 ### Phase 3: Typed Action Resources (M6–M7)
 - Create 6 typed action resources implementing `I_AIAction`: `RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate` (stub), `RS_AIActionPublishEvent`, `RS_AIActionSetField`

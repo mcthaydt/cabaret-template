@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 5 complete (5/10 milestones)
+**Status**: Milestone 6 complete (6/10 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -166,29 +166,39 @@
 
 **Goal**: Create RS_AIActionWait, RS_AIActionPublishEvent, RS_AIActionSetField implementing I_AIAction. Build polymorphic task runner in S_AIBehaviorSystem (no match blocks).
 
-- [ ] **Commit 1** — Create `tests/unit/ai/actions/test_ai_actions_instant.gd` with per-action unit tests (TDD RED):
+- [x] **Commit 1** — Create `tests/unit/ai/actions/test_ai_actions_instant.gd` with per-action unit tests (TDD RED):
   - `test_wait_action_completes_after_duration` — instantiate RS_AIActionWait, call start/tick/is_complete with mock context + task_state
   - `test_wait_action_tracks_elapsed_in_task_state` — verify task_state["elapsed"] increments
   - `test_publish_event_action_fires_and_completes_immediately` — RS_AIActionPublishEvent publishes to U_ECSEventBus, is_complete returns true after start
   - `test_set_field_action_modifies_component_and_completes` — RS_AIActionSetField resolves target, sets value, completes immediately
   - `test_set_field_action_typed_exports` — verify @export fields for float/int/bool/string values
-- [ ] **Commit 2** — Implement typed action resources in `scripts/resources/ai/actions/` (TDD GREEN):
+- [x] **Commit 2** — Implement typed action resources in `scripts/resources/ai/actions/` (TDD GREEN):
   - `rs_ai_action_wait.gd` — `@export var duration: float = 1.0`; implements I_AIAction; tracks elapsed in task_state
   - `rs_ai_action_publish_event.gd` — `@export var event_name: StringName`, `@export var payload: Dictionary`; implements I_AIAction
   - `rs_ai_action_set_field.gd` — `@export var field_path: String`, `@export_enum(...)  var value_type`, typed value exports; implements I_AIAction; uses U_PathResolver
-- [ ] **Commit 3** — Create task runner tests + implement polymorphic runner (TDD RED → GREEN):
+- [x] **Commit 3** — Create task runner tests + implement polymorphic runner (TDD RED → GREEN):
   - `test_task_runner_dispatches_via_i_ai_action` — verify runner calls action.start/tick/is_complete (no match blocks)
   - `test_task_queue_advances_sequentially` — mixed action types execute in order
   - `test_task_queue_completion_resets_state` — index resets, task_state cleared after queue completes
   - `test_empty_queue_does_nothing` — no crash on empty queue
   - Implement `_execute_current_task(brain, delta, context)` in S_AIBehaviorSystem using polymorphic I_AIAction dispatch
+  - Added `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` for runner coverage
 
 **M6 Verification**:
-- [ ] All 9 tests green (5 action unit + 4 runner)
-- [ ] Each action testable in isolation (no system dependency for action logic)
-- [ ] Task runner uses I_AIAction polymorphic dispatch (no match/type-check blocks)
-- [ ] Wait respects delta timing; instant actions complete in same tick
-- [ ] `test_style_enforcement.gd` passes
+- [x] All 9 tests green (5 action unit + 4 runner)
+- [x] Each action testable in isolation (no system dependency for action logic)
+- [x] Task runner uses I_AIAction polymorphic dispatch (no match/type-check blocks)
+- [x] Wait respects delta timing; instant actions complete in same tick
+- [x] `test_style_enforcement.gd` passes
+
+**M6 Completion Notes (2026-04-02)**:
+- RED confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_instant.gd` failed with expected missing-script assertions for `rs_ai_action_wait.gd`, `rs_ai_action_publish_event.gd`, and `rs_ai_action_set_field.gd`.
+- GREEN confirmed (actions): same test target passed `5/5` after implementing action resources.
+- RED confirmed (runner): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` failed on missing task execution assertions before runner implementation.
+- GREEN confirmed (runner): same runner target passed `4/4` after implementing `_execute_current_task(...)` in `S_AIBehaviorSystem`.
+- Regression guard: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` passed `7/7`.
+- Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
+- Full-suite regression run executed: `tools/run_gut_suite.sh` currently finishes `3660/3669` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
 
 ---
 
