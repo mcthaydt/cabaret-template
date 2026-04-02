@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 6 complete (6/10 milestones)
+**Status**: Milestone 7 complete (7/10 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -47,22 +47,24 @@
 - [x] **Commit 1** — Create `tests/unit/ai/resources/test_rs_ai_goal.gd` with resource tests (TDD RED):
   - `test_goal_has_id_conditions_and_root_task`
   - `test_goal_priority_defaults_to_zero`
+  - `test_goal_state_gate_fields_have_defaults_and_are_assignable`
   - `test_brain_settings_holds_goals_array`
   - `test_brain_settings_default_goal_id`
   - `test_brain_settings_evaluation_interval_default`
 - [x] **Commit 2** — Implement `rs_ai_goal.gd` and `rs_ai_brain_settings.gd` (TDD GREEN)
 
 **M2 Verification**:
-- [x] All 5 resource tests green
+- [x] All 6 resource tests green
 - [x] RS_AIGoal.conditions accepts existing QB condition types (RS_ConditionComponentField, etc.)
+- [x] RS_AIGoal exposes QB gate fields (`score_threshold`, `cooldown`, `one_shot`, `requires_rising_edge`)
 - [x] RS_AIBrainSettings can hold multiple RS_AIGoal instances
 - [x] `test_style_enforcement.gd` passes
 
 **M2 Completion Notes (2026-04-02)**:
 - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` failed with expected missing-script assertions for `rs_ai_goal.gd` and `rs_ai_brain_settings.gd`.
-- GREEN confirmed: same test target passed `5/5` after implementing M2 scripts.
+- GREEN confirmed: same test target passed `5/5` after implementing M2 scripts; audit hardening added gate-field coverage and current target now passes `6/6`.
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
-- Full-suite baseline run executed: `tools/run_gut_suite.sh` currently finishes `3627/3636` passing with `9` pending/risky (headless/platform skips) and `0` failing tests.
+- Full-suite baseline run executed: `tools/run_gut_suite.sh` currently finishes `3666/3675` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
 
 ---
 
@@ -147,17 +149,19 @@
   - Build context dict from entity components (follow S_CharacterStateSystem pattern)
 
 **M5 Verification**:
-- [x] All 7 goal evaluation tests green
+- [x] All 10 goal evaluation tests green
 - [x] System composes QB v2 utilities (not inheriting)
 - [x] Goal switching triggers re-planning (clears queue, decomposes new root task)
 - [x] Evaluation interval throttling prevents per-tick scoring overhead
+- [x] Cooldown/one-shot/rising-edge gates only consume selected winners
 - [x] `test_style_enforcement.gd` passes
 
 **M5 Completion Notes (2026-04-02)**:
 - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` failed with expected missing-script assertions for `s_ai_behavior_system.gd`.
-- GREEN confirmed: same test target passed `7/7` after implementing `scripts/ecs/systems/s_ai_behavior_system.gd`.
+- GREEN confirmed: same test target passed `7/7` after implementing `scripts/ecs/systems/s_ai_behavior_system.gd`; audit hardening added goal-gating coverage and current target now passes `10/10`.
+- Hardening confirmed: `S_AIBehaviorSystem` now marks cooldown/one-shot state only for the selected goal winner (not all gated candidates).
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
-- Full-suite regression run executed: `tools/run_gut_suite.sh` currently finishes `3651/3660` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
+- Full-suite regression run executed: `tools/run_gut_suite.sh` currently finishes `3666/3675` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
 - Pending/risky tests (pre-existing, unrelated to M5 implementation): `tests/integration/display/test_color_blind_ui_filter.gd::test_ui_color_blind_layer_has_higher_layer_than_ui_overlay`; `tests/unit/save/test_screenshot_capture.gd::test_capture_viewport_returns_image_with_expected_dimensions`; `tests/unit/scene_manager/test_loading_screen_transition.gd::test_loading_fake_progress_enforces_min_duration`; `tests/unit/scene_manager/test_transitions.gd::{test_transition_cleans_up_tween,test_fade_transition_uses_tween,test_input_blocking_enabled,test_fade_transition_easing}`; `tests/unit/ui/test_display_settings_mobile_visibility.gd::{test_desktop_controls_hidden_on_mobile,test_mobile_controls_still_visible_on_mobile}`.
 
 ---
@@ -181,24 +185,27 @@
   - `test_task_queue_advances_sequentially` — mixed action types execute in order
   - `test_task_queue_completion_resets_state` — index resets, task_state cleared after queue completes
   - `test_empty_queue_does_nothing` — no crash on empty queue
+  - `test_invalid_queue_entry_is_skipped_instead_of_stalling` — non-primitive queue entries are skipped safely
+  - `test_primitive_task_without_action_is_skipped_instead_of_stalling` — missing/non-action tasks do not deadlock queues
   - Implement `_execute_current_task(brain, delta, context)` in S_AIBehaviorSystem using polymorphic I_AIAction dispatch
   - Added `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` for runner coverage
 
 **M6 Verification**:
-- [x] All 9 tests green (5 action unit + 4 runner)
+- [x] All 11 tests green (5 action unit + 6 runner)
 - [x] Each action testable in isolation (no system dependency for action logic)
 - [x] Task runner uses I_AIAction polymorphic dispatch (no match/type-check blocks)
 - [x] Wait respects delta timing; instant actions complete in same tick
+- [x] Invalid queue entries/actions are skipped safely (no per-brain deadlock)
 - [x] `test_style_enforcement.gd` passes
 
 **M6 Completion Notes (2026-04-02)**:
 - RED confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_instant.gd` failed with expected missing-script assertions for `rs_ai_action_wait.gd`, `rs_ai_action_publish_event.gd`, and `rs_ai_action_set_field.gd`.
 - GREEN confirmed (actions): same test target passed `5/5` after implementing action resources.
 - RED confirmed (runner): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` failed on missing task execution assertions before runner implementation.
-- GREEN confirmed (runner): same runner target passed `4/4` after implementing `_execute_current_task(...)` in `S_AIBehaviorSystem`.
-- Regression guard: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` passed `7/7`.
+- GREEN confirmed (runner): same runner target passed `4/4` after implementing `_execute_current_task(...)` in `S_AIBehaviorSystem`; audit hardening added invalid-entry coverage and current runner target now passes `6/6`.
+- Regression guard: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` now passes `10/10`.
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
-- Full-suite regression run executed: `tools/run_gut_suite.sh` currently finishes `3660/3669` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
+- Full-suite regression run executed: `tools/run_gut_suite.sh` currently finishes `3666/3675` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
 
 ---
 
@@ -206,7 +213,7 @@
 
 **Goal**: Create RS_AIActionMoveTo, RS_AIActionScan, RS_AIActionAnimate (stub) implementing I_AIAction. All 6 action types complete.
 
-- [ ] **Commit 1** — Create `tests/unit/ai/actions/test_ai_actions_movement.gd` with per-action unit tests (TDD RED):
+- [x] **Commit 1** — Create `tests/unit/ai/actions/test_ai_actions_movement.gd` with per-action unit tests (TDD RED):
   - `test_move_to_action_sets_target_in_task_state` — RS_AIActionMoveTo.start writes target to task_state
   - `test_move_to_action_completes_when_within_threshold` — is_complete true when entity near target
   - `test_move_to_action_stays_active_when_far` — is_complete false when entity far from target
@@ -214,12 +221,12 @@
   - `test_scan_action_completes_after_duration` — RS_AIActionScan tracks elapsed, sets scan flags in task_state
   - `test_animate_stub_sets_state_field` — RS_AIActionAnimate sets task_state["animation_state"]
   - `test_animate_stub_completes_immediately` — is_complete returns true after start
-- [ ] **Commit 2** — Implement typed action resources in `scripts/resources/ai/actions/` (TDD GREEN):
+- [x] **Commit 2** — Implement typed action resources in `scripts/resources/ai/actions/` (TDD GREEN):
   - `rs_ai_action_move_to.gd` — `@export var target_position: Vector3`, `@export var target_node_path: NodePath`, `@export var waypoint_index: int = -1`, `@export var arrival_threshold: float = 0.5`; implements I_AIAction
   - `rs_ai_action_scan.gd` — `@export var scan_duration: float = 2.0`, `@export var rotation_speed: float = 1.0`; implements I_AIAction
   - `rs_ai_action_animate.gd` (stub) — `@export var animation_state: StringName`; sets task_state field, completes immediately
 
-- [ ] **Commit 3** — Create `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` and `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` (TDD RED):
+- [x] **Commit 3** — Create `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` and `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` (TDD RED):
   - `test_system_extends_base_ecs_system` — S_AINavigationSystem extends BaseECSSystem
   - `test_execution_priority_is_negative_five` — runs after S_AIBehaviorSystem (-10), before S_InputSystem (0)
   - `test_writes_direction_toward_target` — entity at origin, target at (10,0,10), verify move_vector produces correct world-space movement after camera transform
@@ -231,7 +238,7 @@
   - `test_handles_no_camera_gracefully` — no camera in scene, falls back to direct mapping
   - `test_input_system_skips_entities_without_player_tag` — C_InputComponent without C_PlayerTagComponent not overwritten by player input
   - `test_input_system_still_writes_to_player_entity` — C_InputComponent + C_PlayerTagComponent still receives player input
-- [ ] **Commit 4** — Implement `s_ai_navigation_system.gd` + modify `s_input_system.gd` (TDD GREEN):
+- [x] **Commit 4** — Implement `s_ai_navigation_system.gd` + modify `s_input_system.gd` (TDD GREEN):
   - `scripts/ecs/systems/s_ai_navigation_system.gd` — extends BaseECSSystem, execution_priority = -5
     - Queries entities with C_AIBrainComponent + C_InputComponent + C_MovementComponent
     - Reads `brain.task_state.get("ai_move_target")` → Vector3 target
@@ -242,20 +249,29 @@
     - Falls back to direct mapping when no camera
     - Writes Vector2.ZERO when no target or within epsilon
   - `scripts/ecs/systems/s_input_system.gd` — add C_PlayerTagComponent to query filter so player input only writes to player-tagged entities
-- [ ] **Commit 5** — Verify style enforcement passes; run full test suite for regressions
+- [x] **Commit 5** — Verify style enforcement passes; run full test suite for regressions
 
 **M7 Verification**:
-- [ ] All 7 action unit tests green
-- [ ] All 9 navigation system tests green
-- [ ] All 2 input filter tests green
-- [ ] move_to resolves all 3 parameter variants (position, node_path, waypoint_index)
-- [ ] S_AINavigationSystem bridges task_state["ai_move_target"] → C_InputComponent.move_vector via inverse camera transform
-- [ ] NPCs use the same S_MovementSystem camera-relative code path as the player
-- [ ] S_InputSystem only writes player input to C_PlayerTagComponent entities
-- [ ] Each action has typed @export fields visible in Godot inspector
-- [ ] animate is explicitly minimal (stub only — sets state, completes immediately)
-- [ ] All 6 action types now implemented and independently testable
-- [ ] `test_style_enforcement.gd` passes
+- [x] All 7 action unit tests green
+- [x] All 9 navigation system tests green
+- [x] All 2 input filter tests green
+- [x] move_to resolves all 3 parameter variants (position, node_path, waypoint_index)
+- [x] S_AINavigationSystem bridges task_state["ai_move_target"] → C_InputComponent.move_vector via inverse camera transform
+- [x] NPCs use the same S_MovementSystem camera-relative code path as the player
+- [x] S_InputSystem only writes player input to C_PlayerTagComponent entities
+- [x] Each action has typed @export fields visible in Godot inspector
+- [x] animate is explicitly minimal (stub only — sets state, completes immediately)
+- [x] All 6 action types now implemented and independently testable
+- [x] `test_style_enforcement.gd` passes
+
+**M7 Completion Notes (2026-04-02)**:
+- RED confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` initially failed before action scripts existed.
+- GREEN confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` passes `7/7`.
+- RED confirmed (navigation/input): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` and `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` initially failed before M7 system/filter implementation.
+- GREEN confirmed (navigation/input): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` passes `9/9`; `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` passes `2/2`.
+- Regression adjustments completed for player-tag filtering: input integration tests now attach `C_PlayerTagComponent` where player-input writes are expected.
+- Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes `17/17`.
+- Full-suite regression run executed: `tools/run_gut_suite.sh` now reports `3684/3693` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ---
 

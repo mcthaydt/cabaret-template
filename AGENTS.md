@@ -114,13 +114,16 @@
   - Camera baseline pattern: `S_CameraStateSystem` captures authored baseline FOV into `C_CameraStateComponent.base_fov` and restores it when `state.vcam.in_fov_zone` is false.
   - Pause gate pattern: character pause gate rules (`cfg_pause_gate_paused/shell/transitioning`) share `decision_group = &"pause_gate"` so exactly one winner applies the same gate effect each tick.
   - Composite condition pattern (Phase 9): use `RS_ConditionComposite` for nested logical grouping (`ALL` for AND/product, `ANY` for OR/max). Keep nesting <= 8 and validate through `U_RuleValidator` (empty composite children are invalid).
-- AI goal-loop pattern (M6 complete)
+- AI goal-loop pattern (M7 complete)
   - `S_AIBehaviorSystem` (`scripts/ecs/systems/s_ai_behavior_system.gd`) is the canonical GOAP goal-evaluation + task-runner system. It must compose `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, and `U_HTNPlanner` (no QB base-class inheritance).
   - Goal selection contract: evaluate `RS_AIGoal` entries from `C_AIBrainComponent.brain_settings.goals`, resolve winners via a single decision group (`ai_goal`), and fall back to `default_goal_id` when no goal scores above threshold.
   - Re-plan contract: on goal change, reset `current_task_queue`, `current_task_index`, and `task_state`, then populate a new primitive queue via `U_HTNPlanner.decompose(goal.root_task, context)`.
   - Evaluation-throttle contract: honor `RS_AIBrainSettings.evaluation_interval` using `C_AIBrainComponent.evaluation_timer`; first evaluation should run immediately for brains without an active goal.
   - Task-runner contract (M6): `_execute_current_task(brain, delta, context)` runs every tick, dispatches primitive task actions polymorphically via `I_AIAction.start/tick/is_complete`, advances one task at a time, and clears queue/index/task-state only when the queue completes.
   - Instant action contract (M6): `RS_AIActionWait` tracks `task_state["elapsed"]`; `RS_AIActionPublishEvent` publishes through `U_ECSEventBus`; `RS_AIActionSetField` resolves targets with `U_PathResolver`.
+  - Movement/stub action contract (M7): `RS_AIActionMoveTo` resolves waypoint/node/position targets and writes `task_state["ai_move_target"]`; `RS_AIActionScan` tracks scan timing in task state; `RS_AIActionAnimate` is a stub that sets `task_state["animation_state"]` and completes immediately.
+  - AI navigation bridge contract (M7): `S_AINavigationSystem` (`scripts/ecs/systems/s_ai_navigation_system.gd`, `execution_priority = -5`) reads `task_state["ai_move_target"]`, computes XZ world direction, converts through active camera basis (fallback direct mapping when no camera), and writes `C_InputComponent.set_move_vector()` so NPC movement uses the same `S_MovementSystem` path as players.
+  - Player-input isolation contract (M7): `S_InputSystem` queries `C_InputComponent` with required `C_PlayerTagComponent` so player input updates only player-tagged entities and does not clobber AI-authored move vectors.
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.

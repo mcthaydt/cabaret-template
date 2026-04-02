@@ -5,15 +5,15 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 6 complete (implementation phase)
+**Status**: Milestone 7 complete (implementation phase)
 
 ---
 
-## Current Status: Milestone 6 Complete
+## Current Status: Milestone 7 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (6/10 milestones complete).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (7/10 milestones complete).
 
 ### Completed in M1 (2026-04-02)
 
@@ -30,15 +30,15 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 ### Completed in M2 (2026-04-02)
 
-- Added `tests/unit/ai/resources/test_rs_ai_goal.gd` with the 5 required red-green tests.
+- Added `tests/unit/ai/resources/test_rs_ai_goal.gd` with the 5 required red-green tests (now 6 total after audit hardening for goal gate fields).
 - Implemented:
   - `scripts/resources/ai/rs_ai_goal.gd`
   - `scripts/resources/ai/rs_ai_brain_settings.gd`
 - Verification:
   - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` failed with expected missing-script assertions.
-  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` → `5/5` passing.
+  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` → `5/5` passing (current `6/6` after audit hardening).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
-  - `tools/run_gut_suite.sh` run currently completes with `3627/3636` passing, `9` pending/risky (headless/platform skips), and `0` failing tests.
+  - `tools/run_gut_suite.sh` run currently completes with `3666/3675` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ### Completed in M3 (2026-04-02)
 
@@ -64,20 +64,21 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 ### Completed in M5 (2026-04-02)
 
-- Added `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` with the 7 required red-green goal-loop tests.
+- Added `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` with the 7 required red-green goal-loop tests (now 10 total after hardening coverage for cooldown/one-shot/rising-edge gates).
 - Implemented:
   - `scripts/ecs/systems/s_ai_behavior_system.gd`
 - Verification:
   - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` failed with expected missing-script assertions for `s_ai_behavior_system.gd`.
-  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `7/7` passing.
+  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `7/7` passing (current `10/10` after hardening).
+  - Hardening confirmed: goal cooldown/one-shot state is now marked only for selected winners (not all gated candidates).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
-  - `tools/run_gut_suite.sh` run currently completes with `3651/3660` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+  - `tools/run_gut_suite.sh` run currently completes with `3666/3675` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
   - Pending/risky tests (pre-existing, unrelated to M5 implementation): `tests/integration/display/test_color_blind_ui_filter.gd::test_ui_color_blind_layer_has_higher_layer_than_ui_overlay`; `tests/unit/save/test_screenshot_capture.gd::test_capture_viewport_returns_image_with_expected_dimensions`; `tests/unit/scene_manager/test_loading_screen_transition.gd::test_loading_fake_progress_enforces_min_duration`; `tests/unit/scene_manager/test_transitions.gd::{test_transition_cleans_up_tween,test_fade_transition_uses_tween,test_input_blocking_enabled,test_fade_transition_easing}`; `tests/unit/ui/test_display_settings_mobile_visibility.gd::{test_desktop_controls_hidden_on_mobile,test_mobile_controls_still_visible_on_mobile}`.
 
 ### Completed in M6 (2026-04-02)
 
 - Added `tests/unit/ai/actions/test_ai_actions_instant.gd` with the 5 required red-green instant-action tests.
-- Added `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` with the 4 required red-green task-runner tests.
+- Added `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` with the 4 required red-green task-runner tests (now 6 total after hardening coverage for invalid task/action skip behavior).
 - Added test helper:
   - `tests/mocks/mock_ai_action_track.gd`
 - Implemented:
@@ -89,19 +90,47 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - RED confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_instant.gd` failed with expected missing-script assertions.
   - GREEN confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_instant.gd` → `5/5` passing.
   - RED confirmed (runner): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` failed before runner implementation on missing task execution assertions.
-  - GREEN confirmed (runner): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` → `4/4` passing.
-  - Regression guard: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `7/7` passing.
+  - GREEN confirmed (runner): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` → `4/4` passing (current `6/6` after hardening).
+  - Regression guard: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `10/10` passing.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
-  - `tools/run_gut_suite.sh` run currently completes with `3660/3669` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+  - `tools/run_gut_suite.sh` run currently completes with `3666/3675` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+
+### Completed in M7 (2026-04-02)
+
+- Added `tests/unit/ai/actions/test_ai_actions_movement.gd` with the 7 required red-green movement/stub action tests.
+- Added `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` with the 9 required red-green AI navigation bridge tests.
+- Added `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` with the 2 required red-green input filter tests.
+- Updated regression fixtures to align with new player-tag input contract:
+  - `tests/unit/ecs/systems/test_input_system.gd`
+  - `tests/unit/integration/test_device_detection_flow.gd`
+  - `tests/unit/integration/test_input_manager_integration_points.gd`
+- Implemented:
+  - `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
+  - `scripts/resources/ai/actions/rs_ai_action_scan.gd`
+  - `scripts/resources/ai/actions/rs_ai_action_animate.gd` (stub)
+  - `scripts/ecs/systems/s_ai_navigation_system.gd`
+  - `scripts/ecs/systems/s_input_system.gd` (player-tag query filter)
+  - `scripts/ecs/systems/s_ai_behavior_system.gd` (`execution_priority = -10` ordering contract)
+- Verification:
+  - RED confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` failed before scripts existed.
+  - GREEN confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` → `7/7` passing.
+  - RED confirmed (navigation/input): navigation/filter suites failed before implementation.
+  - GREEN confirmed (navigation/input): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` → `9/9` passing; `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` → `2/2` passing.
+  - Regression guard: updated input-system integration suites pass (`13/13`, `4/4`, `7/7` respectively).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
+  - Full suite: `tools/run_gut_suite.sh` completes with `3684/3693` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
-- **Typed action resources (I_AIAction)**: M6 implemented instant typed resources (`RS_AIActionWait`, `RS_AIActionPublishEvent`, `RS_AIActionSetField`) and polymorphic task execution via `S_AIBehaviorSystem._execute_current_task(...)`. M7 extends this pattern with movement/scan/animate actions.
-- **Designer-friendly @exports**: Planned action resources use typed `@export` fields (for example RS_AIActionMoveTo `target_position: Vector3`, `arrival_threshold: float`) instead of opaque `Dictionary parameters`.
+- **Typed action resources (I_AIAction)**: All 6 typed actions are now implemented (`RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate`, `RS_AIActionPublishEvent`, `RS_AIActionSetField`) and executed polymorphically via `S_AIBehaviorSystem._execute_current_task(...)`.
+- **Goal gate authoring is exposed on RS_AIGoal**: `score_threshold`, `cooldown`, `one_shot`, and `requires_rising_edge` are exported and consumed by `S_AIBehaviorSystem` through QB-style gating.
+- **Designer-friendly @exports**: Action resources use typed `@export` fields (for example RS_AIActionMoveTo `target_position: Vector3`, `arrival_threshold: float`) instead of opaque `Dictionary parameters`.
 - **No blackboard**: QB conditions already read component fields, Redux state, and event payloads via U_PathResolver.
 - **No behavior trees**: QB scorer is the decision layer; HTN replaces BT-style decomposition.
-- **Animate is planned as a stub**: M7 RS_AIActionAnimate should set `task_state["animation_state"]` and complete immediately; full animation integration is deferred.
+- **Animate remains an intentional stub**: `RS_AIActionAnimate` sets `task_state["animation_state"]` and completes immediately; full animation integration is deferred.
+- **Navigation bridge is now live**: `S_AINavigationSystem` (`execution_priority = -5`) reads `task_state["ai_move_target"]`, converts XZ world direction into camera-relative `C_InputComponent.move_vector`, and keeps NPCs on the same movement path as players.
+- **Player input filtering is now enforced**: `S_InputSystem` writes gameplay input only to entities with `C_PlayerTagComponent`, preventing player-input clobbering of AI move vectors.
 - **Demo scenes need creation**: Power Core, Comms Array, Nav Nexus rooms built with CSG geometry.
 
 ---
@@ -141,9 +170,9 @@ Study these for the typed resource + interface pattern (I_AIAction follows this 
 - `scripts/resources/qb/conditions/rs_condition_component_field.gd` — Example typed condition with `@export_group` + `@export` fields for inspector UX.
 - `scripts/resources/qb/effects/rs_effect_set_field.gd` — Example typed effect with multiple `@export` value types.
 
-Study these for movement/input foundations used by the planned M7 AI navigation bridge:
+Study these for movement/input foundations used by the implemented M7 AI navigation bridge:
 
-- `scripts/ecs/systems/s_input_system.gd` — Current player input writer; M7 will add `C_PlayerTagComponent` filtering so player input only writes to player-tagged entities.
+- `scripts/ecs/systems/s_input_system.gd` — Player input writer with `C_PlayerTagComponent` query filtering so player input writes only to player-tagged entities.
 - `scripts/ecs/systems/s_movement_system.gd` — Camera-relative movement pipeline. M7 AI navigation should inverse this transform and write to `C_InputComponent.move_vector` so NPCs flow through the same path.
 - `scripts/utils/ecs/u_ecs_utils.gd` — Active camera lookup helpers used by movement-oriented ECS systems.
 
@@ -198,10 +227,10 @@ You MUST:
 - **No Autoloads**: AI system follows existing ECS patterns. S_AIBehaviorSystem lives in gameplay scene system groups. C_AIBrainComponent attaches to NPC entities.
 - **C_AIBrainComponent settings are required**: `brain_settings` must be a valid `RS_AIBrainSettings` resource. Placeholder/demo NPC scene entities cannot leave this field null.
 - **Compose, Don't Inherit**: S_AIBehaviorSystem composes U_RuleScorer, U_RuleSelector, U_RuleStateTracker, and U_HTNPlanner. It does NOT inherit from a QB base class.
-- **Typed Actions via I_AIAction (M6 implemented, M7 extending)**: Each action resource (RS_AIAction*) implements I_AIAction with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)`. `S_AIBehaviorSystem._execute_current_task(...)` dispatches polymorphically (no match blocks/action-type switching).
+- **Typed Actions via I_AIAction (M7 complete)**: Each action resource (RS_AIAction*) implements I_AIAction with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)`. `S_AIBehaviorSystem._execute_current_task(...)` dispatches polymorphically (no match blocks/action-type switching).
 - **RS_AIPrimitiveTask is a Wrapper**: RS_AIPrimitiveTask holds `@export var action: Resource` (I_AIAction). The task is the "what" (position in the HTN plan), the action is the "how" (self-executing logic + typed @export config).
-- **Animate Stub Scope (M7 planned)**: RS_AIActionAnimate should set `task_state["animation_state"]` to a StringName and complete immediately. Full animation system integration is a separate effort.
-- **Planned for M7: move_to Delegates Movement via S_AINavigationSystem**: RS_AIActionMoveTo should write `task_state["ai_move_target"]` (Vector3), and planned `S_AINavigationSystem` (`execution_priority = -5`) should read that target, calculate XZ world direction, inverse-transform through active camera basis, and write camera-relative `Vector2` to `C_InputComponent.set_move_vector()`. M7 also needs `S_InputSystem` filtered by `C_PlayerTagComponent` so player input does not clobber AI move vectors.
+- **Animate Stub Scope (implemented)**: `RS_AIActionAnimate` sets `task_state["animation_state"]` to a StringName and completes immediately. Full animation system integration is a separate effort.
+- **M7 Movement Bridge (implemented)**: `RS_AIActionMoveTo` writes `task_state["ai_move_target"]` (Vector3), `S_AINavigationSystem` (`execution_priority = -5`) reads that target and writes camera-relative `Vector2` into `C_InputComponent.set_move_vector()`, and `S_InputSystem` is filtered by `C_PlayerTagComponent` so player input does not clobber AI move vectors.
 - **Demo Scenes are CSG Prototypes**: Use CSG geometry for all level geometry. Functional prototypes, not polished levels.
 - **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and node naming prefixes (S_, C_, RS_, U_, I_, E_, etc.).
 - **Update Docs After Each Milestone**: Per AGENTS.md mandate, update this continuation prompt and the tasks checklist after completing each milestone.
@@ -210,16 +239,14 @@ You MUST:
 
 ## Next Steps
 
-Begin with **Milestone 7: Typed Action Resources (Movement + Stub)**:
+Begin with **Milestone 8: Integration Tests**:
 
-1. Create `tests/unit/ai/actions/test_ai_actions_movement.gd` with the 7 M7 action tests (RED first): move_to target write/completion variants, scan duration behavior, animate stub behavior.
-2. Implement movement/stub action resources in `scripts/resources/ai/actions/`:
-   - `rs_ai_action_move_to.gd`
-   - `rs_ai_action_scan.gd`
-   - `rs_ai_action_animate.gd` (stub)
-3. Add navigation/input tests:
-   - `tests/unit/ecs/systems/test_s_ai_navigation_system.gd`
-   - `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd`
-4. Implement `scripts/ecs/systems/s_ai_navigation_system.gd` and update `scripts/ecs/systems/s_input_system.gd` to filter player input writes by `C_PlayerTagComponent`.
-5. Run targeted M7 suites, then `tests/unit/style/test_style_enforcement.gd`.
+1. Create `tests/unit/ai/integration/test_ai_pipeline_integration.gd` with 5 integration tests (RED first): full patrol pattern, mid-queue replan, cooldown anti-thrash, default-goal fallback, compound method branch selection.
+2. Reuse M7 contracts directly in integration coverage:
+   - `RS_AIActionMoveTo` writes `task_state["ai_move_target"]`
+   - `S_AINavigationSystem` converts world targets to camera-relative input vectors
+   - `S_InputSystem` player-tag filtering preserves AI-authored move vectors
+3. Keep pipeline assertions end-to-end: goal scoring → HTN decomposition → task execution → queue advancement/reset semantics.
+4. Run targeted M8 integration suite, then regression guards (`test_s_ai_behavior_system_goals.gd`, `test_s_ai_behavior_system_tasks.gd`, M7 action/navigation suites).
+5. Run `tests/unit/style/test_style_enforcement.gd`.
 6. Run full-suite regression check, update `ai-system-tasks.md` + this continuation prompt, then commit documentation updates separately from implementation.

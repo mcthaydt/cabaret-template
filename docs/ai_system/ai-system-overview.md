@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-31
 **Last Updated**: 2026-04-02
-**Status**: IMPLEMENTATION IN PROGRESS (M6 complete)
+**Status**: IMPLEMENTATION IN PROGRESS (M7 complete)
 **Scope**: Quality-based NPC behavior selection using GOAP goals and HTN task decomposition, powered by QB Rule Manager v2
 
 ## Summary
@@ -16,9 +16,10 @@ The AI system provides data-driven NPC behavior through two complementary paradi
 - Existing QB consumers provide the pattern: `S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem` each compose QB utilities directly (no base-class inheritance)
 - Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, etc.) in `scripts/resources/qb/conditions/` — implement `I_Condition.evaluate(context)` for polymorphic dispatch
 - Typed effects (`RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetField`, etc.) in `scripts/resources/qb/effects/` — implement `I_Effect.execute(context)` for polymorphic dispatch
-- M1-M6 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, `RS_AIBrainSettings`, `C_AIBrainComponent`, `U_HTNPlanner`, `S_AIBehaviorSystem` (goal evaluation + task runner), and instant action resources (`RS_AIActionWait`, `RS_AIActionPublishEvent`, `RS_AIActionSetField`)
+- M1-M7 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, `RS_AIBrainSettings`, `C_AIBrainComponent`, `U_HTNPlanner`, `S_AIBehaviorSystem` (goal evaluation + task runner), full typed action set (`RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate`, `RS_AIActionPublishEvent`, `RS_AIActionSetField`), and `S_AINavigationSystem` movement bridging
 - `C_AIBrainComponent` enforces required settings at runtime: `brain_settings` must be a valid `RS_AIBrainSettings` resource
-- M7 planned: movement/stub typed actions (`RS_AIActionMoveTo`, `RS_AIActionScan`, `RS_AIActionAnimate`) will extend the implemented `I_AIAction` task-runner flow
+- M7 complete: movement/stub typed actions (`RS_AIActionMoveTo`, `RS_AIActionScan`, `RS_AIActionAnimate`) now run through the existing `I_AIAction` task-runner flow
+- M7 complete: `S_InputSystem` now writes gameplay input only to `C_PlayerTagComponent` entities so AI-authored `move_vector` values are not clobbered
 - `U_PathResolver` handles dot-path traversal for component fields, Redux state, and event payloads
 - ECS pattern: systems extend `BaseECSSystem`, implement `process_tick(delta)`, query components via `get_components(StringName)`
 - Component pattern: extend `BaseECSComponent`, define `const COMPONENT_TYPE := StringName("...")`, use `@export` NodePaths with typed getters
@@ -73,7 +74,11 @@ Resources:
     ├── goal_id: StringName
     ├── conditions: Array[Resource]     (QB v2 typed conditions — scored 0.0-1.0)
     ├── root_task: RS_AITask            (HTN entry point when this goal wins)
-    └── priority: int                   (tiebreaker)
+    ├── priority: int                   (tiebreaker)
+    ├── score_threshold: float          (minimum score gate; uses QB scorer semantics `score > threshold`)
+    ├── cooldown: float                 (seconds before this goal can fire again)
+    ├── one_shot: bool                  (if true, goal is spent after first fire)
+    └── requires_rising_edge: bool      (if true, goal only fires on false->true transitions)
 
   RS_AITask  (scripts/resources/ai/rs_ai_task.gd)  [base class]
     ├── task_id: StringName
@@ -142,9 +147,9 @@ Resources:
 - Animation playback (requests states; animation system applies them)
 - Visual representation (NPC visuals are separate scene nodes)
 
-## Planned Action Types (Initial Set)
+## Action Types (Initial Set)
 
-Each action is a typed resource planned to implement `I_AIAction` with `@export` fields for inspector authoring. Actions will self-execute via `start()`, `tick()`, `is_complete()` and be dispatched polymorphically (no match blocks), matching QB v2 `I_Condition`/`I_Effect` patterns.
+Each action is a typed resource implementing `I_AIAction` with `@export` fields for inspector authoring. Actions self-execute via `start()`, `tick()`, `is_complete()` and are dispatched polymorphically (no match blocks), matching QB v2 `I_Condition`/`I_Effect` patterns.
 
 | Action Resource | Key Exports | Completion |
 |----------------|-------------|------------|
@@ -183,7 +188,7 @@ Three NPC archetypes are intended to prove the system:
 - Goal change detection: clear task queue on goal switch
 - Unit tests for decomposition and goal scoring
 
-Phase status: M6 complete (`S_AIBehaviorSystem` goal loop + polymorphic task runner; instant actions + runner tests green).
+Phase status: M7 complete (`S_AIBehaviorSystem` goal loop + polymorphic task runner; full typed action set + AI navigation/input filter tests green).
 
 ### Phase 3: Typed Action Resources (M6–M7)
 - Create 6 typed action resources implementing `I_AIAction`: `RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate` (stub), `RS_AIActionPublishEvent`, `RS_AIActionSetField`

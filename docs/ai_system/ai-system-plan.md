@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Milestone 6 complete (6/10 milestones)
+- **Current status**: Milestone 7 complete (7/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -61,11 +61,11 @@ M1 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/re
 ### M2 — Goal & Brain Settings Resources
 
 - [x] Write tests for RS_AIGoal and RS_AIBrainSettings (field defaults, goal arrays, condition compatibility)
-- [x] Implement `scripts/resources/ai/rs_ai_goal.gd` — `goal_id`, `conditions: Array[Resource]`, `root_task: Resource`, `priority: int`
+- [x] Implement `scripts/resources/ai/rs_ai_goal.gd` — `goal_id`, `conditions: Array[Resource]`, `root_task: Resource`, `priority: int`, plus QB gate fields (`score_threshold`, `cooldown`, `one_shot`, `requires_rising_edge`)
 - [x] Implement `scripts/resources/ai/rs_ai_brain_settings.gd` — `goals: Array[Resource]`, `default_goal_id`, `evaluation_interval: float`
 - [x] Verify RS_AIGoal.conditions accepts existing QB condition types
 
-M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/resources/test_rs_ai_goal.gd` (5/5 passing), style enforcement passed (17/17), and full-suite run currently reports `3627/3636` passing with `9` pending/risky headless/platform skips and `0` failing tests.
+M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/resources/test_rs_ai_goal.gd` (initial 5/5 passing; current 6/6 after audit hardening for goal gate fields), style enforcement passed (17/17), and full-suite run currently reports `3666/3675` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M3 — C_AIBrainComponent
 
@@ -99,7 +99,7 @@ M4 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/te
   - Build context dict from entity components
 - [x] Verify system composes QB v2 utilities (not inheriting)
 
-M5 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` (7/7 passing), style enforcement passed (17/17), and full-suite run currently reports `3651/3660` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
+M5 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` (initial 7/7 passing; current 10/10 after hardening coverage for cooldown/one-shot/rising-edge gates), winner gating now marks cooldown/one-shot only for the selected goal, style enforcement passed (17/17), and full-suite run currently reports `3666/3675` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M6 — Typed Action Resources (Instant)
 
@@ -114,28 +114,30 @@ M5 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/s
 - [x] Write task runner tests (sequential queue advancement, queue completion resets state, empty queue safety, polymorphic dispatch via I_AIAction)
 - [x] Implement polymorphic task runner in S_AIBehaviorSystem: `_execute_current_task(brain, delta, context)` — calls `action.start()`, `action.tick()`, `action.is_complete()` on current task's action resource (no match blocks)
 
-M6 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/actions/test_ai_actions_instant.gd` (5/5 passing) and `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` (4/4 passing), style enforcement passed (17/17), goal-loop regression guard passed (`tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` 7/7), and full-suite run currently reports `3660/3669` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
+M6 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/actions/test_ai_actions_instant.gd` (5/5 passing) and `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` (initial 4/4 passing; current 6/6 after hardening coverage for invalid task/action skip behavior), style enforcement passed (17/17), goal-loop regression guard passed (`tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` 10/10), and full-suite run currently reports `3666/3675` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M7 — Typed Action Resources (Movement + Stub) + AI Navigation System
 
-- [ ] Write unit tests for each action resource in isolation:
+- [x] Write unit tests for each action resource in isolation:
   - RS_AIActionMoveTo: sets target, completes within threshold, stays active when far, waypoint_index resolution
   - RS_AIActionScan: completes after scan_duration, sets scan flags
   - RS_AIActionAnimate (stub): sets task_state["animation_state"], completes immediately
-- [ ] Implement typed action resources in `scripts/resources/ai/actions/`:
+- [x] Implement typed action resources in `scripts/resources/ai/actions/`:
   - `rs_ai_action_move_to.gd` — `@export var target_position: Vector3`, `@export var target_node_path: NodePath`, `@export var waypoint_index: int = -1`, `@export var arrival_threshold: float = 0.5`
   - `rs_ai_action_scan.gd` — `@export var scan_duration: float = 2.0`, `@export var rotation_speed: float = 1.0`
   - `rs_ai_action_animate.gd` (stub) — `@export var animation_state: StringName`; sets task_state field, completes immediately
-- [ ] Write navigation system + input filter tests (9 nav tests + 2 input filter tests)
-- [ ] Implement `scripts/ecs/systems/s_ai_navigation_system.gd`:
+- [x] Write navigation system + input filter tests (9 nav tests + 2 input filter tests)
+- [x] Implement `scripts/ecs/systems/s_ai_navigation_system.gd`:
   - Extends BaseECSSystem, `execution_priority = -5` (after S_AIBehaviorSystem at -10, before S_InputSystem/S_MovementSystem at 0)
   - Queries entities with `C_AIBrainComponent` + `C_InputComponent` + `C_MovementComponent`
   - Reads `brain.task_state["ai_move_target"]` (Vector3), calculates XZ-plane world direction to target
   - Inverse-transforms world direction through active camera basis (via `U_ECSUtils.get_active_camera()`) to produce camera-relative Vector2
   - Writes to `C_InputComponent.set_move_vector()` — NPCs flow through same S_MovementSystem camera-relative path as player
   - Falls back to direct Vector2 mapping when no camera; writes Vector2.ZERO when no target or within epsilon
-- [ ] Modify `scripts/ecs/systems/s_input_system.gd`: add `C_PlayerTagComponent` to query filter so player input only writes to player-tagged entities (prevents clobbering AI move_vector)
-- [ ] Verify style enforcement + full regression suite
+- [x] Modify `scripts/ecs/systems/s_input_system.gd`: add `C_PlayerTagComponent` to query filter so player input only writes to player-tagged entities (prevents clobbering AI move_vector)
+- [x] Verify style enforcement + full regression suite
+
+M7 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/actions/test_ai_actions_movement.gd` (7/7 passing), `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` (9/9 passing), and `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` (2/2 passing). `S_AINavigationSystem` now bridges `task_state["ai_move_target"]` to camera-relative `C_InputComponent.move_vector`, `S_InputSystem` now writes gameplay input only to `C_PlayerTagComponent` entities, style enforcement passed (17/17), and full-suite run now reports `3684/3693` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M8 — Integration Tests
 
@@ -196,7 +198,7 @@ M6 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/ac
 
 ## File Inventory
 
-### Implemented Now (M1-M6)
+### Implemented Now (M1-M7)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -204,34 +206,35 @@ M6 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/ac
 | `scripts/resources/ai/rs_ai_task.gd` | Resource | Base task class with task_id |
 | `scripts/resources/ai/rs_ai_primitive_task.gd` | Resource | Primitive task wrapper holding `action: Resource` (I_AIAction) |
 | `scripts/resources/ai/rs_ai_compound_task.gd` | Resource | Compound task with subtasks, method_conditions |
-| `scripts/resources/ai/rs_ai_goal.gd` | Resource | Goal with conditions, root_task, priority |
+| `scripts/resources/ai/rs_ai_goal.gd` | Resource | Goal with conditions, root_task, priority, and QB gate fields (`score_threshold`, `cooldown`, `one_shot`, `requires_rising_edge`) |
 | `scripts/resources/ai/rs_ai_brain_settings.gd` | Resource | Brain settings with goals array, defaults, evaluation config |
 | `scripts/ecs/components/c_ai_brain_component.gd` | Component | AI brain ECS component with runtime state and required-settings validation |
 | `scripts/utils/ai/u_htn_planner.gd` | Utility | HTN decomposition utility with recursive flattening, cycle detection, and method-condition branch selection via `U_RuleScorer` |
 | `scripts/resources/ai/actions/rs_ai_action_wait.gd` | Resource | Instant wait action implementing `I_AIAction`; tracks elapsed task state |
 | `scripts/resources/ai/actions/rs_ai_action_publish_event.gd` | Resource | Instant event action implementing `I_AIAction`; publishes via `U_ECSEventBus` |
 | `scripts/resources/ai/actions/rs_ai_action_set_field.gd` | Resource | Instant set-field action implementing `I_AIAction`; resolves targets with `U_PathResolver` |
+| `scripts/resources/ai/actions/rs_ai_action_move_to.gd` | Resource | Movement action implementing `I_AIAction`; resolves waypoint/node/position targets and completion by XZ arrival threshold |
+| `scripts/resources/ai/actions/rs_ai_action_scan.gd` | Resource | Timed scan action implementing `I_AIAction`; tracks elapsed scan state and completion |
+| `scripts/resources/ai/actions/rs_ai_action_animate.gd` | Resource | Stub animation action implementing `I_AIAction`; writes animation state and completes immediately |
 | `scripts/ecs/systems/s_ai_behavior_system.gd` | System | Goal evaluation + task runner (`_execute_current_task`) composing `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, and `U_HTNPlanner` |
+| `scripts/ecs/systems/s_ai_navigation_system.gd` | System | AI movement bridge (`execution_priority = -5`) converting world-space move targets to camera-relative input vectors |
+| `scripts/ecs/systems/s_input_system.gd` | System | Player-input writer now filtered to `C_PlayerTagComponent` entities to avoid AI move-vector clobbering |
 | `tests/unit/ai/resources/test_rs_ai_task.gd` | Test | M1 resources + I_AIAction interface (includes `method_conditions` coverage) |
 | `tests/unit/ai/resources/test_rs_ai_goal.gd` | Test | M2 goal/brain settings resource coverage |
 | `tests/unit/ecs/components/test_c_ai_brain_component.gd` | Test | M3 component registration/runtime-state/validation coverage |
 | `tests/unit/ai/test_u_htn_planner.gd` | Test | M4 HTN decomposition coverage (primitive/compound/nested/method-conditions/cycle/max-depth) |
-| `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` | Test | M5 goal-loop coverage (highest scorer, priority tiebreak, fallback goal, re-plan on goal switch, interval throttling, no-brain safety) |
+| `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` | Test | M5 goal-loop coverage (highest scorer, priority tiebreak, fallback goal, re-plan on goal switch, interval throttling, cooldown/one-shot/rising-edge gates, no-brain safety) |
 | `tests/unit/ai/actions/test_ai_actions_instant.gd` | Test | M6 instant action resource coverage (wait/event/set-field) |
-| `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` | Test | M6 task-runner coverage (dispatch, sequencing, completion reset, empty queue safety) |
+| `tests/unit/ai/actions/test_ai_actions_movement.gd` | Test | M7 movement/stub action coverage (move_to/scan/animate) |
+| `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` | Test | M6 task-runner coverage (dispatch, sequencing, completion reset, empty queue safety, invalid queue entry/action skip hardening) |
+| `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` | Test | M7 AI navigation bridge coverage (priority, target handling, camera transform, no-camera fallback) |
+| `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` | Test | M7 input filter coverage (`C_PlayerTagComponent` query gating) |
 | `tests/mocks/mock_ai_action_track.gd` | Test helper | M6 mock action used to assert polymorphic runner call ordering/counters |
 
-### Planned Target Inventory (M7-M10)
+### Planned Target Inventory (M8-M10)
 
 Planned files below are design targets and are not implemented yet:
 
-- `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
-- `scripts/resources/ai/actions/rs_ai_action_scan.gd`
-- `scripts/resources/ai/actions/rs_ai_action_animate.gd`
-- `scripts/ecs/systems/s_ai_navigation_system.gd`
-- `tests/unit/ai/actions/test_ai_actions_movement.gd`
-- `tests/unit/ecs/systems/test_s_ai_navigation_system.gd`
-- `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd`
 - `tests/unit/ai/integration/test_ai_pipeline_integration.gd`
 - `scenes/gameplay/gameplay_power_core.tscn`
 - `scenes/gameplay/gameplay_comms_array.tscn`
