@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="RS_AIGoal" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="2_condition_redux"]
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_primitive_task.gd" id="4_primitive_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_animate.gd" id="5_action_animate"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_publish_event.gd" id="6_action_publish_event"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="7_action_wait"]
+
+[sub_resource type="Resource" id="Condition_game_complete"]
+script = ExtResource("2_condition_redux")
+state_path = "gameplay.game_completed"
+match_mode = "equals"
+match_value_string = "true"
+
+[sub_resource type="Resource" id="Action_celebrate_spin"]
+script = ExtResource("5_action_animate")
+animation_state = &"spin"
+
+[sub_resource type="Resource" id="Task_celebrate_spin"]
+script = ExtResource("4_primitive_task")
+task_id = &"celebrate_spin"
+action = SubResource("Action_celebrate_spin")
+
+[sub_resource type="Resource" id="Action_publish_celebration"]
+script = ExtResource("6_action_publish_event")
+event_name = &"guide_prism_celebration"
+payload = {
+"source": &"guide_prism",
+"state": &"celebrating"
+}
+
+[sub_resource type="Resource" id="Task_publish_celebration"]
+script = ExtResource("4_primitive_task")
+task_id = &"publish_celebration"
+action = SubResource("Action_publish_celebration")
+
+[sub_resource type="Resource" id="Action_wait_celebration"]
+script = ExtResource("7_action_wait")
+duration = 3.0
+
+[sub_resource type="Resource" id="Task_wait_celebration"]
+script = ExtResource("4_primitive_task")
+task_id = &"wait_celebration"
+action = SubResource("Action_wait_celebration")
+
+[sub_resource type="Resource" id="Task_celebration_sequence"]
+script = ExtResource("3_compound_task")
+task_id = &"celebration_sequence"
+subtasks = Array[Resource]([SubResource("Task_celebrate_spin"), SubResource("Task_publish_celebration"), SubResource("Task_wait_celebration")])
+method_conditions = Array[Resource]([])
+
+[resource]
+script = ExtResource("1_goal")
+goal_id = &"celebrate"
+conditions = Array[Resource]([SubResource("Condition_game_complete")])
+root_task = SubResource("Task_celebration_sequence")
+priority = 3

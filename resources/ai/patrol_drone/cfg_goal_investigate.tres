@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="RS_AIGoal" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="2_condition_redux"]
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_primitive_task.gd" id="4_primitive_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="5_action_move_to"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_scan.gd" id="6_action_scan"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="7_action_wait"]
+
+[sub_resource type="Resource" id="Condition_investigate_input"]
+script = ExtResource("2_condition_redux")
+state_path = "gameplay.input.camera_center_just_pressed"
+match_mode = "equals"
+match_value_string = "true"
+
+[sub_resource type="Resource" id="Action_move_to_activatable"]
+script = ExtResource("5_action_move_to")
+target_node_path = NodePath("../../Interactions/Inter_ActivatableNode")
+arrival_threshold = 1.2
+
+[sub_resource type="Resource" id="Task_move_to_activatable"]
+script = ExtResource("4_primitive_task")
+task_id = &"move_to_activatable"
+action = SubResource("Action_move_to_activatable")
+
+[sub_resource type="Resource" id="Action_scan_activatable"]
+script = ExtResource("6_action_scan")
+scan_duration = 2.0
+rotation_speed = 1.25
+
+[sub_resource type="Resource" id="Task_scan_activatable"]
+script = ExtResource("4_primitive_task")
+task_id = &"scan_activatable"
+action = SubResource("Action_scan_activatable")
+
+[sub_resource type="Resource" id="Action_wait_after_scan"]
+script = ExtResource("7_action_wait")
+duration = 1.0
+
+[sub_resource type="Resource" id="Task_wait_after_scan"]
+script = ExtResource("4_primitive_task")
+task_id = &"wait_after_scan"
+action = SubResource("Action_wait_after_scan")
+
+[sub_resource type="Resource" id="Task_investigate_sequence"]
+script = ExtResource("3_compound_task")
+task_id = &"investigate_sequence"
+subtasks = Array[Resource]([SubResource("Task_move_to_activatable"), SubResource("Task_scan_activatable"), SubResource("Task_wait_after_scan")])
+method_conditions = Array[Resource]([])
+
+[resource]
+script = ExtResource("1_goal")
+goal_id = &"investigate"
+conditions = Array[Resource]([SubResource("Condition_investigate_input")])
+root_task = SubResource("Task_investigate_sequence")
+priority = 3
+cooldown = 2.5
+requires_rising_edge = true

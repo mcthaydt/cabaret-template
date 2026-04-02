@@ -60,7 +60,10 @@
 [ext_resource type="Script" path="res://scripts/ecs/base_ecs_entity.gd" id="55_base_ecs_entity"]
 [ext_resource type="Script" path="res://scripts/scene_structure/marker_components_group.gd" id="56_components_group"]
 [ext_resource type="Script" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="57_ai_brain_component"]
-[ext_resource type="Resource" path="res://resources/ai/cfg_ai_brain_placeholder.tres" id="58_ai_brain_placeholder"]
+[ext_resource type="Resource" path="res://resources/ai/guide_prism/cfg_guide_brain.tres" id="58_guide_brain"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="59_input_component"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_movement_component.gd" id="60_movement_component"]
+[ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_movement_default.tres" id="61_movement_settings"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -93,6 +96,10 @@ size = Vector3(30, 2, 30)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_victory_zone"]
 size = Vector3(4, 2, 4)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_guide_prism"]
+height = 1.2
+radius = 0.4
 
 [sub_resource type="Environment" id="Environment_q3o1v"]
 background_mode = 1
@@ -382,7 +389,12 @@ script = ExtResource("55_base_ecs_entity")
 entity_id = &"guide_prism"
 tags = Array[StringName]([&"npc", &"ai", &"guide_prism"])
 
-[node name="Visual" type="CSGSphere3D" parent="Entities/NPCs/E_GuidePrism"]
+[node name="NPC_Body" type="CharacterBody3D" parent="Entities/NPCs/E_GuidePrism"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NPCs/E_GuidePrism/NPC_Body"]
+shape = SubResource("CapsuleShape3D_guide_prism")
+
+[node name="Visual" type="CSGSphere3D" parent="Entities/NPCs/E_GuidePrism/NPC_Body"]
 transform = Transform3D(1, 0, 0, 0, 1.3, 0, 0, 0, 1, 0, 0.7, 0)
 use_collision = true
 collision_layer = 33
@@ -394,7 +406,14 @@ script = ExtResource("56_components_group")
 
 [node name="C_AIBrainComponent" type="Node" parent="Entities/NPCs/E_GuidePrism/Components"]
 script = ExtResource("57_ai_brain_component")
-brain_settings = ExtResource("58_ai_brain_placeholder")
+brain_settings = ExtResource("58_guide_brain")
+
+[node name="C_InputComponent" type="Node" parent="Entities/NPCs/E_GuidePrism/Components"]
+script = ExtResource("59_input_component")
+
+[node name="C_MovementComponent" type="Node" parent="Entities/NPCs/E_GuidePrism/Components"]
+script = ExtResource("60_movement_component")
+settings = ExtResource("61_movement_settings")
 
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)

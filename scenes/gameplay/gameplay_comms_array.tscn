@@ -60,7 +60,10 @@
 [ext_resource type="Script" path="res://scripts/ecs/base_ecs_entity.gd" id="55_base_ecs_entity"]
 [ext_resource type="Script" path="res://scripts/scene_structure/marker_components_group.gd" id="56_components_group"]
 [ext_resource type="Script" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="57_ai_brain_component"]
-[ext_resource type="Resource" path="res://resources/ai/cfg_ai_brain_placeholder.tres" id="58_ai_brain_placeholder"]
+[ext_resource type="Resource" path="res://resources/ai/sentry/cfg_sentry_brain.tres" id="58_sentry_brain"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="59_input_component"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_movement_component.gd" id="60_movement_component"]
+[ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_movement_default.tres" id="61_movement_settings"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -87,6 +90,10 @@ albedo_color = Color(0.34901962, 0.77254903, 0.3647059, 1)
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_noise_source"]
 radius = 2.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sentry"]
+height = 1.4
+radius = 0.45
 
 [sub_resource type="Environment" id="Environment_q3o1v"]
 background_mode = 1
@@ -381,7 +388,13 @@ script = ExtResource("55_base_ecs_entity")
 entity_id = &"sentry"
 tags = Array[StringName]([&"npc", &"ai", &"sentry"])
 
-[node name="Visual" type="CSGBox3D" parent="Entities/NPCs/E_Sentry"]
+[node name="NPC_Body" type="CharacterBody3D" parent="Entities/NPCs/E_Sentry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NPCs/E_Sentry/NPC_Body"]
+shape = SubResource("CapsuleShape3D_sentry")
+
+[node name="Visual" type="CSGBox3D" parent="Entities/NPCs/E_Sentry/NPC_Body"]
 transform = Transform3D(0.95105654, 0, -0.309017, 0, 1, 0, 0.309017, 0, 0.95105654, 0, 1.1, 0)
 use_collision = true
 collision_layer = 33
@@ -393,7 +406,14 @@ script = ExtResource("56_components_group")
 
 [node name="C_AIBrainComponent" type="Node" parent="Entities/NPCs/E_Sentry/Components"]
 script = ExtResource("57_ai_brain_component")
-brain_settings = ExtResource("58_ai_brain_placeholder")
+brain_settings = ExtResource("58_sentry_brain")
+
+[node name="C_InputComponent" type="Node" parent="Entities/NPCs/E_Sentry/Components"]
+script = ExtResource("59_input_component")
+
+[node name="C_MovementComponent" type="Node" parent="Entities/NPCs/E_Sentry/Components"]
+script = ExtResource("60_movement_component")
+settings = ExtResource("61_movement_settings")
 
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)

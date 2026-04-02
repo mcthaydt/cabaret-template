@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="RS_AIGoal" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="2_condition_redux"]
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_primitive_task.gd" id="4_primitive_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="5_action_move_to"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_animate.gd" id="6_action_animate"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="7_action_wait"]
+
+[sub_resource type="Resource" id="Condition_player_airborne"]
+script = ExtResource("2_condition_redux")
+state_path = "gameplay.entities.player.is_on_floor"
+match_mode = "not_equals"
+match_value_string = "true"
+
+[sub_resource type="Resource" id="Action_move_to_respawn"]
+script = ExtResource("5_action_move_to")
+target_node_path = NodePath("../../SpawnPoints/sp_default")
+arrival_threshold = 1.0
+
+[sub_resource type="Resource" id="Task_move_to_respawn"]
+script = ExtResource("4_primitive_task")
+task_id = &"move_to_respawn"
+action = SubResource("Action_move_to_respawn")
+
+[sub_resource type="Resource" id="Action_encourage_pulse"]
+script = ExtResource("6_action_animate")
+animation_state = &"pulse"
+
+[sub_resource type="Resource" id="Task_encourage_pulse"]
+script = ExtResource("4_primitive_task")
+task_id = &"encourage_pulse"
+action = SubResource("Action_encourage_pulse")
+
+[sub_resource type="Resource" id="Action_wait_encourage"]
+script = ExtResource("7_action_wait")
+duration = 1.5
+
+[sub_resource type="Resource" id="Task_wait_encourage"]
+script = ExtResource("4_primitive_task")
+task_id = &"wait_encourage"
+action = SubResource("Action_wait_encourage")
+
+[sub_resource type="Resource" id="Task_encourage_sequence"]
+script = ExtResource("3_compound_task")
+task_id = &"encourage_sequence"
+subtasks = Array[Resource]([SubResource("Task_move_to_respawn"), SubResource("Task_encourage_pulse"), SubResource("Task_wait_encourage")])
+method_conditions = Array[Resource]([])
+
+[resource]
+script = ExtResource("1_goal")
+goal_id = &"encourage"
+conditions = Array[Resource]([SubResource("Condition_player_airborne")])
+root_task = SubResource("Task_encourage_sequence")
+priority = 2
+cooldown = 2.0
+requires_rising_edge = true

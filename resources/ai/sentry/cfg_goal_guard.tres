@@ -1,0 +1,85 @@
+[gd_resource type="Resource" script_class="RS_AIGoal" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_constant.gd" id="2_condition_constant"]
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_primitive_task.gd" id="4_primitive_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="5_action_move_to"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_scan.gd" id="6_action_scan"]
+
+[sub_resource type="Resource" id="Condition_guard_constant"]
+script = ExtResource("2_condition_constant")
+score = 0.55
+
+[sub_resource type="Resource" id="Action_scan_post_a"]
+script = ExtResource("6_action_scan")
+scan_duration = 3.0
+rotation_speed = 1.0
+
+[sub_resource type="Resource" id="Task_scan_post_a"]
+script = ExtResource("4_primitive_task")
+task_id = &"scan_post_a"
+action = SubResource("Action_scan_post_a")
+
+[sub_resource type="Resource" id="Action_move_guard_a"]
+script = ExtResource("5_action_move_to")
+target_node_path = NodePath("../../Waypoints/WaypointGuardA")
+arrival_threshold = 0.9
+
+[sub_resource type="Resource" id="Task_move_guard_a"]
+script = ExtResource("4_primitive_task")
+task_id = &"move_guard_a"
+action = SubResource("Action_move_guard_a")
+
+[sub_resource type="Resource" id="Action_scan_post_b"]
+script = ExtResource("6_action_scan")
+scan_duration = 2.8
+rotation_speed = 1.1
+
+[sub_resource type="Resource" id="Task_scan_post_b"]
+script = ExtResource("4_primitive_task")
+task_id = &"scan_post_b"
+action = SubResource("Action_scan_post_b")
+
+[sub_resource type="Resource" id="Action_move_guard_b"]
+script = ExtResource("5_action_move_to")
+target_node_path = NodePath("../../Waypoints/WaypointGuardB")
+arrival_threshold = 0.9
+
+[sub_resource type="Resource" id="Task_move_guard_b"]
+script = ExtResource("4_primitive_task")
+task_id = &"move_guard_b"
+action = SubResource("Action_move_guard_b")
+
+[sub_resource type="Resource" id="Action_scan_post_c"]
+script = ExtResource("6_action_scan")
+scan_duration = 2.6
+rotation_speed = 1.0
+
+[sub_resource type="Resource" id="Task_scan_post_c"]
+script = ExtResource("4_primitive_task")
+task_id = &"scan_post_c"
+action = SubResource("Action_scan_post_c")
+
+[sub_resource type="Resource" id="Action_move_guard_c"]
+script = ExtResource("5_action_move_to")
+target_node_path = NodePath("../../Waypoints/WaypointGuardC")
+arrival_threshold = 0.9
+
+[sub_resource type="Resource" id="Task_move_guard_c"]
+script = ExtResource("4_primitive_task")
+task_id = &"move_guard_c"
+action = SubResource("Action_move_guard_c")
+
+[sub_resource type="Resource" id="Task_guard_sequence"]
+script = ExtResource("3_compound_task")
+task_id = &"guard_sequence"
+subtasks = Array[Resource]([SubResource("Task_scan_post_a"), SubResource("Task_move_guard_a"), SubResource("Task_scan_post_b"), SubResource("Task_move_guard_b"), SubResource("Task_scan_post_c"), SubResource("Task_move_guard_c")])
+method_conditions = Array[Resource]([])
+
+[resource]
+script = ExtResource("1_goal")
+goal_id = &"guard"
+conditions = Array[Resource]([SubResource("Condition_guard_constant")])
+root_task = SubResource("Task_guard_sequence")
+priority = 1

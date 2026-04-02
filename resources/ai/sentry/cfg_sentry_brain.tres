@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RS_AIBrainSettings" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_brain_settings.gd" id="1_brain"]
+[ext_resource type="Resource" path="res://resources/ai/sentry/cfg_goal_guard.tres" id="2_goal_guard"]
+[ext_resource type="Resource" path="res://resources/ai/sentry/cfg_goal_investigate_disturbance.tres" id="3_goal_investigate"]
+
+[resource]
+script = ExtResource("1_brain")
+goals = Array[Resource]([ExtResource("2_goal_guard"), ExtResource("3_goal_investigate")])
+default_goal_id = &"guard"
+evaluation_interval = 0.2

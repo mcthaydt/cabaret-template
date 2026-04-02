@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RS_AIBrainSettings" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_brain_settings.gd" id="1_brain"]
+[ext_resource type="Resource" path="res://resources/ai/guide_prism/cfg_goal_show_path.tres" id="2_goal_show_path"]
+[ext_resource type="Resource" path="res://resources/ai/guide_prism/cfg_goal_encourage.tres" id="3_goal_encourage"]
+[ext_resource type="Resource" path="res://resources/ai/guide_prism/cfg_goal_celebrate.tres" id="4_goal_celebrate"]
+
+[resource]
+script = ExtResource("1_brain")
+goals = Array[Resource]([ExtResource("2_goal_show_path"), ExtResource("3_goal_encourage"), ExtResource("4_goal_celebrate")])
+default_goal_id = &"show_path"
+evaluation_interval = 0.2
