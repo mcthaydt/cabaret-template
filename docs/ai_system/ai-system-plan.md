@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Milestone 1 complete (1/10 milestones)
+- **Current status**: Milestone 2 complete (2/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -60,10 +60,12 @@ M1 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/re
 
 ### M2 — Goal & Brain Settings Resources
 
-- [ ] Write tests for RS_AIGoal and RS_AIBrainSettings (field defaults, goal arrays, condition compatibility)
-- [ ] Implement `scripts/resources/ai/rs_ai_goal.gd` — `goal_id`, `conditions: Array[Resource]`, `root_task: Resource`, `priority: int`
-- [ ] Implement `scripts/resources/ai/rs_ai_brain_settings.gd` — `goals: Array[Resource]`, `default_goal_id`, `evaluation_interval: float`
-- [ ] Verify RS_AIGoal.conditions accepts existing QB condition types
+- [x] Write tests for RS_AIGoal and RS_AIBrainSettings (field defaults, goal arrays, condition compatibility)
+- [x] Implement `scripts/resources/ai/rs_ai_goal.gd` — `goal_id`, `conditions: Array[Resource]`, `root_task: Resource`, `priority: int`
+- [x] Implement `scripts/resources/ai/rs_ai_brain_settings.gd` — `goals: Array[Resource]`, `default_goal_id`, `evaluation_interval: float`
+- [x] Verify RS_AIGoal.conditions accepts existing QB condition types
+
+M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/resources/test_rs_ai_goal.gd` (5/5 passing), style enforcement passed (17/17), and full-suite run completed with pre-existing display/save/state persistence integration failures outside M2 scope.
 
 ### M3 — C_AIBrainComponent
 

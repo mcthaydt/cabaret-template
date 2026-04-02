@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 1 complete (1/10 milestones)
+**Status**: Milestone 2 complete (2/10 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -43,19 +43,25 @@
 
 **Goal**: Create RS_AIGoal and RS_AIBrainSettings. RS_AIGoal wraps QB conditions + root task. RS_AIBrainSettings holds goal arrays and evaluation config.
 
-- [ ] **Commit 1** — Create `tests/unit/ai/resources/test_rs_ai_goal.gd` with resource tests (TDD RED):
+- [x] **Commit 1** — Create `tests/unit/ai/resources/test_rs_ai_goal.gd` with resource tests (TDD RED):
   - `test_goal_has_id_conditions_and_root_task`
   - `test_goal_priority_defaults_to_zero`
   - `test_brain_settings_holds_goals_array`
   - `test_brain_settings_default_goal_id`
   - `test_brain_settings_evaluation_interval_default`
-- [ ] **Commit 2** — Implement `rs_ai_goal.gd` and `rs_ai_brain_settings.gd` (TDD GREEN)
+- [x] **Commit 2** — Implement `rs_ai_goal.gd` and `rs_ai_brain_settings.gd` (TDD GREEN)
 
 **M2 Verification**:
-- [ ] All 5 resource tests green
-- [ ] RS_AIGoal.conditions accepts existing QB condition types (RS_ConditionComponentField, etc.)
-- [ ] RS_AIBrainSettings can hold multiple RS_AIGoal instances
-- [ ] `test_style_enforcement.gd` passes
+- [x] All 5 resource tests green
+- [x] RS_AIGoal.conditions accepts existing QB condition types (RS_ConditionComponentField, etc.)
+- [x] RS_AIBrainSettings can hold multiple RS_AIGoal instances
+- [x] `test_style_enforcement.gd` passes
+
+**M2 Completion Notes (2026-04-02)**:
+- RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` failed with expected missing-script assertions for `rs_ai_goal.gd` and `rs_ai_brain_settings.gd`.
+- GREEN confirmed: same test target passed `5/5` after implementing M2 scripts.
+- Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
+- Full-suite baseline run executed: `tools/run_gut_suite.sh` finished `3618/3636` passing with `9` failing tests in existing save/state persistence integration suites (outside M2 scope).
 
 ---
 

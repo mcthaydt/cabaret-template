@@ -5,15 +5,15 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 1 complete (implementation phase)
+**Status**: Milestone 2 complete (implementation phase)
 
 ---
 
-## Current Status: Milestone 1 Complete
+## Current Status: Milestone 2 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (1/10 milestones complete).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (2/10 milestones complete).
 
 ### Completed in M1 (2026-04-02)
 
@@ -27,6 +27,18 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_task.gd` → `5/5` passing
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing
   - `tools/run_gut_suite.sh` run completed with pre-existing failures in save/state persistence integration tests (outside M1 scope)
+
+### Completed in M2 (2026-04-02)
+
+- Added `tests/unit/ai/resources/test_rs_ai_goal.gd` with the 5 required red-green tests.
+- Implemented:
+  - `scripts/resources/ai/rs_ai_goal.gd`
+  - `scripts/resources/ai/rs_ai_brain_settings.gd`
+- Verification:
+  - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` failed with expected missing-script assertions.
+  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` → `5/5` passing.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
+  - `tools/run_gut_suite.sh` run completed with pre-existing failures in display/save/state persistence integration suites (outside M2 scope).
 
 ### Key Design Decisions
 
@@ -143,11 +155,15 @@ You MUST:
 
 ## Next Steps
 
-Begin with **Milestone 2: Goal & Brain Settings Resources**:
+Begin with **Milestone 3: C_AIBrainComponent**:
 
-1. Create `tests/unit/ai/resources/test_rs_ai_goal.gd` with the 5 tests listed under M2 in `docs/ai_system/ai-system-tasks.md` (RED first).
-2. Implement `scripts/resources/ai/rs_ai_goal.gd` and `scripts/resources/ai/rs_ai_brain_settings.gd` (GREEN).
-3. Verify `RS_AIGoal.conditions` accepts existing QB condition resources (`RS_Condition*`).
-4. Run style enforcement and targeted AI resource tests.
-5. Run full-suite regression check and document any pre-existing unrelated failures separately.
-6. Update `ai-system-tasks.md` + this continuation prompt immediately after M2 completion, then commit docs separately.
+1. Create `tests/unit/ecs/components/test_c_ai_brain_component.gd` with the 5 tests listed under M3 in `docs/ai_system/ai-system-tasks.md` (RED first).
+2. Implement `scripts/ecs/components/c_ai_brain_component.gd` (GREEN) with:
+   - `const COMPONENT_TYPE := StringName("C_AIBrainComponent")`
+   - `@export var brain_settings: RS_AIBrainSettings`
+   - runtime fields: `active_goal_id`, `current_task_queue`, `current_task_index`, `task_state`, `evaluation_timer`
+   - `_validate_required_settings()` guard for missing brain settings
+3. Verify ECS registration/query behavior via `M_ECSManager.get_components(&"C_AIBrainComponent")`.
+4. Run targeted M3 tests, then `tests/unit/style/test_style_enforcement.gd`.
+5. Run full-suite regression check and document pre-existing unrelated failures separately.
+6. Update `ai-system-tasks.md` + this continuation prompt immediately after M3 completion, then commit docs separately.
