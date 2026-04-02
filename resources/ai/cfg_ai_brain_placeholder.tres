@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="RS_AIBrainSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_brain_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+goals = Array[Resource]([])
+default_goal_id = &""
+evaluation_interval = 0.5
