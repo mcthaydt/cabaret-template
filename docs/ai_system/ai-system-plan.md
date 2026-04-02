@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Milestone 7 complete (7/10 milestones)
+- **Current status**: Milestone 8 complete (8/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -141,14 +141,16 @@ M7 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/ac
 
 ### M8 — Integration Tests
 
-- [ ] Write integration tests:
+- [x] Write integration tests:
   - Full pipeline patrol pattern (move_to → wait → move_to → wait)
   - Goal switch replans mid-queue
   - Cooldown prevents goal thrashing
   - Default goal fallback executes
   - Compound method selection in context
-- [ ] Fix any bugs discovered during integration testing
-- [ ] Verify all existing tests still pass (regression check)
+- [x] Fix bugs discovered during integration testing
+- [x] Verify all existing tests still pass (regression check)
+
+M8 completion note (2026-04-02): Added `tests/unit/ai/integration/test_ai_pipeline_integration.gd` with 5 end-to-end tests (patrol pipeline, mid-queue replanning, cooldown anti-thrash, default-goal fallback, and context-driven method-branch selection). RED confirmed on initial parse/runtime issues (headless-safe type annotations + scene-tree transform usage), then GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` passed `5/5`. Regression guards passed (`test_s_ai_behavior_system_goals.gd` `10/10`, `test_s_ai_behavior_system_tasks.gd` `6/6`, `test_ai_actions_movement.gd` `7/7`, `test_s_ai_navigation_system.gd` `9/9`, `test_s_input_system_ai_filter.gd` `2/2`), style enforcement passed (`17/17`), and full-suite run currently reports `3689/3698` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M9 — Demo Scene Creation
 
@@ -198,7 +200,7 @@ M7 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/ac
 
 ## File Inventory
 
-### Implemented Now (M1-M7)
+### Implemented Now (M1-M8)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -229,13 +231,13 @@ M7 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/ac
 | `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` | Test | M6 task-runner coverage (dispatch, sequencing, completion reset, empty queue safety, invalid queue entry/action skip hardening) |
 | `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` | Test | M7 AI navigation bridge coverage (priority, target handling, camera transform, no-camera fallback) |
 | `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` | Test | M7 input filter coverage (`C_PlayerTagComponent` query gating) |
+| `tests/unit/ai/integration/test_ai_pipeline_integration.gd` | Test | M8 integration coverage for full GOAP→HTN→action pipeline, mid-queue replanning, cooldown gating, default fallback, and method-branch selection |
 | `tests/mocks/mock_ai_action_track.gd` | Test helper | M6 mock action used to assert polymorphic runner call ordering/counters |
 
-### Planned Target Inventory (M8-M10)
+### Planned Target Inventory (M9-M10)
 
 Planned files below are design targets and are not implemented yet:
 
-- `tests/unit/ai/integration/test_ai_pipeline_integration.gd`
 - `scenes/gameplay/gameplay_power_core.tscn`
 - `scenes/gameplay/gameplay_comms_array.tscn`
 - `scenes/gameplay/gameplay_nav_nexus.tscn`

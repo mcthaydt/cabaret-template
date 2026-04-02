@@ -5,15 +5,15 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 7 complete (implementation phase)
+**Status**: Milestone 8 complete (implementation phase)
 
 ---
 
-## Current Status: Milestone 7 Complete
+## Current Status: Milestone 8 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (7/10 milestones complete).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (8/10 milestones complete).
 
 ### Completed in M1 (2026-04-02)
 
@@ -118,7 +118,30 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - GREEN confirmed (navigation/input): `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` → `9/9` passing; `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` → `2/2` passing.
   - Regression guard: updated input-system integration suites pass (`13/13`, `4/4`, `7/7` respectively).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
-  - Full suite: `tools/run_gut_suite.sh` completes with `3684/3693` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+- Full suite: `tools/run_gut_suite.sh` completes with `3684/3693` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+
+### Completed in M8 (2026-04-02)
+
+- Added `tests/unit/ai/integration/test_ai_pipeline_integration.gd` with the 5 required red-green integration tests:
+  - `test_full_pipeline_patrol_pattern`
+  - `test_goal_switch_replans_mid_queue`
+  - `test_cooldown_prevents_goal_thrashing`
+  - `test_default_goal_fallback_executes`
+  - `test_compound_method_selection_in_context`
+- Implementation/debugging fixes discovered by RED run:
+  - Switched test-local `C_AIBrainComponent` annotations to headless-safe `Variant` usage to avoid class-resolution parse failures.
+  - Mounted integration fixtures under an in-tree root (`add_child_autofree`) so camera/body `global_transform` reads are valid in headless tests.
+- Verification:
+  - RED confirmed: initial M8 test run failed on expected parse/runtime issues above.
+  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `5/5` passing.
+  - Regression guards:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `10/10`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` → `6/6`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` → `7/7`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` → `9/9`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` → `2/2`
+  - Style: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
+  - Full suite: `tools/run_gut_suite.sh` completes with `3689/3698` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ### Key Design Decisions
 
@@ -131,6 +154,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **Animate remains an intentional stub**: `RS_AIActionAnimate` sets `task_state["animation_state"]` and completes immediately; full animation integration is deferred.
 - **Navigation bridge is now live**: `S_AINavigationSystem` (`execution_priority = -5`) reads `task_state["ai_move_target"]`, converts XZ world direction into camera-relative `C_InputComponent.move_vector`, and keeps NPCs on the same movement path as players.
 - **Player input filtering is now enforced**: `S_InputSystem` writes gameplay input only to entities with `C_PlayerTagComponent`, preventing player-input clobbering of AI move vectors.
+- **M8 pipeline integration coverage is now live**: `tests/unit/ai/integration/test_ai_pipeline_integration.gd` validates GOAP scoring → HTN decomposition → typed action execution → AI navigation bridge → player-input filtering end-to-end.
 - **Demo scenes need creation**: Power Core, Comms Array, Nav Nexus rooms built with CSG geometry.
 
 ---
@@ -239,14 +263,11 @@ You MUST:
 
 ## Next Steps
 
-Begin with **Milestone 8: Integration Tests**:
+Begin with **Milestone 9: Demo Scene Creation**:
 
-1. Create `tests/unit/ai/integration/test_ai_pipeline_integration.gd` with 5 integration tests (RED first): full patrol pattern, mid-queue replan, cooldown anti-thrash, default-goal fallback, compound method branch selection.
-2. Reuse M7 contracts directly in integration coverage:
-   - `RS_AIActionMoveTo` writes `task_state["ai_move_target"]`
-   - `S_AINavigationSystem` converts world targets to camera-relative input vectors
-   - `S_InputSystem` player-tag filtering preserves AI-authored move vectors
-3. Keep pipeline assertions end-to-end: goal scoring → HTN decomposition → task execution → queue advancement/reset semantics.
-4. Run targeted M8 integration suite, then regression guards (`test_s_ai_behavior_system_goals.gd`, `test_s_ai_behavior_system_tasks.gd`, M7 action/navigation suites).
-5. Run `tests/unit/style/test_style_enforcement.gd`.
-6. Run full-suite regression check, update `ai-system-tasks.md` + this continuation prompt, then commit documentation updates separately from implementation.
+1. Create `scenes/gameplay/gameplay_power_core.tscn` (Patrol Drone room) with CSG core geometry, waypoint markers, activatable node, player spawn, and `E_PatrolDrone` placeholder using a valid `RS_AIBrainSettings` resource.
+2. Create `scenes/gameplay/gameplay_comms_array.tscn` (Sentry room) with CSG antenna/pillar geometry, guard waypoints, noise source areas, player spawn, and `E_Sentry` placeholder with valid brain settings.
+3. Create `scenes/gameplay/gameplay_nav_nexus.tscn` (Guide Prism room) with CSG vertical platforms, path markers, fall detection area, victory trigger zone, player spawn, and `E_GuidePrism` placeholder with valid brain settings.
+4. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` after each new scene/resource creation pass.
+5. Run a full regression pass (`tools/run_gut_suite.sh`) after M9 scene authoring lands.
+6. Update `ai-system-tasks.md` + this continuation prompt immediately after M9 completion, then commit documentation updates separately from implementation.

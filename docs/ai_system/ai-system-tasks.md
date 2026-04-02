@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 7 complete (7/10 milestones)
+**Status**: Milestone 8 complete (8/10 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -279,20 +279,27 @@
 
 **Goal**: End-to-end pipeline validation. Goal evaluation → HTN decomposition → task execution → re-planning. No new implementation — exercises M1–M7.
 
-- [ ] **Commit 1** — Create `tests/unit/ai/integration/test_ai_pipeline_integration.gd` with integration tests:
+- [x] **Commit 1** — Create `tests/unit/ai/integration/test_ai_pipeline_integration.gd` with integration tests:
   - `test_full_pipeline_patrol_pattern` — compound [move_to(A), wait(0.5), move_to(B), wait(0.5)], verify positions visited and waits elapsed
   - `test_goal_switch_replans_mid_queue` — change state mid-queue, verify new goal's tasks replace old
   - `test_cooldown_prevents_goal_thrashing` — rapid state changes don't cause constant re-planning
   - `test_default_goal_fallback_executes` — all goals fail, default_goal_id tasks execute
   - `test_compound_method_selection_in_context` — compound with 2 branches, correct branch chosen
-- [ ] **Commit 2** — Fix bugs discovered during integration testing (if any)
+- [x] **Commit 2** — Fix bugs discovered during integration testing (if any)
 
 **M8 Verification**:
-- [ ] All 5 integration tests green
-- [ ] Full pipeline works end-to-end
-- [ ] Re-planning is clean (no leftover state)
-- [ ] All existing project tests still pass (regression)
-- [ ] `test_style_enforcement.gd` passes
+- [x] All 5 integration tests green
+- [x] Full pipeline works end-to-end
+- [x] Re-planning is clean (no leftover state)
+- [x] All existing project tests still pass (regression)
+- [x] `test_style_enforcement.gd` passes
+
+**M8 Completion Notes (2026-04-02)**:
+- RED confirmed: first run of `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` failed on headless parse/runtime issues (typed class annotation resolution and nodes not mounted in-tree for `global_transform` usage).
+- GREEN confirmed: after applying headless-safe `Variant` annotations and mounting fixture systems/entities/camera in a test root, `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` passes `5/5`.
+- Regression guards passed: `test_s_ai_behavior_system_goals.gd` (`10/10`), `test_s_ai_behavior_system_tasks.gd` (`6/6`), `test_ai_actions_movement.gd` (`7/7`), `test_s_ai_navigation_system.gd` (`9/9`), `test_s_input_system_ai_filter.gd` (`2/2`).
+- Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
+- Full-suite regression run executed: `tools/run_gut_suite.sh` now reports `3689/3698` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ---
 
