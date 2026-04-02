@@ -62,6 +62,12 @@ Study these for the typed resource + interface pattern (I_AIAction follows this 
 - `scripts/resources/qb/conditions/rs_condition_component_field.gd` — Example typed condition with `@export_group` + `@export` fields for inspector UX.
 - `scripts/resources/qb/effects/rs_effect_set_field.gd` — Example typed effect with multiple `@export` value types.
 
+Study these for the AI navigation bridge pattern:
+
+- `scripts/ecs/systems/s_ai_navigation_system.gd` — Bridges `task_state["ai_move_target"]` → `C_InputComponent.move_vector` via inverse camera transform. Execution priority -5 (after S_AIBehaviorSystem at -10, before S_InputSystem/S_MovementSystem at 0).
+- `scripts/ecs/systems/s_input_system.gd` — Filtered by `C_PlayerTagComponent` so player input only writes to player-tagged entities. NPCs (no `C_PlayerTagComponent`) keep their AI-calculated move_vector.
+- `scripts/ecs/systems/s_movement_system.gd` — Camera-relative movement pipeline. Both player and NPC input flows through the same code path. Study lines 118-143 for the camera-relative transform that S_AINavigationSystem must inverse.
+
 Study these for utility and event patterns:
 
 - `scripts/utils/qb/u_rule_scorer.gd` — Rule scoring API.
@@ -115,7 +121,7 @@ You MUST:
 - **Typed Actions via I_AIAction**: Each action resource (RS_AIAction*) implements I_AIAction with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)`. The task runner dispatches polymorphically — NO match blocks or action_type string switching. New action types require only a new .gd file. This matches the I_Condition/I_Effect pattern used by QB v2.
 - **RS_AIPrimitiveTask is a Wrapper**: RS_AIPrimitiveTask holds `@export var action: Resource` (I_AIAction). The task is the "what" (position in the HTN plan), the action is the "how" (self-executing logic + typed @export config).
 - **Animate is a Stub**: RS_AIActionAnimate sets `task_state["animation_state"]` to a StringName and completes immediately. Full animation system integration is a separate effort.
-- **move_to Delegates Movement**: RS_AIActionMoveTo sets an `ai_move_target` field and checks distance for completion. Actual movement is the responsibility of movement/physics systems consuming that field.
+- **move_to Delegates Movement via S_AINavigationSystem**: RS_AIActionMoveTo writes `task_state["ai_move_target"]` (Vector3) and checks distance for completion. `S_AINavigationSystem` (execution_priority -5) reads the target, calculates XZ-plane world direction, inverse-transforms through the active camera basis, and writes a camera-relative `Vector2` to `C_InputComponent.set_move_vector()`. This means NPCs flow through the exact same `S_MovementSystem` camera-relative pipeline as the player. `S_InputSystem` is filtered by `C_PlayerTagComponent` so player input doesn't clobber AI move_vector. NPC entities must have `C_AIBrainComponent` + `C_InputComponent` + `C_MovementComponent` but NOT `C_PlayerTagComponent`.
 - **Demo Scenes are CSG Prototypes**: Use CSG geometry for all level geometry. Functional prototypes, not polished levels.
 - **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and node naming prefixes (S_, C_, RS_, U_, I_, E_, etc.).
 - **Update Docs After Each Milestone**: Per AGENTS.md mandate, update this continuation prompt and the tasks checklist after completing each milestone.

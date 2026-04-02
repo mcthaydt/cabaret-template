@@ -104,7 +104,7 @@ M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9
 - [ ] Write task runner tests (sequential queue advancement, queue completion resets state, empty queue safety, polymorphic dispatch via I_AIAction)
 - [ ] Implement polymorphic task runner in S_AIBehaviorSystem: `_execute_current_task(brain, delta, context)` — calls `action.start()`, `action.tick()`, `action.is_complete()` on current task's action resource (no match blocks)
 
-### M7 — Typed Action Resources (Movement + Stub)
+### M7 — Typed Action Resources (Movement + Stub) + AI Navigation System
 
 - [ ] Write unit tests for each action resource in isolation:
   - RS_AIActionMoveTo: sets target, completes within threshold, stays active when far, waypoint_index resolution
@@ -114,6 +114,16 @@ M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9
   - `rs_ai_action_move_to.gd` — `@export var target_position: Vector3`, `@export var target_node_path: NodePath`, `@export var waypoint_index: int = -1`, `@export var arrival_threshold: float = 0.5`
   - `rs_ai_action_scan.gd` — `@export var scan_duration: float = 2.0`, `@export var rotation_speed: float = 1.0`
   - `rs_ai_action_animate.gd` (stub) — `@export var animation_state: StringName`; sets task_state field, completes immediately
+- [ ] Write navigation system + input filter tests (9 nav tests + 2 input filter tests)
+- [ ] Implement `scripts/ecs/systems/s_ai_navigation_system.gd`:
+  - Extends BaseECSSystem, `execution_priority = -5` (after S_AIBehaviorSystem at -10, before S_InputSystem/S_MovementSystem at 0)
+  - Queries entities with `C_AIBrainComponent` + `C_InputComponent` + `C_MovementComponent`
+  - Reads `brain.task_state["ai_move_target"]` (Vector3), calculates XZ-plane world direction to target
+  - Inverse-transforms world direction through active camera basis (via `U_ECSUtils.get_active_camera()`) to produce camera-relative Vector2
+  - Writes to `C_InputComponent.set_move_vector()` — NPCs flow through same S_MovementSystem camera-relative path as player
+  - Falls back to direct Vector2 mapping when no camera; writes Vector2.ZERO when no target or within epsilon
+- [ ] Modify `scripts/ecs/systems/s_input_system.gd`: add `C_PlayerTagComponent` to query filter so player input only writes to player-tagged entities (prevents clobbering AI move_vector)
+- [ ] Verify style enforcement + full regression suite
 
 ### M8 — Integration Tests
 
@@ -164,7 +174,7 @@ M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9
   - Mitigation: Max depth guard (20 levels). Demo NPCs use shallow trees (2-3 levels). Profile if needed.
 
 - **Risk**: `move_to` task completion depends on movement systems that may not exist for AI entities.
-  - Mitigation: Start with simple distance-check completion. AI entities can use basic kinematic movement or NavigationAgent3D. Movement integration is the consumer's responsibility.
+  - Mitigation: `S_AINavigationSystem` bridges `task_state["ai_move_target"]` → `C_InputComponent.move_vector` via inverse camera transform. NPCs reuse the same `S_MovementSystem` camera-relative pipeline as the player. `S_InputSystem` is filtered by `C_PlayerTagComponent` to prevent player input clobbering AI move_vector.
 
 - **Risk**: Demo scene creation scope creep (art, level design).
   - Mitigation: CSG-only geometry. Functional prototypes, not polished levels. Focus on proving AI behavior, not visual quality.
@@ -174,7 +184,7 @@ M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9
 
 ## File Inventory
 
-### Scripts (15 new files)
+### Scripts (16 new files, 1 modified)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -193,8 +203,10 @@ M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9
 | `scripts/ecs/components/c_ai_brain_component.gd` | Component | Per-NPC runtime AI state |
 | `scripts/ecs/systems/s_ai_behavior_system.gd` | System | Goal evaluation + HTN + polymorphic task execution |
 | `scripts/utils/ai/u_htn_planner.gd` | Utility | Recursive task decomposition |
+| `scripts/ecs/systems/s_ai_navigation_system.gd` | System | Bridges AI move target → C_InputComponent via inverse camera transform |
+| `scripts/ecs/systems/s_input_system.gd` | **Modified** | Filter query by C_PlayerTagComponent to prevent clobbering AI move_vector |
 
-### Tests (8 new files)
+### Tests (10 new files)
 
 | File | Covers |
 |------|--------|
@@ -205,6 +217,8 @@ M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9
 | `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` | M5 goal eval |
 | `tests/unit/ai/actions/test_ai_actions_instant.gd` | M6 wait/publish_event/set_field actions |
 | `tests/unit/ai/actions/test_ai_actions_movement.gd` | M7 move_to/scan/animate actions |
+| `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` | M7 navigation system (9 tests) |
+| `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` | M7 input filter regression (2 tests) |
 | `tests/unit/ai/integration/test_ai_pipeline_integration.gd` | M8 integration |
 
 ### Scenes (3 new files)

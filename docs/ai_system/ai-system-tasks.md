@@ -177,9 +177,39 @@
   - `rs_ai_action_scan.gd` — `@export var scan_duration: float = 2.0`, `@export var rotation_speed: float = 1.0`; implements I_AIAction
   - `rs_ai_action_animate.gd` (stub) — `@export var animation_state: StringName`; sets task_state field, completes immediately
 
+- [ ] **Commit 3** — Create `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` and `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` (TDD RED):
+  - `test_system_extends_base_ecs_system` — S_AINavigationSystem extends BaseECSSystem
+  - `test_execution_priority_is_negative_five` — runs after S_AIBehaviorSystem (-10), before S_InputSystem (0)
+  - `test_writes_direction_toward_target` — entity at origin, target at (10,0,10), verify move_vector produces correct world-space movement after camera transform
+  - `test_writes_zero_when_no_target` — empty task_state → Vector2.ZERO
+  - `test_writes_zero_when_at_target` — within epsilon → Vector2.ZERO
+  - `test_ignores_y_axis` — target at (0, 100, 10), only XZ direction matters
+  - `test_skips_entity_without_body` — null body → no crash
+  - `test_updates_direction_when_target_changes` — target moves between ticks, move_vector updates
+  - `test_handles_no_camera_gracefully` — no camera in scene, falls back to direct mapping
+  - `test_input_system_skips_entities_without_player_tag` — C_InputComponent without C_PlayerTagComponent not overwritten by player input
+  - `test_input_system_still_writes_to_player_entity` — C_InputComponent + C_PlayerTagComponent still receives player input
+- [ ] **Commit 4** — Implement `s_ai_navigation_system.gd` + modify `s_input_system.gd` (TDD GREEN):
+  - `scripts/ecs/systems/s_ai_navigation_system.gd` — extends BaseECSSystem, execution_priority = -5
+    - Queries entities with C_AIBrainComponent + C_InputComponent + C_MovementComponent
+    - Reads `brain.task_state.get("ai_move_target")` → Vector3 target
+    - Gets entity position via `C_MovementComponent.get_character_body().global_position`
+    - Calculates world-space XZ direction to target
+    - Inverse-transforms through active camera basis (via `U_ECSUtils.get_active_camera()`) to produce camera-relative Vector2
+    - Writes to `C_InputComponent.set_move_vector()` — NPCs flow through same S_MovementSystem path as player
+    - Falls back to direct mapping when no camera
+    - Writes Vector2.ZERO when no target or within epsilon
+  - `scripts/ecs/systems/s_input_system.gd` — add C_PlayerTagComponent to query filter so player input only writes to player-tagged entities
+- [ ] **Commit 5** — Verify style enforcement passes; run full test suite for regressions
+
 **M7 Verification**:
 - [ ] All 7 action unit tests green
+- [ ] All 9 navigation system tests green
+- [ ] All 2 input filter tests green
 - [ ] move_to resolves all 3 parameter variants (position, node_path, waypoint_index)
+- [ ] S_AINavigationSystem bridges task_state["ai_move_target"] → C_InputComponent.move_vector via inverse camera transform
+- [ ] NPCs use the same S_MovementSystem camera-relative code path as the player
+- [ ] S_InputSystem only writes player input to C_PlayerTagComponent entities
 - [ ] Each action has typed @export fields visible in Godot inspector
 - [ ] animate is explicitly minimal (stub only — sets state, completes immediately)
 - [ ] All 6 action types now implemented and independently testable
