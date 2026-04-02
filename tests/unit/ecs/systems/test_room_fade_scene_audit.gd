@@ -2,6 +2,7 @@ extends BaseTest
 
 const SCENE_PATH := "res://scenes/gameplay/gameplay_interior_a.tscn"
 const POWER_CORE_SCENE_PATH := "res://scenes/gameplay/gameplay_power_core.tscn"
+const TEMPLATE_SCENE_PATH := "res://scenes/templates/tmpl_base_scene.tscn"
 const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
 	"res://scripts/ecs/components/c_room_fade_group_component.gd"
 )
@@ -163,6 +164,59 @@ func test_gameplay_power_core_has_room_fade_system_and_wall_groups() -> void:
 		components.size(),
 		4,
 		"Expected 4 room-fade components in gameplay_power_core.tscn."
+	)
+
+func test_tmpl_base_scene_has_room_fade_system_and_default_components() -> void:
+	var packed_scene := load(TEMPLATE_SCENE_PATH) as PackedScene
+	assert_not_null(packed_scene, "Scene should load: %s" % TEMPLATE_SCENE_PATH)
+	if packed_scene == null:
+		return
+
+	var root_variant: Variant = packed_scene.instantiate()
+	assert_true(root_variant is Node, "Scene root should be a Node.")
+	if not (root_variant is Node):
+		return
+	var root := root_variant as Node
+	add_child(root)
+	autofree(root)
+
+	var room_fade_system := root.get_node_or_null(NodePath("Systems/Core/S_RoomFadeSystem"))
+	assert_not_null(room_fade_system, "Expected Systems/Core/S_RoomFadeSystem in %s" % TEMPLATE_SCENE_PATH)
+	if room_fade_system != null:
+		assert_eq(room_fade_system.get_script(), S_ROOM_FADE_SYSTEM_SCRIPT)
+
+	var expected_component_paths: Array[String] = [
+		"SceneObjects/SO_Block/C_RoomFadeGroupComponent",
+		"SceneObjects/SO_Block2/C_RoomFadeGroupComponent",
+		"SceneObjects/SO_Block3/C_RoomFadeGroupComponent",
+	]
+	var seen_group_tags: Dictionary = {}
+	for path in expected_component_paths:
+		var component := root.get_node_or_null(NodePath(path))
+		assert_not_null(component, "Expected template room-fade component missing at: %s" % path)
+		if component == null:
+			continue
+		var group_tag_variant: Variant = component.get("group_tag")
+		assert_true(
+			group_tag_variant is StringName,
+			"group_tag should be a StringName for %s" % _describe_node(component)
+		)
+		if group_tag_variant is StringName:
+			var group_tag: StringName = group_tag_variant as StringName
+			assert_true(
+				not String(group_tag).is_empty(),
+				"Template room-fade group_tag should be explicitly authored for %s" % _describe_node(component)
+			)
+			assert_false(
+				seen_group_tags.has(group_tag),
+				"Duplicate template room-fade group_tag detected in %s: %s" % [TEMPLATE_SCENE_PATH, String(group_tag)]
+			)
+			seen_group_tags[group_tag] = true
+
+	var components: Array = _collect_room_fade_components(root)
+	assert_true(
+		components.size() >= 3,
+		"Expected at least 3 room-fade components in tmpl_base_scene.tscn."
 	)
 
 func _collect_room_fade_components(root: Node) -> Array:
