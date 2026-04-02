@@ -272,26 +272,27 @@
   - Waypoint markers: WaypointA, WaypointB, WaypointC, WaypointD
   - Activatable node Area3D (investigate trigger)
   - Player spawn point
-  - E_PatrolDrone placeholder (CSGSphere + C_AIBrainComponent, no settings)
+  - E_PatrolDrone placeholder (CSGSphere + C_AIBrainComponent + minimal RS_AIBrainSettings placeholder resource assigned)
 - [ ] **Commit 2** — Create `scenes/gameplay/gameplay_comms_array.tscn` (Sentry room):
   - CSG open area with antenna structures (CSGBox pillars)
   - Guard post waypoints
   - Noise source Area3D positions
   - Player spawn point
-  - E_Sentry placeholder (CSGBox + C_AIBrainComponent, no settings)
+  - E_Sentry placeholder (CSGBox + C_AIBrainComponent + minimal RS_AIBrainSettings placeholder resource assigned)
 - [ ] **Commit 3** — Create `scenes/gameplay/gameplay_nav_nexus.tscn` (Guide Prism room):
   - CSG vertical platforming room with floating platforms (CSGBox)
   - Path marker Node3Ds for guide destinations
   - Fall detection Area3D below platforms
   - Victory trigger zone at top
   - Player spawn point
-  - E_GuidePrism placeholder (CSGSphere + C_AIBrainComponent, no settings)
+  - E_GuidePrism placeholder (CSGSphere + C_AIBrainComponent + minimal RS_AIBrainSettings placeholder resource assigned)
 
 **M9 Verification**:
 - [ ] Each scene loads without errors
 - [ ] Player can spawn and move in each room
 - [ ] Waypoint/marker nodes properly positioned and named
 - [ ] NPC placeholder entities are visible
+- [ ] Every placeholder `C_AIBrainComponent.brain_settings` points to a valid `RS_AIBrainSettings` resource (not null)
 - [ ] `test_style_enforcement.gd` passes
 
 ---

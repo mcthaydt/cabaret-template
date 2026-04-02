@@ -43,7 +43,7 @@ M4 (HTN Planner) ─────────────────────
                                               └─────────────────────────┘
 ```
 
-M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9 can start after M3 (needs component placeholder). M10 requires both M8 (proven pipeline) and M9 (scenes).
+M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9 can start after M3 (needs component placeholder + valid placeholder `RS_AIBrainSettings`). M10 requires both M8 (proven pipeline) and M9 (scenes).
 
 ## Work Breakdown
 
@@ -149,7 +149,7 @@ M4 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/te
 - [ ] Create `scenes/gameplay/gameplay_power_core.tscn` — industrial room with central power core (CSGCylinder), waypoint markers (A/B/C/D), activatable node Area3D, player spawn
 - [ ] Create `scenes/gameplay/gameplay_comms_array.tscn` — open area with antenna structures (CSGBox pillars), guard post waypoints, noise source Area3Ds, player spawn
 - [ ] Create `scenes/gameplay/gameplay_nav_nexus.tscn` — vertical platforming room with floating platforms (CSGBox), path markers, fall detection area, victory trigger zone, player spawn
-- [ ] Add NPC entity placeholders to each scene (CSG visuals + C_AIBrainComponent with no settings)
+- [ ] Add NPC entity placeholders to each scene (CSG visuals + C_AIBrainComponent with a valid placeholder RS_AIBrainSettings resource assigned)
 - [ ] Verify scenes load, player can spawn/move, style enforcement passes
 
 ### M10 — Demo NPC Behavior Authoring & Tuning

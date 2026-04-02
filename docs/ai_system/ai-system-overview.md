@@ -17,6 +17,7 @@ The AI system provides data-driven NPC behavior through two complementary paradi
 - Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, etc.) in `scripts/resources/qb/conditions/` — implement `I_Condition.evaluate(context)` for polymorphic dispatch
 - Typed effects (`RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetField`, etc.) in `scripts/resources/qb/effects/` — implement `I_Effect.execute(context)` for polymorphic dispatch
 - M1-M4 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, `RS_AIBrainSettings`, `C_AIBrainComponent`, and `U_HTNPlanner`
+- `C_AIBrainComponent` enforces required settings at runtime: `brain_settings` must be a valid `RS_AIBrainSettings` resource
 - M6/M7 planned: typed `RS_AIAction*` resources will implement `I_AIAction` with `start()`, `tick()`, `is_complete()` for self-executing task logic
 - `U_PathResolver` handles dot-path traversal for component fields, Redux state, and event payloads
 - ECS pattern: systems extend `BaseECSSystem`, implement `process_tick(delta)`, query components via `get_components(StringName)`
@@ -197,6 +198,7 @@ Phase status: M4 complete (`U_HTNPlanner` + decomposition tests), M5 pending.
 ### Phase 5: Demo NPC Authoring & Tuning (M10)
 - Author `.tres` resources for Patrol Drone, Sentry, and Guide Prism
 - Wire NPC entity scenes with `C_AIBrainComponent` + visual CSG meshes into demo scenes
+- Ensure each placeholder NPC has a non-null placeholder `RS_AIBrainSettings` resource assigned (component registration rejects null/wrong type)
 - Playtest and tune QB rule scores, cooldowns, evaluation intervals
 
 ## Verification Checklist

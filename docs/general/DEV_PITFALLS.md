@@ -1636,3 +1636,8 @@ func test_window_mode_fullscreen() -> void:
 
 - `.gd` files under `scripts/` (and the gameplay/unit tests that exercise them) must use tab indentation. The style suite (`tests/unit/style/test_style_enforcement.gd`) fails immediately on leading spaces, so run it before committing editor-authored changes.
 - Trigger configuration resources (`RS_SceneTriggerSettings` derivatives) must include `script = ExtResource(...)` and should remain scene-local. Controllers now duplicate shared `.tres` files automatically, but avoid manually reusing the same resource across entities or the inspector will apply mutations to every instance.
+
+## AI System Pitfalls
+
+- **`C_AIBrainComponent` rejects missing or wrong-type settings**: AI placeholder entities cannot leave `brain_settings` unset and cannot assign non-`RS_AIBrainSettings` resources. Registration is intentionally aborted in `_validate_required_settings()` when this contract is violated.
+  - **Fix pattern**: for placeholders/demo scenes, assign a minimal valid `RS_AIBrainSettings` resource instead of `null`.
