@@ -144,6 +144,9 @@
 
 - **Typed Array constructor syntax can parse-fail (`Cannot call on an expression`)**: Expressions like `Array[Resource]([value])` are not valid constructor calls in GDScript. Build typed arrays via annotated locals (`var values: Array[Resource] = [value]`) and assign that variable instead.
 
+- **Assigning typed exported arrays via `Object.set(...)` with untyped array literals can silently coerce to empty/invalid data in headless runs**: This can make rule/goal condition lists appear unset during tests even when authored values look correct.
+  - **Fix pattern**: build an explicitly typed local first (`var conditions: Array[Resource] = [condition]`) and assign that typed array to the exported property.
+
 - **Changing parent classes can surface inherited-helper parse errors**: If a script relied on helper methods inherited from a previous base class and you change `extends`, headless parse can fail with `Function "...()" not found in base self` even when those call sites are not hit in tests. Add local replacements in the same patch that changes inheritance so scripts remain loadable.
 
 - **Child scripts cannot redeclare parent members (incl. `const`)**: If a base class defines a member like `const U_Foo := preload("...")`, declaring another `const U_Foo := ...` in a derived script causes a parse error (`The member "U_Foo" already exists in parent class ...`). Prefer inheriting the constant, or use a different name in the child.

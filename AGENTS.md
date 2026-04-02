@@ -114,6 +114,11 @@
   - Camera baseline pattern: `S_CameraStateSystem` captures authored baseline FOV into `C_CameraStateComponent.base_fov` and restores it when `state.vcam.in_fov_zone` is false.
   - Pause gate pattern: character pause gate rules (`cfg_pause_gate_paused/shell/transitioning`) share `decision_group = &"pause_gate"` so exactly one winner applies the same gate effect each tick.
   - Composite condition pattern (Phase 9): use `RS_ConditionComposite` for nested logical grouping (`ALL` for AND/product, `ANY` for OR/max). Keep nesting <= 8 and validate through `U_RuleValidator` (empty composite children are invalid).
+- AI goal-loop pattern (M5 complete)
+  - `S_AIBehaviorSystem` (`scripts/ecs/systems/s_ai_behavior_system.gd`) is the canonical GOAP goal-evaluation system. It must compose `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, and `U_HTNPlanner` (no QB base-class inheritance).
+  - Goal selection contract: evaluate `RS_AIGoal` entries from `C_AIBrainComponent.brain_settings.goals`, resolve winners via a single decision group (`ai_goal`), and fall back to `default_goal_id` when no goal scores above threshold.
+  - Re-plan contract: on goal change, reset `current_task_queue`, `current_task_index`, and `task_state`, then populate a new primitive queue via `U_HTNPlanner.decompose(goal.root_task, context)`.
+  - Evaluation-throttle contract: honor `RS_AIBrainSettings.evaluation_interval` using `C_AIBrainComponent.evaluation_timer`; first evaluation should run immediately for brains without an active goal.
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.

@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 4 complete (4/10 milestones)
+**Status**: Milestone 5 complete (5/10 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -133,7 +133,7 @@
 
 **Goal**: S_AIBehaviorSystem shell with per-tick goal evaluation. Composes QB v2 utilities for scoring/selection. No task execution yet.
 
-- [ ] **Commit 1** — Create `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` with goal evaluation tests (TDD RED):
+- [x] **Commit 1** — Create `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` with goal evaluation tests (TDD RED):
   - `test_system_extends_base_ecs_system`
   - `test_selects_highest_scoring_goal`
   - `test_ties_broken_by_priority`
@@ -141,17 +141,23 @@
   - `test_goal_change_clears_task_queue`
   - `test_evaluation_interval_throttles_scoring`
   - `test_no_brain_component_no_crash`
-- [ ] **Commit 2** — Implement `s_ai_behavior_system.gd` goal evaluation loop (TDD GREEN):
+- [x] **Commit 2** — Implement `s_ai_behavior_system.gd` goal evaluation loop (TDD GREEN):
   - Compose: U_RuleScorer, U_RuleSelector, U_RuleStateTracker
   - `process_tick(delta)`: query entities, score goals, select winner, detect change, decompose via U_HTNPlanner
   - Build context dict from entity components (follow S_CharacterStateSystem pattern)
 
 **M5 Verification**:
-- [ ] All 7 goal evaluation tests green
-- [ ] System composes QB v2 utilities (not inheriting)
-- [ ] Goal switching triggers re-planning (clears queue, decomposes new root task)
-- [ ] Evaluation interval throttling prevents per-tick scoring overhead
-- [ ] `test_style_enforcement.gd` passes
+- [x] All 7 goal evaluation tests green
+- [x] System composes QB v2 utilities (not inheriting)
+- [x] Goal switching triggers re-planning (clears queue, decomposes new root task)
+- [x] Evaluation interval throttling prevents per-tick scoring overhead
+- [x] `test_style_enforcement.gd` passes
+
+**M5 Completion Notes (2026-04-02)**:
+- RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` failed with expected missing-script assertions for `s_ai_behavior_system.gd`.
+- GREEN confirmed: same test target passed `7/7` after implementing `scripts/ecs/systems/s_ai_behavior_system.gd`.
+- Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
+- Full-suite regression run executed: `tools/run_gut_suite.sh` currently finishes `3651/3660` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
 
 ---
 

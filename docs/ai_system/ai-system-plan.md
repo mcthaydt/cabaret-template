@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Milestone 4 complete (4/10 milestones)
+- **Current status**: Milestone 5 complete (5/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -92,12 +92,14 @@ M4 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/te
 
 ### M5 — Goal Evaluation Loop
 
-- [ ] Write goal evaluation tests (highest scorer wins, priority tiebreak, default goal fallback, goal change clears queue, evaluation interval throttling, no-brain-component safety)
-- [ ] Implement `scripts/ecs/systems/s_ai_behavior_system.gd` extending BaseECSSystem
+- [x] Write goal evaluation tests (highest scorer wins, priority tiebreak, default goal fallback, goal change clears queue, evaluation interval throttling, no-brain-component safety)
+- [x] Implement `scripts/ecs/systems/s_ai_behavior_system.gd` extending BaseECSSystem
   - Compose: U_RuleScorer, U_RuleSelector, U_RuleStateTracker (following S_CharacterStateSystem pattern)
   - `process_tick(delta)`: query C_AIBrainComponent entities, score goals as QB rules, select winner, detect goal change, call U_HTNPlanner.decompose
   - Build context dict from entity components
-- [ ] Verify system composes QB v2 utilities (not inheriting)
+- [x] Verify system composes QB v2 utilities (not inheriting)
+
+M5 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` (7/7 passing), style enforcement passed (17/17), and full-suite run currently reports `3651/3660` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M6 — Typed Action Resources (Instant)
 
@@ -192,7 +194,7 @@ M4 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/te
 
 ## File Inventory
 
-### Implemented Now (M1-M4)
+### Implemented Now (M1-M5)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -204,16 +206,17 @@ M4 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/te
 | `scripts/resources/ai/rs_ai_brain_settings.gd` | Resource | Brain settings with goals array, defaults, evaluation config |
 | `scripts/ecs/components/c_ai_brain_component.gd` | Component | AI brain ECS component with runtime state and required-settings validation |
 | `scripts/utils/ai/u_htn_planner.gd` | Utility | HTN decomposition utility with recursive flattening, cycle detection, and method-condition branch selection via `U_RuleScorer` |
+| `scripts/ecs/systems/s_ai_behavior_system.gd` | System | Goal evaluation loop composing `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, and `U_HTNPlanner` with re-plan-on-goal-change behavior |
 | `tests/unit/ai/resources/test_rs_ai_task.gd` | Test | M1 resources + I_AIAction interface (includes `method_conditions` coverage) |
 | `tests/unit/ai/resources/test_rs_ai_goal.gd` | Test | M2 goal/brain settings resource coverage |
 | `tests/unit/ecs/components/test_c_ai_brain_component.gd` | Test | M3 component registration/runtime-state/validation coverage |
 | `tests/unit/ai/test_u_htn_planner.gd` | Test | M4 HTN decomposition coverage (primitive/compound/nested/method-conditions/cycle/max-depth) |
+| `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` | Test | M5 goal-loop coverage (highest scorer, priority tiebreak, fallback goal, re-plan on goal switch, interval throttling, no-brain safety) |
 
-### Planned Target Inventory (M5-M10)
+### Planned Target Inventory (M6-M10)
 
 Planned files below are design targets and are not implemented yet:
 
-- `scripts/ecs/systems/s_ai_behavior_system.gd`
 - `scripts/resources/ai/actions/rs_ai_action_wait.gd`
 - `scripts/resources/ai/actions/rs_ai_action_publish_event.gd`
 - `scripts/resources/ai/actions/rs_ai_action_set_field.gd`
@@ -221,7 +224,6 @@ Planned files below are design targets and are not implemented yet:
 - `scripts/resources/ai/actions/rs_ai_action_scan.gd`
 - `scripts/resources/ai/actions/rs_ai_action_animate.gd`
 - `scripts/ecs/systems/s_ai_navigation_system.gd`
-- `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd`
 - `tests/unit/ai/actions/test_ai_actions_instant.gd`
 - `tests/unit/ai/actions/test_ai_actions_movement.gd`
 - `tests/unit/ecs/systems/test_s_ai_navigation_system.gd`

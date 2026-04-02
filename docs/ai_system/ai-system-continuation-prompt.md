@@ -5,15 +5,15 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 4 complete (implementation phase)
+**Status**: Milestone 5 complete (implementation phase)
 
 ---
 
-## Current Status: Milestone 4 Complete
+## Current Status: Milestone 5 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (4/10 milestones complete).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (5/10 milestones complete).
 
 ### Completed in M1 (2026-04-02)
 
@@ -61,6 +61,17 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` → `8/8` passing.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
   - `tools/run_gut_suite.sh` run currently completes with `3641/3650` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+
+### Completed in M5 (2026-04-02)
+
+- Added `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` with the 7 required red-green goal-loop tests.
+- Implemented:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd`
+- Verification:
+  - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` failed with expected missing-script assertions for `s_ai_behavior_system.gd`.
+  - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `7/7` passing.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
+  - `tools/run_gut_suite.sh` run currently completes with `3651/3660` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
 ### Key Design Decisions
 
@@ -178,10 +189,13 @@ You MUST:
 
 ## Next Steps
 
-Begin with **Milestone 5: Goal Evaluation Loop**:
+Begin with **Milestone 6: Typed Action Resources (Instant) + Task Runner**:
 
-1. Create `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` with the 7 tests listed under M5 in `docs/ai_system/ai-system-tasks.md` (RED first).
-2. Implement `scripts/ecs/systems/s_ai_behavior_system.gd` (GREEN) to compose `U_RuleScorer`, `U_RuleSelector`, and `U_RuleStateTracker`, evaluate goals on `C_AIBrainComponent`, and re-plan via `U_HTNPlanner.decompose(...)` when the goal changes.
-3. Run targeted M5 tests, then `tests/unit/style/test_style_enforcement.gd`.
-4. Run full-suite regression check and document pre-existing unrelated pending/risky tests separately.
-5. Update `ai-system-tasks.md` + this continuation prompt immediately after M5 completion, then commit docs separately.
+1. Create `tests/unit/ai/actions/test_ai_actions_instant.gd` with the 5 action tests listed under M6 in `docs/ai_system/ai-system-tasks.md` (RED first).
+2. Implement the instant action resources in `scripts/resources/ai/actions/`:
+   - `rs_ai_action_wait.gd`
+   - `rs_ai_action_publish_event.gd`
+   - `rs_ai_action_set_field.gd`
+3. Add task-runner tests (M6 Commit 3) and implement `_execute_current_task(brain, delta, context)` in `scripts/ecs/systems/s_ai_behavior_system.gd` using polymorphic `I_AIAction` dispatch (no match blocks).
+4. Run targeted M6 tests, then `tests/unit/style/test_style_enforcement.gd`.
+5. Run full-suite regression check, update `ai-system-tasks.md` + this continuation prompt, then commit documentation updates separately from implementation.
