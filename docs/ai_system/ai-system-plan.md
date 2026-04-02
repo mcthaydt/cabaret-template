@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Milestone 8 complete + M7/M8 hardening pass complete (8/10 milestones)
+- **Current status**: Milestone 9 complete (scene authoring phase) + M7/M8 hardening pass retained (9/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -154,11 +154,13 @@ M8 completion note (2026-04-02): Added `tests/unit/ai/integration/test_ai_pipeli
 
 ### M9 — Demo Scene Creation
 
-- [ ] Create `scenes/gameplay/gameplay_power_core.tscn` — industrial room with central power core (CSGCylinder), waypoint markers (A/B/C/D), activatable node Area3D, player spawn
-- [ ] Create `scenes/gameplay/gameplay_comms_array.tscn` — open area with antenna structures (CSGBox pillars), guard post waypoints, noise source Area3Ds, player spawn
-- [ ] Create `scenes/gameplay/gameplay_nav_nexus.tscn` — vertical platforming room with floating platforms (CSGBox), path markers, fall detection area, victory trigger zone, player spawn
-- [ ] Add NPC entity placeholders to each scene (CSG visuals + C_AIBrainComponent with a valid placeholder RS_AIBrainSettings resource assigned)
-- [ ] Verify scenes load, player can spawn/move, style enforcement passes
+- [x] Create `scenes/gameplay/gameplay_power_core.tscn` — industrial room with central power core (CSGCylinder), waypoint markers (A/B/C/D), activatable node Area3D, player spawn
+- [x] Create `scenes/gameplay/gameplay_comms_array.tscn` — open area with antenna structures (CSGBox pillars), guard post waypoints, noise source Area3Ds, player spawn
+- [x] Create `scenes/gameplay/gameplay_nav_nexus.tscn` — vertical platforming room with floating platforms (CSGBox), path markers, fall detection area, victory trigger zone, player spawn
+- [x] Add NPC entity placeholders to each scene (CSG visuals + C_AIBrainComponent with a valid placeholder RS_AIBrainSettings resource assigned)
+- [x] Verify scenes load, player can spawn/move, style enforcement passes
+
+M9 completion note (2026-04-02): Authored `gameplay_power_core.tscn`, `gameplay_comms_array.tscn`, and `gameplay_nav_nexus.tscn` with required CSG prototype geometry, marker/trigger nodes, and placeholder NPC entities (`E_PatrolDrone`, `E_Sentry`, `E_GuidePrism`) each wired to a valid shared placeholder brain resource (`resources/ai/cfg_ai_brain_placeholder.tres`). Validation passed with style enforcement (`17/17`) and full regression baseline (`3695/3704` passing, `9` pending/risky, `0` failing).
 
 ### M10 — Demo NPC Behavior Authoring & Tuning
 
@@ -200,7 +202,7 @@ M8 completion note (2026-04-02): Added `tests/unit/ai/integration/test_ai_pipeli
 
 ## File Inventory
 
-### Implemented Now (M1-M8)
+### Implemented Now (M1-M9)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -236,14 +238,15 @@ M8 completion note (2026-04-02): Added `tests/unit/ai/integration/test_ai_pipeli
 | `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` | Test | M7 input filter coverage (`C_PlayerTagComponent` query gating) |
 | `tests/unit/ai/integration/test_ai_pipeline_integration.gd` | Test | M8 integration coverage for full GOAP→HTN→action pipeline, real movement-system coupling, mid-queue replanning, cooldown gating, default fallback, and method-branch selection |
 | `tests/mocks/mock_ai_action_track.gd` | Test helper | M6 mock action used to assert polymorphic runner call ordering/counters |
+| `resources/ai/cfg_ai_brain_placeholder.tres` | Resource instance | M9 placeholder `RS_AIBrainSettings` used by demo NPC entities to satisfy required brain settings |
+| `scenes/gameplay/gameplay_power_core.tscn` | Scene | M9 Patrol Drone prototype room (CSG power core, waypoints, activatable node, player spawn, `E_PatrolDrone`) |
+| `scenes/gameplay/gameplay_comms_array.tscn` | Scene | M9 Sentry prototype room (CSG antenna/pillar geometry, guard waypoints, noise-source areas, player spawn, `E_Sentry`) |
+| `scenes/gameplay/gameplay_nav_nexus.tscn` | Scene | M9 Guide Prism prototype room (CSG vertical platforms, path markers, fall/victory triggers, player spawn, `E_GuidePrism`) |
 
-### Planned Target Inventory (M9-M10)
+### Planned Target Inventory (M10)
 
-Planned files below are design targets and are not implemented yet:
+Planned files below are M10 design targets and are not implemented yet:
 
-- `scenes/gameplay/gameplay_power_core.tscn`
-- `scenes/gameplay/gameplay_comms_array.tscn`
-- `scenes/gameplay/gameplay_nav_nexus.tscn`
 - `resources/ai/patrol_drone/*.tres`
 - `resources/ai/sentry/*.tres`
 - `resources/ai/guide_prism/*.tres`

@@ -5,15 +5,15 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 8 complete (implementation phase) + M7/M8 hardening pass complete
+**Status**: Milestone 9 complete (scene authoring phase) + M7/M8 hardening pass retained
 
 ---
 
-## Current Status: Milestone 8 Complete + Hardening Pass
+## Current Status: Milestone 9 Complete + Hardening Pass Retained
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (8/10 milestones complete).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (9/10 milestones complete).
 
 ### Completed in M1 (2026-04-02)
 
@@ -148,6 +148,22 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - Style: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
   - Full suite: `tools/run_gut_suite.sh` completes with `3695/3704` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
 
+### Completed in M9 (2026-04-02)
+
+- Added gameplay prototype scenes:
+  - `scenes/gameplay/gameplay_power_core.tscn`
+  - `scenes/gameplay/gameplay_comms_array.tscn`
+  - `scenes/gameplay/gameplay_nav_nexus.tscn`
+- Added shared placeholder AI brain resource:
+  - `resources/ai/cfg_ai_brain_placeholder.tres`
+- Scene authoring delivered for milestone scope:
+  - Power Core includes CSG power-core geometry, four waypoint markers, activatable Area3D, and `E_PatrolDrone` with `C_AIBrainComponent`.
+  - Comms Array includes CSG antenna/pillar geometry, guard waypoints, two noise-source Area3Ds, and `E_Sentry` with `C_AIBrainComponent`.
+  - Nav Nexus includes vertical CSG platforms, path markers, fall-detection Area3D, victory-zone Area3D, and `E_GuidePrism` with `C_AIBrainComponent`.
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
+  - `tools/run_gut_suite.sh` full regression → `3695/3704` passing, `9` pending/risky (headless/platform/mobile skips), and `0` failing tests.
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -162,7 +178,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **Navigation bridge is now live**: `S_AINavigationSystem` (`execution_priority = -5`) reads `task_state["ai_move_target"]`, converts XZ world direction into camera-relative `C_InputComponent.move_vector`, and keeps NPCs on the same movement path as players.
 - **Player input filtering is now enforced**: `S_InputSystem` writes gameplay input only to entities with `C_PlayerTagComponent`, preventing player-input clobbering of AI move vectors.
 - **M8 pipeline integration coverage is now live**: `tests/unit/ai/integration/test_ai_pipeline_integration.gd` validates GOAP scoring → HTN decomposition → typed action execution → AI navigation bridge → player-input filtering end-to-end.
-- **Demo scenes need creation**: Power Core, Comms Array, Nav Nexus rooms built with CSG geometry.
+- **M9 demo scenes are now authored**: Power Core, Comms Array, and Nav Nexus gameplay scenes exist with required prototype geometry, markers/triggers, and NPC placeholder entities bound to valid `RS_AIBrainSettings` resources.
 
 ---
 
@@ -271,11 +287,11 @@ You MUST:
 
 ## Next Steps
 
-Begin with **Milestone 9: Demo Scene Creation**:
+Begin with **Milestone 10: Demo NPC Behavior Authoring & Tuning**:
 
-1. Create `scenes/gameplay/gameplay_power_core.tscn` (Patrol Drone room) with CSG core geometry, waypoint markers, activatable node, player spawn, and `E_PatrolDrone` placeholder using a valid `RS_AIBrainSettings` resource.
-2. Create `scenes/gameplay/gameplay_comms_array.tscn` (Sentry room) with CSG antenna/pillar geometry, guard waypoints, noise source areas, player spawn, and `E_Sentry` placeholder with valid brain settings.
-3. Create `scenes/gameplay/gameplay_nav_nexus.tscn` (Guide Prism room) with CSG vertical platforms, path markers, fall detection area, victory trigger zone, player spawn, and `E_GuidePrism` placeholder with valid brain settings.
-4. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` after each new scene/resource creation pass.
-5. Run a full regression pass (`tools/run_gut_suite.sh`) after M9 scene authoring lands.
-6. Update `ai-system-tasks.md` + this continuation prompt immediately after M9 completion, then commit documentation updates separately from implementation.
+1. Author Patrol Drone resources under `resources/ai/patrol_drone/` (`cfg_patrol_drone_brain.tres`, `cfg_goal_patrol.tres`, `cfg_goal_investigate.tres`) and wire them onto `E_PatrolDrone` in `scenes/gameplay/gameplay_power_core.tscn`.
+2. Author Sentry resources under `resources/ai/sentry/` (`cfg_sentry_brain.tres`, `cfg_goal_guard.tres`, `cfg_goal_investigate_disturbance.tres`) and wire them onto `E_Sentry` in `scenes/gameplay/gameplay_comms_array.tscn`.
+3. Author Guide Prism resources under `resources/ai/guide_prism/` (`cfg_guide_brain.tres`, `cfg_goal_show_path.tres`, `cfg_goal_encourage.tres`, `cfg_goal_celebrate.tres`) and wire them onto `E_GuidePrism` in `scenes/gameplay/gameplay_nav_nexus.tscn`.
+4. Playtest/tune waypoint positions, thresholds, cooldowns, and evaluation intervals for all three NPCs.
+5. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` plus full regression `tools/run_gut_suite.sh`.
+6. Update `ai-system-tasks.md` + this continuation prompt for M10 completion and keep documentation commits separate from implementation commits.

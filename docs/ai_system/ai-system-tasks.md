@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 8 complete + M7/M8 hardening pass complete (8/10 milestones)
+**Status**: Milestone 9 complete (scene authoring phase) + M7/M8 hardening pass retained (9/10 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -315,33 +315,46 @@
 
 **Goal**: Build 3 gameplay scenes with CSG geometry, waypoints, triggers, and NPC entity placeholders. No NPC behavior yet.
 
-- [ ] **Commit 1** — Create `scenes/gameplay/gameplay_power_core.tscn` (Patrol Drone room):
+- [x] **Commit 1** — Create `scenes/gameplay/gameplay_power_core.tscn` (Patrol Drone room):
   - CSG industrial room with central power core (CSGCylinder)
   - Waypoint markers: WaypointA, WaypointB, WaypointC, WaypointD
   - Activatable node Area3D (investigate trigger)
   - Player spawn point
   - E_PatrolDrone placeholder (CSGSphere + C_AIBrainComponent + minimal RS_AIBrainSettings placeholder resource assigned)
-- [ ] **Commit 2** — Create `scenes/gameplay/gameplay_comms_array.tscn` (Sentry room):
+- [x] **Commit 2** — Create `scenes/gameplay/gameplay_comms_array.tscn` (Sentry room):
   - CSG open area with antenna structures (CSGBox pillars)
   - Guard post waypoints
   - Noise source Area3D positions
   - Player spawn point
   - E_Sentry placeholder (CSGBox + C_AIBrainComponent + minimal RS_AIBrainSettings placeholder resource assigned)
-- [ ] **Commit 3** — Create `scenes/gameplay/gameplay_nav_nexus.tscn` (Guide Prism room):
+- [x] **Commit 3** — Create `scenes/gameplay/gameplay_nav_nexus.tscn` (Guide Prism room):
   - CSG vertical platforming room with floating platforms (CSGBox)
   - Path marker Node3Ds for guide destinations
   - Fall detection Area3D below platforms
   - Victory trigger zone at top
   - Player spawn point
   - E_GuidePrism placeholder (CSGSphere + C_AIBrainComponent + minimal RS_AIBrainSettings placeholder resource assigned)
+- [x] **Commit 4** — Add shared placeholder brain settings resource for scene authoring validation:
+  - `resources/ai/cfg_ai_brain_placeholder.tres` (valid `RS_AIBrainSettings`, empty goals, non-null assignment target)
 
 **M9 Verification**:
-- [ ] Each scene loads without errors
-- [ ] Player can spawn and move in each room
-- [ ] Waypoint/marker nodes properly positioned and named
-- [ ] NPC placeholder entities are visible
-- [ ] Every placeholder `C_AIBrainComponent.brain_settings` points to a valid `RS_AIBrainSettings` resource (not null)
-- [ ] `test_style_enforcement.gd` passes
+- [x] Each scene loads without errors
+- [x] Player can spawn and move in each room
+- [x] Waypoint/marker nodes properly positioned and named
+- [x] NPC placeholder entities are visible
+- [x] Every placeholder `C_AIBrainComponent.brain_settings` points to a valid `RS_AIBrainSettings` resource (not null)
+- [x] `test_style_enforcement.gd` passes
+
+**M9 Completion Notes (2026-04-02)**:
+- Implemented new gameplay prototype scenes:
+  - `scenes/gameplay/gameplay_power_core.tscn`
+  - `scenes/gameplay/gameplay_comms_array.tscn`
+  - `scenes/gameplay/gameplay_nav_nexus.tscn`
+- Added shared placeholder brain settings resource:
+  - `resources/ai/cfg_ai_brain_placeholder.tres`
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
+  - `tools/run_gut_suite.sh` full regression → `3695/3704` passing, `9` pending/risky (headless/platform/mobile skips), `0` failing.
 
 ---
 
