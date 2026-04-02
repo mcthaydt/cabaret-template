@@ -4,6 +4,7 @@ const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const BASE_ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 const C_AI_BRAIN_COMPONENT_PATH := "res://scripts/ecs/components/c_ai_brain_component.gd"
 const RS_AI_BRAIN_SETTINGS_PATH := "res://scripts/resources/ai/rs_ai_brain_settings.gd"
+const RS_AI_GOAL_PATH := "res://scripts/resources/ai/rs_ai_goal.gd"
 
 func _load_script(path: String) -> Script:
 	var script_variant: Variant = load(path)
@@ -117,6 +118,32 @@ func test_validate_required_settings_fails_without_brain_settings() -> void:
 	autofree(component)
 	await _pump()
 	assert_push_error("C_AIBrainComponent missing brain_settings")
+
+	var components := manager.get_components(StringName("C_AIBrainComponent"))
+	assert_eq(components.size(), 0)
+	assert_false(component.is_processing())
+	assert_false(component.is_physics_processing())
+
+func test_validate_required_settings_fails_with_wrong_brain_settings_type() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	var wrong_settings_script: Script = _load_script(RS_AI_GOAL_PATH)
+	if component_script == null or wrong_settings_script == null:
+		return
+
+	var manager := _add_manager()
+	await _pump()
+
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
+	var component: BaseECSComponent = component_script.new()
+	component.set("brain_settings", wrong_settings_script.new())
+	entity.add_child(component)
+	autofree(component)
+	await _pump()
+	assert_push_error("C_AIBrainComponent brain_settings must be an RS_AIBrainSettings resource.")
 
 	var components := manager.get_components(StringName("C_AIBrainComponent"))
 	assert_eq(components.size(), 0)

@@ -112,6 +112,40 @@ func test_decompose_with_method_conditions_selects_first_passing() -> void:
 	var results: Array = _decompose(root)
 	assert_eq(results, [second])
 
+func test_decompose_with_method_conditions_respects_authored_index_when_subtask_slots_are_empty() -> void:
+	var second: Resource = _primitive(StringName("second"))
+	var third: Resource = _primitive(StringName("third"))
+	if second == null or third == null:
+		return
+
+	var first_condition: Resource = ConstantScoreCondition.new(1.0)
+	var second_condition: Resource = ConstantScoreCondition.new(1.0)
+	var third_condition: Resource = ConstantScoreCondition.new(1.0)
+	var conditions: Array[Resource] = [first_condition, second_condition, third_condition]
+	var root: Resource = _compound(StringName("root"), [second, third], conditions)
+	if root == null:
+		return
+
+	root.set("subtasks", [null, second, third])
+	var results: Array = _decompose(root)
+	assert_eq(results, [second])
+
+func test_decompose_with_method_conditions_skips_invalid_condition_slots() -> void:
+	var first: Resource = _primitive(StringName("first"))
+	var second: Resource = _primitive(StringName("second"))
+	if first == null or second == null:
+		return
+
+	var invalid_condition: Resource = _primitive(StringName("invalid_condition"))
+	var conditions: Array[Resource] = [invalid_condition, ConstantScoreCondition.new(1.0)]
+	var root: Resource = _compound(StringName("root"), [first, second])
+	if root == null:
+		return
+	root.set("method_conditions", conditions)
+
+	var results: Array = _decompose(root)
+	assert_eq(results, [second])
+
 func test_decompose_cycle_detection() -> void:
 	var first: Resource = _compound(StringName("first"), [])
 	var second: Resource = _compound(StringName("second"), [])

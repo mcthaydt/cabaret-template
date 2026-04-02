@@ -20,6 +20,7 @@ const GD_DIRECTORIES := [
 	"res://scripts/resources/ecs",
 	"res://scripts/resources/display",
 	"res://scripts/resources/localization",
+	"res://scripts/resources/ai",
 	"res://scripts/debug",
 	"res://tests/unit/interactables",
 	"res://tests/unit/input",
@@ -110,6 +111,8 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/resources/ecs": ["rs_"], # ECS component settings resources
 	"res://scripts/resources/display": ["rs_"], # Display preset resources
 	"res://scripts/resources/localization": ["rs_"], # Localization resources
+	"res://scripts/resources/ai": ["rs_"], # AI resources
+	"res://scripts/resources/ai/actions": ["rs_"], # AI action resources
 	"res://scripts/debug": ["debug_"], # Debug utility scripts
 	"res://scripts/state": ["u_", "m_"], # m_state_store.gd is in root
 	"res://scripts/resources/ui": ["rs_"], # UI screen definitions

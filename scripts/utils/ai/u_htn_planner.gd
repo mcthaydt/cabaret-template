@@ -47,69 +47,59 @@ static func _decompose_recursive(
 	
 	recursion_stack[task_key] = true
 
-	var subtasks: Array[Resource] = _read_resource_array(task, "subtasks")
+	var subtasks: Array = _read_variant_array(task, "subtasks")
 	if subtasks.is_empty():
 		recursion_stack.erase(task_key)
 		return
 
-	var method_conditions: Array[Resource] = _read_resource_array(task, "method_conditions")
+	var method_conditions: Array = _read_variant_array(task, "method_conditions")
 	if method_conditions.is_empty():
-		for subtask in subtasks:
-			_decompose_recursive(subtask, context, max_depth, depth + 1, recursion_stack, result)
+		for subtask_variant in subtasks:
+			if not (subtask_variant is Resource):
+				continue
+			_decompose_recursive(subtask_variant as Resource, context, max_depth, depth + 1, recursion_stack, result)
 		recursion_stack.erase(task_key)
 		return
 
-	var branch_index: int = _select_branch_index(method_conditions, context, subtasks.size())
+	var branch_index: int = _select_branch_index(method_conditions, subtasks, context)
 	if branch_index >= 0 and branch_index < subtasks.size():
-		var selected_subtask: Resource = subtasks[branch_index]
-		_decompose_recursive(selected_subtask, context, max_depth, depth + 1, recursion_stack, result)
+		var selected_subtask: Variant = subtasks[branch_index]
+		if selected_subtask is Resource:
+			_decompose_recursive(selected_subtask as Resource, context, max_depth, depth + 1, recursion_stack, result)
 
 	recursion_stack.erase(task_key)
 
-static func _select_branch_index(method_conditions: Array[Resource], context: Dictionary, subtask_count: int) -> int:
-	var condition_count: int = mini(method_conditions.size(), subtask_count)
-	if condition_count <= 0:
+static func _select_branch_index(method_conditions: Array, subtasks: Array, context: Dictionary) -> int:
+	var slot_count: int = mini(method_conditions.size(), subtasks.size())
+	if slot_count <= 0:
 		return -1
 
-	var branch_rules: Array = []
-	var rule_to_index: Dictionary = {}
-	for index in range(condition_count):
-		var condition: Resource = method_conditions[index]
-		if condition == null:
+	for index in range(slot_count):
+		var subtask_variant: Variant = subtasks[index]
+		if not (subtask_variant is Resource):
 			continue
-
-		var method_rule: Resource = RS_RULE.new()
-		method_rule.set("rule_id", StringName("__method_condition_%d" % index))
-		var rule_conditions: Array[Resource] = [condition]
-		method_rule.set("conditions", rule_conditions)
-		method_rule.set("score_threshold", 0.0)
-
-		branch_rules.append(method_rule)
-		rule_to_index[method_rule] = index
-
-	if branch_rules.is_empty():
-		return -1
-
-	var scored_results: Array[Dictionary] = U_RULE_SCORER.score_rules(branch_rules, context)
-	for scored_entry in scored_results:
-		var rule_variant: Variant = scored_entry.get("rule", null)
-		if rule_variant == null or not rule_to_index.has(rule_variant):
+		var condition_variant: Variant = method_conditions[index]
+		if not (condition_variant is Resource):
 			continue
-		return int(rule_to_index.get(rule_variant, -1))
+		if _method_condition_passes(condition_variant as Resource, context, index):
+			return index
 
 	return -1
 
-static func _read_resource_array(resource: Resource, property_name: String) -> Array[Resource]:
+static func _method_condition_passes(condition: Resource, context: Dictionary, method_index: int) -> bool:
+	var method_rule: Resource = RS_RULE.new()
+	method_rule.set("rule_id", StringName("__method_condition_%d" % method_index))
+	var rule_conditions: Array[Resource] = [condition]
+	method_rule.set("conditions", rule_conditions)
+	method_rule.set("score_threshold", 0.0)
+	var scored_results: Array[Dictionary] = U_RULE_SCORER.score_rules([method_rule], context)
+	return not scored_results.is_empty()
+
+static func _read_variant_array(resource: Resource, property_name: String) -> Array:
 	if resource == null:
 		return []
 
 	var value: Variant = resource.get(property_name)
 	if not (value is Array):
 		return []
-
-	var resources: Array[Resource] = []
-	for entry in value as Array:
-		if entry == null or not (entry is Resource):
-			continue
-		resources.append(entry as Resource)
-	return resources
+	return (value as Array).duplicate()
