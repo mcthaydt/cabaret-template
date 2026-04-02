@@ -617,8 +617,23 @@ func save_state(filepath: String) -> Error:
 ## Merges loaded state with current state, preserving transient fields.
 ## Returns OK on success, or an Error code on failure.
 func load_state(filepath: String) -> Error:
+	var previous_state: Dictionary = _state.duplicate(true)
 	var err: Error = U_STATE_REPOSITORY.load_state(filepath, _state, _slice_configs)
 	if err == OK:
+		var any_changed: bool = false
+		for slice_name_variant in _state.keys():
+			var slice_name: StringName = StringName(slice_name_variant)
+			var before_slice: Variant = previous_state.get(slice_name, null)
+			var after_slice: Variant = _state.get(slice_name, null)
+			if before_slice == after_slice:
+				continue
+			any_changed = true
+			if after_slice is Dictionary:
+				slice_updated.emit(slice_name, (after_slice as Dictionary).duplicate(true))
+
+		if any_changed:
+			_state_version += 1
+
 		state_loaded.emit(filepath)
 	return err
 
@@ -629,6 +644,7 @@ func load_state(filepath: String) -> Error:
 ## Respects transient slice and field configurations.
 ## Emits slice_updated for each modified slice.
 func apply_loaded_state(loaded_state: Dictionary) -> void:
+	var any_changed: bool = false
 	for slice_name in loaded_state:
 		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
 
@@ -642,22 +658,29 @@ func apply_loaded_state(loaded_state: Dictionary) -> void:
 
 		# Filter out transient fields from loaded data
 		var filtered_slice := loaded_slice.duplicate(true)
-		if config != null:
+		if config != null and String(slice_name) != "gameplay":
 			for transient_field in config.transient_fields:
 				if filtered_slice.has(transient_field):
 					filtered_slice.erase(transient_field)
 
 		# Merge with current state (loaded takes precedence)
 		if _state.has(slice_name):
+			var previous_slice: Dictionary = (_state[slice_name] as Dictionary).duplicate(true)
 			var current_slice: Dictionary = _state[slice_name]
 			for key in filtered_slice:
 				current_slice[key] = filtered_slice[key]
 			_state[slice_name] = current_slice
+			if previous_slice == _state[slice_name]:
+				continue
 		else:
 			_state[slice_name] = filtered_slice
 
 		# Emit slice_updated signal
+		any_changed = true
 		slice_updated.emit(slice_name, _state[slice_name])
+
+	if any_changed:
+		_state_version += 1
 
 ## Preserve state to StateHandoff for scene transitions
 func _preserve_to_handoff() -> void:
