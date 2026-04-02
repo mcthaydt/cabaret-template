@@ -4,11 +4,18 @@ const S_AI_BEHAVIOR_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_behavior_syst
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
+const MOCK_AI_ACTION_TRACK := preload("res://tests/mocks/mock_ai_action_track.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const RS_AI_GOAL := preload("res://scripts/resources/ai/rs_ai_goal.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
 const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/rs_ai_primitive_task.gd")
 const RS_CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
+
+func before_each() -> void:
+	MOCK_AI_ACTION_TRACK.clear_call_log()
+
+func after_each() -> void:
+	MOCK_AI_ACTION_TRACK.clear_call_log()
 
 func _load_script(path: String) -> Script:
 	var script_variant: Variant = load(path)
@@ -20,9 +27,19 @@ func _load_script(path: String) -> Script:
 func _new_primitive_task(task_id: StringName) -> Resource:
 	var task: Resource = RS_AI_PRIMITIVE_TASK.new()
 	task.set("task_id", task_id)
+	var action: Resource = MOCK_AI_ACTION_TRACK.new()
+	action.set("label", String(task_id))
+	action.set("ticks_to_complete", 999)
+	task.set("action", action)
 	return task
 
-func _new_goal(goal_id: StringName, priority: int, score: float, task_id: StringName) -> Resource:
+func _new_goal(
+	goal_id: StringName,
+	priority: int,
+	score: float,
+	task_id: StringName,
+	options: Dictionary = {}
+) -> Resource:
 	var goal: Resource = RS_AI_GOAL.new()
 	var condition: Resource = RS_CONDITION_CONSTANT.new()
 	condition.set("score", score)
@@ -31,6 +48,12 @@ func _new_goal(goal_id: StringName, priority: int, score: float, task_id: String
 	goal.set("priority", priority)
 	goal.set("conditions", conditions)
 	goal.set("root_task", _new_primitive_task(task_id))
+	if options.has("cooldown"):
+		goal.set("cooldown", float(options.get("cooldown", 0.0)))
+	if options.has("one_shot"):
+		goal.set("one_shot", bool(options.get("one_shot", false)))
+	if options.has("requires_rising_edge"):
+		goal.set("requires_rising_edge", bool(options.get("requires_rising_edge", false)))
 	return goal
 
 func _create_fixture(
@@ -179,7 +202,7 @@ func test_goal_change_clears_task_queue() -> void:
 	var stale_queue: Array[Resource] = [_new_primitive_task(StringName("stale_task"))]
 	brain.current_task_queue = stale_queue
 	brain.current_task_index = 1
-	brain.task_state = {"started": true}
+	brain.task_state = {"legacy": true}
 
 	first_condition.set("score", 0.0)
 	second_condition.set("score", 1.0)
@@ -187,12 +210,96 @@ func test_goal_change_clears_task_queue() -> void:
 
 	assert_eq(brain.active_goal_id, StringName("second"))
 	assert_eq(brain.current_task_index, 0)
-	assert_true(brain.task_state.is_empty())
+	assert_false(brain.task_state.has("legacy"))
 	assert_eq(brain.current_task_queue.size(), 1)
 	if brain.current_task_queue.is_empty():
 		return
 	var first_task: Resource = brain.current_task_queue[0] as Resource
 	assert_eq(first_task.get("task_id"), StringName("second_task"))
+
+func test_cooldown_marks_only_selected_goal() -> void:
+	var high_goal: Resource = _new_goal(
+		StringName("high"),
+		2,
+		1.0,
+		StringName("high_task"),
+		{"cooldown": 1.0}
+	)
+	var low_goal: Resource = _new_goal(
+		StringName("low"),
+		1,
+		0.8,
+		StringName("low_task"),
+		{"cooldown": 1.0}
+	)
+	var fixture: Dictionary = _create_fixture([high_goal, low_goal], StringName(), 0.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var brain: Variant = fixture["brain"]
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("high"))
+
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("low"))
+
+func test_one_shot_goal_transitions_to_next_goal_after_first_fire() -> void:
+	var one_shot_goal: Resource = _new_goal(
+		StringName("one_shot"),
+		2,
+		1.0,
+		StringName("one_shot_task"),
+		{"one_shot": true}
+	)
+	var fallback_goal: Resource = _new_goal(StringName("fallback"), 1, 0.8, StringName("fallback_task"))
+	var fixture: Dictionary = _create_fixture([one_shot_goal, fallback_goal], StringName(), 0.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var brain: Variant = fixture["brain"]
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("one_shot"))
+
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("fallback"))
+
+func test_requires_rising_edge_goal_requires_state_transition() -> void:
+	var rising_condition: Resource = RS_CONDITION_CONSTANT.new()
+	rising_condition.set("score", 1.0)
+	var rising_goal: Resource = RS_AI_GOAL.new()
+	var rising_conditions: Array[Resource] = [rising_condition]
+	rising_goal.set("goal_id", StringName("rising"))
+	rising_goal.set("priority", 2)
+	rising_goal.set("conditions", rising_conditions)
+	rising_goal.set("requires_rising_edge", true)
+	rising_goal.set("root_task", _new_primitive_task(StringName("rising_task")))
+
+	var steady_goal: Resource = _new_goal(StringName("steady"), 1, 0.8, StringName("steady_task"))
+	var fixture: Dictionary = _create_fixture([rising_goal, steady_goal], StringName(), 0.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var brain: Variant = fixture["brain"]
+
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("rising"))
+
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("steady"))
+
+	rising_condition.set("score", 0.0)
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("steady"))
+
+	rising_condition.set("score", 1.0)
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("rising"))
 
 func test_evaluation_interval_throttles_scoring() -> void:
 	var first_condition: Resource = RS_CONDITION_CONSTANT.new()

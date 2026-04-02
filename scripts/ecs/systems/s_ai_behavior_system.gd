@@ -23,6 +23,9 @@ const ACTION_STARTED_STATE_KEY := "action_started"
 
 var _tracker: U_RuleStateTracker = RULE_STATE_TRACKER.new()
 
+func _init() -> void:
+	execution_priority = -10
+
 func process_tick(delta: float) -> void:
 	_tracker.tick_cooldowns(delta)
 
@@ -84,11 +87,13 @@ func _execute_current_task(brain: Variant, delta: float, context: Dictionary) ->
 
 	var task_variant: Variant = queue[current_task_index]
 	if not (task_variant is RS_AI_PRIMITIVE_TASK):
+		_advance_to_next_task(brain, current_task_index, queue.size())
 		return
 
 	var task: Resource = task_variant as Resource
 	var action_variant: Variant = task.get("action")
 	if action_variant == null or not (action_variant is I_AI_ACTION):
+		_advance_to_next_task(brain, current_task_index, queue.size())
 		return
 
 	var task_state_variant: Variant = _read_object_property(brain, "task_state")
@@ -185,6 +190,7 @@ func _select_goal(brain_settings: Resource, context: Dictionary) -> Resource:
 	var winning_entry: Dictionary = winning_entry_variant as Dictionary
 	var winning_rule: Variant = winning_entry.get("rule", null)
 	if goal_by_rule.has(winning_rule):
+		_mark_goal_rule_fired(winning_rule, context)
 		return goal_by_rule.get(winning_rule) as Resource
 
 	return _find_goal_by_id(goals, default_goal_id)
@@ -270,12 +276,18 @@ func _apply_state_gates(rules: Array, scored: Array[Dictionary], context: Dictio
 		if result_variant is Dictionary:
 			gated.append(result_variant as Dictionary)
 
-		var cooldown: float = maxf(_read_float_property(rule_variant, "cooldown", 0.0), 0.0)
-		_tracker.mark_fired(rule_id, context_key, cooldown)
-		if _read_bool_property(rule_variant, "one_shot", false):
-			_tracker.mark_one_shot_spent(rule_id)
-
 	return gated
+
+func _mark_goal_rule_fired(rule_variant: Variant, context: Dictionary) -> void:
+	if rule_variant == null or not (rule_variant is Object):
+		return
+
+	var context_key: StringName = _context_key_for_context(context)
+	var rule_id: StringName = _resolve_rule_id(rule_variant)
+	var cooldown: float = maxf(_read_float_property(rule_variant, "cooldown", 0.0), 0.0)
+	_tracker.mark_fired(rule_id, context_key, cooldown)
+	if _read_bool_property(rule_variant, "one_shot", false):
+		_tracker.mark_one_shot_spent(rule_id)
 
 func _build_entity_context(
 	entity_query: Object,

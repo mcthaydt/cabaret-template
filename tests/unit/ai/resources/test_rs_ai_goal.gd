@@ -49,6 +49,27 @@ func test_goal_priority_defaults_to_zero() -> void:
 	var goal: Resource = goal_script.new()
 	assert_eq(goal.get("priority"), 0, "RS_AIGoal.priority should default to 0")
 
+func test_goal_state_gate_fields_have_defaults_and_are_assignable() -> void:
+	var goal_script: Script = _load_script(RS_AI_GOAL_PATH)
+	if goal_script == null:
+		return
+
+	var goal: Resource = goal_script.new()
+	assert_almost_eq(float(goal.get("score_threshold")), 0.0, 0.0001, "RS_AIGoal.score_threshold should default to 0.0")
+	assert_almost_eq(float(goal.get("cooldown")), 0.0, 0.0001, "RS_AIGoal.cooldown should default to 0.0")
+	assert_false(bool(goal.get("one_shot")), "RS_AIGoal.one_shot should default to false")
+	assert_false(bool(goal.get("requires_rising_edge")), "RS_AIGoal.requires_rising_edge should default to false")
+
+	goal.set("score_threshold", 0.25)
+	goal.set("cooldown", 1.5)
+	goal.set("one_shot", true)
+	goal.set("requires_rising_edge", true)
+
+	assert_almost_eq(float(goal.get("score_threshold")), 0.25, 0.0001)
+	assert_almost_eq(float(goal.get("cooldown")), 1.5, 0.0001)
+	assert_true(bool(goal.get("one_shot")))
+	assert_true(bool(goal.get("requires_rising_edge")))
+
 func test_brain_settings_holds_goals_array() -> void:
 	var brain_settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
 	var goal_script: Script = _load_script(RS_AI_GOAL_PATH)

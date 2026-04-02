@@ -2,6 +2,7 @@ extends BaseTest
 
 const ECS_MANAGER = preload("res://scripts/managers/m_ecs_manager.gd")
 const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
+const PlayerTagComponentScript = preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const InputSystemScript = preload("res://scripts/ecs/systems/s_input_system.gd")
 const InputDeviceManagerScript = preload("res://scripts/managers/m_input_device_manager.gd")
 const RS_SettingsInitialState = preload("res://scripts/resources/state/rs_settings_initial_state.gd")
@@ -79,6 +80,10 @@ func _setup_entity() -> Dictionary:
 
 	var component: C_InputComponent = InputComponentScript.new()
 	entity.add_child(component)
+	await _pump()
+
+	var player_tag: Variant = PlayerTagComponentScript.new()
+	entity.add_child(player_tag)
 	await _pump()
 
 	var system = InputSystemScript.new()

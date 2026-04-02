@@ -7,6 +7,7 @@ const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const MOCK_AI_ACTION_TRACK := preload("res://tests/mocks/mock_ai_action_track.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
+const RS_AI_TASK := preload("res://scripts/resources/ai/rs_ai_task.gd")
 const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/rs_ai_primitive_task.gd")
 
 func before_each() -> void:
@@ -161,3 +162,53 @@ func test_empty_queue_does_nothing() -> void:
 
 	assert_eq(brain.current_task_index, 3)
 	assert_eq(brain.task_state.get("keep", false), true)
+
+func test_invalid_queue_entry_is_skipped_instead_of_stalling() -> void:
+	var fixture: Dictionary = _create_fixture(1.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var invalid_task: Resource = RS_AI_TASK.new()
+	invalid_task.set("task_id", StringName("invalid"))
+	var valid_action: Resource = _new_action("valid", 1)
+	var valid_task: Resource = _new_primitive_task(StringName("valid_task"), valid_action)
+
+	var brain: Variant = fixture["brain"]
+	var queue: Array[Resource] = [invalid_task, valid_task]
+	brain.current_task_queue = queue
+	brain.current_task_index = 0
+	brain.task_state = {"legacy": true}
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	system.process_tick(0.1)
+	assert_eq(brain.current_task_index, 1)
+	assert_true(brain.task_state.is_empty())
+
+	system.process_tick(0.1)
+	assert_eq(MOCK_AI_ACTION_TRACK.call_log, ["start:valid", "tick:valid"])
+
+func test_primitive_task_without_action_is_skipped_instead_of_stalling() -> void:
+	var fixture: Dictionary = _create_fixture(1.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var invalid_primitive: Resource = RS_AI_PRIMITIVE_TASK.new()
+	invalid_primitive.set("task_id", StringName("missing_action"))
+	var valid_action: Resource = _new_action("second", 1)
+	var valid_task: Resource = _new_primitive_task(StringName("second_task"), valid_action)
+
+	var brain: Variant = fixture["brain"]
+	var queue: Array[Resource] = [invalid_primitive, valid_task]
+	brain.current_task_queue = queue
+	brain.current_task_index = 0
+	brain.task_state = {"legacy": true}
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	system.process_tick(0.1)
+	assert_eq(brain.current_task_index, 1)
+	assert_true(brain.task_state.is_empty())
+
+	system.process_tick(0.1)
+	assert_eq(MOCK_AI_ACTION_TRACK.call_log, ["start:second", "tick:second"])

@@ -7,6 +7,8 @@ class_name S_InputSystem
 
 const INPUT_TYPE := StringName("C_InputComponent")
 const GAMEPAD_TYPE := StringName("C_GamepadComponent")
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
+const PLAYER_TAG_TYPE := C_PLAYER_TAG_COMPONENT.COMPONENT_TYPE
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
@@ -149,7 +151,7 @@ func process_tick(_delta: float) -> void:
 	var look_strength := clampf(look_delta.length(), 0.0, 1.0)
 
 	# Write to components (other systems read from them)
-	var entities := query_entities([INPUT_TYPE], [GAMEPAD_TYPE])
+	var entities := query_entities([INPUT_TYPE, PLAYER_TAG_TYPE], [GAMEPAD_TYPE])
 	for entity_query in entities:
 		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
 		if input_component == null:
