@@ -67,7 +67,10 @@ func _process_brain(brain: Variant, brain_settings: Resource, context: Dictionar
 			if selected_goal_id != StringName():
 				var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
 				var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
-				if selected_goal_id != active_goal_id:
+				var should_replan: bool = selected_goal_id != active_goal_id
+				if not should_replan and _is_task_queue_empty(brain):
+					should_replan = true
+				if should_replan:
 					_replan_for_goal(brain, selected_goal, context)
 
 	_execute_current_task(brain, delta, context)
@@ -130,6 +133,12 @@ func _finish_task_queue(brain: Variant) -> void:
 	brain.set("current_task_queue", empty_queue)
 	brain.set("current_task_index", 0)
 	brain.set("task_state", {})
+
+func _is_task_queue_empty(brain: Variant) -> bool:
+	var queue_variant: Variant = _read_object_property(brain, "current_task_queue")
+	if not (queue_variant is Array):
+		return true
+	return (queue_variant as Array).is_empty()
 
 func _should_evaluate_goals(brain: Variant, brain_settings: Resource, delta: float) -> bool:
 	var evaluation_interval: float = maxf(_read_float_property(brain_settings, "evaluation_interval", 0.5), 0.0)
@@ -265,7 +274,7 @@ func _apply_state_gates(rules: Array, scored: Array[Dictionary], context: Dictio
 
 		if not is_passing_now:
 			continue
-		if _tracker.is_one_shot_spent(rule_id):
+		if _tracker.is_one_shot_spent(rule_id, context_key):
 			continue
 		if _tracker.is_on_cooldown(rule_id, context_key):
 			continue
@@ -287,7 +296,7 @@ func _mark_goal_rule_fired(rule_variant: Variant, context: Dictionary) -> void:
 	var cooldown: float = maxf(_read_float_property(rule_variant, "cooldown", 0.0), 0.0)
 	_tracker.mark_fired(rule_id, context_key, cooldown)
 	if _read_bool_property(rule_variant, "one_shot", false):
-		_tracker.mark_one_shot_spent(rule_id)
+		_tracker.mark_one_shot_spent(rule_id, context_key)
 
 func _build_entity_context(
 	entity_query: Object,

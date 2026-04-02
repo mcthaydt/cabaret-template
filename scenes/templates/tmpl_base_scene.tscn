@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="24_ai_behavior_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_navigation_system.gd" id="25_ai_navigation_system"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
 [ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
@@ -96,6 +98,14 @@ script = ExtResource("3_systems_core")
 
 [node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=163643062]
 script = ExtResource("1_pybrx")
+
+[node name="S_AIBehaviorSystem" type="Node" parent="Systems/Core" unique_id=1706634120]
+script = ExtResource("24_ai_behavior_system")
+execution_priority = -10
+
+[node name="S_AINavigationSystem" type="Node" parent="Systems/Core" unique_id=1134719817]
+script = ExtResource("25_ai_navigation_system")
+execution_priority = -5
 
 [node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=967520144]
 script = ExtResource("23_vcam_system")

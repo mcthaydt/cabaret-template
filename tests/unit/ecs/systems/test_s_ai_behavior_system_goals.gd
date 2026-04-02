@@ -24,12 +24,12 @@ func _load_script(path: String) -> Script:
 		return null
 	return script_variant as Script
 
-func _new_primitive_task(task_id: StringName) -> Resource:
+func _new_primitive_task(task_id: StringName, ticks_to_complete: int = 999) -> Resource:
 	var task: Resource = RS_AI_PRIMITIVE_TASK.new()
 	task.set("task_id", task_id)
 	var action: Resource = MOCK_AI_ACTION_TRACK.new()
 	action.set("label", String(task_id))
-	action.set("ticks_to_complete", 999)
+	action.set("ticks_to_complete", ticks_to_complete)
 	task.set("action", action)
 	return task
 
@@ -44,10 +44,11 @@ func _new_goal(
 	var condition: Resource = RS_CONDITION_CONSTANT.new()
 	condition.set("score", score)
 	var conditions: Array[Resource] = [condition]
+	var ticks_to_complete: int = int(options.get("ticks_to_complete", 999))
 	goal.set("goal_id", goal_id)
 	goal.set("priority", priority)
 	goal.set("conditions", conditions)
-	goal.set("root_task", _new_primitive_task(task_id))
+	goal.set("root_task", _new_primitive_task(task_id, ticks_to_complete))
 	if options.has("cooldown"):
 		goal.set("cooldown", float(options.get("cooldown", 0.0)))
 	if options.has("one_shot"):
@@ -55,6 +56,14 @@ func _new_goal(
 	if options.has("requires_rising_edge"):
 		goal.set("requires_rising_edge", bool(options.get("requires_rising_edge", false)))
 	return goal
+
+func _count_call_log_prefix(prefix: String) -> int:
+	var count: int = 0
+	for call_entry_variant in MOCK_AI_ACTION_TRACK.call_log:
+		var call_entry: String = str(call_entry_variant)
+		if call_entry.begins_with(prefix):
+			count += 1
+	return count
 
 func _create_fixture(
 	goals: Array[Resource],
@@ -217,6 +226,31 @@ func test_goal_change_clears_task_queue() -> void:
 	var first_task: Resource = brain.current_task_queue[0] as Resource
 	assert_eq(first_task.get("task_id"), StringName("second_task"))
 
+func test_same_goal_replans_after_queue_completion() -> void:
+	var patrol_goal: Resource = _new_goal(
+		StringName("patrol"),
+		1,
+		1.0,
+		StringName("patrol_task"),
+		{"ticks_to_complete": 1}
+	)
+	var fixture: Dictionary = _create_fixture([patrol_goal], StringName("patrol"), 0.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var brain: Variant = fixture["brain"]
+
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("patrol"))
+	assert_true(brain.current_task_queue.is_empty())
+	assert_eq(_count_call_log_prefix("start:patrol_task"), 1)
+
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("patrol"))
+	assert_eq(_count_call_log_prefix("start:patrol_task"), 2)
+
 func test_cooldown_marks_only_selected_goal() -> void:
 	var high_goal: Resource = _new_goal(
 		StringName("high"),
@@ -266,6 +300,39 @@ func test_one_shot_goal_transitions_to_next_goal_after_first_fire() -> void:
 
 	system.process_tick(0.016)
 	assert_eq(brain.active_goal_id, StringName("fallback"))
+
+func test_one_shot_is_scoped_per_context() -> void:
+	var one_shot_goal: Resource = _new_goal(
+		StringName("one_shot"),
+		2,
+		1.0,
+		StringName("one_shot_task"),
+		{"one_shot": true}
+	)
+	var fallback_goal: Resource = _new_goal(StringName("fallback"), 1, 0.8, StringName("fallback_task"))
+	var fixture: Dictionary = _create_fixture([one_shot_goal, fallback_goal], StringName(), 0.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var ecs_manager: Object = fixture["ecs_manager"] as Object
+	var first_brain: Variant = fixture["brain"]
+
+	system.process_tick(0.016)
+	assert_eq(first_brain.active_goal_id, StringName("one_shot"))
+
+	var second_entity := Node3D.new()
+	second_entity.name = "E_TestNPC_2"
+	autofree(second_entity)
+	var second_brain: Variant = C_AI_BRAIN_COMPONENT.new()
+	second_brain.brain_settings = first_brain.brain_settings
+	second_entity.add_child(second_brain)
+	autofree(second_brain)
+	ecs_manager.add_component_to_entity(second_entity, second_brain)
+
+	system.process_tick(0.016)
+	assert_eq(second_brain.active_goal_id, StringName("one_shot"))
 
 func test_requires_rising_edge_goal_requires_state_transition() -> void:
 	var rising_condition: Resource = RS_CONDITION_CONSTANT.new()

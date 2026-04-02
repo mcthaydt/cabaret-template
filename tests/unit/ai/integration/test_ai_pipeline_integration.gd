@@ -3,6 +3,7 @@ extends BaseTest
 const S_AI_BEHAVIOR_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
 const S_AI_NAVIGATION_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_navigation_system.gd"
 const S_INPUT_SYSTEM_PATH := "res://scripts/ecs/systems/s_input_system.gd"
+const S_MOVEMENT_SYSTEM_PATH := "res://scripts/ecs/systems/s_movement_system.gd"
 
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
@@ -171,12 +172,18 @@ func _create_fixture(
 	brain_settings: Resource,
 	initial_state: Dictionary = {},
 	with_camera: bool = false,
-	camera_yaw: float = -PI / 2.0
+	camera_yaw: float = -PI / 2.0,
+	include_movement_system: bool = false
 ) -> Dictionary:
 	var behavior_script: Script = _load_script(S_AI_BEHAVIOR_SYSTEM_PATH)
 	var navigation_script: Script = _load_script(S_AI_NAVIGATION_SYSTEM_PATH)
 	var input_script: Script = _load_script(S_INPUT_SYSTEM_PATH)
+	var movement_script: Script = null
+	if include_movement_system:
+		movement_script = _load_script(S_MOVEMENT_SYSTEM_PATH)
 	if behavior_script == null or navigation_script == null or input_script == null:
+		return {}
+	if include_movement_system and movement_script == null:
 		return {}
 
 	var store := MOCK_STATE_STORE.new()
@@ -234,6 +241,19 @@ func _create_fixture(
 	input_device_manager.source = input_source
 	input_system.set("_input_device_manager", input_device_manager)
 
+	var movement_system: BaseECSSystem = null
+	if include_movement_system:
+		var movement_variant: Variant = movement_script.new()
+		assert_true(movement_variant is BASE_ECS_SYSTEM, "S_MovementSystem should extend BaseECSSystem")
+		if not (movement_variant is BaseECSSystem):
+			return {}
+		movement_system = movement_variant as BaseECSSystem
+		autofree(movement_system)
+		root.add_child(movement_system)
+		movement_system.state_store = store
+		movement_system.ecs_manager = ecs_manager
+		movement_system.configure(ecs_manager)
+
 	var ai_entity := Node3D.new()
 	ai_entity.name = "E_AIAgent"
 	autofree(ai_entity)
@@ -283,10 +303,11 @@ func _create_fixture(
 		"store": store,
 		"ecs_manager": ecs_manager,
 		"behavior_system": behavior_system,
-		"navigation_system": navigation_system,
-		"input_system": input_system,
-		"input_source": input_source,
-		"ai_entity": ai_entity,
+			"navigation_system": navigation_system,
+			"input_system": input_system,
+			"movement_system": movement_system,
+			"input_source": input_source,
+			"ai_entity": ai_entity,
 		"ai_body": ai_body,
 		"ai_brain": ai_brain,
 		"ai_input": ai_input,
@@ -412,6 +433,43 @@ func test_full_pipeline_patrol_pattern() -> void:
 	assert_eq(brain.current_task_index, 0)
 	assert_almost_eq(player_input.move_vector.x, input_source.move_input.x, 0.0001)
 	assert_almost_eq(player_input.move_vector.y, input_source.move_input.y, 0.0001)
+
+func test_pipeline_moves_entity_via_real_movement_system() -> void:
+	var move_target := Vector3(3.0, 0.0, 0.0)
+	var move_goal: Resource = _new_goal(
+		StringName("move"),
+		1,
+		[_new_constant_condition(1.0)],
+		_new_primitive_task(StringName("move_to_target"), _new_move_action(move_target, 0.2))
+	)
+	var brain_settings: Resource = _new_brain_settings([move_goal], StringName("move"), 0.0)
+
+	var fixture: Dictionary = _create_fixture(brain_settings, {}, true, -PI / 2.0, true)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var behavior: BaseECSSystem = fixture["behavior_system"] as BaseECSSystem
+	var navigation: BaseECSSystem = fixture["navigation_system"] as BaseECSSystem
+	var movement: BaseECSSystem = fixture["movement_system"] as BaseECSSystem
+	var body: FakeBody = fixture["ai_body"] as FakeBody
+	var brain: Variant = fixture["ai_brain"]
+
+	body.global_position = Vector3.ZERO
+
+	var completed: bool = false
+	for _step in range(90):
+		behavior.process_tick(0.1)
+		navigation.process_tick(0.1)
+		movement.process_tick(0.1)
+		if brain.current_task_queue.is_empty():
+			completed = true
+			break
+
+	assert_true(completed, "Pipeline should complete via real movement system coupling")
+	assert_true(body.global_position.distance_to(move_target) <= 0.5)
+	assert_true(body.global_position.x > 0.5)
+	assert_almost_eq(body.global_position.z, 0.0, 0.5)
 
 func test_goal_switch_replans_mid_queue() -> void:
 	var patrol_condition: Resource = _new_constant_condition(1.0)

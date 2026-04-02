@@ -5,7 +5,7 @@ const GLOBAL_CONTEXT_KEY := StringName("__global__")
 
 var _cooldowns_by_rule: Dictionary = {}
 var _was_true_by_rule: Dictionary = {}
-var _one_shot_spent: Dictionary = {}
+var _one_shot_spent_by_rule: Dictionary = {}
 
 func tick_cooldowns(delta: float) -> void:
 	if delta <= 0.0:
@@ -60,11 +60,16 @@ func has_rising_edge_state(rule_id: StringName, context_key: Variant) -> bool:
 	var context_map: Dictionary = _get_rule_context_map(_was_true_by_rule, rule_id)
 	return context_map.has(normalized_context)
 
-func mark_one_shot_spent(rule_id: StringName) -> void:
-	_one_shot_spent[rule_id] = true
+func mark_one_shot_spent(rule_id: StringName, context_key: Variant = null) -> void:
+	var normalized_context: StringName = _normalize_context_key(context_key)
+	var context_map: Dictionary = _get_or_create_rule_context_map(_one_shot_spent_by_rule, rule_id)
+	context_map[normalized_context] = true
+	_one_shot_spent_by_rule[rule_id] = context_map
 
-func is_one_shot_spent(rule_id: StringName) -> bool:
-	return bool(_one_shot_spent.get(rule_id, false))
+func is_one_shot_spent(rule_id: StringName, context_key: Variant = null) -> bool:
+	var normalized_context: StringName = _normalize_context_key(context_key)
+	var context_map: Dictionary = _get_rule_context_map(_one_shot_spent_by_rule, rule_id)
+	return bool(context_map.get(normalized_context, false))
 
 func cleanup_stale_contexts(active_context_keys: Array) -> void:
 	var active_context_lookup: Dictionary = {}

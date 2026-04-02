@@ -5,6 +5,8 @@
 [ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://drmqto4u8pr8d" path="res://scripts/ecs/systems/s_game_event_system.gd" id="1_game_event_system"]
 [ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_navigation_system.gd" id="54_ai_navigation_system"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
 [ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
@@ -136,6 +138,14 @@ script = ExtResource("1_camera_state_system")
 [node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=950736546]
 script = ExtResource("1_pybrx")
 require_captured_cursor = true
+
+[node name="S_AIBehaviorSystem" type="Node" parent="Systems/Core" unique_id=1837565144]
+script = ExtResource("53_ai_behavior_system")
+execution_priority = -10
+
+[node name="S_AINavigationSystem" type="Node" parent="Systems/Core" unique_id=1332467286]
+script = ExtResource("54_ai_navigation_system")
+execution_priority = -5
 
 [node name="S_TouchscreenSystem" type="Node" parent="Systems/Core" unique_id=1564579047]
 script = ExtResource("24_touchscreen_system")
