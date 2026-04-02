@@ -5,15 +5,28 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Pre-implementation (design phase)
+**Status**: Milestone 1 complete (implementation phase)
 
 ---
 
-## Current Status: Pre-Implementation
+## Current Status: Milestone 1 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (0/10 milestones complete).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (1/10 milestones complete).
+
+### Completed in M1 (2026-04-02)
+
+- Added `tests/unit/ai/resources/test_rs_ai_task.gd` with the 5 required red-green tests.
+- Implemented:
+  - `scripts/interfaces/i_ai_action.gd`
+  - `scripts/resources/ai/rs_ai_task.gd`
+  - `scripts/resources/ai/rs_ai_primitive_task.gd`
+  - `scripts/resources/ai/rs_ai_compound_task.gd`
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_task.gd` → `5/5` passing
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing
+  - `tools/run_gut_suite.sh` run completed with pre-existing failures in save/state persistence integration tests (outside M1 scope)
 
 ### Key Design Decisions
 
@@ -130,12 +143,11 @@ You MUST:
 
 ## Next Steps
 
-Begin with **Milestone 1: Task Resource Skeleton + I_AIAction Interface**:
+Begin with **Milestone 2: Goal & Brain Settings Resources**:
 
-1. Read `docs/ai_system/ai-system-overview.md` Architecture section for resource class and I_AIAction interface definitions.
-2. Study `scripts/interfaces/i_condition.gd` and `scripts/interfaces/i_effect.gd` — I_AIAction follows this exact pattern.
-3. Create `tests/unit/ai/resources/test_rs_ai_task.gd` with the 5 tests listed in the tasks checklist.
-4. Run tests — verify they fail (RED).
-5. Implement `scripts/interfaces/i_ai_action.gd` and the 3 resource scripts in `scripts/resources/ai/`.
-6. Run tests — verify they pass (GREEN).
-7. Run style enforcement. Commit.
+1. Create `tests/unit/ai/resources/test_rs_ai_goal.gd` with the 5 tests listed under M2 in `docs/ai_system/ai-system-tasks.md` (RED first).
+2. Implement `scripts/resources/ai/rs_ai_goal.gd` and `scripts/resources/ai/rs_ai_brain_settings.gd` (GREEN).
+3. Verify `RS_AIGoal.conditions` accepts existing QB condition resources (`RS_Condition*`).
+4. Run style enforcement and targeted AI resource tests.
+5. Run full-suite regression check and document any pre-existing unrelated failures separately.
+6. Update `ai-system-tasks.md` + this continuation prompt immediately after M2 completion, then commit docs separately.

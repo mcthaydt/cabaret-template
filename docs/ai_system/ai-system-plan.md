@@ -4,7 +4,7 @@
 
 - **Feature / area**: AI System — GOAP goal selection + HTN task decomposition for NPC behavior
 - **Branch**: `GOAP-AI`
-- **Current status**: Pre-implementation (design phase)
+- **Current status**: Milestone 1 complete (1/10 milestones)
 
 This plan defines how to build a data-driven NPC behavior system using GOAP goals scored by QB Rule Manager v2 and HTN task decomposition into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
 
@@ -49,12 +49,14 @@ M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9
 
 ### M1 — Task Resource Skeleton + I_AIAction Interface
 
-- [ ] Write tests for RS_AIPrimitiveTask, RS_AICompoundTask, and I_AIAction interface contract (field assignment, type checks, subtask ordering, action interface detection)
-- [ ] Implement `scripts/interfaces/i_ai_action.gd` — interface with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)` contract (matching I_Condition/I_Effect pattern)
-- [ ] Implement `scripts/resources/ai/rs_ai_task.gd` — base class extending Resource with `@export var task_id: StringName`
-- [ ] Implement `scripts/resources/ai/rs_ai_primitive_task.gd` — extends RS_AITask with `@export var action: Resource` (I_AIAction)
-- [ ] Implement `scripts/resources/ai/rs_ai_compound_task.gd` — extends RS_AITask with `subtasks`, `method_conditions`
-- [ ] Verify style enforcement passes
+- [x] Write tests for RS_AIPrimitiveTask, RS_AICompoundTask, and I_AIAction interface contract (field assignment, type checks, subtask ordering, action interface detection)
+- [x] Implement `scripts/interfaces/i_ai_action.gd` — interface with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)` contract (matching I_Condition/I_Effect pattern)
+- [x] Implement `scripts/resources/ai/rs_ai_task.gd` — base class extending Resource with `@export var task_id: StringName`
+- [x] Implement `scripts/resources/ai/rs_ai_primitive_task.gd` — extends RS_AITask with `@export var action: Resource` (I_AIAction)
+- [x] Implement `scripts/resources/ai/rs_ai_compound_task.gd` — extends RS_AITask with `subtasks`, `method_conditions`
+- [x] Verify style enforcement passes
+
+M1 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/resources/test_rs_ai_task.gd` (5/5 passing), style enforcement passed (17/17), and full-suite run completed with pre-existing save/state persistence integration failures outside M1 scope.
 
 ### M2 — Goal & Brain Settings Resources
 

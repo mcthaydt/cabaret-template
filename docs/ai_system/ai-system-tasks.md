@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Pre-implementation
+**Status**: Milestone 1 complete (1/10 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -11,25 +11,31 @@
 
 **Goal**: Create RS_AITask base class, RS_AIPrimitiveTask (holds typed action via I_AIAction), RS_AICompoundTask, and the I_AIAction interface.
 
-- [ ] **Commit 1** — Create `tests/unit/ai/resources/test_rs_ai_task.gd` with resource + interface tests (TDD RED):
+- [x] **Commit 1** — Create `tests/unit/ai/resources/test_rs_ai_task.gd` with resource + interface tests (TDD RED):
   - `test_primitive_task_holds_action_resource` — RS_AIPrimitiveTask.action accepts an I_AIAction implementor
   - `test_compound_task_has_subtasks_array` — RS_AICompoundTask.subtasks holds ordered RS_AITask entries
   - `test_task_id_is_string_name` — RS_AITask.task_id typed as StringName
   - `test_i_ai_action_interface_contract` — verify I_AIAction declares start/tick/is_complete methods
   - `test_primitive_task_action_defaults_to_null` — action is optional (null until assigned)
-- [ ] **Commit 2** — Implement `i_ai_action.gd`, `rs_ai_task.gd`, `rs_ai_primitive_task.gd`, `rs_ai_compound_task.gd` (TDD GREEN):
+- [x] **Commit 2** — Implement `i_ai_action.gd`, `rs_ai_task.gd`, `rs_ai_primitive_task.gd`, `rs_ai_compound_task.gd` (TDD GREEN):
   - `scripts/interfaces/i_ai_action.gd` — interface with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)` (matches I_Condition/I_Effect pattern)
   - `scripts/resources/ai/rs_ai_task.gd` — base Resource with `@export var task_id: StringName`
   - `scripts/resources/ai/rs_ai_primitive_task.gd` — extends RS_AITask with `@export var action: Resource` (I_AIAction)
   - `scripts/resources/ai/rs_ai_compound_task.gd` — extends RS_AITask with `subtasks: Array[Resource]`, `method_conditions: Array[Resource]`
-- [ ] **Commit 3** — Verify style enforcement passes; refactor if needed
+- [x] **Commit 3** — Verify style enforcement passes; refactor if needed
 
 **M1 Verification**:
-- [ ] All 5 resource/interface tests green
-- [ ] I_AIAction interface follows I_Condition/I_Effect pattern
-- [ ] RS_AIPrimitiveTask.action accepts typed action resources
-- [ ] RS_ prefix, I_ prefix, and snake_case file names
-- [ ] `test_style_enforcement.gd` passes
+- [x] All 5 resource/interface tests green
+- [x] I_AIAction interface follows I_Condition/I_Effect pattern
+- [x] RS_AIPrimitiveTask.action accepts typed action resources
+- [x] RS_ prefix, I_ prefix, and snake_case file names
+- [x] `test_style_enforcement.gd` passes
+
+**M1 Completion Notes (2026-04-02)**:
+- RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_task.gd` failed with expected missing-script assertions.
+- GREEN confirmed: same test target passed `5/5` after implementing M1 scripts.
+- Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
+- Full-suite baseline run executed: `tools/run_gut_suite.sh` finished `3613/3631` passing with `9` failing tests in existing save/state persistence integration suites (outside M1 scope).
 
 ---
 
