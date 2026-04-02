@@ -8,7 +8,7 @@
 
 ## Summary
 
-The AI system provides data-driven NPC behavior through two complementary paradigms: **GOAP** (Goal-Oriented Action Planning) for goal selection and **HTN** (Hierarchical Task Network) for task decomposition. Each tick per NPC entity, QB v2 rules score candidate goals/behaviors (0.0-1.0), the winner becomes the active behavior, and an HTN planner decomposes compound tasks into executable primitive actions. The system runs as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with all behavior definitions authored as `.tres` resources.
+The AI system provides data-driven NPC behavior through two complementary paradigms: **GOAP** (Goal-Oriented Action Planning) for goal selection and **HTN** (Hierarchical Task Network) for task decomposition. In the target runtime design, QB v2 rules score candidate goals/behaviors (0.0-1.0), the winner becomes the active behavior, and an HTN planner decomposes compound tasks into executable primitive actions. This will run as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with behavior definitions authored as `.tres` resources.
 
 ## Repo Reality Checks
 
@@ -16,7 +16,8 @@ The AI system provides data-driven NPC behavior through two complementary paradi
 - Existing QB consumers provide the pattern: `S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem` each compose QB utilities directly (no base-class inheritance)
 - Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, etc.) in `scripts/resources/qb/conditions/` — implement `I_Condition.evaluate(context)` for polymorphic dispatch
 - Typed effects (`RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetField`, etc.) in `scripts/resources/qb/effects/` — implement `I_Effect.execute(context)` for polymorphic dispatch
-- AI action types follow this same pattern: typed `RS_AIAction*` resources implement `I_AIAction` with `start()`, `tick()`, `is_complete()` for self-executing task logic
+- M1/M2 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, and `RS_AIBrainSettings`
+- M6/M7 planned: typed `RS_AIAction*` resources will implement `I_AIAction` with `start()`, `tick()`, `is_complete()` for self-executing task logic
 - `U_PathResolver` handles dot-path traversal for component fields, Redux state, and event payloads
 - ECS pattern: systems extend `BaseECSSystem`, implement `process_tick(delta)`, query components via `get_components(StringName)`
 - Component pattern: extend `BaseECSComponent`, define `const COMPONENT_TYPE := StringName("...")`, use `@export` NodePaths with typed getters
@@ -42,7 +43,7 @@ The AI system provides data-driven NPC behavior through two complementary paradi
 - No perception system (line-of-sight, hearing) — proximity and state-based conditions are sufficient for demo scope
 - No learning or adaptation (behaviors are static resource definitions)
 
-## Architecture
+## Target Architecture (M3-M10)
 
 ```
 S_AIBehaviorSystem (scripts/ecs/systems/s_ai_behavior_system.gd)  [extends BaseECSSystem]
@@ -140,9 +141,9 @@ Resources:
 - Animation playback (requests states; animation system applies them)
 - Visual representation (NPC visuals are separate scene nodes)
 
-## Action Types (Initial Set)
+## Planned Action Types (Initial Set)
 
-Each action is a typed resource implementing `I_AIAction` with `@export` fields for inspector authoring. Actions self-execute via `start()`, `tick()`, `is_complete()` — the system dispatches polymorphically (no match blocks), matching the QB v2 `I_Condition`/`I_Effect` pattern.
+Each action is a typed resource planned to implement `I_AIAction` with `@export` fields for inspector authoring. Actions will self-execute via `start()`, `tick()`, `is_complete()` and be dispatched polymorphically (no match blocks), matching QB v2 `I_Condition`/`I_Effect` patterns.
 
 | Action Resource | Key Exports | Completion |
 |----------------|-------------|------------|
@@ -153,9 +154,9 @@ Each action is a typed resource implementing `I_AIAction` with `@export` fields 
 | `RS_AIActionPublishEvent` | `event_name`, `payload` | Instant (fire and advance) |
 | `RS_AIActionSetField` | `field_path`, `value_type`, typed value exports | Instant |
 
-## Demo Integration (Signal Lost)
+## Planned Demo Integration (Signal Lost)
 
-Three NPC archetypes prove the system:
+Three NPC archetypes are intended to prove the system:
 
 1. **Patrol Drone** (Power Core): GOAP with 2 goals — `patrol` (move between waypoints) and `investigate` (pause when player activates a node). QB scores `proximity_to_player` and `node_recently_activated`.
 

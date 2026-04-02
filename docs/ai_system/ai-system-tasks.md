@@ -14,6 +14,7 @@
 - [x] **Commit 1** — Create `tests/unit/ai/resources/test_rs_ai_task.gd` with resource + interface tests (TDD RED):
   - `test_primitive_task_holds_action_resource` — RS_AIPrimitiveTask.action accepts an I_AIAction implementor
   - `test_compound_task_has_subtasks_array` — RS_AICompoundTask.subtasks holds ordered RS_AITask entries
+  - `test_compound_task_has_method_conditions_array` — RS_AICompoundTask.method_conditions holds ordered condition entries
   - `test_task_id_is_string_name` — RS_AITask.task_id typed as StringName
   - `test_i_ai_action_interface_contract` — verify I_AIAction declares start/tick/is_complete methods
   - `test_primitive_task_action_defaults_to_null` — action is optional (null until assigned)
@@ -25,7 +26,7 @@
 - [x] **Commit 3** — Verify style enforcement passes; refactor if needed
 
 **M1 Verification**:
-- [x] All 5 resource/interface tests green
+- [x] All 6 resource/interface tests green
 - [x] I_AIAction interface follows I_Condition/I_Effect pattern
 - [x] RS_AIPrimitiveTask.action accepts typed action resources
 - [x] RS_ prefix, I_ prefix, and snake_case file names
@@ -33,9 +34,9 @@
 
 **M1 Completion Notes (2026-04-02)**:
 - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_task.gd` failed with expected missing-script assertions.
-- GREEN confirmed: same test target passed `5/5` after implementing M1 scripts.
+- GREEN confirmed: same test target passed `5/5` after implementing M1 scripts; audit hardening added `test_compound_task_has_method_conditions_array`, and current target now passes `6/6`.
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
-- Full-suite baseline run executed: `tools/run_gut_suite.sh` finished `3613/3631` passing with `9` failing tests in existing save/state persistence integration suites (outside M1 scope).
+- Full-suite baseline run executed: `tools/run_gut_suite.sh` currently finishes `3627/3636` passing with `9` pending/risky (headless/platform skips) and `0` failing tests.
 
 ---
 
@@ -61,7 +62,7 @@
 - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` failed with expected missing-script assertions for `rs_ai_goal.gd` and `rs_ai_brain_settings.gd`.
 - GREEN confirmed: same test target passed `5/5` after implementing M2 scripts.
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
-- Full-suite baseline run executed: `tools/run_gut_suite.sh` finished `3618/3636` passing with `9` failing tests in existing save/state persistence integration suites (outside M2 scope).
+- Full-suite baseline run executed: `tools/run_gut_suite.sh` currently finishes `3627/3636` passing with `9` pending/risky (headless/platform skips) and `0` failing tests.
 
 ---
 

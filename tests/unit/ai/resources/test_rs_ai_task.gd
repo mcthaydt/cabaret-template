@@ -1,6 +1,7 @@
 extends GutTest
 
 const I_AI_ACTION_PATH := "res://scripts/interfaces/i_ai_action.gd"
+const I_CONDITION_PATH := "res://scripts/interfaces/i_condition.gd"
 const RS_AI_TASK_PATH := "res://scripts/resources/ai/rs_ai_task.gd"
 const RS_AI_PRIMITIVE_TASK_PATH := "res://scripts/resources/ai/rs_ai_primitive_task.gd"
 const RS_AI_COMPOUND_TASK_PATH := "res://scripts/resources/ai/rs_ai_compound_task.gd"
@@ -47,6 +48,28 @@ func test_compound_task_has_subtasks_array() -> void:
 	assert_eq(ordered_subtasks.size(), 2, "RS_AICompoundTask.subtasks should keep ordered entries")
 	assert_eq(ordered_subtasks[0], first_task, "First subtask should stay first")
 	assert_eq(ordered_subtasks[1], second_task, "Second subtask should stay second")
+
+func test_compound_task_has_method_conditions_array() -> void:
+	var compound_task_script: Script = _load_script(RS_AI_COMPOUND_TASK_PATH)
+	var condition_interface_script: Script = _load_script(I_CONDITION_PATH)
+	if compound_task_script == null or condition_interface_script == null:
+		return
+
+	var first_condition: Resource = condition_interface_script.new()
+	var second_condition: Resource = condition_interface_script.new()
+
+	var compound_task: Resource = compound_task_script.new()
+	var method_conditions: Array[Resource] = [first_condition, second_condition]
+	compound_task.set("method_conditions", method_conditions)
+
+	var conditions_variant: Variant = compound_task.get("method_conditions")
+	assert_true(conditions_variant is Array, "RS_AICompoundTask.method_conditions should be an array")
+	if not (conditions_variant is Array):
+		return
+	var ordered_conditions: Array = conditions_variant as Array
+	assert_eq(ordered_conditions.size(), 2, "RS_AICompoundTask.method_conditions should keep ordered entries")
+	assert_eq(ordered_conditions[0], first_condition, "First method condition should stay first")
+	assert_eq(ordered_conditions[1], second_condition, "Second method condition should stay second")
 
 func test_task_id_is_string_name() -> void:
 	var task_script: Script = _load_script(RS_AI_TASK_PATH)

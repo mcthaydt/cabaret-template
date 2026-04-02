@@ -56,7 +56,7 @@ M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9
 - [x] Implement `scripts/resources/ai/rs_ai_compound_task.gd` — extends RS_AITask with `subtasks`, `method_conditions`
 - [x] Verify style enforcement passes
 
-M1 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/resources/test_rs_ai_task.gd` (5/5 passing), style enforcement passed (17/17), and full-suite run completed with pre-existing save/state persistence integration failures outside M1 scope.
+M1 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/resources/test_rs_ai_task.gd` (initial 5/5 passing; current 6/6 after audit hardening test coverage for `method_conditions`), style enforcement passed (17/17), and full-suite run currently reports `3627/3636` passing with `9` pending/risky headless/platform skips and `0` failing tests.
 
 ### M2 — Goal & Brain Settings Resources
 
@@ -65,7 +65,7 @@ M1 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/re
 - [x] Implement `scripts/resources/ai/rs_ai_brain_settings.gd` — `goals: Array[Resource]`, `default_goal_id`, `evaluation_interval: float`
 - [x] Verify RS_AIGoal.conditions accepts existing QB condition types
 
-M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/resources/test_rs_ai_goal.gd` (5/5 passing), style enforcement passed (17/17), and full-suite run completed with pre-existing display/save/state persistence integration failures outside M2 scope.
+M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/resources/test_rs_ai_goal.gd` (5/5 passing), style enforcement passed (17/17), and full-suite run currently reports `3627/3636` passing with `9` pending/risky headless/platform skips and `0` failing tests.
 
 ### M3 — C_AIBrainComponent
 
@@ -188,7 +188,7 @@ M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/re
 
 ## File Inventory
 
-### Scripts (16 new files, 1 modified)
+### Implemented Now (M1-M2)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -198,48 +198,37 @@ M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/re
 | `scripts/resources/ai/rs_ai_compound_task.gd` | Resource | Compound task with subtasks, method_conditions |
 | `scripts/resources/ai/rs_ai_goal.gd` | Resource | Goal with conditions, root_task, priority |
 | `scripts/resources/ai/rs_ai_brain_settings.gd` | Resource | Brain settings with goals array, defaults, evaluation config |
-| `scripts/resources/ai/actions/rs_ai_action_move_to.gd` | Action | Move to position/node/waypoint with arrival threshold |
-| `scripts/resources/ai/actions/rs_ai_action_wait.gd` | Action | Wait for duration |
-| `scripts/resources/ai/actions/rs_ai_action_scan.gd` | Action | Scan for duration with rotation speed |
-| `scripts/resources/ai/actions/rs_ai_action_animate.gd` | Action | Stub: sets state field, completes immediately |
-| `scripts/resources/ai/actions/rs_ai_action_publish_event.gd` | Action | Publish ECS event with payload |
-| `scripts/resources/ai/actions/rs_ai_action_set_field.gd` | Action | Set component field via U_PathResolver |
-| `scripts/ecs/components/c_ai_brain_component.gd` | Component | Per-NPC runtime AI state |
-| `scripts/ecs/systems/s_ai_behavior_system.gd` | System | Goal evaluation + HTN + polymorphic task execution |
-| `scripts/utils/ai/u_htn_planner.gd` | Utility | Recursive task decomposition |
-| `scripts/ecs/systems/s_ai_navigation_system.gd` | System | Bridges AI move target → C_InputComponent via inverse camera transform |
-| `scripts/ecs/systems/s_input_system.gd` | **Modified** | Filter query by C_PlayerTagComponent to prevent clobbering AI move_vector |
+| `tests/unit/ai/resources/test_rs_ai_task.gd` | Test | M1 resources + I_AIAction interface (includes `method_conditions` coverage) |
+| `tests/unit/ai/resources/test_rs_ai_goal.gd` | Test | M2 goal/brain settings resource coverage |
 
-### Tests (10 new files)
+### Planned Target Inventory (M3-M10)
 
-| File | Covers |
-|------|--------|
-| `tests/unit/ai/resources/test_rs_ai_task.gd` | M1 resources + I_AIAction interface |
-| `tests/unit/ai/resources/test_rs_ai_goal.gd` | M2 resources |
-| `tests/unit/ecs/components/test_c_ai_brain_component.gd` | M3 component |
-| `tests/unit/ai/test_u_htn_planner.gd` | M4 planner |
-| `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` | M5 goal eval |
-| `tests/unit/ai/actions/test_ai_actions_instant.gd` | M6 wait/publish_event/set_field actions |
-| `tests/unit/ai/actions/test_ai_actions_movement.gd` | M7 move_to/scan/animate actions |
-| `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` | M7 navigation system (9 tests) |
-| `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` | M7 input filter regression (2 tests) |
-| `tests/unit/ai/integration/test_ai_pipeline_integration.gd` | M8 integration |
+Planned files below are design targets and are not implemented yet:
 
-### Scenes (3 new files)
-
-| File | Description |
-|------|-------------|
-| `scenes/gameplay/gameplay_power_core.tscn` | Patrol Drone demo room |
-| `scenes/gameplay/gameplay_comms_array.tscn` | Sentry demo room |
-| `scenes/gameplay/gameplay_nav_nexus.tscn` | Guide Prism demo room |
-
-### Demo Resources (~12-15 new .tres files)
-
-| Directory | Contents |
-|-----------|----------|
-| `resources/ai/patrol_drone/` | Brain settings + 2 goal definitions |
-| `resources/ai/sentry/` | Brain settings + 2 goal definitions |
-| `resources/ai/guide_prism/` | Brain settings + 3 goal definitions |
+- `scripts/ecs/components/c_ai_brain_component.gd`
+- `scripts/utils/ai/u_htn_planner.gd`
+- `scripts/ecs/systems/s_ai_behavior_system.gd`
+- `scripts/resources/ai/actions/rs_ai_action_wait.gd`
+- `scripts/resources/ai/actions/rs_ai_action_publish_event.gd`
+- `scripts/resources/ai/actions/rs_ai_action_set_field.gd`
+- `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
+- `scripts/resources/ai/actions/rs_ai_action_scan.gd`
+- `scripts/resources/ai/actions/rs_ai_action_animate.gd`
+- `scripts/ecs/systems/s_ai_navigation_system.gd`
+- `tests/unit/ecs/components/test_c_ai_brain_component.gd`
+- `tests/unit/ai/test_u_htn_planner.gd`
+- `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd`
+- `tests/unit/ai/actions/test_ai_actions_instant.gd`
+- `tests/unit/ai/actions/test_ai_actions_movement.gd`
+- `tests/unit/ecs/systems/test_s_ai_navigation_system.gd`
+- `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd`
+- `tests/unit/ai/integration/test_ai_pipeline_integration.gd`
+- `scenes/gameplay/gameplay_power_core.tscn`
+- `scenes/gameplay/gameplay_comms_array.tscn`
+- `scenes/gameplay/gameplay_nav_nexus.tscn`
+- `resources/ai/patrol_drone/*.tres`
+- `resources/ai/sentry/*.tres`
+- `resources/ai/guide_prism/*.tres`
 
 ## References
 
