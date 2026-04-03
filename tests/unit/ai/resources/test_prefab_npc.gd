@@ -1,6 +1,7 @@
 extends BaseTest
 
-const NPC_PREFAB_PATH := "res://scenes/prefabs/prefab_npc.tscn"
+const NPC_PREFAB_PATH := "res://scenes/prefabs/prefab_demo_npc.tscn"
+const CHARACTER_TEMPLATE_PATH := "res://scenes/templates/tmpl_character.tscn"
 
 const REQUIRED_COMPONENT_PATHS: Array[String] = [
 	"Components/C_SpawnStateComponent",
@@ -23,6 +24,22 @@ func _instantiate_npc_prefab() -> Node:
 	var packed_scene: PackedScene = packed_scene_variant as PackedScene
 	var root_variant: Variant = packed_scene.instantiate()
 	assert_true(root_variant is Node, "Expected npc prefab to instantiate as Node")
+	if not (root_variant is Node):
+		return null
+
+	var root: Node = root_variant as Node
+	add_child_autofree(root)
+	return root
+
+func _instantiate_character_template() -> Node:
+	var packed_scene_variant: Variant = load(CHARACTER_TEMPLATE_PATH)
+	assert_true(packed_scene_variant is PackedScene, "Expected PackedScene at %s" % CHARACTER_TEMPLATE_PATH)
+	if not (packed_scene_variant is PackedScene):
+		return null
+
+	var packed_scene: PackedScene = packed_scene_variant as PackedScene
+	var root_variant: Variant = packed_scene.instantiate()
+	assert_true(root_variant is Node, "Expected character template to instantiate as Node")
 	if not (root_variant is Node):
 		return null
 
@@ -68,8 +85,17 @@ func test_npc_prefab_body_mesh_has_no_mesh_instances() -> void:
 	if root == null:
 		return
 	var body_mesh := root.get_node_or_null("Player_Body/Body_Mesh") as Node3D
-	assert_not_null(body_mesh, "Expected Body_Mesh node in prefab_npc")
+	assert_not_null(body_mesh, "Expected Body_Mesh node in prefab_demo_npc")
 	if body_mesh == null:
 		return
 	var mesh_instances: Array[Node] = body_mesh.find_children("*", "MeshInstance3D", true, false)
-	assert_eq(mesh_instances.size(), 0, "prefab_npc base body should not include player MeshInstance3D nodes")
+	assert_eq(mesh_instances.size(), 0, "prefab_demo_npc base body should not include player MeshInstance3D nodes")
+
+func test_character_template_has_no_body_mesh_instance() -> void:
+	var root: Node = _instantiate_character_template()
+	if root == null:
+		return
+	assert_null(
+		root.get_node_or_null("Player_Body/Body_Mesh"),
+		"tmpl_character should not include body mesh visuals; prefabs should own visual meshes"
+	)

@@ -6,10 +6,13 @@
 [ext_resource type="Resource" uid="uid://flpd0eijo5ab" path="res://resources/input/gamepad_settings/cfg_default_gamepad_settings.tres" id="4_gamepad_settings"]
 [ext_resource type="Script" uid="uid://bavwg5wtyinis" path="res://scripts/ecs/components/c_player_tag_component.gd" id="5_player_tag"]
 [ext_resource type="Script" uid="uid://dswplhks3popp" path="res://scripts/ecs/components/c_surface_detector_component.gd" id="6_surface_detector"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_player_body.tscn" id="7_player_body"]
 
 [node name="E_PlayerRoot" unique_id=526145796 instance=ExtResource("1_character_template")]
 entity_id = &"player"
 tags = Array[StringName]([&"player", &"character"])
+
+[node name="Body_Mesh" parent="Player_Body" parent_id_path=PackedInt32Array(312897681) instance=ExtResource("7_player_body")]
 
 [node name="C_InputComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="7" unique_id=273356595]
 script = ExtResource("2_input")

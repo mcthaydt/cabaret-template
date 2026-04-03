@@ -65,7 +65,7 @@
 [ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_floating_patrol_drone_default.tres" id="66_floating_settings"]
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="Resource" path="res://resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres" id="68_ai_patrol_drone_spawn_meta"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_npc.tscn" id="69_prefab_npc"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2

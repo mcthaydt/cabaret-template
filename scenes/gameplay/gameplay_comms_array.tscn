@@ -60,7 +60,7 @@
 [ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="52_vcam_system"]
 [ext_resource type="Resource" path="res://resources/ai/sentry/cfg_sentry_brain.tres" id="58_sentry_brain"]
 [ext_resource type="Script" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_npc.tscn" id="69_prefab_npc"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2

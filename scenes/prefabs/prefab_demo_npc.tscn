@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="2_input"]
 [ext_resource type="Script" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="3_ai_brain"]
 [ext_resource type="Resource" path="res://resources/ai/cfg_ai_brain_placeholder.tres" id="4_ai_brain_placeholder"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_npc_body.tscn" id="5_npc_body"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_demo_npc_body.tscn" id="5_npc_body"]
 
 [node name="E_NPCRoot" instance=ExtResource("1_character_template")]
 entity_id = &"npc"

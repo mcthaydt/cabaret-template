@@ -62,7 +62,7 @@
 [ext_resource type="Script" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Script" path="res://scripts/gameplay/inter_hazard_zone.gd" id="63_inter_hazard_zone"]
 [ext_resource type="Resource" path="res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres" id="64_nav_fall_hazard_config"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_npc.tscn" id="69_prefab_npc"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
