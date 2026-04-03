@@ -17,6 +17,20 @@ const INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH := "res://scripts/gameplay/inter_ai_de
 const INTER_HAZARD_ZONE_SCRIPT_PATH := "res://scripts/gameplay/inter_hazard_zone.gd"
 const NAV_FALL_HAZARD_CONFIG_PATH := "res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres"
 
+const REQUIRED_NPC_COMPONENT_PATHS: Array[String] = [
+	"Components/C_SpawnStateComponent",
+	"Components/C_CharacterStateComponent",
+	"Components/C_MovementComponent",
+	"Components/C_JumpComponent",
+	"Components/C_RotateToInputComponent",
+	"Components/C_FloatingComponent",
+	"Components/C_AlignWithSurfaceComponent",
+	"Components/C_LandingIndicatorComponent",
+	"Components/C_HealthComponent",
+	"Components/C_InputComponent",
+	"Components/C_AIBrainComponent",
+]
+
 func _load_brain(path: String) -> Resource:
 	var resource_variant: Variant = load(path)
 	assert_not_null(resource_variant, "Expected brain resource to exist: %s" % path)
@@ -164,6 +178,32 @@ func _assert_npc_visual_collision_disabled(scene_path: String, visual_path: Node
 	var visual: CSGShape3D = visual_variant as CSGShape3D
 	assert_false(visual.use_collision, "NPC visual CSG should keep use_collision disabled to avoid body self-collision jitter")
 
+func _assert_demo_npc_component_stack(scene_path: String, npc_path: NodePath) -> void:
+	var root: Node = _load_scene_root(scene_path)
+	if root == null:
+		return
+	var npc: Node = root.get_node_or_null(npc_path)
+	assert_not_null(npc, "Expected NPC root at %s in %s" % [String(npc_path), scene_path])
+	if npc == null:
+		return
+
+	for component_path in REQUIRED_NPC_COMPONENT_PATHS:
+		var component: Node = npc.get_node_or_null(component_path)
+		assert_not_null(component, "Expected component at %s/%s" % [String(npc_path), component_path])
+
+	assert_null(
+		npc.get_node_or_null("Components/C_PlayerTagComponent"),
+		"NPC should not include C_PlayerTagComponent"
+	)
+	assert_null(
+		npc.get_node_or_null("Components/C_GamepadComponent"),
+		"NPC should not include C_GamepadComponent"
+	)
+	assert_null(
+		npc.get_node_or_null("Components/C_SurfaceDetectorComponent"),
+		"NPC should not include C_SurfaceDetectorComponent"
+	)
+
 func test_patrol_drone_brain_has_expected_goals_and_tasks() -> void:
 	_assert_brain_goals(
 		PATROL_BRAIN_PATH,
@@ -215,15 +255,29 @@ func test_demo_scenes_wire_npcs_to_m10_brain_resources() -> void:
 func test_demo_npc_visual_csg_collision_is_disabled() -> void:
 	_assert_npc_visual_collision_disabled(
 		POWER_CORE_SCENE_PATH,
-		NodePath("Entities/NPCs/E_PatrolDrone/NPC_Body/Visual")
+		NodePath("Entities/NPCs/E_PatrolDrone/Player_Body/Visual")
 	)
 	_assert_npc_visual_collision_disabled(
 		COMMS_ARRAY_SCENE_PATH,
-		NodePath("Entities/NPCs/E_Sentry/NPC_Body/Visual")
+		NodePath("Entities/NPCs/E_Sentry/Player_Body/Visual")
 	)
 	_assert_npc_visual_collision_disabled(
 		NAV_NEXUS_SCENE_PATH,
-		NodePath("Entities/NPCs/E_GuidePrism/NPC_Body/Visual")
+		NodePath("Entities/NPCs/E_GuidePrism/Player_Body/Visual")
+	)
+
+func test_demo_scenes_use_unified_npc_component_stack() -> void:
+	_assert_demo_npc_component_stack(
+		POWER_CORE_SCENE_PATH,
+		NodePath("Entities/NPCs/E_PatrolDrone")
+	)
+	_assert_demo_npc_component_stack(
+		COMMS_ARRAY_SCENE_PATH,
+		NodePath("Entities/NPCs/E_Sentry")
+	)
+	_assert_demo_npc_component_stack(
+		NAV_NEXUS_SCENE_PATH,
+		NodePath("Entities/NPCs/E_GuidePrism")
 	)
 
 func test_demo_goal_conditions_use_durable_ai_demo_flags() -> void:

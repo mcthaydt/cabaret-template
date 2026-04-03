@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/templates/tmpl_character.tscn" id="1_character_template"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="2_input"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="3_ai_brain"]
+[ext_resource type="Resource" path="res://resources/ai/cfg_ai_brain_placeholder.tres" id="4_ai_brain_placeholder"]
+
+[node name="E_NPCRoot" instance=ExtResource("1_character_template")]
+entity_id = &"npc"
+tags = Array[StringName]([&"npc", &"ai", &"character"])
+
+[node name="C_InputComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="7"]
+script = ExtResource("2_input")
+
+[node name="C_AIBrainComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="8"]
+script = ExtResource("3_ai_brain")
+brain_settings = ExtResource("4_ai_brain_placeholder")

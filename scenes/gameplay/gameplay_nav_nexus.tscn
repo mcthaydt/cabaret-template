@@ -58,16 +58,11 @@
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/cfg_sp_base.tres" id="51_base_spawn_meta"]
 [ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="52_vcam_system"]
-[ext_resource type="Script" path="res://scripts/ecs/base_ecs_entity.gd" id="55_base_ecs_entity"]
-[ext_resource type="Script" path="res://scripts/scene_structure/marker_components_group.gd" id="56_components_group"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="57_ai_brain_component"]
 [ext_resource type="Resource" path="res://resources/ai/guide_prism/cfg_guide_brain.tres" id="58_guide_brain"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="59_input_component"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_movement_component.gd" id="60_movement_component"]
-[ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_movement_default.tres" id="61_movement_settings"]
 [ext_resource type="Script" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Script" path="res://scripts/gameplay/inter_hazard_zone.gd" id="63_inter_hazard_zone"]
 [ext_resource type="Resource" path="res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres" id="64_nav_fall_hazard_config"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_npc.tscn" id="69_prefab_npc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -100,10 +95,6 @@ size = Vector3(30, 2, 30)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_victory_zone"]
 size = Vector3(4, 2, 4)
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_guide_prism"]
-height = 1.2
-radius = 0.4
 
 [sub_resource type="Environment" id="Environment_q3o1v"]
 background_mode = 1
@@ -398,35 +389,25 @@ shape = SubResource("BoxShape3D_victory_zone")
 [node name="NPCs" type="Node" parent="Entities"]
 script = ExtResource("16_8qi87")
 
-[node name="E_GuidePrism" type="Node3D" parent="Entities/NPCs"]
+[node name="E_GuidePrism" parent="Entities/NPCs" instance=ExtResource("69_prefab_npc")]
 transform = Transform3D(0.9848077, 0, -0.1736482, 0, 1, 0, 0.1736482, 0, 0.9848077, -2, 2.5, -1.5)
-script = ExtResource("55_base_ecs_entity")
 entity_id = &"guide_prism"
 tags = Array[StringName]([&"npc", &"ai", &"guide_prism"])
 
-[node name="NPC_Body" type="CharacterBody3D" parent="Entities/NPCs/E_GuidePrism"]
+[node name="Body_Mesh" parent="Entities/NPCs/E_GuidePrism/Player_Body"]
+visible = false
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NPCs/E_GuidePrism/NPC_Body"]
-shape = SubResource("CapsuleShape3D_guide_prism")
-
-[node name="Visual" type="CSGSphere3D" parent="Entities/NPCs/E_GuidePrism/NPC_Body"]
+[node name="Visual" type="CSGSphere3D" parent="Entities/NPCs/E_GuidePrism/Player_Body"]
 transform = Transform3D(1, 0, 0, 0, 1.3, 0, 0, 0, 1, 0, 0.7, 0)
+use_collision = false
 radius = 0.65
 material = SubResource("StandardMaterial3D_prism")
 
-[node name="Components" type="Node" parent="Entities/NPCs/E_GuidePrism"]
-script = ExtResource("56_components_group")
-
-[node name="C_AIBrainComponent" type="Node" parent="Entities/NPCs/E_GuidePrism/Components"]
-script = ExtResource("57_ai_brain_component")
+[node name="C_AIBrainComponent" parent="Entities/NPCs/E_GuidePrism/Components"]
 brain_settings = ExtResource("58_guide_brain")
 
-[node name="C_InputComponent" type="Node" parent="Entities/NPCs/E_GuidePrism/Components"]
-script = ExtResource("59_input_component")
-
-[node name="C_MovementComponent" type="Node" parent="Entities/NPCs/E_GuidePrism/Components"]
-script = ExtResource("60_movement_component")
-settings = ExtResource("61_movement_settings")
+[node name="C_AlignWithSurfaceComponent" parent="Entities/NPCs/E_GuidePrism/Components"]
+visual_alignment_path = NodePath("../../Player_Body/Visual")
 
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)

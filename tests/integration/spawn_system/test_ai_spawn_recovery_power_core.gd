@@ -50,7 +50,7 @@ func test_patrol_drone_recovers_to_ai_spawn_point_when_support_is_lost() -> void
 		return
 
 	var entity := _scene.get_node_or_null("Entities/NPCs/E_PatrolDrone") as Node3D
-	var body := _scene.get_node_or_null("Entities/NPCs/E_PatrolDrone/NPC_Body") as CharacterBody3D
+	var body := _scene.get_node_or_null("Entities/NPCs/E_PatrolDrone/Player_Body") as CharacterBody3D
 	var recovery_system := _scene.get_node_or_null("Systems/Movement/S_AISpawnRecoverySystem")
 	var spawn_point := _scene.get_node_or_null("Entities/SpawnPoints/sp_ai_patrol_drone") as Node3D
 	assert_not_null(entity, "Expected patrol drone entity in gameplay_power_core")

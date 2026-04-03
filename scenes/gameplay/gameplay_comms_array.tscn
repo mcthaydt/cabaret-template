@@ -58,14 +58,9 @@
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/cfg_sp_base.tres" id="51_base_spawn_meta"]
 [ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="52_vcam_system"]
-[ext_resource type="Script" path="res://scripts/ecs/base_ecs_entity.gd" id="55_base_ecs_entity"]
-[ext_resource type="Script" path="res://scripts/scene_structure/marker_components_group.gd" id="56_components_group"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="57_ai_brain_component"]
 [ext_resource type="Resource" path="res://resources/ai/sentry/cfg_sentry_brain.tres" id="58_sentry_brain"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="59_input_component"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_movement_component.gd" id="60_movement_component"]
-[ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_movement_default.tres" id="61_movement_settings"]
 [ext_resource type="Script" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_npc.tscn" id="69_prefab_npc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -92,10 +87,6 @@ albedo_color = Color(0.34901962, 0.77254903, 0.3647059, 1)
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_noise_source"]
 radius = 2.0
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sentry"]
-height = 1.4
-radius = 0.45
 
 [sub_resource type="Environment" id="Environment_q3o1v"]
 background_mode = 1
@@ -402,36 +393,25 @@ material = SubResource("StandardMaterial3D_noise")
 [node name="NPCs" type="Node" parent="Entities"]
 script = ExtResource("16_8qi87")
 
-[node name="E_Sentry" type="Node3D" parent="Entities/NPCs"]
+[node name="E_Sentry" parent="Entities/NPCs" instance=ExtResource("69_prefab_npc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.5)
-script = ExtResource("55_base_ecs_entity")
 entity_id = &"sentry"
 tags = Array[StringName]([&"npc", &"ai", &"sentry"])
 
-[node name="NPC_Body" type="CharacterBody3D" parent="Entities/NPCs/E_Sentry"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+[node name="Body_Mesh" parent="Entities/NPCs/E_Sentry/Player_Body"]
+visible = false
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NPCs/E_Sentry/NPC_Body"]
-shape = SubResource("CapsuleShape3D_sentry")
-
-[node name="Visual" type="CSGBox3D" parent="Entities/NPCs/E_Sentry/NPC_Body"]
+[node name="Visual" type="CSGBox3D" parent="Entities/NPCs/E_Sentry/Player_Body"]
 transform = Transform3D(0.95105654, 0, -0.309017, 0, 1, 0, 0.309017, 0, 0.95105654, 0, 1.1, 0)
+use_collision = false
 size = Vector3(1.1, 2.2, 1.1)
 material = SubResource("StandardMaterial3D_noise")
 
-[node name="Components" type="Node" parent="Entities/NPCs/E_Sentry"]
-script = ExtResource("56_components_group")
-
-[node name="C_AIBrainComponent" type="Node" parent="Entities/NPCs/E_Sentry/Components"]
-script = ExtResource("57_ai_brain_component")
+[node name="C_AIBrainComponent" parent="Entities/NPCs/E_Sentry/Components"]
 brain_settings = ExtResource("58_sentry_brain")
 
-[node name="C_InputComponent" type="Node" parent="Entities/NPCs/E_Sentry/Components"]
-script = ExtResource("59_input_component")
-
-[node name="C_MovementComponent" type="Node" parent="Entities/NPCs/E_Sentry/Components"]
-script = ExtResource("60_movement_component")
-settings = ExtResource("61_movement_settings")
+[node name="C_AlignWithSurfaceComponent" parent="Entities/NPCs/E_Sentry/Components"]
+visual_alignment_path = NodePath("../../Player_Body/Visual")
 
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
