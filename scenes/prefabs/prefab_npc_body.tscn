@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/tex_shadow_blob.png" id="1_shadow_blob"]
+
+[node name="NPC_BodyMeshRoot" type="Node3D"]
+
+[node name="GroundIndicator" type="Sprite3D" parent="."]
+transform = Transform3D(0.2, 0, 0, 0, -8.742278e-09, -0.2, 0, 0.2, -8.742278e-09, 0, -2.3227184, 0)
+modulate = Color(1, 1, 1, 0.49803922)
+texture = ExtResource("1_shadow_blob")

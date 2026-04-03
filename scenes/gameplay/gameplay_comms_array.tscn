@@ -398,9 +398,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.5)
 entity_id = &"sentry"
 tags = Array[StringName]([&"npc", &"ai", &"sentry"])
 
-[node name="Body_Mesh" parent="Entities/NPCs/E_Sentry/Player_Body"]
-visible = false
-
 [node name="Visual" type="CSGBox3D" parent="Entities/NPCs/E_Sentry/Player_Body"]
 transform = Transform3D(0.95105654, 0, -0.309017, 0, 1, 0, 0.309017, 0, 0.95105654, 0, 1.1, 0)
 use_collision = false
