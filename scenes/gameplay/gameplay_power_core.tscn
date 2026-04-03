@@ -69,7 +69,7 @@
 [ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="64_room_fade_system"]
 [ext_resource type="Script" uid="uid://cljhkpb2gl28" path="res://scripts/ecs/components/c_floating_component.gd" id="65_floating_component"]
 [ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_floating_patrol_drone_default.tres" id="66_floating_settings"]
-[ext_resource type="Script" uid="uid://blsmtgrb4ucc8" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="Resource" path="res://resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres" id="68_ai_patrol_drone_spawn_meta"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
@@ -460,8 +460,6 @@ collision_mask = 33
 
 [node name="Visual" type="CSGSphere3D" parent="Entities/NPCs/E_PatrolDrone/NPC_Body" unique_id=260189473]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
-use_collision = true
-collision_layer = 33
 radius = 0.8
 material = SubResource("StandardMaterial3D_marker")
 

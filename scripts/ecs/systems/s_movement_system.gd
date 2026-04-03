@@ -9,6 +9,8 @@ const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
+const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const AI_BRAIN_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
@@ -54,6 +56,7 @@ func process_tick(delta: float) -> void:
 		[
 			FLOATING_TYPE,
 			CHARACTER_STATE_TYPE,
+			AI_BRAIN_TYPE,
 		]
 	)
 
@@ -127,31 +130,35 @@ func process_tick(delta: float) -> void:
 		var has_input: bool = input_vector.length() > 0.0
 		var desired_velocity: Vector3 = Vector3.ZERO
 		if has_input:
-			var camera: Camera3D = ECS_UTILS.get_active_camera(self)
-			if camera != null:
-				var up_dir: Vector3 = (body.up_direction if body != null else Vector3.UP)
-				if up_dir.length() == 0.0:
-					up_dir = Vector3.UP
-				var cam_forward: Vector3 = -camera.global_transform.basis.z
-				cam_forward = _project_onto_plane(cam_forward, up_dir)
-				if cam_forward.length() == 0.0:
-					cam_forward = _project_onto_plane(Vector3.FORWARD, up_dir)
-				cam_forward = cam_forward.normalized()
-				var cam_right: Vector3 = camera.global_transform.basis.x
-				cam_right = _project_onto_plane(cam_right, up_dir)
-				if cam_right.length() == 0.0:
-					cam_right = cam_forward.cross(up_dir)
-				cam_right = cam_right.normalized()
-				var forward_input: float = -input_vector.y
-				var desired_dir: Vector3 = (cam_right * input_vector.x) + (cam_forward * forward_input)
-				# Preserve analog magnitude from input_vector when using camera-relative movement.
-				# Scale speed by stick magnitude (0.0 - 1.0) instead of normalizing to unit length.
-				var analog_scale: float = clampf(input_vector.length(), 0.0, 1.0)
-				if desired_dir.length() > 0.0:
-					desired_dir = desired_dir.normalized()
-				desired_velocity = desired_dir * (current_max_speed * analog_scale)
-			else:
+			var uses_ai_world_space_input: bool = entity_query.get_component(AI_BRAIN_TYPE) != null
+			if uses_ai_world_space_input:
 				desired_velocity = _get_desired_velocity(input_vector, current_max_speed)
+			else:
+				var camera: Camera3D = ECS_UTILS.get_active_camera(self)
+				if camera != null:
+					var up_dir: Vector3 = (body.up_direction if body != null else Vector3.UP)
+					if up_dir.length() == 0.0:
+						up_dir = Vector3.UP
+					var cam_forward: Vector3 = -camera.global_transform.basis.z
+					cam_forward = _project_onto_plane(cam_forward, up_dir)
+					if cam_forward.length() == 0.0:
+						cam_forward = _project_onto_plane(Vector3.FORWARD, up_dir)
+					cam_forward = cam_forward.normalized()
+					var cam_right: Vector3 = camera.global_transform.basis.x
+					cam_right = _project_onto_plane(cam_right, up_dir)
+					if cam_right.length() == 0.0:
+						cam_right = cam_forward.cross(up_dir)
+					cam_right = cam_right.normalized()
+					var forward_input: float = -input_vector.y
+					var desired_dir: Vector3 = (cam_right * input_vector.x) + (cam_forward * forward_input)
+					# Preserve analog magnitude from input_vector when using camera-relative movement.
+					# Scale speed by stick magnitude (0.0 - 1.0) instead of normalizing to unit length.
+					var analog_scale: float = clampf(input_vector.length(), 0.0, 1.0)
+					if desired_dir.length() > 0.0:
+						desired_dir = desired_dir.normalized()
+					desired_velocity = desired_dir * (current_max_speed * analog_scale)
+				else:
+					desired_velocity = _get_desired_velocity(input_vector, current_max_speed)
 
 		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
 

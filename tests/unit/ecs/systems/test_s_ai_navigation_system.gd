@@ -161,8 +161,8 @@ func test_writes_direction_toward_target() -> void:
 
 	system.process_tick(0.016)
 
-	assert_almost_eq(input.move_vector.x, 0.0, 0.01)
-	assert_almost_eq(input.move_vector.y, -1.0, 0.01)
+	assert_almost_eq(input.move_vector.x, 1.0, 0.01)
+	assert_almost_eq(input.move_vector.y, 0.0, 0.01)
 
 func test_writes_zero_when_no_target() -> void:
 	var fixture: Dictionary = _create_fixture(true)
@@ -192,7 +192,45 @@ func test_writes_zero_when_at_target() -> void:
 	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
 
 	body.global_position = Vector3(2.0, 0.0, 3.0)
-	brain.task_state = {"ai_move_target": Vector3(2.02, 10.0, 3.01)}
+	brain.task_state = {"ai_move_target": Vector3(2.02, 10.0, 3.01), "ai_arrival_threshold": 0.05}
+	system.process_tick(0.016)
+
+	assert_eq(input.move_vector, Vector2.ZERO)
+
+func test_stops_moving_within_action_arrival_threshold() -> void:
+	var fixture: Dictionary = _create_fixture(true)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var body: FakeBody = fixture["body"] as FakeBody
+	var brain: Variant = fixture["brain"]
+	var input: C_InputComponent = fixture["input"] as C_InputComponent
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+
+	body.global_position = Vector3(1.0, 0.0, 1.0)
+	brain.task_state = {"ai_move_target": Vector3(1.1, 0.0, 1.0), "ai_arrival_threshold": 0.25}
+	input.set_move_vector(Vector2(0.6, -0.4))
+
+	system.process_tick(0.016)
+
+	assert_eq(input.move_vector, Vector2.ZERO)
+
+func test_uses_default_threshold_when_not_in_task_state() -> void:
+	var fixture: Dictionary = _create_fixture(true)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var body: FakeBody = fixture["body"] as FakeBody
+	var brain: Variant = fixture["brain"]
+	var input: C_InputComponent = fixture["input"] as C_InputComponent
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+
+	body.global_position = Vector3(2.0, 0.0, 2.0)
+	brain.task_state = {"ai_move_target": Vector3(2.2, 0.0, 2.0)}
+	input.set_move_vector(Vector2(0.5, 0.3))
+
 	system.process_tick(0.016)
 
 	assert_eq(input.move_vector, Vector2.ZERO)
@@ -254,6 +292,30 @@ func test_updates_direction_when_target_changes() -> void:
 	assert_ne(first_vector, second_vector)
 	assert_almost_eq(second_vector.x, 0.0, 0.01)
 	assert_almost_eq(second_vector.y, 1.0, 0.01)
+
+func test_writes_world_space_direction_without_camera_transform() -> void:
+	var fixture: Dictionary = _create_fixture(true)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var body: FakeBody = fixture["body"] as FakeBody
+	var brain: Variant = fixture["brain"]
+	var input: C_InputComponent = fixture["input"] as C_InputComponent
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+
+	body.global_position = Vector3.ZERO
+	brain.task_state = {"ai_move_target": Vector3(10.0, 0.0, 0.0)}
+
+	var camera := Camera3D.new()
+	add_child_autofree(camera)
+	camera.rotation = Vector3(0.0, -PI / 2.0, 0.0)
+	_register_camera(camera)
+
+	system.process_tick(0.016)
+
+	assert_almost_eq(input.move_vector.x, 1.0, 0.01)
+	assert_almost_eq(input.move_vector.y, 0.0, 0.01)
 
 func test_handles_no_camera_gracefully() -> void:
 	var fixture: Dictionary = _create_fixture(true)

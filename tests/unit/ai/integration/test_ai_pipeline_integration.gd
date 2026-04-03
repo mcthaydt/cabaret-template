@@ -325,40 +325,12 @@ func _simulate_ai_motion(fixture: Dictionary, delta: float) -> void:
 	if move_vector.length() <= 0.0001:
 		return
 
-	var camera: Camera3D = fixture.get("camera", null) as Camera3D
-	var desired_velocity: Vector3 = Vector3.ZERO
-	if camera != null:
-		var up_dir: Vector3 = Vector3.UP
-		var cam_forward: Vector3 = _project_onto_plane(-camera.global_transform.basis.z, up_dir)
-		if cam_forward.length() == 0.0:
-			cam_forward = _project_onto_plane(Vector3.FORWARD, up_dir)
-		cam_forward = cam_forward.normalized()
-
-		var cam_right: Vector3 = _project_onto_plane(camera.global_transform.basis.x, up_dir)
-		if cam_right.length() == 0.0:
-			cam_right = cam_forward.cross(up_dir)
-		cam_right = cam_right.normalized()
-
-		var forward_input: float = -move_vector.y
-		var desired_dir: Vector3 = (cam_right * move_vector.x) + (cam_forward * forward_input)
-		if desired_dir.length() > 0.0:
-			desired_dir = desired_dir.normalized()
-		var analog_scale: float = clampf(move_vector.length(), 0.0, 1.0)
-		desired_velocity = desired_dir * (MOVE_SIMULATION_SPEED * analog_scale)
-	else:
-		var unclamped := Vector2(move_vector.x, move_vector.y)
-		if unclamped.length() > 1.0:
-			unclamped = unclamped.normalized()
-		desired_velocity = Vector3(unclamped.x, 0.0, unclamped.y) * MOVE_SIMULATION_SPEED
+	var unclamped := Vector2(move_vector.x, move_vector.y)
+	if unclamped.length() > 1.0:
+		unclamped = unclamped.normalized()
+	var desired_velocity := Vector3(unclamped.x, 0.0, unclamped.y) * MOVE_SIMULATION_SPEED
 
 	body.global_position += desired_velocity * maxf(delta, 0.0)
-
-func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
-	var normal: Vector3 = plane_normal
-	if normal.length() == 0.0:
-		return Vector3.ZERO
-	normal = normal.normalized()
-	return vector - normal * vector.dot(normal)
 
 func _assert_vector3_almost_eq(actual: Vector3, expected: Vector3, epsilon: float = 0.0001) -> void:
 	assert_almost_eq(actual.x, expected.x, epsilon)
@@ -408,8 +380,8 @@ func test_full_pipeline_patrol_pattern() -> void:
 		navigation.process_tick(0.1)
 		var ai_before_input: Vector2 = ai_input.move_vector
 		if step == 0:
-			assert_almost_eq(ai_before_input.x, 0.0, 0.01)
-			assert_almost_eq(ai_before_input.y, -1.0, 0.01)
+			assert_almost_eq(ai_before_input.x, 1.0, 0.01)
+			assert_almost_eq(ai_before_input.y, 0.0, 0.01)
 
 		input_system.process_tick(0.1)
 		assert_almost_eq(ai_input.move_vector.x, ai_before_input.x, 0.0001)

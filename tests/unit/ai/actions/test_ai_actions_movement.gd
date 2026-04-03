@@ -34,6 +34,22 @@ func test_move_to_action_sets_target_in_task_state() -> void:
 	if target_variant is Vector3:
 		_assert_vector3_almost_eq(target_variant as Vector3, Vector3(3.0, 0.0, 2.0))
 
+func test_move_to_start_writes_arrival_threshold_to_task_state() -> void:
+	var action_script: Script = _load_script(ACTION_MOVE_TO_PATH)
+	if action_script == null:
+		return
+
+	var action: Resource = action_script.new()
+	action.set("target_position", Vector3(2.0, 0.0, 1.0))
+	action.set("arrival_threshold", 0.27)
+
+	var context: Dictionary = {}
+	var task_state: Dictionary = {}
+	action.start(context, task_state)
+
+	assert_true(task_state.has("ai_arrival_threshold"))
+	assert_almost_eq(float(task_state.get("ai_arrival_threshold", -1.0)), 0.27, 0.0001)
+
 func test_move_to_action_completes_when_within_threshold() -> void:
 	var action_script: Script = _load_script(ACTION_MOVE_TO_PATH)
 	if action_script == null:

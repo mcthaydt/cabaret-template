@@ -3,6 +3,8 @@ extends "res://scripts/interfaces/i_ai_action.gd"
 class_name RS_AIActionMoveTo
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const TARGET_STATE_KEY := "ai_move_target"
+const ARRIVAL_THRESHOLD_STATE_KEY := "ai_arrival_threshold"
 
 @export_group("Target")
 @export var target_position: Vector3 = Vector3.ZERO
@@ -12,21 +14,25 @@ const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_c
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
 	var resolved_target: Variant = _resolve_target(context)
+	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
 	if resolved_target is Vector3:
-		task_state["ai_move_target"] = resolved_target
+		task_state[TARGET_STATE_KEY] = resolved_target
+		task_state[ARRIVAL_THRESHOLD_STATE_KEY] = resolved_arrival_threshold
 		task_state["move_target_resolved"] = true
 		return
-	task_state.erase("ai_move_target")
+	task_state.erase(TARGET_STATE_KEY)
+	task_state.erase(ARRIVAL_THRESHOLD_STATE_KEY)
 	task_state["move_target_resolved"] = false
 
 func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
 	var resolved_target: Variant = _resolve_target(context)
 	if resolved_target is Vector3:
-		task_state["ai_move_target"] = resolved_target
+		task_state[TARGET_STATE_KEY] = resolved_target
+		task_state[ARRIVAL_THRESHOLD_STATE_KEY] = maxf(arrival_threshold, 0.0)
 		task_state["move_target_resolved"] = true
 
 func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
-	var target_variant: Variant = task_state.get("ai_move_target", null)
+	var target_variant: Variant = task_state.get(TARGET_STATE_KEY, null)
 	if not (target_variant is Vector3):
 		return true
 

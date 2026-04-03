@@ -153,6 +153,17 @@ func _load_scene_root(scene_path: String) -> Node:
 	add_child_autofree(root)
 	return root
 
+func _assert_npc_visual_collision_disabled(scene_path: String, visual_path: NodePath) -> void:
+	var root: Node = _load_scene_root(scene_path)
+	if root == null:
+		return
+	var visual_variant: Variant = root.get_node_or_null(visual_path)
+	assert_true(visual_variant is CSGShape3D, "Expected CSG visual at %s in %s" % [String(visual_path), scene_path])
+	if not (visual_variant is CSGShape3D):
+		return
+	var visual: CSGShape3D = visual_variant as CSGShape3D
+	assert_false(visual.use_collision, "NPC visual CSG should keep use_collision disabled to avoid body self-collision jitter")
+
 func test_patrol_drone_brain_has_expected_goals_and_tasks() -> void:
 	_assert_brain_goals(
 		PATROL_BRAIN_PATH,
@@ -199,6 +210,20 @@ func test_demo_scenes_wire_npcs_to_m10_brain_resources() -> void:
 		NAV_NEXUS_SCENE_PATH,
 		NodePath("Entities/NPCs/E_GuidePrism/Components/C_AIBrainComponent"),
 		GUIDE_BRAIN_PATH
+	)
+
+func test_demo_npc_visual_csg_collision_is_disabled() -> void:
+	_assert_npc_visual_collision_disabled(
+		POWER_CORE_SCENE_PATH,
+		NodePath("Entities/NPCs/E_PatrolDrone/NPC_Body/Visual")
+	)
+	_assert_npc_visual_collision_disabled(
+		COMMS_ARRAY_SCENE_PATH,
+		NodePath("Entities/NPCs/E_Sentry/NPC_Body/Visual")
+	)
+	_assert_npc_visual_collision_disabled(
+		NAV_NEXUS_SCENE_PATH,
+		NodePath("Entities/NPCs/E_GuidePrism/NPC_Body/Visual")
 	)
 
 func test_demo_goal_conditions_use_durable_ai_demo_flags() -> void:
