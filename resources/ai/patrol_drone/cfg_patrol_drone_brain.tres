@@ -9,3 +9,6 @@ script = ExtResource("1_brain")
 goals = Array[Resource]([ExtResource("2_goal_patrol"), ExtResource("3_goal_investigate")])
 default_goal_id = &"patrol"
 evaluation_interval = 0.2
+respawn_spawn_point_id = &"sp_ai_patrol_drone"
+respawn_unsupported_delay_sec = 0.6
+respawn_recovery_cooldown_sec = 1.0

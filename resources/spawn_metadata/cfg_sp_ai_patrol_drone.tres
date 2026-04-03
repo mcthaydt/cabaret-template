@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RS_SpawnMetadata" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/scene_management/rs_spawn_metadata.gd" id="1_spawn_meta"]
+
+[resource]
+script = ExtResource("1_spawn_meta")
+spawn_id = &"sp_ai_patrol_drone"
+tags = Array[StringName]([&"ai", &"patrol_drone"])
+priority = 20
+condition = 0
+snap_to_ground_on_spawn = false

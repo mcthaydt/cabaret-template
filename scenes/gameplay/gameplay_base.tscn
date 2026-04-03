@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_navigation_system.gd" id="54_ai_navigation_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
 [ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
@@ -197,6 +198,10 @@ execution_priority = 50
 [node name="S_FloatingSystem" type="Node" parent="Systems/Movement" unique_id=778887760]
 script = ExtResource("6_tnjgn")
 execution_priority = 70
+
+[node name="S_AISpawnRecoverySystem" type="Node" parent="Systems/Movement"]
+script = ExtResource("67_ai_spawn_recovery_system")
+execution_priority = 75
 
 [node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement" unique_id=1675353192]
 script = ExtResource("5_r0a6q")

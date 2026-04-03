@@ -8,6 +8,7 @@ const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 
 var spawn_manager: M_SPAWN_MANAGER
 var state_store: M_STATE_STORE
@@ -67,6 +68,76 @@ func test_spawn_fails_gracefully_with_empty_spawn_point_id() -> void:
 	# Assert
 	assert_push_error("Cannot spawn player - spawn_point_id is empty")
 	assert_false(result, "Should fail with empty spawn point ID")
+
+func test_spawn_entity_at_point_positions_entity_and_zeros_velocity() -> void:
+	# Arrange
+	var spawn_point := Node3D.new()
+	spawn_point.name = "sp_ai_recover"
+	spawn_point.position = Vector3(3, 2, -4)
+	test_scene.add_child(spawn_point)
+
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = "E_PatrolDrone"
+	entity.entity_id = &"patrol_drone"
+	test_scene.add_child(entity)
+
+	var body := CharacterBody3D.new()
+	body.name = "NPC_Body"
+	body.velocity = Vector3(2.0, -9.0, 1.0)
+	entity.add_child(body)
+
+	# Act
+	var result: bool = spawn_manager.spawn_entity_at_point(test_scene, &"patrol_drone", &"sp_ai_recover")
+
+	# Assert
+	assert_true(result, "Generic entity spawn should succeed")
+	assert_almost_eq(entity.global_position, spawn_point.global_position, Vector3(0.01, 0.01, 0.01))
+	assert_eq(body.velocity, Vector3.ZERO, "Spawn should reset entity body velocity")
+
+func test_spawn_entity_at_point_fails_when_spawn_point_missing() -> void:
+	# Arrange
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = "E_PatrolDrone"
+	entity.entity_id = &"patrol_drone"
+	test_scene.add_child(entity)
+
+	# Act
+	var result: bool = spawn_manager.spawn_entity_at_point(test_scene, &"patrol_drone", &"sp_missing")
+
+	# Assert
+	assert_false(result, "Generic entity spawn should fail for missing spawn point")
+	assert_push_error("Spawn point 'sp_missing' not found in scene")
+
+func test_spawn_entity_at_point_fails_when_entity_id_empty() -> void:
+	# Arrange
+	var spawn_point := Node3D.new()
+	spawn_point.name = "sp_ai_recover"
+	test_scene.add_child(spawn_point)
+
+	# Act
+	var result: bool = spawn_manager.spawn_entity_at_point(test_scene, StringName(""), &"sp_ai_recover")
+
+	# Assert
+	assert_false(result, "Generic entity spawn should fail for empty entity_id")
+	assert_push_error("Cannot spawn entity - entity_id is empty")
+
+func test_spawn_entity_at_point_fails_when_entity_not_found() -> void:
+	# Arrange
+	var spawn_point := Node3D.new()
+	spawn_point.name = "sp_ai_recover"
+	test_scene.add_child(spawn_point)
+
+	var other_entity := BASE_ECS_ENTITY.new()
+	other_entity.name = "E_OtherNPC"
+	other_entity.entity_id = &"other_npc"
+	test_scene.add_child(other_entity)
+
+	# Act
+	var result: bool = spawn_manager.spawn_entity_at_point(test_scene, &"patrol_drone", &"sp_ai_recover")
+
+	# Assert
+	assert_false(result, "Generic entity spawn should fail when entity ID is missing in scene")
+	assert_push_error("Entity 'patrol_drone' not found in scene")
 
 func test_spawn_handles_player_with_different_node_types() -> void:
 	# Arrange: Test with different Node3D-based player types
