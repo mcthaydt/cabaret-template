@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 12 complete, Milestones 13-16 planned (character unification, AI showcase scene, player-NPC interactions, debug overlay)
+**Status**: Milestone 13 complete, Milestones 14-16 planned (AI showcase scene, player-NPC interactions, debug overlay)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -544,7 +544,7 @@
 
 **Goal**: Player and AI characters should be functionally the same — same base template (`tmpl_character.tscn`), same component stack — except the AI has a different model, no human input, and an AI brain. Currently all 3 demo NPCs are built inline with only 4 components (vs 10+ on the player).
 
-- [ ] **Step 13a** — Create `scenes/prefabs/prefab_npc.tscn` extending `tmpl_character.tscn` (TDD):
+- [x] **Step 13a** — Create `scenes/prefabs/prefab_npc.tscn` extending `tmpl_character.tscn` (TDD):
   - Inherits all 9 base components: `C_SpawnStateComponent`, `C_CharacterStateComponent`, `C_MovementComponent`, `C_JumpComponent`, `C_RotateToInputComponent`, `C_FloatingComponent`, `C_AlignWithSurfaceComponent`, `C_LandingIndicatorComponent`, `C_HealthComponent`
   - Adds: `C_InputComponent`, `C_AIBrainComponent`
   - Does NOT add: `C_PlayerTagComponent`, `C_GamepadComponent`, `C_SurfaceDetectorComponent`
@@ -552,7 +552,7 @@
   - Tests RED: `test_npc_prefab_has_all_base_character_components`, `test_npc_has_ai_brain`, `test_npc_has_input`, `test_npc_no_player_tag`, `test_npc_no_gamepad`
   - Tests GREEN: create scene
 
-- [ ] **Step 13b** — Replace inline NPCs in all 3 demo scenes:
+- [x] **Step 13b** — Replace inline NPCs in all 3 demo scenes:
   - `gameplay_power_core.tscn`: Replace inline `E_PatrolDrone` with `prefab_npc.tscn` instance, override entity_id/tags/brain_settings/visual
   - `gameplay_comms_array.tscn`: Replace inline `E_Sentry` similarly
   - `gameplay_nav_nexus.tscn`: Replace inline `E_GuidePrism` similarly
@@ -560,18 +560,45 @@
   - **CRITICAL**: NPC visuals must NOT have `use_collision = true` — this caused the M12 jitter bug (CSG collision fighting CharacterBody3D). Use MeshInstance3D or CSG without collision for visuals.
   - Tests: extend `test_ai_demo_behavior_resources.gd` to verify full component stacks
 
-- [ ] **Step 13c** — Regression verification:
+- [x] **Step 13c** — Regression verification:
   - Run all existing AI tests (navigation, behavior goals, behavior tasks, integration, spawn recovery)
   - Run style enforcement
   - Full suite regression
 
 **M13 Verification**:
-- [ ] All 3 demo NPCs use `prefab_npc.tscn` as their base
-- [ ] Each NPC has the full character component stack (same as player minus input-specific components)
-- [ ] NPC prefab structure tests pass
-- [ ] All existing AI + demo resource tests pass
-- [ ] `test_style_enforcement.gd` passes
-- [ ] Full regression green
+- [x] All 3 demo NPCs use `prefab_npc.tscn` as their base
+- [x] Each NPC has the full character component stack (same as player minus input-specific components)
+- [x] NPC prefab structure tests pass
+- [x] All existing AI + demo resource tests pass
+- [x] `test_style_enforcement.gd` passes
+- [x] Full regression green
+
+**M13 Completion Notes (2026-04-03)**:
+- RED/GREEN coverage added for prefab contract:
+  - Added `tests/unit/ai/resources/test_prefab_npc.gd` (`5/5` passing) with required stack/presence/absence assertions.
+- Implemented shared NPC prefab and scene migration:
+  - Added `scenes/prefabs/prefab_npc.tscn` (inherits `tmpl_character.tscn`, adds `C_InputComponent` + `C_AIBrainComponent`, default tags `npc/ai/character`).
+  - Replaced inline NPC entities in:
+    - `scenes/gameplay/gameplay_power_core.tscn`
+    - `scenes/gameplay/gameplay_comms_array.tscn`
+    - `scenes/gameplay/gameplay_nav_nexus.tscn`
+  - Preserved archetype-specific behavior via per-scene `C_AIBrainComponent.brain_settings` overrides and custom visual nodes.
+  - Preserved M12 guardrail: NPC visual CSG nodes explicitly keep `use_collision = false`.
+- Expanded/updated regression coverage:
+  - `tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` now validates unified NPC component stacks (`8/8` passing).
+  - `tests/integration/spawn_system/test_ai_spawn_recovery_power_core.gd` updated for prefab body path (`Player_Body`) and remains green (`1/1`).
+- Targeted verification runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_prefab_npc.gd` → `5/5`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `8/8`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `12/12`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` → `12/12`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd` → `3/3`
+  - `tools/run_gut_suite.sh -gtest=res://tests/integration/spawn_system/test_ai_spawn_recovery_power_core.gd` → `1/1`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
+- Full regression snapshot:
+  - `tools/run_gut_suite.sh` → `3731/3740` passing, `9` pending/risky, `0` failing.
 
 ---
 
@@ -648,11 +675,11 @@
 
 - [x] Milestones 1-11 complete
 - [x] Milestone 12 complete (jitter fix)
-- [ ] Milestone 13 complete (character unification)
+- [x] Milestone 13 complete (character unification)
 - [ ] Milestone 14 complete (showcase scene layout)
 - [ ] Milestone 15 complete (player-NPC interactions)
 - [ ] Milestone 16 complete (debug overlay)
-- [ ] All tests green (unit, integration, style)
+- [x] All tests green (unit, integration, style)
 - [x] Continuation prompt updated to "Complete"
 - [x] AGENTS.md updated with AI System patterns (if applicable)
 - [x] DEV_PITFALLS.md updated with any new pitfalls discovered

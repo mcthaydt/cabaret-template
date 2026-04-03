@@ -5,28 +5,27 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 12 complete; Milestones 13-16 planned (character unification, AI showcase, player-NPC interactions, debug overlay)
+**Status**: Milestone 13 complete; Milestones 14-16 planned (AI showcase, player-NPC interactions, debug overlay)
 
 ---
 
-## Current Status: Milestone 12 Complete, 13-16 Planned
+## Current Status: Milestone 13 Complete, 14-16 Planned
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (12 complete milestones, 4 remaining milestones).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (13 complete milestones, 3 remaining milestones).
 
-### Next Up: M13 — Create `prefab_npc.tscn` + Character Stack Unification
+### Next Up: M14 — Combined AI Showcase Scene Layout
 
-**M13 goal:** Replace inline AI entities with a shared `prefab_npc.tscn` extending `tmpl_character.tscn`, preserving AI-specific differences while inheriting the standard character stack.
+**M14 goal:** Build `gameplay_ai_showcase.tscn` that combines patrol, guard, and guide archetypes into a single 3-zone scene with 3-5 simultaneous NPCs.
 
-**M13 priority:**
-1. Build `prefab_npc.tscn` with full character runtime stack + AI additions
-2. Replace inline NPCs in `gameplay_power_core`, `gameplay_comms_array`, and `gameplay_nav_nexus`
-3. Preserve M12 guardrail: NPC visuals must keep CSG `use_collision = false`
+**M14 priority:**
+1. Author `gameplay_ai_showcase.tscn` with three connected zones (patrol, guard, guide)
+2. Populate the scene with 3-5 NPCs using `prefab_npc.tscn` + archetype brain resources
+3. Register the scene in scene registry and wire default gameplay references only if intended for primary demo routing
 
-### Planned: M13-16
+### Planned: M14-16
 
-- M13: Create `prefab_npc.tscn` extending `tmpl_character.tscn` + replace inline NPCs
 - M14: Combined AI showcase scene (all archetypes, 3-5 NPCs, 3 zones)
 - M15: Player-NPC interaction triggers (proximity detection, cascading events)
 - M16: AI debug overlay system (floating labels, color-coded states)
@@ -281,6 +280,36 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
     - `tests/unit/state/test_m_state_store.gd` (`test_signal_batching_overhead_less_than_0_05ms`) now uses a headless-aware threshold.
     - `tests/unit/state/test_state_store_copy_optimization.gd` (`test_a1_dispatch_with_multiple_subscribers_is_faster_than_per_subscriber_copy`) now runs against a dedicated history-disabled store and uses a headless-aware threshold.
 
+### Completed in M13 (2026-04-03)
+
+- Added RED/GREEN prefab structure coverage:
+  - `tests/unit/ai/resources/test_prefab_npc.gd` (`5/5`) verifies base character stack inheritance, required AI/input components, and absence of player-only components.
+- Implemented shared NPC prefab:
+  - `scenes/prefabs/prefab_npc.tscn` (inherits `tmpl_character.tscn`, adds `C_InputComponent` + `C_AIBrainComponent`, defaults tags to `npc/ai/character`).
+- Replaced inline NPC entities with prefab instances:
+  - `scenes/gameplay/gameplay_power_core.tscn` (`E_PatrolDrone`)
+  - `scenes/gameplay/gameplay_comms_array.tscn` (`E_Sentry`)
+  - `scenes/gameplay/gameplay_nav_nexus.tscn` (`E_GuidePrism`)
+- Preserved archetype differences while unifying stack:
+  - Scene-local overrides keep per-NPC `brain_settings`, transform, tags, and custom visual geometry.
+  - Patrol drone keeps floating tuning override via `cfg_floating_patrol_drone_default`.
+- Preserved collision guardrail from M12:
+  - NPC visual CSG children now live under prefab `Player_Body/Visual` with `use_collision = false`.
+- Expanded migration regression coverage:
+  - `tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` now includes unified stack assertions (`8/8`).
+  - `tests/integration/spawn_system/test_ai_spawn_recovery_power_core.gd` updated for prefab body path (`Player_Body`) and remains green (`1/1`).
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_prefab_npc.gd` → `5/5`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `8/8`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `12/12`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` → `12/12`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd` → `3/3`
+  - `tools/run_gut_suite.sh -gtest=res://tests/integration/spawn_system/test_ai_spawn_recovery_power_core.gd` → `1/1`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
+  - Full regression: `tools/run_gut_suite.sh` → `3731/3740` passing, `9` pending/risky, `0` failing.
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -299,6 +328,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **M9 mobile-safe scene registration is complete**: Power Core/Comms Array/Nav Nexus are now first-class `scene_registry` entries and are included in the loader preload manifest/backfill safety net for mobile/web exports.
 - **M10 demo behavior integration is complete**: Patrol Drone, Sentry, and Guide Prism now use durable gameplay AI flags for investigate/celebrate gating, and trigger zones are runtime-wired (including Nav fall hazard + victory flagging) so authored behaviors execute reliably in-scene.
 - **Default new-game routing now targets the AI demo location**: New Game + splash preload + retry routing resolve to `power_core`.
+- **M13 character stack unification is complete**: authored NPCs now instance `prefab_npc.tscn` (inherits `tmpl_character.tscn`), so they share the same baseline runtime component stack as player characters while excluding player-only components.
 
 ---
 
@@ -408,5 +438,5 @@ You MUST:
 ## Next Steps
 
 1. Optional follow-up: run in-editor playtest passes to tune authored waypoint spacing, scan durations, and cooldown values for feel (functional baseline is now automated-test verified).
-2. Keep this branch focused on post-M12 polish only; use separate commits for implementation vs documentation deltas.
+2. Keep this branch focused on post-M13 showcase and interaction work; use separate commits for implementation vs documentation deltas.
 3. Merge `GOAP-AI` once review is complete.
