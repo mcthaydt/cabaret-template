@@ -12,6 +12,12 @@ const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
+@export var debug_ai_floating_logging: bool = false
+@export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
+@export var debug_entity_id: StringName = StringName("patrol_drone")
+
+var _debug_log_cooldowns: Dictionary = {}
+
 class SupportInfo:
 	var has_hit: bool = false
 	var distance: float = 0.0
@@ -22,6 +28,7 @@ class SupportInfo:
 	var miss_ray_names: Array = []
 
 func process_tick(delta: float) -> void:
+	_tick_debug_log_cooldowns(delta)
 	var manager := get_manager()
 	if manager == null:
 		return
@@ -33,12 +40,15 @@ func process_tick(delta: float) -> void:
 	var character_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, CHARACTER_STATE_TYPE)
 
 	for entity_query in entities:
+		var entity_id: StringName = _resolve_entity_id_from_query(entity_query)
 		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
 		if floating_component == null:
+			_debug_log(entity_id, "skip: missing C_FloatingComponent")
 			continue
 
 		var body: CharacterBody3D = floating_component.get_character_body()
 		if body == null:
+			_debug_log(entity_id, "skip: floating body is null")
 			continue
 
 		if processed.has(body):
@@ -49,6 +59,11 @@ func process_tick(delta: float) -> void:
 		if rays.is_empty():
 			floating_component.update_support_state(false, now)
 			floating_component.update_stable_ground_state(false, STABLE_GROUND_FRAMES_REQUIRED)
+			_debug_log(
+				entity_id,
+				"support_hit=false reason=no_rays body_pos=%s vel=%s"
+				% [str(body.global_position), str(body.velocity)]
+			)
 			continue
 
 		var support: SupportInfo = _collect_support_data(rays)
@@ -74,9 +89,24 @@ func process_tick(delta: float) -> void:
 			else:
 				floating_component.update_support_state(false, now)
 				floating_component.update_stable_ground_state(false, STABLE_GROUND_FRAMES_REQUIRED)
+			_debug_log(
+				entity_id,
+				"spawn_frozen support_hit=%s hits=%d/%d distance=%.3f normal=%s grounded_stable=%s body_pos=%s vel=%s"
+				% [
+					str(support.has_hit),
+					support.hit_count,
+					support.total_rays,
+					support.distance,
+					str(support.normal),
+					str(floating_component.grounded_stable),
+					str(body.global_position),
+					str(body.velocity),
+				]
+			)
 			continue
 
 		var velocity: Vector3 = body.velocity
+		var velocity_before_y: float = velocity.y
 
 		if support.has_hit:
 			var normal: Vector3 = support.normal
@@ -138,12 +168,42 @@ func process_tick(delta: float) -> void:
 
 			floating_component.update_support_state(support_active, now)
 			floating_component.update_stable_ground_state(support_active, STABLE_GROUND_FRAMES_REQUIRED)
+			_debug_log(
+				entity_id,
+				"support_hit=true hits=%d/%d distance=%.3f normal=%s support_active=%s grounded_stable=%s vel_y_before=%.3f vel_y_after=%.3f body_pos=%s hit_rays=%s miss_rays=%s"
+				% [
+					support.hit_count,
+					support.total_rays,
+					support.distance,
+					str(support.normal),
+					str(support_active),
+					str(floating_component.grounded_stable),
+					velocity_before_y,
+					velocity.y,
+					str(body.global_position),
+					str(support.hit_ray_names),
+					str(support.miss_ray_names),
+				]
+			)
 		else:
 			velocity.y -= floating_component.settings.fall_gravity * delta
 			velocity.y = clamp(velocity.y, -floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
 
 			floating_component.update_support_state(false, now)
 			floating_component.update_stable_ground_state(false, STABLE_GROUND_FRAMES_REQUIRED)
+			_debug_log(
+				entity_id,
+				"support_hit=false hits=%d/%d vel_y_before=%.3f vel_y_after=%.3f grounded_stable=%s body_pos=%s miss_rays=%s"
+				% [
+					support.hit_count,
+					support.total_rays,
+					velocity_before_y,
+					velocity.y,
+					str(floating_component.grounded_stable),
+					str(body.global_position),
+					str(support.miss_ray_names),
+				]
+			)
 
 		body.velocity = velocity
 
@@ -189,3 +249,45 @@ func _clamp_velocity_along_normal(velocity: Vector3, normal: Vector3, max_down_s
 	var vel_along_normal: float = velocity.dot(normal)
 	var clamped: float = clamp(vel_along_normal, -max_down_speed, max_up_speed)
 	return velocity + normal * (clamped - vel_along_normal)
+
+func _resolve_entity_id_from_query(entity_query: Object) -> StringName:
+	if entity_query == null:
+		return StringName()
+	if entity_query.has_method("get_entity_id"):
+		var id_variant: Variant = entity_query.call("get_entity_id")
+		if id_variant is StringName:
+			return id_variant as StringName
+		if id_variant is String:
+			var id_text: String = id_variant
+			if not id_text.is_empty():
+				return StringName(id_text)
+
+	var entity_variant: Variant = entity_query.get("entity")
+	if entity_variant is Node:
+		return ECS_UTILS.get_entity_id(entity_variant as Node)
+	return StringName()
+
+func _tick_debug_log_cooldowns(delta: float) -> void:
+	if _debug_log_cooldowns.is_empty():
+		return
+	var step: float = maxf(delta, 0.0)
+	for key_variant in _debug_log_cooldowns.keys():
+		var cooldown: float = float(_debug_log_cooldowns.get(key_variant, 0.0))
+		cooldown = maxf(cooldown - step, 0.0)
+		_debug_log_cooldowns[key_variant] = cooldown
+
+func _consume_debug_log_budget(entity_id: StringName) -> bool:
+	if not debug_ai_floating_logging:
+		return false
+	if debug_entity_id != StringName() and entity_id != debug_entity_id:
+		return false
+	var cooldown: float = float(_debug_log_cooldowns.get(entity_id, 0.0))
+	if cooldown > 0.0:
+		return false
+	_debug_log_cooldowns[entity_id] = maxf(debug_log_interval_sec, 0.05)
+	return true
+
+func _debug_log(entity_id: StringName, message: String) -> void:
+	if not _consume_debug_log_budget(entity_id):
+		return
+	print("S_FloatingSystem[entity=%s] %s" % [str(entity_id), message])

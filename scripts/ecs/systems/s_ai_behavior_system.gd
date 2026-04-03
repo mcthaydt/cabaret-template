@@ -3,6 +3,7 @@ extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const I_AI_ACTION := preload("res://scripts/interfaces/i_ai_action.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
 const RS_AI_GOAL := preload("res://scripts/resources/ai/rs_ai_goal.gd")
@@ -16,21 +17,30 @@ const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker
 const U_HTN_PLANNER := preload("res://scripts/utils/ai/u_htn_planner.gd")
 
 const BRAIN_COMPONENT_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
+const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const GOAL_DECISION_GROUP := StringName("ai_goal")
 const ACTION_STARTED_STATE_KEY := "action_started"
 
 @export var state_store: I_StateStore = null
+@export var debug_ai_logging: bool = false
+@export var debug_ai_render_probe_logging: bool = false
+@export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.5
+@export var debug_entity_id: StringName = StringName("patrol_drone")
 
 var _tracker: U_RuleStateTracker = RULE_STATE_TRACKER.new()
+var _debug_log_cooldowns: Dictionary = {}
+var _empty_query_log_cooldown_sec: float = 0.0
 
 func _init() -> void:
 	execution_priority = -10
 
 func process_tick(delta: float) -> void:
+	_tick_debug_log_cooldowns(delta)
 	_tracker.tick_cooldowns(delta)
 
 	var entities: Array = query_entities([BRAIN_COMPONENT_TYPE])
 	if entities.is_empty():
+		_debug_log_missing_brains()
 		return
 
 	var store: I_StateStore = _resolve_store()
@@ -56,6 +66,7 @@ func process_tick(delta: float) -> void:
 		var context: Dictionary = _build_entity_context(entity_query, brain_variant, redux_state, store)
 		active_context_keys.append(_context_key_for_context(context))
 		_process_brain(brain_variant, brain_settings_variant as Resource, context, delta)
+		_debug_log_brain_state(context, brain_variant)
 
 	_tracker.cleanup_stale_contexts(active_context_keys)
 
@@ -435,3 +446,191 @@ func _variant_to_string_name(value: Variant) -> StringName:
 			return StringName()
 		return StringName(text)
 	return StringName()
+
+func _tick_debug_log_cooldowns(delta: float) -> void:
+	_empty_query_log_cooldown_sec = maxf(_empty_query_log_cooldown_sec - maxf(delta, 0.0), 0.0)
+	if _debug_log_cooldowns.is_empty():
+		return
+	var step: float = maxf(delta, 0.0)
+	for key_variant in _debug_log_cooldowns.keys():
+		var cooldown: float = float(_debug_log_cooldowns.get(key_variant, 0.0))
+		cooldown = maxf(cooldown - step, 0.0)
+		_debug_log_cooldowns[key_variant] = cooldown
+
+func _consume_debug_log_budget(entity_id: StringName) -> bool:
+	if not debug_ai_logging:
+		return false
+	if debug_entity_id != StringName() and entity_id != debug_entity_id:
+		return false
+	var cooldown: float = float(_debug_log_cooldowns.get(entity_id, 0.0))
+	if cooldown > 0.0:
+		return false
+	_debug_log_cooldowns[entity_id] = maxf(debug_log_interval_sec, 0.05)
+	return true
+
+func _debug_log_brain_state(context: Dictionary, brain: Variant) -> void:
+	if brain == null or not (brain is Object):
+		return
+	var entity_id: StringName = _variant_to_string_name(context.get("entity_id", StringName()))
+	if not _consume_debug_log_budget(entity_id):
+		return
+
+	var active_goal_id: StringName = _variant_to_string_name(_read_object_property(brain, "active_goal_id"))
+	var current_task_index: int = _read_int_property(brain, "current_task_index", 0)
+	var queue_variant: Variant = _read_object_property(brain, "current_task_queue")
+	var queue_size: int = 0
+	var task_id: StringName = StringName()
+	if queue_variant is Array:
+		var queue: Array = queue_variant as Array
+		queue_size = queue.size()
+		if current_task_index >= 0 and current_task_index < queue.size():
+			var task_variant: Variant = queue[current_task_index]
+			if task_variant is Object:
+				task_id = _variant_to_string_name((task_variant as Object).get("task_id"))
+
+	var task_state_variant: Variant = _read_object_property(brain, "task_state")
+	var task_state: Dictionary = {}
+	if task_state_variant is Dictionary:
+		task_state = task_state_variant as Dictionary
+
+	var has_move_target: bool = task_state.has("ai_move_target")
+	var move_target_variant: Variant = task_state.get("ai_move_target", null)
+	var move_target_resolved: bool = bool(task_state.get("move_target_resolved", false))
+	var action_started: bool = bool(task_state.get(ACTION_STARTED_STATE_KEY, false))
+	var render_probe: String = ""
+	if debug_ai_render_probe_logging:
+		render_probe = _build_render_probe(context)
+
+	print(
+		"S_AIBehaviorSystem[entity=%s] goal=%s queue_size=%d task_index=%d task_id=%s action_started=%s move_target_resolved=%s has_move_target=%s move_target=%s%s"
+		% [
+			str(entity_id),
+			str(active_goal_id),
+			queue_size,
+			current_task_index,
+			str(task_id),
+			str(action_started),
+			str(move_target_resolved),
+			str(has_move_target),
+			str(move_target_variant),
+			render_probe,
+		]
+	)
+
+func _debug_log_missing_brains() -> void:
+	if not debug_ai_logging:
+		return
+	if _empty_query_log_cooldown_sec > 0.0:
+		return
+	_empty_query_log_cooldown_sec = maxf(debug_log_interval_sec, 0.05)
+
+	var manager: I_ECSManager = get_manager()
+	var registered_brain_count: int = 0
+	if manager != null:
+		registered_brain_count = manager.get_components(BRAIN_COMPONENT_TYPE).size()
+
+	print(
+		"S_AIBehaviorSystem: query_entities([C_AIBrainComponent]) returned 0 entities; registered_brain_components=%d"
+		% [registered_brain_count]
+	)
+
+func _build_render_probe(context: Dictionary) -> String:
+	var entity: Node = context.get("entity", null) as Node
+	var entity_path: String = "<null>"
+	if entity != null and is_instance_valid(entity):
+		entity_path = str(entity.get_path())
+
+	var body: CharacterBody3D = _resolve_body_from_context(context, entity)
+	var body_visible: bool = false
+	var body_visible_in_tree: bool = false
+	var body_position: Vector3 = Vector3.ZERO
+	if body != null and is_instance_valid(body):
+		body_visible = body.visible
+		body_visible_in_tree = body.is_visible_in_tree()
+		body_position = body.global_position
+
+	var visual_node: Node3D = _resolve_visual_node(entity, body)
+	var visual_path: String = "<null>"
+	var visual_type: String = "null"
+	var visual_visible: bool = false
+	var visual_visible_in_tree: bool = false
+	var visual_transparency: Variant = "n/a"
+	var visual_layers: Variant = "n/a"
+	if visual_node != null and is_instance_valid(visual_node):
+		visual_path = str(visual_node.get_path())
+		visual_type = visual_node.get_class()
+		visual_visible = visual_node.visible
+		visual_visible_in_tree = visual_node.is_visible_in_tree()
+		if visual_node is GeometryInstance3D:
+			var geometry: GeometryInstance3D = visual_node as GeometryInstance3D
+			visual_transparency = geometry.transparency
+			visual_layers = geometry.layers
+
+	return (
+		" probe(entity_path=%s body_visible=%s body_visible_tree=%s body_pos=%s visual_path=%s visual_type=%s visual_visible=%s visual_visible_tree=%s visual_transparency=%s visual_layers=%s)"
+		% [
+			entity_path,
+			str(body_visible),
+			str(body_visible_in_tree),
+			str(body_position),
+			visual_path,
+			visual_type,
+			str(visual_visible),
+			str(visual_visible_in_tree),
+			str(visual_transparency),
+			str(visual_layers),
+		]
+	)
+
+func _resolve_body_from_context(context: Dictionary, entity: Node) -> CharacterBody3D:
+	var components_variant: Variant = context.get("components", null)
+	if components_variant is Dictionary:
+		var components: Dictionary = components_variant as Dictionary
+		var movement_component_variant: Variant = components.get(MOVEMENT_COMPONENT_TYPE, null)
+		if movement_component_variant is C_MovementComponent:
+			return (movement_component_variant as C_MovementComponent).get_character_body()
+	return _find_character_body_recursive(entity)
+
+func _resolve_visual_node(entity: Node, body: CharacterBody3D) -> Node3D:
+	var search_root: Node = body
+	if search_root == null:
+		search_root = entity
+	if search_root == null:
+		return null
+
+	var named_visual: Node = search_root.get_node_or_null("Visual")
+	if named_visual is Node3D:
+		return named_visual as Node3D
+	return _find_first_geometry_recursive(search_root)
+
+func _find_character_body_recursive(node: Node) -> CharacterBody3D:
+	if node == null:
+		return null
+	if node is CharacterBody3D:
+		return node as CharacterBody3D
+
+	for child_variant in node.get_children():
+		var child: Node = child_variant as Node
+		if child == null:
+			continue
+		var found: CharacterBody3D = _find_character_body_recursive(child)
+		if found != null:
+			return found
+	return null
+
+func _find_first_geometry_recursive(node: Node) -> Node3D:
+	if node == null:
+		return null
+	if node is MeshInstance3D:
+		return node as MeshInstance3D
+	if node is CSGShape3D:
+		return node as CSGShape3D
+
+	for child_variant in node.get_children():
+		var child: Node = child_variant as Node
+		if child == null:
+			continue
+		var found: Node3D = _find_first_geometry_recursive(child)
+		if found != null:
+			return found
+	return null

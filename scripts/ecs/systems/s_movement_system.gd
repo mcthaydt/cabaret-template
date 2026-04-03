@@ -16,12 +16,17 @@ const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 ## If set, system uses this instead of U_StateUtils.get_store()
 ## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
 @export var state_store: I_StateStore = null
+@export var debug_ai_movement_logging: bool = false
+@export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
+@export var debug_entity_id: StringName = StringName("patrol_drone")
 
 # State stability tracking to prevent flickering in state store
 const MIN_STABLE_FRAMES := 10  # Frames state must be stable before dispatching (~0.167s @ 60fps)
 var _floor_state_stable_frames: Dictionary = {}  # entity_id -> frames_stable
+var _debug_log_cooldowns: Dictionary = {}
 
 func process_tick(delta: float) -> void:
+	_tick_debug_log_cooldowns(delta)
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null
 	if state_store != null:
@@ -53,13 +58,16 @@ func process_tick(delta: float) -> void:
 	)
 
 	for entity_query in entities:
+		var entity_id: StringName = _resolve_entity_id_from_query(entity_query)
 		var movement_component: C_MovementComponent = entity_query.get_component(MOVEMENT_TYPE)
 		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
 		if movement_component == null or input_component == null:
+			_debug_log_for_entity(entity_id, "skip: missing movement/input component")
 			continue
 
 		var body: CharacterBody3D = movement_component.get_character_body()
 		if body == null:
+			_debug_log_for_entity(entity_id, "skip: movement body is null")
 			continue
 
 		var spawn_state: C_SpawnStateComponent = spawn_state_by_body.get(body, null) as C_SpawnStateComponent
@@ -67,6 +75,7 @@ func process_tick(delta: float) -> void:
 		if character_state == null:
 			character_state = character_state_by_body.get(body, null) as C_CharacterStateComponent
 		if character_state != null and not character_state.is_gameplay_active:
+			_debug_log_for_entity(entity_id, "skip: character_state.is_gameplay_active=false")
 			continue
 
 		var state = body_state.get(body, null)
@@ -87,6 +96,7 @@ func process_tick(delta: float) -> void:
 			is_spawn_frozen = spawn_state.is_physics_frozen
 
 		if is_spawn_frozen:
+			_debug_log_for_entity(entity_id, "skip: movement blocked by spawn freeze")
 			_maybe_schedule_spawn_unfreeze(body, spawn_state, current_physics_frame)
 			state.velocity = Vector3.ZERO
 			movement_component.reset_dynamics_state()
@@ -104,6 +114,7 @@ func process_tick(delta: float) -> void:
 		var input_vector: Vector2 = input_component.move_vector
 		var settings: RS_MovementSettings = movement_component.settings
 		if settings == null:
+			_debug_log_for_entity(entity_id, "skip: movement settings are null")
 			continue
 		var is_sprinting := input_component.is_sprinting()
 		var current_max_speed: float = settings.max_speed
@@ -192,6 +203,17 @@ func process_tick(delta: float) -> void:
 		velocity = _clamp_horizontal_speed(velocity, current_max_speed)
 
 		state.velocity = velocity
+		_debug_log_for_entity(
+			entity_id,
+			"input=%s has_input=%s desired_velocity=%s final_velocity=%s supported=%s"
+			% [
+				str(input_vector),
+				str(has_input),
+				str(desired_velocity),
+				str(velocity),
+				str(support_active),
+			]
+		)
 
 		movement_component.update_debug_snapshot({
 			"supported": support_active,
@@ -366,3 +388,45 @@ func _infer_entity_type_from_name(name_text: String) -> String:
 	if "npc" in name_lower:
 		return "npc"
 	return "unknown"
+
+func _resolve_entity_id_from_query(entity_query: Variant) -> StringName:
+	if entity_query == null or not (entity_query is Object):
+		return StringName()
+	var query_object: Object = entity_query as Object
+	if query_object.has_method("get_entity_id"):
+		var id_variant: Variant = query_object.call("get_entity_id")
+		if id_variant is StringName:
+			return id_variant as StringName
+		if id_variant is String:
+			var text: String = id_variant
+			if not text.is_empty():
+				return StringName(text)
+	var entity_variant: Variant = query_object.get("entity")
+	if entity_variant is Node:
+		return ECS_UTILS.get_entity_id(entity_variant as Node)
+	return StringName()
+
+func _tick_debug_log_cooldowns(delta: float) -> void:
+	if _debug_log_cooldowns.is_empty():
+		return
+	var step: float = maxf(delta, 0.0)
+	for key_variant in _debug_log_cooldowns.keys():
+		var cooldown: float = float(_debug_log_cooldowns.get(key_variant, 0.0))
+		cooldown = maxf(cooldown - step, 0.0)
+		_debug_log_cooldowns[key_variant] = cooldown
+
+func _consume_debug_log_budget(entity_id: StringName) -> bool:
+	if not debug_ai_movement_logging:
+		return false
+	if debug_entity_id != StringName() and entity_id != debug_entity_id:
+		return false
+	var cooldown: float = float(_debug_log_cooldowns.get(entity_id, 0.0))
+	if cooldown > 0.0:
+		return false
+	_debug_log_cooldowns[entity_id] = maxf(debug_log_interval_sec, 0.05)
+	return true
+
+func _debug_log_for_entity(entity_id: StringName, message: String) -> void:
+	if not _consume_debug_log_budget(entity_id):
+		return
+	print("S_MovementSystem[entity=%s] %s" % [str(entity_id), message])
