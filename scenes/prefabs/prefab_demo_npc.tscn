@@ -1,20 +1,57 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cv15bmronxxil"]
 
-[ext_resource type="PackedScene" path="res://scenes/templates/tmpl_character.tscn" id="1_character_template"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="2_input"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="3_ai_brain"]
+[ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://scenes/templates/tmpl_character.tscn" id="1_character_template"]
+[ext_resource type="Script" uid="uid://273k4tlpun6e" path="res://scripts/ecs/components/c_input_component.gd" id="2_input"]
+[ext_resource type="Script" uid="uid://baidwxk0mvb2s" path="res://scripts/resources/ecs/rs_floating_settings.gd" id="3_2ykux"]
+[ext_resource type="Script" uid="uid://c8xs8mubjbl1p" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="3_ai_brain"]
 [ext_resource type="Resource" path="res://resources/ai/cfg_ai_brain_placeholder.tres" id="4_ai_brain_placeholder"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_demo_npc_body.tscn" id="5_npc_body"]
+[ext_resource type="PackedScene" uid="uid://bnuwfkkw85h1t" path="res://scenes/prefabs/prefab_demo_npc_body.tscn" id="5_npc_body"]
 
-[node name="E_NPCRoot" instance=ExtResource("1_character_template")]
+[sub_resource type="Resource" id="Resource_e7447"]
+script = ExtResource("3_2ykux")
+
+[node name="E_NPCRoot" unique_id=1019794792 instance=ExtResource("1_character_template")]
 entity_id = &"npc"
 tags = Array[StringName]([&"npc", &"ai", &"character"])
 
-[node name="Body_Mesh" parent="Player_Body" instance=ExtResource("5_npc_body")]
+[node name="CollisionShape3D" parent="Player_Body" parent_id_path=PackedInt32Array(312897681) index="1" unique_id=1174621009]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0853271, 0)
 
-[node name="C_InputComponent" type="Node" parent="Components" index="7"]
+[node name="Center" parent="Player_Body/HoverRays" parent_id_path=PackedInt32Array(125732774) index="0" unique_id=2090294656]
+target_position = Vector3(0, -2.5, 0)
+
+[node name="Forward" parent="Player_Body/HoverRays" parent_id_path=PackedInt32Array(125732774) index="1" unique_id=1587196027]
+target_position = Vector3(0, -2.5, 0)
+
+[node name="Back" parent="Player_Body/HoverRays" parent_id_path=PackedInt32Array(125732774) index="2" unique_id=1819381193]
+target_position = Vector3(0, -2.5, 0)
+
+[node name="Left" parent="Player_Body/HoverRays" parent_id_path=PackedInt32Array(125732774) index="3" unique_id=38065460]
+target_position = Vector3(0, -2.5, 0)
+
+[node name="Right" parent="Player_Body/HoverRays" parent_id_path=PackedInt32Array(125732774) index="4" unique_id=1313980861]
+target_position = Vector3(0, -2.5, 0)
+
+[node name="ForwardLeft" parent="Player_Body/HoverRays" parent_id_path=PackedInt32Array(125732774) index="5" unique_id=2113602555]
+target_position = Vector3(0, -2.5, 0)
+
+[node name="ForwardRight" parent="Player_Body/HoverRays" parent_id_path=PackedInt32Array(125732774) index="6" unique_id=1382398280]
+target_position = Vector3(0, -2.5, 0)
+
+[node name="BackLeft" parent="Player_Body/HoverRays" parent_id_path=PackedInt32Array(125732774) index="7" unique_id=1041709853]
+target_position = Vector3(0, -2.5, 0)
+
+[node name="BackRight" parent="Player_Body/HoverRays" parent_id_path=PackedInt32Array(125732774) index="8" unique_id=326573186]
+target_position = Vector3(0, -2.5, 0)
+
+[node name="Body_Mesh" parent="Player_Body" parent_id_path=PackedInt32Array(312897681) index="3" unique_id=1585689025 instance=ExtResource("5_npc_body")]
+
+[node name="C_FloatingComponent" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="5" unique_id=1372834135]
+settings = SubResource("Resource_e7447")
+
+[node name="C_InputComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="7" unique_id=881642353]
 script = ExtResource("2_input")
 
-[node name="C_AIBrainComponent" type="Node" parent="Components" index="8"]
+[node name="C_AIBrainComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="8" unique_id=392776987]
 script = ExtResource("3_ai_brain")
 brain_settings = ExtResource("4_ai_brain_placeholder")

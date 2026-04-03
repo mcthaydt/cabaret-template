@@ -15,8 +15,11 @@ const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 @export var debug_ai_floating_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
 @export var debug_entity_id: StringName = StringName("patrol_drone")
+## DIAG: logs every frame (not throttled) to capture bounce oscillation
+@export var debug_bounce_diag: bool = false
 
 var _debug_log_cooldowns: Dictionary = {}
+var _diag_frame_counter: int = 0
 
 class SupportInfo:
 	var has_hit: bool = false
@@ -28,6 +31,7 @@ class SupportInfo:
 	var miss_ray_names: Array = []
 
 func process_tick(delta: float) -> void:
+	_diag_frame_counter += 1
 	_tick_debug_log_cooldowns(delta)
 	var manager := get_manager()
 	if manager == null:
@@ -206,6 +210,33 @@ func process_tick(delta: float) -> void:
 					str(floating_component.grounded_stable),
 					str(body.global_position),
 					str(support.miss_ray_names),
+				]
+			)
+
+		# DIAG: per-frame bounce diagnostic (not throttled)
+		if debug_bounce_diag and (debug_entity_id == StringName() or entity_id == debug_entity_id):
+			var _diag_height_error: float = 0.0
+			var _diag_spring_accel: float = 0.0
+			if support.has_hit:
+				_diag_height_error = floating_component.settings.hover_height - support.distance
+				var _diag_vel_n: float = velocity_before_y  # pre-spring vel along normal
+				_diag_spring_accel = compute_spring_accel(
+					_diag_height_error, _diag_vel_n,
+					floating_component.settings.hover_frequency,
+					floating_component.settings.damping_ratio
+				)
+			print(
+				"DIAG_FLOAT[f=%d] pos_y=%.4f vel_y_in=%.4f vel_y_out=%.4f height_err=%.4f spring_accel=%.4f support=%s is_on_floor=%s distance=%.4f"
+				% [
+					_diag_frame_counter,
+					body.global_position.y,
+					velocity_before_y,
+					velocity.y,
+					_diag_height_error,
+					_diag_spring_accel,
+					str(support.has_hit),
+					str(body.is_on_floor()),
+					support.distance if support.has_hit else -1.0,
 				]
 			)
 

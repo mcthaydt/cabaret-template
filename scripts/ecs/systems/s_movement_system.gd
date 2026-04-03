@@ -21,13 +21,17 @@ const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 @export var debug_ai_movement_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
 @export var debug_entity_id: StringName = StringName("patrol_drone")
+## DIAG: logs every frame (not throttled) to capture bounce oscillation
+@export var debug_bounce_diag: bool = false
 
 # State stability tracking to prevent flickering in state store
 const MIN_STABLE_FRAMES := 10  # Frames state must be stable before dispatching (~0.167s @ 60fps)
 var _floor_state_stable_frames: Dictionary = {}  # entity_id -> frames_stable
 var _debug_log_cooldowns: Dictionary = {}
+var _diag_frame_counter: int = 0
 
 func process_tick(delta: float) -> void:
+	_diag_frame_counter += 1
 	_tick_debug_log_cooldowns(delta)
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null
@@ -237,9 +241,36 @@ func process_tick(delta: float) -> void:
 	for body in bodies:
 		var final_velocity: Vector3 = body_state[body].velocity
 
+		# DIAG: capture pre-move_and_slide state
+		var _diag_pre_pos_y: float = body.global_position.y
+		var _diag_pre_vel_y: float = final_velocity.y
+
 		body.velocity = final_velocity
 		if body.has_method("move_and_slide"):
 			body.move_and_slide()
+
+			# DIAG: per-frame move_and_slide delta for bounce diagnosis
+			if debug_bounce_diag:
+				var _diag_entity_id: StringName = StringName(_get_entity_id(body))
+				if debug_entity_id == StringName() or _diag_entity_id == debug_entity_id:
+					var _diag_post_vel_y: float = body.velocity.y
+					var _diag_post_pos_y: float = body.global_position.y
+					var _diag_vel_delta: float = _diag_post_vel_y - _diag_pre_vel_y
+					var _diag_pos_delta: float = _diag_post_pos_y - _diag_pre_pos_y
+					print(
+						"DIAG_MOVE[f=%d] pre_pos_y=%.4f post_pos_y=%.4f pos_delta=%.4f pre_vel_y=%.4f post_vel_y=%.4f vel_delta=%.4f is_on_floor=%s slide_count=%d"
+						% [
+							_diag_frame_counter,
+							_diag_pre_pos_y,
+							_diag_post_pos_y,
+							_diag_pos_delta,
+							_diag_pre_vel_y,
+							_diag_post_vel_y,
+							_diag_vel_delta,
+							str(body.is_on_floor()),
+							body.get_slide_collision_count(),
+						]
+					)
 
 			# Track floor state for stability check
 			var is_on_floor_raw: bool = body.is_on_floor()
