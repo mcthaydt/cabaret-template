@@ -5,15 +5,15 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 10 complete (implementation complete)
+**Status**: Milestone 11 complete (post-implementation spawn-recovery hardening complete)
 
 ---
 
-## Current Status: Milestone 10 Complete
+## Current Status: Milestone 11 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (10/10 milestones complete).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (11/11 milestones complete including post-M10 hardening).
 
 ### Completed in M1 (2026-04-02)
 
@@ -208,7 +208,28 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `6/6` passing (expanded to cover durable flag condition paths + trigger-zone runtime wiring).
   - Gameplay-state guard coverage: `tools/run_gut_suite.sh -gtest=res://tests/unit/state/test_gameplay_slice_reducers.gd` → `11/11` passing (includes `gameplay/set_ai_demo_flag` + reset clearing).
   - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing.
-  - Full regression confirmed: `tools/run_gut_suite.sh` → `3704/3713` passing, `9` pending/risky, `0` failing.
+- Full regression confirmed: `tools/run_gut_suite.sh` → `3704/3713` passing, `9` pending/risky, `0` failing.
+
+### Completed in M11 (2026-04-03)
+
+- Added AI spawn-point recovery hardening (no last-supported-position dependency):
+  - `scripts/ecs/systems/s_ai_spawn_recovery_system.gd`
+  - `scripts/resources/ai/rs_ai_brain_settings.gd` respawn exports
+  - `scripts/interfaces/i_spawn_manager.gd` + `scripts/managers/m_spawn_manager.gd` generic entity spawn API
+- Added/updated scene and resource authoring:
+  - `resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres`
+  - `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres` (respawn spawn id + delay/cooldown)
+  - Recovery system wiring in base/gameplay scenes and `sp_ai_patrol_drone` in `gameplay_power_core`.
+- Added verification coverage:
+  - `tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd`
+  - `tests/integration/spawn_system/test_ai_spawn_recovery_power_core.gd`
+  - Extended `tests/unit/spawn_system/test_spawn_validation.gd` for generic spawn failures/success.
+- Verification:
+  - `Godot --headless ... -gdir=res://tests/unit/ecs/systems -gselect=test_s_ai_spawn_recovery_system -gexit` → `3/3`
+  - `Godot --headless ... -gdir=res://tests/unit/spawn_system -gselect=test_spawn_validation -gexit` → `19/19`
+  - `Godot --headless ... -gdir=res://tests/integration/spawn_system -gselect=test_ai_spawn_recovery_power_core -gexit` → `1/1`
+  - `Godot --headless ... -gdir=res://tests/unit/style -gselect=test_style_enforcement -gexit` → `17/17`
+- Hardening note: recovery integration test now forces unsupported state deterministically (support-grace set to `0.0`, immediate post-recovery assertions) to avoid false negatives from support-grace windows and next-frame AI rewrites.
 
 ### Key Design Decisions
 

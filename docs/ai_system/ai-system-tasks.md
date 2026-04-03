@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 10 complete (implementation complete, 10/10 milestones)
+**Status**: Milestone 11 complete (post-implementation spawn-recovery hardening, 11/11 milestones)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -414,6 +414,51 @@
 - GREEN confirmed: after resource authoring + scene rewiring, `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` passes `6/6` (includes durable-goal-condition and trigger-zone script wiring assertions).
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes `17/17`.
 - Full regression confirmed: `tools/run_gut_suite.sh` now reports `3704/3713` passing, `9` pending/risky, and `0` failing.
+
+---
+
+## Milestone 11: AI Spawn-Point Recovery Hardening (Post-M10)
+
+**Goal**: Prevent floating AI from falling indefinitely by recovering to authored spawn points (no last-supported-position dependency).
+
+- [x] **Commit 1** — Extend AI brain settings + spawn manager API:
+  - `scripts/resources/ai/rs_ai_brain_settings.gd` adds:
+    - `respawn_spawn_point_id: StringName`
+    - `respawn_unsupported_delay_sec: float`
+    - `respawn_recovery_cooldown_sec: float`
+  - `scripts/interfaces/i_spawn_manager.gd` adds `spawn_entity_at_point(scene, entity_id, spawn_point_id) -> bool`
+  - `scripts/managers/m_spawn_manager.gd` implements generic entity spawn using existing spawn hardening (velocity reset, spawn freeze, floating reset).
+- [x] **Commit 2** — Add runtime recovery system + scene/resource authoring:
+  - Added `scripts/ecs/systems/s_ai_spawn_recovery_system.gd` (runs after floating, `execution_priority = 75`).
+  - Added `resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres`.
+  - Updated patrol drone brain resource with respawn settings:
+    - `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres`.
+  - Added recovery system wiring in shared gameplay scenes:
+    - `scenes/templates/tmpl_base_scene.tscn`
+    - `scenes/gameplay/gameplay_base.tscn`
+    - `scenes/gameplay/gameplay_power_core.tscn`
+    - `scenes/gameplay/gameplay_comms_array.tscn`
+    - `scenes/gameplay/gameplay_nav_nexus.tscn`
+  - Added dedicated patrol-drone spawn point in `gameplay_power_core` (`sp_ai_patrol_drone`).
+- [x] **Commit 3** — Add RED/GREEN tests for recovery + generic spawn:
+  - Added `tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd`.
+  - Added `tests/integration/spawn_system/test_ai_spawn_recovery_power_core.gd`.
+  - Extended `tests/unit/spawn_system/test_spawn_validation.gd` with generic spawn API coverage (success, missing spawn point, missing entity id, missing entity).
+
+**M11 Verification**:
+- [x] Recovery does not trigger for brief unsupported windows.
+- [x] Recovery triggers once after configured delay and respects cooldown.
+- [x] Recovery clears AI `task_state`, movement input, and residual velocity.
+- [x] Generic spawn API returns false with explicit errors for missing entity/spawn-point inputs.
+- [x] Patrol drone recovers to `sp_ai_patrol_drone` in `gameplay_power_core`.
+- [x] `test_style_enforcement.gd` passes.
+
+**M11 Completion Notes (2026-04-03)**:
+- `Godot --headless ... -gdir=res://tests/unit/ecs/systems -gselect=test_s_ai_spawn_recovery_system -gexit` → `3/3` passing.
+- `Godot --headless ... -gdir=res://tests/unit/spawn_system -gselect=test_spawn_validation -gexit` → `19/19` passing.
+- `Godot --headless ... -gdir=res://tests/integration/spawn_system -gselect=test_ai_spawn_recovery_power_core -gexit` → `1/1` passing.
+- `Godot --headless ... -gdir=res://tests/unit/style -gselect=test_style_enforcement -gexit` → `17/17` passing.
+- Key hardening detail: integration test now forces unsupported state deterministically by zeroing movement support-grace and asserting immediately after recovery tick (prevents false negatives from grace windows and next-frame AI rewrites).
 
 ---
 
