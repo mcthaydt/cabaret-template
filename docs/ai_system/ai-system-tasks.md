@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 11 complete (post-implementation spawn-recovery hardening, 11/11 milestones)
+**Status**: Milestone 11 complete, Milestones 12-16 planned (jitter fix, character unification, AI showcase scene, player-NPC interactions, debug overlay)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -462,9 +462,162 @@
 
 ---
 
+## Milestone 12: Fix NPC Jitter + Navigation Robustness
+
+**Goal**: Eliminate NPC jitter and ensure smooth patrol path following.
+
+**Root Cause Analysis (verified via code audit):**
+
+1. **PRIMARY — CSG visual self-collision**: All 3 NPC entities have CSG visuals (CSGSphere3D/CSGBox3D) with `use_collision = true` and `collision_layer = 33` as children of their CharacterBody3D (which has `collision_mask = 33`). CSG collision creates an internal StaticBody3D that the CharacterBody3D collides with during `move_and_slide()`. The body fights its own visual every frame, creating constant collision response jitter and preventing smooth movement. The player template's visual (`prefab_character.tscn`) has zero `use_collision` — this is why the player doesn't jitter.
+   - `gameplay_power_core.tscn`: `E_PatrolDrone/NPC_Body/Visual` (CSGSphere3D, use_collision=true, layer=33) overlaps capsule collision shape
+   - `gameplay_comms_array.tscn`: `E_Sentry/NPC_Body/Visual` (CSGBox3D, use_collision=true, layer=33) same issue
+   - `gameplay_nav_nexus.tscn`: `E_GuidePrism/NPC_Body/Visual` (CSGSphere3D, use_collision=true, layer=33) same issue
+
+2. **SECONDARY — Epsilon/threshold mismatch (robustness concern, not jitter cause with defaults)**: `S_AINavigationSystem.TARGET_REACHED_EPSILON = 0.05` vs `RS_AIActionMoveTo.arrival_threshold = 0.5`. With current defaults the action completes at 0.5 distance (well before the 0.05 nav cutoff), so no oscillation occurs. However, if a future action sets `arrival_threshold < 0.05`, the nav system would stop the NPC while the action thinks it hasn't arrived — creating a deadlock. Should be aligned for robustness.
+
+3. **NOT A CAUSE — Camera double-transform**: Both `S_AINavigationSystem` (priority -5) and `S_MovementSystem` (priority 0) run within the same `M_ECSManager._physics_process()` call and read the same frozen camera state. The camera→input→camera round-trip is mathematically correct within a single physics frame. However, bypassing the camera transform for AI is still a worthwhile simplification.
+
+- [ ] **Step 12a** — Fix CSG visual self-collision on all 3 NPC entities:
+  - Remove `use_collision = true` from NPC visual CSG nodes (or move them to a collision layer the body doesn't mask)
+  - Files: `scenes/gameplay/gameplay_power_core.tscn`, `scenes/gameplay/gameplay_comms_array.tscn`, `scenes/gameplay/gameplay_nav_nexus.tscn`
+  - Verify: NPC moves smoothly without jitter after fix
+
+- [ ] **Step 12b** — Align nav epsilon with action arrival threshold (TDD):
+  - `RS_AIActionMoveTo.start()` writes `task_state["ai_arrival_threshold"]` alongside `"ai_move_target"`
+  - `S_AINavigationSystem` reads `task_state["ai_arrival_threshold"]` instead of hardcoded `TARGET_REACHED_EPSILON` (fallback to 0.5 if absent)
+  - Tests RED: `test_stops_moving_within_action_arrival_threshold`, `test_uses_default_threshold_when_not_in_task_state`, `test_move_to_start_writes_arrival_threshold_to_task_state`
+  - Tests GREEN: implement changes
+  - Files: `scripts/ecs/systems/s_ai_navigation_system.gd`, `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
+
+- [ ] **Step 12c** — Simplify AI navigation to use world-space directly (TDD):
+  - Nav system uses direct world-space mapping `Vector2(direction.x, direction.z)` for AI entities — skip camera-relative conversion (unnecessary round-trip)
+  - Movement system: add `C_AIBrainComponent` check to use `_get_desired_velocity()` (world-space) path instead of camera-relative for AI entities
+  - Tests RED: `test_writes_world_space_direction_without_camera_transform`
+  - Tests GREEN: implement
+  - Files: `scripts/ecs/systems/s_ai_navigation_system.gd`, `scripts/ecs/systems/s_movement_system.gd`
+
+**M12 Verification**:
+- [ ] Patrol drone smoothly traverses all 4 waypoints without jitter
+- [ ] Sentry and Guide Prism also move smoothly
+- [ ] All existing AI navigation tests still pass (9/9)
+- [ ] New threshold + world-space tests pass
+- [ ] `test_style_enforcement.gd` passes
+- [ ] Full regression green
+
+---
+
+## Milestone 13: Create `prefab_npc.tscn` + Unify Player/NPC Character Base
+
+**Goal**: Player and AI characters should be functionally the same — same base template (`tmpl_character.tscn`), same component stack — except the AI has a different model, no human input, and an AI brain. Currently all 3 demo NPCs are built inline with only 4 components (vs 10+ on the player).
+
+- [ ] **Step 13a** — Create `scenes/prefabs/prefab_npc.tscn` extending `tmpl_character.tscn` (TDD):
+  - Inherits all 9 base components: `C_SpawnStateComponent`, `C_CharacterStateComponent`, `C_MovementComponent`, `C_JumpComponent`, `C_RotateToInputComponent`, `C_FloatingComponent`, `C_AlignWithSurfaceComponent`, `C_LandingIndicatorComponent`, `C_HealthComponent`
+  - Adds: `C_InputComponent`, `C_AIBrainComponent`
+  - Does NOT add: `C_PlayerTagComponent`, `C_GamepadComponent`, `C_SurfaceDetectorComponent`
+  - Default tags: `["npc", "ai", "character"]`
+  - Tests RED: `test_npc_prefab_has_all_base_character_components`, `test_npc_has_ai_brain`, `test_npc_has_input`, `test_npc_no_player_tag`, `test_npc_no_gamepad`
+  - Tests GREEN: create scene
+
+- [ ] **Step 13b** — Replace inline NPCs in all 3 demo scenes:
+  - `gameplay_power_core.tscn`: Replace inline `E_PatrolDrone` with `prefab_npc.tscn` instance, override entity_id/tags/brain_settings/visual
+  - `gameplay_comms_array.tscn`: Replace inline `E_Sentry` similarly
+  - `gameplay_nav_nexus.tscn`: Replace inline `E_GuidePrism` similarly
+  - Each NPC's custom visual (CSGSphere, CSGBox, etc.) becomes a child node overriding the default body mesh
+  - **CRITICAL**: NPC visuals must NOT have `use_collision = true` — this caused the M12 jitter bug (CSG collision fighting CharacterBody3D). Use MeshInstance3D or CSG without collision for visuals.
+  - Tests: extend `test_ai_demo_behavior_resources.gd` to verify full component stacks
+
+- [ ] **Step 13c** — Regression verification:
+  - Run all existing AI tests (navigation, behavior goals, behavior tasks, integration, spawn recovery)
+  - Run style enforcement
+  - Full suite regression
+
+**M13 Verification**:
+- [ ] All 3 demo NPCs use `prefab_npc.tscn` as their base
+- [ ] Each NPC has the full character component stack (same as player minus input-specific components)
+- [ ] NPC prefab structure tests pass
+- [ ] All existing AI + demo resource tests pass
+- [ ] `test_style_enforcement.gd` passes
+- [ ] Full regression green
+
+---
+
+## Milestone 14: Combined AI Showcase Scene Layout
+
+**Goal**: Consolidate all 3 NPC archetypes into a single `gameplay_ai_showcase.tscn` scene with distinct zones, demonstrating 3-5 simultaneous NPCs with diverse behaviors.
+
+- [ ] Design scene layout with 3 interconnected zones:
+  - **Patrol zone**: Open area with waypoints for patrol drones (2 drones, different routes)
+  - **Guard zone**: Chokepoint/corridor with sentry post (1 sentry guarding a door/area)
+  - **Guide zone**: Vertical section with floating platforms (1 guide prism leading player through)
+  - Optional: 1 variant NPC (e.g., patrol drone with different personality/speed settings)
+- [ ] Add environmental geometry connecting the zones (CSG corridors, ramps, platforms)
+- [ ] Player spawn at scene entrance with clear line of sight to first NPC
+- [ ] Register new scene in scene registry; update default gameplay scene references
+
+**M14 Verification**:
+- [ ] Scene loads without errors
+- [ ] Player can navigate between all 3 zones
+- [ ] 3-5 NPCs visible and active simultaneously
+- [ ] Each NPC uses `prefab_npc.tscn` base with archetype-specific brain settings
+- [ ] `test_style_enforcement.gd` passes
+
+---
+
+## Milestone 15: Player-NPC Interaction Triggers
+
+**Goal**: NPCs react to player proximity and environmental triggers, demonstrating GOAP goal switching in real-time.
+
+- [ ] Add `C_DetectionComponent` (or similar) — raycast/area-based player proximity detection
+- [ ] Wire NPC goal switching behaviors:
+  - Patrol drones: patrol → investigate when player enters detection range, return to patrol after timeout
+  - Sentry: guard → alert when player enters restricted zone, publish alarm event
+  - Guide prism: idle → show_path when player approaches, encourage when player falls
+- [ ] Add environmental triggers:
+  - Alarm button (causes all sentries to investigate)
+  - Door switch (opens guarded area)
+  - Collectible (triggers guide celebration)
+- [ ] Cascading behavior: one NPC's alarm event triggers other NPCs to react (demonstrates cross-NPC communication via ECS events)
+
+**M15 Verification**:
+- [ ] Player proximity triggers goal switches visibly
+- [ ] Environmental triggers cause appropriate NPC reactions
+- [ ] Cascading events propagate between NPCs
+- [ ] All new detection/trigger tests pass
+- [ ] Full regression green
+
+---
+
+## Milestone 16: AI Debug Overlay System
+
+**Goal**: Runtime visualization of NPC AI state for showcase and debugging purposes.
+
+- [ ] Create `S_AIDebugOverlaySystem` — queries `C_AIBrainComponent` entities, renders floating labels
+- [ ] Display per-NPC:
+  - Active goal name
+  - Current task name
+  - Move target (line drawn to target position)
+  - Detection range (wireframe sphere/cone)
+- [ ] Toggle via debug key or HUD button
+- [ ] Color-code by state: green=patrol, yellow=investigating, red=alert, blue=guiding
+- [ ] Optional: small state history log showing recent goal transitions
+
+**M16 Verification**:
+- [ ] Debug overlay toggles on/off cleanly
+- [ ] All active NPCs display correct goal/task state
+- [ ] Color-coding matches NPC behavior state
+- [ ] No performance regression with overlay active
+- [ ] `test_style_enforcement.gd` passes
+
+---
+
 ## Final Completion Check
 
-- [x] All milestones above marked complete
+- [x] Milestones 1-11 complete
+- [ ] Milestone 12 complete (jitter fix)
+- [ ] Milestone 13 complete (character unification)
+- [ ] Milestone 14 complete (showcase scene layout)
+- [ ] Milestone 15 complete (player-NPC interactions)
+- [ ] Milestone 16 complete (debug overlay)
 - [x] All tests green (unit, integration, style)
 - [x] Continuation prompt updated to "Complete"
 - [x] AGENTS.md updated with AI System patterns (if applicable)

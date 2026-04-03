@@ -5,15 +5,31 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 11 complete (post-implementation spawn-recovery hardening complete)
+**Status**: Milestone 11 complete; Milestones 12-16 planned (jitter fix, character unification, AI showcase, player-NPC interactions, debug overlay)
 
 ---
 
-## Current Status: Milestone 11 Complete
+## Current Status: Milestone 11 Complete, 12-16 Planned
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (11/11 milestones complete including post-M10 hardening).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (11/11 milestones complete, 5 new milestones planned).
+
+### Next Up: M12 — Fix NPC Jitter + Navigation Robustness
+
+**Primary jitter cause (verified):** All 3 NPC entities have CSG visuals with `use_collision = true` and `collision_layer = 33` as children of their CharacterBody3D (`collision_mask = 33`). The CSG creates an internal StaticBody3D that the body collides with during `move_and_slide()` every frame. The player template has zero `use_collision` on visuals.
+
+**Fix priority:**
+1. Remove `use_collision = true` from NPC visual CSG nodes (immediate jitter fix)
+2. Align nav epsilon with action arrival threshold (robustness)
+3. Simplify AI nav to world-space (cleanup)
+
+### Planned: M13-16
+
+- M13: Create `prefab_npc.tscn` extending `tmpl_character.tscn` + replace inline NPCs
+- M14: Combined AI showcase scene (all archetypes, 3-5 NPCs, 3 zones)
+- M15: Player-NPC interaction triggers (proximity detection, cascading events)
+- M16: AI debug overlay system (floating labels, color-coded states)
 
 ### Completed in M1 (2026-04-02)
 
