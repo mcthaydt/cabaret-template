@@ -540,11 +540,11 @@
 
 ---
 
-## Milestone 13: Create `prefab_npc.tscn` + Unify Player/NPC Character Base
+## Milestone 13: Create `prefab_demo_npc.tscn` + Unify Player/NPC Character Base
 
 **Goal**: Player and AI characters should be functionally the same — same base template (`tmpl_character.tscn`), same component stack — except the AI has a different model, no human input, and an AI brain. Currently all 3 demo NPCs are built inline with only 4 components (vs 10+ on the player).
 
-- [x] **Step 13a** — Create `scenes/prefabs/prefab_npc.tscn` extending `tmpl_character.tscn` (TDD):
+- [x] **Step 13a** — Create `scenes/prefabs/prefab_demo_npc.tscn` extending `tmpl_character.tscn` (TDD):
   - Inherits all 9 base components: `C_SpawnStateComponent`, `C_CharacterStateComponent`, `C_MovementComponent`, `C_JumpComponent`, `C_RotateToInputComponent`, `C_FloatingComponent`, `C_AlignWithSurfaceComponent`, `C_LandingIndicatorComponent`, `C_HealthComponent`
   - Adds: `C_InputComponent`, `C_AIBrainComponent`
   - Does NOT add: `C_PlayerTagComponent`, `C_GamepadComponent`, `C_SurfaceDetectorComponent`
@@ -553,7 +553,7 @@
   - Tests GREEN: create scene
 
 - [x] **Step 13b** — Replace inline NPCs in all 3 demo scenes:
-  - `gameplay_power_core.tscn`: Replace inline `E_PatrolDrone` with `prefab_npc.tscn` instance, override entity_id/tags/brain_settings/visual
+  - `gameplay_power_core.tscn`: Replace inline `E_PatrolDrone` with `prefab_demo_npc.tscn` instance, override entity_id/tags/brain_settings/visual
   - `gameplay_comms_array.tscn`: Replace inline `E_Sentry` similarly
   - `gameplay_nav_nexus.tscn`: Replace inline `E_GuidePrism` similarly
   - Each NPC's custom visual (CSGSphere, CSGBox, etc.) becomes a child node overriding the default body mesh
@@ -566,7 +566,7 @@
   - Full suite regression
 
 **M13 Verification**:
-- [x] All 3 demo NPCs use `prefab_npc.tscn` as their base
+- [x] All 3 demo NPCs use `prefab_demo_npc.tscn` as their base
 - [x] Each NPC has the full character component stack (same as player minus input-specific components)
 - [x] NPC prefab structure tests pass
 - [x] All existing AI + demo resource tests pass
@@ -577,7 +577,7 @@
 - RED/GREEN coverage added for prefab contract:
   - Added `tests/unit/ai/resources/test_prefab_npc.gd` (`5/5` passing) with required stack/presence/absence assertions.
 - Implemented shared NPC prefab and scene migration:
-  - Added `scenes/prefabs/prefab_npc.tscn` (inherits `tmpl_character.tscn`, adds `C_InputComponent` + `C_AIBrainComponent`, default tags `npc/ai/character`).
+  - Added `scenes/prefabs/prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`, adds `C_InputComponent` + `C_AIBrainComponent`, default tags `npc/ai/character`).
   - Replaced inline NPC entities in:
     - `scenes/gameplay/gameplay_power_core.tscn`
     - `scenes/gameplay/gameplay_comms_array.tscn`
@@ -619,7 +619,7 @@
 - [ ] Scene loads without errors
 - [ ] Player can navigate between all 3 zones
 - [ ] 3-5 NPCs visible and active simultaneously
-- [ ] Each NPC uses `prefab_npc.tscn` base with archetype-specific brain settings
+- [ ] Each NPC uses `prefab_demo_npc.tscn` base with archetype-specific brain settings
 - [ ] `test_style_enforcement.gd` passes
 
 ---

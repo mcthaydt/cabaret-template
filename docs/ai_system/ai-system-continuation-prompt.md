@@ -21,7 +21,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 **M14 priority:**
 1. Author `gameplay_ai_showcase.tscn` with three connected zones (patrol, guard, guide)
-2. Populate the scene with 3-5 NPCs using `prefab_npc.tscn` + archetype brain resources
+2. Populate the scene with 3-5 NPCs using `prefab_demo_npc.tscn` + archetype brain resources
 3. Register the scene in scene registry and wire default gameplay references only if intended for primary demo routing
 
 ### Planned: M14-16
@@ -285,7 +285,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Added RED/GREEN prefab structure coverage:
   - `tests/unit/ai/resources/test_prefab_npc.gd` (`5/5`) verifies base character stack inheritance, required AI/input components, and absence of player-only components.
 - Implemented shared NPC prefab:
-  - `scenes/prefabs/prefab_npc.tscn` (inherits `tmpl_character.tscn`, adds `C_InputComponent` + `C_AIBrainComponent`, defaults tags to `npc/ai/character`).
+  - `scenes/prefabs/prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`, adds `C_InputComponent` + `C_AIBrainComponent`, defaults tags to `npc/ai/character`).
 - Replaced inline NPC entities with prefab instances:
   - `scenes/gameplay/gameplay_power_core.tscn` (`E_PatrolDrone`)
   - `scenes/gameplay/gameplay_comms_array.tscn` (`E_Sentry`)
@@ -328,7 +328,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **M9 mobile-safe scene registration is complete**: Power Core/Comms Array/Nav Nexus are now first-class `scene_registry` entries and are included in the loader preload manifest/backfill safety net for mobile/web exports.
 - **M10 demo behavior integration is complete**: Patrol Drone, Sentry, and Guide Prism now use durable gameplay AI flags for investigate/celebrate gating, and trigger zones are runtime-wired (including Nav fall hazard + victory flagging) so authored behaviors execute reliably in-scene.
 - **Default new-game routing now targets the AI demo location**: New Game + splash preload + retry routing resolve to `power_core`.
-- **M13 character stack unification is complete**: authored NPCs now instance `prefab_npc.tscn` (inherits `tmpl_character.tscn`), so they share the same baseline runtime component stack as player characters while excluding player-only components.
+- **M13 character stack unification is complete**: authored NPCs now instance `prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`), so they share the same baseline runtime component stack as player characters while excluding player-only components.
 
 ---
 

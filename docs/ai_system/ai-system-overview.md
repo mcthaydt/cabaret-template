@@ -20,7 +20,7 @@ The AI system provides data-driven NPC behavior through two complementary paradi
 - `C_AIBrainComponent` enforces required settings at runtime: `brain_settings` must be a valid `RS_AIBrainSettings` resource
 - M7 complete: movement/stub typed actions (`RS_AIActionMoveTo`, `RS_AIActionScan`, `RS_AIActionAnimate`) now run through the existing `I_AIAction` task-runner flow
 - M7 complete: `S_InputSystem` now writes gameplay input only to `C_PlayerTagComponent` entities so AI-authored `move_vector` values are not clobbered
-- M13 complete: demo NPCs now instance `scenes/prefabs/prefab_npc.tscn` (inherits `tmpl_character.tscn`), keeping full shared character stacks plus AI additions (`C_InputComponent`, `C_AIBrainComponent`) while excluding player-only components
+- M13 complete: demo NPCs now instance `scenes/prefabs/prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`), keeping full shared character stacks plus AI additions (`C_InputComponent`, `C_AIBrainComponent`) while excluding player-only components
 - `U_PathResolver` handles dot-path traversal for component fields, Redux state, and event payloads
 - ECS pattern: systems extend `BaseECSSystem`, implement `process_tick(delta)`, query components via `get_components(StringName)`
 - Component pattern: extend `BaseECSComponent`, define `const COMPONENT_TYPE := StringName("...")`, use `@export` NodePaths with typed getters
