@@ -160,10 +160,7 @@ func process_tick(delta: float) -> void:
 				var damping_ratio: float = max(floating_component.settings.damping_ratio, 0.0)
 				var accel_along_normal: float = 0.0
 				if frequency > 0.0:
-					var omega: float = TAU * frequency
-					accel_along_normal = (omega * omega * height_error) - (2.0 * damping_ratio * omega * vel_along_normal)
-					if height_error >= 0.0 and accel_along_normal < 0.0:
-						accel_along_normal = 0.0
+					accel_along_normal = compute_spring_accel(height_error, vel_along_normal, frequency, damping_ratio)
 					velocity += normal * accel_along_normal * delta
 				else:
 					velocity -= normal * vel_along_normal
@@ -278,6 +275,29 @@ func _clamp_velocity_along_normal(velocity: Vector3, normal: Vector3, max_down_s
 	var vel_along_normal: float = velocity.dot(normal)
 	var clamped: float = clamp(vel_along_normal, -max_down_speed, max_up_speed)
 	return velocity + normal * (clamped - vel_along_normal)
+
+## Computes the spring-damper acceleration along the support normal.
+## height_error > 0: body is below hover target (needs to move up).
+## vel_along_normal > 0: body is moving away from the floor (upward).
+static func compute_spring_accel(
+	height_error: float,
+	vel_along_normal: float,
+	frequency: float,
+	damping_ratio: float
+) -> float:
+	if frequency <= 0.0:
+		return 0.0
+	var omega: float = TAU * maxf(frequency, 0.0)
+	# Keep spring and damping separate so the clamp on the spring term
+	# never accidentally strips the damping contribution.
+	var spring_accel: float = omega * omega * height_error
+	var damping_accel: float = -(2.0 * maxf(damping_ratio, 0.0) * omega * vel_along_normal)
+	# Only prevent the spring from pulling the body DOWN while it is still
+	# below the hover target. Never clamp the damping — it must always be
+	# able to decelerate the body as it approaches from either direction.
+	if height_error >= 0.0 and spring_accel < 0.0:
+		spring_accel = 0.0
+	return spring_accel + damping_accel
 
 func _resolve_entity_id_from_query(entity_query: Object) -> StringName:
 	if entity_query == null:
