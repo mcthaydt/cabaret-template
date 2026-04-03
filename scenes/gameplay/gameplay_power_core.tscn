@@ -227,14 +227,10 @@ require_captured_cursor = true
 
 [node name="S_AIBehaviorSystem" type="Node" parent="Systems/Core" unique_id=1837565144]
 script = ExtResource("53_ai_behavior_system")
-debug_ai_logging = true
-debug_ai_render_probe_logging = true
 execution_priority = -10
 
 [node name="S_AINavigationSystem" type="Node" parent="Systems/Core" unique_id=1332467286]
 script = ExtResource("54_ai_navigation_system")
-debug_ai_navigation_logging = true
-debug_ai_render_probe_logging = true
 execution_priority = -5
 
 [node name="S_TouchscreenSystem" type="Node" parent="Systems/Core" unique_id=1564579047]
@@ -274,7 +270,6 @@ script = ExtResource("3_systems_physics")
 
 [node name="S_GravitySystem" type="Node" parent="Systems/Physics" unique_id=599029471]
 script = ExtResource("3_xnqit")
-debug_ai_gravity_logging = true
 execution_priority = 60
 
 [node name="S_JumpSystem" type="Node" parent="Systems/Physics" unique_id=796740341]
@@ -286,17 +281,14 @@ script = ExtResource("3_systems_movement")
 
 [node name="S_MovementSystem" type="Node" parent="Systems/Movement" unique_id=1698475888]
 script = ExtResource("4_vry44")
-debug_ai_movement_logging = true
 execution_priority = 50
 
 [node name="S_FloatingSystem" type="Node" parent="Systems/Movement" unique_id=778887760]
 script = ExtResource("6_tnjgn")
-debug_ai_floating_logging = true
 execution_priority = 70
 
 [node name="S_AISpawnRecoverySystem" type="Node" parent="Systems/Movement" unique_id=663757373]
 script = ExtResource("67_ai_spawn_recovery_system")
-debug_ai_spawn_recovery_logging = true
 execution_priority = 75
 
 [node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement" unique_id=1675353192]
@@ -432,6 +424,8 @@ tags = Array[StringName]([&"npc", &"ai", &"patrol_drone"])
 
 [node name="NPC_Body" type="CharacterBody3D" parent="Entities/NPCs/E_PatrolDrone" unique_id=571843610]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+motion_mode = 1
+floor_snap_length = 0.0
 collision_layer = 33
 collision_mask = 33
 

@@ -66,7 +66,14 @@ func process_tick(delta: float) -> void:
 			)
 			continue
 
-		var support: SupportInfo = _collect_support_data(rays)
+		var entity_root: Node = null
+		var entity_variant: Variant = entity_query.get("entity")
+		if entity_variant is Node:
+			entity_root = entity_variant as Node
+		if entity_root == null:
+			entity_root = ECS_UTILS.find_entity_root(body)
+
+		var support: SupportInfo = _collect_support_data(rays, body, entity_root)
 		var spawn_state: C_SpawnStateComponent = spawn_state_by_body.get(body, null) as C_SpawnStateComponent
 		var character_state: C_CharacterStateComponent = entity_query.get_component(CHARACTER_STATE_TYPE)
 		if character_state == null:
@@ -207,7 +214,7 @@ func process_tick(delta: float) -> void:
 
 		body.velocity = velocity
 
-func _collect_support_data(rays: Array) -> SupportInfo:
+func _collect_support_data(rays: Array, body: CharacterBody3D, entity_root: Node) -> SupportInfo:
 	var data: SupportInfo = SupportInfo.new()
 	var min_distance: float = INF
 	var normal_sum: Vector3 = Vector3.ZERO
@@ -222,6 +229,13 @@ func _collect_support_data(rays: Array) -> SupportInfo:
 			ray.force_raycast_update()
 
 		if not ray.is_colliding():
+			data.miss_ray_names.append((ray as Node3D).name)
+			continue
+
+		var collider_variant: Variant = null
+		if ray.has_method("get_collider"):
+			collider_variant = ray.call("get_collider")
+		if _is_self_collider(collider_variant, body, entity_root):
 			data.miss_ray_names.append((ray as Node3D).name)
 			continue
 
@@ -244,6 +258,21 @@ func _collect_support_data(rays: Array) -> SupportInfo:
 		data.hit_count = hit_count
 
 	return data
+
+func _is_self_collider(collider_variant: Variant, body: CharacterBody3D, entity_root: Node) -> bool:
+	if collider_variant == null:
+		return false
+	if body != null and collider_variant == body:
+		return true
+	if not (collider_variant is Node):
+		return false
+
+	var collider_node: Node = collider_variant as Node
+	if body != null and (collider_node == body or body.is_ancestor_of(collider_node)):
+		return true
+	if entity_root != null and (collider_node == entity_root or entity_root.is_ancestor_of(collider_node)):
+		return true
+	return false
 
 func _clamp_velocity_along_normal(velocity: Vector3, normal: Vector3, max_down_speed: float, max_up_speed: float) -> Vector3:
 	var vel_along_normal: float = velocity.dot(normal)
