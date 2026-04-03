@@ -23,7 +23,6 @@ var _unsupported_since_by_entity: Dictionary = {}
 var _cooldown_until_by_entity: Dictionary = {}
 var _recovery_disabled_entities: Dictionary = {}
 var _debug_log_cooldowns: Dictionary = {}
-var _warned_missing_spawn_manager: bool = false
 
 func _init() -> void:
 	execution_priority = 75
@@ -37,11 +36,9 @@ func process_tick(delta: float) -> void:
 
 	var spawn_manager := U_SERVICE_LOCATOR.try_get_service(StringName("spawn_manager")) as I_SPAWN_MANAGER
 	if spawn_manager == null:
-		if not _warned_missing_spawn_manager:
-			push_warning("S_AISpawnRecoverySystem: spawn_manager not available; AI recovery disabled.")
-			_warned_missing_spawn_manager = true
+		if debug_ai_spawn_recovery_logging:
+			_debug_log(StringName(""), "skip: spawn_manager unavailable")
 		return
-	_warned_missing_spawn_manager = false
 
 	var now: float = ECS_UTILS.get_current_time()
 	var seen_entities: Dictionary = {}

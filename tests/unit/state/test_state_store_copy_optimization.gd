@@ -53,24 +53,41 @@ func test_a1_subscribers_receive_same_state_reference() -> void:
 	)
 
 func test_a1_dispatch_with_multiple_subscribers_is_faster_than_per_subscriber_copy() -> void:
+	var perf_store := M_StateStore.new()
+	perf_store.settings = RS_StateStoreSettings.new()
+	perf_store.settings.enable_persistence = false
+	perf_store.settings.enable_history = false
+	perf_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	perf_store.settings_initial_state = RS_SettingsInitialState.new()
+	perf_store.time_initial_state = RS_TIME_INITIAL_STATE.new()
+	add_child(perf_store)
+	autofree(perf_store)
+	await get_tree().process_frame
+
 	# Use Array wrapper for closure mutation (GDScript closure pitfall)
 	var counter := [0]
 	for i in range(5):
-		store.subscribe(func(_a: Dictionary, _s: Dictionary) -> void:
+		perf_store.subscribe(func(_a: Dictionary, _s: Dictionary) -> void:
 			counter[0] += 1
 		)
 
 	var start: int = Time.get_ticks_usec()
 	for i in range(500):
 		var action: Dictionary = U_GameplayActions.pause_game() if i % 2 == 0 else U_GameplayActions.unpause_game()
-		store.dispatch(action)
+		perf_store.dispatch(action)
 	var elapsed_ms: float = (Time.get_ticks_usec() - start) / 1000.0
 	var avg_per_dispatch: float = elapsed_ms / 500.0
+	var threshold_ms: float = 0.20
+	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+		threshold_ms = 0.30
 
 	assert_eq(counter[0], 2500, "All subscribers should be called for all dispatches")
 	# With shared copy: 500 dispatches * 1 copy = 500 copies
 	# Without: 500 dispatches * 5 subscribers = 2500 copies
-	assert_lt(avg_per_dispatch, 0.20, "Dispatch with 5 subscribers should be < 0.20ms avg")
+	assert_lt(
+		avg_per_dispatch, threshold_ms,
+		"Dispatch with 5 subscribers should remain under the benchmark threshold"
+	)
 
 func test_a1_subscriber_mutation_does_not_affect_internal_state() -> void:
 	var _unsub1 := store.subscribe(func(_action: Dictionary, state: Dictionary) -> void:

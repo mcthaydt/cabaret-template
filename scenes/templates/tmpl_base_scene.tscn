@@ -34,6 +34,7 @@
 [ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="23_vcam_system"]
 [ext_resource type="Script" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="26_room_fade_group_component"]
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="27_room_fade_system"]
+[ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="29_base_ecs_entity"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -66,6 +67,9 @@ material = SubResource("StandardMaterial3D_748a2")
 
 [node name="SO_Block" type="CSGBox3D" parent="SceneObjects" unique_id=210348679]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6780934, -0.77378076, 0)
+script = ExtResource("29_base_ecs_entity")
+entity_id = &"tmpl_block_a"
+tags = Array[StringName]([&"room_fade_group"])
 use_collision = true
 material = SubResource("StandardMaterial3D_748a2")
 
@@ -76,6 +80,9 @@ fade_normal = Vector3(-1, 0, 0)
 
 [node name="SO_Block2" type="CSGBox3D" parent="SceneObjects" unique_id=215245920]
 transform = Transform3D(0.89320666, 0.44964638, 0, -0.44964638, 0.89320666, 0, 0, 0, 1, -5.180423, -0.7959937, -0.10645056)
+script = ExtResource("29_base_ecs_entity")
+entity_id = &"tmpl_block_b"
+tags = Array[StringName]([&"room_fade_group"])
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
@@ -87,6 +94,9 @@ fade_normal = Vector3(1, 0, 0)
 
 [node name="SO_Block3" type="CSGBox3D" parent="SceneObjects" unique_id=1982655511]
 transform = Transform3D(0.99974185, -0.022722274, 0, 0.022722274, 0.99974185, 0, 0, 0, 1, -5.180423, 0.09107876, -3.1731567)
+script = ExtResource("29_base_ecs_entity")
+entity_id = &"tmpl_block_c"
+tags = Array[StringName]([&"room_fade_group"])
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
