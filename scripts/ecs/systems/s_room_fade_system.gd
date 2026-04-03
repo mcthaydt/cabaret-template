@@ -19,8 +19,9 @@ const DEBUG_DOT_MARGIN := 0.12
 const DEBUG_MAX_TARGET_LOGS_PER_COMPONENT := 8
 const OCCLUSION_CORRIDOR_MARGIN := 1.2
 const OCCLUSION_CORRIDOR_MIN_RADIUS := 0.8
-const OCCLUSION_CORRIDOR_MAX_RADIUS := 4.0
 const OCCLUSION_CORRIDOR_SEGMENT_EPSILON := 0.000001
+const ROOF_NORMAL_DOT_MIN := 0.9
+const ROOF_HEIGHT_MARGIN := 0.5
 
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_STATE_STORE = null
@@ -29,6 +30,8 @@ const OCCLUSION_CORRIDOR_SEGMENT_EPSILON := 0.000001
 @export var debug_room_fade_group_filter: StringName = StringName("")
 @export var debug_room_fade_only_faded_targets: bool = true
 @export var debug_room_fade_emit_ray_relation: bool = true
+@export var debug_room_fade_log_target_reasons: bool = false
+@export var debug_room_fade_log_target_inventory: bool = false
 
 var material_applier: Variant = null
 var duplicate_target_warning_handler: Callable = Callable()
@@ -129,6 +132,8 @@ func process_tick(delta: float) -> void:
 			targets = owned_targets_variant as Array
 		if targets.is_empty():
 			continue
+		if should_log_component_debug:
+			_debug_log_component_target_inventory(component, targets)
 
 		_cache_component_centroid(component, targets)
 		applier.apply_fade_material(targets)
@@ -142,7 +147,10 @@ func process_tick(delta: float) -> void:
 		var faded_target_count: int = 0
 
 		if _is_mobile:
-			# Mobile: single-pass dot-product-only fade (no corridor, no buckets)
+			# Mobile: two-pass dot-product evaluation so roof targets can inherit active room fade.
+			var mobile_target_eval_infos: Array[Dictionary] = []
+			var mobile_has_non_roof_fade: bool = false
+
 			for target_variant in targets:
 				if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 					continue
@@ -157,6 +165,36 @@ func process_tick(delta: float) -> void:
 					_cached_normals[target_id] = target_normal
 
 				var target_alpha: float = _resolve_target_alpha(camera_forward, target_normal, settings)
+				var is_roof_candidate: bool = _is_roof_candidate_target(
+					target,
+					target_normal,
+					has_player_position,
+					player_position
+				)
+				if target_alpha < 1.0 and not is_roof_candidate:
+					mobile_has_non_roof_fade = true
+
+				mobile_target_eval_infos.append({
+					"target": target,
+					"target_id": target_id,
+					"target_alpha": target_alpha,
+					"is_roof_candidate": is_roof_candidate,
+				})
+
+			for target_info_variant in mobile_target_eval_infos:
+				if not (target_info_variant is Dictionary):
+					continue
+				var target_info: Dictionary = target_info_variant as Dictionary
+				var target: Node3D = target_info.get("target", null) as Node3D
+				if target == null or not is_instance_valid(target):
+					continue
+				var target_id: int = int(target_info.get("target_id", -1))
+				if target_id < 0:
+					continue
+				var target_alpha: float = float(target_info.get("target_alpha", 1.0))
+				if mobile_has_non_roof_fade and bool(target_info.get("is_roof_candidate", false)):
+					target_alpha = minf(target_alpha, min_alpha)
+
 				var current_alpha: float = _resolve_current_target_alpha(target_id, component)
 				var next_alpha: float = current_alpha
 				if fade_speed > 0.0:
@@ -174,9 +212,11 @@ func process_tick(delta: float) -> void:
 		else:
 			# Desktop: two-pass evaluation with corridor + bucket continuity
 			var debug_target_logs: Array[String] = []
+			var debug_reason_logs: Array[String] = []
 			var faded_normal_bucket_counts: Dictionary = {}
 			var target_eval_infos: Array[Dictionary] = []
 			var bucket_has_corridor_hit: Dictionary = {}
+			var component_has_non_roof_fade: bool = false
 
 			for target_variant in targets:
 				if not (target_variant is Node3D) or not is_instance_valid(target_variant):
@@ -202,6 +242,12 @@ func process_tick(delta: float) -> void:
 					corridor_pass = _passes_camera_player_occlusion_corridor(target, camera_position, player_position)
 					if corridor_pass:
 						bucket_has_corridor_hit[bucket_key] = true
+				var is_roof_candidate: bool = _is_roof_candidate_target(
+					target,
+					target_normal,
+					has_player_position,
+					player_position
+				)
 
 				target_eval_infos.append({
 					"target": target,
@@ -212,7 +258,26 @@ func process_tick(delta: float) -> void:
 					"bucket_key": bucket_key,
 					"target_alpha_before_corridor": target_alpha_before_corridor,
 					"corridor_pass": corridor_pass,
+					"is_roof_candidate": is_roof_candidate,
 				})
+
+			for target_info_variant in target_eval_infos:
+				if not (target_info_variant is Dictionary):
+					continue
+				var target_info: Dictionary = target_info_variant as Dictionary
+				var is_roof_candidate: bool = bool(target_info.get("is_roof_candidate", false))
+				if is_roof_candidate:
+					continue
+				var target_alpha_eval: float = _resolve_effective_target_alpha_for_corridor(
+					float(target_info.get("target_alpha_before_corridor", 1.0)),
+					bool(target_info.get("corridor_pass", true)),
+					has_player_position,
+					str(target_info.get("bucket_key", "")),
+					bucket_has_corridor_hit
+				)
+				if target_alpha_eval < 1.0:
+					component_has_non_roof_fade = true
+					break
 
 			for target_info_variant in target_eval_infos:
 				if not (target_info_variant is Dictionary):
@@ -228,13 +293,35 @@ func process_tick(delta: float) -> void:
 				var target_normal_source: String = str(target_info.get("target_normal_source", "unknown"))
 				var dot_value: float = float(target_info.get("dot_value", 0.0))
 				var bucket_key: String = str(target_info.get("bucket_key", ""))
-				var target_alpha: float = float(target_info.get("target_alpha_before_corridor", 1.0))
+				var target_alpha_before_corridor: float = float(target_info.get("target_alpha_before_corridor", 1.0))
+				var target_alpha: float = target_alpha_before_corridor
 				var corridor_pass: bool = bool(target_info.get("corridor_pass", true))
-
-				if target_alpha < 1.0 and has_player_position and not corridor_pass:
-					var bucket_continuity_hit: bool = bool(bucket_has_corridor_hit.get(bucket_key, false))
-					if not bucket_continuity_hit:
-						target_alpha = 1.0
+				var bucket_continuity_hit: bool = bool(bucket_has_corridor_hit.get(bucket_key, false))
+				target_alpha = _resolve_effective_target_alpha_for_corridor(
+					target_alpha,
+					corridor_pass,
+					has_player_position,
+					bucket_key,
+					bucket_has_corridor_hit
+				)
+				var target_alpha_after_corridor: float = target_alpha
+				var is_roof_candidate: bool = bool(target_info.get("is_roof_candidate", false))
+				if component_has_non_roof_fade and bool(target_info.get("is_roof_candidate", false)):
+					target_alpha = minf(target_alpha, min_alpha)
+				if should_log_component_debug and debug_room_fade_log_target_reasons:
+					debug_reason_logs.append(_format_target_reason_line(
+						target,
+						dot_value,
+						threshold,
+						target_alpha_before_corridor,
+						target_alpha_after_corridor,
+						target_alpha,
+						corridor_pass,
+						bucket_continuity_hit,
+						is_roof_candidate,
+						component_has_non_roof_fade,
+						has_player_position
+					))
 
 				var current_alpha: float = _resolve_current_target_alpha(target_id, component)
 				var next_alpha: float = current_alpha
@@ -279,6 +366,9 @@ func process_tick(delta: float) -> void:
 
 			if component_alpha_count > 0 and should_log_component_debug:
 				var desktop_average_alpha: float = component_alpha_sum / float(component_alpha_count)
+				var merged_target_logs: Array[String] = []
+				merged_target_logs.append_array(debug_reason_logs)
+				merged_target_logs.append_array(debug_target_logs)
 				_debug_log_component_summary(
 					component,
 					targets,
@@ -287,7 +377,7 @@ func process_tick(delta: float) -> void:
 					threshold,
 					min_alpha,
 					fade_speed,
-					debug_target_logs
+					merged_target_logs
 				)
 				_debug_log_faded_normal_bucket_summary(component, faded_normal_bucket_counts)
 
@@ -530,6 +620,34 @@ func _resolve_target_alpha(camera_forward: Vector3, wall_normal: Vector3, settin
 		return min_alpha
 	return 1.0
 
+func _resolve_effective_target_alpha_for_corridor(
+	target_alpha_before_corridor: float,
+	corridor_pass: bool,
+	has_player_position: bool,
+	bucket_key: String,
+	bucket_has_corridor_hit: Dictionary
+) -> float:
+	var resolved_alpha: float = target_alpha_before_corridor
+	if resolved_alpha < 1.0 and has_player_position and not corridor_pass:
+		var bucket_continuity_hit: bool = bool(bucket_has_corridor_hit.get(bucket_key, false))
+		if not bucket_continuity_hit:
+			resolved_alpha = 1.0
+	return resolved_alpha
+
+func _is_roof_candidate_target(
+	target: Node3D,
+	target_normal: Vector3,
+	has_player_position: bool,
+	player_position: Vector3
+) -> bool:
+	if target == null or not is_instance_valid(target):
+		return false
+	if absf(target_normal.y) < ROOF_NORMAL_DOT_MIN:
+		return false
+	if not has_player_position:
+		return false
+	return target.global_position.y > (player_position.y + ROOF_HEIGHT_MARGIN)
+
 func _passes_camera_player_occlusion_corridor(
 	target: Node3D,
 	camera_position: Vector3,
@@ -568,7 +686,7 @@ func _resolve_target_occlusion_corridor_radius(target: Node3D) -> float:
 			planar_extent = _resolve_planar_extent_from_half_size(mesh_target.global_basis, half_size)
 
 	var resolved_radius: float = planar_extent + OCCLUSION_CORRIDOR_MARGIN
-	return clampf(resolved_radius, OCCLUSION_CORRIDOR_MIN_RADIUS, OCCLUSION_CORRIDOR_MAX_RADIUS)
+	return maxf(resolved_radius, OCCLUSION_CORRIDOR_MIN_RADIUS)
 
 func _resolve_planar_extent_from_half_size(basis: Basis, half_size: Vector3) -> float:
 	var x_axis_planar_len: float = Vector2(basis.x.x, basis.x.z).length()
@@ -623,8 +741,12 @@ func _resolve_csg_box_thin_axis_normal_info(component: Object, target: Node3D) -
 		return {}
 
 	var component_origin: Vector3 = _resolve_component_origin(component, target)
-	var inward_direction: Vector3 = component_origin - target.global_position
-	inward_direction.y = 0.0
+	var inward_direction_3d: Vector3 = component_origin - target.global_position
+	var inward_direction_planar: Vector3 = inward_direction_3d
+	inward_direction_planar.y = 0.0
+	var inward_direction: Vector3 = inward_direction_planar
+	if inward_direction.length_squared() <= MIN_NORMAL_LENGTH_SQUARED:
+		inward_direction = inward_direction_3d
 	if inward_direction.length_squared() <= MIN_NORMAL_LENGTH_SQUARED:
 		return {}
 	inward_direction = inward_direction.normalized()
@@ -912,6 +1034,31 @@ func _debug_log_faded_normal_bucket_summary(component: Object, bucket_counts: Di
 		]
 	)
 
+func _debug_log_component_target_inventory(component: Object, targets: Array) -> void:
+	if not debug_room_fade_log_target_inventory:
+		return
+	var target_summaries: Array[String] = []
+	for target_variant in targets:
+		if not (target_variant is Node3D) or not is_instance_valid(target_variant):
+			continue
+		var target: Node3D = target_variant as Node3D
+		var target_size_label: String = "size=<n/a>"
+		if target is CSGBox3D:
+			target_size_label = "size=%s" % _format_vector3((target as CSGBox3D).size.abs())
+		elif target is MeshInstance3D:
+			var mesh_instance: MeshInstance3D = target as MeshInstance3D
+			if mesh_instance.mesh != null:
+				target_size_label = "size=%s" % _format_vector3(mesh_instance.mesh.get_aabb().size.abs())
+		target_summaries.append("%s %s" % [_describe_node(target), target_size_label])
+	target_summaries.sort()
+	print(
+		"[RoomFadeDiag] component=%s target_inventory_count=%d targets=%s" % [
+			_describe_object(component),
+			target_summaries.size(),
+			" | ".join(target_summaries),
+		]
+	)
+
 func _format_target_debug_line(
 	target: Node3D,
 	target_normal_source: String,
@@ -932,6 +1079,45 @@ func _format_target_debug_line(
 		target_alpha,
 		current_alpha,
 		next_alpha,
+	]
+
+func _format_target_reason_line(
+	target: Node3D,
+	dot_value: float,
+	threshold: float,
+	target_alpha_before_corridor: float,
+	target_alpha_after_corridor: float,
+	target_alpha_final: float,
+	corridor_pass: bool,
+	bucket_continuity_hit: bool,
+	is_roof_candidate: bool,
+	component_has_non_roof_fade: bool,
+	has_player_position: bool
+) -> String:
+	var reason: String = "faded"
+	if target_alpha_final >= 1.0:
+		reason = "opaque_other"
+		if dot_value <= threshold:
+			reason = "dot_below_threshold"
+		elif target_alpha_before_corridor < 1.0 and has_player_position and not corridor_pass and not bucket_continuity_hit:
+			reason = "corridor_filtered"
+		elif is_roof_candidate and not component_has_non_roof_fade:
+			reason = "roof_waiting_for_wall_fade"
+	elif target_alpha_before_corridor < 1.0 and has_player_position and not corridor_pass and bucket_continuity_hit:
+		reason = "bucket_continuity_override"
+	elif is_roof_candidate and component_has_non_roof_fade and target_alpha_after_corridor > target_alpha_final:
+		reason = "roof_inherited_room_fade"
+	return "[RoomFadeReason] target=%s reason=%s dot=%.3f threshold=%.3f alpha_pre_corridor=%.3f alpha_post_corridor=%.3f alpha_final=%.3f corridor_pass=%s bucket_continuity=%s roof_candidate=%s" % [
+		_describe_node(target),
+		reason,
+		dot_value,
+		threshold,
+		target_alpha_before_corridor,
+		target_alpha_after_corridor,
+		target_alpha_final,
+		str(corridor_pass),
+		str(bucket_continuity_hit),
+		str(is_roof_candidate),
 	]
 
 func _build_target_diagnostic_lines(

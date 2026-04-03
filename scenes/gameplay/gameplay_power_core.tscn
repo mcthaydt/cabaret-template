@@ -65,8 +65,8 @@
 [ext_resource type="Script" uid="uid://c73j55wmytawk" path="res://scripts/ecs/components/c_movement_component.gd" id="60_movement_component"]
 [ext_resource type="Resource" uid="uid://86yp0ka600um" path="res://resources/base_settings/gameplay/cfg_movement_default.tres" id="61_movement_settings"]
 [ext_resource type="Script" uid="uid://dpxywmhc2hqwa" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="63_room_fade_group_component"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="64_room_fade_system"]
+[ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="63_room_fade_group_component"]
+[ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="64_room_fade_system"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -120,75 +120,44 @@ collision_layer = 33
 size = Vector3(25, 1, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_Block" type="CSGBox3D" parent="SceneObjects" unique_id=1640726565]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6780934, -0.77378076, 0)
-use_collision = true
-collision_layer = 33
-material = SubResource("StandardMaterial3D_748a2")
+[node name="SO_RoomFadeShell" type="Node3D" parent="SceneObjects" unique_id=920082735]
+script = ExtResource("55_base_ecs_entity")
+entity_id = &"power_core_room_shell"
+tags = Array[StringName]([&"room_fade_shell"])
 
-[node name="SO_Block2" type="CSGBox3D" parent="SceneObjects" unique_id=1966144604]
-transform = Transform3D(0.89320666, 0.44964638, 0, -0.44964638, 0.89320666, 0, 0, 0, 1, -5.180423, -0.7959937, -0.10645056)
-use_collision = true
-collision_layer = 33
-size = Vector3(6.261841, 1, 3.1923828)
-material = SubResource("StandardMaterial3D_748a2")
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_RoomFadeShell" unique_id=992225471]
+script = ExtResource("63_room_fade_group_component")
+group_tag = &"power_core_room_shell"
 
-[node name="SO_Block3" type="CSGBox3D" parent="SceneObjects" unique_id=1755739387]
-transform = Transform3D(0.99974185, -0.022722274, 0, 0.022722274, 0.99974185, 0, 0, 0, 1, -5.180423, 0.09107876, -3.1731567)
-use_collision = true
-collision_layer = 33
-size = Vector3(6.261841, 1, 3.1923828)
-material = SubResource("StandardMaterial3D_748a2")
-
-[node name="SO_WallNorth" type="CSGBox3D" parent="SceneObjects" unique_id=688319800]
+[node name="SO_WallNorth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=688319800]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -11)
 use_collision = true
 collision_layer = 33
 size = Vector3(24, 7, 1)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_WallNorth"]
-script = ExtResource("63_room_fade_group_component")
-group_tag = &"power_core_wall_north"
-fade_normal = Vector3(0, 0, 1)
-
-[node name="SO_WallSouth" type="CSGBox3D" parent="SceneObjects" unique_id=1019287313]
+[node name="SO_WallSouth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1019287313]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 11)
 use_collision = true
 collision_layer = 33
 size = Vector3(24, 7, 1)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_WallSouth"]
-script = ExtResource("63_room_fade_group_component")
-group_tag = &"power_core_wall_south"
-fade_normal = Vector3(0, 0, -1)
-
-[node name="SO_WallEast" type="CSGBox3D" parent="SceneObjects" unique_id=901183046]
+[node name="SO_WallEast" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=901183046]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 1.5, 0)
 use_collision = true
 collision_layer = 33
 size = Vector3(1, 7, 24)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_WallEast"]
-script = ExtResource("63_room_fade_group_component")
-group_tag = &"power_core_wall_east"
-fade_normal = Vector3(-1, 0, 0)
-
-[node name="SO_WallWest" type="CSGBox3D" parent="SceneObjects" unique_id=2098540849]
+[node name="SO_WallWest" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=2098540849]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 1.5, 0)
 use_collision = true
 collision_layer = 33
 size = Vector3(1, 7, 24)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_WallWest"]
-script = ExtResource("63_room_fade_group_component")
-group_tag = &"power_core_wall_west"
-fade_normal = Vector3(1, 0, 0)
-
-[node name="SO_Ceiling" type="CSGBox3D" parent="SceneObjects" unique_id=744394162]
+[node name="SO_Ceiling" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=744394162]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 use_collision = true
 collision_layer = 33
@@ -257,7 +226,7 @@ script = ExtResource("24_touchscreen_system")
 script = ExtResource("52_vcam_system")
 execution_priority = 100
 
-[node name="S_RoomFadeSystem" type="Node" parent="Systems/Core"]
+[node name="S_RoomFadeSystem" type="Node" parent="Systems/Core" unique_id=1104315912]
 script = ExtResource("64_room_fade_system")
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1928596962]

@@ -478,6 +478,143 @@ func test_side_wall_bucket_continuity_fades_all_segments_when_one_segment_is_in_
 		"Out-of-corridor side segment should fade when a sibling side segment already intersects the corridor."
 	)
 
+func test_corridor_keeps_long_wall_when_segment_intersects_wall_extent() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	var main_camera: Camera3D = fixture.get("main_camera") as Camera3D
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+	assert_not_null(store)
+	assert_not_null(main_camera)
+
+	var setup: Dictionary = _register_room_fade_group_with_long_corridor_wall(
+		ecs_manager,
+		"E_RoomFadeLongCorridorWall"
+	)
+	var room_component = setup.get("component")
+	var wall_target: Node3D = setup.get("wall_target") as Node3D
+	assert_not_null(room_component)
+	assert_not_null(wall_target)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	room_component.settings = settings
+	room_component.current_alpha = 1.0
+
+	_set_player_position(store, Vector3(10.0, 0.0, 0.0))
+	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(10.0, 6.0, 10.0))
+	main_camera.look_at(Vector3(10.0, 0.0, 0.0), Vector3.UP)
+
+	system.process_tick(0.1)
+
+	var wall_alpha: float = float(applier.updated_alpha_by_target_id.get(wall_target.get_instance_id(), -1.0))
+	assert_gt(wall_alpha, -0.5, "Expected long wall alpha update to be captured.")
+	assert_almost_eq(
+		wall_alpha,
+		0.05,
+		0.0001,
+		"Long wall should fade when the camera-player segment intersects the wall extent."
+	)
+
+func test_roof_target_fades_when_room_wall_is_fading() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+	assert_not_null(store)
+
+	var setup: Dictionary = _register_room_fade_group_with_front_wall_and_roof_csg_targets(
+		ecs_manager,
+		"E_RoomFadeRoofFollow"
+	)
+	var room_component = setup.get("component")
+	var front_target: Node3D = setup.get("front_target") as Node3D
+	var roof_target: Node3D = setup.get("roof_target") as Node3D
+	assert_not_null(room_component)
+	assert_not_null(front_target)
+	assert_not_null(roof_target)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	room_component.settings = settings
+	room_component.current_alpha = 1.0
+
+	_set_player_position(store, Vector3(0.0, 0.0, 0.0))
+	system.process_tick(0.1)
+
+	var front_alpha: float = float(applier.updated_alpha_by_target_id.get(front_target.get_instance_id(), -1.0))
+	var roof_alpha: float = float(applier.updated_alpha_by_target_id.get(roof_target.get_instance_id(), -1.0))
+	assert_gt(front_alpha, -0.5, "Expected front wall alpha update.")
+	assert_gt(roof_alpha, -0.5, "Expected roof alpha update.")
+	assert_almost_eq(front_alpha, 0.05, 0.0001, "Front wall should fade.")
+	assert_almost_eq(
+		roof_alpha,
+		0.05,
+		0.0001,
+		"Roof should fade with the room when a wall in the active room is fading."
+	)
+
+func test_roof_centered_over_room_uses_thin_axis_classification_and_fades_with_side_wall() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	var main_camera: Camera3D = fixture.get("main_camera") as Camera3D
+	assert_not_null(system)
+	assert_not_null(applier)
+	assert_not_null(ecs_manager)
+	assert_not_null(store)
+	assert_not_null(main_camera)
+
+	var setup: Dictionary = _register_room_fade_group_with_side_walls_and_centered_roof(
+		ecs_manager,
+		"E_RoomFadeCenteredRoof"
+	)
+	var room_component = setup.get("component")
+	var west_target: Node3D = setup.get("west_target") as Node3D
+	var roof_target: Node3D = setup.get("roof_target") as Node3D
+	assert_not_null(room_component)
+	assert_not_null(west_target)
+	assert_not_null(roof_target)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	room_component.settings = settings
+	room_component.current_alpha = 1.0
+
+	_set_player_position(store, Vector3(0.0, 0.0, 0.0))
+	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(-10.0, 6.0, 0.0))
+	main_camera.look_at(Vector3.ZERO, Vector3.UP)
+
+	system.process_tick(0.1)
+
+	var west_alpha: float = float(applier.updated_alpha_by_target_id.get(west_target.get_instance_id(), -1.0))
+	var roof_alpha: float = float(applier.updated_alpha_by_target_id.get(roof_target.get_instance_id(), -1.0))
+	assert_gt(west_alpha, -0.5, "Expected west wall alpha update.")
+	assert_gt(roof_alpha, -0.5, "Expected roof alpha update.")
+	assert_almost_eq(west_alpha, 0.05, 0.0001, "West wall should fade for +X-facing camera.")
+	assert_almost_eq(
+		roof_alpha,
+		0.05,
+		0.0001,
+		"Centered roof should classify as roof candidate and inherit room fade when a side wall fades."
+	)
+
 func test_duplicate_target_ownership_keeps_first_component_and_skips_duplicate_updates() -> void:
 	var fixture := _create_fixture()
 	var system = fixture.get("system")
@@ -946,6 +1083,102 @@ func _register_room_fade_group_with_two_side_csg_targets(
 		"front_target": front_target,
 		"corridor_side_target": corridor_side_target,
 		"out_of_corridor_side_target": out_of_corridor_side_target,
+	}
+
+func _register_room_fade_group_with_front_wall_and_roof_csg_targets(
+	ecs_manager: MockECSManager,
+	entity_name: String
+) -> Dictionary:
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = entity_name
+	add_child(entity)
+	autofree(entity)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity.add_child(component)
+	autofree(component)
+	ecs_manager.add_component_to_entity(entity, component)
+
+	var front_target := CSGBox3D.new()
+	front_target.size = Vector3(4.0, 4.0, 0.1)
+	front_target.position = Vector3(0.0, 0.0, 5.0)
+	entity.add_child(front_target)
+	autofree(front_target)
+
+	var roof_target := CSGBox3D.new()
+	roof_target.size = Vector3(10.0, 0.1, 10.0)
+	roof_target.position = Vector3(0.0, 6.0, 0.0)
+	entity.add_child(roof_target)
+	autofree(roof_target)
+
+	return {
+		"component": component,
+		"front_target": front_target,
+		"roof_target": roof_target,
+	}
+
+func _register_room_fade_group_with_long_corridor_wall(
+	ecs_manager: MockECSManager,
+	entity_name: String
+) -> Dictionary:
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = entity_name
+	add_child(entity)
+	autofree(entity)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity.add_child(component)
+	autofree(component)
+	ecs_manager.add_component_to_entity(entity, component)
+
+	var wall_target := CSGBox3D.new()
+	wall_target.size = Vector3(24.0, 7.0, 1.0)
+	wall_target.position = Vector3(0.0, 0.0, 5.0)
+	entity.add_child(wall_target)
+	autofree(wall_target)
+
+	return {
+		"component": component,
+		"wall_target": wall_target,
+	}
+
+func _register_room_fade_group_with_side_walls_and_centered_roof(
+	ecs_manager: MockECSManager,
+	entity_name: String
+) -> Dictionary:
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = entity_name
+	add_child(entity)
+	autofree(entity)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity.add_child(component)
+	autofree(component)
+	ecs_manager.add_component_to_entity(entity, component)
+
+	var west_target := CSGBox3D.new()
+	west_target.size = Vector3(1.0, 7.0, 24.0)
+	west_target.position = Vector3(-5.0, 0.0, 0.0)
+	entity.add_child(west_target)
+	autofree(west_target)
+
+	var east_target := CSGBox3D.new()
+	east_target.size = Vector3(1.0, 7.0, 24.0)
+	east_target.position = Vector3(5.0, 0.0, 0.0)
+	entity.add_child(east_target)
+	autofree(east_target)
+
+	var roof_target := CSGBox3D.new()
+	roof_target.size = Vector3(24.0, 1.0, 24.0)
+	roof_target.position = Vector3(0.0, 5.0, 0.0)
+	entity.add_child(roof_target)
+	autofree(roof_target)
+
+	return {
+		"component": component,
+		"west_target": west_target,
+		"east_target": east_target,
+		"roof_target": roof_target,
 	}
 
 func _register_room_fade_group_at_position(

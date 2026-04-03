@@ -7,6 +7,7 @@ const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
 	"res://scripts/ecs/components/c_room_fade_group_component.gd"
 )
 const S_ROOM_FADE_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_room_fade_system.gd")
+const BASE_ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
 
 func test_gameplay_interior_room_fade_targets_have_single_group_ownership() -> void:
 	var packed_scene := load(SCENE_PATH) as PackedScene
@@ -111,7 +112,7 @@ func test_gameplay_interior_room_fade_targets_have_single_group_ownership() -> v
 		"Duplicate room-fade target ownership detected:\n%s" % _join_lines(duplicate_messages)
 	)
 
-func test_gameplay_power_core_has_room_fade_system_and_wall_groups() -> void:
+func test_gameplay_power_core_has_room_fade_system_and_wall_and_roof_groups() -> void:
 	var packed_scene := load(POWER_CORE_SCENE_PATH) as PackedScene
 	assert_not_null(packed_scene, "Scene should load: %s" % POWER_CORE_SCENE_PATH)
 	if packed_scene == null:
@@ -130,18 +131,20 @@ func test_gameplay_power_core_has_room_fade_system_and_wall_groups() -> void:
 	if room_fade_system != null:
 		assert_eq(room_fade_system.get_script(), S_ROOM_FADE_SYSTEM_SCRIPT)
 
-	var expected_component_paths: Array[String] = [
-		"SceneObjects/SO_WallNorth/C_RoomFadeGroupComponent",
-		"SceneObjects/SO_WallSouth/C_RoomFadeGroupComponent",
-		"SceneObjects/SO_WallEast/C_RoomFadeGroupComponent",
-		"SceneObjects/SO_WallWest/C_RoomFadeGroupComponent",
-	]
-	var seen_group_tags: Dictionary = {}
-	for path in expected_component_paths:
-		var component := root.get_node_or_null(NodePath(path))
-		assert_not_null(component, "Expected room-fade group component missing at: %s" % path)
-		if component == null:
-			continue
+	var component_path := NodePath("SceneObjects/SO_RoomFadeShell/C_RoomFadeGroupComponent")
+	var component := root.get_node_or_null(component_path)
+	assert_not_null(component, "Expected room-fade group component missing at: %s" % str(component_path))
+
+	var room_shell := root.get_node_or_null(NodePath("SceneObjects/SO_RoomFadeShell"))
+	assert_not_null(room_shell, "Expected room-fade shell node in %s" % POWER_CORE_SCENE_PATH)
+	if room_shell != null:
+		assert_eq(
+			room_shell.get_script(),
+			BASE_ECS_ENTITY_SCRIPT,
+			"SO_RoomFadeShell must extend BaseECSEntity so room-fade components have a valid ECS entity root."
+		)
+
+	if component != null:
 		var group_tag_variant: Variant = component.get("group_tag")
 		assert_true(
 			group_tag_variant is StringName,
@@ -153,17 +156,28 @@ func test_gameplay_power_core_has_room_fade_system_and_wall_groups() -> void:
 				not String(group_tag).is_empty(),
 				"Room-fade group_tag should be explicitly authored for %s" % _describe_node(component)
 			)
-			assert_false(
-				seen_group_tags.has(group_tag),
-				"Duplicate room-fade group_tag detected in %s: %s" % [POWER_CORE_SCENE_PATH, String(group_tag)]
-			)
-			seen_group_tags[group_tag] = true
+
+		assert_true(component.has_method("collect_mesh_targets"), "Room-fade component should expose collect_mesh_targets().")
+		if component.has_method("collect_mesh_targets"):
+			var targets_variant: Variant = component.call("collect_mesh_targets")
+			assert_true(targets_variant is Array, "collect_mesh_targets should return Array.")
+			if targets_variant is Array:
+				var target_names: Dictionary = {}
+				for target_variant in targets_variant as Array:
+					if target_variant is Node:
+						var target_node := target_variant as Node
+						target_names[target_node.name] = true
+				assert_true(target_names.has("SO_WallNorth"), "Room shell should include SO_WallNorth target.")
+				assert_true(target_names.has("SO_WallSouth"), "Room shell should include SO_WallSouth target.")
+				assert_true(target_names.has("SO_WallEast"), "Room shell should include SO_WallEast target.")
+				assert_true(target_names.has("SO_WallWest"), "Room shell should include SO_WallWest target.")
+				assert_true(target_names.has("SO_Ceiling"), "Room shell should include SO_Ceiling target.")
 
 	var components: Array = _collect_room_fade_components(root)
 	assert_eq(
 		components.size(),
-		4,
-		"Expected 4 room-fade components in gameplay_power_core.tscn."
+		1,
+		"Expected exactly one room-fade component in gameplay_power_core.tscn."
 	)
 
 func test_tmpl_base_scene_has_room_fade_system_and_default_components() -> void:
