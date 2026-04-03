@@ -412,12 +412,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2.5, 0)
 entity_id = &"patrol_drone"
 tags = Array[StringName]([&"npc", &"ai", &"patrol_drone"])
 
-[node name="Visual" type="CSGSphere3D" parent="Entities/NPCs/E_PatrolDrone/Player_Body"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
-use_collision = false
-radius = 0.8
-material = SubResource("StandardMaterial3D_marker")
-
 [node name="C_AIBrainComponent" parent="Entities/NPCs/E_PatrolDrone/Components"]
 brain_settings = ExtResource("58_patrol_drone_brain")
 
@@ -425,7 +419,7 @@ brain_settings = ExtResource("58_patrol_drone_brain")
 settings = ExtResource("66_floating_settings")
 
 [node name="C_AlignWithSurfaceComponent" parent="Entities/NPCs/E_PatrolDrone/Components"]
-visual_alignment_path = NodePath("../../Player_Body/Visual")
+visual_alignment_path = NodePath("../../Player_Body/Body_Mesh/Visual")
 
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, -2)

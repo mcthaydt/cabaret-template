@@ -5,6 +5,13 @@ class_name RS_AIActionMoveTo
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const TARGET_STATE_KEY := "ai_move_target"
 const ARRIVAL_THRESHOLD_STATE_KEY := "ai_arrival_threshold"
+const DEBUG_SOURCE_STATE_KEY := "move_target_source"
+const DEBUG_REASON_STATE_KEY := "move_target_resolution_reason"
+const DEBUG_FALLBACK_STATE_KEY := "move_target_used_fallback"
+const DEBUG_TARGET_PATH_STATE_KEY := "move_target_requested_node_path"
+const DEBUG_ENTITY_PATH_STATE_KEY := "move_target_context_entity_path"
+const DEBUG_OWNER_PATH_STATE_KEY := "move_target_context_owner_path"
+const DEBUG_WAYPOINT_INDEX_STATE_KEY := "move_target_waypoint_index"
 
 @export_group("Target")
 @export var target_position: Vector3 = Vector3.ZERO
@@ -13,7 +20,9 @@ const ARRIVAL_THRESHOLD_STATE_KEY := "ai_arrival_threshold"
 @export var arrival_threshold: float = 0.5
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
-	var resolved_target: Variant = _resolve_target(context)
+	var resolution: Dictionary = _resolve_target_resolution(context)
+	_write_resolution_debug(task_state, resolution)
+	var resolved_target: Variant = resolution.get("target", null)
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
 	if resolved_target is Vector3:
 		task_state[TARGET_STATE_KEY] = resolved_target
@@ -25,7 +34,9 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state["move_target_resolved"] = false
 
 func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
-	var resolved_target: Variant = _resolve_target(context)
+	var resolution: Dictionary = _resolve_target_resolution(context)
+	_write_resolution_debug(task_state, resolution)
+	var resolved_target: Variant = resolution.get("target", null)
 	if resolved_target is Vector3:
 		task_state[TARGET_STATE_KEY] = resolved_target
 		task_state[ARRIVAL_THRESHOLD_STATE_KEY] = maxf(arrival_threshold, 0.0)
@@ -45,18 +56,71 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	var offset_xz := Vector2(target.x - current_position.x, target.z - current_position.z)
 	return offset_xz.length() <= maxf(arrival_threshold, 0.0)
 
-func _resolve_target(context: Dictionary) -> Variant:
+func _resolve_target_resolution(context: Dictionary) -> Dictionary:
+	var resolution: Dictionary = {
+		"target": target_position,
+		"source": "target_position",
+		"reason": "target_position_direct",
+		"used_fallback": false,
+		"requested_node_path": str(target_node_path),
+		"context_entity_path": _resolve_node_debug_path(context.get("entity", null)),
+		"context_owner_path": _resolve_node_debug_path(context.get("owner_node", null)),
+		"waypoint_index": waypoint_index,
+	}
+
+	var waypoint_requested: bool = waypoint_index >= 0
+	var target_path_requested: bool = target_node_path != NodePath()
+	var waypoint_unresolved: bool = false
+	var target_path_unresolved: bool = false
+
 	if waypoint_index >= 0:
 		var waypoint_target: Variant = _resolve_waypoint_target(context)
 		if waypoint_target is Vector3:
-			return waypoint_target
+			resolution["target"] = waypoint_target
+			resolution["source"] = "waypoint_index"
+			resolution["reason"] = "resolved_waypoint_index"
+			resolution["used_fallback"] = false
+			return resolution
+		waypoint_unresolved = true
 
 	if target_node_path != NodePath():
 		var target_node: Node3D = _resolve_target_node(context)
 		if target_node != null:
-			return target_node.global_position
+			resolution["target"] = target_node.global_position
+			resolution["source"] = "target_node_path"
+			resolution["reason"] = "resolved_target_node_path"
+			resolution["used_fallback"] = false
+			return resolution
+		target_path_unresolved = true
 
-	return target_position
+	if waypoint_requested or target_path_requested:
+		resolution["source"] = "target_position_fallback"
+		resolution["used_fallback"] = true
+		if waypoint_unresolved and target_path_unresolved:
+			resolution["reason"] = "waypoint_and_target_node_unresolved_fallback_target_position"
+		elif waypoint_unresolved:
+			resolution["reason"] = "waypoint_unresolved_fallback_target_position"
+		elif target_path_unresolved:
+			resolution["reason"] = "target_node_unresolved_fallback_target_position"
+
+	return resolution
+
+func _write_resolution_debug(task_state: Dictionary, resolution: Dictionary) -> void:
+	task_state[DEBUG_SOURCE_STATE_KEY] = str(resolution.get("source", ""))
+	task_state[DEBUG_REASON_STATE_KEY] = str(resolution.get("reason", ""))
+	task_state[DEBUG_FALLBACK_STATE_KEY] = bool(resolution.get("used_fallback", false))
+	task_state[DEBUG_TARGET_PATH_STATE_KEY] = str(resolution.get("requested_node_path", ""))
+	task_state[DEBUG_ENTITY_PATH_STATE_KEY] = str(resolution.get("context_entity_path", ""))
+	task_state[DEBUG_OWNER_PATH_STATE_KEY] = str(resolution.get("context_owner_path", ""))
+	task_state[DEBUG_WAYPOINT_INDEX_STATE_KEY] = int(resolution.get("waypoint_index", -1))
+
+func _resolve_node_debug_path(node_variant: Variant) -> String:
+	if not (node_variant is Node):
+		return ""
+	var node: Node = node_variant as Node
+	if node == null or not is_instance_valid(node):
+		return ""
+	return str(node.get_path())
 
 func _resolve_waypoint_target(context: Dictionary) -> Variant:
 	var waypoints_variant: Variant = context.get("waypoints", [])

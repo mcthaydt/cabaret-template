@@ -63,11 +63,19 @@ func process_tick(_delta: float) -> void:
 			_debug_log_navigation(entity_id, "move_vector=ZERO reason=task_state is not Dictionary", entity_query)
 			continue
 		var task_state: Dictionary = task_state_variant as Dictionary
+		var move_target_source: String = str(task_state.get("move_target_source", ""))
+		var move_target_reason: String = str(task_state.get("move_target_resolution_reason", ""))
+		var move_target_used_fallback: bool = bool(task_state.get("move_target_used_fallback", false))
 
 		var target_variant: Variant = task_state.get(TARGET_STATE_KEY, null)
 		if not (target_variant is Vector3):
 			input_component.set_move_vector(Vector2.ZERO)
-			_debug_log_navigation(entity_id, "move_vector=ZERO reason=missing ai_move_target", entity_query)
+			_debug_log_navigation(
+				entity_id,
+				"move_vector=ZERO reason=missing ai_move_target source=%s resolution_reason=%s fallback=%s"
+				% [move_target_source, move_target_reason, str(move_target_used_fallback)],
+				entity_query
+			)
 			continue
 		var target_position: Vector3 = target_variant as Vector3
 		var arrival_threshold: float = _resolve_arrival_threshold(
@@ -106,8 +114,16 @@ func process_tick(_delta: float) -> void:
 		input_component.set_move_vector(move_vector)
 		_debug_log_navigation(
 			entity_id,
-			"move_vector=%s target=%s current=%s threshold=%.3f"
-			% [str(move_vector), str(target_position), str(current_position), arrival_threshold],
+			"move_vector=%s target=%s current=%s threshold=%.3f source=%s resolution_reason=%s fallback=%s"
+			% [
+				str(move_vector),
+				str(target_position),
+				str(current_position),
+				arrival_threshold,
+				move_target_source,
+				move_target_reason,
+				str(move_target_used_fallback),
+			],
 			entity_query,
 			movement_component
 		)

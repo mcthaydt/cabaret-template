@@ -394,6 +394,9 @@ transform = Transform3D(0.9848077, 0, -0.1736482, 0, 1, 0, 0.1736482, 0, 0.98480
 entity_id = &"guide_prism"
 tags = Array[StringName]([&"npc", &"ai", &"guide_prism"])
 
+[node name="Visual" parent="Entities/NPCs/E_GuidePrism/Player_Body/Body_Mesh"]
+visible = false
+
 [node name="Visual" type="CSGSphere3D" parent="Entities/NPCs/E_GuidePrism/Player_Body"]
 transform = Transform3D(1, 0, 0, 0, 1.3, 0, 0, 0, 1, 0, 0.7, 0)
 use_collision = false

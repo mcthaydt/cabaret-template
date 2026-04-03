@@ -496,13 +496,20 @@ func _debug_log_brain_state(context: Dictionary, brain: Variant) -> void:
 	var has_move_target: bool = task_state.has("ai_move_target")
 	var move_target_variant: Variant = task_state.get("ai_move_target", null)
 	var move_target_resolved: bool = bool(task_state.get("move_target_resolved", false))
+	var move_target_source: String = str(task_state.get("move_target_source", ""))
+	var move_target_reason: String = str(task_state.get("move_target_resolution_reason", ""))
+	var move_target_used_fallback: bool = bool(task_state.get("move_target_used_fallback", false))
+	var move_target_requested_path: String = str(task_state.get("move_target_requested_node_path", ""))
+	var move_target_context_entity_path: String = str(task_state.get("move_target_context_entity_path", ""))
+	var move_target_context_owner_path: String = str(task_state.get("move_target_context_owner_path", ""))
+	var move_target_waypoint_index: int = int(task_state.get("move_target_waypoint_index", -1))
 	var action_started: bool = bool(task_state.get(ACTION_STARTED_STATE_KEY, false))
 	var render_probe: String = ""
 	if debug_ai_render_probe_logging:
 		render_probe = _build_render_probe(context)
 
 	print(
-		"S_AIBehaviorSystem[entity=%s] goal=%s queue_size=%d task_index=%d task_id=%s action_started=%s move_target_resolved=%s has_move_target=%s move_target=%s%s"
+		"S_AIBehaviorSystem[entity=%s] goal=%s queue_size=%d task_index=%d task_id=%s action_started=%s move_target_resolved=%s has_move_target=%s move_target=%s source=%s reason=%s fallback=%s requested_path=%s context_entity=%s context_owner=%s waypoint_index=%d%s"
 		% [
 			str(entity_id),
 			str(active_goal_id),
@@ -513,6 +520,13 @@ func _debug_log_brain_state(context: Dictionary, brain: Variant) -> void:
 			str(move_target_resolved),
 			str(has_move_target),
 			str(move_target_variant),
+			move_target_source,
+			move_target_reason,
+			str(move_target_used_fallback),
+			move_target_requested_path,
+			move_target_context_entity_path,
+			move_target_context_owner_path,
+			move_target_waypoint_index,
 			render_probe,
 		]
 	)
