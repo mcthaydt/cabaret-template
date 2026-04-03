@@ -2,8 +2,8 @@
 
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-31
-**Last Updated**: 2026-04-02
-**Status**: IMPLEMENTATION COMPLETE (M10 complete)
+**Last Updated**: 2026-04-03
+**Status**: POST-M10 HARDENING IN PROGRESS (M12 complete; M13-M16 planned)
 **Scope**: Quality-based NPC behavior selection using GOAP goals and HTN task decomposition, powered by QB Rule Manager v2
 
 ## Summary

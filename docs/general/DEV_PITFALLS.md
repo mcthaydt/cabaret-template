@@ -29,6 +29,11 @@
 - **Script renames can leave stale `ext_resource` UIDs in scenes**: After renaming/moving a script referenced by `.tscn` files, scene `ext_resource` lines may keep a UID that still resolves to the old path (for example, trying to load `res://.../old_name.gd` even when `path="res://.../new_name.gd"` is present). This can fail headless style/scene tests with parse errors.
   - **Fix**: remove the stale `uid="uid://..."` on affected `ext_resource` lines (let Godot regenerate it), or refresh UID/cache via headless import.
 
+## Godot Physics Pitfalls
+
+- **CSG visuals under `CharacterBody3D` can self-collide and cause jitter**: If an NPC/player body has a child `CSG*` visual with `use_collision = true` on the same layer/mask as the body's collider, the internal CSG `StaticBody3D` can collide with its own parent during `move_and_slide()`. Symptoms include frame-to-frame jitter, micro-stalls, and unstable patrol motion.
+  - **Fix pattern**: keep visual CSG collision disabled (`use_collision = false`) for body-child visuals, and use dedicated `CollisionShape3D`/physics bodies for gameplay collisions.
+
 ## Godot Script Class Cache
 
 - **Refresh global class cache after moving `class_name` scripts**: Moving scripts that declare `class_name` can leave the global class cache pointing at old paths, causing scenes to instantiate with base `Control` nodes and missing methods in headless tests. **Fix**: run a headless import pass to rebuild the class cache:

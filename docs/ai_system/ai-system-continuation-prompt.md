@@ -5,24 +5,24 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 11 complete; Milestones 12-16 planned (jitter fix, character unification, AI showcase, player-NPC interactions, debug overlay)
+**Status**: Milestone 12 complete; Milestones 13-16 planned (character unification, AI showcase, player-NPC interactions, debug overlay)
 
 ---
 
-## Current Status: Milestone 11 Complete, 12-16 Planned
+## Current Status: Milestone 12 Complete, 13-16 Planned
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (11/11 milestones complete, 5 new milestones planned).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (12 complete milestones, 4 remaining milestones).
 
-### Next Up: M12 — Fix NPC Jitter + Navigation Robustness
+### Next Up: M13 — Create `prefab_npc.tscn` + Character Stack Unification
 
-**Primary jitter cause (verified):** All 3 NPC entities have CSG visuals with `use_collision = true` and `collision_layer = 33` as children of their CharacterBody3D (`collision_mask = 33`). The CSG creates an internal StaticBody3D that the body collides with during `move_and_slide()` every frame. The player template has zero `use_collision` on visuals.
+**M13 goal:** Replace inline AI entities with a shared `prefab_npc.tscn` extending `tmpl_character.tscn`, preserving AI-specific differences while inheriting the standard character stack.
 
-**Fix priority:**
-1. Remove `use_collision = true` from NPC visual CSG nodes (immediate jitter fix)
-2. Align nav epsilon with action arrival threshold (robustness)
-3. Simplify AI nav to world-space (cleanup)
+**M13 priority:**
+1. Build `prefab_npc.tscn` with full character runtime stack + AI additions
+2. Replace inline NPCs in `gameplay_power_core`, `gameplay_comms_array`, and `gameplay_nav_nexus`
+3. Preserve M12 guardrail: NPC visuals must keep CSG `use_collision = false`
 
 ### Planned: M13-16
 
@@ -247,6 +247,33 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `Godot --headless ... -gdir=res://tests/unit/style -gselect=test_style_enforcement -gexit` → `17/17`
 - Hardening note: recovery integration test now forces unsupported state deterministically (support-grace set to `0.0`, immediate post-recovery assertions) to avoid false negatives from support-grace windows and next-frame AI rewrites.
 
+### Completed in M12 (2026-04-03)
+
+- Removed NPC visual self-collision in all demo gameplay scenes by disabling CSG `use_collision` on:
+  - `E_PatrolDrone/NPC_Body/Visual`
+  - `E_Sentry/NPC_Body/Visual`
+  - `E_GuidePrism/NPC_Body/Visual`
+- Implemented per-task arrival-threshold handoff:
+  - `RS_AIActionMoveTo` now writes `task_state["ai_arrival_threshold"]` in `start()`/`tick()`.
+  - `S_AINavigationSystem` now reads `ai_arrival_threshold` (fallback `0.5`) instead of a hardcoded nav epsilon.
+- Simplified AI movement path to world-space:
+  - `S_AINavigationSystem` now writes direct world-space move vectors (`Vector2(direction.x, direction.z)`), independent of active camera basis.
+  - `S_MovementSystem` now detects `C_AIBrainComponent` and consumes AI move vectors via `_get_desired_velocity()` (world-space), while keeping player camera-relative handling unchanged.
+- Added/updated tests:
+  - `tests/unit/ai/actions/test_ai_actions_movement.gd` (arrival-threshold task-state assertion)
+  - `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` (threshold + world-space assertions)
+  - `tests/unit/ecs/systems/test_movement_system.gd` (AI world-space movement assertion)
+  - `tests/unit/ai/integration/test_ai_pipeline_integration.gd` (world-space nav expectation updates)
+  - `tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` (NPC visual collision guard)
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` → `11/11`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` → `12/12`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_movement_system.gd` → `10/10`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `7/7`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
+  - `tools/run_gut_suite.sh` full regression currently reports `3708/3734` passing, `17` failing, `9` pending/risky (non-M12-specific ECS warning expectation + perf-threshold failures pending separate hardening).
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -258,7 +285,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **No blackboard**: QB conditions already read component fields, Redux state, and event payloads via U_PathResolver.
 - **No behavior trees**: QB scorer is the decision layer; HTN replaces BT-style decomposition.
 - **Animate remains an intentional stub**: `RS_AIActionAnimate` sets `task_state["animation_state"]` and completes immediately; full animation integration is deferred.
-- **Navigation bridge is now live**: `S_AINavigationSystem` (`execution_priority = -5`) reads `task_state["ai_move_target"]`, converts XZ world direction into camera-relative `C_InputComponent.move_vector`, and keeps NPCs on the same movement path as players.
+- **Navigation bridge is now world-space (M12)**: `S_AINavigationSystem` (`execution_priority = -5`) reads `task_state["ai_move_target"]` + optional `task_state["ai_arrival_threshold"]`, emits world-space `C_InputComponent.move_vector`, and leaves player camera-relative transforms to player-only input paths.
 - **Player input filtering is now enforced**: `S_InputSystem` writes gameplay input only to entities with `C_PlayerTagComponent`, preventing player-input clobbering of AI move vectors.
 - **M8 pipeline integration coverage is now live**: `tests/unit/ai/integration/test_ai_pipeline_integration.gd` validates GOAP scoring → HTN decomposition → typed action execution → AI navigation bridge → player-input filtering end-to-end.
 - **M9 demo scenes are now authored**: Power Core, Comms Array, and Nav Nexus gameplay scenes exist with required prototype geometry, markers/triggers, and NPC placeholder entities bound to valid `RS_AIBrainSettings` resources.
@@ -306,7 +333,7 @@ Study these for the typed resource + interface pattern (I_AIAction follows this 
 Study these for movement/input foundations used by the implemented M7 AI navigation bridge:
 
 - `scripts/ecs/systems/s_input_system.gd` — Player input writer with `C_PlayerTagComponent` query filtering so player input writes only to player-tagged entities.
-- `scripts/ecs/systems/s_movement_system.gd` — Camera-relative movement pipeline. M7 AI navigation should inverse this transform and write to `C_InputComponent.move_vector` so NPCs flow through the same path.
+- `scripts/ecs/systems/s_movement_system.gd` — Player movement remains camera-relative; AI entities (`C_AIBrainComponent`) now consume world-space `C_InputComponent.move_vector` via `_get_desired_velocity()`.
 - `scripts/utils/ecs/u_ecs_utils.gd` — Active camera lookup helpers used by movement-oriented ECS systems.
 
 Study these for utility and event patterns:
@@ -363,7 +390,7 @@ You MUST:
 - **Typed Actions via I_AIAction (M7 complete)**: Each action resource (RS_AIAction*) implements I_AIAction with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)`. `S_AIBehaviorSystem._execute_current_task(...)` dispatches polymorphically (no match blocks/action-type switching).
 - **RS_AIPrimitiveTask is a Wrapper**: RS_AIPrimitiveTask holds `@export var action: Resource` (I_AIAction). The task is the "what" (position in the HTN plan), the action is the "how" (self-executing logic + typed @export config).
 - **Animate Stub Scope (implemented)**: `RS_AIActionAnimate` sets `task_state["animation_state"]` to a StringName and completes immediately. Full animation system integration is a separate effort.
-- **M7 Movement Bridge (implemented)**: `RS_AIActionMoveTo` writes `task_state["ai_move_target"]` (Vector3), `S_AINavigationSystem` (`execution_priority = -5`) reads that target and writes camera-relative `Vector2` into `C_InputComponent.set_move_vector()`, and `S_InputSystem` is filtered by `C_PlayerTagComponent` so player input does not clobber AI move vectors.
+- **M7/M12 Movement Bridge (implemented + hardened)**: `RS_AIActionMoveTo` writes `task_state["ai_move_target"]` + `task_state["ai_arrival_threshold"]`; `S_AINavigationSystem` (`execution_priority = -5`) resolves world-space XZ direction into `C_InputComponent.set_move_vector()` and applies per-task arrival threshold; `S_MovementSystem` consumes world-space vectors for AI entities while preserving player camera-relative controls.
 - **Shared runtime wiring is now default**: both `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` include `S_AIBehaviorSystem(-10)` and `S_AINavigationSystem(-5)` before `S_InputSystem(0)`.
 - **Demo Scenes are CSG Prototypes**: Use CSG geometry for all level geometry. Functional prototypes, not polished levels.
 - **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and node naming prefixes (S_, C_, RS_, U_, I_, E_, etc.).
@@ -374,5 +401,5 @@ You MUST:
 ## Next Steps
 
 1. Optional follow-up: run in-editor playtest passes to tune authored waypoint spacing, scan durations, and cooldown values for feel (functional baseline is now automated-test verified).
-2. Keep this branch focused on post-M10 polish only; use separate commits for implementation vs documentation deltas.
+2. Keep this branch focused on post-M12 polish only; use separate commits for implementation vs documentation deltas.
 3. Merge `GOAP-AI` once review is complete.
