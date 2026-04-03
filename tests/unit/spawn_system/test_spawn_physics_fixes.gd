@@ -332,3 +332,93 @@ func test_unfreeze_after_spawn_enables_clean_physics_state() -> void:
 	assert_not_null(spawn_state, "Spawn state component should persist")
 	assert_false(spawn_state.is_physics_frozen, "Frozen state should be removed")
 	assert_eq(player.velocity, Vector3.ZERO, "Velocity should still be zero after unfreeze")
+
+## ============================================================================
+## FIX 4: AI Entity Auto-Unfreeze Tests
+##
+## spawn_entity_at_point (used by S_AISpawnRecoverySystem) must set a finite
+## unfreeze_at_frame so S_MovementSystem._maybe_schedule_spawn_unfreeze can
+## auto-clear the freeze. Passing -1 (the player path) creates a permanent
+## freeze because the unfreeze check is: if unfreeze_frame < 0: return.
+## ============================================================================
+
+func _make_ai_entity(entity_name: String) -> Node3D:
+	var entity := Node3D.new()
+	entity.name = entity_name
+	var body := CharacterBody3D.new()
+	body.name = "Player_Body"
+	entity.add_child(body)
+	return entity
+
+func test_spawn_entity_at_point_sets_finite_unfreeze_frame() -> void:
+	# Arrange
+	var spawn_point := Node3D.new()
+	spawn_point.name = "sp_test_drone"
+	test_scene.add_child(spawn_point)
+
+	var entity := _make_ai_entity("E_test_drone")
+	test_scene.add_child(entity)
+
+	# Act
+	var result: bool = spawn_manager.spawn_entity_at_point(
+		test_scene, StringName("test_drone"), StringName("sp_test_drone")
+	)
+
+	# Assert
+	assert_true(result, "Spawn should succeed")
+	var spawn_state := _get_spawn_state_component(entity)
+	assert_not_null(spawn_state, "Spawn state component should be created")
+	assert_true(spawn_state.is_physics_frozen, "Physics should be frozen after AI spawn")
+	assert_true(
+		spawn_state.unfreeze_at_frame >= 0,
+		"unfreeze_at_frame must be >= 0 so _maybe_schedule_spawn_unfreeze can auto-clear the freeze (got %d)" % spawn_state.unfreeze_at_frame
+	)
+
+func test_spawn_entity_at_point_unfreeze_frame_is_in_future() -> void:
+	# Arrange
+	var spawn_point := Node3D.new()
+	spawn_point.name = "sp_test_drone"
+	test_scene.add_child(spawn_point)
+
+	var entity := _make_ai_entity("E_test_drone")
+	test_scene.add_child(entity)
+
+	var frame_before: int = Engine.get_physics_frames()
+
+	# Act
+	spawn_manager.spawn_entity_at_point(
+		test_scene, StringName("test_drone"), StringName("sp_test_drone")
+	)
+
+	# Assert: frame must be strictly after the call so the freeze lasts at least one tick
+	var spawn_state := _get_spawn_state_component(entity)
+	assert_not_null(spawn_state)
+	assert_true(
+		spawn_state.unfreeze_at_frame > frame_before,
+		"unfreeze_at_frame should be a future physics frame (got %d, frame at call was %d)" % [spawn_state.unfreeze_at_frame, frame_before]
+	)
+
+func test_spawn_player_at_point_keeps_indefinite_freeze() -> void:
+	# Player freeze is cleared by unfreeze_player_physics in the scene loader,
+	# not by _maybe_schedule_spawn_unfreeze — so it must stay -1.
+	var spawn_point := Node3D.new()
+	spawn_point.name = "sp_player"
+	test_scene.add_child(spawn_point)
+
+	var player := CharacterBody3D.new()
+	player.name = "E_Player"
+	test_scene.add_child(player)
+
+	# Act
+	var result: bool = spawn_manager.spawn_player_at_point(test_scene, StringName("sp_player"))
+
+	# Assert
+	assert_true(result)
+	var spawn_state := _get_spawn_state_component(player)
+	assert_not_null(spawn_state)
+	assert_true(spawn_state.is_physics_frozen, "Player physics should be frozen")
+	assert_eq(
+		spawn_state.unfreeze_at_frame,
+		-1,
+		"Player unfreeze_at_frame must stay -1 — cleared by scene loader, not auto-cleared"
+	)

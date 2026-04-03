@@ -167,7 +167,7 @@ func spawn_entity_at_point(scene: Node, entity_id: StringName, spawn_point_id: S
 		return false
 
 	var body: CharacterBody3D = _find_character_body(entity)
-	return _spawn_entity_node_at_point(entity, body, spawn_node as Node3D, spawn_point_id, false, false)
+	return _spawn_entity_node_at_point(entity, body, spawn_node as Node3D, spawn_point_id, false, false, true)
 
 ## Find spawn point node by name in scene tree (T221)
 ##
@@ -243,7 +243,8 @@ func _spawn_entity_node_at_point(
 	spawn_point: Node3D,
 	spawn_point_id: StringName,
 	clear_target_spawn_point_after: bool,
-	emit_player_spawn_event: bool
+	emit_player_spawn_event: bool,
+	auto_unfreeze: bool = false
 ) -> bool:
 	if entity == null or spawn_point == null:
 		return false
@@ -261,7 +262,8 @@ func _spawn_entity_node_at_point(
 
 		if spawn_state != null:
 			var current_frame: int = Engine.get_physics_frames()
-			spawn_state.mark_frozen(-1, current_frame + 1)
+			var unfreeze_at_frame: int = current_frame + 2 if auto_unfreeze else -1
+			spawn_state.mark_frozen(unfreeze_at_frame, current_frame + 1)
 
 	_reset_floating_component_state(entity)
 	_snap_player_to_hover_height(entity, ecs_body)
