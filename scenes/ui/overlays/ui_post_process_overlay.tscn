@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://d8f3hr42dgv4"]
 
 [ext_resource type="Shader" uid="uid://cbb5bncshtrb" path="res://assets/shaders/sh_colorblind_daltonize.gdshader" id="7_color_blind"]
-[ext_resource type="Shader" path="res://assets/shaders/sh_combined_post_process_shader.gdshader" id="8_combined"]
+[ext_resource type="Shader" uid="uid://bw3g5s8m6ckdj" path="res://assets/shaders/sh_combined_post_process_shader.gdshader" id="8_combined"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_combined"]
 shader = ExtResource("8_combined")
@@ -28,11 +28,11 @@ shader_parameter/intensity = 1.0
 
 [node name="PostProcessOverlay" type="Node" unique_id=59672493]
 
-[node name="CombinedLayer" type="CanvasLayer" parent="."]
+[node name="CombinedLayer" type="CanvasLayer" parent="." unique_id=2035614286]
 layer = 2
 follow_viewport_enabled = true
 
-[node name="CombinedRect" type="ColorRect" parent="CombinedLayer"]
+[node name="CombinedRect" type="ColorRect" parent="CombinedLayer" unique_id=992826814]
 visible = false
 material = SubResource("ShaderMaterial_combined")
 anchors_preset = 15

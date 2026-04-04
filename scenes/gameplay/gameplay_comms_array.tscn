@@ -1,13 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dgupw2hnewr8n"]
 
 [ext_resource type="Script" uid="uid://bgrjdxph5gqqh" path="res://scripts/ecs/systems/s_camera_state_system.gd" id="1_camera_state_system"]
 [ext_resource type="Script" uid="uid://tl3oy7blmu20" path="res://scripts/ecs/systems/s_character_state_system.gd" id="1_character_rule_manager"]
 [ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://drmqto4u8pr8d" path="res://scripts/ecs/systems/s_game_event_system.gd" id="1_game_event_system"]
 [ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_navigation_system.gd" id="54_ai_navigation_system"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
 [ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
@@ -58,9 +55,11 @@
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/cfg_sp_base.tres" id="51_base_spawn_meta"]
 [ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="52_vcam_system"]
-[ext_resource type="Resource" path="res://resources/ai/sentry/cfg_sentry_brain.tres" id="58_sentry_brain"]
-[ext_resource type="Script" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
+[ext_resource type="Script" uid="uid://cxemqvnjcd4qm" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
+[ext_resource type="Script" uid="uid://ce63ayt3nfe71" path="res://scripts/ecs/systems/s_ai_navigation_system.gd" id="54_ai_navigation_system"]
+[ext_resource type="Script" uid="uid://dpxywmhc2hqwa" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
+[ext_resource type="Script" uid="uid://blsmtgrb4ucc8" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
+[ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -79,19 +78,19 @@ diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.45882353, 0.5176471, 0.56078434, 1)
 
+[sub_resource type="Environment" id="Environment_q3o1v"]
+background_mode = 1
+background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
+ambient_light_source = 3
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_noise_source"]
+radius = 2.0
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_noise"]
 shading_mode = 2
 diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.34901962, 0.77254903, 0.3647059, 1)
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_noise_source"]
-radius = 2.0
-
-[sub_resource type="Environment" id="Environment_q3o1v"]
-background_mode = 1
-background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
-ambient_light_source = 3
 
 [node name="GameplayRoot" type="Node3D" unique_id=1611027441]
 script = ExtResource("1_f2o31")
@@ -127,35 +126,35 @@ collision_layer = 33
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_AntennaPillarA" type="CSGBox3D" parent="SceneObjects"]
+[node name="SO_AntennaPillarA" type="CSGBox3D" parent="SceneObjects" unique_id=1453601328]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1.5, -8)
 use_collision = true
 collision_layer = 33
 size = Vector3(1.5, 7, 1.5)
 material = SubResource("StandardMaterial3D_antenna")
 
-[node name="SO_AntennaPillarB" type="CSGBox3D" parent="SceneObjects"]
+[node name="SO_AntennaPillarB" type="CSGBox3D" parent="SceneObjects" unique_id=551040831]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1.5, -8)
 use_collision = true
 collision_layer = 33
 size = Vector3(1.5, 7, 1.5)
 material = SubResource("StandardMaterial3D_antenna")
 
-[node name="SO_AntennaPillarC" type="CSGBox3D" parent="SceneObjects"]
+[node name="SO_AntennaPillarC" type="CSGBox3D" parent="SceneObjects" unique_id=472769527]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 8)
 use_collision = true
 collision_layer = 33
 size = Vector3(1.5, 7, 1.5)
 material = SubResource("StandardMaterial3D_antenna")
 
-[node name="SO_AntennaBridge" type="CSGBox3D" parent="SceneObjects"]
+[node name="SO_AntennaBridge" type="CSGBox3D" parent="SceneObjects" unique_id=1696657095]
 transform = Transform3D(0.9738469, 0, -0.2272021, 0, 1, 0, 0.2272021, 0, 0.9738469, 0, 5.2, -6)
 use_collision = true
 collision_layer = 33
 size = Vector3(14, 0.6, 1.2)
 material = SubResource("StandardMaterial3D_antenna")
 
-[node name="SO_AntennaCenterPad" type="CSGCylinder3D" parent="SceneObjects"]
+[node name="SO_AntennaCenterPad" type="CSGCylinder3D" parent="SceneObjects" unique_id=87511527]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.4, 0)
 use_collision = true
 collision_layer = 33
@@ -196,17 +195,17 @@ require_captured_cursor = true
 
 [node name="S_AIBehaviorSystem" type="Node" parent="Systems/Core" unique_id=1837565144]
 script = ExtResource("53_ai_behavior_system")
-execution_priority = -10
 debug_ai_logging = true
 debug_ai_render_probe_logging = true
 debug_entity_id = &"sentry"
+execution_priority = -10
 
 [node name="S_AINavigationSystem" type="Node" parent="Systems/Core" unique_id=1332467286]
 script = ExtResource("54_ai_navigation_system")
-execution_priority = -5
 debug_ai_navigation_logging = true
 debug_ai_render_probe_logging = true
 debug_entity_id = &"sentry"
+execution_priority = -5
 
 [node name="S_TouchscreenSystem" type="Node" parent="Systems/Core" unique_id=1564579047]
 script = ExtResource("24_touchscreen_system")
@@ -259,7 +258,7 @@ execution_priority = 50
 script = ExtResource("6_tnjgn")
 execution_priority = 70
 
-[node name="S_AISpawnRecoverySystem" type="Node" parent="Systems/Movement"]
+[node name="S_AISpawnRecoverySystem" type="Node" parent="Systems/Movement" unique_id=257837975]
 script = ExtResource("67_ai_spawn_recovery_system")
 execution_priority = 75
 
@@ -347,71 +346,56 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 4.4034653, 0)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("51_base_spawn_meta")
 
-[node name="Waypoints" type="Node" parent="Entities"]
+[node name="Waypoints" type="Node" parent="Entities" unique_id=1976818922]
 script = ExtResource("16_8qi87")
 
-[node name="WaypointGuardA" type="Node3D" parent="Entities/Waypoints"]
+[node name="WaypointGuardA" type="Node3D" parent="Entities/Waypoints" unique_id=1213588223]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 1, -2)
 
-[node name="WaypointGuardB" type="Node3D" parent="Entities/Waypoints"]
+[node name="WaypointGuardB" type="Node3D" parent="Entities/Waypoints" unique_id=1926690462]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -7)
 
-[node name="WaypointGuardC" type="Node3D" parent="Entities/Waypoints"]
+[node name="WaypointGuardC" type="Node3D" parent="Entities/Waypoints" unique_id=1718708513]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1, -2)
 
-[node name="NoiseSources" type="Node" parent="Entities"]
+[node name="NoiseSources" type="Node" parent="Entities" unique_id=30610642]
 script = ExtResource("16_8qi87")
 
-[node name="Inter_NoiseSourceA" type="Area3D" parent="Entities/NoiseSources"]
+[node name="Inter_NoiseSourceA" type="Area3D" parent="Entities/NoiseSources" unique_id=1367921988]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1, 4)
 script = ExtResource("62_ai_demo_flag_zone")
 ai_flag_id = &"comms_disturbance_heard"
 completed_area_id = "comms_array"
 signpost_message = "gameplay.signpost.default_message"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NoiseSources/Inter_NoiseSourceA"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NoiseSources/Inter_NoiseSourceA" unique_id=2070397095]
 shape = SubResource("SphereShape3D_noise_source")
 
-[node name="Visual" type="CSGSphere3D" parent="Entities/NoiseSources/Inter_NoiseSourceA"]
+[node name="Visual" type="CSGSphere3D" parent="Entities/NoiseSources/Inter_NoiseSourceA" unique_id=796343851]
 radius = 0.4
 material = SubResource("StandardMaterial3D_noise")
 
-[node name="Inter_NoiseSourceB" type="Area3D" parent="Entities/NoiseSources"]
+[node name="Inter_NoiseSourceB" type="Area3D" parent="Entities/NoiseSources" unique_id=1568683731]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 5)
 script = ExtResource("62_ai_demo_flag_zone")
 ai_flag_id = &"comms_disturbance_heard"
 completed_area_id = "comms_array"
 signpost_message = "gameplay.signpost.default_message"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NoiseSources/Inter_NoiseSourceB"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NoiseSources/Inter_NoiseSourceB" unique_id=1814207027]
 shape = SubResource("SphereShape3D_noise_source")
 
-[node name="Visual" type="CSGSphere3D" parent="Entities/NoiseSources/Inter_NoiseSourceB"]
+[node name="Visual" type="CSGSphere3D" parent="Entities/NoiseSources/Inter_NoiseSourceB" unique_id=1360213325]
 radius = 0.4
 material = SubResource("StandardMaterial3D_noise")
 
-[node name="NPCs" type="Node" parent="Entities"]
+[node name="NPCs" type="Node" parent="Entities" unique_id=2075264993]
 script = ExtResource("16_8qi87")
 
-[node name="E_Sentry" parent="Entities/NPCs" instance=ExtResource("69_prefab_npc")]
+[node name="E_Sentry" parent="Entities/NPCs" unique_id=159982999 instance=ExtResource("69_prefab_npc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.5)
 entity_id = &"sentry"
 tags = Array[StringName]([&"npc", &"ai", &"sentry"])
-
-[node name="Visual" parent="Entities/NPCs/E_Sentry/Player_Body/Body_Mesh"]
-visible = false
-
-[node name="Visual" type="CSGBox3D" parent="Entities/NPCs/E_Sentry/Player_Body"]
-transform = Transform3D(0.95105654, 0, -0.309017, 0, 1, 0, 0.309017, 0, 0.95105654, 0, 1.1, 0)
-use_collision = false
-size = Vector3(1.1, 2.2, 1.1)
-material = SubResource("StandardMaterial3D_noise")
-
-[node name="C_AIBrainComponent" parent="Entities/NPCs/E_Sentry/Components"]
-brain_settings = ExtResource("58_sentry_brain")
-
-[node name="C_AlignWithSurfaceComponent" parent="Entities/NPCs/E_Sentry/Components"]
-visual_alignment_path = NodePath("../../Player_Body/Visual")
 
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)

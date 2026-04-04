@@ -12,18 +12,18 @@
 entity_id = &"player"
 tags = Array[StringName]([&"player", &"character"])
 
-[node name="Body_Mesh" parent="Player_Body" instance=ExtResource("7_player_body")]
+[node name="Body_Mesh" parent="Player_Body" parent_id_path=PackedInt32Array(312897681) index="3" unique_id=2095139831 instance=ExtResource("7_player_body")]
 
-[node name="C_InputComponent" type="Node" parent="Components" index="7" unique_id=273356595]
+[node name="C_InputComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="7" unique_id=273356595]
 script = ExtResource("2_input")
 
-[node name="C_GamepadComponent" type="Node" parent="Components" index="8" unique_id=1217574069]
+[node name="C_GamepadComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="8" unique_id=1217574069]
 script = ExtResource("3_gamepad")
 settings = ExtResource("4_gamepad_settings")
 
-[node name="C_PlayerTagComponent" type="Node" parent="Components" index="9" unique_id=1282510621]
+[node name="C_PlayerTagComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="9" unique_id=1282510621]
 script = ExtResource("5_player_tag")
 
-[node name="C_SurfaceDetectorComponent" type="Node" parent="Components" index="10" unique_id=1856743521]
+[node name="C_SurfaceDetectorComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="10" unique_id=1856743521]
 script = ExtResource("6_surface_detector")
 character_body_path = NodePath("../../Player_Body")

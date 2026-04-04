@@ -12,6 +12,7 @@ var current_task_queue: Array[Resource] = []
 var current_task_index: int = 0
 var task_state: Dictionary = {}
 var evaluation_timer: float = 0.0
+var suspended_goal_state: Dictionary = {}
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE

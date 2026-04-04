@@ -140,6 +140,14 @@ func _advance_to_next_task(brain: Variant, current_task_index: int, queue_size: 
 	brain.set("current_task_index", next_task_index)
 
 func _finish_task_queue(brain: Variant) -> void:
+	var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
+	var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
+	if active_goal_id != StringName():
+		var suspended: Dictionary = _read_suspended_state(brain)
+		if suspended.has(active_goal_id):
+			suspended.erase(active_goal_id)
+			brain.set("suspended_goal_state", suspended)
+
 	var empty_queue: Array[Resource] = []
 	brain.set("current_task_queue", empty_queue)
 	brain.set("current_task_index", 0)
@@ -217,9 +225,28 @@ func _select_goal(brain_settings: Resource, context: Dictionary) -> Resource:
 
 func _replan_for_goal(brain: Variant, goal: Resource, context: Dictionary) -> void:
 	var goal_id: StringName = _read_goal_id(goal)
+	_suspend_current_goal(brain)
+
 	brain.set("active_goal_id", goal_id)
-	brain.set("current_task_index", 0)
 	brain.set("task_state", {})
+
+	var suspended: Dictionary = _read_suspended_state(brain)
+	if suspended.has(goal_id):
+		var saved: Dictionary = suspended.get(goal_id) as Dictionary
+		var saved_queue: Variant = saved.get("task_queue", null)
+		var saved_index: int = int(saved.get("task_index", 0))
+		if saved_queue is Array and not (saved_queue as Array).is_empty():
+			var restored_queue: Array[Resource] = []
+			for task_variant in saved_queue:
+				if task_variant is Resource:
+					restored_queue.append(task_variant as Resource)
+			brain.set("current_task_queue", restored_queue)
+			brain.set("current_task_index", saved_index)
+			suspended.erase(goal_id)
+			brain.set("suspended_goal_state", suspended)
+			return
+
+	brain.set("current_task_index", 0)
 
 	var root_task_variant: Variant = goal.get("root_task")
 	var planned_tasks: Array[Resource] = []
@@ -231,6 +258,30 @@ func _replan_for_goal(brain: Variant, goal: Resource, context: Dictionary) -> vo
 					planned_tasks.append(task_variant as Resource)
 
 	brain.set("current_task_queue", planned_tasks)
+
+func _suspend_current_goal(brain: Variant) -> void:
+	var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
+	var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
+	if active_goal_id == StringName():
+		return
+
+	var queue_variant: Variant = _read_object_property(brain, "current_task_queue")
+	if not (queue_variant is Array) or (queue_variant as Array).is_empty():
+		return
+
+	var current_index: int = _read_int_property(brain, "current_task_index", 0)
+	var suspended: Dictionary = _read_suspended_state(brain)
+	suspended[active_goal_id] = {
+		"task_queue": queue_variant,
+		"task_index": current_index,
+	}
+	brain.set("suspended_goal_state", suspended)
+
+func _read_suspended_state(brain: Variant) -> Dictionary:
+	var suspended_variant: Variant = _read_object_property(brain, "suspended_goal_state")
+	if suspended_variant is Dictionary:
+		return (suspended_variant as Dictionary).duplicate()
+	return {}
 
 func _build_rule_from_goal(goal: Resource) -> Resource:
 	if goal == null:

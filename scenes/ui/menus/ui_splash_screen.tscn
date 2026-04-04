@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://br5s5hc8t6tb2"]
 
 [ext_resource type="Script" uid="uid://eyd16t37w6q2" path="res://scripts/ui/menus/ui_splash_screen.gd" id="1_splash_script"]
 
-[node name="SplashScreen" type="Control"]
+[node name="SplashScreen" type="Control" unique_id=1443473658]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_splash_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=987930368]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.05, 0.05, 0.05, 1)
 
-[node name="CrispyCabaretPanel" type="Control" parent="."]
+[node name="CrispyCabaretPanel" type="Control" parent="." unique_id=1566854205]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -29,7 +29,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="CrispyLabel" type="Label" parent="CrispyCabaretPanel"]
+[node name="CrispyLabel" type="Label" parent="CrispyCabaretPanel" unique_id=428996429]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -46,7 +46,7 @@ text = "Crispy Cabaret"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="GodotEnginePanel" type="Control" parent="."]
+[node name="GodotEnginePanel" type="Control" parent="." unique_id=1072934934]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -56,7 +56,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="GodotLabel" type="Label" parent="GodotEnginePanel"]
+[node name="GodotLabel" type="Label" parent="GodotEnginePanel" unique_id=14955020]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -73,7 +73,7 @@ text = "Made with Godot Engine"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SkipLabel" type="Label" parent="."]
+[node name="SkipLabel" type="Label" parent="." unique_id=1006602208]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1

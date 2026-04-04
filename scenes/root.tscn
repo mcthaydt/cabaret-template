@@ -77,7 +77,6 @@ script = ExtResource("7_cursor")
 
 [node name="M_SceneManager" type="Node" parent="Managers" unique_id=2089301573]
 script = ExtResource("8_scene_manager")
-initial_scene_id = &"splash_screen"
 
 [node name="M_TimeManager" type="Node" parent="Managers" unique_id=805561333]
 script = ExtResource("22_time_manager")

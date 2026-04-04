@@ -80,8 +80,6 @@
 background_mode = 1
 tonemap_mode = 3
 ssao_enabled = true
-ssil_enabled = false
-sdfgi_enabled = false
 glow_enabled = true
 glow_bloom = 1.0
 fog_enabled = true

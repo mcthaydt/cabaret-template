@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://273k4tlpun6e" path="res://scripts/ecs/components/c_input_component.gd" id="2_input"]
 [ext_resource type="Script" uid="uid://baidwxk0mvb2s" path="res://scripts/resources/ecs/rs_floating_settings.gd" id="3_2ykux"]
 [ext_resource type="Script" uid="uid://c8xs8mubjbl1p" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="3_ai_brain"]
-[ext_resource type="Resource" path="res://resources/ai/cfg_ai_brain_placeholder.tres" id="4_ai_brain_placeholder"]
+[ext_resource type="Resource" uid="uid://1obnyyxuffs6" path="res://resources/ai/cfg_ai_brain_placeholder.tres" id="4_ai_brain_placeholder"]
 [ext_resource type="PackedScene" uid="uid://bnuwfkkw85h1t" path="res://scenes/prefabs/prefab_demo_npc_body.tscn" id="5_npc_body"]
 
 [sub_resource type="Resource" id="Resource_e7447"]

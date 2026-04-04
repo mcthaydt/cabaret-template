@@ -65,7 +65,7 @@
 [ext_resource type="Script" uid="uid://blsmtgrb4ucc8" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="Resource" path="res://resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres" id="68_ai_patrol_drone_spawn_meta"]
 [ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
-[ext_resource type="Resource" path="res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres" id="70_patrol_drone_brain"]
+[ext_resource type="Resource" uid="uid://bpgix2xrbs8ar" path="res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres" id="70_patrol_drone_brain"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -218,6 +218,7 @@ require_captured_cursor = true
 
 [node name="S_AIBehaviorSystem" type="Node" parent="Systems/Core" unique_id=1837565144]
 script = ExtResource("53_ai_behavior_system")
+debug_ai_logging = true
 execution_priority = -10
 
 [node name="S_AINavigationSystem" type="Node" parent="Systems/Core" unique_id=1332467286]
