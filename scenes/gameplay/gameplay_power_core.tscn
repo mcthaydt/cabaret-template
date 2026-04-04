@@ -58,14 +58,13 @@
 [ext_resource type="Script" uid="uid://cxemqvnjcd4qm" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
 [ext_resource type="Script" uid="uid://ce63ayt3nfe71" path="res://scripts/ecs/systems/s_ai_navigation_system.gd" id="54_ai_navigation_system"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="55_base_ecs_entity"]
-[ext_resource type="Resource" path="res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres" id="58_patrol_drone_brain"]
 [ext_resource type="Script" uid="uid://dpxywmhc2hqwa" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
+[ext_resource type="Texture2D" uid="uid://rb3wysvedbe2" path="res://assets/textures/tex_interaction_v.svg" id="62_kkkmb"]
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="63_room_fade_group_component"]
 [ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="64_room_fade_system"]
-[ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_floating_patrol_drone_default.tres" id="66_floating_settings"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
+[ext_resource type="Script" uid="uid://blsmtgrb4ucc8" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="Resource" path="res://resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres" id="68_ai_patrol_drone_spawn_meta"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
+[ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -395,6 +394,8 @@ script = ExtResource("62_ai_demo_flag_zone")
 ai_flag_id = &"power_core_activated"
 completed_area_id = "power_core"
 signpost_message = "gameplay.signpost.default_message"
+interaction_hint_icon = ExtResource("62_kkkmb")
+interaction_hint_offset = Vector3(0, 2, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/Interactions/Inter_ActivatableNode" unique_id=277963267]
 shape = SubResource("BoxShape3D_activatable")
@@ -411,15 +412,6 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2.5, 0)
 entity_id = &"patrol_drone"
 tags = Array[StringName]([&"npc", &"ai", &"patrol_drone"])
-
-[node name="C_AIBrainComponent" parent="Entities/NPCs/E_PatrolDrone/Components"]
-brain_settings = ExtResource("58_patrol_drone_brain")
-
-[node name="C_FloatingComponent" parent="Entities/NPCs/E_PatrolDrone/Components"]
-settings = ExtResource("66_floating_settings")
-
-[node name="C_AlignWithSurfaceComponent" parent="Entities/NPCs/E_PatrolDrone/Components"]
-visual_alignment_path = NodePath("../../Player_Body/Body_Mesh/Visual")
 
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, -2)
