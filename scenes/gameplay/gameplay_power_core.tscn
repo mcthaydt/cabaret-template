@@ -414,7 +414,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2.5, 0)
 entity_id = &"patrol_drone"
 tags = Array[StringName]([&"npc", &"ai", &"patrol_drone"])
 
-[node name="C_AIBrainComponent" parent="Entities/NPCs/E_PatrolDrone/Components" index="8"]
+[node name="C_AIBrainComponent" parent="Entities/NPCs/E_PatrolDrone/Components" parent_id_path=PackedInt32Array(1366380738, 1373490017) index="8" unique_id=392776987]
 brain_settings = ExtResource("70_patrol_drone_brain")
 
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
@@ -422,3 +422,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, -2)
 
 [node name="E_CameraRoot" parent="Entities" unique_id=909307282 instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
+
+[editable path="Entities/NPCs/E_PatrolDrone"]
