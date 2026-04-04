@@ -4,6 +4,10 @@ class_name U_DebugReducer
 
 const DEFAULT_DEBUG_STATE := {
 	"disable_touchscreen": false,
+	"skip_splash": false,
+	"skip_language_selection": false,
+	"skip_main_menu": false,
+	"boot_skips_consumed": false,
 }
 
 static func get_default_debug_state() -> Dictionary:
@@ -18,6 +22,22 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var payload: Dictionary = action.get("payload", {})
 			var enabled := bool(payload.get("enabled", false))
 			return _with_values(current, {"disable_touchscreen": enabled})
+		U_DebugActions.ACTION_SET_SKIP_SPLASH:
+			var payload: Dictionary = action.get("payload", {})
+			var enabled := bool(payload.get("enabled", false))
+			return _with_values(current, {"skip_splash": enabled})
+		U_DebugActions.ACTION_SET_SKIP_LANGUAGE_SELECTION:
+			var payload: Dictionary = action.get("payload", {})
+			var enabled := bool(payload.get("enabled", false))
+			return _with_values(current, {"skip_language_selection": enabled})
+		U_DebugActions.ACTION_SET_SKIP_MAIN_MENU:
+			var payload: Dictionary = action.get("payload", {})
+			var enabled := bool(payload.get("enabled", false))
+			return _with_values(current, {"skip_main_menu": enabled})
+		U_DebugActions.ACTION_SET_BOOT_SKIPS_CONSUMED:
+			var payload: Dictionary = action.get("payload", {})
+			var enabled := bool(payload.get("enabled", false))
+			return _with_values(current, {"boot_skips_consumed": enabled})
 		_:
 			return null
 

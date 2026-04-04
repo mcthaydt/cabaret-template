@@ -12,6 +12,7 @@ class_name UI_LanguageSelector
 const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]
 const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_DEBUG_SELECTORS := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 
@@ -40,6 +41,8 @@ func _ready() -> void:
 func _on_store_ready(_store_ref: M_StateStore) -> void:
 	var state: Dictionary = _store_ref.get_state()
 	if U_LocalizationSelectors.has_selected_language(state):
+		_skip_to_main_menu()
+	elif U_DEBUG_SELECTORS.should_skip_language_selection(state):
 		_skip_to_main_menu()
 	else:
 		_setup_buttons()

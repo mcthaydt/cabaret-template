@@ -12,6 +12,8 @@ const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_locali
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const U_DEBUG_SELECTORS := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+const U_DebugActions := preload("res://scripts/state/actions/u_debug_actions.gd")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
@@ -40,6 +42,8 @@ func _on_panel_ready() -> void:
 	call_deferred("_debug_log_theme_snapshot")
 	_discover_save_manager()
 	_update_button_visibility()
+	if _try_debug_skip_main_menu():
+		return
 	_connect_buttons()
 	_configure_focus_neighbors()
 	_localize_labels()
@@ -280,6 +284,28 @@ func _on_quit_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	# Quit the game
 	get_tree().quit()
+
+func _try_debug_skip_main_menu() -> bool:
+	var store := get_store()
+	if store == null:
+		return false
+	var state: Dictionary = store.get_state()
+	if not U_DEBUG_SELECTORS.should_skip_main_menu(state):
+		return false
+	if U_DEBUG_SELECTORS.are_boot_skips_consumed(state):
+		return false
+	store.dispatch(U_DebugActions.set_boot_skips_consumed(true))
+	var typed_save_manager := _save_manager as I_SaveManager
+	if typed_save_manager != null and typed_save_manager.has_any_saves():
+		var most_recent_slot: StringName = _save_manager.get_most_recent_save_slot()
+		if most_recent_slot != StringName(""):
+			if _main_panel != null:
+				_main_panel.visible = false
+			var result: Error = _save_manager.load_from_slot(most_recent_slot)
+			if result == OK:
+				return true
+	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
+	return true
 
 func _on_back_pressed() -> void:
 	U_UISoundPlayer.play_cancel()

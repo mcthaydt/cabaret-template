@@ -40,6 +40,7 @@ const U_SCENE_MANAGER_NODE_FINDER := preload("res://scripts/scene_management/hel
 const U_NAVIGATION_RECONCILER := preload("res://scripts/scene_management/helpers/u_navigation_reconciler.gd")
 const U_INPUT_MAP_BOOTSTRAPPER := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
+const U_DEBUG_SELECTORS := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 const HUD_OVERLAY_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
 const UI_HUD_CONTROLLER := preload("res://scripts/ui/hud/ui_hud_controller.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
@@ -379,14 +380,32 @@ func _load_initial_scene() -> void:
 	# Load initial scene (configurable via export var)
 	# Default is splash_screen which handles language_selector/main_menu redirect
 	var scene_id := initial_scene_id
+	# Debug: skip splash entirely if flag is set
+	if scene_id == StringName("splash_screen") and _store != null:
+		var state: Dictionary = _store.get_state()
+		if U_DEBUG_SELECTORS.should_skip_splash(state):
+			scene_id = StringName("language_selector")
+			_start_background_gameplay_preload()
+	# Promote language_selector to main_menu if language already selected or skip flag set
 	if scene_id == StringName("language_selector") and _store != null:
 		var state: Dictionary = _store.get_state()
-		if U_LOCALIZATION_SELECTORS.has_selected_language(state):
+		if U_LOCALIZATION_SELECTORS.has_selected_language(state) or U_DEBUG_SELECTORS.should_skip_language_selection(state):
 			scene_id = StringName("main_menu")
 	# Sync navigation state so the reconciler doesn't override the initial scene
 	if _store != null:
-		_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("boot"), scene_id))
+		var shell := StringName("main_menu") if scene_id == StringName("main_menu") else StringName("boot")
+		_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(shell, scene_id))
 	transition_to_scene(scene_id, "instant", Priority.CRITICAL)
+
+## Start background preload of the default gameplay scene (mirrors splash screen preload)
+func _start_background_gameplay_preload() -> void:
+	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(StringName("power_core"))
+	if scene_data.is_empty():
+		return
+	var path: String = str(scene_data.get("path", ""))
+	if path.is_empty():
+		return
+	ResourceLoader.load_threaded_request(path, "PackedScene")
 
 ## Transition to a new scene
 func transition_to_scene(scene_id: StringName, transition_type: String = "fade", priority: int = Priority.NORMAL) -> void:
