@@ -395,7 +395,7 @@ ai_flag_id = &"power_core_activated"
 completed_area_id = "power_core"
 signpost_message = "gameplay.signpost.default_message"
 interaction_hint_icon = ExtResource("62_kkkmb")
-interaction_hint_offset = Vector3(0, 2, 0)
+interaction_hint_offset = Vector3(0, 1.2, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/Interactions/Inter_ActivatableNode" unique_id=277963267]
 shape = SubResource("BoxShape3D_activatable")
