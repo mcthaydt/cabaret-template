@@ -55,11 +55,9 @@ func _physics_process(_delta: float) -> void:
 	_activate(_player_in_zone)
 
 func _on_body_entered(body: Node3D) -> void:
-	print("AIDemoFlagZone[%s]: body_entered=%s is_player=%s" % [ai_flag_id, body.name, _is_player_body(body)])
 	if not _is_player_body(body):
 		return
 	_player_in_zone = body
-	print("AIDemoFlagZone[%s]: player entered zone, action_required=%s has_dispatched=%s" % [ai_flag_id, action_required, _has_dispatched])
 
 	if not _is_interact_mode():
 		_activate(body)
@@ -73,7 +71,6 @@ func _on_body_exited(body: Node3D) -> void:
 	_player_in_zone = null
 
 func _activate(_player: Node3D) -> void:
-	print("AIDemoFlagZone[%s]: _activate called, already_dispatched=%s" % [ai_flag_id, _has_dispatched])
 	if not _has_dispatched:
 		_has_dispatched = true
 		_dispatch_gameplay_updates()
@@ -94,11 +91,7 @@ func _dispatch_gameplay_updates() -> void:
 		return
 
 	if ai_flag_id != StringName(""):
-		print("AIDemoFlagZone[%s]: dispatching set_ai_demo_flag(%s, %s)" % [ai_flag_id, ai_flag_id, ai_flag_value])
 		store.dispatch(U_GAMEPLAY_ACTIONS.set_ai_demo_flag(ai_flag_id, ai_flag_value))
-		var state_after: Dictionary = store.get_state()
-		var flags: Variant = state_after.get("gameplay", {}).get("ai_demo_flags", {})
-		print("AIDemoFlagZone[%s]: state after dispatch -> ai_demo_flags=%s" % [ai_flag_id, str(flags)])
 
 	if not completed_area_id.is_empty():
 		store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete(completed_area_id))

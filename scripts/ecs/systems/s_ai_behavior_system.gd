@@ -72,7 +72,10 @@ func process_tick(delta: float) -> void:
 
 func _process_brain(brain: Variant, brain_settings: Resource, context: Dictionary, delta: float) -> void:
 	if _should_evaluate_goals(brain, brain_settings, delta):
-		var selected_goal: Resource = _select_goal(brain_settings, context)
+		var executing_goal_id: StringName = StringName()
+		if not _is_task_queue_empty(brain):
+			executing_goal_id = _variant_to_string_name(_read_object_property(brain, "active_goal_id"))
+		var selected_goal: Resource = _select_goal(brain_settings, context, executing_goal_id)
 		if selected_goal != null:
 			var selected_goal_id: StringName = _read_goal_id(selected_goal)
 			if selected_goal_id != StringName():
@@ -96,18 +99,18 @@ func _execute_current_task(brain: Variant, delta: float, context: Dictionary) ->
 
 	var current_task_index: int = _read_int_property(brain, "current_task_index", 0)
 	if current_task_index < 0 or current_task_index >= queue.size():
-		_finish_task_queue(brain)
+		_finish_task_queue(brain, context)
 		return
 
 	var task_variant: Variant = queue[current_task_index]
 	if not (task_variant is RS_AI_PRIMITIVE_TASK):
-		_advance_to_next_task(brain, current_task_index, queue.size())
+		_advance_to_next_task(brain, current_task_index, queue.size(), context)
 		return
 
 	var task: Resource = task_variant as Resource
 	var action_variant: Variant = task.get("action")
 	if action_variant == null or not (action_variant is I_AI_ACTION):
-		_advance_to_next_task(brain, current_task_index, queue.size())
+		_advance_to_next_task(brain, current_task_index, queue.size(), context)
 		return
 
 	var task_state_variant: Variant = _read_object_property(brain, "task_state")
@@ -129,17 +132,17 @@ func _execute_current_task(brain: Variant, delta: float, context: Dictionary) ->
 	if not is_complete:
 		return
 
-	_advance_to_next_task(brain, current_task_index, queue.size())
+	_advance_to_next_task(brain, current_task_index, queue.size(), context)
 
-func _advance_to_next_task(brain: Variant, current_task_index: int, queue_size: int) -> void:
+func _advance_to_next_task(brain: Variant, current_task_index: int, queue_size: int, context: Dictionary) -> void:
 	var next_task_index: int = current_task_index + 1
 	brain.set("task_state", {})
 	if next_task_index >= queue_size:
-		_finish_task_queue(brain)
+		_finish_task_queue(brain, context)
 		return
 	brain.set("current_task_index", next_task_index)
 
-func _finish_task_queue(brain: Variant) -> void:
+func _finish_task_queue(brain: Variant, context: Dictionary) -> void:
 	var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
 	var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
 	if active_goal_id != StringName():
@@ -147,11 +150,25 @@ func _finish_task_queue(brain: Variant) -> void:
 		if suspended.has(active_goal_id):
 			suspended.erase(active_goal_id)
 			brain.set("suspended_goal_state", suspended)
+		_apply_deferred_goal_cooldown(active_goal_id, brain, context)
 
 	var empty_queue: Array[Resource] = []
 	brain.set("current_task_queue", empty_queue)
 	brain.set("current_task_index", 0)
 	brain.set("task_state", {})
+
+func _apply_deferred_goal_cooldown(goal_id: StringName, brain: Variant, context: Dictionary) -> void:
+	var brain_settings_variant: Variant = _read_object_property(brain, "brain_settings")
+	if not (brain_settings_variant is Resource):
+		return
+	var goals: Array[Resource] = _read_goal_array(brain_settings_variant as Resource)
+	var goal: Resource = _find_goal_by_id(goals, goal_id)
+	if goal == null:
+		return
+	var rule: Resource = _build_rule_from_goal(goal)
+	if rule == null:
+		return
+	_mark_goal_rule_fired(rule, context)
 
 func _is_task_queue_empty(brain: Variant) -> bool:
 	var queue_variant: Variant = _read_object_property(brain, "current_task_queue")
@@ -181,7 +198,7 @@ func _should_evaluate_goals(brain: Variant, brain_settings: Resource, delta: flo
 	brain.set("evaluation_timer", 0.0)
 	return true
 
-func _select_goal(brain_settings: Resource, context: Dictionary) -> Resource:
+func _select_goal(brain_settings: Resource, context: Dictionary, executing_goal_id: StringName = StringName()) -> Resource:
 	var goals: Array[Resource] = _read_goal_array(brain_settings)
 	var default_goal_variant: Variant = _read_object_property(brain_settings, "default_goal_id")
 	var default_goal_id: StringName = _variant_to_string_name(default_goal_variant)
@@ -204,7 +221,7 @@ func _select_goal(brain_settings: Resource, context: Dictionary) -> Resource:
 	if scored.is_empty():
 		return _find_goal_by_id(goals, default_goal_id)
 
-	var gated: Array[Dictionary] = _apply_state_gates(goal_rules, scored, context)
+	var gated: Array[Dictionary] = _apply_state_gates(goal_rules, scored, context, executing_goal_id)
 	if gated.is_empty():
 		return _find_goal_by_id(goals, default_goal_id)
 
@@ -218,7 +235,6 @@ func _select_goal(brain_settings: Resource, context: Dictionary) -> Resource:
 	var winning_entry: Dictionary = winning_entry_variant as Dictionary
 	var winning_rule: Variant = winning_entry.get("rule", null)
 	if goal_by_rule.has(winning_rule):
-		_mark_goal_rule_fired(winning_rule, context)
 		return goal_by_rule.get(winning_rule) as Resource
 
 	return _find_goal_by_id(goals, default_goal_id)
@@ -312,7 +328,7 @@ func _find_goal_by_id(goals: Array[Resource], goal_id: StringName) -> Resource:
 			return goal
 	return null
 
-func _apply_state_gates(rules: Array, scored: Array[Dictionary], context: Dictionary) -> Array[Dictionary]:
+func _apply_state_gates(rules: Array, scored: Array[Dictionary], context: Dictionary, executing_goal_id: StringName = StringName()) -> Array[Dictionary]:
 	var context_key: StringName = _context_key_for_context(context)
 
 	var scored_by_rule: Dictionary = {}
@@ -328,6 +344,7 @@ func _apply_state_gates(rules: Array, scored: Array[Dictionary], context: Dictio
 			continue
 
 		var rule_id: StringName = _resolve_rule_id(rule_variant)
+		var is_executing: bool = executing_goal_id != StringName() and rule_id == executing_goal_id
 		var requires_rising_edge: bool = _read_bool_property(rule_variant, "requires_rising_edge", false)
 		var is_passing_now: bool = scored_by_rule.has(rule_variant)
 		var has_rising_edge: bool = true
@@ -336,12 +353,13 @@ func _apply_state_gates(rules: Array, scored: Array[Dictionary], context: Dictio
 
 		if not is_passing_now:
 			continue
-		if _tracker.is_one_shot_spent(rule_id, context_key):
-			continue
-		if _tracker.is_on_cooldown(rule_id, context_key):
-			continue
-		if requires_rising_edge and not has_rising_edge:
-			continue
+		if not is_executing:
+			if _tracker.is_one_shot_spent(rule_id, context_key):
+				continue
+			if _tracker.is_on_cooldown(rule_id, context_key):
+				continue
+			if requires_rising_edge and not has_rising_edge:
+				continue
 
 		var result_variant: Variant = scored_by_rule.get(rule_variant, null)
 		if result_variant is Dictionary:

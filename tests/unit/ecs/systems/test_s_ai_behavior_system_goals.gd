@@ -251,13 +251,57 @@ func test_same_goal_replans_after_queue_completion() -> void:
 	assert_eq(brain.active_goal_id, StringName("patrol"))
 	assert_eq(_count_call_log_prefix("start:patrol_task"), 2)
 
+func test_active_goal_not_interrupted_by_own_cooldown() -> void:
+	var investigate_condition: Resource = RS_CONDITION_CONSTANT.new()
+	investigate_condition.set("score", 0.0)
+
+	var investigate_goal: Resource = RS_AI_GOAL.new()
+	var investigate_conditions: Array[Resource] = [investigate_condition]
+	investigate_goal.set("goal_id", StringName("investigate"))
+	investigate_goal.set("priority", 3)
+	investigate_goal.set("conditions", investigate_conditions)
+	investigate_goal.set("requires_rising_edge", true)
+	investigate_goal.set("cooldown", 2.5)
+	investigate_goal.set("root_task", _new_primitive_task(StringName("investigate_task"), 5))
+
+	var patrol_goal: Resource = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
+	var fixture: Dictionary = _create_fixture(
+		[patrol_goal, investigate_goal], StringName("patrol"), 0.0
+	)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var brain: Variant = fixture["brain"]
+
+	# Tick 1: patrol starts
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("patrol"), "Should start with patrol")
+
+	# Rising edge: enable investigate condition
+	investigate_condition.set("score", 1.0)
+
+	# Tick 2: investigate fires via rising edge
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("investigate"), "Should switch to investigate")
+
+	# Ticks 3-5: investigate should remain active despite cooldown
+	for tick_index in range(3):
+		system.process_tick(0.016)
+		assert_eq(
+			brain.active_goal_id,
+			StringName("investigate"),
+			"Investigate should NOT be interrupted by its own cooldown (tick %d)" % tick_index
+		)
+
 func test_cooldown_marks_only_selected_goal() -> void:
 	var high_goal: Resource = _new_goal(
 		StringName("high"),
 		2,
 		1.0,
 		StringName("high_task"),
-		{"cooldown": 1.0}
+		{"cooldown": 1.0, "ticks_to_complete": 1}
 	)
 	var low_goal: Resource = _new_goal(
 		StringName("low"),
@@ -285,7 +329,7 @@ func test_one_shot_goal_transitions_to_next_goal_after_first_fire() -> void:
 		2,
 		1.0,
 		StringName("one_shot_task"),
-		{"one_shot": true}
+		{"one_shot": true, "ticks_to_complete": 1}
 	)
 	var fallback_goal: Resource = _new_goal(StringName("fallback"), 1, 0.8, StringName("fallback_task"))
 	var fixture: Dictionary = _create_fixture([one_shot_goal, fallback_goal], StringName(), 0.0)
@@ -343,7 +387,7 @@ func test_requires_rising_edge_goal_requires_state_transition() -> void:
 	rising_goal.set("priority", 2)
 	rising_goal.set("conditions", rising_conditions)
 	rising_goal.set("requires_rising_edge", true)
-	rising_goal.set("root_task", _new_primitive_task(StringName("rising_task")))
+	rising_goal.set("root_task", _new_primitive_task(StringName("rising_task"), 1))
 
 	var steady_goal: Resource = _new_goal(StringName("steady"), 1, 0.8, StringName("steady_task"))
 	var fixture: Dictionary = _create_fixture([rising_goal, steady_goal], StringName(), 0.0)

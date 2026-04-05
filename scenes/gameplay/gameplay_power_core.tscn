@@ -220,7 +220,7 @@ require_captured_cursor = true
 
 [node name="S_AIBehaviorSystem" type="Node" parent="Systems/Core" unique_id=1837565144]
 script = ExtResource("53_ai_behavior_system")
-debug_ai_logging = true
+debug_ai_logging = false
 execution_priority = -10
 
 [node name="S_AINavigationSystem" type="Node" parent="Systems/Core" unique_id=1332467286]
