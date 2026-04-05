@@ -18,17 +18,23 @@ const INPUT_TYPE := C_INPUT_COMPONENT.COMPONENT_TYPE
 @export var debug_ai_spawn_recovery_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
 @export var debug_entity_id: StringName = StringName("patrol_drone")
+@export_range(0.0, 5.0, 0.1) var startup_grace_period_sec: float = 1.0
 
 var _unsupported_since_by_entity: Dictionary = {}
 var _cooldown_until_by_entity: Dictionary = {}
 var _recovery_disabled_entities: Dictionary = {}
 var _debug_log_cooldowns: Dictionary = {}
+var _startup_elapsed: float = 0.0
 
 func _init() -> void:
 	execution_priority = 75
 
 func process_tick(delta: float) -> void:
 	_tick_debug_log_cooldowns(delta)
+
+	if _startup_elapsed < startup_grace_period_sec:
+		_startup_elapsed += maxf(delta, 0.0)
+		return
 
 	var manager := get_manager()
 	if manager == null:

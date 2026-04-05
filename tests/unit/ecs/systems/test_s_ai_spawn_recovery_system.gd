@@ -151,6 +151,10 @@ func _create_fixture(include_spawn_point: bool = true, spawn_point_id: StringNam
 		"spawn_manager": spawn_manager,
 	}
 
+## Advance the system past the startup grace period so recovery can fire
+func _advance_past_grace_period(system: BaseECSSystem) -> void:
+	system.process_tick(1.1)
+
 func test_does_not_recover_when_unsupported_window_is_brief() -> void:
 	var fixture: Dictionary = _create_fixture()
 	autofree_context(fixture)
@@ -164,6 +168,7 @@ func test_does_not_recover_when_unsupported_window_is_brief() -> void:
 	var settings: RS_AIBrainSettings = brain.brain_settings as RS_AIBrainSettings
 	settings.respawn_unsupported_delay_sec = 5.0
 
+	_advance_past_grace_period(system)
 	system.process_tick(0.016)
 
 	assert_eq(spawn_manager.spawn_entity_calls.size(), 0, "Recovery should not trigger before unsupported delay elapses")
@@ -180,6 +185,7 @@ func test_recovers_once_then_respects_cooldown_and_clears_ai_state() -> void:
 	var spawn_manager: SpawnManagerStub = fixture["spawn_manager"] as SpawnManagerStub
 	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
 
+	_advance_past_grace_period(system)
 	body.velocity = Vector3(1.0, -12.0, 2.0)
 	input.set_move_vector(Vector2(0.9, 0.2))
 
@@ -191,6 +197,42 @@ func test_recovers_once_then_respects_cooldown_and_clears_ai_state() -> void:
 	assert_eq(body.velocity, Vector3.ZERO, "Recovery should zero body velocity")
 	assert_eq(brain.task_state, {}, "Recovery should clear brain task_state")
 
+func test_startup_grace_period_prevents_recovery_during_initial_settlement() -> void:
+	var fixture: Dictionary = _create_fixture()
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var spawn_manager: SpawnManagerStub = fixture["spawn_manager"] as SpawnManagerStub
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+
+	# Simulate several ticks within the startup grace window (default 1.0s)
+	# Entity is unsupported the whole time (brain_settings.respawn_unsupported_delay_sec = 0.0)
+	# but recovery should NOT fire because the system just started
+	for i in range(30):
+		system.process_tick(0.016)
+
+	assert_eq(spawn_manager.spawn_entity_calls.size(), 0, "Recovery must not fire during the startup grace period")
+
+func test_recovery_fires_after_startup_grace_period_elapses() -> void:
+	var fixture: Dictionary = _create_fixture()
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var spawn_manager: SpawnManagerStub = fixture["spawn_manager"] as SpawnManagerStub
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+
+	# Tick past the startup grace period (default 1.0s)
+	var elapsed: float = 0.0
+	while elapsed < 1.1:
+		system.process_tick(0.016)
+		elapsed += 0.016
+
+	# Now the entity is unsupported with respawn_unsupported_delay_sec = 0.0,
+	# so recovery should fire on the next tick after the grace period
+	assert_gt(spawn_manager.spawn_entity_calls.size(), 0, "Recovery should fire after startup grace period elapses")
+
 func test_missing_spawn_point_disables_recovery_for_entity_session() -> void:
 	var fixture: Dictionary = _create_fixture(false, &"sp_missing_ai_spawn")
 	autofree_context(fixture)
@@ -201,6 +243,7 @@ func test_missing_spawn_point_disables_recovery_for_entity_session() -> void:
 	var spawn_manager: SpawnManagerStub = fixture["spawn_manager"] as SpawnManagerStub
 	var scene_root: Node3D = fixture["scene_root"] as Node3D
 
+	_advance_past_grace_period(system)
 	system.process_tick(0.016)
 	assert_push_error("spawn point 'sp_missing_ai_spawn' missing for entity 'patrol_drone'")
 	assert_eq(spawn_manager.spawn_entity_calls.size(), 0, "Recovery should not call spawn manager when spawn point is missing")

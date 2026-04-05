@@ -87,6 +87,8 @@ func test_patrol_drone_recovers_to_ai_spawn_point_when_support_is_lost() -> void
 	body.velocity = Vector3(0.5, -30.0, 0.3)
 	input_component.set_move_vector(Vector2(0.7, -0.8))
 
+	# Advance past startup grace period so recovery can fire
+	recovery_system.process_tick(1.1)
 	recovery_system.process_tick(0.016)
 
 	assert_true(entity.global_position.y > -5.0, "Patrol drone should be recovered near gameplay floor, not left far below scene")

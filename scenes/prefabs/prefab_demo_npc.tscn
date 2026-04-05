@@ -15,7 +15,7 @@ entity_id = &"npc"
 tags = Array[StringName]([&"npc", &"ai", &"character"])
 
 [node name="CollisionShape3D" parent="Player_Body" parent_id_path=PackedInt32Array(312897681) index="1" unique_id=1174621009]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0853271, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96823025, 0)
 
 [node name="Center" parent="Player_Body/HoverRays" parent_id_path=PackedInt32Array(125732774) index="0" unique_id=2090294656]
 target_position = Vector3(0, -2.5, 0)
