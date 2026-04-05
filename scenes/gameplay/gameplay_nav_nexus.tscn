@@ -62,6 +62,7 @@
 [ext_resource type="Resource" path="res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres" id="64_nav_fall_hazard_config"]
 [ext_resource type="Script" uid="uid://blsmtgrb4ucc8" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
+[ext_resource type="Resource" uid="uid://c718ipd370rph" path="res://resources/ai/guide_prism/cfg_guide_brain.tres" id="70_guide_brain"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -384,8 +385,13 @@ transform = Transform3D(0.9848077, 0, -0.1736482, 0, 1, 0, 0.1736482, 0, 0.98480
 entity_id = &"guide_prism"
 tags = Array[StringName]([&"npc", &"ai", &"guide_prism"])
 
+[node name="C_AIBrainComponent" parent="Entities/NPCs/E_GuidePrism/Components" parent_id_path=PackedInt32Array(1062797030, 1373490017) index="8" unique_id=392776987]
+brain_settings = ExtResource("70_guide_brain")
+
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
 
 [node name="E_CameraRoot" parent="Entities" unique_id=909307282 instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
+
+[editable path="Entities/NPCs/E_GuidePrism"]

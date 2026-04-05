@@ -80,7 +80,7 @@ func test_npc_no_gamepad() -> void:
 		return
 	assert_null(root.get_node_or_null("Components/C_GamepadComponent"))
 
-func test_npc_prefab_body_mesh_has_no_mesh_instances() -> void:
+func test_npc_prefab_body_mesh_has_visual() -> void:
 	var root: Node = _instantiate_npc_prefab()
 	if root == null:
 		return
@@ -88,8 +88,8 @@ func test_npc_prefab_body_mesh_has_no_mesh_instances() -> void:
 	assert_not_null(body_mesh, "Expected Body_Mesh node in prefab_demo_npc")
 	if body_mesh == null:
 		return
-	var mesh_instances: Array[Node] = body_mesh.find_children("*", "MeshInstance3D", true, false)
-	assert_eq(mesh_instances.size(), 0, "prefab_demo_npc base body should not include player MeshInstance3D nodes")
+	var visual := body_mesh.get_node_or_null("Visual") as MeshInstance3D
+	assert_not_null(visual, "prefab_demo_npc body should include a Visual MeshInstance3D node")
 
 func test_character_template_has_no_body_mesh_instance() -> void:
 	var root: Node = _instantiate_character_template()

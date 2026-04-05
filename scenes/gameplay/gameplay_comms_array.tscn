@@ -60,6 +60,7 @@
 [ext_resource type="Script" uid="uid://dpxywmhc2hqwa" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Script" uid="uid://blsmtgrb4ucc8" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
+[ext_resource type="Resource" uid="uid://c3o8a2nyv30av" path="res://resources/ai/sentry/cfg_sentry_brain.tres" id="70_sentry_brain"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -397,8 +398,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.5)
 entity_id = &"sentry"
 tags = Array[StringName]([&"npc", &"ai", &"sentry"])
 
+[node name="C_AIBrainComponent" parent="Entities/NPCs/E_Sentry/Components" parent_id_path=PackedInt32Array(159982999, 1373490017) index="8" unique_id=392776987]
+brain_settings = ExtResource("70_sentry_brain")
+
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
 
 [node name="E_CameraRoot" parent="Entities" unique_id=909307282 instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
+
+[editable path="Entities/NPCs/E_Sentry"]

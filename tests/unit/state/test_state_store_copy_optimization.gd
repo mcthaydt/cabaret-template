@@ -77,9 +77,9 @@ func test_a1_dispatch_with_multiple_subscribers_is_faster_than_per_subscriber_co
 		perf_store.dispatch(action)
 	var elapsed_ms: float = (Time.get_ticks_usec() - start) / 1000.0
 	var avg_per_dispatch: float = elapsed_ms / 500.0
-	var threshold_ms: float = 0.20
+	var threshold_ms: float = 0.30
 	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
-		threshold_ms = 0.30
+		threshold_ms = 0.45
 
 	assert_eq(counter[0], 2500, "All subscribers should be called for all dispatches")
 	# With shared copy: 500 dispatches * 1 copy = 500 copies

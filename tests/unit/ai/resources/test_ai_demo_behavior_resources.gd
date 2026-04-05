@@ -167,16 +167,13 @@ func _load_scene_root(scene_path: String) -> Node:
 	add_child_autofree(root)
 	return root
 
-func _assert_npc_visual_collision_disabled(scene_path: String, visual_path: NodePath) -> void:
+func _assert_npc_visual_exists(scene_path: String, visual_path: NodePath) -> void:
 	var root: Node = _load_scene_root(scene_path)
 	if root == null:
 		return
 	var visual_variant: Variant = root.get_node_or_null(visual_path)
-	assert_true(visual_variant is CSGShape3D, "Expected CSG visual at %s in %s" % [String(visual_path), scene_path])
-	if not (visual_variant is CSGShape3D):
-		return
-	var visual: CSGShape3D = visual_variant as CSGShape3D
-	assert_false(visual.use_collision, "NPC visual CSG should keep use_collision disabled to avoid body self-collision jitter")
+	assert_not_null(visual_variant, "Expected visual node at %s in %s" % [String(visual_path), scene_path])
+	assert_true(visual_variant is MeshInstance3D, "Expected MeshInstance3D visual at %s in %s" % [String(visual_path), scene_path])
 
 func _assert_demo_npc_component_stack(scene_path: String, npc_path: NodePath) -> void:
 	var root: Node = _load_scene_root(scene_path)
@@ -252,18 +249,18 @@ func test_demo_scenes_wire_npcs_to_m10_brain_resources() -> void:
 		GUIDE_BRAIN_PATH
 	)
 
-func test_demo_npc_visual_csg_collision_is_disabled() -> void:
-	_assert_npc_visual_collision_disabled(
+func test_demo_npc_visual_exists() -> void:
+	_assert_npc_visual_exists(
 		POWER_CORE_SCENE_PATH,
-		NodePath("Entities/NPCs/E_PatrolDrone/Player_Body/Visual")
+		NodePath("Entities/NPCs/E_PatrolDrone/Player_Body/Body_Mesh/Visual")
 	)
-	_assert_npc_visual_collision_disabled(
+	_assert_npc_visual_exists(
 		COMMS_ARRAY_SCENE_PATH,
-		NodePath("Entities/NPCs/E_Sentry/Player_Body/Visual")
+		NodePath("Entities/NPCs/E_Sentry/Player_Body/Body_Mesh/Visual")
 	)
-	_assert_npc_visual_collision_disabled(
+	_assert_npc_visual_exists(
 		NAV_NEXUS_SCENE_PATH,
-		NodePath("Entities/NPCs/E_GuidePrism/Player_Body/Visual")
+		NodePath("Entities/NPCs/E_GuidePrism/Player_Body/Body_Mesh/Visual")
 	)
 
 func test_demo_scenes_use_unified_npc_component_stack() -> void:
