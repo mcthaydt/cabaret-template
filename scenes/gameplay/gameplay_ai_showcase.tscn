@@ -196,28 +196,28 @@ collision_layer = 33
 size = Vector3(58, 1, 27)
 material = SubResource("StandardMaterial3D_wall")
 
-[node name="SO_ZoneDividerWestNorth" type="CSGBox3D" parent="SceneObjects" unique_id=1001100006]
+[node name="SO_ZoneDividerWestNorth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100006]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1.5, -9)
 use_collision = true
 collision_layer = 33
 size = Vector3(1, 6, 9)
 material = SubResource("StandardMaterial3D_pillar")
 
-[node name="SO_ZoneDividerWestSouth" type="CSGBox3D" parent="SceneObjects" unique_id=1001100007]
+[node name="SO_ZoneDividerWestSouth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100007]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1.5, 9)
 use_collision = true
 collision_layer = 33
 size = Vector3(1, 6, 9)
 material = SubResource("StandardMaterial3D_pillar")
 
-[node name="SO_ZoneDividerEastNorth" type="CSGBox3D" parent="SceneObjects" unique_id=1001100008]
+[node name="SO_ZoneDividerEastNorth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100008]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.5, -9)
 use_collision = true
 collision_layer = 33
 size = Vector3(1, 6, 9)
 material = SubResource("StandardMaterial3D_pillar")
 
-[node name="SO_ZoneDividerEastSouth" type="CSGBox3D" parent="SceneObjects" unique_id=1001100009]
+[node name="SO_ZoneDividerEastSouth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100009]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.5, 9)
 use_collision = true
 collision_layer = 33

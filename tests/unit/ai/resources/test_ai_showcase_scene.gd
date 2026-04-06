@@ -164,7 +164,11 @@ func test_showcase_has_room_fade_shell() -> void:
 		return
 	var component: Node = shell.get_node_or_null("C_RoomFadeGroupComponent")
 	assert_not_null(component, "SO_RoomFadeShell should have a C_RoomFadeGroupComponent child")
-	for wall_name in ["SO_WallNorth", "SO_WallSouth", "SO_WallEast", "SO_WallWest", "SO_Ceiling"]:
+	for wall_name in [
+		"SO_WallNorth", "SO_WallSouth", "SO_WallEast", "SO_WallWest", "SO_Ceiling",
+		"SO_ZoneDividerWestNorth", "SO_ZoneDividerWestSouth",
+		"SO_ZoneDividerEastNorth", "SO_ZoneDividerEastSouth",
+	]:
 		assert_not_null(
 			shell.get_node_or_null(wall_name),
 			"Expected %s under SO_RoomFadeShell" % wall_name
