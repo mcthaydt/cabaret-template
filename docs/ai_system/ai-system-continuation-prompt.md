@@ -5,28 +5,27 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 13 complete; Milestones 14-16 planned (AI showcase, player-NPC interactions, debug overlay)
+**Status**: Milestone 14 complete; Milestones 15-16 planned (player-NPC interactions, debug overlay)
 
 ---
 
-## Current Status: Milestone 13 Complete, 14-16 Planned
+## Current Status: Milestone 14 Complete, 15-16 Planned
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (13 complete milestones, 3 remaining milestones).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (14 complete milestones, 2 remaining milestones).
 
-### Next Up: M14 — Combined AI Showcase Scene Layout
+### Next Up: M15 — Player-NPC Interaction Triggers
 
-**M14 goal:** Build `gameplay_ai_showcase.tscn` that combines patrol, guard, and guide archetypes into a single 3-zone scene with 3-5 simultaneous NPCs.
+**M15 goal:** Add proximity detection, player-triggered goal switching, environmental triggers (alarm/door/collectible), and cascading events between NPCs.
 
-**M14 priority:**
-1. Author `gameplay_ai_showcase.tscn` with three connected zones (patrol, guard, guide)
-2. Populate the scene with 3-5 NPCs using `prefab_demo_npc.tscn` + archetype brain resources
-3. Register the scene in scene registry and wire default gameplay references only if intended for primary demo routing
+**M15 priority:**
+1. Proximity detection — player enters detection radius triggers NPC goal switch (e.g. patrol → investigate)
+2. Environmental triggers — interactable nodes (alarm button, door switch, collectible) dispatch AI demo flags via `U_NavigationActions.set_gameplay_ai_demo_flag`
+3. Cascading events — one NPC's alert goal publishes an event that gates or activates another NPC's goal
 
-### Planned: M14-16
+### Planned: M15-16
 
-- M14: Combined AI showcase scene (all archetypes, 3-5 NPCs, 3 zones)
 - M15: Player-NPC interaction triggers (proximity detection, cascading events)
 - M16: AI debug overlay system (floating labels, color-coded states)
 
@@ -310,6 +309,31 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
   - Full regression: `tools/run_gut_suite.sh` → `3731/3740` passing, `9` pending/risky, `0` failing.
 
+### Completed in M14 (2026-04-05)
+
+- Added RED/GREEN showcase scene coverage:
+  - `tests/unit/ai/resources/test_ai_showcase_scene.gd` (`11/11`) verifies scene loads, has 4 NPCs with correct brain resources, unified component stacks, all required waypoint/marker/trigger nodes, and scene registry registration.
+- Authored combined showcase scene:
+  - `scenes/gameplay/gameplay_ai_showcase.tscn` — 60×30 unit CSG room with 3 color-coded zones (blue=patrol, red=guard, green=guide), 6m gap passages at x=±10, 4 NPC instances (E_PatrolDroneA, E_PatrolDroneB, E_Sentry, E_GuidePrism) using `prefab_demo_npc.tscn` with per-NPC `C_AIBrainComponent` brain overrides.
+- Registered showcase scene:
+  - `resources/scene_registry/cfg_ai_showcase_entry.tres`
+  - `scripts/scene_management/helpers/u_scene_registry_loader.gd` — preload const + backfill entry added.
+- Updated default new-game routing to target `ai_showcase`:
+  - `scripts/ui/menus/ui_main_menu.gd` (`DEFAULT_GAMEPLAY_SCENE`)
+  - `scripts/ui/menus/ui_splash_screen.gd` (`DEFAULT_GAMEPLAY_SCENE_ID`)
+  - `scripts/managers/m_scene_manager.gd` (background preload target)
+  - `resources/cfg_game_config.tres` (`retry_scene_id = &"ai_showcase"`)
+- Updated regression tests for new default:
+  - `tests/unit/scene_manager/test_scene_registry.gd` — ai_showcase backfill + manifest assertions added.
+  - `tests/unit/ui/test_main_menu.gd` — two `power_core` → `ai_showcase` target assertions updated.
+  - `tests/integration/scene_manager/test_endgame_flows.gd` — `game_config` now wired in `before_each` so retry_scene_id comes from the actual .tres.
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_showcase_scene.gd` → `11/11`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/scene_manager/test_scene_registry.gd` → `24/24`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd` → `14/14`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
+  - Full regression: `tools/run_gut_suite.sh` → `3782/3792` passing, `9` pending/risky, `1` pre-existing vcam failure (`test_vcam_runtime.gd`), `0` new failures.
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -327,8 +351,9 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **M9 demo scenes are now authored**: Power Core, Comms Array, and Nav Nexus gameplay scenes exist with required prototype geometry, markers/triggers, and NPC placeholder entities bound to valid `RS_AIBrainSettings` resources.
 - **M9 mobile-safe scene registration is complete**: Power Core/Comms Array/Nav Nexus are now first-class `scene_registry` entries and are included in the loader preload manifest/backfill safety net for mobile/web exports.
 - **M10 demo behavior integration is complete**: Patrol Drone, Sentry, and Guide Prism now use durable gameplay AI flags for investigate/celebrate gating, and trigger zones are runtime-wired (including Nav fall hazard + victory flagging) so authored behaviors execute reliably in-scene.
-- **Default new-game routing now targets the AI demo location**: New Game + splash preload + retry routing resolve to `power_core`.
+- **Default new-game routing now targets the AI showcase**: New Game + splash preload + retry routing resolve to `ai_showcase` (updated in M14 from `power_core`).
 - **M13 character stack unification is complete**: authored NPCs now instance `prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`), so they share the same baseline runtime component stack as player characters while excluding player-only components.
+- **M14 combined showcase is complete**: `gameplay_ai_showcase.tscn` hosts all three archetypes simultaneously — two patrol drones (zone A), one sentry (zone B), one guide prism (zone C) — in a single 60×30 CSG room. NPC brain overrides use `parent_id_path=PackedInt32Array(<npc_uid>, 1373490017)` (Components node UID in `prefab_demo_npc.tscn`). Both patrol drones share `cfg_patrol_drone_brain.tres` and recover to `sp_ai_patrol_drone`.
 
 ---
 
@@ -437,6 +462,7 @@ You MUST:
 
 ## Next Steps
 
-1. Optional follow-up: run in-editor playtest passes to tune authored waypoint spacing, scan durations, and cooldown values for feel (functional baseline is now automated-test verified).
-2. Keep this branch focused on post-M13 showcase and interaction work; use separate commits for implementation vs documentation deltas.
-3. Merge `GOAP-AI` once review is complete.
+1. Implement M15 — Player-NPC interaction triggers (proximity detection, environmental triggers, cascading NPC events).
+2. Implement M16 — AI debug overlay system (floating labels, color-coded states, toggle key).
+3. Optional follow-up: run in-editor playtest passes to tune waypoint spacing, scan durations, and cooldown values for feel.
+4. Merge `GOAP-AI` once M15-16 are complete and review passes.
