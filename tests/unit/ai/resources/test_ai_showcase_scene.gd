@@ -154,6 +154,29 @@ func test_showcase_has_interaction_and_noise_nodes() -> void:
 		"Expected Entities/NoiseSources/Inter_NoiseSourceA in showcase"
 	)
 
+func test_showcase_has_room_fade_shell() -> void:
+	var root: Node = _load_scene_root()
+	if root == null:
+		return
+	var shell: Node = root.get_node_or_null("SceneObjects/SO_RoomFadeShell")
+	assert_not_null(shell, "Expected SceneObjects/SO_RoomFadeShell for room/wall fading")
+	if shell == null:
+		return
+	var component: Node = shell.get_node_or_null("C_RoomFadeGroupComponent")
+	assert_not_null(component, "SO_RoomFadeShell should have a C_RoomFadeGroupComponent child")
+	for wall_name in ["SO_WallNorth", "SO_WallSouth", "SO_WallEast", "SO_WallWest", "SO_Ceiling"]:
+		assert_not_null(
+			shell.get_node_or_null(wall_name),
+			"Expected %s under SO_RoomFadeShell" % wall_name
+		)
+
+func test_showcase_has_room_fade_system() -> void:
+	var root: Node = _load_scene_root()
+	if root == null:
+		return
+	var system: Node = root.get_node_or_null("Systems/Core/S_RoomFadeSystem")
+	assert_not_null(system, "Expected Systems/Core/S_RoomFadeSystem in showcase scene")
+
 func test_showcase_registered_in_scene_registry() -> void:
 	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("ai_showcase"))
 	assert_false(scene_data.is_empty(), "ai_showcase should be registered in scene registry")
