@@ -78,6 +78,12 @@ diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.5, 0.5, 0.5, 1)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pillar"]
+shading_mode = 2
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.28235295, 0.28235295, 0.28235295, 1)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_patrol_accent"]
 shading_mode = 2
 diffuse_mode = 3
@@ -93,7 +99,7 @@ diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.6901961, 0.21176471, 0.13333334, 1)
 emission_enabled = true
-emission = Color(0.8627451, 0.27450982, 0.17647059, 1)
+emission = Color(0.8627451, 0.27450982, 0.1764706, 1)
 emission_energy_multiplier = 0.5
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_guide_accent"]
@@ -105,36 +111,30 @@ emission_enabled = true
 emission = Color(0.15294118, 0.69803923, 0.29803923, 1)
 emission_energy_multiplier = 0.5
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_marker"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.9490196, 0.70980394, 0.21568628, 1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_noise"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.8627451, 0.50980395, 0.07058824, 1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pillar"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.28235295, 0.28235295, 0.28235295, 1)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_activatable"]
-size = Vector3(2, 2, 2)
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_noise_source"]
-radius = 0.8
-
 [sub_resource type="Environment" id="Environment_showcase"]
 background_mode = 1
 background_color = Color(0.19607843, 0.26666668, 0.4, 1)
 background_energy_multiplier = 0.0
 ambient_light_source = 2
 ambient_light_energy = 1.6
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_activatable"]
+size = Vector3(2, 2, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_marker"]
+shading_mode = 2
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.9490196, 0.70980394, 0.21568628, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_noise_source"]
+radius = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_noise"]
+shading_mode = 2
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.8627451, 0.50980395, 0.07058824, 1)
 
 [node name="GameplayRoot" type="Node3D" unique_id=1611027441]
 script = ExtResource("1_f2o31")
@@ -214,26 +214,22 @@ material = SubResource("StandardMaterial3D_pillar")
 
 [node name="SO_PatrolAccent" type="CSGCylinder3D" parent="SceneObjects" unique_id=1001100010]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0.5, 0)
-use_collision = false
 radius = 1.2
 height = 3.5
 material = SubResource("StandardMaterial3D_patrol_accent")
 
 [node name="SO_GuardAccent" type="CSGBox3D" parent="SceneObjects" unique_id=1001100011]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-use_collision = false
 size = Vector3(2, 2, 2)
 material = SubResource("StandardMaterial3D_guard_accent")
 
 [node name="SO_GuideAccentA" type="CSGBox3D" parent="SceneObjects" unique_id=1001100012]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 1, 0)
-use_collision = false
 size = Vector3(4, 0.4, 4)
 material = SubResource("StandardMaterial3D_guide_accent")
 
 [node name="SO_GuideAccentB" type="CSGBox3D" parent="SceneObjects" unique_id=1001100013]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 2.5, 0)
-use_collision = false
 size = Vector3(3, 0.4, 3)
 material = SubResource("StandardMaterial3D_guide_accent")
 
@@ -245,7 +241,7 @@ environment = SubResource("Environment_showcase")
 
 [node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=193818180]
 transform = Transform3D(1, 0, 0, 0, 0.9385653, 0.34510165, 0, -0.34510165, 0.9385653, 0, 0, 0)
-light_color = Color(0.6, 0.75294118, 1, 1)
+light_color = Color(0.6, 0.7529412, 1, 1)
 light_energy = 10.0
 light_indirect_energy = 3.5
 
@@ -475,7 +471,6 @@ interaction_hint_offset = Vector3(0, 1.2, 0)
 shape = SubResource("BoxShape3D_activatable")
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/Interactions/Inter_ActivatableNode" unique_id=2119273560]
-use_collision = false
 radius = 0.6
 height = 1.8
 material = SubResource("StandardMaterial3D_marker")
@@ -494,7 +489,6 @@ signpost_message = "gameplay.signpost.default_message"
 shape = SubResource("SphereShape3D_noise_source")
 
 [node name="Visual" type="CSGSphere3D" parent="Entities/NoiseSources/Inter_NoiseSourceA" unique_id=1001400004]
-use_collision = false
 radius = 0.4
 material = SubResource("StandardMaterial3D_noise")
 
