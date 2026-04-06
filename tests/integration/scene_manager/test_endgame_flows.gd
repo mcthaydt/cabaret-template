@@ -105,6 +105,7 @@ func before_each() -> void:
 	_root.add_child(_objectives_manager)
 	_run_coordinator = M_RUN_COORDINATOR.new()
 	_run_coordinator.state_store = _state_store
+	_run_coordinator.game_config = CFG_GAME_CONFIG
 	_root.add_child(_run_coordinator)
 
 	# Register managers with ServiceLocator (Phase 10B-7: T141c)

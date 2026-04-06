@@ -17,7 +17,7 @@ const U_DebugActions := preload("res://scripts/state/actions/u_debug_actions.gd"
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
-const DEFAULT_GAMEPLAY_SCENE := StringName("power_core")
+const DEFAULT_GAMEPLAY_SCENE := StringName("ai_showcase")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 @onready var _title_label: Label = %TitleLabel

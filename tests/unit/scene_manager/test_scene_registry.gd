@@ -216,6 +216,7 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	U_SceneRegistry._scenes.erase(StringName("power_core"))
 	U_SceneRegistry._scenes.erase(StringName("comms_array"))
 	U_SceneRegistry._scenes.erase(StringName("nav_nexus"))
+	U_SceneRegistry._scenes.erase(StringName("ai_showcase"))
 
 	U_SceneRegistry._backfill_default_gameplay_scenes()
 
@@ -251,6 +252,10 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	assert_false(nav_nexus.is_empty(), "nav_nexus should be registered by backfill")
 	assert_eq(String(nav_nexus.get("default_transition", "")), "loading", "nav_nexus backfill should prefer loading transition")
 
+	var ai_showcase: Dictionary = U_SceneRegistry.get_scene(StringName("ai_showcase"))
+	assert_false(ai_showcase.is_empty(), "ai_showcase should be registered by backfill")
+	assert_eq(String(ai_showcase.get("default_transition", "")), "loading", "ai_showcase backfill should prefer loading transition")
+
 	U_SceneRegistry._scenes = scenes_backup
 
 func test_ai_demo_scene_entries_registered() -> void:
@@ -269,6 +274,11 @@ func test_ai_demo_scene_entries_registered() -> void:
 	assert_eq(String(nav_nexus.get("path", "")), "res://scenes/gameplay/gameplay_nav_nexus.tscn")
 	assert_eq(nav_nexus.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
 
+	var ai_showcase: Dictionary = U_SceneRegistry.get_scene(StringName("ai_showcase"))
+	assert_false(ai_showcase.is_empty(), "ai_showcase scene should be registered")
+	assert_eq(String(ai_showcase.get("path", "")), "res://scenes/gameplay/gameplay_ai_showcase.tscn")
+	assert_eq(ai_showcase.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
+
 func test_mobile_preloaded_scene_registry_manifest_includes_ai_demo_scenes() -> void:
 	var preloaded_entries: Array = U_SceneRegistryLoader.PRELOADED_SCENE_REGISTRY_ENTRIES
 	var manifest_scene_ids: Array[StringName] = []
@@ -285,6 +295,8 @@ func test_mobile_preloaded_scene_registry_manifest_includes_ai_demo_scenes() -> 
 		"Preloaded scene manifest should include comms_array for mobile/web builds")
 	assert_true(manifest_scene_ids.has(StringName("nav_nexus")),
 		"Preloaded scene manifest should include nav_nexus for mobile/web builds")
+	assert_true(manifest_scene_ids.has(StringName("ai_showcase")),
+		"Preloaded scene manifest should include ai_showcase for mobile/web builds")
 
 ## Test localization settings UI scene is backfilled when registry resources are missing
 func test_localization_settings_scene_backfilled_when_missing() -> void:

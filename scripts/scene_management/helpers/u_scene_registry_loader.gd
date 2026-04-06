@@ -9,6 +9,7 @@ const CFG_BAR_ENTRY := preload("res://resources/scene_registry/cfg_bar_entry.tre
 const CFG_POWER_CORE_ENTRY := preload("res://resources/scene_registry/cfg_power_core_entry.tres")
 const CFG_COMMS_ARRAY_ENTRY := preload("res://resources/scene_registry/cfg_comms_array_entry.tres")
 const CFG_NAV_NEXUS_ENTRY := preload("res://resources/scene_registry/cfg_nav_nexus_entry.tres")
+const CFG_AI_SHOWCASE_ENTRY := preload("res://resources/scene_registry/cfg_ai_showcase_entry.tres")
 const CFG_UI_GAME_OVER_ENTRY := preload("res://resources/scene_registry/cfg_ui_game_over_entry.tres")
 const CFG_UI_VICTORY_ENTRY := preload("res://resources/scene_registry/cfg_ui_victory_entry.tres")
 const CFG_UI_CREDITS_ENTRY := preload("res://resources/scene_registry/cfg_ui_credits_entry.tres")
@@ -31,6 +32,7 @@ const PRELOADED_SCENE_REGISTRY_ENTRIES := [
 	CFG_POWER_CORE_ENTRY,
 	CFG_COMMS_ARRAY_ENTRY,
 	CFG_NAV_NEXUS_ENTRY,
+	CFG_AI_SHOWCASE_ENTRY,
 	CFG_UI_GAME_OVER_ENTRY,
 	CFG_UI_VICTORY_ENTRY,
 	CFG_UI_CREDITS_ENTRY,
@@ -161,6 +163,15 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6
+		)
+
+	if not scenes.has(StringName("ai_showcase")):
+		register_scene_callable.call(
+			StringName("ai_showcase"),
+			"res://scenes/gameplay/gameplay_ai_showcase.tscn",
+			U_SceneRegistry.SceneType.GAMEPLAY,
+			"loading",
+			8
 		)
 
 	if not scenes.has(StringName("interior_a")):

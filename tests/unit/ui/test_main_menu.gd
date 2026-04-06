@@ -116,8 +116,8 @@ func test_play_button_dispatches_start_game_action() -> void:
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"),
 		"New Game button should move navigation shell to gameplay")
-	assert_eq(nav_slice.get("base_scene_id"), StringName("power_core"),
-		"New Game button should target the power_core scene by default")
+	assert_eq(nav_slice.get("base_scene_id"), StringName("ai_showcase"),
+		"New Game button should target the ai_showcase scene by default")
 
 func test_new_game_prompts_confirmation_when_saves_exist() -> void:
 	var store := await _create_state_store()
@@ -158,8 +158,8 @@ func test_new_game_confirmation_confirm_starts_game() -> void:
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"),
 		"Confirming New Game should start gameplay shell")
-	assert_eq(nav_slice.get("base_scene_id"), StringName("power_core"),
-		"Confirming New Game should target the power_core scene by default")
+	assert_eq(nav_slice.get("base_scene_id"), StringName("ai_showcase"),
+		"Confirming New Game should target the ai_showcase scene by default")
 
 func test_new_game_confirmation_cancel_does_nothing() -> void:
 	var store := await _create_state_store()
