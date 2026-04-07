@@ -67,7 +67,7 @@
 [ext_resource type="Resource" uid="uid://c718ipd370rph" path="res://resources/ai/guide_prism/cfg_guide_brain.tres" id="72_guide_brain"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="55_base_ecs_entity"]
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="63_room_fade_group_component"]
-[ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="64_room_fade_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_wall_visibility_system.gd" id="64_wall_visibility_system"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 shading_mode = 2
@@ -291,8 +291,8 @@ script = ExtResource("24_touchscreen_system")
 script = ExtResource("52_vcam_system")
 execution_priority = 100
 
-[node name="S_RoomFadeSystem" type="Node" parent="Systems/Core" unique_id=1001200003]
-script = ExtResource("64_room_fade_system")
+[node name="S_WallVisibilitySystem" type="Node" parent="Systems/Core" unique_id=1001200003]
+script = ExtResource("64_wall_visibility_system")
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1928596962]
 script = ExtResource("9_health")

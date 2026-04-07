@@ -174,12 +174,12 @@ func test_showcase_has_room_fade_shell() -> void:
 			"Expected %s under SO_RoomFadeShell" % wall_name
 		)
 
-func test_showcase_has_room_fade_system() -> void:
+func test_showcase_has_wall_visibility_system() -> void:
 	var root: Node = _load_scene_root()
 	if root == null:
 		return
-	var system: Node = root.get_node_or_null("Systems/Core/S_RoomFadeSystem")
-	assert_not_null(system, "Expected Systems/Core/S_RoomFadeSystem in showcase scene")
+	var system: Node = root.get_node_or_null("Systems/Core/S_WallVisibilitySystem")
+	assert_not_null(system, "Expected Systems/Core/S_WallVisibilitySystem in showcase scene")
 
 func test_showcase_registered_in_scene_registry() -> void:
 	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("ai_showcase"))

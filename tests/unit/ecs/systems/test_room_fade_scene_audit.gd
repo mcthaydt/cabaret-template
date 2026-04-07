@@ -6,7 +6,7 @@ const TEMPLATE_SCENE_PATH := "res://scenes/templates/tmpl_base_scene.tscn"
 const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
 	"res://scripts/ecs/components/c_room_fade_group_component.gd"
 )
-const S_ROOM_FADE_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_room_fade_system.gd")
+const S_WALL_VISIBILITY_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_wall_visibility_system.gd")
 const BASE_ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
 
 func test_gameplay_interior_room_fade_targets_have_single_group_ownership() -> void:
@@ -126,10 +126,10 @@ func test_gameplay_power_core_has_room_fade_system_and_wall_and_roof_groups() ->
 	add_child(root)
 	autofree(root)
 
-	var room_fade_system := root.get_node_or_null(NodePath("Systems/Core/S_RoomFadeSystem"))
-	assert_not_null(room_fade_system, "Expected Systems/Core/S_RoomFadeSystem in %s" % POWER_CORE_SCENE_PATH)
-	if room_fade_system != null:
-		assert_eq(room_fade_system.get_script(), S_ROOM_FADE_SYSTEM_SCRIPT)
+	var wall_vis_system := root.get_node_or_null(NodePath("Systems/Core/S_WallVisibilitySystem"))
+	assert_not_null(wall_vis_system, "Expected Systems/Core/S_WallVisibilitySystem in %s" % POWER_CORE_SCENE_PATH)
+	if wall_vis_system != null:
+		assert_eq(wall_vis_system.get_script(), S_WALL_VISIBILITY_SYSTEM_SCRIPT)
 
 	var component_path := NodePath("SceneObjects/SO_RoomFadeShell/C_RoomFadeGroupComponent")
 	var component := root.get_node_or_null(component_path)
@@ -194,10 +194,10 @@ func test_tmpl_base_scene_has_room_fade_system_and_default_components() -> void:
 	add_child(root)
 	autofree(root)
 
-	var room_fade_system := root.get_node_or_null(NodePath("Systems/Core/S_RoomFadeSystem"))
-	assert_not_null(room_fade_system, "Expected Systems/Core/S_RoomFadeSystem in %s" % TEMPLATE_SCENE_PATH)
-	if room_fade_system != null:
-		assert_eq(room_fade_system.get_script(), S_ROOM_FADE_SYSTEM_SCRIPT)
+	var wall_vis_system := root.get_node_or_null(NodePath("Systems/Core/S_WallVisibilitySystem"))
+	assert_not_null(wall_vis_system, "Expected Systems/Core/S_WallVisibilitySystem in %s" % TEMPLATE_SCENE_PATH)
+	if wall_vis_system != null:
+		assert_eq(wall_vis_system.get_script(), S_WALL_VISIBILITY_SYSTEM_SCRIPT)
 
 	var expected_component_paths: Array[String] = [
 		"SceneObjects/SO_Block/C_RoomFadeGroupComponent",

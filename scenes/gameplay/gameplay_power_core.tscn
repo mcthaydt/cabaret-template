@@ -61,7 +61,7 @@
 [ext_resource type="Script" uid="uid://dpxywmhc2hqwa" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Texture2D" uid="uid://rb3wysvedbe2" path="res://assets/textures/tex_interaction_v.svg" id="62_kkkmb"]
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="63_room_fade_group_component"]
-[ext_resource type="Script" uid="uid://comjsku74mov5" path="res://scripts/ecs/systems/s_room_fade_system.gd" id="64_room_fade_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_wall_visibility_system.gd" id="64_wall_visibility_system"]
 [ext_resource type="Script" uid="uid://blsmtgrb4ucc8" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="Resource" uid="uid://w32u5tryuii8" path="res://resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres" id="68_ai_patrol_drone_spawn_meta"]
 [ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
@@ -233,8 +233,8 @@ script = ExtResource("24_touchscreen_system")
 script = ExtResource("52_vcam_system")
 execution_priority = 100
 
-[node name="S_RoomFadeSystem" type="Node" parent="Systems/Core" unique_id=1104315912]
-script = ExtResource("64_room_fade_system")
+[node name="S_WallVisibilitySystem" type="Node" parent="Systems/Core" unique_id=1104315912]
+script = ExtResource("64_wall_visibility_system")
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1928596962]
 script = ExtResource("9_health")

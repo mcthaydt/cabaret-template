@@ -10,6 +10,7 @@ const RS_ROOM_FADE_SETTINGS_SCRIPT := preload(
 
 @export var group_tag: StringName = StringName("")
 @export var fade_normal: Vector3 = Vector3(0.0, 0.0, -1.0)
+@export var clip_height_offset: float = 1.5
 @export_custom(PROPERTY_HINT_RESOURCE_TYPE, "RS_RoomFadeSettings") var settings: Resource:
 	set(value):
 		if value == null:
