@@ -151,7 +151,7 @@ func process_tick(delta: float) -> void:
 				camera_forward, target_normal, threshold
 			)
 			var corridor_pass: bool = true
-			if target_fade_before_corridor > 0.0 and has_player:
+			if has_player:
 				corridor_pass = _passes_camera_player_occlusion_corridor(
 					target, camera_position, player_position
 				)
@@ -392,7 +392,7 @@ func _resolve_directional_fade(
 	threshold: float
 ) -> float:
 	var dot_value: float = camera_forward.dot(wall_normal)
-	if absf(dot_value) > threshold:
+	if dot_value > threshold:
 		return 1.0
 	return 0.0
 
@@ -480,10 +480,15 @@ func _resolve_effective_target_fade_for_corridor(
 	bucket_has_corridor_hit: Dictionary
 ) -> float:
 	var resolved_fade: float = target_fade_before_corridor
-	if resolved_fade > 0.0 and has_player_position and not corridor_pass:
-		var bucket_continuity_hit: bool = bool(bucket_has_corridor_hit.get(bucket_key, false))
-		if not bucket_continuity_hit:
-			resolved_fade = 0.0
+	if has_player_position:
+		if corridor_pass:
+			# Corridor grants fading: wall is between camera and player regardless of facing.
+			resolved_fade = maxf(resolved_fade, 1.0)
+		elif resolved_fade > 0.0:
+			# Corridor revokes fading unless bucket continuity preserves it.
+			var bucket_continuity_hit: bool = bool(bucket_has_corridor_hit.get(bucket_key, false))
+			if not bucket_continuity_hit:
+				resolved_fade = 0.0
 	return resolved_fade
 
 

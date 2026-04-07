@@ -68,48 +68,43 @@
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="55_base_ecs_entity"]
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="63_room_fade_group_component"]
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_wall_visibility_system.gd" id="64_wall_visibility_system"]
+[ext_resource type="Texture2D" uid="uid://emedu6pq2lwj" path="res://assets/textures/prototype_grids_png/Light/tex_texture_06.png" id="70_grid_light_06"]
+[ext_resource type="Texture2D" uid="uid://cu6nemmc82bo4" path="res://assets/textures/prototype_grids_png/Light/tex_texture_03.png" id="71_grid_light_03"]
+[ext_resource type="Texture2D" uid="uid://dy0x7tmqlyw0y" path="res://assets/textures/prototype_grids_png/Dark/tex_texture_01.png" id="72_grid_dark_01"]
+[ext_resource type="Texture2D" uid="uid://bln3t6p8asyk3" path="res://assets/textures/prototype_grids_png/Purple/tex_texture_01.png" id="73_grid_purple_01"]
+[ext_resource type="Texture2D" uid="uid://bqnushigljekn" path="res://assets/textures/prototype_grids_png/Red/tex_texture_03.png" id="74_grid_red_03"]
+[ext_resource type="Texture2D" uid="uid://brvkkkykk0wyi" path="res://assets/textures/prototype_grids_png/Green/tex_texture_01.png" id="75_grid_green_01"]
+[ext_resource type="Texture2D" uid="uid://b1r5ab5wgdm2q" path="res://assets/textures/prototype_grids_png/Orange/tex_texture_01.png" id="76_grid_orange_01"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.37254903, 0.37254903, 0.37254903, 1)
+shading_mode = 0
+albedo_texture = ExtResource("70_grid_light_06")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.5, 0.5, 0.5, 1)
+shading_mode = 0
+albedo_texture = ExtResource("71_grid_light_03")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pillar"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.28235295, 0.28235295, 0.28235295, 1)
+shading_mode = 0
+albedo_texture = ExtResource("72_grid_dark_01")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_patrol_accent"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.11764706, 0.34117648, 0.627451, 1)
+shading_mode = 0
+albedo_texture = ExtResource("73_grid_purple_01")
 emission_enabled = true
 emission = Color(0.15294118, 0.4745098, 0.8392157, 1)
 emission_energy_multiplier = 0.5
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_guard_accent"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.6901961, 0.21176471, 0.13333334, 1)
+shading_mode = 0
+albedo_texture = ExtResource("74_grid_red_03")
 emission_enabled = true
 emission = Color(0.8627451, 0.27450982, 0.1764706, 1)
 emission_energy_multiplier = 0.5
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_guide_accent"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.11764706, 0.54509807, 0.22745098, 1)
+shading_mode = 0
+albedo_texture = ExtResource("75_grid_green_01")
 emission_enabled = true
 emission = Color(0.15294118, 0.69803923, 0.29803923, 1)
 emission_energy_multiplier = 0.5
@@ -125,19 +120,15 @@ ambient_light_energy = 1.6
 size = Vector3(2, 2, 2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_marker"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.9490196, 0.70980394, 0.21568628, 1)
+shading_mode = 0
+albedo_texture = ExtResource("76_grid_orange_01")
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_noise_source"]
 radius = 0.8
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_noise"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.8627451, 0.50980395, 0.07058824, 1)
+shading_mode = 0
+albedo_texture = ExtResource("76_grid_orange_01")
 
 [node name="GameplayRoot" type="Node3D" unique_id=1611027441]
 script = ExtResource("1_f2o31")
@@ -251,11 +242,6 @@ script = ExtResource("2_8soux")
 [node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=150504512]
 environment = SubResource("Environment_showcase")
 
-[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=193818180]
-transform = Transform3D(1, 0, 0, 0, 0.9385653, 0.34510165, 0, -0.34510165, 0.9385653, 0, 0, 0)
-light_color = Color(0.6, 0.7529412, 1, 1)
-light_energy = 10.0
-light_indirect_energy = 3.5
 
 [node name="Systems" type="Node" parent="." unique_id=2103517242]
 script = ExtResource("3_ph0bl")

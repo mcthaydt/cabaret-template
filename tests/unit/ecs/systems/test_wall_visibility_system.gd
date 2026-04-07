@@ -823,6 +823,158 @@ func test_roof_target_inherits_wall_fade_when_non_roof_is_fading() -> void:
 	)
 
 
+# --- Signed dot directional fade tests ---
+
+func test_wall_facing_away_from_camera_stays_opaque_without_player() -> void:
+	# This test exposes the absf bug: without a player, the corridor check
+	# doesn't run, so fade is purely directional. With absf, a wall whose
+	# normal faces AWAY from the camera gets dir_fade=1.0 (BUG).
+	# With signed dot, it correctly gets dir_fade=0.0.
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+
+	# Camera at origin, looking -Z (default). No player position set.
+	# Without player, corridor check is skipped, fade is purely directional.
+
+	var component: Variant = _register_room_fade_group(ecs_manager, "E_SignedDot")
+	# Set fade_normal to +Z so the component-level normal faces AWAY from camera.
+	# With target_count > 1, per-target normals override this, but with 1 target
+	# the component normal is used directly.
+	component.fade_normal = Vector3(0.0, 0.0, 1.0)
+	component.current_alpha = 1.0
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	component.settings = settings
+
+	system.process_tick(0.1)
+
+	var target_node: Node3D = _get_first_target(component)
+	assert_not_null(target_node)
+	var target_id: int = target_node.get_instance_id()
+	var uniforms: Dictionary = applier.uniforms_by_target_id.get(target_id, {}) as Dictionary
+	# camera_forward = -Z, wall normal = +Z
+	# dot(-Z, +Z) = -1.0 → signed: below threshold → opaque
+	# absf: |-1.0| = 1.0 > 0.3 → fade (BUG)
+	assert_almost_eq(
+		float(uniforms.get("fade_amount", -1.0)), 0.0, 0.0001,
+		"Wall facing away from camera should stay opaque (signed dot, no absf)."
+	)
+
+
+# --- Corridor grants fade tests ---
+
+func test_corridor_grants_fade_for_wall_between_camera_and_player() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var camera_manager: MockCameraManager = fixture.get("camera_manager") as MockCameraManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	# Camera at (0,1.5,-5), looking -Z. Player at (0,1.5,5).
+	# A wall between them at z=0 whose inward normal points +Z (away from camera).
+	# With signed dot: dot(-Z, +Z) = -1.0 → dir_fade = 0.0
+	# But wall IS in the camera-player corridor → should fade via corridor grant.
+	camera_manager.main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(0.0, 1.5, -5.0))
+	_set_player_position(store, Vector3(0.0, 1.5, 5.0))
+
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = "E_CorridorGrantRoom"
+	add_child(entity)
+	autofree(entity)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	component.current_alpha = 1.0
+	# Set fade_normal to +Z (away from camera). With single target, this is used directly.
+	component.fade_normal = Vector3(0.0, 0.0, 1.0)
+	entity.add_child(component)
+	autofree(component)
+	ecs_manager.add_component_to_entity(entity, component)
+
+	# Single target: use MeshInstance3D so component fade_normal is used (target_count <= 1)
+	var wall := MeshInstance3D.new()
+	wall.mesh = BoxMesh.new()
+	wall.position = Vector3(0.0, 0.0, 0.0)
+	entity.add_child(wall)
+	autofree(wall)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	component.settings = settings
+
+	system.process_tick(0.1)
+
+	var wall_uniforms: Dictionary = applier.uniforms_by_target_id.get(
+		wall.get_instance_id(), {}
+	) as Dictionary
+	assert_gt(
+		float(wall_uniforms.get("fade_amount", 0.0)),
+		0.0,
+		"Wall in camera-player corridor should fade even when directional check gives 0.0."
+	)
+
+
+func test_corridor_check_runs_when_directional_fade_is_zero() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var camera_manager: MockCameraManager = fixture.get("camera_manager") as MockCameraManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	# Same setup as corridor grants fade, but explicitly verifies the corridor
+	# check evaluates walls even when directional fade is 0.
+	# Camera at (0,1.5,-5) looking -Z, player at (0,1.5,5), wall at origin.
+	# Wall normal = +Z (away from camera). dot(-Z,+Z) = -1.0 → dir_fade = 0.0.
+	camera_manager.main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(0.0, 1.5, -5.0))
+	_set_player_position(store, Vector3(0.0, 1.5, 5.0))
+
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = "E_CorridorAlwaysRuns"
+	add_child(entity)
+	autofree(entity)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	component.current_alpha = 1.0
+	component.fade_normal = Vector3(0.0, 0.0, 1.0)
+	entity.add_child(component)
+	autofree(component)
+	ecs_manager.add_component_to_entity(entity, component)
+
+	var wall := MeshInstance3D.new()
+	wall.mesh = BoxMesh.new()
+	wall.position = Vector3(0.0, 0.0, 0.0)
+	entity.add_child(wall)
+	autofree(wall)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.3
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	component.settings = settings
+
+	system.process_tick(0.1)
+
+	var wall_uniforms: Dictionary = applier.uniforms_by_target_id.get(
+		wall.get_instance_id(), {}
+	) as Dictionary
+	assert_gt(
+		float(wall_uniforms.get("fade_amount", 0.0)),
+		0.0,
+		"Corridor check should grant fade for wall between camera and player even when dir_fade is 0."
+	)
+
+
 # --- Fade-up toward opaque tests ---
 
 func test_fade_amount_transitions_toward_opaque_when_dot_below_threshold() -> void:
