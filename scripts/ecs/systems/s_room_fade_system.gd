@@ -17,7 +17,7 @@ const MIN_NORMAL_LENGTH_SQUARED := 0.000001
 const THIN_AXIS_SIZE_EPSILON := 0.0001
 const DEBUG_DOT_MARGIN := 0.12
 const DEBUG_MAX_TARGET_LOGS_PER_COMPONENT := 8
-const OCCLUSION_CORRIDOR_MARGIN := 1.2
+const OCCLUSION_CORRIDOR_MARGIN := 2.0
 const OCCLUSION_CORRIDOR_MIN_RADIUS := 0.8
 const OCCLUSION_CORRIDOR_SEGMENT_EPSILON := 0.000001
 const ROOF_NORMAL_DOT_MIN := 0.9
@@ -613,10 +613,11 @@ func _resolve_world_normal(component: Object) -> Vector3:
 	return Vector3.FORWARD
 
 func _resolve_target_alpha(camera_forward: Vector3, wall_normal: Vector3, settings: Dictionary) -> float:
+	# abs(dot) so walls fade when camera faces them from either side (inside or outside the room).
 	var dot_value: float = camera_forward.dot(wall_normal)
 	var threshold: float = clampf(float(settings.get("fade_dot_threshold", 0.3)), 0.0, 1.0)
 	var min_alpha: float = clampf(float(settings.get("min_alpha", 0.05)), 0.0, 1.0)
-	if dot_value > threshold:
+	if absf(dot_value) > threshold:
 		return min_alpha
 	return 1.0
 
@@ -658,11 +659,17 @@ func _passes_camera_player_occlusion_corridor(
 
 	var camera_planar := Vector2(camera_position.x, camera_position.z)
 	var player_planar := Vector2(player_position.x, player_position.z)
-	var target_planar := Vector2(target.global_position.x, target.global_position.z)
 	var segment: Vector2 = player_planar - camera_planar
 	var segment_length_sq: float = segment.length_squared()
 	if segment_length_sq <= OCCLUSION_CORRIDOR_SEGMENT_EPSILON:
 		return true
+
+	# Use the nearest point on the target's XZ footprint to the corridor line,
+	# not the target center. This prevents wide walls from failing the corridor
+	# check when the camera-player line is near one end of the wall.
+	var target_planar: Vector2 = _resolve_target_nearest_corridor_point(
+		target, camera_planar, segment, segment_length_sq
+	)
 
 	var to_target: Vector2 = target_planar - camera_planar
 	var segment_t: float = to_target.dot(segment) / segment_length_sq
@@ -671,8 +678,49 @@ func _passes_camera_player_occlusion_corridor(
 
 	var closest_point: Vector2 = camera_planar + segment * segment_t
 	var distance_to_segment: float = target_planar.distance_to(closest_point)
-	var corridor_radius: float = _resolve_target_occlusion_corridor_radius(target)
-	return distance_to_segment <= corridor_radius
+	return distance_to_segment <= maxf(OCCLUSION_CORRIDOR_MARGIN, OCCLUSION_CORRIDOR_MIN_RADIUS)
+
+func _resolve_target_nearest_corridor_point(
+	target: Node3D,
+	seg_a: Vector2,
+	segment: Vector2,
+	segment_length_sq: float
+) -> Vector2:
+	var center := Vector2(target.global_position.x, target.global_position.z)
+	var half_extents: Vector2 = _resolve_target_planar_half_extents(target)
+	if half_extents == Vector2.ZERO:
+		return center
+
+	# Find the point on the corridor line closest to the target center.
+	var to_center: Vector2 = center - seg_a
+	var t: float = clampf(to_center.dot(segment) / segment_length_sq, 0.0, 1.0)
+	var line_point: Vector2 = seg_a + segment * t
+
+	# Clamp that line point to the target's world-space XZ footprint (AABB).
+	var min_bound: Vector2 = center - half_extents
+	var max_bound: Vector2 = center + half_extents
+	return Vector2(
+		clampf(line_point.x, min_bound.x, max_bound.x),
+		clampf(line_point.y, min_bound.y, max_bound.y)
+	)
+
+func _resolve_target_planar_half_extents(target: Node3D) -> Vector2:
+	if target is CSGBox3D:
+		var csg: CSGBox3D = target as CSGBox3D
+		var half: Vector3 = csg.size.abs() * 0.5
+		var bx: Basis = csg.global_basis
+		var world_half_x: float = half.x * absf(bx.x.x) + half.z * absf(bx.z.x)
+		var world_half_z: float = half.x * absf(bx.x.z) + half.z * absf(bx.z.z)
+		return Vector2(world_half_x, world_half_z)
+	elif target is MeshInstance3D:
+		var mesh: MeshInstance3D = target as MeshInstance3D
+		if mesh.mesh != null:
+			var half: Vector3 = mesh.mesh.get_aabb().size.abs() * 0.5
+			var bx: Basis = mesh.global_basis
+			var world_half_x: float = half.x * absf(bx.x.x) + half.z * absf(bx.z.x)
+			var world_half_z: float = half.x * absf(bx.x.z) + half.z * absf(bx.z.z)
+			return Vector2(world_half_x, world_half_z)
+	return Vector2.ZERO
 
 func _resolve_target_occlusion_corridor_radius(target: Node3D) -> float:
 	var planar_extent: float = 0.0
@@ -1097,7 +1145,7 @@ func _format_target_reason_line(
 	var reason: String = "faded"
 	if target_alpha_final >= 1.0:
 		reason = "opaque_other"
-		if dot_value <= threshold:
+		if absf(dot_value) <= threshold:
 			reason = "dot_below_threshold"
 		elif target_alpha_before_corridor < 1.0 and has_player_position and not corridor_pass and not bucket_continuity_hit:
 			reason = "corridor_filtered"

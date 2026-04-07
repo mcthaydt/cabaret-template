@@ -102,7 +102,8 @@ func test_dot_below_threshold_triggers_fade_up_toward_opaque() -> void:
 	assert_not_null(ecs_manager)
 
 	var room_component: Variant = _register_room_fade_group(ecs_manager, "E_RoomFadeC")
-	room_component.fade_normal = Vector3(0.0, 0.0, 1.0)
+	# Use a perpendicular normal so abs(dot) ≈ 0 < threshold → target stays opaque.
+	room_component.fade_normal = Vector3(1.0, 0.0, 0.0)
 	room_component.current_alpha = 0.3
 
 	var settings := RS_ROOM_FADE_SETTINGS.new()
@@ -313,10 +314,14 @@ func test_multi_target_group_applies_distinct_target_alphas_by_target_position()
 	var system = fixture.get("system")
 	var applier: RoomFadeMaterialApplierStub = fixture.get("applier") as RoomFadeMaterialApplierStub
 	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var main_camera: Camera3D = fixture.get("main_camera") as Camera3D
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
 	assert_not_null(system)
 	assert_not_null(applier)
 	assert_not_null(ecs_manager)
 
+	# Front target at Z=+5, back target at Z=-5. Camera behind at Z=+10, player at origin.
+	# Only front target (Z=+5) is between camera and player → corridor passes for it.
 	var setup: Dictionary = _register_room_fade_group_with_opposite_csg_targets(ecs_manager, "E_RoomFadeMulti")
 	var room_component = setup.get("component")
 	var front_target: Node3D = setup.get("front_target") as Node3D
@@ -324,6 +329,9 @@ func test_multi_target_group_applies_distinct_target_alphas_by_target_position()
 	assert_not_null(room_component)
 	assert_not_null(front_target)
 	assert_not_null(back_target)
+
+	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, 10.0))
+	_set_player_position(store, Vector3(0.0, 0.0, 0.0))
 
 	var settings := RS_ROOM_FADE_SETTINGS.new()
 	settings.fade_dot_threshold = 0.3
@@ -870,9 +878,11 @@ func test_csg_normals_use_target_centroid_not_world_origin() -> void:
 	component.settings = settings
 	component.current_alpha = 1.0
 
-	# Camera looking -Z
+	# Camera looking -Z, player at room center.
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
 	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(-16.0, 5.0, 0.0))
 	main_camera.look_at(Vector3(-16.0, 0.0, -10.0), Vector3.UP)
+	_set_player_position(store, Vector3(-16.0, 0.0, -10.0))
 
 	system.process_tick(0.1)
 
@@ -880,9 +890,9 @@ func test_csg_normals_use_target_centroid_not_world_origin() -> void:
 	var south_alpha: float = float(applier.updated_alpha_by_target_id.get(south_target.get_instance_id(), -1.0))
 	assert_gt(north_alpha, -0.5, "Expected north target alpha update.")
 	assert_gt(south_alpha, -0.5, "Expected south target alpha update.")
-	# North wall should fade (camera looks toward its inward face)
+	# North wall at Z=-5 is between camera (Z=0) and player (Z=-10) → should fade.
 	assert_almost_eq(north_alpha, 0.05, 0.01, "North wall should fade when camera looks -Z.")
-	# South wall should stay opaque (camera looks away from its inward face)
+	# South wall at Z=-15 is past player → corridor filtered → opaque.
 	assert_almost_eq(south_alpha, 1.0, 0.01, "South wall should stay opaque when camera looks -Z.")
 
 func test_csg_normals_correct_for_room_at_origin() -> void:
@@ -911,8 +921,10 @@ func test_csg_normals_correct_for_room_at_origin() -> void:
 	component.settings = settings
 	component.current_alpha = 1.0
 
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
 	main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(0.0, 5.0, 10.0))
 	main_camera.look_at(Vector3(0.0, 0.0, 0.0), Vector3.UP)
+	_set_player_position(store, Vector3(0.0, 0.0, 0.0))
 
 	system.process_tick(0.1)
 
@@ -1277,6 +1289,60 @@ func _register_room_fade_group_with_duplicate_components(
 		"second_component": second_component,
 		"target": shared_target,
 	}
+
+func test_wall_fades_when_camera_inside_room_faces_inward_normal() -> void:
+	# Regression: abs(dot) convention. Camera at origin looking -Z, wall with
+	# inward normal (0,0,-1) — camera opposes the normal (dot < 0) but
+	# abs(dot) > threshold so the wall must still fade.
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+	assert_not_null(ecs_manager)
+
+	_set_player_position(store, Vector3(0.0, 0.0, -5.0))
+
+	var room_component: Variant = _register_room_fade_group(ecs_manager, "E_RoomFadeInsideWall")
+	room_component.fade_normal = Vector3(0.0, 0.0, -1.0)
+	room_component.current_alpha = 1.0
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.2
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	room_component.settings = settings
+
+	system.process_tick(0.1)
+	assert_almost_eq(room_component.current_alpha, 0.05, 0.0001,
+		"Wall with inward normal opposing camera forward must fade (abs dot convention).")
+
+func test_wall_fades_when_camera_faces_outward_normal_same_direction() -> void:
+	# Regression: abs(dot) convention. Camera at origin looking -Z, wall with
+	# outward normal (0,0,-1) — camera aligns with the normal (dot > 0).
+	# Both inside and outside views should trigger fade via abs(dot).
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+	assert_not_null(ecs_manager)
+
+	_set_player_position(store, Vector3(0.0, 0.0, -5.0))
+
+	var room_component: Variant = _register_room_fade_group(ecs_manager, "E_RoomFadeOutsideWall")
+	room_component.fade_normal = Vector3(0.0, 0.0, -1.0)
+	room_component.current_alpha = 1.0
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.2
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	room_component.settings = settings
+
+	system.process_tick(0.1)
+	assert_almost_eq(room_component.current_alpha, 0.05, 0.0001,
+		"Wall with normal aligned to camera forward must fade (abs dot convention).")
 
 func _set_player_position(store: MockStateStore, position: Vector3) -> void:
 	store.set_slice("gameplay", {

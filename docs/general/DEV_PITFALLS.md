@@ -124,6 +124,14 @@
 
 - **3D audio is viewport/world scoped**: `AudioStreamPlayer3D` must exist in the same `Viewport`/`World3D` as the active listener (the viewport’s current `Camera3D`). If you parent your SFX pool under `/root` while gameplay runs in `GameViewport`, 3D SFX can be silent even though they are “playing”.
 
+## Room Fade System Pitfalls
+
+- **Use `absf(dot)` for camera-wall facing checks, not signed dot**: The room fade system compares `camera_forward.dot(wall_normal)` against a threshold to decide whether a wall should fade. If only the signed dot is used, walls only fade when the camera faces the same direction as the normal (viewing from outside). From inside the room the dot is negative, so walls between the camera and player stay opaque. Always use `absf(dot_value) > threshold` so walls fade regardless of which side the camera is on.
+
+- **Corridor occlusion must use nearest AABB point, not wall center**: The camera-player occlusion corridor check determines whether a wall is "between" the camera and player. Using the wall's center position fails for large walls where the camera-player line passes near one end — the center can be far from the corridor even though the wall clearly occludes. Use the nearest point on the wall's axis-aligned bounding box (projected to the XZ plane) to the corridor line segment instead.
+
+- **Default new diagnostic debug flags to `true` when adding them for active investigation**: When adding temporary `@export` debug flags to investigate a live bug, default them to `true` so the diagnostics actually fire when you run the game. Defaulting to `false` defeats the purpose of adding the diagnostics.
+
 ## GDScript Typing Pitfalls
 
 - **Headless import and GUT treat some warnings as errors**: Both headless `--import` runs and GUT's `warnings_manager` treat “variable type inferred from Variant” as a parse error that prevents the script from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var result: Variant = helper()` instead of `var result := helper()` when `helper()` returns `Variant`). This applies equally to production scripts and test files.
@@ -670,6 +678,7 @@
   ```
   **Wrong**: `gut.p("Expect error...")` before the action - this doesn't work and will show "Unexpected Errors".
 - **Prefer `print()` for temporary diagnostics**: GUT buffers its own `gut.p()` output and the CLI harness discards it in failures, which makes debugging harder. Emit short, prefixed messages with `print()` instead so they appear in the raw Godot log and in failing test transcripts. Remember to remove or guard noisy prints before merging.
+- **Default diagnostic debug flags to `true` when added for active investigation**: If you're adding a debug export specifically to diagnose a current bug, default it to enabled. The whole point is to run it and see output immediately — requiring manual enablement defeats the purpose. Only default to `false` for permanent debug flags that ship long-term with the system.
 - **State handoff persists across tests**: `M_StateStore` restores slices from `U_StateHandoff` on `_ready()`. If a previous test left the store mid-transition, the next store instance inherits that old state. Call `U_StateHandoff.clear_all()` in `before_each` / `after_each` whenever a test instantiates `M_StateStore` to guarantee a clean slate.
 - **Avoid private-manager assertions in refactor-prone tests**: Tests that assert internal fields/methods (`get("_apply_count")`, `get("_ui_roots")`, private helper calls) become brittle during helper extraction phases. Prefer public API and observable behavior checks (for localization: `get_locale()`, `get_effective_settings()`, root `_on_locale_changed` callbacks, and applied `Control.theme` state).
 

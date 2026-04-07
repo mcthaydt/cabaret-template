@@ -60,21 +60,22 @@ func test_multi_group_independence_fades_each_group_from_its_own_normal() -> voi
 		Vector3(0.0, 0.0, -1.0),
 		settings
 	)
-	var back_setup := _register_mesh_group(
+	# Perpendicular normal: abs(dot) ≈ 0 < threshold → stays opaque.
+	var side_setup := _register_mesh_group(
 		ecs_manager,
-		"E_RoomFadeBack",
-		Vector3(0.0, 0.0, 1.0),
+		"E_RoomFadeSide",
+		Vector3(1.0, 0.0, 0.0),
 		settings
 	)
 	var front_component = front_setup.get("component")
-	var back_component = back_setup.get("component")
+	var side_component = side_setup.get("component")
 	assert_not_null(front_component)
-	assert_not_null(back_component)
+	assert_not_null(side_component)
 
 	system.process_tick(0.1)
 
 	assert_almost_eq(float(front_component.current_alpha), 0.05, 0.0001)
-	assert_almost_eq(float(back_component.current_alpha), 1.0, 0.0001)
+	assert_almost_eq(float(side_component.current_alpha), 1.0, 0.0001)
 
 func test_ceiling_group_with_downward_normal_fades_when_camera_forward_points_downward() -> void:
 	var fixture := _create_fixture("orbit")
