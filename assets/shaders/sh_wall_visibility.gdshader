@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_back;
+render_mode unshaded, cull_back;
 
 uniform float clip_y_world : hint_range(-100.0, 100.0) = 100.0;
 uniform float clip_fade_range : hint_range(0.0, 2.0) = 0.3;
