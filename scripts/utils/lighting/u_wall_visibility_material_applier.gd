@@ -101,10 +101,11 @@ func _apply_mesh_material(mesh_instance: MeshInstance3D) -> void:
 
 	var source_material := _resolve_mesh_source_material(mesh_instance)
 	var albedo_texture: Texture2D = _extract_albedo_texture(source_material)
+	var albedo_color: Color = _extract_albedo_color(source_material)
 	var shader_material := _ensure_mesh_shader_material(mesh_instance)
 	if shader_material == null:
 		return
-	_configure_shader_material(shader_material, albedo_texture)
+	_configure_shader_material(shader_material, albedo_texture, albedo_color)
 	mesh_instance.material_override = shader_material
 
 
@@ -116,16 +117,17 @@ func _apply_csg_material(csg_shape: CSGShape3D) -> void:
 
 	var source_material := _resolve_csg_source_material(csg_shape)
 	var albedo_texture: Texture2D = _extract_albedo_texture(source_material)
+	var albedo_color: Color = _extract_albedo_color(source_material)
 	var shader_material := _ensure_csg_shader_material(csg_shape)
 	if shader_material == null:
 		return
-	_configure_shader_material(shader_material, albedo_texture)
+	_configure_shader_material(shader_material, albedo_texture, albedo_color)
 	csg_shape.material = shader_material
 
 
-func _configure_shader_material(shader_material: ShaderMaterial, albedo_texture: Texture2D) -> void:
+func _configure_shader_material(shader_material: ShaderMaterial, albedo_texture: Texture2D, albedo_color: Color) -> void:
 	shader_material.set_shader_parameter(PARAM_ALBEDO_TEXTURE, albedo_texture)
-	shader_material.set_shader_parameter(PARAM_ALBEDO_COLOR, Color(1.0, 1.0, 1.0, 1.0))
+	shader_material.set_shader_parameter(PARAM_ALBEDO_COLOR, albedo_color)
 	shader_material.set_shader_parameter(PARAM_CLIP_Y_WORLD, 100.0)
 	shader_material.set_shader_parameter(PARAM_CLIP_FADE_RANGE, 0.3)
 	shader_material.set_shader_parameter(PARAM_FADE_AMOUNT, 0.0)
@@ -178,6 +180,19 @@ func _extract_albedo_texture(source_material: Material) -> Texture2D:
 		if texture_variant is Texture2D:
 			return texture_variant as Texture2D
 	return null
+
+
+func _extract_albedo_color(source_material: Material) -> Color:
+	if source_material == null:
+		return Color(1.0, 1.0, 1.0, 1.0)
+	if source_material is BaseMaterial3D:
+		return (source_material as BaseMaterial3D).albedo_color
+	if source_material is ShaderMaterial:
+		var shader_material := source_material as ShaderMaterial
+		var color_variant: Variant = shader_material.get_shader_parameter(PARAM_ALBEDO_COLOR)
+		if color_variant is Color:
+			return color_variant as Color
+	return Color(1.0, 1.0, 1.0, 1.0)
 
 
 func _ensure_mesh_shader_material(mesh_instance: MeshInstance3D) -> ShaderMaterial:

@@ -523,3 +523,329 @@ func _set_player_position(store: MockStateStore, position: Vector3) -> void:
 			}
 		}
 	})
+
+
+# --- Corridor tests ---
+
+func test_side_wall_outside_camera_player_corridor_stays_opaque() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var camera_manager: MockCameraManager = fixture.get("camera_manager") as MockCameraManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	# Camera at origin, player at (0,0,10), wall facing camera but offset to the side
+	camera_manager.main_camera.global_transform = Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, 0.0))
+	_set_player_position(store, Vector3(0.0, 0.0, 10.0))
+
+	var component: Variant = _register_room_fade_group(ecs_manager, "E_WallVisCorridor")
+	component.fade_normal = Vector3(0.0, 0.0, -1.0)
+	component.current_alpha = 1.0
+
+	# Move the entity (and target) far off the camera-player corridor line
+	var entity: Node = component.get_parent() as Node
+	entity.position = Vector3(50.0, 0.0, 5.0)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.2
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	component.settings = settings
+
+	system.process_tick(0.1)
+
+	# The wall faces the camera (dot > threshold) but is outside the corridor
+	assert_almost_eq(component.current_alpha, 1.0, 0.0001,
+		"Wall outside corridor should remain opaque.")
+
+
+# --- Bucket continuity tests ---
+
+func test_bucket_continuity_fades_all_segments_when_one_is_in_corridor() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	_set_player_position(store, Vector3(0.0, 0.0, 0.0))
+
+	var setup: Dictionary = _register_room_fade_group_with_front_and_side_csg_targets(
+		ecs_manager, "E_WallVisBucket"
+	)
+	var component = setup.get("component")
+	var front_target: Node3D = setup.get("front_target") as Node3D
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.2
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	component.settings = settings
+	component.current_alpha = 1.0
+
+	system.process_tick(0.1)
+
+	# Both targets share the same bucket key (front = +z or -z), front target is in corridor
+	# so both should fade (bucket continuity)
+	var front_uniforms: Dictionary = applier.uniforms_by_target_id.get(
+		front_target.get_instance_id(), {}
+	) as Dictionary
+	assert_almost_eq(
+		float(front_uniforms.get("fade_amount", -1.0)), 1.0, 0.0001,
+		"Front target in corridor should fade."
+	)
+
+
+# --- Room filtering tests ---
+
+func test_multi_room_only_processes_room_containing_player() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	# Player near room A at (0,0,0)
+	_set_player_position(store, Vector3(0.0, 0.0, 0.0))
+
+	# Room A component (player is here)
+	var component_a: Variant = _register_room_fade_group(ecs_manager, "E_RoomA")
+	component_a.fade_normal = Vector3(0.0, 0.0, -1.0)
+	component_a.current_alpha = 1.0
+	var entity_a: Node = component_a.get_parent() as Node
+	entity_a.position = Vector3(0.0, 0.0, 0.0)
+
+	# Room B component (far away, player is NOT here)
+	var entity_b := BASE_ECS_ENTITY.new()
+	entity_b.name = "E_RoomB"
+	add_child(entity_b)
+	autofree(entity_b)
+	entity_b.position = Vector3(100.0, 0.0, 100.0)
+
+	var component_b := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity_b.add_child(component_b)
+	autofree(component_b)
+	component_b.fade_normal = Vector3(0.0, 0.0, -1.0)
+	component_b.current_alpha = 1.0
+	ecs_manager.add_component_to_entity(entity_b, component_b)
+
+	var mesh_b := MeshInstance3D.new()
+	mesh_b.mesh = BoxMesh.new()
+	entity_b.add_child(mesh_b)
+	autofree(mesh_b)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.2
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	component_a.settings = settings
+	component_b.settings = settings
+
+	system.process_tick(0.1)
+
+	# Room A should be processed (player inside), Room B should not
+	var target_a: Node3D = _get_first_target(component_a)
+	assert_not_null(target_a)
+	var target_a_id: int = target_a.get_instance_id()
+	assert_true(
+		applier.uniforms_by_target_id.has(target_a_id),
+		"Room A target should be processed."
+	)
+
+
+# --- Duplicate target ownership tests ---
+
+func test_duplicate_target_assigned_to_first_component_only() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+
+	var warnings: Array = []
+	system.duplicate_target_warning_handler = func(msg: String) -> void:
+		warnings.append(msg)
+
+	# Shared target node
+	var shared_mesh := MeshInstance3D.new()
+	shared_mesh.mesh = BoxMesh.new()
+	shared_mesh.name = "SharedWall"
+	add_child(shared_mesh)
+	autofree(shared_mesh)
+
+	# Component A with shared target
+	var entity_a := BASE_ECS_ENTITY.new()
+	entity_a.name = "E_DupA"
+	add_child(entity_a)
+	autofree(entity_a)
+
+	var component_a := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity_a.add_child(component_a)
+	autofree(component_a)
+	ecs_manager.add_component_to_entity(entity_a, component_a)
+	shared_mesh.reparent(entity_a)
+
+	# Component B trying to claim the same target
+	var entity_b := BASE_ECS_ENTITY.new()
+	entity_b.name = "E_DupB"
+	add_child(entity_b)
+	autofree(entity_b)
+
+	var component_b := C_ROOM_FADE_GROUP_COMPONENT.new()
+	entity_b.add_child(component_b)
+	autofree(component_b)
+	ecs_manager.add_component_to_entity(entity_b, component_b)
+
+	system.process_tick(0.1)
+
+	assert_eq(warnings.size(), 1, "Should warn about duplicate target ownership.")
+
+
+# --- min_fade cap tests ---
+
+func test_fade_amount_capped_by_min_fade() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+
+	system.min_fade = 0.1
+
+	var component: Variant = _register_room_fade_group(ecs_manager, "E_WallVisMinFade")
+	component.fade_normal = Vector3(0.0, 0.0, -1.0)
+	component.current_alpha = 1.0
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.2
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	component.settings = settings
+
+	system.process_tick(0.1)
+
+	# max_fade = 1.0 - 0.1 = 0.9, so fade_amount should be capped at 0.9
+	var target_node: Node3D = _get_first_target(component)
+	assert_not_null(target_node)
+	var target_id: int = target_node.get_instance_id()
+	var uniforms: Dictionary = applier.uniforms_by_target_id.get(target_id, {}) as Dictionary
+	assert_almost_eq(float(uniforms.get("fade_amount", -1.0)), 0.9, 0.0001,
+		"fade_amount should be capped at 1.0 - min_fade.")
+
+
+# --- Mobile tick throttling tests ---
+
+func test_mobile_tick_throttling_skips_non_matching_frames() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+
+	# Force mobile mode
+	system._is_mobile = true
+	system.mobile_tick_interval = 4
+
+	_register_room_fade_group(ecs_manager, "E_WallVisMobile")
+
+	# Ticks 1-3 should be skipped, tick 4 should process
+	system.process_tick(0.1)
+	assert_eq(applier.apply_calls, 0, "Tick 1 should be skipped on mobile.")
+
+	system.process_tick(0.1)
+	assert_eq(applier.apply_calls, 0, "Tick 2 should be skipped on mobile.")
+
+	system.process_tick(0.1)
+	assert_eq(applier.apply_calls, 0, "Tick 3 should be skipped on mobile.")
+
+	system.process_tick(0.1)
+	assert_eq(applier.apply_calls, 1, "Tick 4 should process on mobile.")
+
+
+# --- Roof handling tests ---
+
+func test_roof_target_inherits_wall_fade_when_non_roof_is_fading() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	var store: MockStateStore = fixture.get("state_store") as MockStateStore
+	assert_not_null(system)
+
+	_set_player_position(store, Vector3(0.0, 0.0, 0.0))
+
+	# Create entity with a wall target and a roof target
+	var entity := BASE_ECS_ENTITY.new()
+	entity.name = "E_WallVisRoof"
+	add_child(entity)
+	autofree(entity)
+
+	var component := C_ROOM_FADE_GROUP_COMPONENT.new()
+	component.fade_normal = Vector3(0.0, 0.0, -1.0)
+	component.current_alpha = 1.0
+	entity.add_child(component)
+	autofree(component)
+	ecs_manager.add_component_to_entity(entity, component)
+
+	# Wall facing camera
+	var wall_target := CSGBox3D.new()
+	wall_target.size = Vector3(4.0, 2.0, 0.1)
+	wall_target.position = Vector3(0.0, 1.0, 5.0)
+	entity.add_child(wall_target)
+	autofree(wall_target)
+
+	# Roof above player (normal pointing up)
+	var roof_target := CSGBox3D.new()
+	roof_target.size = Vector3(4.0, 0.1, 4.0)
+	roof_target.position = Vector3(0.0, 3.0, 0.0)
+	entity.add_child(roof_target)
+	autofree(roof_target)
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.2
+	settings.fade_speed = 100.0
+	settings.min_alpha = 0.05
+	component.settings = settings
+
+	system.process_tick(0.1)
+
+	var roof_id: int = roof_target.get_instance_id()
+	var roof_uniforms: Dictionary = applier.uniforms_by_target_id.get(roof_id, {}) as Dictionary
+	# Roof should have some fade (inherited from non-roof wall fade), not zero
+	assert_gt(
+		float(roof_uniforms.get("fade_amount", 0.0)),
+		0.0,
+		"Roof should inherit fade from non-roof targets in same component."
+	)
+
+
+# --- Fade-up toward opaque tests ---
+
+func test_fade_amount_transitions_toward_opaque_when_dot_below_threshold() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+
+	var component: Variant = _register_room_fade_group(ecs_manager, "E_WallVisFadeUp")
+	component.fade_normal = Vector3(1.0, 0.0, 0.0)  # Perpendicular to camera
+	component.current_alpha = 0.0  # Start fully faded
+
+	var settings := RS_ROOM_FADE_SETTINGS.new()
+	settings.fade_dot_threshold = 0.2
+	settings.fade_speed = 2.0
+	settings.min_alpha = 0.05
+	component.settings = settings
+
+	system.process_tick(0.25)
+
+	# Perpendicular wall: dot≈0, below threshold → target_fade=0, fade_amount should decrease
+	# fade_amount goes from 1.0 toward 0.0 at rate 2.0*0.25=0.5
+	# current_alpha = 1.0 - fade_amount = 1.0 - 0.5 = 0.5
+	assert_almost_eq(component.current_alpha, 0.5, 0.0001,
+		"Fade should transition toward opaque when dot below threshold."
+	)

@@ -258,14 +258,20 @@
 - **Button recenter can silently cancel when centering state is coupled to response-smoothing cleanup**: Orbit recenter is allowed when `response == null` (raw evaluator passthrough). If centering state is cleared from response-null smoothing paths, button recenter restarts or drops every tick and never completes.
   - **Fix pattern**: keep `_orbit_centering_state` lifecycle independent from response smoothing state; prune it only on vCam removal/prune, not on response-null smoothing resets.
 
-- **Room fade can leak translucent geometry into OTS/fixed if mode gating only disables updates without restoring materials**: Simply skipping fade updates outside orbit leaves shader overrides and partial alpha active from previous orbit ticks.
-  - **Fix pattern**: in `S_RoomFadeSystem`, treat non-orbit ticks as a full cleanup path: set each group `current_alpha = 1.0`, restore original materials through `U_RoomFadeMaterialApplier`, and clear tracked target cache.
+- **Wall visibility can leak dither-dissolved geometry into OTS/fixed if mode gating only disables updates without restoring materials**: Simply skipping visibility updates outside orbit leaves shader overrides and partial dissolve active from previous orbit ticks.
+  - **Fix pattern**: in `S_WallVisibilitySystem`, treat non-orbit ticks as a full cleanup path: set each group `current_alpha = 1.0`, restore original materials through `U_WallVisibilityMaterialApplier`, and clear tracked target + normal cache.
 
-- **Room fade can silently stop in tests/runtime scaffolds when camera lookup assumes `camera_manager.get_main_camera()` is always valid**: Some harnesses and transitional scene states only expose the active camera through the viewport, not the manager slot.
-  - **Fix pattern**: resolve camera in `S_RoomFadeSystem` by manager main camera first, then fallback to `get_viewport().get_camera_3d()` before deciding camera is unavailable.
+- **Wall visibility can silently stop in tests/runtime scaffolds when camera lookup assumes `camera_manager.get_main_camera()` is always valid**: Some harnesses and transitional scene states only expose the active camera through the viewport, not the manager slot.
+  - **Fix pattern**: resolve camera in `S_WallVisibilitySystem` by manager main camera first, then fallback to `get_viewport().get_camera_3d()` before deciding camera is unavailable.
 
-- **Shared wall targets can receive conflicting room-fade alpha/material writes when multiple `C_RoomFadeGroupComponent` instances collect the same mesh**: Without explicit ownership arbitration, later components in the tick overwrite earlier updates and produce non-deterministic fade behavior.
-  - **Fix pattern**: in `S_RoomFadeSystem`, run a per-tick ownership pre-pass so the first component in filtered order owns each target, skip duplicate owners with warn+continue diagnostics, and keep `group_tag` explicit/unique in authored room-fade groups.
+- **Shared wall targets can receive conflicting wall-visibility fade/material writes when multiple `C_RoomFadeGroupComponent` instances collect the same mesh**: Without explicit ownership arbitration, later components in the tick overwrite earlier updates and produce non-deterministic fade behavior.
+  - **Fix pattern**: in `S_WallVisibilitySystem`, run a per-tick ownership pre-pass so the first component in filtered order owns each target, skip duplicate owners with warn+continue diagnostics, and keep `group_tag` explicit/unique in authored room-fade groups.
+
+- **Walls outside the camera-player occlusion corridor can dissolve incorrectly when only dot-product direction is used**: The `fade_amount` driven by camera-forward dot-product alone cannot distinguish walls the player can see through from walls beside the player.
+  - **Fix pattern**: use `_passes_camera_player_occlusion_corridor()` to check if a target falls within the camera-to-player XZ corridor before allowing fade. Use `_resolve_normal_bucket_key()` + `bucket_has_corridor_hit` for bucket continuity so adjacent wall segments fade together.
+
+- **Fully dissolved walls (`fade_amount = 1.0`) leave confusing gaps**: Without a minimum fade residue, the dither pattern can make walls completely invisible, losing spatial continuity.
+  - **Fix pattern**: cap `fade_amount` at `1.0 - min_fade` (default `0.95`) so ~5% of pixels survive the dither pattern, providing a faint outline even at maximum fade.
 
 ## vCam Soft-Zone Pitfalls
 

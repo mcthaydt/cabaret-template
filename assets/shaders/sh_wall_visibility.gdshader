@@ -4,7 +4,7 @@ render_mode cull_back;
 uniform float clip_y_world : hint_range(-100.0, 100.0) = 100.0;
 uniform float clip_fade_range : hint_range(0.0, 2.0) = 0.3;
 uniform float fade_amount : hint_range(0.0, 1.0) = 0.0;
-uniform sampler2D albedo_texture : source_color;
+uniform sampler2D albedo_texture : source_color, hint_default_white;
 uniform vec4 albedo_color : source_color = vec4(1.0);
 
 varying vec3 v_world_pos;

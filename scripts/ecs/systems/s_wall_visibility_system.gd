@@ -14,14 +14,23 @@ const DEFAULT_ROOM_FADE_SETTINGS := preload("res://resources/display/vcam/cfg_de
 
 const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
 const MIN_NORMAL_LENGTH_SQUARED := 0.000001
+const THIN_AXIS_SIZE_EPSILON := 0.0001
 const DEFAULT_CLIP_HEIGHT_OFFSET := 1.5
 const INVALIDATE_INTERVAL := 30
+const MOBILE_TICK_INTERVAL := 4
+const OCCLUSION_CORRIDOR_MARGIN := 2.0
+const OCCLUSION_CORRIDOR_MIN_RADIUS := 0.8
+const OCCLUSION_CORRIDOR_SEGMENT_EPSILON := 0.000001
+const ROOF_NORMAL_DOT_MIN := 0.9
+const ROOF_HEIGHT_MARGIN := 0.5
 
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_STATE_STORE = null
-@export var debug_logging: bool = false
+@export var mobile_tick_interval: int = MOBILE_TICK_INTERVAL
+@export var min_fade: float = 0.05
 
 var material_applier: Variant = null
+var duplicate_target_warning_handler: Callable = Callable()
 
 var _camera_manager: I_CAMERA_MANAGER = null
 var _state_store: I_STATE_STORE = null
@@ -29,10 +38,14 @@ var _material_applier: Variant = null
 var _tracked_targets: Dictionary = {}
 var _target_fade_by_id: Dictionary = {}
 var _invalidate_tick_counter: int = 0
+var _is_mobile: bool = false
+var _mobile_tick_counter: int = 0
+var _cached_normals: Dictionary = {}
 
 
 func _init() -> void:
 	execution_priority = 110
+	_is_mobile = OS.has_feature("mobile")
 
 
 func on_configured() -> void:
@@ -60,7 +73,13 @@ func process_tick(delta: float) -> void:
 	if applier == null:
 		return
 
+	if _is_mobile:
+		_mobile_tick_counter += 1
+		if (_mobile_tick_counter % mobile_tick_interval) != 0:
+			return
+
 	var camera_forward: Vector3 = -main_camera.global_transform.basis.z
+	var camera_position: Vector3 = main_camera.global_transform.origin
 	var resolved_delta: float = maxf(delta, 0.0)
 	var player_data: Dictionary = _resolve_player_position_data()
 	var has_player: bool = player_data.has("position")
@@ -70,23 +89,31 @@ func process_tick(delta: float) -> void:
 	if _invalidate_tick_counter % INVALIDATE_INTERVAL == 0:
 		applier.invalidate_externally_removed()
 
+	var tick_data: Dictionary = _prepare_tick_data(components, player_data)
+	var filtered_components: Array = tick_data.get("filtered_components", []) as Array
+	var owned_targets_by_component: Dictionary = tick_data.get("owned_targets_by_component", {})
+
 	var active_targets: Dictionary = {}
 
-	for component_variant in components:
+	for component_variant in filtered_components:
 		if component_variant == null or not is_instance_valid(component_variant):
 			continue
 		if not (component_variant is Object):
 			continue
 		var component: Object = component_variant as Object
+		var component_id: int = component.get_instance_id()
 
-		var targets: Array = _collect_mesh_targets(component)
+		var owned_targets_variant: Variant = owned_targets_by_component.get(component_id, [])
+		var targets: Array = []
+		if owned_targets_variant is Array:
+			targets = owned_targets_variant as Array
 		if targets.is_empty():
 			continue
 
 		applier.apply_visibility_material(targets)
 
 		var clip_height_offset: float = DEFAULT_CLIP_HEIGHT_OFFSET
-		if component.has_method("get") and true:
+		if component.has_method("get"):
 			var offset_variant: Variant = component.get("clip_height_offset")
 			if offset_variant is float or offset_variant is int:
 				clip_height_offset = float(offset_variant)
@@ -98,8 +125,14 @@ func process_tick(delta: float) -> void:
 		var settings: Dictionary = _resolve_settings(component)
 		var threshold: float = clampf(float(settings.get("fade_dot_threshold", 0.3)), 0.0, 1.0)
 		var fade_speed: float = maxf(float(settings.get("fade_speed", 4.0)), 0.0)
+		var max_fade: float = clampf(1.0 - min_fade, 0.0, 1.0)
 		var component_fade_sum: float = 0.0
 		var component_fade_count: int = 0
+
+		# Pass 1: compute raw fade values and collect corridor/bucket/roof info.
+		var target_eval_infos: Array[Dictionary] = []
+		var bucket_has_corridor_hit: Dictionary = {}
+		var component_has_non_roof_fade: bool = false
 
 		for target_variant in targets:
 			if not (target_variant is Node3D) or not is_instance_valid(target_variant):
@@ -107,15 +140,76 @@ func process_tick(delta: float) -> void:
 			var target: Node3D = target_variant as Node3D
 			var target_id: int = target.get_instance_id()
 
-			var target_fade: float = _resolve_directional_fade(
-				camera_forward, component, target, targets.size(), threshold
+			var target_normal: Vector3
+			if _cached_normals.has(target_id):
+				target_normal = _cached_normals[target_id] as Vector3
+			else:
+				target_normal = _resolve_target_world_normal(component, target, targets.size())
+				_cached_normals[target_id] = target_normal
+
+			var target_fade_before_corridor: float = _resolve_directional_fade(
+				camera_forward, target_normal, threshold
 			)
+			var corridor_pass: bool = true
+			if target_fade_before_corridor > 0.0 and has_player:
+				corridor_pass = _passes_camera_player_occlusion_corridor(
+					target, camera_position, player_position
+				)
+				if corridor_pass:
+					var bucket_key: String = _resolve_normal_bucket_key(target_normal)
+					bucket_has_corridor_hit[bucket_key] = true
+
+			var is_roof: bool = _is_roof_candidate_target(
+				target, target_normal, has_player, player_position
+			)
+
+			target_eval_infos.append({
+				"target": target,
+				"target_id": target_id,
+				"target_normal": target_normal,
+				"target_fade_before_corridor": target_fade_before_corridor,
+				"corridor_pass": corridor_pass,
+				"is_roof": is_roof,
+			})
+
+			if target_fade_before_corridor > 0.0 and not is_roof:
+				component_has_non_roof_fade = true
+
+		# Pass 2: resolve effective fade per target (corridor + bucket + roof).
+		for eval_info_variant in target_eval_infos:
+			if not (eval_info_variant is Dictionary):
+				continue
+			var eval_info: Dictionary = eval_info_variant as Dictionary
+			var target: Node3D = eval_info.get("target", null) as Node3D
+			if target == null or not is_instance_valid(target):
+				continue
+			var target_id: int = int(eval_info.get("target_id", -1))
+			if target_id < 0:
+				continue
+
+			var target_fade: float = float(eval_info.get("target_fade_before_corridor", 0.0))
+			var corridor_pass: bool = bool(eval_info.get("corridor_pass", true))
+			var is_roof: bool = bool(eval_info.get("is_roof", false))
+			var target_normal: Vector3 = eval_info.get("target_normal", Vector3.FORWARD) as Vector3
+			var bucket_key: String = _resolve_normal_bucket_key(target_normal)
+
+			# Corridor check: if target would fade but fails corridor and no bucket hit, stay opaque.
+			target_fade = _resolve_effective_target_fade_for_corridor(
+				target_fade, corridor_pass, has_player, bucket_key, bucket_has_corridor_hit
+			)
+
+			# Roof handling: roofs inherit min fade when non-roof targets are fading.
+			if is_roof and component_has_non_roof_fade:
+				target_fade = maxf(target_fade, min_fade)
+
+			# Clamp fade so walls never fully dissolve to zero visibility.
+			target_fade = minf(target_fade, max_fade)
 
 			var current_fade: float = float(_target_fade_by_id.get(target_id, 0.0))
 			var next_fade: float = current_fade
 			if fade_speed > 0.0:
 				next_fade = move_toward(next_fade, target_fade, fade_speed * resolved_delta)
-			next_fade = clampf(next_fade, 0.0, 1.0)
+			next_fade = clampf(next_fade, 0.0, max_fade)
 
 			_target_fade_by_id[target_id] = next_fade
 			applier.update_uniforms(target, clip_y, next_fade)
@@ -134,21 +228,292 @@ func process_tick(delta: float) -> void:
 func _exit_tree() -> void:
 	_restore_stale_targets({})
 	_target_fade_by_id.clear()
+	_cached_normals.clear()
 
+
+# --- Room filtering and target ownership ---
+
+func _prepare_tick_data(components: Array, player_data: Dictionary) -> Dictionary:
+	var has_player: bool = player_data.has("position")
+	var player_position: Vector3 = player_data.get("position", Vector3.ZERO) as Vector3
+	var do_room_filter: bool = has_player and components.size() > 1
+
+	var targets_by_component_id: Dictionary = {}
+	var matching_components: Array = []
+
+	for component_variant in components:
+		if component_variant == null or not is_instance_valid(component_variant):
+			continue
+		if not (component_variant is Object):
+			continue
+		var component: Object = component_variant as Object
+		var targets: Array = _collect_mesh_targets(component)
+		if targets.is_empty():
+			continue
+		var component_id: int = component.get_instance_id()
+		targets_by_component_id[component_id] = targets
+
+		if do_room_filter:
+			var room_aabb: AABB = _resolve_aabb_from_validated_targets(targets)
+			var expanded: AABB = room_aabb.grow(2.0)
+			expanded.position.y = room_aabb.position.y - 0.5
+			expanded.size.y = room_aabb.size.y + 1.0
+			if expanded.has_point(player_position):
+				matching_components.append(component_variant)
+		else:
+			matching_components.append(component_variant)
+
+	if do_room_filter and matching_components.is_empty():
+		matching_components = components
+
+	# Assign ownership: each target belongs to exactly one component.
+	var owned_targets_by_component: Dictionary = {}
+	var owner_component_by_target_id: Dictionary = {}
+	var warning_pairs: Dictionary = {}
+
+	for component_variant in matching_components:
+		if component_variant == null or not is_instance_valid(component_variant):
+			continue
+		if not (component_variant is Object):
+			continue
+		var component: Object = component_variant as Object
+		var component_id: int = component.get_instance_id()
+		var targets_variant: Variant = targets_by_component_id.get(component_id, null)
+		if targets_variant == null or not (targets_variant is Array):
+			continue
+		var targets: Array = targets_variant as Array
+
+		var owned_targets: Array = []
+		var seen_targets_for_component: Dictionary = {}
+		for target_variant in targets:
+			if not (target_variant is Node3D):
+				continue
+			var target: Node3D = target_variant as Node3D
+			if not is_instance_valid(target):
+				continue
+			var target_id: int = target.get_instance_id()
+			if seen_targets_for_component.has(target_id):
+				continue
+			seen_targets_for_component[target_id] = true
+
+			if not owner_component_by_target_id.has(target_id):
+				owner_component_by_target_id[target_id] = component
+				owned_targets.append(target)
+				continue
+
+			var owner_variant: Variant = owner_component_by_target_id.get(target_id, null)
+			var owner_component := owner_variant as Object
+			if owner_component == null or not is_instance_valid(owner_component):
+				owner_component_by_target_id[target_id] = component
+				owned_targets.append(target)
+				continue
+			if owner_component == component:
+				continue
+
+			_warn_duplicate_target_ownership_once_per_tick(
+				component, owner_component, target, warning_pairs
+			)
+
+		if not owned_targets.is_empty():
+			owned_targets_by_component[component_id] = owned_targets
+
+	return {
+		"filtered_components": matching_components,
+		"owned_targets_by_component": owned_targets_by_component,
+	}
+
+
+func _warn_duplicate_target_ownership_once_per_tick(
+	component: Object,
+	owner_component: Object,
+	target: Node3D,
+	warning_pairs: Dictionary
+) -> void:
+	if component == null or owner_component == null or target == null:
+		return
+	var pair_key: String = "%d:%d" % [target.get_instance_id(), component.get_instance_id()]
+	if warning_pairs.has(pair_key):
+		return
+	warning_pairs[pair_key] = true
+	var message := (
+		"S_WallVisibilitySystem: duplicate target ownership skipped for target=%s owner=%s skipped=%s"
+		% [_describe_node(target), _describe_object(owner_component), _describe_object(component)]
+	)
+	_emit_duplicate_target_warning(message)
+
+
+func _emit_duplicate_target_warning(message: String) -> void:
+	if duplicate_target_warning_handler.is_valid():
+		duplicate_target_warning_handler.call(message)
+		return
+	push_warning(message)
+
+
+func _resolve_aabb_from_validated_targets(targets: Array) -> AABB:
+	var aabb: AABB = AABB()
+	var initialized: bool = false
+	for target_variant in targets:
+		if not (target_variant is Node3D) or not is_instance_valid(target_variant):
+			continue
+		var target: Node3D = target_variant as Node3D
+		var target_aabb: AABB = _resolve_target_aabb(target)
+		if target_aabb.size == Vector3.ZERO:
+			continue
+		if not initialized:
+			aabb = target_aabb
+			initialized = true
+		else:
+			aabb = aabb.merge(target_aabb)
+	if not initialized:
+		aabb = AABB(Vector3.ZERO, Vector3.ONE)
+	return aabb
+
+
+func _resolve_target_aabb(target: Node3D) -> AABB:
+	if target is CSGBox3D:
+		var csg: CSGBox3D = target as CSGBox3D
+		var half: Vector3 = csg.size.abs() * 0.5
+		return AABB(csg.global_position - half, csg.size.abs())
+	elif target is MeshInstance3D:
+		var mesh_instance: MeshInstance3D = target as MeshInstance3D
+		if mesh_instance.mesh != null:
+			var mesh_aabb: AABB = mesh_instance.mesh.get_aabb()
+			return mesh_instance.global_transform * mesh_aabb
+	elif target is CSGShape3D:
+		return AABB(target.global_position - Vector3.ONE * 0.5, Vector3.ONE)
+	return AABB(target.global_position - Vector3.ONE * 0.5, Vector3.ONE)
+
+
+# --- Directional fade ---
 
 func _resolve_directional_fade(
 	camera_forward: Vector3,
-	component: Object,
-	target: Node3D,
-	target_count: int,
+	wall_normal: Vector3,
 	threshold: float
 ) -> float:
-	var wall_normal: Vector3 = _resolve_target_world_normal(component, target, target_count)
 	var dot_value: float = camera_forward.dot(wall_normal)
 	if absf(dot_value) > threshold:
 		return 1.0
 	return 0.0
 
+
+# --- Corridor ---
+
+func _passes_camera_player_occlusion_corridor(
+	target: Node3D,
+	camera_position: Vector3,
+	player_position: Vector3
+) -> bool:
+	if target == null or not is_instance_valid(target):
+		return false
+
+	var camera_planar := Vector2(camera_position.x, camera_position.z)
+	var player_planar := Vector2(player_position.x, player_position.z)
+	var segment: Vector2 = player_planar - camera_planar
+	var segment_length_sq: float = segment.length_squared()
+	if segment_length_sq <= OCCLUSION_CORRIDOR_SEGMENT_EPSILON:
+		return true
+
+	var target_planar: Vector2 = _resolve_target_nearest_corridor_point(
+		target, camera_planar, segment, segment_length_sq
+	)
+
+	var to_target: Vector2 = target_planar - camera_planar
+	var segment_t: float = to_target.dot(segment) / segment_length_sq
+	if segment_t < 0.0 or segment_t > 1.0:
+		return false
+
+	var closest_point: Vector2 = camera_planar + segment * segment_t
+	var distance_to_segment: float = target_planar.distance_to(closest_point)
+	return distance_to_segment <= maxf(OCCLUSION_CORRIDOR_MARGIN, OCCLUSION_CORRIDOR_MIN_RADIUS)
+
+
+func _resolve_target_nearest_corridor_point(
+	target: Node3D,
+	seg_a: Vector2,
+	segment: Vector2,
+	segment_length_sq: float
+) -> Vector2:
+	var center := Vector2(target.global_position.x, target.global_position.z)
+	var half_extents: Vector2 = _resolve_target_planar_half_extents(target)
+	if half_extents == Vector2.ZERO:
+		return center
+
+	var to_center: Vector2 = center - seg_a
+	var t: float = clampf(to_center.dot(segment) / segment_length_sq, 0.0, 1.0)
+	var line_point: Vector2 = seg_a + segment * t
+
+	var min_bound: Vector2 = center - half_extents
+	var max_bound: Vector2 = center + half_extents
+	return Vector2(
+		clampf(line_point.x, min_bound.x, max_bound.x),
+		clampf(line_point.y, min_bound.y, max_bound.y)
+	)
+
+
+func _resolve_target_planar_half_extents(target: Node3D) -> Vector2:
+	if target is CSGBox3D:
+		var csg: CSGBox3D = target as CSGBox3D
+		var half: Vector3 = csg.size.abs() * 0.5
+		var bx: Basis = csg.global_basis
+		var world_half_x: float = half.x * absf(bx.x.x) + half.z * absf(bx.z.x)
+		var world_half_z: float = half.x * absf(bx.x.z) + half.z * absf(bx.z.z)
+		return Vector2(world_half_x, world_half_z)
+	elif target is MeshInstance3D:
+		var mesh: MeshInstance3D = target as MeshInstance3D
+		if mesh.mesh != null:
+			var half: Vector3 = mesh.mesh.get_aabb().size.abs() * 0.5
+			var bx: Basis = mesh.global_basis
+			var world_half_x: float = half.x * absf(bx.x.x) + half.z * absf(bx.z.x)
+			var world_half_z: float = half.x * absf(bx.x.z) + half.z * absf(bx.z.z)
+			return Vector2(world_half_x, world_half_z)
+	return Vector2.ZERO
+
+
+# --- Bucket continuity ---
+
+func _resolve_effective_target_fade_for_corridor(
+	target_fade_before_corridor: float,
+	corridor_pass: bool,
+	has_player_position: bool,
+	bucket_key: String,
+	bucket_has_corridor_hit: Dictionary
+) -> float:
+	var resolved_fade: float = target_fade_before_corridor
+	if resolved_fade > 0.0 and has_player_position and not corridor_pass:
+		var bucket_continuity_hit: bool = bool(bucket_has_corridor_hit.get(bucket_key, false))
+		if not bucket_continuity_hit:
+			resolved_fade = 0.0
+	return resolved_fade
+
+
+func _resolve_normal_bucket_key(normal: Vector3) -> String:
+	var abs_normal := Vector3(absf(normal.x), absf(normal.y), absf(normal.z))
+	if abs_normal.x >= abs_normal.y and abs_normal.x >= abs_normal.z:
+		return "+x" if normal.x > 0.0 else "-x"
+	if abs_normal.y >= abs_normal.x and abs_normal.y >= abs_normal.z:
+		return "+y" if normal.y > 0.0 else "-y"
+	return "+z" if normal.z > 0.0 else "-z"
+
+
+# --- Roof handling ---
+
+func _is_roof_candidate_target(
+	target: Node3D,
+	target_normal: Vector3,
+	has_player_position: bool,
+	player_position: Vector3
+) -> bool:
+	if target == null or not is_instance_valid(target):
+		return false
+	if absf(target_normal.y) < ROOF_NORMAL_DOT_MIN:
+		return false
+	if not has_player_position:
+		return false
+	return target.global_position.y > (player_position.y + ROOF_HEIGHT_MARGIN)
+
+
+# --- Normal resolution ---
 
 func _resolve_target_world_normal(component: Object, target: Node3D, target_count: int) -> Vector3:
 	var component_normal: Vector3 = _resolve_world_normal(component)
@@ -157,6 +522,10 @@ func _resolve_target_world_normal(component: Object, target: Node3D, target_coun
 	if target_count <= 1:
 		return component_normal
 
+	var csg_axis_normal: Vector3 = _resolve_csg_box_thin_axis_normal(component, target)
+	if csg_axis_normal != Vector3.ZERO:
+		return csg_axis_normal
+
 	var component_origin: Vector3 = _resolve_component_origin(component, target)
 	var inward_raw: Vector3 = component_origin - target.global_position
 	var inward_planar: Vector3 = inward_raw
@@ -164,6 +533,65 @@ func _resolve_target_world_normal(component: Object, target: Node3D, target_coun
 	if inward_planar.length_squared() <= MIN_NORMAL_LENGTH_SQUARED:
 		return component_normal
 	return inward_planar.normalized()
+
+
+func _resolve_csg_box_thin_axis_normal(component: Object, target: Node3D) -> Vector3:
+	if not (target is CSGBox3D):
+		return Vector3.ZERO
+	var csg_box: CSGBox3D = target as CSGBox3D
+	if csg_box == null or not is_instance_valid(csg_box):
+		return Vector3.ZERO
+
+	var axis_candidates: Array = _resolve_csg_box_thin_axis_world_candidates(csg_box)
+	if axis_candidates.is_empty():
+		return Vector3.ZERO
+
+	var component_origin: Vector3 = _resolve_component_origin(component, target)
+	var inward_direction_3d: Vector3 = component_origin - target.global_position
+	var inward_direction_planar: Vector3 = inward_direction_3d
+	inward_direction_planar.y = 0.0
+	var inward_direction: Vector3 = inward_direction_planar
+	if inward_direction.length_squared() <= MIN_NORMAL_LENGTH_SQUARED:
+		inward_direction = inward_direction_3d
+	if inward_direction.length_squared() <= MIN_NORMAL_LENGTH_SQUARED:
+		return Vector3.ZERO
+	inward_direction = inward_direction.normalized()
+
+	var first_axis_variant: Variant = axis_candidates[0]
+	if not (first_axis_variant is Vector3):
+		return Vector3.ZERO
+	var best_axis: Vector3 = first_axis_variant as Vector3
+	var best_axis_alignment: float = absf(best_axis.dot(inward_direction))
+
+	for axis_variant in axis_candidates:
+		if not (axis_variant is Vector3):
+			continue
+		var axis: Vector3 = axis_variant as Vector3
+		var alignment: float = absf(axis.dot(inward_direction))
+		if alignment > best_axis_alignment:
+			best_axis = axis
+			best_axis_alignment = alignment
+
+	if best_axis.dot(inward_direction) < 0.0:
+		best_axis = -best_axis
+	if best_axis.length_squared() <= MIN_NORMAL_LENGTH_SQUARED:
+		return Vector3.ZERO
+	return best_axis.normalized()
+
+
+func _resolve_csg_box_thin_axis_world_candidates(csg_box: CSGBox3D) -> Array:
+	if csg_box == null or not is_instance_valid(csg_box):
+		return []
+	var size: Vector3 = csg_box.size.abs()
+	var smallest_axis_size: float = minf(size.x, minf(size.y, size.z))
+	var axes: Array = []
+	if absf(size.x - smallest_axis_size) <= THIN_AXIS_SIZE_EPSILON:
+		axes.append(csg_box.global_basis.x.normalized())
+	if absf(size.y - smallest_axis_size) <= THIN_AXIS_SIZE_EPSILON:
+		axes.append(csg_box.global_basis.y.normalized())
+	if absf(size.z - smallest_axis_size) <= THIN_AXIS_SIZE_EPSILON:
+		axes.append(csg_box.global_basis.z.normalized())
+	return axes
 
 
 func _resolve_world_normal(component: Object) -> Vector3:
@@ -187,6 +615,8 @@ func _resolve_component_origin(component: Object, fallback_target: Node3D) -> Ve
 		return fallback_target.global_position
 	return Vector3.ZERO
 
+
+# --- Dependency resolution ---
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 	if camera_manager != null:
@@ -299,6 +729,8 @@ func _is_supported_target(target_variant: Variant) -> bool:
 	return false
 
 
+# --- Restore / cleanup ---
+
 func _restore_stale_targets(active_targets: Dictionary) -> void:
 	var applier: Variant = _resolve_material_applier()
 	if applier == null:
@@ -313,6 +745,7 @@ func _restore_stale_targets(active_targets: Dictionary) -> void:
 		if target_variant is Node3D and is_instance_valid(target_variant):
 			stale_targets.append(target_variant)
 		_target_fade_by_id.erase(target_id)
+		_cached_normals.erase(target_id)
 	if not stale_targets.is_empty():
 		applier.restore_original_materials(stale_targets)
 	_tracked_targets = active_targets.duplicate()
@@ -350,6 +783,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 			continue
 		seen_targets[tracked_id] = true
 		_target_fade_by_id.erase(tracked_id)
+		_cached_normals.erase(tracked_id)
 		restore_targets.append(tracked_target)
 
 	var applier: Variant = _resolve_material_applier()
@@ -357,3 +791,22 @@ func _restore_components_to_opaque(components: Array) -> void:
 		applier.restore_original_materials(restore_targets)
 	_tracked_targets.clear()
 	_target_fade_by_id.clear()
+	_cached_normals.clear()
+
+
+# --- Utility ---
+
+func _describe_node(node: Node) -> String:
+	if node == null:
+		return "<null>"
+	if not is_instance_valid(node):
+		return "<freed>"
+	return "%s:%s" % [node.name, node.get_class()]
+
+
+func _describe_object(obj: Object) -> String:
+	if obj == null:
+		return "<null>"
+	if not is_instance_valid(obj):
+		return "<freed>"
+	return "%s:%s" % [obj.name, obj.get_class()]
