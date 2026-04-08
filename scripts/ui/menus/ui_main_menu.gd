@@ -13,7 +13,7 @@ const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.g
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 const U_DEBUG_SELECTORS := preload("res://scripts/state/selectors/u_debug_selectors.gd")
-const U_DebugActions := preload("res://scripts/state/actions/u_debug_actions.gd")
+const U_DEBUG_ACTIONS := preload("res://scripts/state/actions/u_debug_actions.gd")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
@@ -294,7 +294,7 @@ func _try_debug_skip_main_menu() -> bool:
 		return false
 	if U_DEBUG_SELECTORS.are_boot_skips_consumed(state):
 		return false
-	store.dispatch(U_DebugActions.set_boot_skips_consumed(true))
+	store.dispatch(U_DEBUG_ACTIONS.set_boot_skips_consumed(true))
 	var typed_save_manager := _save_manager as I_SaveManager
 	if typed_save_manager != null and typed_save_manager.has_any_saves():
 		var most_recent_slot: StringName = _save_manager.get_most_recent_save_slot()

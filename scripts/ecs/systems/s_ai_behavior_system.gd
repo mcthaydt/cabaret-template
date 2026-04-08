@@ -324,14 +324,14 @@ func _build_rule_from_goal(goal: Resource) -> Resource:
 		goal_id = StringName("__ai_goal_%d" % (goal as Object).get_instance_id())
 
 	if _rule_pool.has(goal_id):
-		var rule: Resource = _rule_pool[goal_id]
-		rule.set("priority", _read_goal_priority(goal))
-		rule.set("conditions", _read_conditions(goal))
-		rule.set("score_threshold", _read_float_property(goal, "score_threshold", 0.0))
-		rule.set("cooldown", _read_float_property(goal, "cooldown", 0.0))
-		rule.set("one_shot", _read_bool_property(goal, "one_shot", false))
-		rule.set("requires_rising_edge", _read_bool_property(goal, "requires_rising_edge", false))
-		return rule
+		var cached_rule: Resource = _rule_pool[goal_id]
+		cached_rule.set("priority", _read_goal_priority(goal))
+		cached_rule.set("conditions", _read_conditions(goal))
+		cached_rule.set("score_threshold", _read_float_property(goal, "score_threshold", 0.0))
+		cached_rule.set("cooldown", _read_float_property(goal, "cooldown", 0.0))
+		cached_rule.set("one_shot", _read_bool_property(goal, "one_shot", false))
+		cached_rule.set("requires_rising_edge", _read_bool_property(goal, "requires_rising_edge", false))
+		return cached_rule
 
 	var rule: Resource = RS_RULE.new()
 	rule.set("rule_id", goal_id)
@@ -352,12 +352,12 @@ func _find_goal_by_id(goals: Array[Resource], goal_id: StringName) -> Resource:
 	# Use cached lookup dictionary for O(1) resolution
 	var cache_key: int = goals.hash()
 	if not _goal_by_id_cache.has(cache_key):
-		var lookup: Dictionary = {}
+		var new_lookup: Dictionary = {}
 		for goal in goals:
 			if goal == null:
 				continue
-			lookup[_read_goal_id(goal)] = goal
-		_goal_by_id_cache[cache_key] = lookup
+			new_lookup[_read_goal_id(goal)] = goal
+		_goal_by_id_cache[cache_key] = new_lookup
 	var lookup: Dictionary = _goal_by_id_cache[cache_key]
 	if lookup.has(goal_id):
 		return lookup[goal_id]

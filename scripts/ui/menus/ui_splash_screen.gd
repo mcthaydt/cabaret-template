@@ -89,9 +89,9 @@ func _show_phase(phase: Phase) -> void:
 		_godot_panel.visible = (phase == Phase.GODOT_ENGINE)
 	_update_skip_hint(false)
 
-func _update_skip_hint(show: bool) -> void:
+func _update_skip_hint(visible_flag: bool) -> void:
 	if _skip_label != null:
-		_skip_label.visible = show
+		_skip_label.visible = visible_flag
 
 func _start_gameplay_preload() -> void:
 	if _preload_started:
