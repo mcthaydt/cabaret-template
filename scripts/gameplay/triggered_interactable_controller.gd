@@ -13,7 +13,7 @@ const INTERACTION_HINT_NODE_NAME := "SO_InteractionHintIcon"
 const INTERACTION_HINT_DEFAULT_OFFSET := Vector3.ZERO
 const INTERACTION_HINT_MIN_SCALE := 0.1
 const INTERACTION_HINT_VISUAL_SCALE_MULTIPLIER := 0.35
-const INTERACTION_HINT_BILLBOARD_MODE := BaseMaterial3D.BILLBOARD_ENABLED
+const INTERACTION_HINT_BILLBOARD_MODE := BaseMaterial3D.BILLBOARD_FIXED_Y
 
 var _trigger_mode: TriggerMode = TriggerMode.AUTO
 @export var trigger_mode: TriggerMode:

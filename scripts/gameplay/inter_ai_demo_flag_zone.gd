@@ -186,7 +186,7 @@ func _ensure_hint_sprite() -> Sprite3D:
 	var sprite := Sprite3D.new()
 	sprite.name = INTERACTION_HINT_NODE_NAME
 	sprite.visible = false
-	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	sprite.render_priority = 1
 	var mat := StandardMaterial3D.new()
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
