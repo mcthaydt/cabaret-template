@@ -16,6 +16,8 @@ var _post_process_layer: U_PostProcessLayer = null
 var _post_process_overlay: Node = null
 var _film_grain_active: bool = false
 var _any_effect_active: bool = false
+var _fg_time_frame_counter: int = 0
+var _fg_time_update_interval: int = 2  # Update every 2nd frame (30Hz at 60fps)
 var _ui_color_blind_layer: CanvasLayer = null
 var _ui_color_blind_rect: ColorRect = null
 
@@ -40,6 +42,9 @@ func process_film_grain_time() -> void:
 	if not _film_grain_active:
 		return
 	if _post_process_layer == null:
+		return
+	_fg_time_frame_counter += 1
+	if _fg_time_frame_counter % _fg_time_update_interval != 0:
 		return
 	var time_seconds: float = float(Time.get_ticks_msec()) / 1000.0
 	_post_process_layer.set_combined_parameter(StringName("fg_time"), time_seconds)

@@ -100,3 +100,19 @@ func get_entities_by_tags(_tags: Array[StringName], _match_all: bool = false) ->
 ## Used when system priority changes at runtime
 func mark_systems_dirty() -> void:
 	push_error("I_ECSManager.mark_systems_dirty not implemented")
+
+## Get the number of components of a given type without allocating
+func get_component_count(_component_type: StringName) -> int:
+	push_error("I_ECSManager.get_component_count not implemented")
+	return 0
+
+## Query entities without duplicating cached results
+## Callers MUST NOT mutate the returned array
+func query_entities_readonly(_required: Array[StringName], _optional: Array[StringName] = []) -> Array:
+	push_error("I_ECSManager.query_entities_readonly not implemented")
+	return []
+
+## Get the shared frame state snapshot (no deep copy)
+func get_frame_state_snapshot() -> Dictionary:
+	push_error("I_ECSManager.get_frame_state_snapshot not implemented")
+	return {}

@@ -55,6 +55,42 @@ func test_update_sprint_state_sets_flag() -> void:
 	var reduced: Variant = INPUT_REDUCER.reduce_gameplay_input(state, action)
 	assert_true(reduced.get("sprint_pressed", false))
 
+func test_update_input_batch_sets_all_gameplay_fields() -> void:
+	var state := _make_gameplay_state()
+	var action := U_InputActions.update_input_batch(
+		Vector2(0.5, -0.3),
+		Vector2(1.2, 0.8),
+		U_InputActions.LOOK_SOURCE_GAMEPAD,
+		true,
+		true,
+		false,
+		true
+	)
+	var reduced: Variant = INPUT_REDUCER.reduce_gameplay_input(state, action)
+	assert_not_null(reduced)
+	assert_eq(reduced.get("move_input"), Vector2(0.5, -0.3))
+	assert_eq(reduced.get("look_input"), Vector2(1.2, 0.8))
+	assert_eq(reduced.get("look_input_gamepad", Vector2.ZERO), Vector2(1.2, 0.8))
+	assert_true(bool(reduced.get("camera_center_just_pressed", false)))
+	assert_true(bool(reduced.get("jump_pressed", false)))
+	assert_false(bool(reduced.get("jump_just_pressed", true)))
+	assert_true(bool(reduced.get("sprint_pressed", false)))
+
+func test_update_input_batch_routes_keyboard_mouse_look_channel() -> void:
+	var state := _make_gameplay_state()
+	var action := U_InputActions.update_input_batch(
+		Vector2(0.1, 0.2),
+		Vector2(3.0, -1.0),
+		U_InputActions.LOOK_SOURCE_KEYBOARD_MOUSE,
+		false,
+		false,
+		true,
+		false
+	)
+	var reduced: Variant = INPUT_REDUCER.reduce_gameplay_input(state, action)
+	assert_eq(reduced.get("look_input_keyboard_mouse", Vector2.ZERO), Vector2(3.0, -1.0))
+	assert_eq(reduced.get("look_input_gamepad", Vector2.ONE), Vector2.ZERO)
+
 func test_device_changed_updates_active_device_and_device_id() -> void:
 	var state := _make_gameplay_state()
 	var action := U_InputActions.device_changed(1, 5)

@@ -16,22 +16,28 @@ func reset_observability_state() -> void:
 	_last_target_recovery_reason = ""
 	_last_target_recovery_vcam_id = StringName("")
 
-func read_look_input(store: I_StateStore) -> Vector2:
-	if store == null:
+func read_look_input(store: I_StateStore, state_snapshot: Dictionary = {}) -> Vector2:
+	if store == null and state_snapshot.is_empty():
 		return Vector2.ZERO
-	var state: Dictionary = store.get_state()
+	var state: Dictionary = state_snapshot
+	if state.is_empty() and store != null:
+		state = store.get_state()
 	return U_INPUT_SELECTORS.get_look_input(state)
 
-func read_move_input(store: I_StateStore) -> Vector2:
-	if store == null:
+func read_move_input(store: I_StateStore, state_snapshot: Dictionary = {}) -> Vector2:
+	if store == null and state_snapshot.is_empty():
 		return Vector2.ZERO
-	var state: Dictionary = store.get_state()
+	var state: Dictionary = state_snapshot
+	if state.is_empty() and store != null:
+		state = store.get_state()
 	return U_INPUT_SELECTORS.get_move_input(state)
 
-func read_camera_center_just_pressed(store: I_StateStore) -> bool:
-	if store == null:
+func read_camera_center_just_pressed(store: I_StateStore, state_snapshot: Dictionary = {}) -> bool:
+	if store == null and state_snapshot.is_empty():
 		return false
-	var state: Dictionary = store.get_state()
+	var state: Dictionary = state_snapshot
+	if state.is_empty() and store != null:
+		state = store.get_state()
 	return U_INPUT_SELECTORS.is_camera_center_just_pressed(state)
 
 func update_active_target_observability(

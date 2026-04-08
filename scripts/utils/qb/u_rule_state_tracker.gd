@@ -10,6 +10,8 @@ var _one_shot_spent_by_rule: Dictionary = {}
 func tick_cooldowns(delta: float) -> void:
 	if delta <= 0.0:
 		return
+	if _cooldowns_by_rule.is_empty():
+		return
 
 	for rule_key_variant in _cooldowns_by_rule.keys():
 		var context_map_variant: Variant = _cooldowns_by_rule.get(rule_key_variant, {})

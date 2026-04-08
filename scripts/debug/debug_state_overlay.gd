@@ -17,6 +17,8 @@ class_name SC_StateDebugOverlay
 
 var _store: M_StateStore
 var _history_entries: Array = []
+var _update_interval: float = 0.25
+var _update_accumulator: float = 0.0
 
 func _ready() -> void:
 	# Wait for scene tree to be fully ready
@@ -43,10 +45,13 @@ func _exit_tree() -> void:
 		if _store.has_method("register_debug_overlay"):
 			_store.register_debug_overlay(null)
 
-func _process(__delta: float) -> void:
-	# Update state display every frame
-	_update_state_display()
-	
+func _process(delta: float) -> void:
+	# Throttle expensive JSON.stringify to 4Hz
+	_update_accumulator += delta
+	if _update_accumulator >= _update_interval:
+		_update_accumulator = 0.0
+		_update_state_display()
+
 	# Update performance metrics display (T414)
 	_update_performance_display()
 

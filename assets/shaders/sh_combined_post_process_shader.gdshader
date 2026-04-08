@@ -121,14 +121,12 @@ vec3 _crt_shadow_mask(vec2 uv, vec2 resolution) {
 	return mask;
 }
 
-// Lightweight 5-tap cross bloom (replaces expensive 11x11 nested loop)
+// Lightweight 3-tap horizontal bloom (replaces 5-tap cross)
 vec3 _crt_bloom_light(vec3 center_color, sampler2D tex, vec2 uv, vec2 pixel_size) {
 	vec3 bloom = center_color;
 	bloom += texture(tex, uv + vec2(pixel_size.x * 2.0, 0.0)).rgb;
 	bloom += texture(tex, uv - vec2(pixel_size.x * 2.0, 0.0)).rgb;
-	bloom += texture(tex, uv + vec2(0.0, pixel_size.y * 2.0)).rgb;
-	bloom += texture(tex, uv - vec2(0.0, pixel_size.y * 2.0)).rgb;
-	return bloom * 0.2;
+	return bloom * (1.0 / 3.0);
 }
 
 vec3 _apply_crt(vec3 color, vec2 uv, vec2 pixel_size) {
@@ -161,9 +159,11 @@ vec3 _apply_crt(vec3 color, vec2 uv, vec2 pixel_size) {
 	float scanline = _crt_scanlines(curved_uv, crt_scanline_count, crt_scanline_intensity, luma);
 	crt_color *= scanline;
 
-	// Shadow mask
-	vec3 mask = _crt_shadow_mask(curved_uv, 1.0 / pixel_size);
-	crt_color *= mix(vec3(1.0), mask, 0.3);
+	// Shadow mask (skip at low scanline intensity where it's barely visible)
+	if (crt_scanline_intensity > 0.3) {
+		vec3 mask = _crt_shadow_mask(curved_uv, 1.0 / pixel_size);
+		crt_color *= mix(vec3(1.0), mask, 0.3);
+	}
 
 	// Lightweight bloom
 	vec3 glow = _crt_bloom_light(crt_color, screen_texture, curved_uv, pixel_size);

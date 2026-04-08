@@ -232,13 +232,15 @@ func _resolve_entity_target(entity: Node) -> Node3D:
 		return body_target
 	return null
 
-func _read_gameplay_entity_velocity(entity_id: StringName, store: I_StateStore) -> Dictionary:
+func _read_gameplay_entity_velocity(entity_id: StringName, store: I_StateStore, state_snapshot: Dictionary = {}) -> Dictionary:
 	if entity_id == StringName(""):
 		return {"has_velocity": false, "velocity": Vector3.ZERO}
-	if store == null:
+	if store == null and state_snapshot.is_empty():
 		return {"has_velocity": false, "velocity": Vector3.ZERO}
 
-	var state: Dictionary = store.get_state()
+	var state: Dictionary = state_snapshot
+	if state.is_empty() and store != null:
+		state = store.get_state()
 	var gameplay_variant: Variant = state.get("gameplay", {})
 	if not (gameplay_variant is Dictionary):
 		return {"has_velocity": false, "velocity": Vector3.ZERO}
@@ -304,13 +306,15 @@ func _read_character_body_velocity(node: Node) -> Dictionary:
 		"velocity": body.velocity,
 	}
 
-func _read_gameplay_entity_is_on_floor(entity_id: StringName, store: I_StateStore) -> Dictionary:
+func _read_gameplay_entity_is_on_floor(entity_id: StringName, store: I_StateStore, state_snapshot: Dictionary = {}) -> Dictionary:
 	if entity_id == StringName(""):
 		return {"has_value": false, "is_on_floor": false}
-	if store == null:
+	if store == null and state_snapshot.is_empty():
 		return {"has_value": false, "is_on_floor": false}
 
-	var state: Dictionary = store.get_state()
+	var state: Dictionary = state_snapshot
+	if state.is_empty() and store != null:
+		state = store.get_state()
 	var gameplay_variant: Variant = state.get("gameplay", {})
 	if not (gameplay_variant is Dictionary):
 		return {"has_value": false, "is_on_floor": false}

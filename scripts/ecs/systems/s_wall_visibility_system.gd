@@ -27,6 +27,7 @@ const ROOF_HEIGHT_MARGIN := 0.5
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_STATE_STORE = null
 @export var mobile_tick_interval: int = MOBILE_TICK_INTERVAL
+@export var desktop_tick_interval: int = 2
 @export var min_fade: float = 0.05
 
 var material_applier: Variant = null
@@ -39,18 +40,28 @@ var _tracked_targets: Dictionary = {}
 var _target_fade_by_id: Dictionary = {}
 var _invalidate_tick_counter: int = 0
 var _is_mobile: bool = false
-var _mobile_tick_counter: int = 0
+var _tick_counter: int = 0
 var _cached_normals: Dictionary = {}
 var _cached_half_extents: Dictionary = {}
 var _cached_aabbs: Dictionary = {}
 var _cached_transform_hashes: Dictionary = {}
 var _filtered_targets_by_component: Dictionary = {}
 var _filtered_targets_valid: Dictionary = {}
+var _seen_this_frame: Dictionary = {}
+
+# Pooled parallel arrays for Pass 1 (avoids per-target Dictionary allocation)
+var _pooled_targets: Array = []
+var _pooled_target_ids: Array[int] = []
+var _pooled_normals: Array = []
+var _pooled_fades_before_corridor: Array[float] = []
+var _pooled_corridor_passes: Array[bool] = []
+var _pooled_is_roof: Array[bool] = []
 
 
 func _init() -> void:
 	execution_priority = 110
 	_is_mobile = OS.has_feature("mobile")
+	desktop_tick_interval = 2 if not _is_mobile else 1
 
 
 func on_configured() -> void:
@@ -61,32 +72,35 @@ func process_tick(delta: float) -> void:
 	var components: Array = get_components(ROOM_FADE_GROUP_TYPE)
 
 	if components.is_empty():
-		_restore_stale_targets({})
+		_restore_stale_targets_inplace({})
 		return
 
-	var mode_info: Dictionary = _get_active_mode_info()
+	# Tick throttling: skip frames on both mobile and desktop
+	_tick_counter += 1
+	var tick_interval: int = mobile_tick_interval if _is_mobile else desktop_tick_interval
+	if tick_interval > 1 and (_tick_counter % tick_interval) != 0:
+		return
+
+	# Use shared frame snapshot instead of independent store.get_state() calls
+	var state: Dictionary = _get_frame_state_snapshot()
+	var mode_info: Dictionary = _get_active_mode_info_from_state(state)
 	if not bool(mode_info.get("is_orbit", false)):
 		_restore_components_to_opaque(components)
 		return
 
 	var main_camera: Camera3D = _resolve_active_camera()
 	if main_camera == null or not is_instance_valid(main_camera):
-		_restore_stale_targets({})
+		_restore_stale_targets_inplace({})
 		return
 
 	var applier: Variant = _resolve_material_applier()
 	if applier == null:
 		return
 
-	if _is_mobile:
-		_mobile_tick_counter += 1
-		if (_mobile_tick_counter % mobile_tick_interval) != 0:
-			return
-
 	var camera_forward: Vector3 = -main_camera.global_transform.basis.z
 	var camera_position: Vector3 = main_camera.global_transform.origin
-	var resolved_delta: float = maxf(delta, 0.0)
-	var player_data: Dictionary = _resolve_player_position_data()
+	var resolved_delta: float = maxf(delta, 0.0) * float(tick_interval)  # compensate for skipped frames
+	var player_data: Dictionary = _resolve_player_position_data_from_state(state)
 	var has_player: bool = player_data.has("position")
 	var player_position: Vector3 = player_data.get("position", Vector3.ZERO) as Vector3
 
@@ -98,7 +112,7 @@ func process_tick(delta: float) -> void:
 	var filtered_components: Array = tick_data.get("filtered_components", []) as Array
 	var owned_targets_by_component: Dictionary = tick_data.get("owned_targets_by_component", {})
 
-	var active_targets: Dictionary = {}
+	_seen_this_frame.clear()
 
 	for component_variant in filtered_components:
 		if component_variant == null or not is_instance_valid(component_variant):
@@ -134,8 +148,15 @@ func process_tick(delta: float) -> void:
 		var component_fade_sum: float = 0.0
 		var component_fade_count: int = 0
 
-		# Pass 1: compute raw fade values and collect corridor/bucket/roof info.
-		var target_eval_infos: Array[Dictionary] = []
+		# Pass 1: compute raw fade values using pooled parallel arrays
+		# (avoids per-target Dictionary allocation)
+		_pooled_targets.clear()
+		_pooled_target_ids.clear()
+		_pooled_normals.clear()
+		_pooled_fades_before_corridor.clear()
+		_pooled_corridor_passes.clear()
+		_pooled_is_roof.clear()
+
 		var bucket_has_corridor_hit: Dictionary = {}
 		var component_has_non_roof_fade: bool = false
 
@@ -170,34 +191,28 @@ func process_tick(delta: float) -> void:
 				target, target_normal, has_player, player_position
 			)
 
-			target_eval_infos.append({
-				"target": target,
-				"target_id": target_id,
-				"target_normal": target_normal,
-				"target_fade_before_corridor": target_fade_before_corridor,
-				"corridor_pass": corridor_pass,
-				"is_roof": is_roof,
-			})
+			_pooled_targets.append(target)
+			_pooled_target_ids.append(target_id)
+			_pooled_normals.append(target_normal)
+			_pooled_fades_before_corridor.append(target_fade_before_corridor)
+			_pooled_corridor_passes.append(corridor_pass)
+			_pooled_is_roof.append(is_roof)
 
 			if target_fade_before_corridor > 0.0 and not is_roof:
 				component_has_non_roof_fade = true
 
 		# Pass 2: resolve effective fade per target (corridor + bucket + roof).
-		for eval_info_variant in target_eval_infos:
-			if not (eval_info_variant is Dictionary):
-				continue
-			var eval_info: Dictionary = eval_info_variant as Dictionary
-			var target: Node3D = eval_info.get("target", null) as Node3D
+		var pool_size: int = _pooled_targets.size()
+		for i in range(pool_size):
+			var target: Node3D = _pooled_targets[i] as Node3D
 			if target == null or not is_instance_valid(target):
 				continue
-			var target_id: int = int(eval_info.get("target_id", -1))
-			if target_id < 0:
-				continue
+			var target_id: int = _pooled_target_ids[i]
 
-			var target_fade: float = float(eval_info.get("target_fade_before_corridor", 0.0))
-			var corridor_pass: bool = bool(eval_info.get("corridor_pass", true))
-			var is_roof: bool = bool(eval_info.get("is_roof", false))
-			var target_normal: Vector3 = eval_info.get("target_normal", Vector3.FORWARD) as Vector3
+			var target_fade: float = _pooled_fades_before_corridor[i]
+			var corridor_pass: bool = _pooled_corridor_passes[i]
+			var is_roof: bool = _pooled_is_roof[i]
+			var target_normal: Vector3 = _pooled_normals[i] as Vector3
 			var bucket_key: String = _resolve_normal_bucket_key(target_normal)
 
 			# Corridor check: if target would fade but fails corridor and no bucket hit, stay opaque.
@@ -220,7 +235,7 @@ func process_tick(delta: float) -> void:
 
 			_target_fade_by_id[target_id] = next_fade
 			applier.update_uniforms(target, clip_y, next_fade)
-			active_targets[target_id] = target
+			_seen_this_frame[target_id] = target
 
 			component_fade_sum += next_fade
 			component_fade_count += 1
@@ -229,11 +244,11 @@ func process_tick(delta: float) -> void:
 			var avg_fade: float = component_fade_sum / float(component_fade_count)
 			component.set("current_alpha", 1.0 - avg_fade)
 
-	_restore_stale_targets(active_targets)
+	_restore_stale_targets_inplace(_seen_this_frame)
 
 
 func _exit_tree() -> void:
-	_restore_stale_targets({})
+	_restore_stale_targets_inplace({})
 	_target_fade_by_id.clear()
 	_cached_normals.clear()
 	_cached_half_extents.clear()
@@ -241,8 +256,13 @@ func _exit_tree() -> void:
 	_cached_transform_hashes.clear()
 	_filtered_targets_by_component.clear()
 	_filtered_targets_valid.clear()
-	_filtered_targets_by_component.clear()
-	_filtered_targets_valid.clear()
+	_seen_this_frame.clear()
+	_pooled_targets.clear()
+	_pooled_target_ids.clear()
+	_pooled_normals.clear()
+	_pooled_fades_before_corridor.clear()
+	_pooled_corridor_passes.clear()
+	_pooled_is_roof.clear()
 
 
 # --- Room filtering and target ownership ---
@@ -704,19 +724,28 @@ func _resolve_material_applier() -> Variant:
 
 
 func _get_active_mode_info() -> Dictionary:
-	var store: I_STATE_STORE = _resolve_state_store()
-	if store == null:
+	var state: Dictionary = _get_frame_state_snapshot()
+	return _get_active_mode_info_from_state(state)
+
+
+func _get_active_mode_info_from_state(state: Dictionary) -> Dictionary:
+	if state.is_empty():
 		return {"has_store": false, "active_mode": "", "is_orbit": false}
-	var state: Dictionary = store.get_state()
 	var active_mode: String = U_VCAM_SELECTORS.get_active_mode(state).to_lower()
 	return {"has_store": true, "active_mode": active_mode, "is_orbit": active_mode == "orbit"}
 
 
 func _resolve_player_position_data() -> Dictionary:
-	var store: I_STATE_STORE = _resolve_state_store()
-	if store == null:
-		return {}
-	var state: Dictionary = store.get_state()
+	var state: Dictionary = _get_frame_state_snapshot()
+	return _resolve_player_position_data_from_state(state)
+
+
+func _resolve_player_position_data_from_state(state: Dictionary) -> Dictionary:
+	if state.is_empty():
+		var store: I_STATE_STORE = _resolve_state_store()
+		if store == null:
+			return {}
+		state = store.get_state()
 	var player_id: String = U_ENTITY_SELECTORS.get_player_entity_id(state)
 	if player_id.is_empty():
 		return {}
@@ -727,6 +756,26 @@ func _resolve_player_position_data() -> Dictionary:
 	if position_variant is Vector3:
 		return {"position": position_variant as Vector3}
 	return {}
+
+
+func _get_frame_state_snapshot() -> Dictionary:
+	var manager := _get_ecs_manager()
+	if manager != null and manager.has_method("get_frame_state_snapshot"):
+		return manager.get_frame_state_snapshot()
+	# Fallback: resolve from store directly
+	var store: I_STATE_STORE = _resolve_state_store()
+	if store != null:
+		return store.get_state()
+	return {}
+
+
+func _get_ecs_manager() -> Node:
+	if ecs_manager != null and is_instance_valid(ecs_manager):
+		return ecs_manager
+	var service: Variant = U_SERVICE_LOCATOR.try_get_service(StringName("ecs_manager"))
+	if service is Node:
+		return service
+	return null
 
 
 func _resolve_settings(component: Object) -> Dictionary:
@@ -777,12 +826,10 @@ func _is_supported_target(target_variant: Variant) -> bool:
 
 # --- Restore / cleanup ---
 
-func _restore_stale_targets(active_targets: Dictionary) -> void:
+func _restore_stale_targets_inplace(active_targets: Dictionary) -> void:
 	var applier: Variant = _resolve_material_applier()
-	if applier == null:
-		_tracked_targets = active_targets.duplicate()
-		return
 	var stale_targets: Array = []
+	var stale_ids: Array = []
 	for target_id_variant in _tracked_targets.keys():
 		var target_id: int = int(target_id_variant)
 		if active_targets.has(target_id):
@@ -790,14 +837,25 @@ func _restore_stale_targets(active_targets: Dictionary) -> void:
 		var target_variant: Variant = _tracked_targets.get(target_id, null)
 		if target_variant is Node3D and is_instance_valid(target_variant):
 			stale_targets.append(target_variant)
-		_target_fade_by_id.erase(target_id)
-		_cached_normals.erase(target_id)
-		_cached_half_extents.erase(target_id)
-		_cached_aabbs.erase(target_id)
-		_cached_transform_hashes.erase(target_id)
+		stale_ids.append(target_id)
+
 	if not stale_targets.is_empty():
-		applier.restore_original_materials(stale_targets)
-	_tracked_targets = active_targets.duplicate()
+		if applier != null:
+			applier.restore_original_materials(stale_targets)
+		for stale_id in stale_ids:
+			_target_fade_by_id.erase(stale_id)
+			_cached_normals.erase(stale_id)
+			_cached_half_extents.erase(stale_id)
+			_cached_aabbs.erase(stale_id)
+			_cached_transform_hashes.erase(stale_id)
+
+	# Update tracking in-place: add new, remove stale
+	for target_id_variant in active_targets.keys():
+		var target_id: int = int(target_id_variant)
+		if not _tracked_targets.has(target_id):
+			_tracked_targets[target_id] = active_targets[target_id]
+	for stale_id in stale_ids:
+		_tracked_targets.erase(stale_id)
 
 
 func _restore_components_to_opaque(components: Array) -> void:

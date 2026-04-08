@@ -136,22 +136,26 @@ func process_tick(_delta: float) -> void:
 	# Apply sprint toggle if enabled
 	var sprint_pressed := _compute_sprint_pressed(sprint_button_pressed)
 
-	# Dispatch input to state store
+	# Dispatch input to state store (batched: 1 dispatch instead of 5)
 	if store:
-		store.dispatch(U_InputActions.update_move_input(final_movement))
 		var look_source := U_InputActions.LOOK_SOURCE_KEYBOARD_MOUSE
 		if active_device_type == DeviceType.GAMEPAD:
 			look_source = U_InputActions.LOOK_SOURCE_GAMEPAD
-		store.dispatch(U_InputActions.update_look_input(look_delta, look_source))
-		store.dispatch(U_InputActions.update_camera_center_state(camera_center_just_pressed))
-		store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
-		store.dispatch(U_InputActions.update_sprint_state(sprint_pressed))
+		store.dispatch(U_InputActions.update_input_batch(
+			final_movement,
+			look_delta,
+			look_source,
+			camera_center_just_pressed,
+			jump_pressed,
+			jump_just_pressed,
+			sprint_pressed
+		))
 
 	var move_strength := clampf(final_movement.length(), 0.0, 1.0)
 	var look_strength := clampf(look_delta.length(), 0.0, 1.0)
 
 	# Write to components (other systems read from them)
-	var entities := query_entities([INPUT_TYPE, PLAYER_TAG_TYPE], [GAMEPAD_TYPE])
+	var entities: Array = query_entities([INPUT_TYPE, PLAYER_TAG_TYPE], [GAMEPAD_TYPE])
 	for entity_query in entities:
 		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
 		if input_component == null:
@@ -274,7 +278,7 @@ func _is_gameplay_active_for_inputs() -> bool:
 	if manager == null:
 		return true
 
-	var character_entities: Array = manager.query_entities([CHARACTER_STATE_TYPE])
+	var character_entities: Array = manager.query_entities_readonly([CHARACTER_STATE_TYPE])
 	if character_entities.is_empty():
 		return true
 

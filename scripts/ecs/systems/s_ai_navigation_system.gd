@@ -18,15 +18,17 @@ const DEFAULT_ARRIVAL_THRESHOLD := 0.5
 @export var debug_ai_render_probe_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
 @export var debug_entity_id: StringName = StringName("patrol_drone")
+@export_range(0.0, 1.0, 0.05) var navigation_throttle_interval: float = 0.1
 
 var _debug_log_cooldowns: Dictionary = {}
 var _empty_query_log_cooldown_sec: float = 0.0
+var _nav_timer_by_entity: Dictionary = {}
 
 func _init() -> void:
 	execution_priority = -5
 
-func process_tick(_delta: float) -> void:
-	_tick_debug_log_cooldowns(_delta)
+func process_tick(delta: float) -> void:
+	_tick_debug_log_cooldowns(delta)
 	var entities: Array = query_entities([
 		BRAIN_COMPONENT_TYPE,
 		INPUT_COMPONENT_TYPE,
@@ -44,6 +46,15 @@ func process_tick(_delta: float) -> void:
 			continue
 
 		var entity_id: StringName = _resolve_entity_id(entity_query)
+
+		# Per-entity throttle: skip direction computation if interval hasn't elapsed
+		if navigation_throttle_interval > 0.0:
+			var accumulated: float = float(_nav_timer_by_entity.get(entity_id, 0.0))
+			accumulated += delta
+			_nav_timer_by_entity[entity_id] = accumulated
+			if accumulated < navigation_throttle_interval:
+				continue  # keep last move_vector set on input component
+			_nav_timer_by_entity[entity_id] = 0.0
 
 		var input_component_variant: Variant = entity_query.call("get_component", INPUT_COMPONENT_TYPE)
 		if not (input_component_variant is C_InputComponent):

@@ -152,6 +152,26 @@ func get_entities_by_tags(tags: Array[StringName], match_all: bool = false) -> A
 func mark_systems_dirty() -> void:
 	_systems_dirty = true
 
+func get_component_count(component_type: StringName) -> int:
+	if not _components.has(component_type):
+		return 0
+	return _components[component_type].size()
+
+func query_entities_readonly(required: Array[StringName], optional: Array[StringName] = []) -> Array:
+	return query_entities(required, optional)
+
+func get_frame_state_snapshot() -> Dictionary:
+	return {}
+
+func is_system_profiling_enabled() -> bool:
+	return false
+
+func get_system_profiling_data() -> Array[Dictionary]:
+	return []
+
+func reset_system_profiling() -> void:
+	pass
+
 ## Test helpers
 
 ## Pre-register a component for an entity

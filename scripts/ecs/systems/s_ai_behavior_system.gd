@@ -31,6 +31,8 @@ var _tracker: U_RuleStateTracker = RULE_STATE_TRACKER.new()
 var _debug_log_cooldowns: Dictionary = {}
 var _empty_query_log_cooldown_sec: float = 0.0
 var _rule_pool: Dictionary = {}
+var _goal_by_id_cache: Dictionary = {}  # resource_instance_id → Dictionary(StringName → Resource)
+var _entity_stagger_index: int = 0
 
 func _init() -> void:
 	execution_priority = -10
@@ -44,10 +46,15 @@ func process_tick(delta: float) -> void:
 		_debug_log_missing_brains()
 		return
 
-	var store: I_StateStore = _resolve_store()
-	var redux_state: Dictionary = {}
-	if store != null:
-		redux_state = store.get_state()
+	# Use shared frame snapshot if available, otherwise resolve from store
+	var redux_state: Dictionary = _get_frame_state_snapshot()
+	if redux_state.is_empty():
+		var store: I_StateStore = _resolve_store()
+		if store != null:
+			redux_state = store.get_state()
+
+	var entity_count: int = entities.size()
+	_entity_stagger_index = 0
 
 	var active_context_keys: Array = []
 	for entity_query_variant in entities:
@@ -64,15 +71,16 @@ func process_tick(delta: float) -> void:
 		if brain_settings_variant == null or not (brain_settings_variant is RS_AI_BRAIN_SETTINGS):
 			continue
 
-		var context: Dictionary = _build_entity_context(entity_query, brain_variant, redux_state, store)
+		var context: Dictionary = _build_entity_context(entity_query, brain_variant, redux_state)
 		active_context_keys.append(_context_key_for_context(context))
-		_process_brain(brain_variant, brain_settings_variant as Resource, context, delta)
+		_process_brain(brain_variant, brain_settings_variant as Resource, context, delta, _entity_stagger_index, entity_count)
 		_debug_log_brain_state(context, brain_variant)
+		_entity_stagger_index += 1
 
 	_tracker.cleanup_stale_contexts(active_context_keys)
 
-func _process_brain(brain: Variant, brain_settings: Resource, context: Dictionary, delta: float) -> void:
-	if _should_evaluate_goals(brain, brain_settings, delta):
+func _process_brain(brain: Variant, brain_settings: Resource, context: Dictionary, delta: float, entity_index: int = 0, entity_count: int = 1) -> void:
+	if _should_evaluate_goals(brain, brain_settings, delta, entity_index, entity_count):
 		var executing_goal_id: StringName = StringName()
 		if not _is_task_queue_empty(brain):
 			executing_goal_id = _variant_to_string_name(_read_object_property(brain, "active_goal_id"))
@@ -177,12 +185,19 @@ func _is_task_queue_empty(brain: Variant) -> bool:
 		return true
 	return (queue_variant as Array).is_empty()
 
-func _should_evaluate_goals(brain: Variant, brain_settings: Resource, delta: float) -> bool:
+func _should_evaluate_goals(brain: Variant, brain_settings: Resource, delta: float, entity_index: int = 0, entity_count: int = 1) -> bool:
 	var evaluation_interval: float = maxf(_read_float_property(brain_settings, "evaluation_interval", 0.5), 0.0)
 	var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
 	var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
 
 	if active_goal_id == StringName():
+		# Stagger first evaluation: offset by entity index to prevent frame spikes
+		var stagger_offset: float = 0.0
+		if entity_count > 1:
+			stagger_offset = (float(entity_index) / float(entity_count)) * evaluation_interval
+		var current_timer: float = _read_float_property(brain, "evaluation_timer", 0.0)
+		if current_timer == 0.0 and stagger_offset > 0.0:
+			brain.set("evaluation_timer", -stagger_offset)
 		brain.set("evaluation_timer", 0.0)
 		return true
 
@@ -334,11 +349,18 @@ func _build_rule_from_goal(goal: Resource) -> Resource:
 func _find_goal_by_id(goals: Array[Resource], goal_id: StringName) -> Resource:
 	if goal_id == StringName():
 		return null
-	for goal in goals:
-		if goal == null:
-			continue
-		if _read_goal_id(goal) == goal_id:
-			return goal
+	# Use cached lookup dictionary for O(1) resolution
+	var cache_key: int = goals.hash()
+	if not _goal_by_id_cache.has(cache_key):
+		var lookup: Dictionary = {}
+		for goal in goals:
+			if goal == null:
+				continue
+			lookup[_read_goal_id(goal)] = goal
+		_goal_by_id_cache[cache_key] = lookup
+	var lookup: Dictionary = _goal_by_id_cache[cache_key]
+	if lookup.has(goal_id):
+		return lookup[goal_id]
 	return null
 
 func _apply_state_gates(rules: Array, scored: Array[Dictionary], context: Dictionary, executing_goal_id: StringName = StringName()) -> Array[Dictionary]:
@@ -395,13 +417,13 @@ func _build_entity_context(
 	entity_query: Object,
 	brain: Variant,
 	redux_state: Dictionary,
-	store: I_StateStore
 ) -> Dictionary:
 	var context: Dictionary = {
 		"brain_component": brain,
 		"redux_state": redux_state,
 	}
 	context["state"] = context["redux_state"]
+	var store: I_StateStore = _resolve_store()
 	if store != null:
 		context["state_store"] = store
 
@@ -472,6 +494,15 @@ func _resolve_store() -> I_StateStore:
 	if state_store != null and is_instance_valid(state_store):
 		return state_store
 	return U_STATE_UTILS.try_get_store(self)
+
+func _get_frame_state_snapshot() -> Dictionary:
+	var manager := get_manager()
+	if manager != null and manager.has_method("get_frame_state_snapshot"):
+		return manager.get_frame_state_snapshot()
+	var store: I_StateStore = _resolve_store()
+	if store != null:
+		return store.get_state()
+	return {}
 
 func _context_key_for_context(context: Dictionary) -> StringName:
 	var entity_id_variant: Variant = context.get("entity_id", StringName())

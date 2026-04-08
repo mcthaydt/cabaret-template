@@ -269,9 +269,9 @@ func _resolve_rule_id(rule_variant: Variant) -> StringName:
 
 func _build_entity_contexts() -> Array:
 	var contexts: Array = []
+	var redux_state: Dictionary = _get_frame_state_snapshot()
 	var store: I_StateStore = _resolve_store()
-	var redux_state: Dictionary = {}
-	if store != null:
+	if redux_state.is_empty() and store != null:
 		redux_state = store.get_state()
 
 	var entities: Array = query_entities(
@@ -318,7 +318,7 @@ func _build_entity_context(
 		"vertical_state": C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_GROUNDED,
 		"has_input": false,
 		"character_state_component": character_state,
-		"redux_state": redux_state.duplicate(true),
+		"redux_state": redux_state,
 	}
 	context["state"] = context["redux_state"]
 	if store != null:
@@ -497,6 +497,15 @@ func _resolve_store() -> I_StateStore:
 	if state_store != null:
 		return state_store
 	return U_STATE_UTILS.try_get_store(self)
+
+func _get_frame_state_snapshot() -> Dictionary:
+	var manager := get_manager()
+	if manager != null and manager.has_method("get_frame_state_snapshot"):
+		return manager.get_frame_state_snapshot()
+	var store: I_StateStore = _resolve_store()
+	if store != null:
+		return store.get_state()
+	return {}
 
 func _extract_event_names_from_rule(rule_variant: Variant) -> Array[StringName]:
 	var event_names: Array[StringName] = []

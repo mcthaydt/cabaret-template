@@ -34,6 +34,9 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state["move_target_resolved"] = false
 
 func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
+	# Skip re-resolution if target was already resolved in start()
+	if task_state.get("move_target_resolved", false):
+		return
 	var resolution: Dictionary = _resolve_target_resolution(context)
 	_write_resolution_debug(task_state, resolution)
 	var resolved_target: Variant = resolution.get("target", null)

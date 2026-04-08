@@ -141,9 +141,10 @@ func process_tick(delta: float) -> void:
 
 	var store := _runtime_services_helper.resolve_state_store()
 	_state_store = store
-	var look_input: Vector2 = _runtime_state_helper.read_look_input(store)
-	var move_input: Vector2 = _runtime_state_helper.read_move_input(store)
-	var camera_center_just_pressed: bool = _runtime_state_helper.read_camera_center_just_pressed(store)
+	var state_snapshot: Dictionary = _get_frame_state_snapshot()
+	var look_input: Vector2 = _runtime_state_helper.read_look_input(store, state_snapshot)
+	var move_input: Vector2 = _runtime_state_helper.read_move_input(store, state_snapshot)
+	var camera_center_just_pressed: bool = _runtime_state_helper.read_camera_center_just_pressed(store, state_snapshot)
 	_debug_helper.log_vcam_state("tick", active_vcam_id, look_input)
 	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
 	_evaluate_and_submit(
@@ -526,3 +527,14 @@ func _resolve_orbit_center_target_yaw(
 		Callable(self, "_resolve_mode_values"),
 		RS_VCAM_MODE_ORBIT_SCRIPT
 	)
+
+func _get_frame_state_snapshot() -> Dictionary:
+	var manager := get_manager()
+	if manager != null and manager.has_method("get_frame_state_snapshot"):
+		return manager.get_frame_state_snapshot()
+	if _state_store != null and is_instance_valid(_state_store):
+		return _state_store.get_state()
+	var store := _runtime_services_helper.resolve_state_store()
+	if store != null:
+		return store.get_state()
+	return {}

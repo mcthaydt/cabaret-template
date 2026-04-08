@@ -12,6 +12,7 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const I_ECS_ENTITY := preload("res://scripts/interfaces/i_ecs_entity.gd")
 const PROJECT_SETTING_QUERY_METRICS_ENABLED := "ecs/debug/query_metrics_enabled"
 const PROJECT_SETTING_QUERY_METRICS_CAPACITY := "ecs/debug/query_metrics_capacity"
+const PROJECT_SETTING_SYSTEM_PROFILING_ENABLED := "ecs/debug/system_profiling_enabled"
 
 const EVENT_ENTITY_REGISTERED := StringName("entity_registered")
 const EVENT_ENTITY_UNREGISTERED := StringName("entity_unregistered")
@@ -26,6 +27,11 @@ var _query_cache: Dictionary = {}
 var _time_provider: Callable = Callable(U_ECS_UTILS, "get_current_time")
 var _query_metrics_helper := U_ECS_QUERY_METRICS.new()
 var _time_manager: Node = null
+
+# System profiling
+var _system_profiling_enabled: bool = false
+var _system_profiling_data: Dictionary = {}  # system_name → {total_usec, frame_count, max_usec}
+var _frame_state_snapshot: Dictionary = {}
 
 # Entity ID and tagging support
 var _entities_by_id: Dictionary = {}  # StringName → Node
@@ -52,6 +58,7 @@ func _ready() -> void:
 		U_SERVICE_LOCATOR.register(service_name, self)
 	set_physics_process(true)
 	_initialize_query_metric_settings()
+	_initialize_system_profiling_settings()
 
 func _initialize_query_metric_settings() -> void:
 	var default_enabled: bool = OS.is_debug_build() or Engine.is_editor_hint()
@@ -68,6 +75,46 @@ func _initialize_query_metric_settings() -> void:
 		var default_capacity: int = _query_metrics_helper.get_query_metrics_capacity()
 		var stored_capacity: int = int(ProjectSettings.get_setting(PROJECT_SETTING_QUERY_METRICS_CAPACITY, default_capacity))
 		query_metrics_capacity = stored_capacity
+
+func _initialize_system_profiling_settings() -> void:
+	if ProjectSettings.has_setting(PROJECT_SETTING_SYSTEM_PROFILING_ENABLED):
+		var stored: Variant = ProjectSettings.get_setting(PROJECT_SETTING_SYSTEM_PROFILING_ENABLED, false)
+		if stored is bool:
+			_system_profiling_enabled = stored
+		elif typeof(stored) == TYPE_INT:
+			_system_profiling_enabled = bool(stored)
+	else:
+		_system_profiling_enabled = false
+
+func is_system_profiling_enabled() -> bool:
+	return _system_profiling_enabled
+
+func set_system_profiling_enabled(enabled: bool) -> void:
+	_system_profiling_enabled = enabled
+	if not enabled:
+		_system_profiling_data.clear()
+
+func get_system_profiling_data() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for system_name in _system_profiling_data:
+		var entry: Dictionary = _system_profiling_data[system_name]
+		var avg_usec: float = 0.0
+		if entry.frame_count > 0:
+			avg_usec = float(entry.total_usec) / float(entry.frame_count)
+		result.append({
+			"system_name": system_name,
+			"total_usec": entry.total_usec,
+			"frame_count": entry.frame_count,
+			"avg_usec": avg_usec,
+			"max_usec": entry.max_usec,
+		})
+	return result
+
+func reset_system_profiling() -> void:
+	_system_profiling_data.clear()
+
+func get_frame_state_snapshot() -> Dictionary:
+	return _frame_state_snapshot
 
 func register_component(component: BaseECSComponent) -> void:
 	if component == null:
@@ -282,6 +329,64 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
 	)
 
 	return results.duplicate()
+
+## Like query_entities but returns cached results without duplication.
+## Callers MUST NOT mutate the returned array or its U_EntityQuery objects.
+## Use when the caller only iterates results and reads component references.
+func query_entities_readonly(required: Array[StringName], optional: Array[StringName] = []) -> Array:
+	if required.is_empty():
+		push_warning("M_ECSManager.query_entities_readonly called without required component types")
+		return []
+
+	var candidate_type := _get_smallest_component_type(required)
+	if candidate_type == StringName():
+		return []
+
+	var key := _make_query_cache_key(required, optional)
+
+	if _query_cache.has(key):
+		return _query_cache[key]
+
+	# Cache miss — build and cache results (query_entities will duplicate them)
+	var candidate_components := get_components(candidate_type)
+	if candidate_components.is_empty():
+		return []
+
+	var results: Array[U_EntityQuery] = []
+	var seen_entities: Dictionary = {}
+	for component in candidate_components:
+		var entity := _get_entity_for_component(component)
+		if entity == null:
+			continue
+		if seen_entities.has(entity):
+			continue
+		if not _entity_component_map.has(entity):
+			continue
+
+		var entity_components: Dictionary = _entity_component_map[entity]
+		var has_all_required := true
+		for required_type in required:
+			if not entity_components.has(required_type):
+				has_all_required = false
+				break
+		if not has_all_required:
+			continue
+
+		var query_components: Dictionary = {}
+		for required_type in required:
+			query_components[required_type] = entity_components[required_type]
+		for optional_type in optional:
+			if entity_components.has(optional_type):
+				query_components[optional_type] = entity_components[optional_type]
+
+		var query := U_EntityQuery.new()
+		query.entity = entity
+		query.components = query_components
+		results.append(query)
+		seen_entities[entity] = true
+
+	_query_cache[key] = results
+	return results
 
 ## Registers an entity with the ECS manager.
 ## Handles duplicate IDs by appending instance ID suffix.
@@ -547,16 +652,28 @@ func _on_tracked_entity_exited(entity: Node) -> void:
 	_tracked_entities.erase(entity)
 	_invalidate_query_cache()
 
+## Returns the number of registered components of the given type.
+## Unlike get_components(), this does not allocate a filtered duplicate array.
+func get_component_count(component_type: StringName) -> int:
+	if not _components.has(component_type):
+		return 0
+	var existing: Array = _components[component_type]
+	var count: int = 0
+	for entry in existing:
+		if entry != null:
+			count += 1
+	return count
+
 func _get_smallest_component_type(required: Array[StringName]) -> StringName:
 	if required.is_empty():
 		return StringName()
 
 	var smallest_type := required[0]
-	var smallest_count := get_components(smallest_type).size()
+	var smallest_count := get_component_count(smallest_type)
 
 	for index in range(1, required.size()):
 		var candidate_type := required[index]
-		var candidate_count := get_components(candidate_type).size()
+		var candidate_count := get_component_count(candidate_type)
 		if candidate_count < smallest_count:
 			smallest_count = candidate_count
 			smallest_type = candidate_type
@@ -638,6 +755,10 @@ func _physics_process(delta: float) -> void:
 		var scaled_value: Variant = _time_manager.call("get_scaled_delta", delta)
 		scaled_delta = float(scaled_value)
 
+	# Build shared state snapshot for this frame so systems don't
+	# each call store.get_state() (which deep-copies) independently.
+	_frame_state_snapshot = _resolve_frame_state_snapshot()
+
 	var needs_cleanup: bool = false
 	for system in _sorted_systems:
 		if system == null:
@@ -648,7 +769,27 @@ func _physics_process(delta: float) -> void:
 			continue
 		if system.is_debug_disabled():
 			continue
-		system.process_tick(scaled_delta)
+
+		if _system_profiling_enabled:
+			var sys_start: int = Time.get_ticks_usec()
+			system.process_tick(scaled_delta)
+			var sys_elapsed: int = Time.get_ticks_usec() - sys_start
+			var sys_name: String = system.name
+			if not _system_profiling_data.has(sys_name):
+				_system_profiling_data[sys_name] = {"total_usec": 0, "frame_count": 0, "max_usec": 0}
+			var entry: Dictionary = _system_profiling_data[sys_name]
+			entry.total_usec += sys_elapsed
+			entry.frame_count += 1
+			if sys_elapsed > entry.max_usec:
+				entry.max_usec = sys_elapsed
+		else:
+			system.process_tick(scaled_delta)
 
 	if needs_cleanup:
 		mark_systems_dirty()
+
+func _resolve_frame_state_snapshot() -> Dictionary:
+	var store := U_SERVICE_LOCATOR.try_get_service(StringName("state_store"))
+	if store != null and store.has_method("get_state"):
+		return store.get_state()
+	return {}
