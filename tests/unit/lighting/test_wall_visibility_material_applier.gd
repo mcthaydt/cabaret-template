@@ -332,6 +332,140 @@ func test_invalidate_externally_removed_detects_csg_material_change() -> void:
 		"Should remove cache entry when CSG material was externally changed.")
 
 
+# --- Dirty-flag uniform update tests ---
+
+func test_update_uniforms_uploads_on_first_call() -> void:
+	var applier = _create_applier()
+	assert_not_null(applier)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = BoxMesh.new()
+	add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	applier.apply_visibility_material([mesh_instance])
+	var uploads_before: int = applier.shader_parameter_set_count
+	applier.update_uniforms(mesh_instance, 5.0, 0.7)
+	var uploads_after: int = applier.shader_parameter_set_count
+
+	assert_eq(uploads_after - uploads_before, 2,
+		"First call should upload both clip_y_world and fade_amount.")
+	assert_almost_eq(float(mesh_instance.material_override.get_shader_parameter("clip_y_world")), 5.0, 0.0001,
+		"clip_y_world should be 5.0.")
+	assert_almost_eq(float(mesh_instance.material_override.get_shader_parameter("fade_amount")), 0.7, 0.0001,
+		"fade_amount should be 0.7.")
+
+
+func test_update_uniforms_skips_upload_when_unchanged() -> void:
+	var applier = _create_applier()
+	assert_not_null(applier)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = BoxMesh.new()
+	add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	applier.apply_visibility_material([mesh_instance])
+	applier.update_uniforms(mesh_instance, 5.0, 0.7)
+	var uploads_after_first: int = applier.shader_parameter_set_count
+
+	applier.update_uniforms(mesh_instance, 5.0, 0.7)
+	var uploads_after_second: int = applier.shader_parameter_set_count
+
+	assert_eq(uploads_after_second - uploads_after_first, 0,
+		"Second call with same values should not upload any shader parameters.")
+
+
+func test_update_uniforms_uploads_only_clip_y_when_fade_unchanged() -> void:
+	var applier = _create_applier()
+	assert_not_null(applier)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = BoxMesh.new()
+	add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	applier.apply_visibility_material([mesh_instance])
+	applier.update_uniforms(mesh_instance, 5.0, 0.7)
+	var uploads_after_first: int = applier.shader_parameter_set_count
+
+	applier.update_uniforms(mesh_instance, 8.0, 0.7)
+	var uploads_after_second: int = applier.shader_parameter_set_count
+
+	assert_eq(uploads_after_second - uploads_after_first, 1,
+		"Only clip_y_world should upload when only clip_y changes.")
+	assert_almost_eq(float(mesh_instance.material_override.get_shader_parameter("clip_y_world")), 8.0, 0.0001,
+		"clip_y_world should be 8.0.")
+
+
+func test_update_uniforms_uploads_only_fade_when_clip_y_unchanged() -> void:
+	var applier = _create_applier()
+	assert_not_null(applier)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = BoxMesh.new()
+	add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	applier.apply_visibility_material([mesh_instance])
+	applier.update_uniforms(mesh_instance, 5.0, 0.7)
+	var uploads_after_first: int = applier.shader_parameter_set_count
+
+	applier.update_uniforms(mesh_instance, 5.0, 0.3)
+	var uploads_after_second: int = applier.shader_parameter_set_count
+
+	assert_eq(uploads_after_second - uploads_after_first, 1,
+		"Only fade_amount should upload when only fade changes.")
+	assert_almost_eq(float(mesh_instance.material_override.get_shader_parameter("fade_amount")), 0.3, 0.0001,
+		"fade_amount should be 0.3.")
+
+
+func test_update_uniforms_uploads_both_after_restore_and_reapply() -> void:
+	var applier = _create_applier()
+	assert_not_null(applier)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = BoxMesh.new()
+	add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	applier.apply_visibility_material([mesh_instance])
+	applier.update_uniforms(mesh_instance, 5.0, 0.7)
+	applier.restore_original_materials([mesh_instance])
+
+	applier.apply_visibility_material([mesh_instance])
+	var uploads_before: int = applier.shader_parameter_set_count
+	applier.update_uniforms(mesh_instance, 5.0, 0.7)
+	var uploads_after: int = applier.shader_parameter_set_count
+
+	assert_eq(uploads_after - uploads_before, 2,
+		"After restore+reapply, both parameters should upload again.")
+
+
+func test_update_uniforms_uploads_both_after_invalidate_and_reapply() -> void:
+	var applier = _create_applier()
+	assert_not_null(applier)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = BoxMesh.new()
+	add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	applier.apply_visibility_material([mesh_instance])
+	applier.update_uniforms(mesh_instance, 5.0, 0.7)
+
+	mesh_instance.material_override = StandardMaterial3D.new()
+	applier.invalidate_externally_removed()
+	applier.apply_visibility_material([mesh_instance])
+
+	var uploads_before: int = applier.shader_parameter_set_count
+	applier.update_uniforms(mesh_instance, 5.0, 0.7)
+	var uploads_after: int = applier.shader_parameter_set_count
+
+	assert_eq(uploads_after - uploads_before, 2,
+		"After invalidate+reapply, both parameters should upload again.")
+
+
 # --- Cache count tests ---
 
 func test_get_cached_mesh_count_reflects_active_entries() -> void:

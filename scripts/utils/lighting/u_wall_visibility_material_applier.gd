@@ -12,7 +12,12 @@ const TARGET_TYPE_MESH := "mesh"
 const TARGET_TYPE_CSG := "csg"
 
 var _material_cache: Dictionary = {}
+var _last_clip_y_by_target: Dictionary = {}
+var _last_fade_by_target: Dictionary = {}
 var _shader: Shader = SH_WALL_VISIBILITY
+
+## Tracks total set_shader_parameter calls for profiling/testing.
+var shader_parameter_set_count: int = 0
 
 
 func is_applied(target: Node3D) -> bool:
@@ -36,8 +41,17 @@ func update_uniforms(target: Node3D, clip_y: float, fade: float) -> void:
 	var shader_material := _get_cached_shader_material(target_id)
 	if shader_material == null:
 		return
-	shader_material.set_shader_parameter(PARAM_CLIP_Y_WORLD, clip_y)
-	shader_material.set_shader_parameter(PARAM_FADE_AMOUNT, clampf(fade, 0.0, 1.0))
+	var clamped_fade: float = clampf(fade, 0.0, 1.0)
+	var last_clip_y: float = float(_last_clip_y_by_target.get(target_id, -INF))
+	var last_fade: float = float(_last_fade_by_target.get(target_id, -INF))
+	if clip_y != last_clip_y:
+		shader_material.set_shader_parameter(PARAM_CLIP_Y_WORLD, clip_y)
+		shader_parameter_set_count += 1
+		_last_clip_y_by_target[target_id] = clip_y
+	if clamped_fade != last_fade:
+		shader_material.set_shader_parameter(PARAM_FADE_AMOUNT, clamped_fade)
+		shader_parameter_set_count += 1
+		_last_fade_by_target[target_id] = clamped_fade
 
 
 func update_clip_y(targets: Array, clip_y: float) -> void:
@@ -48,7 +62,11 @@ func update_clip_y(targets: Array, clip_y: float) -> void:
 		var shader_material := _get_cached_shader_material(target_id)
 		if shader_material == null:
 			continue
-		shader_material.set_shader_parameter(PARAM_CLIP_Y_WORLD, clip_y)
+		var last_clip_y: float = float(_last_clip_y_by_target.get(target_id, -INF))
+		if clip_y != last_clip_y:
+			shader_material.set_shader_parameter(PARAM_CLIP_Y_WORLD, clip_y)
+			shader_parameter_set_count += 1
+			_last_clip_y_by_target[target_id] = clip_y
 
 
 func restore_original_materials(targets: Array) -> void:
@@ -84,6 +102,8 @@ func invalidate_externally_removed() -> void:
 				stale_keys.append(cache_key)
 	for cache_key in stale_keys:
 		_material_cache.erase(cache_key)
+		_last_clip_y_by_target.erase(cache_key)
+		_last_fade_by_target.erase(cache_key)
 
 
 func get_cached_mesh_count() -> int:
@@ -273,6 +293,8 @@ func _restore_mesh_material(mesh_instance: MeshInstance3D) -> void:
 		return
 	mesh_instance.material_override = entry.get("original_material_override", null)
 	_material_cache.erase(cache_key)
+	_last_clip_y_by_target.erase(cache_key)
+	_last_fade_by_target.erase(cache_key)
 
 
 func _restore_csg_material(csg_shape: CSGShape3D) -> void:
@@ -284,6 +306,8 @@ func _restore_csg_material(csg_shape: CSGShape3D) -> void:
 		return
 	csg_shape.material = entry.get("original_material", null)
 	_material_cache.erase(cache_key)
+	_last_clip_y_by_target.erase(cache_key)
+	_last_fade_by_target.erase(cache_key)
 
 
 func _prune_invalid_cache_entries() -> void:
@@ -295,6 +319,8 @@ func _prune_invalid_cache_entries() -> void:
 			stale_keys.append(cache_key)
 	for cache_key in stale_keys:
 		_material_cache.erase(cache_key)
+		_last_clip_y_by_target.erase(cache_key)
+		_last_fade_by_target.erase(cache_key)
 
 
 func _get_cached_target(cache_key: int) -> Node3D:

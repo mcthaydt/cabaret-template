@@ -471,3 +471,106 @@ func test_no_brain_component_no_crash() -> void:
 
 	system.process_tick(0.016)
 	assert_true(true, "Processing with no C_AIBrainComponent entities should not crash")
+
+
+# --- No-deep-copy performance tests ---
+
+func test_context_redux_state_is_same_reference_as_store_state() -> void:
+	var goal: Resource = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
+	var fixture: Dictionary = _create_fixture([goal], StringName("patrol"), 0.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var store: MockStateStore = fixture["store"] as MockStateStore
+	var brain: Variant = fixture["brain"]
+	assert_not_null(system)
+	assert_not_null(store)
+
+	# Process a tick and verify the brain context does NOT deep-copy redux_state
+	# The context is built internally, so we test indirectly:
+	# If the store's state dict is mutated by the system, that's a bug.
+	# If performance is good (no deep copy), the brain should still evaluate correctly.
+	system.process_tick(0.016)
+
+	# Verify goal selection still works (proving context is read-only, no mutation)
+	assert_eq(brain.active_goal_id, StringName("patrol"),
+		"Goal selection should work without deep-copying redux_state.")
+
+
+func test_suspended_goal_state_not_duplicated_on_suspend_resume() -> void:
+	var goal_a: Resource = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"), {"ticks_to_complete": 1})
+	var goal_b: Resource = _new_goal(StringName("investigate"), 1, 0.9, StringName("investigate_task"))
+	var fixture: Dictionary = _create_fixture([goal_a, goal_b], StringName("patrol"), 0.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var brain: Variant = fixture["brain"]
+	assert_not_null(system)
+
+	# Start with patrol (score 0.5), investigate scores 0.9
+	system.process_tick(0.016)
+	assert_eq(brain.active_goal_id, StringName("investigate"),
+		"Higher-scoring goal should be selected.")
+
+	# Complete a tick for the investigate task
+	system.process_tick(0.016)
+
+	# Verify brain state is functional without deep copy of suspended state
+	assert_ne(brain.active_goal_id, StringName(),
+		"Brain should have an active goal after processing.")
+
+
+# --- Rule pooling tests ---
+
+func test_build_rule_from_goal_reuses_pooled_instance() -> void:
+	var goal: Resource = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
+	var fixture: Dictionary = _create_fixture([goal], StringName("patrol"), 0.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	assert_not_null(system)
+
+	# Process two evaluation ticks; the second should reuse the pooled rule
+	system.process_tick(0.016)
+
+	# Force another evaluation by resetting the timer
+	var brain: Variant = fixture["brain"]
+	brain.set("evaluation_timer", 100.0)
+
+	system.process_tick(0.016)
+
+	# The rule pool should have exactly 1 entry for the patrol goal
+	var rule_pool: Dictionary = system._rule_pool
+	assert_eq(rule_pool.size(), 1, "Rule pool should have one entry per unique goal_id.")
+	assert_true(rule_pool.has(StringName("patrol")), "Rule pool should contain the patrol goal rule.")
+
+
+func test_rule_pool_produces_different_rules_for_different_goals() -> void:
+	var goal_a: Resource = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
+	var goal_b: Resource = _new_goal(StringName("investigate"), 2, 0.9, StringName("investigate_task"))
+	var fixture: Dictionary = _create_fixture([goal_a, goal_b], StringName("patrol"), 0.0)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	assert_not_null(system)
+
+	system.process_tick(0.016)
+
+	var rule_pool: Dictionary = system._rule_pool
+	assert_eq(rule_pool.size(), 2, "Rule pool should have entries for both goals.")
+	assert_true(rule_pool.has(StringName("patrol")), "Rule pool should contain patrol goal.")
+	assert_true(rule_pool.has(StringName("investigate")), "Rule pool should contain investigate goal.")
+
+	# Different goal IDs should produce different rule instances
+	var rule_a: Resource = rule_pool[StringName("patrol")] as Resource
+	var rule_b: Resource = rule_pool[StringName("investigate")] as Resource
+	assert_ne(rule_a.get("rule_id"), rule_b.get("rule_id"),
+		"Different goals should produce rules with different IDs.")

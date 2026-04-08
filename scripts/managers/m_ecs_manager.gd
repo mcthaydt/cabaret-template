@@ -137,6 +137,16 @@ func get_components_for_entity(entity: Node) -> Dictionary:
 		return {}
 	return (_entity_component_map[entity] as Dictionary).duplicate(true)
 
+## Returns the entity's component map WITHOUT deep copying.
+## Callers MUST NOT mutate the returned dictionary.
+## Use when the caller only needs to read component references.
+func get_components_for_entity_readonly(entity: Node) -> Dictionary:
+	if entity == null:
+		return {}
+	if not _entity_component_map.has(entity):
+		return {}
+	return _entity_component_map[entity]
+
 func get_cached_entity_for(node: Node) -> Node:
 	if node == null:
 		return null

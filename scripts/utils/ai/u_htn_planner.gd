@@ -13,7 +13,8 @@ static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) 
 	var safe_max_depth: int = maxi(max_depth, 0)
 	var recursion_stack: Dictionary = {}
 	var result: Array[Resource] = []
-	_decompose_recursive(task, context, safe_max_depth, 0, recursion_stack, result)
+	var reusable_rule: Resource = RS_RULE.new()
+	_decompose_recursive(task, context, safe_max_depth, 0, recursion_stack, result, reusable_rule)
 	return result
 
 static func _decompose_recursive(
@@ -22,7 +23,8 @@ static func _decompose_recursive(
 	max_depth: int,
 	depth: int,
 	recursion_stack: Dictionary,
-	result: Array[Resource]
+	result: Array[Resource],
+	reusable_rule: Resource
 ) -> void:
 	if task == null:
 		return
@@ -57,19 +59,19 @@ static func _decompose_recursive(
 		for subtask_variant in subtasks:
 			if not (subtask_variant is Resource):
 				continue
-			_decompose_recursive(subtask_variant as Resource, context, max_depth, depth + 1, recursion_stack, result)
+			_decompose_recursive(subtask_variant as Resource, context, max_depth, depth + 1, recursion_stack, result, reusable_rule)
 		recursion_stack.erase(task_key)
 		return
 
-	var branch_index: int = _select_branch_index(method_conditions, subtasks, context)
+	var branch_index: int = _select_branch_index(method_conditions, subtasks, context, reusable_rule)
 	if branch_index >= 0 and branch_index < subtasks.size():
 		var selected_subtask: Variant = subtasks[branch_index]
 		if selected_subtask is Resource:
-			_decompose_recursive(selected_subtask as Resource, context, max_depth, depth + 1, recursion_stack, result)
+			_decompose_recursive(selected_subtask as Resource, context, max_depth, depth + 1, recursion_stack, result, reusable_rule)
 
 	recursion_stack.erase(task_key)
 
-static func _select_branch_index(method_conditions: Array, subtasks: Array, context: Dictionary) -> int:
+static func _select_branch_index(method_conditions: Array, subtasks: Array, context: Dictionary, reusable_rule: Resource) -> int:
 	var slot_count: int = mini(method_conditions.size(), subtasks.size())
 	if slot_count <= 0:
 		return -1
@@ -81,13 +83,13 @@ static func _select_branch_index(method_conditions: Array, subtasks: Array, cont
 		var condition_variant: Variant = method_conditions[index]
 		if not (condition_variant is Resource):
 			continue
-		if _method_condition_passes(condition_variant as Resource, context, index):
+		if _method_condition_passes(condition_variant as Resource, context, index, reusable_rule):
 			return index
 
 	return -1
 
-static func _method_condition_passes(condition: Resource, context: Dictionary, method_index: int) -> bool:
-	var method_rule: Resource = RS_RULE.new()
+static func _method_condition_passes(condition: Resource, context: Dictionary, method_index: int, reusable_rule: Resource) -> bool:
+	var method_rule: Resource = reusable_rule
 	method_rule.set("rule_id", StringName("__method_condition_%d" % method_index))
 	var rule_conditions: Array[Resource] = [condition]
 	method_rule.set("conditions", rule_conditions)

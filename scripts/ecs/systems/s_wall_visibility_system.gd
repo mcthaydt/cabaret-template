@@ -41,6 +41,11 @@ var _invalidate_tick_counter: int = 0
 var _is_mobile: bool = false
 var _mobile_tick_counter: int = 0
 var _cached_normals: Dictionary = {}
+var _cached_half_extents: Dictionary = {}
+var _cached_aabbs: Dictionary = {}
+var _cached_transform_hashes: Dictionary = {}
+var _filtered_targets_by_component: Dictionary = {}
+var _filtered_targets_valid: Dictionary = {}
 
 
 func _init() -> void:
@@ -141,11 +146,13 @@ func process_tick(delta: float) -> void:
 			var target_id: int = target.get_instance_id()
 
 			var target_normal: Vector3
-			if _cached_normals.has(target_id):
+			var current_transform_hash: int = _compute_transform_hash(target)
+			if _cached_normals.has(target_id) and _cached_transform_hashes.get(target_id, -1) == current_transform_hash:
 				target_normal = _cached_normals[target_id] as Vector3
 			else:
 				target_normal = _resolve_target_world_normal(component, target, targets.size())
 				_cached_normals[target_id] = target_normal
+				_cached_transform_hashes[target_id] = current_transform_hash
 
 			var target_fade_before_corridor: float = _resolve_directional_fade(
 				camera_forward, target_normal, threshold
@@ -229,6 +236,13 @@ func _exit_tree() -> void:
 	_restore_stale_targets({})
 	_target_fade_by_id.clear()
 	_cached_normals.clear()
+	_cached_half_extents.clear()
+	_cached_aabbs.clear()
+	_cached_transform_hashes.clear()
+	_filtered_targets_by_component.clear()
+	_filtered_targets_valid.clear()
+	_filtered_targets_by_component.clear()
+	_filtered_targets_valid.clear()
 
 
 # --- Room filtering and target ownership ---
@@ -370,6 +384,16 @@ func _resolve_aabb_from_validated_targets(targets: Array) -> AABB:
 
 
 func _resolve_target_aabb(target: Node3D) -> AABB:
+	var target_id: int = target.get_instance_id()
+	var transform_hash: int = _compute_transform_hash(target)
+	if _cached_aabbs.has(target_id) and _cached_transform_hashes.get(target_id, -1) == transform_hash:
+		return _cached_aabbs[target_id] as AABB
+	var result: AABB = _resolve_target_aabb_uncached(target)
+	_cached_aabbs[target_id] = result
+	return result
+
+
+func _resolve_target_aabb_uncached(target: Node3D) -> AABB:
 	if target is CSGBox3D:
 		var csg: CSGBox3D = target as CSGBox3D
 		var half: Vector3 = csg.size.abs() * 0.5
@@ -452,6 +476,16 @@ func _resolve_target_nearest_corridor_point(
 
 
 func _resolve_target_planar_half_extents(target: Node3D) -> Vector2:
+	var target_id: int = target.get_instance_id()
+	var transform_hash: int = _compute_transform_hash(target)
+	if _cached_half_extents.has(target_id) and _cached_transform_hashes.get(target_id, -1) == transform_hash:
+		return _cached_half_extents[target_id] as Vector2
+	var result: Vector2 = _resolve_target_planar_half_extents_uncached(target)
+	_cached_half_extents[target_id] = result
+	return result
+
+
+func _resolve_target_planar_half_extents_uncached(target: Node3D) -> Vector2:
 	if target is CSGBox3D:
 		var csg: CSGBox3D = target as CSGBox3D
 		var half: Vector3 = csg.size.abs() * 0.5
@@ -712,6 +746,11 @@ func _resolve_settings(component: Object) -> Dictionary:
 func _collect_mesh_targets(component: Object) -> Array:
 	if component == null:
 		return []
+	var component_id: int = component.get_instance_id()
+	var cache_is_valid: bool = component.has_method("is_target_cache_valid") and component.call("is_target_cache_valid")
+	if cache_is_valid and _filtered_targets_valid.get(component_id, false):
+		if _filtered_targets_by_component.has(component_id):
+			return _filtered_targets_by_component[component_id] as Array
 	if not component.has_method("collect_mesh_targets"):
 		return []
 	var targets_variant: Variant = component.call("collect_mesh_targets")
@@ -721,6 +760,8 @@ func _collect_mesh_targets(component: Object) -> Array:
 	for target_variant in targets_variant as Array:
 		if _is_supported_target(target_variant):
 			targets.append(target_variant)
+	_filtered_targets_by_component[component_id] = targets
+	_filtered_targets_valid[component_id] = true
 	return targets
 
 
@@ -751,6 +792,9 @@ func _restore_stale_targets(active_targets: Dictionary) -> void:
 			stale_targets.append(target_variant)
 		_target_fade_by_id.erase(target_id)
 		_cached_normals.erase(target_id)
+		_cached_half_extents.erase(target_id)
+		_cached_aabbs.erase(target_id)
+		_cached_transform_hashes.erase(target_id)
 	if not stale_targets.is_empty():
 		applier.restore_original_materials(stale_targets)
 	_tracked_targets = active_targets.duplicate()
@@ -789,6 +833,9 @@ func _restore_components_to_opaque(components: Array) -> void:
 		seen_targets[tracked_id] = true
 		_target_fade_by_id.erase(tracked_id)
 		_cached_normals.erase(tracked_id)
+		_cached_half_extents.erase(tracked_id)
+		_cached_aabbs.erase(tracked_id)
+		_cached_transform_hashes.erase(tracked_id)
 		restore_targets.append(tracked_target)
 
 	var applier: Variant = _resolve_material_applier()
@@ -797,6 +844,11 @@ func _restore_components_to_opaque(components: Array) -> void:
 	_tracked_targets.clear()
 	_target_fade_by_id.clear()
 	_cached_normals.clear()
+	_cached_half_extents.clear()
+	_cached_aabbs.clear()
+	_cached_transform_hashes.clear()
+	_filtered_targets_by_component.clear()
+	_filtered_targets_valid.clear()
 
 
 # --- Utility ---
@@ -815,3 +867,9 @@ func _describe_object(obj: Object) -> String:
 	if not is_instance_valid(obj):
 		return "<freed>"
 	return "%s:%s" % [obj.name, obj.get_class()]
+
+
+func _compute_transform_hash(target: Node3D) -> int:
+	if target == null or not is_instance_valid(target):
+		return 0
+	return hash(target.global_transform)

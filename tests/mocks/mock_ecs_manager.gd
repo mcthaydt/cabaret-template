@@ -69,6 +69,11 @@ func get_components_for_entity(entity: Node) -> Dictionary:
 		return {}
 	return _entity_components[entity].duplicate(true)
 
+func get_components_for_entity_readonly(entity: Node) -> Dictionary:
+	if not _entity_components.has(entity):
+		return {}
+	return _entity_components[entity]
+
 func register_component(component: BaseECSComponent) -> void:
 	if component == null:
 		return

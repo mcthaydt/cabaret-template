@@ -30,6 +30,7 @@ const ACTION_STARTED_STATE_KEY := "action_started"
 var _tracker: U_RuleStateTracker = RULE_STATE_TRACKER.new()
 var _debug_log_cooldowns: Dictionary = {}
 var _empty_query_log_cooldown_sec: float = 0.0
+var _rule_pool: Dictionary = {}
 
 func _init() -> void:
 	execution_priority = -10
@@ -296,18 +297,28 @@ func _suspend_current_goal(brain: Variant) -> void:
 func _read_suspended_state(brain: Variant) -> Dictionary:
 	var suspended_variant: Variant = _read_object_property(brain, "suspended_goal_state")
 	if suspended_variant is Dictionary:
-		return (suspended_variant as Dictionary).duplicate()
+		return suspended_variant as Dictionary
 	return {}
 
 func _build_rule_from_goal(goal: Resource) -> Resource:
 	if goal == null:
 		return null
 
-	var rule: Resource = RS_RULE.new()
 	var goal_id: StringName = _read_goal_id(goal)
 	if goal_id == StringName():
 		goal_id = StringName("__ai_goal_%d" % (goal as Object).get_instance_id())
 
+	if _rule_pool.has(goal_id):
+		var rule: Resource = _rule_pool[goal_id]
+		rule.set("priority", _read_goal_priority(goal))
+		rule.set("conditions", _read_conditions(goal))
+		rule.set("score_threshold", _read_float_property(goal, "score_threshold", 0.0))
+		rule.set("cooldown", _read_float_property(goal, "cooldown", 0.0))
+		rule.set("one_shot", _read_bool_property(goal, "one_shot", false))
+		rule.set("requires_rising_edge", _read_bool_property(goal, "requires_rising_edge", false))
+		return rule
+
+	var rule: Resource = RS_RULE.new()
 	rule.set("rule_id", goal_id)
 	rule.set("decision_group", GOAL_DECISION_GROUP)
 	rule.set("priority", _read_goal_priority(goal))
@@ -316,6 +327,8 @@ func _build_rule_from_goal(goal: Resource) -> Resource:
 	rule.set("cooldown", _read_float_property(goal, "cooldown", 0.0))
 	rule.set("one_shot", _read_bool_property(goal, "one_shot", false))
 	rule.set("requires_rising_edge", _read_bool_property(goal, "requires_rising_edge", false))
+
+	_rule_pool[goal_id] = rule
 	return rule
 
 func _find_goal_by_id(goals: Array[Resource], goal_id: StringName) -> Resource:
@@ -386,7 +399,7 @@ func _build_entity_context(
 ) -> Dictionary:
 	var context: Dictionary = {
 		"brain_component": brain,
-		"redux_state": redux_state.duplicate(true),
+		"redux_state": redux_state,
 	}
 	context["state"] = context["redux_state"]
 	if store != null:
@@ -401,11 +414,11 @@ func _build_entity_context(
 
 		var components: Dictionary = {}
 		if manager != null:
-			components = manager.get_components_for_entity(entity)
+			components = manager.get_components_for_entity_readonly(entity)
 		if components.is_empty() and entity_query.has_method("get_all_components"):
 			var query_components_variant: Variant = entity_query.call("get_all_components")
 			if query_components_variant is Dictionary:
-				components = (query_components_variant as Dictionary).duplicate(true)
+				components = query_components_variant as Dictionary
 		if not components.is_empty():
 			context["components"] = components
 			context["component_data"] = components
