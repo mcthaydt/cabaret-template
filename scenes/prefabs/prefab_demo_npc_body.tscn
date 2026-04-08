@@ -7,7 +7,7 @@ radius = 0.8
 height = 1.6
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_visual"]
-shading_mode = 2
+shading_mode = 0
 diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.9490196, 0.70980394, 0.21568628, 1)

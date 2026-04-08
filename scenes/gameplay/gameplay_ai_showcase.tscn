@@ -104,7 +104,8 @@ albedo_texture = ExtResource("75_grid_green_01")
 background_mode = 1
 background_color = Color(0.19607843, 0.26666668, 0.4, 1)
 background_energy_multiplier = 0.0
-ambient_light_source = 2
+ambient_light_source = 1
+ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 1.6
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_activatable"]
