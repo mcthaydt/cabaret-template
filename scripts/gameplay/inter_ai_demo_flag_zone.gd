@@ -156,6 +156,9 @@ func _refresh_hint_visibility() -> void:
 	sprite.position = interaction_hint_offset
 	var s := maxf(interaction_hint_scale, 0.1) * INTERACTION_HINT_VISUAL_SCALE
 	sprite.scale = Vector3(s, s, s)
+	var mat := sprite.material_override as StandardMaterial3D
+	if mat != null:
+		mat.albedo_texture = interaction_hint_icon
 	sprite.visible = _should_show_hint()
 
 func _should_show_hint() -> bool:
@@ -184,8 +187,13 @@ func _ensure_hint_sprite() -> Sprite3D:
 	sprite.name = INTERACTION_HINT_NODE_NAME
 	sprite.visible = false
 	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	sprite.double_sided = true
-	sprite.shaded = false
+	sprite.render_priority = 1
+	var mat := StandardMaterial3D.new()
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.no_depth_test = true
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	sprite.material_override = mat
 	add_child(sprite)
 	_hint_sprite = sprite
 	return sprite

@@ -12,6 +12,7 @@ const MAX_INTENSITY := 8.0
 
 var _material_cache: Dictionary = {}
 var _shader: Shader = SH_CHARACTER_ZONE_LIGHTING
+var _fallback_white_texture: ImageTexture = null
 
 func collect_mesh_targets(character_entity: Node) -> Array[MeshInstance3D]:
 	var targets: Array[MeshInstance3D] = []
@@ -82,15 +83,25 @@ func _apply_mesh_override(
 		return
 
 	var albedo_texture := _extract_albedo_texture(source_material)
+	var albedo_color := _extract_albedo_color(source_material)
+
+	# When no texture exists (e.g. albedo_color-only materials like E_Sentry),
+	# use a white fallback so the shader still runs and applies zone lighting.
 	if albedo_texture == null:
-		return
+		albedo_texture = _get_fallback_white_texture()
+
+	# Forward the original albedo_color as base_tint so color-only materials
+	# are preserved when the shader replaces the source material.
+	var resolved_base_tint := base_tint
+	if albedo_color != Color.WHITE:
+		resolved_base_tint = albedo_color
 
 	var shader_material := _ensure_shader_material(mesh_instance)
 	if shader_material == null:
 		return
 
 	shader_material.set_shader_parameter(PARAM_ALBEDO_TEXTURE, albedo_texture)
-	shader_material.set_shader_parameter(PARAM_BASE_TINT, base_tint)
+	shader_material.set_shader_parameter(PARAM_BASE_TINT, resolved_base_tint)
 	shader_material.set_shader_parameter(PARAM_EFFECTIVE_TINT, effective_tint)
 	shader_material.set_shader_parameter(
 		PARAM_EFFECTIVE_INTENSITY,
@@ -127,6 +138,29 @@ func _extract_albedo_texture(source_material: Material) -> Texture2D:
 		if texture_variant is Texture2D:
 			return texture_variant as Texture2D
 	return null
+
+
+func _extract_albedo_color(source_material: Material) -> Color:
+	if source_material is BaseMaterial3D:
+		var base_material := source_material as BaseMaterial3D
+		return base_material.albedo_color
+
+	if source_material is ShaderMaterial:
+		var shader_material := source_material as ShaderMaterial
+		var color_variant: Variant = shader_material.get_shader_parameter(PARAM_BASE_TINT)
+		if color_variant is Color:
+			return color_variant as Color
+
+	return Color.WHITE
+
+
+func _get_fallback_white_texture() -> ImageTexture:
+	if _fallback_white_texture != null and is_instance_valid(_fallback_white_texture):
+		return _fallback_white_texture
+	var image := Image.create(1, 1, false, Image.FORMAT_RGB8)
+	image.fill(Color.WHITE)
+	_fallback_white_texture = ImageTexture.create_from_image(image)
+	return _fallback_white_texture
 
 func _ensure_shader_material(mesh_instance: MeshInstance3D) -> ShaderMaterial:
 	var cache_key: int = mesh_instance.get_instance_id()
