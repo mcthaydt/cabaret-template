@@ -3,6 +3,7 @@ class_name U_DisplayPostProcessApplier
 
 ## Applies post-process settings to the display overlay.
 ## Uses a single combined shader for film grain + dither + CRT (one screen texture sample).
+## On mobile, force-disables CRT to avoid expensive chromatic aberration + bloom passes.
 
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
@@ -10,6 +11,7 @@ const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/display/u_
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 
 var _owner: Node = null
 var _post_process_layer: U_PostProcessLayer = null
@@ -18,11 +20,15 @@ var _film_grain_active: bool = false
 var _any_effect_active: bool = false
 var _fg_time_frame_counter: int = 0
 var _fg_time_update_interval: int = 2  # Update every 2nd frame (30Hz at 60fps)
+var _is_mobile: bool = false
 var _ui_color_blind_layer: CanvasLayer = null
 var _ui_color_blind_rect: ColorRect = null
 
 func initialize(owner: Node) -> void:
 	_owner = owner
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	if _is_mobile:
+		_fg_time_update_interval = 4  # Less frequent grain updates on mobile
 	if owner != null and owner.is_inside_tree():
 		_setup_ui_color_blind_layer()
 
@@ -63,6 +69,10 @@ func _apply_combined_effect_settings(state: Dictionary) -> void:
 	var fg_enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state)
 	var crt_enabled := U_DISPLAY_SELECTORS.is_crt_enabled(state)
 	var dither_enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state)
+
+	# Mobile override: CRT chromatic aberration + bloom are too expensive on tile-based GPUs
+	if _is_mobile:
+		crt_enabled = false
 
 	_film_grain_active = fg_enabled
 	_any_effect_active = fg_enabled or crt_enabled or dither_enabled

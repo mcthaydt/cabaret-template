@@ -15,6 +15,9 @@ const U_RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
 const U_RULE_SELECTOR := preload("res://scripts/utils/qb/u_rule_selector.gd")
 const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
 const U_HTN_PLANNER := preload("res://scripts/utils/ai/u_htn_planner.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+
+const MOBILE_EVALUATION_INTERVAL_MULTIPLIER: float = 2.0
 
 const BRAIN_COMPONENT_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
@@ -33,9 +36,11 @@ var _empty_query_log_cooldown_sec: float = 0.0
 var _rule_pool: Dictionary = {}
 var _goal_by_id_cache: Dictionary = {}  # resource_instance_id → Dictionary(StringName → Resource)
 var _entity_stagger_index: int = 0
+var _is_mobile: bool = false
 
 func _init() -> void:
 	execution_priority = -10
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
 
 func process_tick(delta: float) -> void:
 	_tick_debug_log_cooldowns(delta)
@@ -187,6 +192,9 @@ func _is_task_queue_empty(brain: Variant) -> bool:
 
 func _should_evaluate_goals(brain: Variant, brain_settings: Resource, delta: float, entity_index: int = 0, entity_count: int = 1) -> bool:
 	var evaluation_interval: float = maxf(_read_float_property(brain_settings, "evaluation_interval", 0.5), 0.0)
+	# Mobile: double the evaluation interval to reduce CPU cost of goal evaluation
+	if _is_mobile:
+		evaluation_interval *= MOBILE_EVALUATION_INTERVAL_MULTIPLIER
 	var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
 	var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
 

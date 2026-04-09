@@ -13,6 +13,9 @@ const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_c
 const AI_BRAIN_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+
+const MOBILE_DISPATCH_INTERVAL := 3
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -29,9 +32,15 @@ const MIN_STABLE_FRAMES := 10  # Frames state must be stable before dispatching 
 var _floor_state_stable_frames: Dictionary = {}  # entity_id -> frames_stable
 var _debug_log_cooldowns: Dictionary = {}
 var _diag_frame_counter: int = 0
+var _is_mobile: bool = false
+var _dispatch_counter: int = 0
+
+func _init() -> void:
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
 
 func process_tick(delta: float) -> void:
 	_diag_frame_counter += 1
+	_dispatch_counter += 1
 	_tick_debug_log_cooldowns(delta)
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null
@@ -329,7 +338,10 @@ func process_tick(delta: float) -> void:
 			if should_update_floor_state:
 				snapshot["is_on_floor"] = current_on_floor
 
-			store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
+			# Mobile throttle: dispatch entity snapshots less frequently on mobile
+			# to reduce state store deep-copy pressure
+			if not _is_mobile or (_dispatch_counter % MOBILE_DISPATCH_INTERVAL) == 0:
+				store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
 
 func _maybe_schedule_spawn_unfreeze(body: CharacterBody3D, spawn_state: C_SpawnStateComponent, current_physics_frame: int) -> void:
 	if body == null or spawn_state == null:

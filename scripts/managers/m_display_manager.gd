@@ -20,6 +20,7 @@ const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/disp
 const U_DISPLAY_CINEMA_GRADE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_cinema_grade_applier.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
@@ -58,6 +59,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	U_SERVICE_LOCATOR.register(SERVICE_NAME, self)
 	_theme_debug_log("ready: service registered")
+	_apply_mobile_overrides()
 	_ensure_appliers()
 
 	await _initialize_store_async()
@@ -71,6 +73,14 @@ func _exit_tree() -> void:
 		if _state_store.slice_updated.is_connected(_on_slice_updated):
 			_state_store.slice_updated.disconnect(_on_slice_updated)
 	_state_store = null
+
+## Apply mobile-specific rendering overrides that don't depend on state store.
+func _apply_mobile_overrides() -> void:
+	if not U_MOBILE_PLATFORM_DETECTOR.is_mobile():
+		return
+	# Cap FPS at 30 on mobile to prevent wasted GPU work on frames
+	# the user can't perceive and to reduce thermal throttling
+	Engine.max_fps = 30
 
 func _initialize_store_async() -> void:
 	_theme_debug_log("initialize_store_async: awaiting store")
@@ -184,6 +194,7 @@ func _apply_display_settings(state: Dictionary) -> void:
 		_last_window_hash = window_hash
 
 	_apply_quality_settings(effective_settings)
+	_apply_mobile_resolution_scale(state)
 	_apply_post_process_settings(effective_settings)
 	_apply_cinema_grade_settings(effective_settings)
 	_apply_ui_scale_settings(effective_settings)
@@ -220,6 +231,12 @@ func _apply_quality_settings(display_settings: Dictionary) -> void:
 	if _quality_applier == null:
 		return
 	_quality_applier.apply_settings(display_settings)
+
+func _apply_mobile_resolution_scale(state: Dictionary) -> void:
+	if not U_MOBILE_PLATFORM_DETECTOR.is_mobile():
+		return
+	var scale := U_DISPLAY_SELECTORS.get_mobile_resolution_scale(state)
+	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(clampf(scale, 0.25, 1.0))
 
 func _apply_ui_scale_settings(display_settings: Dictionary) -> void:
 	_ensure_appliers()

@@ -17,6 +17,9 @@ const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_sele
 const DEFAULT_REGION_VISIBILITY_SETTINGS := preload(
 	"res://resources/display/vcam/cfg_default_region_visibility.tres"
 )
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+
+const MOBILE_TICK_INTERVAL := 4
 
 const REGION_VISIBILITY_TYPE := StringName("RegionVisibility")
 const FADED_THRESHOLD := 0.95
@@ -36,11 +39,19 @@ var _region_alpha_by_tag: Dictionary = {}
 var _filtered_targets_cache: Dictionary = {}  # int (component id) -> Array
 
 var _perf_is_supported_calls: int = 0
+var _is_mobile: bool = false
+var _tick_counter: int = 0
 
 func _init() -> void:
 	execution_priority = 100
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
 
 func process_tick(delta: float) -> void:
+	# Mobile throttle: skip frames to reduce CPU load
+	_tick_counter += 1
+	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
+		return
+
 	var components: Array = get_components(REGION_VISIBILITY_TYPE)
 
 	if components.is_empty():

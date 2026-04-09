@@ -5,10 +5,12 @@ class_name U_DisplayCinemaGradeApplier
 ##
 ## Creates a CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay and
 ## listens for scene/transition_completed to swap cinema grades automatically.
+## On mobile, force-disables sharpness to avoid the expensive 5-tap unsharp mask.
 
 const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shader.gdshader")
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 
 const SCENE_SWAPPED := StringName("scene/swapped")
 
@@ -17,10 +19,12 @@ var _state_store: I_StateStore = null
 var _cinema_grade_layer: CanvasLayer = null
 var _cinema_grade_rect: ColorRect = null
 var _shader_material: ShaderMaterial = null
+var _is_mobile: bool = false
 
 func initialize(owner: Node, state_store: I_StateStore) -> void:
 	_owner = owner
 	_state_store = state_store
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
 	U_CinemaGradeRegistry.initialize()
 
 	if _state_store != null and _state_store.has_signal("action_dispatched"):
@@ -74,6 +78,10 @@ func _apply_cinema_grade_uniforms(state: Dictionary) -> void:
 	_shader_material.set_shader_parameter("warmth", U_CinemaGradeSelectors.get_warmth(state))
 	_shader_material.set_shader_parameter("tint", U_CinemaGradeSelectors.get_tint(state))
 	_shader_material.set_shader_parameter("sharpness", U_CinemaGradeSelectors.get_sharpness(state))
+
+	# Mobile override: force-disable sharpness (5-tap unsharp mask is too expensive on tile-based GPUs)
+	if _is_mobile:
+		_shader_material.set_shader_parameter("sharpness", 0.0)
 
 func _ensure_cinema_grade_layer() -> bool:
 	if _cinema_grade_layer != null and is_instance_valid(_cinema_grade_layer):
