@@ -11,6 +11,7 @@ const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shade
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 
 const SCENE_SWAPPED := StringName("scene/swapped")
 
@@ -20,6 +21,9 @@ var _cinema_grade_layer: CanvasLayer = null
 var _cinema_grade_rect: ColorRect = null
 var _shader_material: ShaderMaterial = null
 var _is_mobile: bool = false
+
+# Mobile perf probe
+var _probe_uniforms = U_PERF_PROBE.new("cinema_grade_uniforms")
 
 func initialize(owner: Node, state_store: I_StateStore) -> void:
 	_owner = owner
@@ -37,6 +41,20 @@ func apply_settings(display_settings: Dictionary) -> void:
 	_apply_cinema_grade_uniforms(state)
 
 func update_visibility(should_show: bool) -> void:
+	if _cinema_grade_layer != null and is_instance_valid(_cinema_grade_layer):
+		_cinema_grade_layer.visible = should_show
+
+## Mobile debug: force-disable the cinema grade shader pass.
+## Returns true if the layer was previously visible (i.e., this changed something).
+func debug_force_disable() -> bool:
+	if _cinema_grade_layer == null or not is_instance_valid(_cinema_grade_layer):
+		return false
+	var was_visible: bool = _cinema_grade_layer.visible
+	_cinema_grade_layer.visible = false
+	return was_visible
+
+## Mobile debug: restore the cinema grade layer to its normal visibility state.
+func debug_restore_visibility(should_show: bool) -> void:
 	if _cinema_grade_layer != null and is_instance_valid(_cinema_grade_layer):
 		_cinema_grade_layer.visible = should_show
 
@@ -65,6 +83,8 @@ func _apply_cinema_grade_uniforms(state: Dictionary) -> void:
 	if _shader_material == null:
 		return
 
+	var _pt_start: int = _probe_uniforms.begin()
+
 	_shader_material.set_shader_parameter("filter_mode", U_CinemaGradeSelectors.get_filter_mode(state))
 	_shader_material.set_shader_parameter("filter_intensity", U_CinemaGradeSelectors.get_filter_intensity(state))
 	_shader_material.set_shader_parameter("exposure", U_CinemaGradeSelectors.get_exposure(state))
@@ -82,6 +102,9 @@ func _apply_cinema_grade_uniforms(state: Dictionary) -> void:
 	# Mobile override: force-disable sharpness (5-tap unsharp mask is too expensive on tile-based GPUs)
 	if _is_mobile:
 		_shader_material.set_shader_parameter("sharpness", 0.0)
+
+	_probe_uniforms.end(_pt_start)
+	_probe_uniforms.tick_and_maybe_log()
 
 func _ensure_cinema_grade_layer() -> bool:
 	if _cinema_grade_layer != null and is_instance_valid(_cinema_grade_layer):

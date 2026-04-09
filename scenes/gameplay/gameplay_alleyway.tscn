@@ -83,26 +83,6 @@
 background_mode = 1
 tonemap_mode = 3
 tonemap_exposure = 0.89
-ssao_enabled = true
-glow_enabled = true
-glow_normalized = true
-glow_intensity = 0.66
-glow_bloom = 1.0
-fog_enabled = true
-fog_mode = 1
-fog_light_color = Color(0.8440008, 0.399447, 0.2702732, 1)
-fog_light_energy = 0.25
-fog_sun_scatter = 0.37
-fog_density = 1.0
-fog_sky_affect = 0.0
-fog_height = -172.14
-fog_depth_curve = 0.65975356
-volumetric_fog_density = 0.18
-volumetric_fog_albedo = Color(0.49218434, 0.52147424, 0.7017026, 1)
-volumetric_fog_anisotropy = 0.07
-volumetric_fog_length = 4.42
-volumetric_fog_detail_spread = 3.4460962
-volumetric_fog_sky_affect = 0.0
 
 [node name="GameplayRoot" type="Node3D" unique_id=118760861]
 script = ExtResource("1_f2o31")

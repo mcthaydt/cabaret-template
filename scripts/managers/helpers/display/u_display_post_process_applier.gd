@@ -241,3 +241,23 @@ func _apply_ui_color_blind_shader(enabled: bool, mode_value: int) -> void:
 	if material != null:
 		material.set_shader_parameter("mode", mode_value)
 		material.set_shader_parameter("intensity", 1.0)
+
+## Mobile debug: force-disable the combined post-process shader pass.
+## Returns true if the combined rect was previously visible.
+func debug_force_disable_combined() -> bool:
+	_ensure_post_process_layer()
+	if _post_process_layer == null:
+		return false
+	var combined_rect := _post_process_layer.get_combined_rect()
+	if combined_rect == null:
+		return false
+	var was_visible: bool = combined_rect.visible
+	combined_rect.visible = false
+	return was_visible
+
+## Mobile debug: restore the combined post-process rect visibility.
+func debug_restore_combined_visibility(visible: bool) -> void:
+	_ensure_post_process_layer()
+	if _post_process_layer == null:
+		return
+	_post_process_layer.set_combined_visible(visible)

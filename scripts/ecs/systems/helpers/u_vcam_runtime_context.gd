@@ -6,6 +6,13 @@ const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_CHARACTER_STATE_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+
+# Mobile perf probes
+var _probe_raycast = U_PERF_PROBE.new("vcam_raycast")
+var _probe_tree_walk = U_PERF_PROBE.new("vcam_tree_walk")
+var _obj_prop_call_count: int = 0
+var _obj_prop_total_usec: int = 0
 
 func resolve_follow_target(component: C_VCamComponent, ecs_manager: I_ECSManager, report_issue: Callable = Callable()) -> Node3D:
 	if component == null:
@@ -130,7 +137,10 @@ func probe_ground_reference_height(follow_target: Node3D, max_distance: float) -
 			exclude_rids.append(follow_body.get_rid())
 	query.exclude = exclude_rids
 
+	var _pt_raycast_start: int = _probe_raycast.begin()
 	var hit: Dictionary = space_state.intersect_ray(query)
+	_probe_raycast.end(_pt_raycast_start)
+	_probe_raycast.tick_and_maybe_log()
 	if hit.is_empty():
 		return {"valid": true, "height": fallback_height}
 	var hit_position_variant: Variant = hit.get("position", Vector3.ZERO)
@@ -362,9 +372,13 @@ func _variant_to_string_name(value: Variant) -> StringName:
 	return StringName("")
 
 func _find_node_with_script(root: Node, script: Script) -> Node:
+	var _pt_start: int = _probe_tree_walk.begin()
 	if root == null or script == null:
+		_probe_tree_walk.end(_pt_start)
 		return null
 	if root.get_script() == script:
+		_probe_tree_walk.end(_pt_start)
+		_probe_tree_walk.tick_and_maybe_log()
 		return root
 
 	for child_variant in root.get_children():
@@ -373,13 +387,20 @@ func _find_node_with_script(root: Node, script: Script) -> Node:
 			continue
 		var found: Node = _find_node_with_script(child, script)
 		if found != null:
+			_probe_tree_walk.end(_pt_start)
+			_probe_tree_walk.tick_and_maybe_log()
 			return found
+	_probe_tree_walk.end(_pt_start)
+	_probe_tree_walk.tick_and_maybe_log()
 	return null
 
 func _find_character_body_recursive(root: Node) -> CharacterBody3D:
+	var _pt_start: int = _probe_tree_walk.begin()
 	if root == null:
+		_probe_tree_walk.end(_pt_start)
 		return null
 	if root is CharacterBody3D:
+		_probe_tree_walk.end(_pt_start)
 		return root as CharacterBody3D
 
 	for child_variant in root.get_children():
@@ -388,13 +409,30 @@ func _find_character_body_recursive(root: Node) -> CharacterBody3D:
 			continue
 		var found: CharacterBody3D = _find_character_body_recursive(child)
 		if found != null and is_instance_valid(found):
+			_probe_tree_walk.end(_pt_start)
 			return found
+	_probe_tree_walk.end(_pt_start)
 	return null
 
 func _object_has_property(object_value: Object, property_name: String) -> bool:
+	var _pt_start: int = Time.get_ticks_usec()
+	_obj_prop_call_count += 1
 	var properties: Array[Dictionary] = object_value.get_property_list()
 	for property_info in properties:
 		var name_variant: Variant = property_info.get("name", "")
 		if str(name_variant) == property_name:
+			_obj_prop_total_usec += (Time.get_ticks_usec() - _pt_start)
 			return true
+	_obj_prop_total_usec += (Time.get_ticks_usec() - _pt_start)
 	return false
+
+func log_obj_prop_stats_and_reset() -> void:
+	if not _probe_raycast.is_active():
+		return
+	if _obj_prop_call_count > 0:
+		var avg_ms := float(_obj_prop_total_usec) / float(_obj_prop_call_count) / 1000.0
+		print("[PERF] vcam_obj_has_prop: calls=%d total=%.3fms avg=%.3fms" % [
+			_obj_prop_call_count, float(_obj_prop_total_usec) / 1000.0, avg_ms
+		])
+	_obj_prop_call_count = 0
+	_obj_prop_total_usec = 0

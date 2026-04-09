@@ -79,16 +79,6 @@
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
 tonemap_mode = 3
-ssao_enabled = true
-glow_enabled = true
-glow_bloom = 1.0
-fog_enabled = true
-fog_mode = 1
-fog_light_color = Color(0.7661004, 0.46699578, 0.23436043, 1)
-fog_light_energy = 2.41
-fog_density = 1.0
-fog_sky_affect = 0.0
-volumetric_fog_sky_affect = 0.0
 
 [node name="GameplayRoot" type="Node3D" unique_id=118760861]
 script = ExtResource("1_f2o31")
