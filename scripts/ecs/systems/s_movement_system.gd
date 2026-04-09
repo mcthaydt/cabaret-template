@@ -14,6 +14,7 @@ const AI_BRAIN_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 
 const MOBILE_DISPATCH_INTERVAL := 3
 
@@ -34,11 +35,14 @@ var _debug_log_cooldowns: Dictionary = {}
 var _diag_frame_counter: int = 0
 var _is_mobile: bool = false
 var _dispatch_counter: int = 0
+var _perf_probe: U_PerfProbe = null
 
 func _init() -> void:
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	_perf_probe = U_PerfProbe.create("S_MovementSystem", _is_mobile)
 
 func process_tick(delta: float) -> void:
+	_perf_probe.start()
 	_diag_frame_counter += 1
 	_dispatch_counter += 1
 	_tick_debug_log_cooldowns(delta)
@@ -342,6 +346,7 @@ func process_tick(delta: float) -> void:
 			# to reduce state store deep-copy pressure
 			if not _is_mobile or (_dispatch_counter % MOBILE_DISPATCH_INTERVAL) == 0:
 				store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
+	_perf_probe.stop()
 
 func _maybe_schedule_spawn_unfreeze(body: CharacterBody3D, spawn_state: C_SpawnStateComponent, current_physics_frame: int) -> void:
 	if body == null or spawn_state == null:

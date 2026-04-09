@@ -10,6 +10,7 @@ const U_CHARACTER_LIGHTING_MATERIAL_APPLIER := preload("res://scripts/utils/ligh
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 const SERVICE_NAME := StringName("character_lighting_manager")
 const STATE_SERVICE := StringName("state_store")
 const SCENE_SERVICE := StringName("scene_manager")
@@ -52,10 +53,14 @@ var _character_lighting_history: Dictionary = {} # character instance_id -> {tin
 var _character_zone_hysteresis: Dictionary = {} # character instance_id -> {zone_key: is_active}
 var _is_mobile: bool = false
 var _tick_counter: int = 0
+var _perf_probe: U_PerfProbe = null
+var _apply_probe: U_PerfProbe = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	_perf_probe = U_PerfProbe.create("CharLighting", _is_mobile)
+	_apply_probe = U_PerfProbe.create("CharLightApply", _is_mobile)
 	_resolve_dependencies()
 	_connect_store_action_signal()
 	var existing := U_SERVICE_LOCATOR.try_get_service(SERVICE_NAME)
@@ -108,12 +113,14 @@ func _physics_process(_delta: float) -> void:
 	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
 		return
 
+	_perf_probe.start()
 	_resolve_dependencies()
 	_connect_store_action_signal()
 
 	if not _is_enabled:
 		_material_applier.restore_all_materials()
 		_clear_all_runtime_state()
+		_perf_probe.stop()
 		return
 
 	if _scene_cache_dirty:
@@ -126,12 +133,15 @@ func _physics_process(_delta: float) -> void:
 	if not block_reason.is_empty():
 		if _should_apply_during_transition_block(block_reason):
 			_apply_lighting_to_characters()
+			_perf_probe.stop()
 			return
 		_material_applier.restore_all_materials()
 		_clear_all_runtime_state()
+		_perf_probe.stop()
 		return
 
 	_apply_lighting_to_characters()
+	_perf_probe.stop()
 
 func _prune_invalid_zones() -> void:
 	var active: Array[Node] = []
@@ -419,12 +429,14 @@ func _apply_lighting_to_characters() -> void:
 		var stabilized := _apply_temporal_smoothing(character_id, blended)
 		var effective_tint: Color = stabilized.get("tint", Color(1.0, 1.0, 1.0, 1.0))
 		var effective_intensity: float = _to_float(stabilized.get("intensity", 1.0), 1.0)
+		_apply_probe.start()
 		_material_applier.apply_character_lighting(
 			character_node,
 			Color(1.0, 1.0, 1.0, 1.0),
 			effective_tint,
 			effective_intensity
 		)
+		_apply_probe.stop()
 
 func _is_transition_blocked() -> bool:
 	return not _get_transition_block_reason().is_empty()

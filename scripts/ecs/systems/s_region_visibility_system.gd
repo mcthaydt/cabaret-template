@@ -18,6 +18,7 @@ const DEFAULT_REGION_VISIBILITY_SETTINGS := preload(
 	"res://resources/display/vcam/cfg_default_region_visibility.tres"
 )
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 
 const MOBILE_TICK_INTERVAL := 4
 
@@ -41,10 +42,14 @@ var _filtered_targets_cache: Dictionary = {}  # int (component id) -> Array
 var _perf_is_supported_calls: int = 0
 var _is_mobile: bool = false
 var _tick_counter: int = 0
+var _perf_probe: U_PerfProbe = null
+var _fade_probe: U_PerfProbe = null
 
 func _init() -> void:
 	execution_priority = 100
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	_perf_probe = U_PerfProbe.create("RegionVis", _is_mobile)
+	_fade_probe = U_PerfProbe.create("RegionFadeApply", _is_mobile)
 
 func process_tick(delta: float) -> void:
 	# Mobile throttle: skip frames to reduce CPU load
@@ -52,6 +57,7 @@ func process_tick(delta: float) -> void:
 	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
 		return
 
+	_perf_probe.start()
 	var components: Array = get_components(REGION_VISIBILITY_TYPE)
 
 	if components.is_empty():
@@ -130,8 +136,10 @@ func process_tick(delta: float) -> void:
 		if next_alpha >= 1.0:
 			continue
 
+		_fade_probe.start()
 		applier.apply_fade_material(targets)
 		applier.update_fade_alpha(targets, next_alpha)
+		_fade_probe.stop()
 		for target_variant in targets:
 			if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 				continue
@@ -143,6 +151,7 @@ func process_tick(delta: float) -> void:
 	_active_region_tags = new_active_tags
 	_near_region_tags = new_near_tags
 	_restore_stale_targets(active_targets)
+	_perf_probe.stop()
 
 func get_active_region_tags() -> Array[StringName]:
 	return _active_region_tags.duplicate()

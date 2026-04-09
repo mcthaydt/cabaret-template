@@ -10,6 +10,7 @@ const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const RS_ROOM_FADE_SETTINGS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_room_fade_settings.gd")
 const U_WALL_VISIBILITY_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_wall_visibility_material_applier.gd")
 const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 const DEFAULT_ROOM_FADE_SETTINGS := preload("res://resources/display/vcam/cfg_default_room_fade.tres")
 
 const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
@@ -41,6 +42,8 @@ var _target_fade_by_id: Dictionary = {}
 var _invalidate_tick_counter: int = 0
 var _is_mobile: bool = false
 var _tick_counter: int = 0
+var _perf_probe: U_PerfProbe = null
+var _shader_probe: U_PerfProbe = null
 var _cached_normals: Dictionary = {}
 var _cached_half_extents: Dictionary = {}
 var _cached_aabbs: Dictionary = {}
@@ -62,6 +65,8 @@ func _init() -> void:
 	execution_priority = 110
 	_is_mobile = OS.has_feature("mobile")
 	desktop_tick_interval = 2 if not _is_mobile else 1
+	_perf_probe = U_PerfProbe.create("WallVis", _is_mobile)
+	_shader_probe = U_PerfProbe.create("WallVisShader", _is_mobile)
 
 
 func on_configured() -> void:
@@ -81,6 +86,7 @@ func process_tick(delta: float) -> void:
 	if tick_interval > 1 and (_tick_counter % tick_interval) != 0:
 		return
 
+	_perf_probe.start()
 	# Use shared frame snapshot instead of independent store.get_state() calls
 	var state: Dictionary = _get_frame_state_snapshot()
 	var mode_info: Dictionary = _get_active_mode_info_from_state(state)
@@ -129,6 +135,7 @@ func process_tick(delta: float) -> void:
 		if targets.is_empty():
 			continue
 
+		_shader_probe.start()
 		applier.apply_visibility_material(targets)
 
 		var clip_height_offset: float = DEFAULT_CLIP_HEIGHT_OFFSET
@@ -235,6 +242,7 @@ func process_tick(delta: float) -> void:
 
 			_target_fade_by_id[target_id] = next_fade
 			applier.update_uniforms(target, clip_y, next_fade)
+			_shader_probe.stop()
 			_seen_this_frame[target_id] = target
 
 			component_fade_sum += next_fade
@@ -245,6 +253,7 @@ func process_tick(delta: float) -> void:
 			component.set("current_alpha", 1.0 - avg_fade)
 
 	_restore_stale_targets_inplace(_seen_this_frame)
+	_perf_probe.stop()
 
 
 func _exit_tree() -> void:

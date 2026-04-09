@@ -143,6 +143,7 @@ tags = Array[StringName]([&"room_fade_shell"])
 [node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001200002]
 script = ExtResource("63_room_fade_group_component")
 group_tag = &"ai_showcase_room_shell"
+clip_height_offset = 3.0
 
 [node name="SO_WallNorth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100001]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -14)

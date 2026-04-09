@@ -21,6 +21,9 @@ const U_DISPLAY_CINEMA_GRADE_APPLIER := preload("res://scripts/managers/helpers/
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const U_PERF_MONITOR := preload("res://scripts/utils/debug/u_perf_monitor.gd")
+const U_PERF_SHADER_BYPASS := preload("res://scripts/utils/debug/u_perf_shader_bypass.gd")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
@@ -54,6 +57,7 @@ var _cinema_grade_applier: RefCounted = null  # U_DisplayCinemaGradeApplier
 # Cached values for inspection/tests (Phase 1B)
 var _last_applied_settings: Dictionary = {}
 var _apply_count: int = 0
+var _perf_probe: U_PerfProbe = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -61,6 +65,16 @@ func _ready() -> void:
 	_theme_debug_log("ready: service registered")
 	_apply_mobile_overrides()
 	_ensure_appliers()
+
+	# Performance monitoring (mobile diagnostics)
+	var _is_mobile_perf := U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	_perf_probe = U_PerfProbe.create("FilmGrain", _is_mobile_perf)
+	var perf_monitor := U_PERF_MONITOR.new()
+	perf_monitor.name = "PerfMonitor"
+	add_child(perf_monitor)
+	var shader_bypass := U_PERF_SHADER_BYPASS.new()
+	shader_bypass.name = "PerfShaderBypass"
+	add_child(shader_bypass)
 
 	await _initialize_store_async()
 
@@ -109,7 +123,9 @@ func _initialize_store_async() -> void:
 func _process(___delta: float) -> void:
 	if _post_process_applier == null:
 		return
+	_perf_probe.start()
 	_post_process_applier.process_film_grain_time()
+	_perf_probe.stop()
 
 func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 	var tree := get_tree()
