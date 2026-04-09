@@ -101,6 +101,14 @@ func test_has_accessibility_fields() -> void:
 	assert_eq(initial_state.high_contrast_enabled, false)
 	assert_eq(initial_state.color_blind_shader_enabled, false)
 
+# Test 9b: Has mobile resolution scale field
+func test_has_mobile_resolution_scale_field() -> void:
+	assert_true(
+		"mobile_resolution_scale" in initial_state,
+		"RS_DisplayInitialState should have mobile_resolution_scale field"
+	)
+	assert_almost_eq(initial_state.mobile_resolution_scale, 0.35, 0.0001)
+
 # Test 10: to_dictionary returns all fields
 func test_to_dictionary_returns_all_fields() -> void:
 	var dict: Dictionary = initial_state.to_dictionary()

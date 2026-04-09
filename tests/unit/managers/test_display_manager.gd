@@ -10,14 +10,26 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const RS_UI_COLOR_PALETTE := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 
 var _manager: Node
 var _store: Node
+var _previous_max_fps: int = 0
+
+class ScaleRefreshContainer extends Node:
+	var refresh_calls: int = 0
+
+	func request_scale_refresh() -> void:
+		refresh_calls += 1
 
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
 	U_DISPLAY_UI_THEME_APPLIER.clear_active_palette()
 	U_UI_THEME_BUILDER.active_config = null
+	U_MOBILE_PLATFORM_DETECTOR.set_testing(false)
+	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(-1)
+	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(-1.0)
+	_previous_max_fps = Engine.max_fps
 	_manager = null
 	_store = null
 
@@ -25,6 +37,10 @@ func after_each() -> void:
 	U_SERVICE_LOCATOR.clear()
 	U_DISPLAY_UI_THEME_APPLIER.clear_active_palette()
 	U_UI_THEME_BUILDER.active_config = null
+	U_MOBILE_PLATFORM_DETECTOR.set_testing(false)
+	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(-1)
+	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(-1.0)
+	Engine.max_fps = _previous_max_fps
 	_manager = null
 	_store = null
 
@@ -280,6 +296,37 @@ func test_set_vsync_enabled_calls_display_server() -> void:
 	manager.set_vsync_enabled(false)
 	await get_tree().process_frame
 	assert_eq(ops.vsync_mode, DisplayServer.VSYNC_DISABLED, "VSync disabled should update window ops")
+
+func test_mobile_resolution_scale_clamps_to_floor_and_refreshes_viewport() -> void:
+	U_MOBILE_PLATFORM_DETECTOR.set_testing(true)
+	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(1)
+	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(-1.0)
+
+	_store = MOCK_STATE_STORE.new()
+	_store.set_slice(StringName("display"), {
+		"mobile_resolution_scale": 0.2,
+	})
+	add_child_autofree(_store)
+	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
+
+	var container := ScaleRefreshContainer.new()
+	add_child_autofree(container)
+	var game_viewport := SubViewport.new()
+	game_viewport.name = "GameViewport"
+	container.add_child(game_viewport)
+	U_SERVICE_LOCATOR.register(StringName("game_viewport"), game_viewport)
+
+	_manager = M_DISPLAY_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	assert_almost_eq(
+		U_MOBILE_PLATFORM_DETECTOR.get_viewport_scale_factor(),
+		0.35,
+		0.001,
+		"DisplayManager should clamp mobile resolution scale to 0.35 floor"
+	)
+	assert_eq(container.refresh_calls, 1, "DisplayManager should request viewport scale refresh after mobile scale changes")
 
 func test_palette_theme_binding_applies_to_registered_controls() -> void:
 	var manager := M_DISPLAY_MANAGER.new()

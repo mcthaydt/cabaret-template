@@ -6,8 +6,8 @@ class_name U_MobilePlatformDetector
 ## Centralizes mobile detection so callers don't need to repeat OS.has_feature()
 ## checks. Supports test overrides for deterministic unit testing.
 
-## Default resolution scale factor on mobile (50% of native resolution).
-const MOBILE_SCALE_FACTOR: float = 0.5
+## Default resolution scale factor on mobile (35% of native resolution).
+const MOBILE_SCALE_FACTOR: float = 0.35
 
 ## Minimum viewport dimensions to avoid rendering artifacts on very small screens.
 const MOBILE_MIN_VIEWPORT_WIDTH: int = 480
@@ -37,6 +37,9 @@ static func is_mobile() -> bool:
 	if _testing:
 		if _mobile_override >= 0:
 			return _mobile_override == 1
+	# Headless/server runs should behave like desktop for deterministic tests.
+	if OS.has_feature("headless") or OS.has_feature("server"):
+		return false
 	return OS.has_feature("mobile")
 
 ## Returns the viewport resolution scale factor.

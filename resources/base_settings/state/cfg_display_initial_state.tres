@@ -8,3 +8,4 @@ post_processing_enabled = true
 film_grain_enabled = true
 crt_enabled = true
 dither_enabled = true
+mobile_resolution_scale = 0.35

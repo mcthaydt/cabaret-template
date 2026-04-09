@@ -19,6 +19,7 @@ const DEFAULT_REGION_VISIBILITY_SETTINGS := preload(
 )
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const U_PERF_FADE_BYPASS := preload("res://scripts/utils/debug/u_perf_fade_bypass.gd")
 
 const MOBILE_TICK_INTERVAL := 4
 
@@ -48,6 +49,9 @@ var _fade_probe: U_PerfProbe = null
 func _init() -> void:
 	execution_priority = 100
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	if DisplayServer.get_name() == "headless":
+		_is_mobile = false
+	U_PERF_FADE_BYPASS.reset()
 	_perf_probe = U_PerfProbe.create("RegionVis", _is_mobile)
 	_fade_probe = U_PerfProbe.create("RegionFadeApply", _is_mobile)
 
@@ -62,6 +66,10 @@ func process_tick(delta: float) -> void:
 
 	if components.is_empty():
 		_restore_stale_targets({})
+		return
+
+	if _is_mobile and U_PERF_FADE_BYPASS.is_enabled():
+		_restore_components_to_opaque(components)
 		return
 
 	var mode_info: Dictionary = _get_active_mode_info()

@@ -33,7 +33,7 @@ const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobil
 @export var color_blind_shader_enabled: bool = false
 
 @export_group("Mobile")
-@export_range(0.25, 1.0, 0.05) var mobile_resolution_scale: float = 0.5
+@export_range(0.25, 1.0, 0.05) var mobile_resolution_scale: float = 0.35
 
 ## Convert resource to Dictionary for state store.
 ## On mobile, overrides graphics defaults for better performance.

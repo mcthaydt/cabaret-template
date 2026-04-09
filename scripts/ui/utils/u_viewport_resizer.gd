@@ -16,6 +16,11 @@ func _ready() -> void:
 func _on_resized() -> void:
 	_resize_viewport()
 
+## Public hook for runtime display-scale changes.
+## Called by DisplayManager after mobile resolution scale updates.
+func request_scale_refresh() -> void:
+	_resize_viewport()
+
 func _resize_viewport() -> void:
 	var viewport := get_child(0) as SubViewport
 	if viewport == null:

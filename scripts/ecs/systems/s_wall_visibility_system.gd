@@ -11,6 +11,8 @@ const RS_ROOM_FADE_SETTINGS_SCRIPT := preload("res://scripts/resources/display/v
 const U_WALL_VISIBILITY_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_wall_visibility_material_applier.gd")
 const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const U_PERF_FADE_BYPASS := preload("res://scripts/utils/debug/u_perf_fade_bypass.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const DEFAULT_ROOM_FADE_SETTINGS := preload("res://resources/display/vcam/cfg_default_room_fade.tres")
 
 const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
@@ -24,12 +26,14 @@ const OCCLUSION_CORRIDOR_MIN_RADIUS := 0.8
 const OCCLUSION_CORRIDOR_SEGMENT_EPSILON := 0.000001
 const ROOF_NORMAL_DOT_MIN := 0.9
 const ROOF_HEIGHT_MARGIN := 0.5
+const MOBILE_HIDE_FADE_THRESHOLD := 0.01
 
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_STATE_STORE = null
 @export var mobile_tick_interval: int = MOBILE_TICK_INTERVAL
 @export var desktop_tick_interval: int = 2
 @export var min_fade: float = 0.05
+@export var mobile_hide_walls_instead_of_fade: bool = true
 
 var material_applier: Variant = null
 var duplicate_target_warning_handler: Callable = Callable()
@@ -51,6 +55,7 @@ var _cached_transform_hashes: Dictionary = {}
 var _filtered_targets_by_component: Dictionary = {}
 var _filtered_targets_valid: Dictionary = {}
 var _seen_this_frame: Dictionary = {}
+var _original_visibility_by_id: Dictionary = {}
 
 # Pooled parallel arrays for Pass 1 (avoids per-target Dictionary allocation)
 var _pooled_targets: Array = []
@@ -63,7 +68,10 @@ var _pooled_is_roof: Array[bool] = []
 
 func _init() -> void:
 	execution_priority = 110
-	_is_mobile = OS.has_feature("mobile")
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	if DisplayServer.get_name() == "headless":
+		_is_mobile = false
+	U_PERF_FADE_BYPASS.reset()
 	desktop_tick_interval = 2 if not _is_mobile else 1
 	_perf_probe = U_PerfProbe.create("WallVis", _is_mobile)
 	_shader_probe = U_PerfProbe.create("WallVisShader", _is_mobile)
@@ -78,6 +86,10 @@ func process_tick(delta: float) -> void:
 
 	if components.is_empty():
 		_restore_stale_targets_inplace({})
+		return
+
+	if _is_mobile and U_PERF_FADE_BYPASS.is_enabled():
+		_restore_components_to_opaque(components)
 		return
 
 	# Tick throttling: skip frames on both mobile and desktop
@@ -102,6 +114,7 @@ func process_tick(delta: float) -> void:
 	var applier: Variant = _resolve_material_applier()
 	if applier == null:
 		return
+	var use_mobile_hide_mode: bool = _is_mobile_hide_mode()
 
 	var camera_forward: Vector3 = -main_camera.global_transform.basis.z
 	var camera_position: Vector3 = main_camera.global_transform.origin
@@ -135,8 +148,12 @@ func process_tick(delta: float) -> void:
 		if targets.is_empty():
 			continue
 
-		_shader_probe.start()
-		applier.apply_visibility_material(targets)
+		if use_mobile_hide_mode:
+			if applier.has_method("restore_original_materials"):
+				applier.restore_original_materials(targets)
+		else:
+			_shader_probe.start()
+			applier.apply_visibility_material(targets)
 
 		var clip_height_offset: float = DEFAULT_CLIP_HEIGHT_OFFSET
 		if component.has_method("get"):
@@ -241,8 +258,11 @@ func process_tick(delta: float) -> void:
 			next_fade = clampf(next_fade, 0.0, max_fade)
 
 			_target_fade_by_id[target_id] = next_fade
-			applier.update_uniforms(target, clip_y, next_fade)
-			_shader_probe.stop()
+			if use_mobile_hide_mode:
+				_apply_mobile_visibility_state(target, target_id, next_fade)
+			else:
+				applier.update_uniforms(target, clip_y, next_fade)
+				_shader_probe.stop()
 			_seen_this_frame[target_id] = target
 
 			component_fade_sum += next_fade
@@ -266,6 +286,7 @@ func _exit_tree() -> void:
 	_filtered_targets_by_component.clear()
 	_filtered_targets_valid.clear()
 	_seen_this_frame.clear()
+	_original_visibility_by_id.clear()
 	_pooled_targets.clear()
 	_pooled_target_ids.clear()
 	_pooled_normals.clear()
@@ -851,12 +872,18 @@ func _restore_stale_targets_inplace(active_targets: Dictionary) -> void:
 	if not stale_targets.is_empty():
 		if applier != null:
 			applier.restore_original_materials(stale_targets)
+		for target_variant in stale_targets:
+			if not (target_variant is Node3D) or not is_instance_valid(target_variant):
+				continue
+			var stale_target: Node3D = target_variant as Node3D
+			_restore_target_visibility(stale_target, stale_target.get_instance_id())
 		for stale_id in stale_ids:
 			_target_fade_by_id.erase(stale_id)
 			_cached_normals.erase(stale_id)
 			_cached_half_extents.erase(stale_id)
 			_cached_aabbs.erase(stale_id)
 			_cached_transform_hashes.erase(stale_id)
+			_original_visibility_by_id.erase(stale_id)
 
 	# Update tracking in-place: add new, remove stale
 	for target_id_variant in active_targets.keys():
@@ -888,6 +915,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 				continue
 			seen_targets[target_id] = true
 			_target_fade_by_id.erase(target_id)
+			_restore_target_visibility(target, target_id)
 			restore_targets.append(target)
 
 	for target_variant in _tracked_targets.values():
@@ -903,6 +931,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 		_cached_half_extents.erase(tracked_id)
 		_cached_aabbs.erase(tracked_id)
 		_cached_transform_hashes.erase(tracked_id)
+		_restore_target_visibility(tracked_target, tracked_id)
 		restore_targets.append(tracked_target)
 
 	var applier: Variant = _resolve_material_applier()
@@ -916,6 +945,32 @@ func _restore_components_to_opaque(components: Array) -> void:
 	_cached_transform_hashes.clear()
 	_filtered_targets_by_component.clear()
 	_filtered_targets_valid.clear()
+	_original_visibility_by_id.clear()
+
+
+func _is_mobile_hide_mode() -> bool:
+	return _is_mobile and mobile_hide_walls_instead_of_fade
+
+
+func _apply_mobile_visibility_state(target: Node3D, target_id: int, fade_amount: float) -> void:
+	if target == null or not is_instance_valid(target):
+		return
+	if not _original_visibility_by_id.has(target_id):
+		_original_visibility_by_id[target_id] = target.visible
+	var should_hide: bool = fade_amount > MOBILE_HIDE_FADE_THRESHOLD
+	if should_hide:
+		target.visible = false
+		return
+	_restore_target_visibility(target, target_id)
+
+
+func _restore_target_visibility(target: Node3D, target_id: int) -> void:
+	if target == null or not is_instance_valid(target):
+		_original_visibility_by_id.erase(target_id)
+		return
+	if _original_visibility_by_id.has(target_id):
+		target.visible = bool(_original_visibility_by_id.get(target_id, true))
+		_original_visibility_by_id.erase(target_id)
 
 
 # --- Utility ---

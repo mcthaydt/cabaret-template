@@ -84,7 +84,7 @@ static func is_color_blind_shader_enabled(state: Dictionary) -> bool:
 
 static func get_mobile_resolution_scale(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
-	return float(display.get("mobile_resolution_scale", 0.5))
+	return float(display.get("mobile_resolution_scale", 0.35))
 
 static func _get_display_slice(state: Dictionary) -> Dictionary:
 	if state == null:

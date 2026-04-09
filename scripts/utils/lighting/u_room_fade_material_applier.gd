@@ -2,6 +2,10 @@ extends RefCounted
 class_name U_RoomFadeMaterialApplier
 
 const SH_ROOM_FADE := preload("res://assets/shaders/sh_room_fade.gdshader")
+const SH_ROOM_FADE_DITHERED := preload("res://assets/shaders/sh_room_fade_dithered.gdshader")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+
+const USE_MOBILE_DITHERED_FADE := true
 
 const PARAM_FADE_ALPHA := "fade_alpha"
 const PARAM_ALBEDO_TEXTURE := "albedo_texture"
@@ -11,6 +15,12 @@ const TARGET_TYPE_CSG := "csg"
 
 var _material_cache: Dictionary = {}
 var _shader: Shader = SH_ROOM_FADE
+var _is_mobile: bool = false
+
+func _init() -> void:
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	if _is_mobile and USE_MOBILE_DITHERED_FADE:
+		_shader = SH_ROOM_FADE_DITHERED
 
 func are_all_targets_applied(targets: Array) -> bool:
 	if targets.is_empty():

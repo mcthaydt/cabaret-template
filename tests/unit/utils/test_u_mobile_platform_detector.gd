@@ -60,11 +60,16 @@ func test_scale_viewport_size_desktop_no_change() -> void:
 	assert_eq(result, Vector2i(1920, 1080),
 		"Desktop viewport size should not be scaled")
 
-func test_scale_viewport_size_mobile_halves() -> void:
+func test_scale_viewport_size_mobile_scales_by_default_factor() -> void:
 	U_MOBILE_PLATFORM_DETECTOR.set_testing(true)
 	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(1)
 	var result := U_MOBILE_PLATFORM_DETECTOR.scale_viewport_size(Vector2i(1080, 2400))
-	assert_eq(result, Vector2i(540, 1200),
+	var factor: float = U_MOBILE_PLATFORM_DETECTOR.MOBILE_SCALE_FACTOR
+	var expected := Vector2i(
+		maxi(int(1080 * factor), U_MOBILE_PLATFORM_DETECTOR.MOBILE_MIN_VIEWPORT_WIDTH),
+		maxi(int(2400 * factor), U_MOBILE_PLATFORM_DETECTOR.MOBILE_MIN_VIEWPORT_HEIGHT)
+	)
+	assert_eq(result, expected,
 		"Mobile viewport size should be scaled by MOBILE_SCALE_FACTOR")
 
 func test_scale_viewport_size_respects_minimum() -> void:
@@ -93,7 +98,12 @@ func test_scale_viewport_size_clear_scale_override_restores_default() -> void:
 	# Clear override
 	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(-1.0)
 	var result := U_MOBILE_PLATFORM_DETECTOR.scale_viewport_size(Vector2i(1080, 2400))
-	assert_eq(result, Vector2i(540, 1200),
+	var factor: float = U_MOBILE_PLATFORM_DETECTOR.MOBILE_SCALE_FACTOR
+	var expected := Vector2i(
+		maxi(int(1080 * factor), U_MOBILE_PLATFORM_DETECTOR.MOBILE_MIN_VIEWPORT_WIDTH),
+		maxi(int(2400 * factor), U_MOBILE_PLATFORM_DETECTOR.MOBILE_MIN_VIEWPORT_HEIGHT)
+	)
+	assert_eq(result, expected,
 		"Should fall back to MOBILE_SCALE_FACTOR when scale override is cleared")
 
 # --- scale_viewport_size with design_size parameter ---
@@ -106,7 +116,7 @@ func test_scale_viewport_size_with_design_size_scales_from_design() -> void:
 	var result := U_MOBILE_PLATFORM_DETECTOR.scale_viewport_size(
 		Vector2i(2249, 945), Vector2i(960, 600)
 	)
-	# 960*0.5=480, 600*0.5=300 → clamped to (480, 320) by minimum height
+	# 960*factor and 600*factor are clamped by minimum viewport bounds.
 	assert_eq(result, Vector2i(480, 320),
 		"Should scale design_size on mobile, not DPI-inflated container_size")
 
@@ -115,7 +125,12 @@ func test_scale_viewport_size_without_design_size_uses_container() -> void:
 	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(1)
 	# Without design_size, should fall back to scaling container_size (old behavior)
 	var result := U_MOBILE_PLATFORM_DETECTOR.scale_viewport_size(Vector2i(1080, 2400))
-	assert_eq(result, Vector2i(540, 1200),
+	var factor: float = U_MOBILE_PLATFORM_DETECTOR.MOBILE_SCALE_FACTOR
+	var expected := Vector2i(
+		maxi(int(1080 * factor), U_MOBILE_PLATFORM_DETECTOR.MOBILE_MIN_VIEWPORT_WIDTH),
+		maxi(int(2400 * factor), U_MOBILE_PLATFORM_DETECTOR.MOBILE_MIN_VIEWPORT_HEIGHT)
+	)
+	assert_eq(result, expected,
 		"Without design_size, should scale container_size as before")
 
 func test_scale_viewport_size_design_size_desktop_unchanged() -> void:

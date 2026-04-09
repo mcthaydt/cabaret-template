@@ -20,6 +20,7 @@ const DEFAULTS := {
 	"color_blind_mode": "normal",
 	"high_contrast_enabled": false,
 	"color_blind_shader_enabled": false,
+	"mobile_resolution_scale": 0.35,
 }
 
 # Test 1: window_size_preset selector
@@ -181,6 +182,16 @@ func test_is_color_blind_shader_enabled_returns_value_and_defaults() -> void:
 	var missing_field := _make_state()
 	missing_field["display"].erase("color_blind_shader_enabled")
 	assert_false(U_DisplaySelectors.is_color_blind_shader_enabled(missing_field))
+
+# Test 17: mobile_resolution_scale selector
+func test_get_mobile_resolution_scale_returns_value_and_defaults() -> void:
+	var state := _make_state()
+	state["display"]["mobile_resolution_scale"] = 0.6
+	assert_almost_eq(U_DisplaySelectors.get_mobile_resolution_scale(state), 0.6, 0.0001)
+	assert_almost_eq(U_DisplaySelectors.get_mobile_resolution_scale({}), 0.35, 0.0001)
+	var missing_field := _make_state()
+	missing_field["display"].erase("mobile_resolution_scale")
+	assert_almost_eq(U_DisplaySelectors.get_mobile_resolution_scale(missing_field), 0.35, 0.0001)
 
 func _make_state() -> Dictionary:
 	return {

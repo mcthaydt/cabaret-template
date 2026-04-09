@@ -33,6 +33,7 @@ const SHELL_GAMEPLAY := StringName("gameplay")
 
 const MIN_UI_SCALE := 0.8
 const MAX_UI_SCALE := 1.3
+const MIN_MOBILE_RESOLUTION_SCALE := 0.35
 
 ## Injected dependency (tests)
 @export var state_store: I_StateStore = null
@@ -252,7 +253,21 @@ func _apply_mobile_resolution_scale(state: Dictionary) -> void:
 	if not U_MOBILE_PLATFORM_DETECTOR.is_mobile():
 		return
 	var scale := U_DISPLAY_SELECTORS.get_mobile_resolution_scale(state)
-	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(clampf(scale, 0.25, 1.0))
+	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(
+		clampf(scale, MIN_MOBILE_RESOLUTION_SCALE, 1.0)
+	)
+	_request_mobile_scale_refresh()
+
+func _request_mobile_scale_refresh() -> void:
+	var game_viewport_variant: Variant = U_SERVICE_LOCATOR.try_get_service(StringName("game_viewport"))
+	if not (game_viewport_variant is Node):
+		return
+	var game_viewport: Node = game_viewport_variant as Node
+	var container: Node = game_viewport.get_parent()
+	if container == null:
+		return
+	if container.has_method("request_scale_refresh"):
+		container.call("request_scale_refresh")
 
 func _apply_ui_scale_settings(display_settings: Dictionary) -> void:
 	_ensure_appliers()
