@@ -157,6 +157,13 @@ func _flush_viewport_stats() -> void:
 	print("%s Viewport: size=%dx%d render=%dx%d" % [
 		LOG_PREFIX, size.x, size.y, render_size.x, render_size.y
 	])
+	# Report the game SubViewport render size to verify mobile shrink is working
+	var tree := get_tree()
+	if tree != null and tree.root != null:
+		var game_vp: Variant = tree.root.find_child("GameViewport", false, false)
+		if game_vp is SubViewport:
+			var game_size: Vector2i = game_vp.size
+			print("%s GameVP: %dx%d" % [LOG_PREFIX, game_size.x, game_size.y])
 
 
 func _flush_shader_pass_count() -> void:

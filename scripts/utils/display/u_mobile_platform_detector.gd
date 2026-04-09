@@ -49,10 +49,11 @@ static func get_viewport_scale_factor() -> float:
 	return 1.0
 
 ## Scales a viewport size by the current scale factor, clamped to minimums.
-static func scale_viewport_size(container_size: Vector2i) -> Vector2i:
+static func scale_viewport_size(container_size: Vector2i, design_size: Vector2i = Vector2i.ZERO) -> Vector2i:
 	var scale := get_viewport_scale_factor()
+	var base: Vector2i = design_size if design_size.x > 0 else container_size
 	var scaled := Vector2i(
-		maxi(int(container_size.x * scale), MOBILE_MIN_VIEWPORT_WIDTH),
-		maxi(int(container_size.y * scale), MOBILE_MIN_VIEWPORT_HEIGHT)
+		maxi(int(base.x * scale), MOBILE_MIN_VIEWPORT_WIDTH),
+		maxi(int(base.y * scale), MOBILE_MIN_VIEWPORT_HEIGHT)
 	)
 	return scaled

@@ -379,6 +379,10 @@ func _initialize_settings() -> void:
 	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_HISTORY):
 		enable_history = bool(ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, enable_history))
 
+	# Disable action history on mobile to avoid expensive deep copies
+	const U_MOBILE := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+	if U_MOBILE.is_mobile():
+		enable_history = false
 	_action_history_buffer.configure(settings.max_history_size, enable_history)
 
 func _initialize_slices() -> void:

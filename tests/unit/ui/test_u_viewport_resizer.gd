@@ -113,3 +113,40 @@ func test_mobile_stretch_true_updates_on_container_resize() -> void:
 	_container._on_resized()
 	assert_eq(_container.stretch_shrink, 2,
 		"stretch_shrink should remain 2 after resize on mobile")
+
+# --- Mobile DPI scaling (high-DPI container) ---
+
+func test_mobile_stretch_true_accounts_for_dpi_scale() -> void:
+	# Simulate a high-DPI mobile device where the container expands to
+	# physical screen size (2249x945) while design resolution is 960x600.
+	# dpi_scale = 2249/960 ≈ 2.34, stretch_shrink = round(2.34/0.5) = 5
+	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(1)
+	_container = _build_viewport_resizer(true, Vector2i(2249, 945))
+	add_child(_container)
+	await get_tree().process_frame
+
+	assert_eq(_container.stretch_shrink, 5,
+		"stretch_shrink should account for DPI scaling on high-DPI mobile")
+
+func test_mobile_stretch_true_dpi_scale_with_custom_scale() -> void:
+	# Same high-DPI device but with 0.75 scale override.
+	# dpi_scale = 2249/960 ≈ 2.34, stretch_shrink = round(2.34/0.75) = round(3.12) = 3
+	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(1)
+	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(0.75)
+	_container = _build_viewport_resizer(true, Vector2i(2249, 945))
+	add_child(_container)
+	await get_tree().process_frame
+
+	assert_eq(_container.stretch_shrink, 3,
+		"stretch_shrink should account for DPI scale with custom mobile scale")
+
+func test_mobile_stretch_true_low_dpi_device() -> void:
+	# Simulate a 1080p phone: container=1440x900, design=960x600
+	# dpi_scale = 1440/960 = 1.5, stretch_shrink = round(1.5/0.5) = 3
+	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(1)
+	_container = _build_viewport_resizer(true, Vector2i(1440, 900))
+	add_child(_container)
+	await get_tree().process_frame
+
+	assert_eq(_container.stretch_shrink, 3,
+		"stretch_shrink should scale correctly on 1080p-class mobile")

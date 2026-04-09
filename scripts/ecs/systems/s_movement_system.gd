@@ -297,8 +297,9 @@ func process_tick(delta: float) -> void:
 			body_state[body].previous_is_on_floor = current_on_floor
 
 	# Phase 16: Dispatch entity snapshots to state store (Entity Coordination Pattern)
-	# Reuse floating_by_body map created earlier
-	if store and bodies.size() > 0:
+	# Batch all entity snapshots into a single dispatch to avoid N deep copies
+	if store and bodies.size() > 0 and (not _is_mobile or (_dispatch_counter % MOBILE_DISPATCH_INTERVAL) == 0):
+		var batched_snapshots: Dictionary = {}
 		for body in bodies:
 			var entity_id: String = _get_entity_id(body)
 			if entity_id.is_empty():
@@ -320,14 +321,11 @@ func process_tick(delta: float) -> void:
 			var stable_frames: int = _floor_state_stable_frames.get(entity_id, 0)
 
 			if current_on_floor != previous_on_floor:
-				# State changed - reset stability counter
 				_floor_state_stable_frames[entity_id] = 0
 			else:
-				# State unchanged - increment stability counter
 				if stable_frames < MIN_STABLE_FRAMES:
 					_floor_state_stable_frames[entity_id] = stable_frames + 1
 
-			# Only include is_on_floor in snapshot if state is stable
 			var should_update_floor_state: bool = _floor_state_stable_frames.get(entity_id, 0) >= MIN_STABLE_FRAMES
 
 			var snapshot: Dictionary = {
@@ -338,14 +336,19 @@ func process_tick(delta: float) -> void:
 				"entity_type": _get_entity_type(body)
 			}
 
-			# Only add is_on_floor to snapshot if stable
 			if should_update_floor_state:
 				snapshot["is_on_floor"] = current_on_floor
 
-			# Mobile throttle: dispatch entity snapshots less frequently on mobile
-			# to reduce state store deep-copy pressure
-			if not _is_mobile or (_dispatch_counter % MOBILE_DISPATCH_INTERVAL) == 0:
-				store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
+			batched_snapshots[entity_id] = snapshot
+
+		if not batched_snapshots.is_empty():
+			store.dispatch(U_EntityActions.update_entity_snapshots(batched_snapshots))
+
+		# Prune stale entries from floor state tracking
+		if _floor_state_stable_frames.size() > batched_snapshots.size():
+			for key in _floor_state_stable_frames.keys():
+				if not batched_snapshots.has(key):
+					_floor_state_stable_frames.erase(key)
 	_perf_probe.stop()
 
 func _maybe_schedule_spawn_unfreeze(body: CharacterBody3D, spawn_state: C_SpawnStateComponent, current_physics_frame: int) -> void:
@@ -465,10 +468,16 @@ func _tick_debug_log_cooldowns(delta: float) -> void:
 	if _debug_log_cooldowns.is_empty():
 		return
 	var step: float = maxf(delta, 0.0)
+	var expired_keys: Array = []
 	for key_variant in _debug_log_cooldowns.keys():
 		var cooldown: float = float(_debug_log_cooldowns.get(key_variant, 0.0))
 		cooldown = maxf(cooldown - step, 0.0)
-		_debug_log_cooldowns[key_variant] = cooldown
+		if cooldown <= 0.0:
+			expired_keys.append(key_variant)
+		else:
+			_debug_log_cooldowns[key_variant] = cooldown
+	for key_variant in expired_keys:
+		_debug_log_cooldowns.erase(key_variant)
 
 func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	if not debug_ai_movement_logging:

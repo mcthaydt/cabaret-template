@@ -262,26 +262,33 @@ static func apply_reducers(
 
 	for slice_name in slice_configs:
 		var config: RS_StateSliceConfig = slice_configs[slice_name]
-		if config == null:
+		if config == null or config.reducer == Callable():
 			continue
 
 		var current_slice: Dictionary = state.get(slice_name, {})
-		var next_slice: Dictionary = current_slice.duplicate(true)
+		var reduced: Variant = config.reducer.callv([current_slice, action])
 
-		if config.reducer != Callable():
-			var args: Array = [current_slice, action]
-			var reduced: Variant = config.reducer.callv(args)
-			if reduced is Dictionary:
-				next_slice = reduced as Dictionary
+		if not (reduced is Dictionary):
+			continue
 
-		if not _dictionaries_equal(current_slice, next_slice):
-			state[slice_name] = next_slice.duplicate(true)
-			any_changed = true
+		var next_slice: Dictionary = reduced as Dictionary
 
-			if signal_batcher != null:
-				signal_batcher.mark_slice_dirty(slice_name, next_slice)
-			else:
-				pending_immediate_updates[slice_name] = next_slice.duplicate(true)
+		# Reference equality short-circuit: if the reducer returned the same
+		# dictionary reference, the action was not handled by this slice.
+		# All reducers return `state` unchanged for unrecognized actions.
+		if is_same(next_slice, current_slice):
+			continue
+
+		# Reducer produced a new dictionary — store it directly.
+		# Reducers always create fresh dicts via state.duplicate(), so
+		# next_slice is not shared with any other reference.
+		state[slice_name] = next_slice
+		any_changed = true
+
+		if signal_batcher != null:
+			signal_batcher.mark_slice_dirty(slice_name, next_slice)
+		else:
+			pending_immediate_updates[slice_name] = next_slice.duplicate(true)
 
 	return any_changed
 

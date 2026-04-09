@@ -79,7 +79,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			})
 
 		_:
-			return current
+			return state
 
 static func _merge_with_defaults(defaults: Dictionary, state: Dictionary) -> Dictionary:
 	var merged := defaults.duplicate(true)

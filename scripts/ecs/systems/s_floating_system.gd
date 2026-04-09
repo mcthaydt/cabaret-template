@@ -369,10 +369,16 @@ func _tick_debug_log_cooldowns(delta: float) -> void:
 	if _debug_log_cooldowns.is_empty():
 		return
 	var step: float = maxf(delta, 0.0)
+	var expired_keys: Array = []
 	for key_variant in _debug_log_cooldowns.keys():
 		var cooldown: float = float(_debug_log_cooldowns.get(key_variant, 0.0))
 		cooldown = maxf(cooldown - step, 0.0)
-		_debug_log_cooldowns[key_variant] = cooldown
+		if cooldown <= 0.0:
+			expired_keys.append(key_variant)
+		else:
+			_debug_log_cooldowns[key_variant] = cooldown
+	for key_variant in expired_keys:
+		_debug_log_cooldowns.erase(key_variant)
 
 func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	if not debug_ai_floating_logging:

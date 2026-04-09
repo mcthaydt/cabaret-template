@@ -303,28 +303,19 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 		
 		# Phase 16: Entity Coordination Pattern
 		U_EntityActions.ACTION_UPDATE_ENTITY_SNAPSHOT:
-			var new_state: Dictionary = state.duplicate(true)
 			var payload: Dictionary = action.get("payload", {})
 			var entity_id: String = payload.get("entity_id", "")
 			var snapshot: Dictionary = payload.get("snapshot", {})
-
 			if entity_id.is_empty():
 				return state
+			return _merge_entity_snapshots(state, {entity_id: snapshot})
 
-			# Ensure entities dict exists
-			if not new_state.has("entities"):
-				new_state["entities"] = {}
-
-			# Merge snapshot into entity data (preserves existing fields)
-			if new_state["entities"].has(entity_id):
-				var existing: Dictionary = new_state["entities"][entity_id].duplicate(true)
-				for key in snapshot.keys():
-					existing[key] = snapshot[key]
-				new_state["entities"][entity_id] = existing
-			else:
-				new_state["entities"][entity_id] = snapshot.duplicate(true)
-
-			return new_state
+		U_EntityActions.ACTION_UPDATE_ENTITY_SNAPSHOTS:
+			var payload: Dictionary = action.get("payload", {})
+			var snapshots: Dictionary = payload.get("snapshots", {})
+			if snapshots.is_empty():
+				return state
+			return _merge_entity_snapshots(state, snapshots)
 		
 		U_EntityActions.ACTION_REMOVE_ENTITY:
 			var new_state: Dictionary = state.duplicate(true)
@@ -340,6 +331,23 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 		_:
 			# Unknown action - return state unchanged
 			return state
+
+## Merge one or more entity snapshots into state.
+## snapshots: { entity_id: snapshot_dict, ... }
+static func _merge_entity_snapshots(state: Dictionary, snapshots: Dictionary) -> Dictionary:
+	var new_state: Dictionary = state.duplicate(false)
+	var entities: Dictionary = state.get("entities", {}).duplicate(false)
+	for entity_id in snapshots:
+		var snapshot: Dictionary = snapshots[entity_id]
+		if entities.has(entity_id):
+			var existing: Dictionary = (entities[entity_id] as Dictionary).duplicate(true)
+			for key in snapshot.keys():
+				existing[key] = snapshot[key]
+			entities[entity_id] = existing
+		else:
+			entities[entity_id] = snapshot.duplicate(true)
+	new_state["entities"] = entities
+	return new_state
 
 static func _apply_input_action(state: Variant, action: Dictionary) -> Variant:
 	if action == null:

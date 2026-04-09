@@ -8,11 +8,13 @@ class_name U_EntityActions
 ## See: redux-state-store-entity-coordination-pattern.md
 
 const ACTION_UPDATE_ENTITY_SNAPSHOT := StringName("gameplay/UPDATE_ENTITY_SNAPSHOT")
+const ACTION_UPDATE_ENTITY_SNAPSHOTS := StringName("gameplay/UPDATE_ENTITY_SNAPSHOTS")
 const ACTION_REMOVE_ENTITY := StringName("gameplay/REMOVE_ENTITY")
 
 ## Static initializer - register actions
 static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_UPDATE_ENTITY_SNAPSHOT)
+	U_ActionRegistry.register_action(ACTION_UPDATE_ENTITY_SNAPSHOTS)
 	U_ActionRegistry.register_action(ACTION_REMOVE_ENTITY)
 
 ## Update entity snapshot in state (for coordination/visibility)
@@ -38,6 +40,16 @@ static func remove_entity(entity_id: Variant) -> Dictionary:
 		"type": ACTION_REMOVE_ENTITY,
 		"payload": {
 			"entity_id": id_string
+		}
+	}
+
+## Batch update multiple entity snapshots in a single dispatch
+## snapshots: Dictionary of { entity_id: snapshot_dict, ... }
+static func update_entity_snapshots(snapshots: Dictionary) -> Dictionary:
+	return {
+		"type": ACTION_UPDATE_ENTITY_SNAPSHOTS,
+		"payload": {
+			"snapshots": snapshots
 		}
 	}
 

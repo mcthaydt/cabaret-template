@@ -8,9 +8,11 @@ const COMPONENT_TYPE := StringName("C_LandingIndicatorComponent")
 const UP_VECTOR: Vector3 = Vector3.UP
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const MOBILE_TICK_INTERVAL := 2
 
 var _perf_probe: U_PerfProbe = null
 var _is_mobile: bool = false
+var _tick_counter: int = 0
 
 
 func on_configured() -> void:
@@ -19,6 +21,9 @@ func on_configured() -> void:
 
 
 func process_tick(__delta: float) -> void:
+	_tick_counter += 1
+	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
+		return
 	_perf_probe.start()
 	# Phase 16: Check if landing indicator is enabled in state
 	var store: I_StateStore = U_StateUtils.get_store(self)

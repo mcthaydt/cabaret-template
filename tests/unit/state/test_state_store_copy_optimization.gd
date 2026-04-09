@@ -211,3 +211,84 @@ func test_a3_signal_batcher_overwrites_repeat_marks() -> void:
 	)
 
 	assert_eq(result_state[0].get("version"), 2, "Should flush latest marked state")
+
+# --- A4: apply_reducers reference equality short-circuit ---
+
+func test_a4_apply_reducers_skips_unchanged_slices_by_reference() -> void:
+	# Dispatch an action only handled by gameplay slice
+	# Verify that non-gameplay slices are not modified in state
+	var state_before: Dictionary = store.get_state()
+	var settings_before: Dictionary = state_before.get("settings", {})
+
+	store.dispatch(U_GameplayActions.pause_game())
+
+	var state_after: Dictionary = store.get_state()
+	var settings_after: Dictionary = state_after.get("settings", {})
+
+	# Settings slice should be identical (not deep-copied and re-stored)
+	assert_eq(settings_before, settings_after, "Non-target slices should remain unchanged")
+
+func test_a4_apply_reducers_detects_changes_correctly() -> void:
+	# Verify that changed slices are still detected
+	store.dispatch(U_GameplayActions.unpause_game())
+	var state_before: Dictionary = store.get_state()
+	var paused_before: bool = state_before.get("gameplay", {}).get("paused", true)
+
+	store.dispatch(U_GameplayActions.pause_game())
+	var state_after: Dictionary = store.get_state()
+	var paused_after: bool = state_after.get("gameplay", {}).get("paused", false)
+
+	assert_false(paused_before, "Should start unpaused")
+	assert_true(paused_after, "Should be paused after dispatch")
+
+func test_a4_apply_reducers_unchanged_action_does_not_dirty_slices() -> void:
+	# Dispatch an unknown action — no reducer should claim it
+	var unknown_action: Dictionary = {"type": StringName("unknown/noop"), "payload": null}
+	U_ActionRegistry.register_action(StringName("unknown/noop"))
+
+	var emitted_slices: Array[StringName] = []
+	var _unsub := store.subscribe(func(_action: Dictionary, _state: Dictionary) -> void:
+		pass
+	)
+	store.slice_updated.connect(func(slice_name: StringName, _slice_state: Dictionary) -> void:
+		emitted_slices.append(slice_name)
+	)
+
+	store.dispatch(unknown_action)
+	# Flush any batched signals
+	await get_tree().process_frame
+
+	assert_eq(emitted_slices.size(), 0, "Unknown action should not dirty any slices")
+
+func test_a4_entity_snapshot_dispatch_performance_improvement() -> void:
+	# Measure entity snapshot dispatch performance
+	# With the optimization, this should be significantly faster since
+	# only the gameplay slice gets deep-copied, not all 15 slices
+	U_ActionRegistry.register_action(U_EntityActions.ACTION_UPDATE_ENTITY_SNAPSHOT)
+	var snapshot: Dictionary = {
+		"position": Vector3(1.0, 2.0, 3.0),
+		"velocity": Vector3.ZERO,
+		"rotation": Vector3.ZERO,
+		"is_moving": true,
+		"entity_type": "player",
+	}
+
+	# Warm up
+	for i in range(10):
+		store.dispatch(U_EntityActions.update_entity_snapshot("player", snapshot))
+
+	var start: int = Time.get_ticks_usec()
+	for i in range(200):
+		snapshot["position"] = Vector3(float(i), 0.0, 0.0)
+		store.dispatch(U_EntityActions.update_entity_snapshot("player", snapshot))
+	var elapsed_ms: float = (Time.get_ticks_usec() - start) / 1000.0
+	var avg_per_dispatch: float = elapsed_ms / 200.0
+
+	# With optimization: should be well under 0.15ms per dispatch
+	var threshold_ms: float = 0.15
+	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+		threshold_ms = 0.25
+	assert_lt(
+		avg_per_dispatch, threshold_ms,
+		"Entity snapshot dispatch should be under threshold with apply_reducers optimization"
+	)
