@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-31
 **Last Updated**: 2026-04-03
-**Status**: M13 COMPLETE (character stack unification); M14-M16 planned
+**Status**: M15 COMPLETE (player-NPC interaction triggers)
 **Scope**: Quality-based NPC behavior selection using GOAP goals and HTN task decomposition, powered by QB Rule Manager v2
 
 ## Summary

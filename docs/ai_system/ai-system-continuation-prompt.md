@@ -5,28 +5,15 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 complete; Milestone 16 planned (debug overlay)
+**Status**: Milestone 15 complete
 
 ---
 
-## Current Status: Milestone 15 Complete, 16 Planned
+## Current Status: Milestone 15 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones, 1 remaining milestone).
-
-### Next Up: M16 — AI Debug Overlay System
-
-**M16 goal:** Add runtime AI observability (floating labels + color-coded state) for showcase/debug sessions.
-
-**M16 priority:**
-1. Per-NPC overlay labels — active goal, current task, and key runtime state
-2. Visual debugging aids — color coding by behavior state, optional move-target line
-3. Toggle + performance guard — debug-only activation with no gameplay regressions when disabled
-
-### Planned: M16
-
-- M16: AI debug overlay system (floating labels, color-coded states)
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
 
 ### Completed in M1 (2026-04-02)
 
@@ -497,7 +484,6 @@ You MUST:
 
 ## Next Steps
 
-1. Implement M16 — AI debug overlay system (floating labels, color-coded states, toggle key).
-2. Optional follow-up: run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
-3. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
-4. Merge `GOAP-AI` once M16 and regression review pass.
+1. Optional follow-up: run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
+2. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
+3. Merge `GOAP-AI` once regression review passes.

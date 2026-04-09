@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 complete, Milestone 16 planned (AI debug overlay)
+**Status**: Milestone 15 complete
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -690,29 +690,6 @@
 
 ---
 
-## Milestone 16: AI Debug Overlay System
-
-**Goal**: Runtime visualization of NPC AI state for showcase and debugging purposes.
-
-- [ ] Create `S_AIDebugOverlaySystem` — queries `C_AIBrainComponent` entities, renders floating labels
-- [ ] Display per-NPC:
-  - Active goal name
-  - Current task name
-  - Move target (line drawn to target position)
-  - Detection range (wireframe sphere/cone)
-- [ ] Toggle via debug key or HUD button
-- [ ] Color-code by state: green=patrol, yellow=investigating, red=alert, blue=guiding
-- [ ] Optional: small state history log showing recent goal transitions
-
-**M16 Verification**:
-- [ ] Debug overlay toggles on/off cleanly
-- [ ] All active NPCs display correct goal/task state
-- [ ] Color-coding matches NPC behavior state
-- [ ] No performance regression with overlay active
-- [ ] `test_style_enforcement.gd` passes
-
----
-
 ## Final Completion Check
 
 - [x] Milestones 1-11 complete
@@ -720,7 +697,6 @@
 - [x] Milestone 13 complete (character unification)
 - [x] Milestone 14 complete (showcase scene layout)
 - [x] Milestone 15 complete (player-NPC interactions)
-- [ ] Milestone 16 complete (debug overlay)
 - [ ] All tests green (unit, integration, style)
 - [ ] Continuation prompt updated to "Complete"
 - [x] AGENTS.md updated with AI System patterns (if applicable)
