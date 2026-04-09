@@ -1671,6 +1671,9 @@ func test_window_mode_fullscreen() -> void:
 - **Transient input booleans are unsafe as GOAP goal gates when evaluation is throttled**: gating goals on one-frame fields like `gameplay.input.camera_center_just_pressed` can be missed entirely when `RS_AIBrainSettings.evaluation_interval` is greater than the pulse window.
   - **Fix pattern**: gate authored/demo goals on durable Redux flags (for example `gameplay.ai_demo_flags.*`) and set those flags from scene trigger zones (for example `Inter_AIDemoFlagZone`) instead of raw one-frame input pulses.
 
+- **AI demo flags are gameplay actions, not navigation actions**: there is no `U_NavigationActions.set_gameplay_ai_demo_flag(...)`; trying to route AI trigger updates through navigation actions either fails at compile time or silently bypasses gameplay reducers.
+  - **Fix pattern**: dispatch `U_GameplayActions.set_ai_demo_flag(flag_id, value)` from detection/interaction/alarm systems.
+
 - **AI spawn-recovery tests can false-negative when movement support grace is still active**: if `C_MovementComponent.settings.support_grace_time > 0`, a freshly reset floating component may still be treated as "recently supported" for a short window, so `S_AISpawnRecoverySystem` intentionally does not recover yet. Waiting a frame can also let AI systems repopulate input/task state before assertions run.
   - **Fix pattern**: in deterministic tests, set `support_grace_time = 0.0` (or age `_last_support_time` well past grace), trigger recovery, and assert immediately after the recovery tick rather than after an extra physics frame.
 

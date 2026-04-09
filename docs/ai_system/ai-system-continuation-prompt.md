@@ -5,28 +5,27 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 14 complete; Milestones 15-16 planned (player-NPC interactions, debug overlay)
+**Status**: Milestone 15 complete; Milestone 16 planned (debug overlay)
 
 ---
 
-## Current Status: Milestone 14 Complete, 15-16 Planned
+## Current Status: Milestone 15 Complete, 16 Planned
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
-- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (14 complete milestones, 2 remaining milestones).
+- Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones, 1 remaining milestone).
 
-### Next Up: M15 — Player-NPC Interaction Triggers
+### Next Up: M16 — AI Debug Overlay System
 
-**M15 goal:** Add proximity detection, player-triggered goal switching, environmental triggers (alarm/door/collectible), and cascading events between NPCs.
+**M16 goal:** Add runtime AI observability (floating labels + color-coded state) for showcase/debug sessions.
 
-**M15 priority:**
-1. Proximity detection — player enters detection radius triggers NPC goal switch (e.g. patrol → investigate)
-2. Environmental triggers — interactable nodes (alarm button, door switch, collectible) dispatch AI demo flags via `U_NavigationActions.set_gameplay_ai_demo_flag`
-3. Cascading events — one NPC's alert goal publishes an event that gates or activates another NPC's goal
+**M16 priority:**
+1. Per-NPC overlay labels — active goal, current task, and key runtime state
+2. Visual debugging aids — color coding by behavior state, optional move-target line
+3. Toggle + performance guard — debug-only activation with no gameplay regressions when disabled
 
-### Planned: M15-16
+### Planned: M16
 
-- M15: Player-NPC interaction triggers (proximity detection, cascading events)
 - M16: AI debug overlay system (floating labels, color-coded states)
 
 ### Completed in M1 (2026-04-02)
@@ -334,6 +333,39 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
   - Full regression: `tools/run_gut_suite.sh` → `3782/3792` passing, `9` pending/risky, `1` pre-existing vcam failure (`test_vcam_runtime.gd`), `0` new failures.
 
+### Completed in M15 (2026-04-09)
+
+- Added RED/GREEN interaction-trigger coverage:
+  - `tests/unit/ecs/components/test_c_detection_component.gd` (`4/4`)
+  - `tests/unit/ecs/systems/test_s_ai_detection_system.gd` (`5/5`)
+  - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` (`3/3`)
+  - `tests/unit/ai/resources/test_ai_showcase_scene.gd` expanded to `18/18` with M15 assertions
+- Implemented new detection + relay runtime:
+  - `scripts/ecs/components/c_detection_component.gd`
+  - `scripts/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
+  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` (`execution_priority = -11`)
+  - `scripts/gameplay/inter_ai_demo_guard_barrier.gd`
+- Updated showcase behavior/resources for trigger-driven interactions:
+  - Added guide showcase resources:
+    - `resources/ai/guide_prism/cfg_goal_idle_showcase.tres`
+    - `resources/ai/guide_prism/cfg_goal_show_path_showcase.tres`
+    - `resources/ai/guide_prism/cfg_guide_showcase_brain.tres`
+  - Updated `resources/ai/sentry/cfg_goal_investigate_disturbance.tres` to publish `ai_alarm_triggered` for cross-NPC cascade behavior.
+  - Updated `scenes/prefabs/prefab_demo_npc.tscn` to include `C_DetectionComponent`.
+  - Updated `scenes/gameplay/gameplay_ai_showcase.tscn` with:
+    - systems: `S_AIDetectionSystem`, `S_AIDemoAlarmRelaySystem`
+    - interactions: `Inter_AlarmButton`, `Inter_DoorSwitch`, `Inter_GuideCollectible`
+    - barrier listener node: `SO_GuardBarrier` (`Inter_AIDemoGuardBarrier`)
+- Implementation contract correction:
+  - Demo flags in M15 are dispatched via `U_GameplayActions.set_ai_demo_flag(...)` (not `U_NavigationActions`).
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_detection_component.gd` → `4/4`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_detection_system.gd` → `5/5`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `3/3`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_showcase_scene.gd` → `18/18`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
+  - Full regression snapshot: `tools/run_gut_suite.sh` → `3820/3859` passing, `30` failing, `9` pending/risky (failures concentrated in wall-visibility/vcam suites, outside M15 change set).
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -354,6 +386,8 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **Default new-game routing now targets the AI showcase**: New Game + splash preload + retry routing resolve to `ai_showcase` (updated in M14 from `power_core`).
 - **M13 character stack unification is complete**: authored NPCs now instance `prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`), so they share the same baseline runtime component stack as player characters while excluding player-only components.
 - **M14 combined showcase is complete**: `gameplay_ai_showcase.tscn` hosts all three archetypes simultaneously — two patrol drones (zone A), one sentry (zone B), one guide prism (zone C) — in a single 60×30 CSG room. NPC brain overrides use `parent_id_path=PackedInt32Array(<npc_uid>, 1373490017)` (Components node UID in `prefab_demo_npc.tscn`). Both patrol drones share `cfg_patrol_drone_brain.tres` and recover to `sp_ai_patrol_drone`.
+- **M15 proximity/cascade trigger runtime is complete**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` provide player-range enter/exit state and optional enter-event publication; `S_AIDemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` into durable gameplay flags for cross-NPC reactions.
+- **M15 AI demo flag dispatch uses gameplay actions, not navigation actions**: use `U_GameplayActions.set_ai_demo_flag(...)` for alarm/door/collectible/proximity flag updates.
 
 ---
 
@@ -453,6 +487,7 @@ You MUST:
 - **RS_AIPrimitiveTask is a Wrapper**: RS_AIPrimitiveTask holds `@export var action: Resource` (I_AIAction). The task is the "what" (position in the HTN plan), the action is the "how" (self-executing logic + typed @export config).
 - **Animate Stub Scope (implemented)**: `RS_AIActionAnimate` sets `task_state["animation_state"]` to a StringName and completes immediately. Full animation system integration is a separate effort.
 - **M7/M12 Movement Bridge (implemented + hardened)**: `RS_AIActionMoveTo` writes `task_state["ai_move_target"]` + `task_state["ai_arrival_threshold"]`; `S_AINavigationSystem` (`execution_priority = -5`) resolves world-space XZ direction into `C_InputComponent.set_move_vector()` and applies per-task arrival threshold; `S_MovementSystem` consumes world-space vectors for AI entities while preserving player camera-relative controls.
+- **M15 interaction trigger contract (implemented)**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` own player-proximity enter/exit state, and `S_AIDemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` to durable gameplay flags. Demo-flag updates dispatch via `U_GameplayActions.set_ai_demo_flag(...)`.
 - **Shared runtime wiring is now default**: both `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` include `S_AIBehaviorSystem(-10)` and `S_AINavigationSystem(-5)` before `S_InputSystem(0)`.
 - **Demo Scenes are CSG Prototypes**: Use CSG geometry for all level geometry. Functional prototypes, not polished levels.
 - **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and node naming prefixes (S_, C_, RS_, U_, I_, E_, etc.).
@@ -462,7 +497,7 @@ You MUST:
 
 ## Next Steps
 
-1. Implement M15 — Player-NPC interaction triggers (proximity detection, environmental triggers, cascading NPC events).
-2. Implement M16 — AI debug overlay system (floating labels, color-coded states, toggle key).
-3. Optional follow-up: run in-editor playtest passes to tune waypoint spacing, scan durations, and cooldown values for feel.
-4. Merge `GOAP-AI` once M15-16 are complete and review passes.
+1. Implement M16 — AI debug overlay system (floating labels, color-coded states, toggle key).
+2. Optional follow-up: run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
+3. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
+4. Merge `GOAP-AI` once M16 and regression review pass.

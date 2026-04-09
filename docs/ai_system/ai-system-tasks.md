@@ -1,7 +1,7 @@
 # AI System (GOAP / HTN) - Tasks Checklist
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 13 complete, Milestones 14-16 planned (AI showcase scene, player-NPC interactions, debug overlay)
+**Status**: Milestone 15 complete, Milestone 16 planned (AI debug overlay)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-plan.md`
 
@@ -643,23 +643,50 @@
 
 **Goal**: NPCs react to player proximity and environmental triggers, demonstrating GOAP goal switching in real-time.
 
-- [ ] Add `C_DetectionComponent` (or similar) — raycast/area-based player proximity detection
-- [ ] Wire NPC goal switching behaviors:
+- [x] Add `C_DetectionComponent` (or similar) — distance-based player proximity detection
+- [x] Wire NPC goal switching behaviors:
   - Patrol drones: patrol → investigate when player enters detection range, return to patrol after timeout
   - Sentry: guard → alert when player enters restricted zone, publish alarm event
   - Guide prism: idle → show_path when player approaches, encourage when player falls
-- [ ] Add environmental triggers:
+- [x] Add environmental triggers:
   - Alarm button (causes all sentries to investigate)
   - Door switch (opens guarded area)
   - Collectible (triggers guide celebration)
-- [ ] Cascading behavior: one NPC's alarm event triggers other NPCs to react (demonstrates cross-NPC communication via ECS events)
+- [x] Cascading behavior: one NPC's alarm event triggers other NPCs to react (demonstrates cross-NPC communication via ECS events)
 
 **M15 Verification**:
-- [ ] Player proximity triggers goal switches visibly
-- [ ] Environmental triggers cause appropriate NPC reactions
-- [ ] Cascading events propagate between NPCs
-- [ ] All new detection/trigger tests pass
-- [ ] Full regression green
+- [x] Player proximity triggers goal switches visibly (showcase scene wiring + detection flags on all four NPCs)
+- [x] Environmental triggers cause appropriate NPC reactions (alarm, door, collectible demo zones)
+- [x] Cascading events propagate between NPCs (`ai_alarm_triggered` event fan-out to AI demo flags)
+- [x] All new detection/trigger tests pass
+- [ ] Full regression green (current branch snapshot includes unrelated non-AI failures in wall-visibility/vcam suites)
+
+**M15 Completion Notes (2026-04-09)**:
+- RED/GREEN coverage added:
+  - `tests/unit/ecs/components/test_c_detection_component.gd` (`4/4`)
+  - `tests/unit/ecs/systems/test_s_ai_detection_system.gd` (`5/5`)
+  - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` (`3/3`)
+  - `tests/unit/ai/resources/test_ai_showcase_scene.gd` expanded to `18/18` with M15 wiring assertions
+- Implemented:
+  - `scripts/ecs/components/c_detection_component.gd`
+  - `scripts/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
+  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` (`execution_priority = -11`)
+  - `scripts/gameplay/inter_ai_demo_guard_barrier.gd`
+  - `resources/ai/guide_prism/cfg_goal_idle_showcase.tres`
+  - `resources/ai/guide_prism/cfg_goal_show_path_showcase.tres`
+  - `resources/ai/guide_prism/cfg_guide_showcase_brain.tres`
+  - Updated `resources/ai/sentry/cfg_goal_investigate_disturbance.tres` to publish `ai_alarm_triggered`
+  - Updated `scenes/prefabs/prefab_demo_npc.tscn` (adds `C_DetectionComponent`)
+  - Updated `scenes/gameplay/gameplay_ai_showcase.tscn` with M15 systems + interaction nodes (`Inter_AlarmButton`, `Inter_DoorSwitch`, `Inter_GuideCollectible`, `SO_GuardBarrier`)
+- M15 trigger/action contract:
+  - Demo flags dispatch through `U_GameplayActions.set_ai_demo_flag(...)` (there is no `U_NavigationActions.set_gameplay_ai_demo_flag` action creator).
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_detection_component.gd` → `4/4`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_detection_system.gd` → `5/5`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `3/3`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_showcase_scene.gd` → `18/18`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
+  - Full regression snapshot: `tools/run_gut_suite.sh` → `3820/3859` passing, `30` failing, `9` pending/risky (current failures concentrated in wall-visibility/vcam suites, outside M15 diff scope).
 
 ---
 
@@ -692,10 +719,10 @@
 - [x] Milestone 12 complete (jitter fix)
 - [x] Milestone 13 complete (character unification)
 - [x] Milestone 14 complete (showcase scene layout)
-- [ ] Milestone 15 complete (player-NPC interactions)
+- [x] Milestone 15 complete (player-NPC interactions)
 - [ ] Milestone 16 complete (debug overlay)
-- [x] All tests green (unit, integration, style)
-- [x] Continuation prompt updated to "Complete"
+- [ ] All tests green (unit, integration, style)
+- [ ] Continuation prompt updated to "Complete"
 - [x] AGENTS.md updated with AI System patterns (if applicable)
 - [x] DEV_PITFALLS.md updated with any new pitfalls discovered
 - [ ] Branch merged to main
