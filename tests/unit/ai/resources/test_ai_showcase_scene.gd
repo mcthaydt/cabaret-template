@@ -3,7 +3,11 @@ extends BaseTest
 const AI_SHOWCASE_SCENE_PATH := "res://scenes/gameplay/gameplay_ai_showcase.tscn"
 const PATROL_BRAIN_PATH := "res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres"
 const SENTRY_BRAIN_PATH := "res://resources/ai/sentry/cfg_sentry_brain.tres"
-const GUIDE_BRAIN_PATH := "res://resources/ai/guide_prism/cfg_guide_brain.tres"
+const GUIDE_SHOWCASE_BRAIN_PATH := "res://resources/ai/guide_prism/cfg_guide_showcase_brain.tres"
+const U_HTN_PLANNER := preload("res://scripts/utils/ai/u_htn_planner.gd")
+const INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH := "res://scripts/gameplay/inter_ai_demo_flag_zone.gd"
+const INTER_AI_DEMO_GUARD_BARRIER_SCRIPT_PATH := "res://scripts/gameplay/inter_ai_demo_guard_barrier.gd"
+const SENTRY_INVESTIGATE_GOAL_PATH := "res://resources/ai/sentry/cfg_goal_investigate_disturbance.tres"
 
 const REQUIRED_NPC_COMPONENT_PATHS: Array[String] = [
 	"Components/C_SpawnStateComponent",
@@ -17,6 +21,7 @@ const REQUIRED_NPC_COMPONENT_PATHS: Array[String] = [
 	"Components/C_HealthComponent",
 	"Components/C_InputComponent",
 	"Components/C_AIBrainComponent",
+	"Components/C_DetectionComponent",
 ]
 
 func _load_scene_root() -> Node:
@@ -106,7 +111,7 @@ func test_showcase_guide_prism_uses_guide_brain() -> void:
 	var root: Node = _load_scene_root()
 	if root == null:
 		return
-	_assert_npc_brain(root, NodePath("Entities/NPCs/E_GuidePrism"), GUIDE_BRAIN_PATH)
+	_assert_npc_brain(root, NodePath("Entities/NPCs/E_GuidePrism"), GUIDE_SHOWCASE_BRAIN_PATH)
 
 func test_showcase_npcs_have_unified_component_stack() -> void:
 	var root: Node = _load_scene_root()
@@ -153,6 +158,92 @@ func test_showcase_has_interaction_and_noise_nodes() -> void:
 		root.get_node_or_null("Entities/NoiseSources/Inter_NoiseSourceA"),
 		"Expected Entities/NoiseSources/Inter_NoiseSourceA in showcase"
 	)
+
+func test_showcase_has_m15_interaction_nodes() -> void:
+	var root: Node = _load_scene_root()
+	if root == null:
+		return
+	for interaction_path in [
+		"Entities/Interactions/Inter_AlarmButton",
+		"Entities/Interactions/Inter_DoorSwitch",
+		"Entities/Interactions/Inter_GuideCollectible",
+	]:
+		var node: Node = root.get_node_or_null(interaction_path)
+		assert_not_null(node, "Expected %s in showcase" % interaction_path)
+		if node == null:
+			continue
+		var script: Script = node.get_script() as Script
+		assert_not_null(script, "Expected script on %s" % interaction_path)
+		if script != null:
+			assert_eq(script.resource_path, INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH)
+
+func test_showcase_has_guard_barrier_listener() -> void:
+	var root: Node = _load_scene_root()
+	if root == null:
+		return
+	var barrier: Node = root.get_node_or_null("SceneObjects/SO_GuardBarrier")
+	assert_not_null(barrier, "Expected SceneObjects/SO_GuardBarrier in showcase")
+	if barrier == null:
+		return
+	var script: Script = barrier.get_script() as Script
+	assert_not_null(script, "Expected guard barrier listener script")
+	if script != null:
+		assert_eq(script.resource_path, INTER_AI_DEMO_GUARD_BARRIER_SCRIPT_PATH)
+
+func test_showcase_has_m15_ai_systems() -> void:
+	var root: Node = _load_scene_root()
+	if root == null:
+		return
+	assert_not_null(root.get_node_or_null("Systems/Core/S_AIDetectionSystem"))
+	assert_not_null(root.get_node_or_null("Systems/Core/S_AIDemoAlarmRelaySystem"))
+
+func test_showcase_detection_components_have_expected_flags() -> void:
+	var root: Node = _load_scene_root()
+	if root == null:
+		return
+	var expected_flags: Dictionary = {
+		"Entities/NPCs/E_PatrolDroneA/Components/C_DetectionComponent": StringName("power_core_activated"),
+		"Entities/NPCs/E_PatrolDroneB/Components/C_DetectionComponent": StringName("power_core_activated"),
+		"Entities/NPCs/E_Sentry/Components/C_DetectionComponent": StringName("comms_disturbance_heard"),
+		"Entities/NPCs/E_GuidePrism/Components/C_DetectionComponent": StringName("guide_player_nearby"),
+	}
+	for component_path in expected_flags.keys():
+		var detection_component: Node = root.get_node_or_null(component_path)
+		assert_not_null(detection_component, "Expected %s" % component_path)
+		if detection_component == null:
+			continue
+		assert_eq(
+			detection_component.get("ai_flag_id"),
+			expected_flags[component_path],
+			"Unexpected ai_flag_id at %s" % component_path
+		)
+
+func test_sentry_investigate_goal_publishes_alarm_event() -> void:
+	var goal_variant: Variant = load(SENTRY_INVESTIGATE_GOAL_PATH)
+	assert_true(goal_variant is Resource)
+	if not (goal_variant is Resource):
+		return
+	var goal: Resource = goal_variant as Resource
+	var root_task_variant: Variant = goal.get("root_task")
+	assert_true(root_task_variant is Resource)
+	if not (root_task_variant is Resource):
+		return
+	var queue: Array[Resource] = U_HTN_PLANNER.decompose(root_task_variant as Resource, {})
+	assert_false(queue.is_empty())
+	var found_alarm_publish: bool = false
+	for task_variant in queue:
+		if not (task_variant is Resource):
+			continue
+		var task: Resource = task_variant as Resource
+		var action_variant: Variant = task.get("action")
+		if action_variant == null or not (action_variant is Resource):
+			continue
+		var action: Resource = action_variant as Resource
+		var event_name_variant: Variant = action.get("event_name")
+		if event_name_variant == StringName("ai_alarm_triggered"):
+			found_alarm_publish = true
+			break
+	assert_true(found_alarm_publish, "Expected investigate_disturbance goal to publish ai_alarm_triggered")
 
 func test_showcase_has_room_fade_shell() -> void:
 	var root: Node = _load_scene_root()

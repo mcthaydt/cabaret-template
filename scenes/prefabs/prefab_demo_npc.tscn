@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://c8xs8mubjbl1p" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="3_ai_brain"]
 [ext_resource type="Resource" uid="uid://1obnyyxuffs6" path="res://resources/ai/cfg_ai_brain_placeholder.tres" id="4_ai_brain_placeholder"]
 [ext_resource type="PackedScene" uid="uid://bnuwfkkw85h1t" path="res://scenes/prefabs/prefab_demo_npc_body.tscn" id="5_npc_body"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_detection_component.gd" id="6_detection"]
 
 [sub_resource type="Resource" id="Resource_e7447"]
 script = ExtResource("3_2ykux")
@@ -55,3 +56,6 @@ script = ExtResource("2_input")
 [node name="C_AIBrainComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="8" unique_id=392776987]
 script = ExtResource("3_ai_brain")
 brain_settings = ExtResource("4_ai_brain_placeholder")
+
+[node name="C_DetectionComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="9" unique_id=2145048101]
+script = ExtResource("6_detection")

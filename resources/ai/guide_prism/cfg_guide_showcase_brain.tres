@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_brain_settings.gd" id="1_brain"]
+[ext_resource type="Resource" path="res://resources/ai/guide_prism/cfg_goal_idle_showcase.tres" id="2_goal_idle"]
+[ext_resource type="Resource" path="res://resources/ai/guide_prism/cfg_goal_show_path_showcase.tres" id="3_goal_show_path"]
+[ext_resource type="Resource" path="res://resources/ai/guide_prism/cfg_goal_encourage.tres" id="4_goal_encourage"]
+[ext_resource type="Resource" path="res://resources/ai/guide_prism/cfg_goal_celebrate.tres" id="5_goal_celebrate"]
+
+[resource]
+script = ExtResource("1_brain")
+goals = Array[Resource]([ExtResource("2_goal_idle"), ExtResource("3_goal_show_path"), ExtResource("4_goal_encourage"), ExtResource("5_goal_celebrate")])
+default_goal_id = &"idle"
+evaluation_interval = 0.2

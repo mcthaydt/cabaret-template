@@ -70,6 +70,7 @@ func _create_fixture(with_body: bool = true) -> Dictionary:
 	autofree(system)
 	system.ecs_manager = ecs_manager
 	system.configure(ecs_manager)
+	system.navigation_throttle_interval = 0.0
 
 	var root := Node3D.new()
 	add_child_autofree(root)

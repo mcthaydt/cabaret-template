@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://ut0hjawm2yq3" path="res://scripts/resources/ai/rs_ai_primitive_task.gd" id="4_primitive_task"]
 [ext_resource type="Script" uid="uid://bqdnedsa4xgps" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="5_action_move_to"]
 [ext_resource type="Script" uid="uid://c6kwruacxjm85" path="res://scripts/resources/ai/actions/rs_ai_action_scan.gd" id="6_action_scan"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_publish_event.gd" id="7_action_publish_event"]
 
 [sub_resource type="Resource" id="Condition_sprint_noise"]
 script = ExtResource("2_condition_redux")
@@ -17,6 +18,18 @@ match_value_string = "true"
 script = ExtResource("5_action_move_to")
 target_node_path = NodePath("../../NoiseSources/Inter_NoiseSourceA")
 arrival_threshold = 1.1
+
+[sub_resource type="Resource" id="Action_publish_alarm"]
+script = ExtResource("7_action_publish_event")
+event_name = &"ai_alarm_triggered"
+payload = {
+"source": &"sentry"
+}
+
+[sub_resource type="Resource" id="Task_publish_alarm"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_publish_alarm")
+task_id = &"publish_alarm"
 
 [sub_resource type="Resource" id="Task_move_to_noise"]
 script = ExtResource("4_primitive_task")
@@ -45,7 +58,7 @@ task_id = &"return_to_post"
 
 [sub_resource type="Resource" id="Task_investigate_noise_sequence"]
 script = ExtResource("3_compound_task")
-subtasks = Array[Resource]([SubResource("Task_move_to_noise"), SubResource("Task_scan_disturbance"), SubResource("Task_return_to_post")])
+subtasks = Array[Resource]([SubResource("Task_publish_alarm"), SubResource("Task_move_to_noise"), SubResource("Task_scan_disturbance"), SubResource("Task_return_to_post")])
 task_id = &"investigate_noise_sequence"
 
 [resource]
