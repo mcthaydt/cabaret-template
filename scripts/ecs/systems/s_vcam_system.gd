@@ -22,7 +22,6 @@ const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
-const U_PERF_PROBE_SCRIPT := preload("res://scripts/utils/debug/u_perf_probe.gd")
 
 @export var state_store: I_StateStore = null
 @export var vcam_manager: I_VCAM_MANAGER = null
@@ -42,12 +41,6 @@ var _runtime_services_helper = U_VCAM_RUNTIME_SERVICES.new()
 var _state_store: I_StateStore = null
 var _vcam_manager: I_VCAM_MANAGER = null
 var _last_active_vcam_id: StringName = StringName("")
-
-# Mobile perf probes
-var _probe_total_tick = U_PERF_PROBE_SCRIPT.new("vcam_total_tick")
-var _probe_prepare = U_PERF_PROBE_SCRIPT.new("vcam_prepare_pipeline")
-var _probe_evaluate = U_PERF_PROBE_SCRIPT.new("vcam_evaluate_mode")
-var _probe_effect_pipeline = U_PERF_PROBE_SCRIPT.new("vcam_effect_pipeline")
 
 @warning_ignore("unused_private_class_variable")
 var _look_rotation_state: Dictionary:
@@ -121,7 +114,6 @@ func on_configured() -> void:
 	_debug_helper.set_state_store_provider(Callable(_runtime_services_helper, "resolve_state_store"))
 
 func process_tick(delta: float) -> void:
-	var _pt_total_start: int = _probe_total_tick.begin()
 	_debug_helper.configure(debug_rotation_logging, debug_rotation_log_interval_sec)
 	_debug_helper.tick(delta)
 	var manager := _runtime_services_helper.resolve_vcam_manager()
@@ -129,18 +121,12 @@ func process_tick(delta: float) -> void:
 	if manager == null:
 		_debug_helper.log_vcam_state("blocked: no vcam_manager service", StringName(""), Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
-		_probe_total_tick.end(_pt_total_start)
-		_probe_total_tick.tick_and_maybe_log()
-		_runtime_context_helper.log_obj_prop_stats_and_reset()
 		return
 
 	var active_vcam_id: StringName = manager.get_active_vcam_id()
 	if active_vcam_id == StringName(""):
 		_debug_helper.log_vcam_state("blocked: active_vcam_id is empty", StringName(""), Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
-		_probe_total_tick.end(_pt_total_start)
-		_probe_total_tick.tick_and_maybe_log()
-		_runtime_context_helper.log_obj_prop_stats_and_reset()
 		return
 
 	var vcam_index: Dictionary = _runtime_services_helper.build_vcam_index(
@@ -149,9 +135,6 @@ func process_tick(delta: float) -> void:
 	if vcam_index.is_empty():
 		_debug_helper.log_vcam_state("blocked: vcam_index is empty", active_vcam_id, Vector2.ZERO)
 		_last_active_vcam_id = StringName("")
-		_probe_total_tick.end(_pt_total_start)
-		_probe_total_tick.tick_and_maybe_log()
-		_runtime_context_helper.log_obj_prop_stats_and_reset()
 		return
 	_prune_smoothing_state(vcam_index)
 	_apply_rotation_continuity_policy(active_vcam_id, vcam_index, manager)
@@ -165,64 +148,43 @@ func process_tick(delta: float) -> void:
 	_debug_helper.log_vcam_state("tick", active_vcam_id, look_input)
 	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
 
-	var _pt_prepare_start: int = _probe_prepare.begin()
 	var pipeline_state: Dictionary = _prepare_vcam_pipeline_state(
 		active_vcam_id, vcam_index, look_input, move_input,
 		camera_center_just_pressed, manager, delta
 	)
-	_probe_prepare.end(_pt_prepare_start)
 	if not pipeline_state.is_empty():
-		var _pt_eval_start: int = _probe_evaluate.begin()
 		var mode_result: Dictionary = _evaluate_vcam_mode_result(
 			active_vcam_id, pipeline_state, manager, delta
 		)
-		_probe_evaluate.end(_pt_eval_start)
 		if not mode_result.is_empty():
-			var _pt_pipe_start: int = _probe_effect_pipeline.begin()
 			var final_result: Dictionary = _apply_vcam_effect_pipeline(
 				active_vcam_id, pipeline_state, mode_result, landing_offset, delta
 			)
-			_probe_effect_pipeline.end(_pt_pipe_start)
 			if active_vcam_id == manager.get_active_vcam_id():
 				_write_active_camera_base_fov_from_result(final_result)
 			manager.submit_evaluated_camera(active_vcam_id, final_result)
 
 	if not manager.is_blending():
-		_probe_total_tick.end(_pt_total_start)
-		_probe_total_tick.tick_and_maybe_log()
-		_runtime_context_helper.log_obj_prop_stats_and_reset()
 		return
 
 	var previous_vcam_id: StringName = manager.get_previous_vcam_id()
 	if previous_vcam_id == StringName("") or previous_vcam_id == active_vcam_id:
-		_probe_total_tick.end(_pt_total_start)
-		_probe_total_tick.tick_and_maybe_log()
-		_runtime_context_helper.log_obj_prop_stats_and_reset()
 		return
 
-	var _pt_prepare2_start: int = _probe_prepare.begin()
 	var pipeline_state_prev: Dictionary = _prepare_vcam_pipeline_state(
 		previous_vcam_id, vcam_index, look_input, move_input, false, manager, delta
 	)
-	_probe_prepare.end(_pt_prepare2_start)
 	if not pipeline_state_prev.is_empty():
-		var _pt_eval2_start: int = _probe_evaluate.begin()
 		var mode_result_prev: Dictionary = _evaluate_vcam_mode_result(
 			previous_vcam_id, pipeline_state_prev, manager, delta
 		)
-		_probe_evaluate.end(_pt_eval2_start)
 		if not mode_result_prev.is_empty():
-			var _pt_pipe2_start: int = _probe_effect_pipeline.begin()
 			var final_result_prev: Dictionary = _apply_vcam_effect_pipeline(
 				previous_vcam_id, pipeline_state_prev, mode_result_prev, landing_offset, delta
 			)
-			_probe_effect_pipeline.end(_pt_pipe2_start)
 			if previous_vcam_id == manager.get_active_vcam_id():
 				_write_active_camera_base_fov_from_result(final_result_prev)
 			manager.submit_evaluated_camera(previous_vcam_id, final_result_prev)
-
-	_probe_total_tick.end(_pt_total_start)
-	_probe_total_tick.tick_and_maybe_log()
 
 func get_debug_issues() -> Array[String]:
 	return _debug_helper.get_debug_issues()

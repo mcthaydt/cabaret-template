@@ -21,7 +21,6 @@ const CAMERA_MANAGER_SERVICE := StringName("camera_manager")
 const CAMERA_SHAKE_SOURCE := StringName("qb_camera_rule")
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
 const PRIMARY_PLAYER_ENTITY_ID := StringName("player")
-const U_PERF_PROBE_SCRIPT := preload("res://scripts/utils/debug/u_perf_probe.gd")
 
 const RULE_SCORE_CONTEXT_KEY := "rule_score"
 
@@ -58,13 +57,6 @@ var _event_unsubscribers: Array[Callable] = []
 var _has_tick_rules: bool = false
 var _shake_time: float = 0.0
 
-# Mobile perf probes
-var _probe_total_tick = U_PERF_PROBE_SCRIPT.new("cam_state_total_tick")
-var _probe_build_contexts = U_PERF_PROBE_SCRIPT.new("cam_state_build_ctx")
-var _probe_apply_state = U_PERF_PROBE_SCRIPT.new("cam_state_apply")
-var _obj_prop_call_count: int = 0
-var _obj_prop_total_usec: int = 0
-
 func on_configured() -> void:
 	_refresh_active_rules()
 	_subscribe_rule_events()
@@ -74,19 +66,13 @@ func _exit_tree() -> void:
 	_unsubscribe_rule_events()
 
 func process_tick(delta: float) -> void:
-	var _pt_total_start: int = _probe_total_tick.begin()
 	_tracker.tick_cooldowns(delta)
 
-	var _pt_ctx_start: int = _probe_build_contexts.begin()
 	var contexts: Array = _build_camera_contexts({})
-	_probe_build_contexts.end(_pt_ctx_start)
 	if contexts.is_empty():
 		var manager_when_empty: I_CAMERA_MANAGER = _resolve_camera_manager()
 		if manager_when_empty != null:
 			manager_when_empty.clear_shake_source(CAMERA_SHAKE_SOURCE)
-		_probe_total_tick.end(_pt_total_start)
-		_probe_total_tick.tick_and_maybe_log()
-		_log_obj_prop_stats()
 		return
 
 	var active_context_keys: Array = []
@@ -105,14 +91,7 @@ func process_tick(delta: float) -> void:
 			active_context_keys.append(_context_key_for_context(context))
 
 	_tracker.cleanup_stale_contexts(active_context_keys)
-	var _pt_apply_start: int = _probe_apply_state.begin()
 	_apply_camera_state(contexts, delta)
-	_probe_apply_state.end(_pt_apply_start)
-	_probe_total_tick.end(_pt_total_start)
-	_probe_total_tick.tick_and_maybe_log()
-	_probe_build_contexts.tick_and_maybe_log()
-	_probe_apply_state.tick_and_maybe_log()
-	_log_obj_prop_stats()
 
 func get_rule_validation_report() -> Dictionary:
 	return _rule_validation_report.duplicate(true)
@@ -621,27 +600,12 @@ func _get_camera_state_float(camera_state: Variant, property_name: String, fallb
 	return _get_float_property(object_value, property_name, fallback)
 
 func _object_has_property(object_value: Object, property_name: String) -> bool:
-	var _pt_start: int = Time.get_ticks_usec()
-	_obj_prop_call_count += 1
 	var properties: Array[Dictionary] = object_value.get_property_list()
 	for property_info in properties:
 		var name_value: Variant = property_info.get("name", "")
 		if str(name_value) == property_name:
-			_obj_prop_total_usec += (Time.get_ticks_usec() - _pt_start)
 			return true
-	_obj_prop_total_usec += (Time.get_ticks_usec() - _pt_start)
 	return false
-
-func _log_obj_prop_stats() -> void:
-	if not _probe_total_tick.is_active():
-		return
-	if _obj_prop_call_count > 0:
-		var avg_ms := float(_obj_prop_total_usec) / float(_obj_prop_call_count) / 1000.0
-		print("[PERF] cam_state_obj_has_prop: calls=%d total=%.3fms avg=%.3fms" % [
-			_obj_prop_call_count, float(_obj_prop_total_usec) / 1000.0, avg_ms
-		])
-	_obj_prop_call_count = 0
-	_obj_prop_total_usec = 0
 
 func _is_script_instance_of(object_value: Object, script_ref: Script) -> bool:
 	if object_value == null:

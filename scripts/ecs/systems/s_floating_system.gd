@@ -6,11 +6,14 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 ## Number of consecutive frames required to transition stable ground state
 ## 4 frames ≈ 67ms at 60fps, filters spring oscillations (~50ms) while staying responsive
 const STABLE_GROUND_FRAMES_REQUIRED := 4
+## Mobile throttle: skip every Nth physics tick to reduce raycast overhead
+const MOBILE_TICK_INTERVAL := 2
 
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 
 @export var debug_ai_floating_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
@@ -20,6 +23,8 @@ const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
 var _debug_log_cooldowns: Dictionary = {}
 var _diag_frame_counter: int = 0
+var _is_mobile: bool = false
+var _tick_counter: int = 0
 
 class SupportInfo:
 	var has_hit: bool = false
@@ -30,7 +35,15 @@ class SupportInfo:
 	var hit_ray_names: Array = []
 	var miss_ray_names: Array = []
 
+func _init() -> void:
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+
 func process_tick(delta: float) -> void:
+	# Mobile throttle: skip every Nth physics tick to reduce raycast overhead
+	_tick_counter += 1
+	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
+		return
+
 	_diag_frame_counter += 1
 	_tick_debug_log_cooldowns(delta)
 	var manager := get_manager()

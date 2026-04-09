@@ -9,6 +9,7 @@ const U_CHARACTER_LIGHTING_BLEND_MATH := preload("res://scripts/utils/lighting/u
 const U_CHARACTER_LIGHTING_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_character_lighting_material_applier.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const SERVICE_NAME := StringName("character_lighting_manager")
 const STATE_SERVICE := StringName("state_store")
 const SCENE_SERVICE := StringName("scene_manager")
@@ -22,6 +23,8 @@ const LIGHTING_NODE_NAME := "Lighting"
 const SETTINGS_NODE_NAME := "CharacterLightingSettings"
 const INFLUENCE_ENTER_THRESHOLD := 0.02
 const INFLUENCE_EXIT_THRESHOLD := 0.01
+## Mobile throttle: skip every Nth physics tick to reduce zone computation overhead
+const MOBILE_TICK_INTERVAL := 3
 const DEFAULT_PROFILE := {
 	"tint": Color(1.0, 1.0, 1.0, 1.0),
 	"intensity": 1.0,
@@ -47,9 +50,12 @@ var _store_action_connected: bool = false
 var _manual_scene_default_profile: bool = false
 var _character_lighting_history: Dictionary = {} # character instance_id -> {tint, intensity}
 var _character_zone_hysteresis: Dictionary = {} # character instance_id -> {zone_key: is_active}
+var _is_mobile: bool = false
+var _tick_counter: int = 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
 	_resolve_dependencies()
 	_connect_store_action_signal()
 	var existing := U_SERVICE_LOCATOR.try_get_service(SERVICE_NAME)
@@ -97,6 +103,11 @@ func set_character_lighting_enabled(enabled: bool) -> void:
 	_is_enabled = enabled
 
 func _physics_process(_delta: float) -> void:
+	# Mobile throttle: skip every Nth physics tick to reduce zone computation overhead
+	_tick_counter += 1
+	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
+		return
+
 	_resolve_dependencies()
 	_connect_store_action_signal()
 

@@ -3,7 +3,8 @@ class_name U_ViewportResizer
 
 ## Automatically resizes the child SubViewport to match the container size.
 ## On mobile devices, renders at a reduced resolution for better performance.
-## The SubViewportContainer's stretch property handles upscaling to native size.
+## Uses stretch_shrink when stretch is enabled (Godot-managed upscaling),
+## or directly sets SubViewport.size when stretch is disabled.
 
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 
@@ -16,10 +17,6 @@ func _on_resized() -> void:
 	_resize_viewport()
 
 func _resize_viewport() -> void:
-	# If stretch is enabled, the container controls the size automatically.
-	if stretch:
-		return
-
 	var viewport := get_child(0) as SubViewport
 	if viewport == null:
 		return
@@ -31,8 +28,22 @@ func _resize_viewport() -> void:
 	if target_size.x < 1 or target_size.y < 1:
 		target_size = get_viewport().get_visible_rect().size
 
-	# On mobile, scale the viewport down for better performance.
-	# The SubViewportContainer stretch will upscale to fill the screen.
+	var scale_factor := U_MOBILE_PLATFORM_DETECTOR.get_viewport_scale_factor()
+
+	if stretch:
+		# When stretch is enabled, Godot manages the SubViewport size and
+		# prevents manual resizing. Use stretch_shrink instead — it tells
+		# the container to render at a fraction of native resolution and
+		# upscale the result. stretch_shrink=2 halves each dimension (50%
+		# of pixels), stretch_shrink=3 renders at 1/3, etc.
+		if scale_factor < 1.0:
+			# Round to nearest integer: 0.5 → 2, 0.33 → 3, 0.75 → 2, etc.
+			stretch_shrink = maxi(2, int(roundf(1.0 / scale_factor)))
+		else:
+			stretch_shrink = 1
+		return
+
+	# When stretch is disabled, directly set the SubViewport render size.
 	var scaled_size := U_MOBILE_PLATFORM_DETECTOR.scale_viewport_size(
 		Vector2i(int(target_size.x), int(target_size.y))
 	)

@@ -5,13 +5,13 @@ class_name U_DisplayCinemaGradeApplier
 ##
 ## Creates a CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay and
 ## listens for scene/transition_completed to swap cinema grades automatically.
-## On mobile, force-disables sharpness to avoid the expensive 5-tap unsharp mask.
+## On mobile, force-disables the cinema grade layer entirely — the fullscreen
+## shader pass is too expensive on tile-based GPUs.
 
 const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shader.gdshader")
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
-const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 
 const SCENE_SWAPPED := StringName("scene/swapped")
 
@@ -21,9 +21,6 @@ var _cinema_grade_layer: CanvasLayer = null
 var _cinema_grade_rect: ColorRect = null
 var _shader_material: ShaderMaterial = null
 var _is_mobile: bool = false
-
-# Mobile perf probe
-var _probe_uniforms = U_PERF_PROBE.new("cinema_grade_uniforms")
 
 func initialize(owner: Node, state_store: I_StateStore) -> void:
 	_owner = owner
@@ -35,14 +32,28 @@ func initialize(owner: Node, state_store: I_StateStore) -> void:
 		_state_store.action_dispatched.connect(_on_action_dispatched)
 
 func apply_settings(display_settings: Dictionary) -> void:
+	# Mobile: skip entirely. The cinema grade layer is force-hidden on mobile
+	# because the fullscreen shader pass is too expensive on tile-based GPUs.
+	if _is_mobile:
+		return
 	if not _ensure_cinema_grade_layer():
 		return
 	var state := {"display": display_settings}
 	_apply_cinema_grade_uniforms(state)
 
 func update_visibility(should_show: bool) -> void:
-	if _cinema_grade_layer != null and is_instance_valid(_cinema_grade_layer):
-		_cinema_grade_layer.visible = should_show
+	# Mobile: force-hide the cinema grade layer. The fullscreen shader pass
+	# with follow_viewport_enabled causes a full re-render of the 3D scene
+	# at native resolution, which is prohibitively expensive on tile-based GPUs.
+	if _is_mobile:
+		_ensure_cinema_grade_layer()
+		if _cinema_grade_layer != null and is_instance_valid(_cinema_grade_layer):
+			_cinema_grade_layer.visible = false
+		return
+
+	if not _ensure_cinema_grade_layer():
+		return
+	_cinema_grade_layer.visible = should_show
 
 ## Mobile debug: force-disable the cinema grade shader pass.
 ## Returns true if the layer was previously visible (i.e., this changed something).
@@ -83,8 +94,6 @@ func _apply_cinema_grade_uniforms(state: Dictionary) -> void:
 	if _shader_material == null:
 		return
 
-	var _pt_start: int = _probe_uniforms.begin()
-
 	_shader_material.set_shader_parameter("filter_mode", U_CinemaGradeSelectors.get_filter_mode(state))
 	_shader_material.set_shader_parameter("filter_intensity", U_CinemaGradeSelectors.get_filter_intensity(state))
 	_shader_material.set_shader_parameter("exposure", U_CinemaGradeSelectors.get_exposure(state))
@@ -102,9 +111,6 @@ func _apply_cinema_grade_uniforms(state: Dictionary) -> void:
 	# Mobile override: force-disable sharpness (5-tap unsharp mask is too expensive on tile-based GPUs)
 	if _is_mobile:
 		_shader_material.set_shader_parameter("sharpness", 0.0)
-
-	_probe_uniforms.end(_pt_start)
-	_probe_uniforms.tick_and_maybe_log()
 
 func _ensure_cinema_grade_layer() -> bool:
 	if _cinema_grade_layer != null and is_instance_valid(_cinema_grade_layer):

@@ -9,19 +9,12 @@ const U_VCAM_DEBUG := preload("res://scripts/ecs/systems/helpers/u_vcam_debug.gd
 const U_VCAM_RUNTIME_CONTEXT := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_context.gd")
 const U_VCAM_RUNTIME_SERVICES := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
-const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 
 const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
 const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0
 const DEFAULT_LOOK_RELEASE_STOP_THRESHOLD: float = 0.05
 const DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED: float = 0.15
 const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3
-
-# Mobile perf probes
-var _probe_look_ahead = U_PERF_PROBE.new("vcam_look_ahead")
-var _probe_ground_relative = U_PERF_PROBE.new("vcam_ground_relative")
-var _probe_soft_zone = U_PERF_PROBE.new("vcam_soft_zone")
-var _probe_response_smoothing = U_PERF_PROBE.new("vcam_response_smoothing")
 
 var _owner: Node = null
 var _orbit_effects_helper: U_VCamOrbitEffects = null
@@ -98,7 +91,6 @@ func apply_vcam_effect_pipeline(
 	if component == null or mode == null:
 		return mode_result
 
-	var _pt_la_start: int = _probe_look_ahead.begin()
 	var look_ahead_result: Dictionary = _apply_orbit_look_ahead(
 		vcam_id,
 		component,
@@ -108,8 +100,6 @@ func apply_vcam_effect_pipeline(
 		has_active_look_input,
 		delta
 	)
-	_probe_look_ahead.end(_pt_la_start)
-	var _pt_gr_start: int = _probe_ground_relative.begin()
 	var ground_relative_result: Dictionary = _apply_orbit_ground_relative(
 		vcam_id,
 		component,
@@ -119,8 +109,6 @@ func apply_vcam_effect_pipeline(
 		response_values,
 		delta
 	)
-	_probe_ground_relative.end(_pt_gr_start)
-	var _pt_sz_start: int = _probe_soft_zone.begin()
 	var soft_zone_result: Dictionary = _apply_orbit_soft_zone(
 		vcam_id,
 		component,
@@ -129,8 +117,6 @@ func apply_vcam_effect_pipeline(
 		ground_relative_result,
 		delta
 	)
-	_probe_soft_zone.end(_pt_sz_start)
-	var _pt_rs_start: int = _probe_response_smoothing.begin()
 	var smoothed_result: Dictionary = _apply_response_smoothing(
 		vcam_id,
 		component,
@@ -141,11 +127,6 @@ func apply_vcam_effect_pipeline(
 		has_active_look_input,
 		clear_smoothing_state_for_vcam
 	)
-	_probe_response_smoothing.end(_pt_rs_start)
-	_probe_look_ahead.tick_and_maybe_log()
-	_probe_ground_relative.tick_and_maybe_log()
-	_probe_soft_zone.tick_and_maybe_log()
-	_probe_response_smoothing.tick_and_maybe_log()
 	return _apply_landing_impact_offset(smoothed_result, landing_offset)
 
 func _apply_landing_impact_offset(result: Dictionary, landing_offset: Vector3) -> Dictionary:

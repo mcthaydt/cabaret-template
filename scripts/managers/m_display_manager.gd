@@ -21,7 +21,6 @@ const U_DISPLAY_CINEMA_GRADE_APPLIER := preload("res://scripts/managers/helpers/
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
-const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
@@ -56,14 +55,6 @@ var _cinema_grade_applier: RefCounted = null  # U_DisplayCinemaGradeApplier
 var _last_applied_settings: Dictionary = {}
 var _apply_count: int = 0
 
-# Mobile perf probe
-var _probe_film_grain_process = U_PERF_PROBE.new("film_grain_process")
-
-# Mobile debug shader bypass state
-var _debug_cinema_grade_was_visible: bool = false
-var _debug_combined_was_visible: bool = false
-var _debug_shaders_disabled: bool = false
-
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	U_SERVICE_LOCATOR.register(SERVICE_NAME, self)
@@ -81,9 +72,6 @@ func _exit_tree() -> void:
 	if _state_store != null and _state_store.has_signal("slice_updated"):
 		if _state_store.slice_updated.is_connected(_on_slice_updated):
 			_state_store.slice_updated.disconnect(_on_slice_updated)
-	if _state_store != null and _state_store.has_signal("action_dispatched"):
-		if _state_store.action_dispatched.is_connected(_on_debug_action_dispatched):
-			_state_store.action_dispatched.disconnect(_on_debug_action_dispatched)
 	_state_store = null
 
 ## Apply mobile-specific rendering overrides that don't depend on state store.
@@ -93,13 +81,6 @@ func _apply_mobile_overrides() -> void:
 	# Cap FPS at 30 on mobile to prevent wasted GPU work on frames
 	# the user can't perceive and to reduce thermal throttling
 	Engine.max_fps = 30
-
-	# Spawn mobile perf monitor for diagnostics
-	var perf_monitor_script := preload("res://scripts/utils/debug/u_perf_monitor.gd")
-	var perf_monitor := Node.new()
-	perf_monitor.set_script(perf_monitor_script)
-	perf_monitor.name = "U_PerfMonitor"
-	add_child(perf_monitor)
 
 func _initialize_store_async() -> void:
 	_theme_debug_log("initialize_store_async: awaiting store")
@@ -114,9 +95,6 @@ func _initialize_store_async() -> void:
 	if _state_store.has_signal("slice_updated"):
 		_state_store.slice_updated.connect(_on_slice_updated)
 
-	# Mobile debug: listen for shader bypass toggle actions
-	if U_MOBILE_PLATFORM_DETECTOR.is_mobile() and _state_store.has_signal("action_dispatched"):
-		_state_store.action_dispatched.connect(_on_debug_action_dispatched)
 
 	_ensure_appliers()
 	if _cinema_grade_applier != null:
@@ -129,13 +107,9 @@ func _initialize_store_async() -> void:
 	_update_overlay_visibility()
 
 func _process(___delta: float) -> void:
-	var _pt_start: int = _probe_film_grain_process.begin()
 	if _post_process_applier == null:
-		_probe_film_grain_process.end(_pt_start)
 		return
 	_post_process_applier.process_film_grain_time()
-	_probe_film_grain_process.end(_pt_start)
-	_probe_film_grain_process.tick_and_maybe_log()
 
 func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 	var tree := get_tree()
@@ -183,70 +157,6 @@ func _on_slice_updated(slice_name: StringName, ___slice_data: Dictionary) -> voi
 	if slice_name == NAVIGATION_SLICE_NAME:
 		_update_overlay_visibility()
 
-## Mobile debug: handles actions dispatched to toggle shader passes on/off.
-## Supported actions:
-##   "debug/toggle_cinema_grade" — toggle cinema grade shader pass
-##   "debug/toggle_post_process"  — toggle combined post-process shader pass
-##   "debug/disable_all_shaders" — disable both shader passes
-##   "debug/enable_all_shaders"  — re-enable both shader passes
-func _on_debug_action_dispatched(action: Dictionary) -> void:
-	var action_type: String = str(action.get("type", ""))
-	match action_type:
-		"debug/toggle_cinema_grade":
-			_toggle_cinema_grade_debug()
-		"debug/toggle_post_process":
-			_toggle_post_process_debug()
-		"debug/disable_all_shaders":
-			_set_all_shaders_debug(false)
-		"debug/enable_all_shaders":
-			_set_all_shaders_debug(true)
-		_:
-			return
-	print("[PERF] debug_action: %s shaders_disabled=%s" % [action_type, _debug_shaders_disabled])
-
-
-func _toggle_cinema_grade_debug() -> void:
-	_ensure_appliers()
-	if _cinema_grade_applier == null:
-		return
-	if _debug_shaders_disabled and _debug_cinema_grade_was_visible:
-		_cinema_grade_applier.debug_restore_visibility(true)
-		_debug_cinema_grade_was_visible = false
-	else:
-		_debug_cinema_grade_was_visible = _cinema_grade_applier.debug_force_disable()
-	print("[PERF] cinema_grade_visible=%s" % [not _debug_cinema_grade_was_visible])
-
-
-func _toggle_post_process_debug() -> void:
-	_ensure_appliers()
-	if _post_process_applier == null:
-		return
-	if _debug_combined_was_visible:
-		_post_process_applier.debug_restore_combined_visibility(true)
-		_debug_combined_was_visible = false
-	else:
-		_debug_combined_was_visible = _post_process_applier.debug_force_disable_combined()
-	print("[PERF] post_process_combined_visible=%s" % [not _debug_combined_was_visible])
-
-
-func _set_all_shaders_debug(enabled: bool) -> void:
-	_ensure_appliers()
-	if enabled:
-		if _cinema_grade_applier != null and _debug_cinema_grade_was_visible:
-			_cinema_grade_applier.debug_restore_visibility(true)
-			_debug_cinema_grade_was_visible = false
-		if _post_process_applier != null and _debug_combined_was_visible:
-			_post_process_applier.debug_restore_combined_visibility(true)
-			_debug_combined_was_visible = false
-		_debug_shaders_disabled = false
-	else:
-		if _cinema_grade_applier != null:
-			_debug_cinema_grade_was_visible = _cinema_grade_applier.debug_force_disable()
-		if _post_process_applier != null:
-			_debug_combined_was_visible = _post_process_applier.debug_force_disable_combined()
-		_debug_shaders_disabled = true
-
-## Override: I_DisplayManager.set_display_settings_preview
 func set_display_settings_preview(settings: Dictionary) -> void:
 	_preview_settings = settings.duplicate(true)
 	_display_settings_preview_active = true
