@@ -12,6 +12,8 @@ const U_AI_GOAL_SELECTOR := preload("res://scripts/utils/ai/u_ai_goal_selector.g
 const U_AI_TASK_RUNNER := preload("res://scripts/utils/ai/u_ai_task_runner.gd")
 const U_AI_REPLANNER := preload("res://scripts/utils/ai/u_ai_replanner.gd")
 const U_AI_CONTEXT_BUILDER := preload("res://scripts/utils/ai/u_ai_context_builder.gd")
+const U_AI_RENDER_PROBE := preload("res://scripts/utils/debug/u_ai_render_probe.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 const MOBILE_EVALUATION_INTERVAL_MULTIPLIER: float = 2.0
 
@@ -29,9 +31,7 @@ var _goal_selector: Variant = U_AI_GOAL_SELECTOR.new()
 var _task_runner: Variant = U_AI_TASK_RUNNER.new()
 var _replanner: Variant = U_AI_REPLANNER.new()
 var _context_builder: Variant = U_AI_CONTEXT_BUILDER.new()
-
-var _debug_log_cooldowns: Dictionary = {}
-var _empty_query_log_cooldown_sec: float = 0.0
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 var _rule_pool: Dictionary = {}
 var _goal_by_id_cache: Dictionary = {}
 var _entity_stagger_index: int = 0
@@ -44,7 +44,7 @@ func _init() -> void:
 	_goal_by_id_cache = _goal_selector.get_goal_cache()
 
 func process_tick(delta: float) -> void:
-	_tick_debug_log_cooldowns(delta)
+	_debug_log_throttle.tick(delta)
 	_tracker.tick_cooldowns(delta)
 
 	var entities: Array = query_entities([BRAIN_COMPONENT_TYPE])
@@ -177,26 +177,12 @@ func _get_frame_state_snapshot() -> Dictionary:
 func _context_key_for_context(context: Dictionary) -> StringName:
 	return _context_builder.context_key_for_context(context)
 
-func _tick_debug_log_cooldowns(delta: float) -> void:
-	_empty_query_log_cooldown_sec = maxf(_empty_query_log_cooldown_sec - maxf(delta, 0.0), 0.0)
-	if _debug_log_cooldowns.is_empty():
-		return
-	var step: float = maxf(delta, 0.0)
-	for key_variant in _debug_log_cooldowns.keys():
-		var cooldown: float = float(_debug_log_cooldowns.get(key_variant, 0.0))
-		cooldown = maxf(cooldown - step, 0.0)
-		_debug_log_cooldowns[key_variant] = cooldown
-
 func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	if not debug_ai_logging:
 		return false
 	if debug_entity_id != StringName() and entity_id != debug_entity_id:
 		return false
-	var cooldown: float = float(_debug_log_cooldowns.get(entity_id, 0.0))
-	if cooldown > 0.0:
-		return false
-	_debug_log_cooldowns[entity_id] = maxf(debug_log_interval_sec, 0.05)
-	return true
+	return _debug_log_throttle.consume_budget(entity_id, maxf(debug_log_interval_sec, 0.05))
 
 func _debug_log_brain_state(context: Dictionary, brain: C_AIBrainComponent) -> void:
 	var entity_id: StringName = _context_key_for_context(context)
@@ -228,7 +214,15 @@ func _debug_log_brain_state(context: Dictionary, brain: C_AIBrainComponent) -> v
 	var action_started: bool = bool(task_state.get(U_AI_TASK_STATE_KEYS.ACTION_STARTED, false))
 	var render_probe: String = ""
 	if debug_ai_render_probe_logging:
-		render_probe = _build_render_probe(context)
+		var entity: Node = context.get("entity", null) as Node
+		var movement_component: C_MovementComponent = null
+		var components_variant: Variant = context.get("components", null)
+		if components_variant is Dictionary:
+			var components: Dictionary = components_variant as Dictionary
+			var movement_variant: Variant = components.get(MOVEMENT_COMPONENT_TYPE, null)
+			if movement_variant is C_MovementComponent:
+				movement_component = movement_variant as C_MovementComponent
+		render_probe = U_AI_RENDER_PROBE.build_probe_string(entity, null, movement_component)
 
 	print(
 		"S_AIBehaviorSystem[entity=%s] goal=%s queue_size=%d task_index=%d task_id=%s action_started=%s move_target_resolved=%s has_move_target=%s move_target=%s source=%s reason=%s fallback=%s requested_path=%s context_entity=%s context_owner=%s waypoint_index=%d%s"
@@ -256,9 +250,8 @@ func _debug_log_brain_state(context: Dictionary, brain: C_AIBrainComponent) -> v
 func _debug_log_missing_brains() -> void:
 	if not debug_ai_logging:
 		return
-	if _empty_query_log_cooldown_sec > 0.0:
+	if not _debug_log_throttle.consume_budget(&"ai_behavior/empty_query", maxf(debug_log_interval_sec, 0.05)):
 		return
-	_empty_query_log_cooldown_sec = maxf(debug_log_interval_sec, 0.05)
 
 	var manager: I_ECSManager = get_manager()
 	var registered_brain_count: int = 0
@@ -269,104 +262,3 @@ func _debug_log_missing_brains() -> void:
 		"S_AIBehaviorSystem: query_entities([C_AIBrainComponent]) returned 0 entities; registered_brain_components=%d"
 		% [registered_brain_count]
 	)
-
-func _build_render_probe(context: Dictionary) -> String:
-	var entity: Node = context.get("entity", null) as Node
-	var entity_path: String = "<null>"
-	if entity != null and is_instance_valid(entity):
-		entity_path = str(entity.get_path())
-
-	var body: CharacterBody3D = _resolve_body_from_context(context, entity)
-	var body_visible: bool = false
-	var body_visible_in_tree: bool = false
-	var body_position: Vector3 = Vector3.ZERO
-	if body != null and is_instance_valid(body):
-		body_visible = body.visible
-		body_visible_in_tree = body.is_visible_in_tree()
-		body_position = body.global_position
-
-	var visual_node: Node3D = _resolve_visual_node(entity, body)
-	var visual_path: String = "<null>"
-	var visual_type: String = "null"
-	var visual_visible: bool = false
-	var visual_visible_in_tree: bool = false
-	var visual_transparency: Variant = "n/a"
-	var visual_layers: Variant = "n/a"
-	if visual_node != null and is_instance_valid(visual_node):
-		visual_path = str(visual_node.get_path())
-		visual_type = visual_node.get_class()
-		visual_visible = visual_node.visible
-		visual_visible_in_tree = visual_node.is_visible_in_tree()
-		if visual_node is GeometryInstance3D:
-			var geometry: GeometryInstance3D = visual_node as GeometryInstance3D
-			visual_transparency = geometry.transparency
-			visual_layers = geometry.layers
-
-	return (
-		" probe(entity_path=%s body_visible=%s body_visible_tree=%s body_pos=%s visual_path=%s visual_type=%s visual_visible=%s visual_visible_tree=%s visual_transparency=%s visual_layers=%s)"
-		% [
-			entity_path,
-			str(body_visible),
-			str(body_visible_in_tree),
-			str(body_position),
-			visual_path,
-			visual_type,
-			str(visual_visible),
-			str(visual_visible_in_tree),
-			str(visual_transparency),
-			str(visual_layers),
-		]
-	)
-
-func _resolve_body_from_context(context: Dictionary, entity: Node) -> CharacterBody3D:
-	var components_variant: Variant = context.get("components", null)
-	if components_variant is Dictionary:
-		var components: Dictionary = components_variant as Dictionary
-		var movement_component_variant: Variant = components.get(MOVEMENT_COMPONENT_TYPE, null)
-		if movement_component_variant is C_MovementComponent:
-			return (movement_component_variant as C_MovementComponent).get_character_body()
-	return _find_character_body_recursive(entity)
-
-func _resolve_visual_node(entity: Node, body: CharacterBody3D) -> Node3D:
-	var search_root: Node = body
-	if search_root == null:
-		search_root = entity
-	if search_root == null:
-		return null
-
-	var named_visual: Node = search_root.get_node_or_null("Visual")
-	if named_visual is Node3D:
-		return named_visual as Node3D
-	return _find_first_geometry_recursive(search_root)
-
-func _find_character_body_recursive(node: Node) -> CharacterBody3D:
-	if node == null:
-		return null
-	if node is CharacterBody3D:
-		return node as CharacterBody3D
-
-	for child_variant in node.get_children():
-		var child: Node = child_variant as Node
-		if child == null:
-			continue
-		var found: CharacterBody3D = _find_character_body_recursive(child)
-		if found != null:
-			return found
-	return null
-
-func _find_first_geometry_recursive(node: Node) -> Node3D:
-	if node == null:
-		return null
-	if node is MeshInstance3D:
-		return node as MeshInstance3D
-	if node is CSGShape3D:
-		return node as CSGShape3D
-
-	for child_variant in node.get_children():
-		var child: Node = child_variant as Node
-		if child == null:
-			continue
-		var found: Node3D = _find_first_geometry_recursive(child)
-		if found != null:
-			return found
-	return null
