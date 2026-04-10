@@ -5,7 +5,8 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 complete
+**Status**: Milestone 15 complete — next up: AI system refactor (R1–R10)
+**Next Task**: Begin R1 in `docs/ai_system/ai-system-refactor-tasks.md` (Typed Brain Settings, Goals, and Tasks)
 
 ---
 
@@ -14,6 +15,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
+- **Refactor Tasks (NEXT)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **Start at R1.**
 
 ### Completed in M1 (2026-04-02)
 
@@ -427,20 +429,22 @@ Study these for utility and event patterns:
 - `scripts/utils/qb/u_path_resolver.gd` — Dot-path traversal for condition evaluation.
 - `scripts/events/ecs/u_ecs_event_bus.gd` — Event publishing for RS_AIActionPublishEvent.
 
-### 4. Execute AI System Tasks in Order
+### 4. Execute AI System Refactor Tasks in Order
 
-Work through the tasks in `ai-system-tasks.md` sequentially:
+M1–M15 are complete. **The next phase is the AI system refactor.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, starting with R1. Sequencing matters: R1 must land first because type safety removes the duck-typing blockers that would otherwise need to be re-implemented in every downstream split.
 
-1. **M1** — Task Resource Skeleton + I_AIAction Interface (RS_AITask, RS_AIPrimitiveTask, RS_AICompoundTask, I_AIAction)
-2. **M2** — Goal & Brain Settings Resources (RS_AIGoal, RS_AIBrainSettings)
-3. **M3** — C_AIBrainComponent (ECS component)
-4. **M4** — U_HTNPlanner (task decomposition utility)
-5. **M5** — Goal Evaluation Loop (S_AIBehaviorSystem + QB v2)
-6. **M6** — Typed Action Resources (Instant): RS_AIActionWait, RS_AIActionPublishEvent, RS_AIActionSetField + polymorphic task runner
-7. **M7** — Typed Action Resources (Movement + Stub): RS_AIActionMoveTo, RS_AIActionScan, RS_AIActionAnimate
-8. **M8** — Integration Tests (full pipeline validation)
-9. **M9** — Demo Scene Creation (3 gameplay rooms)
-10. **M10** — Demo NPC Behavior Authoring & Tuning
+1. **R1** — Typed Brain Settings, Goals, and Tasks (eliminate `_read_*_property` duck-typing from the AI hot path) **← START HERE**
+2. **R2** — Promote `I_AIAction` to a Proper Action Base + Task State Keys Registry
+3. **R3** — Split `s_ai_behavior_system.gd` Into Focused Collaborators (goal selector, task runner, replanner, context builder)
+4. **R4** — Extract Debug Probe + Log Throttle Utilities (delete duplicated `_build_render_probe` + `_tick_debug_log_cooldowns`)
+5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`)
+6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`)
+7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`)
+8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/`)
+9. **R9** — HTN Planner Context Object (collapse recursive params into `HTNPlannerContext`)
+10. **R10** — Behavior System Orchestration Integration (final pass: `s_ai_behavior_system.gd` under 200 lines)
+
+The original M1–M10 feature milestones and M11–M15 hardening milestones are complete — see the "Completed" sections above for their history. Do **not** redo them.
 
 ### 5. Follow TDD Discipline
 
@@ -484,6 +488,8 @@ You MUST:
 
 ## Next Steps
 
-1. Optional follow-up: run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
-2. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
-3. Merge `GOAP-AI` once regression review passes.
+1. **Begin R1** in `docs/ai_system/ai-system-refactor-tasks.md` — Typed Brain Settings, Goals, and Tasks. Write failing tests first against `tests/unit/ai/resources/test_rs_ai_task.gd` and `tests/unit/ai/resources/test_rs_ai_goal.gd` that assert typed property hints, then tighten `C_AIBrainComponent.brain_settings`, `RS_AIBrainSettings.goals`, `RS_AIGoal.root_task`/`conditions`, `RS_AIPrimitiveTask.action`, and `RS_AICompoundTask.subtasks`/`method_conditions` to typed references. R1 unblocks every downstream refactor milestone.
+2. Proceed through R2–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
+3. Optional follow-up (post-refactor): run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
+4. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
+5. Merge `GOAP-AI` once R1–R10 and regression review pass.

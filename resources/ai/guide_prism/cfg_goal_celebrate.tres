@@ -57,3 +57,4 @@ goal_id = &"celebrate"
 conditions = Array[Resource]([SubResource("Condition_game_complete")])
 root_task = SubResource("Task_celebration_sequence")
 priority = 3
+one_shot = true
