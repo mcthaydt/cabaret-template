@@ -299,13 +299,24 @@ func _try_debug_skip_main_menu() -> bool:
 	if typed_save_manager != null and typed_save_manager.has_any_saves():
 		var most_recent_slot: StringName = _save_manager.get_most_recent_save_slot()
 		if most_recent_slot != StringName(""):
-			if _main_panel != null:
-				_main_panel.visible = false
-			var result: Error = _save_manager.load_from_slot(most_recent_slot)
-			if result == OK:
-				return true
+			if _can_debug_skip_via_save_slot(most_recent_slot):
+				if _main_panel != null:
+					_main_panel.visible = false
+				var result: Error = typed_save_manager.load_from_slot(most_recent_slot)
+				if result == OK:
+					return true
 	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
 	return true
+
+func _can_debug_skip_via_save_slot(slot_id: StringName) -> bool:
+	var concrete_save_manager := _save_manager as M_SaveManager
+	if concrete_save_manager == null:
+		return true
+	var metadata: Dictionary = concrete_save_manager.get_slot_metadata(slot_id)
+	if metadata.is_empty():
+		return false
+	var scene_id: String = str(metadata.get("current_scene_id", ""))
+	return not scene_id.is_empty()
 
 func _on_back_pressed() -> void:
 	U_UISoundPlayer.play_cancel()
