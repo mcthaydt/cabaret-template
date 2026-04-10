@@ -1,7 +1,7 @@
 # AI System Refactor — Tasks Checklist
 
 **Branch**: `GOAP-AI` (or follow-up branch)
-**Status**: Not started
+**Status**: R1 complete (2026-04-10); next milestone R2
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-overview.md`, `docs/ai_system/ai-system-tasks.md`
 
@@ -39,25 +39,44 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 **Goal**: Tighten resource types so the hot path can drop its `_read_*_property` helpers. `C_AIBrainComponent.brain_settings`, `RS_AIBrainSettings.goals`, `RS_AIGoal.root_task`, `RS_AIPrimitiveTask.action`, and `RS_AICompoundTask.subtasks` become strongly typed.
 
-- [ ] **Commit 1** — Extend resource unit tests (TDD RED):
+- [x] **Commit 1** — Extend resource unit tests (TDD RED):
   - `tests/unit/ai/resources/test_rs_ai_goal.gd` *(existing)* — add `test_goals_array_is_typed_rs_ai_goal`, `test_goals_rejects_non_rs_ai_goal_entries`, `test_root_task_typed_rs_ai_task`, `test_conditions_array_typed_i_condition`. Brain-settings coverage already lives in this file (per M2), so extend it in place rather than creating a new file.
   - `tests/unit/ai/resources/test_rs_ai_task.gd` *(existing)* — add `test_primitive_task_action_typed_i_ai_action`, `test_compound_task_subtasks_typed_rs_ai_task`
   - `tests/unit/ecs/components/test_c_ai_brain_component.gd` *(existing)* — add `test_brain_settings_export_typed_rs_ai_brain_settings`, `test_current_task_queue_typed_rs_ai_primitive_task`
-- [ ] **Commit 2** — Implement typed field updates (TDD GREEN):
+- [x] **Commit 2** — Implement typed field updates (TDD GREEN):
   - `scripts/resources/ai/rs_ai_brain_settings.gd` — `goals: Array[Resource]` → `Array[RS_AIGoal]`
   - `scripts/resources/ai/rs_ai_goal.gd` — `root_task: Resource` → `RS_AITask`; `conditions: Array[Resource]` → `Array[I_Condition]` (the `I_Condition` base lives at `scripts/interfaces/i_condition.gd` and is the shared contract used by `RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, `RS_ConditionEventName`, `RS_ConditionEventPayload`, `RS_ConditionComposite`, `RS_ConditionConstant`)
   - `scripts/resources/ai/rs_ai_primitive_task.gd` — `action: Resource` → `I_AIAction`
   - `scripts/resources/ai/rs_ai_compound_task.gd` — `subtasks: Array[Resource]` → `Array[RS_AITask]`; `method_conditions: Array[Resource]` → `Array[I_Condition]`
   - `scripts/ecs/components/c_ai_brain_component.gd` — `brain_settings: Resource` → `RS_AIBrainSettings`; `current_task_queue: Array[Resource]` → `Array[RS_AIPrimitiveTask]`; add typed accessors `get_brain_settings()`, `get_active_goal_id()`, `get_current_task()`
-- [ ] **Commit 3** — Delete duck-typing helpers from `s_ai_behavior_system.gd` that are no longer reachable after the type tightening (`_read_object_property` can remain temporarily if still called from suspended-state paths; they vanish in R10)
+- [x] **Commit 3** — Delete duck-typing helpers from `s_ai_behavior_system.gd` that are no longer reachable after the type tightening (`_read_object_property` can remain temporarily if still called from suspended-state paths; they vanish in R10)
 
 **R1 Verification**:
-- [ ] All new typed tests green
-- [ ] Existing `test_ai_pipeline_integration.gd` green (no behavior change)
-- [ ] `test_style_enforcement.gd` passes
+- [x] All new typed tests green
+- [x] Existing `test_ai_pipeline_integration.gd` green (no behavior change)
+- [x] `test_style_enforcement.gd` passes
 - [ ] Full-suite regression green
 
-**R1 Completion Notes**: _(to be filled during execution)_
+**R1 Completion Notes**:
+- Added typed property-hint coverage in:
+  - `tests/unit/ai/resources/test_rs_ai_goal.gd`
+  - `tests/unit/ai/resources/test_rs_ai_task.gd`
+  - `tests/unit/ecs/components/test_c_ai_brain_component.gd`
+- Tightened AI data contracts in:
+  - `C_AIBrainComponent.brain_settings -> RS_AIBrainSettings`
+  - `C_AIBrainComponent.current_task_queue -> Array[RS_AIPrimitiveTask]`
+  - `RS_AIBrainSettings.goals -> Array[RS_AIGoal]`
+  - `RS_AIGoal.root_task -> RS_AITask`
+  - `RS_AIGoal.conditions -> Array[I_Condition]`
+  - `RS_AIPrimitiveTask.action -> I_AIAction`
+  - `RS_AICompoundTask.subtasks -> Array[RS_AITask]`
+  - `RS_AICompoundTask.method_conditions -> Array[I_Condition]`
+- Added typed accessors on `C_AIBrainComponent`: `get_brain_settings()`, `get_active_goal_id()`, `get_current_task()`.
+- Updated `S_AIBehaviorSystem` hot-path reads to typed contracts and removed now-unnecessary duck-typing helpers from active execution flow.
+- Verification:
+  - Targeted suites green (`test_rs_ai_goal`, `test_rs_ai_task`, `test_c_ai_brain_component`, `test_s_ai_behavior_system_goals`, `test_s_ai_behavior_system_tasks`, `test_ai_pipeline_integration`, `test_ai_goal_resume`, `test_u_htn_planner`, `test_style_enforcement`).
+  - Full regression snapshot (2026-04-10): `3870/3880` passing, `1` failing, `9` pending/risky.
+  - Remaining failure is pre-existing and outside R1 scope: `tests/integration/vcam/test_vcam_runtime.gd::test_root_scene_registers_vcam_manager_in_service_locator` (`M_SaveManager: Save file 'current_scene_id' is empty`).
 
 ---
 

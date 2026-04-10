@@ -5,17 +5,17 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 complete — next up: AI system refactor (R1–R10)
-**Next Task**: Begin R1 in `docs/ai_system/ai-system-refactor-tasks.md` (Typed Brain Settings, Goals, and Tasks)
+**Status**: Milestone 15 + Refactor R1 complete — AI system refactor in progress (R2–R10 remaining)
+**Next Task**: Begin R2 in `docs/ai_system/ai-system-refactor-tasks.md` (Shared `task_state` Keys + Action Base Hardening)
 
 ---
 
-## Current Status: Milestone 15 Complete
+## Current Status: Milestone 15 + Refactor R1 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
-- **Refactor Tasks (NEXT)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **Start at R1.**
+- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1 is complete; start at R2.**
 
 ### Completed in M1 (2026-04-02)
 
@@ -355,6 +355,33 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
   - Full regression snapshot: `tools/run_gut_suite.sh` → `3820/3859` passing, `30` failing, `9` pending/risky (failures concentrated in wall-visibility/vcam suites, outside M15 change set).
 
+### Completed in R1 (2026-04-10)
+
+- Added RED/GREEN typed-contract coverage:
+  - `tests/unit/ai/resources/test_rs_ai_goal.gd` (expanded to `10/10`)
+  - `tests/unit/ai/resources/test_rs_ai_task.gd` (expanded to `9/9`)
+  - `tests/unit/ecs/components/test_c_ai_brain_component.gd` (expanded to `11/11`)
+- Implemented typed AI data contracts:
+  - `scripts/resources/ai/rs_ai_brain_settings.gd` (`goals: Array[RS_AIGoal]`)
+  - `scripts/resources/ai/rs_ai_goal.gd` (`root_task: RS_AITask`, `conditions: Array[I_Condition]`)
+  - `scripts/resources/ai/rs_ai_primitive_task.gd` (`action: I_AIAction`)
+  - `scripts/resources/ai/rs_ai_compound_task.gd` (`subtasks: Array[RS_AITask]`, `method_conditions: Array[I_Condition]`)
+  - `scripts/ecs/components/c_ai_brain_component.gd` (`brain_settings: RS_AIBrainSettings`, `current_task_queue: Array[RS_AIPrimitiveTask]`, typed accessors)
+- Removed AI hot-path duck-typing usage from `scripts/ecs/systems/s_ai_behavior_system.gd` in favor of typed brain/settings/goal/task/action flow.
+- Verification:
+  - Targeted suites:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` → `10/10`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_task.gd` → `9/9`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` → `11/11`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `17/17`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` → `6/6`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
+  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3870/3880` passing, `1` failing, `9` pending/risky.
+  - Remaining failure is pre-existing and outside R1 scope:
+    - `tests/integration/vcam/test_vcam_runtime.gd::test_root_scene_registers_vcam_manager_in_service_locator`
+    - Error: `M_SaveManager: Save file 'current_scene_id' is empty`
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -377,6 +404,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **M14 combined showcase is complete**: `gameplay_ai_showcase.tscn` hosts all three archetypes simultaneously — two patrol drones (zone A), one sentry (zone B), one guide prism (zone C) — in a single 60×30 CSG room. NPC brain overrides use `parent_id_path=PackedInt32Array(<npc_uid>, 1373490017)` (Components node UID in `prefab_demo_npc.tscn`). Both patrol drones share `cfg_patrol_drone_brain.tres` and recover to `sp_ai_patrol_drone`.
 - **M15 proximity/cascade trigger runtime is complete**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` provide player-range enter/exit state and optional enter-event publication; `S_AIDemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` into durable gameplay flags for cross-NPC reactions.
 - **M15 AI demo flag dispatch uses gameplay actions, not navigation actions**: use `U_GameplayActions.set_ai_demo_flag(...)` for alarm/door/collectible/proximity flag updates.
+- **R1 typed AI contracts are now enforced in runtime resources/components**: brain/goal/task/action references are strongly typed (`RS_AIBrainSettings`, `RS_AIGoal`, `RS_AITask`, `RS_AIPrimitiveTask`, `I_AIAction`, `I_Condition`) and AI hot-path logic no longer relies on `_read_*_property` duck-typing.
 
 ---
 
@@ -431,10 +459,10 @@ Study these for utility and event patterns:
 
 ### 4. Execute AI System Refactor Tasks in Order
 
-M1–M15 are complete. **The next phase is the AI system refactor.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, starting with R1. Sequencing matters: R1 must land first because type safety removes the duck-typing blockers that would otherwise need to be re-implemented in every downstream split.
+M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R2.
 
-1. **R1** — Typed Brain Settings, Goals, and Tasks (eliminate `_read_*_property` duck-typing from the AI hot path) **← START HERE**
-2. **R2** — Promote `I_AIAction` to a Proper Action Base + Task State Keys Registry
+1. **R1** — Typed Brain Settings, Goals, and Tasks (eliminate `_read_*_property` duck-typing from the AI hot path) **COMPLETE (2026-04-10)**
+2. **R2** — Promote `I_AIAction` to a Proper Action Base + Task State Keys Registry **← START HERE**
 3. **R3** — Split `s_ai_behavior_system.gd` Into Focused Collaborators (goal selector, task runner, replanner, context builder)
 4. **R4** — Extract Debug Probe + Log Throttle Utilities (delete duplicated `_build_render_probe` + `_tick_debug_log_cooldowns`)
 5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`)
@@ -488,8 +516,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin R1** in `docs/ai_system/ai-system-refactor-tasks.md` — Typed Brain Settings, Goals, and Tasks. Write failing tests first against `tests/unit/ai/resources/test_rs_ai_task.gd` and `tests/unit/ai/resources/test_rs_ai_goal.gd` that assert typed property hints, then tighten `C_AIBrainComponent.brain_settings`, `RS_AIBrainSettings.goals`, `RS_AIGoal.root_task`/`conditions`, `RS_AIPrimitiveTask.action`, and `RS_AICompoundTask.subtasks`/`method_conditions` to typed references. R1 unblocks every downstream refactor milestone.
-2. Proceed through R2–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
+1. **Begin R2** in `docs/ai_system/ai-system-refactor-tasks.md` — Shared `task_state` Keys + Action Base Hardening. Add `U_AITaskStateKeys`, migrate AI action/system magic strings, and harden `I_AIAction` base usage.
+2. Proceed through R3–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
 3. Optional follow-up (post-refactor): run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
 4. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
 5. Merge `GOAP-AI` once R1–R10 and regression review pass.
