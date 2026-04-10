@@ -3,10 +3,10 @@ extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const I_AI_ACTION := preload("res://scripts/interfaces/i_ai_action.gd")
 const RS_RULE := preload("res://scripts/resources/qb/rs_rule.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 const U_RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
 const U_RULE_SELECTOR := preload("res://scripts/utils/qb/u_rule_selector.gd")
 const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
@@ -18,7 +18,6 @@ const MOBILE_EVALUATION_INTERVAL_MULTIPLIER: float = 2.0
 const BRAIN_COMPONENT_TYPE := C_AIBrainComponent.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const GOAL_DECISION_GROUP := StringName("ai_goal")
-const ACTION_STARTED_STATE_KEY := "action_started"
 
 @export var state_store: I_StateStore = null
 @export var debug_ai_logging: bool = false
@@ -115,17 +114,17 @@ func _execute_current_task(brain: C_AIBrainComponent, delta: float, context: Dic
 		return
 
 	var action_variant: Variant = task.action
-	if action_variant == null or not (action_variant is I_AI_ACTION):
+	if action_variant == null or not (action_variant is I_AIAction):
 		_advance_to_next_task(brain, current_task_index, queue.size(), context)
 		return
 
 	var task_state: Dictionary = brain.task_state
 
-	var action_started: bool = bool(task_state.get(ACTION_STARTED_STATE_KEY, false))
+	var action_started: bool = bool(task_state.get(U_AI_TASK_STATE_KEYS.ACTION_STARTED, false))
 	var action: Variant = action_variant
 	if not action_started:
 		action.start(context, task_state)
-		task_state[ACTION_STARTED_STATE_KEY] = true
+		task_state[U_AI_TASK_STATE_KEYS.ACTION_STARTED] = true
 
 	action.tick(context, task_state, maxf(delta, 0.0))
 	brain.task_state = task_state
@@ -541,17 +540,17 @@ func _debug_log_brain_state(context: Dictionary, brain: C_AIBrainComponent) -> v
 
 	var task_state: Dictionary = brain.task_state
 
-	var has_move_target: bool = task_state.has("ai_move_target")
-	var move_target_variant: Variant = task_state.get("ai_move_target", null)
-	var move_target_resolved: bool = bool(task_state.get("move_target_resolved", false))
-	var move_target_source: String = str(task_state.get("move_target_source", ""))
-	var move_target_reason: String = str(task_state.get("move_target_resolution_reason", ""))
-	var move_target_used_fallback: bool = bool(task_state.get("move_target_used_fallback", false))
-	var move_target_requested_path: String = str(task_state.get("move_target_requested_node_path", ""))
-	var move_target_context_entity_path: String = str(task_state.get("move_target_context_entity_path", ""))
-	var move_target_context_owner_path: String = str(task_state.get("move_target_context_owner_path", ""))
-	var move_target_waypoint_index: int = int(task_state.get("move_target_waypoint_index", -1))
-	var action_started: bool = bool(task_state.get(ACTION_STARTED_STATE_KEY, false))
+	var has_move_target: bool = task_state.has(U_AI_TASK_STATE_KEYS.MOVE_TARGET)
+	var move_target_variant: Variant = task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET, null)
+	var move_target_resolved: bool = bool(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED, false))
+	var move_target_source: String = str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_SOURCE, ""))
+	var move_target_reason: String = str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLUTION_REASON, ""))
+	var move_target_used_fallback: bool = bool(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_USED_FALLBACK, false))
+	var move_target_requested_path: String = str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_REQUESTED_NODE_PATH, ""))
+	var move_target_context_entity_path: String = str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_CONTEXT_ENTITY_PATH, ""))
+	var move_target_context_owner_path: String = str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_CONTEXT_OWNER_PATH, ""))
+	var move_target_waypoint_index: int = int(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_WAYPOINT_INDEX, -1))
+	var action_started: bool = bool(task_state.get(U_AI_TASK_STATE_KEYS.ACTION_STARTED, false))
 	var render_probe: String = ""
 	if debug_ai_render_probe_logging:
 		render_probe = _build_render_probe(context)

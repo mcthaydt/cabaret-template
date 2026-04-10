@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/interfaces/i_ai_action.gd"
+extends I_AIAction
 class_name RS_AIActionScan
 
 @export var scan_duration: float = 2.0

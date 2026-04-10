@@ -537,6 +537,17 @@ func test_vcam_debug_logging_not_enabled_in_authored_scenes() -> void:
 
 	assert_eq(violations.size(), 0, message)
 
+func test_ai_move_target_magic_strings_not_used_in_ai_scripts() -> void:
+	var violations: Array[String] = []
+	_collect_gd_literal_occurrences("res://scripts/resources/ai", "\"ai_move_target\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/ecs/systems", "\"ai_move_target\"", violations, "s_ai_")
+
+	var message := "AI scripts should not use bare \"ai_move_target\" string literals"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+		message += "\nUse U_AITaskStateKeys constants instead."
+	assert_eq(violations.size(), 0, message)
+
 # Helper functions for prefix validation
 
 func _check_directory_prefixes(dir_path: String, allowed_prefixes: Array, violations: Array[String]) -> void:
@@ -737,6 +748,42 @@ func _collect_scene_text_match_violations(
 			file.close()
 			if found:
 				violations.append("%s contains '%s'" % [path, needle])
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _collect_gd_literal_occurrences(
+	dir_path: String,
+	needle: String,
+	violations: Array[String],
+	filename_prefix_filter: String = ""
+) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_gd_literal_occurrences(path, needle, violations, filename_prefix_filter)
+		elif entry.ends_with(".gd"):
+			if filename_prefix_filter != "" and not entry.begins_with(filename_prefix_filter):
+				entry = dir.get_next()
+				continue
+
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				entry = dir.get_next()
+				continue
+			var line_number: int = 0
+			while not file.eof_reached():
+				line_number += 1
+				var line: String = file.get_line()
+				if line.find(needle) != -1:
+					violations.append("%s:%d" % [path, line_number])
+			file.close()
 		entry = dir.get_next()
 	dir.list_dir_end()
 

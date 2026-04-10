@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/interfaces/i_ai_action.gd"
+extends I_AIAction
 class_name RS_AIActionAnimate
 
 @export var animation_state: StringName

@@ -5,13 +5,12 @@ class_name S_AINavigationSystem
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 const BRAIN_COMPONENT_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
 const INPUT_COMPONENT_TYPE := C_INPUT_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
-const TARGET_STATE_KEY := "ai_move_target"
-const ARRIVAL_THRESHOLD_STATE_KEY := "ai_arrival_threshold"
 const DEFAULT_ARRIVAL_THRESHOLD := 0.5
 
 @export var debug_ai_navigation_logging: bool = false
@@ -74,23 +73,23 @@ func process_tick(delta: float) -> void:
 			_debug_log_navigation(entity_id, "move_vector=ZERO reason=task_state is not Dictionary", entity_query)
 			continue
 		var task_state: Dictionary = task_state_variant as Dictionary
-		var move_target_source: String = str(task_state.get("move_target_source", ""))
-		var move_target_reason: String = str(task_state.get("move_target_resolution_reason", ""))
-		var move_target_used_fallback: bool = bool(task_state.get("move_target_used_fallback", false))
+		var move_target_source: String = str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_SOURCE, ""))
+		var move_target_reason: String = str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLUTION_REASON, ""))
+		var move_target_used_fallback: bool = bool(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_USED_FALLBACK, false))
 
-		var target_variant: Variant = task_state.get(TARGET_STATE_KEY, null)
+		var target_variant: Variant = task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET, null)
 		if not (target_variant is Vector3):
 			input_component.set_move_vector(Vector2.ZERO)
 			_debug_log_navigation(
 				entity_id,
-				"move_vector=ZERO reason=missing ai_move_target source=%s resolution_reason=%s fallback=%s"
-				% [move_target_source, move_target_reason, str(move_target_used_fallback)],
+				"move_vector=ZERO reason=missing %s source=%s resolution_reason=%s fallback=%s"
+				% [str(U_AI_TASK_STATE_KEYS.MOVE_TARGET), move_target_source, move_target_reason, str(move_target_used_fallback)],
 				entity_query
 			)
 			continue
 		var target_position: Vector3 = target_variant as Vector3
 		var arrival_threshold: float = _resolve_arrival_threshold(
-			task_state.get(ARRIVAL_THRESHOLD_STATE_KEY, DEFAULT_ARRIVAL_THRESHOLD)
+			task_state.get(U_AI_TASK_STATE_KEYS.ARRIVAL_THRESHOLD, DEFAULT_ARRIVAL_THRESHOLD)
 		)
 
 		var movement_component_variant: Variant = entity_query.call("get_component", MOVEMENT_COMPONENT_TYPE)
