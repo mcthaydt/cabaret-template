@@ -1,7 +1,7 @@
 extends BaseTest
 
 const S_AI_BEHAVIOR_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
-const S_AI_NAVIGATION_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_navigation_system.gd"
+const S_MOVE_TARGET_FOLLOWER_SYSTEM_PATH := "res://scripts/ecs/systems/s_move_target_follower_system.gd"
 const S_INPUT_SYSTEM_PATH := "res://scripts/ecs/systems/s_input_system.gd"
 const S_MOVEMENT_SYSTEM_PATH := "res://scripts/ecs/systems/s_movement_system.gd"
 
@@ -180,7 +180,7 @@ func _create_fixture(
 	include_movement_system: bool = false
 ) -> Dictionary:
 	var behavior_script: Script = _load_script(S_AI_BEHAVIOR_SYSTEM_PATH)
-	var navigation_script: Script = _load_script(S_AI_NAVIGATION_SYSTEM_PATH)
+	var navigation_script: Script = _load_script(S_MOVE_TARGET_FOLLOWER_SYSTEM_PATH)
 	var input_script: Script = _load_script(S_INPUT_SYSTEM_PATH)
 	var movement_script: Script = null
 	if include_movement_system:
@@ -216,7 +216,7 @@ func _create_fixture(
 	behavior_system.configure(ecs_manager)
 
 	var navigation_variant: Variant = navigation_script.new()
-	assert_true(navigation_variant is BASE_ECS_SYSTEM, "S_AINavigationSystem should extend BaseECSSystem")
+	assert_true(navigation_variant is BASE_ECS_SYSTEM, "S_MoveTargetFollowerSystem should extend BaseECSSystem")
 	if not (navigation_variant is BaseECSSystem):
 		return {}
 	var navigation_system: BaseECSSystem = navigation_variant as BaseECSSystem

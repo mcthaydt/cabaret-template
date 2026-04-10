@@ -6,7 +6,7 @@ extends BaseTest
 ## mocked ECS infrastructure (MockECSManager + MockStateStore).
 
 const S_AI_BEHAVIOR_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
-const S_AI_NAVIGATION_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_navigation_system.gd"
+const S_MOVE_TARGET_FOLLOWER_SYSTEM_PATH := "res://scripts/ecs/systems/s_move_target_follower_system.gd"
 
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
@@ -66,7 +66,7 @@ func before_each() -> void:
 	_behavior_system.ecs_manager = _ecs_manager
 	_behavior_system.configure(_ecs_manager)
 
-	var navigation_script: Script = load(S_AI_NAVIGATION_SYSTEM_PATH) as Script
+	var navigation_script: Script = load(S_MOVE_TARGET_FOLLOWER_SYSTEM_PATH) as Script
 	assert_not_null(navigation_script)
 	if navigation_script == null:
 		return

@@ -56,7 +56,7 @@
 [ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/cfg_sp_base.tres" id="51_base_spawn_meta"]
 [ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="52_vcam_system"]
 [ext_resource type="Script" uid="uid://cxemqvnjcd4qm" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
-[ext_resource type="Script" uid="uid://ce63ayt3nfe71" path="res://scripts/ecs/systems/s_ai_navigation_system.gd" id="54_ai_navigation_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_move_target_follower_system.gd" id="54_move_target_follower_system"]
 [ext_resource type="Script" uid="uid://dpxywmhc2hqwa" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
@@ -201,8 +201,8 @@ debug_ai_render_probe_logging = true
 debug_entity_id = &"sentry"
 execution_priority = -10
 
-[node name="S_AINavigationSystem" type="Node" parent="Systems/Core" unique_id=1332467286]
-script = ExtResource("54_ai_navigation_system")
+[node name="S_MoveTargetFollowerSystem" type="Node" parent="Systems/Core" unique_id=1332467286]
+script = ExtResource("54_move_target_follower_system")
 debug_ai_navigation_logging = true
 debug_ai_render_probe_logging = true
 debug_entity_id = &"sentry"

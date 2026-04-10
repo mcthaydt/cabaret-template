@@ -17,6 +17,7 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	var resolved_target: Variant = resolution.get("target", null)
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
 	if resolved_target is Vector3:
+		# TODO(R6 follow-up): route move targets via C_MoveTargetComponent once all movers include it.
 		task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET] = resolved_target
 		task_state[U_AI_TASK_STATE_KEYS.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
 		task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED] = true
