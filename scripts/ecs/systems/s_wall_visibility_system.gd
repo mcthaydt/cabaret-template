@@ -31,9 +31,9 @@ const MOBILE_HIDE_FADE_THRESHOLD := 0.01
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_STATE_STORE = null
 @export var mobile_tick_interval: int = MOBILE_TICK_INTERVAL
-@export var desktop_tick_interval: int = 2
-@export var min_fade: float = 0.05
-@export var mobile_hide_walls_instead_of_fade: bool = true
+@export var desktop_tick_interval: int = 1
+@export var min_fade: float = 0.0
+@export var mobile_hide_walls_instead_of_fade: bool = false
 
 var material_applier: Variant = null
 var duplicate_target_warning_handler: Callable = Callable()
@@ -72,7 +72,8 @@ func _init() -> void:
 	if DisplayServer.get_name() == "headless":
 		_is_mobile = false
 	U_PERF_FADE_BYPASS.reset()
-	desktop_tick_interval = 2 if not _is_mobile else 1
+	if _is_mobile:
+		desktop_tick_interval = 1
 	_perf_probe = U_PerfProbe.create("WallVis", _is_mobile)
 	_shader_probe = U_PerfProbe.create("WallVisShader", _is_mobile)
 
@@ -169,6 +170,7 @@ func process_tick(delta: float) -> void:
 		var threshold: float = clampf(float(settings.get("fade_dot_threshold", 0.3)), 0.0, 1.0)
 		var fade_speed: float = maxf(float(settings.get("fade_speed", 4.0)), 0.0)
 		var max_fade: float = clampf(1.0 - min_fade, 0.0, 1.0)
+		var initial_component_fade: float = clampf(1.0 - float(component.get("current_alpha")), 0.0, max_fade)
 		var component_fade_sum: float = 0.0
 		var component_fade_count: int = 0
 
@@ -251,7 +253,9 @@ func process_tick(delta: float) -> void:
 			# Clamp fade so walls never fully dissolve to zero visibility.
 			target_fade = minf(target_fade, max_fade)
 
-			var current_fade: float = float(_target_fade_by_id.get(target_id, 0.0))
+			var current_fade: float = initial_component_fade
+			if _target_fade_by_id.has(target_id):
+				current_fade = float(_target_fade_by_id.get(target_id, initial_component_fade))
 			var next_fade: float = current_fade
 			if fade_speed > 0.0:
 				next_fade = move_toward(next_fade, target_fade, fade_speed * resolved_delta)
@@ -791,7 +795,11 @@ func _resolve_player_position_data_from_state(state: Dictionary) -> Dictionary:
 func _get_frame_state_snapshot() -> Dictionary:
 	var manager := _get_ecs_manager()
 	if manager != null and manager.has_method("get_frame_state_snapshot"):
-		return manager.get_frame_state_snapshot()
+		var manager_snapshot: Variant = manager.get_frame_state_snapshot()
+		if manager_snapshot is Dictionary:
+			var snapshot: Dictionary = manager_snapshot as Dictionary
+			if not snapshot.is_empty():
+				return snapshot
 	# Fallback: resolve from store directly
 	var store: I_STATE_STORE = _resolve_state_store()
 	if store != null:

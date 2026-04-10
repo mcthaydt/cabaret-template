@@ -51,6 +51,8 @@ func stop() -> void:
 		return
 	_running = false
 	var elapsed: int = Time.get_ticks_usec() - _start_usec
+	if elapsed <= 0:
+		elapsed = 1
 	_sample_count += 1
 	_total_usec += elapsed
 	if elapsed < _min_usec:

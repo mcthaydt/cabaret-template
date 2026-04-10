@@ -699,6 +699,8 @@ func test_duplicate_target_assigned_to_first_component_only() -> void:
 	entity_b.add_child(component_b)
 	autofree(component_b)
 	ecs_manager.add_component_to_entity(entity_b, component_b)
+	component_b.set("_cached_targets", [shared_mesh])
+	component_b.set("_cache_valid", true)
 
 	system.process_tick(0.1)
 

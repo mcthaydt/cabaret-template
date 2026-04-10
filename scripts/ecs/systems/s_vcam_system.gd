@@ -142,9 +142,14 @@ func process_tick(delta: float) -> void:
 	var store := _runtime_services_helper.resolve_state_store()
 	_state_store = store
 	var state_snapshot: Dictionary = _get_frame_state_snapshot()
-	var look_input: Vector2 = _runtime_state_helper.read_look_input(store, state_snapshot)
-	var move_input: Vector2 = _runtime_state_helper.read_move_input(store, state_snapshot)
-	var camera_center_just_pressed: bool = _runtime_state_helper.read_camera_center_just_pressed(store, state_snapshot)
+	var input_state_snapshot: Dictionary = state_snapshot
+	if store != null and is_instance_valid(store):
+		# Input can be mutated by earlier ECS systems in the same physics tick.
+		# Read directly from the store so vCam reacts without a one-frame delay.
+		input_state_snapshot = store.get_state()
+	var look_input: Vector2 = _runtime_state_helper.read_look_input(null, input_state_snapshot)
+	var move_input: Vector2 = _runtime_state_helper.read_move_input(null, input_state_snapshot)
+	var camera_center_just_pressed: bool = _runtime_state_helper.read_camera_center_just_pressed(null, input_state_snapshot)
 	_debug_helper.log_vcam_state("tick", active_vcam_id, look_input)
 	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
 
