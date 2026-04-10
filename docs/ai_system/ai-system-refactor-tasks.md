@@ -1,7 +1,7 @@
 # AI System Refactor — Tasks Checklist
 
 **Branch**: `GOAP-AI` (or follow-up branch)
-**Status**: R1-R3 complete (2026-04-10); next milestone R4
+**Status**: R1-R4 complete (2026-04-10); next milestone R5
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-overview.md`, `docs/ai_system/ai-system-tasks.md`
 
@@ -210,7 +210,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 **Goal**: Remove ~200 lines of duplicated debug/probe code. `_build_render_probe(...)` is copy-pasted between `s_ai_behavior_system.gd` and `s_ai_navigation_system.gd` (verified: both files define the helper with the same body). The simpler `_find_character_body_recursive` helper is additionally duplicated in `scripts/ecs/components/c_movement_component.gd` and `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd` — the new `U_AIRenderProbe` utility should expose `_find_character_body_recursive` as a `static` helper that those two non-AI call sites can also adopt during the R4 stretch commit. Six systems reinvent `_tick_debug_log_cooldowns`: `s_ai_behavior_system.gd`, `s_ai_navigation_system.gd`, `s_ai_spawn_recovery_system.gd`, `s_floating_system.gd`, `s_gravity_system.gd`, `s_movement_system.gd` (verified via grep). Consolidate both.
 
-- [ ] **Commit 1** — Create debug util tests (TDD RED):
+- [x] **Commit 1** — Create debug util tests (TDD RED):
   - `tests/unit/utils/debug/test_u_debug_log_throttle.gd`:
     - `test_consume_budget_returns_true_when_cooldown_zero`
     - `test_consume_budget_returns_false_during_cooldown`
@@ -222,22 +222,46 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `test_build_render_probe_null_safe_on_missing_visual`
     - `test_build_render_probe_reports_body_position`
     - `test_build_render_probe_reports_visual_transparency_when_geometry`
-- [ ] **Commit 2** — Implement debug utils (TDD GREEN):
+- [x] **Commit 2** — Implement debug utils (TDD GREEN):
   - `scripts/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle extends RefCounted`) — `consume_budget(key: StringName, interval_sec: float) -> bool`, `tick(delta: float) -> void`, `clear() -> void`
   - `scripts/utils/debug/u_ai_render_probe.gd` (`class_name U_AIRenderProbe extends RefCounted`) — `static func build_probe_string(entity: Node, body: CharacterBody3D, movement_component: C_MovementComponent) -> String`; internal `_resolve_visual_node`, `_find_character_body_recursive`, `_find_first_geometry_recursive`
-- [ ] **Commit 3** — Migrate call sites (TDD GREEN):
+- [x] **Commit 3** — Migrate call sites (TDD GREEN):
   - `scripts/ecs/systems/s_ai_behavior_system.gd` — delete inline `_build_render_probe`, `_resolve_body_from_context`, `_resolve_visual_node`, `_find_character_body_recursive`, `_find_first_geometry_recursive`, `_debug_log_cooldowns` bookkeeping, `_tick_debug_log_cooldowns`. Use `U_DebugLogThrottle` and `U_AIRenderProbe` instead.
   - `scripts/ecs/systems/s_ai_navigation_system.gd` — same delete-and-replace pass
 - [ ] **Commit 4** (stretch, optional within R4) — migrate other systems with `_tick_debug_log_cooldowns` to `U_DebugLogThrottle`: `s_floating_system.gd`, `s_gravity_system.gd`, `s_movement_system.gd`, `s_ai_spawn_recovery_system.gd`. Also migrate the `_find_character_body_recursive` duplicates in `scripts/ecs/components/c_movement_component.gd` and `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd` to `U_AIRenderProbe.find_character_body_recursive(...)` (or promote that helper to a separate `U_NodeFind` utility if you'd rather not couple non-AI code to an `AI`-named util — recommended if the stretch commit runs).
 
 **R4 Verification**:
-- [ ] All new debug util tests green
-- [ ] Existing AI behavior/navigation tests green
-- [ ] Line count of `s_ai_behavior_system.gd` and `s_ai_navigation_system.gd` reduced; measured and recorded in completion notes
-- [ ] `test_ai_pipeline_integration.gd` green
-- [ ] `test_style_enforcement.gd` passes
+- [x] All new debug util tests green
+- [x] Existing AI behavior/navigation tests green
+- [x] Line count of `s_ai_behavior_system.gd` and `s_ai_navigation_system.gd` reduced; measured and recorded in completion notes
+- [x] `test_ai_pipeline_integration.gd` green
+- [x] `test_style_enforcement.gd` passes
 
-**R4 Completion Notes**: _(to be filled during execution)_
+**R4 Completion Notes**:
+- Added RED/GREEN debug utility coverage:
+  - `tests/unit/utils/debug/test_u_debug_log_throttle.gd` (`5/5`)
+  - `tests/unit/utils/debug/test_u_ai_render_probe.gd` (`4/4`)
+- Implemented shared debug utilities:
+  - `scripts/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle`)
+  - `scripts/utils/debug/u_ai_render_probe.gd` (`class_name U_AIRenderProbe`)
+- Migrated AI debug/probe call sites to shared utilities:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd` now uses `U_DebugLogThrottle` for per-entity and empty-query logging budgets and `U_AIRenderProbe.build_probe_string(...)` for render diagnostics.
+  - `scripts/ecs/systems/s_ai_navigation_system.gd` now uses `U_DebugLogThrottle` + `U_AIRenderProbe` and no longer owns duplicate probe/cooldown helpers.
+- Headless hardening included in `U_AIRenderProbe`:
+  - detached nodes now emit safe `<detached:...>` path markers and use local `position` when `global_position` is unavailable.
+- Line count reduction:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd`: `372` -> `264`
+  - `scripts/ecs/systems/s_ai_navigation_system.gd`: `306` -> `200`
+- Verification:
+  - Targeted suites green:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/debug/test_u_debug_log_throttle.gd` (`5/5`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/debug/test_u_ai_render_probe.gd` (`4/4`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` (`17/17`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` (`6/6`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` (`12/12`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` (`6/6`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`18/18`)
+  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` -> `3907/3916` passing, `9` pending/risky, `0` failing.
 
 ---
 

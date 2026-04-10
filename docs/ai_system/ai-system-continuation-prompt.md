@@ -5,17 +5,17 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 + Refactor R1-R3 complete — AI system refactor in progress (R4–R10 remaining)
-**Next Task**: Begin R4 in `docs/ai_system/ai-system-refactor-tasks.md` (Extract Debug Probe + Log Throttle Utilities)
+**Status**: Milestone 15 + Refactor R1-R4 complete — AI system refactor in progress (R5–R10 remaining)
+**Next Task**: Begin R5 in `docs/ai_system/ai-system-refactor-tasks.md` (Share Spawn Recovery Between Player and NPCs)
 
 ---
 
-## Current Status: Milestone 15 + Refactor R1-R3 Complete
+## Current Status: Milestone 15 + Refactor R1-R4 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
-- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R3 are complete; start at R4.**
+- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R4 are complete; start at R5.**
 
 ### Completed in M1 (2026-04-02)
 
@@ -450,6 +450,32 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3897/3907` passing, `1` failing perf-sensitive lighting smoke test, `9` pending/risky.
   - Isolated rerun of `tests/integration/lighting/test_character_zone_lighting_flow.gd` passed `7/7` (timing-sensitive failure, not tied to R3 behavior changes).
 
+### Completed in R4 (2026-04-10)
+
+- Added RED/GREEN debug utility coverage:
+  - `tests/unit/utils/debug/test_u_debug_log_throttle.gd` (`5/5`)
+  - `tests/unit/utils/debug/test_u_ai_render_probe.gd` (`4/4`)
+- Implemented shared debug utilities:
+  - `scripts/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle`)
+  - `scripts/utils/debug/u_ai_render_probe.gd` (`class_name U_AIRenderProbe`)
+- Refactored AI systems to remove duplicated probe/cooldown logic:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd` now composes `U_DebugLogThrottle` and `U_AIRenderProbe` and no longer owns `_build_render_probe` / `_tick_debug_log_cooldowns` helper stacks.
+  - `scripts/ecs/systems/s_ai_navigation_system.gd` now composes the same utility pair and no longer owns duplicate probe/cooldown helpers.
+- Added detached-node safety in probe rendering:
+  - `U_AIRenderProbe` now emits safe `<detached:...>` path markers and uses local `position` when nodes are outside the scene tree, avoiding headless test warnings/errors.
+- Line-count reduction:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd`: `372` → `264`
+  - `scripts/ecs/systems/s_ai_navigation_system.gd`: `306` → `200`
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/debug/test_u_debug_log_throttle.gd` → `5/5`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/debug/test_u_ai_render_probe.gd` → `4/4`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `17/17`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` → `12/12`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `18/18`
+  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3907/3916` passing, `9` pending/risky, `0` failing.
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -475,6 +501,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **R1 typed AI contracts are now enforced in runtime resources/components**: brain/goal/task/action references are strongly typed (`RS_AIBrainSettings`, `RS_AIGoal`, `RS_AITask`, `RS_AIPrimitiveTask`, `I_AIAction`, `I_Condition`) and AI hot-path logic no longer relies on `_read_*_property` duck-typing.
 - **R2 shared task-state keys + action-base hardening are complete**: AI move-target/arrival/action-started/debug keys now resolve through `U_AITaskStateKeys`, and all concrete AI actions extend `I_AIAction` by class name with assert-based base virtual safeguards.
 - **R3 collaborator split is now complete**: `S_AIBehaviorSystem` now orchestrates `U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, and `U_AIContextBuilder`, keeping GOAP/HTN behavior stable while reducing behavior-system size and improving unit-test isolation.
+- **R4 debug utility extraction is complete**: `U_DebugLogThrottle` and `U_AIRenderProbe` now own shared logging-budget/render-probe behavior for AI systems, eliminating duplicated helper stacks from `S_AIBehaviorSystem` and `S_AINavigationSystem` while preserving behavior and improving headless detached-node safety.
 
 ---
 
@@ -529,12 +556,12 @@ Study these for utility and event patterns:
 
 ### 4. Execute AI System Refactor Tasks in Order
 
-M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R4.
+M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R5.
 
 1. **R1** — Typed Brain Settings, Goals, and Tasks (eliminate `_read_*_property` duck-typing from the AI hot path) **COMPLETE (2026-04-10)**
 2. **R2** — Promote `I_AIAction` to a Proper Action Base + Task State Keys Registry **COMPLETE (2026-04-10)**
 3. **R3** — Split `s_ai_behavior_system.gd` Into Focused Collaborators (goal selector, task runner, replanner, context builder) **COMPLETE (2026-04-10)**
-4. **R4** — Extract Debug Probe + Log Throttle Utilities (delete duplicated `_build_render_probe` + `_tick_debug_log_cooldowns`) **← START HERE**
+4. **R4** — Extract Debug Probe + Log Throttle Utilities (delete duplicated `_build_render_probe` + `_tick_debug_log_cooldowns`) **COMPLETE (2026-04-10)**
 5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`)
 6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`)
 7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`)
@@ -586,8 +613,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin R4** in `docs/ai_system/ai-system-refactor-tasks.md` — Extract shared debug probe + log throttle utilities (`U_AIRenderProbe`, `U_DebugLogThrottle`) and migrate `S_AIBehaviorSystem`/`S_AINavigationSystem` call sites.
-2. Proceed through R4–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
+1. **Begin R5** in `docs/ai_system/ai-system-refactor-tasks.md` — Share spawn recovery between player and NPC flows (`s_ai_spawn_recovery_system.gd` → generic `s_spawn_recovery_system.gd` + `C_SpawnRecoveryComponent`).
+2. Proceed through R5–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
 3. Optional follow-up (post-refactor): run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
 4. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
 5. Merge `GOAP-AI` once R1–R10 and regression review pass.
