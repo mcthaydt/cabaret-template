@@ -18,11 +18,12 @@ const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
-var _debug_log_cooldowns: Dictionary = {}
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 
 func process_tick(delta: float) -> void:
-	_tick_debug_log_cooldowns(delta)
+	_debug_log_throttle.tick(delta)
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null
 	if state_store != null:
@@ -137,25 +138,12 @@ func _resolve_entity_id_from_query(entity_query: Object) -> StringName:
 		return ECS_UTILS.get_entity_id(entity_variant as Node)
 	return StringName()
 
-func _tick_debug_log_cooldowns(delta: float) -> void:
-	if _debug_log_cooldowns.is_empty():
-		return
-	var step: float = maxf(delta, 0.0)
-	for key_variant in _debug_log_cooldowns.keys():
-		var cooldown: float = float(_debug_log_cooldowns.get(key_variant, 0.0))
-		cooldown = maxf(cooldown - step, 0.0)
-		_debug_log_cooldowns[key_variant] = cooldown
-
 func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	if not debug_ai_gravity_logging:
 		return false
 	if debug_entity_id != StringName() and entity_id != debug_entity_id:
 		return false
-	var cooldown: float = float(_debug_log_cooldowns.get(entity_id, 0.0))
-	if cooldown > 0.0:
-		return false
-	_debug_log_cooldowns[entity_id] = maxf(debug_log_interval_sec, 0.05)
-	return true
+	return _debug_log_throttle.consume_budget(entity_id, maxf(debug_log_interval_sec, 0.05))
 
 func _debug_log(entity_id: StringName, message: String) -> void:
 	if not _consume_debug_log_budget(entity_id):

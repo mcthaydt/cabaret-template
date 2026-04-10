@@ -15,6 +15,7 @@ const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_s
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 @export var debug_ai_floating_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
@@ -22,7 +23,7 @@ const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 ## DIAG: logs every frame (not throttled) to capture bounce oscillation
 @export var debug_bounce_diag: bool = false
 
-var _debug_log_cooldowns: Dictionary = {}
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 var _diag_frame_counter: int = 0
 var _is_mobile: bool = false
 var _tick_counter: int = 0
@@ -49,7 +50,7 @@ func process_tick(delta: float) -> void:
 
 	_perf_probe.start()
 	_diag_frame_counter += 1
-	_tick_debug_log_cooldowns(delta)
+	_debug_log_throttle.tick(delta)
 	var manager := get_manager()
 	if manager == null:
 		return
@@ -365,31 +366,12 @@ func _resolve_entity_id_from_query(entity_query: Object) -> StringName:
 		return ECS_UTILS.get_entity_id(entity_variant as Node)
 	return StringName()
 
-func _tick_debug_log_cooldowns(delta: float) -> void:
-	if _debug_log_cooldowns.is_empty():
-		return
-	var step: float = maxf(delta, 0.0)
-	var expired_keys: Array = []
-	for key_variant in _debug_log_cooldowns.keys():
-		var cooldown: float = float(_debug_log_cooldowns.get(key_variant, 0.0))
-		cooldown = maxf(cooldown - step, 0.0)
-		if cooldown <= 0.0:
-			expired_keys.append(key_variant)
-		else:
-			_debug_log_cooldowns[key_variant] = cooldown
-	for key_variant in expired_keys:
-		_debug_log_cooldowns.erase(key_variant)
-
 func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	if not debug_ai_floating_logging:
 		return false
 	if debug_entity_id != StringName() and entity_id != debug_entity_id:
 		return false
-	var cooldown: float = float(_debug_log_cooldowns.get(entity_id, 0.0))
-	if cooldown > 0.0:
-		return false
-	_debug_log_cooldowns[entity_id] = maxf(debug_log_interval_sec, 0.05)
-	return true
+	return _debug_log_throttle.consume_budget(entity_id, maxf(debug_log_interval_sec, 0.05))
 
 func _debug_log(entity_id: StringName, message: String) -> void:
 	if not _consume_debug_log_budget(entity_id):

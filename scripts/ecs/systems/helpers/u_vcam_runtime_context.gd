@@ -3,6 +3,7 @@ class_name U_VCamRuntimeContext
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_NODE_FIND := preload("res://scripts/utils/ecs/u_node_find.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_CHARACTER_STATE_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_character_state_component.gd")
@@ -89,7 +90,7 @@ func resolve_follow_target_grounded_state(
 			if grounded_variant is int:
 				return int(grounded_variant) != 0
 
-	var body: CharacterBody3D = _find_character_body_recursive(follow_target)
+	var body: CharacterBody3D = U_NODE_FIND.find_character_body_recursive(follow_target)
 	if body == null or not is_instance_valid(body):
 		return false
 	return body.is_on_floor()
@@ -125,7 +126,7 @@ func probe_ground_reference_height(follow_target: Node3D, max_distance: float) -
 		if not exclude_rids.has(follow_rid):
 			exclude_rids.append(follow_rid)
 	if exclude_rids.is_empty():
-		var follow_body: CharacterBody3D = _find_character_body_recursive(follow_target)
+		var follow_body: CharacterBody3D = U_NODE_FIND.find_character_body_recursive(follow_target)
 		if follow_body != null and is_instance_valid(follow_body):
 			exclude_rids.append(follow_body.get_rid())
 	query.exclude = exclude_rids
@@ -289,7 +290,7 @@ func _read_entity_movement_component_velocity(entity: Node) -> Dictionary:
 	}
 
 func _read_entity_character_body_velocity(entity: Node) -> Dictionary:
-	var character_body: CharacterBody3D = _find_character_body_recursive(entity)
+	var character_body: CharacterBody3D = U_NODE_FIND.find_character_body_recursive(entity)
 	if character_body == null or not is_instance_valid(character_body):
 		return {"has_velocity": false, "velocity": Vector3.ZERO}
 	return {
@@ -373,21 +374,6 @@ func _find_node_with_script(root: Node, script: Script) -> Node:
 			continue
 		var found: Node = _find_node_with_script(child, script)
 		if found != null:
-			return found
-	return null
-
-func _find_character_body_recursive(root: Node) -> CharacterBody3D:
-	if root == null:
-		return null
-	if root is CharacterBody3D:
-		return root as CharacterBody3D
-
-	for child_variant in root.get_children():
-		var child := child_variant as Node
-		if child == null:
-			continue
-		var found: CharacterBody3D = _find_character_body_recursive(child)
-		if found != null and is_instance_valid(found):
 			return found
 	return null
 

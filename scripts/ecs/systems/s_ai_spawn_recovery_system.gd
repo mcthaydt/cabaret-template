@@ -9,6 +9,7 @@ const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_compone
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
 const I_SPAWN_MANAGER := preload("res://scripts/interfaces/i_spawn_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 const BRAIN_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
 const FLOATING_TYPE := C_FLOATING_COMPONENT.COMPONENT_TYPE
@@ -23,14 +24,14 @@ const INPUT_TYPE := C_INPUT_COMPONENT.COMPONENT_TYPE
 var _unsupported_since_by_entity: Dictionary = {}
 var _cooldown_until_by_entity: Dictionary = {}
 var _recovery_disabled_entities: Dictionary = {}
-var _debug_log_cooldowns: Dictionary = {}
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 var _startup_elapsed: float = 0.0
 
 func _init() -> void:
 	execution_priority = 75
 
 func process_tick(delta: float) -> void:
-	_tick_debug_log_cooldowns(delta)
+	_debug_log_throttle.tick(delta)
 
 	if _startup_elapsed < startup_grace_period_sec:
 		_startup_elapsed += maxf(delta, 0.0)
@@ -215,28 +216,12 @@ func _prune_dictionary(runtime_map: Dictionary, seen_entities: Dictionary) -> vo
 			continue
 		runtime_map.erase(key_variant)
 
-func _tick_debug_log_cooldowns(delta: float) -> void:
-	if _debug_log_cooldowns.is_empty():
-		return
-
-	var step: float = maxf(delta, 0.0)
-	for key_variant in _debug_log_cooldowns.keys():
-		var cooldown: float = float(_debug_log_cooldowns.get(key_variant, 0.0))
-		cooldown = maxf(cooldown - step, 0.0)
-		_debug_log_cooldowns[key_variant] = cooldown
-
 func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	if not debug_ai_spawn_recovery_logging:
 		return false
 	if debug_entity_id != StringName() and entity_id != debug_entity_id:
 		return false
-
-	var cooldown: float = float(_debug_log_cooldowns.get(entity_id, 0.0))
-	if cooldown > 0.0:
-		return false
-
-	_debug_log_cooldowns[entity_id] = maxf(debug_log_interval_sec, 0.05)
-	return true
+	return _debug_log_throttle.consume_budget(entity_id, maxf(debug_log_interval_sec, 0.05))
 
 func _debug_log(entity_id: StringName, message: String) -> void:
 	if not _consume_debug_log_budget(entity_id):

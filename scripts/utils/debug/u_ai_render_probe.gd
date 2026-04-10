@@ -1,6 +1,8 @@
 extends RefCounted
 class_name U_AIRenderProbe
 
+const U_NODE_FIND := preload("res://scripts/utils/ecs/u_node_find.gd")
+
 
 static func build_probe_string(
 	entity: Node,
@@ -18,7 +20,7 @@ static func build_probe_string(
 	if resolved_body == null and movement_component != null:
 		resolved_body = movement_component.get_character_body()
 	if resolved_body == null:
-		resolved_body = _find_character_body_recursive(entity)
+		resolved_body = U_NODE_FIND.find_character_body_recursive(entity)
 
 	var body_visible: bool = false
 	var body_visible_in_tree: bool = false
@@ -69,7 +71,7 @@ static func build_probe_string(
 
 
 static func find_character_body_recursive(root: Node) -> CharacterBody3D:
-	return _find_character_body_recursive(root)
+	return U_NODE_FIND.find_character_body_recursive(root)
 
 
 static func _resolve_visual_node(entity: Node, body: CharacterBody3D) -> Node3D:
@@ -83,21 +85,6 @@ static func _resolve_visual_node(entity: Node, body: CharacterBody3D) -> Node3D:
 	if named_visual is Node3D:
 		return named_visual as Node3D
 	return _find_first_geometry_recursive(search_root)
-
-
-static func _find_character_body_recursive(node: Node) -> CharacterBody3D:
-	if node == null:
-		return null
-	if node is CharacterBody3D:
-		return node as CharacterBody3D
-	for child_variant in node.get_children():
-		var child: Node = child_variant as Node
-		if child == null:
-			continue
-		var found: CharacterBody3D = _find_character_body_recursive(child)
-		if found != null:
-			return found
-	return null
 
 
 static func _find_first_geometry_recursive(node: Node) -> Node3D:
