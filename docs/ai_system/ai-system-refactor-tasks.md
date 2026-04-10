@@ -1,7 +1,7 @@
 # AI System Refactor — Tasks Checklist
 
 **Branch**: `GOAP-AI` (or follow-up branch)
-**Status**: R1-R2 complete (2026-04-10); next milestone R3
+**Status**: R1-R3 complete (2026-04-10); next milestone R4
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-overview.md`, `docs/ai_system/ai-system-tasks.md`
 
@@ -144,7 +144,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 **Goal**: Carve the 771-line system into four composable `RefCounted` utilities, each under ~200 lines and unit-testable without a running ECS manager. `s_ai_behavior_system.gd` retains orchestration only; the heavy lifting moves to util classes.
 
-- [ ] **Commit 1** — Create util tests (TDD RED):
+- [x] **Commit 1** — Create util tests (TDD RED):
   - `tests/unit/ai/test_u_ai_goal_selector.gd`:
     - `test_selects_highest_scoring_goal`
     - `test_ties_broken_by_priority`
@@ -169,21 +169,40 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `test_includes_entity_and_entity_id`
     - `test_includes_components_dict`
     - `test_handles_missing_store_gracefully`
-- [ ] **Commit 2** — Implement extracted utils (TDD GREEN):
+- [x] **Commit 2** — Implement extracted utils (TDD GREEN):
   - `scripts/utils/ai/u_ai_goal_selector.gd` (`class_name U_AIGoalSelector extends RefCounted`) — owns `select(brain_settings, context, tracker, executing_goal_id)`, internal `_build_rule_from_goal`, `_apply_state_gates`, `_find_goal_by_id`, `_rule_pool`, `_goal_by_id_cache`
   - `scripts/utils/ai/u_ai_task_runner.gd` (`class_name U_AITaskRunner extends RefCounted`) — owns `tick(brain, delta, context)`, internal `_advance_to_next_task`, `_finish_task_queue`
   - `scripts/utils/ai/u_ai_replanner.gd` (`class_name U_AIReplanner extends RefCounted`) — owns `replan_for_goal(brain, goal, context)`, `_suspend_current_goal`, `_read_suspended_state`; composes `U_HTNPlanner`
   - `scripts/utils/ai/u_ai_context_builder.gd` (`class_name U_AIContextBuilder extends RefCounted`) — owns `build(entity_query, brain, redux_state, store, manager)`, `context_key_for_context(context)`
-- [ ] **Commit 3** — Refactor `s_ai_behavior_system.gd` to compose the new utils. Leave goal-fired cooldown bookkeeping and debug logging in place for now (R4 removes debug; R10 is the final cleanup pass).
+- [x] **Commit 3** — Refactor `s_ai_behavior_system.gd` to compose the new utils. Leave goal-fired cooldown bookkeeping and debug logging in place for now (R4 removes debug; R10 is the final cleanup pass).
 
 **R3 Verification**:
-- [ ] All new util tests green
-- [ ] `test_s_ai_behavior_system_goals.gd` green (no behavior change)
-- [ ] `test_ai_pipeline_integration.gd` green
-- [ ] `s_ai_behavior_system.gd` LOC reduced; measured and recorded in completion notes
-- [ ] `test_style_enforcement.gd` passes
+- [x] All new util tests green
+- [x] `test_s_ai_behavior_system_goals.gd` green (no behavior change)
+- [x] `test_ai_pipeline_integration.gd` green
+- [x] `s_ai_behavior_system.gd` LOC reduced; measured and recorded in completion notes
+- [x] `test_style_enforcement.gd` passes
 
-**R3 Completion Notes**: _(to be filled during execution)_
+**R3 Completion Notes**:
+- Added RED/GREEN collaborator coverage:
+  - `tests/unit/ai/test_u_ai_goal_selector.gd` (`7/7`)
+  - `tests/unit/ai/test_u_ai_task_runner.gd` (`5/5`)
+  - `tests/unit/ai/test_u_ai_replanner.gd` (`4/4`)
+  - `tests/unit/ai/test_u_ai_context_builder.gd` (`4/4`)
+- Implemented focused AI collaborator utilities:
+  - `scripts/utils/ai/u_ai_goal_selector.gd`
+  - `scripts/utils/ai/u_ai_task_runner.gd`
+  - `scripts/utils/ai/u_ai_replanner.gd`
+  - `scripts/utils/ai/u_ai_context_builder.gd`
+- Refactored `S_AIBehaviorSystem` to orchestration-first composition:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd` now delegates goal selection, replanning, task execution, and context assembly to the new collaborators while preserving existing debug logging and deferred cooldown bookkeeping.
+  - Preserved rule-pool observability for existing tests via collaborator-backed `_rule_pool` / `_goal_by_id_cache`.
+- Line count reduction:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd`: `771` (pre-R3 baseline) -> `372` lines after R3.
+- Verification:
+  - Targeted R3 suite: `67/67` passing (new util tests + behavior goals/tasks + AI pipeline integration + style enforcement).
+  - Full regression snapshot (2026-04-10): `3897/3907` passing, `1` failing performance smoke test (`tests/integration/lighting/test_character_zone_lighting_flow.gd::test_multi_character_multi_zone_performance_smoke`), `9` pending/risky.
+  - Isolated rerun of `test_character_zone_lighting_flow.gd` passed `7/7`, indicating the full-suite failure is timing-sensitive and outside the R3 AI collaborator change set.
 
 ---
 

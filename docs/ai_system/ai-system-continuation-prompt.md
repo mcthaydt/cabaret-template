@@ -5,17 +5,17 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 + Refactor R1-R2 complete — AI system refactor in progress (R3–R10 remaining)
-**Next Task**: Begin R3 in `docs/ai_system/ai-system-refactor-tasks.md` (Split `s_ai_behavior_system.gd` Into Collaborators)
+**Status**: Milestone 15 + Refactor R1-R3 complete — AI system refactor in progress (R4–R10 remaining)
+**Next Task**: Begin R4 in `docs/ai_system/ai-system-refactor-tasks.md` (Extract Debug Probe + Log Throttle Utilities)
 
 ---
 
-## Current Status: Milestone 15 + Refactor R1-R2 Complete
+## Current Status: Milestone 15 + Refactor R1-R3 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
-- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R2 are complete; start at R3.**
+- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R3 are complete; start at R4.**
 
 ### Completed in M1 (2026-04-02)
 
@@ -420,6 +420,36 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
     - `tests/integration/vcam/test_vcam_runtime.gd::test_root_scene_registers_vcam_manager_in_service_locator`
     - Error: `M_SaveManager: Save file 'current_scene_id' is empty`
 
+### Completed in R3 (2026-04-10)
+
+- Added RED/GREEN collaborator utility coverage:
+  - `tests/unit/ai/test_u_ai_goal_selector.gd` (`7/7`)
+  - `tests/unit/ai/test_u_ai_task_runner.gd` (`5/5`)
+  - `tests/unit/ai/test_u_ai_replanner.gd` (`4/4`)
+  - `tests/unit/ai/test_u_ai_context_builder.gd` (`4/4`)
+- Implemented extracted collaborators:
+  - `scripts/utils/ai/u_ai_goal_selector.gd`
+  - `scripts/utils/ai/u_ai_task_runner.gd`
+  - `scripts/utils/ai/u_ai_replanner.gd`
+  - `scripts/utils/ai/u_ai_context_builder.gd`
+- Refactored `S_AIBehaviorSystem` to orchestration-first composition:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd` now delegates goal selection/replanning/task execution/context assembly to the collaborator utilities while preserving existing cooldown bookkeeping and debug logging behavior for R4 follow-up.
+  - Maintains existing pooled-rule observability (`_rule_pool`) used by legacy behavior-system tests.
+- Line-count reduction:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd` reduced from the pre-refactor `771`-line baseline to `372` lines after R3.
+- Verification:
+  - Targeted R3 suite:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_ai_goal_selector.gd` → `7/7`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_ai_task_runner.gd` → `5/5`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_ai_replanner.gd` → `4/4`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_ai_context_builder.gd` → `4/4`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `17/17`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` → `6/6`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `18/18`
+  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3897/3907` passing, `1` failing perf-sensitive lighting smoke test, `9` pending/risky.
+  - Isolated rerun of `tests/integration/lighting/test_character_zone_lighting_flow.gd` passed `7/7` (timing-sensitive failure, not tied to R3 behavior changes).
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -444,6 +474,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **M15 AI demo flag dispatch uses gameplay actions, not navigation actions**: use `U_GameplayActions.set_ai_demo_flag(...)` for alarm/door/collectible/proximity flag updates.
 - **R1 typed AI contracts are now enforced in runtime resources/components**: brain/goal/task/action references are strongly typed (`RS_AIBrainSettings`, `RS_AIGoal`, `RS_AITask`, `RS_AIPrimitiveTask`, `I_AIAction`, `I_Condition`) and AI hot-path logic no longer relies on `_read_*_property` duck-typing.
 - **R2 shared task-state keys + action-base hardening are complete**: AI move-target/arrival/action-started/debug keys now resolve through `U_AITaskStateKeys`, and all concrete AI actions extend `I_AIAction` by class name with assert-based base virtual safeguards.
+- **R3 collaborator split is now complete**: `S_AIBehaviorSystem` now orchestrates `U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, and `U_AIContextBuilder`, keeping GOAP/HTN behavior stable while reducing behavior-system size and improving unit-test isolation.
 
 ---
 
@@ -498,12 +529,12 @@ Study these for utility and event patterns:
 
 ### 4. Execute AI System Refactor Tasks in Order
 
-M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R3.
+M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R4.
 
 1. **R1** — Typed Brain Settings, Goals, and Tasks (eliminate `_read_*_property` duck-typing from the AI hot path) **COMPLETE (2026-04-10)**
 2. **R2** — Promote `I_AIAction` to a Proper Action Base + Task State Keys Registry **COMPLETE (2026-04-10)**
-3. **R3** — Split `s_ai_behavior_system.gd` Into Focused Collaborators (goal selector, task runner, replanner, context builder) **← START HERE**
-4. **R4** — Extract Debug Probe + Log Throttle Utilities (delete duplicated `_build_render_probe` + `_tick_debug_log_cooldowns`)
+3. **R3** — Split `s_ai_behavior_system.gd` Into Focused Collaborators (goal selector, task runner, replanner, context builder) **COMPLETE (2026-04-10)**
+4. **R4** — Extract Debug Probe + Log Throttle Utilities (delete duplicated `_build_render_probe` + `_tick_debug_log_cooldowns`) **← START HERE**
 5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`)
 6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`)
 7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`)
@@ -540,8 +571,8 @@ You MUST:
 
 - **No Autoloads**: AI system follows existing ECS patterns. S_AIBehaviorSystem lives in gameplay scene system groups. C_AIBrainComponent attaches to NPC entities.
 - **C_AIBrainComponent settings are required**: `brain_settings` must be a valid `RS_AIBrainSettings` resource. Placeholder/demo NPC scene entities cannot leave this field null.
-- **Compose, Don't Inherit**: S_AIBehaviorSystem composes U_RuleScorer, U_RuleSelector, U_RuleStateTracker, and U_HTNPlanner. It does NOT inherit from a QB base class.
-- **Typed Actions via I_AIAction (M7 complete)**: Each action resource (RS_AIAction*) implements I_AIAction with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)`. `S_AIBehaviorSystem._execute_current_task(...)` dispatches polymorphically (no match blocks/action-type switching).
+- **Compose, Don't Inherit**: `S_AIBehaviorSystem` composes focused collaborators (`U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, `U_AIContextBuilder`) plus `U_RuleStateTracker`; it does NOT inherit from a QB base class.
+- **Typed Actions via I_AIAction (M7 complete)**: Each action resource (RS_AIAction*) implements I_AIAction with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)`. Runtime dispatch is polymorphic through `U_AITaskRunner.tick(...)` (no match blocks/action-type switching).
 - **RS_AIPrimitiveTask is a Wrapper**: RS_AIPrimitiveTask holds `@export var action: I_AIAction`. The task is the "what" (position in the HTN plan), the action is the "how" (self-executing logic + typed @export config).
 - **Animate Stub Scope (implemented)**: `RS_AIActionAnimate` sets `task_state["animation_state"]` to a StringName and completes immediately. Full animation system integration is a separate effort.
 - **M7/M12 Movement Bridge (implemented + hardened)**: `RS_AIActionMoveTo` writes task-state entries keyed by `U_AITaskStateKeys.MOVE_TARGET` + `U_AITaskStateKeys.ARRIVAL_THRESHOLD`; `S_AINavigationSystem` (`execution_priority = -5`) resolves world-space XZ direction into `C_InputComponent.set_move_vector()` and applies per-task arrival threshold; `S_MovementSystem` consumes world-space vectors for AI entities while preserving player camera-relative controls.
@@ -555,7 +586,7 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin R3** in `docs/ai_system/ai-system-refactor-tasks.md` — Split `s_ai_behavior_system.gd` into focused collaborators (`U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, `U_AIContextBuilder`) with util-level RED/GREEN coverage.
+1. **Begin R4** in `docs/ai_system/ai-system-refactor-tasks.md` — Extract shared debug probe + log throttle utilities (`U_AIRenderProbe`, `U_DebugLogThrottle`) and migrate `S_AIBehaviorSystem`/`S_AINavigationSystem` call sites.
 2. Proceed through R4–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
 3. Optional follow-up (post-refactor): run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
 4. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
