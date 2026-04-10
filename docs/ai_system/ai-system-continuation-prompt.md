@@ -463,6 +463,9 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `scripts/ecs/systems/s_ai_navigation_system.gd` now composes the same utility pair and no longer owns duplicate probe/cooldown helpers.
 - Added detached-node safety in probe rendering:
   - `U_AIRenderProbe` now emits safe `<detached:...>` path markers and uses local `position` when nodes are outside the scene tree, avoiding headless test warnings/errors.
+- Completed R4 stretch migration:
+  - Replaced duplicated debug-cooldown loops with `U_DebugLogThrottle` in `S_FloatingSystem`, `S_GravitySystem`, `S_MovementSystem`, and `S_AISpawnRecoverySystem`.
+  - Added shared `U_NodeFind.find_character_body_recursive(...)` and migrated recursive body lookup call sites in `C_MovementComponent`, `U_VCamRuntimeContext`, and `U_AIRenderProbe`.
 - Line-count reduction:
   - `scripts/ecs/systems/s_ai_behavior_system.gd`: `372` → `264`
   - `scripts/ecs/systems/s_ai_navigation_system.gd`: `306` → `200`
@@ -474,7 +477,13 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` → `12/12`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `18/18`
-  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3907/3916` passing, `9` pending/risky, `0` failing.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_floating_system.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_gravity_system.gd` → `2/2`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_movement_system.gd` → `10/10`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd` → `5/5`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` → `78/78`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/test_u_node_find.gd` → `3/3`
+  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3910/3919` passing, `9` pending/risky, `0` failing.
 
 ### Key Design Decisions
 
@@ -502,6 +511,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **R2 shared task-state keys + action-base hardening are complete**: AI move-target/arrival/action-started/debug keys now resolve through `U_AITaskStateKeys`, and all concrete AI actions extend `I_AIAction` by class name with assert-based base virtual safeguards.
 - **R3 collaborator split is now complete**: `S_AIBehaviorSystem` now orchestrates `U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, and `U_AIContextBuilder`, keeping GOAP/HTN behavior stable while reducing behavior-system size and improving unit-test isolation.
 - **R4 debug utility extraction is complete**: `U_DebugLogThrottle` and `U_AIRenderProbe` now own shared logging-budget/render-probe behavior for AI systems, eliminating duplicated helper stacks from `S_AIBehaviorSystem` and `S_AINavigationSystem` while preserving behavior and improving headless detached-node safety.
+- **R4 stretch migration is complete**: shared debug-throttle usage now covers `S_FloatingSystem`, `S_GravitySystem`, `S_MovementSystem`, and `S_AISpawnRecoverySystem`; recursive `CharacterBody3D` lookup is now centralized via `U_NodeFind`.
 
 ---
 

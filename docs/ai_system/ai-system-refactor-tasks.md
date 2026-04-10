@@ -228,7 +228,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 - [x] **Commit 3** — Migrate call sites (TDD GREEN):
   - `scripts/ecs/systems/s_ai_behavior_system.gd` — delete inline `_build_render_probe`, `_resolve_body_from_context`, `_resolve_visual_node`, `_find_character_body_recursive`, `_find_first_geometry_recursive`, `_debug_log_cooldowns` bookkeeping, `_tick_debug_log_cooldowns`. Use `U_DebugLogThrottle` and `U_AIRenderProbe` instead.
   - `scripts/ecs/systems/s_ai_navigation_system.gd` — same delete-and-replace pass
-- [ ] **Commit 4** (stretch, optional within R4) — migrate other systems with `_tick_debug_log_cooldowns` to `U_DebugLogThrottle`: `s_floating_system.gd`, `s_gravity_system.gd`, `s_movement_system.gd`, `s_ai_spawn_recovery_system.gd`. Also migrate the `_find_character_body_recursive` duplicates in `scripts/ecs/components/c_movement_component.gd` and `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd` to `U_AIRenderProbe.find_character_body_recursive(...)` (or promote that helper to a separate `U_NodeFind` utility if you'd rather not couple non-AI code to an `AI`-named util — recommended if the stretch commit runs).
+- [x] **Commit 4** (stretch, optional within R4) — migrate other systems with `_tick_debug_log_cooldowns` to `U_DebugLogThrottle`: `s_floating_system.gd`, `s_gravity_system.gd`, `s_movement_system.gd`, `s_ai_spawn_recovery_system.gd`. Also migrate the `_find_character_body_recursive` duplicates in `scripts/ecs/components/c_movement_component.gd` and `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd` to `U_AIRenderProbe.find_character_body_recursive(...)` (or promote that helper to a separate `U_NodeFind` utility if you'd rather not couple non-AI code to an `AI`-named util — recommended if the stretch commit runs).
 
 **R4 Verification**:
 - [x] All new debug util tests green
@@ -247,6 +247,17 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 - Migrated AI debug/probe call sites to shared utilities:
   - `scripts/ecs/systems/s_ai_behavior_system.gd` now uses `U_DebugLogThrottle` for per-entity and empty-query logging budgets and `U_AIRenderProbe.build_probe_string(...)` for render diagnostics.
   - `scripts/ecs/systems/s_ai_navigation_system.gd` now uses `U_DebugLogThrottle` + `U_AIRenderProbe` and no longer owns duplicate probe/cooldown helpers.
+- Stretch pass completed (Commit 4):
+  - Migrated `_tick_debug_log_cooldowns` duplication to `U_DebugLogThrottle` in:
+    - `scripts/ecs/systems/s_floating_system.gd`
+    - `scripts/ecs/systems/s_gravity_system.gd`
+    - `scripts/ecs/systems/s_movement_system.gd`
+    - `scripts/ecs/systems/s_ai_spawn_recovery_system.gd`
+  - Introduced `scripts/utils/ecs/u_node_find.gd` (`class_name U_NodeFind`) to avoid coupling non-AI systems to `U_AIRenderProbe`.
+  - Migrated recursive character-body lookup duplicates to `U_NodeFind.find_character_body_recursive(...)` in:
+    - `scripts/ecs/components/c_movement_component.gd`
+    - `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd`
+    - `scripts/utils/debug/u_ai_render_probe.gd` (internal delegation)
 - Headless hardening included in `U_AIRenderProbe`:
   - detached nodes now emit safe `<detached:...>` path markers and use local `position` when `global_position` is unavailable.
 - Line count reduction:
@@ -261,7 +272,13 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_navigation_system.gd` (`12/12`)
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` (`6/6`)
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`18/18`)
-  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` -> `3907/3916` passing, `9` pending/risky, `0` failing.
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_floating_system.gd` (`6/6`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_gravity_system.gd` (`2/2`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_movement_system.gd` (`10/10`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd` (`5/5`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/test_u_node_find.gd` (`3/3`)
+  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` -> `3910/3919` passing, `9` pending/risky, `0` failing.
 
 ---
 

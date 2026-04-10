@@ -86,6 +86,7 @@
   - Enforce required settings/resources by overriding `_validate_required_settings()` (call `push_error(...)` and return `false` to abort registration); use `_on_required_settings_ready()` for post-validation setup.
   - Prefer `@export` NodePaths with typed getters that use `get_node_or_null(...) as Type` and return `null` on empty paths.
   - Keep null-safe call sites; systems assume absent paths disable behavior rather than error.
+  - Shared recursive body lookup contract: use `U_NodeFind.find_character_body_recursive(...)` for generic `CharacterBody3D` discovery instead of duplicating `_find_character_body_recursive` helpers across components/systems.
   - If you expose debug state, copy via `snapshot.duplicate(true)` to avoid aliasing.
   - Spawn freeze/unfreeze state lives in `C_SpawnStateComponent` (`is_physics_frozen`, `unfreeze_at_frame`, `suppress_landing_until_frame`); systems gate movement/jump/floating via this component.
 - Systems
