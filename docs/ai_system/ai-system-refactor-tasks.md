@@ -1,7 +1,7 @@
 # AI System Refactor — Tasks Checklist
 
 **Branch**: `GOAP-AI` (or follow-up branch)
-**Status**: R1-R4 complete (2026-04-10); next milestone R5
+**Status**: R1-R5 complete (2026-04-10); next milestone R6
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-overview.md`, `docs/ai_system/ai-system-tasks.md`
 
@@ -286,7 +286,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 **Goal**: Today the player has no "falling off-map" recovery, and `s_ai_spawn_recovery_system.gd` is NPC-only. Promote the recovery logic to a shared ECS system so both player and NPCs can use it. `RS_AIBrainSettings` currently carries `respawn_spawn_point_id`, `respawn_unsupported_delay_sec`, `respawn_recovery_cooldown_sec` — those belong on a dedicated settings resource, not the AI brain.
 
-- [ ] **Commit 1** — Create shared recovery tests (TDD RED):
+- [x] **Commit 1** — Create shared recovery tests (TDD RED):
   - `tests/unit/ecs/components/test_c_spawn_recovery_component.gd`:
     - `test_component_type_constant`
     - `test_settings_export_assignable`
@@ -298,27 +298,59 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `test_supported_entity_clears_unsupported_timer`
     - `test_player_entity_respawned_via_shared_system`
     - `test_npc_entity_respawned_via_shared_system`
-- [ ] **Commit 2** — Implement new component/settings/system (TDD GREEN):
+- [x] **Commit 2** — Implement new component/settings/system (TDD GREEN):
   - `scripts/resources/ecs/rs_spawn_recovery_settings.gd` — `class_name RS_SpawnRecoverySettings`, fields `spawn_point_id: StringName`, `unsupported_delay_sec: float = 0.6`, `recovery_cooldown_sec: float = 1.0`, `startup_grace_period_sec: float = 1.0`
   - `scripts/ecs/components/c_spawn_recovery_component.gd` — `class_name C_SpawnRecoveryComponent extends BaseECSComponent`, `@export var settings: RS_SpawnRecoverySettings`, `_validate_required_settings()` requires non-null settings
   - `scripts/ecs/systems/s_spawn_recovery_system.gd` — `class_name S_SpawnRecoverySystem extends BaseECSSystem`, queries `[C_SpawnRecoveryComponent, C_FloatingComponent, C_MovementComponent, C_InputComponent]`, delegates actual respawn to `U_SERVICE_LOCATOR.try_get_service(&"spawn_manager") as I_SpawnManager`
-- [ ] **Commit 3** — Migrate existing NPC recovery (TDD GREEN):
+- [x] **Commit 3** — Migrate existing NPC recovery (TDD GREEN):
   - `scripts/ecs/systems/s_ai_spawn_recovery_system.gd` — **delete** after verifying `s_spawn_recovery_system.gd` covers all prior behavior
   - `scripts/resources/ai/rs_ai_brain_settings.gd` — remove `respawn_spawn_point_id`, `respawn_unsupported_delay_sec`, `respawn_recovery_cooldown_sec` fields
   - `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres` is currently the **only** brain resource that populates the three `respawn_*` fields with non-default values (verified via grep). Before deleting the fields on `rs_ai_brain_settings.gd`, create a sibling `resources/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres` that carries those values into an `RS_SpawnRecoverySettings` instance.
   - `resources/ai/sentry/cfg_sentry_brain.tres`, `resources/ai/guide_prism/cfg_guide_brain.tres`, `resources/ai/guide_prism/cfg_guide_showcase_brain.tres`, `resources/ai/cfg_ai_brain_placeholder.tres` — rely on defaults; create empty/default `RS_SpawnRecoverySettings` companions only if the prefab wiring explicitly needs them. Re-save each `.tres` after the field removal so Godot drops the now-unknown properties cleanly.
   - `scenes/prefabs/prefab_demo_npc.tscn` — add `C_SpawnRecoveryComponent` child referencing the new settings resource
   - `scenes/prefabs/prefab_player.tscn` — add `C_SpawnRecoveryComponent` wired with a player-specific `RS_SpawnRecoverySettings` (spawn point resolved from active scene's spawn registry). `scenes/templates/tmpl_character.tscn` is the shared character template — decide during execution whether to attach the component there (applies to every character inheritor automatically) or only to `prefab_player.tscn` + `prefab_demo_npc.tscn` (explicit opt-in). Explicit opt-in is recommended because each NPC archetype needs different tuning.
-- [ ] **Commit 4** — Add integration test that a player dropped below a death plane respawns to the current scene's player spawn point
+- [x] **Commit 4** — Add integration test that a player dropped below a death plane respawns to the current scene's player spawn point
 
 **R5 Verification**:
-- [ ] All new recovery tests green
-- [ ] Existing NPC recovery behavior preserved end-to-end (`tests/integration` + demo scene smoke run)
-- [ ] Player falls below death plane and is respawned (new integration test)
-- [ ] No remaining references to `s_ai_spawn_recovery_system` in the repo
-- [ ] `test_style_enforcement.gd` passes
+- [x] All new recovery tests green
+- [x] Existing NPC recovery behavior preserved end-to-end (`tests/integration` + demo scene smoke run)
+- [x] Player falls below death plane and is respawned (new integration test)
+- [x] No remaining references to `s_ai_spawn_recovery_system` in runtime scenes/tests/scripts (historical docs still reference it)
+- [x] `test_style_enforcement.gd` passes
 
-**R5 Completion Notes**: _(to be filled during execution)_
+**R5 Completion Notes**:
+- Added RED/GREEN shared recovery coverage:
+  - `tests/unit/ecs/components/test_c_spawn_recovery_component.gd` (`3/3`)
+  - `tests/unit/ecs/systems/test_s_spawn_recovery_system.gd` (`6/6`)
+  - `tests/integration/spawn_system/test_player_spawn_recovery_power_core.gd` (`1/1`)
+- Implemented shared recovery runtime:
+  - `scripts/resources/ecs/rs_spawn_recovery_settings.gd`
+  - `scripts/ecs/components/c_spawn_recovery_component.gd`
+  - `scripts/ecs/systems/s_spawn_recovery_system.gd`
+- Migrated off AI-brain-owned respawn fields:
+  - `scripts/resources/ai/rs_ai_brain_settings.gd` removed `respawn_spawn_point_id`, `respawn_unsupported_delay_sec`, and `respawn_recovery_cooldown_sec`
+  - Added `resources/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres` and wired patrol drone instances to it
+- Removed legacy AI-only recovery system and tests:
+  - deleted `scripts/ecs/systems/s_ai_spawn_recovery_system.gd`
+  - deleted `tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd`
+- Prefab/scene migration:
+  - Added `C_SpawnRecoveryComponent` to `scenes/prefabs/prefab_demo_npc.tscn` and `scenes/prefabs/prefab_player.tscn`
+  - Replaced `S_AISpawnRecoverySystem` with `S_SpawnRecoverySystem` in gameplay/template scenes
+- Added default settings resources:
+  - `resources/base_settings/gameplay/cfg_spawn_recovery_default.tres`
+  - `resources/base_settings/gameplay/cfg_spawn_recovery_player_default.tres`
+- Verification:
+  - Targeted suites:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_spawn_recovery_component.gd` (`3/3`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_spawn_recovery_system.gd` (`6/6`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/integration/spawn_system/test_ai_spawn_recovery_power_core.gd` (`1/1`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/integration/spawn_system/test_player_spawn_recovery_power_core.gd` (`1/1`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_prefab_npc.gd` (`7/7`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` (`8/8`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_showcase_scene.gd` (`18/18`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/spawn_system/test_spawn_validation.gd` (`19/19`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`18/18`)
+  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` -> `3915/3924` passing, `9` pending/risky, `0` failing.
 
 ---
 

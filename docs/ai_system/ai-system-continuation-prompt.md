@@ -5,17 +5,17 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 + Refactor R1-R4 complete — AI system refactor in progress (R5–R10 remaining)
-**Next Task**: Begin R5 in `docs/ai_system/ai-system-refactor-tasks.md` (Share Spawn Recovery Between Player and NPCs)
+**Status**: Milestone 15 + Refactor R1-R5 complete — AI system refactor in progress (R6–R10 remaining)
+**Next Task**: Begin R6 in `docs/ai_system/ai-system-refactor-tasks.md` (Generalize Move-Target Navigation Bridge)
 
 ---
 
-## Current Status: Milestone 15 + Refactor R1-R4 Complete
+## Current Status: Milestone 15 + Refactor R1-R5 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
-- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R4 are complete; start at R5.**
+- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R5 are complete; start at R6.**
 
 ### Completed in M1 (2026-04-02)
 
@@ -464,7 +464,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Added detached-node safety in probe rendering:
   - `U_AIRenderProbe` now emits safe `<detached:...>` path markers and uses local `position` when nodes are outside the scene tree, avoiding headless test warnings/errors.
 - Completed R4 stretch migration:
-  - Replaced duplicated debug-cooldown loops with `U_DebugLogThrottle` in `S_FloatingSystem`, `S_GravitySystem`, `S_MovementSystem`, and `S_AISpawnRecoverySystem`.
+  - Replaced duplicated debug-cooldown loops with `U_DebugLogThrottle` in `S_FloatingSystem`, `S_GravitySystem`, `S_MovementSystem`, and the pre-R5 `S_AISpawnRecoverySystem` (now superseded by `S_SpawnRecoverySystem` in R5).
   - Added shared `U_NodeFind.find_character_body_recursive(...)` and migrated recursive body lookup call sites in `C_MovementComponent`, `U_VCamRuntimeContext`, and `U_AIRenderProbe`.
 - Line-count reduction:
   - `scripts/ecs/systems/s_ai_behavior_system.gd`: `372` → `264`
@@ -484,6 +484,40 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` → `78/78`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/test_u_node_find.gd` → `3/3`
   - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3910/3919` passing, `9` pending/risky, `0` failing.
+
+### Completed in R5 (2026-04-10)
+
+- Added RED/GREEN shared recovery coverage:
+  - `tests/unit/ecs/components/test_c_spawn_recovery_component.gd` (`3/3`)
+  - `tests/unit/ecs/systems/test_s_spawn_recovery_system.gd` (`6/6`)
+  - `tests/integration/spawn_system/test_player_spawn_recovery_power_core.gd` (`1/1`)
+- Implemented shared spawn-recovery runtime:
+  - `scripts/resources/ecs/rs_spawn_recovery_settings.gd`
+  - `scripts/ecs/components/c_spawn_recovery_component.gd`
+  - `scripts/ecs/systems/s_spawn_recovery_system.gd`
+- Migrated AI/player wiring to shared component settings:
+  - Removed respawn fields from `scripts/resources/ai/rs_ai_brain_settings.gd`.
+  - Added `resources/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres`.
+  - Added `C_SpawnRecoveryComponent` to `scenes/prefabs/prefab_demo_npc.tscn` and `scenes/prefabs/prefab_player.tscn`.
+  - Added defaults:
+    - `resources/base_settings/gameplay/cfg_spawn_recovery_default.tres`
+    - `resources/base_settings/gameplay/cfg_spawn_recovery_player_default.tres`
+  - Replaced scene wiring to use `S_SpawnRecoverySystem` in gameplay/template scenes.
+- Removed legacy AI-only recovery artifacts:
+  - deleted `scripts/ecs/systems/s_ai_spawn_recovery_system.gd`
+  - deleted `tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd`
+- Verification:
+  - Targeted suites:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_spawn_recovery_component.gd` → `3/3`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_spawn_recovery_system.gd` → `6/6`
+    - `tools/run_gut_suite.sh -gtest=res://tests/integration/spawn_system/test_ai_spawn_recovery_power_core.gd` → `1/1`
+    - `tools/run_gut_suite.sh -gtest=res://tests/integration/spawn_system/test_player_spawn_recovery_power_core.gd` → `1/1`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_prefab_npc.gd` → `7/7`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd` → `8/8`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_showcase_scene.gd` → `18/18`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/spawn_system/test_spawn_validation.gd` → `19/19`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `18/18`
+  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3915/3924` passing, `9` pending/risky, `0` failing.
 
 ### Key Design Decisions
 
@@ -511,7 +545,8 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **R2 shared task-state keys + action-base hardening are complete**: AI move-target/arrival/action-started/debug keys now resolve through `U_AITaskStateKeys`, and all concrete AI actions extend `I_AIAction` by class name with assert-based base virtual safeguards.
 - **R3 collaborator split is now complete**: `S_AIBehaviorSystem` now orchestrates `U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, and `U_AIContextBuilder`, keeping GOAP/HTN behavior stable while reducing behavior-system size and improving unit-test isolation.
 - **R4 debug utility extraction is complete**: `U_DebugLogThrottle` and `U_AIRenderProbe` now own shared logging-budget/render-probe behavior for AI systems, eliminating duplicated helper stacks from `S_AIBehaviorSystem` and `S_AINavigationSystem` while preserving behavior and improving headless detached-node safety.
-- **R4 stretch migration is complete**: shared debug-throttle usage now covers `S_FloatingSystem`, `S_GravitySystem`, `S_MovementSystem`, and `S_AISpawnRecoverySystem`; recursive `CharacterBody3D` lookup is now centralized via `U_NodeFind`.
+- **R4 stretch migration is complete**: shared debug-throttle usage now covers `S_FloatingSystem`, `S_GravitySystem`, `S_MovementSystem`, and the spawn-recovery system lineage (`S_AISpawnRecoverySystem` pre-R5, `S_SpawnRecoverySystem` post-R5); recursive `CharacterBody3D` lookup is now centralized via `U_NodeFind`.
+- **R5 shared spawn-recovery migration is complete**: `S_SpawnRecoverySystem` + `C_SpawnRecoveryComponent` + `RS_SpawnRecoverySettings` now own unsupported-entity recovery for both player and NPC flows; AI-brain-owned `respawn_*` fields were removed from `RS_AIBrainSettings`, and legacy `S_AISpawnRecoverySystem` was deleted.
 
 ---
 
@@ -566,13 +601,13 @@ Study these for utility and event patterns:
 
 ### 4. Execute AI System Refactor Tasks in Order
 
-M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R5.
+M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R6.
 
 1. **R1** — Typed Brain Settings, Goals, and Tasks (eliminate `_read_*_property` duck-typing from the AI hot path) **COMPLETE (2026-04-10)**
 2. **R2** — Promote `I_AIAction` to a Proper Action Base + Task State Keys Registry **COMPLETE (2026-04-10)**
 3. **R3** — Split `s_ai_behavior_system.gd` Into Focused Collaborators (goal selector, task runner, replanner, context builder) **COMPLETE (2026-04-10)**
 4. **R4** — Extract Debug Probe + Log Throttle Utilities (delete duplicated `_build_render_probe` + `_tick_debug_log_cooldowns`) **COMPLETE (2026-04-10)**
-5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`)
+5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`) **COMPLETE (2026-04-10)**
 6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`)
 7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`)
 8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/`)
@@ -613,6 +648,7 @@ You MUST:
 - **RS_AIPrimitiveTask is a Wrapper**: RS_AIPrimitiveTask holds `@export var action: I_AIAction`. The task is the "what" (position in the HTN plan), the action is the "how" (self-executing logic + typed @export config).
 - **Animate Stub Scope (implemented)**: `RS_AIActionAnimate` sets `task_state["animation_state"]` to a StringName and completes immediately. Full animation system integration is a separate effort.
 - **M7/M12 Movement Bridge (implemented + hardened)**: `RS_AIActionMoveTo` writes task-state entries keyed by `U_AITaskStateKeys.MOVE_TARGET` + `U_AITaskStateKeys.ARRIVAL_THRESHOLD`; `S_AINavigationSystem` (`execution_priority = -5`) resolves world-space XZ direction into `C_InputComponent.set_move_vector()` and applies per-task arrival threshold; `S_MovementSystem` consumes world-space vectors for AI entities while preserving player camera-relative controls.
+- **R5 shared spawn recovery contract (implemented)**: `S_SpawnRecoverySystem` is now the canonical unsupported-entity recovery system for both player and NPC flows and consumes `C_SpawnRecoveryComponent.settings: RS_SpawnRecoverySettings` (not AI brain fields). Player recovery with empty `spawn_point_id` uses `I_SpawnManager.spawn_at_last_spawn(...)`; authored entity recovery uses `spawn_entity_at_point(...)`; successful recovery clears move vector/body velocity and AI `task_state` when present.
 - **M15 interaction trigger contract (implemented)**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` own player-proximity enter/exit state, and `S_AIDemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` to durable gameplay flags. Demo-flag updates dispatch via `U_GameplayActions.set_ai_demo_flag(...)`.
 - **Shared runtime wiring is now default**: both `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` include `S_AIBehaviorSystem(-10)` and `S_AINavigationSystem(-5)` before `S_InputSystem(0)`.
 - **Demo Scenes are CSG Prototypes**: Use CSG geometry for all level geometry. Functional prototypes, not polished levels.
@@ -623,8 +659,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin R5** in `docs/ai_system/ai-system-refactor-tasks.md` — Share spawn recovery between player and NPC flows (`s_ai_spawn_recovery_system.gd` → generic `s_spawn_recovery_system.gd` + `C_SpawnRecoveryComponent`).
-2. Proceed through R5–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
+1. **Begin R6** in `docs/ai_system/ai-system-refactor-tasks.md` — Generalize move-target following (`s_ai_navigation_system.gd` → generic `s_move_target_follower_system.gd` + `C_MoveTargetComponent`).
+2. Proceed through R6–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
 3. Optional follow-up (post-refactor): run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
 4. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
 5. Merge `GOAP-AI` once R1–R10 and regression review pass.
