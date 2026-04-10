@@ -336,7 +336,7 @@ func test_unfreeze_after_spawn_enables_clean_physics_state() -> void:
 ## ============================================================================
 ## FIX 4: AI Entity Auto-Unfreeze Tests
 ##
-## spawn_entity_at_point (used by S_AISpawnRecoverySystem) must set a finite
+## spawn_entity_at_point (used by S_SpawnRecoverySystem) must set a finite
 ## unfreeze_at_frame so S_MovementSystem._maybe_schedule_spawn_unfreeze can
 ## auto-clear the freeze. Passing -1 (the player path) creates a permanent
 ## freeze because the unfreeze check is: if unfreeze_frame < 0: return.

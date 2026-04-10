@@ -13,6 +13,7 @@ const REQUIRED_COMPONENT_PATHS: Array[String] = [
 	"Components/C_AlignWithSurfaceComponent",
 	"Components/C_LandingIndicatorComponent",
 	"Components/C_HealthComponent",
+	"Components/C_SpawnRecoveryComponent",
 ]
 
 func _instantiate_npc_prefab() -> Node:

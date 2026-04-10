@@ -60,7 +60,7 @@
 [ext_resource type="Script" uid="uid://dpxywmhc2hqwa" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="63_inter_hazard_zone"]
 [ext_resource type="Resource" uid="uid://bk120ybuvl5ly" path="res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres" id="64_nav_fall_hazard_config"]
-[ext_resource type="Script" uid="uid://blsmtgrb4ucc8" path="res://scripts/ecs/systems/s_ai_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
 [ext_resource type="Resource" uid="uid://c718ipd370rph" path="res://resources/ai/guide_prism/cfg_guide_brain.tres" id="70_guide_brain"]
 
@@ -252,7 +252,7 @@ execution_priority = 50
 script = ExtResource("6_tnjgn")
 execution_priority = 70
 
-[node name="S_AISpawnRecoverySystem" type="Node" parent="Systems/Movement" unique_id=48081532]
+[node name="S_SpawnRecoverySystem" type="Node" parent="Systems/Movement" unique_id=48081532]
 script = ExtResource("67_ai_spawn_recovery_system")
 execution_priority = 75
 

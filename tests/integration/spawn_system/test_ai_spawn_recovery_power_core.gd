@@ -6,6 +6,7 @@ const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_SPAWN_RECOVERY_COMPONENT := preload("res://scripts/ecs/components/c_spawn_recovery_component.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
@@ -51,24 +52,26 @@ func test_patrol_drone_recovers_to_ai_spawn_point_when_support_is_lost() -> void
 
 	var entity := _scene.get_node_or_null("Entities/NPCs/E_PatrolDrone") as Node3D
 	var body := _scene.get_node_or_null("Entities/NPCs/E_PatrolDrone/Player_Body") as CharacterBody3D
-	var recovery_system := _scene.get_node_or_null("Systems/Movement/S_AISpawnRecoverySystem")
+	var recovery_system := _scene.get_node_or_null("Systems/Movement/S_SpawnRecoverySystem")
 	var spawn_point := _scene.get_node_or_null("Entities/SpawnPoints/sp_ai_patrol_drone") as Node3D
 	assert_not_null(entity, "Expected patrol drone entity in gameplay_power_core")
 	assert_not_null(body, "Expected patrol drone body in gameplay_power_core")
-	assert_not_null(recovery_system, "Expected S_AISpawnRecoverySystem in gameplay_power_core")
+	assert_not_null(recovery_system, "Expected S_SpawnRecoverySystem in gameplay_power_core")
 	assert_not_null(spawn_point, "Expected AI patrol drone spawn point in gameplay_power_core")
 	if entity == null or body == null or recovery_system == null or spawn_point == null:
 		return
 
 	var brain := _scene.get_node_or_null("Entities/NPCs/E_PatrolDrone/Components/C_AIBrainComponent") as C_AI_BRAIN_COMPONENT
+	var spawn_recovery := _scene.get_node_or_null("Entities/NPCs/E_PatrolDrone/Components/C_SpawnRecoveryComponent") as C_SPAWN_RECOVERY_COMPONENT
 	var floating := _scene.get_node_or_null("Entities/NPCs/E_PatrolDrone/Components/C_FloatingComponent") as C_FLOATING_COMPONENT
 	var input_component := _scene.get_node_or_null("Entities/NPCs/E_PatrolDrone/Components/C_InputComponent") as C_INPUT_COMPONENT
 	var movement := _scene.get_node_or_null("Entities/NPCs/E_PatrolDrone/Components/C_MovementComponent") as C_MOVEMENT_COMPONENT
 	assert_not_null(brain, "Expected patrol drone brain component")
+	assert_not_null(spawn_recovery, "Expected patrol drone spawn recovery component")
 	assert_not_null(floating, "Expected patrol drone floating component")
 	assert_not_null(input_component, "Expected patrol drone input component")
 	assert_not_null(movement, "Expected patrol drone movement component")
-	if brain == null or floating == null or input_component == null or movement == null:
+	if brain == null or spawn_recovery == null or floating == null or input_component == null or movement == null:
 		return
 
 	var now: float = U_ECS_UTILS.get_current_time()
@@ -76,12 +79,12 @@ func test_patrol_drone_recovers_to_ai_spawn_point_when_support_is_lost() -> void
 		movement.settings.support_grace_time = 0.0
 	floating.reset_recent_support(now, 5.0)
 	brain.task_state = {"ai_move_target": Vector3(6.0, 1.0, -6.0)}
-	var brain_settings: RS_AIBrainSettings = brain.brain_settings as RS_AIBrainSettings
-	assert_not_null(brain_settings, "Expected patrol drone brain settings")
-	if brain_settings == null:
+	var recovery_settings: Resource = spawn_recovery.settings
+	assert_not_null(recovery_settings, "Expected patrol drone spawn recovery settings")
+	if recovery_settings == null:
 		return
-	brain_settings.respawn_unsupported_delay_sec = 0.0
-	brain_settings.respawn_recovery_cooldown_sec = 1.0
+	recovery_settings.set("unsupported_delay_sec", 0.0)
+	recovery_settings.set("recovery_cooldown_sec", 1.0)
 
 	entity.global_position = Vector3(50.0, -120.0, 50.0)
 	body.velocity = Vector3(0.5, -30.0, 0.3)

@@ -1,31 +1,34 @@
 @icon("res://assets/editor_icons/icn_system.svg")
 extends BaseECSSystem
-class_name S_AISpawnRecoverySystem
+class_name S_SpawnRecoverySystem
 
-const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_SPAWN_RECOVERY_COMPONENT := preload("res://scripts/ecs/components/c_spawn_recovery_component.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
+const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
+const RS_SPAWN_RECOVERY_SETTINGS := preload("res://scripts/resources/ecs/rs_spawn_recovery_settings.gd")
 const I_SPAWN_MANAGER := preload("res://scripts/interfaces/i_spawn_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
-const BRAIN_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
+const RECOVERY_TYPE := C_SPAWN_RECOVERY_COMPONENT.COMPONENT_TYPE
 const FLOATING_TYPE := C_FLOATING_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const INPUT_TYPE := C_INPUT_COMPONENT.COMPONENT_TYPE
+const AI_BRAIN_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
+const PLAYER_TAG_TYPE := C_PLAYER_TAG_COMPONENT.COMPONENT_TYPE
 
-@export var debug_ai_spawn_recovery_logging: bool = false
+@export var debug_spawn_recovery_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
-@export var debug_entity_id: StringName = StringName("patrol_drone")
-@export_range(0.0, 5.0, 0.1) var startup_grace_period_sec: float = 1.0
+@export var debug_entity_id: StringName = StringName("player")
 
+var _startup_elapsed_by_entity: Dictionary = {}
 var _unsupported_since_by_entity: Dictionary = {}
 var _cooldown_until_by_entity: Dictionary = {}
 var _recovery_disabled_entities: Dictionary = {}
 var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
-var _startup_elapsed: float = 0.0
 
 func _init() -> void:
 	execution_priority = 75
@@ -33,28 +36,22 @@ func _init() -> void:
 func process_tick(delta: float) -> void:
 	_debug_log_throttle.tick(delta)
 
-	if _startup_elapsed < startup_grace_period_sec:
-		_startup_elapsed += maxf(delta, 0.0)
-		return
-
 	var manager := get_manager()
 	if manager == null:
 		return
 
 	var spawn_manager := U_SERVICE_LOCATOR.try_get_service(StringName("spawn_manager")) as I_SPAWN_MANAGER
 	if spawn_manager == null:
-		if debug_ai_spawn_recovery_logging:
+		if debug_spawn_recovery_logging:
 			_debug_log(StringName(""), "skip: spawn_manager unavailable")
 		return
 
 	var now: float = ECS_UTILS.get_current_time()
 	var seen_entities: Dictionary = {}
-	var entities := manager.query_entities([
-		BRAIN_TYPE,
-		FLOATING_TYPE,
-		MOVEMENT_TYPE,
-		INPUT_TYPE,
-	])
+	var entities := manager.query_entities(
+		[RECOVERY_TYPE, FLOATING_TYPE, MOVEMENT_TYPE, INPUT_TYPE],
+		[AI_BRAIN_TYPE, PLAYER_TAG_TYPE]
+	)
 
 	for entity_query in entities:
 		var entity_id: StringName = _resolve_entity_id(entity_query)
@@ -65,22 +62,21 @@ func process_tick(delta: float) -> void:
 		if _recovery_disabled_entities.has(entity_id):
 			continue
 
-		var brain: C_AIBrainComponent = entity_query.get_component(BRAIN_TYPE)
-		var floating: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
-		var movement: C_MovementComponent = entity_query.get_component(MOVEMENT_TYPE)
-		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
-		if brain == null or floating == null or movement == null or input_component == null:
+		var recovery_component: Variant = entity_query.get_component(RECOVERY_TYPE)
+		var floating := entity_query.get_component(FLOATING_TYPE) as C_FloatingComponent
+		var movement := entity_query.get_component(MOVEMENT_TYPE) as C_MovementComponent
+		var input_component := entity_query.get_component(INPUT_TYPE) as C_InputComponent
+		if recovery_component == null or floating == null or movement == null or input_component == null:
 			_clear_runtime_state(entity_id)
 			continue
 
-		if not (brain.brain_settings is RS_AI_BRAIN_SETTINGS):
+		var settings_variant: Variant = recovery_component.get("settings")
+		if settings_variant == null or not (settings_variant is RS_SPAWN_RECOVERY_SETTINGS):
 			_clear_runtime_state(entity_id)
 			continue
+		var settings: Variant = settings_variant
 
-		var brain_settings: RS_AIBrainSettings = brain.brain_settings as RS_AIBrainSettings
-		var spawn_point_id: StringName = brain_settings.respawn_spawn_point_id
-		if spawn_point_id == StringName():
-			_clear_runtime_state(entity_id)
+		if not _startup_grace_elapsed(entity_id, delta, settings):
 			continue
 
 		var support_grace_time: float = 0.0
@@ -94,7 +90,7 @@ func process_tick(delta: float) -> void:
 		if not _unsupported_since_by_entity.has(entity_id):
 			_unsupported_since_by_entity[entity_id] = now
 		var unsupported_since: float = float(_unsupported_since_by_entity.get(entity_id, now))
-		var unsupported_delay_sec: float = maxf(brain_settings.respawn_unsupported_delay_sec, 0.0)
+		var unsupported_delay_sec: float = maxf(float(settings.unsupported_delay_sec), 0.0)
 		if now - unsupported_since < unsupported_delay_sec:
 			continue
 
@@ -106,43 +102,82 @@ func process_tick(delta: float) -> void:
 		var entity_node: Node = entity_variant as Node
 		var scene_root: Node = _resolve_scene_root(entity_node)
 		if scene_root == null:
-			_set_recovery_cooldown(entity_id, brain_settings, now)
+			_set_recovery_cooldown(entity_id, settings, now)
 			_debug_log(entity_id, "skip: scene root missing for recovery")
 			continue
 
-		if not _spawn_point_exists(scene_root, spawn_point_id):
-			push_error(
-				"S_AISpawnRecoverySystem: spawn point '%s' missing for entity '%s' in scene '%s'; disabling recovery for this entity."
-				% [spawn_point_id, entity_id, scene_root.name]
-			)
-			_recovery_disabled_entities[entity_id] = true
-			continue
+		var recovered: bool = false
+		var is_player: bool = _is_player_entity(entity_id, entity_query, entity_node)
+		var spawn_point_id: StringName = settings.spawn_point_id
 
-		var recovered: bool = spawn_manager.spawn_entity_at_point(scene_root, entity_id, spawn_point_id)
-		if not recovered:
-			_set_recovery_cooldown(entity_id, brain_settings, now)
-			_debug_log(entity_id, "spawn_manager.spawn_entity_at_point failed")
-			continue
+		if is_player and spawn_point_id == StringName():
+			recovered = spawn_manager.spawn_at_last_spawn(scene_root)
+			if not recovered:
+				_set_recovery_cooldown(entity_id, settings, now)
+				_debug_log(entity_id, "spawn_manager.spawn_at_last_spawn failed")
+				continue
+		else:
+			if spawn_point_id == StringName():
+				_unsupported_since_by_entity.erase(entity_id)
+				_cooldown_until_by_entity.erase(entity_id)
+				continue
+
+			if not _spawn_point_exists(scene_root, spawn_point_id):
+				push_error(
+					"S_SpawnRecoverySystem: spawn point '%s' missing for entity '%s' in scene '%s'; disabling recovery for this entity."
+					% [spawn_point_id, entity_id, scene_root.name]
+				)
+				_recovery_disabled_entities[entity_id] = true
+				continue
+
+			recovered = spawn_manager.spawn_entity_at_point(scene_root, entity_id, spawn_point_id)
+			if not recovered:
+				_set_recovery_cooldown(entity_id, settings, now)
+				_debug_log(entity_id, "spawn_manager.spawn_entity_at_point failed")
+				continue
 
 		input_component.set_move_vector(Vector2.ZERO)
 		var body: CharacterBody3D = movement.get_character_body()
 		if body != null:
 			body.velocity = Vector3.ZERO
-		brain.task_state = {}
+
+		var brain := entity_query.get_component(AI_BRAIN_TYPE) as C_AIBrainComponent
+		if brain != null:
+			brain.task_state = {}
 
 		_unsupported_since_by_entity.erase(entity_id)
-		_set_recovery_cooldown(entity_id, brain_settings, now)
+		_set_recovery_cooldown(entity_id, settings, now)
 		_debug_log(
 			entity_id,
-			"recovered to spawn_point_id=%s unsupported_for=%.3fs"
-			% [spawn_point_id, now - unsupported_since]
+			"recovered unsupported_for=%.3fs spawn_point_id=%s player=%s"
+			% [now - unsupported_since, spawn_point_id, str(is_player)]
 		)
 
 	_prune_runtime_state(seen_entities)
 
-func _set_recovery_cooldown(entity_id: StringName, brain_settings: RS_AIBrainSettings, now: float) -> void:
-	var cooldown: float = maxf(brain_settings.respawn_recovery_cooldown_sec, 0.0)
+func _startup_grace_elapsed(entity_id: StringName, delta: float, settings: Variant) -> bool:
+	var elapsed: float = float(_startup_elapsed_by_entity.get(entity_id, 0.0))
+	elapsed += maxf(delta, 0.0)
+	_startup_elapsed_by_entity[entity_id] = elapsed
+	var startup_grace_period_sec: float = maxf(float(settings.startup_grace_period_sec), 0.0)
+	return elapsed >= startup_grace_period_sec
+
+func _set_recovery_cooldown(entity_id: StringName, settings: Variant, now: float) -> void:
+	var cooldown: float = maxf(float(settings.recovery_cooldown_sec), 0.0)
 	_cooldown_until_by_entity[entity_id] = now + cooldown
+
+func _is_player_entity(entity_id: StringName, entity_query: Object, entity_node: Node) -> bool:
+	if entity_id == StringName("player"):
+		return true
+	if entity_query != null:
+		var player_tag := entity_query.get_component(PLAYER_TAG_TYPE) as C_PlayerTagComponent
+		if player_tag != null:
+			return true
+	if entity_node != null:
+		var tags: Array[StringName] = ECS_UTILS.get_entity_tags(entity_node)
+		if tags.has(StringName("player")):
+			return true
+	return false
 
 func _resolve_scene_root(entity: Node) -> Node:
 	var current: Node = entity
@@ -201,11 +236,13 @@ func _resolve_entity_id(entity_query: Object) -> StringName:
 	return StringName()
 
 func _clear_runtime_state(entity_id: StringName) -> void:
+	_startup_elapsed_by_entity.erase(entity_id)
 	_unsupported_since_by_entity.erase(entity_id)
 	_cooldown_until_by_entity.erase(entity_id)
 	_recovery_disabled_entities.erase(entity_id)
 
 func _prune_runtime_state(seen_entities: Dictionary) -> void:
+	_prune_dictionary(_startup_elapsed_by_entity, seen_entities)
 	_prune_dictionary(_unsupported_since_by_entity, seen_entities)
 	_prune_dictionary(_cooldown_until_by_entity, seen_entities)
 	_prune_dictionary(_recovery_disabled_entities, seen_entities)
@@ -217,7 +254,7 @@ func _prune_dictionary(runtime_map: Dictionary, seen_entities: Dictionary) -> vo
 		runtime_map.erase(key_variant)
 
 func _consume_debug_log_budget(entity_id: StringName) -> bool:
-	if not debug_ai_spawn_recovery_logging:
+	if not debug_spawn_recovery_logging:
 		return false
 	if debug_entity_id != StringName() and entity_id != debug_entity_id:
 		return false
@@ -226,4 +263,4 @@ func _consume_debug_log_budget(entity_id: StringName) -> bool:
 func _debug_log(entity_id: StringName, message: String) -> void:
 	if not _consume_debug_log_budget(entity_id):
 		return
-	print("S_AISpawnRecoverySystem[entity=%s] %s" % [str(entity_id), message])
+	print("S_SpawnRecoverySystem[entity=%s] %s" % [str(entity_id), message])

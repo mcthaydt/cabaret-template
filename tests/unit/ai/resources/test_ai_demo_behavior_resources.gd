@@ -27,6 +27,7 @@ const REQUIRED_NPC_COMPONENT_PATHS: Array[String] = [
 	"Components/C_AlignWithSurfaceComponent",
 	"Components/C_LandingIndicatorComponent",
 	"Components/C_HealthComponent",
+	"Components/C_SpawnRecoveryComponent",
 	"Components/C_InputComponent",
 	"Components/C_AIBrainComponent",
 ]
