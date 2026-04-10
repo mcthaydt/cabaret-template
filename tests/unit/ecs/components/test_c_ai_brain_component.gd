@@ -158,3 +158,63 @@ func _get_property_definition(object: Object, property_name: String) -> Dictiona
 		if str(property.get("name", "")) == property_name:
 			return property
 	return {}
+
+# --- R1: Typed field tests ---
+
+func test_brain_settings_export_typed_rs_ai_brain_settings() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	if component_script == null:
+		return
+
+	var component: BaseECSComponent = component_script.new()
+	autofree(component)
+	var prop := _get_property_definition(component, "brain_settings")
+	assert_eq(str(prop.get("hint_string", "")), "RS_AIBrainSettings", "C_AIBrainComponent.brain_settings hint_string should be RS_AIBrainSettings (not @export_custom)")
+
+func test_current_task_queue_typed_rs_ai_primitive_task() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	if component_script == null:
+		return
+
+	var component: BaseECSComponent = component_script.new()
+	autofree(component)
+	var prop := _get_property_definition(component, "current_task_queue")
+	assert_eq(str(prop.get("hint_string", "")), "Array[RS_AIPrimitiveTask]", "C_AIBrainComponent.current_task_queue hint_string should be Array[RS_AIPrimitiveTask]")
+
+func test_get_brain_settings_returns_typed() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	var settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
+	if component_script == null or settings_script == null:
+		return
+
+	var component: BaseECSComponent = component_script.new()
+	autofree(component)
+	var brain_settings: Resource = settings_script.new()
+	component.set("brain_settings", brain_settings)
+
+	assert_true(component.has_method("get_brain_settings"), "C_AIBrainComponent should have get_brain_settings() accessor")
+	var result: Variant = component.call("get_brain_settings")
+	assert_is(result, settings_script, "get_brain_settings() should return RS_AIBrainSettings")
+
+func test_get_active_goal_id_returns_string_name() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	if component_script == null:
+		return
+
+	var component: BaseECSComponent = component_script.new()
+	autofree(component)
+	assert_true(component.has_method("get_active_goal_id"), "C_AIBrainComponent should have get_active_goal_id() accessor")
+	var result: Variant = component.call("get_active_goal_id")
+	assert_true(result is StringName, "get_active_goal_id() should return StringName")
+
+func test_get_current_task_returns_typed() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	if component_script == null:
+		return
+
+	var component: BaseECSComponent = component_script.new()
+	autofree(component)
+	assert_true(component.has_method("get_current_task"), "C_AIBrainComponent should have get_current_task() accessor")
+	var result: Variant = component.call("get_current_task")
+	# When queue is empty, should return null
+	assert_null(result, "get_current_task() should return null when queue is empty")

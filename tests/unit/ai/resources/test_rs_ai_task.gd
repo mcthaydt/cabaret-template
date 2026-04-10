@@ -100,3 +100,41 @@ func test_primitive_task_action_defaults_to_null() -> void:
 
 	var primitive_task: Resource = primitive_task_script.new()
 	assert_null(primitive_task.get("action"), "RS_AIPrimitiveTask.action should default to null")
+
+# --- R1: Typed field tests ---
+
+func test_primitive_task_action_typed_i_ai_action() -> void:
+	var primitive_task_script: Script = _load_script(RS_AI_PRIMITIVE_TASK_PATH)
+	if primitive_task_script == null:
+		return
+
+	var primitive_task: Resource = primitive_task_script.new()
+	var prop := _get_property_definition(primitive_task, "action")
+	assert_eq(str(prop.get("hint_string", "")), "I_AIAction", "RS_AIPrimitiveTask.action hint_string should be I_AIAction")
+
+func test_compound_task_subtasks_typed_rs_ai_task() -> void:
+	var compound_task_script: Script = _load_script(RS_AI_COMPOUND_TASK_PATH)
+	if compound_task_script == null:
+		return
+
+	var compound_task: Resource = compound_task_script.new()
+	var prop := _get_property_definition(compound_task, "subtasks")
+	assert_eq(str(prop.get("hint_string", "")), "Array[RS_AITask]", "RS_AICompoundTask.subtasks hint_string should be Array[RS_AITask]")
+
+func test_compound_task_method_conditions_typed_i_condition() -> void:
+	var compound_task_script: Script = _load_script(RS_AI_COMPOUND_TASK_PATH)
+	if compound_task_script == null:
+		return
+
+	var compound_task: Resource = compound_task_script.new()
+	var prop := _get_property_definition(compound_task, "method_conditions")
+	assert_eq(str(prop.get("hint_string", "")), "Array[I_Condition]", "RS_AICompoundTask.method_conditions hint_string should be Array[I_Condition]")
+
+func _get_property_definition(object: Object, property_name: String) -> Dictionary:
+	for property_variant in object.get_property_list():
+		if not (property_variant is Dictionary):
+			continue
+		var property := property_variant as Dictionary
+		if str(property.get("name", "")) == property_name:
+			return property
+	return {}

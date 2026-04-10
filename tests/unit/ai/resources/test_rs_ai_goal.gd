@@ -112,3 +112,61 @@ func test_brain_settings_evaluation_interval_default() -> void:
 
 	var brain_settings: Resource = brain_settings_script.new()
 	assert_almost_eq(float(brain_settings.get("evaluation_interval")), 0.5, 0.0001, "RS_AIBrainSettings.evaluation_interval should default to 0.5")
+
+# --- R1: Typed field tests ---
+
+func test_goals_array_is_typed_rs_ai_goal() -> void:
+	var brain_settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
+	if brain_settings_script == null:
+		return
+
+	var brain_settings: Resource = brain_settings_script.new()
+	var prop := _get_property_definition(brain_settings, "goals")
+	assert_eq(str(prop.get("hint_string", "")), "Array[RS_AIGoal]", "RS_AIBrainSettings.goals hint_string should be Array[RS_AIGoal]")
+
+func test_goals_rejects_non_rs_ai_goal_entries() -> void:
+	var brain_settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
+	var goal_script: Script = _load_script(RS_AI_GOAL_PATH)
+	if brain_settings_script == null or goal_script == null:
+		return
+
+	var brain_settings: Resource = brain_settings_script.new()
+	var valid_goal: Resource = goal_script.new()
+	valid_goal.set("goal_id", StringName("patrol"))
+
+	# Assigning a valid RS_AIGoal should work
+	var goals_typed: Array = brain_settings.get("goals")
+	goals_typed.append(valid_goal)
+	assert_eq(goals_typed.size(), 1, "Valid RS_AIGoal should be appendable to goals array")
+
+	# Assigning a non-RS_AIGoal Resource should be rejected by the typed array
+	var invalid_entry: Resource = Resource.new()
+	goals_typed.append(invalid_entry)
+	assert_eq(goals_typed.size(), 1, "Non-RS_AIGoal Resource should be rejected by typed goals array")
+
+func test_root_task_typed_rs_ai_task() -> void:
+	var goal_script: Script = _load_script(RS_AI_GOAL_PATH)
+	if goal_script == null:
+		return
+
+	var goal: Resource = goal_script.new()
+	var prop := _get_property_definition(goal, "root_task")
+	assert_eq(str(prop.get("hint_string", "")), "RS_AITask", "RS_AIGoal.root_task hint_string should be RS_AITask")
+
+func test_conditions_array_typed_i_condition() -> void:
+	var goal_script: Script = _load_script(RS_AI_GOAL_PATH)
+	if goal_script == null:
+		return
+
+	var goal: Resource = goal_script.new()
+	var prop := _get_property_definition(goal, "conditions")
+	assert_eq(str(prop.get("hint_string", "")), "Array[I_Condition]", "RS_AIGoal.conditions hint_string should be Array[I_Condition]")
+
+func _get_property_definition(object: Object, property_name: String) -> Dictionary:
+	for property_variant in object.get_property_list():
+		if not (property_variant is Dictionary):
+			continue
+		var property := property_variant as Dictionary
+		if str(property.get("name", "")) == property_name:
+			return property
+	return {}
