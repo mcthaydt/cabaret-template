@@ -9,7 +9,9 @@ const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 @export var relay_event_name: StringName = StringName("ai_alarm_triggered")
 @export var relay_flag_ids: Array[StringName] = [
 	StringName("power_core_activated"),
+	StringName("power_core_proximity"),
 	StringName("comms_disturbance_heard"),
+	StringName("comms_disturbance_proximity"),
 ]
 @export var relay_flag_value: bool = true
 

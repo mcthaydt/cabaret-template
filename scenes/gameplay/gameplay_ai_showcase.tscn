@@ -267,7 +267,7 @@ execution_priority = -12
 [node name="S_AIDemoAlarmRelaySystem" type="Node" parent="Systems/Core" unique_id=1775100002]
 script = ExtResource("57_ai_demo_alarm_relay_system")
 execution_priority = -11
-relay_flag_ids = Array[StringName]([&"power_core_activated", &"comms_disturbance_heard"])
+relay_flag_ids = Array[StringName]([&"power_core_activated", &"power_core_proximity", &"comms_disturbance_heard", &"comms_disturbance_proximity"])
 
 [node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=950736546]
 script = ExtResource("1_pybrx")
@@ -566,7 +566,7 @@ brain_settings = ExtResource("70_patrol_drone_brain")
 
 [node name="C_DetectionComponent" parent="Entities/NPCs/E_PatrolDroneA/Components" parent_id_path=PackedInt32Array(1100000001, 1373490017) index="9" unique_id=2145048101]
 detection_radius = 7.5
-ai_flag_id = &"power_core_activated"
+ai_flag_id = &"power_core_proximity"
 set_flag_on_exit = true
 exit_flag_value = false
 
@@ -580,7 +580,7 @@ brain_settings = ExtResource("70_patrol_drone_brain")
 
 [node name="C_DetectionComponent" parent="Entities/NPCs/E_PatrolDroneB/Components" parent_id_path=PackedInt32Array(1100000002, 1373490017) index="9" unique_id=2145048101]
 detection_radius = 7.5
-ai_flag_id = &"power_core_activated"
+ai_flag_id = &"power_core_proximity"
 set_flag_on_exit = true
 exit_flag_value = false
 
@@ -594,7 +594,7 @@ brain_settings = ExtResource("71_sentry_brain")
 
 [node name="C_DetectionComponent" parent="Entities/NPCs/E_Sentry/Components" parent_id_path=PackedInt32Array(1100000003, 1373490017) index="9" unique_id=2145048101]
 detection_radius = 8.0
-ai_flag_id = &"comms_disturbance_heard"
+ai_flag_id = &"comms_disturbance_proximity"
 set_flag_on_exit = true
 exit_flag_value = false
 

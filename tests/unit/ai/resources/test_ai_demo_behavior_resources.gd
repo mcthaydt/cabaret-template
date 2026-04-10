@@ -208,6 +208,7 @@ func test_patrol_drone_brain_has_expected_goals_and_tasks() -> void:
 		[
 			StringName("patrol"),
 			StringName("investigate"),
+			StringName("investigate_proximity"),
 		]
 	)
 
@@ -218,6 +219,7 @@ func test_sentry_brain_has_expected_goals_and_tasks() -> void:
 		[
 			StringName("guard"),
 			StringName("investigate_disturbance"),
+			StringName("investigate_disturbance_proximity"),
 		]
 	)
 

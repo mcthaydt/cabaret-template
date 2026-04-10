@@ -667,6 +667,7 @@
   - `tests/unit/ecs/systems/test_s_ai_detection_system.gd` (`5/5`)
   - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` (`3/3`)
   - `tests/unit/ai/resources/test_ai_showcase_scene.gd` expanded to `18/18` with M15 wiring assertions
+  - `tests/integration/gameplay/test_ai_interaction_triggers.gd` (`9/9`) — integration test for detection→flag→event→relay pipeline
 - Implemented:
   - `scripts/ecs/components/c_detection_component.gd`
   - `scripts/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
@@ -675,9 +676,18 @@
   - `resources/ai/guide_prism/cfg_goal_idle_showcase.tres`
   - `resources/ai/guide_prism/cfg_goal_show_path_showcase.tres`
   - `resources/ai/guide_prism/cfg_guide_showcase_brain.tres`
-  - Updated `resources/ai/sentry/cfg_goal_investigate_disturbance.tres` to publish `ai_alarm_triggered`
+  - `resources/ai/sentry/cfg_goal_investigate_disturbance.tres` to publish `ai_alarm_triggered`
+  - `resources/ai/patrol_drone/cfg_goal_investigate_proximity.tres` — proximity-flag variant
+  - `resources/ai/sentry/cfg_goal_investigate_disturbance_proximity.tres` — proximity-flag variant
+  - Updated `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres` (adds proximity goal)
+  - Updated `resources/ai/sentry/cfg_sentry_brain.tres` (adds proximity goal)
   - Updated `scenes/prefabs/prefab_demo_npc.tscn` (adds `C_DetectionComponent`)
-  - Updated `scenes/gameplay/gameplay_ai_showcase.tscn` with M15 systems + interaction nodes (`Inter_AlarmButton`, `Inter_DoorSwitch`, `Inter_GuideCollectible`, `SO_GuardBarrier`)
+  - Updated `scenes/gameplay/gameplay_ai_showcase.tscn` with M15 systems + interaction nodes
+- **Flag ID separation (2026-04-09)**: Detection proximity uses separate flag IDs to prevent zone-triggered flags from being cleared on detection exit:
+  - Proximity flags (transient): `power_core_proximity`, `comms_disturbance_proximity`
+  - Zone flags (durable): `power_core_activated`, `comms_disturbance_heard`
+  - `guide_player_nearby` unchanged (no zone conflict)
+  - Alarm relay sets all four flags on `ai_alarm_triggered`
 - M15 trigger/action contract:
   - Demo flags dispatch through `U_GameplayActions.set_ai_demo_flag(...)` (there is no `U_NavigationActions.set_gameplay_ai_demo_flag` action creator).
 - Verification:

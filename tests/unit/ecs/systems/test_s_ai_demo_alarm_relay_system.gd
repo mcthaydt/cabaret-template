@@ -39,7 +39,9 @@ func _create_fixture() -> Dictionary:
 	system.state_store = store
 	var relay_flags: Array[StringName] = [
 		StringName("power_core_activated"),
+		StringName("power_core_proximity"),
 		StringName("comms_disturbance_heard"),
+		StringName("comms_disturbance_proximity"),
 	]
 	system.relay_flag_ids = relay_flags
 	add_child_autofree(system)
@@ -69,11 +71,21 @@ func test_alarm_event_dispatches_configured_flags() -> void:
 	U_ECS_EVENT_BUS.publish(StringName("ai_alarm_triggered"), {"source_entity_id": StringName("sentry")})
 
 	var actions: Array[Dictionary] = store.get_dispatched_actions()
-	assert_eq(actions.size(), 2)
+	assert_eq(actions.size(), 4)
 	assert_eq(actions[0].get("type", StringName("")), U_GAMEPLAY_ACTIONS.ACTION_SET_AI_DEMO_FLAG)
 	assert_eq(actions[1].get("type", StringName("")), U_GAMEPLAY_ACTIONS.ACTION_SET_AI_DEMO_FLAG)
-	assert_eq(actions[0].get("payload", {}).get("flag_id", StringName("")), StringName("power_core_activated"))
-	assert_eq(actions[1].get("payload", {}).get("flag_id", StringName("")), StringName("comms_disturbance_heard"))
+	assert_eq(actions[2].get("type", StringName("")), U_GAMEPLAY_ACTIONS.ACTION_SET_AI_DEMO_FLAG)
+	assert_eq(actions[3].get("type", StringName("")), U_GAMEPLAY_ACTIONS.ACTION_SET_AI_DEMO_FLAG)
+	var flag_ids: Array[StringName] = [
+		actions[0].get("payload", {}).get("flag_id", StringName("")),
+		actions[1].get("payload", {}).get("flag_id", StringName("")),
+		actions[2].get("payload", {}).get("flag_id", StringName("")),
+		actions[3].get("payload", {}).get("flag_id", StringName("")),
+	]
+	assert_true(flag_ids.has(StringName("power_core_activated")), "Should dispatch power_core_activated")
+	assert_true(flag_ids.has(StringName("power_core_proximity")), "Should dispatch power_core_proximity")
+	assert_true(flag_ids.has(StringName("comms_disturbance_heard")), "Should dispatch comms_disturbance_heard")
+	assert_true(flag_ids.has(StringName("comms_disturbance_proximity")), "Should dispatch comms_disturbance_proximity")
 
 func test_empty_flag_ids_are_ignored() -> void:
 	var fixture: Dictionary = _create_fixture()

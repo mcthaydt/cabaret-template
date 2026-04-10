@@ -202,9 +202,9 @@ func test_showcase_detection_components_have_expected_flags() -> void:
 	if root == null:
 		return
 	var expected_flags: Dictionary = {
-		"Entities/NPCs/E_PatrolDroneA/Components/C_DetectionComponent": StringName("power_core_activated"),
-		"Entities/NPCs/E_PatrolDroneB/Components/C_DetectionComponent": StringName("power_core_activated"),
-		"Entities/NPCs/E_Sentry/Components/C_DetectionComponent": StringName("comms_disturbance_heard"),
+		"Entities/NPCs/E_PatrolDroneA/Components/C_DetectionComponent": StringName("power_core_proximity"),
+		"Entities/NPCs/E_PatrolDroneB/Components/C_DetectionComponent": StringName("power_core_proximity"),
+		"Entities/NPCs/E_Sentry/Components/C_DetectionComponent": StringName("comms_disturbance_proximity"),
 		"Entities/NPCs/E_GuidePrism/Components/C_DetectionComponent": StringName("guide_player_nearby"),
 	}
 	for component_path in expected_flags.keys():

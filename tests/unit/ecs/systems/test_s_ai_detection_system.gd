@@ -86,7 +86,7 @@ func _create_fixture() -> Dictionary:
 	var npc_entity: Node3D = npc_data.get("entity") as Node3D
 	var npc_movement: C_MovementComponent = npc_data.get("movement") as C_MovementComponent
 	var detection: Variant = C_DETECTION_COMPONENT.new()
-	detection.ai_flag_id = StringName("power_core_activated")
+	detection.ai_flag_id = StringName("power_core_proximity")
 	detection.detection_radius = 6.0
 	npc_entity.add_child(detection)
 	autofree(detection)
@@ -132,7 +132,7 @@ func test_enters_range_dispatches_ai_flag_once() -> void:
 	assert_true(detection.is_player_in_range)
 	assert_eq(actions[0].get("type", StringName("")), U_GAMEPLAY_ACTIONS.ACTION_SET_AI_DEMO_FLAG)
 	var payload: Dictionary = actions[0].get("payload", {})
-	assert_eq(payload.get("flag_id", StringName("")), StringName("power_core_activated"))
+	assert_eq(payload.get("flag_id", StringName("")), StringName("power_core_proximity"))
 	assert_eq(payload.get("value", false), true)
 
 func test_exit_dispatches_false_when_enabled() -> void:
@@ -157,7 +157,7 @@ func test_exit_dispatches_false_when_enabled() -> void:
 	var actions: Array[Dictionary] = store.get_dispatched_actions()
 	assert_eq(actions.size(), 2)
 	var exit_payload: Dictionary = actions[1].get("payload", {})
-	assert_eq(exit_payload.get("flag_id", StringName("")), StringName("power_core_activated"))
+	assert_eq(exit_payload.get("flag_id", StringName("")), StringName("power_core_proximity"))
 	assert_eq(exit_payload.get("value", true), false)
 	assert_false(detection.is_player_in_range)
 
