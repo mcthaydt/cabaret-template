@@ -5,17 +5,17 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 + Refactor R1-R5 complete — AI system refactor in progress (R6–R10 remaining)
-**Next Task**: Begin R6 in `docs/ai_system/ai-system-refactor-tasks.md` (Generalize Move-Target Navigation Bridge)
+**Status**: Milestone 15 + Refactor R1-R6 complete — AI system refactor in progress (R7–R10 remaining)
+**Next Task**: Begin R7 in `docs/ai_system/ai-system-refactor-tasks.md` (Reorganize AI Resource Directories)
 
 ---
 
-## Current Status: Milestone 15 + Refactor R1-R5 Complete
+## Current Status: Milestone 15 + Refactor R1-R6 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
-- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R5 are complete; start at R6.**
+- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R6 are complete; start at R7.**
 
 ### Completed in M1 (2026-04-02)
 
@@ -519,6 +519,37 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `18/18`
   - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3915/3924` passing, `9` pending/risky, `0` failing.
 
+### Completed in R6 (2026-04-10)
+
+- Added RED/GREEN move-target follower coverage:
+  - `tests/unit/ecs/components/test_c_move_target_component.gd` (`4/4`)
+  - `tests/unit/ecs/systems/test_s_move_target_follower_system.gd` (`5/5`)
+- Implemented generalized move-target runtime:
+  - `scripts/ecs/components/c_move_target_component.gd`
+  - `scripts/ecs/systems/s_move_target_follower_system.gd`
+- Migrated shared/runtime call sites and deleted legacy AI-only bridge:
+  - Updated scene wiring in:
+    - `scenes/templates/tmpl_base_scene.tscn`
+    - `scenes/gameplay/gameplay_base.tscn`
+    - `scenes/gameplay/gameplay_ai_showcase.tscn`
+    - `scenes/gameplay/gameplay_power_core.tscn`
+    - `scenes/gameplay/gameplay_comms_array.tscn`
+    - `scenes/gameplay/gameplay_nav_nexus.tscn`
+  - Deleted:
+    - `scripts/ecs/systems/s_ai_navigation_system.gd`
+    - `tests/unit/ecs/systems/test_s_ai_navigation_system.gd`
+  - Added R6 follow-up TODO in `scripts/resources/ai/actions/rs_ai_action_move_to.gd` to migrate from task-state write-through to direct `C_MoveTargetComponent` routing once universal component coverage is guaranteed.
+- Compatibility/verification:
+  - Targeted suites:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_move_target_component.gd` → `4/4`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_move_target_follower_system.gd` → `5/5`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_goal_resume.gd` → `3/3`
+    - `tools/run_gut_suite.sh -gtest=res://tests/integration/gameplay/test_ai_demo_power_core.gd` → `10/10`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` → `11/11`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `18/18`
+  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3912/3921` passing, `9` pending/risky, `0` failing.
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -530,9 +561,9 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **No blackboard**: QB conditions already read component fields, Redux state, and event payloads via U_PathResolver.
 - **No behavior trees**: QB scorer is the decision layer; HTN replaces BT-style decomposition.
 - **Animate remains an intentional stub**: `RS_AIActionAnimate` sets `task_state["animation_state"]` and completes immediately; full animation integration is deferred.
-- **Navigation bridge is now world-space (M12)**: `S_AINavigationSystem` (`execution_priority = -5`) reads `task_state["ai_move_target"]` + optional `task_state["ai_arrival_threshold"]`, emits world-space `C_InputComponent.move_vector`, and leaves player camera-relative transforms to player-only input paths.
+- **Move-target follower bridge is now world-space (M12 + R6)**: `S_MoveTargetFollowerSystem` (`execution_priority = -5`) emits world-space `C_InputComponent.move_vector`, prefers active `C_MoveTargetComponent` targets, and falls back to AI task-state move targets (`U_AITaskStateKeys.MOVE_TARGET` + optional `ARRIVAL_THRESHOLD`) for compatibility.
 - **Player input filtering is now enforced**: `S_InputSystem` writes gameplay input only to entities with `C_PlayerTagComponent`, preventing player-input clobbering of AI move vectors.
-- **M8 pipeline integration coverage is now live**: `tests/unit/ai/integration/test_ai_pipeline_integration.gd` validates GOAP scoring → HTN decomposition → typed action execution → AI navigation bridge → player-input filtering end-to-end.
+- **M8 pipeline integration coverage is now live**: `tests/unit/ai/integration/test_ai_pipeline_integration.gd` validates GOAP scoring → HTN decomposition → typed action execution → move-target follower bridge → player-input filtering end-to-end.
 - **M9 demo scenes are now authored**: Power Core, Comms Array, and Nav Nexus gameplay scenes exist with required prototype geometry, markers/triggers, and NPC placeholder entities bound to valid `RS_AIBrainSettings` resources.
 - **M9 mobile-safe scene registration is complete**: Power Core/Comms Array/Nav Nexus are now first-class `scene_registry` entries and are included in the loader preload manifest/backfill safety net for mobile/web exports.
 - **M10 demo behavior integration is complete**: Patrol Drone, Sentry, and Guide Prism now use durable gameplay AI flags for investigate/celebrate gating, and trigger zones are runtime-wired (including Nav fall hazard + victory flagging) so authored behaviors execute reliably in-scene.
@@ -544,9 +575,10 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **R1 typed AI contracts are now enforced in runtime resources/components**: brain/goal/task/action references are strongly typed (`RS_AIBrainSettings`, `RS_AIGoal`, `RS_AITask`, `RS_AIPrimitiveTask`, `I_AIAction`, `I_Condition`) and AI hot-path logic no longer relies on `_read_*_property` duck-typing.
 - **R2 shared task-state keys + action-base hardening are complete**: AI move-target/arrival/action-started/debug keys now resolve through `U_AITaskStateKeys`, and all concrete AI actions extend `I_AIAction` by class name with assert-based base virtual safeguards.
 - **R3 collaborator split is now complete**: `S_AIBehaviorSystem` now orchestrates `U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, and `U_AIContextBuilder`, keeping GOAP/HTN behavior stable while reducing behavior-system size and improving unit-test isolation.
-- **R4 debug utility extraction is complete**: `U_DebugLogThrottle` and `U_AIRenderProbe` now own shared logging-budget/render-probe behavior for AI systems, eliminating duplicated helper stacks from `S_AIBehaviorSystem` and `S_AINavigationSystem` while preserving behavior and improving headless detached-node safety.
+- **R4 debug utility extraction is complete**: `U_DebugLogThrottle` and `U_AIRenderProbe` now own shared logging-budget/render-probe behavior for AI systems, eliminating duplicated helper stacks from `S_AIBehaviorSystem` and the move-target follower bridge lineage (`S_AINavigationSystem` pre-R6, `S_MoveTargetFollowerSystem` post-R6) while preserving behavior and improving headless detached-node safety.
 - **R4 stretch migration is complete**: shared debug-throttle usage now covers `S_FloatingSystem`, `S_GravitySystem`, `S_MovementSystem`, and the spawn-recovery system lineage (`S_AISpawnRecoverySystem` pre-R5, `S_SpawnRecoverySystem` post-R5); recursive `CharacterBody3D` lookup is now centralized via `U_NodeFind`.
 - **R5 shared spawn-recovery migration is complete**: `S_SpawnRecoverySystem` + `C_SpawnRecoveryComponent` + `RS_SpawnRecoverySettings` now own unsupported-entity recovery for both player and NPC flows; AI-brain-owned `respawn_*` fields were removed from `RS_AIBrainSettings`, and legacy `S_AISpawnRecoverySystem` was deleted.
+- **R6 move-target follower generalization is complete**: move-target following is now shared runtime behavior (`C_MoveTargetComponent` + `S_MoveTargetFollowerSystem`) with AI-task-state fallback for compatibility; `S_AINavigationSystem` was removed.
 
 ---
 
@@ -601,14 +633,14 @@ Study these for utility and event patterns:
 
 ### 4. Execute AI System Refactor Tasks in Order
 
-M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R6.
+M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R7.
 
 1. **R1** — Typed Brain Settings, Goals, and Tasks (eliminate `_read_*_property` duck-typing from the AI hot path) **COMPLETE (2026-04-10)**
 2. **R2** — Promote `I_AIAction` to a Proper Action Base + Task State Keys Registry **COMPLETE (2026-04-10)**
 3. **R3** — Split `s_ai_behavior_system.gd` Into Focused Collaborators (goal selector, task runner, replanner, context builder) **COMPLETE (2026-04-10)**
 4. **R4** — Extract Debug Probe + Log Throttle Utilities (delete duplicated `_build_render_probe` + `_tick_debug_log_cooldowns`) **COMPLETE (2026-04-10)**
 5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`) **COMPLETE (2026-04-10)**
-6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`)
+6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`) **COMPLETE (2026-04-10)**
 7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`)
 8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/`)
 9. **R9** — HTN Planner Context Object (collapse recursive params into `HTNPlannerContext`)
@@ -647,10 +679,10 @@ You MUST:
 - **Typed Actions via I_AIAction (M7 complete)**: Each action resource (RS_AIAction*) implements I_AIAction with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)`. Runtime dispatch is polymorphic through `U_AITaskRunner.tick(...)` (no match blocks/action-type switching).
 - **RS_AIPrimitiveTask is a Wrapper**: RS_AIPrimitiveTask holds `@export var action: I_AIAction`. The task is the "what" (position in the HTN plan), the action is the "how" (self-executing logic + typed @export config).
 - **Animate Stub Scope (implemented)**: `RS_AIActionAnimate` sets `task_state["animation_state"]` to a StringName and completes immediately. Full animation system integration is a separate effort.
-- **M7/M12 Movement Bridge (implemented + hardened)**: `RS_AIActionMoveTo` writes task-state entries keyed by `U_AITaskStateKeys.MOVE_TARGET` + `U_AITaskStateKeys.ARRIVAL_THRESHOLD`; `S_AINavigationSystem` (`execution_priority = -5`) resolves world-space XZ direction into `C_InputComponent.set_move_vector()` and applies per-task arrival threshold; `S_MovementSystem` consumes world-space vectors for AI entities while preserving player camera-relative controls.
+- **M7/M12/R6 Movement Bridge (implemented + generalized)**: `RS_AIActionMoveTo` writes task-state entries keyed by `U_AITaskStateKeys.MOVE_TARGET` + `U_AITaskStateKeys.ARRIVAL_THRESHOLD`; `S_MoveTargetFollowerSystem` (`execution_priority = -5`) resolves world-space XZ direction into `C_InputComponent.set_move_vector()`, prefers active `C_MoveTargetComponent` targets, and keeps AI task-state fallback compatibility; `S_MovementSystem` consumes world-space vectors for AI entities while preserving player camera-relative controls.
 - **R5 shared spawn recovery contract (implemented)**: `S_SpawnRecoverySystem` is now the canonical unsupported-entity recovery system for both player and NPC flows and consumes `C_SpawnRecoveryComponent.settings: RS_SpawnRecoverySettings` (not AI brain fields). Player recovery with empty `spawn_point_id` uses `I_SpawnManager.spawn_at_last_spawn(...)`; authored entity recovery uses `spawn_entity_at_point(...)`; successful recovery clears move vector/body velocity and AI `task_state` when present.
 - **M15 interaction trigger contract (implemented)**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` own player-proximity enter/exit state, and `S_AIDemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` to durable gameplay flags. Demo-flag updates dispatch via `U_GameplayActions.set_ai_demo_flag(...)`.
-- **Shared runtime wiring is now default**: both `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` include `S_AIBehaviorSystem(-10)` and `S_AINavigationSystem(-5)` before `S_InputSystem(0)`.
+- **Shared runtime wiring is now default**: both `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` include `S_AIBehaviorSystem(-10)` and `S_MoveTargetFollowerSystem(-5)` before `S_InputSystem(0)`.
 - **Demo Scenes are CSG Prototypes**: Use CSG geometry for all level geometry. Functional prototypes, not polished levels.
 - **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and node naming prefixes (S_, C_, RS_, U_, I_, E_, etc.).
 - **Update Docs After Each Milestone**: Per AGENTS.md mandate, update this continuation prompt and the tasks checklist after completing each milestone.
@@ -659,8 +691,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin R6** in `docs/ai_system/ai-system-refactor-tasks.md` — Generalize move-target following (`s_ai_navigation_system.gd` → generic `s_move_target_follower_system.gd` + `C_MoveTargetComponent`).
-2. Proceed through R6–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
+1. **Begin R7** in `docs/ai_system/ai-system-refactor-tasks.md` — Reorganize AI resource directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`).
+2. Proceed through R7–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
 3. Optional follow-up (post-refactor): run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
 4. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
 5. Merge `GOAP-AI` once R1–R10 and regression review pass.
