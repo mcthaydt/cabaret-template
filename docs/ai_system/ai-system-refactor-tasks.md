@@ -1,7 +1,7 @@
 # AI System Refactor — Tasks Checklist
 
 **Branch**: `GOAP-AI` (or follow-up branch)
-**Status**: R1 complete (2026-04-10); next milestone R2
+**Status**: R1-R2 complete (2026-04-10); next milestone R3
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-overview.md`, `docs/ai_system/ai-system-tasks.md`
 
@@ -24,8 +24,8 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 ## Sequencing
 
-`R1` must land first — type safety is a prerequisite that removes duck-typing blockers from every downstream split.
-`R2` next — shared `task_state` key constants are consumed by R3/R4/R6.
+`R1` landed first — type safety removed duck-typing blockers from downstream splits.
+`R2` landed next — shared `task_state` key constants now feed R3/R4/R6.
 `R3` and `R4` can overlap — R4 lifts debug code out; R3 splits the rest of the behavior system.
 `R5` and `R6` are the "share with player" milestones — independent of each other.
 `R7` is a mechanical reorg, safer after R1–R6 settle.
@@ -84,11 +84,11 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 **Goal**: Eliminate magic-string coupling between actions and systems. `"ai_move_target"`, `"ai_arrival_threshold"`, `"action_started"`, `"move_target_source"`, `"move_target_resolution_reason"`, `"move_target_used_fallback"`, and the debug-probe keys are currently duplicated across `rs_ai_action_move_to.gd`, `s_ai_behavior_system.gd`, and `s_ai_navigation_system.gd`. Consolidate them. Harden `I_AIAction` so concrete actions extend it via `class_name`, not string path.
 
-- [ ] **Commit 1** — Create keys + base tests (TDD RED):
+- [x] **Commit 1** — Create keys + base tests (TDD RED):
   - `tests/unit/ai/test_u_ai_task_state_keys.gd` — `test_move_target_key_constant`, `test_arrival_threshold_key_constant`, `test_action_started_key_constant`, etc.
   - `tests/unit/ai/test_i_ai_action_base.gd` — `test_subclass_extends_class_name`, `test_base_start_virtuals_are_callable`
   - Grep-based style test (add to `test_style_enforcement.gd` or new file): assert no AI script under `scripts/resources/ai/` or `scripts/ecs/systems/s_ai_*` contains a bare `"ai_move_target"` string literal
-- [ ] **Commit 2** — Implement (TDD GREEN):
+- [x] **Commit 2** — Implement (TDD GREEN):
   - `scripts/utils/ai/u_ai_task_state_keys.gd` — new `class_name U_AITaskStateKeys` with `const MOVE_TARGET := &"ai_move_target"`, `const ARRIVAL_THRESHOLD := &"ai_arrival_threshold"`, `const ACTION_STARTED := &"action_started"`, `const MOVE_TARGET_RESOLVED := &"move_target_resolved"`, `const MOVE_TARGET_SOURCE := &"move_target_source"`, `const MOVE_TARGET_RESOLUTION_REASON := &"move_target_resolution_reason"`, `const MOVE_TARGET_USED_FALLBACK := &"move_target_used_fallback"`, and the six `move_target_*` debug keys
   - `scripts/interfaces/i_ai_action.gd` — keep `class_name I_AIAction extends Resource`; replace `push_error` stubs with `assert(false, "...")` inside the virtuals so misuse is detected at the first call site; add a doc comment declaring the contract
   - `scripts/resources/ai/actions/rs_ai_action_move_to.gd` — replace `TARGET_STATE_KEY`, `ARRIVAL_THRESHOLD_STATE_KEY`, and every `DEBUG_*_STATE_KEY` with `U_AITaskStateKeys.*`; change `extends "res://scripts/interfaces/i_ai_action.gd"` → `extends I_AIAction`
@@ -97,12 +97,46 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `scripts/ecs/systems/s_ai_navigation_system.gd` — replace local `TARGET_STATE_KEY`/`ARRIVAL_THRESHOLD_STATE_KEY` with `U_AITaskStateKeys.*`
 
 **R2 Verification**:
-- [ ] All new key/base tests green
-- [ ] Grep-based magic-string test green
-- [ ] Existing AI integration suite green
-- [ ] `test_style_enforcement.gd` passes
+- [x] All new key/base tests green
+- [x] Grep-based magic-string test green
+- [x] Existing AI integration suite green
+- [x] `test_style_enforcement.gd` passes
 
-**R2 Completion Notes**: _(to be filled during execution)_
+**R2 Completion Notes**:
+- Added RED/GREEN coverage for action base and shared task-state keys:
+  - `tests/unit/ai/test_u_ai_task_state_keys.gd` (`4/4`)
+  - `tests/unit/ai/test_i_ai_action_base.gd` (`2/2`)
+  - `tests/unit/style/test_style_enforcement.gd` (`18/18`) with `test_ai_move_target_magic_strings_not_used_in_ai_scripts`
+- Implemented shared task-state key registry:
+  - `scripts/utils/ai/u_ai_task_state_keys.gd` (`class_name U_AITaskStateKeys`)
+  - Includes movement and debug key constants used by AI action/system hot paths.
+- Hardened action interface contract:
+  - `scripts/interfaces/i_ai_action.gd` now asserts in base virtuals (`start`, `tick`, `is_complete`) to fail fast on misuse.
+  - Action resources now use `extends I_AIAction` via class-name contract:
+    - `rs_ai_action_move_to.gd`
+    - `rs_ai_action_wait.gd`
+    - `rs_ai_action_scan.gd`
+    - `rs_ai_action_animate.gd`
+    - `rs_ai_action_publish_event.gd`
+    - `rs_ai_action_set_field.gd`
+- Replaced duplicated task-state string literals with `U_AITaskStateKeys` in:
+  - `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
+  - `scripts/ecs/systems/s_ai_behavior_system.gd`
+  - `scripts/ecs/systems/s_ai_navigation_system.gd`
+- Verification:
+  - Targeted suites green:
+    - `test_u_ai_task_state_keys.gd` (`4/4`)
+    - `test_i_ai_action_base.gd` (`2/2`)
+    - `test_style_enforcement.gd` (`18/18`)
+    - `test_ai_actions_instant.gd` (`5/5`)
+    - `test_ai_actions_movement.gd` (`11/11`)
+    - `test_s_ai_behavior_system_goals.gd` (`17/17`)
+    - `test_s_ai_behavior_system_tasks.gd` (`6/6`)
+    - `test_s_ai_navigation_system.gd` (`12/12`)
+    - `test_ai_pipeline_integration.gd` (`6/6`)
+    - `test_ai_goal_resume.gd` (`3/3`)
+  - Full regression snapshot (2026-04-10): `3877/3887` passing, `1` failing, `9` pending/risky.
+  - Remaining failure is pre-existing and outside R2 scope: `tests/integration/vcam/test_vcam_runtime.gd::test_root_scene_registers_vcam_manager_in_service_locator` (`M_SaveManager: Save file 'current_scene_id' is empty`).
 
 ---
 
