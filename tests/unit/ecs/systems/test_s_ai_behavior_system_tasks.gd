@@ -8,6 +8,7 @@ const MOCK_AI_ACTION_TRACK := preload("res://tests/mocks/mock_ai_action_track.gd
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
 const RS_AI_TASK := preload("res://scripts/resources/ai/rs_ai_task.gd")
+const RS_AI_GOAL := preload("res://scripts/resources/ai/rs_ai_goal.gd")
 const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/rs_ai_primitive_task.gd")
 
 func before_each() -> void:
@@ -29,8 +30,8 @@ func _new_action(label: String, ticks_to_complete: int = 1) -> Resource:
 	action.set("ticks_to_complete", ticks_to_complete)
 	return action
 
-func _new_primitive_task(task_id: StringName, action: Resource) -> Resource:
-	var task: Resource = RS_AI_PRIMITIVE_TASK.new()
+func _new_primitive_task(task_id: StringName, action: Resource) -> RS_AIPrimitiveTask:
+	var task: RS_AIPrimitiveTask = RS_AI_PRIMITIVE_TASK.new()
 	task.set("task_id", task_id)
 	task.set("action", action)
 	return task
@@ -55,8 +56,9 @@ func _create_fixture(evaluation_interval: float = 1.0) -> Dictionary:
 	system.ecs_manager = ecs_manager
 	system.configure(ecs_manager)
 
-	var brain_settings: Resource = RS_AI_BRAIN_SETTINGS.new()
-	brain_settings.set("goals", [])
+	var brain_settings: RS_AIBrainSettings = RS_AI_BRAIN_SETTINGS.new()
+	var goals: Array[RS_AIGoal] = []
+	brain_settings.set("goals", goals)
 	brain_settings.set("default_goal_id", StringName())
 	brain_settings.set("evaluation_interval", evaluation_interval)
 
@@ -87,7 +89,7 @@ func test_task_runner_dispatches_via_i_ai_action() -> void:
 
 	var action: Resource = _new_action("one", 2)
 	var brain: Variant = fixture["brain"]
-	var queue: Array[Resource] = [_new_primitive_task(StringName("task_0"), action)]
+	var queue: Array[RS_AIPrimitiveTask] = [_new_primitive_task(StringName("task_0"), action)]
 	brain.current_task_queue = queue
 	brain.current_task_index = 0
 	brain.task_state = {}
@@ -111,7 +113,7 @@ func test_task_queue_advances_sequentially() -> void:
 	var second_action: Resource = _new_action("second", 1)
 
 	var brain: Variant = fixture["brain"]
-	var queue: Array[Resource] = [
+	var queue: Array[RS_AIPrimitiveTask] = [
 		_new_primitive_task(StringName("task_first"), first_action),
 		_new_primitive_task(StringName("task_second"), second_action),
 	]
@@ -133,7 +135,7 @@ func test_task_queue_completion_resets_state() -> void:
 
 	var action: Resource = _new_action("one", 1)
 	var brain: Variant = fixture["brain"]
-	var queue: Array[Resource] = [_new_primitive_task(StringName("task_0"), action)]
+	var queue: Array[RS_AIPrimitiveTask] = [_new_primitive_task(StringName("task_0"), action)]
 	brain.current_task_queue = queue
 	brain.current_task_index = 0
 	brain.task_state = {"legacy": true}
@@ -152,7 +154,7 @@ func test_empty_queue_does_nothing() -> void:
 		return
 
 	var brain: Variant = fixture["brain"]
-	var empty_queue: Array[Resource] = []
+	var empty_queue: Array[RS_AIPrimitiveTask] = []
 	brain.current_task_queue = empty_queue
 	brain.current_task_index = 3
 	brain.task_state = {"keep": true}
@@ -172,21 +174,18 @@ func test_invalid_queue_entry_is_skipped_instead_of_stalling() -> void:
 	var invalid_task: Resource = RS_AI_TASK.new()
 	invalid_task.set("task_id", StringName("invalid"))
 	var valid_action: Resource = _new_action("valid", 1)
-	var valid_task: Resource = _new_primitive_task(StringName("valid_task"), valid_action)
+	var valid_task: RS_AIPrimitiveTask = _new_primitive_task(StringName("valid_task"), valid_action)
 
 	var brain: Variant = fixture["brain"]
-	var queue: Array[Resource] = [invalid_task, valid_task]
-	brain.current_task_queue = queue
+	var mixed_queue: Variant = [invalid_task, valid_task]
+	brain.set("current_task_queue", mixed_queue)
+	assert_true(brain.current_task_queue.is_empty(), "Typed queue should reject mixed arrays with non-RS_AIPrimitiveTask entries")
 	brain.current_task_index = 0
-	brain.task_state = {"legacy": true}
+	brain.task_state = {}
 
 	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
 	system.process_tick(0.1)
-	assert_eq(brain.current_task_index, 1)
-	assert_true(brain.task_state.is_empty())
-
-	system.process_tick(0.1)
-	assert_eq(MOCK_AI_ACTION_TRACK.call_log, ["start:valid", "tick:valid"])
+	assert_true(MOCK_AI_ACTION_TRACK.call_log.is_empty(), "Rejected queue assignment should leave no executable tasks")
 
 func test_primitive_task_without_action_is_skipped_instead_of_stalling() -> void:
 	var fixture: Dictionary = _create_fixture(1.0)
@@ -194,13 +193,13 @@ func test_primitive_task_without_action_is_skipped_instead_of_stalling() -> void
 	if fixture.is_empty():
 		return
 
-	var invalid_primitive: Resource = RS_AI_PRIMITIVE_TASK.new()
+	var invalid_primitive: RS_AIPrimitiveTask = RS_AI_PRIMITIVE_TASK.new()
 	invalid_primitive.set("task_id", StringName("missing_action"))
 	var valid_action: Resource = _new_action("second", 1)
-	var valid_task: Resource = _new_primitive_task(StringName("second_task"), valid_action)
+	var valid_task: RS_AIPrimitiveTask = _new_primitive_task(StringName("second_task"), valid_action)
 
 	var brain: Variant = fixture["brain"]
-	var queue: Array[Resource] = [invalid_primitive, valid_task]
+	var queue: Array[RS_AIPrimitiveTask] = [invalid_primitive, valid_task]
 	brain.current_task_queue = queue
 	brain.current_task_index = 0
 	brain.task_state = {"legacy": true}

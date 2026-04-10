@@ -95,13 +95,13 @@ func _load_script(path: String) -> Script:
 		return null
 	return script_variant as Script
 
-func _new_constant_condition(score: float) -> Resource:
-	var condition: Resource = RS_CONDITION_CONSTANT.new()
+func _new_constant_condition(score: float) -> I_Condition:
+	var condition: I_Condition = RS_CONDITION_CONSTANT.new()
 	condition.set("score", score)
 	return condition
 
-func _new_redux_equals_condition(state_path: String, expected_value: String) -> Resource:
-	var condition: Resource = RS_CONDITION_REDUX_FIELD.new()
+func _new_redux_equals_condition(state_path: String, expected_value: String) -> I_Condition:
+	var condition: I_Condition = RS_CONDITION_REDUX_FIELD.new()
 	condition.set("state_path", state_path)
 	condition.set("match_mode", "equals")
 	condition.set("match_value_string", expected_value)
@@ -118,14 +118,18 @@ func _new_wait_action(duration: float) -> Resource:
 	action.set("duration", duration)
 	return action
 
-func _new_primitive_task(task_id: StringName, action: Resource) -> Resource:
-	var task: Resource = RS_AI_PRIMITIVE_TASK.new()
+func _new_primitive_task(task_id: StringName, action: Resource) -> RS_AIPrimitiveTask:
+	var task: RS_AIPrimitiveTask = RS_AI_PRIMITIVE_TASK.new()
 	task.set("task_id", task_id)
 	task.set("action", action)
 	return task
 
-func _new_compound_task(task_id: StringName, subtasks: Array[Resource], method_conditions: Array[Resource] = []) -> Resource:
-	var task: Resource = RS_AI_COMPOUND_TASK.new()
+func _new_compound_task(
+	task_id: StringName,
+	subtasks: Array[RS_AITask],
+	method_conditions: Array[I_Condition] = []
+) -> RS_AICompoundTask:
+	var task: RS_AICompoundTask = RS_AI_COMPOUND_TASK.new()
 	task.set("task_id", task_id)
 	task.set("subtasks", subtasks)
 	task.set("method_conditions", method_conditions)
@@ -134,11 +138,11 @@ func _new_compound_task(task_id: StringName, subtasks: Array[Resource], method_c
 func _new_goal(
 	goal_id: StringName,
 	priority: int,
-	conditions: Array[Resource],
-	root_task: Resource,
+	conditions: Array[I_Condition],
+	root_task: RS_AITask,
 	options: Dictionary = {}
-) -> Resource:
-	var goal: Resource = RS_AI_GOAL.new()
+) -> RS_AIGoal:
+	var goal: RS_AIGoal = RS_AI_GOAL.new()
 	goal.set("goal_id", goal_id)
 	goal.set("priority", priority)
 	goal.set("conditions", conditions)
@@ -152,11 +156,11 @@ func _new_goal(
 	return goal
 
 func _new_brain_settings(
-	goals: Array[Resource],
+	goals: Array[RS_AIGoal],
 	default_goal_id: StringName = StringName(),
 	evaluation_interval: float = 0.0
-) -> Resource:
-	var brain_settings: Resource = RS_AI_BRAIN_SETTINGS.new()
+) -> RS_AIBrainSettings:
+	var brain_settings: RS_AIBrainSettings = RS_AI_BRAIN_SETTINGS.new()
 	brain_settings.set("goals", goals)
 	brain_settings.set("default_goal_id", default_goal_id)
 	brain_settings.set("evaluation_interval", evaluation_interval)
@@ -169,7 +173,7 @@ func _register_camera(camera: Camera3D) -> void:
 	U_SERVICE_LOCATOR.register(StringName("camera_manager"), camera_manager)
 
 func _create_fixture(
-	brain_settings: Resource,
+	brain_settings: RS_AIBrainSettings,
 	initial_state: Dictionary = {},
 	with_camera: bool = false,
 	camera_yaw: float = -PI / 2.0,
@@ -341,20 +345,20 @@ func test_full_pipeline_patrol_pattern() -> void:
 	var target_a := Vector3(4.0, 0.0, 0.0)
 	var target_b := Vector3(4.0, 0.0, 4.0)
 
-	var patrol_subtasks: Array[Resource] = [
+	var patrol_subtasks: Array[RS_AITask] = [
 		_new_primitive_task(StringName("move_a"), _new_move_action(target_a, 0.25)),
 		_new_primitive_task(StringName("wait_a"), _new_wait_action(0.2)),
 		_new_primitive_task(StringName("move_b"), _new_move_action(target_b, 0.25)),
 		_new_primitive_task(StringName("wait_b"), _new_wait_action(0.2)),
 	]
-	var patrol_root: Resource = _new_compound_task(StringName("patrol_root"), patrol_subtasks)
-	var patrol_goal: Resource = _new_goal(
+	var patrol_root: RS_AICompoundTask = _new_compound_task(StringName("patrol_root"), patrol_subtasks)
+	var patrol_goal: RS_AIGoal = _new_goal(
 		StringName("patrol"),
 		1,
 		[_new_constant_condition(1.0)],
 		patrol_root
 	)
-	var brain_settings: Resource = _new_brain_settings([patrol_goal], StringName("patrol"), 0.0)
+	var brain_settings: RS_AIBrainSettings = _new_brain_settings([patrol_goal], StringName("patrol"), 0.0)
 
 	var fixture: Dictionary = _create_fixture(brain_settings, {}, true, -PI / 2.0)
 	autofree_context(fixture)
@@ -408,13 +412,13 @@ func test_full_pipeline_patrol_pattern() -> void:
 
 func test_pipeline_moves_entity_via_real_movement_system() -> void:
 	var move_target := Vector3(3.0, 0.0, 0.0)
-	var move_goal: Resource = _new_goal(
+	var move_goal: RS_AIGoal = _new_goal(
 		StringName("move"),
 		1,
 		[_new_constant_condition(1.0)],
 		_new_primitive_task(StringName("move_to_target"), _new_move_action(move_target, 0.2))
 	)
-	var brain_settings: Resource = _new_brain_settings([move_goal], StringName("move"), 0.0)
+	var brain_settings: RS_AIBrainSettings = _new_brain_settings([move_goal], StringName("move"), 0.0)
 
 	var fixture: Dictionary = _create_fixture(brain_settings, {}, true, -PI / 2.0, true)
 	autofree_context(fixture)
@@ -439,7 +443,15 @@ func test_pipeline_moves_entity_via_real_movement_system() -> void:
 			break
 
 	assert_true(completed, "Pipeline should complete via real movement system coupling")
-	assert_true(body.global_position.distance_to(move_target) <= 0.5)
+	var distance_to_target: float = body.global_position.distance_to(move_target)
+	assert_true(
+		distance_to_target <= 0.5,
+		"Expected final position near move_target; distance=%s, position=%s, target=%s" % [
+			str(distance_to_target),
+			str(body.global_position),
+			str(move_target),
+		]
+	)
 	assert_true(body.global_position.x > 0.5)
 	assert_almost_eq(body.global_position.z, 0.0, 0.5)
 
@@ -447,7 +459,7 @@ func test_goal_switch_replans_mid_queue() -> void:
 	var patrol_condition: Resource = _new_constant_condition(1.0)
 	var alert_condition: Resource = _new_constant_condition(0.0)
 
-	var patrol_root: Resource = _new_compound_task(
+	var patrol_root: RS_AICompoundTask = _new_compound_task(
 		StringName("patrol_root"),
 		[
 			_new_primitive_task(StringName("patrol_move"), _new_move_action(Vector3(1.0, 0.0, 0.0), 0.2)),
@@ -456,7 +468,7 @@ func test_goal_switch_replans_mid_queue() -> void:
 		]
 	)
 	var alert_target := Vector3(-3.0, 0.0, 0.0)
-	var alert_root: Resource = _new_compound_task(
+	var alert_root: RS_AICompoundTask = _new_compound_task(
 		StringName("alert_root"),
 		[
 			_new_primitive_task(StringName("alert_move"), _new_move_action(alert_target, 0.2)),
@@ -464,19 +476,19 @@ func test_goal_switch_replans_mid_queue() -> void:
 		]
 	)
 
-	var patrol_goal: Resource = _new_goal(
+	var patrol_goal: RS_AIGoal = _new_goal(
 		StringName("patrol"),
 		1,
 		[patrol_condition],
 		patrol_root
 	)
-	var alert_goal: Resource = _new_goal(
+	var alert_goal: RS_AIGoal = _new_goal(
 		StringName("alert"),
 		1,
 		[alert_condition],
 		alert_root
 	)
-	var brain_settings: Resource = _new_brain_settings([patrol_goal, alert_goal], StringName("patrol"), 0.0)
+	var brain_settings: RS_AIBrainSettings = _new_brain_settings([patrol_goal, alert_goal], StringName("patrol"), 0.0)
 
 	var fixture: Dictionary = _create_fixture(brain_settings)
 	autofree_context(fixture)
@@ -519,20 +531,20 @@ func test_goal_switch_replans_mid_queue() -> void:
 	assert_true(ai_input.move_vector.length() > 0.0)
 
 func test_cooldown_prevents_goal_thrashing() -> void:
-	var alpha_goal: Resource = _new_goal(
+	var alpha_goal: RS_AIGoal = _new_goal(
 		StringName("alpha"),
 		2,
 		[_new_constant_condition(1.0)],
 		_new_primitive_task(StringName("alpha_wait"), _new_wait_action(0.0)),
 		{"cooldown": 0.3}
 	)
-	var beta_goal: Resource = _new_goal(
+	var beta_goal: RS_AIGoal = _new_goal(
 		StringName("beta"),
 		1,
 		[_new_constant_condition(1.0)],
 		_new_primitive_task(StringName("beta_wait"), _new_wait_action(0.0))
 	)
-	var brain_settings: Resource = _new_brain_settings([alpha_goal, beta_goal], StringName(), 0.0)
+	var brain_settings: RS_AIBrainSettings = _new_brain_settings([alpha_goal, beta_goal], StringName(), 0.0)
 
 	var fixture: Dictionary = _create_fixture(brain_settings)
 	autofree_context(fixture)
@@ -556,19 +568,19 @@ func test_cooldown_prevents_goal_thrashing() -> void:
 
 func test_default_goal_fallback_executes() -> void:
 	var fallback_target := Vector3(2.0, 0.0, 2.0)
-	var failing_goal_a: Resource = _new_goal(
+	var failing_goal_a: RS_AIGoal = _new_goal(
 		StringName("a"),
 		1,
 		[_new_constant_condition(0.0)],
 		_new_primitive_task(StringName("a_wait"), _new_wait_action(0.3))
 	)
-	var fallback_goal: Resource = _new_goal(
+	var fallback_goal: RS_AIGoal = _new_goal(
 		StringName("fallback"),
 		1,
 		[_new_constant_condition(0.0)],
 		_new_primitive_task(StringName("fallback_move"), _new_move_action(fallback_target, 0.2))
 	)
-	var brain_settings: Resource = _new_brain_settings(
+	var brain_settings: RS_AIBrainSettings = _new_brain_settings(
 		[failing_goal_a, fallback_goal],
 		StringName("fallback"),
 		0.0
@@ -598,7 +610,7 @@ func test_default_goal_fallback_executes() -> void:
 func test_compound_method_selection_in_context() -> void:
 	var high_branch_target := Vector3(5.0, 0.0, 0.0)
 	var stealth_branch_target := Vector3(0.0, 0.0, -4.0)
-	var root_task: Resource = _new_compound_task(
+	var root_task: RS_AICompoundTask = _new_compound_task(
 		StringName("method_root"),
 		[
 			_new_primitive_task(StringName("branch_high"), _new_move_action(high_branch_target, 0.2)),
@@ -609,13 +621,13 @@ func test_compound_method_selection_in_context() -> void:
 			_new_redux_equals_condition("gameplay.alert_mode", "stealth"),
 		]
 	)
-	var branch_goal: Resource = _new_goal(
+	var branch_goal: RS_AIGoal = _new_goal(
 		StringName("branch_goal"),
 		1,
 		[_new_constant_condition(1.0)],
 		root_task
 	)
-	var brain_settings: Resource = _new_brain_settings([branch_goal], StringName("branch_goal"), 0.0)
+	var brain_settings: RS_AIBrainSettings = _new_brain_settings([branch_goal], StringName("branch_goal"), 0.0)
 
 	var fixture: Dictionary = _create_fixture(brain_settings, {
 		"gameplay": {

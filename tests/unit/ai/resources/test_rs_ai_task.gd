@@ -31,13 +31,15 @@ func test_compound_task_has_subtasks_array() -> void:
 	if compound_task_script == null or task_script == null:
 		return
 
-	var first_task: Resource = task_script.new()
+	var first_task_variant: Variant = task_script.new()
+	var first_task: RS_AITask = first_task_variant as RS_AITask
 	first_task.set("task_id", StringName("first"))
-	var second_task: Resource = task_script.new()
+	var second_task_variant: Variant = task_script.new()
+	var second_task: RS_AITask = second_task_variant as RS_AITask
 	second_task.set("task_id", StringName("second"))
 
 	var compound_task: Resource = compound_task_script.new()
-	var subtasks: Array[Resource] = [first_task, second_task]
+	var subtasks: Array[RS_AITask] = [first_task, second_task]
 	compound_task.set("subtasks", subtasks)
 
 	var subtasks_variant: Variant = compound_task.get("subtasks")
@@ -55,11 +57,13 @@ func test_compound_task_has_method_conditions_array() -> void:
 	if compound_task_script == null or condition_interface_script == null:
 		return
 
-	var first_condition: Resource = condition_interface_script.new()
-	var second_condition: Resource = condition_interface_script.new()
+	var first_condition_variant: Variant = condition_interface_script.new()
+	var first_condition: I_Condition = first_condition_variant as I_Condition
+	var second_condition_variant: Variant = condition_interface_script.new()
+	var second_condition: I_Condition = second_condition_variant as I_Condition
 
 	var compound_task: Resource = compound_task_script.new()
-	var method_conditions: Array[Resource] = [first_condition, second_condition]
+	var method_conditions: Array[I_Condition] = [first_condition, second_condition]
 	compound_task.set("method_conditions", method_conditions)
 
 	var conditions_variant: Variant = compound_task.get("method_conditions")
@@ -110,7 +114,7 @@ func test_primitive_task_action_typed_i_ai_action() -> void:
 
 	var primitive_task: Resource = primitive_task_script.new()
 	var prop := _get_property_definition(primitive_task, "action")
-	assert_eq(str(prop.get("hint_string", "")), "I_AIAction", "RS_AIPrimitiveTask.action hint_string should be I_AIAction")
+	_assert_typed_property_hint(prop, "I_AIAction", false, "RS_AIPrimitiveTask.action should be typed I_AIAction")
 
 func test_compound_task_subtasks_typed_rs_ai_task() -> void:
 	var compound_task_script: Script = _load_script(RS_AI_COMPOUND_TASK_PATH)
@@ -119,7 +123,7 @@ func test_compound_task_subtasks_typed_rs_ai_task() -> void:
 
 	var compound_task: Resource = compound_task_script.new()
 	var prop := _get_property_definition(compound_task, "subtasks")
-	assert_eq(str(prop.get("hint_string", "")), "Array[RS_AITask]", "RS_AICompoundTask.subtasks hint_string should be Array[RS_AITask]")
+	_assert_typed_property_hint(prop, "RS_AITask", true, "RS_AICompoundTask.subtasks should be typed Array[RS_AITask]")
 
 func test_compound_task_method_conditions_typed_i_condition() -> void:
 	var compound_task_script: Script = _load_script(RS_AI_COMPOUND_TASK_PATH)
@@ -128,7 +132,7 @@ func test_compound_task_method_conditions_typed_i_condition() -> void:
 
 	var compound_task: Resource = compound_task_script.new()
 	var prop := _get_property_definition(compound_task, "method_conditions")
-	assert_eq(str(prop.get("hint_string", "")), "Array[I_Condition]", "RS_AICompoundTask.method_conditions hint_string should be Array[I_Condition]")
+	_assert_typed_property_hint(prop, "I_Condition", true, "RS_AICompoundTask.method_conditions should be typed Array[I_Condition]")
 
 func _get_property_definition(object: Object, property_name: String) -> Dictionary:
 	for property_variant in object.get_property_list():
@@ -138,3 +142,18 @@ func _get_property_definition(object: Object, property_name: String) -> Dictiona
 		if str(property.get("name", "")) == property_name:
 			return property
 	return {}
+
+func _assert_typed_property_hint(property_definition: Dictionary, expected_type: String, expect_array: bool, message: String) -> void:
+	var hint_string: String = str(property_definition.get("hint_string", ""))
+	if expect_array:
+		var is_human_readable: bool = hint_string == "Array[%s]" % expected_type
+		var is_engine_encoded: bool = hint_string.ends_with(":%s" % expected_type)
+		assert_true(
+			is_human_readable or is_engine_encoded,
+			"%s (actual hint_string=%s)" % [message, hint_string]
+		)
+		return
+	assert_true(
+		hint_string == expected_type or hint_string.ends_with(":%s" % expected_type),
+		"%s (actual hint_string=%s)" % [message, hint_string]
+	)

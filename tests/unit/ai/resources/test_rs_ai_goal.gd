@@ -19,15 +19,18 @@ func test_goal_has_id_conditions_and_root_task() -> void:
 	if goal_script == null or primitive_task_script == null or condition_script == null:
 		return
 
-	var goal: Resource = goal_script.new()
-	var root_task: Resource = primitive_task_script.new()
+	var goal_variant: Variant = goal_script.new()
+	var goal: RS_AIGoal = goal_variant as RS_AIGoal
+	var root_task_variant: Variant = primitive_task_script.new()
+	var root_task: RS_AIPrimitiveTask = root_task_variant as RS_AIPrimitiveTask
 	root_task.set("task_id", StringName("patrol_root"))
-	var condition: Resource = condition_script.new()
+	var condition_variant: Variant = condition_script.new()
+	var condition: I_Condition = condition_variant as I_Condition
 	condition.set("component_type", StringName("C_TestComponent"))
 	condition.set("field_path", "is_alert")
 
 	goal.set("goal_id", StringName("patrol"))
-	var conditions: Array[Resource] = [condition]
+	var conditions: Array[I_Condition] = [condition]
 	goal.set("conditions", conditions)
 	goal.set("root_task", root_task)
 
@@ -76,13 +79,15 @@ func test_brain_settings_holds_goals_array() -> void:
 	if brain_settings_script == null or goal_script == null:
 		return
 
-	var first_goal: Resource = goal_script.new()
+	var first_goal_variant: Variant = goal_script.new()
+	var first_goal: RS_AIGoal = first_goal_variant as RS_AIGoal
 	first_goal.set("goal_id", StringName("patrol"))
-	var second_goal: Resource = goal_script.new()
+	var second_goal_variant: Variant = goal_script.new()
+	var second_goal: RS_AIGoal = second_goal_variant as RS_AIGoal
 	second_goal.set("goal_id", StringName("investigate"))
 
 	var brain_settings: Resource = brain_settings_script.new()
-	var goals: Array[Resource] = [first_goal, second_goal]
+	var goals: Array[RS_AIGoal] = [first_goal, second_goal]
 	brain_settings.set("goals", goals)
 
 	var goals_variant: Variant = brain_settings.get("goals")
@@ -122,7 +127,7 @@ func test_goals_array_is_typed_rs_ai_goal() -> void:
 
 	var brain_settings: Resource = brain_settings_script.new()
 	var prop := _get_property_definition(brain_settings, "goals")
-	assert_eq(str(prop.get("hint_string", "")), "Array[RS_AIGoal]", "RS_AIBrainSettings.goals hint_string should be Array[RS_AIGoal]")
+	_assert_typed_property_hint(prop, "RS_AIGoal", true, "RS_AIBrainSettings.goals should be typed Array[RS_AIGoal]")
 
 func test_goals_rejects_non_rs_ai_goal_entries() -> void:
 	var brain_settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
@@ -131,18 +136,9 @@ func test_goals_rejects_non_rs_ai_goal_entries() -> void:
 		return
 
 	var brain_settings: Resource = brain_settings_script.new()
-	var valid_goal: Resource = goal_script.new()
-	valid_goal.set("goal_id", StringName("patrol"))
-
-	# Assigning a valid RS_AIGoal should work
 	var goals_typed: Array = brain_settings.get("goals")
-	goals_typed.append(valid_goal)
-	assert_eq(goals_typed.size(), 1, "Valid RS_AIGoal should be appendable to goals array")
-
-	# Assigning a non-RS_AIGoal Resource should be rejected by the typed array
-	var invalid_entry: Resource = Resource.new()
-	goals_typed.append(invalid_entry)
-	assert_eq(goals_typed.size(), 1, "Non-RS_AIGoal Resource should be rejected by typed goals array")
+	assert_true(goals_typed.is_typed(), "RS_AIBrainSettings.goals should be a typed array")
+	assert_eq(goals_typed.get_typed_script(), goal_script, "RS_AIBrainSettings.goals typed array should only allow RS_AIGoal entries")
 
 func test_root_task_typed_rs_ai_task() -> void:
 	var goal_script: Script = _load_script(RS_AI_GOAL_PATH)
@@ -151,7 +147,7 @@ func test_root_task_typed_rs_ai_task() -> void:
 
 	var goal: Resource = goal_script.new()
 	var prop := _get_property_definition(goal, "root_task")
-	assert_eq(str(prop.get("hint_string", "")), "RS_AITask", "RS_AIGoal.root_task hint_string should be RS_AITask")
+	_assert_typed_property_hint(prop, "RS_AITask", false, "RS_AIGoal.root_task should be typed RS_AITask")
 
 func test_conditions_array_typed_i_condition() -> void:
 	var goal_script: Script = _load_script(RS_AI_GOAL_PATH)
@@ -160,7 +156,7 @@ func test_conditions_array_typed_i_condition() -> void:
 
 	var goal: Resource = goal_script.new()
 	var prop := _get_property_definition(goal, "conditions")
-	assert_eq(str(prop.get("hint_string", "")), "Array[I_Condition]", "RS_AIGoal.conditions hint_string should be Array[I_Condition]")
+	_assert_typed_property_hint(prop, "I_Condition", true, "RS_AIGoal.conditions should be typed Array[I_Condition]")
 
 func _get_property_definition(object: Object, property_name: String) -> Dictionary:
 	for property_variant in object.get_property_list():
@@ -170,3 +166,18 @@ func _get_property_definition(object: Object, property_name: String) -> Dictiona
 		if str(property.get("name", "")) == property_name:
 			return property
 	return {}
+
+func _assert_typed_property_hint(property_definition: Dictionary, expected_type: String, expect_array: bool, message: String) -> void:
+	var hint_string: String = str(property_definition.get("hint_string", ""))
+	if expect_array:
+		var is_human_readable: bool = hint_string == "Array[%s]" % expected_type
+		var is_engine_encoded: bool = hint_string.ends_with(":%s" % expected_type)
+		assert_true(
+			is_human_readable or is_engine_encoded,
+			"%s (actual hint_string=%s)" % [message, hint_string]
+		)
+		return
+	assert_true(
+		hint_string == expected_type or hint_string.ends_with(":%s" % expected_type),
+		"%s (actual hint_string=%s)" % [message, hint_string]
+	)

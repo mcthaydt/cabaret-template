@@ -20,19 +20,19 @@ func _load_script(path: String) -> Script:
 		return null
 	return script_variant as Script
 
-func _primitive(task_id: StringName) -> Resource:
+func _primitive(task_id: StringName) -> RS_AIPrimitiveTask:
 	var primitive_task_script: Script = _load_script(RS_AI_PRIMITIVE_TASK_PATH)
 	if primitive_task_script == null:
 		return null
-	var task: Resource = primitive_task_script.new()
+	var task: RS_AIPrimitiveTask = primitive_task_script.new()
 	task.set("task_id", task_id)
 	return task
 
-func _compound(task_id: StringName, subtasks: Array[Resource], method_conditions: Array[Resource] = []) -> Resource:
+func _compound(task_id: StringName, subtasks: Array[RS_AITask], method_conditions: Array[I_Condition] = []) -> RS_AICompoundTask:
 	var compound_task_script: Script = _load_script(RS_AI_COMPOUND_TASK_PATH)
 	if compound_task_script == null:
 		return null
-	var task: Resource = compound_task_script.new()
+	var task: RS_AICompoundTask = compound_task_script.new()
 	task.set("task_id", task_id)
 	task.set("subtasks", subtasks)
 	task.set("method_conditions", method_conditions)
@@ -64,7 +64,7 @@ func test_decompose_compound_flattens_subtasks() -> void:
 	if first == null or second == null:
 		return
 
-	var subtasks: Array[Resource] = [first, second]
+	var subtasks: Array[RS_AITask] = [first, second]
 	var root: Resource = _compound(StringName("root"), subtasks)
 	if root == null:
 		return
@@ -79,12 +79,12 @@ func test_decompose_nested_compounds() -> void:
 	if first == null or second == null or third == null:
 		return
 
-	var nested_subtasks: Array[Resource] = [second, third]
+	var nested_subtasks: Array[RS_AITask] = [second, third]
 	var nested: Resource = _compound(StringName("nested"), nested_subtasks)
 	if nested == null:
 		return
 
-	var root_subtasks: Array[Resource] = [first, nested]
+	var root_subtasks: Array[RS_AITask] = [first, nested]
 	var root: Resource = _compound(StringName("root"), root_subtasks)
 	if root == null:
 		return
@@ -99,12 +99,12 @@ func test_decompose_with_method_conditions_selects_first_passing() -> void:
 	if first == null or second == null or third == null:
 		return
 
-	var first_condition: Resource = ConstantScoreCondition.new(0.0)
-	var second_condition: Resource = ConstantScoreCondition.new(1.0)
-	var third_condition: Resource = ConstantScoreCondition.new(1.0)
+	var first_condition: I_Condition = ConstantScoreCondition.new(0.0)
+	var second_condition: I_Condition = ConstantScoreCondition.new(1.0)
+	var third_condition: I_Condition = ConstantScoreCondition.new(1.0)
 
-	var subtasks: Array[Resource] = [first, second, third]
-	var conditions: Array[Resource] = [first_condition, second_condition, third_condition]
+	var subtasks: Array[RS_AITask] = [first, second, third]
+	var conditions: Array[I_Condition] = [first_condition, second_condition, third_condition]
 	var root: Resource = _compound(StringName("root"), subtasks, conditions)
 	if root == null:
 		return
@@ -118,15 +118,16 @@ func test_decompose_with_method_conditions_respects_authored_index_when_subtask_
 	if second == null or third == null:
 		return
 
-	var first_condition: Resource = ConstantScoreCondition.new(1.0)
-	var second_condition: Resource = ConstantScoreCondition.new(1.0)
-	var third_condition: Resource = ConstantScoreCondition.new(1.0)
-	var conditions: Array[Resource] = [first_condition, second_condition, third_condition]
+	var first_condition: I_Condition = ConstantScoreCondition.new(1.0)
+	var second_condition: I_Condition = ConstantScoreCondition.new(1.0)
+	var third_condition: I_Condition = ConstantScoreCondition.new(1.0)
+	var conditions: Array[I_Condition] = [first_condition, second_condition, third_condition]
 	var root: Resource = _compound(StringName("root"), [second, third], conditions)
 	if root == null:
 		return
 
-	root.set("subtasks", [null, second, third])
+	var padded_subtasks: Array[RS_AITask] = [null, second, third]
+	root.set("subtasks", padded_subtasks)
 	var results: Array = _decompose(root)
 	assert_eq(results, [second])
 
@@ -136,8 +137,7 @@ func test_decompose_with_method_conditions_skips_invalid_condition_slots() -> vo
 	if first == null or second == null:
 		return
 
-	var invalid_condition: Resource = _primitive(StringName("invalid_condition"))
-	var conditions: Array[Resource] = [invalid_condition, ConstantScoreCondition.new(1.0)]
+	var conditions: Array[I_Condition] = [ConstantScoreCondition.new(0.0), ConstantScoreCondition.new(1.0)]
 	var root: Resource = _compound(StringName("root"), [first, second])
 	if root == null:
 		return
@@ -152,8 +152,8 @@ func test_decompose_cycle_detection() -> void:
 	if first == null or second == null:
 		return
 
-	var first_subtasks: Array[Resource] = [second]
-	var second_subtasks: Array[Resource] = [first]
+	var first_subtasks: Array[RS_AITask] = [second]
+	var second_subtasks: Array[RS_AITask] = [first]
 	first.set("subtasks", first_subtasks)
 	second.set("subtasks", second_subtasks)
 
@@ -176,11 +176,11 @@ func test_max_depth_guard() -> void:
 	var leaf: Resource = _primitive(StringName("leaf"))
 	if leaf == null:
 		return
-	var middle_subtasks: Array[Resource] = [leaf]
+	var middle_subtasks: Array[RS_AITask] = [leaf]
 	var middle: Resource = _compound(StringName("middle"), middle_subtasks)
 	if middle == null:
 		return
-	var root_subtasks: Array[Resource] = [middle]
+	var root_subtasks: Array[RS_AITask] = [middle]
 	var root: Resource = _compound(StringName("root"), root_subtasks)
 	if root == null:
 		return

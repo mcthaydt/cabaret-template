@@ -24,8 +24,8 @@ func _load_script(path: String) -> Script:
 		return null
 	return script_variant as Script
 
-func _new_primitive_task(task_id: StringName, ticks_to_complete: int = 999) -> Resource:
-	var task: Resource = RS_AI_PRIMITIVE_TASK.new()
+func _new_primitive_task(task_id: StringName, ticks_to_complete: int = 999) -> RS_AIPrimitiveTask:
+	var task: RS_AIPrimitiveTask = RS_AI_PRIMITIVE_TASK.new()
 	task.set("task_id", task_id)
 	var action: Resource = MOCK_AI_ACTION_TRACK.new()
 	action.set("label", String(task_id))
@@ -39,11 +39,11 @@ func _new_goal(
 	score: float,
 	task_id: StringName,
 	options: Dictionary = {}
-) -> Resource:
-	var goal: Resource = RS_AI_GOAL.new()
-	var condition: Resource = RS_CONDITION_CONSTANT.new()
+) -> RS_AIGoal:
+	var goal: RS_AIGoal = RS_AI_GOAL.new()
+	var condition: I_Condition = RS_CONDITION_CONSTANT.new()
 	condition.set("score", score)
-	var conditions: Array[Resource] = [condition]
+	var conditions: Array[I_Condition] = [condition]
 	var ticks_to_complete: int = int(options.get("ticks_to_complete", 999))
 	goal.set("goal_id", goal_id)
 	goal.set("priority", priority)
@@ -66,7 +66,7 @@ func _count_call_log_prefix(prefix: String) -> int:
 	return count
 
 func _create_fixture(
-	goals: Array[Resource],
+	goals: Array[RS_AIGoal],
 	default_goal_id: StringName = StringName(),
 	evaluation_interval: float = 0.5
 ) -> Dictionary:
@@ -89,7 +89,7 @@ func _create_fixture(
 	system.ecs_manager = ecs_manager
 	system.configure(ecs_manager)
 
-	var brain_settings: Resource = RS_AI_BRAIN_SETTINGS.new()
+	var brain_settings: RS_AIBrainSettings = RS_AI_BRAIN_SETTINGS.new()
 	brain_settings.set("goals", goals)
 	brain_settings.set("default_goal_id", default_goal_id)
 	brain_settings.set("evaluation_interval", evaluation_interval)
@@ -122,8 +122,8 @@ func test_system_extends_base_ecs_system() -> void:
 	assert_true(system_variant is BASE_ECS_SYSTEM, "S_AIBehaviorSystem should extend BaseECSSystem")
 
 func test_selects_highest_scoring_goal() -> void:
-	var low_goal: Resource = _new_goal(StringName("patrol"), 1, 0.2, StringName("patrol_task"))
-	var high_goal: Resource = _new_goal(StringName("investigate"), 1, 0.9, StringName("investigate_task"))
+	var low_goal: RS_AIGoal = _new_goal(StringName("patrol"), 1, 0.2, StringName("patrol_task"))
+	var high_goal: RS_AIGoal = _new_goal(StringName("investigate"), 1, 0.9, StringName("investigate_task"))
 	var fixture: Dictionary = _create_fixture([low_goal, high_goal], StringName("patrol"), 0.0)
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -141,8 +141,8 @@ func test_selects_highest_scoring_goal() -> void:
 	assert_eq(first_task.get("task_id"), StringName("investigate_task"))
 
 func test_ties_broken_by_priority() -> void:
-	var low_priority_goal: Resource = _new_goal(StringName("low"), 1, 0.8, StringName("low_task"))
-	var high_priority_goal: Resource = _new_goal(StringName("high"), 5, 0.8, StringName("high_task"))
+	var low_priority_goal: RS_AIGoal = _new_goal(StringName("low"), 1, 0.8, StringName("low_task"))
+	var high_priority_goal: RS_AIGoal = _new_goal(StringName("high"), 5, 0.8, StringName("high_task"))
 	var fixture: Dictionary = _create_fixture([low_priority_goal, high_priority_goal], StringName("low"), 0.0)
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -160,8 +160,8 @@ func test_ties_broken_by_priority() -> void:
 	assert_eq(first_task.get("task_id"), StringName("high_task"))
 
 func test_default_goal_used_when_no_goal_passes() -> void:
-	var failing_a: Resource = _new_goal(StringName("a"), 1, 0.0, StringName("a_task"))
-	var failing_b: Resource = _new_goal(StringName("b"), 1, 0.0, StringName("b_task"))
+	var failing_a: RS_AIGoal = _new_goal(StringName("a"), 1, 0.0, StringName("a_task"))
+	var failing_b: RS_AIGoal = _new_goal(StringName("b"), 1, 0.0, StringName("b_task"))
 	var fixture: Dictionary = _create_fixture([failing_a, failing_b], StringName("b"), 0.0)
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -179,20 +179,20 @@ func test_default_goal_used_when_no_goal_passes() -> void:
 	assert_eq(first_task.get("task_id"), StringName("b_task"))
 
 func test_goal_change_clears_task_queue() -> void:
-	var first_condition: Resource = RS_CONDITION_CONSTANT.new()
+	var first_condition: I_Condition = RS_CONDITION_CONSTANT.new()
 	first_condition.set("score", 1.0)
-	var second_condition: Resource = RS_CONDITION_CONSTANT.new()
+	var second_condition: I_Condition = RS_CONDITION_CONSTANT.new()
 	second_condition.set("score", 0.0)
 
-	var first_goal: Resource = RS_AI_GOAL.new()
-	var first_conditions: Array[Resource] = [first_condition]
+	var first_goal: RS_AIGoal = RS_AI_GOAL.new()
+	var first_conditions: Array[I_Condition] = [first_condition]
 	first_goal.set("goal_id", StringName("first"))
 	first_goal.set("priority", 1)
 	first_goal.set("conditions", first_conditions)
 	first_goal.set("root_task", _new_primitive_task(StringName("first_task")))
 
-	var second_goal: Resource = RS_AI_GOAL.new()
-	var second_conditions: Array[Resource] = [second_condition]
+	var second_goal: RS_AIGoal = RS_AI_GOAL.new()
+	var second_conditions: Array[I_Condition] = [second_condition]
 	second_goal.set("goal_id", StringName("second"))
 	second_goal.set("priority", 1)
 	second_goal.set("conditions", second_conditions)
@@ -208,7 +208,7 @@ func test_goal_change_clears_task_queue() -> void:
 
 	system.process_tick(0.016)
 	assert_eq(brain.active_goal_id, StringName("first"))
-	var stale_queue: Array[Resource] = [_new_primitive_task(StringName("stale_task"))]
+	var stale_queue: Array[RS_AIPrimitiveTask] = [_new_primitive_task(StringName("stale_task"))]
 	brain.current_task_queue = stale_queue
 	brain.current_task_index = 1
 	brain.task_state = {"legacy": true}
@@ -227,7 +227,7 @@ func test_goal_change_clears_task_queue() -> void:
 	assert_eq(first_task.get("task_id"), StringName("second_task"))
 
 func test_same_goal_replans_after_queue_completion() -> void:
-	var patrol_goal: Resource = _new_goal(
+	var patrol_goal: RS_AIGoal = _new_goal(
 		StringName("patrol"),
 		1,
 		1.0,
@@ -252,11 +252,11 @@ func test_same_goal_replans_after_queue_completion() -> void:
 	assert_eq(_count_call_log_prefix("start:patrol_task"), 2)
 
 func test_active_goal_not_interrupted_by_own_cooldown() -> void:
-	var investigate_condition: Resource = RS_CONDITION_CONSTANT.new()
+	var investigate_condition: I_Condition = RS_CONDITION_CONSTANT.new()
 	investigate_condition.set("score", 0.0)
 
-	var investigate_goal: Resource = RS_AI_GOAL.new()
-	var investigate_conditions: Array[Resource] = [investigate_condition]
+	var investigate_goal: RS_AIGoal = RS_AI_GOAL.new()
+	var investigate_conditions: Array[I_Condition] = [investigate_condition]
 	investigate_goal.set("goal_id", StringName("investigate"))
 	investigate_goal.set("priority", 3)
 	investigate_goal.set("conditions", investigate_conditions)
@@ -264,7 +264,7 @@ func test_active_goal_not_interrupted_by_own_cooldown() -> void:
 	investigate_goal.set("cooldown", 2.5)
 	investigate_goal.set("root_task", _new_primitive_task(StringName("investigate_task"), 5))
 
-	var patrol_goal: Resource = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
+	var patrol_goal: RS_AIGoal = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
 	var fixture: Dictionary = _create_fixture(
 		[patrol_goal, investigate_goal], StringName("patrol"), 0.0
 	)
@@ -296,14 +296,14 @@ func test_active_goal_not_interrupted_by_own_cooldown() -> void:
 		)
 
 func test_cooldown_marks_only_selected_goal() -> void:
-	var high_goal: Resource = _new_goal(
+	var high_goal: RS_AIGoal = _new_goal(
 		StringName("high"),
 		2,
 		1.0,
 		StringName("high_task"),
 		{"cooldown": 1.0, "ticks_to_complete": 1}
 	)
-	var low_goal: Resource = _new_goal(
+	var low_goal: RS_AIGoal = _new_goal(
 		StringName("low"),
 		1,
 		0.8,
@@ -324,14 +324,14 @@ func test_cooldown_marks_only_selected_goal() -> void:
 	assert_eq(brain.active_goal_id, StringName("low"))
 
 func test_one_shot_goal_transitions_to_next_goal_after_first_fire() -> void:
-	var one_shot_goal: Resource = _new_goal(
+	var one_shot_goal: RS_AIGoal = _new_goal(
 		StringName("one_shot"),
 		2,
 		1.0,
 		StringName("one_shot_task"),
 		{"one_shot": true, "ticks_to_complete": 1}
 	)
-	var fallback_goal: Resource = _new_goal(StringName("fallback"), 1, 0.8, StringName("fallback_task"))
+	var fallback_goal: RS_AIGoal = _new_goal(StringName("fallback"), 1, 0.8, StringName("fallback_task"))
 	var fixture: Dictionary = _create_fixture([one_shot_goal, fallback_goal], StringName(), 0.0)
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -346,14 +346,14 @@ func test_one_shot_goal_transitions_to_next_goal_after_first_fire() -> void:
 	assert_eq(brain.active_goal_id, StringName("fallback"))
 
 func test_one_shot_is_scoped_per_context() -> void:
-	var one_shot_goal: Resource = _new_goal(
+	var one_shot_goal: RS_AIGoal = _new_goal(
 		StringName("one_shot"),
 		2,
 		1.0,
 		StringName("one_shot_task"),
 		{"one_shot": true}
 	)
-	var fallback_goal: Resource = _new_goal(StringName("fallback"), 1, 0.8, StringName("fallback_task"))
+	var fallback_goal: RS_AIGoal = _new_goal(StringName("fallback"), 1, 0.8, StringName("fallback_task"))
 	var fixture: Dictionary = _create_fixture([one_shot_goal, fallback_goal], StringName(), 0.0)
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -379,17 +379,17 @@ func test_one_shot_is_scoped_per_context() -> void:
 	assert_eq(second_brain.active_goal_id, StringName("one_shot"))
 
 func test_requires_rising_edge_goal_requires_state_transition() -> void:
-	var rising_condition: Resource = RS_CONDITION_CONSTANT.new()
+	var rising_condition: I_Condition = RS_CONDITION_CONSTANT.new()
 	rising_condition.set("score", 1.0)
-	var rising_goal: Resource = RS_AI_GOAL.new()
-	var rising_conditions: Array[Resource] = [rising_condition]
+	var rising_goal: RS_AIGoal = RS_AI_GOAL.new()
+	var rising_conditions: Array[I_Condition] = [rising_condition]
 	rising_goal.set("goal_id", StringName("rising"))
 	rising_goal.set("priority", 2)
 	rising_goal.set("conditions", rising_conditions)
 	rising_goal.set("requires_rising_edge", true)
 	rising_goal.set("root_task", _new_primitive_task(StringName("rising_task"), 1))
 
-	var steady_goal: Resource = _new_goal(StringName("steady"), 1, 0.8, StringName("steady_task"))
+	var steady_goal: RS_AIGoal = _new_goal(StringName("steady"), 1, 0.8, StringName("steady_task"))
 	var fixture: Dictionary = _create_fixture([rising_goal, steady_goal], StringName(), 0.0)
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -413,20 +413,20 @@ func test_requires_rising_edge_goal_requires_state_transition() -> void:
 	assert_eq(brain.active_goal_id, StringName("rising"))
 
 func test_evaluation_interval_throttles_scoring() -> void:
-	var first_condition: Resource = RS_CONDITION_CONSTANT.new()
+	var first_condition: I_Condition = RS_CONDITION_CONSTANT.new()
 	first_condition.set("score", 1.0)
-	var second_condition: Resource = RS_CONDITION_CONSTANT.new()
+	var second_condition: I_Condition = RS_CONDITION_CONSTANT.new()
 	second_condition.set("score", 0.0)
 
-	var first_goal: Resource = RS_AI_GOAL.new()
-	var first_conditions: Array[Resource] = [first_condition]
+	var first_goal: RS_AIGoal = RS_AI_GOAL.new()
+	var first_conditions: Array[I_Condition] = [first_condition]
 	first_goal.set("goal_id", StringName("first"))
 	first_goal.set("priority", 1)
 	first_goal.set("conditions", first_conditions)
 	first_goal.set("root_task", _new_primitive_task(StringName("first_task")))
 
-	var second_goal: Resource = RS_AI_GOAL.new()
-	var second_conditions: Array[Resource] = [second_condition]
+	var second_goal: RS_AIGoal = RS_AI_GOAL.new()
+	var second_conditions: Array[I_Condition] = [second_condition]
 	second_goal.set("goal_id", StringName("second"))
 	second_goal.set("priority", 1)
 	second_goal.set("conditions", second_conditions)
@@ -476,7 +476,7 @@ func test_no_brain_component_no_crash() -> void:
 # --- No-deep-copy performance tests ---
 
 func test_context_redux_state_is_same_reference_as_store_state() -> void:
-	var goal: Resource = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
+	var goal: RS_AIGoal = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
 	var fixture: Dictionary = _create_fixture([goal], StringName("patrol"), 0.0)
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -500,8 +500,8 @@ func test_context_redux_state_is_same_reference_as_store_state() -> void:
 
 
 func test_suspended_goal_state_not_duplicated_on_suspend_resume() -> void:
-	var goal_a: Resource = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"), {"ticks_to_complete": 1})
-	var goal_b: Resource = _new_goal(StringName("investigate"), 1, 0.9, StringName("investigate_task"))
+	var goal_a: RS_AIGoal = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"), {"ticks_to_complete": 1})
+	var goal_b: RS_AIGoal = _new_goal(StringName("investigate"), 1, 0.9, StringName("investigate_task"))
 	var fixture: Dictionary = _create_fixture([goal_a, goal_b], StringName("patrol"), 0.0)
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -527,7 +527,7 @@ func test_suspended_goal_state_not_duplicated_on_suspend_resume() -> void:
 # --- Rule pooling tests ---
 
 func test_build_rule_from_goal_reuses_pooled_instance() -> void:
-	var goal: Resource = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
+	var goal: RS_AIGoal = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
 	var fixture: Dictionary = _create_fixture([goal], StringName("patrol"), 0.0)
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -552,8 +552,8 @@ func test_build_rule_from_goal_reuses_pooled_instance() -> void:
 
 
 func test_rule_pool_produces_different_rules_for_different_goals() -> void:
-	var goal_a: Resource = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
-	var goal_b: Resource = _new_goal(StringName("investigate"), 2, 0.9, StringName("investigate_task"))
+	var goal_a: RS_AIGoal = _new_goal(StringName("patrol"), 1, 0.5, StringName("patrol_task"))
+	var goal_b: RS_AIGoal = _new_goal(StringName("investigate"), 2, 0.9, StringName("investigate_task"))
 	var fixture: Dictionary = _create_fixture([goal_a, goal_b], StringName("patrol"), 0.0)
 	autofree_context(fixture)
 	if fixture.is_empty():

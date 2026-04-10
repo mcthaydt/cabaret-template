@@ -140,10 +140,11 @@ func test_validate_required_settings_fails_with_wrong_brain_settings_type() -> v
 
 	var component: BaseECSComponent = component_script.new()
 	component.set("brain_settings", wrong_settings_script.new())
+	assert_null(component.get("brain_settings"), "Typed brain_settings should reject non-RS_AIBrainSettings assignment")
 	entity.add_child(component)
 	autofree(component)
 	await _pump()
-	assert_push_error("C_AIBrainComponent brain_settings must be an RS_AIBrainSettings resource.")
+	assert_push_error("C_AIBrainComponent missing brain_settings")
 
 	var components := manager.get_components(StringName("C_AIBrainComponent"))
 	assert_eq(components.size(), 0)
@@ -169,7 +170,7 @@ func test_brain_settings_export_typed_rs_ai_brain_settings() -> void:
 	var component: BaseECSComponent = component_script.new()
 	autofree(component)
 	var prop := _get_property_definition(component, "brain_settings")
-	assert_eq(str(prop.get("hint_string", "")), "RS_AIBrainSettings", "C_AIBrainComponent.brain_settings hint_string should be RS_AIBrainSettings (not @export_custom)")
+	_assert_typed_property_hint(prop, "RS_AIBrainSettings", false, "C_AIBrainComponent.brain_settings should be typed RS_AIBrainSettings")
 
 func test_current_task_queue_typed_rs_ai_primitive_task() -> void:
 	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
@@ -179,7 +180,7 @@ func test_current_task_queue_typed_rs_ai_primitive_task() -> void:
 	var component: BaseECSComponent = component_script.new()
 	autofree(component)
 	var prop := _get_property_definition(component, "current_task_queue")
-	assert_eq(str(prop.get("hint_string", "")), "Array[RS_AIPrimitiveTask]", "C_AIBrainComponent.current_task_queue hint_string should be Array[RS_AIPrimitiveTask]")
+	_assert_typed_property_hint(prop, "RS_AIPrimitiveTask", true, "C_AIBrainComponent.current_task_queue should be typed Array[RS_AIPrimitiveTask]")
 
 func test_get_brain_settings_returns_typed() -> void:
 	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
@@ -218,3 +219,19 @@ func test_get_current_task_returns_typed() -> void:
 	var result: Variant = component.call("get_current_task")
 	# When queue is empty, should return null
 	assert_null(result, "get_current_task() should return null when queue is empty")
+
+func _assert_typed_property_hint(property_definition: Dictionary, expected_type: String, expect_array: bool, message: String) -> void:
+	var hint_string: String = str(property_definition.get("hint_string", ""))
+	if expect_array:
+		var is_human_readable: bool = hint_string == "Array[%s]" % expected_type
+		var is_engine_encoded: bool = hint_string.ends_with(":%s" % expected_type)
+		var is_non_exported_typed_array: bool = hint_string == expected_type
+		assert_true(
+			is_human_readable or is_engine_encoded or is_non_exported_typed_array,
+			"%s (actual hint_string=%s)" % [message, hint_string]
+		)
+		return
+	assert_true(
+		hint_string == expected_type or hint_string.ends_with(":%s" % expected_type),
+		"%s (actual hint_string=%s)" % [message, hint_string]
+	)

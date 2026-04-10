@@ -65,8 +65,8 @@ func _load_script(path: String) -> Script:
 		return null
 	return script_variant as Script
 
-func _new_constant_condition(score: float) -> Resource:
-	var condition: Resource = RS_CONDITION_CONSTANT.new()
+func _new_constant_condition(score: float) -> I_Condition:
+	var condition: I_Condition = RS_CONDITION_CONSTANT.new()
 	condition.set("score", score)
 	return condition
 
@@ -81,14 +81,14 @@ func _new_wait_action(duration: float) -> Resource:
 	action.set("duration", duration)
 	return action
 
-func _new_primitive_task(task_id: StringName, action: Resource) -> Resource:
-	var task: Resource = RS_AI_PRIMITIVE_TASK.new()
+func _new_primitive_task(task_id: StringName, action: Resource) -> RS_AIPrimitiveTask:
+	var task: RS_AIPrimitiveTask = RS_AI_PRIMITIVE_TASK.new()
 	task.set("task_id", task_id)
 	task.set("action", action)
 	return task
 
-func _new_compound_task(task_id: StringName, subtasks: Array[Resource]) -> Resource:
-	var task: Resource = RS_AI_COMPOUND_TASK.new()
+func _new_compound_task(task_id: StringName, subtasks: Array[RS_AITask]) -> RS_AICompoundTask:
+	var task: RS_AICompoundTask = RS_AI_COMPOUND_TASK.new()
 	task.set("task_id", task_id)
 	task.set("subtasks", subtasks)
 	return task
@@ -96,11 +96,11 @@ func _new_compound_task(task_id: StringName, subtasks: Array[Resource]) -> Resou
 func _new_goal(
 	goal_id: StringName,
 	priority: int,
-	conditions: Array[Resource],
-	root_task: Resource,
+	conditions: Array[I_Condition],
+	root_task: RS_AITask,
 	options: Dictionary = {}
-) -> Resource:
-	var goal: Resource = RS_AI_GOAL.new()
+) -> RS_AIGoal:
+	var goal: RS_AIGoal = RS_AI_GOAL.new()
 	goal.set("goal_id", goal_id)
 	goal.set("priority", priority)
 	goal.set("conditions", conditions)
@@ -114,18 +114,18 @@ func _new_goal(
 	return goal
 
 func _new_brain_settings(
-	goals: Array[Resource],
+	goals: Array[RS_AIGoal],
 	default_goal_id: StringName = StringName(),
 	evaluation_interval: float = 0.0
-) -> Resource:
-	var brain_settings: Resource = RS_AI_BRAIN_SETTINGS.new()
+) -> RS_AIBrainSettings:
+	var brain_settings: RS_AIBrainSettings = RS_AI_BRAIN_SETTINGS.new()
 	brain_settings.set("goals", goals)
 	brain_settings.set("default_goal_id", default_goal_id)
 	brain_settings.set("evaluation_interval", evaluation_interval)
 	return brain_settings
 
 func _create_fixture(
-	brain_settings: Resource,
+	brain_settings: RS_AIBrainSettings,
 	initial_state: Dictionary = {}
 ) -> Dictionary:
 	var behavior_script: Script = _load_script(S_AI_BEHAVIOR_SYSTEM_PATH)
@@ -256,7 +256,7 @@ func test_resume_patrol_after_interrupt_at_saved_index() -> void:
 	var target_b := Vector3(4.0, 0.0, 4.0)
 	var target_c := Vector3(0.0, 0.0, 4.0)
 
-	var patrol_subtasks: Array[Resource] = [
+	var patrol_subtasks: Array[RS_AITask] = [
 		_new_primitive_task(StringName("move_a"), _new_move_action(target_a, 0.25)),
 		_new_primitive_task(StringName("wait_a"), _new_wait_action(0.2)),
 		_new_primitive_task(StringName("move_b"), _new_move_action(target_b, 0.25)),
@@ -264,23 +264,23 @@ func test_resume_patrol_after_interrupt_at_saved_index() -> void:
 		_new_primitive_task(StringName("move_c"), _new_move_action(target_c, 0.25)),
 		_new_primitive_task(StringName("wait_c"), _new_wait_action(0.2)),
 	]
-	var patrol_root: Resource = _new_compound_task(StringName("patrol_root"), patrol_subtasks)
+	var patrol_root: RS_AICompoundTask = _new_compound_task(StringName("patrol_root"), patrol_subtasks)
 
 	var patrol_condition: Resource = _new_constant_condition(1.0)
 	var interrupt_condition: Resource = _new_constant_condition(0.0)
 
-	var interrupt_root: Resource = _new_primitive_task(
+	var interrupt_root: RS_AIPrimitiveTask = _new_primitive_task(
 		StringName("interrupt_wait"), _new_wait_action(0.3)
 	)
 
-	var patrol_goal: Resource = _new_goal(
+	var patrol_goal: RS_AIGoal = _new_goal(
 		StringName("patrol"), 1, [patrol_condition], patrol_root
 	)
-	var interrupt_goal: Resource = _new_goal(
+	var interrupt_goal: RS_AIGoal = _new_goal(
 		StringName("interrupt"), 3, [interrupt_condition], interrupt_root
 	)
 
-	var brain_settings: Resource = _new_brain_settings(
+	var brain_settings: RS_AIBrainSettings = _new_brain_settings(
 		[patrol_goal, interrupt_goal], StringName("patrol"), 0.0
 	)
 
@@ -333,17 +333,17 @@ func test_resume_patrol_after_interrupt_at_saved_index() -> void:
 
 
 func test_no_resume_when_goal_completes_normally() -> void:
-	var patrol_subtasks: Array[Resource] = [
+	var patrol_subtasks: Array[RS_AITask] = [
 		_new_primitive_task(StringName("wait_a"), _new_wait_action(0.5)),
 		_new_primitive_task(StringName("wait_b"), _new_wait_action(0.5)),
 		_new_primitive_task(StringName("wait_c"), _new_wait_action(0.5)),
 	]
-	var patrol_root: Resource = _new_compound_task(StringName("patrol_root"), patrol_subtasks)
-	var patrol_goal: Resource = _new_goal(
+	var patrol_root: RS_AICompoundTask = _new_compound_task(StringName("patrol_root"), patrol_subtasks)
+	var patrol_goal: RS_AIGoal = _new_goal(
 		StringName("patrol"), 1, [_new_constant_condition(1.0)], patrol_root
 	)
 
-	var brain_settings: Resource = _new_brain_settings(
+	var brain_settings: RS_AIBrainSettings = _new_brain_settings(
 		[patrol_goal], StringName("patrol"), 0.0
 	)
 
@@ -373,27 +373,27 @@ func test_no_resume_when_goal_completes_normally() -> void:
 
 
 func test_suspended_state_cleared_after_resume() -> void:
-	var patrol_subtasks: Array[Resource] = [
+	var patrol_subtasks: Array[RS_AITask] = [
 		_new_primitive_task(StringName("wait_a"), _new_wait_action(0.5)),
 		_new_primitive_task(StringName("wait_b"), _new_wait_action(0.5)),
 	]
-	var patrol_root: Resource = _new_compound_task(StringName("patrol_root"), patrol_subtasks)
+	var patrol_root: RS_AICompoundTask = _new_compound_task(StringName("patrol_root"), patrol_subtasks)
 
 	var patrol_condition: Resource = _new_constant_condition(1.0)
 	var interrupt_condition: Resource = _new_constant_condition(0.0)
 
-	var interrupt_root: Resource = _new_primitive_task(
+	var interrupt_root: RS_AIPrimitiveTask = _new_primitive_task(
 		StringName("interrupt_wait"), _new_wait_action(0.5)
 	)
 
-	var patrol_goal: Resource = _new_goal(
+	var patrol_goal: RS_AIGoal = _new_goal(
 		StringName("patrol"), 1, [patrol_condition], patrol_root
 	)
-	var interrupt_goal: Resource = _new_goal(
+	var interrupt_goal: RS_AIGoal = _new_goal(
 		StringName("interrupt"), 3, [interrupt_condition], interrupt_root
 	)
 
-	var brain_settings: Resource = _new_brain_settings(
+	var brain_settings: RS_AIBrainSettings = _new_brain_settings(
 		[patrol_goal, interrupt_goal], StringName("patrol"), 0.0
 	)
 

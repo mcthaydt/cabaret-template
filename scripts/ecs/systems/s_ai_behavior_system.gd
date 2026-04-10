@@ -2,12 +2,8 @@
 extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
-const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const I_AI_ACTION := preload("res://scripts/interfaces/i_ai_action.gd")
-const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
-const RS_AI_GOAL := preload("res://scripts/resources/ai/rs_ai_goal.gd")
-const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/rs_ai_primitive_task.gd")
 const RS_RULE := preload("res://scripts/resources/qb/rs_rule.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
@@ -19,7 +15,7 @@ const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobil
 
 const MOBILE_EVALUATION_INTERVAL_MULTIPLIER: float = 2.0
 
-const BRAIN_COMPONENT_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
+const BRAIN_COMPONENT_TYPE := C_AIBrainComponent.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const GOAL_DECISION_GROUP := StringName("ai_goal")
 const ACTION_STARTED_STATE_KEY := "action_started"
@@ -70,31 +66,31 @@ func process_tick(delta: float) -> void:
 			continue
 
 		var brain_variant: Variant = entity_query.call("get_component", BRAIN_COMPONENT_TYPE)
-		if brain_variant == null or not (brain_variant is C_AI_BRAIN_COMPONENT):
+		if not (brain_variant is C_AIBrainComponent):
 			continue
-		var brain_settings_variant: Variant = brain_variant.get("brain_settings")
-		if brain_settings_variant == null or not (brain_settings_variant is RS_AI_BRAIN_SETTINGS):
+		var brain: C_AIBrainComponent = brain_variant as C_AIBrainComponent
+		var brain_settings: RS_AIBrainSettings = brain.get_brain_settings()
+		if brain_settings == null:
 			continue
 
-		var context: Dictionary = _build_entity_context(entity_query, brain_variant, redux_state)
+		var context: Dictionary = _build_entity_context(entity_query, brain, redux_state)
 		active_context_keys.append(_context_key_for_context(context))
-		_process_brain(brain_variant, brain_settings_variant as Resource, context, delta, _entity_stagger_index, entity_count)
-		_debug_log_brain_state(context, brain_variant)
+		_process_brain(brain, brain_settings, context, delta, _entity_stagger_index, entity_count)
+		_debug_log_brain_state(context, brain)
 		_entity_stagger_index += 1
 
 	_tracker.cleanup_stale_contexts(active_context_keys)
 
-func _process_brain(brain: Variant, brain_settings: Resource, context: Dictionary, delta: float, entity_index: int = 0, entity_count: int = 1) -> void:
+func _process_brain(brain: C_AIBrainComponent, brain_settings: RS_AIBrainSettings, context: Dictionary, delta: float, entity_index: int = 0, entity_count: int = 1) -> void:
 	if _should_evaluate_goals(brain, brain_settings, delta, entity_index, entity_count):
 		var executing_goal_id: StringName = StringName()
 		if not _is_task_queue_empty(brain):
-			executing_goal_id = _variant_to_string_name(_read_object_property(brain, "active_goal_id"))
-		var selected_goal: Resource = _select_goal(brain_settings, context, executing_goal_id)
+			executing_goal_id = brain.get_active_goal_id()
+		var selected_goal: RS_AIGoal = _select_goal(brain_settings, context, executing_goal_id)
 		if selected_goal != null:
 			var selected_goal_id: StringName = _read_goal_id(selected_goal)
 			if selected_goal_id != StringName():
-				var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
-				var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
+				var active_goal_id: StringName = brain.get_active_goal_id()
 				var should_replan: bool = selected_goal_id != active_goal_id
 				if not should_replan and _is_task_queue_empty(brain):
 					should_replan = true
@@ -103,34 +99,27 @@ func _process_brain(brain: Variant, brain_settings: Resource, context: Dictionar
 
 	_execute_current_task(brain, delta, context)
 
-func _execute_current_task(brain: Variant, delta: float, context: Dictionary) -> void:
-	var queue_variant: Variant = _read_object_property(brain, "current_task_queue")
-	if not (queue_variant is Array):
-		return
-	var queue: Array = queue_variant as Array
+func _execute_current_task(brain: C_AIBrainComponent, delta: float, context: Dictionary) -> void:
+	var queue: Array[RS_AIPrimitiveTask] = brain.current_task_queue
 	if queue.is_empty():
 		return
 
-	var current_task_index: int = _read_int_property(brain, "current_task_index", 0)
+	var current_task_index: int = brain.current_task_index
 	if current_task_index < 0 or current_task_index >= queue.size():
 		_finish_task_queue(brain, context)
 		return
 
-	var task_variant: Variant = queue[current_task_index]
-	if not (task_variant is RS_AI_PRIMITIVE_TASK):
+	var task: RS_AIPrimitiveTask = queue[current_task_index]
+	if task == null:
 		_advance_to_next_task(brain, current_task_index, queue.size(), context)
 		return
 
-	var task: Resource = task_variant as Resource
-	var action_variant: Variant = task.get("action")
+	var action_variant: Variant = task.action
 	if action_variant == null or not (action_variant is I_AI_ACTION):
 		_advance_to_next_task(brain, current_task_index, queue.size(), context)
 		return
 
-	var task_state_variant: Variant = _read_object_property(brain, "task_state")
-	var task_state: Dictionary = {}
-	if task_state_variant is Dictionary:
-		task_state = task_state_variant as Dictionary
+	var task_state: Dictionary = brain.task_state
 
 	var action_started: bool = bool(task_state.get(ACTION_STARTED_STATE_KEY, false))
 	var action: Variant = action_variant
@@ -139,7 +128,7 @@ func _execute_current_task(brain: Variant, delta: float, context: Dictionary) ->
 		task_state[ACTION_STARTED_STATE_KEY] = true
 
 	action.tick(context, task_state, maxf(delta, 0.0))
-	brain.set("task_state", task_state)
+	brain.task_state = task_state
 
 	var complete_variant: Variant = action.is_complete(context, task_state)
 	var is_complete: bool = complete_variant is bool and complete_variant
@@ -148,35 +137,33 @@ func _execute_current_task(brain: Variant, delta: float, context: Dictionary) ->
 
 	_advance_to_next_task(brain, current_task_index, queue.size(), context)
 
-func _advance_to_next_task(brain: Variant, current_task_index: int, queue_size: int, context: Dictionary) -> void:
+func _advance_to_next_task(brain: C_AIBrainComponent, current_task_index: int, queue_size: int, context: Dictionary) -> void:
 	var next_task_index: int = current_task_index + 1
-	brain.set("task_state", {})
+	brain.task_state = {}
 	if next_task_index >= queue_size:
 		_finish_task_queue(brain, context)
 		return
-	brain.set("current_task_index", next_task_index)
+	brain.current_task_index = next_task_index
 
-func _finish_task_queue(brain: Variant, context: Dictionary) -> void:
-	var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
-	var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
+func _finish_task_queue(brain: C_AIBrainComponent, context: Dictionary) -> void:
+	var active_goal_id: StringName = brain.get_active_goal_id()
 	if active_goal_id != StringName():
 		var suspended: Dictionary = _read_suspended_state(brain)
 		if suspended.has(active_goal_id):
 			suspended.erase(active_goal_id)
-			brain.set("suspended_goal_state", suspended)
+			brain.suspended_goal_state = suspended
 		_apply_deferred_goal_cooldown(active_goal_id, brain, context)
 
-	var empty_queue: Array[Resource] = []
-	brain.set("current_task_queue", empty_queue)
-	brain.set("current_task_index", 0)
-	brain.set("task_state", {})
+	brain.current_task_queue = []
+	brain.current_task_index = 0
+	brain.task_state = {}
 
-func _apply_deferred_goal_cooldown(goal_id: StringName, brain: Variant, context: Dictionary) -> void:
-	var brain_settings_variant: Variant = _read_object_property(brain, "brain_settings")
-	if not (brain_settings_variant is Resource):
+func _apply_deferred_goal_cooldown(goal_id: StringName, brain: C_AIBrainComponent, context: Dictionary) -> void:
+	var brain_settings: RS_AIBrainSettings = brain.get_brain_settings()
+	if brain_settings == null:
 		return
-	var goals: Array[Resource] = _read_goal_array(brain_settings_variant as Resource)
-	var goal: Resource = _find_goal_by_id(goals, goal_id)
+	var goals: Array[RS_AIGoal] = _read_goal_array(brain_settings)
+	var goal: RS_AIGoal = _find_goal_by_id(goals, goal_id)
 	if goal == null:
 		return
 	var rule: Resource = _build_rule_from_goal(goal)
@@ -184,48 +171,43 @@ func _apply_deferred_goal_cooldown(goal_id: StringName, brain: Variant, context:
 		return
 	_mark_goal_rule_fired(rule, context)
 
-func _is_task_queue_empty(brain: Variant) -> bool:
-	var queue_variant: Variant = _read_object_property(brain, "current_task_queue")
-	if not (queue_variant is Array):
-		return true
-	return (queue_variant as Array).is_empty()
+func _is_task_queue_empty(brain: C_AIBrainComponent) -> bool:
+	return brain.current_task_queue.is_empty()
 
-func _should_evaluate_goals(brain: Variant, brain_settings: Resource, delta: float, entity_index: int = 0, entity_count: int = 1) -> bool:
-	var evaluation_interval: float = maxf(_read_float_property(brain_settings, "evaluation_interval", 0.5), 0.0)
+func _should_evaluate_goals(brain: C_AIBrainComponent, brain_settings: RS_AIBrainSettings, delta: float, entity_index: int = 0, entity_count: int = 1) -> bool:
+	var evaluation_interval: float = maxf(brain_settings.evaluation_interval, 0.0)
 	# Mobile: double the evaluation interval to reduce CPU cost of goal evaluation
 	if _is_mobile:
 		evaluation_interval *= MOBILE_EVALUATION_INTERVAL_MULTIPLIER
-	var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
-	var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
+	var active_goal_id: StringName = brain.get_active_goal_id()
 
 	if active_goal_id == StringName():
 		# Stagger first evaluation: offset by entity index to prevent frame spikes
 		var stagger_offset: float = 0.0
 		if entity_count > 1:
 			stagger_offset = (float(entity_index) / float(entity_count)) * evaluation_interval
-		var current_timer: float = _read_float_property(brain, "evaluation_timer", 0.0)
+		var current_timer: float = brain.evaluation_timer
 		if current_timer == 0.0 and stagger_offset > 0.0:
-			brain.set("evaluation_timer", -stagger_offset)
-		brain.set("evaluation_timer", 0.0)
+			brain.evaluation_timer = -stagger_offset
+		brain.evaluation_timer = 0.0
 		return true
 
 	if evaluation_interval <= 0.0:
-		brain.set("evaluation_timer", 0.0)
+		brain.evaluation_timer = 0.0
 		return true
 
-	var evaluation_timer: float = _read_float_property(brain, "evaluation_timer", 0.0)
+	var evaluation_timer: float = brain.evaluation_timer
 	evaluation_timer += maxf(delta, 0.0)
 	if evaluation_timer < evaluation_interval:
-		brain.set("evaluation_timer", evaluation_timer)
+		brain.evaluation_timer = evaluation_timer
 		return false
 
-	brain.set("evaluation_timer", 0.0)
+	brain.evaluation_timer = 0.0
 	return true
 
-func _select_goal(brain_settings: Resource, context: Dictionary, executing_goal_id: StringName = StringName()) -> Resource:
-	var goals: Array[Resource] = _read_goal_array(brain_settings)
-	var default_goal_variant: Variant = _read_object_property(brain_settings, "default_goal_id")
-	var default_goal_id: StringName = _variant_to_string_name(default_goal_variant)
+func _select_goal(brain_settings: RS_AIBrainSettings, context: Dictionary, executing_goal_id: StringName = StringName()) -> RS_AIGoal:
+	var goals: Array[RS_AIGoal] = _read_goal_array(brain_settings)
+	var default_goal_id: StringName = brain_settings.default_goal_id
 	if goals.is_empty():
 		return _find_goal_by_id(goals, default_goal_id)
 
@@ -263,12 +245,12 @@ func _select_goal(brain_settings: Resource, context: Dictionary, executing_goal_
 
 	return _find_goal_by_id(goals, default_goal_id)
 
-func _replan_for_goal(brain: Variant, goal: Resource, context: Dictionary) -> void:
+func _replan_for_goal(brain: C_AIBrainComponent, goal: RS_AIGoal, context: Dictionary) -> void:
 	var goal_id: StringName = _read_goal_id(goal)
 	_suspend_current_goal(brain)
 
-	brain.set("active_goal_id", goal_id)
-	brain.set("task_state", {})
+	brain.active_goal_id = goal_id
+	brain.task_state = {}
 
 	var suspended: Dictionary = _read_suspended_state(brain)
 	if suspended.has(goal_id):
@@ -276,54 +258,48 @@ func _replan_for_goal(brain: Variant, goal: Resource, context: Dictionary) -> vo
 		var saved_queue: Variant = saved.get("task_queue", null)
 		var saved_index: int = int(saved.get("task_index", 0))
 		if saved_queue is Array and not (saved_queue as Array).is_empty():
-			var restored_queue: Array[Resource] = []
+			var restored_queue: Array[RS_AIPrimitiveTask] = []
 			for task_variant in saved_queue:
-				if task_variant is Resource:
-					restored_queue.append(task_variant as Resource)
-			brain.set("current_task_queue", restored_queue)
-			brain.set("current_task_index", saved_index)
+				if task_variant is RS_AIPrimitiveTask:
+					restored_queue.append(task_variant as RS_AIPrimitiveTask)
+			brain.current_task_queue = restored_queue
+			brain.current_task_index = saved_index
 			suspended.erase(goal_id)
-			brain.set("suspended_goal_state", suspended)
+			brain.suspended_goal_state = suspended
 			return
 
-	brain.set("current_task_index", 0)
+	brain.current_task_index = 0
 
-	var root_task_variant: Variant = goal.get("root_task")
-	var planned_tasks: Array[Resource] = []
-	if root_task_variant is Resource:
-		var queue_variant: Variant = U_HTN_PLANNER.decompose(root_task_variant, context)
+	var planned_tasks: Array[RS_AIPrimitiveTask] = []
+	if goal.root_task != null:
+		var queue_variant: Variant = U_HTN_PLANNER.decompose(goal.root_task, context)
 		if queue_variant is Array:
 			for task_variant in queue_variant:
-				if task_variant is Resource:
-					planned_tasks.append(task_variant as Resource)
+				if task_variant is RS_AIPrimitiveTask:
+					planned_tasks.append(task_variant as RS_AIPrimitiveTask)
 
-	brain.set("current_task_queue", planned_tasks)
+	brain.current_task_queue = planned_tasks
 
-func _suspend_current_goal(brain: Variant) -> void:
-	var active_goal_variant: Variant = _read_object_property(brain, "active_goal_id")
-	var active_goal_id: StringName = _variant_to_string_name(active_goal_variant)
+func _suspend_current_goal(brain: C_AIBrainComponent) -> void:
+	var active_goal_id: StringName = brain.get_active_goal_id()
 	if active_goal_id == StringName():
 		return
 
-	var queue_variant: Variant = _read_object_property(brain, "current_task_queue")
-	if not (queue_variant is Array) or (queue_variant as Array).is_empty():
+	if brain.current_task_queue.is_empty():
 		return
 
-	var current_index: int = _read_int_property(brain, "current_task_index", 0)
+	var current_index: int = brain.current_task_index
 	var suspended: Dictionary = _read_suspended_state(brain)
 	suspended[active_goal_id] = {
-		"task_queue": queue_variant,
+		"task_queue": brain.current_task_queue,
 		"task_index": current_index,
 	}
-	brain.set("suspended_goal_state", suspended)
+	brain.suspended_goal_state = suspended
 
-func _read_suspended_state(brain: Variant) -> Dictionary:
-	var suspended_variant: Variant = _read_object_property(brain, "suspended_goal_state")
-	if suspended_variant is Dictionary:
-		return suspended_variant as Dictionary
-	return {}
+func _read_suspended_state(brain: C_AIBrainComponent) -> Dictionary:
+	return brain.suspended_goal_state
 
-func _build_rule_from_goal(goal: Resource) -> Resource:
+func _build_rule_from_goal(goal: RS_AIGoal) -> Resource:
 	if goal == null:
 		return null
 
@@ -335,10 +311,10 @@ func _build_rule_from_goal(goal: Resource) -> Resource:
 		var cached_rule: Resource = _rule_pool[goal_id]
 		cached_rule.set("priority", _read_goal_priority(goal))
 		cached_rule.set("conditions", _read_conditions(goal))
-		cached_rule.set("score_threshold", _read_float_property(goal, "score_threshold", 0.0))
-		cached_rule.set("cooldown", _read_float_property(goal, "cooldown", 0.0))
-		cached_rule.set("one_shot", _read_bool_property(goal, "one_shot", false))
-		cached_rule.set("requires_rising_edge", _read_bool_property(goal, "requires_rising_edge", false))
+		cached_rule.set("score_threshold", goal.score_threshold)
+		cached_rule.set("cooldown", goal.cooldown)
+		cached_rule.set("one_shot", goal.one_shot)
+		cached_rule.set("requires_rising_edge", goal.requires_rising_edge)
 		return cached_rule
 
 	var rule: Resource = RS_RULE.new()
@@ -346,22 +322,22 @@ func _build_rule_from_goal(goal: Resource) -> Resource:
 	rule.set("decision_group", GOAL_DECISION_GROUP)
 	rule.set("priority", _read_goal_priority(goal))
 	rule.set("conditions", _read_conditions(goal))
-	rule.set("score_threshold", _read_float_property(goal, "score_threshold", 0.0))
-	rule.set("cooldown", _read_float_property(goal, "cooldown", 0.0))
-	rule.set("one_shot", _read_bool_property(goal, "one_shot", false))
-	rule.set("requires_rising_edge", _read_bool_property(goal, "requires_rising_edge", false))
+	rule.set("score_threshold", goal.score_threshold)
+	rule.set("cooldown", goal.cooldown)
+	rule.set("one_shot", goal.one_shot)
+	rule.set("requires_rising_edge", goal.requires_rising_edge)
 
 	_rule_pool[goal_id] = rule
 	return rule
 
-func _find_goal_by_id(goals: Array[Resource], goal_id: StringName) -> Resource:
+func _find_goal_by_id(goals: Array[RS_AIGoal], goal_id: StringName) -> RS_AIGoal:
 	if goal_id == StringName():
 		return null
 	# Use cached lookup dictionary for O(1) resolution
 	var cache_key: int = goals.hash()
 	if not _goal_by_id_cache.has(cache_key):
 		var new_lookup: Dictionary = {}
-		for goal in goals:
+		for goal: RS_AIGoal in goals:
 			if goal == null:
 				continue
 			new_lookup[_read_goal_id(goal)] = goal
@@ -383,13 +359,14 @@ func _apply_state_gates(rules: Array, scored: Array[Dictionary], context: Dictio
 
 	var gated: Array[Dictionary] = []
 	for rule_variant in rules:
-		if rule_variant == null or not (rule_variant is Object):
+		if not (rule_variant is RS_Rule):
 			continue
+		var rule: RS_Rule = rule_variant as RS_Rule
 
-		var rule_id: StringName = _resolve_rule_id(rule_variant)
+		var rule_id: StringName = _resolve_rule_id(rule)
 		var is_executing: bool = executing_goal_id != StringName() and rule_id == executing_goal_id
-		var requires_rising_edge: bool = _read_bool_property(rule_variant, "requires_rising_edge", false)
-		var is_passing_now: bool = scored_by_rule.has(rule_variant)
+		var requires_rising_edge: bool = rule.requires_rising_edge
+		var is_passing_now: bool = scored_by_rule.has(rule)
 		var has_rising_edge: bool = true
 		if requires_rising_edge:
 			has_rising_edge = _tracker.check_rising_edge(rule_id, context_key, is_passing_now)
@@ -404,26 +381,27 @@ func _apply_state_gates(rules: Array, scored: Array[Dictionary], context: Dictio
 			if requires_rising_edge and not has_rising_edge:
 				continue
 
-		var result_variant: Variant = scored_by_rule.get(rule_variant, null)
+		var result_variant: Variant = scored_by_rule.get(rule, null)
 		if result_variant is Dictionary:
 			gated.append(result_variant as Dictionary)
 
 	return gated
 
 func _mark_goal_rule_fired(rule_variant: Variant, context: Dictionary) -> void:
-	if rule_variant == null or not (rule_variant is Object):
+	if not (rule_variant is RS_Rule):
 		return
+	var rule: RS_Rule = rule_variant as RS_Rule
 
 	var context_key: StringName = _context_key_for_context(context)
-	var rule_id: StringName = _resolve_rule_id(rule_variant)
-	var cooldown: float = maxf(_read_float_property(rule_variant, "cooldown", 0.0), 0.0)
+	var rule_id: StringName = _resolve_rule_id(rule)
+	var cooldown: float = maxf(rule.cooldown, 0.0)
 	_tracker.mark_fired(rule_id, context_key, cooldown)
-	if _read_bool_property(rule_variant, "one_shot", false):
+	if rule.one_shot:
 		_tracker.mark_one_shot_spent(rule_id, context_key)
 
 func _build_entity_context(
 	entity_query: Object,
-	brain: Variant,
+	brain: C_AIBrainComponent,
 	redux_state: Dictionary,
 ) -> Dictionary:
 	var context: Dictionary = {
@@ -462,41 +440,25 @@ func _build_entity_context(
 
 	return context
 
-func _read_goal_array(brain_settings: Resource) -> Array[Resource]:
-	var goals_variant: Variant = brain_settings.get("goals")
-	if not (goals_variant is Array):
-		return []
-	var goals: Array[Resource] = []
-	for goal_variant in goals_variant:
-		if goal_variant is Resource:
-			goals.append(goal_variant as Resource)
-	return goals
+func _read_goal_array(brain_settings: RS_AIBrainSettings) -> Array[RS_AIGoal]:
+	return brain_settings.goals
 
-func _read_conditions(goal: Resource) -> Array[Resource]:
-	var conditions_variant: Variant = goal.get("conditions")
-	if not (conditions_variant is Array):
-		return []
+func _read_conditions(goal: RS_AIGoal) -> Array[Resource]:
 	var conditions: Array[Resource] = []
-	for condition_variant in conditions_variant:
-		if condition_variant is Resource:
-			conditions.append(condition_variant as Resource)
+	for condition_variant: I_Condition in goal.conditions:
+		if condition_variant != null:
+			conditions.append(condition_variant)
 	return conditions
 
-func _read_goal_id(goal: Resource) -> StringName:
+func _read_goal_id(goal: RS_AIGoal) -> StringName:
 	if goal == null:
 		return StringName()
-	var goal_id_variant: Variant = _read_object_property(goal, "goal_id")
-	return _variant_to_string_name(goal_id_variant)
+	return goal.goal_id
 
-func _read_goal_priority(goal: Resource) -> int:
+func _read_goal_priority(goal: RS_AIGoal) -> int:
 	if goal == null:
 		return 0
-	var priority_variant: Variant = goal.get("priority")
-	if priority_variant is int:
-		return priority_variant
-	if priority_variant is float:
-		return int(priority_variant)
-	return 0
+	return goal.priority
 
 func _resolve_store() -> I_StateStore:
 	if state_store != null and is_instance_valid(state_store):
@@ -514,59 +476,32 @@ func _get_frame_state_snapshot() -> Dictionary:
 
 func _context_key_for_context(context: Dictionary) -> StringName:
 	var entity_id_variant: Variant = context.get("entity_id", StringName())
-	return _variant_to_string_name(entity_id_variant)
+	if entity_id_variant is StringName:
+		return entity_id_variant as StringName
+	if entity_id_variant is String:
+		var entity_id_text: String = entity_id_variant as String
+		if entity_id_text.is_empty():
+			return StringName()
+		return StringName(entity_id_text)
+	return StringName()
 
 func _resolve_rule_id(rule_variant: Variant) -> StringName:
-	var rule_id_variant: Variant = _read_object_property(rule_variant, "rule_id")
-	var rule_id: StringName = _variant_to_string_name(rule_id_variant)
+	var rule_id: StringName = StringName()
+	if rule_variant is RS_Rule:
+		rule_id = (rule_variant as RS_Rule).rule_id
+	elif rule_variant is Object:
+		var rule_id_variant: Variant = (rule_variant as Object).get("rule_id")
+		if rule_id_variant is StringName:
+			rule_id = rule_id_variant as StringName
+		elif rule_id_variant is String:
+			var rule_id_text: String = rule_id_variant as String
+			if not rule_id_text.is_empty():
+				rule_id = StringName(rule_id_text)
 	if rule_id != StringName():
 		return rule_id
 	if rule_variant is Object:
 		return StringName("__ai_goal_rule_%d" % (rule_variant as Object).get_instance_id())
 	return StringName("__ai_goal_rule")
-
-func _read_bool_property(object_value: Variant, property_name: String, fallback: bool) -> bool:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = _read_object_property(object_value, property_name)
-	if value is bool:
-		return value
-	if value is int:
-		return value != 0
-	return fallback
-
-func _read_float_property(object_value: Variant, property_name: String, fallback: float) -> float:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = _read_object_property(object_value, property_name)
-	if value is float or value is int:
-		return float(value)
-	return fallback
-
-func _read_int_property(object_value: Variant, property_name: String, fallback: int) -> int:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = _read_object_property(object_value, property_name)
-	if value is int:
-		return value
-	if value is float:
-		return int(value)
-	return fallback
-
-func _read_object_property(object_value: Variant, property_name: String) -> Variant:
-	if object_value == null or not (object_value is Object):
-		return null
-	return object_value.get(property_name)
-
-func _variant_to_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value as StringName
-	if value is String:
-		var text: String = value
-		if text.is_empty():
-			return StringName()
-		return StringName(text)
-	return StringName()
 
 func _tick_debug_log_cooldowns(delta: float) -> void:
 	_empty_query_log_cooldown_sec = maxf(_empty_query_log_cooldown_sec - maxf(delta, 0.0), 0.0)
@@ -589,30 +524,22 @@ func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	_debug_log_cooldowns[entity_id] = maxf(debug_log_interval_sec, 0.05)
 	return true
 
-func _debug_log_brain_state(context: Dictionary, brain: Variant) -> void:
-	if brain == null or not (brain is Object):
-		return
-	var entity_id: StringName = _variant_to_string_name(context.get("entity_id", StringName()))
+func _debug_log_brain_state(context: Dictionary, brain: C_AIBrainComponent) -> void:
+	var entity_id: StringName = _context_key_for_context(context)
 	if not _consume_debug_log_budget(entity_id):
 		return
 
-	var active_goal_id: StringName = _variant_to_string_name(_read_object_property(brain, "active_goal_id"))
-	var current_task_index: int = _read_int_property(brain, "current_task_index", 0)
-	var queue_variant: Variant = _read_object_property(brain, "current_task_queue")
-	var queue_size: int = 0
+	var active_goal_id: StringName = brain.get_active_goal_id()
+	var current_task_index: int = brain.current_task_index
+	var queue: Array[RS_AIPrimitiveTask] = brain.current_task_queue
+	var queue_size: int = queue.size()
 	var task_id: StringName = StringName()
-	if queue_variant is Array:
-		var queue: Array = queue_variant as Array
-		queue_size = queue.size()
-		if current_task_index >= 0 and current_task_index < queue.size():
-			var task_variant: Variant = queue[current_task_index]
-			if task_variant is Object:
-				task_id = _variant_to_string_name((task_variant as Object).get("task_id"))
+	if current_task_index >= 0 and current_task_index < queue.size():
+		var task: RS_AIPrimitiveTask = queue[current_task_index]
+		if task != null:
+			task_id = task.task_id
 
-	var task_state_variant: Variant = _read_object_property(brain, "task_state")
-	var task_state: Dictionary = {}
-	if task_state_variant is Dictionary:
-		task_state = task_state_variant as Dictionary
+	var task_state: Dictionary = brain.task_state
 
 	var has_move_target: bool = task_state.has("ai_move_target")
 	var move_target_variant: Variant = task_state.get("ai_move_target", null)
