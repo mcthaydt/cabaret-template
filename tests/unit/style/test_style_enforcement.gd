@@ -573,6 +573,49 @@ func test_ecs_system_filenames_do_not_include_demo_marker() -> void:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
+func test_ai_behavior_system_has_no_local_duck_typing_helpers() -> void:
+	var behavior_system_path := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
+	var forbidden_helpers: Array[String] = [
+		"_read_object_property",
+		"_read_int_property",
+		"_read_bool_property",
+		"_read_float_property",
+		"_variant_to_string_name",
+	]
+	var violations: Array[String] = []
+	var file := FileAccess.open(behavior_system_path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % behavior_system_path)
+	if file == null:
+		return
+	var file_text: String = file.get_as_text()
+	file.close()
+	for helper_name in forbidden_helpers:
+		if file_text.find("func %s(" % helper_name) != -1:
+			violations.append("%s defines %s" % [behavior_system_path, helper_name])
+
+	var message := "S_AIBehaviorSystem should not define AI-local duck-typing helper functions"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_ai_behavior_system_stays_under_two_hundred_lines() -> void:
+	var behavior_system_path := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
+	var file := FileAccess.open(behavior_system_path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % behavior_system_path)
+	if file == null:
+		return
+	var line_count: int = 0
+	while not file.eof_reached():
+		file.get_line()
+		line_count += 1
+	file.close()
+
+	assert_lte(
+		line_count,
+		199,
+		"S_AIBehaviorSystem should stay below 200 lines for orchestration-only scope (current=%d)." % line_count
+	)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var rule_systems: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
