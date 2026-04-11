@@ -687,6 +687,58 @@ func test_rule_systems_and_helpers_do_not_duplicate_property_readers() -> void:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
+func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
+	var rule_systems: Array[String] = [
+		"res://scripts/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/ecs/systems/s_character_state_system.gd",
+		"res://scripts/ecs/systems/s_game_event_system.gd",
+	]
+	# Forbidden: context["key"] or context.get("key") with bare string keys
+	# Allowed: context[RS_RULE_CONTEXT.KEY_*] or context.get(RS_RULE_CONTEXT.KEY_*, default)
+	var forbidden_patterns: Array[String] = [
+		'context["',
+		"context.get(\"",
+		"context.has(\"",
+		"context.erase(\"",
+	]
+	var allowed_patterns: Array[String] = [
+		"context[RS_RULE_CONTEXT",
+		"context.get(RS_RULE_CONTEXT",
+		"context.has(RS_RULE_CONTEXT",
+		"context.erase(RS_RULE_CONTEXT",
+	]
+	var violations: Array[String] = []
+
+	for path in rule_systems:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			violations.append("%s (unable to open file)" % path)
+			continue
+		var line_number: int = 0
+		while not file.eof_reached():
+			line_number += 1
+			var line: String = file.get_line()
+			var stripped: String = line.strip_edges()
+			if stripped.begins_with("#"):
+				continue
+
+			for forbidden in forbidden_patterns:
+				if line.find(forbidden) == -1:
+					continue
+				var is_allowed := false
+				for allowed in allowed_patterns:
+					if line.find(allowed) != -1:
+						is_allowed = true
+						break
+				if not is_allowed:
+					violations.append("%s:%d uses bare string context key: %s" % [path, line_number, stripped])
+		file.close()
+
+	var message := "Rule systems should use RS_RULE_CONTEXT.KEY_* constants for context access"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
 # Helper functions for prefix validation
 
 func _check_directory_prefixes(dir_path: String, allowed_prefixes: Array, violations: Array[String]) -> void:
