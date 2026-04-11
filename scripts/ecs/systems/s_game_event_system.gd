@@ -7,6 +7,7 @@ const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 const EFFECT_PUBLISH_EVENT_SCRIPT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
+const RS_RULE_CONTEXT := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 
 const TRIGGER_MODE_TICK := "tick"
 const TRIGGER_MODE_EVENT := "event"
@@ -49,7 +50,7 @@ func _subscribe_rule_events() -> void:
 		func(rule_variant: Variant) -> Array[StringName]:
 			return U_RuleUtils.extract_event_names_from_rule(rule_variant),
 		func(event_name: StringName, event_payload: Dictionary) -> void:
-			_on_event_received(event_name, event_payload)
+				_on_event_received(event_name, event_payload)
 	)
 
 func _on_event_received(event_name: StringName, event_payload: Dictionary) -> void:
@@ -98,7 +99,7 @@ func _execute_publish_event_effect(effect_variant: Variant, context: Dictionary)
 		return
 
 	var payload: Dictionary = {}
-	var event_payload_variant: Variant = context.get("event_payload", {})
+	var event_payload_variant: Variant = context.get(RS_RULE_CONTEXT.KEY_EVENT_PAYLOAD, {})
 	if event_payload_variant is Dictionary:
 		payload = (event_payload_variant as Dictionary).duplicate(true)
 
@@ -107,7 +108,7 @@ func _execute_publish_event_effect(effect_variant: Variant, context: Dictionary)
 		payload.merge((configured_payload_variant as Dictionary).duplicate(true), true)
 
 	var inject_entity_id: bool = U_RuleUtils.read_bool_property(effect_variant, "inject_entity_id", true)
-	var entity_id: Variant = U_RuleUtils.get_context_value(context, "entity_id")
+	var entity_id: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_ENTITY_ID)
 	if inject_entity_id and entity_id != null and not payload.has("entity_id"):
 		payload["entity_id"] = entity_id
 
@@ -115,33 +116,29 @@ func _execute_publish_event_effect(effect_variant: Variant, context: Dictionary)
 
 func _build_tick_context() -> Dictionary:
 	var store: I_StateStore = _resolve_store()
-	var redux_state: Dictionary = {}
+	var rule_context := RS_RULE_CONTEXT.new()
 	if store != null:
-		redux_state = store.get_state()
+		rule_context.state_store = store
+		var redux_state: Dictionary = store.get_state()
+		if not redux_state.is_empty():
+			rule_context.redux_state = redux_state.duplicate(true)
 
-	var context: Dictionary = {
-		"redux_state": redux_state.duplicate(true),
-	}
-	context["state"] = context["redux_state"]
-	if store != null:
-		context["state_store"] = store
-
-	return context
+	return rule_context.to_dictionary()
 
 func _build_event_context(event_name: StringName, event_payload: Dictionary) -> Dictionary:
 	var context: Dictionary = _build_tick_context()
-	context["event_name"] = event_name
-	context["event_payload"] = event_payload.duplicate(true)
+	context[RS_RULE_CONTEXT.KEY_EVENT_NAME] = event_name
+	context[RS_RULE_CONTEXT.KEY_EVENT_PAYLOAD] = event_payload.duplicate(true)
 
 	var entity_id: Variant = _extract_entity_id(event_payload)
 	if entity_id != null:
-		context["entity_id"] = entity_id
+		context[RS_RULE_CONTEXT.KEY_ENTITY_ID] = entity_id
 
 	_attach_entity_context(context)
 	return context
 
 func _attach_entity_context(context: Dictionary) -> void:
-	var entity_id_variant: Variant = U_RuleUtils.get_context_value(context, "entity_id")
+	var entity_id_variant: Variant = context.get(RS_RULE_CONTEXT.KEY_ENTITY_ID, null)
 	if entity_id_variant == null:
 		return
 
@@ -157,18 +154,18 @@ func _attach_entity_context(context: Dictionary) -> void:
 	if entity == null:
 		return
 
-	context["entity"] = entity
+	context[RS_RULE_CONTEXT.KEY_ENTITY] = entity
 	if entity.has_method("get_tags"):
 		var tags_variant: Variant = entity.call("get_tags")
 		if tags_variant is Array:
-			context["entity_tags"] = tags_variant
+			context[RS_RULE_CONTEXT.KEY_ENTITY_TAGS] = tags_variant
 
 	var components: Dictionary = manager.get_components_for_entity(entity)
 	if components.is_empty():
 		return
 
-	context["components"] = components.duplicate(true)
-	context["component_data"] = context["components"]
+	context[RS_RULE_CONTEXT.KEY_COMPONENTS] = components.duplicate(true)
+	context[RS_RULE_CONTEXT.KEY_COMPONENT_DATA] = context.get(RS_RULE_CONTEXT.KEY_COMPONENTS)
 
 func _extract_event_payload(event_data: Dictionary) -> Dictionary:
 	var payload_variant: Variant = event_data.get("payload", {})
@@ -187,7 +184,7 @@ func _extract_entity_id(event_payload: Dictionary) -> Variant:
 	return null
 
 func _context_key_for_context(context: Dictionary) -> StringName:
-	var entity_id_variant: Variant = U_RuleUtils.get_context_value(context, "entity_id")
+	var entity_id_variant: Variant = context.get(RS_RULE_CONTEXT.KEY_ENTITY_ID, null)
 	var entity_id: StringName = U_RuleUtils.variant_to_string_name(entity_id_variant)
 	if entity_id != StringName():
 		return entity_id
