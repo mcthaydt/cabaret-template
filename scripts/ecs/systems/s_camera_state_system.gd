@@ -2,6 +2,7 @@
 extends BaseECSSystem
 class_name S_CameraStateSystem
 
+const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
@@ -11,7 +12,6 @@ const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_c
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
-const RS_RULE_CONTEXT := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
@@ -146,16 +146,16 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 		var rule_variant: Variant = winner.get("rule", null)
 		if rule_variant == null or not (rule_variant is Object):
 			continue
-		var had_rule_score: bool = context.has(RS_RULE_CONTEXT.KEY_RULE_SCORE)
-		var previous_rule_score: Variant = context.get(RS_RULE_CONTEXT.KEY_RULE_SCORE, 1.0)
-		context[RS_RULE_CONTEXT.KEY_RULE_SCORE] = _resolve_winner_score(winner)
+		var had_rule_score: bool = context.has(RSRuleContext.KEY_RULE_SCORE)
+		var previous_rule_score: Variant = context.get(RSRuleContext.KEY_RULE_SCORE, 1.0)
+		context[RSRuleContext.KEY_RULE_SCORE] = _resolve_winner_score(winner)
 
 		var effects_variant: Variant = rule_variant.get("effects")
 		if not (effects_variant is Array):
 			if had_rule_score:
-				context[RS_RULE_CONTEXT.KEY_RULE_SCORE] = previous_rule_score
+				context[RSRuleContext.KEY_RULE_SCORE] = previous_rule_score
 			else:
-				context.erase(RS_RULE_CONTEXT.KEY_RULE_SCORE)
+				context.erase(RSRuleContext.KEY_RULE_SCORE)
 			continue
 
 		for effect_variant in (effects_variant as Array):
@@ -166,16 +166,16 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 			effect_variant.call("execute", context)
 
 		if had_rule_score:
-			context[RS_RULE_CONTEXT.KEY_RULE_SCORE] = previous_rule_score
+			context[RSRuleContext.KEY_RULE_SCORE] = previous_rule_score
 		else:
-			context.erase(RS_RULE_CONTEXT.KEY_RULE_SCORE)
+			context.erase(RSRuleContext.KEY_RULE_SCORE)
 
 func _context_key_for_context(context: Dictionary) -> StringName:
-	var camera_entity_id: StringName = U_RuleUtils.variant_to_string_name(U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CAMERA_ENTITY_ID))
+	var camera_entity_id: StringName = U_RuleUtils.variant_to_string_name(U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CAMERA_ENTITY_ID))
 	if camera_entity_id != StringName():
 		return camera_entity_id
 
-	var entity_id: StringName = U_RuleUtils.variant_to_string_name(U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_ENTITY_ID))
+	var entity_id: StringName = U_RuleUtils.variant_to_string_name(U_RuleUtils.get_context_value(context, RSRuleContext.KEY_ENTITY_ID))
 	if entity_id != StringName():
 		return entity_id
 
@@ -202,7 +202,7 @@ func _build_camera_contexts(event_name: StringName, event_payload: Dictionary) -
 		if camera_state == null:
 			continue
 
-		var rule_context := RS_RULE_CONTEXT.new()
+		var rule_context := RSRuleContext.new()
 		if store != null:
 			rule_context.state_store = store
 		if not redux_state.is_empty():
@@ -261,7 +261,7 @@ func _apply_camera_state(contexts: Array, delta: float) -> void:
 		return
 
 	var context: Dictionary = _select_primary_camera_context(contexts)
-	var primary_camera_state: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CAMERA_STATE_COMPONENT)
+	var primary_camera_state: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CAMERA_STATE_COMPONENT)
 	_decay_non_primary_trauma(contexts, primary_camera_state, delta)
 	if context.is_empty():
 		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
@@ -286,7 +286,7 @@ func _decay_non_primary_trauma(contexts: Array, primary_camera_state: Variant, d
 		if not (context_variant is Dictionary):
 			continue
 		var context: Dictionary = context_variant as Dictionary
-		var camera_state: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CAMERA_STATE_COMPONENT)
+		var camera_state: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CAMERA_STATE_COMPONENT)
 		if camera_state == null or not (camera_state is Object):
 			continue
 		if primary_camera_state != null and camera_state == primary_camera_state:
@@ -312,16 +312,16 @@ func _select_primary_camera_context(contexts: Array) -> Dictionary:
 	return fallback
 
 func _is_primary_camera_context(context: Dictionary) -> bool:
-	var id_variant: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CAMERA_ENTITY_ID)
+	var id_variant: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CAMERA_ENTITY_ID)
 	if id_variant == null:
-		id_variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_ENTITY_ID)
+		id_variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_ENTITY_ID)
 	var entity_id: StringName = U_RuleUtils.variant_to_string_name(id_variant)
 	if entity_id == PRIMARY_CAMERA_ENTITY_ID:
 		return true
 
-	var tags_variant: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CAMERA_ENTITY_TAGS)
+	var tags_variant: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CAMERA_ENTITY_TAGS)
 	if tags_variant == null:
-		tags_variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_ENTITY_TAGS)
+		tags_variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_ENTITY_TAGS)
 	if tags_variant is Array:
 		var tags: Array = tags_variant as Array
 		return tags.has(PRIMARY_CAMERA_ENTITY_ID) or tags.has(String(PRIMARY_CAMERA_ENTITY_ID))
@@ -371,9 +371,9 @@ func _ensure_baseline_fov(camera_state: Variant, fallback_fov: float) -> float:
 	return resolved_baseline
 
 func _is_fov_zone_active(context: Dictionary) -> bool:
-	var state_variant: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_STATE)
+	var state_variant: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_STATE)
 	if state_variant == null:
-		state_variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_REDUX_STATE)
+		state_variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_REDUX_STATE)
 	if not (state_variant is Dictionary):
 		return false
 	return U_VCAM_SELECTORS.is_in_fov_zone(state_variant as Dictionary)

@@ -1,6 +1,7 @@
 extends RefCounted
 class_name U_AIContextBuilder
 
+const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 const BRAIN_COMPONENT_TYPE := C_AIBrainComponent.COMPONENT_TYPE
@@ -9,27 +10,25 @@ func build(
 	entity_query: Object,
 	brain: C_AIBrainComponent,
 	redux_state: Dictionary,
-	store: I_StateStore,
+	store: I_ECSManager,
 	manager: I_ECSManager
 ) -> Dictionary:
-	var context: Dictionary = {
-		"brain_component": brain,
-		"redux_state": redux_state,
-	}
-	context["state"] = context["redux_state"]
+	var rule_context: RefCounted = RSRuleContext.new()
+	rule_context.brain_component = brain
+	rule_context.redux_state = redux_state
 
 	if store != null and is_instance_valid(store):
-		context["state_store"] = store
+		rule_context.state_store = store
 
 	if entity_query == null:
-		_set_fallback_components(context, brain)
-		return context
+		rule_context.components = {BRAIN_COMPONENT_TYPE: brain}
+		return rule_context.to_dictionary()
 
 	var entity_variant: Variant = entity_query.get("entity")
 	if entity_variant is Node:
 		var entity: Node = entity_variant as Node
-		context["entity"] = entity
-		context["entity_id"] = U_ECS_UTILS.get_entity_id(entity)
+		rule_context.entity = entity
+		rule_context.entity_id = U_ECS_UTILS.get_entity_id(entity)
 
 		var components: Dictionary = {}
 		if manager != null:
@@ -39,16 +38,16 @@ func build(
 			if query_components_variant is Dictionary:
 				components = query_components_variant as Dictionary
 		if not components.is_empty():
-			context["components"] = components
-			context["component_data"] = components
+			rule_context.components = components
+		else:
+			rule_context.components = {BRAIN_COMPONENT_TYPE: brain}
+	else:
+		rule_context.components = {BRAIN_COMPONENT_TYPE: brain}
 
-	if not context.has("components"):
-		_set_fallback_components(context, brain)
-
-	return context
+	return rule_context.to_dictionary()
 
 func context_key_for_context(context: Dictionary) -> StringName:
-	var entity_id_variant: Variant = context.get("entity_id", StringName())
+	var entity_id_variant: Variant = context.get(RSRuleContext.KEY_ENTITY_ID, StringName())
 	if entity_id_variant is StringName:
 		return entity_id_variant as StringName
 	if entity_id_variant is String:
@@ -57,10 +56,3 @@ func context_key_for_context(context: Dictionary) -> StringName:
 			return StringName()
 		return StringName(entity_id_text)
 	return StringName()
-
-func _set_fallback_components(context: Dictionary, brain: C_AIBrainComponent) -> void:
-	var fallback_components: Dictionary = {
-		BRAIN_COMPONENT_TYPE: brain,
-	}
-	context["components"] = fallback_components
-	context["component_data"] = fallback_components

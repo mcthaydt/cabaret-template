@@ -2,6 +2,7 @@
 extends BaseECSSystem
 class_name S_CharacterStateSystem
 
+const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
@@ -12,7 +13,6 @@ const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_s
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
-const RS_RULE_CONTEXT := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const FLOATING_TYPE := C_FLOATING_COMPONENT.COMPONENT_TYPE
@@ -59,7 +59,7 @@ func process_tick(delta: float) -> void:
 		var context: Dictionary = context_variant
 		active_context_keys.append(_context_key_for_context(context))
 		_evaluate_context(context, TRIGGER_MODE_TICK, StringName())
-		var character_state: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CHARACTER_STATE_COMPONENT)
+		var character_state: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CHARACTER_STATE_COMPONENT)
 		_write_brain_data(character_state, context)
 
 	_rule_evaluator.cleanup_stale_contexts(active_context_keys)
@@ -91,12 +91,12 @@ func _on_rule_event(event_name: StringName, event_payload: Dictionary) -> void:
 			continue
 		var context: Dictionary = context_variant
 		# Add event fields to the context dictionary
-		context[RS_RULE_CONTEXT.KEY_EVENT_NAME] = event_name
-		context[RS_RULE_CONTEXT.KEY_EVENT_PAYLOAD] = event_payload.duplicate(true)
+		context[RSRuleContext.KEY_EVENT_NAME] = event_name
+		context[RSRuleContext.KEY_EVENT_PAYLOAD] = event_payload.duplicate(true)
 
 		active_context_keys.append(_context_key_for_context(context))
 		_evaluate_context(context, TRIGGER_MODE_EVENT, event_name)
-		var character_state: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CHARACTER_STATE_COMPONENT)
+		var character_state: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CHARACTER_STATE_COMPONENT)
 		_write_brain_data(character_state, context)
 
 	_rule_evaluator.cleanup_stale_contexts(active_context_keys)
@@ -130,7 +130,7 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 			effect_variant.call("execute", context)
 
 func _context_key_for_context(context: Dictionary) -> StringName:
-	var entity_id_variant: Variant = context.get(RS_RULE_CONTEXT.KEY_ENTITY_ID, StringName())
+	var entity_id_variant: Variant = context.get(RSRuleContext.KEY_ENTITY_ID, StringName())
 	return U_RuleUtils.variant_to_string_name(entity_id_variant)
 
 func _build_entity_contexts() -> Array:
@@ -162,7 +162,7 @@ func _build_entity_contexts() -> Array:
 		if character_state == null:
 			continue
 
-		var rule_context := RS_RULE_CONTEXT.new()
+		var rule_context := RSRuleContext.new()
 		if store != null:
 			rule_context.state_store = store
 		if not redux_state.is_empty():
@@ -273,16 +273,16 @@ func _write_brain_data(character_state: Variant, context: Dictionary) -> void:
 		return
 
 	# Context dictionaries from RSRuleContext.to_dictionary() always include character state fields
-	character_state.set("is_gameplay_active", context.get(RS_RULE_CONTEXT.KEY_IS_GAMEPLAY_ACTIVE, true))
-	character_state.set("is_grounded", context.get(RS_RULE_CONTEXT.KEY_IS_GROUNDED, false))
-	character_state.set("is_moving", context.get(RS_RULE_CONTEXT.KEY_IS_MOVING, false))
-	character_state.set("is_spawn_frozen", context.get(RS_RULE_CONTEXT.KEY_IS_SPAWN_FROZEN, false))
-	character_state.set("is_dead", context.get(RS_RULE_CONTEXT.KEY_IS_DEAD, false))
-	character_state.set("is_invincible", context.get(RS_RULE_CONTEXT.KEY_IS_INVINCIBLE, false))
+	character_state.set("is_gameplay_active", context.get(RSRuleContext.KEY_IS_GAMEPLAY_ACTIVE, true))
+	character_state.set("is_grounded", context.get(RSRuleContext.KEY_IS_GROUNDED, false))
+	character_state.set("is_moving", context.get(RSRuleContext.KEY_IS_MOVING, false))
+	character_state.set("is_spawn_frozen", context.get(RSRuleContext.KEY_IS_SPAWN_FROZEN, false))
+	character_state.set("is_dead", context.get(RSRuleContext.KEY_IS_DEAD, false))
+	character_state.set("is_invincible", context.get(RSRuleContext.KEY_IS_INVINCIBLE, false))
 	character_state.set("vertical_state", _resolve_vertical_state(context))
-	character_state.set("has_input", context.get(RS_RULE_CONTEXT.KEY_HAS_INPUT, false))
+	character_state.set("has_input", context.get(RSRuleContext.KEY_HAS_INPUT, false))
 
-	var health_percent: float = clampf(float(context.get(RS_RULE_CONTEXT.KEY_HEALTH_PERCENT, 1.0)), 0.0, 1.0)
+	var health_percent: float = clampf(float(context.get(RSRuleContext.KEY_HEALTH_PERCENT, 1.0)), 0.0, 1.0)
 	if character_state.has_method("set_health_percent"):
 		character_state.call("set_health_percent", health_percent)
 	else:
@@ -333,7 +333,7 @@ func _read_character_body(component: Variant) -> CharacterBody3D:
 	return component.call("get_character_body") as CharacterBody3D
 
 func _resolve_vertical_state(context: Dictionary) -> int:
-	var value: int = int(context.get(RS_RULE_CONTEXT.KEY_VERTICAL_STATE, C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_GROUNDED))
+	var value: int = int(context.get(RSRuleContext.KEY_VERTICAL_STATE, C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_GROUNDED))
 	match value:
 		C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_FALLING:
 			return C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_FALLING

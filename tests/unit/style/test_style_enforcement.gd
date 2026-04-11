@@ -617,10 +617,13 @@ func test_ai_behavior_system_stays_under_two_hundred_lines() -> void:
 	)
 
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
-	var rule_systems: Array[String] = [
+	var context_builders: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/ecs/systems/s_character_state_system.gd",
 		"res://scripts/ecs/systems/s_game_event_system.gd",
+			"res://scripts/utils/ai/u_ai_context_builder.gd",
+			"res://scripts/managers/m_objectives_manager.gd",
+			"res://scripts/managers/m_scene_director_manager.gd",
 	]
 	var forbidden_methods: Array[String] = [
 		"_refresh_active_rules",
@@ -630,7 +633,7 @@ func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	]
 	var violations: Array[String] = []
 
-	for path in rule_systems:
+	for path in context_builders:
 		var file := FileAccess.open(path, FileAccess.READ)
 		if file == null:
 			violations.append("%s (unable to open file)" % path)
@@ -693,13 +696,13 @@ func test_rule_systems_and_helpers_do_not_duplicate_property_readers() -> void:
 	assert_eq(violations.size(), 0, message)
 
 func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
-	var rule_systems: Array[String] = [
+	var context_builders: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/ecs/systems/s_character_state_system.gd",
 		"res://scripts/ecs/systems/s_game_event_system.gd",
 	]
 	# Forbidden: context["key"] or context.get("key") with bare string keys
-	# Allowed: context[RS_RULE_CONTEXT.KEY_*] or context.get(RS_RULE_CONTEXT.KEY_*, default)
+	# Allowed: context[RSRuleContext.KEY_*] or context[RS_RULE_CONTEXT.KEY_*]
 	var forbidden_patterns: Array[String] = [
 		'context["',
 		"context.get(\"",
@@ -711,10 +714,14 @@ func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
 		"context.get(RS_RULE_CONTEXT",
 		"context.has(RS_RULE_CONTEXT",
 		"context.erase(RS_RULE_CONTEXT",
+			"context[RSRuleContext",
+			"context.get(RSRuleContext",
+			"context.has(RSRuleContext",
+			"context.erase(RSRuleContext",
 	]
 	var violations: Array[String] = []
 
-	for path in rule_systems:
+	for path in context_builders:
 		var file := FileAccess.open(path, FileAccess.READ)
 		if file == null:
 			violations.append("%s (unable to open file)" % path)
@@ -739,7 +746,7 @@ func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
 					violations.append("%s:%d uses bare string context key: %s" % [path, line_number, stripped])
 		file.close()
 
-	var message := "Rule systems should use RS_RULE_CONTEXT.KEY_* constants for context access"
+	var message := "Context builders should use RSRuleContext.KEY_* constants for context access"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
