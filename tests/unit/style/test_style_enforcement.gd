@@ -548,6 +548,38 @@ func test_ai_move_target_magic_strings_not_used_in_ai_scripts() -> void:
 		message += "\nUse U_AITaskStateKeys constants instead."
 	assert_eq(violations.size(), 0, message)
 
+func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
+	var rule_systems: Array[String] = [
+		"res://scripts/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/ecs/systems/s_character_state_system.gd",
+		"res://scripts/ecs/systems/s_game_event_system.gd",
+	]
+	var forbidden_methods: Array[String] = [
+		"_refresh_active_rules",
+		"_get_applicable_rules",
+		"_apply_state_gates",
+		"_mark_fired_rules",
+	]
+	var violations: Array[String] = []
+
+	for path in rule_systems:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			violations.append("%s (unable to open file)" % path)
+			continue
+		var file_text: String = file.get_as_text()
+		file.close()
+
+		for method_name in forbidden_methods:
+			var signature: String = "func %s(" % method_name
+			if file_text.find(signature) != -1:
+				violations.append("%s defines %s" % [path, method_name])
+
+	var message := "Rule systems should use shared U_RuleEvaluator pipeline helpers"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
 # Helper functions for prefix validation
 
 func _check_directory_prefixes(dir_path: String, allowed_prefixes: Array, violations: Array[String]) -> void:
