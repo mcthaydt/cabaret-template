@@ -2,8 +2,8 @@
 
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-31
-**Last Updated**: 2026-04-03
-**Status**: M15 COMPLETE (player-NPC interaction triggers)
+**Last Updated**: 2026-04-11
+**Status**: M15 COMPLETE + Refactor R1-R6 COMPLETE
 **Scope**: Quality-based NPC behavior selection using GOAP goals and HTN task decomposition, powered by QB Rule Manager v2
 
 ## Summary
@@ -16,7 +16,7 @@ The AI system provides data-driven NPC behavior through two complementary paradi
 - Existing QB consumers provide the pattern: `S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem` each compose QB utilities directly (no base-class inheritance)
 - Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, etc.) in `scripts/resources/qb/conditions/` — implement `I_Condition.evaluate(context)` for polymorphic dispatch
 - Typed effects (`RS_EffectDispatchAction`, `RS_EffectPublishEvent`, `RS_EffectSetField`, etc.) in `scripts/resources/qb/effects/` — implement `I_Effect.execute(context)` for polymorphic dispatch
-- M1-M10 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, `RS_AIBrainSettings`, `C_AIBrainComponent`, `U_HTNPlanner`, `S_AIBehaviorSystem` (goal evaluation + task runner), full typed action set (`RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate`, `RS_AIActionPublishEvent`, `RS_AIActionSetField`), `S_AINavigationSystem` movement bridging, integration coverage in `tests/unit/ai/integration/test_ai_pipeline_integration.gd`, and authored/tuned demo assets (`resources/ai/patrol_drone/*`, `resources/ai/sentry/*`, `resources/ai/guide_prism/*`) wired into `gameplay_power_core`, `gameplay_comms_array`, and `gameplay_nav_nexus`
+- M1-M10 implemented scaffolding: `I_AIAction`, `RS_AITask`, `RS_AIPrimitiveTask`, `RS_AICompoundTask`, `RS_AIGoal`, `RS_AIBrainSettings`, `C_AIBrainComponent`, `U_HTNPlanner`, `S_AIBehaviorSystem` (goal evaluation + task runner), full typed action set (`RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate`, `RS_AIActionPublishEvent`, `RS_AIActionSetField`), `S_MoveTargetFollowerSystem` movement bridging (with `C_MoveTargetComponent` + AI task-state fallback), integration coverage in `tests/unit/ai/integration/test_ai_pipeline_integration.gd`, and authored/tuned demo assets (`resources/ai/patrol_drone/*`, `resources/ai/sentry/*`, `resources/ai/guide_prism/*`) wired into `gameplay_power_core`, `gameplay_comms_array`, and `gameplay_nav_nexus`
 - `C_AIBrainComponent` enforces required settings at runtime: `brain_settings` must be a valid `RS_AIBrainSettings` resource
 - M7 complete: movement/stub typed actions (`RS_AIActionMoveTo`, `RS_AIActionScan`, `RS_AIActionAnimate`) now run through the existing `I_AIAction` task-runner flow
 - M7 complete: `S_InputSystem` now writes gameplay input only to `C_PlayerTagComponent` entities so AI-authored `move_vector` values are not clobbered
@@ -189,7 +189,7 @@ Three NPC archetypes are implemented to prove the system:
 - Goal change detection: clear task queue on goal switch
 - Unit tests for decomposition and goal scoring
 
-Phase status: M8 complete (`S_AIBehaviorSystem` + `S_AINavigationSystem` + `S_InputSystem` contracts validated end-to-end for patrol pipeline, mid-queue replanning, cooldown anti-thrash, default fallback, and context-driven method branch selection).
+Phase status: M8 complete (`S_AIBehaviorSystem` + `S_MoveTargetFollowerSystem` + `S_InputSystem` contracts validated end-to-end for patrol pipeline, mid-queue replanning, cooldown anti-thrash, default fallback, and context-driven method branch selection).
 
 ### Phase 3: Typed Action Resources (M6–M7)
 - Create 6 typed action resources implementing `I_AIAction`: `RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate` (stub), `RS_AIActionPublishEvent`, `RS_AIActionSetField`

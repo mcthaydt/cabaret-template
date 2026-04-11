@@ -127,17 +127,17 @@ M6 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/ac
   - `rs_ai_action_scan.gd` — `@export var scan_duration: float = 2.0`, `@export var rotation_speed: float = 1.0`
   - `rs_ai_action_animate.gd` (stub) — `@export var animation_state: StringName`; sets task_state field, completes immediately
 - [x] Write navigation system + input filter tests (9 nav tests + 2 input filter tests)
-- [x] Implement `scripts/ecs/systems/s_ai_navigation_system.gd`:
-  - Extends BaseECSSystem, `execution_priority = -5` (after S_AIBehaviorSystem at -10, before S_InputSystem/S_MovementSystem at 0)
-  - Queries entities with `C_AIBrainComponent` + `C_InputComponent` + `C_MovementComponent`
-  - Reads `brain.task_state["ai_move_target"]` (Vector3), calculates XZ-plane world direction to target
-  - Inverse-transforms world direction through active camera basis (via `U_ECSUtils.get_active_camera()`) to produce camera-relative Vector2
-  - Writes to `C_InputComponent.set_move_vector()` — NPCs flow through same S_MovementSystem camera-relative path as player
-  - Falls back to direct Vector2 mapping when no camera; writes Vector2.ZERO when no target or within epsilon
+- [x] Implement `scripts/ecs/systems/s_ai_navigation_system.gd` (M7 historical step; superseded by R6 `s_move_target_follower_system.gd`):
+  - Extended BaseECSSystem, `execution_priority = -5` (after S_AIBehaviorSystem at -10, before S_InputSystem/S_MovementSystem at 0)
+  - Queried entities with `C_AIBrainComponent` + `C_InputComponent` + `C_MovementComponent`
+  - Read `brain.task_state["ai_move_target"]` (Vector3), calculated XZ-plane world direction to target
+  - Inverse-transformed world direction through active camera basis (via `U_ECSUtils.get_active_camera()`) to produce camera-relative Vector2
+  - Wrote to `C_InputComponent.set_move_vector()` — NPCs flowed through same S_MovementSystem path as player
+  - Fell back to direct Vector2 mapping when no camera; wrote Vector2.ZERO when no target or within epsilon
 - [x] Modify `scripts/ecs/systems/s_input_system.gd`: add `C_PlayerTagComponent` to query filter so player input only writes to player-tagged entities (prevents clobbering AI move_vector)
 - [x] Verify style enforcement + full regression suite
 
-M7 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/actions/test_ai_actions_movement.gd` (now `10/10` after target-node-path hardening coverage), `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` (`9/9`), and `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` (`2/2`). Hardening pass updates include same-goal replay replanning when queue completion leaves no active tasks, per-context `one_shot` scoping (`rule_id + context_key`) via `U_RuleStateTracker`, and default shared-scene wiring of `S_AIBehaviorSystem(-10)` + `S_AINavigationSystem(-5)` in both `tmpl_base_scene.tscn` and `gameplay_base.tscn`. Style enforcement passed (`17/17`), and full-suite run now reports `3695/3704` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
+M7 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/actions/test_ai_actions_movement.gd` (now `10/10` after target-node-path hardening coverage), `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` (`9/9`), and `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` (`2/2`). Hardening pass updates include same-goal replay replanning when queue completion leaves no active tasks, per-context `one_shot` scoping (`rule_id + context_key`) via `U_RuleStateTracker`, and default shared-scene wiring of `S_AIBehaviorSystem(-10)` + `S_AINavigationSystem(-5)` in both `tmpl_base_scene.tscn` and `gameplay_base.tscn` at that phase. This runtime path was later generalized in R6 to `S_MoveTargetFollowerSystem(-5)`. Style enforcement passed (`17/17`), and full-suite run now reports `3695/3704` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M8 — Integration Tests
 
@@ -150,7 +150,7 @@ M7 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/ac
 - [x] Fix bugs discovered during integration testing
 - [x] Verify all existing tests still pass (regression check)
 
-M8 completion note (2026-04-02): Added `tests/unit/ai/integration/test_ai_pipeline_integration.gd` with 6 end-to-end tests (patrol pipeline, real movement-system coupling, mid-queue replanning, cooldown anti-thrash, default-goal fallback, and context-driven method-branch selection). RED confirmed on initial parse/runtime issues (headless-safe type annotations + scene-tree transform usage), then GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` passed `6/6`. Regression guards passed (`test_s_ai_behavior_system_goals.gd` `12/12`, `test_s_ai_behavior_system_tasks.gd` `6/6`, `test_ai_actions_movement.gd` `10/10`, `test_s_ai_navigation_system.gd` `9/9`, `test_s_input_system_ai_filter.gd` `2/2`), style enforcement passed (`17/17`), and full-suite run currently reports `3695/3704` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
+M8 completion note (2026-04-02): Added `tests/unit/ai/integration/test_ai_pipeline_integration.gd` with 6 end-to-end tests (patrol pipeline, real movement-system coupling, mid-queue replanning, cooldown anti-thrash, default-goal fallback, and context-driven method-branch selection). RED confirmed on initial parse/runtime issues (headless-safe type annotations + scene-tree transform usage), then GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` passed `6/6`. Regression guards passed (`test_s_ai_behavior_system_goals.gd` `12/12`, `test_s_ai_behavior_system_tasks.gd` `6/6`, `test_ai_actions_movement.gd` `10/10`, `test_s_ai_navigation_system.gd` `9/9`, `test_s_input_system_ai_filter.gd` `2/2`) for that phase; follower-bridge coverage moved to `test_s_move_target_follower_system.gd` in R6. Style enforcement passed (`17/17`), and full-suite run currently reports `3695/3704` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
 
 ### M9 — Demo Scene Creation
 
@@ -197,7 +197,7 @@ M10 completion note (2026-04-02): Added full demo archetype resource trees under
   - Mitigation: Max depth guard (20 levels). Demo NPCs use shallow trees (2-3 levels). Profile if needed.
 
 - **Risk**: `move_to` task completion depends on movement systems that may not exist for AI entities.
-  - Mitigation: `S_AINavigationSystem` bridges `task_state["ai_move_target"]` → `C_InputComponent.move_vector` via inverse camera transform. NPCs reuse the same `S_MovementSystem` camera-relative pipeline as the player. `S_InputSystem` is filtered by `C_PlayerTagComponent` to prevent player input clobbering AI move_vector.
+  - Mitigation: `S_MoveTargetFollowerSystem` bridges both `C_MoveTargetComponent` targets and AI task-state move targets (`task_state["ai_move_target"]`) into `C_InputComponent.move_vector` in world-space. NPCs and non-AI movers share the same follower bridge. `S_InputSystem` is filtered by `C_PlayerTagComponent` to prevent player input clobbering AI-authored move vectors.
 
 - **Risk**: Demo scene creation scope creep (art, level design).
   - Mitigation: CSG-only geometry. Functional prototypes, not polished levels. Focus on proving AI behavior, not visual quality.
@@ -226,11 +226,11 @@ M10 completion note (2026-04-02): Added full demo archetype resource trees under
 | `scripts/resources/ai/actions/rs_ai_action_scan.gd` | Resource | Timed scan action implementing `I_AIAction`; tracks elapsed scan state and completion |
 | `scripts/resources/ai/actions/rs_ai_action_animate.gd` | Resource | Stub animation action implementing `I_AIAction`; writes animation state and completes immediately |
 | `scripts/ecs/systems/s_ai_behavior_system.gd` | System | Goal evaluation + task runner (`_execute_current_task`) composing `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, and `U_HTNPlanner`; includes same-goal replay replan when queue completes |
-| `scripts/ecs/systems/s_ai_navigation_system.gd` | System | AI movement bridge (`execution_priority = -5`) converting world-space move targets to camera-relative input vectors |
+| `scripts/ecs/systems/s_move_target_follower_system.gd` | System | Shared move-target bridge (`execution_priority = -5`) converting component/task-state targets into world-space move vectors |
 | `scripts/utils/qb/u_rule_state_tracker.gd` | Utility | QB rule state helper with context-scoped `one_shot` tracking (`rule_id + context_key`) while preserving cooldown/rising-edge behavior |
 | `scripts/ecs/systems/s_input_system.gd` | System | Player-input writer now filtered to `C_PlayerTagComponent` entities to avoid AI move-vector clobbering |
-| `scenes/templates/tmpl_base_scene.tscn` | Scene | Shared base scene now wires `S_AIBehaviorSystem(-10)` and `S_AINavigationSystem(-5)` before `S_InputSystem(0)` |
-| `scenes/gameplay/gameplay_base.tscn` | Scene | Gameplay base now wires `S_AIBehaviorSystem(-10)` and `S_AINavigationSystem(-5)` before `S_InputSystem(0)` |
+| `scenes/templates/tmpl_base_scene.tscn` | Scene | Shared base scene now wires `S_AIBehaviorSystem(-10)` and `S_MoveTargetFollowerSystem(-5)` before `S_InputSystem(0)` |
+| `scenes/gameplay/gameplay_base.tscn` | Scene | Gameplay base now wires `S_AIBehaviorSystem(-10)` and `S_MoveTargetFollowerSystem(-5)` before `S_InputSystem(0)` |
 | `tests/unit/ai/resources/test_rs_ai_task.gd` | Test | M1 resources + I_AIAction interface (includes `method_conditions` coverage) |
 | `tests/unit/ai/resources/test_rs_ai_goal.gd` | Test | M2 goal/brain settings resource coverage |
 | `tests/unit/ecs/components/test_c_ai_brain_component.gd` | Test | M3 component registration/runtime-state/validation coverage |
@@ -239,7 +239,7 @@ M10 completion note (2026-04-02): Added full demo archetype resource trees under
 | `tests/unit/ai/actions/test_ai_actions_instant.gd` | Test | M6 instant action resource coverage (wait/event/set-field) |
 | `tests/unit/ai/actions/test_ai_actions_movement.gd` | Test | M7 movement/stub action coverage (move_to/scan/animate) including target_node_path context-resolution hardening |
 | `tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` | Test | M6 task-runner coverage (dispatch, sequencing, completion reset, empty queue safety, invalid queue entry/action skip hardening) |
-| `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` | Test | M7 AI navigation bridge coverage (priority, target handling, camera transform, no-camera fallback) |
+| `tests/unit/ecs/systems/test_s_move_target_follower_system.gd` | Test | R6 shared follower bridge coverage (component + AI task-state paths, target preference, per-entity throttle) |
 | `tests/unit/ecs/systems/test_s_input_system_ai_filter.gd` | Test | M7 input filter coverage (`C_PlayerTagComponent` query gating) |
 | `tests/unit/ai/integration/test_ai_pipeline_integration.gd` | Test | M8 integration coverage for full GOAP→HTN→action pipeline, real movement-system coupling, mid-queue replanning, cooldown gating, default fallback, and method-branch selection |
 | `tests/mocks/mock_ai_action_track.gd` | Test helper | M6 mock action used to assert polymorphic runner call ordering/counters |

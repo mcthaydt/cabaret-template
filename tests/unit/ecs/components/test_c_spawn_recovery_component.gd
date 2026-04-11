@@ -58,7 +58,7 @@ func test_settings_export_assignable() -> void:
 	var property_definition := _get_property_definition(component, "settings")
 	assert_eq(int(property_definition.get("type", -1)), TYPE_OBJECT)
 	assert_eq(int(property_definition.get("hint", -1)), PROPERTY_HINT_RESOURCE_TYPE)
-	assert_true(str(property_definition.get("hint_string", "")).contains("Resource"))
+	assert_true(str(property_definition.get("hint_string", "")).contains("RS_SpawnRecoverySettings"))
 
 func test_validates_required_settings_with_rs_spawn_recovery_settings() -> void:
 	var component_script: Script = _load_script(C_SPAWN_RECOVERY_COMPONENT_PATH)
