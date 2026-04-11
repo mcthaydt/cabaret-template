@@ -1,7 +1,7 @@
 # AI System Refactor — Tasks Checklist
 
 **Branch**: `GOAP-AI` (or follow-up branch)
-**Status**: R1-R9 complete (2026-04-11); next milestone R10
+**Status**: R1-R10 complete (2026-04-11)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-overview.md`, `docs/ai_system/ai-system-tasks.md`
 
@@ -540,21 +540,41 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 **Scope note**: The same duck-typing helper family is used elsewhere in the codebase (`s_camera_state_system.gd`, `s_character_state_system.gd`, `s_game_event_system.gd`, `u_vcam_runtime_context.gd`, `u_vcam_landing_impact.gd`, `u_rule_scorer.gd`, `u_rule_selector.gd`, `u_rule_validator.gd`). Global removal is **out of scope** for this AI refactor — the R10 grep test must be scoped narrowly to `s_ai_behavior_system.gd` only, otherwise it will fail the first time it runs. A follow-up "project-wide duck-typing removal" initiative can tackle the QB/camera/character systems once this refactor lands.
 
-- [ ] **Commit 1** — Confirm no remaining duck-typing call sites (TDD RED):
+- [x] **Commit 1** — Confirm no remaining duck-typing call sites (TDD RED):
   - Grep-based test in `test_style_enforcement.gd`: assert `scripts/ecs/systems/s_ai_behavior_system.gd` does not contain `_read_object_property`, `_read_int_property`, `_read_bool_property`, `_read_float_property`, or `_variant_to_string_name`
-- [ ] **Commit 2** — Rewrite orchestrator (TDD GREEN):
+- [x] **Commit 2** — Rewrite orchestrator (TDD GREEN):
   - `scripts/ecs/systems/s_ai_behavior_system.gd` target: under 200 lines. Imports `U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, `U_AIContextBuilder`, `U_AIRenderProbe`, `U_DebugLogThrottle`, `U_AITaskStateKeys`. `process_tick` becomes: (1) tick debug throttle + rule state tracker, (2) query brain entities, (3) build frame snapshot, (4) loop entities — for each: `U_AIContextBuilder.build(...)`, `U_AIGoalSelector.select(...)`, `U_AIReplanner.replan_for_goal(...)` when the winner changes, `U_AITaskRunner.tick(...)`, debug log dispatch.
-- [ ] **Commit 3** — Delete all duck-typing helpers and any other now-unused private methods
+- [x] **Commit 3** — Delete all duck-typing helpers and any other now-unused private methods
 
 **R10 Verification**:
-- [ ] Grep test green (no duck-typing helpers remain)
-- [ ] `test_ai_pipeline_integration.gd` green
-- [ ] All milestone-specific test suites green
-- [ ] `s_ai_behavior_system.gd` final line count under 200, measured and recorded
-- [ ] Full-suite regression green
-- [ ] `test_style_enforcement.gd` passes
+- [x] Grep test green (no duck-typing helpers remain)
+- [x] `test_ai_pipeline_integration.gd` green
+- [x] All milestone-specific test suites green
+- [x] `s_ai_behavior_system.gd` final line count under 200, measured and recorded
+- [x] Full-suite regression green
+- [x] `test_style_enforcement.gd` passes
 
-**R10 Completion Notes**: _(to be filled during execution)_
+**R10 Completion Notes**:
+- Added RED/GREEN orchestration style coverage:
+  - `tests/unit/style/test_style_enforcement.gd`
+    - `test_ai_behavior_system_has_no_local_duck_typing_helpers`
+    - `test_ai_behavior_system_stays_under_two_hundred_lines`
+- Refactored `scripts/ecs/systems/s_ai_behavior_system.gd` into final orchestration-only shape:
+  - `process_tick(...)` now performs manager/store snapshot resolution once per frame and delegates per-entity flow to `U_AIContextBuilder`, `U_AIGoalSelector`, `U_AIReplanner`, and `U_AITaskRunner`.
+  - Preserved behavior-system observability contracts (`_rule_pool`, `_goal_by_id_cache`) backed by goal-selector caches.
+  - Kept debug-throttle/render-probe integration while reducing local helper sprawl.
+  - Restored manager-snapshot fallback semantics: when ECS frame snapshot is empty, the system falls back to store state to preserve HTN method-selection contexts.
+- Line-count target achieved:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd`: `264` -> `195` lines.
+- Verification:
+  - RED step: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` failed at `test_ai_behavior_system_stays_under_two_hundred_lines` (`265` lines).
+  - GREEN targeted suites:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`23/23`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` (`17/17`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` (`6/6`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` (`6/6`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_goal_resume.gd` (`3/3`)
+  - Full regression snapshot (2026-04-11): `tools/run_gut_suite.sh` -> `3924/3933` passing, `9` pending/risky, `0` failing.
 
 ---
 
@@ -579,7 +599,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 | R7 | every `scripts/resources/ai/rs_ai_*.gd` *(move)*, every `.tres` and `preload()` referencing them |
 | R8 | `s_demo_alarm_relay_system.gd` *(move/rename)*, `gameplay_ai_showcase.tscn`, `test_s_demo_alarm_relay_system.gd` *(move/rename)* |
 | R9 | `u_htn_planner.gd` |
-| R10 | `s_ai_behavior_system.gd` |
+| R10 | `s_ai_behavior_system.gd`, `tests/unit/style/test_style_enforcement.gd` |
 
 ## Links
 

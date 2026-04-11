@@ -5,17 +5,17 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 + Refactor R1-R9 complete — AI system refactor in progress (R10 remaining)
-**Next Task**: Begin R10 in `docs/ai_system/ai-system-refactor-tasks.md` (Behavior System Orchestration Integration)
+**Status**: Milestone 15 + Refactor R1-R10 complete
+**Next Task**: Optional post-refactor stabilization + branch merge readiness review
 
 ---
 
-## Current Status: Milestone 15 + Refactor R1-R9 Complete
+## Current Status: Milestone 15 + Refactor R1-R10 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
-- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R9 are complete; start at R10.**
+- **Refactor Tasks**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R10 are complete.**
 
 ### Completed in M1 (2026-04-02)
 
@@ -616,6 +616,29 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Internal reduction metric:
   - `scripts/utils/ai/u_htn_planner.gd` line count reduced `107` → `106`.
 
+### Completed in R10 (2026-04-11)
+
+- Added RED/GREEN orchestration style guards:
+  - `tests/unit/style/test_style_enforcement.gd`
+    - `test_ai_behavior_system_has_no_local_duck_typing_helpers`
+    - `test_ai_behavior_system_stays_under_two_hundred_lines`
+- Refactored behavior runtime to final orchestration shape:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd` now runs frame-level snapshot resolution once, then delegates per-entity context/selection/replanning/task execution to `U_AIContextBuilder`, `U_AIGoalSelector`, `U_AIReplanner`, and `U_AITaskRunner`.
+  - Preserved observability contracts used by tests (`_rule_pool`, `_goal_by_id_cache`) through selector-owned caches.
+  - Preserved debug throttle + render probe integration while reducing local helper breadth.
+  - Restored empty-manager-snapshot fallback to store state in `_resolve_redux_state(...)` to keep HTN method-condition context parity.
+- Verification:
+  - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` failed on line-budget assertion before refactor (`265` lines).
+  - GREEN targeted:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `23/23`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `17/17`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` → `6/6`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_goal_resume.gd` → `3/3`
+  - Full regression snapshot: `tools/run_gut_suite.sh` → `3924/3933` passing, `9` pending/risky, `0` failing.
+- Internal reduction metric:
+  - `scripts/ecs/systems/s_ai_behavior_system.gd` line count reduced `264` → `195`.
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -648,6 +671,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **R7 AI resource directory reorganization is complete**: AI core resources are now grouped by concept under `scripts/resources/ai/brain/`, `scripts/resources/ai/goals/`, `scripts/resources/ai/tasks/`, and `scripts/resources/ai/actions/`; style enforcement now guards against new top-level `rs_ai_*.gd` drift.
 - **R8 demo-only system placement is complete**: demo relay runtime moved to `scripts/gameplay/s_demo_alarm_relay_system.gd` (`S_DemoAlarmRelaySystem`), `scripts/ecs/systems` now rejects `_demo_` filenames via style enforcement, and showcase/integration tests are wired to the gameplay-scoped relay path.
 - **R9 HTN planner context-object cleanup is complete**: planner recursion now carries mutable state through `U_HTNPlannerContext` (`reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`) instead of threading these values as standalone recursive parameters in `U_HTNPlanner`.
+- **R10 orchestration integration pass is complete**: `S_AIBehaviorSystem` is now an orchestration-only runtime (`195` lines), style enforcement guards AI-local duck-typing helper reintroduction and line-budget regression, and per-frame state snapshot fallback to store state is preserved for method-condition context compatibility.
 
 ---
 
@@ -702,7 +726,7 @@ Study these for utility and event patterns:
 
 ### 4. Execute AI System Refactor Tasks in Order
 
-M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R8.
+M1–M15 are complete. **The AI system refactor is complete (R1–R10).** Use `docs/ai_system/ai-system-refactor-tasks.md` for post-refactor reference and follow-up work.
 
 1. **R1** — Typed Brain Settings, Goals, and Tasks (eliminate `_read_*_property` duck-typing from the AI hot path) **COMPLETE (2026-04-10)**
 2. **R2** — Promote `I_AIAction` to a Proper Action Base + Task State Keys Registry **COMPLETE (2026-04-10)**
@@ -713,7 +737,7 @@ M1–M15 are complete. **The AI system refactor is in progress.** Work through t
 7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`) **COMPLETE (2026-04-10)**
 8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/s_demo_alarm_relay_system.gd`) **COMPLETE (2026-04-11)**
 9. **R9** — HTN Planner Context Object (collapse recursive params into `HTNPlannerContext`) **COMPLETE (2026-04-11)**
-10. **R10** — Behavior System Orchestration Integration (final pass: `s_ai_behavior_system.gd` under 200 lines)
+10. **R10** — Behavior System Orchestration Integration (final pass: `s_ai_behavior_system.gd` under 200 lines) **COMPLETE (2026-04-11)**
 
 The original M1–M10 feature milestones and M11–M15 hardening milestones are complete — see the "Completed" sections above for their history. Do **not** redo them.
 
@@ -760,8 +784,6 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin R10** in `docs/ai_system/ai-system-refactor-tasks.md` — Behavior System Orchestration Integration pass (`s_ai_behavior_system.gd` under 200 lines, no AI-local duck-typing helpers).
-2. Proceed through R10 with the same RED/GREEN/refactor commit cadence and update the completion-notes slot in `ai-system-refactor-tasks.md` inline.
-3. Optional follow-up (post-refactor): run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
-4. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
-5. Merge `GOAP-AI` once R10 and regression review pass.
+1. Optional follow-up: run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
+2. Optional stabilization: triage remaining pending/risky test buckets that are environment-scoped (headless/mobile/tween timing).
+3. Prepare branch merge notes for `GOAP-AI` with R10 completion evidence (line budget + style guards + full regression snapshot).
