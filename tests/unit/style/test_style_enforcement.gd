@@ -751,6 +751,51 @@ func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
+
+func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> void:
+	# Files that have been migrated to use U_DependencyResolution should not
+	# contain the old inline cache→export→ServiceLocator pattern in their
+	# _resolve_* methods. The shared utility is the single source of truth.
+	var affected_files: Array[String] = [
+		"res://scripts/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/ecs/systems/s_character_state_system.gd",
+		"res://scripts/ecs/systems/s_game_event_system.gd",
+		"res://scripts/ecs/systems/s_ai_detection_system.gd",
+		"res://scripts/ecs/systems/s_ai_behavior_system.gd",
+		"res://scripts/ecs/systems/s_wall_visibility_system.gd",
+		"res://scripts/ecs/systems/s_region_visibility_system.gd",
+		"res://scripts/gameplay/s_demo_alarm_relay_system.gd",
+		"res://scripts/managers/m_vcam_manager.gd",
+		"res://scripts/managers/m_character_lighting_manager.gd",
+		"res://scripts/managers/m_run_coordinator_manager.gd",
+		"res://scripts/gameplay/inter_victory_zone.gd",
+		"res://scripts/gameplay/inter_ai_demo_guard_barrier.gd",
+	]
+	# Forbidden: inline U_STATE_UTILS.try_get_store calls in migrated files
+	# that should delegate to U_DependencyResolution
+	var dep_res_forbidden_patterns: Array[String] = [
+		"U_STATE_UTILS.try_get_store",
+		"U_StateUtils.try_get_store",
+	]
+	var dep_res_violations: Array[String] = []
+
+	for path in affected_files:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			dep_res_violations.append("%s (unable to open file)" % path)
+			continue
+		var file_text: String = file.get_as_text()
+		file.close()
+
+		for pattern in dep_res_forbidden_patterns:
+			if file_text.find(pattern) != -1:
+				dep_res_violations.append("%s still contains %s (should use U_DependencyResolution)" % [path, pattern])
+
+	var dep_res_message := "Migrated files should use U_DependencyResolution instead of inline U_STATE_UTILS.try_get_store"
+	if dep_res_violations.size() > 0:
+		dep_res_message += ":\n" + "\n".join(dep_res_violations)
+	assert_eq(dep_res_violations.size(), 0, dep_res_message)
+
 # Helper functions for prefix validation
 
 func _check_directory_prefixes(dir_path: String, allowed_prefixes: Array, violations: Array[String]) -> void:
