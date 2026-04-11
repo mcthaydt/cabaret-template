@@ -2,9 +2,9 @@ extends GutTest
 
 const I_AI_ACTION_PATH := "res://scripts/interfaces/i_ai_action.gd"
 const I_CONDITION_PATH := "res://scripts/interfaces/i_condition.gd"
-const RS_AI_TASK_PATH := "res://scripts/resources/ai/rs_ai_task.gd"
-const RS_AI_PRIMITIVE_TASK_PATH := "res://scripts/resources/ai/rs_ai_primitive_task.gd"
-const RS_AI_COMPOUND_TASK_PATH := "res://scripts/resources/ai/rs_ai_compound_task.gd"
+const RS_AI_TASK_PATH := "res://scripts/resources/ai/tasks/rs_ai_task.gd"
+const RS_AI_PRIMITIVE_TASK_PATH := "res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd"
+const RS_AI_COMPOUND_TASK_PATH := "res://scripts/resources/ai/tasks/rs_ai_compound_task.gd"
 
 func _load_script(path: String) -> Script:
 	var script_variant: Variant = load(path)

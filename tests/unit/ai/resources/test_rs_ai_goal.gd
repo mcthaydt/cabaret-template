@@ -1,8 +1,8 @@
 extends GutTest
 
-const RS_AI_GOAL_PATH := "res://scripts/resources/ai/rs_ai_goal.gd"
-const RS_AI_BRAIN_SETTINGS_PATH := "res://scripts/resources/ai/rs_ai_brain_settings.gd"
-const RS_AI_PRIMITIVE_TASK_PATH := "res://scripts/resources/ai/rs_ai_primitive_task.gd"
+const RS_AI_GOAL_PATH := "res://scripts/resources/ai/goals/rs_ai_goal.gd"
+const RS_AI_BRAIN_SETTINGS_PATH := "res://scripts/resources/ai/brain/rs_ai_brain_settings.gd"
+const RS_AI_PRIMITIVE_TASK_PATH := "res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd"
 const CONDITION_COMPONENT_FIELD_PATH := "res://scripts/resources/qb/conditions/rs_condition_component_field.gd"
 
 func _load_script(path: String) -> Script:

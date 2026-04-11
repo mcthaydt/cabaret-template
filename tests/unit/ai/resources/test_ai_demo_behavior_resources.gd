@@ -1,8 +1,8 @@
 extends BaseTest
 
-const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
-const RS_AI_GOAL := preload("res://scripts/resources/ai/rs_ai_goal.gd")
-const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/rs_ai_primitive_task.gd")
+const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
+const RS_AI_GOAL := preload("res://scripts/resources/ai/goals/rs_ai_goal.gd")
+const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd")
 const I_AI_ACTION := preload("res://scripts/interfaces/i_ai_action.gd")
 const U_HTN_PLANNER := preload("res://scripts/utils/ai/u_htn_planner.gd")
 

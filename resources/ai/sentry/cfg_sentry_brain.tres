@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3 uid="uid://c3o8a2nyv30av"]
 
-[ext_resource type="Script" uid="uid://ccrnbhgcyknu0" path="res://scripts/resources/ai/rs_ai_brain_settings.gd" id="1_brain"]
+[ext_resource type="Script" uid="uid://ccrnbhgcyknu0" path="res://scripts/resources/ai/brain/rs_ai_brain_settings.gd" id="1_brain"]
 [ext_resource type="Resource" uid="uid://bhcn7aqgjrh38" path="res://resources/ai/sentry/cfg_goal_guard.tres" id="2_goal_guard"]
 [ext_resource type="Resource" uid="uid://by0251h0thxk" path="res://resources/ai/sentry/cfg_goal_investigate_disturbance.tres" id="3_goal_investigate"]
 [ext_resource type="Resource" path="res://resources/ai/sentry/cfg_goal_investigate_disturbance_proximity.tres" id="4_goal_investigate_proximity"]

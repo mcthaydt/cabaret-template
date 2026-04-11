@@ -1,8 +1,8 @@
 extends BaseTest
 
 const U_HTN_PLANNER_PATH := "res://scripts/utils/ai/u_htn_planner.gd"
-const RS_AI_PRIMITIVE_TASK_PATH := "res://scripts/resources/ai/rs_ai_primitive_task.gd"
-const RS_AI_COMPOUND_TASK_PATH := "res://scripts/resources/ai/rs_ai_compound_task.gd"
+const RS_AI_PRIMITIVE_TASK_PATH := "res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd"
+const RS_AI_COMPOUND_TASK_PATH := "res://scripts/resources/ai/tasks/rs_ai_compound_task.gd"
 
 class ConstantScoreCondition extends I_Condition:
 	var score_value: float = 1.0

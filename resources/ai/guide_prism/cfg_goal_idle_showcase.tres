@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="RS_AIGoal" format=3]
 
-[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
 [ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="2_condition_redux"]
-[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_compound_task.gd" id="3_compound_task"]
-[ext_resource type="Script" path="res://scripts/resources/ai/rs_ai_primitive_task.gd" id="4_primitive_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/tasks/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="4_primitive_task"]
 [ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="5_action_wait"]
 
 [sub_resource type="Resource" id="Condition_not_near_player"]

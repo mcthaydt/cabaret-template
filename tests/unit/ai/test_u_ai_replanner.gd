@@ -2,10 +2,10 @@ extends GutTest
 
 const U_AI_REPLANNER_PATH := "res://scripts/utils/ai/u_ai_replanner.gd"
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
-const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
-const RS_AI_GOAL := preload("res://scripts/resources/ai/rs_ai_goal.gd")
-const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/rs_ai_primitive_task.gd")
-const RS_AI_COMPOUND_TASK := preload("res://scripts/resources/ai/rs_ai_compound_task.gd")
+const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
+const RS_AI_GOAL := preload("res://scripts/resources/ai/goals/rs_ai_goal.gd")
+const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd")
+const RS_AI_COMPOUND_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_compound_task.gd")
 
 func _load_replanner_script() -> Script:
 	var script_variant: Variant = load(U_AI_REPLANNER_PATH)

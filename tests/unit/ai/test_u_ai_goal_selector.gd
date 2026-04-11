@@ -1,9 +1,9 @@
 extends GutTest
 
 const U_AI_GOAL_SELECTOR_PATH := "res://scripts/utils/ai/u_ai_goal_selector.gd"
-const RS_AI_GOAL := preload("res://scripts/resources/ai/rs_ai_goal.gd")
-const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/rs_ai_brain_settings.gd")
-const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/rs_ai_primitive_task.gd")
+const RS_AI_GOAL := preload("res://scripts/resources/ai/goals/rs_ai_goal.gd")
+const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
+const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd")
 const RS_CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
 
 func _load_selector_script() -> Script:

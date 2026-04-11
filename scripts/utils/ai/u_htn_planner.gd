@@ -2,8 +2,8 @@ extends RefCounted
 class_name U_HTNPlanner
 
 const U_RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
-const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/rs_ai_primitive_task.gd")
-const RS_AI_COMPOUND_TASK := preload("res://scripts/resources/ai/rs_ai_compound_task.gd")
+const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd")
+const RS_AI_COMPOUND_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_compound_task.gd")
 const RS_RULE := preload("res://scripts/resources/qb/rs_rule.gd")
 
 static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) -> Array[Resource]:

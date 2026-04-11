@@ -80,6 +80,13 @@ const SCRIPT_FILENAME_EXCEPTIONS := [
 	"root.gd" # Root bootstrap script (intentionally unprefixed)
 ]
 
+const AI_RESOURCE_ALLOWED_SUBDIRECTORIES := [
+	"brain",
+	"goals",
+	"tasks",
+	"actions",
+]
+
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core": ["u_"],
@@ -548,6 +555,15 @@ func test_ai_move_target_magic_strings_not_used_in_ai_scripts() -> void:
 		message += "\nUse U_AITaskStateKeys constants instead."
 	assert_eq(violations.size(), 0, message)
 
+func test_ai_resource_scripts_are_grouped_by_subdirectory() -> void:
+	var violations: Array[String] = []
+	_collect_ai_resource_layout_violations("res://scripts/resources/ai", violations)
+
+	var message := "AI resource scripts must live under scripts/resources/ai/{brain,goals,tasks,actions}"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var rule_systems: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
@@ -832,6 +848,30 @@ func _count_theme_override_lines(path: String) -> int:
 
 	file.close()
 	return count
+
+func _collect_ai_resource_layout_violations(dir_path: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_ai_resource_layout_violations(path, violations)
+		elif entry.ends_with(".gd") and entry.begins_with("rs_ai_"):
+			var relative_path := path.trim_prefix("res://scripts/resources/ai/")
+			var slash_index := relative_path.find("/")
+			if slash_index == -1:
+				violations.append("%s is in ai root; expected brain/goals/tasks/actions subdirectory" % path)
+			else:
+				var top_level_dir := relative_path.substr(0, slash_index)
+				if not AI_RESOURCE_ALLOWED_SUBDIRECTORIES.has(top_level_dir):
+					violations.append("%s is under unexpected ai subdirectory '%s'" % [path, top_level_dir])
+		entry = dir.get_next()
+	dir.list_dir_end()
 
 func _collect_scene_theme_override_counts(dir_path: String, override_counts: Dictionary) -> void:
 	var dir := DirAccess.open(dir_path)
