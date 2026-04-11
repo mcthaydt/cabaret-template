@@ -5,17 +5,17 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 + Refactor R1-R8 complete — AI system refactor in progress (R9–R10 remaining)
-**Next Task**: Begin R9 in `docs/ai_system/ai-system-refactor-tasks.md` (HTN Planner Context Object)
+**Status**: Milestone 15 + Refactor R1-R9 complete — AI system refactor in progress (R10 remaining)
+**Next Task**: Begin R10 in `docs/ai_system/ai-system-refactor-tasks.md` (Behavior System Orchestration Integration)
 
 ---
 
-## Current Status: Milestone 15 + Refactor R1-R8 Complete
+## Current Status: Milestone 15 + Refactor R1-R9 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
-- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R8 are complete; start at R9.**
+- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R9 are complete; start at R10.**
 
 ### Completed in M1 (2026-04-02)
 
@@ -600,6 +600,22 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
   - Full regression snapshot: `tools/run_gut_suite.sh` → `3921/3930` passing, `9` pending/risky, `0` failing.
 
+### Completed in R9 (2026-04-11)
+
+- Added planner statelessness coverage:
+  - `tests/unit/ai/test_u_htn_planner.gd` now includes `test_reusable_rule_is_not_mutated_between_calls`.
+- Extracted HTN runtime context state into a dedicated utility object:
+  - `scripts/utils/ai/u_htn_planner_context.gd` (`class_name U_HTNPlannerContext`)
+- Refactored planner internals to consume a context object while preserving public API:
+  - `scripts/utils/ai/u_htn_planner.gd` still exposes `decompose(task, context, max_depth)` with unchanged behavior.
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` → `11/11`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `21/21`
+  - Full regression snapshot: `tools/run_gut_suite.sh` → `3922/3931` passing, `9` pending/risky, `0` failing.
+- Internal reduction metric:
+  - `scripts/utils/ai/u_htn_planner.gd` line count reduced `107` → `106`.
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -631,6 +647,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **R6 move-target follower generalization is complete**: move-target following is now shared runtime behavior (`C_MoveTargetComponent` + `S_MoveTargetFollowerSystem`) with AI-task-state fallback for compatibility; `S_AINavigationSystem` was removed.
 - **R7 AI resource directory reorganization is complete**: AI core resources are now grouped by concept under `scripts/resources/ai/brain/`, `scripts/resources/ai/goals/`, `scripts/resources/ai/tasks/`, and `scripts/resources/ai/actions/`; style enforcement now guards against new top-level `rs_ai_*.gd` drift.
 - **R8 demo-only system placement is complete**: demo relay runtime moved to `scripts/gameplay/s_demo_alarm_relay_system.gd` (`S_DemoAlarmRelaySystem`), `scripts/ecs/systems` now rejects `_demo_` filenames via style enforcement, and showcase/integration tests are wired to the gameplay-scoped relay path.
+- **R9 HTN planner context-object cleanup is complete**: planner recursion now carries mutable state through `U_HTNPlannerContext` (`reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`) instead of threading these values as standalone recursive parameters in `U_HTNPlanner`.
 
 ---
 
@@ -695,7 +712,7 @@ M1–M15 are complete. **The AI system refactor is in progress.** Work through t
 6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`) **COMPLETE (2026-04-10)**
 7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`) **COMPLETE (2026-04-10)**
 8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/s_demo_alarm_relay_system.gd`) **COMPLETE (2026-04-11)**
-9. **R9** — HTN Planner Context Object (collapse recursive params into `HTNPlannerContext`)
+9. **R9** — HTN Planner Context Object (collapse recursive params into `HTNPlannerContext`) **COMPLETE (2026-04-11)**
 10. **R10** — Behavior System Orchestration Integration (final pass: `s_ai_behavior_system.gd` under 200 lines)
 
 The original M1–M10 feature milestones and M11–M15 hardening milestones are complete — see the "Completed" sections above for their history. Do **not** redo them.
@@ -743,8 +760,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin R9** in `docs/ai_system/ai-system-refactor-tasks.md` — HTN Planner Context Object (`U_HTNPlannerContext` extraction).
-2. Proceed through R9–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
+1. **Begin R10** in `docs/ai_system/ai-system-refactor-tasks.md` — Behavior System Orchestration Integration pass (`s_ai_behavior_system.gd` under 200 lines, no AI-local duck-typing helpers).
+2. Proceed through R10 with the same RED/GREEN/refactor commit cadence and update the completion-notes slot in `ai-system-refactor-tasks.md` inline.
 3. Optional follow-up (post-refactor): run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
 4. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
-5. Merge `GOAP-AI` once R1–R10 and regression review pass.
+5. Merge `GOAP-AI` once R10 and regression review pass.

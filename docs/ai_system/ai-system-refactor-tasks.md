@@ -1,7 +1,7 @@
 # AI System Refactor — Tasks Checklist
 
 **Branch**: `GOAP-AI` (or follow-up branch)
-**Status**: R1-R8 complete (2026-04-11); next milestone R9
+**Status**: R1-R9 complete (2026-04-11); next milestone R10
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-overview.md`, `docs/ai_system/ai-system-tasks.md`
 
@@ -30,7 +30,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 `R5` and `R6` are the "share with player" milestones — independent of each other.
 `R7` is a mechanical reorg, safer after R1–R6 settle.
 `R8` landed as the demo-only alarm-relay move out of production ECS folders.
-`R9` is an internal planner cleanup (safe once callers are strongly typed).
+`R9` landed as the HTN planner context-object extraction (`U_HTNPlannerContext`).
 `R10` is the final orchestration integration pass.
 
 ---
@@ -508,16 +508,29 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 **Goal**: `u_htn_planner.gd` currently threads `reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth` through every recursive call. Collapse them into a single context `RefCounted` so internals are tidy. Public signature stays stable.
 
-- [ ] **Commit 1** — Add internal-coverage tests (TDD RED if any gap exists; otherwise mark GREEN):
+- [x] **Commit 1** — Add internal-coverage tests (TDD RED if any gap exists; otherwise mark GREEN):
   - `tests/unit/ai/test_u_htn_planner.gd` — confirm existing 8 tests still green; add `test_reusable_rule_is_not_mutated_between_calls` if not already present
-- [ ] **Commit 2** — Refactor internals (TDD GREEN):
+- [x] **Commit 2** — Refactor internals (TDD GREEN):
   - `scripts/utils/ai/u_htn_planner.gd` — introduce inner `class PlannerContext` (or a top-level `U_HTNPlannerContext` under `scripts/utils/ai/`) carrying `reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`. Keep public `static func decompose(task, context, max_depth)` identical.
 
 **R9 Verification**:
-- [ ] All planner tests green with zero behavioral change
-- [ ] Line count of `u_htn_planner.gd` internal recursive helper reduced
+- [x] All planner tests green with zero behavioral change
+- [x] Line count of `u_htn_planner.gd` internal recursive helper reduced
 
-**R9 Completion Notes**: _(to be filled during execution)_
+**R9 Completion Notes**:
+- Added planner statelessness coverage:
+  - `tests/unit/ai/test_u_htn_planner.gd` now includes `test_reusable_rule_is_not_mutated_between_calls` (GREEN on baseline and post-refactor).
+- Extracted recursion/runtime state into a dedicated context object:
+  - Added `scripts/utils/ai/u_htn_planner_context.gd` (`class_name U_HTNPlannerContext`) to carry planner-internal mutable state (`reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`, and evaluation context).
+  - Refactored `scripts/utils/ai/u_htn_planner.gd` internals to pass the context object through recursion while preserving public API:
+    - `static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) -> Array[Resource]`.
+- Line-count change:
+  - `scripts/utils/ai/u_htn_planner.gd`: `107` -> `106` lines.
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` (`11/11`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` (`6/6`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`21/21`)
+  - Full regression snapshot (2026-04-11): `tools/run_gut_suite.sh` -> `3922/3931` passing, `9` pending/risky, `0` failing.
 
 ---
 
