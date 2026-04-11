@@ -3,6 +3,7 @@ class_name U_VCamRuntimeContext
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 const U_NODE_FIND := preload("res://scripts/utils/ecs/u_node_find.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_movement_component.gd")
@@ -83,7 +84,7 @@ func resolve_follow_target_grounded_state(
 			return bool(state_grounded.get("is_on_floor", false))
 
 		var character_state: Node = _find_node_with_script(entity_root, C_CHARACTER_STATE_COMPONENT_SCRIPT)
-		if character_state != null and _object_has_property(character_state, "is_grounded"):
+		if character_state != null and U_RuleUtils.object_has_property(character_state, "is_grounded"):
 			var grounded_variant: Variant = character_state.get("is_grounded")
 			if grounded_variant is bool:
 				return grounded_variant as bool
@@ -192,14 +193,14 @@ func write_active_camera_base_fov_from_result(result: Dictionary, camera_state: 
 		return
 	if camera_state == null:
 		return
-	if not _object_has_property(camera_state, "base_fov"):
+	if not U_RuleUtils.object_has_property(camera_state, "base_fov"):
 		return
 	camera_state.set("base_fov", clampf(fov_value, 1.0, 179.0))
 
 func get_camera_state_float(camera_state: Object, property_name: String, fallback: float) -> float:
 	if camera_state == null:
 		return fallback
-	if not _object_has_property(camera_state, property_name):
+	if not U_RuleUtils.object_has_property(camera_state, property_name):
 		return fallback
 	var value: Variant = camera_state.get(property_name)
 	if value is float or value is int:
@@ -209,7 +210,7 @@ func get_camera_state_float(camera_state: Object, property_name: String, fallbac
 func read_camera_state_vector3(camera_state: Object, property_name: String, fallback: Vector3) -> Vector3:
 	if camera_state == null:
 		return fallback
-	if not _object_has_property(camera_state, property_name):
+	if not U_RuleUtils.object_has_property(camera_state, property_name):
 		return fallback
 	var value: Variant = camera_state.get(property_name)
 	if value is Vector3:
@@ -219,7 +220,7 @@ func read_camera_state_vector3(camera_state: Object, property_name: String, fall
 func write_camera_state_vector3(camera_state: Object, property_name: String, value: Vector3) -> void:
 	if camera_state == null:
 		return
-	if not _object_has_property(camera_state, property_name):
+	if not U_RuleUtils.object_has_property(camera_state, property_name):
 		return
 	camera_state.set(property_name, value)
 
@@ -342,7 +343,7 @@ func _read_gameplay_entity_is_on_floor(entity_id: StringName, store: I_StateStor
 
 func _is_primary_camera_query(query: Object, primary_camera_entity_id: StringName) -> bool:
 	if query.has_method("get_entity_id"):
-		var entity_id: StringName = _variant_to_string_name(query.call("get_entity_id"))
+		var entity_id: StringName = U_RuleUtils.variant_to_string_name(query.call("get_entity_id"))
 		if entity_id == primary_camera_entity_id:
 			return true
 	if query.has_method("get_tags"):
@@ -351,16 +352,6 @@ func _is_primary_camera_query(query: Object, primary_camera_entity_id: StringNam
 			var tags: Array = tags_variant as Array
 			return tags.has(primary_camera_entity_id) or tags.has(String(primary_camera_entity_id))
 	return false
-
-func _variant_to_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value as StringName
-	if value is String:
-		var text: String = value
-		if text.is_empty():
-			return StringName("")
-		return StringName(text)
-	return StringName()
 
 func _find_node_with_script(root: Node, script: Script) -> Node:
 	if root == null or script == null:
@@ -376,11 +367,3 @@ func _find_node_with_script(root: Node, script: Script) -> Node:
 		if found != null:
 			return found
 	return null
-
-func _object_has_property(object_value: Object, property_name: String) -> bool:
-	var properties: Array[Dictionary] = object_value.get_property_list()
-	for property_info in properties:
-		var name_variant: Variant = property_info.get("name", "")
-		if str(name_variant) == property_name:
-			return true
-	return false

@@ -2,6 +2,7 @@ extends RefCounted
 class_name U_VCamLandingImpact
 
 const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
+const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 
 const DEFAULT_FALL_SPEED_MIN: float = 5.0
 const DEFAULT_FALL_SPEED_MAX: float = 30.0
@@ -35,7 +36,7 @@ func record_landing_event(
 		return _landing_response_normalized
 
 	if expected_entity_id != StringName(""):
-		var payload_entity_id: StringName = _variant_to_string_name(event_payload.get("entity_id", StringName("")))
+		var payload_entity_id: StringName = U_RuleUtils.variant_to_string_name(event_payload.get("entity_id", StringName("")))
 		if payload_entity_id != expected_entity_id:
 			return _landing_response_normalized
 
@@ -154,13 +155,3 @@ func _resolve_event_fall_speed(event_payload: Dictionary) -> Dictionary:
 		return {"valid": true, "fall_speed": absf(velocity_3d.y)}
 
 	return {"valid": false, "fall_speed": 0.0}
-
-func _variant_to_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value as StringName
-	if value is String:
-		var text: String = value
-		if text.is_empty():
-			return StringName("")
-		return StringName(text)
-	return StringName("")

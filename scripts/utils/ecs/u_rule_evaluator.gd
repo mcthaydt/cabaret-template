@@ -1,6 +1,7 @@
 extends RefCounted
 class_name U_RuleEvaluator
 
+const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
 const U_RULE_SELECTOR := preload("res://scripts/utils/qb/u_rule_selector.gd")
@@ -83,7 +84,7 @@ func subscribe(extract_event_names: Callable, on_event: Callable) -> void:
 			continue
 
 		for event_name_variant in (event_names_variant as Array):
-			var event_name: StringName = _variant_to_string_name(event_name_variant)
+			var event_name: StringName = U_RuleUtils.variant_to_string_name(event_name_variant)
 			if event_name == StringName() or subscribed_events.has(event_name):
 				continue
 
@@ -133,7 +134,7 @@ func evaluate(
 	return winners
 
 func _supports_trigger_mode(rule_variant: Variant, trigger_mode: String) -> bool:
-	var rule_trigger_mode: String = _read_string_property(rule_variant, "trigger_mode", TRIGGER_MODE_TICK)
+	var rule_trigger_mode: String = U_RuleUtils.read_string_property(rule_variant, "trigger_mode", TRIGGER_MODE_TICK)
 	if trigger_mode == TRIGGER_MODE_TICK:
 		return rule_trigger_mode == TRIGGER_MODE_TICK or rule_trigger_mode == TRIGGER_MODE_BOTH
 	if trigger_mode == TRIGGER_MODE_EVENT:
@@ -158,7 +159,7 @@ func _apply_state_gates(
 			continue
 
 		var rule_id: StringName = _resolve_rule_id(rule_variant)
-		var requires_rising_edge: bool = _read_bool_property(rule_variant, "requires_rising_edge", false)
+		var requires_rising_edge: bool = U_RuleUtils.read_bool_property(rule_variant, "requires_rising_edge", false)
 		var is_passing_now: bool = scored_by_rule.has(rule_variant)
 		var has_rising_edge: bool = true
 		if requires_rising_edge:
@@ -203,18 +204,10 @@ func _mark_winners_fired(winners: Array[Dictionary], context_key: StringName) ->
 			continue
 
 		var rule_id: StringName = _resolve_rule_id(rule_variant)
-		var cooldown: float = maxf(_read_float_property(rule_variant, "cooldown", 0.0), 0.0)
+		var cooldown: float = maxf(U_RuleUtils.read_float_property(rule_variant, "cooldown", 0.0), 0.0)
 		_tracker.mark_fired(rule_id, context_key, cooldown)
-		if _read_bool_property(rule_variant, "one_shot", false):
+		if U_RuleUtils.read_bool_property(rule_variant, "one_shot", false):
 			_tracker.mark_one_shot_spent(rule_id)
-
-func _resolve_rule_id(rule_variant: Variant) -> StringName:
-	var rule_id: StringName = _read_string_name_property(rule_variant, "rule_id")
-	if rule_id != StringName():
-		return rule_id
-	if rule_variant is Object:
-		return StringName("__rule_%d" % (rule_variant as Object).get_instance_id())
-	return StringName("__rule")
 
 func _extract_event_payload(event_data: Dictionary) -> Dictionary:
 	var payload_variant: Variant = event_data.get("payload", {})
@@ -222,50 +215,13 @@ func _extract_event_payload(event_data: Dictionary) -> Dictionary:
 		return (payload_variant as Dictionary).duplicate(true)
 	return {}
 
-func _variant_to_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value
-	if value is String:
-		var text: String = value
-		if not text.is_empty():
-			return StringName(text)
-	return StringName()
-
-func _read_string_property(object_value: Variant, property_name: String, fallback: String = "") -> String:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is String:
-		return value
-	if value is StringName:
-		return String(value)
-	return fallback
-
-func _read_string_name_property(object_value: Variant, property_name: String) -> StringName:
-	if object_value == null or not (object_value is Object):
-		return StringName()
-	var value: Variant = object_value.get(property_name)
-	if value is StringName:
-		return value
-	if value is String:
-		return StringName(value)
-	return StringName()
-
-func _read_bool_property(object_value: Variant, property_name: String, fallback: bool = false) -> bool:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is bool:
-		return value
-	return fallback
-
-func _read_float_property(object_value: Variant, property_name: String, fallback: float = 0.0) -> float:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is float or value is int:
-		return float(value)
-	return fallback
+func _resolve_rule_id(rule_variant: Variant) -> StringName:
+	var rule_id: StringName = U_RuleUtils.read_string_name_property(rule_variant, "rule_id")
+	if rule_id != StringName():
+		return rule_id
+	if rule_variant is Object:
+		return StringName("__rule_%d" % (rule_variant as Object).get_instance_id())
+	return StringName("__rule")
 
 func _sanitize_validation_report(combined_rules: Array, base_report: Dictionary) -> Dictionary:
 	var valid_rules: Array = []
@@ -304,7 +260,7 @@ func _sanitize_validation_report(combined_rules: Array, base_report: Dictionary)
 	}
 
 func _extract_rule_id(rule_variant: Variant, index: int) -> StringName:
-	var rule_id: StringName = _read_string_name_property(rule_variant, "rule_id")
+	var rule_id: StringName = U_RuleUtils.read_string_name_property(rule_variant, "rule_id")
 	if rule_id != StringName():
 		return rule_id
 	return StringName("__index_%d" % index)

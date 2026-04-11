@@ -5,9 +5,8 @@ class_name S_GameEventSystem
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
+const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 const EFFECT_PUBLISH_EVENT_SCRIPT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
-const CONDITION_EVENT_NAME_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
-const CONDITION_COMPOSITE_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
 
 const TRIGGER_MODE_TICK := "tick"
 const TRIGGER_MODE_EVENT := "event"
@@ -48,7 +47,7 @@ func _refresh_rule_evaluator() -> void:
 func _subscribe_rule_events() -> void:
 	_rule_evaluator.subscribe(
 		func(rule_variant: Variant) -> Array[StringName]:
-			return _extract_event_names_from_rule(rule_variant),
+			return U_RuleUtils.extract_event_names_from_rule(rule_variant),
 		func(event_name: StringName, event_payload: Dictionary) -> void:
 			_on_event_received(event_name, event_payload)
 	)
@@ -94,7 +93,7 @@ func _execute_publish_event_effect(effect_variant: Variant, context: Dictionary)
 	if effect_variant == null or not (effect_variant is Object):
 		return
 
-	var event_name: StringName = _read_string_name_property(effect_variant, "event_name")
+	var event_name: StringName = U_RuleUtils.read_string_name_property(effect_variant, "event_name")
 	if event_name == StringName():
 		return
 
@@ -107,8 +106,8 @@ func _execute_publish_event_effect(effect_variant: Variant, context: Dictionary)
 	if configured_payload_variant is Dictionary:
 		payload.merge((configured_payload_variant as Dictionary).duplicate(true), true)
 
-	var inject_entity_id: bool = _read_bool_property(effect_variant, "inject_entity_id", true)
-	var entity_id: Variant = _get_context_value(context, "entity_id")
+	var inject_entity_id: bool = U_RuleUtils.read_bool_property(effect_variant, "inject_entity_id", true)
+	var entity_id: Variant = U_RuleUtils.get_context_value(context, "entity_id")
 	if inject_entity_id and entity_id != null and not payload.has("entity_id"):
 		payload["entity_id"] = entity_id
 
@@ -142,11 +141,11 @@ func _build_event_context(event_name: StringName, event_payload: Dictionary) -> 
 	return context
 
 func _attach_entity_context(context: Dictionary) -> void:
-	var entity_id_variant: Variant = _get_context_value(context, "entity_id")
+	var entity_id_variant: Variant = U_RuleUtils.get_context_value(context, "entity_id")
 	if entity_id_variant == null:
 		return
 
-	var entity_id: StringName = _variant_to_string_name(entity_id_variant)
+	var entity_id: StringName = U_RuleUtils.variant_to_string_name(entity_id_variant)
 	if entity_id == StringName():
 		return
 
@@ -188,52 +187,11 @@ func _extract_entity_id(event_payload: Dictionary) -> Variant:
 	return null
 
 func _context_key_for_context(context: Dictionary) -> StringName:
-	var entity_id_variant: Variant = _get_context_value(context, "entity_id")
-	var entity_id: StringName = _variant_to_string_name(entity_id_variant)
+	var entity_id_variant: Variant = U_RuleUtils.get_context_value(context, "entity_id")
+	var entity_id: StringName = U_RuleUtils.variant_to_string_name(entity_id_variant)
 	if entity_id != StringName():
 		return entity_id
 	return StringName()
-
-func _extract_event_names_from_rule(rule_variant: Variant) -> Array[StringName]:
-	var event_names: Array[StringName] = []
-	if rule_variant == null or not (rule_variant is Object):
-		return event_names
-
-	var conditions_variant: Variant = (rule_variant as Object).get("conditions")
-	if not (conditions_variant is Array):
-		return event_names
-
-	for condition_variant in conditions_variant as Array:
-		_collect_event_names_from_condition(condition_variant, event_names)
-
-	return event_names
-
-func _collect_event_names_from_condition(condition_variant: Variant, event_names: Array[StringName]) -> void:
-	if condition_variant == null or not (condition_variant is Object):
-		return
-	var condition_object: Object = condition_variant as Object
-
-	if _is_script_instance_of(condition_object, CONDITION_EVENT_NAME_SCRIPT):
-		var condition_event_name: StringName = _read_string_name_property(
-			condition_object,
-			"expected_event_name"
-		)
-		if condition_event_name == StringName():
-			return
-		if event_names.has(condition_event_name):
-			return
-		event_names.append(condition_event_name)
-		return
-
-	if not _is_script_instance_of(condition_object, CONDITION_COMPOSITE_SCRIPT):
-		return
-
-	var children_variant: Variant = condition_object.get("children")
-	if not (children_variant is Array):
-		return
-
-	for child_condition_variant in children_variant as Array:
-		_collect_event_names_from_condition(child_condition_variant, event_names)
 
 func _resolve_store() -> I_StateStore:
 	if state_store != null:
@@ -243,72 +201,4 @@ func _resolve_store() -> I_StateStore:
 func _is_publish_event_effect(effect_variant: Variant) -> bool:
 	if effect_variant == null or not (effect_variant is Object):
 		return false
-	return _is_script_instance_of(effect_variant as Object, EFFECT_PUBLISH_EVENT_SCRIPT)
-
-func _is_script_instance_of(object_value: Object, script_ref: Script) -> bool:
-	if object_value == null:
-		return false
-	if script_ref == null:
-		return false
-
-	var current: Variant = object_value.get_script()
-	while current != null and current is Script:
-		if current == script_ref:
-			return true
-		current = (current as Script).get_base_script()
-	return false
-
-func _get_context_value(dictionary: Dictionary, key: String) -> Variant:
-	if dictionary.has(key):
-		return dictionary.get(key)
-
-	var key_name: StringName = StringName(key)
-	if dictionary.has(key_name):
-		return dictionary.get(key_name)
-
-	return null
-
-func _variant_to_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value
-	if value is String:
-		var text: String = value
-		if not text.is_empty():
-			return StringName(text)
-	return StringName()
-
-func _read_string_property(object_value: Variant, property_name: String, fallback: String = "") -> String:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is String:
-		return value
-	if value is StringName:
-		return String(value)
-	return fallback
-
-func _read_string_name_property(object_value: Variant, property_name: String) -> StringName:
-	if object_value == null or not (object_value is Object):
-		return StringName()
-	var value: Variant = object_value.get(property_name)
-	if value is StringName:
-		return value
-	if value is String:
-		return StringName(value)
-	return StringName()
-
-func _read_bool_property(object_value: Variant, property_name: String, fallback: bool = false) -> bool:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is bool:
-		return value
-	return fallback
-
-func _read_float_property(object_value: Variant, property_name: String, fallback: float = 0.0) -> float:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is float or value is int:
-		return float(value)
-	return fallback
+	return U_RuleUtils.is_script_instance_of(effect_variant as Object, EFFECT_PUBLISH_EVENT_SCRIPT)

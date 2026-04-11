@@ -648,6 +648,45 @@ func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
+func test_rule_systems_and_helpers_do_not_duplicate_property_readers() -> void:
+	var affected_files: Array[String] = [
+		"res://scripts/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/ecs/systems/s_character_state_system.gd",
+		"res://scripts/ecs/systems/s_game_event_system.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_runtime_context.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_landing_impact.gd",
+	]
+	var forbidden_methods: Array[String] = [
+		"_read_string_property",
+		"_read_string_name_property",
+		"_read_bool_property",
+		"_read_float_property",
+		"_is_script_instance_of",
+		"_object_has_property",
+		"_variant_to_string_name",
+		"_get_context_value",
+		"_extract_event_names_from_rule",
+	]
+	var violations: Array[String] = []
+
+	for path in affected_files:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			violations.append("%s (unable to open file)" % path)
+			continue
+		var file_text: String = file.get_as_text()
+		file.close()
+
+		for method_name in forbidden_methods:
+			var signature: String = "func %s(" % method_name
+			if file_text.find(signature) != -1:
+				violations.append("%s defines %s" % [path, method_name])
+
+	var message := "Rule systems and helpers should use shared U_RuleUtils property readers"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
 # Helper functions for prefix validation
 
 func _check_directory_prefixes(dir_path: String, allowed_prefixes: Array, violations: Array[String]) -> void:

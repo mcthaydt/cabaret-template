@@ -10,7 +10,7 @@ const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
-const CONDITION_EVENT_NAME_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
+const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
@@ -95,7 +95,7 @@ func _refresh_rule_evaluator() -> void:
 func _subscribe_rule_events() -> void:
 	_rule_evaluator.subscribe(
 		func(rule_variant: Variant) -> Array[StringName]:
-			return _extract_event_names_from_rule(rule_variant),
+			return U_RuleUtils.extract_event_names_from_rule(rule_variant),
 		func(event_name: StringName, event_payload: Dictionary) -> void:
 			_on_event_received(event_name, event_payload)
 	)
@@ -140,7 +140,7 @@ func _evaluate_context(context: Dictionary, trigger_mode: String, event_name: St
 func _rule_handles_event(rule_variant: Variant, event_name: StringName) -> bool:
 	if event_name == StringName():
 		return true
-	var event_names: Array[StringName] = _extract_event_names_from_rule(rule_variant)
+	var event_names: Array[StringName] = U_RuleUtils.extract_event_names_from_rule(rule_variant)
 	if event_names.is_empty():
 		return false
 	return event_names.has(event_name)
@@ -175,11 +175,11 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 			context.erase(RULE_SCORE_CONTEXT_KEY)
 
 func _context_key_for_context(context: Dictionary) -> StringName:
-	var camera_entity_id: StringName = _variant_to_string_name(_get_context_value(context, "camera_entity_id"))
+	var camera_entity_id: StringName = U_RuleUtils.variant_to_string_name(U_RuleUtils.get_context_value(context, "camera_entity_id"))
 	if camera_entity_id != StringName():
 		return camera_entity_id
 
-	var entity_id: StringName = _variant_to_string_name(_get_context_value(context, "entity_id"))
+	var entity_id: StringName = U_RuleUtils.variant_to_string_name(U_RuleUtils.get_context_value(context, "entity_id"))
 	if entity_id != StringName():
 		return entity_id
 
@@ -313,16 +313,16 @@ func _select_primary_camera_context(contexts: Array) -> Dictionary:
 	return fallback
 
 func _is_primary_camera_context(context: Dictionary) -> bool:
-	var id_variant: Variant = _get_context_value(context, "camera_entity_id")
+	var id_variant: Variant = U_RuleUtils.get_context_value(context, "camera_entity_id")
 	if id_variant == null:
-		id_variant = _get_context_value(context, "entity_id")
-	var entity_id: StringName = _variant_to_string_name(id_variant)
+		id_variant = U_RuleUtils.get_context_value(context, "entity_id")
+	var entity_id: StringName = U_RuleUtils.variant_to_string_name(id_variant)
 	if entity_id == PRIMARY_CAMERA_ENTITY_ID:
 		return true
 
-	var tags_variant: Variant = _get_context_value(context, "camera_entity_tags")
+	var tags_variant: Variant = U_RuleUtils.get_context_value(context, "camera_entity_tags")
 	if tags_variant == null:
-		tags_variant = _get_context_value(context, "entity_tags")
+		tags_variant = U_RuleUtils.get_context_value(context, "entity_tags")
 	if tags_variant is Array:
 		var tags: Array = tags_variant as Array
 		return tags.has(PRIMARY_CAMERA_ENTITY_ID) or tags.has(String(PRIMARY_CAMERA_ENTITY_ID))
@@ -372,9 +372,9 @@ func _ensure_baseline_fov(camera_state: Variant, fallback_fov: float) -> float:
 	return resolved_baseline
 
 func _is_fov_zone_active(context: Dictionary) -> bool:
-	var state_variant: Variant = _get_context_value(context, "state")
+	var state_variant: Variant = U_RuleUtils.get_context_value(context, "state")
 	if state_variant == null:
-		state_variant = _get_context_value(context, "redux_state")
+		state_variant = U_RuleUtils.get_context_value(context, "redux_state")
 	if not (state_variant is Dictionary):
 		return false
 	return U_VCAM_SELECTORS.is_in_fov_zone(state_variant as Dictionary)
@@ -417,7 +417,7 @@ func _write_speed_fov_bonus(camera_state: Variant, value: float) -> void:
 	if camera_state == null or not (camera_state is Object):
 		return
 	var object_value: Object = camera_state as Object
-	if not _object_has_property(object_value, "speed_fov_bonus"):
+	if not U_RuleUtils.object_has_property(object_value, "speed_fov_bonus"):
 		return
 	object_value.set("speed_fov_bonus", maxf(value, 0.0))
 
@@ -462,38 +462,9 @@ func _get_camera_state_float(camera_state: Variant, property_name: String, fallb
 	if camera_state == null or not (camera_state is Object):
 		return fallback
 	var object_value: Object = camera_state as Object
-	if not _object_has_property(object_value, property_name):
+	if not U_RuleUtils.object_has_property(object_value, property_name):
 		return fallback
-	return _get_float_property(object_value, property_name, fallback)
-
-func _object_has_property(object_value: Object, property_name: String) -> bool:
-	var properties: Array[Dictionary] = object_value.get_property_list()
-	for property_info in properties:
-		var name_value: Variant = property_info.get("name", "")
-		if str(name_value) == property_name:
-			return true
-	return false
-
-func _is_script_instance_of(object_value: Object, script_ref: Script) -> bool:
-	if object_value == null:
-		return false
-	if script_ref == null:
-		return false
-
-	var current: Variant = object_value.get_script()
-	while current != null and current is Script:
-		if current == script_ref:
-			return true
-		current = (current as Script).get_base_script()
-	return false
-
-func _get_float_property(object_value: Object, property_name: String, fallback: float) -> float:
-	if not _object_has_property(object_value, property_name):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is float or value is int:
-		return float(value)
-	return fallback
+	return U_RuleUtils.read_float_property(object_value, property_name, fallback)
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 	if camera_manager != null:
@@ -521,33 +492,6 @@ func _get_frame_state_snapshot() -> Dictionary:
 		return store.get_state()
 	return {}
 
-func _extract_event_names_from_rule(rule_variant: Variant) -> Array[StringName]:
-	var event_names: Array[StringName] = []
-	if rule_variant == null or not (rule_variant is Object):
-		return event_names
-
-	var conditions_variant: Variant = (rule_variant as Object).get("conditions")
-	if not (conditions_variant is Array):
-		return event_names
-
-	for condition_variant in conditions_variant as Array:
-		var condition_event_name: StringName = _extract_event_name_from_condition(condition_variant)
-		if condition_event_name == StringName():
-			continue
-		if event_names.has(condition_event_name):
-			continue
-		event_names.append(condition_event_name)
-
-	return event_names
-
-func _extract_event_name_from_condition(condition_variant: Variant) -> StringName:
-	if condition_variant == null or not (condition_variant is Object):
-		return StringName()
-	var condition_object: Object = condition_variant as Object
-	if not _is_script_instance_of(condition_object, CONDITION_EVENT_NAME_SCRIPT):
-		return StringName()
-	return _read_string_name_property(condition_object, "expected_event_name")
-
 func _extract_event_payload(event_data: Dictionary) -> Dictionary:
 	var payload_variant: Variant = event_data.get("payload", null)
 	if payload_variant is Dictionary:
@@ -555,62 +499,6 @@ func _extract_event_payload(event_data: Dictionary) -> Dictionary:
 	if event_data is Dictionary:
 		return event_data.duplicate(true)
 	return {}
-
-func _get_context_value(dictionary: Dictionary, key: String) -> Variant:
-	if dictionary.has(key):
-		return dictionary.get(key)
-
-	var key_name: StringName = StringName(key)
-	if dictionary.has(key_name):
-		return dictionary.get(key_name)
-
-	return null
-
-func _variant_to_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value as StringName
-	if value is String:
-		var text: String = value
-		if text.is_empty():
-			return StringName()
-		return StringName(text)
-	return StringName()
-
-func _read_string_property(object_value: Variant, property_name: String, fallback: String) -> String:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = (object_value as Object).get(property_name)
-	if value is String:
-		return value
-	if value is StringName:
-		return String(value)
-	return fallback
-
-func _read_string_name_property(object_value: Variant, property_name: String) -> StringName:
-	if object_value == null or not (object_value is Object):
-		return StringName()
-	var value: Variant = (object_value as Object).get(property_name)
-	if value is StringName:
-		return value
-	if value is String:
-		return StringName(value)
-	return StringName()
-
-func _read_float_property(object_value: Variant, property_name: String, fallback: float) -> float:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = (object_value as Object).get(property_name)
-	if value is float or value is int:
-		return float(value)
-	return fallback
-
-func _read_bool_property(object_value: Variant, property_name: String, fallback: bool) -> bool:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = (object_value as Object).get(property_name)
-	if value is bool:
-		return value
-	return fallback
 
 func _resolve_winner_score(winner: Dictionary) -> float:
 	var score_variant: Variant = winner.get("score", 1.0)
@@ -646,7 +534,7 @@ func _resolve_primary_movement_component() -> Variant:
 
 func _is_primary_player_query(entity_query: Object) -> bool:
 	if entity_query.has_method("get_entity_id"):
-		var entity_id: StringName = _variant_to_string_name(entity_query.call("get_entity_id"))
+		var entity_id: StringName = U_RuleUtils.variant_to_string_name(entity_query.call("get_entity_id"))
 		if entity_id == PRIMARY_PLAYER_ENTITY_ID:
 			return true
 	if entity_query.has_method("get_tags"):

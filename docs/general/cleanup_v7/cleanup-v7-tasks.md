@@ -35,34 +35,31 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C1: Rule Evaluation Pipeline Extraction
+## Milestone C1: Rule Evaluation Pipeline Extraction — COMPLETE
 
-**Goal**: Extract the shared rule evaluation lifecycle across `s_camera_state_system`, `s_character_state_system`, and `s_game_event_system`. These systems already share `U_RuleScorer`, `U_RuleSelector`, and `U_RuleStateTracker` for scoring, selection, and cooldown/rising-edge/one-shot tracking. What remains duplicated is the orchestration pipeline that calls into those utilities: `_refresh_active_rules`, `_subscribe_rule_events`, `_evaluate_context`, `_get_applicable_rules`, `_apply_state_gates`, `_execute_effects`, `_mark_fired_rules`, `_resolve_rule_id`.
+**Completed**: 2026-04-11
 
-**Approach**: `U_RuleEvaluator` is a composed utility, not a base class. Systems call `evaluator.refresh()`, `evaluator.subscribe()`, `evaluator.evaluate()` etc. at the appropriate points in their own lifecycle. This matches the existing `U_RuleScorer`/`U_RuleSelector`/`U_RuleStateTracker` pattern.
+**Summary**: `U_RuleEvaluator` (commits 1-5) was already in place — systems already delegated rule evaluation orchestration to it. Commit 6 extracted property reader utilities to `U_RuleUtils`, eliminating ~150 lines of duplicated code across 5 files. `U_RuleEvaluator` itself was updated to delegate property reads to `U_RuleUtils`.
 
-**Property reader scope**: Most property readers are triple-duplicated (all 3 systems), but some exist in only 2 of 3 files:
-- `_object_has_property`: in camera_state and character_state, NOT game_event
-- `_variant_to_string_name` and `_get_context_value`: in camera_state and game_event, NOT character_state
-- `_variant_to_string_name` is also duplicated in `u_vcam_runtime_context.gd` and `u_vcam_landing_impact.gd` — these callers must be migrated too.
-
-- [ ] **Commit 1** — Add rule evaluator tests (TDD RED):
-  - `tests/unit/ecs/systems/test_u_rule_evaluator.gd` — test rule lifecycle: refresh, subscribe/unsubscribe, context evaluation, applicable-rules filtering, state gates, fired-rule marking, rule ID resolution.
-  - `tests/unit/style/test_style_enforcement.gd` — add grep test asserting `s_camera_state_system`, `s_character_state_system`, and `s_game_event_system` no longer define `_refresh_active_rules`, `_get_applicable_rules`, `_apply_state_gates`, `_mark_fired_rules` locally (will fail until GREEN commit).
-- [ ] **Commit 2** — Implement `U_RuleEvaluator` (TDD GREEN):
-  - `scripts/utils/ecs/u_rule_evaluator.gd` — extract the shared rule evaluation lifecycle. The evaluator holds rule set, subscriptions, fired tracking, and context. Concrete systems call into it at appropriate points in their own lifecycle. Systems inject context-building and effect-execution via callbacks.
-- [ ] **Commit 3** — Refactor `s_camera_state_system.gd` to use `U_RuleEvaluator`. Keep all existing camera-specific behavior; only the orchestration moves to the shared evaluator.
-- [ ] **Commit 4** — Refactor `s_character_state_system.gd` to use `U_RuleEvaluator`.
-- [ ] **Commit 5** — Refactor `s_game_event_system.gd` to use `U_RuleEvaluator`.
-- [ ] **Commit 6** — Extract property reader utilities:
-  - `scripts/utils/ecs/u_rule_utils.gd` — move `_read_string_property`, `_read_string_name_property`, `_read_bool_property`, `_read_float_property`, `_is_script_instance_of`, `_object_has_property`, `_variant_to_string_name`, `_get_context_value`, `_extract_event_names_from_rule` out of all three rule systems into this shared utility. Delete the duplicated private methods from each system. Also migrate `_variant_to_string_name` callers in `u_vcam_runtime_context.gd` and `u_vcam_landing_impact.gd`.
+- [x] **Commit 1** — Add rule evaluator tests (TDD RED): `tests/unit/ecs/systems/test_u_rule_evaluator.gd`
+- [x] **Commit 2** — Implement `U_RuleEvaluator` (TDD GREEN): `scripts/utils/ecs/u_rule_evaluator.gd`
+- [x] **Commit 3** — Refactor `s_camera_state_system.gd` to use `U_RuleEvaluator`
+- [x] **Commit 4** — Refactor `s_character_state_system.gd` to use `U_RuleEvaluator`
+- [x] **Commit 5** — Refactor `s_game_event_system.gd` to use `U_RuleEvaluator`
+- [x] **Commit 6** — Extract property reader utilities to `U_RuleUtils`:
+  - Created `scripts/utils/ecs/u_rule_utils.gd` with static methods: `read_string_property`, `read_string_name_property`, `read_bool_property`, `read_float_property`, `is_script_instance_of`, `object_has_property`, `variant_to_string_name`, `get_context_value`, `extract_event_names_from_rule` (with composite condition support).
+  - Migrated `s_camera_state_system.gd`, `s_character_state_system.gd`, `s_game_event_system.gd` to use `U_RuleUtils`.
+  - Migrated `u_vcam_runtime_context.gd` and `u_vcam_landing_impact.gd` to use `U_RuleUtils.variant_to_string_name`.
+  - Updated `U_RuleEvaluator` to delegate property reads to `U_RuleUtils`.
+  - Added `test_rule_systems_and_helpers_do_not_duplicate_property_readers` style enforcement grep test.
+  - Created `tests/unit/ecs/test_u_rule_utils.gd` (44 tests, all green).
 
 **C1 Verification**:
-- [ ] All new `U_RuleEvaluator` and `U_RuleUtils` tests green
-- [ ] Existing camera-state, character-state, game-event tests green (no behavior change)
-- [ ] Grep-based style test green (no local rule pipeline methods in the three systems)
-- [ ] `test_style_enforcement.gd` passes
-- [ ] `_variant_to_string_name` no longer defined in `u_vcam_runtime_context.gd` or `u_vcam_landing_impact.gd`
+- [x] All new `U_RuleEvaluator` and `U_RuleUtils` tests green
+- [x] Existing camera-state, character-state, game-event tests green (no behavior change)
+- [x] Grep-based style test green (no local rule pipeline methods in the three systems)
+- [x] `test_style_enforcement.gd` passes
+- [x] `_variant_to_string_name` no longer defined in `u_vcam_runtime_context.gd` or `u_vcam_landing_impact.gd`
 
 ---
 

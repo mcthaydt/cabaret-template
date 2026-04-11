@@ -11,7 +11,7 @@ const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_c
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
-const CONDITION_EVENT_NAME_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
+const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const FLOATING_TYPE := C_FLOATING_COMPONENT.COMPONENT_TYPE
@@ -72,7 +72,7 @@ func _refresh_rule_evaluator() -> void:
 func _subscribe_rule_events() -> void:
 	_rule_evaluator.subscribe(
 		func(rule_variant: Variant) -> Array[StringName]:
-			return _extract_event_names_from_rule(rule_variant),
+			return U_RuleUtils.extract_event_names_from_rule(rule_variant),
 		func(event_name: StringName, event_payload: Dictionary) -> void:
 			_on_rule_event(event_name, event_payload)
 	)
@@ -249,12 +249,12 @@ func _populate_health_state(context: Dictionary, health_component: Variant) -> v
 	var current_health: float = 0.0
 	if health_component.has_method("get_max_health"):
 		max_health = maxf(float(health_component.call("get_max_health")), 0.0)
-	elif _object_has_property(health_component, "max_health"):
+	elif U_RuleUtils.object_has_property(health_component, "max_health"):
 		max_health = maxf(float(health_component.get("max_health")), 0.0)
 
 	if health_component.has_method("get_current_health"):
 		current_health = maxf(float(health_component.call("get_current_health")), 0.0)
-	elif _object_has_property(health_component, "current_health"):
+	elif U_RuleUtils.object_has_property(health_component, "current_health"):
 		current_health = maxf(float(health_component.get("current_health")), 0.0)
 
 	if max_health > 0.0:
@@ -380,91 +380,3 @@ func _get_frame_state_snapshot() -> Dictionary:
 		return store.get_state()
 	return {}
 
-func _extract_event_names_from_rule(rule_variant: Variant) -> Array[StringName]:
-	var event_names: Array[StringName] = []
-	if rule_variant == null or not (rule_variant is Object):
-		return event_names
-
-	var conditions_variant: Variant = (rule_variant as Object).get("conditions")
-	if not (conditions_variant is Array):
-		return event_names
-
-	for condition_variant in conditions_variant as Array:
-		var condition_event_name: StringName = _extract_event_name_from_condition(condition_variant)
-		if condition_event_name == StringName():
-			continue
-		if event_names.has(condition_event_name):
-			continue
-		event_names.append(condition_event_name)
-
-	return event_names
-
-func _extract_event_name_from_condition(condition_variant: Variant) -> StringName:
-	if condition_variant == null or not (condition_variant is Object):
-		return StringName()
-	var condition_object: Object = condition_variant as Object
-	if not _is_script_instance_of(condition_object, CONDITION_EVENT_NAME_SCRIPT):
-		return StringName()
-	return _read_string_name_property(condition_object, "expected_event_name")
-
-func _object_has_property(target: Variant, property_name: String) -> bool:
-	if target == null or not (target is Object):
-		return false
-
-	var property_list: Array[Dictionary] = (target as Object).get_property_list()
-	for entry in property_list:
-		if not (entry is Dictionary):
-			continue
-		if String(entry.get("name", "")) == property_name:
-			return true
-
-	return false
-
-func _is_script_instance_of(object_value: Object, script_ref: Script) -> bool:
-	if object_value == null:
-		return false
-	if script_ref == null:
-		return false
-
-	var current: Variant = object_value.get_script()
-	while current != null and current is Script:
-		if current == script_ref:
-			return true
-		current = (current as Script).get_base_script()
-	return false
-
-func _read_string_property(object_value: Variant, property_name: String, fallback: String = "") -> String:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is String:
-		return value
-	if value is StringName:
-		return String(value)
-	return fallback
-
-func _read_string_name_property(object_value: Variant, property_name: String) -> StringName:
-	if object_value == null or not (object_value is Object):
-		return StringName()
-	var value: Variant = object_value.get(property_name)
-	if value is StringName:
-		return value
-	if value is String:
-		return StringName(value)
-	return StringName()
-
-func _read_bool_property(object_value: Variant, property_name: String, fallback: bool = false) -> bool:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is bool:
-		return value
-	return fallback
-
-func _read_float_property(object_value: Variant, property_name: String, fallback: float = 0.0) -> float:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is float or value is int:
-		return float(value)
-	return fallback

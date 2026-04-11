@@ -4,13 +4,15 @@
 
 This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 
-**Branch**: TBD (create from current branch or main)
-**Status**: Not started — begin at C1
-**Next Task**: Begin C1 (Rule Evaluation Pipeline Extraction) in `docs/general/cleanup_v7/cleanup-v7-tasks.md`
+**Branch**: GOAP-AI
+**Status**: C1 complete — begin C2
+**Next Task**: Begin C2 (Typed Rule Context) in `docs/general/cleanup_v7/cleanup-v7-tasks.md`
 
 ---
 
-## Current Status: Not Started
+## Current Status: C1 Complete
+
+- **C1 (Rule Evaluation Pipeline Extraction)**: COMPLETE — `U_RuleEvaluator` already orchestrated the rule pipeline (commits 1-5 pre-existing). Commit 6 extracted property reader utilities to `U_RuleUtils`, removing ~150 lines of duplication across 5 files. All 3974 tests green, style enforcement passes.
 
 - **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
 - **C12 standalone doc**: `docs/general/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.
