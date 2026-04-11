@@ -133,9 +133,7 @@ func _resolve_config() -> RS_VictoryInteractionConfig:
 	return null
 
 func _resolve_store() -> void:
-	if _store != null and is_instance_valid(_store):
-		return
-	_store = U_StateUtils.try_get_store(self)
+	_store = U_DependencyResolution.resolve_state_store(_store, null, self) as I_StateStore
 
 func _connect_store() -> void:
 	if _store == null:

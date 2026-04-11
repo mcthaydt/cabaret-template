@@ -3,7 +3,6 @@ extends "res://scripts/interfaces/i_character_lighting_manager.gd"
 class_name M_CharacterLightingManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_CHARACTER_LIGHTING_BLEND_MATH := preload("res://scripts/utils/lighting/u_character_lighting_blend_math.gd")
 const U_CHARACTER_LIGHTING_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_character_lighting_material_applier.gd")
@@ -154,24 +153,16 @@ func _prune_invalid_zones() -> void:
 	_zones = active
 
 func _resolve_dependencies() -> void:
-	if state_store != null and is_instance_valid(state_store):
-		_state_store = state_store
-	elif _state_store == null or not is_instance_valid(_state_store):
-		_state_store = U_STATE_UTILS.try_get_store(self)
-		if _state_store == null:
-			_state_store = U_SERVICE_LOCATOR.try_get_service(STATE_SERVICE) as I_StateStore
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_StateStore
+	_scene_manager = U_DependencyResolution.resolve(SCENE_SERVICE, _scene_manager, scene_manager) as I_SceneManager
 
-	if scene_manager != null and is_instance_valid(scene_manager):
-		_scene_manager = scene_manager
-	elif _scene_manager == null or not is_instance_valid(_scene_manager):
-		_scene_manager = U_SERVICE_LOCATOR.try_get_service(SCENE_SERVICE) as I_SceneManager
-
-	if ecs_manager != null and is_instance_valid(ecs_manager):
-		_ecs_manager = ecs_manager
-	elif _ecs_manager == null or not is_instance_valid(_ecs_manager):
-		_ecs_manager = U_ECS_UTILS.get_manager(self)
-		if _ecs_manager == null:
-			_ecs_manager = U_SERVICE_LOCATOR.try_get_service(ECS_SERVICE)
+	if _ecs_manager == null or not is_instance_valid(_ecs_manager):
+		if ecs_manager != null and is_instance_valid(ecs_manager):
+			_ecs_manager = ecs_manager
+		else:
+			_ecs_manager = U_ECS_UTILS.get_manager(self)
+			if _ecs_manager == null:
+				_ecs_manager = U_SERVICE_LOCATOR.try_get_service(ECS_SERVICE)
 
 func _connect_store_action_signal() -> void:
 	if _store_action_connected:

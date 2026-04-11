@@ -1,8 +1,6 @@
 extends CSGBox3D
 class_name Inter_AIDemoGuardBarrier
 
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
-
 @export var open_flag_id: StringName = StringName("showcase_guard_door_open")
 @export var hide_when_open: bool = true
 @export var disable_collision_when_open: bool = true
@@ -47,7 +45,5 @@ func _is_flag_enabled(flag_id: StringName) -> bool:
 	return bool(flags.get(flag_id, false))
 
 func _resolve_store() -> I_StateStore:
-	if _store != null and is_instance_valid(_store):
-		return _store
-	_store = U_STATE_UTILS.try_get_store(self)
+	_store = U_DependencyResolution.resolve_state_store(_store, null, self)
 	return _store

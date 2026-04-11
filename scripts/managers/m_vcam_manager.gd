@@ -3,7 +3,6 @@ extends "res://scripts/interfaces/i_vcam_manager.gd"
 class_name M_VCamManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
@@ -479,30 +478,15 @@ func _resolve_mode_name(mode: Resource) -> String:
 	return file_name
 
 func _resolve_state_store() -> I_StateStore:
-	if _state_store != null and is_instance_valid(_state_store):
-		return _state_store
-	if state_store != null and is_instance_valid(state_store):
-		_state_store = state_store
-		return _state_store
-	_state_store = U_STATE_UTILS.try_get_store(self)
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self)
 	return _state_store
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
-	if _camera_manager != null and is_instance_valid(_camera_manager):
-		return _camera_manager
-	if camera_manager != null and is_instance_valid(camera_manager):
-		_camera_manager = camera_manager
-		return _camera_manager
-	_camera_manager = U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
+	_camera_manager = U_DependencyResolution.resolve(&"camera_manager", _camera_manager, camera_manager) as I_CAMERA_MANAGER
 	return _camera_manager
 
 func _resolve_ecs_manager() -> I_ECS_MANAGER:
-	if _ecs_manager != null and is_instance_valid(_ecs_manager):
-		return _ecs_manager
-	if ecs_manager != null and is_instance_valid(ecs_manager):
-		_ecs_manager = ecs_manager
-		return _ecs_manager
-	_ecs_manager = U_SERVICE_LOCATOR.try_get_service(StringName("ecs_manager")) as I_ECS_MANAGER
+	_ecs_manager = U_DependencyResolution.resolve(&"ecs_manager", _ecs_manager, ecs_manager) as I_ECS_MANAGER
 	return _ecs_manager
 
 func _try_apply_for_current_frame() -> void:

@@ -3,7 +3,6 @@ extends I_RunCoordinator
 class_name M_RunCoordinatorManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
@@ -34,17 +33,9 @@ func _exit_tree() -> void:
 	_disconnect_store_action_signal()
 
 func _resolve_store() -> void:
-	var resolved_store: I_StateStore = null
-
-	if state_store != null and is_instance_valid(state_store):
-		resolved_store = state_store
-	elif _store != null and is_instance_valid(_store):
-		resolved_store = _store
-	else:
-		resolved_store = U_STATE_UTILS.try_get_store(self)
-		if resolved_store == null:
-			resolved_store = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
-
+	var resolved_store: I_StateStore = U_DependencyResolution.resolve_state_store(_store, state_store, self) as I_StateStore
+	if resolved_store == null:
+		resolved_store = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
 	_set_store_reference(resolved_store)
 
 func _set_store_reference(next_store: I_StateStore) -> void:
