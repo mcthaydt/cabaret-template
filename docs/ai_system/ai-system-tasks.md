@@ -20,9 +20,9 @@
   - `test_primitive_task_action_defaults_to_null` — action is optional (null until assigned)
 - [x] **Commit 2** — Implement `i_ai_action.gd`, `rs_ai_task.gd`, `rs_ai_primitive_task.gd`, `rs_ai_compound_task.gd` (TDD GREEN):
   - `scripts/interfaces/i_ai_action.gd` — interface with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)` (matches I_Condition/I_Effect pattern)
-  - `scripts/resources/ai/rs_ai_task.gd` — base Resource with `@export var task_id: StringName`
-  - `scripts/resources/ai/rs_ai_primitive_task.gd` — extends RS_AITask with `@export var action: Resource` (I_AIAction)
-  - `scripts/resources/ai/rs_ai_compound_task.gd` — extends RS_AITask with `subtasks: Array[Resource]`, `method_conditions: Array[Resource]`
+  - `scripts/resources/ai/tasks/rs_ai_task.gd` — base Resource with `@export var task_id: StringName`
+  - `scripts/resources/ai/tasks/rs_ai_primitive_task.gd` — extends RS_AITask with `@export var action: Resource` (I_AIAction)
+  - `scripts/resources/ai/tasks/rs_ai_compound_task.gd` — extends RS_AITask with `subtasks: Array[Resource]`, `method_conditions: Array[Resource]`
 - [x] **Commit 3** — Verify style enforcement passes; refactor if needed
 
 **M1 Verification**:
@@ -422,7 +422,7 @@
 **Goal**: Prevent floating AI from falling indefinitely by recovering to authored spawn points (no last-supported-position dependency).
 
 - [x] **Commit 1** — Extend AI brain settings + spawn manager API:
-  - `scripts/resources/ai/rs_ai_brain_settings.gd` adds:
+  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd` adds:
     - `respawn_spawn_point_id: StringName`
     - `respawn_unsupported_delay_sec: float`
     - `respawn_recovery_cooldown_sec: float`

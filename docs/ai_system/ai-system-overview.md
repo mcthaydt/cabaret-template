@@ -66,12 +66,12 @@ C_AIBrainComponent (scripts/ecs/components/c_ai_brain_component.gd)  [extends Ba
   └── task_state: Dictionary  (per-task scratch data)
 
 Resources:
-  RS_AIBrainSettings  (scripts/resources/ai/rs_ai_brain_settings.gd)
+  RS_AIBrainSettings  (scripts/resources/ai/brain/rs_ai_brain_settings.gd)
     ├── goals: Array[RS_AIGoal]         (candidate goals for this NPC)
     ├── default_goal_id: StringName     (fallback when no goal scores > 0)
     └── evaluation_interval: float      (ticks between full re-evaluations, default 0.5s)
 
-  RS_AIGoal  (scripts/resources/ai/rs_ai_goal.gd)
+  RS_AIGoal  (scripts/resources/ai/goals/rs_ai_goal.gd)
     ├── goal_id: StringName
     ├── conditions: Array[Resource]     (QB v2 typed conditions — scored 0.0-1.0)
     ├── root_task: RS_AITask            (HTN entry point when this goal wins)
@@ -81,14 +81,14 @@ Resources:
     ├── one_shot: bool                  (if true, goal is spent after first fire)
     └── requires_rising_edge: bool      (if true, goal only fires on false->true transitions)
 
-  RS_AITask  (scripts/resources/ai/rs_ai_task.gd)  [base class]
+  RS_AITask  (scripts/resources/ai/tasks/rs_ai_task.gd)  [base class]
     ├── task_id: StringName
 
-  RS_AICompoundTask  (scripts/resources/ai/rs_ai_compound_task.gd)  [extends RS_AITask]
+  RS_AICompoundTask  (scripts/resources/ai/tasks/rs_ai_compound_task.gd)  [extends RS_AITask]
     ├── subtasks: Array[RS_AITask]      (ordered decomposition)
     ├── method_conditions: Array[Resource]  (QB conditions for decomposition applicability)
 
-  RS_AIPrimitiveTask  (scripts/resources/ai/rs_ai_primitive_task.gd)  [extends RS_AITask]
+  RS_AIPrimitiveTask  (scripts/resources/ai/tasks/rs_ai_primitive_task.gd)  [extends RS_AITask]
     └── action: Resource                (I_AIAction — typed action resource with @export fields)
 
   I_AIAction  (scripts/interfaces/i_ai_action.gd)  [interface]

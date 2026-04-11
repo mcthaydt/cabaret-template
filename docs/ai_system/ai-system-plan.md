@@ -51,9 +51,9 @@ M4 depends only on M1 (RS_AITask types) so it can run in parallel with M2/M3. M9
 
 - [x] Write tests for RS_AIPrimitiveTask, RS_AICompoundTask, and I_AIAction interface contract (field assignment, type checks, subtask ordering, action interface detection)
 - [x] Implement `scripts/interfaces/i_ai_action.gd` — interface with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)` contract (matching I_Condition/I_Effect pattern)
-- [x] Implement `scripts/resources/ai/rs_ai_task.gd` — base class extending Resource with `@export var task_id: StringName`
-- [x] Implement `scripts/resources/ai/rs_ai_primitive_task.gd` — extends RS_AITask with `@export var action: Resource` (I_AIAction)
-- [x] Implement `scripts/resources/ai/rs_ai_compound_task.gd` — extends RS_AITask with `subtasks`, `method_conditions`
+- [x] Implement `scripts/resources/ai/tasks/rs_ai_task.gd` — base class extending Resource with `@export var task_id: StringName`
+- [x] Implement `scripts/resources/ai/tasks/rs_ai_primitive_task.gd` — extends RS_AITask with `@export var action: Resource` (I_AIAction)
+- [x] Implement `scripts/resources/ai/tasks/rs_ai_compound_task.gd` — extends RS_AITask with `subtasks`, `method_conditions`
 - [x] Verify style enforcement passes
 
 M1 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/resources/test_rs_ai_task.gd` (initial 5/5 passing; current 6/6 after audit hardening test coverage for `method_conditions`), style enforcement passed (17/17), and full-suite run currently reports `3627/3636` passing with `9` pending/risky headless/platform skips and `0` failing tests.
@@ -61,8 +61,8 @@ M1 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/re
 ### M2 — Goal & Brain Settings Resources
 
 - [x] Write tests for RS_AIGoal and RS_AIBrainSettings (field defaults, goal arrays, condition compatibility)
-- [x] Implement `scripts/resources/ai/rs_ai_goal.gd` — `goal_id`, `conditions: Array[Resource]`, `root_task: Resource`, `priority: int`, plus QB gate fields (`score_threshold`, `cooldown`, `one_shot`, `requires_rising_edge`)
-- [x] Implement `scripts/resources/ai/rs_ai_brain_settings.gd` — `goals: Array[Resource]`, `default_goal_id`, `evaluation_interval: float`
+- [x] Implement `scripts/resources/ai/goals/rs_ai_goal.gd` — `goal_id`, `conditions: Array[Resource]`, `root_task: Resource`, `priority: int`, plus QB gate fields (`score_threshold`, `cooldown`, `one_shot`, `requires_rising_edge`)
+- [x] Implement `scripts/resources/ai/brain/rs_ai_brain_settings.gd` — `goals: Array[Resource]`, `default_goal_id`, `evaluation_interval: float`
 - [x] Verify RS_AIGoal.conditions accepts existing QB condition types
 
 M2 completion note (2026-04-02): RED/GREEN cycle completed for `tests/unit/ai/resources/test_rs_ai_goal.gd` (initial 5/5 passing; current 6/6 after audit hardening for goal gate fields), style enforcement passed (17/17), and full-suite run currently reports `3666/3675` passing with `9` pending/risky headless/platform/mobile skips and `0` failing tests.
@@ -212,11 +212,11 @@ M10 completion note (2026-04-02): Added full demo archetype resource trees under
 | File | Type | Description |
 |------|------|-------------|
 | `scripts/interfaces/i_ai_action.gd` | Interface | Action contract: `start()`, `tick()`, `is_complete()` |
-| `scripts/resources/ai/rs_ai_task.gd` | Resource | Base task class with task_id |
-| `scripts/resources/ai/rs_ai_primitive_task.gd` | Resource | Primitive task wrapper holding `action: Resource` (I_AIAction) |
-| `scripts/resources/ai/rs_ai_compound_task.gd` | Resource | Compound task with subtasks, method_conditions |
-| `scripts/resources/ai/rs_ai_goal.gd` | Resource | Goal with conditions, root_task, priority, and QB gate fields (`score_threshold`, `cooldown`, `one_shot`, `requires_rising_edge`) |
-| `scripts/resources/ai/rs_ai_brain_settings.gd` | Resource | Brain settings with goals array, defaults, evaluation config |
+| `scripts/resources/ai/tasks/rs_ai_task.gd` | Resource | Base task class with task_id |
+| `scripts/resources/ai/tasks/rs_ai_primitive_task.gd` | Resource | Primitive task wrapper holding `action: Resource` (I_AIAction) |
+| `scripts/resources/ai/tasks/rs_ai_compound_task.gd` | Resource | Compound task with subtasks, method_conditions |
+| `scripts/resources/ai/goals/rs_ai_goal.gd` | Resource | Goal with conditions, root_task, priority, and QB gate fields (`score_threshold`, `cooldown`, `one_shot`, `requires_rising_edge`) |
+| `scripts/resources/ai/brain/rs_ai_brain_settings.gd` | Resource | Brain settings with goals array, defaults, evaluation config |
 | `scripts/ecs/components/c_ai_brain_component.gd` | Component | AI brain ECS component with runtime state and required-settings validation |
 | `scripts/utils/ai/u_htn_planner.gd` | Utility | HTN decomposition utility with recursive flattening, cycle detection, and method-condition branch selection via `U_RuleScorer` |
 | `scripts/resources/ai/actions/rs_ai_action_wait.gd` | Resource | Instant wait action implementing `I_AIAction`; tracks elapsed task state |

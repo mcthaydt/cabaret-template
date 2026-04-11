@@ -5,26 +5,26 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 + Refactor R1-R6 complete — AI system refactor in progress (R7–R10 remaining)
-**Next Task**: Begin R7 in `docs/ai_system/ai-system-refactor-tasks.md` (Reorganize AI Resource Directories)
+**Status**: Milestone 15 + Refactor R1-R7 complete — AI system refactor in progress (R8–R10 remaining)
+**Next Task**: Begin R8 in `docs/ai_system/ai-system-refactor-tasks.md` (Move Demo-Only Systems Out of Production Folder)
 
 ---
 
-## Current Status: Milestone 15 + Refactor R1-R6 Complete
+## Current Status: Milestone 15 + Refactor R1-R7 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
-- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R6 are complete; start at R7.**
+- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R7 are complete; start at R8.**
 
 ### Completed in M1 (2026-04-02)
 
 - Added `tests/unit/ai/resources/test_rs_ai_task.gd` with red-green resource/interface tests (now 6 total including post-M2 audit hardening for `method_conditions`).
 - Implemented:
   - `scripts/interfaces/i_ai_action.gd`
-  - `scripts/resources/ai/rs_ai_task.gd`
-  - `scripts/resources/ai/rs_ai_primitive_task.gd`
-  - `scripts/resources/ai/rs_ai_compound_task.gd`
+  - `scripts/resources/ai/tasks/rs_ai_task.gd`
+  - `scripts/resources/ai/tasks/rs_ai_primitive_task.gd`
+  - `scripts/resources/ai/tasks/rs_ai_compound_task.gd`
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_task.gd` → `6/6` passing
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing
@@ -34,8 +34,8 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 - Added `tests/unit/ai/resources/test_rs_ai_goal.gd` with the 5 required red-green tests (now 6 total after audit hardening for goal gate fields).
 - Implemented:
-  - `scripts/resources/ai/rs_ai_goal.gd`
-  - `scripts/resources/ai/rs_ai_brain_settings.gd`
+  - `scripts/resources/ai/goals/rs_ai_goal.gd`
+  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd`
 - Verification:
   - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` failed with expected missing-script assertions.
   - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` → `5/5` passing (current `6/6` after audit hardening).
@@ -216,7 +216,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 - Added AI spawn-point recovery hardening (no last-supported-position dependency):
   - `scripts/ecs/systems/s_ai_spawn_recovery_system.gd`
-  - `scripts/resources/ai/rs_ai_brain_settings.gd` respawn exports
+  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd` respawn exports
   - `scripts/interfaces/i_spawn_manager.gd` + `scripts/managers/m_spawn_manager.gd` generic entity spawn API
 - Added/updated scene and resource authoring:
   - `resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres`
@@ -362,10 +362,10 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/ai/resources/test_rs_ai_task.gd` (expanded to `9/9`)
   - `tests/unit/ecs/components/test_c_ai_brain_component.gd` (expanded to `11/11`)
 - Implemented typed AI data contracts:
-  - `scripts/resources/ai/rs_ai_brain_settings.gd` (`goals: Array[RS_AIGoal]`)
-  - `scripts/resources/ai/rs_ai_goal.gd` (`root_task: RS_AITask`, `conditions: Array[I_Condition]`)
-  - `scripts/resources/ai/rs_ai_primitive_task.gd` (`action: I_AIAction`)
-  - `scripts/resources/ai/rs_ai_compound_task.gd` (`subtasks: Array[RS_AITask]`, `method_conditions: Array[I_Condition]`)
+  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd` (`goals: Array[RS_AIGoal]`)
+  - `scripts/resources/ai/goals/rs_ai_goal.gd` (`root_task: RS_AITask`, `conditions: Array[I_Condition]`)
+  - `scripts/resources/ai/tasks/rs_ai_primitive_task.gd` (`action: I_AIAction`)
+  - `scripts/resources/ai/tasks/rs_ai_compound_task.gd` (`subtasks: Array[RS_AITask]`, `method_conditions: Array[I_Condition]`)
   - `scripts/ecs/components/c_ai_brain_component.gd` (`brain_settings: RS_AIBrainSettings`, `current_task_queue: Array[RS_AIPrimitiveTask]`, typed accessors)
 - Removed AI hot-path duck-typing usage from `scripts/ecs/systems/s_ai_behavior_system.gd` in favor of typed brain/settings/goal/task/action flow.
 - Verification:
@@ -496,7 +496,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `scripts/ecs/components/c_spawn_recovery_component.gd`
   - `scripts/ecs/systems/s_spawn_recovery_system.gd`
 - Migrated AI/player wiring to shared component settings:
-  - Removed respawn fields from `scripts/resources/ai/rs_ai_brain_settings.gd`.
+  - Removed respawn fields from `scripts/resources/ai/brain/rs_ai_brain_settings.gd`.
   - Added `resources/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres`.
   - Added `C_SpawnRecoveryComponent` to `scenes/prefabs/prefab_demo_npc.tscn` and `scenes/prefabs/prefab_player.tscn`.
   - Added defaults:
@@ -550,6 +550,35 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `18/18`
   - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3912/3921` passing, `9` pending/risky, `0` failing.
 
+### Completed in R7 (2026-04-10)
+
+- Added RED/GREEN style-layout guard:
+  - `tests/unit/style/test_style_enforcement.gd`
+    - Added `test_ai_resource_scripts_are_grouped_by_subdirectory` to enforce AI resource layout under `scripts/resources/ai/{brain,goals,tasks,actions}/`.
+- Reorganized AI resource scripts and `.uid` sidecars:
+  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd`
+  - `scripts/resources/ai/goals/rs_ai_goal.gd`
+  - `scripts/resources/ai/tasks/rs_ai_task.gd`
+  - `scripts/resources/ai/tasks/rs_ai_primitive_task.gd`
+  - `scripts/resources/ai/tasks/rs_ai_compound_task.gd`
+- Updated all script/resource path consumers:
+  - `preload(...)` and `extends` call sites across `scripts/` and `tests/`.
+  - `resources/ai/**/*.tres` `ext_resource` script paths.
+  - AI doc references in `docs/ai_system/`.
+- Ran class-cache refresh after moving `class_name` scripts:
+  - `HOME="$PWD/.godot_user" /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` → `10/10`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_task.gd` → `9/9`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `17/17`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd` → `6/6`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `19/20` (new R7 test passes; existing `test_rule_systems_do_not_define_local_rule_pipeline_helpers` fails)
+  - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3913/3929` passing, `7` failing, `9` pending/risky.
+  - Remaining failures are outside R7 scope:
+    - `tests/unit/ecs/systems/test_u_rule_evaluator.gd` (`6` tests failing; missing `res://scripts/utils/ecs/u_rule_evaluator.gd`)
+    - `tests/unit/style/test_style_enforcement.gd::test_rule_systems_do_not_define_local_rule_pipeline_helpers`
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -579,6 +608,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **R4 stretch migration is complete**: shared debug-throttle usage now covers `S_FloatingSystem`, `S_GravitySystem`, `S_MovementSystem`, and the spawn-recovery system lineage (`S_AISpawnRecoverySystem` pre-R5, `S_SpawnRecoverySystem` post-R5); recursive `CharacterBody3D` lookup is now centralized via `U_NodeFind`.
 - **R5 shared spawn-recovery migration is complete**: `S_SpawnRecoverySystem` + `C_SpawnRecoveryComponent` + `RS_SpawnRecoverySettings` now own unsupported-entity recovery for both player and NPC flows; AI-brain-owned `respawn_*` fields were removed from `RS_AIBrainSettings`, and legacy `S_AISpawnRecoverySystem` was deleted.
 - **R6 move-target follower generalization is complete**: move-target following is now shared runtime behavior (`C_MoveTargetComponent` + `S_MoveTargetFollowerSystem`) with AI-task-state fallback for compatibility; `S_AINavigationSystem` was removed.
+- **R7 AI resource directory reorganization is complete**: AI core resources are now grouped by concept under `scripts/resources/ai/brain/`, `scripts/resources/ai/goals/`, `scripts/resources/ai/tasks/`, and `scripts/resources/ai/actions/`; style enforcement now guards against new top-level `rs_ai_*.gd` drift.
 
 ---
 
@@ -641,7 +671,7 @@ M1–M15 are complete. **The AI system refactor is in progress.** Work through t
 4. **R4** — Extract Debug Probe + Log Throttle Utilities (delete duplicated `_build_render_probe` + `_tick_debug_log_cooldowns`) **COMPLETE (2026-04-10)**
 5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`) **COMPLETE (2026-04-10)**
 6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`) **COMPLETE (2026-04-10)**
-7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`)
+7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`) **COMPLETE (2026-04-10)**
 8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/`)
 9. **R9** — HTN Planner Context Object (collapse recursive params into `HTNPlannerContext`)
 10. **R10** — Behavior System Orchestration Integration (final pass: `s_ai_behavior_system.gd` under 200 lines)
@@ -691,8 +721,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin R7** in `docs/ai_system/ai-system-refactor-tasks.md` — Reorganize AI resource directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`).
-2. Proceed through R7–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
+1. **Begin R8** in `docs/ai_system/ai-system-refactor-tasks.md` — Move demo-only systems out of production ECS folders (`s_ai_demo_alarm_relay_system.gd`).
+2. Proceed through R8–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
 3. Optional follow-up (post-refactor): run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
 4. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
 5. Merge `GOAP-AI` once R1–R10 and regression review pass.
