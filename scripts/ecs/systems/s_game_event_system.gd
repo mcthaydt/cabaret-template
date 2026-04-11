@@ -4,7 +4,6 @@ class_name S_GameEventSystem
 
 const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 const EFFECT_PUBLISH_EVENT_SCRIPT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
@@ -191,9 +190,7 @@ func _context_key_for_context(context: Dictionary) -> StringName:
 	return StringName()
 
 func _resolve_store() -> I_StateStore:
-	if state_store != null:
-		return state_store
-	return U_STATE_UTILS.try_get_store(self)
+	return U_DependencyResolution.resolve_state_store(null, state_store, self)
 
 func _is_publish_event_effect(effect_variant: Variant) -> bool:
 	if effect_variant == null or not (effect_variant is Object):

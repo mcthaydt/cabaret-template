@@ -7,7 +7,6 @@ const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_c
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 
 const DETECTION_COMPONENT_TYPE := C_DETECTION_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
@@ -157,10 +156,5 @@ func _publish_enter_event(query: Object, detection: Variant, nearest_player: Dic
 	U_ECSEventBus.publish(detection.enter_event_name, payload)
 
 func _resolve_store() -> I_StateStore:
-	if _store != null and is_instance_valid(_store):
-		return _store
-	if state_store != null and is_instance_valid(state_store):
-		_store = state_store
-		return _store
-	_store = U_STATE_UTILS.try_get_store(self)
+	_store = U_DependencyResolution.resolve_state_store(_store, state_store, self)
 	return _store

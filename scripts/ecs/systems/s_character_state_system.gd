@@ -10,7 +10,6 @@ const C_HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_compo
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 
@@ -343,9 +342,7 @@ func _resolve_vertical_state(context: Dictionary) -> int:
 			return C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_GROUNDED
 
 func _resolve_store() -> I_StateStore:
-	if state_store != null:
-		return state_store
-	return U_STATE_UTILS.try_get_store(self)
+	return U_DependencyResolution.resolve_state_store(null, state_store, self)
 
 func _get_frame_state_snapshot() -> Dictionary:
 	var manager := get_manager()

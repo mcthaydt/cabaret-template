@@ -42,6 +42,21 @@ func get_manager() -> I_ECSManager:
 		return ecs_manager
 	return _manager
 
+## Resolves a named service via the standard cache → export → ServiceLocator pattern.
+## Delegates to U_DependencyResolution.resolve() for consistent dependency resolution.
+##
+## Parameters:
+##   service_name: The ServiceLocator service key (e.g., &"camera_manager")
+##   cached_value: Private cache variable (e.g., _camera_manager), or null
+##   exported_value: @export property (e.g., camera_manager), or null
+##
+## Returns the resolved service, or null if unavailable.
+##
+## Example:
+##   _camera_manager = resolve_service(&"camera_manager", _camera_manager, camera_manager) as I_CameraManager
+func resolve_service(service_name: StringName, cached_value: Variant = null, exported_value: Variant = null) -> Variant:
+	return U_DependencyResolution.resolve(service_name, cached_value, exported_value)
+
 func get_components(component_type: StringName) -> Array:
 	if _manager == null:
 		return []

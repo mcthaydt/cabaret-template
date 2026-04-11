@@ -4,8 +4,6 @@ class_name S_CameraStateSystem
 
 const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
@@ -466,21 +464,11 @@ func _get_camera_state_float(camera_state: Variant, property_name: String, fallb
 	return U_RuleUtils.read_float_property(object_value, property_name, fallback)
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
-	if camera_manager != null:
-		return camera_manager
-	if _camera_manager != null and is_instance_valid(_camera_manager):
-		return _camera_manager
-
-	var service: Variant = U_SERVICE_LOCATOR.try_get_service(CAMERA_MANAGER_SERVICE)
-	if service is I_CAMERA_MANAGER:
-		_camera_manager = service as I_CAMERA_MANAGER
-		return _camera_manager
-	return null
+	_camera_manager = U_DependencyResolution.resolve(CAMERA_MANAGER_SERVICE, _camera_manager, camera_manager) as I_CAMERA_MANAGER
+	return _camera_manager
 
 func _resolve_store() -> I_StateStore:
-	if state_store != null:
-		return state_store
-	return U_STATE_UTILS.try_get_store(self)
+	return U_DependencyResolution.resolve_state_store(null, state_store, self)
 
 func _get_frame_state_snapshot() -> Dictionary:
 	var manager := get_manager()

@@ -3,7 +3,6 @@ extends BaseECSSystem
 class_name S_WallVisibilitySystem
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
@@ -712,24 +711,12 @@ func _resolve_component_origin(component: Object, fallback_target: Node3D) -> Ve
 # --- Dependency resolution ---
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
-	if camera_manager != null:
-		return camera_manager
-	if _camera_manager != null and is_instance_valid(_camera_manager):
-		return _camera_manager
-	var service: Variant = U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager"))
-	if service is I_CAMERA_MANAGER:
-		_camera_manager = service as I_CAMERA_MANAGER
-		return _camera_manager
-	return null
+	_camera_manager = U_DependencyResolution.resolve(&"camera_manager", _camera_manager, camera_manager) as I_CAMERA_MANAGER
+	return _camera_manager
 
 
 func _resolve_state_store() -> I_STATE_STORE:
-	if _state_store != null and is_instance_valid(_state_store):
-		return _state_store
-	if state_store != null and is_instance_valid(state_store):
-		_state_store = state_store
-		return _state_store
-	_state_store = U_STATE_UTILS.try_get_store(self)
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_STATE_STORE
 	return _state_store
 
 

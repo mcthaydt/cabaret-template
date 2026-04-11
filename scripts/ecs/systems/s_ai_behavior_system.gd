@@ -3,7 +3,6 @@ extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
@@ -120,9 +119,7 @@ func _should_evaluate_goals(
 	return true
 
 func _resolve_store() -> I_StateStore:
-	if state_store != null and is_instance_valid(state_store):
-		return state_store
-	return U_STATE_UTILS.try_get_store(self)
+	return U_DependencyResolution.resolve_state_store(null, state_store, self)
 
 func _resolve_redux_state(store: I_StateStore) -> Dictionary:
 	var manager: I_ECSManager = get_manager()

@@ -3,7 +3,6 @@ extends BaseECSSystem
 class_name S_DemoAlarmRelaySystem
 
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 
 @export var state_store: I_StateStore = null
 @export var relay_event_name: StringName = StringName("ai_alarm_triggered")
@@ -46,12 +45,7 @@ func _on_alarm_event(_payload: Variant) -> void:
 		store.dispatch(U_GAMEPLAY_ACTIONS.set_ai_demo_flag(flag_id, relay_flag_value))
 
 func _resolve_store() -> I_StateStore:
-	if _store != null and is_instance_valid(_store):
-		return _store
-	if state_store != null and is_instance_valid(state_store):
-		_store = state_store
-		return _store
-	_store = U_STATE_UTILS.try_get_store(self)
+	_store = U_DependencyResolution.resolve_state_store(_store, state_store, self)
 	return _store
 
 func _exit_tree() -> void:
