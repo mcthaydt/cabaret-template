@@ -1,7 +1,7 @@
 # AI System Refactor — Tasks Checklist
 
 **Branch**: `GOAP-AI` (or follow-up branch)
-**Status**: R1-R7 complete (2026-04-10); next milestone R8
+**Status**: R1-R8 complete (2026-04-11); next milestone R9
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-overview.md`, `docs/ai_system/ai-system-tasks.md`
 
@@ -29,7 +29,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 `R3` and `R4` can overlap — R4 lifts debug code out; R3 splits the rest of the behavior system.
 `R5` and `R6` are the "share with player" milestones — independent of each other.
 `R7` is a mechanical reorg, safer after R1–R6 settle.
-`R8` is a trivial move.
+`R8` landed as the demo-only alarm-relay move out of production ECS folders.
 `R9` is an internal planner cleanup (safe once callers are strongly typed).
 `R10` is the final orchestration integration pass.
 
@@ -467,9 +467,9 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 **Goal**: `s_ai_demo_alarm_relay_system.gd` is Signal Lost–specific. It doesn't belong next to production AI systems.
 
-- [ ] **Commit 1** — Add style enforcement test (TDD RED):
+- [x] **Commit 1** — Add style enforcement test (TDD RED):
   - Extend `tests/unit/style/test_style_enforcement.gd`: assert no file matching `scripts/ecs/systems/*.gd` contains `_demo_` in its filename
-- [ ] **Commit 2** — Move file and update wiring (TDD GREEN):
+- [x] **Commit 2** — Move file and update wiring (TDD GREEN):
   - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/s_demo_alarm_relay_system.gd`. Rationale: the existing convention already groups demo-specific gameplay scripts flat under `scripts/gameplay/` (see `inter_ai_demo_flag_zone.gd`, `inter_ai_demo_guard_barrier.gd`). Introducing a new `demo_signal_lost/` subfolder would break that convention — avoid it unless that reorganization is its own separate milestone. Verify the style test rule covers the new location.
   - Caveat: `scripts/gameplay/` currently holds interactable controllers (`inter_*.gd`, `base_*.gd`). An ECS `System` at that level is a new shape. If the style test enforces "no `s_*.gd` files under `scripts/gameplay/`", relax it or create `scripts/gameplay/ecs_systems/` as a subfolder — decide at R8 execution time, not speculatively.
   - Rename class to `S_DemoAlarmRelaySystem`
@@ -477,11 +477,30 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - Update `.uid` references and rename the sibling test file `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd`
 
 **R8 Verification**:
-- [ ] New style test green
-- [ ] `test_ai_pipeline_integration.gd` green
-- [ ] Comms array demo scene loads and alarm relay fires as before
+- [x] New style test green
+- [x] `test_ai_pipeline_integration.gd` green
+- [x] Showcase demo scene loads and alarm relay fires as before
 
-**R8 Completion Notes**: _(to be filled during execution)_
+**R8 Completion Notes**:
+- Added RED/GREEN style enforcement for demo-only ECS script placement:
+  - `tests/unit/style/test_style_enforcement.gd` now includes `test_ecs_system_filenames_do_not_include_demo_marker`.
+- Moved and renamed demo-only alarm relay runtime:
+  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/s_demo_alarm_relay_system.gd`
+  - `class_name S_AIDemoAlarmRelaySystem` → `class_name S_DemoAlarmRelaySystem`
+- Updated gameplay prefix guard to allow gameplay-scoped ECS systems:
+  - `tests/unit/style/test_style_enforcement.gd` `SCRIPT_PREFIX_RULES["res://scripts/gameplay"]` now includes `s_`.
+- Updated scene/test wiring:
+  - `scenes/gameplay/gameplay_ai_showcase.tscn` now wires `S_DemoAlarmRelaySystem` from `res://scripts/gameplay/s_demo_alarm_relay_system.gd`.
+  - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd`.
+  - `tests/unit/ai/resources/test_ai_showcase_scene.gd` now asserts `Systems/Core/S_DemoAlarmRelaySystem`.
+  - `tests/integration/gameplay/test_ai_interaction_triggers.gd` now loads `res://scripts/gameplay/s_demo_alarm_relay_system.gd`.
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`21/21`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/gameplay/test_s_demo_alarm_relay_system.gd` (`3/3`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/integration/gameplay/test_ai_interaction_triggers.gd` (`9/9`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_showcase_scene.gd` (`18/18`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` (`6/6`)
+  - Full regression snapshot (2026-04-11): `tools/run_gut_suite.sh` -> `3921/3930` passing, `9` pending/risky, `0` failing.
 
 ---
 
@@ -545,7 +564,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 | R5 | `c_spawn_recovery_component.gd` *(new)*, `rs_spawn_recovery_settings.gd` *(new)*, `s_spawn_recovery_system.gd` *(new)*, `s_ai_spawn_recovery_system.gd` *(delete)*, `rs_ai_brain_settings.gd`, all NPC brain `.tres` files, `prefab_demo_npc.tscn`, player prefab/template |
 | R6 | `c_move_target_component.gd` *(new)*, `s_move_target_follower_system.gd` *(new)*, `s_ai_navigation_system.gd` *(delete)*, gameplay `.tscn` files |
 | R7 | every `scripts/resources/ai/rs_ai_*.gd` *(move)*, every `.tres` and `preload()` referencing them |
-| R8 | `s_ai_demo_alarm_relay_system.gd` *(move/rename)*, `gameplay_comms_array.tscn` |
+| R8 | `s_demo_alarm_relay_system.gd` *(move/rename)*, `gameplay_ai_showcase.tscn`, `test_s_demo_alarm_relay_system.gd` *(move/rename)* |
 | R9 | `u_htn_planner.gd` |
 | R10 | `s_ai_behavior_system.gd` |
 

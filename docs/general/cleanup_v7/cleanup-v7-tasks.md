@@ -89,7 +89,7 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 **Goal**: Extract the "check private cache → check export → fallback to ServiceLocator" pattern that's duplicated across 17 methods in 13 files into a shared utility on `BaseECSSystem` (for ECS systems) and `U_ServiceLocator` convenience (for managers and other nodes). Eliminates near-identical `_resolve_store`, `_resolve_state_store`, `_resolve_camera_manager`, `_resolve_ecs_manager`, `_resolve_dependencies` methods.
 
 **Scope**: 13 files total:
-- ECS systems: `s_camera_state_system`, `s_character_state_system`, `s_game_event_system`, `s_ai_detection_system`, `s_ai_behavior_system`, `s_ai_demo_alarm_relay_system`, `s_wall_visibility_system`, `s_region_visibility_system`
+- ECS systems: `s_camera_state_system`, `s_character_state_system`, `s_game_event_system`, `s_ai_detection_system`, `s_ai_behavior_system`, `s_demo_alarm_relay_system`, `s_wall_visibility_system`, `s_region_visibility_system`
 - Managers: `m_vcam_manager`, `m_character_lighting_manager`, `m_display_manager`
 - Gameplay: `inter_victory_zone`, `inter_ai_demo_guard_barrier`
 - Helpers: `u_vcam_debug`

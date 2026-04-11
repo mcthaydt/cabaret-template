@@ -665,13 +665,13 @@
 - RED/GREEN coverage added:
   - `tests/unit/ecs/components/test_c_detection_component.gd` (`4/4`)
   - `tests/unit/ecs/systems/test_s_ai_detection_system.gd` (`5/5`)
-  - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` (`3/3`)
+  - `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd` (`3/3`, renamed from `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` during R8)
   - `tests/unit/ai/resources/test_ai_showcase_scene.gd` expanded to `18/18` with M15 wiring assertions
   - `tests/integration/gameplay/test_ai_interaction_triggers.gd` (`9/9`) — integration test for detection→flag→event→relay pipeline
 - Implemented:
   - `scripts/ecs/components/c_detection_component.gd`
   - `scripts/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
-  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` (`execution_priority = -11`)
+  - `scripts/gameplay/s_demo_alarm_relay_system.gd` (`execution_priority = -11`, moved from `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` during R8)
   - `scripts/gameplay/inter_ai_demo_guard_barrier.gd`
   - `resources/ai/guide_prism/cfg_goal_idle_showcase.tres`
   - `resources/ai/guide_prism/cfg_goal_show_path_showcase.tres`
@@ -693,7 +693,7 @@
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_detection_component.gd` → `4/4`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_detection_system.gd` → `5/5`
-  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `3/3`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/gameplay/test_s_demo_alarm_relay_system.gd` → `3/3`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_showcase_scene.gd` → `18/18`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
   - Full regression snapshot: `tools/run_gut_suite.sh` → `3820/3859` passing, `30` failing, `9` pending/risky (current failures concentrated in wall-visibility/vcam suites, outside M15 diff scope).

@@ -5,17 +5,17 @@
 This guide directs you to implement the AI System (GOAP / HTN) by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `GOAP-AI`
-**Status**: Milestone 15 + Refactor R1-R7 complete — AI system refactor in progress (R8–R10 remaining)
-**Next Task**: Begin R8 in `docs/ai_system/ai-system-refactor-tasks.md` (Move Demo-Only Systems Out of Production Folder)
+**Status**: Milestone 15 + Refactor R1-R8 complete — AI system refactor in progress (R9–R10 remaining)
+**Next Task**: Begin R9 in `docs/ai_system/ai-system-refactor-tasks.md` (HTN Planner Context Object)
 
 ---
 
-## Current Status: Milestone 15 + Refactor R1-R7 Complete
+## Current Status: Milestone 15 + Refactor R1-R8 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
-- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R7 are complete; start at R8.**
+- **Refactor Tasks (ACTIVE)**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R8 are complete; start at R9.**
 
 ### Completed in M1 (2026-04-02)
 
@@ -327,12 +327,12 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Added RED/GREEN interaction-trigger coverage:
   - `tests/unit/ecs/components/test_c_detection_component.gd` (`4/4`)
   - `tests/unit/ecs/systems/test_s_ai_detection_system.gd` (`5/5`)
-  - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` (`3/3`)
+  - `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd` (`3/3`, renamed from `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` during R8)
   - `tests/unit/ai/resources/test_ai_showcase_scene.gd` expanded to `18/18` with M15 assertions
 - Implemented new detection + relay runtime:
   - `scripts/ecs/components/c_detection_component.gd`
   - `scripts/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
-  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` (`execution_priority = -11`)
+  - `scripts/gameplay/s_demo_alarm_relay_system.gd` (`execution_priority = -11`, moved from `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` during R8)
   - `scripts/gameplay/inter_ai_demo_guard_barrier.gd`
 - Updated showcase behavior/resources for trigger-driven interactions:
   - Added guide showcase resources:
@@ -342,7 +342,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - Updated `resources/ai/sentry/cfg_goal_investigate_disturbance.tres` to publish `ai_alarm_triggered` for cross-NPC cascade behavior.
   - Updated `scenes/prefabs/prefab_demo_npc.tscn` to include `C_DetectionComponent`.
   - Updated `scenes/gameplay/gameplay_ai_showcase.tscn` with:
-    - systems: `S_AIDetectionSystem`, `S_AIDemoAlarmRelaySystem`
+    - systems: `S_AIDetectionSystem`, `S_DemoAlarmRelaySystem`
     - interactions: `Inter_AlarmButton`, `Inter_DoorSwitch`, `Inter_GuideCollectible`
     - barrier listener node: `SO_GuardBarrier` (`Inter_AIDemoGuardBarrier`)
 - Implementation contract correction:
@@ -350,7 +350,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_detection_component.gd` → `4/4`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_detection_system.gd` → `5/5`
-  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `3/3`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/gameplay/test_s_demo_alarm_relay_system.gd` → `3/3`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_showcase_scene.gd` → `18/18`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17`
   - Full regression snapshot: `tools/run_gut_suite.sh` → `3820/3859` passing, `30` failing, `9` pending/risky (failures concentrated in wall-visibility/vcam suites, outside M15 change set).
@@ -579,6 +579,27 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
     - `tests/unit/ecs/systems/test_u_rule_evaluator.gd` (`6` tests failing; missing `res://scripts/utils/ecs/u_rule_evaluator.gd`)
     - `tests/unit/style/test_style_enforcement.gd::test_rule_systems_do_not_define_local_rule_pipeline_helpers`
 
+### Completed in R8 (2026-04-11)
+
+- Added RED/GREEN demo-placement style coverage:
+  - `tests/unit/style/test_style_enforcement.gd` now includes `test_ecs_system_filenames_do_not_include_demo_marker`.
+- Moved demo-only alarm relay runtime and test out of production ECS folders:
+  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/s_demo_alarm_relay_system.gd`
+  - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd`
+  - Relay class renamed `S_AIDemoAlarmRelaySystem` → `S_DemoAlarmRelaySystem`
+- Updated wiring and compatibility call sites:
+  - `scenes/gameplay/gameplay_ai_showcase.tscn` now wires `S_DemoAlarmRelaySystem` from `scripts/gameplay/s_demo_alarm_relay_system.gd`.
+  - `tests/integration/gameplay/test_ai_interaction_triggers.gd` now loads the gameplay-scoped relay script path.
+  - `tests/unit/ai/resources/test_ai_showcase_scene.gd` now validates `Systems/Core/S_DemoAlarmRelaySystem`.
+  - `tests/unit/style/test_style_enforcement.gd` gameplay prefix rules now permit `s_` scripts in `scripts/gameplay/`.
+- Verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `21/21`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/gameplay/test_s_demo_alarm_relay_system.gd` → `3/3`
+  - `tools/run_gut_suite.sh -gtest=res://tests/integration/gameplay/test_ai_interaction_triggers.gd` → `9/9`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_ai_showcase_scene.gd` → `18/18`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
+  - Full regression snapshot: `tools/run_gut_suite.sh` → `3921/3930` passing, `9` pending/risky, `0` failing.
+
 ### Key Design Decisions
 
 - **GOAP + HTN**: QB v2 scores goals (GOAP layer), winning goal's root task is decomposed by HTN planner into primitive actions.
@@ -599,7 +620,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **Default new-game routing now targets the AI showcase**: New Game + splash preload + retry routing resolve to `ai_showcase` (updated in M14 from `power_core`).
 - **M13 character stack unification is complete**: authored NPCs now instance `prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`), so they share the same baseline runtime component stack as player characters while excluding player-only components.
 - **M14 combined showcase is complete**: `gameplay_ai_showcase.tscn` hosts all three archetypes simultaneously — two patrol drones (zone A), one sentry (zone B), one guide prism (zone C) — in a single 60×30 CSG room. NPC brain overrides use `parent_id_path=PackedInt32Array(<npc_uid>, 1373490017)` (Components node UID in `prefab_demo_npc.tscn`). Both patrol drones share `cfg_patrol_drone_brain.tres` and recover to `sp_ai_patrol_drone`.
-- **M15 proximity/cascade trigger runtime is complete**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` provide player-range enter/exit state and optional enter-event publication; `S_AIDemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` into durable gameplay flags for cross-NPC reactions.
+- **M15 proximity/cascade trigger runtime is complete**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` provide player-range enter/exit state and optional enter-event publication; `S_DemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` into durable gameplay flags for cross-NPC reactions.
 - **M15 AI demo flag dispatch uses gameplay actions, not navigation actions**: use `U_GameplayActions.set_ai_demo_flag(...)` for alarm/door/collectible/proximity flag updates.
 - **R1 typed AI contracts are now enforced in runtime resources/components**: brain/goal/task/action references are strongly typed (`RS_AIBrainSettings`, `RS_AIGoal`, `RS_AITask`, `RS_AIPrimitiveTask`, `I_AIAction`, `I_Condition`) and AI hot-path logic no longer relies on `_read_*_property` duck-typing.
 - **R2 shared task-state keys + action-base hardening are complete**: AI move-target/arrival/action-started/debug keys now resolve through `U_AITaskStateKeys`, and all concrete AI actions extend `I_AIAction` by class name with assert-based base virtual safeguards.
@@ -609,6 +630,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **R5 shared spawn-recovery migration is complete**: `S_SpawnRecoverySystem` + `C_SpawnRecoveryComponent` + `RS_SpawnRecoverySettings` now own unsupported-entity recovery for both player and NPC flows; AI-brain-owned `respawn_*` fields were removed from `RS_AIBrainSettings`, and legacy `S_AISpawnRecoverySystem` was deleted.
 - **R6 move-target follower generalization is complete**: move-target following is now shared runtime behavior (`C_MoveTargetComponent` + `S_MoveTargetFollowerSystem`) with AI-task-state fallback for compatibility; `S_AINavigationSystem` was removed.
 - **R7 AI resource directory reorganization is complete**: AI core resources are now grouped by concept under `scripts/resources/ai/brain/`, `scripts/resources/ai/goals/`, `scripts/resources/ai/tasks/`, and `scripts/resources/ai/actions/`; style enforcement now guards against new top-level `rs_ai_*.gd` drift.
+- **R8 demo-only system placement is complete**: demo relay runtime moved to `scripts/gameplay/s_demo_alarm_relay_system.gd` (`S_DemoAlarmRelaySystem`), `scripts/ecs/systems` now rejects `_demo_` filenames via style enforcement, and showcase/integration tests are wired to the gameplay-scoped relay path.
 
 ---
 
@@ -663,7 +685,7 @@ Study these for utility and event patterns:
 
 ### 4. Execute AI System Refactor Tasks in Order
 
-M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R7.
+M1–M15 are complete. **The AI system refactor is in progress.** Work through the milestones in `docs/ai_system/ai-system-refactor-tasks.md` sequentially, continuing from R8.
 
 1. **R1** — Typed Brain Settings, Goals, and Tasks (eliminate `_read_*_property` duck-typing from the AI hot path) **COMPLETE (2026-04-10)**
 2. **R2** — Promote `I_AIAction` to a Proper Action Base + Task State Keys Registry **COMPLETE (2026-04-10)**
@@ -672,7 +694,7 @@ M1–M15 are complete. **The AI system refactor is in progress.** Work through t
 5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`) **COMPLETE (2026-04-10)**
 6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`) **COMPLETE (2026-04-10)**
 7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`) **COMPLETE (2026-04-10)**
-8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/`)
+8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/s_demo_alarm_relay_system.gd`) **COMPLETE (2026-04-11)**
 9. **R9** — HTN Planner Context Object (collapse recursive params into `HTNPlannerContext`)
 10. **R10** — Behavior System Orchestration Integration (final pass: `s_ai_behavior_system.gd` under 200 lines)
 
@@ -711,7 +733,7 @@ You MUST:
 - **Animate Stub Scope (implemented)**: `RS_AIActionAnimate` sets `task_state["animation_state"]` to a StringName and completes immediately. Full animation system integration is a separate effort.
 - **M7/M12/R6 Movement Bridge (implemented + generalized)**: `RS_AIActionMoveTo` writes task-state entries keyed by `U_AITaskStateKeys.MOVE_TARGET` + `U_AITaskStateKeys.ARRIVAL_THRESHOLD`; `S_MoveTargetFollowerSystem` (`execution_priority = -5`) resolves world-space XZ direction into `C_InputComponent.set_move_vector()`, prefers active `C_MoveTargetComponent` targets, and keeps AI task-state fallback compatibility; `S_MovementSystem` consumes world-space vectors for AI entities while preserving player camera-relative controls.
 - **R5 shared spawn recovery contract (implemented)**: `S_SpawnRecoverySystem` is now the canonical unsupported-entity recovery system for both player and NPC flows and consumes `C_SpawnRecoveryComponent.settings: RS_SpawnRecoverySettings` (not AI brain fields). Player recovery with empty `spawn_point_id` uses `I_SpawnManager.spawn_at_last_spawn(...)`; authored entity recovery uses `spawn_entity_at_point(...)`; successful recovery clears move vector/body velocity and AI `task_state` when present.
-- **M15 interaction trigger contract (implemented)**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` own player-proximity enter/exit state, and `S_AIDemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` to durable gameplay flags. Demo-flag updates dispatch via `U_GameplayActions.set_ai_demo_flag(...)`.
+- **M15 interaction trigger contract (implemented)**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` own player-proximity enter/exit state, and `S_DemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` to durable gameplay flags. Demo-flag updates dispatch via `U_GameplayActions.set_ai_demo_flag(...)`.
 - **Shared runtime wiring is now default**: both `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` include `S_AIBehaviorSystem(-10)` and `S_MoveTargetFollowerSystem(-5)` before `S_InputSystem(0)`.
 - **Demo Scenes are CSG Prototypes**: Use CSG geometry for all level geometry. Functional prototypes, not polished levels.
 - **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and node naming prefixes (S_, C_, RS_, U_, I_, E_, etc.).
@@ -721,8 +743,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin R8** in `docs/ai_system/ai-system-refactor-tasks.md` — Move demo-only systems out of production ECS folders (`s_ai_demo_alarm_relay_system.gd`).
-2. Proceed through R8–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
+1. **Begin R9** in `docs/ai_system/ai-system-refactor-tasks.md` — HTN Planner Context Object (`U_HTNPlannerContext` extraction).
+2. Proceed through R9–R10 in order; each milestone has its own RED/GREEN/refactor commit cadence. Update the completion-notes slot in `ai-system-refactor-tasks.md` inline after each milestone.
 3. Optional follow-up (post-refactor): run in-editor playtest passes to tune waypoint spacing, scan durations, cooldown values, and detection radii for feel.
 4. Optional stabilization: triage current non-AI wall-visibility/vcam regressions in full-suite runs before branch merge.
 5. Merge `GOAP-AI` once R1–R10 and regression review pass.
