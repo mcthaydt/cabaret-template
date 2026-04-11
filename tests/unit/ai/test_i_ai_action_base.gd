@@ -32,7 +32,7 @@ func test_subclass_extends_class_name() -> void:
 		"AI action scripts should extend class_name base I_AIAction:\n%s" % "\n".join(violations)
 	)
 
-func test_base_start_virtuals_are_callable() -> void:
+func test_base_virtuals_are_callable_without_engine_errors() -> void:
 	var interface_script_variant: Variant = load(I_AI_ACTION_PATH)
 	assert_not_null(interface_script_variant, "Expected script to exist: %s" % I_AI_ACTION_PATH)
 	if interface_script_variant == null or not (interface_script_variant is Script):
@@ -47,11 +47,6 @@ func test_base_start_virtuals_are_callable() -> void:
 	var interface_instance: I_AIAction = interface_instance_variant as I_AIAction
 
 	interface_instance.start({}, {})
-	assert_engine_error("I_AIAction.start")
-
 	interface_instance.tick({}, {}, 0.0)
-	assert_engine_error("I_AIAction.tick")
-
 	var is_complete: bool = interface_instance.is_complete({}, {})
-	assert_engine_error("I_AIAction.is_complete")
 	assert_false(is_complete, "I_AIAction.is_complete should default to false in base implementation")

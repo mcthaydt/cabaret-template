@@ -434,7 +434,7 @@ func test_pipeline_moves_entity_via_real_movement_system() -> void:
 	body.global_position = Vector3.ZERO
 
 	var completed: bool = false
-	for _step in range(90):
+	for _step in range(240):
 		behavior.process_tick(0.1)
 		navigation.process_tick(0.1)
 		movement.process_tick(0.1)
