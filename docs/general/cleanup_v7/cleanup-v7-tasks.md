@@ -1,0 +1,327 @@
+# Cross-System Cleanup — Tasks Checklist
+
+**Branch**: TBD
+**Status**: Not started
+**Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
+**Scope**: Modularity, DRY, scalability, and designer-friendliness improvements across managers and ECS systems. No behavioral changes. All existing integration tests must stay green throughout.
+
+---
+
+## Purpose
+
+Over time, managers and ECS systems have accumulated shared patterns that were implemented independently rather than abstracted. This cleanup is a targeted, backwards-compatible pass to:
+
+1. **DRY** — Extract the rule evaluation pipeline, property readers, dependency resolution, and state snapshot helpers that are copy-pasted across 3–6 systems.
+2. **Modularity** — Decompose god methods, separate mixed concerns, and enforce boundaries (selectors over direct state access, typed contexts over magic-string dictionaries).
+3. **Scalability** — Replace hardcoded limits, flat dictionaries, and naming-convention coupling with data-driven patterns that grow without code changes.
+4. **Designer-friendliness** — Move gameplay-feel constants from `const`/inline literals into `Resource` configs and eliminate fragile node-name conventions.
+
+---
+
+## Sequencing
+
+`C1` lands first — eliminates the widest DRY violation (rule pipeline + property readers) and unblocks typed context work in C2.
+`C2` depends on C1 — typed contexts need the property reader utilities extracted in C1.
+`C3` is independent — dependency resolution extraction touches many files but is mechanical.
+`C4` is independent — can overlap with C1–C3.
+`C5` is independent of C2/C3 — wall visibility decomposition is internal, no typed context or shared resolution dependency.
+`C6` is independent of C2/C3 — overlay extraction is internal to scene manager.
+`C7` depends on C2 (typed contexts) and C3 (shared resolution).
+`C8` is independent — selector enforcement for managers is self-contained.
+`C9` depends on C4 (Resource config pattern established by BaseECSSystem snapshot method) — migrates constants to configs.
+`C10` depends on C8 (selectors) and C3 (shared resolution) — replaces naming-convention coupling.
+`C11` depends on C8 — extends selector enforcement to systems, helpers, interactables, and UI files once the manager patterns are established.
+
+---
+
+## Milestone C1: Rule Evaluation Pipeline Extraction
+
+**Goal**: Extract the shared rule evaluation lifecycle across `s_camera_state_system`, `s_character_state_system`, and `s_game_event_system`. These systems already share `U_RuleScorer`, `U_RuleSelector`, and `U_RuleStateTracker` for scoring, selection, and cooldown/rising-edge/one-shot tracking. What remains duplicated is the orchestration pipeline that calls into those utilities: `_refresh_active_rules`, `_subscribe_rule_events`, `_evaluate_context`, `_get_applicable_rules`, `_apply_state_gates`, `_execute_effects`, `_mark_fired_rules`, `_resolve_rule_id`.
+
+**Approach**: `U_RuleEvaluator` is a composed utility, not a base class. Systems call `evaluator.refresh()`, `evaluator.subscribe()`, `evaluator.evaluate()` etc. at the appropriate points in their own lifecycle. This matches the existing `U_RuleScorer`/`U_RuleSelector`/`U_RuleStateTracker` pattern.
+
+**Property reader scope**: Most property readers are triple-duplicated (all 3 systems), but some exist in only 2 of 3 files:
+- `_object_has_property`: in camera_state and character_state, NOT game_event
+- `_variant_to_string_name` and `_get_context_value`: in camera_state and game_event, NOT character_state
+- `_variant_to_string_name` is also duplicated in `u_vcam_runtime_context.gd` and `u_vcam_landing_impact.gd` — these callers must be migrated too.
+
+- [ ] **Commit 1** — Add rule evaluator tests (TDD RED):
+  - `tests/unit/ecs/systems/test_u_rule_evaluator.gd` — test rule lifecycle: refresh, subscribe/unsubscribe, context evaluation, applicable-rules filtering, state gates, fired-rule marking, rule ID resolution.
+  - `tests/unit/style/test_style_enforcement.gd` — add grep test asserting `s_camera_state_system`, `s_character_state_system`, and `s_game_event_system` no longer define `_refresh_active_rules`, `_get_applicable_rules`, `_apply_state_gates`, `_mark_fired_rules` locally (will fail until GREEN commit).
+- [ ] **Commit 2** — Implement `U_RuleEvaluator` (TDD GREEN):
+  - `scripts/utils/ecs/u_rule_evaluator.gd` — extract the shared rule evaluation lifecycle. The evaluator holds rule set, subscriptions, fired tracking, and context. Concrete systems call into it at appropriate points in their own lifecycle. Systems inject context-building and effect-execution via callbacks.
+- [ ] **Commit 3** — Refactor `s_camera_state_system.gd` to use `U_RuleEvaluator`. Keep all existing camera-specific behavior; only the orchestration moves to the shared evaluator.
+- [ ] **Commit 4** — Refactor `s_character_state_system.gd` to use `U_RuleEvaluator`.
+- [ ] **Commit 5** — Refactor `s_game_event_system.gd` to use `U_RuleEvaluator`.
+- [ ] **Commit 6** — Extract property reader utilities:
+  - `scripts/utils/ecs/u_rule_utils.gd` — move `_read_string_property`, `_read_string_name_property`, `_read_bool_property`, `_read_float_property`, `_is_script_instance_of`, `_object_has_property`, `_variant_to_string_name`, `_get_context_value`, `_extract_event_names_from_rule` out of all three rule systems into this shared utility. Delete the duplicated private methods from each system. Also migrate `_variant_to_string_name` callers in `u_vcam_runtime_context.gd` and `u_vcam_landing_impact.gd`.
+
+**C1 Verification**:
+- [ ] All new `U_RuleEvaluator` and `U_RuleUtils` tests green
+- [ ] Existing camera-state, character-state, game-event tests green (no behavior change)
+- [ ] Grep-based style test green (no local rule pipeline methods in the three systems)
+- [ ] `test_style_enforcement.gd` passes
+- [ ] `_variant_to_string_name` no longer defined in `u_vcam_runtime_context.gd` or `u_vcam_landing_impact.gd`
+
+---
+
+## Milestone C2: Typed Rule Context
+
+**Goal**: Replace flat `Dictionary`-with-magic-string-keys context pattern across rule systems with a typed context resource (`RS_RuleContext` or similar). Eliminates the `StringName`/`String` dual-keying smell in `s_character_state_system` and makes context keys discoverable/autocompletable for designers.
+
+- [ ] **Commit 1** — Add context resource tests (TDD RED):
+  - `tests/unit/ecs/resources/test_rs_rule_context.gd` — test typed getters/setters for all context fields currently used across rule systems. Test that unknown keys fail gracefully.
+- [ ] **Commit 2** — Implement typed context (TDD GREEN):
+  - `scripts/resources/ecs/rs_rule_context.gd` — `class_name RSRuleContext extends Resource` with typed properties for common context fields (`gameplay_active`, `grounded`, `moving`, `vertical_state`, `entity_id`, `entity_tags`, `health_percent`, `redux_state`, etc.). Follows the pattern established by `U_AITaskStateKeys` for magic-string key registries.
+- [ ] **Commit 3** — Migrate `s_camera_state_system.gd` to use `RSRuleContext`. Replace `_attach_camera_context` dictionary building with typed context construction.
+- [ ] **Commit 4** — Migrate `s_character_state_system.gd` to use `RSRuleContext`. Remove `StringName`/`String` dual-keying.
+- [ ] **Commit 5** — Migrate `s_game_event_system.gd` to use `RSRuleContext`. Replace `_build_tick_context` and `_build_event_context` dictionaries.
+
+**C2 Verification**:
+- [ ] All context resource tests green
+- [ ] All three rule systems' existing tests green
+- [ ] No bare string keys used for context field access in rule systems (grep test)
+
+---
+
+## Milestone C3: Shared Dependency Resolution
+
+**Goal**: Extract the "check private cache → check export → fallback to ServiceLocator" pattern that's duplicated across 17 methods in 13 files into a shared utility on `BaseECSSystem` (for ECS systems) and `U_ServiceLocator` convenience (for managers and other nodes). Eliminates near-identical `_resolve_store`, `_resolve_state_store`, `_resolve_camera_manager`, `_resolve_ecs_manager`, `_resolve_dependencies` methods.
+
+**Scope**: 13 files total:
+- ECS systems: `s_camera_state_system`, `s_character_state_system`, `s_game_event_system`, `s_ai_detection_system`, `s_ai_behavior_system`, `s_ai_demo_alarm_relay_system`, `s_wall_visibility_system`, `s_region_visibility_system`
+- Managers: `m_vcam_manager`, `m_character_lighting_manager`, `m_display_manager`
+- Gameplay: `inter_victory_zone`, `inter_ai_demo_guard_barrier`
+- Helpers: `u_vcam_debug`
+- Other: `m_run_coordinator_manager`
+
+- [ ] **Commit 1** — Add resolution utility tests (TDD RED):
+  - `tests/unit/core/test_u_dependency_resolution.gd` — test the generic resolution pattern: private cache hit, export fallback, ServiceLocator fallback, null when unavailable.
+- [ ] **Commit 2** — Implement `U_DependencyResolution` (TDD GREEN):
+  - `scripts/utils/core/u_dependency_resolution.gd` — generic `resolve(service_name: StringName, cache: RefCounted, export_ref: RefCounted) -> RefCounted` that checks cache validity, then export, then ServiceLocator. Returns null if unavailable.
+- [ ] **Commit 3** — Add `resolve_service` to `BaseECSSystem`:
+  - `scripts/ecs/base_ecs_system.gd` — add convenience method that delegates to `U_DependencyResolution`, using the system's `_manager` as the ServiceLocator source. Migrate `_resolve_state_store`/`_resolve_store` from all 8 ECS systems to use it.
+- [ ] **Commit 4** — Migrate manager and other resolution:
+  - `scripts/managers/m_vcam_manager.gd` — replace `_resolve_state_store`, `_resolve_camera_manager`, `_resolve_ecs_manager` with `U_DependencyResolution` calls.
+  - `scripts/managers/m_character_lighting_manager.gd` — replace `_resolve_dependencies` with `U_DependencyResolution` calls.
+  - `scripts/managers/m_display_manager.gd` — replace `_await_store_ready_soft` pattern with shared resolution where applicable.
+  - `scripts/gameplay/inter_victory_zone.gd` — replace `_resolve_store`.
+  - `scripts/gameplay/inter_ai_demo_guard_barrier.gd` — replace `_resolve_store`.
+  - `scripts/ecs/systems/helpers/u_vcam_debug.gd` — replace `_resolve_state_store`.
+  - `scripts/managers/m_run_coordinator_manager.gd` — replace `_resolve_store`.
+
+**C3 Verification**:
+- [ ] All resolution utility tests green
+- [ ] All affected manager and system tests green
+- [ ] No local `_resolve_*` methods that duplicate the shared pattern (grep test)
+
+---
+
+## Milestone C4: State Snapshot Extraction to BaseECSSystem
+
+**Goal**: Extract `_get_frame_state_snapshot` (near-identical across 5 systems) into `BaseECSSystem`. Each system resolves the state store its own way, then builds a snapshot with the same logical structure (try ECS manager, fall back to state store). The base class can provide this once.
+
+**Scope**: 5 systems (not 4 — `s_ai_behavior_system` also has this method):
+- `s_wall_visibility_system` — variant with `_get_ecs_manager()` and emptiness validation
+- `s_camera_state_system` — common pattern with `_resolve_store()`
+- `s_character_state_system` — common pattern with `_resolve_store()`
+- `s_vcam_system` — variant with `_runtime_services_helper.resolve_state_store()`
+- `s_ai_behavior_system` — common pattern with `_resolve_store()`
+
+- [ ] **Commit 1** — Add snapshot tests (TDD RED):
+  - `tests/unit/ecs/test_base_ecs_system_snapshot.gd` — test that `get_frame_state_snapshot` returns a dictionary with `state`, `state_store`, and `ecs_manager` keys, resolving from the system's manager or cached references.
+- [ ] **Commit 2** — Add `get_frame_state_snapshot` to `BaseECSSystem` (TDD GREEN):
+  - `scripts/ecs/base_ecs_system.gd` — add method that resolves state store (via C3's shared resolution), returns `{ state: ..., state_store: ..., ecs_manager: ... }`.
+- [ ] **Commit 3** — Migrate all five systems to use `get_frame_state_snapshot`:
+  - `s_wall_visibility_system.gd` — remove `_get_frame_state_snapshot`, call inherited method. Override emptiness validation if needed.
+  - `s_camera_state_system.gd` — remove `_get_frame_state_snapshot`, call inherited method.
+  - `s_character_state_system.gd` — remove `_get_frame_state_snapshot`, call inherited method.
+  - `s_vcam_system.gd` — remove `_get_frame_state_snapshot`, call inherited method. Override for `_runtime_services_helper` variant if needed.
+  - `s_ai_behavior_system.gd` — remove `_get_frame_state_snapshot`, call inherited method.
+
+**C4 Verification**:
+- [ ] All snapshot tests green
+- [ ] All five systems' existing tests green
+- [ ] No `_get_frame_state_snapshot` defined in any ECS system (grep test)
+
+---
+
+## Milestone C5: Wall Visibility System Decomposition
+
+**Goal**: Break up `s_wall_visibility_system.process_tick` (lines 85–280), which handles tick throttling, state resolution, camera resolution, room filtering, component iteration (two passes), corridor occlusion, roof detection, material application, mobile throttling, and stale target cleanup. Decompose into focused methods with clear single responsibilities.
+
+- [ ] **Commit 1** — Add method-level tests (TDD RED):
+  - `tests/unit/ecs/systems/test_s_wall_visibility_system_decomposition.gd` — test extracted methods independently: `_resolve_tick_data`, `_filter_rooms_by_aabb`, `_deduplicate_targets`, `_apply_wall_materials`, `_detect_roofs`, `_cleanup_stale_targets`.
+- [ ] **Commit 2** — Decompose `process_tick` (TDD GREEN):
+  - `scripts/ecs/systems/s_wall_visibility_system.gd` — extract the 5–6 focused methods, have `process_tick` call them in sequence. No behavioral changes.
+- [ ] **Commit 3** — Replace type-dispatch switch on `CSGBox3D`/`MeshInstance3D` (lines 451–462, 542–558) with a registry or strategy pattern so new target types can be added without modifying the system.
+
+**C5 Verification**:
+- [ ] All decomposition tests green
+- [ ] Existing wall-visibility integration tests green
+- [ ] `process_tick` method under 60 lines
+
+---
+
+## Milestone C6: Scene Manager Overlay Extraction
+
+**Goal**: Separate overlay management (`push_overlay`, `pop_overlay`, `push_overlay_with_return`, `pop_overlay_with_return`, `_sync_overlay_stack_state`, `_reconcile_overlay_stack`) from `m_scene_manager.gd` into its own helper. Overlays share no data with the transition pipeline and are a distinct domain concern. Also decompose the `_perform_transition` god method (155 lines with an 88-line closure).
+
+- [ ] **Commit 1** — Add overlay helper tests (TDD RED):
+  - `tests/unit/managers/helpers/test_u_overlay_helper.gd` — test overlay push/pop/return stack management, state sync, and reconciliation logic.
+- [ ] **Commit 2** — Extract `U_OverlayHelper` (TDD GREEN):
+  - `scripts/managers/helpers/u_overlay_helper.gd` — move overlay stack management, push/pop logic, and state sync out of `m_scene_manager.gd`. The helper receives the store dispatch callable and overlay callback, so it doesn't hold a reference to the entire scene manager.
+- [ ] **Commit 3** — Wire `M_SceneManager` to `U_OverlayHelper`. Delegate overlay methods to the helper. Scene manager keeps the public API unchanged.
+- [ ] **Commit 4** — Decompose `_perform_transition` god method (lines 538–692). Extract scene loading, camera blending, physics unfreezing, and state dispatch into focused methods. The 88-line `scene_swap_callback` closure should become a named method.
+
+**C6 Verification**:
+- [ ] All overlay helper tests green
+- [ ] Existing scene-manager tests green
+- [ ] `_perform_transition` under 40 lines (orchestration only)
+
+---
+
+## Milestone C7: Objectives Manager Namespace Support
+
+**Goal**: Replace `_objectives_by_id` flat dictionary with namespace-aware storage so multiple objective sets can be active simultaneously. Currently `_load_objective_set_internal` replaces the entire previous set.
+
+- [ ] **Commit 1** — Add namespace tests (TDD RED):
+  - `tests/unit/managers/test_m_objectives_manager_namespaces.gd` — test loading a second objective set without replacing the first, evaluating across sets, and completing objectives in different namespaces.
+- [ ] **Commit 2** — Implement namespace support (TDD GREEN):
+  - `scripts/managers/m_objectives_manager.gd` — change `_objectives_by_id: Dictionary` to `_objective_sets: Dictionary[StringName, Dictionary]`, keyed by set ID. Update `_evaluate_active_objectives`, `_on_action_dispatched`, and all lookup methods to iterate active sets.
+- [ ] **Commit 3** — Add selector/query methods for cross-set objective queries.
+
+**C7 Verification**:
+- [ ] All namespace tests green
+- [ ] Existing objectives-manager tests green (backwards-compatible: single-set loads still work)
+- [ ] Grep test: no direct `state.get("objectives", {})` outside selectors
+
+---
+
+## Milestone C8: Selector Enforcement — Managers
+
+**Goal**: Eliminate the pattern of managers reaching into state slice internals by key path. All state reads outside reducers should go through `U_*_selectors`. This milestone covers **manager and helper files only**; systems, interactables, and UI are covered in C11.
+
+**Scope** (17 files):
+- `m_vcam_manager`, `m_save_manager`, `m_objectives_manager`, `m_scene_manager`, `m_display_manager`, `m_spawn_manager`, `m_vfx_manager`, `m_audio_manager`, `m_time_manager`, `m_localization_manager`, `m_screenshot_cache_manager`, `m_ui_input_handler`, `m_input_profile_manager`, `m_input_device_manager`, `m_scene_director_manager`, `u_autosave_scheduler`, `u_vcam_soft_zone`
+
+**Existing selectors**: `get_player_entity_id` already exists in `u_entity_selectors.gd` — do not duplicate it. `u_gameplay_selectors.gd` only has 3 selectors (`is_paused`, `get_last_checkpoint`, `is_touch_look_active`) and needs many additions. No `u_scene_selectors.gd` exists yet — it needs to be created.
+
+- [ ] **Commit 1** — Audit all 18 selector files and add missing selector methods:
+  - `scripts/state/selectors/u_gameplay_selectors.gd` — add `get_playtime_seconds`, `get_player_health`, `get_target_spawn_point`, `get_last_victory_objective`, `get_entity_snapshot`, `get_ai_demo_flags`, etc.
+  - Create `scripts/state/selectors/u_scene_selectors.gd` — add `get_current_scene_id`, `get_scene_stack`, `get_previous_scene_id`, `is_transitioning`, etc.
+  - Add selectors for all slices where managers do direct access: `u_vcam_selectors.gd`, `u_navigation_selectors.gd`, `u_time_selectors.gd`, `u_settings_selectors.gd`, `u_objectives_selectors.gd`, `u_audio_selectors.gd`, `u_localization_selectors.gd`.
+  - Note: `get_player_entity_id` already exists in `u_entity_selectors.gd` — reference it, don't duplicate.
+- [ ] **Commit 2** — Migrate all 17 manager/helper files to use selectors instead of `state.get("`:
+  - Replace `state.get("gameplay", {})["player_entity_id"]` with `U_EntitySelectors.get_player_entity_id(state)`.
+  - Replace `state.get("gameplay", {}).get("playtime_seconds", 0)` with `U_GameplaySelectors.get_playtime_seconds(state)`.
+  - Replace `state.get("objectives", {})` with `U_ObjectivesSelectors._get_slice(state)`.
+  - Replace `state.get("scene", {})["current_scene_id"]` with `U_SceneSelectors.get_current_scene_id(state)`.
+  - Replace all other `state.get("<slice>", {})` patterns in the 17 files.
+- [ ] **Commit 3** — Add style enforcement grep test:
+  - `tests/unit/style/test_style_enforcement.gd` — add test asserting no manager or helper file contains `state.get("` or `state["` outside of `m_state_store.gd` and reducers.
+
+**C8 Verification**:
+- [ ] All selector tests green
+- [ ] All manager tests green (no behavioral change)
+- [ ] Grep test: zero `state.get("` or `state["` occurrences in manager/helper files
+
+---
+
+## Milestone C9: Gameplay-Feel Constants → Resource Configs
+
+**Goal**: Move hardcoded gameplay-feel constants from `const` and inline literals into `Resource` configs so designers can tune values without code changes. Applies to: wall-visibility fade/clip/room constants, camera shake/FOV constants, movement thresholds, spawn snap distances, character-lighting defaults, and display scale limits.
+
+- [ ] **Commit 1** — Create config resource tests (TDD RED):
+  - `tests/unit/resources/ecs/test_rs_wall_visibility_config.gd` — test config resource with all tuneable fields and defaults.
+  - `tests/unit/resources/ecs/test_rs_camera_state_config.gd` — test config resource for shake/FOV params.
+  - `tests/unit/resources/test_rs_spawn_config.gd` — test config resource for ground/hover snap distances.
+- [ ] **Commit 2** — Implement config resources (TDD GREEN):
+  - `scripts/resources/ecs/rs_wall_visibility_config.gd` — `class_name RS_WallVisibilityConfig extends Resource` with `@export` fields for `fade_dot_threshold`, `fade_speed`, `min_alpha`, `clip_height_offset`, `room_aabb_margin`, `corridor_occlusion_margin`, `invalidate_interval`, `mobile_tick_interval`, `roof_normal_dot_min`, `roof_height_margin`. All with current `const` values as defaults.
+  - `scripts/resources/ecs/rs_camera_state_config.gd` — `class_name RS_CameraStateConfig extends Resource` with `@export` fields for shake parameters (`trauma_decay_rate`, `max_offset_x`, `max_offset_y`, `shake_frequency`, `shake_phase`), FOV clamps (`fov_min`, `fov_max`), and other tuneable values.
+  - `scripts/resources/managers/rs_spawn_config.gd` — `class_name RS_SpawnConfig extends Resource` with `@export` fields for `ground_snap_max_distance`, `hover_snap_max_distance`, spawn conditions.
+- [ ] **Commit 3** — Migrate `s_wall_visibility_system.gd` to use `RS_WallVisibilityConfig`. Replace `const` values with config reads (falling back to defaults).
+- [ ] **Commit 4** — Migrate `s_camera_state_system.gd` to use `RS_CameraStateConfig`. Replace shake `const` values and scattered FOV clamp literals with config reads.
+- [ ] **Commit 5** — Migrate `m_spawn_manager.gd` to use `RS_SpawnConfig`. Replace hardcoded `SPAWN_GROUND_SNAP_MAX_DISTANCE`, `SPAWN_HOVER_SNAP_MAX_DISTANCE`, and `SPAWN_CONDITION_*` enum.
+- [ ] **Commit 6** — Migrate `m_character_lighting_manager.gd` default profile and `MOBILE_TICK_INTERVAL` to config.
+- [ ] **Commit 7** — Migrate `m_display_manager.gd` `MIN_UI_SCALE`/`MAX_UI_SCALE` to config.
+
+**C9 Verification**:
+- [ ] All config resource tests green
+- [ ] All affected system/manager tests green (no behavioral change — defaults match old `const` values)
+- [ ] Each config resource is inspector-editable (has `@export` on all fields)
+
+---
+
+## Milestone C10: Entity Identification by Tags/Metadata (Kill Naming Conventions)
+
+**Goal**: Replace fragile node-name-based entity identification patterns with tag/metadata lookups. Currently: `M_SpawnManager._find_player_entity` hardcodes `"E_Player"`, `BaseECSEntity._generate_id_from_name` strips `"E_"` prefix, `S_MovementSystem._infer_entity_type_from_name` matches strings, `M_VCamManager._resolve_mode_name` strips `"RS_VCamMode"` prefix. All of these break silently if naming conventions change and require programmer intervention for new types.
+
+**Note**: `BaseECSEntity._generate_id_from_name` already has collision detection via `M_ECSManager.register_entity`, which appends instance IDs on collision. This existing safety net should be preserved — C10 adds tag/metadata lookup as the primary path, with name-based fallback retained.
+
+- [ ] **Commit 1** — Add tag-based lookup tests (TDD RED):
+  - `tests/unit/ecs/test_entity_tag_identification.gd` — test that entities can be found by tag rather than name prefix, test entity ID generation from metadata rather than name stripping.
+- [ ] **Commit 2** — Implement tag-based lookups (TDD GREEN):
+  - `scripts/ecs/u_entity_lookup.gd` — `class_name U_EntityLookup` with static methods `find_entity_by_tag(ecs_manager, tag)`, `find_entities_by_tag(ecs_manager, tag)`, `resolve_entity_id(entity)` that prefer metadata/component over name parsing, falling back to current behavior.
+- [ ] **Commit 3** — Migrate `M_SpawnManager._find_player_entity` to use tag-based lookup. The spawn manager should find the player by a `player` tag, not by `"E_Player"` name prefix.
+- [ ] **Commit 4** — Migrate `S_MovementSystem._infer_entity_type_from_name` to use tag/metadata lookup. Entity type should come from a component or tag, not string matching on node names.
+- [ ] **Commit 5** — Migrate `M_VCamManager._resolve_mode_name` to use resource metadata or `resource_name` instead of stripping `"RS_VCamMode"` prefix.
+- [ ] **Commit 6** — Update `BaseECSEntity._generate_id_from_name` to prefer a component-provided ID or metadata tag, with name-stripping as fallback only. Preserve the existing collision detection in `M_ECSManager.register_entity`.
+
+**C10 Verification**:
+- [ ] All entity lookup tests green
+- [ ] All affected manager and system tests green
+- [ ] Grep test: no `"E_Player"`, `"E_"` prefix assumptions, or `"RS_VCamMode"` prefix stripping in production code
+
+---
+
+## Milestone C11: Selector Enforcement — Systems, Helpers, Interactables, and UI
+
+**Goal**: Extend C8's selector enforcement beyond managers to cover ECS systems, helper utilities, gameplay interactables, and UI files. These files also reach directly into state slices by key path.
+
+**Scope** (11 files):
+- ECS systems: `s_victory_handler_system`, `s_input_system`, `s_gamepad_vibration_system`, `base_event_sfx_system`
+- Helpers: `u_vcam_runtime_context`, `u_vcam_debug`
+- Interactables: `inter_victory_zone`, `inter_ai_demo_guard_barrier`
+- UI: `ui_victory`, `ui_game_over`, `ui_gamepad_settings_overlay`
+
+- [ ] **Commit 1** — Migrate ECS systems to use selectors:
+  - `scripts/ecs/systems/s_victory_handler_system.gd` — replace `state.get("gameplay", {})` and `state.get("objectives", {})`.
+  - `scripts/ecs/systems/s_input_system.gd` — replace `state.get("gameplay", {})`.
+  - `scripts/ecs/systems/s_gamepad_vibration_system.gd` — replace `state.get("gameplay", {})`.
+  - `scripts/ecs/base_event_sfx_system.gd` — replace `state.get("gameplay", {})`.
+- [ ] **Commit 2** — Migrate helpers and interactables to use selectors:
+  - `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd` — replace `state.get("gameplay", {})`.
+  - `scripts/ecs/systems/helpers/u_vcam_debug.gd` — replace `state.get("gameplay", {})`.
+  - `scripts/gameplay/inter_victory_zone.gd` — replace `state.get("gameplay", {})` and `state.get("objectives", {})`.
+  - `scripts/gameplay/inter_ai_demo_guard_barrier.gd` — replace `state.get("gameplay", {})`.
+- [ ] **Commit 3** — Migrate UI files to use selectors:
+  - `scripts/ui/menus/ui_victory.gd` — replace direct state access.
+  - `scripts/ui/menus/ui_game_over.gd` — replace direct state access.
+  - `scripts/ui/overlays/ui_gamepad_settings_overlay.gd` — replace direct state access.
+- [ ] **Commit 4** — Expand style enforcement grep test to cover all production files (not just managers):
+  - `tests/unit/style/test_style_enforcement.gd` — extend test to assert no file under `scripts/` (excluding `scripts/state/reducers/` and `scripts/state/selectors/`) contains `state.get("` or `state["`.
+
+**C11 Verification**:
+- [ ] All affected system/helper/interactable/UI tests green
+- [ ] Grep test: zero `state.get("` or `state["` occurrences in production code outside of `m_state_store.gd`, reducers, and selectors
+
+---
+
+## Cross-Cutting Concerns (Not Milestones — Address Opportunistically)
+
+These patterns recur across many systems. Rather than dedicated milestones, address them during C1–C11 when touching the relevant files:
+
+- **`Callable(self, "_update_particles_and_focus")` repeated 11 times in `m_scene_manager.gd`** — Extract once, pass by reference.
+- **`M_DisplayManager` `_ensure_appliers()` called from 16 call sites plus `_ready`** — Initialize once in `_ready` or `_enter_tree`, or use lazy-init that guarantees single init.
+- **`M_DisplayManager` three identical `_get_*_hash` methods** — Generic `_compute_slice_hash(slice_name) -> int`.
+- **`U_GameplayReducer` `.duplicate(true)` boilerplate** — A `set_field(state, key, value)` helper would eliminate ~15 duplicate-and-set-one-field cases.
+- **`U_GameplayReducer` damage/heal/death near-identical patterns** — A `_modify_health(state, entity_id, delta)` helper.
+- **`M_SaveManager._build_metadata` reaching into multiple state slices** — Should use selectors (covered by C8).
+- **`M_ObjectivesManager._on_action_dispatched` monolithic router** — Split into per-action handler methods.
+- **`BaseECSSystem._warn_missing_manager_method` is dead code** — Delete.
+- **`U_ECS_EVENT_BUS.publish()` duplicates the subscriber list on every publish call** — Consider copy-on-write or deferred dispatch to avoid one allocation per event dispatch.
+- **`M_ECSManager.query_entities` and `query_entities_readonly` are near-duplicates** — Extract shared query logic, differ only in mutability and metrics recording.
+- **`M_ECSManager._invalidate_query_cache` clears ALL entries** — Use scoped invalidation per component type.
+- **`M_StateStore._input` handles two unrelated debug overlays** — The state debug overlay and cinema debug overlay are separate UI concerns that call `cursor_manager.set_cursor_state`. Extract to a dedicated debug overlay handler.
+- **`M_StateStore._sync_navigation_initial_scene` bypasses the reducer/dispatch pattern** — Directly mutates `_state["navigation"]` instead of dispatching a proper navigation action.
