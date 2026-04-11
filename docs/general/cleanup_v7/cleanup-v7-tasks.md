@@ -54,12 +54,17 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
   - Added `test_rule_systems_and_helpers_do_not_duplicate_property_readers` style enforcement grep test.
   - Created `tests/unit/ecs/test_u_rule_utils.gd` (44 tests, all green).
 
+**C1 Retroactive Gap Fixes** (commit `56d63aee`):
+- [x] **C1.7** — Add `read_array_property` and `read_int_property` to `U_RuleUtils` + tests. These methods were needed by QB pipeline utilities but were missing from the original C1 extraction.
+- [x] **C1.8** — Migrate QB pipeline utilities (`u_rule_validator`, `u_rule_scorer`, `u_rule_selector`) to use `U_RuleUtils` instead of local `_read_*`/`_is_script_instance_of` methods. Deleted 10 local method definitions (~53 lines removed from `u_rule_validator` alone). Extended `test_rule_systems_and_helpers_do_not_duplicate_property_readers` to cover QB files and forbid `_read_array_property`/`_read_int_property`.
+
 **C1 Verification**:
 - [x] All new `U_RuleEvaluator` and `U_RuleUtils` tests green
 - [x] Existing camera-state, character-state, game-event tests green (no behavior change)
 - [x] Grep-based style test green (no local rule pipeline methods in the three systems)
 - [x] `test_style_enforcement.gd` passes
 - [x] `_variant_to_string_name` no longer defined in `u_vcam_runtime_context.gd` or `u_vcam_landing_impact.gd`
+- [x] Zero `_read_string_property`/`_read_string_name_property`/`_read_bool_property`/`_read_float_property`/`_read_int_property`/`_read_array_property`/`_is_script_instance_of` in `scripts/utils/qb/` (style enforcement)
 
 ---
 
@@ -67,20 +72,30 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 **Completed**: 2026-04-11
 
-**Summary**: Created `RSRuleContext` (Resource) with 28 StringName key constants (following U_AITaskStateKeys pattern) and typed properties for all rule system context fields. Systems build RSRuleContext objects and convert to Dictionary via `to_dictionary()` for compatibility with QB conditions/effects. All bare string context key literals replaced with `RS_RULE_CONTEXT.KEY_*` constants. Full test suite (3993 passing, 0 failing) and style enforcement green.
+**Summary**: Created `RSRuleContext` (Resource) with 28 StringName key constants (following U_AITaskStateKeys pattern) and typed properties for all rule system context fields. Systems build RSRuleContext objects and convert to Dictionary via `to_dictionary()` for compatibility with QB conditions/effects. All bare string context key literals replaced with `RSRuleContext.KEY_*` constants. Full test suite (3993 passing, 0 failing) and style enforcement green.
 
 - [x] **Commit 1** — Add context resource tests (TDD RED):
   - `tests/unit/ecs/resources/test_rs_rule_context.gd` — 18 tests covering key constants, default values, to_dictionary() conversion, StringName keys, extra keys, and U_RuleUtils compatibility.
 - [x] **Commit 2** — Implement typed context (TDD GREEN):
   - `scripts/resources/ecs/rs_rule_context.gd` — `class_name RSRuleContext extends Resource` with 28 StringName key constants, typed properties with defaults, `to_dictionary()` method, and `set_extra`/`get_extra` for runtime key additions.
-- [x] **Commit 3** — Migrate `s_camera_state_system.gd` to use `RSRuleContext`. Replace `_attach_camera_context` dictionary building with RSRuleContext construction. Replace `RULE_SCORE_CONTEXT_KEY` with `RS_RULE_CONTEXT.KEY_RULE_SCORE`.
-- [x] **Commit 4** — Migrate `s_character_state_system.gd` to use `RSRuleContext`. Remove `StringName`/`String` dual-keying in `_context_key_for_context`. Replace all bare string context keys with `RS_RULE_CONTEXT.KEY_*` constants.
+- [x] **Commit 3** — Migrate `s_camera_state_system.gd` to use `RSRuleContext`. Replace `_attach_camera_context` dictionary building with RSRuleContext construction. Replace `RULE_SCORE_CONTEXT_KEY` with `RSRuleContext.KEY_RULE_SCORE`.
+- [x] **Commit 4** — Migrate `s_character_state_system.gd` to use `RSRuleContext`. Remove `StringName`/`String` dual-keying in `_context_key_for_context`. Replace all bare string context keys with `RSRuleContext.KEY_*` constants.
 - [x] **Commit 5** — Migrate `s_game_event_system.gd` to use `RSRuleContext`. Replace `_build_tick_context` and `_build_event_context` dictionaries with RSRuleContext construction.
+
+**C2 Retroactive Gap Fixes** (commits `56d63aee`, `baa5995d`):
+- [x] **C2.6** — Add `KEY_BRAIN_COMPONENT` + `brain_component` property to `RSRuleContext`. Fix stale TDD RED comment in `test_rs_rule_context.gd:5`. Add 4 new tests for brain_component.
+- [x] **C2.7** — Migrate `U_AIContextBuilder` to `RSRuleContext`. Rewrite `build()` to construct `RSRuleContext.new()`, set typed properties, return `.to_dictionary()`. Remove `_set_fallback_components`. Fix latent bug: AI context now produces `"state"` alias via `to_dictionary()`.
+- [x] **C2.8** — Migrate `M_ObjectivesManager` and `M_SceneDirectorManager` to `RSRuleContext`. Fix latent bug: both managers' contexts now produce `"state"` alias via `to_dictionary()`, so QB conditions reading `context["state"]` work correctly.
+- [x] **C2.9** — Expand style enforcement grep test for bare-string context keys. Add `u_ai_context_builder`, `m_objectives_manager`, `m_scene_director_manager` to scanned files. Add `test_context_builders_do_not_use_bare_string_context_keys` test.
+- [x] **C2.10** — Migrate `RS_RULE_CONTEXT` preload pattern to `RSRuleContext` class reference. Replace `const RS_RULE_CONTEXT := preload(...)` with `const RSRuleContext := preload(...)` and `RS_RULE_CONTEXT.KEY_*`/`RS_RULE_CONTEXT.new()` with `RSRuleContext.KEY_*`/`RSRuleContext.new()` in all 3 rule systems. Update style enforcement allowed patterns.
 
 **C2 Verification**:
 - [x] All context resource tests green
 - [x] All three rule systems' existing tests green
 - [x] No bare string keys used for context field access in rule systems (grep test)
+- [x] All 6 context builders (3 systems + AI builder + 2 managers) use `RSRuleContext` typed properties
+- [x] Zero `RS_RULE_CONTEXT` references in `scripts/` (all migrated to `RSRuleContext`)
+- [x] Stale TDD RED comment removed from `test_rs_rule_context.gd`
 
 ---
 
