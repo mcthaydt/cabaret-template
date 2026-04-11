@@ -1,8 +1,10 @@
 [gd_resource type="Resource" script_class="RS_AIGoal" format=3 uid="uid://d2sy3kmtl3obl"]
 
 [ext_resource type="Script" uid="uid://xhe4388ulpe1" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_y7yyi"]
 [ext_resource type="Script" uid="uid://bbw7r0gg2jdbf" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="2_condition_redux"]
 [ext_resource type="Script" uid="uid://bb7kg3r8twqau" path="res://scripts/resources/ai/tasks/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" uid="uid://d3jp8qgprpk0t" path="res://scripts/resources/ai/tasks/rs_ai_task.gd" id="4_havcj"]
 [ext_resource type="Script" uid="uid://ut0hjawm2yq3" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="4_primitive_task"]
 [ext_resource type="Script" uid="uid://bqdnedsa4xgps" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="5_action_move_to"]
 [ext_resource type="Script" uid="uid://43dofayxl0jr" path="res://scripts/resources/ai/actions/rs_ai_action_animate.gd" id="6_action_animate"]
@@ -44,13 +46,13 @@ task_id = &"wait_encourage"
 
 [sub_resource type="Resource" id="Task_encourage_sequence"]
 script = ExtResource("3_compound_task")
-subtasks = Array[Resource]([SubResource("Task_move_to_respawn"), SubResource("Task_encourage_pulse"), SubResource("Task_wait_encourage")])
+subtasks = Array[ExtResource("4_havcj")]([SubResource("Task_move_to_respawn"), SubResource("Task_encourage_pulse"), SubResource("Task_wait_encourage")])
 task_id = &"encourage_sequence"
 
 [resource]
 script = ExtResource("1_goal")
 goal_id = &"encourage"
-conditions = Array[Resource]([SubResource("Condition_player_airborne")])
+conditions = Array[ExtResource("1_y7yyi")]([SubResource("Condition_player_airborne")])
 root_task = SubResource("Task_encourage_sequence")
 priority = 2
 cooldown = 2.0

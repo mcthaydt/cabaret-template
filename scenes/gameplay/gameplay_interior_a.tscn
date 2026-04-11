@@ -65,7 +65,7 @@
 [ext_resource type="Resource" uid="uid://dl0w8p663hthp" path="res://resources/lighting/cfg_character_lighting_profile_interior_a.tres" id="66_character_lighting_profile"]
 [ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="73_room_fade_group_component"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_wall_visibility_system.gd" id="74_wall_visibility_system"]
+[ext_resource type="Script" uid="uid://cjy57wuoihq7p" path="res://scripts/ecs/systems/s_wall_visibility_system.gd" id="74_wall_visibility_system"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="75_base_ecs_entity"]
 [ext_resource type="Texture2D" uid="uid://cu6nemmc82bo4" path="res://assets/textures/prototype_grids_png/Light/tex_texture_03.png" id="76_light_tex03"]
 [ext_resource type="Script" uid="uid://b7o3qydjxfyts" path="res://scripts/ecs/components/c_region_visibility_component.gd" id="76_region_visibility_component"]

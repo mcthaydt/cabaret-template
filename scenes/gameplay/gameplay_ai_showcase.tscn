@@ -56,15 +56,15 @@
 [ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/cfg_sp_base.tres" id="51_base_spawn_meta"]
 [ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="52_vcam_system"]
 [ext_resource type="Script" uid="uid://cxemqvnjcd4qm" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_move_target_follower_system.gd" id="54_move_target_follower_system"]
+[ext_resource type="Script" uid="uid://ce63ayt3nfe71" path="res://scripts/ecs/systems/s_move_target_follower_system.gd" id="54_move_target_follower_system"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="55_base_ecs_entity"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_detection_system.gd" id="56_ai_detection_system"]
-[ext_resource type="Script" path="res://scripts/gameplay/s_demo_alarm_relay_system.gd" id="57_demo_alarm_relay_system"]
+[ext_resource type="Script" uid="uid://bkvxy8p8my0na" path="res://scripts/ecs/systems/s_ai_detection_system.gd" id="56_ai_detection_system"]
+[ext_resource type="Script" uid="uid://bnra586h31gj6" path="res://scripts/gameplay/s_demo_alarm_relay_system.gd" id="57_demo_alarm_relay_system"]
 [ext_resource type="Script" uid="uid://dpxywmhc2hqwa" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Texture2D" uid="uid://rb3wysvedbe2" path="res://assets/textures/tex_interaction_v.svg" id="62_kkkmb"]
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="63_room_fade_group_component"]
 [ext_resource type="Script" uid="uid://cjy57wuoihq7p" path="res://scripts/ecs/systems/s_wall_visibility_system.gd" id="64_wall_visibility_system"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
+[ext_resource type="Script" uid="uid://b8oocaaklpsn2" path="res://scripts/ecs/systems/s_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="Resource" uid="uid://w32u5tryuii8" path="res://resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres" id="68_ai_patrol_drone_spawn_meta"]
 [ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
 [ext_resource type="Texture2D" uid="uid://emedu6pq2lwj" path="res://assets/textures/prototype_grids_png/Light/tex_texture_06.png" id="70_grid_light_06"]
@@ -77,7 +77,7 @@
 [ext_resource type="Texture2D" uid="uid://bqnushigljekn" path="res://assets/textures/prototype_grids_png/Red/tex_texture_03.png" id="74_grid_red_03"]
 [ext_resource type="Texture2D" uid="uid://brvkkkykk0wyi" path="res://assets/textures/prototype_grids_png/Green/tex_texture_01.png" id="75_grid_green_01"]
 [ext_resource type="Texture2D" uid="uid://b1r5ab5wgdm2q" path="res://assets/textures/prototype_grids_png/Orange/tex_texture_01.png" id="76_grid_orange_01"]
-[ext_resource type="Script" path="res://scripts/gameplay/inter_ai_demo_guard_barrier.gd" id="77_guard_barrier_script"]
+[ext_resource type="Script" uid="uid://8l1rgf6betj5" path="res://scripts/gameplay/inter_ai_demo_guard_barrier.gd" id="77_guard_barrier_script"]
 [ext_resource type="Resource" path="res://resources/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres" id="78_patrol_drone_spawn_recovery"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
@@ -225,10 +225,10 @@ material = SubResource("StandardMaterial3D_guard_accent")
 
 [node name="SO_GuardBarrier" type="CSGBox3D" parent="SceneObjects" unique_id=1001100014]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.8, 0)
-script = ExtResource("77_guard_barrier_script")
 use_collision = true
 size = Vector3(1, 4, 8)
 material = SubResource("StandardMaterial3D_guard_accent")
+script = ExtResource("77_guard_barrier_script")
 
 [node name="SO_GuideAccentA" type="CSGBox3D" parent="SceneObjects" unique_id=1001100012]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 1, 0)
@@ -268,7 +268,6 @@ execution_priority = -12
 [node name="S_DemoAlarmRelaySystem" type="Node" parent="Systems/Core" unique_id=1775100002]
 script = ExtResource("57_demo_alarm_relay_system")
 execution_priority = -11
-relay_flag_ids = Array[StringName]([&"power_core_activated", &"power_core_proximity", &"comms_disturbance_heard", &"comms_disturbance_proximity"])
 
 [node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=950736546]
 script = ExtResource("1_pybrx")
@@ -568,8 +567,6 @@ brain_settings = ExtResource("70_patrol_drone_brain")
 [node name="C_DetectionComponent" parent="Entities/NPCs/E_PatrolDroneA/Components" parent_id_path=PackedInt32Array(1100000001, 1373490017) index="9" unique_id=2145048101]
 detection_radius = 7.5
 ai_flag_id = &"power_core_proximity"
-set_flag_on_exit = true
-exit_flag_value = false
 
 [node name="C_SpawnRecoveryComponent" parent="Entities/NPCs/E_PatrolDroneA/Components" parent_id_path=PackedInt32Array(1100000001, 1373490017) index="10" unique_id=2145048102]
 settings = ExtResource("78_patrol_drone_spawn_recovery")
@@ -585,8 +582,6 @@ brain_settings = ExtResource("70_patrol_drone_brain")
 [node name="C_DetectionComponent" parent="Entities/NPCs/E_PatrolDroneB/Components" parent_id_path=PackedInt32Array(1100000002, 1373490017) index="9" unique_id=2145048101]
 detection_radius = 7.5
 ai_flag_id = &"power_core_proximity"
-set_flag_on_exit = true
-exit_flag_value = false
 
 [node name="C_SpawnRecoveryComponent" parent="Entities/NPCs/E_PatrolDroneB/Components" parent_id_path=PackedInt32Array(1100000002, 1373490017) index="10" unique_id=2145048102]
 settings = ExtResource("78_patrol_drone_spawn_recovery")
@@ -600,10 +595,7 @@ tags = Array[StringName]([&"npc", &"ai", &"sentry"])
 brain_settings = ExtResource("71_sentry_brain")
 
 [node name="C_DetectionComponent" parent="Entities/NPCs/E_Sentry/Components" parent_id_path=PackedInt32Array(1100000003, 1373490017) index="9" unique_id=2145048101]
-detection_radius = 8.0
 ai_flag_id = &"comms_disturbance_proximity"
-set_flag_on_exit = true
-exit_flag_value = false
 
 [node name="E_GuidePrism" parent="Entities/NPCs" unique_id=1100000004 instance=ExtResource("69_prefab_npc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2.5, -5)
@@ -616,8 +608,6 @@ brain_settings = ExtResource("72_guide_showcase_brain")
 [node name="C_DetectionComponent" parent="Entities/NPCs/E_GuidePrism/Components" parent_id_path=PackedInt32Array(1100000004, 1373490017) index="9" unique_id=2145048101]
 detection_radius = 9.5
 ai_flag_id = &"guide_player_nearby"
-set_flag_on_exit = true
-exit_flag_value = false
 
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 1.9733102, 0)

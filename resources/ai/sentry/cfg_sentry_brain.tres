@@ -1,12 +1,13 @@
 [gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3 uid="uid://c3o8a2nyv30av"]
 
 [ext_resource type="Script" uid="uid://ccrnbhgcyknu0" path="res://scripts/resources/ai/brain/rs_ai_brain_settings.gd" id="1_brain"]
+[ext_resource type="Script" uid="uid://xhe4388ulpe1" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_m2oae"]
 [ext_resource type="Resource" uid="uid://bhcn7aqgjrh38" path="res://resources/ai/sentry/cfg_goal_guard.tres" id="2_goal_guard"]
 [ext_resource type="Resource" uid="uid://by0251h0thxk" path="res://resources/ai/sentry/cfg_goal_investigate_disturbance.tres" id="3_goal_investigate"]
-[ext_resource type="Resource" path="res://resources/ai/sentry/cfg_goal_investigate_disturbance_proximity.tres" id="4_goal_investigate_proximity"]
+[ext_resource type="Resource" uid="uid://dejdkf467myjm" path="res://resources/ai/sentry/cfg_goal_investigate_disturbance_proximity.tres" id="4_goal_investigate_proximity"]
 
 [resource]
 script = ExtResource("1_brain")
-goals = Array[Resource]([ExtResource("2_goal_guard"), ExtResource("3_goal_investigate"), ExtResource("4_goal_investigate_proximity")])
+goals = Array[ExtResource("1_m2oae")]([ExtResource("2_goal_guard"), ExtResource("3_goal_investigate"), ExtResource("4_goal_investigate_proximity")])
 default_goal_id = &"guard"
 evaluation_interval = 0.2

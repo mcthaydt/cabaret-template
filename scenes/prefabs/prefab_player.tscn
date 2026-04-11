@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://bavwg5wtyinis" path="res://scripts/ecs/components/c_player_tag_component.gd" id="5_player_tag"]
 [ext_resource type="Script" uid="uid://dswplhks3popp" path="res://scripts/ecs/components/c_surface_detector_component.gd" id="6_surface_detector"]
 [ext_resource type="PackedScene" uid="uid://bo6mk3wsiqrux" path="res://scenes/prefabs/prefab_player_body.tscn" id="7_player_body"]
-[ext_resource type="Script" path="res://scripts/ecs/components/c_spawn_recovery_component.gd" id="8_spawn_recovery_component"]
+[ext_resource type="Script" uid="uid://cgmns8n728wwl" path="res://scripts/ecs/components/c_spawn_recovery_component.gd" id="8_spawn_recovery_component"]
 [ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_spawn_recovery_player_default.tres" id="9_spawn_recovery_settings"]
 
 [node name="E_PlayerRoot" unique_id=526145796 instance=ExtResource("1_character_template")]

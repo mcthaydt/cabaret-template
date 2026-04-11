@@ -1,9 +1,11 @@
 [gd_resource type="Resource" script_class="RS_AIGoal" format=3 uid="uid://bhcn7aqgjrh38"]
 
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_ga3vb"]
 [ext_resource type="Script" uid="uid://xhe4388ulpe1" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
 [ext_resource type="Script" uid="uid://cgjrnf8clocda" path="res://scripts/resources/qb/conditions/rs_condition_constant.gd" id="2_condition_constant"]
 [ext_resource type="Script" uid="uid://bb7kg3r8twqau" path="res://scripts/resources/ai/tasks/rs_ai_compound_task.gd" id="3_compound_task"]
 [ext_resource type="Script" uid="uid://ut0hjawm2yq3" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="4_primitive_task"]
+[ext_resource type="Script" uid="uid://d3jp8qgprpk0t" path="res://scripts/resources/ai/tasks/rs_ai_task.gd" id="4_sa72u"]
 [ext_resource type="Script" uid="uid://bqdnedsa4xgps" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="5_action_move_to"]
 [ext_resource type="Script" uid="uid://c6kwruacxjm85" path="res://scripts/resources/ai/actions/rs_ai_action_scan.gd" id="6_action_scan"]
 
@@ -71,12 +73,12 @@ task_id = &"move_guard_c"
 
 [sub_resource type="Resource" id="Task_guard_sequence"]
 script = ExtResource("3_compound_task")
-subtasks = Array[Resource]([SubResource("Task_scan_post_a"), SubResource("Task_move_guard_a"), SubResource("Task_scan_post_b"), SubResource("Task_move_guard_b"), SubResource("Task_scan_post_c"), SubResource("Task_move_guard_c")])
+subtasks = Array[ExtResource("4_sa72u")]([SubResource("Task_scan_post_a"), SubResource("Task_move_guard_a"), SubResource("Task_scan_post_b"), SubResource("Task_move_guard_b"), SubResource("Task_scan_post_c"), SubResource("Task_move_guard_c")])
 task_id = &"guard_sequence"
 
 [resource]
 script = ExtResource("1_goal")
 goal_id = &"guard"
-conditions = Array[Resource]([SubResource("Condition_guard_constant")])
+conditions = Array[ExtResource("1_ga3vb")]([SubResource("Condition_guard_constant")])
 root_task = SubResource("Task_guard_sequence")
 priority = 1
