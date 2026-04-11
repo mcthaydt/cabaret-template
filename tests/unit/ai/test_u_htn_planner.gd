@@ -187,3 +187,22 @@ func test_max_depth_guard() -> void:
 
 	var results: Array = _decompose(root, {}, 1)
 	assert_true(results.is_empty())
+
+func test_reusable_rule_is_not_mutated_between_calls() -> void:
+	var left: Resource = _primitive(StringName("left"))
+	var right: Resource = _primitive(StringName("right"))
+	if left == null or right == null:
+		return
+
+	var first_conditions: Array[I_Condition] = [ConstantScoreCondition.new(1.0), ConstantScoreCondition.new(0.0)]
+	var second_conditions: Array[I_Condition] = [ConstantScoreCondition.new(0.0), ConstantScoreCondition.new(1.0)]
+	var subtasks: Array[RS_AITask] = [left, right]
+	var first_root: Resource = _compound(StringName("first_root"), subtasks, first_conditions)
+	var second_root: Resource = _compound(StringName("second_root"), subtasks, second_conditions)
+	if first_root == null or second_root == null:
+		return
+
+	var first_results: Array = _decompose(first_root)
+	var second_results: Array = _decompose(second_root)
+	assert_eq(first_results, [left])
+	assert_eq(second_results, [right])
