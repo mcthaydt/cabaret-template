@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order.
+This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 
 **Branch**: TBD (create from current branch or main)
 **Status**: Not started — begin at C1
@@ -12,8 +12,9 @@ This guide directs you to implement the Cross-System Cleanup (V7) by following t
 
 ## Current Status: Not Started
 
-- **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 11-milestone TDD cleanup plan (C1–C11) targeting DRY, modularity, scalability, and designer-friendliness across managers and ECS systems.
-- **Scope**: No behavioral changes. All existing integration tests must stay green throughout.
+- **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
+- **C12 standalone doc**: `docs/general/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.
+- **Scope**: No behavioral changes except (a) CRT removal and (b) color grading becoming mobile-enabled (both gated behind C12). All existing integration tests must stay green throughout.
 
 ---
 
@@ -233,6 +234,35 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
+## Milestone C12: Post-Processing Pipeline Refactor
+
+**Goal**: Collapse the gameplay-visible post-process surface to exactly two passes (color grading + grain/dither) behind a new `U_PostProcessPipeline` coordinator that mimics `CompositorEffect` ergonomics in `gl_compatibility` mode, remove CRT entirely, rename cinema_grade → color_grading across the codebase, and enable color grading on mobile.
+
+**Scheduling**: C12 runs *after* C1–C11 are complete. It is architecturally independent of every earlier milestone (no overlap with rule engine, selectors, dependency resolution, or scene-manager work), but placing it at the end keeps the cleanup-v7 branch's display-layer churn isolated from the state/ECS churn in C1–C11 and gives a single clean review surface for the post-processing pipeline.
+
+**Standalone doc**: Full commit-by-commit checklist, critical file list, architecture notes, and verification steps live in `docs/general/cleanup_v7/post-process-refactor-tasks.md`. That doc is the source of truth; this section is a summary.
+
+- [ ] **Commit 1** (RED) — Add pipeline + removal tests (`test_u_post_process_pipeline.gd`, extend `test_style_enforcement.gd`)
+- [ ] **Commit 2** (GREEN) — Delete CRT from state layer (actions, selectors, reducer, initial state, preset values, 3 preset `.tres` files)
+- [ ] **Commit 3** (GREEN) — Delete CRT from UI/localization (display settings tab, VFX overlay, option catalog, 5 locale files)
+- [ ] **Commit 4** (GREEN) — Strip CRT from shaders + applier (combined shader → `sh_grain_dither.gdshader`, delete `sh_crt_shader.gdshader`, remove `crt_*` setters, drop legacy effect constants)
+- [ ] **Commit 5** (GREEN) — Rename cinema_grade → color_grading in state layer (actions, selectors, reducer keys)
+- [ ] **Commit 6** (GREEN) — Rename resources + registry (scene resource class, registry, 5 scene grade `.tres` files)
+- [ ] **Commit 7** (GREEN) — Rename applier + debug + UI + localization; update references in display/scene managers and perf monitor; flag mobile PCK cache warning
+- [ ] **Commit 8** (GREEN) — Introduce `U_PostProcessPipeline`; migrate both surviving appliers onto it; unify `fg_time` frame counter
+- [ ] **Commit 9** (GREEN) — Enable color grading on mobile (drop `_is_mobile` force-disable; flip mobile test polarity; perf-probe fallback noted)
+- [ ] **Commit 10** (GREEN) — Finalize style enforcement (grep assertions from Commit 1 now pass); add pipeline-singular-entry-point test; delete dead code
+
+**C12 Verification**:
+- [ ] `test_u_post_process_pipeline.gd` green
+- [ ] `grep -r "cinema_grade" scripts/` zero hits
+- [ ] `grep -r "crt_\|chromatic_aberration\|scanline\|curvature" scripts/` zero hits in post-process contexts
+- [ ] No file outside `u_post_process_pipeline.gd` constructs `ColorRect` children under `PostProcessOverlay`
+- [ ] Runtime validation: desktop per-scene grading visually identical to pre-refactor; mobile color grading applies and stays within frame budget (~1.5ms cap on reference hardware)
+- [ ] Color-blind filter regression-clean (untouched by refactor)
+
+---
+
 ## Cross-Cutting Concerns (Address Opportunistically During C1–C11)
 
 - `Callable(self, "_update_particles_and_focus")` repeated 11 times in `m_scene_manager.gd` — extract once
@@ -300,7 +330,7 @@ Study these for the config resource pattern (C9 will follow this):
 
 ### 4. Execute Cleanup Milestones in Order
 
-Work through C1–C11 sequentially, respecting dependency graph:
+Work through C1–C12 sequentially, respecting dependency graph:
 
 - **C1** → Rule Evaluation Pipeline Extraction (unblocks C2)
 - **C2** → Typed Rule Context (depends on C1 property readers)
@@ -313,6 +343,7 @@ Work through C1–C11 sequentially, respecting dependency graph:
 - **C9** → Config Resources (depends on C4 pattern)
 - **C10** → Entity Tag Identification (depends on C8, C3)
 - **C11** → Selector Enforcement — Systems/Helpers/Interactables/UI (depends on C8)
+- **C12** → Post-Processing Pipeline Refactor (independent of C1–C11; scheduled last to isolate display-layer churn from state/ECS churn). Source of truth: `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 
 ### 5. Follow TDD Discipline
 
@@ -371,4 +402,5 @@ You MUST:
 1. **Begin C1** in `docs/general/cleanup_v7/cleanup-v7-tasks.md` — Rule Evaluation Pipeline Extraction.
 2. Proceed through C1–C11 respecting the dependency graph; each milestone has its own RED/GREEN/refactor commit cadence. Update completion notes in `cleanup-v7-tasks.md` after each milestone.
 3. Address cross-cutting concerns opportunistically when touching the relevant files during C1–C11.
-4. After all milestones pass, run a full regression suite and review before merging.
+4. **After C11 completes**, execute C12 (Post-Processing Pipeline Refactor) following `docs/general/cleanup_v7/post-process-refactor-tasks.md`. C12 is the last milestone of cleanup-v7 and ships in the same cleanup-v7 branch/PR set.
+5. After all 12 milestones pass, run a full regression suite (desktop + mobile, including the C12 runtime validation steps) and review before merging.
