@@ -10,10 +10,7 @@ const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_compone
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
-const U_RULE_SELECTOR := preload("res://scripts/utils/qb/u_rule_selector.gd")
-const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
-const U_RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
+const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const CONDITION_EVENT_NAME_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
 
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
@@ -38,20 +35,17 @@ const DEFAULT_RULE_DEFINITIONS := [
 @export var state_store: I_StateStore = null
 @export var rules: Array[Resource] = []
 
-var _tracker: U_RuleStateTracker = RULE_STATE_TRACKER.new()
-var _active_rules: Array = []
-var _rule_validation_report: Dictionary = {}
-var _event_unsubscribers: Array[Callable] = []
+var _rule_evaluator: Variant = U_RULE_EVALUATOR.new()
 
 func on_configured() -> void:
-	_refresh_active_rules()
+	_refresh_rule_evaluator()
 	_subscribe_rule_events()
 
 func _exit_tree() -> void:
-	_unsubscribe_rule_events()
+	_rule_evaluator.unsubscribe()
 
 func process_tick(delta: float) -> void:
-	_tracker.tick_cooldowns(delta)
+	_rule_evaluator.tick_cooldowns(delta)
 
 	var contexts: Array = _build_entity_contexts()
 	if contexts.is_empty():
@@ -67,58 +61,24 @@ func process_tick(delta: float) -> void:
 		var character_state: Variant = context.get("character_state_component", null)
 		_write_brain_data(character_state, context)
 
-	_tracker.cleanup_stale_contexts(active_context_keys)
+	_rule_evaluator.cleanup_stale_contexts(active_context_keys)
 
 func get_rule_validation_report() -> Dictionary:
-	return _rule_validation_report.duplicate(true)
+	return _rule_evaluator.get_rule_validation_report()
 
-func _refresh_active_rules() -> void:
-	var combined_rules: Array = DEFAULT_RULE_DEFINITIONS.duplicate()
-	for rule_variant in rules:
-		combined_rules.append(rule_variant)
-
-	_rule_validation_report = U_RULE_VALIDATOR.validate_rules(combined_rules)
-	var valid_rules_variant: Variant = _rule_validation_report.get("valid_rules", [])
-	if valid_rules_variant is Array:
-		_active_rules = (valid_rules_variant as Array).duplicate()
-	else:
-		_active_rules = []
+func _refresh_rule_evaluator() -> void:
+	_rule_evaluator.refresh(DEFAULT_RULE_DEFINITIONS, rules)
 
 func _subscribe_rule_events() -> void:
-	_unsubscribe_rule_events()
-	var subscribed_events: Dictionary = {}
+	_rule_evaluator.subscribe(
+		func(rule_variant: Variant) -> Array[StringName]:
+			return _extract_event_names_from_rule(rule_variant),
+		func(event_name: StringName, event_payload: Dictionary) -> void:
+			_on_rule_event(event_name, event_payload)
+	)
 
-	for rule_variant in _active_rules:
-		if rule_variant == null or not (rule_variant is Object):
-			continue
-
-		var trigger_mode: String = _read_string_property(rule_variant, "trigger_mode", TRIGGER_MODE_TICK)
-		if trigger_mode != TRIGGER_MODE_EVENT and trigger_mode != TRIGGER_MODE_BOTH:
-			continue
-
-		var event_names: Array[StringName] = _extract_event_names_from_rule(rule_variant)
-		for event_name in event_names:
-			if event_name == StringName() or subscribed_events.has(event_name):
-				continue
-
-			var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(event_name, func(event_data: Dictionary) -> void:
-				_on_rule_event(event_name, event_data)
-			)
-			if unsubscribe.is_valid():
-				_event_unsubscribers.append(unsubscribe)
-				subscribed_events[event_name] = true
-
-func _unsubscribe_rule_events() -> void:
-	for unsubscribe in _event_unsubscribers:
-		if unsubscribe.is_valid():
-			unsubscribe.call()
-	_event_unsubscribers.clear()
-
-func _on_rule_event(event_name: StringName, event_data: Dictionary) -> void:
-	_tracker.tick_cooldowns(0.0)
-
-	var payload_variant: Variant = event_data.get("payload", {})
-	var event_payload: Dictionary = payload_variant as Dictionary if payload_variant is Dictionary else {}
+func _on_rule_event(event_name: StringName, event_payload: Dictionary) -> void:
+	_rule_evaluator.tick_cooldowns(0.0)
 
 	var contexts: Array = _build_entity_contexts()
 	if contexts.is_empty():
@@ -137,83 +97,18 @@ func _on_rule_event(event_name: StringName, event_data: Dictionary) -> void:
 		var character_state: Variant = context.get("character_state_component", null)
 		_write_brain_data(character_state, context)
 
-	_tracker.cleanup_stale_contexts(active_context_keys)
+	_rule_evaluator.cleanup_stale_contexts(active_context_keys)
 
 func _evaluate_context(context: Dictionary, trigger_mode: String, _event_name: StringName) -> void:
-	var applicable_rules: Array = _get_applicable_rules(trigger_mode)
-	if applicable_rules.is_empty():
-		return
-
-	var scored: Array[Dictionary] = U_RULE_SCORER.score_rules(applicable_rules, context)
-	if scored.is_empty():
-		return
-
-	var gated: Array[Dictionary] = _apply_state_gates(applicable_rules, scored, context)
-	if gated.is_empty():
-		return
-
-	var winners: Array[Dictionary] = U_RULE_SELECTOR.select_winners(gated)
-	if winners.is_empty():
-		return
-
-	_execute_effects(winners, context)
-	_mark_fired_rules(winners, context)
-
-func _get_applicable_rules(trigger_mode: String) -> Array:
-	var applicable_rules: Array = []
-	for rule_variant in _active_rules:
-		if rule_variant == null or not (rule_variant is Object):
-			continue
-
-		var rule_trigger_mode: String = _read_string_property(rule_variant, "trigger_mode", TRIGGER_MODE_TICK)
-		if trigger_mode == TRIGGER_MODE_TICK:
-			if rule_trigger_mode == TRIGGER_MODE_TICK or rule_trigger_mode == TRIGGER_MODE_BOTH:
-				applicable_rules.append(rule_variant)
-			continue
-
-		if trigger_mode == TRIGGER_MODE_EVENT:
-			if rule_trigger_mode != TRIGGER_MODE_EVENT and rule_trigger_mode != TRIGGER_MODE_BOTH:
-				continue
-			applicable_rules.append(rule_variant)
-
-	return applicable_rules
-
-func _apply_state_gates(applicable_rules: Array, scored: Array[Dictionary], context: Dictionary) -> Array[Dictionary]:
-	var context_key: StringName = _context_key_for_context(context)
-
-	var scored_by_rule: Dictionary = {}
-	for result in scored:
-		var rule_variant: Variant = result.get("rule", null)
-		if rule_variant == null:
-			continue
-		scored_by_rule[rule_variant] = result
-
-	var gated: Array[Dictionary] = []
-	for rule_variant in applicable_rules:
-		if rule_variant == null or not (rule_variant is Object):
-			continue
-
-		var rule_id: StringName = _resolve_rule_id(rule_variant)
-		var requires_rising_edge: bool = _read_bool_property(rule_variant, "requires_rising_edge", false)
-		var is_passing_now: bool = scored_by_rule.has(rule_variant)
-		var has_rising_edge: bool = true
-		if requires_rising_edge:
-			has_rising_edge = _tracker.check_rising_edge(rule_id, context_key, is_passing_now)
-
-		if not is_passing_now:
-			continue
-		if _tracker.is_one_shot_spent(rule_id):
-			continue
-		if _tracker.is_on_cooldown(rule_id, context_key):
-			continue
-		if requires_rising_edge and not has_rising_edge:
-			continue
-
-		var result_variant: Variant = scored_by_rule.get(rule_variant, null)
-		if result_variant is Dictionary:
-			gated.append(result_variant)
-
-	return gated
+	_rule_evaluator.evaluate(
+		context,
+		trigger_mode,
+		_event_name,
+		_context_key_for_context(context),
+		Callable(),
+		func(winners: Array[Dictionary], evaluation_context: Dictionary) -> void:
+			_execute_effects(winners, evaluation_context)
+	)
 
 func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 	for winner in winners:
@@ -232,20 +127,6 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 				continue
 			effect_variant.call("execute", context)
 
-func _mark_fired_rules(winners: Array[Dictionary], context: Dictionary) -> void:
-	var context_key: StringName = _context_key_for_context(context)
-	for winner in winners:
-		var rule_variant: Variant = winner.get("rule", null)
-		if rule_variant == null or not (rule_variant is Object):
-			continue
-
-		var rule_id: StringName = _resolve_rule_id(rule_variant)
-		var cooldown: float = maxf(_read_float_property(rule_variant, "cooldown", 0.0), 0.0)
-		_tracker.mark_fired(rule_id, context_key, cooldown)
-
-		if _read_bool_property(rule_variant, "one_shot", false):
-			_tracker.mark_one_shot_spent(rule_id)
-
 func _context_key_for_context(context: Dictionary) -> StringName:
 	var entity_id_variant: Variant = context.get("entity_id", StringName())
 	if entity_id_variant is StringName:
@@ -258,14 +139,6 @@ func _context_key_for_context(context: Dictionary) -> StringName:
 			return StringName(text)
 
 	return StringName()
-
-func _resolve_rule_id(rule_variant: Variant) -> StringName:
-	var rule_id: StringName = _read_string_name_property(rule_variant, "rule_id")
-	if rule_id != StringName():
-		return rule_id
-	if rule_variant is Object:
-		return StringName("__rule_%d" % (rule_variant as Object).get_instance_id())
-	return StringName("__rule")
 
 func _build_entity_contexts() -> Array:
 	var contexts: Array = []
