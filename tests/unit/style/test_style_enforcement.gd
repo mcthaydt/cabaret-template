@@ -127,7 +127,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/ui/utils": ["u_"], # UI utilities
 	"res://scripts/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
 	"res://scripts/gameplay/helpers": ["u_"], # gameplay helper utilities
-	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers
+	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_", "s_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers, s_ for gameplay-scoped ECS systems
 	"res://scripts/scene_structure": ["marker_"], # marker_*.gd organizational scripts
 	"res://scripts/scene_management/transitions": ["trans_", "base_"], # transition effects
 	"res://scripts/resources/scene_management": ["rs_"], # scene registry resources
@@ -564,6 +564,15 @@ func test_ai_resource_scripts_are_grouped_by_subdirectory() -> void:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
+func test_ecs_system_filenames_do_not_include_demo_marker() -> void:
+	var violations: Array[String] = []
+	_collect_gd_filename_substring_violations("res://scripts/ecs/systems", "_demo_", violations)
+
+	var message := "ECS system scripts under scripts/ecs/systems must not include '_demo_' in filename"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var rule_systems: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
@@ -889,5 +898,27 @@ func _collect_scene_theme_override_counts(dir_path: String, override_counts: Dic
 			var override_count: int = _count_theme_override_lines(path)
 			if override_count > 0:
 				override_counts[path] = override_count
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _collect_gd_filename_substring_violations(
+	dir_path: String,
+	needle: String,
+	violations: Array[String]
+) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_gd_filename_substring_violations(path, needle, violations)
+		elif entry.ends_with(".gd"):
+			if entry.find(needle) != -1:
+				violations.append(path)
 		entry = dir.get_next()
 	dir.list_dir_end()

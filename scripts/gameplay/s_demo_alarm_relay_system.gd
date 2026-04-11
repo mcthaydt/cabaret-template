@@ -1,6 +1,6 @@
 @icon("res://assets/editor_icons/icn_system.svg")
 extends BaseECSSystem
-class_name S_AIDemoAlarmRelaySystem
+class_name S_DemoAlarmRelaySystem
 
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")

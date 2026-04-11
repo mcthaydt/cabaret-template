@@ -196,7 +196,7 @@ func test_showcase_has_m15_ai_systems() -> void:
 	if root == null:
 		return
 	assert_not_null(root.get_node_or_null("Systems/Core/S_AIDetectionSystem"))
-	assert_not_null(root.get_node_or_null("Systems/Core/S_AIDemoAlarmRelaySystem"))
+	assert_not_null(root.get_node_or_null("Systems/Core/S_DemoAlarmRelaySystem"))
 
 func test_showcase_detection_components_have_expected_flags() -> void:
 	var root: Node = _load_scene_root()

@@ -59,7 +59,7 @@
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_move_target_follower_system.gd" id="54_move_target_follower_system"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="55_base_ecs_entity"]
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_detection_system.gd" id="56_ai_detection_system"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd" id="57_ai_demo_alarm_relay_system"]
+[ext_resource type="Script" path="res://scripts/gameplay/s_demo_alarm_relay_system.gd" id="57_demo_alarm_relay_system"]
 [ext_resource type="Script" uid="uid://dpxywmhc2hqwa" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Texture2D" uid="uid://rb3wysvedbe2" path="res://assets/textures/tex_interaction_v.svg" id="62_kkkmb"]
 [ext_resource type="Script" uid="uid://dquf2ldimoefx" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="63_room_fade_group_component"]
@@ -265,8 +265,8 @@ script = ExtResource("1_camera_state_system")
 script = ExtResource("56_ai_detection_system")
 execution_priority = -12
 
-[node name="S_AIDemoAlarmRelaySystem" type="Node" parent="Systems/Core" unique_id=1775100002]
-script = ExtResource("57_ai_demo_alarm_relay_system")
+[node name="S_DemoAlarmRelaySystem" type="Node" parent="Systems/Core" unique_id=1775100002]
+script = ExtResource("57_demo_alarm_relay_system")
 execution_priority = -11
 relay_flag_ids = Array[StringName]([&"power_core_activated", &"power_core_proximity", &"comms_disturbance_heard", &"comms_disturbance_proximity"])
 

@@ -5,7 +5,7 @@ extends BaseTest
 ## flag dispatch, ECS event publication, and alarm relay cascading.
 
 const S_AI_DETECTION_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_detection_system.gd"
-const S_AI_DEMO_ALARM_RELAY_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd"
+const S_DEMO_ALARM_RELAY_SYSTEM_PATH := "res://scripts/gameplay/s_demo_alarm_relay_system.gd"
 
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
@@ -117,7 +117,7 @@ func _create_full_fixture() -> Dictionary:
 	var detection_system: BaseECSSystem = detection_script.new() as BaseECSSystem
 	autofree(detection_system)
 
-	var relay_script: Script = load(S_AI_DEMO_ALARM_RELAY_SYSTEM_PATH) as Script
+	var relay_script: Script = load(S_DEMO_ALARM_RELAY_SYSTEM_PATH) as Script
 	assert_not_null(relay_script)
 	if relay_script == null:
 		return {}

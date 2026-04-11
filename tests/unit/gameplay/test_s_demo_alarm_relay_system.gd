@@ -1,6 +1,6 @@
 extends BaseTest
 
-const S_AI_DEMO_ALARM_RELAY_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd"
+const S_DEMO_ALARM_RELAY_SYSTEM_PATH := "res://scripts/gameplay/s_demo_alarm_relay_system.gd"
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
@@ -21,7 +21,7 @@ func _load_script(path: String) -> Script:
 	return script_variant as Script
 
 func _create_fixture() -> Dictionary:
-	var system_script: Script = _load_script(S_AI_DEMO_ALARM_RELAY_SYSTEM_PATH)
+	var system_script: Script = _load_script(S_DEMO_ALARM_RELAY_SYSTEM_PATH)
 	if system_script == null:
 		return {}
 
@@ -31,7 +31,7 @@ func _create_fixture() -> Dictionary:
 	autofree(store)
 
 	var system_variant: Variant = system_script.new()
-	assert_true(system_variant is BASE_ECS_SYSTEM, "S_AIDemoAlarmRelaySystem should extend BaseECSSystem")
+	assert_true(system_variant is BASE_ECS_SYSTEM, "S_DemoAlarmRelaySystem should extend BaseECSSystem")
 	if not (system_variant is BaseECSSystem):
 		return {}
 	var system: BaseECSSystem = system_variant as BaseECSSystem
@@ -53,13 +53,13 @@ func _create_fixture() -> Dictionary:
 	}
 
 func test_system_extends_base_ecs_system() -> void:
-	var system_script: Script = _load_script(S_AI_DEMO_ALARM_RELAY_SYSTEM_PATH)
+	var system_script: Script = _load_script(S_DEMO_ALARM_RELAY_SYSTEM_PATH)
 	if system_script == null:
 		return
 	var instance_variant: Variant = system_script.new()
 	if instance_variant is Node:
 		autofree(instance_variant as Node)
-	assert_true(instance_variant is BASE_ECS_SYSTEM, "S_AIDemoAlarmRelaySystem should extend BaseECSSystem")
+	assert_true(instance_variant is BASE_ECS_SYSTEM, "S_DemoAlarmRelaySystem should extend BaseECSSystem")
 
 func test_alarm_event_dispatches_configured_flags() -> void:
 	var fixture: Dictionary = _create_fixture()
