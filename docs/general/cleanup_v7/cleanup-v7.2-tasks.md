@@ -34,6 +34,9 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl and a propos
 - `F6` is independent.
 - `F7` is independent — blocked only on a one-commit parser feasibility investigation.
 - `F8` is independent — follows `C5`'s decomposition pattern once `C5` lands.
+- `F9` is independent — refactors the core ECS system lifecycle loop.
+- `F10` is independent — small addition to `m_state_store.gd` action tracking.
+- `F11` is independent — targets event bus memory hygiene.
 
 ---
 
@@ -399,6 +402,67 @@ For `S_CameraStateSystem`, consider extracting `u_camera_state_rule_applier.gd` 
 - [ ] Style enforcement test green.
 
 **Dependency note**: Follows cleanup-v7 `C5` — run F8 after C5 lands so the same decomposition pattern can be applied consistently to all three large systems.
+
+---
+
+## Milestone F9: Explicit ECS System Execution Phasing
+
+**Goal**: Make ECS system execution order deterministic and explicit. Currently, systems run via `_physics_process`, relying on SceneTree order or registration order. This causes 1-frame jitters if, for instance, cameras evaluate before movement solves.
+
+**Scope**:
+- `scripts/managers/m_ecs_manager.gd`
+- `scripts/ecs/base_ecs_system.gd`
+- `scripts/interfaces/i_ecs_manager.gd`
+- Update all existing `S_*` system scripts to declare a phase.
+
+**Commits**:
+- [ ] **Commit 1** (RED) — Add tests in `test_m_ecs_manager_phasing.gd` asserting systems evaluate in strictly defined phase order regardless of registration sequence.
+- [ ] **Commit 2** (GREEN) — Introduce `SystemPhase` enum (e.g., `INPUT`, `PRE_PHYSICS`, `PHYSICS_SOLVE`, `POST_PHYSICS`, `CAMERA`, `VFX`). Modify `BaseECSSystem` to export or return its phase.
+- [ ] **Commit 3** (GREEN) — Modify `M_ECSManager` to own the loop: register systems into phase-buckets, and iterate those buckets in order during `_physics_process`. Systems no longer use their own `_physics_process`.
+- [ ] **Commit 4** (GREEN) — Assign explicit phases to all current systems.
+
+**F9 Verification**:
+- [ ] Phasing tests green.
+- [ ] Existing ECS tests green.
+- [ ] No ECS system uses `_physics_process` directly (style enforcement grep).
+
+---
+
+## Milestone F10: State Store History Truncation
+
+**Goal**: Prevent infinite memory growth in the state store. `M_StateStore` maintains an `action_history_buffer`. If unchecked, long play sessions will eventually OOM.
+
+**Scope**:
+- `scripts/state/m_state_store.gd`
+- `scripts/resources/state/rs_state_store_settings.gd`
+
+**Commits**:
+- [ ] **Commit 1** (RED) — Add test `test_m_state_store_history_truncation.gd` asserting the buffer does not exceed a configured maximum length.
+- [ ] **Commit 2** (GREEN) — Add `max_history_length` to `RS_StateStoreSettings` (e.g., 500). Update `action_history_buffer` append logic to pop the oldest action when capacity is reached.
+- [ ] **Commit 3** (GREEN) — Optional: disable history recording entirely if `OS.has_feature("release")` and a `record_history_in_release` flag is false.
+
+**F10 Verification**:
+- [ ] Truncation tests green.
+- [ ] Buffer length stays <= max configured length during main-menu-to-gameplay loop.
+
+---
+
+## Milestone F11: Event Bus "Zombie" Prevention (WeakRef Subscriptions)
+
+**Goal**: Prevent memory leaks and invalid callable crashes in `U_ECSEventBus`. If entities subscribe but are `queue_free()`'d without unsubscribing, the bus leaks references or crashes on dispatch.
+
+**Scope**:
+- `scripts/events/u_ecs_event_bus.gd` (or equivalent location)
+
+**Commits**:
+- [ ] **Commit 1** (RED) — Add test `test_u_ecs_event_bus_zombies.gd` where an object subscribes, is `free()`'d or `queue_free()`'d, and an event is published. Assert the bus cleans it up and doesn't crash.
+- [ ] **Commit 2** (GREEN) — Refactor `U_ECSEventBus` subscriber storage to use `WeakRef` or safely check `is_instance_valid(callable.get_object())` before invoking.
+- [ ] **Commit 3** (GREEN) — Add periodic sweep or publish-time pruning to remove dead callables from the subscriber arrays.
+- [ ] **Commit 4** (GREEN) — Revisit the subscriber list allocation issue (`.duplicate()` per call). Implement copy-on-write or deferred execution to avoid allocations.
+
+**F11 Verification**:
+- [ ] Zombie cleanup tests green.
+- [ ] Existing event bus tests green.
 
 ---
 
