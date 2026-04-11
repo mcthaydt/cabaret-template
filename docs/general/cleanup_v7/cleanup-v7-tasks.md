@@ -31,6 +31,7 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 `C9` depends on C4 (Resource config pattern established by BaseECSSystem snapshot method) — migrates constants to configs.
 `C10` depends on C8 (selectors) and C3 (shared resolution) — replaces naming-convention coupling.
 `C11` depends on C8 — extends selector enforcement to systems, helpers, interactables, and UI files once the manager patterns are established.
+`C12` is independent of C1–C11 — post-processing pipeline refactor touches display manager helpers, display state, and shaders; no overlap with rule engine, selectors, or scene manager milestones. May run in parallel with any other milestone. See `docs/general/post_process_refactor/post-process-refactor-tasks.md` for the full checklist.
 
 ---
 
@@ -305,6 +306,26 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 **C11 Verification**:
 - [ ] All affected system/helper/interactable/UI tests green
 - [ ] Grep test: zero `state.get("` or `state["` occurrences in production code outside of `m_state_store.gd`, reducers, and selectors
+
+---
+
+## Milestone C12: Post-Processing Pipeline Refactor
+
+**Goal**: Collapse the post-process surface to exactly two passes (color grading + grain/dither) behind a new `U_PostProcessPipeline` coordinator that mimics `CompositorEffect` ergonomics in `gl_compatibility` mode, remove CRT entirely, rename cinema_grade → color_grading across the codebase, and enable color grading on mobile.
+
+**Standalone doc**: Full 10-commit breakdown, critical file list, and verification steps live in `docs/general/post_process_refactor/post-process-refactor-tasks.md`. This pointer exists to keep C12 discoverable from the cleanup-v7 index; the standalone doc is the source of truth.
+
+**Summary**:
+- [ ] **Commit 1** (RED) — Pipeline + removal tests
+- [ ] **Commit 2** (GREEN) — CRT state removal
+- [ ] **Commit 3** (GREEN) — CRT UI/localization removal
+- [ ] **Commit 4** (GREEN) — CRT shader removal
+- [ ] **Commit 5** (GREEN) — Color grading rename, state layer
+- [ ] **Commit 6** (GREEN) — Color grading rename, resources + registry
+- [ ] **Commit 7** (GREEN) — Color grading rename, applier + debug + UI + localization (mobile PCK cache warning)
+- [ ] **Commit 8** (GREEN) — Introduce `U_PostProcessPipeline`
+- [ ] **Commit 9** (GREEN) — Enable color grading on mobile
+- [ ] **Commit 10** (GREEN) — Style enforcement + legacy cleanup
 
 ---
 
