@@ -3,6 +3,7 @@ extends GutTest
 const U_AI_TASK_RUNNER_PATH := "res://scripts/utils/ai/u_ai_task_runner.gd"
 const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
 const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd")
 const MOCK_AI_ACTION_TRACK := preload("res://tests/mocks/mock_ai_action_track.gd")
@@ -34,6 +35,9 @@ func _new_task(label: String, ticks_to_complete: int = 1) -> RS_AIPrimitiveTask:
 	task.task_id = StringName(label)
 	task.action = action as I_AIAction
 	return task
+
+func _new_move_target_component() -> Variant:
+	return C_MOVE_TARGET_COMPONENT.new()
 
 func test_tick_starts_action_on_first_call() -> void:
 	var runner_script: Script = _load_runner_script()
@@ -101,6 +105,55 @@ func test_finishes_queue_and_clears_state() -> void:
 	assert_true(brain.current_task_queue.is_empty())
 	assert_eq(brain.current_task_index, 0)
 	assert_true(brain.task_state.is_empty())
+
+func test_advancing_to_next_task_deactivates_move_target_component() -> void:
+	var runner_script: Script = _load_runner_script()
+	if runner_script == null:
+		return
+	var runner: Variant = runner_script.new()
+	var brain: C_AIBrainComponent = _new_brain()
+	brain.current_task_queue = [_new_task("first", 1), _new_task("second", 5)]
+	brain.current_task_index = 0
+	brain.task_state = {"legacy": true}
+	var move_target_component: Variant = _new_move_target_component()
+	autofree(move_target_component)
+	move_target_component.set("is_active", true)
+	var context: Dictionary = {
+		"components": {
+			C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE: move_target_component,
+		},
+	}
+
+	runner.tick(brain, 0.1, context)
+
+	assert_eq(brain.current_task_index, 1)
+	var is_active_variant: Variant = move_target_component.get("is_active")
+	assert_true(is_active_variant is bool and not bool(is_active_variant))
+
+func test_finishing_queue_deactivates_move_target_component() -> void:
+	var runner_script: Script = _load_runner_script()
+	if runner_script == null:
+		return
+	var runner: Variant = runner_script.new()
+	var brain: C_AIBrainComponent = _new_brain()
+	brain.active_goal_id = &"patrol"
+	brain.current_task_queue = [_new_task("one", 1)]
+	brain.current_task_index = 0
+	brain.task_state = {"legacy": true}
+	var move_target_component: Variant = _new_move_target_component()
+	autofree(move_target_component)
+	move_target_component.set("is_active", true)
+	var context: Dictionary = {
+		"components": {
+			C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE: move_target_component,
+		},
+	}
+
+	runner.tick(brain, 0.1, context)
+
+	assert_true(brain.current_task_queue.is_empty())
+	var is_active_variant: Variant = move_target_component.get("is_active")
+	assert_true(is_active_variant is bool and not bool(is_active_variant))
 
 func test_skips_invalid_primitive_tasks() -> void:
 	var runner_script: Script = _load_runner_script()

@@ -70,7 +70,7 @@
   - `M_SceneManager` listens to `EVENT_OBJECTIVE_VICTORY_TRIGGERED` for endgame transitions; legacy direct `victory_executed` scene transitions are removed.
 - Reset-run orchestration pattern (Phase 7):
   - `UI_Victory` Continue dispatches `U_RunActions.reset_run(&"retry")` (do not chain gameplay/navigation reset actions directly in UI code).
-  - `M_RunCoordinatorManager` handles `run/reset` order: `gameplay/reset_progress` -> `U_InteractBlocker.force_unblock()` -> `objectives_manager.reset_for_new_run(&"default_progression")` -> `navigation/retry(game_config.retry_scene_id)` (currently `&"power_core"` in `resources/cfg_game_config.tres`).
+  - `M_RunCoordinatorManager` handles `run/reset` order: `gameplay/reset_progress` -> `U_InteractBlocker.force_unblock()` -> `objectives_manager.reset_for_new_run(&"default_progression")` -> `navigation/retry(game_config.retry_scene_id)` (currently `&"ai_showcase"` in `resources/cfg_game_config.tres`).
   - Service-locator lookups in the reset path are type-cast to `I_ObjectivesManager` (no `has_method("reset_for_new_run")` duck-typing guards).
   - `M_ObjectivesManager.reset_for_new_run()` is the fresh objective-reset path (no persisted-status reconciliation); `load_objective_set()` remains the save/load reconciliation path.
   - Re-entrant `run/reset` requests are ignored while a reset is in-flight.

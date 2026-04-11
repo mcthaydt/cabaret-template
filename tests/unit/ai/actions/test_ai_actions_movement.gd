@@ -3,6 +3,7 @@ extends BaseTest
 const ACTION_MOVE_TO_PATH := "res://scripts/resources/ai/actions/rs_ai_action_move_to.gd"
 const ACTION_SCAN_PATH := "res://scripts/resources/ai/actions/rs_ai_action_scan.gd"
 const ACTION_ANIMATE_PATH := "res://scripts/resources/ai/actions/rs_ai_action_animate.gd"
+const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 
 func _load_script(path: String) -> Script:
 	var script_variant: Variant = load(path)
@@ -15,6 +16,9 @@ func _assert_vector3_almost_eq(actual: Vector3, expected: Vector3, epsilon: floa
 	assert_almost_eq(actual.x, expected.x, epsilon)
 	assert_almost_eq(actual.y, expected.y, epsilon)
 	assert_almost_eq(actual.z, expected.z, epsilon)
+
+func _new_move_target_component() -> Variant:
+	return C_MOVE_TARGET_COMPONENT.new()
 
 func test_move_to_action_sets_target_in_task_state() -> void:
 	var action_script: Script = _load_script(ACTION_MOVE_TO_PATH)
@@ -33,6 +37,35 @@ func test_move_to_action_sets_target_in_task_state() -> void:
 	assert_true(target_variant is Vector3)
 	if target_variant is Vector3:
 		_assert_vector3_almost_eq(target_variant as Vector3, Vector3(3.0, 0.0, 2.0))
+
+func test_move_to_action_routes_to_move_target_component_when_present() -> void:
+	var action_script: Script = _load_script(ACTION_MOVE_TO_PATH)
+	if action_script == null:
+		return
+
+	var action: Resource = action_script.new()
+	action.set("target_position", Vector3(3.0, 0.0, 2.0))
+	action.set("arrival_threshold", 0.27)
+	var move_target_component: Variant = _new_move_target_component()
+	autofree(move_target_component)
+
+	var context: Dictionary = {
+		"components": {
+			C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE: move_target_component,
+		},
+	}
+	var task_state: Dictionary = {}
+	action.start(context, task_state)
+
+	var is_active_variant: Variant = move_target_component.get("is_active")
+	assert_true(is_active_variant is bool and bool(is_active_variant))
+	var target_position_variant: Variant = move_target_component.get("target_position")
+	assert_true(target_position_variant is Vector3)
+	if target_position_variant is Vector3:
+		_assert_vector3_almost_eq(target_position_variant as Vector3, Vector3(3.0, 0.0, 2.0))
+	var arrival_threshold_variant: Variant = move_target_component.get("arrival_threshold")
+	assert_true(arrival_threshold_variant is float or arrival_threshold_variant is int)
+	assert_almost_eq(float(arrival_threshold_variant), 0.27, 0.0001)
 
 func test_move_to_start_writes_arrival_threshold_to_task_state() -> void:
 	var action_script: Script = _load_script(ACTION_MOVE_TO_PATH)
@@ -66,6 +99,32 @@ func test_move_to_action_completes_when_within_threshold() -> void:
 	action.start(context, task_state)
 
 	assert_true(action.is_complete(context, task_state))
+
+func test_move_to_action_completion_deactivates_move_target_component() -> void:
+	var action_script: Script = _load_script(ACTION_MOVE_TO_PATH)
+	if action_script == null:
+		return
+
+	var action: Resource = action_script.new()
+	action.set("target_position", Vector3(1.0, 0.0, 1.0))
+	action.set("arrival_threshold", 0.5)
+	var move_target_component: Variant = _new_move_target_component()
+	autofree(move_target_component)
+
+	var context: Dictionary = {
+		"entity_position": Vector3(1.2, 5.0, 1.1),
+		"components": {
+			C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE: move_target_component,
+		},
+	}
+	var task_state: Dictionary = {}
+	action.start(context, task_state)
+	var is_active_variant: Variant = move_target_component.get("is_active")
+	assert_true(is_active_variant is bool and bool(is_active_variant))
+
+	assert_true(action.is_complete(context, task_state))
+	var inactive_variant: Variant = move_target_component.get("is_active")
+	assert_true(inactive_variant is bool and not bool(inactive_variant))
 
 func test_move_to_action_stays_active_when_far() -> void:
 	var action_script: Script = _load_script(ACTION_MOVE_TO_PATH)

@@ -5,6 +5,11 @@
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Reference**: `docs/ai_system/ai-system-overview.md`, `docs/ai_system/ai-system-tasks.md`
 
+**Post-Refactor Gap Closure (2026-04-11)**:
+- `RS_AIActionMoveTo` now routes move targets to `C_MoveTargetComponent` when available, with compatibility task-state mirroring retained.
+- `U_AITaskRunner` and `U_AIReplanner` now clear active move targets on task advance/finish/replan to prevent stale movement carryover.
+- Full regression snapshot: `tools/run_gut_suite.sh` -> `3929/3938` passing, `9` pending/risky, `0` failing.
+
 ---
 
 ## Purpose
@@ -55,7 +60,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 - [x] All new typed tests green
 - [x] Existing `test_ai_pipeline_integration.gd` green (no behavior change)
 - [x] `test_style_enforcement.gd` passes
-- [ ] Full-suite regression green
+- [x] Full-suite regression green
 
 **R1 Completion Notes**:
 - Added typed property-hint coverage in:
@@ -377,7 +382,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - Six `.tscn` files reference `s_ai_navigation_system` today (verified via grep): `scenes/gameplay/gameplay_ai_showcase.tscn`, `gameplay_power_core.tscn`, `gameplay_comms_array.tscn`, `gameplay_nav_nexus.tscn`, `gameplay_base.tscn`, and `scenes/templates/tmpl_base_scene.tscn`. Update all six to instance `s_move_target_follower_system` instead. The template-scene change is the important one — once `tmpl_base_scene.tscn` is updated, inherited scenes pick it up automatically.
   - `scripts/ecs/systems/s_ai_navigation_system.gd` — **delete** after verification
   - `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` — rename to `test_s_move_target_follower_system.gd` and update its target/assertions
-  - `scripts/resources/ai/actions/rs_ai_action_move_to.gd` — keep writing to `task_state[U_AITaskStateKeys.MOVE_TARGET]` for now; the back-compat path in the follower system handles it. Mark a TODO for a follow-up milestone that routes the action through `C_MoveTargetComponent` directly if/when every AI entity has one.
+  - `scripts/resources/ai/actions/rs_ai_action_move_to.gd` — route authored move targets to `C_MoveTargetComponent` when present while preserving `task_state` writes for follower back-compat.
 
 **R6 Verification**:
 - [x] All new follower tests green
@@ -395,7 +400,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `scripts/ecs/systems/s_move_target_follower_system.gd`
 - Back-compat retained:
   - Follower prefers active `C_MoveTargetComponent` targets and falls back to `C_AIBrainComponent.task_state[U_AITaskStateKeys.MOVE_TARGET]`.
-  - `RS_AIActionMoveTo` remains task-state based for now; added follow-up TODO for direct component routing.
+  - `RS_AIActionMoveTo` now writes both `C_MoveTargetComponent` (when available) and task-state keys; `U_AITaskRunner`/`U_AIReplanner` clear active move targets during task advance/finish/replan to prevent stale movement.
 - Migrated call sites and removed legacy system:
   - Updated shared scene stacks (`tmpl_base_scene`, `gameplay_base`, `gameplay_ai_showcase`, `gameplay_power_core`, `gameplay_comms_array`, `gameplay_nav_nexus`) to `S_MoveTargetFollowerSystem`.
   - Deleted `scripts/ecs/systems/s_ai_navigation_system.gd`.
@@ -432,7 +437,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 **R7 Verification**:
 - [x] New style test green
 - [x] Existing AI behavior/resource/integration suites green
-- [ ] Full-suite regression clean (blocked by pre-existing non-R7 failures)
+- [x] Full-suite regression clean
 
 **R7 Completion Notes**:
 - Added RED/GREEN layout enforcement coverage:

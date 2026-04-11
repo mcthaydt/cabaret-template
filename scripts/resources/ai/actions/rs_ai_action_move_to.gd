@@ -3,6 +3,7 @@ extends I_AIAction
 class_name RS_AIActionMoveTo
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 
 @export_group("Target")
@@ -17,11 +18,12 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	var resolved_target: Variant = resolution.get("target", null)
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
 	if resolved_target is Vector3:
-		# TODO(R6 follow-up): route move targets via C_MoveTargetComponent once all movers include it.
+		_set_move_target_component_target(context, resolved_target as Vector3, resolved_arrival_threshold)
 		task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET] = resolved_target
 		task_state[U_AI_TASK_STATE_KEYS.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
 		task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED] = true
 		return
+	_clear_move_target_component(context)
 	task_state.erase(U_AI_TASK_STATE_KEYS.MOVE_TARGET)
 	task_state.erase(U_AI_TASK_STATE_KEYS.ARRIVAL_THRESHOLD)
 	task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED] = false
@@ -34,6 +36,7 @@ func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
 	_write_resolution_debug(task_state, resolution)
 	var resolved_target: Variant = resolution.get("target", null)
 	if resolved_target is Vector3:
+		_set_move_target_component_target(context, resolved_target as Vector3, arrival_threshold)
 		task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET] = resolved_target
 		task_state[U_AI_TASK_STATE_KEYS.ARRIVAL_THRESHOLD] = maxf(arrival_threshold, 0.0)
 		task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED] = true
@@ -41,16 +44,21 @@ func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
 func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	var target_variant: Variant = task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET, null)
 	if not (target_variant is Vector3):
+		_clear_move_target_component(context)
 		return true
 
 	var current_position_variant: Variant = _resolve_current_position(context)
 	if not (current_position_variant is Vector3):
+		_clear_move_target_component(context)
 		return true
 
 	var target: Vector3 = target_variant as Vector3
 	var current_position: Vector3 = current_position_variant as Vector3
 	var offset_xz := Vector2(target.x - current_position.x, target.z - current_position.z)
-	return offset_xz.length() <= maxf(arrival_threshold, 0.0)
+	var is_arrived: bool = offset_xz.length() <= maxf(arrival_threshold, 0.0)
+	if is_arrived:
+		_clear_move_target_component(context)
+	return is_arrived
 
 func _resolve_target_resolution(context: Dictionary) -> Dictionary:
 	var resolution: Dictionary = {
@@ -194,3 +202,32 @@ func _resolve_current_position(context: Dictionary) -> Variant:
 		return (entity_variant as Node3D).global_position
 
 	return null
+
+func _set_move_target_component_target(
+	context: Dictionary,
+	target_position_value: Vector3,
+	arrival_threshold_value: float
+) -> bool:
+	var move_target_component: Object = _resolve_move_target_component(context)
+	if move_target_component == null:
+		return false
+	move_target_component.set("target_position", target_position_value)
+	move_target_component.set("arrival_threshold", maxf(arrival_threshold_value, 0.0))
+	move_target_component.set("is_active", true)
+	return true
+
+func _clear_move_target_component(context: Dictionary) -> void:
+	var move_target_component: Object = _resolve_move_target_component(context)
+	if move_target_component == null:
+		return
+	move_target_component.set("is_active", false)
+
+func _resolve_move_target_component(context: Dictionary) -> Object:
+	var components_variant: Variant = context.get("components", null)
+	if not (components_variant is Dictionary):
+		return null
+	var components: Dictionary = components_variant as Dictionary
+	var move_target_component_variant: Variant = components.get(C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE, null)
+	if move_target_component_variant == null or not (move_target_component_variant is Object):
+		return null
+	return move_target_component_variant as Object

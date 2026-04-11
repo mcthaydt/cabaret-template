@@ -2,6 +2,7 @@ extends GutTest
 
 const U_AI_REPLANNER_PATH := "res://scripts/utils/ai/u_ai_replanner.gd"
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
 const RS_AI_GOAL := preload("res://scripts/resources/ai/goals/rs_ai_goal.gd")
 const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd")
@@ -38,6 +39,9 @@ func _goal(goal_id: StringName, root_task: RS_AITask) -> RS_AIGoal:
 	goal.goal_id = goal_id
 	goal.root_task = root_task
 	return goal
+
+func _new_move_target_component() -> Variant:
+	return C_MOVE_TARGET_COMPONENT.new()
 
 func test_replan_decomposes_root_task() -> void:
 	var replanner_script: Script = _load_replanner_script()
@@ -134,3 +138,30 @@ func test_no_replan_when_same_goal_and_queue_nonempty() -> void:
 	if brain.current_task_queue.is_empty():
 		return
 	assert_eq(brain.current_task_queue[0], existing_task)
+
+func test_replan_clears_active_move_target_component_when_goal_changes() -> void:
+	var replanner_script: Script = _load_replanner_script()
+	if replanner_script == null:
+		return
+	var replanner: Variant = replanner_script.new()
+	var patrol_goal: RS_AIGoal = _goal(&"patrol", _primitive(&"patrol_task"))
+	var investigate_goal: RS_AIGoal = _goal(&"investigate", _primitive(&"investigate_task"))
+	var brain: C_AIBrainComponent = _new_brain([patrol_goal, investigate_goal])
+	brain.active_goal_id = &"patrol"
+	brain.current_task_queue = [_primitive(&"patrol_a")]
+	brain.current_task_index = 0
+
+	var move_target_component: Variant = _new_move_target_component()
+	autofree(move_target_component)
+	move_target_component.set("is_active", true)
+	var context: Dictionary = {
+		"components": {
+			C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE: move_target_component,
+		},
+	}
+
+	var did_replan: bool = replanner.replan_for_goal(brain, investigate_goal, context)
+
+	assert_true(did_replan)
+	var is_active_variant: Variant = move_target_component.get("is_active")
+	assert_true(is_active_variant is bool and not bool(is_active_variant))

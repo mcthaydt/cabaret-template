@@ -2,6 +2,7 @@ extends RefCounted
 class_name U_AITaskRunner
 
 const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
+const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 
 func tick(brain: C_AIBrainComponent, delta: float, context: Dictionary) -> StringName:
 	if brain == null:
@@ -9,6 +10,7 @@ func tick(brain: C_AIBrainComponent, delta: float, context: Dictionary) -> Strin
 
 	var queue: Array[RS_AIPrimitiveTask] = brain.current_task_queue
 	if queue.is_empty():
+		_clear_move_target_component(context)
 		return StringName()
 
 	var current_task_index: int = brain.current_task_index
@@ -47,12 +49,13 @@ func _advance_to_next_task(
 ) -> StringName:
 	var next_task_index: int = current_task_index + 1
 	brain.task_state = {}
+	_clear_move_target_component(context)
 	if next_task_index >= queue_size:
 		return _finish_task_queue(brain, context)
 	brain.current_task_index = next_task_index
 	return StringName()
 
-func _finish_task_queue(brain: C_AIBrainComponent, _context: Dictionary) -> StringName:
+func _finish_task_queue(brain: C_AIBrainComponent, context: Dictionary) -> StringName:
 	var finished_goal_id: StringName = brain.get_active_goal_id()
 	if finished_goal_id != StringName():
 		var suspended: Dictionary = _read_suspended_state(brain)
@@ -63,7 +66,24 @@ func _finish_task_queue(brain: C_AIBrainComponent, _context: Dictionary) -> Stri
 	brain.current_task_queue = []
 	brain.current_task_index = 0
 	brain.task_state = {}
+	_clear_move_target_component(context)
 	return finished_goal_id
 
 func _read_suspended_state(brain: C_AIBrainComponent) -> Dictionary:
 	return brain.suspended_goal_state
+
+func _clear_move_target_component(context: Dictionary) -> void:
+	var move_target_component: Object = _resolve_move_target_component(context)
+	if move_target_component == null:
+		return
+	move_target_component.set("is_active", false)
+
+func _resolve_move_target_component(context: Dictionary) -> Object:
+	var components_variant: Variant = context.get("components", null)
+	if not (components_variant is Dictionary):
+		return null
+	var components: Dictionary = components_variant as Dictionary
+	var move_target_component_variant: Variant = components.get(C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE, null)
+	if move_target_component_variant == null or not (move_target_component_variant is Object):
+		return null
+	return move_target_component_variant as Object

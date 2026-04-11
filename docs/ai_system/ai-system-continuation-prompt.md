@@ -16,6 +16,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Plan: `docs/ai_system/ai-system-plan.md` — 10 milestones, work breakdown, dependency graph, risks.
 - Tasks: `docs/ai_system/ai-system-tasks.md` — checklist (15 complete milestones).
 - **Refactor Tasks**: `docs/ai_system/ai-system-refactor-tasks.md` — 10-milestone TDD refactor plan (R1–R10) to type-safe, split, and DRY the AI pipeline after M15. **R1-R10 are complete.**
+- Post-refactor gap closure (2026-04-11): `RS_AIActionMoveTo` now routes to `C_MoveTargetComponent` when present (with compatibility task-state mirroring), runner/replanner now clear active move targets during transitions, and full regression is `3929/3938` passing with `9` pending/risky and `0` failing.
 
 ### Completed in M1 (2026-04-02)
 
@@ -538,7 +539,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - Deleted:
     - `scripts/ecs/systems/s_ai_navigation_system.gd`
     - `tests/unit/ecs/systems/test_s_ai_navigation_system.gd`
-  - Added R6 follow-up TODO in `scripts/resources/ai/actions/rs_ai_action_move_to.gd` to migrate from task-state write-through to direct `C_MoveTargetComponent` routing once universal component coverage is guaranteed.
+  - Post-R6 follow-up complete: `RS_AIActionMoveTo` now routes to `C_MoveTargetComponent` when present while preserving task-state compatibility writes for legacy/fallback paths.
 - Compatibility/verification:
   - Targeted suites:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_move_target_component.gd` → `4/4`
@@ -651,6 +652,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **No behavior trees**: QB scorer is the decision layer; HTN replaces BT-style decomposition.
 - **Animate remains an intentional stub**: `RS_AIActionAnimate` sets `task_state["animation_state"]` and completes immediately; full animation integration is deferred.
 - **Move-target follower bridge is now world-space (M12 + R6)**: `S_MoveTargetFollowerSystem` (`execution_priority = -5`) emits world-space `C_InputComponent.move_vector`, prefers active `C_MoveTargetComponent` targets, and falls back to AI task-state move targets (`U_AITaskStateKeys.MOVE_TARGET` + optional `ARRIVAL_THRESHOLD`) for compatibility.
+- **R6 follow-up is complete**: `RS_AIActionMoveTo` now writes resolved targets to `C_MoveTargetComponent` when available (while mirroring task-state keys for compatibility), and `U_AITaskRunner`/`U_AIReplanner` now clear active move targets during task advance/finish/replan to prevent stale target carryover.
 - **Player input filtering is now enforced**: `S_InputSystem` writes gameplay input only to entities with `C_PlayerTagComponent`, preventing player-input clobbering of AI move vectors.
 - **M8 pipeline integration coverage is now live**: `tests/unit/ai/integration/test_ai_pipeline_integration.gd` validates GOAP scoring → HTN decomposition → typed action execution → move-target follower bridge → player-input filtering end-to-end.
 - **M9 demo scenes are now authored**: Power Core, Comms Array, and Nav Nexus gameplay scenes exist with required prototype geometry, markers/triggers, and NPC placeholder entities bound to valid `RS_AIBrainSettings` resources.
