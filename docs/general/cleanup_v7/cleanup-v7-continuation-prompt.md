@@ -5,14 +5,16 @@
 This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 
 **Branch**: GOAP-AI
-**Status**: C1 complete — begin C2
-**Next Task**: Begin C2 (Typed Rule Context) in `docs/general/cleanup_v7/cleanup-v7-tasks.md`
+**Status**: C2 complete — begin C3
+**Next Task**: Begin C3 (Shared Dependency Resolution) in `docs/general/cleanup_v7/cleanup-v7-tasks.md`
 
 ---
 
-## Current Status: C1 Complete
+## Current Status: C2 Complete
 
 - **C1 (Rule Evaluation Pipeline Extraction)**: COMPLETE — `U_RuleEvaluator` already orchestrated the rule pipeline (commits 1-5 pre-existing). Commit 6 extracted property reader utilities to `U_RuleUtils`, removing ~150 lines of duplication across 5 files. All 3974 tests green, style enforcement passes.
+
+- **C2 (Typed Rule Context)**: COMPLETE — Created `RSRuleContext` (Resource) with 28 StringName key constants and typed properties for all rule system context fields. Systems build RSRuleContext objects and convert to Dictionary via `to_dictionary()` for QB condition/effect compatibility. Eliminated StringName/String dual-keying in `s_character_state_system`. All 3993 tests green, style enforcement passes (including new bare-string-key grep test).
 
 - **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
 - **C12 standalone doc**: `docs/general/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.

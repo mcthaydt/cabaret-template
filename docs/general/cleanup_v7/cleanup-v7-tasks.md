@@ -63,22 +63,24 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C2: Typed Rule Context
+## Milestone C2: Typed Rule Context — COMPLETE
 
-**Goal**: Replace flat `Dictionary`-with-magic-string-keys context pattern across rule systems with a typed context resource (`RS_RuleContext` or similar). Eliminates the `StringName`/`String` dual-keying smell in `s_character_state_system` and makes context keys discoverable/autocompletable for designers.
+**Completed**: 2026-04-11
 
-- [ ] **Commit 1** — Add context resource tests (TDD RED):
-  - `tests/unit/ecs/resources/test_rs_rule_context.gd` — test typed getters/setters for all context fields currently used across rule systems. Test that unknown keys fail gracefully.
-- [ ] **Commit 2** — Implement typed context (TDD GREEN):
-  - `scripts/resources/ecs/rs_rule_context.gd` — `class_name RSRuleContext extends Resource` with typed properties for common context fields (`gameplay_active`, `grounded`, `moving`, `vertical_state`, `entity_id`, `entity_tags`, `health_percent`, `redux_state`, etc.). Follows the pattern established by `U_AITaskStateKeys` for magic-string key registries.
-- [ ] **Commit 3** — Migrate `s_camera_state_system.gd` to use `RSRuleContext`. Replace `_attach_camera_context` dictionary building with typed context construction.
-- [ ] **Commit 4** — Migrate `s_character_state_system.gd` to use `RSRuleContext`. Remove `StringName`/`String` dual-keying.
-- [ ] **Commit 5** — Migrate `s_game_event_system.gd` to use `RSRuleContext`. Replace `_build_tick_context` and `_build_event_context` dictionaries.
+**Summary**: Created `RSRuleContext` (Resource) with 28 StringName key constants (following U_AITaskStateKeys pattern) and typed properties for all rule system context fields. Systems build RSRuleContext objects and convert to Dictionary via `to_dictionary()` for compatibility with QB conditions/effects. All bare string context key literals replaced with `RS_RULE_CONTEXT.KEY_*` constants. Full test suite (3993 passing, 0 failing) and style enforcement green.
+
+- [x] **Commit 1** — Add context resource tests (TDD RED):
+  - `tests/unit/ecs/resources/test_rs_rule_context.gd` — 18 tests covering key constants, default values, to_dictionary() conversion, StringName keys, extra keys, and U_RuleUtils compatibility.
+- [x] **Commit 2** — Implement typed context (TDD GREEN):
+  - `scripts/resources/ecs/rs_rule_context.gd` — `class_name RSRuleContext extends Resource` with 28 StringName key constants, typed properties with defaults, `to_dictionary()` method, and `set_extra`/`get_extra` for runtime key additions.
+- [x] **Commit 3** — Migrate `s_camera_state_system.gd` to use `RSRuleContext`. Replace `_attach_camera_context` dictionary building with RSRuleContext construction. Replace `RULE_SCORE_CONTEXT_KEY` with `RS_RULE_CONTEXT.KEY_RULE_SCORE`.
+- [x] **Commit 4** — Migrate `s_character_state_system.gd` to use `RSRuleContext`. Remove `StringName`/`String` dual-keying in `_context_key_for_context`. Replace all bare string context keys with `RS_RULE_CONTEXT.KEY_*` constants.
+- [x] **Commit 5** — Migrate `s_game_event_system.gd` to use `RSRuleContext`. Replace `_build_tick_context` and `_build_event_context` dictionaries with RSRuleContext construction.
 
 **C2 Verification**:
-- [ ] All context resource tests green
-- [ ] All three rule systems' existing tests green
-- [ ] No bare string keys used for context field access in rule systems (grep test)
+- [x] All context resource tests green
+- [x] All three rule systems' existing tests green
+- [x] No bare string keys used for context field access in rule systems (grep test)
 
 ---
 
