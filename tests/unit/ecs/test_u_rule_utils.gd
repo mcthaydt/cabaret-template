@@ -183,6 +183,96 @@ func test_read_float_property_returns_fallback_on_non_numeric_value() -> void:
 	var result: float = _rule_utils.read_float_property(obj, "name", 1.5)
 	assert_eq(result, 1.5)
 
+# --- read_int_property ---
+
+func test_read_int_property_returns_int_value() -> void:
+	if _rule_utils == null:
+		pending("U_RuleUtils not loaded")
+		return
+	var rule := RS_RULE.new()
+	rule.priority = 5
+	var result: int = _rule_utils.read_int_property(rule, "priority", 0)
+	assert_eq(result, 5)
+
+func test_read_int_property_converts_float_to_int() -> void:
+	if _rule_utils == null:
+		pending("U_RuleUtils not loaded")
+		return
+	var rule := RS_RULE.new()
+	rule.cooldown = 3.7
+	var result: int = _rule_utils.read_int_property(rule, "cooldown", 0)
+	assert_eq(result, 3)
+
+func test_read_int_property_returns_fallback_on_null_object() -> void:
+	if _rule_utils == null:
+		pending("U_RuleUtils not loaded")
+		return
+	var result: int = _rule_utils.read_int_property(null, "priority", 99)
+	assert_eq(result, 99)
+
+func test_read_int_property_returns_fallback_on_missing_property() -> void:
+	if _rule_utils == null:
+		pending("U_RuleUtils not loaded")
+		return
+	var obj := Node.new()
+	autofree(obj)
+	var result: int = _rule_utils.read_int_property(obj, "nonexistent_property", 42)
+	assert_eq(result, 42)
+
+func test_read_int_property_returns_fallback_on_non_numeric_value() -> void:
+	if _rule_utils == null:
+		pending("U_RuleUtils not loaded")
+		return
+	var obj := Node.new()
+	obj.set("name", "not_a_number")
+	autofree(obj)
+	var result: int = _rule_utils.read_int_property(obj, "name", 7)
+	assert_eq(result, 7)
+
+# --- read_array_property ---
+
+func test_read_array_property_returns_array_value() -> void:
+	if _rule_utils == null:
+		pending("U_RuleUtils not loaded")
+		return
+	var rule := RS_RULE.new()
+	rule.conditions = [RS_CONDITION_CONSTANT.new()]
+	var result: Array = _rule_utils.read_array_property(rule, "conditions")
+	assert_eq(result.size(), 1)
+
+func test_read_array_property_returns_empty_on_null_object() -> void:
+	if _rule_utils == null:
+		pending("U_RuleUtils not loaded")
+		return
+	var result: Array = _rule_utils.read_array_property(null, "conditions")
+	assert_eq(result.size(), 0)
+
+func test_read_array_property_returns_empty_on_missing_property() -> void:
+	if _rule_utils == null:
+		pending("U_RuleUtils not loaded")
+		return
+	var obj := Node.new()
+	autofree(obj)
+	var result: Array = _rule_utils.read_array_property(obj, "nonexistent_property")
+	assert_eq(result.size(), 0)
+
+func test_read_array_property_returns_empty_on_non_array_value() -> void:
+	if _rule_utils == null:
+		pending("U_RuleUtils not loaded")
+		return
+	var obj := Node.new()
+	obj.set("name", "not_an_array")
+	autofree(obj)
+	var result: Array = _rule_utils.read_array_property(obj, "name")
+	assert_eq(result.size(), 0)
+
+func test_read_array_property_returns_empty_on_non_object_variant() -> void:
+	if _rule_utils == null:
+		pending("U_RuleUtils not loaded")
+		return
+	var result: Array = _rule_utils.read_array_property(42, "conditions")
+	assert_eq(result.size(), 0)
+
 # --- is_script_instance_of ---
 
 func test_is_script_instance_of_returns_true_for_matching_script() -> void:

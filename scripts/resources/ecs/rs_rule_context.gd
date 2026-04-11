@@ -3,7 +3,7 @@ extends Resource
 class_name RSRuleContext
 
 ## Typed context resource for rule evaluation. Replaces flat Dictionary-with-magic-string-keys
-## context pattern across s_camera_state_system, s_character_state_system, and s_game_event_system.
+## context pattern across rule systems, AI context building, and objectives/scene-director evaluation.
 ##
 ## Key constants follow the U_AITaskStateKeys pattern: StringName constants for all context
 ## field names, eliminating bare string literals and String/String dual-keying.
@@ -56,6 +56,12 @@ const KEY_VERTICAL_STATE := &"vertical_state"
 const KEY_HAS_INPUT := &"has_input"
 
 # ============================================================================
+# Key constants — AI-specific fields
+# ============================================================================
+
+const KEY_BRAIN_COMPONENT := &"brain_component"
+
+# ============================================================================
 # Typed properties — common fields
 # ============================================================================
 
@@ -95,6 +101,12 @@ var is_invincible: bool = false
 var health_percent: float = 1.0
 var vertical_state: int = 0
 var has_input: bool = false
+
+# ============================================================================
+# Typed properties — AI-specific fields
+# ============================================================================
+
+var brain_component: Variant = null
 
 # ============================================================================
 # Extra keys — for runtime additions by effects or system-specific extensions
@@ -184,6 +196,10 @@ func to_dictionary() -> Dictionary:
 	context[KEY_HEALTH_PERCENT] = health_percent
 	context[KEY_VERTICAL_STATE] = vertical_state
 	context[KEY_HAS_INPUT] = has_input
+
+	# AI-specific fields
+	if brain_component != null:
+		context[KEY_BRAIN_COMPONENT] = brain_component
 
 	# Extra keys from effects or system-specific extensions
 	for key in _extra:

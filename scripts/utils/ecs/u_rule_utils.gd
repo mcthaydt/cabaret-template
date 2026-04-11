@@ -48,6 +48,28 @@ static func read_float_property(object_value: Variant, property_name: String, fa
 		return float(value)
 	return fallback
 
+## Reads an int property from an object. Returns the fallback if the object is null,
+## the property doesn't exist, or the value is not numeric.
+static func read_int_property(object_value: Variant, property_name: String, fallback: int = 0) -> int:
+	if object_value == null or not (object_value is Object):
+		return fallback
+	var value: Variant = (object_value as Object).get(property_name)
+	if value is int:
+		return value
+	if value is float:
+		return int(value)
+	return fallback
+
+## Reads an Array property from an object. Returns an empty array if the object is null,
+## the property doesn't exist, or the value is not an Array.
+static func read_array_property(object_value: Variant, property_name: String) -> Array:
+	if object_value == null or not (object_value is Object):
+		return []
+	var value: Variant = (object_value as Object).get(property_name)
+	if value is Array:
+		return value as Array
+	return []
+
 ## Checks whether an object's script inherits from the given script reference
 ## by walking the script inheritance chain.
 static func is_script_instance_of(object_value: Object, script_ref: Script) -> bool:

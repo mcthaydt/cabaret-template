@@ -655,12 +655,17 @@ func test_rule_systems_and_helpers_do_not_duplicate_property_readers() -> void:
 		"res://scripts/ecs/systems/s_game_event_system.gd",
 		"res://scripts/ecs/systems/helpers/u_vcam_runtime_context.gd",
 		"res://scripts/ecs/systems/helpers/u_vcam_landing_impact.gd",
+		"res://scripts/utils/qb/u_rule_validator.gd",
+		"res://scripts/utils/qb/u_rule_scorer.gd",
+		"res://scripts/utils/qb/u_rule_selector.gd",
 	]
 	var forbidden_methods: Array[String] = [
 		"_read_string_property",
 		"_read_string_name_property",
 		"_read_bool_property",
 		"_read_float_property",
+		"_read_int_property",
+		"_read_array_property",
 		"_is_script_instance_of",
 		"_object_has_property",
 		"_variant_to_string_name",

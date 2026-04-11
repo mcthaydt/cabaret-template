@@ -2,8 +2,7 @@ extends GutTest
 
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 
-# RSRuleContext is the class under test. Since it doesn't exist yet (TDD RED),
-# tests will fail at the load step and be marked as pending.
+# RSRuleContext is the class under test.
 
 var _context_class: Script = null
 
@@ -36,6 +35,7 @@ func test_key_constants_are_stringname() -> void:
 		"KEY_IS_GROUNDED", "KEY_IS_MOVING", "KEY_IS_SPAWN_FROZEN",
 		"KEY_IS_DEAD", "KEY_IS_INVINCIBLE", "KEY_HEALTH_PERCENT",
 		"KEY_VERTICAL_STATE", "KEY_HAS_INPUT",
+		"KEY_BRAIN_COMPONENT",
 	]
 	for key_name in key_constants:
 		var value: Variant = context.get(key_name)
@@ -77,6 +77,7 @@ func test_key_constant_values_match_expected_strings() -> void:
 	assert_eq(context.get("KEY_HEALTH_PERCENT"), &"health_percent")
 	assert_eq(context.get("KEY_VERTICAL_STATE"), &"vertical_state")
 	assert_eq(context.get("KEY_HAS_INPUT"), &"has_input")
+	assert_eq(context.get("KEY_BRAIN_COMPONENT"), &"brain_component")
 
 # ============================================================================
 # Default values
@@ -406,3 +407,42 @@ func test_to_dictionary_is_compatible_with_condition_component_field() -> void:
 
 	# Should also have component_data alias
 	assert_true(dict.has(StringName("component_data")), "should have component_data alias")
+
+# --- KEY_BRAIN_COMPONENT ---
+
+func test_key_brain_component_constant_value() -> void:
+	if _context_class == null:
+		pending("RSRuleContext not loaded")
+		return
+	var key_brain_component: StringName = _context_class.get("KEY_BRAIN_COMPONENT")
+	assert_eq(key_brain_component, StringName("brain_component"), "KEY_BRAIN_COMPONENT should be 'brain_component'")
+
+func test_brain_component_default_is_null() -> void:
+	if _context_class == null:
+		pending("RSRuleContext not loaded")
+		return
+	var context: RefCounted = _context_class.new()
+	var brain: Variant = context.get("brain_component")
+	assert_eq(brain, null, "brain_component default should be null")
+
+func test_to_dictionary_includes_brain_component_when_set() -> void:
+	if _context_class == null:
+		pending("RSRuleContext not loaded")
+		return
+	var context: RefCounted = _context_class.new()
+	var mock_brain := Node.new() as Object
+	autofree(mock_brain)
+	context.set("brain_component", mock_brain)
+
+	var dict: Dictionary = context.call("to_dictionary")
+	assert_true(dict.has(StringName("brain_component")), "should have brain_component key when set")
+	assert_eq(dict.get(StringName("brain_component")), mock_brain, "brain_component value should match")
+
+func test_to_dictionary_omits_brain_component_when_null() -> void:
+	if _context_class == null:
+		pending("RSRuleContext not loaded")
+		return
+	var context: RefCounted = _context_class.new()
+
+	var dict: Dictionary = context.call("to_dictionary")
+	assert_false(dict.has(StringName("brain_component")), "should not have brain_component key when null")
