@@ -11,6 +11,7 @@ const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_c
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+const RS_RULE_CONTEXT := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
@@ -19,7 +20,6 @@ const CAMERA_SHAKE_SOURCE := StringName("qb_camera_rule")
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
 const PRIMARY_PLAYER_ENTITY_ID := StringName("player")
 
-const RULE_SCORE_CONTEXT_KEY := "rule_score"
 
 const TRIGGER_MODE_TICK := "tick"
 const TRIGGER_MODE_EVENT := "event"
@@ -61,7 +61,7 @@ func _exit_tree() -> void:
 func process_tick(delta: float) -> void:
 	_rule_evaluator.tick_cooldowns(delta)
 
-	var contexts: Array = _build_camera_contexts({})
+	var contexts: Array = _build_camera_contexts(StringName(), {})
 	if contexts.is_empty():
 		var manager_when_empty: I_CAMERA_MANAGER = _resolve_camera_manager()
 		if manager_when_empty != null:
@@ -102,11 +102,7 @@ func _subscribe_rule_events() -> void:
 
 func _on_event_received(event_name: StringName, event_payload: Dictionary) -> void:
 	_rule_evaluator.tick_cooldowns(0.0)
-	var base_context: Dictionary = {
-		"event_name": event_name,
-		"event_payload": event_payload,
-	}
-	var contexts: Array = _build_camera_contexts(base_context)
+	var contexts: Array = _build_camera_contexts(event_name, event_payload)
 	if contexts.is_empty():
 		return
 
@@ -150,16 +146,16 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 		var rule_variant: Variant = winner.get("rule", null)
 		if rule_variant == null or not (rule_variant is Object):
 			continue
-		var had_rule_score: bool = context.has(RULE_SCORE_CONTEXT_KEY)
-		var previous_rule_score: Variant = context.get(RULE_SCORE_CONTEXT_KEY, 1.0)
-		context[RULE_SCORE_CONTEXT_KEY] = _resolve_winner_score(winner)
+		var had_rule_score: bool = context.has(RS_RULE_CONTEXT.KEY_RULE_SCORE)
+		var previous_rule_score: Variant = context.get(RS_RULE_CONTEXT.KEY_RULE_SCORE, 1.0)
+		context[RS_RULE_CONTEXT.KEY_RULE_SCORE] = _resolve_winner_score(winner)
 
 		var effects_variant: Variant = rule_variant.get("effects")
 		if not (effects_variant is Array):
 			if had_rule_score:
-				context[RULE_SCORE_CONTEXT_KEY] = previous_rule_score
+				context[RS_RULE_CONTEXT.KEY_RULE_SCORE] = previous_rule_score
 			else:
-				context.erase(RULE_SCORE_CONTEXT_KEY)
+				context.erase(RS_RULE_CONTEXT.KEY_RULE_SCORE)
 			continue
 
 		for effect_variant in (effects_variant as Array):
@@ -170,22 +166,22 @@ func _execute_effects(winners: Array[Dictionary], context: Dictionary) -> void:
 			effect_variant.call("execute", context)
 
 		if had_rule_score:
-			context[RULE_SCORE_CONTEXT_KEY] = previous_rule_score
+			context[RS_RULE_CONTEXT.KEY_RULE_SCORE] = previous_rule_score
 		else:
-			context.erase(RULE_SCORE_CONTEXT_KEY)
+			context.erase(RS_RULE_CONTEXT.KEY_RULE_SCORE)
 
 func _context_key_for_context(context: Dictionary) -> StringName:
-	var camera_entity_id: StringName = U_RuleUtils.variant_to_string_name(U_RuleUtils.get_context_value(context, "camera_entity_id"))
+	var camera_entity_id: StringName = U_RuleUtils.variant_to_string_name(U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CAMERA_ENTITY_ID))
 	if camera_entity_id != StringName():
 		return camera_entity_id
 
-	var entity_id: StringName = U_RuleUtils.variant_to_string_name(U_RuleUtils.get_context_value(context, "entity_id"))
+	var entity_id: StringName = U_RuleUtils.variant_to_string_name(U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_ENTITY_ID))
 	if entity_id != StringName():
 		return entity_id
 
 	return StringName()
 
-func _build_camera_contexts(base_context: Dictionary) -> Array:
+func _build_camera_contexts(event_name: StringName, event_payload: Dictionary) -> Array:
 	var contexts: Array = []
 	var store: I_StateStore = _resolve_store()
 	var redux_state: Dictionary = _get_frame_state_snapshot()
@@ -206,21 +202,31 @@ func _build_camera_contexts(base_context: Dictionary) -> Array:
 		if camera_state == null:
 			continue
 
-		var context: Dictionary = base_context.duplicate(true)
-		_attach_camera_context(context, entity_query, camera_state, redux_state, store, movement_snapshot)
-		contexts.append(context)
+		var rule_context := RS_RULE_CONTEXT.new()
+		if store != null:
+			rule_context.state_store = store
+		if not redux_state.is_empty():
+			rule_context.redux_state = redux_state
+		rule_context.vcam_active_mode = U_VCAM_SELECTORS.get_active_mode(redux_state)
+		rule_context.vcam_is_blending = U_VCAM_SELECTORS.is_blending(redux_state)
+		rule_context.vcam_active_vcam_id = U_VCAM_SELECTORS.get_active_vcam_id(redux_state)
+		if event_name != StringName():
+			rule_context.event_name = event_name
+		if not event_payload.is_empty():
+			rule_context.event_payload = event_payload
+
+		_attach_camera_context(rule_context, entity_query, camera_state, movement_snapshot)
+		contexts.append(rule_context.to_dictionary())
 
 	return contexts
 
 func _attach_camera_context(
-	context: Dictionary,
+	rule_context,
 	entity_query: Object,
 	camera_state: Variant,
-	redux_state: Dictionary,
-	store: I_StateStore,
 	movement_snapshot: Dictionary
 ) -> void:
-	context["camera_state_component"] = camera_state
+	rule_context.camera_state_component = camera_state
 
 	var components: Dictionary = {}
 	components[CAMERA_STATE_TYPE] = camera_state
@@ -229,32 +235,25 @@ func _attach_camera_context(
 		var movement_data: Dictionary = movement_snapshot.duplicate(true)
 		components[MOVEMENT_TYPE] = movement_data
 		components[String(MOVEMENT_TYPE)] = movement_data
-		context["movement_component"] = movement_data
-	context["components"] = components
-	context["component_data"] = components
-
-	context["redux_state"] = redux_state
-	context["state"] = context["redux_state"]
-	context["vcam_active_mode"] = U_VCAM_SELECTORS.get_active_mode(redux_state)
-	context["vcam_is_blending"] = U_VCAM_SELECTORS.is_blending(redux_state)
-	context["vcam_active_vcam_id"] = U_VCAM_SELECTORS.get_active_vcam_id(redux_state)
-	if store != null:
-		context["state_store"] = store
+		rule_context.movement_component = movement_data
+	rule_context.components = components
 
 	if entity_query.has_method("get_entity_id"):
 		var camera_entity_id: Variant = entity_query.call("get_entity_id")
-		context["camera_entity_id"] = camera_entity_id
-		context["entity_id"] = camera_entity_id
+		var camera_entity_id_sn: StringName = U_RuleUtils.variant_to_string_name(camera_entity_id) if camera_entity_id != null else &""
+		rule_context.camera_entity_id = camera_entity_id_sn
+		rule_context.entity_id = camera_entity_id_sn
 	if entity_query.has_method("get_tags"):
 		var camera_tags: Variant = entity_query.call("get_tags")
-		context["camera_entity_tags"] = camera_tags
-		context["entity_tags"] = camera_tags
+		if camera_tags is Array:
+			rule_context.camera_entity_tags = camera_tags
+			rule_context.entity_tags = camera_tags
 
 	if "entity" in entity_query:
 		var camera_entity: Variant = entity_query.get("entity")
 		if camera_entity != null:
-			context["camera_entity"] = camera_entity
-			context["entity"] = camera_entity
+			rule_context.camera_entity = camera_entity
+			rule_context.entity = camera_entity
 
 func _apply_camera_state(contexts: Array, delta: float) -> void:
 	var manager: I_CAMERA_MANAGER = _resolve_camera_manager()
@@ -262,7 +261,7 @@ func _apply_camera_state(contexts: Array, delta: float) -> void:
 		return
 
 	var context: Dictionary = _select_primary_camera_context(contexts)
-	var primary_camera_state: Variant = context.get("camera_state_component", null)
+	var primary_camera_state: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CAMERA_STATE_COMPONENT)
 	_decay_non_primary_trauma(contexts, primary_camera_state, delta)
 	if context.is_empty():
 		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
@@ -287,7 +286,7 @@ func _decay_non_primary_trauma(contexts: Array, primary_camera_state: Variant, d
 		if not (context_variant is Dictionary):
 			continue
 		var context: Dictionary = context_variant as Dictionary
-		var camera_state: Variant = context.get("camera_state_component", null)
+		var camera_state: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CAMERA_STATE_COMPONENT)
 		if camera_state == null or not (camera_state is Object):
 			continue
 		if primary_camera_state != null and camera_state == primary_camera_state:
@@ -313,16 +312,16 @@ func _select_primary_camera_context(contexts: Array) -> Dictionary:
 	return fallback
 
 func _is_primary_camera_context(context: Dictionary) -> bool:
-	var id_variant: Variant = U_RuleUtils.get_context_value(context, "camera_entity_id")
+	var id_variant: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CAMERA_ENTITY_ID)
 	if id_variant == null:
-		id_variant = U_RuleUtils.get_context_value(context, "entity_id")
+		id_variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_ENTITY_ID)
 	var entity_id: StringName = U_RuleUtils.variant_to_string_name(id_variant)
 	if entity_id == PRIMARY_CAMERA_ENTITY_ID:
 		return true
 
-	var tags_variant: Variant = U_RuleUtils.get_context_value(context, "camera_entity_tags")
+	var tags_variant: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_CAMERA_ENTITY_TAGS)
 	if tags_variant == null:
-		tags_variant = U_RuleUtils.get_context_value(context, "entity_tags")
+		tags_variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_ENTITY_TAGS)
 	if tags_variant is Array:
 		var tags: Array = tags_variant as Array
 		return tags.has(PRIMARY_CAMERA_ENTITY_ID) or tags.has(String(PRIMARY_CAMERA_ENTITY_ID))
@@ -372,9 +371,9 @@ func _ensure_baseline_fov(camera_state: Variant, fallback_fov: float) -> float:
 	return resolved_baseline
 
 func _is_fov_zone_active(context: Dictionary) -> bool:
-	var state_variant: Variant = U_RuleUtils.get_context_value(context, "state")
+	var state_variant: Variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_STATE)
 	if state_variant == null:
-		state_variant = U_RuleUtils.get_context_value(context, "redux_state")
+		state_variant = U_RuleUtils.get_context_value(context, RS_RULE_CONTEXT.KEY_REDUX_STATE)
 	if not (state_variant is Dictionary):
 		return false
 	return U_VCAM_SELECTORS.is_in_fov_zone(state_variant as Dictionary)

@@ -443,14 +443,17 @@ func test_camera_context_includes_vcam_runtime_fields_for_qb_rules() -> void:
 		"active_vcam_id": StringName("cam_orbit"),
 	})
 
-	var contexts_variant: Variant = system.call("_build_camera_contexts", {})
+	var contexts_variant: Variant = system.call("_build_camera_contexts", StringName(), {})
 	assert_true(contexts_variant is Array)
 	var contexts: Array = contexts_variant as Array
 	assert_false(contexts.is_empty())
 	var context: Dictionary = contexts[0] as Dictionary
-	assert_eq(String(context.get("vcam_active_mode", "")), "orbit")
-	assert_eq(bool(context.get("vcam_is_blending", false)), true)
-	assert_eq(context.get("vcam_active_vcam_id", StringName("")), StringName("cam_orbit"))
+	# Dictionary keys are StringName after RSRuleContext migration, use U_RuleUtils for lookups
+	var U_RULE_UTILS := load("res://scripts/utils/ecs/u_rule_utils.gd")
+	var rule_utils: RefCounted = U_RULE_UTILS.new()
+	assert_eq(String(rule_utils.call("get_context_value", context, "vcam_active_mode")), "orbit")
+	assert_eq(bool(rule_utils.call("get_context_value", context, "vcam_is_blending")), true)
+	assert_eq(rule_utils.call("get_context_value", context, "vcam_active_vcam_id"), StringName("cam_orbit"))
 
 func _create_fixture(designer_rules: Array = [], entity_specs: Array = [], main_camera_fov: float = 90.0) -> Dictionary:
 	var store := MOCK_STATE_STORE.new()
