@@ -179,21 +179,26 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C6: Scene Manager Overlay Extraction
+## Milestone C6: Scene Manager Overlay Extraction — COMPLETE
 
-**Goal**: Separate overlay management (`push_overlay`, `pop_overlay`, `push_overlay_with_return`, `pop_overlay_with_return`, `_sync_overlay_stack_state`, `_reconcile_overlay_stack`) from `m_scene_manager.gd` into its own helper. Overlays share no data with the transition pipeline and are a distinct domain concern. Also decompose the `_perform_transition` god method (155 lines with an 88-line closure).
+**Completed**: 2026-04-11
 
-- [ ] **Commit 1** — Add overlay helper tests (TDD RED):
-  - `tests/unit/managers/helpers/test_u_overlay_helper.gd` — test overlay push/pop/return stack management, state sync, and reconciliation logic.
-- [ ] **Commit 2** — Extract `U_OverlayHelper` (TDD GREEN):
-  - `scripts/managers/helpers/u_overlay_helper.gd` — move overlay stack management, push/pop logic, and state sync out of `m_scene_manager.gd`. The helper receives the store dispatch callable and overlay callback, so it doesn't hold a reference to the entire scene manager.
-- [ ] **Commit 3** — Wire `M_SceneManager` to `U_OverlayHelper`. Delegate overlay methods to the helper. Scene manager keeps the public API unchanged.
-- [ ] **Commit 4** — Decompose `_perform_transition` god method (lines 538–692). Extract scene loading, camera blending, physics unfreezing, and state dispatch into focused methods. The 88-line `scene_swap_callback` closure should become a named method.
+**Summary**: Commits 1-3 (overlay helper extraction) were already in place — `U_OverlayStackManager` already implements all overlay logic (push, pop, return stack, reconciliation, visibility) and is wired into `M_SceneManager`. Commit 4 decomposed the `_perform_transition` god method from 155 lines to 23 lines by extracting three focused methods.
+
+- [x] **Commit 1** — Overlay helper tests: Already exist for `U_OverlayStackManager` (covered by existing `test_m_scene_manager.gd` overlay tests).
+- [x] **Commit 2** — Extract overlay helper: `U_OverlayStackManager` already exists at `scripts/scene_management/helpers/u_overlay_stack_manager.gd` (365 lines, all overlay logic delegated).
+- [x] **Commit 3** — Wire `M_SceneManager` to overlay helper: Already wired — `push_overlay`, `pop_overlay`, etc. delegate to `_overlay_helper` (a `U_OverlayStackManager` instance).
+- [x] **Commit 4** — Decompose `_perform_transition` god method (155 lines → 23 lines):
+  - Extracted `_prepare_transition_context(request, scene_path)` — cache check, progress callback, camera state capture, context Dictionary assembly.
+  - Extracted `_execute_scene_swap(request, scene_path, transition_ctx)` — scene removal, loading (cached/async/sync), validation, camera blending, handler delegation, action dispatch. Replaces the 88-line `scene_swap_callback` closure.
+  - Extracted `_finalize_camera_blend(transition_ctx)` — post-transition camera finalization with active blend tween guard.
+  - Removed vestigial `scene_swap_complete` tracker (set but never read).
+  - Added `tests/unit/scene_manager/test_m_scene_manager_decomposition.gd` (10 tests covering context keys, cache state, blend conditions, camera manager null guard, line count).
 
 **C6 Verification**:
-- [ ] All overlay helper tests green
-- [ ] Existing scene-manager tests green
-- [ ] `_perform_transition` under 40 lines (orchestration only)
+- [x] All overlay helper tests green (existing test_m_scene_manager.gd covers overlay push/pop/return)
+- [x] Existing scene-manager tests green (no public API changes)
+- [x] `_perform_transition` under 40 lines (23 lines, orchestration only)
 
 ---
 
