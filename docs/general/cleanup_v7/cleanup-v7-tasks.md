@@ -151,20 +151,31 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C5: Wall Visibility System Decomposition
+## Milestone C5: Wall Visibility System Decomposition — COMPLETE
 
-**Goal**: Break up `s_wall_visibility_system.process_tick` (lines 85–280), which handles tick throttling, state resolution, camera resolution, room filtering, component iteration (two passes), corridor occlusion, roof detection, material application, mobile throttling, and stale target cleanup. Decompose into focused methods with clear single responsibilities.
+**Completed**: 2026-04-11
 
-- [ ] **Commit 1** — Add method-level tests (TDD RED):
-  - `tests/unit/ecs/systems/test_s_wall_visibility_system_decomposition.gd` — test extracted methods independently: `_resolve_tick_data`, `_filter_rooms_by_aabb`, `_deduplicate_targets`, `_apply_wall_materials`, `_detect_roofs`, `_cleanup_stale_targets`.
-- [ ] **Commit 2** — Decompose `process_tick` (TDD GREEN):
-  - `scripts/ecs/systems/s_wall_visibility_system.gd` — extract the 5–6 focused methods, have `process_tick` call them in sequence. No behavioral changes.
-- [ ] **Commit 3** — Replace type-dispatch switch on `CSGBox3D`/`MeshInstance3D` (lines 451–462, 542–558) with a registry or strategy pattern so new target types can be added without modifying the system.
+**Summary**: Decomposed the 197-line `process_tick` god method into 9 focused methods, and replaced type-dispatch switches with a registry pattern. `process_tick` reduced from 197 lines to 49 lines.
+
+- [x] **Commit 1** — Add method-level tests (TDD RED):
+  - `tests/unit/ecs/systems/test_s_wall_visibility_system_decomposition.gd` — 25 tests covering: `_resolve_tick_data`, `_filter_rooms_by_aabb`, `_deduplicate_targets`, `_apply_wall_materials`, `_detect_roofs`, `_cleanup_stale_targets`, and process_tick line count verification.
+- [x] **Commit 2** — Decompose `process_tick` (TDD GREEN):
+  - Extracted `_resolve_tick_data`: consolidates state/camera/applier/player resolution into a Dictionary.
+  - Extracted `_process_component_fade`: per-component two-pass fade computation.
+  - Extracted `_apply_wall_materials`: mobile hide vs shader material application.
+  - Extracted `_detect_roofs`: batch roof detection via `_is_roof_candidate_target`.
+  - Renamed `_restore_stale_targets_inplace` → `_cleanup_stale_targets`.
+  - Extracted `_filter_rooms_by_aabb` and `_deduplicate_targets` from `_prepare_tick_data`.
+- [x] **Commit 3** — Replace type-dispatch switch with target type registry:
+  - `_register_target_type_handler(type_name, aabb_resolver, half_extents_resolver)` for extensible target type resolution.
+  - Two-tier matching: exact class match first (get_class), inheritance fallback second (is_class).
+  - Per-type resolvers: `_resolve_csg_box_aabb`, `_resolve_mesh_aabb`, `_resolve_csg_shape_aabb`, `_resolve_csg_box_planar_half_extents`, `_resolve_mesh_planar_half_extents`.
+  - 8 registry tests including custom handler registration for CSGCylinder3D and style enforcement.
 
 **C5 Verification**:
-- [ ] All decomposition tests green
-- [ ] Existing wall-visibility integration tests green
-- [ ] `process_tick` method under 60 lines
+- [x] All decomposition tests green (33 tests: 25 original + 8 registry)
+- [x] Existing wall-visibility integration tests green (4 integration + 30 unit)
+- [x] `process_tick` method under 60 lines (49 lines)
 
 ---
 
