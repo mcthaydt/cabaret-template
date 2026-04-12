@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://bnuwfkkw85h1t" path="res://scenes/prefabs/prefab_demo_npc_body.tscn" id="5_npc_body"]
 [ext_resource type="Script" uid="uid://c4mkt2oec1pi0" path="res://scripts/ecs/components/c_detection_component.gd" id="6_detection"]
 [ext_resource type="Script" uid="uid://cgmns8n728wwl" path="res://scripts/ecs/components/c_spawn_recovery_component.gd" id="7_spawn_recovery_component"]
-[ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_spawn_recovery_default.tres" id="8_spawn_recovery_settings"]
+[ext_resource type="Resource" uid="uid://csm4hs602vmux" path="res://resources/base_settings/gameplay/cfg_spawn_recovery_default.tres" id="8_spawn_recovery_settings"]
 
 [sub_resource type="Resource" id="Resource_e7447"]
 script = ExtResource("3_2ykux")

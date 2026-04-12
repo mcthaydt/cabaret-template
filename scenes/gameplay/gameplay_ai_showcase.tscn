@@ -72,13 +72,13 @@
 [ext_resource type="Texture2D" uid="uid://cu6nemmc82bo4" path="res://assets/textures/prototype_grids_png/Light/tex_texture_03.png" id="71_grid_light_03"]
 [ext_resource type="Resource" uid="uid://c3o8a2nyv30av" path="res://resources/ai/sentry/cfg_sentry_brain.tres" id="71_sentry_brain"]
 [ext_resource type="Texture2D" uid="uid://dy0x7tmqlyw0y" path="res://assets/textures/prototype_grids_png/Dark/tex_texture_01.png" id="72_grid_dark_01"]
-[ext_resource type="Resource" path="res://resources/ai/guide_prism/cfg_guide_showcase_brain.tres" id="72_guide_showcase_brain"]
+[ext_resource type="Resource" uid="uid://cyhj4tiwcjt7o" path="res://resources/ai/guide_prism/cfg_guide_showcase_brain.tres" id="72_guide_showcase_brain"]
 [ext_resource type="Texture2D" uid="uid://bln3t6p8asyk3" path="res://assets/textures/prototype_grids_png/Purple/tex_texture_01.png" id="73_grid_purple_01"]
 [ext_resource type="Texture2D" uid="uid://bqnushigljekn" path="res://assets/textures/prototype_grids_png/Red/tex_texture_03.png" id="74_grid_red_03"]
 [ext_resource type="Texture2D" uid="uid://brvkkkykk0wyi" path="res://assets/textures/prototype_grids_png/Green/tex_texture_01.png" id="75_grid_green_01"]
 [ext_resource type="Texture2D" uid="uid://b1r5ab5wgdm2q" path="res://assets/textures/prototype_grids_png/Orange/tex_texture_01.png" id="76_grid_orange_01"]
 [ext_resource type="Script" uid="uid://8l1rgf6betj5" path="res://scripts/gameplay/inter_ai_demo_guard_barrier.gd" id="77_guard_barrier_script"]
-[ext_resource type="Resource" path="res://resources/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres" id="78_patrol_drone_spawn_recovery"]
+[ext_resource type="Resource" uid="uid://caph8doutt1dg" path="res://resources/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres" id="78_patrol_drone_spawn_recovery"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 shading_mode = 0
