@@ -70,6 +70,19 @@ static func get_statuses_snapshot(state: Dictionary) -> Dictionary:
 		return (statuses_variant as Dictionary).duplicate(true)
 	return {}
 
+static func get_completed_objectives(state: Dictionary) -> Array[StringName]:
+	var completed_ids: Array[StringName] = []
+	var slice: Dictionary = _get_slice(state)
+	var statuses_variant: Variant = slice.get("statuses", {})
+	if not (statuses_variant is Dictionary):
+		return completed_ids
+	var statuses := statuses_variant as Dictionary
+	for key_variant in statuses.keys():
+		var status: String = str(statuses.get(key_variant, STATUS_INACTIVE))
+		if status == STATUS_COMPLETED:
+			completed_ids.append(key_variant as StringName)
+	return completed_ids
+
 static func _get_slice(state: Dictionary) -> Dictionary:
 	var objectives_variant: Variant = state.get("objectives", null)
 	if objectives_variant is Dictionary:

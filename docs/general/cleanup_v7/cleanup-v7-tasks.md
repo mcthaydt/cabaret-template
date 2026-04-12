@@ -1,7 +1,7 @@
 # Cross-System Cleanup — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: C1-C6 complete; C7 next
+**Status**: C1-C7 complete; C8 next
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Scope**: Modularity, DRY, scalability, and designer-friendliness improvements across managers and ECS systems. No behavioral changes. All existing integration tests must stay green throughout.
 
@@ -234,20 +234,30 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C7: Objectives Manager Namespace Support
+## Milestone C7: Objectives Manager Namespace Support — COMPLETE
 
-**Goal**: Replace `_objectives_by_id` flat dictionary with namespace-aware storage so multiple objective sets can be active simultaneously. Currently `_load_objective_set_internal` replaces the entire previous set.
+**Completed**: 2026-04-12
 
-- [ ] **Commit 1** — Add namespace tests (TDD RED):
-  - `tests/unit/managers/test_m_objectives_manager_namespaces.gd` — test loading a second objective set without replacing the first, evaluating across sets, and completing objectives in different namespaces.
-- [ ] **Commit 2** — Implement namespace support (TDD GREEN):
-  - `scripts/managers/m_objectives_manager.gd` — change `_objectives_by_id: Dictionary` to `_objective_sets: Dictionary[StringName, Dictionary]`, keyed by set ID. Update `_evaluate_active_objectives`, `_on_action_dispatched`, and all lookup methods to iterate active sets.
-- [ ] **Commit 3** — Add selector/query methods for cross-set objective queries.
+**Summary**: Replaced `_objectives_by_id` flat dictionary with `_objective_sets` namespace-aware storage keyed by set ID. Multiple objective sets can now be active simultaneously without replacing each other. Added `unload_objective_set()` for opt-in set removal. Added `active_set_ids` array to store state for multi-set tracking. Added cross-set selectors (`get_active_set_ids`, `get_statuses_snapshot`, `get_completed_objectives`) and grep test enforcing selector usage in production code.
+
+- [x] **Commit 1** — Add namespace tests (TDD RED):
+  - `tests/unit/managers/test_m_objectives_manager_namespaces.gd` — 11 tests covering: loading second set without replacing first, active_set_ids tracking, evaluating across sets, completing/failing objectives in different namespaces, single-set backwards compat, unload set, reload set, nonexistent set unload, within-set dependency activation.
+- [x] **Commit 2** — Implement namespace support (TDD GREEN):
+  - `scripts/managers/m_objectives_manager.gd` — changed `_objectives_by_id: Dictionary` to `_objective_sets: Dictionary`, `_objective_graph: Dictionary` to `_objective_graphs: Dictionary`. Added `_find_objective()` for cross-set lookup. Implemented `unload_objective_set()`. Updated `_evaluate_active_objectives`, `_activate_dependents`, `_complete_objective_with_context`, `_fail_objective`, `_ensure_objective_runtime_state` to iterate active sets. Replaced `state.get("objectives", {})` with `U_OBJECTIVES_SELECTORS` calls.
+  - `scripts/state/actions/u_objectives_actions.gd` — added `add_active_set`, `remove_active_set`, `reset_set_statuses`, `reset_all_statuses` action creators.
+  - `scripts/state/reducers/u_objectives_reducer.gd` — added `active_set_ids` to DEFAULT_STATE, handlers for ADD_ACTIVE_SET (also sets primary `active_set_id` when empty), REMOVE_ACTIVE_SET, RESET_SET_STATUSES, RESET_ALL_STATUSES. Updated RESET_ALL to clear `active_set_ids`, RESET_FOR_NEW_RUN to set `active_set_ids = [set_id]`, SET_ACTIVE_SET to also add to `active_set_ids`.
+  - `scripts/resources/state/rs_objectives_initial_state.gd` — added `active_set_ids: Array[StringName] = []`.
+  - `scripts/managers/helpers/u_save_migration_engine.gd` — added `active_set_ids` to DEFAULT_OBJECTIVES_SLICE.
+  - `scripts/interfaces/i_objectives_manager.gd` — added `unload_objective_set` to interface.
+- [x] **Commit 3** — Add selector/query methods for cross-set objective queries:
+  - `scripts/state/selectors/u_objectives_selectors.gd` — added `get_active_set_ids()`, `get_statuses_snapshot()`, `get_completed_objectives()` selectors.
+  - `tests/unit/scene_director/test_objectives_selectors.gd` — added 4 new tests for the new selectors.
+  - `tests/unit/style/test_style_enforcement.gd` — added `test_objectives_state_access_uses_selectors` grep test asserting no direct `state.get("objectives", {})` in production code outside selectors/reducers (with C8/C11 allowed-list for files not yet migrated).
 
 **C7 Verification**:
-- [ ] All namespace tests green
-- [ ] Existing objectives-manager tests green (backwards-compatible: single-set loads still work)
-- [ ] Grep test: no direct `state.get("objectives", {})` outside selectors
+- [x] All namespace tests green (11/11)
+- [x] Existing objectives-manager tests green (backwards-compatible: single-set loads still work)
+- [x] Grep test: no direct `state.get("objectives", {})` outside selectors
 
 ---
 

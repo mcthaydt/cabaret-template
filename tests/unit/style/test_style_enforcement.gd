@@ -1215,3 +1215,70 @@ func _check_for_method_definition(dir_path: String, method_signature: String, vi
 				file.close()
 		entry = dir.get_next()
 	dir.list_dir_end()
+
+## C7: No direct state.get("objectives", {}) outside selectors and reducers in production code.
+func test_objectives_state_access_uses_selectors() -> void:
+	var allowed_files: Array[String] = [
+		"res://scripts/state/selectors/u_objectives_selectors.gd",
+		"res://scripts/state/reducers/u_objectives_reducer.gd",
+		"res://scripts/managers/helpers/u_save_migration_engine.gd",
+		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
+		"res://scripts/ecs/systems/s_victory_handler_system.gd",
+		"res://scripts/ui/menus/ui_victory.gd",
+	]
+	var production_dirs: Array[String] = [
+		"res://scripts/ecs",
+		"res://scripts/state",
+		"res://scripts/ui",
+		"res://scripts/managers",
+		"res://scripts/core",
+		"res://scripts/interfaces",
+		"res://scripts/utils",
+		"res://scripts/input",
+		"res://scripts/scene_management",
+		"res://scripts/events",
+		"res://scripts/scene_structure",
+		"res://scripts/resources",
+		"res://scripts/gameplay",
+		"res://scripts/debug",
+	]
+	var violations: Array[String] = []
+	var patterns: Array[String] = [
+		'state.get("objectives"',
+		'state.get(&"objectives"',
+		'state["objectives"]',
+	]
+	for dir_path in production_dirs:
+		_check_for_patterns_in_files(dir_path, patterns, allowed_files, violations)
+	assert_eq(violations.size(), 0, "Found direct objectives state access outside selectors/reducers:\n" + "\n".join(violations))
+
+func _check_for_patterns_in_files(dir_path: String, patterns: Array[String], allowed_files: Array[String], violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_check_for_patterns_in_files(path, patterns, allowed_files, violations)
+		elif entry.ends_with(".gd"):
+			if allowed_files.has(path):
+				entry = dir.get_next()
+				continue
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file != null:
+				var found := false
+				while not file.eof_reached():
+					var line := file.get_line()
+					for pattern in patterns:
+						if line.find(pattern) != -1:
+							violations.append(path)
+							found = true
+							break
+					if found:
+						break
+				file.close()
+		entry = dir.get_next()
+	dir.list_dir_end()
