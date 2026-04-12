@@ -52,6 +52,17 @@ static func get_active_set_id(state: Dictionary) -> StringName:
 	var slice: Dictionary = _get_slice(state)
 	return slice.get("active_set_id", StringName(""))
 
+static func get_active_set_ids(state: Dictionary) -> Array[StringName]:
+	var slice: Dictionary = _get_slice(state)
+	var ids_variant: Variant = slice.get("active_set_ids", [])
+	if ids_variant is Array:
+		var result: Array[StringName] = []
+		for entry in ids_variant:
+			if entry is StringName:
+				result.append(entry)
+		return result
+	return []
+
 static func _get_slice(state: Dictionary) -> Dictionary:
 	var objectives_variant: Variant = state.get("objectives", null)
 	if objectives_variant is Dictionary:

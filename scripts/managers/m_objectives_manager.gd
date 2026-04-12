@@ -56,6 +56,10 @@ func _exit_tree() -> void:
 func load_objective_set(set_id: StringName) -> bool:
 	return _load_objective_set_internal(set_id, true)
 
+func unload_objective_set(_set_id: StringName) -> bool:
+	push_warning("M_ObjectivesManager.unload_objective_set: not yet implemented")
+	return false
+
 func reset_for_new_run(set_id: StringName = StringName("default_progression")) -> bool:
 	return _load_objective_set_internal(set_id, false)
 
