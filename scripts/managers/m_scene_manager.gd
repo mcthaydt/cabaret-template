@@ -495,200 +495,148 @@ func _process_transition_queue() -> void:
 		call_deferred("_process_transition_queue")
 	return
 
-## Perform the actual scene transition
+## Perform the actual scene transition (orchestration only)
 ##
-## **GDScript Closure Pattern** (T208):
-## This method uses the "Array wrapper" pattern for closures to work around GDScript's
-## limitation that closures cannot capture mutable local variables by reference.
+## Decomposed into focused helper methods:
+## - _prepare_transition_context: cache check, camera state capture, context assembly
+## - _execute_scene_swap: scene removal, loading, camera blending, handler delegation
+## - _finalize_camera_blend: post-transition camera finalization
 ##
-## **Why use Arrays?**
-## In GDScript, when you create a lambda/closure (e.g., `func() -> void:`), it can only
-## capture local variables by VALUE, not by reference. If you try to modify a captured
-## variable, you get a compile error: "Cannot assign to a variable captured from outer scope."
-##
-## **Solution:**
-## Wrap mutable values in an Array (e.g., `var progress: Array = [0.0]`). Arrays are
-## reference types, so the closure captures the Array reference (by value), but can still
-## modify the Array contents (e.g., `progress[0] = 0.5`).
-##
-## **Example:**
-## ```gdscript
-## # ❌ This FAILS - cannot modify captured variable:
-## var progress: float = 0.0
-## var callback := func() -> void:
-##     progress = 0.5  # ERROR: Cannot assign to captured variable
-##
-## # ✅ This WORKS - Array reference captured, contents mutable:
-## var progress: Array = [0.0]
-## var callback := func() -> void:
-##     progress[0] = 0.5  # OK: Modifying array contents, not array reference
-## ```
-##
-## **Where used in this method:**
-## - `current_progress: Array = [0.0]` - Progress tracking for async loading
-## - `scene_swap_complete: Array = [false]` - Flag for transition callback coordination
-## - `new_camera_ref: Array = [null]` - Camera reference for blend callback
-##
-## **Alternative approaches:**
-## - Member variables: Would require complex state management and cleanup
-## - Signals: Would add unnecessary indirection and timing complexity
-## - Helper classes: Overkill for simple value passing
-##
-## The Array pattern is the recommended GDScript idiom for this use case.
+## The scene_swap_callback uses a thin lambda that delegates to _execute_scene_swap.
+## The orchestrator awaits the callback, so async loading inside _execute_scene_swap
+## is properly sequenced.
 func _perform_transition(request) -> void:
-	# Get scene path from registry
 	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(request.scene_id)
 	if scene_path.is_empty():
 		push_error("M_SceneManager: No path for scene '%s'" % request.scene_id)
 		return
-
-	# Track scene history based on scene type (T111-T113)
 	_update_scene_history(request.scene_id)
+	var transition_ctx := _prepare_transition_context(request, scene_path)
+	var scene_swap_callback := func() -> void:
+		await _execute_scene_swap(request, scene_path, transition_ctx)
+	var overlays := {
+		"transition_overlay": _transition_overlay,
+		"loading_overlay": _loading_overlay
+	}
+	await _transition_orchestrator.execute_transition_effect(
+		request.transition_type,
+		scene_swap_callback,
+		func() -> void: pass,
+		overlays
+	)
+	_finalize_camera_blend(transition_ctx)
+	var new_scene_ref: Array = transition_ctx.get("new_scene_ref", [null])
+	if new_scene_ref[0] != null:
+		await _unfreeze_player_physics(new_scene_ref[0])
 
-	# Phase 8: Check if scene is cached
+## Prepare transition context: cache check, progress callback, camera state capture
+##
+## Returns a Dictionary with:
+## - use_cached: bool - Whether scene is in the cache
+## - progress_callback: Callable - Callback for async loading progress
+## - old_camera_state: Variant - Pre-captured camera state (null if no blend)
+## - should_blend: bool - Whether camera blending should occur
+## - new_scene_ref: Array - Mutable holder for the newly loaded scene
+func _prepare_transition_context(request, scene_path: String) -> Dictionary:
 	var use_cached: bool = _scene_cache_helper.is_scene_cached(scene_path)
-
-	# Phase 8: Create progress callback for async loading
-	# T208: Array wrapper for closure to capture mutable value (see method doc comment)
 	var current_progress: Array = [0.0]
 	var progress_callback: Callable = func(progress: float) -> void:
 		current_progress[0] = clamp(progress, 0.0, 1.0)
-
-	# T208: Track if scene swap has completed (Array wrapper for closure pattern)
-	var scene_swap_complete: Array = [false]
-
-	# Phase 12.2: Capture old camera state BEFORE removing scene (T244)
 	var old_camera_state = null
 	if _camera_manager != null and request.transition_type != "instant":
 		if _active_scene_container != null and _active_scene_container.get_child_count() > 0:
 			var old_scene: Node = _active_scene_container.get_child(0)
 			old_camera_state = _camera_manager.capture_camera_state(old_scene)
-
-	# Phase 10: Determine if camera blending should occur
 	var should_blend: bool = old_camera_state != null and _camera_manager != null
-
-	# Reference holder for the newly loaded scene (closure-friendly)
 	var new_scene_ref: Array = [null]
-
-	# Define scene swap callback (called at mid-transition for fades, immediately for instant)
-	var scene_swap_callback := func() -> void:
-		# Remove current scene from ActiveSceneContainer
-		if _active_scene_container != null:
-			_scene_loader.remove_current_scene(_active_scene_container)
-
-		# Load new scene (Phase 8: async for loading transitions, cached if available, sync otherwise)
-		var new_scene: Node = null
-		if use_cached:
-			# Use cached scene (instant)
-			var cached_scene: PackedScene = _scene_cache_helper.get_cached_scene(scene_path)
-			if cached_scene != null:
-				new_scene = cached_scene.instantiate()
-				# For cached scenes with "loading" transition, we use fake progress,
-				# so avoid forcing progress to 100% here.
-		elif request.transition_type == "loading" and not (OS.has_feature("headless") or DisplayServer.get_name() == "headless"):
-			# Use async loading for "loading" transitions (Phase 8)
-			new_scene = await _scene_loader.load_scene_async(scene_path, progress_callback, _background_loads)
-		else:
-			# Use sync loading for other transitions (or headless mode)
-			new_scene = _scene_loader.load_scene(scene_path)
-			# Update progress for loading transitions in headless/sync mode
-			if request.transition_type == "loading":
-				progress_callback.call(1.0)
-
-		if new_scene == null:
-			push_error("M_SceneManager: Failed to load scene '%s'" % scene_path)
-			return
-
-		# Phase 12.5: Validate scene contract (T306)
-		_validate_scene_contract(new_scene, request.scene_id)
-
-		# Determine scene type for handler delegation
-		var scene_type: int = U_SCENE_REGISTRY.get_scene_type(request.scene_id)
-
-		# T137c (Phase 10B-3): Set gameplay metadata BEFORE adding to tree
-		# This must happen before _ready() calls fire, so M_GameplayInitializerManager sees it
-		if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
-			mark_scene_spawned(new_scene)
-
-		# Add new scene to ActiveSceneContainer
-		if _active_scene_container != null:
-			_scene_loader.add_scene(_active_scene_container, new_scene)
-		# Store for post-transition finalization
-		new_scene_ref[0] = new_scene
-
-		# Phase 12.2: Blend cameras using M_CameraManager (T244)
-		# IMPORTANT: Start camera blend IMMEDIATELY after scene is added, BEFORE spawn waits.
-		# This ensures the camera blend tween exists for tests that query it during transitions.
-		# The spawn waits (frame waits + spawn operations) can delay tween creation and cause
-		# tests to timeout when waiting for the tween.
-		if should_blend and _camera_manager != null:
-			# Delegate camera blending to M_CameraManager with pre-captured state
-			_camera_manager.blend_cameras(null, new_scene, 0.2, old_camera_state)
-		else:
-			# No blending (instant transition or no camera) - just activate new camera if present
-			var new_camera: Camera3D = null
-			if _camera_manager != null:
-				new_camera = _camera_manager.initialize_scene_camera(new_scene)
-			else:
-				var camera_manager := U_ServiceLocator.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
-				if camera_manager != null:
-					new_camera = camera_manager.initialize_scene_camera(new_scene)
-					if new_camera == null:
-						new_camera = camera_manager.get_main_camera()
-			if new_camera != null:
-				new_camera.current = true
-
-		# Keep scene swap callback await-free. Awaiting inside this closure can
-		# resume after manager teardown in tests and emit class-instance-gone errors.
-		if is_instance_valid(new_scene):
-			var handler := _scene_type_handlers.get(scene_type) as I_SCENE_TYPE_HANDLER
-			if handler != null:
-				var managers := {
-					"spawn_manager": _spawn_manager,
-					"state_store": _store
-				}
-				handler.on_load(new_scene, request.scene_id, managers)
-
-		scene_swap_complete[0] = true
-
-		# Dispatch scene swapped action (mid-transition visual updates)
-		# Triggers Cinema Grade update while screen is obscured
-		if _store != null:
-			_store.dispatch(U_SCENE_ACTIONS.scene_swapped(request.scene_id))
-
-			# Sync navigation shell mid-transition (screen is obscured)
-			# Ensures post-process overlays (CRT, Dither) are visible before fade-in
-			_sync_navigation_shell_with_scene(request.scene_id)
-
-	# Phase 10B-2 (T136b): Delegate transition effect execution to TransitionOrchestrator
-	var overlays := {
-		"transition_overlay": _transition_overlay,
-		"loading_overlay": _loading_overlay
+	return {
+		"use_cached": use_cached,
+		"progress_callback": progress_callback,
+		"old_camera_state": old_camera_state,
+		"should_blend": should_blend,
+		"new_scene_ref": new_scene_ref,
 	}
 
-	await _transition_orchestrator.execute_transition_effect(
-		request.transition_type,
-		scene_swap_callback,
-		func() -> void: pass , # Completion handled below
-		overlays
-	)
+## Execute the scene swap: remove old scene, load new, blend cameras, delegate to handlers
+##
+## This replaces the 88-line closure that was previously inlined in _perform_transition.
+## The orchestrator awaits the callback that calls this, so async loading works correctly.
+func _execute_scene_swap(request, scene_path: String, transition_ctx: Dictionary) -> void:
+	if _active_scene_container != null:
+		_scene_loader.remove_current_scene(_active_scene_container)
 
-	# Phase 10: Camera blending now happens in scene_swap_callback (T182.5)
-	# This ensures blend runs in parallel with fade effect, not sequentially after
+	var use_cached: bool = bool(transition_ctx.get("use_cached", false))
+	var progress_callback: Callable = transition_ctx.get("progress_callback", func(_p: float) -> void: pass)
+	var new_scene: Node = null
+	if use_cached:
+		var cached_scene: PackedScene = _scene_cache_helper.get_cached_scene(scene_path)
+		if cached_scene != null:
+			new_scene = cached_scene.instantiate()
+	elif request.transition_type == "loading" and not (OS.has_feature("headless") or DisplayServer.get_name() == "headless"):
+		new_scene = await _scene_loader.load_scene_async(scene_path, progress_callback, _background_loads)
+	else:
+		new_scene = _scene_loader.load_scene(scene_path)
+		if request.transition_type == "loading":
+			progress_callback.call(1.0)
 
-	# Safety: Only finalize camera if no active blend tween remains. Without this
-	# guard, fade transitions cut the blend short as soon as the fade finishes.
+	if new_scene == null:
+		push_error("M_SceneManager: Failed to load scene '%s'" % scene_path)
+		return
+
+	_validate_scene_contract(new_scene, request.scene_id)
+
+	var scene_type: int = U_SCENE_REGISTRY.get_scene_type(request.scene_id)
+	if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
+		mark_scene_spawned(new_scene)
+
+	if _active_scene_container != null:
+		_scene_loader.add_scene(_active_scene_container, new_scene)
+	var new_scene_ref: Array = transition_ctx.get("new_scene_ref", [null])
+	new_scene_ref[0] = new_scene
+
+	var should_blend: bool = bool(transition_ctx.get("should_blend", false))
+	var old_camera_state = transition_ctx.get("old_camera_state")
+	if should_blend and _camera_manager != null:
+		_camera_manager.blend_cameras(null, new_scene, 0.2, old_camera_state)
+	else:
+		var new_camera: Camera3D = null
+		if _camera_manager != null:
+			new_camera = _camera_manager.initialize_scene_camera(new_scene)
+		else:
+			var camera_manager := U_ServiceLocator.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
+			if camera_manager != null:
+				new_camera = camera_manager.initialize_scene_camera(new_scene)
+				if new_camera == null:
+					new_camera = camera_manager.get_main_camera()
+		if new_camera != null:
+			new_camera.current = true
+
+	if is_instance_valid(new_scene):
+		var handler := _scene_type_handlers.get(scene_type) as I_SCENE_TYPE_HANDLER
+		if handler != null:
+			var managers := {
+				"spawn_manager": _spawn_manager,
+				"state_store": _store
+			}
+			handler.on_load(new_scene, request.scene_id, managers)
+
+	if _store != null:
+		_store.dispatch(U_SCENE_ACTIONS.scene_swapped(request.scene_id))
+		_sync_navigation_shell_with_scene(request.scene_id)
+
+## Finalize camera blend after transition completes
+##
+## Only finalizes if no active blend tween remains (fade transitions run the blend
+## in parallel, and cutting it short would cause a visual jump).
+func _finalize_camera_blend(transition_ctx: Dictionary) -> void:
+	var new_scene_ref: Array = transition_ctx.get("new_scene_ref", [null])
+	if _camera_manager == null or new_scene_ref[0] == null:
+		return
 	var has_active_blend: bool = false
-	if _camera_manager != null:
-		var active_tween: Tween = _camera_manager.get("_camera_blend_tween")
-		has_active_blend = active_tween != null and active_tween.is_running()
-
-	if not has_active_blend and _camera_manager != null and new_scene_ref[0] != null:
+	var active_tween: Tween = _camera_manager.get("_camera_blend_tween")
+	has_active_blend = active_tween != null and active_tween.is_running()
+	if not has_active_blend:
 		_camera_manager.finalize_blend_to_scene(new_scene_ref[0])
-
-	# Re-enable player physics after transition completes (prevents falling during load)
-	if new_scene_ref[0] != null:
-		await _unfreeze_player_physics(new_scene_ref[0])
 
 ## Re-enable player physics after transition completes
 ## Includes physics warmup frame to prevent bobble from stale collision state
