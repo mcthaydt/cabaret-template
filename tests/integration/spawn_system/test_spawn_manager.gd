@@ -11,6 +11,7 @@ const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gam
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const SP_SPAWN_POINT := preload("res://scripts/scene_management/sp_spawn_point.gd")
 const RS_SPAWN_METADATA := preload("res://scripts/resources/scene_management/rs_spawn_metadata.gd")
+const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 
 var spawn_manager: M_SpawnManager
 var state_store: M_StateStore
@@ -342,3 +343,50 @@ func test_spawn_does_not_snap_to_ground_when_metadata_flag_disabled() -> void:
 	# Assert
 	assert_true(result, "Spawn should succeed when ground snapping is disabled")
 	assert_almost_eq(player.global_position.y, 4.0, 0.01, "Player should remain at explicit spawn marker height")
+
+## ============================================================================
+## C10: Tag-Based Player Lookup Tests
+## ============================================================================
+
+func test_spawn_finds_player_by_tag_when_ecs_manager_registered() -> void:
+	# Arrange: ECS manager with a tagged player (no "E_Player" name)
+	var ecs_manager := MOCK_ECS_MANAGER.new()
+	add_child_autofree(ecs_manager)
+	U_ServiceLocator.register(StringName("ecs_manager"), ecs_manager)
+
+	var player := CharacterBody3D.new()
+	player.name = "HeroCharacter"  # deliberately no E_Player prefix
+	test_scene.add_child(player)
+	ecs_manager.register_entity_tag(StringName("player"), player)
+
+	var spawn_point := Node3D.new()
+	spawn_point.name = "sp_test_spawn"
+	spawn_point.position = Vector3(3.0, 0.0, 3.0)
+	test_scene.add_child(spawn_point)
+
+	# Act
+	var result: bool = spawn_manager.spawn_player_at_point(test_scene, StringName("sp_test_spawn"))
+
+	# Assert
+	assert_true(result, "Spawn should succeed when player is found by tag")
+	assert_almost_eq(player.global_position, spawn_point.global_position,
+		Vector3(0.01, 0.01, 0.01), "Tagged player should be positioned at spawn point")
+
+func test_spawn_falls_back_to_name_prefix_when_no_ecs_manager() -> void:
+	# Arrange: no ECS manager registered — fallback to "E_Player" prefix scan
+	var player := CharacterBody3D.new()
+	player.name = "E_Player"
+	test_scene.add_child(player)
+
+	var spawn_point := Node3D.new()
+	spawn_point.name = "sp_test_spawn"
+	spawn_point.position = Vector3(7.0, 0.0, 0.0)
+	test_scene.add_child(spawn_point)
+
+	# Act (no ecs_manager in ServiceLocator)
+	var result: bool = spawn_manager.spawn_player_at_point(test_scene, StringName("sp_test_spawn"))
+
+	# Assert
+	assert_true(result, "Spawn should succeed via name-prefix fallback when no ECS manager present")
+	assert_almost_eq(player.global_position, spawn_point.global_position,
+		Vector3(0.01, 0.01, 0.01), "Player found by name prefix should be positioned at spawn point")

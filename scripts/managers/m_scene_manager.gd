@@ -664,10 +664,6 @@ func _unfreeze_player_physics(scene: Node) -> void:
 	# causing spring/bounce effects (bobble).
 	await get_tree().physics_frame
 
-## Find player in scene tree
-func _find_player_in_scene(scene: Node) -> Node3D:
-	return _scene_loader.find_player_in_scene(scene)
-
 ## Push overlay scene onto UIOverlayStack
 func push_overlay(scene_id: StringName, force: bool = false) -> void:
 	_overlay_helper.push_overlay(
