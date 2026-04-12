@@ -30,6 +30,7 @@ const U_SPAWN_REGISTRY := preload("res://scripts/scene_management/u_spawn_regist
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_ENTITY_LOOKUP := preload("res://scripts/utils/ecs/u_entity_lookup.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const I_ECS_ENTITY := preload("res://scripts/interfaces/i_ecs_entity.gd")
 const SP_SPAWN_POINT := preload("res://scripts/scene_management/sp_spawn_point.gd")
@@ -143,7 +144,7 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 	# Find player entity in scene
 	var player: Node3D = _find_player_entity(scene)
 	if player == null:
-		push_error("M_SpawnManager: Player entity not found in scene '%s' for spawn restoration. Expected node name starting with 'E_Player'." % scene_name)
+		push_error("M_SpawnManager: Player entity not found in scene '%s' for spawn restoration. Ensure the player entity has the 'player' tag registered with M_ECSManager, or a node named with 'E_Player' prefix." % scene_name)
 		_clear_target_spawn_point()
 		return false
 
@@ -214,16 +215,25 @@ func _find_spawn_point(scene: Node, spawn_point_id: StringName) -> Node3D:
 	# Return first match (cast to Node3D, may be null if not Node3D)
 	return spawn_points[0] as Node3D
 
-## Find player entity in scene (T222)
+## Find player entity in scene (C10: tag-based primary, name-prefix fallback)
 ##
-## Searches for node with name starting with "E_Player" prefix.
+## Lookup order:
+##   1. ECS manager tag index — entity tagged &"player" via M_ECSManager
+##   2. Name-prefix scan — node name starts with "E_Player" (legacy fallback)
 ##
 ## Parameters:
-##   scene: Root node to search from
+##   scene: Root node to search from (used for name-prefix fallback only)
 ##
 ## Returns:
 ##   Node3D player entity if found, null otherwise
 func _find_player_entity(scene: Node) -> Node3D:
+	var ecs_manager: Node = U_ECS_UTILS.get_manager(self)
+	if ecs_manager != null:
+		var tagged: Node = U_ENTITY_LOOKUP.find_entity_by_tag(ecs_manager, StringName("player"))
+		if tagged != null and tagged is Node3D:
+			return tagged as Node3D
+
+	# Fallback: search by "E_Player" name prefix for scenes without tag registration
 	var players: Array = []
 	_find_nodes_by_prefix(scene, "E_Player", players)
 
