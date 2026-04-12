@@ -20,6 +20,8 @@ class_name M_SaveManager
 const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
 const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/u_save_migration_engine.gd")
 const U_SCREENSHOT_CAPTURE := preload("res://scripts/managers/helpers/u_screenshot_capture.gd")
@@ -603,14 +605,12 @@ func _build_metadata(slot_id: StringName) -> Dictionary:
 		return {}
 
 	var state := _state_store.get_state()
-	var gameplay: Dictionary = state.get("gameplay", {})
-	var scene: Dictionary = state.get("scene", {})
 
-	# Extract fields from state
-	var playtime_seconds: int = gameplay.get("playtime_seconds", 0)
-	var current_scene_id: String = scene.get("current_scene_id", "")
-	var last_checkpoint: String = gameplay.get("last_checkpoint", "")
-	var target_spawn_point: String = gameplay.get("target_spawn_point", "")
+	# Extract fields from state via selectors
+	var playtime_seconds: int = U_GAMEPLAY_SELECTORS.get_playtime_seconds(state)
+	var current_scene_id: String = str(U_SCENE_SELECTORS.get_current_scene_id(state))
+	var last_checkpoint: String = str(U_GAMEPLAY_SELECTORS.get_last_checkpoint(state))
+	var target_spawn_point: String = str(U_GAMEPLAY_SELECTORS.get_target_spawn_point(state))
 
 	# Derive area_name from scene registry
 	var area_name := _get_area_name_from_scene(current_scene_id)

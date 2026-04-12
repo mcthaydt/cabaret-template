@@ -33,7 +33,11 @@ static func get_transition_type(state: Dictionary) -> String:
 static func _get_scene_slice(state: Dictionary) -> Dictionary:
 	if state == null:
 		return {}
-	var scene: Variant = state.get("scene", {})
+	# If state has a "scene" key, extract the nested slice (full state passed)
+	var scene: Variant = state.get("scene", null)
 	if scene is Dictionary:
 		return scene as Dictionary
+	# If state has "current_scene_id" key, it's already the scene slice (backward compat)
+	if state.has("current_scene_id"):
+		return state
 	return {}

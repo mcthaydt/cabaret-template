@@ -45,7 +45,11 @@ static func get_touchscreen_settings(state: Dictionary) -> Dictionary:
 static func _get_settings_slice(state: Dictionary) -> Dictionary:
 	if state == null:
 		return {}
-	var settings: Variant = state.get("settings", {})
+	# If state has a "settings" key, extract the nested slice (full state passed)
+	var settings: Variant = state.get("settings", null)
 	if settings is Dictionary:
 		return settings as Dictionary
+	# If state has "input_settings" key, it's already a settings-like dict (backward compat)
+	if state.has("input_settings"):
+		return state
 	return {}

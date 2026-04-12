@@ -31,10 +31,6 @@ static func get_target_spawn_point(state: Dictionary) -> StringName:
 static func is_death_in_progress(state: Dictionary) -> bool:
 	return bool(_get_gameplay_slice(state).get("death_in_progress", false))
 
-## Get the player entity ID (convenience — delegates to U_EntitySelectors for full entity lookup)
-static func get_player_entity_id(state: Dictionary) -> String:
-	return str(_get_gameplay_slice(state).get("player_entity_id", "player"))
-
 ## Get AI demo flags dictionary
 static func get_ai_demo_flags(state: Dictionary) -> Dictionary:
 	var flags: Variant = _get_gameplay_slice(state).get("ai_demo_flags", {})
@@ -65,7 +61,11 @@ static func get_entities(state: Dictionary) -> Dictionary:
 static func _get_gameplay_slice(state: Dictionary) -> Dictionary:
 	if state == null:
 		return {}
-	var gameplay: Variant = state.get("gameplay", {})
+	# If state has a "gameplay" key, extract the nested slice (full state passed)
+	var gameplay: Variant = state.get("gameplay", null)
 	if gameplay is Dictionary:
 		return gameplay as Dictionary
+	# If state has "paused" key, it's already the gameplay slice (backward compat)
+	if state.has("paused"):
+		return state
 	return {}

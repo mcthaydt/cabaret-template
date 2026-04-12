@@ -91,7 +91,7 @@ func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
 	if slice_name != LOCALIZATION_SLICE_NAME:
 		return
 	var state: Dictionary = _resolved_store.get_state()
-	var loc_slice: Dictionary = state.get("localization", {})
+	var loc_slice: Dictionary = U_LOCALIZATION_SELECTORS.get_localization_settings(state)
 	var loc_hash: int = loc_slice.hash()
 	if loc_hash != _last_localization_hash:
 		_apply_localization_settings(state)
@@ -106,7 +106,7 @@ func _apply_localization_settings(state: Dictionary) -> void:
 		_load_locale(locale)
 	_apply_font_override(dyslexia)
 	_apply_count += 1
-	var loc_slice: Dictionary = state.get("localization", {})
+	var loc_slice: Dictionary = U_LOCALIZATION_SELECTORS.get_localization_settings(state)
 	_last_localization_hash = loc_slice.hash()
 	_applying_settings = false
 

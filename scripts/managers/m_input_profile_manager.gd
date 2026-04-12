@@ -2,6 +2,10 @@
 extends "res://scripts/interfaces/i_input_profile_manager.gd"
 class_name M_InputProfileManager
 
+const U_SETTINGS_SELECTORS := preload("res://scripts/state/selectors/u_settings_selectors.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+
 
 signal profile_switched(profile_id: String)
 signal bindings_reset()
@@ -94,14 +98,10 @@ func _sync_from_state(state: Dictionary, force_profile_reapply: bool = false) ->
 func _get_input_settings_from_state(state: Dictionary) -> Dictionary:
 	if state == null:
 		return {}
-	var settings_variant: Variant = state.get("settings", {})
-	if not (settings_variant is Dictionary):
+	var input_settings: Dictionary = U_SETTINGS_SELECTORS.get_input_settings(state)
+	if input_settings.is_empty():
 		return {}
-	var settings_dict := (settings_variant as Dictionary).duplicate(true)
-	var input_variant: Variant = settings_dict.get("input_settings", {})
-	if input_variant is Dictionary:
-		return (input_variant as Dictionary).duplicate(true)
-	return {}
+	return input_settings.duplicate(true)
 
 func _apply_custom_bindings_from_state(bindings_variant: Variant) -> void:
 	if bindings_variant == null or not (bindings_variant is Dictionary):
@@ -389,20 +389,16 @@ func _gather_settings_snapshot() -> Dictionary:
 	var state := store.get_state()
 	if state == null:
 		return {}
-	var settings_variant: Variant = state.get("settings", {})
-	if settings_variant is Dictionary:
-		var input_variant: Variant = (settings_variant as Dictionary).get("input_settings", {})
-		if input_variant is Dictionary:
-			return (input_variant as Dictionary).duplicate(true)
-	return {}
+	var input_settings: Dictionary = U_SETTINGS_SELECTORS.get_input_settings(state)
+	if input_settings.is_empty():
+		return {}
+	return input_settings.duplicate(true)
 
 func _is_gameplay_paused(store: M_StateStore) -> bool:
 	if store == null:
 		return false
-	var gameplay := store.get_slice(StringName("gameplay"))
-	if gameplay is Dictionary:
-		return bool((gameplay as Dictionary).get("paused", false))
-	return false
+	var state: Dictionary = store.get_state()
+	return U_GAMEPLAY_SELECTORS.get_is_paused(state)
 
 func _is_in_menu_shell(store: I_StateStore) -> bool:
 	if store == null:
@@ -410,8 +406,5 @@ func _is_in_menu_shell(store: I_StateStore) -> bool:
 	var state := store.get_state()
 	if state == null:
 		return false
-	var nav_variant: Variant = state.get("navigation", {})
-	if not (nav_variant is Dictionary):
-		return false
-	var shell: StringName = U_NavigationSelectors.get_shell(nav_variant as Dictionary)
+	var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
 	return shell != StringName("gameplay")

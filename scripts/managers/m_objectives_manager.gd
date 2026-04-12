@@ -7,6 +7,7 @@ const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.g
 const U_OBJECTIVE_GRAPH := preload("res://scripts/utils/scene_director/u_objective_graph.gd")
 const U_OBJECTIVE_EVENT_LOG := preload("res://scripts/utils/scene_director/u_objective_event_log.gd")
 const U_OBJECTIVES_ACTIONS := preload("res://scripts/state/actions/u_objectives_actions.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_OBJECTIVES_SELECTORS := preload("res://scripts/state/selectors/u_objectives_selectors.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
@@ -519,11 +520,7 @@ func _is_scene_transitioning() -> bool:
 		return false
 
 	var state: Dictionary = _store.get_state()
-	var scene_variant: Variant = state.get("scene", {})
-	if not (scene_variant is Dictionary):
-		return false
-	var scene_slice: Dictionary = scene_variant as Dictionary
-	return bool(scene_slice.get("is_transitioning", false))
+	return U_SCENE_SELECTORS.is_transitioning(state)
 
 func _resolve_set_id_for_new_run() -> StringName:
 	_index_objective_sets()

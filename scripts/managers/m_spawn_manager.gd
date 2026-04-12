@@ -22,6 +22,7 @@ extends I_SpawnManager
 ## - Discovered via ServiceLocator registration (root.tscn) or manual registration in tests
 
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
@@ -366,11 +367,10 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 		# Player will be at scene's default position, which is fine for initial load
 		return false
 
-	# Read spawn point from gameplay state
+	# Read spawn point from gameplay state via selectors
 	var state: Dictionary = _state_store.get_state()
-	var gameplay_state: Dictionary = state.get("gameplay", {})
-	var last_checkpoint: StringName = gameplay_state.get("last_checkpoint", StringName(""))
-	var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
+	var last_checkpoint: StringName = U_GAMEPLAY_SELECTORS.get_last_checkpoint(state)
+	var target_spawn: StringName = U_GAMEPLAY_SELECTORS.get_target_spawn_point(state)
 
 	# Determine spawn source and id with priority, consulting spawn metadata:
 	# 1) target_spawn_point (door entry) if allowed by metadata

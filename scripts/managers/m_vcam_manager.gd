@@ -5,6 +5,7 @@ class_name M_VCamManager
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
+const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
@@ -780,12 +781,7 @@ func _resolve_player_entity_id() -> StringName:
 	if store == null:
 		return StringName("")
 	var state: Dictionary = store.get_state()
-	var gameplay_variant: Variant = state.get("gameplay", {})
-	if not (gameplay_variant is Dictionary):
-		return StringName("")
-	var gameplay := gameplay_variant as Dictionary
-	var player_entity_variant: Variant = gameplay.get("player_entity_id", "")
-	var player_entity_text: String = str(player_entity_variant)
+	var player_entity_text: String = U_ENTITY_SELECTORS.get_player_entity_id(state)
 	if player_entity_text.is_empty():
 		return StringName("")
 	return StringName(player_entity_text)

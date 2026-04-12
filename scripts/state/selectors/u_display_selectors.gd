@@ -86,10 +86,19 @@ static func get_mobile_resolution_scale(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
 	return float(display.get("mobile_resolution_scale", 0.35))
 
+## Returns the entire display slice for hash-based change detection
+## and settings duplication.
+static func get_display_settings(state: Dictionary) -> Dictionary:
+	return _get_display_slice(state)
+
 static func _get_display_slice(state: Dictionary) -> Dictionary:
 	if state == null:
 		return {}
-	var slice: Variant = state.get("display", {})
+	# If state has a "display" key, extract the nested slice (full state passed)
+	var slice: Variant = state.get("display", null)
 	if slice is Dictionary:
 		return slice as Dictionary
+	# If state has "window_size_preset" key, it's already the display slice (backward compat)
+	if state.has("window_size_preset"):
+		return state
 	return {}

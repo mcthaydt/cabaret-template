@@ -505,19 +505,19 @@ func _apply_influence_hysteresis(character_id: int, zone_key: String, raw_influe
 		return clamped_influence
 
 	var state_variant: Variant = _character_zone_hysteresis.get(character_id, {})
-	var state: Dictionary = {}
+	var zone_state: Dictionary = {}
 	if state_variant is Dictionary:
-		state = state_variant as Dictionary
+		zone_state = state_variant as Dictionary
 
-	var was_active := bool(state.get(zone_key, false))
+	var was_active := bool(zone_state.get(zone_key, false))
 	var is_active: bool = was_active
 	if was_active:
 		is_active = clamped_influence >= INFLUENCE_EXIT_THRESHOLD
 	else:
 		is_active = clamped_influence >= INFLUENCE_ENTER_THRESHOLD
 
-	state[zone_key] = is_active
-	_character_zone_hysteresis[character_id] = state
+	zone_state[zone_key] = is_active
+	_character_zone_hysteresis[character_id] = zone_state
 
 	if is_active:
 		return clamped_influence
@@ -527,11 +527,11 @@ func _prune_character_zone_hysteresis(character_id: int, observed_zone_keys: Arr
 	var state_variant: Variant = _character_zone_hysteresis.get(character_id, {})
 	if not (state_variant is Dictionary):
 		return
-	var state := state_variant as Dictionary
+	var zone_state := state_variant as Dictionary
 	var pruned: Dictionary = {}
 	for key in observed_zone_keys:
-		if state.has(key):
-			pruned[key] = state[key]
+		if zone_state.has(key):
+			pruned[key] = zone_state[key]
 	_character_zone_hysteresis[character_id] = pruned
 
 func _apply_temporal_smoothing(character_id: int, blended: Dictionary) -> Dictionary:

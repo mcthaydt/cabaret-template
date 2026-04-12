@@ -42,11 +42,19 @@ static func is_spatial_audio_enabled(state: Dictionary) -> bool:
 	var audio := _get_audio_slice(state)
 	return bool(audio.get("spatial_audio_enabled", true))
 
+## Returns the entire audio slice for hash-based change detection.
+static func get_audio_settings(state: Dictionary) -> Dictionary:
+	return _get_audio_slice(state)
+
 static func _get_audio_slice(state: Dictionary) -> Dictionary:
 	if state == null:
 		return {}
-	var slice: Variant = state.get("audio", {})
+	# If state has an "audio" key, extract the nested slice (full state passed)
+	var slice: Variant = state.get("audio", null)
 	if slice is Dictionary:
 		return slice as Dictionary
+	# If state has "master_volume" key, it's already the audio slice (backward compat)
+	if state.has("master_volume"):
+		return state
 	return {}
 

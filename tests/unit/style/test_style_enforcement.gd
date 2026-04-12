@@ -1252,6 +1252,29 @@ func test_objectives_state_access_uses_selectors() -> void:
 		_check_for_patterns_in_files(dir_path, patterns, allowed_files, violations)
 	assert_eq(violations.size(), 0, "Found direct objectives state access outside selectors/reducers:\n" + "\n".join(violations))
 
+## C8: No direct state.get("slice", {}) or state["slice"] in manager/helper files.
+## All state reads must go through U_*Selectors.
+func test_managers_use_selectors_for_state_access() -> void:
+	# Files exempt from this check:
+	# - m_state_store.gd: The state store itself owns the state dict
+	# - u_save_migration_engine.gd: Operates on save file data, not live Redux state
+	var allowed_files: Array[String] = [
+		"res://scripts/managers/m_state_store.gd",
+		"res://scripts/managers/helpers/u_save_migration_engine.gd",
+	]
+	var manager_dirs: Array[String] = [
+		"res://scripts/managers",
+	]
+	var violations: Array[String] = []
+	var patterns: Array[String] = [
+		"state.get(",
+		'state["',
+		'state[&"',
+	]
+	for dir_path in manager_dirs:
+		_check_for_patterns_in_files(dir_path, patterns, allowed_files, violations)
+	assert_eq(violations.size(), 0, "Found direct state slice access in manager files (should use selectors):\n" + "\n".join(violations))
+
 func _check_for_patterns_in_files(dir_path: String, patterns: Array[String], allowed_files: Array[String], violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
@@ -1269,16 +1292,45 @@ func _check_for_patterns_in_files(dir_path: String, patterns: Array[String], all
 				continue
 			var file := FileAccess.open(path, FileAccess.READ)
 			if file != null:
+				var line_number: int = 0
 				var found := false
 				while not file.eof_reached():
+					line_number += 1
 					var line := file.get_line()
-					for pattern in patterns:
-						if line.find(pattern) != -1:
-							violations.append(path)
-							found = true
-							break
+					var stripped: String = line.strip_edges()
+					if stripped.begins_with("#"):
+						continue
+					if _line_has_disallowed_state_access(line, patterns):
+						violations.append("%s:%d %s" % [path, line_number, stripped])
+						found = true
 					if found:
 						break
 				file.close()
 		entry = dir.get_next()
 	dir.list_dir_end()
+
+func _line_has_disallowed_state_access(line: String, patterns: Array[String]) -> bool:
+	for pattern in patterns:
+		var idx: int = line.find(pattern)
+		while idx != -1:
+			if _is_state_token_boundary(line, idx):
+				return true
+			idx = line.find(pattern, idx + pattern.length())
+	return false
+
+func _is_state_token_boundary(line: String, state_index: int) -> bool:
+	if state_index <= 0:
+		return true
+	var prev_char: String = line.substr(state_index - 1, 1)
+	return not _is_identifier_char(prev_char)
+
+func _is_identifier_char(char: String) -> bool:
+	if char.is_empty():
+		return false
+	if char == "_":
+		return true
+	var code: int = char.unicode_at(0)
+	var is_number: bool = code >= 48 and code <= 57
+	var is_upper: bool = code >= 65 and code <= 90
+	var is_lower: bool = code >= 97 and code <= 122
+	return is_number or is_upper or is_lower

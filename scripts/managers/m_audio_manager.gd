@@ -9,6 +9,7 @@ class_name M_AudioManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
@@ -74,8 +75,8 @@ func _initialize_store_async() -> void:
 
 	# Initialize audio based on current scene state
 	# (transition_completed may have already been dispatched before we subscribed)
-	var scene_state: Dictionary = _state_store.get_slice(StringName("scene"))
-	var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+	var state: Dictionary = _state_store.get_state()
+	var current_scene_id: StringName = U_SCENE_SELECTORS.get_current_scene_id(state)
 	if current_scene_id != StringName(""):
 		_change_audio_for_scene(current_scene_id)
 
@@ -221,12 +222,11 @@ func stop_ambient(duration: float = 2.0) -> void:
 func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	# Phase 9: Hash-based optimization - only apply audio settings when slice changes
 	if not _audio_settings_preview_active:
-		var audio_slice: Variant = state.get("audio", {})
-		if audio_slice is Dictionary:
-			var audio_hash := (audio_slice as Dictionary).hash()
-			if audio_hash != _last_audio_hash:
-				_apply_audio_settings(state)
-				_last_audio_hash = audio_hash
+		var audio_slice: Dictionary = U_AUDIO_SELECTORS.get_audio_settings(state)
+		var audio_hash := audio_slice.hash()
+		if audio_hash != _last_audio_hash:
+			_apply_audio_settings(state)
+			_last_audio_hash = audio_hash
 
 	_handle_music_actions(action)
 

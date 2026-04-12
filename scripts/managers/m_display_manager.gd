@@ -217,12 +217,7 @@ func _apply_display_settings(state: Dictionary) -> void:
 	_apply_accessibility_settings(effective_settings)
 
 func _build_effective_settings(state: Dictionary) -> Dictionary:
-	var settings: Dictionary = {}
-	if state != null:
-		var slice: Variant = state.get(DISPLAY_SLICE_NAME, {})
-		if slice is Dictionary:
-			settings = (slice as Dictionary).duplicate(true)
-
+	var settings: Dictionary = U_DISPLAY_SELECTORS.get_display_settings(state).duplicate(true)
 	if _display_settings_preview_active:
 		for key in _preview_settings.keys():
 			settings[key] = _preview_settings[key]
@@ -346,18 +341,12 @@ func apply_quality_preset(preset: String) -> void:
 func _get_display_hash(state: Dictionary) -> int:
 	if state == null:
 		return 0
-	var slice: Variant = state.get(DISPLAY_SLICE_NAME, {})
-	if slice is Dictionary:
-		return (slice as Dictionary).hash()
-	return 0
+	return U_DISPLAY_SELECTORS.get_display_settings(state).hash()
 
 func _get_localization_hash(state: Dictionary) -> int:
 	if state == null:
 		return 0
-	var slice: Variant = state.get(LOCALIZATION_SLICE_NAME, {})
-	if slice is Dictionary:
-		return (slice as Dictionary).hash()
-	return 0
+	return U_LOCALIZATION_SELECTORS.get_localization_settings(state).hash()
 
 func _get_window_hash(display_settings: Dictionary) -> int:
 	if display_settings == null:
@@ -443,8 +432,7 @@ func _update_overlay_visibility() -> void:
 	_ensure_appliers()
 
 	var state := _state_store.get_state()
-	var navigation_state: Dictionary = state.get("navigation", {})
-	var shell := U_NAVIGATION_SELECTORS.get_shell(navigation_state)
+	var shell := U_NAVIGATION_SELECTORS.get_shell(state)
 	var should_show := shell == SHELL_GAMEPLAY
 
 	if _post_process_applier != null:

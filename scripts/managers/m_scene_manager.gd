@@ -42,6 +42,8 @@ const U_TRANSITION_STATE := preload("res://scripts/scene_management/helpers/u_tr
 const U_INPUT_MAP_BOOTSTRAPPER := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 const U_DEBUG_SELECTORS := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const HUD_OVERLAY_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
 const UI_HUD_CONTROLLER := preload("res://scripts/ui/hud/ui_hud_controller.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
@@ -337,8 +339,7 @@ func _ensure_store_reference() -> void:
 ## State change callback
 func _on_state_changed(___action: Dictionary, state: Dictionary) -> void:
 	# Detect scene changes and update cursor reactively
-	var scene_state: Dictionary = state.get("scene", {})
-	var new_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+	var new_scene_id: StringName = U_SCENE_SELECTORS.get_current_scene_id(state)
 
 	# Only track scene_id when it actually changes and is not empty
 	# Phase 2 (T022): Cursor updates removed - M_TimeManager is now sole authority
@@ -927,12 +928,8 @@ func _sync_overlay_stack_state() -> void:
 	if _store == null or _ui_overlay_stack == null:
 		return
 
-	var scene_state: Dictionary = _store.get_slice(StringName("scene"))
-	if scene_state.is_empty():
-		_update_particles_and_focus()
-		return
-
-	var current_stack_variant: Array = scene_state.get("scene_stack", [])
+	var state: Dictionary = _store.get_state()
+	var current_stack_variant: Array = U_SCENE_SELECTORS.get_scene_stack(state)
 	var current_stack: Array[StringName] = []
 	for entry in current_stack_variant:
 		if entry is StringName:
@@ -980,8 +977,7 @@ func get_current_scene() -> StringName:
 		return StringName("")
 
 	var state: Dictionary = _store.get_state()
-	var scene_state: Dictionary = state.get("scene", {})
-	return scene_state.get("current_scene_id", StringName(""))
+	return U_SCENE_SELECTORS.get_current_scene_id(state)
 
 ## Check if currently transitioning
 func is_transitioning() -> bool:
@@ -989,8 +985,7 @@ func is_transitioning() -> bool:
 		return false
 
 	var state: Dictionary = _store.get_state()
-	var scene_state: Dictionary = state.get("scene", {})
-	return scene_state.get("is_transitioning", false)
+	return U_SCENE_SELECTORS.is_transitioning(state)
 
 ## Keep navigation shell/base scene aligned with the actual scene (manual transitions/tests)
 ## Phase 2 (T022): Removed _update_cursor_for_scene() - M_TimeManager now handles cursor state
@@ -1000,6 +995,7 @@ func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 	if _store == null:
 		return
 
+	var state: Dictionary = _store.get_state()
 	var nav_state: Dictionary = _store.get_slice(StringName("navigation"))
 	if nav_state.is_empty():
 		return
@@ -1018,8 +1014,8 @@ func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 
 	var desired_shell: StringName = handler.get_shell_id()
 
-	var current_shell: StringName = nav_state.get("shell", StringName(""))
-	var current_scene: StringName = nav_state.get("base_scene_id", StringName(""))
+	var current_shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
+	var current_scene: StringName = U_NAVIGATION_SELECTORS.get_base_scene_id(state)
 
 	# If navigation already matches the loaded scene, no reconciliation needed.
 	if current_shell == desired_shell and current_scene == scene_id:

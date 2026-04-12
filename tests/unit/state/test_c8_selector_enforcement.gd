@@ -4,9 +4,13 @@ extends GutTest
 ##
 ## Tests for new and modified selectors added during C8.
 ## Covers: U_GameplaySelectors (full-state variants), U_SceneSelectors (full-state variants),
-## U_SettingsSelectors (new), and any other selectors needed for manager migration.
+## U_SettingsSelectors (new), U_AudioSelectors (slice accessor), U_DisplaySelectors (slice accessor),
+## U_LocalizationSelectors (slice accessor), and any other selectors needed for manager migration.
 
 const U_SETTINGS_SELECTORS := preload("res://scripts/state/selectors/u_settings_selectors.gd")
+const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
+const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 
 
 # ── U_GameplaySelectors: full-state variants ───────────────────────────────
@@ -66,14 +70,6 @@ func test_gameplay_is_death_in_progress_defaults_false() -> void:
 func test_gameplay_is_death_in_progress_handles_missing_slice() -> void:
 	var state := {}
 	assert_false(U_GameplaySelectors.is_death_in_progress(state), "Should default to false when slice missing")
-
-func test_gameplay_get_player_entity_id_full_state() -> void:
-	var state := {"gameplay": {"player_entity_id": "player_1", "entities": {}}}
-	assert_eq(U_GameplaySelectors.get_player_entity_id(state), "player_1", "Should return player_entity_id from full state")
-
-func test_gameplay_get_player_entity_id_defaults() -> void:
-	var state := {"gameplay": {"entities": {}}}
-	assert_eq(U_GameplaySelectors.get_player_entity_id(state), "player", "Should default to 'player' when missing")
 
 func test_gameplay_is_touch_look_active_full_state() -> void:
 	var state := {"gameplay": {"touch_look_active": true, "entities": {}}}
@@ -193,3 +189,60 @@ func test_settings_get_mouse_settings_defaults_empty() -> void:
 	var state := {"settings": {"input_settings": {}}}
 	var result: Dictionary = U_SETTINGS_SELECTORS.get_mouse_settings(state)
 	assert_eq(result, {}, "Should default to empty dict when missing")
+
+
+# ── U_AudioSelectors: get_audio_settings ────────────────────────────────────
+
+func test_audio_get_audio_settings_returns_slice() -> void:
+	var audio_slice: Dictionary = {"master_volume": 0.8, "music_muted": true}
+	var state := {"audio": audio_slice}
+	var result: Dictionary = U_AUDIO_SELECTORS.get_audio_settings(state)
+	assert_eq(result.get("master_volume", 0.0), 0.8, "Should return audio slice with values")
+	assert_eq(result.get("music_muted", false), true, "Should return audio slice with muted flag")
+
+func test_audio_get_audio_settings_defaults_empty() -> void:
+	var state := {}
+	var result: Dictionary = U_AUDIO_SELECTORS.get_audio_settings(state)
+	assert_eq(result, {}, "Should default to empty dict when audio slice missing")
+
+func test_audio_get_audio_settings_handles_null() -> void:
+	var result: Dictionary = U_AUDIO_SELECTORS.get_audio_settings({})
+	assert_eq(result, {}, "Should return empty dict for empty state")
+
+
+# ── U_DisplaySelectors: get_display_settings ────────────────────────────────
+
+func test_display_get_display_settings_returns_slice() -> void:
+	var display_slice: Dictionary = {"window_mode": "fullscreen", "vsync_enabled": false}
+	var state := {"display": display_slice}
+	var result: Dictionary = U_DISPLAY_SELECTORS.get_display_settings(state)
+	assert_eq(result.get("window_mode", ""), "fullscreen", "Should return display slice with values")
+	assert_eq(result.get("vsync_enabled", true), false, "Should return display slice with vsync flag")
+
+func test_display_get_display_settings_defaults_empty() -> void:
+	var state := {}
+	var result: Dictionary = U_DISPLAY_SELECTORS.get_display_settings(state)
+	assert_eq(result, {}, "Should default to empty dict when display slice missing")
+
+func test_display_get_display_settings_handles_null() -> void:
+	var result: Dictionary = U_DISPLAY_SELECTORS.get_display_settings({})
+	assert_eq(result, {}, "Should return empty dict for empty state")
+
+
+# ── U_LocalizationSelectors: get_localization_settings ──────────────────────
+
+func test_localization_get_localization_settings_returns_slice() -> void:
+	var loc_slice: Dictionary = {"current_locale": StringName("fr"), "dyslexia_font_enabled": true}
+	var state := {"localization": loc_slice}
+	var result: Dictionary = U_LOCALIZATION_SELECTORS.get_localization_settings(state)
+	assert_eq(result.get("current_locale", ""), StringName("fr"), "Should return localization slice with locale")
+	assert_eq(result.get("dyslexia_font_enabled", false), true, "Should return localization slice with dyslexia flag")
+
+func test_localization_get_localization_settings_defaults_empty() -> void:
+	var state := {}
+	var result: Dictionary = U_LOCALIZATION_SELECTORS.get_localization_settings(state)
+	assert_eq(result, {}, "Should default to empty dict when localization slice missing")
+
+func test_localization_get_localization_settings_handles_null() -> void:
+	var result: Dictionary = U_LOCALIZATION_SELECTORS.get_localization_settings({})
+	assert_eq(result, {}, "Should return empty dict for empty state")
