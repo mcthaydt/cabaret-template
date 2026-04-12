@@ -1,4 +1,4 @@
-extends Object
+extends RefCounted
 class_name U_EntityLookup
 
 ## Tag- and metadata-driven entity identification utility.
