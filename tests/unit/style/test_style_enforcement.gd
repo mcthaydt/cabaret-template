@@ -1277,6 +1277,61 @@ func test_managers_use_selectors_for_state_access() -> void:
 		_check_for_patterns_in_files(dir_path, patterns, allowed_files, violations)
 	assert_eq(violations.size(), 0, "Found direct state slice access in manager files (should use selectors):\n" + "\n".join(violations))
 
+## C11: No direct state.get("slice") or state["slice"] in production code scopes covered
+## by C8 (managers) and C11 (ECS systems, helpers, interactables, UI targets).
+## Files deferred to post-C11 cleanup are explicitly listed below.
+func test_all_production_files_use_selectors_for_state_access() -> void:
+	var allowed_files: Array[String] = [
+		# Core exemptions: own the state dict or operate on save data
+		"res://scripts/managers/m_state_store.gd",
+		"res://scripts/managers/helpers/u_save_migration_engine.gd",
+		# False positives: files that use local dict variables named "state" (not Redux state)
+		# u_vcam_orbit_effects and u_vcam_rotation use "state" for per-vcam internal tracking dicts.
+		# u_vcam_look_input uses "state" for look-input smoothing state.
+		# Renaming these local vars is a larger refactor deferred beyond C11.
+		"res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_rotation.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_look_input.gd",
+		# Generic serializer: uses state.get(slice_name, null) with a variable key (not a string literal).
+		"res://scripts/utils/u_global_settings_serialization.gd",
+		# Deferred — not in C11 scope; will be migrated post-C11:
+		"res://scripts/ecs/systems/s_jump_system.gd",
+		"res://scripts/ecs/systems/s_playtime_system.gd",
+		"res://scripts/ecs/components/c_scene_trigger_component.gd",
+		"res://scripts/gameplay/inter_endgame_goal_zone.gd",
+		"res://scripts/ui/hud/ui_hud_controller.gd",
+		"res://scripts/ui/hud/ui_mobile_controls.gd",
+		"res://scripts/ui/menus/ui_main_menu.gd",
+		"res://scripts/ui/overlays/ui_input_rebinding_overlay.gd",
+		"res://scripts/ui/overlays/ui_save_load_menu.gd",
+		"res://scripts/ui/overlays/ui_touchscreen_settings_overlay.gd",
+		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
+	]
+	var production_dirs: Array[String] = [
+		"res://scripts/ecs",
+		"res://scripts/gameplay",
+		"res://scripts/ui",
+		"res://scripts/managers",
+		"res://scripts/scene_management",
+		"res://scripts/utils",
+		"res://scripts/core",
+	]
+	var violations: Array[String] = []
+	var patterns: Array[String] = [
+		"state.get(",
+		'state["',
+		'state[&"',
+		"state['",
+		"state[&'",
+	]
+	for dir_path in production_dirs:
+		_check_for_patterns_in_files(dir_path, patterns, allowed_files, violations)
+	assert_eq(
+		violations.size(),
+		0,
+		"Found direct state slice access in production files (should use selectors):\n" + "\n".join(violations)
+	)
+
 func _check_for_patterns_in_files(dir_path: String, patterns: Array[String], allowed_files: Array[String], violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
