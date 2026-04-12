@@ -53,6 +53,13 @@ static func get_touchscreen_settings(state: Dictionary) -> Dictionary:
 		return (settings as Dictionary).duplicate(true)
 	return {}
 
+## Get accessibility settings dictionary (deep copy to prevent mutation)
+static func get_accessibility_settings(state: Dictionary) -> Dictionary:
+	var settings: Variant = get_input_settings(state).get("accessibility", {})
+	if settings is Dictionary:
+		return (settings as Dictionary).duplicate(true)
+	return {}
+
 ## Private: extract settings slice from full state
 static func _get_settings_slice(state: Dictionary) -> Dictionary:
 	if state == null:

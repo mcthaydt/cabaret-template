@@ -57,6 +57,21 @@ static func get_entities(state: Dictionary) -> Dictionary:
 		return entities as Dictionary
 	return {}
 
+## Get completed area IDs
+static func get_completed_areas(state: Dictionary) -> Array:
+	var areas: Variant = _get_gameplay_slice(state).get("completed_areas", [])
+	if areas is Array:
+		return (areas as Array).duplicate(true)
+	return []
+
+## Get whether the game has been completed (all required areas done)
+static func get_game_completed(state: Dictionary) -> bool:
+	return bool(_get_gameplay_slice(state).get("game_completed", false))
+
+## Get total death count
+static func get_death_count(state: Dictionary) -> int:
+	return int(_get_gameplay_slice(state).get("death_count", 0))
+
 ## Private: extract gameplay slice from full state
 static func _get_gameplay_slice(state: Dictionary) -> Dictionary:
 	if state == null:

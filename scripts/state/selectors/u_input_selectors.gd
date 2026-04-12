@@ -98,6 +98,10 @@ static func get_virtual_control_position(state: Dictionary, control_name: String
 				return position
 		return null
 
+## Get a snapshot of the raw input state dict (for caching in subscribers)
+static func get_input_state_snapshot(state: Dictionary) -> Dictionary:
+	return _get_input_state(state).duplicate(true)
+
 static func _get_input_state(state: Dictionary) -> Dictionary:
 	var direct_input: Variant = state.get("input")
 	if direct_input is Dictionary:

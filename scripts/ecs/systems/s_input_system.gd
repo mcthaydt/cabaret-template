@@ -179,21 +179,7 @@ func process_tick(_delta: float) -> void:
 			gamepad_component.apply_settings_from_dictionary(_gamepad_settings_cache)
 
 func _update_accessibility_from_state(state: Dictionary) -> void:
-	var settings_variant: Variant = state.get("settings", {})
-	if not (settings_variant is Dictionary):
-		_sprint_toggle_enabled = false
-		return
-	var settings_dict := settings_variant as Dictionary
-	var input_settings_variant: Variant = settings_dict.get("input_settings", {})
-	if not (input_settings_variant is Dictionary):
-		_sprint_toggle_enabled = false
-		return
-	var input_settings := input_settings_variant as Dictionary
-	var accessibility_variant: Variant = input_settings.get("accessibility", {})
-	if not (accessibility_variant is Dictionary):
-		_sprint_toggle_enabled = false
-		return
-	var accessibility := accessibility_variant as Dictionary
+	var accessibility: Dictionary = U_SettingsSelectors.get_accessibility_settings(state)
 	_sprint_toggle_enabled = bool(accessibility.get("sprint_toggle_mode", false))
 
 func _compute_sprint_pressed(button_pressed: bool) -> bool:

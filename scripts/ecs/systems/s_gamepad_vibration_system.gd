@@ -135,12 +135,8 @@ func _apply_settings_from_state(state: Dictionary) -> void:
 		return
 	var settings := U_InputSelectors.get_gamepad_settings(state)
 	_gamepad_settings = settings.duplicate(true)
-	var gameplay: Variant = state.get("gameplay", {})
-	if gameplay is Dictionary:
-		var gameplay_dict := gameplay as Dictionary
-		_player_entity_id = String(gameplay_dict.get("player_entity_id", _player_entity_id))
-		if gameplay_dict.has("input") and gameplay_dict["input"] is Dictionary:
-			_last_input_state = (gameplay_dict["input"] as Dictionary).duplicate(true)
+	_player_entity_id = String(U_EntitySelectors.get_player_entity_id(state))
+	_last_input_state = U_InputSelectors.get_input_state_snapshot(state)
 
 func _teardown_store_subscription() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
