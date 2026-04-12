@@ -1,11 +1,6 @@
-[gd_resource type="Resource" script_class="RS_SpawnConfig" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_SpawnConfig" format=3 uid="uid://cyryucy4pxy6f"]
 
-[ext_resource type="Script" path="res://scripts/resources/managers/rs_spawn_config.gd" id="1_spawn_config_script"]
+[ext_resource type="Script" uid="uid://c2d0k31tdqh0u" path="res://scripts/resources/managers/rs_spawn_config.gd" id="1_spawn_config_script"]
 
 [resource]
 script = ExtResource("1_spawn_config_script")
-ground_snap_max_distance = 8.0
-hover_snap_max_distance = 0.75
-spawn_condition_always = 0
-spawn_condition_checkpoint_only = 1
-spawn_condition_disabled = 2
