@@ -57,6 +57,35 @@ func get_manager() -> I_ECSManager:
 func resolve_service(service_name: StringName, cached_value: Variant = null, exported_value: Variant = null) -> Variant:
 	return U_DependencyResolution.resolve(service_name, cached_value, exported_value)
 
+## Returns the frame state snapshot for this tick.
+##
+## Tries the ECS manager's get_frame_state_snapshot() first (fastest path),
+## then falls back to the state store via _resolve_state_store().
+## Returns an empty Dictionary if neither is available.
+##
+## Subclasses that need emptiness validation (fall through to store when
+## the manager returns an empty snapshot) should override this method.
+func get_frame_state_snapshot() -> Dictionary:
+	var manager := get_manager()
+	if manager != null and manager.has_method("get_frame_state_snapshot"):
+		return manager.get_frame_state_snapshot()
+	var store := _resolve_state_store()
+	if store != null:
+		return store.get_state()
+	return {}
+
+## Resolves the state store for this system.
+##
+## Default implementation uses U_DependencyResolution.resolve_state_store()
+## with ServiceLocator fallback only. Subclasses with @export var state_store
+## should override this to pass their export value.
+##
+## Example override:
+##   func _resolve_state_store() -> I_StateStore:
+##       return U_DependencyResolution.resolve_state_store(null, state_store, self)
+func _resolve_state_store() -> I_StateStore:
+	return U_DependencyResolution.resolve_state_store(null, null, self)
+
 func get_components(component_type: StringName) -> Array:
 	if _manager == null:
 		return []
