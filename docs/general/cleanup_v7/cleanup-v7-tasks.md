@@ -348,9 +348,12 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 **C10 Verification**:
 - [x] All entity lookup tests green (4/4)
-- [x] All affected manager/system tests green (568 managers; 10 movement; 23 spawn integration; 27 entity IDs)
+- [x] All affected manager/system tests green (568 managers; 10 movement; 14 spawn integration; 30 entity IDs)
 - [x] Primary entity identification paths use tags/metadata; name-prefix code retained only as explicit named fallbacks
-- Note: `u_scene_loader.find_player_in_scene` and `i_scene_contract._validate_gameplay_scene` retain `"E_Player"` checks — scene-structure validation utilities, not entity ID resolution
+- [x] `u_scene_loader.find_player_in_scene` migrated to tag-first (post-audit gap fix); `m_scene_manager._find_player_in_scene` dead code removed
+- [x] `BaseECSEntity.get_entity_id` metadata path covered by 3 new tests (priority, export-wins, empty-string fallback)
+- [x] Spawn manager tag path covered by 2 new integration tests (tag success, prefix fallback)
+- Note: `i_scene_contract._validate_gameplay_scene` retains `"E_Player"` checks — scene contract validation, not entity ID resolution
 
 ---
 
