@@ -12,23 +12,19 @@ const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 const U_PERF_FADE_BYPASS := preload("res://scripts/utils/debug/u_perf_fade_bypass.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const DEFAULT_ROOM_FADE_SETTINGS := preload("res://resources/display/vcam/cfg_default_room_fade.tres")
+const RS_WALL_VISIBILITY_CONFIG_SCRIPT := preload("res://scripts/resources/ecs/rs_wall_visibility_config.gd")
 
 const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
 const MIN_NORMAL_LENGTH_SQUARED := 0.000001
 const THIN_AXIS_SIZE_EPSILON := 0.0001
-const DEFAULT_CLIP_HEIGHT_OFFSET := 1.5
-const INVALIDATE_INTERVAL := 30
-const MOBILE_TICK_INTERVAL := 4
-const OCCLUSION_CORRIDOR_MARGIN := 2.0
 const OCCLUSION_CORRIDOR_MIN_RADIUS := 0.8
 const OCCLUSION_CORRIDOR_SEGMENT_EPSILON := 0.000001
-const ROOF_NORMAL_DOT_MIN := 0.9
-const ROOF_HEIGHT_MARGIN := 0.5
 const MOBILE_HIDE_FADE_THRESHOLD := 0.01
 
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_StateStore = null
-@export var mobile_tick_interval: int = MOBILE_TICK_INTERVAL
+@export var wall_visibility_config: Resource = null
+@export var mobile_tick_interval: int = 4
 @export var desktop_tick_interval: int = 1
 @export var min_fade: float = 0.0
 @export var mobile_hide_walls_instead_of_fade: bool = false
@@ -98,12 +94,13 @@ func process_tick(delta: float) -> void:
 
 	# Tick throttling: skip frames on both mobile and desktop
 	_tick_counter += 1
-	var tick_interval: int = mobile_tick_interval if _is_mobile else desktop_tick_interval
+	var wall_config: Dictionary = _resolve_wall_visibility_config_values()
+	var tick_interval: int = _resolve_tick_interval(wall_config)
 	if tick_interval > 1 and (_tick_counter % tick_interval) != 0:
 		return
 
 	_perf_probe.start()
-	var tick_data := _resolve_tick_data(delta, tick_interval)
+	var tick_data := _resolve_tick_data(delta, tick_interval, wall_config)
 	if not bool(tick_data.get("is_orbit", false)):
 		_restore_components_to_opaque(components)
 		return
@@ -113,11 +110,8 @@ func process_tick(delta: float) -> void:
 	if tick_data.get("applier") == null:
 		return
 
-	_invalidate_tick_counter += 1
-	if _invalidate_tick_counter % INVALIDATE_INTERVAL == 0:
-		(tick_data.get("applier") as RefCounted).invalidate_externally_removed()
-
-	var prepared := _prepare_tick_data(components, tick_data.get("player_data", {}))
+	_invalidate_applier_if_needed(tick_data)
+	var prepared := _prepare_tick_data(components, tick_data.get("player_data", {}), wall_config)
 	_seen_this_frame.clear()
 
 	for component_variant in prepared.get("filtered_components", []):
@@ -137,9 +131,31 @@ func process_tick(delta: float) -> void:
 	_perf_probe.stop()
 
 
+func _resolve_tick_interval(wall_config: Dictionary) -> int:
+	var resolved_mobile_tick_interval: int = maxi(
+		1,
+		mobile_tick_interval if mobile_tick_interval > 0 else int(
+			wall_config.get("mobile_tick_interval", 4)
+		)
+	)
+	return resolved_mobile_tick_interval if _is_mobile else desktop_tick_interval
+
+
+func _invalidate_applier_if_needed(tick_data: Dictionary) -> void:
+	_invalidate_tick_counter += 1
+	var wall_config: Dictionary = tick_data.get("wall_config", {}) as Dictionary
+	var invalidate_interval: int = max(1, int(wall_config.get("invalidate_interval", 30)))
+	if _invalidate_tick_counter % invalidate_interval == 0:
+		(tick_data.get("applier") as RefCounted).invalidate_externally_removed()
+
+
 # --- Tick context resolution ---
 
-func _resolve_tick_data(delta: float, tick_interval: int) -> Dictionary:
+func _resolve_tick_data(
+	delta: float,
+	tick_interval: int,
+	wall_config: Dictionary = {}
+) -> Dictionary:
 	var state: Dictionary = get_frame_state_snapshot()
 	var mode_info: Dictionary = _get_active_mode_info_from_state(state)
 	var main_camera: Camera3D = _resolve_active_camera()
@@ -167,6 +183,7 @@ func _resolve_tick_data(delta: float, tick_interval: int) -> Dictionary:
 		"has_player": has_player,
 		"player_position": player_position,
 		"use_mobile_hide": _is_mobile_hide_mode(),
+		"wall_config": wall_config,
 	}
 
 
@@ -180,10 +197,11 @@ func _process_component_fade(component: Object, targets: Array, tick_data: Dicti
 	var resolved_delta: float = float(tick_data.get("resolved_delta", 0.0))
 	var has_player: bool = bool(tick_data.get("has_player", false))
 	var player_position: Vector3 = tick_data.get("player_position", Vector3.ZERO) as Vector3
+	var wall_config: Dictionary = tick_data.get("wall_config", {}) as Dictionary
 
 	_apply_wall_materials(applier, targets, use_mobile_hide)
 
-	var clip_height_offset: float = DEFAULT_CLIP_HEIGHT_OFFSET
+	var clip_height_offset: float = float(wall_config.get("clip_height_offset", 1.5))
 	if component.has_method("get"):
 		var offset_variant: Variant = component.get("clip_height_offset")
 		if offset_variant is float or offset_variant is int:
@@ -234,14 +252,14 @@ func _process_component_fade(component: Object, targets: Array, tick_data: Dicti
 		var corridor_pass: bool = true
 		if has_player:
 			corridor_pass = _passes_camera_player_occlusion_corridor(
-				target, camera_position, player_position
+				target, camera_position, player_position, wall_config
 			)
 			if corridor_pass:
 				var bucket_key: String = _resolve_normal_bucket_key(target_normal)
 				bucket_has_corridor_hit[bucket_key] = true
 
 		var is_roof: bool = _is_roof_candidate_target(
-			target, target_normal, has_player, player_position
+			target, target_normal, has_player, player_position, wall_config
 		)
 
 		_pooled_targets.append(target)
@@ -338,7 +356,11 @@ func _exit_tree() -> void:
 
 # --- Room filtering and target ownership ---
 
-func _prepare_tick_data(components: Array, player_data: Dictionary) -> Dictionary:
+func _prepare_tick_data(
+	components: Array,
+	player_data: Dictionary,
+	wall_config: Dictionary = {}
+) -> Dictionary:
 	var has_player: bool = player_data.has("position")
 	var player_position: Vector3 = player_data.get("position", Vector3.ZERO) as Vector3
 
@@ -357,7 +379,7 @@ func _prepare_tick_data(components: Array, player_data: Dictionary) -> Dictionar
 
 	# Filter rooms by AABB
 	var matching_components: Array = _filter_rooms_by_aabb(
-		components, targets_by_component_id, player_position, has_player
+		components, targets_by_component_id, player_position, has_player, wall_config
 	)
 
 	# Deduplicate target ownership
@@ -375,7 +397,8 @@ func _filter_rooms_by_aabb(
 	components: Array,
 	targets_by_component_id: Dictionary,
 	player_position: Vector3,
-	has_player: bool
+	has_player: bool,
+	wall_config: Dictionary = {}
 ) -> Array:
 	if not has_player or components.size() <= 1:
 		return components
@@ -392,9 +415,11 @@ func _filter_rooms_by_aabb(
 			continue
 		var targets: Array = targets_variant as Array
 		var room_aabb: AABB = _resolve_aabb_from_validated_targets(targets)
-		var expanded: AABB = room_aabb.grow(2.0)
-		expanded.position.y = room_aabb.position.y - 0.5
-		expanded.size.y = room_aabb.size.y + 1.0
+		var room_margin: float = maxf(float(wall_config.get("room_aabb_margin", 2.0)), 0.0)
+		var roof_margin: float = maxf(float(wall_config.get("roof_height_margin", 0.5)), 0.0)
+		var expanded: AABB = room_aabb.grow(room_margin)
+		expanded.position.y = room_aabb.position.y - roof_margin
+		expanded.size.y = room_aabb.size.y + (roof_margin * 2.0)
 		if expanded.has_point(player_position):
 			matching.append(component_variant)
 	if matching.is_empty():
@@ -630,7 +655,8 @@ func _resolve_directional_fade(
 func _passes_camera_player_occlusion_corridor(
 	target: Node3D,
 	camera_position: Vector3,
-	player_position: Vector3
+	player_position: Vector3,
+	wall_config: Dictionary = {}
 ) -> bool:
 	if target == null or not is_instance_valid(target):
 		return false
@@ -653,7 +679,11 @@ func _passes_camera_player_occlusion_corridor(
 
 	var closest_point: Vector2 = camera_planar + segment * segment_t
 	var distance_to_segment: float = target_planar.distance_to(closest_point)
-	return distance_to_segment <= maxf(OCCLUSION_CORRIDOR_MARGIN, OCCLUSION_CORRIDOR_MIN_RADIUS)
+	var corridor_margin: float = maxf(
+		float(wall_config.get("corridor_occlusion_margin", 2.0)),
+		OCCLUSION_CORRIDOR_MIN_RADIUS
+	)
+	return distance_to_segment <= corridor_margin
 
 
 func _resolve_target_nearest_corridor_point(
@@ -726,15 +756,22 @@ func _is_roof_candidate_target(
 	target: Node3D,
 	target_normal: Vector3,
 	has_player_position: bool,
-	player_position: Vector3
+	player_position: Vector3,
+	wall_config: Dictionary = {}
 ) -> bool:
 	if target == null or not is_instance_valid(target):
 		return false
-	if absf(target_normal.y) < ROOF_NORMAL_DOT_MIN:
+	var roof_normal_dot_min: float = clampf(
+		float(wall_config.get("roof_normal_dot_min", 0.9)),
+		0.0,
+		1.0
+	)
+	if absf(target_normal.y) < roof_normal_dot_min:
 		return false
 	if not has_player_position:
 		return false
-	return target.global_position.y > (player_position.y + ROOF_HEIGHT_MARGIN)
+	var roof_height_margin: float = maxf(float(wall_config.get("roof_height_margin", 0.5)), 0.0)
+	return target.global_position.y > (player_position.y + roof_height_margin)
 
 
 # --- Normal resolution ---
@@ -913,6 +950,37 @@ func _resolve_player_position_data_from_state(state: Dictionary) -> Dictionary:
 	if position_variant is Vector3:
 		return {"position": position_variant as Vector3}
 	return {}
+
+
+func _resolve_wall_visibility_config_values() -> Dictionary:
+	var default_values := {
+		"clip_height_offset": 1.5,
+		"room_aabb_margin": 2.0,
+		"corridor_occlusion_margin": 2.0,
+		"invalidate_interval": 30,
+		"mobile_tick_interval": 4,
+		"roof_normal_dot_min": 0.9,
+		"roof_height_margin": 0.5,
+	}
+	var config_variant: Variant = wall_visibility_config
+	if config_variant == null:
+		config_variant = RS_WALL_VISIBILITY_CONFIG_SCRIPT.new()
+	if config_variant == null or not (config_variant is Resource):
+		return default_values
+
+	var config_resource: Resource = config_variant as Resource
+	if config_resource.get_script() != RS_WALL_VISIBILITY_CONFIG_SCRIPT:
+		return default_values
+
+	return {
+		"clip_height_offset": float(config_resource.get("clip_height_offset")),
+		"room_aabb_margin": maxf(float(config_resource.get("room_aabb_margin")), 0.0),
+		"corridor_occlusion_margin": maxf(float(config_resource.get("corridor_occlusion_margin")), 0.0),
+		"invalidate_interval": maxi(int(config_resource.get("invalidate_interval")), 1),
+		"mobile_tick_interval": maxi(int(config_resource.get("mobile_tick_interval")), 1),
+		"roof_normal_dot_min": clampf(float(config_resource.get("roof_normal_dot_min")), 0.0, 1.0),
+		"roof_height_margin": maxf(float(config_resource.get("roof_height_margin")), 0.0),
+	}
 
 
 func _resolve_settings(component: Object) -> Dictionary:
