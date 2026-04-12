@@ -5,12 +5,12 @@
 This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 
 **Branch**: GOAP-AI
-**Status**: C1-C9 complete; C10 Commits 1–2 complete; Commit 3 next
-**Next Task**: Begin C10 Commit 3 (migrate `M_SpawnManager._find_player_entity` to tag lookup)
+**Status**: C1-C10 complete; C11 next
+**Next Task**: Begin C11 Commit 1 (migrate remaining ECS systems to selectors)
 
 ---
 
-## Current Status: C10 Commits 1–2 Complete (GREEN)
+## Current Status: C10 Complete
 
 - **C1 (Rule Evaluation Pipeline Extraction)**: COMPLETE — `U_RuleEvaluator` already orchestrated the rule pipeline (commits 1-5 pre-existing). Commit 6 extracted property reader utilities to `U_RuleUtils`, removing ~150 lines of duplication across 5 files. Retroactive gap fixes (C1.7–C1.8): added `read_array_property` and `read_int_property` to `U_RuleUtils`, migrated QB pipeline utilities (`u_rule_validator`, `u_rule_scorer`, `u_rule_selector`) to use `U_RuleUtils` instead of local `_read_*` methods, deleted ~53 lines of duplicated code from `u_rule_validator` alone. All tests green, style enforcement passes.
 
@@ -22,7 +22,7 @@ This guide directs you to implement the Cross-System Cleanup (V7) by following t
 - **C7 (Objectives Manager Namespace Support)**: COMPLETE — Replaced `_objectives_by_id` flat dictionary with `_objective_sets` namespace-aware storage. Multiple objective sets can be active simultaneously. Added `unload_objective_set()`, `active_set_ids` array to store, cross-set selectors (`get_active_set_ids`, `get_statuses_snapshot`, `get_completed_objectives`), and grep test enforcing selector usage.
 - **C8 (Selector Enforcement — Managers)**: COMPLETE — audited selector coverage, created/expanded slice selectors (including `u_scene_selectors.gd`), migrated all 17 manager/helper target files to selectors, removed duplicate `get_player_entity_id` from `u_gameplay_selectors.gd` to keep `u_entity_selectors.gd` canonical, and finalized manager-style enforcement for direct `state.get(...)` / `state[...]` access with token-aware matching.
 - **C9 (Gameplay-Feel Constants → Resource Configs)**: COMPLETE — added RED tests for config resources, implemented `RS_WallVisibilityConfig`, `RS_CameraStateConfig`, and `RS_SpawnConfig`, then migrated `s_wall_visibility_system`, `s_camera_state_system`, `m_spawn_manager`, `m_character_lighting_manager`, and `m_display_manager` to resource-backed tuning. Added `RS_CharacterLightingConfig` and `RS_DisplayConfig` for character-lighting/display manager defaults. Post-C9 audit gap fixes landed: config resolvers now use canonical default `.tres` resources (no per-tick `.new()` allocations), manager/template config assignments are wired in scenes, wall-visibility config fallbacks fully drive fade defaults when component settings are unset, and display reducer UI-scale clamps now read config bounds.
-- **C10 (Entity Identification by Tags/Metadata) Commits 1–2**: COMPLETE — Commit 1 added `tests/unit/ecs/test_entity_tag_identification.gd` (4 RED tests). Commit 2 implemented `scripts/utils/ecs/u_entity_lookup.gd` — static utility `U_EntityLookup` with `find_entity_by_tag`, `find_entities_by_tag`, `resolve_entity_id` (metadata > BaseECSEntity.get_entity_id > raw name fallback). Also fixed `mock_ecs_manager.get_entities_by_tag` type coercion (plain `Array` → `Array[Node]`). All 4 tests green; style enforcement 31/31.
+- **C10 (Entity Identification by Tags/Metadata)**: COMPLETE — All 6 commits done. Created `U_EntityLookup` static utility; migrated `M_SpawnManager._find_player_entity`, `S_MovementSystem._get_entity_type`, `M_VCamManager._resolve_mode_name`, and `C_VCamComponent.get_mode_name` to tag/metadata-first with name-based fallbacks; extended `BaseECSEntity.get_entity_id` with metadata lookup step. 568 manager, 10 movement, 23 spawn integration, and 27 entity-ID tests all green.
 
 - **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
 - **C12 standalone doc**: `docs/general/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.
@@ -419,8 +419,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Continue C10 Commit 3** — Migrate `M_SpawnManager._find_player_entity` to use `U_EntityLookup.find_entity_by_tag(ecs_manager, &"player")` instead of iterating for `"E_Player"` name prefix.
-2. Proceed through C10 Commits 4–6 and then C11 respecting the dependency graph; each milestone has its own RED/GREEN/refactor commit cadence. Update completion notes in `cleanup-v7-tasks.md` after each milestone.
+1. **Begin C11** — Selector Enforcement for Systems, Helpers, Interactables, and UI. Extend C8 selector enforcement to: `s_victory_handler_system`, `s_gamepad_vibration_system` (systems); `u_vcam_runtime_context`, `u_vcam_debug` (helpers); `inter_victory_zone`, `inter_ai_demo_guard_barrier` (interactables); `ui_victory`, `ui_game_over`, `ui_gamepad_settings_overlay` (UI).
+2. After C11, proceed to C12 (Post-Processing Pipeline Refactor) per `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 3. Address cross-cutting concerns opportunistically when touching the relevant files during C10–C11.
 4. **After C11 completes**, execute C12 (Post-Processing Pipeline Refactor) following `docs/general/cleanup_v7/post-process-refactor-tasks.md`. C12 is the last milestone of cleanup-v7 and ships in the same cleanup-v7 branch/PR set.
 5. After all 12 milestones pass, run a full regression suite (desktop + mobile, including the C12 runtime validation steps) and review before merging.
