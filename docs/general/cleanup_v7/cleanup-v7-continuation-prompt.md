@@ -5,12 +5,12 @@
 This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 
 **Branch**: GOAP-AI
-**Status**: C1-C8 complete; C9 next
-**Next Task**: Begin C9 Commit 1 (config resource tests, TDD RED)
+**Status**: C1-C9 complete; C10 next
+**Next Task**: Begin C10 Commit 1 (tag-based lookup tests, TDD RED)
 
 ---
 
-## Current Status: C8 Complete (C1-C8 Complete)
+## Current Status: C9 Complete (C1-C9 Complete)
 
 - **C1 (Rule Evaluation Pipeline Extraction)**: COMPLETE — `U_RuleEvaluator` already orchestrated the rule pipeline (commits 1-5 pre-existing). Commit 6 extracted property reader utilities to `U_RuleUtils`, removing ~150 lines of duplication across 5 files. Retroactive gap fixes (C1.7–C1.8): added `read_array_property` and `read_int_property` to `U_RuleUtils`, migrated QB pipeline utilities (`u_rule_validator`, `u_rule_scorer`, `u_rule_selector`) to use `U_RuleUtils` instead of local `_read_*` methods, deleted ~53 lines of duplicated code from `u_rule_validator` alone. All tests green, style enforcement passes.
 
@@ -21,6 +21,7 @@ This guide directs you to implement the Cross-System Cleanup (V7) by following t
 - **C6 (Scene Manager Overlay Extraction)**: COMPLETE — overlay behavior delegated to `U_OverlayStackManager`; `_perform_transition` decomposed and retroactive fixes landed for typed `U_TransitionState` callback state + `I_CameraManager.is_blend_active()` handoff checks.
 - **C7 (Objectives Manager Namespace Support)**: COMPLETE — Replaced `_objectives_by_id` flat dictionary with `_objective_sets` namespace-aware storage. Multiple objective sets can be active simultaneously. Added `unload_objective_set()`, `active_set_ids` array to store, cross-set selectors (`get_active_set_ids`, `get_statuses_snapshot`, `get_completed_objectives`), and grep test enforcing selector usage.
 - **C8 (Selector Enforcement — Managers)**: COMPLETE — audited selector coverage, created/expanded slice selectors (including `u_scene_selectors.gd`), migrated all 17 manager/helper target files to selectors, removed duplicate `get_player_entity_id` from `u_gameplay_selectors.gd` to keep `u_entity_selectors.gd` canonical, and finalized manager-style enforcement for direct `state.get(...)` / `state[...]` access with token-aware matching.
+- **C9 (Gameplay-Feel Constants → Resource Configs)**: COMPLETE — added RED tests for config resources, implemented `RS_WallVisibilityConfig`, `RS_CameraStateConfig`, and `RS_SpawnConfig`, then migrated `s_wall_visibility_system`, `s_camera_state_system`, `m_spawn_manager`, `m_character_lighting_manager`, and `m_display_manager` to resource-backed tuning. Added `RS_CharacterLightingConfig` and `RS_DisplayConfig` for character-lighting/display manager defaults. C9 verification suite green (212 tests including style enforcement).
 
 - **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
 - **C12 standalone doc**: `docs/general/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.
@@ -65,7 +66,7 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ## Plan Snapshot Note
 
-Milestone checklists below are the original implementation-plan scaffold and may still contain unchecked boxes from kickoff drafting. Treat `docs/general/cleanup_v7/cleanup-v7-tasks.md` as the authoritative completion source for C1-C8 status and verification counts.
+Milestone checklists below are the original implementation-plan scaffold and may still contain unchecked boxes from kickoff drafting. Treat `docs/general/cleanup_v7/cleanup-v7-tasks.md` as the authoritative completion source for C1-C9 status and verification counts.
 
 ---
 
@@ -203,18 +204,18 @@ Milestone checklists below are the original implementation-plan scaffold and may
 
 **Goal**: Move hardcoded gameplay-feel constants into `Resource` configs so designers can tune values without code changes.
 
-- [ ] **Commit 1** — Create config resource tests (TDD RED)
-- [ ] **Commit 2** — Implement config resources (TDD GREEN): `RS_WallVisibilityConfig`, `RS_CameraStateConfig`, `RS_SpawnConfig`
-- [ ] **Commit 3** — Migrate `s_wall_visibility_system.gd`
-- [ ] **Commit 4** — Migrate `s_camera_state_system.gd`
-- [ ] **Commit 5** — Migrate `m_spawn_manager.gd`
-- [ ] **Commit 6** — Migrate `m_character_lighting_manager.gd`
-- [ ] **Commit 7** — Migrate `m_display_manager.gd`
+- [x] **Commit 1** — Create config resource tests (TDD RED)
+- [x] **Commit 2** — Implement config resources (TDD GREEN): `RS_WallVisibilityConfig`, `RS_CameraStateConfig`, `RS_SpawnConfig`
+- [x] **Commit 3** — Migrate `s_wall_visibility_system.gd`
+- [x] **Commit 4** — Migrate `s_camera_state_system.gd`
+- [x] **Commit 5** — Migrate `m_spawn_manager.gd`
+- [x] **Commit 6** — Migrate `m_character_lighting_manager.gd`
+- [x] **Commit 7** — Migrate `m_display_manager.gd`
 
 **C9 Verification**:
-- [ ] All config resource tests green
-- [ ] All affected system/manager tests green (defaults match old `const` values)
-- [ ] Each config resource is inspector-editable (has `@export` on all fields)
+- [x] All config resource tests green
+- [x] All affected system/manager tests green (defaults match old `const` values)
+- [x] Each config resource is inspector-editable (has `@export` on all fields)
 
 ---
 
@@ -416,8 +417,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin C7** in `docs/general/cleanup_v7/cleanup-v7-tasks.md` — Objectives Manager Namespace Support.
-2. Proceed through C7–C11 respecting the dependency graph; each milestone has its own RED/GREEN/refactor commit cadence. Update completion notes in `cleanup-v7-tasks.md` after each milestone.
-3. Address cross-cutting concerns opportunistically when touching the relevant files during C7–C11.
+1. **Begin C10** in `docs/general/cleanup_v7/cleanup-v7-tasks.md` — Entity Identification by Tags/Metadata.
+2. Proceed through C10–C11 respecting the dependency graph; each milestone has its own RED/GREEN/refactor commit cadence. Update completion notes in `cleanup-v7-tasks.md` after each milestone.
+3. Address cross-cutting concerns opportunistically when touching the relevant files during C10–C11.
 4. **After C11 completes**, execute C12 (Post-Processing Pipeline Refactor) following `docs/general/cleanup_v7/post-process-refactor-tasks.md`. C12 is the last milestone of cleanup-v7 and ships in the same cleanup-v7 branch/PR set.
 5. After all 12 milestones pass, run a full regression suite (desktop + mobile, including the C12 runtime validation steps) and review before merging.

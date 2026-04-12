@@ -1,7 +1,7 @@
 # Cross-System Cleanup — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: C1-C8 complete; C9 next
+**Status**: C1-C9 complete; C10 next
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Scope**: Modularity, DRY, scalability, and designer-friendliness improvements across managers and ECS systems. No behavioral changes. All existing integration tests must stay green throughout.
 
@@ -295,28 +295,32 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C9: Gameplay-Feel Constants → Resource Configs
+## Milestone C9: Gameplay-Feel Constants → Resource Configs — COMPLETE
+
+**Completed**: 2026-04-12
+
+**Summary**: Completed all 7 C9 commits. Added resource-backed tuning for wall visibility, camera state, spawn, character lighting, and display scale limits while preserving current defaults/behavior. New config resources added in this milestone: `RS_WallVisibilityConfig`, `RS_CameraStateConfig`, `RS_SpawnConfig`, `RS_CharacterLightingConfig`, and `RS_DisplayConfig`.
 
 **Goal**: Move hardcoded gameplay-feel constants from `const` and inline literals into `Resource` configs so designers can tune values without code changes. Applies to: wall-visibility fade/clip/room constants, camera shake/FOV constants, movement thresholds, spawn snap distances, character-lighting defaults, and display scale limits.
 
-- [ ] **Commit 1** — Create config resource tests (TDD RED):
+- [x] **Commit 1** — Create config resource tests (TDD RED):
   - `tests/unit/resources/ecs/test_rs_wall_visibility_config.gd` — test config resource with all tuneable fields and defaults.
   - `tests/unit/resources/ecs/test_rs_camera_state_config.gd` — test config resource for shake/FOV params.
   - `tests/unit/resources/test_rs_spawn_config.gd` — test config resource for ground/hover snap distances.
-- [ ] **Commit 2** — Implement config resources (TDD GREEN):
+- [x] **Commit 2** — Implement config resources (TDD GREEN):
   - `scripts/resources/ecs/rs_wall_visibility_config.gd` — `class_name RS_WallVisibilityConfig extends Resource` with `@export` fields for `fade_dot_threshold`, `fade_speed`, `min_alpha`, `clip_height_offset`, `room_aabb_margin`, `corridor_occlusion_margin`, `invalidate_interval`, `mobile_tick_interval`, `roof_normal_dot_min`, `roof_height_margin`. All with current `const` values as defaults.
   - `scripts/resources/ecs/rs_camera_state_config.gd` — `class_name RS_CameraStateConfig extends Resource` with `@export` fields for shake parameters (`trauma_decay_rate`, `max_offset_x`, `max_offset_y`, `shake_frequency`, `shake_phase`), FOV clamps (`fov_min`, `fov_max`), and other tuneable values.
   - `scripts/resources/managers/rs_spawn_config.gd` — `class_name RS_SpawnConfig extends Resource` with `@export` fields for `ground_snap_max_distance`, `hover_snap_max_distance`, spawn conditions.
-- [ ] **Commit 3** — Migrate `s_wall_visibility_system.gd` to use `RS_WallVisibilityConfig`. Replace `const` values with config reads (falling back to defaults).
-- [ ] **Commit 4** — Migrate `s_camera_state_system.gd` to use `RS_CameraStateConfig`. Replace shake `const` values and scattered FOV clamp literals with config reads.
-- [ ] **Commit 5** — Migrate `m_spawn_manager.gd` to use `RS_SpawnConfig`. Replace hardcoded `SPAWN_GROUND_SNAP_MAX_DISTANCE`, `SPAWN_HOVER_SNAP_MAX_DISTANCE`, and `SPAWN_CONDITION_*` enum.
-- [ ] **Commit 6** — Migrate `m_character_lighting_manager.gd` default profile and `MOBILE_TICK_INTERVAL` to config.
-- [ ] **Commit 7** — Migrate `m_display_manager.gd` `MIN_UI_SCALE`/`MAX_UI_SCALE` to config.
+- [x] **Commit 3** — Migrate `s_wall_visibility_system.gd` to use `RS_WallVisibilityConfig`. Replace `const` values with config reads (falling back to defaults).
+- [x] **Commit 4** — Migrate `s_camera_state_system.gd` to use `RS_CameraStateConfig`. Replace shake `const` values and scattered FOV clamp literals with config reads.
+- [x] **Commit 5** — Migrate `m_spawn_manager.gd` to use `RS_SpawnConfig`. Replace hardcoded `SPAWN_GROUND_SNAP_MAX_DISTANCE`, `SPAWN_HOVER_SNAP_MAX_DISTANCE`, and `SPAWN_CONDITION_*` enum.
+- [x] **Commit 6** — Migrate `m_character_lighting_manager.gd` default profile and `MOBILE_TICK_INTERVAL` to config.
+- [x] **Commit 7** — Migrate `m_display_manager.gd` `MIN_UI_SCALE`/`MAX_UI_SCALE` to config.
 
 **C9 Verification**:
-- [ ] All config resource tests green
-- [ ] All affected system/manager tests green (no behavioral change — defaults match old `const` values)
-- [ ] Each config resource is inspector-editable (has `@export` on all fields)
+- [x] All config resource tests green
+- [x] All affected system/manager tests green (no behavioral change — defaults match old `const` values)
+- [x] Each config resource is inspector-editable (has `@export` on all fields)
 
 ---
 
