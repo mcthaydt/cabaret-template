@@ -15,8 +15,6 @@ const SCENE_SERVICE := StringName("scene_manager")
 const ECS_SERVICE := StringName("ecs_manager")
 const TAG_CHARACTER := StringName("character")
 const ACTION_SCENE_SWAPPED := StringName("scene/swapped")
-const SCENE_SLICE := StringName("scene")
-const NAVIGATION_SLICE := StringName("navigation")
 const GAMEPLAY_SHELL := StringName("gameplay")
 const LIGHTING_NODE_NAME := "Lighting"
 const SETTINGS_NODE_NAME := "CharacterLightingSettings"
@@ -427,15 +425,14 @@ func _is_transition_blocked() -> bool:
 
 func _get_transition_block_reason() -> String:
 	if _state_store != null:
-		var scene_slice: Dictionary = _state_store.get_slice(SCENE_SLICE)
-		if U_SCENE_SELECTORS.is_transitioning(scene_slice):
+		var state: Dictionary = _state_store.get_state()
+		if U_SCENE_SELECTORS.is_transitioning(state):
 			return "scene.is_transitioning=true"
-		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(scene_slice)
+		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(state)
 		if not scene_stack.is_empty():
 			return "scene.scene_stack size=%d" % scene_stack.size()
 
-		var navigation_slice: Dictionary = _state_store.get_slice(NAVIGATION_SLICE)
-		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(navigation_slice)
+		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
 		if shell != GAMEPLAY_SHELL:
 			return "navigation.shell=%s" % String(shell)
 
@@ -462,12 +459,11 @@ func _should_apply_during_transition_block(block_reason: String) -> bool:
 		return false
 
 	if _state_store != null:
-		var scene_slice: Dictionary = _state_store.get_slice(SCENE_SLICE)
-		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(scene_slice)
+		var state: Dictionary = _state_store.get_state()
+		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(state)
 		if not scene_stack.is_empty():
 			return false
-		var navigation_slice: Dictionary = _state_store.get_slice(NAVIGATION_SLICE)
-		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(navigation_slice)
+		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
 		if shell != GAMEPLAY_SHELL:
 			return false
 

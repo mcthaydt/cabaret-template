@@ -10,9 +10,10 @@ const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.g
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
-const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
+const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/managers/helpers/u_vcam_silhouette_helper.gd")
 const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/overlays/ui_damage_flash_overlay.tscn")
 const SCREEN_SHAKE_TUNING := preload("res://resources/vfx/cfg_screen_shake_tuning.tres")
@@ -223,8 +224,7 @@ func _is_player_entity(entity_id: StringName) -> bool:
 	if _state_store == null:
 		return false # Fallback: BLOCK VFX if no store (safer)
 	var state: Dictionary = _state_store.get_state()
-	var gameplay: Dictionary = state.get("gameplay", {})
-	var player_entity_id: StringName = StringName(str(gameplay.get("player_entity_id", "")))
+	var player_entity_id: StringName = StringName(U_EntitySelectors.get_player_entity_id(state))
 	if player_entity_id.is_empty():
 		return false # Fallback: BLOCK VFX if no player registered (safer)
 	var matches: bool = entity_id == player_entity_id
@@ -237,26 +237,23 @@ func _is_transition_blocked() -> bool:
 	var state: Dictionary = _state_store.get_state()
 
 	# Block during scene transitions
-	var scene_slice: Dictionary = state.get("scene", {})
-	if U_SCENE_SELECTORS.is_transitioning(scene_slice):
+	if U_SCENE_SELECTORS.is_transitioning(state):
 		return true
 
 	# Block if scene stack is not empty (loading/overlay scenes)
-	var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(scene_slice)
+	var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(state)
 	if not scene_stack.is_empty():
 		return true
 
 	# Block if not in gameplay shell
-	var nav_slice: Dictionary = state.get("navigation", {})
-	var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(nav_slice)
+	var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
 	if shell != StringName("gameplay"):
 		return true
 
 	return false
 
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
-	var nav_slice: Dictionary = state.get("navigation", {})
-	var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(nav_slice)
+	var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
 	if _last_shell == StringName("gameplay") and shell != StringName("gameplay"):
 		if _damage_flash != null:
 			_damage_flash.cancel_flash()
@@ -370,11 +367,7 @@ func _process_silhouette_request(event_data: Dictionary) -> void:
 	_dispatch_silhouette_count_if_changed(_silhouette_helper.get_active_count())
 
 func _resolve_state_silhouette_count(state: Dictionary) -> int:
-	var vcam_variant: Variant = state.get("vcam", {})
-	if not (vcam_variant is Dictionary):
-		return 0
-	var vcam: Dictionary = vcam_variant as Dictionary
-	return maxi(int(vcam.get("silhouette_active_count", 0)), 0)
+	return maxi(U_VCAM_SELECTORS.get_silhouette_active_count(state), 0)
 
 func _dispatch_silhouette_count_if_changed(next_count: int) -> void:
 	if _state_store == null:
