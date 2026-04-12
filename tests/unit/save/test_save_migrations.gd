@@ -154,7 +154,32 @@ func test_migrate_injects_objectives_slice_when_missing() -> void:
 	var objectives: Dictionary = state.get("objectives", {})
 	assert_eq(objectives.get("statuses", {}), {})
 	assert_eq(objectives.get("active_set_id", StringName("")), StringName(""))
+	assert_eq(objectives.get("active_set_ids", []), [])
 	assert_eq(objectives.get("event_log", []), [])
+
+func test_migrate_patches_pre_c7_objectives_slice_missing_active_set_ids() -> void:
+	var pre_c7_save: Dictionary = {
+		"header": {"save_version": 1, "timestamp": "2025-01-01T00:00:00Z"},
+		"state": {
+			"gameplay": {"player_health": 100},
+			"objectives": {
+				"statuses": {},
+				"active_set_id": StringName("set_main"),
+				"event_log": [],
+			},
+		}
+	}
+
+	var migrated: Dictionary = U_SAVE_MIGRATION_ENGINE.migrate(pre_c7_save)
+	var state: Dictionary = migrated.get("state", {})
+	var objectives: Dictionary = state.get("objectives", {})
+
+	assert_true(objectives.has("active_set_ids"),
+		"Pre-C7 save should be patched with active_set_ids")
+	assert_eq(objectives.get("active_set_ids", null), [],
+		"Patched active_set_ids should default to empty array")
+	assert_eq(objectives.get("active_set_id", StringName("")), StringName("set_main"),
+		"Existing active_set_id should be preserved")
 
 func test_migrate_chains_multiple_versions() -> void:
 	# This test will pass even without v2->v3 migrations defined
