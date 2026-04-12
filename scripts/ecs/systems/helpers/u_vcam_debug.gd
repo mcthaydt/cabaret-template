@@ -116,8 +116,7 @@ func log_look_ahead_motion_state(
 			var store := _resolve_state_store()
 			if store != null:
 				var state: Dictionary = store.get_state()
-				var gameplay_entities: Dictionary = state.get("gameplay", {}).get("entities", {})
-				var entity_state: Dictionary = gameplay_entities.get(String(gameplay_entity_id), {})
+				var entity_state: Dictionary = U_EntitySelectors.get_entity(state, gameplay_entity_id)
 				if not entity_state.is_empty():
 					gameplay_is_moving = bool(entity_state.get("is_moving", false))
 					var velocity_variant: Variant = entity_state.get("velocity", Vector3.ZERO)

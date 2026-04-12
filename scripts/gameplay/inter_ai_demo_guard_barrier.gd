@@ -34,14 +34,7 @@ func _is_flag_enabled(flag_id: StringName) -> bool:
 	if store == null:
 		return false
 	var state: Dictionary = store.get_state()
-	var gameplay_variant: Variant = state.get("gameplay", {})
-	if not (gameplay_variant is Dictionary):
-		return false
-	var gameplay: Dictionary = gameplay_variant as Dictionary
-	var flags_variant: Variant = gameplay.get("ai_demo_flags", {})
-	if not (flags_variant is Dictionary):
-		return false
-	var flags: Dictionary = flags_variant as Dictionary
+	var flags: Dictionary = U_GameplaySelectors.get_ai_demo_flags(state)
 	return bool(flags.get(flag_id, false))
 
 func _resolve_state_store() -> I_StateStore:

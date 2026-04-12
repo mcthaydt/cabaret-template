@@ -243,20 +243,8 @@ func _read_gameplay_entity_velocity(entity_id: StringName, store: I_StateStore, 
 	var state: Dictionary = state_snapshot
 	if state.is_empty() and store != null:
 		state = store.get_state()
-	var gameplay_variant: Variant = state.get("gameplay", {})
-	if not (gameplay_variant is Dictionary):
-		return {"has_velocity": false, "velocity": Vector3.ZERO}
-	var gameplay := gameplay_variant as Dictionary
 
-	var entities_variant: Variant = gameplay.get("entities", {})
-	if not (entities_variant is Dictionary):
-		return {"has_velocity": false, "velocity": Vector3.ZERO}
-	var entities := entities_variant as Dictionary
-
-	var entity_state_variant: Variant = entities.get(String(entity_id), null)
-	if not (entity_state_variant is Dictionary):
-		return {"has_velocity": false, "velocity": Vector3.ZERO}
-	var entity_state := entity_state_variant as Dictionary
+	var entity_state: Dictionary = U_EntitySelectors.get_entity(state, entity_id)
 	if not entity_state.has("velocity"):
 		return {"has_velocity": false, "velocity": Vector3.ZERO}
 
@@ -317,20 +305,8 @@ func _read_gameplay_entity_is_on_floor(entity_id: StringName, store: I_StateStor
 	var state: Dictionary = state_snapshot
 	if state.is_empty() and store != null:
 		state = store.get_state()
-	var gameplay_variant: Variant = state.get("gameplay", {})
-	if not (gameplay_variant is Dictionary):
-		return {"has_value": false, "is_on_floor": false}
-	var gameplay := gameplay_variant as Dictionary
 
-	var entities_variant: Variant = gameplay.get("entities", {})
-	if not (entities_variant is Dictionary):
-		return {"has_value": false, "is_on_floor": false}
-	var entities := entities_variant as Dictionary
-
-	var entity_state_variant: Variant = entities.get(String(entity_id), null)
-	if not (entity_state_variant is Dictionary):
-		return {"has_value": false, "is_on_floor": false}
-	var entity_state := entity_state_variant as Dictionary
+	var entity_state: Dictionary = U_EntitySelectors.get_entity(state, entity_id)
 	if not entity_state.has("is_on_floor"):
 		return {"has_value": false, "is_on_floor": false}
 
