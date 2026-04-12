@@ -292,15 +292,10 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	_update_slider_label(_vibration_label, _vibration_slider.value)
 	_updating_from_state = false
 
-	var gameplay: Variant = state.get("gameplay", {})
-	if gameplay is Dictionary and (gameplay as Dictionary).has("input"):
-		var input_state: Variant = (gameplay as Dictionary)["input"]
-		if input_state is Dictionary:
-			var connected := bool((input_state as Dictionary).get("gamepad_connected", false))
-			if connected:
-				_current_device_id = int((input_state as Dictionary).get("gamepad_device_id", -1))
-			else:
-				_current_device_id = -1
+	if U_InputSelectors.is_gamepad_connected(state):
+		_current_device_id = U_InputSelectors.get_active_gamepad_id(state)
+	else:
+		_current_device_id = -1
 
 func _on_apply_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
@@ -352,9 +347,9 @@ func _close_overlay() -> void:
 	if store == null:
 		return
 
-	var nav_slice: Dictionary = store.get_state().get("navigation", {})
-	var overlay_stack: Array = U_NavigationSelectors.get_overlay_stack(nav_slice)
-	var shell: StringName = U_NavigationSelectors.get_shell(nav_slice)
+	var nav_state: Dictionary = store.get_state()
+	var overlay_stack: Array = U_NavigationSelectors.get_overlay_stack(nav_state)
+	var shell: StringName = U_NavigationSelectors.get_shell(nav_state)
 
 	if not overlay_stack.is_empty():
 		store.dispatch(U_NavigationActions.close_top_overlay())

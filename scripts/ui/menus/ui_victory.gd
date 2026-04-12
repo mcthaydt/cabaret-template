@@ -119,12 +119,9 @@ func _update_display(state: Dictionary = {}) -> void:
 		if store != null:
 			target_state = store.get_state()
 
-	var gameplay: Dictionary = target_state.get("gameplay", {})
-	var completed_areas: Array = gameplay.get("completed_areas", [])
-	var completed_count: int = 0
-	if completed_areas is Array:
-		completed_count = (completed_areas as Array).size()
-	var game_completed: bool = bool(gameplay.get("game_completed", false))
+	var completed_areas: Array = U_GameplaySelectors.get_completed_areas(target_state)
+	var completed_count: int = completed_areas.size()
+	var game_completed: bool = U_GameplaySelectors.get_game_completed(target_state)
 
 	var template: String = U_LOCALIZATION_UTILS.localize(&"menu.victory.completed_areas")
 	_completed_label.text = template % completed_count if template.contains("%") else "Completed Areas: %d" % completed_count
@@ -180,26 +177,22 @@ func _reset_game_progress() -> void:
 		_debug_log("reset_progress skipped: no store")
 		return
 	var before_state: Dictionary = store.get_state()
-	var before_gameplay: Dictionary = before_state.get("gameplay", {})
-	var before_objectives: Dictionary = before_state.get("objectives", {})
 	_debug_log(
 		"dispatching gameplay/reset_progress before gameplay.completed_areas=%s gameplay.game_completed=%s objectives.statuses=%s"
 		% [
-			str(before_gameplay.get("completed_areas", [])),
-			str(before_gameplay.get("game_completed", false)),
-			str(before_objectives.get("statuses", {})),
+			str(U_GameplaySelectors.get_completed_areas(before_state)),
+			str(U_GameplaySelectors.get_game_completed(before_state)),
+			str(U_ObjectivesSelectors.get_statuses_snapshot(before_state)),
 		]
 	)
 	store.dispatch(U_GameplayActions.reset_progress())
 	var after_state: Dictionary = store.get_state()
-	var after_gameplay: Dictionary = after_state.get("gameplay", {})
-	var after_objectives: Dictionary = after_state.get("objectives", {})
 	_debug_log(
 		"after gameplay/reset_progress gameplay.completed_areas=%s gameplay.game_completed=%s objectives.statuses=%s"
 		% [
-			str(after_gameplay.get("completed_areas", [])),
-			str(after_gameplay.get("game_completed", false)),
-			str(after_objectives.get("statuses", {})),
+			str(U_GameplaySelectors.get_completed_areas(after_state)),
+			str(U_GameplaySelectors.get_game_completed(after_state)),
+			str(U_ObjectivesSelectors.get_statuses_snapshot(after_state)),
 		]
 	)
 	_update_display(store.get_state())
