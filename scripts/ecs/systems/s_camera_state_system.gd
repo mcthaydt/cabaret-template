@@ -10,6 +10,7 @@ const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_c
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+const RS_CAMERA_STATE_CONFIG_SCRIPT := preload("res://scripts/resources/ecs/rs_camera_state_config.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
@@ -23,16 +24,6 @@ const TRIGGER_MODE_TICK := "tick"
 const TRIGGER_MODE_EVENT := "event"
 const TRIGGER_MODE_BOTH := "both"
 
-const SHAKE_TRAUMA_DECAY_RATE: float = 2.0
-const SHAKE_MAX_OFFSET_PX: float = 10.0
-const SHAKE_MAX_ROTATION_RAD: float = 0.03
-const SHAKE_FREQ_OFFSET_X: float = 17.0
-const SHAKE_FREQ_OFFSET_Y: float = 21.0
-const SHAKE_FREQ_ROTATION: float = 13.0
-const SHAKE_PHASE_OFFSET_X: float = 1.1
-const SHAKE_PHASE_OFFSET_Y: float = 2.3
-const SHAKE_PHASE_ROTATION: float = 0.7
-
 const DEFAULT_RULE_DEFINITIONS := [
 	preload("res://resources/qb/camera/cfg_camera_shake_rule.tres"),
 	preload("res://resources/qb/camera/cfg_camera_zone_fov_rule.tres"),
@@ -42,6 +33,7 @@ const DEFAULT_RULE_DEFINITIONS := [
 
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_StateStore = null
+@export var camera_state_config: Resource = null
 @export var rules: Array[Resource] = []
 
 var _camera_manager: I_CAMERA_MANAGER = null
@@ -277,6 +269,7 @@ func _decay_non_primary_trauma(contexts: Array, primary_camera_state: Variant, d
 	if delta <= 0.0:
 		return
 
+	var config: Dictionary = _resolve_camera_state_config_values()
 	var processed_states: Dictionary = {}
 	for context_variant in contexts:
 		if not (context_variant is Dictionary):
@@ -293,7 +286,7 @@ func _decay_non_primary_trauma(contexts: Array, primary_camera_state: Variant, d
 		if processed_states.has(state_id):
 			continue
 		processed_states[state_id] = true
-		_decay_trauma(camera_state_object, delta)
+		_decay_trauma(camera_state_object, delta, config)
 
 func _select_primary_camera_context(contexts: Array) -> Dictionary:
 	var fallback: Dictionary = {}
@@ -323,10 +316,53 @@ func _is_primary_camera_context(context: Dictionary) -> bool:
 		return tags.has(PRIMARY_CAMERA_ENTITY_ID) or tags.has(String(PRIMARY_CAMERA_ENTITY_ID))
 	return false
 
+
+func _resolve_camera_state_config_values() -> Dictionary:
+	var defaults := {
+		"trauma_decay_rate": 2.0,
+		"max_offset_x": 10.0,
+		"max_offset_y": 10.0,
+		"max_rotation_rad": 0.03,
+		"shake_frequency": Vector3(17.0, 21.0, 13.0),
+		"shake_phase": Vector3(1.1, 2.3, 0.7),
+		"fov_min": 1.0,
+		"fov_max": 179.0,
+	}
+	var config_variant: Variant = camera_state_config
+	if config_variant == null:
+		config_variant = RS_CAMERA_STATE_CONFIG_SCRIPT.new()
+	if config_variant == null or not (config_variant is Resource):
+		return defaults
+
+	var config_resource: Resource = config_variant as Resource
+	if config_resource.get_script() != RS_CAMERA_STATE_CONFIG_SCRIPT:
+		return defaults
+
+	var fov_min: float = float(config_resource.get("fov_min"))
+	var fov_max: float = maxf(float(config_resource.get("fov_max")), fov_min)
+	return {
+		"trauma_decay_rate": maxf(float(config_resource.get("trauma_decay_rate")), 0.0),
+		"max_offset_x": maxf(float(config_resource.get("max_offset_x")), 0.0),
+		"max_offset_y": maxf(float(config_resource.get("max_offset_y")), 0.0),
+		"max_rotation_rad": maxf(float(config_resource.get("max_rotation_rad")), 0.0),
+		"shake_frequency": config_resource.get("shake_frequency") as Vector3,
+		"shake_phase": config_resource.get("shake_phase") as Vector3,
+		"fov_min": fov_min,
+		"fov_max": fov_max,
+	}
+
+
+func _clamp_fov(value: float, config: Dictionary) -> float:
+	var fov_min: float = float(config.get("fov_min", 1.0))
+	var fov_max: float = maxf(float(config.get("fov_max", 179.0)), fov_min)
+	return clampf(value, fov_min, fov_max)
+
+
 func _apply_fov_to_camera(camera: Camera3D, camera_state: Variant, context: Dictionary, delta: float) -> void:
-	var baseline_fov: float = _ensure_baseline_fov(camera_state, camera.fov)
-	var target_fov: float = _resolve_target_fov(camera_state, context, baseline_fov)
-	_write_target_fov(camera_state, target_fov)
+	var config: Dictionary = _resolve_camera_state_config_values()
+	var baseline_fov: float = _ensure_baseline_fov(camera_state, camera.fov, config)
+	var target_fov: float = _resolve_target_fov(camera_state, context, baseline_fov, config)
+	_write_target_fov(camera_state, target_fov, config)
 
 	var blend_speed: float = maxf(
 		_get_camera_state_float(camera_state, "fov_blend_speed", C_CAMERA_STATE_COMPONENT.DEFAULT_FOV_BLEND_SPEED),
@@ -341,7 +377,12 @@ func _apply_fov_to_camera(camera: Camera3D, camera_state: Variant, context: Dict
 		return
 	camera.fov = lerpf(camera.fov, target_fov, alpha)
 
-func _resolve_target_fov(camera_state: Variant, context: Dictionary, baseline_fov: float) -> float:
+func _resolve_target_fov(
+	camera_state: Variant,
+	context: Dictionary,
+	baseline_fov: float,
+	config: Dictionary
+) -> float:
 	var base_target_fov: float = baseline_fov
 	if _is_fov_zone_active(context):
 		base_target_fov = _get_camera_state_float(
@@ -349,21 +390,21 @@ func _resolve_target_fov(camera_state: Variant, context: Dictionary, baseline_fo
 			"target_fov",
 			C_CAMERA_STATE_COMPONENT.DEFAULT_TARGET_FOV
 		)
-	var resolved_base_target_fov: float = clampf(base_target_fov, 1.0, 179.0)
+	var resolved_base_target_fov: float = _clamp_fov(base_target_fov, config)
 	var speed_fov_bonus: float = _resolve_speed_fov_bonus(camera_state)
-	return clampf(resolved_base_target_fov + speed_fov_bonus, 1.0, 179.0)
+	return _clamp_fov(resolved_base_target_fov + speed_fov_bonus, config)
 
-func _ensure_baseline_fov(camera_state: Variant, fallback_fov: float) -> float:
+func _ensure_baseline_fov(camera_state: Variant, fallback_fov: float, config: Dictionary) -> float:
 	var existing_baseline: float = _get_camera_state_float(
 		camera_state,
 		"base_fov",
 		C_CAMERA_STATE_COMPONENT.UNSET_BASE_FOV
 	)
 	if existing_baseline > 1.0:
-		return clampf(existing_baseline, 1.0, 179.0)
+		return _clamp_fov(existing_baseline, config)
 
-	var resolved_baseline: float = clampf(fallback_fov, 1.0, 179.0)
-	_write_baseline_fov(camera_state, resolved_baseline)
+	var resolved_baseline: float = _clamp_fov(fallback_fov, config)
+	_write_baseline_fov(camera_state, resolved_baseline, config)
 	return resolved_baseline
 
 func _is_fov_zone_active(context: Dictionary) -> bool:
@@ -374,15 +415,16 @@ func _is_fov_zone_active(context: Dictionary) -> bool:
 		return false
 	return U_VCAM_SELECTORS.is_in_fov_zone(state_variant as Dictionary)
 
-func _write_target_fov(camera_state: Variant, value: float) -> void:
+func _write_target_fov(camera_state: Variant, value: float, config: Dictionary) -> void:
+	var clamped: float = _clamp_fov(value, config)
 	if camera_state is Object and (camera_state as Object).has_method("set_target_fov"):
-		(camera_state as Object).call("set_target_fov", value)
+		(camera_state as Object).call("set_target_fov", clamped)
 		return
 	if camera_state is Object:
-		(camera_state as Object).set("target_fov", clampf(value, 1.0, 179.0))
+		(camera_state as Object).set("target_fov", clamped)
 
-func _write_baseline_fov(camera_state: Variant, value: float) -> void:
-	var clamped: float = clampf(value, 1.0, 179.0)
+func _write_baseline_fov(camera_state: Variant, value: float, config: Dictionary) -> void:
+	var clamped: float = _clamp_fov(value, config)
 	if camera_state is Object and (camera_state as Object).has_method("set_base_fov"):
 		(camera_state as Object).call("set_base_fov", clamped)
 		return
@@ -417,6 +459,7 @@ func _write_speed_fov_bonus(camera_state: Variant, value: float) -> void:
 	object_value.set("speed_fov_bonus", maxf(value, 0.0))
 
 func _apply_trauma_shake(manager: I_CAMERA_MANAGER, camera_state: Variant, delta: float) -> void:
+	var config: Dictionary = _resolve_camera_state_config_values()
 	var trauma: float = clampf(_get_camera_state_float(camera_state, "shake_trauma", 0.0), 0.0, 1.0)
 	if trauma <= 0.0:
 		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
@@ -425,23 +468,31 @@ func _apply_trauma_shake(manager: I_CAMERA_MANAGER, camera_state: Variant, delta
 
 	_shake_time += maxf(delta, 0.0)
 	var shake_strength: float = trauma * trauma
+	var shake_frequency: Vector3 = config.get("shake_frequency", Vector3(17.0, 21.0, 13.0)) as Vector3
+	var shake_phase: Vector3 = config.get("shake_phase", Vector3(1.1, 2.3, 0.7)) as Vector3
+	var max_offset_x: float = maxf(float(config.get("max_offset_x", 10.0)), 0.0)
+	var max_offset_y: float = maxf(float(config.get("max_offset_y", 10.0)), 0.0)
+	var max_rotation_rad: float = maxf(float(config.get("max_rotation_rad", 0.03)), 0.0)
 	var offset: Vector2 = Vector2(
-		sin(_shake_time * SHAKE_FREQ_OFFSET_X + SHAKE_PHASE_OFFSET_X),
-		cos(_shake_time * SHAKE_FREQ_OFFSET_Y + SHAKE_PHASE_OFFSET_Y)
-	) * SHAKE_MAX_OFFSET_PX * shake_strength
-	var rotation: float = sin(_shake_time * SHAKE_FREQ_ROTATION + SHAKE_PHASE_ROTATION) * SHAKE_MAX_ROTATION_RAD * shake_strength
+		sin(_shake_time * shake_frequency.x + shake_phase.x) * max_offset_x * shake_strength,
+		cos(_shake_time * shake_frequency.y + shake_phase.y) * max_offset_y * shake_strength
+	)
+	var rotation: float = sin(
+		_shake_time * shake_frequency.z + shake_phase.z
+	) * max_rotation_rad * shake_strength
 	manager.set_shake_source(CAMERA_SHAKE_SOURCE, offset, rotation)
 
-	var decayed_trauma: float = _decay_trauma(camera_state, delta)
+	var decayed_trauma: float = _decay_trauma(camera_state, delta, config)
 	if decayed_trauma <= 0.0:
 		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
 
-func _decay_trauma(camera_state: Variant, delta: float) -> float:
+func _decay_trauma(camera_state: Variant, delta: float, config: Dictionary = {}) -> float:
 	var trauma: float = clampf(_get_camera_state_float(camera_state, "shake_trauma", 0.0), 0.0, 1.0)
 	if delta <= 0.0:
 		return trauma
 
-	var decayed_trauma: float = maxf(trauma - SHAKE_TRAUMA_DECAY_RATE * delta, 0.0)
+	var trauma_decay_rate: float = maxf(float(config.get("trauma_decay_rate", 2.0)), 0.0)
+	var decayed_trauma: float = maxf(trauma - trauma_decay_rate * delta, 0.0)
 	_write_shake_trauma(camera_state, decayed_trauma)
 	return decayed_trauma
 
