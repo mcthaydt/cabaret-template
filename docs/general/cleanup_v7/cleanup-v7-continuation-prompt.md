@@ -63,6 +63,12 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
+## Plan Snapshot Note
+
+Milestone checklists below are the original implementation-plan scaffold and may still contain unchecked boxes from kickoff drafting. Treat `docs/general/cleanup_v7/cleanup-v7-tasks.md` as the authoritative completion source for C1-C8 status and verification counts.
+
+---
+
 ## Milestone C1: Rule Evaluation Pipeline Extraction
 
 **Goal**: Extract the shared rule evaluation lifecycle across `s_camera_state_system`, `s_character_state_system`, and `s_game_event_system`. `U_RuleEvaluator` is a composed utility — systems call pipeline steps at appropriate points in their own lifecycle, matching the existing `U_RuleScorer`/`U_RuleSelector`/`U_RuleStateTracker` pattern.
@@ -177,18 +183,19 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C8: Selector Enforcement — Managers
+## Milestone C8: Selector Enforcement — Managers — COMPLETE
 
-**Goal**: All state reads outside reducers go through `U_*_selectors`. No `state.get("slice", {})["key"]`. This milestone covers 17 manager and helper files. `get_player_entity_id` already exists in `u_entity_selectors.gd` — reference it, don't duplicate it.
+**Goal**: All state reads outside reducers go through `U_*_selectors`. No `state.get("slice", {})["key"]`. This milestone targets manager/helper files first; systems/interactables/UI migration continues in C11.
 
-- [ ] **Commit 1** — Audit all 18 selector files, add missing selectors, create `u_scene_selectors.gd`
-- [ ] **Commit 2** — Migrate all 17 manager/helper files to use selectors
-- [ ] **Commit 3** — Add style enforcement grep test for managers
+- [x] **Commit 1** — Audit all 18 selector files, add missing selectors, create `u_scene_selectors.gd`
+- [x] **Commit 2** — Migrate all 17 manager/helper files to use selectors
+- [x] **Commit 3** — Add style enforcement grep test for managers
+- [x] **C8 audit gap-fix addendum** — Migrated `s_input_system` and `base_event_sfx_system` early (C11 subset) to align with new selector helpers.
 
 **C8 Verification**:
-- [ ] All selector tests green
-- [ ] All manager tests green
-- [ ] Grep test: zero `state.get("` or `state["` occurrences in manager/helper files
+- [x] All selector tests green (`tests/unit/state/test_c8_selector_enforcement.gd` — 50/50)
+- [x] All manager tests green (`tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` — 568/568)
+- [x] Grep test: zero `state.get("` or `state["` occurrences in manager/helper files
 
 ---
 
@@ -233,7 +240,7 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 **Goal**: Extend C8's selector enforcement to 11 additional files: 4 ECS systems, 2 helpers, 2 interactables, and 3 UI files.
 
-- [ ] **Commit 1** — Migrate ECS systems to use selectors (s_victory_handler_system, s_input_system, s_gamepad_vibration_system, base_event_sfx_system)
+- [ ] **Commit 1** — Migrate ECS systems to use selectors (`s_input_system` and `base_event_sfx_system` already complete; remaining: `s_victory_handler_system`, `s_gamepad_vibration_system`)
 - [ ] **Commit 2** — Migrate helpers and interactables to use selectors (u_vcam_runtime_context, u_vcam_debug, inter_victory_zone, inter_ai_demo_guard_barrier)
 - [ ] **Commit 3** — Migrate UI files to use selectors (ui_victory, ui_game_over, ui_gamepad_settings_overlay)
 - [ ] **Commit 4** — Expand style enforcement grep test to all production files (excluding reducers and selectors)

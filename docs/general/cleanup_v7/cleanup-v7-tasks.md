@@ -265,14 +265,14 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 **Completed**: 2026-04-12
 
-**Summary**: Completed manager/helper selector enforcement. Added/expanded selector coverage for manager-read slices, migrated all C8 target managers/helpers from direct state slice access to selectors, and finalized style-enforcement coverage for direct `state.get(...)` / `state[...]` usage in manager code with token-aware matching (prevents false positives like `room_fade_state.get(...)`).
+**Summary**: Completed manager/helper selector enforcement. Added/expanded selector coverage for manager-read slices, migrated all C8 target managers/helpers from direct state slice access to selectors, and finalized style-enforcement coverage for direct `state.get(...)` / `state[...]` usage in manager code with token-aware matching (prevents false positives like `room_fade_state.get(...)`). C8 audit gap-fix work also migrated two C11 ECS files early (`s_input_system`, `base_event_sfx_system`) to unblock selector helper additions.
 
-**Goal**: Eliminate the pattern of managers reaching into state slice internals by key path. All state reads outside reducers should go through `U_*_selectors`. This milestone covers **manager and helper files only**; systems, interactables, and UI are covered in C11.
+**Goal**: Eliminate the pattern of managers reaching into state slice internals by key path. All state reads outside reducers should go through `U_*_selectors`. This milestone is manager/helper-first; remaining systems/interactables/UI migration is tracked in C11.
 
 **Scope** (17 files):
 - `m_vcam_manager`, `m_save_manager`, `m_objectives_manager`, `m_scene_manager`, `m_display_manager`, `m_spawn_manager`, `m_vfx_manager`, `m_audio_manager`, `m_time_manager`, `m_localization_manager`, `m_screenshot_cache_manager`, `m_ui_input_handler`, `m_input_profile_manager`, `m_input_device_manager`, `m_scene_director_manager`, `u_autosave_scheduler`, `u_vcam_soft_zone`
 
-**Existing selectors**: `get_player_entity_id` already exists in `u_entity_selectors.gd` — do not duplicate it. `u_gameplay_selectors.gd` only has 3 selectors (`is_paused`, `get_last_checkpoint`, `is_touch_look_active`) and needs many additions. No `u_scene_selectors.gd` exists yet — it needs to be created.
+**Existing selectors at C8 kickoff**: `get_player_entity_id` already exists in `u_entity_selectors.gd` (do not duplicate it). At kickoff, `u_gameplay_selectors.gd` only had 3 selectors (`is_paused`, `get_last_checkpoint`, `is_touch_look_active`) and `u_scene_selectors.gd` did not exist.
 
 - [x] **Commit 1** — Audit all 18 selector files and add missing selector methods:
   - `scripts/state/selectors/u_gameplay_selectors.gd` — add `get_playtime_seconds`, `get_player_health`, `get_target_spawn_point`, `get_last_victory_objective`, `get_entity_snapshot`, `get_ai_demo_flags`, etc.
@@ -282,15 +282,15 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 - [x] **Commit 2** — Migrate all 17 manager/helper files to use selectors instead of `state.get("`:
   - Replace `state.get("gameplay", {})["player_entity_id"]` with `U_EntitySelectors.get_player_entity_id(state)`.
   - Replace `state.get("gameplay", {}).get("playtime_seconds", 0)` with `U_GameplaySelectors.get_playtime_seconds(state)`.
-  - Replace `state.get("objectives", {})` with `U_ObjectivesSelectors._get_slice(state)`.
+  - Replace direct objectives reads with public objective selectors (`get_statuses_snapshot`, `get_active_set_ids`, `get_completed_objectives`) where needed.
   - Replace `state.get("scene", {})["current_scene_id"]` with `U_SceneSelectors.get_current_scene_id(state)`.
   - Replace all other `state.get("<slice>", {})` patterns in the 17 files.
 - [x] **Commit 3** — Add style enforcement grep test:
   - `tests/unit/style/test_style_enforcement.gd` — add test asserting no manager or helper file contains `state.get("` or `state["` outside of `m_state_store.gd` and reducers.
 
 **C8 Verification**:
-- [x] All selector tests green (`tests/unit/state/test_c8_selector_enforcement.gd` — 47/47)
-- [x] All manager tests green (`tools/run_gut_suite.sh -gdir=res://tests/unit/managers` — 338/338)
+- [x] All selector tests green (`tests/unit/state/test_c8_selector_enforcement.gd` — 50/50)
+- [x] All manager tests green (`tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` — 568/568)
 - [x] Grep test: zero direct `state.get("` or `state["` occurrences in manager/helper files (`test_managers_use_selectors_for_state_access` green)
 
 ---
@@ -352,11 +352,11 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 - Interactables: `inter_victory_zone`, `inter_ai_demo_guard_barrier`
 - UI: `ui_victory`, `ui_game_over`, `ui_gamepad_settings_overlay`
 
-- [ ] **Commit 1** — Migrate ECS systems to use selectors:
+- [ ] **Commit 1** — Migrate ECS systems to use selectors (partial complete: `s_input_system` + `base_event_sfx_system` landed during C8 audit gap-fix):
   - `scripts/ecs/systems/s_victory_handler_system.gd` — replace `state.get("gameplay", {})` and `state.get("objectives", {})`.
-  - `scripts/ecs/systems/s_input_system.gd` — replace `state.get("gameplay", {})`.
+  - `scripts/ecs/systems/s_input_system.gd` — DONE (migrated in C8 audit patch).
   - `scripts/ecs/systems/s_gamepad_vibration_system.gd` — replace `state.get("gameplay", {})`.
-  - `scripts/ecs/base_event_sfx_system.gd` — replace `state.get("gameplay", {})`.
+  - `scripts/ecs/base_event_sfx_system.gd` — DONE (migrated in C8 audit patch).
 - [ ] **Commit 2** — Migrate helpers and interactables to use selectors:
   - `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd` — replace `state.get("gameplay", {})`.
   - `scripts/ecs/systems/helpers/u_vcam_debug.gd` — replace `state.get("gameplay", {})`.
