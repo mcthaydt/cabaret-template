@@ -16,6 +16,7 @@ const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 const MockCameraManager = preload("res://tests/mocks/mock_camera_manager.gd")
 const U_SceneLoader = preload("res://scripts/scene_management/helpers/u_scene_loader.gd")
 const I_SCENE_TYPE_HANDLER = preload("res://scripts/interfaces/i_scene_type_handler.gd")
+const U_TransitionState = preload("res://scripts/scene_management/helpers/u_transition_state.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore
@@ -120,6 +121,17 @@ func after_each() -> void:
 	_loading_overlay = null
 
 
+func _create_transition_ctx(use_cached: bool, should_blend: bool, old_camera_state: Variant) -> Dictionary:
+	var transition_state := U_TransitionState.new()
+	transition_state.should_blend = should_blend
+	transition_state.old_camera_state = old_camera_state
+	return {
+		"use_cached": use_cached,
+		"progress_callback": func(_p: float): pass,
+		"transition_state": transition_state,
+	}
+
+
 # --- _execute_scene_swap tests ---
 
 func test_execute_scene_swap_cached_scene_instantiates() -> void:
@@ -136,12 +148,14 @@ func test_execute_scene_swap_cached_scene_instantiates() -> void:
 
 	_manager._scene_cache_helper._scene_cache["res://cached_scene.tscn"] = cached_packed
 	var request := {"scene_id": StringName("test_cached"), "transition_type": "fade"}
-	var ctx := {"use_cached": true, "progress_callback": func(_p: float): pass, "new_scene_ref": [null], "should_blend": false, "old_camera_state": null}
+	var ctx := _create_transition_ctx(true, false, null)
 
 	_manager._execute_scene_swap(request, "res://cached_scene.tscn", ctx)
 	# The cache path should have been attempted; new_scene_ref should be set
 	# (CachedSceneNode from the packed scene, not the stub_loader's scene)
-	assert_ne(ctx["new_scene_ref"][0], null, "Cached scene should be instantiated and set in new_scene_ref.")
+	var transition_state: U_TransitionState = ctx.get("transition_state", null)
+	assert_not_null(transition_state, "transition_state should exist")
+	assert_ne(transition_state.new_scene_ref, null, "Cached scene should be instantiated and set in transition state new_scene_ref.")
 
 	_manager._scene_cache_helper._scene_cache.clear()
 
@@ -154,10 +168,12 @@ func test_execute_scene_swap_sync_load_path() -> void:
 	_manager._scene_loader = stub_loader
 
 	var request := {"scene_id": StringName("test_scene"), "transition_type": "fade"}
-	var ctx := {"use_cached": false, "progress_callback": func(_p: float): pass, "new_scene_ref": [null], "should_blend": false, "old_camera_state": null}
+	var ctx := _create_transition_ctx(false, false, null)
 
 	_manager._execute_scene_swap(request, "res://test_scene.tscn", ctx)
-	assert_eq(ctx["new_scene_ref"][0], test_scene, "Sync load should set new_scene_ref to loaded scene.")
+	var transition_state: U_TransitionState = ctx.get("transition_state", null)
+	assert_not_null(transition_state, "transition_state should exist")
+	assert_eq(transition_state.new_scene_ref, test_scene, "Sync load should set new_scene_ref to loaded scene.")
 
 
 func test_execute_scene_swap_load_failure_returns_early() -> void:
@@ -166,11 +182,13 @@ func test_execute_scene_swap_load_failure_returns_early() -> void:
 	_manager._scene_loader = stub_loader
 
 	var request := {"scene_id": StringName("nonexistent_scene"), "transition_type": "fade"}
-	var ctx := {"use_cached": false, "progress_callback": func(_p: float): pass, "new_scene_ref": [null], "should_blend": false, "old_camera_state": null}
+	var ctx := _create_transition_ctx(false, false, null)
 
 	_manager._execute_scene_swap(request, "res://nonexistent.tscn", ctx)
 	assert_push_error("M_SceneManager: Failed to load scene 'res://nonexistent.tscn'")
-	assert_eq(ctx["new_scene_ref"][0], null, "Load failure should not set new_scene_ref.")
+	var transition_state: U_TransitionState = ctx.get("transition_state", null)
+	assert_not_null(transition_state, "transition_state should exist")
+	assert_eq(transition_state.new_scene_ref, null, "Load failure should not set new_scene_ref.")
 
 
 func test_execute_scene_swap_camera_blend_path() -> void:
@@ -188,7 +206,7 @@ func test_execute_scene_swap_camera_blend_path() -> void:
 
 	var request := {"scene_id": StringName("test_blend"), "transition_type": "fade"}
 	var old_state := {"position": Vector3.ZERO}
-	var ctx := {"use_cached": false, "progress_callback": func(_p: float): pass, "new_scene_ref": [null], "should_blend": true, "old_camera_state": old_state}
+	var ctx := _create_transition_ctx(false, true, old_state)
 
 	_manager._execute_scene_swap(request, "res://test_blend.tscn", ctx)
 	assert_eq(mock_camera.blend_cameras_calls, 1, "Camera blend should be called once.")
@@ -213,7 +231,7 @@ func test_execute_scene_swap_camera_initialize_path() -> void:
 	_manager._camera_manager = mock_camera
 
 	var request := {"scene_id": StringName("test_init"), "transition_type": "instant"}
-	var ctx := {"use_cached": false, "progress_callback": func(_p: float): pass, "new_scene_ref": [null], "should_blend": false, "old_camera_state": null}
+	var ctx := _create_transition_ctx(false, false, null)
 
 	_manager._execute_scene_swap(request, "res://test_init.tscn", ctx)
 	# When should_blend is false, initialize_scene_camera is called instead of blend_cameras
@@ -240,7 +258,7 @@ func test_execute_scene_swap_dispatches_store_action() -> void:
 	)
 
 	var request := {"scene_id": StringName("test_dispatch"), "transition_type": "fade"}
-	var ctx := {"use_cached": false, "progress_callback": func(_p: float): pass, "new_scene_ref": [null], "should_blend": false, "old_camera_state": null}
+	var ctx := _create_transition_ctx(false, false, null)
 
 	_manager._execute_scene_swap(request, "res://test_dispatch.tscn", ctx)
 	assert_true(callback_called[0], "Store should dispatch scene_swapped action.")
@@ -259,7 +277,7 @@ func test_execute_scene_swap_calls_scene_type_handler() -> void:
 	_manager._scene_type_handlers[-1] = stub_handler
 
 	var request := {"scene_id": StringName("test_handler"), "transition_type": "fade"}
-	var ctx := {"use_cached": false, "progress_callback": func(_p: float): pass, "new_scene_ref": [null], "should_blend": false, "old_camera_state": null}
+	var ctx := _create_transition_ctx(false, false, null)
 
 	_manager._execute_scene_swap(request, "res://test_handler.tscn", ctx)
 	# Handler should be called if scene_type matches a registered handler
@@ -276,9 +294,10 @@ func test_execute_scene_swap_writes_new_scene_ref() -> void:
 	stub_loader.loaded_scene = test_scene
 	_manager._scene_loader = stub_loader
 
-	var new_scene_ref := [null]
 	var request := {"scene_id": StringName("test_ref"), "transition_type": "fade"}
-	var ctx := {"use_cached": false, "progress_callback": func(_p: float): pass, "new_scene_ref": new_scene_ref, "should_blend": false, "old_camera_state": null}
+	var ctx := _create_transition_ctx(false, false, null)
 
 	_manager._execute_scene_swap(request, "res://test_ref.tscn", ctx)
-	assert_eq(new_scene_ref[0], test_scene, "new_scene_ref[0] should be set to the loaded scene.")
+	var transition_state: U_TransitionState = ctx.get("transition_state", null)
+	assert_not_null(transition_state, "transition_state should exist")
+	assert_eq(transition_state.new_scene_ref, test_scene, "transition_state.new_scene_ref should be set to the loaded scene.")

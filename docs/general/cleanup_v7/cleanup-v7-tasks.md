@@ -1,7 +1,7 @@
 # Cross-System Cleanup — Tasks Checklist
 
-**Branch**: TBD
-**Status**: Not started
+**Branch**: GOAP-AI
+**Status**: C1-C6 complete; C7 next
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Scope**: Modularity, DRY, scalability, and designer-friendliness improvements across managers and ECS systems. No behavioral changes. All existing integration tests must stay green throughout.
 
@@ -216,9 +216,9 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 - [x] **Commit 4** — Decompose `_perform_transition` god method (155 lines → 23 lines):
   - Extracted `_prepare_transition_context(request, scene_path)` — cache check, progress callback, camera state capture, context Dictionary assembly.
   - Extracted `_execute_scene_swap(request, scene_path, transition_ctx)` — scene removal, loading (cached/async/sync), validation, camera blending, handler delegation, action dispatch. Replaces the 88-line `scene_swap_callback` closure.
-  - Extracted `_finalize_camera_blend(transition_ctx)` — post-transition camera finalization with active blend tween guard.
+  - Extracted `_finalize_camera_blend(transition_ctx)` — post-transition camera finalization with blend-active guard.
   - Removed vestigial `scene_swap_complete` tracker (set but never read).
-  - Added `tests/unit/scene_manager/test_m_scene_manager_decomposition.gd` (10 tests covering context keys, cache state, blend conditions, camera manager null guard, line count).
+  - Added `tests/unit/scene_manager/test_m_scene_manager_decomposition.gd` (11 tests covering context keys, cache state, blend conditions, camera manager null guard, line count, and blend-active interface path).
 
 **C6 Verification**:
 - [x] All overlay helper tests green (existing test_m_scene_manager.gd covers overlay push/pop/return)
@@ -229,6 +229,8 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 - [x] **C6.1** — Add tests for `_execute_scene_swap` (8 tests covering cached/sync/load paths, camera blend/initialize, store action, handler dispatch, writeback)
 - [x] **C6.2** — DRY: promote `U_OverlayStackManager._map_overlay_ids_to_scene_ids` to public static; `U_NavigationReconciler.map_overlay_ids_to_scene_ids` now delegates
+- [x] **C6.3** — Replace SceneManager camera blend private-member reflection with `I_CameraManager.is_blend_active()` and add style enforcement guard (`_camera_manager.get("_camera_blend_tween")` forbidden in `m_scene_manager.gd`).
+- [x] **C6.4** — Replace transition Array-wrapper mutable callback captures with typed `U_TransitionState` (`scripts/scene_management/helpers/u_transition_state.gd`) and update decomposition/execute-swap tests accordingly.
 
 ---
 

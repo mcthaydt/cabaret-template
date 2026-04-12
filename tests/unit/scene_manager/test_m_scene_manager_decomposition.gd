@@ -14,6 +14,7 @@ const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_ini
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
 const MockCameraManager = preload("res://tests/mocks/mock_camera_manager.gd")
+const U_TransitionState = preload("res://scripts/scene_management/helpers/u_transition_state.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore
@@ -88,9 +89,7 @@ func test_prepare_context_returns_required_keys() -> void:
 	var ctx := _manager._prepare_transition_context(request, "res://test.tscn")
 	assert_has(ctx, "use_cached", "context should have use_cached")
 	assert_has(ctx, "progress_callback", "context should have progress_callback")
-	assert_has(ctx, "old_camera_state", "context should have old_camera_state")
-	assert_has(ctx, "should_blend", "context should have should_blend")
-	assert_has(ctx, "new_scene_ref", "context should have new_scene_ref")
+	assert_has(ctx, "transition_state", "context should have transition_state")
 
 func test_prepare_context_use_cached_false_when_not_cached() -> void:
 	var request := {"scene_id": StringName("test_scene"), "transition_type": "fade"}
@@ -101,20 +100,25 @@ func test_prepare_context_should_blend_false_without_camera_manager() -> void:
 	_manager._camera_manager = null
 	var request := {"scene_id": StringName("test_scene"), "transition_type": "fade"}
 	var ctx := _manager._prepare_transition_context(request, "res://test.tscn")
-	assert_eq(bool(ctx.get("should_blend", true)), false, "should_blend should be false when no camera manager")
+	var transition_state: U_TransitionState = ctx.get("transition_state", null)
+	assert_not_null(transition_state, "transition_state should be created")
+	assert_false(transition_state.should_blend, "should_blend should be false when no camera manager")
 
 func test_prepare_context_should_blend_false_for_instant_transition() -> void:
 	# Even if camera manager exists, instant transitions don't blend
 	_manager._camera_manager = null  # No camera manager registered
 	var request := {"scene_id": StringName("test_scene"), "transition_type": "instant"}
 	var ctx := _manager._prepare_transition_context(request, "res://test.tscn")
-	assert_eq(bool(ctx.get("should_blend", true)), false, "should_blend should be false for instant transitions")
+	var transition_state: U_TransitionState = ctx.get("transition_state", null)
+	assert_not_null(transition_state, "transition_state should be created")
+	assert_false(transition_state.should_blend, "should_blend should be false for instant transitions")
 
 func test_prepare_context_new_scene_ref_initially_null() -> void:
 	var request := {"scene_id": StringName("test_scene"), "transition_type": "fade"}
 	var ctx := _manager._prepare_transition_context(request, "res://test.tscn")
-	var new_scene_ref: Array = ctx.get("new_scene_ref", [])
-	assert_eq(new_scene_ref[0], null, "new_scene_ref should initially be [null]")
+	var transition_state: U_TransitionState = ctx.get("transition_state", null)
+	assert_not_null(transition_state, "transition_state should be created")
+	assert_eq(transition_state.new_scene_ref, null, "new_scene_ref should initially be null")
 
 func test_prepare_context_progress_callback_is_callable() -> void:
 	var request := {"scene_id": StringName("test_scene"), "transition_type": "fade"}
@@ -128,17 +132,20 @@ func test_finalize_blend_skips_when_camera_manager_null() -> void:
 	_manager._camera_manager = null
 	var new_scene := Node3D.new()
 	add_child_autofree(new_scene)
-	var transition_ctx := {"new_scene_ref": [new_scene]}
+	var transition_state := U_TransitionState.new()
+	transition_state.new_scene_ref = new_scene
+	var transition_ctx := {"transition_state": transition_state}
 	_manager._finalize_camera_blend(transition_ctx)
-	assert_eq(transition_ctx["new_scene_ref"][0], new_scene, "Skip path should leave new_scene_ref unchanged when camera manager is null.")
+	assert_eq(transition_state.new_scene_ref, new_scene, "Skip path should leave new_scene_ref unchanged when camera manager is null.")
 
 func test_finalize_blend_skips_when_new_scene_ref_null() -> void:
 	var mock_camera := MockCameraManager.new()
 	autofree(mock_camera)
 	_manager._camera_manager = mock_camera
-	var transition_ctx := {"new_scene_ref": [null]}
+	var transition_state := U_TransitionState.new()
+	var transition_ctx := {"transition_state": transition_state}
 	_manager._finalize_camera_blend(transition_ctx)
-	assert_eq(mock_camera.finalize_blend_calls, 0, "Finalize should be skipped when new_scene_ref[0] is null.")
+	assert_eq(mock_camera.finalize_blend_calls, 0, "Finalize should be skipped when new_scene_ref is null.")
 
 func test_finalize_blend_skips_when_new_scene_ref_key_missing() -> void:
 	var mock_camera := MockCameraManager.new()
@@ -147,6 +154,24 @@ func test_finalize_blend_skips_when_new_scene_ref_key_missing() -> void:
 	var transition_ctx := {}
 	_manager._finalize_camera_blend(transition_ctx)
 	assert_eq(mock_camera.finalize_blend_calls, 0, "Finalize should be skipped when transition_ctx has no new_scene_ref key.")
+
+func test_finalize_blend_uses_camera_manager_is_blend_active() -> void:
+	var mock_camera := MockCameraManager.new()
+	autofree(mock_camera)
+	_manager._camera_manager = mock_camera
+	var new_scene := Node3D.new()
+	add_child_autofree(new_scene)
+	var transition_state := U_TransitionState.new()
+	transition_state.new_scene_ref = new_scene
+	var transition_ctx := {"transition_state": transition_state}
+
+	mock_camera.blend_active = true
+	_manager._finalize_camera_blend(transition_ctx)
+	assert_eq(mock_camera.finalize_blend_calls, 0, "Finalize should not run when camera manager reports active blend.")
+
+	mock_camera.blend_active = false
+	_manager._finalize_camera_blend(transition_ctx)
+	assert_eq(mock_camera.finalize_blend_calls, 1, "Finalize should run once when no active blend is reported.")
 
 # --- _perform_transition line count test ---
 

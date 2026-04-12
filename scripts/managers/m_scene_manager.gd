@@ -38,6 +38,7 @@ const U_TRANSITION_ORCHESTRATOR := preload("res://scripts/scene_management/u_tra
 const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helpers/u_scene_transition_queue.gd")
 const U_SCENE_MANAGER_NODE_FINDER := preload("res://scripts/scene_management/helpers/u_scene_manager_node_finder.gd")
 const U_NAVIGATION_RECONCILER := preload("res://scripts/scene_management/helpers/u_navigation_reconciler.gd")
+const U_TRANSITION_STATE := preload("res://scripts/scene_management/helpers/u_transition_state.gd")
 const U_INPUT_MAP_BOOTSTRAPPER := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 const U_DEBUG_SELECTORS := preload("res://scripts/state/selectors/u_debug_selectors.gd")
@@ -525,36 +526,30 @@ func _perform_transition(request) -> void:
 		overlays
 	)
 	_finalize_camera_blend(transition_ctx)
-	var new_scene_ref: Array = transition_ctx.get("new_scene_ref", [null])
-	if new_scene_ref[0] != null:
-		await _unfreeze_player_physics(new_scene_ref[0])
+	var transition_state := _resolve_transition_state(transition_ctx)
+	if transition_state.new_scene_ref != null:
+		await _unfreeze_player_physics(transition_state.new_scene_ref)
 
 ## Prepare transition context: cache check, progress callback, camera state capture
 ##
 ## Returns a Dictionary with:
 ## - use_cached: bool - Whether scene is in the cache
 ## - progress_callback: Callable - Callback for async loading progress
-## - old_camera_state: Variant - Pre-captured camera state (null if no blend)
-## - should_blend: bool - Whether camera blending should occur
-## - new_scene_ref: Array - Mutable holder for the newly loaded scene
+## - transition_state: U_TransitionState - mutable transition state object
 func _prepare_transition_context(request, scene_path: String) -> Dictionary:
 	var use_cached: bool = _scene_cache_helper.is_scene_cached(scene_path)
-	var current_progress: Array = [0.0]
+	var transition_state := U_TRANSITION_STATE.new()
 	var progress_callback: Callable = func(progress: float) -> void:
-		current_progress[0] = clamp(progress, 0.0, 1.0)
-	var old_camera_state = null
+		transition_state.progress = clamp(progress, 0.0, 1.0)
 	if _camera_manager != null and request.transition_type != "instant":
 		if _active_scene_container != null and _active_scene_container.get_child_count() > 0:
 			var old_scene: Node = _active_scene_container.get_child(0)
-			old_camera_state = _camera_manager.capture_camera_state(old_scene)
-	var should_blend: bool = old_camera_state != null and _camera_manager != null
-	var new_scene_ref: Array = [null]
+			transition_state.old_camera_state = _camera_manager.capture_camera_state(old_scene)
+	transition_state.should_blend = transition_state.old_camera_state != null and _camera_manager != null
 	return {
 		"use_cached": use_cached,
 		"progress_callback": progress_callback,
-		"old_camera_state": old_camera_state,
-		"should_blend": should_blend,
-		"new_scene_ref": new_scene_ref,
+		"transition_state": transition_state,
 	}
 
 ## Execute the scene swap: remove old scene, load new, blend cameras, delegate to handlers
@@ -591,11 +586,12 @@ func _execute_scene_swap(request, scene_path: String, transition_ctx: Dictionary
 
 	if _active_scene_container != null:
 		_scene_loader.add_scene(_active_scene_container, new_scene)
-	var new_scene_ref: Array = transition_ctx.get("new_scene_ref", [null])
-	new_scene_ref[0] = new_scene
+	var transition_state := _resolve_transition_state(transition_ctx)
+	transition_state.new_scene_ref = new_scene
+	transition_state.scene_swap_complete = true
 
-	var should_blend: bool = bool(transition_ctx.get("should_blend", false))
-	var old_camera_state = transition_ctx.get("old_camera_state")
+	var should_blend: bool = transition_state.should_blend
+	var old_camera_state = transition_state.old_camera_state
 	if should_blend and _camera_manager != null:
 		_camera_manager.blend_cameras(null, new_scene, 0.2, old_camera_state)
 	else:
@@ -626,17 +622,31 @@ func _execute_scene_swap(request, scene_path: String, transition_ctx: Dictionary
 
 ## Finalize camera blend after transition completes
 ##
-## Only finalizes if no active blend tween remains (fade transitions run the blend
-## in parallel, and cutting it short would cause a visual jump).
+## Only finalizes if camera manager reports no active blend (fade transitions run
+## the blend in parallel, and cutting it short would cause a visual jump).
 func _finalize_camera_blend(transition_ctx: Dictionary) -> void:
-	var new_scene_ref: Array = transition_ctx.get("new_scene_ref", [null])
-	if _camera_manager == null or new_scene_ref[0] == null:
+	var transition_state := _resolve_transition_state(transition_ctx)
+	if _camera_manager == null or transition_state.new_scene_ref == null:
 		return
-	var has_active_blend: bool = false
-	var active_tween: Tween = _camera_manager.get("_camera_blend_tween")
-	has_active_blend = active_tween != null and active_tween.is_running()
+	var has_active_blend: bool = _camera_manager.is_blend_active()
 	if not has_active_blend:
-		_camera_manager.finalize_blend_to_scene(new_scene_ref[0])
+		_camera_manager.finalize_blend_to_scene(transition_state.new_scene_ref)
+
+func _resolve_transition_state(transition_ctx: Dictionary) -> U_TRANSITION_STATE:
+	var state_variant: Variant = transition_ctx.get("transition_state", null)
+	if state_variant is U_TRANSITION_STATE:
+		return state_variant as U_TRANSITION_STATE
+
+	var fallback_state := U_TRANSITION_STATE.new()
+	fallback_state.old_camera_state = transition_ctx.get("old_camera_state", null)
+	fallback_state.should_blend = bool(transition_ctx.get("should_blend", false))
+	var legacy_new_scene_ref: Variant = transition_ctx.get("new_scene_ref", null)
+	if legacy_new_scene_ref is Array:
+		var legacy_array := legacy_new_scene_ref as Array
+		if not legacy_array.is_empty() and legacy_array[0] is Node:
+			fallback_state.new_scene_ref = legacy_array[0] as Node
+	transition_ctx["transition_state"] = fallback_state
+	return fallback_state
 
 ## Re-enable player physics after transition completes
 ## Includes physics warmup frame to prevent bobble from stale collision state

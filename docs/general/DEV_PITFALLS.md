@@ -882,23 +882,10 @@
 
   DO NOT manually call `M_CursorManager.set_cursor_state()` in scene scripts unless you have a specific override requirement. The automatic management happens in `M_SceneManager._update_cursor_for_scene()` which is called after every scene transition. This prevents the common pitfall of loading a menu scene with a locked cursor (making buttons unclickable) or loading gameplay with a visible cursor (breaking immersion).
 
-- **Transition callbacks MUST use Array wrappers for primitive flags**: When implementing transition effects or any async callbacks in M_SceneManager, use Arrays for boolean/primitive flags due to GDScript closure limitations. Example from `M_SceneManager._perform_transition()`:
-  ```gdscript
-  # WRONG - closures won't modify these:
-  var transition_complete: bool = false
-  var completion_callback := func() -> void:
-      transition_complete = true  # Won't modify outer variable!
-
-  # CORRECT - use Array wrapper:
-  var transition_complete: Array = [false]
-  var completion_callback := func() -> void:
-      transition_complete[0] = true  # Modifies array element
-
-  # Wait for transition
-  while not transition_complete[0]:  # Check array element
-      await get_tree().process_frame
-  ```
-  Without Array wrappers, transitions will never complete because the `while` loop checks a flag that the callback can't modify, causing infinite loops or test timeouts.
+- **Transition callbacks should use a typed shared state object, not Array wrappers**: In `M_SceneManager`, mutable callback state now lives in `U_TransitionState` (`scripts/scene_management/helpers/u_transition_state.gd`).
+  - Preferred pattern: create one `U_TransitionState` object before building callbacks, and let callbacks mutate fields on that object.
+  - Avoid reintroducing `var something: Array = [value]` mutable-capture wrappers for transition state.
+  - Keep camera blend handoff checks on the camera-manager interface (`I_CameraManager.is_blend_active()`), not private-member reflection.
 
 - **Fade transitions need adequate wait time in tests**: Trans_Fade duration defaults to 0.2 seconds. Tests using fade transitions must wait at least 15 physics frames (0.25s at 60fps) for completion. Waiting only 4 frames (0.067s) will cause assertions to run before transitions complete, resulting in `is_transitioning` still being true or `current_scene_id` not yet updated. Use `await wait_physics_frames(15)` after fade transitions in tests.
 

@@ -5,16 +5,20 @@
 This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 
 **Branch**: GOAP-AI
-**Status**: C2 complete (with retroactive gap fixes) — begin C3
-**Next Task**: Begin C3 (Shared Dependency Resolution) in `docs/general/cleanup_v7/cleanup-v7-tasks.md`
+**Status**: C1-C6 complete (with retroactive gap fixes through C6) — begin C7
+**Next Task**: Begin C7 (Objectives Manager Namespace Support) in `docs/general/cleanup_v7/cleanup-v7-tasks.md`
 
 ---
 
-## Current Status: C2 Complete (Including Retroactive Gap Fixes)
+## Current Status: C6 Complete (C1-C6 Complete)
 
 - **C1 (Rule Evaluation Pipeline Extraction)**: COMPLETE — `U_RuleEvaluator` already orchestrated the rule pipeline (commits 1-5 pre-existing). Commit 6 extracted property reader utilities to `U_RuleUtils`, removing ~150 lines of duplication across 5 files. Retroactive gap fixes (C1.7–C1.8): added `read_array_property` and `read_int_property` to `U_RuleUtils`, migrated QB pipeline utilities (`u_rule_validator`, `u_rule_scorer`, `u_rule_selector`) to use `U_RuleUtils` instead of local `_read_*` methods, deleted ~53 lines of duplicated code from `u_rule_validator` alone. All tests green, style enforcement passes.
 
 - **C2 (Typed Rule Context)**: COMPLETE — Created `RSRuleContext` (Resource) with 28 StringName key constants and typed properties for all rule system context fields. Systems build RSRuleContext objects and convert to Dictionary via `to_dictionary()` for QB condition/effect compatibility. Eliminated StringName/String dual-keying in `s_character_state_system`. Retroactive gap fixes (C2.6–C2.10): added `KEY_BRAIN_COMPONENT` for AI context, migrated `U_AIContextBuilder`, `M_ObjectivesManager`, and `M_SceneDirectorManager` to `RSRuleContext` (fixing latent "state" alias bug), expanded bare-string-key style enforcement to all 6 context builders, migrated `RS_RULE_CONTEXT` preload pattern to `RSRuleContext` class reference in all 3 rule systems. All tests green, style enforcement passes.
+- **C3 (Shared Dependency Resolution)**: COMPLETE — `U_DependencyResolution` is in place, migrated across ECS systems/managers/interactables/helpers, and style checks enforce no inline duplicate `try_get_store` resolution patterns in migrated files.
+- **C4 (State Snapshot Extraction)**: COMPLETE — `BaseECSSystem.get_frame_state_snapshot()` + `_resolve_state_store()` override contract adopted by the five target systems; local `_get_frame_state_snapshot` duplicates removed.
+- **C5 (Wall Visibility Decomposition)**: COMPLETE — `S_WallVisibilitySystem.process_tick` decomposed into focused methods and registry-driven type handling; decomposition + integration tests green.
+- **C6 (Scene Manager Overlay Extraction)**: COMPLETE — overlay behavior delegated to `U_OverlayStackManager`; `_perform_transition` decomposed and retroactive fixes landed for typed `U_TransitionState` callback state + `I_CameraManager.is_blend_active()` handoff checks.
 
 - **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
 - **C12 standalone doc**: `docs/general/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.
@@ -403,8 +407,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin C1** in `docs/general/cleanup_v7/cleanup-v7-tasks.md` — Rule Evaluation Pipeline Extraction.
-2. Proceed through C1–C11 respecting the dependency graph; each milestone has its own RED/GREEN/refactor commit cadence. Update completion notes in `cleanup-v7-tasks.md` after each milestone.
-3. Address cross-cutting concerns opportunistically when touching the relevant files during C1–C11.
+1. **Begin C7** in `docs/general/cleanup_v7/cleanup-v7-tasks.md` — Objectives Manager Namespace Support.
+2. Proceed through C7–C11 respecting the dependency graph; each milestone has its own RED/GREEN/refactor commit cadence. Update completion notes in `cleanup-v7-tasks.md` after each milestone.
+3. Address cross-cutting concerns opportunistically when touching the relevant files during C7–C11.
 4. **After C11 completes**, execute C12 (Post-Processing Pipeline Refactor) following `docs/general/cleanup_v7/post-process-refactor-tasks.md`. C12 is the last milestone of cleanup-v7 and ships in the same cleanup-v7 branch/PR set.
 5. After all 12 milestones pass, run a full regression suite (desktop + mobile, including the C12 runtime validation steps) and review before merging.

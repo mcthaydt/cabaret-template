@@ -588,6 +588,8 @@ Production asset files use type-specific prefixes:
   - `"instant"`: < 100ms, no visual effect (UI navigation)
   - `"fade"`: 0.2-0.5s, fade out → load → fade in (polished)
   - `"loading"`: 1.5s+, loading screen with progress bar (large scenes)
+- **Transition callback state contract**: `M_SceneManager` transition callbacks use `U_TransitionState` (`scripts/scene_management/helpers/u_transition_state.gd`) for mutable shared state; do not reintroduce `Array` wrapper captures for progress/new-scene refs.
+- **Camera blend handoff contract**: blend-finalization checks must use `I_CameraManager.is_blend_active()`; do not reflect private camera-manager members (for example `_camera_blend_tween`).
 - **Priority levels**:
   - `NORMAL = 0`: Standard navigation
   - `HIGH = 1`: Important but not urgent

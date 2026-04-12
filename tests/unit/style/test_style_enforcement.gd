@@ -621,9 +621,9 @@ func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/ecs/systems/s_character_state_system.gd",
 		"res://scripts/ecs/systems/s_game_event_system.gd",
-			"res://scripts/utils/ai/u_ai_context_builder.gd",
-			"res://scripts/managers/m_objectives_manager.gd",
-			"res://scripts/managers/m_scene_director_manager.gd",
+		"res://scripts/utils/ai/u_ai_context_builder.gd",
+		"res://scripts/managers/m_objectives_manager.gd",
+		"res://scripts/managers/m_scene_director_manager.gd",
 	]
 	var forbidden_methods: Array[String] = [
 		"_refresh_active_rules",
@@ -700,9 +700,12 @@ func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/ecs/systems/s_character_state_system.gd",
 		"res://scripts/ecs/systems/s_game_event_system.gd",
+		"res://scripts/utils/ai/u_ai_context_builder.gd",
+		"res://scripts/managers/m_objectives_manager.gd",
+		"res://scripts/managers/m_scene_director_manager.gd",
 	]
 	# Forbidden: context["key"] or context.get("key") with bare string keys
-	# Allowed: context[RSRuleContext.KEY_*] or context[RS_RULE_CONTEXT.KEY_*]
+	# Allowed: context[RSRuleContext.KEY_*]
 	var forbidden_patterns: Array[String] = [
 		'context["',
 		"context.get(\"",
@@ -710,14 +713,10 @@ func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
 		"context.erase(\"",
 	]
 	var allowed_patterns: Array[String] = [
-		"context[RS_RULE_CONTEXT",
-		"context.get(RS_RULE_CONTEXT",
-		"context.has(RS_RULE_CONTEXT",
-		"context.erase(RS_RULE_CONTEXT",
-			"context[RSRuleContext",
-			"context.get(RSRuleContext",
-			"context.has(RSRuleContext",
-			"context.erase(RSRuleContext",
+		"context[RSRuleContext",
+		"context.get(RSRuleContext",
+		"context.has(RSRuleContext",
+		"context.erase(RSRuleContext",
 	]
 	var violations: Array[String] = []
 
@@ -750,6 +749,31 @@ func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
+
+func test_scene_manager_transition_path_avoids_reflection_and_array_wrapper_captures() -> void:
+	var path := "res://scripts/managers/m_scene_manager.gd"
+	var file := FileAccess.open(path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % path)
+	if file == null:
+		return
+	var text: String = file.get_as_text()
+	file.close()
+
+	assert_eq(
+		text.find('_camera_manager.get("_camera_blend_tween")'),
+		-1,
+		"M_SceneManager should query I_CameraManager.is_blend_active() instead of reflecting private tween state."
+	)
+	assert_eq(
+		text.find("var current_progress: Array = ["),
+		-1,
+		"M_SceneManager transition code should not use Array-wrapper mutable capture for progress state."
+	)
+	assert_eq(
+		text.find("var new_scene_ref: Array = ["),
+		-1,
+		"M_SceneManager transition code should use typed transition state, not Array-wrapper mutable capture for scene refs."
+	)
 
 
 func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> void:
