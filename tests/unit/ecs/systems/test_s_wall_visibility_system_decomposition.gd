@@ -585,6 +585,166 @@ func test_process_tick_is_under_60_lines() -> void:
 		"process_tick should be under 60 lines after decomposition, got %d." % method_lines)
 
 
+# --- Target type registry tests ---
+
+func test_target_type_registry_resolves_csg_box_aabb() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	var csg_box := CSGBox3D.new()
+	csg_box.size = Vector3(2.0, 2.0, 2.0)
+	csg_box.position = Vector3(5.0, 0.0, 0.0)
+	add_child(csg_box)
+	autofree(csg_box)
+
+	var aabb: AABB = system._resolve_target_aabb_uncached(csg_box)
+	assert_gt(aabb.size.x, 0.0,
+		"CSGBox3D should resolve AABB via registry.")
+	assert_almost_eq(aabb.size.x, 2.0, 0.001,
+		"CSGBox3D AABB should match size.")
+
+
+func test_target_type_registry_resolves_mesh_aabb() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = BoxMesh.new()
+	mesh_instance.position = Vector3(0.0, 0.0, 0.0)
+	add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	var aabb: AABB = system._resolve_target_aabb_uncached(mesh_instance)
+	assert_gt(aabb.size.x, 0.0,
+		"MeshInstance3D with mesh should resolve AABB via registry.")
+
+
+func test_target_type_registry_resolves_csg_box_half_extents() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	var csg_box := CSGBox3D.new()
+	csg_box.size = Vector3(4.0, 2.0, 0.2)
+	csg_box.position = Vector3(0.0, 0.0, 0.0)
+	add_child(csg_box)
+	autofree(csg_box)
+
+	var half_extents: Vector2 = system._resolve_target_planar_half_extents_uncached(csg_box)
+	assert_gt(half_extents.x, 0.0,
+		"CSGBox3D should resolve planar half extents via registry.")
+
+
+func test_target_type_registry_resolves_mesh_half_extents() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = BoxMesh.new()
+	mesh_instance.position = Vector3(0.0, 0.0, 0.0)
+	add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	var half_extents: Vector2 = system._resolve_target_planar_half_extents_uncached(mesh_instance)
+	assert_gt(half_extents.x, 0.0,
+		"MeshInstance3D with mesh should resolve planar half extents via registry.")
+
+
+func test_target_type_registry_custom_handler() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	# Register a custom handler for CSGCylinder3D
+	var custom_aabb := AABB(Vector3(-1.0, -1.0, -1.0), Vector3(2.0, 2.0, 2.0))
+	system._register_target_type_handler(
+		&"CSGCylinder3D",
+		func(_t: Node3D) -> Variant: return custom_aabb,
+		func(_t: Node3D) -> Variant: return Vector2(1.0, 1.0)
+	)
+
+	var cylinder := CSGCylinder3D.new()
+	cylinder.position = Vector3(0.0, 0.0, 0.0)
+	add_child(cylinder)
+	autofree(cylinder)
+
+	var aabb: AABB = system._resolve_target_aabb_uncached(cylinder)
+	assert_eq(aabb, custom_aabb,
+		"Custom target type handler should resolve AABB for registered type.")
+
+	var half_extents: Vector2 = system._resolve_target_planar_half_extents_uncached(cylinder)
+	assert_almost_eq(half_extents.x, 1.0, 0.001,
+		"Custom target type handler should resolve half extents for registered type.")
+
+
+func test_target_type_registry_falls_back_to_default_for_unknown() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	# Create a generic Node3D (not in registry)
+	var plain_node := Node3D.new()
+	plain_node.position = Vector3(5.0, 5.0, 5.0)
+	add_child(plain_node)
+	autofree(plain_node)
+
+	var aabb: AABB = system._resolve_target_aabb_uncached(plain_node)
+	# Should return the generic fallback AABB centered on position
+	assert_almost_eq(aabb.position.x, 4.5, 0.001,
+		"Unknown target type should fall back to generic AABB.")
+
+
+func test_target_type_registry_mesh_null_mesh_returns_default_aabb() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	# MeshInstance3D with null mesh should fall through registry to default
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.position = Vector3(3.0, 3.0, 3.0)
+	add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	var aabb: AABB = system._resolve_target_aabb_uncached(mesh_instance)
+	# Falls through MeshInstance3D handler (returns null since mesh is null)
+	# then continues to CSGShape3D (doesn't match), then default fallback
+	assert_almost_eq(aabb.position.x, 2.5, 0.001,
+		"MeshInstance3D with null mesh should fall through to default AABB.")
+
+
+func test_no_type_dispatch_switch_in_aabb_resolver() -> void:
+	var script := _wall_visibility_system_script()
+	if script == null:
+		return
+	var source: String = script.source_code
+	# Extract the body of _resolve_target_aabb_uncached
+	var func_start: int = source.find("func _resolve_target_aabb_uncached(")
+	assert_gt(func_start, -1, "Should find _resolve_target_aabb_uncached in source.")
+	var func_body: String = source.substr(func_start, source.find("\n\n", func_start) - func_start)
+	assert_false(func_body.find(" is CSGBox3D") >= 0,
+		"_resolve_target_aabb_uncached should not contain 'is CSGBox3D' after registry refactor.")
+	assert_false(func_body.find(" is MeshInstance3D") >= 0,
+		"_resolve_target_aabb_uncached should not contain 'is MeshInstance3D' after registry refactor.")
+
+
+func test_no_type_dispatch_switch_in_half_extents_resolver() -> void:
+	var script := _wall_visibility_system_script()
+	if script == null:
+		return
+	var source: String = script.source_code
+	# Extract the body of _resolve_target_planar_half_extents_uncached
+	var func_start: int = source.find("func _resolve_target_planar_half_extents_uncached(")
+	assert_gt(func_start, -1, "Should find _resolve_target_planar_half_extents_uncached in source.")
+	var func_body: String = source.substr(func_start, source.find("\n\n", func_start) - func_start)
+	assert_false(func_body.find(" is CSGBox3D") >= 0,
+		"_resolve_target_planar_half_extents_uncached should not contain 'is CSGBox3D' after registry refactor.")
+	assert_false(func_body.find(" is MeshInstance3D") >= 0,
+		"_resolve_target_planar_half_extents_uncached should not contain 'is MeshInstance3D' after registry refactor.")
+
+
 # --- Fixture helpers ---
 
 func _register_room_fade_group(

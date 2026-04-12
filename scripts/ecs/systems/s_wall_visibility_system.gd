@@ -63,6 +63,11 @@ var _pooled_fades_before_corridor: Array[float] = []
 var _pooled_corridor_passes: Array[bool] = []
 var _pooled_is_roof: Array[bool] = []
 
+# Target type handler registry: maps target classes to AABB/half-extent resolvers.
+# Order matters: most specific types first (CSGBox3D before CSGShape3D).
+# Uses is_class() for matching — returns true for the class itself and all subclasses.
+var _target_type_handlers: Array[Dictionary] = []
+
 
 func _init() -> void:
 	execution_priority = 110
@@ -74,6 +79,7 @@ func _init() -> void:
 		desktop_tick_interval = 1
 	_perf_probe = U_PerfProbe.create("WallVis", _is_mobile)
 	_shader_probe = U_PerfProbe.create("WallVisShader", _is_mobile)
+	_init_target_type_handlers()
 
 
 func on_configured() -> void:
@@ -527,19 +533,101 @@ func _resolve_target_aabb(target: Node3D) -> AABB:
 	return result
 
 
+# --- Target type registry ---
+
+func _init_target_type_handlers() -> void:
+	# Most specific types first: CSGBox3D before CSGShape3D
+	_register_target_type_handler(&"CSGBox3D", _resolve_csg_box_aabb, _resolve_csg_box_planar_half_extents)
+	_register_target_type_handler(&"MeshInstance3D", _resolve_mesh_aabb, _resolve_mesh_planar_half_extents)
+	_register_target_type_handler(&"CSGShape3D", _resolve_csg_shape_aabb, func(_t: Node3D) -> Variant: return Vector2.ZERO)
+
+
+func _register_target_type_handler(
+	type_name: StringName,
+	aabb_resolver: Callable,
+	half_extents_resolver: Callable
+) -> void:
+	_target_type_handlers.append({
+		"type_name": type_name,
+		"aabb": aabb_resolver,
+		"half_extents": half_extents_resolver,
+	})
+
+
 func _resolve_target_aabb_uncached(target: Node3D) -> AABB:
-	if target is CSGBox3D:
-		var csg: CSGBox3D = target as CSGBox3D
-		var half: Vector3 = csg.size.abs() * 0.5
-		return AABB(csg.global_position - half, csg.size.abs())
-	elif target is MeshInstance3D:
-		var mesh_instance: MeshInstance3D = target as MeshInstance3D
-		if mesh_instance.mesh != null:
-			var mesh_aabb: AABB = mesh_instance.mesh.get_aabb()
-			return mesh_instance.global_transform * mesh_aabb
-	elif target is CSGShape3D:
-		return AABB(target.global_position - Vector3.ONE * 0.5, Vector3.ONE)
+	var target_class: String = target.get_class()
+	# First pass: exact class match (most specific)
+	for handler in _target_type_handlers:
+		if String(handler["type_name"]) == target_class:
+			var result: Variant = (handler["aabb"] as Callable).call(target)
+			if result is AABB:
+				return result as AABB
+	# Second pass: inheritance fallback (e.g., CSGShape3D matches any CSG* subtype)
+	for handler in _target_type_handlers:
+		if String(handler["type_name"]) != target_class and target.is_class(String(handler["type_name"])):
+			var result: Variant = (handler["aabb"] as Callable).call(target)
+			if result is AABB:
+				return result as AABB
 	return AABB(target.global_position - Vector3.ONE * 0.5, Vector3.ONE)
+
+
+func _resolve_csg_box_aabb(target: Node3D) -> Variant:
+	var csg: CSGBox3D = target as CSGBox3D
+	if csg == null:
+		return null
+	var half: Vector3 = csg.size.abs() * 0.5
+	return AABB(csg.global_position - half, csg.size.abs())
+
+
+func _resolve_mesh_aabb(target: Node3D) -> Variant:
+	var mesh_instance: MeshInstance3D = target as MeshInstance3D
+	if mesh_instance != null and mesh_instance.mesh != null:
+		var mesh_aabb: AABB = mesh_instance.mesh.get_aabb()
+		return mesh_instance.global_transform * mesh_aabb
+	return null
+
+
+func _resolve_csg_shape_aabb(target: Node3D) -> Variant:
+	return AABB(target.global_position - Vector3.ONE * 0.5, Vector3.ONE)
+
+
+func _resolve_target_planar_half_extents_uncached(target: Node3D) -> Vector2:
+	var target_class: String = target.get_class()
+	# First pass: exact class match
+	for handler in _target_type_handlers:
+		if String(handler["type_name"]) == target_class:
+			var result: Variant = (handler["half_extents"] as Callable).call(target)
+			if result is Vector2:
+				return result as Vector2
+	# Second pass: inheritance fallback
+	for handler in _target_type_handlers:
+		if String(handler["type_name"]) != target_class and target.is_class(String(handler["type_name"])):
+			var result: Variant = (handler["half_extents"] as Callable).call(target)
+			if result is Vector2:
+				return result as Vector2
+	return Vector2.ZERO
+
+
+func _resolve_csg_box_planar_half_extents(target: Node3D) -> Variant:
+	var csg: CSGBox3D = target as CSGBox3D
+	if csg == null:
+		return null
+	var half: Vector3 = csg.size.abs() * 0.5
+	var bx: Basis = csg.global_basis
+	var world_half_x: float = half.x * absf(bx.x.x) + half.z * absf(bx.z.x)
+	var world_half_z: float = half.x * absf(bx.x.z) + half.z * absf(bx.z.z)
+	return Vector2(world_half_x, world_half_z)
+
+
+func _resolve_mesh_planar_half_extents(target: Node3D) -> Variant:
+	var mesh: MeshInstance3D = target as MeshInstance3D
+	if mesh != null and mesh.mesh != null:
+		var half: Vector3 = mesh.mesh.get_aabb().size.abs() * 0.5
+		var bx: Basis = mesh.global_basis
+		var world_half_x: float = half.x * absf(bx.x.x) + half.z * absf(bx.z.x)
+		var world_half_z: float = half.x * absf(bx.x.z) + half.z * absf(bx.z.z)
+		return Vector2(world_half_x, world_half_z)
+	return null
 
 
 # --- Directional fade ---
@@ -617,25 +705,6 @@ func _resolve_target_planar_half_extents(target: Node3D) -> Vector2:
 	var result: Vector2 = _resolve_target_planar_half_extents_uncached(target)
 	_cached_half_extents[target_id] = result
 	return result
-
-
-func _resolve_target_planar_half_extents_uncached(target: Node3D) -> Vector2:
-	if target is CSGBox3D:
-		var csg: CSGBox3D = target as CSGBox3D
-		var half: Vector3 = csg.size.abs() * 0.5
-		var bx: Basis = csg.global_basis
-		var world_half_x: float = half.x * absf(bx.x.x) + half.z * absf(bx.z.x)
-		var world_half_z: float = half.x * absf(bx.x.z) + half.z * absf(bx.z.z)
-		return Vector2(world_half_x, world_half_z)
-	elif target is MeshInstance3D:
-		var mesh: MeshInstance3D = target as MeshInstance3D
-		if mesh.mesh != null:
-			var half: Vector3 = mesh.mesh.get_aabb().size.abs() * 0.5
-			var bx: Basis = mesh.global_basis
-			var world_half_x: float = half.x * absf(bx.x.x) + half.z * absf(bx.z.x)
-			var world_half_z: float = half.x * absf(bx.x.z) + half.z * absf(bx.z.z)
-			return Vector2(world_half_x, world_half_z)
-	return Vector2.ZERO
 
 
 # --- Bucket continuity ---
