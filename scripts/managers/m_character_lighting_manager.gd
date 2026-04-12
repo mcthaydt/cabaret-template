@@ -9,6 +9,7 @@ const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_select
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const RS_CHARACTER_LIGHTING_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_character_lighting_config.gd")
 const SERVICE_NAME := StringName("character_lighting_manager")
 const STATE_SERVICE := StringName("state_store")
 const SCENE_SERVICE := StringName("scene_manager")
@@ -20,20 +21,14 @@ const LIGHTING_NODE_NAME := "Lighting"
 const SETTINGS_NODE_NAME := "CharacterLightingSettings"
 const INFLUENCE_ENTER_THRESHOLD := 0.02
 const INFLUENCE_EXIT_THRESHOLD := 0.01
-## Mobile throttle: skip every Nth physics tick to reduce zone computation overhead
-const MOBILE_TICK_INTERVAL := 3
-const DEFAULT_PROFILE := {
-	"tint": Color(1.0, 1.0, 1.0, 1.0),
-	"intensity": 1.0,
-	"blend_smoothing": 0.15,
-}
 
 @export var state_store: I_StateStore = null
 @export var scene_manager: I_SceneManager = null
 @export var ecs_manager: Node = null
+@export var lighting_config: Resource = null
 
 var _scene_default_profile: Resource = null
-var _scene_default_profile_resolved: Dictionary = DEFAULT_PROFILE.duplicate(true)
+var _scene_default_profile_resolved: Dictionary = {}
 var _zones: Array[Node] = []
 var _character_entities: Array[Node] = []
 var _registered_zones: Array[Node] = []
@@ -57,6 +52,7 @@ func _ready() -> void:
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
 	_perf_probe = U_PerfProbe.create("CharLighting", _is_mobile)
 	_apply_probe = U_PerfProbe.create("CharLightApply", _is_mobile)
+	_scene_default_profile_resolved = _resolve_default_profile_values()
 	_resolve_dependencies()
 	_connect_store_action_signal()
 	var existing := U_SERVICE_LOCATOR.try_get_service(SERVICE_NAME)
@@ -106,7 +102,8 @@ func set_character_lighting_enabled(enabled: bool) -> void:
 func _physics_process(_delta: float) -> void:
 	# Mobile throttle: skip every Nth physics tick to reduce zone computation overhead
 	_tick_counter += 1
-	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
+	var mobile_tick_interval: int = _resolve_mobile_tick_interval()
+	if _is_mobile and (_tick_counter % mobile_tick_interval) != 0:
 		return
 
 	_perf_probe.start()
@@ -270,9 +267,54 @@ func _resolve_profile_values(profile: Resource) -> Dictionary:
 			var blended := U_CHARACTER_LIGHTING_BLEND_MATH.blend_zone_profiles([], resolved)
 			blended.erase("sources")
 			return blended
-	var fallback := U_CHARACTER_LIGHTING_BLEND_MATH.blend_zone_profiles([], DEFAULT_PROFILE)
+	var fallback := U_CHARACTER_LIGHTING_BLEND_MATH.blend_zone_profiles([], _resolve_default_profile_values())
 	fallback.erase("sources")
 	return fallback
+
+
+func _resolve_mobile_tick_interval() -> int:
+	var config: Resource = _resolve_lighting_config_resource()
+	if config == null:
+		return 3
+	return maxi(1, int(config.get("mobile_tick_interval")))
+
+
+func _resolve_default_profile_values() -> Dictionary:
+	var config: Resource = _resolve_lighting_config_resource()
+	var fallback := {
+		"tint": Color(1.0, 1.0, 1.0, 1.0),
+		"intensity": 1.0,
+		"blend_smoothing": 0.15,
+	}
+	if config == null:
+		return fallback
+
+	if config.has_method("get_default_profile_values"):
+		var resolved_variant: Variant = config.call("get_default_profile_values")
+		if resolved_variant is Dictionary:
+			var resolved := resolved_variant as Dictionary
+			return {
+				"tint": resolved.get("tint", fallback["tint"]),
+				"intensity": _to_float(resolved.get("intensity", fallback["intensity"]), 1.0),
+				"blend_smoothing": clampf(
+					_to_float(resolved.get("blend_smoothing", fallback["blend_smoothing"]), 0.15),
+					0.0,
+					1.0
+				),
+			}
+	return fallback
+
+
+func _resolve_lighting_config_resource() -> Resource:
+	var config_variant: Variant = lighting_config
+	if config_variant == null:
+		config_variant = RS_CHARACTER_LIGHTING_CONFIG_SCRIPT.new()
+	if config_variant == null or not (config_variant is Resource):
+		return null
+	var config_resource := config_variant as Resource
+	if config_resource.get_script() != RS_CHARACTER_LIGHTING_CONFIG_SCRIPT:
+		return null
+	return config_resource
 
 func _update_character_entities() -> void:
 	var discovered := _discover_character_entities()
