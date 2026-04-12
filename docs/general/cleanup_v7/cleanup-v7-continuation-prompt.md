@@ -5,8 +5,8 @@
 This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 
 **Branch**: GOAP-AI
-**Status**: C1-C6 complete (with retroactive gap fixes through C6) — begin C7
-**Next Task**: Begin C7 (Objectives Manager Namespace Support) in `docs/general/cleanup_v7/cleanup-v7-tasks.md`
+**Status**: C1-C7 complete (with retroactive gap fixes through C6) — begin C8
+**Next Task**: Begin C8 (Selector Enforcement — Managers) in `docs/general/cleanup_v7/cleanup-v7-tasks.md`
 
 ---
 
@@ -19,6 +19,7 @@ This guide directs you to implement the Cross-System Cleanup (V7) by following t
 - **C4 (State Snapshot Extraction)**: COMPLETE — `BaseECSSystem.get_frame_state_snapshot()` + `_resolve_state_store()` override contract adopted by the five target systems; local `_get_frame_state_snapshot` duplicates removed.
 - **C5 (Wall Visibility Decomposition)**: COMPLETE — `S_WallVisibilitySystem.process_tick` decomposed into focused methods and registry-driven type handling; decomposition + integration tests green.
 - **C6 (Scene Manager Overlay Extraction)**: COMPLETE — overlay behavior delegated to `U_OverlayStackManager`; `_perform_transition` decomposed and retroactive fixes landed for typed `U_TransitionState` callback state + `I_CameraManager.is_blend_active()` handoff checks.
+- **C7 (Objectives Manager Namespace Support)**: COMPLETE — Replaced `_objectives_by_id` flat dictionary with `_objective_sets` namespace-aware storage. Multiple objective sets can be active simultaneously. Added `unload_objective_set()`, `active_set_ids` array to store, cross-set selectors (`get_active_set_ids`, `get_statuses_snapshot`, `get_completed_objectives`), and grep test enforcing selector usage.
 
 - **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
 - **C12 standalone doc**: `docs/general/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.
@@ -47,7 +48,7 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 - `m_ecs_manager.query_entities` and `query_entities_readonly` are near-duplicates.
 
 ### Scalability Issues
-- `m_objectives_manager._objectives_by_id` is a flat dictionary — loading a new set replaces the previous one entirely.
+- ~~`m_objectives_manager._objectives_by_id` is a flat dictionary — loading a new set replaces the previous one entirely.~~ (Fixed in C7: now uses `_objective_sets` namespace-aware storage)
 - `m_ecs_manager._invalidate_query_cache` clears ALL cache entries on any component change.
 - Context dictionaries in rule systems use magic-string keys with no schema or type safety.
 - `m_scene_manager._scene_history` grows without bound.
