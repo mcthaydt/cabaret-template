@@ -182,10 +182,7 @@ func _context_key_for_context(context: Dictionary) -> StringName:
 func _build_camera_contexts(event_name: StringName, event_payload: Dictionary) -> Array:
 	var contexts: Array = []
 	var store: I_StateStore = _resolve_store()
-	var redux_state: Dictionary = _get_frame_state_snapshot()
-	if redux_state.is_empty():
-		if store != null:
-			redux_state = store.get_state()
+	var redux_state: Dictionary = get_frame_state_snapshot()
 	var movement_snapshot: Dictionary = _resolve_primary_movement_snapshot()
 
 	var entities: Array = query_entities([CAMERA_STATE_TYPE])
@@ -470,14 +467,8 @@ func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 func _resolve_store() -> I_StateStore:
 	return U_DependencyResolution.resolve_state_store(null, state_store, self)
 
-func _get_frame_state_snapshot() -> Dictionary:
-	var manager := get_manager()
-	if manager != null and manager.has_method("get_frame_state_snapshot"):
-		return manager.get_frame_state_snapshot()
-	var store: I_StateStore = _resolve_store()
-	if store != null:
-		return store.get_state()
-	return {}
+func _resolve_state_store() -> I_StateStore:
+	return _resolve_store()
 
 func _extract_event_payload(event_data: Dictionary) -> Dictionary:
 	var payload_variant: Variant = event_data.get("payload", null)

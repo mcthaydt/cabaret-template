@@ -2,7 +2,6 @@
 extends BaseECSSystem
 class_name S_WallVisibilitySystem
 
-const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
@@ -100,7 +99,7 @@ func process_tick(delta: float) -> void:
 
 	_perf_probe.start()
 	# Use shared frame snapshot instead of independent store.get_state() calls
-	var state: Dictionary = _get_frame_state_snapshot()
+	var state: Dictionary = get_frame_state_snapshot()
 	var mode_info: Dictionary = _get_active_mode_info_from_state(state)
 	if not bool(mode_info.get("is_orbit", false)):
 		_restore_components_to_opaque(components)
@@ -745,7 +744,7 @@ func _resolve_material_applier() -> Variant:
 
 
 func _get_active_mode_info() -> Dictionary:
-	var state: Dictionary = _get_frame_state_snapshot()
+	var state: Dictionary = get_frame_state_snapshot()
 	return _get_active_mode_info_from_state(state)
 
 
@@ -757,7 +756,7 @@ func _get_active_mode_info_from_state(state: Dictionary) -> Dictionary:
 
 
 func _resolve_player_position_data() -> Dictionary:
-	var state: Dictionary = _get_frame_state_snapshot()
+	var state: Dictionary = get_frame_state_snapshot()
 	return _resolve_player_position_data_from_state(state)
 
 
@@ -777,30 +776,6 @@ func _resolve_player_position_data_from_state(state: Dictionary) -> Dictionary:
 	if position_variant is Vector3:
 		return {"position": position_variant as Vector3}
 	return {}
-
-
-func _get_frame_state_snapshot() -> Dictionary:
-	var manager := _get_ecs_manager()
-	if manager != null and manager.has_method("get_frame_state_snapshot"):
-		var manager_snapshot: Variant = manager.get_frame_state_snapshot()
-		if manager_snapshot is Dictionary:
-			var snapshot: Dictionary = manager_snapshot as Dictionary
-			if not snapshot.is_empty():
-				return snapshot
-	# Fallback: resolve from store directly
-	var store: I_STATE_STORE = _resolve_state_store()
-	if store != null:
-		return store.get_state()
-	return {}
-
-
-func _get_ecs_manager() -> Node:
-	if ecs_manager != null and is_instance_valid(ecs_manager):
-		return ecs_manager
-	var service: Variant = U_SERVICE_LOCATOR.try_get_service(StringName("ecs_manager"))
-	if service is Node:
-		return service
-	return null
 
 
 func _resolve_settings(component: Object) -> Dictionary:

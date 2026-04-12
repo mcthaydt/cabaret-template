@@ -141,7 +141,7 @@ func process_tick(delta: float) -> void:
 
 	var store := _runtime_services_helper.resolve_state_store()
 	_state_store = store
-	var state_snapshot: Dictionary = _get_frame_state_snapshot()
+	var state_snapshot: Dictionary = get_frame_state_snapshot()
 	var input_state_snapshot: Dictionary = state_snapshot
 	if store != null and is_instance_valid(store):
 		# Input can be mutated by earlier ECS systems in the same physics tick.
@@ -544,13 +544,7 @@ func _resolve_orbit_center_target_yaw(
 		RS_VCAM_MODE_ORBIT_SCRIPT
 	)
 
-func _get_frame_state_snapshot() -> Dictionary:
-	var manager := get_manager()
-	if manager != null and manager.has_method("get_frame_state_snapshot"):
-		return manager.get_frame_state_snapshot()
+func _resolve_state_store() -> I_StateStore:
 	if _state_store != null and is_instance_valid(_state_store):
-		return _state_store.get_state()
-	var store := _runtime_services_helper.resolve_state_store()
-	if store != null:
-		return store.get_state()
-	return {}
+		return _state_store
+	return _runtime_services_helper.resolve_state_store()

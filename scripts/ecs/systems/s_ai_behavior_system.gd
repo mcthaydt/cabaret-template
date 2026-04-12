@@ -46,8 +46,8 @@ func process_tick(delta: float) -> void:
 	if entities.is_empty():
 		_debug_log_missing_brains()
 		return
+	var redux_state: Dictionary = get_frame_state_snapshot()
 	var store: I_StateStore = _resolve_store()
-	var redux_state: Dictionary = _resolve_redux_state(store)
 	var manager: I_ECSManager = get_manager()
 	var active_context_keys: Array[StringName] = []
 	for entity_query_variant in entities:
@@ -121,16 +121,8 @@ func _should_evaluate_goals(
 func _resolve_store() -> I_StateStore:
 	return U_DependencyResolution.resolve_state_store(null, state_store, self)
 
-func _resolve_redux_state(store: I_StateStore) -> Dictionary:
-	var manager: I_ECSManager = get_manager()
-	var manager_state: Dictionary = {}
-	if manager != null and manager.has_method("get_frame_state_snapshot"):
-		manager_state = manager.get_frame_state_snapshot()
-	if not manager_state.is_empty():
-		return manager_state
-	if store != null:
-		return store.get_state()
-	return manager_state
+func _resolve_state_store() -> I_StateStore:
+	return _resolve_store()
 
 func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	if not debug_ai_logging:

@@ -796,6 +796,35 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		dep_res_message += ":\n" + "\n".join(dep_res_violations)
 	assert_eq(dep_res_violations.size(), 0, dep_res_message)
 
+func test_ecs_systems_do_not_define_local_get_frame_state_snapshot() -> void:
+	# Systems that have been migrated to use BaseECSSystem.get_frame_state_snapshot()
+	# should not define their own _get_frame_state_snapshot method.
+	var migrated_files: Array[String] = [
+		"res://scripts/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/ecs/systems/s_character_state_system.gd",
+		"res://scripts/ecs/systems/s_vcam_system.gd",
+		"res://scripts/ecs/systems/s_wall_visibility_system.gd",
+		"res://scripts/ecs/systems/s_ai_behavior_system.gd",
+	]
+	var forbidden_pattern: String = "func _get_frame_state_snapshot"
+	var snapshot_violations: Array[String] = []
+
+	for path in migrated_files:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			snapshot_violations.append("%s (unable to open file)" % path)
+			continue
+		var file_text: String = file.get_as_text()
+		file.close()
+
+		if file_text.find(forbidden_pattern) != -1:
+			snapshot_violations.append("%s still defines _get_frame_state_snapshot (should use inherited get_frame_state_snapshot)" % path)
+
+	var snapshot_message := "Migrated systems should not define local _get_frame_state_snapshot"
+	if snapshot_violations.size() > 0:
+		snapshot_message += ":\n" + "\n".join(snapshot_violations)
+	assert_eq(snapshot_violations.size(), 0, snapshot_message)
+
 # Helper functions for prefix validation
 
 func _check_directory_prefixes(dir_path: String, allowed_prefixes: Array, violations: Array[String]) -> void:

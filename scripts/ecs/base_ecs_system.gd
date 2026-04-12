@@ -59,16 +59,17 @@ func resolve_service(service_name: StringName, cached_value: Variant = null, exp
 
 ## Returns the frame state snapshot for this tick.
 ##
-## Tries the ECS manager's get_frame_state_snapshot() first (fastest path),
-## then falls back to the state store via _resolve_state_store().
+## Tries the ECS manager's get_frame_state_snapshot() first (fastest path).
+## If the manager returns an empty snapshot, falls through to the state store
+## via _resolve_state_store() — an empty manager snapshot typically means no
+## components are registered yet, so the store provides the actual state.
 ## Returns an empty Dictionary if neither is available.
-##
-## Subclasses that need emptiness validation (fall through to store when
-## the manager returns an empty snapshot) should override this method.
 func get_frame_state_snapshot() -> Dictionary:
 	var manager := get_manager()
 	if manager != null and manager.has_method("get_frame_state_snapshot"):
-		return manager.get_frame_state_snapshot()
+		var snapshot: Variant = manager.get_frame_state_snapshot()
+		if snapshot is Dictionary and not (snapshot as Dictionary).is_empty():
+			return snapshot as Dictionary
 	var store := _resolve_state_store()
 	if store != null:
 		return store.get_state()

@@ -2,9 +2,8 @@ extends BaseTest
 
 ## Tests for BaseECSSystem.get_frame_state_snapshot() and _resolve_state_store().
 ##
-## TDD RED phase: these tests define the expected behavior before the
-## implementation exists. They should FAIL until BaseECSSystem is updated
-## in Commit 2 (GREEN).
+## Validates the shared state snapshot extraction pattern: try manager
+## snapshot (skip if empty), fall back to state store, return empty dict.
 
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
@@ -108,9 +107,10 @@ func test_snapshot_returns_manager_snapshot_when_available() -> void:
 	var result: Dictionary = system.get_frame_state_snapshot()
 	assert_eq(result, expected_state, "Should return manager's frame state snapshot")
 
-func test_snapshot_returns_manager_snapshot_even_when_empty() -> void:
-	## The base method returns the manager snapshot even if empty.
-	## Systems that need emptiness validation should override get_frame_state_snapshot.
+func test_snapshot_falls_through_to_store_when_manager_returns_empty() -> void:
+	## When the manager returns an empty snapshot, the base method falls
+	## through to the state store — an empty manager snapshot typically means
+	## no components are registered yet.
 	var system := TestSystem.new()
 	add_child(system)
 	autofree(system)
@@ -120,9 +120,14 @@ func test_snapshot_returns_manager_snapshot_even_when_empty() -> void:
 	autofree(manager)
 	manager._frame_snapshot = {}
 
+	var store := StubStateStore.new()
+	autofree(store)
+	store._state = {"gameplay": {"score": 42}}
+	U_SERVICE_LOCATOR.register(&"state_store", store)
+
 	system.configure(manager)
 	var result: Dictionary = system.get_frame_state_snapshot()
-	assert_eq(result.size(), 0, "Should return empty dict from manager when snapshot is empty")
+	assert_eq(result.get("gameplay", {}).get("score", 0), 42, "Should fall through to store when manager returns empty snapshot")
 
 func test_snapshot_falls_back_to_state_store_when_no_manager() -> void:
 	var system := TestSystem.new()
