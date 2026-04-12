@@ -116,9 +116,12 @@ func get_entity_by_id(id: StringName) -> Node:
 
 func get_entities_by_tag(tag: StringName) -> Array[Node]:
 	var entries: Variant = _entities_by_tag.get(tag, [])
+	var result: Array[Node] = []
 	if entries is Array:
-		return (entries as Array).duplicate()
-	return []
+		for entry in (entries as Array):
+			if entry is Node:
+				result.append(entry as Node)
+	return result
 
 func get_entities_by_tags(tags: Array[StringName], match_all: bool = false) -> Array[Node]:
 	var results: Array[Node] = []
