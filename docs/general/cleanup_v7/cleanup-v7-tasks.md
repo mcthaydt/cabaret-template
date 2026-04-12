@@ -127,32 +127,27 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C4: State Snapshot Extraction to BaseECSSystem
+## Milestone C4: State Snapshot Extraction to BaseECSSystem — COMPLETE
 
-**Goal**: Extract `_get_frame_state_snapshot` (near-identical across 5 systems) into `BaseECSSystem`. Each system resolves the state store its own way, then builds a snapshot with the same logical structure (try ECS manager, fall back to state store). The base class can provide this once.
+**Completed**: 2026-04-11
 
-**Scope**: 5 systems (not 4 — `s_ai_behavior_system` also has this method):
-- `s_wall_visibility_system` — variant with `_get_ecs_manager()` and emptiness validation
-- `s_camera_state_system` — common pattern with `_resolve_store()`
-- `s_character_state_system` — common pattern with `_resolve_store()`
-- `s_vcam_system` — variant with `_runtime_services_helper.resolve_state_store()`
-- `s_ai_behavior_system` — common pattern with `_resolve_store()`
+**Summary**: Extracted `_get_frame_state_snapshot` from 4 systems and `_resolve_redux_state` from 1 system into `BaseECSSystem.get_frame_state_snapshot()`. The base method tries the ECS manager's snapshot (skipping empty), falls back to state store via virtual `_resolve_state_store()`, and returns empty dict if neither is available. Each system overrides `_resolve_state_store()` to pass its `@export var state_store` or specialized resolution. Removed `_get_ecs_manager()` from wall_visibility_system (redundant with `get_manager()`). Removed ~85 lines of duplicated snapshot logic.
 
-- [ ] **Commit 1** — Add snapshot tests (TDD RED):
-  - `tests/unit/ecs/test_base_ecs_system_snapshot.gd` — test that `get_frame_state_snapshot` returns a dictionary with `state`, `state_store`, and `ecs_manager` keys, resolving from the system's manager or cached references.
-- [ ] **Commit 2** — Add `get_frame_state_snapshot` to `BaseECSSystem` (TDD GREEN):
-  - `scripts/ecs/base_ecs_system.gd` — add method that resolves state store (via C3's shared resolution), returns `{ state: ..., state_store: ..., ecs_manager: ... }`.
-- [ ] **Commit 3** — Migrate all five systems to use `get_frame_state_snapshot`:
-  - `s_wall_visibility_system.gd` — remove `_get_frame_state_snapshot`, call inherited method. Override emptiness validation if needed.
-  - `s_camera_state_system.gd` — remove `_get_frame_state_snapshot`, call inherited method.
-  - `s_character_state_system.gd` — remove `_get_frame_state_snapshot`, call inherited method.
-  - `s_vcam_system.gd` — remove `_get_frame_state_snapshot`, call inherited method. Override for `_runtime_services_helper` variant if needed.
-  - `s_ai_behavior_system.gd` — remove `_get_frame_state_snapshot`, call inherited method.
+- [x] **Commit 1** — Add snapshot tests (TDD RED):
+  - `tests/unit/ecs/test_base_ecs_system_snapshot.gd` — 10 tests covering manager snapshot, empty manager fallback, store fallback, ServiceLocator resolution, export override, integration.
+- [x] **Commit 2** — Add `get_frame_state_snapshot` and `_resolve_state_store` to `BaseECSSystem` (TDD GREEN):
+  - `scripts/ecs/base_ecs_system.gd` — `get_frame_state_snapshot()` tries manager (skips empty), falls back to `_resolve_state_store()`. Default `_resolve_state_store()` uses `U_DependencyResolution.resolve_state_store(null, null, self)`.
+- [x] **Commit 3** — Migrate all five systems to use `get_frame_state_snapshot`:
+  - `s_camera_state_system.gd` — removed `_get_frame_state_snapshot`, added `_resolve_state_store()` override delegating to `_resolve_store()`. Removed redundant emptiness check at call site.
+  - `s_character_state_system.gd` — removed `_get_frame_state_snapshot`, added `_resolve_state_store()` override delegating to `_resolve_store()`. Removed redundant emptiness check at call site.
+  - `s_vcam_system.gd` — removed `_get_frame_state_snapshot`, added `_resolve_state_store()` override using `_runtime_services_helper.resolve_state_store()`.
+  - `s_wall_visibility_system.gd` — removed `_get_frame_state_snapshot` and `_get_ecs_manager()`. Existing `_resolve_state_store()` serves as the override. Removed `U_SERVICE_LOCATOR` preload.
+  - `s_ai_behavior_system.gd` — removed `_resolve_redux_state()`, uses inherited `get_frame_state_snapshot()`. Added `_resolve_state_store()` override delegating to `_resolve_store()`.
 
 **C4 Verification**:
-- [ ] All snapshot tests green
-- [ ] All five systems' existing tests green
-- [ ] No `_get_frame_state_snapshot` defined in any ECS system (grep test)
+- [x] All snapshot tests green
+- [x] All five systems' existing tests green
+- [x] No `_get_frame_state_snapshot` defined in any ECS system (grep test)
 
 ---
 
