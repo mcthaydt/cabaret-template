@@ -33,15 +33,10 @@ const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const I_ECS_ENTITY := preload("res://scripts/interfaces/i_ecs_entity.gd")
 const SP_SPAWN_POINT := preload("res://scripts/scene_management/sp_spawn_point.gd")
-
-const SPAWN_CONDITION_ALWAYS := 0
-const SPAWN_CONDITION_CHECKPOINT_ONLY := 1
-const SPAWN_CONDITION_DISABLED := 2
+const RS_SPAWN_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_spawn_config.gd")
 
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
-
-const SPAWN_HOVER_SNAP_MAX_DISTANCE := 0.75
-const SPAWN_GROUND_SNAP_MAX_DISTANCE := 8.0
+@export var spawn_config: Resource = null
 
 ## Internal references
 var _state_store: M_STATE_STORE = null
@@ -55,6 +50,33 @@ func _ready() -> void:
 	# Phase 10B (T133): Warn if M_StateStore missing for fail-fast feedback
 	if _state_store == null:
 		push_warning("M_SpawnManager: M_StateStore dependency not found. Ensure M_StateStore is registered with ServiceLocator")
+
+
+func _resolve_spawn_config_values() -> Dictionary:
+	var defaults := {
+		"ground_snap_max_distance": 8.0,
+		"hover_snap_max_distance": 0.75,
+		"spawn_condition_always": 0,
+		"spawn_condition_checkpoint_only": 1,
+		"spawn_condition_disabled": 2,
+	}
+	var config_variant: Variant = spawn_config
+	if config_variant == null:
+		config_variant = RS_SPAWN_CONFIG_SCRIPT.new()
+	if config_variant == null or not (config_variant is Resource):
+		return defaults
+
+	var config_resource: Resource = config_variant as Resource
+	if config_resource.get_script() != RS_SPAWN_CONFIG_SCRIPT:
+		return defaults
+
+	return {
+		"ground_snap_max_distance": maxf(float(config_resource.get("ground_snap_max_distance")), 0.0),
+		"hover_snap_max_distance": maxf(float(config_resource.get("hover_snap_max_distance")), 0.0),
+		"spawn_condition_always": int(config_resource.get("spawn_condition_always")),
+		"spawn_condition_checkpoint_only": int(config_resource.get("spawn_condition_checkpoint_only")),
+		"spawn_condition_disabled": int(config_resource.get("spawn_condition_disabled")),
+	}
 
 ## Spawn player at specified spawn point (T220)
 ##
@@ -419,12 +441,16 @@ func _is_spawn_allowed(spawn_id: StringName, used_last_checkpoint: bool) -> bool
 		# selection should be driven by scene-attached metadata.
 		return false
 
-	var condition: int = int(metadata.get("condition", SPAWN_CONDITION_ALWAYS))
+	var config: Dictionary = _resolve_spawn_config_values()
+	var condition_always: int = int(config.get("spawn_condition_always", 0))
+	var condition_checkpoint_only: int = int(config.get("spawn_condition_checkpoint_only", 1))
+	var condition_disabled: int = int(config.get("spawn_condition_disabled", 2))
+	var condition: int = int(metadata.get("condition", condition_always))
 
-	if condition == SPAWN_CONDITION_DISABLED:
+	if condition == condition_disabled:
 		return false
 
-	if condition == SPAWN_CONDITION_CHECKPOINT_ONLY and not used_last_checkpoint:
+	if condition == condition_checkpoint_only and not used_last_checkpoint:
 		return false
 
 	return true
@@ -609,7 +635,8 @@ func _get_ground_snap_travel_for_body(ecs_body: CharacterBody3D, up_dir: Vector3
 	if ecs_body == null:
 		return Vector3.ZERO
 
-	var motion := -up_dir * SPAWN_GROUND_SNAP_MAX_DISTANCE
+	var max_distance: float = float(_resolve_spawn_config_values().get("ground_snap_max_distance", 8.0))
+	var motion := -up_dir * max_distance
 	var collision := ecs_body.move_and_collide(motion, true)
 	if collision == null:
 		return Vector3.ZERO
@@ -624,8 +651,9 @@ func _get_ground_snap_travel_for_node(player: Node3D, up_dir: Vector3) -> Vector
 	if world == null:
 		return Vector3.ZERO
 
+	var max_distance: float = float(_resolve_spawn_config_values().get("ground_snap_max_distance", 8.0))
 	var query_from: Vector3 = player.global_position + up_dir * 0.1
-	var query_to: Vector3 = query_from - up_dir * SPAWN_GROUND_SNAP_MAX_DISTANCE
+	var query_to: Vector3 = query_from - up_dir * max_distance
 	var query := PhysicsRayQueryParameters3D.create(query_from, query_to)
 	query.collide_with_areas = false
 	query.collide_with_bodies = true
@@ -701,7 +729,10 @@ func _snap_player_to_hover_height(player: Node3D, ecs_body: CharacterBody3D) -> 
 		return
 
 	# Clamp snap to avoid large teleports when ground is far/missing.
-	height_error = clamp(height_error, -SPAWN_HOVER_SNAP_MAX_DISTANCE, SPAWN_HOVER_SNAP_MAX_DISTANCE)
+	var hover_snap_max_distance: float = float(
+		_resolve_spawn_config_values().get("hover_snap_max_distance", 0.75)
+	)
+	height_error = clamp(height_error, -hover_snap_max_distance, hover_snap_max_distance)
 	player.global_position += normal * height_error
 
 	if ecs_body != null:
