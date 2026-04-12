@@ -431,12 +431,23 @@ func _get_entity_id(body: Node) -> String:
 		return String(ECS_UTILS.get_entity_id(entity_root))
 	return ""
 
-## Phase 16: Get entity type from body
+## Get entity type from body (C10: tag-based primary, name-inference fallback)
+##
+## Lookup order:
+##   1. Entity tags — "player", "enemy", or "npc" tag on the entity node
+##   2. Name inference — substring match on the entity root node name
 func _get_entity_type(body: Node) -> String:
 	var source_node: Node = ECS_UTILS.find_entity_root(body, true)
 	if source_node == null:
 		source_node = body
-	return _infer_entity_type_from_name(source_node.name)
+
+	var tags: Array[StringName] = ECS_UTILS.get_entity_tags(source_node)
+	for tag in tags:
+		var tag_str: String = String(tag)
+		if tag_str == "player" or tag_str == "enemy" or tag_str == "npc":
+			return tag_str
+
+	return _infer_entity_type_from_name(String(source_node.name))
 
 func _infer_entity_type_from_name(name_text: String) -> String:
 	var name_lower: String = name_text.to_lower()
