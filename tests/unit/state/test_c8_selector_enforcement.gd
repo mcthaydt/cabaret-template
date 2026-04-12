@@ -168,6 +168,20 @@ func test_settings_get_input_settings_handles_missing_settings() -> void:
 	var result: Dictionary = U_SETTINGS_SELECTORS.get_input_settings(state)
 	assert_eq(result, {}, "Should default to empty dict when settings missing")
 
+func test_settings_get_input_settings_accepts_settings_slice() -> void:
+	var settings_slice: Dictionary = {"input_settings": {"active_profile_id": "slice_profile"}}
+	var result: Dictionary = U_SETTINGS_SELECTORS.get_input_settings(settings_slice)
+	assert_eq(result.get("active_profile_id", ""), "slice_profile", "Should accept settings slice directly")
+
+func test_settings_get_input_settings_accepts_input_settings_slice() -> void:
+	var input_settings_slice: Dictionary = {"active_profile_id": "direct_input", "gamepad_settings": {}}
+	var result: Dictionary = U_SETTINGS_SELECTORS.get_input_settings(input_settings_slice)
+	assert_eq(result.get("active_profile_id", ""), "direct_input", "Should accept input_settings slice directly")
+
+func test_settings_get_active_profile_id_accepts_settings_slice() -> void:
+	var settings_slice: Dictionary = {"input_settings": {"active_profile_id": "slice_active"}}
+	assert_eq(U_SETTINGS_SELECTORS.get_active_profile_id(settings_slice), "slice_active", "Should accept settings slice for active profile")
+
 func test_settings_get_gamepad_settings_returns_value() -> void:
 	var gamepad: Dictionary = {"sensitivity": 0.5}
 	var state := {"settings": {"input_settings": {"gamepad_settings": gamepad}}}

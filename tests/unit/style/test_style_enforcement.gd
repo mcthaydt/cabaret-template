@@ -1270,6 +1270,8 @@ func test_managers_use_selectors_for_state_access() -> void:
 		"state.get(",
 		'state["',
 		'state[&"',
+		"state['",
+		"state[&'",
 	]
 	for dir_path in manager_dirs:
 		_check_for_patterns_in_files(dir_path, patterns, allowed_files, violations)
@@ -1310,12 +1312,18 @@ func _check_for_patterns_in_files(dir_path: String, patterns: Array[String], all
 	dir.list_dir_end()
 
 func _line_has_disallowed_state_access(line: String, patterns: Array[String]) -> bool:
-	for pattern in patterns:
-		var idx: int = line.find(pattern)
-		while idx != -1:
-			if _is_state_token_boundary(line, idx):
-				return true
-			idx = line.find(pattern, idx + pattern.length())
+	var normalized_line: String = line.replace(" ", "").replace("\t", "")
+	var candidates: Array[String] = [line]
+	if normalized_line != line:
+		candidates.append(normalized_line)
+
+	for candidate in candidates:
+		for pattern in patterns:
+			var idx: int = candidate.find(pattern)
+			while idx != -1:
+				if _is_state_token_boundary(candidate, idx):
+					return true
+				idx = candidate.find(pattern, idx + pattern.length())
 	return false
 
 func _is_state_token_boundary(line: String, state_index: int) -> bool:

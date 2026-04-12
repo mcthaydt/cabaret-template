@@ -13,11 +13,23 @@ static func get_active_profile_id(state: Dictionary) -> String:
 
 ## Get input settings dictionary
 static func get_input_settings(state: Dictionary) -> Dictionary:
-	var settings: Variant = state.get("settings", {})
-	if settings is Dictionary:
-		var input: Variant = (settings as Dictionary).get("input_settings", {})
-		if input is Dictionary:
-			return input as Dictionary
+	# Backward compatibility: allow callers that pass the input_settings slice directly.
+	if state != null and (
+		state.has("active_profile_id")
+		or state.has("gamepad_settings")
+		or state.has("mouse_settings")
+		or state.has("touchscreen_settings")
+	):
+		return state
+
+	var settings_slice: Dictionary = _get_settings_slice(state)
+	if settings_slice.is_empty():
+		return {}
+
+	var input: Variant = settings_slice.get("input_settings", null)
+	if input is Dictionary:
+		return input as Dictionary
+
 	return {}
 
 ## Get gamepad settings dictionary (deep copy to prevent mutation)
