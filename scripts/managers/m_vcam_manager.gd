@@ -462,9 +462,23 @@ func _get_mode_name_for_vcam(vcam_id: StringName) -> String:
 
 	return _resolve_mode_name(mode_variant as Resource)
 
+## Resolve a display name for the given vcam mode resource (C10 migration).
+##
+## Lookup order:
+##   1. resource_name property (set in inspector, no prefix convention required)
+##   2. "mode_name" metadata (set via set_meta)
+##   3. Script global_name prefix-stripping ("RS_VCamMode" → snake_case fallback)
+##   4. Filename prefix-stripping ("rs_vcam_mode_" → remainder fallback)
 func _resolve_mode_name(mode: Resource) -> String:
 	if mode == null:
 		return ""
+
+	if not mode.resource_name.is_empty():
+		return mode.resource_name
+
+	if mode.has_meta("mode_name"):
+		return str(mode.get_meta("mode_name"))
+
 	var mode_script := mode.get_script() as Script
 	if mode_script == null:
 		return ""
