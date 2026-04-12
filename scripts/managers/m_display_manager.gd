@@ -23,6 +23,7 @@ const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobil
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 const U_PERF_MONITOR := preload("res://scripts/utils/debug/u_perf_monitor.gd")
 const U_PERF_SHADER_BYPASS := preload("res://scripts/utils/debug/u_perf_shader_bypass.gd")
+const RS_DISPLAY_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_display_config.gd")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
@@ -30,12 +31,9 @@ const LOCALIZATION_SLICE_NAME := StringName("localization")
 const NAVIGATION_SLICE_NAME := StringName("navigation")
 const SHELL_GAMEPLAY := StringName("gameplay")
 
-const MIN_UI_SCALE := 0.8
-const MAX_UI_SCALE := 1.3
-const MIN_MOBILE_RESOLUTION_SCALE := 0.35
-
 ## Injected dependency (tests)
 @export var state_store: I_StateStore = null
+@export var display_config: Resource = null
 var window_ops: I_WindowOps = null
 
 var _state_store: I_StateStore = null
@@ -246,9 +244,10 @@ func _apply_quality_settings(display_settings: Dictionary) -> void:
 func _apply_mobile_resolution_scale(state: Dictionary) -> void:
 	if not U_MOBILE_PLATFORM_DETECTOR.is_mobile():
 		return
+	var config: Dictionary = _resolve_display_config_values()
 	var scale := U_DISPLAY_SELECTORS.get_mobile_resolution_scale(state)
 	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(
-		clampf(scale, MIN_MOBILE_RESOLUTION_SCALE, 1.0)
+		clampf(scale, float(config.get("min_mobile_resolution_scale", 0.35)), 1.0)
 	)
 	_request_mobile_scale_refresh()
 
@@ -381,12 +380,45 @@ func _ensure_appliers() -> void:
 		_post_process_applier = U_DISPLAY_POST_PROCESS_APPLIER.new()
 		_post_process_applier.initialize(self)
 	if _ui_scale_applier == null:
+		var config: Dictionary = _resolve_display_config_values()
 		_ui_scale_applier = U_DISPLAY_UI_SCALE_APPLIER.new()
-		_ui_scale_applier.initialize(MIN_UI_SCALE, MAX_UI_SCALE)
+		_ui_scale_applier.initialize(
+			float(config.get("min_ui_scale", 0.8)),
+			float(config.get("max_ui_scale", 1.3))
+		)
 	if _ui_theme_applier == null:
 		_ui_theme_applier = U_DISPLAY_UI_THEME_APPLIER.new()
 	if _cinema_grade_applier == null:
 		_cinema_grade_applier = U_DISPLAY_CINEMA_GRADE_APPLIER.new()
+
+
+func _resolve_display_config_values() -> Dictionary:
+	var defaults := {
+		"min_ui_scale": 0.8,
+		"max_ui_scale": 1.3,
+		"min_mobile_resolution_scale": 0.35,
+	}
+	var config_variant: Variant = display_config
+	if config_variant == null:
+		config_variant = RS_DISPLAY_CONFIG_SCRIPT.new()
+	if config_variant == null or not (config_variant is Resource):
+		return defaults
+
+	var config_resource: Resource = config_variant as Resource
+	if config_resource.get_script() != RS_DISPLAY_CONFIG_SCRIPT:
+		return defaults
+
+	var min_ui_scale: float = maxf(float(config_resource.get("min_ui_scale")), 0.1)
+	var max_ui_scale: float = maxf(float(config_resource.get("max_ui_scale")), min_ui_scale)
+	return {
+		"min_ui_scale": min_ui_scale,
+		"max_ui_scale": max_ui_scale,
+		"min_mobile_resolution_scale": clampf(
+			float(config_resource.get("min_mobile_resolution_scale")),
+			0.1,
+			1.0
+		),
+	}
 
 func register_ui_scale_root(node: Node) -> void:
 	_ensure_appliers()
