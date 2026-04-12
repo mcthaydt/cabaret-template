@@ -130,6 +130,7 @@ func test_migrate_v1_save_with_objectives_returns_unchanged() -> void:
 			"objectives": {
 				"statuses": {},
 				"active_set_id": StringName(""),
+				"active_set_ids": [],
 				"event_log": [],
 			},
 		}

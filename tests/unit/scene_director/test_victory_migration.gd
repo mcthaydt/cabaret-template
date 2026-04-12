@@ -23,6 +23,7 @@ class ObjectivesStoreStub extends I_STATE_STORE:
 		"objectives": {
 			"statuses": {},
 			"active_set_id": StringName(""),
+			"active_set_ids": [],
 			"event_log": [],
 		},
 		"gameplay": {

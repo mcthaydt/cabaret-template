@@ -25,6 +25,7 @@ const LEGACY_SAVE_PATH := "user://savegame.json"
 const DEFAULT_OBJECTIVES_SLICE := {
 	"statuses": {},
 	"active_set_id": StringName(""),
+	"active_set_ids": [],
 	"event_log": [],
 }
 

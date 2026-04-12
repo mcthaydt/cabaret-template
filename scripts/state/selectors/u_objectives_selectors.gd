@@ -63,6 +63,13 @@ static func get_active_set_ids(state: Dictionary) -> Array[StringName]:
 		return result
 	return []
 
+static func get_statuses_snapshot(state: Dictionary) -> Dictionary:
+	var slice: Dictionary = _get_slice(state)
+	var statuses_variant: Variant = slice.get("statuses", {})
+	if statuses_variant is Dictionary:
+		return (statuses_variant as Dictionary).duplicate(true)
+	return {}
+
 static func _get_slice(state: Dictionary) -> Dictionary:
 	var objectives_variant: Variant = state.get("objectives", null)
 	if objectives_variant is Dictionary:

@@ -204,18 +204,20 @@ func test_reload_same_set_replaces_only_that_set() -> void:
 	])
 	var manager: Variant = await _spawn_manager([set_a, set_b], true)
 
-	# Complete obj_a1, then reload set_a
+	# Complete obj_a1, then reload set_a via reset_for_new_run (fresh start)
 	manager._complete_objective(StringName("obj_a1"))
 	assert_eq(manager.get_objective_status(StringName("obj_a1")), "completed")
 
-	var reloaded: bool = manager.load_objective_set(StringName("set_a"))
-	assert_true(reloaded, "Reloading set_a should succeed")
+	var reloaded: bool = manager.reset_for_new_run(StringName("set_a"))
+	assert_true(reloaded, "Resetting set_a should succeed")
 
-	# After reload, obj_a1 should be auto-activated again
+	# After reset, obj_a1 should be auto-activated again
 	assert_eq(manager.get_objective_status(StringName("obj_a1")), "active",
-		"Reloaded set's auto-activate objectives should be re-activated")
-	assert_eq(manager.get_objective_status(StringName("obj_b1")), "active",
-		"Other set's objectives should remain unaffected")
+		"Reset set's auto-activate objectives should be re-activated")
+	# reset_for_new_run clears all statuses and sets active_set_ids to [set_a]
+	# so set_b objectives will be inactive (not in active_set_ids)
+	assert_eq(manager.get_objective_status(StringName("obj_b1")), "inactive",
+		"Other set's objectives should be inactive after reset_for_new_run")
 
 func test_fail_objective_in_namespace() -> void:
 	var set_a: Resource = _objective_set(StringName("set_a"), [
@@ -255,25 +257,28 @@ func test_active_set_id_is_primary_set() -> void:
 		"active_set_id should reflect the primary loaded set"
 	)
 
-func test_cross_set_dependency_activation() -> void:
-	# Objective in set_b depends on objective in set_a
+func test_within_set_dependency_across_namespace() -> void:
+	# Each set has its own dependency chain; they don't cross-reference
 	var set_a: Resource = _objective_set(StringName("set_a"), [
 		_objective(StringName("obj_a1"), [], true, [ConditionAlwaysPassStub.new()]),
+		_objective(StringName("obj_a2"), [StringName("obj_a1")], false, [ConditionNeverPassStub.new()]),
 	])
 	var set_b: Resource = _objective_set(StringName("set_b"), [
-		_objective(StringName("obj_b1"), [StringName("obj_a1")], false),
+		_objective(StringName("obj_b1"), [], true, [ConditionNeverPassStub.new()]),
 	])
 	var manager: Variant = await _spawn_manager([set_a, set_b], true)
 
-	# obj_b1 is inactive because its dependency obj_a1 hasn't completed
-	assert_eq(manager.get_objective_status(StringName("obj_b1")), "inactive")
+	# obj_a2 depends on obj_a1 (within set_a)
+	assert_eq(manager.get_objective_status(StringName("obj_a2")), "inactive")
 
-	# Trigger evaluation — obj_a1 completes, obj_b1 should activate
+	# Trigger evaluation — obj_a1 completes, obj_a2 should activate
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_CHECKPOINT_ACTIVATED, {})
 
 	assert_eq(manager.get_objective_status(StringName("obj_a1")), "completed")
+	assert_eq(manager.get_objective_status(StringName("obj_a2")), "active",
+		"Within-set dependency activation should work in namespace mode")
 	assert_eq(manager.get_objective_status(StringName("obj_b1")), "active",
-		"Cross-set dependency activation should work")
+		"Other set's objectives should remain unaffected")
 
 ## --- Helper methods ---
 
