@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RS_WallVisibilityConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ecs/rs_wall_visibility_config.gd" id="1_wall_visibility_config_script"]
+
+[resource]
+script = ExtResource("1_wall_visibility_config_script")
+fade_dot_threshold = 0.3
+fade_speed = 4.0
+min_alpha = 0.05
+clip_height_offset = 1.5
+room_aabb_margin = 2.0
+corridor_occlusion_margin = 2.0
+invalidate_interval = 30
+mobile_tick_interval = 4
+roof_normal_dot_min = 0.9
+roof_height_margin = 0.5

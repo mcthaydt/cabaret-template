@@ -8,6 +8,8 @@ class_name U_DisplayReducer
 ## validation and clamping.
 
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
+const RS_DISPLAY_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_display_config.gd")
+const DEFAULT_DISPLAY_CONFIG := preload("res://resources/base_settings/display/cfg_display_config_default.tres")
 
 const DEFAULT_DISPLAY_STATE := {
 	"window_size_preset": "1920x1080",
@@ -33,8 +35,6 @@ const MIN_CRT_CURVATURE := 0.0
 const MAX_CRT_CURVATURE := 10.0
 const MIN_CRT_CHROMATIC_ABERRATION := 0.0
 const MAX_CRT_CHROMATIC_ABERRATION := 0.01
-const MIN_UI_SCALE := 0.8
-const MAX_UI_SCALE := 1.3
 
 static func get_default_display_state() -> Dictionary:
 	var state := DEFAULT_DISPLAY_STATE.duplicate(true)
@@ -155,7 +155,12 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 		U_DisplayActions.ACTION_SET_UI_SCALE:
 			var payload: Dictionary = action.get("payload", {})
 			var raw_scale: float = float(payload.get("scale", 1.0))
-			var clamped_scale := clampf(raw_scale, MIN_UI_SCALE, MAX_UI_SCALE)
+			var ui_scale_bounds: Dictionary = _resolve_ui_scale_bounds()
+			var clamped_scale := clampf(
+				raw_scale,
+				float(ui_scale_bounds.get("min_ui_scale", 0.8)),
+				float(ui_scale_bounds.get("max_ui_scale", 1.3))
+			)
 			return _with_values(current, {"ui_scale": clamped_scale})
 
 		U_DisplayActions.ACTION_SET_COLOR_BLIND_MODE:
@@ -259,6 +264,26 @@ static func _is_valid_dither_pattern(pattern: String) -> bool:
 
 static func _is_valid_color_blind_mode(mode: String) -> bool:
 	return U_DISPLAY_OPTION_CATALOG.get_color_blind_mode_ids().has(mode)
+
+static func _resolve_ui_scale_bounds() -> Dictionary:
+	var defaults := {
+		"min_ui_scale": 0.8,
+		"max_ui_scale": 1.3,
+	}
+	var config_variant: Variant = DEFAULT_DISPLAY_CONFIG
+	if config_variant == null or not (config_variant is Resource):
+		return defaults
+
+	var config_resource: Resource = config_variant as Resource
+	if config_resource.get_script() != RS_DISPLAY_CONFIG_SCRIPT:
+		return defaults
+
+	var min_ui_scale: float = maxf(float(config_resource.get("min_ui_scale")), 0.1)
+	var max_ui_scale: float = maxf(float(config_resource.get("max_ui_scale")), min_ui_scale)
+	return {
+		"min_ui_scale": min_ui_scale,
+		"max_ui_scale": max_ui_scale,
+	}
 
 static func _is_valid_post_processing_preset(preset: String) -> bool:
 	return U_DISPLAY_OPTION_CATALOG.get_post_processing_preset_ids().has(preset)

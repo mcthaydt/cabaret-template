@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RS_CameraStateConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ecs/rs_camera_state_config.gd" id="1_camera_state_config_script"]
+
+[resource]
+script = ExtResource("1_camera_state_config_script")
+trauma_decay_rate = 2.0
+max_offset_x = 10.0
+max_offset_y = 10.0
+max_rotation_rad = 0.03
+shake_frequency = Vector3(17, 21, 13)
+shake_phase = Vector3(1.1, 2.3, 0.7)
+fov_min = 1.0
+fov_max = 179.0

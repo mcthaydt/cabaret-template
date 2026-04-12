@@ -24,6 +24,7 @@ const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 const U_PERF_MONITOR := preload("res://scripts/utils/debug/u_perf_monitor.gd")
 const U_PERF_SHADER_BYPASS := preload("res://scripts/utils/debug/u_perf_shader_bypass.gd")
 const RS_DISPLAY_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_display_config.gd")
+const DEFAULT_DISPLAY_CONFIG := preload("res://resources/base_settings/display/cfg_display_config_default.tres")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
@@ -400,7 +401,7 @@ func _resolve_display_config_values() -> Dictionary:
 	}
 	var config_variant: Variant = display_config
 	if config_variant == null:
-		config_variant = RS_DISPLAY_CONFIG_SCRIPT.new()
+		config_variant = DEFAULT_DISPLAY_CONFIG
 	if config_variant == null or not (config_variant is Resource):
 		return defaults
 

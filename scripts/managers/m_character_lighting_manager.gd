@@ -10,6 +10,7 @@ const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigat
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 const RS_CHARACTER_LIGHTING_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_character_lighting_config.gd")
+const DEFAULT_CHARACTER_LIGHTING_CONFIG := preload("res://resources/base_settings/display/cfg_character_lighting_config_default.tres")
 const SERVICE_NAME := StringName("character_lighting_manager")
 const STATE_SERVICE := StringName("state_store")
 const SCENE_SERVICE := StringName("scene_manager")
@@ -308,7 +309,7 @@ func _resolve_default_profile_values() -> Dictionary:
 func _resolve_lighting_config_resource() -> Resource:
 	var config_variant: Variant = lighting_config
 	if config_variant == null:
-		config_variant = RS_CHARACTER_LIGHTING_CONFIG_SCRIPT.new()
+		config_variant = DEFAULT_CHARACTER_LIGHTING_CONFIG
 	if config_variant == null or not (config_variant is Resource):
 		return null
 	var config_resource := config_variant as Resource

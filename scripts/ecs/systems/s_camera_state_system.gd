@@ -11,6 +11,7 @@ const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd"
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 const RS_CAMERA_STATE_CONFIG_SCRIPT := preload("res://scripts/resources/ecs/rs_camera_state_config.gd")
+const DEFAULT_CAMERA_STATE_CONFIG := preload("res://resources/base_settings/gameplay/cfg_camera_state_config_default.tres")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
@@ -330,7 +331,7 @@ func _resolve_camera_state_config_values() -> Dictionary:
 	}
 	var config_variant: Variant = camera_state_config
 	if config_variant == null:
-		config_variant = RS_CAMERA_STATE_CONFIG_SCRIPT.new()
+		config_variant = DEFAULT_CAMERA_STATE_CONFIG
 	if config_variant == null or not (config_variant is Resource):
 		return defaults
 

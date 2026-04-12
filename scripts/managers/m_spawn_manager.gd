@@ -34,6 +34,7 @@ const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd"
 const I_ECS_ENTITY := preload("res://scripts/interfaces/i_ecs_entity.gd")
 const SP_SPAWN_POINT := preload("res://scripts/scene_management/sp_spawn_point.gd")
 const RS_SPAWN_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_spawn_config.gd")
+const DEFAULT_SPAWN_CONFIG := preload("res://resources/base_settings/gameplay/cfg_spawn_config_default.tres")
 
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 @export var spawn_config: Resource = null
@@ -62,7 +63,7 @@ func _resolve_spawn_config_values() -> Dictionary:
 	}
 	var config_variant: Variant = spawn_config
 	if config_variant == null:
-		config_variant = RS_SPAWN_CONFIG_SCRIPT.new()
+		config_variant = DEFAULT_SPAWN_CONFIG
 	if config_variant == null or not (config_variant is Resource):
 		return defaults
 

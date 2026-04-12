@@ -7,6 +7,7 @@ const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const C_ROOM_FADE_GROUP_COMPONENT := preload("res://scripts/ecs/components/c_room_fade_group_component.gd")
 const RS_ROOM_FADE_SETTINGS := preload("res://scripts/resources/display/vcam/rs_room_fade_settings.gd")
+const RS_WALL_VISIBILITY_CONFIG := preload("res://scripts/resources/ecs/rs_wall_visibility_config.gd")
 
 
 class WallVisibilityApplierStub extends RefCounted:
@@ -166,9 +167,9 @@ func test_camera_facing_wall_gets_fade_amount_one() -> void:
 
 	system.process_tick(0.1)
 
-	# fade_amount=1.0 means fully dissolved, so current_alpha should be near 0.0
-	assert_almost_eq(component.current_alpha, 0.0, 0.0001,
-		"Camera-facing wall should have fade_amount=1.0 (current_alpha=0.0).")
+	# fade_amount clamps to 1.0 - min_alpha = 0.95, so current_alpha floors at 0.05.
+	assert_almost_eq(component.current_alpha, 0.05, 0.0001,
+		"Camera-facing wall should honor min_alpha floor (current_alpha=0.05).")
 
 
 func test_perpendicular_wall_stays_opaque() -> void:
@@ -234,8 +235,8 @@ func test_fade_amount_does_not_exceed_one() -> void:
 	component.settings = settings
 
 	system.process_tick(0.5)
-	assert_almost_eq(component.current_alpha, 0.0, 0.0001,
-		"Fade amount should clamp to 1.0 (current_alpha = 0.0).")
+	assert_almost_eq(component.current_alpha, 0.05, 0.0001,
+		"Fade amount should clamp to max fade from min_alpha (current_alpha = 0.05).")
 
 
 # --- Height clip tests ---
@@ -338,8 +339,8 @@ func test_multi_target_front_wall_fades_side_wall_stays_opaque() -> void:
 		side_target.get_instance_id(), {}
 	) as Dictionary
 	assert_almost_eq(
-		float(front_uniforms.get("fade_amount", -1.0)), 1.0, 0.0001,
-		"Front wall should be fully dissolved."
+		float(front_uniforms.get("fade_amount", -1.0)), 0.95, 0.0001,
+		"Front wall fade amount should honor min_alpha cap."
 	)
 	assert_almost_eq(
 		float(side_uniforms.get("fade_amount", -1.0)), 0.0, 0.0001,
@@ -594,8 +595,8 @@ func test_bucket_continuity_fades_all_segments_when_one_is_in_corridor() -> void
 		front_target.get_instance_id(), {}
 	) as Dictionary
 	assert_almost_eq(
-		float(front_uniforms.get("fade_amount", -1.0)), 1.0, 0.0001,
-		"Front target in corridor should fade."
+		float(front_uniforms.get("fade_amount", -1.0)), 0.95, 0.0001,
+		"Front target in corridor should fade with min_alpha cap."
 	)
 
 
@@ -998,10 +999,37 @@ func test_fade_amount_transitions_toward_opaque_when_dot_below_threshold() -> vo
 	system.process_tick(0.25)
 
 	# Perpendicular wall: dot≈0, below threshold → target_fade=0, fade_amount should decrease
-	# fade_amount goes from 1.0 toward 0.0 at rate 2.0*0.25=0.5
-	# current_alpha = 1.0 - fade_amount = 1.0 - 0.5 = 0.5
-	assert_almost_eq(component.current_alpha, 0.5, 0.0001,
+	# fade_amount starts at max fade (0.95 from min_alpha=0.05) and moves toward 0 at 2.0*0.25=0.5
+	# current_alpha = 1.0 - 0.45 = 0.55
+	assert_almost_eq(component.current_alpha, 0.55, 0.0001,
 		"Fade should transition toward opaque when dot below threshold."
+	)
+
+
+func test_wall_visibility_config_drives_global_fade_defaults_when_component_settings_missing() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+	assert_not_null(system)
+
+	var custom_config := RS_WALL_VISIBILITY_CONFIG.new()
+	custom_config.fade_dot_threshold = 0.15
+	custom_config.fade_speed = 8.0
+	custom_config.min_alpha = 0.2
+	system.wall_visibility_config = custom_config
+
+	var component: Variant = _register_room_fade_group(ecs_manager, "E_WallVisConfigFallback")
+	component.settings = null
+	component.fade_normal = Vector3(0.0, 0.0, -1.0)
+	component.current_alpha = 1.0
+
+	system.process_tick(0.1)
+
+	assert_almost_eq(
+		component.current_alpha,
+		0.2,
+		0.0001,
+		"Global wall_visibility_config should control fade defaults when component settings are unset."
 	)
 
 

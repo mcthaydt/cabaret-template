@@ -2,6 +2,7 @@ extends GutTest
 
 # Tests for U_DisplayReducer (Phase 0 - Task 0C.1)
 
+const DEFAULT_DISPLAY_CONFIG := preload("res://resources/base_settings/display/cfg_display_config_default.tres")
 
 # Test 1: Default state has all fields
 func test_default_state_has_all_fields() -> void:
@@ -188,7 +189,16 @@ func test_set_ui_scale_clamps() -> void:
 	var action := U_DisplayActions.set_ui_scale(3.0)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_almost_eq(float(reduced.get("ui_scale", 0.0)), 1.3, 0.0001)
+	var expected_max: float = float(DEFAULT_DISPLAY_CONFIG.get("max_ui_scale"))
+	assert_almost_eq(float(reduced.get("ui_scale", 0.0)), expected_max, 0.0001)
+
+func test_set_ui_scale_clamps_to_config_min() -> void:
+	var state := _make_display_state()
+	var action := U_DisplayActions.set_ui_scale(0.01)
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	var expected_min: float = float(DEFAULT_DISPLAY_CONFIG.get("min_ui_scale"))
+	assert_almost_eq(float(reduced.get("ui_scale", 0.0)), expected_min, 0.0001)
 
 # Test 19: invalid window_size_preset ignored
 func test_invalid_window_size_preset_ignored() -> void:

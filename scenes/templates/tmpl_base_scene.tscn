@@ -35,6 +35,7 @@
 [ext_resource type="Script" uid="uid://cjy57wuoihq7p" path="res://scripts/ecs/systems/s_wall_visibility_system.gd" id="27_wall_visibility_system"]
 [ext_resource type="Script" uid="uid://b8oocaaklpsn2" path="res://scripts/ecs/systems/s_spawn_recovery_system.gd" id="28_ai_spawn_recovery_system"]
 [ext_resource type="Script" uid="uid://iwa60fqx07wm" path="res://scripts/ecs/base_ecs_entity.gd" id="29_base_ecs_entity"]
+[ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_wall_visibility_config_default.tres" id="30_wall_visibility_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
@@ -141,6 +142,7 @@ execution_priority = 100
 
 [node name="S_WallVisibilitySystem" type="Node" parent="Systems/Core" unique_id=1150735353]
 script = ExtResource("27_wall_visibility_system")
+wall_visibility_config = ExtResource("30_wall_visibility_config")
 
 [node name="Physics" type="Node" parent="Systems" unique_id=369931067]
 script = ExtResource("3_systems_physics")

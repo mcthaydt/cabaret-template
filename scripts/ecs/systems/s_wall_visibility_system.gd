@@ -11,8 +11,8 @@ const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_sele
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 const U_PERF_FADE_BYPASS := preload("res://scripts/utils/debug/u_perf_fade_bypass.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
-const DEFAULT_ROOM_FADE_SETTINGS := preload("res://resources/display/vcam/cfg_default_room_fade.tres")
 const RS_WALL_VISIBILITY_CONFIG_SCRIPT := preload("res://scripts/resources/ecs/rs_wall_visibility_config.gd")
+const DEFAULT_WALL_VISIBILITY_CONFIG := preload("res://resources/base_settings/gameplay/cfg_wall_visibility_config_default.tres")
 
 const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
 const MIN_NORMAL_LENGTH_SQUARED := 0.000001
@@ -212,9 +212,21 @@ func _process_component_fade(component: Object, targets: Array, tick_data: Dicti
 		clip_y = player_position.y + clip_height_offset
 
 	var settings: Dictionary = _resolve_settings(component)
-	var threshold: float = clampf(float(settings.get("fade_dot_threshold", 0.3)), 0.0, 1.0)
-	var fade_speed: float = maxf(float(settings.get("fade_speed", 4.0)), 0.0)
-	var max_fade: float = clampf(1.0 - min_fade, 0.0, 1.0)
+	var threshold: float = clampf(
+		float(settings.get("fade_dot_threshold", wall_config.get("fade_dot_threshold", 0.3))),
+		0.0,
+		1.0
+	)
+	var fade_speed: float = maxf(
+		float(settings.get("fade_speed", wall_config.get("fade_speed", 4.0))),
+		0.0
+	)
+	var min_alpha: float = clampf(
+		float(settings.get("min_alpha", wall_config.get("min_alpha", 0.05))),
+		0.0,
+		1.0
+	)
+	var max_fade: float = clampf(1.0 - maxf(min_fade, min_alpha), 0.0, 1.0)
 	var _current_alpha: Variant = component.get("current_alpha") if component.get("current_alpha") != null else 1.0
 	var initial_component_fade: float = clampf(1.0 - float(_current_alpha), 0.0, max_fade)
 	var component_fade_sum: float = 0.0
@@ -954,6 +966,9 @@ func _resolve_player_position_data_from_state(state: Dictionary) -> Dictionary:
 
 func _resolve_wall_visibility_config_values() -> Dictionary:
 	var default_values := {
+		"fade_dot_threshold": 0.3,
+		"fade_speed": 4.0,
+		"min_alpha": 0.05,
 		"clip_height_offset": 1.5,
 		"room_aabb_margin": 2.0,
 		"corridor_occlusion_margin": 2.0,
@@ -964,7 +979,7 @@ func _resolve_wall_visibility_config_values() -> Dictionary:
 	}
 	var config_variant: Variant = wall_visibility_config
 	if config_variant == null:
-		config_variant = RS_WALL_VISIBILITY_CONFIG_SCRIPT.new()
+		config_variant = DEFAULT_WALL_VISIBILITY_CONFIG
 	if config_variant == null or not (config_variant is Resource):
 		return default_values
 
@@ -973,6 +988,9 @@ func _resolve_wall_visibility_config_values() -> Dictionary:
 		return default_values
 
 	return {
+		"fade_dot_threshold": clampf(float(config_resource.get("fade_dot_threshold")), 0.0, 1.0),
+		"fade_speed": maxf(float(config_resource.get("fade_speed")), 0.0),
+		"min_alpha": clampf(float(config_resource.get("min_alpha")), 0.0, 1.0),
 		"clip_height_offset": float(config_resource.get("clip_height_offset")),
 		"room_aabb_margin": maxf(float(config_resource.get("room_aabb_margin")), 0.0),
 		"corridor_occlusion_margin": maxf(float(config_resource.get("corridor_occlusion_margin")), 0.0),
@@ -984,17 +1002,15 @@ func _resolve_wall_visibility_config_values() -> Dictionary:
 
 
 func _resolve_settings(component: Object) -> Dictionary:
-	var settings_resource: Variant = DEFAULT_ROOM_FADE_SETTINGS
 	var component_settings: Variant = component.get("settings")
 	if component_settings != null and component_settings is Resource:
 		var resource: Resource = component_settings as Resource
 		if resource.get_script() == RS_ROOM_FADE_SETTINGS_SCRIPT:
-			settings_resource = resource
-	if settings_resource != null and settings_resource.has_method("get_resolved_values"):
-		var resolved_variant: Variant = settings_resource.call("get_resolved_values")
-		if resolved_variant is Dictionary:
-			return resolved_variant as Dictionary
-	return {"fade_dot_threshold": 0.3, "fade_speed": 4.0, "min_alpha": 0.05}
+			if resource.has_method("get_resolved_values"):
+				var resolved_variant: Variant = resource.call("get_resolved_values")
+				if resolved_variant is Dictionary:
+					return resolved_variant as Dictionary
+	return {}
 
 
 func _collect_mesh_targets(component: Object) -> Array:
