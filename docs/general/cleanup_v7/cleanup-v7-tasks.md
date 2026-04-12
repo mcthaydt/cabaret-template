@@ -99,36 +99,31 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C3: Shared Dependency Resolution
+## Milestone C3: Shared Dependency Resolution — COMPLETE
 
-**Goal**: Extract the "check private cache → check export → fallback to ServiceLocator" pattern that's duplicated across 17 methods in 13 files into a shared utility on `BaseECSSystem` (for ECS systems) and `U_ServiceLocator` convenience (for managers and other nodes). Eliminates near-identical `_resolve_store`, `_resolve_state_store`, `_resolve_camera_manager`, `_resolve_ecs_manager`, `_resolve_dependencies` methods.
+**Completed**: 2026-04-11
 
-**Scope**: 13 files total:
-- ECS systems: `s_camera_state_system`, `s_character_state_system`, `s_game_event_system`, `s_ai_detection_system`, `s_ai_behavior_system`, `s_demo_alarm_relay_system`, `s_wall_visibility_system`, `s_region_visibility_system`
-- Managers: `m_vcam_manager`, `m_character_lighting_manager`, `m_display_manager`
-- Gameplay: `inter_victory_zone`, `inter_ai_demo_guard_barrier`
-- Helpers: `u_vcam_debug`
-- Other: `m_run_coordinator_manager`
+**Summary**: Created `U_DependencyResolution` (RefCounted utility class) with two static methods: `resolve()` for generic cache→export→ServiceLocator resolution, and `resolve_state_store()` for state store resolution via U_StateUtils. Added `resolve_service()` convenience method to `BaseECSSystem`. Migrated 13 files (8 ECS systems, 3 managers, 2 interactables) from inline resolve patterns to the shared utility. Removed ~65 lines of duplicated code. Added style enforcement grep test verifying migrated files no longer contain inline `U_STATE_UTILS.try_get_store` calls.
 
-- [ ] **Commit 1** — Add resolution utility tests (TDD RED):
-  - `tests/unit/core/test_u_dependency_resolution.gd` — test the generic resolution pattern: private cache hit, export fallback, ServiceLocator fallback, null when unavailable.
-- [ ] **Commit 2** — Implement `U_DependencyResolution` (TDD GREEN):
-  - `scripts/utils/core/u_dependency_resolution.gd` — generic `resolve(service_name: StringName, cache: RefCounted, export_ref: RefCounted) -> RefCounted` that checks cache validity, then export, then ServiceLocator. Returns null if unavailable.
-- [ ] **Commit 3** — Add `resolve_service` to `BaseECSSystem`:
-  - `scripts/ecs/base_ecs_system.gd` — add convenience method that delegates to `U_DependencyResolution`, using the system's `_manager` as the ServiceLocator source. Migrate `_resolve_state_store`/`_resolve_store` from all 8 ECS systems to use it.
-- [ ] **Commit 4** — Migrate manager and other resolution:
-  - `scripts/managers/m_vcam_manager.gd` — replace `_resolve_state_store`, `_resolve_camera_manager`, `_resolve_ecs_manager` with `U_DependencyResolution` calls.
-  - `scripts/managers/m_character_lighting_manager.gd` — replace `_resolve_dependencies` with `U_DependencyResolution` calls.
-  - `scripts/managers/m_display_manager.gd` — replace `_await_store_ready_soft` pattern with shared resolution where applicable.
-  - `scripts/gameplay/inter_victory_zone.gd` — replace `_resolve_store`.
-  - `scripts/gameplay/inter_ai_demo_guard_barrier.gd` — replace `_resolve_store`.
-  - `scripts/ecs/systems/helpers/u_vcam_debug.gd` — replace `_resolve_state_store`.
-  - `scripts/managers/m_run_coordinator_manager.gd` — replace `_resolve_store`.
-
-**C3 Verification**:
-- [ ] All resolution utility tests green
-- [ ] All affected manager and system tests green
-- [ ] No local `_resolve_*` methods that duplicate the shared pattern (grep test)
+- [x] **Commit 1** — Add resolution utility tests (TDD RED):
+  - `tests/unit/core/test_u_dependency_resolution.gd` — 18 tests covering: cache hit, export fallback, ServiceLocator fallback, null when unavailable, freed object handling, state store specialization, null/freed owner handling.
+- [x] **Commit 2** — Implement `U_DependencyResolution` (TDD GREEN):
+  - `scripts/utils/core/u_dependency_resolution.gd` — `resolve(service_name, cached_value, exported_value)` for generic 3-step resolution; `resolve_state_store(cached_value, exported_value, owner)` for state store resolution via U_StateUtils.
+- [x] **Commit 3** — Add `resolve_service` to `BaseECSSystem`, migrate all 8 ECS systems:
+  - `scripts/ecs/base_ecs_system.gd` — added `resolve_service(service_name, cached_value, exported_value)` convenience method.
+  - Migrated `_resolve_store`/`_resolve_state_store`/`_resolve_camera_manager` in all 8 systems to use `U_DependencyResolution`.
+  - Removed unused `U_STATE_UTILS` and `U_SERVICE_LOCATOR` preloads from migrated systems.
+- [x] **Commit 4** — Migrate manager and other resolution:
+  - `m_vcam_manager` — replaced `_resolve_state_store`, `_resolve_camera_manager`, `_resolve_ecs_manager` with `U_DependencyResolution` calls.
+  - `m_character_lighting_manager` — replaced `_resolve_dependencies` state_store and scene_manager resolution with `U_DependencyResolution`; kept ECS manager with `U_ECS_UTILS` fallback.
+  - `m_run_coordinator_manager` — replaced `_resolve_store` with `U_DependencyResolution.resolve_state_store()` + ServiceLocator fallback.
+  - `inter_victory_zone` — replaced `_resolve_store` with `U_DependencyResolution.resolve_state_store()`.
+  - `inter_ai_demo_guard_barrier` — replaced `_resolve_store` with `U_DependencyResolution.resolve_state_store()`.
+  - Note: `u_vcam_debug._resolve_state_store()` uses a Callable provider pattern (not cache→export→ServiceLocator) and `m_display_manager._await_store_ready_soft()` uses an async await pattern — these are architecturally different and were left as-is.
+- [x] **C3 Verification** — Style enforcement grep test:
+  - `test_migrated_files_do_not_duplicate_dependency_resolution_pattern` verifies 13 migrated files no longer contain inline `U_STATE_UTILS.try_get_store` or `U_StateUtils.try_get_store`.
+- [x] All affected manager and system tests green
+- [x] No local `_resolve_*` methods that duplicate the shared pattern (grep test)
 
 ---
 
