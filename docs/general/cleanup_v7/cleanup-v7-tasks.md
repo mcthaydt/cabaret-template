@@ -1,7 +1,7 @@
 # Cross-System Cleanup — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: C1-C9 complete; C10 Commit 1 (RED) complete; Commit 2 next
+**Status**: C1-C9 complete; C10 Commits 1–2 complete; Commit 3 next
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Scope**: Modularity, DRY, scalability, and designer-friendliness improvements across managers and ECS systems. No behavioral changes. All existing integration tests must stay green throughout.
 
@@ -337,12 +337,12 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 **Note**: `BaseECSEntity._generate_id_from_name` already has collision detection via `M_ECSManager.register_entity`, which appends instance IDs on collision. This existing safety net should be preserved — C10 adds tag/metadata lookup as the primary path, with name-based fallback retained.
 
-**Progress (2026-04-12)**: Commit 1 (RED) complete. Added `tests/unit/ecs/test_entity_tag_identification.gd` with 4 failing tests for tag-first entity lookup and metadata-first ID resolution. RED verification run confirms failure because `res://scripts/utils/ecs/u_entity_lookup.gd` is not implemented yet (expected for Commit 1). Style enforcement remains green (`tests/unit/style/test_style_enforcement.gd` 31/31).
+**Progress (2026-04-12)**: Commits 1–2 complete. Commit 1 added `tests/unit/ecs/test_entity_tag_identification.gd` (4 RED tests). Commit 2 implemented `scripts/utils/ecs/u_entity_lookup.gd` — static utility with `find_entity_by_tag`, `find_entities_by_tag`, `resolve_entity_id` (metadata > BaseECSEntity > name fallback); also fixed `mock_ecs_manager.get_entities_by_tag` to properly return `Array[Node]`. All 4 tests green; style enforcement 31/31.
 
 - [x] **Commit 1** — Add tag-based lookup tests (TDD RED):
   - `tests/unit/ecs/test_entity_tag_identification.gd` — test that entities can be found by tag rather than name prefix, test entity ID generation from metadata rather than name stripping.
-- [ ] **Commit 2** — Implement tag-based lookups (TDD GREEN):
-  - `scripts/ecs/u_entity_lookup.gd` — `class_name U_EntityLookup` with static methods `find_entity_by_tag(ecs_manager, tag)`, `find_entities_by_tag(ecs_manager, tag)`, `resolve_entity_id(entity)` that prefer metadata/component over name parsing, falling back to current behavior.
+- [x] **Commit 2** — Implement tag-based lookups (TDD GREEN):
+  - `scripts/utils/ecs/u_entity_lookup.gd` — `class_name U_EntityLookup` with static methods `find_entity_by_tag(ecs_manager, tag)`, `find_entities_by_tag(ecs_manager, tag)`, `resolve_entity_id(entity)` that prefer metadata/component over name parsing, falling back to current behavior.
 - [ ] **Commit 3** — Migrate `M_SpawnManager._find_player_entity` to use tag-based lookup. The spawn manager should find the player by a `player` tag, not by `"E_Player"` name prefix.
 - [ ] **Commit 4** — Migrate `S_MovementSystem._infer_entity_type_from_name` to use tag/metadata lookup. Entity type should come from a component or tag, not string matching on node names.
 - [ ] **Commit 5** — Migrate `M_VCamManager._resolve_mode_name` to use resource metadata or `resource_name` instead of stripping `"RS_VCamMode"` prefix.
