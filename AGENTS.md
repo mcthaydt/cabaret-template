@@ -43,6 +43,7 @@
 - `scripts/resources/ecs/*`: `Resource` classes holding tunables consumed by components/systems.
 - C9 config resources (gameplay feel tuning): `scripts/resources/ecs/rs_wall_visibility_config.gd`, `scripts/resources/ecs/rs_camera_state_config.gd`, `scripts/resources/managers/rs_spawn_config.gd`.
 - Manager config resources (C9 follow-through): `scripts/resources/managers/rs_character_lighting_config.gd` and `scripts/resources/managers/rs_display_config.gd` provide default/fallback tuning consumed by `M_CharacterLightingManager` and `M_DisplayManager`.
+- Canonical C9 default config instances live under `resources/base_settings/*/cfg_*_config_default.tres` and should be used as fallback baselines instead of runtime `Resource.new()` allocation in hot paths.
 - `scripts/ecs/components/c_spawn_recovery_component.gd`: Shared unsupported-state recovery component; requires `RS_SpawnRecoverySettings`.
 - `scripts/resources/ecs/rs_spawn_recovery_settings.gd`: Recovery tuning resource (`spawn_point_id`, `unsupported_delay_sec`, `recovery_cooldown_sec`, `startup_grace_period_sec`).
 - `scripts/ecs/systems/s_spawn_recovery_system.gd`: Shared player/NPC recovery system; respawns unsupported entities via `I_SpawnManager` and clears movement/task runtime state after recovery.

@@ -1648,6 +1648,7 @@ func test_window_mode_fullscreen() -> void:
 
 - `.gd` files under `scripts/` (and the gameplay/unit tests that exercise them) must use tab indentation. The style suite (`tests/unit/style/test_style_enforcement.gd`) fails immediately on leading spaces, so run it before committing editor-authored changes.
 - Trigger configuration resources (`RS_SceneTriggerSettings` derivatives) must include `script = ExtResource(...)` and should remain scene-local. Controllers now duplicate shared `.tres` files automatically, but avoid manually reusing the same resource across entities or the inspector will apply mutations to every instance.
+- Avoid `Resource.new()` fallback allocation in hot-path config resolvers (for example ECS `process_tick` systems). Use canonical default config `.tres` instances (`resources/base_settings/*/cfg_*_config_default.tres`) and wire manager/system exports in scenes where applicable so tuning remains content-driven and allocation-free at runtime.
 
 ## AI System Pitfalls
 

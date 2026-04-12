@@ -322,6 +322,13 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 - [x] All affected system/manager tests green (no behavioral change — defaults match old `const` values)
 - [x] Each config resource is inspector-editable (has `@export` on all fields)
 
+**C9 Retroactive Gap Fixes** (audit-driven):
+- [x] **C9.8** — Remove per-tick `Resource.new()` fallback allocations in config resolvers by using canonical default config resources (`cfg_*_config_default.tres`) for camera state, wall visibility, spawn, character lighting, and display.
+- [x] **C9.9** — Wire manager config resources in `scenes/root.tscn` (`spawn_config`, `lighting_config`, `display_config`) and template wall-visibility config in `scenes/templates/tmpl_base_scene.tscn`.
+- [x] **C9.10** — Finish wall-visibility config integration: global config now drives fallback `fade_dot_threshold`, `fade_speed`, and `min_alpha` when component settings are unset; add regression test `test_wall_visibility_config_drives_global_fade_defaults_when_component_settings_missing`.
+- [x] **C9.11** — Align display reducer UI-scale clamp bounds with `RS_DisplayConfig` default config resource and add reducer coverage for config-driven min clamp.
+- [x] **C9.12** — Add missing resource tests for `RS_DisplayConfig` and `RS_CharacterLightingConfig`.
+
 ---
 
 ## Milestone C10: Entity Identification by Tags/Metadata (Kill Naming Conventions)
