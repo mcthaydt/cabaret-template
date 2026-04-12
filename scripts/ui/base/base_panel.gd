@@ -149,7 +149,7 @@ func _ensure_store_ready() -> void:
 		return
 	if not is_inside_tree():
 		return
-	_store = U_StateUtils.try_get_store(self)
+	_store = U_DependencyResolution.resolve_state_store(_store, null, self)
 	if _store != null:
 		_on_store_ready(_store)
 

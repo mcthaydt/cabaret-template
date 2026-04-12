@@ -256,3 +256,18 @@ func test_resolve_state_store_returns_null_when_owner_not_node() -> void:
 	# Non-Node value should return null (U_StateUtils requires a Node)
 	var result: I_StateStore = _dep_res.resolve_state_store(null, null, "not_a_node")
 	assert_null(result, "Should return null when owner is not a Node")
+
+# ─── resolve() — generic service resolution for ECS manager ──────────
+
+class StubECSManager extends Node:
+	var service_name: String = "ecs_manager"
+
+func test_resolve_finds_ecs_manager_via_service_locator() -> void:
+	if _dep_res == null:
+		pending("U_DependencyResolution not loaded")
+		return
+	var manager := StubECSManager.new()
+	autofree(manager)
+	U_SERVICE_LOCATOR.register(&"ecs_manager", manager)
+	var result: Variant = _dep_res.resolve(&"ecs_manager", null, null)
+	assert_same(result, manager, "Should resolve ECS manager via ServiceLocator")

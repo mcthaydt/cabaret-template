@@ -21,6 +21,7 @@ const DEFAULT_RULE_DEFINITIONS := [
 @export var rules: Array[Resource] = []
 
 var _rule_evaluator: Variant = U_RULE_EVALUATOR.new()
+var _state_store: I_StateStore = null
 
 func on_configured() -> void:
 	_refresh_rule_evaluator()
@@ -114,7 +115,7 @@ func _execute_publish_event_effect(effect_variant: Variant, context: Dictionary)
 	U_ECS_EVENT_BUS.publish(event_name, payload)
 
 func _build_tick_context() -> Dictionary:
-	var store: I_StateStore = _resolve_store()
+	var store: I_StateStore = _resolve_state_store()
 	var rule_context := RSRuleContext.new()
 	if store != null:
 		rule_context.state_store = store
@@ -189,8 +190,9 @@ func _context_key_for_context(context: Dictionary) -> StringName:
 		return entity_id
 	return StringName()
 
-func _resolve_store() -> I_StateStore:
-	return U_DependencyResolution.resolve_state_store(null, state_store, self)
+func _resolve_state_store() -> I_StateStore:
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self)
+	return _state_store
 
 func _is_publish_event_effect(effect_variant: Variant) -> bool:
 	if effect_variant == null or not (effect_variant is Object):

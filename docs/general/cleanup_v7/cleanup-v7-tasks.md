@@ -125,6 +125,18 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 - [x] All affected manager and system tests green
 - [x] No local `_resolve_*` methods that duplicate the shared pattern (grep test)
 
+**C3 Retroactive Gap Fixes** (audit-driven):
+
+- [x] **C3.1** — Remove dead `resolve_service()` from `BaseECSSystem` (zero production callers)
+- [x] **C3.2** — Migrate `U_VCamRuntimeServices.resolve_state_store()` to `U_DependencyResolution.resolve_state_store()`
+- [x] **C3.3** — Migrate `M_CharacterLightingManager._resolve_dependencies()` ECS manager resolution to `U_DependencyResolution.resolve()`
+- [x] **C3.4** — Remove redundant `U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME)` fallback in `M_RunCoordinatorManager._resolve_store()`
+- [x] **C3.5** — Standardize `_resolve_store()` → `_resolve_state_store()` across 9 files; remove dual-method aliases in camera/character/AI behavior systems
+- [x] **C3.6** — Migrate 8 easy files from `U_STATE_UTILS.try_get_store` to `U_DependencyResolution.resolve_state_store()` (inter_character_light_zone, inter_ai_demo_flag_zone, base_event_sfx_system, ui_splash_screen, ui_virtual_button, base_panel, base_interactable_controller, m_vfx_manager)
+- [x] **C3.7** — Migrate `U_StoreActionBinder.resolve()` from `U_STATE_UTILS.try_get_store` to `U_DependencyResolution.resolve_state_store()`
+- [x] **C3.8** — Migrate 3 medium files with `_await_store_ready_soft` loops (m_audio_manager, m_localization_manager, m_display_manager)
+- [x] **C3.9** — Expand style enforcement test to cover all 26 migrated files
+
 ---
 
 ## Milestone C4: State Snapshot Extraction to BaseECSSystem — COMPLETE
@@ -148,6 +160,11 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 - [x] All snapshot tests green
 - [x] All five systems' existing tests green
 - [x] No `_get_frame_state_snapshot` defined in any ECS system (grep test)
+
+**C4 Retroactive Gap Fixes** (audit-driven):
+
+- [x] **C4.1** — Add `_state_store` caching to camera_state, character_state, AI behavior, and game_event systems (pass `_state_store` as `cached_value` to `U_DependencyResolution.resolve_state_store()`)
+- [x] **C4.2** — Remove `const I_STATE_STORE := preload(...)` from wall_visibility, region_visibility, save_manager, screenshot_cache_manager; use global `I_StateStore` class_name instead
 
 ---
 
@@ -177,6 +194,14 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 - [x] Existing wall-visibility integration tests green (4 integration + 30 unit)
 - [x] `process_tick` method under 60 lines (49 lines)
 
+**C5 Retroactive Gap Fixes** (audit-driven):
+
+- [x] **C5.1** — Replace `_is_supported_target` hard-coded type checks with registry-driven two-pass lookup (exact match → inheritance fallback)
+- [x] **C5.2** — Remove `_detect_roofs` dead code (never called from production); convert tests to call `_is_roof_candidate_target` directly
+- [x] **C5.3** — Add isolated tests for `_process_component_fade` (8 tests covering pooled arrays, passes, roof flags, mobile hide, edge cases)
+- [x] **C5.4** — Add comment to `_resolve_csg_box_thin_axis_normal` noting `is CSGBox3D` as intentional registry exception
+- **Note**: `s_region_visibility_system._is_supported_target` still hard-codes type checks (no registry yet) — future work
+
 ---
 
 ## Milestone C6: Scene Manager Overlay Extraction — COMPLETE
@@ -199,6 +224,11 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 - [x] All overlay helper tests green (existing test_m_scene_manager.gd covers overlay push/pop/return)
 - [x] Existing scene-manager tests green (no public API changes)
 - [x] `_perform_transition` under 40 lines (23 lines, orchestration only)
+
+**C6 Retroactive Gap Fixes** (audit-driven):
+
+- [x] **C6.1** — Add tests for `_execute_scene_swap` (8 tests covering cached/sync/load paths, camera blend/initialize, store action, handler dispatch, writeback)
+- [x] **C6.2** — DRY: promote `U_OverlayStackManager._map_overlay_ids_to_scene_ids` to public static; `U_NavigationReconciler.map_overlay_ids_to_scene_ids` now delegates
 
 ---
 

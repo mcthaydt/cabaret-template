@@ -6,7 +6,6 @@ class_name M_LocalizationManager
 ## Uses Theme resources for font cascade (Godot's theme inheritance).
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 const U_LOCALIZATION_CATALOG := preload("res://scripts/managers/helpers/localization/u_localization_catalog.gd")
 const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/managers/helpers/localization/u_localization_font_applier.gd")
@@ -231,7 +230,7 @@ func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 		return null
 	var frames_waited := 0
 	while frames_waited <= max_frames:
-		var store := U_STATE_UTILS.try_get_store(self)
+		var store := U_DependencyResolution.resolve_state_store(null, null, self)
 		if store != null:
 			if store.is_ready():
 				return store

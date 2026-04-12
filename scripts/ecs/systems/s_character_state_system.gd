@@ -36,6 +36,7 @@ const DEFAULT_RULE_DEFINITIONS := [
 @export var rules: Array[Resource] = []
 
 var _rule_evaluator: Variant = U_RULE_EVALUATOR.new()
+var _state_store: I_StateStore = null
 
 func on_configured() -> void:
 	_refresh_rule_evaluator()
@@ -135,7 +136,7 @@ func _context_key_for_context(context: Dictionary) -> StringName:
 func _build_entity_contexts() -> Array:
 	var contexts: Array = []
 	var redux_state: Dictionary = get_frame_state_snapshot()
-	var store: I_StateStore = _resolve_store()
+	var store: I_StateStore = _resolve_state_store()
 
 	var entities: Array = query_entities(
 		[CHARACTER_STATE_TYPE],
@@ -339,8 +340,6 @@ func _resolve_vertical_state(context: Dictionary) -> int:
 		_:
 			return C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_GROUNDED
 
-func _resolve_store() -> I_StateStore:
-	return U_DependencyResolution.resolve_state_store(null, state_store, self)
-
 func _resolve_state_store() -> I_StateStore:
-	return _resolve_store()
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self)
+	return _state_store

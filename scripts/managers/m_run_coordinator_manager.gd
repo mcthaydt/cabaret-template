@@ -8,7 +8,6 @@ const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_acti
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_INTERACT_BLOCKER := preload("res://scripts/utils/u_interact_blocker.gd")
 
-const STORE_SERVICE_NAME := StringName("state_store")
 const OBJECTIVES_SERVICE_NAME := StringName("objectives_manager")
 
 @export var state_store: I_StateStore = null
@@ -21,21 +20,19 @@ var _is_reset_in_flight: bool = false
 func _ready() -> void:
 	if game_config == null:
 		game_config = RS_GameConfig.new()
-	_resolve_store()
+	_resolve_state_store()
 	_ensure_store_action_signal_connection()
 
 func _physics_process(_delta: float) -> void:
 	# Keep retrying in case store registration is late.
 	if _store == null:
-		_resolve_store()
+		_resolve_state_store()
 
 func _exit_tree() -> void:
 	_disconnect_store_action_signal()
 
-func _resolve_store() -> void:
+func _resolve_state_store() -> void:
 	var resolved_store: I_StateStore = U_DependencyResolution.resolve_state_store(_store, state_store, self) as I_StateStore
-	if resolved_store == null:
-		resolved_store = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
 	_set_store_reference(resolved_store)
 
 func _set_store_reference(next_store: I_StateStore) -> void:
@@ -84,7 +81,7 @@ func _complete_reset_request() -> void:
 	_is_reset_in_flight = false
 
 func _execute_reset_run(next_route: StringName) -> void:
-	_resolve_store()
+	_resolve_state_store()
 	if _store == null:
 		_warn("No state store available for run/reset.")
 		return

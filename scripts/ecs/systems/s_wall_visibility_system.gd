@@ -4,7 +4,7 @@ class_name S_WallVisibilitySystem
 
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const I_StateStore := preload("res://scripts/interfaces/i_state_store.gd")
 const RS_ROOM_FADE_SETTINGS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_room_fade_settings.gd")
 const U_WALL_VISIBILITY_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_wall_visibility_material_applier.gd")
 const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
@@ -27,7 +27,7 @@ const ROOF_HEIGHT_MARGIN := 0.5
 const MOBILE_HIDE_FADE_THRESHOLD := 0.01
 
 @export var camera_manager: I_CAMERA_MANAGER = null
-@export var state_store: I_STATE_STORE = null
+@export var state_store: I_StateStore = null
 @export var mobile_tick_interval: int = MOBILE_TICK_INTERVAL
 @export var desktop_tick_interval: int = 1
 @export var min_fade: float = 0.0
@@ -37,7 +37,7 @@ var material_applier: Variant = null
 var duplicate_target_warning_handler: Callable = Callable()
 
 var _camera_manager: I_CAMERA_MANAGER = null
-var _state_store: I_STATE_STORE = null
+var _state_store: I_StateStore = null
 var _material_applier: Variant = null
 var _tracked_targets: Dictionary = {}
 var _target_fade_by_id: Dictionary = {}
@@ -197,7 +197,8 @@ func _process_component_fade(component: Object, targets: Array, tick_data: Dicti
 	var threshold: float = clampf(float(settings.get("fade_dot_threshold", 0.3)), 0.0, 1.0)
 	var fade_speed: float = maxf(float(settings.get("fade_speed", 4.0)), 0.0)
 	var max_fade: float = clampf(1.0 - min_fade, 0.0, 1.0)
-	var initial_component_fade: float = clampf(1.0 - float(component.get("current_alpha")), 0.0, max_fade)
+	var _current_alpha: Variant = component.get("current_alpha") if component.get("current_alpha") != null else 1.0
+	var initial_component_fade: float = clampf(1.0 - float(_current_alpha), 0.0, max_fade)
 	var component_fade_sum: float = 0.0
 	var component_fade_count: int = 0
 
@@ -315,25 +316,6 @@ func _apply_wall_materials(applier: Variant, targets: Array, use_mobile_hide: bo
 
 
 # --- Roof detection ---
-
-func _detect_roofs(
-	targets: Array,
-	normals: Array,
-	has_player: bool,
-	player_position: Vector3
-) -> Array:
-	var results: Array = []
-	results.resize(targets.size())
-	for i in range(targets.size()):
-		var target_variant: Variant = targets[i]
-		if not (target_variant is Node3D) or not is_instance_valid(target_variant):
-			results[i] = false
-			continue
-		var target: Node3D = target_variant as Node3D
-		var normal: Vector3 = normals[i] as Vector3 if i < normals.size() else Vector3.UP
-		results[i] = _is_roof_candidate_target(target, normal, has_player, player_position)
-	return results
-
 
 func _exit_tree() -> void:
 	_cleanup_stale_targets({})
@@ -777,6 +759,10 @@ func _resolve_target_world_normal(component: Object, target: Node3D, target_coun
 	return inward_planar.normalized()
 
 
+## Intentional exception: uses `is CSGBox3D` directly rather than the target-type registry.
+## Adding a per-type normal resolver to the registry for a single type would be over-engineering.
+## If a second CSG subtype needs a specialized normal resolver, promote to registry at that point.
+
 func _resolve_csg_box_thin_axis_normal(component: Object, target: Node3D) -> Vector3:
 	if not (target is CSGBox3D):
 		return Vector3.ZERO
@@ -865,8 +851,8 @@ func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 	return _camera_manager
 
 
-func _resolve_state_store() -> I_STATE_STORE:
-	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_STATE_STORE
+func _resolve_state_store() -> I_StateStore:
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_StateStore
 	return _state_store
 
 
@@ -913,7 +899,7 @@ func _resolve_player_position_data() -> Dictionary:
 
 func _resolve_player_position_data_from_state(state: Dictionary) -> Dictionary:
 	if state.is_empty():
-		var store: I_STATE_STORE = _resolve_state_store()
+		var store: I_StateStore = _resolve_state_store()
 		if store == null:
 			return {}
 		state = store.get_state()
@@ -966,12 +952,18 @@ func _collect_mesh_targets(component: Object) -> Array:
 
 
 func _is_supported_target(target_variant: Variant) -> bool:
-	if target_variant is MeshInstance3D:
-		var mesh_target: MeshInstance3D = target_variant as MeshInstance3D
-		return mesh_target != null and is_instance_valid(mesh_target)
-	if target_variant is CSGShape3D:
-		var csg_target: CSGShape3D = target_variant as CSGShape3D
-		return csg_target != null and is_instance_valid(csg_target)
+	if not (target_variant is Node3D) or not is_instance_valid(target_variant):
+		return false
+	var target: Node3D = target_variant as Node3D
+	var target_class: String = target.get_class()
+	# Pass 1: exact class match
+	for handler in _target_type_handlers:
+		if String(handler["type_name"]) == target_class:
+			return true
+	# Pass 2: inheritance fallback
+	for handler in _target_type_handlers:
+		if target.is_class(String(handler["type_name"])):
+			return true
 	return false
 
 

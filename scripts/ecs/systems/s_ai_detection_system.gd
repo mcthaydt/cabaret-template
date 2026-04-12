@@ -138,7 +138,7 @@ func _distance(a: Vector3, b: Vector3, use_y_axis: bool) -> float:
 func _dispatch_flag(flag_id: StringName, flag_value: bool) -> void:
 	if flag_id == StringName(""):
 		return
-	var store: I_StateStore = _resolve_store()
+	var store: I_StateStore = _resolve_state_store()
 	if store == null:
 		return
 	store.dispatch(U_GAMEPLAY_ACTIONS.set_ai_demo_flag(flag_id, flag_value))
@@ -155,6 +155,6 @@ func _publish_enter_event(query: Object, detection: Variant, nearest_player: Dic
 	payload["detected_player_entity_id"] = nearest_player.get("entity_id", StringName(""))
 	U_ECSEventBus.publish(detection.enter_event_name, payload)
 
-func _resolve_store() -> I_StateStore:
+func _resolve_state_store() -> I_StateStore:
 	_store = U_DependencyResolution.resolve_state_store(_store, state_store, self)
 	return _store

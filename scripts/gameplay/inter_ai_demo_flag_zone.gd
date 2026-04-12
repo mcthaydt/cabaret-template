@@ -3,7 +3,6 @@ class_name Inter_AIDemoFlagZone
 
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 const SIGNPOST_MESSAGE_EVENT := StringName("signpost_message")
@@ -85,7 +84,7 @@ func _is_interact_mode() -> bool:
 	return _has_dispatched
 
 func _dispatch_gameplay_updates() -> void:
-	var store: I_StateStore = U_STATE_UTILS.try_get_store(self)
+	var store: I_StateStore = U_DependencyResolution.resolve_state_store(null, null, self)
 	if store == null:
 		print("AIDemoFlagZone[%s]: ERROR - no state store found!" % ai_flag_id)
 		return

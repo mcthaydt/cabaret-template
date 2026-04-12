@@ -35,7 +35,7 @@ func _subscribe_events() -> void:
 	)
 
 func _on_alarm_event(_payload: Variant) -> void:
-	var store: I_StateStore = _resolve_store()
+	var store: I_StateStore = _resolve_state_store()
 	if store == null:
 		return
 	for flag_id_variant in relay_flag_ids:
@@ -44,7 +44,7 @@ func _on_alarm_event(_payload: Variant) -> void:
 			continue
 		store.dispatch(U_GAMEPLAY_ACTIONS.set_ai_demo_flag(flag_id, relay_flag_value))
 
-func _resolve_store() -> I_StateStore:
+func _resolve_state_store() -> I_StateStore:
 	_store = U_DependencyResolution.resolve_state_store(_store, state_store, self)
 	return _store
 

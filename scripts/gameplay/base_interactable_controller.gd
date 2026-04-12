@@ -219,7 +219,7 @@ func _get_manager() -> M_ECSManager:
 func _get_store() -> I_StateStore:
 	if _cached_store != null and is_instance_valid(_cached_store):
 		return _cached_store
-	_cached_store = U_StateUtils.try_get_store(self)
+	_cached_store = U_DependencyResolution.resolve_state_store(_cached_store, null, self)
 	return _cached_store
 
 func _is_transition_blocked() -> bool:

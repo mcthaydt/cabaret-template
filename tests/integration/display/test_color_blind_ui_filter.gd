@@ -3,10 +3,12 @@ extends GutTest
 ## Integration test for color blind filter affecting UI elements
 
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
+const U_CanvasLayers = preload("res://scripts/ui/u_canvas_layers.gd")
 
 var _store: M_StateStore
 var _display_manager: M_DisplayManager
 var _post_process_overlay: Node
+var _ui_overlay_stack: CanvasLayer
 
 func before_each() -> void:
 	U_ServiceLocator.clear()
@@ -24,6 +26,12 @@ func before_each() -> void:
 	add_child_autofree(_post_process_overlay)
 	U_ServiceLocator.register(StringName("post_process_overlay"), _post_process_overlay)
 
+	_ui_overlay_stack = CanvasLayer.new()
+	_ui_overlay_stack.name = "UIOverlayStack"
+	_ui_overlay_stack.layer = U_CanvasLayers.UI_OVERLAY
+	add_child_autofree(_ui_overlay_stack)
+	U_ServiceLocator.register(StringName("ui_overlay_stack"), _ui_overlay_stack)
+
 	_display_manager = M_DisplayManager.new()
 	_display_manager.name = "DisplayManager"
 	add_child_autofree(_display_manager)
@@ -31,6 +39,7 @@ func before_each() -> void:
 
 func after_each() -> void:
 	U_ServiceLocator.clear()
+	_ui_overlay_stack = null
 
 func test_color_blind_shader_exists_for_ui_layer() -> void:
 	# GIVEN: Display manager is initialized
@@ -52,12 +61,11 @@ func test_ui_color_blind_layer_has_higher_layer_than_ui_overlay() -> void:
 	var ui_color_blind_layer := root.find_child("UIColorBlindLayer", true, false) as CanvasLayer
 	var ui_overlay_stack := root.find_child("UIOverlayStack", true, false) as CanvasLayer
 
-	if ui_color_blind_layer == null:
-		pending("UIColorBlindLayer not found in test environment")
+	assert_not_null(ui_color_blind_layer, "UIColorBlindLayer should exist in test environment.")
+	assert_not_null(ui_overlay_stack, "UIOverlayStack should exist in test environment.")
+	if ui_color_blind_layer == null or ui_overlay_stack == null:
 		return
-	if ui_overlay_stack == null:
-		pending("UIOverlayStack not available in test environment (part of root scene)")
-		return
+
 	assert_true(ui_color_blind_layer.layer > ui_overlay_stack.layer,
 		"UIColorBlindLayer should have higher layer number than UIOverlayStack to render on top")
 

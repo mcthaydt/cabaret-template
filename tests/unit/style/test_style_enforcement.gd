@@ -770,6 +770,19 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		"res://scripts/managers/m_run_coordinator_manager.gd",
 		"res://scripts/gameplay/inter_victory_zone.gd",
 		"res://scripts/gameplay/inter_ai_demo_guard_barrier.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd",
+		"res://scripts/gameplay/inter_character_light_zone.gd",
+		"res://scripts/gameplay/inter_ai_demo_flag_zone.gd",
+		"res://scripts/ecs/base_event_sfx_system.gd",
+		"res://scripts/ui/menus/ui_splash_screen.gd",
+		"res://scripts/ui/hud/ui_virtual_button.gd",
+		"res://scripts/ui/base/base_panel.gd",
+		"res://scripts/gameplay/base_interactable_controller.gd",
+		"res://scripts/managers/m_vfx_manager.gd",
+		"res://scripts/managers/m_audio_manager.gd",
+		"res://scripts/managers/m_localization_manager.gd",
+		"res://scripts/managers/m_display_manager.gd",
+		"res://scripts/utils/scene_director/u_store_action_binder.gd",
 	]
 	# Forbidden: inline U_STATE_UTILS.try_get_store calls in migrated files
 	# that should delegate to U_DependencyResolution
@@ -1140,5 +1153,41 @@ func _collect_gd_filename_substring_violations(
 		elif entry.ends_with(".gd"):
 			if entry.find(needle) != -1:
 				violations.append(path)
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+
+func test_resolve_state_store_naming_consistent() -> void:
+	var gd_dirs: Array[String] = [
+		"res://scripts/ecs",
+		"res://scripts/managers",
+		"res://scripts/gameplay",
+	]
+	var violations: Array[String] = []
+	for dir_path in gd_dirs:
+		_check_for_method_definition(dir_path, "func _resolve_store()", violations)
+	assert_eq(violations.size(), 0, "Found files defining _resolve_store() instead of _resolve_state_store():\n" + "\n".join(violations))
+
+
+func _check_for_method_definition(dir_path: String, method_signature: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_check_for_method_definition(path, method_signature, violations)
+		elif entry.ends_with(".gd"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file != null:
+				while not file.eof_reached():
+					var line := file.get_line()
+					if line.find(method_signature) != -1:
+						violations.append(path)
+						break
+				file.close()
 		entry = dir.get_next()
 	dir.list_dir_end()

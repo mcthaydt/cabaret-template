@@ -9,7 +9,6 @@ class_name UI_SplashScreen
 ## so it's cached by the time the player reaches the main menu.
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_DEBUG_SELECTORS := preload("res://scripts/state/selectors/u_debug_selectors.gd")
@@ -31,7 +30,7 @@ var _gameplay_scene_path: String = ""
 
 func _ready() -> void:
 	_start_gameplay_preload()
-	var store: Variant = U_STATE_UTILS.try_get_store(self)
+	var store: Variant = U_DependencyResolution.resolve_state_store(null, null, self)
 	if store != null:
 		var state: Dictionary = store.get_state()
 		if U_DEBUG_SELECTORS.should_skip_splash(state):
@@ -132,7 +131,7 @@ func _transition_to_next_scene() -> void:
 	var scene_manager: Variant = U_SERVICE_LOCATOR.try_get_service(StringName("scene_manager"))
 	if scene_manager == null:
 		return
-	var store: Variant = U_STATE_UTILS.try_get_store(self)
+	var store: Variant = U_DependencyResolution.resolve_state_store(null, null, self)
 	var next_scene := StringName("main_menu")
 	if store != null:
 		var state: Dictionary = store.get_state()

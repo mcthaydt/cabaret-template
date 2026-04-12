@@ -10,7 +10,7 @@ func build(
 	entity_query: Object,
 	brain: C_AIBrainComponent,
 	redux_state: Dictionary,
-	store: I_ECSManager,
+	store: I_StateStore,
 	manager: I_ECSManager
 ) -> Dictionary:
 	var rule_context: RefCounted = RSRuleContext.new()

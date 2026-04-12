@@ -9,7 +9,6 @@ class_name M_ScreenshotCacheManager
 
 const U_SCREENSHOT_CAPTURE := preload("res://scripts/managers/helpers/u_screenshot_capture.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 
 var _state_store: I_StateStore = null
 var _cached_image: Image = null

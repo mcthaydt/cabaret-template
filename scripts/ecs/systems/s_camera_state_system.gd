@@ -45,6 +45,7 @@ const DEFAULT_RULE_DEFINITIONS := [
 @export var rules: Array[Resource] = []
 
 var _camera_manager: I_CAMERA_MANAGER = null
+var _state_store: I_StateStore = null
 var _rule_evaluator: Variant = U_RULE_EVALUATOR.new()
 var _shake_time: float = 0.0
 
@@ -181,7 +182,7 @@ func _context_key_for_context(context: Dictionary) -> StringName:
 
 func _build_camera_contexts(event_name: StringName, event_payload: Dictionary) -> Array:
 	var contexts: Array = []
-	var store: I_StateStore = _resolve_store()
+	var store: I_StateStore = _resolve_state_store()
 	var redux_state: Dictionary = get_frame_state_snapshot()
 	var movement_snapshot: Dictionary = _resolve_primary_movement_snapshot()
 
@@ -464,11 +465,9 @@ func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 	_camera_manager = U_DependencyResolution.resolve(CAMERA_MANAGER_SERVICE, _camera_manager, camera_manager) as I_CAMERA_MANAGER
 	return _camera_manager
 
-func _resolve_store() -> I_StateStore:
-	return U_DependencyResolution.resolve_state_store(null, state_store, self)
-
 func _resolve_state_store() -> I_StateStore:
-	return _resolve_store()
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self)
+	return _state_store
 
 func _extract_event_payload(event_data: Dictionary) -> Dictionary:
 	var payload_variant: Variant = event_data.get("payload", null)

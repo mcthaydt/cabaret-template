@@ -8,7 +8,6 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
@@ -84,7 +83,7 @@ func _ready() -> void:
 	if state_store != null:
 		_state_store = state_store
 	else:
-		_state_store = U_STATE_UTILS.try_get_store(self)
+		_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self)
 	if _state_store == null:
 		print_verbose("M_VFXManager: StateStore not found. VFX settings will not be applied.")
 	else:

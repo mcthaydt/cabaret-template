@@ -396,30 +396,24 @@ func test_apply_wall_materials_noop_with_empty_targets() -> void:
 		"_apply_wall_materials should be a noop with empty targets.")
 
 
-# --- _detect_roofs tests ---
+# --- _is_roof_candidate_target tests ---
 
-func test_detect_roofs_flags_upward_normal_above_player() -> void:
+func test_is_roof_candidate_flags_upward_normal_above_player() -> void:
 	var fixture := _create_fixture()
 	var system = fixture.get("system")
 	assert_not_null(system)
 
-	# Target above player with upward normal
 	var roof_target := CSGBox3D.new()
 	roof_target.position = Vector3(0.0, 3.0, 0.0)
 	add_child(roof_target)
 	autofree(roof_target)
 
-	var targets: Array = [roof_target]
-	var normals: Array = [Vector3(0.0, 1.0, 0.0)]
-
-	var results: Array = system._detect_roofs(targets, normals, true, Vector3(0.0, 0.0, 0.0))
-	assert_eq(results.size(), 1,
-		"_detect_roofs should return same count as targets.")
-	assert_true(bool(results[0]),
-		"_detect_roofs should flag upward-normal target above player as roof.")
+	var result: bool = system._is_roof_candidate_target(roof_target, Vector3(0.0, 1.0, 0.0), true, Vector3(0.0, 0.0, 0.0))
+	assert_true(result,
+		"_is_roof_candidate_target should flag upward-normal target above player as roof.")
 
 
-func test_detect_roofs_does_not_flag_wall_normal() -> void:
+func test_is_roof_candidate_does_not_flag_wall_normal() -> void:
 	var fixture := _create_fixture()
 	var system = fixture.get("system")
 	assert_not_null(system)
@@ -429,15 +423,12 @@ func test_detect_roofs_does_not_flag_wall_normal() -> void:
 	add_child(wall_target)
 	autofree(wall_target)
 
-	var targets: Array = [wall_target]
-	var normals: Array = [Vector3(0.0, 0.0, -1.0)]
-
-	var results: Array = system._detect_roofs(targets, normals, true, Vector3(0.0, 0.0, 0.0))
-	assert_false(bool(results[0]),
-		"_detect_roofs should NOT flag wall-normal target as roof.")
+	var result: bool = system._is_roof_candidate_target(wall_target, Vector3(0.0, 0.0, -1.0), true, Vector3(0.0, 0.0, 0.0))
+	assert_false(result,
+		"_is_roof_candidate_target should NOT flag wall-normal target as roof.")
 
 
-func test_detect_roofs_does_not_flag_below_player() -> void:
+func test_is_roof_candidate_does_not_flag_below_player() -> void:
 	var fixture := _create_fixture()
 	var system = fixture.get("system")
 	assert_not_null(system)
@@ -447,15 +438,12 @@ func test_detect_roofs_does_not_flag_below_player() -> void:
 	add_child(floor_target)
 	autofree(floor_target)
 
-	var targets: Array = [floor_target]
-	var normals: Array = [Vector3(0.0, 1.0, 0.0)]
-
-	var results: Array = system._detect_roofs(targets, normals, true, Vector3(0.0, 0.0, 0.0))
-	assert_false(bool(results[0]),
-		"_detect_roofs should NOT flag upward target below player as roof.")
+	var result: bool = system._is_roof_candidate_target(floor_target, Vector3(0.0, 1.0, 0.0), true, Vector3(0.0, 0.0, 0.0))
+	assert_false(result,
+		"_is_roof_candidate_target should NOT flag upward target below player as roof.")
 
 
-func test_detect_roofs_no_player_all_false() -> void:
+func test_is_roof_candidate_no_player_returns_false() -> void:
 	var fixture := _create_fixture()
 	var system = fixture.get("system")
 	assert_not_null(system)
@@ -465,15 +453,12 @@ func test_detect_roofs_no_player_all_false() -> void:
 	add_child(target)
 	autofree(target)
 
-	var targets: Array = [target]
-	var normals: Array = [Vector3(0.0, 1.0, 0.0)]
-
-	var results: Array = system._detect_roofs(targets, normals, false, Vector3.ZERO)
-	assert_false(bool(results[0]),
-		"_detect_roofs should return false when no player position.")
+	var result: bool = system._is_roof_candidate_target(target, Vector3(0.0, 1.0, 0.0), false, Vector3.ZERO)
+	assert_false(result,
+		"_is_roof_candidate_target should return false when no player position.")
 
 
-func test_detect_roofs_mixed_targets() -> void:
+func test_is_roof_candidate_mixed_targets() -> void:
 	var fixture := _create_fixture()
 	var system = fixture.get("system")
 	assert_not_null(system)
@@ -488,12 +473,10 @@ func test_detect_roofs_mixed_targets() -> void:
 	add_child(roof)
 	autofree(roof)
 
-	var targets: Array = [wall, roof]
-	var normals: Array = [Vector3(0.0, 0.0, -1.0), Vector3(0.0, 1.0, 0.0)]
-
-	var results: Array = system._detect_roofs(targets, normals, true, Vector3(0.0, 0.0, 0.0))
-	assert_false(bool(results[0]), "Wall should not be a roof.")
-	assert_true(bool(results[1]), "Roof should be a roof.")
+	var wall_result: bool = system._is_roof_candidate_target(wall, Vector3(0.0, 0.0, -1.0), true, Vector3(0.0, 0.0, 0.0))
+	var roof_result: bool = system._is_roof_candidate_target(roof, Vector3(0.0, 1.0, 0.0), true, Vector3(0.0, 0.0, 0.0))
+	assert_false(wall_result, "Wall should not be a roof.")
+	assert_true(roof_result, "Roof should be a roof.")
 
 
 # --- _cleanup_stale_targets tests ---
@@ -773,3 +756,124 @@ func _register_room_fade_group(
 		autofree(mesh_instance)
 
 	return component
+
+# --- _process_component_fade tests ---
+
+func test_process_component_fade_empty_targets_noop() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	assert_not_null(system)
+	# Process with no targets should not crash
+	var tick_data: Dictionary = {
+		"is_orbit": true,
+		"camera_valid": true,
+		"applier": applier,
+		"resolved_delta": 0.016,
+		"has_player": false,
+		"player_position": Vector3.ZERO,
+		"use_mobile_hide": false,
+	}
+	var component := CSGBox3D.new()
+	add_child(component)
+	autofree(component)
+	system._process_component_fade(component, [], tick_data)
+	assert_eq(applier.apply_calls, 0, "Should not call apply when targets empty.")
+
+
+func test_process_component_fade_mobile_hide_path() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	assert_not_null(system)
+	var target := MeshInstance3D.new()
+	target.position = Vector3(0.0, 1.0, 0.0)
+	add_child(target)
+	autofree(target)
+	var tick_data: Dictionary = {
+		"is_orbit": true,
+		"camera_valid": true,
+		"camera_forward": Vector3.FORWARD,
+		"camera_position": Vector3.ZERO,
+		"applier": applier,
+		"resolved_delta": 0.016,
+		"has_player": true,
+		"player_position": Vector3(0.0, 0.0, 0.0),
+		"use_mobile_hide": true,
+	}
+	var component := CSGBox3D.new()
+	add_child(component)
+	autofree(component)
+	system._process_component_fade(component, [target], tick_data)
+	# When use_mobile_hide is true, _apply_mobile_visibility_state is called
+	# The method should complete without error
+
+
+func test_process_component_fade_with_high_target_and_player() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	assert_not_null(system)
+	# A high target above the player position exercises the roof candidate code path.
+	# The method should complete without error.
+	var high_target := MeshInstance3D.new()
+	high_target.position = Vector3(0.0, 10.0, 0.0)
+	add_child(high_target)
+	autofree(high_target)
+
+	var low_target := MeshInstance3D.new()
+	low_target.position = Vector3(0.0, 1.0, 0.0)
+	add_child(low_target)
+	autofree(low_target)
+
+	var tick_data: Dictionary = {
+		"is_orbit": true,
+		"camera_valid": true,
+		"camera_forward": Vector3.FORWARD,
+		"camera_position": Vector3(0.0, 0.0, 0.0),
+		"resolved_delta": 0.016,
+		"applier": applier,
+		"has_player": true,
+		"player_position": Vector3(0.0, 0.0, 0.0),
+		"use_mobile_hide": false,
+	}
+	var component := CSGBox3D.new()
+	add_child(component)
+	autofree(component)
+	system._process_component_fade(component, [low_target, high_target], tick_data)
+	var high_fade: float = float(system._target_fade_by_id.get(StringName(str(high_target.get_instance_id())), 0.0))
+	var low_fade: float = float(system._target_fade_by_id.get(StringName(str(low_target.get_instance_id())), 0.0))
+	# Both targets should have valid fade values (roof path exercised without crash)
+	assert_true(high_fade >= 0.0, "High target should have a valid fade value.")
+	assert_true(low_fade >= 0.0, "Low target should have a valid fade value.")
+
+
+func test_process_component_fade_pooled_arrays_populated_in_pass1() -> void:
+	var fixture := _create_fixture()
+	var system = fixture.get("system")
+	var applier: WallVisibilityApplierStub = fixture.get("applier") as WallVisibilityApplierStub
+	assert_not_null(system)
+	var target := MeshInstance3D.new()
+	target.position = Vector3(0.0, 1.0, 0.0)
+	add_child(target)
+	autofree(target)
+	var tick_data: Dictionary = {
+		"is_orbit": true,
+		"camera_valid": true,
+		"camera_forward": Vector3.FORWARD,
+		"camera_position": Vector3.ZERO,
+		"applier": applier,
+		"resolved_delta": 0.016,
+		"has_player": true,
+		"player_position": Vector3(0.0, 0.0, 0.0),
+		"use_mobile_hide": false,
+	}
+	var component := CSGBox3D.new()
+	add_child(component)
+	autofree(component)
+	# Pools are cleared at start of _process_component_fade then repopulated during Pass 1.
+	# After processing, pools persist until _exit_tree.
+	system._process_component_fade(component, [target], tick_data)
+	assert_gt(system._pooled_targets.size(), 0, "Pooled targets should be populated after processing.")
+	assert_gt(system._pooled_target_ids.size(), 0, "Pooled target IDs should be populated after processing.")
+	assert_gt(system._pooled_normals.size(), 0, "Pooled normals should be populated after processing.")

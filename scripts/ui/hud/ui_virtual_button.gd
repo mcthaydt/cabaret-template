@@ -253,5 +253,5 @@ func _load_texture(path: String) -> Texture2D:
 func _get_store_instance() -> I_StateStore:
 	if _store != null and is_instance_valid(_store):
 		return _store
-	_store = U_StateUtils.try_get_store(self)
+	_store = U_DependencyResolution.resolve_state_store(_store, null, self)
 	return _store

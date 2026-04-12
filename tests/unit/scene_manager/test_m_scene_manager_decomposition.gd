@@ -13,6 +13,7 @@ const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
+const MockCameraManager = preload("res://tests/mocks/mock_camera_manager.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore
@@ -35,6 +36,7 @@ func before_each() -> void:
 
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
+	_store.settings.enable_persistence = false
 	var scene_initial_state := RS_SceneInitialState.new()
 	_store.scene_initial_state = scene_initial_state
 	add_child_autofree(_store)
@@ -127,20 +129,24 @@ func test_finalize_blend_skips_when_camera_manager_null() -> void:
 	var new_scene := Node3D.new()
 	add_child_autofree(new_scene)
 	var transition_ctx := {"new_scene_ref": [new_scene]}
-	# Should not crash - just silently skip
 	_manager._finalize_camera_blend(transition_ctx)
-	# No assertion needed - test passes if no error/crash
+	assert_eq(transition_ctx["new_scene_ref"][0], new_scene, "Skip path should leave new_scene_ref unchanged when camera manager is null.")
 
 func test_finalize_blend_skips_when_new_scene_ref_null() -> void:
+	var mock_camera := MockCameraManager.new()
+	autofree(mock_camera)
+	_manager._camera_manager = mock_camera
 	var transition_ctx := {"new_scene_ref": [null]}
-	# Should not crash even with a camera manager present
 	_manager._finalize_camera_blend(transition_ctx)
-	# No assertion needed - test passes if no error/crash
+	assert_eq(mock_camera.finalize_blend_calls, 0, "Finalize should be skipped when new_scene_ref[0] is null.")
 
 func test_finalize_blend_skips_when_new_scene_ref_key_missing() -> void:
+	var mock_camera := MockCameraManager.new()
+	autofree(mock_camera)
+	_manager._camera_manager = mock_camera
 	var transition_ctx := {}
 	_manager._finalize_camera_blend(transition_ctx)
-	# Should not crash - missing key handled gracefully
+	assert_eq(mock_camera.finalize_blend_calls, 0, "Finalize should be skipped when transition_ctx has no new_scene_ref key.")
 
 # --- _perform_transition line count test ---
 

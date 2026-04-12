@@ -19,6 +19,7 @@ const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 
 @export var state_store: I_StateStore = null
 @export var debug_ai_logging: bool = false
+var _state_store: I_StateStore = null
 @export var debug_ai_render_probe_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.5
 @export var debug_entity_id: StringName = StringName("patrol_drone")
@@ -47,7 +48,7 @@ func process_tick(delta: float) -> void:
 		_debug_log_missing_brains()
 		return
 	var redux_state: Dictionary = get_frame_state_snapshot()
-	var store: I_StateStore = _resolve_store()
+	var store: I_StateStore = _resolve_state_store()
 	var manager: I_ECSManager = get_manager()
 	var active_context_keys: Array[StringName] = []
 	for entity_query_variant in entities:
@@ -118,11 +119,9 @@ func _should_evaluate_goals(
 	brain.evaluation_timer = 0.0
 	return true
 
-func _resolve_store() -> I_StateStore:
-	return U_DependencyResolution.resolve_state_store(null, state_store, self)
-
 func _resolve_state_store() -> I_StateStore:
-	return _resolve_store()
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self)
+	return _state_store
 
 func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	if not debug_ai_logging:

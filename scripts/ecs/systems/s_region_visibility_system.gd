@@ -4,7 +4,7 @@ class_name S_RegionVisibilitySystem
 
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const I_StateStore := preload("res://scripts/interfaces/i_state_store.gd")
 const RS_REGION_VISIBILITY_SETTINGS_SCRIPT := preload(
 	"res://scripts/resources/display/vcam/rs_region_visibility_settings.gd"
 )
@@ -25,11 +25,11 @@ const REGION_VISIBILITY_TYPE := StringName("RegionVisibility")
 const FADED_THRESHOLD := 0.95
 
 @export var camera_manager: I_CAMERA_MANAGER = null
-@export var state_store: I_STATE_STORE = null
+@export var state_store: I_StateStore = null
 
 var material_applier: Variant = null
 
-var _state_store: I_STATE_STORE = null
+var _state_store: I_StateStore = null
 var _material_applier: Variant = null
 var _tracked_targets: Dictionary = {}
 var _target_alpha_by_id: Dictionary = {}
@@ -177,8 +177,8 @@ func _exit_tree() -> void:
 	_region_alpha_by_tag.clear()
 	_filtered_targets_cache.clear()
 
-func _resolve_state_store() -> I_STATE_STORE:
-	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_STATE_STORE
+func _resolve_state_store() -> I_StateStore:
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_StateStore
 	return _state_store
 
 func _resolve_material_applier() -> Variant:
@@ -190,7 +190,7 @@ func _resolve_material_applier() -> Variant:
 	return _material_applier
 
 func _get_active_mode_info() -> Dictionary:
-	var store: I_STATE_STORE = _resolve_state_store()
+	var store: I_StateStore = _resolve_state_store()
 	if store == null:
 		return {
 			"has_store": false,
@@ -207,7 +207,7 @@ func _get_active_mode_info() -> Dictionary:
 	}
 
 func _resolve_player_position_data() -> Dictionary:
-	var store: I_STATE_STORE = _resolve_state_store()
+	var store: I_StateStore = _resolve_state_store()
 	if store == null:
 		return {}
 

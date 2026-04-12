@@ -3,7 +3,6 @@ extends "res://scripts/interfaces/i_character_lighting_manager.gd"
 class_name M_CharacterLightingManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_CHARACTER_LIGHTING_BLEND_MATH := preload("res://scripts/utils/lighting/u_character_lighting_blend_math.gd")
 const U_CHARACTER_LIGHTING_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_character_lighting_material_applier.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
@@ -156,13 +155,7 @@ func _resolve_dependencies() -> void:
 	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_StateStore
 	_scene_manager = U_DependencyResolution.resolve(SCENE_SERVICE, _scene_manager, scene_manager) as I_SceneManager
 
-	if _ecs_manager == null or not is_instance_valid(_ecs_manager):
-		if ecs_manager != null and is_instance_valid(ecs_manager):
-			_ecs_manager = ecs_manager
-		else:
-			_ecs_manager = U_ECS_UTILS.get_manager(self)
-			if _ecs_manager == null:
-				_ecs_manager = U_SERVICE_LOCATOR.try_get_service(ECS_SERVICE)
+	_ecs_manager = U_DependencyResolution.resolve(ECS_SERVICE, _ecs_manager, ecs_manager) as I_ECSManager
 
 func _connect_store_action_signal() -> void:
 	if _store_action_connected:

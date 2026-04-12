@@ -17,7 +17,6 @@ class_name M_SaveManager
 ## - M_StateStore: State access and dispatch
 ## - M_SceneManager: Scene transitions during load
 
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")

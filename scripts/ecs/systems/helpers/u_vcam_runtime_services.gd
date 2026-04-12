@@ -2,7 +2,6 @@ extends RefCounted
 class_name U_VCamRuntimeServices
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 
@@ -35,12 +34,7 @@ func resolve_vcam_manager() -> I_VCAM_MANAGER:
 	return _vcam_manager as I_VCAM_MANAGER
 
 func resolve_state_store() -> I_StateStore:
-	if _state_store != null and is_instance_valid(_state_store):
-		return _state_store
-	if _exported_state_store != null and is_instance_valid(_exported_state_store):
-		_state_store = _exported_state_store
-		return _state_store
-	_state_store = U_STATE_UTILS.try_get_store(_owner)
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, _exported_state_store, _owner)
 	return _state_store
 
 func build_vcam_index(components: Array) -> Dictionary:

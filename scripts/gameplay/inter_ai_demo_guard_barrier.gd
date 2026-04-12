@@ -30,7 +30,7 @@ func _apply_open_state() -> void:
 func _is_flag_enabled(flag_id: StringName) -> bool:
 	if flag_id == StringName(""):
 		return false
-	var store: I_StateStore = _resolve_store()
+	var store: I_StateStore = _resolve_state_store()
 	if store == null:
 		return false
 	var state: Dictionary = store.get_state()
@@ -44,6 +44,6 @@ func _is_flag_enabled(flag_id: StringName) -> bool:
 	var flags: Dictionary = flags_variant as Dictionary
 	return bool(flags.get(flag_id, false))
 
-func _resolve_store() -> I_StateStore:
+func _resolve_state_store() -> I_StateStore:
 	_store = U_DependencyResolution.resolve_state_store(_store, null, self)
 	return _store

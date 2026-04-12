@@ -8,7 +8,6 @@ class_name M_AudioManager
 ## Redux audio slice.
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
@@ -87,7 +86,7 @@ func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 
 	var frames_waited := 0
 	while frames_waited <= max_frames:
-		var store := U_STATE_UTILS.try_get_store(self)
+		var store := U_DependencyResolution.resolve_state_store(null, null, self)
 		if store != null:
 			if store.is_ready():
 				return store
