@@ -5,12 +5,12 @@
 This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 
 **Branch**: GOAP-AI
-**Status**: C1-C7 complete (with retroactive gap fixes through C6) — begin C8
-**Next Task**: Begin C8 (Selector Enforcement — Managers) in `docs/general/cleanup_v7/cleanup-v7-tasks.md`
+**Status**: C1-C8 complete; C9 next
+**Next Task**: Begin C9 Commit 1 (config resource tests, TDD RED)
 
 ---
 
-## Current Status: C6 Complete (C1-C6 Complete)
+## Current Status: C8 Complete (C1-C8 Complete)
 
 - **C1 (Rule Evaluation Pipeline Extraction)**: COMPLETE — `U_RuleEvaluator` already orchestrated the rule pipeline (commits 1-5 pre-existing). Commit 6 extracted property reader utilities to `U_RuleUtils`, removing ~150 lines of duplication across 5 files. Retroactive gap fixes (C1.7–C1.8): added `read_array_property` and `read_int_property` to `U_RuleUtils`, migrated QB pipeline utilities (`u_rule_validator`, `u_rule_scorer`, `u_rule_selector`) to use `U_RuleUtils` instead of local `_read_*` methods, deleted ~53 lines of duplicated code from `u_rule_validator` alone. All tests green, style enforcement passes.
 
@@ -20,6 +20,7 @@ This guide directs you to implement the Cross-System Cleanup (V7) by following t
 - **C5 (Wall Visibility Decomposition)**: COMPLETE — `S_WallVisibilitySystem.process_tick` decomposed into focused methods and registry-driven type handling; decomposition + integration tests green.
 - **C6 (Scene Manager Overlay Extraction)**: COMPLETE — overlay behavior delegated to `U_OverlayStackManager`; `_perform_transition` decomposed and retroactive fixes landed for typed `U_TransitionState` callback state + `I_CameraManager.is_blend_active()` handoff checks.
 - **C7 (Objectives Manager Namespace Support)**: COMPLETE — Replaced `_objectives_by_id` flat dictionary with `_objective_sets` namespace-aware storage. Multiple objective sets can be active simultaneously. Added `unload_objective_set()`, `active_set_ids` array to store, cross-set selectors (`get_active_set_ids`, `get_statuses_snapshot`, `get_completed_objectives`), and grep test enforcing selector usage.
+- **C8 (Selector Enforcement — Managers)**: COMPLETE — audited selector coverage, created/expanded slice selectors (including `u_scene_selectors.gd`), migrated all 17 manager/helper target files to selectors, removed duplicate `get_player_entity_id` from `u_gameplay_selectors.gd` to keep `u_entity_selectors.gd` canonical, and finalized manager-style enforcement for direct `state.get(...)` / `state[...]` access with token-aware matching.
 
 - **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
 - **C12 standalone doc**: `docs/general/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.

@@ -1,7 +1,7 @@
 # Cross-System Cleanup — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: C1-C7 complete; C8 next
+**Status**: C1-C8 complete; C9 next
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Scope**: Modularity, DRY, scalability, and designer-friendliness improvements across managers and ECS systems. No behavioral changes. All existing integration tests must stay green throughout.
 
@@ -261,7 +261,11 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C8: Selector Enforcement — Managers
+## Milestone C8: Selector Enforcement — Managers — COMPLETE
+
+**Completed**: 2026-04-12
+
+**Summary**: Completed manager/helper selector enforcement. Added/expanded selector coverage for manager-read slices, migrated all C8 target managers/helpers from direct state slice access to selectors, and finalized style-enforcement coverage for direct `state.get(...)` / `state[...]` usage in manager code with token-aware matching (prevents false positives like `room_fade_state.get(...)`).
 
 **Goal**: Eliminate the pattern of managers reaching into state slice internals by key path. All state reads outside reducers should go through `U_*_selectors`. This milestone covers **manager and helper files only**; systems, interactables, and UI are covered in C11.
 
@@ -270,24 +274,24 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 **Existing selectors**: `get_player_entity_id` already exists in `u_entity_selectors.gd` — do not duplicate it. `u_gameplay_selectors.gd` only has 3 selectors (`is_paused`, `get_last_checkpoint`, `is_touch_look_active`) and needs many additions. No `u_scene_selectors.gd` exists yet — it needs to be created.
 
-- [ ] **Commit 1** — Audit all 18 selector files and add missing selector methods:
+- [x] **Commit 1** — Audit all 18 selector files and add missing selector methods:
   - `scripts/state/selectors/u_gameplay_selectors.gd` — add `get_playtime_seconds`, `get_player_health`, `get_target_spawn_point`, `get_last_victory_objective`, `get_entity_snapshot`, `get_ai_demo_flags`, etc.
   - Create `scripts/state/selectors/u_scene_selectors.gd` — add `get_current_scene_id`, `get_scene_stack`, `get_previous_scene_id`, `is_transitioning`, etc.
   - Add selectors for all slices where managers do direct access: `u_vcam_selectors.gd`, `u_navigation_selectors.gd`, `u_time_selectors.gd`, `u_settings_selectors.gd`, `u_objectives_selectors.gd`, `u_audio_selectors.gd`, `u_localization_selectors.gd`.
-  - Note: `get_player_entity_id` already exists in `u_entity_selectors.gd` — reference it, don't duplicate.
-- [ ] **Commit 2** — Migrate all 17 manager/helper files to use selectors instead of `state.get("`:
+  - `get_player_entity_id` remains canonical on `u_entity_selectors.gd` (duplicate helper removed from `u_gameplay_selectors.gd`).
+- [x] **Commit 2** — Migrate all 17 manager/helper files to use selectors instead of `state.get("`:
   - Replace `state.get("gameplay", {})["player_entity_id"]` with `U_EntitySelectors.get_player_entity_id(state)`.
   - Replace `state.get("gameplay", {}).get("playtime_seconds", 0)` with `U_GameplaySelectors.get_playtime_seconds(state)`.
   - Replace `state.get("objectives", {})` with `U_ObjectivesSelectors._get_slice(state)`.
   - Replace `state.get("scene", {})["current_scene_id"]` with `U_SceneSelectors.get_current_scene_id(state)`.
   - Replace all other `state.get("<slice>", {})` patterns in the 17 files.
-- [ ] **Commit 3** — Add style enforcement grep test:
+- [x] **Commit 3** — Add style enforcement grep test:
   - `tests/unit/style/test_style_enforcement.gd` — add test asserting no manager or helper file contains `state.get("` or `state["` outside of `m_state_store.gd` and reducers.
 
 **C8 Verification**:
-- [ ] All selector tests green
-- [ ] All manager tests green (no behavioral change)
-- [ ] Grep test: zero `state.get("` or `state["` occurrences in manager/helper files
+- [x] All selector tests green (`tests/unit/state/test_c8_selector_enforcement.gd` — 47/47)
+- [x] All manager tests green (`tools/run_gut_suite.sh -gdir=res://tests/unit/managers` — 338/338)
+- [x] Grep test: zero direct `state.get("` or `state["` occurrences in manager/helper files (`test_managers_use_selectors_for_state_access` green)
 
 ---
 
