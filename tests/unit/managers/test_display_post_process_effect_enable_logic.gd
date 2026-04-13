@@ -20,20 +20,6 @@ func test_film_grain_selector_returns_true_when_enabled() -> void:
 		"Film grain should be enabled when film_grain_enabled=true"
 	)
 
-func test_crt_selector_returns_false_by_default() -> void:
-	var state := {"display": {}}
-	assert_false(
-		U_DISPLAY_SELECTORS.is_crt_enabled(state),
-		"CRT should be disabled by default"
-	)
-
-func test_crt_selector_returns_true_when_enabled() -> void:
-	var state := {"display": {"crt_enabled": true}}
-	assert_true(
-		U_DISPLAY_SELECTORS.is_crt_enabled(state),
-		"CRT should be enabled when crt_enabled=true"
-	)
-
 func test_dither_selector_returns_false_by_default() -> void:
 	var state := {"display": {}}
 	assert_false(
@@ -58,10 +44,6 @@ func test_default_display_state_includes_effect_toggles() -> void:
 		"Default state should include film_grain_enabled"
 	)
 	assert_true(
-		default_state.has("crt_enabled"),
-		"Default state should include crt_enabled"
-	)
-	assert_true(
 		default_state.has("dither_enabled"),
 		"Default state should include dither_enabled"
 	)
@@ -81,22 +63,6 @@ func test_reducer_handles_film_grain_toggle() -> void:
 			next_state.get("film_grain_enabled"),
 			true,
 			"Reducer should set film_grain_enabled to true"
-		)
-
-func test_reducer_handles_crt_toggle() -> void:
-	const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
-	const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
-
-	var state := {"crt_enabled": false}
-	var action := U_DISPLAY_ACTIONS.set_crt_enabled(true)
-	var next_state: Variant = U_DISPLAY_REDUCER.reduce(state, action)
-
-	assert_not_null(next_state, "Reducer should handle CRT toggle")
-	if next_state is Dictionary:
-		assert_eq(
-			next_state.get("crt_enabled"),
-			true,
-			"Reducer should set crt_enabled to true"
 		)
 
 func test_reducer_handles_dither_toggle() -> void:

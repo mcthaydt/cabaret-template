@@ -8,7 +8,4 @@ preset_name = "heavy"
 display_name = "Heavy"
 sort_order = 2
 film_grain_intensity = 0.35
-crt_scanline_intensity = 0.45
-crt_curvature = 0.1
-crt_chromatic_aberration = 0.0009
 dither_intensity = 1.0

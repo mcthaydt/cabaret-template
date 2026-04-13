@@ -49,14 +49,6 @@ static func _apply_display(store: I_StateStore, display: Dictionary) -> void:
 		store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(bool(display.get("film_grain_enabled", false))))
 	if display.has("film_grain_intensity"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_intensity(float(display.get("film_grain_intensity", 0.1))))
-	if display.has("crt_enabled"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_crt_enabled(bool(display.get("crt_enabled", false))))
-	if display.has("crt_scanline_intensity"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_crt_scanline_intensity(float(display.get("crt_scanline_intensity", 0.3))))
-	if display.has("crt_curvature"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_crt_curvature(float(display.get("crt_curvature", 2.0))))
-	if display.has("crt_chromatic_aberration"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_crt_chromatic_aberration(float(display.get("crt_chromatic_aberration", 0.002))))
 	if display.has("dither_enabled"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_dither_enabled(bool(display.get("dither_enabled", false))))
 	if display.has("dither_intensity"):

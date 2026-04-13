@@ -18,10 +18,9 @@ const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobil
 @export var post_processing_enabled: bool = false
 @export_enum("light", "medium", "heavy") var post_processing_preset: String = "medium"
 @export var film_grain_enabled: bool = false
-@export var crt_enabled: bool = false
 @export var dither_enabled: bool = false
 @export_enum("bayer", "noise") var dither_pattern: String = "bayer"
-# Note: Effect order is fixed internally (Film Grain -> Dither -> CRT), not user-configurable.
+# Note: Effect order is fixed internally (Film Grain -> Dither), not user-configurable.
 # Note: Intensity values are loaded from post_processing_preset resource.
 
 @export_group("UI")
@@ -49,13 +48,9 @@ func to_dictionary() -> Dictionary:
 		"post_processing_enabled": post_processing_enabled,
 		"post_processing_preset": post_processing_preset,
 		"film_grain_enabled": film_grain_enabled,
-		"crt_enabled": crt_enabled,
 		"dither_enabled": dither_enabled,
 		"dither_pattern": dither_pattern,
 		"film_grain_intensity": preset_values.get("film_grain_intensity", 0.2),
-		"crt_scanline_intensity": preset_values.get("crt_scanline_intensity", 0.25),
-		"crt_curvature": preset_values.get("crt_curvature", 0.0),
-		"crt_chromatic_aberration": preset_values.get("crt_chromatic_aberration", 0.001),
 		"dither_intensity": preset_values.get("dither_intensity", 1.0),
 		"ui_scale": ui_scale,
 		"color_blind_mode": color_blind_mode,
@@ -69,7 +64,6 @@ func to_dictionary() -> Dictionary:
 		result["quality_preset"] = "low"
 		result["post_processing_enabled"] = false
 		result["film_grain_enabled"] = false
-		result["crt_enabled"] = false
 		result["dither_enabled"] = false
 
 	return result

@@ -38,22 +38,6 @@ static func get_film_grain_intensity(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
 	return float(display.get("film_grain_intensity", 0.1))
 
-static func is_crt_enabled(state: Dictionary) -> bool:
-	var display := _get_display_slice(state)
-	return bool(display.get("crt_enabled", false))
-
-static func get_crt_scanline_intensity(state: Dictionary) -> float:
-	var display := _get_display_slice(state)
-	return float(display.get("crt_scanline_intensity", 0.3))
-
-static func get_crt_curvature(state: Dictionary) -> float:
-	var display := _get_display_slice(state)
-	return float(display.get("crt_curvature", 2.0))
-
-static func get_crt_chromatic_aberration(state: Dictionary) -> float:
-	var display := _get_display_slice(state)
-	return float(display.get("crt_chromatic_aberration", 0.002))
-
 static func is_dither_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)
 	return bool(display.get("dither_enabled", false))

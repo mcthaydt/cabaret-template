@@ -19,7 +19,6 @@ const DEFAULT_DISPLAY_STATE := {
 	"post_processing_enabled": false,
 	"post_processing_preset": "medium",
 	"film_grain_enabled": false,
-	"crt_enabled": false,
 	"dither_enabled": false,
 	"dither_pattern": "bayer",
 	"ui_scale": 1.0,
@@ -31,10 +30,6 @@ const DEFAULT_DISPLAY_STATE := {
 
 const MIN_INTENSITY := 0.0
 const MAX_INTENSITY := 1.0
-const MIN_CRT_CURVATURE := 0.0
-const MAX_CRT_CURVATURE := 10.0
-const MIN_CRT_CHROMATIC_ABERRATION := 0.0
-const MAX_CRT_CHROMATIC_ABERRATION := 0.01
 
 static func get_default_display_state() -> Dictionary:
 	var state := DEFAULT_DISPLAY_STATE.duplicate(true)
@@ -42,9 +37,6 @@ static func get_default_display_state() -> Dictionary:
 	var preset: String = state.get("post_processing_preset", "medium")
 	var preset_values := U_PostProcessingPresetValues.get_preset_values(preset)
 	state["film_grain_intensity"] = preset_values.get("film_grain_intensity", 0.2)
-	state["crt_scanline_intensity"] = preset_values.get("crt_scanline_intensity", 0.25)
-	state["crt_curvature"] = preset_values.get("crt_curvature", 0.0)
-	state["crt_chromatic_aberration"] = preset_values.get("crt_chromatic_aberration", 0.001)
 	state["dither_intensity"] = preset_values.get("dither_intensity", 1.0)
 	return state
 
@@ -94,9 +86,6 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			return _with_values(current, {
 				"post_processing_preset": preset,
 				"film_grain_intensity": preset_values.get("film_grain_intensity", current.get("film_grain_intensity", 0.1)),
-				"crt_scanline_intensity": preset_values.get("crt_scanline_intensity", current.get("crt_scanline_intensity", 0.3)),
-				"crt_curvature": preset_values.get("crt_curvature", current.get("crt_curvature", 2.0)),
-				"crt_chromatic_aberration": preset_values.get("crt_chromatic_aberration", current.get("crt_chromatic_aberration", 0.002)),
 				"dither_intensity": preset_values.get("dither_intensity", current.get("dither_intensity", 0.5)),
 			})
 
@@ -110,29 +99,6 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var raw_intensity: float = float(payload.get("intensity", 0.1))
 			var clamped_intensity := clampf(raw_intensity, MIN_INTENSITY, MAX_INTENSITY)
 			return _with_values(current, {"film_grain_intensity": clamped_intensity})
-
-		U_DisplayActions.ACTION_SET_CRT_ENABLED:
-			var payload: Dictionary = action.get("payload", {})
-			var enabled := bool(payload.get("enabled", false))
-			return _with_values(current, {"crt_enabled": enabled})
-
-		U_DisplayActions.ACTION_SET_CRT_SCANLINE_INTENSITY:
-			var payload: Dictionary = action.get("payload", {})
-			var raw_intensity: float = float(payload.get("intensity", 0.3))
-			var clamped_intensity := clampf(raw_intensity, MIN_INTENSITY, MAX_INTENSITY)
-			return _with_values(current, {"crt_scanline_intensity": clamped_intensity})
-
-		U_DisplayActions.ACTION_SET_CRT_CURVATURE:
-			var payload: Dictionary = action.get("payload", {})
-			var raw_curvature: float = float(payload.get("curvature", 2.0))
-			var clamped_curvature := clampf(raw_curvature, MIN_CRT_CURVATURE, MAX_CRT_CURVATURE)
-			return _with_values(current, {"crt_curvature": clamped_curvature})
-
-		U_DisplayActions.ACTION_SET_CRT_CHROMATIC_ABERRATION:
-			var payload: Dictionary = action.get("payload", {})
-			var raw_aberration: float = float(payload.get("aberration", 0.002))
-			var clamped_aberration := clampf(raw_aberration, MIN_CRT_CHROMATIC_ABERRATION, MAX_CRT_CHROMATIC_ABERRATION)
-			return _with_values(current, {"crt_chromatic_aberration": clamped_aberration})
 
 		U_DisplayActions.ACTION_SET_DITHER_ENABLED:
 			var payload: Dictionary = action.get("payload", {})

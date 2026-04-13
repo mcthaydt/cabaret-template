@@ -14,9 +14,6 @@ func test_default_state_has_all_fields() -> void:
 	assert_true(default_state.has("quality_preset"))
 	assert_true(default_state.has("film_grain_enabled"))
 	assert_true(default_state.has("film_grain_intensity"))
-	assert_true(default_state.has("crt_enabled"))
-	assert_true(default_state.has("crt_scanline_intensity"))
-	assert_true(default_state.has("crt_curvature"))
 	assert_true(default_state.has("dither_enabled"))
 	assert_true(default_state.has("dither_intensity"))
 	assert_true(default_state.has("dither_pattern"))
@@ -38,17 +35,6 @@ func test_default_state_has_expected_defaults() -> void:
 	assert_almost_eq(
 		float(default_state.get("film_grain_intensity", 0.0)),
 		float(medium_values.get("film_grain_intensity", 0.0)),
-		0.0001
-	)
-	assert_eq(default_state.get("crt_enabled"), false)
-	assert_almost_eq(
-		float(default_state.get("crt_scanline_intensity", 0.0)),
-		float(medium_values.get("crt_scanline_intensity", 0.0)),
-		0.0001
-	)
-	assert_almost_eq(
-		float(default_state.get("crt_curvature", 0.0)),
-		float(medium_values.get("crt_curvature", 0.0)),
 		0.0001
 	)
 	assert_eq(default_state.get("dither_enabled"), false)
@@ -102,22 +88,6 @@ func test_set_film_grain_enabled_updates_field() -> void:
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
 	assert_eq(reduced.get("film_grain_enabled"), true)
-
-# Test 8: set_crt_enabled updates field
-func test_set_crt_enabled_updates_field() -> void:
-	var state := _make_display_state()
-	var action := U_DisplayActions.set_crt_enabled(true)
-	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
-
-	assert_eq(reduced.get("crt_enabled"), true)
-
-# Test 9: set_crt_curvature updates field
-func test_set_crt_curvature_updates_field() -> void:
-	var state := _make_display_state()
-	var action := U_DisplayActions.set_crt_curvature(5.0)
-	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
-
-	assert_almost_eq(float(reduced.get("crt_curvature", 0.0)), 5.0, 0.0001)
 
 # Test 10: set_dither_enabled updates field
 func test_set_dither_enabled_updates_field() -> void:
@@ -174,14 +144,6 @@ func test_set_dither_intensity_clamps() -> void:
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
 	assert_almost_eq(float(reduced.get("dither_intensity", 0.0)), 0.0, 0.0001)
-
-# Test 17: set_crt_scanline_intensity clamps
-func test_set_crt_scanline_intensity_clamps() -> void:
-	var state := _make_display_state()
-	var action := U_DisplayActions.set_crt_scanline_intensity(10.0)
-	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
-
-	assert_almost_eq(float(reduced.get("crt_scanline_intensity", 0.0)), 1.0, 0.0001)
 
 # Test 18: set_ui_scale clamps
 func test_set_ui_scale_clamps() -> void:
@@ -268,9 +230,6 @@ func test_post_processing_preset_applies_intensity_values() -> void:
 	# THEN: State should update preset and apply heavy intensity values
 	assert_eq(reduced.get("post_processing_preset"), "heavy", "Should set preset to heavy")
 	assert_eq(reduced.get("film_grain_intensity"), heavy_values.get("film_grain_intensity"), "Should apply heavy film grain intensity")
-	assert_eq(reduced.get("crt_scanline_intensity"), heavy_values.get("crt_scanline_intensity"), "Should apply heavy scanline intensity")
-	assert_eq(reduced.get("crt_curvature"), heavy_values.get("crt_curvature"), "Should apply heavy curvature")
-	assert_eq(reduced.get("crt_chromatic_aberration"), heavy_values.get("crt_chromatic_aberration"), "Should apply heavy aberration")
 	assert_eq(reduced.get("dither_intensity"), heavy_values.get("dither_intensity"), "Should apply heavy dither intensity")
 
 # Test 27: post-processing preset light values
@@ -283,9 +242,6 @@ func test_post_processing_preset_light_applies_correct_values() -> void:
 	# THEN: State should update preset and apply light intensity values
 	assert_eq(reduced.get("post_processing_preset"), "light", "Should set preset to light")
 	assert_eq(reduced.get("film_grain_intensity"), light_values.get("film_grain_intensity"), "Should apply light film grain intensity")
-	assert_eq(reduced.get("crt_scanline_intensity"), light_values.get("crt_scanline_intensity"), "Should apply light scanline intensity")
-	assert_eq(reduced.get("crt_curvature"), light_values.get("crt_curvature"), "Should apply light curvature")
-	assert_eq(reduced.get("crt_chromatic_aberration"), light_values.get("crt_chromatic_aberration"), "Should apply light aberration")
 	assert_eq(reduced.get("dither_intensity"), light_values.get("dither_intensity"), "Should apply light dither intensity")
 
 # Test 28: post-processing preset medium values
@@ -298,9 +254,6 @@ func test_post_processing_preset_medium_applies_current_defaults() -> void:
 	# THEN: State should update preset and apply medium (current default) intensity values
 	assert_eq(reduced.get("post_processing_preset"), "medium", "Should set preset to medium")
 	assert_eq(reduced.get("film_grain_intensity"), medium_values.get("film_grain_intensity"), "Should apply medium film grain intensity")
-	assert_eq(reduced.get("crt_scanline_intensity"), medium_values.get("crt_scanline_intensity"), "Should apply medium scanline intensity")
-	assert_eq(reduced.get("crt_curvature"), medium_values.get("crt_curvature"), "Should apply medium curvature")
-	assert_eq(reduced.get("crt_chromatic_aberration"), medium_values.get("crt_chromatic_aberration"), "Should apply medium aberration")
 	assert_eq(reduced.get("dither_intensity"), medium_values.get("dither_intensity"), "Should apply medium dither intensity")
 
 # --- Cinema Grade: ACTION_SET_PARAMETER ---

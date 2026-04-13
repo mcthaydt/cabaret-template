@@ -112,7 +112,6 @@ func test_get_combined_rect_returns_combined_effect_rect() -> void:
 func test_legacy_constants_still_defined() -> void:
 	# Ensure legacy constants are still accessible for external code
 	assert_eq(U_PostProcessLayer.EFFECT_FILM_GRAIN, StringName("film_grain"))
-	assert_eq(U_PostProcessLayer.EFFECT_CRT, StringName("crt"))
 	assert_eq(U_PostProcessLayer.EFFECT_DITHER, StringName("dither"))
 
 func _create_effect_rects(root: Node) -> void:

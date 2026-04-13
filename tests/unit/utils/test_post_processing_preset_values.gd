@@ -14,7 +14,6 @@ func test_light_preset_has_lower_intensities() -> void:
 
 	# THEN: Light should have lower intensities than medium
 	assert_true(light.get("film_grain_intensity") < medium.get("film_grain_intensity"), "Light film grain should be lower")
-	assert_true(light.get("crt_scanline_intensity") < medium.get("crt_scanline_intensity"), "Light scanlines should be lower")
 	assert_true(light.get("dither_intensity") < medium.get("dither_intensity"), "Light dither should be lower")
 
 func test_heavy_preset_has_higher_intensities() -> void:
@@ -24,8 +23,6 @@ func test_heavy_preset_has_higher_intensities() -> void:
 
 	# THEN: Heavy should have higher intensities than medium (or equal for dither which is maxed)
 	assert_true(heavy.get("film_grain_intensity") > medium.get("film_grain_intensity"), "Heavy film grain should be higher")
-	assert_true(heavy.get("crt_scanline_intensity") > medium.get("crt_scanline_intensity"), "Heavy scanlines should be higher")
-	assert_true(heavy.get("crt_curvature") > medium.get("crt_curvature"), "Heavy curvature should be higher")
 	assert_true(heavy.get("dither_intensity") >= medium.get("dither_intensity"), "Heavy dither should be >= medium (both maxed at 1.0)")
 
 func test_medium_preset_has_default_values() -> void:
@@ -34,9 +31,6 @@ func test_medium_preset_has_default_values() -> void:
 
 	# THEN: Should match canonical medium preset resource values
 	assert_eq(medium.get("film_grain_intensity"), CFG_MEDIUM_PRESET.film_grain_intensity, "Medium film grain should match preset resource")
-	assert_eq(medium.get("crt_scanline_intensity"), CFG_MEDIUM_PRESET.crt_scanline_intensity, "Medium scanlines should match preset resource")
-	assert_eq(medium.get("crt_curvature"), CFG_MEDIUM_PRESET.crt_curvature, "Medium curvature should match preset resource")
-	assert_eq(medium.get("crt_chromatic_aberration"), CFG_MEDIUM_PRESET.crt_chromatic_aberration, "Medium aberration should match preset resource")
 	assert_eq(medium.get("dither_intensity"), CFG_MEDIUM_PRESET.dither_intensity, "Medium dither should match preset resource")
 
 func test_get_value_returns_specific_field() -> void:
@@ -53,8 +47,6 @@ func test_invalid_preset_returns_medium_defaults() -> void:
 
 	# THEN: Should return medium values as default
 	assert_eq(values.get("film_grain_intensity"), medium.get("film_grain_intensity"), "Should default to medium")
-	assert_eq(values.get("crt_scanline_intensity"), medium.get("crt_scanline_intensity"), "Should default to medium")
-	assert_eq(values.get("crt_chromatic_aberration"), medium.get("crt_chromatic_aberration"), "Should default to medium")
 
 func test_is_valid_preset() -> void:
 	# THEN: Valid presets should return true

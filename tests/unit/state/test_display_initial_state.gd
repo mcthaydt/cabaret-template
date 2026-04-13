@@ -52,15 +52,6 @@ func test_has_film_grain_fields() -> void:
 	assert_eq(initial_state.film_grain_enabled, false)
 	# Note: film_grain_intensity is loaded from post_processing_preset, not stored directly
 
-# Test 6: Has CRT fields
-func test_has_crt_fields() -> void:
-	assert_true(
-		"crt_enabled" in initial_state,
-		"RS_DisplayInitialState should have crt_enabled field"
-	)
-	assert_eq(initial_state.crt_enabled, false)
-	# Note: CRT intensity values are loaded from post_processing_preset, not stored directly
-
 # Test 7: Has dither fields
 func test_has_dither_fields() -> void:
 	assert_true(
@@ -120,9 +111,6 @@ func test_to_dictionary_returns_all_fields() -> void:
 
 	assert_true(dict.has("film_grain_enabled"), "to_dictionary should include film_grain_enabled")
 	assert_true(dict.has("film_grain_intensity"), "to_dictionary should include film_grain_intensity")
-	assert_true(dict.has("crt_enabled"), "to_dictionary should include crt_enabled")
-	assert_true(dict.has("crt_scanline_intensity"), "to_dictionary should include crt_scanline_intensity")
-	assert_true(dict.has("crt_curvature"), "to_dictionary should include crt_curvature")
 	assert_true(dict.has("dither_enabled"), "to_dictionary should include dither_enabled")
 	assert_true(dict.has("dither_intensity"), "to_dictionary should include dither_intensity")
 	assert_true(dict.has("dither_pattern"), "to_dictionary should include dither_pattern")
@@ -142,17 +130,11 @@ func test_to_dictionary_loads_intensity_values_from_preset() -> void:
 
 	# THEN: Should have intensity values from medium preset
 	assert_true(dict.has("film_grain_intensity"), "Should include film_grain_intensity")
-	assert_true(dict.has("crt_scanline_intensity"), "Should include crt_scanline_intensity")
-	assert_true(dict.has("crt_curvature"), "Should include crt_curvature")
-	assert_true(dict.has("crt_chromatic_aberration"), "Should include crt_chromatic_aberration")
 	assert_true(dict.has("dither_intensity"), "Should include dither_intensity")
 
 	# Values should match medium preset resource (canonical source of truth)
 	var medium_values: Dictionary = U_PostProcessingPresetValues.get_preset_values("medium")
 	assert_eq(dict["film_grain_intensity"], medium_values.get("film_grain_intensity"), "Should have medium preset film grain intensity")
-	assert_eq(dict["crt_scanline_intensity"], medium_values.get("crt_scanline_intensity"), "Should have medium preset scanline intensity")
-	assert_eq(dict["crt_curvature"], medium_values.get("crt_curvature"), "Should have medium preset curvature")
-	assert_eq(dict["crt_chromatic_aberration"], medium_values.get("crt_chromatic_aberration"), "Should have medium preset aberration")
 	assert_eq(dict["dither_intensity"], medium_values.get("dither_intensity"), "Should have medium preset dither intensity")
 
 # Test 12: to_dictionary respects different presets
@@ -165,5 +147,3 @@ func test_to_dictionary_respects_different_presets() -> void:
 
 	# THEN: Should have intensity values from heavy preset
 	assert_eq(dict["film_grain_intensity"], 0.35, "Should have heavy preset film grain intensity")
-	assert_eq(dict["crt_scanline_intensity"], 0.45, "Should have heavy preset scanline intensity")
-	assert_eq(dict["crt_curvature"], 0.1, "Should have heavy preset curvature")
