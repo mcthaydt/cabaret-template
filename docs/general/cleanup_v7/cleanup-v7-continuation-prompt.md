@@ -5,13 +5,17 @@
 This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
 
 **Branch**: GOAP-AI
-**Status**: C1-C11 complete; C12 next
-**Next Task**: Begin C12 (Post-Processing Pipeline Refactor) per `docs/general/cleanup_v7/post-process-refactor-tasks.md`
+**Status**: C12 in progress (Commits 1–2 complete; Commit 3 next)
+**Next Task**: Continue C12 Commit 3 — Delete CRT from UI/localization per `docs/general/cleanup_v7/post-process-refactor-tasks.md`
 **Planned Follow-up After C12**: Begin `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`
 
 ---
 
-## Current Status: C11 Complete
+## Current Status: C12 In Progress (Commits 1–2 Complete)
+
+- **C12 Commit 1** (RED): COMPLETE — Added `tests/unit/managers/helpers/test_u_post_process_pipeline.gd` with pipeline registration, ordered evaluation, per-pass enable/disable, fg_time frame-counter, and teardown tests (class doesn't exist yet — parse-fails as intended RED). Added two grep-style style enforcement tests: `test_no_cinema_grade_identifiers_in_scripts` and `test_no_crt_identifiers_in_display_scripts` (both correctly fail against existing codebase).
+
+- **C12 Commit 2** (GREEN): COMPLETE — Removed all CRT display state, actions, selectors, reducer cases, and preset values from the display pipeline. Deleted 4 CRT action constants/creators from `u_display_actions.gd`, 4 CRT selectors from `u_display_selectors.gd`, 4 CRT reducer cases + CRT defaults + clamp constants from `u_display_reducer.gd`, CRT exports from `rs_display_initial_state.gd` and `rs_post_processing_preset.gd`, CRT keys from `u_post_processing_preset_values.gd`, CRT values from 3 `.tres` preset files, and 4 CRT dispatches from `u_global_settings_applier.gd`. Updated 7 test files to remove CRT assertions and test methods. All 36 display reducer, 14 selector, 13 action, 12 initial state, 7 effect enable logic, 8 preset values, and 11 post-process layer tests pass.
 
 - **C1 (Rule Evaluation Pipeline Extraction)**: COMPLETE — `U_RuleEvaluator` already orchestrated the rule pipeline (commits 1-5 pre-existing). Commit 6 extracted property reader utilities to `U_RuleUtils`, removing ~150 lines of duplication across 5 files. Retroactive gap fixes (C1.7–C1.8): added `read_array_property` and `read_int_property` to `U_RuleUtils`, migrated QB pipeline utilities (`u_rule_validator`, `u_rule_scorer`, `u_rule_selector`) to use `U_RuleUtils` instead of local `_read_*` methods, deleted ~53 lines of duplicated code from `u_rule_validator` alone. All tests green, style enforcement passes.
 

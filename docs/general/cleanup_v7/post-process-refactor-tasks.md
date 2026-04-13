@@ -140,17 +140,19 @@ Within C12, commits are ordered so that each GREEN step can land cleanly:
 
 **Goal**: Collapse post-processing to exactly two passes (color grading + grain/dither) behind a new `U_PostProcessPipeline` coordinator, remove CRT entirely, rename cinema_grade → color_grading across the codebase, and enable color grading on mobile.
 
-- [ ] **Commit 1** — Add pipeline + removal tests (TDD RED):
-  - `tests/unit/managers/helpers/test_u_post_process_pipeline.gd` — test pass registration, deterministic ordered evaluation, per-pass enable/disable, frame-counter uniform updates (`fg_time`), and pipeline teardown (unregister/clear).
-  - `tests/unit/style/test_style_enforcement.gd` — add grep assertions that `scripts/` contains no `cinema_grade`, `CinemaGrade`, `crt_`, `chromatic_aberration`, `scanline`, or `curvature` identifiers in post-processing contexts (allowlist legacy audio/lighting uses if any).
-- [ ] **Commit 2** — Delete CRT from state layer (TDD GREEN):
-  - `scripts/state/actions/u_display_actions.gd` — remove 4 `ACTION_SET_CRT_*` constants and creators, strip from `_static_init()`.
-  - `scripts/state/selectors/u_display_selectors.gd` — remove 4 CRT selectors.
-  - `scripts/state/reducers/u_display_reducer.gd` — remove CRT reducer cases, remove CRT keys from `DEFAULT_DISPLAY_STATE`.
-  - `scripts/resources/state/rs_display_initial_state.gd` — remove CRT defaults.
-  - `scripts/utils/display/u_post_processing_preset_values.gd` — remove CRT keys.
-  - `resources/display/cfg_post_processing_presets/cfg_post_processing_{light,medium,heavy}.tres` — delete CRT fields.
-  - Update tests: `test_display_reducer`, `test_display_selectors`, `test_display_actions`, `test_display_initial_state`, `test_display_post_processing_preset`, `test_post_processing_preset_values`.
+- [x] **Commit 1** — Add pipeline + removal tests (TDD RED): ✅
+  - `tests/unit/managers/helpers/test_u_post_process_pipeline.gd` — test pass registration, deterministic ordered evaluation, per-pass enable/disable, frame-counter uniform updates (`fg_time`), and pipeline teardown (unregister/clear). Class doesn't exist yet — parse-fails as intended RED.
+  - `tests/unit/style/test_style_enforcement.gd` — added `test_no_cinema_grade_identifiers_in_scripts` and `test_no_crt_identifiers_in_display_scripts` grep assertions. Both correctly fail against existing codebase.
+- [x] **Commit 2** — Delete CRT from state layer (TDD GREEN): ✅
+  - `scripts/state/actions/u_display_actions.gd` — removed 4 `ACTION_SET_CRT_*` constants/creators and 4 `_static_init` registrations.
+  - `scripts/state/selectors/u_display_selectors.gd` — removed 4 CRT selector methods.
+  - `scripts/state/reducers/u_display_reducer.gd` — removed 4 CRT reducer cases, 3 CRT default keys, 3 CRT preset-value reads, 4 CRT clamp constants.
+  - `scripts/resources/state/rs_display_initial_state.gd` — removed CRT export, 4 CRT dict entries, mobile CRT override.
+  - `scripts/utils/display/u_post_processing_preset_values.gd` — removed 3 CRT keys from `get_preset_values()`.
+  - `scripts/resources/display/rs_post_processing_preset.gd` — removed 3 CRT `@export` properties.
+  - `resources/display/cfg_post_processing_presets/cfg_post_processing_{light,medium,heavy}.tres` — removed CRT field values.
+  - `scripts/state/utils/u_global_settings_applier.gd` — removed 4 CRT dispatch lines.
+  - Updated 7 test files: removed CRT tests and assertions from `test_display_reducer`, `test_display_selectors`, `test_display_actions`, `test_display_initial_state`, `test_display_post_process_effect_enable_logic`, `test_post_processing_preset_values`, `test_post_process_layer`.
 - [ ] **Commit 3** — Delete CRT from UI/localization (TDD GREEN):
   - `scripts/ui/settings/ui_display_settings_tab.gd` + `.tscn` — remove CRT control nodes and handlers.
   - `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn` — audit and remove CRT controls if present.
