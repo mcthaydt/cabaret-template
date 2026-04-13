@@ -1,14 +1,14 @@
 extends RefCounted
-class_name U_DisplayCinemaGradeApplier
+class_name U_DisplayColorGradingApplier
 
-## Applies per-scene cinema grade settings via a shader overlay.
+## Applies per-scene color grading settings via a shader overlay.
 ##
-## Creates a CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay and
-## listens for scene/transition_completed to swap cinema grades automatically.
-## On mobile, force-disables the cinema grade layer entirely — the fullscreen
+## Creates a ColorGradingLayer (CanvasLayer 1) inside PostProcessOverlay and
+## listens for scene/transition_completed to swap color gradings automatically.
+## On mobile, force-disables the color grading layer entirely — the fullscreen
 ## shader pass is too expensive on tile-based GPUs.
 
-const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shader.gdshader")
+const COLOR_GRADING_SHADER := preload("res://assets/shaders/sh_color_grading_shader.gdshader")
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
@@ -17,8 +17,8 @@ const SCENE_SWAPPED := StringName("scene/swapped")
 
 var _owner: Node = null
 var _state_store: I_StateStore = null
-var _cinema_grade_layer: CanvasLayer = null
-var _cinema_grade_rect: ColorRect = null
+var _color_grading_layer: CanvasLayer = null
+var _color_grading_rect: ColorRect = null
 var _shader_material: ShaderMaterial = null
 var _is_mobile: bool = false
 
@@ -32,42 +32,42 @@ func initialize(owner: Node, state_store: I_StateStore) -> void:
 		_state_store.action_dispatched.connect(_on_action_dispatched)
 
 func apply_settings(display_settings: Dictionary) -> void:
-	# Mobile: skip entirely. The cinema grade layer is force-hidden on mobile
+	# Mobile: skip entirely. The color grading layer is force-hidden on mobile
 	# because the fullscreen shader pass is too expensive on tile-based GPUs.
 	if _is_mobile:
 		return
-	if not _ensure_cinema_grade_layer():
+	if not _ensure_color_grading_layer():
 		return
 	var state := {"display": display_settings}
-	_apply_cinema_grade_uniforms(state)
+	_apply_color_grading_uniforms(state)
 
 func update_visibility(should_show: bool) -> void:
-	# Mobile: force-hide the cinema grade layer. The fullscreen shader pass
+	# Mobile: force-hide the color grading layer. The fullscreen shader pass
 	# with follow_viewport_enabled causes a full re-render of the 3D scene
 	# at native resolution, which is prohibitively expensive on tile-based GPUs.
 	if _is_mobile:
-		_ensure_cinema_grade_layer()
-		if _cinema_grade_layer != null and is_instance_valid(_cinema_grade_layer):
-			_cinema_grade_layer.visible = false
+		_ensure_color_grading_layer()
+		if _color_grading_layer != null and is_instance_valid(_color_grading_layer):
+			_color_grading_layer.visible = false
 		return
 
-	if not _ensure_cinema_grade_layer():
+	if not _ensure_color_grading_layer():
 		return
-	_cinema_grade_layer.visible = should_show
+	_color_grading_layer.visible = should_show
 
-## Mobile debug: force-disable the cinema grade shader pass.
+## Mobile debug: force-disable the color grading shader pass.
 ## Returns true if the layer was previously visible (i.e., this changed something).
 func debug_force_disable() -> bool:
-	if _cinema_grade_layer == null or not is_instance_valid(_cinema_grade_layer):
+	if _color_grading_layer == null or not is_instance_valid(_color_grading_layer):
 		return false
-	var was_visible: bool = _cinema_grade_layer.visible
-	_cinema_grade_layer.visible = false
+	var was_visible: bool = _color_grading_layer.visible
+	_color_grading_layer.visible = false
 	return was_visible
 
-## Mobile debug: restore the cinema grade layer to its normal visibility state.
+## Mobile debug: restore the color grading layer to its normal visibility state.
 func debug_restore_visibility(should_show: bool) -> void:
-	if _cinema_grade_layer != null and is_instance_valid(_cinema_grade_layer):
-		_cinema_grade_layer.visible = should_show
+	if _color_grading_layer != null and is_instance_valid(_color_grading_layer):
+		_color_grading_layer.visible = should_show
 
 func cleanup() -> void:
 	if _state_store != null and _state_store.has_signal("action_dispatched"):
@@ -90,7 +90,7 @@ func _load_grade_for_scene(scene_id: StringName) -> void:
 	var grade := U_ColorGradingRegistry.get_color_grading_for_scene(scene_id)
 	_state_store.dispatch(U_ColorGradingActions.load_scene_grade(grade.to_dictionary()))
 
-func _apply_cinema_grade_uniforms(state: Dictionary) -> void:
+func _apply_color_grading_uniforms(state: Dictionary) -> void:
 	if _shader_material == null:
 		return
 
@@ -112,45 +112,45 @@ func _apply_cinema_grade_uniforms(state: Dictionary) -> void:
 	if _is_mobile:
 		_shader_material.set_shader_parameter("sharpness", 0.0)
 
-func _ensure_cinema_grade_layer() -> bool:
-	if _cinema_grade_layer != null and is_instance_valid(_cinema_grade_layer):
+func _ensure_color_grading_layer() -> bool:
+	if _color_grading_layer != null and is_instance_valid(_color_grading_layer):
 		return true
-	_setup_cinema_grade_layer()
-	return _cinema_grade_layer != null
+	_setup_color_grading_layer()
+	return _color_grading_layer != null
 
-func _setup_cinema_grade_layer() -> void:
+func _setup_color_grading_layer() -> void:
 	var post_process_overlay := U_SERVICE_LOCATOR.try_get_service(StringName("post_process_overlay")) as Node
 	if post_process_overlay == null:
 		return
 
 	# Check if already exists
-	var existing := post_process_overlay.find_child("CinemaGradeLayer", false, false)
+	var existing := post_process_overlay.find_child("ColorGradingLayer", false, false)
 	if existing is CanvasLayer:
-		_cinema_grade_layer = existing as CanvasLayer
-		var rect := _cinema_grade_layer.find_child("CinemaGradeRect", false, false)
+		_color_grading_layer = existing as CanvasLayer
+		var rect := _color_grading_layer.find_child("ColorGradingRect", false, false)
 		if rect is ColorRect:
-			_cinema_grade_rect = rect as ColorRect
-			_shader_material = _cinema_grade_rect.material as ShaderMaterial
+			_color_grading_rect = rect as ColorRect
+			_shader_material = _color_grading_rect.material as ShaderMaterial
 		return
 
-	# Create CinemaGradeLayer below the authored post-process layers.
-	_cinema_grade_layer = CanvasLayer.new()
-	_cinema_grade_layer.name = "CinemaGradeLayer"
-	_cinema_grade_layer.layer = U_CANVAS_LAYERS.PP_CINEMA_GRADE
-	_cinema_grade_layer.follow_viewport_enabled = true
+	# Create ColorGradingLayer below the authored post-process layers.
+	_color_grading_layer = CanvasLayer.new()
+	_color_grading_layer.name = "ColorGradingLayer"
+	_color_grading_layer.layer = U_CANVAS_LAYERS.PP_COLOR_GRADING
+	_color_grading_layer.follow_viewport_enabled = true
 
 	_shader_material = ShaderMaterial.new()
-	_shader_material.shader = CINEMA_GRADE_SHADER
+	_shader_material.shader = COLOR_GRADING_SHADER
 
-	_cinema_grade_rect = ColorRect.new()
-	_cinema_grade_rect.name = "CinemaGradeRect"
-	_cinema_grade_rect.material = _shader_material
-	_cinema_grade_rect.anchors_preset = Control.PRESET_FULL_RECT
-	_cinema_grade_rect.anchor_right = 1.0
-	_cinema_grade_rect.anchor_bottom = 1.0
-	_cinema_grade_rect.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_cinema_grade_rect.grow_vertical = Control.GROW_DIRECTION_BOTH
-	_cinema_grade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_color_grading_rect = ColorRect.new()
+	_color_grading_rect.name = "ColorGradingRect"
+	_color_grading_rect.material = _shader_material
+	_color_grading_rect.anchors_preset = Control.PRESET_FULL_RECT
+	_color_grading_rect.anchor_right = 1.0
+	_color_grading_rect.anchor_bottom = 1.0
+	_color_grading_rect.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_color_grading_rect.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_color_grading_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	_cinema_grade_layer.add_child(_cinema_grade_rect)
-	post_process_overlay.add_child(_cinema_grade_layer)
+	_color_grading_layer.add_child(_color_grading_rect)
+	post_process_overlay.add_child(_color_grading_layer)

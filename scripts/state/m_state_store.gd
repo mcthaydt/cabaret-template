@@ -317,7 +317,7 @@ func _input(event: InputEvent) -> void:
 		if cinema_toggle_pressed:
 			if _cinema_debug_overlay == null or not is_instance_valid(_cinema_debug_overlay):
 				# Spawn cinema debug overlay
-				var cinema_overlay_scene := load("res://scenes/debug/debug_cinema_grade_overlay.tscn")
+				var cinema_overlay_scene := load("res://scenes/debug/debug_color_grading_overlay.tscn")
 				if cinema_overlay_scene:
 					_cinema_debug_overlay = cinema_overlay_scene.instantiate()
 					add_child(_cinema_debug_overlay)

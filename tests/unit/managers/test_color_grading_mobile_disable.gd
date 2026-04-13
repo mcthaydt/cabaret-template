@@ -1,13 +1,13 @@
 extends GutTest
 
-## Tests for U_DisplayCinemaGradeApplier mobile behavior.
-## On mobile, the cinema grade layer should be force-hidden to eliminate
+## Tests for U_DisplayColorGradingApplier mobile behavior.
+## On mobile, the color grading layer should be force-hidden to eliminate
 ## the fullscreen shader pass that re-renders the scene at native resolution.
 
-const U_CINEMA_GRADE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_cinema_grade_applier.gd")
+const U_COLOR_GRADING_APPLIER := preload("res://scripts/managers/helpers/display/u_display_color_grading_applier.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shader.gdshader")
+const COLOR_GRADING_SHADER := preload("res://assets/shaders/sh_color_grading_shader.gdshader")
 
 var _overlay: Node
 
@@ -29,21 +29,21 @@ func after_each() -> void:
 	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(-1)
 	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(-1.0)
 
-# Creates an applier initialized in the given mode, with a pre-existing CinemaGradeLayer
+# Creates an applier initialized in the given mode, with a pre-existing ColorGradingLayer
 func _setup_applier(mobile_override: int) -> Dictionary:
 	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(mobile_override)
 
-	# Pre-create the CinemaGradeLayer in the overlay so the applier can find it
+	# Pre-create the ColorGradingLayer in the overlay so the applier can find it
 	var layer := CanvasLayer.new()
-	layer.name = "CinemaGradeLayer"
+	layer.name = "ColorGradingLayer"
 	layer.layer = 1
 	layer.follow_viewport_enabled = true
 
 	var material := ShaderMaterial.new()
-	material.shader = CINEMA_GRADE_SHADER
+	material.shader = COLOR_GRADING_SHADER
 
 	var rect := ColorRect.new()
-	rect.name = "CinemaGradeRect"
+	rect.name = "ColorGradingRect"
 	rect.material = material
 	rect.anchors_preset = Control.PRESET_FULL_RECT
 	rect.anchor_right = 1.0
@@ -55,7 +55,7 @@ func _setup_applier(mobile_override: int) -> Dictionary:
 	layer.add_child(rect)
 	_overlay.add_child(layer)
 
-	var applier := U_CINEMA_GRADE_APPLIER.new()
+	var applier := U_COLOR_GRADING_APPLIER.new()
 	applier.initialize(null, null)
 
 	return {"applier": applier, "layer": layer}
@@ -64,51 +64,51 @@ func _setup_applier(mobile_override: int) -> Dictionary:
 
 func test_desktop_update_visibility_shows_layer() -> void:
 	var result := _setup_applier(0)
-	var applier: U_DisplayCinemaGradeApplier = result["applier"]
+	var applier: U_DisplayColorGradingApplier = result["applier"]
 	var layer: CanvasLayer = result["layer"]
 
 	applier.update_visibility(true)
 	assert_true(layer.visible,
-		"CinemaGradeLayer should be visible on desktop when should_show=true")
+		"ColorGradingLayer should be visible on desktop when should_show=true")
 
 func test_desktop_update_visibility_hides_layer() -> void:
 	var result := _setup_applier(0)
-	var applier: U_DisplayCinemaGradeApplier = result["applier"]
+	var applier: U_DisplayColorGradingApplier = result["applier"]
 	var layer: CanvasLayer = result["layer"]
 
 	layer.visible = true  # start visible
 	applier.update_visibility(false)
 	assert_false(layer.visible,
-		"CinemaGradeLayer should be hidden on desktop when should_show=false")
+		"ColorGradingLayer should be hidden on desktop when should_show=false")
 
-# --- Mobile behavior: cinema grade should be force-hidden ---
+# --- Mobile behavior: color grading should be force-hidden ---
 
 func test_mobile_update_visibility_hides_layer_even_when_should_show() -> void:
 	var result := _setup_applier(1)
-	var applier: U_DisplayCinemaGradeApplier = result["applier"]
+	var applier: U_DisplayColorGradingApplier = result["applier"]
 	var layer: CanvasLayer = result["layer"]
 
 	applier.update_visibility(true)
 	assert_false(layer.visible,
-		"CinemaGradeLayer should be hidden on mobile even when should_show=true")
+		"ColorGradingLayer should be hidden on mobile even when should_show=true")
 
 func test_mobile_update_visibility_hides_layer_when_should_hide() -> void:
 	var result := _setup_applier(1)
-	var applier: U_DisplayCinemaGradeApplier = result["applier"]
+	var applier: U_DisplayColorGradingApplier = result["applier"]
 	var layer: CanvasLayer = result["layer"]
 
 	applier.update_visibility(false)
 	assert_false(layer.visible,
-		"CinemaGradeLayer should be hidden on mobile when should_show=false")
+		"ColorGradingLayer should be hidden on mobile when should_show=false")
 
 func test_mobile_apply_settings_does_not_create_layer() -> void:
 	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(1)
-	var applier := U_CINEMA_GRADE_APPLIER.new()
+	var applier := U_COLOR_GRADING_APPLIER.new()
 	applier.initialize(null, null)
 
 	# apply_settings on mobile should skip entirely (no layer creation)
 	applier.apply_settings({})
 
-	var layer := _overlay.find_child("CinemaGradeLayer", false, false)
+	var layer := _overlay.find_child("ColorGradingLayer", false, false)
 	assert_null(layer,
-		"CinemaGradeLayer should not be created on mobile")
+		"ColorGradingLayer should not be created on mobile")

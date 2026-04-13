@@ -16,7 +16,7 @@ const U_DISPLAY_QUALITY_APPLIER := preload("res://scripts/managers/helpers/displ
 const U_DISPLAY_POST_PROCESS_APPLIER := preload("res://scripts/managers/helpers/display/u_display_post_process_applier.gd")
 const U_DISPLAY_UI_SCALE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_scale_applier.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
-const U_DISPLAY_CINEMA_GRADE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_cinema_grade_applier.gd")
+const U_DISPLAY_COLOR_GRADING_APPLIER := preload("res://scripts/managers/helpers/display/u_display_color_grading_applier.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
@@ -51,7 +51,7 @@ var _quality_applier: RefCounted = null  # U_DisplayQualityApplier
 var _post_process_applier: RefCounted = null  # U_DisplayPostProcessApplier
 var _ui_scale_applier: RefCounted = null  # U_DisplayUIScaleApplier
 var _ui_theme_applier: RefCounted = null  # U_DisplayUIThemeApplier
-var _cinema_grade_applier: RefCounted = null  # U_DisplayCinemaGradeApplier
+var _color_grading_applier: RefCounted = null  # U_DisplayColorGradingApplier
 
 # Cached values for inspection/tests (Phase 1B)
 var _last_applied_settings: Dictionary = {}
@@ -78,8 +78,8 @@ func _ready() -> void:
 	await _initialize_store_async()
 
 func _exit_tree() -> void:
-	if _cinema_grade_applier != null:
-		_cinema_grade_applier.cleanup()
+	if _color_grading_applier != null:
+		_color_grading_applier.cleanup()
 	if _ui_theme_applier != null:
 		_ui_theme_applier.clear_active_palette()
 	if _state_store != null and _state_store.has_signal("slice_updated"):
@@ -110,8 +110,8 @@ func _initialize_store_async() -> void:
 
 
 	_ensure_appliers()
-	if _cinema_grade_applier != null:
-		_cinema_grade_applier.initialize(self, _state_store)
+	if _color_grading_applier != null:
+		_color_grading_applier.initialize(self, _state_store)
 
 	var state := _state_store.get_state()
 	_apply_display_settings(state)
@@ -211,7 +211,7 @@ func _apply_display_settings(state: Dictionary) -> void:
 	_apply_quality_settings(effective_settings)
 	_apply_mobile_resolution_scale(state)
 	_apply_post_process_settings(effective_settings)
-	_apply_cinema_grade_settings(effective_settings)
+	_apply_color_grading_settings(effective_settings)
 	_apply_ui_scale_settings(effective_settings)
 	_apply_accessibility_settings(effective_settings)
 
@@ -299,11 +299,11 @@ func _apply_post_process_settings(display_settings: Dictionary) -> void:
 	_post_process_applier.apply_settings(display_settings)
 	_update_overlay_visibility()
 
-func _apply_cinema_grade_settings(display_settings: Dictionary) -> void:
+func _apply_color_grading_settings(display_settings: Dictionary) -> void:
 	_ensure_appliers()
-	if _cinema_grade_applier == null:
+	if _color_grading_applier == null:
 		return
-	_cinema_grade_applier.apply_settings(display_settings)
+	_color_grading_applier.apply_settings(display_settings)
 
 func set_ui_scale(scale: float) -> void:
 	_ensure_appliers()
@@ -389,8 +389,8 @@ func _ensure_appliers() -> void:
 		)
 	if _ui_theme_applier == null:
 		_ui_theme_applier = U_DISPLAY_UI_THEME_APPLIER.new()
-	if _cinema_grade_applier == null:
-		_cinema_grade_applier = U_DISPLAY_CINEMA_GRADE_APPLIER.new()
+	if _color_grading_applier == null:
+		_color_grading_applier = U_DISPLAY_COLOR_GRADING_APPLIER.new()
 
 
 func _resolve_display_config_values() -> Dictionary:
@@ -470,8 +470,8 @@ func _update_overlay_visibility() -> void:
 
 	if _post_process_applier != null:
 		_post_process_applier.update_overlay_visibility(should_show)
-	if _cinema_grade_applier != null:
-		_cinema_grade_applier.update_visibility(should_show)
+	if _color_grading_applier != null:
+		_color_grading_applier.update_visibility(should_show)
 
 func _get_palette_id_text(palette: Resource) -> String:
 	if palette == null:

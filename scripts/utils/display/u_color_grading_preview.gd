@@ -1,20 +1,20 @@
 @tool
 @icon("res://assets/editor_icons/icn_utility.svg")
 extends Node
-class_name U_CinemaGradePreview
+class_name U_ColorGradingPreview
 
-## Editor-only preview node for cinema grade effects.
+## Editor-only preview node for color grading effects.
 ##
 ## Drop into any gameplay scene root, assign a RS_SceneColorGrading resource,
 ## and see the effect live in the editor viewport. Removes itself at runtime
 ## (M_DisplayManager handles everything in-game).
 
-const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shader.gdshader")
+const COLOR_GRADING_SHADER := preload("res://assets/shaders/sh_color_grading_shader.gdshader")
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 
-@export var cinema_grade: Resource = null:
+@export var color_grading: Resource = null:
 	set(value):
-		cinema_grade = value
+		color_grading = value
 		if Engine.is_editor_hint():
 			_update_preview()
 
@@ -34,14 +34,14 @@ func _setup_preview() -> void:
 		return
 
 	_preview_layer = CanvasLayer.new()
-	_preview_layer.name = "CinemaGradePreviewLayer"
+	_preview_layer.name = "ColorGradingPreviewLayer"
 	_preview_layer.layer = U_CANVAS_LAYERS.LOADING
 
 	_shader_material = ShaderMaterial.new()
-	_shader_material.shader = CINEMA_GRADE_SHADER
+	_shader_material.shader = COLOR_GRADING_SHADER
 
 	_preview_rect = ColorRect.new()
-	_preview_rect.name = "CinemaGradePreviewRect"
+	_preview_rect.name = "ColorGradingPreviewRect"
 	_preview_rect.material = _shader_material
 	_preview_rect.anchors_preset = Control.PRESET_FULL_RECT
 	_preview_rect.anchor_right = 1.0
@@ -56,13 +56,13 @@ func _setup_preview() -> void:
 func _update_preview() -> void:
 	if _shader_material == null:
 		return
-	if cinema_grade == null:
+	if color_grading == null:
 		_preview_rect.visible = false
 		return
 
 	_preview_rect.visible = true
 
-	var grade := cinema_grade as Resource
+	var grade := color_grading as Resource
 
 	# Use RS_SceneColorGrading.FILTER_PRESET_MAP (single source of truth)
 	var filter_preset: String = grade.get("filter_preset") if grade.get("filter_preset") != null else "none"
@@ -88,6 +88,6 @@ func _get_prop(res: Resource, prop_name: String, default_value: Variant) -> Vari
 
 func _get_configuration_warnings() -> PackedStringArray:
 	var warnings := PackedStringArray()
-	if cinema_grade == null:
+	if color_grading == null:
 		warnings.append("No color grading resource assigned. Assign a RS_SceneColorGrading resource to see the preview.")
 	return warnings

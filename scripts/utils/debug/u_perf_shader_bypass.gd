@@ -95,11 +95,11 @@ func _get_display_manager() -> Node:
 	return null
 
 
-func _get_cinema_grade_applier() -> RefCounted:
+func _get_color_grading_applier() -> RefCounted:
 	var dm := _get_display_manager()
 	if dm == null:
 		return null
-	var applier: Variant = dm.get("_cinema_grade_applier")
+	var applier: Variant = dm.get("_color_grading_applier")
 	if applier is RefCounted:
 		return applier as RefCounted
 	return null
@@ -119,7 +119,7 @@ func _restore_all() -> void:
 	var pp_applier := _get_post_process_applier()
 	if pp_applier != null and pp_applier.has_method("debug_restore_combined_visibility"):
 		pp_applier.call("debug_restore_combined_visibility", _was_combined_visible)
-	var cg_applier := _get_cinema_grade_applier()
+	var cg_applier := _get_color_grading_applier()
 	if cg_applier != null and cg_applier.has_method("debug_restore_visibility"):
 		cg_applier.call("debug_restore_visibility", _was_cinema_visible)
 	U_PERF_FADE_BYPASS.set_enabled(false)
@@ -131,7 +131,7 @@ func _disable_cinema_only() -> void:
 	if pp_applier != null and pp_applier.has_method("debug_restore_combined_visibility"):
 		pp_applier.call("debug_restore_combined_visibility", _was_combined_visible)
 	# Disable cinema grade
-	var cg_applier := _get_cinema_grade_applier()
+	var cg_applier := _get_color_grading_applier()
 	if cg_applier != null and cg_applier.has_method("debug_force_disable"):
 		# Save current visibility before disabling
 		_was_cinema_visible = true
@@ -141,7 +141,7 @@ func _disable_cinema_only() -> void:
 
 func _disable_post_process_only() -> void:
 	# Restore cinema grade first
-	var cg_applier := _get_cinema_grade_applier()
+	var cg_applier := _get_color_grading_applier()
 	if cg_applier != null and cg_applier.has_method("debug_restore_visibility"):
 		cg_applier.call("debug_restore_visibility", _was_cinema_visible)
 	# Disable post-process combined rect
@@ -156,7 +156,7 @@ func _disable_all() -> void:
 	var pp_applier := _get_post_process_applier()
 	if pp_applier != null and pp_applier.has_method("debug_force_disable_combined"):
 		pp_applier.call("debug_force_disable_combined")
-	var cg_applier := _get_cinema_grade_applier()
+	var cg_applier := _get_color_grading_applier()
 	if cg_applier != null and cg_applier.has_method("debug_force_disable"):
 		cg_applier.call("debug_force_disable")
 	U_PERF_FADE_BYPASS.set_enabled(false)
@@ -166,7 +166,7 @@ func _disable_fade_only() -> void:
 	var pp_applier := _get_post_process_applier()
 	if pp_applier != null and pp_applier.has_method("debug_restore_combined_visibility"):
 		pp_applier.call("debug_restore_combined_visibility", _was_combined_visible)
-	var cg_applier := _get_cinema_grade_applier()
+	var cg_applier := _get_color_grading_applier()
 	if cg_applier != null and cg_applier.has_method("debug_restore_visibility"):
 		cg_applier.call("debug_restore_visibility", _was_cinema_visible)
 	U_PERF_FADE_BYPASS.set_enabled(true)

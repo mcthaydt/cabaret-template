@@ -1,12 +1,12 @@
 extends CanvasLayer
-class_name SC_CinemaDebugOverlay
+class_name SC_ColorGradingDebugOverlay
 
-## Debug overlay for runtime cinema grade tuning
+## Debug overlay for runtime color grading tuning
 ##
 ## Displays:
 ## - Current scene_id
 ## - Filter preset dropdown
-## - All 13 cinema grade parameters as sliders
+## - All 13 color grading parameters as sliders
 ## - Reset to scene defaults button
 ## - Export to console button
 ##
@@ -58,7 +58,7 @@ func _ready() -> void:
 	# Find M_StateStore
 	_store = U_StateUtils.get_store(self)
 	if not _store:
-		push_error("SC_CinemaDebugOverlay: Could not find M_StateStore")
+		push_error("SC_ColorGradingDebugOverlay: Could not find M_StateStore")
 		return
 
 	# Subscribe to store signals
@@ -322,6 +322,6 @@ sharpness = %s
 	]
 
 	# Print to console with color
-	print_rich("[color=cyan]===== Cinema Grade Export for scene: %s =====[/color]" % _current_scene_id)
+	print_rich("[color=cyan]===== Color Grading Export for scene: %s =====[/color]" % _current_scene_id)
 	print(tres_content)
 	print_rich("[color=green]Copy the above and paste into: resources/display/color_gradings/cfg_color_grading_%s.tres[/color]" % _current_scene_id)

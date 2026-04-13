@@ -179,7 +179,7 @@ func _flush_viewport_stats() -> void:
 
 func _flush_shader_pass_count() -> void:
 	var combined_visible: bool = false
-	var cinema_visible: bool = false
+	var color_grading_visible: bool = false
 
 	# Check post-process overlay for active shader passes
 	var overlay_node: Variant = null
@@ -192,11 +192,11 @@ func _flush_shader_pass_count() -> void:
 				var layer: CanvasLayer = child as CanvasLayer
 				if layer.name == &"CombinedLayer" and layer.visible:
 					combined_visible = true
-				if layer.name == &"CinemaGradeLayer" and layer.visible:
-					cinema_visible = true
+				if layer.name == &"ColorGradingLayer" and layer.visible:
+					color_grading_visible = true
 
-	print("%s Shader passes: combined=%d cinema=%d" % [
-		LOG_PREFIX, 1 if combined_visible else 0, 1 if cinema_visible else 0
+	print("%s Shader passes: combined=%d color_grading=%d" % [
+		LOG_PREFIX, 1 if combined_visible else 0, 1 if color_grading_visible else 0
 	])
 
 func _resolve_game_viewport() -> SubViewport:

@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bvq7y8xtm5pfw"]
 
-[ext_resource type="Script" uid="uid://cwe4ptkd16vx2" path="res://scripts/debug/debug_cinema_grade_overlay.gd" id="1_cinema"]
+[ext_resource type="Script" uid="uid://cwe4ptkd16vx2" path="res://scripts/debug/debug_color_grading_overlay.gd" id="1_cinema"]
 
-[node name="SC_CinemaDebugOverlay" type="CanvasLayer" unique_id=542098800]
+[node name="SC_ColorGradingDebugOverlay" type="CanvasLayer" unique_id=542098800]
 layer = 128
 script = ExtResource("1_cinema")
 
@@ -33,7 +33,7 @@ theme_override_constants/separation = 8
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=329858599]
 layout_mode = 2
-text = "Cinema Grade Debug (F5 to toggle)"
+text = "Color Grading Debug (F5 to toggle)"
 horizontal_alignment = 1
 
 [node name="SceneLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=285417669]

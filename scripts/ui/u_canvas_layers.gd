@@ -14,7 +14,7 @@ const MOBILE_CONTROLS := 101
 const DEBUG_OVERLAY := 128
 
 # GameViewport-internal layers (separate layer space)
-const PP_CINEMA_GRADE := 1
+const PP_COLOR_GRADING := 1
 const PP_FILM_GRAIN := 2
 const PP_DITHER := 3
 const PP_COLOR_BLIND := 5
