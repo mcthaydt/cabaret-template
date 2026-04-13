@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bvq7y8xtm5pfw"]
 
-[ext_resource type="Script" uid="uid://8xtj3p2gb0pc" path="res://scripts/debug/debug_cinema_grade_overlay.gd" id="1_cinema"]
+[ext_resource type="Script" uid="uid://cwe4ptkd16vx2" path="res://scripts/debug/debug_cinema_grade_overlay.gd" id="1_cinema"]
 
 [node name="SC_CinemaDebugOverlay" type="CanvasLayer" unique_id=542098800]
 layer = 128

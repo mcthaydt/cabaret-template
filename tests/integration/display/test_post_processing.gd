@@ -61,7 +61,7 @@ func _create_state_store() -> M_StateStore:
 	return store
 
 func _get_combined_rect() -> ColorRect:
-	var path: Variant = U_POST_PROCESS_LAYER.EFFECT_NODE_PATHS.get(U_POST_PROCESS_LAYER.EFFECT_COMBINED)
+	var path: Variant = U_POST_PROCESS_LAYER.EFFECT_NODE_PATHS.get(U_POST_PROCESS_LAYER.EFFECT_GRAIN_DITHER)
 	if path is NodePath:
 		return _overlay.get_node_or_null(path) as ColorRect
 	return null
@@ -114,27 +114,6 @@ func test_film_grain_intensity_updates_shader_parameter() -> void:
 
 	assert_almost_eq(float(_get_combined_param(StringName("fg_intensity"))), 0.35, 0.001,
 		"Film grain intensity should update combined shader parameter")
-
-func test_crt_parameters_update_shader_uniforms() -> void:
-	var rect := _get_combined_rect()
-	assert_not_null(rect, "Combined rect should exist")
-
-	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_enabled(true))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_scanline_intensity(0.55))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_curvature(4.0))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_chromatic_aberration(0.004))
-	await get_tree().process_frame
-
-	assert_true(rect.visible, "Combined rect should be visible when CRT is enabled")
-	assert_eq(int(_get_combined_param(StringName("crt_enabled"))), 1,
-		"crt_enabled flag should be 1 in combined shader")
-	assert_almost_eq(float(_get_combined_param(StringName("crt_scanline_intensity"))), 0.55, 0.001,
-		"CRT scanline intensity should update combined shader parameter")
-	assert_almost_eq(float(_get_combined_param(StringName("crt_curvature"))), 4.0, 0.001,
-		"CRT curvature should update combined shader parameter")
-	assert_almost_eq(float(_get_combined_param(StringName("crt_chromatic_aberration"))), 0.004, 0.0005,
-		"CRT chromatic aberration should update combined shader parameter")
 
 func test_dither_parameters_update_shader_uniforms() -> void:
 	var rect := _get_combined_rect()
@@ -237,11 +216,9 @@ func test_multiple_effects_share_single_combined_rect() -> void:
 
 	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_dither_enabled(true))
 	await get_tree().process_frame
 
 	assert_true(rect.visible, "Combined rect should be visible with all effects on")
 	assert_eq(int(_get_combined_param(StringName("film_grain_enabled"))), 1)
-	assert_eq(int(_get_combined_param(StringName("crt_enabled"))), 1)
 	assert_eq(int(_get_combined_param(StringName("dither_enabled"))), 1)

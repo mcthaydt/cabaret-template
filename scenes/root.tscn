@@ -46,9 +46,9 @@
 [ext_resource type="Resource" uid="uid://dmbf02gq12jfj" path="res://resources/cfg_game_config.tres" id="44_game_config"]
 [ext_resource type="Resource" uid="uid://bgnybbenm5glv" path="res://resources/state/cfg_default_vcam_initial_state.tres" id="45_vcam_state"]
 [ext_resource type="Script" uid="uid://c78dpu840c4x2" path="res://scripts/managers/m_vcam_manager.gd" id="46_vcam_manager"]
-[ext_resource type="Resource" path="res://resources/base_settings/gameplay/cfg_spawn_config_default.tres" id="47_spawn_config"]
-[ext_resource type="Resource" path="res://resources/base_settings/display/cfg_character_lighting_config_default.tres" id="48_character_lighting_config"]
-[ext_resource type="Resource" path="res://resources/base_settings/display/cfg_display_config_default.tres" id="49_display_config"]
+[ext_resource type="Resource" uid="uid://cyryucy4pxy6f" path="res://resources/base_settings/gameplay/cfg_spawn_config_default.tres" id="47_spawn_config"]
+[ext_resource type="Resource" uid="uid://k15wvehd8l3t" path="res://resources/base_settings/display/cfg_character_lighting_config_default.tres" id="48_character_lighting_config"]
+[ext_resource type="Resource" uid="uid://d2yp3yjc5j4hb" path="res://resources/base_settings/display/cfg_display_config_default.tres" id="49_display_config"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")

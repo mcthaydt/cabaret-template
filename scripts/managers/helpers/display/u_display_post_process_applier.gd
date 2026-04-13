@@ -2,8 +2,7 @@ extends RefCounted
 class_name U_DisplayPostProcessApplier
 
 ## Applies post-process settings to the display overlay.
-## Uses a single combined shader for film grain + dither + CRT (one screen texture sample).
-## On mobile, force-disables CRT to avoid expensive chromatic aberration + bloom passes.
+## Uses a grain + dither shader for post-processing effects (one screen texture sample).
 
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
@@ -67,15 +66,10 @@ func update_overlay_visibility(should_show: bool) -> void:
 
 func _apply_combined_effect_settings(state: Dictionary) -> void:
 	var fg_enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state)
-	var crt_enabled := U_DISPLAY_SELECTORS.is_crt_enabled(state)
 	var dither_enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state)
 
-	# Mobile override: CRT chromatic aberration + bloom are too expensive on tile-based GPUs
-	if _is_mobile:
-		crt_enabled = false
-
 	_film_grain_active = fg_enabled
-	_any_effect_active = fg_enabled or crt_enabled or dither_enabled
+	_any_effect_active = fg_enabled or dither_enabled
 
 	# Show/hide the combined rect based on whether any effect is active
 	_post_process_layer.set_combined_visible(_any_effect_active)
@@ -83,24 +77,14 @@ func _apply_combined_effect_settings(state: Dictionary) -> void:
 	if not _any_effect_active:
 		return
 
-	# Set per-effect enable flags in the combined shader
+	# Set per-effect enable flags in the grain+dither shader
 	_post_process_layer.set_combined_parameter(StringName("film_grain_enabled"), 1 if fg_enabled else 0)
-	_post_process_layer.set_combined_parameter(StringName("crt_enabled"), 1 if crt_enabled else 0)
 	_post_process_layer.set_combined_parameter(StringName("dither_enabled"), 1 if dither_enabled else 0)
 
 	# Film grain params
 	if fg_enabled:
 		var intensity := U_DISPLAY_SELECTORS.get_film_grain_intensity(state)
 		_post_process_layer.set_combined_parameter(StringName("fg_intensity"), intensity)
-
-	# CRT params
-	if crt_enabled:
-		var scanline_intensity := U_DISPLAY_SELECTORS.get_crt_scanline_intensity(state)
-		var curvature := U_DISPLAY_SELECTORS.get_crt_curvature(state)
-		var chromatic_aberration := U_DISPLAY_SELECTORS.get_crt_chromatic_aberration(state)
-		_post_process_layer.set_combined_parameter(StringName("crt_scanline_intensity"), scanline_intensity)
-		_post_process_layer.set_combined_parameter(StringName("crt_curvature"), curvature)
-		_post_process_layer.set_combined_parameter(StringName("crt_chromatic_aberration"), chromatic_aberration)
 
 	# Dither params
 	if dither_enabled:
