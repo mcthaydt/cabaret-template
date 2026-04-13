@@ -392,7 +392,9 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ---
 
-## Milestone C12: Post-Processing Pipeline Refactor
+## Milestone C12: Post-Processing Pipeline Refactor — COMPLETE
+
+**Completed**: 2026-04-13
 
 **Goal**: Collapse the post-process surface to exactly two passes (color grading + grain/dither) behind a new `U_PostProcessPipeline` coordinator that mimics `CompositorEffect` ergonomics in `gl_compatibility` mode, remove CRT entirely, rename cinema_grade → color_grading across the codebase, and enable color grading on mobile.
 
@@ -400,16 +402,16 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 **Follow-up after C12**: Start `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` (post-C12 track).
 
 **Summary**:
-- [ ] **Commit 1** (RED) — Pipeline + removal tests
-- [ ] **Commit 2** (GREEN) — CRT state removal
-- [ ] **Commit 3** (GREEN) — CRT UI/localization removal
-- [ ] **Commit 4** (GREEN) — CRT shader removal
-- [ ] **Commit 5** (GREEN) — Color grading rename, state layer
-- [ ] **Commit 6** (GREEN) — Color grading rename, resources + registry
-- [ ] **Commit 7** (GREEN) — Color grading rename, applier + debug + UI + localization (mobile PCK cache warning)
-- [ ] **Commit 8** (GREEN) — Introduce `U_PostProcessPipeline`
-- [ ] **Commit 9** (GREEN) — Enable color grading on mobile
-- [ ] **Commit 10** (GREEN) — Style enforcement + legacy cleanup
+- [x] **Commit 1** (RED) — Pipeline + removal tests
+- [x] **Commit 2** (GREEN) — CRT state removal
+- [x] **Commit 3** (GREEN) — CRT UI/localization removal
+- [x] **Commit 4** (GREEN) — CRT shader removal
+- [x] **Commit 5** (GREEN) — Color grading rename, state layer
+- [x] **Commit 6** (GREEN) — Color grading rename, resources + registry
+- [x] **Commit 7** (GREEN) — Color grading rename, applier + debug + UI + localization (mobile PCK cache warning)
+- [x] **Commit 8** (GREEN) — Introduce `U_PostProcessPipeline`
+- [x] **Commit 9** (GREEN) — Enable color grading on mobile
+- [x] **Commit 10** (GREEN) — Style enforcement + legacy cleanup
 
 ---
 
@@ -428,5 +430,5 @@ These patterns recur across many systems. Rather than dedicated milestones, addr
 - **`U_ECS_EVENT_BUS.publish()` duplicates the subscriber list on every publish call** — Consider copy-on-write or deferred dispatch to avoid one allocation per event dispatch.
 - **`M_ECSManager.query_entities` and `query_entities_readonly` are near-duplicates** — Extract shared query logic, differ only in mutability and metrics recording.
 - **`M_ECSManager._invalidate_query_cache` clears ALL entries** — Use scoped invalidation per component type.
-- **`M_StateStore._input` handles two unrelated debug overlays** — The state debug overlay and cinema debug overlay are separate UI concerns that call `cursor_manager.set_cursor_state`. Extract to a dedicated debug overlay handler.
+- **`M_StateStore._input` handles two unrelated debug overlays** — The state debug overlay and color grading debug overlay are separate UI concerns that call `cursor_manager.set_cursor_state`. Extract to a dedicated debug overlay handler.
 - **`M_StateStore._sync_navigation_initial_scene` bypasses the reducer/dispatch pattern** — Directly mutates `_state["navigation"]` instead of dispatching a proper navigation action.

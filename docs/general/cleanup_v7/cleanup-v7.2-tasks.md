@@ -5,7 +5,7 @@
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Scope**: Targeted follow-ups to cleanup-v7 (`cleanup-v7-tasks.md`) addressing gaps surfaced during a deep-dive architectural review. Mostly backwards-compatible. Behavioral changes are gated to specific commits and called out explicitly (F4 strict validator default flip, F5 grep-test enforcement). All existing integration tests must stay green throughout.
 
-**Relationship to cleanup-v7**: This doc is a **follow-up** to `cleanup-v7-tasks.md`, not a replacement. F1 supplements C6 (SceneManager decomposition) without editing C6. F8 extends C5's wall-visibility decomposition pattern to the other two large ECS systems. The other milestones are independent of v7 scope. Scheduling decision: start this v7.2 plan after C12 (`post-process-refactor-tasks.md`) is complete and regression-tested.
+**Relationship to cleanup-v7**: This doc is a **follow-up** to `cleanup-v7-tasks.md`, not a replacement. ~~F1 supplements C6~~ F1 was resolved during C6 and is now a verification-only checkpoint. F8 extends C5's wall-visibility decomposition pattern to the other two large ECS systems. The other milestones are independent of v7 scope. Scheduling decision: start this v7.2 plan after C12 (`post-process-refactor-tasks.md`) is complete and regression-tested.
 
 ---
 
@@ -13,14 +13,14 @@
 
 The cleanup-v7 plan (C1–C12) does a thorough job of DRY, modularity, scalability, and designer-friendliness across managers and ECS systems. A subsequent architectural review surfaced eight concrete weaknesses that C1–C12 does **not** address:
 
-1. **A cross-manager reflection hole that actively bypasses an existing interface method** (`m_scene_manager.gd:683` reads `_camera_manager.get("_camera_blend_tween")` when `I_CameraManager.is_blend_active()` already exists at `i_camera_manager.gd:30`).
+1. ~~**A cross-manager reflection hole that actively bypasses an existing interface method**~~ — **Resolved during C6.** `m_scene_manager.gd:632` now calls `_camera_manager.is_blend_active()`. The reflection pattern, Array-wrapper captures, and 150+ line `_perform_transition` are all gone. `_perform_transition` is now ~23 lines (`:510-532`), decomposed into `_prepare_transition_context()`, `_execute_scene_swap()`, `_transition_orchestrator.execute_transition_effect()`, and `_finalize_camera_blend()`.
 2. **A per-dispatch full-state deep copy floor** in `M_StateStore.dispatch()` that bypasses the store's own versioned cache.
 3. **Two parallel mutation paths** that bypass the reducer/history/validator pipeline.
 4. **An advisory-only slice-dependency validator** that fails open, letting declarations drift silently.
 5. **An unresolved communication-channel taxonomy** (Redux vs `U_ECSEventBus` vs Godot signals) that drives most of the "contract-by-comment" growth in `AGENTS.md`.
 6. **Process-global `U_ServiceLocator` state** with last-write-wins `register()` and no per-test scope, causing recurring test pollution patterns documented in the auto-memory.
 7. **Type erasure on `RS_Rule.conditions`/`effects: Array[Resource]`** — authoring errors surface as "rule scored 0.0" with no stack trace.
-8. **Two more ~550-line ECS systems** (`s_vcam_system.gd`, `s_camera_state_system.gd`) that C5 does not target.
+8. **Two more large ECS systems** (`s_vcam_system.gd` at 551 lines, `s_camera_state_system.gd` at 587 lines) that C5 does not target. Note: their `process_tick` methods are already under 80 lines; the size is in private helper methods that should be extracted to dedicated helper files.
 
 The doc closes with a non-numbered reflection on `AGENTS.md` sprawl and a proposed restructuring direction.
 
@@ -29,60 +29,36 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl and a propos
 ## Sequencing
 
 - Run this plan after C12 (`post-process-refactor-tasks.md`) completes and passes regression; do not start v7.2 in parallel with C12.
-- `F1` is independent — can run in parallel with or after cleanup-v7 `C6`.
-- `F2`, `F3`, `F4` all touch `m_state_store.gd`; run sequentially (F2 → F3 → F4) to avoid merge contention.
-- `F5` depends on `F3` having cleaned up the parallel mutation paths first (the channel taxonomy is cleaner to enforce once state mutation is single-sourced).
+- `F1` — **already resolved** during C6. Verification-only checkpoint (single commit).
+- `F2`, `F3`, `F4` all touch `m_state_store.gd`; run sequentially (F2 → F3 → F4) to avoid merge contention. **Run full test suite between each** as an integration checkpoint.
+- `F5` depends on `F3` having cleaned up the parallel mutation paths first (the channel taxonomy is cleaner to enforce once state mutation is single-sourced). Note: `docs/adr/` directory must be created (does not exist yet).
 - `F6` is independent.
 - `F7` is independent — blocked only on a one-commit parser feasibility investigation.
 - `F8` is independent — follows `C5`'s decomposition pattern once `C5` lands.
-- `F9` is independent — refactors the core ECS system lifecycle loop.
-- `F10` is independent — small addition to `m_state_store.gd` action tracking.
-- `F11` is independent — targets event bus memory hygiene.
+- `F9` is independent — **extends** the existing `execution_priority` system in `M_ECSManager`, does not replace it.
+- ~~`F10` is independent — small addition to `m_state_store.gd` action tracking.~~ **F10 is already implemented.** `U_ActionHistoryBuffer` is a ring buffer with configurable `max_history_size`, disabled on mobile. Verification-only checkpoint.
+- `F11` is independent — targets event bus memory hygiene. Scope is `scripts/events/base_event_bus.gd` (the shared base class), not the `U_ECSEventBus` facade.
+
+**Cross-milestone integration**: Run the full test suite after each milestone completes, not just the milestone's own tests. This is especially critical for the F2 → F3 → F4 sequential chain.
 
 ---
 
-## Milestone F1: SceneManager C6 Supplement — Camera Blend Interface + Closure State Object
+## Milestone F1: ~~SceneManager C6 Supplement~~ — ALREADY RESOLVED (Verification Only)
 
-**Goal**: Close the two gaps in cleanup-v7 `C6` (Scene Manager Overlay Extraction) that are not currently on the checklist:
+**Status**: **Resolved during C6.** The two original gaps no longer exist in the codebase:
 
-1. **Replace the cross-manager private-member reflection** at `m_scene_manager.gd:683` (`_camera_manager.get("_camera_blend_tween")`) with the existing `I_CameraManager.is_blend_active()` interface method. The reflection hole is actively bypassing an API that already exists.
-2. **Replace the three `Array`-wrapper mutable-capture workarounds** in `_perform_transition` (`:553, :558, :571`) with a proper typed transition-state object. These exist because GDScript lambdas can't capture mutable locals; every transition bug becomes a two-step debug.
+1. ~~**Cross-manager reflection hole**~~ — `m_scene_manager.gd:632` now calls `_camera_manager.is_blend_active()`. No `.get("_camera_blend_tween")` pattern exists anywhere in the file.
+2. ~~**Array-wrapper mutable-capture workarounds**~~ — `_perform_transition` is now ~23 lines (`:510-532`), cleanly decomposed into `_prepare_transition_context()`, `_execute_scene_swap()`, `_transition_orchestrator.execute_transition_effect()`, and `_finalize_camera_blend()`. No Array-wrapper captures remain.
 
-**Reused existing APIs**:
-- `I_CameraManager.is_blend_active()` at `scripts/interfaces/i_camera_manager.gd:30` — already declared, the reflection path is ignoring it.
-- `I_CameraManager.apply_main_camera_transform(Transform3D)` at `:24`, `finalize_blend_to_scene(Node)` at `:52`.
-
-**Scope**:
-- `scripts/managers/m_scene_manager.gd` — `_perform_transition` (`:538-691`), specifically `:681-687` (reflection) and `:553, :558, :571` (Array wrappers).
-- `scripts/managers/m_camera_manager.gd` — verify `is_blend_active()` returns live-tween state equivalent to the current reflection check.
-- New: `scripts/scene_management/helpers/u_transition_state.gd` — small `RefCounted` value object with typed fields: `progress: float`, `scene_swap_complete: bool`, `new_scene_ref: Node`, `old_camera_state: Variant`, `should_blend: bool`.
-
-**Commits**:
-- [ ] **Commit 1** (RED) — Regression tests:
-  - `tests/unit/managers/test_m_scene_manager_blend_handoff.gd` — test that `_perform_transition` queries `I_CameraManager.is_blend_active()` and does not call `get("_camera_blend_tween")` on the camera manager.
-  - `tests/unit/scene_management/helpers/test_u_transition_state.gd` — test typed field lifecycle (defaults, mutation, reset).
-  - `tests/unit/style/test_style_enforcement.gd` — add grep assertion: `m_scene_manager.gd` contains zero matches of `_camera_blend_tween` or `Array = \[` mutable-capture patterns.
-- [ ] **Commit 2** (GREEN) — Introduce `U_TransitionState` and thread it through `_perform_transition`. Replace the three `Array`-wrapper captures with typed fields on the state object. Closures read/write the state object via reference. No behavior change.
-- [ ] **Commit 3** (GREEN) — Replace the reflection check at `m_scene_manager.gd:681-684`:
-  ```gdscript
-  # Before
-  var active_tween: Tween = _camera_manager.get("_camera_blend_tween")
-  has_active_blend = active_tween != null and active_tween.is_running()
-
-  # After
-  has_active_blend = _camera_manager.is_blend_active()
-  ```
-  Verify `M_CameraManager.is_blend_active()` implementation exercises the same live-tween semantics the reflection path was checking.
-- [ ] **Commit 4** (GREEN) — Enable the style-enforcement grep assertion from Commit 1 in CI.
+**Commit** (single verification commit):
+- [ ] **Commit 1** (VERIFY) — Add style-enforcement grep assertions in `tests/unit/style/test_style_enforcement.gd`:
+  - `m_scene_manager.gd` contains zero matches of `_camera_blend_tween`.
+  - `m_scene_manager.gd` contains zero matches of `get("_camera_blend_tween")`.
+  - Confirm `_perform_transition` is under 40 lines.
 
 **F1 Verification**:
-- [ ] All new tests green.
+- [ ] Style enforcement tests green.
 - [ ] Existing scene-transition integration tests green.
-- [ ] Grep `_camera_blend_tween` across `scripts/managers/m_scene_manager.gd` returns zero matches.
-- [ ] Grep `Array = \[` in `_perform_transition` returns zero matches.
-- [ ] `test_style_enforcement.gd` passes.
-
-**Dependency note**: Safe to run in parallel with `C6`. If `C6` has already merged, F1 applies on top of the decomposed `_perform_transition`. If F1 lands first, `C6` Commit 4 decomposition simply preserves the typed state object.
 
 ---
 
@@ -108,9 +84,9 @@ The store already tracks `_state_version` (`:89`) and maintains a versioned cach
 **Commits**:
 - [ ] **Commit 1** (RED) — Dispatch-path tests:
   - `tests/unit/state/test_m_state_store_dispatch_sharing.gd`:
-    - Test 1: With N (=5) subscribers, only one `duplicate(true)` occurs per dispatch. Mechanism: wrap `_state` in a probe that counts `duplicate` calls, or observe that all subscribers receive the same Dictionary reference by mutating a field on one and asserting the others see it (subscribers treat state as read-only per the existing `:468` comment, so the test exploits that contract intentionally).
-    - Test 2: With zero subscribers, no snapshot build occurs at all.
-    - Test 3: Benchmark — dispatch 1000 no-op actions with 5 subscribers and assert total deep-copy count is <= 1000 (one per dispatch), not 5000 (one per subscriber per dispatch).
+    - Test 1: With N (=5) subscribers, all subscribers receive the **same Dictionary reference** per dispatch. Mechanism: each subscriber records the `id(snapshot)` it receives; assert all 5 IDs match. (GDScript `Dictionary.duplicate()` cannot be monkey-patched, so counting copies directly is not feasible — reference identity is the correct proxy.)
+    - Test 2: With zero subscribers, no snapshot build occurs at all. Mechanism: subscribe to `action_dispatched`, confirm no snapshot was created by verifying `_cached_state_version` was bumped but no extra `duplicate(true)` was called (compare `get_state()` cache version before and after).
+    - Test 3: Benchmark — dispatch 1000 no-op actions with 5 subscribers and assert all subscribers within each dispatch see the same snapshot reference (not 5 distinct copies per dispatch).
 - [ ] **Commit 2** (GREEN) — Refactor `dispatch()`:
   - Bump `_state_version` once after reducer application.
   - Invalidate `_cached_state_snapshot` so the next `get_state()` rebuilds.
@@ -131,14 +107,14 @@ The store already tracks `_state_version` (`:89`) and maintains a versioned cach
 
 **Goal**: All mutations to `_state` must flow through `dispatch()` so that action history, version bumping, validator, and signal batching stay consistent. Two bypass paths currently exist:
 
-1. **`_sync_navigation_initial_scene`** directly mutates `_state["navigation"]` (~`:131-147`). Already listed as a cleanup-v7 cross-cutting bullet (line 345 of `cleanup-v7-tasks.md`) but not scheduled.
+1. **`_sync_navigation_initial_scene`** directly mutates `_state["navigation"]` (~`:150-156` — creates a duplicated nav dict at `:150`, assigns at `:156` via `_state["navigation"] = new_nav`). Already listed as a cleanup-v7 cross-cutting bullet (line ~432 of `cleanup-v7-tasks.md`) but not scheduled.
 2. **Direct `slice_updated.emit(slice_name, _state[slice_name])`** at `m_state_store.gd:684` emits slice updates from the reducer apply path without going through `action_dispatched`, the history buffer, or the cached-snapshot invalidation. Additional emission sites at `:259, :486, :636`.
 
 The divergence is subtle: a subscriber listening on `slice_updated` will see state that `action_history_buffer` does not record.
 
 **Scope**:
 - `scripts/state/m_state_store.gd`:
-  - `_sync_navigation_initial_scene` (~`:131-147`).
+  - `_sync_navigation_initial_scene` (~`:150-156`).
   - `slice_updated.emit` sites at `:259, :486, :636, :684`.
 - `scripts/state/actions/u_navigation_actions.gd` — add `sync_initial_scene(scene_id: StringName)` action.
 - `scripts/state/reducers/u_navigation_reducer.gd` — handle the new action type.
@@ -235,7 +211,7 @@ Declarations drift silently out of sync with reality because the check fails ope
 | Everything else | **Method calls** |
 
 **Scope**:
-- New: `docs/adr/0001-channel-taxonomy.md` — the decision record (formatted as an ADR: Context / Decision / Consequences).
+- New: `docs/adr/0001-channel-taxonomy.md` — the decision record (formatted as an ADR: Context / Decision / Consequences). **Note: `docs/adr/` directory does not exist yet — create it in Commit 2.**
 - `AGENTS.md` — add a slim "Channel taxonomy" pointer referencing the ADR (no detail duplication).
 - `tests/unit/style/test_style_enforcement.gd` — new grep assertions:
   - No `U_ECSEventBus.publish` with event names matching patterns that look like durable state (`*_state`, `*_set`, `*_progress`, `*_changed` where the name describes state rather than an event).
@@ -263,7 +239,7 @@ Declarations drift silently out of sync with reality because the check fails ope
 **Goal**: `U_ServiceLocator._services` (`u_service_locator.gd:26`) is a process-global static Dictionary with two structural problems:
 
 1. **Last-write-wins `register()`** at `:54-61` — a test fake that forgets to unregister silently wins on the next test. Print-verbose warning is not an error.
-2. **No test scoping** — tests must manually `clear()` in `before_each`. This is the root cause of several recurring test-failure patterns in `MEMORY.md`:
+2. **No test scoping** — `BaseTest.after_each()` (at `tests/base_test.gd:11`) calls `U_ServiceLocator.clear()` globally, and several UI tests also call it directly. This is the root cause of several recurring test-failure patterns in `MEMORY.md`:
    - `U_StateHandoff` leakage between tests
    - `M_DisplayManager._ensure_appliers()` eager creation
    - Global settings persistence leaking to `user://global_settings.json`
@@ -294,25 +270,26 @@ static func pop_scope() -> void:
     _services = _scope_stack.pop_back()
 ```
 
-Tests wrap `before_each` / `after_each` with scope push/pop; production is unchanged (scope stack is empty, default behavior preserved).
+Tests wrap `before_each` (push) / `after_each` (pop) with scope push/pop; production is unchanged (scope stack is empty, default behavior preserved).
 
 **Scope**:
 - `scripts/core/u_service_locator.gd`.
-- All test `before_each` blocks that currently call `U_ServiceLocator.clear()` (grep across `tests/unit/**`).
-- `scripts/root.gd` — audit `_register_if_exists` call sites at `:50-78` to confirm no production path intentionally replaces (it should be idempotent).
+- `tests/base_test.gd` — the `after_each()` at line 11 that currently calls `U_ServiceLocator.clear()`. This is the primary migration target.
+- UI tests that also call `clear()` directly: `test_pause_menu_navigation.gd`, `test_input_profile_selector.gd`, `test_main_menu.gd`, `test_input_rebinding_overlay.gd`.
+- `scripts/root.gd` — audit `_register_if_exists` call sites at `:50-78` (18 service registrations + 3 container registrations via helper at `:113-116`) to confirm no production path intentionally replaces (it should be idempotent).
 
 **Commits**:
 - [ ] **Commit 1** (RED):
   - `tests/unit/core/test_u_service_locator_conflict.gd` — test that `register()` twice with different instances pushes an error and keeps the first registration; `register_or_replace()` succeeds.
   - `tests/unit/core/test_u_service_locator_scope.gd` — test that `push_scope()` → register → `pop_scope()` reveals previously registered services unchanged.
 - [ ] **Commit 2** (GREEN) — Implement fail-on-conflict `register()` and `register_or_replace()`. Audit `root.gd:50-78` — confirm it's idempotent. If any production path legitimately replaces, switch it to `register_or_replace`.
-- [ ] **Commit 3** (GREEN) — Implement `push_scope` / `pop_scope`. Migrate the test harness (root `before_each` helpers) to use scopes instead of `clear()`.
+- [ ] **Commit 3** (GREEN) — Implement `push_scope` / `pop_scope`. Migrate the test harness: replace `U_ServiceLocator.clear()` in `BaseTest.after_each()` with `push_scope()` in `BaseTest.before_each()` and `pop_scope()` in `BaseTest.after_each()`. Update the UI tests that call `clear()` directly to rely on the base class scoping instead.
 - [ ] **Commit 4** (GREEN) — Migrate `U_StateHandoff` and `M_DisplayManager._ensure_appliers()` follow-ups (both listed in `MEMORY.md` as recurring test-failure patterns rooted in module-level state) to the scope pattern where applicable. Lazy-init appliers only when the manager is in-tree.
 
 **F6 Verification**:
 - [ ] Duplicate-register test green.
 - [ ] Scope-isolation test green.
-- [ ] Full test suite green with `clear()` calls removed from `before_each` (scopes replace them).
+- [ ] Full test suite green with `clear()` calls removed from `BaseTest.after_each()` and UI tests (scopes replace them).
 - [ ] `MEMORY.md` test-failure patterns for `U_StateHandoff` and `_ensure_appliers` no longer manifest.
 
 ---
@@ -366,16 +343,21 @@ Same pattern in `rs_condition_composite.gd:14`. Every runtime consumer must re-v
 ## Milestone F8: `S_VCamSystem` + `S_CameraStateSystem` Decomposition
 
 **Goal**: Extend cleanup-v7 `C5`'s wall-visibility decomposition approach to the other two large ECS systems:
-- `s_vcam_system.gd` — **556 lines**
-- `s_camera_state_system.gd` — **557 lines**
+- `s_vcam_system.gd` — **551 lines**
+- `s_camera_state_system.gd` — **587 lines**
 
 `C5` only targets `s_wall_visibility_system.gd` (1005 lines), leaving two more ~550-line systems with mixed concerns untouched.
 
-**Scope**:
-- `scripts/ecs/systems/s_vcam_system.gd` — `process_tick` mixes per-vCam evaluation, runtime-state reseeding, response smoothing, soft-zone, ground-relative, orbit effects, invalid-target recovery, and blend handoff.
-- `scripts/ecs/systems/s_camera_state_system.gd` — mixes rule evaluation, FOV composition, landing-impact application, and state-store writes.
+**Current state** (verified against codebase):
+- `S_VCamSystem.process_tick` is lines 116-193 (~77 lines) — already partially decomposed into `_prepare_vcam_pipeline_state()`, `_evaluate_vcam_mode_result()`, `_apply_vcam_effect_pipeline()`, and `_write_active_camera_base_fov_from_result()`. **The `process_tick` itself is already near the 80-line target.** The remaining size (~551 total) is in the private helper methods within the file.
+- `S_CameraStateSystem.process_tick` is lines 53-80 (~27 lines) — **already well under 80 lines.** It delegates to `_rule_evaluator`, `_build_camera_contexts()`, `_evaluate_context()`, and `_apply_camera_state()`. The remaining size (~587 total) is in these private methods.
 
-**Reuse existing helpers** (do not create new ones — push more logic into these):
+**Revised scope**: The decomposition target is **not `process_tick`** (already small) but **the private helper methods** that keep these files at 550+ lines. The goal is to push logic from private methods into the existing helper files:
+
+- `scripts/ecs/systems/s_vcam_system.gd` — candidates for extraction: `_prepare_vcam_pipeline_state()`, `_evaluate_vcam_mode_result()`, `_apply_vcam_effect_pipeline()`, `_resolve_landing_impact_offset()`, `_prune_smoothing_state()`, `_clear_all_smoothing_state()`. These should migrate into existing helpers.
+- `scripts/ecs/systems/s_camera_state_system.gd` — candidates: `_apply_camera_state()`, `_build_camera_contexts()`, `_evaluate_context()`, `_context_key_for_context()`. Consider extracting a `u_camera_state_rule_applier.gd` for rule-evaluation-into-component-writes if no existing helper fits.
+
+**Reuse existing helpers** (do not create new ones unless no existing helper fits):
 - `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd`
 - `scripts/ecs/systems/helpers/u_vcam_runtime_state.gd`
 - `scripts/ecs/systems/helpers/u_vcam_effect_pipeline.gd`
@@ -383,15 +365,14 @@ Same pattern in `rs_condition_composite.gd:14`. Every runtime consumer must re-v
 - `scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd`
 - `scripts/ecs/systems/helpers/u_vcam_landing_impact.gd`
 - `scripts/ecs/systems/helpers/u_vcam_rotation.gd`
-
-For `S_CameraStateSystem`, consider extracting `u_camera_state_rule_applier.gd` to own rule-evaluation-into-component-writes if no existing helper fits.
+- Also available: `u_vcam_look_input.gd`, `u_vcam_runtime_services.gd`, `u_vcam_debug.gd`
 
 **Commits**:
-- [ ] **Commit 1** (RED) — Method-level decomposition tests for both systems:
-  - `tests/unit/ecs/systems/test_s_vcam_system_decomposition.gd` — test extracted methods/helpers independently (runtime resolution, blend routing, response smoothing invocation, recovery routing).
-  - `tests/unit/ecs/systems/test_s_camera_state_system_decomposition.gd` — test FOV composition, landing-impact application, and rule-result-to-component-write independently.
-- [ ] **Commit 2** (GREEN) — Decompose `S_VCamSystem.process_tick` into orchestration + delegated helper calls. Target: `process_tick` under 80 lines. Push per-vCam state management into `u_vcam_runtime_state.gd`, effect application into `u_vcam_effect_pipeline.gd`, and recovery routing into a new small helper if needed.
-- [ ] **Commit 3** (GREEN) — Decompose `S_CameraStateSystem.process_tick` similarly. Target: under 80 lines. Extract the FOV composition math and landing-impact writes.
+- [ ] **Commit 1** (RED) — Method-level decomposition tests for extracted logic:
+  - `tests/unit/ecs/systems/test_s_vcam_system_decomposition.gd` — test the pipeline/mode/effect methods independently via their helper classes after extraction.
+  - `tests/unit/ecs/systems/test_s_camera_state_system_decomposition.gd` — test `_apply_camera_state` logic, context building, and rule-result-to-component-write independently.
+- [ ] **Commit 2** (GREEN) — Extract `S_VCamSystem` private methods into existing helpers. Target: total file under 400 lines. `process_tick` stays as-is (already under 80 lines). Identify which private methods map to which helper by matching concerns (e.g., `_resolve_landing_impact_offset` → `u_vcam_landing_impact.gd`, `_prune_smoothing_state` → `u_vcam_response_smoother.gd`).
+- [ ] **Commit 3** (GREEN) — Extract `S_CameraStateSystem` private methods similarly. Target: total file under 400 lines. If no existing helper fits `_apply_camera_state` / `_evaluate_context`, create `u_camera_state_rule_applier.gd`.
 - [ ] **Commit 4** (GREEN) — Style enforcement:
   - `tests/unit/style/test_style_enforcement.gd` — assert each of the three largest ECS systems (`s_wall_visibility_system`, `s_vcam_system`, `s_camera_state_system`) has `process_tick` under 80 lines (post-C5 and post-F8).
   - Assert total file size for `s_vcam_system.gd` and `s_camera_state_system.gd` is under 400 lines.
@@ -406,64 +387,90 @@ For `S_CameraStateSystem`, consider extracting `u_camera_state_rule_applier.gd` 
 
 ---
 
-## Milestone F9: Explicit ECS System Execution Phasing
+## Milestone F9: ECS System Execution Phasing — Named Phase Enum
 
-**Goal**: Make ECS system execution order deterministic and explicit. Currently, systems run via `_physics_process`, relying on SceneTree order or registration order. This causes 1-frame jitters if, for instance, cameras evaluate before movement solves.
+**Goal**: Improve readability and safety of ECS system ordering. **The core infrastructure already exists**:
+- `M_ECSManager` already owns the system loop at `:751-790` — iterates sorted systems calling `system.process_tick(scaled_delta)`.
+- `BaseECSSystem` already has `execution_priority: int` (`:18-26`, clamped -100 to 1000).
+- Systems are already sorted by priority (`:723-740`).
+- A frame state snapshot is already built once and shared (`:762-764`).
+
+**What this milestone adds**: Replace the opaque integer priorities with a named `SystemPhase` enum that groups systems into semantic buckets. Benefits over the current int approach:
+1. **Readability** — `SystemPhase.CAMERA` is self-documenting; `execution_priority = 750` is not.
+2. **Bucket-level guarantees** — all systems in `PHYSICS_SOLVE` run before any in `CAMERA`, regardless of per-system priority within the bucket.
+3. **Compile-time validation** — enum values catch typos that ints don't.
+
+The existing `execution_priority` int can be retained as a **within-phase ordering tiebreaker**.
 
 **Scope**:
-- `scripts/managers/m_ecs_manager.gd`
-- `scripts/ecs/base_ecs_system.gd`
-- `scripts/interfaces/i_ecs_manager.gd`
+- `scripts/managers/m_ecs_manager.gd` — refactor the sort at `:723-740` and loop at `:751-790` to use phase buckets.
+- `scripts/ecs/base_ecs_system.gd` — add `SystemPhase` enum and `get_phase()` method. Keep `execution_priority` as within-phase sort key.
+- `scripts/interfaces/i_ecs_manager.gd` — update if needed.
 - Update all existing `S_*` system scripts to declare a phase.
 
 **Commits**:
-- [ ] **Commit 1** (RED) — Add tests in `test_m_ecs_manager_phasing.gd` asserting systems evaluate in strictly defined phase order regardless of registration sequence.
-- [ ] **Commit 2** (GREEN) — Introduce `SystemPhase` enum (e.g., `INPUT`, `PRE_PHYSICS`, `PHYSICS_SOLVE`, `POST_PHYSICS`, `CAMERA`, `VFX`). Modify `BaseECSSystem` to export or return its phase.
-- [ ] **Commit 3** (GREEN) — Modify `M_ECSManager` to own the loop: register systems into phase-buckets, and iterate those buckets in order during `_physics_process`. Systems no longer use their own `_physics_process`.
-- [ ] **Commit 4** (GREEN) — Assign explicit phases to all current systems.
+- [ ] **Commit 1** (RED) — Add tests in `test_m_ecs_manager_phasing.gd`:
+  - Systems registered in random order still execute in strict phase order.
+  - Within the same phase, systems execute by `execution_priority` (existing behavior preserved).
+  - A system with `SystemPhase.CAMERA` always runs after `SystemPhase.PHYSICS_SOLVE` regardless of registration or priority values.
+- [ ] **Commit 2** (GREEN) — Introduce `SystemPhase` enum on `BaseECSSystem` (e.g., `INPUT`, `PRE_PHYSICS`, `PHYSICS_SOLVE`, `POST_PHYSICS`, `CAMERA`, `VFX`). Add `get_phase() -> SystemPhase` with a default phase. Keep `execution_priority` as within-phase ordering.
+- [ ] **Commit 3** (GREEN) — Refactor `M_ECSManager` sort/loop to group by phase first, then sort within phase by `execution_priority`. The manager already owns the loop — this just changes the sort key.
+- [ ] **Commit 4** (GREEN) — Assign explicit phases to all current `S_*` systems based on their current `execution_priority` values. Verify ordering didn't change.
 
 **F9 Verification**:
 - [ ] Phasing tests green.
 - [ ] Existing ECS tests green.
-- [ ] No ECS system uses `_physics_process` directly (style enforcement grep).
+- [ ] All `S_*` systems declare an explicit phase.
+- [ ] No ECS system uses `_physics_process` directly (style enforcement grep — verify this is already true).
 
 ---
 
-## Milestone F10: State Store History Truncation
+## Milestone F10: ~~State Store History Truncation~~ — ALREADY IMPLEMENTED (Verification Only)
 
-**Goal**: Prevent infinite memory growth in the state store. `M_StateStore` maintains an `action_history_buffer`. If unchecked, long play sessions will eventually OOM.
+**Status**: **Fully implemented.** All three planned features already exist:
 
-**Scope**:
-- `scripts/state/m_state_store.gd`
-- `scripts/resources/state/rs_state_store_settings.gd`
+1. **Ring buffer with configurable max size**: `U_ActionHistoryBuffer` (`scripts/state/utils/u_action_history_buffer.gd`) implements a proper ring buffer with `_head`/`_count` tracking. `configure(max_history_size, enabled)` resizes and resets the buffer.
+2. **Setting already wired**: `RS_StateStoreSettings.max_history_size: int = 1000` is exported (`:9`). `M_StateStore` reads it and calls `_action_history_buffer.configure(settings.max_history_size, enable_history)` at `:386`.
+3. **Mobile/release disable**: `M_StateStore` at `:384-385` already disables history on mobile: `if U_MOBILE.is_mobile(): enable_history = false`.
 
-**Commits**:
-- [ ] **Commit 1** (RED) — Add test `test_m_state_store_history_truncation.gd` asserting the buffer does not exceed a configured maximum length.
-- [ ] **Commit 2** (GREEN) — Add `max_history_length` to `RS_StateStoreSettings` (e.g., 500). Update `action_history_buffer` append logic to pop the oldest action when capacity is reached.
-- [ ] **Commit 3** (GREEN) — Optional: disable history recording entirely if `OS.has_feature("release")` and a `record_history_in_release` flag is false.
+**Commit** (single verification commit):
+- [ ] **Commit 1** (VERIFY) — Add test `test_m_state_store_history_truncation.gd` (if not already covered by existing `test_m_state_store.gd`):
+  - Assert buffer does not exceed `max_history_size` after dispatching `max_history_size + 100` actions.
+  - Assert `configure(0, true)` and `configure(N, false)` both result in empty history.
+  - Assert ring buffer wraps correctly (oldest entries are evicted first).
 
 **F10 Verification**:
-- [ ] Truncation tests green.
-- [ ] Buffer length stays <= max configured length during main-menu-to-gameplay loop.
+- [ ] Verification tests green.
+- [ ] Existing store tests green.
 
 ---
 
-## Milestone F11: Event Bus "Zombie" Prevention (WeakRef Subscriptions)
+## Milestone F11: Event Bus "Zombie" Prevention (Dead Subscriber Pruning)
 
-**Goal**: Prevent memory leaks and invalid callable crashes in `U_ECSEventBus`. If entities subscribe but are `queue_free()`'d without unsubscribing, the bus leaks references or crashes on dispatch.
+**Goal**: Prevent memory leaks from stale subscriber references in the event bus. If entities subscribe but are `queue_free()`'d without unsubscribing, the bus retains dead references.
 
-**Scope**:
-- `scripts/events/u_ecs_event_bus.gd` (or equivalent location)
+**Current state** (verified against `scripts/events/base_event_bus.gd`):
+- `BaseEventBus` is the shared base class used by both `U_ECSEventBus` (`scripts/events/ecs/u_ecs_event_bus.gd`) and `U_StateEventBus` (`scripts/events/state/u_state_event_bus.gd`). Both are static facades delegating to a `BaseEventBus` singleton instance.
+- `publish()` at `:93` already calls `callback.is_valid()` before invoking — so **dispatch-time crashes from dead callables are already handled**.
+- However, dead entries **remain in `_subscribers` arrays** indefinitely (no pruning), causing a slow memory leak over long play sessions.
+- `publish()` at `:93` also calls `_subscribers[event].duplicate()` per publish to avoid mutation during iteration — this is safe but allocates on every publish.
+
+**Scope** — all changes go in `scripts/events/base_event_bus.gd` (the base class), **not** the `U_ECSEventBus` or `U_StateEventBus` facades:
+- `BaseEventBus._subscribers` storage (`:12`)
+- `BaseEventBus.publish()` (`:76-97`)
+- `BaseEventBus.subscribe()` (`:18-56`)
 
 **Commits**:
-- [ ] **Commit 1** (RED) — Add test `test_u_ecs_event_bus_zombies.gd` where an object subscribes, is `free()`'d or `queue_free()`'d, and an event is published. Assert the bus cleans it up and doesn't crash.
-- [ ] **Commit 2** (GREEN) — Refactor `U_ECSEventBus` subscriber storage to use `WeakRef` or safely check `is_instance_valid(callable.get_object())` before invoking.
-- [ ] **Commit 3** (GREEN) — Add periodic sweep or publish-time pruning to remove dead callables from the subscriber arrays.
-- [ ] **Commit 4** (GREEN) — Revisit the subscriber list allocation issue (`.duplicate()` per call). Implement copy-on-write or deferred execution to avoid allocations.
+- [ ] **Commit 1** (RED) — Add test `tests/unit/ecs/events/test_base_event_bus_zombies.gd`:
+  - An object subscribes, is `free()`'d, and an event is published. Assert: no crash (already true), **and** the dead subscriber is removed from the internal subscriber list after publish.
+  - After pruning, `_subscribers[event]` does not contain any entries where `callback.is_valid() == false`.
+- [ ] **Commit 2** (GREEN) — Add publish-time pruning in `BaseEventBus.publish()`: after iterating subscribers, remove entries where `callback.is_valid() == false` from the source array. This replaces the current pattern where dead entries silently accumulate.
+- [ ] **Commit 3** (GREEN) — Replace the per-publish `.duplicate()` at `:93` with an index-based iteration that handles mid-iteration removal safely (iterate backwards, or use a `_publishing` guard flag to defer removals). This eliminates the per-publish allocation.
 
 **F11 Verification**:
-- [ ] Zombie cleanup tests green.
-- [ ] Existing event bus tests green.
+- [ ] Zombie pruning tests green.
+- [ ] Existing event bus tests green (including `tests/unit/ecs/events/test_ecs_event_bus.gd`).
+- [ ] No `.duplicate()` call in `BaseEventBus.publish()` (style enforcement grep).
 
 ---
 
@@ -530,6 +537,15 @@ Every "Phase X contract" currently in `AGENTS.md` gets one of three treatments:
 ### Enforcement
 
 Add a CI check asserting `AGENTS.md` stays under a target word/token budget so it cannot silently regrow past the slim-index size. A simple grep line count or `wc -w` assertion is enough.
+
+### Trigger for action
+
+Revisit this section and promote it to a numbered milestone (F12) when **all three** conditions are met:
+1. F5 (channel taxonomy ADR) has landed and the `docs/adr/` directory exists.
+2. F7 (typed schema) has resolved the headless-parser question.
+3. At least two more AGENTS.md growth incidents have occurred post-v7.2 (confirming the sprawl pattern continues and isn't a one-time artifact of the v7 refactor wave).
+
+If condition 3 does not occur within 3 months of F5 landing, the sprawl may be self-limiting and this restructuring is not needed.
 
 ### Why this isn't F9
 

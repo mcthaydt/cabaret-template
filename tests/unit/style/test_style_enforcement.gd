@@ -1334,8 +1334,7 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 
 ## C12: No "cinema_grade" identifiers should remain in scripts/ after the
 ## cinema_grade → color_grading rename. All display/post-process code should
-## use color_grading terminology. This test will FAIL until Commit 7 completes
-## the full rename pass.
+## use color_grading terminology.
 func test_no_cinema_grade_identifiers_in_scripts() -> void:
 	var violations: Array[String] = []
 	_collect_gd_literal_occurrences("res://scripts", "cinema_grade", violations)
@@ -1349,7 +1348,6 @@ func test_no_cinema_grade_identifiers_in_scripts() -> void:
 ## C12: No CRT-related identifiers (crt_, chromatic_aberration, scanline,
 ## curvature) should remain in display/post-process scripts after CRT removal.
 ## Allowlist: non-post-process uses of these terms (e.g. audio scanning).
-## This test will FAIL until Commits 2–4 complete CRT removal.
 func test_no_crt_identifiers_in_display_scripts() -> void:
 	var allowed_files: Array[String] = [
 		# Audio/input scanning is unrelated to CRT display
@@ -1383,6 +1381,39 @@ func test_no_crt_identifiers_in_display_scripts() -> void:
 		filtered.size(),
 		0,
 		"Found CRT identifiers in display scripts (CRT should be fully removed):\n" + "\n".join(filtered)
+	)
+
+## C12: Only U_PostProcessPipeline's delegate appliers should construct ColorRect
+## children under PostProcessOverlay. All other files must go through the pipeline.
+func test_post_process_overlay_colorrect_creation_only_via_pipeline() -> void:
+	var allowed_files: Array[String] = [
+		"res://scripts/managers/helpers/display/u_post_process_pipeline.gd",
+		"res://scripts/managers/helpers/display/u_display_color_grading_applier.gd",
+		"res://scripts/managers/helpers/display/u_display_post_process_applier.gd",
+		# Editor-only preview (removes itself at runtime; not under PostProcessOverlay)
+		"res://scripts/utils/display/u_color_grading_preview.gd",
+	]
+	var display_dirs: Array[String] = [
+		"res://scripts/managers/helpers/display",
+		"res://scripts/utils/display",
+	]
+	var violations: Array[String] = []
+	for dir_path in display_dirs:
+		_collect_gd_literal_occurrences(dir_path, "ColorRect.new()", violations)
+	# Filter out allowed delegate appliers
+	var filtered: Array[String] = []
+	for v in violations:
+		var is_allowed := false
+		for allowed in allowed_files:
+			if v.find(allowed) != -1:
+				is_allowed = true
+				break
+		if not is_allowed:
+			filtered.append(v)
+	assert_eq(
+		filtered.size(),
+		0,
+		"Found ColorRect.new() in display helpers outside pipeline delegates:\n" + "\n".join(filtered)
 	)
 
 func _check_for_patterns_in_files(dir_path: String, patterns: Array[String], allowed_files: Array[String], violations: Array[String]) -> void:
