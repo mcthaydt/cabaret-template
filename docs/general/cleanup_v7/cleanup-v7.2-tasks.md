@@ -1,11 +1,11 @@
 # Cross-System Cleanup V7.2 — Follow-up Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Not started
+**Status**: Not started (queued after cleanup-v7 C12 post-processing milestone)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Scope**: Targeted follow-ups to cleanup-v7 (`cleanup-v7-tasks.md`) addressing gaps surfaced during a deep-dive architectural review. Mostly backwards-compatible. Behavioral changes are gated to specific commits and called out explicitly (F4 strict validator default flip, F5 grep-test enforcement). All existing integration tests must stay green throughout.
 
-**Relationship to cleanup-v7**: This doc is a **follow-up** to `cleanup-v7-tasks.md`, not a replacement. F1 supplements C6 (SceneManager decomposition) without editing C6. F8 extends C5's wall-visibility decomposition pattern to the other two large ECS systems. The other milestones are independent of v7 scope. This doc may run in parallel with v7 where milestones are independent, or after C12 lands.
+**Relationship to cleanup-v7**: This doc is a **follow-up** to `cleanup-v7-tasks.md`, not a replacement. F1 supplements C6 (SceneManager decomposition) without editing C6. F8 extends C5's wall-visibility decomposition pattern to the other two large ECS systems. The other milestones are independent of v7 scope. Scheduling decision: start this v7.2 plan after C12 (`post-process-refactor-tasks.md`) is complete and regression-tested.
 
 ---
 
@@ -28,6 +28,7 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl and a propos
 
 ## Sequencing
 
+- Run this plan after C12 (`post-process-refactor-tasks.md`) completes and passes regression; do not start v7.2 in parallel with C12.
 - `F1` is independent — can run in parallel with or after cleanup-v7 `C6`.
 - `F2`, `F3`, `F4` all touch `m_state_store.gd`; run sequentially (F2 → F3 → F4) to avoid merge contention.
 - `F5` depends on `F3` having cleaned up the parallel mutation paths first (the channel taxonomy is cleaner to enforce once state mutation is single-sourced).
