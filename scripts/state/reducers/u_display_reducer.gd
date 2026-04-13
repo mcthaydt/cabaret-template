@@ -146,18 +146,18 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var enabled := bool(payload.get("enabled", false))
 			return _with_values(current, {"color_blind_shader_enabled": enabled})
 
-		U_CinemaGradeActions.ACTION_LOAD_SCENE_GRADE:
+		U_ColorGradingActions.ACTION_LOAD_SCENE_GRADE:
 			var payload: Dictionary = action.get("payload", {})
 			var updates := {}
 			for key in payload.keys():
 				var key_str: String = str(key)
-				if key_str.begins_with("cinema_grade_"):
+				if key_str.begins_with("color_grading_"):
 					updates[key] = payload[key]
 			if updates.is_empty():
 				return null
 			return _with_values(current, updates)
 
-		U_CinemaGradeActions.ACTION_SET_PARAMETER:
+		U_ColorGradingActions.ACTION_SET_PARAMETER:
 			var payload: Dictionary = action.get("payload", {})
 			var param_name: String = str(payload.get("param_name", ""))
 			if param_name.is_empty():
@@ -168,25 +168,25 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 				var filter_preset_str: String = str(payload.get("value", "none"))
 				var filter_mode := _get_filter_mode_from_preset(filter_preset_str)
 				return _with_values(current, {
-					"cinema_grade_filter_mode": filter_mode,
-					"cinema_grade_filter_preset": filter_preset_str
+					"color_grading_filter_mode": filter_mode,
+					"color_grading_filter_preset": filter_preset_str
 				})
 
 			# Special handling for filter_intensity
 			if param_name == "filter_intensity":
 				return _with_values(current, {
-					"cinema_grade_filter_intensity": payload.get("value")
+					"color_grading_filter_intensity": payload.get("value")
 				})
 
-			var key := "cinema_grade_" + param_name
+			var key := "color_grading_" + param_name
 			return _with_values(current, {key: payload.get("value")})
 
-		U_CinemaGradeActions.ACTION_RESET_TO_SCENE_DEFAULTS:
+		U_ColorGradingActions.ACTION_RESET_TO_SCENE_DEFAULTS:
 			var payload: Dictionary = action.get("payload", {})
 			var updates := {}
 			for key in payload.keys():
 				var key_str: String = str(key)
-				if key_str.begins_with("cinema_grade_"):
+				if key_str.begins_with("color_grading_"):
 					updates[key] = payload[key]
 			if updates.is_empty():
 				return null

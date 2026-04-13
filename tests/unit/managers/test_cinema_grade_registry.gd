@@ -74,18 +74,18 @@ func test_neutral_grade_to_dictionary_is_valid() -> void:
 	var grade := U_CINEMA_GRADE_REGISTRY.get_cinema_grade_for_scene(StringName("unknown"))
 	var dict := grade.to_dictionary()
 	assert_true(dict is Dictionary, "to_dictionary() should return a Dictionary")
-	assert_true(dict.has("cinema_grade_filter_mode"),
-		"Neutral dictionary should contain cinema_grade_filter_mode")
-	assert_true(dict.has("cinema_grade_exposure"),
-		"Neutral dictionary should contain cinema_grade_exposure")
-	assert_true(dict.has("cinema_grade_contrast"),
-		"Neutral dictionary should contain cinema_grade_contrast")
+	assert_true(dict.has("color_grading_filter_mode"),
+		"Neutral dictionary should contain color_grading_filter_mode")
+	assert_true(dict.has("color_grading_exposure"),
+		"Neutral dictionary should contain color_grading_exposure")
+	assert_true(dict.has("color_grading_contrast"),
+		"Neutral dictionary should contain color_grading_contrast")
 
 
 func test_neutral_grade_to_dictionary_has_zero_filter_mode() -> void:
 	var grade := U_CINEMA_GRADE_REGISTRY.get_cinema_grade_for_scene(StringName("unknown"))
 	var dict := grade.to_dictionary()
-	assert_eq(int(dict.get("cinema_grade_filter_mode", -1)), 0,
+	assert_eq(int(dict.get("color_grading_filter_mode", -1)), 0,
 		"Neutral grade filter_mode should be 0 (none)")
 
 

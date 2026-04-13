@@ -88,25 +88,25 @@ func _load_grade_for_scene(scene_id: StringName) -> void:
 	if _state_store == null:
 		return
 	var grade := U_CinemaGradeRegistry.get_cinema_grade_for_scene(scene_id)
-	_state_store.dispatch(U_CinemaGradeActions.load_scene_grade(grade.to_dictionary()))
+	_state_store.dispatch(U_ColorGradingActions.load_scene_grade(grade.to_dictionary()))
 
 func _apply_cinema_grade_uniforms(state: Dictionary) -> void:
 	if _shader_material == null:
 		return
 
-	_shader_material.set_shader_parameter("filter_mode", U_CinemaGradeSelectors.get_filter_mode(state))
-	_shader_material.set_shader_parameter("filter_intensity", U_CinemaGradeSelectors.get_filter_intensity(state))
-	_shader_material.set_shader_parameter("exposure", U_CinemaGradeSelectors.get_exposure(state))
-	_shader_material.set_shader_parameter("brightness", U_CinemaGradeSelectors.get_brightness(state))
-	_shader_material.set_shader_parameter("contrast", U_CinemaGradeSelectors.get_contrast(state))
-	_shader_material.set_shader_parameter("brilliance", U_CinemaGradeSelectors.get_brilliance(state))
-	_shader_material.set_shader_parameter("highlights", U_CinemaGradeSelectors.get_highlights(state))
-	_shader_material.set_shader_parameter("shadows", U_CinemaGradeSelectors.get_shadows(state))
-	_shader_material.set_shader_parameter("saturation", U_CinemaGradeSelectors.get_saturation(state))
-	_shader_material.set_shader_parameter("vibrance", U_CinemaGradeSelectors.get_vibrance(state))
-	_shader_material.set_shader_parameter("warmth", U_CinemaGradeSelectors.get_warmth(state))
-	_shader_material.set_shader_parameter("tint", U_CinemaGradeSelectors.get_tint(state))
-	_shader_material.set_shader_parameter("sharpness", U_CinemaGradeSelectors.get_sharpness(state))
+	_shader_material.set_shader_parameter("filter_mode", U_ColorGradingSelectors.get_filter_mode(state))
+	_shader_material.set_shader_parameter("filter_intensity", U_ColorGradingSelectors.get_filter_intensity(state))
+	_shader_material.set_shader_parameter("exposure", U_ColorGradingSelectors.get_exposure(state))
+	_shader_material.set_shader_parameter("brightness", U_ColorGradingSelectors.get_brightness(state))
+	_shader_material.set_shader_parameter("contrast", U_ColorGradingSelectors.get_contrast(state))
+	_shader_material.set_shader_parameter("brilliance", U_ColorGradingSelectors.get_brilliance(state))
+	_shader_material.set_shader_parameter("highlights", U_ColorGradingSelectors.get_highlights(state))
+	_shader_material.set_shader_parameter("shadows", U_ColorGradingSelectors.get_shadows(state))
+	_shader_material.set_shader_parameter("saturation", U_ColorGradingSelectors.get_saturation(state))
+	_shader_material.set_shader_parameter("vibrance", U_ColorGradingSelectors.get_vibrance(state))
+	_shader_material.set_shader_parameter("warmth", U_ColorGradingSelectors.get_warmth(state))
+	_shader_material.set_shader_parameter("tint", U_ColorGradingSelectors.get_tint(state))
+	_shader_material.set_shader_parameter("sharpness", U_ColorGradingSelectors.get_sharpness(state))
 
 	# Mobile override: force-disable sharpness (5-tap unsharp mask is too expensive on tile-based GPUs)
 	if _is_mobile:

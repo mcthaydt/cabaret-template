@@ -21,7 +21,7 @@ func test_reducer_uses_resource_filter_map() -> void:
 
 		# Simulate the reducer's conversion
 		var action := {
-			"type": StringName("cinema_grade/set_parameter"),
+			"type": StringName("color_grading/set_parameter"),
 			"payload": {
 				"param_name": "filter_preset",
 				"value": preset_name
@@ -29,15 +29,15 @@ func test_reducer_uses_resource_filter_map() -> void:
 		}
 
 		var current_state := {
-			"cinema_grade_filter_mode": 0,
-			"cinema_grade_filter_preset": "none"
+			"color_grading_filter_mode": 0,
+			"color_grading_filter_preset": "none"
 		}
 
 		var next_state: Variant = U_DISPLAY_REDUCER.reduce(current_state, action)
 		assert_not_null(next_state, "Reducer should handle filter_preset change")
 
 		if next_state is Dictionary:
-			var actual_mode: int = int(next_state.get("cinema_grade_filter_mode", -1))
+			var actual_mode: int = int(next_state.get("color_grading_filter_mode", -1))
 			assert_eq(
 				actual_mode,
 				expected_mode,
@@ -50,7 +50,7 @@ func test_all_resource_presets_handled_by_reducer() -> void:
 
 	for preset_name in resource_presets:
 		var action := {
-			"type": StringName("cinema_grade/set_parameter"),
+			"type": StringName("color_grading/set_parameter"),
 			"payload": {
 				"param_name": "filter_preset",
 				"value": preset_name
@@ -58,8 +58,8 @@ func test_all_resource_presets_handled_by_reducer() -> void:
 		}
 
 		var current_state := {
-			"cinema_grade_filter_mode": 0,
-			"cinema_grade_filter_preset": "none"
+			"color_grading_filter_mode": 0,
+			"color_grading_filter_preset": "none"
 		}
 
 		var next_state: Variant = U_DISPLAY_REDUCER.reduce(current_state, action)
@@ -69,7 +69,7 @@ func test_all_resource_presets_handled_by_reducer() -> void:
 		)
 
 		if next_state is Dictionary:
-			var mode: int = int(next_state.get("cinema_grade_filter_mode", -1))
+			var mode: int = int(next_state.get("color_grading_filter_mode", -1))
 			var expected_mode: int = RS_SCENE_CINEMA_GRADE.FILTER_PRESET_MAP[preset_name]
 			assert_eq(
 				mode,
@@ -80,7 +80,7 @@ func test_all_resource_presets_handled_by_reducer() -> void:
 # Edge case: Unknown preset should map to 0 (none)
 func test_unknown_preset_maps_to_none() -> void:
 	var action := {
-		"type": StringName("cinema_grade/set_parameter"),
+		"type": StringName("color_grading/set_parameter"),
 		"payload": {
 			"param_name": "filter_preset",
 			"value": "invalid_preset_name"
@@ -88,14 +88,14 @@ func test_unknown_preset_maps_to_none() -> void:
 	}
 
 	var current_state := {
-		"cinema_grade_filter_mode": 5,  # Start with something else
-		"cinema_grade_filter_preset": "vivid"
+		"color_grading_filter_mode": 5,  # Start with something else
+		"color_grading_filter_preset": "vivid"
 	}
 
 	var next_state: Variant = U_DISPLAY_REDUCER.reduce(current_state, action)
 
 	if next_state is Dictionary:
-		var mode: int = int(next_state.get("cinema_grade_filter_mode", -1))
+		var mode: int = int(next_state.get("color_grading_filter_mode", -1))
 		assert_eq(
 			mode,
 			0,

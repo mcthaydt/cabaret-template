@@ -1,15 +1,15 @@
 extends RefCounted
-class_name U_CinemaGradeActions
+class_name U_ColorGradingActions
 
-## Cinema Grade Actions
+## Color Grading Actions
 ##
-## Action creators for cinema grade state. Uses "cinema_grade/" prefix which
+## Action creators for color grading state. Uses "color_grading/" prefix which
 ## is NOT persisted to global_settings.json (not a user setting).
 
 
-const ACTION_LOAD_SCENE_GRADE := StringName("cinema_grade/load_scene_grade")
-const ACTION_SET_PARAMETER := StringName("cinema_grade/set_parameter")
-const ACTION_RESET_TO_SCENE_DEFAULTS := StringName("cinema_grade/reset_to_scene_defaults")
+const ACTION_LOAD_SCENE_GRADE := StringName("color_grading/load_scene_grade")
+const ACTION_SET_PARAMETER := StringName("color_grading/set_parameter")
+const ACTION_RESET_TO_SCENE_DEFAULTS := StringName("color_grading/reset_to_scene_defaults")
 
 static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_LOAD_SCENE_GRADE)

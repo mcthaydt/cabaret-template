@@ -15,7 +15,7 @@ const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
 const U_CINEMA_GRADE_REGISTRY := preload("res://scripts/managers/helpers/display/u_cinema_grade_registry.gd")
-const U_CINEMA_GRADE_SELECTORS := preload("res://scripts/state/selectors/u_cinema_grade_selectors.gd")
+const U_COLOR_GRADING_SELECTORS := preload("res://scripts/state/selectors/u_color_grading_selectors.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -65,15 +65,15 @@ func _create_state_store() -> M_StateStore:
 	return store
 
 
-func _get_cinema_grade_rect() -> ColorRect:
+func _get_color_grading_rect() -> ColorRect:
 	var layer := _overlay.find_child("CinemaGradeLayer", false, false) as CanvasLayer
 	if layer == null:
 		return null
 	return layer.find_child("CinemaGradeRect", false, false) as ColorRect
 
 
-func _get_cinema_grade_param(param: StringName) -> Variant:
-	var rect := _get_cinema_grade_rect()
+func _get_color_grading_param(param: StringName) -> Variant:
+	var rect := _get_color_grading_rect()
 	if rect == null:
 		return null
 	var material := rect.material as ShaderMaterial
@@ -91,13 +91,13 @@ func _get_expected_alleyway_grade_dict() -> Dictionary:
 
 # --- Layer creation ---
 
-func test_cinema_grade_layer_created_under_post_process_overlay() -> void:
+func test_color_grading_layer_created_under_post_process_overlay() -> void:
 	var layer := _overlay.find_child("CinemaGradeLayer", false, false)
 	assert_not_null(layer, "CinemaGradeLayer should be created under PostProcessOverlay")
 
 
-func test_cinema_grade_rect_has_shader_material() -> void:
-	var rect := _get_cinema_grade_rect()
+func test_color_grading_rect_has_shader_material() -> void:
+	var rect := _get_color_grading_rect()
 	assert_not_null(rect, "CinemaGradeRect should exist")
 	assert_true(rect.material is ShaderMaterial,
 		"CinemaGradeRect should have a ShaderMaterial")
@@ -113,8 +113,8 @@ func test_scene_swap_loads_filter_mode_for_known_scene() -> void:
 	assert_false(expected_grade.is_empty(), "Expected alleyway cinema grade should be available")
 	var state := _store.get_state()
 	assert_eq(
-		U_CINEMA_GRADE_SELECTORS.get_filter_mode(state),
-		int(expected_grade.get("cinema_grade_filter_mode", 0)),
+		U_COLOR_GRADING_SELECTORS.get_filter_mode(state),
+		int(expected_grade.get("color_grading_filter_mode", 0)),
 		"scene/swapped 'alleyway' should load the configured filter_mode"
 	)
 
@@ -127,8 +127,8 @@ func test_scene_swap_loads_exposure_for_known_scene() -> void:
 	assert_false(expected_grade.is_empty(), "Expected alleyway cinema grade should be available")
 	var state := _store.get_state()
 	assert_almost_eq(
-		U_CINEMA_GRADE_SELECTORS.get_exposure(state),
-		float(expected_grade.get("cinema_grade_exposure", 0.0)),
+		U_COLOR_GRADING_SELECTORS.get_exposure(state),
+		float(expected_grade.get("color_grading_exposure", 0.0)),
 		0.001,
 		"scene/swapped 'alleyway' should load the configured exposure"
 	)
@@ -142,21 +142,21 @@ func test_scene_swap_loads_contrast_for_known_scene() -> void:
 	assert_false(expected_grade.is_empty(), "Expected alleyway cinema grade should be available")
 	var state := _store.get_state()
 	assert_almost_eq(
-		U_CINEMA_GRADE_SELECTORS.get_contrast(state),
-		float(expected_grade.get("cinema_grade_contrast", 1.0)),
+		U_COLOR_GRADING_SELECTORS.get_contrast(state),
+		float(expected_grade.get("color_grading_contrast", 1.0)),
 		0.001,
 		"scene/swapped 'alleyway' should load the configured contrast"
 	)
 
 
-func test_scene_swap_populates_all_cinema_grade_keys_in_state() -> void:
+func test_scene_swap_populates_all_color_grading_keys_in_state() -> void:
 	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
 	await get_tree().process_frame
 
 	var state := _store.get_state()
-	var cinema_settings := U_CINEMA_GRADE_SELECTORS.get_cinema_grade_settings(state)
+	var cinema_settings := U_COLOR_GRADING_SELECTORS.get_color_grading_settings(state)
 	assert_gt(cinema_settings.size(), 0,
-		"scene/swapped should populate cinema_grade_ keys in display state")
+		"scene/swapped should populate color_grading_ keys in display state")
 
 
 # --- Unknown scene falls back to neutral grade ---
@@ -166,7 +166,7 @@ func test_scene_swap_unknown_scene_loads_neutral_filter_mode() -> void:
 	await get_tree().process_frame
 
 	var state := _store.get_state()
-	assert_eq(U_CINEMA_GRADE_SELECTORS.get_filter_mode(state), 0,
+	assert_eq(U_COLOR_GRADING_SELECTORS.get_filter_mode(state), 0,
 		"Unknown scene should fall back to neutral filter_mode 0")
 
 
@@ -175,7 +175,7 @@ func test_scene_swap_unknown_scene_loads_neutral_exposure() -> void:
 	await get_tree().process_frame
 
 	var state := _store.get_state()
-	assert_almost_eq(U_CINEMA_GRADE_SELECTORS.get_exposure(state), 0.0, 0.001,
+	assert_almost_eq(U_COLOR_GRADING_SELECTORS.get_exposure(state), 0.0, 0.001,
 		"Unknown scene should fall back to neutral exposure 0.0")
 
 
@@ -184,7 +184,7 @@ func test_scene_swap_unknown_scene_still_populates_cinema_state() -> void:
 	await get_tree().process_frame
 
 	var state := _store.get_state()
-	var cinema_settings := U_CINEMA_GRADE_SELECTORS.get_cinema_grade_settings(state)
+	var cinema_settings := U_COLOR_GRADING_SELECTORS.get_color_grading_settings(state)
 	assert_gt(cinema_settings.size(), 0,
 		"Unknown scene should still dispatch load_scene_grade with neutral values")
 
@@ -197,11 +197,11 @@ func test_scene_swap_updates_shader_exposure_uniform() -> void:
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()
 	assert_false(expected_grade.is_empty(), "Expected alleyway cinema grade should be available")
-	var exposure: Variant = _get_cinema_grade_param(StringName("exposure"))
+	var exposure: Variant = _get_color_grading_param(StringName("exposure"))
 	assert_not_null(exposure, "CinemaGradeRect shader should have an 'exposure' parameter")
 	assert_almost_eq(
 		float(exposure),
-		float(expected_grade.get("cinema_grade_exposure", 0.0)),
+		float(expected_grade.get("color_grading_exposure", 0.0)),
 		0.001,
 		"Shader 'exposure' uniform should reflect alleyway grade"
 	)
@@ -213,10 +213,10 @@ func test_scene_swap_updates_shader_filter_mode_uniform() -> void:
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()
 	assert_false(expected_grade.is_empty(), "Expected alleyway cinema grade should be available")
-	var filter_mode: Variant = _get_cinema_grade_param(StringName("filter_mode"))
+	var filter_mode: Variant = _get_color_grading_param(StringName("filter_mode"))
 	assert_not_null(filter_mode, "CinemaGradeRect shader should have a 'filter_mode' parameter")
 	assert_eq(
 		int(filter_mode),
-		int(expected_grade.get("cinema_grade_filter_mode", 0)),
+		int(expected_grade.get("color_grading_filter_mode", 0)),
 		"Shader 'filter_mode' uniform should reflect alleyway grade"
 	)

@@ -160,22 +160,22 @@ func _load_state_into_ui() -> void:
 	scene_label.text = "Scene: %s" % _current_scene_id
 
 	# Update filter preset dropdown
-	var filter_mode := U_CinemaGradeSelectors.get_filter_mode(state)
+	var filter_mode := U_ColorGradingSelectors.get_filter_mode(state)
 	filter_preset_option.selected = filter_mode
 
 	# Update all sliders/spinboxes (use set_value_no_signal to avoid feedback loop)
-	_set_slider_value(filter_intensity_slider, filter_intensity_spinbox, U_CinemaGradeSelectors.get_filter_intensity(state))
-	_set_slider_value(exposure_slider, exposure_spinbox, U_CinemaGradeSelectors.get_exposure(state))
-	_set_slider_value(brightness_slider, brightness_spinbox, U_CinemaGradeSelectors.get_brightness(state))
-	_set_slider_value(contrast_slider, contrast_spinbox, U_CinemaGradeSelectors.get_contrast(state))
-	_set_slider_value(brilliance_slider, brilliance_spinbox, U_CinemaGradeSelectors.get_brilliance(state))
-	_set_slider_value(highlights_slider, highlights_spinbox, U_CinemaGradeSelectors.get_highlights(state))
-	_set_slider_value(shadows_slider, shadows_spinbox, U_CinemaGradeSelectors.get_shadows(state))
-	_set_slider_value(saturation_slider, saturation_spinbox, U_CinemaGradeSelectors.get_saturation(state))
-	_set_slider_value(vibrance_slider, vibrance_spinbox, U_CinemaGradeSelectors.get_vibrance(state))
-	_set_slider_value(warmth_slider, warmth_spinbox, U_CinemaGradeSelectors.get_warmth(state))
-	_set_slider_value(tint_slider, tint_spinbox, U_CinemaGradeSelectors.get_tint(state))
-	_set_slider_value(sharpness_slider, sharpness_spinbox, U_CinemaGradeSelectors.get_sharpness(state))
+	_set_slider_value(filter_intensity_slider, filter_intensity_spinbox, U_ColorGradingSelectors.get_filter_intensity(state))
+	_set_slider_value(exposure_slider, exposure_spinbox, U_ColorGradingSelectors.get_exposure(state))
+	_set_slider_value(brightness_slider, brightness_spinbox, U_ColorGradingSelectors.get_brightness(state))
+	_set_slider_value(contrast_slider, contrast_spinbox, U_ColorGradingSelectors.get_contrast(state))
+	_set_slider_value(brilliance_slider, brilliance_spinbox, U_ColorGradingSelectors.get_brilliance(state))
+	_set_slider_value(highlights_slider, highlights_spinbox, U_ColorGradingSelectors.get_highlights(state))
+	_set_slider_value(shadows_slider, shadows_spinbox, U_ColorGradingSelectors.get_shadows(state))
+	_set_slider_value(saturation_slider, saturation_spinbox, U_ColorGradingSelectors.get_saturation(state))
+	_set_slider_value(vibrance_slider, vibrance_spinbox, U_ColorGradingSelectors.get_vibrance(state))
+	_set_slider_value(warmth_slider, warmth_spinbox, U_ColorGradingSelectors.get_warmth(state))
+	_set_slider_value(tint_slider, tint_spinbox, U_ColorGradingSelectors.get_tint(state))
+	_set_slider_value(sharpness_slider, sharpness_spinbox, U_ColorGradingSelectors.get_sharpness(state))
 
 	_updating_ui = false
 
@@ -199,67 +199,67 @@ func _on_filter_preset_selected(index: int) -> void:
 		return
 
 	var preset_name := filter_preset_option.get_item_text(index)
-	_store.dispatch(U_CinemaGradeActions.set_parameter("filter_preset", preset_name))
+	_store.dispatch(U_ColorGradingActions.set_parameter("filter_preset", preset_name))
 
 func _on_filter_intensity_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("filter_intensity", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("filter_intensity", value))
 
 func _on_exposure_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("exposure", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("exposure", value))
 
 func _on_brightness_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("brightness", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("brightness", value))
 
 func _on_contrast_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("contrast", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("contrast", value))
 
 func _on_brilliance_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("brilliance", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("brilliance", value))
 
 func _on_highlights_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("highlights", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("highlights", value))
 
 func _on_shadows_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("shadows", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("shadows", value))
 
 func _on_saturation_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("saturation", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("saturation", value))
 
 func _on_vibrance_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("vibrance", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("vibrance", value))
 
 func _on_warmth_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("warmth", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("warmth", value))
 
 func _on_tint_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("tint", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("tint", value))
 
 func _on_sharpness_changed(value: float) -> void:
 	if _updating_ui or not _store:
 		return
-	_store.dispatch(U_CinemaGradeActions.set_parameter("sharpness", value))
+	_store.dispatch(U_ColorGradingActions.set_parameter("sharpness", value))
 
 func _on_reset_pressed() -> void:
 	if not _store:
@@ -267,14 +267,14 @@ func _on_reset_pressed() -> void:
 
 	var grade := U_CinemaGradeRegistry.get_cinema_grade_for_scene(_current_scene_id)
 	if grade:
-		_store.dispatch(U_CinemaGradeActions.reset_to_scene_defaults(grade.to_dictionary()))
+		_store.dispatch(U_ColorGradingActions.reset_to_scene_defaults(grade.to_dictionary()))
 
 func _on_export_pressed() -> void:
 	if not _store:
 		return
 
 	var state: Dictionary = _store.get_state()
-	var filter_mode: int = U_CinemaGradeSelectors.get_filter_mode(state)
+	var filter_mode: int = U_ColorGradingSelectors.get_filter_mode(state)
 
 	# Reverse-lookup filter preset name
 	var filter_preset_name: String = "none"
@@ -307,18 +307,18 @@ sharpness = %s
 """ % [
 		_current_scene_id,
 		filter_preset_name,
-		U_CinemaGradeSelectors.get_filter_intensity(state),
-		U_CinemaGradeSelectors.get_exposure(state),
-		U_CinemaGradeSelectors.get_brightness(state),
-		U_CinemaGradeSelectors.get_contrast(state),
-		U_CinemaGradeSelectors.get_brilliance(state),
-		U_CinemaGradeSelectors.get_highlights(state),
-		U_CinemaGradeSelectors.get_shadows(state),
-		U_CinemaGradeSelectors.get_saturation(state),
-		U_CinemaGradeSelectors.get_vibrance(state),
-		U_CinemaGradeSelectors.get_warmth(state),
-		U_CinemaGradeSelectors.get_tint(state),
-		U_CinemaGradeSelectors.get_sharpness(state)
+		U_ColorGradingSelectors.get_filter_intensity(state),
+		U_ColorGradingSelectors.get_exposure(state),
+		U_ColorGradingSelectors.get_brightness(state),
+		U_ColorGradingSelectors.get_contrast(state),
+		U_ColorGradingSelectors.get_brilliance(state),
+		U_ColorGradingSelectors.get_highlights(state),
+		U_ColorGradingSelectors.get_shadows(state),
+		U_ColorGradingSelectors.get_saturation(state),
+		U_ColorGradingSelectors.get_vibrance(state),
+		U_ColorGradingSelectors.get_warmth(state),
+		U_ColorGradingSelectors.get_tint(state),
+		U_ColorGradingSelectors.get_sharpness(state)
 	]
 
 	# Print to console with color
