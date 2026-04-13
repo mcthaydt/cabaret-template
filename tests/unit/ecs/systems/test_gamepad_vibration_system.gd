@@ -59,6 +59,22 @@ func test_entity_death_event_triggers_vibration() -> void:
 
 	assert_eq(mock.start_calls.size(), 1, "Death event should trigger vibration")
 
+func test_entity_death_with_player_substring_does_not_trigger_vibration() -> void:
+	var context := await _setup_system()
+	autofree_context(context)
+	var mock: MockVibration = context["mock"] as MockVibration
+
+	U_ECSEventBus.publish(StringName("entity_death"), {
+		"entity_id": StringName("cosplayer_npc"),
+		"previous_health": 10.0,
+		"new_health": 0.0,
+		"is_dead": true,
+	})
+	await wait_physics_frames(2)
+
+	assert_eq(mock.start_calls.size(), 0,
+		"Non-player IDs that only contain 'player' as a substring should not trigger vibration")
+
 ## Test that vibration does NOT trigger when using keyboard/mouse
 ## This verifies the fix where vibration only triggers for gamepad input
 func test_vibration_blocked_when_keyboard_mouse_active() -> void:
