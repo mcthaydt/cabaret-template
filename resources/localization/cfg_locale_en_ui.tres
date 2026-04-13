@@ -244,7 +244,7 @@ translations = {
 "settings.display.section.post_processing": "Post-Processing",
 "settings.display.section.ui": "UI",
 "settings.display.title": "Display Settings",
-"settings.display.tooltip.post_processing_preset": "Intensity level for post-processing effects (Film Grain, CRT, Dither).",
+"settings.display.tooltip.post_processing_preset": "Intensity level for post-processing effects (Film Grain, Dither).",
 "settings.display.tooltip.ui_scale": "Scales the UI size.",
 "settings.display.tooltip.window_mode": "Borderless fills the screen without changing display mode.",
 "settings.display.tooltip.window_size": "Available only in Windowed mode.",

@@ -245,7 +245,7 @@ translations = {
 "settings.display.section.post_processing": "后期处理",
 "settings.display.section.ui": "界面",
 "settings.display.title": "显示设置",
-"settings.display.tooltip.post_processing_preset": "后期处理效果（胶片颗粒、CRT、抖动）的强度级别。",
+"settings.display.tooltip.post_processing_preset": "后期处理效果（胶片颗粒、抖动）的强度级别。",
 "settings.display.tooltip.ui_scale": "调整界面大小。",
 "settings.display.tooltip.window_mode": "无边框会铺满屏幕且不更改显示模式。",
 "settings.display.tooltip.window_size": "仅在窗口模式下可用。",

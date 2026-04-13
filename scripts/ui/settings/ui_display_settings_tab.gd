@@ -319,7 +319,7 @@ func _configure_tooltips() -> void:
 	if _post_processing_preset_option != null:
 		_post_processing_preset_option.tooltip_text = _localize_with_fallback(
 			TOOLTIP_POST_PROCESSING_PRESET_KEY,
-			"Intensity level for post-processing effects (Film Grain, CRT, Dither)."
+			"Intensity level for post-processing effects (Film Grain, Dither)."
 		)
 	if _ui_scale_slider != null:
 		_ui_scale_slider.tooltip_text = _localize_with_fallback(

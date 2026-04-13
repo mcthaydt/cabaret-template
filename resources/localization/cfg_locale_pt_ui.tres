@@ -245,7 +245,7 @@ translations = {
 "settings.display.section.post_processing": "Pós-processamento",
 "settings.display.section.ui": "UI",
 "settings.display.title": "Config. de Tela",
-"settings.display.tooltip.post_processing_preset": "Nível de intensidade para efeitos de pós-processamento (grão, CRT, dither).",
+"settings.display.tooltip.post_processing_preset": "Nível de intensidade para efeitos de pós-processamento (grão, dither).",
 "settings.display.tooltip.ui_scale": "Ajusta o tamanho da interface.",
 "settings.display.tooltip.window_mode": "Sem bordas preenche a tela sem trocar o modo de vídeo.",
 "settings.display.tooltip.window_size": "Disponível apenas no modo Janela.",

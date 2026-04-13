@@ -245,7 +245,7 @@ translations = {
 "settings.display.section.post_processing": "Posprocesado",
 "settings.display.section.ui": "UI",
 "settings.display.title": "Ajustes de Pantalla",
-"settings.display.tooltip.post_processing_preset": "Nivel de intensidad para efectos de posprocesado (grano, CRT, dither).",
+"settings.display.tooltip.post_processing_preset": "Nivel de intensidad para efectos de posprocesado (grano, dither).",
 "settings.display.tooltip.ui_scale": "Escala el tamaño de la interfaz.",
 "settings.display.tooltip.window_mode": "Sin bordes llena la pantalla sin cambiar el modo de video.",
 "settings.display.tooltip.window_size": "Disponible solo en modo ventana.",
