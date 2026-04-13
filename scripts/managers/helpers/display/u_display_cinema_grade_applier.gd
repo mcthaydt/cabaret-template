@@ -26,7 +26,7 @@ func initialize(owner: Node, state_store: I_StateStore) -> void:
 	_owner = owner
 	_state_store = state_store
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
-	U_CinemaGradeRegistry.initialize()
+	U_ColorGradingRegistry.initialize()
 
 	if _state_store != null and _state_store.has_signal("action_dispatched"):
 		_state_store.action_dispatched.connect(_on_action_dispatched)
@@ -87,7 +87,7 @@ func _on_action_dispatched(action: Dictionary) -> void:
 func _load_grade_for_scene(scene_id: StringName) -> void:
 	if _state_store == null:
 		return
-	var grade := U_CinemaGradeRegistry.get_cinema_grade_for_scene(scene_id)
+	var grade := U_ColorGradingRegistry.get_color_grading_for_scene(scene_id)
 	_state_store.dispatch(U_ColorGradingActions.load_scene_grade(grade.to_dictionary()))
 
 func _apply_cinema_grade_uniforms(state: Dictionary) -> void:

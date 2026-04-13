@@ -265,7 +265,7 @@ func _on_reset_pressed() -> void:
 	if not _store:
 		return
 
-	var grade := U_CinemaGradeRegistry.get_cinema_grade_for_scene(_current_scene_id)
+	var grade := U_ColorGradingRegistry.get_color_grading_for_scene(_current_scene_id)
 	if grade:
 		_store.dispatch(U_ColorGradingActions.reset_to_scene_defaults(grade.to_dictionary()))
 
@@ -278,15 +278,15 @@ func _on_export_pressed() -> void:
 
 	# Reverse-lookup filter preset name
 	var filter_preset_name: String = "none"
-	for key in RS_SceneCinemaGrade.FILTER_PRESET_MAP.keys():
-		if RS_SceneCinemaGrade.FILTER_PRESET_MAP[key] == filter_mode:
+	for key in RS_SceneColorGrading.FILTER_PRESET_MAP.keys():
+		if RS_SceneColorGrading.FILTER_PRESET_MAP[key] == filter_mode:
 			filter_preset_name = key
 			break
 
 	# Build .tres format string
-	var tres_content := """[gd_resource type="Resource" script_class="RS_SceneCinemaGrade" format=3]
+	var tres_content := """[gd_resource type="Resource" script_class="RS_SceneColorGrading" format=3]
 
-[ext_resource type="Script" path="res://scripts/resources/display/rs_scene_cinema_grade.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/display/rs_scene_color_grading.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")
@@ -324,4 +324,4 @@ sharpness = %s
 	# Print to console with color
 	print_rich("[color=cyan]===== Cinema Grade Export for scene: %s =====[/color]" % _current_scene_id)
 	print(tres_content)
-	print_rich("[color=green]Copy the above and paste into: resources/display/cinema_grades/cfg_cinema_grade_%s.tres[/color]" % _current_scene_id)
+	print_rich("[color=green]Copy the above and paste into: resources/display/color_gradings/cfg_color_grading_%s.tres[/color]" % _current_scene_id)

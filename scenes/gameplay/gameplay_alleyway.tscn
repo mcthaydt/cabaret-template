@@ -65,7 +65,7 @@
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="56_fade_goal"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="57_fade_door"]
 [ext_resource type="Script" uid="uid://cup4jaxn6ejvf" path="res://scripts/utils/display/u_cinema_grade_preview.gd" id="58_cinema_preview"]
-[ext_resource type="Resource" uid="uid://bpq4a7ypphxic" path="res://resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres" id="59_cinema_grade"]
+[ext_resource type="Resource" uid="uid://bpq4a7ypphxic" path="res://resources/display/color_gradings/cfg_color_grading_alleyway.tres" id="59_cinema_grade"]
 [ext_resource type="Resource" uid="uid://gfpbj6b08vmj" path="res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres" id="60_door_config"]
 [ext_resource type="Resource" uid="uid://di0webt8oc8bj" path="res://resources/interactions/checkpoints/cfg_checkpoint_alleyway.tres" id="61_checkpoint_config"]
 [ext_resource type="Resource" uid="uid://jnsl17rpawoy" path="res://resources/interactions/endgame/cfg_endgame_goal_alleyway.tres" id="63_endgame_config"]

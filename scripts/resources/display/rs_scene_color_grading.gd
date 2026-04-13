@@ -1,8 +1,8 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
 extends Resource
-class_name RS_SceneCinemaGrade
+class_name RS_SceneColorGrading
 
-## Per-scene cinema grade configuration for artistic color grading.
+## Per-scene color grading configuration for artistic look adjustments.
 ##
 ## Each gameplay scene can have a unique look defined by adjustments
 ## (exposure, contrast, saturation, etc.) and optional named filters.

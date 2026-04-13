@@ -3,20 +3,20 @@ extends GutTest
 # TDD: Test filter preset map consistency across codebase (M1)
 # Bug: FILTER_PRESET_MAP is duplicated in 3 places - easy to get out of sync
 
-const RS_SCENE_CINEMA_GRADE := preload("res://scripts/resources/display/rs_scene_cinema_grade.gd")
+const RS_SCENE_COLOR_GRADING := preload("res://scripts/resources/display/rs_scene_color_grading.gd")
 const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
 
 # FAILING TEST: Reducer should use the same filter preset map as the resource
 func test_reducer_uses_resource_filter_map() -> void:
 	# The reducer has its own copy of FILTER_PRESET_MAP at line 264-276
-	# It should delegate to RS_SceneCinemaGrade.FILTER_PRESET_MAP instead
+	# It should delegate to RS_SceneColorGrading.FILTER_PRESET_MAP instead
 
 	# Test a few key mappings
 	var test_presets := ["none", "dramatic", "vivid", "black_and_white", "sepia"]
 
 	for preset_name in test_presets:
 		# Get the expected value from the resource (source of truth)
-		var expected_mode: int = RS_SCENE_CINEMA_GRADE.FILTER_PRESET_MAP.get(preset_name, -1)
+		var expected_mode: int = RS_SCENE_COLOR_GRADING.FILTER_PRESET_MAP.get(preset_name, -1)
 		assert_ne(expected_mode, -1, "Preset '%s' should exist in resource map" % preset_name)
 
 		# Simulate the reducer's conversion
@@ -46,7 +46,7 @@ func test_reducer_uses_resource_filter_map() -> void:
 
 # FAILING TEST: All presets in resource map should be handled by reducer
 func test_all_resource_presets_handled_by_reducer() -> void:
-	var resource_presets := RS_SCENE_CINEMA_GRADE.FILTER_PRESET_MAP.keys()
+	var resource_presets := RS_SCENE_COLOR_GRADING.FILTER_PRESET_MAP.keys()
 
 	for preset_name in resource_presets:
 		var action := {
@@ -70,7 +70,7 @@ func test_all_resource_presets_handled_by_reducer() -> void:
 
 		if next_state is Dictionary:
 			var mode: int = int(next_state.get("color_grading_filter_mode", -1))
-			var expected_mode: int = RS_SCENE_CINEMA_GRADE.FILTER_PRESET_MAP[preset_name]
+			var expected_mode: int = RS_SCENE_COLOR_GRADING.FILTER_PRESET_MAP[preset_name]
 			assert_eq(
 				mode,
 				expected_mode,

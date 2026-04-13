@@ -255,5 +255,5 @@ static func _is_valid_post_processing_preset(preset: String) -> bool:
 	return U_DISPLAY_OPTION_CATALOG.get_post_processing_preset_ids().has(preset)
 
 static func _get_filter_mode_from_preset(preset_name: String) -> int:
-	# Delegate to RS_SceneCinemaGrade.FILTER_PRESET_MAP (single source of truth)
-	return RS_SceneCinemaGrade.FILTER_PRESET_MAP.get(preset_name, 0)
+	# Delegate to RS_SceneColorGrading.FILTER_PRESET_MAP (single source of truth)
+	return RS_SceneColorGrading.FILTER_PRESET_MAP.get(preset_name, 0)

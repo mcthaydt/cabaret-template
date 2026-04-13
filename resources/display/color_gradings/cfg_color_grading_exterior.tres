@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="RS_SceneColorGrading" format=3 uid="uid://cauncaxlhf7oq"]
+
+[ext_resource type="Script" uid="uid://4gxo5ajyta5u" path="res://scripts/resources/display/rs_scene_color_grading.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+scene_id = &"exterior"

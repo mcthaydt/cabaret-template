@@ -14,7 +14,7 @@ const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
-const U_CINEMA_GRADE_REGISTRY := preload("res://scripts/managers/helpers/display/u_cinema_grade_registry.gd")
+const U_COLOR_GRADING_REGISTRY := preload("res://scripts/managers/helpers/display/u_color_grading_registry.gd")
 const U_COLOR_GRADING_SELECTORS := preload("res://scripts/state/selectors/u_color_grading_selectors.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
@@ -83,7 +83,7 @@ func _get_color_grading_param(param: StringName) -> Variant:
 
 
 func _get_expected_alleyway_grade_dict() -> Dictionary:
-	var grade := U_CINEMA_GRADE_REGISTRY.get_cinema_grade_for_scene(StringName("alleyway"))
+	var grade := U_COLOR_GRADING_REGISTRY.get_color_grading_for_scene(StringName("alleyway"))
 	if grade == null:
 		return {}
 	return grade.to_dictionary()

@@ -5,7 +5,7 @@ class_name U_CinemaGradePreview
 
 ## Editor-only preview node for cinema grade effects.
 ##
-## Drop into any gameplay scene root, assign a RS_SceneCinemaGrade resource,
+## Drop into any gameplay scene root, assign a RS_SceneColorGrading resource,
 ## and see the effect live in the editor viewport. Removes itself at runtime
 ## (M_DisplayManager handles everything in-game).
 
@@ -64,9 +64,9 @@ func _update_preview() -> void:
 
 	var grade := cinema_grade as Resource
 
-	# Use RS_SceneCinemaGrade.FILTER_PRESET_MAP (single source of truth)
+	# Use RS_SceneColorGrading.FILTER_PRESET_MAP (single source of truth)
 	var filter_preset: String = grade.get("filter_preset") if grade.get("filter_preset") != null else "none"
-	_shader_material.set_shader_parameter("filter_mode", RS_SceneCinemaGrade.FILTER_PRESET_MAP.get(filter_preset, 0))
+	_shader_material.set_shader_parameter("filter_mode", RS_SceneColorGrading.FILTER_PRESET_MAP.get(filter_preset, 0))
 	_shader_material.set_shader_parameter("filter_intensity", _get_prop(grade, "filter_intensity", 1.0))
 	_shader_material.set_shader_parameter("exposure", _get_prop(grade, "exposure", 0.0))
 	_shader_material.set_shader_parameter("brightness", _get_prop(grade, "brightness", 0.0))
@@ -89,5 +89,5 @@ func _get_prop(res: Resource, prop_name: String, default_value: Variant) -> Vari
 func _get_configuration_warnings() -> PackedStringArray:
 	var warnings := PackedStringArray()
 	if cinema_grade == null:
-		warnings.append("No cinema grade resource assigned. Assign a RS_SceneCinemaGrade resource to see the preview.")
+		warnings.append("No color grading resource assigned. Assign a RS_SceneColorGrading resource to see the preview.")
 	return warnings
