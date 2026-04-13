@@ -1332,6 +1332,59 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"Found direct state slice access in production files (should use selectors):\n" + "\n".join(violations)
 	)
 
+## C12: No "cinema_grade" identifiers should remain in scripts/ after the
+## cinema_grade → color_grading rename. All display/post-process code should
+## use color_grading terminology. This test will FAIL until Commit 7 completes
+## the full rename pass.
+func test_no_cinema_grade_identifiers_in_scripts() -> void:
+	var violations: Array[String] = []
+	_collect_gd_literal_occurrences("res://scripts", "cinema_grade", violations)
+	_collect_gd_filename_substring_violations("res://scripts", "cinema_grade", violations)
+	assert_eq(
+		violations.size(),
+		0,
+		"Found cinema_grade identifiers in scripts/ (should be renamed to color_grading):\n" + "\n".join(violations)
+	)
+
+## C12: No CRT-related identifiers (crt_, chromatic_aberration, scanline,
+## curvature) should remain in display/post-process scripts after CRT removal.
+## Allowlist: non-post-process uses of these terms (e.g. audio scanning).
+## This test will FAIL until Commits 2–4 complete CRT removal.
+func test_no_crt_identifiers_in_display_scripts() -> void:
+	var allowed_files: Array[String] = [
+		# Audio/input scanning is unrelated to CRT display
+	]
+	var display_dirs: Array[String] = [
+		"res://scripts/managers/helpers/display",
+		"res://scripts/state",
+		"res://scripts/utils/display",
+		"res://scripts/ui/settings",
+		"res://scripts/debug",
+	]
+	var violations: Array[String] = []
+	for dir_path in display_dirs:
+		_collect_gd_literal_occurrences(dir_path, "crt_enabled", violations)
+		_collect_gd_literal_occurrences(dir_path, "crt_scanline", violations)
+		_collect_gd_literal_occurrences(dir_path, "crt_curvature", violations)
+		_collect_gd_literal_occurrences(dir_path, "crt_chromatic", violations)
+		_collect_gd_literal_occurrences(dir_path, "chromatic_aberration", violations)
+		_collect_gd_literal_occurrences(dir_path, "scanline_intensity", violations)
+	# Filter out allowed files
+	var filtered: Array[String] = []
+	for v in violations:
+		var is_allowed := false
+		for allowed in allowed_files:
+			if v.find(allowed) != -1:
+				is_allowed = true
+				break
+		if not is_allowed:
+			filtered.append(v)
+	assert_eq(
+		filtered.size(),
+		0,
+		"Found CRT identifiers in display scripts (CRT should be fully removed):\n" + "\n".join(filtered)
+	)
+
 func _check_for_patterns_in_files(dir_path: String, patterns: Array[String], allowed_files: Array[String], violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
