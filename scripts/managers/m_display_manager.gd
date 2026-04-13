@@ -17,6 +17,7 @@ const U_DISPLAY_POST_PROCESS_APPLIER := preload("res://scripts/managers/helpers/
 const U_DISPLAY_UI_SCALE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_scale_applier.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
 const U_DISPLAY_COLOR_GRADING_APPLIER := preload("res://scripts/managers/helpers/display/u_display_color_grading_applier.gd")
+const U_POST_PROCESS_PIPELINE := preload("res://scripts/managers/helpers/display/u_post_process_pipeline.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
@@ -52,6 +53,7 @@ var _post_process_applier: RefCounted = null  # U_DisplayPostProcessApplier
 var _ui_scale_applier: RefCounted = null  # U_DisplayUIScaleApplier
 var _ui_theme_applier: RefCounted = null  # U_DisplayUIThemeApplier
 var _color_grading_applier: RefCounted = null  # U_DisplayColorGradingApplier
+var _pipeline: RefCounted = null  # U_PostProcessPipeline
 
 # Cached values for inspection/tests (Phase 1B)
 var _last_applied_settings: Dictionary = {}
@@ -78,6 +80,8 @@ func _ready() -> void:
 	await _initialize_store_async()
 
 func _exit_tree() -> void:
+	if _pipeline != null:
+		(_pipeline as U_PostProcessPipeline).clear()
 	if _color_grading_applier != null:
 		_color_grading_applier.cleanup()
 	if _ui_theme_applier != null:
@@ -120,10 +124,10 @@ func _initialize_store_async() -> void:
 	_update_overlay_visibility()
 
 func _process(___delta: float) -> void:
-	if _post_process_applier == null:
+	if _pipeline == null:
 		return
 	_perf_probe.start()
-	_post_process_applier.process_film_grain_time()
+	(_pipeline as U_PostProcessPipeline).update_per_frame()
 	_perf_probe.stop()
 
 func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
@@ -371,6 +375,8 @@ func _is_display_server_available() -> bool:
 	return _window_applier.is_display_server_available()
 
 func _ensure_appliers() -> void:
+	if _pipeline == null:
+		_pipeline = U_POST_PROCESS_PIPELINE.new()
 	if _window_applier == null:
 		_window_applier = U_DISPLAY_WINDOW_APPLIER.new()
 		_window_applier.initialize(self)
@@ -380,6 +386,7 @@ func _ensure_appliers() -> void:
 	if _post_process_applier == null:
 		_post_process_applier = U_DISPLAY_POST_PROCESS_APPLIER.new()
 		_post_process_applier.initialize(self)
+		_post_process_applier.set_pipeline(_pipeline as U_PostProcessPipeline)
 	if _ui_scale_applier == null:
 		var config: Dictionary = _resolve_display_config_values()
 		_ui_scale_applier = U_DISPLAY_UI_SCALE_APPLIER.new()
@@ -391,6 +398,7 @@ func _ensure_appliers() -> void:
 		_ui_theme_applier = U_DISPLAY_UI_THEME_APPLIER.new()
 	if _color_grading_applier == null:
 		_color_grading_applier = U_DISPLAY_COLOR_GRADING_APPLIER.new()
+		_color_grading_applier.set_pipeline(_pipeline as U_PostProcessPipeline)
 
 
 func _resolve_display_config_values() -> Dictionary:

@@ -12,6 +12,7 @@ const COLOR_GRADING_SHADER := preload("res://assets/shaders/sh_color_grading_sha
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_POST_PROCESS_PIPELINE := preload("res://scripts/managers/helpers/display/u_post_process_pipeline.gd")
 
 const SCENE_SWAPPED := StringName("scene/swapped")
 
@@ -21,6 +22,10 @@ var _color_grading_layer: CanvasLayer = null
 var _color_grading_rect: ColorRect = null
 var _shader_material: ShaderMaterial = null
 var _is_mobile: bool = false
+var _pipeline: U_PostProcessPipeline = null
+
+func set_pipeline(pipeline: U_PostProcessPipeline) -> void:
+	_pipeline = pipeline
 
 func initialize(owner: Node, state_store: I_StateStore) -> void:
 	_owner = owner
@@ -131,6 +136,8 @@ func _setup_color_grading_layer() -> void:
 		if rect is ColorRect:
 			_color_grading_rect = rect as ColorRect
 			_shader_material = _color_grading_rect.material as ShaderMaterial
+		if _pipeline != null and _color_grading_rect != null:
+			_pipeline.register_pass(&"color_grading", _color_grading_rect, COLOR_GRADING_SHADER)
 		return
 
 	# Create ColorGradingLayer below the authored post-process layers.
@@ -154,3 +161,5 @@ func _setup_color_grading_layer() -> void:
 
 	_color_grading_layer.add_child(_color_grading_rect)
 	post_process_overlay.add_child(_color_grading_layer)
+	if _pipeline != null:
+		_pipeline.register_pass(&"color_grading", _color_grading_rect, COLOR_GRADING_SHADER)

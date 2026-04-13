@@ -21,7 +21,7 @@ func test_register_pass_stores_pass_by_id() -> void:
 	var shader := Shader.new()
 	shader.code = "shader_type canvas_item; void fragment() {}"
 	_pipeline.register_pass(pass_id, rect, shader)
-	var pass_data := _pipeline.get_pass(pass_id)
+	var pass_data: Variant = _pipeline.get_pass(pass_id)
 	assert_not_null(pass_data, "Registered pass should be retrievable")
 
 func test_register_pass_overwrites_existing() -> void:
@@ -34,12 +34,12 @@ func test_register_pass_overwrites_existing() -> void:
 	shader.code = "shader_type canvas_item; void fragment() {}"
 	_pipeline.register_pass(pass_id, rect1, shader)
 	_pipeline.register_pass(pass_id, rect2, shader)
-	var pass_data := _pipeline.get_pass(pass_id)
+	var pass_data: Variant = _pipeline.get_pass(pass_id)
 	assert_not_null(pass_data, "Re-registered pass should exist")
-	assert_eq(pass_data["rect"], rect2, "Re-registered pass should use the newer rect")
+	assert_eq((pass_data as Dictionary)["rect"], rect2, "Re-registered pass should use the newer rect")
 
 func test_get_pass_returns_null_for_unknown() -> void:
-	var result := _pipeline.get_pass(StringName(&"nonexistent"))
+	var result: Variant = _pipeline.get_pass(StringName(&"nonexistent"))
 	assert_null(result, "Unregistered pass should return null")
 
 # --- Deterministic ordered evaluation ---
@@ -85,8 +85,8 @@ func test_apply_settings_enables_visible_passes() -> void:
 	shader.code = "shader_type canvas_item; void fragment() {}"
 	var pass_id := StringName(&"color_grading")
 	_pipeline.register_pass(pass_id, rect, shader)
-	var state := {"display": {"color_grading_enabled": true}}
-	_pipeline.apply_settings(state)
+	var display := {"color_grading_enabled": true}
+	_pipeline.apply_settings(display)
 	assert_true(rect.visible, "Enabled pass rect should be visible")
 
 func test_apply_settings_disables_disabled_passes() -> void:
@@ -97,8 +97,8 @@ func test_apply_settings_disables_disabled_passes() -> void:
 	shader.code = "shader_type canvas_item; void fragment() {}"
 	var pass_id := StringName(&"grain_dither")
 	_pipeline.register_pass(pass_id, rect, shader)
-	var state := {"display": {"grain_dither_enabled": false}}
-	_pipeline.apply_settings(state)
+	var display := {"grain_dither_enabled": false}
+	_pipeline.apply_settings(display)
 	assert_false(rect.visible, "Disabled pass rect should be hidden")
 
 # --- Frame-counter uniform updates (fg_time) ---
@@ -143,7 +143,7 @@ func test_unregister_pass_removes_pass() -> void:
 	var pass_id := StringName(&"color_grading")
 	_pipeline.register_pass(pass_id, rect, shader)
 	_pipeline.unregister_pass(pass_id)
-	var pass_data := _pipeline.get_pass(pass_id)
+	var pass_data: Variant = _pipeline.get_pass(pass_id)
 	assert_null(pass_data, "Unregistered pass should return null")
 
 func test_clear_removes_all_passes() -> void:

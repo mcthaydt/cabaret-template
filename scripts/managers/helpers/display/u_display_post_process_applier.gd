@@ -11,23 +11,23 @@ const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_pr
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_POST_PROCESS_PIPELINE := preload("res://scripts/managers/helpers/display/u_post_process_pipeline.gd")
 
 var _owner: Node = null
 var _post_process_layer: U_PostProcessLayer = null
 var _post_process_overlay: Node = null
-var _film_grain_active: bool = false
 var _any_effect_active: bool = false
-var _fg_time_frame_counter: int = 0
-var _fg_time_update_interval: int = 2  # Update every 2nd frame (30Hz at 60fps)
 var _is_mobile: bool = false
+var _pipeline: U_PostProcessPipeline = null
 var _ui_color_blind_layer: CanvasLayer = null
 var _ui_color_blind_rect: ColorRect = null
+
+func set_pipeline(pipeline: U_PostProcessPipeline) -> void:
+	_pipeline = pipeline
 
 func initialize(owner: Node) -> void:
 	_owner = owner
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
-	if _is_mobile:
-		_fg_time_update_interval = 4  # Less frequent grain updates on mobile
 	if owner != null and owner.is_inside_tree():
 		_setup_ui_color_blind_layer()
 
@@ -43,17 +43,6 @@ func apply_settings(display_settings: Dictionary) -> void:
 	_apply_combined_effect_settings(state)
 	_apply_color_blind_shader_settings(state)
 
-func process_film_grain_time() -> void:
-	if not _film_grain_active:
-		return
-	if _post_process_layer == null:
-		return
-	_fg_time_frame_counter += 1
-	if _fg_time_frame_counter % _fg_time_update_interval != 0:
-		return
-	var time_seconds: float = float(Time.get_ticks_msec()) / 1000.0
-	_post_process_layer.set_combined_parameter(StringName("fg_time"), time_seconds)
-
 func update_overlay_visibility(should_show: bool) -> void:
 	if _post_process_overlay == null or not is_instance_valid(_post_process_overlay):
 		return
@@ -68,7 +57,6 @@ func _apply_combined_effect_settings(state: Dictionary) -> void:
 	var fg_enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state)
 	var dither_enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state)
 
-	_film_grain_active = fg_enabled
 	_any_effect_active = fg_enabled or dither_enabled
 
 	# Show/hide the combined rect based on whether any effect is active
@@ -112,7 +100,6 @@ func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 	_apply_ui_color_blind_shader(enabled, mode_value)
 
 func _disable_post_process_effects() -> void:
-	_film_grain_active = false
 	_any_effect_active = false
 	_post_process_layer.set_combined_visible(false)
 
@@ -126,6 +113,7 @@ func _setup_post_process_overlay() -> void:
 	if _post_process_overlay != null and is_instance_valid(_post_process_overlay):
 		_post_process_layer = U_POST_PROCESS_LAYER.new()
 		_post_process_layer.initialize(_post_process_overlay)
+		_register_grain_dither_pass()
 		return
 
 	var existing := U_SERVICE_LOCATOR.try_get_service(StringName("post_process_overlay"))
@@ -156,6 +144,17 @@ func _setup_post_process_overlay() -> void:
 
 	_post_process_layer = U_POST_PROCESS_LAYER.new()
 	_post_process_layer.initialize(_post_process_overlay)
+	_register_grain_dither_pass()
+
+func _register_grain_dither_pass() -> void:
+	if _pipeline == null or _post_process_layer == null:
+		return
+	var grain_rect := _post_process_layer.get_combined_rect()
+	if grain_rect == null:
+		return
+	var grain_mat := grain_rect.material as ShaderMaterial
+	var grain_shader: Shader = grain_mat.shader if grain_mat != null else null
+	_pipeline.register_pass(&"grain_dither", grain_rect, grain_shader)
 
 func _get_color_blind_mode_value(mode: String) -> int:
 	match mode:
