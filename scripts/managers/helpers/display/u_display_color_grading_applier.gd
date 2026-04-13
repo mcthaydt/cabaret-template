@@ -5,8 +5,8 @@ class_name U_DisplayColorGradingApplier
 ##
 ## Creates a ColorGradingLayer (CanvasLayer 1) inside PostProcessOverlay and
 ## listens for scene/transition_completed to swap color gradings automatically.
-## On mobile, force-disables the color grading layer entirely — the fullscreen
-## shader pass is too expensive on tile-based GPUs.
+## Sharpness is disabled on mobile (5-tap unsharp mask is too expensive on tile-based GPUs)
+## but the color grading pass itself runs on all platforms.
 
 const COLOR_GRADING_SHADER := preload("res://assets/shaders/sh_color_grading_shader.gdshader")
 const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
@@ -37,25 +37,12 @@ func initialize(owner: Node, state_store: I_StateStore) -> void:
 		_state_store.action_dispatched.connect(_on_action_dispatched)
 
 func apply_settings(display_settings: Dictionary) -> void:
-	# Mobile: skip entirely. The color grading layer is force-hidden on mobile
-	# because the fullscreen shader pass is too expensive on tile-based GPUs.
-	if _is_mobile:
-		return
 	if not _ensure_color_grading_layer():
 		return
 	var state := {"display": display_settings}
 	_apply_color_grading_uniforms(state)
 
 func update_visibility(should_show: bool) -> void:
-	# Mobile: force-hide the color grading layer. The fullscreen shader pass
-	# with follow_viewport_enabled causes a full re-render of the 3D scene
-	# at native resolution, which is prohibitively expensive on tile-based GPUs.
-	if _is_mobile:
-		_ensure_color_grading_layer()
-		if _color_grading_layer != null and is_instance_valid(_color_grading_layer):
-			_color_grading_layer.visible = false
-		return
-
 	if not _ensure_color_grading_layer():
 		return
 	_color_grading_layer.visible = should_show

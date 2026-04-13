@@ -1,8 +1,8 @@
 extends GutTest
 
 ## Tests for U_DisplayColorGradingApplier mobile behavior.
-## On mobile, the color grading layer should be force-hidden to eliminate
-## the fullscreen shader pass that re-renders the scene at native resolution.
+## Color grading is now active on mobile; sharpness override remains disabled
+## on mobile (5-tap unsharp mask is too expensive on tile-based GPUs).
 
 const U_COLOR_GRADING_APPLIER := preload("res://scripts/managers/helpers/display/u_display_color_grading_applier.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
@@ -81,16 +81,16 @@ func test_desktop_update_visibility_hides_layer() -> void:
 	assert_false(layer.visible,
 		"ColorGradingLayer should be hidden on desktop when should_show=false")
 
-# --- Mobile behavior: color grading should be force-hidden ---
+# --- Mobile behavior: color grading is now enabled on mobile ---
 
-func test_mobile_update_visibility_hides_layer_even_when_should_show() -> void:
+func test_mobile_update_visibility_shows_layer_when_should_show() -> void:
 	var result := _setup_applier(1)
 	var applier: U_DisplayColorGradingApplier = result["applier"]
 	var layer: CanvasLayer = result["layer"]
 
 	applier.update_visibility(true)
-	assert_false(layer.visible,
-		"ColorGradingLayer should be hidden on mobile even when should_show=true")
+	assert_true(layer.visible,
+		"ColorGradingLayer should be visible on mobile when should_show=true")
 
 func test_mobile_update_visibility_hides_layer_when_should_hide() -> void:
 	var result := _setup_applier(1)
@@ -101,14 +101,14 @@ func test_mobile_update_visibility_hides_layer_when_should_hide() -> void:
 	assert_false(layer.visible,
 		"ColorGradingLayer should be hidden on mobile when should_show=false")
 
-func test_mobile_apply_settings_does_not_create_layer() -> void:
+func test_mobile_apply_settings_creates_layer() -> void:
 	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(1)
 	var applier := U_COLOR_GRADING_APPLIER.new()
 	applier.initialize(null, null)
 
-	# apply_settings on mobile should skip entirely (no layer creation)
+	# apply_settings on mobile should now create the layer and apply uniforms
 	applier.apply_settings({})
 
 	var layer := _overlay.find_child("ColorGradingLayer", false, false)
-	assert_null(layer,
-		"ColorGradingLayer should not be created on mobile")
+	assert_not_null(layer,
+		"ColorGradingLayer should be created on mobile (color grading is now enabled)")
