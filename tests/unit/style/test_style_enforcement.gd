@@ -1345,6 +1345,60 @@ func test_no_cinema_grade_identifiers_in_scripts() -> void:
 		"Found cinema_grade identifiers in scripts/ (should be renamed to color_grading):\n" + "\n".join(violations)
 	)
 
+## C12-gap: No bare "cinema" identifiers in display/post-process/debug scripts.
+## The camera manager's "cinematics" is a different concept (cutscene camera work)
+## and is allowlisted. All other uses should be "color_grading".
+func test_no_cinema_identifiers_in_display_scripts() -> void:
+	var allowed_files: Array[String] = [
+		"res://scripts/managers/m_camera_manager.gd",  # "cinematics" = cutscene camera work
+	]
+	var display_dirs: Array[String] = [
+		"res://scripts/managers/helpers/display",
+		"res://scripts/state",
+		"res://scripts/utils/debug",
+		"res://scripts/debug",
+	]
+	var violations: Array[String] = []
+	for dir_path in display_dirs:
+		_collect_gd_literal_occurrences(dir_path, "cinema", violations)
+	# Filter out allowed files
+	var filtered: Array[String] = []
+	for v in violations:
+		var is_allowed := false
+		for allowed in allowed_files:
+			if v.find(allowed) != -1:
+				is_allowed = true
+				break
+		if not is_allowed:
+			filtered.append(v)
+	assert_eq(
+		filtered.size(),
+		0,
+		"Found cinema identifiers in display/debug scripts (should be color_grading):\n" + "\n".join(filtered)
+	)
+
+## C12-gap: No "Combined" identifiers in display/post-process scripts.
+## The grain+dither pass was renamed from "combined" — no display code should
+## reference CombinedLayer, CombinedRect, or combined visibility helpers.
+func test_no_combined_identifiers_in_display_scripts() -> void:
+	var display_dirs: Array[String] = [
+		"res://scripts/managers/helpers/display",
+		"res://scripts/utils/debug",
+	]
+	var violations: Array[String] = []
+	for dir_path in display_dirs:
+		_collect_gd_literal_occurrences(dir_path, "CombinedLayer", violations)
+		_collect_gd_literal_occurrences(dir_path, "CombinedRect", violations)
+		_collect_gd_literal_occurrences(dir_path, "combined_visible", violations)
+		_collect_gd_literal_occurrences(dir_path, "get_combined_rect", violations)
+		_collect_gd_literal_occurrences(dir_path, "set_combined_visible", violations)
+		_collect_gd_literal_occurrences(dir_path, "set_combined_parameter", violations)
+	assert_eq(
+		violations.size(),
+		0,
+		"Found Combined identifiers in display scripts (should be grain_dither):\n" + "\n".join(violations)
+	)
+
 ## C12: No CRT-related identifiers (crt_, chromatic_aberration, scanline,
 ## curvature) should remain in display/post-process scripts after CRT removal.
 ## Allowlist: non-post-process uses of these terms (e.g. audio scanning).

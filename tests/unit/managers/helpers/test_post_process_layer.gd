@@ -15,7 +15,7 @@ func test_initialize_caches_effect_rects() -> void:
 
 	assert_not_null(
 		_helper.get_effect_rect(U_PostProcessLayer.EFFECT_GRAIN_DITHER),
-		"Combined rect should be cached"
+		"Grain+dither rect should be cached"
 	)
 	assert_not_null(
 		_helper.get_effect_rect(U_PostProcessLayer.EFFECT_COLOR_BLIND),
@@ -33,7 +33,7 @@ func test_initialize_handles_null_canvas_layer() -> void:
 func test_set_effect_enabled_toggles_visibility() -> void:
 	_helper.initialize(_root_node)
 	var rect := _helper.get_effect_rect(U_PostProcessLayer.EFFECT_GRAIN_DITHER)
-	assert_not_null(rect, "Combined rect should exist")
+	assert_not_null(rect, "Grain+dither rect should exist")
 
 	_helper.set_effect_enabled(U_PostProcessLayer.EFFECT_GRAIN_DITHER, true)
 	assert_true(rect.visible, "set_effect_enabled(true) should show rect")
@@ -50,7 +50,7 @@ func test_set_effect_enabled_handles_missing_effect() -> void:
 func test_set_effect_parameter_sets_shader_uniform() -> void:
 	_helper.initialize(_root_node)
 	var rect := _helper.get_effect_rect(U_PostProcessLayer.EFFECT_GRAIN_DITHER)
-	assert_not_null(rect, "Combined rect should exist")
+	assert_not_null(rect, "Grain+dither rect should exist")
 
 	var shader := Shader.new()
 	shader.code = "shader_type canvas_item; uniform float fg_intensity = 0.0;"
@@ -71,7 +71,7 @@ func test_set_effect_parameter_handles_missing_effect() -> void:
 func test_set_effect_parameter_handles_null_material() -> void:
 	_helper.initialize(_root_node)
 	var rect := _helper.get_effect_rect(U_PostProcessLayer.EFFECT_GRAIN_DITHER)
-	assert_not_null(rect, "Combined rect should exist")
+	assert_not_null(rect, "Grain+dither rect should exist")
 	assert_null(rect.material, "Rect should start without a material")
 
 	_helper.set_effect_parameter(U_PostProcessLayer.EFFECT_GRAIN_DITHER, StringName("fg_intensity"), 0.5)
@@ -80,17 +80,17 @@ func test_set_effect_parameter_handles_null_material() -> void:
 func test_set_effect_parameter_ignores_non_shader_material() -> void:
 	_helper.initialize(_root_node)
 	var rect := _helper.get_effect_rect(U_PostProcessLayer.EFFECT_GRAIN_DITHER)
-	assert_not_null(rect, "Combined rect should exist")
+	assert_not_null(rect, "Grain+dither rect should exist")
 
 	var material := CanvasItemMaterial.new()
 	rect.material = material
 	_helper.set_effect_parameter(U_PostProcessLayer.EFFECT_GRAIN_DITHER, StringName("fg_intensity"), 0.2)
 	assert_eq(rect.material, material, "Non-shader materials should be left unchanged")
 
-func test_set_combined_parameter_delegates_to_effect_parameter() -> void:
+func test_set_grain_dither_parameter_delegates_to_effect_parameter() -> void:
 	_helper.initialize(_root_node)
 	var rect := _helper.get_effect_rect(U_PostProcessLayer.EFFECT_GRAIN_DITHER)
-	assert_not_null(rect, "Combined rect should exist")
+	assert_not_null(rect, "Grain+dither rect should exist")
 
 	var shader := Shader.new()
 	shader.code = "shader_type canvas_item; uniform float dither_intensity = 0.0;"
@@ -98,20 +98,20 @@ func test_set_combined_parameter_delegates_to_effect_parameter() -> void:
 	material.shader = shader
 	rect.material = material
 
-	_helper.set_combined_parameter(StringName("dither_intensity"), 0.9)
+	_helper.set_grain_dither_parameter(StringName("dither_intensity"), 0.9)
 	var value: float = float(material.get_shader_parameter("dither_intensity"))
-	assert_almost_eq(value, 0.9, 0.0001, "set_combined_parameter should update combined shader uniform")
+	assert_almost_eq(value, 0.9, 0.0001, "set_grain_dither_parameter should update grain+dither shader uniform")
 
-func test_get_combined_rect_returns_combined_effect_rect() -> void:
+func test_get_grain_dither_rect_returns_grain_dither_effect_rect() -> void:
 	_helper.initialize(_root_node)
-	var rect := _helper.get_combined_rect()
-	assert_not_null(rect, "get_combined_rect should return the combined ColorRect")
+	var rect := _helper.get_grain_dither_rect()
+	assert_not_null(rect, "get_grain_dither_rect should return the grain+dither ColorRect")
 	assert_eq(rect, _helper.get_effect_rect(U_PostProcessLayer.EFFECT_GRAIN_DITHER),
-		"get_combined_rect should match get_effect_rect(EFFECT_GRAIN_DITHER)")
+		"get_grain_dither_rect should match get_effect_rect(EFFECT_GRAIN_DITHER)")
 
 func _create_effect_rects(root: Node) -> void:
 	var layers := [
-		{layer_name = "CombinedLayer", rect_name = "CombinedRect"},
+		{layer_name = "GrainDitherLayer", rect_name = "GrainDitherRect"},
 		{layer_name = "ColorBlindLayer", rect_name = "ColorBlindRect"}
 	]
 	for layer_data in layers:

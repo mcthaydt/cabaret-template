@@ -154,8 +154,8 @@ func test_scene_swap_populates_all_color_grading_keys_in_state() -> void:
 	await get_tree().process_frame
 
 	var state := _store.get_state()
-	var cinema_settings := U_COLOR_GRADING_SELECTORS.get_color_grading_settings(state)
-	assert_gt(cinema_settings.size(), 0,
+	var color_grading_settings := U_COLOR_GRADING_SELECTORS.get_color_grading_settings(state)
+	assert_gt(color_grading_settings.size(), 0,
 		"scene/swapped should populate color_grading_ keys in display state")
 
 
@@ -179,13 +179,13 @@ func test_scene_swap_unknown_scene_loads_neutral_exposure() -> void:
 		"Unknown scene should fall back to neutral exposure 0.0")
 
 
-func test_scene_swap_unknown_scene_still_populates_cinema_state() -> void:
+func test_scene_swap_unknown_scene_still_populates_color_grading_state() -> void:
 	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("unknown_scene_xyz")))
 	await get_tree().process_frame
 
 	var state := _store.get_state()
-	var cinema_settings := U_COLOR_GRADING_SELECTORS.get_color_grading_settings(state)
-	assert_gt(cinema_settings.size(), 0,
+	var color_grading_settings := U_COLOR_GRADING_SELECTORS.get_color_grading_settings(state)
+	assert_gt(color_grading_settings.size(), 0,
 		"Unknown scene should still dispatch load_scene_grade with neutral values")
 
 

@@ -9,15 +9,17 @@ class_name U_PostProcessPipeline
 ##
 ## Responsibilities:
 ## - Deterministic ordered evaluation (registration order preserved)
-## - Per-pass enable/disable via {pass_id}_enabled keys in display state
+## - Per-pass enable/disable via set_pass_visible (applier-driven)
+## - Per-pass enable/disable via apply_settings for simple {pass_id}_enabled keys
 ## - Unified fg_time frame counter for time-based shader uniforms
 ## - Clean teardown via unregister_pass / clear
 ##
 ## Usage:
 ##   pipeline.register_pass(&"color_grading", rect, shader)
 ##   pipeline.register_pass(&"grain_dither", rect, shader)
-##   pipeline.apply_settings(display)    # drives visibility per pass (pass display sub-slice)
-##   pipeline.update_per_frame()        # advances fg_time on all passes
+##   pipeline.set_pass_visible(&"color_grading", true)   # applier delegates visibility
+##   pipeline.apply_settings(display)    # or: drive visibility from display state keys
+##   pipeline.update_per_frame()         # advances fg_time on all passes
 ##   pipeline.clear()                   # teardown
 
 var _passes: Dictionary = {}      # StringName → {rect, shader, material}
@@ -42,6 +44,16 @@ func get_pass(pass_id: StringName) -> Variant:
 ## Return the ordered list of registered pass IDs (copy).
 func get_pass_order() -> Array:
 	return _pass_order.duplicate()
+
+## Set visibility for a single pass by pass_id.
+## This is the preferred way for appliers to control their pass visibility —
+## all visibility changes flow through the pipeline rather than being set
+## directly on the ColorRect.
+func set_pass_visible(pass_id: StringName, visible: bool) -> void:
+	if not _passes.has(pass_id):
+		return
+	var pass_data: Dictionary = _passes[pass_id]
+	pass_data["rect"].visible = visible
 
 ## Drive per-pass visibility from the display sub-slice.
 ## Convention: display[str(pass_id) + "_enabled"] → bool.

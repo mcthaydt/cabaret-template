@@ -45,7 +45,10 @@ func apply_settings(display_settings: Dictionary) -> void:
 func update_visibility(should_show: bool) -> void:
 	if not _ensure_color_grading_layer():
 		return
-	_color_grading_layer.visible = should_show
+	if _pipeline != null:
+		_pipeline.set_pass_visible(&"color_grading", should_show)
+	else:
+		_color_grading_layer.visible = should_show
 
 ## Mobile debug: force-disable the color grading shader pass.
 ## Returns true if the layer was previously visible (i.e., this changed something).
@@ -53,13 +56,19 @@ func debug_force_disable() -> bool:
 	if _color_grading_layer == null or not is_instance_valid(_color_grading_layer):
 		return false
 	var was_visible: bool = _color_grading_layer.visible
-	_color_grading_layer.visible = false
+	if _pipeline != null:
+		_pipeline.set_pass_visible(&"color_grading", false)
+	else:
+		_color_grading_layer.visible = false
 	return was_visible
 
 ## Mobile debug: restore the color grading layer to its normal visibility state.
 func debug_restore_visibility(should_show: bool) -> void:
 	if _color_grading_layer != null and is_instance_valid(_color_grading_layer):
-		_color_grading_layer.visible = should_show
+		if _pipeline != null:
+			_pipeline.set_pass_visible(&"color_grading", should_show)
+		else:
+			_color_grading_layer.visible = should_show
 
 func cleanup() -> void:
 	if _state_store != null and _state_store.has_signal("action_dispatched"):

@@ -3,7 +3,7 @@ class_name U_PerfShaderBypass
 
 ## Mobile debug utility: detects 5 rapid taps and cycles through shader bypass modes.
 ##
-## Cycles: ALL_ON → CINEMA_OFF → POST_PROCESS_OFF → ALL_OFF → FADE_OFF → ALL_ON
+## Cycles: ALL_ON → COLOR_GRADING_OFF → POST_PROCESS_OFF → ALL_OFF → FADE_OFF → ALL_ON
 ## Prints [PERF] log on each toggle. Watch FPS before/after each toggle to
 ## identify which shader pass causes the biggest drop.
 
@@ -15,7 +15,7 @@ const RAPID_TAP_COUNT := 5
 const RAPID_TAP_MAX_INTERVAL_SEC := 0.6
 const SHADER_BYPASS_MODES := [
 	"ALL_ON",
-	"CINEMA_OFF",
+	"COLOR_GRADING_OFF",
 	"POST_PROCESS_OFF",
 	"ALL_OFF",
 	"FADE_OFF",
@@ -27,8 +27,8 @@ var _tap_times: Array[float] = []
 var _current_mode_index: int = 0
 
 # Saved state for restoration
-var _was_combined_visible: bool = true
-var _was_cinema_visible: bool = true
+var _was_grain_dither_visible: bool = true
+var _was_color_grading_visible: bool = true
 
 
 func _ready() -> void:
@@ -69,8 +69,8 @@ func _cycle_bypass_mode() -> void:
 	match mode:
 		"ALL_ON":
 			_restore_all()
-		"CINEMA_OFF":
-			_disable_cinema_only()
+		"COLOR_GRADING_OFF":
+			_disable_color_grading_only()
 		"POST_PROCESS_OFF":
 			_disable_post_process_only()
 		"ALL_OFF":
@@ -117,45 +117,45 @@ func _get_post_process_applier() -> RefCounted:
 
 func _restore_all() -> void:
 	var pp_applier := _get_post_process_applier()
-	if pp_applier != null and pp_applier.has_method("debug_restore_combined_visibility"):
-		pp_applier.call("debug_restore_combined_visibility", _was_combined_visible)
+	if pp_applier != null and pp_applier.has_method("debug_restore_grain_dither_visibility"):
+		pp_applier.call("debug_restore_grain_dither_visibility", _was_grain_dither_visible)
 	var cg_applier := _get_color_grading_applier()
 	if cg_applier != null and cg_applier.has_method("debug_restore_visibility"):
-		cg_applier.call("debug_restore_visibility", _was_cinema_visible)
+		cg_applier.call("debug_restore_visibility", _was_color_grading_visible)
 	U_PERF_FADE_BYPASS.set_enabled(false)
 
 
-func _disable_cinema_only() -> void:
+func _disable_color_grading_only() -> void:
 	# Restore post-process first
 	var pp_applier := _get_post_process_applier()
-	if pp_applier != null and pp_applier.has_method("debug_restore_combined_visibility"):
-		pp_applier.call("debug_restore_combined_visibility", _was_combined_visible)
-	# Disable cinema grade
+	if pp_applier != null and pp_applier.has_method("debug_restore_grain_dither_visibility"):
+		pp_applier.call("debug_restore_grain_dither_visibility", _was_grain_dither_visible)
+	# Disable color grading
 	var cg_applier := _get_color_grading_applier()
 	if cg_applier != null and cg_applier.has_method("debug_force_disable"):
 		# Save current visibility before disabling
-		_was_cinema_visible = true
+		_was_color_grading_visible = true
 		cg_applier.call("debug_force_disable")
 	U_PERF_FADE_BYPASS.set_enabled(false)
 
 
 func _disable_post_process_only() -> void:
-	# Restore cinema grade first
+	# Restore color grading first
 	var cg_applier := _get_color_grading_applier()
 	if cg_applier != null and cg_applier.has_method("debug_restore_visibility"):
-		cg_applier.call("debug_restore_visibility", _was_cinema_visible)
-	# Disable post-process combined rect
+		cg_applier.call("debug_restore_visibility", _was_color_grading_visible)
+	# Disable grain+dither rect
 	var pp_applier := _get_post_process_applier()
-	if pp_applier != null and pp_applier.has_method("debug_force_disable_combined"):
-		_was_combined_visible = true
-		pp_applier.call("debug_force_disable_combined")
+	if pp_applier != null and pp_applier.has_method("debug_force_disable_grain_dither"):
+		_was_grain_dither_visible = true
+		pp_applier.call("debug_force_disable_grain_dither")
 	U_PERF_FADE_BYPASS.set_enabled(false)
 
 
 func _disable_all() -> void:
 	var pp_applier := _get_post_process_applier()
-	if pp_applier != null and pp_applier.has_method("debug_force_disable_combined"):
-		pp_applier.call("debug_force_disable_combined")
+	if pp_applier != null and pp_applier.has_method("debug_force_disable_grain_dither"):
+		pp_applier.call("debug_force_disable_grain_dither")
 	var cg_applier := _get_color_grading_applier()
 	if cg_applier != null and cg_applier.has_method("debug_force_disable"):
 		cg_applier.call("debug_force_disable")
@@ -164,9 +164,9 @@ func _disable_all() -> void:
 func _disable_fade_only() -> void:
 	# Fade isolation A/B: keep screen-space post-processing active, disable room/region fades.
 	var pp_applier := _get_post_process_applier()
-	if pp_applier != null and pp_applier.has_method("debug_restore_combined_visibility"):
-		pp_applier.call("debug_restore_combined_visibility", _was_combined_visible)
+	if pp_applier != null and pp_applier.has_method("debug_restore_grain_dither_visibility"):
+		pp_applier.call("debug_restore_grain_dither_visibility", _was_grain_dither_visible)
 	var cg_applier := _get_color_grading_applier()
 	if cg_applier != null and cg_applier.has_method("debug_restore_visibility"):
-		cg_applier.call("debug_restore_visibility", _was_cinema_visible)
+		cg_applier.call("debug_restore_visibility", _was_color_grading_visible)
 	U_PERF_FADE_BYPASS.set_enabled(true)

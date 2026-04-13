@@ -1246,7 +1246,7 @@ var display_manager := U_DisplayUtils.get_display_manager()
 
 Post-processing effects render via `ui_post_process_overlay.tscn`:
 - **CanvasLayer**: Layer 100 (above gameplay at 0, below UI overlays)
-- **Effects**: FilmGrainRect, DitherRect, CRTRect, ColorBlindRect
+- **Effects**: FilmGrainRect, DitherRect, ColorBlindRect
 - **Shaders**: Each rect has a ShaderMaterial with configurable uniforms
 - **Time Updates**: Film grain shader receives `TIME` updates in `_process()`
 
@@ -1288,10 +1288,6 @@ func set_ui_scale(scale: float) -> void:
         # Post-Processing
         "film_grain_enabled": false,
         "film_grain_intensity": 0.1,        # Clamped: 0.0-1.0
-        "crt_enabled": false,
-        "crt_scanline_intensity": 0.3,      # Clamped: 0.0-1.0
-        "crt_curvature": 2.0,
-        "crt_chromatic_aberration": 0.002,
         "dither_enabled": false,
         "dither_intensity": 0.5,            # Clamped: 0.0-1.0
         "dither_pattern": "bayer",          # Valid: bayer, noise
@@ -1304,61 +1300,59 @@ func set_ui_scale(scale: float) -> void:
         "high_contrast_enabled": false,
         "color_blind_shader_enabled": false,
 
-        # Cinema Grade (transient — loaded per-scene, NOT persisted)
-        "cinema_grade_filter_mode": 0,       # 0=none, 1-8=named filters
-        "cinema_grade_filter_intensity": 1.0,
-        "cinema_grade_exposure": 0.0,
-        "cinema_grade_brightness": 0.0,
-        "cinema_grade_contrast": 1.0,
-        "cinema_grade_brilliance": 0.0,
-        "cinema_grade_highlights": 0.0,
-        "cinema_grade_shadows": 0.0,
-        "cinema_grade_saturation": 1.0,
-        "cinema_grade_vibrance": 0.0,
-        "cinema_grade_warmth": 0.0,
-        "cinema_grade_tint": 0.0,
-        "cinema_grade_sharpness": 0.0,
+        # Color Grading (transient — loaded per-scene, NOT persisted)
+        "color_grading_filter_mode": 0,       # 0=none, 1-8=named filters
+        "color_grading_filter_intensity": 1.0,
+        "color_grading_exposure": 0.0,
+        "color_grading_brightness": 0.0,
+        "color_grading_contrast": 1.0,
+        "color_grading_brilliance": 0.0,
+        "color_grading_highlights": 0.0,
+        "color_grading_shadows": 0.0,
+        "color_grading_saturation": 1.0,
+        "color_grading_vibrance": 0.0,
+        "color_grading_warmth": 0.0,
+        "color_grading_tint": 0.0,
+        "color_grading_sharpness": 0.0,
     }
 }
 ```
 
-### Cinema Grading System (Phase 11)
+### Color Grading System (Phase 11)
 
 Per-scene cinematic color grading applied as the bottom-most post-process layer. Artistic direction, not a user preference — always active regardless of `post_processing_enabled`.
 
 **Layer Stack (bottom to top):**
-- CinemaGradeLayer = CanvasLayer 1
-- FilmGrainRect = CanvasLayer 2
-- DitherRect = CanvasLayer 3
-- CRTRect = CanvasLayer 4
+- ColorGradingLayer = CanvasLayer 1
+- GrainDitherLayer = CanvasLayer 2
 - ColorBlindRect = CanvasLayer 5
 - UIColorBlindLayer = CanvasLayer 11
 
 **Scene Transition Flow:**
 1. `action_dispatched` fires with `scene/transition_completed`
-2. `U_DisplayCinemaGradeApplier` extracts `scene_id` from payload
-3. Looks up `U_CinemaGradeRegistry.get_cinema_grade_for_scene(scene_id)` (returns neutral fallback if unmapped)
-4. Dispatches `U_CinemaGradeActions.load_scene_grade(grade.to_dictionary())`
-5. Display slice updates → hash change → `_apply_cinema_grade_settings()` sets shader uniforms
+2. `U_DisplayColorGradingApplier` extracts `scene_id` from payload
+3. Looks up `U_ColorGradingRegistry.get_color_grading_for_scene(scene_id)` (returns neutral fallback if unmapped)
+4. Dispatches `U_ColorGradingActions.load_scene_grade(grade.to_dictionary())`
+5. Display slice updates → hash change → `_apply_color_grading_settings()` sets shader uniforms
 
-**Action Prefix (`cinema_grade/` NOT `display/`):**
-- `cinema_grade/` prefix deliberately does NOT match `begins_with("display/")` in `U_GlobalSettingsSerialization.is_global_settings_action()`
-- This ensures cinema grade state is NOT persisted to `user://global_settings.json`
+**Action Prefix (`color_grading/` NOT `display/`):**
+- `color_grading/` prefix deliberately does NOT match `begins_with("display/")` in `U_GlobalSettingsSerialization.is_global_settings_action()`
+- This ensures color grading state is NOT persisted to `user://global_settings.json`
 - Per-scene grades are transient — loaded from `.tres` resources on each scene enter
 
 **Registry (mobile-safe):**
 ```gdscript
-# U_CinemaGradeRegistry uses const preload arrays (no runtime DirAccess)
+# U_ColorGradingRegistry uses const preload arrays (no runtime DirAccess)
 const _SCENE_GRADE_PRELOADS := [
-    preload("res://resources/display/cinema_grades/cfg_cinema_grade_gameplay_base.tres"),
+    preload("res://resources/display/color_gradings/cfg_color_grading_gameplay_base.tres"),
     # ...
 ]
 ```
 
 **Editor Preview (@tool node):**
-- Drop `U_CinemaGradePreview` into any gameplay scene root
-- Assign a `RS_SceneCinemaGrade` resource in the inspector
-- Creates local CanvasLayer 100 + ColorRect with cinema grade shader
+- Drop `U_ColorGradingPreview` into any gameplay scene root
+- Assign a `RS_SceneColorGrading` resource in the inspector
+- Creates local CanvasLayer 100 + ColorRect with color grading shader
 - `queue_free()` at runtime (M_DisplayManager handles everything in-game)
 
 ### Thread Safety

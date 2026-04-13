@@ -40,7 +40,7 @@ func apply_settings(display_settings: Dictionary) -> void:
 		_disable_post_process_effects()
 		_apply_color_blind_shader_settings(state)
 		return
-	_apply_combined_effect_settings(state)
+	_apply_grain_dither_effect_settings(state)
 	_apply_color_blind_shader_settings(state)
 
 func update_overlay_visibility(should_show: bool) -> void:
@@ -53,31 +53,34 @@ func update_overlay_visibility(should_show: bool) -> void:
 		if child is CanvasLayer and child.name != &"ColorGradingLayer":
 			child.visible = should_show
 
-func _apply_combined_effect_settings(state: Dictionary) -> void:
+func _apply_grain_dither_effect_settings(state: Dictionary) -> void:
 	var fg_enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state)
 	var dither_enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state)
 
 	_any_effect_active = fg_enabled or dither_enabled
 
-	# Show/hide the combined rect based on whether any effect is active
-	_post_process_layer.set_combined_visible(_any_effect_active)
+	# Delegate visibility to the pipeline
+	if _pipeline != null:
+		_pipeline.set_pass_visible(&"grain_dither", _any_effect_active)
+	else:
+		_post_process_layer.set_grain_dither_visible(_any_effect_active)
 
 	if not _any_effect_active:
 		return
 
 	# Set per-effect enable flags in the grain+dither shader
-	_post_process_layer.set_combined_parameter(StringName("film_grain_enabled"), 1 if fg_enabled else 0)
-	_post_process_layer.set_combined_parameter(StringName("dither_enabled"), 1 if dither_enabled else 0)
+	_post_process_layer.set_grain_dither_parameter(StringName("film_grain_enabled"), 1 if fg_enabled else 0)
+	_post_process_layer.set_grain_dither_parameter(StringName("dither_enabled"), 1 if dither_enabled else 0)
 
 	# Film grain params
 	if fg_enabled:
 		var intensity := U_DISPLAY_SELECTORS.get_film_grain_intensity(state)
-		_post_process_layer.set_combined_parameter(StringName("fg_intensity"), intensity)
+		_post_process_layer.set_grain_dither_parameter(StringName("fg_intensity"), intensity)
 
 	# Dither params
 	if dither_enabled:
 		var intensity := U_DISPLAY_SELECTORS.get_dither_intensity(state)
-		_post_process_layer.set_combined_parameter(StringName("dither_intensity"), intensity)
+		_post_process_layer.set_grain_dither_parameter(StringName("dither_intensity"), intensity)
 
 func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 	var mode := U_DISPLAY_SELECTORS.get_color_blind_mode(state)
@@ -101,7 +104,10 @@ func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 
 func _disable_post_process_effects() -> void:
 	_any_effect_active = false
-	_post_process_layer.set_combined_visible(false)
+	if _pipeline != null:
+		_pipeline.set_pass_visible(&"grain_dither", false)
+	else:
+		_post_process_layer.set_grain_dither_visible(false)
 
 func _ensure_post_process_layer() -> bool:
 	if _post_process_layer != null:
@@ -149,7 +155,7 @@ func _setup_post_process_overlay() -> void:
 func _register_grain_dither_pass() -> void:
 	if _pipeline == null or _post_process_layer == null:
 		return
-	var grain_rect := _post_process_layer.get_combined_rect()
+	var grain_rect := _post_process_layer.get_grain_dither_rect()
 	if grain_rect == null:
 		return
 	var grain_mat := grain_rect.material as ShaderMaterial
@@ -225,22 +231,28 @@ func _apply_ui_color_blind_shader(enabled: bool, mode_value: int) -> void:
 		material.set_shader_parameter("mode", mode_value)
 		material.set_shader_parameter("intensity", 1.0)
 
-## Mobile debug: force-disable the combined post-process shader pass.
-## Returns true if the combined rect was previously visible.
-func debug_force_disable_combined() -> bool:
+## Mobile debug: force-disable the grain+dither post-process shader pass.
+## Returns true if the grain+dither rect was previously visible.
+func debug_force_disable_grain_dither() -> bool:
 	_ensure_post_process_layer()
 	if _post_process_layer == null:
 		return false
-	var combined_rect := _post_process_layer.get_combined_rect()
-	if combined_rect == null:
+	var grain_dither_rect := _post_process_layer.get_grain_dither_rect()
+	if grain_dither_rect == null:
 		return false
-	var was_visible: bool = combined_rect.visible
-	combined_rect.visible = false
+	var was_visible: bool = grain_dither_rect.visible
+	if _pipeline != null:
+		_pipeline.set_pass_visible(&"grain_dither", false)
+	else:
+		grain_dither_rect.visible = false
 	return was_visible
 
-## Mobile debug: restore the combined post-process rect visibility.
-func debug_restore_combined_visibility(visible: bool) -> void:
+## Mobile debug: restore the grain+dither post-process rect visibility.
+func debug_restore_grain_dither_visibility(visible: bool) -> void:
 	_ensure_post_process_layer()
 	if _post_process_layer == null:
 		return
-	_post_process_layer.set_combined_visible(visible)
+	if _pipeline != null:
+		_pipeline.set_pass_visible(&"grain_dither", visible)
+	else:
+		_post_process_layer.set_grain_dither_visible(visible)

@@ -174,3 +174,34 @@ func test_unregister_preserves_remaining_passes() -> void:
 	var pass_order := _pipeline.get_pass_order()
 	assert_eq(pass_order.size(), 1, "Should have 1 remaining pass")
 	assert_eq(pass_order[0], StringName(&"grain_dither"), "Remaining pass should be grain_dither")
+
+# --- set_pass_visible ---
+
+func test_set_pass_visible_controls_rect_visibility() -> void:
+	var rect := ColorRect.new()
+	rect.visible = true
+	add_child_autofree(rect)
+	var shader := Shader.new()
+	shader.code = "shader_type canvas_item; void fragment() {}"
+	_pipeline.register_pass(StringName(&"color_grading"), rect, shader)
+	_pipeline.set_pass_visible(StringName(&"color_grading"), false)
+	assert_false(rect.visible, "set_pass_visible(false) should hide rect")
+	_pipeline.set_pass_visible(StringName(&"color_grading"), true)
+	assert_true(rect.visible, "set_pass_visible(true) should show rect")
+
+func test_set_pass_visible_ignores_unknown_pass() -> void:
+	_pipeline.set_pass_visible(StringName(&"nonexistent"), true)
+	assert_true(true, "set_pass_visible on unknown pass should be a no-op")
+
+# --- apply_settings no-op ---
+
+func test_apply_settings_skips_unknown_keys() -> void:
+	var rect := ColorRect.new()
+	rect.visible = true
+	add_child_autofree(rect)
+	var shader := Shader.new()
+	shader.code = "shader_type canvas_item; void fragment() {}"
+	_pipeline.register_pass(StringName(&"color_grading"), rect, shader)
+	var display := {"unrelated_key": true}
+	_pipeline.apply_settings(display)
+	assert_true(rect.visible, "apply_settings with no matching key should leave visibility unchanged")

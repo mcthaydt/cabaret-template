@@ -256,7 +256,7 @@ func test_post_processing_preset_medium_applies_current_defaults() -> void:
 	assert_eq(reduced.get("film_grain_intensity"), medium_values.get("film_grain_intensity"), "Should apply medium film grain intensity")
 	assert_eq(reduced.get("dither_intensity"), medium_values.get("dither_intensity"), "Should apply medium dither intensity")
 
-# --- Cinema Grade: ACTION_SET_PARAMETER ---
+# --- Color Grading: ACTION_SET_PARAMETER ---
 
 # Test 29: set_parameter filter_preset maps string to numeric mode and stores preset name
 func test_set_parameter_filter_preset_dramatic_maps_to_mode_1() -> void:
@@ -318,7 +318,7 @@ func test_set_parameter_empty_param_name_returns_null() -> void:
 
 	assert_null(reduced, "Empty param_name should return null")
 
-# --- Cinema Grade: ACTION_RESET_TO_SCENE_DEFAULTS ---
+# --- Color Grading: ACTION_RESET_TO_SCENE_DEFAULTS ---
 
 # Test 36: reset_to_scene_defaults applies color_grading_ prefixed keys from payload
 func test_reset_to_scene_defaults_applies_color_grading_keys() -> void:

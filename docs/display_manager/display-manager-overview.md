@@ -4,7 +4,7 @@
 **Created**: 2026-01-02
 **Updated**: 2026-02-06
 **Status**: IMPLEMENTATION (Phase 11 Complete)
-**Scope**: Stacking Post-Processing, Display/Graphics Settings, UI Scaling, Color Blind Accessibility, Cinema Grading
+**Scope**: Stacking Post-Processing, Display/Graphics Settings, UI Scaling, Color Blind Accessibility, Color Grading
 
 ## Summary
 
@@ -28,7 +28,7 @@ The Display Manager handles visual post-processing effects, graphics quality set
 
 ## Goals
 
-- Provide stacking post-processing effects (Film Grain, Dither, CRT) via CanvasLayer + shader.
+- Provide stacking post-processing effects (Film Grain, Dither) via CanvasLayer + shader.
 - Manage display/graphics settings (window size, fullscreen, VSync, quality presets).
 - Apply global UI scaling to CanvasLayer roots.
 - Support color blind accessibility via UI palette modes and optional full-screen shader filters.
@@ -48,8 +48,8 @@ The Display Manager handles visual post-processing effects, graphics quality set
 **Display Manager owns**
 
 - Post-processing effect overlay (CanvasLayer + ColorRect + shader).
-- Post-processing effect stack (Film Grain, Dither, CRT, optional color blind filter).
-- Per-scene cinema grading (CinemaGradeLayer at layer 1, below post-process effects).
+- Post-processing effect stack (Film Grain, Dither, optional color blind filter).
+- Per-scene color grading (ColorGradingLayer at layer 1, below post-process effects).
 - Graphics settings application (window mode, VSync, quality presets).
 - UI scaling factor application to CanvasLayer roots.
 - Color blind palette loading and application.
@@ -105,10 +105,6 @@ U_DisplaySelectors.get_ui_scale(state: Dictionary) -> float
 U_DisplaySelectors.get_color_blind_mode(state: Dictionary) -> String
 U_DisplaySelectors.is_film_grain_enabled(state: Dictionary) -> bool
 U_DisplaySelectors.get_film_grain_intensity(state: Dictionary) -> float
-U_DisplaySelectors.is_crt_enabled(state: Dictionary) -> bool
-U_DisplaySelectors.get_crt_scanline_intensity(state: Dictionary) -> float
-U_DisplaySelectors.get_crt_curvature(state: Dictionary) -> float
-U_DisplaySelectors.get_crt_chromatic_aberration(state: Dictionary) -> float
 U_DisplaySelectors.is_dither_enabled(state: Dictionary) -> bool
 U_DisplaySelectors.get_dither_intensity(state: Dictionary) -> float
 U_DisplaySelectors.get_dither_pattern(state: Dictionary) -> String
@@ -128,10 +124,6 @@ U_DisplaySelectors.get_dither_pattern(state: Dictionary) -> String
         # Post-Processing (effect order is fixed internally, not user-configurable)
         "film_grain_enabled": false,
         "film_grain_intensity": 0.1,
-        "crt_enabled": false,
-        "crt_scanline_intensity": 0.3,
-        "crt_curvature": 2.0,
-        "crt_chromatic_aberration": 0.002,
         "dither_enabled": false,
         "dither_intensity": 0.5,
         "dither_pattern": "bayer",  # "bayer" or "noise"
@@ -144,49 +136,47 @@ U_DisplaySelectors.get_dither_pattern(state: Dictionary) -> String
         "high_contrast_enabled": false,
         "color_blind_shader_enabled": false,
 
-        # Cinema Grade (transient — loaded per-scene via cinema_grade/ actions, NOT persisted)
-        "cinema_grade_filter_mode": 0,       # 0=none, 1-8=named filters
-        "cinema_grade_filter_intensity": 1.0,
-        "cinema_grade_exposure": 0.0,
-        "cinema_grade_brightness": 0.0,
-        "cinema_grade_contrast": 1.0,
-        "cinema_grade_brilliance": 0.0,
-        "cinema_grade_highlights": 0.0,
-        "cinema_grade_shadows": 0.0,
-        "cinema_grade_saturation": 1.0,
-        "cinema_grade_vibrance": 0.0,
-        "cinema_grade_warmth": 0.0,
-        "cinema_grade_tint": 0.0,
-        "cinema_grade_sharpness": 0.0,
+        # Color Grading (transient — loaded per-scene via color_grading/ actions, NOT persisted)
+        "color_grading_filter_mode": 0,       # 0=none, 1-8=named filters
+        "color_grading_filter_intensity": 1.0,
+        "color_grading_exposure": 0.0,
+        "color_grading_brightness": 0.0,
+        "color_grading_contrast": 1.0,
+        "color_grading_brilliance": 0.0,
+        "color_grading_highlights": 0.0,
+        "color_grading_shadows": 0.0,
+        "color_grading_saturation": 1.0,
+        "color_grading_vibrance": 0.0,
+        "color_grading_warmth": 0.0,
+        "color_grading_tint": 0.0,
+        "color_grading_sharpness": 0.0,
     }
 }
 ```
 
-**Note**: Display settings (with `display/` prefix) persist to `user://global_settings.json` (not save slots). Cinema grade settings (with `cinema_grade/` prefix) are transient and NOT persisted.
+**Note**: Display settings (with `display/` prefix) persist to `user://global_settings.json` (not save slots). Color grading settings (with `color_grading/` prefix) are transient and NOT persisted.
 
-## Cinema Grading System (Phase 11)
+## Color Grading System (Phase 11)
 
 ### Overview
 
-Per-scene artistic color grading as an additional post-process layer, separate from user-facing display settings. Each gameplay scene defines its look via a `RS_SceneCinemaGrade` resource, loaded automatically on scene transitions.
+Per-scene artistic color grading as an additional post-process layer, separate from user-facing display settings. Each gameplay scene defines its look via a `RS_SceneColorGrading` resource, loaded automatically on scene transitions.
 
 ### Architecture
 
-- **Shader**: `sh_cinema_grade_shader.gdshader` — single GLSL shader with 13 adjustment uniforms + 8 named filters
-- **Resource**: `RS_SceneCinemaGrade` — @export properties for each parameter + `to_dictionary()`
-- **Registry**: `U_CinemaGradeRegistry` — maps scene_id → resource using const preload arrays (mobile-safe)
-- **Applier**: `U_DisplayCinemaGradeApplier` — creates CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay
-- **Redux**: `cinema_grade/` action prefix stored in display slice but NOT persisted (not a user setting)
-- **Preview**: `U_CinemaGradePreview` — @tool node for editor viewport preview, auto-removes at runtime
+- **Shader**: `sh_color_grading_shader.gdshader` — single GLSL shader with 13 adjustment uniforms + 8 named filters
+- **Resource**: `RS_SceneColorGrading` — @export properties for each parameter + `to_dictionary()`
+- **Registry**: `U_ColorGradingRegistry` — maps scene_id → resource using const preload arrays (mobile-safe)
+- **Applier**: `U_DisplayColorGradingApplier` — creates ColorGradingLayer (CanvasLayer 1) inside PostProcessOverlay
+- **Redux**: `color_grading/` action prefix stored in display slice but NOT persisted (not a user setting)
+- **Preview**: `U_ColorGradingPreview` — @tool node for editor viewport preview, auto-removes at runtime
 
 ### Layer Stack
 
 | Layer | Effect | Description |
 |-------|--------|-------------|
-| 1 | CinemaGradeLayer | Per-scene artistic grading (always active) |
-| 2 | FilmGrainLayer | User-toggled film grain |
-| 3 | DitherLayer | User-toggled dither |
-| 4 | CRTLayer | User-toggled CRT filter |
+| 1 | ColorGradingLayer | Per-scene artistic grading (always active) |
+| 2 | GrainDitherLayer | Grain + dither combined pass |
 | 5 | ColorBlindLayer | Color blind simulation |
 | 11 | UIColorBlindLayer | UI-only color blind filter |
 
@@ -194,9 +184,9 @@ Per-scene artistic color grading as an additional post-process layer, separate f
 
 1. `action_dispatched` fires with `scene/transition_completed`
 2. Applier extracts `scene_id` from payload
-3. Looks up `U_CinemaGradeRegistry.get_cinema_grade_for_scene(scene_id)`
-4. Dispatches `U_CinemaGradeActions.load_scene_grade(grade.to_dictionary())`
-5. Display slice updates → `_on_slice_updated` → `_apply_display_settings` → `_apply_cinema_grade_settings`
+3. Looks up `U_ColorGradingRegistry.get_color_grading_for_scene(scene_id)`
+4. Dispatches `U_ColorGradingActions.load_scene_grade(grade.to_dictionary())`
+5. Display slice updates → `_on_slice_updated` → `_apply_display_settings` → `_apply_color_grading_settings`
 
 ### Adjustments
 
@@ -230,10 +220,10 @@ Per-scene artistic color grading as an additional post-process layer, separate f
 
 ### Key Design Decisions
 
-- Cinema grading is **independent of `post_processing_enabled`** — always active as artistic direction
-- `cinema_grade/` prefix does NOT match `begins_with("display/")` — **not persisted** to global_settings.json
+- Color grading is **independent of `post_processing_enabled`** — always active as artistic direction
+- `color_grading/` prefix does NOT match `begins_with("display/")` — **not persisted** to global_settings.json
 - Per-scene grades are transient (loaded from resource on each scene enter)
-- CinemaGradeLayer at layer 1 (below user post-process effects) — grading applied first, stylistic effects on top
+- ColorGradingLayer at layer 1 (below user post-process effects) — grading applied first, stylistic effects on top
 
 ---
 
@@ -245,13 +235,12 @@ The Display Manager uses a CanvasLayer + ColorRect + shader approach for layered
 
 ### Effect Stack
 
-Effects execute in a fixed internal order (Film Grain → Dither → CRT → Color Blind). The order is not user-configurable:
+Effects execute in a fixed internal order (Film Grain → Dither → Color Blind). The order is not user-configurable:
 
 | Effect | Toggle | Parameters | Description |
 |--------|--------|------------|-------------|
 | Film Grain | `film_grain_enabled` | `intensity` (0.0-1.0) | Noise overlay for cinematic look |
 | Dither | `dither_enabled` | `intensity` (0.0-1.0), `pattern` (bayer/noise) | Ordered or noise dithering |
-| CRT | `crt_enabled` | `scanline_intensity` (0.0-1.0), `curvature` (0.0-10.0), `chromatic_aberration` (0.0-0.01) | Scanlines, curvature, and chromatic aberration |
 
 ## Display/Graphics Settings
 
@@ -378,7 +367,7 @@ func _apply_palette(mode: String) -> void:
 Optional simulation shaders for testing accessibility or user preference:
 
 - `color_blind_shader_enabled`: Toggle for full-screen color filter
-- Applied via additional ColorRect in post-process overlay (after CRT in stack)
+- Applied via additional ColorRect in post-process overlay (after dither in stack)
 - Uses daltonization algorithms to simulate color blindness
 
 ## File Structure
@@ -392,8 +381,8 @@ scripts/managers/
 
 scripts/managers/helpers/display/
   u_post_process_layer.gd           # CanvasLayer effect manager
-  u_cinema_grade_registry.gd        # Scene→grade mapping (mobile-safe)
-  u_display_cinema_grade_applier.gd # Cinema grade applier (CanvasLayer 1)
+  u_color_grading_registry.gd        # Scene→grade mapping (mobile-safe)
+  u_display_color_grading_applier.gd # Color grading applier (CanvasLayer 1)
 
 scripts/managers/helpers/
   u_palette_manager.gd              # Color blind palette loading
@@ -403,26 +392,26 @@ scripts/resources/state/
 
 scripts/resources/display/
   rs_quality_preset.gd              # Quality preset resource class
-  rs_scene_cinema_grade.gd          # Per-scene cinema grade config (Phase 11)
+  rs_scene_color_grading.gd          # Per-scene color grading config (Phase 11)
 
 scripts/resources/ui/
   rs_ui_color_palette.gd            # Color palette resource class
 
 scripts/state/actions/
   u_display_actions.gd
-  u_cinema_grade_actions.gd         # cinema_grade/ prefix (not persisted) (Phase 11)
+  u_color_grading_actions.gd         # color_grading/ prefix (not persisted) (Phase 11)
 
 scripts/state/reducers/
-  u_display_reducer.gd              # Also handles cinema_grade/ actions (Phase 11)
+  u_display_reducer.gd              # Also handles color_grading/ actions (Phase 11)
 
 scripts/state/selectors/
   u_display_selectors.gd
-  u_cinema_grade_selectors.gd       # Cinema grade parameter selectors (Phase 11)
+  u_color_grading_selectors.gd       # Color grading parameter selectors (Phase 11)
 
 assets/shaders/
-  sh_cinema_grade_shader.gdshader   # Per-scene cinema grading (Phase 11)
+  sh_color_grading_shader.gdshader   # Per-scene color grading (Phase 11)
   sh_film_grain_shader.gdshader
-  sh_crt_shader.gdshader
+  sh_grain_dither.gdshader
   sh_dither_shader.gdshader
   sh_colorblind_daltonize.gdshader
 
@@ -443,18 +432,18 @@ resources/ui_themes/
   cfg_palette_tritanopia.tres
   cfg_palette_high_contrast.tres
 
-resources/display/cinema_grades/
-  cfg_cinema_grade_gameplay_base.tres  # Per-scene configs (Phase 11)
-  cfg_cinema_grade_alleyway.tres
-  cfg_cinema_grade_exterior.tres
-  cfg_cinema_grade_bar.tres
-  cfg_cinema_grade_interior_house.tres
+resources/display/color_gradings/
+  cfg_color_grading_gameplay_base.tres  # Per-scene configs (Phase 11)
+  cfg_color_grading_alleyway.tres
+  cfg_color_grading_exterior.tres
+  cfg_color_grading_bar.tres
+  cfg_color_grading_interior_house.tres
 
 resources/textures/
   tex_bayer_8x8.png
 
 scripts/utils/display/
-  u_cinema_grade_preview.gd         # @tool editor preview (Phase 11)
+  u_color_grading_preview.gd         # @tool editor preview (Phase 11)
 
 scenes/ui/overlays/
   ui_post_process_overlay.tscn      # CanvasLayer with effect ColorRects
@@ -484,8 +473,6 @@ Display settings are placed in the "Video" tab:
 │     Intensity  [████████░░] 50%     │
 │ [✓] Dither                          │
 │     Pattern    [▼ Bayer          ]  │
-│ [✓] CRT                             │
-│     Scanlines  [█████░░░░] 30%      │
 ├─────────────────────────────────────┤
 │ UI SCALE                            │
 ├─────────────────────────────────────┤
@@ -523,10 +510,6 @@ store.dispatch(U_DisplayActions.set_film_grain_enabled(true))
 store.dispatch(U_DisplayActions.set_film_grain_intensity(0.5))
 store.dispatch(U_DisplayActions.set_dither_enabled(true))
 store.dispatch(U_DisplayActions.set_dither_pattern("bayer"))
-store.dispatch(U_DisplayActions.set_crt_enabled(true))
-store.dispatch(U_DisplayActions.set_crt_scanline_intensity(0.3))
-store.dispatch(U_DisplayActions.set_crt_curvature(2.0))
-store.dispatch(U_DisplayActions.set_crt_chromatic_aberration(0.002))
 # UI
 store.dispatch(U_DisplayActions.set_ui_scale(1.2))
 
@@ -544,7 +527,6 @@ store.dispatch(U_DisplayActions.set_color_blind_shader_enabled(true))
 - **GPU**: Post-processing budget dependent on enabled effects
   - Film Grain: ~0.2ms
   - Dither: ~0.1ms
-  - CRT: ~0.5ms (scanlines + curvature)
 - **Memory**: ~50KB (manager + palettes + effect resources)
 
 ### Optimization Guidelines

@@ -92,7 +92,7 @@ var _cached_state_version: int = -1
 var _global_settings_loading: bool = false
 var _global_settings_save_debounce: bool = false
 var _global_settings_last_hash: int = 0
-var _cinema_debug_overlay: CanvasLayer = null
+var _color_grading_debug_overlay: CanvasLayer = null
 
 func _ready() -> void:
 	# Store must continue flushing batched slice_updated signals while paused so
@@ -298,38 +298,38 @@ func _input(event: InputEvent) -> void:
 			_debug_overlay.queue_free()
 			register_debug_overlay(null)
 
-	# Check if cinema debug overlay is enabled via project settings
-	const PROJECT_SETTING_ENABLE_CINEMA_DEBUG_OVERLAY := "state/debug/enable_cinema_debug_overlay"
-	var cinema_debug_enabled := true
-	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_CINEMA_DEBUG_OVERLAY):
-		cinema_debug_enabled = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_CINEMA_DEBUG_OVERLAY, true)
+	# Check if color grading debug overlay is enabled via project settings
+	const PROJECT_SETTING_ENABLE_COLOR_GRADING_DEBUG_OVERLAY := "state/debug/enable_color_grading_debug_overlay"
+	var color_grading_debug_enabled := true
+	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_COLOR_GRADING_DEBUG_OVERLAY):
+		color_grading_debug_enabled = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_COLOR_GRADING_DEBUG_OVERLAY, true)
 
-	if cinema_debug_enabled and not U_INPUT_CAPTURE_GUARD.is_capture_active():
-		# Toggle cinema debug overlay with action
-		var cinema_toggle_pressed: bool = false
+	if color_grading_debug_enabled and not U_INPUT_CAPTURE_GUARD.is_capture_active():
+		# Toggle color grading debug overlay with action
+		var color_grading_toggle_pressed: bool = false
 		if event is InputEventAction:
 			var aev := event as InputEventAction
-			cinema_toggle_pressed = aev.action == "toggle_cinema_debug" and aev.pressed
+			color_grading_toggle_pressed = aev.action == "toggle_color_grading_debug" and aev.pressed
 		else:
 			# Fallback to Input singleton
-			cinema_toggle_pressed = Input.is_action_just_pressed("toggle_cinema_debug")
+			color_grading_toggle_pressed = Input.is_action_just_pressed("toggle_color_grading_debug")
 
-		if cinema_toggle_pressed:
-			if _cinema_debug_overlay == null or not is_instance_valid(_cinema_debug_overlay):
-				# Spawn cinema debug overlay
-				var cinema_overlay_scene := load("res://scenes/debug/debug_color_grading_overlay.tscn")
-				if cinema_overlay_scene:
-					_cinema_debug_overlay = cinema_overlay_scene.instantiate()
-					add_child(_cinema_debug_overlay)
-					register_cinema_debug_overlay(_cinema_debug_overlay)
+		if color_grading_toggle_pressed:
+			if _color_grading_debug_overlay == null or not is_instance_valid(_color_grading_debug_overlay):
+				# Spawn color grading debug overlay
+				var color_grading_overlay_scene := load("res://scenes/debug/debug_color_grading_overlay.tscn")
+				if color_grading_overlay_scene:
+					_color_grading_debug_overlay = color_grading_overlay_scene.instantiate()
+					add_child(_color_grading_debug_overlay)
+					register_color_grading_debug_overlay(_color_grading_debug_overlay)
 					# Unlock cursor for overlay interaction
 					var cursor_manager := U_SERVICE_LOCATOR.get_service(StringName("cursor_manager"))
 					if cursor_manager and cursor_manager.has_method("set_cursor_state"):
 						cursor_manager.set_cursor_state(false, true)
 			else:
-				# Despawn cinema debug overlay and restore cursor state
-				_cinema_debug_overlay.queue_free()
-				register_cinema_debug_overlay(null)
+				# Despawn color grading debug overlay and restore cursor state
+				_color_grading_debug_overlay.queue_free()
+				register_color_grading_debug_overlay(null)
 				# Re-lock cursor for gameplay
 				var cursor_manager := U_SERVICE_LOCATOR.get_service(StringName("cursor_manager"))
 				if cursor_manager and cursor_manager.has_method("set_cursor_state"):
@@ -348,20 +348,20 @@ func get_debug_overlay() -> CanvasLayer:
 		return _debug_overlay
 	return null
 
-func _on_cinema_debug_overlay_tree_exiting() -> void:
-	_cinema_debug_overlay = null
+func _on_color_grading_debug_overlay_tree_exiting() -> void:
+	_color_grading_debug_overlay = null
 
-func register_cinema_debug_overlay(overlay: CanvasLayer) -> void:
+func register_color_grading_debug_overlay(overlay: CanvasLayer) -> void:
 	if overlay != null and is_instance_valid(overlay):
-		_cinema_debug_overlay = overlay
-		if not overlay.tree_exiting.is_connected(_on_cinema_debug_overlay_tree_exiting):
-			overlay.tree_exiting.connect(_on_cinema_debug_overlay_tree_exiting, CONNECT_ONE_SHOT)
+		_color_grading_debug_overlay = overlay
+		if not overlay.tree_exiting.is_connected(_on_color_grading_debug_overlay_tree_exiting):
+			overlay.tree_exiting.connect(_on_color_grading_debug_overlay_tree_exiting, CONNECT_ONE_SHOT)
 		return
-	_cinema_debug_overlay = null
+	_color_grading_debug_overlay = null
 
-func get_cinema_debug_overlay() -> CanvasLayer:
-	if _cinema_debug_overlay != null and is_instance_valid(_cinema_debug_overlay):
-		return _cinema_debug_overlay
+func get_color_grading_debug_overlay() -> CanvasLayer:
+	if _color_grading_debug_overlay != null and is_instance_valid(_color_grading_debug_overlay):
+		return _color_grading_debug_overlay
 	return null
 
 func _initialize_settings() -> void:

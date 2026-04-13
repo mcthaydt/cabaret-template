@@ -127,7 +127,7 @@ func test_get_color_grading_settings_returns_color_grading_keys() -> void:
 		"Result should include color_grading_exposure")
 
 
-func test_get_color_grading_settings_excludes_non_cinema_keys() -> void:
+func test_get_color_grading_settings_excludes_non_color_grading_keys() -> void:
 	var state := {
 		"display": {
 			"color_grading_filter_mode": 1,
@@ -142,7 +142,7 @@ func test_get_color_grading_settings_excludes_non_cinema_keys() -> void:
 		"Result should not include post_processing_enabled")
 
 
-func test_get_color_grading_settings_empty_when_no_cinema_keys() -> void:
+func test_get_color_grading_settings_empty_when_no_color_grading_keys() -> void:
 	var state := {"display": {"post_processing_enabled": false, "film_grain_enabled": false}}
 	var result := U_COLOR_GRADING_SELECTORS.get_color_grading_settings(state)
 	assert_eq(result.size(), 0, "No color_grading_ keys in state should return empty dict")

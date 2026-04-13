@@ -178,7 +178,7 @@ func _flush_viewport_stats() -> void:
 
 
 func _flush_shader_pass_count() -> void:
-	var combined_visible: bool = false
+	var grain_dither_visible: bool = false
 	var color_grading_visible: bool = false
 
 	# Check post-process overlay for active shader passes
@@ -190,13 +190,13 @@ func _flush_shader_pass_count() -> void:
 		for child in overlay_node.get_children():
 			if child is CanvasLayer:
 				var layer: CanvasLayer = child as CanvasLayer
-				if layer.name == &"CombinedLayer" and layer.visible:
-					combined_visible = true
+				if layer.name == &"GrainDitherLayer" and layer.visible:
+					grain_dither_visible = true
 				if layer.name == &"ColorGradingLayer" and layer.visible:
 					color_grading_visible = true
 
-	print("%s Shader passes: combined=%d color_grading=%d" % [
-		LOG_PREFIX, 1 if combined_visible else 0, 1 if color_grading_visible else 0
+	print("%s Shader passes: grain_dither=%d color_grading=%d" % [
+		LOG_PREFIX, 1 if grain_dither_visible else 0, 1 if color_grading_visible else 0
 	])
 
 func _resolve_game_viewport() -> SubViewport:

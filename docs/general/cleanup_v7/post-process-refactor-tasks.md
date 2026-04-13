@@ -226,3 +226,97 @@ Within C12, commits are ordered so that each GREEN step can land cleanly:
 ### Mobile cache warning
 
 Since this refactor touches 5 `.tres` resource renames and a shader rename, all installed mobile builds will need a fresh install (PCK packing changes). Flag in the Commit 7 message.
+
+---
+
+## C12 Gap Audit (2026-04-13)
+
+Post-completion audit revealed gaps in integration depth, rename coverage, test coverage, and documentation freshness. Tracked as Commits 11–16 below.
+
+### Findings
+
+| Severity | Gap | Root cause |
+|----------|-----|------------|
+| HIGH | `pipeline.apply_settings()` never called at runtime — M_DisplayManager calls each applier's `apply_settings()` independently instead of delegating visibility to the pipeline | Commit 8 wired registration + `update_per_frame` but did not centralize visibility control |
+| MEDIUM | ~30 bare `cinema` references survive in 3 production files + `project.godot` — rename only targeted `cinema_grade` (with underscore) | Enforcement test grep was too narrow (only `cinema_grade`) |
+| MEDIUM | `CombinedLayer`/`CombinedRect` scene node names + all references (NodePath, perf_monitor, perf_shader_bypass, 2 test files) never renamed to `GrainDitherLayer`/`GrainDitherRect` | `EFFECT_COMBINED` → `EFFECT_GRAIN_DITHER` constant rename didn't propagate to scene tree or debug utilities |
+| MEDIUM | `CINEMA_OFF` mode + `_was_cinema_visible` + `_disable_cinema_only()` + comments in `u_perf_shader_bypass.gd` | Same narrow-grep blind spot |
+| MEDIUM | `_cinema_debug_overlay`, `register_cinema_debug_overlay()`, `get_cinema_debug_overlay()`, `toggle_cinema_debug` input action in `m_state_store.gd` + `rs_rebind_settings.gd` + `project.godot` | Same narrow-grep blind spot |
+| MEDIUM | 8 residual `cinema`/`combined` references in 5 test files | Rename stopped at file rename, didn't sweep function/variable/comment names |
+| LOW | Pipeline test count is 11, task doc says 12/12 | Missing coverage for `apply_settings` no-op path |
+| LOW | Style enforcement test only greps for `cinema_grade` (with underscore) — misses bare `cinema` and `combined` in display contexts | Test was written to match the rename scope, not the full semantic intent |
+| LOW | 168 stale `cinema_grade` references across `docs/` + `AGENTS.md`; 3 stale CRT references in `docs/` | Documentation not updated after rename |
+| LOW | `.claude/settings.local.json` has stale path to deleted `u_display_cinema_grade_applier.gd` | Settings artifact from pre-rename |
+
+---
+
+## Milestone C12-gap: Post-Refactor Gap Fixes
+
+**Goal**: Close all audit gaps from C12. Commits 11–16 are ordered so that each GREEN step can land cleanly. Each commit includes its own test changes.
+
+- [ ] **Commit 11** — Complete cinema/combined renames in production code (TDD GREEN):
+  - `scenes/ui/overlays/ui_post_process_overlay.tscn` — rename `CombinedLayer` → `GrainDitherLayer`, `CombinedRect` → `GrainDitherRect`
+  - `scripts/managers/helpers/display/u_post_process_layer.gd` — `NodePath("CombinedLayer/CombinedRect")` → `NodePath("GrainDitherLayer/GrainDitherRect")`
+  - `scripts/utils/debug/u_perf_monitor.gd` — `&"CombinedLayer"` → `&"GrainDitherLayer"`, output label `combined=` → `grain_dither=`
+  - `scripts/utils/debug/u_perf_shader_bypass.gd` — full rename pass:
+    - `"CINEMA_OFF"` → `"COLOR_GRADING_OFF"` in `SHADER_BYPASS_MODES`
+    - `_was_cinema_visible` → `_was_color_grading_visible`
+    - `_disable_cinema_only()` → `_disable_color_grading_only()`
+    - `# Disable cinema grade` → `# Disable color grading`
+    - `# Restore cinema grade first` → `# Restore color grading first`
+    - `_was_combined_visible` → `_was_grain_dither_visible`
+    - `debug_restore_combined_visibility` → `debug_restore_grain_dither_visibility`
+    - `debug_force_disable_combined` → `debug_force_disable_grain_dither`
+  - `scripts/managers/helpers/display/u_display_post_process_applier.gd` — rename `debug_force_disable_combined` → `debug_force_disable_grain_dither`, `debug_restore_combined_visibility` → `debug_restore_grain_dither_visibility`
+  - `scripts/state/m_state_store.gd` — full rename pass:
+    - `_cinema_debug_overlay` → `_color_grading_debug_overlay`
+    - `PROJECT_SETTING_ENABLE_CINEMA_DEBUG_OVERLAY` → `PROJECT_SETTING_ENABLE_COLOR_GRADING_DEBUG_OVERLAY`
+    - `cinema_debug_enabled` → `color_grading_debug_enabled`
+    - `cinema_toggle_pressed` → `color_grading_toggle_pressed`
+    - `"toggle_cinema_debug"` → `"toggle_color_grading_debug"`
+    - `register_cinema_debug_overlay()` → `register_color_grading_debug_overlay()`
+    - `get_cinema_debug_overlay()` → `get_color_grading_debug_overlay()`
+    - `_on_cinema_debug_overlay_tree_exiting()` → `_on_color_grading_debug_overlay_tree_exiting()`
+    - Comments: "cinema debug overlay" → "color grading debug overlay"
+  - `scripts/resources/input/rs_rebind_settings.gd` — `"toggle_cinema_debug"` → `"toggle_color_grading_debug"`
+  - `project.godot` — InputMap `toggle_cinema_debug` → `toggle_color_grading_debug`
+  - Update `project.godot` project setting key `state/debug/enable_cinema_debug_overlay` → `state/debug/enable_color_grading_debug_overlay`
+
+- [ ] **Commit 12** — Complete cinema/combined renames in test code (TDD GREEN):
+  - `tests/integration/display/test_color_grading_applier.gd` — `cinema_settings` → `color_grading_settings`, `cinema_state` → `color_grading_state` in function name
+  - `tests/unit/managers/test_color_grading_selectors.gd` — `non_cinema_keys` → `non_color_grading_keys`, `no_cinema_keys` → `no_color_grading_keys` in function names
+  - `tests/unit/state/test_display_reducer.gd` — `# --- Cinema Grade:` → `# --- Color Grading:`
+  - `tests/unit/managers/helpers/test_post_process_layer.gd` — `"CombinedLayer"` → `"GrainDitherLayer"`, `"CombinedRect"` → `"GrainDitherRect"`
+  - `tests/integration/display/test_post_processing.gd` — `"CombinedLayer"` → `"GrainDitherLayer"`, CombinedLayer node lookups updated
+  - `tests/unit/managers/helpers/test_u_post_process_pipeline.gd` — verify no cinema/combined references (should be clean already)
+
+- [ ] **Commit 13** — Wire `pipeline.apply_settings()` as the single visibility entry point (TDD GREEN):
+  - `scripts/managers/m_display_manager.gd` — add `_pipeline.apply_settings(display_settings)` call, replacing per-applier visibility logic. Each applier's `apply_settings` should still handle uniform writes but delegate visibility to the pipeline.
+  - Add pipeline test for `apply_settings` with unknown pass_id (no-op path) — brings count to 12
+  - Verify: the only code that sets `rect.visible` on post-process passes is `pipeline.apply_settings`
+
+- [ ] **Commit 14** — Widen style enforcement grep to catch bare `cinema` and `combined` in display contexts (TDD GREEN):
+  - `tests/unit/style/test_style_enforcement.gd` — extend `test_no_cinema_grade_identifiers_in_scripts` to also grep for bare `cinema` in display/post-process scripts (allowlist `cinematic` in camera manager, which is a different concept). Add `test_no_combined_identifiers_in_display_scripts` that greps for `CombinedLayer`/`CombinedRect`/`combined_visible`/`combined_post_process` in display scripts.
+  - Verify enforcement tests pass with zero violations after Commits 11–13.
+
+- [ ] **Commit 15** — Clean stale documentation (no code changes):
+  - Update all 168 `cinema_grade` references across `docs/` and `AGENTS.md` to `color_grading`
+  - Update 3 stale CRT references in `docs/display_manager/`
+  - Update `CombinedLayer`/`CombinedRect` references in docs
+  - Update `toggle_cinema_debug` → `toggle_color_grading_debug` in docs
+
+- [ ] **Commit 16** — Settings artifact cleanup:
+  - `.claude/settings.local.json` — remove or update stale `u_display_cinema_grade_applier.gd` path
+
+---
+
+## C12-gap Verification
+
+- [ ] `grep -r "cinema" scripts/managers/helpers/display/ scripts/utils/debug/ scripts/state/m_state_store.gd scripts/utils/debug/u_perf_shader_bypass.gd` returns zero hits (allowlist `cinematic` in camera manager)
+- [ ] `grep -r "CombinedLayer\|CombinedRect\|combined_visible\|_was_combined\|debug_force_disable_combined\|debug_restore_combined" scripts/` returns zero hits
+- [ ] `grep -r "toggle_cinema_debug\|cinema_debug_overlay" scripts/ project.godot` returns zero hits
+- [ ] Pipeline test count >= 12 (currently 15)
+- [ ] `pipeline.apply_settings()` called from M_DisplayManager (not dead code)
+- [ ] Style enforcement tests pass ( widened grep)
+- [ ] `grep -r "cinema_grade" docs/ AGENTS.md` returns zero hits
+- [ ] Full GUT suite green

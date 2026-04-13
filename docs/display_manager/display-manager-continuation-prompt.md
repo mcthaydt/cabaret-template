@@ -1,7 +1,7 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-06
-**Current Phase:** Phase 11 Complete (Cinema Grading Post-Process System)
+**Current Phase:** Phase 11 Complete (Color Grading Post-Process System)
 **Branch:** `display-manager`
 
 ---
@@ -91,12 +91,12 @@ Tests (2026-02-06): `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclu
 
 ### Immediate: Next Phase
 
-1. **Task 11F.2**: Manual visual verification of cinema grading
+1. **Task 11F.2**: Manual visual verification of color grading
    - Temp scene shader test (all uniforms)
    - Scene transition grade swap
    - Editor preview
    - Overlay visibility (pause menu hide/show)
-   - Stacking with existing effects (film grain + CRT + dither)
+   - Stacking with existing effects (film grain + dither)
 2. **Task 8**: Run manual verification checklist (MT-01 → MT-17)
 
 ### Later: Phase 8 - Manual Testing
@@ -185,16 +185,9 @@ if display_initial_state != null:
         # Post-Processing
         "film_grain_enabled": false,
         "film_grain_intensity": 0.1,
-        "crt_enabled": false,
-        "crt_scanline_intensity": 0.3,
-        "crt_curvature": 2.0,
-        "crt_chromatic_aberration": 0.002,
         "dither_enabled": false,
         "dither_intensity": 0.5,
         "dither_pattern": "bayer",
-        "lut_enabled": false,
-        "lut_resource": "",
-        "lut_intensity": 1.0,
 
         # UI
         "ui_scale": 1.0,
@@ -204,20 +197,20 @@ if display_initial_state != null:
         "high_contrast_enabled": false,
         "color_blind_shader_enabled": false,
 
-        # Cinema Grade (transient — loaded per-scene, NOT persisted)
-        "cinema_grade_filter_mode": 0,       # 0=none, 1-8=named filters
-        "cinema_grade_filter_intensity": 1.0,
-        "cinema_grade_exposure": 0.0,
-        "cinema_grade_brightness": 0.0,
-        "cinema_grade_contrast": 1.0,
-        "cinema_grade_brilliance": 0.0,
-        "cinema_grade_highlights": 0.0,
-        "cinema_grade_shadows": 0.0,
-        "cinema_grade_saturation": 1.0,
-        "cinema_grade_vibrance": 0.0,
-        "cinema_grade_warmth": 0.0,
-        "cinema_grade_tint": 0.0,
-        "cinema_grade_sharpness": 0.0,
+        # Color Grading (transient — loaded per-scene, NOT persisted)
+        "color_grading_filter_mode": 0,       # 0=none, 1-8=named filters
+        "color_grading_filter_intensity": 1.0,
+        "color_grading_exposure": 0.0,
+        "color_grading_brightness": 0.0,
+        "color_grading_contrast": 1.0,
+        "color_grading_brilliance": 0.0,
+        "color_grading_highlights": 0.0,
+        "color_grading_shadows": 0.0,
+        "color_grading_saturation": 1.0,
+        "color_grading_vibrance": 0.0,
+        "color_grading_warmth": 0.0,
+        "color_grading_tint": 0.0,
+        "color_grading_sharpness": 0.0,
     }
 }
 ```
@@ -294,7 +287,7 @@ Validation for window modes, dither patterns, color blind modes, and preset IDs 
 - [ ] Update AGENTS.md
 - [ ] Update DEV_PITFALLS.md if needed
 
-### Phase 11: Cinema Grading Post-Process System
+### Phase 11: Color Grading Post-Process System
 - [x] 11A: Cinema grade GLSL shader
 - [x] 11B: Resource class + registry + 5 .tres configs
 - [x] 11C: Redux integration (actions, selectors, reducer)
