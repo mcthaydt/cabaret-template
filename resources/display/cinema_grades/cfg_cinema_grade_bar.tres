@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_SceneCinemaGrade" format=3 uid="uid://cd1vlssr330ho"]
 
-[ext_resource type="Script" uid="uid://bd12pwnbdlua" path="res://scripts/resources/display/rs_scene_cinema_grade.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://uytegpst8nyn" path="res://scripts/resources/display/rs_scene_cinema_grade.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://d8f3hr42dgv4"]
 
 [ext_resource type="Shader" uid="uid://cbb5bncshtrb" path="res://assets/shaders/sh_colorblind_daltonize.gdshader" id="7_color_blind"]
-[ext_resource type="Shader" path="res://assets/shaders/sh_grain_dither.gdshader" id="8_combined"]
+[ext_resource type="Shader" uid="uid://bxrit4lj4tadw" path="res://assets/shaders/sh_grain_dither.gdshader" id="8_combined"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_combined"]
 shader = ExtResource("8_combined")
