@@ -29,6 +29,7 @@ F1–F4 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.
 - **F11 (Event Bus Zombie Prevention)**: NOT STARTED. Scope is `BaseEventBus`, not the `U_ECSEventBus` facade.
 - **F12 (Settings Overlay Deduplication — v7.2.1 Addition)**: NOT STARTED. Independent, trivial DRY collapse.
 - **F15 (Designer-Facing Resource Schema Validation — v7.2.1 Addition)**: NOT STARTED. Mirrors F7's pattern for three more resources.
+- **F16 (AI System Type Safety & Consistency — v7.2.2 Addition)**: NOT STARTED. Independent. 6 commits: type Variant fields, push_error stubs, task-state key constants, debug snapshot, animate docs, grep enforcement.
 
 ---
 
@@ -40,6 +41,21 @@ Before execution begins, the v7.2 plan received three additions and one rejectio
 - **F12 added**: Three settings overlay wrappers (`ui_audio_settings_overlay.gd`, `ui_display_settings_overlay.gd`, `ui_localization_settings_overlay.gd`) are 53 lines each, character-for-character identical except `class_name`. Collapsed into a single `base_settings_simple_overlay.gd`. `ui_vfx_settings_overlay.gd` is legitimately different (Apply/Cancel + inline controls) and stays out of scope.
 - **F15 added**: Load-time schema validation for `RS_GameConfig` (HIGH risk — zero validation on `retry_scene_id`, `route_retry`, `default_objective_set_id`, `required_final_area`), `RS_InputProfile` (MEDIUM risk — malformed `virtual_buttons` entries), `RS_SceneRegistryEntry` (MEDIUM risk — editor-only warnings, no load-time enforcement). `RS_UIThemeConfig` is out of scope because `ensure_runtime_defaults()` already prevents crash-level failures.
 - **F13/F14 rejected**: Pre-implementation audit verified `_character_lighting_history`, `_character_zone_hysteresis`, `S_WallVisibilitySystem` geometry caches, `U_SceneCache`, and `_scene_history` **all have proper cleanup** (per-character pruning, per-frame stale eviction, LRU + 100MB cap, clear on gameplay entry). No memory-leak milestone needed.
+
+---
+
+## v7.2.2 Patch (AI System Review Addition)
+
+After the v7.2.1 additions, a deep-dive review of the AI system identified six inconsistencies where the AI codebase falls short of the non-AI project standards:
+
+1. **Five `Variant`-typed service fields** in `S_AIBehaviorSystem` (`:28-32`) and two `Variant` parameters in `S_AIDetectionSystem` (`:75-76`) discard static type information.
+2. **`Variant`-typed planner context** throughout `U_HTNPlanner` and `U_HTNPlannerContext.reusable_rule: Resource` instead of `RS_Rule`.
+3. **`I_AIAction` silent stubs** — `pass` and `return false` instead of `push_error("not implemented")` matching `I_ECSManager`/`I_StateStore`/`I_Condition`.
+4. **Raw string keys in task_state** — 5 action files use 9 bare string literals instead of `U_AITaskStateKeys` constants. `RS_AIActionMoveTo` already uses the constants.
+5. **`C_AIBrainComponent` lacks `get_debug_snapshot()`** — `C_MovementComponent` and `C_JumpComponent` expose debug snapshots; brain component exposes raw dictionaries.
+6. **`U_HTNPlanner._decompose_recursive` silently returns on null/depth-exceeded** — no `push_error` diagnostic.
+
+**F16 added**: AI System Type Safety & Consistency. 6 commits: type Variant fields, push_error stubs, task-state key constants, debug snapshot, animate docs, grep enforcement. All fixes are type annotations, constant migrations, or additive methods — no behavioral changes.
 
 ---
 
@@ -315,6 +331,52 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 
 ---
 
+## Milestone F16: AI System Type Safety & Consistency (v7.2.2 Addition)
+
+**Goal**: Fix six inconsistencies where the AI system falls short of non-AI project standards. No behavioral changes.
+
+**6 commits**:
+
+- [ ] **Commit 1** (GREEN) — Type AI service fields and planner context parameters:
+  - `s_ai_behavior_system.gd`: Replace 5 `Variant` fields with `U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, `U_AIContextBuilder`, `U_DebugLogThrottle`.
+  - `s_ai_detection_system.gd`: Replace 2 `Variant` params with `C_DetectionComponent`, `C_MovementComponent`.
+  - `u_htn_planner.gd`: Type `planner_context: Variant` as `U_HTNPlannerContext`. Add `push_error` for null task and depth exceeded.
+  - `u_htn_planner_context.gd`: Type `reusable_rule: Resource` as `RS_Rule`. Update `_init` param type.
+
+- [ ] **Commit 2** (GREEN) — Add `push_error` stubs to `I_AIAction`:
+  - Replace `pass` in `start()`/`tick()` with `push_error("I_AIAction.%s: not implemented by subclass %s" % [method, str(resource_name)])`. Add `push_error` before `return false` in `is_complete()`.
+  - Update `test_i_ai_action_base.gd` to verify stubs produce `push_error`.
+
+- [ ] **Commit 3** (GREEN) — Migrate raw task_state string keys to `U_AITaskStateKeys` constants:
+  - Add 8 constants: `ELAPSED`, `SCAN_ELAPSED`, `SCAN_ACTIVE`, `SCAN_ROTATION_SPEED`, `ANIMATION_STATE`, `ANIMATION_REQUESTED`, `PUBLISHED`, `COMPLETED`.
+  - Update 5 action files: `rs_ai_action_wait.gd`, `rs_ai_action_scan.gd`, `rs_ai_action_animate.gd`, `rs_ai_action_publish_event.gd`, `rs_ai_action_set_field.gd`.
+  - Remove Variant type coercion in `rs_ai_action_wait.gd` and `rs_ai_action_scan.gd` (unnecessary since `start()` writes `float`).
+  - Update `test_u_ai_task_state_keys.gd` with 8 new key assertions.
+
+- [ ] **Commit 4** (GREEN) — Add `get_debug_snapshot()` to `C_AIBrainComponent`:
+  - Add `_debug_snapshot`, `update_debug_snapshot()`, `get_debug_snapshot()` mirroring `C_JumpComponent`.
+  - Update `S_AIBehaviorSystem._debug_log_brain_state` to build snapshot and call `brain.update_debug_snapshot()`.
+  - Add tests: `test_update_debug_snapshot`, `test_get_debug_snapshot_returns_copy`, `test_debug_snapshot_includes_goal_id`.
+
+- [ ] **Commit 5** (GREEN) — Document `RS_AIActionAnimate` fire-and-forget semantics:
+  - Add class-level doc comment clarifying instant-complete behavior is intentional.
+
+- [ ] **Commit 6** (GREEN) — Style enforcement grep test for AI task-state key constants:
+  - Forbid `task_state["` (bare string key access) in `scripts/resources/ai/actions/*.gd`.
+
+**F16 Verification**:
+- [ ] All existing AI unit tests green.
+- [ ] All existing AI integration tests green.
+- [ ] `test_i_ai_action_base.gd` verifies `push_error` stubs.
+- [ ] `test_u_ai_task_state_keys.gd` covers 18 total constants (10 existing + 8 new).
+- [ ] `test_c_ai_brain_component.gd` covers debug snapshot methods.
+- [ ] Grep confirms zero bare string literals in task_state access across `scripts/resources/ai/actions/`.
+- [ ] No behavioral change.
+
+**Dependency note**: Independent of F1–F15. Partial overlap with F9 (both touch `s_ai_behavior_system.gd`). Land F16 Commit 1 first; F9 can add `SystemPhase` afterward.
+
+---
+
 ## Dependency Graph / Sequencing
 
 - **F1** → verification-only, first to land (single commit).
@@ -328,6 +390,7 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 - **F11** → independent.
 - **F12** → independent.
 - **F15** → independent, mirrors F7's pattern.
+- **F16** → independent (v7.2.2 addition). Partial overlap with F9 (both touch `s_ai_behavior_system.gd`); land F16 Commit 1 first.
 
 **Cross-milestone integration**: Run full test suite after each milestone completes. Critical for the F2 → F3 → F4 chain.
 
@@ -369,6 +432,10 @@ You MUST:
 - **Helper size invariant**: F8's Phase 0 establishes a 400-line ceiling for every `.gd` file under `scripts/ecs/systems/helpers/`. Codified in style enforcement so future system extraction can't regress it.
 - **Overlay base class is new, but scene files are untouched**: F12 introduces `base_settings_simple_overlay.gd` between `BaseOverlay` and the three concrete overlays. The `.tscn` scene files continue to instance tab content as before.
 - **Resource validation is `_init()` + boot cross-check**: F15 uses `_init()` for local schema checks (fail at load with `resource_path`) and defers cross-registry checks (e.g., "does `retry_scene_id` exist in `U_SceneRegistry`?") to a one-shot boot validation pass, because `_init()` runs before autoloads are available.
+- **F16 has no behavioral changes**: All commits are type annotations, constant migrations, interface stubs matching project convention, or additive debug methods. The only "observable" change is `push_error` output from `I_AIAction` stubs, which only fires if a subclass fails to override — a scenario that already produces incorrect behavior (silently no-oping).
+- **F16 debug snapshot mirrors `C_JumpComponent`**: Same `.duplicate(true)` copy semantics, same `update_debug_snapshot`/`get_debug_snapshot` method pair.
+- **F16 Variant coercion cleanup is safe**: `start()` writes `float` values to task_state; the runtime type is guaranteed. The `is float or is int` guard in `rs_ai_action_wait.gd` and `rs_ai_action_scan.gd` is unnecessary defensive code that becomes removable once keys are constants.
+- **F16 overlap with F9**: Both touch `s_ai_behavior_system.gd`. F16 Commit 1 only changes type annotations on lines 28–32; F9 will add a `SystemPhase` declaration. Land F16 Commit 1 first for a clean merge.
 
 ---
 
@@ -397,7 +464,8 @@ You MUST:
 4. ~~**Begin F3** — StateStore eliminate parallel mutation paths.~~ ✅ **Complete.** `_sync_navigation_initial_scene` dispatches through reducer; `slice_updated.emit` sites audited with invariant comments; style enforcement test added.
 5. **Begin F4** — Slice dependency validator strict mode. Next milestone in the F2→F3→F4 sequential chain.
 6. F5 after F3 lands (cleaner to enforce channel taxonomy once state mutation is single-sourced).
-7. F6, F7, F8 (incl. Phase 0), F9, F11, F12, F15 can be scheduled independently.
+7. F6, F7, F8 (incl. Phase 0), F9, F11, F12, F15, F16 can be scheduled independently.
 8. F10 verification checkpoint can run any time.
-9. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a numbered F-milestone (F16).
-10. Update `MEMORY.md` test-failure patterns section after F6 lands — the `U_StateHandoff` and `_ensure_appliers` entries should no longer manifest once scope-based test isolation replaces `U_ServiceLocator.clear()`.
+9. F16 Commit 1 should land before F9 (both touch `s_ai_behavior_system.gd`; type annotations are simpler).
+10. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.
+11. Update `MEMORY.md` test-failure patterns section after F6 lands — the `U_StateHandoff` and `_ensure_appliers` entries should no longer manifest once scope-based test isolation replaces `U_ServiceLocator.clear()`.

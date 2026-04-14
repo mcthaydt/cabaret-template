@@ -28,6 +28,9 @@ The cleanup-v7 plan (C1–C12) does a thorough job of DRY, modularity, scalabili
 - **F15 added**: Load-time schema validation for `RS_GameConfig`, `RS_InputProfile`, and `RS_SceneRegistryEntry`. Extends F7's "fail loud at load" pattern to other designer-facing resources.
 - **F13/F14 rejected**: Audit verified all flagged "unbounded collections" (`_character_lighting_history`, wall visibility caches, `_scene_cache`, `_scene_history`) are already properly bounded with cleanup on scene change. No milestone needed.
 
+**v7.2.2 patch (added during AI system review)**:
+- **F16 added**: AI system type safety & consistency — six inconsistencies where the AI codebase falls short of non-AI project standards. Five `Variant`-typed fields, silent interface stubs, raw string keys in task_state, missing debug snapshot, untyped planner context, and missing HTN null/depth diagnostics. All fixes are type annotations, constant migrations, or additive methods — no behavioral changes.
+
 The doc closes with a non-numbered reflection on `AGENTS.md` sprawl and a proposed restructuring direction.
 
 ---
@@ -46,6 +49,8 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl and a propos
 - `F11` is independent — targets event bus memory hygiene. Scope is `scripts/events/base_event_bus.gd` (the shared base class), not the `U_ECSEventBus` facade.
 - `F12` is independent (v7.2.1 addition) — trivial DRY collapse of three identical settings overlay wrappers; can run anytime.
 - `F15` is independent (v7.2.1 addition) — mirrors F7's "fail loud at load" pattern for other designer-facing resources; can run in parallel with F7 or after.
+- `F16` is independent (v7.2.2 addition) — AI system type safety & consistency. 6 commits targeting Variant-typed fields, interface stubs, task-state key constants, debug snapshot, animate docs, and grep enforcement. Partial overlap with F9 (both touch `s_ai_behavior_system.gd`); land F16 Commit 1 first.
+- `F16` is independent (v7.2.2 addition) — AI system type safety & consistency. 6 commits targeting Variant-typed fields, interface stubs, task-state key constants, debug snapshot, animate docs, and grep enforcement. Partial overlap with F9 (both touch `s_ai_behavior_system.gd`); land F16 Commit 1 first. See `cleanup-v7.2-f16-tasks.md` for full details.
 
 **Cross-milestone integration**: Run the full test suite after each milestone completes, not just the milestone's own tests. This is especially critical for the F2 → F3 → F4 sequential chain.
 
@@ -602,6 +607,84 @@ The existing `execution_priority` int can be retained as a **within-phase orderi
 - [ ] Existing resource-consumer tests green (no regression).
 
 **Dependency note**: Independent. Pattern mirrors F7 for `RS_Rule`. Can run in parallel with F7 or after.
+
+---
+
+## Milestone F16: AI System Type Safety & Consistency (v7.2.2 Addition)
+
+**Goal**: Fix six inconsistencies where the AI system falls short of non-AI project standards. No behavioral changes — type annotations, constant migrations, interface convention alignment, and additive debug methods.
+
+**Evidence** (verified against codebase):
+
+1. **Five `Variant`-typed service fields** in `S_AIBehaviorSystem` (`:28-32`) and two `Variant` parameters in `S_AIDetectionSystem._process_detection` (`:75-76`) discard static type information. Non-AI systems use concrete or interface types.
+2. **`Variant`-typed planner context** throughout `U_HTNPlanner` and `U_HTNPlannerContext.reusable_rule: Resource` (`:5`) instead of `RS_Rule`. The non-AI rule utilities (`U_RuleScorer`, `U_RuleSelector`) use typed parameters.
+3. **`I_AIAction` silent stubs** — `start()` uses `pass`, `tick()` uses `pass`, `is_complete()` returns `false` (`i_ai_action.gd:12,15,18`). Other project interfaces (`I_ECSManager`, `I_StateStore`, `I_Condition`) use `push_error("not implemented")` so unimplemented methods fail loudly.
+4. **Raw string keys in task_state** — 5 action files use 9 bare string literals (`"elapsed"`, `"scan_elapsed"`, `"scan_active"`, `"scan_rotation_speed"`, `"animation_state"`, `"animation_requested"`, `"published"`, `"completed"`, plus Variant coercion) instead of `U_AITaskStateKeys` constants. `RS_AIActionMoveTo` already uses the constants.
+5. **`C_AIBrainComponent` lacks `get_debug_snapshot()`** — `C_MovementComponent` and `C_JumpComponent` both expose debug snapshots via typed methods; `C_AIBrainComponent` exposes raw `task_state` and `suspended_goal_state` dictionaries with no encapsulated snapshot accessor.
+6. **`U_HTNPlanner._decompose_recursive` silently returns on null/depth-exceeded** — no diagnostic `push_error` for null task input (`:11`) or depth exceeded (`:25`), unlike `C_AIBrainComponent._validate_required_settings()` which uses `push_error`.
+
+**Out of scope**:
+- **Detection system generalization** (removing `ai_demo_flag` naming, adding sensor abstraction, LOS checks, memory) — that's a feature addition, not a cleanup.
+- **`RS_AIActionAnimate` behavior change** (making it wait for animation completion) — the instant-complete behavior is intentional fire-and-forget; a blocking variant would be a new action subclass.
+- **`context: Dictionary` throughout the AI pipeline** — the context dictionary is the standard ECS query result pattern; replacing it would be a major refactor beyond cleanup scope.
+
+**Scope**:
+- `scripts/ecs/systems/s_ai_behavior_system.gd` — type 5 `Variant` fields
+- `scripts/ecs/systems/s_ai_detection_system.gd` — type 2 `Variant` parameters
+- `scripts/utils/ai/u_htn_planner.gd` — type `planner_context` as `U_HTNPlannerContext`, add `push_error` guards
+- `scripts/utils/ai/u_htn_planner_context.gd` — type `reusable_rule` as `RS_Rule`
+- `scripts/interfaces/i_ai_action.gd` — replace `pass`/`return false` with `push_error` stubs
+- `scripts/utils/ai/u_ai_task_state_keys.gd` — add 8 new constants
+- `scripts/resources/ai/actions/rs_ai_action_wait.gd` — migrate raw keys, remove Variant coercion
+- `scripts/resources/ai/actions/rs_ai_action_scan.gd` — migrate raw keys, remove Variant coercion
+- `scripts/resources/ai/actions/rs_ai_action_animate.gd` — migrate raw keys, add doc comment
+- `scripts/resources/ai/actions/rs_ai_action_publish_event.gd` — migrate raw keys
+- `scripts/resources/ai/actions/rs_ai_action_set_field.gd` — migrate raw keys
+- `scripts/ecs/components/c_ai_brain_component.gd` — add `get_debug_snapshot()` / `update_debug_snapshot()`
+- `tests/unit/style/test_style_enforcement.gd` — add grep assertion for bare task-state string keys
+
+**Commits**:
+
+- [ ] **Commit 1** (GREEN) — Type AI service fields and planner context parameters:
+  - `s_ai_behavior_system.gd`: Replace 5 `Variant` fields with concrete types (`U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, `U_AIContextBuilder`, `U_DebugLogThrottle`).
+  - `s_ai_detection_system.gd`: Replace 2 `Variant` parameters in `_process_detection` with `C_DetectionComponent` and `C_MovementComponent`.
+  - `u_htn_planner.gd`: Replace `planner_context: Variant` with `planner_context: U_HTNPlannerContext` in `_decompose_recursive`, `_decompose_subtask`, `_select_branch_index`, `_method_condition_passes`. Add `push_error` for null task input and depth exceeded.
+  - `u_htn_planner_context.gd`: Type `reusable_rule: Resource` as `reusable_rule: RS_Rule`. Update `_init` parameter type.
+
+- [ ] **Commit 2** (GREEN) — Add `push_error` stubs to `I_AIAction`:
+  - `i_ai_action.gd`: Replace `pass` in `start()` and `tick()` with `push_error("I_AIAction.%s: not implemented by subclass %s" % ...)`. Add `push_error` before `return false` in `is_complete()`.
+  - Update `test_i_ai_action_base.gd`: verify stubs produce `push_error` output on unimplemented calls.
+
+- [ ] **Commit 3** (GREEN) — Migrate raw task_state string keys to `U_AITaskStateKeys` constants:
+  - `u_ai_task_state_keys.gd`: Add 8 constants: `ELAPSED`, `SCAN_ELAPSED`, `SCAN_ACTIVE`, `SCAN_ROTATION_SPEED`, `ANIMATION_STATE`, `ANIMATION_REQUESTED`, `PUBLISHED`, `COMPLETED`.
+  - `rs_ai_action_wait.gd`: Replace `"elapsed"` with `U_AI_TASK_STATE_KEYS.ELAPSED`. Remove manual Variant type coercion — `start()` writes `float`, so `float(task_state.get(...))` is sufficient.
+  - `rs_ai_action_scan.gd`: Replace `"scan_elapsed"`, `"scan_active"`, `"scan_rotation_speed"` with constants. Remove Variant coercion from elapsed reads.
+  - `rs_ai_action_animate.gd`: Replace `"animation_state"`, `"animation_requested"` with constants.
+  - `rs_ai_action_publish_event.gd`: Replace `"published"` with constant.
+  - `rs_ai_action_set_field.gd`: Replace `"completed"` with constant.
+  - Update `test_u_ai_task_state_keys.gd` with 8 new key assertions.
+
+- [ ] **Commit 4** (GREEN) — Add `get_debug_snapshot()` to `C_AIBrainComponent`:
+  - Add `var _debug_snapshot: Dictionary = {}`, `update_debug_snapshot(snapshot: Dictionary)`, `get_debug_snapshot() -> Dictionary` mirroring `C_JumpComponent` pattern.
+  - Update `S_AIBehaviorSystem._debug_log_brain_state` to build snapshot dict and call `brain.update_debug_snapshot()`.
+  - Add tests: `test_update_debug_snapshot`, `test_get_debug_snapshot_returns_copy`, `test_debug_snapshot_includes_goal_id`.
+
+- [ ] **Commit 5** (GREEN) — Document `RS_AIActionAnimate` fire-and-forget semantics:
+  - Add class-level doc comment to `rs_ai_action_animate.gd` clarifying instant-complete behavior is intentional. Note that blocking animation actions would need a different subclass.
+
+- [ ] **Commit 6** (GREEN) — Style enforcement grep test for AI task-state key constants:
+  - Add assertion to `test_style_enforcement.gd` forbidding `task_state["` (bare string key access) in `scripts/resources/ai/actions/*.gd`.
+
+**F16 Verification**:
+- [ ] All existing AI unit tests green (goal selector, task runner, replanner, context builder, HTN planner, behavior system goals/tasks, detection system).
+- [ ] All existing AI integration tests green (pipeline, goal resume, spawn recovery, interaction triggers).
+- [ ] `test_i_ai_action_base.gd` verifies `push_error` stubs.
+- [ ] `test_u_ai_task_state_keys.gd` covers 18 total constants (10 existing + 8 new).
+- [ ] `test_c_ai_brain_component.gd` covers debug snapshot methods.
+- [ ] Grep search confirms zero bare string literals in task_state access across `scripts/resources/ai/actions/`.
+- [ ] No behavioral change — type annotations, constant migrations, and doc comments only.
+
+**Dependency note**: Independent of F1–F15. Can run in parallel with any milestone that does not touch the same files. **Partial overlap with F9**: both touch `s_ai_behavior_system.gd`. Land F16 Commit 1 first (type annotations are simpler); F9 can add `SystemPhase` afterward without merge issues.
 
 ---
 
