@@ -5,8 +5,8 @@
 This guide directs you to implement Cross-System Cleanup V7.2 by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` in sequential order, respecting the dependency graph documented below. V7.2 is the follow-up to V7 (C1–C12), addressing eight concrete architectural weaknesses that C1–C12 did not target, plus three additions (F8 Phase 0, F12, F15) surfaced during pre-implementation review.
 
 **Branch**: GOAP-AI
-**Status**: F4 complete — next is **F5** (Communication Channel Taxonomy).
-**Next Task**: Begin **F5** per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
+**Status**: F4 complete — **F5 planned, ready to implement** (Communication Channel Taxonomy).
+**Next Task**: Begin **F5 Commit 1** (RED grep tests) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
 **Prerequisite**: Full C1–C12 test suite green (desktop + mobile) before starting F2.
 
 ---
@@ -132,20 +132,25 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 
 ## Milestone F5: Communication Channel Taxonomy
 
-**Goal**: Pick one channel per concern and document the rule in an ADR. Redux for durable state, `U_ECSEventBus` for fire-and-forget transients, Godot signals for intra-component/manager wiring.
+**Goal**: Enforce "if you're a manager, dispatch to Redux." Managers must not call `U_ECSEventBus.publish`. ECS-originated events stay on the bus regardless of subscriber. Rule documented in `docs/adr/0001-channel-taxonomy.md` and enforced by grep test in CI.
 
-- [ ] **Commit 1** (RED) — Style enforcement tests for the channel rule (start failing).
-- [ ] **Commit 2** (GREEN) — Create `docs/adr/` directory (does not exist yet). Write `docs/adr/0001-channel-taxonomy.md`. Add pointer to `AGENTS.md`.
-- [ ] **Commit 3** (GREEN) — Audit and migrate violations. Update allow-list for documented intentional exceptions.
-- [ ] **Commit 4** (GREEN) — Enable grep tests in CI. Zero violations at land.
+**Taxonomy (Option B — publisher-based)**:
+- ECS component/system → `U_ECSEventBus` (subscribers can be anywhere)
+- Manager → Redux dispatch only
+- Manager-UI wiring → Godot signals
+- Everything else → method calls
 
-**F5 Verification**:
-- [ ] ADR written and linked from `AGENTS.md`.
-- [ ] Style enforcement grep tests green.
-- [ ] At least one concrete migration committed (candidate: `m_scene_manager` victory routing — consolidate Redux/ECS-bus/signal trio into one channel).
-- [ ] Existing test suite green.
+**4 managers to migrate**: `m_save_manager` (new save actions), `m_objectives_manager` (delete 3 dead-code publishes + migrate victory routing to `ACTION_TRIGGER_VICTORY_ROUTING`), `m_vcam_manager` (remove 4 redundant ECS publishes), `m_scene_director_manager` (remove 3 redundant ECS publishes). `m_scene_manager` moves from ECS subscription to Redux for victory routing.
 
-**Dependency note**: Depends on F3 (parallel mutation paths removed) so the "Redux is the only state channel" rule is enforceable without exception.
+- [ ] **Commit 1** (RED) — 3 grep tests: managers-don't-publish (fails), scene-manager-no-victory-ECS-sub (fails), manager-signals-allow-list (passes).
+- [ ] **Commit 2** (GREEN) — `docs/adr/0001-channel-taxonomy.md` + `AGENTS.md` pointer.
+- [ ] **Commit 3a** (GREEN) — `m_save_manager` + new `u_save_actions.gd` + `ui_hud_controller` migration.
+- [ ] **Commit 3b** (GREEN) — `m_objectives_manager` + victory routing (`m_scene_manager`, `s_victory_handler_system`, `ACTION_TRIGGER_VICTORY_ROUTING`).
+- [ ] **Commit 3c** (GREEN) — `m_vcam_manager` redundant ECS publishes removed.
+- [ ] **Commit 3d** (GREEN) — `m_scene_director_manager` redundant ECS publishes removed.
+- [ ] **Commit 4** (GREEN) — Enable enforcement. 41/41 style tests green.
+
+**Dependency note**: Depends on F3.
 
 ---
 

@@ -201,44 +201,50 @@ Declarations drift silently out of sync with reality because the check fails ope
 
 ## Milestone F5: Communication Channel Taxonomy
 
-**Goal**: Pick one channel per concern and document the rule. Without this, every new feature re-litigates Redux vs `U_ECSEventBus` vs Godot signal, and `AGENTS.md` keeps accumulating "Phase X ordering contract" notes.
+**Goal**: Pick one channel per concern and document the rule. One-sentence rule: **"If you're a manager, dispatch to Redux."** Enforced by grep test — managers must not call `U_ECSEventBus.publish`.
 
-**Evidence of the problem (measured at the start of v7.2)**:
-- **278** `store.dispatch` / `_store.dispatch` call sites
-- **24** `U_ECSEventBus.publish` + **22** `U_ECSEventBus.subscribe` sites
-- Godot signals on `M_ECSManager` (`component_added/removed`), `M_StateStore` (`slice_updated`, `action_dispatched`), `M_SceneManager` (`transition_visual_complete`)
-- `m_scene_manager.gd` uses **all four at once** — dispatches `scene_swapped`, emits `transition_visual_complete`, subscribes to `EVENT_OBJECTIVE_VICTORY_TRIGGERED`, and calls `U_ServiceLocator.try_get_service` for camera manager fallback
+**Adopted taxonomy (Option B — publisher-based rule)**:
 
-**Proposed rule** (to be documented in a new ADR):
-
-| Concern | Channel |
+| Publisher | Channel |
 |---|---|
-| Durable cross-frame state (anything reducible, anything a UI reads from state) | **Redux dispatch** only |
-| Fire-and-forget transient notifications (VFX/SFX requests, one-shot events that don't belong in state) | **`U_ECSEventBus`** |
-| Intra-component / intra-manager wiring (signal-based reactivity between a component and its owner) | **Godot signals** |
+| ECS component or system | **`U_ECSEventBus`** — subscribers can be anywhere |
+| Manager | **Redux dispatch** only |
+| Intra-manager / manager-UI wiring | **Godot signals** |
 | Everything else | **Method calls** |
 
-**Scope**:
-- New: `docs/adr/0001-channel-taxonomy.md` — the decision record (formatted as an ADR: Context / Decision / Consequences). **Note: `docs/adr/` directory does not exist yet — create it in Commit 2.**
-- `AGENTS.md` — add a slim "Channel taxonomy" pointer referencing the ADR (no detail duplication).
-- `tests/unit/style/test_style_enforcement.gd` — new grep assertions:
-  - No `U_ECSEventBus.publish` with event names matching patterns that look like durable state (`*_state`, `*_set`, `*_progress`, `*_changed` where the name describes state rather than an event).
-  - Manager classes (files under `scripts/managers/`) should not declare `signal` members intended for cross-manager communication; cross-manager talk uses Redux or the ECS bus.
-  - (Allow-list exceptions: `M_StateStore.slice_updated`, `M_StateStore.action_dispatched`, `M_StateStore.store_ready`, `M_ECSManager.component_added/removed`, `M_SceneManager.transition_visual_complete` — these are documented exceptions to the rule.)
+**What does NOT change** — ECS-originated events stay on the bus regardless of subscriber:
+- `c_health_component` → `health_changed` → `s_screen_shake_publisher_system` ✓
+- `s_screen_shake_publisher_system` → `screen_shake_request` → `m_vfx_manager` ✓
+- `s_checkpoint_handler_system` → `checkpoint_activated` → `ui_hud_controller` ✓
+
+**4 managers to migrate**:
+1. `m_save_manager` — add `u_save_actions.gd` (ACTION_SAVE_STARTED/COMPLETED/FAILED), replace ECS publishes with Redux dispatch, migrate `ui_hud_controller` save subscriptions to `action_dispatched` signal.
+2. `m_objectives_manager` — delete 3 dead-code dual-publishes (objective_activated/completed/failed). Replace `EVENT_OBJECTIVE_VICTORY_TRIGGERED` publish with `ACTION_TRIGGER_VICTORY_ROUTING` Redux dispatch (new action + `victory_target_scene` field in gameplay slice). Remove `EVENT_VICTORY_EXECUTED` subscription; react to `ACTION_TRIGGER_VICTORY` from Redux instead.
+3. `m_vcam_manager` — remove 4 redundant ECS publishes (vcam_active_changed/blend_started/blend_completed/recovery). Remove same from `u_vcam_runtime_state.gd`. Redux already carries this state.
+4. `m_scene_director_manager` — remove 3 redundant ECS publishes (directive_started/completed/beat_advanced). Redux already carries this state.
+
+`m_scene_manager` victory routing: remove `EVENT_OBJECTIVE_VICTORY_TRIGGERED` ECS subscription; subscribe to `ACTION_TRIGGER_VICTORY_ROUTING` Redux action dispatch instead.
 
 **Commits**:
-- [ ] **Commit 1** (RED) — Style enforcement tests for the channel rule. Start with them failing against current code.
-- [ ] **Commit 2** (GREEN) — Write `docs/adr/0001-channel-taxonomy.md`. Add the pointer to `AGENTS.md`. Review with the team/self before migration.
-- [ ] **Commit 3** (GREEN) — Audit current violations. For each `U_ECSEventBus.publish` that looks like durable state, migrate to a reducer+action. For each manager `signal` that exists for cross-manager talk, migrate to an action or an ECS-bus event. Update the allow-list for documented intentional exceptions.
-- [ ] **Commit 4** (GREEN) — Enable the grep tests in CI. Zero violations at land.
+- [ ] **Commit 1** (RED) — 3 enforcement tests in `test_style_enforcement.gd`:
+  - `test_managers_do_not_publish_to_ecs_bus` — grep `scripts/managers/` for `U_ECSEventBus.publish` / `U_ECS_EVENT_BUS.publish`. Fails today (4 violating managers).
+  - `test_scene_manager_does_not_subscribe_to_victory_ecs_event` — assert `EVENT_OBJECTIVE_VICTORY_TRIGGERED` absent from m_scene_manager subscribe calls. Fails today.
+  - `test_manager_signals_stay_within_allow_list` — grep `scripts/managers/` for signal declarations, assert all in allow-list. Passes today (future enforcement).
+- [ ] **Commit 2** (GREEN) — Create `docs/adr/` directory + `docs/adr/0001-channel-taxonomy.md`. Add pointer to `AGENTS.md`.
+- [ ] **Commit 3a** (GREEN) — Migrate `m_save_manager` (new `u_save_actions.gd`, update `ui_hud_controller`).
+- [ ] **Commit 3b** (GREEN) — Migrate `m_objectives_manager` + victory routing (`m_scene_manager`, `s_victory_handler_system`, new `ACTION_TRIGGER_VICTORY_ROUTING`).
+- [ ] **Commit 3c** (GREEN) — Migrate `m_vcam_manager` (remove redundant ECS publishes).
+- [ ] **Commit 3d** (GREEN) — Migrate `m_scene_director_manager` (remove redundant ECS publishes).
+- [ ] **Commit 4** (GREEN) — Enable enforcement grep tests. Full suite green. 41/41 style tests.
 
 **F5 Verification**:
+- [ ] `grep -rn "U_ECSEventBus.publish\|U_ECS_EVENT_BUS.publish" scripts/managers/` → zero hits.
 - [ ] ADR written and linked from `AGENTS.md`.
-- [ ] Style enforcement grep tests green.
-- [ ] At least one concrete migration committed as an example (candidate: `m_scene_manager` victory routing — consolidate the Redux/ECS-bus/signal trio into one channel).
-- [ ] Existing test suite green.
+- [ ] Style enforcement grep tests green (41/41).
+- [ ] Full test suite green (unit + integration).
+- [ ] Manual: save spinner, checkpoint toast, and victory scene transition all work correctly.
 
-**Dependency note**: Depends on F3 (parallel mutation paths removed) so the "Redux is the only state channel" rule is enforceable without exception.
+**Dependency note**: Depends on F3 (parallel mutation paths removed).
 
 ---
 
