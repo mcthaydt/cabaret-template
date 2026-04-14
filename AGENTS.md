@@ -52,6 +52,7 @@
 - `scripts/utils/scene_director/u_objective_event_log.gd`: Objective transition log helper (timestamped entries + readable formatting).
 - `scripts/utils/scene_director/u_beat_graph.gd`: Beat-flow graph validator/helper (ID/reference checks, cycle detection, ID->index map).
 - `scripts/events/ecs/`: ECS event bus + typed ECS events; `scripts/events/state/` holds `U_StateEventBus` (state-domain bus).
+- `docs/adr/0001-channel-taxonomy.md`: Channel taxonomy ADR — managers dispatch to Redux only; ECS components/systems publish to `U_ECSEventBus`.
 - `scenes/root.tscn`: Main scene (persistent managers + containers).
 - `scenes/gameplay/*`: Gameplay scenes (dynamic loading, own M_ECSManager).
 - `tests/unit/*`: GUT test suites for ECS and state management.
@@ -84,6 +85,17 @@
   - Always validate beat arrays with `U_BeatGraph.validate(...)` before runner start; skip invalid directives at runtime.
   - Parallel support is single-hop fork/join only (lane beats must not define their own `parallel_beat_ids`).
   - Redux observability uses `scene_director.current_beat_id`, `active_beat_ids`, and `parallel_lane_ids` in addition to `current_beat_index`.
+
+## Communication Channel Taxonomy (F5)
+
+Per `docs/adr/0001-channel-taxonomy.md`, the project enforces a publisher-based channel rule:
+
+- **ECS component/system → `U_ECSEventBus`**: subscribers can be anywhere (manager, UI, other systems).
+- **Manager → Redux dispatch only**: managers must not call `U_ECSEventBus.publish`. State changes flow through `M_StateStore.dispatch()` for action history, validation, and subscriber batching.
+- **Intra-manager / manager-UI wiring → Godot signals**: only allow-listed signal declarations permitted (enforced by `test_manager_signals_allow_list`).
+- **Everything else → method calls**.
+
+**Exception**: `m_ecs_manager.gd` may publish to `U_ECSEventBus` (entity_registered/unregistered) because it IS the ECS infrastructure.
 
 ## ECS Guidelines
 
