@@ -26,6 +26,7 @@ const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.g
 const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/u_save_migration_engine.gd")
 const U_SCREENSHOT_CAPTURE := preload("res://scripts/managers/helpers/u_screenshot_capture.gd")
 const U_SAVE_VALIDATOR := preload("res://scripts/utils/u_save_validator.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
 
 ## Save file format version
 const SAVE_VERSION := 1
@@ -229,12 +230,9 @@ func save_to_slot(slot_id: StringName) -> Error:
 	# Set lock
 	_is_saving = true
 
-	# Emit save_started event
+	# Dispatch save_started action (Redux per channel taxonomy)
 	var is_autosave: bool = (slot_id == SLOT_AUTOSAVE)
-	U_ECSEventBus.publish(StringName("save_started"), {
-		"slot_id": slot_id,
-		"is_autosave": is_autosave
-	})
+	_state_store.dispatch(U_SAVE_ACTIONS.save_started(slot_id, is_autosave))
 
 	# Get persistable state (transient fields already filtered)
 	var state: Dictionary = _state_store.get_persistable_state()
@@ -263,18 +261,11 @@ func save_to_slot(slot_id: StringName) -> Error:
 	# Clear lock
 	_is_saving = false
 
-	# Emit completion event
+	# Dispatch completion action (Redux per channel taxonomy)
 	if result == OK:
-		U_ECSEventBus.publish(StringName("save_completed"), {
-			"slot_id": slot_id,
-			"is_autosave": is_autosave
-		})
+		_state_store.dispatch(U_SAVE_ACTIONS.save_completed(slot_id, is_autosave))
 	else:
-		U_ECSEventBus.publish(StringName("save_failed"), {
-			"slot_id": slot_id,
-			"is_autosave": is_autosave,
-			"error_code": result
-		})
+		_state_store.dispatch(U_SAVE_ACTIONS.save_failed(slot_id, is_autosave, result))
 
 	return result
 

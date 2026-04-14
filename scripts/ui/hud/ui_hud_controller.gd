@@ -7,6 +7,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_conf
 const RS_UI_MOTION_SET := preload("res://scripts/resources/ui/rs_ui_motion_set.gd")
 const RS_UI_MOTION_PRESET := preload("res://scripts/resources/ui/rs_ui_motion_preset.gd")
 const U_UI_MOTION := preload("res://scripts/ui/utils/u_ui_motion.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
 
 @export var checkpoint_toast_motion_set: Resource = preload("res://resources/ui/motions/cfg_motion_hud_checkpoint_toast.tres")
 @export var signpost_fade_in_preset: Resource = preload("res://resources/ui/motions/cfg_motion_hud_signpost_fade_in.tres")
@@ -48,9 +49,6 @@ var _unsubscribe_checkpoint: Callable
 var _unsubscribe_interact_prompt_show: Callable
 var _unsubscribe_interact_prompt_hide: Callable
 var _unsubscribe_signpost: Callable
-var _unsubscribe_save_started: Callable
-var _unsubscribe_save_completed: Callable
-var _unsubscribe_save_failed: Callable
 var _active_prompt_id: int = 0
 var _last_prompt_key: StringName = &"hud.interact_default"
 var _last_prompt_action: StringName = StringName("interact")
@@ -94,10 +92,9 @@ func _complete_initialization() -> void:
 	_unsubscribe_interact_prompt_hide = U_ECSEventBus.subscribe(StringName("interact_prompt_hide"), _on_interact_prompt_hide)
 	_unsubscribe_signpost = U_ECSEventBus.subscribe(StringName("signpost_message"), _on_signpost_message)
 
-	# Subscribe to save events for autosave feedback (Phase 11)
-	_unsubscribe_save_started = U_ECSEventBus.subscribe(StringName("save_started"), _on_save_started)
-	_unsubscribe_save_completed = U_ECSEventBus.subscribe(StringName("save_completed"), _on_save_completed)
-	_unsubscribe_save_failed = U_ECSEventBus.subscribe(StringName("save_failed"), _on_save_failed)
+	# Subscribe to save actions via Redux (channel taxonomy: managers dispatch to Redux)
+	if _store != null and _store.has_signal("action_dispatched"):
+		_store.action_dispatched.connect(_on_action_dispatched)
 	_update_display(_store.get_state())
 
 func _process(delta: float) -> void:
@@ -118,12 +115,9 @@ func _exit_tree() -> void:
 		_unsubscribe_interact_prompt_hide.call()
 	if _unsubscribe_signpost != null and _unsubscribe_signpost.is_valid():
 		_unsubscribe_signpost.call()
-	if _unsubscribe_save_started != null and _unsubscribe_save_started.is_valid():
-		_unsubscribe_save_started.call()
-	if _unsubscribe_save_completed != null and _unsubscribe_save_completed.is_valid():
-		_unsubscribe_save_completed.call()
-	if _unsubscribe_save_failed != null and _unsubscribe_save_failed.is_valid():
-		_unsubscribe_save_failed.call()
+	if _store != null and _store.has_signal("action_dispatched"):
+		if _store.action_dispatched.is_connected(_on_action_dispatched):
+			_store.action_dispatched.disconnect(_on_action_dispatched)
 
 func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> void:
 	if _store == null:
@@ -675,47 +669,20 @@ func _append_motion_preset_step(tween: Tween, target: Node, preset_resource: Res
 
 ## Phase 11: Save event handlers for autosave feedback
 
-func _on_save_started(payload: Variant) -> void:
-	# Show autosave spinner only for autosaves (not manual saves from menu)
-	if typeof(payload) != TYPE_DICTIONARY:
-		return
-	var event: Dictionary = payload
-	var inner_payload: Variant = event.get("payload", {})
-	if typeof(inner_payload) != TYPE_DICTIONARY:
-		return
-	var data: Dictionary = inner_payload
-	var is_autosave: bool = data.get("is_autosave", false)
+## Channel taxonomy: save actions arrive via Redux dispatch (managers dispatch to Redux)
+func _on_action_dispatched(action: Dictionary) -> void:
+	var action_type: StringName = action.get("type", StringName(""))
+	var is_autosave: bool = action.get("is_autosave", false)
 
-	if is_autosave:
-		_show_autosave_spinner()
-
-func _on_save_completed(payload: Variant) -> void:
-	# Hide autosave spinner only for autosaves
-	if typeof(payload) != TYPE_DICTIONARY:
-		return
-	var event: Dictionary = payload
-	var inner_payload: Variant = event.get("payload", {})
-	if typeof(inner_payload) != TYPE_DICTIONARY:
-		return
-	var data: Dictionary = inner_payload
-	var is_autosave: bool = data.get("is_autosave", false)
-
-	if is_autosave:
-		_request_hide_autosave_spinner()
-
-func _on_save_failed(payload: Variant) -> void:
-	# Hide autosave spinner on autosave failures.
-	if typeof(payload) != TYPE_DICTIONARY:
-		return
-	var event: Dictionary = payload
-	var inner_payload: Variant = event.get("payload", {})
-	if typeof(inner_payload) != TYPE_DICTIONARY:
-		return
-	var data: Dictionary = inner_payload
-	var is_autosave: bool = data.get("is_autosave", false)
-
-	if is_autosave:
-		_request_hide_autosave_spinner()
+	if action_type == U_SAVE_ACTIONS.ACTION_SAVE_STARTED:
+		if is_autosave:
+			_show_autosave_spinner()
+	elif action_type == U_SAVE_ACTIONS.ACTION_SAVE_COMPLETED:
+		if is_autosave:
+			_request_hide_autosave_spinner()
+	elif action_type == U_SAVE_ACTIONS.ACTION_SAVE_FAILED:
+		if is_autosave:
+			_request_hide_autosave_spinner()
 
 func _is_paused(state: Dictionary) -> bool:
 	var navigation_state: Dictionary = state.get("navigation", {})

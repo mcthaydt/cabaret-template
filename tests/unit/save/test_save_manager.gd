@@ -3,6 +3,7 @@ extends BaseTest
 const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
 const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
 
@@ -366,7 +367,7 @@ func test_save_to_slot_rejects_when_already_saving() -> void:
 	var result: Error = _save_manager.save_to_slot(StringName("slot_01"))
 	assert_eq(result, ERR_BUSY, "save_to_slot should return ERR_BUSY when already saving")
 
-func test_save_to_slot_emits_save_started_event() -> void:
+func test_save_to_slot_dispatches_save_started_action() -> void:
 	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
@@ -377,28 +378,26 @@ func test_save_to_slot_emits_save_started_event() -> void:
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
 	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
 
-	# Subscribe to save_started event (use Array to capture mutable state)
-	var event_data: Array = [false, null]  # [received, event]
-	U_ECSEventBus.subscribe(StringName("save_started"), func(event: Variant) -> void:
-		event_data[0] = true
-		event_data[1] = event
+	# Listen for save_started via action_dispatched (channel taxonomy: managers dispatch to Redux)
+	var action_data: Array = [false, null]  # [received, action]
+	_mock_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type") == U_SAVE_ACTIONS.ACTION_SAVE_STARTED:
+			action_data[0] = true
+			action_data[1] = action
 	)
 
 	# Perform save
 	_save_manager.save_to_slot(StringName("slot_01"))
 
-	# Verify event was published
-	assert_true(event_data[0], "save_started event should be published")
-	assert_true(event_data[1] is Dictionary, "Event should be a Dictionary")
+	# Verify action was dispatched
+	assert_true(action_data[0], "save_started action should be dispatched")
+	assert_true(action_data[1] is Dictionary, "Action should be a Dictionary")
 
-	# Extract payload from event wrapper
-	var event: Dictionary = event_data[1] as Dictionary
-	var payload: Dictionary = event.get("payload", {}) as Dictionary
+	var action: Dictionary = action_data[1] as Dictionary
+	assert_eq(action.get("slot_id"), StringName("slot_01"), "Action should include slot_id")
+	assert_false(action.get("is_autosave", true), "Manual save should have is_autosave=false")
 
-	assert_eq(payload.get("slot_id"), StringName("slot_01"), "Event payload should include slot_id")
-	assert_false(payload.get("is_autosave", true), "Manual save should have is_autosave=false")
-
-func test_save_to_slot_emits_save_completed_event() -> void:
+func test_save_to_slot_dispatches_save_completed_action() -> void:
 	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
@@ -409,28 +408,26 @@ func test_save_to_slot_emits_save_completed_event() -> void:
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
 	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
 
-	# Subscribe to save_completed event (use Array to capture mutable state)
-	var event_data: Array = [false, null]  # [received, event]
-	U_ECSEventBus.subscribe(StringName("save_completed"), func(event: Variant) -> void:
-		event_data[0] = true
-		event_data[1] = event
+	# Listen for save_completed via action_dispatched (channel taxonomy)
+	var action_data: Array = [false, null]  # [received, action]
+	_mock_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type") == U_SAVE_ACTIONS.ACTION_SAVE_COMPLETED:
+			action_data[0] = true
+			action_data[1] = action
 	)
 
 	# Perform save
 	_save_manager.save_to_slot(StringName("slot_01"))
 
-	# Verify event was published
-	assert_true(event_data[0], "save_completed event should be published on success")
-	assert_true(event_data[1] is Dictionary, "Event should be a Dictionary")
+	# Verify action was dispatched
+	assert_true(action_data[0], "save_completed action should be dispatched on success")
+	assert_true(action_data[1] is Dictionary, "Action should be a Dictionary")
 
-	# Extract payload from event wrapper
-	var event: Dictionary = event_data[1] as Dictionary
-	var payload: Dictionary = event.get("payload", {}) as Dictionary
+	var action: Dictionary = action_data[1] as Dictionary
+	assert_eq(action.get("slot_id"), StringName("slot_01"), "Action should include slot_id")
+	assert_false(action.get("is_autosave", true), "Manual save should have is_autosave=false")
 
-	assert_eq(payload.get("slot_id"), StringName("slot_01"), "Event payload should include slot_id")
-	assert_false(payload.get("is_autosave", true), "Manual save should have is_autosave=false")
-
-func test_autosave_emits_save_completed_event_with_is_autosave_true() -> void:
+func test_autosave_dispatches_save_completed_action_with_is_autosave_true() -> void:
 	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
@@ -441,24 +438,23 @@ func test_autosave_emits_save_completed_event_with_is_autosave_true() -> void:
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
 	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
 
-	var event_data: Array = [false, null]  # [received, event]
-	U_ECSEventBus.subscribe(StringName("save_completed"), func(event: Variant) -> void:
-		event_data[0] = true
-		event_data[1] = event
+	var action_data: Array = [false, null]  # [received, action]
+	_mock_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type") == U_SAVE_ACTIONS.ACTION_SAVE_COMPLETED:
+			action_data[0] = true
+			action_data[1] = action
 	)
 
 	_save_manager.request_autosave()
 
-	assert_true(event_data[0], "save_completed event should be published for autosave")
-	assert_true(event_data[1] is Dictionary, "Event should be a Dictionary")
+	assert_true(action_data[0], "save_completed action should be dispatched for autosave")
+	assert_true(action_data[1] is Dictionary, "Action should be a Dictionary")
 
-	var event: Dictionary = event_data[1] as Dictionary
-	var payload: Dictionary = event.get("payload", {}) as Dictionary
+	var action: Dictionary = action_data[1] as Dictionary
+	assert_eq(action.get("slot_id"), StringName("autosave"), "Autosave completion should report autosave slot")
+	assert_true(action.get("is_autosave", false), "Autosave completion should include is_autosave=true")
 
-	assert_eq(payload.get("slot_id"), StringName("autosave"), "Autosave completion should report autosave slot")
-	assert_true(payload.get("is_autosave", false), "Autosave completion should include is_autosave=true")
-
-func test_save_to_slot_emits_save_failed_event_with_is_autosave_flag() -> void:
+func test_save_to_slot_dispatches_save_failed_action_with_is_autosave_flag() -> void:
 	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
@@ -473,24 +469,23 @@ func test_save_to_slot_emits_save_failed_event_with_is_autosave_flag() -> void:
 	var missing_dir: String = "user://phase2_missing_%d/nested/" % Time.get_ticks_msec()
 	_save_manager.set("_save_dir", missing_dir)
 
-	var event_data: Array = [false, null]  # [received, event]
-	U_ECSEventBus.subscribe(StringName("save_failed"), func(event: Variant) -> void:
-		event_data[0] = true
-		event_data[1] = event
+	var action_data: Array = [false, null]  # [received, action]
+	_mock_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type") == U_SAVE_ACTIONS.ACTION_SAVE_FAILED:
+			action_data[0] = true
+			action_data[1] = action
 	)
 
 	var result: Error = _save_manager.save_to_slot(StringName("slot_01"))
 
 	assert_ne(result, OK, "Save should fail when writing to read-only path")
-	assert_true(event_data[0], "save_failed event should be published")
-	assert_true(event_data[1] is Dictionary, "Event should be a Dictionary")
+	assert_true(action_data[0], "save_failed action should be dispatched")
+	assert_true(action_data[1] is Dictionary, "Action should be a Dictionary")
 	assert_push_error("Failed to open temporary file for writing")
 
-	var event: Dictionary = event_data[1] as Dictionary
-	var payload: Dictionary = event.get("payload", {}) as Dictionary
-
-	assert_eq(payload.get("slot_id"), StringName("slot_01"), "save_failed payload should include slot_id")
-	assert_false(payload.get("is_autosave", true), "Manual save failure should include is_autosave=false")
+	var action: Dictionary = action_data[1] as Dictionary
+	assert_eq(action.get("slot_id"), StringName("slot_01"), "save_failed action should include slot_id")
+	assert_false(action.get("is_autosave", true), "Manual save failure should include is_autosave=false")
 
 func test_save_to_slot_sets_and_clears_is_saving_lock() -> void:
 	_save_manager = _create_save_manager()
@@ -1322,9 +1317,10 @@ func test_is_locked_returns_true_when_saving() -> void:
 
 	# Use array to capture state (workaround for GDScript lambda capture-by-value)
 	var event_state: Array = [false, false]  # [save_started, lock_during_save]
-	U_ECSEventBus.subscribe(StringName("save_started"), func(_event: Dictionary) -> void:
-		event_state[0] = true  # save_started
-		event_state[1] = _save_manager.is_locked()  # lock_during_save
+	_mock_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type") == U_SAVE_ACTIONS.ACTION_SAVE_STARTED:
+			event_state[0] = true  # save_started
+			event_state[1] = _save_manager.is_locked()  # lock_during_save
 	)
 
 	_save_manager.save_to_slot(StringName("slot_01"))

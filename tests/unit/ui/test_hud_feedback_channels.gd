@@ -1,6 +1,7 @@
 extends GutTest
 
 const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
+const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
 
 var _store: M_StateStore
 var _hud: CanvasLayer
@@ -81,7 +82,7 @@ func test_phase4_routing_moves_signpost_to_dedicated_panel_and_keeps_autosave_sp
 	assert_true(signpost_panel_container.visible, "Signpost should use dedicated signpost panel channel in Phase 4")
 	assert_eq(signpost_message_label.text, "Signpost text", "Signpost panel should render signpost message text")
 
-	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	_store.dispatch(U_SAVE_ACTIONS.save_started(StringName("autosave"), true))
 	await _await_frames(1)
 	assert_false(checkpoint_toast_container.visible, "Autosave should not use checkpoint toast channel in Phase 2")
 	assert_true(autosave_spinner_container.visible, "Autosave should show spinner channel in Phase 2")
@@ -137,7 +138,7 @@ func test_signpost_panel_path_uses_interact_blocker_but_autosave_spinner_stays_n
 	assert_false(signpost_panel_container.visible, "Signpost panel should auto-hide")
 	assert_false(U_InteractBlocker.is_blocked(), "Signpost blocker should clear after hide + cooldown")
 
-	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	_store.dispatch(U_SAVE_ACTIONS.save_started(StringName("autosave"), true))
 	await _await_frames(1)
 	assert_true(autosave_spinner_container.visible, "Autosave spinner should show")
 	assert_false(U_InteractBlocker.is_blocked(), "Autosave spinner should not block interaction")
@@ -176,25 +177,21 @@ func test_autosave_spinner_lifecycle_hides_on_completion_and_failure() -> void:
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
 	var signpost_panel_container: Control = _hud.get_node("SignpostPanelContainer")
 
-	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	_store.dispatch(U_SAVE_ACTIONS.save_started(StringName("autosave"), true))
 	await _await_frames(1)
 	assert_true(autosave_spinner_container.visible, "Autosave spinner should show on autosave start")
 	assert_false(checkpoint_toast_container.visible, "Checkpoint toast should remain hidden for autosave start")
 	assert_false(signpost_panel_container.visible, "Signpost panel should remain hidden for autosave start")
 
-	U_ECSEventBus.publish(StringName("save_completed"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	_store.dispatch(U_SAVE_ACTIONS.save_completed(StringName("autosave"), true))
 	await _await_seconds(0.4)
 	assert_false(autosave_spinner_container.visible, "Autosave spinner should hide on autosave completion")
 
-	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	_store.dispatch(U_SAVE_ACTIONS.save_started(StringName("autosave"), true))
 	await _await_frames(1)
 	assert_true(autosave_spinner_container.visible, "Autosave spinner should show again on subsequent start")
 
-	U_ECSEventBus.publish(StringName("save_failed"), {
-		"slot_id": StringName("autosave"),
-		"is_autosave": true,
-		"error_code": ERR_CANT_CREATE
-	})
+	_store.dispatch(U_SAVE_ACTIONS.save_failed(StringName("autosave"), true, ERR_CANT_CREATE))
 	await _await_seconds(0.4)
 	assert_false(autosave_spinner_container.visible, "Autosave spinner should hide on autosave failure")
 	assert_false(checkpoint_toast_container.visible, "Checkpoint toast should remain hidden on autosave failure")
@@ -204,12 +201,12 @@ func test_autosave_spinner_path_does_not_use_interact_blocker() -> void:
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
 	assert_false(U_InteractBlocker.is_blocked(), "Interact blocker should start unblocked")
 
-	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	_store.dispatch(U_SAVE_ACTIONS.save_started(StringName("autosave"), true))
 	await _await_frames(1)
 	assert_true(autosave_spinner_container.visible, "Autosave spinner should show")
 	assert_false(U_InteractBlocker.is_blocked(), "Autosave spinner should not block interaction")
 
-	U_ECSEventBus.publish(StringName("save_completed"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	_store.dispatch(U_SAVE_ACTIONS.save_completed(StringName("autosave"), true))
 	await _await_frames(1)
 	assert_false(U_InteractBlocker.is_blocked(), "Autosave completion should not alter interact blocker state")
 
@@ -223,7 +220,7 @@ func test_autosave_spinner_uses_svg_icon_and_animates_while_visible() -> void:
 	assert_false(autosave_spinner_container.visible, "Autosave spinner should start hidden")
 	assert_eq(spinner_icon.rotation_degrees, 0.0, "Spinner icon should start unrotated")
 
-	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	_store.dispatch(U_SAVE_ACTIONS.save_started(StringName("autosave"), true))
 	await _await_frames(1)
 	assert_true(autosave_spinner_container.visible, "Autosave spinner should show when autosave starts")
 	var initial_rotation: float = spinner_icon.rotation_degrees
@@ -232,7 +229,7 @@ func test_autosave_spinner_uses_svg_icon_and_animates_while_visible() -> void:
 	assert_true(absf(spinner_icon.rotation_degrees - initial_rotation) > 0.01,
 		"Spinner icon rotation should animate while autosave spinner is active")
 
-	U_ECSEventBus.publish(StringName("save_completed"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	_store.dispatch(U_SAVE_ACTIONS.save_completed(StringName("autosave"), true))
 	await _await_seconds(0.4)
 	assert_false(autosave_spinner_container.visible, "Autosave spinner should hide after autosave completion")
 	assert_eq(spinner_icon.rotation_degrees, 0.0, "Spinner icon should reset rotation when hidden")
@@ -241,19 +238,15 @@ func test_manual_save_events_do_not_toggle_autosave_spinner() -> void:
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
 	assert_false(autosave_spinner_container.visible, "Autosave spinner should start hidden")
 
-	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("slot_01"), "is_autosave": false})
+	_store.dispatch(U_SAVE_ACTIONS.save_started(StringName("slot_01"), false))
 	await _await_frames(1)
 	assert_false(autosave_spinner_container.visible, "Manual save start should not show autosave spinner")
 
-	U_ECSEventBus.publish(StringName("save_completed"), {"slot_id": StringName("slot_01"), "is_autosave": false})
+	_store.dispatch(U_SAVE_ACTIONS.save_completed(StringName("slot_01"), false))
 	await _await_frames(1)
 	assert_false(autosave_spinner_container.visible, "Manual save completion should not affect autosave spinner")
 
-	U_ECSEventBus.publish(StringName("save_failed"), {
-		"slot_id": StringName("slot_01"),
-		"is_autosave": false,
-		"error_code": ERR_CANT_CREATE
-	})
+	_store.dispatch(U_SAVE_ACTIONS.save_failed(StringName("slot_01"), false, ERR_CANT_CREATE))
 	await _await_frames(1)
 	assert_false(autosave_spinner_container.visible, "Manual save failure should not affect autosave spinner")
 
