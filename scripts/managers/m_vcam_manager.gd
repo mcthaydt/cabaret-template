@@ -225,7 +225,6 @@ func _set_active_vcam_internal(next_vcam_id: StringName) -> void:
 	var active_mode := _get_mode_name_for_vcam(next_vcam_id)
 	_dispatch_active_runtime(next_vcam_id, active_mode)
 	_configure_live_blend_transition(previous_vcam_id, next_vcam_id, blend_duration_override)
-	_publish_active_changed(next_vcam_id, previous_vcam_id, active_mode)
 
 func _configure_live_blend_transition(
 	from_vcam_id: StringName,
@@ -258,11 +257,9 @@ func _configure_live_blend_transition(
 	var status: String = str(configure_result.get("status", ""))
 	if status == "started":
 		_dispatch_blend_started(from_vcam_id)
-		_publish_blend_started(from_vcam_id, to_vcam_id, float(configure_result.get("duration", 0.0)))
 		return
 	if status == "completed":
 		_dispatch_blend_complete()
-		_publish_blend_completed(to_vcam_id)
 
 func _resolve_live_blend_settings(vcam_id: StringName, duration_override: float) -> Dictionary:
 	var settings: Dictionary = _resolve_startup_blend_settings(vcam_id)
@@ -297,7 +294,6 @@ func _advance_live_blend(delta: float) -> void:
 		return
 	if status == "completed":
 		_dispatch_blend_complete()
-		_publish_blend_completed(_active_vcam_id)
 
 func _recover_invalid_live_blend_members() -> void:
 	if not _blend_manager.is_active():
@@ -316,7 +312,6 @@ func _recover_invalid_live_blend_members() -> void:
 	_record_recovery(str(recovery_result.get("reason", "")))
 	_dispatch_blend_complete()
 	if bool(recovery_result.get("publish_completed_event", false)):
-		_publish_blend_completed(_active_vcam_id)
 
 func _sync_blend_debug_cache() -> void:
 	_blend_trans_type = int(_blend_manager.get_transition_type())
@@ -350,31 +345,6 @@ func _record_recovery(reason: String) -> void:
 	var store := _resolve_state_store()
 	if store != null:
 		store.dispatch(U_VCAM_ACTIONS.record_recovery(reason))
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_RECOVERY, {
-		"reason": reason,
-		"vcam_id": _active_vcam_id,
-		"active_vcam_id": _active_vcam_id,
-		"previous_vcam_id": _previous_vcam_id,
-	})
-
-func _publish_active_changed(vcam_id: StringName, previous_vcam_id: StringName, mode_name: String) -> void:
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED, {
-		"vcam_id": vcam_id,
-		"previous_vcam_id": previous_vcam_id,
-		"mode": mode_name,
-	})
-
-func _publish_blend_started(from_vcam_id: StringName, to_vcam_id: StringName, duration: float) -> void:
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_STARTED, {
-		"from_vcam_id": from_vcam_id,
-		"to_vcam_id": to_vcam_id,
-		"duration": duration,
-	})
-
-func _publish_blend_completed(vcam_id: StringName) -> void:
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_COMPLETED, {
-		"vcam_id": vcam_id,
-	})
 
 func _clear_runtime_state() -> void:
 	var previous_vcam_id := _active_vcam_id
@@ -391,7 +361,6 @@ func _clear_runtime_state() -> void:
 	_last_valid_applied_result.clear()
 	_dispatch_active_runtime(StringName(""), "")
 	if previous_vcam_id != StringName(""):
-		_publish_active_changed(StringName(""), previous_vcam_id, "")
 
 func _prune_invalid_registrations() -> void:
 	var stale_vcams: Array = []
@@ -561,7 +530,6 @@ func _resolve_blend_result_for_frame(frame_id: int) -> Dictionary:
 	var blended_result: Dictionary = _blend_manager.resolve_blend_result(from_result, to_result)
 	if _blend_manager.consume_completed_on_cut_with_publish():
 		_dispatch_blend_complete()
-		_publish_blend_completed(_active_vcam_id)
 	return blended_result
 
 func _get_submitted_result_for_frame(vcam_id: StringName, frame_id: int) -> Dictionary:
@@ -760,11 +728,9 @@ func _is_occlusion_silhouette_enabled() -> bool:
 	return U_VFX_SELECTORS.is_occlusion_silhouette_enabled(store.get_state())
 
 func _publish_silhouette_update_request(entity_id: StringName, occluders: Array, enabled: bool) -> void:
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": entity_id,
-		"occluders": occluders,
-		"enabled": enabled,
-	})
+	var store := _resolve_state_store()
+	if store != null:
+		store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(entity_id, occluders, enabled))
 
 func _resolve_follow_target_for_vcam(vcam: Node) -> Node3D:
 	if vcam == null or not is_instance_valid(vcam):

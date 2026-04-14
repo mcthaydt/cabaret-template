@@ -126,10 +126,9 @@ func _ready() -> void:
 		U_ECS_EVENT_NAMES.EVENT_DAMAGE_FLASH_REQUEST,
 		_on_damage_flash_request
 	))
-	_event_unsubscribes.append(U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST,
-		_on_silhouette_update_request
-	))
+	# Channel taxonomy: silhouette updates arrive via Redux dispatch (managers dispatch to Redux)
+	if _state_store != null and _state_store.has_signal("action_dispatched"):
+		_state_store.action_dispatched.connect(_on_action_dispatched)
 
 	_silhouette_helper = U_VCAM_SILHOUETTE_HELPER.new()
 
@@ -146,6 +145,11 @@ func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
 		_store_unsubscribe.call()
 		_store_unsubscribe = Callable()
+
+	# Disconnect from Redux action_dispatched (channel taxonomy)
+	if _state_store != null and _state_store.has_signal("action_dispatched"):
+		if _state_store.action_dispatched.is_connected(_on_action_dispatched):
+			_state_store.action_dispatched.disconnect(_on_action_dispatched)
 	if _silhouette_helper != null:
 		_silhouette_helper.remove_all_silhouettes()
 	_dispatch_silhouette_count_if_changed(0)
@@ -317,6 +321,21 @@ func _on_damage_flash_request(event_data: Dictionary) -> void:
 	_flash_requests.append(event_data)
 
 ## Event handler for silhouette update request events
+## Channel taxonomy: silhouette updates arrive via Redux dispatch (managers dispatch to Redux)
+func _on_action_dispatched(action: Dictionary) -> void:
+	var action_type: StringName = action.get("type", StringName(""))
+	if action_type != U_VCAM_ACTIONS.ACTION_SILHOUETTE_UPDATE_REQUEST:
+		return
+	# Reconstruct ECS-compatible event_data for existing handler
+	var event_data: Dictionary = {
+		"payload": {
+			"entity_id": action.get("entity_id", StringName("")),
+			"occluders": action.get("occluders", []),
+			"enabled": action.get("enabled", true),
+		},
+	}
+	_on_silhouette_update_request(event_data)
+
 func _on_silhouette_update_request(event_data: Dictionary) -> void:
 	if _state_store == null or _silhouette_helper == null:
 		return
