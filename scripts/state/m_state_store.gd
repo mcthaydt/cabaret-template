@@ -464,11 +464,14 @@ func dispatch(action: Dictionary) -> void:
 	# Create deep copy of action for subscribers
 	var action_copy: Dictionary = action.duplicate(true)
 
-	# A1: Share a single state snapshot across all subscribers instead of
-	# creating N deep copies (one per subscriber). Subscribers should treat
-	# state as read-only; mutations to the shared copy do not affect _state.
+	# A1+A2: Share a single state snapshot across all subscribers using the
+	# versioned cache. Subscribers MUST treat state as read-only; mutations
+	# to the shared copy do not affect _state. Using get_state() populates the
+	# cache so subsequent get_state() calls in the same frame reuse the deep
+	# copy instead of creating a redundant one. Zero-subscriber dispatches
+	# skip the snapshot build entirely.
 	if not _subscribers.is_empty():
-		var state_snapshot := _state.duplicate(true)
+		var state_snapshot := get_state()
 		for subscriber in _subscribers:
 			subscriber.call(action_copy, state_snapshot)
 
