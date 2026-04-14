@@ -34,6 +34,7 @@ This guide directs you to implement the Cross-System Cleanup (V7) by following t
 - **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
 - **C12 standalone doc**: `docs/general/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.
 - **V7.2 follow-up doc**: `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` — scheduled to start after C12 lands.
+- **V7.2 continuation prompt**: `docs/general/cleanup_v7/cleanup-v7.2-continuation-prompt.md` — working index, status tracker, and context bank for F1–F15. Use this when executing v7.2.
 - **Scope**: No behavioral changes except (a) CRT removal and (b) color grading becoming mobile-enabled (both gated behind C12). All existing integration tests must stay green throughout.
 
 ---
@@ -438,6 +439,6 @@ You MUST:
 
 1. **Begin C12** — Post-Processing Pipeline Refactor per `docs/general/cleanup_v7/post-process-refactor-tasks.md`. C12 is the last milestone of cleanup-v7.
 2. After C12 completes, run a full regression suite (desktop + mobile, including the C12 runtime validation steps) and review before merging.
-3. Begin cleanup-v7.2 using `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` only after the C12 work and regression pass are complete.
+3. Begin cleanup-v7.2 using `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` and `docs/general/cleanup_v7/cleanup-v7.2-continuation-prompt.md` only after the C12 work and regression pass are complete.
 4. Opportunistically address cross-cutting concerns listed at the bottom of this document when touching relevant files during C12.
 5. The 11 deferred selector-enforcement files (in `test_all_production_files_use_selectors_for_state_access` allowed list) should be migrated in a follow-up pass after C12 lands.

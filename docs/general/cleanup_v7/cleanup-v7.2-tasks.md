@@ -22,6 +22,12 @@ The cleanup-v7 plan (C1–C12) does a thorough job of DRY, modularity, scalabili
 7. **Type erasure on `RS_Rule.conditions`/`effects: Array[Resource]`** — authoring errors surface as "rule scored 0.0" with no stack trace.
 8. **Two more large ECS systems** (`s_vcam_system.gd` at 551 lines, `s_camera_state_system.gd` at 587 lines) that C5 does not target. Note: their `process_tick` methods are already under 80 lines; the size is in private helper methods that should be extracted to dedicated helper files.
 
+**v7.2.1 patch (added during pre-implementation review)**:
+- **F8 expanded**: Helper pre-decomposition is now Phase 0 of F8. Executing F8 as originally written would have pushed logic into 800+ line helpers (`u_vcam_rotation.gd` at 740 lines, `u_vcam_orbit_effects.gd` at 650 lines). Two VCam helpers are decomposed first.
+- **F12 added**: Settings overlay wrapper deduplication — three 100%-identical 53-line files collapsed into a shared base.
+- **F15 added**: Load-time schema validation for `RS_GameConfig`, `RS_InputProfile`, and `RS_SceneRegistryEntry`. Extends F7's "fail loud at load" pattern to other designer-facing resources.
+- **F13/F14 rejected**: Audit verified all flagged "unbounded collections" (`_character_lighting_history`, wall visibility caches, `_scene_cache`, `_scene_history`) are already properly bounded with cleanup on scene change. No milestone needed.
+
 The doc closes with a non-numbered reflection on `AGENTS.md` sprawl and a proposed restructuring direction.
 
 ---
@@ -34,10 +40,12 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl and a propos
 - `F5` depends on `F3` having cleaned up the parallel mutation paths first (the channel taxonomy is cleaner to enforce once state mutation is single-sourced). Note: `docs/adr/` directory must be created (does not exist yet).
 - `F6` is independent.
 - `F7` is independent — blocked only on a one-commit parser feasibility investigation.
-- `F8` is independent — follows `C5`'s decomposition pattern once `C5` lands.
+- `F8` is independent — follows `C5`'s decomposition pattern once `C5` lands. **Expanded scope (v7.2.1)**: Phase 0 decomposes oversized helpers (`u_vcam_rotation.gd`, `u_vcam_orbit_effects.gd`) before Phase 1+ pushes system logic into them.
 - `F9` is independent — **extends** the existing `execution_priority` system in `M_ECSManager`, does not replace it.
 - ~~`F10` is independent — small addition to `m_state_store.gd` action tracking.~~ **F10 is already implemented.** `U_ActionHistoryBuffer` is a ring buffer with configurable `max_history_size`, disabled on mobile. Verification-only checkpoint.
 - `F11` is independent — targets event bus memory hygiene. Scope is `scripts/events/base_event_bus.gd` (the shared base class), not the `U_ECSEventBus` facade.
+- `F12` is independent (v7.2.1 addition) — trivial DRY collapse of three identical settings overlay wrappers; can run anytime.
+- `F15` is independent (v7.2.1 addition) — mirrors F7's "fail loud at load" pattern for other designer-facing resources; can run in parallel with F7 or after.
 
 **Cross-milestone integration**: Run the full test suite after each milestone completes, not just the milestone's own tests. This is especially critical for the F2 → F3 → F4 sequential chain.
 
@@ -340,13 +348,20 @@ Same pattern in `rs_condition_composite.gd:14`. Every runtime consumer must re-v
 
 ---
 
-## Milestone F8: `S_VCamSystem` + `S_CameraStateSystem` Decomposition
+## Milestone F8: `S_VCamSystem` + `S_CameraStateSystem` Decomposition (Expanded v7.2.1)
 
 **Goal**: Extend cleanup-v7 `C5`'s wall-visibility decomposition approach to the other two large ECS systems:
 - `s_vcam_system.gd` — **551 lines**
 - `s_camera_state_system.gd` — **587 lines**
 
 `C5` only targets `s_wall_visibility_system.gd` (1005 lines), leaving two more ~550-line systems with mixed concerns untouched.
+
+**v7.2.1 scope expansion — Phase 0 helper pre-decomposition required**: The original F8 plan assumed the existing helpers under `scripts/ecs/systems/helpers/` could absorb extracted system logic. Pre-implementation audit revealed this would create 800+ line helper files:
+- `u_vcam_rotation.gd` is already **740 lines** (5 distinct concerns).
+- `u_vcam_orbit_effects.gd` is already **650 lines** (4 distinct effects).
+- `u_vcam_response_smoother.gd` is **468 lines** but coherent (all concerns tightly coupled to 2nd-order dynamics — leave as-is).
+
+Phase 0 decomposes the two oversized helpers **before** Phase 1+ pushes system logic into them.
 
 **Current state** (verified against codebase):
 - `S_VCamSystem.process_tick` is lines 116-193 (~77 lines) — already partially decomposed into `_prepare_vcam_pipeline_state()`, `_evaluate_vcam_mode_result()`, `_apply_vcam_effect_pipeline()`, and `_write_active_camera_base_fov_from_result()`. **The `process_tick` itself is already near the 80-line target.** The remaining size (~551 total) is in the private helper methods within the file.
@@ -367,23 +382,43 @@ Same pattern in `rs_condition_composite.gd:14`. Every runtime consumer must re-v
 - `scripts/ecs/systems/helpers/u_vcam_rotation.gd`
 - Also available: `u_vcam_look_input.gd`, `u_vcam_runtime_services.gd`, `u_vcam_debug.gd`
 
+**Phase 0 — Helper pre-decomposition targets**:
+
+`u_vcam_rotation.gd` (740 lines) — split into three files:
+- `u_vcam_rotation_continuity.gd` (~80 lines): `apply_rotation_continuity_policy`, `_apply_rotation_transition`, `_components_share_follow_target`, `_resolve_authored_rotation`, `_resolve_orbit_mode_values`.
+- `u_vcam_orbit_centering.gd` (~90 lines): `_start_orbit_centering`, `_step_orbit_centering`, `resolve_orbit_center_target_yaw`, `is_orbit_centering_active`.
+- `u_vcam_look_spring.gd` (~180 lines): `resolve_runtime_rotation_for_evaluation`, `step_orbit_release_axis`, `_apply_release_velocity_damping`, `_step_second_order_angle`, look rotation state management, debug logging.
+
+`u_vcam_orbit_effects.gd` (650 lines) — split into three + residual:
+- `u_vcam_look_ahead.gd` (~110 lines): `apply_orbit_look_ahead` + `_get_or_create_look_ahead_state` + follow-target sampling for look-ahead.
+- `u_vcam_ground_anchor.gd` (~110 lines): `apply_orbit_ground_relative` + `_get_or_create_ground_relative_state`.
+- `u_vcam_soft_zone_applier.gd` (~120 lines): `apply_orbit_soft_zone` + soft-zone helper wrappers.
+- Remaining `u_vcam_orbit_effects.gd` (~80 lines): `sample_follow_target_speed`, `update_orbit_position_smoothing_bypass`, `_should_bypass_orbit_position_smoothing`, shared prune/clear lifecycle.
+
+`u_vcam_response_smoother.gd` (468 lines) — **leave as-is**. All concerns are tightly coupled to 2nd-order dynamics lifecycle; splitting would over-fragment.
+
 **Commits**:
-- [ ] **Commit 1** (RED) — Method-level decomposition tests for extracted logic:
+- [ ] **Commit 1a** (GREEN, Phase 0) — Decompose `u_vcam_rotation.gd` into `u_vcam_rotation_continuity.gd`, `u_vcam_orbit_centering.gd`, and `u_vcam_look_spring.gd`. Update `u_vcam_effect_pipeline.gd` and `s_vcam_system.gd` imports. All existing VCam integration tests must stay green.
+- [ ] **Commit 1b** (GREEN, Phase 0) — Decompose `u_vcam_orbit_effects.gd` into `u_vcam_look_ahead.gd`, `u_vcam_ground_anchor.gd`, `u_vcam_soft_zone_applier.gd`, and the residual `u_vcam_orbit_effects.gd`. Update imports. All existing VCam integration tests must stay green.
+- [ ] **Commit 1** (RED, Phase 1) — Method-level decomposition tests for extracted system logic:
   - `tests/unit/ecs/systems/test_s_vcam_system_decomposition.gd` — test the pipeline/mode/effect methods independently via their helper classes after extraction.
   - `tests/unit/ecs/systems/test_s_camera_state_system_decomposition.gd` — test `_apply_camera_state` logic, context building, and rule-result-to-component-write independently.
-- [ ] **Commit 2** (GREEN) — Extract `S_VCamSystem` private methods into existing helpers. Target: total file under 400 lines. `process_tick` stays as-is (already under 80 lines). Identify which private methods map to which helper by matching concerns (e.g., `_resolve_landing_impact_offset` → `u_vcam_landing_impact.gd`, `_prune_smoothing_state` → `u_vcam_response_smoother.gd`).
+- [ ] **Commit 2** (GREEN) — Extract `S_VCamSystem` private methods into existing (now smaller) helpers. Target: total file under 400 lines. `process_tick` stays as-is (already under 80 lines). Identify which private methods map to which helper by matching concerns (e.g., `_resolve_landing_impact_offset` → `u_vcam_landing_impact.gd`, `_prune_smoothing_state` → `u_vcam_response_smoother.gd`).
 - [ ] **Commit 3** (GREEN) — Extract `S_CameraStateSystem` private methods similarly. Target: total file under 400 lines. If no existing helper fits `_apply_camera_state` / `_evaluate_context`, create `u_camera_state_rule_applier.gd`.
 - [ ] **Commit 4** (GREEN) — Style enforcement:
   - `tests/unit/style/test_style_enforcement.gd` — assert each of the three largest ECS systems (`s_wall_visibility_system`, `s_vcam_system`, `s_camera_state_system`) has `process_tick` under 80 lines (post-C5 and post-F8).
   - Assert total file size for `s_vcam_system.gd` and `s_camera_state_system.gd` is under 400 lines.
+  - **NEW (v7.2.1)**: Assert every `.gd` file under `scripts/ecs/systems/helpers/` is under 400 lines. This codifies the invariant that helpers stay small so future system extraction can't regress them.
 
 **F8 Verification**:
 - [ ] All existing vCam and camera-state integration tests green.
 - [ ] `s_vcam_system.gd` and `s_camera_state_system.gd` each under ~400 lines total.
 - [ ] `process_tick` method under 80 lines in both systems.
+- [ ] **NEW (v7.2.1)**: All helper files under `scripts/ecs/systems/helpers/` under 400 lines post-Phase 0.
+- [ ] **NEW (v7.2.1)**: `u_vcam_rotation_continuity.gd`, `u_vcam_orbit_centering.gd`, `u_vcam_look_spring.gd`, `u_vcam_look_ahead.gd`, `u_vcam_ground_anchor.gd`, `u_vcam_soft_zone_applier.gd` all exist and are referenced by their consumers.
 - [ ] Style enforcement test green.
 
-**Dependency note**: Follows cleanup-v7 `C5` — run F8 after C5 lands so the same decomposition pattern can be applied consistently to all three large systems.
+**Dependency note**: Follows cleanup-v7 `C5` — run F8 after C5 lands so the same decomposition pattern can be applied consistently to all three large systems. **Phase 0 (Commits 1a + 1b) must land before Phase 1+ (Commits 1-4) to avoid pushing system logic into oversized helpers.**
 
 ---
 
@@ -471,6 +506,96 @@ The existing `execution_priority` int can be retained as a **within-phase orderi
 - [ ] Zombie pruning tests green.
 - [ ] Existing event bus tests green (including `tests/unit/ecs/events/test_ecs_event_bus.gd`).
 - [ ] No `.duplicate()` call in `BaseEventBus.publish()` (style enforcement grep).
+
+---
+
+## Milestone F12: Settings Overlay Wrapper Deduplication (v7.2.1 Addition)
+
+**Goal**: Three files are 53 lines each, character-for-character identical except for `class_name`. Collapse into a single base class.
+
+**Evidence** (verified):
+- `scripts/ui/settings/ui_audio_settings_overlay.gd` — 53 lines, `class_name UI_AudioSettingsOverlay`
+- `scripts/ui/settings/ui_display_settings_overlay.gd` — 53 lines, `class_name UI_DisplaySettingsOverlay`
+- `scripts/ui/settings/ui_localization_settings_overlay.gd` — 53 lines, `class_name UI_LocalizationSettingsOverlay`
+- All 52 non-`class_name` lines are bit-for-bit identical (same `extends`, same `preload` constants, same `@onready` vars, same `_on_panel_ready`, `_on_back_pressed`, `_apply_theme_tokens`, `_close_overlay`).
+
+**Out of scope**:
+- `ui_vfx_settings_overlay.gd` (430 lines) — legitimately different. Uses Apply/Cancel pattern, inline controls, and M_VFXManager preview integration. Do not force into the shared base.
+- Settings **tabs** (`ui_*_settings_tab.gd`, 501–873 lines) — share scaffolding but not identical enough to warrant a base class. Leave as-is; a base class would add coupling without much savings.
+
+**Scope**:
+- New: `scripts/ui/settings/base_settings_simple_overlay.gd` — extract shared logic.
+- Modify: the three overlay files → reduce each to ~5 lines (`@icon` + `extends` + `class_name`).
+- Existing class chain is `BaseOverlay` → `UI_*SettingsOverlay`. New base goes between: `BaseOverlay` → `BaseSettingsSimpleOverlay` → `UI_*SettingsOverlay`.
+- Scene files (`ui_audio_settings_overlay.tscn` etc.) remain unchanged — they continue to instance tab content as before.
+
+**Commits**:
+- [ ] **Commit 1** (RED) — `tests/unit/ui/settings/test_settings_simple_overlay_base.gd`:
+  - Assert all three overlays share behavior (theme application, panel ready, back press, close).
+  - Assert each concrete overlay script file is under 15 lines (post-refactor).
+- [ ] **Commit 2** (GREEN) — Create `scripts/ui/settings/base_settings_simple_overlay.gd`. Extract the 52 shared lines into it. Keep `@onready` references for `_main_panel` / `_main_panel_content` since scene structure is shared across all three overlays.
+- [ ] **Commit 3** (GREEN) — Reduce each of the three overlay files to:
+
+  ```gdscript
+  @icon("res://assets/editor_icons/icn_utility.svg")
+  extends "res://scripts/ui/settings/base_settings_simple_overlay.gd"
+  class_name UI_AudioSettingsOverlay
+  ```
+
+- [ ] **Commit 4** (GREEN) — Style enforcement: `tests/unit/style/test_style_enforcement.gd` asserts each of `ui_audio_settings_overlay.gd`, `ui_display_settings_overlay.gd`, `ui_localization_settings_overlay.gd` is under 15 lines. Explicitly exclude `ui_vfx_settings_overlay.gd` from this assertion.
+
+**F12 Verification**:
+- [ ] All existing settings-overlay integration tests green (navigation, theme, close behavior).
+- [ ] Three overlay files reduced from 53 → ~5 lines each.
+- [ ] `base_settings_simple_overlay.gd` contains the extracted shared behavior.
+- [ ] VFX overlay unchanged.
+- [ ] Style enforcement test green.
+
+**Dependency note**: Independent. Can run anytime. No coupling to F1–F11.
+
+---
+
+## Milestone F15: Designer-Facing Resource Schema Validation (v7.2.1 Addition)
+
+**Goal**: Extend F7's "fail loud at load" pattern beyond `RS_Rule` to three more designer-facing resources where typos or missing fields cause silent runtime crashes with no stack trace back to the `.tres` file.
+
+**Evidence** (verified):
+- `scripts/resources/rs_game_config.gd` — **HIGH RISK**. Fields: `retry_scene_id`, `route_retry`, `default_objective_set_id`, `required_final_area`. Zero validation. A cleared `retry_scene_id` crashes the reset-run flow. An invalid `default_objective_set_id` produces a silent no-op in `M_ObjectivesManager`.
+- `scripts/resources/input/rs_input_profile.gd` — **MEDIUM RISK**. `action_mappings: Dictionary` accepts any shape. `virtual_buttons: Array[Dictionary]` accepts malformed entries (missing `action` or `position` keys). Invalid action names silently fail at input dispatch.
+- `scripts/resources/scene_management/rs_scene_registry_entry.gd` — **MEDIUM RISK**. Already has `_validate_property()` editor warnings and an `is_valid()` utility, but no load-time enforcement. Scene path is not existence-checked.
+
+**Out of scope**:
+- `scripts/resources/ui/rs_ui_theme_config.gd` — already has `ensure_runtime_defaults()` that creates fallback StyleBoxes. Runtime defaults prevent crash-level failures; font-size / color range validation is nice-to-have but not critical.
+- `RS_Rule` — handled by F7.
+
+**Scope**:
+- Modify: `scripts/resources/rs_game_config.gd` — add `_init()` validation.
+- Modify: `scripts/resources/input/rs_input_profile.gd` — add `_init()` validation + structure checks for `virtual_buttons`.
+- Modify: `scripts/resources/scene_management/rs_scene_registry_entry.gd` — elevate existing `_validate_property()` warnings to load-time errors.
+- Cross-reference: `U_SceneRegistry` (for scene ID existence), objectives manager objective-set registry, areas registry.
+
+**Validation strategy**:
+- Use `_init()` for mandatory schema checks that fail the resource load.
+- Fail messages MUST include `resource_path` so designers can locate the bad `.tres` file.
+- For cross-resource checks (e.g., "does `retry_scene_id` exist in `U_SceneRegistry`?") that require a registry lookup, defer to a one-shot validation pass at boot (e.g., in `M_GameplayInitializerManager` or equivalent bootstrap) rather than `_init()`, since `_init()` runs before autoloads are available.
+
+**Commits**:
+- [ ] **Commit 1** (RED) — Validation tests:
+  - `tests/unit/resources/test_rs_game_config_validation.gd`: assert a `.tres` with empty `retry_scene_id` fails at load with `resource_path` in the error.
+  - `tests/unit/resources/test_rs_input_profile_validation.gd`: assert malformed `virtual_buttons` entries fail at load.
+  - `tests/unit/resources/test_rs_scene_registry_entry_validation.gd`: assert empty `scene_id` or `scene_path` fails at load (not just editor warning).
+- [ ] **Commit 2** (GREEN) — `RS_GameConfig._init()`: validate all four fields (`retry_scene_id`, `route_retry`, `default_objective_set_id`, `required_final_area`) are non-empty. Include `resource_path` in `push_error`.
+- [ ] **Commit 3** (GREEN) — `RS_InputProfile._init()`: validate `profile_name` non-empty, `action_mappings` non-empty, each `virtual_buttons` entry has required keys (`action`, `position`), `virtual_joystick_position` in sensible bounds.
+- [ ] **Commit 4** (GREEN) — `RS_SceneRegistryEntry._init()`: elevate existing `_validate_property()` warnings to `push_error` on empty `scene_id` / `scene_path`. Keep the existing `is_valid()` utility as a double-check layer.
+- [ ] **Commit 5** (GREEN) — Cross-reference boot validation: in `M_GameplayInitializerManager` (or equivalent bootstrap), validate `RS_GameConfig.retry_scene_id` exists in `U_SceneRegistry` and `default_objective_set_id` exists in the objectives registry. Fail loud on boot if not.
+
+**F15 Verification**:
+- [ ] All validation tests green.
+- [ ] Injecting an invalid field into any of the three resource `.tres` files fails loudly at load with `resource_path` in the error.
+- [ ] Cross-reference boot validation catches dangling scene/objective IDs before gameplay starts.
+- [ ] Existing resource-consumer tests green (no regression).
+
+**Dependency note**: Independent. Pattern mirrors F7 for `RS_Rule`. Can run in parallel with F7 or after.
 
 ---
 
