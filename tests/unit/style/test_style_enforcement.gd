@@ -1504,6 +1504,103 @@ func test_no_state_mutation_outside_store() -> void:
 		"Found _state[ mutations outside m_state_store.gd — all mutations must go through dispatch():\n" + "\n".join(violations)
 	)
 
+## F5: Managers must not publish to U_ECSEventBus.
+## Per the channel taxonomy (docs/adr/0001-channel-taxonomy.md):
+##   ECS component/system → U_ECSEventBus (subscribers can be anywhere)
+##   Manager → Redux dispatch only
+##   Manager-UI wiring → Godot signals
+##   Everything else → method calls
+## m_ecs_manager.gd is the only allowed publisher because it IS the ECS
+## infrastructure (publishes entity_registered/unregistered lifecycle events).
+func test_managers_dont_publish_to_ecs_bus() -> void:
+	var allowed_files: Array[String] = [
+		"res://scripts/managers/m_ecs_manager.gd",
+	]
+	var manager_dir := "res://scripts/managers"
+	var violations: Array[String] = []
+	# Match both direct U_ECSEventBus references and const alias U_ECS_EVENT_BUS references,
+	# plus the EVENT_BUS alias used by m_spawn_manager
+	_collect_gd_literal_occurrences(manager_dir, "ECSEventBus.publish", violations)
+	_collect_gd_literal_occurrences(manager_dir, "EVENT_BUS.publish", violations)
+	# Filter out allowed files (m_ecs_manager is ECS infrastructure)
+	var filtered: Array[String] = []
+	for v in violations:
+		var is_allowed := false
+		for allowed in allowed_files:
+			if v.find(allowed) != -1:
+				is_allowed = true
+				break
+		if not is_allowed:
+			filtered.append(v)
+	assert_eq(
+		filtered.size(),
+		0,
+		"Managers must not publish to U_ECSEventBus (use Redux dispatch instead):\n" + "\n".join(filtered)
+	)
+
+## F5: m_scene_manager must not subscribe to victory-related ECS events.
+## Victory routing should go through Redux (ACTION_TRIGGER_VICTORY_ROUTING),
+## not through U_ECSEventBus subscriptions. Manager-to-manager communication
+## belongs on the Redux channel, not the ECS event bus.
+func test_scene_manager_no_victory_ecs_subscription() -> void:
+	var violations: Array[String] = []
+	# Search for victory event names in m_scene_manager.gd
+	# The filename_prefix_filter ensures we only check m_scene_manager.gd
+	_collect_gd_literal_occurrences(
+		"res://scripts/managers",
+		"OBJECTIVE_VICTORY_TRIGGERED",
+		violations,
+		"m_scene_manager"
+	)
+	assert_eq(
+		violations.size(),
+		0,
+		"m_scene_manager must not subscribe to victory ECS events (use Redux dispatch):\n" + "\n".join(violations)
+	)
+
+## F5: Managers may only declare allow-listed Godot signals.
+## Per the channel taxonomy, Manager-UI wiring uses Godot signals.
+## This allow-list ensures managers only declare signals for UI wiring
+## and prevents new inter-system signal declarations without review.
+func test_manager_signals_allow_list() -> void:
+	var allowed_signals: Dictionary = {
+		# m_ecs_manager — component lifecycle notifications for UI consumers
+		"res://scripts/managers/m_ecs_manager.gd": [
+			"component_added", "component_removed"
+		],
+		# m_cursor_manager — cursor state for UI
+		"res://scripts/managers/m_cursor_manager.gd": [
+			"cursor_state_changed"
+		],
+		# m_time_manager — time state for UI
+		"res://scripts/managers/m_time_manager.gd": [
+			"pause_state_changed", "timescale_changed", "world_hour_changed"
+		],
+		# m_scene_manager — transition state for UI
+		"res://scripts/managers/m_scene_manager.gd": [
+			"transition_visual_complete"
+		],
+		# m_input_profile_manager — input profile state for UI
+		"res://scripts/managers/m_input_profile_manager.gd": [
+			"profile_switched", "bindings_reset", "custom_binding_added"
+		],
+		# u_palette_manager — palette state for UI
+		"res://scripts/managers/helpers/u_palette_manager.gd": [
+			"active_palette_changed"
+		],
+		# m_input_device_manager — device state for UI
+		"res://scripts/managers/m_input_device_manager.gd": [
+			"device_changed"
+		],
+	}
+	var violations: Array[String] = []
+	_collect_manager_signal_violations("res://scripts/managers", allowed_signals, violations)
+	assert_eq(
+		violations.size(),
+		0,
+		"Managers must only declare allow-listed signals for UI wiring (channel taxonomy):\n" + "\n".join(violations)
+	)
+
 func _collect_state_mutation_violations(dir_path: String, allowed_files: Array[String], violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
@@ -1623,3 +1720,47 @@ func _is_identifier_char(char: String) -> bool:
 	var is_upper: bool = code >= 65 and code <= 90
 	var is_lower: bool = code >= 97 and code <= 122
 	return is_number or is_upper or is_lower
+
+func _collect_manager_signal_violations(
+	dir_path: String,
+	allowed_signals: Dictionary,
+	violations: Array[String]
+) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_manager_signal_violations(path, allowed_signals, violations)
+		elif entry.ends_with(".gd"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file != null:
+				var line_number: int = 0
+				while not file.eof_reached():
+					line_number += 1
+					var line: String = file.get_line()
+					var stripped: String = line.strip_edges()
+					if not stripped.begins_with("signal "):
+						continue
+					var signal_name: String = _extract_signal_name(stripped)
+					if signal_name.is_empty():
+						continue
+					var file_allowed: Variant = allowed_signals.get(path)
+					if file_allowed == null:
+						violations.append("%s:%d signal '%s' — file has no allow-list entry" % [path, line_number, signal_name])
+					elif not (file_allowed as Array).has(signal_name):
+						violations.append("%s:%d signal '%s' — not on allow-list for this file" % [path, line_number, signal_name])
+				file.close()
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _extract_signal_name(line: String) -> String:
+	var after_signal: String = line.substr(7).strip_edges()
+	var paren_idx: int = after_signal.find("(")
+	if paren_idx != -1:
+		return after_signal.substr(0, paren_idx).strip_edges()
+	return after_signal.split(" ")[0]
