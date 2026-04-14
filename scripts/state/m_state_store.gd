@@ -127,6 +127,11 @@ func _ready() -> void:
 
 	set_physics_process(true)  # Enable physics processing for signal batching
 
+	# Drain batched emissions from init-time dispatches before any external subscriber can connect.
+	# History/interceptors already captured these actions synchronously; downstream managers read
+	# current slice state directly on startup, so emitting to zero subscribers here is safe.
+	_flush_signal_batcher()
+
 	_is_ready = true
 	store_ready.emit()
 

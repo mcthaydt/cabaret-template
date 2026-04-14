@@ -479,8 +479,8 @@ func _update_overlay_visibility() -> void:
 	if _post_process_applier != null:
 		_post_process_applier.update_overlay_visibility(should_show)
 
-	var display_settings := U_DISPLAY_SELECTORS.get_display_settings(state)
-	_sync_pipeline_visibility(display_settings, state)
+	var effective_settings := _build_effective_settings(state)
+	_sync_pipeline_visibility(effective_settings, state)
 
 func _sync_pipeline_visibility(display_settings: Dictionary, state: Dictionary) -> void:
 	if _pipeline == null:
