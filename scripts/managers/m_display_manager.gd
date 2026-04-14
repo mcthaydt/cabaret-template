@@ -485,15 +485,19 @@ func _update_overlay_visibility() -> void:
 func _sync_pipeline_visibility(display_settings: Dictionary, state: Dictionary) -> void:
 	if _pipeline == null:
 		return
-	var shell := U_NAVIGATION_SELECTORS.get_shell(state)
-	var should_show := shell == SHELL_GAMEPLAY
 	var state_wrap := {"display": display_settings}
 	var pp_enabled := U_DISPLAY_SELECTORS.is_post_processing_enabled(state_wrap)
 	var fg_enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state_wrap)
 	var dither_enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state_wrap)
+	# grain_dither: visibility driven by effect settings only; the GrainDitherLayer
+	# CanvasLayer is hidden by update_overlay_visibility when not in gameplay shell,
+	# so no shell check is needed at the ColorRect level.
+	# color_grading: the ColorGradingLayer is NOT hidden by update_overlay_visibility
+	# (it is excluded), so the shell check lives here.
+	var shell := U_NAVIGATION_SELECTORS.get_shell(state)
 	(_pipeline as U_PostProcessPipeline).apply_settings({
-		"grain_dither_enabled": should_show and pp_enabled and (fg_enabled or dither_enabled),
-		"color_grading_enabled": should_show,
+		"grain_dither_enabled": pp_enabled and (fg_enabled or dither_enabled),
+		"color_grading_enabled": shell == SHELL_GAMEPLAY,
 	})
 
 func _get_palette_id_text(palette: Resource) -> String:
