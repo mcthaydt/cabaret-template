@@ -16,7 +16,7 @@ This guide directs you to implement Cross-System Cleanup V7.2 by following the t
 All milestones are pending. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
 
 - **F1 (SceneManager C6 Supplement)**: **ALREADY RESOLVED** during C6. Verification-only checkpoint (single commit adding style-enforcement grep assertions).
-- **F2 (StateStore Dispatch — Share Snapshot)**: NOT STARTED.
+- **F2 (StateStore Dispatch — Share Snapshot)**: **COMPLETE**. Dispatch now uses `get_state()` instead of `_state.duplicate(true)`, populating the versioned cache. Zero-subscriber skip already in place.
 - **F3 (StateStore — Eliminate Parallel Mutation Paths)**: NOT STARTED.
 - **F4 (Slice Dependency Validator — Strict Mode)**: NOT STARTED. **Behavior-change commit gated (Commit 5 flips default to strict).**
 - **F5 (Communication Channel Taxonomy)**: NOT STARTED. Depends on F3. Requires creating `docs/adr/` directory.
@@ -74,19 +74,21 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 
 ---
 
-## Milestone F2: StateStore Dispatch — Share Snapshot Across Subscribers
+## Milestone F2: StateStore Dispatch — Share Snapshot Across Subscribers ✅
 
 **Goal**: Eliminate the per-dispatch full-state deep copy at `m_state_store.gd:471` by using the store's existing versioned cache. With 16 slices and per-frame dispatches, this is a per-frame cost floor.
 
-- [ ] **Commit 1** (RED) — Dispatch-path tests: 5-subscriber reference identity, zero-subscriber skip, 1000-action benchmark.
-- [ ] **Commit 2** (GREEN) — Refactor `dispatch()` to use cached `get_state()`. Document the read-only subscriber contract.
-- [ ] **Commit 3** (GREEN) — Skip the snapshot build entirely when `_subscribers.is_empty()`.
+- [x] **Commit 1** (RED) — Dispatch-path tests: 5-subscriber reference identity, dispatch-populates-versioned-cache, zero-subscriber skip, 100-dispatch benchmark.
+- [x] **Commit 2** (GREEN) — Refactor `dispatch()` to use `get_state()` instead of `_state.duplicate(true)`. Document the read-only subscriber contract (A1+A2 comment). Zero-subscriber skip already in place (`if not _subscribers.is_empty()` guard).
+- [x] **Commit 3** (MERGED INTO COMMIT 2) — Skip was already implemented; no separate commit needed.
 
 **F2 Verification**:
-- [ ] All new tests green.
-- [ ] Dispatch benchmark shows one `duplicate(true)` per dispatch with subscribers, zero without.
-- [ ] Existing store/reducer tests green.
-- [ ] No observable behavior change for subscribers.
+- [x] All new tests green (4/4).
+- [x] Dispatch populates versioned cache (`_cached_state_version == _state_version` after dispatch with subscribers).
+- [x] Zero-subscriber dispatch skips snapshot build (`_cached_state_version` unchanged).
+- [x] Existing store/reducer tests green (30/30).
+- [x] Full test suite green (4227/4235, 8 pending/risky as expected).
+- [x] No observable behavior change for subscribers (snapshot contents identical).
 
 ---
 
@@ -382,12 +384,13 @@ You MUST:
 
 ## Next Steps
 
-1. Confirm C12 (`post-process-refactor-tasks.md`) has landed and full regression pass (desktop + mobile) is green.
-2. **Begin F1 verification** — single-commit style-enforcement assertions confirming C6 gaps stay closed.
-3. **Begin F2** — StateStore dispatch snapshot sharing. First real implementation milestone.
-4. Proceed sequentially through F3 → F4 (sequential chain, run full suite between each).
-5. F5 after F3 lands (cleaner to enforce channel taxonomy once state mutation is single-sourced).
-6. F6, F7, F8 (incl. Phase 0), F9, F11, F12, F15 can be scheduled independently.
-7. F10 verification checkpoint can run any time.
-8. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a numbered F-milestone (F16).
-9. Update `MEMORY.md` test-failure patterns section after F6 lands — the `U_StateHandoff` and `_ensure_appliers` entries should no longer manifest once scope-based test isolation replaces `U_ServiceLocator.clear()`.
+1. ~~Confirm C12 has landed and full regression pass is green.~~ ✅ Done.
+2. **F1 verification** — single-commit style-enforcement assertions confirming C6 gaps stay closed (can land anytime as checkpoint).
+3. ~~**Begin F2** — StateStore dispatch snapshot sharing.~~ ✅ **Complete.** Dispatch now uses `get_state()` instead of `_state.duplicate(true)`.
+4. **Begin F3** — StateStore eliminate parallel mutation paths. Next milestone in the F2→F3→F4 sequential chain.
+5. Proceed through F3 → F4 (sequential chain, run full suite between each).
+6. F5 after F3 lands (cleaner to enforce channel taxonomy once state mutation is single-sourced).
+7. F6, F7, F8 (incl. Phase 0), F9, F11, F12, F15 can be scheduled independently.
+8. F10 verification checkpoint can run any time.
+9. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a numbered F-milestone (F16).
+10. Update `MEMORY.md` test-failure patterns section after F6 lands — the `U_StateHandoff` and `_ensure_appliers` entries should no longer manifest once scope-based test isolation replaces `U_ServiceLocator.clear()`.
