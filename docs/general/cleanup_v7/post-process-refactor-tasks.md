@@ -3,7 +3,7 @@
 **Branch**: TBD
 **Status**: COMPLETE (all 10 commits done)
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each commit, not deferred
-**Scope**: Collapse the gameplay-visible post-process surface to exactly two passes (color grading, grain+dither), remove CRT entirely, rename cinema_grade → color_grading, and introduce `U_PostProcessPipeline` as a Compatibility-mode approximation of Godot's `CompositorEffect`. No behavioral change beyond (a) CRT removal and (b) enabling color grading on mobile. All existing display tests must stay green throughout.
+**Scope**: Collapse the gameplay-visible post-process surface to exactly two passes (color grading, grain+dither), remove CRT entirely, rename color_grading → color_grading, and introduce `U_PostProcessPipeline` as a Compatibility-mode approximation of Godot's `CompositorEffect`. No behavioral change beyond (a) CRT removal and (b) enabling color grading on mobile. All existing display tests must stay green throughout.
 
 ---
 
@@ -47,13 +47,13 @@ Existing `U_DisplayColorGradingApplier` and `U_DisplayPostProcessApplier` (renam
 ## Reuse (do not re-author)
 
 - **`U_PostProcessLayer`** (`scripts/managers/helpers/display/u_post_process_layer.gd`) — keep as the ColorRect-parameter setter abstraction. Drop the legacy `EFFECT_FILM_GRAIN`/`EFFECT_CRT`/`EFFECT_DITHER` constants; keep `EFFECT_COLOR_BLIND`; rename `EFFECT_COMBINED` → `EFFECT_GRAIN_DITHER`.
-- **`U_CinemaGradeRegistry`** (`scripts/managers/helpers/display/u_cinema_grade_registry.gd`) — rename only; the scene-ID→grade lookup logic is correct and stays identical.
-- **`RS_SceneCinemaGrade.to_dictionary()`** (`scripts/resources/display/rs_scene_cinema_grade.gd`) — rename to `RS_SceneColorGrading`; keep the 13-field shape and the conversion method. State keys change from `cinema_grade_*` to `color_grading_*` but the source fields don't.
+- **`U_CinemaGradeRegistry`** (`scripts/managers/helpers/display/u_color_grading_registry.gd`) — rename only; the scene-ID→grade lookup logic is correct and stays identical.
+- **`RS_SceneCinemaGrade.to_dictionary()`** (`scripts/resources/display/rs_scene_color_grading.gd`) — rename to `RS_SceneColorGrading`; keep the 13-field shape and the conversion method. State keys change from `color_grading_*` to `color_grading_*` but the source fields don't.
 - **`U_DisplayApplierUtils.get_tree_safe`** — keep; used by color-blind setup and will be used by pipeline for tree-deferred node creation.
 - **`U_MobilePlatformDetector.is_mobile()`** — keep as the mobile branch predicate.
 - **Film grain + dither shader code blocks** inside `sh_combined_post_process_shader.gdshader` (functions `_fg_hash13`, `_apply_film_grain`, `_dither_bayer8x8`, `_apply_dither`, lines ~32–87) — lift into a new `sh_grain_dither.gdshader` unchanged.
-- **`sh_cinema_grade_shader.gdshader`** — rename to `sh_color_grading_shader.gdshader`; shader body unchanged.
-- **Scene `.tres` grade resources** — rename the 5 files in `resources/display/cinema_grades/` to `resources/display/color_gradings/` and re-point the registry preloads. Internal field values stay identical.
+- **`sh_color_grading_shader.gdshader`** — rename to `sh_color_grading_shader.gdshader`; shader body unchanged.
+- **Scene `.tres` grade resources** — rename the 5 files in `resources/display/color_gradings/` to `resources/display/color_gradings/` and re-point the registry preloads. Internal field values stay identical.
 
 ---
 
@@ -64,9 +64,9 @@ After C12 completes and passes regression, the next planned track is `docs/gener
 
 Within C12, commits are ordered so that each GREEN step can land cleanly:
 
-- Commit 1 (RED) establishes the failing tests for both the new pipeline and the CRT/cinema_grade removals.
+- Commit 1 (RED) establishes the failing tests for both the new pipeline and the CRT/color_grading removals.
 - Commits 2–4 remove CRT (state → UI/localization → shader/applier), stopping short of introducing the pipeline.
-- Commits 5–7 rename cinema_grade → color_grading in three layered passes (state → resources/registry → applier/debug/UI/localization) to keep each commit's blast radius small and reviewable.
+- Commits 5–7 rename color_grading → color_grading in three layered passes (state → resources/registry → applier/debug/UI/localization) to keep each commit's blast radius small and reviewable.
 - Commit 8 introduces `U_PostProcessPipeline` and migrates both surviving appliers onto it.
 - Commit 9 flips color grading to mobile-enabled.
 - Commit 10 finalizes with style enforcement + pipeline-singular-entry-point tests.
@@ -83,26 +83,26 @@ Within C12, commits are ordered so that each GREEN step can land cleanly:
 
 **Rename:**
 
-- `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd` → `u_display_color_grading_applier.gd`
-- `scripts/managers/helpers/display/u_cinema_grade_registry.gd` → `u_color_grading_registry.gd`
-- `scripts/resources/display/rs_scene_cinema_grade.gd` → `rs_scene_color_grading.gd`
-- `scripts/state/actions/u_cinema_grade_actions.gd` → `u_color_grading_actions.gd`
-- `scripts/state/selectors/u_cinema_grade_selectors.gd` → `u_color_grading_selectors.gd`
-- `scripts/utils/display/u_cinema_grade_preview.gd` → `u_color_grading_preview.gd`
-- `scripts/debug/debug_cinema_grade_overlay.gd` → `debug_color_grading_overlay.gd`
-- `scenes/debug/debug_cinema_grade_overlay.tscn` → `debug_color_grading_overlay.tscn`
-- `assets/shaders/sh_cinema_grade_shader.gdshader` → `sh_color_grading_shader.gdshader`
-- `resources/display/cinema_grades/cfg_cinema_grade_{gameplay_base,alleyway,bar,exterior,interior_house}.tres` → `resources/display/color_gradings/cfg_color_grading_*.tres` (5 files)
-- `tests/unit/managers/test_cinema_grade_{mobile_disable,selectors,registry}.gd` → `test_color_grading_*.gd` (3 files)
-- `tests/unit/resources/test_cinema_grade_filter_preset_map_consistency.gd` → `test_color_grading_filter_preset_map_consistency.gd`
-- `tests/integration/display/test_cinema_grade_applier.gd` → `test_color_grading_applier.gd`
+- `scripts/managers/helpers/display/u_display_color_grading_applier.gd` → `u_display_color_grading_applier.gd`
+- `scripts/managers/helpers/display/u_color_grading_registry.gd` → `u_color_grading_registry.gd`
+- `scripts/resources/display/rs_scene_color_grading.gd` → `rs_scene_color_grading.gd`
+- `scripts/state/actions/u_color_grading_actions.gd` → `u_color_grading_actions.gd`
+- `scripts/state/selectors/u_color_grading_selectors.gd` → `u_color_grading_selectors.gd`
+- `scripts/utils/display/u_color_grading_preview.gd` → `u_color_grading_preview.gd`
+- `scripts/debug/debug_color_grading_overlay.gd` → `debug_color_grading_overlay.gd`
+- `scenes/debug/debug_color_grading_overlay.tscn` → `debug_color_grading_overlay.tscn`
+- `assets/shaders/sh_color_grading_shader.gdshader` → `sh_color_grading_shader.gdshader`
+- `resources/display/color_gradings/cfg_color_grading_{gameplay_base,alleyway,bar,exterior,interior_house}.tres` → `resources/display/color_gradings/cfg_color_grading_*.tres` (5 files)
+- `tests/unit/managers/test_color_grading_{mobile_disable,selectors,registry}.gd` → `test_color_grading_*.gd` (3 files)
+- `tests/unit/resources/test_color_grading_filter_preset_map_consistency.gd` → `test_color_grading_filter_preset_map_consistency.gd`
+- `tests/integration/display/test_color_grading_applier.gd` → `test_color_grading_applier.gd`
 
 **Modify (content changes beyond rename):**
 
 - `scripts/managers/helpers/display/u_display_post_process_applier.gd` — delegate to pipeline, drop CRT branches, drop `_fg_time_frame_counter`
 - `scripts/managers/helpers/display/u_post_process_layer.gd` — drop legacy `EFFECT_FILM_GRAIN`/`EFFECT_CRT`/`EFFECT_DITHER` constants; rename `EFFECT_COMBINED` → `EFFECT_GRAIN_DITHER`
 - `assets/shaders/sh_combined_post_process_shader.gdshader` — delete, replaced by `sh_grain_dither.gdshader`
-- `scripts/state/reducers/u_display_reducer.gd` — delete 4 CRT reducer cases, rename 13 cinema_grade state keys → color_grading
+- `scripts/state/reducers/u_display_reducer.gd` — delete 4 CRT reducer cases, rename 13 color_grading state keys → color_grading
 - `scripts/state/selectors/u_display_selectors.gd` — delete 4 CRT selectors
 - `scripts/state/actions/u_display_actions.gd` — delete 4 CRT action creators + constants
 - `scripts/resources/state/rs_display_initial_state.gd` — remove CRT defaults
@@ -115,7 +115,7 @@ Within C12, commits are ordered so that each GREEN step can land cleanly:
 - `scripts/managers/m_scene_manager.gd` — update cinema grade → color grading layer name reference
 - `scripts/utils/debug/u_perf_monitor.gd`, `u_perf_shader_bypass.gd` — update layer-name constants
 - `scripts/root.gd` — update post_process_overlay service registration comment/naming if applicable
-- `resources/localization/cfg_locale_{en,ja,es,pt,zh}.tres` — remove CRT UI keys, rename cinema_grade UI keys → color_grading (5 files)
+- `resources/localization/cfg_locale_{en,ja,es,pt,zh}.tres` — remove CRT UI keys, rename color_grading UI keys → color_grading (5 files)
 
 **Delete:**
 
@@ -123,10 +123,10 @@ Within C12, commits are ordered so that each GREEN step can land cleanly:
 
 **Test files to update:**
 
-- `tests/unit/state/test_display_reducer.gd` — remove CRT cases, update cinema_grade → color_grading
+- `tests/unit/state/test_display_reducer.gd` — remove CRT cases, update color_grading → color_grading
 - `tests/unit/state/test_display_selectors.gd` — remove CRT selector tests
 - `tests/unit/state/test_display_actions.gd` — remove CRT action tests
-- `tests/unit/state/test_display_initial_state.gd` — remove CRT default assertions, rename cinema_grade keys
+- `tests/unit/state/test_display_initial_state.gd` — remove CRT default assertions, rename color_grading keys
 - `tests/unit/state/test_display_post_processing_preset.gd` — remove CRT preset fields
 - `tests/integration/display/test_post_processing.gd` — remove CRT integration tests, refactor for new pipeline
 - `tests/unit/managers/test_display_post_process_effect_enable_logic.gd` — remove CRT logic tests
@@ -138,11 +138,11 @@ Within C12, commits are ordered so that each GREEN step can land cleanly:
 
 ## Milestone C12: Post-Processing Pipeline Refactor
 
-**Goal**: Collapse post-processing to exactly two passes (color grading + grain/dither) behind a new `U_PostProcessPipeline` coordinator, remove CRT entirely, rename cinema_grade → color_grading across the codebase, and enable color grading on mobile.
+**Goal**: Collapse post-processing to exactly two passes (color grading + grain/dither) behind a new `U_PostProcessPipeline` coordinator, remove CRT entirely, rename color_grading → color_grading across the codebase, and enable color grading on mobile.
 
 - [x] **Commit 1** — Add pipeline + removal tests (TDD RED): ✅
   - `tests/unit/managers/helpers/test_u_post_process_pipeline.gd` — test pass registration, deterministic ordered evaluation, per-pass enable/disable, frame-counter uniform updates (`fg_time`), and pipeline teardown (unregister/clear). Class doesn't exist yet — parse-fails as intended RED.
-  - `tests/unit/style/test_style_enforcement.gd` — added `test_no_cinema_grade_identifiers_in_scripts` and `test_no_crt_identifiers_in_display_scripts` grep assertions. Both correctly fail against existing codebase.
+  - `tests/unit/style/test_style_enforcement.gd` — added `test_no_color_grading_identifiers_in_scripts` and `test_no_crt_identifiers_in_display_scripts` grep assertions. Both correctly fail against existing codebase.
 - [x] **Commit 2** — Delete CRT from state layer (TDD GREEN): ✅
   - `scripts/state/actions/u_display_actions.gd` — removed 4 `ACTION_SET_CRT_*` constants/creators and 4 `_static_init` registrations.
   - `scripts/state/selectors/u_display_selectors.gd` — removed 4 CRT selector methods.
@@ -165,22 +165,22 @@ Within C12, commits are ordered so that each GREEN step can land cleanly:
   - `scripts/managers/helpers/display/u_display_post_process_applier.gd` — CRT parameter setters, mobile force-disable, and `_fg_time_frame_counter` removed.
   - `scripts/managers/helpers/display/u_post_process_layer.gd` — legacy `EFFECT_FILM_GRAIN`/`EFFECT_CRT`/`EFFECT_DITHER` constants dropped; `EFFECT_COMBINED` → `EFFECT_GRAIN_DITHER`.
   - `scenes/ui/overlays/ui_post_process_overlay.tscn` — shader reference updated to `sh_grain_dither.gdshader`; CRT uniforms removed.
-- [x] **Commit 5** — Rename cinema_grade → color_grading in state layer (TDD GREEN): ✅
-  - `u_cinema_grade_actions.gd` → `u_color_grading_actions.gd`; class, constants, creators renamed.
-  - `u_cinema_grade_selectors.gd` → `u_color_grading_selectors.gd`; class, selectors renamed.
-  - `u_display_reducer.gd` — `cinema_grade_*` keys → `color_grading_*`; action cases updated.
+- [x] **Commit 5** — Rename color_grading → color_grading in state layer (TDD GREEN): ✅
+  - `u_color_grading_actions.gd` → `u_color_grading_actions.gd`; class, constants, creators renamed.
+  - `u_color_grading_selectors.gd` → `u_color_grading_selectors.gd`; class, selectors renamed.
+  - `u_display_reducer.gd` — `color_grading_*` keys → `color_grading_*`; action cases updated.
 - [x] **Commit 6** — Rename resources + scene-swap registry (TDD GREEN): ✅
-  - `rs_scene_cinema_grade.gd` → `rs_scene_color_grading.gd`; class, `to_dictionary()` key prefixes updated.
-  - `u_cinema_grade_registry.gd` → `u_color_grading_registry.gd`; class, preload paths updated.
-  - `resources/display/cinema_grades/` → `resources/display/color_gradings/`; 5 `.tres` files renamed.
-- [x] **Commit 7** — Finish cinema_grade rename (applier + debug + UI + localization) (TDD GREEN): ✅
-  - `u_display_cinema_grade_applier.gd` → `u_display_color_grading_applier.gd`; class, references updated.
-  - `sh_cinema_grade_shader.gdshader` → `sh_color_grading_shader.gdshader`; applier preload updated.
-  - `u_cinema_grade_preview.gd` → `u_color_grading_preview.gd`.
-  - `debug_cinema_grade_overlay.gd` + `.tscn` → `debug_color_grading_overlay.*`.
+  - `rs_scene_color_grading.gd` → `rs_scene_color_grading.gd`; class, `to_dictionary()` key prefixes updated.
+  - `u_color_grading_registry.gd` → `u_color_grading_registry.gd`; class, preload paths updated.
+  - `resources/display/color_gradings/` → `resources/display/color_gradings/`; 5 `.tres` files renamed.
+- [x] **Commit 7** — Finish color_grading rename (applier + debug + UI + localization) (TDD GREEN): ✅
+  - `u_display_color_grading_applier.gd` → `u_display_color_grading_applier.gd`; class, references updated.
+  - `sh_color_grading_shader.gdshader` → `sh_color_grading_shader.gdshader`; applier preload updated.
+  - `u_color_grading_preview.gd` → `u_color_grading_preview.gd`.
+  - `debug_color_grading_overlay.gd` + `.tscn` → `debug_color_grading_overlay.*`.
   - `m_display_manager.gd`, `m_scene_manager.gd`, `u_perf_monitor.gd`, `u_perf_shader_bypass.gd` — applier/layer references updated.
-  - `cfg_locale_*.tres` — 13 cinema_grade UI keys → color_grading.
-  - Test files renamed: `test_cinema_grade_*.gd` → `test_color_grading_*.gd`.
+  - `cfg_locale_*.tres` — 13 color_grading UI keys → color_grading.
+  - Test files renamed: `test_color_grading_*.gd` → `test_color_grading_*.gd`.
 - [x] **Commit 8** — Introduce `U_PostProcessPipeline` (TDD GREEN): ✅
   - `scripts/managers/helpers/display/u_post_process_pipeline.gd` — 2-pass pipeline with `register_pass`, `apply_settings`, `update_per_frame`, `get_pass` APIs.
   - `U_DisplayColorGradingApplier` registers as pass `&"color_grading"`.
@@ -191,7 +191,7 @@ Within C12, commits are ordered so that each GREEN step can land cleanly:
   - `u_display_color_grading_applier.gd` — `_is_mobile` force-disable branches removed.
   - `test_color_grading_mobile_disable.gd` → `test_color_grading_mobile_enabled.gd`; polarity flipped.
 - [x] **Commit 10** — Finalize style enforcement + legacy cleanup (TDD GREEN): ✅
-  - `test_style_enforcement.gd` — Commit 1 grep assertions now pass (no cinema_grade, no CRT, no legacy layer constants). Updated "will FAIL" comments to reflect completion.
+  - `test_style_enforcement.gd` — Commit 1 grep assertions now pass (no color_grading, no CRT, no legacy layer constants). Updated "will FAIL" comments to reflect completion.
   - Added `test_post_process_overlay_colorrect_creation_only_via_pipeline` — only pipeline delegates and editor-only preview create ColorRect under PostProcessOverlay.
   - Removed residual CRT entries from `test_display_selectors.gd` DEFAULTS dict (gap from Commit 2).
   - No remaining dead code or unreferenced helpers found.
@@ -205,7 +205,7 @@ Within C12, commits are ordered so that each GREEN step can land cleanly:
 - [x] Every existing display test green after each commit
 - [x] New `test_u_post_process_pipeline.gd` green after Commit 8 (12/12)
 - [x] `test_style_enforcement.gd` grep assertions pass after Commit 10 (35/35):
-  - `grep -r "cinema_grade" scripts/` returns zero hits
+  - `grep -r "color_grading" scripts/` returns zero hits
   - `grep -r "crt_" scripts/` returns zero hits (allowlist any non-post-process CRT-acronym usage)
   - `grep -r "chromatic_aberration\|scanline\|curvature" scripts/` returns zero hits in display/post-process contexts
   - No file outside `u_post_process_pipeline.gd` and its delegate appliers constructs `ColorRect` children under `PostProcessOverlay`
@@ -238,15 +238,15 @@ Post-completion audit revealed gaps in integration depth, rename coverage, test 
 | Severity | Gap | Root cause |
 |----------|-----|------------|
 | HIGH | `pipeline.apply_settings()` never called at runtime — M_DisplayManager calls each applier's `apply_settings()` independently instead of delegating visibility to the pipeline | Commit 8 wired registration + `update_per_frame` but did not centralize visibility control |
-| MEDIUM | ~30 bare `cinema` references survive in 3 production files + `project.godot` — rename only targeted `cinema_grade` (with underscore) | Enforcement test grep was too narrow (only `cinema_grade`) |
+| MEDIUM | ~30 bare `cinema` references survive in 3 production files + `project.godot` — rename only targeted `color_grading` (with underscore) | Enforcement test grep was too narrow (only `color_grading`) |
 | MEDIUM | `CombinedLayer`/`CombinedRect` scene node names + all references (NodePath, perf_monitor, perf_shader_bypass, 2 test files) never renamed to `GrainDitherLayer`/`GrainDitherRect` | `EFFECT_COMBINED` → `EFFECT_GRAIN_DITHER` constant rename didn't propagate to scene tree or debug utilities |
 | MEDIUM | `CINEMA_OFF` mode + `_was_cinema_visible` + `_disable_cinema_only()` + comments in `u_perf_shader_bypass.gd` | Same narrow-grep blind spot |
 | MEDIUM | `_cinema_debug_overlay`, `register_cinema_debug_overlay()`, `get_cinema_debug_overlay()`, `toggle_cinema_debug` input action in `m_state_store.gd` + `rs_rebind_settings.gd` + `project.godot` | Same narrow-grep blind spot |
 | MEDIUM | 8 residual `cinema`/`combined` references in 5 test files | Rename stopped at file rename, didn't sweep function/variable/comment names |
 | LOW | Pipeline test count is 11, task doc says 12/12 | Missing coverage for `apply_settings` no-op path |
-| LOW | Style enforcement test only greps for `cinema_grade` (with underscore) — misses bare `cinema` and `combined` in display contexts | Test was written to match the rename scope, not the full semantic intent |
-| LOW | 168 stale `cinema_grade` references across `docs/` + `AGENTS.md`; 3 stale CRT references in `docs/` | Documentation not updated after rename |
-| LOW | `.claude/settings.local.json` has stale path to deleted `u_display_cinema_grade_applier.gd` | Settings artifact from pre-rename |
+| LOW | Style enforcement test only greps for `color_grading` (with underscore) — misses bare `cinema` and `combined` in display contexts | Test was written to match the rename scope, not the full semantic intent |
+| LOW | 168 stale `color_grading` references across `docs/` + `AGENTS.md`; 3 stale CRT references in `docs/` | Documentation not updated after rename |
+| LOW | `.claude/settings.local.json` has stale path to deleted `u_display_color_grading_applier.gd` | Settings artifact from pre-rename |
 
 ---
 
@@ -296,17 +296,17 @@ Post-completion audit revealed gaps in integration depth, rename coverage, test 
   - Verify: the only code that sets `rect.visible` on post-process passes is `pipeline.apply_settings`
 
 - [ ] **Commit 14** — Widen style enforcement grep to catch bare `cinema` and `combined` in display contexts (TDD GREEN):
-  - `tests/unit/style/test_style_enforcement.gd` — extend `test_no_cinema_grade_identifiers_in_scripts` to also grep for bare `cinema` in display/post-process scripts (allowlist `cinematic` in camera manager, which is a different concept). Add `test_no_combined_identifiers_in_display_scripts` that greps for `CombinedLayer`/`CombinedRect`/`combined_visible`/`combined_post_process` in display scripts.
+  - `tests/unit/style/test_style_enforcement.gd` — extend `test_no_color_grading_identifiers_in_scripts` to also grep for bare `cinema` in display/post-process scripts (allowlist `cinematic` in camera manager, which is a different concept). Add `test_no_combined_identifiers_in_display_scripts` that greps for `CombinedLayer`/`CombinedRect`/`combined_visible`/`combined_post_process` in display scripts.
   - Verify enforcement tests pass with zero violations after Commits 11–13.
 
 - [ ] **Commit 15** — Clean stale documentation (no code changes):
-  - Update all 168 `cinema_grade` references across `docs/` and `AGENTS.md` to `color_grading`
+  - Update all 168 `color_grading` references across `docs/` and `AGENTS.md` to `color_grading`
   - Update 3 stale CRT references in `docs/display_manager/`
   - Update `CombinedLayer`/`CombinedRect` references in docs
   - Update `toggle_cinema_debug` → `toggle_color_grading_debug` in docs
 
 - [ ] **Commit 16** — Settings artifact cleanup:
-  - `.claude/settings.local.json` — remove or update stale `u_display_cinema_grade_applier.gd` path
+  - `.claude/settings.local.json` — remove or update stale `u_display_color_grading_applier.gd` path
 
 ---
 
@@ -318,5 +318,5 @@ Post-completion audit revealed gaps in integration depth, rename coverage, test 
 - [ ] Pipeline test count >= 12 (currently 15)
 - [ ] `pipeline.apply_settings()` called from M_DisplayManager (not dead code)
 - [ ] Style enforcement tests pass ( widened grep)
-- [ ] `grep -r "cinema_grade" docs/ AGENTS.md` returns zero hits
+- [ ] `grep -r "color_grading" docs/ AGENTS.md` returns zero hits
 - [ ] Full GUT suite green

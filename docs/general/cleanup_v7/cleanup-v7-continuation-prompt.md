@@ -13,7 +13,7 @@ This guide directs you to implement the Cross-System Cleanup (V7) by following t
 
 ## Current Status: C12 In Progress (Commits 1–2 Complete)
 
-- **C12 Commit 1** (RED): COMPLETE — Added `tests/unit/managers/helpers/test_u_post_process_pipeline.gd` with pipeline registration, ordered evaluation, per-pass enable/disable, fg_time frame-counter, and teardown tests (class doesn't exist yet — parse-fails as intended RED). Added two grep-style style enforcement tests: `test_no_cinema_grade_identifiers_in_scripts` and `test_no_crt_identifiers_in_display_scripts` (both correctly fail against existing codebase).
+- **C12 Commit 1** (RED): COMPLETE — Added `tests/unit/managers/helpers/test_u_post_process_pipeline.gd` with pipeline registration, ordered evaluation, per-pass enable/disable, fg_time frame-counter, and teardown tests (class doesn't exist yet — parse-fails as intended RED). Added two grep-style style enforcement tests: `test_no_color_grading_identifiers_in_scripts` and `test_no_crt_identifiers_in_display_scripts` (both correctly fail against existing codebase).
 
 - **C12 Commit 2** (GREEN): COMPLETE — Removed all CRT display state, actions, selectors, reducer cases, and preset values from the display pipeline. Deleted 4 CRT action constants/creators from `u_display_actions.gd`, 4 CRT selectors from `u_display_selectors.gd`, 4 CRT reducer cases + CRT defaults + clamp constants from `u_display_reducer.gd`, CRT exports from `rs_display_initial_state.gd` and `rs_post_processing_preset.gd`, CRT keys from `u_post_processing_preset_values.gd`, CRT values from 3 `.tres` preset files, and 4 CRT dispatches from `u_global_settings_applier.gd`. Updated 7 test files to remove CRT assertions and test methods. All 36 display reducer, 14 selector, 13 action, 12 initial state, 7 effect enable logic, 8 preset values, and 11 post-process layer tests pass.
 
@@ -274,7 +274,7 @@ Milestone checklists below are the original implementation-plan scaffold and may
 
 ## Milestone C12: Post-Processing Pipeline Refactor
 
-**Goal**: Collapse the gameplay-visible post-process surface to exactly two passes (color grading + grain/dither) behind a new `U_PostProcessPipeline` coordinator that mimics `CompositorEffect` ergonomics in `gl_compatibility` mode, remove CRT entirely, rename cinema_grade → color_grading across the codebase, and enable color grading on mobile.
+**Goal**: Collapse the gameplay-visible post-process surface to exactly two passes (color grading + grain/dither) behind a new `U_PostProcessPipeline` coordinator that mimics `CompositorEffect` ergonomics in `gl_compatibility` mode, remove CRT entirely, rename color_grading → color_grading across the codebase, and enable color grading on mobile.
 
 **Scheduling**: C12 runs *after* C1–C11 are complete. It is architecturally independent of every earlier milestone (no overlap with rule engine, selectors, dependency resolution, or scene-manager work), but placing it at the end keeps the cleanup-v7 branch's display-layer churn isolated from the state/ECS churn in C1–C11 and gives a single clean review surface for the post-processing pipeline.
 
@@ -284,7 +284,7 @@ Milestone checklists below are the original implementation-plan scaffold and may
 - [ ] **Commit 2** (GREEN) — Delete CRT from state layer (actions, selectors, reducer, initial state, preset values, 3 preset `.tres` files)
 - [ ] **Commit 3** (GREEN) — Delete CRT from UI/localization (display settings tab, VFX overlay, option catalog, 5 locale files)
 - [ ] **Commit 4** (GREEN) — Strip CRT from shaders + applier (combined shader → `sh_grain_dither.gdshader`, delete `sh_crt_shader.gdshader`, remove `crt_*` setters, drop legacy effect constants)
-- [ ] **Commit 5** (GREEN) — Rename cinema_grade → color_grading in state layer (actions, selectors, reducer keys)
+- [ ] **Commit 5** (GREEN) — Rename color_grading → color_grading in state layer (actions, selectors, reducer keys)
 - [ ] **Commit 6** (GREEN) — Rename resources + registry (scene resource class, registry, 5 scene grade `.tres` files)
 - [ ] **Commit 7** (GREEN) — Rename applier + debug + UI + localization; update references in display/scene managers and perf monitor; flag mobile PCK cache warning
 - [ ] **Commit 8** (GREEN) — Introduce `U_PostProcessPipeline`; migrate both surviving appliers onto it; unify `fg_time` frame counter
@@ -293,7 +293,7 @@ Milestone checklists below are the original implementation-plan scaffold and may
 
 **C12 Verification**:
 - [ ] `test_u_post_process_pipeline.gd` green
-- [ ] `grep -r "cinema_grade" scripts/` zero hits
+- [ ] `grep -r "color_grading" scripts/` zero hits
 - [ ] `grep -r "crt_\|chromatic_aberration\|scanline\|curvature" scripts/` zero hits in post-process contexts
 - [ ] No file outside `u_post_process_pipeline.gd` constructs `ColorRect` children under `PostProcessOverlay`
 - [ ] Runtime validation: desktop per-scene grading visually identical to pre-refactor; mobile color grading applies and stays within frame budget (~1.5ms cap on reference hardware)

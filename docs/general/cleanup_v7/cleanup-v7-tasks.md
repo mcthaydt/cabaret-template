@@ -396,7 +396,7 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 **Completed**: 2026-04-13
 
-**Goal**: Collapse the post-process surface to exactly two passes (color grading + grain/dither) behind a new `U_PostProcessPipeline` coordinator that mimics `CompositorEffect` ergonomics in `gl_compatibility` mode, remove CRT entirely, rename cinema_grade → color_grading across the codebase, and enable color grading on mobile.
+**Goal**: Collapse the post-process surface to exactly two passes (color grading + grain/dither) behind a new `U_PostProcessPipeline` coordinator that mimics `CompositorEffect` ergonomics in `gl_compatibility` mode, remove CRT entirely, rename color_grading → color_grading across the codebase, and enable color grading on mobile.
 
 **Standalone doc**: Full 10-commit breakdown, critical file list, and verification steps live in `docs/general/cleanup_v7/post-process-refactor-tasks.md`. This pointer exists to keep C12 discoverable from the cleanup-v7 index; the standalone doc is the source of truth.
 **Follow-up after C12**: Start `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` (post-C12 track).

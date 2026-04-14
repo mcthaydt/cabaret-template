@@ -642,7 +642,7 @@ Before starting Phase 0, verify:
 ### Phase 11A: Shader
 
 - [x] **Task 11A.1**: Create cinema grade GLSL shader
-  - Create `assets/shaders/sh_cinema_grade_shader.gdshader`
+  - Create `assets/shaders/sh_color_grading_shader.gdshader`
   - 13 adjustment uniforms (exposure, brightness, contrast, highlights, shadows, saturation, vibrance, brilliance, warmth, tint, sharpness, filter_mode, filter_intensity)
   - 8 named filters (dramatic, dramatic_warm, dramatic_cold, vivid, vivid_warm, vivid_cold, black_and_white, sepia)
   - Processing order: sharpness → exposure → white balance → brilliance → brightness → contrast → highlights/shadows → saturation → vibrance → filter → clamp
@@ -651,38 +651,38 @@ Before starting Phase 0, verify:
 ### Phase 11B: Resource Class + Registry
 
 - [x] **Task 11B.1**: Create RS_SceneCinemaGrade resource class
-  - Create `scripts/resources/display/rs_scene_cinema_grade.gd`
+  - Create `scripts/resources/display/rs_scene_color_grading.gd`
   - @export groups: Filter, Exposure & Brightness, Tone, Color, Detail
-  - `to_dictionary()` returns all values with `cinema_grade_` prefix
+  - `to_dictionary()` returns all values with `color_grading_` prefix
   - `FILTER_PRESET_MAP` const maps string → int
   - Notes: Completed 2026-02-06
 
 - [x] **Task 11B.2**: Create U_CinemaGradeRegistry
-  - Create `scripts/managers/helpers/display/u_cinema_grade_registry.gd`
+  - Create `scripts/managers/helpers/display/u_color_grading_registry.gd`
   - Mobile-safe `const preload` pattern (follows U_AudioRegistryLoader)
-  - `get_cinema_grade_for_scene(scene_id)` with neutral fallback
+  - `get_color_grading_for_scene(scene_id)` with neutral fallback
   - Notes: Completed 2026-02-06
 
 - [x] **Task 11B.3**: Create per-scene .tres configs
-  - `resources/display/cinema_grades/cfg_cinema_grade_gameplay_base.tres`
-  - `resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres`
-  - `resources/display/cinema_grades/cfg_cinema_grade_exterior.tres`
-  - `resources/display/cinema_grades/cfg_cinema_grade_bar.tres`
-  - `resources/display/cinema_grades/cfg_cinema_grade_interior_house.tres`
+  - `resources/display/color_gradings/cfg_color_grading_gameplay_base.tres`
+  - `resources/display/color_gradings/cfg_color_grading_alleyway.tres`
+  - `resources/display/color_gradings/cfg_color_grading_exterior.tres`
+  - `resources/display/color_gradings/cfg_color_grading_bar.tres`
+  - `resources/display/color_gradings/cfg_color_grading_interior_house.tres`
   - All start with neutral values (ready for tuning)
   - Notes: Completed 2026-02-06
 
 ### Phase 11C: Redux Integration
 
 - [x] **Task 11C.1**: Create U_CinemaGradeActions
-  - Create `scripts/state/actions/u_cinema_grade_actions.gd`
-  - `cinema_grade/` prefix (NOT persisted to global_settings.json)
+  - Create `scripts/state/actions/u_color_grading_actions.gd`
+  - `color_grading/` prefix (NOT persisted to global_settings.json)
   - Actions: load_scene_grade, set_parameter, reset_to_scene_defaults
   - Notes: Completed 2026-02-06
 
 - [x] **Task 11C.2**: Create U_CinemaGradeSelectors
-  - Create `scripts/state/selectors/u_cinema_grade_selectors.gd`
-  - One getter per parameter reading from display slice with `cinema_grade_` key prefix
+  - Create `scripts/state/selectors/u_color_grading_selectors.gd`
+  - One getter per parameter reading from display slice with `color_grading_` key prefix
   - Notes: Completed 2026-02-06
 
 - [x] **Task 11C.3**: Modify U_DisplayReducer
@@ -693,7 +693,7 @@ Before starting Phase 0, verify:
 ### Phase 11D: Applier + Manager Integration
 
 - [x] **Task 11D.1**: Create U_DisplayCinemaGradeApplier
-  - Create `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd`
+  - Create `scripts/managers/helpers/display/u_display_color_grading_applier.gd`
   - Creates CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay
   - Listens for `scene/transition_completed` via `action_dispatched` signal
   - Looks up registry → dispatches load_scene_grade action
@@ -708,9 +708,9 @@ Before starting Phase 0, verify:
 ### Phase 11E: @tool Editor Preview
 
 - [x] **Task 11E.1**: Create U_CinemaGradePreview
-  - Create `scripts/utils/display/u_cinema_grade_preview.gd`
+  - Create `scripts/utils/display/u_color_grading_preview.gd`
   - `@tool` script extending Node
-  - `@export var cinema_grade: Resource` with setter calling `_update_preview()`
+  - `@export var color_grading: Resource` with setter calling `_update_preview()`
   - Editor: creates CanvasLayer 100 + ColorRect with shader
   - Runtime: `queue_free()` (M_DisplayManager handles everything)
   - `_get_configuration_warnings()` warns if no resource assigned
