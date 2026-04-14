@@ -218,6 +218,7 @@ func _apply_display_settings(state: Dictionary) -> void:
 	_apply_color_grading_settings(effective_settings)
 	_apply_ui_scale_settings(effective_settings)
 	_apply_accessibility_settings(effective_settings)
+	_sync_pipeline_visibility(effective_settings, state)
 
 func _build_effective_settings(state: Dictionary) -> Dictionary:
 	var settings: Dictionary = U_DISPLAY_SELECTORS.get_display_settings(state).duplicate(true)
@@ -301,7 +302,6 @@ func _apply_post_process_settings(display_settings: Dictionary) -> void:
 	if _post_process_applier == null:
 		return
 	_post_process_applier.apply_settings(display_settings)
-	_update_overlay_visibility()
 
 func _apply_color_grading_settings(display_settings: Dictionary) -> void:
 	_ensure_appliers()
@@ -478,8 +478,23 @@ func _update_overlay_visibility() -> void:
 
 	if _post_process_applier != null:
 		_post_process_applier.update_overlay_visibility(should_show)
-	if _color_grading_applier != null:
-		_color_grading_applier.update_visibility(should_show)
+
+	var display_settings := U_DISPLAY_SELECTORS.get_display_settings(state)
+	_sync_pipeline_visibility(display_settings, state)
+
+func _sync_pipeline_visibility(display_settings: Dictionary, state: Dictionary) -> void:
+	if _pipeline == null:
+		return
+	var shell := U_NAVIGATION_SELECTORS.get_shell(state)
+	var should_show := shell == SHELL_GAMEPLAY
+	var state_wrap := {"display": display_settings}
+	var pp_enabled := U_DISPLAY_SELECTORS.is_post_processing_enabled(state_wrap)
+	var fg_enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state_wrap)
+	var dither_enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state_wrap)
+	(_pipeline as U_PostProcessPipeline).apply_settings({
+		"grain_dither_enabled": should_show and pp_enabled and (fg_enabled or dither_enabled),
+		"color_grading_enabled": should_show,
+	})
 
 func _get_palette_id_text(palette: Resource) -> String:
 	if palette == null:

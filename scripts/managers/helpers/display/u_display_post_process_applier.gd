@@ -59,12 +59,6 @@ func _apply_grain_dither_effect_settings(state: Dictionary) -> void:
 
 	_any_effect_active = fg_enabled or dither_enabled
 
-	# Delegate visibility to the pipeline
-	if _pipeline != null:
-		_pipeline.set_pass_visible(&"grain_dither", _any_effect_active)
-	else:
-		_post_process_layer.set_grain_dither_visible(_any_effect_active)
-
 	if not _any_effect_active:
 		return
 
@@ -104,10 +98,6 @@ func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 
 func _disable_post_process_effects() -> void:
 	_any_effect_active = false
-	if _pipeline != null:
-		_pipeline.set_pass_visible(&"grain_dither", false)
-	else:
-		_post_process_layer.set_grain_dither_visible(false)
 
 func _ensure_post_process_layer() -> bool:
 	if _post_process_layer != null:
