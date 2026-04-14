@@ -169,10 +169,7 @@ func test_sync_navigation_shell_does_not_override_pending_navigation() -> void:
 
 	# Simulate navigation already requesting settings_menu while a previous
 	# scene (e.g., touchscreen_settings) finishes loading.
-	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
-	nav_slice["shell"] = StringName("main_menu")
-	nav_slice["base_scene_id"] = StringName("settings_menu")
-	_store._state["navigation"] = nav_slice.duplicate(true)
+	_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
 
 	manager._set_navigation_pending_scene_id(StringName("settings_menu"))
 
@@ -181,7 +178,7 @@ func test_sync_navigation_shell_does_not_override_pending_navigation() -> void:
 	# pending navigation target (settings_menu).
 	manager._sync_navigation_shell_with_scene(StringName("touchscreen_settings"))
 
-	nav_slice = _store.get_slice(StringName("navigation"))
+	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	assert_eq(
 		nav_slice.get("base_scene_id"),
 		StringName("settings_menu"),
@@ -199,17 +196,14 @@ func test_sync_navigation_shell_clears_stale_pending_navigation() -> void:
 
 	# Navigation slice is stuck thinking main_menu is pending (stale) while a gameplay scene
 	# completes loading via a manual transition (e.g., load-from-save).
-	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
-	nav_slice["shell"] = StringName("main_menu")
-	nav_slice["base_scene_id"] = StringName("main_menu")
-	_store._state[StringName("navigation")] = nav_slice.duplicate(true)
+	_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("main_menu")))
 
 	# The loaded scene is gameplay; syncing should clear the stale pending target and
 	# dispatch a navigation action to align shell/base_scene_id with the actual scene.
 	manager._sync_navigation_shell_with_scene(GAMEPLAY_SCENE_ID)
 	await wait_physics_frames(1)
 
-	nav_slice = _store.get_slice(StringName("navigation"))
+	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("base_scene_id"), GAMEPLAY_SCENE_ID, "Stale pending navigation should not block shell sync")
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"), "Gameplay scene should run under gameplay shell")
 
@@ -222,19 +216,13 @@ func test_manual_transition_to_touchscreen_settings_aligns_navigation() -> void:
 	manager._initial_navigation_synced = true
 	manager._set_navigation_pending_scene_id(StringName(""))
 
-	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
-	nav_slice["shell"] = StringName("main_menu")
-	nav_slice["base_scene_id"] = StringName("main_menu")
-	nav_slice["overlay_stack"] = []
-	nav_slice["overlay_return_stack"] = []
-	nav_slice["active_menu_panel"] = StringName("menu/main")
-	_store._state[StringName("navigation")] = nav_slice.duplicate(true)
+	_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("main_menu")))
 
 	# Transition into settings_menu as a standalone UI scene (main menu flow).
 	manager.transition_to_scene(StringName("settings_menu"), "instant", M_SceneManager.Priority.HIGH)
 	await _await_scene(StringName("settings_menu"), 30)
 
-	nav_slice = _store.get_slice(StringName("navigation"))
+	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	var shell: StringName = U_NavigationSelectors.get_shell(nav_slice)
 	var base_scene_id: StringName = U_NavigationSelectors.get_base_scene_id(nav_slice)
 

@@ -19,6 +19,7 @@ const ACTION_SKIP_TO_MENU := StringName("navigation/skip_to_menu")
 const ACTION_RETURN_TO_MAIN_MENU := StringName("navigation/return_to_main_menu")
 const ACTION_NAVIGATE_TO_UI_SCREEN := StringName("navigation/navigate_to_ui_screen")
 const ACTION_SET_SAVE_LOAD_MODE := StringName("navigation/set_save_load_mode")
+const ACTION_SYNC_INITIAL_SCENE := StringName("navigation/sync_initial_scene")
 
 ## Register all navigation actions with the ActionRegistry
 static func _static_init() -> void:
@@ -45,6 +46,9 @@ static func _static_init() -> void:
 	})
 	U_ActionRegistry.register_action(ACTION_SET_SAVE_LOAD_MODE, {
 		"required_root_fields": ["mode"]
+	})
+	U_ActionRegistry.register_action(ACTION_SYNC_INITIAL_SCENE, {
+		"required_root_fields": ["base_scene_id", "clear_overlays"]
 	})
 
 static func set_shell(shell: StringName, base_scene_id: StringName) -> Dictionary:
@@ -142,4 +146,20 @@ static func set_save_load_mode(mode: StringName) -> Dictionary:
 	return {
 		"type": ACTION_SET_SAVE_LOAD_MODE,
 		"mode": mode
+	}
+
+## Sync the initial navigation scene based on localization state.
+##
+## Dispatched during store initialization to align the navigation base scene
+## with the first-run language picker. The caller evaluates all guards and
+## only dispatches when the action is needed.
+##
+## Payload:
+## - base_scene_id: StringName - Target scene ("main_menu" or "language_selector")
+## - clear_overlays: bool - Whether to clear overlay stacks (true when no language selected)
+static func sync_initial_scene(base_scene_id: StringName, clear_overlays: bool) -> Dictionary:
+	return {
+		"type": ACTION_SYNC_INITIAL_SCENE,
+		"base_scene_id": base_scene_id,
+		"clear_overlays": clear_overlays
 	}

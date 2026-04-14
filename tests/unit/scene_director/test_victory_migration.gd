@@ -7,6 +7,7 @@ const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
 const OBJECTIVE_SET := preload("res://scripts/resources/scene_director/rs_objective_set.gd")
 const OBJECTIVES_REDUCER := preload("res://scripts/state/reducers/u_objectives_reducer.gd")
@@ -160,6 +161,10 @@ func _spawn_scene_manager_fixture() -> Dictionary:
 	store.settings.enable_persistence = false
 	store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
 	store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
+	var nav_initial := RS_NAVIGATION_INITIAL_STATE.new()
+	nav_initial.shell = StringName("gameplay")
+	nav_initial.base_scene_id = StringName("")
+	store.navigation_initial_state = nav_initial
 	root.add_child(store)
 	U_ServiceLocator.register(StringName("state_store"), store)
 	U_SCENE_TEST_HELPERS.register_scene_manager_dependencies(root)

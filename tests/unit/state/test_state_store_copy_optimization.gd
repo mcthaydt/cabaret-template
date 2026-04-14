@@ -242,6 +242,9 @@ func test_a4_apply_reducers_detects_changes_correctly() -> void:
 	assert_true(paused_after, "Should be paused after dispatch")
 
 func test_a4_apply_reducers_unchanged_action_does_not_dirty_slices() -> void:
+	# Flush any pending signals from prior tests or init dispatches
+	await get_tree().process_frame
+
 	# Dispatch an unknown action — no reducer should claim it
 	var unknown_action: Dictionary = {"type": StringName("unknown/noop"), "payload": null}
 	U_ActionRegistry.register_action(StringName("unknown/noop"))

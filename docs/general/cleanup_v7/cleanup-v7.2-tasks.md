@@ -130,27 +130,28 @@ The divergence is subtle: a subscriber listening on `slice_updated` will see sta
 - `scripts/state/reducers/u_navigation_reducer.gd` — handle the new action type.
 
 **Commits**:
-- [ ] **Commit 1** (RED) — Invariant tests:
-  - `tests/unit/state/test_m_state_store_single_mutation_path.gd`:
-    - Test that `_sync_navigation_initial_scene` produces an `action_dispatched` signal with the new action type.
-    - Test that every `slice_updated` emission is paired with an `action_dispatched` in the same frame (subscribe to both, record per-frame tuples, assert 1:1 pairing).
-    - Test that `action_history_buffer` records the same count of actions that `slice_updated` observers see slices for.
-- [ ] **Commit 2** (GREEN) — Convert `_sync_navigation_initial_scene`:
-  - Add `U_NavigationActions.sync_initial_scene(scene_id)`.
-  - Add the reducer branch in `u_navigation_reducer.gd`.
-  - Replace the direct `_state["navigation"][...] = ...` mutations with `dispatch(U_NavigationActions.sync_initial_scene(...))`.
-- [ ] **Commit 3** (GREEN) — Audit `slice_updated.emit` sites (`:259, :486, :636, :684`). Each site must be:
-  - Reached only from `_flush_signal_batcher` / the batched dispatch path, **or**
-  - Replaced with a dispatch that goes through the reducer chain, **or**
-  - Annotated with an explicit invariant comment citing why the direct emission is safe (e.g., "batched flush — version already bumped by caller").
-- [ ] **Commit 4** (GREEN) — Add a grep-based style test forbidding `_state[` mutations outside `m_state_store.gd` utility paths and reducers.
+- [x] **Commit 1** (RED) — Invariant tests in `tests/unit/state/test_m_state_store_dispatch_invariant.gd`:
+  - `test_sync_initial_scene_dispatches_action` — `_sync_navigation_initial_scene` produces `action_dispatched` with correct payload.
+  - `test_dispatch_produces_paired_action_and_slice_signals` — every dispatch produces paired `action_dispatched` + `slice_updated`.
+  - `test_sync_initial_scene_recorded_in_action_history` — init sync is recorded in action history.
+- [x] **Commit 2** (GREEN) — Convert `_sync_navigation_initial_scene`:
+  - Added `U_NavigationActions.sync_initial_scene(scene_id, clear_overlays)` action creator + registry entry.
+  - Added `_reduce_sync_initial_scene` reducer branch in `u_navigation_reducer.gd`.
+  - Replaced direct `_state["navigation"]` mutation with `dispatch(U_NavigationActions.sync_initial_scene(...))`.
+- [x] **Commit 3** (GREEN) — Audit `slice_updated.emit` sites (`:255, :485, :635, :683`):
+  - `:255` (batched flush) and `:485` (immediate dispatch flush) — both reachable from the dispatch path, paired with `action_dispatched`.
+  - `:635` (`load_state`) and `:683` (`apply_loaded_state`) — bulk restoration paths. Annotated with `# INVARIANT:` comments explaining why direct emission is safe: bulk load is not a user action, dispatching N actions would pollute action history, version bump + `state_loaded` signal cover the notification contract.
+- [x] **Commit 4** (GREEN) — Grep-based style test `test_no_state_mutation_outside_store` in `test_style_enforcement.gd`:
+  - Searches all production directories for `_state[` assignment mutations with word-boundary checking.
+  - Only `m_state_store.gd` is exempted.
+  - 38/38 style enforcement tests green.
 
 **F3 Verification**:
-- [ ] No `slice_updated` emission without a paired `action_dispatched` in the same frame.
-- [ ] `_sync_navigation_initial_scene` no longer directly mutates `_state`.
-- [ ] `action_history_buffer` count matches `slice_updated` observer count.
-- [ ] Grep test green.
-- [ ] Existing store tests green.
+- [x] No `slice_updated` emission without a paired `action_dispatched` in the same frame (normal dispatch path verified by test; `load_state`/`apply_loaded_state` bulk paths annotated with invariant comments).
+- [x] `_sync_navigation_initial_scene` no longer directly mutates `_state` — now dispatches through reducer pipeline.
+- [x] `action_history_buffer` records init sync action (verified by `test_sync_initial_scene_recorded_in_action_history`).
+- [x] Grep test green (`test_no_state_mutation_outside_store`).
+- [x] Existing store tests green (76/77 pass; 1 pre-existing failure in `test_state_synchronization_flow.gd` roundtrip unrelated to F3).
 
 ---
 

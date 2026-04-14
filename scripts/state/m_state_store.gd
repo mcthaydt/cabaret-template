@@ -103,11 +103,16 @@ func _ready() -> void:
 		U_SERVICE_LOCATOR.register(service_name, self)
 	_initialize_settings()
 	_initialize_slices()
-		
+
+	# Initialize signal batcher before any dispatch calls.
+	# apply_global_settings_from_disk() and _sync_navigation_initial_scene()
+	# both dispatch actions during _ready(), so the batcher must exist first.
+	_signal_batcher = U_SIGNAL_BATCHER.new()
+
 	# Validate all slice dependencies after registration
 	if not validate_slice_dependencies():
 		push_warning("M_StateStore: Some slice dependencies are invalid")
-	
+
 	# Restore state from StateHandoff AFTER slices are initialized
 	_restore_from_handoff()
 
@@ -119,11 +124,8 @@ func _ready() -> void:
 
 	# Align initial navigation base scene with localization state (first-run language picker).
 	_sync_navigation_initial_scene()
-	
-	_signal_batcher = U_SIGNAL_BATCHER.new()
+
 	set_physics_process(true)  # Enable physics processing for signal batching
-	# Ensure batching and input work even when the SceneTree is paused.
-	process_mode = Node.PROCESS_MODE_ALWAYS
 
 	_is_ready = true
 	store_ready.emit()
@@ -143,17 +145,11 @@ func _sync_navigation_initial_scene() -> void:
 	var localization_slice: Dictionary = _state.get("localization", {})
 	var has_selected_language: bool = bool(localization_slice.get("has_selected_language", false))
 	var target_scene: StringName = StringName("main_menu") if has_selected_language else StringName("language_selector")
-	var target_shell: StringName = StringName("main_menu")
-	if current_scene == target_scene and current_shell == target_shell:
+	# No-op if already in the correct state.
+	if current_scene == target_scene:
 		return
-
-	var new_nav: Dictionary = nav_slice.duplicate(true)
-	new_nav["shell"] = target_shell
-	new_nav["base_scene_id"] = target_scene
-	if not has_selected_language:
-		new_nav["overlay_stack"] = []
-		new_nav["overlay_return_stack"] = []
-	_state["navigation"] = new_nav
+	var clear_overlays: bool = not has_selected_language
+	dispatch(U_NavigationActions.sync_initial_scene(target_scene, clear_overlays))
 
 func _exit_tree() -> void:
 	# Preserve state for scene transitions via StateHandoff
@@ -636,6 +632,12 @@ func load_state(filepath: String) -> Error:
 				continue
 			any_changed = true
 			if after_slice is Dictionary:
+				# INVARIANT: Direct emission — load_state is a bulk restoration path, not a
+				# user action. Going through dispatch would pollute action history with
+				# implementation details and dispatch N actions for a single logical
+				# operation. Safe because: (1) _state_version is bumped below, (2)
+				# state_loaded signal notifies consumers of the bulk load, (3) this path
+				# is only reachable from M_SaveManager, not from gameplay dispatches.
 				slice_updated.emit(slice_name, (after_slice as Dictionary).duplicate(true))
 
 		if any_changed:
@@ -683,6 +685,11 @@ func apply_loaded_state(loaded_state: Dictionary) -> void:
 			_state[slice_name] = filtered_slice
 
 		# Emit slice_updated signal
+		# INVARIANT: Direct emission — apply_loaded_state is a bulk restoration path, not
+		# a user action. Going through dispatch would pollute action history and dispatch
+		# N actions for a single logical load. Safe because: (1) _state_version is bumped
+		# below, (2) the caller (M_SaveManager) owns the load lifecycle, (3) this path is
+		# only reachable from save-file application, not from gameplay dispatches.
 		any_changed = true
 		slice_updated.emit(slice_name, _state[slice_name])
 

@@ -36,6 +36,7 @@ const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gamepla
 const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 const GAME_EVENT_SYSTEM := preload("res://scripts/ecs/systems/s_game_event_system.gd")
 const VICTORY_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_victory_handler_system.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 var _root: Node
@@ -69,6 +70,10 @@ func before_each() -> void:
 	_state_store.settings.enable_persistence = false
 	_state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
 	_state_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
+	var nav_initial := RS_NAVIGATION_INITIAL_STATE.new()
+	nav_initial.shell = StringName("gameplay")
+	nav_initial.base_scene_id = StringName("")
+	_state_store.navigation_initial_state = nav_initial
 	_root.add_child(_state_store)
 	U_ServiceLocator.register(StringName("state_store"), _state_store)
 	U_SceneTestHelpers.register_scene_manager_dependencies(_root)

@@ -528,6 +528,8 @@ script = ExtResource("62_ai_demo_flag_zone")
 ai_flag_id = &"nav_goal_reached"
 completed_area_id = "ai_showcase"
 signpost_message = "gameplay.signpost.default_message"
+action_required = true
+interaction_hint_icon = ExtResource("62_kkkmb")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/Interactions/Inter_GuideCollectible" unique_id=277963270]
 shape = SubResource("SphereShape3D_noise_source")

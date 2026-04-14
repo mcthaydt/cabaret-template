@@ -1470,6 +1470,94 @@ func test_post_process_overlay_colorrect_creation_only_via_pipeline() -> void:
 		"Found ColorRect.new() in display helpers outside pipeline delegates:\n" + "\n".join(filtered)
 	)
 
+## F3: No direct _state[ mutation outside m_state_store.gd.
+## All state mutations must flow through dispatch() so that action history,
+## version bumping, validator, and signal batching stay consistent.
+## The only exception is m_state_store.gd itself, which owns _state and has
+## invariant-annotated direct-mutation paths for bulk load/restore.
+func test_no_state_mutation_outside_store() -> void:
+	var allowed_files: Array[String] = [
+		"res://scripts/state/m_state_store.gd",
+	]
+	var production_dirs: Array[String] = [
+		"res://scripts/ecs",
+		"res://scripts/gameplay",
+		"res://scripts/ui",
+		"res://scripts/managers",
+		"res://scripts/scene_management",
+		"res://scripts/utils",
+		"res://scripts/core",
+		"res://scripts/state",
+		"res://scripts/input",
+		"res://scripts/events",
+		"res://scripts/scene_structure",
+		"res://scripts/interfaces",
+		"res://scripts/resources",
+		"res://scripts/debug",
+	]
+	var violations: Array[String] = []
+	for dir_path in production_dirs:
+		_collect_state_mutation_violations(dir_path, allowed_files, violations)
+	assert_eq(
+		violations.size(),
+		0,
+		"Found _state[ mutations outside m_state_store.gd — all mutations must go through dispatch():\n" + "\n".join(violations)
+	)
+
+func _collect_state_mutation_violations(dir_path: String, allowed_files: Array[String], violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_state_mutation_violations(path, allowed_files, violations)
+		elif entry.ends_with(".gd"):
+			if allowed_files.has(path):
+				entry = dir.get_next()
+				continue
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file != null:
+				var line_number: int = 0
+				while not file.eof_reached():
+					line_number += 1
+					var line := file.get_line()
+					var stripped: String = line.strip_edges()
+					if stripped.begins_with("#"):
+						continue
+					# Match _state[ with word boundary (not preceded by another identifier char)
+					# and followed by assignment (= but not ==)
+					if _is_state_member_mutation(line):
+						violations.append("%s:%d %s" % [path, line_number, stripped])
+						break  # One violation per file is enough
+				file.close()
+		entry = dir.get_next()
+
+func _is_state_member_mutation(line: String) -> bool:
+	# Look for _state[ followed by assignment (= but not ==)
+	var idx: int = line.find("_state[")
+	while idx != -1:
+		# Check word boundary: char before _state must not be an identifier char
+		if idx > 0:
+			var prev_char: String = line[idx - 1]
+			if prev_char.is_valid_identifier():
+				idx = line.find("_state[", idx + 7)
+				continue
+		# Find the closing bracket
+		var bracket_end: int = line.find("]", idx)
+		if bracket_end == -1:
+			idx = line.find("_state[", idx + 7)
+			continue
+		# Check if there's an assignment after the bracket ( = but not ==)
+		var after_bracket: String = line.substr(bracket_end + 1).strip_edges()
+		if after_bracket.begins_with("=") and not after_bracket.begins_with("=="):
+			return true
+		idx = line.find("_state[", idx + 7)
+	return false
+
 func _check_for_patterns_in_files(dir_path: String, patterns: Array[String], allowed_files: Array[String], violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:

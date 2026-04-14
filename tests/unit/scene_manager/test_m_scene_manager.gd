@@ -8,6 +8,7 @@ extends GutTest
 const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
+const RS_NavigationInitialState = preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
@@ -38,6 +39,10 @@ func before_each() -> void:
 	_store.settings = RS_StateStoreSettings.new()
 	var scene_initial_state := RS_SceneInitialState.new()
 	_store.scene_initial_state = scene_initial_state
+	var nav_initial := RS_NavigationInitialState.new()
+	nav_initial.shell = StringName("gameplay")
+	nav_initial.base_scene_id = StringName("")
+	_store.navigation_initial_state = nav_initial
 	add_child_autofree(_store)
 	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame

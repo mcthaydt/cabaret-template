@@ -40,7 +40,10 @@ func before_each() -> void:
 	# Create M_StateStore
 	_state_store = M_STATE_STORE.new()
 	_state_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
-	_state_store.navigation_initial_state = RS_NAVIGATION_INITIAL_STATE.new()
+	var nav_initial := RS_NAVIGATION_INITIAL_STATE.new()
+	nav_initial.shell = StringName("gameplay")
+	nav_initial.base_scene_id = StringName("")
+	_state_store.navigation_initial_state = nav_initial
 	_root_node.add_child(_state_store)
 
 	# Create M_CursorManager
