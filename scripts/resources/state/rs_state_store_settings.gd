@@ -20,7 +20,7 @@ class_name RS_StateStoreSettings
 @export var save_path_override: String = ""
 
 @export_group("Validation")
-@export var strict_slice_dependencies: bool = false
+@export var strict_slice_dependencies: bool = true
 
 @export_group("Debug")
 @export var enable_debug_logging: bool = OS.is_debug_build()
