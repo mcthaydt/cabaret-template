@@ -25,12 +25,12 @@ func after_each() -> void:
 func _register_two_slices(b_declares_dep_on_a: bool) -> void:
 	var config_a := RS_StateSliceConfig.new(StringName("slice_a"))
 	config_a.initial_state = {"value": 1}
-	config_a.dependencies = []
 	store.register_slice(config_a)
 
 	var config_b := RS_StateSliceConfig.new(StringName("slice_b"))
 	config_b.initial_state = {"value": 2}
-	config_b.dependencies = [StringName("slice_a")] if b_declares_dep_on_a else []
+	if b_declares_dep_on_a:
+		config_b.dependencies.append(StringName("slice_a"))
 	store.register_slice(config_b)
 
 
@@ -43,6 +43,7 @@ func test_non_strict_undeclared_access_returns_data() -> void:
 
 	var result := store.get_slice(StringName("slice_a"), StringName("slice_b"))
 
+	assert_push_error("without declaring dependency")
 	assert_eq(result.get("value"), 1, "Non-strict mode should return data even for undeclared access")
 
 
@@ -65,6 +66,7 @@ func test_strict_undeclared_access_returns_empty() -> void:
 
 	var result := store.get_slice(StringName("slice_a"), StringName("slice_b"))
 
+	assert_push_error("without declaring dependency")
 	assert_eq(result, {}, "Strict mode should return {} for undeclared access")
 
 

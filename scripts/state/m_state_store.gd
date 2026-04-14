@@ -568,7 +568,9 @@ func get_slice(slice_name: StringName, caller_slice: StringName = StringName()) 
 		if caller_config != null:
 			if not caller_config.dependencies.has(slice_name) and caller_slice != slice_name:
 				push_error("M_StateStore.get_slice: Slice '", caller_slice, "' accessing '", slice_name, "' without declaring dependency")
-	
+				if settings != null and settings.strict_slice_dependencies:
+					return {}
+
 	return _state.get(slice_name, {}).duplicate(true)
 
 ## Register a state slice with its configuration

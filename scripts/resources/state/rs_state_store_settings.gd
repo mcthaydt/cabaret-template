@@ -19,6 +19,9 @@ class_name RS_StateStoreSettings
 @export var auto_save_interval: float = 60.0
 @export var save_path_override: String = ""
 
+@export_group("Validation")
+@export var strict_slice_dependencies: bool = false
+
 @export_group("Debug")
 @export var enable_debug_logging: bool = OS.is_debug_build()
 @export var enable_debug_overlay: bool = OS.is_debug_build()
