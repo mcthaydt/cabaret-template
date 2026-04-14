@@ -17,8 +17,11 @@ func execute(context: Dictionary) -> void:
 
 	var action: Dictionary = {
 		"type": action_type,
-		"payload": payload.duplicate(true)
 	}
+	# Merge payload fields into action root (matching project action creator pattern)
+	var payload_copy: Dictionary = payload.duplicate(true)
+	for key in payload_copy:
+		action[key] = payload_copy[key]
 	store.call("dispatch", action)
 
 func _get_dict_value_string_or_name(dictionary: Dictionary, key: String) -> Variant:

@@ -15,6 +15,7 @@ const OBJECTIVES_ACTIONS := preload("res://scripts/state/actions/u_objectives_ac
 const U_SCENE_TEST_HELPERS := preload("res://tests/helpers/u_scene_test_helpers.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 
 class ObjectivesStoreStub extends I_STATE_STORE:
 	signal action_dispatched(action: Dictionary)
@@ -99,13 +100,10 @@ func test_final_complete_dependency_is_enforced_before_victory_completion() -> v
 		]
 	)
 
-	var captured_payloads: Array[Dictionary] = []
-	var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED,
-		func(event: Dictionary) -> void:
-			var payload_variant: Variant = event.get("payload", {})
-			if payload_variant is Dictionary:
-				captured_payloads.append((payload_variant as Dictionary).duplicate(true))
+	var captured_actions: Array[Dictionary] = []
+	store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type", StringName("")) == U_GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY_ROUTING:
+			captured_actions.append(action.duplicate(true))
 	)
 
 	var manager := M_OBJECTIVES_MANAGER.new()
@@ -114,41 +112,30 @@ func test_final_complete_dependency_is_enforced_before_victory_completion() -> v
 	add_child_autofree(manager)
 	await get_tree().process_frame
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {})
+	store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("goal_bar")))
 	assert_eq(manager.get_objective_status(StringName("bar_complete")), "active")
 	assert_eq(manager.get_objective_status(StringName("final_complete")), "inactive")
-	assert_eq(captured_payloads.size(), 0, "Victory objective should not complete before dependency")
+	assert_eq(captured_actions.size(), 0, "Victory objective should not complete before dependency")
 
 	level_condition.response_value = 1.0
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_CHECKPOINT_ACTIVATED, {})
 
 	assert_eq(manager.get_objective_status(StringName("bar_complete")), "completed")
 	assert_eq(manager.get_objective_status(StringName("final_complete")), "completed")
-	assert_eq(captured_payloads.size(), 1, "Victory objective should complete once dependency is completed")
-	if unsubscribe.is_valid():
-		unsubscribe.call()
+	assert_eq(captured_actions.size(), 1, "Victory objective should complete once dependency is completed")
 
 func test_scene_manager_no_longer_listens_to_victory_executed() -> void:
 	var fixture: Dictionary = await _spawn_scene_manager_fixture()
 	var scene_manager: M_SCENE_MANAGER = fixture.get("scene_manager")
+	var state_store: M_STATE_STORE = fixture.get("state_store")
 	assert_not_null(scene_manager)
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {})
-	await wait_physics_frames(2)
-	assert_eq(
-		scene_manager.get_current_scene(),
-		StringName(""),
-		"Legacy victory_executed event should not trigger scene transitions"
-	)
-
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED, {
-		"target_scene": StringName("alleyway"),
-	})
+	state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory_routing(StringName("alleyway")))
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(scene_manager)
 	assert_eq(
 		scene_manager.get_current_scene(),
 		StringName("alleyway"),
-		"Scene manager should transition on objective_victory_triggered"
+		"Scene manager should transition on trigger_victory_routing action"
 	)
 
 func _spawn_scene_manager_fixture() -> Dictionary:

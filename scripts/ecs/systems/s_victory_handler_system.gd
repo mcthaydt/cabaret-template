@@ -114,7 +114,11 @@ func _handle_victory(trigger: C_VictoryTriggerComponent, payload: Dictionary) ->
 	_debug_gameplay_slice("before dispatching victory gameplay actions")
 	if _store != null:
 		if trigger.objective_id != StringName(""):
-			_store.dispatch(U_GameplayActions.trigger_victory(trigger.objective_id))
+			_store.dispatch(U_GameplayActions.trigger_victory(
+				trigger.objective_id,
+				str(payload.get("entity_id", "")),
+				payload.get("body", null)
+			))
 		if not trigger.area_id.is_empty():
 			_store.dispatch(U_GameplayActions.mark_area_complete(trigger.area_id))
 		if trigger.victory_type == C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:

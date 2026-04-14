@@ -245,9 +245,6 @@ func _complete_objective_with_context(objective_id: StringName, context: Diction
 		U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/complete %s" % str(objective_id), _store)
 
 	_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_COMPLETED)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_COMPLETED, {
-		"objective_id": objective_id,
-	})
 
 	var completion_context: Dictionary = context.duplicate(true)
 	if completion_context.is_empty():
@@ -265,12 +262,13 @@ func _complete_objective_with_context(objective_id: StringName, context: Diction
 		var payload_variant: Variant = U_ResourceAccessHelpers.resource_get(objective, "completion_event_payload", {})
 		if payload_variant is Dictionary:
 			payload = (payload_variant as Dictionary).duplicate(true)
-		U_OBJECTIVES_DEBUG_TRACER.log_gameplay_slice("before objective_victory_triggered publish objective_id=%s" % str(objective_id), _store)
+		var target_scene: StringName = payload.get("target_scene", StringName(""))
 		U_OBJECTIVES_DEBUG_TRACER.debug_log(
-			"publishing objective_victory_triggered objective_id=%s payload=%s"
-			% [str(objective_id), str(payload)]
+			"dispatching victory_routing objective_id=%s target_scene=%s"
+			% [str(objective_id), str(target_scene)]
 		)
-		U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED, payload)
+		if _store != null:
+			_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory_routing(target_scene, payload))
 
 	_activate_dependents(objective_id)
 
@@ -291,9 +289,6 @@ func _fail_objective(objective_id: StringName) -> void:
 		U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/fail %s" % str(objective_id), _store)
 
 	_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_FAILED)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_FAILED, {
-		"objective_id": objective_id,
-	})
 
 func _activate_dependents(objective_id: StringName) -> void:
 	if objective_id == StringName(""):
@@ -354,9 +349,7 @@ func _subscribe_events() -> void:
 	_event_unsubscribes.append(
 		U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_CHECKPOINT_ACTIVATED, _on_checkpoint_activated)
 	)
-	_event_unsubscribes.append(
-		U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, _on_victory_executed)
-	)
+
 
 	_binder.ensure_connection(_on_action_dispatched)
 
@@ -366,24 +359,22 @@ func _on_checkpoint_activated(event: Dictionary) -> void:
 	U_OBJECTIVES_DEBUG_TRACER.debug_log("received checkpoint_activated payload=%s" % str(payload))
 	_evaluate_active_objectives(_build_event_context(payload))
 
-func _on_victory_executed(event: Dictionary) -> void:
-	var payload: Dictionary = event.get("payload", {})
-	_ensure_objective_runtime_state()
-	U_OBJECTIVES_DEBUG_TRACER.debug_log(
-		"received victory_executed payload=%s statuses=%s"
-		% [str(payload), str(_get_statuses_snapshot())]
-	)
-	_evaluate_active_objectives(_build_event_context(payload))
 
 func _on_action_dispatched(action: Dictionary) -> void:
 	var action_type: StringName = action.get("type", StringName(""))
 	if action_type != U_GAMEPLAY_ACTIONS.ACTION_MARK_AREA_COMPLETE \
 	and action_type != U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS \
 	and action_type != U_GAMEPLAY_ACTIONS.ACTION_GAME_COMPLETE \
+	and action_type != U_GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY \
 	and action_type != U_NAVIGATION_ACTIONS.ACTION_START_GAME:
 		return
 
 	_ensure_objective_runtime_state()
+	if action_type == U_GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY:
+		U_OBJECTIVES_DEBUG_TRACER.debug_log("observed gameplay/trigger_victory")
+		_evaluate_active_objectives(_build_event_context(action))
+		return
+
 	if action_type == U_NAVIGATION_ACTIONS.ACTION_START_GAME:
 		if _is_scene_transitioning():
 			return
@@ -563,9 +554,6 @@ func _activate_objective(objective_id: StringName, details: Dictionary = {}) -> 
 		U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/activate %s" % str(objective_id), _store)
 
 	_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_ACTIVATED, details)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_ACTIVATED, {
-		"objective_id": objective_id,
-	})
 
 func _activate_objectives_for_reset(objective_ids: Array[StringName]) -> void:
 	if objective_ids.is_empty():

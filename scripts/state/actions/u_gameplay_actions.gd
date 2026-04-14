@@ -23,6 +23,7 @@ const ACTION_HEAL := StringName("gameplay/heal")
 const ACTION_TRIGGER_DEATH := StringName("gameplay/trigger_death")
 const ACTION_INCREMENT_DEATH_COUNT := StringName("gameplay/increment_death_count")
 const ACTION_TRIGGER_VICTORY := StringName("gameplay/trigger_victory")
+const ACTION_TRIGGER_VICTORY_ROUTING := StringName("gameplay/trigger_victory_routing")
 const ACTION_MARK_AREA_COMPLETE := StringName("gameplay/mark_area_complete")
 const ACTION_SET_AI_DEMO_FLAG := StringName("gameplay/set_ai_demo_flag")
 const ACTION_GAME_COMPLETE := StringName("gameplay/game_complete")
@@ -51,6 +52,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_TRIGGER_DEATH)
 	U_ActionRegistry.register_action(ACTION_INCREMENT_DEATH_COUNT)
 	U_ActionRegistry.register_action(ACTION_TRIGGER_VICTORY)
+	U_ActionRegistry.register_action(ACTION_TRIGGER_VICTORY_ROUTING)
 	U_ActionRegistry.register_action(ACTION_MARK_AREA_COMPLETE)
 	U_ActionRegistry.register_action(ACTION_SET_AI_DEMO_FLAG)
 	U_ActionRegistry.register_action(ACTION_GAME_COMPLETE)
@@ -181,10 +183,23 @@ static func increment_death_count() -> Dictionary:
 	}
 
 ## Record victory objective completion
-static func trigger_victory(objective_id: StringName) -> Dictionary:
+static func trigger_victory(objective_id: StringName, entity_id: String = "", body: Node = null) -> Dictionary:
 	return {
 		"type": ACTION_TRIGGER_VICTORY,
-		"payload": objective_id
+		"objective_id": objective_id,
+		"entity_id": entity_id,
+		"trigger_node": {
+			"objective_id": objective_id,
+		},
+		"body": body,
+	}
+
+## Trigger victory scene routing (manager→manager communication via Redux per channel taxonomy)
+static func trigger_victory_routing(target_scene: StringName, completion_payload: Dictionary = {}) -> Dictionary:
+	return {
+		"type": ACTION_TRIGGER_VICTORY_ROUTING,
+		"target_scene": target_scene,
+		"completion_payload": completion_payload,
 	}
 
 ## Mark an area as completed

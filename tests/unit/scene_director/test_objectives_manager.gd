@@ -255,13 +255,10 @@ func test_graph_validation_rejects_cycles() -> void:
 	assert_eq(_store.get_state().get("objectives", {}).get("active_set_id"), StringName(""))
 
 func test_victory_completion_publishes_configured_payload() -> void:
-	var captured_payloads: Array[Dictionary] = []
-	var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED,
-		func(event: Dictionary) -> void:
-			var payload_variant: Variant = event.get("payload", {})
-			if payload_variant is Dictionary:
-				captured_payloads.append((payload_variant as Dictionary).duplicate(true))
+	var captured_actions: Array[Dictionary] = []
+	_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type", StringName("")) == GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY_ROUTING:
+			captured_actions.append(action.duplicate(true))
 	)
 
 	var objective_set: Resource = _objective_set(
@@ -279,14 +276,12 @@ func test_victory_completion_publishes_configured_payload() -> void:
 		]
 	)
 	var manager: Variant = await _spawn_manager([objective_set], true)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {"source": "test"})
+	_store.dispatch(GAMEPLAY_ACTIONS.trigger_victory(StringName("final_goal")))
 
 	assert_eq(manager.get_objective_status(StringName("obj_victory")), "completed")
-	assert_eq(captured_payloads.size(), 1, "Expected one objective victory event")
-	if captured_payloads.size() > 0:
-		assert_eq(captured_payloads[0].get("target_scene"), StringName("victory"))
-	if unsubscribe.is_valid():
-		unsubscribe.call()
+	assert_eq(captured_actions.size(), 1, "Expected one trigger_victory_routing action")
+	if captured_actions.size() > 0:
+		assert_eq(captured_actions[0].get("target_scene", StringName("")), StringName("victory"))
 
 func test_discovers_store_from_service_locator_when_not_injected() -> void:
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)

@@ -25,6 +25,7 @@ const I_CURSOR_MANAGER := preload("res://scripts/interfaces/i_cursor_manager.gd"
 const I_SPAWN_MANAGER := preload("res://scripts/interfaces/i_spawn_manager.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_UI_REGISTRY := preload("res://scripts/ui/utils/u_ui_registry.gd")
 const U_TRANSITION_FACTORY := preload("res://scripts/scene_management/u_transition_factory.gd")
@@ -224,13 +225,10 @@ func _ready() -> void:
 	# Subscribe to ECS events with priorities
 	# entity_death: Priority 10 (high - quick transition to game over)
 	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_ENTITY_DEATH, _on_entity_death, 10)
-	# objective_victory_triggered: Priority 5 (medium - after objectives manager validates conditions)
-	_objective_victory_unsubscribe = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED,
-		_on_objective_victory,
-		5
-	)
 
+	# Channel taxonomy: victory routing arrives via Redux dispatch (managers dispatch to Redux)
+	if _store != null and _store.has_signal("action_dispatched"):
+		_store.action_dispatched.connect(_on_action_dispatched)
 	# Register scene type handlers (T137c: Phase 10B-3)
 	_register_scene_type_handlers()
 
@@ -356,28 +354,26 @@ func _on_entity_death(_event: Dictionary) -> void:
 	# Trigger game over transition when player dies
 	transition_to_scene(StringName("game_over"), "fade", Priority.CRITICAL)
 
-## ECS event handler: objective_victory_triggered
-## Transition only after M_ObjectivesManager completes a VICTORY objective.
-func _on_objective_victory(event: Dictionary) -> void:
-	var payload: Dictionary = event.get("payload", {})
-	var target_scene: StringName = payload.get("target_scene", StringName(""))
-	var current_scene: StringName = get_current_scene()
+## Channel taxonomy: victory routing arrives via Redux dispatch (managers dispatch to Redux)
+func _on_action_dispatched(action: Dictionary) -> void:
+	var action_type: StringName = action.get("type", StringName(""))
+	if action_type != U_GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY_ROUTING:
+		return
+	var target_scene: StringName = action.get("target_scene", StringName(""))
 	_debug_log(
-		"received objective_victory_triggered payload=%s resolved_target_scene=%s current_scene=%s queue_size=%s is_processing=%s"
+		"received victory_routing target_scene=%s current_scene=%s queue_size=%s is_processing=%s"
 		% [
-			str(payload),
 			str(target_scene),
-			str(current_scene),
+			str(get_current_scene()),
 			str(_transition_queue_helper.size()),
 			str(_transition_queue_helper.is_processing()),
 		]
 	)
 	if target_scene == StringName(""):
-		push_warning("M_SceneManager: objective_victory_triggered missing payload.target_scene")
+		push_warning("M_SceneManager: victory_routing missing target_scene")
 		return
 	transition_to_scene(target_scene, "fade", Priority.HIGH)
 
-## Load initial scene on startup
 func _load_initial_scene() -> void:
 	# Load initial scene (configurable via export var)
 	# Default is splash_screen which handles language_selector/main_menu redirect

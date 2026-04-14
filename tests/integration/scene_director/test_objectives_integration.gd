@@ -73,13 +73,10 @@ func after_each() -> void:
 	_objectives_manager = null
 
 func test_victory_executed_transitions_scene_via_objectives_manager() -> void:
-	var objective_victory_events: Array[Dictionary] = []
-	var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED,
-		func(event: Dictionary) -> void:
-			var payload_variant: Variant = event.get("payload", {})
-			if payload_variant is Dictionary:
-				objective_victory_events.append((payload_variant as Dictionary).duplicate(true))
+	var captured_actions: Array[Dictionary] = []
+	_state_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type", StringName("")) == U_GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY_ROUTING:
+			captured_actions.append(action.duplicate(true))
 	)
 
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("alleyway"))
@@ -87,20 +84,15 @@ func test_victory_executed_transitions_scene_via_objectives_manager() -> void:
 	assert_eq(_objectives_manager.get_objective_status(StringName("bar_complete")), "completed")
 	assert_eq(_objectives_manager.get_objective_status(StringName("final_complete")), "active")
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
-		"source": "victory_handler",
-	})
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("final_goal")))
 
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)
 
-	assert_eq(objective_victory_events.size(), 1, "Expected a single objective victory event")
-	if objective_victory_events.size() > 0:
-		assert_eq(objective_victory_events[0].get("target_scene"), StringName("victory"))
+	assert_eq(captured_actions.size(), 1, "Expected a single trigger_victory_routing action")
+	if captured_actions.size() > 0:
+		assert_eq(captured_actions[0].get("target_scene", StringName("")), StringName("victory"))
 	assert_eq(_scene_manager.get_current_scene(), StringName("victory"))
 	assert_eq(_objectives_manager.get_objective_status(StringName("final_complete")), "completed")
-
-	if unsubscribe.is_valid():
-		unsubscribe.call()
 
 func test_default_objective_set_requires_final_trigger_before_victory_transition() -> void:
 	assert_not_null(CFG_OBJSET_DEFAULT)
@@ -119,12 +111,7 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 	await get_tree().process_frame
 	await wait_physics_frames(1)
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
-		"source": "test",
-		"trigger_node": {
-			"objective_id": "goal_bar",
-		},
-	})
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("goal_bar")))
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)
 
 	assert_eq(_objectives_manager.get_objective_status(StringName("bar_complete")), "completed")
@@ -139,9 +126,7 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 		"Default objective set should route back to alleyway after bar objective completion"
 	)
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
-		"source": "test",
-	})
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("goal_bar")))
 	await wait_physics_frames(1)
 
 	assert_eq(
@@ -151,12 +136,7 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 	)
 	assert_eq(_scene_manager.get_current_scene(), StringName("alleyway"))
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
-		"source": "test",
-		"trigger_node": {
-			"objective_id": "final_goal",
-		},
-	})
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("final_goal")))
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)
 
 	assert_eq(_objectives_manager.get_objective_status(StringName("final_complete")), "completed")
@@ -171,9 +151,9 @@ func _build_test_objective_set() -> Resource:
 	level_condition.match_value_string = ""
 
 	var game_condition := CONDITION_EVENT_PAYLOAD.new()
-	game_condition.field_path = "source"
+	game_condition.field_path = "trigger_node.objective_id"
 	game_condition.match_mode = "equals"
-	game_condition.match_value_string = "victory_handler"
+	game_condition.match_value_string = "final_goal"
 
 	var game_effect := EFFECT_DISPATCH_ACTION.new()
 	game_effect.action_type = U_GAMEPLAY_ACTIONS.ACTION_GAME_COMPLETE
