@@ -6,5 +6,6 @@
 script = ExtResource("1_state_settings")
 enable_persistence = false
 enable_global_settings_persistence = true
+strict_slice_dependencies = true
 enable_debug_logging = true
 enable_debug_overlay = true

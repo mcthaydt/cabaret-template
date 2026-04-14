@@ -141,6 +141,7 @@ The divergence is subtle: a subscriber listening on `slice_updated` will see sta
 - [x] **Commit 3** (GREEN) — Audit `slice_updated.emit` sites (`:255, :485, :635, :683`):
   - `:255` (batched flush) and `:485` (immediate dispatch flush) — both reachable from the dispatch path, paired with `action_dispatched`.
   - `:635` (`load_state`) and `:683` (`apply_loaded_state`) — bulk restoration paths. Annotated with `# INVARIANT:` comments explaining why direct emission is safe: bulk load is not a user action, dispatching N actions would pollute action history, version bump + `state_loaded` signal cover the notification contract.
+  - `_restore_from_handoff` (`:716`) — bulk restoration path during `_ready()`. Annotated with `# INVARIANT:` comment explaining why no dispatch (pre-`store_ready` timing) and no `slice_updated` emission (no subscribers exist yet).
 - [x] **Commit 4** (GREEN) — Grep-based style test `test_no_state_mutation_outside_store` in `test_style_enforcement.gd`:
   - Searches all production directories for `_state[` assignment mutations with word-boundary checking.
   - Only `m_state_store.gd` is exempted.

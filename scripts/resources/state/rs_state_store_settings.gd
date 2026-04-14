@@ -38,4 +38,5 @@ func to_dictionary() -> Dictionary:
 		"save_path_override": save_path_override,
 		"enable_debug_logging": enable_debug_logging,
 		"enable_debug_overlay": enable_debug_overlay,
+		"strict_slice_dependencies": strict_slice_dependencies,
 	}

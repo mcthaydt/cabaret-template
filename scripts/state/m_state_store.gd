@@ -713,6 +713,14 @@ func _preserve_to_handoff() -> void:
 		U_STATE_HANDOFF.preserve_slice(slice_name, preserved)
 	
 ## Restore state from StateHandoff after scene transitions
+# INVARIANT: Direct mutation — _restore_from_handoff is a bulk restoration path
+# that runs during _ready(), before store_ready fires. No slice_updated emission
+# because no subscribers exist yet at this point. No dispatch because this is not
+# a user action (going through dispatch would pollute action history with
+# implementation-detail actions). Safe because: (1) this runs before any
+# subscriber registration, (2) _state_version is bumped by the first real
+# dispatch after the store is ready, (3) the handoff restores cross-scene
+# continuity state that the initial slice setup cannot provide.
 func _restore_from_handoff() -> void:
 	for slice_name in _slice_configs:
 		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
