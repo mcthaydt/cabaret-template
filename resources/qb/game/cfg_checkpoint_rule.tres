@@ -16,5 +16,5 @@ event_name = &"checkpoint_activation_requested"
 script = ExtResource("2_31p0j")
 rule_id = &"checkpoint_forward"
 trigger_mode = "event"
-conditions = Array[Resource]([SubResource("Resource_5lxpe")])
-effects = Array[Resource]([SubResource("Resource_k2dna")])
+conditions = Array[I_Condition]([SubResource("Resource_5lxpe")])
+effects = Array[I_Effect]([SubResource("Resource_k2dna")])

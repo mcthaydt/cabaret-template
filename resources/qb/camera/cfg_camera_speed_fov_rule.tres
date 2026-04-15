@@ -22,6 +22,6 @@ clamp_max = 15.0
 [resource]
 script = ExtResource("3_iw607")
 rule_id = &"camera_speed_fov"
-conditions = Array[Resource]([SubResource("Resource_q4qj4")])
-effects = Array[Resource]([SubResource("Resource_0ihwf")])
+conditions = Array[I_Condition]([SubResource("Resource_q4qj4")])
+effects = Array[I_Effect]([SubResource("Resource_0ihwf")])
 score_threshold = -1.0

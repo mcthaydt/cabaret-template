@@ -6,6 +6,7 @@ const U_HTN_PLANNER_CONTEXT := preload("res://scripts/utils/ai/u_htn_planner_con
 const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd")
 const RS_AI_COMPOUND_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_compound_task.gd")
 const RS_RULE := preload("res://scripts/resources/qb/rs_rule.gd")
+const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
 
 static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) -> Array[Resource]:
 	if task == null:
@@ -99,7 +100,8 @@ static func _method_condition_passes(
 ) -> bool:
 	var method_rule: Resource = planner_context.reusable_rule
 	method_rule.set("rule_id", StringName("__method_condition_%d" % method_index))
-	var rule_conditions: Array[Resource] = [condition]
+	var rule_conditions: Array[I_Condition] = []
+	rule_conditions.append(condition)
 	method_rule.set("conditions", rule_conditions)
 	method_rule.set("score_threshold", 0.0)
 	var scored_results: Array[Dictionary] = U_RULE_SCORER.score_rules([method_rule], planner_context.evaluation_context)

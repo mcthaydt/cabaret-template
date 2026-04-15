@@ -19,5 +19,5 @@ float_value = 60.0
 [resource]
 script = ExtResource("3_wm8ux")
 rule_id = &"camera_zone_fov"
-conditions = Array[Resource]([SubResource("Resource_8pss3")])
-effects = Array[Resource]([SubResource("Resource_sxpn2")])
+conditions = Array[I_Condition]([SubResource("Resource_8pss3")])
+effects = Array[I_Effect]([SubResource("Resource_sxpn2")])

@@ -2,13 +2,14 @@ extends BaseTest
 
 const CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
 const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
+const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
 
-func _make_constant(score: float) -> Variant:
+func _make_constant(score: float) -> I_Condition:
 	var condition: Variant = CONDITION_CONSTANT.new()
 	condition.score = score
-	return condition
+	return condition as I_Condition
 
-func _make_composite(mode: int, children: Array[Resource]) -> Variant:
+func _make_composite(mode: int, children: Array[I_Condition]) -> Variant:
 	var condition: Variant = CONDITION_COMPOSITE.new()
 	condition.mode = mode
 	condition.children = children.duplicate(true)
@@ -21,11 +22,11 @@ func _make_curve(points: Array[Vector2]) -> Curve:
 	return curve
 
 func _make_deep_chain(levels: int) -> Variant:
-	var current: Variant = _make_constant(1.0)
+	var current: I_Condition = _make_constant(1.0)
 	for _i in range(levels):
-		var children: Array[Resource] = []
+		var children: Array[I_Condition] = []
 		children.append(current)
-		current = _make_composite(CONDITION_COMPOSITE.CompositeMode.ALL, children)
+		current = _make_composite(CONDITION_COMPOSITE.CompositeMode.ALL, children) as I_Condition
 	return current
 
 func test_all_mode_multiplies_child_scores() -> void:
@@ -44,12 +45,10 @@ func test_all_mode_short_circuits_to_zero_on_zero_score() -> void:
 
 	assert_eq(condition.evaluate({}), 0.0)
 
-func test_all_mode_returns_zero_when_child_is_null() -> void:
-	var children: Array[Resource] = []
-	children.append(_make_constant(1.0))
-	children.append(null)
-	var condition: Variant = _make_composite(CONDITION_COMPOSITE.CompositeMode.ALL, children)
-
+func test_all_mode_returns_zero_when_children_empty() -> void:
+	var condition: Variant = CONDITION_COMPOSITE.new()
+	condition.mode = CONDITION_COMPOSITE.CompositeMode.ALL
+	condition.children.clear()
 	assert_eq(condition.evaluate({}), 0.0)
 
 func test_any_mode_picks_max_score() -> void:
@@ -60,12 +59,13 @@ func test_any_mode_picks_max_score() -> void:
 
 	assert_almost_eq(condition.evaluate({}), 0.6, 0.0001)
 
-func test_any_mode_skips_null_children() -> void:
-	var children: Array[Resource] = []
-	children.append(_make_constant(0.2))
-	children.append(null)
-	children.append(_make_constant(0.7))
-	var condition: Variant = _make_composite(CONDITION_COMPOSITE.CompositeMode.ANY, children)
+func test_any_mode_picks_max_from_valid_children() -> void:
+	# With typed arrays, null entries are filtered by the coerce setter.
+	# This test verifies ANY mode picks the max score from valid children.
+	var condition: Variant = _make_composite(
+		CONDITION_COMPOSITE.CompositeMode.ANY,
+		[_make_constant(0.2), _make_constant(0.7)]
+	)
 
 	assert_almost_eq(condition.evaluate({}), 0.7, 0.0001)
 
@@ -80,7 +80,7 @@ func test_nested_composites_evaluate_recursively() -> void:
 	)
 	var root_any: Variant = _make_composite(
 		CONDITION_COMPOSITE.CompositeMode.ANY,
-		[nested_all, _make_constant(0.2)]
+		[nested_all as I_Condition, _make_constant(0.2)]
 	)
 
 	assert_almost_eq(root_any.evaluate({}), 0.25, 0.0001)
@@ -116,7 +116,7 @@ func test_children_apply_their_own_wrappers_before_parent_aggregation() -> void:
 	child.invert = true
 	var condition: Variant = _make_composite(
 		CONDITION_COMPOSITE.CompositeMode.ALL,
-		[child, _make_constant(1.0)]
+		[child as I_Condition, _make_constant(1.0)]
 	)
 
 	assert_almost_eq(condition.evaluate({}), 0.7, 0.0001)

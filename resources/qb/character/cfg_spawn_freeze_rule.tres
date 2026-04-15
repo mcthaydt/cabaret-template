@@ -17,5 +17,5 @@ bool_value = true
 [resource]
 script = ExtResource("3_g1h6o")
 rule_id = &"spawn_freeze"
-conditions = Array[Resource]([SubResource("Resource_4jesr")])
-effects = Array[Resource]([SubResource("Resource_sffny")])
+conditions = Array[I_Condition]([SubResource("Resource_4jesr")])
+effects = Array[I_Effect]([SubResource("Resource_sffny")])

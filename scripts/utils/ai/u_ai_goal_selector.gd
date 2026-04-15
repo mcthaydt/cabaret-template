@@ -194,8 +194,8 @@ func _find_goal_by_id(goals: Array[RS_AIGoal], goal_id: StringName) -> RS_AIGoal
 		return cached_lookup[goal_id] as RS_AIGoal
 	return null
 
-func _read_conditions(goal: RS_AIGoal) -> Array[Resource]:
-	var conditions: Array[Resource] = []
+func _read_conditions(goal: RS_AIGoal) -> Array[I_Condition]:
+	var conditions: Array[I_Condition] = []
 	for condition: I_Condition in goal.conditions:
 		if condition != null:
 			conditions.append(condition)

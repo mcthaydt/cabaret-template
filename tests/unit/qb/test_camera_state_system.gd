@@ -15,6 +15,9 @@ const CONDITION_ENTITY_TAG := preload("res://scripts/resources/qb/conditions/rs_
 const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
 const SPEED_FOV_RULE := preload("res://resources/qb/camera/cfg_camera_speed_fov_rule.tres")
 
+const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+
 func before_each() -> void:
 	U_ECSEventBus.reset()
 
@@ -648,8 +651,10 @@ func _make_tick_set_field_rule(rule_id: StringName, field_name: StringName, floa
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "tick"
-	rule.conditions = [_make_constant_condition()]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(_make_constant_condition() as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule
 
 func _make_tag_target_fov_rule(rule_id: StringName, required_tag: StringName, fov_value: float) -> RS_Rule:
@@ -666,6 +671,8 @@ func _make_tag_target_fov_rule(rule_id: StringName, required_tag: StringName, fo
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "tick"
-	rule.conditions = [condition]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(condition as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule

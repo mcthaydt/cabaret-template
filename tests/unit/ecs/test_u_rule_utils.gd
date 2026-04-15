@@ -6,6 +6,8 @@ const RS_CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs
 const RS_CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
 const RS_CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
 
+const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+
 var _rule_utils: Variant = null
 
 func before_each() -> void:
@@ -236,7 +238,8 @@ func test_read_array_property_returns_array_value() -> void:
 		pending("U_RuleUtils not loaded")
 		return
 	var rule := RS_RULE.new()
-	rule.conditions = [RS_CONDITION_CONSTANT.new()]
+	rule.conditions.clear()
+	rule.conditions.append(RS_CONDITION_CONSTANT.new() as I_Condition)
 	var result: Array = _rule_utils.read_array_property(rule, "conditions")
 	assert_eq(result.size(), 1)
 
@@ -436,7 +439,7 @@ func test_extract_event_names_from_rule_returns_empty_for_rule_without_condition
 		pending("U_RuleUtils not loaded")
 		return
 	var rule := RS_RULE.new()
-	rule.conditions = []
+	rule.conditions.clear()
 	var result: Array[StringName] = _rule_utils.extract_event_names_from_rule(rule)
 	assert_eq(result.size(), 0)
 
@@ -447,7 +450,8 @@ func test_extract_event_names_from_rule_extracts_from_event_name_conditions() ->
 	var condition := RS_CONDITION_EVENT_NAME.new()
 	condition.expected_event_name = StringName("player_damaged")
 	var rule := RS_RULE.new()
-	rule.conditions = [condition]
+	rule.conditions.clear()
+	rule.conditions.append(condition as I_Condition)
 	var result: Array[StringName] = _rule_utils.extract_event_names_from_rule(rule)
 	assert_eq(result.size(), 1)
 	assert_eq(result[0], StringName("player_damaged"))
@@ -461,7 +465,9 @@ func test_extract_event_names_from_rule_deduplicates_event_names() -> void:
 	var condition_b := RS_CONDITION_EVENT_NAME.new()
 	condition_b.expected_event_name = StringName("player_damaged")
 	var rule := RS_RULE.new()
-	rule.conditions = [condition_a, condition_b]
+	rule.conditions.clear()
+	rule.conditions.append(condition_a as I_Condition)
+	rule.conditions.append(condition_b as I_Condition)
 	var result: Array[StringName] = _rule_utils.extract_event_names_from_rule(rule)
 	assert_eq(result.size(), 1)
 
@@ -474,7 +480,9 @@ func test_extract_event_names_from_rule_ignores_non_event_conditions() -> void:
 	var event_condition := RS_CONDITION_EVENT_NAME.new()
 	event_condition.expected_event_name = StringName("checkpoint_reached")
 	var rule := RS_RULE.new()
-	rule.conditions = [constant_condition, event_condition]
+	rule.conditions.clear()
+	rule.conditions.append(constant_condition as I_Condition)
+	rule.conditions.append(event_condition as I_Condition)
 	var result: Array[StringName] = _rule_utils.extract_event_names_from_rule(rule)
 	assert_eq(result.size(), 1)
 	assert_eq(result[0], StringName("checkpoint_reached"))
@@ -486,9 +494,11 @@ func test_extract_event_names_from_rule_handles_composite_conditions() -> void:
 	var event_condition := RS_CONDITION_EVENT_NAME.new()
 	event_condition.expected_event_name = StringName("area_entered")
 	var composite := RS_CONDITION_COMPOSITE.new()
-	composite.children = [event_condition]
+	composite.children.clear()
+	composite.children.append(event_condition as I_Condition)
 	var rule := RS_RULE.new()
-	rule.conditions = [composite]
+	rule.conditions.clear()
+	rule.conditions.append(composite as I_Condition)
 	var result: Array[StringName] = _rule_utils.extract_event_names_from_rule(rule)
 	assert_eq(result.size(), 1)
 	assert_eq(result[0], StringName("area_entered"))
@@ -502,11 +512,15 @@ func test_extract_event_names_from_rule_handles_nested_composites() -> void:
 	var event_condition_b := RS_CONDITION_EVENT_NAME.new()
 	event_condition_b.expected_event_name = StringName("inner_event")
 	var inner_composite := RS_CONDITION_COMPOSITE.new()
-	inner_composite.children = [event_condition_b]
+	inner_composite.children.clear()
+	inner_composite.children.append(event_condition_b as I_Condition)
 	var outer_composite := RS_CONDITION_COMPOSITE.new()
-	outer_composite.children = [event_condition_a, inner_composite]
+	outer_composite.children.clear()
+	outer_composite.children.append(event_condition_a as I_Condition)
+	outer_composite.children.append(inner_composite as I_Condition)
 	var rule := RS_RULE.new()
-	rule.conditions = [outer_composite]
+	rule.conditions.clear()
+	rule.conditions.append(outer_composite as I_Condition)
 	var result: Array[StringName] = _rule_utils.extract_event_names_from_rule(rule)
 	assert_eq(result.size(), 2)
 	assert_true(result.has(StringName("outer_event")))
@@ -517,6 +531,6 @@ func test_extract_event_names_from_rule_skips_null_conditions() -> void:
 		pending("U_RuleUtils not loaded")
 		return
 	var rule := RS_RULE.new()
-	rule.conditions = [null]
+	rule.conditions.clear()
 	var result: Array[StringName] = _rule_utils.extract_event_names_from_rule(rule)
 	assert_eq(result.size(), 0)

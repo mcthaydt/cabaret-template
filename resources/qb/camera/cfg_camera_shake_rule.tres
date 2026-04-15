@@ -20,5 +20,5 @@ use_clamp = true
 script = ExtResource("2_3tnus")
 rule_id = &"camera_shake"
 trigger_mode = "event"
-conditions = Array[Resource]([SubResource("Resource_qw7p2")])
-effects = Array[Resource]([SubResource("Resource_fv330")])
+conditions = Array[I_Condition]([SubResource("Resource_qw7p2")])
+effects = Array[I_Effect]([SubResource("Resource_fv330")])

@@ -11,6 +11,10 @@ const CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_c
 const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
 const EFFECT_DISPATCH_ACTION := preload("res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd")
 const EFFECT_PUBLISH_EVENT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
+
+const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+
 const C_CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 
@@ -136,7 +140,9 @@ func test_nested_event_name_condition_inside_composite_is_subscribed_and_evaluat
 
 	var composite := CONDITION_COMPOSITE.new()
 	composite.mode = CONDITION_COMPOSITE.CompositeMode.ANY
-	composite.children = [literal, event_condition]
+	composite.children.clear()
+	composite.children.append(literal as I_Condition)
+	composite.children.append(event_condition as I_Condition)
 
 	var effect := EFFECT_DISPATCH_ACTION.new()
 	effect.action_type = StringName("designer/composite_event_rule_fired")
@@ -144,8 +150,10 @@ func test_nested_event_name_condition_inside_composite_is_subscribed_and_evaluat
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = StringName("designer_event_rule_composite")
 	rule.trigger_mode = "event"
-	rule.conditions = [composite]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(composite as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 
 	var fixture: Dictionary = await _create_fixture([rule])
 	var store: MockStateStore = fixture["store"] as MockStateStore
@@ -249,8 +257,10 @@ func _make_event_dispatch_rule(rule_id: StringName, trigger_event: StringName, a
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "event"
-	rule.conditions = [event_condition]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(event_condition as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule
 
 func _make_event_publish_rule(
@@ -270,8 +280,10 @@ func _make_event_publish_rule(
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "event"
-	rule.conditions = [event_condition]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(event_condition as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule
 
 func _make_tick_dispatch_rule(
@@ -291,8 +303,10 @@ func _make_tick_dispatch_rule(
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "tick"
-	rule.conditions = [condition]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(condition as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule
 
 func _find_events_by_name(history: Array, event_name: StringName) -> Array:

@@ -2,6 +2,8 @@ extends BaseTest
 
 const RULE_EVALUATOR_PATH := "res://scripts/utils/ecs/u_rule_evaluator.gd"
 const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
+const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
 const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
@@ -190,16 +192,14 @@ func _make_rule(
 	rule.rule_id = rule_id
 	rule.trigger_mode = trigger_mode
 
-	var typed_conditions: Array[Resource] = []
+	rule.conditions.clear()
 	for condition_variant in conditions:
-		if condition_variant != null and condition_variant is Resource:
-			typed_conditions.append(condition_variant)
-	rule.conditions = typed_conditions
+		if condition_variant != null and condition_variant is I_CONDITION:
+			rule.conditions.append(condition_variant as I_Condition)
 
-	var typed_effects: Array[Resource] = []
+	rule.effects.clear()
 	for effect_variant in effects:
-		if effect_variant != null and effect_variant is Resource:
-			typed_effects.append(effect_variant)
-	rule.effects = typed_effects
+		if effect_variant != null and effect_variant is I_EFFECT:
+			rule.effects.append(effect_variant as I_Effect)
 
 	return rule

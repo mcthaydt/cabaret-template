@@ -17,5 +17,5 @@ bool_value = true
 [resource]
 script = ExtResource("3_dts07")
 rule_id = &"death_sync"
-conditions = Array[Resource]([SubResource("Resource_s53jo")])
-effects = Array[Resource]([SubResource("Resource_m25uh")])
+conditions = Array[I_Condition]([SubResource("Resource_s53jo")])
+effects = Array[I_Effect]([SubResource("Resource_m25uh")])

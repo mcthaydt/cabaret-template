@@ -17,6 +17,6 @@ context_key = &"is_gameplay_active"
 [resource]
 script = ExtResource("3_ktvm8")
 rule_id = &"pause_gate_shell"
-conditions = Array[Resource]([SubResource("Resource_gadga")])
-effects = Array[Resource]([SubResource("Resource_3fm61")])
+conditions = Array[I_Condition]([SubResource("Resource_gadga")])
+effects = Array[I_Effect]([SubResource("Resource_3fm61")])
 decision_group = &"pause_gate"

@@ -6,10 +6,6 @@ extends BaseTest
 ## RS_ConditionComposite.children use typed arrays (Array[I_Condition],
 ## Array[I_Effect]) with coerce setters that filter wrong-type entries,
 ## matching the established pattern in RS_AIGoal and RS_AICompoundTask.
-##
-## TDD RED: Tests that verify coerce behavior will FAIL until the typed
-## arrays and coerce setters are implemented. Currently conditions, effects,
-## and children are Array[Resource] which accepts any Resource without filtering.
 
 const RS_RULE := preload("res://scripts/resources/qb/rs_rule.gd")
 const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
@@ -48,14 +44,14 @@ func _make_set_context_value_effect() -> I_Effect:
 # --- Property type annotation tests ---
 
 func test_rule_conditions_has_typed_array_annotation() -> void:
-	# After implementation: conditions should be Array[I_Condition], not Array[Resource]
 	var rule: Variant = RS_RULE.new()
 	var found := false
 	for prop in rule.get_property_list():
 		if prop.name == "conditions":
-			# hint_string for typed array is the inner class name
-			assert_eq(prop.hint_string, "I_Condition", \
-				"conditions property should have I_Condition type hint")
+			# Godot encodes typed arrays as hint=24 with format "24/17:ClassName"
+			# where 24=PROPERTY_HINT_TYPE_STRING, 17=TYPE_OBJECT
+			assert_true(prop.hint_string.ends_with("I_Condition"), \
+				"conditions property should have I_Condition type hint, got: %s" % prop.hint_string)
 			found = true
 			break
 	assert_true(found, "conditions property should exist in property list")
@@ -65,8 +61,8 @@ func test_rule_effects_has_typed_array_annotation() -> void:
 	var found := false
 	for prop in rule.get_property_list():
 		if prop.name == "effects":
-			assert_eq(prop.hint_string, "I_Effect", \
-				"effects property should have I_Effect type hint")
+			assert_true(prop.hint_string.ends_with("I_Effect"), \
+				"effects property should have I_Effect type hint, got: %s" % prop.hint_string)
 			found = true
 			break
 	assert_true(found, "effects property should exist in property list")
@@ -76,109 +72,98 @@ func test_composite_children_has_typed_array_annotation() -> void:
 	var found := false
 	for prop in composite.get_property_list():
 		if prop.name == "children":
-			assert_eq(prop.hint_string, "I_Condition", \
-				"children property should have I_Condition type hint")
+			assert_true(prop.hint_string.ends_with("I_Condition"), \
+				"children property should have I_Condition type hint, got: %s" % prop.hint_string)
 			found = true
 			break
 	assert_true(found, "children property should exist in property list")
 
-# --- Coerce setter tests ---
-# These test the _coerce_* methods through the property setter.
-# After implementation, setting conditions/effects/children with mixed arrays
-# should filter out wrong-type entries.
+# --- Coerce method tests ---
+# Test _coerce_conditions/_coerce_effects/_coerce_children directly,
+# since GDScript rejects assigning plain Array to Array[I_Condition] properties.
 
-func test_rule_conditions_coerce_filters_wrong_type() -> void:
+func test_coerce_conditions_filters_wrong_type() -> void:
 	var rule: Variant = RS_RULE.new()
 	var condition := _make_redux_condition()
 	var wrong_type := Resource.new()
-	# Build a mixed array and assign via setter
 	var mixed: Array = [condition, wrong_type]
-	rule._coerce_conditions(mixed)
-	var result: Array = rule.conditions
+	var result: Array[I_Condition] = rule._coerce_conditions(mixed)
 	assert_eq(result.size(), 1, \
-		"coerce should filter out non-I_Condition entries from conditions")
-	if result.size() > 0:
-		assert_eq(result[0], condition, \
-			"only the I_Condition entry should survive")
+		"coerce should filter out non-I_Condition entries")
+	assert_eq(result[0], condition, \
+		"only the I_Condition entry should survive")
 
-func test_rule_conditions_coerce_filters_null() -> void:
-	var rule: Variant = RS_RULE.new()
-	var condition := _make_redux_condition()
-	var mixed: Array = [null, condition, null]
-	rule._coerce_conditions(mixed)
-	var result: Array = rule.conditions
-	assert_eq(result.size(), 1, \
-		"coerce should filter null entries from conditions")
-
-func test_rule_conditions_coerce_preserves_all_valid() -> void:
-	var rule: Variant = RS_RULE.new()
-	var cond_a := _make_redux_condition()
-	var cond_b := _make_event_condition()
-	var valid: Array = [cond_a, cond_b]
-	rule._coerce_conditions(valid)
-	var result: Array = rule.conditions
-	assert_eq(result.size(), 2, \
-		"coerce should preserve all I_Condition entries")
-
-func test_rule_conditions_coerce_empties_all_wrong() -> void:
+func test_coerce_conditions_filters_all_wrong_types() -> void:
 	var rule: Variant = RS_RULE.new()
 	var wrong_type_a := Resource.new()
 	var wrong_type_b := Resource.new()
 	var all_wrong: Array = [wrong_type_a, wrong_type_b]
-	rule._coerce_conditions(all_wrong)
-	var result: Array = rule.conditions
+	var result: Array[I_Condition] = rule._coerce_conditions(all_wrong)
 	assert_eq(result.size(), 0, \
 		"coerce should filter all non-I_Condition entries")
 
-func test_rule_effects_coerce_filters_wrong_type() -> void:
+func test_coerce_conditions_filters_null() -> void:
+	var rule: Variant = RS_RULE.new()
+	var condition := _make_redux_condition()
+	var mixed: Array = [null, condition, null]
+	var result: Array[I_Condition] = rule._coerce_conditions(mixed)
+	assert_eq(result.size(), 1, \
+		"coerce should filter null entries")
+	assert_eq(result[0], condition, \
+		"only the valid I_Condition entry should survive")
+
+func test_coerce_conditions_preserves_all_valid() -> void:
+	var rule: Variant = RS_RULE.new()
+	var cond_a := _make_redux_condition()
+	var cond_b := _make_event_condition()
+	var valid: Array = [cond_a, cond_b]
+	var result: Array[I_Condition] = rule._coerce_conditions(valid)
+	assert_eq(result.size(), 2, \
+		"coerce should preserve all I_Condition entries")
+
+func test_coerce_effects_filters_wrong_type() -> void:
 	var rule: Variant = RS_RULE.new()
 	var effect := _make_set_field_effect()
 	var wrong_type := Resource.new()
 	var mixed: Array = [effect, wrong_type]
-	rule._coerce_effects(mixed)
-	var result: Array = rule.effects
+	var result: Array[I_Effect] = rule._coerce_effects(mixed)
 	assert_eq(result.size(), 1, \
-		"coerce should filter out non-I_Effect entries from effects")
-	if result.size() > 0:
-		assert_eq(result[0], effect, \
-			"only the I_Effect entry should survive")
+		"coerce should filter out non-I_Effect entries")
+	assert_eq(result[0], effect, \
+		"only the I_Effect entry should survive")
 
-func test_rule_effects_coerce_preserves_all_valid() -> void:
+func test_coerce_effects_preserves_all_valid() -> void:
 	var rule: Variant = RS_RULE.new()
 	var effect_a := _make_set_field_effect()
 	var effect_b := _make_set_context_value_effect()
 	var valid: Array = [effect_a, effect_b]
-	rule._coerce_effects(valid)
-	var result: Array = rule.effects
+	var result: Array[I_Effect] = rule._coerce_effects(valid)
 	assert_eq(result.size(), 2, \
 		"coerce should preserve all I_Effect entries")
 
-func test_composite_children_coerce_filters_wrong_type() -> void:
+func test_coerce_children_filters_wrong_type() -> void:
 	var composite: Variant = CONDITION_COMPOSITE.new()
 	var condition := _make_redux_condition()
 	var wrong_type := Resource.new()
 	var mixed: Array = [condition, wrong_type]
-	composite._coerce_children(mixed)
-	var result: Array = composite.children
+	var result: Array[I_Condition] = composite._coerce_children(mixed)
 	assert_eq(result.size(), 1, \
 		"coerce should filter out non-I_Condition entries from children")
 
-func test_composite_children_coerce_filters_null() -> void:
+func test_coerce_children_filters_null() -> void:
 	var composite: Variant = CONDITION_COMPOSITE.new()
 	var condition := _make_redux_condition()
 	var mixed: Array = [null, condition]
-	composite._coerce_children(mixed)
-	var result: Array = composite.children
+	var result: Array[I_Condition] = composite._coerce_children(mixed)
 	assert_eq(result.size(), 1, \
 		"coerce should filter null entries from children")
 
-func test_composite_children_coerce_preserves_all_valid() -> void:
+func test_coerce_children_preserves_all_valid() -> void:
 	var composite: Variant = CONDITION_COMPOSITE.new()
 	var cond_a := _make_redux_condition()
 	var cond_b := _make_event_condition()
 	var valid: Array = [cond_a, cond_b]
-	composite._coerce_children(valid)
-	var result: Array = composite.children
+	var result: Array[I_Condition] = composite._coerce_children(valid)
 	assert_eq(result.size(), 2, \
 		"coerce should preserve all I_Condition entries in children")
 
@@ -197,9 +182,6 @@ func test_rule_conditions_append_after_coerce() -> void:
 # --- Existing validator still works as semantic double-check ---
 
 func test_rule_validator_catches_semantic_errors_after_typed_schema() -> void:
-	# Even with typed arrays, U_RuleValidator should still catch
-	# semantic issues (empty fields, missing required values).
-	# This test verifies the validator integration is unchanged.
 	var rule: Variant = RS_RULE.new()
 	rule.rule_id = StringName("test_rule")
 	rule.trigger_mode = "tick"

@@ -16,5 +16,5 @@ event_name = &"victory_execution_requested"
 script = ExtResource("2_j3wtx")
 rule_id = &"victory_forward"
 trigger_mode = "event"
-conditions = Array[Resource]([SubResource("Resource_nq7aa")])
-effects = Array[Resource]([SubResource("Resource_h8nwu")])
+conditions = Array[I_Condition]([SubResource("Resource_nq7aa")])
+effects = Array[I_Effect]([SubResource("Resource_h8nwu")])
