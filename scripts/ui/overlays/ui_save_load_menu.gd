@@ -112,12 +112,20 @@ func _subscribe_to_events() -> void:
 	if store != null and store.has_signal("action_dispatched"):
 		store.action_dispatched.connect(_on_action_dispatched)
 
+	U_ECSEventBus.subscribe(StringName("load_started"), _on_load_started)
+	U_ECSEventBus.subscribe(StringName("load_completed"), _on_load_completed)
+	U_ECSEventBus.subscribe(StringName("load_failed"), _on_load_failed)
+
 func _exit_tree() -> void:
 	# Disconnect from Redux action_dispatched
 	var store := get_store()
 	if store != null and store.has_signal("action_dispatched"):
 		if store.action_dispatched.is_connected(_on_action_dispatched):
 			store.action_dispatched.disconnect(_on_action_dispatched)
+
+	U_ECSEventBus.unsubscribe(StringName("load_started"), _on_load_started)
+	U_ECSEventBus.unsubscribe(StringName("load_completed"), _on_load_completed)
+	U_ECSEventBus.unsubscribe(StringName("load_failed"), _on_load_failed)
 
 	# Disconnect from store
 	if store != null and store.slice_updated.is_connected(_on_slice_updated):
@@ -634,6 +642,22 @@ func _on_action_dispatched(action: Dictionary) -> void:
 	elif action_type == U_SAVE_ACTIONS.ACTION_SAVE_FAILED:
 		var error_code: int = action.get("error_code", 0)
 		_show_error_message(_format_operation_error(OPERATION_SAVE, error_code))
+
+func _on_load_started(__event: Dictionary) -> void:
+	_clear_error_message()
+	_show_loading_spinner()
+	_set_buttons_enabled(false)
+
+func _on_load_completed(__event: Dictionary) -> void:
+	_hide_loading_spinner()
+	_set_buttons_enabled(true)
+
+func _on_load_failed(event: Dictionary) -> void:
+	_hide_loading_spinner()
+	_set_buttons_enabled(true)
+	var payload: Dictionary = event.get("payload", {})
+	var error_code: int = payload.get("error_code", 0)
+	_show_error_message(_format_operation_error(OPERATION_LOAD, error_code))
 
 func _clear_error_message() -> void:
 	if _error_label == null:

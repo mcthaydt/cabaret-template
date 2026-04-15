@@ -369,6 +369,8 @@ func _on_action_dispatched(action: Dictionary) -> void:
 	if target_scene == StringName(""):
 		push_warning("M_SceneManager: victory_routing missing target_scene")
 		return
+	if target_scene == get_current_scene():
+		return
 	transition_to_scene(target_scene, "fade", Priority.HIGH)
 
 func _load_initial_scene() -> void:

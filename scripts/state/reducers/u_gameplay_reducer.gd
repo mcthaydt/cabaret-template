@@ -146,7 +146,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 
 		U_GameplayActions.ACTION_TRIGGER_VICTORY:
 			var victory_state: Dictionary = state.duplicate(true)
-			victory_state.last_victory_objective = action.get("payload", StringName(""))
+			victory_state.last_victory_objective = action.get("objective_id", StringName(""))
 			return victory_state
 
 		U_GameplayActions.ACTION_MARK_AREA_COMPLETE:

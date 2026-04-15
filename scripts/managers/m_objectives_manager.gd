@@ -401,6 +401,10 @@ func _on_action_dispatched(action: Dictionary) -> void:
 		U_OBJECTIVES_DEBUG_TRACER.debug_log("observed gameplay/game_complete")
 		U_OBJECTIVES_DEBUG_TRACER.log_gameplay_slice("after gameplay/game_complete dispatch observed", _store)
 		U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after gameplay/game_complete dispatch observed", _store)
+		_evaluate_active_objectives(_build_event_context({
+			"action_type": action_type,
+			"action_payload": action.get("payload", null),
+		}))
 		return
 
 	U_OBJECTIVES_DEBUG_TRACER.debug_log("observed gameplay/mark_area_complete payload=%s" % str(action.get("payload", null)))
