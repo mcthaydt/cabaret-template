@@ -153,7 +153,7 @@
 
 - **New `class_name` base scripts can fail in `extends` during headless runs**: Creating a fresh base script (for example `class_name RS_BaseCondition`) and immediately extending it with `extends RS_BaseCondition` in sibling scripts can fail under headless GUT parsing (`Parse Error: Could not find base class ...`) before the global class cache catches up. Prefer explicit path-based inheritance for new stacks (`extends "res://scripts/resources/qb/rs_base_condition.gd"`) during active refactors; keep `class_name` for inspector/type usage.
 
-- **Typed Array annotations can fail to resolve fresh `class_name` symbols in headless**: Exported typed arrays like `@export var conditions: Array[RS_BaseCondition]` and `@export var effects: Array[RS_BaseEffect]` can parse-fail in headless (`Could not find type ... in the current scope`) immediately after introducing new script classes. If this blocks progress, use `Array[Resource]` temporarily and enforce resource subtype checks in validation (`U_RuleValidator`) until editor/class cache stabilization is confirmed.
+- **Typed Array annotations can fail to resolve fresh `class_name` symbols in headless**: Exported typed arrays like `@export var conditions: Array[I_Condition]` can parse-fail in headless (`Could not find type ... in the current scope`) immediately after introducing new script classes. The AI system proved `Array[I_Condition]`/`Array[I_Effect]` work in `@export` once the class cache is warm. If a fresh class fails, prefer explicit path-based inheritance (`extends "res://..."`) during the refactor window, then switch to `class_name`-based typed arrays once stable.
 
 - **Typed Array constructor syntax can parse-fail (`Cannot call on an expression`)**: Expressions like `Array[Resource]([value])` are not valid constructor calls in GDScript. Build typed arrays via annotated locals (`var values: Array[Resource] = [value]`) and assign that variable instead.
 
@@ -204,7 +204,7 @@
 ## QB Rule Engine v2 Pitfalls
 
 - **`U_PathResolver` intentionally has no method-call fallback**: Conditions/effects must resolve data through dictionary/object property paths only. Do not rely on `has_method()` + call behavior for rule evaluation.
-- **Keep `rules` exports in headless-safe mode until typed arrays are stable**: New rule-consumer systems should use `@export var rules: Array[Resource] = []` and run `U_RuleValidator.validate_rules(...)` before evaluation. Headless parser stability can lag new `class_name` symbols.
+- **Rule-consumer systems should use typed arrays + coerce setters**: New rule-consumer systems should use `@export var rules: Array[RS_Rule] = []` (or the relevant interface type) with a coerce setter matching `RS_AIGoal`/`RS_Rule` patterns. `U_RuleValidator` validates semantics; typed arrays + coerce setters enforce schema at the GDScript level.
 - **Condition/effect subresources must match v2 subclasses**: Rule assets should use `RS_Condition*` and `RS_Effect*` resources only; validator failures should block runtime registration.
 - **Context-driven effects require explicit context contracts**: `RS_EffectSetField.use_context_value` will no-op or write wrong values if the expected context path is missing/mistyped. Keep context keys documented per consumer (`components`, `event_payload`, `state`, etc.) and verify in unit tests.
 - **Trackers are per-system state, not shared utilities**: `RuleStateTracker` stores cooldown/rising-edge/one-shot state. Reusing one tracker across systems causes cross-domain gating bugs.

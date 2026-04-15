@@ -123,7 +123,7 @@ Per `docs/adr/0001-channel-taxonomy.md`, the project enforces a publisher-based 
 - QB Rule Engine v2 patterns (Phase 5 complete)
   - The rule engine is a stateless library: `U_RuleScorer.score_rules(...)` + `U_RuleSelector.select_winners(...)`; systems compose these utilities instead of inheriting a QB base class.
   - Rule consumers (`S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem`) each own their own `U_RuleStateTracker` instance; never share trackers between systems.
-  - Rule assets use `RS_Rule` + typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions`/`effects` remain `Array[Resource]` in headless fallback mode and must be runtime-validated with `U_RuleValidator.validate_rules(...)`.
+  - Rule assets use `RS_Rule` + typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions` and `effects` use typed arrays (`Array[I_Condition]`, `Array[I_Effect]`) with coerce setters matching `RS_AIGoal` pattern; `U_RuleValidator` validates semantic correctness (required fields, valid ranges) as a double-check layer.
   - Condition contract: all rules must declare at least one condition; unconditional rules are invalid (validator error, scorer returns 0.0).
   - Validation contract: use only `valid_rules` from the validation report; expose/report `{valid_rules, errors_by_index, errors_by_rule_id}` for tests and debugging.
   - Scoring contract: conditions return 0.0-1.0, optional `response_curve` remap applies before optional `invert`, and rule score is the multiplicative product across conditions.
