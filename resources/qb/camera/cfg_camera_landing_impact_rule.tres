@@ -1,9 +1,11 @@
 [gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://m7o054qd5u44"]
 
 [ext_resource type="Script" uid="uid://bkrf6emw8eq0d" path="res://scripts/resources/qb/conditions/rs_condition_event_name.gd" id="1_0kyf7"]
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_n7i5s"]
 [ext_resource type="Script" uid="uid://c01hdmwtkd014" path="res://scripts/resources/qb/conditions/rs_condition_event_payload.gd" id="2_t38nv"]
 [ext_resource type="Script" uid="uid://baf360oqwp7v5" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="3_h3i6n"]
 [ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="4_44nrb"]
+[ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/interfaces/i_effect.gd" id="4_aakyq"]
 
 [sub_resource type="Resource" id="Resource_fjn3d"]
 script = ExtResource("1_0kyf7")
@@ -28,6 +30,6 @@ scale_by_rule_score = true
 script = ExtResource("4_44nrb")
 rule_id = &"camera_landing_impact"
 trigger_mode = "event"
-conditions = Array[I_Condition]([SubResource("Resource_fjn3d"), SubResource("Resource_h4w3x")])
-effects = Array[I_Effect]([SubResource("Resource_nj6h8")])
+conditions = Array[ExtResource("1_n7i5s")]([SubResource("Resource_fjn3d"), SubResource("Resource_h4w3x")])
+effects = Array[ExtResource("4_aakyq")]([SubResource("Resource_nj6h8")])
 score_threshold = -1.0
