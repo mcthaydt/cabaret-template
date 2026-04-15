@@ -32,6 +32,24 @@
 2. `<pillar 2>`
 3. `<pillar 3>`
 
+## Core gameplay loop
+
+The five-second thing the player does repeatedly. Write it as a short cycle, not prose.
+
+```text
+<verb 1> → <verb 2> → <feedback/payoff> → <verb 1 again>
+```
+
+Example (scripted horror): `look → notice a change → interact with the changed thing → script advances → look again`
+
+Example (puzzle adventure): `explore scene → pick up/examine items → try combinations → puzzle clears → new scene unlocks`
+
+Constraints:
+
+- One loop, not many. If you have two, you probably have two games.
+- The loop must be directly supported by the input bindings in doc 04.
+- Anything outside the loop (menus, cutscenes, one-off puzzles) is *not* the loop — it interrupts it.
+
 ## Non-goals (what this game is NOT)
 
 - `<e.g. no real-time combat>`
