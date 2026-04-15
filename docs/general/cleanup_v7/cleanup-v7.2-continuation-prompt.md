@@ -5,15 +5,15 @@
 This guide directs you to implement Cross-System Cleanup V7.2 by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` in sequential order, respecting the dependency graph documented below. V7.2 is the follow-up to V7 (C1–C12), addressing eight concrete architectural weaknesses that C1–C12 did not target, plus three additions (F8 Phase 0, F12, F15) surfaced during pre-implementation review.
 
 **Branch**: GOAP-AI
-**Status**: F7 complete — **F8 Phase 0 next** (VCam helper pre-decomposition).
-**Next Task**: Begin **F8 Commit 1a** (decompose `u_vcam_rotation.gd`) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
+**Status**: F8 Phase 0 complete — **F8 Phase 1 next** (VCam system extraction).
+**Next Task**: Begin **F8 Commit 1** (RED — method-level decomposition tests for `S_VCamSystem`) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
 **Prerequisite**: Full C1–C12 test suite green (desktop + mobile) before starting F2.
 
 ---
 
-## Current Status: F7 Complete, F8 Phase 0 Next
+## Current Status: F8 Phase 0 Complete, F8 Phase 1 Next
 
-F1–F7 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
+F1–F7 and F8 Phase 0 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
 
 - **F1 (SceneManager C6 Supplement)**: **ALREADY RESOLVED** during C6. Verification-only checkpoint (single commit adding style-enforcement grep assertions).
 - **F2 (StateStore Dispatch — Share Snapshot)**: **COMPLETE**. Dispatch now uses `get_state()` instead of `_state.duplicate(true)`, populating the versioned cache. Zero-subscriber skip already in place.
@@ -22,6 +22,7 @@ F1–F7 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.
 - **F5 (Communication Channel Taxonomy)**: **COMPLETE**. All 5 managers migrated to Redux dispatch. ADR written. 41/41 style enforcement tests green. Channel taxonomy enforced by grep tests. 7 pre-existing test failures from F5 commits 3a/3b (victory pipeline, save spinner) remain to be fixed separately.
 - **F6 (ServiceLocator Scoping)**: **COMPLETE**. `register()` now fails on conflict (push_error + return). `register_or_replace()` added for intentional replacement. `push_scope()`/`pop_scope()` implemented for test isolation. `BaseTest` migrated from `clear()` to `push_scope()`/`pop_scope()`. `U_StateHandoff.clear_all()` added to `BaseTest.before_each()`. 4 UI tests updated to remove redundant `clear()` calls. Full suite 4246/4265 passing (11 pre-existing failures from F5).
 - **F7 (RS_Rule Typed-Schema Erasure)**: **COMPLETE**. Path A chosen — Godot 4.6 supports typed `Array[I_Condition]` and `Array[I_Effect]` in `@export` declarations (proven by AI system's existing usage). `RS_Rule.conditions` and `RS_Rule.effects` changed from `Array[Resource]` to `Array[I_Condition]`/`Array[I_Effect]` with `_coerce_*()` setters matching `RS_AIGoal` pattern. `RS_ConditionComposite.children` changed from `Array[Resource]` to `Array[I_Condition]` with `_coerce_children()` setter. 11 `.tres` files updated. Stale "headless parser stability" comment removed. `U_RuleValidator` documented as semantic double-check layer. 14 typed-schema tests, 19 validator tests, 41 style tests, 3804 unit tests green.
+- **F8 (VCam/CameraState Decomposition — Phase 0)**: **PHASE 0 COMPLETE**. `u_vcam_rotation.gd` (741→235 coordinator + 129 continuity + 133 centering + 404 look_spring). `u_vcam_orbit_effects.gd` (651→261 coordinator + 189 look_ahead + 207 ground_anchor + 187 soft_zone_applier). No import changes needed — coordinator pattern preserves the public API. All VCam helper tests green.
 - **F15 (Designer-Facing Resource Schema Validation — v7.2.1 Addition)**: NOT STARTED. Mirrors F7's pattern for three more resources.
 - **F16 (AI System Type Safety & Consistency — v7.2.2 Addition)**: NOT STARTED. Independent. 6 commits: type Variant fields, push_error stubs, task-state key constants, debug snapshot, animate docs, grep enforcement.
 
@@ -459,8 +460,10 @@ You MUST:
 5. ~~**Begin F4** — Slice dependency validator strict mode.~~ ✅ **Complete.**
 6. ~~**Begin F5** — Communication channel taxonomy.~~ ✅ **Complete.**
 7. ~~**Begin F6** — ServiceLocator scoping.~~ ✅ **Complete.** `register()` fails on conflict; `register_or_replace()` for intentional replacement; `push_scope()`/`pop_scope()` for test isolation; `BaseTest` uses scope isolation + `U_StateHandoff.clear_all()`.
-8. **Begin F7** — RS_Rule Typed-Schema Erasure. Gated on Commit 1 parser feasibility investigation.
-9. F8 (incl. Phase 0), F9, F11, F12, F15, F16 can be scheduled independently.
+8. ~~**Begin F7** — RS_Rule Typed-Schema Erasure.~~ ✅ **Complete.** Typed arrays + coerce setters; `U_RuleValidator` as semantic double-check.
+9. ~~**F8 Phase 0** — VCam helper pre-decomposition.~~ ✅ **Complete.** `u_vcam_rotation.gd` and `u_vcam_orbit_effects.gd` decomposed into focused helpers.
+10. **Begin F8 Phase 1+** — VCam/CameraState system extraction. `S_VCamSystem` private methods into helpers; `S_CameraStateSystem` similarly. Targets: both files under 400 lines, all helpers under 400 lines.
+11. F9, F11, F12, F15, F16 can be scheduled independently (F16 Commit 1 before F9).
 10. F10 verification checkpoint can run any time.
 11. F16 Commit 1 should land before F9 (both touch `s_ai_behavior_system.gd`; type annotations are simpler).
 12. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.

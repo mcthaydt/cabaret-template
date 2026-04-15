@@ -412,8 +412,8 @@ Phase 0 decomposes the two oversized helpers **before** Phase 1+ pushes system l
 `u_vcam_response_smoother.gd` (468 lines) — **leave as-is**. All concerns are tightly coupled to 2nd-order dynamics lifecycle; splitting would over-fragment.
 
 **Commits**:
-- [ ] **Commit 1a** (GREEN, Phase 0) — Decompose `u_vcam_rotation.gd` into `u_vcam_rotation_continuity.gd`, `u_vcam_orbit_centering.gd`, and `u_vcam_look_spring.gd`. Update `u_vcam_effect_pipeline.gd` and `s_vcam_system.gd` imports. All existing VCam integration tests must stay green.
-- [ ] **Commit 1b** (GREEN, Phase 0) — Decompose `u_vcam_orbit_effects.gd` into `u_vcam_look_ahead.gd`, `u_vcam_ground_anchor.gd`, `u_vcam_soft_zone_applier.gd`, and the residual `u_vcam_orbit_effects.gd`. Update imports. All existing VCam integration tests must stay green.
+- [x] **Commit 1a** (GREEN, Phase 0) — Decompose `u_vcam_rotation.gd` (741→235 coordinator + 129 continuity + 133 centering + 404 look_spring). All 8 rotation tests, 41 style tests, 49 VCam helper tests green.
+- [x] **Commit 1b** (GREEN, Phase 0) — Decompose `u_vcam_orbit_effects.gd` (651→261 coordinator + 189 look_ahead + 207 ground_anchor + 187 soft_zone_applier). All 11 orbit effects tests, 41 style tests, 49 VCam helper tests green.
 - [ ] **Commit 1** (RED, Phase 1) — Method-level decomposition tests for extracted system logic:
   - `tests/unit/ecs/systems/test_s_vcam_system_decomposition.gd` — test the pipeline/mode/effect methods independently via their helper classes after extraction.
   - `tests/unit/ecs/systems/test_s_camera_state_system_decomposition.gd` — test `_apply_camera_state` logic, context building, and rule-result-to-component-write independently.
