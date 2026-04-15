@@ -56,7 +56,7 @@ func _ready() -> void:
 	var service_name := StringName("ecs_manager")
 	var existing := U_SERVICE_LOCATOR.try_get_service(service_name)
 	if existing != self:
-		U_SERVICE_LOCATOR.register(service_name, self)
+		U_SERVICE_LOCATOR.register_or_replace(service_name, self)
 	set_physics_process(true)
 	_initialize_query_metric_settings()
 	_initialize_system_profiling_settings()

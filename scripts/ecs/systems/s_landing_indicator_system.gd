@@ -24,7 +24,8 @@ func process_tick(__delta: float) -> void:
 	_tick_counter += 1
 	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
 		return
-	_perf_probe.start()
+	if _perf_probe != null:
+		_perf_probe.start()
 	# Phase 16: Check if landing indicator is enabled in state
 	var store: I_StateStore = U_StateUtils.get_store(self)
 	var should_show: bool = true
@@ -63,7 +64,8 @@ func process_tick(__delta: float) -> void:
 			component.set_landing_data(landing_point, landing_normal, true)
 		else:
 			component.set_landing_data(Vector3.ZERO, UP_VECTOR, false)
-	_perf_probe.stop()
+	if _perf_probe != null:
+		_perf_probe.stop()
 
 func _project_to_ground(component: C_LandingIndicatorComponent, body: CharacterBody3D, origin_position: Vector3) -> Dictionary:
 	var max_distance: float = max(component.settings.max_projection_distance, 0.0)

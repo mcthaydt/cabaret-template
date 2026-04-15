@@ -7,6 +7,7 @@ const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 static var _missing_manager_method_warnings: Dictionary = {}
 
 var _manager: I_ECSManager
+var _configured: bool = false
 var _execution_priority: int = 0
 var _debug_disabled: bool = false
 
@@ -31,6 +32,7 @@ func _ready() -> void:
 func configure(manager: I_ECSManager) -> void:
 	_manager = manager
 	_notify_manager_priority_changed()
+	_configured = true
 	on_configured()
 
 func on_configured() -> void:
@@ -93,8 +95,9 @@ func process_tick(_delta: float) -> void:
 	pass
 
 func _physics_process(delta: float) -> void:
-	# Allow manual invocation when the system is not managed.
-	if _manager == null:
+	# Allow manual invocation when the system is not managed,
+	# but only after on_configured() has initialized the system.
+	if _manager == null and _configured:
 		process_tick(delta)
 
 func _register_with_manager() -> void:
