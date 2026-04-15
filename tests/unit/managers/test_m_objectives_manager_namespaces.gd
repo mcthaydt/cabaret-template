@@ -305,14 +305,16 @@ func _objective(
 	objective.dependencies = dependencies.duplicate(true)
 	objective.auto_activate = auto_activate
 	if conditions.size() > 0:
-		var typed_conditions: Array[Resource] = []
+		var typed_conditions: Array[I_Condition] = []
 		for condition in conditions:
-			typed_conditions.append(condition)
+			if condition is I_Condition:
+				typed_conditions.append(condition as I_Condition)
 		objective.conditions = typed_conditions
 	if effects.size() > 0:
-		var typed_effects: Array[Resource] = []
+		var typed_effects: Array[I_Effect] = []
 		for effect in effects:
-			typed_effects.append(effect)
+			if effect is I_Effect:
+				typed_effects.append(effect as I_Effect)
 		objective.completion_effects = typed_effects
 	objective.objective_type = objective_type
 	objective.completion_event_payload = completion_event_payload.duplicate(true)
@@ -321,5 +323,9 @@ func _objective(
 func _objective_set(set_id: StringName, objectives: Array[Resource]) -> Resource:
 	var objective_set: Resource = OBJECTIVE_SET.new()
 	objective_set.set_id = set_id
-	objective_set.objectives = objectives.duplicate(true)
+	var typed_objectives: Array[RS_ObjectiveDefinition] = []
+	for o in objectives:
+		if o is RS_ObjectiveDefinition:
+			typed_objectives.append(o as RS_ObjectiveDefinition)
+	objective_set.objectives = typed_objectives
 	return objective_set

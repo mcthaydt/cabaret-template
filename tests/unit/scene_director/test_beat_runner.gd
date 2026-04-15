@@ -184,7 +184,7 @@ func test_next_beat_id_jumps_to_target_on_successful_completion() -> void:
 		[],
 		[jump_target_effect]
 	)
-	var first_effects: Array[Resource] = [first_effect]
+	var first_effects: Array[I_Effect] = [first_effect]
 	first.effects = first_effects
 	var beats: Array[Resource] = [first, skipped, jump_target]
 	_runner.start(beats)
@@ -367,8 +367,16 @@ func _beat(
 	beat.wait_mode = wait_mode
 	beat.duration = duration
 	beat.wait_event = wait_event
-	beat.preconditions = preconditions.duplicate(true)
-	beat.effects = effects.duplicate(true)
+	var typed_preconditions: Array[I_Condition] = []
+	for c in preconditions:
+		if c is I_Condition:
+			typed_preconditions.append(c as I_Condition)
+	beat.preconditions = typed_preconditions
+	var typed_effects: Array[I_Effect] = []
+	for e in effects:
+		if e is I_Effect:
+			typed_effects.append(e as I_Effect)
+	beat.effects = typed_effects
 	beat.next_beat_id = StringName("")
 	beat.next_beat_id_on_failure = StringName("")
 	var empty_lanes: Array[StringName] = []

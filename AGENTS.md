@@ -86,6 +86,14 @@
   - Parallel support is single-hop fork/join only (lane beats must not define their own `parallel_beat_ids`).
   - Redux observability uses `scene_director.current_beat_id`, `active_beat_ids`, and `parallel_lane_ids` in addition to `current_beat_index`.
 
+## ServiceLocator Registration & Test Isolation (F6)
+
+- **`register()` fails on conflict**: `U_ServiceLocator.register(name, instance)` pushes an error and returns without overwriting if `name` is already registered with a different instance. Same-instance re-registration is idempotent.
+- **Intentional replacement**: use `U_ServiceLocator.register_or_replace(name, instance)` when swapping out a service is the intended behavior (reconnection, test setup).
+- **Test scope isolation**: `U_ServiceLocator.push_scope()` saves `_services` + `_dependencies` and installs a fresh empty registry; `pop_scope()` restores the previous state (no-op on empty stack). Production never calls these — the stack stays empty and default behavior is unchanged.
+- **BaseTest contract**: tests extending `BaseTest` get automatic isolation — `before_each()` calls `push_scope()` + `U_StateHandoff.clear_all()`, `after_each()` calls `pop_scope()`. Overriding these without `super.before_each()` / `super.after_each()` bypasses isolation; if you override, call `super` first.
+- **Avoid `U_ServiceLocator.clear()` in tests** — it wipes the scope stack as well as `_services`, which breaks nested scope isolation. Prefer `push_scope` / `pop_scope` (or inherit from `BaseTest`).
+
 ## Communication Channel Taxonomy (F5)
 
 Per `docs/adr/0001-channel-taxonomy.md`, the project enforces a publisher-based channel rule:

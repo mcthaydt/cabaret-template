@@ -183,8 +183,16 @@ func _objective(
 	objective.objective_id = objective_id
 	objective.dependencies = dependencies.duplicate(true)
 	objective.auto_activate = auto_activate
-	objective.conditions = conditions.duplicate(true)
-	objective.completion_effects = effects.duplicate(true)
+	var typed_conditions: Array[I_Condition] = []
+	for c in conditions:
+		if c is I_Condition:
+			typed_conditions.append(c as I_Condition)
+	objective.conditions = typed_conditions
+	var typed_effects: Array[I_Effect] = []
+	for e in effects:
+		if e is I_Effect:
+			typed_effects.append(e as I_Effect)
+	objective.completion_effects = typed_effects
 	objective.objective_type = objective_type
 	objective.completion_event_payload = completion_event_payload.duplicate(true)
 	return objective
@@ -192,5 +200,9 @@ func _objective(
 func _objective_set(set_id: StringName, objectives: Array[Resource]) -> Resource:
 	var objective_set: Resource = OBJECTIVE_SET.new()
 	objective_set.set_id = set_id
-	objective_set.objectives = objectives.duplicate(true)
+	var typed_objectives: Array[RS_ObjectiveDefinition] = []
+	for o in objectives:
+		if o is RS_ObjectiveDefinition:
+			typed_objectives.append(o as RS_ObjectiveDefinition)
+	objective_set.objectives = typed_objectives
 	return objective_set

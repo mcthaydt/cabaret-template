@@ -222,12 +222,12 @@ func _wait_for_directive_completion(completed_directive_ids: Array[StringName], 
 
 func _build_branch_parallel_directive() -> Resource:
 	var branch_start := _beat(StringName("beat_start"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
-	var branch_start_effects: Array[Resource] = [_make_publish_effect(EVENT_BRANCH_START)]
+	var branch_start_effects: Array[I_Effect] = [_make_publish_effect(EVENT_BRANCH_START)]
 	branch_start.effects = branch_start_effects
 	branch_start.next_beat_id = StringName("beat_fork")
 
 	var branch_skipped := _beat(StringName("beat_skipped"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
-	var branch_skip_effects: Array[Resource] = [_make_publish_effect(EVENT_BRANCH_SKIPPED)]
+	var branch_skip_effects: Array[I_Effect] = [_make_publish_effect(EVENT_BRANCH_SKIPPED)]
 	branch_skipped.effects = branch_skip_effects
 
 	var fork := _beat(StringName("beat_fork"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
@@ -236,23 +236,23 @@ func _build_branch_parallel_directive() -> Resource:
 	fork.parallel_join_beat_id = StringName("beat_join")
 
 	var lane_a := _beat(StringName("lane_a"), RS_BEAT_DEFINITION.WaitMode.TIMED, 0.02, StringName(""))
-	var lane_a_effects: Array[Resource] = [_make_publish_effect(EVENT_LANE_A)]
+	var lane_a_effects: Array[I_Effect] = [_make_publish_effect(EVENT_LANE_A)]
 	lane_a.effects = lane_a_effects
 	var lane_b := _beat(StringName("lane_b"), RS_BEAT_DEFINITION.WaitMode.TIMED, 0.02, StringName(""))
-	var lane_b_effects: Array[Resource] = [_make_publish_effect(EVENT_LANE_B)]
+	var lane_b_effects: Array[I_Effect] = [_make_publish_effect(EVENT_LANE_B)]
 	lane_b.effects = lane_b_effects
 
 	var join := _beat(StringName("beat_join"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
-	var join_effects: Array[Resource] = [_make_publish_effect(EVENT_JOIN)]
+	var join_effects: Array[I_Effect] = [_make_publish_effect(EVENT_JOIN)]
 	join.effects = join_effects
 
 	var directive: Resource = RS_SCENE_DIRECTIVE.new()
 	directive.directive_id = StringName("branch_parallel_directive")
 	directive.target_scene_id = StringName("gameplay_base")
 	directive.priority = 100
-	var selection_conditions: Array[Resource] = []
+	var selection_conditions: Array[I_Condition] = []
 	directive.selection_conditions = selection_conditions
-	var beats: Array[Resource] = [branch_start, branch_skipped, fork, lane_a, lane_b, join]
+	var beats: Array[RS_BeatDefinition] = [branch_start, branch_skipped, fork, lane_a, lane_b, join]
 	directive.beats = beats
 	return directive
 
@@ -267,8 +267,8 @@ func _beat(
 	beat.wait_mode = wait_mode
 	beat.duration = duration
 	beat.wait_event = wait_event
-	var preconditions: Array[Resource] = []
-	var effects: Array[Resource] = []
+	var preconditions: Array[I_Condition] = []
+	var effects: Array[I_Effect] = []
 	beat.preconditions = preconditions
 	beat.effects = effects
 	beat.next_beat_id = StringName("")

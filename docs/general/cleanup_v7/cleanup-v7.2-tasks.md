@@ -309,7 +309,7 @@ Tests wrap `before_each` (push) / `after_each` (pop) with scope push/pop; produc
 **F6 Verification**:
 - [x] Duplicate-register test green (8/8 pass).
 - [x] Scope-isolation test green (7/7 pass).
-- [x] Full test suite green with `clear()` calls removed from `BaseTest.after_each()` and UI tests (scopes replace them). 4246/4265 passing (11 pre-existing failures from F5).
+- [x] Full test suite green with `clear()` calls removed from `BaseTest.after_each()` and UI tests (scopes replace them). 4246/4265 passing (19 pre-existing failures from F5).
 - [x] `MEMORY.md` test-failure patterns updated: `U_StateHandoff` and `ServiceLocator` pollution no longer manifest with `BaseTest` scope isolation.
 
 ---
@@ -344,7 +344,7 @@ Same pattern in `rs_condition_composite.gd:14`. Every runtime consumer must re-v
   - `test_rs_rule_typed_schema.gd`: 14 tests for type hints (3), coerce methods (9), append (1), validator integration (1). All correctly fail before implementation.
 - [x] **Commit 3** (GREEN) — Implement Path A:
   - `rs_rule.gd`: Changed `Array[Resource]` → `Array[I_Condition]` / `Array[I_Effect]`. Added `_coerce_conditions()` / `_coerce_effects()` setters with backing `_conditions` / `_effects` fields. Removed stale "Fallback for headless parser stability" comment.
-  - `rs_condition_composite.gd`: Changed `Array[Resource]` → `Array[I_Condition]` for `children`. Added `_coerce_children()` setter with backing `_children` field. Removed null/type-check branches from `_evaluate_all` and `_evaluate_any` (coerce setter handles these).
+  - `rs_condition_composite.gd`: Changed `Array[Resource]` → `Array[I_Condition]` for `children`. Added `_coerce_children()` setter with backing `_children` field. Removed type-check branches from `_evaluate_all` and `_evaluate_any` (coerce setter filters wrong-type entries); null guards retained as defensive.
   - `u_ai_goal_selector.gd`: Updated `_read_conditions()` return type from `Array[Resource]` to `Array[I_Condition]`.
   - `u_htn_planner.gd`: Updated `rule_conditions` from `Array[Resource]` to `Array[I_Condition]`. Added `I_Condition` preload.
   - 11 `.tres` rule files: Updated `Array[Resource]` → `Array[I_Condition]` / `Array[I_Effect]`.
@@ -359,6 +359,16 @@ Same pattern in `rs_condition_composite.gd:14`. Every runtime consumer must re-v
 - [x] Wrong-type entries in conditions/effects are filtered by coerce setters (14/14 typed-schema tests pass).
 - [x] Existing rule-engine tests green (178/178 QB tests, 884/884 ECS tests with 4 pre-existing F5 failures).
 - [x] Commit 1 notes document Path A decision with evidence from AI system.
+
+**F7 Follow-up (audit-driven propagation)**:
+- [x] Rule-consumer systems typed as `Array[RS_Rule]` with coerce setters: `s_game_event_system.gd`, `s_character_state_system.gd`, `s_camera_state_system.gd`.
+- [x] Scene director resource scripts migrated to typed arrays + coerce setters, stale "headless parser stability" comments removed: `rs_objective_set.gd` (`Array[RS_ObjectiveDefinition]`), `rs_objective_definition.gd` (`Array[I_Condition]` / `Array[I_Effect]`), `rs_scene_directive.gd` (`Array[I_Condition]` / `Array[RS_BeatDefinition]`), `rs_beat_definition.gd` (`Array[I_Condition]` / `Array[I_Effect]`).
+- [x] Scene director `.tres` files re-typed: `cfg_obj_level_complete.tres`, `cfg_obj_game_complete.tres`, `cfg_objset_default.tres`, `cfg_directive_gameplay_base.tres`.
+- [x] Test helpers updated to build typed locals before assignment (GDScript rejects `Array[Resource]` → `Array[I_Condition]` cross-type assignment, same pitfall F7 hit).
+- [x] AGENTS.md: new "ServiceLocator Registration & Test Isolation (F6)" section documents `register()` fail-on-conflict, `register_or_replace()`, `push_scope`/`pop_scope`, `BaseTest` contract, and the `clear()` → scope-stack-wipe pitfall.
+- [x] Full suite verified: 3808/3816 unit (8 risky/pending, 0 failing) + 463/463 integration.
+
+**Known related gap (deferred)**: Many `BaseTest` subclasses override `before_each` / `after_each` without calling `super.before_each()` / `super.after_each()`, so they bypass scope isolation and rely on their own `U_ServiceLocator.clear()`. Not redundant — their primary cleanup. Migrating each to the BaseTest contract is a separate surface-area change with per-file nuance; tracked as architectural consistency work, not a correctness issue at present.
 
 ---
 

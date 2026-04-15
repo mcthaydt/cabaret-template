@@ -18,10 +18,25 @@ const DEFAULT_RULE_DEFINITIONS := [
 ]
 
 @export var state_store: I_StateStore = null
-@export var rules: Array[Resource] = []
+@export var rules: Array[RS_Rule] = []:
+	get:
+		return _rules
+	set(value):
+		_rules = _coerce_rules(value)
 
+var _rules: Array[RS_Rule] = []
 var _rule_evaluator: Variant = U_RULE_EVALUATOR.new()
 var _state_store: I_StateStore = null
+
+
+func _coerce_rules(value: Variant) -> Array[RS_Rule]:
+	var coerced: Array[RS_Rule] = []
+	if not (value is Array):
+		return coerced
+	for rule_variant in value as Array:
+		if rule_variant is RS_Rule:
+			coerced.append(rule_variant as RS_Rule)
+	return coerced
 
 func on_configured() -> void:
 	_refresh_rule_evaluator()

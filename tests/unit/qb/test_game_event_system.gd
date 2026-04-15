@@ -233,9 +233,9 @@ func _create_fixture(designer_rules: Array = []) -> Dictionary:
 	system.ecs_manager = ecs_manager
 	add_child(system)
 
-	var typed_rules: Array[Resource] = []
+	var typed_rules: Array[RS_Rule] = []
 	for rule_variant in designer_rules:
-		if rule_variant != null and rule_variant is Resource:
+		if rule_variant is RS_Rule:
 			typed_rules.append(rule_variant)
 	system.rules = typed_rules
 	system.configure(ecs_manager)

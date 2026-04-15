@@ -437,8 +437,16 @@ func _directive(
 	directive.directive_id = directive_id
 	directive.target_scene_id = target_scene_id
 	directive.priority = priority
-	directive.selection_conditions = conditions.duplicate(true)
-	directive.beats = beats.duplicate(true)
+	var typed_conditions: Array[I_Condition] = []
+	for c in conditions:
+		if c is I_Condition:
+			typed_conditions.append(c as I_Condition)
+	directive.selection_conditions = typed_conditions
+	var typed_beats: Array[RS_BeatDefinition] = []
+	for b in beats:
+		if b is RS_BeatDefinition:
+			typed_beats.append(b as RS_BeatDefinition)
+	directive.beats = typed_beats
 	return directive
 
 func _beat(
@@ -454,8 +462,16 @@ func _beat(
 	beat.wait_mode = wait_mode
 	beat.duration = duration
 	beat.wait_event = wait_event
-	beat.preconditions = preconditions.duplicate(true)
-	beat.effects = effects.duplicate(true)
+	var typed_preconditions: Array[I_Condition] = []
+	for c in preconditions:
+		if c is I_Condition:
+			typed_preconditions.append(c as I_Condition)
+	beat.preconditions = typed_preconditions
+	var typed_effects: Array[I_Effect] = []
+	for e in effects:
+		if e is I_Effect:
+			typed_effects.append(e as I_Effect)
+	beat.effects = typed_effects
 	beat.next_beat_id = StringName("")
 	beat.next_beat_id_on_failure = StringName("")
 	var empty_lanes: Array[StringName] = []

@@ -161,7 +161,7 @@ func _build_test_objective_set() -> Resource:
 	var bar_objective: Resource = OBJECTIVE_DEFINITION.new()
 	bar_objective.objective_id = StringName("bar_complete")
 	bar_objective.auto_activate = true
-	var bar_conditions: Array[Resource] = [level_condition]
+	var bar_conditions: Array[I_Condition] = [level_condition]
 	bar_objective.conditions = bar_conditions
 
 	var final_objective: Resource = OBJECTIVE_DEFINITION.new()
@@ -169,9 +169,9 @@ func _build_test_objective_set() -> Resource:
 	final_objective.objective_type = OBJECTIVE_DEFINITION.ObjectiveType.VICTORY
 	var dependencies: Array[StringName] = [StringName("bar_complete")]
 	final_objective.dependencies = dependencies
-	var final_conditions: Array[Resource] = [game_condition]
+	var final_conditions: Array[I_Condition] = [game_condition]
 	final_objective.conditions = final_conditions
-	var final_effects: Array[Resource] = [game_effect]
+	var final_effects: Array[I_Effect] = [game_effect]
 	final_objective.completion_effects = final_effects
 	final_objective.completion_event_payload = {
 		"target_scene": StringName("victory"),
@@ -179,6 +179,6 @@ func _build_test_objective_set() -> Resource:
 
 	var objective_set: Resource = OBJECTIVE_SET.new()
 	objective_set.set_id = StringName("set_integration")
-	var objectives: Array[Resource] = [bar_objective, final_objective]
+	var objectives: Array[RS_ObjectiveDefinition] = [bar_objective, final_objective]
 	objective_set.objectives = objectives
 	return objective_set
