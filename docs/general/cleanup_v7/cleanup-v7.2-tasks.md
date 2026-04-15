@@ -339,18 +339,17 @@ Same pattern in `rs_condition_composite.gd:14`. Every runtime consumer must re-v
 - 11 `.tres` rule files under `resources/qb/`.
 
 **Commits**:
-- [ ] **Commit 1** (INVESTIGATION) — Parser feasibility probe:
-  - Create a scratch resource file using `@export var conditions: Array[RS_BaseCondition] = []`.
-  - Load headless (`godot --headless`) and in-editor.
-  - Record the result in this milestone's notes.
-  - Decide Path A or Path B.
-- [ ] **Commit 2** (RED) — Tests for the chosen path:
-  - **Path A**: A `.tres` file with a wrong-type entry fails to load with a specific parser error.
-  - **Path B**: The load-time schema validator catches a mis-typed entry and reports the resource path in the error.
-- [ ] **Commit 3** (GREEN) — Implement the chosen path:
-  - **Path A**: Change `Array[Resource]` to `Array[RS_BaseCondition]` / `Array[RS_BaseEffect]` / `Array[RS_BaseCondition]` (composite). Re-save all 11 `.tres` rule files.
-  - **Path B**: Add `_init()` override on `RS_Rule` and `RS_ConditionComposite` that calls a static schema-check utility. Fail with `resource_path` in the message.
-- [ ] **Commit 4** (GREEN) — Remove the "Fallback for headless parser stability" comment from both resource files. For Path A, delete now-dead runtime type-check branches from `U_RuleValidator`. For Path B, keep `U_RuleValidator` but document that it's now a double-check layer.
+- [x] **Commit 1** (INVESTIGATION) — Parser feasibility probe: **Path A chosen**. Godot 4.6 resolves typed `Array[RS_BaseCondition]` / `Array[I_Condition]` / `Array[I_Effect]` in `@export` declarations. Evidence: the AI system already uses `Array[I_Condition]` in `rs_ai_goal.gd:9`, `Array[RS_AIGoal]` in `rs_ai_brain_settings.gd:7`, and `Array[RS_AITask]` in `rs_ai_compound_task.gd:8` — all load correctly in headless mode (115/119 AI tests pass; 4 failures pre-existing from F5). The `_coerce_*` setter pattern (`RS_AIGoal._coerce_conditions`, `RS_AICompoundTask._coerce_subtasks`) handles .tres deserialization where Godot sometimes produces untyped arrays. The "headless parser stability" comment in `rs_rule.gd:16-17` is stale — it predates Godot 4.6's parser improvements. Decision: use `Array[I_Condition]` and `Array[I_Effect]` (interface types, matching `RS_AIGoal.conditions: Array[I_Condition]`), add `_coerce_*` setters, re-save .tres files. Keep `U_RuleValidator` as a semantic double-check (field-level validation, not type enforcement).
+- [ ] **Commit 2** (RED) — Tests for Path A:
+  - `test_rs_rule_typed_schema.gd`: (1) conditions accepts I_Condition instances, (2) effects accepts I_Effect instances, (3) coerce setter filters wrong-type entries from untyped arrays, (4) composite conditions use Array[I_Condition] for children, (5) injecting a non-I_Condition resource into conditions is filtered by coerce (not crash).
+- [ ] **Commit 3** (GREEN) — Implement Path A:
+  - `rs_rule.gd`: Change `Array[Resource]` → `Array[I_Condition]` / `Array[I_Effect]`. Add `_coerce_conditions()` / `_coerce_effects()` setters matching `RS_AIGoal` pattern.
+  - `rs_condition_composite.gd`: Change `Array[Resource]` → `Array[I_Condition]` for `children`. Add `_coerce_children()` setter.
+  - Re-save all 11 `.tres` rule files (Godot will serialize with typed array format).
+- [ ] **Commit 4** (GREEN) — Remove fallback comment and finalize:
+  - Remove "Fallback for headless parser stability" comment from `rs_rule.gd:16-17` and `rs_condition_composite.gd`.
+  - `U_RuleValidator`: Keep as semantic double-check (field-level validation). Document that type enforcement is now handled by GDScript typed arrays.
+  - Run full test suite.
 
 **F7 Verification**:
 - [ ] All 11 rule `.tres` files still load green in headless + editor.
