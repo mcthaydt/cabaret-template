@@ -294,6 +294,11 @@ func _exit_tree() -> void:
 		_store.slice_updated.disconnect(_on_slice_updated)
 	_navigation_slice_connected = false
 
+	# Disconnect Redux action_dispatched subscription (victory routing)
+	if _store != null and _store.has_signal("action_dispatched"):
+		if _store.action_dispatched.is_connected(_on_action_dispatched):
+			_store.action_dispatched.disconnect(_on_action_dispatched)
+
 	# Unsubscribe from ECS events
 	if _entity_death_unsubscribe != null and _entity_death_unsubscribe.is_valid():
 		_entity_death_unsubscribe.call()

@@ -56,6 +56,9 @@ var _is_loading: bool = false
 ## Tracks which scene we're loading to (for transition completion verification)
 var _loading_target_scene: StringName = StringName("")
 
+## Tracks which slot we're loading from (for load_completed dispatch on transition)
+var _loading_slot_id: StringName = StringName("")
+
 ## Store subscription unsubscribe callback (for transition completion)
 var _transition_complete_unsubscribe: Callable
 
@@ -289,22 +292,29 @@ func load_from_slot(slot_id: StringName) -> Error:
 	# Validate slot_id
 	if not slot_id in ALL_SLOTS:
 		push_error("M_SaveManager: Invalid slot_id: %s" % slot_id)
+		_state_store.dispatch(U_SAVE_ACTIONS.load_failed(slot_id, ERR_INVALID_PARAMETER))
 		return ERR_INVALID_PARAMETER
 
 	# Check if slot exists
 	if not slot_exists(slot_id):
+		_state_store.dispatch(U_SAVE_ACTIONS.load_failed(slot_id, ERR_FILE_NOT_FOUND))
 		return ERR_FILE_NOT_FOUND
 
 	# Set loading lock
 	_is_loading = true
+
+	# Dispatch load_started action (Redux per channel taxonomy)
+	_state_store.dispatch(U_SAVE_ACTIONS.load_started(slot_id))
 
 	# Read and validate save file
 	var file_path: String = _get_slot_file_path(slot_id)
 	var validation_result: Dictionary = _validate_and_load_save_file(file_path)
 
 	if validation_result.has("error"):
+		var error_code: Error = validation_result["error"]
 		_clear_loading_lock()
-		return validation_result["error"]
+		_state_store.dispatch(U_SAVE_ACTIONS.load_failed(slot_id, error_code))
+		return error_code
 
 	var _header: Dictionary = validation_result["header"]
 	var loaded_state: Dictionary = validation_result["state"]
@@ -351,6 +361,7 @@ func load_from_slot(slot_id: StringName) -> Error:
 
 	# Store target scene for transition completion verification
 	_loading_target_scene = target_scene_id
+	_loading_slot_id = slot_id
 
 	# Subscribe to state store to detect when transition completes
 	# We'll clear _is_loading lock when we see transition_completed action
@@ -370,6 +381,7 @@ func load_from_slot(slot_id: StringName) -> Error:
 		# No scene manager - clear handoff, unsubscribe, and fail gracefully
 		U_STATE_HANDOFF.clear_all()
 		_clear_loading_lock()
+		_state_store.dispatch(U_SAVE_ACTIONS.load_failed(slot_id, ERR_UNAVAILABLE))
 		push_error("M_SaveManager: No scene manager available for load transition")
 		return ERR_UNAVAILABLE
 
@@ -534,13 +546,17 @@ func _on_load_transition_action(action: Dictionary, _state: Dictionary) -> void:
 		# Not our transition - ignore
 		return
 
-	# Transition complete - clear loading lock
+	# Transition complete - dispatch load_completed and clear loading lock
+	var completed_slot_id: StringName = _loading_slot_id
 	_clear_loading_lock()
+	if _state_store != null and completed_slot_id != StringName(""):
+		_state_store.dispatch(U_SAVE_ACTIONS.load_completed(completed_slot_id))
 
 ## Clear loading lock and cleanup transition tracking
 func _clear_loading_lock() -> void:
 	_is_loading = false
 	_loading_target_scene = StringName("")
+	_loading_slot_id = StringName("")
 
 	# Unsubscribe from state store if we have an active subscription
 	if _transition_complete_unsubscribe.is_valid():

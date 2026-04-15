@@ -1,8 +1,6 @@
 extends RefCounted
 class_name U_VCamRuntimeState
 
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_INPUT_SELECTORS := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
@@ -68,10 +66,4 @@ func update_active_target_observability(
 	_last_target_recovery_vcam_id = vcam_id
 	if store != null:
 		store.dispatch(U_VCAM_ACTIONS.record_recovery(recovery_reason))
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_RECOVERY, {
-		"reason": recovery_reason,
-		"vcam_id": vcam_id,
-		"active_vcam_id": manager.get_active_vcam_id(),
-		"previous_vcam_id": manager.get_previous_vcam_id(),
-	})
 	manager.set_active_vcam(StringName(""))

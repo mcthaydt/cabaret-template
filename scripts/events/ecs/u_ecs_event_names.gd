@@ -22,17 +22,9 @@ const EVENT_VICTORY_EXECUTION_REQUESTED := StringName("victory_execution_request
 const EVENT_VICTORY_EXECUTED := StringName("victory_executed")
 const EVENT_DAMAGE_ZONE_ENTERED := StringName("damage_zone_entered")
 const EVENT_DAMAGE_ZONE_EXITED := StringName("damage_zone_exited")
-const EVENT_OBJECTIVE_ACTIVATED := StringName("objective_activated")
-const EVENT_OBJECTIVE_COMPLETED := StringName("objective_completed")
-const EVENT_OBJECTIVE_FAILED := StringName("objective_failed")
-const EVENT_OBJECTIVE_VICTORY_TRIGGERED := StringName("objective_victory_triggered")
-const EVENT_DIRECTIVE_STARTED := StringName("directive_started")
-const EVENT_DIRECTIVE_COMPLETED := StringName("directive_completed")
-const EVENT_BEAT_ADVANCED := StringName("beat_advanced")
-const EVENT_VCAM_ACTIVE_CHANGED := StringName("vcam_active_changed")
-const EVENT_VCAM_BLEND_STARTED := StringName("vcam_blend_started")
-const EVENT_VCAM_BLEND_COMPLETED := StringName("vcam_blend_completed")
-const EVENT_VCAM_RECOVERY := StringName("vcam_recovery")
+# NOTE: Manager-published vcam/objective/director events were removed in F5
+# (channel taxonomy migration). Those states now flow through Redux dispatch.
+# See docs/adr/0001-channel-taxonomy.md.
 
 # Service Names
 const SERVICE_VFX_MANAGER := StringName("vfx_manager")

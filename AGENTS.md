@@ -70,8 +70,8 @@
   - Status transition dispatches via `U_ObjectivesActions` (`activate`, `complete`, `fail`).
   - Event log entries are dispatched through `U_ObjectiveEventLog.create_entry(...)`.
   - Dependents are activated only when `U_ObjectiveGraph.get_ready_dependents(...)` reports all prerequisites completed.
-  - VICTORY objectives publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with `completion_event_payload` as-is.
-  - `M_SceneManager` listens to `EVENT_OBJECTIVE_VICTORY_TRIGGERED` for endgame transitions; legacy direct `victory_executed` scene transitions are removed.
+  - VICTORY objectives dispatch `U_GameplayActions.trigger_victory_routing(target_scene, completion_payload)` through Redux (per channel taxonomy, `docs/adr/0001-channel-taxonomy.md`).
+  - `M_SceneManager` subscribes to `M_StateStore.action_dispatched` and reacts to `ACTION_TRIGGER_VICTORY_ROUTING` for endgame transitions; legacy ECS-bus victory routing is removed.
 - Reset-run orchestration pattern (Phase 7):
   - `UI_Victory` Continue dispatches `U_RunActions.reset_run(&"retry")` (do not chain gameplay/navigation reset actions directly in UI code).
   - `M_RunCoordinatorManager` handles `run/reset` order: `gameplay/reset_progress` -> `U_InteractBlocker.force_unblock()` -> `objectives_manager.reset_for_new_run(&"default_progression")` -> `navigation/retry(game_config.retry_scene_id)` (currently `&"ai_showcase"` in `resources/cfg_game_config.tres`).
@@ -181,10 +181,10 @@ Per `docs/adr/0001-channel-taxonomy.md`, the project enforces a publisher-based 
     - Coordinator support helpers: `U_VCamRuntimeContext`, `U_VCamRuntimeState`, `U_VCamRuntimeServices`, `U_VCamEffectPipeline`, `U_VCamDebug`
   - `M_CameraManager` integration for gameplay vCam flow is `apply_main_camera_transform(xform)` [new — Phase 9] with `is_blend_active()` [new — Phase 9] gating for transition blends. Both methods must be implemented before vCam can submit gameplay transforms.
   - Blend manager helper contract (Phase 3A): `U_VCamBlendManager` (`scripts/managers/helpers/u_vcam_blend_manager.gd`) is the canonical owner of live-blend/startup-blend state machines (configure/advance/recover/startup queue+resolve/clear). `M_VCamManager` must delegate blend runtime state transitions to this helper.
-  - Live blend lifecycle contract (Phase 9 + 3A): `M_VCamManager` dispatches `U_VCamActions` blend lifecycle actions, publishes `EVENT_VCAM_BLEND_STARTED` / `EVENT_VCAM_BLEND_COMPLETED`, and blends active/outgoing evaluated results via `U_VCamBlendManager` (which uses `U_VCamBlendEvaluator` for transform/FOV interpolation).
+  - Live blend lifecycle contract (Phase 9 + 3A): `M_VCamManager` dispatches `U_VCamActions` blend lifecycle actions (start/update/complete) through Redux (per channel taxonomy, F5), and blends active/outgoing evaluated results via `U_VCamBlendManager` (which uses `U_VCamBlendEvaluator` for transform/FOV interpolation).
   - Blend observability ordering contract (Phase 12): `M_VCamManager` must dispatch `U_VCamActions.set_active_runtime(...)` before `U_VCamActions.start_blend(...)` during active-camera switches so reducer `blend_to_vcam_id` resolves to the incoming active camera.
   - Frame-handoff contract (Phase 9): `M_VCamManager` must consume frame-stamped submissions (`Engine.get_physics_frames`) and ignore stale previous-frame results; gameplay apply remains `camera_manager.apply_main_camera_transform(...)` only.
-  - Reentrant/recovery contract (Phase 9): mid-blend `set_active_vcam()` snapshots the current blended pose as the new "from" source, and invalid blend endpoints must route to `record_recovery` / `EVENT_VCAM_RECOVERY` reasons (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`) without wedged blend state.
+  - Reentrant/recovery contract (Phase 9): mid-blend `set_active_vcam()` snapshots the current blended pose as the new "from" source, and invalid blend endpoints must route to `U_VCamActions.record_recovery(...)` reasons (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`) without wedged blend state.
   - `in_fov_zone` now lives in `state.vcam.in_fov_zone`; do not reintroduce legacy `state.camera.in_fov_zone` reads in runtime or tests.
   - Occlusion silhouette preference persists in `vfx.occlusion_silhouette_enabled` and is surfaced in `UI_VFXSettingsOverlay` with localization keys.
   - Occlusion rollout is complete only when both physics-layer naming (`vcam_occludable`) and authored-scene blocker migration are done.
