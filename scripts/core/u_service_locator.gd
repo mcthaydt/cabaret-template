@@ -33,6 +33,12 @@ static var _dependencies: Dictionary = {}
 ## Track whether the service locator has been initialized
 static var _initialized: bool = false
 
+## Scope stack for test isolation (F6).
+## Each push_scope() saves the current _services and _dependencies to the stack
+## and starts fresh. pop_scope() restores the previous state.
+static var _scope_stack: Array[Dictionary] = []
+static var _dep_scope_stack: Array[Dictionary] = []
+
 ## Register a service instance with the given name
 ##
 ## Parameters:
@@ -225,6 +231,41 @@ static func initialize(services: Dictionary) -> void:
 static func get_registered_services() -> Array:
 	return _services.keys()
 
+## Intentionally replace a registered service.
+##
+## Use this when you explicitly want to swap out a service instance
+## (e.g., during reconnection or test setup). Prefer register() for
+## initial registration.
+static func register_or_replace(service_name: StringName, instance: Node) -> void:
+	if service_name.is_empty():
+		push_error("U_ServiceLocator.register_or_replace: service_name cannot be empty")
+		return
+	if instance == null or not is_instance_valid(instance):
+		push_error("U_ServiceLocator.register_or_replace: instance is null or invalid for '%s'" % service_name)
+		return
+	_services[service_name] = instance
+	print_verbose("U_ServiceLocator: Registered (replace) '%s' -> %s" % [service_name, instance.name])
+
+## Push a new scope onto the stack for test isolation.
+##
+## Saves current _services and _dependencies, then resets them to empty.
+## Use pop_scope() to restore the previous state.
+## Production code never calls push_scope/pop_scope (stack stays empty).
+static func push_scope() -> void:
+	_scope_stack.append(_services.duplicate())
+	_dep_scope_stack.append(_dependencies.duplicate())
+	_services = {}
+	_dependencies = {}
+
+## Pop the most recent scope, restoring previous _services and _dependencies.
+##
+## No-op if the scope stack is empty (production mode).
+static func pop_scope() -> void:
+	if _scope_stack.is_empty():
+		return
+	_services = _scope_stack.pop_back()
+	_dependencies = _dep_scope_stack.pop_back()
+
 ## Clear all registered services
 ##
 ## Primarily for testing. Clears the registry and resets initialization state.
@@ -232,6 +273,8 @@ static func clear() -> void:
 	_services.clear()
 	_dependencies.clear()
 	_initialized = false
+	_scope_stack.clear()
+	_dep_scope_stack.clear()
 	print_verbose("U_ServiceLocator: Cleared all services")
 
 ## Get the dependency graph as a readable string
