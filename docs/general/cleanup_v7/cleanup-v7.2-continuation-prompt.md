@@ -5,29 +5,23 @@
 This guide directs you to implement Cross-System Cleanup V7.2 by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` in sequential order, respecting the dependency graph documented below. V7.2 is the follow-up to V7 (C1–C12), addressing eight concrete architectural weaknesses that C1–C12 did not target, plus three additions (F8 Phase 0, F12, F15) surfaced during pre-implementation review.
 
 **Branch**: GOAP-AI
-**Status**: F5 complete — **F6 next** (ServiceLocator Scoping).
-**Next Task**: Begin **F6 Commit 1** (RED conflict + scope-isolation tests) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
+**Status**: F6 complete — **F7 next** (RS_Rule Typed-Schema Erasure).
+**Next Task**: Begin **F7 Commit 1** (parser feasibility investigation) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
 **Prerequisite**: Full C1–C12 test suite green (desktop + mobile) before starting F2.
 
 ---
 
-## Current Status: F5 Complete, F6 Next
+## Current Status: F6 Complete, F7 Next
 
-F1–F5 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
+F1–F6 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
 
 - **F1 (SceneManager C6 Supplement)**: **ALREADY RESOLVED** during C6. Verification-only checkpoint (single commit adding style-enforcement grep assertions).
 - **F2 (StateStore Dispatch — Share Snapshot)**: **COMPLETE**. Dispatch now uses `get_state()` instead of `_state.duplicate(true)`, populating the versioned cache. Zero-subscriber skip already in place.
 - **F3 (StateStore — Eliminate Parallel Mutation Paths)**: **COMPLETE**. `_sync_navigation_initial_scene` now dispatches through reducer pipeline. All `slice_updated.emit` sites audited — bulk-load paths annotated with invariant comments. Style enforcement test forbids `_state[` mutations outside `m_state_store.gd`.
 - **F4 (Slice Dependency Validator — Strict Mode)**: **COMPLETE**. `strict_slice_dependencies: bool = true` added to `RS_StateStoreSettings`; `get_slice` returns `{}` on undeclared access in strict mode. Audit found zero violations (no production code passes `caller_slice`). Default flipped to `true`. State suite 550/550 green.
 - **F5 (Communication Channel Taxonomy)**: **COMPLETE**. All 5 managers migrated to Redux dispatch. ADR written. 41/41 style enforcement tests green. Channel taxonomy enforced by grep tests. 7 pre-existing test failures from F5 commits 3a/3b (victory pipeline, save spinner) remain to be fixed separately.
-- **F6 (ServiceLocator Scoping)**: NOT STARTED.
-- **F6 (ServiceLocator Scoping)**: NOT STARTED.
+- **F6 (ServiceLocator Scoping)**: **COMPLETE**. `register()` now fails on conflict (push_error + return). `register_or_replace()` added for intentional replacement. `push_scope()`/`pop_scope()` implemented for test isolation. `BaseTest` migrated from `clear()` to `push_scope()`/`pop_scope()`. `U_StateHandoff.clear_all()` added to `BaseTest.before_each()`. 4 UI tests updated to remove redundant `clear()` calls. Full suite 4246/4265 passing (11 pre-existing failures from F5).
 - **F7 (RS_Rule Typed-Schema Erasure)**: NOT STARTED. Gated on one-commit parser feasibility investigation (Path A vs Path B).
-- **F8 (VCam + CameraState Decomposition — **Expanded v7.2.1**)**: NOT STARTED. **Phase 0 (Commits 1a/1b) decomposes oversized helpers before Phase 1+ pushes system logic into them.**
-- **F9 (ECS System Execution Phasing)**: NOT STARTED. Extends existing `execution_priority` system.
-- **F10 (State Store History Truncation)**: **ALREADY IMPLEMENTED**. Verification-only checkpoint.
-- **F11 (Event Bus Zombie Prevention)**: NOT STARTED. Scope is `BaseEventBus`, not the `U_ECSEventBus` facade.
-- **F12 (Settings Overlay Deduplication — v7.2.1 Addition)**: NOT STARTED. Independent, trivial DRY collapse.
 - **F15 (Designer-Facing Resource Schema Validation — v7.2.1 Addition)**: NOT STARTED. Mirrors F7's pattern for three more resources.
 - **F16 (AI System Type Safety & Consistency — v7.2.2 Addition)**: NOT STARTED. Independent. 6 commits: type Variant fields, push_error stubs, task-state key constants, debug snapshot, animate docs, grep enforcement.
 
@@ -174,16 +168,16 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 
 **Goal**: Fix two structural problems with `U_ServiceLocator._services`: last-write-wins `register()` and no test scope (root cause of multiple recurring test-failure patterns in `MEMORY.md`).
 
-- [ ] **Commit 1** (RED) — Conflict test + scope-isolation test.
-- [ ] **Commit 2** (GREEN) — Implement fail-on-conflict `register()` + `register_or_replace()`. Audit `root.gd:50-78` for idempotency.
-- [ ] **Commit 3** (GREEN) — Implement `push_scope` / `pop_scope`. Migrate `BaseTest` to use scope push/pop instead of `clear()`. Update UI tests that call `clear()` directly.
-- [ ] **Commit 4** (GREEN) — Migrate `U_StateHandoff` and `M_DisplayManager._ensure_appliers()` follow-ups to the scope pattern where applicable.
+- [x] **Commit 1** (RED) — Conflict test + scope-isolation test.
+- [x] **Commit 2** (GREEN) — Implement fail-on-conflict `register()` + `register_or_replace()`. Audit `root.gd:50-78` for idempotency. Migrated `test_ecs_manager.gd` service rebinding and `test_objectives_integration.gd` manager replacement to `register_or_replace()`.
+- [x] **Commit 3** (GREEN) — Implement `push_scope` / `pop_scope`. Migrate `BaseTest` to use scope push/pop instead of `clear()`. Updated 4 UI tests to remove redundant `clear()` calls. Scope/conflict tests extend `GutTest` directly.
+- [x] **Commit 4** (GREEN) — Added `U_StateHandoff.clear_all()` to `BaseTest.before_each()`. `_ensure_appliers()` tree-dependent initialization already guarded.
 
 **F6 Verification**:
-- [ ] Duplicate-register test green.
-- [ ] Scope-isolation test green.
-- [ ] Full test suite green with `clear()` calls removed from `BaseTest.after_each()`.
-- [ ] `MEMORY.md` test-failure patterns for `U_StateHandoff` and `_ensure_appliers` no longer manifest.
+- [x] Duplicate-register test green (8/8).
+- [x] Scope-isolation test green (7/7).
+- [x] Full test suite green with `clear()` calls removed from `BaseTest.after_each()`. 4246/4265 (11 pre-existing from F5).
+- [x] `MEMORY.md` test-failure patterns updated.
 
 ---
 
@@ -462,10 +456,11 @@ You MUST:
 2. **F1 verification** — single-commit style-enforcement assertions confirming C6 gaps stay closed (can land anytime as checkpoint).
 3. ~~**Begin F2** — StateStore dispatch snapshot sharing.~~ ✅ **Complete.** Dispatch now uses `get_state()` instead of `_state.duplicate(true)`.
 4. ~~**Begin F3** — StateStore eliminate parallel mutation paths.~~ ✅ **Complete.** `_sync_navigation_initial_scene` dispatches through reducer; `slice_updated.emit` sites audited with invariant comments; style enforcement test added.
-5. **Begin F4** — Slice dependency validator strict mode. Next milestone in the F2→F3→F4 sequential chain.
-6. F5 after F3 lands (cleaner to enforce channel taxonomy once state mutation is single-sourced).
-7. F6, F7, F8 (incl. Phase 0), F9, F11, F12, F15, F16 can be scheduled independently.
-8. F10 verification checkpoint can run any time.
-9. F16 Commit 1 should land before F9 (both touch `s_ai_behavior_system.gd`; type annotations are simpler).
-10. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.
-11. Update `MEMORY.md` test-failure patterns section after F6 lands — the `U_StateHandoff` and `_ensure_appliers` entries should no longer manifest once scope-based test isolation replaces `U_ServiceLocator.clear()`.
+5. ~~**Begin F4** — Slice dependency validator strict mode.~~ ✅ **Complete.**
+6. ~~**Begin F5** — Communication channel taxonomy.~~ ✅ **Complete.**
+7. ~~**Begin F6** — ServiceLocator scoping.~~ ✅ **Complete.** `register()` fails on conflict; `register_or_replace()` for intentional replacement; `push_scope()`/`pop_scope()` for test isolation; `BaseTest` uses scope isolation + `U_StateHandoff.clear_all()`.
+8. **Begin F7** — RS_Rule Typed-Schema Erasure. Gated on Commit 1 parser feasibility investigation.
+9. F8 (incl. Phase 0), F9, F11, F12, F15, F16 can be scheduled independently.
+10. F10 verification checkpoint can run any time.
+11. F16 Commit 1 should land before F9 (both touch `s_ai_behavior_system.gd`; type annotations are simpler).
+12. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.
