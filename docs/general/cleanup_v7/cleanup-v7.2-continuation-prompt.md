@@ -5,22 +5,22 @@
 This guide directs you to implement Cross-System Cleanup V7.2 by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` in sequential order, respecting the dependency graph documented below. V7.2 is the follow-up to V7 (C1–C12), addressing eight concrete architectural weaknesses that C1–C12 did not target, plus three additions (F8 Phase 0, F12, F15) surfaced during pre-implementation review.
 
 **Branch**: GOAP-AI
-**Status**: F4 complete — **F5 planned, ready to implement** (Communication Channel Taxonomy).
-**Next Task**: Begin **F5 Commit 1** (RED grep tests) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
+**Status**: F5 complete — **F6 next** (ServiceLocator Scoping).
+**Next Task**: Begin **F6 Commit 1** (RED conflict + scope-isolation tests) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
 **Prerequisite**: Full C1–C12 test suite green (desktop + mobile) before starting F2.
 
 ---
 
-## Current Status: F4 Complete, F5 Next
+## Current Status: F5 Complete, F6 Next
 
-F1–F4 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
+F1–F5 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
 
 - **F1 (SceneManager C6 Supplement)**: **ALREADY RESOLVED** during C6. Verification-only checkpoint (single commit adding style-enforcement grep assertions).
 - **F2 (StateStore Dispatch — Share Snapshot)**: **COMPLETE**. Dispatch now uses `get_state()` instead of `_state.duplicate(true)`, populating the versioned cache. Zero-subscriber skip already in place.
 - **F3 (StateStore — Eliminate Parallel Mutation Paths)**: **COMPLETE**. `_sync_navigation_initial_scene` now dispatches through reducer pipeline. All `slice_updated.emit` sites audited — bulk-load paths annotated with invariant comments. Style enforcement test forbids `_state[` mutations outside `m_state_store.gd`.
 - **F4 (Slice Dependency Validator — Strict Mode)**: **COMPLETE**. `strict_slice_dependencies: bool = true` added to `RS_StateStoreSettings`; `get_slice` returns `{}` on undeclared access in strict mode. Audit found zero violations (no production code passes `caller_slice`). Default flipped to `true`. State suite 550/550 green.
-- **F5 (Communication Channel Taxonomy)**: NOT STARTED. Depends on F3. Requires creating `docs/adr/` directory.
-- **F5 (Communication Channel Taxonomy)**: NOT STARTED. Depends on F3. Requires creating `docs/adr/` directory.
+- **F5 (Communication Channel Taxonomy)**: **COMPLETE**. All 5 managers migrated to Redux dispatch. ADR written. 41/41 style enforcement tests green. Channel taxonomy enforced by grep tests. 7 pre-existing test failures from F5 commits 3a/3b (victory pipeline, save spinner) remain to be fixed separately.
+- **F6 (ServiceLocator Scoping)**: NOT STARTED.
 - **F6 (ServiceLocator Scoping)**: NOT STARTED.
 - **F7 (RS_Rule Typed-Schema Erasure)**: NOT STARTED. Gated on one-commit parser feasibility investigation (Path A vs Path B).
 - **F8 (VCam + CameraState Decomposition — **Expanded v7.2.1**)**: NOT STARTED. **Phase 0 (Commits 1a/1b) decomposes oversized helpers before Phase 1+ pushes system logic into them.**

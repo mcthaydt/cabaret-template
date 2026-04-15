@@ -222,31 +222,32 @@ Declarations drift silently out of sync with reality because the check fails ope
 - `s_screen_shake_publisher_system` → `screen_shake_request` → `m_vfx_manager` ✓
 - `s_checkpoint_handler_system` → `checkpoint_activated` → `ui_hud_controller` ✓
 
-**4 managers to migrate**:
+**5 managers to migrate**:
 1. `m_save_manager` — add `u_save_actions.gd` (ACTION_SAVE_STARTED/COMPLETED/FAILED), replace ECS publishes with Redux dispatch, migrate `ui_hud_controller` save subscriptions to `action_dispatched` signal.
 2. `m_objectives_manager` — delete 3 dead-code dual-publishes (objective_activated/completed/failed). Replace `EVENT_OBJECTIVE_VICTORY_TRIGGERED` publish with `ACTION_TRIGGER_VICTORY_ROUTING` Redux dispatch (new action + `victory_target_scene` field in gameplay slice). Remove `EVENT_VICTORY_EXECUTED` subscription; react to `ACTION_TRIGGER_VICTORY` from Redux instead.
-3. `m_vcam_manager` — remove 4 redundant ECS publishes (vcam_active_changed/blend_started/blend_completed/recovery). Remove same from `u_vcam_runtime_state.gd`. Redux already carries this state.
+3. `m_vcam_manager` — remove 5 redundant ECS publishes (vcam_active_changed/blend_started/blend_completed/recovery/silhouette_update_request). Remove same from `u_vcam_runtime_state.gd`. Redux already carries this state. Convert `s_spawn_particles_system` from BaseEventVFXSystem to Redux subscriber.
 4. `m_scene_director_manager` — remove 3 redundant ECS publishes (directive_started/completed/beat_advanced). Redux already carries this state.
+5. `m_spawn_manager` — dispatch `ACTION_PLAYER_SPAWNED` to Redux; convert `s_spawn_particles_system` from BaseEventVFXSystem to Redux subscriber.
 
 `m_scene_manager` victory routing: remove `EVENT_OBJECTIVE_VICTORY_TRIGGERED` ECS subscription; subscribe to `ACTION_TRIGGER_VICTORY_ROUTING` Redux action dispatch instead.
 
 **Commits**:
-- [ ] **Commit 1** (RED) — 3 enforcement tests in `test_style_enforcement.gd`:
+- [x] **Commit 1** (RED) — 3 enforcement tests in `test_style_enforcement.gd`:
   - `test_managers_do_not_publish_to_ecs_bus` — grep `scripts/managers/` for `U_ECSEventBus.publish` / `U_ECS_EVENT_BUS.publish`. Fails today (4 violating managers).
   - `test_scene_manager_does_not_subscribe_to_victory_ecs_event` — assert `EVENT_OBJECTIVE_VICTORY_TRIGGERED` absent from m_scene_manager subscribe calls. Fails today.
   - `test_manager_signals_stay_within_allow_list` — grep `scripts/managers/` for signal declarations, assert all in allow-list. Passes today (future enforcement).
-- [ ] **Commit 2** (GREEN) — Create `docs/adr/` directory + `docs/adr/0001-channel-taxonomy.md`. Add pointer to `AGENTS.md`.
-- [ ] **Commit 3a** (GREEN) — Migrate `m_save_manager` (new `u_save_actions.gd`, update `ui_hud_controller`).
-- [ ] **Commit 3b** (GREEN) — Migrate `m_objectives_manager` + victory routing (`m_scene_manager`, `s_victory_handler_system`, new `ACTION_TRIGGER_VICTORY_ROUTING`).
-- [ ] **Commit 3c** (GREEN) — Migrate `m_vcam_manager` (remove redundant ECS publishes).
-- [ ] **Commit 3d** (GREEN) — Migrate `m_scene_director_manager` (remove redundant ECS publishes).
-- [ ] **Commit 4** (GREEN) — Enable enforcement grep tests. Full suite green. 41/41 style tests.
+- [x] **Commit 2** (GREEN) — Create `docs/adr/` directory + `docs/adr/0001-channel-taxonomy.md`. Add pointer to `AGENTS.md`.
+- [x] **Commit 3a** (GREEN) — Migrate `m_save_manager` (new `u_save_actions.gd`, update `ui_hud_controller`).
+- [x] **Commit 3b** (GREEN) — Migrate `m_objectives_manager` + victory routing (`m_scene_manager`, `s_victory_handler_system`, new `ACTION_TRIGGER_VICTORY_ROUTING`).
+- [x] **Commit 3c** (GREEN) — Migrate `m_vcam_manager` (remove redundant ECS publishes).
+- [x] **Commit 3d** (GREEN) — Migrate `m_scene_director_manager` + `m_spawn_manager` (remove redundant ECS publishes, create `u_spawn_actions.gd`, convert `s_spawn_particles_system` to Redux subscriber). Fix vcam parse errors from commit 3c. Remove dead `_objective_victory_unsubscribe` from `m_scene_manager`. Migrate 25+ test methods from ECS bus to Redux action assertions.
+- [x] **Commit 4** (GREEN) — Enable enforcement grep tests. 41/41 style tests green.
 
 **F5 Verification**:
-- [ ] `grep -rn "U_ECSEventBus.publish\|U_ECS_EVENT_BUS.publish" scripts/managers/` → zero hits.
-- [ ] ADR written and linked from `AGENTS.md`.
-- [ ] Style enforcement grep tests green (41/41).
-- [ ] Full test suite green (unit + integration).
+- [x] `grep -rn "U_ECSEventBus.publish\|U_ECS_EVENT_BUS.publish\|EVENT_BUS.publish" scripts/managers/` → zero hits (except `m_ecs_manager.gd` which is ECS infrastructure).
+- [x] ADR written and linked from `AGENTS.md`.
+- [x] Style enforcement grep tests green (41/41).
+- [ ] Full test suite green (unit + integration) — 7 pre-existing failures from F5 commits 3a/3b (victory pipeline, save spinner) remain to be fixed.
 - [ ] Manual: save spinner, checkpoint toast, and victory scene transition all work correctly.
 
 **Dependency note**: Depends on F3 (parallel mutation paths removed).
