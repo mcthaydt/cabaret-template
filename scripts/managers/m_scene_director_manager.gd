@@ -3,7 +3,6 @@ extends I_SceneDirector
 class_name M_SceneDirectorManager
 
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_director_actions.gd")
 const U_BEAT_RUNNER := preload("res://scripts/utils/scene_director/u_beat_runner.gd")
@@ -136,10 +135,6 @@ func _start_directive(directive: Resource) -> void:
 	if _store != null:
 		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.start_directive(directive_id))
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_STARTED, {
-		"directive_id": directive_id,
-	})
-
 	_process_runner_state_change(-1, false)
 	_subscribe_signal_events(beats)
 
@@ -147,17 +142,12 @@ func _on_directive_complete() -> void:
 	if _active_directive == null:
 		return
 
-	var directive_id: StringName = _get_directive_id(_active_directive)
 	if _store != null:
 		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.complete_directive())
 		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_current_beat(StringName("")))
 		var empty_active: Array[StringName] = []
 		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.set_active_beats(empty_active))
 		_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.complete_parallel())
-
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_COMPLETED, {
-		"directive_id": directive_id,
-	})
 
 	_active_directive = null
 	_reset_reported_beat_state()
@@ -298,27 +288,6 @@ func _process_runner_state_change(previous_index: int, previous_parallel_waiting
 			_store.dispatch(U_SCENE_DIRECTOR_ACTIONS.complete_parallel())
 		_last_reported_current_beat_id = current_beat_id
 		_last_reported_active_beat_ids = active_beat_ids.duplicate()
-
-	if current_index != previous_index and previous_index >= 0:
-		_dispatch_beat_advanced_event(current_beat_id, active_beat_ids)
-
-func _dispatch_beat_advanced_event(
-	current_beat_id: StringName,
-	active_beat_ids: Array[StringName]
-) -> void:
-	if _active_directive == null:
-		return
-
-	var directive_id: StringName = _get_directive_id(_active_directive)
-	var current_index: int = -1
-	if _beat_runner != null:
-		current_index = U_ResourceAccessHelpers.to_int(_beat_runner.get_current_index(), -1)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_BEAT_ADVANCED, {
-		"directive_id": directive_id,
-		"current_beat_index": current_index,
-		"current_beat_id": current_beat_id,
-		"active_beat_ids": active_beat_ids.duplicate(),
-	})
 
 func _is_runner_waiting_parallel() -> bool:
 	if _beat_runner == null:

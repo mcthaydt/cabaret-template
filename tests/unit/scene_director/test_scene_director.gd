@@ -8,7 +8,6 @@ const U_SCENE_DIRECTOR_REDUCER := preload("res://scripts/state/reducers/u_scene_
 const U_SCENE_DIRECTOR_SELECTORS := preload("res://scripts/state/selectors/u_scene_director_selectors.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const RS_SCENE_DIRECTIVE := preload("res://scripts/resources/scene_director/rs_scene_directive.gd")
 const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
 
@@ -136,14 +135,6 @@ func test_no_directive_selected_for_non_matching_scene() -> void:
 
 func test_timed_beats_run_in_physics_process_and_complete() -> void:
 	var beat_effect := EffectStub.new()
-	var completed_events: Array[Dictionary] = []
-	var unsubscribe_completed: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_COMPLETED,
-		func(event: Dictionary) -> void:
-			var payload_variant: Variant = event.get("payload", {})
-			if payload_variant is Dictionary:
-				completed_events.append((payload_variant as Dictionary).duplicate(true))
-	)
 
 	var manager: Variant = await _spawn_manager(
 		[
@@ -176,11 +167,11 @@ func test_timed_beats_run_in_physics_process_and_complete() -> void:
 	manager._physics_process(0.1)
 	assert_eq(U_SCENE_DIRECTOR_SELECTORS.get_director_state(_store.get_state()), "completed")
 	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_COMPLETE_DIRECTIVE))
-	assert_eq(completed_events.size(), 1)
-	assert_eq(completed_events[0].get("directive_id", StringName("")), StringName("dir_timed"))
-
-	if unsubscribe_completed.is_valid():
-		unsubscribe_completed.call()
+	assert_eq(_count_actions(U_SCENE_DIRECTOR_ACTIONS.ACTION_COMPLETE_DIRECTIVE), 1)
+	assert_eq(
+		U_SCENE_DIRECTOR_SELECTORS.get_active_directive_id(_store.get_state()),
+		StringName("dir_timed")
+	)
 
 func test_runner_state_sync_avoids_redundant_observability_dispatches() -> void:
 	var beat_effect := EffectStub.new()

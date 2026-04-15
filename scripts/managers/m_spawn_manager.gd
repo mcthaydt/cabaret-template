@@ -25,7 +25,7 @@ const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_acti
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_SPAWN_ACTIONS := preload("res://scripts/state/actions/u_spawn_actions.gd")
 const U_SPAWN_REGISTRY := preload("res://scripts/scene_management/u_spawn_registry.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
@@ -303,11 +303,9 @@ func _spawn_entity_node_at_point(
 	_snap_player_to_hover_height(entity, ecs_body)
 
 	if emit_player_spawn_event:
-		EVENT_BUS.publish(StringName("player_spawned"), {
-			"position": spawn_point.global_position,
-			"spawn_point_id": spawn_point_id,
-			"player": entity
-		})
+		var store := _state_store if _state_store != null else U_ServiceLocator.try_get_service(StringName("state_store")) as M_STATE_STORE
+		if store != null:
+			store.dispatch(U_SPAWN_ACTIONS.player_spawned(spawn_point.global_position, spawn_point_id))
 
 	if clear_target_spawn_point_after:
 		_clear_target_spawn_point()

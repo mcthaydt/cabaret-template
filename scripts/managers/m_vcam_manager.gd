@@ -6,8 +6,6 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
 const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
@@ -311,7 +309,6 @@ func _recover_invalid_live_blend_members() -> void:
 
 	_record_recovery(str(recovery_result.get("reason", "")))
 	_dispatch_blend_complete()
-	if bool(recovery_result.get("publish_completed_event", false)):
 
 func _sync_blend_debug_cache() -> void:
 	_blend_trans_type = int(_blend_manager.get_transition_type())
@@ -360,7 +357,6 @@ func _clear_runtime_state() -> void:
 	_last_applied_frame = -1
 	_last_valid_applied_result.clear()
 	_dispatch_active_runtime(StringName(""), "")
-	if previous_vcam_id != StringName(""):
 
 func _prune_invalid_registrations() -> void:
 	var stale_vcams: Array = []

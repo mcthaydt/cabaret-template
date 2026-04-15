@@ -161,7 +161,6 @@ var _unsubscribe: Callable
 
 ## ECS event bus subscriptions
 var _entity_death_unsubscribe: Callable
-var _objective_victory_unsubscribe: Callable
 
 ## Skip initial scene load (for tests)
 var skip_initial_scene_load: bool = false
@@ -298,8 +297,6 @@ func _exit_tree() -> void:
 	# Unsubscribe from ECS events
 	if _entity_death_unsubscribe != null and _entity_death_unsubscribe.is_valid():
 		_entity_death_unsubscribe.call()
-	if _objective_victory_unsubscribe != null and _objective_victory_unsubscribe.is_valid():
-		_objective_victory_unsubscribe.call()
 
 func _ensure_hud_overlay() -> void:
 	var hud_layer := U_ServiceLocator.try_get_service(StringName("hud_layer")) as CanvasLayer

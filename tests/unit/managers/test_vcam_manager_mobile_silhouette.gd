@@ -6,8 +6,7 @@ const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 
 class MobileSilhouetteStub extends M_VCAM_MANAGER:
 	var test_follow_target: Node3D = null
@@ -28,11 +27,9 @@ class MobileSilhouetteStub extends M_VCAM_MANAGER:
 
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
-	U_ECS_EVENT_BUS.reset()
 
 func after_each() -> void:
 	U_SERVICE_LOCATOR.clear()
-	U_ECS_EVENT_BUS.reset()
 
 # Test 1: Mobile flag forces silhouette disabled regardless of redux state
 func test_is_occlusion_silhouette_enabled_returns_false_on_mobile() -> void:
@@ -109,10 +106,9 @@ func test_mobile_publishes_silhouette_clear_on_submit() -> void:
 	manager.test_follow_target = follow_target
 	manager.test_occluders = [_create_mesh_occluder()]
 
-	U_ECS_EVENT_BUS.clear_history()
 	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
 
-	var payload := _find_last_silhouette_payload()
+	var payload := _find_last_silhouette_payload(store)
 	assert_false(payload.is_empty(), "Mobile should still publish silhouette event (clear request)")
 	assert_eq(payload.get("enabled", true), false, "Mobile silhouette request should be disabled")
 	var occluders := payload.get("occluders", []) as Array
@@ -153,14 +149,15 @@ func _create_mesh_occluder() -> MeshInstance3D:
 	autofree(mesh)
 	return mesh
 
-func _find_last_silhouette_payload() -> Dictionary:
-	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	for i in range(history.size() - 1, -1, -1):
-		var event_variant: Variant = history[i]
-		if not (event_variant is Dictionary):
+func _find_last_silhouette_payload(store: MockStateStore) -> Dictionary:
+	var actions: Array[Dictionary] = store.get_dispatched_actions()
+	for i in range(actions.size() - 1, -1, -1):
+		var action: Dictionary = actions[i]
+		if action.get("type", StringName("")) != U_VCAM_ACTIONS.ACTION_SILHOUETTE_UPDATE_REQUEST:
 			continue
-		var event_payload := event_variant as Dictionary
-		if event_payload.get("name", StringName("")) != U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST:
-			continue
-		return (event_payload.get("payload", {}) as Dictionary).duplicate(true)
+		return {
+			"entity_id": action.get("entity_id", StringName("")),
+			"occluders": action.get("occluders", []),
+			"enabled": action.get("enabled", false),
+		}
 	return {}
