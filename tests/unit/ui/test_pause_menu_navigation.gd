@@ -18,8 +18,6 @@ func before_each() -> void:
 	_store.dispatch(U_NavigationActions.start_game(StringName("gameplay_base")))
 	await get_tree().physics_frame
 
-func after_each() -> void:
-	U_ServiceLocator.clear()
 
 func test_pause_opens_with_correct_overlay_stack() -> void:
 	# GIVEN: Gameplay with no overlays

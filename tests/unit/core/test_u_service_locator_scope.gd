@@ -1,10 +1,10 @@
-extends BaseTest
+extends GutTest
 
 ## Tests for U_ServiceLocator push_scope / pop_scope test isolation.
 ##
-## TDD RED phase: these tests define the expected behavior before the
-## implementation exists. They should FAIL until push_scope/pop_scope
-## are added (Commit 3).
+## Extends GutTest directly (not BaseTest) because these tests exercise
+## the scope mechanism itself — BaseTest's push_scope/pop_scope would
+## interfere with the test assertions. Cleanup uses clear() instead.
 
 # ─── Stub helpers ──────────────────────────────────────────────────────────
 
@@ -14,11 +14,10 @@ class StubNode extends Node:
 # ─── Setup / Teardown ─────────────────────────────────────────────────────
 
 func before_each() -> void:
-	super.before_each()
 	U_ServiceLocator.clear()
 
 func after_each() -> void:
-	super.after_each()
+	U_ServiceLocator.clear()
 
 # ─── push_scope / pop_scope — isolation ────────────────────────────────────
 

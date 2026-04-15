@@ -7,12 +7,10 @@ const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
-	U_ServiceLocator.clear()
 	U_UI_THEME_BUILDER.active_config = null
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
-	U_ServiceLocator.clear()
 	U_UI_THEME_BUILDER.active_config = null
 
 func test_main_menu_has_enter_exit_motion_assigned() -> void:

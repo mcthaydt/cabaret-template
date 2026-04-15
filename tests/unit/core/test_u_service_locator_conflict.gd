@@ -1,10 +1,9 @@
-extends BaseTest
+extends GutTest
 
 ## Tests for U_ServiceLocator fail-on-conflict register() behavior.
 ##
-## TDD RED phase: these tests define the expected behavior before the
-## implementation exists. They should FAIL until register() is changed
-## to push_error on conflict (Commit 2) and register_or_replace() is added.
+## Extends GutTest directly (not BaseTest) because these tests need
+## precise control over ServiceLocator state. Cleanup uses clear().
 
 # ─── Stub helpers ──────────────────────────────────────────────────────────
 
@@ -14,11 +13,10 @@ class StubNode extends Node:
 # ─── Setup / Teardown ─────────────────────────────────────────────────────
 
 func before_each() -> void:
-	super.before_each()
 	U_ServiceLocator.clear()
 
 func after_each() -> void:
-	super.after_each()
+	U_ServiceLocator.clear()
 
 # ─── register() — idempotent same-instance ─────────────────────────────────
 
