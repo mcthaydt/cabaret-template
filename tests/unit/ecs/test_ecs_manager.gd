@@ -703,7 +703,7 @@ func test_physics_process_switches_to_new_time_manager_when_service_rebound() ->
 	second_time_manager.timescale = 0.2
 	add_child(second_time_manager)
 	autofree(second_time_manager)
-	U_ServiceLocator.register(StringName("time_manager"), second_time_manager)
+	U_ServiceLocator.register_or_replace(StringName("time_manager"), second_time_manager)
 
 	manager._physics_process(1.0)
 

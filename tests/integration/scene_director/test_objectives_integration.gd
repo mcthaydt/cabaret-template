@@ -106,7 +106,7 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 	var default_set: Resource = (CFG_OBJSET_DEFAULT as Resource).duplicate(true)
 	_objectives_manager.objective_sets = [default_set]
 	_root.add_child(_objectives_manager)
-	U_ServiceLocator.register(StringName("objectives_manager"), _objectives_manager)
+	U_ServiceLocator.register_or_replace(StringName("objectives_manager"), _objectives_manager)
 
 	await get_tree().process_frame
 	await wait_physics_frames(1)

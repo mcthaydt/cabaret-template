@@ -52,6 +52,7 @@ func test_register_conflict_returns_early_without_replacing() -> void:
 	autofree(second)
 	U_ServiceLocator.register(&"conflict_service2", first)
 	U_ServiceLocator.register(&"conflict_service2", second)
+	assert_push_error("already registered")
 	# Verify the dictionary still holds the first instance.
 	var has_first: bool = U_ServiceLocator.has(&"conflict_service2")
 	assert_true(has_first, "Service should still be registered after conflict")

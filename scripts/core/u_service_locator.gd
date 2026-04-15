@@ -60,11 +60,8 @@ static func register(service_name: StringName, instance: Node) -> void:
 	if existing != null:
 		if existing == instance:
 			return
-		print_verbose("U_ServiceLocator.register: Replacing existing service '%s' (%s -> %s)" % [
-			service_name,
-			existing.name,
-			instance.name
-		])
+		push_error("U_ServiceLocator.register: '%s' already registered as '%s'. Use register_or_replace() for intentional replacement." % [service_name, existing.name])
+		return
 
 	_services[service_name] = instance
 	print_verbose("U_ServiceLocator: Registered '%s' -> %s" % [service_name, instance.name])
