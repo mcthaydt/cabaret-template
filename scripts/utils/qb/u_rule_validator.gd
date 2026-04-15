@@ -1,6 +1,13 @@
 extends RefCounted
 class_name U_RuleValidator
 
+## Semantic rule validator — a double-check layer on top of typed arrays.
+##
+## RS_Rule.conditions (Array[I_Condition]) and RS_Rule.effects (Array[I_Effect])
+## enforce type constraints at the GDScript level via coerce setters. This validator
+## checks semantic correctness: required fields, valid state paths, numeric ranges,
+## and cross-field constraints that typed arrays cannot enforce.
+
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 const BASE_CONDITION_SCRIPT := preload("res://scripts/resources/qb/rs_base_condition.gd")
 const BASE_EFFECT_SCRIPT := preload("res://scripts/resources/qb/rs_base_effect.gd")

@@ -268,8 +268,8 @@ func _extract_rule_id(rule_variant: Variant, index: int) -> StringName:
 func _is_ignorable_validation_error(error_text: String) -> bool:
 	if IGNORABLE_VALIDATION_ERRORS_EXACT.has(error_text):
 		return true
-	if error_text.ends_with("must be RS_BaseCondition"):
-		return true
-	if error_text.ends_with("must be RS_BaseEffect"):
-		return true
+	# Type-mismatch errors ("must be RS_BaseCondition" / "must be RS_BaseEffect")
+	# are now impossible — RS_Rule.conditions and RS_Rule.effects use typed
+	# Array[I_Condition] and Array[I_Effect] with coerce setters that filter
+	# wrong-type entries before they reach the validator.
 	return false
