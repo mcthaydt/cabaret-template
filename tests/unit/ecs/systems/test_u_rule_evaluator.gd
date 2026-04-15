@@ -7,7 +7,7 @@ const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
 const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
-class ProbeEffect extends I_Effect:
+class ProbeEffect extends RS_BaseEffect:
 	var execute_calls: int = 0
 	var contexts: Array[Dictionary] = []
 
@@ -15,13 +15,13 @@ class ProbeEffect extends I_Effect:
 		execute_calls += 1
 		contexts.append(context.duplicate(true))
 
-class ToggleCondition extends I_Condition:
+class ToggleCondition extends RS_BaseCondition:
 	var score_value: float = 1.0
 
 	func _init(initial_score: float = 1.0) -> void:
 		score_value = initial_score
 
-	func evaluate(_context: Dictionary) -> float:
+	func _evaluate_raw(_context: Dictionary) -> float:
 		return score_value
 
 func before_each() -> void:
