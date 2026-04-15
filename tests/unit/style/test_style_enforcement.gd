@@ -1287,13 +1287,16 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/managers/helpers/u_save_migration_engine.gd",
 		# False positives: files that use local dict variables named "state" (not Redux state)
 		# u_vcam_orbit_effects and u_vcam_rotation use "state" for per-vcam internal tracking dicts.
-		# u_vcam_look_spring and u_vcam_orbit_centering decomposed from u_vcam_rotation (same pattern).
+		# Decomposed helpers carry the same per-vcam dict pattern.
 		# u_vcam_look_input uses "state" for look-input smoothing state.
 		# Renaming these local vars is a larger refactor deferred beyond C11.
 		"res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd",
 		"res://scripts/ecs/systems/helpers/u_vcam_rotation.gd",
 		"res://scripts/ecs/systems/helpers/u_vcam_look_spring.gd",
 		"res://scripts/ecs/systems/helpers/u_vcam_orbit_centering.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_look_ahead.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_ground_anchor.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_soft_zone_applier.gd",
 		"res://scripts/ecs/systems/helpers/u_vcam_look_input.gd",
 		# Generic serializer: uses state.get(slice_name, null) with a variable key (not a string literal).
 		"res://scripts/utils/u_global_settings_serialization.gd",
