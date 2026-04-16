@@ -44,6 +44,7 @@ func test_is_valid_returns_false_for_empty_scene_id() -> void:
 	autofree(entry)
 	entry.scene_id = StringName("")
 	entry.scene_path = "res://scenes/test.tscn"
+	assert_push_error("scene_id must not be empty")
 	assert_false(entry.is_valid(), "is_valid() should return false for empty scene_id")
 
 
@@ -52,6 +53,7 @@ func test_is_valid_returns_false_for_empty_scene_path() -> void:
 	autofree(entry)
 	entry.scene_id = StringName("test_scene")
 	entry.scene_path = ""
+	assert_push_error("scene_path must not be empty")
 	assert_false(entry.is_valid(), "is_valid() should return false for empty scene_path")
 
 

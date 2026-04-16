@@ -30,10 +30,26 @@ class_name RS_SceneRegistryEntry
 ## ```
 
 ## Unique identifier for this scene (e.g., "main_menu", "level_01")
-@export var scene_id: StringName = StringName("")
+var _scene_id: StringName = StringName("")
+
+@export var scene_id: StringName = StringName(""):
+	get:
+		return _scene_id
+	set(value):
+		_scene_id = value
+		if value == StringName(""):
+			push_error("RS_SceneRegistryEntry: scene_id must not be empty. Resource: %s" % resource_path)
 
 ## Path to the scene file (e.g., "res://scenes/ui/ui_main_menu.tscn")
-@export_file("*.tscn") var scene_path: String = ""
+var _scene_path: String = ""
+
+@export_file("*.tscn") var scene_path: String = "":
+	get:
+		return _scene_path
+	set(value):
+		_scene_path = value
+		if value == "":
+			push_error("RS_SceneRegistryEntry: scene_path must not be empty. Resource: %s" % resource_path)
 
 ## Scene type (determines behavior like cursor visibility, pause handling)
 ##
@@ -62,17 +78,10 @@ class_name RS_SceneRegistryEntry
 ## **Preload benefit**: Instant transitions (< 0.5s) vs on-demand (1-3s)
 @export_range(0, 15) var preload_priority: int = 0
 
-## Validate resource configuration
-##
-## Called by editor to check for common configuration errors.
-## Logs warnings if scene_id or scene_path are empty.
-func _validate_property(property: Dictionary) -> void:
-	# Validation runs in editor, warn about common mistakes
-	if property.name == "scene_id" and scene_id.is_empty():
-		push_warning("RS_SceneRegistryEntry: scene_id is empty. Assign a unique identifier (e.g., 'main_menu').")
-
-	if property.name == "scene_path" and scene_path.is_empty():
-		push_warning("RS_SceneRegistryEntry: scene_path is empty. Assign a path to your .tscn file.")
+## Schema validation now runs at property-assignment time (F15):
+## Empty scene_id and scene_path push_error via property setters.
+## _validate_property() has been replaced — setters fire both in-editor
+## and at .tres load time, covering the previous editor-only gap.
 
 ## Get scene type as enum for programmatic access
 ##
