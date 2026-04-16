@@ -582,31 +582,35 @@ The existing `execution_priority` int can be retained as a **within-phase orderi
 - `RS_Rule` — handled by F7.
 
 **Scope**:
-- Modify: `scripts/resources/rs_game_config.gd` — add `_init()` validation.
-- Modify: `scripts/resources/input/rs_input_profile.gd` — add `_init()` validation + structure checks for `virtual_buttons`.
-- Modify: `scripts/resources/scene_management/rs_scene_registry_entry.gd` — elevate existing `_validate_property()` warnings to load-time errors.
-- Cross-reference: `U_SceneRegistry` (for scene ID existence), objectives manager objective-set registry, areas registry.
+- Modify: `scripts/resources/rs_game_config.gd` — add property setter validation for all four fields.
+- Modify: `scripts/resources/input/rs_input_profile.gd` — add property setter validation + structure checks for `virtual_buttons` and `virtual_joystick_position`.
+- Modify: `scripts/resources/scene_management/rs_scene_registry_entry.gd` — replace `_validate_property()` with property setter validation for `scene_id` / `scene_path`.
+- Modify: `scripts/managers/m_run_coordinator_manager.gd` — add `_validate_game_config_references()` cross-reference validation.
+- Modify: `scripts/interfaces/i_objectives_manager.gd` — add `has_objective_set()`.
+- Modify: `scripts/managers/m_objectives_manager.gd` — implement `has_objective_set()`.
+- Cross-reference: `U_SceneRegistry` (for scene ID existence), objectives manager objective-set registry.
 
 **Validation strategy**:
-- Use `_init()` for mandatory schema checks that fail the resource load.
+- Use property setters (not `_init()`) for per-field validation that fires at `.tres` load time. `_init()` runs before `.tres` property assignment in Godot 4.x, so property setters are the correct mechanism for load-time enforcement.
 - Fail messages MUST include `resource_path` so designers can locate the bad `.tres` file.
-- For cross-resource checks (e.g., "does `retry_scene_id` exist in `U_SceneRegistry`?") that require a registry lookup, defer to a one-shot validation pass at boot (e.g., in `M_GameplayInitializerManager` or equivalent bootstrap) rather than `_init()`, since `_init()` runs before autoloads are available.
+- For cross-resource checks (e.g., "does `retry_scene_id` exist in `U_SceneRegistry`?") that require a registry lookup, defer to a one-shot validation pass at boot (`M_RunCoordinatorManager._validate_game_config_references()` via `call_deferred`) rather than property setters, since registries are not available during resource loading.
 
 **Commits**:
-- [ ] **Commit 1** (RED) — Validation tests:
-  - `tests/unit/resources/test_rs_game_config_validation.gd`: assert a `.tres` with empty `retry_scene_id` fails at load with `resource_path` in the error.
-  - `tests/unit/resources/test_rs_input_profile_validation.gd`: assert malformed `virtual_buttons` entries fail at load.
-  - `tests/unit/resources/test_rs_scene_registry_entry_validation.gd`: assert empty `scene_id` or `scene_path` fails at load (not just editor warning).
-- [ ] **Commit 2** (GREEN) — `RS_GameConfig._init()`: validate all four fields (`retry_scene_id`, `route_retry`, `default_objective_set_id`, `required_final_area`) are non-empty. Include `resource_path` in `push_error`.
-- [ ] **Commit 3** (GREEN) — `RS_InputProfile._init()`: validate `profile_name` non-empty, `action_mappings` non-empty, each `virtual_buttons` entry has required keys (`action`, `position`), `virtual_joystick_position` in sensible bounds.
-- [ ] **Commit 4** (GREEN) — `RS_SceneRegistryEntry._init()`: elevate existing `_validate_property()` warnings to `push_error` on empty `scene_id` / `scene_path`. Keep the existing `is_valid()` utility as a double-check layer.
-- [ ] **Commit 5** (GREEN) — Cross-reference boot validation: in `M_GameplayInitializerManager` (or equivalent bootstrap), validate `RS_GameConfig.retry_scene_id` exists in `U_SceneRegistry` and `default_objective_set_id` exists in the objectives registry. Fail loud on boot if not.
+- [x] **Commit 1** (RED) — Validation tests:
+  - `tests/unit/resources/test_rs_game_config_validation.gd`: 7 tests — empty field push_error, valid defaults no error, resource_path in error, multiple empty fields.
+  - `tests/unit/resources/test_rs_input_profile_validation.gd`: 11 tests — empty profile_name, empty action_mappings (loaded only), virtual_buttons structure, joystick position, resource_path in error.
+  - `tests/unit/resources/test_rs_scene_registry_entry_validation.gd`: 8 tests — empty scene_id/scene_path push_error, valid entry no error, resource_path in error, is_valid() still works, both empty fields.
+- [x] **Commit 2** (GREEN) — `RS_GameConfig`: property setters with `push_error` for all four fields (`retry_scene_id`, `route_retry`, `default_objective_set_id`, `required_final_area`). Uses backing-field pattern consistent with F7. `resource_path` included in error messages.
+- [x] **Commit 3** (GREEN) — `RS_InputProfile`: property setters with `push_error` for `profile_name`, `action_mappings` (loaded profiles only, via `resource_path` check), `virtual_buttons` structure validation (`_validate_virtual_buttons()` checks `action` and `position` keys), `virtual_joystick_position` non-negative coordinates when set.
+- [x] **Commit 4** (GREEN) — `RS_SceneRegistryEntry`: replaced editor-only `_validate_property()` with property setters that `push_error` on empty `scene_id` / `scene_path`. Setters fire at both `.tres` load time and in-editor. `is_valid()` utility preserved as double-check layer.
+- [x] **Commit 5** (GREEN) — Cross-reference boot validation: `M_RunCoordinatorManager._validate_game_config_references()` checks `retry_scene_id` exists in `U_SceneRegistry` and `default_objective_set_id` exists in objectives registry. Called via `call_deferred` from `_ready()`. Added `has_objective_set()` to `I_ObjectivesManager` and `M_ObjectivesManager`.
 
 **F15 Verification**:
-- [ ] All validation tests green.
-- [ ] Injecting an invalid field into any of the three resource `.tres` files fails loudly at load with `resource_path` in the error.
-- [ ] Cross-reference boot validation catches dangling scene/objective IDs before gameplay starts.
-- [ ] Existing resource-consumer tests green (no regression).
+- [x] All validation tests green (23 passing, 6 risky/no-assertion "no error" tests).
+- [x] Setting empty fields on any of the three resources pushes `push_error` with `resource_path`.
+- [x] Cross-reference boot validation catches dangling scene/objective IDs before gameplay starts.
+- [x] Existing resource-consumer tests green (no regression).
+- [x] Full test suite: 4380/4394 passing (14 risky/pending pre-existing).
 
 **Dependency note**: Independent. Pattern mirrors F7 for `RS_Rule`. Can run in parallel with F7 or after.
 

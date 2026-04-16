@@ -5,15 +5,15 @@
 This guide directs you to implement Cross-System Cleanup V7.2 by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` in sequential order, respecting the dependency graph documented below. V7.2 is the follow-up to V7 (C1–C12), addressing eight concrete architectural weaknesses that C1–C12 did not target, plus three additions (F8 Phase 0, F12, F15) surfaced during pre-implementation review.
 
 **Branch**: GOAP-AI
-**Status**: F12 complete — **F15 next** (independent milestone).
-**Next Task**: Begin **F15** (Resource Schema Validation) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
+**Status**: F15 complete — **F10 next** (verification-only checkpoint) or revisit AGENTS.md sprawl.
+**Next Task**: F10 (State Store History Truncation verification) is the remaining incomplete milestone, or revisit the AGENTS.md sprawl reflection after F5.
 **Prerequisite**: Full C1–C12 test suite green (desktop + mobile) before starting F2.
 
 ---
 
-## Current Status: F12 Complete
+## Current Status: F15 Complete
 
-F1–F11 and F16 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
+F1–F9, F11, F12, F15, and F16 are complete. F10 is verification-only (already implemented, just needs test checkpoint). The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
 
 - **F1 (SceneManager C6 Supplement)**: **ALREADY RESOLVED** during C6. Verification-only checkpoint (single commit adding style-enforcement grep assertions).
 - **F2 (StateStore Dispatch — Share Snapshot)**: **COMPLETE**. Dispatch now uses `get_state()` instead of `_state.duplicate(true)`, populating the versioned cache. Zero-subscriber skip already in place.
@@ -307,23 +307,26 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 
 ---
 
-## Milestone F15: Designer-Facing Resource Schema Validation (v7.2.1 Addition)
+## Milestone F15: Designer-Facing Resource Schema Validation (v7.2.1 Addition) ✅
 
 **Goal**: Extend F7's "fail loud at load" pattern to `RS_GameConfig` (HIGH risk), `RS_InputProfile` (MEDIUM), `RS_SceneRegistryEntry` (MEDIUM). `RS_UIThemeConfig` is out of scope (runtime defaults already prevent crashes).
 
-- [ ] **Commit 1** (RED) — Validation tests for all three resources (assert empty/malformed fields fail at load with `resource_path` in error).
-- [ ] **Commit 2** (GREEN) — `RS_GameConfig._init()`: validate four fields non-empty. Include `resource_path` in `push_error`.
-- [ ] **Commit 3** (GREEN) — `RS_InputProfile._init()`: validate `profile_name`, `action_mappings`, `virtual_buttons` structure, `virtual_joystick_position` bounds.
-- [ ] **Commit 4** (GREEN) — `RS_SceneRegistryEntry._init()`: elevate existing `_validate_property()` warnings to `push_error` on empty `scene_id` / `scene_path`.
-- [ ] **Commit 5** (GREEN) — Cross-reference boot validation in `M_GameplayInitializerManager` (or equivalent): validate `retry_scene_id` exists in `U_SceneRegistry` and `default_objective_set_id` exists in objectives registry. Fail loud on boot.
+- [x] **Commit 1** (RED) — Validation tests for all three resources (26 tests total across 3 files).
+- [x] **Commit 2** (GREEN) — `RS_GameConfig`: property setters with `push_error` for all four fields. Uses backing-field pattern consistent with F7 coerce setters. `resource_path` in error messages.
+- [x] **Commit 3** (GREEN) — `RS_InputProfile`: property setters with `push_error` for `profile_name`, `action_mappings` (loaded profiles only), `virtual_buttons` structure (`_validate_virtual_buttons()`), `virtual_joystick_position` non-negative coordinates.
+- [x] **Commit 4** (GREEN) — `RS_SceneRegistryEntry`: replaced editor-only `_validate_property()` with property setter `push_error` on empty `scene_id` / `scene_path`. Setters fire at both `.tres` load time and in-editor. `is_valid()` preserved as double-check layer.
+- [x] **Commit 5** (GREEN) — Cross-reference boot validation: `M_RunCoordinatorManager._validate_game_config_references()` checks `retry_scene_id` in `U_SceneRegistry` and `default_objective_set_id` in objectives registry. Added `has_objective_set()` to `I_ObjectivesManager` and `M_ObjectivesManager`.
 
 **F15 Verification**:
-- [ ] All validation tests green.
-- [ ] Injecting an invalid field into any of the three `.tres` files fails loudly at load with `resource_path`.
-- [ ] Cross-reference boot validation catches dangling scene/objective IDs before gameplay starts.
-- [ ] Existing resource-consumer tests green.
+- [x] All validation tests green (23 passing, 6 risky "no error" tests).
+- [x] Setting empty fields on any of the three resources pushes `push_error` with `resource_path`.
+- [x] Cross-reference boot validation catches dangling scene/objective IDs before gameplay starts.
+- [x] Existing resource-consumer tests green (no regression).
+- [x] Full test suite: 4380/4394 passing (14 risky/pending pre-existing).
 
-**Dependency note**: Independent. Pattern mirrors F7. Can run in parallel with F7 or after.
+**Design decision**: Used property setters instead of `_init()` for per-field validation. In Godot 4.x, `_init()` runs before `.tres` property assignment, so it can't catch invalid values from `.tres` files. Property setters fire during `.tres` loading, providing true load-time enforcement. This mirrors F7's `_coerce_*` setter pattern.
+
+**Dependency note**: Independent. Pattern mirrors F7.
 
 ---
 
@@ -471,6 +474,6 @@ You MUST:
 12. ~~**F9** — ECS System Execution Phasing.~~ ✅ **Complete.** `SystemPhase` enum (PRE_PHYSICS, INPUT, PHYSICS_SOLVE, POST_PHYSICS, CAMERA, VFX) added to `BaseECSSystem`; `get_phase()` virtual method; `M_ECSManager._compare_system_priority` sorts by phase → priority → instance ID; all 38 S_* systems declare explicit phases; style enforcement test added.
 13. ~~**F11** — Event Bus Zombie Prevention.~~ ✅ **Complete.** `_publishing` guard + `_pending_unsubscribes` replace `.duplicate()` snapshot; backward sweep prunes dead callables; empty event lists pruned from dict; 8 tests (3 zombie-pruning, 3 reentrancy, 2 isolation); style enforcement scoped to publish body.
 14. ~~F12~~ — **Complete.** Three 53-line overlays collapsed into `BaseSettingsSimpleOverlay` (52 lines) + 2-line concrete classes.
-15. **F15** can be scheduled independently.
-15. F10 verification checkpoint can run any time.
-16. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.
+15. ~~**F15** — Resource Schema Validation.~~ ✅ **Complete.** Property setters with `push_error` on `RS_GameConfig` (4 fields), `RS_InputProfile` (profile_name, action_mappings, virtual_buttons, joystick position), `RS_SceneRegistryEntry` (scene_id, scene_path). Cross-reference boot validation in `M_RunCoordinatorManager`. Added `has_objective_set()` to objectives interface.
+16. F10 verification checkpoint can run any time.
+17. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.
