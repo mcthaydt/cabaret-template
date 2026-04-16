@@ -39,7 +39,7 @@ func test_virtual_buttons_missing_action_key_pushes_error() -> void:
 	profile.virtual_buttons = [
 		{"position": Vector2(100, 200)},
 	]
-	assert_push_error("virtual_buttons entry missing 'action' key")
+	assert_push_error("missing 'action' key")
 
 
 func test_virtual_buttons_missing_position_key_pushes_error() -> void:
@@ -48,7 +48,7 @@ func test_virtual_buttons_missing_position_key_pushes_error() -> void:
 	profile.virtual_buttons = [
 		{"action": StringName("jump")},
 	]
-	assert_push_error("virtual_buttons entry missing 'position' key")
+	assert_push_error("missing 'position' key")
 
 
 func test_virtual_buttons_empty_dictionary_pushes_error() -> void:
@@ -57,7 +57,8 @@ func test_virtual_buttons_empty_dictionary_pushes_error() -> void:
 	profile.virtual_buttons = [
 		{},
 	]
-	assert_push_error("virtual_buttons entry missing 'action' key")
+	assert_push_error("missing 'action' key")
+	assert_push_error("missing 'position' key")
 
 
 func test_valid_virtual_buttons_no_error() -> void:
@@ -87,3 +88,17 @@ func test_error_includes_resource_path() -> void:
 	profile.resource_path = TEST_RESOURCE_PATH
 	profile.profile_name = ""
 	assert_push_error(TEST_RESOURCE_PATH)
+
+
+func test_virtual_joystick_position_negative_coordinates_pushes_error() -> void:
+	var profile := RS_InputProfile.new()
+	autofree(profile)
+	profile.virtual_joystick_position = Vector2(-50, 100)
+	assert_push_error("virtual_joystick_position must have non-negative coordinates")
+
+
+func test_virtual_joystick_position_not_set_sentinel_is_valid() -> void:
+	var profile := RS_InputProfile.new()
+	autofree(profile)
+	profile.virtual_joystick_position = Vector2(-1, -1)
+	# No assert_push_error — (-1, -1) is the "not set" sentinel value.

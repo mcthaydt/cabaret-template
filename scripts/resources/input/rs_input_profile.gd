@@ -2,10 +2,34 @@ extends Resource
 class_name RS_InputProfile
 
 ## Input profile resource defining bindings and metadata.
+##
+## Schema validation (F15): profile_name must be non-empty. Loaded profiles
+## (with resource_path) must have non-empty action_mappings. Each virtual_buttons
+## entry must have 'action' and 'position' keys. virtual_joystick_position
+## values other than (-1,-1) must have non-negative coordinates.
 
-@export var profile_name: String = "Default"
+var _profile_name: String = "Default"
+
+@export var profile_name: String = "Default":
+	get:
+		return _profile_name
+	set(value):
+		_profile_name = value
+		if value == "":
+			push_error("RS_InputProfile: profile_name must not be empty. Resource: %s" % resource_path)
+
 @export_enum("Keyboard/Mouse:0", "Gamepad:1", "Touchscreen:2") var device_type: int = 0
-@export var action_mappings: Dictionary = {}
+
+var _action_mappings: Dictionary = {}
+
+@export var action_mappings: Dictionary = {}:
+	get:
+		return _action_mappings
+	set(value):
+		_action_mappings = value
+		if value.is_empty() and resource_path != "":
+			push_error("RS_InputProfile: action_mappings must not be empty for loaded profiles. Resource: %s" % resource_path)
+
 @export_multiline var description: String = "Standard WASD keyboard layout with Space to jump"
 @export var is_system_profile: bool = true
 @export var profile_icon: Texture2D
@@ -16,8 +40,33 @@ class_name RS_InputProfile
 @export_range(0.0, 2.0) var interact_hold_duration: float = 0.0
 
 @export_group("Touchscreen")
-@export var virtual_buttons: Array[Dictionary] = []  # [{action: StringName, position: Vector2}]
-@export var virtual_joystick_position: Vector2 = Vector2(-1, -1)  # Default position, -1,-1 = not set
+
+var _virtual_buttons: Array[Dictionary] = []
+
+@export var virtual_buttons: Array[Dictionary] = []:  # [{action: StringName, position: Vector2}]
+	get:
+		return _virtual_buttons
+	set(value):
+		_virtual_buttons = value
+		_validate_virtual_buttons()
+
+var _virtual_joystick_position: Vector2 = Vector2(-1, -1)
+
+@export var virtual_joystick_position: Vector2 = Vector2(-1, -1):  # Default position, -1,-1 = not set
+	get:
+		return _virtual_joystick_position
+	set(value):
+		_virtual_joystick_position = value
+		if value != Vector2(-1, -1) and (value.x < 0.0 or value.y < 0.0):
+			push_error("RS_InputProfile: virtual_joystick_position must have non-negative coordinates when set (or (-1,-1) for not-set). Resource: %s" % resource_path)
+
+func _validate_virtual_buttons() -> void:
+	for i in _virtual_buttons.size():
+		var entry: Dictionary = _virtual_buttons[i]
+		if not entry.has("action"):
+			push_error("RS_InputProfile: virtual_buttons entry %d missing 'action' key. Resource: %s" % [i, resource_path])
+		if not entry.has("position"):
+			push_error("RS_InputProfile: virtual_buttons entry %d missing 'position' key. Resource: %s" % [i, resource_path])
 
 func get_events_for_action(action: StringName) -> Array[InputEvent]:
 	var result: Array[InputEvent] = []
