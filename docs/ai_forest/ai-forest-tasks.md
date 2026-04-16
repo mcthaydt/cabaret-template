@@ -1,7 +1,7 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 1b in progress (Commits 4-5 complete on 2026-04-16) — **Commit 6 next**.
+**Status**: Phase 1b in progress (Commits 4-6 complete on 2026-04-16) — **Commit 7 next**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
@@ -57,7 +57,8 @@
   - Completion note (2026-04-16): created `prefab_forest_agent.tscn` + `cfg_movement_forest.tres`, kept inherited template stack, added required AI components, and omitted spawn-recovery.
 - [x] **Commit 5** — Author `prefab_forest_wolf.tscn` inheriting `prefab_forest_agent.tscn`. Override `E_ForestAgentRoot.tags = Array[StringName]([&"predator", &"ai", &"forest"])`, set `C_DetectionComponent.target_tag = &"prey"`, `detection_radius ≈ 12.0`, attach a dark-gray CSGBox3D as `Body_Mesh`.
   - Completion note (2026-04-16): created `prefab_forest_wolf.tscn` with predator tags, prey-target detection radius `12.0`, and dark-gray `Body_Mesh` (`use_collision = false`).
-- [ ] **Commit 6** — Author `prefab_forest_rabbit.tscn` (tags `[&"prey", &"ai", &"forest"]`, `target_tag = &"predator"`, `detection_radius ≈ 8.0`, white CSGBox3D smaller than wolf).
+- [x] **Commit 6** — Author `prefab_forest_rabbit.tscn` (tags `[&"prey", &"ai", &"forest"]`, `target_tag = &"predator"`, `detection_radius ≈ 8.0`, white CSGBox3D smaller than wolf).
+  - Completion note (2026-04-16): created `prefab_forest_rabbit.tscn` with prey tags, predator-target detection radius `8.0`, and smaller white `Body_Mesh` (`use_collision = false`).
 - [ ] **Commit 7** — Author `prefab_forest_deer.tscn` (tags `[&"herbivore", &"ai", &"forest"]`, `target_tag = &"predator"`, `detection_radius ≈ 10.0`, brown CSGBox3D).
 - [ ] **Commit 8** — Author `prefab_forest_tree.tscn` with `StaticBody3D` root and a dark-green CSGCylinder3D. No brain, no entity_id. Used as decoration + collider.
 
