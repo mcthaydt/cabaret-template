@@ -86,6 +86,10 @@ func unload_objective_set(set_id: StringName) -> bool:
 func reset_for_new_run(set_id: StringName = StringName("default_progression")) -> bool:
 	return _load_objective_set_internal(set_id, false)
 
+func has_objective_set(set_id: StringName) -> bool:
+	_index_objective_sets()
+	return _objective_sets_by_id.has(set_id)
+
 func _load_objective_set_internal(set_id: StringName, reconcile_persisted_statuses: bool) -> bool:
 	if set_id == StringName(""):
 		return false

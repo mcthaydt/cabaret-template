@@ -3,6 +3,7 @@ extends I_RunCoordinator
 class_name M_RunCoordinatorManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
@@ -22,6 +23,7 @@ func _ready() -> void:
 		game_config = RS_GameConfig.new()
 	_resolve_state_store()
 	_ensure_store_action_signal_connection()
+	call_deferred("_validate_game_config_references")
 
 func _physics_process(_delta: float) -> void:
 	# Keep retrying in case store registration is late.
@@ -125,6 +127,16 @@ static func _to_string_name(value: Variant) -> StringName:
 
 func is_reset_in_flight() -> bool:
 	return _is_reset_in_flight
+
+func _validate_game_config_references() -> void:
+	var retry_scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(game_config.retry_scene_id)
+	if retry_scene_data.is_empty():
+		push_error("M_RunCoordinatorManager: game_config.retry_scene_id '%s' not found in U_SceneRegistry. Resource: %s" % [String(game_config.retry_scene_id), game_config.resource_path])
+
+	var objectives_manager: I_ObjectivesManager = U_SERVICE_LOCATOR.try_get_service(OBJECTIVES_SERVICE_NAME) as I_ObjectivesManager
+	if objectives_manager != null and is_instance_valid(objectives_manager):
+		if not objectives_manager.has_objective_set(game_config.default_objective_set_id):
+			push_error("M_RunCoordinatorManager: game_config.default_objective_set_id '%s' not found in objectives registry. Resource: %s" % [String(game_config.default_objective_set_id), game_config.resource_path])
 
 static func _warn(message: String) -> void:
 	print("M_RunCoordinatorManager: WARNING %s" % message)

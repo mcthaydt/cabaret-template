@@ -42,11 +42,15 @@ class RunStoreStub extends I_STATE_STORE:
 class ObjectivesManagerStub extends I_OBJECTIVES_MANAGER:
 	var reset_calls: int = 0
 	var last_set_id: StringName = StringName("")
+	var _known_sets: Dictionary = {StringName("default_progression"): true}
 
 	func reset_for_new_run(set_id: StringName = StringName("default_progression")) -> bool:
 		reset_calls += 1
 		last_set_id = set_id
 		return true
+
+	func has_objective_set(set_id: StringName) -> bool:
+		return _known_sets.has(set_id)
 
 var _store: RunStoreStub
 
