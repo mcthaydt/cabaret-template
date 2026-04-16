@@ -32,7 +32,7 @@ func test_subclass_extends_class_name() -> void:
 		"AI action scripts should extend class_name base I_AIAction:\n%s" % "\n".join(violations)
 	)
 
-func test_base_virtuals_are_callable_without_engine_errors() -> void:
+func test_base_virtuals_are_callable_and_return_defaults() -> void:
 	var interface_script_variant: Variant = load(I_AI_ACTION_PATH)
 	assert_not_null(interface_script_variant, "Expected script to exist: %s" % I_AI_ACTION_PATH)
 	if interface_script_variant == null or not (interface_script_variant is Script):
@@ -47,6 +47,42 @@ func test_base_virtuals_are_callable_without_engine_errors() -> void:
 	var interface_instance: I_AIAction = interface_instance_variant as I_AIAction
 
 	interface_instance.start({}, {})
+	assert_push_error("I_AIAction.start: not implemented")
 	interface_instance.tick({}, {}, 0.0)
+	assert_push_error("I_AIAction.tick: not implemented")
 	var is_complete: bool = interface_instance.is_complete({}, {})
+	assert_push_error("I_AIAction.is_complete: not implemented")
 	assert_false(is_complete, "I_AIAction.is_complete should default to false in base implementation")
+
+func test_base_stubs_push_error_on_start() -> void:
+	var interface_script_variant: Variant = load(I_AI_ACTION_PATH)
+	if interface_script_variant == null or not (interface_script_variant is Script):
+		return
+	var interface_script: Script = interface_script_variant as Script
+	var instance: I_AIAction = interface_script.new() as I_AIAction
+	if instance == null:
+		return
+	instance.start({}, {})
+	assert_push_error("I_AIAction.start: not implemented")
+
+func test_base_stubs_push_error_on_tick() -> void:
+	var interface_script_variant: Variant = load(I_AI_ACTION_PATH)
+	if interface_script_variant == null or not (interface_script_variant is Script):
+		return
+	var interface_script: Script = interface_script_variant as Script
+	var instance: I_AIAction = interface_script.new() as I_AIAction
+	if instance == null:
+		return
+	instance.tick({}, {}, 0.0)
+	assert_push_error("I_AIAction.tick: not implemented")
+
+func test_base_stubs_push_error_on_is_complete() -> void:
+	var interface_script_variant: Variant = load(I_AI_ACTION_PATH)
+	if interface_script_variant == null or not (interface_script_variant is Script):
+		return
+	var interface_script: Script = interface_script_variant as Script
+	var instance: I_AIAction = interface_script.new() as I_AIAction
+	if instance == null:
+		return
+	instance.is_complete({}, {})
+	assert_push_error("I_AIAction.is_complete: not implemented")
