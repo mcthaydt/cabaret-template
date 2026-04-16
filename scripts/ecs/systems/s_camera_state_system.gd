@@ -2,22 +2,18 @@
 extends BaseECSSystem
 class_name S_CameraStateSystem
 
+const U_CAMERA_STATE_RULE_APPLIER := preload("res://scripts/ecs/systems/helpers/u_camera_state_rule_applier.gd")
 const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
-const RS_CAMERA_STATE_CONFIG_SCRIPT := preload("res://scripts/resources/ecs/rs_camera_state_config.gd")
-const DEFAULT_CAMERA_STATE_CONFIG := preload("res://resources/base_settings/gameplay/cfg_camera_state_config_default.tres")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const CAMERA_MANAGER_SERVICE := StringName("camera_manager")
-const CAMERA_SHAKE_SOURCE := StringName("qb_camera_rule")
-const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
 const PRIMARY_PLAYER_ENTITY_ID := StringName("player")
 
 
@@ -45,7 +41,7 @@ var _rules: Array[RS_Rule] = []
 var _camera_manager: I_CAMERA_MANAGER = null
 var _state_store: I_StateStore = null
 var _rule_evaluator: Variant = U_RULE_EVALUATOR.new()
-var _shake_time: float = 0.0
+var _rule_applier = U_CAMERA_STATE_RULE_APPLIER.new()
 
 
 func _coerce_rules(value: Variant) -> Array[RS_Rule]:
@@ -61,6 +57,7 @@ func on_configured() -> void:
 	_refresh_rule_evaluator()
 	_subscribe_rule_events()
 	_camera_manager = _resolve_camera_manager()
+	_rule_applier.configure(camera_state_config)
 
 func _exit_tree() -> void:
 	_rule_evaluator.unsubscribe()
@@ -72,7 +69,7 @@ func process_tick(delta: float) -> void:
 	if contexts.is_empty():
 		var manager_when_empty: I_CAMERA_MANAGER = _resolve_camera_manager()
 		if manager_when_empty != null:
-			manager_when_empty.clear_shake_source(CAMERA_SHAKE_SOURCE)
+			manager_when_empty.clear_shake_source(U_CAMERA_STATE_RULE_APPLIER.CAMERA_SHAKE_SOURCE)
 		return
 
 	var active_context_keys: Array = []
@@ -91,7 +88,8 @@ func process_tick(delta: float) -> void:
 			active_context_keys.append(_context_key_for_context(context))
 
 	_rule_evaluator.cleanup_stale_contexts(active_context_keys)
-	_apply_camera_state(contexts, delta)
+	var apply_manager: I_CAMERA_MANAGER = _resolve_camera_manager()
+	_rule_applier.apply_camera_state(contexts, delta, apply_manager)
 
 func get_rule_validation_report() -> Dictionary:
 	return _rule_evaluator.get_rule_validation_report()
@@ -122,7 +120,8 @@ func _on_event_received(event_name: StringName, event_payload: Dictionary) -> vo
 		_evaluate_context(context, TRIGGER_MODE_EVENT, event_name)
 
 	_rule_evaluator.cleanup_stale_contexts(active_context_keys)
-	_apply_camera_state(contexts, 0.0)
+	var event_manager: I_CAMERA_MANAGER = _resolve_camera_manager()
+	_rule_applier.apply_camera_state(contexts, 0.0, event_manager)
 
 func _evaluate_context(context: Dictionary, trigger_mode: String, event_name: StringName) -> void:
 	_rule_evaluator.evaluate(
@@ -258,275 +257,6 @@ func _attach_camera_context(
 		if camera_entity != null:
 			rule_context.camera_entity = camera_entity
 			rule_context.entity = camera_entity
-
-func _apply_camera_state(contexts: Array, delta: float) -> void:
-	var manager: I_CAMERA_MANAGER = _resolve_camera_manager()
-	if manager == null:
-		return
-
-	var context: Dictionary = _select_primary_camera_context(contexts)
-	var primary_camera_state: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CAMERA_STATE_COMPONENT)
-	_decay_non_primary_trauma(contexts, primary_camera_state, delta)
-	if context.is_empty():
-		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
-		return
-
-	if primary_camera_state == null or not (primary_camera_state is Object):
-		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
-		return
-
-	var main_camera: Camera3D = manager.get_main_camera()
-	if main_camera != null:
-		_apply_fov_to_camera(main_camera, primary_camera_state, context, delta)
-
-	_apply_trauma_shake(manager, primary_camera_state, delta)
-
-func _decay_non_primary_trauma(contexts: Array, primary_camera_state: Variant, delta: float) -> void:
-	if delta <= 0.0:
-		return
-
-	var config: Dictionary = _resolve_camera_state_config_values()
-	var processed_states: Dictionary = {}
-	for context_variant in contexts:
-		if not (context_variant is Dictionary):
-			continue
-		var context: Dictionary = context_variant as Dictionary
-		var camera_state: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CAMERA_STATE_COMPONENT)
-		if camera_state == null or not (camera_state is Object):
-			continue
-		if primary_camera_state != null and camera_state == primary_camera_state:
-			continue
-
-		var camera_state_object: Object = camera_state as Object
-		var state_id: int = camera_state_object.get_instance_id()
-		if processed_states.has(state_id):
-			continue
-		processed_states[state_id] = true
-		_decay_trauma(camera_state_object, delta, config)
-
-func _select_primary_camera_context(contexts: Array) -> Dictionary:
-	var fallback: Dictionary = {}
-	for context_variant in contexts:
-		if not (context_variant is Dictionary):
-			continue
-		var context: Dictionary = context_variant as Dictionary
-		if fallback.is_empty():
-			fallback = context
-		if _is_primary_camera_context(context):
-			return context
-	return fallback
-
-func _is_primary_camera_context(context: Dictionary) -> bool:
-	var id_variant: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CAMERA_ENTITY_ID)
-	if id_variant == null:
-		id_variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_ENTITY_ID)
-	var entity_id: StringName = U_RuleUtils.variant_to_string_name(id_variant)
-	if entity_id == PRIMARY_CAMERA_ENTITY_ID:
-		return true
-
-	var tags_variant: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_CAMERA_ENTITY_TAGS)
-	if tags_variant == null:
-		tags_variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_ENTITY_TAGS)
-	if tags_variant is Array:
-		var tags: Array = tags_variant as Array
-		return tags.has(PRIMARY_CAMERA_ENTITY_ID) or tags.has(String(PRIMARY_CAMERA_ENTITY_ID))
-	return false
-
-
-func _resolve_camera_state_config_values() -> Dictionary:
-	var defaults := {
-		"trauma_decay_rate": 2.0,
-		"max_offset_x": 10.0,
-		"max_offset_y": 10.0,
-		"max_rotation_rad": 0.03,
-		"shake_frequency": Vector3(17.0, 21.0, 13.0),
-		"shake_phase": Vector3(1.1, 2.3, 0.7),
-		"fov_min": 1.0,
-		"fov_max": 179.0,
-	}
-	var config_variant: Variant = camera_state_config
-	if config_variant == null:
-		config_variant = DEFAULT_CAMERA_STATE_CONFIG
-	if config_variant == null or not (config_variant is Resource):
-		return defaults
-
-	var config_resource: Resource = config_variant as Resource
-	if config_resource.get_script() != RS_CAMERA_STATE_CONFIG_SCRIPT:
-		return defaults
-
-	var fov_min: float = float(config_resource.get("fov_min"))
-	var fov_max: float = maxf(float(config_resource.get("fov_max")), fov_min)
-	return {
-		"trauma_decay_rate": maxf(float(config_resource.get("trauma_decay_rate")), 0.0),
-		"max_offset_x": maxf(float(config_resource.get("max_offset_x")), 0.0),
-		"max_offset_y": maxf(float(config_resource.get("max_offset_y")), 0.0),
-		"max_rotation_rad": maxf(float(config_resource.get("max_rotation_rad")), 0.0),
-		"shake_frequency": config_resource.get("shake_frequency") as Vector3,
-		"shake_phase": config_resource.get("shake_phase") as Vector3,
-		"fov_min": fov_min,
-		"fov_max": fov_max,
-	}
-
-
-func _clamp_fov(value: float, config: Dictionary) -> float:
-	var fov_min: float = float(config.get("fov_min", 1.0))
-	var fov_max: float = maxf(float(config.get("fov_max", 179.0)), fov_min)
-	return clampf(value, fov_min, fov_max)
-
-
-func _apply_fov_to_camera(camera: Camera3D, camera_state: Variant, context: Dictionary, delta: float) -> void:
-	var config: Dictionary = _resolve_camera_state_config_values()
-	var baseline_fov: float = _ensure_baseline_fov(camera_state, camera.fov, config)
-	var target_fov: float = _resolve_target_fov(camera_state, context, baseline_fov, config)
-	_write_target_fov(camera_state, target_fov, config)
-
-	var blend_speed: float = maxf(
-		_get_camera_state_float(camera_state, "fov_blend_speed", C_CAMERA_STATE_COMPONENT.DEFAULT_FOV_BLEND_SPEED),
-		0.0
-	)
-	if blend_speed <= 0.0:
-		camera.fov = target_fov
-		return
-
-	var alpha: float = clampf(blend_speed * maxf(delta, 0.0), 0.0, 1.0)
-	if alpha <= 0.0:
-		return
-	camera.fov = lerpf(camera.fov, target_fov, alpha)
-
-func _resolve_target_fov(
-	camera_state: Variant,
-	context: Dictionary,
-	baseline_fov: float,
-	config: Dictionary
-) -> float:
-	var base_target_fov: float = baseline_fov
-	if _is_fov_zone_active(context):
-		base_target_fov = _get_camera_state_float(
-			camera_state,
-			"target_fov",
-			C_CAMERA_STATE_COMPONENT.DEFAULT_TARGET_FOV
-		)
-	var resolved_base_target_fov: float = _clamp_fov(base_target_fov, config)
-	var speed_fov_bonus: float = _resolve_speed_fov_bonus(camera_state)
-	return _clamp_fov(resolved_base_target_fov + speed_fov_bonus, config)
-
-func _ensure_baseline_fov(camera_state: Variant, fallback_fov: float, config: Dictionary) -> float:
-	var existing_baseline: float = _get_camera_state_float(
-		camera_state,
-		"base_fov",
-		C_CAMERA_STATE_COMPONENT.UNSET_BASE_FOV
-	)
-	if existing_baseline > 1.0:
-		return _clamp_fov(existing_baseline, config)
-
-	var resolved_baseline: float = _clamp_fov(fallback_fov, config)
-	_write_baseline_fov(camera_state, resolved_baseline, config)
-	return resolved_baseline
-
-func _is_fov_zone_active(context: Dictionary) -> bool:
-	var state_variant: Variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_STATE)
-	if state_variant == null:
-		state_variant = U_RuleUtils.get_context_value(context, RSRuleContext.KEY_REDUX_STATE)
-	if not (state_variant is Dictionary):
-		return false
-	return U_VCAM_SELECTORS.is_in_fov_zone(state_variant as Dictionary)
-
-func _write_target_fov(camera_state: Variant, value: float, config: Dictionary) -> void:
-	var clamped: float = _clamp_fov(value, config)
-	if camera_state is Object and (camera_state as Object).has_method("set_target_fov"):
-		(camera_state as Object).call("set_target_fov", clamped)
-		return
-	if camera_state is Object:
-		(camera_state as Object).set("target_fov", clamped)
-
-func _write_baseline_fov(camera_state: Variant, value: float, config: Dictionary) -> void:
-	var clamped: float = _clamp_fov(value, config)
-	if camera_state is Object and (camera_state as Object).has_method("set_base_fov"):
-		(camera_state as Object).call("set_base_fov", clamped)
-		return
-	if camera_state is Object:
-		(camera_state as Object).set("base_fov", clamped)
-
-func _resolve_speed_fov_bonus(camera_state: Variant) -> float:
-	var raw_bonus: float = _get_camera_state_float(
-		camera_state,
-		"speed_fov_bonus",
-		C_CAMERA_STATE_COMPONENT.DEFAULT_SPEED_FOV_BONUS
-	)
-	var max_bonus: float = maxf(
-		_get_camera_state_float(
-			camera_state,
-			"speed_fov_max_bonus",
-			C_CAMERA_STATE_COMPONENT.DEFAULT_SPEED_FOV_MAX_BONUS
-		),
-		0.0
-	)
-	var clamped_bonus: float = clampf(raw_bonus, 0.0, max_bonus)
-	if not is_equal_approx(clamped_bonus, raw_bonus):
-		_write_speed_fov_bonus(camera_state, clamped_bonus)
-	return clamped_bonus
-
-func _write_speed_fov_bonus(camera_state: Variant, value: float) -> void:
-	if camera_state == null or not (camera_state is Object):
-		return
-	var object_value: Object = camera_state as Object
-	if not U_RuleUtils.object_has_property(object_value, "speed_fov_bonus"):
-		return
-	object_value.set("speed_fov_bonus", maxf(value, 0.0))
-
-func _apply_trauma_shake(manager: I_CAMERA_MANAGER, camera_state: Variant, delta: float) -> void:
-	var config: Dictionary = _resolve_camera_state_config_values()
-	var trauma: float = clampf(_get_camera_state_float(camera_state, "shake_trauma", 0.0), 0.0, 1.0)
-	if trauma <= 0.0:
-		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
-		_write_shake_trauma(camera_state, 0.0)
-		return
-
-	_shake_time += maxf(delta, 0.0)
-	var shake_strength: float = trauma * trauma
-	var shake_frequency: Vector3 = config.get("shake_frequency", Vector3(17.0, 21.0, 13.0)) as Vector3
-	var shake_phase: Vector3 = config.get("shake_phase", Vector3(1.1, 2.3, 0.7)) as Vector3
-	var max_offset_x: float = maxf(float(config.get("max_offset_x", 10.0)), 0.0)
-	var max_offset_y: float = maxf(float(config.get("max_offset_y", 10.0)), 0.0)
-	var max_rotation_rad: float = maxf(float(config.get("max_rotation_rad", 0.03)), 0.0)
-	var offset: Vector2 = Vector2(
-		sin(_shake_time * shake_frequency.x + shake_phase.x) * max_offset_x * shake_strength,
-		cos(_shake_time * shake_frequency.y + shake_phase.y) * max_offset_y * shake_strength
-	)
-	var rotation: float = sin(
-		_shake_time * shake_frequency.z + shake_phase.z
-	) * max_rotation_rad * shake_strength
-	manager.set_shake_source(CAMERA_SHAKE_SOURCE, offset, rotation)
-
-	var decayed_trauma: float = _decay_trauma(camera_state, delta, config)
-	if decayed_trauma <= 0.0:
-		manager.clear_shake_source(CAMERA_SHAKE_SOURCE)
-
-func _decay_trauma(camera_state: Variant, delta: float, config: Dictionary = {}) -> float:
-	var trauma: float = clampf(_get_camera_state_float(camera_state, "shake_trauma", 0.0), 0.0, 1.0)
-	if delta <= 0.0:
-		return trauma
-
-	var trauma_decay_rate: float = maxf(float(config.get("trauma_decay_rate", 2.0)), 0.0)
-	var decayed_trauma: float = maxf(trauma - trauma_decay_rate * delta, 0.0)
-	_write_shake_trauma(camera_state, decayed_trauma)
-	return decayed_trauma
-
-func _write_shake_trauma(camera_state: Variant, value: float) -> void:
-	var clamped: float = clampf(value, 0.0, 1.0)
-	if camera_state is Object and (camera_state as Object).has_method("set_shake_trauma"):
-		(camera_state as Object).call("set_shake_trauma", clamped)
-		return
-	if camera_state is Object:
-		(camera_state as Object).set("shake_trauma", clamped)
-
-func _get_camera_state_float(camera_state: Variant, property_name: String, fallback: float) -> float:
-	if camera_state == null or not (camera_state is Object):
-		return fallback
-	var object_value: Object = camera_state as Object
-	if not U_RuleUtils.object_has_property(object_value, property_name):
-		return fallback
-	return U_RuleUtils.read_float_property(object_value, property_name, fallback)
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 	_camera_manager = U_DependencyResolution.resolve(CAMERA_MANAGER_SERVICE, _camera_manager, camera_manager) as I_CAMERA_MANAGER
