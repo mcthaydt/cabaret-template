@@ -1,7 +1,7 @@
 # Cross-System Cleanup V7.2 — Follow-up Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: F11 complete — **F12 or F15 next** (independent milestones).
+**Status**: F12 complete — **F15 next** (independent milestone).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Scope**: Targeted follow-ups to cleanup-v7 (`cleanup-v7-tasks.md`) addressing gaps surfaced during a deep-dive architectural review. Mostly backwards-compatible. Behavioral changes are gated to specific commits and called out explicitly (F4 strict validator default flip, F5 grep-test enforcement). All existing integration tests must stay green throughout.
 
@@ -551,26 +551,18 @@ The existing `execution_priority` int can be retained as a **within-phase orderi
 - Scene files (`ui_audio_settings_overlay.tscn` etc.) remain unchanged — they continue to instance tab content as before.
 
 **Commits**:
-- [ ] **Commit 1** (RED) — `tests/unit/ui/settings/test_settings_simple_overlay_base.gd`:
-  - Assert all three overlays share behavior (theme application, panel ready, back press, close).
-  - Assert each concrete overlay script file is under 15 lines (post-refactor).
-- [ ] **Commit 2** (GREEN) — Create `scripts/ui/settings/base_settings_simple_overlay.gd`. Extract the 52 shared lines into it. Keep `@onready` references for `_main_panel` / `_main_panel_content` since scene structure is shared across all three overlays.
-- [ ] **Commit 3** (GREEN) — Reduce each of the three overlay files to:
-
-  ```gdscript
-  @icon("res://assets/editor_icons/icn_utility.svg")
-  extends "res://scripts/ui/settings/base_settings_simple_overlay.gd"
-  class_name UI_AudioSettingsOverlay
-  ```
-
-- [ ] **Commit 4** (GREEN) — Style enforcement: `tests/unit/style/test_style_enforcement.gd` asserts each of `ui_audio_settings_overlay.gd`, `ui_display_settings_overlay.gd`, `ui_localization_settings_overlay.gd` is under 15 lines. Explicitly exclude `ui_vfx_settings_overlay.gd` from this assertion.
+- [x] **Commit 1** (RED) — `tests/unit/ui/settings/test_settings_simple_overlay_base.gd`:
+  - 9 tests: base class exists, 3 inheritance checks (audio/display/localization extend base), VFX does NOT extend base, base has shared methods (source check), 3 line-count checks (each under 15 lines). All 9 initially fail (base class doesn't exist, files are 54 lines).
+- [x] **Commit 2** (GREEN) — Created `scripts/ui/settings/base_settings_simple_overlay.gd` (52 lines). Extracts the 52 shared lines including `@icon`, `extends`, `const` preloads, `@onready` vars, `_on_panel_ready`, `_on_back_pressed`, `_apply_theme_tokens`, `_close_overlay`.
+- [x] **Commit 3** (GREEN) — Reduced each of the three overlay files to 2 lines: `@icon` + `extends` + `class_name`. Scene files unchanged.
+- [x] **Commit 4** (GREEN) — Style enforcement: `test_simple_settings_overlays_under_15_lines` added to `test_style_enforcement.gd`. Asserts each simple overlay under 15 lines, VFX overlay explicitly excluded (assert > 15 lines). Added `base_` prefix to `res://scripts/ui/settings` directory prefix rules. 58/58 style tests green.
 
 **F12 Verification**:
-- [ ] All existing settings-overlay integration tests green (navigation, theme, close behavior).
-- [ ] Three overlay files reduced from 53 → ~5 lines each.
-- [ ] `base_settings_simple_overlay.gd` contains the extracted shared behavior.
-- [ ] VFX overlay unchanged.
-- [ ] Style enforcement test green.
+- [x] All existing settings-overlay integration tests green (8/8 wrapper tests).
+- [x] Three overlay files reduced from 53 → 2 lines each.
+- [x] `base_settings_simple_overlay.gd` contains the extracted shared behavior (52 lines).
+- [x] VFX overlay unchanged (430 lines).
+- [x] Style enforcement test green (58/58).
 
 **Dependency note**: Independent. Can run anytime. No coupling to F1–F11.
 

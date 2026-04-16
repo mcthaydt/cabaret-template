@@ -5,13 +5,13 @@
 This guide directs you to implement Cross-System Cleanup V7.2 by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` in sequential order, respecting the dependency graph documented below. V7.2 is the follow-up to V7 (C1–C12), addressing eight concrete architectural weaknesses that C1–C12 did not target, plus three additions (F8 Phase 0, F12, F15) surfaced during pre-implementation review.
 
 **Branch**: GOAP-AI
-**Status**: F11 complete — **F12 or F15 next** (independent milestones).
-**Next Task**: Begin **F12** (Settings Overlay Dedup) or **F15** (Resource Schema Validation) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
+**Status**: F12 complete — **F15 next** (independent milestone).
+**Next Task**: Begin **F15** (Resource Schema Validation) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
 **Prerequisite**: Full C1–C12 test suite green (desktop + mobile) before starting F2.
 
 ---
 
-## Current Status: F11 Complete
+## Current Status: F12 Complete
 
 F1–F11 and F16 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
 
@@ -287,21 +287,21 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 
 ---
 
-## Milestone F12: Settings Overlay Wrapper Deduplication (v7.2.1 Addition)
+## Milestone F12: Settings Overlay Wrapper Deduplication (v7.2.1 Addition) ✅
 
 **Goal**: Three 53-line overlay wrappers are character-for-character identical except `class_name`. Collapse into a single base class.
 
-- [ ] **Commit 1** (RED) — `test_settings_simple_overlay_base.gd`: all three overlays share behavior; each concrete script under 15 lines post-refactor.
-- [ ] **Commit 2** (GREEN) — Create `scripts/ui/settings/base_settings_simple_overlay.gd` with the 52 shared lines.
-- [ ] **Commit 3** (GREEN) — Reduce each of the three overlay files to ~5 lines (`@icon` + `extends` + `class_name`).
-- [ ] **Commit 4** (GREEN) — Style enforcement: each simple overlay under 15 lines. `ui_vfx_settings_overlay.gd` explicitly excluded.
+- [x] **Commit 1** (RED) — `test_settings_simple_overlay_base.gd`: 9 tests (base exists, 3 inheritance checks, VFX exclusion, 4 method source checks, 3 line-count checks). All 9 initially fail.
+- [x] **Commit 2** (GREEN) — Created `scripts/ui/settings/base_settings_simple_overlay.gd` (52 lines) with extracted shared behavior.
+- [x] **Commit 3** (GREEN) — Reduced each overlay to 2 lines (`@icon` + `extends` + `class_name`). Scene files unchanged.
+- [x] **Commit 4** (GREEN) — Style enforcement: `test_simple_settings_overlays_under_15_lines` added. Prefix rules updated for `scripts/ui/settings/` to include `base_`. 58/58 style tests green.
 
 **F12 Verification**:
-- [ ] Existing settings-overlay integration tests green (navigation, theme, close).
-- [ ] Three overlay files reduced from 53 → ~5 lines each.
-- [ ] `base_settings_simple_overlay.gd` contains extracted shared behavior.
-- [ ] VFX overlay unchanged.
-- [ ] Style enforcement test green.
+- [x] Existing settings-overlay integration tests green (8/8 wrapper tests).
+- [x] Three overlay files reduced from 53 → 2 lines each.
+- [x] `base_settings_simple_overlay.gd` contains extracted shared behavior (52 lines).
+- [x] VFX overlay unchanged (430 lines).
+- [x] Style enforcement test green (58/58).
 
 **Dependency note**: Independent.
 
@@ -470,6 +470,7 @@ You MUST:
 11. ~~**F16** — AI System Type Safety & Consistency.~~ ✅ **Complete.** 5 `Variant` fields → concrete types; `I_AIAction` push_error stubs; 8 new `U_AITaskStateKeys` constants replacing bare strings; `C_AIBrainComponent.get_debug_snapshot()`; `RS_AIActionAnimate` doc comment; grep enforcement.
 12. ~~**F9** — ECS System Execution Phasing.~~ ✅ **Complete.** `SystemPhase` enum (PRE_PHYSICS, INPUT, PHYSICS_SOLVE, POST_PHYSICS, CAMERA, VFX) added to `BaseECSSystem`; `get_phase()` virtual method; `M_ECSManager._compare_system_priority` sorts by phase → priority → instance ID; all 38 S_* systems declare explicit phases; style enforcement test added.
 13. ~~**F11** — Event Bus Zombie Prevention.~~ ✅ **Complete.** `_publishing` guard + `_pending_unsubscribes` replace `.duplicate()` snapshot; backward sweep prunes dead callables; empty event lists pruned from dict; 8 tests (3 zombie-pruning, 3 reentrancy, 2 isolation); style enforcement scoped to publish body.
-14. F12 or F15 can be scheduled independently.
+14. ~~F12~~ — **Complete.** Three 53-line overlays collapsed into `BaseSettingsSimpleOverlay` (52 lines) + 2-line concrete classes.
+15. **F15** can be scheduled independently.
 15. F10 verification checkpoint can run any time.
 16. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.
