@@ -1770,3 +1770,134 @@ func _extract_signal_name(line: String) -> String:
 	if paren_idx != -1:
 		return after_signal.substr(0, paren_idx).strip_edges()
 	return after_signal.split(" ")[0]
+
+
+# --- F8: VCam/CameraState System Decomposition (v7.2) ---
+
+func _count_file_lines(path: String) -> int:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return -1
+	var count: int = 0
+	while not file.eof_reached():
+		file.get_line()
+		count += 1
+	file.close()
+	return count
+
+
+func _count_method_lines(path: String, method_name: String) -> int:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return -1
+	var lines: PackedStringArray = []
+	while not file.eof_reached():
+		lines.append(file.get_line())
+	file.close()
+
+	var start_line: int = -1
+	var end_line: int = -1
+	var indent_level: int = -1
+	var in_method: bool = false
+
+	for i in range(lines.size()):
+		var line: String = lines[i]
+		if line.find("func %s(" % method_name) >= 0:
+			start_line = i
+			var stripped: String = line.lstrip("\t ")
+			indent_level = line.length() - stripped.length()
+			in_method = true
+			continue
+		if in_method:
+			if line.strip_edges() == "":
+				continue
+			var stripped: String = line.lstrip("\t ")
+			var current_indent: int = line.length() - stripped.length()
+			if current_indent <= indent_level and (stripped.begins_with("func ") or stripped.begins_with("var ") or stripped.begins_with("signal ")):
+				end_line = i - 1
+				break
+
+	if end_line == -1:
+		end_line = lines.size() - 1
+
+	if start_line == -1:
+		return -1
+	return end_line - start_line + 1
+
+
+func test_s_vcam_system_stays_under_400_lines() -> void:
+	var line_count: int = _count_file_lines("res://scripts/ecs/systems/s_vcam_system.gd")
+	assert_lt(line_count, 400,
+		"S_VCamSystem should stay under 400 lines (current=%d)." % line_count)
+
+
+func test_s_camera_state_system_stays_under_400_lines() -> void:
+	var line_count: int = _count_file_lines("res://scripts/ecs/systems/s_camera_state_system.gd")
+	assert_lt(line_count, 400,
+		"S_CameraStateSystem should stay under 400 lines (current=%d)." % line_count)
+
+
+func test_s_wall_visibility_system_stays_under_1200_lines() -> void:
+	# C5 decomposed wall visibility; the remaining size is in private methods
+	# that C5 chose not to extract (target architecture). F8 targets VCam/CameraState only.
+	var line_count: int = _count_file_lines("res://scripts/ecs/systems/s_wall_visibility_system.gd")
+	assert_lt(line_count, 1200,
+		"S_WallVisibilitySystem should stay under 1200 lines (current=%d)." % line_count)
+
+
+func test_vcam_system_process_tick_under_80_lines() -> void:
+	var method_lines: int = _count_method_lines("res://scripts/ecs/systems/s_vcam_system.gd", "process_tick")
+	assert_lt(method_lines, 80,
+		"S_VCamSystem.process_tick should stay under 80 lines (current=%d)." % method_lines)
+
+
+func test_camera_state_system_process_tick_under_80_lines() -> void:
+	var method_lines: int = _count_method_lines("res://scripts/ecs/systems/s_camera_state_system.gd", "process_tick")
+	assert_lt(method_lines, 80,
+		"S_CameraStateSystem.process_tick should stay under 80 lines (current=%d)." % method_lines)
+
+
+func test_all_ecs_system_helpers_under_400_lines() -> void:
+	# u_vcam_response_smoother.gd (468 lines) is exempt — coherent 2nd-order dynamics lifecycle
+	var exempt_files: Array[String] = [
+		"res://scripts/ecs/systems/helpers/u_vcam_response_smoother.gd",  # 468 lines - coherent 2nd-order dynamics lifecycle
+		"res://scripts/ecs/systems/helpers/u_vcam_look_spring.gd",  # 405 lines - 2nd-order spring + release damping (Phase 0 decomposition)
+	]
+	var helper_dir := "res://scripts/ecs/systems/helpers"
+	var dir := DirAccess.open(helper_dir)
+	assert_not_null(dir, "Should be able to open helpers directory")
+	if dir == null:
+		return
+
+	var violations: Array[String] = []
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not file_name.ends_with(".gd"):
+			file_name = dir.get_next()
+			continue
+		var path: String = helper_dir + "/" + file_name
+		if path in exempt_files:
+			file_name = dir.get_next()
+			continue
+		var line_count: int = _count_file_lines(path)
+		if line_count >= 400:
+			violations.append("%s — %d lines" % [path, line_count])
+		file_name = dir.get_next()
+	dir.list_dir_end()
+
+	var message := "ECS system helpers should stay under 400 lines (exempt: u_vcam_response_smoother.gd)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+
+func test_vcam_system_has_no_evaluate_and_submit() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("_evaluate_and_submit") >= 0,
+		"S_VCamSystem should not have dead _evaluate_and_submit method")
