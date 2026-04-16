@@ -5,18 +5,19 @@
 This prompt directs you to implement the AI Forest Simulation by executing `docs/ai_forest/ai-forest-tasks.md` in sequential order, respecting the phase dependency chain. The full specification lives in `docs/ai_forest/ai-forest-overview.md`.
 
 **Branch**: GOAP-AI
-**Status**: Phase 1a complete (2026-04-16) — **Phase 1b next**.
-**Next task**: Phase 1b Commit 4 — author `scenes/prefabs/prefab_forest_agent.tscn` + `resources/base_settings/ai_forest/cfg_movement_forest.tres`.
+**Status**: Phase 1b in progress (Commit 4 complete on 2026-04-16).
+**Next task**: Phase 1b Commit 5 — author `scenes/prefabs/prefab_forest_wolf.tscn` inheriting `prefab_forest_agent.tscn`.
 **Prerequisite**: Baseline AI suite re-measured and green immediately before Phase 1a (`124/124` passing on 2026-04-16).
 
 ---
 
-## Current Status: Phase 1a Completed
+## Current Status: Phase 1b In Progress
 
-Implementation has started and Phase 1a is done:
+Implementation progress:
 - Commit 1 RED: added `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd` and confirmed expected failures before implementation.
 - Commit 2 GREEN: added `C_DetectionComponent.target_tag` and rewired `S_AIDetectionSystem` to resolve entity roots + filter by tag with player-tag fallback for back-compat.
 - Commit 3 REGRESSION: validated existing detection and AI integration suites remain green.
+- Commit 4: created `scenes/prefabs/prefab_forest_agent.tscn` + `resources/base_settings/ai_forest/cfg_movement_forest.tres` with required AI components and tuned movement defaults.
 
 Planning artifacts remain authoritative:
 - **`docs/ai_forest/ai-forest-overview.md`** — purpose, scope, architecture, species spec, per-phase acceptance criteria.
@@ -160,9 +161,9 @@ When the user says "proceed" or "start Phase 1":
 - **Outcome**: Plan approved. Awaiting go-ahead to start Phase 1a.
 
 ### Phase 1 — Scene shell + species behaviors + detection generalization
-- **Status**: In progress (P1a complete on 2026-04-16)
-- **Commits**: 3 / 19
-- **Outcome**: Detection system now supports tag-targeted lookup via entity-root tags with preserved player back-compat behavior.
+- **Status**: In progress (P1a + P1b Commit 4 complete on 2026-04-16)
+- **Commits**: 4 / 19
+- **Outcome**: Detection system now supports tag-targeted lookup, and the base forest-agent prefab/movement settings are authored.
 
 ### Phase 2 — Hunger / satiety
 - **Status**: Not started

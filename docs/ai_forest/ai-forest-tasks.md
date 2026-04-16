@@ -1,7 +1,7 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 1a complete (2026-04-16) — **Phase 1b next**.
+**Status**: Phase 1b in progress (Commit 4 complete on 2026-04-16) — **Commit 5 next**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
@@ -47,13 +47,14 @@
 
 **Goal**: Base prefab for brain-bearing forest agents that inherits `tmpl_character.tscn` directly; three species-specific inheritors; a static tree prop.
 
-- [ ] **Commit 4** — Author `scenes/prefabs/prefab_forest_agent.tscn` inheriting `scenes/templates/tmpl_character.tscn`. Root `E_ForestAgentRoot` (`BaseECSEntity`). Components to add (on top of what `tmpl_character` already provides):
+- [x] **Commit 4** — Author `scenes/prefabs/prefab_forest_agent.tscn` inheriting `scenes/templates/tmpl_character.tscn`. Root `E_ForestAgentRoot` (`BaseECSEntity`). Components to add (on top of what `tmpl_character` already provides):
   - `C_InputComponent` (no settings required)
   - `C_AIBrainComponent` (per-species `brain_settings` authored on inheritors)
   - `C_DetectionComponent` (per-species `target_tag` + `detection_radius` authored on inheritors)
   - `C_MoveTargetComponent` (primary move-target channel)
   - New movement settings `resources/base_settings/ai_forest/cfg_movement_forest.tres` (tuned for top-down speed)
   - **Omit** `C_SpawnRecoveryComponent` (no spawn points in this scene)
+  - Completion note (2026-04-16): created `prefab_forest_agent.tscn` + `cfg_movement_forest.tres`, kept inherited template stack, added required AI components, and omitted spawn-recovery.
 - [ ] **Commit 5** — Author `prefab_forest_wolf.tscn` inheriting `prefab_forest_agent.tscn`. Override `E_ForestAgentRoot.tags = Array[StringName]([&"predator", &"ai", &"forest"])`, set `C_DetectionComponent.target_tag = &"prey"`, `detection_radius ≈ 12.0`, attach a dark-gray CSGBox3D as `Body_Mesh`.
 - [ ] **Commit 6** — Author `prefab_forest_rabbit.tscn` (tags `[&"prey", &"ai", &"forest"]`, `target_tag = &"predator"`, `detection_radius ≈ 8.0`, white CSGBox3D smaller than wolf).
 - [ ] **Commit 7** — Author `prefab_forest_deer.tscn` (tags `[&"herbivore", &"ai", &"forest"]`, `target_tag = &"predator"`, `detection_radius ≈ 10.0`, brown CSGBox3D).
