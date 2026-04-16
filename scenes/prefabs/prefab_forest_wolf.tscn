@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_forest_agent.tscn" id="1_forest_agent"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wolf"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.23921569, 0.25882354, 0.28627452, 1)
+
+[node name="E_ForestWolf" instance=ExtResource("1_forest_agent")]
+entity_id = &"wolf"
+tags = Array[StringName]([&"predator", &"ai", &"forest"])
+
+[node name="C_DetectionComponent" parent="Components"]
+target_tag = &"prey"
+detection_radius = 12.0
+
+[node name="Body_Mesh" type="CSGBox3D" parent="Player_Body"]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 1.4, 0, 1, 0)
+use_collision = false
+material = SubResource("StandardMaterial3D_wolf")
