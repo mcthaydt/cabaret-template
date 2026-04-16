@@ -1,88 +1,127 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Docs-only delivered — **Phase 1a next** (awaiting user go-ahead before implementation starts).
+**Status**: Docs-only delivered (v2, audit-corrected) — **Phase 1a next** (awaiting user go-ahead before implementation starts).
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
 **Ground rules**
-- Every milestone ends with a green full AI unit-test suite (baseline: 124/124) plus the milestone's new tests.
-- Style enforcement test (`tests/unit/style/test_style_enforcement.gd`) must stay green after any file/scene additions.
+- Every milestone ends with the full AI unit-test suite green (current baseline: last measured 124/124 on 2026-04-16; re-measure immediately before starting Phase 1a).
+- Style enforcement test (`tests/unit/style/test_style_enforcement.gd`) must stay green. Critical rules for this plan: `test_ai_move_target_magic_strings_not_used_in_ai_scripts`, `test_ai_action_scripts_use_task_state_key_constants`, `test_ai_resource_scripts_are_grouped_by_subdirectory`, `test_gameplay_scenes_do_not_embed_hud_instances`.
 - After each committed milestone: update this tasks doc (mark `[x]` with completion notes) and the continuation prompt.
 - Commit per milestone at minimum; commit per commit-level task when logically self-contained.
 - All new tests extend `tests/base_test.gd` for auto scope isolation.
+
+**Design decisions locked from audit**
+- Tag-based detection = read `BaseECSEntity.tags` via `entity.has_tag(target_tag)`. **No new `C_EntityTagComponent`** — tags already live on the entity root.
+- Forest agents inherit `scenes/templates/tmpl_character.tscn` directly (peer to `prefab_demo_npc.tscn`).
+- Debug panel lives under `scripts/debug/` + `scenes/debug/` with `debug_` prefix. **Not a HUD.**
+- Wander home captured as the agent's `global_position` at `_ready()`.
+- **No player entity.** No `S_InputSystem`, `C_PlayerTagComponent`, or player-facing systems in the scene.
+- **No `C_SpawnRecoveryComponent`** on agents. Invisible walls prevent fall-off; recovery would no-op anyway per AGENTS.md R5 for non-player entities without a spawn_point_id.
+- **No `decision_group` field on `RS_AIGoal`** — `U_AIGoalSelector` hardcodes `&"ai_goal"` globally. All goal thrash prevention uses `priority` + `cooldown` + `requires_rising_edge` + `one_shot`.
 
 ---
 
 ## Phase 1 — Scene shell + species behaviors + detection generalization
 
-### P1a. Generalize `C_DetectionComponent` to tag-based targeting
+### P1a. Generalize `S_AIDetectionSystem` to tag-based targeting
 
-**Goal**: `C_DetectionComponent` detects entities carrying `C_EntityTagComponent` with a matching `target_tag`, instead of querying `C_PlayerTagComponent` only. Preserves existing player-detection behavior when `target_tag = &"player"`.
+**Goal**: `C_DetectionComponent` gains a `target_tag: StringName = &"player"` export. `S_AIDetectionSystem` iterates candidate entities, resolves each one's entity-root via `U_ECSUtils.find_entity_root()`, and only considers candidates whose entity root has `target_tag` in `BaseECSEntity.tags`. Default `&"player"` preserves existing behavior (plus a new `C_PlayerTagComponent` short-circuit for existing showcase entities).
 
-- [ ] **Commit 1** (RED) — Write `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd` with:
-  - Test: detector with `target_tag = &"prey"` flags `is_target_in_range = true` when an entity tagged `prey` is within `detection_radius`
-  - Test: detector with `target_tag = &"prey"` ignores entity tagged `herbivore`
-  - Test: detector with `target_tag = &"player"` (default) still detects player-tagged entities (back-compat)
-  - Test: `detected_entity_id` matches the detected entity's `entity_id`
+**Implementation note**: current system queries `[C_PlayerTagComponent, C_MovementComponent]` to build the candidate pool. New system queries `[C_MovementComponent]` and filters candidates by `entity_root.has_tag(detector.target_tag)`. Published fields stay: `is_player_in_range`, `last_detected_player_entity_id` (names kept for back-compat — they now mean "target in range" / "last detected target id" whenever `target_tag != &"player"`).
+
+- [ ] **Commit 1** (RED) — Write `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd`:
+  - Test: detector with `target_tag = &"prey"` flips `is_player_in_range = true` when an entity with `tags.has(&"prey")` is within `detection_radius`
+  - Test: detector with `target_tag = &"prey"` ignores an entity tagged only `&"herbivore"`
+  - Test: detector with `target_tag = &"player"` (default) still detects player-tagged entities (back-compat regression)
+  - Test: `last_detected_player_entity_id` matches the detected target's `BaseECSEntity.get_entity_id()`
   - Confirm tests fail before implementation.
-- [ ] **Commit 2** (GREEN) — Add `target_tag: StringName = &"player"` `@export` to `scripts/ecs/components/c_detection_component.gd`. Rewrite `scripts/ecs/systems/s_ai_detection_system.gd` proximity query to iterate `C_EntityTagComponent` holders whose `tags` contain `target_tag`. Publish `is_target_in_range` + `detected_entity_id` alongside legacy `is_player_in_range` + `last_detected_player_entity_id` (legacy aliases the new fields when `target_tag == &"player"`).
-- [ ] **Commit 3** (REGRESSION) — Run `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_detection_system.gd -gexit` and all AI integration suites to confirm no regressions.
+- [ ] **Commit 2** (GREEN) — Add `@export var target_tag: StringName = &"player"` to `scripts/ecs/components/c_detection_component.gd`. Rewrite the candidate-pool collection in `scripts/ecs/systems/s_ai_detection_system.gd`: iterate entities with `C_MovementComponent`, resolve each one's entity root via `U_ECSUtils.find_entity_root()`, and skip any whose root does not have `target_tag` in its tags. Preserve all published fields and flag/event dispatch paths.
+- [ ] **Commit 3** (REGRESSION) — Run `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_detection_system.gd -gexit` and all AI integration suites (`test_ai_interaction_triggers.gd`, `test_ai_demo_power_core.gd`, `test_ai_pipeline_integration.gd`) to confirm no regressions.
 
 ### P1b. Forest agent prefab + species instances
 
-**Goal**: Reusable base prefab for brain-bearing forest agents; three species-specific inheritors; a static tree prop.
+**Goal**: Base prefab for brain-bearing forest agents that inherits `tmpl_character.tscn` directly; three species-specific inheritors; a static tree prop.
 
-- [ ] **Commit 4** — Author `scenes/prefabs/prefab_forest_agent.tscn` inheriting `scenes/templates/tmpl_character.tscn`. Attach components: `C_InputComponent`, `C_MovementComponent` (with a new `resources/base_settings/ecs/cfg_movement_settings_forest.tres`), `C_AIBrainComponent`, `C_DetectionComponent`, `C_EntityTagComponent`, `C_FloatingComponent`, `C_SpawnRecoveryComponent`.
-- [ ] **Commit 5** — Author `scenes/prefabs/prefab_forest_wolf.tscn` (dark-gray CSGBox3D, `target_tag=&"prey"`, tag `&"predator"`), `prefab_forest_rabbit.tscn` (white, `target_tag=&"predator"`, tag `&"prey"`), `prefab_forest_deer.tscn` (brown, `target_tag=&"predator"`, tag `&"herbivore"`).
-- [ ] **Commit 6** — Author `scenes/prefabs/prefab_forest_tree.tscn` with a `StaticBody3D` root and a dark-green CSG cylinder mesh. No brain.
+- [ ] **Commit 4** — Author `scenes/prefabs/prefab_forest_agent.tscn` inheriting `scenes/templates/tmpl_character.tscn`. Root `E_ForestAgentRoot` (`BaseECSEntity`). Components to add (on top of what `tmpl_character` already provides):
+  - `C_InputComponent` (no settings required)
+  - `C_AIBrainComponent` (per-species `brain_settings` authored on inheritors)
+  - `C_DetectionComponent` (per-species `target_tag` + `detection_radius` authored on inheritors)
+  - `C_MoveTargetComponent` (primary move-target channel)
+  - New movement settings `resources/base_settings/ai_forest/cfg_movement_forest.tres` (tuned for top-down speed)
+  - **Omit** `C_SpawnRecoveryComponent` (no spawn points in this scene)
+- [ ] **Commit 5** — Author `prefab_forest_wolf.tscn` inheriting `prefab_forest_agent.tscn`. Override `E_ForestAgentRoot.tags = Array[StringName]([&"predator", &"ai", &"forest"])`, set `C_DetectionComponent.target_tag = &"prey"`, `detection_radius ≈ 12.0`, attach a dark-gray CSGBox3D as `Body_Mesh`.
+- [ ] **Commit 6** — Author `prefab_forest_rabbit.tscn` (tags `[&"prey", &"ai", &"forest"]`, `target_tag = &"predator"`, `detection_radius ≈ 8.0`, white CSGBox3D smaller than wolf).
+- [ ] **Commit 7** — Author `prefab_forest_deer.tscn` (tags `[&"herbivore", &"ai", &"forest"]`, `target_tag = &"predator"`, `detection_radius ≈ 10.0`, brown CSGBox3D).
+- [ ] **Commit 8** — Author `prefab_forest_tree.tscn` with `StaticBody3D` root and a dark-green CSGCylinder3D. No brain, no entity_id. Used as decoration + collider.
 
-### P1c. New AI actions (movement / flee / wander)
+### P1c. New AI actions
 
-**Goal**: The three new `I_AIAction` subclasses required for Phase 1 behaviors. Existing `RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan` cover the rest.
+**Goal**: Three new `I_AIAction` subclasses. Existing `RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan` cover the remaining behavior steps.
 
-- [ ] **Commit 7** (RED) — Write `tests/unit/ai/actions/test_ai_actions_forest.gd` with:
-  - Test: `RS_AIActionMoveToDetected` writes `task_state[U_AITaskStateKeys.MOVE_TARGET]` to the detected entity's world position when `C_DetectionComponent.is_target_in_range` is true
-  - Test: `RS_AIActionMoveToDetected` completes immediately with `push_error` when detection is stale (null `detected_entity_id`)
-  - Test: `RS_AIActionFleeFromDetected` writes move target at `pos + normalize(pos - detected_pos) * flee_distance`
-  - Test: `RS_AIActionWander` writes a move target inside a circle of radius `home_radius` centered at `home_position`
+- [ ] **Commit 9** (RED) — Write `tests/unit/ai/actions/test_ai_actions_forest.gd`:
+  - `RS_AIActionMoveToDetected`: reads detected entity position from the entity's `C_DetectionComponent`, writes `task_state[U_AITaskStateKeys.MOVE_TARGET]` + activates `C_MoveTargetComponent` on the same entity. Completes early with `push_error` when detection is stale (empty `last_detected_player_entity_id`).
+  - `RS_AIActionFleeFromDetected`: target = `self_pos + normalize(self_pos - detected_pos) * flee_distance`. Same writes as above.
+  - `RS_AIActionWander`: captures `home_position = entity.global_position` on first `start()` call (stored in `task_state["ai_wander_home"]`) and thereafter picks random points inside a circle of radius `home_radius`.
   - Confirm failing.
-- [ ] **Commit 8** (GREEN) — Implement `scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd`, `rs_ai_action_flee_from_detected.gd`, `rs_ai_action_wander.gd`. All three must `class_name` correctly, extend `I_AIAction`, use `U_AITaskStateKeys` constants (no raw strings), and resolve context paths via `U_PathResolver` where applicable.
+- [ ] **Commit 10** (GREEN) — Implement:
+  - `scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd`
+  - `scripts/resources/ai/actions/rs_ai_action_flee_from_detected.gd`
+  - `scripts/resources/ai/actions/rs_ai_action_wander.gd`
+  All extend `I_AIAction`, override `start/tick/is_complete`, use `U_AITaskStateKeys` constants (no raw strings — style rule). Add a new constant `WANDER_HOME := &"ai_wander_home"` to `scripts/utils/ai/u_ai_task_state_keys.gd` for the wander home-position scratchpad.
+- [ ] **Commit 11** (GREEN followup) — Update `RS_AIActionMoveToDetected` + `RS_AIActionFleeFromDetected` to set the target on `C_MoveTargetComponent` (primary channel) in addition to `task_state` (fallback), matching `RS_AIActionMoveTo`'s pattern.
 
 ### P1d. AI resources for each species
 
-**Goal**: Authored `.tres` goals + brain configs under `resources/ai/forest/`. Uses `RS_ConditionComponentField` (reused) for threat/prey checks.
+**Goal**: Authored `.tres` goals + brain configs under `resources/ai/forest/`. Uses `RS_ConditionComponentField` reading `C_DetectionComponent.is_player_in_range` for threat/prey checks. No `decision_group`.
 
-- [ ] **Commit 9** — Create `resources/ai/forest/shared/` goal resources: `cfg_goal_wander.tres`, `cfg_goal_graze.tres`, `cfg_goal_flee.tres`, `cfg_goal_hunt.tres`, `cfg_goal_startle.tres`. All share `decision_group = &"forest_action"`. Each references new/reused actions via `RS_AIPrimitiveTask` or `RS_AICompoundTask` as appropriate.
-- [ ] **Commit 10** — Create per-species brain configs: `resources/ai/forest/wolf/cfg_wolf_brain.tres` (`default_goal_id = &"wander"`, goals `[hunt, wander]`), `rabbit/cfg_rabbit_brain.tres` (`[flee, graze, wander]`), `deer/cfg_deer_brain.tres` (`[startle, graze, wander]`). All `RS_AIBrainSettings` instances.
+- [ ] **Commit 12** — Create `resources/ai/forest/shared/` goal resources:
+  - `cfg_goal_wander.tres` — `priority = 0`, constant condition score 0.3 (baseline), root_task = primitive wander
+  - `cfg_goal_flee.tres` — `priority = 10`, condition = `RS_ConditionComponentField` reading `C_DetectionComponent.is_player_in_range == true`, root_task = primitive flee-from-detected
+  - `cfg_goal_hunt.tres` — `priority = 10`, same condition pattern (detection-positive), root_task = compound `[move_to_detected, wait, move_to_detected]`
+  - `cfg_goal_graze.tres` — `priority = 2`, constant condition 0.5, root_task = wait-in-place
+  - `cfg_goal_startle.tres` — `priority = 8`, condition = detection-positive, `cooldown = 2.0`, root_task = `[scan_alert, wait_short]`
+- [ ] **Commit 13** — Create per-species brain configs:
+  - `resources/ai/forest/wolf/cfg_wolf_brain.tres` (`default_goal_id = &"wander"`, `goals = [hunt, wander]`)
+  - `resources/ai/forest/rabbit/cfg_rabbit_brain.tres` (`[flee, graze, wander]`)
+  - `resources/ai/forest/deer/cfg_deer_brain.tres` (`[startle, graze, wander]`)
+  All are `RS_AIBrainSettings` instances with `evaluation_interval = 0.25`.
 
-### P1e. Label3D + HUD overlay
+### P1e. Label3D + debug panel
 
-**Goal**: Per-agent floating label showing `entity_id + goal + task`, plus a 2D HUD that aggregates every brain.
+**Goal**: Per-agent floating label showing `entity_id + goal + task`, plus a separate debug Control that aggregates every brain. Both read `C_AIBrainComponent.get_debug_snapshot()` (already populated by `S_AIBehaviorSystem._build_brain_snapshot()` each tick).
 
-- [ ] **Commit 11** (RED) — Write `tests/unit/ui/hud/test_ui_ai_brain_debug_overlay.gd`:
-  - Test: overlay renders one row per brain entity discovered via `M_ECSManager.get_components(C_AIBrainComponent.COMPONENT_TYPE)`
-  - Test: overlay row text matches `entity_id` / `active_goal_id` / current task id
-  - Test: overlay gracefully handles empty brain list (no crash)
-- [ ] **Commit 12** (GREEN) — Implement `scripts/ui/hud/ui_ai_brain_debug_overlay.gd` and `scenes/ui/hud/ui_ai_brain_debug_overlay.tscn`. Pulls snapshots from `C_AIBrainComponent.get_debug_snapshot()` at 4 Hz via a `Timer`. VBoxContainer with one row per entity.
-- [ ] **Commit 13** — Implement `scripts/ui/hud/ui_forest_agent_label.gd` + `scenes/ui/hud/ui_forest_agent_label.tscn`. A `Label3D` (billboard-enabled, `fixed_size = true`, `no_depth_test = true`) attached per agent; updates text from the same snapshot each frame.
+- [ ] **Commit 14** (RED) — Write `tests/unit/debug/test_debug_ai_brain_panel.gd`:
+  - Test: panel renders one row per brain entity discovered via `M_ECSManager.get_components(C_AIBrainComponent.COMPONENT_TYPE)`
+  - Test: row text matches the snapshot's `entity_id` / `goal_id` / current `task_id`
+  - Test: panel gracefully handles an empty brain list (no crash)
+- [ ] **Commit 15** (GREEN) — Implement `scripts/debug/debug_ai_brain_panel.gd` and `scenes/debug/debug_ai_brain_panel.tscn`. Root is a `Control` (not a HUD widget). `VBoxContainer` with one row per brain, refreshed by a 4 Hz `Timer`.
+- [ ] **Commit 16** — Implement `scripts/debug/debug_forest_agent_label.gd` and `scenes/debug/debug_forest_agent_label.tscn`. A `Label3D` with `billboard = BILLBOARD_ENABLED`, `fixed_size = true`, `no_depth_test = true`, child of each agent's `E_ForestAgentRoot`. Text updated each frame from the agent's own `C_AIBrainComponent.get_debug_snapshot()`.
 
-### P1f. Scene assembly
+### P1f. Scene assembly + registry
 
-**Goal**: `gameplay_ai_forest.tscn` wired up end-to-end with only AI-essential systems.
+**Goal**: `gameplay_ai_forest.tscn` wired up end-to-end with only AI-essential systems; reachable through `M_SceneManager` via registry entry.
 
-- [ ] **Commit 14** — Author `scenes/gameplay/gameplay_ai_forest.tscn`:
+- [ ] **Commit 17** — Author `scenes/gameplay/gameplay_ai_forest.tscn`. Structure (each container node carries its matching marker script from `scripts/scene_structure/`):
   - Root `Node3D`
-  - `ECS_Manager` (`M_ECSManager`)
-  - `Systems/Core`: `S_AIBehaviorSystem`, `S_MoveTargetFollowerSystem`, `S_AIDetectionSystem`
-  - `Systems/Physics`: `S_GravitySystem`
-  - `Systems/Movement`: `S_MovementSystem`, `S_FloatingSystem`
-  - `World/Floor` (60×60 green CSGBox3D), `World/Walls` (4 invisible StaticBody3D borders), `World/Trees` (~30 `prefab_forest_tree.tscn` instances scattered)
-  - `Agents/Wolves` (4), `Agents/Rabbits` (8), `Agents/Deer` (6)
-  - `Camera/TopDownCamera` (Camera3D, `PROJECTION_ORTHOGONAL`, size 70, pos `(0, 40, 0)`, rot `(-90°, 0, 0)`, `current = true`)
-  - `Lighting/SunLight` (DirectionalLight3D)
-  - `UI/BrainDebugOverlay` (instance of `ui_ai_brain_debug_overlay.tscn`)
-- [ ] **Commit 15** (SMOKE TEST) — Add `tests/integration/gameplay/test_forest_ecosystem_smoke.gd`: loads the scene, awaits `process_frame` × 2, steps physics 60 frames, asserts every brain entity has a non-empty task queue and non-empty `active_goal_id`.
+  - `Managers` (`marker_managers_group.gd`) — `M_ECSManager`
+  - `Systems` (`marker_systems_group.gd`)
+    - `Systems/Core` (`marker_systems_core_group.gd`) — `S_AIBehaviorSystem`, `S_MoveTargetFollowerSystem`, `S_AIDetectionSystem`
+    - `Systems/Physics` (`marker_systems_physics_group.gd`) — `S_GravitySystem`
+    - `Systems/Movement` (`marker_systems_movement_group.gd`) — `S_MovementSystem`, `S_FloatingSystem`
+  - `Environment` (`marker_environment_group.gd`) — `Floor` (60×60 green CSGBox3D), `Walls` (4 invisible StaticBody3D borders), `Trees` (~30 `prefab_forest_tree.tscn` instances)
+  - `Entities` (`marker_entities_group.gd`) — Wolves (×4), Rabbits (×8), Deer (×6)
+  - `Lighting` (`marker_lighting_group.gd`) — `SunLight` (DirectionalLight3D downward)
+  - `Camera` — `TopDownCamera` (Camera3D, `projection = PROJECTION_ORTHOGONAL`, `size = 70`, `position = (0, 40, 0)`, `rotation_degrees = (-90, 0, 0)`, `current = true`)
+  - `Debug` — instance of `debug_ai_brain_panel.tscn`
+- [ ] **Commit 18** — Register scene. Create `resources/scene_registry/cfg_ai_forest_entry.tres` (mirroring `cfg_ai_showcase_entry.tres`):
+  - `scene_id = &"ai_forest"`
+  - `scene_path = "res://scenes/gameplay/gameplay_ai_forest.tscn"`
+  - `scene_type = 1` (GAMEPLAY)
+  - `default_transition = "loading"`
+  - `preload_priority = 0` (on-demand)
+- [ ] **Commit 19** (SMOKE TEST) — `tests/integration/gameplay/test_forest_ecosystem_smoke.gd`: load the scene via `M_SceneManager`, await `process_frame × 2`, step physics 60 frames, assert every brain entity has a non-empty `current_task_queue` and `active_goal_id != StringName()`.
 
 ### Phase 1 verification
 
@@ -98,54 +137,58 @@
 
 ### P2a. `C_NeedsComponent` + `RS_NeedsSettings` + `S_NeedsSystem`
 
-- [ ] **Commit 16** (RED) — `tests/unit/ecs/components/test_c_needs_component.gd`: hunger initializes to `settings.initial_hunger`, clamps to `[0, 1]`, survives validation when `settings` is assigned.
-- [ ] **Commit 17** (RED) — `tests/unit/ecs/systems/test_s_needs_system.gd`: hunger decays at `decay_per_second × delta`, clamps at 0, multiple entities tick independently.
-- [ ] **Commit 18** (GREEN) — Author `scripts/resources/ecs/rs_needs_settings.gd` with exports `initial_hunger`, `decay_per_second`, `sated_threshold`, `starving_threshold`, `gain_on_feed`. Author `scripts/ecs/components/c_needs_component.gd` (extends `BaseECSComponent`, validates `settings != null`). Author `scripts/ecs/systems/s_needs_system.gd` (`SystemPhase.PRE_PHYSICS`).
-- [ ] **Commit 19** — Wire `C_NeedsComponent` onto `prefab_forest_agent.tscn` with a per-species settings resource at `resources/base_settings/ai_forest/cfg_needs_{wolf,rabbit,deer}.tres`. Add `S_NeedsSystem` to `Systems/Core` in the forest scene.
+- [ ] **Commit 20** (RED) — `tests/unit/ecs/components/test_c_needs_component.gd`: hunger initializes to `settings.initial_hunger`, clamps to `[0, 1]`, validates when `settings` is non-null.
+- [ ] **Commit 21** (RED) — `tests/unit/ecs/systems/test_s_needs_system.gd`: hunger decays at `decay_per_second × delta`, clamps at 0, multiple entities tick independently.
+- [ ] **Commit 22** (GREEN) — Author:
+  - `scripts/resources/ecs/rs_needs_settings.gd` — exports `initial_hunger`, `decay_per_second`, `sated_threshold`, `starving_threshold`, `gain_on_feed`
+  - `scripts/ecs/components/c_needs_component.gd` — extends `BaseECSComponent`, exports `settings: RS_NeedsSettings`, runtime `hunger: float`, validates `settings != null`
+  - `scripts/ecs/systems/s_needs_system.gd` — `SystemPhase.PRE_PHYSICS`, ticks hunger per entity
+- [ ] **Commit 23** — Wire `C_NeedsComponent` onto `prefab_forest_agent.tscn` with per-species settings: `resources/base_settings/ai_forest/cfg_needs_{wolf,rabbit,deer}.tres`. Add `S_NeedsSystem` to `Systems/Core` in the forest scene.
 
 ### P2b. Goal scoring via hunger
 
-- [ ] **Commit 20** (RED) — `tests/unit/ai/integration/test_hunger_drives_goal_score.gd`: hungry wolf (hunger below `sated_threshold`) selects `hunt` over `wander`; sated wolf selects `wander`. Same test for rabbit `graze`.
-- [ ] **Commit 21** (GREEN) — Update `cfg_goal_hunt.tres` and `cfg_goal_graze.tres` to include a `RS_ConditionComponentField` reading `C_NeedsComponent.hunger` with an inverse response curve (lower hunger → higher score).
-- [ ] **Commit 22** — New action `scripts/resources/ai/actions/rs_ai_action_feed.gd`: increments `C_NeedsComponent.hunger` by `settings.gain_on_feed`, clamps to `[0,1]`, completes immediately. Wire into `hunt`/`graze` compound tasks' final step.
+- [ ] **Commit 24** (RED) — `tests/unit/ai/integration/test_hunger_drives_goal_score.gd`: a hungry wolf (hunger below `sated_threshold`) selects `hunt` over `wander`; a sated wolf picks `wander`. Mirror test for rabbit `graze`.
+- [ ] **Commit 25** (GREEN) — Update `cfg_goal_hunt.tres` and `cfg_goal_graze.tres` to include an additional `RS_ConditionComponentField` reading `C_NeedsComponent.hunger` — score is `(1 - hunger)` mapped through `range_min/range_max`, so lower hunger = higher score.
+- [ ] **Commit 26** — New action `scripts/resources/ai/actions/rs_ai_action_feed.gd`: increments `C_NeedsComponent.hunger` by `settings.gain_on_feed`, clamps to `[0,1]`, completes immediately. Appended as the final step in `hunt`/`graze` compound tasks.
 
-### P2c. HUD hunger display
+### P2c. Debug panel hunger display
 
-- [ ] **Commit 23** — Extend `ui_ai_brain_debug_overlay.gd` + `ui_forest_agent_label.gd` to show hunger with color coding (green > sated, yellow mid, red < starving).
-- [ ] **Commit 24** — Test update for overlay + label reflecting hunger.
+- [ ] **Commit 27** — Extend `debug_ai_brain_panel.gd` + `debug_forest_agent_label.gd` to show hunger with color coding: green above `sated_threshold`, yellow between thresholds, red below `starving_threshold`.
+- [ ] **Commit 28** — Test update for panel + label reflecting hunger state.
 
 ### Phase 2 verification
 
 - [ ] Full unit + integration suites green
 - [ ] Visual: agents visibly fluctuate between `wander` and `hunt`/`graze` over time
-- [ ] HUD hunger bars update
+- [ ] Debug panel hunger colors update
 
 ---
 
 ## Phase 3 — Emergent pack behavior + polish
 
-### P3a. Wolf pack detection
+### P3a. Multi-detection-component support
 
-- [ ] **Commit 25** — Add a second `C_DetectionComponent` child to `prefab_forest_wolf.tscn` with `target_tag = &"predator"` and a wider `detection_radius`. Distinguish via a `detection_role` string field on the component (new export: `detection_role: StringName`) — values `"primary"` (prey detection) and `"pack"` (ally detection).
-- [ ] **Commit 26** (RED) — Update `S_AIDetectionSystem` tests to handle multiple detection components per entity, keyed by `detection_role`.
-- [ ] **Commit 27** (GREEN) — Update system to iterate all `C_DetectionComponent` instances per entity instead of assuming one.
+- [ ] **Commit 29** — Extend `C_DetectionComponent` with an optional `detection_role: StringName = &"primary"` export (purely informational; `is_player_in_range` + `last_detected_player_entity_id` stay per-component). Update `S_AIDetectionSystem` to iterate *all* `C_DetectionComponent` instances per entity rather than assuming one.
+- [ ] **Commit 30** (RED) — Update `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd` (and add a new `test_s_ai_detection_system_multi_component.gd` if needed): one entity with two detection components, each `target_tag` different, each publishes independent state.
+- [ ] **Commit 31** (GREEN) — Implement multi-component iteration; preserve all back-compat fields per component.
 
 ### P3b. Pack-hunt goal
 
-- [ ] **Commit 28** — Author `cfg_goal_hunt_pack.tres` with `decision_group = &"forest_action"`, scoring: base hunt + bonus when `pack_detection.is_target_in_range && needs.hunger < sated_threshold`. Shares the decision group with solo `hunt` so only one fires per tick.
-- [ ] **Commit 29** (RED) — `tests/unit/ai/integration/test_pack_converges.gd`: two wolves within pack-detection radius, one rabbit in prey-detection radius → both wolves select hunt with the same `detected_entity_id` within 2 seconds of sim.
-- [ ] **Commit 30** (GREEN) — Tune scoring + cooldowns until test passes.
+- [ ] **Commit 32** — Add a second `C_DetectionComponent` child to `prefab_forest_wolf.tscn` with `target_tag = &"predator"`, wider `detection_radius ≈ 18.0`, `detection_role = &"pack"`. Both detection components coexist on the wolf; goal conditions read both via `field_path = "detection_role_primary/is_player_in_range"` pattern (or equivalent — depends on exact multi-component exposure chosen in P3a).
+- [ ] **Commit 33** — Author `cfg_goal_hunt_pack.tres`: `priority = 12` (beats solo `hunt` at 10 when its condition passes), `cooldown = 1.0` to prevent thrash with solo `hunt`, conditions = (pack-detection positive) AND (prey-detection positive) AND (hunger below sated_threshold from Phase 2).
+- [ ] **Commit 34** (RED) — `tests/unit/ai/integration/test_pack_converges.gd`: two wolves within pack-detection radius of each other plus one rabbit in prey-detection radius → both wolves select hunt with the same `detected_entity_id` within 2 seconds of sim.
+- [ ] **Commit 35** (GREEN) — Tune priorities, cooldowns, and detection radii until test passes without thrashing.
 
 ### P3c. Polish
 
-- [ ] **Commit 31** — Tune `detection_radius`, `flee_distance`, `home_radius`, `decay_per_second` across species until visual behavior feels right. Document tuned values in the overview doc.
-- [ ] **Commit 32** — Full regression pass + doc update.
+- [ ] **Commit 36** — Tune `detection_radius`, `flee_distance`, `home_radius`, `decay_per_second` across species until visual behavior feels right. Document final tuned values in `ai-forest-overview.md`.
+- [ ] **Commit 37** — Full regression pass + doc update.
 
 ### Phase 3 verification
 
 - [ ] Full unit + integration suites green
-- [ ] Visual: two wolves visibly converge on same rabbit when near each other
-- [ ] No goal thrashing in HUD log
+- [ ] Visual: two wolves visibly converge on the same rabbit when near each other
+- [ ] No goal thrashing visible in the debug panel
 
 ---
 
@@ -164,8 +207,11 @@ tools/run_gut_suite.sh -gdir=res://tests/integration/gameplay -ginclude_subdirs 
 # Style enforcement
 tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit
 
-# Manual visual
+# Manual visual (direct)
 /Applications/Godot.app/Contents/MacOS/Godot --path . scenes/gameplay/gameplay_ai_forest.tscn
+
+# Manual visual (via scene manager, once registered)
+# — run the game and call M_SceneManager.load_scene(&"ai_forest")
 ```
 
 ---
@@ -175,6 +221,6 @@ tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -
 Whenever a phase finishes:
 1. Mark every task `[x]` with a short completion note (line count, test IDs, caveats).
 2. Update `docs/ai_forest/ai-forest-continuation-prompt.md` with the new current phase + next task.
-3. Update `AGENTS.md` if new patterns or contracts emerge (e.g. multi-detection-component contract in Phase 3).
+3. Update `AGENTS.md` if new patterns or contracts emerge (e.g. multi-detection-component contract in Phase 3, new `WANDER_HOME` task-state key).
 4. Update `docs/general/DEV_PITFALLS.md` if anything non-obvious is learned.
 5. Commit doc updates separately from implementation commits.
