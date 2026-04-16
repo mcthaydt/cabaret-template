@@ -23,7 +23,7 @@ func get_phase() -> BaseECSSystem.SystemPhase:
 	return BaseECSSystem.SystemPhase.PRE_PHYSICS
 
 func process_tick(_delta: float) -> void:
-	var player_entries: Array[Dictionary] = _collect_player_entries()
+	var target_entries: Array[Dictionary] = _collect_target_entries()
 	var entities: Array = query_entities(
 		[DETECTION_COMPONENT_TYPE, MOVEMENT_COMPONENT_TYPE]
 	)
@@ -43,18 +43,19 @@ func process_tick(_delta: float) -> void:
 
 		var detection: C_DetectionComponent = detection_variant
 		var movement: C_MovementComponent = movement_variant
-		_process_detection(query, detection, movement, player_entries)
+		_process_detection(query, detection, movement, target_entries)
 
-func _collect_player_entries() -> Array[Dictionary]:
+func _collect_target_entries() -> Array[Dictionary]:
 	var results: Array[Dictionary] = []
-	var players: Array = query_entities(
-		[PLAYER_TAG_COMPONENT_TYPE, MOVEMENT_COMPONENT_TYPE]
+	var candidates: Array = query_entities(
+		[MOVEMENT_COMPONENT_TYPE],
+		[PLAYER_TAG_COMPONENT_TYPE]
 	)
-	for player_query_variant in players:
-		if player_query_variant == null or not (player_query_variant is Object):
+	for candidate_query_variant in candidates:
+		if candidate_query_variant == null or not (candidate_query_variant is Object):
 			continue
-		var player_query: Object = player_query_variant as Object
-		var movement_variant: Variant = player_query.call("get_component", MOVEMENT_COMPONENT_TYPE)
+		var candidate_query: Object = candidate_query_variant as Object
+		var movement_variant: Variant = candidate_query.call("get_component", MOVEMENT_COMPONENT_TYPE)
 		if not (movement_variant is C_MOVEMENT_COMPONENT):
 			continue
 		var movement: C_MovementComponent = movement_variant
@@ -62,14 +63,31 @@ func _collect_player_entries() -> Array[Dictionary]:
 		if body == null or not is_instance_valid(body):
 			continue
 
-		var entity_id: StringName = StringName("")
-		var entity_variant: Variant = player_query.get("entity")
+		var entity_root: Node = null
+		var entity_variant: Variant = candidate_query.get("entity")
 		if entity_variant is Node:
+			entity_root = U_ECS_UTILS.find_entity_root(entity_variant as Node)
+
+		var entity_id: StringName = StringName("")
+		if entity_root != null:
+			entity_id = U_ECS_UTILS.get_entity_id(entity_root)
+		elif entity_variant is Node:
 			entity_id = U_ECS_UTILS.get_entity_id(entity_variant as Node)
+
+		var tags: Array[StringName] = []
+		if entity_root != null:
+			tags = U_ECS_UTILS.get_entity_tags(entity_root)
+
+		var has_player_tag: bool = false
+		var player_tag_variant: Variant = candidate_query.call("get_component", PLAYER_TAG_COMPONENT_TYPE)
+		if player_tag_variant is C_PLAYER_TAG_COMPONENT:
+			has_player_tag = true
 
 		results.append({
 			"entity_id": entity_id,
 			"position": body.global_position,
+			"tags": tags,
+			"has_player_tag": has_player_tag,
 		})
 	return results
 
@@ -77,25 +95,26 @@ func _process_detection(
 	query: Object,
 	detection: C_DetectionComponent,
 	movement: C_MovementComponent,
-	player_entries: Array[Dictionary]
+	target_entries: Array[Dictionary]
 ) -> void:
 	var body: CharacterBody3D = movement.get_character_body()
 	if body == null or not is_instance_valid(body):
 		return
 
-	var nearest_player: Dictionary = _resolve_nearest_player(
+	var nearest_target: Dictionary = _resolve_nearest_target(
 		body.global_position,
 		detection.detect_y_axis,
 		detection.detection_radius,
-		player_entries
+		detection.target_tag,
+		target_entries
 	)
-	var is_in_range: bool = bool(nearest_player.get("in_range", false))
+	var is_in_range: bool = bool(nearest_target.get("in_range", false))
 
 	if is_in_range and not detection.is_player_in_range:
 		detection.is_player_in_range = true
-		detection.last_detected_player_entity_id = nearest_player.get("entity_id", StringName(""))
+		detection.last_detected_player_entity_id = nearest_target.get("entity_id", StringName(""))
 		_dispatch_flag(detection.ai_flag_id, detection.enter_flag_value)
-		_publish_enter_event(query, detection, nearest_player)
+		_publish_enter_event(query, detection, nearest_target)
 		return
 
 	if (not is_in_range) and detection.is_player_in_range:
@@ -104,18 +123,21 @@ func _process_detection(
 		if detection.set_flag_on_exit:
 			_dispatch_flag(detection.ai_flag_id, detection.exit_flag_value)
 
-func _resolve_nearest_player(
+func _resolve_nearest_target(
 	origin: Vector3,
 	use_y_axis: bool,
 	detection_radius: float,
-	player_entries: Array[Dictionary]
+	target_tag: StringName,
+	target_entries: Array[Dictionary]
 ) -> Dictionary:
 	var best_distance: float = INF
 	var nearest_entity_id: StringName = StringName("")
-	for entry_variant in player_entries:
+	for entry_variant in target_entries:
 		if not (entry_variant is Dictionary):
 			continue
 		var entry: Dictionary = entry_variant as Dictionary
+		if not _entry_matches_target(entry, target_tag):
+			continue
 		var player_position_variant: Variant = entry.get("position", null)
 		if not (player_position_variant is Vector3):
 			continue
@@ -131,6 +153,20 @@ func _resolve_nearest_player(
 		"distance": best_distance,
 		"entity_id": nearest_entity_id,
 	}
+
+func _entry_matches_target(entry: Dictionary, target_tag: StringName) -> bool:
+	if target_tag == StringName(""):
+		return false
+	if target_tag == StringName("player") and bool(entry.get("has_player_tag", false)):
+		return true
+
+	var tags_variant: Variant = entry.get("tags", [])
+	if not (tags_variant is Array):
+		return false
+	for tag_variant in (tags_variant as Array):
+		if StringName(str(tag_variant)) == target_tag:
+			return true
+	return false
 
 func _distance(a: Vector3, b: Vector3, use_y_axis: bool) -> float:
 	if use_y_axis:

@@ -7,6 +7,7 @@ const COMPONENT_TYPE := StringName("C_DetectionComponent")
 @export_group("Radius")
 @export_range(0.1, 100.0, 0.1, "or_greater") var detection_radius: float = 8.0
 @export var detect_y_axis: bool = false
+@export var target_tag: StringName = StringName("player")
 
 @export_group("Flag Dispatch")
 @export var ai_flag_id: StringName = StringName("")
