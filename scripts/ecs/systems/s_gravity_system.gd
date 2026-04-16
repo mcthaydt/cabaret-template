@@ -22,6 +22,9 @@ const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_thr
 
 var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.PHYSICS_SOLVE
+
 func process_tick(delta: float) -> void:
 	_debug_log_throttle.tick(delta)
 	# Use injected store if available (Phase 10B-8)

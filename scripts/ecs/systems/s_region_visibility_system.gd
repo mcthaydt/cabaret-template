@@ -53,6 +53,9 @@ func _init() -> void:
 	_perf_probe = U_PerfProbe.create("RegionVis", _is_mobile)
 	_fade_probe = U_PerfProbe.create("RegionFadeApply", _is_mobile)
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.CAMERA
+
 func process_tick(delta: float) -> void:
 	# Mobile throttle: skip frames to reduce CPU load
 	_tick_counter += 1

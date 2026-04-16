@@ -33,6 +33,9 @@ var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 func _init() -> void:
 	execution_priority = 75
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.POST_PHYSICS
+
 func process_tick(delta: float) -> void:
 	_debug_log_throttle.tick(delta)
 

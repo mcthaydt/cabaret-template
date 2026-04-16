@@ -14,6 +14,9 @@ var _rng := RandomNumberGenerator.new()
 func _init() -> void:
 	_rng.randomize()
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.POST_PHYSICS
+
 func on_configured() -> void:
 	_subscribe_events()
 

@@ -21,6 +21,9 @@ var _button_map: Dictionary = {}
 var _last_jump_pressed: bool = false
 var _last_touch_look_active: bool = false
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.INPUT
+
 func on_configured() -> void:
 	_ensure_state_store_ready()
 

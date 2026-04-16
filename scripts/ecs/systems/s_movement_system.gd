@@ -42,6 +42,9 @@ func _init() -> void:
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
 	_perf_probe = U_PerfProbe.create("S_MovementSystem", _is_mobile)
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.PHYSICS_SOLVE
+
 func process_tick(delta: float) -> void:
 	_perf_probe.start()
 	_diag_frame_counter += 1

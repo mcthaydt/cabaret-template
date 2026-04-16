@@ -30,6 +30,9 @@ func _exit_tree() -> void:
 	_unsubscribe_from_actions()
 	requests.clear()
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func _subscribe_to_actions() -> void:
 	_unsubscribe_from_actions()
 	var store_variant: Variant = U_ServiceLocator.try_get_service(StringName("state_store"))

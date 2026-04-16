@@ -125,6 +125,9 @@ func on_configured() -> void:
 		RS_VCAM_MODE_ORBIT_SCRIPT
 	)
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.CAMERA
+
 func process_tick(delta: float) -> void:
 	_debug_helper.configure(debug_rotation_logging, debug_rotation_log_interval_sec)
 	_debug_helper.tick(delta)

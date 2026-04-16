@@ -19,6 +19,9 @@ var _store: I_StateStore = null
 func _init() -> void:
 	execution_priority = -12
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.PRE_PHYSICS
+
 func process_tick(_delta: float) -> void:
 	var player_entries: Array[Dictionary] = _collect_player_entries()
 	var entities: Array = query_entities(

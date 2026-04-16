@@ -20,6 +20,10 @@ const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 @export var state_store: I_StateStore = null
 
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.PHYSICS_SOLVE
+
+
 func process_tick(__delta: float) -> void:
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null

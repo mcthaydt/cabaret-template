@@ -59,6 +59,9 @@ func on_configured() -> void:
 	_camera_manager = _resolve_camera_manager()
 	_rule_applier.configure(camera_state_config)
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.CAMERA
+
 func _exit_tree() -> void:
 	_rule_evaluator.unsubscribe()
 

@@ -16,6 +16,9 @@ func _init() -> void:
 	if game_config == null:
 		game_config = RS_GameConfig.new()
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func process_tick(__delta: float) -> void:
 	# Victory processing is event-driven via ECSEventBus.
 	pass

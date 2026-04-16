@@ -53,6 +53,9 @@ func _coerce_rules(value: Variant) -> Array[RS_Rule]:
 			coerced.append(rule_variant as RS_Rule)
 	return coerced
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.POST_PHYSICS
+
 func on_configured() -> void:
 	_refresh_rule_evaluator()
 	_subscribe_rule_events()

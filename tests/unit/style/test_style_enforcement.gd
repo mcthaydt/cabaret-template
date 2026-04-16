@@ -1971,3 +1971,30 @@ func test_vcam_system_has_no_resolve_runtime_rotation_for_evaluation() -> void:
 	file.close()
 	assert_false(source.find("func _resolve_runtime_rotation_for_evaluation(") >= 0,
 		"S_VCamSystem should not have dead _resolve_runtime_rotation_for_evaluation method")
+
+func test_all_ecs_systems_declare_explicit_phase() -> void:
+	var violations: Array[String] = []
+	var dir := DirAccess.open("res://scripts/ecs/systems/")
+	if dir == null:
+		push_error("Cannot open scripts/ecs/systems/ directory")
+		assert_false(true, "Directory access failed")
+		return
+	dir.include_navigational = false
+	dir.include_hidden = false
+	var filename := dir.get_next()
+	while filename != "":
+		if not filename.ends_with(".gd") or not filename.begins_with("s_"):
+			filename = dir.get_next()
+			continue
+		var file_path := "res://scripts/ecs/systems/" + filename
+		var file := FileAccess.open(file_path, FileAccess.READ)
+		if file == null:
+			violations.append("%s: cannot open file" % filename)
+			filename = dir.get_next()
+			continue
+		var source := file.get_as_text()
+		file.close()
+		if source.find("func get_phase()") < 0:
+			violations.append("%s: missing get_phase() override" % filename)
+		filename = dir.get_next()
+	assert_eq(violations.size(), 0, "Every S_* system must declare get_phase(): %s" % [violations])

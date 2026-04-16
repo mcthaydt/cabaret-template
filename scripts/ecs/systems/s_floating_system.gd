@@ -42,6 +42,9 @@ func _init() -> void:
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
 	_perf_probe = U_PerfProbe.create("S_FloatingSystem", _is_mobile)
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.PHYSICS_SOLVE
+
 func process_tick(delta: float) -> void:
 	# Mobile throttle: skip every Nth physics tick to reduce raycast overhead
 	_tick_counter += 1

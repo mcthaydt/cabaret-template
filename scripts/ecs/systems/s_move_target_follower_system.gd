@@ -29,6 +29,9 @@ var _nav_timer_by_entity: Dictionary = {}
 func _init() -> void:
 	execution_priority = -5
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.PRE_PHYSICS
+
 func process_tick(delta: float) -> void:
 	_debug_log_throttle.tick(delta)
 	var entities: Array = query_entities([

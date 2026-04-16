@@ -19,6 +19,8 @@ func on_configured() -> void:
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
 	_perf_probe = U_PerfProbe.create("S_LandingIndicator", _is_mobile)
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
 
 func process_tick(__delta: float) -> void:
 	_tick_counter += 1

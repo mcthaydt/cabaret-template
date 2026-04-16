@@ -82,6 +82,10 @@ func on_configured() -> void:
 	_camera_manager = _resolve_camera_manager()
 
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.CAMERA
+
+
 func process_tick(delta: float) -> void:
 	var components: Array = get_components(ROOM_FADE_GROUP_TYPE)
 	if components.is_empty():

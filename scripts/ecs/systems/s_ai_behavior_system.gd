@@ -40,6 +40,9 @@ func _init() -> void:
 	_rule_pool = _goal_selector.get_rule_pool()
 	_goal_by_id_cache = _goal_selector.get_goal_cache()
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.PRE_PHYSICS
+
 func process_tick(delta: float) -> void:
 	_debug_log_throttle.tick(delta)
 	_tracker.tick_cooldowns(delta)

@@ -15,6 +15,9 @@ var _event_unsubscribes: Array[Callable] = []
 func _init() -> void:
 	execution_priority = 250
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func on_configured() -> void:
 	_subscribe_events()
 

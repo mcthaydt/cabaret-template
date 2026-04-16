@@ -50,6 +50,9 @@ var _sprint_toggled_on: bool = false
 var _sprint_button_was_pressed: bool = false
 var _debug_log_cooldown_sec: float = 0.0
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.INPUT
+
 func on_configured() -> void:
 	_validate_required_actions()
 	_ensure_state_store_ready()
