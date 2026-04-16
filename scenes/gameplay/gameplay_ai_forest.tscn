@@ -1,0 +1,296 @@
+[gd_scene load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_managers_group.gd" id="1_marker_managers"]
+[ext_resource type="Script" path="res://scripts/managers/m_ecs_manager.gd" id="2_ecs_manager"]
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_systems_group.gd" id="3_marker_systems"]
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_systems_core_group.gd" id="4_marker_systems_core"]
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_systems_physics_group.gd" id="5_marker_systems_physics"]
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_systems_movement_group.gd" id="6_marker_systems_movement"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="7_ai_behavior_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_move_target_follower_system.gd" id="8_move_target_follower_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_ai_detection_system.gd" id="9_ai_detection_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_gravity_system.gd" id="10_gravity_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_movement_system.gd" id="11_movement_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_floating_system.gd" id="12_floating_system"]
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_environment_group.gd" id="13_marker_environment"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_forest_tree.tscn" id="14_tree_prefab"]
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_entities_group.gd" id="15_marker_entities"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_forest_wolf.tscn" id="16_wolf_prefab"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_forest_rabbit.tscn" id="17_rabbit_prefab"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_forest_deer.tscn" id="18_deer_prefab"]
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_lighting_group.gd" id="19_marker_lighting"]
+[ext_resource type="PackedScene" path="res://scenes/debug/debug_ai_brain_panel.tscn" id="20_debug_panel"]
+
+[sub_resource type="StandardMaterial3D" id="1_floor_material"]
+shading_mode = 0
+albedo_color = Color(0.207843, 0.384314, 0.223529, 1)
+
+[sub_resource type="BoxShape3D" id="2_wall_shape_ns"]
+size = Vector3(60, 4, 1)
+
+[sub_resource type="BoxShape3D" id="3_wall_shape_ew"]
+size = Vector3(1, 4, 60)
+
+[node name="GameplayAIForest" type="Node3D"]
+
+[node name="Managers" type="Node" parent="."]
+script = ExtResource("1_marker_managers")
+
+[node name="M_ECSManager" type="Node" parent="Managers"]
+script = ExtResource("2_ecs_manager")
+
+[node name="Systems" type="Node" parent="."]
+script = ExtResource("3_marker_systems")
+
+[node name="Core" type="Node" parent="Systems"]
+script = ExtResource("4_marker_systems_core")
+
+[node name="S_AIDetectionSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("9_ai_detection_system")
+execution_priority = -12
+
+[node name="S_AIBehaviorSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("7_ai_behavior_system")
+execution_priority = -10
+
+[node name="S_MoveTargetFollowerSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("8_move_target_follower_system")
+execution_priority = -5
+
+[node name="Physics" type="Node" parent="Systems"]
+script = ExtResource("5_marker_systems_physics")
+
+[node name="S_GravitySystem" type="Node" parent="Systems/Physics"]
+script = ExtResource("10_gravity_system")
+
+[node name="Movement" type="Node" parent="Systems"]
+script = ExtResource("6_marker_systems_movement")
+
+[node name="S_MovementSystem" type="Node" parent="Systems/Movement"]
+script = ExtResource("11_movement_system")
+
+[node name="S_FloatingSystem" type="Node" parent="Systems/Movement"]
+script = ExtResource("12_floating_system")
+
+[node name="Environment" type="Node3D" parent="."]
+script = ExtResource("13_marker_environment")
+
+[node name="Floor" type="CSGBox3D" parent="Environment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+material = SubResource("1_floor_material")
+use_collision = true
+size = Vector3(60, 1, 60)
+
+[node name="Walls" type="Node3D" parent="Environment"]
+
+[node name="WallNorth" type="StaticBody3D" parent="Environment/Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -30)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/Walls/WallNorth"]
+shape = SubResource("2_wall_shape_ns")
+
+[node name="WallSouth" type="StaticBody3D" parent="Environment/Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 30)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/Walls/WallSouth"]
+shape = SubResource("2_wall_shape_ns")
+
+[node name="WallEast" type="StaticBody3D" parent="Environment/Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 2, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/Walls/WallEast"]
+shape = SubResource("3_wall_shape_ew")
+
+[node name="WallWest" type="StaticBody3D" parent="Environment/Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 2, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/Walls/WallWest"]
+shape = SubResource("3_wall_shape_ew")
+
+[node name="Trees" type="Node3D" parent="Environment"]
+
+[node name="Tree_01" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, -24)
+
+[node name="Tree_02" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, -12)
+
+[node name="Tree_03" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, 0)
+
+[node name="Tree_04" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, 12)
+
+[node name="Tree_05" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, 24)
+
+[node name="Tree_06" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -24)
+
+[node name="Tree_07" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -12)
+
+[node name="Tree_08" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 0)
+
+[node name="Tree_09" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 12)
+
+[node name="Tree_10" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 24)
+
+[node name="Tree_11" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -24)
+
+[node name="Tree_12" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+
+[node name="Tree_13" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12)
+
+[node name="Tree_14" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 24)
+
+[node name="Tree_15" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -24)
+
+[node name="Tree_16" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -12)
+
+[node name="Tree_17" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 0)
+
+[node name="Tree_18" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 12)
+
+[node name="Tree_19" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 24)
+
+[node name="Tree_20" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, -24)
+
+[node name="Tree_21" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, -12)
+
+[node name="Tree_22" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 0)
+
+[node name="Tree_23" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 12)
+
+[node name="Tree_24" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 24)
+
+[node name="Tree_25" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -18)
+
+[node name="Tree_26" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 18)
+
+[node name="Tree_27" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -18)
+
+[node name="Tree_28" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 18)
+
+[node name="Tree_29" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, 6)
+
+[node name="Tree_30" parent="Environment/Trees" instance=ExtResource("14_tree_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, -6)
+
+[node name="Entities" type="Node3D" parent="."]
+script = ExtResource("15_marker_entities")
+
+[node name="Wolf_01" parent="Entities" instance=ExtResource("16_wolf_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1, -18)
+entity_id = &"forest_wolf_01"
+
+[node name="Wolf_02" parent="Entities" instance=ExtResource("16_wolf_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1, 18)
+entity_id = &"forest_wolf_02"
+
+[node name="Wolf_03" parent="Entities" instance=ExtResource("16_wolf_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1, -18)
+entity_id = &"forest_wolf_03"
+
+[node name="Wolf_04" parent="Entities" instance=ExtResource("16_wolf_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1, 18)
+entity_id = &"forest_wolf_04"
+
+[node name="Rabbit_01" parent="Entities" instance=ExtResource("17_rabbit_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1, -4)
+entity_id = &"forest_rabbit_01"
+
+[node name="Rabbit_02" parent="Entities" instance=ExtResource("17_rabbit_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1, 7)
+entity_id = &"forest_rabbit_02"
+
+[node name="Rabbit_03" parent="Entities" instance=ExtResource("17_rabbit_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1, -7)
+entity_id = &"forest_rabbit_03"
+
+[node name="Rabbit_04" parent="Entities" instance=ExtResource("17_rabbit_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1, 4)
+entity_id = &"forest_rabbit_04"
+
+[node name="Rabbit_05" parent="Entities" instance=ExtResource("17_rabbit_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, -10)
+entity_id = &"forest_rabbit_05"
+
+[node name="Rabbit_06" parent="Entities" instance=ExtResource("17_rabbit_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, -2)
+entity_id = &"forest_rabbit_06"
+
+[node name="Rabbit_07" parent="Entities" instance=ExtResource("17_rabbit_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 2)
+entity_id = &"forest_rabbit_07"
+
+[node name="Rabbit_08" parent="Entities" instance=ExtResource("17_rabbit_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 10)
+entity_id = &"forest_rabbit_08"
+
+[node name="Deer_01" parent="Entities" instance=ExtResource("18_deer_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 1, 0)
+entity_id = &"forest_deer_01"
+
+[node name="Deer_02" parent="Entities" instance=ExtResource("18_deer_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 1, 0)
+entity_id = &"forest_deer_02"
+
+[node name="Deer_03" parent="Entities" instance=ExtResource("18_deer_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -14)
+entity_id = &"forest_deer_03"
+
+[node name="Deer_04" parent="Entities" instance=ExtResource("18_deer_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 14)
+entity_id = &"forest_deer_04"
+
+[node name="Deer_05" parent="Entities" instance=ExtResource("18_deer_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, -10)
+entity_id = &"forest_deer_05"
+
+[node name="Deer_06" parent="Entities" instance=ExtResource("18_deer_prefab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 10)
+entity_id = &"forest_deer_06"
+
+[node name="Lighting" type="Node3D" parent="."]
+script = ExtResource("19_marker_lighting")
+
+[node name="SunLight" type="DirectionalLight3D" parent="Lighting"]
+rotation_degrees = Vector3(-60, 45, 0)
+light_energy = 1.1
+shadow_enabled = true
+
+[node name="Camera" type="Node3D" parent="."]
+
+[node name="TopDownCamera" type="Camera3D" parent="Camera"]
+projection = 1
+size = 70.0
+position = Vector3(0, 40, 0)
+rotation_degrees = Vector3(-90, 0, 0)
+current = true
+
+[node name="Debug" type="Node" parent="."]
+
+[node name="DebugAIBrainPanel" parent="Debug" instance=ExtResource("20_debug_panel")]
