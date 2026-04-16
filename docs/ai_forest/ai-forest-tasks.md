@@ -1,7 +1,7 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 1d in progress (Commit 12 complete on 2026-04-16) — **Commit 13 next**.
+**Status**: Phase 1e next (Phase 1d complete on 2026-04-16; Commits 12-13 complete) — **Commit 14 next**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
@@ -94,11 +94,12 @@
   - `cfg_goal_graze.tres` — `priority = 2`, constant condition 0.5, root_task = wait-in-place
   - `cfg_goal_startle.tres` — `priority = 8`, condition = detection-positive, `cooldown = 2.0`, root_task = `[scan_alert, wait_short]`
   - Completion note (2026-04-16): authored all five shared goal resources under `resources/ai/forest/shared/` using typed goal/task/action resources and `RS_ConditionComponentField` detection checks.
-- [ ] **Commit 13** — Create per-species brain configs:
+- [x] **Commit 13** — Create per-species brain configs:
   - `resources/ai/forest/wolf/cfg_wolf_brain.tres` (`default_goal_id = &"wander"`, `goals = [hunt, wander]`)
   - `resources/ai/forest/rabbit/cfg_rabbit_brain.tres` (`[flee, graze, wander]`)
   - `resources/ai/forest/deer/cfg_deer_brain.tres` (`[startle, graze, wander]`)
   All are `RS_AIBrainSettings` instances with `evaluation_interval = 0.25`.
+  - Completion note (2026-04-16): authored all three species brain configs under `resources/ai/forest/{wolf,rabbit,deer}/` with typed `Array[RS_AIGoal]` references and `evaluation_interval = 0.25`.
 
 ### P1e. Label3D + debug panel
 
