@@ -1,0 +1,54 @@
+[gd_resource type="Resource" script_class="RS_AIGoal" format=3]
+
+[ext_resource type="Script" path="res://scripts/interfaces/i_condition.gd" id="1_condition"]
+[ext_resource type="Script" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_component_field.gd" id="2_condition_component_field"]
+[ext_resource type="Script" path="res://scripts/resources/ai/tasks/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/tasks/rs_ai_task.gd" id="4_ai_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="5_primitive_task"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd" id="6_action_move_detected"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="7_action_wait"]
+
+[sub_resource type="Resource" id="Condition_hunt_detected_target"]
+script = ExtResource("2_condition_component_field")
+component_type = &"C_DetectionComponent"
+field_path = "is_player_in_range"
+
+[sub_resource type="Resource" id="Action_move_detected_first"]
+script = ExtResource("6_action_move_detected")
+arrival_threshold = 0.6
+
+[sub_resource type="Resource" id="Task_move_detected_first"]
+script = ExtResource("5_primitive_task")
+action = SubResource("Action_move_detected_first")
+task_id = &"move_to_detected_first"
+
+[sub_resource type="Resource" id="Action_wait_hunt_mid"]
+script = ExtResource("7_action_wait")
+duration = 0.4
+
+[sub_resource type="Resource" id="Task_wait_hunt_mid"]
+script = ExtResource("5_primitive_task")
+action = SubResource("Action_wait_hunt_mid")
+task_id = &"wait_hunt_mid"
+
+[sub_resource type="Resource" id="Action_move_detected_second"]
+script = ExtResource("6_action_move_detected")
+arrival_threshold = 0.6
+
+[sub_resource type="Resource" id="Task_move_detected_second"]
+script = ExtResource("5_primitive_task")
+action = SubResource("Action_move_detected_second")
+task_id = &"move_to_detected_second"
+
+[sub_resource type="Resource" id="Task_hunt_sequence"]
+script = ExtResource("3_compound_task")
+subtasks = Array[ExtResource("4_ai_task")]([SubResource("Task_move_detected_first"), SubResource("Task_wait_hunt_mid"), SubResource("Task_move_detected_second")])
+task_id = &"hunt_sequence"
+
+[resource]
+script = ExtResource("1_goal")
+goal_id = &"hunt"
+conditions = Array[ExtResource("1_condition")]([SubResource("Condition_hunt_detected_target")])
+root_task = SubResource("Task_hunt_sequence")
+priority = 10
