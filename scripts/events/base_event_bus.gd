@@ -90,11 +90,20 @@ func publish(event_name: StringName, payload: Variant = null) -> void:
 	if not _subscribers.has(normalized_event):
 		return
 
-	var subscribers: Array = _subscribers[normalized_event].duplicate()
-	for sub_meta in subscribers:
+	var subscriber_list: Array = _subscribers[normalized_event]
+	var snapshot: Array = subscriber_list.duplicate()
+	for sub_meta in snapshot:
 		var callback: Callable = sub_meta.callback
 		if callback.is_valid():
 			callback.call(event_payload)
+
+	# Prune dead subscribers from the live list
+	for i in range(subscriber_list.size() - 1, -1, -1):
+		if not subscriber_list[i].callback.is_valid():
+			subscriber_list.remove_at(i)
+
+	if subscriber_list.is_empty():
+		_subscribers.erase(normalized_event)
 
 ## Clear subscribers for a specific event, or all if event_name is empty.
 func clear(event_name: StringName = StringName()) -> void:
