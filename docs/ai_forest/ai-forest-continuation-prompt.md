@@ -5,13 +5,13 @@
 This prompt directs you to implement the AI Forest Simulation by executing `docs/ai_forest/ai-forest-tasks.md` in sequential order, respecting the phase dependency chain. The full specification lives in `docs/ai_forest/ai-forest-overview.md`.
 
 **Branch**: GOAP-AI
-**Status**: Phase 1c next (Phase 1b complete on 2026-04-16; Commits 4-8 complete).
-**Next task**: Phase 1c Commit 9 (RED) — write `tests/unit/ai/actions/test_ai_actions_forest.gd`.
+**Status**: Phase 1d next (Phase 1c complete on 2026-04-16; Commits 9-11 complete).
+**Next task**: Phase 1d Commit 12 — author shared forest goal resources under `resources/ai/forest/shared/`.
 **Prerequisite**: Baseline AI suite re-measured and green immediately before Phase 1a (`124/124` passing on 2026-04-16).
 
 ---
 
-## Current Status: Phase 1b In Progress
+## Current Status: Phase 1c Complete
 
 Implementation progress:
 - Commit 1 RED: added `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd` and confirmed expected failures before implementation.
@@ -22,6 +22,9 @@ Implementation progress:
 - Commit 6: created `scenes/prefabs/prefab_forest_rabbit.tscn` with prey tags, predator-target detection tuning, and smaller white `Body_Mesh` visuals.
 - Commit 7: created `scenes/prefabs/prefab_forest_deer.tscn` with herbivore tags, predator-target detection tuning, and brown `Body_Mesh` visuals.
 - Commit 8: created `scenes/prefabs/prefab_forest_tree.tscn` with static-body collision and dark-green `CSGCylinder3D` visuals.
+- Commit 9 RED: added `tests/unit/ai/actions/test_ai_actions_forest.gd` and confirmed expected failures before action implementation.
+- Commit 10 GREEN: implemented `RS_AIActionMoveToDetected`, `RS_AIActionFleeFromDetected`, `RS_AIActionWander`, and `U_AITaskStateKeys.WANDER_HOME`.
+- Commit 11 GREEN follow-up: aligned detected/flee actions with move-target resolution parity and completion-state cleanup while keeping `C_MoveTargetComponent` as the primary target channel.
 
 Planning artifacts remain authoritative:
 - **`docs/ai_forest/ai-forest-overview.md`** — purpose, scope, architecture, species spec, per-phase acceptance criteria.
@@ -94,9 +97,6 @@ These decisions diverge from what an intuitive reading of the AI system might su
 
 ### To be created (Phase 1)
 
-- `scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd`
-- `scripts/resources/ai/actions/rs_ai_action_flee_from_detected.gd`
-- `scripts/resources/ai/actions/rs_ai_action_wander.gd`
 - `scripts/debug/debug_ai_brain_panel.gd`
 - `scripts/debug/debug_forest_agent_label.gd`
 - `scenes/debug/debug_ai_brain_panel.tscn`
@@ -107,7 +107,6 @@ These decisions diverge from what an intuitive reading of the AI system might su
 - `resources/scene_registry/cfg_ai_forest_entry.tres`
 - `resources/base_settings/ai_forest/cfg_movement_forest.tres`
 - Goal / brain `.tres` files under `resources/ai/forest/{shared,wolf,rabbit,deer}/`
-- New constant in `scripts/utils/ai/u_ai_task_state_keys.gd`: `WANDER_HOME`
 - Tests: `test_s_ai_detection_system_tag_target.gd`, `test_ai_actions_forest.gd`, `test_debug_ai_brain_panel.gd`, `test_forest_ecosystem_smoke.gd`
 
 ### To be created (Phase 2)
@@ -134,7 +133,7 @@ These decisions diverge from what an intuitive reading of the AI system might su
 When the user says "proceed" or "start Phase 1":
 
 1. Re-read `docs/ai_forest/ai-forest-overview.md` and `ai-forest-tasks.md` — including the "Audit-Corrected Design Decisions" block above.
-2. Run baseline: `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` — confirm 124/124 (or the latest known baseline).
+2. Run baseline: `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` — confirm latest known baseline (currently `130/130` on 2026-04-16).
 3. Execute the next unchecked commit in `ai-forest-tasks.md`.
 4. After the commit: run the relevant suite, confirm green, mark the task `[x]` in `ai-forest-tasks.md`, update **Status** + **Next task** fields in this prompt, commit the docs update separately.
 5. At phase boundaries: stop and wait for user go-ahead before the next phase. Do not auto-advance.
@@ -165,9 +164,9 @@ When the user says "proceed" or "start Phase 1":
 - **Outcome**: Plan approved. Awaiting go-ahead to start Phase 1a.
 
 ### Phase 1 — Scene shell + species behaviors + detection generalization
-- **Status**: In progress (P1a + P1b complete on 2026-04-16)
-- **Commits**: 8 / 19
-- **Outcome**: Detection system supports tag-targeted lookup; base forest-agent, wolf/rabbit/deer species prefabs, and tree prefab are authored.
+- **Status**: In progress (P1a + P1b + P1c complete on 2026-04-16)
+- **Commits**: 11 / 19
+- **Outcome**: Detection system supports tag-targeted lookup; forest prefabs are authored; detected/flee/wander action scripts and forest action tests are in place.
 
 ### Phase 2 — Hunger / satiety
 - **Status**: Not started

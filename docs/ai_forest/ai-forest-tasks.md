@@ -1,12 +1,12 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 1c next (Phase 1b complete on 2026-04-16; Commits 4-8 complete) — **Commit 9 next**.
+**Status**: Phase 1d next (Phase 1c complete on 2026-04-16; Commits 9-11 complete) — **Commit 12 next**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
 **Ground rules**
-- Every milestone ends with the full AI unit-test suite green (current baseline: last measured 124/124 on 2026-04-16; re-measure immediately before starting Phase 1a).
+- Every milestone ends with the full AI unit-test suite green (current baseline: last measured 130/130 on 2026-04-16 after Phase 1c; re-measure immediately before starting new phases).
 - Style enforcement test (`tests/unit/style/test_style_enforcement.gd`) must stay green. Critical rules for this plan: `test_ai_move_target_magic_strings_not_used_in_ai_scripts`, `test_ai_action_scripts_use_task_state_key_constants`, `test_ai_resource_scripts_are_grouped_by_subdirectory`, `test_gameplay_scenes_do_not_embed_hud_instances`.
 - After each committed milestone: update this tasks doc (mark `[x]` with completion notes) and the continuation prompt.
 - Commit per milestone at minimum; commit per commit-level task when logically self-contained.
@@ -68,17 +68,20 @@
 
 **Goal**: Three new `I_AIAction` subclasses. Existing `RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan` cover the remaining behavior steps.
 
-- [ ] **Commit 9** (RED) — Write `tests/unit/ai/actions/test_ai_actions_forest.gd`:
+- [x] **Commit 9** (RED) — Write `tests/unit/ai/actions/test_ai_actions_forest.gd`:
   - `RS_AIActionMoveToDetected`: reads detected entity position from the entity's `C_DetectionComponent`, writes `task_state[U_AITaskStateKeys.MOVE_TARGET]` + activates `C_MoveTargetComponent` on the same entity. Completes early with `push_error` when detection is stale (empty `last_detected_player_entity_id`).
   - `RS_AIActionFleeFromDetected`: target = `self_pos + normalize(self_pos - detected_pos) * flee_distance`. Same writes as above.
   - `RS_AIActionWander`: captures `home_position = entity.global_position` on first `start()` call (stored in `task_state["ai_wander_home"]`) and thereafter picks random points inside a circle of radius `home_radius`.
   - Confirm failing.
-- [ ] **Commit 10** (GREEN) — Implement:
+  - Completion note (2026-04-16): added `test_ai_actions_forest.gd` (`6` tests) and confirmed RED before implementation (missing scripts + `WANDER_HOME` constant).
+- [x] **Commit 10** (GREEN) — Implement:
   - `scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd`
   - `scripts/resources/ai/actions/rs_ai_action_flee_from_detected.gd`
   - `scripts/resources/ai/actions/rs_ai_action_wander.gd`
   All extend `I_AIAction`, override `start/tick/is_complete`, use `U_AITaskStateKeys` constants (no raw strings — style rule). Add a new constant `WANDER_HOME := &"ai_wander_home"` to `scripts/utils/ai/u_ai_task_state_keys.gd` for the wander home-position scratchpad.
-- [ ] **Commit 11** (GREEN followup) — Update `RS_AIActionMoveToDetected` + `RS_AIActionFleeFromDetected` to set the target on `C_MoveTargetComponent` (primary channel) in addition to `task_state` (fallback), matching `RS_AIActionMoveTo`'s pattern.
+  - Completion note (2026-04-16): implemented the three action scripts and `WANDER_HOME`; forest action suite green (`6/6`) and full AI suite green (`130/130`).
+- [x] **Commit 11** (GREEN followup) — Update `RS_AIActionMoveToDetected` + `RS_AIActionFleeFromDetected` to set the target on `C_MoveTargetComponent` (primary channel) in addition to `task_state` (fallback), matching `RS_AIActionMoveTo`'s pattern.
+  - Completion note (2026-04-16): finalized detected/flee actions with move-target resolution parity and completion-state cleanup while preserving component-first move-target routing.
 
 ### P1d. AI resources for each species
 
