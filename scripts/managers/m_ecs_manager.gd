@@ -733,11 +733,15 @@ func _sort_systems() -> void:
 	_sorted_systems.sort_custom(Callable(self, "_compare_system_priority"))
 
 func _compare_system_priority(a: BaseECSSystem, b: BaseECSSystem) -> bool:
+	var phase_a: int = a.get_phase()
+	var phase_b: int = b.get_phase()
+	if phase_a != phase_b:
+		return phase_a < phase_b
 	var priority_a: int = a.execution_priority
 	var priority_b: int = b.execution_priority
-	if priority_a == priority_b:
-		return a.get_instance_id() < b.get_instance_id()
-	return priority_a < priority_b
+	if priority_a != priority_b:
+		return priority_a < priority_b
+	return a.get_instance_id() < b.get_instance_id()
 
 func _resolve_time_manager() -> void:
 	var resolved_time_manager := U_SERVICE_LOCATOR.try_get_service(StringName("time_manager")) as Node
