@@ -77,7 +77,9 @@ func process_tick(delta: float) -> void:
 		)
 		active_context_keys.append(_context_builder.context_key_for_context(context))
 		_process_brain(brain, brain_settings, context, delta)
-		_debug_log_brain_state(context, brain)
+		var snapshot: Dictionary = _build_brain_snapshot(brain)
+		brain.update_debug_snapshot(snapshot)
+		_debug_log_brain_state(context, snapshot)
 	_tracker.cleanup_stale_contexts(active_context_keys)
 
 func _process_brain(
@@ -133,18 +135,24 @@ func _consume_debug_log_budget(entity_id: StringName) -> bool:
 		return false
 	return _debug_log_throttle.consume_budget(entity_id, maxf(debug_log_interval_sec, 0.05))
 
-func _debug_log_brain_state(context: Dictionary, brain: C_AIBrainComponent) -> void:
+func _build_brain_snapshot(brain: C_AIBrainComponent) -> Dictionary:
+	var current_task: RS_AIPrimitiveTask = brain.get_current_task()
+	var task_id: StringName = current_task.task_id if current_task != null else StringName()
+	var task_state: Dictionary = brain.task_state
+	return {
+		"goal_id": brain.get_active_goal_id(),
+		"queue_size": brain.current_task_queue.size(),
+		"task_index": brain.current_task_index,
+		"task_id": task_id,
+		"action_started": bool(task_state.get(U_AI_TASK_STATE_KEYS.ACTION_STARTED, false)),
+		"move_target_resolved": bool(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED, false)),
+		"move_target_source": str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_SOURCE, "")),
+	}
+
+func _debug_log_brain_state(context: Dictionary, snapshot: Dictionary) -> void:
 	var entity_id: StringName = _context_builder.context_key_for_context(context)
 	if not _consume_debug_log_budget(entity_id):
 		return
-
-	var current_task: RS_AIPrimitiveTask = brain.get_current_task()
-	var task_id: StringName = current_task.task_id if current_task != null else StringName()
-	var queue_size: int = brain.current_task_queue.size()
-	var task_state: Dictionary = brain.task_state
-	var action_started: bool = bool(task_state.get(U_AI_TASK_STATE_KEYS.ACTION_STARTED, false))
-	var move_target_resolved: bool = bool(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED, false))
-	var move_target_source: String = str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_SOURCE, ""))
 
 	var render_probe: String = ""
 	if debug_ai_render_probe_logging:
@@ -159,26 +167,16 @@ func _debug_log_brain_state(context: Dictionary, brain: C_AIBrainComponent) -> v
 		"S_AIBehaviorSystem[entity=%s] goal=%s queue_size=%d task_index=%d task_id=%s action_started=%s move_target_resolved=%s move_target_source=%s%s"
 		% [
 			str(entity_id),
-			str(brain.get_active_goal_id()),
-			queue_size,
-			brain.current_task_index,
-			str(task_id),
-			str(action_started),
-			str(move_target_resolved),
-			move_target_source,
+			str(snapshot.get("goal_id", StringName())),
+			int(snapshot.get("queue_size", 0)),
+			int(snapshot.get("task_index", 0)),
+			str(snapshot.get("task_id", StringName())),
+			str(snapshot.get("action_started", false)),
+			str(snapshot.get("move_target_resolved", false)),
+			str(snapshot.get("move_target_source", "")),
 			render_probe,
 		]
 	)
-
-	brain.update_debug_snapshot({
-		"goal_id": brain.get_active_goal_id(),
-		"queue_size": queue_size,
-		"task_index": brain.current_task_index,
-		"task_id": task_id,
-		"action_started": action_started,
-		"move_target_resolved": move_target_resolved,
-		"move_target_source": move_target_source,
-	})
 
 func _debug_log_missing_brains() -> void:
 	if not debug_ai_logging:

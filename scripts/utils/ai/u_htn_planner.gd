@@ -25,9 +25,6 @@ static func _decompose_recursive(
 	if task == null:
 		push_error("U_HTNPlanner._decompose_recursive: task is null")
 		return
-	if planner_context.depth > planner_context.max_depth:
-		push_error("U_HTNPlanner._decompose_recursive: depth %d exceeds max_depth %d" % [planner_context.depth, planner_context.max_depth])
-		return
 
 	if task is RS_AI_PRIMITIVE_TASK:
 		planner_context.result.append(task)
@@ -36,6 +33,7 @@ static func _decompose_recursive(
 	if not (task is RS_AI_COMPOUND_TASK):
 		return
 	if planner_context.depth >= planner_context.max_depth:
+		push_error("U_HTNPlanner._decompose_recursive: depth %d reached max_depth %d" % [planner_context.depth, planner_context.max_depth])
 		return
 
 	var task_object: Object = task as Object

@@ -50,7 +50,6 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl and a propos
 - `F12` is independent (v7.2.1 addition) — trivial DRY collapse of three identical settings overlay wrappers; can run anytime.
 - `F15` is independent (v7.2.1 addition) — mirrors F7's "fail loud at load" pattern for other designer-facing resources; can run in parallel with F7 or after.
 - `F16` is independent (v7.2.2 addition) — AI system type safety & consistency. 6 commits targeting Variant-typed fields, interface stubs, task-state key constants, debug snapshot, animate docs, and grep enforcement. Partial overlap with F9 (both touch `s_ai_behavior_system.gd`); land F16 Commit 1 first.
-- `F16` is independent (v7.2.2 addition) — AI system type safety & consistency. 6 commits targeting Variant-typed fields, interface stubs, task-state key constants, debug snapshot, animate docs, and grep enforcement. Partial overlap with F9 (both touch `s_ai_behavior_system.gd`); land F16 Commit 1 first. See `cleanup-v7.2-f16-tasks.md` for full details.
 
 **Cross-milestone integration**: Run the full test suite after each milestone completes, not just the milestone's own tests. This is especially critical for the F2 → F3 → F4 sequential chain.
 

@@ -170,6 +170,7 @@ func test_decompose_empty_compound_returns_empty() -> void:
 
 func test_decompose_null_task_returns_empty() -> void:
 	var results: Array = _decompose(null)
+	assert_push_error("U_HTNPlanner.decompose: task is null")
 	assert_true(results.is_empty())
 
 func test_max_depth_guard() -> void:
@@ -186,6 +187,7 @@ func test_max_depth_guard() -> void:
 		return
 
 	var results: Array = _decompose(root, {}, 1)
+	assert_push_error("U_HTNPlanner._decompose_recursive: depth 1 reached max_depth 1")
 	assert_true(results.is_empty())
 
 func test_reusable_rule_is_not_mutated_between_calls() -> void:
