@@ -17,6 +17,7 @@ var current_task_index: int = 0
 var task_state: Dictionary = {}
 var evaluation_timer: float = 0.0
 var suspended_goal_state: Dictionary = {}
+var _debug_snapshot: Dictionary = {}
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
@@ -46,3 +47,9 @@ func _coerce_task_queue(value: Variant) -> Array[RS_AIPrimitiveTask]:
 		if task_variant is RS_AIPrimitiveTask:
 			coerced.append(task_variant as RS_AIPrimitiveTask)
 	return coerced
+
+func update_debug_snapshot(snapshot: Dictionary) -> void:
+	_debug_snapshot = snapshot.duplicate(true)
+
+func get_debug_snapshot() -> Dictionary:
+	return _debug_snapshot.duplicate(true)

@@ -167,6 +167,16 @@ func _debug_log_brain_state(context: Dictionary, brain: C_AIBrainComponent) -> v
 		]
 	)
 
+	brain.update_debug_snapshot({
+		"goal_id": brain.get_active_goal_id(),
+		"queue_size": queue_size,
+		"task_index": brain.current_task_index,
+		"task_id": task_id,
+		"action_started": action_started,
+		"move_target_resolved": move_target_resolved,
+		"move_target_source": move_target_source,
+	})
+
 func _debug_log_missing_brains() -> void:
 	if not debug_ai_logging:
 		return

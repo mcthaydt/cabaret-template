@@ -220,6 +220,49 @@ func test_get_current_task_returns_typed() -> void:
 	# When queue is empty, should return null
 	assert_null(result, "get_current_task() should return null when queue is empty")
 
+func test_update_debug_snapshot() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	if component_script == null:
+		return
+
+	var component: BaseECSComponent = component_script.new()
+	autofree(component)
+
+	assert_true(component.has_method("update_debug_snapshot"), "C_AIBrainComponent should have update_debug_snapshot()")
+	component.call("update_debug_snapshot", {"goal_id": StringName("patrol"), "queue_size": 3})
+	var snapshot: Dictionary = component.call("get_debug_snapshot")
+	assert_eq(snapshot.get("goal_id"), StringName("patrol"), "Snapshot should contain goal_id")
+	assert_eq(snapshot.get("queue_size"), 3, "Snapshot should contain queue_size")
+
+func test_get_debug_snapshot_returns_copy() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	if component_script == null:
+		return
+
+	var component: BaseECSComponent = component_script.new()
+	autofree(component)
+
+	component.call("update_debug_snapshot", {"goal_id": StringName("patrol")})
+	var snapshot_a: Dictionary = component.call("get_debug_snapshot")
+	var snapshot_b: Dictionary = component.call("get_debug_snapshot")
+	assert_eq(snapshot_a.get("goal_id"), StringName("patrol"), "First snapshot should contain goal_id")
+	assert_eq(snapshot_b.get("goal_id"), StringName("patrol"), "Second snapshot should contain goal_id")
+	snapshot_a["goal_id"] = StringName("modified")
+	assert_eq(component.call("get_debug_snapshot").get("goal_id"), StringName("patrol"), "Modifying returned snapshot should not affect internal state")
+
+func test_debug_snapshot_includes_goal_id() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	if component_script == null:
+		return
+
+	var component: BaseECSComponent = component_script.new()
+	autofree(component)
+
+	component.set("active_goal_id", StringName("chase"))
+	component.call("update_debug_snapshot", {"goal_id": component.get("active_goal_id")})
+	var snapshot: Dictionary = component.call("get_debug_snapshot")
+	assert_eq(snapshot.get("goal_id"), StringName("chase"), "Snapshot goal_id should reflect active_goal_id")
+
 func _assert_typed_property_hint(property_definition: Dictionary, expected_type: String, expect_array: bool, message: String) -> void:
 	var hint_string: String = str(property_definition.get("hint_string", ""))
 	if expect_array:
