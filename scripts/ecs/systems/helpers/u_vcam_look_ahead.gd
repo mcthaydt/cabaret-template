@@ -5,6 +5,7 @@ class_name U_VCamLookAhead
 ## Smoothed via 2nd-order dynamics to prevent jittering.
 
 const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
+const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
 
 const LOOK_AHEAD_MOVEMENT_EPSILON_SQ: float = 0.000001
 
@@ -118,7 +119,7 @@ func apply_orbit_look_ahead(
 
 	if smoothed_offset.is_zero_approx():
 		return result
-	return _call_apply_position_offset(apply_position_offset, result, smoothed_offset)
+	return U_VCAM_UTILS.call_apply_position_offset(apply_position_offset, result, smoothed_offset)
 
 
 func prune(active_vcam_ids: Array) -> void:
@@ -168,13 +169,6 @@ func _get_or_create_look_ahead_state(
 	return state
 
 
-func _call_apply_position_offset(apply_position_offset: Callable, result: Dictionary, offset: Vector3) -> Dictionary:
-	if not apply_position_offset.is_valid():
-		return result
-	var offset_result_variant: Variant = apply_position_offset.call(result, offset)
-	if offset_result_variant is Dictionary:
-		return (offset_result_variant as Dictionary).duplicate(true)
-	return result
 
 
 func _call_debug_look_ahead_motion(

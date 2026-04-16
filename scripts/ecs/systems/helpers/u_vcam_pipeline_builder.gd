@@ -1,15 +1,22 @@
 extends RefCounted
 class_name U_VCamPipelineBuilder
+## Orchestrates vCam pipeline stages: prepare + evaluate via decomposed helpers.
 
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+const U_VCAM_EFFECT_PIPELINE := preload("res://scripts/ecs/systems/helpers/u_vcam_effect_pipeline.gd")
+const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
+const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation.gd")
+const U_VCAM_DEBUG := preload("res://scripts/ecs/systems/helpers/u_vcam_debug.gd")
+const U_VCAM_RUNTIME_SERVICES := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd")
+const U_VCAM_RUNTIME_STATE := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_state.gd")
 
-var _effect_pipeline_helper = null
-var _look_input_helper = null
-var _rotation_helper = null
-var _debug_helper = null
-var _runtime_services_helper = null
-var _runtime_state_helper = null
+var _effect_pipeline_helper: U_VCamEffectPipeline = null
+var _look_input_helper: U_VCamLookInput = null
+var _rotation_helper: U_VCamRotation = null
+var _debug_helper: U_VCamDebug = null
+var _runtime_services_helper: U_VCamRuntimeServices = null
+var _runtime_state_helper: U_VCamRuntimeState = null
 var _resolve_follow_target: Callable = Callable()
 var _resolve_mode_values: Callable = Callable()
 var _orbit_mode_script: Script = null
@@ -18,12 +25,12 @@ var debug_enabled: bool = false
 
 
 func configure(
-	effect_pipeline_helper,
-	look_input_helper,
-	rotation_helper,
-	debug_helper,
-	runtime_services_helper,
-	runtime_state_helper,
+	effect_pipeline_helper: U_VCamEffectPipeline,
+	look_input_helper: U_VCamLookInput,
+	rotation_helper: U_VCamRotation,
+	debug_helper: U_VCamDebug,
+	runtime_services_helper: U_VCamRuntimeServices,
+	runtime_state_helper: U_VCamRuntimeState,
 	resolve_follow_target: Callable,
 	resolve_mode_values: Callable,
 	orbit_mode_script: Script

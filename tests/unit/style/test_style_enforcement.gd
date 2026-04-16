@@ -1901,3 +1901,63 @@ func test_vcam_system_has_no_evaluate_and_submit() -> void:
 	file.close()
 	assert_false(source.find("_evaluate_and_submit") >= 0,
 		"S_VCamSystem should not have dead _evaluate_and_submit method")
+
+func test_vcam_system_has_no_step_orbit_release_axis() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _step_orbit_release_axis(") >= 0,
+		"S_VCamSystem should not have dead _step_orbit_release_axis method")
+
+func test_vcam_system_has_no_resolve_orbit_center_target_yaw() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _resolve_orbit_center_target_yaw(") >= 0,
+		"S_VCamSystem should not have dead _resolve_orbit_center_target_yaw method")
+
+func test_vcam_system_has_no_apply_vcam_effect_pipeline() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _apply_vcam_effect_pipeline(") >= 0,
+		"S_VCamSystem should not have dead _apply_vcam_effect_pipeline method")
+
+func test_vcam_system_has_no_resolve_state_store() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _resolve_state_store(") >= 0,
+		"S_VCamSystem should not have dead _resolve_state_store method")
+
+func test_vcam_system_has_no_update_runtime_rotation() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _update_runtime_rotation(") >= 0,
+		"S_VCamSystem should not have dead _update_runtime_rotation method")
+
+func test_vcam_system_has_no_resolve_runtime_rotation_for_evaluation() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _resolve_runtime_rotation_for_evaluation(") >= 0,
+		"S_VCamSystem should not have dead _resolve_runtime_rotation_for_evaluation method")

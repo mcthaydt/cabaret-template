@@ -6,6 +6,7 @@ class_name U_VCamSoftZoneApplier
 ## the follow target within configured screen-space bounds.
 
 const U_VCAM_SOFT_ZONE := preload("res://scripts/managers/helpers/u_vcam_soft_zone.gd")
+const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
 
 var _soft_zone_dead_zone_state: Dictionary = {}  # StringName -> {x: bool, y: bool}
 
@@ -120,7 +121,7 @@ func apply_orbit_soft_zone(
 		)
 		return result
 	_call_debug_soft_zone_status(debug_log_soft_zone_status, vcam_id, "active_correction", correction)
-	return _call_apply_position_offset(apply_position_offset, result, correction)
+	return U_VCAM_UTILS.call_apply_position_offset(apply_position_offset, result, correction)
 
 
 func prune(active_vcam_ids: Array) -> void:
@@ -157,13 +158,6 @@ func get_soft_zone_dead_zone_state(vcam_id: StringName) -> Dictionary:
 	}
 
 
-func _call_apply_position_offset(apply_position_offset: Callable, result: Dictionary, offset: Vector3) -> Dictionary:
-	if not apply_position_offset.is_valid():
-		return result
-	var offset_result_variant: Variant = apply_position_offset.call(result, offset)
-	if offset_result_variant is Dictionary:
-		return (offset_result_variant as Dictionary).duplicate(true)
-	return result
 
 
 func _call_debug_soft_zone_status(

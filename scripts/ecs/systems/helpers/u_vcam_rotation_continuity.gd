@@ -1,6 +1,8 @@
 extends RefCounted
 class_name U_VCamRotationContinuity
 
+const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
+
 ## Handles rotation continuity when the active vCam changes.
 ## If the outgoing and incoming vCams share the same orbit mode and follow target,
 ## runtime yaw/pitch carries over. Otherwise, the incoming vCam reseeds from authored angles.
@@ -99,7 +101,7 @@ func _components_share_follow_target(
 		return false
 	if not is_instance_valid(outgoing_target) or not is_instance_valid(incoming_target):
 		return false
-	return _get_node_instance_id(outgoing_target) == _get_node_instance_id(incoming_target)
+	return U_VCAM_UTILS.get_node_instance_id(outgoing_target) == U_VCAM_UTILS.get_node_instance_id(incoming_target)
 
 
 func _resolve_authored_rotation(mode: Resource, resolve_mode_values: Callable, orbit_mode_script: Script) -> Vector2:
@@ -120,11 +122,3 @@ func _resolve_authored_rotation(mode: Resource, resolve_mode_values: Callable, o
 		float(orbit_values.get("authored_yaw", 0.0)),
 		float(orbit_values.get("authored_pitch", 0.0))
 	)
-
-
-func _get_node_instance_id(node: Node) -> int:
-	if node == null:
-		return 0
-	if not is_instance_valid(node):
-		return 0
-	return node.get_instance_id()

@@ -1,5 +1,6 @@
 extends RefCounted
 class_name U_CameraStateRuleApplier
+## FOV, trauma, and camera-state rule application extracted from S_CameraStateSystem.
 
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")

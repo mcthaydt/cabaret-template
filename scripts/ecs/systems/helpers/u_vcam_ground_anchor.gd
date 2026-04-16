@@ -6,6 +6,7 @@ class_name U_VCamGroundAnchor
 ## re-anchoring on landing and smoothly following ground height changes.
 
 const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
+const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
 
 var _ground_relative_state: Dictionary = {}  # StringName -> {initialized, follow_target_id, ground_anchor_y, ...}
 
@@ -145,7 +146,7 @@ func apply_orbit_ground_relative(
 	var y_offset: float = anchored_follow_y - follow_y
 	if absf(y_offset) <= 0.000001:
 		return result
-	return _call_apply_position_offset(apply_position_offset, result, Vector3(0.0, y_offset, 0.0))
+	return U_VCAM_UTILS.call_apply_position_offset(apply_position_offset, result, Vector3(0.0, y_offset, 0.0))
 
 
 func prune(active_vcam_ids: Array) -> void:
@@ -198,11 +199,3 @@ func _get_or_create_ground_relative_state(
 		_ground_relative_state[vcam_id] = state
 	return state
 
-
-func _call_apply_position_offset(apply_position_offset: Callable, result: Dictionary, offset: Vector3) -> Dictionary:
-	if not apply_position_offset.is_valid():
-		return result
-	var offset_result_variant: Variant = apply_position_offset.call(result, offset)
-	if offset_result_variant is Dictionary:
-		return (offset_result_variant as Dictionary).duplicate(true)
-	return result

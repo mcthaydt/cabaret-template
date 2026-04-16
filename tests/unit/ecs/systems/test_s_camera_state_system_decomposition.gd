@@ -212,8 +212,7 @@ func test_system_delegates_apply_camera_state_to_rule_applier() -> void:
 	if script == null:
 		assert_not_null(script, "S_CameraStateSystem script should load")
 		return
-	assert_true(script.source_code.find("_rule_applier.apply_camera_state(") >= 0 or
-		script.source_code.find("_rule_applier.apply_camera_state(") >= 0,
+	assert_true(script.source_code.find("_rule_applier.apply_camera_state(") >= 0,
 		"S_CameraStateSystem should delegate apply_camera_state to _rule_applier")
 
 

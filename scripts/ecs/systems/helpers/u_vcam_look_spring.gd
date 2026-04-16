@@ -6,6 +6,7 @@ class_name U_VCamLookSpring
 ## toward the target with configurable frequency and damping.
 
 const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
+const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
 
 const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
 const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0
@@ -45,7 +46,7 @@ func resolve_runtime_rotation_for_evaluation(
 		_clear_look_rotation_state_for_vcam(vcam_id)
 		return target_rotation
 	var rotation_damping: float = maxf(float(response_values.get("rotation_damping", 0.0)), 0.0)
-	var follow_target_id: int = _get_node_instance_id(follow_target)
+	var follow_target_id: int = U_VCAM_UTILS.get_node_instance_id(follow_target)
 
 	var state: Dictionary = _get_look_rotation_state(vcam_id)
 	if (
@@ -374,13 +375,6 @@ func _did_response_change(state: Dictionary, response_signature: Array[float]) -
 			return true
 	return false
 
-
-func _get_node_instance_id(node: Node) -> int:
-	if node == null:
-		return 0
-	if not is_instance_valid(node):
-		return 0
-	return node.get_instance_id()
 
 
 func _debug_log_look_spring_stage_transition(
