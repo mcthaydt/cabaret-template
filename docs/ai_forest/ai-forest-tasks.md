@@ -1,7 +1,7 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Docs-only delivered (v2, audit-corrected) — **Phase 1a next** (awaiting user go-ahead before implementation starts).
+**Status**: Phase 1a complete (2026-04-16) — **Phase 1b next**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
@@ -31,14 +31,17 @@
 
 **Implementation note**: current system queries `[C_PlayerTagComponent, C_MovementComponent]` to build the candidate pool. New system queries `[C_MovementComponent]` and filters candidates by `entity_root.has_tag(detector.target_tag)`. Published fields stay: `is_player_in_range`, `last_detected_player_entity_id` (names kept for back-compat — they now mean "target in range" / "last detected target id" whenever `target_tag != &"player"`).
 
-- [ ] **Commit 1** (RED) — Write `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd`:
+- [x] **Commit 1** (RED) — Write `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd`:
   - Test: detector with `target_tag = &"prey"` flips `is_player_in_range = true` when an entity with `tags.has(&"prey")` is within `detection_radius`
   - Test: detector with `target_tag = &"prey"` ignores an entity tagged only `&"herbivore"`
   - Test: detector with `target_tag = &"player"` (default) still detects player-tagged entities (back-compat regression)
   - Test: `last_detected_player_entity_id` matches the detected target's `BaseECSEntity.get_entity_id()`
   - Confirm tests fail before implementation.
-- [ ] **Commit 2** (GREEN) — Add `@export var target_tag: StringName = &"player"` to `scripts/ecs/components/c_detection_component.gd`. Rewrite the candidate-pool collection in `scripts/ecs/systems/s_ai_detection_system.gd`: iterate entities with `C_MovementComponent`, resolve each one's entity root via `U_ECSUtils.find_entity_root()`, and skip any whose root does not have `target_tag` in its tags. Preserve all published fields and flag/event dispatch paths.
-- [ ] **Commit 3** (REGRESSION) — Run `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_detection_system.gd -gexit` and all AI integration suites (`test_ai_interaction_triggers.gd`, `test_ai_demo_power_core.gd`, `test_ai_pipeline_integration.gd`) to confirm no regressions.
+  - Completion note (2026-04-16): suite added and confirmed RED (`2/4` passing) before implementation (`test_target_tag_prey_detects_matching_entity_in_range`, `test_last_detected_entity_id_uses_base_ecs_entity_id` failed as expected).
+- [x] **Commit 2** (GREEN) — Add `@export var target_tag: StringName = &"player"` to `scripts/ecs/components/c_detection_component.gd`. Rewrite the candidate-pool collection in `scripts/ecs/systems/s_ai_detection_system.gd`: iterate entities with `C_MovementComponent`, resolve each one's entity root via `U_ECSUtils.find_entity_root()`, and skip any whose root does not have `target_tag` in its tags. Preserve all published fields and flag/event dispatch paths.
+  - Completion note (2026-04-16): implemented tag-aware candidate filtering + `player` short-circuit via optional `C_PlayerTagComponent`; kept `is_player_in_range` / `last_detected_player_entity_id` contract unchanged.
+- [x] **Commit 3** (REGRESSION) — Run `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_detection_system.gd -gexit` and all AI integration suites (`test_ai_interaction_triggers.gd`, `test_ai_demo_power_core.gd`, `test_ai_pipeline_integration.gd`) to confirm no regressions.
+  - Completion note (2026-04-16): all listed suites green; new tag-target suite also green (`4/4`).
 
 ### P1b. Forest agent prefab + species instances
 
