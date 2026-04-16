@@ -1,7 +1,6 @@
 extends GutTest
 
 const U_AI_TASK_RUNNER_PATH := "res://scripts/utils/ai/u_ai_task_runner.gd"
-const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
@@ -54,7 +53,7 @@ func test_tick_starts_action_on_first_call() -> void:
 	var task: RS_AIPrimitiveTask = brain.current_task_queue[0]
 	var action: Resource = task.action as Resource
 	assert_eq(action.get("start_calls"), 1)
-	assert_eq(bool(brain.task_state.get(U_AI_TASK_STATE_KEYS.ACTION_STARTED, false)), true)
+	assert_eq(bool(brain.task_state.get(U_AITaskStateKeys.ACTION_STARTED, false)), true)
 
 func test_tick_invokes_action_tick() -> void:
 	var runner_script: Script = _load_runner_script()

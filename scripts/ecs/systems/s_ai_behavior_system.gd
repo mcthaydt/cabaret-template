@@ -3,7 +3,6 @@ extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_AI_GOAL_SELECTOR := preload("res://scripts/utils/ai/u_ai_goal_selector.gd")
@@ -144,9 +143,10 @@ func _build_brain_snapshot(brain: C_AIBrainComponent) -> Dictionary:
 		"queue_size": brain.current_task_queue.size(),
 		"task_index": brain.current_task_index,
 		"task_id": task_id,
-		"action_started": bool(task_state.get(U_AI_TASK_STATE_KEYS.ACTION_STARTED, false)),
-		"move_target_resolved": bool(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED, false)),
-		"move_target_source": str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_SOURCE, "")),
+		"action_started": bool(task_state.get(U_AITaskStateKeys.ACTION_STARTED, false)),
+		"move_target_resolved": bool(task_state.get(U_AITaskStateKeys.MOVE_TARGET_RESOLVED, false)),
+		"move_target_source": str(task_state.get(U_AITaskStateKeys.MOVE_TARGET_SOURCE, "")),
+		"suspended_goal_ids": brain.suspended_goal_state.keys() if brain.suspended_goal_state is Dictionary else [],
 	}
 
 func _debug_log_brain_state(context: Dictionary, snapshot: Dictionary) -> void:
@@ -164,7 +164,7 @@ func _debug_log_brain_state(context: Dictionary, snapshot: Dictionary) -> void:
 		render_probe = U_AI_RENDER_PROBE.build_probe_string(entity, null, movement_component)
 
 	print(
-		"S_AIBehaviorSystem[entity=%s] goal=%s queue_size=%d task_index=%d task_id=%s action_started=%s move_target_resolved=%s move_target_source=%s%s"
+		"S_AIBehaviorSystem[entity=%s] goal=%s queue_size=%d task_index=%d task_id=%s action_started=%s move_target_resolved=%s move_target_source=%s suspended=%s%s"
 		% [
 			str(entity_id),
 			str(snapshot.get("goal_id", StringName())),
@@ -174,6 +174,7 @@ func _debug_log_brain_state(context: Dictionary, snapshot: Dictionary) -> void:
 			str(snapshot.get("action_started", false)),
 			str(snapshot.get("move_target_resolved", false)),
 			str(snapshot.get("move_target_source", "")),
+			str(snapshot.get("suspended_goal_ids", [])),
 			render_probe,
 		]
 	)

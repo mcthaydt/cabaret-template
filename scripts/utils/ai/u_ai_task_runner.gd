@@ -1,7 +1,6 @@
 extends RefCounted
 class_name U_AITaskRunner
 
-const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 
 func tick(brain: C_AIBrainComponent, delta: float, context: Dictionary) -> StringName:
@@ -26,10 +25,10 @@ func tick(brain: C_AIBrainComponent, delta: float, context: Dictionary) -> Strin
 		return _advance_to_next_task(brain, current_task_index, queue.size(), context)
 
 	var task_state: Dictionary = brain.task_state
-	var action_started: bool = bool(task_state.get(U_AI_TASK_STATE_KEYS.ACTION_STARTED, false))
+	var action_started: bool = bool(task_state.get(U_AITaskStateKeys.ACTION_STARTED, false))
 	if not action_started:
 		action.start(context, task_state)
-		task_state[U_AI_TASK_STATE_KEYS.ACTION_STARTED] = true
+		task_state[U_AITaskStateKeys.ACTION_STARTED] = true
 
 	action.tick(context, task_state, maxf(delta, 0.0))
 	brain.task_state = task_state

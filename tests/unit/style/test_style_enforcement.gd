@@ -559,8 +559,11 @@ func test_ai_move_target_magic_strings_not_used_in_ai_scripts() -> void:
 func test_ai_action_scripts_use_task_state_key_constants() -> void:
 	var violations: Array[String] = []
 	_collect_gd_literal_occurrences("res://scripts/resources/ai/actions", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/utils/ai", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/ecs/systems/s_ai_behavior_system.gd", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/ecs/systems/s_move_target_follower_system.gd", "task_state[\"", violations)
 
-	var message := "AI action scripts should not use bare string keys for task_state access"
+	var message := "AI scripts should not use bare string keys for task_state access"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 		message += "\nUse U_AITaskStateKeys constants instead."

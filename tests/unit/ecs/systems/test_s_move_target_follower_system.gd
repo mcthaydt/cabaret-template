@@ -9,7 +9,6 @@ const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_compone
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
 const RS_MOVEMENT_SETTINGS := preload("res://scripts/resources/ecs/rs_movement_settings.gd")
-const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 
 class FakeBody extends CharacterBody3D:
 	pass
@@ -168,7 +167,7 @@ func test_reads_ai_brain_task_state_when_move_target_component_absent_back_compa
 	var system: BaseECSSystem = fixture.get("system", null) as BaseECSSystem
 
 	body.global_position = Vector3.ZERO
-	brain.task_state = {U_AI_TASK_STATE_KEYS.MOVE_TARGET: Vector3(0.0, 0.0, 8.0)}
+	brain.task_state = {U_AITaskStateKeys.MOVE_TARGET: Vector3(0.0, 0.0, 8.0)}
 	system.process_tick(0.016)
 
 	assert_almost_eq(input.move_vector.x, 0.0, 0.01)
@@ -190,7 +189,7 @@ func test_prefers_move_target_component_when_both_sources_present() -> void:
 	var system: BaseECSSystem = fixture.get("system", null) as BaseECSSystem
 
 	body.global_position = Vector3.ZERO
-	brain.task_state = {U_AI_TASK_STATE_KEYS.MOVE_TARGET: Vector3(0.0, 0.0, 10.0)}
+	brain.task_state = {U_AITaskStateKeys.MOVE_TARGET: Vector3(0.0, 0.0, 10.0)}
 	move_target.set("is_active", true)
 	move_target.set("target_position", Vector3(10.0, 0.0, 0.0))
 	move_target.set("arrival_threshold", 0.5)

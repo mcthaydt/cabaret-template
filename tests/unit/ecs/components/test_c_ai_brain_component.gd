@@ -263,6 +263,23 @@ func test_debug_snapshot_includes_goal_id() -> void:
 	var snapshot: Dictionary = component.call("get_debug_snapshot")
 	assert_eq(snapshot.get("goal_id"), StringName("chase"), "Snapshot goal_id should reflect active_goal_id")
 
+func test_debug_snapshot_includes_suspended_goal_ids() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	if component_script == null:
+		return
+
+	var component: BaseECSComponent = component_script.new()
+	autofree(component)
+
+	var suspended: Dictionary = {StringName("patrol"): {"task_queue": [], "task_index": 0}}
+	component.set("suspended_goal_state", suspended)
+	component.call("update_debug_snapshot", {"suspended_goal_ids": suspended.keys()})
+	var snapshot: Dictionary = component.call("get_debug_snapshot")
+	var suspended_ids: Variant = snapshot.get("suspended_goal_ids")
+	assert_true(suspended_ids is Array, "suspended_goal_ids should be an Array")
+	if suspended_ids is Array:
+		assert_eq((suspended_ids as Array).size(), 1, "suspended_goal_ids should contain one entry")
+
 func _assert_typed_property_hint(property_definition: Dictionary, expected_type: String, expect_array: bool, message: String) -> void:
 	var hint_string: String = str(property_definition.get("hint_string", ""))
 	if expect_array:

@@ -229,7 +229,7 @@ func test_sentry_investigate_goal_publishes_alarm_event() -> void:
 	assert_true(root_task_variant is Resource)
 	if not (root_task_variant is Resource):
 		return
-	var queue: Array[Resource] = U_HTN_PLANNER.decompose(root_task_variant as Resource, {})
+	var queue: Array[RS_AIPrimitiveTask] = U_HTN_PLANNER.decompose(root_task_variant as RS_AITask, {})
 	assert_false(queue.is_empty())
 	var found_alarm_publish: bool = false
 	for task_variant in queue:

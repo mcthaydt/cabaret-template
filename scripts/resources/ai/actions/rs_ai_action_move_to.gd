@@ -4,7 +4,6 @@ class_name RS_AIActionMoveTo
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
-const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 
 @export_group("Target")
 @export var target_position: Vector3 = Vector3.ZERO
@@ -19,30 +18,30 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
 	if resolved_target is Vector3:
 		_set_move_target_component_target(context, resolved_target as Vector3, resolved_arrival_threshold)
-		task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET] = resolved_target
-		task_state[U_AI_TASK_STATE_KEYS.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
-		task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED] = true
+		task_state[U_AITaskStateKeys.MOVE_TARGET] = resolved_target
+		task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
+		task_state[U_AITaskStateKeys.MOVE_TARGET_RESOLVED] = true
 		return
 	_clear_move_target_component(context)
-	task_state.erase(U_AI_TASK_STATE_KEYS.MOVE_TARGET)
-	task_state.erase(U_AI_TASK_STATE_KEYS.ARRIVAL_THRESHOLD)
-	task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED] = false
+	task_state.erase(U_AITaskStateKeys.MOVE_TARGET)
+	task_state.erase(U_AITaskStateKeys.ARRIVAL_THRESHOLD)
+	task_state[U_AITaskStateKeys.MOVE_TARGET_RESOLVED] = false
 
 func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
 	# Skip re-resolution if target was already resolved in start()
-	if task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED, false):
+	if task_state.get(U_AITaskStateKeys.MOVE_TARGET_RESOLVED, false):
 		return
 	var resolution: Dictionary = _resolve_target_resolution(context)
 	_write_resolution_debug(task_state, resolution)
 	var resolved_target: Variant = resolution.get("target", null)
 	if resolved_target is Vector3:
 		_set_move_target_component_target(context, resolved_target as Vector3, arrival_threshold)
-		task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET] = resolved_target
-		task_state[U_AI_TASK_STATE_KEYS.ARRIVAL_THRESHOLD] = maxf(arrival_threshold, 0.0)
-		task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLVED] = true
+		task_state[U_AITaskStateKeys.MOVE_TARGET] = resolved_target
+		task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = maxf(arrival_threshold, 0.0)
+		task_state[U_AITaskStateKeys.MOVE_TARGET_RESOLVED] = true
 
 func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
-	var target_variant: Variant = task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET, null)
+	var target_variant: Variant = task_state.get(U_AITaskStateKeys.MOVE_TARGET, null)
 	if not (target_variant is Vector3):
 		_clear_move_target_component(context)
 		return true
@@ -110,13 +109,13 @@ func _resolve_target_resolution(context: Dictionary) -> Dictionary:
 	return resolution
 
 func _write_resolution_debug(task_state: Dictionary, resolution: Dictionary) -> void:
-	task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_SOURCE] = str(resolution.get("source", ""))
-	task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLUTION_REASON] = str(resolution.get("reason", ""))
-	task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_USED_FALLBACK] = bool(resolution.get("used_fallback", false))
-	task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_REQUESTED_NODE_PATH] = str(resolution.get("requested_node_path", ""))
-	task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_CONTEXT_ENTITY_PATH] = str(resolution.get("context_entity_path", ""))
-	task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_CONTEXT_OWNER_PATH] = str(resolution.get("context_owner_path", ""))
-	task_state[U_AI_TASK_STATE_KEYS.MOVE_TARGET_WAYPOINT_INDEX] = int(resolution.get("waypoint_index", -1))
+	task_state[U_AITaskStateKeys.MOVE_TARGET_SOURCE] = str(resolution.get("source", ""))
+	task_state[U_AITaskStateKeys.MOVE_TARGET_RESOLUTION_REASON] = str(resolution.get("reason", ""))
+	task_state[U_AITaskStateKeys.MOVE_TARGET_USED_FALLBACK] = bool(resolution.get("used_fallback", false))
+	task_state[U_AITaskStateKeys.MOVE_TARGET_REQUESTED_NODE_PATH] = str(resolution.get("requested_node_path", ""))
+	task_state[U_AITaskStateKeys.MOVE_TARGET_CONTEXT_ENTITY_PATH] = str(resolution.get("context_entity_path", ""))
+	task_state[U_AITaskStateKeys.MOVE_TARGET_CONTEXT_OWNER_PATH] = str(resolution.get("context_owner_path", ""))
+	task_state[U_AITaskStateKeys.MOVE_TARGET_WAYPOINT_INDEX] = int(resolution.get("waypoint_index", -1))
 
 func _resolve_node_debug_path(node_variant: Variant) -> String:
 	if not (node_variant is Node):

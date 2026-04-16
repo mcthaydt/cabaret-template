@@ -6,7 +6,6 @@ const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_c
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
-const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_AI_RENDER_PROBE := preload("res://scripts/utils/debug/u_ai_render_probe.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
@@ -238,7 +237,7 @@ func _resolve_ai_task_state_payload(entity_query: Object) -> Dictionary:
 			"used_fallback": false,
 		}
 	var task_state: Dictionary = task_state_variant as Dictionary
-	var target_variant: Variant = task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET, null)
+	var target_variant: Variant = task_state.get(U_AITaskStateKeys.MOVE_TARGET, null)
 	if not (target_variant is Vector3):
 		return {
 			"has_target": false,
@@ -246,17 +245,17 @@ func _resolve_ai_task_state_payload(entity_query: Object) -> Dictionary:
 			"source": "ai_task_state",
 			"resolution_reason": "move_target_missing",
 			"reason": "move_target_missing",
-			"used_fallback": bool(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_USED_FALLBACK, false)),
+			"used_fallback": bool(task_state.get(U_AITaskStateKeys.MOVE_TARGET_USED_FALLBACK, false)),
 		}
 
 	return {
 		"has_target": true,
 		"has_source_context": true,
 		"target_position": target_variant as Vector3,
-		"arrival_threshold": task_state.get(U_AI_TASK_STATE_KEYS.ARRIVAL_THRESHOLD, DEFAULT_ARRIVAL_THRESHOLD),
-		"source": str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_SOURCE, "ai_task_state")),
-		"resolution_reason": str(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_RESOLUTION_REASON, "task_state_move_target")),
-		"used_fallback": bool(task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET_USED_FALLBACK, false)),
+		"arrival_threshold": task_state.get(U_AITaskStateKeys.ARRIVAL_THRESHOLD, DEFAULT_ARRIVAL_THRESHOLD),
+		"source": str(task_state.get(U_AITaskStateKeys.MOVE_TARGET_SOURCE, "ai_task_state")),
+		"resolution_reason": str(task_state.get(U_AITaskStateKeys.MOVE_TARGET_RESOLUTION_REASON, "task_state_move_target")),
+		"used_fallback": bool(task_state.get(U_AITaskStateKeys.MOVE_TARGET_USED_FALLBACK, false)),
 	}
 
 func _resolve_arrival_threshold(value: Variant) -> float:

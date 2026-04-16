@@ -58,7 +58,7 @@ func _assert_goal_has_actions(goal: Resource, context: Dictionary = {}) -> void:
 	if root_task == null:
 		return
 
-	var queue: Array[Resource] = U_HTN_PLANNER.decompose(root_task, context)
+	var queue: Array[RS_AIPrimitiveTask] = U_HTN_PLANNER.decompose(root_task, context)
 	assert_false(queue.is_empty(), "Goal root_task should decompose into at least one primitive task")
 	for task_variant in queue:
 		assert_true(task_variant is RS_AI_PRIMITIVE_TASK, "Decomposed tasks should be RS_AIPrimitiveTask")
