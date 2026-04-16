@@ -1,7 +1,7 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 1e next (Phase 1d complete on 2026-04-16; Commits 12-13 complete) — **Commit 14 next**.
+**Status**: Phase 1 complete (2026-04-16) — awaiting go-ahead for **Phase 2a Commit 20**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
@@ -105,18 +105,21 @@
 
 **Goal**: Per-agent floating label showing `entity_id + goal + task`, plus a separate debug Control that aggregates every brain. Both read `C_AIBrainComponent.get_debug_snapshot()` (already populated by `S_AIBehaviorSystem._build_brain_snapshot()` each tick).
 
-- [ ] **Commit 14** (RED) — Write `tests/unit/debug/test_debug_ai_brain_panel.gd`:
+- [x] **Commit 14** (RED) — Write `tests/unit/debug/test_debug_ai_brain_panel.gd`:
   - Test: panel renders one row per brain entity discovered via `M_ECSManager.get_components(C_AIBrainComponent.COMPONENT_TYPE)`
   - Test: row text matches the snapshot's `entity_id` / `goal_id` / current `task_id`
   - Test: panel gracefully handles an empty brain list (no crash)
-- [ ] **Commit 15** (GREEN) — Implement `scripts/debug/debug_ai_brain_panel.gd` and `scenes/debug/debug_ai_brain_panel.tscn`. Root is a `Control` (not a HUD widget). `VBoxContainer` with one row per brain, refreshed by a 4 Hz `Timer`.
-- [ ] **Commit 16** — Implement `scripts/debug/debug_forest_agent_label.gd` and `scenes/debug/debug_forest_agent_label.tscn`. A `Label3D` with `billboard = BILLBOARD_ENABLED`, `fixed_size = true`, `no_depth_test = true`, child of each agent's `E_ForestAgentRoot`. Text updated each frame from the agent's own `C_AIBrainComponent.get_debug_snapshot()`.
+  - Completion note (2026-04-16): added panel test suite and confirmed RED before implementation.
+- [x] **Commit 15** (GREEN) — Implement `scripts/debug/debug_ai_brain_panel.gd` and `scenes/debug/debug_ai_brain_panel.tscn`. Root is a `Control` (not a HUD widget). `VBoxContainer` with one row per brain, refreshed by a 4 Hz `Timer`.
+  - Completion note (2026-04-16): implemented panel script/scene; `tests/unit/debug/test_debug_ai_brain_panel.gd` green (`3/3`).
+- [x] **Commit 16** — Implement `scripts/debug/debug_forest_agent_label.gd` and `scenes/debug/debug_forest_agent_label.tscn`. A `Label3D` with `billboard = BILLBOARD_ENABLED`, `fixed_size = true`, `no_depth_test = true`, child of each agent's `E_ForestAgentRoot`. Text updated each frame from the agent's own `C_AIBrainComponent.get_debug_snapshot()`.
+  - Completion note (2026-04-16): implemented agent label script/scene and wired the prefab to instance the label.
 
 ### P1f. Scene assembly + registry
 
 **Goal**: `gameplay_ai_forest.tscn` wired up end-to-end with only AI-essential systems; reachable through `M_SceneManager` via registry entry.
 
-- [ ] **Commit 17** — Author `scenes/gameplay/gameplay_ai_forest.tscn`. Structure (each container node carries its matching marker script from `scripts/scene_structure/`):
+- [x] **Commit 17** — Author `scenes/gameplay/gameplay_ai_forest.tscn`. Structure (each container node carries its matching marker script from `scripts/scene_structure/`):
   - Root `Node3D`
   - `Managers` (`marker_managers_group.gd`) — `M_ECSManager`
   - `Systems` (`marker_systems_group.gd`)
@@ -128,21 +131,24 @@
   - `Lighting` (`marker_lighting_group.gd`) — `SunLight` (DirectionalLight3D downward)
   - `Camera` — `TopDownCamera` (Camera3D, `projection = PROJECTION_ORTHOGONAL`, `size = 70`, `position = (0, 40, 0)`, `rotation_degrees = (-90, 0, 0)`, `current = true`)
   - `Debug` — instance of `debug_ai_brain_panel.tscn`
-- [ ] **Commit 18** — Register scene. Create `resources/scene_registry/cfg_ai_forest_entry.tres` (mirroring `cfg_ai_showcase_entry.tres`):
+  - Completion note (2026-04-16): assembled gameplay scene with required marker containers, AI runtime systems, species/tree instances, top-down camera, and debug panel.
+- [x] **Commit 18** — Register scene. Create `resources/scene_registry/cfg_ai_forest_entry.tres` (mirroring `cfg_ai_showcase_entry.tres`):
   - `scene_id = &"ai_forest"`
   - `scene_path = "res://scenes/gameplay/gameplay_ai_forest.tscn"`
   - `scene_type = 1` (GAMEPLAY)
   - `default_transition = "loading"`
   - `preload_priority = 0` (on-demand)
-- [ ] **Commit 19** (SMOKE TEST) — `tests/integration/gameplay/test_forest_ecosystem_smoke.gd`: load the scene via `M_SceneManager`, await `process_frame × 2`, step physics 60 frames, assert every brain entity has a non-empty `current_task_queue` and `active_goal_id != StringName()`.
+  - Completion note (2026-04-16): added `cfg_ai_forest_entry.tres` and validated SceneRegistry lookup path.
+- [x] **Commit 19** (SMOKE TEST) — `tests/integration/gameplay/test_forest_ecosystem_smoke.gd`: load the scene via `M_SceneManager`, await `process_frame × 2`, step physics 60 frames, assert every brain entity has a non-empty `current_task_queue` and `active_goal_id != StringName()`.
+  - Completion note (2026-04-16): added smoke test and wired wolf/rabbit/deer prefab `C_AIBrainComponent.brain_settings` to species resources so all brains select goals/tasks at runtime; smoke test green (`1/1`).
 
 ### Phase 1 verification
 
-- [ ] `tools/run_gut_suite.sh -gdir=res://tests/unit -ginclude_subdirs -gexit` — all green
-- [ ] `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit` — all green
-- [ ] `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` — baseline 124 + new Phase 1 tests
-- [ ] `tools/run_gut_suite.sh -gtest=res://tests/integration/gameplay/test_forest_ecosystem_smoke.gd -gexit` — green
-- [ ] Manual visual pass: launch scene, confirm each acceptance criterion from the overview doc
+- [x] `tools/run_gut_suite.sh -gdir=res://tests/unit -ginclude_subdirs -gexit` — green (`3945` passing, `8` pending/risky headless skips, `0` failing; run on 2026-04-16)
+- [x] `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit` — green (`58/58`)
+- [x] `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` — green (`130/130`)
+- [x] `tools/run_gut_suite.sh -gtest=res://tests/integration/gameplay/test_forest_ecosystem_smoke.gd -gexit` — green (`1/1`)
+- [ ] Manual visual pass: launch scene, confirm each acceptance criterion from the overview doc (not run in this headless pass)
 
 ---
 
