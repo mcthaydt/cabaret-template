@@ -1,7 +1,7 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 1d next (Phase 1c complete on 2026-04-16; Commits 9-11 complete) — **Commit 12 next**.
+**Status**: Phase 1d in progress (Commit 12 complete on 2026-04-16) — **Commit 13 next**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
@@ -87,12 +87,13 @@
 
 **Goal**: Authored `.tres` goals + brain configs under `resources/ai/forest/`. Uses `RS_ConditionComponentField` reading `C_DetectionComponent.is_player_in_range` for threat/prey checks. No `decision_group`.
 
-- [ ] **Commit 12** — Create `resources/ai/forest/shared/` goal resources:
+- [x] **Commit 12** — Create `resources/ai/forest/shared/` goal resources:
   - `cfg_goal_wander.tres` — `priority = 0`, constant condition score 0.3 (baseline), root_task = primitive wander
   - `cfg_goal_flee.tres` — `priority = 10`, condition = `RS_ConditionComponentField` reading `C_DetectionComponent.is_player_in_range == true`, root_task = primitive flee-from-detected
   - `cfg_goal_hunt.tres` — `priority = 10`, same condition pattern (detection-positive), root_task = compound `[move_to_detected, wait, move_to_detected]`
   - `cfg_goal_graze.tres` — `priority = 2`, constant condition 0.5, root_task = wait-in-place
   - `cfg_goal_startle.tres` — `priority = 8`, condition = detection-positive, `cooldown = 2.0`, root_task = `[scan_alert, wait_short]`
+  - Completion note (2026-04-16): authored all five shared goal resources under `resources/ai/forest/shared/` using typed goal/task/action resources and `RS_ConditionComponentField` detection checks.
 - [ ] **Commit 13** — Create per-species brain configs:
   - `resources/ai/forest/wolf/cfg_wolf_brain.tres` (`default_goal_id = &"wander"`, `goals = [hunt, wander]`)
   - `resources/ai/forest/rabbit/cfg_rabbit_brain.tres` (`[flee, graze, wander]`)

@@ -5,13 +5,13 @@
 This prompt directs you to implement the AI Forest Simulation by executing `docs/ai_forest/ai-forest-tasks.md` in sequential order, respecting the phase dependency chain. The full specification lives in `docs/ai_forest/ai-forest-overview.md`.
 
 **Branch**: GOAP-AI
-**Status**: Phase 1d next (Phase 1c complete on 2026-04-16; Commits 9-11 complete).
-**Next task**: Phase 1d Commit 12 — author shared forest goal resources under `resources/ai/forest/shared/`.
+**Status**: Phase 1d in progress (Commit 12 complete on 2026-04-16).
+**Next task**: Phase 1d Commit 13 — create species brain configs under `resources/ai/forest/{wolf,rabbit,deer}/`.
 **Prerequisite**: Baseline AI suite re-measured and green immediately before Phase 1a (`124/124` passing on 2026-04-16).
 
 ---
 
-## Current Status: Phase 1c Complete
+## Current Status: Phase 1d In Progress
 
 Implementation progress:
 - Commit 1 RED: added `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd` and confirmed expected failures before implementation.
@@ -25,6 +25,7 @@ Implementation progress:
 - Commit 9 RED: added `tests/unit/ai/actions/test_ai_actions_forest.gd` and confirmed expected failures before action implementation.
 - Commit 10 GREEN: implemented `RS_AIActionMoveToDetected`, `RS_AIActionFleeFromDetected`, `RS_AIActionWander`, and `U_AITaskStateKeys.WANDER_HOME`.
 - Commit 11 GREEN follow-up: aligned detected/flee actions with move-target resolution parity and completion-state cleanup while keeping `C_MoveTargetComponent` as the primary target channel.
+- Commit 12: authored shared forest goals (`cfg_goal_wander`, `cfg_goal_flee`, `cfg_goal_hunt`, `cfg_goal_graze`, `cfg_goal_startle`) under `resources/ai/forest/shared/`.
 
 Planning artifacts remain authoritative:
 - **`docs/ai_forest/ai-forest-overview.md`** — purpose, scope, architecture, species spec, per-phase acceptance criteria.
@@ -106,7 +107,7 @@ These decisions diverge from what an intuitive reading of the AI system might su
 - `scenes/gameplay/gameplay_ai_forest.tscn`
 - `resources/scene_registry/cfg_ai_forest_entry.tres`
 - `resources/base_settings/ai_forest/cfg_movement_forest.tres`
-- Goal / brain `.tres` files under `resources/ai/forest/{shared,wolf,rabbit,deer}/`
+- Brain `.tres` files under `resources/ai/forest/{wolf,rabbit,deer}/`
 - Tests: `test_s_ai_detection_system_tag_target.gd`, `test_ai_actions_forest.gd`, `test_debug_ai_brain_panel.gd`, `test_forest_ecosystem_smoke.gd`
 
 ### To be created (Phase 2)
@@ -164,9 +165,9 @@ When the user says "proceed" or "start Phase 1":
 - **Outcome**: Plan approved. Awaiting go-ahead to start Phase 1a.
 
 ### Phase 1 — Scene shell + species behaviors + detection generalization
-- **Status**: In progress (P1a + P1b + P1c complete on 2026-04-16)
-- **Commits**: 11 / 19
-- **Outcome**: Detection system supports tag-targeted lookup; forest prefabs are authored; detected/flee/wander action scripts and forest action tests are in place.
+- **Status**: In progress (P1a + P1b + P1c complete; P1d Commit 12 complete on 2026-04-16)
+- **Commits**: 12 / 19
+- **Outcome**: Detection system supports tag-targeted lookup; forest prefabs and shared species goals are authored; detected/flee/wander action scripts and forest action tests are in place.
 
 ### Phase 2 — Hunger / satiety
 - **Status**: Not started
