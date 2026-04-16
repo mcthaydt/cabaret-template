@@ -5,15 +5,15 @@
 This guide directs you to implement Cross-System Cleanup V7.2 by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` in sequential order, respecting the dependency graph documented below. V7.2 is the follow-up to V7 (C1–C12), addressing eight concrete architectural weaknesses that C1–C12 did not target, plus three additions (F8 Phase 0, F12, F15) surfaced during pre-implementation review.
 
 **Branch**: GOAP-AI
-**Status**: F9 complete — **F11, F12, or F15 next** (independent milestones).
-**Next Task**: Begin **F11** (Event Bus Zombie Prevention), **F12** (Settings Overlay Dedup), or **F15** (Resource Schema Validation) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
+**Status**: F11 complete — **F12 or F15 next** (independent milestones).
+**Next Task**: Begin **F12** (Settings Overlay Dedup) or **F15** (Resource Schema Validation) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
 **Prerequisite**: Full C1–C12 test suite green (desktop + mobile) before starting F2.
 
 ---
 
-## Current Status: F9 Complete
+## Current Status: F11 Complete
 
-F1–F9 and F16 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
+F1–F11 and F16 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
 
 - **F1 (SceneManager C6 Supplement)**: **ALREADY RESOLVED** during C6. Verification-only checkpoint (single commit adding style-enforcement grep assertions).
 - **F2 (StateStore Dispatch — Share Snapshot)**: **COMPLETE**. Dispatch now uses `get_state()` instead of `_state.duplicate(true)`, populating the versioned cache. Zero-subscriber skip already in place.
@@ -271,18 +271,19 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 
 ---
 
-## Milestone F11: Event Bus "Zombie" Prevention (Dead Subscriber Pruning)
+## Milestone F11: Event Bus "Zombie" Prevention (Dead Subscriber Pruning) ✅
 
 **Goal**: Prune dead subscriber callables from `BaseEventBus._subscribers` at publish time. Scope is `scripts/events/base_event_bus.gd` (shared base), **not** the `U_ECSEventBus` facade.
 
-- [ ] **Commit 1** (RED) — `tests/unit/ecs/events/test_base_event_bus_zombies.gd`: dead subscriber removed after publish; no entries with `callback.is_valid() == false` in `_subscribers`.
-- [ ] **Commit 2** (GREEN) — Publish-time pruning in `BaseEventBus.publish()`.
-- [ ] **Commit 3** (GREEN) — Replace per-publish `.duplicate()` at `:93` with index-based iteration safe for mid-iteration removal.
+- [x] **Commit 1** (RED) — `tests/unit/ecs/events/test_base_event_bus_zombies.gd`: 8 tests — 3 zombie-pruning assertions (zombie removal, dict pruning, mixed zombie+live list state), 2 cross-event isolation tests, 3 reentrancy tests (subscribe/unsubscribe/clear during publish). 3 fail against unmodified base.
+- [x] **Commit 2** (GREEN) — Publish-time pruning: backward sweep removes dead callables after call loop; empty event lists pruned from `_subscribers` dict. Retained `.duplicate()` snapshot for reentrant safety at this commit.
+- [x] **Commit 3** (GREEN) — Replace `.duplicate()` with `_publishing` guard + `_pending_unsubscribes` deferred list. Iterates live list directly; `unsubscribe()` during publish defers removal. Style enforcement test scoped to `publish` body only.
 
 **F11 Verification**:
-- [ ] Zombie pruning tests green.
-- [ ] Existing event bus tests green (including `test_ecs_event_bus.gd`).
-- [ ] No `.duplicate()` call in `BaseEventBus.publish()` (style enforcement).
+- [x] Zombie pruning tests green (8/8).
+- [x] Existing event bus tests green (ECS 6/6, State 7/7).
+- [x] No `.duplicate()` in `BaseEventBus.publish()` body (style enforcement, scoped to publish function).
+- [x] Reentrancy tests green: subscribe/unsubscribe/clear during publish.
 
 ---
 
@@ -431,6 +432,9 @@ You MUST:
 - **F16 debug snapshot mirrors `C_JumpComponent`**: Same `.duplicate(true)` copy semantics, same `update_debug_snapshot`/`get_debug_snapshot` method pair.
 - **F16 Variant coercion cleanup is safe**: `start()` writes `float` values to task_state; the runtime type is guaranteed. The `is float or is int` guard in `rs_ai_action_wait.gd` and `rs_ai_action_scan.gd` is unnecessary defensive code that becomes removable once keys are constants.
 - **F16 overlap with F9**: Both touch `s_ai_behavior_system.gd`. F16 Commit 1 only changes type annotations on lines 28–32; F9 will add a `SystemPhase` declaration. Land F16 Commit 1 first for a clean merge.
+- **F11 `_publishing` guard preserves reentrant safety**: The original `.duplicate()` snapshot prevented mid-iterate mutation from corrupting iteration. The replacement uses a `_publishing` flag: `unsubscribe()` during publish defers to `_pending_unsubscribes`, applied after the call loop. `subscribe()` and `clear()` during publish are safe (subscribe appends to the live list after the current iteration; clear wipes the dict but the iteration already captured the list reference). Three reentrancy tests verify subscribe/unsubscribe/clear during publish.
+- **F11 zombie pruning is publish-time only**: `subscribe()` never prunes zombies. Events subscribed-to frequently but published rarely will accumulate dead entries between publishes. This is the accepted scope — the primary leak vector (long play sessions) is addressed at publish time.
+- **F11 empty-event-list pruning is a behavior change**: Previously, `_subscribers[event_name]` could hold an empty `[]` after all subscribers unsubscribed. Now `publish()` erases the key when the list empties. Code checking `_subscribers.has(event)` as "was this ever subscribed?" will see a change, but no production code does this.
 
 ---
 
@@ -465,6 +469,7 @@ You MUST:
 10. ~~**F8 Phase 1** — VCam/CameraState system extraction.~~ ✅ **Complete.** `S_VCamSystem` 551→297, `S_CameraStateSystem` 602→332. New helpers: `U_VCamPipelineBuilder`, `U_CameraStateRuleApplier`. Style enforcement added.
 11. ~~**F16** — AI System Type Safety & Consistency.~~ ✅ **Complete.** 5 `Variant` fields → concrete types; `I_AIAction` push_error stubs; 8 new `U_AITaskStateKeys` constants replacing bare strings; `C_AIBrainComponent.get_debug_snapshot()`; `RS_AIActionAnimate` doc comment; grep enforcement.
 12. ~~**F9** — ECS System Execution Phasing.~~ ✅ **Complete.** `SystemPhase` enum (PRE_PHYSICS, INPUT, PHYSICS_SOLVE, POST_PHYSICS, CAMERA, VFX) added to `BaseECSSystem`; `get_phase()` virtual method; `M_ECSManager._compare_system_priority` sorts by phase → priority → instance ID; all 38 S_* systems declare explicit phases; style enforcement test added.
-13. F11, F12, F15 can be scheduled independently.
-14. F10 verification checkpoint can run any time.
-15. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.
+13. ~~**F11** — Event Bus Zombie Prevention.~~ ✅ **Complete.** `_publishing` guard + `_pending_unsubscribes` replace `.duplicate()` snapshot; backward sweep prunes dead callables; empty event lists pruned from dict; 8 tests (3 zombie-pruning, 3 reentrancy, 2 isolation); style enforcement scoped to publish body.
+14. F12 or F15 can be scheduled independently.
+15. F10 verification checkpoint can run any time.
+16. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.

@@ -1,7 +1,7 @@
 # Cross-System Cleanup V7.2 — Follow-up Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Not started (queued after cleanup-v7 C12 post-processing milestone)
+**Status**: F11 complete — **F12 or F15 next** (independent milestones).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred
 **Scope**: Targeted follow-ups to cleanup-v7 (`cleanup-v7-tasks.md`) addressing gaps surfaced during a deep-dive architectural review. Mostly backwards-compatible. Behavioral changes are gated to specific commits and called out explicitly (F4 strict validator default flip, F5 grep-test enforcement). All existing integration tests must stay green throughout.
 
@@ -518,16 +518,15 @@ The existing `execution_priority` int can be retained as a **within-phase orderi
 - `BaseEventBus.subscribe()` (`:18-56`)
 
 **Commits**:
-- [ ] **Commit 1** (RED) — Add test `tests/unit/ecs/events/test_base_event_bus_zombies.gd`:
-  - An object subscribes, is `free()`'d, and an event is published. Assert: no crash (already true), **and** the dead subscriber is removed from the internal subscriber list after publish.
-  - After pruning, `_subscribers[event]` does not contain any entries where `callback.is_valid() == false`.
-- [ ] **Commit 2** (GREEN) — Add publish-time pruning in `BaseEventBus.publish()`: after iterating subscribers, remove entries where `callback.is_valid() == false` from the source array. This replaces the current pattern where dead entries silently accumulate.
-- [ ] **Commit 3** (GREEN) — Replace the per-publish `.duplicate()` at `:93` with an index-based iteration that handles mid-iteration removal safely (iterate backwards, or use a `_publishing` guard flag to defer removals). This eliminates the per-publish allocation.
+- [x] **Commit 1** (RED) — `tests/unit/ecs/events/test_base_event_bus_zombies.gd`: 8 tests — 3 zombie-pruning assertions (zombie removal, dict pruning, mixed zombie+live list state), 2 cross-event isolation tests, 3 reentrancy tests (subscribe/unsubscribe/clear during publish). 3 pruning tests fail against unmodified base_event_bus.gd; 5 pass (reentrancy already handled by .duplicate()).
+- [x] **Commit 2** (GREEN) — Publish-time pruning in `BaseEventBus.publish()`: backward sweep removes dead callables after the call loop. Empty event lists pruned from `_subscribers` dict. Retains `.duplicate()` snapshot for reentrant safety at this commit.
+- [x] **Commit 3** (GREEN) — Replace `.duplicate()` snapshot with `_publishing` guard flag + deferred `_pending_unsubscribes`. Iterates live list directly; `unsubscribe()` during publish defers removal to `_pending_unsubscribes`. After call loop, applies pending removals then prunes zombies. Style enforcement test scoped to `publish` function body only, forbidding `.duplicate()` there.
 
 **F11 Verification**:
-- [ ] Zombie pruning tests green.
-- [ ] Existing event bus tests green (including `tests/unit/ecs/events/test_ecs_event_bus.gd`).
-- [ ] No `.duplicate()` call in `BaseEventBus.publish()` (style enforcement grep).
+- [x] Zombie pruning tests green (8/8).
+- [x] Existing event bus tests green (ECS 6/6, State 7/7).
+- [x] No `.duplicate()` call in `BaseEventBus.publish()` body (style enforcement grep, scoped to publish body).
+- [x] Reentrancy tests green: subscribe/unsubscribe/clear during publish.
 
 ---
 
