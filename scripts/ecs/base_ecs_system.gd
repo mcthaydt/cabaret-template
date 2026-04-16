@@ -6,6 +6,18 @@ class_name BaseECSSystem
 const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 static var _missing_manager_method_warnings: Dictionary = {}
 
+## System execution phases, ordered by intended execution sequence.
+## Systems in earlier phases run before systems in later phases.
+## Within a phase, execution_priority determines ordering.
+enum SystemPhase {
+	PRE_PHYSICS,    ## AI perception, decision-making, target setting
+	INPUT,           ## Player input capture
+	PHYSICS_SOLVE,   ## Core physics/movement calculations
+	POST_PHYSICS,    ## Game state evaluation, handlers, recovery
+	CAMERA,           ## Camera processing, visibility, checkpoints
+	VFX,              ## Visual/audio effects, HUD feedback
+}
+
 var _manager: I_ECSManager
 var _configured: bool = false
 var _execution_priority: int = 0
@@ -90,6 +102,12 @@ func set_debug_disabled(disabled: bool) -> void:
 
 func is_debug_disabled() -> bool:
 	return _debug_disabled
+
+## Returns the execution phase for this system.
+## Override in subclasses to declare a specific phase.
+## Default is PHYSICS_SOLVE — the most common bucket for gameplay systems.
+func get_phase() -> SystemPhase:
+	return SystemPhase.PHYSICS_SOLVE
 
 func process_tick(_delta: float) -> void:
 	pass
