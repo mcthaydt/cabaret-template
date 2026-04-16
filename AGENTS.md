@@ -37,7 +37,7 @@
 - UI controllers are grouped by screen type: `scripts/ui/menus/`, `scripts/ui/overlays/`, `scripts/ui/hud/` (utilities live in `scripts/ui/utils/`).
 - UI scenes organized by type: `scenes/ui/menus/`, `scenes/ui/overlays/`, `scenes/ui/hud/`, `scenes/ui/widgets/` (cleanup v4.5).
 - `scripts/ecs/base_ecs_component.gd`: Base for components. Auto-registers with manager; exposes `get_snapshot()` hook.
-- `scripts/ecs/base_ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`.
+- `scripts/ecs/base_ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`. Declares `SystemPhase` enum (`PRE_PHYSICS`, `INPUT`, `PHYSICS_SOLVE`, `POST_PHYSICS`, `CAMERA`, `VFX`) — override `get_phase()` in every `S_*` system. `M_ECSManager` sorts by phase (primary), `execution_priority` (secondary), instance ID (tertiary).
 - `scripts/ecs/components/*`: Gameplay components with `@export` NodePaths and typed getters.
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
 - `scripts/resources/ecs/*`: `Resource` classes holding tunables consumed by components/systems.

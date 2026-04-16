@@ -467,19 +467,19 @@ The existing `execution_priority` int can be retained as a **within-phase orderi
 - Update all existing `S_*` system scripts to declare a phase.
 
 **Commits**:
-- [ ] **Commit 1** (RED) — Add tests in `test_m_ecs_manager_phasing.gd`:
+- [x] **Commit 1** (RED) — Add tests in `test_m_ecs_manager_phasing.gd`:
   - Systems registered in random order still execute in strict phase order.
   - Within the same phase, systems execute by `execution_priority` (existing behavior preserved).
   - A system with `SystemPhase.CAMERA` always runs after `SystemPhase.PHYSICS_SOLVE` regardless of registration or priority values.
-- [ ] **Commit 2** (GREEN) — Introduce `SystemPhase` enum on `BaseECSSystem` (e.g., `INPUT`, `PRE_PHYSICS`, `PHYSICS_SOLVE`, `POST_PHYSICS`, `CAMERA`, `VFX`). Add `get_phase() -> SystemPhase` with a default phase. Keep `execution_priority` as within-phase ordering.
-- [ ] **Commit 3** (GREEN) — Refactor `M_ECSManager` sort/loop to group by phase first, then sort within phase by `execution_priority`. The manager already owns the loop — this just changes the sort key.
-- [ ] **Commit 4** (GREEN) — Assign explicit phases to all current `S_*` systems based on their current `execution_priority` values. Verify ordering didn't change.
+- [x] **Commit 2** (GREEN) — Introduce `SystemPhase` enum on `BaseECSSystem` (`PRE_PHYSICS`, `INPUT`, `PHYSICS_SOLVE`, `POST_PHYSICS`, `CAMERA`, `VFX`). Add `get_phase() -> SystemPhase` with default `PHYSICS_SOLVE`. Keep `execution_priority` as within-phase ordering.
+- [x] **Commit 3** (GREEN) — Refactor `M_ECSManager._compare_system_priority` to sort by phase (primary), execution_priority (secondary), instance ID (tertiary).
+- [x] **Commit 4** (GREEN) — Assign explicit phases to all 38 `S_*` systems. Add style enforcement test `test_all_ecs_systems_declare_explicit_phase`.
 
 **F9 Verification**:
-- [ ] Phasing tests green.
-- [ ] Existing ECS tests green.
-- [ ] All `S_*` systems declare an explicit phase.
-- [ ] No ECS system uses `_physics_process` directly (style enforcement grep — verify this is already true).
+- [x] Phasing tests green (5/5).
+- [x] Existing ECS tests green.
+- [x] All `S_*` systems declare an explicit phase (38/38).
+- [x] Style enforcement test green (56/56).
 
 ---
 

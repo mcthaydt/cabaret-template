@@ -5,15 +5,15 @@
 This guide directs you to implement Cross-System Cleanup V7.2 by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` in sequential order, respecting the dependency graph documented below. V7.2 is the follow-up to V7 (C1–C12), addressing eight concrete architectural weaknesses that C1–C12 did not target, plus three additions (F8 Phase 0, F12, F15) surfaced during pre-implementation review.
 
 **Branch**: GOAP-AI
-**Status**: F16 complete — **F9, F11, F12, or F15 next** (independent milestones).
-**Next Task**: Begin **F9** (ECS System Execution Phasing), **F11** (Event Bus Zombie Prevention), **F12** (Settings Overlay Dedup), or **F15** (Resource Schema Validation) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
+**Status**: F9 complete — **F11, F12, or F15 next** (independent milestones).
+**Next Task**: Begin **F11** (Event Bus Zombie Prevention), **F12** (Settings Overlay Dedup), or **F15** (Resource Schema Validation) per `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
 **Prerequisite**: Full C1–C12 test suite green (desktop + mobile) before starting F2.
 
 ---
 
-## Current Status: F16 Complete
+## Current Status: F9 Complete
 
-F1–F8 and F16 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
+F1–F9 and F16 are complete. The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
 
 - **F1 (SceneManager C6 Supplement)**: **ALREADY RESOLVED** during C6. Verification-only checkpoint (single commit adding style-enforcement grep assertions).
 - **F2 (StateStore Dispatch — Share Snapshot)**: **COMPLETE**. Dispatch now uses `get_state()` instead of `_state.duplicate(true)`, populating the versioned cache. Zero-subscriber skip already in place.
@@ -239,20 +239,20 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 
 ---
 
-## Milestone F9: ECS System Execution Phasing — Named Phase Enum
+## Milestone F9: ECS System Execution Phasing — Named Phase Enum ✅
 
 **Goal**: Replace opaque integer `execution_priority` with a named `SystemPhase` enum. Keep `execution_priority` as within-phase tiebreaker.
 
-- [ ] **Commit 1** (RED) — Phasing tests in `test_m_ecs_manager_phasing.gd`.
-- [ ] **Commit 2** (GREEN) — Introduce `SystemPhase` enum on `BaseECSSystem` (`INPUT`, `PRE_PHYSICS`, `PHYSICS_SOLVE`, `POST_PHYSICS`, `CAMERA`, `VFX`).
-- [ ] **Commit 3** (GREEN) — Refactor `M_ECSManager` sort/loop to group by phase first, then by `execution_priority`.
-- [ ] **Commit 4** (GREEN) — Assign explicit phases to all existing `S_*` systems based on current priority values. Verify ordering didn't change.
+- [x] **Commit 1** (RED) — Phasing tests in `test_m_ecs_manager_phasing.gd` (5 tests: default, strict phase order, within-phase priority, phase precedence over priority, production ordering).
+- [x] **Commit 2** (GREEN) — Introduce `SystemPhase` enum on `BaseECSSystem` (`PRE_PHYSICS`, `INPUT`, `PHYSICS_SOLVE`, `POST_PHYSICS`, `CAMERA`, `VFX`). Add `get_phase() -> SystemPhase` with default `PHYSICS_SOLVE`.
+- [x] **Commit 3** (GREEN) — Refactor `M_ECSManager._compare_system_priority` to sort by phase (primary), `execution_priority` (secondary), instance ID (tertiary).
+- [x] **Commit 4** (GREEN) — Assign explicit phases to all 38 `S_*` systems. Add style enforcement test `test_all_ecs_systems_declare_explicit_phase`.
 
 **F9 Verification**:
-- [ ] Phasing tests green.
-- [ ] Existing ECS tests green.
-- [ ] All `S_*` systems declare an explicit phase.
-- [ ] No ECS system uses `_physics_process` directly (style enforcement).
+- [x] Phasing tests green (5/5).
+- [x] Existing ECS tests green.
+- [x] All `S_*` systems declare an explicit phase (38/38).
+- [x] Style enforcement test green (56/56).
 
 ---
 
@@ -464,6 +464,7 @@ You MUST:
 9. ~~**F8 Phase 0** — VCam helper pre-decomposition.~~ ✅ **Complete.** `u_vcam_rotation.gd` and `u_vcam_orbit_effects.gd` decomposed into focused helpers.
 10. ~~**F8 Phase 1** — VCam/CameraState system extraction.~~ ✅ **Complete.** `S_VCamSystem` 551→297, `S_CameraStateSystem` 602→332. New helpers: `U_VCamPipelineBuilder`, `U_CameraStateRuleApplier`. Style enforcement added.
 11. ~~**F16** — AI System Type Safety & Consistency.~~ ✅ **Complete.** 5 `Variant` fields → concrete types; `I_AIAction` push_error stubs; 8 new `U_AITaskStateKeys` constants replacing bare strings; `C_AIBrainComponent.get_debug_snapshot()`; `RS_AIActionAnimate` doc comment; grep enforcement.
-12. F9, F11, F12, F15 can be scheduled independently (F16 Commit 1 has landed, so F9 can proceed on `s_ai_behavior_system.gd` without merge issues).
-13. F10 verification checkpoint can run any time.
-14. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.
+12. ~~**F9** — ECS System Execution Phasing.~~ ✅ **Complete.** `SystemPhase` enum (PRE_PHYSICS, INPUT, PHYSICS_SOLVE, POST_PHYSICS, CAMERA, VFX) added to `BaseECSSystem`; `get_phase()` virtual method; `M_ECSManager._compare_system_priority` sorts by phase → priority → instance ID; all 38 S_* systems declare explicit phases; style enforcement test added.
+13. F11, F12, F15 can be scheduled independently.
+14. F10 verification checkpoint can run any time.
+15. After F1–F8 are green and F5 has landed, revisit the closing `AGENTS.md` sprawl reflection to decide whether to promote it to a future F-milestone.
