@@ -40,3 +40,17 @@ func test_move_target_debug_key_constants() -> void:
 	assert_eq(keys_script.get("MOVE_TARGET_CONTEXT_ENTITY_PATH"), StringName("move_target_context_entity_path"))
 	assert_eq(keys_script.get("MOVE_TARGET_CONTEXT_OWNER_PATH"), StringName("move_target_context_owner_path"))
 	assert_eq(keys_script.get("MOVE_TARGET_WAYPOINT_INDEX"), StringName("move_target_waypoint_index"))
+
+func test_action_state_key_constants() -> void:
+	var keys_script: Script = _load_keys_script()
+	if keys_script == null:
+		return
+
+	assert_eq(keys_script.get("ELAPSED"), StringName("elapsed"))
+	assert_eq(keys_script.get("SCAN_ELAPSED"), StringName("scan_elapsed"))
+	assert_eq(keys_script.get("SCAN_ACTIVE"), StringName("scan_active"))
+	assert_eq(keys_script.get("SCAN_ROTATION_SPEED"), StringName("scan_rotation_speed"))
+	assert_eq(keys_script.get("ANIMATION_STATE"), StringName("animation_state"))
+	assert_eq(keys_script.get("ANIMATION_REQUESTED"), StringName("animation_requested"))
+	assert_eq(keys_script.get("PUBLISHED"), StringName("published"))
+	assert_eq(keys_script.get("COMPLETED"), StringName("completed"))

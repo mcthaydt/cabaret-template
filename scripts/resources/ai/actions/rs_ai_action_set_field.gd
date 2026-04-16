@@ -3,6 +3,7 @@ extends I_AIAction
 class_name RS_AIActionSetField
 
 const U_PATH_RESOLVER := preload("res://scripts/utils/qb/u_path_resolver.gd")
+const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 
 @export_group("Target")
 @export var field_path: String = ""
@@ -17,13 +18,13 @@ const U_PATH_RESOLVER := preload("res://scripts/utils/qb/u_path_resolver.gd")
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
 	_apply_value(context)
-	task_state["completed"] = true
+	task_state[U_AI_TASK_STATE_KEYS.COMPLETED] = true
 
 func tick(_context: Dictionary, _task_state: Dictionary, _delta: float) -> void:
 	pass
 
 func is_complete(_context: Dictionary, task_state: Dictionary) -> bool:
-	return bool(task_state.get("completed", false))
+	return bool(task_state.get(U_AI_TASK_STATE_KEYS.COMPLETED, false))
 
 func _apply_value(context: Dictionary) -> void:
 	if field_path.is_empty():

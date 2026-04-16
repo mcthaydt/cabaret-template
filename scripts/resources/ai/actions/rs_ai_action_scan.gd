@@ -2,27 +2,23 @@
 extends I_AIAction
 class_name RS_AIActionScan
 
+const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
+
 @export var scan_duration: float = 2.0
 @export var rotation_speed: float = 1.0
 
 func start(_context: Dictionary, task_state: Dictionary) -> void:
-	task_state["scan_elapsed"] = 0.0
-	task_state["scan_active"] = true
-	task_state["scan_rotation_speed"] = rotation_speed
+	task_state[U_AI_TASK_STATE_KEYS.SCAN_ELAPSED] = 0.0
+	task_state[U_AI_TASK_STATE_KEYS.SCAN_ACTIVE] = true
+	task_state[U_AI_TASK_STATE_KEYS.SCAN_ROTATION_SPEED] = rotation_speed
 
 func tick(_context: Dictionary, task_state: Dictionary, delta: float) -> void:
-	var elapsed: float = 0.0
-	var elapsed_variant: Variant = task_state.get("scan_elapsed", 0.0)
-	if elapsed_variant is float or elapsed_variant is int:
-		elapsed = float(elapsed_variant)
-	task_state["scan_elapsed"] = elapsed + maxf(delta, 0.0)
+	var elapsed: float = task_state.get(U_AI_TASK_STATE_KEYS.SCAN_ELAPSED, 0.0)
+	task_state[U_AI_TASK_STATE_KEYS.SCAN_ELAPSED] = elapsed + maxf(delta, 0.0)
 
 func is_complete(_context: Dictionary, task_state: Dictionary) -> bool:
-	var elapsed: float = 0.0
-	var elapsed_variant: Variant = task_state.get("scan_elapsed", 0.0)
-	if elapsed_variant is float or elapsed_variant is int:
-		elapsed = float(elapsed_variant)
+	var elapsed: float = task_state.get(U_AI_TASK_STATE_KEYS.SCAN_ELAPSED, 0.0)
 	var complete: bool = elapsed >= maxf(scan_duration, 0.0)
 	if complete:
-		task_state["scan_active"] = false
+		task_state[U_AI_TASK_STATE_KEYS.SCAN_ACTIVE] = false
 	return complete
