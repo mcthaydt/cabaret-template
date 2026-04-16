@@ -1998,3 +1998,22 @@ func test_all_ecs_systems_declare_explicit_phase() -> void:
 			violations.append("%s: missing get_phase() override" % filename)
 		filename = dir.get_next()
 	assert_eq(violations.size(), 0, "Every S_* system must declare get_phase(): %s" % [violations])
+
+func test_base_event_bus_publish_does_not_duplicate_subscriber_list() -> void:
+	var file_path := "res://scripts/events/base_event_bus.gd"
+	var file := FileAccess.open(file_path, FileAccess.READ)
+	if file == null:
+		push_error("Cannot open %s" % file_path)
+		assert_false(true, "File access failed")
+		return
+	var source := file.get_as_text()
+	file.close()
+	# Extract only the publish function body (between "func publish" and next "func ")
+	var publish_start: int = source.find("func publish")
+	assert_ne(publish_start, -1, "Could not find func publish in base_event_bus.gd")
+	var next_func: int = source.find("\nfunc ", publish_start + 1)
+	if next_func < 0:
+		next_func = source.length()
+	var publish_body: String = source.substr(publish_start, next_func - publish_start)
+	assert_false(publish_body.find(".duplicate()") >= 0,
+		"BaseEventBus.publish() must not duplicate subscriber list — use _publishing guard + live iteration instead")

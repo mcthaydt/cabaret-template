@@ -12,6 +12,8 @@ const DEFAULT_MAX_HISTORY_SIZE := 1000
 var _subscribers: Dictionary = {}
 var _event_history: Array = []
 var _max_history_size: int = DEFAULT_MAX_HISTORY_SIZE
+var _publishing: bool = false
+var _pending_unsubscribes: Array = []
 
 ## Subscribe to an event with optional priority. Returns unsubscribe callable.
 ## Higher priority subscribers are called first (10 > 5 > 0).
@@ -61,6 +63,10 @@ func unsubscribe(event_name: StringName, callback: Callable) -> void:
 	if not _subscribers.has(normalized_event):
 		return
 
+	if _publishing:
+		_pending_unsubscribes.append({"event": normalized_event, "callback": callback})
+		return
+
 	var subscriber_list: Array = _subscribers[normalized_event]
 
 	# Find and remove subscriber by callback
@@ -91,11 +97,17 @@ func publish(event_name: StringName, payload: Variant = null) -> void:
 		return
 
 	var subscriber_list: Array = _subscribers[normalized_event]
-	var snapshot: Array = subscriber_list.duplicate()
-	for sub_meta in snapshot:
+	_publishing = true
+	for sub_meta in subscriber_list:
 		var callback: Callable = sub_meta.callback
 		if callback.is_valid():
 			callback.call(event_payload)
+	_publishing = false
+
+	# Apply deferred unsubscribes
+	for pending in _pending_unsubscribes:
+		unsubscribe(pending.event, pending.callback)
+	_pending_unsubscribes.clear()
 
 	# Prune dead subscribers from the live list
 	for i in range(subscriber_list.size() - 1, -1, -1):
