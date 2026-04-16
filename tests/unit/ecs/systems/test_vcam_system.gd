@@ -759,10 +759,7 @@ func test_orbit_release_axis_settles_when_near_target_crossing_would_flip_error(
 	autofree(system)
 	system.debug_rotation_logging = false
 
-	var result_variant: Variant = system.call(
-		"_step_orbit_release_axis",
-		StringName("cam_orbit_release_axis_settle"),
-		"yaw",
+	var result_variant: Variant = system._rotation_helper.step_orbit_release_axis(
 		-0.1,
 		0.0,
 		60.0,
@@ -797,7 +794,7 @@ func test_camera_center_button_starts_orbit_recentering_from_arbitrary_yaw() -> 
 	component.runtime_yaw = -120.0
 
 	var expected_target: float = float(
-		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, component.runtime_yaw)
+		system._rotation_helper.resolve_orbit_center_target_yaw(orbit_mode, follow_target, component.runtime_yaw, Callable(system, "_resolve_mode_values"), S_VCAM_SYSTEM.RS_VCAM_MODE_ORBIT_SCRIPT)
 	)
 	vcam_manager.active_vcam_id = StringName("cam_center_start")
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
@@ -832,7 +829,7 @@ func test_camera_center_recenters_over_short_interpolation_window_without_snap()
 	component.runtime_yaw = -170.0
 
 	var expected_target: float = float(
-		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, component.runtime_yaw)
+		system._rotation_helper.resolve_orbit_center_target_yaw(orbit_mode, follow_target, component.runtime_yaw, Callable(system, "_resolve_mode_values"), S_VCAM_SYSTEM.RS_VCAM_MODE_ORBIT_SCRIPT)
 	)
 	vcam_manager.active_vcam_id = StringName("cam_center_window")
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
@@ -869,7 +866,7 @@ func test_camera_center_ignores_manual_look_input_while_centering_active() -> vo
 	component.runtime_yaw = 145.0
 
 	var expected_target: float = float(
-		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, component.runtime_yaw)
+		system._rotation_helper.resolve_orbit_center_target_yaw(orbit_mode, follow_target, component.runtime_yaw, Callable(system, "_resolve_mode_values"), S_VCAM_SYSTEM.RS_VCAM_MODE_ORBIT_SCRIPT)
 	)
 	vcam_manager.active_vcam_id = StringName("cam_center_input_gate")
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
@@ -917,7 +914,7 @@ func test_camera_center_retrigger_restarts_from_current_pose_deterministically()
 	var yaw_before_restart: float = component.runtime_yaw
 	follow_target.rotation_degrees.y = 135.0
 	var restart_target: float = float(
-		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, yaw_before_restart)
+		system._rotation_helper.resolve_orbit_center_target_yaw(orbit_mode, follow_target, yaw_before_restart, Callable(system, "_resolve_mode_values"), S_VCAM_SYSTEM.RS_VCAM_MODE_ORBIT_SCRIPT)
 	)
 
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
