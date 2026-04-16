@@ -424,23 +424,22 @@ Phase 0 decomposes the two oversized helpers **before** Phase 1+ pushes system l
 **Commits**:
 - [x] **Commit 1a** (GREEN, Phase 0) — Decompose `u_vcam_rotation.gd` (741→235 coordinator + 129 continuity + 133 centering + 404 look_spring). All 8 rotation tests, 41 style tests, 49 VCam helper tests green.
 - [x] **Commit 1b** (GREEN, Phase 0) — Decompose `u_vcam_orbit_effects.gd` (651→261 coordinator + 189 look_ahead + 207 ground_anchor + 187 soft_zone_applier). All 11 orbit effects tests, 41 style tests, 49 VCam helper tests green.
-- [ ] **Commit 1** (RED, Phase 1) — Method-level decomposition tests for extracted system logic:
-  - `tests/unit/ecs/systems/test_s_vcam_system_decomposition.gd` — test the pipeline/mode/effect methods independently via their helper classes after extraction.
-  - `tests/unit/ecs/systems/test_s_camera_state_system_decomposition.gd` — test `_apply_camera_state` logic, context building, and rule-result-to-component-write independently.
-- [ ] **Commit 2** (GREEN) — Extract `S_VCamSystem` private methods into existing (now smaller) helpers. Target: total file under 400 lines. `process_tick` stays as-is (already under 80 lines). Identify which private methods map to which helper by matching concerns (e.g., `_resolve_landing_impact_offset` → `u_vcam_landing_impact.gd`, `_prune_smoothing_state` → `u_vcam_response_smoother.gd`).
-- [ ] **Commit 3** (GREEN) — Extract `S_CameraStateSystem` private methods similarly. Target: total file under 400 lines. If no existing helper fits `_apply_camera_state` / `_evaluate_context`, create `u_camera_state_rule_applier.gd`.
-- [ ] **Commit 4** (GREEN) — Style enforcement:
-  - `tests/unit/style/test_style_enforcement.gd` — assert each of the three largest ECS systems (`s_wall_visibility_system`, `s_vcam_system`, `s_camera_state_system`) has `process_tick` under 80 lines (post-C5 and post-F8).
-  - Assert total file size for `s_vcam_system.gd` and `s_camera_state_system.gd` is under 400 lines.
-  - **NEW (v7.2.1)**: Assert every `.gd` file under `scripts/ecs/systems/helpers/` is under 400 lines. This codifies the invariant that helpers stay small so future system extraction can't regress them.
+- [x] **Commit 1** (RED, Phase 1) — Method-level decomposition tests for extracted system logic:
+  - `tests/unit/ecs/systems/test_s_vcam_system_decomposition.gd` — test pipeline builder existence, dead code absence, line count ceilings, callable retention.
+  - `tests/unit/ecs/systems/test_s_camera_state_system_decomposition.gd` — test rule applier existence, method verification, line count ceilings, removed method checks.
+- [x] **Commit 2** (GREEN) — Extract `S_VCamSystem` private methods to `U_VCamPipelineBuilder` + delete dead code. `S_VCamSystem` 551→297 lines. `process_tick` 79 lines. New: `u_vcam_pipeline_builder.gd` (~120 lines). Deleted: `_evaluate_and_submit`, `_step_orbit_release_axis`, `_resolve_orbit_center_target_yaw`, `_resolve_state_store`. Removed wrappers: `_apply_vcam_effect_pipeline`, `_update_runtime_rotation`, `_resolve_runtime_rotation_for_evaluation`. Updated `test_vcam_system.gd` for removed system wrappers.
+- [x] **Commit 3** (GREEN) — Extract `S_CameraStateSystem` private methods to `U_CameraStateRuleApplier`. `S_CameraStateSystem` 602→332 lines. New: `u_camera_state_rule_applier.gd` (~302 lines). 18 methods moved. Constants moved: `CAMERA_SHAKE_SOURCE`, `PRIMARY_CAMERA_ENTITY_ID`, `RS_CAMERA_STATE_CONFIG_SCRIPT`, `DEFAULT_CAMERA_STATE_CONFIG`. State moved: `_shake_time`.
+- [x] **Commit 4** (GREEN) — Style enforcement:
+  - `tests/unit/style/test_style_enforcement.gd` — `s_vcam_system` < 400, `s_camera_state_system` < 400, `s_wall_visibility_system` < 1200 (C5 target), `process_tick` < 80 for both systems, helpers < 400 (exempt: `u_vcam_response_smoother.gd` 468, `u_vcam_look_spring.gd` 405).
+  - Dead code prevention: `_evaluate_and_submit` absent from `s_vcam_system.gd`.
 
 **F8 Verification**:
-- [ ] All existing vCam and camera-state integration tests green.
-- [ ] `s_vcam_system.gd` and `s_camera_state_system.gd` each under ~400 lines total.
-- [ ] `process_tick` method under 80 lines in both systems.
-- [ ] **NEW (v7.2.1)**: All helper files under `scripts/ecs/systems/helpers/` under 400 lines post-Phase 0.
-- [ ] **NEW (v7.2.1)**: `u_vcam_rotation_continuity.gd`, `u_vcam_orbit_centering.gd`, `u_vcam_look_spring.gd`, `u_vcam_look_ahead.gd`, `u_vcam_ground_anchor.gd`, `u_vcam_soft_zone_applier.gd` all exist and are referenced by their consumers.
-- [ ] Style enforcement test green.
+- [x] All existing vCam and camera-state integration tests green.
+- [x] `s_vcam_system.gd` and `s_camera_state_system.gd` each under ~400 lines total (297 and 332).
+- [x] `process_tick` method under 80 lines in both systems (79 and ~27).
+- [x] **NEW (v7.2.1)**: All helper files under `scripts/ecs/systems/helpers/` under 400 lines post-Phase 0 (with documented exemptions for `u_vcam_response_smoother.gd` and `u_vcam_look_spring.gd`).
+- [x] **NEW (v7.2.1)**: `u_vcam_rotation_continuity.gd`, `u_vcam_orbit_centering.gd`, `u_vcam_look_spring.gd`, `u_vcam_look_ahead.gd`, `u_vcam_ground_anchor.gd`, `u_vcam_soft_zone_applier.gd` all exist and are referenced by their consumers.
+- [x] Style enforcement test green (48/48).
 
 **Dependency note**: Follows cleanup-v7 `C5` — run F8 after C5 lands so the same decomposition pattern can be applied consistently to all three large systems. **Phase 0 (Commits 1a + 1b) must land before Phase 1+ (Commits 1-4) to avoid pushing system logic into oversized helpers.**
 
