@@ -4,7 +4,7 @@ class_name U_HTNPlannerContext
 var evaluation_context: Dictionary = {}
 var reusable_rule: RS_Rule = null
 var recursion_stack: Dictionary = {}
-var result: Array[Resource] = []
+var result: Array[RS_AIPrimitiveTask] = []
 var max_depth: int = 0
 var depth: int = 0
 

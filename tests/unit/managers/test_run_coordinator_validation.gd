@@ -63,4 +63,4 @@ func test_valid_config_no_error() -> void:
 	# Default default_objective_set_id is "default_progression" which the stub knows.
 	add_child_autofree(coordinator)
 	await wait_process_frames(2)
-	# No assert_push_error — valid config should not push errors for cross-references.
+	assert_push_error(0, "valid config should not push errors for cross-references")

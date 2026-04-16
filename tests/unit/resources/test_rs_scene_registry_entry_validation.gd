@@ -28,7 +28,7 @@ func test_valid_entry_no_error() -> void:
 	autofree(entry)
 	entry.scene_id = StringName("test_scene")
 	entry.scene_path = "res://scenes/test.tscn"
-	# No assert_push_error — valid entry should produce no errors.
+	assert_push_error(0, "valid entry should produce no errors")
 
 
 func test_error_includes_resource_path() -> void:

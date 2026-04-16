@@ -30,7 +30,7 @@ func test_empty_action_mappings_allowed_for_new_profile() -> void:
 	autofree(profile)
 	# Programmatic creation (no resource_path) should allow empty mappings.
 	profile.action_mappings = {}
-	# No assert_push_error — empty is valid for new profiles.
+	assert_push_error(0, "empty mappings should not push errors for new profiles")
 
 
 func test_virtual_buttons_missing_action_key_pushes_error() -> void:
@@ -68,7 +68,7 @@ func test_valid_virtual_buttons_no_error() -> void:
 		{"action": StringName("jump"), "position": Vector2(100, 200)},
 		{"action": StringName("sprint"), "position": Vector2(200, 300)},
 	]
-	# No assert_push_error — valid entries should not push errors.
+	assert_push_error(0, "valid virtual buttons should not push errors")
 
 
 func test_valid_profile_produces_no_errors() -> void:
@@ -79,7 +79,7 @@ func test_valid_profile_produces_no_errors() -> void:
 	profile.virtual_buttons = [
 		{"action": StringName("jump"), "position": Vector2(100, 200)},
 	]
-	# No assert_push_error — valid profile should produce no errors.
+	assert_push_error(0, "valid profile should produce no errors")
 
 
 func test_error_includes_resource_path() -> void:
@@ -101,4 +101,4 @@ func test_virtual_joystick_position_not_set_sentinel_is_valid() -> void:
 	var profile := RS_InputProfile.new()
 	autofree(profile)
 	profile.virtual_joystick_position = Vector2(-1, -1)
-	# No assert_push_error — (-1, -1) is the "not set" sentinel value.
+	assert_push_error(0, "sentinel (-1, -1) should not push errors")

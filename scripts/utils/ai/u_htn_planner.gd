@@ -8,7 +8,7 @@ const RS_AI_COMPOUND_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_com
 const RS_RULE := preload("res://scripts/resources/qb/rs_rule.gd")
 const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
 
-static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) -> Array[Resource]:
+static func decompose(task: RS_AITask, context: Dictionary, max_depth: int = 20) -> Array[RS_AIPrimitiveTask]:
 	if task == null:
 		push_error("U_HTNPlanner.decompose: task is null")
 		return []
@@ -19,7 +19,7 @@ static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) 
 	return planner_context.result
 
 static func _decompose_recursive(
-	task: Resource,
+	task: RS_AITask,
 	planner_context: U_HTNPlannerContext
 ) -> void:
 	if task == null:
@@ -69,6 +69,7 @@ static func _decompose_recursive(
 
 static func _decompose_subtask(subtask: RS_AITask, planner_context: U_HTNPlannerContext) -> void:
 	if subtask == null:
+		push_error("U_HTNPlanner._decompose_subtask: subtask is null")
 		return
 
 	planner_context.depth += 1
