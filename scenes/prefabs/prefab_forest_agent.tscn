@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/templates/tmpl_character.tscn" id="1_character_template"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="2_input"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="3_ai_brain"]
+[ext_resource type="Resource" path="res://resources/ai/cfg_ai_brain_placeholder.tres" id="4_ai_brain_placeholder"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_detection_component.gd" id="5_detection"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_move_target_component.gd" id="6_move_target"]
+[ext_resource type="Resource" path="res://resources/base_settings/ai_forest/cfg_movement_forest.tres" id="7_movement_forest"]
+
+[node name="E_ForestAgentRoot" instance=ExtResource("1_character_template")]
+entity_id = &"forest_agent"
+tags = Array[StringName]([&"ai", &"forest", &"character"])
+
+[node name="C_MovementComponent" parent="Components"]
+settings = ExtResource("7_movement_forest")
+
+[node name="C_InputComponent" type="Node" parent="Components"]
+script = ExtResource("2_input")
+
+[node name="C_AIBrainComponent" type="Node" parent="Components"]
+script = ExtResource("3_ai_brain")
+brain_settings = ExtResource("4_ai_brain_placeholder")
+
+[node name="C_DetectionComponent" type="Node" parent="Components"]
+script = ExtResource("5_detection")
+
+[node name="C_MoveTargetComponent" type="Node" parent="Components"]
+script = ExtResource("6_move_target")
