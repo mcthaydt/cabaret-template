@@ -12,6 +12,8 @@ func _ready() -> void:
 	billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	fixed_size = true
 	no_depth_test = true
+	pixel_size = 0.002
+	font_size = 16
 	_resolve_brain_component()
 	_update_label_text()
 
@@ -41,7 +43,7 @@ func _update_label_text() -> void:
 	var entity_id_text: String = _resolve_entity_id(snapshot)
 	var goal_id_text: String = _resolve_snapshot_text(snapshot, "goal_id")
 	var task_id_text: String = _resolve_snapshot_text(snapshot, "task_id")
-	text = "%s | %s | %s" % [entity_id_text, goal_id_text, task_id_text]
+	text = "%s\ngoal: %s\ntask: %s" % [entity_id_text, goal_id_text, task_id_text]
 
 func _resolve_entity_id(snapshot: Dictionary) -> String:
 	var entity_id_text: String = _resolve_snapshot_text(snapshot, "entity_id")

@@ -5,7 +5,7 @@
 This prompt directs you to implement the AI Forest Simulation by executing `docs/ai_forest/ai-forest-tasks.md` in sequential order, respecting the phase dependency chain. The full specification lives in `docs/ai_forest/ai-forest-overview.md`.
 
 **Branch**: GOAP-AI
-**Status**: Phase 1 complete (2026-04-16) — waiting for explicit go-ahead to start Phase 2.
+**Status**: Phase 1 implementation complete (2026-04-16); manual visual acceptance pending — waiting for explicit go-ahead to start Phase 2.
 **Next task**: Phase 2a Commit 20 (RED) — write `tests/unit/ecs/components/test_c_needs_component.gd`.
 **Prerequisite**: Baseline AI suite re-measured and green (`130/130` passing on 2026-04-16); full unit/style/smoke phase checks executed at Phase 1 closeout.
 
@@ -33,6 +33,7 @@ Implementation progress:
 - Commit 17: assembled `scenes/gameplay/gameplay_ai_forest.tscn` with required marker containers, AI runtime systems, environment/entities/lighting/camera, and debug panel instance.
 - Commit 18: registered scene via `resources/scene_registry/cfg_ai_forest_entry.tres` (`scene_id = &"ai_forest"`).
 - Commit 19: added `tests/integration/gameplay/test_forest_ecosystem_smoke.gd`, wired wolf/rabbit/deer brain resources on prefabs, and validated forest brains start with active goals + non-empty task queues.
+- Audit patch (2026-04-16): fixed `S_AIDetectionSystem` self-targeting in tag mode, added label-format coverage via `tests/unit/debug/test_debug_forest_agent_label.gd`, and hardened forest smoke test isolation/contract assertions.
 - Phase 1 verification runs:
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` -> `130/130` passing.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit` -> `58/58` passing.
@@ -62,7 +63,7 @@ These decisions diverge from what an intuitive reading of the AI system might su
 
 6. **Scene must be registered.** Create `resources/scene_registry/cfg_ai_forest_entry.tres` (`scene_id = &"ai_forest"`, `scene_type = 1`, `default_transition = "loading"`, `preload_priority = 0`). Mirrors `cfg_ai_showcase_entry.tres`.
 
-7. **No player entity in the scene.** Pure observer. No `S_InputSystem`, no `C_PlayerTagComponent`, no vcam.
+7. **No player-controlled entity stack in the scene.** Pure observer runtime. No `S_InputSystem`, no `C_PlayerTagComponent`, no vcam. A contract-only inert `E_PlayerObserver` node + `sp_default` spawn point are allowed to satisfy gameplay scene validation.
 
 8. **Scene-structure marker scripts are mandatory on container nodes.** Attach `marker_managers_group.gd`, `marker_systems_group.gd`, `marker_systems_core_group.gd` / `_physics_group.gd` / `_movement_group.gd`, `marker_environment_group.gd`, `marker_entities_group.gd`, `marker_lighting_group.gd` to their respective container nodes in the scene tree.
 

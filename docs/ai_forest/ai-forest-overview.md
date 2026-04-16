@@ -25,6 +25,9 @@ Visually verify the GOAP/HTN AI system end-to-end in an environment that isolate
 - Mobile optimization (desktop-only)
 - Replacement or refactor of the existing showcase scene
 
+**Implementation note (Phase 1 closeout)**:
+- `gameplay_ai_forest.tscn` includes inert gameplay-contract anchors (`Entities/E_PlayerObserver` and `Entities/SpawnPoints/sp_default`) to satisfy scene-validation requirements without introducing a playable/player-driven runtime stack.
+
 ## Architecture
 
 ### Systems touched
@@ -79,6 +82,8 @@ Tags are authored on each prefab's entity-root `BaseECSEntity.tags` array (as in
 
 ### Phase 1 — Scene shell + species behaviors + detection generalization
 Shippable slice: visually confirmable predator/prey behavior without hunger or pack. Wolves chase the nearest rabbit; rabbits flee; deer startle when a wolf is nearby; trees are decoration.
+
+**Current verification status (2026-04-16)**: automated suites are green; manual visual pass is still pending.
 
 **Acceptance criteria**
 - [ ] Scene boots and all brain-bearing agents produce non-empty task queues within 2 seconds

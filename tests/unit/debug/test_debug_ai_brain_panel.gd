@@ -3,6 +3,7 @@ extends BaseTest
 const PANEL_SCRIPT_PATH := "res://scripts/debug/debug_ai_brain_panel.gd"
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
+const RS_AI_BRAIN_PLACEHOLDER := preload("res://resources/ai/cfg_ai_brain_placeholder.tres")
 
 func _instantiate_panel() -> Control:
 	var panel_script_variant: Variant = load(PANEL_SCRIPT_PATH)
@@ -20,8 +21,16 @@ func _instantiate_panel() -> Control:
 	await get_tree().process_frame
 	return panel
 
-func _register_brain(mock_manager: MockECSManager, snapshot: Dictionary) -> C_AIBrainComponent:
+func _register_brain(mock_manager: MockECSManager, snapshot: Dictionary, parent: Node) -> C_AIBrainComponent:
+	var entity := Node3D.new()
+	var entity_id_text: String = str(snapshot.get("entity_id", "test_entity"))
+	entity.name = "E_%s" % entity_id_text
+	parent.add_child(entity)
+	autofree(entity)
+
 	var brain: C_AIBrainComponent = C_AI_BRAIN_COMPONENT.new()
+	brain.brain_settings = RS_AI_BRAIN_PLACEHOLDER
+	entity.add_child(brain)
 	autofree(brain)
 	brain.update_debug_snapshot(snapshot)
 	mock_manager.register_component(brain)
@@ -45,19 +54,19 @@ func test_panel_renders_one_row_per_brain_component() -> void:
 		return
 
 	var ecs_manager: MockECSManager = MOCK_ECS_MANAGER.new()
-	autofree(ecs_manager)
+	add_child_autofree(ecs_manager)
 	panel.set("ecs_manager", ecs_manager)
 
 	_register_brain(ecs_manager, {
 		"entity_id": &"E_Wolf_01",
 		"goal_id": &"hunt",
 		"task_id": &"move_to_detected",
-	})
+	}, panel)
 	_register_brain(ecs_manager, {
 		"entity_id": &"E_Rabbit_01",
 		"goal_id": &"flee",
 		"task_id": &"flee_from_detected",
-	})
+	}, panel)
 
 	assert_true(panel.has_method("refresh_rows"), "Panel should expose refresh_rows() for deterministic testing.")
 	if not panel.has_method("refresh_rows"):
@@ -73,14 +82,14 @@ func test_panel_row_text_contains_entity_goal_and_task() -> void:
 		return
 
 	var ecs_manager: MockECSManager = MOCK_ECS_MANAGER.new()
-	autofree(ecs_manager)
+	add_child_autofree(ecs_manager)
 	panel.set("ecs_manager", ecs_manager)
 
 	_register_brain(ecs_manager, {
 		"entity_id": &"E_Deer_01",
 		"goal_id": &"startle",
 		"task_id": &"scan_alert",
-	})
+	}, panel)
 
 	assert_true(panel.has_method("refresh_rows"), "Panel should expose refresh_rows() for deterministic testing.")
 	if not panel.has_method("refresh_rows"):
@@ -103,7 +112,7 @@ func test_panel_handles_empty_brain_list_without_crashing() -> void:
 		return
 
 	var ecs_manager: MockECSManager = MOCK_ECS_MANAGER.new()
-	autofree(ecs_manager)
+	add_child_autofree(ecs_manager)
 	panel.set("ecs_manager", ecs_manager)
 
 	assert_true(panel.has_method("refresh_rows"), "Panel should expose refresh_rows() for deterministic testing.")

@@ -16,6 +16,8 @@ var _camera_manager: M_CameraManager
 var _pause_manager: Node
 
 func before_each() -> void:
+	super.before_each()
+
 	_active_scene_container = Node.new()
 	_active_scene_container.name = "ActiveSceneContainer"
 	add_child_autofree(_active_scene_container)
@@ -46,6 +48,7 @@ func before_each() -> void:
 
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
+	_store.settings.enable_persistence = false
 	_store.scene_initial_state = RS_SceneInitialState.new()
 	add_child_autofree(_store)
 	await get_tree().process_frame
@@ -89,15 +92,21 @@ func test_scene_manager_loads_ai_forest_and_brains_begin_executing() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	await wait_physics_frames(60)
-	assert_engine_error("Scene 'ai_forest' failed contract validation")
-	assert_engine_error("Gameplay scene missing player entity")
-	assert_engine_error("Gameplay scene missing sp_default spawn point")
 
 	assert_eq(_active_scene_container.get_child_count(), 1, "Expected one active gameplay scene instance.")
 	if _active_scene_container.get_child_count() < 1:
 		return
 
 	var scene_root: Node = _active_scene_container.get_child(0)
+	assert_not_null(
+		scene_root.get_node_or_null("Entities/E_PlayerObserver"),
+		"ai_forest should include an inert E_Player observer contract node."
+	)
+	assert_not_null(
+		scene_root.get_node_or_null("Entities/SpawnPoints/sp_default"),
+		"ai_forest should include a sp_default contract spawn point."
+	)
+
 	var ecs_manager: I_ECSManager = scene_root.get_node_or_null("Managers/M_ECSManager") as I_ECSManager
 	assert_not_null(ecs_manager, "Expected M_ECSManager in ai_forest scene.")
 	if ecs_manager == null:

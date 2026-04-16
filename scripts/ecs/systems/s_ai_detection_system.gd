@@ -69,10 +69,13 @@ func _collect_target_entries() -> Array[Dictionary]:
 			entity_root = U_ECS_UTILS.find_entity_root(entity_variant as Node)
 
 		var entity_id: StringName = StringName("")
+		var entity_instance_id: int = 0
 		if entity_root != null:
 			entity_id = U_ECS_UTILS.get_entity_id(entity_root)
+			entity_instance_id = entity_root.get_instance_id()
 		elif entity_variant is Node:
 			entity_id = U_ECS_UTILS.get_entity_id(entity_variant as Node)
+			entity_instance_id = (entity_variant as Node).get_instance_id()
 
 		var tags: Array[StringName] = []
 		if entity_root != null:
@@ -85,6 +88,7 @@ func _collect_target_entries() -> Array[Dictionary]:
 
 		results.append({
 			"entity_id": entity_id,
+			"entity_instance_id": entity_instance_id,
 			"position": body.global_position,
 			"tags": tags,
 			"has_player_tag": has_player_tag,
@@ -101,12 +105,27 @@ func _process_detection(
 	if body == null or not is_instance_valid(body):
 		return
 
+	var source_entity_id: StringName = StringName("")
+	var source_entity_instance_id: int = 0
+	var source_entity_variant: Variant = query.get("entity")
+	if source_entity_variant is Node:
+		var source_entity: Node = source_entity_variant as Node
+		var source_entity_root: Node = U_ECS_UTILS.find_entity_root(source_entity)
+		if source_entity_root != null:
+			source_entity_id = U_ECS_UTILS.get_entity_id(source_entity_root)
+			source_entity_instance_id = source_entity_root.get_instance_id()
+		else:
+			source_entity_id = U_ECS_UTILS.get_entity_id(source_entity)
+			source_entity_instance_id = source_entity.get_instance_id()
+
 	var nearest_target: Dictionary = _resolve_nearest_target(
 		body.global_position,
 		detection.detect_y_axis,
 		detection.detection_radius,
 		detection.target_tag,
-		target_entries
+		target_entries,
+		source_entity_id,
+		source_entity_instance_id
 	)
 	var is_in_range: bool = bool(nearest_target.get("in_range", false))
 
@@ -128,7 +147,9 @@ func _resolve_nearest_target(
 	use_y_axis: bool,
 	detection_radius: float,
 	target_tag: StringName,
-	target_entries: Array[Dictionary]
+	target_entries: Array[Dictionary],
+	source_entity_id: StringName,
+	source_entity_instance_id: int
 ) -> Dictionary:
 	var best_distance: float = INF
 	var nearest_entity_id: StringName = StringName("")
@@ -138,6 +159,10 @@ func _resolve_nearest_target(
 		var entry: Dictionary = entry_variant as Dictionary
 		if not _entry_matches_target(entry, target_tag):
 			continue
+		var entry_entity_id: StringName = entry.get("entity_id", StringName(""))
+		var entry_entity_instance_id: int = int(entry.get("entity_instance_id", 0))
+		if _is_same_entity(entry_entity_id, entry_entity_instance_id, source_entity_id, source_entity_instance_id):
+			continue
 		var player_position_variant: Variant = entry.get("position", null)
 		if not (player_position_variant is Vector3):
 			continue
@@ -146,13 +171,27 @@ func _resolve_nearest_target(
 		if distance >= best_distance:
 			continue
 		best_distance = distance
-		nearest_entity_id = entry.get("entity_id", StringName(""))
+		nearest_entity_id = entry_entity_id
 
 	return {
 		"in_range": best_distance <= maxf(detection_radius, 0.0),
 		"distance": best_distance,
 		"entity_id": nearest_entity_id,
 	}
+
+func _is_same_entity(
+	entry_entity_id: StringName,
+	entry_entity_instance_id: int,
+	source_entity_id: StringName,
+	source_entity_instance_id: int
+) -> bool:
+	if source_entity_instance_id > 0 and entry_entity_instance_id > 0:
+		return entry_entity_instance_id == source_entity_instance_id
+
+	if source_entity_id != StringName("") and entry_entity_id != StringName(""):
+		return entry_entity_id == source_entity_id
+
+	return false
 
 func _entry_matches_target(entry: Dictionary, target_tag: StringName) -> bool:
 	if target_tag == StringName(""):

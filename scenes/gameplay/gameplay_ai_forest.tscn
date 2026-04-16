@@ -202,6 +202,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, -6)
 [node name="Entities" type="Node3D" parent="."]
 script = ExtResource("15_marker_entities")
 
+[node name="SpawnPoints" type="Node3D" parent="Entities"]
+
+[node name="sp_default" type="Node3D" parent="Entities/SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="E_PlayerObserver" type="Node3D" parent="Entities"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -26)
+
 [node name="Wolf_01" parent="Entities" instance=ExtResource("16_wolf_prefab")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1, -18)
 entity_id = &"forest_wolf_01"
@@ -286,8 +294,8 @@ shadow_enabled = true
 
 [node name="TopDownCamera" type="Camera3D" parent="Camera"]
 projection = 1
-size = 70.0
-position = Vector3(0, 40, 0)
+size = 30.0
+position = Vector3(0, 20, 0)
 rotation_degrees = Vector3(-90, 0, 0)
 current = true
 

@@ -1,7 +1,7 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 1 complete (2026-04-16) — awaiting go-ahead for **Phase 2a Commit 20**.
+**Status**: Phase 1 implementation complete (2026-04-16); manual visual acceptance pending — awaiting go-ahead for **Phase 2a Commit 20**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
@@ -17,7 +17,7 @@
 - Forest agents inherit `scenes/templates/tmpl_character.tscn` directly (peer to `prefab_demo_npc.tscn`).
 - Debug panel lives under `scripts/debug/` + `scenes/debug/` with `debug_` prefix. **Not a HUD.**
 - Wander home captured as the agent's `global_position` at `_ready()`.
-- **No player entity.** No `S_InputSystem`, `C_PlayerTagComponent`, or player-facing systems in the scene.
+- **No player-controlled entity stack.** No `S_InputSystem`, `C_PlayerTagComponent`, or player-facing systems in the scene. Keep any contract-only `E_Player*` node inert (no ECS movement/input/brain components).
 - **No `C_SpawnRecoveryComponent`** on agents. Invisible walls prevent fall-off; recovery would no-op anyway per AGENTS.md R5 for non-player entities without a spawn_point_id.
 - **No `decision_group` field on `RS_AIGoal`** — `U_AIGoalSelector` hardcodes `&"ai_goal"` globally. All goal thrash prevention uses `priority` + `cooldown` + `requires_rising_edge` + `one_shot`.
 
@@ -141,6 +141,7 @@
   - Completion note (2026-04-16): added `cfg_ai_forest_entry.tres` and validated SceneRegistry lookup path.
 - [x] **Commit 19** (SMOKE TEST) — `tests/integration/gameplay/test_forest_ecosystem_smoke.gd`: load the scene via `M_SceneManager`, await `process_frame × 2`, step physics 60 frames, assert every brain entity has a non-empty `current_task_queue` and `active_goal_id != StringName()`.
   - Completion note (2026-04-16): added smoke test and wired wolf/rabbit/deer prefab `C_AIBrainComponent.brain_settings` to species resources so all brains select goals/tasks at runtime; smoke test green (`1/1`).
+  - Audit follow-up (2026-04-16): removed warning-coupled assertions, restored `BaseTest` scope isolation in the suite, disabled persistence in test store setup, and validated contract anchors (`Entities/E_PlayerObserver`, `Entities/SpawnPoints/sp_default`) instead.
 
 ### Phase 1 verification
 

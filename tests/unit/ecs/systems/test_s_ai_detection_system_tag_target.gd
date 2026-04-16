@@ -171,6 +171,21 @@ func test_target_tag_prey_ignores_non_matching_entity() -> void:
 		"Detector should stay out-of-range when only non-matching tags are present."
 	)
 
+func test_detector_does_not_match_itself_when_target_tag_matches_self_tags() -> void:
+	var fixture: Dictionary = _create_fixture(StringName("predator"))
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var detection: C_DetectionComponent = fixture.get("detection") as C_DetectionComponent
+	system.process_tick(0.016)
+
+	assert_false(
+		detection.is_player_in_range,
+		"Detector should not self-detect when target_tag matches its own entity tags."
+	)
+
 func test_default_player_target_tag_preserves_back_compat_detection() -> void:
 	var fixture: Dictionary = _create_fixture(StringName("player"))
 	autofree_context(fixture)
