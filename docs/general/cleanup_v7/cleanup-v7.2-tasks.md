@@ -657,44 +657,44 @@ The existing `execution_priority` int can be retained as a **within-phase orderi
 
 **Commits**:
 
-- [ ] **Commit 1** (GREEN) — Type AI service fields and planner context parameters:
+- [x] **Commit 1** (GREEN) — Type AI service fields and planner context parameters:
   - `s_ai_behavior_system.gd`: Replace 5 `Variant` fields with concrete types (`U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, `U_AIContextBuilder`, `U_DebugLogThrottle`).
-  - `s_ai_detection_system.gd`: Replace 2 `Variant` parameters in `_process_detection` with `C_DetectionComponent` and `C_MovementComponent`.
-  - `u_htn_planner.gd`: Replace `planner_context: Variant` with `planner_context: U_HTNPlannerContext` in `_decompose_recursive`, `_decompose_subtask`, `_select_branch_index`, `_method_condition_passes`. Add `push_error` for null task input and depth exceeded.
+  - `s_ai_detection_system.gd`: Replace 2 `Variant` parameters in `_process_detection` with `C_DetectionComponent` and `C_MovementComponent`. `_publish_enter_event` param also typed.
+  - `u_htn_planner.gd`: Replace `planner_context: Variant` with `planner_context: U_HTNPlannerContext` in 5 locations. Add `push_error` for null task input and depth exceeded. Type `method_rule: Resource` as `RS_Rule`.
   - `u_htn_planner_context.gd`: Type `reusable_rule: Resource` as `reusable_rule: RS_Rule`. Update `_init` parameter type.
 
-- [ ] **Commit 2** (GREEN) — Add `push_error` stubs to `I_AIAction`:
+- [x] **Commit 2** (GREEN) — Add `push_error` stubs to `I_AIAction`:
   - `i_ai_action.gd`: Replace `pass` in `start()` and `tick()` with `push_error("I_AIAction.%s: not implemented by subclass %s" % ...)`. Add `push_error` before `return false` in `is_complete()`.
-  - Update `test_i_ai_action_base.gd`: verify stubs produce `push_error` output on unimplemented calls.
+  - Update `test_i_ai_action_base.gd`: renamed test, added 3 new push_error verification tests.
 
-- [ ] **Commit 3** (GREEN) — Migrate raw task_state string keys to `U_AITaskStateKeys` constants:
+- [x] **Commit 3** (GREEN) — Migrate raw task_state string keys to `U_AITaskStateKeys` constants:
   - `u_ai_task_state_keys.gd`: Add 8 constants: `ELAPSED`, `SCAN_ELAPSED`, `SCAN_ACTIVE`, `SCAN_ROTATION_SPEED`, `ANIMATION_STATE`, `ANIMATION_REQUESTED`, `PUBLISHED`, `COMPLETED`.
-  - `rs_ai_action_wait.gd`: Replace `"elapsed"` with `U_AI_TASK_STATE_KEYS.ELAPSED`. Remove manual Variant type coercion — `start()` writes `float`, so `float(task_state.get(...))` is sufficient.
+  - `rs_ai_action_wait.gd`: Replace `"elapsed"` with `U_AI_TASK_STATE_KEYS.ELAPSED`. Remove Variant type coercion — `start()` writes `float`, so `float(task_state.get(...))` is sufficient.
   - `rs_ai_action_scan.gd`: Replace `"scan_elapsed"`, `"scan_active"`, `"scan_rotation_speed"` with constants. Remove Variant coercion from elapsed reads.
   - `rs_ai_action_animate.gd`: Replace `"animation_state"`, `"animation_requested"` with constants.
   - `rs_ai_action_publish_event.gd`: Replace `"published"` with constant.
   - `rs_ai_action_set_field.gd`: Replace `"completed"` with constant.
-  - Update `test_u_ai_task_state_keys.gd` with 8 new key assertions.
+  - Update `test_u_ai_task_state_keys.gd` with 8 new key assertions (18 total: 10 existing + 8 new).
 
-- [ ] **Commit 4** (GREEN) — Add `get_debug_snapshot()` to `C_AIBrainComponent`:
+- [x] **Commit 4** (GREEN) — Add `get_debug_snapshot()` to `C_AIBrainComponent`:
   - Add `var _debug_snapshot: Dictionary = {}`, `update_debug_snapshot(snapshot: Dictionary)`, `get_debug_snapshot() -> Dictionary` mirroring `C_JumpComponent` pattern.
   - Update `S_AIBehaviorSystem._debug_log_brain_state` to build snapshot dict and call `brain.update_debug_snapshot()`.
-  - Add tests: `test_update_debug_snapshot`, `test_get_debug_snapshot_returns_copy`, `test_debug_snapshot_includes_goal_id`.
+  - Add 3 tests in `test_c_ai_brain_component.gd`: `test_update_debug_snapshot`, `test_get_debug_snapshot_returns_copy`, `test_debug_snapshot_includes_goal_id`.
 
-- [ ] **Commit 5** (GREEN) — Document `RS_AIActionAnimate` fire-and-forget semantics:
+- [x] **Commit 5** (GREEN) — Document `RS_AIActionAnimate` fire-and-forget semantics:
   - Add class-level doc comment to `rs_ai_action_animate.gd` clarifying instant-complete behavior is intentional. Note that blocking animation actions would need a different subclass.
 
-- [ ] **Commit 6** (GREEN) — Style enforcement grep test for AI task-state key constants:
-  - Add assertion to `test_style_enforcement.gd` forbidding `task_state["` (bare string key access) in `scripts/resources/ai/actions/*.gd`.
+- [x] **Commit 6** (GREEN) — Style enforcement grep test for AI task-state key constants:
+  - Add assertion `test_ai_action_scripts_use_task_state_key_constants` to `test_style_enforcement.gd` forbidding `task_state["` (bare string key access) in `scripts/resources/ai/actions/*.gd`.
 
 **F16 Verification**:
-- [ ] All existing AI unit tests green (goal selector, task runner, replanner, context builder, HTN planner, behavior system goals/tasks, detection system).
-- [ ] All existing AI integration tests green (pipeline, goal resume, spawn recovery, interaction triggers).
-- [ ] `test_i_ai_action_base.gd` verifies `push_error` stubs.
-- [ ] `test_u_ai_task_state_keys.gd` covers 18 total constants (10 existing + 8 new).
-- [ ] `test_c_ai_brain_component.gd` covers debug snapshot methods.
-- [ ] Grep search confirms zero bare string literals in task_state access across `scripts/resources/ai/actions/`.
-- [ ] No behavioral change — type annotations, constant migrations, and doc comments only.
+- [x] All existing AI unit tests green (goal selector, task runner, replanner, context builder, HTN planner, behavior system goals/tasks, detection system).
+- [x] All existing AI integration tests green (pipeline, goal resume, spawn recovery, interaction triggers).
+- [x] `test_i_ai_action_base.gd` verifies `push_error` stubs.
+- [x] `test_u_ai_task_state_keys.gd` covers 18 total constants (10 existing + 8 new).
+- [x] `test_c_ai_brain_component.gd` covers debug snapshot methods.
+- [x] Grep search confirms zero bare string literals in task_state access across `scripts/resources/ai/actions/`.
+- [x] No behavioral change — type annotations, constant migrations, and doc comments only.
 
 **Dependency note**: Independent of F1–F15. Can run in parallel with any milestone that does not touch the same files. **Partial overlap with F9**: both touch `s_ai_behavior_system.gd`. Land F16 Commit 1 first (type annotations are simpler); F9 can add `SystemPhase` afterward without merge issues.
 
