@@ -10,20 +10,23 @@ const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
 
 static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) -> Array[Resource]:
 	if task == null:
+		push_error("U_HTNPlanner.decompose: task is null")
 		return []
 
 	var safe_max_depth: int = maxi(max_depth, 0)
-	var planner_context: Variant = U_HTN_PLANNER_CONTEXT.new(context, RS_RULE.new(), safe_max_depth)
+	var planner_context: U_HTNPlannerContext = U_HTN_PLANNER_CONTEXT.new(context, RS_RULE.new(), safe_max_depth)
 	_decompose_recursive(task, planner_context)
 	return planner_context.result
 
 static func _decompose_recursive(
 	task: Resource,
-	planner_context: Variant
+	planner_context: U_HTNPlannerContext
 ) -> void:
 	if task == null:
+		push_error("U_HTNPlanner._decompose_recursive: task is null")
 		return
 	if planner_context.depth > planner_context.max_depth:
+		push_error("U_HTNPlanner._decompose_recursive: depth %d exceeds max_depth %d" % [planner_context.depth, planner_context.max_depth])
 		return
 
 	if task is RS_AI_PRIMITIVE_TASK:
@@ -66,7 +69,7 @@ static func _decompose_recursive(
 
 	planner_context.recursion_stack.erase(task_key)
 
-static func _decompose_subtask(subtask: RS_AITask, planner_context: Variant) -> void:
+static func _decompose_subtask(subtask: RS_AITask, planner_context: U_HTNPlannerContext) -> void:
 	if subtask == null:
 		return
 
@@ -77,7 +80,7 @@ static func _decompose_subtask(subtask: RS_AITask, planner_context: Variant) -> 
 static func _select_branch_index(
 	method_conditions: Array[I_Condition],
 	subtasks: Array[RS_AITask],
-	planner_context: Variant
+	planner_context: U_HTNPlannerContext
 ) -> int:
 	var slot_count: int = mini(method_conditions.size(), subtasks.size())
 	if slot_count <= 0:
@@ -96,9 +99,9 @@ static func _select_branch_index(
 static func _method_condition_passes(
 	condition: I_Condition,
 	method_index: int,
-	planner_context: Variant
+	planner_context: U_HTNPlannerContext
 ) -> bool:
-	var method_rule: Resource = planner_context.reusable_rule
+	var method_rule: RS_Rule = planner_context.reusable_rule
 	method_rule.set("rule_id", StringName("__method_condition_%d" % method_index))
 	var rule_conditions: Array[I_Condition] = []
 	rule_conditions.append(condition)

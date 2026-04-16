@@ -25,11 +25,11 @@ var _state_store: I_StateStore = null
 @export var debug_entity_id: StringName = StringName("patrol_drone")
 
 var _tracker: U_RuleStateTracker = RULE_STATE_TRACKER.new()
-var _goal_selector: Variant = U_AI_GOAL_SELECTOR.new()
-var _task_runner: Variant = U_AI_TASK_RUNNER.new()
-var _replanner: Variant = U_AI_REPLANNER.new()
-var _context_builder: Variant = U_AI_CONTEXT_BUILDER.new()
-var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
+var _goal_selector: U_AIGoalSelector = U_AI_GOAL_SELECTOR.new()
+var _task_runner: U_AITaskRunner = U_AI_TASK_RUNNER.new()
+var _replanner: U_AIReplanner = U_AI_REPLANNER.new()
+var _context_builder: U_AIContextBuilder = U_AI_CONTEXT_BUILDER.new()
+var _debug_log_throttle: U_DebugLogThrottle = U_DEBUG_LOG_THROTTLE.new()
 var _rule_pool: Dictionary = {}
 var _goal_by_id_cache: Dictionary = {}
 var _is_mobile: bool = false

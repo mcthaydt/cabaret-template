@@ -38,8 +38,8 @@ func process_tick(_delta: float) -> void:
 		if not (movement_variant is C_MOVEMENT_COMPONENT):
 			continue
 
-		var detection: Variant = detection_variant
-		var movement: Variant = movement_variant
+		var detection: C_DetectionComponent = detection_variant
+		var movement: C_MovementComponent = movement_variant
 		_process_detection(query, detection, movement, player_entries)
 
 func _collect_player_entries() -> Array[Dictionary]:
@@ -54,7 +54,7 @@ func _collect_player_entries() -> Array[Dictionary]:
 		var movement_variant: Variant = player_query.call("get_component", MOVEMENT_COMPONENT_TYPE)
 		if not (movement_variant is C_MOVEMENT_COMPONENT):
 			continue
-		var movement: Variant = movement_variant
+		var movement: C_MovementComponent = movement_variant
 		var body: CharacterBody3D = movement.get_character_body()
 		if body == null or not is_instance_valid(body):
 			continue
@@ -72,8 +72,8 @@ func _collect_player_entries() -> Array[Dictionary]:
 
 func _process_detection(
 	query: Object,
-	detection: Variant,
-	movement: Variant,
+	detection: C_DetectionComponent,
+	movement: C_MovementComponent,
 	player_entries: Array[Dictionary]
 ) -> void:
 	var body: CharacterBody3D = movement.get_character_body()
@@ -143,7 +143,7 @@ func _dispatch_flag(flag_id: StringName, flag_value: bool) -> void:
 		return
 	store.dispatch(U_GAMEPLAY_ACTIONS.set_ai_demo_flag(flag_id, flag_value))
 
-func _publish_enter_event(query: Object, detection: Variant, nearest_player: Dictionary) -> void:
+func _publish_enter_event(query: Object, detection: C_DetectionComponent, nearest_player: Dictionary) -> void:
 	if detection.enter_event_name == StringName(""):
 		return
 	var payload: Dictionary = detection.enter_event_payload.duplicate(true)
