@@ -5,8 +5,8 @@
 This prompt directs you to implement the AI Forest Simulation by executing `docs/ai_forest/ai-forest-tasks.md` in sequential order, respecting the phase dependency chain. The full specification lives in `docs/ai_forest/ai-forest-overview.md`.
 
 **Branch**: GOAP-AI
-**Status**: Phase 1b in progress (Commits 4-7 complete on 2026-04-16).
-**Next task**: Phase 1b Commit 8 — author `scenes/prefabs/prefab_forest_tree.tscn`.
+**Status**: Phase 1c next (Phase 1b complete on 2026-04-16; Commits 4-8 complete).
+**Next task**: Phase 1c Commit 9 (RED) — write `tests/unit/ai/actions/test_ai_actions_forest.gd`.
 **Prerequisite**: Baseline AI suite re-measured and green immediately before Phase 1a (`124/124` passing on 2026-04-16).
 
 ---
@@ -21,6 +21,7 @@ Implementation progress:
 - Commit 5: created `scenes/prefabs/prefab_forest_wolf.tscn` with predator tags, prey-target detection tuning, and dark-gray `Body_Mesh` visuals.
 - Commit 6: created `scenes/prefabs/prefab_forest_rabbit.tscn` with prey tags, predator-target detection tuning, and smaller white `Body_Mesh` visuals.
 - Commit 7: created `scenes/prefabs/prefab_forest_deer.tscn` with herbivore tags, predator-target detection tuning, and brown `Body_Mesh` visuals.
+- Commit 8: created `scenes/prefabs/prefab_forest_tree.tscn` with static-body collision and dark-green `CSGCylinder3D` visuals.
 
 Planning artifacts remain authoritative:
 - **`docs/ai_forest/ai-forest-overview.md`** — purpose, scope, architecture, species spec, per-phase acceptance criteria.
@@ -164,9 +165,9 @@ When the user says "proceed" or "start Phase 1":
 - **Outcome**: Plan approved. Awaiting go-ahead to start Phase 1a.
 
 ### Phase 1 — Scene shell + species behaviors + detection generalization
-- **Status**: In progress (P1a + P1b Commits 4-7 complete on 2026-04-16)
-- **Commits**: 7 / 19
-- **Outcome**: Detection system supports tag-targeted lookup, base forest-agent prefab is authored, and wolf/rabbit/deer species prefab wiring is in place.
+- **Status**: In progress (P1a + P1b complete on 2026-04-16)
+- **Commits**: 8 / 19
+- **Outcome**: Detection system supports tag-targeted lookup; base forest-agent, wolf/rabbit/deer species prefabs, and tree prefab are authored.
 
 ### Phase 2 — Hunger / satiety
 - **Status**: Not started

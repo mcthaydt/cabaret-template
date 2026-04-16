@@ -1,7 +1,7 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 1b in progress (Commits 4-7 complete on 2026-04-16) — **Commit 8 next**.
+**Status**: Phase 1c next (Phase 1b complete on 2026-04-16; Commits 4-8 complete) — **Commit 9 next**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
@@ -61,7 +61,8 @@
   - Completion note (2026-04-16): created `prefab_forest_rabbit.tscn` with prey tags, predator-target detection radius `8.0`, and smaller white `Body_Mesh` (`use_collision = false`).
 - [x] **Commit 7** — Author `prefab_forest_deer.tscn` (tags `[&"herbivore", &"ai", &"forest"]`, `target_tag = &"predator"`, `detection_radius ≈ 10.0`, brown CSGBox3D).
   - Completion note (2026-04-16): created `prefab_forest_deer.tscn` with herbivore tags, predator-target detection radius `10.0`, and brown `Body_Mesh` (`use_collision = false`).
-- [ ] **Commit 8** — Author `prefab_forest_tree.tscn` with `StaticBody3D` root and a dark-green CSGCylinder3D. No brain, no entity_id. Used as decoration + collider.
+- [x] **Commit 8** — Author `prefab_forest_tree.tscn` with `StaticBody3D` root and a dark-green CSGCylinder3D. No brain, no entity_id. Used as decoration + collider.
+  - Completion note (2026-04-16): created `prefab_forest_tree.tscn` with `StaticBody3D` root, explicit `CollisionShape3D`, and dark-green `Body_Mesh` (`CSGCylinder3D`, `use_collision = false`).
 
 ### P1c. New AI actions
 
