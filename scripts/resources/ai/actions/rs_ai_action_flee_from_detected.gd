@@ -46,8 +46,10 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	print("[ACTION] %s FleeFromDetected → target (%.1f, %.1f, %.1f)" % [
 		_resolve_entity_label(context), target_position.x, target_position.y, target_position.z])
 
-func tick(_context: Dictionary, _task_state: Dictionary, _delta: float) -> void:
-	pass
+func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
+	if bool(task_state.get(U_AITaskStateKeys.COMPLETED, false)):
+		return
+	_refresh_flee_target(context, task_state)
 
 func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	if bool(task_state.get(U_AITaskStateKeys.COMPLETED, false)):
@@ -91,6 +93,30 @@ func _mark_completed(context: Dictionary, task_state: Dictionary, reason: String
 	task_state.erase(U_AITaskStateKeys.MOVE_TARGET)
 	task_state.erase(U_AITaskStateKeys.ARRIVAL_THRESHOLD)
 	task_state[U_AITaskStateKeys.COMPLETED] = true
+
+func _refresh_flee_target(context: Dictionary, task_state: Dictionary) -> void:
+	var self_entity: Node3D = context.get("entity", null) as Node3D
+	if self_entity == null:
+		return
+	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	if detection == null:
+		return
+	if not detection.is_player_in_range:
+		return
+	var detected_entity_id: StringName = detection.last_detected_player_entity_id
+	if detected_entity_id == StringName(""):
+		return
+	var detected_entity: Node3D = _resolve_detected_entity(context, detected_entity_id)
+	if detected_entity == null:
+		return
+	var away_direction: Vector3 = (self_entity.global_position - detected_entity.global_position).normalized()
+	if away_direction.length_squared() < 0.001:
+		return
+	var distance: float = maxf(flee_distance, 0.0)
+	var target_position: Vector3 = self_entity.global_position + away_direction * distance
+	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
+	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
+	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
 
 func _resolve_detection_component(context: Dictionary) -> C_DetectionComponent:
 	var components_variant: Variant = context.get("components", null)

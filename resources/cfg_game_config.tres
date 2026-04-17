@@ -4,4 +4,4 @@
 
 [resource]
 script = ExtResource("1_game_config")
-retry_scene_id = &"ai_showcase"
+retry_scene_id = &"ai_forest"
