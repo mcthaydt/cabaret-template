@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -157,17 +157,32 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 
 ## Milestone P1.4: Scorers
 
-- [ ] **Commit 1** (RED) — `test_rs_ai_scorer.gd`:
+- [x] **Commit 1** (RED) — `test_rs_ai_scorer.gd`:
   - `RS_AIScorerConstant(value)` → returns `value`.
   - `RS_AIScorerCondition(condition, if_true, if_false)` → gated score.
   - `RS_AIScorerContextField(path, multiplier)` → reads `context[path]` (dot-separated) and multiplies.
   - Invalid path → 0 + `push_error`.
-- [ ] **Commit 2** (GREEN) — Implement 3 scorer resources in `scripts/resources/ai/bt/scorers/`. Base `RS_AIScorer` with virtual `score(context) -> float`.
-- [ ] **Commit 3** (GREEN) — Wire `RS_BTUtilitySelector` to call `child_scorers[i].score(context)` per tick.
+- [x] **Commit 2** (GREEN) — Implement 3 scorer resources in `scripts/resources/ai/bt/scorers/`. Base `RS_AIScorer` with virtual `score(context) -> float`.
+- [x] **Commit 3** (GREEN) — Wire `RS_BTUtilitySelector` to call `child_scorers[i].score(context)` per tick.
 
 **P1.4 Verification**:
-- [ ] Scorer tests green.
-- [ ] `RS_BTUtilitySelector` integration test with mixed scorers green.
+- [x] Scorer tests green.
+- [x] `RS_BTUtilitySelector` integration test with mixed scorers green.
+
+**P1.4 Completion Notes (2026-04-17)**:
+- Commit 1 (RED) `6ad6e79c`: added `tests/unit/ai/bt/test_rs_ai_scorer.gd` (failing for expected missing scorer scripts).
+- Commit 2 (GREEN) `677003b4`: implemented scorer resources:
+  - `scripts/resources/ai/bt/scorers/rs_ai_scorer.gd`
+  - `scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd`
+  - `scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd`
+  - `scripts/resources/ai/bt/scorers/rs_ai_scorer_context_field.gd`
+- Commit 2 also updated style enforcement to allow `rs_ai_*` scripts under `scripts/resources/ai/bt/`.
+- Commit 3 (GREEN) `b5eafe91`: updated `scripts/resources/bt/rs_bt_utility_selector.gd` to support resource-driven child scorers and added integration coverage in `tests/unit/ai/bt/test_rs_bt_utility_selector.gd`.
+- Verification commands:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_ai_scorer.gd`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_utility_selector.gd`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`
+  - `tools/run_gut_suite.sh` (`4492` passing, `8` pending, `0` failing).
 
 ---
 
