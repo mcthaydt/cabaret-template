@@ -1,12 +1,13 @@
 [gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/ai/brain/rs_ai_brain_settings.gd" id="1_brain"]
-[ext_resource type="Script" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" uid="uid://xhe4388ulpe1" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
 [ext_resource type="Resource" path="res://resources/ai/forest/shared/cfg_goal_hunt.tres" id="2_goal_hunt"]
 [ext_resource type="Resource" path="res://resources/ai/forest/shared/cfg_goal_wander.tres" id="3_goal_wander"]
+[ext_resource type="Resource" path="res://resources/ai/forest/shared/cfg_goal_hunt_pack.tres" id="4_goal_hunt_pack"]
 
 [resource]
 script = ExtResource("1_brain")
-goals = Array[ExtResource("1_goal")]([ExtResource("2_goal_hunt"), ExtResource("3_goal_wander")])
+goals = Array[ExtResource("1_goal")]([ExtResource("4_goal_hunt_pack"), ExtResource("2_goal_hunt"), ExtResource("3_goal_wander")])
 default_goal_id = &"wander"
 evaluation_interval = 0.25
