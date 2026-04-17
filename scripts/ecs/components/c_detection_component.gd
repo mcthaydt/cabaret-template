@@ -10,6 +10,9 @@ const COMPONENT_TYPE := StringName("C_DetectionComponent")
 @export var detect_y_axis: bool = false
 @export var target_tag: StringName = StringName("player")
 
+@export_group("Detection Role")
+@export var detection_role: StringName = StringName("primary")
+
 @export_group("Flag Dispatch")
 @export var ai_flag_id: StringName = StringName("")
 @export var enter_flag_value: bool = true

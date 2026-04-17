@@ -24,26 +24,28 @@ func get_phase() -> BaseECSSystem.SystemPhase:
 
 func process_tick(_delta: float) -> void:
 	var target_entries: Array[Dictionary] = _collect_target_entries()
-	var entities: Array = query_entities(
-		[DETECTION_COMPONENT_TYPE, MOVEMENT_COMPONENT_TYPE]
-	)
-	if entities.is_empty():
+	var all_detections: Array = get_components(DETECTION_COMPONENT_TYPE)
+	if all_detections.is_empty():
 		return
 
-	for query_variant in entities:
-		if query_variant == null or not (query_variant is Object):
+	var manager := get_manager()
+	if manager == null:
+		return
+
+	for detection_variant in all_detections:
+		if detection_variant == null or not (detection_variant is C_DetectionComponent):
 			continue
-		var query: Object = query_variant as Object
-		var detection_variant: Variant = query.call("get_component", DETECTION_COMPONENT_TYPE)
-		if not (detection_variant is C_DETECTION_COMPONENT):
-			continue
-		var movement_variant: Variant = query.call("get_component", MOVEMENT_COMPONENT_TYPE)
-		if not (movement_variant is C_MOVEMENT_COMPONENT):
+		var detection: C_DetectionComponent = detection_variant as C_DetectionComponent
+
+		var entity_root: Node = U_ECS_UTILS.find_entity_root(detection)
+		if entity_root == null or not is_instance_valid(entity_root):
 			continue
 
-		var detection: C_DetectionComponent = detection_variant
-		var movement: C_MovementComponent = movement_variant
-		_process_detection(query, detection, movement, target_entries)
+		var movement: C_MovementComponent = _find_movement_for_entity(manager, entity_root)
+		if movement == null:
+			continue
+
+		_process_detection_for_component(entity_root, detection, movement, target_entries)
 
 func _collect_target_entries() -> Array[Dictionary]:
 	var results: Array[Dictionary] = []
@@ -95,8 +97,17 @@ func _collect_target_entries() -> Array[Dictionary]:
 		})
 	return results
 
-func _process_detection(
-	query: Object,
+func _find_movement_for_entity(manager: I_ECSManager, entity_root: Node) -> C_MovementComponent:
+	var entity_comps: Dictionary = manager.get_components_for_entity(entity_root)
+	if entity_comps.is_empty():
+		return null
+	var movement_variant: Variant = entity_comps.get(MOVEMENT_COMPONENT_TYPE)
+	if movement_variant is C_MovementComponent:
+		return movement_variant as C_MovementComponent
+	return null
+
+func _process_detection_for_component(
+	entity_root: Node,
 	detection: C_DetectionComponent,
 	movement: C_MovementComponent,
 	target_entries: Array[Dictionary]
@@ -105,18 +116,8 @@ func _process_detection(
 	if body == null or not is_instance_valid(body):
 		return
 
-	var source_entity_id: StringName = StringName("")
-	var source_entity_instance_id: int = 0
-	var source_entity_variant: Variant = query.get("entity")
-	if source_entity_variant is Node:
-		var source_entity: Node = source_entity_variant as Node
-		var source_entity_root: Node = U_ECS_UTILS.find_entity_root(source_entity)
-		if source_entity_root != null:
-			source_entity_id = U_ECS_UTILS.get_entity_id(source_entity_root)
-			source_entity_instance_id = source_entity_root.get_instance_id()
-		else:
-			source_entity_id = U_ECS_UTILS.get_entity_id(source_entity)
-			source_entity_instance_id = source_entity.get_instance_id()
+	var source_entity_id: StringName = U_ECS_UTILS.get_entity_id(entity_root)
+	var source_entity_instance_id: int = entity_root.get_instance_id()
 
 	var effective_radius: float = detection.detection_radius if not detection.is_player_in_range else detection.get_resolved_exit_radius()
 	var nearest_target: Dictionary = _resolve_nearest_target(
@@ -134,11 +135,11 @@ func _process_detection(
 		detection.is_player_in_range = true
 		detection.last_detected_player_entity_id = nearest_target.get("entity_id", StringName(""))
 		var _dist: float = float(nearest_target.get("distance", 0.0))
-		print("[DETECT] %s (%s) → detected %s at dist %.1f" % [
-			source_entity_id, detection.target_tag,
+		print("[DETECT] %s (%s/%s) → detected %s at dist %.1f" % [
+			source_entity_id, detection.detection_role, detection.target_tag,
 			detection.last_detected_player_entity_id, _dist])
 		_dispatch_flag(detection.ai_flag_id, detection.enter_flag_value)
-		_publish_enter_event(query, detection, nearest_target)
+		_publish_enter_event(entity_root, detection, nearest_target)
 		return
 
 	if (not is_in_range) and detection.is_player_in_range:
@@ -147,8 +148,8 @@ func _process_detection(
 		detection.last_detected_player_entity_id = StringName("")
 		var _exit_radius: float = detection.get_resolved_exit_radius()
 		var _dist: float = float(nearest_target.get("distance", INF))
-		print("[DETECT] %s (%s) → lost %s (dist %.1f > exit_radius %.1f)" % [
-			source_entity_id, detection.target_tag, _lost_id, _dist, _exit_radius])
+		print("[DETECT] %s (%s/%s) → lost %s (dist %.1f > exit_radius %.1f)" % [
+			source_entity_id, detection.detection_role, detection.target_tag, _lost_id, _dist, _exit_radius])
 		if detection.set_flag_on_exit:
 			_dispatch_flag(detection.ai_flag_id, detection.exit_flag_value)
 
@@ -231,16 +232,13 @@ func _dispatch_flag(flag_id: StringName, flag_value: bool) -> void:
 		return
 	store.dispatch(U_GAMEPLAY_ACTIONS.set_ai_demo_flag(flag_id, flag_value))
 
-func _publish_enter_event(query: Object, detection: C_DetectionComponent, nearest_player: Dictionary) -> void:
+func _publish_enter_event(entity_root: Node, detection: C_DetectionComponent, nearest_target: Dictionary) -> void:
 	if detection.enter_event_name == StringName(""):
 		return
 	var payload: Dictionary = detection.enter_event_payload.duplicate(true)
-	var source_entity_id: StringName = StringName("")
-	var entity_variant: Variant = query.get("entity")
-	if entity_variant is Node:
-		source_entity_id = U_ECS_UTILS.get_entity_id(entity_variant as Node)
+	var source_entity_id: StringName = U_ECS_UTILS.get_entity_id(entity_root)
 	payload["source_entity_id"] = source_entity_id
-	payload["detected_player_entity_id"] = nearest_player.get("entity_id", StringName(""))
+	payload["detected_player_entity_id"] = nearest_target.get("entity_id", StringName(""))
 	U_ECSEventBus.publish(detection.enter_event_name, payload)
 
 func _resolve_state_store() -> I_StateStore:
