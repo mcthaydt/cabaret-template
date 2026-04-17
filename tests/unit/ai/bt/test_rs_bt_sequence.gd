@@ -113,3 +113,29 @@ func test_sequence_without_children_returns_success() -> void:
 	_set_children_for_test(sequence, [])
 	var status: Variant = sequence.call("tick", {}, {})
 	assert_eq(status, _status("SUCCESS"), "Empty sequence should return SUCCESS")
+
+func test_sequence_reenters_running_child_on_next_tick() -> void:
+	var sequence: Resource = _new_sequence()
+	if sequence == null:
+		return
+
+	var first: Resource = _new_status_node(_status("SUCCESS"))
+	var second: Resource = _new_status_node(_status("RUNNING"))
+	var third: Resource = _new_status_node(_status("SUCCESS"))
+	if first == null or second == null or third == null:
+		return
+	var child_nodes: Array = [first, second, third]
+	_set_children_for_test(sequence, child_nodes)
+
+	var state_bag := {}
+	var tick1: Variant = sequence.call("tick", {}, state_bag)
+	assert_eq(tick1, _status("RUNNING"), "Sequence should return RUNNING when child is running")
+	assert_eq(first.get("tick_count"), 1, "First child ticked on initial entry")
+	assert_eq(second.get("tick_count"), 1, "Running child ticked on first tick")
+	assert_eq(third.get("tick_count"), 0, "Children after running child not ticked")
+
+	var tick2: Variant = sequence.call("tick", {}, state_bag)
+	assert_eq(tick2, _status("RUNNING"), "Sequence should return RUNNING on second tick")
+	assert_eq(first.get("tick_count"), 1, "First child must not be re-ticked on resume")
+	assert_eq(second.get("tick_count"), 2, "Running child should be re-ticked on resume")
+	assert_eq(third.get("tick_count"), 0, "Children after running child not ticked on resume")
