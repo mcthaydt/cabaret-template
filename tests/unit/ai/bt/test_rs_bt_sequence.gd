@@ -2,17 +2,7 @@ extends GutTest
 
 const RS_BT_NODE_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
 const RS_BT_SEQUENCE_PATH := "res://scripts/resources/bt/rs_bt_sequence.gd"
-
-class StubStatusNode extends "res://scripts/resources/bt/rs_bt_node.gd":
-	var fixed_status: int = 0
-	var tick_count: int = 0
-
-	func _init(status: int = 0) -> void:
-		fixed_status = status
-
-	func tick(_context: Dictionary, _state_bag: Dictionary) -> int:
-		tick_count += 1
-		return fixed_status
+const TEST_STATUS_NODE_PATH := "res://tests/unit/ai/bt/helpers/test_bt_status_node.gd"
 
 func _load_script(path: String) -> Script:
 	assert_true(FileAccess.file_exists(path), "Expected script file to exist: %s" % path)
@@ -43,6 +33,20 @@ func _new_sequence() -> Resource:
 		return null
 	return sequence_variant as Resource
 
+func _new_status_node(status: int) -> Resource:
+	var node_script: Script = _load_script(TEST_STATUS_NODE_PATH)
+	if node_script == null:
+		return null
+	var node_variant: Variant = node_script.new(status)
+	assert_not_null(node_variant, "Expected status stub node to instantiate")
+	if node_variant == null:
+		return null
+	return node_variant as Resource
+
+func _set_children_for_test(sequence: Resource, child_nodes: Array) -> void:
+	var coerced_children: Variant = sequence.call("_coerce_children", child_nodes)
+	sequence.set("_children", coerced_children)
+
 func test_sequence_script_exists_and_loads() -> void:
 	var sequence_script: Script = _load_script(RS_BT_SEQUENCE_PATH)
 	assert_not_null(sequence_script, "RS_BTSequence script must exist and load")
@@ -52,54 +56,60 @@ func test_sequence_returns_success_when_all_children_succeed() -> void:
 	if sequence == null:
 		return
 
-	var first := StubStatusNode.new(_status("SUCCESS"))
-	var second := StubStatusNode.new(_status("SUCCESS"))
+	var first: Resource = _new_status_node(_status("SUCCESS"))
+	var second: Resource = _new_status_node(_status("SUCCESS"))
+	if first == null or second == null:
+		return
 	var child_nodes: Array = [first, second]
-	sequence.set("children", child_nodes)
+	_set_children_for_test(sequence, child_nodes)
 
 	var status: Variant = sequence.call("tick", {}, {})
 	assert_eq(status, _status("SUCCESS"), "Sequence should return SUCCESS when all children succeed")
-	assert_eq(first.tick_count, 1, "First child should be ticked exactly once")
-	assert_eq(second.tick_count, 1, "Second child should be ticked exactly once")
+	assert_eq(first.get("tick_count"), 1, "First child should be ticked exactly once")
+	assert_eq(second.get("tick_count"), 1, "Second child should be ticked exactly once")
 
 func test_sequence_returns_running_and_stops_after_running_child() -> void:
 	var sequence: Resource = _new_sequence()
 	if sequence == null:
 		return
 
-	var first := StubStatusNode.new(_status("SUCCESS"))
-	var second := StubStatusNode.new(_status("RUNNING"))
-	var third := StubStatusNode.new(_status("SUCCESS"))
+	var first: Resource = _new_status_node(_status("SUCCESS"))
+	var second: Resource = _new_status_node(_status("RUNNING"))
+	var third: Resource = _new_status_node(_status("SUCCESS"))
+	if first == null or second == null or third == null:
+		return
 	var child_nodes: Array = [first, second, third]
-	sequence.set("children", child_nodes)
+	_set_children_for_test(sequence, child_nodes)
 
 	var status: Variant = sequence.call("tick", {}, {})
 	assert_eq(status, _status("RUNNING"), "Sequence should return RUNNING on first RUNNING child")
-	assert_eq(first.tick_count, 1, "First child should be ticked")
-	assert_eq(second.tick_count, 1, "Second child should be ticked")
-	assert_eq(third.tick_count, 0, "Sequence should stop before ticking later children")
+	assert_eq(first.get("tick_count"), 1, "First child should be ticked")
+	assert_eq(second.get("tick_count"), 1, "Second child should be ticked")
+	assert_eq(third.get("tick_count"), 0, "Sequence should stop before ticking later children")
 
 func test_sequence_returns_failure_and_stops_after_failure_child() -> void:
 	var sequence: Resource = _new_sequence()
 	if sequence == null:
 		return
 
-	var first := StubStatusNode.new(_status("SUCCESS"))
-	var second := StubStatusNode.new(_status("FAILURE"))
-	var third := StubStatusNode.new(_status("SUCCESS"))
+	var first: Resource = _new_status_node(_status("SUCCESS"))
+	var second: Resource = _new_status_node(_status("FAILURE"))
+	var third: Resource = _new_status_node(_status("SUCCESS"))
+	if first == null or second == null or third == null:
+		return
 	var child_nodes: Array = [first, second, third]
-	sequence.set("children", child_nodes)
+	_set_children_for_test(sequence, child_nodes)
 
 	var status: Variant = sequence.call("tick", {}, {})
 	assert_eq(status, _status("FAILURE"), "Sequence should return FAILURE on first FAILURE child")
-	assert_eq(first.tick_count, 1, "First child should be ticked")
-	assert_eq(second.tick_count, 1, "Second child should be ticked")
-	assert_eq(third.tick_count, 0, "Sequence should stop before ticking later children")
+	assert_eq(first.get("tick_count"), 1, "First child should be ticked")
+	assert_eq(second.get("tick_count"), 1, "Second child should be ticked")
+	assert_eq(third.get("tick_count"), 0, "Sequence should stop before ticking later children")
 
 func test_sequence_without_children_returns_success() -> void:
 	var sequence: Resource = _new_sequence()
 	if sequence == null:
 		return
-	sequence.set("children", [])
+	_set_children_for_test(sequence, [])
 	var status: Variant = sequence.call("tick", {}, {})
 	assert_eq(status, _status("SUCCESS"), "Empty sequence should return SUCCESS")
