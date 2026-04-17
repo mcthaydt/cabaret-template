@@ -5,13 +5,13 @@
 This prompt directs you to implement the AI Forest Simulation by executing `docs/ai_forest/ai-forest-tasks.md` in sequential order, respecting the phase dependency chain. The full specification lives in `docs/ai_forest/ai-forest-overview.md`.
 
 **Branch**: GOAP-AI
-**Status**: Phase 3a in progress (2026-04-16); Commit 29 done. Manual Phase 1 visual acceptance still pending.
-**Next task**: Phase 3a Commit 30 (RED) — multi-detection-component tests.
-**Prerequisite**: Baseline AI suite green (`142/142` passing on 2026-04-16); Commit 29 regressions verified.
+**Status**: Phase 3b complete (2026-04-17); Commits 29-35 done. Manual Phase 1 visual acceptance still pending.
+**Next task**: Phase 3c Commit 36 — tune detection/flee/home/hunger parameters and document final values.
+**Prerequisite**: Baseline AI suite green (`146/146` passing on 2026-04-17).
 
 ---
 
-## Current Status: Phase 3a In Progress
+## Current Status: Phase 3b Complete
 
 Implementation progress:
 - Commit 1 RED: added `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd` and confirmed expected failures before implementation.
@@ -215,6 +215,6 @@ When the user says "proceed" or "start Phase 3":
 - **Outcome**: Needs settings/component/system, hunger-conditioned goal scoring, feed action integration, and hunger-aware debug outputs are complete. Phase 2 automated verification suites are green; manual visual fluctuation pass remains pending.
 
 ### Phase 3 — Pack behavior + polish
-- **Status**: In progress (2026-04-16)
-- **Commits**: 1 / 9 (Commit 29 done)
-- **Outcome**: `detection_role` export added to `C_DetectionComponent`; `S_AIDetectionSystem` refactored to iterate all detection components via `get_components()` enabling multi-component per entity.
+- **Status**: In progress (2026-04-17)
+- **Commits**: 7 / 9 (Commits 29-35 done)
+- **Outcome**: Multi-detection-component support, hunt_pack goal, pack convergence tests all green. AI suite 146/146, style 58/58.

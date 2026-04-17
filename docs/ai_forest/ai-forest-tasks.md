@@ -209,10 +209,14 @@
 
 ### P3b. Pack-hunt goal
 
-- [ ] **Commit 32** — Add a second `C_DetectionComponent` child to `prefab_forest_wolf.tscn` with `target_tag = &"predator"`, wider `detection_radius ≈ 18.0`, `detection_role = &"pack"`. Both detection components coexist on the wolf; goal conditions read both via `field_path = "detection_role_primary/is_player_in_range"` pattern (or equivalent — depends on exact multi-component exposure chosen in P3a).
-- [ ] **Commit 33** — Author `cfg_goal_hunt_pack.tres`: `priority = 12` (beats solo `hunt` at 10 when its condition passes), `cooldown = 1.0` to prevent thrash with solo `hunt`, conditions = (pack-detection positive) AND (prey-detection positive) AND (hunger below sated_threshold from Phase 2).
-- [ ] **Commit 34** (RED) — `tests/unit/ai/integration/test_pack_converges.gd`: two wolves within pack-detection radius of each other plus one rabbit in prey-detection radius → both wolves select hunt with the same `detected_entity_id` within 2 seconds of sim.
-- [ ] **Commit 35** (GREEN) — Tune priorities, cooldowns, and detection radii until test passes without thrashing.
+- [x] **Commit 32** — Add a second `C_DetectionComponent` child to `prefab_forest_wolf.tscn` with `target_tag = &"predator"`, wider `detection_radius ≈ 18.0`, `detection_role = &"pack"`. Both detection components coexist on the wolf; goal conditions read both via `field_path = "detection_role_primary/is_player_in_range"` pattern (or equivalent — depends on exact multi-component exposure chosen in P3a).
+  - Completion note (2026-04-17): added `C_DetectionComponentPack` node to wolf prefab with `detection_role=&"pack"`, `target_tag=&"predator"`, `detection_radius=18.0`; enhanced `U_AIContextBuilder` to inject role-keyed detection entries (`C_DetectionComponent:pack`) into the context Dictionary.
+- [x] **Commit 33** — Author `cfg_goal_hunt_pack.tres`: `priority = 12` (beats solo `hunt` at 10 when its condition passes), `cooldown = 1.0` to prevent thrash with solo `hunt`, conditions = (pack-detection positive) AND (prey-detection positive) AND (hunger below sated_threshold from Phase 2).
+  - Completion note (2026-04-17): authored hunt_pack goal with three conditions (pack detection, prey detection, hunger inverted), priority 12, cooldown 1.0; updated wolf brain to include hunt_pack before hunt and wander.
+- [x] **Commit 34** (RED) — `tests/unit/ai/integration/test_pack_converges.gd`: two wolves within pack-detection radius of each other plus one rabbit in prey-detection radius → both wolves select hunt with the same `detected_entity_id` within 2 seconds of sim.
+  - Completion note (2026-04-17): added 4 tests covering pack+prey, prey-only, sated, and pack-only detection combinations; 3/4 initially RED due to context builder not exposing primary detection when pack detection overwrites entity map.
+- [x] **Commit 35** (GREEN) — Tune priorities, cooldowns, and detection radii until test passes without thrashing.
+  - Completion note (2026-04-17): fixed `_inject_role_keyed_detection` to set primary detection as the bare `C_DetectionComponent` key; registered target entities in test mock; all 4 pack convergence tests now green; AI suite 146/146, style 58/58.
 
 ### P3c. Polish
 
