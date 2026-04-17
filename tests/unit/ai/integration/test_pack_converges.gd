@@ -127,6 +127,20 @@ func _create_fixture(
 		root, manager, "E_Wolf", prey_in_range, pack_in_range, hunger, detected_entity_id
 	)
 
+	if prey_in_range:
+		var target_node := Node3D.new()
+		target_node.name = "E_Rabbit"
+		root.add_child(target_node)
+		autofree(target_node)
+		manager.register_entity_id(detected_entity_id, target_node)
+
+	if pack_in_range:
+		var other_wolf_node := Node3D.new()
+		other_wolf_node.name = "E_OtherWolf"
+		root.add_child(other_wolf_node)
+		autofree(other_wolf_node)
+		manager.register_entity_id(StringName("other_wolf"), other_wolf_node)
+
 	return {
 		"system": behavior_system,
 		"brain": wolf_data.get("brain"),

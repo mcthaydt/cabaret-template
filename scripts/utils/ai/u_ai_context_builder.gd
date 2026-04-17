@@ -66,6 +66,7 @@ func _inject_role_keyed_detection(components: Dictionary, entity: Node, manager:
 			continue
 		var role: StringName = detection.detection_role
 		if role == StringName("") or role == StringName("primary"):
+			components[DETECTION_COMPONENT_TYPE] = detection
 			continue
 		var role_key: StringName = StringName(String(DETECTION_COMPONENT_TYPE) + ":" + String(role))
 		components[role_key] = detection
