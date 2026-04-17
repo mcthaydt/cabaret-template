@@ -139,7 +139,7 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 - [x] **Commit 4** (GREEN) — `scripts/resources/ai/bt/rs_bt_action.gd`. Typed `action: I_AIAction` export.
 
 **P1.3 Verification**:
-- [ ] All 10 existing `RS_AIAction*` scripts run under BT without modification.
+- [x] All 10 existing `RS_AIAction*` scripts run under BT without modification.
 - [x] Leaf tests green.
 
 **P1.3 Completion Notes (2026-04-17)**:
@@ -147,11 +147,13 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 - Commit 2 (GREEN) `5051a2c4`: implemented `scripts/resources/ai/bt/rs_bt_condition.gd` (score > 0.0 => `SUCCESS`, else `FAILURE`; never `RUNNING`).
 - Commit 3 (RED) `fa7fc071`: added `tests/unit/ai/bt/test_rs_bt_action.gd` plus helper `tests/unit/ai/bt/helpers/test_bt_counting_action.gd` (failing for expected missing-script reason).
 - Commit 4 (GREEN) `aa083186`: implemented `scripts/resources/ai/bt/rs_bt_action.gd` with `ACTION_STARTED` lifecycle, per-node task-state bag (`BT_ACTION_STATE_BAG`), `RUNNING` until completion, then reset-and-`SUCCESS`.
+- Verification (2026-04-17): added `tests/unit/ai/bt/test_rs_ai_actions_bt_compat.gd` — asserts all 10 `RS_AIAction*` scripts (`animate`, `feed`, `flee_from_detected`, `move_to`, `move_to_detected`, `publish_event`, `scan`, `set_field`, `wait`, `wander`) load, extend `I_AIAction`, and bind unmodified to `RS_BTAction.action` (typed export). Proves BT-compatibility without source changes.
 - Verification commands:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_condition.gd`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_action.gd`
-  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`
-  - `tools/run_gut_suite.sh` (`4486` passing, `8` pending, `0` failing).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_ai_actions_bt_compat.gd` (3/3 passing, 107 asserts).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (60/60 passing).
+  - `tools/run_gut_suite.sh` (`4498` passing, `8` pending, `0` failing).
 
 ---
 
