@@ -4,16 +4,7 @@ class_name RS_BTUtilitySelector
 
 const STATE_KEY_RUNNING_CHILD_INDEX := &"running_child_index"
 
-var _scorer_callables: Array[Callable] = []
-var _scorer_owners: Array[Variant] = []
 var _child_scorers: Array[Resource] = []
-
-@export var scorer_callables: Array[Callable] = []:
-	get:
-		return _scorer_callables
-	set(value):
-		_scorer_callables = _coerce_scorer_callables(value)
-		_scorer_owners = _capture_callable_owners(_scorer_callables)
 
 @export var child_scorers: Array[Resource] = []:
 	get:
@@ -81,18 +72,7 @@ func _select_best_child_index(context: Dictionary) -> int:
 	return best_index
 
 func _score_child(index: int, context: Dictionary) -> float:
-	var scorer_resource_score: float = _score_child_via_resource(index, context)
-	if scorer_resource_score != 0.0:
-		return scorer_resource_score
-	if index < 0 or index >= _scorer_callables.size():
-		return 0.0
-
-	var scorer: Callable = _scorer_callables[index]
-	if scorer.is_null():
-		return 0.0
-
-	var score_variant: Variant = scorer.call(context)
-	return float(score_variant)
+	return _score_child_via_resource(index, context)
 
 func _score_child_via_resource(index: int, context: Dictionary) -> float:
 	if index < 0 or index >= _child_scorers.size():
@@ -146,15 +126,6 @@ func _get_local_state(state_bag: Dictionary) -> Dictionary:
 		return state_variant as Dictionary
 	return {}
 
-func _coerce_scorer_callables(value: Variant) -> Array[Callable]:
-	var coerced: Array[Callable] = []
-	if not (value is Array):
-		return coerced
-	for callable_variant in value as Array:
-		if callable_variant is Callable:
-			coerced.append(callable_variant)
-	return coerced
-
 func _coerce_child_scorers(value: Variant) -> Array[Resource]:
 	var coerced: Array[Resource] = []
 	if not (value is Array):
@@ -163,12 +134,3 @@ func _coerce_child_scorers(value: Variant) -> Array[Resource]:
 		if scorer_variant is Resource:
 			coerced.append(scorer_variant as Resource)
 	return coerced
-
-func _capture_callable_owners(callables: Array[Callable]) -> Array[Variant]:
-	var owners: Array[Variant] = []
-	for scorer in callables:
-		if scorer.is_null():
-			owners.append(null)
-			continue
-		owners.append(scorer.get_object())
-	return owners

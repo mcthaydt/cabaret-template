@@ -4,8 +4,11 @@ const RS_BT_NODE_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
 const RS_BT_UTILITY_SELECTOR_PATH := "res://scripts/resources/bt/rs_bt_utility_selector.gd"
 const TEST_STATUS_NODE_PATH := "res://tests/unit/ai/bt/helpers/test_bt_status_node.gd"
 const RS_AI_SCORER_CONSTANT_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd"
+const RS_AI_SCORER_CONDITION_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd"
+const RS_AI_SCORER_CONTEXT_FIELD_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_context_field.gd"
+const RS_CONDITION_CONSTANT_PATH := "res://scripts/resources/qb/conditions/rs_condition_constant.gd"
 
-class ScoreStub extends RefCounted:
+class ScoreStub extends Resource:
 	var score_value: float = 0.0
 	var call_count: int = 0
 
@@ -55,15 +58,26 @@ func _new_status_node(status: int) -> Resource:
 		return null
 	return node_variant as Resource
 
+func _new_resource(path: String) -> Resource:
+	var script: Script = _load_script(path)
+	if script == null:
+		return null
+	var instance_variant: Variant = script.new()
+	assert_not_null(instance_variant, "Expected resource to instantiate: %s" % path)
+	if instance_variant == null:
+		return null
+	return instance_variant as Resource
+
+func _new_condition_constant(score: float) -> Resource:
+	var condition: Resource = _new_resource(RS_CONDITION_CONSTANT_PATH)
+	if condition == null:
+		return null
+	condition.set("score", score)
+	return condition
+
 func _set_children_for_test(selector: Resource, child_nodes: Array) -> void:
 	var coerced_children: Variant = selector.call("_coerce_children", child_nodes)
 	selector.set("_children", coerced_children)
-
-func _set_scorers_for_test(selector: Resource, score_stubs: Array[ScoreStub]) -> void:
-	var scorer_callables: Array[Callable] = []
-	for scorer in score_stubs:
-		scorer_callables.append(Callable(scorer, "score"))
-	selector.set("scorer_callables", scorer_callables)
 
 func _set_child_scorers_for_test(selector: Resource, scorers: Array) -> void:
 	var coerced_scorers: Variant = selector.call("_coerce_child_scorers", scorers)
@@ -90,7 +104,6 @@ func test_utility_selector_without_children_returns_failure() -> void:
 	if selector == null:
 		return
 	_set_children_for_test(selector, [])
-	_set_scorers_for_test(selector, [])
 	var status: Variant = selector.call("tick", {}, {})
 	assert_eq(status, _status("FAILURE"), "Empty utility selector should return FAILURE")
 
@@ -103,7 +116,7 @@ func test_utility_selector_selects_highest_score_child() -> void:
 	if first == null or second == null:
 		return
 	_set_children_for_test(selector, [first, second])
-	_set_scorers_for_test(selector, [ScoreStub.new(0.1), ScoreStub.new(0.9)])
+	_set_child_scorers_for_test(selector, [ScoreStub.new(0.1), ScoreStub.new(0.9)])
 
 	var status: Variant = selector.call("tick", {}, {})
 	assert_eq(status, _status("SUCCESS"), "Utility selector should return selected child status")
@@ -119,7 +132,7 @@ func test_utility_selector_skips_non_positive_scores() -> void:
 	if first == null or second == null:
 		return
 	_set_children_for_test(selector, [first, second])
-	_set_scorers_for_test(selector, [ScoreStub.new(0.0), ScoreStub.new(-2.0)])
+	_set_child_scorers_for_test(selector, [ScoreStub.new(0.0), ScoreStub.new(-2.0)])
 
 	var status: Variant = selector.call("tick", {}, {})
 	assert_eq(status, _status("FAILURE"), "All non-positive scores should produce FAILURE")
@@ -135,7 +148,7 @@ func test_utility_selector_uses_first_child_for_score_ties() -> void:
 	if first == null or second == null:
 		return
 	_set_children_for_test(selector, [first, second])
-	_set_scorers_for_test(selector, [ScoreStub.new(1.0), ScoreStub.new(1.0)])
+	_set_child_scorers_for_test(selector, [ScoreStub.new(1.0), ScoreStub.new(1.0)])
 
 	var status: Variant = selector.call("tick", {}, {})
 	assert_eq(status, _status("SUCCESS"), "Tied highest score should still yield SUCCESS")
@@ -153,7 +166,7 @@ func test_utility_selector_re_scores_each_tick_when_not_running() -> void:
 	_set_children_for_test(selector, [first, second])
 	var first_score := ScoreStub.new(2.0)
 	var second_score := ScoreStub.new(0.1)
-	_set_scorers_for_test(selector, [first_score, second_score])
+	_set_child_scorers_for_test(selector, [first_score, second_score])
 
 	var state_bag := {}
 	var first_tick: Variant = selector.call("tick", {}, state_bag)
@@ -181,7 +194,7 @@ func test_utility_selector_pins_running_child_until_completion() -> void:
 	_set_children_for_test(selector, [first, second])
 	var first_score := ScoreStub.new(2.0)
 	var second_score := ScoreStub.new(0.1)
-	_set_scorers_for_test(selector, [first_score, second_score])
+	_set_child_scorers_for_test(selector, [first_score, second_score])
 
 	var state_bag := {}
 	var first_tick: Variant = selector.call("tick", {}, state_bag)
@@ -218,3 +231,34 @@ func test_utility_selector_supports_child_scorer_resources() -> void:
 	assert_eq(status, _status("SUCCESS"), "Selector should return selected child status with resource scorers")
 	assert_eq(first.get("tick_count"), 0, "Lower score child should not be ticked")
 	assert_eq(second.get("tick_count"), 1, "Highest score child should be ticked once")
+
+func test_utility_selector_with_mixed_resource_scorers() -> void:
+	var selector: Resource = _new_utility_selector()
+	if selector == null:
+		return
+	var low_child: Resource = _new_status_node(_status("SUCCESS"))
+	var high_child: Resource = _new_status_node(_status("SUCCESS"))
+	if low_child == null or high_child == null:
+		return
+	_set_children_for_test(selector, [low_child, high_child])
+
+	var condition_scorer: Resource = _new_resource(RS_AI_SCORER_CONDITION_PATH)
+	var condition: Resource = _new_condition_constant(1.0)
+	if condition_scorer == null or condition == null:
+		return
+	condition_scorer.set("condition", condition)
+	condition_scorer.set("if_true", 2.0)
+	condition_scorer.set("if_false", 0.0)
+
+	var field_scorer: Resource = _new_resource(RS_AI_SCORER_CONTEXT_FIELD_PATH)
+	if field_scorer == null:
+		return
+	field_scorer.set("path", "threat")
+	field_scorer.set("multiplier", 1.0)
+
+	_set_child_scorers_for_test(selector, [condition_scorer, field_scorer])
+
+	var status: Variant = selector.call("tick", {"threat": 5.0}, {})
+	assert_eq(status, _status("SUCCESS"))
+	assert_eq(low_child.get("tick_count"), 0, "Condition scorer child (score=2.0) should not be ticked")
+	assert_eq(high_child.get("tick_count"), 1, "Context-field scorer child (score=5.0) should be ticked")
