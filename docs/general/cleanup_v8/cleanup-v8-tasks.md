@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 Commit 1-4 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -74,6 +74,7 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 - Added BT style guards for per-file line-count and AI-dependency boundaries in `tests/unit/style/test_style_enforcement.gd`.
 - Re-verified on `cleanup-v8` after P1.2 RED test commit: full suite is currently green (`4460` passing, `8` expected pending/headless skips, `0` failing).
 - Re-verified after P1.2 Commit 2 (GREEN): full suite is currently green (`4465` passing, `8` expected pending/headless skips, `0` failing).
+- Re-verified after P1.2 Commit 6 (GREEN): full suite is currently green (`4478` passing, `8` expected pending/headless skips, `0` failing).
 
 ---
 
@@ -95,17 +96,30 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
   - Completed in commit `a70032dd`; test run is red for expected reason (`res://scripts/resources/bt/rs_bt_selector.gd` missing).
 - [x] **Commit 4** (GREEN) — `scripts/resources/bt/rs_bt_selector.gd`.
   - Completed in commit `784aede9`.
-- [ ] **Commit 5** (RED) — `test_rs_bt_utility_selector.gd`:
+- [x] **Commit 5** (RED) — `test_rs_bt_utility_selector.gd`:
   - Picks highest-scoring child.
   - Score ≤ 0 treated as "not viable" and skipped.
   - Re-scores each tick at the root (not when mid-RUNNING on same child — state bag pins running child until it returns SUCCESS/FAILURE).
   - Tie-break: earlier child wins (stable).
   - Empty / all-zero-score → FAILURE.
-- [ ] **Commit 6** (GREEN) — `scripts/resources/bt/rs_bt_utility_selector.gd`. Scoring delegated to per-child scorers (see P1.4 — base `RS_AIScorer` lives under `scripts/resources/ai/bt/scorers/` since scoring is AI-specific; the utility selector accepts any callable that returns a float, keeping it general).
+- [x] **Commit 6** (GREEN) — `scripts/resources/bt/rs_bt_utility_selector.gd`. Scoring delegated to per-child scorers (see P1.4 — base `RS_AIScorer` lives under `scripts/resources/ai/bt/scorers/` since scoring is AI-specific; the utility selector accepts any callable that returns a float, keeping it general).
+  - Commit 5 completed in `e84e2890`.
+  - Commit 6 completed in `79344746`.
 
 **P1.2 Verification**:
-- [ ] All composite tests green.
-- [ ] No regressions.
+- [x] All composite tests green.
+- [x] No regressions.
+
+**P1.2 Completion Notes (2026-04-17)**:
+- Added RED contract coverage for `RS_BTUtilitySelector` at `tests/unit/ai/bt/test_rs_bt_utility_selector.gd`.
+- Implemented `scripts/resources/bt/rs_bt_utility_selector.gd` with:
+  - highest-positive-score child selection,
+  - stable first-child tie-break behavior,
+  - running-child pinning via state bag until completion.
+- Verified with:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_utility_selector.gd`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`
+  - `tools/run_gut_suite.sh` (`4478` passing, `8` pending, `0` failing).
 
 ---
 
