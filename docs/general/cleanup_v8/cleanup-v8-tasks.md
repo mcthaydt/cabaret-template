@@ -1,6 +1,6 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
-**Branch**: `cleanup-v8-p1-ai-bt` (off `GOAP-AI`) for Phase 1. Subsequent phases can branch from `main` after Phase 1 merges. Matches continuation prompt.
+**Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
 **Status**: Not started — Phase 1 first.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
@@ -909,7 +909,7 @@ Phase 1 (AI BT rewrite)
 
 ## Critical Notes
 
-- **Separate branch for Phase 1**: `cleanup-v8-p1-ai-bt` recommended. Phase 1 rewrites a core system; keep the diff isolated.
+- **Phase 1 branch**: proceed on existing `cleanup-v8` (off `main`). Phase 1 rewrites a core system; keep unrelated work off this branch to keep the diff isolated.
 - **Manual demo check is mandatory** at end of P1.9 before P1.10 deletions.
 - **Phase 4 is high-churn**: every move commit should be reviewable in isolation; don't bundle unrelated moves.
 - **Phase 5 is last**: easier once code is organized.

@@ -4,7 +4,7 @@
 
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
-**Branch**: `cleanup-v8-p1-ai-bt` (off `GOAP-AI`) for Phase 1 — isolates the large rewrite diff. Subsequent phases can branch from `main` after Phase 1 merges.
+**Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
 **Status**: Not started.
 **Next Task**: Phase 1, Milestone P1.1 (BT framework scaffolding).
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
@@ -134,7 +134,7 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 
 ## Next Steps
 
-1. Create branch `cleanup-v8-p1-ai-bt` off current `GOAP-AI`.
+1. Already on branch `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). No additional branch creation needed.
 2. Begin **P1.1 Commit 1 (RED)** — write `tests/unit/ai/bt/test_rs_bt_node_base.gd`.
 3. Proceed through P1.1 → P1.10 in order.
 4. Merge Phase 1 to main.
