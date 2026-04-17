@@ -203,3 +203,66 @@ func test_no_players_keeps_detection_false() -> void:
 
 	assert_false(detection.is_player_in_range)
 	assert_eq(store.get_dispatched_actions().size(), 0)
+
+func test_hysteresis_does_not_exit_at_detection_radius() -> void:
+	var fixture: Dictionary = _create_fixture()
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var npc: Dictionary = fixture["npc"] as Dictionary
+	var npc_body: FakeBody = npc.get("body") as FakeBody
+	var detection: Variant = fixture["detection"]
+	detection.detection_radius = 6.0
+	detection.detection_exit_radius = 10.0
+
+	npc_body.global_position = Vector3(3.0, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_true(detection.is_player_in_range, "Should enter detection at detection_radius")
+
+	npc_body.global_position = Vector3(8.0, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_true(detection.is_player_in_range, "Should stay in range between detection_radius and exit_radius")
+
+func test_hysteresis_exits_past_exit_radius() -> void:
+	var fixture: Dictionary = _create_fixture()
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var npc: Dictionary = fixture["npc"] as Dictionary
+	var npc_body: FakeBody = npc.get("body") as FakeBody
+	var detection: Variant = fixture["detection"]
+	detection.detection_radius = 6.0
+	detection.detection_exit_radius = 10.0
+
+	npc_body.global_position = Vector3(3.0, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_true(detection.is_player_in_range, "Should enter detection")
+
+	npc_body.global_position = Vector3(11.0, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_false(detection.is_player_in_range, "Should exit past exit_radius")
+
+func test_hysteresis_default_exit_radius_equals_detection_radius() -> void:
+	var fixture: Dictionary = _create_fixture()
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
+	var npc: Dictionary = fixture["npc"] as Dictionary
+	var npc_body: FakeBody = npc.get("body") as FakeBody
+	var detection: Variant = fixture["detection"]
+	detection.detection_radius = 6.0
+	detection.detection_exit_radius = 0.0
+
+	npc_body.global_position = Vector3(3.0, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_true(detection.is_player_in_range, "Should enter detection")
+
+	npc_body.global_position = Vector3(7.0, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_false(detection.is_player_in_range, "With no exit hysteresis, should exit immediately past detection_radius")

@@ -143,13 +143,20 @@ func _build_brain_snapshot(brain: C_AIBrainComponent, context: Dictionary) -> Di
 	var task_id: StringName = current_task.task_id if current_task != null else StringName()
 	var task_state: Dictionary = brain.task_state
 	var _det: bool = false
+	var _det_radius: float = 0.0
+	var _det_exit_radius: float = 0.0
 	var _ctx_comp: Variant = context.get("components", null)
 	if _ctx_comp is Dictionary:
 		var _dc: C_DetectionComponent = (_ctx_comp as Dictionary).get(C_DetectionComponent.COMPONENT_TYPE, null)
-		if _dc != null: _det = _dc.is_player_in_range
+		if _dc != null:
+			_det = _dc.is_player_in_range
+			_det_radius = _dc.detection_radius
+			_det_exit_radius = _dc.detection_exit_radius
 	return {
 		"entity_id": _context_builder.context_key_for_context(context),
 		"is_player_in_range": _det,
+		"detection_radius": _det_radius,
+		"detection_exit_radius": _det_exit_radius,
 		"goal_id": brain.get_active_goal_id(),
 		"queue_size": brain.current_task_queue.size(),
 		"task_index": brain.current_task_index,

@@ -236,4 +236,5 @@ Phase status: M10 complete (all three demo NPC archetype resource stacks are aut
 - [AI System Plan](ai-system-plan.md)
 - [AI System Tasks](ai-system-tasks.md)
 - [AI System Continuation Prompt](ai-system-continuation-prompt.md)
+- [AI Entity Authoring Template](ai-entity-authoring-template.md)
 - [QB Rule Manager v2 Overview](../qb_rule_manager/qb-v2-overview.md)

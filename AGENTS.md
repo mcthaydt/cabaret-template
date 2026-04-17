@@ -10,6 +10,7 @@
   - `assets/audio/`, `assets/button_prompts/`, `assets/editor_icons/`: Shared asset libraries for audio, input glyphs, and editor UI.
 - Documentation to consult (do not duplicate here):
   - General pitfalls: `docs/general/DEV_PITFALLS.md`
+  - AI entity behavior spec template (fill before implementing new AI entities): `docs/ai_system/ai-entity-authoring-template.md`
 - Before adding or modifying code, re-read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
 - Keep project planning docs current: whenever a story advances, update the relevant plan and PRD documents immediately so written guidance matches the implementation state.
 - **MANDATORY: Update continuation prompt and tasks checklist after EVERY phase**: When completing a phase (e.g., Phase 2 of Scene Manager), you MUST:

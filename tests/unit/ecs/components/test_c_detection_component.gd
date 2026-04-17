@@ -17,11 +17,30 @@ func test_init_sets_component_type() -> void:
 func test_defaults_are_safe() -> void:
 	var component: Variant = _instantiate_component()
 	assert_eq(component.detection_radius, 8.0)
+	assert_eq(component.detection_exit_radius, 0.0)
 	assert_eq(component.ai_flag_id, StringName(""))
 	assert_false(component.is_player_in_range)
 	assert_true(component.set_flag_on_exit)
 	assert_eq(component.exit_flag_value, false)
 	assert_eq(component.enter_event_name, StringName(""))
+
+func test_get_resolved_exit_radius_returns_detection_radius_when_unset() -> void:
+	var component: Variant = _instantiate_component()
+	component.detection_radius = 8.0
+	component.detection_exit_radius = 0.0
+	assert_eq(component.get_resolved_exit_radius(), 8.0)
+
+func test_get_resolved_exit_radius_returns_detection_radius_when_smaller() -> void:
+	var component: Variant = _instantiate_component()
+	component.detection_radius = 8.0
+	component.detection_exit_radius = 5.0
+	assert_eq(component.get_resolved_exit_radius(), 8.0)
+
+func test_get_resolved_exit_radius_returns_exit_radius_when_larger() -> void:
+	var component: Variant = _instantiate_component()
+	component.detection_radius = 8.0
+	component.detection_exit_radius = 14.0
+	assert_eq(component.get_resolved_exit_radius(), 14.0)
 
 func test_validate_required_settings_rejects_non_positive_radius() -> void:
 	var component: Variant = _instantiate_component()

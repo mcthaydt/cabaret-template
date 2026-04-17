@@ -73,7 +73,13 @@ func _build_row_text(brain: C_AIBrainComponent) -> String:
 	var goal_id_value: String = _resolve_snapshot_string(snapshot, "goal_id")
 	var task_id_value: String = _resolve_snapshot_string(snapshot, "task_id")
 	var detect_value: String = str(snapshot.get("is_player_in_range", "?"))
-	return "%s | goal=%s | task=%s | detect=%s" % [entity_id_value, goal_id_value, task_id_value, detect_value]
+	var exit_radius_value: String = ""
+	if snapshot.has("detection_exit_radius"):
+		var er: float = float(snapshot.get("detection_exit_radius", 0.0))
+		var dr: float = float(snapshot.get("detection_radius", 8.0))
+		if er > dr:
+			exit_radius_value = " exit=%.1f" % er
+	return "%s | goal=%s | task=%s | detect=%s%s" % [entity_id_value, goal_id_value, task_id_value, detect_value, exit_radius_value]
 
 func _resolve_entity_id(snapshot: Dictionary, brain: C_AIBrainComponent) -> String:
 	var from_snapshot: String = _resolve_snapshot_string(snapshot, "entity_id")

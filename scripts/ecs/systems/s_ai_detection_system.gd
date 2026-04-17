@@ -118,10 +118,11 @@ func _process_detection(
 			source_entity_id = U_ECS_UTILS.get_entity_id(source_entity)
 			source_entity_instance_id = source_entity.get_instance_id()
 
+	var effective_radius: float = detection.detection_radius if not detection.is_player_in_range else detection.get_resolved_exit_radius()
 	var nearest_target: Dictionary = _resolve_nearest_target(
 		body.global_position,
 		detection.detect_y_axis,
-		detection.detection_radius,
+		effective_radius,
 		detection.target_tag,
 		target_entries,
 		source_entity_id,
@@ -144,8 +145,10 @@ func _process_detection(
 		var _lost_id: StringName = detection.last_detected_player_entity_id
 		detection.is_player_in_range = false
 		detection.last_detected_player_entity_id = StringName("")
-		print("[DETECT] %s (%s) → lost %s" % [
-			source_entity_id, detection.target_tag, _lost_id])
+		var _exit_radius: float = detection.get_resolved_exit_radius()
+		var _dist: float = float(nearest_target.get("distance", INF))
+		print("[DETECT] %s (%s) → lost %s (dist %.1f > exit_radius %.1f)" % [
+			source_entity_id, detection.target_tag, _lost_id, _dist, _exit_radius])
 		if detection.set_flag_on_exit:
 			_dispatch_flag(detection.ai_flag_id, detection.exit_flag_value)
 

@@ -232,3 +232,33 @@ func test_last_detected_entity_id_uses_base_ecs_entity_id() -> void:
 		rabbit_entity.get_entity_id(),
 		"Detected entity ID should resolve from BaseECSEntity.get_entity_id()."
 	)
+
+func test_hysteresis_prevents_exit_in_tag_target_mode() -> void:
+	var fixture: Dictionary = _create_fixture(StringName("prey"))
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var rabbit_data: Dictionary = _register_target(
+		fixture,
+		"E_Rabbit",
+		Vector3(3.0, 0.0, 0.0),
+		[StringName("prey"), StringName("ai"), StringName("forest")]
+	)
+	var rabbit_body: FakeBody = rabbit_data.get("body") as FakeBody
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var detection: C_DetectionComponent = fixture.get("detection") as C_DetectionComponent
+	detection.detection_radius = 6.0
+	detection.detection_exit_radius = 10.0
+
+	system.process_tick(0.016)
+	assert_true(detection.is_player_in_range, "Should detect prey at 3.0 units")
+
+	rabbit_body.global_position = Vector3(8.0, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_true(detection.is_player_in_range, "Should stay in range between detection_radius and exit_radius")
+
+	rabbit_body.global_position = Vector3(11.0, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_false(detection.is_player_in_range, "Should exit past exit_radius")

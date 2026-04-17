@@ -65,6 +65,10 @@ func _update_label_text() -> void:
 	var goal_id_text: String = _resolve_snapshot_text(snapshot, "goal_id")
 	var task_id_text: String = _resolve_snapshot_text(snapshot, "task_id")
 	var detect_text: String = "detect:%s" % str(snapshot.get("is_player_in_range", "?"))
+	var exit_radius: float = float(snapshot.get("detection_exit_radius", 0.0))
+	var det_radius: float = float(snapshot.get("detection_radius", 0.0))
+	if exit_radius > det_radius:
+		detect_text += " exit:%.0f" % exit_radius
 	text = "%s\ngoal: %s\ntask: %s\n%s" % [entity_id_text, goal_id_text, task_id_text, detect_text]
 
 func _resolve_entity_id(snapshot: Dictionary) -> String:
