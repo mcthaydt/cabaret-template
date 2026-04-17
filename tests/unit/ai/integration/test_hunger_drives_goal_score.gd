@@ -15,6 +15,7 @@ const RS_NEEDS_SETTINGS := preload("res://scripts/resources/ecs/rs_needs_setting
 
 const WOLF_BRAIN := preload("res://resources/ai/forest/wolf/cfg_wolf_brain.tres")
 const RABBIT_BRAIN := preload("res://resources/ai/forest/rabbit/cfg_rabbit_brain.tres")
+const DEER_BRAIN := preload("res://resources/ai/forest/deer/cfg_deer_brain.tres")
 
 func _load_required_script(path: String) -> Script:
 	var script_variant: Variant = load(path)
@@ -86,7 +87,12 @@ func _create_fixture(brain_settings: RS_AIBrainSettings, hunger: float, detectio
 	return {
 		"system": behavior_system,
 		"brain": brain,
+		"needs": needs as C_NeedsComponent,
 	}
+
+func _simulate_ticks(system: BaseECSSystem, tick_count: int, delta: float) -> void:
+	for _i in range(max(tick_count, 0)):
+		system.process_tick(delta)
 
 func test_hungry_wolf_prefers_hunt_over_wander() -> void:
 	var fixture: Dictionary = await _create_fixture(WOLF_BRAIN, 0.1, true)
@@ -96,7 +102,7 @@ func test_hungry_wolf_prefers_hunt_over_wander() -> void:
 
 	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
 	var brain: C_AIBrainComponent = fixture.get("brain") as C_AIBrainComponent
-	system.process_tick(0.016)
+	_simulate_ticks(system, 1, 0.016)
 
 	assert_eq(brain.get_active_goal_id(), StringName("hunt"))
 
@@ -108,7 +114,7 @@ func test_sated_wolf_prefers_wander_over_hunt() -> void:
 
 	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
 	var brain: C_AIBrainComponent = fixture.get("brain") as C_AIBrainComponent
-	system.process_tick(0.016)
+	_simulate_ticks(system, 1, 0.016)
 
 	assert_eq(brain.get_active_goal_id(), StringName("wander"))
 
@@ -120,7 +126,7 @@ func test_hungry_rabbit_prefers_graze_over_wander() -> void:
 
 	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
 	var brain: C_AIBrainComponent = fixture.get("brain") as C_AIBrainComponent
-	system.process_tick(0.016)
+	_simulate_ticks(system, 1, 0.016)
 
 	assert_eq(brain.get_active_goal_id(), StringName("graze"))
 
@@ -132,6 +138,64 @@ func test_sated_rabbit_prefers_wander_over_graze() -> void:
 
 	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
 	var brain: C_AIBrainComponent = fixture.get("brain") as C_AIBrainComponent
-	system.process_tick(0.016)
+	_simulate_ticks(system, 1, 0.016)
 
 	assert_eq(brain.get_active_goal_id(), StringName("wander"))
+
+func test_hungry_deer_prefers_graze_over_wander() -> void:
+	var fixture: Dictionary = await _create_fixture(DEER_BRAIN, 0.15, false)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var brain: C_AIBrainComponent = fixture.get("brain") as C_AIBrainComponent
+	_simulate_ticks(system, 1, 0.016)
+
+	assert_eq(brain.get_active_goal_id(), StringName("graze"))
+
+func test_sated_deer_prefers_wander_over_graze() -> void:
+	var fixture: Dictionary = await _create_fixture(DEER_BRAIN, 0.95, false)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var brain: C_AIBrainComponent = fixture.get("brain") as C_AIBrainComponent
+	_simulate_ticks(system, 1, 0.016)
+
+	assert_eq(brain.get_active_goal_id(), StringName("wander"))
+
+func test_hunt_sequence_feed_step_increases_hunger() -> void:
+	var fixture: Dictionary = await _create_fixture(WOLF_BRAIN, 0.1, true)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var needs: C_NeedsComponent = fixture.get("needs") as C_NeedsComponent
+	assert_not_null(needs)
+	if needs == null:
+		return
+	var starting_hunger: float = needs.hunger
+
+	_simulate_ticks(system, 40, 0.1)
+
+	assert_gt(needs.hunger, starting_hunger, "Hunt compound task should execute feed and increase hunger.")
+
+func test_graze_sequence_feed_step_increases_hunger() -> void:
+	var fixture: Dictionary = await _create_fixture(RABBIT_BRAIN, 0.12, false)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var needs: C_NeedsComponent = fixture.get("needs") as C_NeedsComponent
+	assert_not_null(needs)
+	if needs == null:
+		return
+	var starting_hunger: float = needs.hunger
+
+	_simulate_ticks(system, 40, 0.1)
+
+	assert_gt(needs.hunger, starting_hunger, "Graze compound task should execute feed and increase hunger.")

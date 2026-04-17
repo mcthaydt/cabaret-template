@@ -306,7 +306,6 @@ size = 36.825
 [node name="Debug" type="Node" parent="." unique_id=387880905]
 
 [node name="DebugAIBrainPanel" parent="Debug" unique_id=1019706136 instance=ExtResource("20_debug_panel")]
-visible = false
 offset_left = 43.0
 offset_top = 24.0
 offset_right = 454.0

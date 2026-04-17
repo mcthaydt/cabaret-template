@@ -13,17 +13,12 @@ func process_tick(delta: float) -> void:
 
 	var needs_components: Array = get_components(C_NEEDS_COMPONENT.COMPONENT_TYPE)
 	for component_variant in needs_components:
-		if component_variant == null or not (component_variant is Node):
+		var needs: C_NeedsComponent = component_variant as C_NeedsComponent
+		if needs == null:
 			continue
-		var needs: Node = component_variant as Node
-		var settings_variant: Variant = needs.get("settings")
-		if settings_variant == null:
+		if needs.settings == null:
 			continue
-		var settings: Resource = settings_variant as Resource
-		if settings == null:
-			continue
-		var decay: float = maxf(float(settings.get("decay_per_second")), 0.0)
+		var decay: float = maxf(needs.settings.decay_per_second, 0.0)
 		if decay <= 0.0:
 			continue
-		var current_hunger: float = float(needs.get("hunger"))
-		needs.set("hunger", clampf(current_hunger - (decay * delta), 0.0, 1.0))
+		needs.hunger = clampf(needs.hunger - (decay * delta), 0.0, 1.0)
