@@ -5,13 +5,13 @@
 This prompt directs you to implement the AI Forest Simulation by executing `docs/ai_forest/ai-forest-tasks.md` in sequential order, respecting the phase dependency chain. The full specification lives in `docs/ai_forest/ai-forest-overview.md`.
 
 **Branch**: GOAP-AI
-**Status**: Phase 1 implementation complete (2026-04-16); manual visual acceptance pending — waiting for explicit go-ahead to start Phase 2.
-**Next task**: Phase 2a Commit 20 (RED) — write `tests/unit/ecs/components/test_c_needs_component.gd`.
-**Prerequisite**: Baseline AI suite re-measured and green (`130/130` passing on 2026-04-16); full unit/style/smoke phase checks executed at Phase 1 closeout.
+**Status**: Phase 2 complete (2026-04-16); Commits 20-28 completed. Manual Phase 1 visual acceptance still pending.
+**Next task**: Phase 3a Commit 29 — extend `C_DetectionComponent` with `detection_role` and update `S_AIDetectionSystem` for multi-component iteration.
+**Prerequisite**: Baseline AI suite re-measured and green (`131/131` passing on 2026-04-16); full unit/style/smoke phase checks executed at Phase 1 closeout.
 
 ---
 
-## Current Status: Phase 1 Complete
+## Current Status: Phase 2 Complete
 
 Implementation progress:
 - Commit 1 RED: added `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd` and confirmed expected failures before implementation.
@@ -33,12 +33,32 @@ Implementation progress:
 - Commit 17: assembled `scenes/gameplay/gameplay_ai_forest.tscn` with required marker containers, AI runtime systems, environment/entities/lighting/camera, and debug panel instance.
 - Commit 18: registered scene via `resources/scene_registry/cfg_ai_forest_entry.tres` (`scene_id = &"ai_forest"`).
 - Commit 19: added `tests/integration/gameplay/test_forest_ecosystem_smoke.gd`, wired wolf/rabbit/deer brain resources on prefabs, and validated forest brains start with active goals + non-empty task queues.
+- Commit 20 RED: added `tests/unit/ecs/components/test_c_needs_component.gd` and confirmed expected failures (`0/4` passing) before needs-component implementation.
+- Commit 21 RED: added `tests/unit/ecs/systems/test_s_needs_system.gd` and confirmed expected failures (`0/3` passing) before needs-system implementation.
+- Commit 22 GREEN: implemented `RS_NeedsSettings`, `C_NeedsComponent`, and `S_NeedsSystem`; needs component/system suites now green.
+- Commit 23: wired `C_NeedsComponent` on `prefab_forest_agent.tscn`, authored species needs resources (`cfg_needs_wolf/rabbit/deer.tres`), and added `S_NeedsSystem` to `gameplay_ai_forest.tscn`.
+- Commit 24 RED: added `tests/unit/ai/integration/test_hunger_drives_goal_score.gd` and confirmed expected failures before hunger-conditioned goal tuning.
+- Commit 25 GREEN: updated `cfg_goal_hunt.tres` and `cfg_goal_graze.tres` with hunger-driven `RS_ConditionComponentField` conditions.
+- Commit 26: implemented `RS_AIActionFeed` and appended feed steps to hunt/graze compound tasks.
+- Commit 27: extended AI debug snapshot + debug panel/labels to surface hunger plus threshold color coding.
+- Commit 28: updated debug panel/label tests for hunger text + color assertions.
 - Audit patch (2026-04-16): fixed `S_AIDetectionSystem` self-targeting in tag mode, added label-format coverage via `tests/unit/debug/test_debug_forest_agent_label.gd`, and hardened forest smoke test isolation/contract assertions.
 - Phase 1 verification runs:
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` -> `130/130` passing.
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit` -> `58/58` passing.
   - `tools/run_gut_suite.sh -gtest=res://tests/integration/gameplay/test_forest_ecosystem_smoke.gd -gexit` -> `1/1` passing.
   - `tools/run_gut_suite.sh -gdir=res://tests/unit -ginclude_subdirs -gexit` -> `3945` passing, `8` pending headless skips, `0` failing.
+- Phase 2 start-gate rerun:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` -> `131/131` passing (2026-04-16 baseline refresh before Commit 20).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_needs_component.gd -gexit` -> expected RED (`0/4` passing; missing `c_needs_component.gd` and `rs_needs_settings.gd`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_needs_system.gd -gexit` -> expected RED (`0/3` passing; missing `s_needs_system.gd`).
+- Phase 2 verification runs:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_needs_component.gd -gexit` -> `4/4` passing.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_needs_system.gd -gexit` -> `3/3` passing.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_hunger_drives_goal_score.gd -gexit` -> `4/4` passing.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit` -> `58/58` passing.
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/gameplay -ginclude_subdirs -gexit` -> `30/30` passing.
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit -ginclude_subdirs -gexit` -> `3968` passing, `8` pending headless skips, `0` failing.
 
 Planning artifacts remain authoritative:
 - **`docs/ai_forest/ai-forest-overview.md`** — purpose, scope, architecture, species spec, per-phase acceptance criteria.
@@ -122,7 +142,7 @@ These decisions diverge from what an intuitive reading of the AI system might su
 - `resources/base_settings/ai_forest/cfg_movement_forest.tres`
 - Tests: `test_s_ai_detection_system_tag_target.gd`, `test_ai_actions_forest.gd`, `test_debug_ai_brain_panel.gd`, `test_forest_ecosystem_smoke.gd`
 
-### To be created (Phase 2)
+### Phase 2 outputs (created)
 
 - `scripts/resources/ecs/rs_needs_settings.gd`
 - `scripts/ecs/components/c_needs_component.gd`
@@ -143,10 +163,10 @@ These decisions diverge from what an intuitive reading of the AI system might su
 
 ## How to Resume
 
-When the user says "proceed" or "start Phase 2":
+When the user says "proceed" or "start Phase 3":
 
 1. Re-read `docs/ai_forest/ai-forest-overview.md` and `ai-forest-tasks.md` — including the "Audit-Corrected Design Decisions" block above.
-2. Re-run baseline: `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` — confirm latest known baseline (currently `130/130` on 2026-04-16).
+2. Re-run baseline: `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` — confirm latest known baseline (currently `131/131` on 2026-04-16).
 3. Execute the next unchecked commit in `ai-forest-tasks.md`.
 4. After the commit: run the relevant suite, confirm green, mark the task `[x]` in `ai-forest-tasks.md`, update **Status** + **Next task** fields in this prompt, commit the docs update separately.
 5. At phase boundaries: stop and wait for user go-ahead before the next phase. Do not auto-advance.
@@ -182,9 +202,9 @@ When the user says "proceed" or "start Phase 2":
 - **Outcome**: Detection generalization, new actions, species brains, debug panel/labels, forest gameplay scene, scene registration, and ecosystem smoke coverage are complete. Automated closeout suites are green; manual visual pass is still pending.
 
 ### Phase 2 — Hunger / satiety
-- **Status**: Not started
-- **Commits**: 0 / 9
-- **Outcome**: —
+- **Status**: Complete (2026-04-16)
+- **Commits**: 9 / 9
+- **Outcome**: Needs settings/component/system, hunger-conditioned goal scoring, feed action integration, and hunger-aware debug outputs are complete. Phase 2 automated verification suites are green; manual visual fluctuation pass remains pending.
 
 ### Phase 3 — Pack behavior + polish
 - **Status**: Not started

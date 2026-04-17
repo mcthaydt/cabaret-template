@@ -1,7 +1,7 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 1 implementation complete (2026-04-16); manual visual acceptance pending — awaiting go-ahead for **Phase 2a Commit 20**.
+**Status**: Phase 2 complete (2026-04-16); Commits 20-28 done, next up **Phase 3a Commit 29**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
@@ -157,30 +157,41 @@
 
 ### P2a. `C_NeedsComponent` + `RS_NeedsSettings` + `S_NeedsSystem`
 
-- [ ] **Commit 20** (RED) — `tests/unit/ecs/components/test_c_needs_component.gd`: hunger initializes to `settings.initial_hunger`, clamps to `[0, 1]`, validates when `settings` is non-null.
-- [ ] **Commit 21** (RED) — `tests/unit/ecs/systems/test_s_needs_system.gd`: hunger decays at `decay_per_second × delta`, clamps at 0, multiple entities tick independently.
-- [ ] **Commit 22** (GREEN) — Author:
+- [x] **Commit 20** (RED) — `tests/unit/ecs/components/test_c_needs_component.gd`: hunger initializes to `settings.initial_hunger`, clamps to `[0, 1]`, validates when `settings` is non-null.
+  - Completion note (2026-04-16): added needs-component RED suite (`4` tests) and confirmed expected failure (`0/4` passing) due missing `c_needs_component.gd` and `rs_needs_settings.gd`.
+- [x] **Commit 21** (RED) — `tests/unit/ecs/systems/test_s_needs_system.gd`: hunger decays at `decay_per_second × delta`, clamps at 0, multiple entities tick independently.
+  - Completion note (2026-04-16): added needs-system RED suite (`3` tests) and confirmed expected failure (`0/3` passing) due missing `s_needs_system.gd`.
+- [x] **Commit 22** (GREEN) — Author:
   - `scripts/resources/ecs/rs_needs_settings.gd` — exports `initial_hunger`, `decay_per_second`, `sated_threshold`, `starving_threshold`, `gain_on_feed`
   - `scripts/ecs/components/c_needs_component.gd` — extends `BaseECSComponent`, exports `settings: RS_NeedsSettings`, runtime `hunger: float`, validates `settings != null`
   - `scripts/ecs/systems/s_needs_system.gd` — `SystemPhase.PRE_PHYSICS`, ticks hunger per entity
-- [ ] **Commit 23** — Wire `C_NeedsComponent` onto `prefab_forest_agent.tscn` with per-species settings: `resources/base_settings/ai_forest/cfg_needs_{wolf,rabbit,deer}.tres`. Add `S_NeedsSystem` to `Systems/Core` in the forest scene.
+  - Completion note (2026-04-16): implemented all three scripts; RED suites now green (`test_c_needs_component.gd` `4/4`, `test_s_needs_system.gd` `3/3`).
+- [x] **Commit 23** — Wire `C_NeedsComponent` onto `prefab_forest_agent.tscn` with per-species settings: `resources/base_settings/ai_forest/cfg_needs_{wolf,rabbit,deer}.tres`. Add `S_NeedsSystem` to `Systems/Core` in the forest scene.
+  - Completion note (2026-04-16): added species needs `.tres` resources, wired `C_NeedsComponent` on forest agent prefab, and added `S_NeedsSystem` to forest scene core systems.
 
 ### P2b. Goal scoring via hunger
 
-- [ ] **Commit 24** (RED) — `tests/unit/ai/integration/test_hunger_drives_goal_score.gd`: a hungry wolf (hunger below `sated_threshold`) selects `hunt` over `wander`; a sated wolf picks `wander`. Mirror test for rabbit `graze`.
-- [ ] **Commit 25** (GREEN) — Update `cfg_goal_hunt.tres` and `cfg_goal_graze.tres` to include an additional `RS_ConditionComponentField` reading `C_NeedsComponent.hunger` — score is `(1 - hunger)` mapped through `range_min/range_max`, so lower hunger = higher score.
-- [ ] **Commit 26** — New action `scripts/resources/ai/actions/rs_ai_action_feed.gd`: increments `C_NeedsComponent.hunger` by `settings.gain_on_feed`, clamps to `[0,1]`, completes immediately. Appended as the final step in `hunt`/`graze` compound tasks.
+- [x] **Commit 24** (RED) — `tests/unit/ai/integration/test_hunger_drives_goal_score.gd`: a hungry wolf (hunger below `sated_threshold`) selects `hunt` over `wander`; a sated wolf picks `wander`. Mirror test for rabbit `graze`.
+  - Completion note (2026-04-16): added integration suite and confirmed RED before hunger-conditioned goal updates (sated-path assertions failed as expected).
+- [x] **Commit 25** (GREEN) — Update `cfg_goal_hunt.tres` and `cfg_goal_graze.tres` to include an additional `RS_ConditionComponentField` reading `C_NeedsComponent.hunger` — score is `(1 - hunger)` mapped through `range_min/range_max`, so lower hunger = higher score.
+  - Completion note (2026-04-16): hunger condition fields added to hunt and graze goals; hunger goal-selection integration suite green (`4/4`).
+- [x] **Commit 26** — New action `scripts/resources/ai/actions/rs_ai_action_feed.gd`: increments `C_NeedsComponent.hunger` by `settings.gain_on_feed`, clamps to `[0,1]`, completes immediately. Appended as the final step in `hunt`/`graze` compound tasks.
+  - Completion note (2026-04-16): implemented feed action and appended it to hunt/graze compound tasks as final step.
 
 ### P2c. Debug panel hunger display
 
-- [ ] **Commit 27** — Extend `debug_ai_brain_panel.gd` + `debug_forest_agent_label.gd` to show hunger with color coding: green above `sated_threshold`, yellow between thresholds, red below `starving_threshold`.
-- [ ] **Commit 28** — Test update for panel + label reflecting hunger state.
+- [x] **Commit 27** — Extend `debug_ai_brain_panel.gd` + `debug_forest_agent_label.gd` to show hunger with color coding: green above `sated_threshold`, yellow between thresholds, red below `starving_threshold`.
+  - Completion note (2026-04-16): added hunger display and threshold color coding in both debug panel and floating label; AI brain snapshot now includes hunger/threshold debug fields.
+- [x] **Commit 28** — Test update for panel + label reflecting hunger state.
+  - Completion note (2026-04-16): updated debug suites for hunger text + color behavior; combined debug tests green (`6/6`).
 
 ### Phase 2 verification
 
-- [ ] Full unit + integration suites green
+- [x] Full unit + integration suites green
+  - Completion note (2026-04-16): `tools/run_gut_suite.sh -gdir=res://tests/unit -ginclude_subdirs -gexit` -> `3968/3976` passing, `8` pending headless skips, `0` failing; `tools/run_gut_suite.sh -gdir=res://tests/integration/gameplay -ginclude_subdirs -gexit` -> `30/30` passing.
 - [ ] Visual: agents visibly fluctuate between `wander` and `hunt`/`graze` over time
-- [ ] Debug panel hunger colors update
+- [x] Debug panel hunger colors update
+  - Completion note (2026-04-16): hunger color/state reflected in `test_debug_ai_brain_panel.gd` and `test_debug_forest_agent_label.gd`.
 
 ---
 
