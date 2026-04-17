@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1 and P1.2 are complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`).
-**Next Task**: P1.3 Commit 1 (RED) — write `tests/unit/ai/bt/test_rs_bt_condition.gd`.
+**Status**: Phase 1 in progress. P1.1, P1.2, and P1.3 are complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`, `8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`).
+**Next Task**: P1.4 Commit 1 (RED) — write `tests/unit/ai/bt/test_rs_ai_scorer.gd`.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -37,19 +37,26 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - `(GREEN) P1.2 implement RS_BTSelector composite` (`784aede9`)
     - `(RED) P1.2 add RS_BTUtilitySelector contract test` (`e84e2890`)
     - `(GREEN) P1.2 implement RS_BTUtilitySelector composite` (`79344746`)
+  - **P1.3** complete:
+    - `(RED) P1.3 add RS_BTCondition contract test` (`8c163ae0`)
+    - `(GREEN) P1.3 implement RS_BTCondition leaf` (`5051a2c4`)
+    - `(RED) P1.3 add RS_BTAction contract test` (`fa7fc071`)
+    - `(GREEN) P1.3 implement RS_BTAction leaf` (`aa083186`)
   - **Verification state**:
     - New P1.1 tests are green (`tests/unit/ai/bt/test_rs_bt_node_base.gd`).
     - New P1.2 sequence tests are green (`tests/unit/ai/bt/test_rs_bt_sequence.gd`).
     - New P1.2 selector tests are green (`tests/unit/ai/bt/test_rs_bt_selector.gd`).
     - New P1.2 utility-selector tests are green (`tests/unit/ai/bt/test_rs_bt_utility_selector.gd`).
+    - New P1.3 condition tests are green (`tests/unit/ai/bt/test_rs_bt_condition.gd`).
+    - New P1.3 action tests are green (`tests/unit/ai/bt/test_rs_bt_action.gd`).
     - New BT style checks run and pass inside `tests/unit/style/test_style_enforcement.gd`.
-    - Full suite baseline is green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4478 passing / 8 pending / 0 failing).
+    - Full suite baseline is green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4486 passing / 8 pending / 0 failing).
 - **Phase 2**: NOT STARTED. 4 milestones.
 - **Phase 3**: NOT STARTED. 3 milestones.
 - **Phase 4**: NOT STARTED. 4 milestones.
 - **Phase 5**: NOT STARTED. 4 milestones.
 
-### Baseline Verification (2026-04-17, post-P1.2 completion)
+### Baseline Verification (2026-04-17, post-P1.3 completion)
 
 - Previously listed baseline red tests now pass when run directly:
   - `tests/integration/scene_manager/test_endgame_flows.gd`
@@ -58,6 +65,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
 - Full suite check: `tools/run_gut_suite.sh` completed with no failing tests (8 expected pending/headless skips).
 - Post-P1.2 Commit 2 recheck: `tools/run_gut_suite.sh` completed with no failing tests (8 expected pending/headless skips).
 - Post-P1.2 Commit 6 recheck: `tools/run_gut_suite.sh` completed with no failing tests (`4478` passing / `8` pending).
+- Post-P1.3 Commit 4 recheck: `tools/run_gut_suite.sh` completed with no failing tests (`4486` passing / `8` pending).
 
 ---
 
@@ -163,9 +171,10 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 ## Next Steps
 
 1. Already on branch `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). No additional branch creation needed.
-2. Implement **P1.3 Commit 1 (RED)** — add `tests/unit/ai/bt/test_rs_bt_condition.gd`.
-3. Implement **P1.3 Commit 2 (GREEN)** — add `scripts/resources/bt/rs_bt_condition.gd`.
-4. Proceed through P1.3 → P1.10 in order.
-5. Merge Phase 1 to main.
-6. Branch for Phase 2 (or Phase 3 in parallel).
-7. Sequence through remaining phases per dependency graph.
+2. Implement **P1.4 Commit 1 (RED)** — add `tests/unit/ai/bt/test_rs_ai_scorer.gd`.
+3. Implement **P1.4 Commit 2 (GREEN)** — add scorer resources under `scripts/resources/ai/bt/scorers/`.
+4. Implement **P1.4 Commit 3 (GREEN)** — wire scorer resources into `RS_BTUtilitySelector`.
+5. Proceed through P1.4 → P1.10 in order.
+6. Merge Phase 1 to main.
+7. Branch for Phase 2 (or Phase 3 in parallel).
+8. Sequence through remaining phases per dependency graph.

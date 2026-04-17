@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -125,22 +125,33 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 
 ## Milestone P1.3: Leaves — Condition, Action
 
-- [ ] **Commit 1** (RED) — `test_rs_bt_condition.gd`:
+- [x] **Commit 1** (RED) — `test_rs_bt_condition.gd`:
   - Wraps existing `I_Condition` (reuse `scripts/resources/qb/conditions/*` infra — the implementations the goal selector consumes via `U_RuleScorer`).
   - TRUE → SUCCESS, FALSE → FAILURE.
   - Never returns RUNNING.
-- [ ] **Commit 2** (GREEN) — `rs_bt_condition.gd`. Exports typed `condition: I_Condition`.
-- [ ] **Commit 3** (RED) — `test_rs_bt_action.gd`:
+- [x] **Commit 2** (GREEN) — `scripts/resources/ai/bt/rs_bt_condition.gd`. Exports typed `condition: I_Condition`.
+- [x] **Commit 3** (RED) — `test_rs_bt_action.gd`:
   - Wraps existing `I_AIAction` (reused unchanged from current tree).
   - First tick calls `action.start()`, subsequent ticks call `action.tick()`, polls `action.is_complete()`.
   - While not complete → RUNNING.
   - On complete → SUCCESS and resets state so next entry calls `start()` again.
   - Uses `U_AITaskStateKeys.ACTION_STARTED` (reused — `u_ai_task_state_keys.gd` is retained after P1.10 legacy deletion, per scope decision) plus a new `BT_ACTION_STATE_BAG` key constant.
-- [ ] **Commit 4** (GREEN) — `rs_bt_action.gd`. Typed `action: I_AIAction` export.
+- [x] **Commit 4** (GREEN) — `scripts/resources/ai/bt/rs_bt_action.gd`. Typed `action: I_AIAction` export.
 
 **P1.3 Verification**:
 - [ ] All 10 existing `RS_AIAction*` scripts run under BT without modification.
-- [ ] Leaf tests green.
+- [x] Leaf tests green.
+
+**P1.3 Completion Notes (2026-04-17)**:
+- Commit 1 (RED) `8c163ae0`: added `tests/unit/ai/bt/test_rs_bt_condition.gd` (failing for expected missing-script reason).
+- Commit 2 (GREEN) `5051a2c4`: implemented `scripts/resources/ai/bt/rs_bt_condition.gd` (score > 0.0 => `SUCCESS`, else `FAILURE`; never `RUNNING`).
+- Commit 3 (RED) `fa7fc071`: added `tests/unit/ai/bt/test_rs_bt_action.gd` plus helper `tests/unit/ai/bt/helpers/test_bt_counting_action.gd` (failing for expected missing-script reason).
+- Commit 4 (GREEN) `aa083186`: implemented `scripts/resources/ai/bt/rs_bt_action.gd` with `ACTION_STARTED` lifecycle, per-node task-state bag (`BT_ACTION_STATE_BAG`), `RUNNING` until completion, then reset-and-`SUCCESS`.
+- Verification commands:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_condition.gd`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_action.gd`
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`
+  - `tools/run_gut_suite.sh` (`4486` passing, `8` pending, `0` failing).
 
 ---
 
