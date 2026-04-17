@@ -3,6 +3,14 @@ extends BaseTest
 const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
 const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
+const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+
+const WOLF_PREDATOR_TAG := StringName("predator")
+const HUNT_LOOP_FEED_EPSILON := 0.05
+const HUNT_LOOP_WARMUP_FRAMES := 60
+const HUNT_LOOP_POLL_INTERVAL_FRAMES := 30
+const HUNT_LOOP_TOTAL_POLL_FRAMES := 900
 
 var _store: M_StateStore
 var _active_scene_container: Node
@@ -124,6 +132,68 @@ func test_scene_manager_loads_ai_forest_and_brains_begin_executing() -> void:
 			continue
 		assert_ne(brain.get_active_goal_id(), StringName(""), "Brain should have an active goal after warm-up.")
 		assert_true(brain.current_task_queue.size() > 0, "Brain should have a non-empty current task queue after warm-up.")
+
+func test_wolves_close_hunt_loop_and_refill_hunger() -> void:
+	var scene_manager: M_SceneManager = await _spawn_scene_manager()
+	scene_manager.transition_to_scene(StringName("ai_forest"), "instant", M_SceneManager.Priority.HIGH)
+	await _await_scene(StringName("ai_forest"), 180)
+
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await wait_physics_frames(HUNT_LOOP_WARMUP_FRAMES)
+
+	assert_eq(_active_scene_container.get_child_count(), 1, "Expected one active gameplay scene instance.")
+	if _active_scene_container.get_child_count() < 1:
+		return
+
+	var scene_root: Node = _active_scene_container.get_child(0)
+	var ecs_manager: I_ECSManager = scene_root.get_node_or_null("Managers/M_ECSManager") as I_ECSManager
+	assert_not_null(ecs_manager, "Expected M_ECSManager in ai_forest scene.")
+	if ecs_manager == null:
+		return
+
+	var wolf_needs: Array[C_NeedsComponent] = _collect_wolf_needs(ecs_manager)
+	assert_false(wolf_needs.is_empty(), "Expected at least one wolf C_NeedsComponent in ai_forest scene.")
+	if wolf_needs.is_empty():
+		return
+
+	var prev_hunger_per_wolf: Dictionary = {}
+	for needs in wolf_needs:
+		prev_hunger_per_wolf[needs.get_instance_id()] = needs.hunger
+
+	var any_wolf_fed: bool = false
+	var elapsed_frames: int = 0
+	while elapsed_frames < HUNT_LOOP_TOTAL_POLL_FRAMES and not any_wolf_fed:
+		await wait_physics_frames(HUNT_LOOP_POLL_INTERVAL_FRAMES)
+		elapsed_frames += HUNT_LOOP_POLL_INTERVAL_FRAMES
+		for needs in _collect_wolf_needs(ecs_manager):
+			var key: int = needs.get_instance_id()
+			var prev: float = float(prev_hunger_per_wolf.get(key, needs.hunger))
+			if needs.hunger > prev + HUNT_LOOP_FEED_EPSILON:
+				any_wolf_fed = true
+				break
+			prev_hunger_per_wolf[key] = needs.hunger
+
+	assert_true(
+		any_wolf_fed,
+		"Expected at least one wolf to feed (hunger to rise above prior tick by %.2f) within %d physics frames; hunt loop is stuck." % [HUNT_LOOP_FEED_EPSILON, HUNT_LOOP_TOTAL_POLL_FRAMES]
+	)
+
+func _collect_wolf_needs(ecs_manager: I_ECSManager) -> Array[C_NeedsComponent]:
+	var result: Array[C_NeedsComponent] = []
+	if ecs_manager == null:
+		return result
+	for needs_variant in ecs_manager.get_components(C_NEEDS_COMPONENT.COMPONENT_TYPE):
+		var needs: C_NeedsComponent = needs_variant as C_NeedsComponent
+		if needs == null or not is_instance_valid(needs):
+			continue
+		var entity_root: Node = U_ECS_UTILS.find_entity_root(needs)
+		var entity_typed: BaseECSEntity = entity_root as BaseECSEntity
+		if entity_typed == null:
+			continue
+		if entity_typed.has_tag(WOLF_PREDATOR_TAG):
+			result.append(needs)
+	return result
 
 func _spawn_scene_manager() -> M_SceneManager:
 	var manager := M_SCENE_MANAGER.new()

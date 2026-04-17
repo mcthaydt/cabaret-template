@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_forest_agent.tscn" id="1_forest_agent"]
 [ext_resource type="Resource" path="res://resources/ai/forest/wolf/cfg_wolf_brain.tres" id="2_wolf_brain"]
 [ext_resource type="Resource" path="res://resources/base_settings/ai_forest/cfg_needs_wolf.tres" id="3_needs_wolf"]
+[ext_resource type="Resource" path="res://resources/base_settings/ai_forest/cfg_movement_forest_wolf.tres" id="4_movement_wolf"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wolf"]
 shading_mode = 0
@@ -13,6 +14,9 @@ albedo_color = Color(0.23921569, 0.25882354, 0.28627452, 1)
 [node name="E_ForestWolf" instance=ExtResource("1_forest_agent")]
 entity_id = &"wolf"
 tags = Array[StringName]([&"predator", &"ai", &"forest"])
+
+[node name="C_MovementComponent" parent="Components"]
+settings = ExtResource("4_movement_wolf")
 
 [node name="C_DetectionComponent" parent="Components"]
 target_tag = &"prey"
