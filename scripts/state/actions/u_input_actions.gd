@@ -10,6 +10,7 @@ const ACTION_UPDATE_LOOK_INPUT := StringName("input/update_look_input")
 const ACTION_UPDATE_CAMERA_CENTER_STATE := StringName("input/update_camera_center_state")
 const ACTION_UPDATE_JUMP_STATE := StringName("input/update_jump_state")
 const ACTION_UPDATE_SPRINT_STATE := StringName("input/update_sprint_state")
+const ACTION_UPDATE_INPUT_BATCH := StringName("input/update_input_batch")
 const ACTION_DEVICE_CHANGED := StringName("input/device_changed")
 const ACTION_GAMEPAD_CONNECTED := StringName("input/gamepad_connected")
 const ACTION_GAMEPAD_DISCONNECTED := StringName("input/gamepad_disconnected")
@@ -52,6 +53,9 @@ static func _static_init() -> void:
 	})
 	U_ActionRegistry.register_action(ACTION_UPDATE_SPRINT_STATE, {
 		"required_fields": ["pressed"]
+	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_INPUT_BATCH, {
+		"required_fields": ["move_vector"]
 	})
 	U_ActionRegistry.register_action(ACTION_DEVICE_CHANGED, {
 		"required_fields": ["device_type", "device_id", "timestamp"]
@@ -152,6 +156,30 @@ static func update_sprint_state(pressed: bool) -> Dictionary:
 		"type": ACTION_UPDATE_SPRINT_STATE,
 		"payload": {
 			"pressed": pressed
+		}
+	}
+
+## Batch all gameplay input into a single dispatch.
+## Reduces 5 separate dispatches to 1, cutting state-tree deep copies by 4 per frame.
+static func update_input_batch(
+	move_vector: Vector2,
+	look_delta: Vector2,
+	look_source: StringName,
+	camera_center_just_pressed: bool,
+	jump_pressed: bool,
+	jump_just_pressed: bool,
+	sprint_pressed: bool
+) -> Dictionary:
+	return {
+		"type": ACTION_UPDATE_INPUT_BATCH,
+		"payload": {
+			"move_vector": move_vector,
+			"look_delta": look_delta,
+			"look_source": look_source,
+			"camera_center_just_pressed": camera_center_just_pressed,
+			"jump_pressed": jump_pressed,
+			"jump_just_pressed": jump_just_pressed,
+			"sprint_pressed": sprint_pressed
 		}
 	}
 

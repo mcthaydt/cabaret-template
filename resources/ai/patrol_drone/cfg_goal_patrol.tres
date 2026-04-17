@@ -1,0 +1,98 @@
+[gd_resource type="Resource" script_class="RS_AIGoal" format=3 uid="uid://cksxvlebw2gmt"]
+
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_1fbfu"]
+[ext_resource type="Script" uid="uid://xhe4388ulpe1" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" uid="uid://cgjrnf8clocda" path="res://scripts/resources/qb/conditions/rs_condition_constant.gd" id="2_condition_constant"]
+[ext_resource type="Script" uid="uid://bb7kg3r8twqau" path="res://scripts/resources/ai/tasks/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" uid="uid://d3jp8qgprpk0t" path="res://scripts/resources/ai/tasks/rs_ai_task.gd" id="4_epd8j"]
+[ext_resource type="Script" uid="uid://ut0hjawm2yq3" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="4_primitive_task"]
+[ext_resource type="Script" uid="uid://bqdnedsa4xgps" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="5_action_move_to"]
+[ext_resource type="Script" uid="uid://cxpr5abl5uj1l" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="6_action_wait"]
+
+[sub_resource type="Resource" id="Condition_patrol_constant"]
+script = ExtResource("2_condition_constant")
+score = 0.5
+
+[sub_resource type="Resource" id="Action_move_waypoint_a"]
+script = ExtResource("5_action_move_to")
+target_node_path = NodePath("../../Waypoints/WaypointA")
+arrival_threshold = 0.8
+
+[sub_resource type="Resource" id="Task_move_waypoint_a"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_move_waypoint_a")
+task_id = &"move_waypoint_a"
+
+[sub_resource type="Resource" id="Action_wait_after_a"]
+script = ExtResource("6_action_wait")
+
+[sub_resource type="Resource" id="Task_wait_after_a"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_wait_after_a")
+task_id = &"wait_after_a"
+
+[sub_resource type="Resource" id="Action_move_waypoint_b"]
+script = ExtResource("5_action_move_to")
+target_node_path = NodePath("../../Waypoints/WaypointB")
+arrival_threshold = 0.8
+
+[sub_resource type="Resource" id="Task_move_waypoint_b"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_move_waypoint_b")
+task_id = &"move_waypoint_b"
+
+[sub_resource type="Resource" id="Action_wait_after_b"]
+script = ExtResource("6_action_wait")
+
+[sub_resource type="Resource" id="Task_wait_after_b"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_wait_after_b")
+task_id = &"wait_after_b"
+
+[sub_resource type="Resource" id="Action_move_waypoint_c"]
+script = ExtResource("5_action_move_to")
+target_node_path = NodePath("../../Waypoints/WaypointC")
+arrival_threshold = 0.8
+
+[sub_resource type="Resource" id="Task_move_waypoint_c"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_move_waypoint_c")
+task_id = &"move_waypoint_c"
+
+[sub_resource type="Resource" id="Action_wait_after_c"]
+script = ExtResource("6_action_wait")
+
+[sub_resource type="Resource" id="Task_wait_after_c"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_wait_after_c")
+task_id = &"wait_after_c"
+
+[sub_resource type="Resource" id="Action_move_waypoint_d"]
+script = ExtResource("5_action_move_to")
+target_node_path = NodePath("../../Waypoints/WaypointD")
+arrival_threshold = 0.8
+
+[sub_resource type="Resource" id="Task_move_waypoint_d"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_move_waypoint_d")
+task_id = &"move_waypoint_d"
+
+[sub_resource type="Resource" id="Action_wait_after_d"]
+script = ExtResource("6_action_wait")
+
+[sub_resource type="Resource" id="Task_wait_after_d"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_wait_after_d")
+task_id = &"wait_after_d"
+
+[sub_resource type="Resource" id="Task_patrol_sequence"]
+script = ExtResource("3_compound_task")
+subtasks = Array[ExtResource("4_epd8j")]([SubResource("Task_move_waypoint_a"), SubResource("Task_wait_after_a"), SubResource("Task_move_waypoint_b"), SubResource("Task_wait_after_b"), SubResource("Task_move_waypoint_c"), SubResource("Task_wait_after_c"), SubResource("Task_move_waypoint_d"), SubResource("Task_wait_after_d")])
+task_id = &"patrol_sequence"
+
+[resource]
+script = ExtResource("1_goal")
+goal_id = &"patrol"
+conditions = Array[ExtResource("1_1fbfu")]([SubResource("Condition_patrol_constant")])
+root_task = SubResource("Task_patrol_sequence")
+priority = 1

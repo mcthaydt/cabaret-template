@@ -10,9 +10,6 @@ const DEFAULTS := {
 	"quality_preset": "high",
 	"film_grain_enabled": false,
 	"film_grain_intensity": 0.1,
-	"crt_enabled": false,
-	"crt_scanline_intensity": 0.3,
-	"crt_curvature": 2.0,
 	"dither_enabled": false,
 	"dither_intensity": 0.5,
 	"dither_pattern": "bayer",
@@ -20,6 +17,7 @@ const DEFAULTS := {
 	"color_blind_mode": "normal",
 	"high_contrast_enabled": false,
 	"color_blind_shader_enabled": false,
+	"mobile_resolution_scale": 0.35,
 }
 
 # Test 1: window_size_preset selector
@@ -81,36 +79,6 @@ func test_get_film_grain_intensity_returns_value_and_defaults() -> void:
 	var missing_field := _make_state()
 	missing_field["display"].erase("film_grain_intensity")
 	assert_almost_eq(U_DisplaySelectors.get_film_grain_intensity(missing_field), DEFAULTS["film_grain_intensity"], 0.0001)
-
-# Test 7: crt_enabled selector
-func test_is_crt_enabled_returns_value_and_defaults() -> void:
-	var state := _make_state()
-	state["display"]["crt_enabled"] = true
-	assert_true(U_DisplaySelectors.is_crt_enabled(state))
-	assert_false(U_DisplaySelectors.is_crt_enabled({}))
-	var missing_field := _make_state()
-	missing_field["display"].erase("crt_enabled")
-	assert_false(U_DisplaySelectors.is_crt_enabled(missing_field))
-
-# Test 8: crt_scanline_intensity selector
-func test_get_crt_scanline_intensity_returns_value_and_defaults() -> void:
-	var state := _make_state()
-	state["display"]["crt_scanline_intensity"] = 4.0
-	assert_almost_eq(U_DisplaySelectors.get_crt_scanline_intensity(state), 4.0, 0.0001)
-	assert_almost_eq(U_DisplaySelectors.get_crt_scanline_intensity({}), DEFAULTS["crt_scanline_intensity"], 0.0001)
-	var missing_field := _make_state()
-	missing_field["display"].erase("crt_scanline_intensity")
-	assert_almost_eq(U_DisplaySelectors.get_crt_scanline_intensity(missing_field), DEFAULTS["crt_scanline_intensity"], 0.0001)
-
-# Test 9: crt_curvature selector
-func test_get_crt_curvature_returns_value_and_defaults() -> void:
-	var state := _make_state()
-	state["display"]["crt_curvature"] = 5.0
-	assert_almost_eq(U_DisplaySelectors.get_crt_curvature(state), 5.0, 0.0001)
-	assert_almost_eq(U_DisplaySelectors.get_crt_curvature({}), DEFAULTS["crt_curvature"], 0.0001)
-	var missing_field := _make_state()
-	missing_field["display"].erase("crt_curvature")
-	assert_almost_eq(U_DisplaySelectors.get_crt_curvature(missing_field), DEFAULTS["crt_curvature"], 0.0001)
 
 # Test 10: dither_enabled selector
 func test_is_dither_enabled_returns_value_and_defaults() -> void:
@@ -181,6 +149,16 @@ func test_is_color_blind_shader_enabled_returns_value_and_defaults() -> void:
 	var missing_field := _make_state()
 	missing_field["display"].erase("color_blind_shader_enabled")
 	assert_false(U_DisplaySelectors.is_color_blind_shader_enabled(missing_field))
+
+# Test 17: mobile_resolution_scale selector
+func test_get_mobile_resolution_scale_returns_value_and_defaults() -> void:
+	var state := _make_state()
+	state["display"]["mobile_resolution_scale"] = 0.6
+	assert_almost_eq(U_DisplaySelectors.get_mobile_resolution_scale(state), 0.6, 0.0001)
+	assert_almost_eq(U_DisplaySelectors.get_mobile_resolution_scale({}), 0.35, 0.0001)
+	var missing_field := _make_state()
+	missing_field["display"].erase("mobile_resolution_scale")
+	assert_almost_eq(U_DisplaySelectors.get_mobile_resolution_scale(missing_field), 0.35, 0.0001)
 
 func _make_state() -> Dictionary:
 	return {

@@ -39,7 +39,10 @@ func before_each() -> void:
 	_store.settings = RS_StateStoreSettings.new()
 	var scene_initial_state := RS_SceneInitialState.new()
 	_store.scene_initial_state = scene_initial_state
-	_store.navigation_initial_state = RS_NavigationInitialState.new()
+	var nav_initial := RS_NavigationInitialState.new()
+	nav_initial.shell = StringName("gameplay")
+	nav_initial.base_scene_id = StringName("")
+	_store.navigation_initial_state = nav_initial
 	_root_scene.add_child(_store)
 	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame

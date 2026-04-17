@@ -245,9 +245,9 @@ All of this code needs to be brought up to the quality bar established by cleanu
 
 ## Phase 11 Results (2026-02-26)
 
-- Created `tests/unit/managers/test_cinema_grade_registry.gd` — 14 tests: known scene lookup (all 5 preloaded scenes), neutral fallback (scene_id="_neutral", default exposure/contrast/saturation), empty scene_id, `to_dictionary()` key validity, re-initialize safety.
-- Created `tests/unit/managers/test_cinema_grade_selectors.gd` — 22 tests: all 13 selector defaults, read-from-state for representative fields, `get_cinema_grade_settings` key filtering, graceful handling of missing/non-dict display slice.
-- Created `tests/integration/display/test_cinema_grade_applier.gd` — 11 tests: CinemaGradeLayer created under PostProcessOverlay, `scene/swapped` loads alleyway grade (filter_mode=6, exposure=-0.18, contrast=1.23 via both state selectors and shader uniforms), unknown scene falls back to neutral (filter_mode=0, exposure=0.0, state still populated).
+- Created `tests/unit/managers/test_color_grading_registry.gd` — 14 tests: known scene lookup (all 5 preloaded scenes), neutral fallback (scene_id="_neutral", default exposure/contrast/saturation), empty scene_id, `to_dictionary()` key validity, re-initialize safety.
+- Created `tests/unit/managers/test_color_grading_selectors.gd` — 22 tests: all 13 selector defaults, read-from-state for representative fields, `get_color_grading_settings` key filtering, graceful handling of missing/non-dict display slice.
+- Created `tests/integration/display/test_color_grading_applier.gd` — 11 tests: CinemaGradeLayer created under PostProcessOverlay, `scene/swapped` loads alleyway grade (filter_mode=6, exposure=-0.18, contrast=1.23 via both state selectors and shader uniforms), unknown scene falls back to neutral (filter_mode=0, exposure=0.0, state still populated).
 - **New pitfall**: GUT treats "Variant inference" warning as a parse error — `var x := helper()` where `helper()` returns `Variant` fails to load. Use `var x: Variant = helper()` instead. Documented in DEV_PITFALLS.md.
 - Implementation commit: `357165a9`.
 - Validation:
@@ -281,8 +281,8 @@ cleanup_v6 is complete. All goals achieved — duck typing removed, interfaces a
 ### 13B — Cinema Grade Reducer Test Coverage
 
 - Added Tests 29–38 to `tests/unit/state/test_display_reducer.gd`:
-  - `ACTION_SET_PARAMETER`: dramatic→mode 1, vivid_cold→mode 6, none→mode 0, unknown→mode 0 fallback, filter_intensity direct store, generic param as `cinema_grade_` key, empty param_name returns null.
-  - `ACTION_RESET_TO_SCENE_DEFAULTS`: cinema_grade_ keys applied, non-cinema_grade keys ignored, empty payload returns null.
+  - `ACTION_SET_PARAMETER`: dramatic→mode 1, vivid_cold→mode 6, none→mode 0, unknown→mode 0 fallback, filter_intensity direct store, generic param as `color_grading_` key, empty param_name returns null.
+  - `ACTION_RESET_TO_SCENE_DEFAULTS`: color_grading_ keys applied, non-color_grading keys ignored, empty payload returns null.
 - State suite: 375/375 passed (+10 from baseline 365).
 
 ### 13C — Broader `String()` → `str()` Audit

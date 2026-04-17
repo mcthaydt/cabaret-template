@@ -3,6 +3,8 @@ class_name U_VCamRuntimeContext
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+const U_NODE_FIND := preload("res://scripts/utils/ecs/u_node_find.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_CHARACTER_STATE_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_character_state_component.gd")
@@ -82,14 +84,14 @@ func resolve_follow_target_grounded_state(
 			return bool(state_grounded.get("is_on_floor", false))
 
 		var character_state: Node = _find_node_with_script(entity_root, C_CHARACTER_STATE_COMPONENT_SCRIPT)
-		if character_state != null and _object_has_property(character_state, "is_grounded"):
+		if character_state != null and U_RuleUtils.object_has_property(character_state, "is_grounded"):
 			var grounded_variant: Variant = character_state.get("is_grounded")
 			if grounded_variant is bool:
 				return grounded_variant as bool
 			if grounded_variant is int:
 				return int(grounded_variant) != 0
 
-	var body: CharacterBody3D = _find_character_body_recursive(follow_target)
+	var body: CharacterBody3D = U_NODE_FIND.find_character_body_recursive(follow_target)
 	if body == null or not is_instance_valid(body):
 		return false
 	return body.is_on_floor()
@@ -125,7 +127,7 @@ func probe_ground_reference_height(follow_target: Node3D, max_distance: float) -
 		if not exclude_rids.has(follow_rid):
 			exclude_rids.append(follow_rid)
 	if exclude_rids.is_empty():
-		var follow_body: CharacterBody3D = _find_character_body_recursive(follow_target)
+		var follow_body: CharacterBody3D = U_NODE_FIND.find_character_body_recursive(follow_target)
 		if follow_body != null and is_instance_valid(follow_body):
 			exclude_rids.append(follow_body.get_rid())
 	query.exclude = exclude_rids
@@ -191,14 +193,14 @@ func write_active_camera_base_fov_from_result(result: Dictionary, camera_state: 
 		return
 	if camera_state == null:
 		return
-	if not _object_has_property(camera_state, "base_fov"):
+	if not U_RuleUtils.object_has_property(camera_state, "base_fov"):
 		return
 	camera_state.set("base_fov", clampf(fov_value, 1.0, 179.0))
 
 func get_camera_state_float(camera_state: Object, property_name: String, fallback: float) -> float:
 	if camera_state == null:
 		return fallback
-	if not _object_has_property(camera_state, property_name):
+	if not U_RuleUtils.object_has_property(camera_state, property_name):
 		return fallback
 	var value: Variant = camera_state.get(property_name)
 	if value is float or value is int:
@@ -208,7 +210,7 @@ func get_camera_state_float(camera_state: Object, property_name: String, fallbac
 func read_camera_state_vector3(camera_state: Object, property_name: String, fallback: Vector3) -> Vector3:
 	if camera_state == null:
 		return fallback
-	if not _object_has_property(camera_state, property_name):
+	if not U_RuleUtils.object_has_property(camera_state, property_name):
 		return fallback
 	var value: Variant = camera_state.get(property_name)
 	if value is Vector3:
@@ -218,7 +220,7 @@ func read_camera_state_vector3(camera_state: Object, property_name: String, fall
 func write_camera_state_vector3(camera_state: Object, property_name: String, value: Vector3) -> void:
 	if camera_state == null:
 		return
-	if not _object_has_property(camera_state, property_name):
+	if not U_RuleUtils.object_has_property(camera_state, property_name):
 		return
 	camera_state.set(property_name, value)
 
@@ -232,27 +234,17 @@ func _resolve_entity_target(entity: Node) -> Node3D:
 		return body_target
 	return null
 
-func _read_gameplay_entity_velocity(entity_id: StringName, store: I_StateStore) -> Dictionary:
+func _read_gameplay_entity_velocity(entity_id: StringName, store: I_StateStore, state_snapshot: Dictionary = {}) -> Dictionary:
 	if entity_id == StringName(""):
 		return {"has_velocity": false, "velocity": Vector3.ZERO}
-	if store == null:
+	if store == null and state_snapshot.is_empty():
 		return {"has_velocity": false, "velocity": Vector3.ZERO}
 
-	var state: Dictionary = store.get_state()
-	var gameplay_variant: Variant = state.get("gameplay", {})
-	if not (gameplay_variant is Dictionary):
-		return {"has_velocity": false, "velocity": Vector3.ZERO}
-	var gameplay := gameplay_variant as Dictionary
+	var state: Dictionary = state_snapshot
+	if state.is_empty() and store != null:
+		state = store.get_state()
 
-	var entities_variant: Variant = gameplay.get("entities", {})
-	if not (entities_variant is Dictionary):
-		return {"has_velocity": false, "velocity": Vector3.ZERO}
-	var entities := entities_variant as Dictionary
-
-	var entity_state_variant: Variant = entities.get(String(entity_id), null)
-	if not (entity_state_variant is Dictionary):
-		return {"has_velocity": false, "velocity": Vector3.ZERO}
-	var entity_state := entity_state_variant as Dictionary
+	var entity_state: Dictionary = U_EntitySelectors.get_entity(state, entity_id)
 	if not entity_state.has("velocity"):
 		return {"has_velocity": false, "velocity": Vector3.ZERO}
 
@@ -287,7 +279,7 @@ func _read_entity_movement_component_velocity(entity: Node) -> Dictionary:
 	}
 
 func _read_entity_character_body_velocity(entity: Node) -> Dictionary:
-	var character_body: CharacterBody3D = _find_character_body_recursive(entity)
+	var character_body: CharacterBody3D = U_NODE_FIND.find_character_body_recursive(entity)
 	if character_body == null or not is_instance_valid(character_body):
 		return {"has_velocity": false, "velocity": Vector3.ZERO}
 	return {
@@ -304,27 +296,17 @@ func _read_character_body_velocity(node: Node) -> Dictionary:
 		"velocity": body.velocity,
 	}
 
-func _read_gameplay_entity_is_on_floor(entity_id: StringName, store: I_StateStore) -> Dictionary:
+func _read_gameplay_entity_is_on_floor(entity_id: StringName, store: I_StateStore, state_snapshot: Dictionary = {}) -> Dictionary:
 	if entity_id == StringName(""):
 		return {"has_value": false, "is_on_floor": false}
-	if store == null:
+	if store == null and state_snapshot.is_empty():
 		return {"has_value": false, "is_on_floor": false}
 
-	var state: Dictionary = store.get_state()
-	var gameplay_variant: Variant = state.get("gameplay", {})
-	if not (gameplay_variant is Dictionary):
-		return {"has_value": false, "is_on_floor": false}
-	var gameplay := gameplay_variant as Dictionary
+	var state: Dictionary = state_snapshot
+	if state.is_empty() and store != null:
+		state = store.get_state()
 
-	var entities_variant: Variant = gameplay.get("entities", {})
-	if not (entities_variant is Dictionary):
-		return {"has_value": false, "is_on_floor": false}
-	var entities := entities_variant as Dictionary
-
-	var entity_state_variant: Variant = entities.get(String(entity_id), null)
-	if not (entity_state_variant is Dictionary):
-		return {"has_value": false, "is_on_floor": false}
-	var entity_state := entity_state_variant as Dictionary
+	var entity_state: Dictionary = U_EntitySelectors.get_entity(state, entity_id)
 	if not entity_state.has("is_on_floor"):
 		return {"has_value": false, "is_on_floor": false}
 
@@ -337,7 +319,7 @@ func _read_gameplay_entity_is_on_floor(entity_id: StringName, store: I_StateStor
 
 func _is_primary_camera_query(query: Object, primary_camera_entity_id: StringName) -> bool:
 	if query.has_method("get_entity_id"):
-		var entity_id: StringName = _variant_to_string_name(query.call("get_entity_id"))
+		var entity_id: StringName = U_RuleUtils.variant_to_string_name(query.call("get_entity_id"))
 		if entity_id == primary_camera_entity_id:
 			return true
 	if query.has_method("get_tags"):
@@ -346,16 +328,6 @@ func _is_primary_camera_query(query: Object, primary_camera_entity_id: StringNam
 			var tags: Array = tags_variant as Array
 			return tags.has(primary_camera_entity_id) or tags.has(String(primary_camera_entity_id))
 	return false
-
-func _variant_to_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value as StringName
-	if value is String:
-		var text: String = value
-		if text.is_empty():
-			return StringName("")
-		return StringName(text)
-	return StringName("")
 
 func _find_node_with_script(root: Node, script: Script) -> Node:
 	if root == null or script == null:
@@ -371,26 +343,3 @@ func _find_node_with_script(root: Node, script: Script) -> Node:
 		if found != null:
 			return found
 	return null
-
-func _find_character_body_recursive(root: Node) -> CharacterBody3D:
-	if root == null:
-		return null
-	if root is CharacterBody3D:
-		return root as CharacterBody3D
-
-	for child_variant in root.get_children():
-		var child := child_variant as Node
-		if child == null:
-			continue
-		var found: CharacterBody3D = _find_character_body_recursive(child)
-		if found != null and is_instance_valid(found):
-			return found
-	return null
-
-func _object_has_property(object_value: Object, property_name: String) -> bool:
-	var properties: Array[Dictionary] = object_value.get_property_list()
-	for property_info in properties:
-		var name_variant: Variant = property_info.get("name", "")
-		if str(name_variant) == property_name:
-			return true
-	return false

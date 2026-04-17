@@ -22,24 +22,23 @@ extends I_SpawnManager
 ## - Discovered via ServiceLocator registration (root.tscn) or manual registration in tests
 
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_SPAWN_ACTIONS := preload("res://scripts/state/actions/u_spawn_actions.gd")
 const U_SPAWN_REGISTRY := preload("res://scripts/scene_management/u_spawn_registry.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_ENTITY_LOOKUP := preload("res://scripts/utils/ecs/u_entity_lookup.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
+const I_ECS_ENTITY := preload("res://scripts/interfaces/i_ecs_entity.gd")
 const SP_SPAWN_POINT := preload("res://scripts/scene_management/sp_spawn_point.gd")
-
-const SPAWN_CONDITION_ALWAYS := 0
-const SPAWN_CONDITION_CHECKPOINT_ONLY := 1
-const SPAWN_CONDITION_DISABLED := 2
+const RS_SPAWN_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_spawn_config.gd")
+const DEFAULT_SPAWN_CONFIG := preload("res://resources/base_settings/gameplay/cfg_spawn_config_default.tres")
 
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
-
-const SPAWN_HOVER_SNAP_MAX_DISTANCE := 0.75
-const SPAWN_GROUND_SNAP_MAX_DISTANCE := 8.0
+@export var spawn_config: Resource = null
 
 ## Internal references
 var _state_store: M_STATE_STORE = null
@@ -53,6 +52,33 @@ func _ready() -> void:
 	# Phase 10B (T133): Warn if M_StateStore missing for fail-fast feedback
 	if _state_store == null:
 		push_warning("M_SpawnManager: M_StateStore dependency not found. Ensure M_StateStore is registered with ServiceLocator")
+
+
+func _resolve_spawn_config_values() -> Dictionary:
+	var defaults := {
+		"ground_snap_max_distance": 8.0,
+		"hover_snap_max_distance": 0.75,
+		"spawn_condition_always": 0,
+		"spawn_condition_checkpoint_only": 1,
+		"spawn_condition_disabled": 2,
+	}
+	var config_variant: Variant = spawn_config
+	if config_variant == null:
+		config_variant = DEFAULT_SPAWN_CONFIG
+	if config_variant == null or not (config_variant is Resource):
+		return defaults
+
+	var config_resource: Resource = config_variant as Resource
+	if config_resource.get_script() != RS_SPAWN_CONFIG_SCRIPT:
+		return defaults
+
+	return {
+		"ground_snap_max_distance": maxf(float(config_resource.get("ground_snap_max_distance")), 0.0),
+		"hover_snap_max_distance": maxf(float(config_resource.get("hover_snap_max_distance")), 0.0),
+		"spawn_condition_always": int(config_resource.get("spawn_condition_always")),
+		"spawn_condition_checkpoint_only": int(config_resource.get("spawn_condition_checkpoint_only")),
+		"spawn_condition_disabled": int(config_resource.get("spawn_condition_disabled")),
+	}
 
 ## Spawn player at specified spawn point (T220)
 ##
@@ -118,55 +144,55 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 	# Find player entity in scene
 	var player: Node3D = _find_player_entity(scene)
 	if player == null:
-		push_error("M_SpawnManager: Player entity not found in scene '%s' for spawn restoration. Expected node name starting with 'E_Player'." % scene_name)
+		push_error("M_SpawnManager: Player entity not found in scene '%s' for spawn restoration. Ensure the player entity has the 'player' tag registered with M_ECSManager, or a node named with 'E_Player' prefix." % scene_name)
 		_clear_target_spawn_point()
 		return false
 
 	var ecs_body: CharacterBody3D = _find_character_body(player)
-	var _old_vel: Vector3 = Vector3.ZERO
-	var _old_is_on_floor: bool = false
-	if ecs_body != null:
-		_old_vel = ecs_body.velocity
-		_old_is_on_floor = ecs_body.is_on_floor()
-	var spawn_state: C_SpawnStateComponent = _ensure_spawn_state_component(player, ecs_body)
+	return _spawn_entity_node_at_point(player, ecs_body, spawn_point, spawn_point_id, true, true)
 
-	# Position player at spawn point
-	player.global_position = spawn_point.global_position
-	player.global_rotation = spawn_point.global_rotation
-	_maybe_face_camera_on_spawn(player, ecs_body, spawn_point)
-	_maybe_snap_player_to_ground(player, ecs_body, spawn_point)
+## Spawn a specific entity by entity_id at a named spawn point.
+##
+## This is a generic counterpart to spawn_player_at_point() used by
+## runtime recovery systems (for example, AI floating recovery). It reuses
+## spawn hardening (velocity reset, one-frame freeze, floating reset).
+func spawn_entity_at_point(scene: Node, entity_id: StringName, spawn_point_id: StringName) -> bool:
+	if scene == null:
+		push_error("M_SpawnManager: Cannot spawn entity - scene is null")
+		return false
 
-	# Zero velocity and freeze physics to prevent bobble on spawn
-	if ecs_body != null:
-		# Zero velocity BEFORE freezing to prevent residual velocity from previous
-		# scene causing bobble when physics resume.
-		ecs_body.velocity = Vector3.ZERO
+	if entity_id.is_empty():
+		push_error("M_SpawnManager: Cannot spawn entity - entity_id is empty")
+		return false
 
-		# Disable physics processing - will be re-enabled by transition completion.
-		# Note: ECS systems can still call move_and_slide(), so systems must also
-		# respect spawn state freeze flag.
-		ecs_body.set_physics_process(false)
+	if spawn_point_id.is_empty():
+		push_error("M_SpawnManager: Cannot spawn entity - spawn_point_id is empty")
+		return false
 
-		if spawn_state != null:
-			var current_frame: int = Engine.get_physics_frames()
-			spawn_state.mark_frozen(-1, current_frame + 1)
+	var scene_name: String = String(scene.name) if scene != null else "unknown"
+	var spawn_candidates: Array = []
+	_find_nodes_by_name(scene, spawn_point_id, spawn_candidates)
+	if spawn_candidates.is_empty():
+		push_error("M_SpawnManager: Spawn point '%s' not found in scene '%s' for entity '%s'." % [spawn_point_id, scene_name, entity_id])
+		return false
 
-	# FIX: Reset floating component stable state to prevent stale ground detection
-	# causing incorrect jump/gravity decisions on first frames after spawn
-	_reset_floating_component_state(player)
-	_snap_player_to_hover_height(player, ecs_body)
+	var spawn_node: Node = spawn_candidates[0]
+	if not (spawn_node is Node3D):
+		push_error("M_SpawnManager: Spawn point '%s' in scene '%s' is not a Node3D (found type: %s). Entity '%s' cannot be positioned." % [
+			spawn_point_id,
+			scene_name,
+			spawn_node.get_class(),
+			entity_id,
+		])
+		return false
 
-	# Publish player_spawned event for VFX systems (Phase 12.4)
-	EVENT_BUS.publish(StringName("player_spawned"), {
-		"position": spawn_point.global_position,
-		"spawn_point_id": spawn_point_id,
-		"player": player
-	})
+	var entity: Node3D = _find_entity_by_id(scene, entity_id)
+	if entity == null:
+		push_error("M_SpawnManager: Entity '%s' not found in scene '%s' for spawn '%s'." % [entity_id, scene_name, spawn_point_id])
+		return false
 
-	# Clear target spawn point from state (one-time use)
-	_clear_target_spawn_point()
-
-	return true
+	var body: CharacterBody3D = _find_character_body(entity)
+	return _spawn_entity_node_at_point(entity, body, spawn_node as Node3D, spawn_point_id, false, false, true)
 
 ## Find spawn point node by name in scene tree (T221)
 ##
@@ -189,16 +215,25 @@ func _find_spawn_point(scene: Node, spawn_point_id: StringName) -> Node3D:
 	# Return first match (cast to Node3D, may be null if not Node3D)
 	return spawn_points[0] as Node3D
 
-## Find player entity in scene (T222)
+## Find player entity in scene (C10: tag-based primary, name-prefix fallback)
 ##
-## Searches for node with name starting with "E_Player" prefix.
+## Lookup order:
+##   1. ECS manager tag index — entity tagged &"player" via M_ECSManager
+##   2. Name-prefix scan — node name starts with "E_Player" (legacy fallback)
 ##
 ## Parameters:
-##   scene: Root node to search from
+##   scene: Root node to search from (used for name-prefix fallback only)
 ##
 ## Returns:
 ##   Node3D player entity if found, null otherwise
 func _find_player_entity(scene: Node) -> Node3D:
+	var ecs_manager: Node = U_ECS_UTILS.get_manager(self)
+	if ecs_manager != null:
+		var tagged: Node = U_ENTITY_LOOKUP.find_entity_by_tag(ecs_manager, StringName("player"))
+		if tagged != null and tagged is Node3D:
+			return tagged as Node3D
+
+	# Fallback: search by "E_Player" name prefix for scenes without tag registration
 	var players: Array = []
 	_find_nodes_by_prefix(scene, "E_Player", players)
 
@@ -206,6 +241,76 @@ func _find_player_entity(scene: Node) -> Node3D:
 		return null
 
 	return players[0] as Node3D
+
+func _find_entity_by_id(scene: Node, entity_id: StringName) -> Node3D:
+	if scene == null or entity_id.is_empty():
+		return null
+
+	var matches: Array = []
+	_find_entities_by_id(scene, entity_id, matches)
+	if matches.is_empty():
+		return null
+	return matches[0] as Node3D
+
+func _find_entities_by_id(node: Node, target_entity_id: StringName, results: Array) -> void:
+	if node == null:
+		return
+
+	var node_entity_id: StringName = StringName("")
+	if node is I_ECSEntity:
+		node_entity_id = (node as I_ECSEntity).get_entity_id()
+	elif String(node.name).begins_with("E_"):
+		node_entity_id = U_ECS_UTILS.get_entity_id(node)
+
+	if node_entity_id == target_entity_id and node is Node3D:
+		results.append(node)
+
+	for child in node.get_children():
+		var child_node := child as Node
+		if child_node == null:
+			continue
+		_find_entities_by_id(child_node, target_entity_id, results)
+
+func _spawn_entity_node_at_point(
+	entity: Node3D,
+	ecs_body: CharacterBody3D,
+	spawn_point: Node3D,
+	spawn_point_id: StringName,
+	clear_target_spawn_point_after: bool,
+	emit_player_spawn_event: bool,
+	auto_unfreeze: bool = false
+) -> bool:
+	if entity == null or spawn_point == null:
+		return false
+
+	var spawn_state: C_SpawnStateComponent = _ensure_spawn_state_component(entity, ecs_body)
+
+	entity.global_position = spawn_point.global_position
+	entity.global_rotation = spawn_point.global_rotation
+	_maybe_face_camera_on_spawn(entity, ecs_body, spawn_point)
+	_maybe_snap_player_to_ground(entity, ecs_body, spawn_point)
+
+	if ecs_body != null:
+		ecs_body.velocity = Vector3.ZERO
+		ecs_body.set_physics_process(false)
+
+		if spawn_state != null:
+			var current_frame: int = Engine.get_physics_frames()
+			var unfreeze_at_frame: int = current_frame + 2 if auto_unfreeze else -1
+			spawn_state.mark_frozen(unfreeze_at_frame, current_frame + 1)
+
+	_reset_floating_component_state(entity)
+	_snap_player_to_hover_height(entity, ecs_body)
+
+	if emit_player_spawn_event:
+		var store := _state_store if _state_store != null else U_ServiceLocator.try_get_service(StringName("state_store")) as M_STATE_STORE
+		if store != null:
+			store.dispatch(U_SPAWN_ACTIONS.player_spawned(spawn_point.global_position, spawn_point_id))
+
+	if clear_target_spawn_point_after:
+		_clear_target_spawn_point()
+
+	return true
 
 ## Initialize scene camera (T223)
 ##
@@ -293,11 +398,10 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 		# Player will be at scene's default position, which is fine for initial load
 		return false
 
-	# Read spawn point from gameplay state
+	# Read spawn point from gameplay state via selectors
 	var state: Dictionary = _state_store.get_state()
-	var gameplay_state: Dictionary = state.get("gameplay", {})
-	var last_checkpoint: StringName = gameplay_state.get("last_checkpoint", StringName(""))
-	var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
+	var last_checkpoint: StringName = U_GAMEPLAY_SELECTORS.get_last_checkpoint(state)
+	var target_spawn: StringName = U_GAMEPLAY_SELECTORS.get_target_spawn_point(state)
 
 	# Determine spawn source and id with priority, consulting spawn metadata:
 	# 1) target_spawn_point (door entry) if allowed by metadata
@@ -346,12 +450,16 @@ func _is_spawn_allowed(spawn_id: StringName, used_last_checkpoint: bool) -> bool
 		# selection should be driven by scene-attached metadata.
 		return false
 
-	var condition: int = int(metadata.get("condition", SPAWN_CONDITION_ALWAYS))
+	var config: Dictionary = _resolve_spawn_config_values()
+	var condition_always: int = int(config.get("spawn_condition_always", 0))
+	var condition_checkpoint_only: int = int(config.get("spawn_condition_checkpoint_only", 1))
+	var condition_disabled: int = int(config.get("spawn_condition_disabled", 2))
+	var condition: int = int(metadata.get("condition", condition_always))
 
-	if condition == SPAWN_CONDITION_DISABLED:
+	if condition == condition_disabled:
 		return false
 
-	if condition == SPAWN_CONDITION_CHECKPOINT_ONLY and not used_last_checkpoint:
+	if condition == condition_checkpoint_only and not used_last_checkpoint:
 		return false
 
 	return true
@@ -536,7 +644,8 @@ func _get_ground_snap_travel_for_body(ecs_body: CharacterBody3D, up_dir: Vector3
 	if ecs_body == null:
 		return Vector3.ZERO
 
-	var motion := -up_dir * SPAWN_GROUND_SNAP_MAX_DISTANCE
+	var max_distance: float = float(_resolve_spawn_config_values().get("ground_snap_max_distance", 8.0))
+	var motion := -up_dir * max_distance
 	var collision := ecs_body.move_and_collide(motion, true)
 	if collision == null:
 		return Vector3.ZERO
@@ -551,8 +660,9 @@ func _get_ground_snap_travel_for_node(player: Node3D, up_dir: Vector3) -> Vector
 	if world == null:
 		return Vector3.ZERO
 
+	var max_distance: float = float(_resolve_spawn_config_values().get("ground_snap_max_distance", 8.0))
 	var query_from: Vector3 = player.global_position + up_dir * 0.1
-	var query_to: Vector3 = query_from - up_dir * SPAWN_GROUND_SNAP_MAX_DISTANCE
+	var query_to: Vector3 = query_from - up_dir * max_distance
 	var query := PhysicsRayQueryParameters3D.create(query_from, query_to)
 	query.collide_with_areas = false
 	query.collide_with_bodies = true
@@ -628,7 +738,10 @@ func _snap_player_to_hover_height(player: Node3D, ecs_body: CharacterBody3D) -> 
 		return
 
 	# Clamp snap to avoid large teleports when ground is far/missing.
-	height_error = clamp(height_error, -SPAWN_HOVER_SNAP_MAX_DISTANCE, SPAWN_HOVER_SNAP_MAX_DISTANCE)
+	var hover_snap_max_distance: float = float(
+		_resolve_spawn_config_values().get("hover_snap_max_distance", 0.75)
+	)
+	height_error = clamp(height_error, -hover_snap_max_distance, hover_snap_max_distance)
 	player.global_position += normal * height_error
 
 	if ecs_body != null:

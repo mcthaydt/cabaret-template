@@ -22,6 +22,7 @@ class ObjectivesStoreStub extends I_STATE_STORE:
 		"objectives": {
 			"statuses": {},
 			"active_set_id": StringName(""),
+			"active_set_ids": [],
 			"event_log": [],
 		},
 		"gameplay": {
@@ -254,13 +255,10 @@ func test_graph_validation_rejects_cycles() -> void:
 	assert_eq(_store.get_state().get("objectives", {}).get("active_set_id"), StringName(""))
 
 func test_victory_completion_publishes_configured_payload() -> void:
-	var captured_payloads: Array[Dictionary] = []
-	var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED,
-		func(event: Dictionary) -> void:
-			var payload_variant: Variant = event.get("payload", {})
-			if payload_variant is Dictionary:
-				captured_payloads.append((payload_variant as Dictionary).duplicate(true))
+	var captured_actions: Array[Dictionary] = []
+	_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type", StringName("")) == GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY_ROUTING:
+			captured_actions.append(action.duplicate(true))
 	)
 
 	var objective_set: Resource = _objective_set(
@@ -278,14 +276,12 @@ func test_victory_completion_publishes_configured_payload() -> void:
 		]
 	)
 	var manager: Variant = await _spawn_manager([objective_set], true)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {"source": "test"})
+	_store.dispatch(GAMEPLAY_ACTIONS.trigger_victory(StringName("final_goal")))
 
 	assert_eq(manager.get_objective_status(StringName("obj_victory")), "completed")
-	assert_eq(captured_payloads.size(), 1, "Expected one objective victory event")
-	if captured_payloads.size() > 0:
-		assert_eq(captured_payloads[0].get("target_scene"), StringName("victory"))
-	if unsubscribe.is_valid():
-		unsubscribe.call()
+	assert_eq(captured_actions.size(), 1, "Expected one trigger_victory_routing action")
+	if captured_actions.size() > 0:
+		assert_eq(captured_actions[0].get("target_scene", StringName("")), StringName("victory"))
 
 func test_discovers_store_from_service_locator_when_not_injected() -> void:
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
@@ -521,8 +517,16 @@ func _objective(
 	objective.objective_id = objective_id
 	objective.dependencies = dependencies.duplicate(true)
 	objective.auto_activate = auto_activate
-	objective.conditions = conditions.duplicate(true)
-	objective.completion_effects = effects.duplicate(true)
+	var typed_conditions: Array[I_Condition] = []
+	for c in conditions:
+		if c is I_Condition:
+			typed_conditions.append(c as I_Condition)
+	objective.conditions = typed_conditions
+	var typed_effects: Array[I_Effect] = []
+	for e in effects:
+		if e is I_Effect:
+			typed_effects.append(e as I_Effect)
+	objective.completion_effects = typed_effects
 	objective.objective_type = objective_type
 	objective.completion_event_payload = completion_event_payload.duplicate(true)
 	return objective
@@ -530,7 +534,11 @@ func _objective(
 func _objective_set(set_id: StringName, objectives: Array[Resource]) -> Resource:
 	var objective_set: Resource = OBJECTIVE_SET.new()
 	objective_set.set_id = set_id
-	objective_set.objectives = objectives.duplicate(true)
+	var typed_objectives: Array[RS_ObjectiveDefinition] = []
+	for o in objectives:
+		if o is RS_ObjectiveDefinition:
+			typed_objectives.append(o as RS_ObjectiveDefinition)
+	objective_set.objectives = typed_objectives
 	return objective_set
 
 func _has_action(action_type: StringName) -> bool:

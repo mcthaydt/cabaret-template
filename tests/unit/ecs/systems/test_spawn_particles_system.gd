@@ -4,11 +4,11 @@ extends GutTest
 
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const S_SPAWN_PARTICLES := preload("res://scripts/ecs/systems/s_spawn_particles_system.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_VFX_INITIAL_STATE := preload("res://scripts/resources/state/rs_vfx_initial_state.gd")
 const U_VFX_ACTIONS := preload("res://scripts/state/actions/u_vfx_actions.gd")
+const U_SPAWN_ACTIONS := preload("res://scripts/state/actions/u_spawn_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _manager: M_ECSManager
@@ -18,7 +18,6 @@ var _store: M_StateStore
 
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
-	U_ECS_EVENT_BUS.reset()
 
 	# Create a current scene so particle effects container can be created
 	var tree := get_tree()
@@ -51,7 +50,6 @@ func after_each() -> void:
 	_system = null
 	_root_scene = null
 	_store = null
-	U_ECS_EVENT_BUS.reset()
 	U_SERVICE_LOCATOR.clear()
 
 func _create_store() -> M_StateStore:
@@ -63,9 +61,9 @@ func _create_store() -> M_StateStore:
 	store.vfx_initial_state = RS_VFX_INITIAL_STATE.new()
 	return store
 
-func test_creates_particles_on_player_spawn_event() -> void:
-	# Publish player_spawned and tick the system
-	U_ECS_EVENT_BUS.publish(StringName("player_spawned"), {"position": Vector3(3, 4, 5), "spawn_point_id": StringName("sp_test")})
+func test_creates_particles_on_player_spawn_action() -> void:
+	# Channel taxonomy: dispatch player_spawned via Redux instead of ECS bus
+	_store.dispatch(U_SPAWN_ACTIONS.player_spawned(Vector3(3, 4, 5), StringName("sp_test")))
 	await wait_physics_frames(1)
 
 	# Effects container should exist under current_scene
@@ -78,13 +76,13 @@ func test_creates_particles_on_player_spawn_event() -> void:
 		if child is GPUParticles3D:
 			has_particles = true
 			break
-	assert_true(has_particles, "Should spawn GPUParticles3D when event received")
+	assert_true(has_particles, "Should spawn GPUParticles3D when action dispatched")
 
 func test_disabled_system_clears_requests_and_spawns_nothing() -> void:
 	# Disable system
 	_system.enabled = false
 
-	U_ECS_EVENT_BUS.publish(StringName("player_spawned"), {"position": Vector3.ZERO})
+	_store.dispatch(U_SPAWN_ACTIONS.player_spawned(Vector3.ZERO, StringName("")))
 	await wait_physics_frames(1)
 
 	# Ensure no effects container was created under current test scene
@@ -94,7 +92,7 @@ func test_disabled_system_clears_requests_and_spawns_nothing() -> void:
 func test_global_particles_disabled_prevents_spawning() -> void:
 	_store.dispatch(U_VFX_ACTIONS.set_particles_enabled(false))
 
-	U_ECS_EVENT_BUS.publish(StringName("player_spawned"), {"position": Vector3(3, 4, 5), "spawn_point_id": StringName("sp_test")})
+	_store.dispatch(U_SPAWN_ACTIONS.player_spawned(Vector3(3, 4, 5), StringName("sp_test")))
 	await wait_physics_frames(1)
 
 	var local_container := _root_scene.get_node_or_null("EffectsContainer")

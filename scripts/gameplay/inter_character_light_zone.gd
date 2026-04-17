@@ -5,7 +5,6 @@ const RS_CHARACTER_LIGHT_ZONE_CONFIG := preload("res://scripts/resources/lightin
 const RS_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
 const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 
 const LIGHTING_SERVICE := StringName("character_lighting_manager")
 const SCENE_SERVICE := StringName("scene_manager")
@@ -200,7 +199,7 @@ func _is_transition_blocked() -> bool:
 func _get_store() -> I_StateStore:
 	if _cached_store != null and is_instance_valid(_cached_store):
 		return _cached_store
-	_cached_store = U_STATE_UTILS.try_get_store(self)
+	_cached_store = U_DependencyResolution.resolve_state_store(_cached_store, null, self)
 	return _cached_store
 
 func _get_scene_manager() -> I_SceneManager:

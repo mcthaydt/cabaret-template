@@ -1,6 +1,8 @@
 extends RefCounted
 class_name U_RuleScorer
 
+const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+
 static func score_rules(rules: Array, context: Dictionary) -> Array[Dictionary]:
 	if rules.is_empty():
 		return []
@@ -11,7 +13,7 @@ static func score_rules(rules: Array, context: Dictionary) -> Array[Dictionary]:
 			continue
 
 		var score: float = _score_rule(rule_variant, context)
-		var threshold: float = _read_float_property(rule_variant, "score_threshold", 0.0)
+		var threshold: float = U_RULE_UTILS.read_float_property(rule_variant, "score_threshold", 0.0)
 		if score <= threshold:
 			continue
 
@@ -23,7 +25,7 @@ static func score_rules(rules: Array, context: Dictionary) -> Array[Dictionary]:
 	return results
 
 static func _score_rule(rule: Variant, context: Dictionary) -> float:
-	var conditions: Array = _read_array_property(rule, "conditions")
+	var conditions: Array = U_RULE_UTILS.read_array_property(rule, "conditions")
 	if conditions.is_empty():
 		return 0.0
 
@@ -47,23 +49,3 @@ static func _evaluate_condition(condition: Variant, context: Dictionary) -> floa
 		return 0.0
 
 	return clampf(float(raw_score), 0.0, 1.0)
-
-static func _read_array_property(object_value: Variant, property_name: String) -> Array:
-	if object_value == null or not (object_value is Object):
-		return []
-
-	var value: Variant = object_value.get(property_name)
-	if value is Array:
-		return value as Array
-
-	return []
-
-static func _read_float_property(object_value: Variant, property_name: String, fallback: float) -> float:
-	if object_value == null or not (object_value is Object):
-		return fallback
-
-	var value: Variant = object_value.get(property_name)
-	if value is float or value is int:
-		return float(value)
-
-	return fallback

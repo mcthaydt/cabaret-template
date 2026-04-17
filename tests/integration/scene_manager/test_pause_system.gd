@@ -29,6 +29,7 @@ var _ui_overlay_stack: CanvasLayer
 
 func before_each() -> void:
 	U_ServiceLocator.clear()
+	U_StateHandoff.clear_all()
 
 	# Create root structure for testing (includes HUDLayer + overlays)
 	var root_ctx := U_SceneTestHelpers.create_root_with_containers(true)
@@ -39,8 +40,16 @@ func before_each() -> void:
 
 	# Create M_StateStore
 	_state_store = M_STATE_STORE.new()
+	# Disable persistence so tests don't load stale state from user://savegame.json
+	# written by prior test files that ran with default (persistence-enabled) settings.
+	var store_settings := RS_StateStoreSettings.new()
+	store_settings.enable_persistence = false
+	_state_store.settings = store_settings
 	_state_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
-	_state_store.navigation_initial_state = RS_NAVIGATION_INITIAL_STATE.new()
+	var nav_initial := RS_NAVIGATION_INITIAL_STATE.new()
+	nav_initial.shell = StringName("gameplay")
+	nav_initial.base_scene_id = StringName("")
+	_state_store.navigation_initial_state = nav_initial
 	_root_node.add_child(_state_store)
 
 	# Create M_CursorManager

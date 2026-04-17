@@ -274,7 +274,7 @@ func test_failed_dispatch_does_not_mutate_inputmap() -> void:
 	var bindings_after_fail: Dictionary = _get_store_custom_bindings()
 	assert_false(bindings_after_fail.has(action_name), "Store should not record bindings for failed dispatch")
 
-	assert_eq(faulty.intercepted_actions.size(), 1, "Faulty store should have intercepted single action")
+	assert_eq(faulty.intercepted_actions.size(), 2, "Faulty store should have intercepted init sync + rebind action")
 
 func _clear_actions(names: Array[String]) -> void:
 	for name in names:

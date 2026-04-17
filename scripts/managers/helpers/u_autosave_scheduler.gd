@@ -23,6 +23,9 @@ class_name U_AutosaveScheduler
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 
 enum Priority {
 	NORMAL = 0,
@@ -145,26 +148,24 @@ func _get_autosave_block_reason(skip_shell_check: bool, skip_pause_check: bool =
 		return "save_manager unavailable"
 
 	var state: Dictionary = _state_store.get_state()
-	var navigation: Dictionary = state.get("navigation", {})
 
 	# Only autosave during gameplay (not in menus)
 	if not skip_shell_check:
-		if navigation.get("shell", "") != "gameplay":
-			return "navigation.shell=%s" % str(navigation.get("shell", ""))
+		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
+		if shell != StringName("gameplay"):
+			return "navigation.shell=%s" % str(shell)
 	# Never autosave while pause/menu overlays are active.
 	if not skip_pause_check:
-		var overlay_stack_variant: Variant = navigation.get("overlay_stack", [])
-		if overlay_stack_variant is Array and not (overlay_stack_variant as Array).is_empty():
+		var overlay_stack: Array = U_NAVIGATION_SELECTORS.get_overlay_stack(state)
+		if not overlay_stack.is_empty():
 			return "navigation.overlay_stack not empty"
 
 	# Check death_in_progress flag
-	var gameplay: Dictionary = state.get("gameplay", {})
-	if gameplay.get("death_in_progress", false):
+	if U_GAMEPLAY_SELECTORS.is_death_in_progress(state):
 		return "gameplay.death_in_progress=true"
 
 	# Check scene transitioning flag
-	var scene: Dictionary = state.get("scene", {})
-	if scene.get("is_transitioning", false):
+	if U_SCENE_SELECTORS.is_transitioning(state):
 		return "scene.is_transitioning=true"
 
 	# Check if save manager is locked

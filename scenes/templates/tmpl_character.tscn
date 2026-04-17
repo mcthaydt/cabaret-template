@@ -1,8 +1,6 @@
 [gd_scene format=3 uid="uid://cyu3l6we2jq23"]
 
 [ext_resource type="Script" uid="uid://c73j55wmytawk" path="res://scripts/ecs/components/c_movement_component.gd" id="1_6m9bm"]
-[ext_resource type="PackedScene" uid="uid://bxvpqns2proau" path="res://scenes/prefabs/prefab_character.tscn" id="1_character"]
-[ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/textures/tex_shadow_blob.png" id="1_m3alx"]
 [ext_resource type="Script" uid="uid://cmo0nwrics1c2" path="res://scripts/ecs/components/c_jump_component.gd" id="2_h3hux"]
 [ext_resource type="Script" uid="uid://bob8u843dmbh7" path="res://scripts/scene_structure/marker_components_group.gd" id="3_8l4b7"]
 [ext_resource type="Script" uid="uid://861c8cv2he7d" path="res://scripts/ecs/components/c_rotate_to_input_component.gd" id="4_4etni"]
@@ -21,14 +19,6 @@
 [ext_resource type="Script" uid="uid://dx3dwbjtpqx2k" path="res://scripts/ecs/components/c_spawn_state_component.gd" id="19_spawn_state"]
 [ext_resource type="Script" uid="uid://dwnrju73j7uj" path="res://scripts/ecs/components/c_character_state_component.gd" id="20_character_state"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_yiwtw"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yiwtw"]
-shading_mode = 2
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
-
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_16kfq"]
 height = 3.0
 
@@ -39,20 +29,6 @@ tags = Array[StringName]([&"character"])
 [node name="Player_Body" type="CharacterBody3D" parent="." unique_id=312897681]
 
 [node name="CameraFollowAnchor" type="Node3D" parent="Player_Body" unique_id=1697731006]
-
-[node name="Body_Mesh" parent="Player_Body" unique_id=1005709362 instance=ExtResource("1_character")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-
-[node name="Direction_Mesh" type="MeshInstance3D" parent="Player_Body/Body_Mesh" unique_id=1099865446]
-transform = Transform3D(0.39169633, 0, 0, 0, 0.15378642, 0, 0, 0, 0.36884245, -0.019476414, 2.6623948, -0.4746977)
-visible = false
-mesh = SubResource("BoxMesh_yiwtw")
-surface_material_override/0 = SubResource("StandardMaterial3D_yiwtw")
-
-[node name="GroundIndicator" type="Sprite3D" parent="Player_Body/Body_Mesh" unique_id=402452645]
-transform = Transform3D(0.2, 0, 0, 0, -8.742278e-09, -0.2, 0, 0.2, -8.742278e-09, 0, -2.3227184, 0)
-modulate = Color(1, 1, 1, 0.49803922)
-texture = ExtResource("1_m3alx")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player_Body" unique_id=1174621009]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

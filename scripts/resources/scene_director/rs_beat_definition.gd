@@ -3,9 +3,6 @@ extends Resource
 class_name RS_BeatDefinition
 
 ## Scene Director beat definition resource.
-##
-## Notes:
-## - preconditions/effects remain Array[Resource] for headless parser stability.
 
 enum WaitMode {
 	INSTANT = 0,
@@ -13,10 +10,21 @@ enum WaitMode {
 	SIGNAL = 2,
 }
 
+var _preconditions: Array[I_Condition] = []
+var _effects: Array[I_Effect] = []
+
 @export var beat_id: StringName = StringName("")
 @export_multiline var description: String = ""
-@export var preconditions: Array[Resource] = []
-@export var effects: Array[Resource] = []
+@export var preconditions: Array[I_Condition] = []:
+	get:
+		return _preconditions
+	set(value):
+		_preconditions = _coerce_conditions(value)
+@export var effects: Array[I_Effect] = []:
+	get:
+		return _effects
+	set(value):
+		_effects = _coerce_effects(value)
 @export var wait_mode: WaitMode = WaitMode.INSTANT
 @export_range(0.0, 600.0, 0.01, "or_greater") var duration: float = 0.0
 @export var wait_event: StringName = StringName("")
@@ -28,3 +36,23 @@ enum WaitMode {
 @export_group("Parallel")
 @export var parallel_beat_ids: Array[StringName] = []
 @export var parallel_join_beat_id: StringName = StringName("")
+
+
+func _coerce_conditions(value: Variant) -> Array[I_Condition]:
+	var coerced: Array[I_Condition] = []
+	if not (value is Array):
+		return coerced
+	for condition_variant in value as Array:
+		if condition_variant is I_Condition:
+			coerced.append(condition_variant as I_Condition)
+	return coerced
+
+
+func _coerce_effects(value: Variant) -> Array[I_Effect]:
+	var coerced: Array[I_Effect] = []
+	if not (value is Array):
+		return coerced
+	for effect_variant in value as Array:
+		if effect_variant is I_Effect:
+			coerced.append(effect_variant as I_Effect)
+	return coerced

@@ -13,6 +13,9 @@ const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.g
 
 var _last_play_time: float = -INF
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func get_event_name() -> StringName:
 	return U_ECS_EVENT_NAMES.EVENT_VICTORY_TRIGGERED
 

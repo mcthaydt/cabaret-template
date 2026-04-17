@@ -23,10 +23,18 @@ static func has_selected_language(state: Dictionary) -> bool:
 	return bool(_get_localization_slice(state).get("has_selected_language", false))
 
 
+## Returns the entire localization slice for hash-based change detection.
+static func get_localization_settings(state: Dictionary) -> Dictionary:
+	return _get_localization_slice(state)
+
 static func _get_localization_slice(state: Dictionary) -> Dictionary:
 	if state == null:
 		return {}
-	var slice: Variant = state.get("localization", {})
+	# If state has a "localization" key, extract the nested slice (full state passed)
+	var slice: Variant = state.get("localization", null)
 	if slice is Dictionary:
 		return slice as Dictionary
+	# If state has "current_locale" key, it's already the localization slice (backward compat)
+	if state.has("current_locale"):
+		return state
 	return {}

@@ -6,7 +6,6 @@ class_name M_DisplayManager
 ## Phase 1B: Scaffolding for store subscription + preview mode.
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
@@ -17,9 +16,16 @@ const U_DISPLAY_QUALITY_APPLIER := preload("res://scripts/managers/helpers/displ
 const U_DISPLAY_POST_PROCESS_APPLIER := preload("res://scripts/managers/helpers/display/u_display_post_process_applier.gd")
 const U_DISPLAY_UI_SCALE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_scale_applier.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
-const U_DISPLAY_CINEMA_GRADE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_cinema_grade_applier.gd")
+const U_DISPLAY_COLOR_GRADING_APPLIER := preload("res://scripts/managers/helpers/display/u_display_color_grading_applier.gd")
+const U_POST_PROCESS_PIPELINE := preload("res://scripts/managers/helpers/display/u_post_process_pipeline.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const U_PERF_MONITOR := preload("res://scripts/utils/debug/u_perf_monitor.gd")
+const U_PERF_SHADER_BYPASS := preload("res://scripts/utils/debug/u_perf_shader_bypass.gd")
+const RS_DISPLAY_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_display_config.gd")
+const DEFAULT_DISPLAY_CONFIG := preload("res://resources/base_settings/display/cfg_display_config_default.tres")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
@@ -27,11 +33,9 @@ const LOCALIZATION_SLICE_NAME := StringName("localization")
 const NAVIGATION_SLICE_NAME := StringName("navigation")
 const SHELL_GAMEPLAY := StringName("gameplay")
 
-const MIN_UI_SCALE := 0.8
-const MAX_UI_SCALE := 1.3
-
 ## Injected dependency (tests)
 @export var state_store: I_StateStore = null
+@export var display_config: Resource = null
 var window_ops: I_WindowOps = null
 
 var _state_store: I_StateStore = null
@@ -48,29 +52,52 @@ var _quality_applier: RefCounted = null  # U_DisplayQualityApplier
 var _post_process_applier: RefCounted = null  # U_DisplayPostProcessApplier
 var _ui_scale_applier: RefCounted = null  # U_DisplayUIScaleApplier
 var _ui_theme_applier: RefCounted = null  # U_DisplayUIThemeApplier
-var _cinema_grade_applier: RefCounted = null  # U_DisplayCinemaGradeApplier
+var _color_grading_applier: RefCounted = null  # U_DisplayColorGradingApplier
+var _pipeline: RefCounted = null  # U_PostProcessPipeline
 
 # Cached values for inspection/tests (Phase 1B)
 var _last_applied_settings: Dictionary = {}
 var _apply_count: int = 0
+var _perf_probe: U_PerfProbe = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	U_SERVICE_LOCATOR.register(SERVICE_NAME, self)
 	_theme_debug_log("ready: service registered")
+	_apply_mobile_overrides()
 	_ensure_appliers()
+
+	# Performance monitoring (mobile diagnostics)
+	var _is_mobile_perf := U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	_perf_probe = U_PerfProbe.create("FilmGrain", _is_mobile_perf)
+	var perf_monitor := U_PERF_MONITOR.new()
+	perf_monitor.name = "PerfMonitor"
+	add_child(perf_monitor)
+	var shader_bypass := U_PERF_SHADER_BYPASS.new()
+	shader_bypass.name = "PerfShaderBypass"
+	add_child(shader_bypass)
 
 	await _initialize_store_async()
 
 func _exit_tree() -> void:
-	if _cinema_grade_applier != null:
-		_cinema_grade_applier.cleanup()
+	if _pipeline != null:
+		(_pipeline as U_PostProcessPipeline).clear()
+	if _color_grading_applier != null:
+		_color_grading_applier.cleanup()
 	if _ui_theme_applier != null:
 		_ui_theme_applier.clear_active_palette()
 	if _state_store != null and _state_store.has_signal("slice_updated"):
 		if _state_store.slice_updated.is_connected(_on_slice_updated):
 			_state_store.slice_updated.disconnect(_on_slice_updated)
 	_state_store = null
+
+## Apply mobile-specific rendering overrides that don't depend on state store.
+func _apply_mobile_overrides() -> void:
+	if not U_MOBILE_PLATFORM_DETECTOR.is_mobile():
+		return
+	# Cap FPS at 30 on mobile to prevent wasted GPU work on frames
+	# the user can't perceive and to reduce thermal throttling
+	Engine.max_fps = 30
 
 func _initialize_store_async() -> void:
 	_theme_debug_log("initialize_store_async: awaiting store")
@@ -85,9 +112,10 @@ func _initialize_store_async() -> void:
 	if _state_store.has_signal("slice_updated"):
 		_state_store.slice_updated.connect(_on_slice_updated)
 
+
 	_ensure_appliers()
-	if _cinema_grade_applier != null:
-		_cinema_grade_applier.initialize(self, _state_store)
+	if _color_grading_applier != null:
+		_color_grading_applier.initialize(self, _state_store)
 
 	var state := _state_store.get_state()
 	_apply_display_settings(state)
@@ -96,9 +124,11 @@ func _initialize_store_async() -> void:
 	_update_overlay_visibility()
 
 func _process(___delta: float) -> void:
-	if _post_process_applier == null:
+	if _pipeline == null:
 		return
-	_post_process_applier.process_film_grain_time()
+	_perf_probe.start()
+	(_pipeline as U_PostProcessPipeline).update_per_frame()
+	_perf_probe.stop()
 
 func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 	var tree := get_tree()
@@ -107,7 +137,7 @@ func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 
 	var frames_waited := 0
 	while frames_waited <= max_frames:
-		var store := U_STATE_UTILS.try_get_store(self)
+		var store := U_DependencyResolution.resolve_state_store(null, null, self)
 		if store != null:
 			if store.is_ready():
 				return store
@@ -146,7 +176,6 @@ func _on_slice_updated(slice_name: StringName, ___slice_data: Dictionary) -> voi
 	if slice_name == NAVIGATION_SLICE_NAME:
 		_update_overlay_visibility()
 
-## Override: I_DisplayManager.set_display_settings_preview
 func set_display_settings_preview(settings: Dictionary) -> void:
 	_preview_settings = settings.duplicate(true)
 	_display_settings_preview_active = true
@@ -184,18 +213,15 @@ func _apply_display_settings(state: Dictionary) -> void:
 		_last_window_hash = window_hash
 
 	_apply_quality_settings(effective_settings)
+	_apply_mobile_resolution_scale(state)
 	_apply_post_process_settings(effective_settings)
-	_apply_cinema_grade_settings(effective_settings)
+	_apply_color_grading_settings(effective_settings)
 	_apply_ui_scale_settings(effective_settings)
 	_apply_accessibility_settings(effective_settings)
+	_sync_pipeline_visibility(effective_settings, state)
 
 func _build_effective_settings(state: Dictionary) -> Dictionary:
-	var settings: Dictionary = {}
-	if state != null:
-		var slice: Variant = state.get(DISPLAY_SLICE_NAME, {})
-		if slice is Dictionary:
-			settings = (slice as Dictionary).duplicate(true)
-
+	var settings: Dictionary = U_DISPLAY_SELECTORS.get_display_settings(state).duplicate(true)
 	if _display_settings_preview_active:
 		for key in _preview_settings.keys():
 			settings[key] = _preview_settings[key]
@@ -220,6 +246,27 @@ func _apply_quality_settings(display_settings: Dictionary) -> void:
 	if _quality_applier == null:
 		return
 	_quality_applier.apply_settings(display_settings)
+
+func _apply_mobile_resolution_scale(state: Dictionary) -> void:
+	if not U_MOBILE_PLATFORM_DETECTOR.is_mobile():
+		return
+	var config: Dictionary = _resolve_display_config_values()
+	var scale := U_DISPLAY_SELECTORS.get_mobile_resolution_scale(state)
+	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(
+		clampf(scale, float(config.get("min_mobile_resolution_scale", 0.35)), 1.0)
+	)
+	_request_mobile_scale_refresh()
+
+func _request_mobile_scale_refresh() -> void:
+	var game_viewport_variant: Variant = U_SERVICE_LOCATOR.try_get_service(StringName("game_viewport"))
+	if not (game_viewport_variant is Node):
+		return
+	var game_viewport: Node = game_viewport_variant as Node
+	var container: Node = game_viewport.get_parent()
+	if container == null:
+		return
+	if container.has_method("request_scale_refresh"):
+		container.call("request_scale_refresh")
 
 func _apply_ui_scale_settings(display_settings: Dictionary) -> void:
 	_ensure_appliers()
@@ -255,13 +302,12 @@ func _apply_post_process_settings(display_settings: Dictionary) -> void:
 	if _post_process_applier == null:
 		return
 	_post_process_applier.apply_settings(display_settings)
-	_update_overlay_visibility()
 
-func _apply_cinema_grade_settings(display_settings: Dictionary) -> void:
+func _apply_color_grading_settings(display_settings: Dictionary) -> void:
 	_ensure_appliers()
-	if _cinema_grade_applier == null:
+	if _color_grading_applier == null:
 		return
-	_cinema_grade_applier.apply_settings(display_settings)
+	_color_grading_applier.apply_settings(display_settings)
 
 func set_ui_scale(scale: float) -> void:
 	_ensure_appliers()
@@ -299,18 +345,12 @@ func apply_quality_preset(preset: String) -> void:
 func _get_display_hash(state: Dictionary) -> int:
 	if state == null:
 		return 0
-	var slice: Variant = state.get(DISPLAY_SLICE_NAME, {})
-	if slice is Dictionary:
-		return (slice as Dictionary).hash()
-	return 0
+	return U_DISPLAY_SELECTORS.get_display_settings(state).hash()
 
 func _get_localization_hash(state: Dictionary) -> int:
 	if state == null:
 		return 0
-	var slice: Variant = state.get(LOCALIZATION_SLICE_NAME, {})
-	if slice is Dictionary:
-		return (slice as Dictionary).hash()
-	return 0
+	return U_LOCALIZATION_SELECTORS.get_localization_settings(state).hash()
 
 func _get_window_hash(display_settings: Dictionary) -> int:
 	if display_settings == null:
@@ -335,6 +375,8 @@ func _is_display_server_available() -> bool:
 	return _window_applier.is_display_server_available()
 
 func _ensure_appliers() -> void:
+	if _pipeline == null:
+		_pipeline = U_POST_PROCESS_PIPELINE.new()
 	if _window_applier == null:
 		_window_applier = U_DISPLAY_WINDOW_APPLIER.new()
 		_window_applier.initialize(self)
@@ -344,13 +386,48 @@ func _ensure_appliers() -> void:
 	if _post_process_applier == null:
 		_post_process_applier = U_DISPLAY_POST_PROCESS_APPLIER.new()
 		_post_process_applier.initialize(self)
+		_post_process_applier.set_pipeline(_pipeline as U_PostProcessPipeline)
 	if _ui_scale_applier == null:
+		var config: Dictionary = _resolve_display_config_values()
 		_ui_scale_applier = U_DISPLAY_UI_SCALE_APPLIER.new()
-		_ui_scale_applier.initialize(MIN_UI_SCALE, MAX_UI_SCALE)
+		_ui_scale_applier.initialize(
+			float(config.get("min_ui_scale", 0.8)),
+			float(config.get("max_ui_scale", 1.3))
+		)
 	if _ui_theme_applier == null:
 		_ui_theme_applier = U_DISPLAY_UI_THEME_APPLIER.new()
-	if _cinema_grade_applier == null:
-		_cinema_grade_applier = U_DISPLAY_CINEMA_GRADE_APPLIER.new()
+	if _color_grading_applier == null:
+		_color_grading_applier = U_DISPLAY_COLOR_GRADING_APPLIER.new()
+		_color_grading_applier.set_pipeline(_pipeline as U_PostProcessPipeline)
+
+
+func _resolve_display_config_values() -> Dictionary:
+	var defaults := {
+		"min_ui_scale": 0.8,
+		"max_ui_scale": 1.3,
+		"min_mobile_resolution_scale": 0.35,
+	}
+	var config_variant: Variant = display_config
+	if config_variant == null:
+		config_variant = DEFAULT_DISPLAY_CONFIG
+	if config_variant == null or not (config_variant is Resource):
+		return defaults
+
+	var config_resource: Resource = config_variant as Resource
+	if config_resource.get_script() != RS_DISPLAY_CONFIG_SCRIPT:
+		return defaults
+
+	var min_ui_scale: float = maxf(float(config_resource.get("min_ui_scale")), 0.1)
+	var max_ui_scale: float = maxf(float(config_resource.get("max_ui_scale")), min_ui_scale)
+	return {
+		"min_ui_scale": min_ui_scale,
+		"max_ui_scale": max_ui_scale,
+		"min_mobile_resolution_scale": clampf(
+			float(config_resource.get("min_mobile_resolution_scale")),
+			0.1,
+			1.0
+		),
+	}
 
 func register_ui_scale_root(node: Node) -> void:
 	_ensure_appliers()
@@ -396,14 +473,32 @@ func _update_overlay_visibility() -> void:
 	_ensure_appliers()
 
 	var state := _state_store.get_state()
-	var navigation_state: Dictionary = state.get("navigation", {})
-	var shell := U_NAVIGATION_SELECTORS.get_shell(navigation_state)
+	var shell := U_NAVIGATION_SELECTORS.get_shell(state)
 	var should_show := shell == SHELL_GAMEPLAY
 
 	if _post_process_applier != null:
 		_post_process_applier.update_overlay_visibility(should_show)
-	if _cinema_grade_applier != null:
-		_cinema_grade_applier.update_visibility(should_show)
+
+	var effective_settings := _build_effective_settings(state)
+	_sync_pipeline_visibility(effective_settings, state)
+
+func _sync_pipeline_visibility(display_settings: Dictionary, state: Dictionary) -> void:
+	if _pipeline == null:
+		return
+	var state_wrap := {"display": display_settings}
+	var pp_enabled := U_DISPLAY_SELECTORS.is_post_processing_enabled(state_wrap)
+	var fg_enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state_wrap)
+	var dither_enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state_wrap)
+	# grain_dither: visibility driven by effect settings only; the GrainDitherLayer
+	# CanvasLayer is hidden by update_overlay_visibility when not in gameplay shell,
+	# so no shell check is needed at the ColorRect level.
+	# color_grading: the ColorGradingLayer is NOT hidden by update_overlay_visibility
+	# (it is excluded), so the shell check lives here.
+	var shell := U_NAVIGATION_SELECTORS.get_shell(state)
+	(_pipeline as U_PostProcessPipeline).apply_settings({
+		"grain_dither_enabled": pp_enabled and (fg_enabled or dither_enabled),
+		"color_grading_enabled": shell == SHELL_GAMEPLAY,
+	})
 
 func _get_palette_id_text(palette: Resource) -> String:
 	if palette == null:

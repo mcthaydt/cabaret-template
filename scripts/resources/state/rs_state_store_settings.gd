@@ -19,6 +19,9 @@ class_name RS_StateStoreSettings
 @export var auto_save_interval: float = 60.0
 @export var save_path_override: String = ""
 
+@export_group("Validation")
+@export var strict_slice_dependencies: bool = true
+
 @export_group("Debug")
 @export var enable_debug_logging: bool = OS.is_debug_build()
 @export var enable_debug_overlay: bool = OS.is_debug_build()
@@ -35,4 +38,5 @@ func to_dictionary() -> Dictionary:
 		"save_path_override": save_path_override,
 		"enable_debug_logging": enable_debug_logging,
 		"enable_debug_overlay": enable_debug_overlay,
+		"strict_slice_dependencies": strict_slice_dependencies,
 	}

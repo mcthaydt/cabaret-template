@@ -2,6 +2,10 @@ extends RefCounted
 class_name U_RoomFadeMaterialApplier
 
 const SH_ROOM_FADE := preload("res://assets/shaders/sh_room_fade.gdshader")
+const SH_ROOM_FADE_DITHERED := preload("res://assets/shaders/sh_room_fade_dithered.gdshader")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+
+const USE_MOBILE_DITHERED_FADE := true
 
 const PARAM_FADE_ALPHA := "fade_alpha"
 const PARAM_ALBEDO_TEXTURE := "albedo_texture"
@@ -11,6 +15,25 @@ const TARGET_TYPE_CSG := "csg"
 
 var _material_cache: Dictionary = {}
 var _shader: Shader = SH_ROOM_FADE
+var _is_mobile: bool = false
+
+func _init() -> void:
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	if _is_mobile and USE_MOBILE_DITHERED_FADE:
+		_shader = SH_ROOM_FADE_DITHERED
+
+func are_all_targets_applied(targets: Array) -> bool:
+	if targets.is_empty():
+		return true
+	for target_variant in targets:
+		if not (target_variant is Node3D):
+			return false
+		var target: Node3D = target_variant as Node3D
+		if target == null or not is_instance_valid(target):
+			return false
+		if not _material_cache.has(target.get_instance_id()):
+			return false
+	return true
 
 func is_fade_applied(target: Node3D) -> bool:
 	if target == null or not is_instance_valid(target):
@@ -18,7 +41,6 @@ func is_fade_applied(target: Node3D) -> bool:
 	return _material_cache.has(target.get_instance_id())
 
 func apply_fade_material(targets: Array) -> void:
-	_prune_invalid_cache_entries()
 	for target_variant in targets:
 		if target_variant is MeshInstance3D:
 			_apply_mesh_fade_material(target_variant as MeshInstance3D)
@@ -36,6 +58,15 @@ func update_fade_alpha(targets: Array, alpha: float) -> void:
 		if shader_material == null:
 			continue
 		shader_material.set_shader_parameter(PARAM_FADE_ALPHA, resolved_alpha)
+
+func update_single_fade_alpha(target: Node3D, alpha: float) -> void:
+	var target_id: int = _resolve_target_id(target)
+	if target_id == -1:
+		return
+	var shader_material := _get_cached_shader_material(target_id)
+	if shader_material == null:
+		return
+	shader_material.set_shader_parameter(PARAM_FADE_ALPHA, clampf(alpha, 0.0, 1.0))
 
 func restore_original_materials(targets: Array) -> void:
 	for target_variant in targets:

@@ -17,6 +17,9 @@ const SYSTEM_TYPE := StringName("S_SceneTriggerSystem")
 var _actions_validated: bool = false
 var _actions_valid: bool = true
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.POST_PHYSICS
+
 func _validate_interact_action() -> void:
 	if _actions_validated:
 		return

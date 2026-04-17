@@ -21,7 +21,7 @@ Before starting Phase 0, verify:
   - `scripts/resources/state/rs_vfx_initial_state.gd` (existing vfx initial state pattern)
   - `scripts/managers/m_camera_manager.gd` (shake-parent hierarchy, transition blends)
   - `scripts/ui/hud/ui_mobile_controls.gd` (existing touch control flow)
-  - `scripts/utils/display/u_cinema_grade_preview.gd` (editor preview pattern)
+  - `scripts/utils/display/u_color_grading_preview.gd` (editor preview pattern)
   - `tests/mocks/mock_camera_manager.gd` (mock pattern for camera manager)
   - Completion note (2026-03-10): Existing input/camera/settings patterns were reviewed and reused for Phase 0A/0A2.
 

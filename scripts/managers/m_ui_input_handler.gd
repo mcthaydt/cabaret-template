@@ -2,6 +2,10 @@
 extends I_UIInputHandler
 class_name M_UIInputHandler
 
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+
 ## Thin UI input handler for context-based navigation routing
 ##
 ## Listens to ui_* actions and dispatches navigation actions based on current
@@ -42,11 +46,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## Handle ui_pause input (Start button - opens pause menu)
 func _handle_ui_pause() -> void:
-	var state: Dictionary = _store.get_state()
-	var nav_state: Dictionary = state.get("navigation", {})
+	if _is_pause_suppressed_for_current_frame():
+		return
 
-	var shell: StringName = U_NavigationSelectors.get_shell(nav_state)
-	var overlay_stack: Array = U_NavigationSelectors.get_overlay_stack(nav_state)
+	var state: Dictionary = _store.get_state()
+
+	var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
+	var overlay_stack: Array = U_NAVIGATION_SELECTORS.get_overlay_stack(state)
 
 	# ui_pause only works in gameplay shell
 	if shell == U_NavigationReducer.SHELL_GAMEPLAY:
@@ -55,15 +61,20 @@ func _handle_ui_pause() -> void:
 			_store.dispatch(U_NavigationActions.open_pause())
 		# If overlays already open, do nothing (ui_cancel handles closing them)
 
+func _is_pause_suppressed_for_current_frame() -> bool:
+	var scene_manager := U_SERVICE_LOCATOR.try_get_service(StringName("scene_manager")) as I_SCENE_MANAGER
+	if scene_manager == null:
+		return false
+	return scene_manager.is_pause_suppressed_for_current_frame()
+
 ## Handle ui_cancel input (B button - back/cancel in menus only)
 func _handle_ui_cancel() -> void:
 	var state: Dictionary = _store.get_state()
-	var nav_state: Dictionary = state.get("navigation", {})
 
-	var shell: StringName = U_NavigationSelectors.get_shell(nav_state)
-	var overlay_stack: Array = U_NavigationSelectors.get_overlay_stack(nav_state)
-	var active_panel: StringName = U_NavigationSelectors.get_active_menu_panel(nav_state)
-	var base_scene_id: StringName = U_NavigationSelectors.get_base_scene_id(nav_state)
+	var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
+	var overlay_stack: Array = U_NAVIGATION_SELECTORS.get_overlay_stack(state)
+	var active_panel: StringName = U_NAVIGATION_SELECTORS.get_active_menu_panel(state)
+	var base_scene_id: StringName = U_NAVIGATION_SELECTORS.get_base_scene_id(state)
 
 	# Context matrix per flows-and-input.md section 3.2
 	match shell:

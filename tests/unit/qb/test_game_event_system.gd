@@ -7,8 +7,14 @@ const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
 const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
 const CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
+const CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
+const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
 const EFFECT_DISPATCH_ACTION := preload("res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd")
 const EFFECT_PUBLISH_EVENT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
+
+const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+
 const C_CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 
@@ -125,6 +131,42 @@ func test_designer_added_event_rules_are_subscribed_and_evaluated() -> void:
 		return
 	assert_eq(actions[0].get("type", StringName()), StringName("designer/event_rule_fired"))
 
+func test_nested_event_name_condition_inside_composite_is_subscribed_and_evaluated() -> void:
+	var event_condition := CONDITION_EVENT_NAME.new()
+	event_condition.expected_event_name = EVENT_CUSTOM_RULE_TRIGGER
+
+	var literal := CONDITION_CONSTANT.new()
+	literal.score = 1.0
+
+	var composite := CONDITION_COMPOSITE.new()
+	composite.mode = CONDITION_COMPOSITE.CompositeMode.ANY
+	composite.children.clear()
+	composite.children.append(literal as I_Condition)
+	composite.children.append(event_condition as I_Condition)
+
+	var effect := EFFECT_DISPATCH_ACTION.new()
+	effect.action_type = StringName("designer/composite_event_rule_fired")
+
+	var rule := RULE_RESOURCE.new()
+	rule.rule_id = StringName("designer_event_rule_composite")
+	rule.trigger_mode = "event"
+	rule.conditions.clear()
+	rule.conditions.append(composite as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
+
+	var fixture: Dictionary = await _create_fixture([rule])
+	var store: MockStateStore = fixture["store"] as MockStateStore
+
+	U_ECSEventBus.publish(EVENT_CUSTOM_RULE_TRIGGER, {"entity_id": StringName("player")})
+	await _pump()
+
+	var actions: Array[Dictionary] = store.get_dispatched_actions()
+	assert_eq(actions.size(), 1)
+	if actions.is_empty():
+		return
+	assert_eq(actions[0].get("type", StringName()), StringName("designer/composite_event_rule_fired"))
+
 func test_event_subscription_is_cleaned_up_on_exit_tree() -> void:
 	var custom_rule: RS_Rule = _make_event_dispatch_rule(
 		StringName("cleanup_rule"),
@@ -191,9 +233,9 @@ func _create_fixture(designer_rules: Array = []) -> Dictionary:
 	system.ecs_manager = ecs_manager
 	add_child(system)
 
-	var typed_rules: Array[Resource] = []
+	var typed_rules: Array[RS_Rule] = []
 	for rule_variant in designer_rules:
-		if rule_variant != null and rule_variant is Resource:
+		if rule_variant is RS_Rule:
 			typed_rules.append(rule_variant)
 	system.rules = typed_rules
 	system.configure(ecs_manager)
@@ -215,8 +257,10 @@ func _make_event_dispatch_rule(rule_id: StringName, trigger_event: StringName, a
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "event"
-	rule.conditions = [event_condition]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(event_condition as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule
 
 func _make_event_publish_rule(
@@ -236,8 +280,10 @@ func _make_event_publish_rule(
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "event"
-	rule.conditions = [event_condition]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(event_condition as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule
 
 func _make_tick_dispatch_rule(
@@ -257,8 +303,10 @@ func _make_tick_dispatch_rule(
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "tick"
-	rule.conditions = [condition]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(condition as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule
 
 func _find_events_by_name(history: Array, event_name: StringName) -> Array:

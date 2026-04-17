@@ -10,6 +10,9 @@ const U_PAUSE_SYSTEM := preload("res://scripts/managers/helpers/time/u_pause_sys
 const U_TIMESCALE_CONTROLLER := preload("res://scripts/managers/helpers/time/u_timescale_controller.gd")
 const U_WORLD_CLOCK := preload("res://scripts/managers/helpers/time/u_world_clock.gd")
 const U_TIME_ACTIONS := preload("res://scripts/state/actions/u_time_actions.gd")
+const U_TIME_SELECTORS := preload("res://scripts/state/selectors/u_time_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const TIME_SLICE_NAME := StringName("time")
 
@@ -48,11 +51,10 @@ func _initialize() -> void:
 	_world_clock.on_hour_changed = Callable(self, "_on_world_hour_changed")
 
 	_store.slice_updated.connect(_on_slice_updated)
-	_hydrate_from_time_slice(_store.get_slice(TIME_SLICE_NAME))
+	_hydrate_from_time_slice(_store.get_state())
 
 	var full_state: Dictionary = _store.get_state()
-	var scene_state: Dictionary = full_state.get("scene", {})
-	var scene_stack: Array = scene_state.get("scene_stack", [])
+	var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(full_state)
 	var ui_overlay_count: int = 0
 	if _ui_overlay_stack != null:
 		ui_overlay_count = _ui_overlay_stack.get_child_count()
@@ -60,7 +62,7 @@ func _initialize() -> void:
 	_pause_system.derive_pause_from_overlay_state(total_overlay_count)
 
 	_is_paused = _pause_system.compute_is_paused()
-	_current_scene_id = scene_state.get("current_scene_id", StringName(""))
+	_current_scene_id = U_SCENE_SELECTORS.get_current_scene_id(full_state)
 	_current_scene_type = _get_scene_type(_current_scene_id)
 
 	_apply_pause_and_cursor_state()
@@ -86,8 +88,8 @@ func _check_and_resync_pause_state() -> void:
 
 	var scene_overlay_count: int = 0
 	if _store != null:
-		var scene_state: Dictionary = _store.get_slice(StringName("scene"))
-		var scene_stack: Array = scene_state.get("scene_stack", [])
+		var state: Dictionary = _store.get_state()
+		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(state)
 		scene_overlay_count = scene_stack.size()
 
 	var total_overlay_count: int = maxi(current_ui_count, scene_overlay_count)
@@ -109,7 +111,8 @@ func _check_and_resync_pause_state() -> void:
 
 func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 	if slice_name == TIME_SLICE_NAME:
-		_hydrate_from_time_slice(slice_state)
+		if _store != null:
+			_hydrate_from_time_slice(_store.get_state())
 		return
 
 	if slice_name != StringName("scene"):
@@ -118,7 +121,8 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 	var state_changed: bool = false
 	var pause_changed: bool = false
 
-	var scene_stack: Array = slice_state.get("scene_stack", [])
+	var state: Dictionary = _store.get_state()
+	var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(state)
 	var ui_overlay_count: int = 0
 	if _ui_overlay_stack != null:
 		ui_overlay_count = _ui_overlay_stack.get_child_count()
@@ -134,7 +138,7 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 	if get_tree().paused != _is_paused:
 		state_changed = true
 
-	var new_scene_id: StringName = slice_state.get("current_scene_id", StringName(""))
+	var new_scene_id: StringName = U_SCENE_SELECTORS.get_current_scene_id(state)
 	if new_scene_id != _current_scene_id:
 		_current_scene_id = new_scene_id
 		_current_scene_type = _get_scene_type(_current_scene_id)
@@ -236,17 +240,17 @@ func _dispatch_world_time_snapshot() -> void:
 		int(time_data.get("day_count", 1)),
 	))
 
-func _hydrate_from_time_slice(slice_state: Dictionary) -> void:
-	if slice_state.is_empty():
+func _hydrate_from_time_slice(state: Dictionary) -> void:
+	if state.is_empty():
 		return
 	if _is_hydrating_time_slice:
 		return
 
 	_is_hydrating_time_slice = true
-	_timescale_controller.set_timescale(float(slice_state.get("timescale", 1.0)))
+	_timescale_controller.set_timescale(U_TIME_SELECTORS.get_timescale(state))
 	_world_clock.set_state(
-		float(slice_state.get("world_total_minutes", 480.0)),
-		int(slice_state.get("world_day_count", 1)),
-		float(slice_state.get("world_time_speed", 1.0))
+		U_TIME_SELECTORS.get_world_total_minutes(state),
+		U_TIME_SELECTORS.get_world_day_count(state),
+		U_TIME_SELECTORS.get_world_time_speed(state)
 	)
 	_is_hydrating_time_slice = false

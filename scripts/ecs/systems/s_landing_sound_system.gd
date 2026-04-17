@@ -13,6 +13,9 @@ const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_landing_sound_set
 
 var _last_play_time: float = -INF
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func get_event_name() -> StringName:
 	return StringName("entity_landed")
 

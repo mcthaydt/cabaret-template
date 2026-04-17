@@ -192,20 +192,7 @@ func reconcile_pending_overlays(_manager: Node, overlay_helper: U_OVERLAY_STACK_
 ## Returns:
 ##   Array of scene identifiers
 static func map_overlay_ids_to_scene_ids(overlay_ids: Array[StringName]) -> Array[StringName]:
-	var mapped: Array[StringName] = []
-	for overlay_id in overlay_ids:
-		var definition: Dictionary = U_UI_REGISTRY.get_screen(overlay_id)
-		if definition.is_empty():
-			mapped.append(overlay_id)
-			continue
-		var scene_id_variant: Variant = definition.get("scene_id", overlay_id)
-		if scene_id_variant is StringName:
-			mapped.append(scene_id_variant)
-		elif scene_id_variant is String:
-			mapped.append(StringName(scene_id_variant))
-		else:
-			mapped.append(overlay_id)
-	return mapped
+	return U_OVERLAY_STACK_MANAGER.map_overlay_ids_to_scene_ids(overlay_ids)
 
 ## Coerce variant array to StringName array
 ##

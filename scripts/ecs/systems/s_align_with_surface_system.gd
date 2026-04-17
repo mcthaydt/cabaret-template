@@ -5,6 +5,9 @@ class_name S_AlignWithSurfaceSystem
 const ALIGN_TYPE := StringName("C_AlignWithSurfaceComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.PHYSICS_SOLVE
+
 func process_tick(delta: float) -> void:
 	var manager := get_manager()
 	if manager == null:

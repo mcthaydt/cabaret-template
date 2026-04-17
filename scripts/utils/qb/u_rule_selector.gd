@@ -1,6 +1,8 @@
 extends RefCounted
 class_name U_RuleSelector
 
+const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+
 static func select_winners(scored_results: Array) -> Array[Dictionary]:
 	if scored_results.is_empty():
 		return []
@@ -16,7 +18,7 @@ static func select_winners(scored_results: Array) -> Array[Dictionary]:
 		if rule == null or not (rule is Object):
 			continue
 
-		var decision_group: StringName = _read_string_name_property(rule, "decision_group")
+		var decision_group: StringName = U_RULE_UTILS.read_string_name_property(rule, "decision_group")
 		if decision_group == StringName():
 			ungrouped.append(result)
 			continue
@@ -68,15 +70,15 @@ static func _is_better_candidate(candidate: Dictionary, incumbent: Dictionary) -
 
 	var candidate_rule: Variant = candidate.get("rule", null)
 	var incumbent_rule: Variant = incumbent.get("rule", null)
-	var candidate_priority: int = _read_int_property(candidate_rule, "priority", 0)
-	var incumbent_priority: int = _read_int_property(incumbent_rule, "priority", 0)
+	var candidate_priority: int = U_RULE_UTILS.read_int_property(candidate_rule, "priority", 0)
+	var incumbent_priority: int = U_RULE_UTILS.read_int_property(incumbent_rule, "priority", 0)
 	if candidate_priority > incumbent_priority:
 		return true
 	if candidate_priority < incumbent_priority:
 		return false
 
-	var candidate_rule_id: String = _read_string_name_property(candidate_rule, "rule_id")
-	var incumbent_rule_id: String = _read_string_name_property(incumbent_rule, "rule_id")
+	var candidate_rule_id: String = U_RULE_UTILS.read_string_name_property(candidate_rule, "rule_id")
+	var incumbent_rule_id: String = U_RULE_UTILS.read_string_name_property(incumbent_rule, "rule_id")
 	return candidate_rule_id.naturalnocasecmp_to(incumbent_rule_id) < 0
 
 static func _read_score(entry: Dictionary) -> float:
@@ -84,23 +86,3 @@ static func _read_score(entry: Dictionary) -> float:
 	if score_variant is float or score_variant is int:
 		return float(score_variant)
 	return 0.0
-
-static func _read_int_property(object_value: Variant, property_name: String, fallback: int) -> int:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is int:
-		return value
-	if value is float:
-		return int(value)
-	return fallback
-
-static func _read_string_name_property(object_value: Variant, property_name: String) -> StringName:
-	if object_value == null or not (object_value is Object):
-		return StringName()
-	var value: Variant = object_value.get(property_name)
-	if value is StringName:
-		return value
-	if value is String:
-		return StringName(value)
-	return StringName()

@@ -1,5 +1,7 @@
 extends BaseTest
 
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
+
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -130,6 +132,10 @@ func test_input_system_recovers_when_state_store_initializes_late() -> void:
 	entity.add_child(component)
 	await _pump()
 
+	var player_tag: Variant = C_PLAYER_TAG_COMPONENT.new()
+	entity.add_child(player_tag)
+	await _pump()
+
 	var system := S_InputSystem.new()
 	system.state_store = store
 	ecs_manager.add_child(system)
@@ -184,6 +190,10 @@ func _setup_environment() -> Dictionary:
 
 	var component := C_InputComponent.new()
 	entity.add_child(component)
+	await _pump()
+
+	var player_tag: Variant = C_PLAYER_TAG_COMPONENT.new()
+	entity.add_child(player_tag)
 	await _pump()
 
 	var system := S_InputSystem.new()

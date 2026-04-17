@@ -17,14 +17,16 @@ class_name M_SaveManager
 ## - M_StateStore: State access and dispatch
 ## - M_SceneManager: Scene transitions during load
 
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
 const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/u_save_migration_engine.gd")
 const U_SCREENSHOT_CAPTURE := preload("res://scripts/managers/helpers/u_screenshot_capture.gd")
 const U_SAVE_VALIDATOR := preload("res://scripts/utils/u_save_validator.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
 
 ## Save file format version
 const SAVE_VERSION := 1
@@ -53,6 +55,9 @@ var _is_loading: bool = false
 
 ## Tracks which scene we're loading to (for transition completion verification)
 var _loading_target_scene: StringName = StringName("")
+
+## Tracks which slot we're loading from (for load_completed dispatch on transition)
+var _loading_slot_id: StringName = StringName("")
 
 ## Store subscription unsubscribe callback (for transition completion)
 var _transition_complete_unsubscribe: Callable
@@ -228,12 +233,9 @@ func save_to_slot(slot_id: StringName) -> Error:
 	# Set lock
 	_is_saving = true
 
-	# Emit save_started event
+	# Dispatch save_started action (Redux per channel taxonomy)
 	var is_autosave: bool = (slot_id == SLOT_AUTOSAVE)
-	U_ECSEventBus.publish(StringName("save_started"), {
-		"slot_id": slot_id,
-		"is_autosave": is_autosave
-	})
+	_state_store.dispatch(U_SAVE_ACTIONS.save_started(slot_id, is_autosave))
 
 	# Get persistable state (transient fields already filtered)
 	var state: Dictionary = _state_store.get_persistable_state()
@@ -262,18 +264,11 @@ func save_to_slot(slot_id: StringName) -> Error:
 	# Clear lock
 	_is_saving = false
 
-	# Emit completion event
+	# Dispatch completion action (Redux per channel taxonomy)
 	if result == OK:
-		U_ECSEventBus.publish(StringName("save_completed"), {
-			"slot_id": slot_id,
-			"is_autosave": is_autosave
-		})
+		_state_store.dispatch(U_SAVE_ACTIONS.save_completed(slot_id, is_autosave))
 	else:
-		U_ECSEventBus.publish(StringName("save_failed"), {
-			"slot_id": slot_id,
-			"is_autosave": is_autosave,
-			"error_code": result
-		})
+		_state_store.dispatch(U_SAVE_ACTIONS.save_failed(slot_id, is_autosave, result))
 
 	return result
 
@@ -297,22 +292,29 @@ func load_from_slot(slot_id: StringName) -> Error:
 	# Validate slot_id
 	if not slot_id in ALL_SLOTS:
 		push_error("M_SaveManager: Invalid slot_id: %s" % slot_id)
+		_state_store.dispatch(U_SAVE_ACTIONS.load_failed(slot_id, ERR_INVALID_PARAMETER))
 		return ERR_INVALID_PARAMETER
 
 	# Check if slot exists
 	if not slot_exists(slot_id):
+		_state_store.dispatch(U_SAVE_ACTIONS.load_failed(slot_id, ERR_FILE_NOT_FOUND))
 		return ERR_FILE_NOT_FOUND
 
 	# Set loading lock
 	_is_loading = true
+
+	# Dispatch load_started action (Redux per channel taxonomy)
+	_state_store.dispatch(U_SAVE_ACTIONS.load_started(slot_id))
 
 	# Read and validate save file
 	var file_path: String = _get_slot_file_path(slot_id)
 	var validation_result: Dictionary = _validate_and_load_save_file(file_path)
 
 	if validation_result.has("error"):
+		var error_code: Error = validation_result["error"]
 		_clear_loading_lock()
-		return validation_result["error"]
+		_state_store.dispatch(U_SAVE_ACTIONS.load_failed(slot_id, error_code))
+		return error_code
 
 	var _header: Dictionary = validation_result["header"]
 	var loaded_state: Dictionary = validation_result["state"]
@@ -359,6 +361,7 @@ func load_from_slot(slot_id: StringName) -> Error:
 
 	# Store target scene for transition completion verification
 	_loading_target_scene = target_scene_id
+	_loading_slot_id = slot_id
 
 	# Subscribe to state store to detect when transition completes
 	# We'll clear _is_loading lock when we see transition_completed action
@@ -378,6 +381,7 @@ func load_from_slot(slot_id: StringName) -> Error:
 		# No scene manager - clear handoff, unsubscribe, and fail gracefully
 		U_STATE_HANDOFF.clear_all()
 		_clear_loading_lock()
+		_state_store.dispatch(U_SAVE_ACTIONS.load_failed(slot_id, ERR_UNAVAILABLE))
 		push_error("M_SaveManager: No scene manager available for load transition")
 		return ERR_UNAVAILABLE
 
@@ -542,13 +546,17 @@ func _on_load_transition_action(action: Dictionary, _state: Dictionary) -> void:
 		# Not our transition - ignore
 		return
 
-	# Transition complete - clear loading lock
+	# Transition complete - dispatch load_completed and clear loading lock
+	var completed_slot_id: StringName = _loading_slot_id
 	_clear_loading_lock()
+	if _state_store != null and completed_slot_id != StringName(""):
+		_state_store.dispatch(U_SAVE_ACTIONS.load_completed(completed_slot_id))
 
 ## Clear loading lock and cleanup transition tracking
 func _clear_loading_lock() -> void:
 	_is_loading = false
 	_loading_target_scene = StringName("")
+	_loading_slot_id = StringName("")
 
 	# Unsubscribe from state store if we have an active subscription
 	if _transition_complete_unsubscribe.is_valid():
@@ -604,14 +612,12 @@ func _build_metadata(slot_id: StringName) -> Dictionary:
 		return {}
 
 	var state := _state_store.get_state()
-	var gameplay: Dictionary = state.get("gameplay", {})
-	var scene: Dictionary = state.get("scene", {})
 
-	# Extract fields from state
-	var playtime_seconds: int = gameplay.get("playtime_seconds", 0)
-	var current_scene_id: String = scene.get("current_scene_id", "")
-	var last_checkpoint: String = gameplay.get("last_checkpoint", "")
-	var target_spawn_point: String = gameplay.get("target_spawn_point", "")
+	# Extract fields from state via selectors
+	var playtime_seconds: int = U_GAMEPLAY_SELECTORS.get_playtime_seconds(state)
+	var current_scene_id: String = str(U_SCENE_SELECTORS.get_current_scene_id(state))
+	var last_checkpoint: String = str(U_GAMEPLAY_SELECTORS.get_last_checkpoint(state))
+	var target_spawn_point: String = str(U_GAMEPLAY_SELECTORS.get_target_spawn_point(state))
 
 	# Derive area_name from scene registry
 	var area_name := _get_area_name_from_scene(current_scene_id)

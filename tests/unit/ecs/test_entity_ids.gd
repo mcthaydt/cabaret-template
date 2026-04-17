@@ -385,3 +385,35 @@ func test_u_ecs_utils_build_entity_snapshot() -> void:
 	assert_eq(snapshot["entity_id"], "player", "Snapshot should include entity_id as String")
 	assert_eq(snapshot["tags"].size(), 1, "Snapshot should include tags")
 	assert_eq(snapshot["position"], Vector3(1, 2, 3), "Snapshot should include position")
+
+## ========================================
+## C10: metadata-based ID tests
+## ========================================
+
+func test_entity_id_from_metadata_takes_priority_over_name_stripping() -> void:
+	var entity := _spawn_entity("E_Player")
+	entity.set_meta("entity_id", StringName("hero_override"))
+
+	var entity_id: StringName = entity.get_entity_id()
+
+	assert_eq(entity_id, StringName("hero_override"),
+		"Metadata 'entity_id' should take priority over name-stripping fallback")
+
+func test_entity_id_export_field_takes_priority_over_metadata() -> void:
+	var entity := _spawn_entity("E_Player")
+	entity.entity_id = StringName("export_id")
+	entity.set_meta("entity_id", StringName("meta_id"))
+
+	var entity_id: StringName = entity.get_entity_id()
+
+	assert_eq(entity_id, StringName("export_id"),
+		"@export entity_id should take priority over metadata")
+
+func test_entity_id_metadata_empty_string_falls_back_to_name() -> void:
+	var entity := _spawn_entity("E_Player")
+	entity.set_meta("entity_id", StringName(""))
+
+	var entity_id: StringName = entity.get_entity_id()
+
+	assert_eq(entity_id, StringName("player"),
+		"Empty-string metadata should fall back to name-stripping")

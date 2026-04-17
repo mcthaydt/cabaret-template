@@ -3,11 +3,9 @@ extends "res://scripts/interfaces/i_vcam_manager.gd"
 class_name M_VCamManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
 const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
@@ -52,12 +50,14 @@ var _silhouette_clear_published: bool = false
 var _occlusion_frame_counter: int = 0
 var _last_occlusion_camera_pos: Vector3 = Vector3.ZERO
 var _last_occlusion_target_pos: Vector3 = Vector3.ZERO
+var _is_mobile: bool = false
 
 func _ready() -> void:
 	var service_name := StringName("vcam_manager")
 	var existing := U_SERVICE_LOCATOR.try_get_service(service_name)
 	if existing != self:
 		U_SERVICE_LOCATOR.register(service_name, self)
+	_is_mobile = OS.has_feature("mobile")
 	_state_store = _resolve_state_store()
 	_camera_manager = _resolve_camera_manager()
 	_ecs_manager = _resolve_ecs_manager()
@@ -223,7 +223,6 @@ func _set_active_vcam_internal(next_vcam_id: StringName) -> void:
 	var active_mode := _get_mode_name_for_vcam(next_vcam_id)
 	_dispatch_active_runtime(next_vcam_id, active_mode)
 	_configure_live_blend_transition(previous_vcam_id, next_vcam_id, blend_duration_override)
-	_publish_active_changed(next_vcam_id, previous_vcam_id, active_mode)
 
 func _configure_live_blend_transition(
 	from_vcam_id: StringName,
@@ -256,11 +255,9 @@ func _configure_live_blend_transition(
 	var status: String = str(configure_result.get("status", ""))
 	if status == "started":
 		_dispatch_blend_started(from_vcam_id)
-		_publish_blend_started(from_vcam_id, to_vcam_id, float(configure_result.get("duration", 0.0)))
 		return
 	if status == "completed":
 		_dispatch_blend_complete()
-		_publish_blend_completed(to_vcam_id)
 
 func _resolve_live_blend_settings(vcam_id: StringName, duration_override: float) -> Dictionary:
 	var settings: Dictionary = _resolve_startup_blend_settings(vcam_id)
@@ -295,7 +292,6 @@ func _advance_live_blend(delta: float) -> void:
 		return
 	if status == "completed":
 		_dispatch_blend_complete()
-		_publish_blend_completed(_active_vcam_id)
 
 func _recover_invalid_live_blend_members() -> void:
 	if not _blend_manager.is_active():
@@ -313,8 +309,6 @@ func _recover_invalid_live_blend_members() -> void:
 
 	_record_recovery(str(recovery_result.get("reason", "")))
 	_dispatch_blend_complete()
-	if bool(recovery_result.get("publish_completed_event", false)):
-		_publish_blend_completed(_active_vcam_id)
 
 func _sync_blend_debug_cache() -> void:
 	_blend_trans_type = int(_blend_manager.get_transition_type())
@@ -348,31 +342,6 @@ func _record_recovery(reason: String) -> void:
 	var store := _resolve_state_store()
 	if store != null:
 		store.dispatch(U_VCAM_ACTIONS.record_recovery(reason))
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_RECOVERY, {
-		"reason": reason,
-		"vcam_id": _active_vcam_id,
-		"active_vcam_id": _active_vcam_id,
-		"previous_vcam_id": _previous_vcam_id,
-	})
-
-func _publish_active_changed(vcam_id: StringName, previous_vcam_id: StringName, mode_name: String) -> void:
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED, {
-		"vcam_id": vcam_id,
-		"previous_vcam_id": previous_vcam_id,
-		"mode": mode_name,
-	})
-
-func _publish_blend_started(from_vcam_id: StringName, to_vcam_id: StringName, duration: float) -> void:
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_STARTED, {
-		"from_vcam_id": from_vcam_id,
-		"to_vcam_id": to_vcam_id,
-		"duration": duration,
-	})
-
-func _publish_blend_completed(vcam_id: StringName) -> void:
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_COMPLETED, {
-		"vcam_id": vcam_id,
-	})
 
 func _clear_runtime_state() -> void:
 	var previous_vcam_id := _active_vcam_id
@@ -388,8 +357,6 @@ func _clear_runtime_state() -> void:
 	_last_applied_frame = -1
 	_last_valid_applied_result.clear()
 	_dispatch_active_runtime(StringName(""), "")
-	if previous_vcam_id != StringName(""):
-		_publish_active_changed(StringName(""), previous_vcam_id, "")
 
 func _prune_invalid_registrations() -> void:
 	var stale_vcams: Array = []
@@ -460,9 +427,23 @@ func _get_mode_name_for_vcam(vcam_id: StringName) -> String:
 
 	return _resolve_mode_name(mode_variant as Resource)
 
+## Resolve a display name for the given vcam mode resource (C10 migration).
+##
+## Lookup order:
+##   1. resource_name property (set in inspector, no prefix convention required)
+##   2. "mode_name" metadata (set via set_meta)
+##   3. Script global_name prefix-stripping ("RS_VCamMode" → snake_case fallback)
+##   4. Filename prefix-stripping ("rs_vcam_mode_" → remainder fallback)
 func _resolve_mode_name(mode: Resource) -> String:
 	if mode == null:
 		return ""
+
+	if not mode.resource_name.is_empty():
+		return mode.resource_name
+
+	if mode.has_meta("mode_name"):
+		return str(mode.get_meta("mode_name"))
+
 	var mode_script := mode.get_script() as Script
 	if mode_script == null:
 		return ""
@@ -477,30 +458,15 @@ func _resolve_mode_name(mode: Resource) -> String:
 	return file_name
 
 func _resolve_state_store() -> I_StateStore:
-	if _state_store != null and is_instance_valid(_state_store):
-		return _state_store
-	if state_store != null and is_instance_valid(state_store):
-		_state_store = state_store
-		return _state_store
-	_state_store = U_STATE_UTILS.try_get_store(self)
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self)
 	return _state_store
 
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
-	if _camera_manager != null and is_instance_valid(_camera_manager):
-		return _camera_manager
-	if camera_manager != null and is_instance_valid(camera_manager):
-		_camera_manager = camera_manager
-		return _camera_manager
-	_camera_manager = U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
+	_camera_manager = U_DependencyResolution.resolve(&"camera_manager", _camera_manager, camera_manager) as I_CAMERA_MANAGER
 	return _camera_manager
 
 func _resolve_ecs_manager() -> I_ECS_MANAGER:
-	if _ecs_manager != null and is_instance_valid(_ecs_manager):
-		return _ecs_manager
-	if ecs_manager != null and is_instance_valid(ecs_manager):
-		_ecs_manager = ecs_manager
-		return _ecs_manager
-	_ecs_manager = U_SERVICE_LOCATOR.try_get_service(StringName("ecs_manager")) as I_ECS_MANAGER
+	_ecs_manager = U_DependencyResolution.resolve(&"ecs_manager", _ecs_manager, ecs_manager) as I_ECS_MANAGER
 	return _ecs_manager
 
 func _try_apply_for_current_frame() -> void:
@@ -560,7 +526,6 @@ func _resolve_blend_result_for_frame(frame_id: int) -> Dictionary:
 	var blended_result: Dictionary = _blend_manager.resolve_blend_result(from_result, to_result)
 	if _blend_manager.consume_completed_on_cut_with_publish():
 		_dispatch_blend_complete()
-		_publish_blend_completed(_active_vcam_id)
 	return blended_result
 
 func _get_submitted_result_for_frame(vcam_id: StringName, frame_id: int) -> Dictionary:
@@ -751,17 +716,17 @@ func _clear_all_silhouettes(entity_id: StringName) -> void:
 	_last_occlusion_target_pos = Vector3.ZERO
 
 func _is_occlusion_silhouette_enabled() -> bool:
+	if _is_mobile:
+		return false
 	var store := _resolve_state_store()
 	if store == null:
 		return true
 	return U_VFX_SELECTORS.is_occlusion_silhouette_enabled(store.get_state())
 
 func _publish_silhouette_update_request(entity_id: StringName, occluders: Array, enabled: bool) -> void:
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": entity_id,
-		"occluders": occluders,
-		"enabled": enabled,
-	})
+	var store := _resolve_state_store()
+	if store != null:
+		store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(entity_id, occluders, enabled))
 
 func _resolve_follow_target_for_vcam(vcam: Node) -> Node3D:
 	if vcam == null or not is_instance_valid(vcam):
@@ -792,12 +757,7 @@ func _resolve_player_entity_id() -> StringName:
 	if store == null:
 		return StringName("")
 	var state: Dictionary = store.get_state()
-	var gameplay_variant: Variant = state.get("gameplay", {})
-	if not (gameplay_variant is Dictionary):
-		return StringName("")
-	var gameplay := gameplay_variant as Dictionary
-	var player_entity_variant: Variant = gameplay.get("player_entity_id", "")
-	var player_entity_text: String = str(player_entity_variant)
+	var player_entity_text: String = U_ENTITY_SELECTORS.get_player_entity_id(state)
 	if player_entity_text.is_empty():
 		return StringName("")
 	return StringName(player_entity_text)

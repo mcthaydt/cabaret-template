@@ -212,7 +212,7 @@ func _reconcile_overlay_stack(desired_overlay_ids: Array[StringName], current_st
 		return
 
 	const MAX_STACK_DEPTH := 8
-	var desired_scene_stack: Array[StringName] = _map_overlay_ids_to_scene_ids(desired_overlay_ids)
+	var desired_scene_stack: Array[StringName] = map_overlay_ids_to_scene_ids(desired_overlay_ids)
 	if _overlay_stacks_match(current_stack, desired_scene_stack):
 		if set_overlay_reconciliation_pending != null and set_overlay_reconciliation_pending.is_valid():
 			set_overlay_reconciliation_pending.call(false)
@@ -348,7 +348,7 @@ func _get_longest_matching_prefix(stack_a: Array[StringName], stack_b: Array[Str
 			return i
 	return limit
 
-func _map_overlay_ids_to_scene_ids(overlay_ids: Array[StringName]) -> Array[StringName]:
+static func map_overlay_ids_to_scene_ids(overlay_ids: Array[StringName]) -> Array[StringName]:
 	var mapped: Array[StringName] = []
 	for overlay_id in overlay_ids:
 		var definition: Dictionary = U_UI_REGISTRY.get_screen(overlay_id)

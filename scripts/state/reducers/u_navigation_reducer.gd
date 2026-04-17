@@ -61,6 +61,8 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			return _reduce_navigate_to_ui_screen(state, action)
 		U_NavigationActions.ACTION_SET_SAVE_LOAD_MODE:
 			return _reduce_set_save_load_mode(state, action)
+		U_NavigationActions.ACTION_SYNC_INITIAL_SCENE:
+			return _reduce_sync_initial_scene(state, action)
 		_:
 			return state
 
@@ -331,6 +333,15 @@ static func _reduce_set_save_load_mode(state: Dictionary, action: Dictionary) ->
 
 	var new_state: Dictionary = state.duplicate(true)
 	new_state["save_load_mode"] = mode
+	return new_state
+
+static func _reduce_sync_initial_scene(state: Dictionary, action: Dictionary) -> Dictionary:
+	var new_state: Dictionary = state.duplicate(true)
+	new_state["shell"] = SHELL_MAIN_MENU
+	new_state["base_scene_id"] = action.get("base_scene_id", SHELL_MAIN_MENU)
+	if action.get("clear_overlays", false):
+		new_state["overlay_stack"] = []
+		new_state["overlay_return_stack"] = []
 	return new_state
 
 static func _is_overlay_allowed_for_parent(overlay_id: StringName, current_stack: Array) -> bool:

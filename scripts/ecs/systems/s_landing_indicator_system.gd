@@ -6,8 +6,28 @@ class_name S_LandingIndicatorSystem
 
 const COMPONENT_TYPE := StringName("C_LandingIndicatorComponent")
 const UP_VECTOR: Vector3 = Vector3.UP
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const MOBILE_TICK_INTERVAL := 2
+
+var _perf_probe: U_PerfProbe = null
+var _is_mobile: bool = false
+var _tick_counter: int = 0
+
+
+func on_configured() -> void:
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	_perf_probe = U_PerfProbe.create("S_LandingIndicator", _is_mobile)
+
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
 
 func process_tick(__delta: float) -> void:
+	_tick_counter += 1
+	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
+		return
+	if _perf_probe != null:
+		_perf_probe.start()
 	# Phase 16: Check if landing indicator is enabled in state
 	var store: I_StateStore = U_StateUtils.get_store(self)
 	var should_show: bool = true
@@ -46,6 +66,8 @@ func process_tick(__delta: float) -> void:
 			component.set_landing_data(landing_point, landing_normal, true)
 		else:
 			component.set_landing_data(Vector3.ZERO, UP_VECTOR, false)
+	if _perf_probe != null:
+		_perf_probe.stop()
 
 func _project_to_ground(component: C_LandingIndicatorComponent, body: CharacterBody3D, origin_position: Vector3) -> Dictionary:
 	var max_distance: float = max(component.settings.max_projection_distance, 0.0)

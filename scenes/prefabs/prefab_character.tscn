@@ -6,8 +6,8 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_an6dg"]
 resource_name = "Material.001"
 cull_mode = 2
+shading_mode = 0
 albedo_texture = ExtResource("2_pjoi4")
-roughness = 0.5
 texture_filter = 2
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_fyhdm"]
@@ -46,6 +46,6 @@ shadow_mesh = SubResource("ArrayMesh_fyhdm")
 
 [node name="Character" unique_id=269059755 instance=ExtResource("1_glpr6")]
 
-[node name="part_0000" parent="." index="0" unique_id=187925848]
+[node name="part_0000" parent="." index="0" unique_id=79379286]
 transform = Transform3D(-1.3113416e-07, -3, -1.3113416e-07, 0, -1.3113416e-07, 3, -3, 1.3113416e-07, 5.7320566e-15, -0.0071066334, 1.9636567, 0.04684797)
 mesh = SubResource("ArrayMesh_ua8td")

@@ -64,8 +64,8 @@
 [ext_resource type="Resource" uid="uid://xfndjst2gnk5" path="res://resources/spawn_metadata/cfg_sp_exterior_exit_from_bar.tres" id="54_exterior_exit_from_bar_spawn_meta"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="56_fade_goal"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="57_fade_door"]
-[ext_resource type="Script" uid="uid://dpeat44fqshck" path="res://scripts/utils/display/u_cinema_grade_preview.gd" id="58_cinema_preview"]
-[ext_resource type="Resource" uid="uid://bpq4a7ypphxic" path="res://resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres" id="59_cinema_grade"]
+[ext_resource type="Script" uid="uid://cup4jaxn6ejvf" path="res://scripts/utils/display/u_color_grading_preview.gd" id="58_cinema_preview"]
+[ext_resource type="Resource" uid="uid://bpq4a7ypphxic" path="res://resources/display/color_gradings/cfg_color_grading_alleyway.tres" id="59_color_grading"]
 [ext_resource type="Resource" uid="uid://gfpbj6b08vmj" path="res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres" id="60_door_config"]
 [ext_resource type="Resource" uid="uid://di0webt8oc8bj" path="res://resources/interactions/checkpoints/cfg_checkpoint_alleyway.tres" id="61_checkpoint_config"]
 [ext_resource type="Resource" uid="uid://jnsl17rpawoy" path="res://resources/interactions/endgame/cfg_endgame_goal_alleyway.tres" id="63_endgame_config"]
@@ -83,28 +83,6 @@
 background_mode = 1
 tonemap_mode = 3
 tonemap_exposure = 0.89
-ssao_enabled = true
-ssil_enabled = false
-sdfgi_enabled = false
-glow_enabled = true
-glow_normalized = true
-glow_intensity = 0.66
-glow_bloom = 1.0
-fog_enabled = true
-fog_mode = 1
-fog_light_color = Color(0.8440008, 0.399447, 0.2702732, 1)
-fog_light_energy = 0.25
-fog_sun_scatter = 0.37
-fog_density = 1.0
-fog_sky_affect = 0.0
-fog_height = -172.14
-fog_depth_curve = 0.65975356
-volumetric_fog_density = 0.18
-volumetric_fog_albedo = Color(0.49218434, 0.52147424, 0.7017026, 1)
-volumetric_fog_anisotropy = 0.07
-volumetric_fog_length = 4.42
-volumetric_fog_detail_spread = 3.4460962
-volumetric_fog_sky_affect = 0.0
 
 [node name="GameplayRoot" type="Node3D" unique_id=118760861]
 script = ExtResource("1_f2o31")
@@ -273,9 +251,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 2.4, -3.8)
 script = ExtResource("68_character_light_zone_script")
 config = ExtResource("70_character_light_zone_street_config")
 
-[node name="CinemaGradePreview" type="Node" parent="Lighting" unique_id=722256414]
+[node name="ColorGradingPreview" type="Node" parent="Lighting" unique_id=722256414]
 script = ExtResource("58_cinema_preview")
-cinema_grade = ExtResource("59_cinema_grade")
+color_grading = ExtResource("59_color_grading")
 
 [node name="Managers" type="Node" parent="." unique_id=1732814566]
 script = ExtResource("12_klon2")

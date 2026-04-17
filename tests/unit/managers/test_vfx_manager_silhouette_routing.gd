@@ -2,65 +2,43 @@ extends GutTest
 
 const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 func before_each() -> void:
-	U_ECS_EVENT_BUS.reset()
 	U_SERVICE_LOCATOR.clear()
 
 func after_each() -> void:
-	U_ECS_EVENT_BUS.reset()
 	U_SERVICE_LOCATOR.clear()
 
 func test_silhouette_event_sets_transparency_on_occluders() -> void:
 	var manager := await _create_manager_with_state(StringName("player"), false, [], StringName("gameplay"))
+	var store := manager.state_store as MockStateStore
 	var target := _create_mesh_target()
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
 	assert_almost_eq(target.transparency, 0.0, 0.001,
 		"First detection frame should not apply silhouette due debounce")
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
 
 	assert_almost_eq(target.transparency, U_VCamSilhouetteHelper.DEFAULT_SILHOUETTE_TRANSPARENCY, 0.001,
-		"VFX manager should set transparency on occluder from event payload")
+		"VFX manager should set transparency on occluder from action payload")
 
 func test_silhouette_disable_restores_transparency() -> void:
 	var manager := await _create_manager_with_state(StringName("player"), false, [], StringName("gameplay"))
+	var store := manager.state_store as MockStateStore
 	var target := _create_mesh_target()
 	var original_transparency: float = target.transparency
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [],
-		"enabled": false,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [], false))
 	manager._physics_process(0.0)
 
 	assert_almost_eq(target.transparency, original_transparency, 0.001,
@@ -68,21 +46,14 @@ func test_silhouette_disable_restores_transparency() -> void:
 
 func test_silhouette_preserves_material_override() -> void:
 	var manager := await _create_manager_with_state(StringName("player"), false, [], StringName("gameplay"))
+	var store := manager.state_store as MockStateStore
 	var target := _create_mesh_target()
 	var original_material := StandardMaterial3D.new()
 	target.material_override = original_material
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
 
 	assert_eq(target.material_override, original_material,
@@ -90,13 +61,10 @@ func test_silhouette_preserves_material_override() -> void:
 
 func test_silhouette_event_respects_player_gating() -> void:
 	var manager := await _create_manager_with_state(StringName("player"), false, [], StringName("gameplay"))
+	var store := manager.state_store as MockStateStore
 	var target := _create_mesh_target()
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("enemy"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("enemy"), [target], true))
 	manager._physics_process(0.0)
 
 	assert_almost_eq(target.transparency, 0.0, 0.001,
@@ -104,13 +72,10 @@ func test_silhouette_event_respects_player_gating() -> void:
 
 func test_silhouette_event_respects_transition_blocking() -> void:
 	var manager := await _create_manager_with_state(StringName("player"), true, [], StringName("gameplay"))
+	var store := manager.state_store as MockStateStore
 	var target := _create_mesh_target()
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
 
 	assert_almost_eq(target.transparency, 0.0, 0.001,
@@ -121,17 +86,9 @@ func test_silhouette_clear_request_bypasses_transition_blocking() -> void:
 	var store := manager.state_store as MockStateStore
 	var target := _create_mesh_target()
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
 	assert_almost_eq(target.transparency, U_VCamSilhouetteHelper.DEFAULT_SILHOUETTE_TRANSPARENCY, 0.001)
 
@@ -139,38 +96,23 @@ func test_silhouette_clear_request_bypasses_transition_blocking() -> void:
 		"is_transitioning": true,
 		"scene_stack": [],
 	})
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [],
-		"enabled": false,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [], false))
 	manager._physics_process(0.0)
 	assert_almost_eq(target.transparency, 0.0, 0.001,
 		"Explicit clear should process even while transition-blocked")
 
 func test_silhouette_clear_request_still_respects_player_gating() -> void:
 	var manager := await _create_manager_with_state(StringName("player"), false, [], StringName("gameplay"))
+	var store := manager.state_store as MockStateStore
 	var target := _create_mesh_target()
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
 	assert_almost_eq(target.transparency, U_VCamSilhouetteHelper.DEFAULT_SILHOUETTE_TRANSPARENCY, 0.001)
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("enemy"),
-		"occluders": [],
-		"enabled": false,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("enemy"), [], false))
 	manager._physics_process(0.0)
 	assert_almost_eq(target.transparency, U_VCamSilhouetteHelper.DEFAULT_SILHOUETTE_TRANSPARENCY, 0.001,
 		"Non-player clear request should be ignored")
@@ -181,11 +123,7 @@ func test_silhouette_count_dispatches_from_applied_overrides() -> void:
 	var target := _create_mesh_target()
 	store.clear_dispatched_actions()
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
 	assert_true(
 		_find_last_action_by_type(
@@ -195,11 +133,7 @@ func test_silhouette_count_dispatches_from_applied_overrides() -> void:
 		"First detection frame should not dispatch active silhouette count"
 	)
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
 	var activate_action := _find_last_action_by_type(
 		store.get_dispatched_actions(),
@@ -210,11 +144,7 @@ func test_silhouette_count_dispatches_from_applied_overrides() -> void:
 	assert_eq(int(activate_payload.get("count", -1)), 1)
 
 	store.clear_dispatched_actions()
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [target],
-		"enabled": true,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [target], true))
 	manager._physics_process(0.0)
 	assert_true(
 		_find_last_action_by_type(
@@ -224,11 +154,7 @@ func test_silhouette_count_dispatches_from_applied_overrides() -> void:
 		"Unchanged active silhouette count should not dispatch"
 	)
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST, {
-		"entity_id": StringName("player"),
-		"occluders": [],
-		"enabled": false,
-	})
+	store.dispatch(U_VCAM_ACTIONS.silhouette_update_request(StringName("player"), [], false))
 	manager._physics_process(0.0)
 	var clear_action := _find_last_action_by_type(
 		store.get_dispatched_actions(),

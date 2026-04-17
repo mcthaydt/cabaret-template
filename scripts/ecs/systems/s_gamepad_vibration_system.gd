@@ -30,6 +30,9 @@ func on_configured() -> void:
 	_subscribe_events()
 	_ensure_state_store_ready()
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func _subscribe_events() -> void:
 	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_ENTITY_LANDED, _on_entity_landed))
 	# Priority 0 (default): Haptic feedback doesn't need high priority
@@ -135,12 +138,8 @@ func _apply_settings_from_state(state: Dictionary) -> void:
 		return
 	var settings := U_InputSelectors.get_gamepad_settings(state)
 	_gamepad_settings = settings.duplicate(true)
-	var gameplay: Variant = state.get("gameplay", {})
-	if gameplay is Dictionary:
-		var gameplay_dict := gameplay as Dictionary
-		_player_entity_id = String(gameplay_dict.get("player_entity_id", _player_entity_id))
-		if gameplay_dict.has("input") and gameplay_dict["input"] is Dictionary:
-			_last_input_state = (gameplay_dict["input"] as Dictionary).duplicate(true)
+	_player_entity_id = String(U_EntitySelectors.get_player_entity_id(state))
+	_last_input_state = U_InputSelectors.get_input_state_snapshot(state)
 
 func _teardown_store_subscription() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -176,11 +175,17 @@ func _get_component_device_id() -> int:
 func _is_player_entity(entity_id: String) -> bool:
 	if entity_id.is_empty():
 		return false
-	var normalized := entity_id.to_lower()
-	var expected := String(_player_entity_id).to_lower()
-	if normalized == expected:
-		return true
-	return normalized.contains("player")
+	var normalized := _normalize_entity_id(entity_id)
+	var expected := _normalize_entity_id(String(_player_entity_id))
+	if expected.is_empty():
+		return normalized == "player"
+	return normalized == expected
+
+func _normalize_entity_id(entity_id: String) -> String:
+	var normalized := entity_id.strip_edges().to_lower()
+	if normalized.begins_with("e_"):
+		normalized = normalized.trim_prefix("e_")
+	return normalized
 
 func _get_entity_id_from_node(entity: Node) -> String:
 	if entity == null:

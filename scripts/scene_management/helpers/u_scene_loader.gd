@@ -12,6 +12,7 @@ class_name U_SceneLoader
 
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
+const U_ENTITY_LOOKUP := preload("res://scripts/utils/ecs/u_entity_lookup.gd")
 
 ## Load scene via ResourceLoader (sync)
 func load_scene(scene_path: String) -> Node:
@@ -127,6 +128,7 @@ func remove_current_scene(active_scene_container: Node) -> void:
 		return
 
 	for child in active_scene_container.get_children():
+		child.process_mode = Node.PROCESS_MODE_DISABLED
 		active_scene_container.remove_child(child)
 		child.queue_free()
 
@@ -192,19 +194,32 @@ func unfreeze_player_physics(scene: Node) -> bool:
 
 	return player_body != null
 
-## Find player in scene tree
+## Find player in scene tree (C10: tag-based primary, name-prefix fallback)
+##
+## Lookup order:
+##   1. ECS manager tag index — entity tagged &"player" via M_ECSManager
+##   2. Recursive name-prefix scan — node name starts with "E_Player"
 func find_player_in_scene(scene: Node) -> Node3D:
 	if scene == null:
 		return null
 
-	if scene.name.begins_with("E_Player"):
-		return scene as Node3D
+	var ecs_manager: Node = U_ServiceLocator.try_get_service(StringName("ecs_manager"))
+	if ecs_manager != null:
+		var tagged: Node = U_ENTITY_LOOKUP.find_entity_by_tag(ecs_manager, StringName("player"))
+		if tagged != null and tagged is Node3D:
+			return tagged as Node3D
 
-	for child in scene.get_children():
-		var found_player: Node3D = find_player_in_scene(child)
-		if found_player != null:
-			return found_player
+	return _find_player_by_prefix(scene)
 
+func _find_player_by_prefix(node: Node) -> Node3D:
+	if node == null:
+		return null
+	if node.name.begins_with("E_Player"):
+		return node as Node3D
+	for child in node.get_children():
+		var found: Node3D = _find_player_by_prefix(child)
+		if found != null:
+			return found
 	return null
 
 func _find_character_body_in(node: Node) -> CharacterBody3D:

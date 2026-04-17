@@ -23,7 +23,8 @@ func test_dispatches_action_with_correct_type_and_payload() -> void:
 	var actions: Array[Dictionary] = store.get_dispatched_actions()
 	assert_eq(actions.size(), 1)
 	assert_eq(actions[0].get("type"), StringName("set_last_checkpoint"))
-	assert_eq(actions[0].get("payload", {}), effect.payload)
+	assert_eq(actions[0].get("checkpoint_id"), "cp_lobby")
+	assert_eq(actions[0].get("spawn_point"), "sp_front")
 
 func test_missing_state_store_in_context_is_no_op() -> void:
 	var effect: Variant = EFFECT_DISPATCH_ACTION.new()

@@ -8,7 +8,4 @@ preset_name = "medium"
 display_name = "Medium"
 sort_order = 1
 film_grain_intensity = 0.16
-crt_scanline_intensity = 0.18
-crt_curvature = 0.0
-crt_chromatic_aberration = 0.0
 dither_intensity = 1.0

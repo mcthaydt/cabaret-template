@@ -13,7 +13,7 @@ const INTERACTION_HINT_NODE_NAME := "SO_InteractionHintIcon"
 const INTERACTION_HINT_DEFAULT_OFFSET := Vector3.ZERO
 const INTERACTION_HINT_MIN_SCALE := 0.1
 const INTERACTION_HINT_VISUAL_SCALE_MULTIPLIER := 0.35
-const INTERACTION_HINT_BILLBOARD_MODE := BaseMaterial3D.BILLBOARD_ENABLED
+const INTERACTION_HINT_BILLBOARD_MODE := BaseMaterial3D.BILLBOARD_FIXED_Y
 
 var _trigger_mode: TriggerMode = TriggerMode.AUTO
 @export var trigger_mode: TriggerMode:
@@ -233,13 +233,22 @@ func _apply_interaction_hint_transform() -> void:
 	sprite.position = interaction_hint_offset
 	var uniform_scale := maxf(interaction_hint_scale, INTERACTION_HINT_MIN_SCALE) * INTERACTION_HINT_VISUAL_SCALE_MULTIPLIER
 	sprite.scale = Vector3(uniform_scale, uniform_scale, uniform_scale)
+	var mat := sprite.material_override as StandardMaterial3D
+	if mat != null:
+		mat.albedo_texture = interaction_hint_icon
 
 func _apply_interaction_hint_render_defaults(sprite: Sprite3D) -> void:
 	if sprite == null:
 		return
 	sprite.billboard = INTERACTION_HINT_BILLBOARD_MODE
-	sprite.double_sided = true
-	sprite.shaded = false
+	sprite.render_priority = 1
+	if not (sprite.material_override is StandardMaterial3D):
+		var mat := StandardMaterial3D.new()
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.no_depth_test = true
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		sprite.material_override = mat
 
 func _apply_interaction_hint_config(config: Resource) -> void:
 	if config == null:

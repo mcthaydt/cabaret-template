@@ -3,7 +3,7 @@ extends BaseTest
 ## Integration tests for Display post-processing pipeline (Phase 7)
 ##
 ## Validates:
-## - Post-process effects enable/disable correctly via combined shader
+## - Post-process effects enable/disable correctly via grain+dither shader
 ## - Effect parameters update shader uniforms
 ## - Preview overrides persisted settings
 ## - Clear preview restores persisted settings
@@ -60,8 +60,8 @@ func _create_state_store() -> M_StateStore:
 	store.display_initial_state = RS_DISPLAY_INITIAL_STATE.new()
 	return store
 
-func _get_combined_rect() -> ColorRect:
-	var path: Variant = U_POST_PROCESS_LAYER.EFFECT_NODE_PATHS.get(U_POST_PROCESS_LAYER.EFFECT_COMBINED)
+func _get_grain_dither_rect() -> ColorRect:
+	var path: Variant = U_POST_PROCESS_LAYER.EFFECT_NODE_PATHS.get(U_POST_PROCESS_LAYER.EFFECT_GRAIN_DITHER)
 	if path is NodePath:
 		return _overlay.get_node_or_null(path) as ColorRect
 	return null
@@ -72,8 +72,8 @@ func _get_color_blind_rect() -> ColorRect:
 		return _overlay.get_node_or_null(path) as ColorRect
 	return null
 
-func _get_combined_param(param: StringName) -> Variant:
-	var rect := _get_combined_rect()
+func _get_grain_dither_param(param: StringName) -> Variant:
+	var rect := _get_grain_dither_rect()
 	if rect == null:
 		return null
 	var material := rect.material
@@ -89,67 +89,46 @@ func _get_shader_param(rect: ColorRect, param: StringName) -> Variant:
 		return (material as ShaderMaterial).get_shader_parameter(param)
 	return null
 
-func test_film_grain_toggle_updates_combined_rect_visibility() -> void:
-	var rect := _get_combined_rect()
-	assert_not_null(rect, "Combined rect should exist")
-	assert_false(rect.visible, "Combined rect should be hidden by default")
+func test_film_grain_toggle_updates_grain_dither_rect_visibility() -> void:
+	var rect := _get_grain_dither_rect()
+	assert_not_null(rect, "Grain+dither rect should exist")
+	assert_false(rect.visible, "Grain+dither rect should be hidden by default")
 
 	# Enable post-processing master toggle first
 	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
 	await get_tree().process_frame
 
-	assert_true(rect.visible, "Combined rect should be visible when film grain is enabled")
-	assert_eq(int(_get_combined_param(StringName("film_grain_enabled"))), 1,
-		"film_grain_enabled flag should be 1 in combined shader")
+	assert_true(rect.visible, "Grain+dither rect should be visible when film grain is enabled")
+	assert_eq(int(_get_grain_dither_param(StringName("film_grain_enabled"))), 1,
+		"film_grain_enabled flag should be 1 in grain+dither shader")
 
 func test_film_grain_intensity_updates_shader_parameter() -> void:
-	var rect := _get_combined_rect()
-	assert_not_null(rect, "Combined rect should exist")
+	var rect := _get_grain_dither_rect()
+	assert_not_null(rect, "Grain+dither rect should exist")
 
 	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_intensity(0.35))
 	await get_tree().process_frame
 
-	assert_almost_eq(float(_get_combined_param(StringName("fg_intensity"))), 0.35, 0.001,
-		"Film grain intensity should update combined shader parameter")
-
-func test_crt_parameters_update_shader_uniforms() -> void:
-	var rect := _get_combined_rect()
-	assert_not_null(rect, "Combined rect should exist")
-
-	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_enabled(true))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_scanline_intensity(0.55))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_curvature(4.0))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_chromatic_aberration(0.004))
-	await get_tree().process_frame
-
-	assert_true(rect.visible, "Combined rect should be visible when CRT is enabled")
-	assert_eq(int(_get_combined_param(StringName("crt_enabled"))), 1,
-		"crt_enabled flag should be 1 in combined shader")
-	assert_almost_eq(float(_get_combined_param(StringName("crt_scanline_intensity"))), 0.55, 0.001,
-		"CRT scanline intensity should update combined shader parameter")
-	assert_almost_eq(float(_get_combined_param(StringName("crt_curvature"))), 4.0, 0.001,
-		"CRT curvature should update combined shader parameter")
-	assert_almost_eq(float(_get_combined_param(StringName("crt_chromatic_aberration"))), 0.004, 0.0005,
-		"CRT chromatic aberration should update combined shader parameter")
+	assert_almost_eq(float(_get_grain_dither_param(StringName("fg_intensity"))), 0.35, 0.001,
+		"Film grain intensity should update grain+dither shader parameter")
 
 func test_dither_parameters_update_shader_uniforms() -> void:
-	var rect := _get_combined_rect()
-	assert_not_null(rect, "Combined rect should exist")
+	var rect := _get_grain_dither_rect()
+	assert_not_null(rect, "Grain+dither rect should exist")
 
 	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_dither_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_dither_intensity(0.7))
 	await get_tree().process_frame
 
-	assert_true(rect.visible, "Combined rect should be visible when dither is enabled")
-	assert_eq(int(_get_combined_param(StringName("dither_enabled"))), 1,
-		"dither_enabled flag should be 1 in combined shader")
-	assert_almost_eq(float(_get_combined_param(StringName("dither_intensity"))), 0.7, 0.001,
-		"Dither intensity should update combined shader parameter")
+	assert_true(rect.visible, "Grain+dither rect should be visible when dither is enabled")
+	assert_eq(int(_get_grain_dither_param(StringName("dither_enabled"))), 1,
+		"dither_enabled flag should be 1 in grain+dither shader")
+	assert_almost_eq(float(_get_grain_dither_param(StringName("dither_intensity"))), 0.7, 0.001,
+		"Dither intensity should update grain+dither shader parameter")
 
 func test_color_blind_shader_mode_updates() -> void:
 	var rect := _get_color_blind_rect()
@@ -163,9 +142,9 @@ func test_color_blind_shader_mode_updates() -> void:
 	assert_eq(int(_get_shader_param(rect, StringName("mode"))), 1, "Deuteranopia mode should map to 1")
 
 func test_preview_overrides_persisted_settings() -> void:
-	var rect := _get_combined_rect()
-	assert_not_null(rect, "Combined rect should exist")
-	assert_false(rect.visible, "Combined rect should be hidden by default")
+	var rect := _get_grain_dither_rect()
+	assert_not_null(rect, "Grain+dither rect should exist")
+	assert_false(rect.visible, "Grain+dither rect should be hidden by default")
 
 	_display_manager.set_display_settings_preview({
 		"post_processing_enabled": true,
@@ -174,74 +153,72 @@ func test_preview_overrides_persisted_settings() -> void:
 	})
 	await get_tree().process_frame
 
-	assert_true(rect.visible, "Preview should enable combined rect")
-	assert_almost_eq(float(_get_combined_param(StringName("fg_intensity"))), 0.5, 0.001,
+	assert_true(rect.visible, "Preview should enable grain+dither rect")
+	assert_almost_eq(float(_get_grain_dither_param(StringName("fg_intensity"))), 0.5, 0.001,
 		"Preview should override film grain intensity")
 
 func test_clear_preview_restores_persisted_settings() -> void:
-	var rect := _get_combined_rect()
-	assert_not_null(rect, "Combined rect should exist")
+	var rect := _get_grain_dither_rect()
+	assert_not_null(rect, "Grain+dither rect should exist")
 
 	# Enable post-processing and film grain first
 	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
 	await get_tree().process_frame
-	assert_true(rect.visible, "Setup: combined rect should be visible from state")
+	assert_true(rect.visible, "Setup: grain+dither rect should be visible from state")
 
 	_display_manager.set_display_settings_preview({
 		"post_processing_enabled": true,
 		"film_grain_enabled": false
 	})
 	await get_tree().process_frame
-	assert_false(rect.visible, "Preview should disable combined rect when no effects enabled")
+	assert_false(rect.visible, "Preview should disable grain+dither rect when no effects enabled")
 
 	_display_manager.clear_display_settings_preview()
 	await get_tree().process_frame
 	assert_true(rect.visible, "Clear preview should restore persisted film grain setting")
 
 func test_overlay_visibility_respects_navigation_shell() -> void:
-	var combined_layer := _overlay.get_node_or_null("CombinedLayer") as CanvasLayer
-	assert_not_null(combined_layer, "CombinedLayer should exist")
+	var grain_dither_layer := _overlay.get_node_or_null("GrainDitherLayer") as CanvasLayer
+	assert_not_null(grain_dither_layer, "GrainDitherLayer should exist")
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("main_menu"), StringName("settings_menu")))
 	await get_tree().physics_frame
-	assert_false(combined_layer.visible, "Overlay should hide when shell is not gameplay")
+	assert_false(grain_dither_layer.visible, "Overlay should hide when shell is not gameplay")
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
 	await get_tree().physics_frame
-	assert_true(combined_layer.visible, "Overlay should show when shell is gameplay")
+	assert_true(grain_dither_layer.visible, "Overlay should show when shell is gameplay")
 
 func test_quality_preset_low_disables_post_processing_effects() -> void:
-	var rect := _get_combined_rect()
-	assert_not_null(rect, "Combined rect should exist")
+	var rect := _get_grain_dither_rect()
+	assert_not_null(rect, "Grain+dither rect should exist")
 
 	# Enable post-processing and film grain first
 	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
 	await get_tree().process_frame
-	assert_true(rect.visible, "Setup: combined rect should be visible from state")
+	assert_true(rect.visible, "Setup: grain+dither rect should be visible from state")
 
 	# Disable post-processing (simulating what low quality preset would do)
 	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(false))
 	await get_tree().process_frame
-	assert_false(rect.visible, "Disabling post-processing should hide combined rect")
+	assert_false(rect.visible, "Disabling post-processing should hide grain+dither rect")
 
 	# Re-enable post-processing
 	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	await get_tree().process_frame
 	assert_true(rect.visible, "Re-enabling post-processing should reapply effects")
 
-func test_multiple_effects_share_single_combined_rect() -> void:
-	var rect := _get_combined_rect()
-	assert_not_null(rect, "Combined rect should exist")
+func test_multiple_effects_share_single_grain_dither_rect() -> void:
+	var rect := _get_grain_dither_rect()
+	assert_not_null(rect, "Grain+dither rect should exist")
 
 	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_dither_enabled(true))
 	await get_tree().process_frame
 
-	assert_true(rect.visible, "Combined rect should be visible with all effects on")
-	assert_eq(int(_get_combined_param(StringName("film_grain_enabled"))), 1)
-	assert_eq(int(_get_combined_param(StringName("crt_enabled"))), 1)
-	assert_eq(int(_get_combined_param(StringName("dither_enabled"))), 1)
+	assert_true(rect.visible, "Grain+dither rect should be visible with all effects on")
+	assert_eq(int(_get_grain_dither_param(StringName("film_grain_enabled"))), 1)
+	assert_eq(int(_get_grain_dither_param(StringName("dither_enabled"))), 1)

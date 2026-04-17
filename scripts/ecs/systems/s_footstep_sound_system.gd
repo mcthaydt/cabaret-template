@@ -37,6 +37,9 @@ func _exit_tree() -> void:
 func _ready() -> void:
 	super._ready()
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func process_tick(delta: float) -> void:
 	# Early exit if disabled or no settings
 	if settings == null or not settings.enabled:

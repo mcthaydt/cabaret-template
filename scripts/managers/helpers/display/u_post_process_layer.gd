@@ -2,19 +2,13 @@ extends RefCounted
 class_name U_PostProcessLayer
 
 ## Helper for managing post-process ColorRects in the display overlay.
-## Uses a single combined shader for film grain + dither + CRT,
-## plus a separate color blind layer.
+## Uses a grain + dither shader, plus a separate color blind layer.
 
-const EFFECT_COMBINED := StringName("combined")
+const EFFECT_GRAIN_DITHER := StringName("grain_dither")
 const EFFECT_COLOR_BLIND := StringName("color_blind")
 
-# Legacy constants kept for external references (tests, selectors)
-const EFFECT_FILM_GRAIN := StringName("film_grain")
-const EFFECT_CRT := StringName("crt")
-const EFFECT_DITHER := StringName("dither")
-
 const EFFECT_NODE_PATHS := {
-	EFFECT_COMBINED: NodePath("CombinedLayer/CombinedRect"),
+	EFFECT_GRAIN_DITHER: NodePath("GrainDitherLayer/GrainDitherRect"),
 	EFFECT_COLOR_BLIND: NodePath("ColorBlindLayer/ColorBlindRect"),
 }
 
@@ -36,8 +30,8 @@ func get_effect_rect(effect_name: StringName) -> ColorRect:
 		return rect as ColorRect
 	return null
 
-func get_combined_rect() -> ColorRect:
-	return get_effect_rect(EFFECT_COMBINED)
+func get_grain_dither_rect() -> ColorRect:
+	return get_effect_rect(EFFECT_GRAIN_DITHER)
 
 func set_effect_enabled(effect_name: StringName, enabled: bool) -> void:
 	var rect := get_effect_rect(effect_name)
@@ -55,8 +49,8 @@ func set_effect_parameter(effect_name: StringName, param: StringName, value: Var
 	var shader_material := material as ShaderMaterial
 	shader_material.set_shader_parameter(param, value)
 
-func set_combined_parameter(param: StringName, value: Variant) -> void:
-	set_effect_parameter(EFFECT_COMBINED, param, value)
+func set_grain_dither_parameter(param: StringName, value: Variant) -> void:
+	set_effect_parameter(EFFECT_GRAIN_DITHER, param, value)
 
-func set_combined_visible(visible: bool) -> void:
-	set_effect_enabled(EFFECT_COMBINED, visible)
+func set_grain_dither_visible(visible: bool) -> void:
+	set_effect_enabled(EFFECT_GRAIN_DITHER, visible)

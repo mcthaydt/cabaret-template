@@ -15,7 +15,6 @@ const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_disp
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/managers/helpers/u_vcam_silhouette_helper.gd")
 
@@ -28,10 +27,8 @@ const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vca
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
 	U_STATE_HANDOFF.clear_all()
-	U_ECS_EVENT_BUS.reset()
 
 func after_each() -> void:
-	U_ECS_EVENT_BUS.reset()
 	U_STATE_HANDOFF.clear_all()
 	super.after_each()
 

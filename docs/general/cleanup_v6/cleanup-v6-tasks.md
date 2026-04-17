@@ -151,7 +151,7 @@
 - [x] Create `scripts/utils/display/u_display_applier_utils.gd` with a static `get_tree_safe(owner: Node) -> SceneTree` function.
 - [x] Replace the duplicated `_get_tree()` method in all 4 appliers with a call to the static utility:
   - `u_display_post_process_applier.gd`
-  - `u_display_cinema_grade_applier.gd`
+  - `u_display_color_grading_applier.gd`
   - `u_display_window_applier.gd`
   - `u_display_quality_applier.gd`
   - Completion notes: Implemented in commit `4387cdd8` (`refactor(cleanup-v6): extract duplicated _get_tree() into U_DisplayApplierUtils (phase 5a)`).
@@ -259,11 +259,11 @@
 ## Phase 11 — Cinema Grading Test Coverage (Medium Risk)
 
 - [x] Add unit tests for `U_CinemaGradeRegistry` (scene→grade mapping, neutral fallback, preload safety).
-  - Created `tests/unit/managers/test_cinema_grade_registry.gd` — 14 tests: known scene lookup (all 5 scenes), neutral fallback (scene_id="_neutral", default exposure/contrast/saturation), empty scene_id, `to_dictionary()` validity, re-initialize safety.
+  - Created `tests/unit/managers/test_color_grading_registry.gd` — 14 tests: known scene lookup (all 5 scenes), neutral fallback (scene_id="_neutral", default exposure/contrast/saturation), empty scene_id, `to_dictionary()` validity, re-initialize safety.
 - [x] Add unit tests for `U_CinemaGradeSelectors` (all selector functions with defaults).
-  - Created `tests/unit/managers/test_cinema_grade_selectors.gd` — 22 tests: all 13 selector defaults, read-from-state for filter_mode/filter_intensity/exposure/contrast/saturation, `get_cinema_grade_settings` key filtering, graceful handling of missing/malformed display slice.
+  - Created `tests/unit/managers/test_color_grading_selectors.gd` — 22 tests: all 13 selector defaults, read-from-state for filter_mode/filter_intensity/exposure/contrast/saturation, `get_color_grading_settings` key filtering, graceful handling of missing/malformed display slice.
 - [x] Add integration test for cinema grade applier (scene swap triggers grade change).
-  - Created `tests/integration/display/test_cinema_grade_applier.gd` — 11 tests: CinemaGradeLayer creation, `scene/swapped` loads alleyway grade (filter_mode=6, exposure=-0.18, contrast=1.23 via state and shader uniforms), unknown scene falls back to neutral (filter_mode=0, exposure=0.0, cinema_grade_ keys still populated).
+  - Created `tests/integration/display/test_color_grading_applier.gd` — 11 tests: CinemaGradeLayer creation, `scene/swapped` loads alleyway grade (filter_mode=6, exposure=-0.18, contrast=1.23 via state and shader uniforms), unknown scene falls back to neutral (filter_mode=0, exposure=0.0, color_grading_ keys still populated).
   - Fixed pitfall: GUT treats Variant inference warning as error — must use `var x: Variant = ...` not `var x :=` when calling helpers that return Variant.
 - [x] Run display test suites.
   - Completion notes: Implementation commit `357165a9`. No style violations.
@@ -303,7 +303,7 @@
 - [x] Add unit tests for `ACTION_SET_PARAMETER` (filter preset string→int mapping) in `tests/unit/state/test_display_reducer.gd` (or a new dedicated cinema grade reducer test file).
 - [x] Add unit tests for `ACTION_RESET_TO_SCENE_DEFAULTS` (reset to grade dict values) in the same file.
 - [x] Run display and state test suites.
-  - Completion notes: Added 10 tests (Tests 29–38) covering filter preset mapping (dramatic→1, vivid_cold→6, none→0, unknown→0), filter_intensity, generic param, empty param_name guard, grade dict key filtering, non-cinema_grade key ignored, and empty payload null return. In commit `b888ba27`.
+  - Completion notes: Added 10 tests (Tests 29–38) covering filter preset mapping (dramatic→1, vivid_cold→6, none→0, unknown→0), filter_intensity, generic param, empty param_name guard, grade dict key filtering, non-color_grading key ignored, and empty payload null return. In commit `b888ba27`.
   - Validation: `tests/unit/state` 375/375 passed (+10 from baseline 365).
 
 ### 13C — Broader `String()` → `str()` Audit

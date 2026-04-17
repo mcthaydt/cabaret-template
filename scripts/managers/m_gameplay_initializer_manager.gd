@@ -59,4 +59,4 @@ func _ready() -> void:
 	# - Running gameplay_base.tscn directly in editor
 	# - Loading gameplay scenes in tests
 	# - Any other direct scene instantiation (NOT via M_SceneManager)
-	await spawn_manager.spawn_at_last_spawn(scene_root)
+	spawn_manager.spawn_at_last_spawn(scene_root)

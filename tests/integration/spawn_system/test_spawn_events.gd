@@ -1,19 +1,17 @@
 extends GutTest
 
-## Integration test: M_SpawnManager publishes player_spawned event
+## Integration test: M_SpawnManager dispatches player_spawned action to Redux
 
 const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_SPAWN_ACTIONS := preload("res://scripts/state/actions/u_spawn_actions.gd")
 
 var _spawn_manager: M_SpawnManager
 var _store: M_StateStore
 var _scene: Node3D
 
 func before_each() -> void:
-	U_ECS_EVENT_BUS.reset()
-
 	_store = M_STATE_STORE.new()
 	_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL.new()
 	add_child_autofree(_store)
@@ -32,10 +30,9 @@ func after_each() -> void:
 	_spawn_manager = null
 	_store = null
 	_scene = null
-	U_ECS_EVENT_BUS.reset()
 	U_ServiceLocator.clear()
 
-func test_spawn_player_at_point_publishes_player_spawned_event() -> void:
+func test_spawn_player_at_point_dispatches_player_spawned_action() -> void:
 	# Arrange: player and spawn point
 	var player := Node3D.new()
 	player.name = "E_Player"
@@ -46,18 +43,17 @@ func test_spawn_player_at_point_publishes_player_spawned_event() -> void:
 	spawn.position = Vector3(1, 2, 3)
 	_scene.add_child(spawn)
 
+	# Channel taxonomy: observe player_spawned via Redux action_dispatched
+	var action_received: Array = [false]
+	_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type", StringName("")) == U_SPAWN_ACTIONS.ACTION_PLAYER_SPAWNED:
+			action_received[0] = true
+	)
+
 	# Act
 	var ok := _spawn_manager.spawn_player_at_point(_scene, StringName("sp_entry"))
 	await wait_physics_frames(1)
 
-	# Assert: success and event published with payload
+	# Assert: success and action dispatched
 	assert_true(ok, "Spawn should succeed")
-	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	var found := false
-	for ev in history:
-		if ev.get("name") == StringName("player_spawned"):
-			var payload: Dictionary = ev.get("payload", {})
-			found = payload.get("spawn_point_id", StringName("")) == StringName("sp_entry")
-			if found:
-				break
-	assert_true(found, "Should publish player_spawned event with spawn_point_id")
+	assert_true(action_received[0], "Should dispatch player_spawned action to Redux")

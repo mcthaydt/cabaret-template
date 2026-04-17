@@ -20,6 +20,9 @@ const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 
 var _last_debug_log_frame: int = -9999
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.PHYSICS_SOLVE
+
 func process_tick(delta: float) -> void:
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null

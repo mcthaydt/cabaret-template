@@ -3,6 +3,7 @@ extends BaseECSComponent
 class_name C_MovementComponent
 
 const COMPONENT_TYPE := StringName("C_MovementComponent")
+const U_NODE_FIND := preload("res://scripts/utils/ecs/u_node_find.gd")
 
 @export var settings: RS_MovementSettings
 
@@ -44,18 +45,4 @@ func _locate_character_body() -> CharacterBody3D:
 	var entity := ECS_UTILS.find_entity_root(self)
 	if entity == null:
 		return null
-	return _find_character_body_recursive(entity)
-
-func _find_character_body_recursive(node: Node) -> CharacterBody3D:
-	if node is CharacterBody3D:
-		return node as CharacterBody3D
-
-	for child in node.get_children():
-		var child_node := child as Node
-		if child_node == null:
-			continue
-		var found := _find_character_body_recursive(child_node)
-		if found != null:
-			return found
-
-	return null
+	return U_NODE_FIND.find_character_body_recursive(entity)

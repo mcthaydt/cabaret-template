@@ -312,7 +312,10 @@ func _create_state_store() -> TestStateStore:
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
 	store.scene_initial_state = RS_SceneInitialState.new()
 	store.settings_initial_state = RS_SettingsInitialState.new()
-	store.navigation_initial_state = RS_NavigationInitialState.new()
+	var nav_initial := RS_NavigationInitialState.new()
+	nav_initial.shell = StringName("gameplay")
+	nav_initial.base_scene_id = StringName("")
+	store.navigation_initial_state = nav_initial
 	add_child_autofree(store)
 	await _await_frames(2)
 	return store

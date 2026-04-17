@@ -2,6 +2,8 @@
 extends "res://scripts/interfaces/i_input_device_manager.gd"
 class_name M_InputDeviceManager
 
+const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+
 
 signal device_changed(device_type: int, device_id: int, timestamp: float)
 
@@ -342,20 +344,16 @@ func _should_ignore_gamepad_disconnect() -> bool:
 func _has_overlay_active() -> bool:
 	if _state_store == null or not is_instance_valid(_state_store):
 		return false
-	var nav_state: Dictionary = _state_store.get_state().get("navigation", {})
-	return not U_NavigationSelectors.get_overlay_stack(nav_state).is_empty()
+	var state: Dictionary = _state_store.get_state()
+	return not U_NAVIGATION_SELECTORS.get_overlay_stack(state).is_empty()
 
 func _is_gamepad_settings_active() -> bool:
 	if _state_store == null or not is_instance_valid(_state_store):
 		return false
 	var state: Dictionary = _state_store.get_state()
-	var nav_state_variant: Variant = state.get("navigation", {})
-	if not (nav_state_variant is Dictionary):
-		return false
-	var nav_state: Dictionary = nav_state_variant as Dictionary
-	if U_NavigationSelectors.get_top_overlay_id(nav_state) == GAMEPAD_SETTINGS_SCREEN_ID:
+	if U_NAVIGATION_SELECTORS.get_top_overlay_id(state) == GAMEPAD_SETTINGS_SCREEN_ID:
 		return true
-	return U_NavigationSelectors.get_base_scene_id(nav_state) == GAMEPAD_SETTINGS_SCREEN_ID
+	return U_NAVIGATION_SELECTORS.get_base_scene_id(state) == GAMEPAD_SETTINGS_SCREEN_ID
 
 func _should_guard_disconnect_by_grace_period() -> bool:
 	if not _is_mobile_context():

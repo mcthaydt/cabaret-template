@@ -14,25 +14,12 @@ class_name U_StoreActionBinder
 ##   # In _exit_tree(): _binder.disconnect_signal(_on_action_dispatched)
 ##   # Access store: _binder.store
 
-const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
-
-const STORE_SERVICE_NAME := StringName("state_store")
-
 var store: I_StateStore = null
 var _connected: bool = false
 
 
 func resolve(exported_store: I_StateStore, owner_node: Node, callback: Callable) -> void:
-	var resolved: I_StateStore = null
-	if exported_store != null and is_instance_valid(exported_store):
-		resolved = exported_store
-	elif store != null and is_instance_valid(store):
-		resolved = store
-	else:
-		resolved = U_STATE_UTILS.try_get_store(owner_node)
-		if resolved == null:
-			resolved = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
+	var resolved: I_StateStore = U_DependencyResolution.resolve_state_store(store, exported_store, owner_node) as I_StateStore
 	_set_store(resolved, callback)
 
 

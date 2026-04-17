@@ -3,37 +3,33 @@ extends "res://scripts/interfaces/i_character_lighting_manager.gd"
 class_name M_CharacterLightingManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_CHARACTER_LIGHTING_BLEND_MATH := preload("res://scripts/utils/lighting/u_character_lighting_blend_math.gd")
 const U_CHARACTER_LIGHTING_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_character_lighting_material_applier.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const RS_CHARACTER_LIGHTING_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_character_lighting_config.gd")
+const DEFAULT_CHARACTER_LIGHTING_CONFIG := preload("res://resources/base_settings/display/cfg_character_lighting_config_default.tres")
 const SERVICE_NAME := StringName("character_lighting_manager")
 const STATE_SERVICE := StringName("state_store")
 const SCENE_SERVICE := StringName("scene_manager")
 const ECS_SERVICE := StringName("ecs_manager")
 const TAG_CHARACTER := StringName("character")
 const ACTION_SCENE_SWAPPED := StringName("scene/swapped")
-const SCENE_SLICE := StringName("scene")
-const NAVIGATION_SLICE := StringName("navigation")
 const GAMEPLAY_SHELL := StringName("gameplay")
 const LIGHTING_NODE_NAME := "Lighting"
 const SETTINGS_NODE_NAME := "CharacterLightingSettings"
 const INFLUENCE_ENTER_THRESHOLD := 0.02
 const INFLUENCE_EXIT_THRESHOLD := 0.01
-const DEFAULT_PROFILE := {
-	"tint": Color(1.0, 1.0, 1.0, 1.0),
-	"intensity": 1.0,
-	"blend_smoothing": 0.15,
-}
 
 @export var state_store: I_StateStore = null
 @export var scene_manager: I_SceneManager = null
 @export var ecs_manager: Node = null
+@export var lighting_config: Resource = null
 
 var _scene_default_profile: Resource = null
-var _scene_default_profile_resolved: Dictionary = DEFAULT_PROFILE.duplicate(true)
+var _scene_default_profile_resolved: Dictionary = {}
 var _zones: Array[Node] = []
 var _character_entities: Array[Node] = []
 var _registered_zones: Array[Node] = []
@@ -47,9 +43,17 @@ var _store_action_connected: bool = false
 var _manual_scene_default_profile: bool = false
 var _character_lighting_history: Dictionary = {} # character instance_id -> {tint, intensity}
 var _character_zone_hysteresis: Dictionary = {} # character instance_id -> {zone_key: is_active}
+var _is_mobile: bool = false
+var _tick_counter: int = 0
+var _perf_probe: U_PerfProbe = null
+var _apply_probe: U_PerfProbe = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	_perf_probe = U_PerfProbe.create("CharLighting", _is_mobile)
+	_apply_probe = U_PerfProbe.create("CharLightApply", _is_mobile)
+	_scene_default_profile_resolved = _resolve_default_profile_values()
 	_resolve_dependencies()
 	_connect_store_action_signal()
 	var existing := U_SERVICE_LOCATOR.try_get_service(SERVICE_NAME)
@@ -97,12 +101,20 @@ func set_character_lighting_enabled(enabled: bool) -> void:
 	_is_enabled = enabled
 
 func _physics_process(_delta: float) -> void:
+	# Mobile throttle: skip every Nth physics tick to reduce zone computation overhead
+	_tick_counter += 1
+	var mobile_tick_interval: int = _resolve_mobile_tick_interval()
+	if _is_mobile and (_tick_counter % mobile_tick_interval) != 0:
+		return
+
+	_perf_probe.start()
 	_resolve_dependencies()
 	_connect_store_action_signal()
 
 	if not _is_enabled:
 		_material_applier.restore_all_materials()
 		_clear_all_runtime_state()
+		_perf_probe.stop()
 		return
 
 	if _scene_cache_dirty:
@@ -115,12 +127,15 @@ func _physics_process(_delta: float) -> void:
 	if not block_reason.is_empty():
 		if _should_apply_during_transition_block(block_reason):
 			_apply_lighting_to_characters()
+			_perf_probe.stop()
 			return
 		_material_applier.restore_all_materials()
 		_clear_all_runtime_state()
+		_perf_probe.stop()
 		return
 
 	_apply_lighting_to_characters()
+	_perf_probe.stop()
 
 func _prune_invalid_zones() -> void:
 	var active: Array[Node] = []
@@ -133,24 +148,10 @@ func _prune_invalid_zones() -> void:
 	_zones = active
 
 func _resolve_dependencies() -> void:
-	if state_store != null and is_instance_valid(state_store):
-		_state_store = state_store
-	elif _state_store == null or not is_instance_valid(_state_store):
-		_state_store = U_STATE_UTILS.try_get_store(self)
-		if _state_store == null:
-			_state_store = U_SERVICE_LOCATOR.try_get_service(STATE_SERVICE) as I_StateStore
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_StateStore
+	_scene_manager = U_DependencyResolution.resolve(SCENE_SERVICE, _scene_manager, scene_manager) as I_SceneManager
 
-	if scene_manager != null and is_instance_valid(scene_manager):
-		_scene_manager = scene_manager
-	elif _scene_manager == null or not is_instance_valid(_scene_manager):
-		_scene_manager = U_SERVICE_LOCATOR.try_get_service(SCENE_SERVICE) as I_SceneManager
-
-	if ecs_manager != null and is_instance_valid(ecs_manager):
-		_ecs_manager = ecs_manager
-	elif _ecs_manager == null or not is_instance_valid(_ecs_manager):
-		_ecs_manager = U_ECS_UTILS.get_manager(self)
-		if _ecs_manager == null:
-			_ecs_manager = U_SERVICE_LOCATOR.try_get_service(ECS_SERVICE)
+	_ecs_manager = U_DependencyResolution.resolve(ECS_SERVICE, _ecs_manager, ecs_manager) as I_ECSManager
 
 func _connect_store_action_signal() -> void:
 	if _store_action_connected:
@@ -267,9 +268,54 @@ func _resolve_profile_values(profile: Resource) -> Dictionary:
 			var blended := U_CHARACTER_LIGHTING_BLEND_MATH.blend_zone_profiles([], resolved)
 			blended.erase("sources")
 			return blended
-	var fallback := U_CHARACTER_LIGHTING_BLEND_MATH.blend_zone_profiles([], DEFAULT_PROFILE)
+	var fallback := U_CHARACTER_LIGHTING_BLEND_MATH.blend_zone_profiles([], _resolve_default_profile_values())
 	fallback.erase("sources")
 	return fallback
+
+
+func _resolve_mobile_tick_interval() -> int:
+	var config: Resource = _resolve_lighting_config_resource()
+	if config == null:
+		return 3
+	return maxi(1, int(config.get("mobile_tick_interval")))
+
+
+func _resolve_default_profile_values() -> Dictionary:
+	var config: Resource = _resolve_lighting_config_resource()
+	var fallback := {
+		"tint": Color(1.0, 1.0, 1.0, 1.0),
+		"intensity": 1.0,
+		"blend_smoothing": 0.15,
+	}
+	if config == null:
+		return fallback
+
+	if config.has_method("get_default_profile_values"):
+		var resolved_variant: Variant = config.call("get_default_profile_values")
+		if resolved_variant is Dictionary:
+			var resolved := resolved_variant as Dictionary
+			return {
+				"tint": resolved.get("tint", fallback["tint"]),
+				"intensity": _to_float(resolved.get("intensity", fallback["intensity"]), 1.0),
+				"blend_smoothing": clampf(
+					_to_float(resolved.get("blend_smoothing", fallback["blend_smoothing"]), 0.15),
+					0.0,
+					1.0
+				),
+			}
+	return fallback
+
+
+func _resolve_lighting_config_resource() -> Resource:
+	var config_variant: Variant = lighting_config
+	if config_variant == null:
+		config_variant = DEFAULT_CHARACTER_LIGHTING_CONFIG
+	if config_variant == null or not (config_variant is Resource):
+		return null
+	var config_resource := config_variant as Resource
+	if config_resource.get_script() != RS_CHARACTER_LIGHTING_CONFIG_SCRIPT:
+		return null
+	return config_resource
 
 func _update_character_entities() -> void:
 	var discovered := _discover_character_entities()
@@ -408,27 +454,28 @@ func _apply_lighting_to_characters() -> void:
 		var stabilized := _apply_temporal_smoothing(character_id, blended)
 		var effective_tint: Color = stabilized.get("tint", Color(1.0, 1.0, 1.0, 1.0))
 		var effective_intensity: float = _to_float(stabilized.get("intensity", 1.0), 1.0)
+		_apply_probe.start()
 		_material_applier.apply_character_lighting(
 			character_node,
 			Color(1.0, 1.0, 1.0, 1.0),
 			effective_tint,
 			effective_intensity
 		)
+		_apply_probe.stop()
 
 func _is_transition_blocked() -> bool:
 	return not _get_transition_block_reason().is_empty()
 
 func _get_transition_block_reason() -> String:
 	if _state_store != null:
-		var scene_slice: Dictionary = _state_store.get_slice(SCENE_SLICE)
-		if U_SCENE_SELECTORS.is_transitioning(scene_slice):
+		var state: Dictionary = _state_store.get_state()
+		if U_SCENE_SELECTORS.is_transitioning(state):
 			return "scene.is_transitioning=true"
-		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(scene_slice)
+		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(state)
 		if not scene_stack.is_empty():
 			return "scene.scene_stack size=%d" % scene_stack.size()
 
-		var navigation_slice: Dictionary = _state_store.get_slice(NAVIGATION_SLICE)
-		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(navigation_slice)
+		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
 		if shell != GAMEPLAY_SHELL:
 			return "navigation.shell=%s" % String(shell)
 
@@ -455,12 +502,11 @@ func _should_apply_during_transition_block(block_reason: String) -> bool:
 		return false
 
 	if _state_store != null:
-		var scene_slice: Dictionary = _state_store.get_slice(SCENE_SLICE)
-		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(scene_slice)
+		var state: Dictionary = _state_store.get_state()
+		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(state)
 		if not scene_stack.is_empty():
 			return false
-		var navigation_slice: Dictionary = _state_store.get_slice(NAVIGATION_SLICE)
-		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(navigation_slice)
+		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
 		if shell != GAMEPLAY_SHELL:
 			return false
 
@@ -502,19 +548,19 @@ func _apply_influence_hysteresis(character_id: int, zone_key: String, raw_influe
 		return clamped_influence
 
 	var state_variant: Variant = _character_zone_hysteresis.get(character_id, {})
-	var state: Dictionary = {}
+	var zone_state: Dictionary = {}
 	if state_variant is Dictionary:
-		state = state_variant as Dictionary
+		zone_state = state_variant as Dictionary
 
-	var was_active := bool(state.get(zone_key, false))
+	var was_active := bool(zone_state.get(zone_key, false))
 	var is_active: bool = was_active
 	if was_active:
 		is_active = clamped_influence >= INFLUENCE_EXIT_THRESHOLD
 	else:
 		is_active = clamped_influence >= INFLUENCE_ENTER_THRESHOLD
 
-	state[zone_key] = is_active
-	_character_zone_hysteresis[character_id] = state
+	zone_state[zone_key] = is_active
+	_character_zone_hysteresis[character_id] = zone_state
 
 	if is_active:
 		return clamped_influence
@@ -524,11 +570,11 @@ func _prune_character_zone_hysteresis(character_id: int, observed_zone_keys: Arr
 	var state_variant: Variant = _character_zone_hysteresis.get(character_id, {})
 	if not (state_variant is Dictionary):
 		return
-	var state := state_variant as Dictionary
+	var zone_state := state_variant as Dictionary
 	var pruned: Dictionary = {}
 	for key in observed_zone_keys:
-		if state.has(key):
-			pruned[key] = state[key]
+		if zone_state.has(key):
+			pruned[key] = zone_state[key]
 	_character_zone_hysteresis[character_id] = pruned
 
 func _apply_temporal_smoothing(character_id: int, blended: Dictionary) -> Dictionary:

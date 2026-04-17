@@ -38,6 +38,9 @@ func on_configured() -> void:
 	else:
 		_store = U_STATE_UTILS.get_store(self)
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func process_tick(delta: float) -> void:
 	if _store == null:
 		return

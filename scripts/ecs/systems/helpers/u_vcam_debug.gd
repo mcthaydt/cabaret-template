@@ -2,6 +2,7 @@ extends RefCounted
 class_name U_VCamDebug
 
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
 
 const MAX_DEBUG_ISSUES: int = 64
 const MIN_LOG_INTERVAL_SEC: float = 0.05
@@ -67,7 +68,7 @@ func log_follow_target_resolution(
 ) -> void:
 	if not _enabled:
 		return
-	var target_id: int = _get_node_instance_id(follow_target)
+	var target_id: int = U_VCAM_UTILS.get_node_instance_id(follow_target)
 	var previous_target_id: int = int(_debug_follow_target_ids.get(vcam_id, -1))
 	if previous_target_id == target_id:
 		return
@@ -116,8 +117,7 @@ func log_look_ahead_motion_state(
 			var store := _resolve_state_store()
 			if store != null:
 				var state: Dictionary = store.get_state()
-				var gameplay_entities: Dictionary = state.get("gameplay", {}).get("entities", {})
-				var entity_state: Dictionary = gameplay_entities.get(String(gameplay_entity_id), {})
+				var entity_state: Dictionary = U_EntitySelectors.get_entity(state, gameplay_entity_id)
 				if not entity_state.is_empty():
 					gameplay_is_moving = bool(entity_state.get("is_moving", false))
 					var velocity_variant: Variant = entity_state.get("velocity", Vector3.ZERO)
@@ -302,13 +302,6 @@ func _prune_debug_dictionary(debug_map: Dictionary, active_vcam_ids: Array) -> v
 
 	for stale_id in stale_ids:
 		debug_map.erase(stale_id)
-
-func _get_node_instance_id(node: Node) -> int:
-	if node == null:
-		return 0
-	if not is_instance_valid(node):
-		return 0
-	return node.get_instance_id()
 
 func _get_debug_mode_label(mode_script: Script) -> String:
 	if mode_script == null:

@@ -13,6 +13,7 @@ class_name BaseMenuScreen
 
 const ANALOG_STICK_REPEATER_PATH := "res://scripts/ui/utils/u_analog_stick_repeater.gd"
 const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 
 const BACKGROUND_SHADER_PRESET_NONE := "none"
 const BACKGROUND_SHADER_PRESET_RETRO_GRID := "retro_grid"
@@ -219,6 +220,11 @@ func _setup_background_shader() -> void:
 	if background_shader_preset == BACKGROUND_SHADER_PRESET_NONE:
 		return
 
+	# Mobile override: skip heavy procedural menu shader entirely
+	if U_MOBILE_PLATFORM_DETECTOR.is_mobile():
+		_setup_mobile_background()
+		return
+
 	var preset_mode := _get_background_shader_mode(background_shader_preset)
 	if preset_mode < 0:
 		return
@@ -235,6 +241,18 @@ func _setup_background_shader() -> void:
 
 	_background_shader_material = shader_material
 	_apply_background_shader_uniforms(preset_mode)
+
+## Mobile fallback: use a simple solid color instead of the expensive procedural shader.
+func _setup_mobile_background() -> void:
+	_background_rect = _resolve_background_rect()
+	if _background_rect == null:
+		return
+	# Remove any existing shader material; use plain color
+	_background_rect.material = null
+	# Use a subtle dark tint matching the retro aesthetic
+	_background_rect.color = Color(0.08, 0.06, 0.12, 1.0)
+	# No shader updates needed on mobile
+	_background_shader_material = null
 
 func _update_background_shader_state() -> void:
 	if background_shader_preset == BACKGROUND_SHADER_PRESET_NONE:

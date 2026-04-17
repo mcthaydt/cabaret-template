@@ -10,6 +10,7 @@ const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const M_INPUT_DEVICE_MANAGER := preload("res://scripts/managers/m_input_device_manager.gd")
 const S_INPUT_SYSTEM := preload("res://scripts/ecs/systems/s_input_system.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const ECSEntity := preload("res://scripts/ecs/base_ecs_entity.gd")
 
 func before_each() -> void:
@@ -124,6 +125,10 @@ func test_input_system_end_to_end_updates_store_and_component() -> void:
 
 	var component: C_InputComponent = C_INPUT_COMPONENT.new()
 	entity.add_child(component)
+	await get_tree().process_frame
+
+	var player_tag: Variant = C_PLAYER_TAG_COMPONENT.new()
+	entity.add_child(player_tag)
 	await get_tree().process_frame
 
 	var system: S_InputSystem = S_INPUT_SYSTEM.new()

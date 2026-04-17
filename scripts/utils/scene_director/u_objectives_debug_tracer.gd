@@ -52,9 +52,10 @@ static func log_objectives_slice(label: String, store: Node) -> void:
 		var objectives_slice: Dictionary = objectives_variant as Dictionary
 		var statuses_variant: Variant = objectives_slice.get("statuses", {})
 		var active_set_id: Variant = objectives_slice.get("active_set_id", StringName(""))
+		var active_set_ids: Variant = objectives_slice.get("active_set_ids", [])
 		debug_log(
-			"%s objectives.statuses=%s objectives.active_set_id=%s"
-			% [label, str(statuses_variant), str(active_set_id)]
+			"%s objectives.statuses=%s objectives.active_set_id=%s objectives.active_set_ids=%s"
+			% [label, str(statuses_variant), str(active_set_id), str(active_set_ids)]
 		)
 		return
 	debug_log("%s objectives_slice=<missing_or_invalid> type=%s" % [label, str(objectives_variant)])

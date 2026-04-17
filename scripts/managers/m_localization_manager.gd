@@ -6,7 +6,6 @@ class_name M_LocalizationManager
 ## Uses Theme resources for font cascade (Godot's theme inheritance).
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 const U_LOCALIZATION_CATALOG := preload("res://scripts/managers/helpers/localization/u_localization_catalog.gd")
 const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/managers/helpers/localization/u_localization_font_applier.gd")
@@ -92,7 +91,7 @@ func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
 	if slice_name != LOCALIZATION_SLICE_NAME:
 		return
 	var state: Dictionary = _resolved_store.get_state()
-	var loc_slice: Dictionary = state.get("localization", {})
+	var loc_slice: Dictionary = U_LOCALIZATION_SELECTORS.get_localization_settings(state)
 	var loc_hash: int = loc_slice.hash()
 	if loc_hash != _last_localization_hash:
 		_apply_localization_settings(state)
@@ -107,7 +106,7 @@ func _apply_localization_settings(state: Dictionary) -> void:
 		_load_locale(locale)
 	_apply_font_override(dyslexia)
 	_apply_count += 1
-	var loc_slice: Dictionary = state.get("localization", {})
+	var loc_slice: Dictionary = U_LOCALIZATION_SELECTORS.get_localization_settings(state)
 	_last_localization_hash = loc_slice.hash()
 	_applying_settings = false
 
@@ -231,7 +230,7 @@ func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 		return null
 	var frames_waited := 0
 	while frames_waited <= max_frames:
-		var store := U_STATE_UTILS.try_get_store(self)
+		var store := U_DependencyResolution.resolve_state_store(null, null, self)
 		if store != null:
 			if store.is_ready():
 				return store

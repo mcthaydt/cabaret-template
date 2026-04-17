@@ -46,25 +46,23 @@ func test_validate_slice_dependencies_returns_false_for_invalid_dependency() -> 
 	assert_push_error("declares dependency on unregistered slice")
 	assert_false(result, "Should return false when dependency doesn't exist")
 
-## Test that get_slice logs error when accessing undeclared dependency
+## Test that get_slice logs error and returns empty in strict mode when accessing undeclared dependency
 func test_get_slice_logs_error_for_undeclared_dependency() -> void:
 	# Register two slices, B doesn't declare dependency on A
 	var config_a := RS_StateSliceConfig.new(StringName("slice_a"))
 	config_a.initial_state = {"value": 1}
 	config_a.dependencies = []
 	store.register_slice(config_a)
-	
+
 	var config_b := RS_StateSliceConfig.new(StringName("slice_b"))
 	config_b.initial_state = {"value": 2}
 	config_b.dependencies = []  # NOT declaring dependency on slice_a
 	store.register_slice(config_b)
-	
-	# Access slice_a from slice_b context (should log error)
-	var _state := store.get_slice(StringName("slice_a"), StringName("slice_b"))
+
+	# Access slice_a from slice_b context (should log error and return {} in strict mode)
+	var result := store.get_slice(StringName("slice_a"), StringName("slice_b"))
 	assert_push_error("without declaring dependency")
-	
-	# The error is logged via push_error, we just verify no crash
-	pass_test("get_slice should log error but not crash")
+	assert_eq(result, {}, "Strict mode should return empty dict for undeclared access")
 
 ## Test that get_slice allows access when dependency is declared
 func test_get_slice_allows_access_with_declared_dependency() -> void:

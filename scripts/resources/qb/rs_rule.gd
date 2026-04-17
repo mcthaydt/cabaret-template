@@ -2,8 +2,8 @@
 extends Resource
 class_name RS_Rule
 
-const BASE_CONDITION_SCRIPT := preload("res://scripts/resources/qb/rs_base_condition.gd")
-const BASE_EFFECT_SCRIPT := preload("res://scripts/resources/qb/rs_base_effect.gd")
+var _conditions: Array[I_Condition] = []
+var _effects: Array[I_Effect] = []
 
 @export_group("Identity")
 @export var rule_id: StringName
@@ -13,10 +13,16 @@ const BASE_EFFECT_SCRIPT := preload("res://scripts/resources/qb/rs_base_effect.g
 @export_enum("tick", "event", "both") var trigger_mode: String = "tick"
 
 @export_group("Evaluation")
-# Fallback for headless parser stability: use Resource arrays when new class_name
-# symbols are not yet resolvable in typed Array annotations.
-@export var conditions: Array[Resource] = []
-@export var effects: Array[Resource] = []
+@export var conditions: Array[I_Condition] = []:
+	get:
+		return _conditions
+	set(value):
+		_conditions = _coerce_conditions(value)
+@export var effects: Array[I_Effect] = []:
+	get:
+		return _effects
+	set(value):
+		_effects = _coerce_effects(value)
 @export var score_threshold: float = 0.0
 
 @export_group("Selection")
@@ -27,3 +33,23 @@ const BASE_EFFECT_SCRIPT := preload("res://scripts/resources/qb/rs_base_effect.g
 @export var cooldown: float = 0.0
 @export var one_shot: bool = false
 @export var requires_rising_edge: bool = false
+
+
+func _coerce_conditions(value: Variant) -> Array[I_Condition]:
+	var coerced: Array[I_Condition] = []
+	if not (value is Array):
+		return coerced
+	for condition_variant in value as Array:
+		if condition_variant is I_Condition:
+			coerced.append(condition_variant as I_Condition)
+	return coerced
+
+
+func _coerce_effects(value: Variant) -> Array[I_Effect]:
+	var coerced: Array[I_Effect] = []
+	if not (value is Array):
+		return coerced
+	for effect_variant in value as Array:
+		if effect_variant is I_Effect:
+			coerced.append(effect_variant as I_Effect)
+	return coerced

@@ -106,8 +106,7 @@ func _update_death_count(state: Dictionary = {}) -> void:
 		if store != null:
 			target_state = store.get_state()
 
-	var gameplay: Dictionary = target_state.get("gameplay", {})
-	var deaths: int = int(gameplay.get("death_count", 0))
+	var deaths: int = U_GameplaySelectors.get_death_count(target_state)
 	var template: String = U_LOCALIZATION_UTILS.localize(&"menu.game_over.deaths")
 	_death_count_label.text = template % deaths if template.contains("%") else "Deaths: %d" % deaths
 

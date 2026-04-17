@@ -14,6 +14,7 @@ const PLACEHOLDER_TEXTURE_PATH: String = "res://resources/ui/tex_save_slot_place
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
 const MONTH_KEYS: Array[StringName] = [
 	&"date.month.jan",
 	&"date.month.feb",
@@ -106,29 +107,19 @@ func _discover_save_manager() -> void:
 		push_error("UI_SaveLoadMenu: M_SaveManager not found in ServiceLocator")
 
 func _subscribe_to_events() -> void:
-	# Subscribe to save events for UI updates
-	U_ECSEventBus.subscribe(StringName("save_started"), _on_save_started)
-	U_ECSEventBus.subscribe(StringName("save_completed"), _on_save_completed)
-	U_ECSEventBus.subscribe(StringName("save_failed"), _on_save_failed)
-
-	# Subscribe to load events for spinner and button state
-	U_ECSEventBus.subscribe(StringName("load_started"), _on_load_started)
-	U_ECSEventBus.subscribe(StringName("load_completed"), _on_load_completed)
-	U_ECSEventBus.subscribe(StringName("load_failed"), _on_load_failed)
+	# Channel taxonomy: save/load actions arrive via Redux dispatch (managers dispatch to Redux).
+	# Connection is deferred to _on_store_ready() because the base panel resolves _store
+	# via call_deferred("_deferred_panel_ready"), so the store isn't available yet in _ready().
+	pass
 
 func _exit_tree() -> void:
-	# Unsubscribe from save events
-	U_ECSEventBus.unsubscribe(StringName("save_started"), _on_save_started)
-	U_ECSEventBus.unsubscribe(StringName("save_completed"), _on_save_completed)
-	U_ECSEventBus.unsubscribe(StringName("save_failed"), _on_save_failed)
-
-	# Unsubscribe from load events
-	U_ECSEventBus.unsubscribe(StringName("load_started"), _on_load_started)
-	U_ECSEventBus.unsubscribe(StringName("load_completed"), _on_load_completed)
-	U_ECSEventBus.unsubscribe(StringName("load_failed"), _on_load_failed)
+	# Disconnect from Redux action_dispatched
+	var store := get_store()
+	if store != null and store.has_signal("action_dispatched"):
+		if store.action_dispatched.is_connected(_on_action_dispatched):
+			store.action_dispatched.disconnect(_on_action_dispatched)
 
 	# Disconnect from store
-	var store := get_store()
 	if store != null and store.slice_updated.is_connected(_on_slice_updated):
 		store.slice_updated.disconnect(_on_slice_updated)
 
@@ -138,6 +129,8 @@ func _exit_tree() -> void:
 func _on_store_ready(store_ref: M_StateStore) -> void:
 	if store_ref != null:
 		store_ref.slice_updated.connect(_on_slice_updated)
+		if store_ref.has_signal("action_dispatched") and not store_ref.action_dispatched.is_connected(_on_action_dispatched):
+			store_ref.action_dispatched.connect(_on_action_dispatched)
 		_read_mode_from_state()
 
 func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> void:
@@ -631,44 +624,30 @@ func _perform_delete(slot_id: StringName) -> void:
 	# Refresh UI to remove deleted slot
 	_refresh_slot_list()
 
-## Event handlers for save events
+## Channel taxonomy: save actions arrive via Redux dispatch (managers dispatch to Redux)
 
-func _on_save_started(__event: Dictionary) -> void:
-	# Save started - could show a brief "Saving..." indicator
-	_clear_error_message()
-	pass
+func _on_action_dispatched(action: Dictionary) -> void:
+	var action_type: StringName = action.get("type", StringName(""))
 
-func _on_save_completed(__event: Dictionary) -> void:
-	# Save completed - refresh slot list to show updated metadata
-	call_deferred("_refresh_slot_list")
-
-func _on_save_failed(_event: Dictionary) -> void:
-	# Save failed - could show error message
-	var payload: Dictionary = _event.get("payload", {})
-	var error_code: int = payload.get("error_code", 0)
-	_show_error_message(_format_operation_error(OPERATION_SAVE, error_code))
-
-## Event handlers for load events
-
-func _on_load_started(__event: Dictionary) -> void:
-	# Load started - show spinner and disable all buttons
-	_clear_error_message()
-	_show_loading_spinner()
-	_set_buttons_enabled(false)
-
-func _on_load_completed(__event: Dictionary) -> void:
-	# Load completed - hide spinner and re-enable buttons
-	_hide_loading_spinner()
-	_set_buttons_enabled(true)
-
-func _on_load_failed(_event: Dictionary) -> void:
-	# Load failed - hide spinner and re-enable buttons
-	_hide_loading_spinner()
-	_set_buttons_enabled(true)
-
-	var payload: Dictionary = _event.get("payload", {})
-	var error_code: int = payload.get("error_code", 0)
-	_show_error_message(_format_operation_error(OPERATION_LOAD, error_code))
+	if action_type == U_SAVE_ACTIONS.ACTION_SAVE_STARTED:
+		_clear_error_message()
+	elif action_type == U_SAVE_ACTIONS.ACTION_SAVE_COMPLETED:
+		call_deferred("_refresh_slot_list")
+	elif action_type == U_SAVE_ACTIONS.ACTION_SAVE_FAILED:
+		var error_code: int = action.get("error_code", 0)
+		_show_error_message(_format_operation_error(OPERATION_SAVE, error_code))
+	elif action_type == U_SAVE_ACTIONS.ACTION_LOAD_STARTED:
+		_clear_error_message()
+		_show_loading_spinner()
+		_set_buttons_enabled(false)
+	elif action_type == U_SAVE_ACTIONS.ACTION_LOAD_COMPLETED:
+		_hide_loading_spinner()
+		_set_buttons_enabled(true)
+	elif action_type == U_SAVE_ACTIONS.ACTION_LOAD_FAILED:
+		_hide_loading_spinner()
+		_set_buttons_enabled(true)
+		var error_code: int = action.get("error_code", 0)
+		_show_error_message(_format_operation_error(OPERATION_LOAD, error_code))
 
 func _clear_error_message() -> void:
 	if _error_label == null:

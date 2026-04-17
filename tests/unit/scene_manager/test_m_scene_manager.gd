@@ -8,6 +8,7 @@ extends GutTest
 const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
+const RS_NavigationInitialState = preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
@@ -38,6 +39,10 @@ func before_each() -> void:
 	_store.settings = RS_StateStoreSettings.new()
 	var scene_initial_state := RS_SceneInitialState.new()
 	_store.scene_initial_state = scene_initial_state
+	var nav_initial := RS_NavigationInitialState.new()
+	nav_initial.shell = StringName("gameplay")
+	nav_initial.base_scene_id = StringName("")
+	_store.navigation_initial_state = nav_initial
 	add_child_autofree(_store)
 	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
@@ -193,6 +198,27 @@ func test_is_transitioning() -> void:
 	await get_tree().process_frame
 	# Note: Actual transitioning state depends on implementation
 	assert_true(true, "is_transitioning method exists")
+
+## Test pause suppression flag is limited to current frame
+func test_suppress_pause_for_current_frame_expires_next_frame() -> void:
+	assert_false(
+		_manager.is_pause_suppressed_for_current_frame(),
+		"Pause suppression should be disabled by default"
+	)
+
+	_manager.suppress_pause_for_current_frame()
+
+	assert_true(
+		_manager.is_pause_suppressed_for_current_frame(),
+		"Pause suppression should be active on the frame it is requested"
+	)
+
+	await get_tree().process_frame
+
+	assert_false(
+		_manager.is_pause_suppressed_for_current_frame(),
+		"Pause suppression should clear on the next frame"
+	)
 
 ## Regression: queue_free during gameplay transition should not leave scene slice stuck transitioning
 func test_queue_free_during_gameplay_transition_clears_transition_state() -> void:

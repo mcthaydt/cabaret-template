@@ -29,6 +29,11 @@
 - **Script renames can leave stale `ext_resource` UIDs in scenes**: After renaming/moving a script referenced by `.tscn` files, scene `ext_resource` lines may keep a UID that still resolves to the old path (for example, trying to load `res://.../old_name.gd` even when `path="res://.../new_name.gd"` is present). This can fail headless style/scene tests with parse errors.
   - **Fix**: remove the stale `uid="uid://..."` on affected `ext_resource` lines (let Godot regenerate it), or refresh UID/cache via headless import.
 
+## Godot Physics Pitfalls
+
+- **CSG visuals under `CharacterBody3D` can self-collide and cause jitter**: If an NPC/player body has a child `CSG*` visual with `use_collision = true` on the same layer/mask as the body's collider, the internal CSG `StaticBody3D` can collide with its own parent during `move_and_slide()`. Symptoms include frame-to-frame jitter, micro-stalls, and unstable patrol motion.
+  - **Fix pattern**: keep visual CSG collision disabled (`use_collision = false`) for body-child visuals, and use dedicated `CollisionShape3D`/physics bodies for gameplay collisions.
+
 ## Godot Script Class Cache
 
 - **Refresh global class cache after moving `class_name` scripts**: Moving scripts that declare `class_name` can leave the global class cache pointing at old paths, causing scenes to instantiate with base `Control` nodes and missing methods in headless tests. **Fix**: run a headless import pass to rebuild the class cache:
@@ -119,6 +124,14 @@
 
 - **3D audio is viewport/world scoped**: `AudioStreamPlayer3D` must exist in the same `Viewport`/`World3D` as the active listener (the viewport’s current `Camera3D`). If you parent your SFX pool under `/root` while gameplay runs in `GameViewport`, 3D SFX can be silent even though they are “playing”.
 
+## Room Fade System Pitfalls
+
+- **Use `absf(dot)` for camera-wall facing checks, not signed dot**: The room fade system compares `camera_forward.dot(wall_normal)` against a threshold to decide whether a wall should fade. If only the signed dot is used, walls only fade when the camera faces the same direction as the normal (viewing from outside). From inside the room the dot is negative, so walls between the camera and player stay opaque. Always use `absf(dot_value) > threshold` so walls fade regardless of which side the camera is on.
+
+- **Corridor occlusion must use nearest AABB point, not wall center**: The camera-player occlusion corridor check determines whether a wall is "between" the camera and player. Using the wall's center position fails for large walls where the camera-player line passes near one end — the center can be far from the corridor even though the wall clearly occludes. Use the nearest point on the wall's axis-aligned bounding box (projected to the XZ plane) to the corridor line segment instead.
+
+- **Default new diagnostic debug flags to `true` when adding them for active investigation**: When adding temporary `@export` debug flags to investigate a live bug, default them to `true` so the diagnostics actually fire when you run the game. Defaulting to `false` defeats the purpose of adding the diagnostics.
+
 ## GDScript Typing Pitfalls
 
 - **Headless import and GUT treat some warnings as errors**: Both headless `--import` runs and GUT's `warnings_manager` treat “variable type inferred from Variant” as a parse error that prevents the script from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var result: Variant = helper()` instead of `var result := helper()` when `helper()` returns `Variant`). This applies equally to production scripts and test files.
@@ -140,9 +153,12 @@
 
 - **New `class_name` base scripts can fail in `extends` during headless runs**: Creating a fresh base script (for example `class_name RS_BaseCondition`) and immediately extending it with `extends RS_BaseCondition` in sibling scripts can fail under headless GUT parsing (`Parse Error: Could not find base class ...`) before the global class cache catches up. Prefer explicit path-based inheritance for new stacks (`extends "res://scripts/resources/qb/rs_base_condition.gd"`) during active refactors; keep `class_name` for inspector/type usage.
 
-- **Typed Array annotations can fail to resolve fresh `class_name` symbols in headless**: Exported typed arrays like `@export var conditions: Array[RS_BaseCondition]` and `@export var effects: Array[RS_BaseEffect]` can parse-fail in headless (`Could not find type ... in the current scope`) immediately after introducing new script classes. If this blocks progress, use `Array[Resource]` temporarily and enforce resource subtype checks in validation (`U_RuleValidator`) until editor/class cache stabilization is confirmed.
+- **Typed Array annotations can fail to resolve fresh `class_name` symbols in headless**: Exported typed arrays like `@export var conditions: Array[I_Condition]` can parse-fail in headless (`Could not find type ... in the current scope`) immediately after introducing new script classes. The AI system proved `Array[I_Condition]`/`Array[I_Effect]` work in `@export` once the class cache is warm. If a fresh class fails, prefer explicit path-based inheritance (`extends "res://..."`) during the refactor window, then switch to `class_name`-based typed arrays once stable.
 
 - **Typed Array constructor syntax can parse-fail (`Cannot call on an expression`)**: Expressions like `Array[Resource]([value])` are not valid constructor calls in GDScript. Build typed arrays via annotated locals (`var values: Array[Resource] = [value]`) and assign that variable instead.
+
+- **Assigning typed exported arrays via `Object.set(...)` with untyped array literals can silently coerce to empty/invalid data in headless runs**: This can make rule/goal condition lists appear unset during tests even when authored values look correct.
+  - **Fix pattern**: build an explicitly typed local first (`var conditions: Array[Resource] = [condition]`) and assign that typed array to the exported property.
 
 - **Changing parent classes can surface inherited-helper parse errors**: If a script relied on helper methods inherited from a previous base class and you change `extends`, headless parse can fail with `Function "...()" not found in base self` even when those call sites are not hit in tests. Add local replacements in the same patch that changes inheritance so scripts remain loadable.
 
@@ -168,6 +184,8 @@
 - **Godot 4.6 CLI compatibility renderer flag is `gl_compatibility`, not `compatibility`**: Running headless checks with `--rendering-method compatibility` aborts early with an unknown-rendering-method error.
   - **Fix pattern**: use `--rendering-method mobile` and/or `--rendering-method gl_compatibility` when validating shader/runtime behavior outside Forward+.
 - **Viewport capture fails in headless**: `Viewport.get_texture().get_image()` can error under the headless/dummy renderer (`Parameter "t" is null`). Tests that validate viewport screenshot capture should be marked `pending` when `OS.has_feature("headless")` or `DisplayServer.get_name() == "headless"` to avoid false failures.
+- **`Node.get_path()` / `Node3D.global_position` can throw in detached-node tests**: Debug/diagnostic helpers that probe scene nodes (for example render-probe logging) may run in unit tests where nodes are not in the scene tree. Calling `get_path()` on detached nodes logs `Cannot get path of node as it is not in a scene tree`, and `global_position` access can log `Condition "!is_inside_tree()" is true`.
+  - **Fix pattern**: guard with `is_inside_tree()`; for detached nodes, emit a synthetic marker (`<detached:NodeName>`) and use local `position` instead of `global_position`.
 - **`M_StateStore` autoload can leak ambient state into unit tests**: `RS_StateStoreSettings.enable_persistence` defaults to `true`, so tests that create `M_StateStore` can auto-load `user://savegame.json` and emit normalization warnings (for example unknown spawn point warnings) as unexpected test errors. For tests not explicitly validating persistence, set `store.settings.enable_persistence = false` before adding the store node.
 - **`M_StateStore` does not expose `set_slice(...)` like `MockStateStore`**: Tests that use the real `M_StateStore` cannot seed slices with `set_slice` and will fail at runtime (`Invalid call. Nonexistent function 'set_slice'`).  
   - **Fix pattern**: for real-store tests, seed state through reducer actions (`store.dispatch(...)`, for example `U_VCamActions.set_active_runtime(...)`); keep direct `set_slice(...)` usage scoped to `MockStateStore` fixtures.
@@ -183,10 +201,17 @@
 
 - **`gameplay/reset_progress` is not an objectives reset**: Dispatching `U_GameplayActions.reset_progress()` clears gameplay progression fields but does not rebuild objective statuses/event log. Endgame Continue/retry flows must route through the run-reset contract (`U_RunActions.reset_run`) so `M_RunCoordinator` can call `M_ObjectivesManager.reset_for_new_run(...)` and re-arm root objectives (`bar_complete` active, `final_complete` inactive) with an empty objective event log.
 
+## AI System Pitfalls
+
+- **Tag-based detection must exclude the detector entity itself**: `S_AIDetectionSystem` candidate pools built from all movement entities can accidentally include the detector's own entity. When `target_tag` matches the detector's tags (for example pack detection with `target_tag = predator`), the detector can lock onto itself at distance `0` unless source/target identity is explicitly filtered.
+  - **Fix pattern**: carry source entity identity into nearest-target resolution and skip candidates with matching entity instance ID (or matching entity ID fallback).
+- **Predator feed actions can silently no-op if they resolve prey from live detection at feed time**: between `move_to_detected` and `feed`, nearest-target detection can drift to a different entity (or clear), so hunger can refill while no prey is removed.
+  - **Fix pattern**: lock prey identity during move (`U_AITaskStateKeys.DETECTED_ENTITY_ID` and/or `C_DetectionComponent.pending_feed_entity_id`) and consume that locked target first in `RS_AIActionFeed`; add unit coverage for locked-target consume + out-of-radius no-consume.
+
 ## QB Rule Engine v2 Pitfalls
 
 - **`U_PathResolver` intentionally has no method-call fallback**: Conditions/effects must resolve data through dictionary/object property paths only. Do not rely on `has_method()` + call behavior for rule evaluation.
-- **Keep `rules` exports in headless-safe mode until typed arrays are stable**: New rule-consumer systems should use `@export var rules: Array[Resource] = []` and run `U_RuleValidator.validate_rules(...)` before evaluation. Headless parser stability can lag new `class_name` symbols.
+- **Rule-consumer systems should use typed arrays + coerce setters**: New rule-consumer systems should use `@export var rules: Array[RS_Rule] = []` (or the relevant interface type) with a coerce setter matching `RS_AIGoal`/`RS_Rule` patterns. `U_RuleValidator` validates semantics; typed arrays + coerce setters enforce schema at the GDScript level.
 - **Condition/effect subresources must match v2 subclasses**: Rule assets should use `RS_Condition*` and `RS_Effect*` resources only; validator failures should block runtime registration.
 - **Context-driven effects require explicit context contracts**: `RS_EffectSetField.use_context_value` will no-op or write wrong values if the expected context path is missing/mistyped. Keep context keys documented per consumer (`components`, `event_payload`, `state`, etc.) and verify in unit tests.
 - **Trackers are per-system state, not shared utilities**: `RuleStateTracker` stores cooldown/rising-edge/one-shot state. Reusing one tracker across systems causes cross-domain gating bugs.
@@ -242,14 +267,20 @@
 - **Button recenter can silently cancel when centering state is coupled to response-smoothing cleanup**: Orbit recenter is allowed when `response == null` (raw evaluator passthrough). If centering state is cleared from response-null smoothing paths, button recenter restarts or drops every tick and never completes.
   - **Fix pattern**: keep `_orbit_centering_state` lifecycle independent from response smoothing state; prune it only on vCam removal/prune, not on response-null smoothing resets.
 
-- **Room fade can leak translucent geometry into OTS/fixed if mode gating only disables updates without restoring materials**: Simply skipping fade updates outside orbit leaves shader overrides and partial alpha active from previous orbit ticks.
-  - **Fix pattern**: in `S_RoomFadeSystem`, treat non-orbit ticks as a full cleanup path: set each group `current_alpha = 1.0`, restore original materials through `U_RoomFadeMaterialApplier`, and clear tracked target cache.
+- **Wall visibility can leak dither-dissolved geometry into OTS/fixed if mode gating only disables updates without restoring materials**: Simply skipping visibility updates outside orbit leaves shader overrides and partial dissolve active from previous orbit ticks.
+  - **Fix pattern**: in `S_WallVisibilitySystem`, treat non-orbit ticks as a full cleanup path: set each group `current_alpha = 1.0`, restore original materials through `U_WallVisibilityMaterialApplier`, and clear tracked target + normal cache.
 
-- **Room fade can silently stop in tests/runtime scaffolds when camera lookup assumes `camera_manager.get_main_camera()` is always valid**: Some harnesses and transitional scene states only expose the active camera through the viewport, not the manager slot.
-  - **Fix pattern**: resolve camera in `S_RoomFadeSystem` by manager main camera first, then fallback to `get_viewport().get_camera_3d()` before deciding camera is unavailable.
+- **Wall visibility can silently stop in tests/runtime scaffolds when camera lookup assumes `camera_manager.get_main_camera()` is always valid**: Some harnesses and transitional scene states only expose the active camera through the viewport, not the manager slot.
+  - **Fix pattern**: resolve camera in `S_WallVisibilitySystem` by manager main camera first, then fallback to `get_viewport().get_camera_3d()` before deciding camera is unavailable.
 
-- **Shared wall targets can receive conflicting room-fade alpha/material writes when multiple `C_RoomFadeGroupComponent` instances collect the same mesh**: Without explicit ownership arbitration, later components in the tick overwrite earlier updates and produce non-deterministic fade behavior.
-  - **Fix pattern**: in `S_RoomFadeSystem`, run a per-tick ownership pre-pass so the first component in filtered order owns each target, skip duplicate owners with warn+continue diagnostics, and keep `group_tag` explicit/unique in authored room-fade groups.
+- **Shared wall targets can receive conflicting wall-visibility fade/material writes when multiple `C_RoomFadeGroupComponent` instances collect the same mesh**: Without explicit ownership arbitration, later components in the tick overwrite earlier updates and produce non-deterministic fade behavior.
+  - **Fix pattern**: in `S_WallVisibilitySystem`, run a per-tick ownership pre-pass so the first component in filtered order owns each target, skip duplicate owners with warn+continue diagnostics, and keep `group_tag` explicit/unique in authored room-fade groups.
+
+- **Walls outside the camera-player occlusion corridor can dissolve incorrectly when only dot-product direction is used**: The `fade_amount` driven by camera-forward dot-product alone cannot distinguish walls the player can see through from walls beside the player.
+  - **Fix pattern**: use `_passes_camera_player_occlusion_corridor()` to check if a target falls within the camera-to-player XZ corridor before allowing fade. Use `_resolve_normal_bucket_key()` + `bucket_has_corridor_hit` for bucket continuity so adjacent wall segments fade together.
+
+- **Fully dissolved walls (`fade_amount = 1.0`) leave confusing gaps**: Without a minimum fade residue, the dither pattern can make walls completely invisible, losing spatial continuity.
+  - **Fix pattern**: cap `fade_amount` at `1.0 - min_fade` (default `0.95`) so ~5% of pixels survive the dither pattern, providing a faint outline even at maximum fade.
 
 ## vCam Soft-Zone Pitfalls
 
@@ -662,6 +693,7 @@
   ```
   **Wrong**: `gut.p("Expect error...")` before the action - this doesn't work and will show "Unexpected Errors".
 - **Prefer `print()` for temporary diagnostics**: GUT buffers its own `gut.p()` output and the CLI harness discards it in failures, which makes debugging harder. Emit short, prefixed messages with `print()` instead so they appear in the raw Godot log and in failing test transcripts. Remember to remove or guard noisy prints before merging.
+- **Default diagnostic debug flags to `true` when added for active investigation**: If you're adding a debug export specifically to diagnose a current bug, default it to enabled. The whole point is to run it and see output immediately — requiring manual enablement defeats the purpose. Only default to `false` for permanent debug flags that ship long-term with the system.
 - **State handoff persists across tests**: `M_StateStore` restores slices from `U_StateHandoff` on `_ready()`. If a previous test left the store mid-transition, the next store instance inherits that old state. Call `U_StateHandoff.clear_all()` in `before_each` / `after_each` whenever a test instantiates `M_StateStore` to guarantee a clean slate.
 - **Avoid private-manager assertions in refactor-prone tests**: Tests that assert internal fields/methods (`get("_apply_count")`, `get("_ui_roots")`, private helper calls) become brittle during helper extraction phases. Prefer public API and observable behavior checks (for localization: `get_locale()`, `get_effective_settings()`, root `_on_locale_changed` callbacks, and applied `Control.theme` state).
 
@@ -857,23 +889,10 @@
 
   DO NOT manually call `M_CursorManager.set_cursor_state()` in scene scripts unless you have a specific override requirement. The automatic management happens in `M_SceneManager._update_cursor_for_scene()` which is called after every scene transition. This prevents the common pitfall of loading a menu scene with a locked cursor (making buttons unclickable) or loading gameplay with a visible cursor (breaking immersion).
 
-- **Transition callbacks MUST use Array wrappers for primitive flags**: When implementing transition effects or any async callbacks in M_SceneManager, use Arrays for boolean/primitive flags due to GDScript closure limitations. Example from `M_SceneManager._perform_transition()`:
-  ```gdscript
-  # WRONG - closures won't modify these:
-  var transition_complete: bool = false
-  var completion_callback := func() -> void:
-      transition_complete = true  # Won't modify outer variable!
-
-  # CORRECT - use Array wrapper:
-  var transition_complete: Array = [false]
-  var completion_callback := func() -> void:
-      transition_complete[0] = true  # Modifies array element
-
-  # Wait for transition
-  while not transition_complete[0]:  # Check array element
-      await get_tree().process_frame
-  ```
-  Without Array wrappers, transitions will never complete because the `while` loop checks a flag that the callback can't modify, causing infinite loops or test timeouts.
+- **Transition callbacks should use a typed shared state object, not Array wrappers**: In `M_SceneManager`, mutable callback state now lives in `U_TransitionState` (`scripts/scene_management/helpers/u_transition_state.gd`).
+  - Preferred pattern: create one `U_TransitionState` object before building callbacks, and let callbacks mutate fields on that object.
+  - Avoid reintroducing `var something: Array = [value]` mutable-capture wrappers for transition state.
+  - Keep camera blend handoff checks on the camera-manager interface (`I_CameraManager.is_blend_active()`), not private-member reflection.
 
 - **Fade transitions need adequate wait time in tests**: Trans_Fade duration defaults to 0.2 seconds. Tests using fade transitions must wait at least 15 physics frames (0.25s at 60fps) for completion. Waiting only 4 frames (0.067s) will cause assertions to run before transitions complete, resulting in `is_transitioning` still being true or `current_scene_id` not yet updated. Use `await wait_physics_frames(15)` after fade transitions in tests.
 
@@ -1636,3 +1655,29 @@ func test_window_mode_fullscreen() -> void:
 
 - `.gd` files under `scripts/` (and the gameplay/unit tests that exercise them) must use tab indentation. The style suite (`tests/unit/style/test_style_enforcement.gd`) fails immediately on leading spaces, so run it before committing editor-authored changes.
 - Trigger configuration resources (`RS_SceneTriggerSettings` derivatives) must include `script = ExtResource(...)` and should remain scene-local. Controllers now duplicate shared `.tres` files automatically, but avoid manually reusing the same resource across entities or the inspector will apply mutations to every instance.
+- Avoid `Resource.new()` fallback allocation in hot-path config resolvers (for example ECS `process_tick` systems). Use canonical default config `.tres` instances (`resources/base_settings/*/cfg_*_config_default.tres`) and wire manager/system exports in scenes where applicable so tuning remains content-driven and allocation-free at runtime.
+
+## AI System Pitfalls
+
+- **`C_AIBrainComponent` rejects missing or wrong-type settings**: AI placeholder entities cannot leave `brain_settings` unset and cannot assign non-`RS_AIBrainSettings` resources. Registration is intentionally aborted in `_validate_required_settings()` when this contract is violated.
+  - **Fix pattern**: for placeholders/demo scenes, assign a minimal valid `RS_AIBrainSettings` resource instead of `null`.
+
+- **`RS_AIActionMoveTo` stalls on scene-authored NPCs that lack movement runtime components**: goals can score and task queues can start, but without `CharacterBody3D` + `C_InputComponent` + `C_MovementComponent`, `S_AINavigationSystem` has no valid movement pipeline and the NPC never reaches move targets.
+  - **Fix pattern**: when wiring demo/scene NPCs, always author the full runtime movement stack and assign valid movement settings (`cfg_movement_default` or equivalent) in addition to `C_AIBrainComponent`.
+
+- **Transient input booleans are unsafe as GOAP goal gates when evaluation is throttled**: gating goals on one-frame fields like `gameplay.input.camera_center_just_pressed` can be missed entirely when `RS_AIBrainSettings.evaluation_interval` is greater than the pulse window.
+  - **Fix pattern**: gate authored/demo goals on durable Redux flags (for example `gameplay.ai_demo_flags.*`) and set those flags from scene trigger zones (for example `Inter_AIDemoFlagZone`) instead of raw one-frame input pulses.
+
+- **AI demo flags are gameplay actions, not navigation actions**: there is no `U_NavigationActions.set_gameplay_ai_demo_flag(...)`; trying to route AI trigger updates through navigation actions either fails at compile time or silently bypasses gameplay reducers.
+  - **Fix pattern**: dispatch `U_GameplayActions.set_ai_demo_flag(flag_id, value)` from detection/interaction/alarm systems.
+
+- **AI spawn-recovery tests can false-negative when movement support grace is still active**: if `C_MovementComponent.settings.support_grace_time > 0`, a freshly reset floating component may still be treated as "recently supported" for a short window, so `S_AISpawnRecoverySystem` intentionally does not recover yet. Waiting a frame can also let AI systems repopulate input/task state before assertions run.
+  - **Fix pattern**: in deterministic tests, set `support_grace_time = 0.0` (or age `_last_support_time` well past grace), trigger recovery, and assert immediately after the recovery tick rather than after an extra physics frame.
+
+- **`hover_height` must not exceed HoverRay length or the spring can never settle**: `S_FloatingSystem` uses raycasts to measure distance-to-ground and applies a spring-damper to hold the body at `hover_height`. If `RS_FloatingSettings.hover_height` exceeds the raycast `target_position.y` magnitude, rays lose contact before reaching the target altitude. This creates a perpetual bounce cycle: the body falls until rays detect ground, the spring launches it back up past ray range, rays lose contact, body falls again (~9-frame oscillation at 60fps).
+  - **Symptom**: entity visibly bounces/jitters on flat ground while the player (with shorter `hover_height`) is perfectly stable.
+  - **Fix pattern**: ensure every entity's HoverRay `target_position.y` magnitude is at least `hover_height + margin` (e.g., hover_height=1.75 → ray length ≥ 2.5). Override ray lengths in the prefab when the template's default rays are too short for the entity's hover settings.
+
+- **Prefab NPC instances inherit placeholder brain settings unless overridden in the scene**: `prefab_demo_npc.tscn` ships with `cfg_ai_brain_placeholder.tres` (empty goals, no default goal). If a gameplay scene instances the prefab and overrides `entity_id`/`tags` but forgets to override `C_AIBrainComponent.brain_settings`, the entity registers with the ECS but has zero goals — it will never plan or move.
+  - **Symptom**: NPC is visible and floating but completely stationary; `S_AIBehaviorSystem` finds the entity but `_select_goal()` always returns `null`.
+  - **Fix pattern**: when instancing `prefab_demo_npc` in a gameplay scene, always override `brain_settings` on the `C_AIBrainComponent` child to point at the entity-specific brain resource (e.g., `cfg_patrol_drone_brain.tres`).

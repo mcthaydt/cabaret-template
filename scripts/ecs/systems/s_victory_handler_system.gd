@@ -16,6 +16,9 @@ func _init() -> void:
 	if game_config == null:
 		game_config = RS_GameConfig.new()
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func process_tick(__delta: float) -> void:
 	# Victory processing is event-driven via ECSEventBus.
 	pass
@@ -32,20 +35,15 @@ func _debug_gameplay_slice(label: String) -> void:
 		_debug_log("%s gameplay=<no_store>" % label)
 		return
 	var state: Dictionary = _store.get_state()
-	var gameplay_variant: Variant = state.get("gameplay", {})
-	if gameplay_variant is Dictionary:
-		var gameplay: Dictionary = gameplay_variant as Dictionary
-		_debug_log(
-			"%s gameplay.completed_areas=%s gameplay.game_completed=%s gameplay.last_victory_objective=%s"
-			% [
-				label,
-				str(gameplay.get("completed_areas", [])),
-				str(gameplay.get("game_completed", false)),
-				str(gameplay.get("last_victory_objective", StringName(""))),
-			]
-		)
-		return
-	_debug_log("%s gameplay=<missing_or_invalid> type=%s" % [label, str(gameplay_variant)])
+	_debug_log(
+		"%s gameplay.completed_areas=%s gameplay.game_completed=%s gameplay.last_victory_objective=%s"
+		% [
+			label,
+			str(U_GameplaySelectors.get_completed_areas(state)),
+			str(U_GameplaySelectors.get_game_completed(state)),
+			str(U_GameplaySelectors.get_last_victory_objective(state)),
+		]
+	)
 
 func _debug_objectives_slice(label: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
@@ -54,19 +52,14 @@ func _debug_objectives_slice(label: String) -> void:
 		_debug_log("%s objectives=<no_store>" % label)
 		return
 	var state: Dictionary = _store.get_state()
-	var objectives_variant: Variant = state.get("objectives", {})
-	if objectives_variant is Dictionary:
-		var objectives: Dictionary = objectives_variant as Dictionary
-		_debug_log(
-			"%s objectives.statuses=%s objectives.active_set_id=%s"
-			% [
-				label,
-				str(objectives.get("statuses", {})),
-				str(objectives.get("active_set_id", StringName(""))),
-			]
-		)
-		return
-	_debug_log("%s objectives=<missing_or_invalid> type=%s" % [label, str(objectives_variant)])
+	_debug_log(
+		"%s objectives.statuses=%s objectives.active_set_id=%s"
+		% [
+			label,
+			str(U_ObjectivesSelectors.get_statuses_snapshot(state)),
+			str(U_ObjectivesSelectors.get_active_set_id(state)),
+		]
+	)
 
 func _victory_type_to_string(value: int) -> String:
 	match value:
@@ -124,7 +117,11 @@ func _handle_victory(trigger: C_VictoryTriggerComponent, payload: Dictionary) ->
 	_debug_gameplay_slice("before dispatching victory gameplay actions")
 	if _store != null:
 		if trigger.objective_id != StringName(""):
-			_store.dispatch(U_GameplayActions.trigger_victory(trigger.objective_id))
+			_store.dispatch(U_GameplayActions.trigger_victory(
+				trigger.objective_id,
+				str(payload.get("entity_id", "")),
+				payload.get("body", null)
+			))
 		if not trigger.area_id.is_empty():
 			_store.dispatch(U_GameplayActions.mark_area_complete(trigger.area_id))
 		if trigger.victory_type == C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
@@ -157,23 +154,17 @@ func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
 			_debug_log("GAME_COMPLETE gate failed: state store is null")
 			return false
 		var state: Dictionary = _store.get_state()
-		var gameplay: Dictionary = state.get("gameplay", {})
-		var completed_variant: Variant = gameplay.get("completed_areas", [])
-		if completed_variant is Array:
-			var completed: Array = completed_variant
-			if not completed.has(game_config.required_final_area):
-				_debug_log(
-					"GAME_COMPLETE gate failed: required_final_area=%s completed_areas=%s"
-					% [game_config.required_final_area, str(completed)]
-				)
-				return false
+		var completed: Array = U_GameplaySelectors.get_completed_areas(state)
+		if not completed.has(game_config.required_final_area):
 			_debug_log(
-				"GAME_COMPLETE gate passed: required_final_area=%s completed_areas=%s"
+				"GAME_COMPLETE gate failed: required_final_area=%s completed_areas=%s"
 				% [game_config.required_final_area, str(completed)]
 			)
-		else:
-			_debug_log("GAME_COMPLETE gate failed: gameplay.completed_areas is not an Array (%s)" % str(completed_variant))
 			return false
+		_debug_log(
+			"GAME_COMPLETE gate passed: required_final_area=%s completed_areas=%s"
+			% [game_config.required_final_area, str(completed)]
+		)
 
 	return true
 

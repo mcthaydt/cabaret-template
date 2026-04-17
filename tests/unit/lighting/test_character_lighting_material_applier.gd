@@ -140,6 +140,62 @@ func test_restore_character_materials_reverts_original_override() -> void:
 	assert_eq(mesh_instance.material_override, original_override)
 	assert_eq(applier.get_cached_mesh_count(), 0)
 
+func test_apply_character_lighting_uses_fallback_texture_for_color_only_material() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+
+	# E_Sentry uses albedo_color without albedo_texture
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(0.949, 0.710, 0.216, 1.0)
+	var mesh_instance := _create_mesh_instance(material)
+	character_root.add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	applier.apply_character_lighting(character_root, Color.WHITE, Color(0.8, 0.8, 0.8, 1.0), 1.5)
+
+	var override_material := mesh_instance.material_override as ShaderMaterial
+	assert_not_null(override_material, "Color-only material should still receive a ShaderMaterial override.")
+
+	# The fallback white texture should be used since albedo_texture was null
+	var albedo_tex: Variant = override_material.get_shader_parameter(PARAM_ALBEDO_TEXTURE)
+	assert_not_null(albedo_tex, "Fallback white texture should be assigned when albedo_texture is null.")
+
+	# albedo_color should be forwarded as base_tint
+	assert_eq(override_material.get_shader_parameter(PARAM_BASE_TINT), Color(0.949, 0.710, 0.216, 1.0),
+		"albedo_color should be forwarded as base_tint when not white.")
+
+	assert_eq(override_material.get_shader_parameter(PARAM_EFFECTIVE_TINT), Color(0.8, 0.8, 0.8, 1.0))
+	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)), 1.5, 0.0001)
+
+func test_apply_character_lighting_preserves_base_tint_when_albedo_color_is_white() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	# Standard case: texture + default white albedo_color
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = texture
+	var mesh_instance := _create_mesh_instance(material)
+	character_root.add_child(mesh_instance)
+	autofree(mesh_instance)
+
+	applier.apply_character_lighting(character_root, Color(1.0, 1.0, 1.0, 1.0), Color(0.5, 0.6, 0.7, 1.0), 1.75)
+
+	var override_material := mesh_instance.material_override as ShaderMaterial
+	assert_not_null(override_material)
+
+	# When albedo_color is white (default), caller's base_tint should be used as-is
+	assert_eq(override_material.get_shader_parameter(PARAM_BASE_TINT), Color(1.0, 1.0, 1.0, 1.0),
+		"base_tint should remain the caller value when albedo_color is white.")
+	assert_eq(override_material.get_shader_parameter(PARAM_ALBEDO_TEXTURE), texture,
+		"albedo_texture should be the actual texture, not the fallback.")
+
 func test_restore_all_materials_clears_cache_after_meshes_are_freed() -> void:
 	var script_obj := _applier_script()
 	if script_obj == null:

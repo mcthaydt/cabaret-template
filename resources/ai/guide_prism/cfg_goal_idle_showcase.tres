@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="RS_AIGoal" format=3 uid="uid://dhoqaw47wdey5"]
+
+[ext_resource type="Script" uid="uid://xhe4388ulpe1" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_l828v"]
+[ext_resource type="Script" uid="uid://bbw7r0gg2jdbf" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="2_condition_redux"]
+[ext_resource type="Script" uid="uid://bb7kg3r8twqau" path="res://scripts/resources/ai/tasks/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" uid="uid://d3jp8qgprpk0t" path="res://scripts/resources/ai/tasks/rs_ai_task.gd" id="4_8ohy4"]
+[ext_resource type="Script" uid="uid://ut0hjawm2yq3" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="4_primitive_task"]
+[ext_resource type="Script" uid="uid://cxpr5abl5uj1l" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="5_action_wait"]
+
+[sub_resource type="Resource" id="Condition_not_near_player"]
+script = ExtResource("2_condition_redux")
+state_path = "gameplay.ai_demo_flags.guide_player_nearby"
+match_mode = "not_equals"
+match_value_string = "true"
+
+[sub_resource type="Resource" id="Action_idle_wait"]
+script = ExtResource("5_action_wait")
+duration = 0.9
+
+[sub_resource type="Resource" id="Task_idle_wait"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_idle_wait")
+task_id = &"idle_wait"
+
+[sub_resource type="Resource" id="Task_idle_sequence"]
+script = ExtResource("3_compound_task")
+subtasks = Array[ExtResource("4_8ohy4")]([SubResource("Task_idle_wait")])
+task_id = &"idle_sequence"
+
+[resource]
+script = ExtResource("1_goal")
+goal_id = &"idle"
+conditions = Array[ExtResource("1_l828v")]([SubResource("Condition_not_near_player")])
+root_task = SubResource("Task_idle_sequence")
+priority = 1

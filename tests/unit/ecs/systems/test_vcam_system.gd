@@ -14,6 +14,7 @@ const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mo
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 
 class VCamManagerStub extends I_VCamManager:
 	var active_vcam_id: StringName = StringName("")
@@ -394,6 +395,7 @@ func test_active_follow_target_loss_holds_last_submission_and_requests_reselecti
 	autofree_context(context)
 	var ecs_manager: M_ECSManager = context["ecs_manager"] as M_ECSManager
 	var vcam_manager: VCamManagerStub = context["vcam_manager"] as VCamManagerStub
+	var store: MockStateStore = context["store"] as MockStateStore
 
 	var follow_target := _create_target_entity(ecs_manager, "E_RecoveryFollowTarget", Vector3.ZERO)
 	var component := await _create_vcam_component(
@@ -411,7 +413,7 @@ func test_active_follow_target_loss_holds_last_submission_and_requests_reselecti
 	assert_false(initial_result.is_empty(), "Expected an initial valid submission before recovery")
 	var initial_transform := initial_result.get("transform", Transform3D.IDENTITY) as Transform3D
 	var initial_submit_calls: int = vcam_manager.submit_calls
-	var history_start: int = U_ECS_EVENT_BUS.get_event_history().size()
+	store.clear_dispatched_actions()
 
 	component.follow_target_path = NodePath("")
 	component.follow_target_entity_id = StringName("")
@@ -434,25 +436,15 @@ func test_active_follow_target_loss_holds_last_submission_and_requests_reselecti
 		"Invalid active target should request manager reselection"
 	)
 
-	var recovery_payload: Dictionary = {}
-	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	for index in range(history_start, history.size()):
-		var event_variant: Variant = history[index]
-		if not (event_variant is Dictionary):
-			continue
-		var event: Dictionary = event_variant as Dictionary
-		if event.get("name", StringName("")) != U_ECS_EVENT_NAMES.EVENT_VCAM_RECOVERY:
-			continue
-		var payload_variant: Variant = event.get("payload", {})
-		if payload_variant is Dictionary:
-			recovery_payload = (payload_variant as Dictionary).duplicate(true)
+	var recovery_action: Dictionary = {}
+	var dispatched: Array[Dictionary] = store.get_dispatched_actions()
+	for action in dispatched:
+		if action.get("type", StringName("")) == U_VCAM_ACTIONS.ACTION_RECORD_RECOVERY:
+			recovery_action = action.duplicate(true)
 			break
-	assert_false(recovery_payload.is_empty(), "Target-loss recovery should publish EVENT_VCAM_RECOVERY")
+	assert_false(recovery_action.is_empty(), "Target-loss recovery should dispatch ACTION_RECORD_RECOVERY")
+	var recovery_payload: Dictionary = recovery_action.get("payload", {})
 	assert_eq(String(recovery_payload.get("reason", "")), "target_freed")
-	assert_eq(
-		recovery_payload.get("vcam_id", StringName("")),
-		StringName("cam_recovery_target_loss")
-	)
 
 func test_look_smoothing_offsets_first_frame_after_large_look_input_jump() -> void:
 	var context: Dictionary = await _setup_context()
@@ -767,10 +759,7 @@ func test_orbit_release_axis_settles_when_near_target_crossing_would_flip_error(
 	autofree(system)
 	system.debug_rotation_logging = false
 
-	var result_variant: Variant = system.call(
-		"_step_orbit_release_axis",
-		StringName("cam_orbit_release_axis_settle"),
-		"yaw",
+	var result_variant: Variant = system._rotation_helper.step_orbit_release_axis(
 		-0.1,
 		0.0,
 		60.0,
@@ -805,7 +794,7 @@ func test_camera_center_button_starts_orbit_recentering_from_arbitrary_yaw() -> 
 	component.runtime_yaw = -120.0
 
 	var expected_target: float = float(
-		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, component.runtime_yaw)
+		system._rotation_helper.resolve_orbit_center_target_yaw(orbit_mode, follow_target, component.runtime_yaw, Callable(system, "_resolve_mode_values"), S_VCAM_SYSTEM.RS_VCAM_MODE_ORBIT_SCRIPT)
 	)
 	vcam_manager.active_vcam_id = StringName("cam_center_start")
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
@@ -840,7 +829,7 @@ func test_camera_center_recenters_over_short_interpolation_window_without_snap()
 	component.runtime_yaw = -170.0
 
 	var expected_target: float = float(
-		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, component.runtime_yaw)
+		system._rotation_helper.resolve_orbit_center_target_yaw(orbit_mode, follow_target, component.runtime_yaw, Callable(system, "_resolve_mode_values"), S_VCAM_SYSTEM.RS_VCAM_MODE_ORBIT_SCRIPT)
 	)
 	vcam_manager.active_vcam_id = StringName("cam_center_window")
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
@@ -877,7 +866,7 @@ func test_camera_center_ignores_manual_look_input_while_centering_active() -> vo
 	component.runtime_yaw = 145.0
 
 	var expected_target: float = float(
-		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, component.runtime_yaw)
+		system._rotation_helper.resolve_orbit_center_target_yaw(orbit_mode, follow_target, component.runtime_yaw, Callable(system, "_resolve_mode_values"), S_VCAM_SYSTEM.RS_VCAM_MODE_ORBIT_SCRIPT)
 	)
 	vcam_manager.active_vcam_id = StringName("cam_center_input_gate")
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})
@@ -925,7 +914,7 @@ func test_camera_center_retrigger_restarts_from_current_pose_deterministically()
 	var yaw_before_restart: float = component.runtime_yaw
 	follow_target.rotation_degrees.y = 135.0
 	var restart_target: float = float(
-		system.call("_resolve_orbit_center_target_yaw", orbit_mode, follow_target, yaw_before_restart)
+		system._rotation_helper.resolve_orbit_center_target_yaw(orbit_mode, follow_target, yaw_before_restart, Callable(system, "_resolve_mode_values"), S_VCAM_SYSTEM.RS_VCAM_MODE_ORBIT_SCRIPT)
 	)
 
 	store.set_slice(StringName("input"), {"look_input": Vector2.ZERO, "camera_center_just_pressed": true})

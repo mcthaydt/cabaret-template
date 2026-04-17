@@ -2,11 +2,9 @@
 extends BaseECSSystem
 class_name S_RegionVisibilitySystem
 
-const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const I_StateStore := preload("res://scripts/interfaces/i_state_store.gd")
 const RS_REGION_VISIBILITY_SETTINGS_SCRIPT := preload(
 	"res://scripts/resources/display/vcam/rs_region_visibility_settings.gd"
 )
@@ -17,31 +15,62 @@ const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_sele
 const DEFAULT_REGION_VISIBILITY_SETTINGS := preload(
 	"res://resources/display/vcam/cfg_default_region_visibility.tres"
 )
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const U_PERF_FADE_BYPASS := preload("res://scripts/utils/debug/u_perf_fade_bypass.gd")
+
+const MOBILE_TICK_INTERVAL := 4
 
 const REGION_VISIBILITY_TYPE := StringName("RegionVisibility")
 const FADED_THRESHOLD := 0.95
 
 @export var camera_manager: I_CAMERA_MANAGER = null
-@export var state_store: I_STATE_STORE = null
+@export var state_store: I_StateStore = null
 
 var material_applier: Variant = null
 
-var _state_store: I_STATE_STORE = null
+var _state_store: I_StateStore = null
 var _material_applier: Variant = null
 var _tracked_targets: Dictionary = {}
 var _target_alpha_by_id: Dictionary = {}
 var _active_region_tags: Array[StringName] = []
 var _near_region_tags: Array[StringName] = []
 var _region_alpha_by_tag: Dictionary = {}
+var _filtered_targets_cache: Dictionary = {}  # int (component id) -> Array
+
+var _perf_is_supported_calls: int = 0
+var _is_mobile: bool = false
+var _tick_counter: int = 0
+var _perf_probe: U_PerfProbe = null
+var _fade_probe: U_PerfProbe = null
 
 func _init() -> void:
 	execution_priority = 100
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	if DisplayServer.get_name() == "headless":
+		_is_mobile = false
+	U_PERF_FADE_BYPASS.reset()
+	_perf_probe = U_PerfProbe.create("RegionVis", _is_mobile)
+	_fade_probe = U_PerfProbe.create("RegionFadeApply", _is_mobile)
+
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.CAMERA
 
 func process_tick(delta: float) -> void:
+	# Mobile throttle: skip frames to reduce CPU load
+	_tick_counter += 1
+	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
+		return
+
+	_perf_probe.start()
 	var components: Array = get_components(REGION_VISIBILITY_TYPE)
 
 	if components.is_empty():
 		_restore_stale_targets({})
+		return
+
+	if _is_mobile and U_PERF_FADE_BYPASS.is_enabled():
+		_restore_components_to_opaque(components)
 		return
 
 	var mode_info: Dictionary = _get_active_mode_info()
@@ -116,18 +145,22 @@ func process_tick(delta: float) -> void:
 		if next_alpha >= 1.0:
 			continue
 
+		_fade_probe.start()
 		applier.apply_fade_material(targets)
 		applier.update_fade_alpha(targets, next_alpha)
+		_fade_probe.stop()
 		for target_variant in targets:
-			if _is_supported_target(target_variant):
-				var target: Node3D = target_variant as Node3D
-				var target_id: int = target.get_instance_id()
-				active_targets[target_id] = target
-				_target_alpha_by_id[target_id] = next_alpha
+			if not (target_variant is Node3D) or not is_instance_valid(target_variant):
+				continue
+			var target: Node3D = target_variant as Node3D
+			var target_id: int = target.get_instance_id()
+			active_targets[target_id] = target
+			_target_alpha_by_id[target_id] = next_alpha
 
 	_active_region_tags = new_active_tags
 	_near_region_tags = new_near_tags
 	_restore_stale_targets(active_targets)
+	_perf_probe.stop()
 
 func get_active_region_tags() -> Array[StringName]:
 	return _active_region_tags.duplicate()
@@ -145,14 +178,10 @@ func _exit_tree() -> void:
 	_target_alpha_by_id.clear()
 	_near_region_tags.clear()
 	_region_alpha_by_tag.clear()
+	_filtered_targets_cache.clear()
 
-func _resolve_state_store() -> I_STATE_STORE:
-	if _state_store != null and is_instance_valid(_state_store):
-		return _state_store
-	if state_store != null and is_instance_valid(state_store):
-		_state_store = state_store
-		return _state_store
-	_state_store = U_STATE_UTILS.try_get_store(self)
+func _resolve_state_store() -> I_StateStore:
+	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_StateStore
 	return _state_store
 
 func _resolve_material_applier() -> Variant:
@@ -164,7 +193,7 @@ func _resolve_material_applier() -> Variant:
 	return _material_applier
 
 func _get_active_mode_info() -> Dictionary:
-	var store: I_STATE_STORE = _resolve_state_store()
+	var store: I_StateStore = _resolve_state_store()
 	if store == null:
 		return {
 			"has_store": false,
@@ -181,7 +210,7 @@ func _get_active_mode_info() -> Dictionary:
 	}
 
 func _resolve_player_position_data() -> Dictionary:
-	var store: I_STATE_STORE = _resolve_state_store()
+	var store: I_StateStore = _resolve_state_store()
 	if store == null:
 		return {}
 
@@ -218,14 +247,22 @@ func _collect_mesh_targets(component: Object) -> Array:
 		return []
 	if not component.has_method("collect_mesh_targets"):
 		return []
+
+	var component_id: int = component.get_instance_id()
+	var is_cache_valid: bool = component.has_method("is_target_cache_valid") and bool(component.call("is_target_cache_valid"))
+	if is_cache_valid and _filtered_targets_cache.has(component_id):
+		return _filtered_targets_cache[component_id] as Array
+
 	var targets_variant: Variant = component.call("collect_mesh_targets")
 	if not (targets_variant is Array):
 		return []
 
 	var targets: Array = []
 	for target_variant in targets_variant as Array:
+		_perf_is_supported_calls += 1
 		if _is_supported_target(target_variant):
 			targets.append(target_variant)
+	_filtered_targets_cache[component_id] = targets
 	return targets
 
 func _is_player_in_zone(
@@ -247,9 +284,10 @@ func _is_player_in_zone(
 	return expanded.has_point(player_position)
 
 func _resolve_aabb_from_targets(targets: Array) -> AABB:
+	# Targets are pre-filtered by _collect_mesh_targets — skip redundant type checks.
 	var first_valid: Node3D = null
 	for target_variant in targets:
-		if _is_supported_target(target_variant):
+		if target_variant is Node3D and is_instance_valid(target_variant):
 			first_valid = target_variant as Node3D
 			break
 	if first_valid == null:
@@ -257,7 +295,7 @@ func _resolve_aabb_from_targets(targets: Array) -> AABB:
 
 	var result: AABB = AABB(first_valid.global_position, Vector3.ZERO)
 	for target_variant in targets:
-		if not _is_supported_target(target_variant):
+		if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 			continue
 		var target: Node3D = target_variant as Node3D
 		result = result.expand(target.global_position)
@@ -278,7 +316,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 		component.set("is_near_region", false)
 		var targets: Array = _collect_mesh_targets(component)
 		for target_variant in targets:
-			if not _is_supported_target(target_variant):
+			if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 				continue
 			var target: Node3D = target_variant as Node3D
 			var target_id: int = target.get_instance_id()
@@ -289,7 +327,7 @@ func _restore_components_to_opaque(components: Array) -> void:
 			restore_targets.append(target)
 
 	for target_variant in _tracked_targets.values():
-		if not _is_supported_target(target_variant):
+		if not (target_variant is Node3D) or not is_instance_valid(target_variant):
 			continue
 		var tracked_target: Node3D = target_variant as Node3D
 		var tracked_id: int = tracked_target.get_instance_id()
@@ -320,7 +358,7 @@ func _restore_stale_targets(active_targets: Dictionary) -> void:
 		if active_targets.has(target_id):
 			continue
 		var target_variant: Variant = _tracked_targets.get(target_id, null)
-		if _is_supported_target(target_variant):
+		if target_variant is Node3D and is_instance_valid(target_variant):
 			stale_targets.append(target_variant)
 		_target_alpha_by_id.erase(target_id)
 

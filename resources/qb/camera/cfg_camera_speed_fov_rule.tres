@@ -1,7 +1,9 @@
 [gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://btpm4xikloxwq"]
 
 [ext_resource type="Script" uid="uid://d3ig84jkjjkpv" path="res://scripts/resources/qb/conditions/rs_condition_component_field.gd" id="1_65x2n"]
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_xajrh"]
 [ext_resource type="Script" uid="uid://baf360oqwp7v5" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="2_j3wwh"]
+[ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/interfaces/i_effect.gd" id="3_30sre"]
 [ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="3_iw607"]
 
 [sub_resource type="Resource" id="Resource_q4qj4"]
@@ -22,6 +24,6 @@ clamp_max = 15.0
 [resource]
 script = ExtResource("3_iw607")
 rule_id = &"camera_speed_fov"
-conditions = Array[Resource]([SubResource("Resource_q4qj4")])
-effects = Array[Resource]([SubResource("Resource_0ihwf")])
+conditions = Array[ExtResource("1_xajrh")]([SubResource("Resource_q4qj4")])
+effects = Array[ExtResource("3_30sre")]([SubResource("Resource_0ihwf")])
 score_threshold = -1.0

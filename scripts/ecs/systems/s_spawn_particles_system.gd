@@ -1,13 +1,15 @@
 @icon("res://assets/editor_icons/icn_system.svg")
-extends BaseEventVFXSystem
+extends BaseECSSystem
 class_name S_SpawnParticlesSystem
 
 ## Spawn Particles System (Phase 12.4)
 ##
 ## Creates particle effects when player spawns at spawn points.
-## Listens for "player_spawned" events from M_SpawnManager.
+## Subscribes to Redux ACTION_PLAYER_SPAWNED via action_dispatched signal
+## per channel taxonomy (docs/adr/0001-channel-taxonomy.md).
 
 const PARTICLE_SPAWNER := preload("res://scripts/utils/u_particle_spawner.gd")
+const U_SPAWN_ACTIONS := preload("res://scripts/state/actions/u_spawn_actions.gd")
 
 @export var enabled: bool = true
 @export var emission_count: int = 20
@@ -17,14 +19,47 @@ const PARTICLE_SPAWNER := preload("res://scripts/utils/u_particle_spawner.gd")
 @export var initial_velocity: float = 3.0
 @export var spawn_offset: Vector3 = Vector3(0, 0.5, 0)
 
-func get_event_name() -> StringName:
-	return StringName("player_spawned")
+var requests: Array = []
+var _store: Node = null
 
-func create_request_from_payload(payload: Dictionary) -> Dictionary:
-	return {
-		"position": payload.get("position", Vector3.ZERO),
-		"spawn_point_id": payload.get("spawn_point_id", StringName("")),
+func _ready() -> void:
+	super._ready()
+	_subscribe_to_actions()
+
+func _exit_tree() -> void:
+	_unsubscribe_from_actions()
+	requests.clear()
+
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
+func _subscribe_to_actions() -> void:
+	_unsubscribe_from_actions()
+	var store_variant: Variant = U_ServiceLocator.try_get_service(StringName("state_store"))
+	if store_variant == null:
+		return
+	var store: Node = store_variant as Node
+	if store == null or not store.has_signal("action_dispatched"):
+		return
+	_store = store
+	_store.action_dispatched.connect(_on_action_dispatched)
+
+func _unsubscribe_from_actions() -> void:
+	if _store != null and is_instance_valid(_store) and _store.has_signal("action_dispatched"):
+		_store.action_dispatched.disconnect(_on_action_dispatched)
+	_store = null
+
+func _on_action_dispatched(action: Dictionary) -> void:
+	var action_type: StringName = action.get("type", StringName(""))
+	if action_type != U_SPAWN_ACTIONS.ACTION_PLAYER_SPAWNED:
+		return
+	var request: Dictionary = {
+		"position": action.get("position", Vector3.ZERO),
+		"spawn_point_id": action.get("spawn_point_id", StringName("")),
 	}
+	if not request.has("timestamp"):
+		request["timestamp"] = 0.0
+	requests.append(request.duplicate(true))
 
 func process_tick(__delta: float) -> void:
 	# Early exit if disabled

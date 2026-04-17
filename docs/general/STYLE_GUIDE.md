@@ -265,6 +265,7 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | Category | File Pattern | Class Pattern | Examples |
 |----------|--------------|---------------|----------|
 | **Entity Controllers** | `e_*.gd` | `E_*` | `e_door_trigger_controller.gd` → `E_DoorTriggerController`, `e_checkpoint_zone.gd` → `E_CheckpointZone` |
+| **Gameplay-Scoped ECS Systems** | `s_*_system.gd` | `S_*System` | `s_demo_alarm_relay_system.gd` → `S_DemoAlarmRelaySystem` |
 | **Base Controllers** | `base_*_controller.gd` / `*_controller.gd` | `Base*Controller` / `*Controller` | `base_volume_controller.gd` → `BaseVolumeController`, `triggered_interactable_controller.gd` → `TriggeredInteractableController` |
 | **Gameplay Helpers** | `helpers/u_*.gd` | `U_*` | `helpers/u_interaction_config_validator.gd` → `U_InteractionConfigValidator` |
 

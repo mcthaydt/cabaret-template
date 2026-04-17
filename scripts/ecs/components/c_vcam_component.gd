@@ -59,9 +59,17 @@ func get_look_at_target() -> Node3D:
 		return null
 	return get_node_or_null(look_at_target_path) as Node3D
 
+## C10: resource_name/metadata primary, prefix-stripping fallback.
 func get_mode_name() -> String:
 	if mode == null:
 		return ""
+
+	if not mode.resource_name.is_empty():
+		return mode.resource_name
+
+	if mode.has_meta("mode_name"):
+		return str(mode.get_meta("mode_name"))
+
 	var mode_script := mode.get_script() as Script
 	if mode_script == null:
 		return ""

@@ -8,6 +8,8 @@ class_name U_DisplayReducer
 ## validation and clamping.
 
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
+const RS_DISPLAY_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_display_config.gd")
+const DEFAULT_DISPLAY_CONFIG := preload("res://resources/base_settings/display/cfg_display_config_default.tres")
 
 const DEFAULT_DISPLAY_STATE := {
 	"window_size_preset": "1920x1080",
@@ -17,7 +19,6 @@ const DEFAULT_DISPLAY_STATE := {
 	"post_processing_enabled": false,
 	"post_processing_preset": "medium",
 	"film_grain_enabled": false,
-	"crt_enabled": false,
 	"dither_enabled": false,
 	"dither_pattern": "bayer",
 	"ui_scale": 1.0,
@@ -29,12 +30,6 @@ const DEFAULT_DISPLAY_STATE := {
 
 const MIN_INTENSITY := 0.0
 const MAX_INTENSITY := 1.0
-const MIN_CRT_CURVATURE := 0.0
-const MAX_CRT_CURVATURE := 10.0
-const MIN_CRT_CHROMATIC_ABERRATION := 0.0
-const MAX_CRT_CHROMATIC_ABERRATION := 0.01
-const MIN_UI_SCALE := 0.8
-const MAX_UI_SCALE := 1.3
 
 static func get_default_display_state() -> Dictionary:
 	var state := DEFAULT_DISPLAY_STATE.duplicate(true)
@@ -42,9 +37,6 @@ static func get_default_display_state() -> Dictionary:
 	var preset: String = state.get("post_processing_preset", "medium")
 	var preset_values := U_PostProcessingPresetValues.get_preset_values(preset)
 	state["film_grain_intensity"] = preset_values.get("film_grain_intensity", 0.2)
-	state["crt_scanline_intensity"] = preset_values.get("crt_scanline_intensity", 0.25)
-	state["crt_curvature"] = preset_values.get("crt_curvature", 0.0)
-	state["crt_chromatic_aberration"] = preset_values.get("crt_chromatic_aberration", 0.001)
 	state["dither_intensity"] = preset_values.get("dither_intensity", 1.0)
 	return state
 
@@ -94,9 +86,6 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			return _with_values(current, {
 				"post_processing_preset": preset,
 				"film_grain_intensity": preset_values.get("film_grain_intensity", current.get("film_grain_intensity", 0.1)),
-				"crt_scanline_intensity": preset_values.get("crt_scanline_intensity", current.get("crt_scanline_intensity", 0.3)),
-				"crt_curvature": preset_values.get("crt_curvature", current.get("crt_curvature", 2.0)),
-				"crt_chromatic_aberration": preset_values.get("crt_chromatic_aberration", current.get("crt_chromatic_aberration", 0.002)),
 				"dither_intensity": preset_values.get("dither_intensity", current.get("dither_intensity", 0.5)),
 			})
 
@@ -110,29 +99,6 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var raw_intensity: float = float(payload.get("intensity", 0.1))
 			var clamped_intensity := clampf(raw_intensity, MIN_INTENSITY, MAX_INTENSITY)
 			return _with_values(current, {"film_grain_intensity": clamped_intensity})
-
-		U_DisplayActions.ACTION_SET_CRT_ENABLED:
-			var payload: Dictionary = action.get("payload", {})
-			var enabled := bool(payload.get("enabled", false))
-			return _with_values(current, {"crt_enabled": enabled})
-
-		U_DisplayActions.ACTION_SET_CRT_SCANLINE_INTENSITY:
-			var payload: Dictionary = action.get("payload", {})
-			var raw_intensity: float = float(payload.get("intensity", 0.3))
-			var clamped_intensity := clampf(raw_intensity, MIN_INTENSITY, MAX_INTENSITY)
-			return _with_values(current, {"crt_scanline_intensity": clamped_intensity})
-
-		U_DisplayActions.ACTION_SET_CRT_CURVATURE:
-			var payload: Dictionary = action.get("payload", {})
-			var raw_curvature: float = float(payload.get("curvature", 2.0))
-			var clamped_curvature := clampf(raw_curvature, MIN_CRT_CURVATURE, MAX_CRT_CURVATURE)
-			return _with_values(current, {"crt_curvature": clamped_curvature})
-
-		U_DisplayActions.ACTION_SET_CRT_CHROMATIC_ABERRATION:
-			var payload: Dictionary = action.get("payload", {})
-			var raw_aberration: float = float(payload.get("aberration", 0.002))
-			var clamped_aberration := clampf(raw_aberration, MIN_CRT_CHROMATIC_ABERRATION, MAX_CRT_CHROMATIC_ABERRATION)
-			return _with_values(current, {"crt_chromatic_aberration": clamped_aberration})
 
 		U_DisplayActions.ACTION_SET_DITHER_ENABLED:
 			var payload: Dictionary = action.get("payload", {})
@@ -155,7 +121,12 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 		U_DisplayActions.ACTION_SET_UI_SCALE:
 			var payload: Dictionary = action.get("payload", {})
 			var raw_scale: float = float(payload.get("scale", 1.0))
-			var clamped_scale := clampf(raw_scale, MIN_UI_SCALE, MAX_UI_SCALE)
+			var ui_scale_bounds: Dictionary = _resolve_ui_scale_bounds()
+			var clamped_scale := clampf(
+				raw_scale,
+				float(ui_scale_bounds.get("min_ui_scale", 0.8)),
+				float(ui_scale_bounds.get("max_ui_scale", 1.3))
+			)
 			return _with_values(current, {"ui_scale": clamped_scale})
 
 		U_DisplayActions.ACTION_SET_COLOR_BLIND_MODE:
@@ -175,18 +146,18 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var enabled := bool(payload.get("enabled", false))
 			return _with_values(current, {"color_blind_shader_enabled": enabled})
 
-		U_CinemaGradeActions.ACTION_LOAD_SCENE_GRADE:
+		U_ColorGradingActions.ACTION_LOAD_SCENE_GRADE:
 			var payload: Dictionary = action.get("payload", {})
 			var updates := {}
 			for key in payload.keys():
 				var key_str: String = str(key)
-				if key_str.begins_with("cinema_grade_"):
+				if key_str.begins_with("color_grading_"):
 					updates[key] = payload[key]
 			if updates.is_empty():
 				return null
 			return _with_values(current, updates)
 
-		U_CinemaGradeActions.ACTION_SET_PARAMETER:
+		U_ColorGradingActions.ACTION_SET_PARAMETER:
 			var payload: Dictionary = action.get("payload", {})
 			var param_name: String = str(payload.get("param_name", ""))
 			if param_name.is_empty():
@@ -197,25 +168,25 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 				var filter_preset_str: String = str(payload.get("value", "none"))
 				var filter_mode := _get_filter_mode_from_preset(filter_preset_str)
 				return _with_values(current, {
-					"cinema_grade_filter_mode": filter_mode,
-					"cinema_grade_filter_preset": filter_preset_str
+					"color_grading_filter_mode": filter_mode,
+					"color_grading_filter_preset": filter_preset_str
 				})
 
 			# Special handling for filter_intensity
 			if param_name == "filter_intensity":
 				return _with_values(current, {
-					"cinema_grade_filter_intensity": payload.get("value")
+					"color_grading_filter_intensity": payload.get("value")
 				})
 
-			var key := "cinema_grade_" + param_name
+			var key := "color_grading_" + param_name
 			return _with_values(current, {key: payload.get("value")})
 
-		U_CinemaGradeActions.ACTION_RESET_TO_SCENE_DEFAULTS:
+		U_ColorGradingActions.ACTION_RESET_TO_SCENE_DEFAULTS:
 			var payload: Dictionary = action.get("payload", {})
 			var updates := {}
 			for key in payload.keys():
 				var key_str: String = str(key)
-				if key_str.begins_with("cinema_grade_"):
+				if key_str.begins_with("color_grading_"):
 					updates[key] = payload[key]
 			if updates.is_empty():
 				return null
@@ -260,9 +231,29 @@ static func _is_valid_dither_pattern(pattern: String) -> bool:
 static func _is_valid_color_blind_mode(mode: String) -> bool:
 	return U_DISPLAY_OPTION_CATALOG.get_color_blind_mode_ids().has(mode)
 
+static func _resolve_ui_scale_bounds() -> Dictionary:
+	var defaults := {
+		"min_ui_scale": 0.8,
+		"max_ui_scale": 1.3,
+	}
+	var config_variant: Variant = DEFAULT_DISPLAY_CONFIG
+	if config_variant == null or not (config_variant is Resource):
+		return defaults
+
+	var config_resource: Resource = config_variant as Resource
+	if config_resource.get_script() != RS_DISPLAY_CONFIG_SCRIPT:
+		return defaults
+
+	var min_ui_scale: float = maxf(float(config_resource.get("min_ui_scale")), 0.1)
+	var max_ui_scale: float = maxf(float(config_resource.get("max_ui_scale")), min_ui_scale)
+	return {
+		"min_ui_scale": min_ui_scale,
+		"max_ui_scale": max_ui_scale,
+	}
+
 static func _is_valid_post_processing_preset(preset: String) -> bool:
 	return U_DISPLAY_OPTION_CATALOG.get_post_processing_preset_ids().has(preset)
 
 static func _get_filter_mode_from_preset(preset_name: String) -> int:
-	# Delegate to RS_SceneCinemaGrade.FILTER_PRESET_MAP (single source of truth)
-	return RS_SceneCinemaGrade.FILTER_PRESET_MAP.get(preset_name, 0)
+	# Delegate to RS_SceneColorGrading.FILTER_PRESET_MAP (single source of truth)
+	return RS_SceneColorGrading.FILTER_PRESET_MAP.get(preset_name, 0)

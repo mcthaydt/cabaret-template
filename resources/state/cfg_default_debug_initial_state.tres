@@ -4,3 +4,8 @@
 
 [resource]
 script = ExtResource("1_debug_state")
+debug_settings = {
+"skip_language_selection": true,
+"skip_main_menu": true,
+"skip_splash": true
+}

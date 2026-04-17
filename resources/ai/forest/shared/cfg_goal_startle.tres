@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="RS_AIGoal" format=3 uid="uid://dycxs2ovbvhvv"]
+
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_condition"]
+[ext_resource type="Script" uid="uid://xhe4388ulpe1" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" uid="uid://d3ig84jkjjkpv" path="res://scripts/resources/qb/conditions/rs_condition_component_field.gd" id="2_condition_component_field"]
+[ext_resource type="Script" uid="uid://bb7kg3r8twqau" path="res://scripts/resources/ai/tasks/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" uid="uid://d3jp8qgprpk0t" path="res://scripts/resources/ai/tasks/rs_ai_task.gd" id="4_ai_task"]
+[ext_resource type="Script" uid="uid://ut0hjawm2yq3" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="5_primitive_task"]
+[ext_resource type="Script" uid="uid://c6kwruacxjm85" path="res://scripts/resources/ai/actions/rs_ai_action_scan.gd" id="6_action_scan"]
+[ext_resource type="Script" uid="uid://cxpr5abl5uj1l" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="7_action_wait"]
+[ext_resource type="Script" uid="uid://7f34nsha3emc" path="res://scripts/resources/ai/actions/rs_ai_action_flee_from_detected.gd" id="8_action_flee_detected"]
+
+[sub_resource type="Resource" id="Condition_startle_detected_target"]
+script = ExtResource("2_condition_component_field")
+component_type = &"C_DetectionComponent"
+field_path = "is_player_in_range"
+
+[sub_resource type="Resource" id="Action_scan_alert"]
+script = ExtResource("6_action_scan")
+scan_duration = 1.0
+rotation_speed = 1.5
+
+[sub_resource type="Resource" id="Task_scan_alert"]
+script = ExtResource("5_primitive_task")
+action = SubResource("Action_scan_alert")
+task_id = &"scan_alert"
+
+[sub_resource type="Resource" id="Action_flee_startle"]
+script = ExtResource("8_action_flee_detected")
+flee_distance = 8.0
+arrival_threshold = 0.6
+
+[sub_resource type="Resource" id="Task_flee_startle"]
+script = ExtResource("5_primitive_task")
+action = SubResource("Action_flee_startle")
+task_id = &"flee_startle"
+
+[sub_resource type="Resource" id="Action_wait_short"]
+script = ExtResource("7_action_wait")
+duration = 0.35
+
+[sub_resource type="Resource" id="Task_wait_short"]
+script = ExtResource("5_primitive_task")
+action = SubResource("Action_wait_short")
+task_id = &"wait_short"
+
+[sub_resource type="Resource" id="Task_startle_sequence"]
+script = ExtResource("3_compound_task")
+subtasks = Array[ExtResource("4_ai_task")]([SubResource("Task_scan_alert"), SubResource("Task_flee_startle"), SubResource("Task_wait_short")])
+task_id = &"startle_sequence"
+
+[resource]
+script = ExtResource("1_goal")
+goal_id = &"startle"
+conditions = Array[ExtResource("1_condition")]([SubResource("Condition_startle_detected_target")])
+root_task = SubResource("Task_startle_sequence")
+priority = 8
+cooldown = 4.0
+requires_rising_edge = true

@@ -53,7 +53,6 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 func after_each() -> void:
-	U_ServiceLocator.clear()
 	U_UI_THEME_BUILDER.active_config = null
 
 func test_input_profile_selector_has_motion_and_theme_tokens_when_active_config_set() -> void:

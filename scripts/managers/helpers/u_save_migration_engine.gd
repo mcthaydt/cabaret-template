@@ -25,6 +25,7 @@ const LEGACY_SAVE_PATH := "user://savegame.json"
 const DEFAULT_OBJECTIVES_SLICE := {
 	"statuses": {},
 	"active_set_id": StringName(""),
+	"active_set_ids": [],
 	"event_log": [],
 }
 
@@ -153,6 +154,14 @@ static func _inject_missing_objectives_slice(save_data: Dictionary) -> Dictionar
 	var state: Dictionary = (state_variant as Dictionary).duplicate(true)
 	if not state.has("objectives"):
 		state["objectives"] = DEFAULT_OBJECTIVES_SLICE.duplicate(true)
+	else:
+		# Patch pre-C7 objectives slices that lack active_set_ids
+		var objectives_variant: Variant = state.get("objectives", null)
+		if objectives_variant is Dictionary:
+			var objectives: Dictionary = (objectives_variant as Dictionary).duplicate(true)
+			if not objectives.has("active_set_ids"):
+				objectives["active_set_ids"] = []
+			state["objectives"] = objectives
 	patched_save["state"] = state
 	return patched_save
 

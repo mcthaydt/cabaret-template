@@ -11,6 +11,9 @@ const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_co
 const EFFECT_SET_CONTEXT_VALUE := preload("res://scripts/resources/qb/effects/rs_effect_set_context_value.gd")
 const EFFECT_DISPATCH_ACTION := preload("res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd")
 
+const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const C_HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
@@ -210,9 +213,9 @@ func _create_fixture(designer_rules: Array = []) -> Dictionary:
 	autofree(system)
 	system.state_store = store
 	system.ecs_manager = ecs_manager
-	var typed_rules: Array[Resource] = []
+	var typed_rules: Array[RS_Rule] = []
 	for rule_variant in designer_rules:
-		if rule_variant != null and rule_variant is Resource:
+		if rule_variant is RS_Rule:
 			typed_rules.append(rule_variant)
 	system.rules = typed_rules
 	system.configure(ecs_manager)
@@ -314,8 +317,10 @@ func _make_set_context_rule(
 
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
-	rule.conditions = [condition]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(condition as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule
 
 func _make_dispatch_rule(rule_id: StringName, action_type: StringName, priority: int, group: StringName) -> Variant:
@@ -327,6 +332,8 @@ func _make_dispatch_rule(rule_id: StringName, action_type: StringName, priority:
 	rule.rule_id = rule_id
 	rule.priority = priority
 	rule.decision_group = group
-	rule.conditions = [_make_constant_condition()]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(_make_constant_condition() as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule

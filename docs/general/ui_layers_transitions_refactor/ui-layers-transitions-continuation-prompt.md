@@ -94,7 +94,7 @@
 - Implementation commit: `962d19d5` (`refactor(ui): harden service-locator container contracts and endgame snap flow`).
 - Closed remaining Phase 1-4 gaps after initial Phase 4 landing:
   - strict ServiceLocator lookups added for remaining phase-adjacent runtime container discovery:
-    - `u_display_cinema_grade_applier` (`post_process_overlay`)
+    - `u_display_color_grading_applier` (`post_process_overlay`)
     - `u_display_quality_applier` (`game_viewport`, owner viewport fallback retained for isolated tests)
     - `m_audio_manager` (`game_viewport`)
     - `m_time_manager` (`ui_overlay_stack`)
@@ -254,7 +254,7 @@ The UI layer stack, scene transitions, VFX overlays, and HUD management have gro
 | `scripts/scene_management/helpers/u_overlay_stack_manager.gd` | UIOverlayStack push/pop |
 | `scripts/scene_management/helpers/u_scene_manager_node_finder.gd` | Container/node discovery (migrate to ServiceLocator) |
 | `scripts/managers/helpers/display/u_display_post_process_applier.gd` | Post-process shader management |
-| `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd` | Per-scene cinema grade |
+| `scripts/managers/helpers/display/u_display_color_grading_applier.gd` | Per-scene cinema grade |
 | `scripts/ui/hud/ui_hud_controller.gd` | HUD logic, Redux-driven visibility |
 | `scripts/ui/base/base_overlay.gd` | Base overlay class |
 | `scenes/ui/overlays/ui_damage_flash_overlay.tscn` | DamageFlash CanvasLayer (layer=110, change to 90) |

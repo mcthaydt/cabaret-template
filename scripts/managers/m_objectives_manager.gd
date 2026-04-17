@@ -7,11 +7,13 @@ const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.g
 const U_OBJECTIVE_GRAPH := preload("res://scripts/utils/scene_director/u_objective_graph.gd")
 const U_OBJECTIVE_EVENT_LOG := preload("res://scripts/utils/scene_director/u_objective_event_log.gd")
 const U_OBJECTIVES_ACTIONS := preload("res://scripts/state/actions/u_objectives_actions.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_OBJECTIVES_SELECTORS := preload("res://scripts/state/selectors/u_objectives_selectors.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const RS_OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
 const U_OBJECTIVES_DEBUG_TRACER := preload("res://scripts/utils/scene_director/u_objectives_debug_tracer.gd")
+const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 
 const STATUS_INACTIVE := "inactive"
 const STATUS_ACTIVE := "active"
@@ -26,8 +28,8 @@ var _store: I_StateStore:
 	get: return _binder.store
 var _binder: U_StoreActionBinder = U_StoreActionBinder.new()
 var _objective_sets_by_id: Dictionary = {}
-var _objectives_by_id: Dictionary = {}
-var _objective_graph: Dictionary = {}
+var _objective_sets: Dictionary = {}
+var _objective_graphs: Dictionary = {}
 var _event_unsubscribes: Array[Callable] = []
 
 func _ready() -> void:
@@ -55,8 +57,38 @@ func _exit_tree() -> void:
 func load_objective_set(set_id: StringName) -> bool:
 	return _load_objective_set_internal(set_id, true)
 
+func unload_objective_set(set_id: StringName) -> bool:
+	if set_id == StringName(""):
+		return false
+	if not _objective_sets.has(set_id):
+		return false
+
+	# Capture objective IDs before erasing
+	var objectives_map: Dictionary = _objective_sets.get(set_id, {})
+	var set_objective_ids: Array[StringName] = []
+	for objective_id in objectives_map.keys():
+		set_objective_ids.append(objective_id as StringName)
+
+	_objective_sets.erase(set_id)
+	_objective_graphs.erase(set_id)
+
+	if _store != null:
+		_store.dispatch(U_OBJECTIVES_ACTIONS.remove_active_set(set_id))
+		U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/remove_active_set %s" % str(set_id), _store)
+
+		if not set_objective_ids.is_empty():
+			_store.dispatch(U_OBJECTIVES_ACTIONS.reset_set_statuses(set_objective_ids))
+			U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/reset_set_statuses (unload) %s" % str(set_id), _store)
+
+	U_OBJECTIVES_DEBUG_TRACER.debug_log("unloaded objective set set_id=%s" % str(set_id))
+	return true
+
 func reset_for_new_run(set_id: StringName = StringName("default_progression")) -> bool:
 	return _load_objective_set_internal(set_id, false)
+
+func has_objective_set(set_id: StringName) -> bool:
+	_index_objective_sets()
+	return _objective_sets_by_id.has(set_id)
 
 func _load_objective_set_internal(set_id: StringName, reconcile_persisted_statuses: bool) -> bool:
 	if set_id == StringName(""):
@@ -103,16 +135,23 @@ func _load_objective_set_internal(set_id: StringName, reconcile_persisted_status
 				% str(known_ids)
 			)
 
-	_objectives_by_id = objective_map
-	_objective_graph = graph
+	_objective_sets[set_id] = objective_map
+	_objective_graphs[set_id] = graph
 
 	if _store != null:
 		if reconcile_persisted_statuses:
 			var persisted_statuses: Dictionary = _get_statuses_snapshot()
-			_store.dispatch(U_OBJECTIVES_ACTIONS.reset_all())
-			U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/reset_all", _store)
-			_store.dispatch(U_OBJECTIVES_ACTIONS.set_active_set(set_id))
-			U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/set_active_set", _store)
+			# First set: clear all statuses (including orphans from previous save).
+			# Subsequent sets: only clear this set's objectives to preserve other sets.
+			var active_set_ids: Array[StringName] = U_OBJECTIVES_SELECTORS.get_active_set_ids(_store.get_state())
+			if active_set_ids.is_empty():
+				_store.dispatch(U_OBJECTIVES_ACTIONS.reset_all_statuses())
+				U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/reset_all_statuses", _store)
+			else:
+				_store.dispatch(U_OBJECTIVES_ACTIONS.reset_set_statuses(known_ids))
+				U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/reset_set_statuses", _store)
+			_store.dispatch(U_OBJECTIVES_ACTIONS.add_active_set(set_id))
+			U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/add_active_set", _store)
 			_reconcile_persisted_statuses(known_ids, persisted_statuses)
 			U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives reconcile persisted statuses", _store)
 		else:
@@ -121,7 +160,7 @@ func _load_objective_set_internal(set_id: StringName, reconcile_persisted_status
 
 	var auto_activate_ids: Array[StringName] = []
 	for objective_id in known_ids:
-		var objective: Resource = _objectives_by_id.get(objective_id, null) as Resource
+		var objective: Resource = objective_map.get(objective_id, null) as Resource
 		if objective == null:
 			continue
 		if bool(U_ResourceAccessHelpers.resource_get(objective, "auto_activate", false)):
@@ -140,6 +179,13 @@ func _load_objective_set_internal(set_id: StringName, reconcile_persisted_status
 	)
 
 	return true
+
+func _find_objective(objective_id: StringName) -> Resource:
+	for set_id in _objective_sets:
+		var objectives_map: Dictionary = _objective_sets.get(set_id, {})
+		if objectives_map.has(objective_id):
+			return objectives_map.get(objective_id, null) as Resource
+	return null
 
 func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool:
 	var condition_index: int = 0
@@ -186,7 +232,7 @@ func _complete_objective_with_context(objective_id: StringName, context: Diction
 	if objective_id == StringName(""):
 		return
 
-	var objective: Resource = _objectives_by_id.get(objective_id, null) as Resource
+	var objective: Resource = _find_objective(objective_id)
 	if objective == null:
 		return
 
@@ -203,9 +249,6 @@ func _complete_objective_with_context(objective_id: StringName, context: Diction
 		U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/complete %s" % str(objective_id), _store)
 
 	_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_COMPLETED)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_COMPLETED, {
-		"objective_id": objective_id,
-	})
 
 	var completion_context: Dictionary = context.duplicate(true)
 	if completion_context.is_empty():
@@ -223,12 +266,13 @@ func _complete_objective_with_context(objective_id: StringName, context: Diction
 		var payload_variant: Variant = U_ResourceAccessHelpers.resource_get(objective, "completion_event_payload", {})
 		if payload_variant is Dictionary:
 			payload = (payload_variant as Dictionary).duplicate(true)
-		U_OBJECTIVES_DEBUG_TRACER.log_gameplay_slice("before objective_victory_triggered publish objective_id=%s" % str(objective_id), _store)
+		var target_scene: StringName = payload.get("target_scene", StringName(""))
 		U_OBJECTIVES_DEBUG_TRACER.debug_log(
-			"publishing objective_victory_triggered objective_id=%s payload=%s"
-			% [str(objective_id), str(payload)]
+			"dispatching victory_routing objective_id=%s target_scene=%s"
+			% [str(objective_id), str(target_scene)]
 		)
-		U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED, payload)
+		if _store != null:
+			_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory_routing(target_scene, payload))
 
 	_activate_dependents(objective_id)
 
@@ -236,7 +280,7 @@ func _fail_objective(objective_id: StringName) -> void:
 	if objective_id == StringName(""):
 		return
 
-	var objective: Resource = _objectives_by_id.get(objective_id, null) as Resource
+	var objective: Resource = _find_objective(objective_id)
 	if objective == null:
 		return
 
@@ -249,28 +293,28 @@ func _fail_objective(objective_id: StringName) -> void:
 		U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/fail %s" % str(objective_id), _store)
 
 	_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_FAILED)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_FAILED, {
-		"objective_id": objective_id,
-	})
 
 func _activate_dependents(objective_id: StringName) -> void:
 	if objective_id == StringName(""):
 		return
-	if _objective_graph.is_empty():
-		return
 
 	var statuses: Dictionary = _get_statuses_snapshot()
-	var ready_dependents: Array[StringName] = U_OBJECTIVE_GRAPH.get_ready_dependents(
-		objective_id,
-		_objective_graph,
-		statuses
-	)
-
-	for dependent_id in ready_dependents:
-		_log_event(dependent_id, U_OBJECTIVE_EVENT_LOG.EVENT_DEPENDENCY_MET, {
-			"dependency_id": objective_id,
-		})
-		_activate_objective(dependent_id, {"dependency_id": objective_id})
+	for set_id in _objective_graphs:
+		var graph: Dictionary = _objective_graphs.get(set_id, {})
+		if graph.is_empty():
+			continue
+		if not graph.has(objective_id):
+			continue
+		var ready_dependents: Array[StringName] = U_OBJECTIVE_GRAPH.get_ready_dependents(
+			objective_id,
+			graph,
+			statuses
+		)
+		for dependent_id in ready_dependents:
+			_log_event(dependent_id, U_OBJECTIVE_EVENT_LOG.EVENT_DEPENDENCY_MET, {
+				"dependency_id": objective_id,
+			})
+			_activate_objective(dependent_id, {"dependency_id": objective_id})
 
 func get_objective_status(objective_id: StringName) -> String:
 	_binder.resolve(state_store, self, _on_action_dispatched)
@@ -281,18 +325,15 @@ func get_objective_status(objective_id: StringName) -> String:
 
 func _build_context() -> Dictionary:
 	_binder.resolve(state_store, self, _on_action_dispatched)
-	var redux_state: Dictionary = {}
+	var rule_context: RefCounted = RSRuleContext.new()
 	if _store != null:
-		redux_state = _store.get_state()
-
-	return {
-		"state_store": _store,
-		"redux_state": redux_state,
-	}
+		rule_context.redux_state = _store.get_state()
+		rule_context.state_store = _store
+	return rule_context.to_dictionary()
 
 func _build_event_context(event_payload: Dictionary) -> Dictionary:
 	var context: Dictionary = _build_context()
-	context["event_payload"] = event_payload.duplicate(true)
+	context[RSRuleContext.KEY_EVENT_PAYLOAD] = event_payload.duplicate(true)
 	return context
 
 func _index_objective_sets() -> void:
@@ -312,9 +353,7 @@ func _subscribe_events() -> void:
 	_event_unsubscribes.append(
 		U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_CHECKPOINT_ACTIVATED, _on_checkpoint_activated)
 	)
-	_event_unsubscribes.append(
-		U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, _on_victory_executed)
-	)
+
 
 	_binder.ensure_connection(_on_action_dispatched)
 
@@ -324,24 +363,22 @@ func _on_checkpoint_activated(event: Dictionary) -> void:
 	U_OBJECTIVES_DEBUG_TRACER.debug_log("received checkpoint_activated payload=%s" % str(payload))
 	_evaluate_active_objectives(_build_event_context(payload))
 
-func _on_victory_executed(event: Dictionary) -> void:
-	var payload: Dictionary = event.get("payload", {})
-	_ensure_objective_runtime_state()
-	U_OBJECTIVES_DEBUG_TRACER.debug_log(
-		"received victory_executed payload=%s statuses=%s"
-		% [str(payload), str(_get_statuses_snapshot())]
-	)
-	_evaluate_active_objectives(_build_event_context(payload))
 
 func _on_action_dispatched(action: Dictionary) -> void:
 	var action_type: StringName = action.get("type", StringName(""))
 	if action_type != U_GAMEPLAY_ACTIONS.ACTION_MARK_AREA_COMPLETE \
 	and action_type != U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS \
 	and action_type != U_GAMEPLAY_ACTIONS.ACTION_GAME_COMPLETE \
+	and action_type != U_GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY \
 	and action_type != U_NAVIGATION_ACTIONS.ACTION_START_GAME:
 		return
 
 	_ensure_objective_runtime_state()
+	if action_type == U_GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY:
+		U_OBJECTIVES_DEBUG_TRACER.debug_log("observed gameplay/trigger_victory")
+		_evaluate_active_objectives(_build_event_context(action))
+		return
+
 	if action_type == U_NAVIGATION_ACTIONS.ACTION_START_GAME:
 		if _is_scene_transitioning():
 			return
@@ -368,6 +405,10 @@ func _on_action_dispatched(action: Dictionary) -> void:
 		U_OBJECTIVES_DEBUG_TRACER.debug_log("observed gameplay/game_complete")
 		U_OBJECTIVES_DEBUG_TRACER.log_gameplay_slice("after gameplay/game_complete dispatch observed", _store)
 		U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after gameplay/game_complete dispatch observed", _store)
+		_evaluate_active_objectives(_build_event_context({
+			"action_type": action_type,
+			"action_payload": action.get("payload", null),
+		}))
 		return
 
 	U_OBJECTIVES_DEBUG_TRACER.debug_log("observed gameplay/mark_area_complete payload=%s" % str(action.get("payload", null)))
@@ -385,16 +426,21 @@ func _evaluate_active_objectives(context: Dictionary) -> void:
 	_ensure_objective_runtime_state()
 
 	var event_payload: Dictionary = {}
-	var payload_variant: Variant = context.get("event_payload", {})
+	var payload_variant: Variant = context.get(RSRuleContext.KEY_EVENT_PAYLOAD, {})
 	if payload_variant is Dictionary:
 		event_payload = (payload_variant as Dictionary).duplicate(true)
 
-	var max_iterations: int = max(_objectives_by_id.size() + 1, 1)
+	var total_objectives: int = 0
+	for set_id in _objective_sets:
+		var objectives_map: Dictionary = _objective_sets.get(set_id, {})
+		total_objectives += objectives_map.size()
+
+	var max_iterations: int = max(total_objectives + 1, 1)
 	for _iteration in range(max_iterations):
 		var progressed: bool = false
 		var evaluation_context: Dictionary = _build_context()
 		if not event_payload.is_empty():
-			evaluation_context["event_payload"] = event_payload.duplicate(true)
+			evaluation_context[RSRuleContext.KEY_EVENT_PAYLOAD] = event_payload.duplicate(true)
 		var state: Dictionary = _store.get_state()
 		var active_ids: Array[StringName] = U_OBJECTIVES_SELECTORS.get_active_objectives(state)
 		U_OBJECTIVES_DEBUG_TRACER.debug_log("evaluating active objectives active_ids=%s event_payload=%s" % [str(active_ids), str(event_payload)])
@@ -403,7 +449,7 @@ func _evaluate_active_objectives(context: Dictionary) -> void:
 			break
 
 		for objective_id in active_ids:
-			var objective: Resource = _objectives_by_id.get(objective_id, null) as Resource
+			var objective: Resource = _find_objective(objective_id)
 			if objective == null:
 				continue
 
@@ -422,76 +468,69 @@ func _evaluate_active_objectives(context: Dictionary) -> void:
 func _ensure_objective_runtime_state() -> void:
 	if _store == null:
 		return
-	if _objectives_by_id.is_empty():
+	if _objective_sets.is_empty():
 		return
 
 	var state: Dictionary = _store.get_state()
-	var objectives_variant: Variant = state.get("objectives", {})
-	if not (objectives_variant is Dictionary):
-		_reload_objective_set_from_state()
+	var statuses: Dictionary = U_OBJECTIVES_SELECTORS.get_statuses_snapshot(state)
+	if not statuses.is_empty():
 		return
-
-	var objectives_slice: Dictionary = objectives_variant as Dictionary
-	var statuses_variant: Variant = objectives_slice.get("statuses", {})
-	if statuses_variant is Dictionary:
-		var statuses: Dictionary = statuses_variant as Dictionary
-		if not statuses.is_empty():
-			return
 
 	_reload_objective_set_from_state()
 
 func _reload_objective_set_from_state() -> void:
-	var set_id: StringName = _resolve_active_set_id_from_store()
-	if set_id == StringName(""):
+	var set_ids: Array[StringName] = _resolve_active_set_ids_from_store()
+	if set_ids.is_empty():
 		return
-	if load_objective_set(set_id):
-		U_OBJECTIVES_DEBUG_TRACER.debug_log("reloaded objective set after empty objectives state set_id=%s" % str(set_id))
-	else:
-		push_warning("M_ObjectivesManager: Failed to reload objective set '%s' for runtime recovery." % str(set_id))
+	for set_id in set_ids:
+		if load_objective_set(set_id):
+			U_OBJECTIVES_DEBUG_TRACER.debug_log("reloaded objective set after empty objectives state set_id=%s" % str(set_id))
+		else:
+			push_warning("M_ObjectivesManager: Failed to reload objective set '%s' for runtime recovery." % str(set_id))
 
-func _resolve_active_set_id_from_store() -> StringName:
+func _resolve_active_set_ids_from_store() -> Array[StringName]:
 	if _store == null:
-		return StringName("")
+		return []
 
 	var state: Dictionary = _store.get_state()
-	var objectives_variant: Variant = state.get("objectives", {})
-	if objectives_variant is Dictionary:
-		var objectives_slice: Dictionary = objectives_variant as Dictionary
-		var active_set_variant: Variant = objectives_slice.get("active_set_id", StringName(""))
-		var active_set_id: StringName = U_ResourceAccessHelpers.to_string_name(active_set_variant)
-		if active_set_id != StringName(""):
-			return active_set_id
+	var active_set_ids: Array[StringName] = U_OBJECTIVES_SELECTORS.get_active_set_ids(state)
+	if not active_set_ids.is_empty():
+		return active_set_ids
 
+	# Fallback: use single active_set_id for backwards compatibility
+	var active_set_id: StringName = U_OBJECTIVES_SELECTORS.get_active_set_id(state)
+	if active_set_id != StringName(""):
+		return [active_set_id]
+
+	# Last resort: return first configured set
 	var candidate_ids: Array[StringName] = []
 	for set_id_variant in _objective_sets_by_id.keys():
 		var candidate_id: StringName = U_ResourceAccessHelpers.to_string_name(set_id_variant)
 		if candidate_id != StringName(""):
 			candidate_ids.append(candidate_id)
 	if candidate_ids.is_empty():
-		return StringName("")
+		return []
 
 	candidate_ids.sort()
-	return candidate_ids[0]
+	return [candidate_ids[0]]
 
 func _is_scene_transitioning() -> bool:
 	if _store == null:
 		return false
 
 	var state: Dictionary = _store.get_state()
-	var scene_variant: Variant = state.get("scene", {})
-	if not (scene_variant is Dictionary):
-		return false
-	var scene_slice: Dictionary = scene_variant as Dictionary
-	return bool(scene_slice.get("is_transitioning", false))
+	return U_SCENE_SELECTORS.is_transitioning(state)
 
 func _resolve_set_id_for_new_run() -> StringName:
 	_index_objective_sets()
 	if _objective_sets_by_id.is_empty():
 		return StringName("")
 
-	var active_set_id: StringName = _resolve_active_set_id_from_store()
-	if active_set_id != StringName("") and _objective_sets_by_id.has(active_set_id):
-		return active_set_id
+	var active_set_ids: Array[StringName] = _resolve_active_set_ids_from_store()
+	if not active_set_ids.is_empty():
+		var primary_id: StringName = active_set_ids[0]
+		if _objective_sets_by_id.has(primary_id):
+			return primary_id
 
 	var default_set_id := StringName("default_progression")
 	if _objective_sets_by_id.has(default_set_id):
@@ -523,9 +562,6 @@ func _activate_objective(objective_id: StringName, details: Dictionary = {}) -> 
 		U_OBJECTIVES_DEBUG_TRACER.log_objectives_slice("after objectives/activate %s" % str(objective_id), _store)
 
 	_log_event(objective_id, U_OBJECTIVE_EVENT_LOG.EVENT_ACTIVATED, details)
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_ACTIVATED, {
-		"objective_id": objective_id,
-	})
 
 func _activate_objectives_for_reset(objective_ids: Array[StringName]) -> void:
 	if objective_ids.is_empty():
@@ -568,12 +604,4 @@ func _get_statuses_snapshot() -> Dictionary:
 	if _store == null:
 		return {}
 	var state: Dictionary = _store.get_state()
-	var objectives_slice_variant: Variant = state.get("objectives", {})
-	if not (objectives_slice_variant is Dictionary):
-		return {}
-	var objectives_slice := objectives_slice_variant as Dictionary
-	var statuses_variant: Variant = objectives_slice.get("statuses", {})
-	if statuses_variant is Dictionary:
-		return (statuses_variant as Dictionary).duplicate(true)
-	return {}
-
+	return U_OBJECTIVES_SELECTORS.get_statuses_snapshot(state)

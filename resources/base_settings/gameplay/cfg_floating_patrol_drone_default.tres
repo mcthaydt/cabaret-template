@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="RS_FloatingSettings" format=3 uid="uid://bjnnko8g6t2bi"]
+
+[ext_resource type="Script" uid="uid://baidwxk0mvb2s" path="res://scripts/resources/ecs/rs_floating_settings.gd" id="1_rs_floating_settings"]
+
+[resource]
+script = ExtResource("1_rs_floating_settings")
+hover_height = 1.75

@@ -1,7 +1,7 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-06
-**Current Phase:** Phase 11 Complete (Cinema Grading Post-Process System)
+**Current Phase:** Phase 11 Complete (Color Grading Post-Process System)
 **Branch:** `display-manager`
 
 ---
@@ -10,7 +10,7 @@
 
 Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, CRT, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration). Minimal UI theme binding now applies palette text colors to common UI controls and is covered by display manager unit tests. Phase 6 settings UI integration complete (display settings overlay + tab, accessibility section wiring, settings menu integration, registry entries). Display settings UI now uses Apply/Cancel + preview, with persistence handled via global settings auto-save on dispatch. Phase 7 integration tests added for display settings UI, post-processing overlay wiring, and color blind palette switching/persistence. Cleanup v5 Phase 10A complete: data-driven option catalogs added (window size presets, quality preset metadata, option lists) and UI/reducer/manager now pull from catalog. Cleanup v5 Phase 10B complete: extracted display appliers (window/quality/post-process/ui scale/theme) and refactored M_DisplayManager to delegate. Cleanup v5 Phase 10C complete: confirm/revert flow added for window changes (countdown + keep/revert). Cleanup v5 Phase 10D complete: UI polish with dependent control gating and microcopy tooltips. Cleanup v5 Phase 10E complete: removed unused hex/safe-area helpers and safe-area padding helper with unit test cleanup.
 
-**Phase 11 complete (2026-02-06):** Cinema grading post-process system implemented. Per-scene artistic color grading via GLSL shader (13 uniforms + 8 named filters). RS_SceneCinemaGrade resource class with @export groups. U_CinemaGradeRegistry with mobile-safe const preload arrays. U_DisplayCinemaGradeApplier creates CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay, listens for `scene/transition_completed` via `action_dispatched`. Redux integration uses `cinema_grade/` prefix (NOT persisted to global_settings.json). U_CinemaGradePreview @tool node for editor viewport preview. 5 neutral .tres configs for gameplay scenes. U_DisplayReducer modified with 3 new match cases. M_DisplayManager integrated with cinema grade applier lifecycle. Style tests: 11/11 pass.
+**Phase 11 complete (2026-02-06):** Cinema grading post-process system implemented. Per-scene artistic color grading via GLSL shader (13 uniforms + 8 named filters). RS_SceneCinemaGrade resource class with @export groups. U_CinemaGradeRegistry with mobile-safe const preload arrays. U_DisplayCinemaGradeApplier creates CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay, listens for `scene/transition_completed` via `action_dispatched`. Redux integration uses `color_grading/` prefix (NOT persisted to global_settings.json). U_CinemaGradePreview @tool node for editor viewport preview. 5 neutral .tres configs for gameplay scenes. U_DisplayReducer modified with 3 new match cases. M_DisplayManager integrated with cinema grade applier lifecycle. Style tests: 11/11 pass.
 
 Tests (2026-02-06): `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (11/11 pass).
 
@@ -77,9 +77,9 @@ Tests (2026-02-06): `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclu
 - [x] Task 11B.1: RS_SceneCinemaGrade resource class
 - [x] Task 11B.2: U_CinemaGradeRegistry (mobile-safe const preload)
 - [x] Task 11B.3: Per-scene .tres configs (5 neutral configs)
-- [x] Task 11C.1: U_CinemaGradeActions (cinema_grade/ prefix, not persisted)
+- [x] Task 11C.1: U_CinemaGradeActions (color_grading/ prefix, not persisted)
 - [x] Task 11C.2: U_CinemaGradeSelectors
-- [x] Task 11C.3: U_DisplayReducer modified (3 cinema_grade/ match cases)
+- [x] Task 11C.3: U_DisplayReducer modified (3 color_grading/ match cases)
 - [x] Task 11D.1: U_DisplayCinemaGradeApplier (CinemaGradeLayer at layer 1)
 - [x] Task 11D.2: M_DisplayManager integration (applier lifecycle)
 - [x] Task 11E.1: U_CinemaGradePreview @tool editor preview
@@ -91,12 +91,12 @@ Tests (2026-02-06): `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclu
 
 ### Immediate: Next Phase
 
-1. **Task 11F.2**: Manual visual verification of cinema grading
+1. **Task 11F.2**: Manual visual verification of color grading
    - Temp scene shader test (all uniforms)
    - Scene transition grade swap
    - Editor preview
    - Overlay visibility (pause menu hide/show)
-   - Stacking with existing effects (film grain + CRT + dither)
+   - Stacking with existing effects (film grain + dither)
 2. **Task 8**: Run manual verification checklist (MT-01 → MT-17)
 
 ### Later: Phase 8 - Manual Testing
@@ -185,16 +185,9 @@ if display_initial_state != null:
         # Post-Processing
         "film_grain_enabled": false,
         "film_grain_intensity": 0.1,
-        "crt_enabled": false,
-        "crt_scanline_intensity": 0.3,
-        "crt_curvature": 2.0,
-        "crt_chromatic_aberration": 0.002,
         "dither_enabled": false,
         "dither_intensity": 0.5,
         "dither_pattern": "bayer",
-        "lut_enabled": false,
-        "lut_resource": "",
-        "lut_intensity": 1.0,
 
         # UI
         "ui_scale": 1.0,
@@ -204,20 +197,20 @@ if display_initial_state != null:
         "high_contrast_enabled": false,
         "color_blind_shader_enabled": false,
 
-        # Cinema Grade (transient — loaded per-scene, NOT persisted)
-        "cinema_grade_filter_mode": 0,       # 0=none, 1-8=named filters
-        "cinema_grade_filter_intensity": 1.0,
-        "cinema_grade_exposure": 0.0,
-        "cinema_grade_brightness": 0.0,
-        "cinema_grade_contrast": 1.0,
-        "cinema_grade_brilliance": 0.0,
-        "cinema_grade_highlights": 0.0,
-        "cinema_grade_shadows": 0.0,
-        "cinema_grade_saturation": 1.0,
-        "cinema_grade_vibrance": 0.0,
-        "cinema_grade_warmth": 0.0,
-        "cinema_grade_tint": 0.0,
-        "cinema_grade_sharpness": 0.0,
+        # Color Grading (transient — loaded per-scene, NOT persisted)
+        "color_grading_filter_mode": 0,       # 0=none, 1-8=named filters
+        "color_grading_filter_intensity": 1.0,
+        "color_grading_exposure": 0.0,
+        "color_grading_brightness": 0.0,
+        "color_grading_contrast": 1.0,
+        "color_grading_brilliance": 0.0,
+        "color_grading_highlights": 0.0,
+        "color_grading_shadows": 0.0,
+        "color_grading_saturation": 1.0,
+        "color_grading_vibrance": 0.0,
+        "color_grading_warmth": 0.0,
+        "color_grading_tint": 0.0,
+        "color_grading_sharpness": 0.0,
     }
 }
 ```
@@ -294,7 +287,7 @@ Validation for window modes, dither patterns, color blind modes, and preset IDs 
 - [ ] Update AGENTS.md
 - [ ] Update DEV_PITFALLS.md if needed
 
-### Phase 11: Cinema Grading Post-Process System
+### Phase 11: Color Grading Post-Process System
 - [x] 11A: Cinema grade GLSL shader
 - [x] 11B: Resource class + registry + 5 .tres configs
 - [x] 11C: Redux integration (actions, selectors, reducer)

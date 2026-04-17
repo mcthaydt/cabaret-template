@@ -2,7 +2,7 @@
 extends BaseECSSystem
 class_name S_VCamSystem
 
-const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
+const U_VCAM_PIPELINE_BUILDER := preload("res://scripts/ecs/systems/helpers/u_vcam_pipeline_builder.gd")
 const U_VCAM_LANDING_IMPACT := preload("res://scripts/ecs/systems/helpers/u_vcam_landing_impact.gd")
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
 const U_VCAM_ORBIT_EFFECTS := preload("res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd")
@@ -38,6 +38,7 @@ var _effect_pipeline_helper = U_VCAM_EFFECT_PIPELINE.new()
 var _runtime_context_helper = U_VCAM_RUNTIME_CONTEXT.new()
 var _runtime_state_helper = U_VCAM_RUNTIME_STATE.new()
 var _runtime_services_helper = U_VCAM_RUNTIME_SERVICES.new()
+var _pipeline_builder = U_VCAM_PIPELINE_BUILDER.new()
 var _state_store: I_StateStore = null
 var _vcam_manager: I_VCAM_MANAGER = null
 var _last_active_vcam_id: StringName = StringName("")
@@ -112,6 +113,20 @@ func on_configured() -> void:
 		RS_VCAM_RESPONSE_SCRIPT
 	)
 	_debug_helper.set_state_store_provider(Callable(_runtime_services_helper, "resolve_state_store"))
+	_pipeline_builder.configure(
+		_effect_pipeline_helper,
+		_look_input_helper,
+		_rotation_helper,
+		_debug_helper,
+		_runtime_services_helper,
+		_runtime_state_helper,
+		Callable(self, "_resolve_follow_target"),
+		Callable(self, "_resolve_mode_values"),
+		RS_VCAM_MODE_ORBIT_SCRIPT
+	)
+
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.CAMERA
 
 func process_tick(delta: float) -> void:
 	_debug_helper.configure(debug_rotation_logging, debug_rotation_log_interval_sec)
@@ -141,21 +156,33 @@ func process_tick(delta: float) -> void:
 
 	var store := _runtime_services_helper.resolve_state_store()
 	_state_store = store
-	var look_input: Vector2 = _runtime_state_helper.read_look_input(store)
-	var move_input: Vector2 = _runtime_state_helper.read_move_input(store)
-	var camera_center_just_pressed: bool = _runtime_state_helper.read_camera_center_just_pressed(store)
+	var state_snapshot: Dictionary = get_frame_state_snapshot()
+	var input_state_snapshot: Dictionary = state_snapshot
+	if store != null and is_instance_valid(store):
+		# Read directly from store so vCam reacts without a one-frame delay.
+		input_state_snapshot = store.get_state()
+	var look_input: Vector2 = _runtime_state_helper.read_look_input(null, input_state_snapshot)
+	var move_input: Vector2 = _runtime_state_helper.read_move_input(null, input_state_snapshot)
+	var camera_center_just_pressed: bool = _runtime_state_helper.read_camera_center_just_pressed(null, input_state_snapshot)
 	_debug_helper.log_vcam_state("tick", active_vcam_id, look_input)
 	var landing_offset: Vector3 = _resolve_landing_impact_offset(delta)
-	_evaluate_and_submit(
-		active_vcam_id,
-		vcam_index,
-		look_input,
-		move_input,
-		camera_center_just_pressed,
-		landing_offset,
-		manager,
-		delta
+	_pipeline_builder.debug_enabled = debug_rotation_logging
+	var pipeline_state: Dictionary = _pipeline_builder.prepare_vcam_pipeline_state(
+		active_vcam_id, vcam_index, look_input, move_input,
+		camera_center_just_pressed, manager, delta
 	)
+	if not pipeline_state.is_empty():
+		var mode_result: Dictionary = _pipeline_builder.evaluate_vcam_mode_result(
+			active_vcam_id, pipeline_state, manager, delta
+		)
+		if not mode_result.is_empty():
+			var final_result: Dictionary = _effect_pipeline_helper.apply_vcam_effect_pipeline(
+				active_vcam_id, pipeline_state, mode_result, landing_offset, delta,
+				Callable(self, "_clear_smoothing_state_for_vcam")
+			)
+			if active_vcam_id == manager.get_active_vcam_id():
+				_write_active_camera_base_fov_from_result(final_result)
+			manager.submit_evaluated_camera(active_vcam_id, final_result)
 
 	if not manager.is_blending():
 		return
@@ -163,16 +190,22 @@ func process_tick(delta: float) -> void:
 	var previous_vcam_id: StringName = manager.get_previous_vcam_id()
 	if previous_vcam_id == StringName("") or previous_vcam_id == active_vcam_id:
 		return
-	_evaluate_and_submit(
-		previous_vcam_id,
-		vcam_index,
-		look_input,
-		move_input,
-		false,
-		landing_offset,
-		manager,
-		delta
+
+	var pipeline_state_prev: Dictionary = _pipeline_builder.prepare_vcam_pipeline_state(
+		previous_vcam_id, vcam_index, look_input, move_input, false, manager, delta
 	)
+	if not pipeline_state_prev.is_empty():
+		var mode_result_prev: Dictionary = _pipeline_builder.evaluate_vcam_mode_result(
+			previous_vcam_id, pipeline_state_prev, manager, delta
+		)
+		if not mode_result_prev.is_empty():
+			var final_result_prev: Dictionary = _effect_pipeline_helper.apply_vcam_effect_pipeline(
+				previous_vcam_id, pipeline_state_prev, mode_result_prev, landing_offset, delta,
+				Callable(self, "_clear_smoothing_state_for_vcam")
+			)
+			if previous_vcam_id == manager.get_active_vcam_id():
+				_write_active_camera_base_fov_from_result(final_result_prev)
+			manager.submit_evaluated_camera(previous_vcam_id, final_result_prev)
 
 func get_debug_issues() -> Array[String]:
 	return _debug_helper.get_debug_issues()
@@ -204,183 +237,6 @@ func _apply_rotation_continuity_policy(
 		RS_VCAM_MODE_ORBIT_SCRIPT
 	)
 
-func _evaluate_and_submit(
-	vcam_id: StringName,
-	vcam_index: Dictionary,
-	look_input: Vector2,
-	move_input: Vector2,
-	camera_center_just_pressed: bool,
-	landing_offset: Vector3,
-	manager: I_VCAM_MANAGER,
-	delta: float
-) -> void:
-	var pipeline_state: Dictionary = _prepare_vcam_pipeline_state(
-		vcam_id,
-		vcam_index,
-		look_input,
-		move_input,
-		camera_center_just_pressed,
-		manager,
-		delta
-	)
-	if pipeline_state.is_empty():
-		return
-
-	var mode_result: Dictionary = _evaluate_vcam_mode_result(
-		vcam_id,
-		pipeline_state,
-		manager,
-		delta
-	)
-	if mode_result.is_empty():
-		return
-
-	var final_result: Dictionary = _apply_vcam_effect_pipeline(
-		vcam_id,
-		pipeline_state,
-		mode_result,
-		landing_offset,
-		delta
-	)
-	if vcam_id == manager.get_active_vcam_id():
-		_write_active_camera_base_fov_from_result(final_result)
-	manager.submit_evaluated_camera(vcam_id, final_result)
-
-func _prepare_vcam_pipeline_state(
-	vcam_id: StringName,
-	vcam_index: Dictionary,
-	look_input: Vector2,
-	_move_input: Vector2,
-	camera_center_just_pressed: bool,
-	manager: I_VCAM_MANAGER,
-	delta: float
-) -> Dictionary:
-	var component := vcam_index.get(vcam_id, null) as C_VCamComponent
-	if component == null or not is_instance_valid(component):
-		return {}
-
-	var mode: Resource = component.mode
-	if mode == null:
-		return {}
-
-	var follow_target: Node3D = _resolve_follow_target(component)
-	_debug_helper.log_follow_target_resolution(vcam_id, component, follow_target)
-	var follow_target_required: bool = _runtime_services_helper.is_follow_target_required(
-		mode,
-		RS_VCAM_MODE_ORBIT_SCRIPT
-	)
-	if follow_target_required and (follow_target == null or not is_instance_valid(follow_target)):
-		_runtime_state_helper.update_active_target_observability(
-			vcam_id,
-			manager,
-			false,
-			"target_freed",
-			_runtime_services_helper.resolve_state_store()
-		)
-		return {}
-
-	var response_values: Dictionary = _effect_pipeline_helper.resolve_component_response_values(component)
-	_look_input_helper.debug_enabled = debug_rotation_logging
-	var filtered_look_input: Vector2 = _look_input_helper.filter_look_input(
-		vcam_id,
-		look_input,
-		response_values,
-		delta
-	)
-	var has_active_look_input: bool = _look_input_helper.is_active(
-		filtered_look_input,
-		response_values
-	)
-	_update_runtime_rotation(
-		vcam_id,
-		component,
-		mode,
-		follow_target,
-		look_input,
-		has_active_look_input,
-		camera_center_just_pressed,
-		response_values,
-		delta
-	)
-	if _rotation_helper.is_orbit_centering_active(vcam_id):
-		has_active_look_input = false
-	_debug_helper.log_look_input_transition(vcam_id, filtered_look_input)
-
-	return {
-		"component": component,
-		"mode": mode,
-		"follow_target": follow_target,
-		"response_values": response_values,
-		"has_active_look_input": has_active_look_input,
-	}
-
-func _evaluate_vcam_mode_result(
-	vcam_id: StringName,
-	pipeline_state: Dictionary,
-	manager: I_VCAM_MANAGER,
-	delta: float
-) -> Dictionary:
-	var component := pipeline_state.get("component", null) as C_VCamComponent
-	var mode := pipeline_state.get("mode", null) as Resource
-	var follow_target := pipeline_state.get("follow_target", null) as Node3D
-	var response_values: Dictionary = pipeline_state.get("response_values", {}) as Dictionary
-	var response_signature: Array[float] = _effect_pipeline_helper.build_response_signature(response_values)
-	var has_active_look_input: bool = bool(pipeline_state.get("has_active_look_input", false))
-	if component == null or mode == null:
-		return {}
-
-	var runtime_rotation: Vector2 = _resolve_runtime_rotation_for_evaluation(
-		vcam_id,
-		component,
-		mode,
-		follow_target,
-		response_values,
-		response_signature,
-		has_active_look_input,
-		delta
-	)
-	var look_at_target: Node3D = component.get_look_at_target()
-	var result: Dictionary = U_VCAM_MODE_EVALUATOR.evaluate(
-		mode,
-		follow_target,
-		look_at_target,
-		runtime_rotation.x,
-		runtime_rotation.y
-	)
-	if result.is_empty():
-		_runtime_state_helper.update_active_target_observability(
-			vcam_id,
-			manager,
-			false,
-			"evaluation_failed",
-			_runtime_services_helper.resolve_state_store()
-		)
-		return {}
-	_runtime_state_helper.update_active_target_observability(
-		vcam_id,
-		manager,
-		true,
-		"",
-		_runtime_services_helper.resolve_state_store()
-	)
-	return result
-
-func _apply_vcam_effect_pipeline(
-	vcam_id: StringName,
-	pipeline_state: Dictionary,
-	mode_result: Dictionary,
-	landing_offset: Vector3,
-	delta: float
-) -> Dictionary:
-	return _effect_pipeline_helper.apply_vcam_effect_pipeline(
-		vcam_id,
-		pipeline_state,
-		mode_result,
-		landing_offset,
-		delta,
-		Callable(self, "_clear_smoothing_state_for_vcam")
-	)
-
 func _resolve_landing_impact_offset(delta: float) -> Vector3:
 	var camera_state: Object = _resolve_primary_camera_state_component()
 	return _landing_impact_helper.resolve_offset(
@@ -408,32 +264,6 @@ func _resolve_follow_target(component: C_VCamComponent) -> Node3D:
 		component,
 		get_manager(),
 		Callable(_debug_helper, "report_issue")
-	)
-
-func _update_runtime_rotation(
-	vcam_id: StringName,
-	component: C_VCamComponent,
-	mode: Resource,
-	follow_target: Node3D,
-	look_input: Vector2,
-	has_look_input: bool,
-	camera_center_just_pressed: bool,
-	response_values: Dictionary,
-	delta: float
-) -> void:
-	_rotation_helper.debug_enabled = debug_rotation_logging
-	_rotation_helper.update_runtime_rotation(
-		vcam_id,
-		component,
-		mode,
-		follow_target,
-		look_input,
-		has_look_input,
-		camera_center_just_pressed,
-		response_values,
-		delta,
-		Callable(self, "_resolve_mode_values"),
-		RS_VCAM_MODE_ORBIT_SCRIPT
 	)
 
 func _resolve_mode_values(mode: Resource, fallback: Dictionary) -> Dictionary:
@@ -467,62 +297,3 @@ func _clear_smoothing_state_for_vcam(vcam_id: StringName) -> void:
 	_orbit_effects_helper.clear_for_vcam(vcam_id)
 	_rotation_helper.clear_rotation_state_for_vcam(vcam_id)
 	_debug_helper.clear_for_vcam(vcam_id)
-
-func _resolve_runtime_rotation_for_evaluation(
-	vcam_id: StringName,
-	component: C_VCamComponent,
-	mode: Resource,
-	follow_target: Node3D,
-	response_values: Dictionary,
-	response_signature: Array[float],
-	has_active_look_input: bool,
-	delta: float
-) -> Vector2:
-	_rotation_helper.debug_enabled = debug_rotation_logging
-	return _rotation_helper.resolve_runtime_rotation_for_evaluation(
-		vcam_id,
-		component,
-		mode,
-		follow_target,
-		response_values,
-		response_signature,
-		has_active_look_input,
-		delta,
-		RS_VCAM_MODE_ORBIT_SCRIPT
-	)
-
-func _step_orbit_release_axis(
-	_vcam_id: StringName,
-	_axis_label: String,
-	current_value: float,
-	target_value: float,
-	current_velocity: float,
-	frequency_hz: float,
-	damping_ratio: float,
-	release_damping: float,
-	stop_threshold: float,
-	delta: float
-) -> Dictionary:
-	return _rotation_helper.step_orbit_release_axis(
-		current_value,
-		target_value,
-		current_velocity,
-		frequency_hz,
-		damping_ratio,
-		release_damping,
-		stop_threshold,
-		delta
-	)
-
-func _resolve_orbit_center_target_yaw(
-	mode: Resource,
-	follow_target: Node3D,
-	current_runtime_yaw: float
-) -> float:
-	return _rotation_helper.resolve_orbit_center_target_yaw(
-		mode,
-		follow_target,
-		current_runtime_yaw,
-		Callable(self, "_resolve_mode_values"),
-		RS_VCAM_MODE_ORBIT_SCRIPT
-	)

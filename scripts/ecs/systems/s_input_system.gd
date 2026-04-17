@@ -7,6 +7,8 @@ class_name S_InputSystem
 
 const INPUT_TYPE := StringName("C_InputComponent")
 const GAMEPAD_TYPE := StringName("C_GamepadComponent")
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
+const PLAYER_TAG_TYPE := C_PLAYER_TAG_COMPONENT.COMPONENT_TYPE
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
@@ -47,6 +49,9 @@ var _sprint_toggle_enabled: bool = false
 var _sprint_toggled_on: bool = false
 var _sprint_button_was_pressed: bool = false
 var _debug_log_cooldown_sec: float = 0.0
+
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.INPUT
 
 func on_configured() -> void:
 	_validate_required_actions()
@@ -98,11 +103,7 @@ func process_tick(_delta: float) -> void:
 		return
 
 	if active_device_type == DeviceType.TOUCHSCREEN:
-		var gameplay_state_variant: Variant = state.get("gameplay", {})
-		var gameplay_state: Dictionary = {}
-		if gameplay_state_variant is Dictionary:
-			gameplay_state = gameplay_state_variant as Dictionary
-		var touch_look_active := U_GameplaySelectors.is_touch_look_active(gameplay_state)
+		var touch_look_active := U_GameplaySelectors.is_touch_look_active(state)
 		if touch_look_active:
 			_debug_log_input("blocked: touchscreen drag-look active; S_TouchscreenSystem owns input dispatch")
 		else:
@@ -134,22 +135,26 @@ func process_tick(_delta: float) -> void:
 	# Apply sprint toggle if enabled
 	var sprint_pressed := _compute_sprint_pressed(sprint_button_pressed)
 
-	# Dispatch input to state store
+	# Dispatch input to state store (batched: 1 dispatch instead of 5)
 	if store:
-		store.dispatch(U_InputActions.update_move_input(final_movement))
 		var look_source := U_InputActions.LOOK_SOURCE_KEYBOARD_MOUSE
 		if active_device_type == DeviceType.GAMEPAD:
 			look_source = U_InputActions.LOOK_SOURCE_GAMEPAD
-		store.dispatch(U_InputActions.update_look_input(look_delta, look_source))
-		store.dispatch(U_InputActions.update_camera_center_state(camera_center_just_pressed))
-		store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
-		store.dispatch(U_InputActions.update_sprint_state(sprint_pressed))
+		store.dispatch(U_InputActions.update_input_batch(
+			final_movement,
+			look_delta,
+			look_source,
+			camera_center_just_pressed,
+			jump_pressed,
+			jump_just_pressed,
+			sprint_pressed
+		))
 
 	var move_strength := clampf(final_movement.length(), 0.0, 1.0)
 	var look_strength := clampf(look_delta.length(), 0.0, 1.0)
 
 	# Write to components (other systems read from them)
-	var entities := query_entities([INPUT_TYPE], [GAMEPAD_TYPE])
+	var entities: Array = query_entities([INPUT_TYPE, PLAYER_TAG_TYPE], [GAMEPAD_TYPE])
 	for entity_query in entities:
 		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
 		if input_component == null:
@@ -177,21 +182,7 @@ func process_tick(_delta: float) -> void:
 			gamepad_component.apply_settings_from_dictionary(_gamepad_settings_cache)
 
 func _update_accessibility_from_state(state: Dictionary) -> void:
-	var settings_variant: Variant = state.get("settings", {})
-	if not (settings_variant is Dictionary):
-		_sprint_toggle_enabled = false
-		return
-	var settings_dict := settings_variant as Dictionary
-	var input_settings_variant: Variant = settings_dict.get("input_settings", {})
-	if not (input_settings_variant is Dictionary):
-		_sprint_toggle_enabled = false
-		return
-	var input_settings := input_settings_variant as Dictionary
-	var accessibility_variant: Variant = input_settings.get("accessibility", {})
-	if not (accessibility_variant is Dictionary):
-		_sprint_toggle_enabled = false
-		return
-	var accessibility := accessibility_variant as Dictionary
+	var accessibility: Dictionary = U_SettingsSelectors.get_accessibility_settings(state)
 	_sprint_toggle_enabled = bool(accessibility.get("sprint_toggle_mode", false))
 
 func _compute_sprint_pressed(button_pressed: bool) -> bool:
@@ -272,7 +263,7 @@ func _is_gameplay_active_for_inputs() -> bool:
 	if manager == null:
 		return true
 
-	var character_entities: Array = manager.query_entities([CHARACTER_STATE_TYPE])
+	var character_entities: Array = manager.query_entities_readonly([CHARACTER_STATE_TYPE])
 	if character_entities.is_empty():
 		return true
 

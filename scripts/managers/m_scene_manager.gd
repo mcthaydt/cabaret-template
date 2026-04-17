@@ -25,6 +25,7 @@ const I_CURSOR_MANAGER := preload("res://scripts/interfaces/i_cursor_manager.gd"
 const I_SPAWN_MANAGER := preload("res://scripts/interfaces/i_spawn_manager.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_UI_REGISTRY := preload("res://scripts/ui/utils/u_ui_registry.gd")
 const U_TRANSITION_FACTORY := preload("res://scripts/scene_management/u_transition_factory.gd")
@@ -38,8 +39,12 @@ const U_TRANSITION_ORCHESTRATOR := preload("res://scripts/scene_management/u_tra
 const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helpers/u_scene_transition_queue.gd")
 const U_SCENE_MANAGER_NODE_FINDER := preload("res://scripts/scene_management/helpers/u_scene_manager_node_finder.gd")
 const U_NAVIGATION_RECONCILER := preload("res://scripts/scene_management/helpers/u_navigation_reconciler.gd")
+const U_TRANSITION_STATE := preload("res://scripts/scene_management/helpers/u_transition_state.gd")
 const U_INPUT_MAP_BOOTSTRAPPER := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
+const U_DEBUG_SELECTORS := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const HUD_OVERLAY_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
 const UI_HUD_CONTROLLER := preload("res://scripts/ui/hud/ui_hud_controller.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
@@ -82,6 +87,8 @@ var _current_scene_id: StringName = StringName("")
 var _active_transition_target: StringName = StringName("")
 var _navigation_slice_connected: bool = false
 var _initial_navigation_synced: bool = false
+var _pause_suppressed_process_frame: int = -1
+var _pause_suppressed_physics_frame: int = -1
 
 ## Navigation reconciliation helper
 var _navigation_reconciler := U_NAVIGATION_RECONCILER.new()
@@ -154,13 +161,12 @@ var _unsubscribe: Callable
 
 ## ECS event bus subscriptions
 var _entity_death_unsubscribe: Callable
-var _objective_victory_unsubscribe: Callable
 
 ## Skip initial scene load (for tests)
 var skip_initial_scene_load: bool = false
 
 ## Initial scene to load on startup (configurable for testing)
-@export var initial_scene_id: StringName = StringName("main_menu")
+@export var initial_scene_id: StringName = StringName("splash_screen")
 
 func _debug_log(message: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
@@ -218,13 +224,10 @@ func _ready() -> void:
 	# Subscribe to ECS events with priorities
 	# entity_death: Priority 10 (high - quick transition to game over)
 	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_ENTITY_DEATH, _on_entity_death, 10)
-	# objective_victory_triggered: Priority 5 (medium - after objectives manager validates conditions)
-	_objective_victory_unsubscribe = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED,
-		_on_objective_victory,
-		5
-	)
 
+	# Channel taxonomy: victory routing arrives via Redux dispatch (managers dispatch to Redux)
+	if _store != null and _store.has_signal("action_dispatched"):
+		_store.action_dispatched.connect(_on_action_dispatched)
 	# Register scene type handlers (T137c: Phase 10B-3)
 	_register_scene_type_handlers()
 
@@ -291,11 +294,14 @@ func _exit_tree() -> void:
 		_store.slice_updated.disconnect(_on_slice_updated)
 	_navigation_slice_connected = false
 
+	# Disconnect Redux action_dispatched subscription (victory routing)
+	if _store != null and _store.has_signal("action_dispatched"):
+		if _store.action_dispatched.is_connected(_on_action_dispatched):
+			_store.action_dispatched.disconnect(_on_action_dispatched)
+
 	# Unsubscribe from ECS events
 	if _entity_death_unsubscribe != null and _entity_death_unsubscribe.is_valid():
 		_entity_death_unsubscribe.call()
-	if _objective_victory_unsubscribe != null and _objective_victory_unsubscribe.is_valid():
-		_objective_victory_unsubscribe.call()
 
 func _ensure_hud_overlay() -> void:
 	var hud_layer := U_ServiceLocator.try_get_service(StringName("hud_layer")) as CanvasLayer
@@ -333,8 +339,7 @@ func _ensure_store_reference() -> void:
 ## State change callback
 func _on_state_changed(___action: Dictionary, state: Dictionary) -> void:
 	# Detect scene changes and update cursor reactively
-	var scene_state: Dictionary = state.get("scene", {})
-	var new_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+	var new_scene_id: StringName = U_SCENE_SELECTORS.get_current_scene_id(state)
 
 	# Only track scene_id when it actually changes and is not empty
 	# Phase 2 (T022): Cursor updates removed - M_TimeManager is now sole authority
@@ -351,36 +356,58 @@ func _on_entity_death(_event: Dictionary) -> void:
 	# Trigger game over transition when player dies
 	transition_to_scene(StringName("game_over"), "fade", Priority.CRITICAL)
 
-## ECS event handler: objective_victory_triggered
-## Transition only after M_ObjectivesManager completes a VICTORY objective.
-func _on_objective_victory(event: Dictionary) -> void:
-	var payload: Dictionary = event.get("payload", {})
-	var target_scene: StringName = payload.get("target_scene", StringName(""))
-	var current_scene: StringName = get_current_scene()
+## Channel taxonomy: victory routing arrives via Redux dispatch (managers dispatch to Redux)
+func _on_action_dispatched(action: Dictionary) -> void:
+	var action_type: StringName = action.get("type", StringName(""))
+	if action_type != U_GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY_ROUTING:
+		return
+	var target_scene: StringName = action.get("target_scene", StringName(""))
 	_debug_log(
-		"received objective_victory_triggered payload=%s resolved_target_scene=%s current_scene=%s queue_size=%s is_processing=%s"
+		"received victory_routing target_scene=%s current_scene=%s queue_size=%s is_processing=%s"
 		% [
-			str(payload),
 			str(target_scene),
-			str(current_scene),
+			str(get_current_scene()),
 			str(_transition_queue_helper.size()),
 			str(_transition_queue_helper.is_processing()),
 		]
 	)
 	if target_scene == StringName(""):
-		push_warning("M_SceneManager: objective_victory_triggered missing payload.target_scene")
+		push_warning("M_SceneManager: victory_routing missing target_scene")
+		return
+	if target_scene == get_current_scene():
 		return
 	transition_to_scene(target_scene, "fade", Priority.HIGH)
 
-## Load initial scene on startup
 func _load_initial_scene() -> void:
 	# Load initial scene (configurable via export var)
+	# Default is splash_screen which handles language_selector/main_menu redirect
 	var scene_id := initial_scene_id
+	# Debug: skip splash entirely if flag is set
+	if scene_id == StringName("splash_screen") and _store != null:
+		var state: Dictionary = _store.get_state()
+		if U_DEBUG_SELECTORS.should_skip_splash(state):
+			scene_id = StringName("language_selector")
+			_start_background_gameplay_preload()
+	# Promote language_selector to main_menu if language already selected or skip flag set
 	if scene_id == StringName("language_selector") and _store != null:
 		var state: Dictionary = _store.get_state()
-		if U_LOCALIZATION_SELECTORS.has_selected_language(state):
+		if U_LOCALIZATION_SELECTORS.has_selected_language(state) or U_DEBUG_SELECTORS.should_skip_language_selection(state):
 			scene_id = StringName("main_menu")
+	# Sync navigation state so the reconciler doesn't override the initial scene
+	if _store != null:
+		var shell := StringName("main_menu") if scene_id == StringName("main_menu") else StringName("boot")
+		_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(shell, scene_id))
 	transition_to_scene(scene_id, "instant", Priority.CRITICAL)
+
+## Start background preload of the default gameplay scene (mirrors splash screen preload)
+func _start_background_gameplay_preload() -> void:
+	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(StringName("ai_forest"))
+	if scene_data.is_empty():
+		return
+	var path: String = str(scene_data.get("path", ""))
+	if path.is_empty():
+		return
+	ResourceLoader.load_threaded_request(path, "PackedScene")
 
 ## Transition to a new scene
 func transition_to_scene(scene_id: StringName, transition_type: String = "fade", priority: int = Priority.NORMAL) -> void:
@@ -470,200 +497,157 @@ func _process_transition_queue() -> void:
 		call_deferred("_process_transition_queue")
 	return
 
-## Perform the actual scene transition
+## Perform the actual scene transition (orchestration only)
 ##
-## **GDScript Closure Pattern** (T208):
-## This method uses the "Array wrapper" pattern for closures to work around GDScript's
-## limitation that closures cannot capture mutable local variables by reference.
+## Decomposed into focused helper methods:
+## - _prepare_transition_context: cache check, camera state capture, context assembly
+## - _execute_scene_swap: scene removal, loading, camera blending, handler delegation
+## - _finalize_camera_blend: post-transition camera finalization
 ##
-## **Why use Arrays?**
-## In GDScript, when you create a lambda/closure (e.g., `func() -> void:`), it can only
-## capture local variables by VALUE, not by reference. If you try to modify a captured
-## variable, you get a compile error: "Cannot assign to a variable captured from outer scope."
-##
-## **Solution:**
-## Wrap mutable values in an Array (e.g., `var progress: Array = [0.0]`). Arrays are
-## reference types, so the closure captures the Array reference (by value), but can still
-## modify the Array contents (e.g., `progress[0] = 0.5`).
-##
-## **Example:**
-## ```gdscript
-## # ❌ This FAILS - cannot modify captured variable:
-## var progress: float = 0.0
-## var callback := func() -> void:
-##     progress = 0.5  # ERROR: Cannot assign to captured variable
-##
-## # ✅ This WORKS - Array reference captured, contents mutable:
-## var progress: Array = [0.0]
-## var callback := func() -> void:
-##     progress[0] = 0.5  # OK: Modifying array contents, not array reference
-## ```
-##
-## **Where used in this method:**
-## - `current_progress: Array = [0.0]` - Progress tracking for async loading
-## - `scene_swap_complete: Array = [false]` - Flag for transition callback coordination
-## - `new_camera_ref: Array = [null]` - Camera reference for blend callback
-##
-## **Alternative approaches:**
-## - Member variables: Would require complex state management and cleanup
-## - Signals: Would add unnecessary indirection and timing complexity
-## - Helper classes: Overkill for simple value passing
-##
-## The Array pattern is the recommended GDScript idiom for this use case.
+## The scene_swap_callback uses a thin lambda that delegates to _execute_scene_swap.
+## The orchestrator awaits the callback, so async loading inside _execute_scene_swap
+## is properly sequenced.
 func _perform_transition(request) -> void:
-	# Get scene path from registry
 	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(request.scene_id)
 	if scene_path.is_empty():
 		push_error("M_SceneManager: No path for scene '%s'" % request.scene_id)
 		return
-
-	# Track scene history based on scene type (T111-T113)
 	_update_scene_history(request.scene_id)
-
-	# Phase 8: Check if scene is cached
-	var use_cached: bool = _scene_cache_helper.is_scene_cached(scene_path)
-
-	# Phase 8: Create progress callback for async loading
-	# T208: Array wrapper for closure to capture mutable value (see method doc comment)
-	var current_progress: Array = [0.0]
-	var progress_callback: Callable = func(progress: float) -> void:
-		current_progress[0] = clamp(progress, 0.0, 1.0)
-
-	# T208: Track if scene swap has completed (Array wrapper for closure pattern)
-	var scene_swap_complete: Array = [false]
-
-	# Phase 12.2: Capture old camera state BEFORE removing scene (T244)
-	var old_camera_state = null
-	if _camera_manager != null and request.transition_type != "instant":
-		if _active_scene_container != null and _active_scene_container.get_child_count() > 0:
-			var old_scene: Node = _active_scene_container.get_child(0)
-			old_camera_state = _camera_manager.capture_camera_state(old_scene)
-
-	# Phase 10: Determine if camera blending should occur
-	var should_blend: bool = old_camera_state != null and _camera_manager != null
-
-	# Reference holder for the newly loaded scene (closure-friendly)
-	var new_scene_ref: Array = [null]
-
-	# Define scene swap callback (called at mid-transition for fades, immediately for instant)
+	var transition_ctx := _prepare_transition_context(request, scene_path)
 	var scene_swap_callback := func() -> void:
-		# Remove current scene from ActiveSceneContainer
-		if _active_scene_container != null:
-			_scene_loader.remove_current_scene(_active_scene_container)
-
-		# Load new scene (Phase 8: async for loading transitions, cached if available, sync otherwise)
-		var new_scene: Node = null
-		if use_cached:
-			# Use cached scene (instant)
-			var cached_scene: PackedScene = _scene_cache_helper.get_cached_scene(scene_path)
-			if cached_scene != null:
-				new_scene = cached_scene.instantiate()
-				# For cached scenes with "loading" transition, we use fake progress,
-				# so avoid forcing progress to 100% here.
-		elif request.transition_type == "loading" and not (OS.has_feature("headless") or DisplayServer.get_name() == "headless"):
-			# Use async loading for "loading" transitions (Phase 8)
-			new_scene = await _scene_loader.load_scene_async(scene_path, progress_callback, _background_loads)
-		else:
-			# Use sync loading for other transitions (or headless mode)
-			new_scene = _scene_loader.load_scene(scene_path)
-			# Update progress for loading transitions in headless/sync mode
-			if request.transition_type == "loading":
-				progress_callback.call(1.0)
-
-		if new_scene == null:
-			push_error("M_SceneManager: Failed to load scene '%s'" % scene_path)
-			return
-
-		# Phase 12.5: Validate scene contract (T306)
-		_validate_scene_contract(new_scene, request.scene_id)
-
-		# Determine scene type for handler delegation
-		var scene_type: int = U_SCENE_REGISTRY.get_scene_type(request.scene_id)
-
-		# T137c (Phase 10B-3): Set gameplay metadata BEFORE adding to tree
-		# This must happen before _ready() calls fire, so M_GameplayInitializerManager sees it
-		if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
-			mark_scene_spawned(new_scene)
-
-		# Add new scene to ActiveSceneContainer
-		if _active_scene_container != null:
-			_scene_loader.add_scene(_active_scene_container, new_scene)
-		# Store for post-transition finalization
-		new_scene_ref[0] = new_scene
-
-		# Phase 12.2: Blend cameras using M_CameraManager (T244)
-		# IMPORTANT: Start camera blend IMMEDIATELY after scene is added, BEFORE spawn waits.
-		# This ensures the camera blend tween exists for tests that query it during transitions.
-		# The spawn waits (frame waits + spawn operations) can delay tween creation and cause
-		# tests to timeout when waiting for the tween.
-		if should_blend and _camera_manager != null:
-			# Delegate camera blending to M_CameraManager with pre-captured state
-			_camera_manager.blend_cameras(null, new_scene, 0.2, old_camera_state)
-		else:
-			# No blending (instant transition or no camera) - just activate new camera if present
-			var new_camera: Camera3D = null
-			if _camera_manager != null:
-				new_camera = _camera_manager.initialize_scene_camera(new_scene)
-			else:
-				var camera_manager := U_ServiceLocator.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
-				if camera_manager != null:
-					new_camera = camera_manager.initialize_scene_camera(new_scene)
-					if new_camera == null:
-						new_camera = camera_manager.get_main_camera()
-			if new_camera != null:
-				new_camera.current = true
-
-		# Keep scene swap callback await-free. Awaiting inside this closure can
-		# resume after manager teardown in tests and emit class-instance-gone errors.
-		if is_instance_valid(new_scene):
-			var handler := _scene_type_handlers.get(scene_type) as I_SCENE_TYPE_HANDLER
-			if handler != null:
-				var managers := {
-					"spawn_manager": _spawn_manager,
-					"state_store": _store
-				}
-				handler.on_load(new_scene, request.scene_id, managers)
-
-		scene_swap_complete[0] = true
-
-		# Dispatch scene swapped action (mid-transition visual updates)
-		# Triggers Cinema Grade update while screen is obscured
-		if _store != null:
-			_store.dispatch(U_SCENE_ACTIONS.scene_swapped(request.scene_id))
-
-			# Sync navigation shell mid-transition (screen is obscured)
-			# Ensures post-process overlays (CRT, Dither) are visible before fade-in
-			_sync_navigation_shell_with_scene(request.scene_id)
-
-	# Phase 10B-2 (T136b): Delegate transition effect execution to TransitionOrchestrator
+		await _execute_scene_swap(request, scene_path, transition_ctx)
 	var overlays := {
 		"transition_overlay": _transition_overlay,
 		"loading_overlay": _loading_overlay
 	}
-
 	await _transition_orchestrator.execute_transition_effect(
 		request.transition_type,
 		scene_swap_callback,
-		func() -> void: pass , # Completion handled below
+		func() -> void: pass,
 		overlays
 	)
+	_finalize_camera_blend(transition_ctx)
+	var transition_state := _resolve_transition_state(transition_ctx)
+	if transition_state.new_scene_ref != null:
+		await _unfreeze_player_physics(transition_state.new_scene_ref)
 
-	# Phase 10: Camera blending now happens in scene_swap_callback (T182.5)
-	# This ensures blend runs in parallel with fade effect, not sequentially after
+## Prepare transition context: cache check, progress callback, camera state capture
+##
+## Returns a Dictionary with:
+## - use_cached: bool - Whether scene is in the cache
+## - progress_callback: Callable - Callback for async loading progress
+## - transition_state: U_TransitionState - mutable transition state object
+func _prepare_transition_context(request, scene_path: String) -> Dictionary:
+	var use_cached: bool = _scene_cache_helper.is_scene_cached(scene_path)
+	var transition_state := U_TRANSITION_STATE.new()
+	var progress_callback: Callable = func(progress: float) -> void:
+		transition_state.progress = clamp(progress, 0.0, 1.0)
+	if _camera_manager != null and request.transition_type != "instant":
+		if _active_scene_container != null and _active_scene_container.get_child_count() > 0:
+			var old_scene: Node = _active_scene_container.get_child(0)
+			transition_state.old_camera_state = _camera_manager.capture_camera_state(old_scene)
+	transition_state.should_blend = transition_state.old_camera_state != null and _camera_manager != null
+	return {
+		"use_cached": use_cached,
+		"progress_callback": progress_callback,
+		"transition_state": transition_state,
+	}
 
-	# Safety: Only finalize camera if no active blend tween remains. Without this
-	# guard, fade transitions cut the blend short as soon as the fade finishes.
-	var has_active_blend: bool = false
-	if _camera_manager != null:
-		var active_tween: Tween = _camera_manager.get("_camera_blend_tween")
-		has_active_blend = active_tween != null and active_tween.is_running()
+## Execute the scene swap: remove old scene, load new, blend cameras, delegate to handlers
+##
+## This replaces the 88-line closure that was previously inlined in _perform_transition.
+## The orchestrator awaits the callback that calls this, so async loading works correctly.
+func _execute_scene_swap(request, scene_path: String, transition_ctx: Dictionary) -> void:
+	if _active_scene_container != null:
+		_scene_loader.remove_current_scene(_active_scene_container)
 
-	if not has_active_blend and _camera_manager != null and new_scene_ref[0] != null:
-		_camera_manager.finalize_blend_to_scene(new_scene_ref[0])
+	var use_cached: bool = bool(transition_ctx.get("use_cached", false))
+	var progress_callback: Callable = transition_ctx.get("progress_callback", func(_p: float) -> void: pass)
+	var new_scene: Node = null
+	if use_cached:
+		var cached_scene: PackedScene = _scene_cache_helper.get_cached_scene(scene_path)
+		if cached_scene != null:
+			new_scene = cached_scene.instantiate()
+	elif request.transition_type == "loading" and not (OS.has_feature("headless") or DisplayServer.get_name() == "headless"):
+		new_scene = await _scene_loader.load_scene_async(scene_path, progress_callback, _background_loads)
+	else:
+		new_scene = _scene_loader.load_scene(scene_path)
+		if request.transition_type == "loading":
+			progress_callback.call(1.0)
 
-	# Re-enable player physics after transition completes (prevents falling during load)
-	if new_scene_ref[0] != null:
-		await _unfreeze_player_physics(new_scene_ref[0])
+	if new_scene == null:
+		push_error("M_SceneManager: Failed to load scene '%s'" % scene_path)
+		return
+
+	_validate_scene_contract(new_scene, request.scene_id)
+
+	var scene_type: int = U_SCENE_REGISTRY.get_scene_type(request.scene_id)
+	if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
+		mark_scene_spawned(new_scene)
+
+	if _active_scene_container != null:
+		_scene_loader.add_scene(_active_scene_container, new_scene)
+	var transition_state := _resolve_transition_state(transition_ctx)
+	transition_state.new_scene_ref = new_scene
+	transition_state.scene_swap_complete = true
+
+	var should_blend: bool = transition_state.should_blend
+	var old_camera_state = transition_state.old_camera_state
+	if should_blend and _camera_manager != null:
+		_camera_manager.blend_cameras(null, new_scene, 0.2, old_camera_state)
+	else:
+		var new_camera: Camera3D = null
+		if _camera_manager != null:
+			new_camera = _camera_manager.initialize_scene_camera(new_scene)
+		else:
+			var camera_manager := U_ServiceLocator.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
+			if camera_manager != null:
+				new_camera = camera_manager.initialize_scene_camera(new_scene)
+				if new_camera == null:
+					new_camera = camera_manager.get_main_camera()
+		if new_camera != null:
+			new_camera.current = true
+
+	if is_instance_valid(new_scene):
+		var handler := _scene_type_handlers.get(scene_type) as I_SCENE_TYPE_HANDLER
+		if handler != null:
+			var managers := {
+				"spawn_manager": _spawn_manager,
+				"state_store": _store
+			}
+			handler.on_load(new_scene, request.scene_id, managers)
+
+	if _store != null:
+		_store.dispatch(U_SCENE_ACTIONS.scene_swapped(request.scene_id))
+		_sync_navigation_shell_with_scene(request.scene_id)
+
+## Finalize camera blend after transition completes
+##
+## Only finalizes if camera manager reports no active blend (fade transitions run
+## the blend in parallel, and cutting it short would cause a visual jump).
+func _finalize_camera_blend(transition_ctx: Dictionary) -> void:
+	var transition_state := _resolve_transition_state(transition_ctx)
+	if _camera_manager == null or transition_state.new_scene_ref == null:
+		return
+	var has_active_blend: bool = _camera_manager.is_blend_active()
+	if not has_active_blend:
+		_camera_manager.finalize_blend_to_scene(transition_state.new_scene_ref)
+
+func _resolve_transition_state(transition_ctx: Dictionary) -> U_TRANSITION_STATE:
+	var state_variant: Variant = transition_ctx.get("transition_state", null)
+	if state_variant is U_TRANSITION_STATE:
+		return state_variant as U_TRANSITION_STATE
+
+	var fallback_state := U_TRANSITION_STATE.new()
+	fallback_state.old_camera_state = transition_ctx.get("old_camera_state", null)
+	fallback_state.should_blend = bool(transition_ctx.get("should_blend", false))
+	var legacy_new_scene_ref: Variant = transition_ctx.get("new_scene_ref", null)
+	if legacy_new_scene_ref is Array:
+		var legacy_array := legacy_new_scene_ref as Array
+		if not legacy_array.is_empty() and legacy_array[0] is Node:
+			fallback_state.new_scene_ref = legacy_array[0] as Node
+	transition_ctx["transition_state"] = fallback_state
+	return fallback_state
 
 ## Re-enable player physics after transition completes
 ## Includes physics warmup frame to prevent bobble from stale collision state
@@ -679,10 +663,6 @@ func _unfreeze_player_physics(scene: Node) -> void:
 	# Without this, the first physics frame may have stale collision cache,
 	# causing spring/bounce effects (bobble).
 	await get_tree().physics_frame
-
-## Find player in scene tree
-func _find_player_in_scene(scene: Node) -> Node3D:
-	return _scene_loader.find_player_in_scene(scene)
 
 ## Push overlay scene onto UIOverlayStack
 func push_overlay(scene_id: StringName, force: bool = false) -> void:
@@ -713,8 +693,14 @@ func pop_overlay() -> void:
 ## Note: Stub implementation (Phase: Duck Typing Cleanup Phase 3)
 ## Full implementation would coordinate with M_TimeManager
 func suppress_pause_for_current_frame() -> void:
-	# TODO: Implement pause suppression logic
-	pass
+	_pause_suppressed_process_frame = Engine.get_process_frames()
+	_pause_suppressed_physics_frame = Engine.get_physics_frames()
+
+func is_pause_suppressed_for_current_frame() -> bool:
+	return (
+		_pause_suppressed_process_frame == Engine.get_process_frames()
+		and _pause_suppressed_physics_frame == Engine.get_physics_frames()
+	)
 
 ## Push overlay with automatic return navigation (Phase 6.5)
 ##
@@ -938,12 +924,8 @@ func _sync_overlay_stack_state() -> void:
 	if _store == null or _ui_overlay_stack == null:
 		return
 
-	var scene_state: Dictionary = _store.get_slice(StringName("scene"))
-	if scene_state.is_empty():
-		_update_particles_and_focus()
-		return
-
-	var current_stack_variant: Array = scene_state.get("scene_stack", [])
+	var state: Dictionary = _store.get_state()
+	var current_stack_variant: Array = U_SCENE_SELECTORS.get_scene_stack(state)
 	var current_stack: Array[StringName] = []
 	for entry in current_stack_variant:
 		if entry is StringName:
@@ -991,8 +973,7 @@ func get_current_scene() -> StringName:
 		return StringName("")
 
 	var state: Dictionary = _store.get_state()
-	var scene_state: Dictionary = state.get("scene", {})
-	return scene_state.get("current_scene_id", StringName(""))
+	return U_SCENE_SELECTORS.get_current_scene_id(state)
 
 ## Check if currently transitioning
 func is_transitioning() -> bool:
@@ -1000,8 +981,7 @@ func is_transitioning() -> bool:
 		return false
 
 	var state: Dictionary = _store.get_state()
-	var scene_state: Dictionary = state.get("scene", {})
-	return scene_state.get("is_transitioning", false)
+	return U_SCENE_SELECTORS.is_transitioning(state)
 
 ## Keep navigation shell/base scene aligned with the actual scene (manual transitions/tests)
 ## Phase 2 (T022): Removed _update_cursor_for_scene() - M_TimeManager now handles cursor state
@@ -1011,6 +991,7 @@ func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 	if _store == null:
 		return
 
+	var state: Dictionary = _store.get_state()
 	var nav_state: Dictionary = _store.get_slice(StringName("navigation"))
 	if nav_state.is_empty():
 		return
@@ -1029,8 +1010,8 @@ func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 
 	var desired_shell: StringName = handler.get_shell_id()
 
-	var current_shell: StringName = nav_state.get("shell", StringName(""))
-	var current_scene: StringName = nav_state.get("base_scene_id", StringName(""))
+	var current_shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
+	var current_scene: StringName = U_NAVIGATION_SELECTORS.get_base_scene_id(state)
 
 	# If navigation already matches the loaded scene, no reconciliation needed.
 	if current_shell == desired_shell and current_scene == scene_id:

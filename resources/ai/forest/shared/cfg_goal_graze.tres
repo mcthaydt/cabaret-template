@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="RS_AIGoal" format=3 uid="uid://bs3h33njhv14t"]
+
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_condition"]
+[ext_resource type="Script" uid="uid://xhe4388ulpe1" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" uid="uid://cgjrnf8clocda" path="res://scripts/resources/qb/conditions/rs_condition_constant.gd" id="2_condition_constant"]
+[ext_resource type="Script" uid="uid://ut0hjawm2yq3" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="3_primitive_task"]
+[ext_resource type="Script" uid="uid://cxpr5abl5uj1l" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="4_action_wait"]
+[ext_resource type="Script" uid="uid://d3ig84jkjjkpv" path="res://scripts/resources/qb/conditions/rs_condition_component_field.gd" id="5_condition_component_field"]
+[ext_resource type="Script" uid="uid://bb7kg3r8twqau" path="res://scripts/resources/ai/tasks/rs_ai_compound_task.gd" id="6_compound_task"]
+[ext_resource type="Script" uid="uid://d3jp8qgprpk0t" path="res://scripts/resources/ai/tasks/rs_ai_task.gd" id="7_ai_task"]
+[ext_resource type="Script" uid="uid://cfhuov4fcosa2" path="res://scripts/resources/ai/actions/rs_ai_action_feed.gd" id="8_action_feed"]
+
+[sub_resource type="Resource" id="Condition_graze_constant"]
+script = ExtResource("2_condition_constant")
+score = 0.5
+
+[sub_resource type="Resource" id="Condition_graze_hunger_low"]
+script = ExtResource("5_condition_component_field")
+component_type = &"C_NeedsComponent"
+field_path = "hunger"
+range_min = 1.0
+range_max = 0.0
+
+[sub_resource type="Resource" id="Action_graze_wait"]
+script = ExtResource("4_action_wait")
+duration = 1.8
+
+[sub_resource type="Resource" id="Task_graze_wait"]
+script = ExtResource("3_primitive_task")
+action = SubResource("Action_graze_wait")
+task_id = &"graze_wait"
+
+[sub_resource type="Resource" id="Action_graze_feed"]
+script = ExtResource("8_action_feed")
+
+[sub_resource type="Resource" id="Task_graze_feed"]
+script = ExtResource("3_primitive_task")
+action = SubResource("Action_graze_feed")
+task_id = &"graze_feed"
+
+[sub_resource type="Resource" id="Task_graze_sequence"]
+script = ExtResource("6_compound_task")
+subtasks = Array[ExtResource("7_ai_task")]([SubResource("Task_graze_wait"), SubResource("Task_graze_feed")])
+task_id = &"graze_sequence"
+
+[resource]
+script = ExtResource("1_goal")
+goal_id = &"graze"
+conditions = Array[ExtResource("1_condition")]([SubResource("Condition_graze_constant"), SubResource("Condition_graze_hunger_low")])
+root_task = SubResource("Task_graze_sequence")
+priority = 2
+cooldown = 5.0

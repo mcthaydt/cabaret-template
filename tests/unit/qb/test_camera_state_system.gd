@@ -15,6 +15,9 @@ const CONDITION_ENTITY_TAG := preload("res://scripts/resources/qb/conditions/rs_
 const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
 const SPEED_FOV_RULE := preload("res://resources/qb/camera/cfg_camera_speed_fov_rule.tres")
 
+const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+
 func before_each() -> void:
 	U_ECSEventBus.reset()
 
@@ -443,14 +446,17 @@ func test_camera_context_includes_vcam_runtime_fields_for_qb_rules() -> void:
 		"active_vcam_id": StringName("cam_orbit"),
 	})
 
-	var contexts_variant: Variant = system.call("_build_camera_contexts", {})
+	var contexts_variant: Variant = system.call("_build_camera_contexts", StringName(), {})
 	assert_true(contexts_variant is Array)
 	var contexts: Array = contexts_variant as Array
 	assert_false(contexts.is_empty())
 	var context: Dictionary = contexts[0] as Dictionary
-	assert_eq(String(context.get("vcam_active_mode", "")), "orbit")
-	assert_eq(bool(context.get("vcam_is_blending", false)), true)
-	assert_eq(context.get("vcam_active_vcam_id", StringName("")), StringName("cam_orbit"))
+	# Dictionary keys are StringName after RSRuleContext migration, use U_RuleUtils for lookups
+	var U_RULE_UTILS := load("res://scripts/utils/ecs/u_rule_utils.gd")
+	var rule_utils: RefCounted = U_RULE_UTILS.new()
+	assert_eq(String(rule_utils.call("get_context_value", context, "vcam_active_mode")), "orbit")
+	assert_eq(bool(rule_utils.call("get_context_value", context, "vcam_is_blending")), true)
+	assert_eq(rule_utils.call("get_context_value", context, "vcam_active_vcam_id"), StringName("cam_orbit"))
 
 func _create_fixture(designer_rules: Array = [], entity_specs: Array = [], main_camera_fov: float = 90.0) -> Dictionary:
 	var store := MOCK_STATE_STORE.new()
@@ -476,9 +482,9 @@ func _create_fixture(designer_rules: Array = [], entity_specs: Array = [], main_
 	system.camera_manager = camera_manager
 	add_child(system)
 
-	var typed_rules: Array[Resource] = []
+	var typed_rules: Array[RS_Rule] = []
 	for rule_variant in designer_rules:
-		if rule_variant != null and rule_variant is Resource:
+		if rule_variant is RS_Rule:
 			typed_rules.append(rule_variant)
 	system.rules = typed_rules
 	system.configure(ecs_manager)
@@ -645,8 +651,10 @@ func _make_tick_set_field_rule(rule_id: StringName, field_name: StringName, floa
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "tick"
-	rule.conditions = [_make_constant_condition()]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(_make_constant_condition() as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule
 
 func _make_tag_target_fov_rule(rule_id: StringName, required_tag: StringName, fov_value: float) -> RS_Rule:
@@ -663,6 +671,8 @@ func _make_tag_target_fov_rule(rule_id: StringName, required_tag: StringName, fo
 	var rule := RULE_RESOURCE.new()
 	rule.rule_id = rule_id
 	rule.trigger_mode = "tick"
-	rule.conditions = [condition]
-	rule.effects = [effect]
+	rule.conditions.clear()
+	rule.conditions.append(condition as I_Condition)
+	rule.effects.clear()
+	rule.effects.append(effect as I_Effect)
 	return rule

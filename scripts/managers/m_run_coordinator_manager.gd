@@ -3,13 +3,12 @@ extends I_RunCoordinator
 class_name M_RunCoordinatorManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_INTERACT_BLOCKER := preload("res://scripts/utils/u_interact_blocker.gd")
 
-const STORE_SERVICE_NAME := StringName("state_store")
 const OBJECTIVES_SERVICE_NAME := StringName("objectives_manager")
 
 @export var state_store: I_StateStore = null
@@ -22,29 +21,20 @@ var _is_reset_in_flight: bool = false
 func _ready() -> void:
 	if game_config == null:
 		game_config = RS_GameConfig.new()
-	_resolve_store()
+	_resolve_state_store()
 	_ensure_store_action_signal_connection()
+	call_deferred("_validate_game_config_references")
 
 func _physics_process(_delta: float) -> void:
 	# Keep retrying in case store registration is late.
 	if _store == null:
-		_resolve_store()
+		_resolve_state_store()
 
 func _exit_tree() -> void:
 	_disconnect_store_action_signal()
 
-func _resolve_store() -> void:
-	var resolved_store: I_StateStore = null
-
-	if state_store != null and is_instance_valid(state_store):
-		resolved_store = state_store
-	elif _store != null and is_instance_valid(_store):
-		resolved_store = _store
-	else:
-		resolved_store = U_STATE_UTILS.try_get_store(self)
-		if resolved_store == null:
-			resolved_store = U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE_NAME) as I_StateStore
-
+func _resolve_state_store() -> void:
+	var resolved_store: I_StateStore = U_DependencyResolution.resolve_state_store(_store, state_store, self) as I_StateStore
 	_set_store_reference(resolved_store)
 
 func _set_store_reference(next_store: I_StateStore) -> void:
@@ -93,7 +83,7 @@ func _complete_reset_request() -> void:
 	_is_reset_in_flight = false
 
 func _execute_reset_run(next_route: StringName) -> void:
-	_resolve_store()
+	_resolve_state_store()
 	if _store == null:
 		_warn("No state store available for run/reset.")
 		return
@@ -137,6 +127,16 @@ static func _to_string_name(value: Variant) -> StringName:
 
 func is_reset_in_flight() -> bool:
 	return _is_reset_in_flight
+
+func _validate_game_config_references() -> void:
+	var retry_scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(game_config.retry_scene_id)
+	if retry_scene_data.is_empty():
+		push_error("M_RunCoordinatorManager: game_config.retry_scene_id '%s' not found in U_SceneRegistry. Resource: %s" % [String(game_config.retry_scene_id), game_config.resource_path])
+
+	var objectives_manager: I_ObjectivesManager = U_SERVICE_LOCATOR.try_get_service(OBJECTIVES_SERVICE_NAME) as I_ObjectivesManager
+	if objectives_manager != null and is_instance_valid(objectives_manager):
+		if not objectives_manager.has_objective_set(game_config.default_objective_set_id):
+			push_error("M_RunCoordinatorManager: game_config.default_objective_set_id '%s' not found in objectives registry. Resource: %s" % [String(game_config.default_objective_set_id), game_config.resource_path])
 
 static func _warn(message: String) -> void:
 	print("M_RunCoordinatorManager: WARNING %s" % message)

@@ -16,10 +16,20 @@ func _ready() -> void:
 		manager.cache_entity_for_node(self, self)
 
 ## Returns the unique identifier for this entity.
-## If entity_id is empty, generates an ID from the node name and caches it.
+##
+## Lookup order (C10: metadata-primary, name-stripping fallback):
+##   1. entity_id @export field (explicit designer assignment)
+##   2. "entity_id" node metadata (set via set_meta at runtime or in scene)
+##   3. Cached result from a prior _generate_id_from_name() call
+##   4. _generate_id_from_name() — strips "E_" prefix, lowercases
 func get_entity_id() -> StringName:
 	if entity_id != StringName(""):
 		return entity_id
+
+	if has_meta("entity_id"):
+		var meta_id := StringName(str(get_meta("entity_id")))
+		if meta_id != StringName(""):
+			return meta_id
 
 	if _cached_entity_id == StringName(""):
 		_cached_entity_id = _generate_id_from_name()

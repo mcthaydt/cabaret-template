@@ -1,29 +1,49 @@
 extends RefCounted
 class_name U_TimeSelectors
 
+## Time state selectors
+##
+## All methods accept full state; slice extraction is handled internally.
+
 static func get_is_paused(state: Dictionary) -> bool:
-	return state.get("time", {}).get("is_paused", false)
+	return _get_time_slice(state).get("is_paused", false)
 
 static func get_active_channels(state: Dictionary) -> Array:
-	return state.get("time", {}).get("active_channels", [])
+	var channels: Variant = _get_time_slice(state).get("active_channels", [])
+	if channels is Array:
+		return channels as Array
+	return []
 
 static func get_timescale(state: Dictionary) -> float:
-	return float(state.get("time", {}).get("timescale", 1.0))
+	return float(_get_time_slice(state).get("timescale", 1.0))
 
 static func get_world_hour(state: Dictionary) -> int:
-	return int(state.get("time", {}).get("world_hour", 8))
+	return int(_get_time_slice(state).get("world_hour", 8))
 
 static func get_world_minute(state: Dictionary) -> int:
-	return int(state.get("time", {}).get("world_minute", 0))
+	return int(_get_time_slice(state).get("world_minute", 0))
 
 static func get_world_total_minutes(state: Dictionary) -> float:
-	return float(state.get("time", {}).get("world_total_minutes", 480.0))
+	return float(_get_time_slice(state).get("world_total_minutes", 480.0))
 
 static func get_world_day_count(state: Dictionary) -> int:
-	return int(state.get("time", {}).get("world_day_count", 1))
+	return int(_get_time_slice(state).get("world_day_count", 1))
 
 static func get_world_time_speed(state: Dictionary) -> float:
-	return float(state.get("time", {}).get("world_time_speed", 1.0))
+	return float(_get_time_slice(state).get("world_time_speed", 1.0))
 
 static func is_daytime(state: Dictionary) -> bool:
-	return bool(state.get("time", {}).get("is_daytime", true))
+	return bool(_get_time_slice(state).get("is_daytime", true))
+
+## Private: extract time slice from full state
+static func _get_time_slice(state: Dictionary) -> Dictionary:
+	if state == null:
+		return {}
+	# If state has a "time" key, extract the nested slice (full state passed)
+	var time: Variant = state.get("time", null)
+	if time is Dictionary:
+		return time as Dictionary
+	# If state has "timescale" key, it's already the time slice (backward compat)
+	if state.has("timescale"):
+		return state
+	return {}

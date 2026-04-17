@@ -174,7 +174,7 @@ Root (Node) [root.gd]
 | `U_CanvasLayers.DAMAGE_FLASH` | 90 | Root viewport | `DamageFlashOverlay` in `scenes/ui/overlays/ui_damage_flash_overlay.tscn` |
 | `U_CanvasLayers.LOADING` | 100 | Root viewport | `LoadingOverlay` in `scenes/root.tscn` |
 | `U_CanvasLayers.MOBILE_CONTROLS` | 101 | Root viewport | `MobileControls` in `scenes/ui/hud/ui_mobile_controls.tscn` |
-| `U_CanvasLayers.DEBUG_OVERLAY` | 128 | Root viewport | `SC_CinemaDebugOverlay` in `scenes/debug/debug_cinema_grade_overlay.tscn` |
+| `U_CanvasLayers.DEBUG_OVERLAY` | 128 | Root viewport | `SC_ColorGradingDebugOverlay` in `scenes/debug/debug_color_grading_overlay.tscn` |
 | `U_CanvasLayers.PP_CINEMA_GRADE` | 1 | `GameViewport` post-process space | Dynamic `CinemaGradeLayer` |
 | `U_CanvasLayers.PP_FILM_GRAIN` | 2 | `GameViewport` post-process space | `FilmGrainLayer` in `ui_post_process_overlay.tscn` |
 | `U_CanvasLayers.PP_DITHER` | 3 | `GameViewport` post-process space | `DitherLayer` in `ui_post_process_overlay.tscn` |

@@ -12,6 +12,9 @@ var spawn_requests: Array:
 	get:
 		return requests
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func get_event_name() -> StringName:
 	return StringName("entity_landed")
 

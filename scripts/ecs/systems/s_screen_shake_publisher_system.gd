@@ -30,6 +30,9 @@ func on_configured() -> void:
 		_on_death
 	))
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func _exit_tree() -> void:
 	for unsubscribe in _event_unsubscribes:
 		if unsubscribe.is_valid():

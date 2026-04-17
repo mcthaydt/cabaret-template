@@ -9,19 +9,47 @@ const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
+const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const AI_BRAIN_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
+
+const MOBILE_DISPATCH_INTERVAL := 3
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
 ## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
 @export var state_store: I_StateStore = null
+@export var debug_ai_movement_logging: bool = false
+@export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
+@export var debug_entity_id: StringName = StringName("patrol_drone")
+## DIAG: logs every frame (not throttled) to capture bounce oscillation
+@export var debug_bounce_diag: bool = false
 
 # State stability tracking to prevent flickering in state store
 const MIN_STABLE_FRAMES := 10  # Frames state must be stable before dispatching (~0.167s @ 60fps)
 var _floor_state_stable_frames: Dictionary = {}  # entity_id -> frames_stable
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
+var _diag_frame_counter: int = 0
+var _is_mobile: bool = false
+var _dispatch_counter: int = 0
+var _perf_probe: U_PerfProbe = null
+
+func _init() -> void:
+	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
+	_perf_probe = U_PerfProbe.create("S_MovementSystem", _is_mobile)
+
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.PHYSICS_SOLVE
 
 func process_tick(delta: float) -> void:
+	_perf_probe.start()
+	_diag_frame_counter += 1
+	_dispatch_counter += 1
+	_debug_log_throttle.tick(delta)
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null
 	if state_store != null:
@@ -49,17 +77,21 @@ func process_tick(delta: float) -> void:
 		[
 			FLOATING_TYPE,
 			CHARACTER_STATE_TYPE,
+			AI_BRAIN_TYPE,
 		]
 	)
 
 	for entity_query in entities:
+		var entity_id: StringName = _resolve_entity_id_from_query(entity_query)
 		var movement_component: C_MovementComponent = entity_query.get_component(MOVEMENT_TYPE)
 		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
 		if movement_component == null or input_component == null:
+			_debug_log_for_entity(entity_id, "skip: missing movement/input component")
 			continue
 
 		var body: CharacterBody3D = movement_component.get_character_body()
 		if body == null:
+			_debug_log_for_entity(entity_id, "skip: movement body is null")
 			continue
 
 		var spawn_state: C_SpawnStateComponent = spawn_state_by_body.get(body, null) as C_SpawnStateComponent
@@ -67,6 +99,7 @@ func process_tick(delta: float) -> void:
 		if character_state == null:
 			character_state = character_state_by_body.get(body, null) as C_CharacterStateComponent
 		if character_state != null and not character_state.is_gameplay_active:
+			_debug_log_for_entity(entity_id, "skip: character_state.is_gameplay_active=false")
 			continue
 
 		var state = body_state.get(body, null)
@@ -87,6 +120,7 @@ func process_tick(delta: float) -> void:
 			is_spawn_frozen = spawn_state.is_physics_frozen
 
 		if is_spawn_frozen:
+			_debug_log_for_entity(entity_id, "skip: movement blocked by spawn freeze")
 			_maybe_schedule_spawn_unfreeze(body, spawn_state, current_physics_frame)
 			state.velocity = Vector3.ZERO
 			movement_component.reset_dynamics_state()
@@ -104,6 +138,7 @@ func process_tick(delta: float) -> void:
 		var input_vector: Vector2 = input_component.move_vector
 		var settings: RS_MovementSettings = movement_component.settings
 		if settings == null:
+			_debug_log_for_entity(entity_id, "skip: movement settings are null")
 			continue
 		var is_sprinting := input_component.is_sprinting()
 		var current_max_speed: float = settings.max_speed
@@ -116,31 +151,35 @@ func process_tick(delta: float) -> void:
 		var has_input: bool = input_vector.length() > 0.0
 		var desired_velocity: Vector3 = Vector3.ZERO
 		if has_input:
-			var camera: Camera3D = ECS_UTILS.get_active_camera(self)
-			if camera != null:
-				var up_dir: Vector3 = (body.up_direction if body != null else Vector3.UP)
-				if up_dir.length() == 0.0:
-					up_dir = Vector3.UP
-				var cam_forward: Vector3 = -camera.global_transform.basis.z
-				cam_forward = _project_onto_plane(cam_forward, up_dir)
-				if cam_forward.length() == 0.0:
-					cam_forward = _project_onto_plane(Vector3.FORWARD, up_dir)
-				cam_forward = cam_forward.normalized()
-				var cam_right: Vector3 = camera.global_transform.basis.x
-				cam_right = _project_onto_plane(cam_right, up_dir)
-				if cam_right.length() == 0.0:
-					cam_right = cam_forward.cross(up_dir)
-				cam_right = cam_right.normalized()
-				var forward_input: float = -input_vector.y
-				var desired_dir: Vector3 = (cam_right * input_vector.x) + (cam_forward * forward_input)
-				# Preserve analog magnitude from input_vector when using camera-relative movement.
-				# Scale speed by stick magnitude (0.0 - 1.0) instead of normalizing to unit length.
-				var analog_scale: float = clampf(input_vector.length(), 0.0, 1.0)
-				if desired_dir.length() > 0.0:
-					desired_dir = desired_dir.normalized()
-				desired_velocity = desired_dir * (current_max_speed * analog_scale)
-			else:
+			var uses_ai_world_space_input: bool = entity_query.get_component(AI_BRAIN_TYPE) != null
+			if uses_ai_world_space_input:
 				desired_velocity = _get_desired_velocity(input_vector, current_max_speed)
+			else:
+				var camera: Camera3D = ECS_UTILS.get_active_camera(self)
+				if camera != null:
+					var up_dir: Vector3 = (body.up_direction if body != null else Vector3.UP)
+					if up_dir.length() == 0.0:
+						up_dir = Vector3.UP
+					var cam_forward: Vector3 = -camera.global_transform.basis.z
+					cam_forward = _project_onto_plane(cam_forward, up_dir)
+					if cam_forward.length() == 0.0:
+						cam_forward = _project_onto_plane(Vector3.FORWARD, up_dir)
+					cam_forward = cam_forward.normalized()
+					var cam_right: Vector3 = camera.global_transform.basis.x
+					cam_right = _project_onto_plane(cam_right, up_dir)
+					if cam_right.length() == 0.0:
+						cam_right = cam_forward.cross(up_dir)
+					cam_right = cam_right.normalized()
+					var forward_input: float = -input_vector.y
+					var desired_dir: Vector3 = (cam_right * input_vector.x) + (cam_forward * forward_input)
+					# Preserve analog magnitude from input_vector when using camera-relative movement.
+					# Scale speed by stick magnitude (0.0 - 1.0) instead of normalizing to unit length.
+					var analog_scale: float = clampf(input_vector.length(), 0.0, 1.0)
+					if desired_dir.length() > 0.0:
+						desired_dir = desired_dir.normalized()
+					desired_velocity = desired_dir * (current_max_speed * analog_scale)
+				else:
+					desired_velocity = _get_desired_velocity(input_vector, current_max_speed)
 
 		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
 
@@ -192,6 +231,17 @@ func process_tick(delta: float) -> void:
 		velocity = _clamp_horizontal_speed(velocity, current_max_speed)
 
 		state.velocity = velocity
+		_debug_log_for_entity(
+			entity_id,
+			"input=%s has_input=%s desired_velocity=%s final_velocity=%s supported=%s"
+			% [
+				str(input_vector),
+				str(has_input),
+				str(desired_velocity),
+				str(velocity),
+				str(support_active),
+			]
+		)
 
 		movement_component.update_debug_snapshot({
 			"supported": support_active,
@@ -208,9 +258,36 @@ func process_tick(delta: float) -> void:
 	for body in bodies:
 		var final_velocity: Vector3 = body_state[body].velocity
 
+		# DIAG: capture pre-move_and_slide state
+		var _diag_pre_pos_y: float = body.global_position.y
+		var _diag_pre_vel_y: float = final_velocity.y
+
 		body.velocity = final_velocity
 		if body.has_method("move_and_slide"):
 			body.move_and_slide()
+
+			# DIAG: per-frame move_and_slide delta for bounce diagnosis
+			if debug_bounce_diag:
+				var _diag_entity_id: StringName = StringName(_get_entity_id(body))
+				if debug_entity_id == StringName() or _diag_entity_id == debug_entity_id:
+					var _diag_post_vel_y: float = body.velocity.y
+					var _diag_post_pos_y: float = body.global_position.y
+					var _diag_vel_delta: float = _diag_post_vel_y - _diag_pre_vel_y
+					var _diag_pos_delta: float = _diag_post_pos_y - _diag_pre_pos_y
+					print(
+						"DIAG_MOVE[f=%d] pre_pos_y=%.4f post_pos_y=%.4f pos_delta=%.4f pre_vel_y=%.4f post_vel_y=%.4f vel_delta=%.4f is_on_floor=%s slide_count=%d"
+						% [
+							_diag_frame_counter,
+							_diag_pre_pos_y,
+							_diag_post_pos_y,
+							_diag_pos_delta,
+							_diag_pre_vel_y,
+							_diag_post_vel_y,
+							_diag_vel_delta,
+							str(body.is_on_floor()),
+							body.get_slide_collision_count(),
+						]
+					)
 
 			# Track floor state for stability check
 			var is_on_floor_raw: bool = body.is_on_floor()
@@ -224,8 +301,9 @@ func process_tick(delta: float) -> void:
 			body_state[body].previous_is_on_floor = current_on_floor
 
 	# Phase 16: Dispatch entity snapshots to state store (Entity Coordination Pattern)
-	# Reuse floating_by_body map created earlier
-	if store and bodies.size() > 0:
+	# Batch all entity snapshots into a single dispatch to avoid N deep copies
+	if store and bodies.size() > 0 and (not _is_mobile or (_dispatch_counter % MOBILE_DISPATCH_INTERVAL) == 0):
+		var batched_snapshots: Dictionary = {}
 		for body in bodies:
 			var entity_id: String = _get_entity_id(body)
 			if entity_id.is_empty():
@@ -247,14 +325,11 @@ func process_tick(delta: float) -> void:
 			var stable_frames: int = _floor_state_stable_frames.get(entity_id, 0)
 
 			if current_on_floor != previous_on_floor:
-				# State changed - reset stability counter
 				_floor_state_stable_frames[entity_id] = 0
 			else:
-				# State unchanged - increment stability counter
 				if stable_frames < MIN_STABLE_FRAMES:
 					_floor_state_stable_frames[entity_id] = stable_frames + 1
 
-			# Only include is_on_floor in snapshot if state is stable
 			var should_update_floor_state: bool = _floor_state_stable_frames.get(entity_id, 0) >= MIN_STABLE_FRAMES
 
 			var snapshot: Dictionary = {
@@ -265,11 +340,20 @@ func process_tick(delta: float) -> void:
 				"entity_type": _get_entity_type(body)
 			}
 
-			# Only add is_on_floor to snapshot if stable
 			if should_update_floor_state:
 				snapshot["is_on_floor"] = current_on_floor
 
-			store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
+			batched_snapshots[entity_id] = snapshot
+
+		if not batched_snapshots.is_empty():
+			store.dispatch(U_EntityActions.update_entity_snapshots(batched_snapshots))
+
+		# Prune stale entries from floor state tracking
+		if _floor_state_stable_frames.size() > batched_snapshots.size():
+			for key in _floor_state_stable_frames.keys():
+				if not batched_snapshots.has(key):
+					_floor_state_stable_frames.erase(key)
+	_perf_probe.stop()
 
 func _maybe_schedule_spawn_unfreeze(body: CharacterBody3D, spawn_state: C_SpawnStateComponent, current_physics_frame: int) -> void:
 	if body == null or spawn_state == null:
@@ -350,12 +434,23 @@ func _get_entity_id(body: Node) -> String:
 		return String(ECS_UTILS.get_entity_id(entity_root))
 	return ""
 
-## Phase 16: Get entity type from body
+## Get entity type from body (C10: tag-based primary, name-inference fallback)
+##
+## Lookup order:
+##   1. Entity tags — "player", "enemy", or "npc" tag on the entity node
+##   2. Name inference — substring match on the entity root node name
 func _get_entity_type(body: Node) -> String:
 	var source_node: Node = ECS_UTILS.find_entity_root(body, true)
 	if source_node == null:
 		source_node = body
-	return _infer_entity_type_from_name(source_node.name)
+
+	var tags: Array[StringName] = ECS_UTILS.get_entity_tags(source_node)
+	for tag in tags:
+		var tag_str: String = String(tag)
+		if tag_str == "player" or tag_str == "enemy" or tag_str == "npc":
+			return tag_str
+
+	return _infer_entity_type_from_name(String(source_node.name))
 
 func _infer_entity_type_from_name(name_text: String) -> String:
 	var name_lower: String = name_text.to_lower()
@@ -366,3 +461,32 @@ func _infer_entity_type_from_name(name_text: String) -> String:
 	if "npc" in name_lower:
 		return "npc"
 	return "unknown"
+
+func _resolve_entity_id_from_query(entity_query: Variant) -> StringName:
+	if entity_query == null or not (entity_query is Object):
+		return StringName()
+	var query_object: Object = entity_query as Object
+	if query_object.has_method("get_entity_id"):
+		var id_variant: Variant = query_object.call("get_entity_id")
+		if id_variant is StringName:
+			return id_variant as StringName
+		if id_variant is String:
+			var text: String = id_variant
+			if not text.is_empty():
+				return StringName(text)
+	var entity_variant: Variant = query_object.get("entity")
+	if entity_variant is Node:
+		return ECS_UTILS.get_entity_id(entity_variant as Node)
+	return StringName()
+
+func _consume_debug_log_budget(entity_id: StringName) -> bool:
+	if not debug_ai_movement_logging:
+		return false
+	if debug_entity_id != StringName() and entity_id != debug_entity_id:
+		return false
+	return _debug_log_throttle.consume_budget(entity_id, maxf(debug_log_interval_sec, 0.05))
+
+func _debug_log_for_entity(entity_id: StringName, message: String) -> void:
+	if not _consume_debug_log_budget(entity_id):
+		return
+	print("S_MovementSystem[entity=%s] %s" % [str(entity_id), message])

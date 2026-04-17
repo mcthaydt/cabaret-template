@@ -41,6 +41,13 @@ func hint_preload_scene(_scene_path: String) -> void:
 func suppress_pause_for_current_frame() -> void:
 	push_error("I_SceneManager.suppress_pause_for_current_frame not implemented")
 
+## Check whether pause menu activation should be ignored for the current frame.
+##
+## Used by input handlers to gate `ui_pause` immediately after auto-triggered transitions.
+func is_pause_suppressed_for_current_frame() -> bool:
+	push_error("I_SceneManager.is_pause_suppressed_for_current_frame not implemented")
+	return false
+
 ## Push an overlay scene onto the overlay stack.
 ##
 ## @param scene_id: StringName identifying the overlay scene

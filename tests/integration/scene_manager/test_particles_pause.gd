@@ -28,7 +28,10 @@ func before_each() -> void:
 
 	_store = M_STATE_STORE.new()
 	_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
-	_store.navigation_initial_state = RS_NAVIGATION_INITIAL_STATE.new()
+	var nav_initial := RS_NAVIGATION_INITIAL_STATE.new()
+	nav_initial.shell = StringName("gameplay")
+	nav_initial.base_scene_id = StringName("")
+	_store.navigation_initial_state = nav_initial
 	_root.add_child(_store)
 
 	_cursor = M_CURSOR_MANAGER.new()

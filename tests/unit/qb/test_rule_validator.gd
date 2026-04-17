@@ -2,6 +2,7 @@ extends BaseTest
 
 const RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
 const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
+const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
 const CONDITION_COMPONENT_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_component_field.gd")
 const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
 const CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
@@ -50,8 +51,8 @@ func _make_composite_chain(levels: int, leaf_condition: Resource) -> Resource:
 	for _i in range(levels):
 		var composite: Variant = CONDITION_COMPOSITE.new()
 		composite.mode = CONDITION_COMPOSITE.CompositeMode.ALL
-		var children: Array[Resource] = [current]
-		composite.children = children
+		composite.children.clear()
+		composite.children.append(current as I_Condition)
 		current = composite
 	return current
 
@@ -208,7 +209,7 @@ func test_composite_condition_with_empty_children_fails_validation() -> void:
 	rule.conditions.clear()
 	var condition: Variant = CONDITION_COMPOSITE.new()
 	condition.mode = CONDITION_COMPOSITE.CompositeMode.ALL
-	var empty_children: Array[Resource] = []
+	var empty_children: Array[I_Condition] = []
 	condition.children = empty_children
 	rule.conditions.append(condition)
 
@@ -226,7 +227,7 @@ func test_composite_condition_with_valid_children_passes_validation() -> void:
 	child.state_path = "gameplay.is_paused"
 	child.match_mode = "equals"
 	child.match_value_string = "true"
-	var children: Array[Resource] = [child]
+	var children: Array[I_Condition] = [child as I_Condition]
 	composite.children = children
 	rule.conditions.append(composite)
 
@@ -242,12 +243,12 @@ func test_nested_composite_condition_recurses_for_validation_errors() -> void:
 	nested_bad.state_path = ""
 	var inner: Variant = CONDITION_COMPOSITE.new()
 	inner.mode = CONDITION_COMPOSITE.CompositeMode.ALL
-	var inner_children: Array[Resource] = [nested_bad]
+	var inner_children: Array[I_Condition] = [nested_bad as I_Condition]
 	inner.children = inner_children
 
 	var outer: Variant = CONDITION_COMPOSITE.new()
 	outer.mode = CONDITION_COMPOSITE.CompositeMode.ANY
-	var outer_children: Array[Resource] = [inner]
+	var outer_children: Array[I_Condition] = [inner as I_Condition]
 	outer.children = outer_children
 
 	rule.conditions.append(outer)
@@ -269,7 +270,7 @@ func test_event_name_nested_inside_composite_satisfies_event_mode_requirement() 
 
 	var composite: Variant = CONDITION_COMPOSITE.new()
 	composite.mode = CONDITION_COMPOSITE.CompositeMode.ANY
-	var children: Array[Resource] = [literal, event_name]
+	var children: Array[I_Condition] = [literal as I_Condition, event_name as I_Condition]
 	composite.children = children
 	rule.conditions.append(composite)
 

@@ -1313,7 +1313,7 @@
 - `scripts/utils/qb/u_rule_scorer.gd` (QB rule scoring for camera rules)
 - `scripts/state/utils/u_state_slice_manager.gd`
 - `scripts/utils/u_global_settings_serialization.gd`
-- `scripts/utils/display/u_cinema_grade_preview.gd`
+- `scripts/utils/display/u_color_grading_preview.gd`
 - `scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`
 - `scripts/ui/helpers/u_rebind_action_list_builder.gd`
 - `scripts/managers/m_vfx_manager.gd`

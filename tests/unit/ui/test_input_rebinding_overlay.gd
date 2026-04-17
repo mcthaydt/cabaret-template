@@ -39,7 +39,6 @@ func after_each() -> void:
 	_store = null
 	_scene_manager_mock = null
 	U_StateHandoff.clear_all()
-	U_ServiceLocator.clear()
 	U_UI_THEME_BUILDER.active_config = null
 
 func test_input_rebinding_overlay_has_motion_and_theme_tokens_when_active_config_set() -> void:

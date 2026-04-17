@@ -10,6 +10,7 @@
   - `assets/audio/`, `assets/button_prompts/`, `assets/editor_icons/`: Shared asset libraries for audio, input glyphs, and editor UI.
 - Documentation to consult (do not duplicate here):
   - General pitfalls: `docs/general/DEV_PITFALLS.md`
+  - AI entity behavior spec template (fill before implementing new AI entities): `docs/ai_system/ai-entity-authoring-template.md`
 - Before adding or modifying code, re-read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
 - Keep project planning docs current: whenever a story advances, update the relevant plan and PRD documents immediately so written guidance matches the implementation state.
 - **MANDATORY: Update continuation prompt and tasks checklist after EVERY phase**: When completing a phase (e.g., Phase 2 of Scene Manager), you MUST:
@@ -37,15 +38,22 @@
 - UI controllers are grouped by screen type: `scripts/ui/menus/`, `scripts/ui/overlays/`, `scripts/ui/hud/` (utilities live in `scripts/ui/utils/`).
 - UI scenes organized by type: `scenes/ui/menus/`, `scenes/ui/overlays/`, `scenes/ui/hud/`, `scenes/ui/widgets/` (cleanup v4.5).
 - `scripts/ecs/base_ecs_component.gd`: Base for components. Auto-registers with manager; exposes `get_snapshot()` hook.
-- `scripts/ecs/base_ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`.
+- `scripts/ecs/base_ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`. Declares `SystemPhase` enum (`PRE_PHYSICS`, `INPUT`, `PHYSICS_SOLVE`, `POST_PHYSICS`, `CAMERA`, `VFX`) — override `get_phase()` in every `S_*` system. `M_ECSManager` sorts by phase (primary), `execution_priority` (secondary), instance ID (tertiary).
 - `scripts/ecs/components/*`: Gameplay components with `@export` NodePaths and typed getters.
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
 - `scripts/resources/ecs/*`: `Resource` classes holding tunables consumed by components/systems.
+- C9 config resources (gameplay feel tuning): `scripts/resources/ecs/rs_wall_visibility_config.gd`, `scripts/resources/ecs/rs_camera_state_config.gd`, `scripts/resources/managers/rs_spawn_config.gd`.
+- Manager config resources (C9 follow-through): `scripts/resources/managers/rs_character_lighting_config.gd` and `scripts/resources/managers/rs_display_config.gd` provide default/fallback tuning consumed by `M_CharacterLightingManager` and `M_DisplayManager`.
+- Canonical C9 default config instances live under `resources/base_settings/*/cfg_*_config_default.tres` and should be used as fallback baselines instead of runtime `Resource.new()` allocation in hot paths.
+- `scripts/ecs/components/c_spawn_recovery_component.gd`: Shared unsupported-state recovery component; requires `RS_SpawnRecoverySettings`.
+- `scripts/resources/ecs/rs_spawn_recovery_settings.gd`: Recovery tuning resource (`spawn_point_id`, `unsupported_delay_sec`, `recovery_cooldown_sec`, `startup_grace_period_sec`).
+- `scripts/ecs/systems/s_spawn_recovery_system.gd`: Shared player/NPC recovery system; respawns unsupported entities via `I_SpawnManager` and clears movement/task runtime state after recovery.
 - `scripts/utils/ecs/u_ecs_utils.gd`: ECS helpers (manager lookup, time, component mapping). Input helpers live in `scripts/utils/input/`.
 - `scripts/utils/scene_director/u_objective_graph.gd`: Objective DAG helper (build, cycle/missing-dependency validation, ready-dependents, topological sort).
 - `scripts/utils/scene_director/u_objective_event_log.gd`: Objective transition log helper (timestamped entries + readable formatting).
 - `scripts/utils/scene_director/u_beat_graph.gd`: Beat-flow graph validator/helper (ID/reference checks, cycle detection, ID->index map).
 - `scripts/events/ecs/`: ECS event bus + typed ECS events; `scripts/events/state/` holds `U_StateEventBus` (state-domain bus).
+- `docs/adr/0001-channel-taxonomy.md`: Channel taxonomy ADR — managers dispatch to Redux only; ECS components/systems publish to `U_ECSEventBus`.
 - `scenes/root.tscn`: Main scene (persistent managers + containers).
 - `scenes/gameplay/*`: Gameplay scenes (dynamic loading, own M_ECSManager).
 - `tests/unit/*`: GUT test suites for ECS and state management.
@@ -63,11 +71,11 @@
   - Status transition dispatches via `U_ObjectivesActions` (`activate`, `complete`, `fail`).
   - Event log entries are dispatched through `U_ObjectiveEventLog.create_entry(...)`.
   - Dependents are activated only when `U_ObjectiveGraph.get_ready_dependents(...)` reports all prerequisites completed.
-  - VICTORY objectives publish `EVENT_OBJECTIVE_VICTORY_TRIGGERED` with `completion_event_payload` as-is.
-  - `M_SceneManager` listens to `EVENT_OBJECTIVE_VICTORY_TRIGGERED` for endgame transitions; legacy direct `victory_executed` scene transitions are removed.
+  - VICTORY objectives dispatch `U_GameplayActions.trigger_victory_routing(target_scene, completion_payload)` through Redux (per channel taxonomy, `docs/adr/0001-channel-taxonomy.md`).
+  - `M_SceneManager` subscribes to `M_StateStore.action_dispatched` and reacts to `ACTION_TRIGGER_VICTORY_ROUTING` for endgame transitions; legacy ECS-bus victory routing is removed.
 - Reset-run orchestration pattern (Phase 7):
-  - `UI_Victory` Continue dispatches `U_RunActions.reset_run(&"retry_alleyway")` (do not chain gameplay/navigation reset actions directly in UI code).
-  - `M_RunCoordinatorManager` handles `run/reset` order: `gameplay/reset_progress` -> `U_InteractBlocker.force_unblock()` -> `objectives_manager.reset_for_new_run(&"default_progression")` -> `navigation/retry(&"alleyway")`.
+  - `UI_Victory` Continue dispatches `U_RunActions.reset_run(&"retry")` (do not chain gameplay/navigation reset actions directly in UI code).
+  - `M_RunCoordinatorManager` handles `run/reset` order: `gameplay/reset_progress` -> `U_InteractBlocker.force_unblock()` -> `objectives_manager.reset_for_new_run(&"default_progression")` -> `navigation/retry(game_config.retry_scene_id)` (currently `&"ai_showcase"` in `resources/cfg_game_config.tres`).
   - Service-locator lookups in the reset path are type-cast to `I_ObjectivesManager` (no `has_method("reset_for_new_run")` duck-typing guards).
   - `M_ObjectivesManager.reset_for_new_run()` is the fresh objective-reset path (no persisted-status reconciliation); `load_objective_set()` remains the save/load reconciliation path.
   - Re-entrant `run/reset` requests are ignored while a reset is in-flight.
@@ -79,6 +87,25 @@
   - Parallel support is single-hop fork/join only (lane beats must not define their own `parallel_beat_ids`).
   - Redux observability uses `scene_director.current_beat_id`, `active_beat_ids`, and `parallel_lane_ids` in addition to `current_beat_index`.
 
+## ServiceLocator Registration & Test Isolation (F6)
+
+- **`register()` fails on conflict**: `U_ServiceLocator.register(name, instance)` pushes an error and returns without overwriting if `name` is already registered with a different instance. Same-instance re-registration is idempotent.
+- **Intentional replacement**: use `U_ServiceLocator.register_or_replace(name, instance)` when swapping out a service is the intended behavior (reconnection, test setup).
+- **Test scope isolation**: `U_ServiceLocator.push_scope()` saves `_services` + `_dependencies` and installs a fresh empty registry; `pop_scope()` restores the previous state (no-op on empty stack). Production never calls these — the stack stays empty and default behavior is unchanged.
+- **BaseTest contract**: tests extending `BaseTest` get automatic isolation — `before_each()` calls `push_scope()` + `U_StateHandoff.clear_all()`, `after_each()` calls `pop_scope()`. Overriding these without `super.before_each()` / `super.after_each()` bypasses isolation; if you override, call `super` first.
+- **Avoid `U_ServiceLocator.clear()` in tests** — it wipes the scope stack as well as `_services`, which breaks nested scope isolation. Prefer `push_scope` / `pop_scope` (or inherit from `BaseTest`).
+
+## Communication Channel Taxonomy (F5)
+
+Per `docs/adr/0001-channel-taxonomy.md`, the project enforces a publisher-based channel rule:
+
+- **ECS component/system → `U_ECSEventBus`**: subscribers can be anywhere (manager, UI, other systems).
+- **Manager → Redux dispatch only**: managers must not call `U_ECSEventBus.publish`. State changes flow through `M_StateStore.dispatch()` for action history, validation, and subscriber batching.
+- **Intra-manager / manager-UI wiring → Godot signals**: only allow-listed signal declarations permitted (enforced by `test_manager_signals_allow_list`).
+- **Everything else → method calls**.
+
+**Exception**: `m_ecs_manager.gd` may publish to `U_ECSEventBus` (entity_registered/unregistered) because it IS the ECS infrastructure.
+
 ## ECS Guidelines
 
 - Components
@@ -86,6 +113,7 @@
   - Enforce required settings/resources by overriding `_validate_required_settings()` (call `push_error(...)` and return `false` to abort registration); use `_on_required_settings_ready()` for post-validation setup.
   - Prefer `@export` NodePaths with typed getters that use `get_node_or_null(...) as Type` and return `null` on empty paths.
   - Keep null-safe call sites; systems assume absent paths disable behavior rather than error.
+  - Shared recursive body lookup contract: use `U_NodeFind.find_character_body_recursive(...)` for generic `CharacterBody3D` discovery instead of duplicating `_find_character_body_recursive` helpers across components/systems.
   - If you expose debug state, copy via `snapshot.duplicate(true)` to avoid aliasing.
   - Spawn freeze/unfreeze state lives in `C_SpawnStateComponent` (`is_physics_frozen`, `unfreeze_at_frame`, `suppress_landing_until_frame`); systems gate movement/jump/floating via this component.
 - Systems
@@ -104,7 +132,7 @@
 - QB Rule Engine v2 patterns (Phase 5 complete)
   - The rule engine is a stateless library: `U_RuleScorer.score_rules(...)` + `U_RuleSelector.select_winners(...)`; systems compose these utilities instead of inheriting a QB base class.
   - Rule consumers (`S_CharacterStateSystem`, `S_GameEventSystem`, `S_CameraStateSystem`) each own their own `U_RuleStateTracker` instance; never share trackers between systems.
-  - Rule assets use `RS_Rule` + typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions`/`effects` remain `Array[Resource]` in headless fallback mode and must be runtime-validated with `U_RuleValidator.validate_rules(...)`.
+  - Rule assets use `RS_Rule` + typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions` and `effects` use typed arrays (`Array[I_Condition]`, `Array[I_Effect]`) with coerce setters matching `RS_AIGoal` pattern; `U_RuleValidator` validates semantic correctness (required fields, valid ranges) as a double-check layer.
   - Condition contract: all rules must declare at least one condition; unconditional rules are invalid (validator error, scorer returns 0.0).
   - Validation contract: use only `valid_rules` from the validation report; expose/report `{valid_rules, errors_by_index, errors_by_rule_id}` for tests and debugging.
   - Scoring contract: conditions return 0.0-1.0, optional `response_curve` remap applies before optional `invert`, and rule score is the multiplicative product across conditions.
@@ -114,6 +142,32 @@
   - Camera baseline pattern: `S_CameraStateSystem` captures authored baseline FOV into `C_CameraStateComponent.base_fov` and restores it when `state.vcam.in_fov_zone` is false.
   - Pause gate pattern: character pause gate rules (`cfg_pause_gate_paused/shell/transitioning`) share `decision_group = &"pause_gate"` so exactly one winner applies the same gate effect each tick.
   - Composite condition pattern (Phase 9): use `RS_ConditionComposite` for nested logical grouping (`ALL` for AND/product, `ANY` for OR/max). Keep nesting <= 8 and validate through `U_RuleValidator` (empty composite children are invalid).
+- AI goal-loop pattern (M7 complete)
+  - `S_AIBehaviorSystem` (`scripts/ecs/systems/s_ai_behavior_system.gd`) is the canonical GOAP goal-evaluation + task-runner system. It must compose `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, and `U_HTNPlanner` (no QB base-class inheritance).
+  - Collaborator split contract (R3 refactor): `S_AIBehaviorSystem` is orchestration-first and delegates to `U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, and `U_AIContextBuilder`. Keep goal selection/state gating, task execution, replanning/suspend-restore, and context assembly in those utilities; do not re-expand the behavior system with monolithic inline helpers.
+  - Orchestration integration contract (R10 refactor): keep `S_AIBehaviorSystem` orchestration-only and under 200 lines; preserve no AI-local duck-typing helper family (`_read_object_property`, `_read_int_property`, `_read_bool_property`, `_read_float_property`, `_variant_to_string_name`) in this system.
+  - Debug extraction contract (R4 refactor): AI debug throttle/probe behavior must compose shared utilities (`U_DebugLogThrottle`, `U_AIRenderProbe`) instead of per-system helper duplication. Do not reintroduce `_tick_debug_log_cooldowns` or local `_build_render_probe` stacks in AI systems.
+  - Typed-contract pattern (R1 refactor): treat AI brain/goal/task/action fields as strongly typed runtime contracts, not duck-typed payloads. Canonical types are `C_AIBrainComponent.brain_settings: RS_AIBrainSettings`, `RS_AIBrainSettings.goals: Array[RS_AIGoal]`, `RS_AIGoal.root_task: RS_AITask`, `RS_AIGoal.conditions: Array[I_Condition]`, `RS_AIPrimitiveTask.action: I_AIAction`, `RS_AICompoundTask.subtasks: Array[RS_AITask]`, and `RS_AICompoundTask.method_conditions: Array[I_Condition]`. Do not reintroduce `_read_*_property` helpers into the AI hot path.
+  - AI resource directory contract (R7 refactor): keep core AI resource scripts organized by concept under `scripts/resources/ai/brain/`, `scripts/resources/ai/goals/`, `scripts/resources/ai/tasks/`, and `scripts/resources/ai/actions/`. Do not add new top-level `scripts/resources/ai/rs_ai_*.gd` files.
+  - Goal selection contract: evaluate `RS_AIGoal` entries from `C_AIBrainComponent.brain_settings.goals`, resolve winners via a single decision group (`ai_goal`), and fall back to `default_goal_id` when no goal scores above threshold.
+  - Re-plan contract: on goal change, reset `current_task_queue`, `current_task_index`, and `task_state`, then populate a new primitive queue via `U_HTNPlanner.decompose(goal.root_task, context)`.
+  - HTN planner context contract (R9 refactor): keep recursion/runtime decomposition state in `U_HTNPlannerContext` (`reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`) and keep `U_HTNPlanner.decompose(...)` as the stable public entry point.
+  - Evaluation-throttle contract: honor `RS_AIBrainSettings.evaluation_interval` using `C_AIBrainComponent.evaluation_timer`; first evaluation should run immediately for brains without an active goal.
+  - Task-runner contract (M6): `_execute_current_task(brain, delta, context)` runs every tick, dispatches primitive task actions polymorphically via `I_AIAction.start/tick/is_complete`, advances one task at a time, and clears queue/index/task-state only when the queue completes.
+  - Instant action contract (M6): `RS_AIActionWait` tracks `task_state["elapsed"]`; `RS_AIActionPublishEvent` publishes through `U_ECSEventBus`; `RS_AIActionSetField` resolves targets with `U_PathResolver`.
+  - Movement/stub action contract (M7/M12/R6): `RS_AIActionMoveTo` resolves waypoint/node/position targets and writes `task_state["ai_move_target"]` plus `task_state["ai_arrival_threshold"]` (back-compat path used by the move-target follower); `RS_AIActionScan` tracks scan timing in task state; `RS_AIActionAnimate` is a stub that sets `task_state["animation_state"]` and completes immediately.
+  - Move-target follower contract (R6): `S_MoveTargetFollowerSystem` (`scripts/ecs/systems/s_move_target_follower_system.gd`, `execution_priority = -5`) is the canonical world-space move-vector bridge. It queries `C_InputComponent` + `C_MovementComponent`, prefers active `C_MoveTargetComponent` targets (`target_position`, `arrival_threshold`, `is_active`), and falls back to AI task-state targets (`U_AITaskStateKeys.MOVE_TARGET`/`ARRIVAL_THRESHOLD`) for compatibility.
+  - AI movement consumption contract (M12): `S_MovementSystem` detects `C_AIBrainComponent` and routes AI-authored move vectors through `_get_desired_velocity()` (world-space) while keeping player input camera-relative.
+  - Player-input isolation contract (M7): `S_InputSystem` queries `C_InputComponent` with required `C_PlayerTagComponent` so player input updates only player-tagged entities and does not clobber AI-authored move vectors.
+  - Demo scene authoring contract (M10): any NPC expected to execute `RS_AIActionMoveTo` in authored gameplay scenes must include a runtime movement stack (`CharacterBody3D`, `C_InputComponent`, and `C_MovementComponent` with valid movement settings). Brain-only placeholder entities without that stack will select goals but fail to progress movement tasks.
+  - NPC prefab unification contract (M13): authored demo NPC entities should instance `scenes/prefabs/prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`) and override only archetype-specific fields (`entity_id`, tags, brain settings, visuals). Runtime body path is `Player_Body` (not legacy `NPC_Body`), and custom CSG visuals under NPC bodies must keep `use_collision = false`.
+  - Demo trigger gating contract (M10 audit follow-up): do not gate demo GOAP goals off transient one-frame input fields (for example `camera_center_just_pressed`). Use durable gameplay flags under `gameplay.ai_demo_flags.*` and drive them from authored trigger zones (`Inter_AIDemoFlagZone`) so evaluate-interval scheduling cannot miss triggers.
+  - Shared spawn-recovery contract (R5 refactor): recovery settings now live on `C_SpawnRecoveryComponent.settings: RS_SpawnRecoverySettings` (not `RS_AIBrainSettings`). `S_SpawnRecoverySystem` is the canonical unsupported-recovery flow for both player and NPC entities; it tracks startup grace/unsupported delay/cooldown per entity, uses `I_SpawnManager.spawn_at_last_spawn(...)` for player entities when `spawn_point_id` is empty, uses `spawn_entity_at_point(...)` for authored spawn-point entities, clears move vector/body velocity (and AI `task_state` when present), and disables recovery for the session when a configured spawn point is missing.
+  - Player-proximity detection contract (M15): `C_DetectionComponent` + `S_AIDetectionSystem` (`execution_priority = -12`) are the canonical range-detection path for AI demo NPCs. Enter/exit state is tracked on the component (`is_player_in_range`, `last_detected_player_entity_id`) and optional enter events publish through `U_ECSEventBus`.
+  - Tag-detection self-exclusion contract (AI forest audit): when using `C_DetectionComponent.target_tag` flows, `S_AIDetectionSystem` must skip the detector's own entity during nearest-target resolution (match by entity instance ID with entity-ID fallback) to prevent self-locking at zero distance in same-tag scenarios (for example predator pack detection).
+  - Predation consume-lock contract (AI forest audit): predator hunt loops that include `RS_AIActionFeed.consume_detected_target` must lock the prey entity id during move-to-detected (`U_AITaskStateKeys.DETECTED_ENTITY_ID` and `C_DetectionComponent.pending_feed_entity_id`) and consume that locked target first in feed. Hunt-loop completion is not valid unless prey removal occurs (entity unregistered/removed + node freed) alongside hunger refill.
+  - Cascading alarm relay contract (M15/R8): `S_DemoAlarmRelaySystem` (`scripts/gameplay/s_demo_alarm_relay_system.gd`, `execution_priority = -11`) listens for `ai_alarm_triggered` and dispatches durable gameplay flags for cross-NPC reactions. Keep this system event-driven and use `U_GameplayActions.set_ai_demo_flag(...)` for flag updates (no navigation-action equivalents).
+  - Showcase interaction authoring contract (M15): `gameplay_ai_showcase.tscn` owns interaction trigger nodes (`Inter_AlarmButton`, `Inter_DoorSwitch`, `Inter_GuideCollectible`) and `SO_GuardBarrier` listener wiring; demo NPC prefab instances should set detection component flag IDs per archetype rather than hardcoding trigger logic in systems.
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.
@@ -138,10 +192,10 @@
     - Coordinator support helpers: `U_VCamRuntimeContext`, `U_VCamRuntimeState`, `U_VCamRuntimeServices`, `U_VCamEffectPipeline`, `U_VCamDebug`
   - `M_CameraManager` integration for gameplay vCam flow is `apply_main_camera_transform(xform)` [new — Phase 9] with `is_blend_active()` [new — Phase 9] gating for transition blends. Both methods must be implemented before vCam can submit gameplay transforms.
   - Blend manager helper contract (Phase 3A): `U_VCamBlendManager` (`scripts/managers/helpers/u_vcam_blend_manager.gd`) is the canonical owner of live-blend/startup-blend state machines (configure/advance/recover/startup queue+resolve/clear). `M_VCamManager` must delegate blend runtime state transitions to this helper.
-  - Live blend lifecycle contract (Phase 9 + 3A): `M_VCamManager` dispatches `U_VCamActions` blend lifecycle actions, publishes `EVENT_VCAM_BLEND_STARTED` / `EVENT_VCAM_BLEND_COMPLETED`, and blends active/outgoing evaluated results via `U_VCamBlendManager` (which uses `U_VCamBlendEvaluator` for transform/FOV interpolation).
+  - Live blend lifecycle contract (Phase 9 + 3A): `M_VCamManager` dispatches `U_VCamActions` blend lifecycle actions (start/update/complete) through Redux (per channel taxonomy, F5), and blends active/outgoing evaluated results via `U_VCamBlendManager` (which uses `U_VCamBlendEvaluator` for transform/FOV interpolation).
   - Blend observability ordering contract (Phase 12): `M_VCamManager` must dispatch `U_VCamActions.set_active_runtime(...)` before `U_VCamActions.start_blend(...)` during active-camera switches so reducer `blend_to_vcam_id` resolves to the incoming active camera.
   - Frame-handoff contract (Phase 9): `M_VCamManager` must consume frame-stamped submissions (`Engine.get_physics_frames`) and ignore stale previous-frame results; gameplay apply remains `camera_manager.apply_main_camera_transform(...)` only.
-  - Reentrant/recovery contract (Phase 9): mid-blend `set_active_vcam()` snapshots the current blended pose as the new "from" source, and invalid blend endpoints must route to `record_recovery` / `EVENT_VCAM_RECOVERY` reasons (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`) without wedged blend state.
+  - Reentrant/recovery contract (Phase 9): mid-blend `set_active_vcam()` snapshots the current blended pose as the new "from" source, and invalid blend endpoints must route to `U_VCamActions.record_recovery(...)` reasons (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`) without wedged blend state.
   - `in_fov_zone` now lives in `state.vcam.in_fov_zone`; do not reintroduce legacy `state.camera.in_fov_zone` reads in runtime or tests.
   - Occlusion silhouette preference persists in `vfx.occlusion_silhouette_enabled` and is surfaced in `UI_VFXSettingsOverlay` with localization keys.
   - Occlusion rollout is complete only when both physics-layer naming (`vcam_occludable`) and authored-scene blocker migration are done.
@@ -173,8 +227,8 @@
   - Touchscreen recenter contract (Phase 2C8 follow-up, March 2026): `UI_MobileControls` detects `camera_center` via empty-space double-tap (`DOUBLE_TAP_MAX_INTERVAL_SEC = 0.30`, `DOUBLE_TAP_MAX_DISTANCE_PX = 72.0`) and exposes one-shot `consume_camera_center_just_pressed()`. `S_TouchscreenSystem` must dispatch `U_InputActions.update_camera_center_state(...)` from that consume API (never hardcode `false`).
   - Gameplay prompt binding contract (Phase 2C8 follow-up, March 2026): gameplay prompt icons are binding-aware (`InputMap` event texture first, registry fallback second) so rebinds update icon/label output at runtime.
   - Orbit room-fade data-layer contract (Phase 2C9, March 2026): `RS_RoomFadeSettings` (`fade_dot_threshold`, `fade_speed`, `min_alpha`) is the canonical room-fade tuning resource with clamped `get_resolved_values()`. `C_RoomFadeGroupComponent` (`RoomFadeGroup`) provides authoring/runtime data (`group_tag`, `fade_normal`, nullable `settings`, `current_alpha`), recursive mesh-target collection from entity hierarchy, and parent-basis world-normal resolution for downstream room-fade systems.
-  - Orbit room-fade runtime contract (Phase 2C10, March 2026): `S_RoomFadeSystem` (`scripts/ecs/systems/s_room_fade_system.gd`) is a standalone post-vCam system (`execution_priority = 110`) that consumes camera output and gates room fading to `state.vcam.active_mode == "orbit"` (non-orbit ticks restore all groups/materials immediately). Camera resolution order is `camera_manager.get_main_camera()` then `Viewport.get_camera_3d()` fallback. `U_RoomFadeMaterialApplier` (`scripts/utils/lighting/u_room_fade_material_applier.gd`) owns shader-override lifecycle (`sh_room_fade.gdshader`) and must cache/restore original `material_override` cleanly.
-  - Orbit room-fade shared-wall ownership contract (Phase 2C11A, March 2026): `S_RoomFadeSystem` must run a per-tick target-ownership pre-pass before alpha/material writes so each target is owned by exactly one component (first component in filtered order wins). Duplicate owners must warn-and-skip (non-fatal), with warning de-duplication per target/component pair per tick. Authored room-fade groups in gameplay scenes should use explicit unique `group_tag` values and avoid multi-group target overlap.
+  - Orbit wall-visibility runtime contract (Phase 2C10, April 2026): `S_WallVisibilitySystem` (`scripts/ecs/systems/s_wall_visibility_system.gd`) is a standalone post-vCam system (`execution_priority = 110`) that consumes camera output and gates wall visibility to `state.vcam.active_mode == "orbit"` (non-orbit ticks restore all groups/materials immediately). Camera resolution order is `camera_manager.get_main_camera()` then `Viewport.get_camera_3d()` fallback. `U_WallVisibilityMaterialApplier` (`scripts/utils/lighting/u_wall_visibility_material_applier.gd`) owns shader-override lifecycle (`sh_wall_visibility.gdshader`) and must cache/restore original `material_override` cleanly. The system uses dithered dissolve + vertical clip plane instead of alpha-blending fade. Key features: occlusion corridor (walls between camera and player stay opaque), bucket continuity (adjacent wall segments with same normal fade together), room filtering (only player's room processed), roof handling (roofs inherit wall fade state), mobile tick throttling (every 4th frame on mobile), min_fade cap (walls never fully dissolve), and duplicate target ownership (first-component-wins with warning).
+  - Orbit wall-visibility shared-wall ownership contract (Phase 2C11A, April 2026): `S_WallVisibilitySystem` must run a per-tick target-ownership pre-pass before fade/material writes so each target is owned by exactly one component (first component in filtered order wins). Duplicate owners must warn-and-skip (non-fatal), with warning de-duplication per target/component pair per tick. Authored room-fade groups in gameplay scenes should use explicit unique `group_tag` values and avoid multi-group target overlap.
   - Orbit region-visibility data-layer contract (Phase 2C11, March 2026): `RS_RegionVisibilitySettings` (`fade_speed`, `min_alpha`, `aabb_grow`, `aabb_vertical_shrink`) is the canonical region-visibility tuning resource with clamped `get_resolved_values()`. `C_RegionVisibilityComponent` (`RegionVisibility`) provides authoring/runtime data (`region_tag`, nullable `settings`, `current_alpha`, `is_active_region`), recursive mesh-target collection from entity hierarchy, and cached region AABB for player containment checks.
   - Orbit region-visibility runtime contract (Phase 2C11, March 2026): `S_RegionVisibilitySystem` (`scripts/ecs/systems/s_region_visibility_system.gd`) is a standalone pre-room-fade system (`execution_priority = 100`) that gates region visibility to `state.vcam.active_mode == "orbit"` (non-orbit ticks restore all regions to opaque). Player containment uses expanded region AABB. Each system owns its own `U_RoomFadeMaterialApplier` instance; region visibility and room fade operate on disjoint mesh sets (region system only fades non-active regions, room fade only processes the player's room). Public queries: `get_active_region_tags()`, `is_region_faded(tag)`.
   - vCam debug-authoring contract (Post-0f51 retune audit, March 2026): `debug_rotation_logging` is diagnostics-only and must stay disabled in authored gameplay/template scenes; do not commit `.tscn` overrides setting `debug_rotation_logging = true`. Keep regression guard coverage in `tests/unit/style/test_style_enforcement.gd`.
@@ -560,6 +614,8 @@ Production asset files use type-specific prefixes:
   - `"instant"`: < 100ms, no visual effect (UI navigation)
   - `"fade"`: 0.2-0.5s, fade out → load → fade in (polished)
   - `"loading"`: 1.5s+, loading screen with progress bar (large scenes)
+- **Transition callback state contract**: `M_SceneManager` transition callbacks use `U_TransitionState` (`scripts/scene_management/helpers/u_transition_state.gd`) for mutable shared state; do not reintroduce `Array` wrapper captures for progress/new-scene refs.
+- **Camera blend handoff contract**: blend-finalization checks must use `I_CameraManager.is_blend_active()`; do not reflect private camera-manager members (for example `_camera_blend_tween`).
 - **Priority levels**:
   - `NORMAL = 0`: Standard navigation
   - `HIGH = 1`: Important but not urgent
@@ -1213,7 +1269,7 @@ var display_manager := U_DisplayUtils.get_display_manager()
 
 Post-processing effects render via `ui_post_process_overlay.tscn`:
 - **CanvasLayer**: Layer 100 (above gameplay at 0, below UI overlays)
-- **Effects**: FilmGrainRect, DitherRect, CRTRect, ColorBlindRect
+- **Effects**: FilmGrainRect, DitherRect, ColorBlindRect
 - **Shaders**: Each rect has a ShaderMaterial with configurable uniforms
 - **Time Updates**: Film grain shader receives `TIME` updates in `_process()`
 
@@ -1255,10 +1311,6 @@ func set_ui_scale(scale: float) -> void:
         # Post-Processing
         "film_grain_enabled": false,
         "film_grain_intensity": 0.1,        # Clamped: 0.0-1.0
-        "crt_enabled": false,
-        "crt_scanline_intensity": 0.3,      # Clamped: 0.0-1.0
-        "crt_curvature": 2.0,
-        "crt_chromatic_aberration": 0.002,
         "dither_enabled": false,
         "dither_intensity": 0.5,            # Clamped: 0.0-1.0
         "dither_pattern": "bayer",          # Valid: bayer, noise
@@ -1271,61 +1323,59 @@ func set_ui_scale(scale: float) -> void:
         "high_contrast_enabled": false,
         "color_blind_shader_enabled": false,
 
-        # Cinema Grade (transient — loaded per-scene, NOT persisted)
-        "cinema_grade_filter_mode": 0,       # 0=none, 1-8=named filters
-        "cinema_grade_filter_intensity": 1.0,
-        "cinema_grade_exposure": 0.0,
-        "cinema_grade_brightness": 0.0,
-        "cinema_grade_contrast": 1.0,
-        "cinema_grade_brilliance": 0.0,
-        "cinema_grade_highlights": 0.0,
-        "cinema_grade_shadows": 0.0,
-        "cinema_grade_saturation": 1.0,
-        "cinema_grade_vibrance": 0.0,
-        "cinema_grade_warmth": 0.0,
-        "cinema_grade_tint": 0.0,
-        "cinema_grade_sharpness": 0.0,
+        # Color Grading (transient — loaded per-scene, NOT persisted)
+        "color_grading_filter_mode": 0,       # 0=none, 1-8=named filters
+        "color_grading_filter_intensity": 1.0,
+        "color_grading_exposure": 0.0,
+        "color_grading_brightness": 0.0,
+        "color_grading_contrast": 1.0,
+        "color_grading_brilliance": 0.0,
+        "color_grading_highlights": 0.0,
+        "color_grading_shadows": 0.0,
+        "color_grading_saturation": 1.0,
+        "color_grading_vibrance": 0.0,
+        "color_grading_warmth": 0.0,
+        "color_grading_tint": 0.0,
+        "color_grading_sharpness": 0.0,
     }
 }
 ```
 
-### Cinema Grading System (Phase 11)
+### Color Grading System (Phase 11)
 
 Per-scene cinematic color grading applied as the bottom-most post-process layer. Artistic direction, not a user preference — always active regardless of `post_processing_enabled`.
 
 **Layer Stack (bottom to top):**
-- CinemaGradeLayer = CanvasLayer 1
-- FilmGrainRect = CanvasLayer 2
-- DitherRect = CanvasLayer 3
-- CRTRect = CanvasLayer 4
+- ColorGradingLayer = CanvasLayer 1
+- GrainDitherLayer = CanvasLayer 2
 - ColorBlindRect = CanvasLayer 5
 - UIColorBlindLayer = CanvasLayer 11
 
 **Scene Transition Flow:**
 1. `action_dispatched` fires with `scene/transition_completed`
-2. `U_DisplayCinemaGradeApplier` extracts `scene_id` from payload
-3. Looks up `U_CinemaGradeRegistry.get_cinema_grade_for_scene(scene_id)` (returns neutral fallback if unmapped)
-4. Dispatches `U_CinemaGradeActions.load_scene_grade(grade.to_dictionary())`
-5. Display slice updates → hash change → `_apply_cinema_grade_settings()` sets shader uniforms
+2. `U_DisplayColorGradingApplier` extracts `scene_id` from payload
+3. Looks up `U_ColorGradingRegistry.get_color_grading_for_scene(scene_id)` (returns neutral fallback if unmapped)
+4. Dispatches `U_ColorGradingActions.load_scene_grade(grade.to_dictionary())`
+5. Display slice updates → hash change → `_apply_color_grading_settings()` sets shader uniforms
 
-**Action Prefix (`cinema_grade/` NOT `display/`):**
-- `cinema_grade/` prefix deliberately does NOT match `begins_with("display/")` in `U_GlobalSettingsSerialization.is_global_settings_action()`
-- This ensures cinema grade state is NOT persisted to `user://global_settings.json`
+**Action Prefix (`color_grading/` NOT `display/`):**
+- `color_grading/` prefix deliberately does NOT match `begins_with("display/")` in `U_GlobalSettingsSerialization.is_global_settings_action()`
+- This ensures color grading state is NOT persisted to `user://global_settings.json`
 - Per-scene grades are transient — loaded from `.tres` resources on each scene enter
 
 **Registry (mobile-safe):**
 ```gdscript
-# U_CinemaGradeRegistry uses const preload arrays (no runtime DirAccess)
+# U_ColorGradingRegistry uses const preload arrays (no runtime DirAccess)
 const _SCENE_GRADE_PRELOADS := [
-    preload("res://resources/display/cinema_grades/cfg_cinema_grade_gameplay_base.tres"),
+    preload("res://resources/display/color_gradings/cfg_color_grading_gameplay_base.tres"),
     # ...
 ]
 ```
 
 **Editor Preview (@tool node):**
-- Drop `U_CinemaGradePreview` into any gameplay scene root
-- Assign a `RS_SceneCinemaGrade` resource in the inspector
-- Creates local CanvasLayer 100 + ColorRect with cinema grade shader
+- Drop `U_ColorGradingPreview` into any gameplay scene root
+- Assign a `RS_SceneColorGrading` resource in the inspector
+- Creates local CanvasLayer 100 + ColorRect with color grading shader
 - `queue_free()` at runtime (M_DisplayManager handles everything in-game)
 
 ### Thread Safety

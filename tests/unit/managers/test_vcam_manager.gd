@@ -8,8 +8,6 @@ const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_BLEND_HINT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 
 class VCamManagerOcclusionStub extends M_VCAM_MANAGER:
@@ -31,11 +29,9 @@ class VCamManagerOcclusionStub extends M_VCAM_MANAGER:
 
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
-	U_ECS_EVENT_BUS.reset()
 
 func after_each() -> void:
 	U_SERVICE_LOCATOR.clear()
-	U_ECS_EVENT_BUS.reset()
 
 func test_manager_extends_interface() -> void:
 	var manager := M_VCAM_MANAGER.new()
@@ -102,24 +98,27 @@ func test_unregistering_active_vcam_clears_active_state() -> void:
 	assert_eq(manager.get_active_vcam_id(), StringName(""), "Active id should clear when active vcam unregisters")
 
 func test_unregistering_active_vcam_with_replacement_publishes_previous_active_id() -> void:
-	var manager := await _create_manager()
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var manager := await _create_manager(store)
 	var camera_high := _create_vcam(StringName("cam_high"), 10)
 	var camera_low := _create_vcam(StringName("cam_low"), 1)
 	manager.register_vcam(camera_high)
 	manager.register_vcam(camera_low)
 	assert_eq(manager.get_active_vcam_id(), StringName("cam_high"))
-	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
 
 	manager.unregister_vcam(camera_high)
 
 	assert_eq(manager.get_active_vcam_id(), StringName("cam_low"))
-	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	assert_eq(history.size(), 1, "Unregister reselection should publish one active-changed event")
-	var event_payload := history[0] as Dictionary
-	assert_eq(event_payload.get("name", StringName("")), U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED)
-	var payload := event_payload.get("payload", {}) as Dictionary
+	var action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_SET_ACTIVE_RUNTIME
+	)
+	assert_false(action.is_empty(), "Unregister reselection should dispatch set_active_runtime action")
+	var payload := action.get("payload", {}) as Dictionary
 	assert_eq(payload.get("vcam_id", StringName("")), StringName("cam_low"))
-	assert_eq(payload.get("previous_vcam_id", StringName("")), StringName("cam_high"))
 
 func test_unregistering_last_active_vcam_publishes_clear_event_and_runtime_clear_action() -> void:
 	var store := MOCK_STATE_STORE.new()
@@ -128,26 +127,19 @@ func test_unregistering_last_active_vcam_publishes_clear_event_and_runtime_clear
 	var manager := await _create_manager(store)
 	var camera_a := _create_vcam(StringName("cam_a"), 5)
 	manager.register_vcam(camera_a)
-	U_ECS_EVENT_BUS.clear_history()
 	store.clear_dispatched_actions()
 
 	manager.unregister_vcam(camera_a)
 
 	assert_eq(manager.get_active_vcam_id(), StringName(""), "Active id should clear when last vcam unregisters")
-	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	var event_payload := _find_last_event_by_name(U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED)
-	assert_false(event_payload.is_empty(), "Unregistering last active vcam should publish active-clear event")
-	var payload := event_payload.get("payload", {}) as Dictionary
+	var action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_SET_ACTIVE_RUNTIME
+	)
+	assert_false(action.is_empty(), "Unregistering last active vcam should dispatch set_active_runtime action")
+	var payload := action.get("payload", {}) as Dictionary
 	assert_eq(payload.get("vcam_id", StringName("")), StringName(""))
-	assert_eq(payload.get("previous_vcam_id", StringName("")), StringName("cam_a"))
-
-	var actions := store.get_dispatched_actions()
-	assert_true(actions.size() > 0, "Active clear should dispatch runtime clear action")
-	var last_action: Dictionary = actions[actions.size() - 1]
-	assert_eq(last_action.get("type", StringName("")), U_VCAM_ACTIONS.ACTION_SET_ACTIVE_RUNTIME)
-	var action_payload := last_action.get("payload", {}) as Dictionary
-	assert_eq(action_payload.get("vcam_id", StringName("")), StringName(""))
-	assert_eq(str(action_payload.get("mode", "__missing__")), "")
+	assert_eq(str(payload.get("mode", "__missing__")), "")
 
 func test_unregistering_all_vcams_clears_all_state() -> void:
 	var manager := await _create_manager()
@@ -234,20 +226,23 @@ func test_set_active_vcam_dispatches_runtime_action() -> void:
 	assert_eq(payload.get("vcam_id", StringName("")), StringName("cam_a"))
 
 func test_set_active_vcam_publishes_active_changed_event() -> void:
-	var manager := await _create_manager()
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var manager := await _create_manager(store)
 	manager.register_vcam(_create_vcam(StringName("cam_a"), 1))
 	manager.register_vcam(_create_vcam(StringName("cam_b"), 5))
-	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
 
 	manager.set_active_vcam(StringName("cam_a"))
 
-	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	assert_eq(history.size(), 1, "Active switch should publish one ECS event")
-	var event_payload := history[0] as Dictionary
-	assert_eq(event_payload.get("name", StringName("")), U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED)
-	var payload := event_payload.get("payload", {}) as Dictionary
+	var action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_SET_ACTIVE_RUNTIME
+	)
+	assert_false(action.is_empty(), "Active switch should dispatch set_active_runtime action")
+	var payload := action.get("payload", {}) as Dictionary
 	assert_eq(payload.get("vcam_id", StringName("")), StringName("cam_a"))
-	assert_eq(payload.get("previous_vcam_id", StringName("")), StringName("cam_b"))
 	assert_eq(payload.get("mode", ""), "orbit")
 
 func test_inactive_vcams_are_excluded_from_priority_selection() -> void:
@@ -283,26 +278,29 @@ func test_priority_reselection_after_unregister_picks_next_highest() -> void:
 	assert_eq(manager.get_active_vcam_id(), StringName("cam_low"), "Next-highest priority camera should become active")
 
 func test_pruned_invalid_active_vcam_publishes_previous_active_id() -> void:
-	var manager := await _create_manager()
+	var store := MOCK_STATE_STORE.new()
+	add_child(store)
+	autofree(store)
+	var manager := await _create_manager(store)
 	var camera_low := _create_vcam(StringName("cam_low"), 1, true)
 	var camera_high := _create_vcam(StringName("cam_high"), 8, true)
 	manager.register_vcam(camera_low)
 	manager.register_vcam(camera_high)
 	assert_eq(manager.get_active_vcam_id(), StringName("cam_high"))
-	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
 
 	camera_high.queue_free()
 	await get_tree().process_frame
 	manager._physics_process(0.016)
 
 	assert_eq(manager.get_active_vcam_id(), StringName("cam_low"))
-	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	assert_eq(history.size(), 1, "Pruned active vcam should publish one active-changed event")
-	var event_payload := history[0] as Dictionary
-	assert_eq(event_payload.get("name", StringName("")), U_ECS_EVENT_NAMES.EVENT_VCAM_ACTIVE_CHANGED)
-	var payload := event_payload.get("payload", {}) as Dictionary
+	var action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_SET_ACTIVE_RUNTIME
+	)
+	assert_false(action.is_empty(), "Pruned active vcam should dispatch set_active_runtime action")
+	var payload := action.get("payload", {}) as Dictionary
 	assert_eq(payload.get("vcam_id", StringName("")), StringName("cam_low"))
-	assert_eq(payload.get("previous_vcam_id", StringName("")), StringName("cam_high"))
 
 func test_submit_evaluated_camera_applies_active_transform_to_camera_manager() -> void:
 	var camera_manager := MOCK_CAMERA_MANAGER.new()
@@ -426,27 +424,20 @@ func test_submit_evaluated_camera_publishes_silhouette_update_request_event() ->
 	await get_tree().process_frame
 	camera_a.follow_target_path = camera_a.get_path_to(follow_target)
 
-	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
 	manager.submit_evaluated_camera(
 		StringName("cam_a"),
 		{"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 1.0, 4.0))}
 	)
 
-	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	var found_request: bool = false
-	for event_variant in history:
-		if not (event_variant is Dictionary):
-			continue
-		var event_payload := event_variant as Dictionary
-		if event_payload.get("name", StringName("")) != U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST:
-			continue
-		var payload := event_payload.get("payload", {}) as Dictionary
-		assert_eq(payload.get("entity_id", StringName("")), StringName("player"))
-		assert_true(payload.get("occluders", []) is Array)
-		assert_eq(payload.get("enabled", false), true)
-		found_request = true
-		break
-	assert_true(found_request, "Submitting active camera should publish silhouette request payload")
+	var action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_SILHOUETTE_UPDATE_REQUEST
+	)
+	assert_false(action.is_empty(), "Submitting active camera should dispatch silhouette update request action")
+	assert_eq(action.get("entity_id", StringName("")), StringName("player"))
+	assert_true(action.get("occluders", []) is Array)
+	assert_eq(action.get("enabled", false), true)
 
 func test_submit_evaluated_camera_includes_detected_occluders_when_silhouette_enabled() -> void:
 	var store := MOCK_STATE_STORE.new()
@@ -470,13 +461,13 @@ func test_submit_evaluated_camera_includes_detected_occluders_when_silhouette_en
 	var occluder_b := _create_mesh_occluder()
 	manager.test_occluders = [occluder_a, occluder_b]
 
-	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
 	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, 1.0))})
 
-	var payload := _find_last_silhouette_payload()
-	assert_false(payload.is_empty(), "Silhouette event should be published when toggle is enabled")
-	assert_eq(payload.get("enabled", false), true, "Silhouette request should remain enabled")
-	var occluders := payload.get("occluders", []) as Array
+	var action := _find_last_silhouette_payload(store)
+	assert_false(action.is_empty(), "Silhouette action should be dispatched when toggle is enabled")
+	assert_eq(action.get("enabled", false), true, "Silhouette request should remain enabled")
+	var occluders := action.get("occluders", []) as Array
 	assert_eq(occluders.size(), 2, "Detected occluders should be forwarded in payload")
 
 func test_submit_evaluated_camera_disables_silhouette_when_vfx_toggle_is_off() -> void:
@@ -498,13 +489,13 @@ func test_submit_evaluated_camera_disables_silhouette_when_vfx_toggle_is_off() -
 	manager.test_follow_target = follow_target
 	manager.test_occluders = [_create_mesh_occluder()]
 
-	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
 	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
 
-	var payload := _find_last_silhouette_payload()
-	assert_false(payload.is_empty(), "Silhouette disable request should be published when toggle is off")
-	assert_eq(payload.get("enabled", true), false, "Silhouette request should disable rendering when toggle is off")
-	var occluders := payload.get("occluders", []) as Array
+	var action := _find_last_silhouette_payload(store)
+	assert_false(action.is_empty(), "Silhouette disable action should be dispatched when toggle is off")
+	assert_eq(action.get("enabled", true), false, "Silhouette request should disable rendering when toggle is off")
+	var occluders := action.get("occluders", []) as Array
 	assert_eq(occluders.size(), 0, "Disabled request should not carry occluders")
 
 func test_submit_evaluated_camera_does_not_dispatch_silhouette_count_action() -> void:
@@ -552,14 +543,14 @@ func test_unregistering_active_vcam_publishes_silhouette_clear_request() -> void
 	manager.test_follow_target = follow_target
 	manager.test_occluders = [_create_mesh_occluder()]
 	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
-	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
 
 	manager.unregister_vcam(camera_a)
 
-	var payload := _find_last_silhouette_payload()
-	assert_false(payload.is_empty(), "Unregistering active vcam should publish silhouette clear request")
-	assert_eq(payload.get("enabled", true), false, "Unregister clear request should disable silhouettes")
-	var occluders := payload.get("occluders", []) as Array
+	var action := _find_last_silhouette_payload(store)
+	assert_false(action.is_empty(), "Unregistering active vcam should dispatch silhouette clear request")
+	assert_eq(action.get("enabled", true), false, "Unregister clear request should disable silhouettes")
+	var occluders := action.get("occluders", []) as Array
 	assert_eq(occluders.size(), 0, "Clear request should not include occluders")
 
 func test_scene_transition_blend_clears_active_silhouettes() -> void:
@@ -581,14 +572,14 @@ func test_scene_transition_blend_clears_active_silhouettes() -> void:
 	manager.test_follow_target = follow_target
 	manager.test_occluders = [_create_mesh_occluder()]
 	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
-	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
 
 	camera_manager.blend_active = true
 	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
 
-	var payload := _find_last_silhouette_payload()
-	assert_false(payload.is_empty(), "Scene-transition blend should publish silhouette clear request")
-	assert_eq(payload.get("enabled", true), false, "Transition clear request should disable silhouettes")
+	var action := _find_last_silhouette_payload(store)
+	assert_false(action.is_empty(), "Scene-transition blend should dispatch silhouette clear request")
+	assert_eq(action.get("enabled", true), false, "Transition clear request should disable silhouettes")
 
 func test_set_active_vcam_starts_live_blend_and_publishes_started_event() -> void:
 	var store := MOCK_STATE_STORE.new()
@@ -601,7 +592,6 @@ func test_set_active_vcam_starts_live_blend_and_publishes_started_event() -> voi
 	var camera_b := _create_vcam(StringName("cam_b"), 1, true, hint)
 	manager.register_vcam(camera_a)
 	manager.register_vcam(camera_b)
-	U_ECS_EVENT_BUS.clear_history()
 	store.clear_dispatched_actions()
 
 	manager.set_active_vcam(StringName("cam_b"))
@@ -609,12 +599,6 @@ func test_set_active_vcam_starts_live_blend_and_publishes_started_event() -> voi
 	assert_true(manager.is_blending(), "Switch should start a live blend when duration is positive")
 	assert_almost_eq(manager.get_blend_progress(), 0.0, 0.0001)
 	assert_eq(manager.get_previous_vcam_id(), StringName("cam_a"))
-	var started_event: Dictionary = _find_last_event_by_name(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_STARTED)
-	assert_false(started_event.is_empty(), "Blend start should publish EVENT_VCAM_BLEND_STARTED")
-	var payload := started_event.get("payload", {}) as Dictionary
-	assert_eq(payload.get("from_vcam_id", StringName("")), StringName("cam_a"))
-	assert_eq(payload.get("to_vcam_id", StringName("")), StringName("cam_b"))
-	assert_almost_eq(float(payload.get("duration", -1.0)), 0.5, 0.0001)
 
 	var start_action: Dictionary = _find_last_action_by_type(
 		store.get_dispatched_actions(),
@@ -631,7 +615,6 @@ func test_blend_progress_advances_and_completes_with_completed_event() -> void:
 	hint.blend_duration = 0.4
 	manager.register_vcam(_create_vcam(StringName("cam_a"), 5, true, hint))
 	manager.register_vcam(_create_vcam(StringName("cam_b"), 1, true, hint))
-	U_ECS_EVENT_BUS.clear_history()
 	store.clear_dispatched_actions()
 
 	manager.set_active_vcam(StringName("cam_b"))
@@ -643,10 +626,6 @@ func test_blend_progress_advances_and_completes_with_completed_event() -> void:
 
 	assert_false(manager.is_blending(), "Blend should complete after elapsed duration")
 	assert_almost_eq(manager.get_blend_progress(), 1.0, 0.0001)
-	var completed_event: Dictionary = _find_last_event_by_name(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_COMPLETED)
-	assert_false(completed_event.is_empty(), "Blend completion should publish EVENT_VCAM_BLEND_COMPLETED")
-	var payload := completed_event.get("payload", {}) as Dictionary
-	assert_eq(payload.get("vcam_id", StringName("")), StringName("cam_b"))
 	var complete_action: Dictionary = _find_last_action_by_type(
 		store.get_dispatched_actions(),
 		U_VCAM_ACTIONS.ACTION_COMPLETE_BLEND
@@ -662,7 +641,6 @@ func test_blend_completes_despite_float_accumulation_undershooting_duration() ->
 	hint.blend_duration = 0.2
 	manager.register_vcam(_create_vcam(StringName("cam_a"), 5, true, hint))
 	manager.register_vcam(_create_vcam(StringName("cam_b"), 1, true, hint))
-	U_ECS_EVENT_BUS.clear_history()
 	store.clear_dispatched_actions()
 
 	manager.set_active_vcam(StringName("cam_b"))
@@ -675,8 +653,11 @@ func test_blend_completes_despite_float_accumulation_undershooting_duration() ->
 
 	assert_false(manager.is_blending(), "Blend must complete even when float accumulation undershoots duration")
 	assert_almost_eq(manager.get_blend_progress(), 1.0, 0.001)
-	var completed_event: Dictionary = _find_last_event_by_name(U_ECS_EVENT_NAMES.EVENT_VCAM_BLEND_COMPLETED)
-	assert_false(completed_event.is_empty(), "Blend completion event must fire despite float precision edge case")
+	var complete_action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_COMPLETE_BLEND
+	)
+	assert_false(complete_action.is_empty(), "Blend completion action must fire despite float precision edge case")
 
 func test_blend_applies_from_two_live_results_not_frozen_outgoing_pose() -> void:
 	var camera_manager := MOCK_CAMERA_MANAGER.new()
@@ -724,7 +705,6 @@ func test_set_active_vcam_with_zero_duration_cuts_without_blend_state() -> void:
 	manager.register_vcam(_create_vcam(StringName("cam_a"), 5, true, hint))
 	manager.register_vcam(_create_vcam(StringName("cam_b"), 1, true, hint))
 	store.clear_dispatched_actions()
-	U_ECS_EVENT_BUS.clear_history()
 
 	manager.set_active_vcam(StringName("cam_b"), 0.0)
 
@@ -949,14 +929,14 @@ func test_live_blend_suppresses_occlusion_and_clears_silhouettes() -> void:
 	manager.submit_evaluated_camera(StringName("cam_orbit"), {
 		"transform": Transform3D(Basis.IDENTITY, Vector3(0.0, 5.0, -10.0)),
 	})
-	var pre_blend_payload := _find_last_silhouette_payload()
-	assert_eq((pre_blend_payload.get("occluders", []) as Array).size(), 2,
+	var pre_blend_action := _find_last_silhouette_payload(store)
+	assert_eq((pre_blend_action.get("occluders", []) as Array).size(), 2,
 		"Pre-blend orbit should publish detected occluders")
 
 	# Start blend from orbit -> secondary camera
 	manager.set_active_vcam(StringName("cam_secondary"))
 	assert_true(manager.is_blending(), "Blend should be active after set_active_vcam")
-	U_ECS_EVENT_BUS.clear_history()
+	store.clear_dispatched_actions()
 
 	# Submit during blend — occluders should be suppressed
 	manager.submit_evaluated_camera(StringName("cam_secondary"), {
@@ -968,14 +948,14 @@ func test_live_blend_suppresses_occlusion_and_clears_silhouettes() -> void:
 		"fov": 70.0,
 	})
 
-	var during_blend_payload := _find_last_silhouette_payload()
-	assert_false(during_blend_payload.is_empty(),
-		"Silhouette clear request should be published during blend")
-	assert_eq(during_blend_payload.get("enabled", true), false,
+	var during_blend_action := _find_last_silhouette_payload(store)
+	assert_false(during_blend_action.is_empty(),
+		"Silhouette clear request should be dispatched during blend")
+	assert_eq(during_blend_action.get("enabled", true), false,
 		"Silhouette request during blend should disable silhouettes")
-	var during_occluders := during_blend_payload.get("occluders", []) as Array
+	var during_occluders := during_blend_action.get("occluders", []) as Array
 	assert_eq(during_occluders.size(), 0,
-		"No occluders should be published during blend")
+		"No occluders should be dispatched during blend")
 
 func _create_manager(
 	injected_store: I_StateStore = null,
@@ -1028,28 +1008,14 @@ func _create_mesh_occluder() -> MeshInstance3D:
 	autofree(mesh)
 	return mesh
 
-func _find_last_silhouette_payload() -> Dictionary:
-	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	for i in range(history.size() - 1, -1, -1):
-		var event_variant: Variant = history[i]
-		if not (event_variant is Dictionary):
-			continue
-		var event_payload := event_variant as Dictionary
-		if event_payload.get("name", StringName("")) != U_ECS_EVENT_NAMES.EVENT_SILHOUETTE_UPDATE_REQUEST:
-			continue
-		return (event_payload.get("payload", {}) as Dictionary).duplicate(true)
-	return {}
-
-func _find_last_event_by_name(event_name: StringName) -> Dictionary:
-	var history: Array = U_ECS_EVENT_BUS.get_event_history()
-	for i in range(history.size() - 1, -1, -1):
-		var event_variant: Variant = history[i]
-		if not (event_variant is Dictionary):
-			continue
-		var event_payload := event_variant as Dictionary
-		if event_payload.get("name", StringName("")) == event_name:
-			return event_payload.duplicate(true)
-	return {}
+func _find_last_silhouette_payload(store: I_StateStore) -> Dictionary:
+	var action: Dictionary = _find_last_action_by_type(
+		store.get_dispatched_actions(),
+		U_VCAM_ACTIONS.ACTION_SILHOUETTE_UPDATE_REQUEST
+	)
+	if action.is_empty():
+		return {}
+	return action.duplicate(true)
 
 func _find_last_action_by_type(actions: Array, action_type: StringName) -> Dictionary:
 	for i in range(actions.size() - 1, -1, -1):

@@ -120,6 +120,24 @@ static func reduce_gameplay_input(state: Dictionary, action: Dictionary) -> Vari
 				"sprint_pressed": sprint_payload.get("pressed", false)
 			})
 
+		U_InputActions.ACTION_UPDATE_INPUT_BATCH:
+			var batch_payload: Dictionary = action.get("payload", {})
+			var batch_look_delta: Vector2 = batch_payload.get("look_delta", Vector2.ZERO)
+			var batch_look_source: StringName = StringName(batch_payload.get("look_source", StringName("")))
+			var batch_updates := {
+				"move_input": batch_payload.get("move_vector", Vector2.ZERO),
+				"look_input": batch_look_delta,
+				"camera_center_just_pressed": bool(batch_payload.get("camera_center_just_pressed", false)),
+				"jump_pressed": batch_payload.get("jump_pressed", false),
+				"jump_just_pressed": batch_payload.get("jump_just_pressed", false),
+				"sprint_pressed": batch_payload.get("sprint_pressed", false),
+			}
+			if batch_look_source == U_InputActions.LOOK_SOURCE_KEYBOARD_MOUSE:
+				batch_updates["look_input_keyboard_mouse"] = batch_look_delta
+			elif batch_look_source == U_InputActions.LOOK_SOURCE_GAMEPAD:
+				batch_updates["look_input_gamepad"] = batch_look_delta
+			return _with_values(current, batch_updates)
+
 		U_InputActions.ACTION_DEVICE_CHANGED:
 			var device_payload: Dictionary = action.get("payload", {})
 			return _with_values(current, {

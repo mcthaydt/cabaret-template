@@ -9,7 +9,7 @@ class_name M_ScreenshotCacheManager
 
 const U_SCREENSHOT_CAPTURE := preload("res://scripts/managers/helpers/u_screenshot_capture.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 
 var _state_store: I_StateStore = null
 var _cached_image: Image = null
@@ -69,8 +69,7 @@ func _is_in_gameplay_shell() -> bool:
 		return false
 
 	var state: Dictionary = _state_store.get_state()
-	var navigation: Dictionary = state.get("navigation", {})
-	return navigation.get("shell", "") == "gameplay"
+	return U_NAVIGATION_SELECTORS.get_shell(state) == StringName("gameplay")
 
 func _capture_image_from_viewport(viewport: Viewport) -> Image:
 	if _capture_helper == null:

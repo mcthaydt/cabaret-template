@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="RS_AIGoal" format=3 uid="uid://iv8i3wt0dv30"]
+
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_dcbec"]
+[ext_resource type="Script" uid="uid://xhe4388ulpe1" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_goal"]
+[ext_resource type="Script" uid="uid://bbw7r0gg2jdbf" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="2_condition_redux"]
+[ext_resource type="Script" uid="uid://bb7kg3r8twqau" path="res://scripts/resources/ai/tasks/rs_ai_compound_task.gd" id="3_compound_task"]
+[ext_resource type="Script" uid="uid://d3jp8qgprpk0t" path="res://scripts/resources/ai/tasks/rs_ai_task.gd" id="4_nn8gj"]
+[ext_resource type="Script" uid="uid://ut0hjawm2yq3" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="4_primitive_task"]
+[ext_resource type="Script" uid="uid://bqdnedsa4xgps" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="5_action_move_to"]
+[ext_resource type="Script" uid="uid://c6kwruacxjm85" path="res://scripts/resources/ai/actions/rs_ai_action_scan.gd" id="6_action_scan"]
+[ext_resource type="Script" uid="uid://cxpr5abl5uj1l" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="7_action_wait"]
+
+[sub_resource type="Resource" id="Condition_proximity"]
+script = ExtResource("2_condition_redux")
+state_path = "gameplay.ai_demo_flags.power_core_proximity"
+match_mode = "equals"
+match_value_string = "true"
+
+[sub_resource type="Resource" id="Action_move_to_activatable"]
+script = ExtResource("5_action_move_to")
+target_node_path = NodePath("../../Interactions/Inter_ActivatableNode")
+arrival_threshold = 1.2
+
+[sub_resource type="Resource" id="Task_move_to_activatable"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_move_to_activatable")
+task_id = &"move_to_activatable"
+
+[sub_resource type="Resource" id="Action_scan_activatable"]
+script = ExtResource("6_action_scan")
+rotation_speed = 1.25
+
+[sub_resource type="Resource" id="Task_scan_activatable"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_scan_activatable")
+task_id = &"scan_activatable"
+
+[sub_resource type="Resource" id="Action_wait_after_scan"]
+script = ExtResource("7_action_wait")
+
+[sub_resource type="Resource" id="Task_wait_after_scan"]
+script = ExtResource("4_primitive_task")
+action = SubResource("Action_wait_after_scan")
+task_id = &"wait_after_scan"
+
+[sub_resource type="Resource" id="Task_investigate_proximity_sequence"]
+script = ExtResource("3_compound_task")
+subtasks = Array[ExtResource("4_nn8gj")]([SubResource("Task_move_to_activatable"), SubResource("Task_scan_activatable"), SubResource("Task_wait_after_scan")])
+task_id = &"investigate_proximity_sequence"
+
+[resource]
+script = ExtResource("1_goal")
+goal_id = &"investigate_proximity"
+conditions = Array[ExtResource("1_dcbec")]([SubResource("Condition_proximity")])
+root_task = SubResource("Task_investigate_proximity_sequence")
+priority = 3
+cooldown = 2.5
+requires_rising_edge = true

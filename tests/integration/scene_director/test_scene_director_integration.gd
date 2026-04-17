@@ -8,9 +8,9 @@ const RS_SCENE_DIRECTIVE := preload("res://scripts/resources/scene_director/rs_s
 const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
 const EFFECT_PUBLISH_EVENT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_director_actions.gd")
 const U_SCENE_DIRECTOR_SELECTORS := preload("res://scripts/state/selectors/u_scene_director_selectors.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 
 const EVENT_BEAT_ONE := StringName("scene_director_intro_beat_1")
 const EVENT_BEAT_TWO := StringName("scene_director_intro_beat_2")
@@ -64,28 +64,28 @@ func after_each() -> void:
 	_scene_director = null
 
 func test_scene_transition_starts_directive_and_completes_beats_in_order() -> void:
-	var started_payloads: Array[Dictionary] = []
-	var completed_payloads: Array[Dictionary] = []
+	var started_directive_ids: Array[StringName] = []
+	var completed_directive_ids: Array[StringName] = []
 	var beat_event_order: Array[StringName] = []
-	var beat_advanced_indices: Array[int] = []
+	var beat_index_advances: Array[int] = []
 	var signpost_messages: Array[String] = []
 
-	var unsub_start: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_STARTED,
-		func(event: Dictionary) -> void:
-			_append_payload(started_payloads, event)
+	# Channel taxonomy: observe directive lifecycle via Redux action_dispatched
+	_state_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		var action_type: StringName = action.get("type", StringName(""))
+		if action_type == U_SCENE_DIRECTOR_ACTIONS.ACTION_START_DIRECTIVE:
+			started_directive_ids.append(action.get("payload", StringName("")))
+		elif action_type == U_SCENE_DIRECTOR_ACTIONS.ACTION_COMPLETE_DIRECTIVE:
+			# Directive ID stays in active_directive_id after completion
+			completed_directive_ids.append(
+				U_SCENE_DIRECTOR_SELECTORS.get_active_directive_id(_state_store.get_state())
+			)
+		elif action_type == U_SCENE_DIRECTOR_ACTIONS.ACTION_SET_BEAT_INDEX:
+			var index: int = int(action.get("payload", -1))
+			if index > 0:
+				beat_index_advances.append(index)
 	)
-	var unsub_complete: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_COMPLETED,
-		func(event: Dictionary) -> void:
-			_append_payload(completed_payloads, event)
-	)
-	var unsub_beat_advanced: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_BEAT_ADVANCED,
-		func(event: Dictionary) -> void:
-			var payload: Dictionary = _extract_payload(event)
-			beat_advanced_indices.append(int(payload.get("current_beat_index", -1)))
-	)
+
 	var unsub_beat_one: Callable = U_ECS_EVENT_BUS.subscribe(
 		EVENT_BEAT_ONE,
 		func(_event: Dictionary) -> void:
@@ -104,25 +104,19 @@ func test_scene_transition_starts_directive_and_completes_beats_in_order() -> vo
 	)
 
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
-	await _wait_for_directive_completion(completed_payloads, 90)
+	await _wait_for_directive_completion(completed_directive_ids, 90)
 
-	assert_eq(started_payloads.size(), 1, "Expected one directive_started event")
-	assert_eq(completed_payloads.size(), 1, "Expected one directive_completed event")
-	if started_payloads.size() > 0:
-		assert_eq(
-			started_payloads[0].get("directive_id", StringName("")),
-			StringName("gameplay_base_intro")
-		)
-	if completed_payloads.size() > 0:
-		assert_eq(
-			completed_payloads[0].get("directive_id", StringName("")),
-			StringName("gameplay_base_intro")
-		)
+	assert_eq(started_directive_ids.size(), 1, "Expected one start_directive action")
+	assert_eq(completed_directive_ids.size(), 1, "Expected one complete_directive action")
+	if started_directive_ids.size() > 0:
+		assert_eq(started_directive_ids[0], StringName("gameplay_base_intro"))
+	if completed_directive_ids.size() > 0:
+		assert_eq(completed_directive_ids[0], StringName("gameplay_base_intro"))
 
 	var expected_beat_events: Array[StringName] = [EVENT_BEAT_ONE, EVENT_BEAT_TWO]
 	assert_eq(beat_event_order, expected_beat_events)
 	var expected_advance_indices: Array[int] = [1, 2]
-	assert_eq(beat_advanced_indices, expected_advance_indices)
+	assert_eq(beat_index_advances, expected_advance_indices)
 	assert_eq(
 		signpost_messages,
 		["hud.scene_director_intro_beat_1", "hud.scene_director_intro_beat_2"],
@@ -136,12 +130,6 @@ func test_scene_transition_starts_directive_and_completes_beats_in_order() -> vo
 		StringName("gameplay_base_intro")
 	)
 
-	if unsub_start.is_valid():
-		unsub_start.call()
-	if unsub_complete.is_valid():
-		unsub_complete.call()
-	if unsub_beat_advanced.is_valid():
-		unsub_beat_advanced.call()
 	if unsub_beat_one.is_valid():
 		unsub_beat_one.call()
 	if unsub_beat_two.is_valid():
@@ -153,15 +141,18 @@ func test_branching_and_parallel_directive_executes_expected_beats() -> void:
 	var directive: Resource = _build_branch_parallel_directive()
 	_scene_director.directives = [directive]
 
-	var completed_payloads: Array[Dictionary] = []
+	var completed_directive_ids: Array[StringName] = []
 	var observed_events: Array[StringName] = []
 	var saw_parallel_state: bool = false
 
-	var unsub_completed: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_DIRECTIVE_COMPLETED,
-		func(event: Dictionary) -> void:
-			_append_payload(completed_payloads, event)
+	# Channel taxonomy: observe directive completion via Redux action_dispatched
+	_state_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type", StringName("")) == U_SCENE_DIRECTOR_ACTIONS.ACTION_COMPLETE_DIRECTIVE:
+			completed_directive_ids.append(
+				U_SCENE_DIRECTOR_SELECTORS.get_active_directive_id(_state_store.get_state())
+			)
 	)
+
 	var unsub_branch_start: Callable = U_ECS_EVENT_BUS.subscribe(
 		EVENT_BRANCH_START,
 		func(_event: Dictionary) -> void:
@@ -190,13 +181,13 @@ func test_branching_and_parallel_directive_executes_expected_beats() -> void:
 
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 	var frames: int = 0
-	while completed_payloads.is_empty() and frames < 120:
+	while completed_directive_ids.is_empty() and frames < 120:
 		await wait_physics_frames(1)
 		if U_SCENE_DIRECTOR_SELECTORS.is_parallel(_state_store.get_state()):
 			saw_parallel_state = true
 		frames += 1
 
-	assert_eq(completed_payloads.size(), 1)
+	assert_eq(completed_directive_ids.size(), 1)
 	assert_true(saw_parallel_state, "Expected to observe parallel lane state while directive was active")
 	assert_true(observed_events.has(EVENT_BRANCH_START))
 	assert_false(observed_events.has(EVENT_BRANCH_SKIPPED))
@@ -206,8 +197,6 @@ func test_branching_and_parallel_directive_executes_expected_beats() -> void:
 	assert_eq(U_SCENE_DIRECTOR_SELECTORS.get_director_state(_state_store.get_state()), "completed")
 	assert_false(U_SCENE_DIRECTOR_SELECTORS.is_parallel(_state_store.get_state()))
 
-	if unsub_completed.is_valid():
-		unsub_completed.call()
 	if unsub_branch_start.is_valid():
 		unsub_branch_start.call()
 	if unsub_branch_skipped.is_valid():
@@ -219,30 +208,26 @@ func test_branching_and_parallel_directive_executes_expected_beats() -> void:
 	if unsub_join.is_valid():
 		unsub_join.call()
 
-func _append_payload(target: Array[Dictionary], event: Dictionary) -> void:
-	var payload: Dictionary = _extract_payload(event)
-	target.append(payload.duplicate(true))
-
 func _extract_payload(event: Dictionary) -> Dictionary:
 	var payload_variant: Variant = event.get("payload", {})
 	if payload_variant is Dictionary:
 		return payload_variant as Dictionary
 	return {}
 
-func _wait_for_directive_completion(completed_payloads: Array[Dictionary], max_frames: int) -> void:
+func _wait_for_directive_completion(completed_directive_ids: Array[StringName], max_frames: int) -> void:
 	var frames: int = 0
-	while completed_payloads.is_empty() and frames < max_frames:
+	while completed_directive_ids.is_empty() and frames < max_frames:
 		await wait_physics_frames(1)
 		frames += 1
 
 func _build_branch_parallel_directive() -> Resource:
 	var branch_start := _beat(StringName("beat_start"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
-	var branch_start_effects: Array[Resource] = [_make_publish_effect(EVENT_BRANCH_START)]
+	var branch_start_effects: Array[I_Effect] = [_make_publish_effect(EVENT_BRANCH_START)]
 	branch_start.effects = branch_start_effects
 	branch_start.next_beat_id = StringName("beat_fork")
 
 	var branch_skipped := _beat(StringName("beat_skipped"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
-	var branch_skip_effects: Array[Resource] = [_make_publish_effect(EVENT_BRANCH_SKIPPED)]
+	var branch_skip_effects: Array[I_Effect] = [_make_publish_effect(EVENT_BRANCH_SKIPPED)]
 	branch_skipped.effects = branch_skip_effects
 
 	var fork := _beat(StringName("beat_fork"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
@@ -251,23 +236,23 @@ func _build_branch_parallel_directive() -> Resource:
 	fork.parallel_join_beat_id = StringName("beat_join")
 
 	var lane_a := _beat(StringName("lane_a"), RS_BEAT_DEFINITION.WaitMode.TIMED, 0.02, StringName(""))
-	var lane_a_effects: Array[Resource] = [_make_publish_effect(EVENT_LANE_A)]
+	var lane_a_effects: Array[I_Effect] = [_make_publish_effect(EVENT_LANE_A)]
 	lane_a.effects = lane_a_effects
 	var lane_b := _beat(StringName("lane_b"), RS_BEAT_DEFINITION.WaitMode.TIMED, 0.02, StringName(""))
-	var lane_b_effects: Array[Resource] = [_make_publish_effect(EVENT_LANE_B)]
+	var lane_b_effects: Array[I_Effect] = [_make_publish_effect(EVENT_LANE_B)]
 	lane_b.effects = lane_b_effects
 
 	var join := _beat(StringName("beat_join"), RS_BEAT_DEFINITION.WaitMode.INSTANT, 0.0, StringName(""))
-	var join_effects: Array[Resource] = [_make_publish_effect(EVENT_JOIN)]
+	var join_effects: Array[I_Effect] = [_make_publish_effect(EVENT_JOIN)]
 	join.effects = join_effects
 
 	var directive: Resource = RS_SCENE_DIRECTIVE.new()
 	directive.directive_id = StringName("branch_parallel_directive")
 	directive.target_scene_id = StringName("gameplay_base")
 	directive.priority = 100
-	var selection_conditions: Array[Resource] = []
+	var selection_conditions: Array[I_Condition] = []
 	directive.selection_conditions = selection_conditions
-	var beats: Array[Resource] = [branch_start, branch_skipped, fork, lane_a, lane_b, join]
+	var beats: Array[RS_BeatDefinition] = [branch_start, branch_skipped, fork, lane_a, lane_b, join]
 	directive.beats = beats
 	return directive
 
@@ -282,8 +267,8 @@ func _beat(
 	beat.wait_mode = wait_mode
 	beat.duration = duration
 	beat.wait_event = wait_event
-	var preconditions: Array[Resource] = []
-	var effects: Array[Resource] = []
+	var preconditions: Array[I_Condition] = []
+	var effects: Array[I_Effect] = []
 	beat.preconditions = preconditions
 	beat.effects = effects
 	beat.next_beat_id = StringName("")

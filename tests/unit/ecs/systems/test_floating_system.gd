@@ -12,6 +12,7 @@ class FakeRayCast extends RayCast3D:
 	var colliding: bool = false
 	var fake_collision_point: Vector3 = Vector3.ZERO
 	var fake_collision_normal: Vector3 = Vector3.UP
+	var fake_collider: Object = null
 
 	@warning_ignore("native_method_override")
 	func is_colliding() -> bool:
@@ -28,6 +29,10 @@ class FakeRayCast extends RayCast3D:
 	@warning_ignore("native_method_override")
 	func force_raycast_update() -> void:
 		pass
+
+	@warning_ignore("native_method_override")
+	func get_collider() -> Object:
+		return fake_collider
 
 func _pump() -> void:
 	await get_tree().process_frame
@@ -201,3 +206,33 @@ func test_floating_system_applies_fall_gravity_without_hits() -> void:
 
 	assert_lt(body.velocity.y, 0.0)
 	assert_almost_eq(body.velocity.y, -component.settings.fall_gravity * 0.2, 0.001)
+
+func test_floating_system_ignores_self_colliders_for_support_hits() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var body: FakeBody = context["body"] as FakeBody
+	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
+	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
+
+	var world_collider := StaticBody3D.new()
+	add_child_autofree(world_collider)
+
+	ray_a.colliding = true
+	ray_a.fake_collision_point = Vector3(0.0, -0.2, 0.0)
+	ray_a.fake_collision_normal = Vector3.UP
+	ray_a.fake_collider = body
+
+	ray_b.colliding = true
+	ray_b.fake_collision_point = Vector3(0.0, -1.6, 0.0)
+	ray_b.fake_collision_normal = Vector3.UP
+	ray_b.fake_collider = world_collider
+
+	body.velocity = Vector3.ZERO
+	manager._physics_process(0.1)
+
+	assert_lte(
+		body.velocity.y,
+		0.1,
+		"Expected near-zero vertical velocity; self-collider ray hit should be ignored"
+	)

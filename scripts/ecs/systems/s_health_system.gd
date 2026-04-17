@@ -24,6 +24,9 @@ var _synced_from_state: Dictionary = {}  # entity_id -> bool
 func _init() -> void:
 	execution_priority = 200
 
+func get_phase() -> BaseECSSystem.SystemPhase:
+	return BaseECSSystem.SystemPhase.VFX
+
 func process_tick(delta: float) -> void:
 	if not _ensure_dependencies_ready():
 		return

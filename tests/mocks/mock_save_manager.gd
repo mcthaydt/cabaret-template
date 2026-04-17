@@ -4,6 +4,7 @@ class_name MockSaveManager
 ## Mock Save Manager for autosave scheduler tests
 ## Tracks autosave requests without actually performing saves
 
+const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
 
 const SLOT_AUTOSAVE := StringName("autosave")
 
@@ -123,26 +124,20 @@ func get_all_slot_metadata() -> Array[Dictionary]:
 func save_to_slot(slot_id: StringName) -> Error:
 	_is_saving = true
 
-	# Emit save_started event
-	U_ECSEventBus.publish(StringName("save_started"), {
-		"slot_id": slot_id,
-		"is_autosave": (slot_id == SLOT_AUTOSAVE)
-	})
+	var is_autosave: bool = (slot_id == SLOT_AUTOSAVE)
+	var store := _get_store()
+	if store != null:
+		store.dispatch(U_SAVE_ACTIONS.save_started(slot_id, is_autosave))
 
 	var result: Error = _next_save_result
 	_next_save_result = OK
 	_is_saving = false
 
-	# Emit save_completed event
-	if result == OK:
-		U_ECSEventBus.publish(StringName("save_completed"), {
-			"slot_id": slot_id
-		})
-	else:
-		U_ECSEventBus.publish(StringName("save_failed"), {
-			"slot_id": slot_id,
-			"error_code": result
-		})
+	if store != null:
+		if result == OK:
+			store.dispatch(U_SAVE_ACTIONS.save_completed(slot_id, is_autosave))
+		else:
+			store.dispatch(U_SAVE_ACTIONS.save_failed(slot_id, is_autosave, result))
 
 	return result
 
@@ -151,19 +146,17 @@ func load_from_slot(slot_id: StringName) -> Error:
 	var result: Error = _next_load_result
 	_next_load_result = OK
 
+	var store := _get_store()
+
 	if result != OK:
-		U_ECSEventBus.publish(StringName("load_failed"), {
-			"slot_id": slot_id,
-			"error_code": result
-		})
+		if store != null:
+			store.dispatch(U_SAVE_ACTIONS.load_failed(slot_id, result))
 		return result
 
 	_is_loading = true
 
-	# Emit load_started event immediately
-	U_ECSEventBus.publish(StringName("load_started"), {
-		"slot_id": slot_id
-	})
+	if store != null:
+		store.dispatch(U_SAVE_ACTIONS.load_started(slot_id))
 
 	# Schedule load completion for later (simulates async load)
 	if _delayed_load_enabled and _delayed_load_duration > 0.0:
@@ -177,10 +170,12 @@ func load_from_slot(slot_id: StringName) -> Error:
 func _complete_load(slot_id: StringName) -> void:
 	_is_loading = false
 
-	# Emit load_completed event
-	U_ECSEventBus.publish(StringName("load_completed"), {
-		"slot_id": slot_id
-	})
+	var store := _get_store()
+	if store != null:
+		store.dispatch(U_SAVE_ACTIONS.load_completed(slot_id))
+
+func _get_store() -> Node:
+	return U_ServiceLocator.try_get_service(StringName("state_store")) as Node
 
 ## Mock implementation of delete_slot
 func delete_slot(slot_id: StringName) -> Error:

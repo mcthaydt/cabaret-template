@@ -11,6 +11,7 @@ const ACTION_UPDATE_SILHOUETTE_COUNT := StringName("vcam/update_silhouette_count
 const ACTION_UPDATE_TARGET_VALIDITY := StringName("vcam/update_target_validity")
 const ACTION_RECORD_RECOVERY := StringName("vcam/record_recovery")
 const ACTION_UPDATE_FOV_ZONE := StringName("vcam/update_fov_zone")
+const ACTION_SILHOUETTE_UPDATE_REQUEST := StringName("vcam/silhouette_update_request")
 
 static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_ACTIVE_RUNTIME)
@@ -21,6 +22,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_UPDATE_TARGET_VALIDITY)
 	U_ActionRegistry.register_action(ACTION_RECORD_RECOVERY)
 	U_ActionRegistry.register_action(ACTION_UPDATE_FOV_ZONE)
+	U_ActionRegistry.register_action(ACTION_SILHOUETTE_UPDATE_REQUEST)
 
 static func set_active_runtime(vcam_id: StringName, mode: String) -> Dictionary:
 	return {
@@ -91,4 +93,13 @@ static func update_fov_zone(in_zone: bool) -> Dictionary:
 			"in_zone": in_zone
 		},
 		"immediate": true
+	}
+
+
+static func silhouette_update_request(entity_id: StringName, occluders: Array, enabled: bool) -> Dictionary:
+	return {
+		"type": ACTION_SILHOUETTE_UPDATE_REQUEST,
+		"entity_id": entity_id,
+		"occluders": occluders,
+		"enabled": enabled,
 	}

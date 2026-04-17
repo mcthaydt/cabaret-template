@@ -73,13 +73,10 @@ func after_each() -> void:
 	_objectives_manager = null
 
 func test_victory_executed_transitions_scene_via_objectives_manager() -> void:
-	var objective_victory_events: Array[Dictionary] = []
-	var unsubscribe: Callable = U_ECS_EVENT_BUS.subscribe(
-		U_ECS_EVENT_NAMES.EVENT_OBJECTIVE_VICTORY_TRIGGERED,
-		func(event: Dictionary) -> void:
-			var payload_variant: Variant = event.get("payload", {})
-			if payload_variant is Dictionary:
-				objective_victory_events.append((payload_variant as Dictionary).duplicate(true))
+	var captured_actions: Array[Dictionary] = []
+	_state_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		if action.get("type", StringName("")) == U_GAMEPLAY_ACTIONS.ACTION_TRIGGER_VICTORY_ROUTING:
+			captured_actions.append(action.duplicate(true))
 	)
 
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("alleyway"))
@@ -87,20 +84,15 @@ func test_victory_executed_transitions_scene_via_objectives_manager() -> void:
 	assert_eq(_objectives_manager.get_objective_status(StringName("bar_complete")), "completed")
 	assert_eq(_objectives_manager.get_objective_status(StringName("final_complete")), "active")
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
-		"source": "victory_handler",
-	})
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("final_goal")))
 
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)
 
-	assert_eq(objective_victory_events.size(), 1, "Expected a single objective victory event")
-	if objective_victory_events.size() > 0:
-		assert_eq(objective_victory_events[0].get("target_scene"), StringName("victory"))
+	assert_eq(captured_actions.size(), 1, "Expected a single trigger_victory_routing action")
+	if captured_actions.size() > 0:
+		assert_eq(captured_actions[0].get("target_scene", StringName("")), StringName("victory"))
 	assert_eq(_scene_manager.get_current_scene(), StringName("victory"))
 	assert_eq(_objectives_manager.get_objective_status(StringName("final_complete")), "completed")
-
-	if unsubscribe.is_valid():
-		unsubscribe.call()
 
 func test_default_objective_set_requires_final_trigger_before_victory_transition() -> void:
 	assert_not_null(CFG_OBJSET_DEFAULT)
@@ -114,17 +106,12 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 	var default_set: Resource = (CFG_OBJSET_DEFAULT as Resource).duplicate(true)
 	_objectives_manager.objective_sets = [default_set]
 	_root.add_child(_objectives_manager)
-	U_ServiceLocator.register(StringName("objectives_manager"), _objectives_manager)
+	U_ServiceLocator.register_or_replace(StringName("objectives_manager"), _objectives_manager)
 
 	await get_tree().process_frame
 	await wait_physics_frames(1)
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
-		"source": "test",
-		"trigger_node": {
-			"objective_id": "goal_bar",
-		},
-	})
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("goal_bar")))
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)
 
 	assert_eq(_objectives_manager.get_objective_status(StringName("bar_complete")), "completed")
@@ -139,9 +126,7 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 		"Default objective set should route back to alleyway after bar objective completion"
 	)
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
-		"source": "test",
-	})
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("goal_bar")))
 	await wait_physics_frames(1)
 
 	assert_eq(
@@ -151,12 +136,7 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 	)
 	assert_eq(_scene_manager.get_current_scene(), StringName("alleyway"))
 
-	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, {
-		"source": "test",
-		"trigger_node": {
-			"objective_id": "final_goal",
-		},
-	})
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("final_goal")))
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)
 
 	assert_eq(_objectives_manager.get_objective_status(StringName("final_complete")), "completed")
@@ -171,9 +151,9 @@ func _build_test_objective_set() -> Resource:
 	level_condition.match_value_string = ""
 
 	var game_condition := CONDITION_EVENT_PAYLOAD.new()
-	game_condition.field_path = "source"
+	game_condition.field_path = "trigger_node.objective_id"
 	game_condition.match_mode = "equals"
-	game_condition.match_value_string = "victory_handler"
+	game_condition.match_value_string = "final_goal"
 
 	var game_effect := EFFECT_DISPATCH_ACTION.new()
 	game_effect.action_type = U_GAMEPLAY_ACTIONS.ACTION_GAME_COMPLETE
@@ -181,7 +161,7 @@ func _build_test_objective_set() -> Resource:
 	var bar_objective: Resource = OBJECTIVE_DEFINITION.new()
 	bar_objective.objective_id = StringName("bar_complete")
 	bar_objective.auto_activate = true
-	var bar_conditions: Array[Resource] = [level_condition]
+	var bar_conditions: Array[I_Condition] = [level_condition]
 	bar_objective.conditions = bar_conditions
 
 	var final_objective: Resource = OBJECTIVE_DEFINITION.new()
@@ -189,9 +169,9 @@ func _build_test_objective_set() -> Resource:
 	final_objective.objective_type = OBJECTIVE_DEFINITION.ObjectiveType.VICTORY
 	var dependencies: Array[StringName] = [StringName("bar_complete")]
 	final_objective.dependencies = dependencies
-	var final_conditions: Array[Resource] = [game_condition]
+	var final_conditions: Array[I_Condition] = [game_condition]
 	final_objective.conditions = final_conditions
-	var final_effects: Array[Resource] = [game_effect]
+	var final_effects: Array[I_Effect] = [game_effect]
 	final_objective.completion_effects = final_effects
 	final_objective.completion_event_payload = {
 		"target_scene": StringName("victory"),
@@ -199,6 +179,6 @@ func _build_test_objective_set() -> Resource:
 
 	var objective_set: Resource = OBJECTIVE_SET.new()
 	objective_set.set_id = StringName("set_integration")
-	var objectives: Array[Resource] = [bar_objective, final_objective]
+	var objectives: Array[RS_ObjectiveDefinition] = [bar_objective, final_objective]
 	objective_set.objectives = objectives
 	return objective_set

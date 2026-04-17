@@ -66,6 +66,15 @@ static func _static_init() -> void:
 static func _register_scenes() -> void:
 	# CRITICAL SCENES - Keep hardcoded for safety
 
+	# Splash Screen (boot entry point — shows logos, preloads gameplay scene)
+	_register_scene(
+		StringName("splash_screen"),
+		"res://scenes/ui/menus/ui_splash_screen.tscn",
+		SceneType.MENU,
+		"instant",
+		10  # Critical path — first scene loaded at boot
+	)
+
 	# Language Selector (initial scene — first-run language picker)
 	_register_scene(
 		StringName("language_selector"),

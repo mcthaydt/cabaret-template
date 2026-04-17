@@ -20,6 +20,7 @@ const GD_DIRECTORIES := [
 	"res://scripts/resources/ecs",
 	"res://scripts/resources/display",
 	"res://scripts/resources/localization",
+	"res://scripts/resources/ai",
 	"res://scripts/debug",
 	"res://tests/unit/interactables",
 	"res://tests/unit/input",
@@ -79,6 +80,13 @@ const SCRIPT_FILENAME_EXCEPTIONS := [
 	"root.gd" # Root bootstrap script (intentionally unprefixed)
 ]
 
+const AI_RESOURCE_ALLOWED_SUBDIRECTORIES := [
+	"brain",
+	"goals",
+	"tasks",
+	"actions",
+]
+
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core": ["u_"],
@@ -110,14 +118,17 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/resources/ecs": ["rs_"], # ECS component settings resources
 	"res://scripts/resources/display": ["rs_"], # Display preset resources
 	"res://scripts/resources/localization": ["rs_"], # Localization resources
+	"res://scripts/resources/ai": ["rs_"], # AI resources
+	"res://scripts/resources/ai/actions": ["rs_"], # AI action resources
 	"res://scripts/debug": ["debug_"], # Debug utility scripts
 	"res://scripts/state": ["u_", "m_"], # m_state_store.gd is in root
 	"res://scripts/resources/ui": ["rs_"], # UI screen definitions
 	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
+	"res://scripts/ui/settings": ["ui_", "base_"], # ui_ for overlays, base_ for shared overlay base
 	"res://scripts/ui/utils": ["u_"], # UI utilities
 	"res://scripts/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
 	"res://scripts/gameplay/helpers": ["u_"], # gameplay helper utilities
-	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers
+	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_", "s_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers, s_ for gameplay-scoped ECS systems
 	"res://scripts/scene_structure": ["marker_"], # marker_*.gd organizational scripts
 	"res://scripts/scene_management/transitions": ["trans_", "base_"], # transition effects
 	"res://scripts/resources/scene_management": ["rs_"], # scene registry resources
@@ -534,6 +545,337 @@ func test_vcam_debug_logging_not_enabled_in_authored_scenes() -> void:
 
 	assert_eq(violations.size(), 0, message)
 
+func test_ai_move_target_magic_strings_not_used_in_ai_scripts() -> void:
+	var violations: Array[String] = []
+	_collect_gd_literal_occurrences("res://scripts/resources/ai", "\"ai_move_target\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/ecs/systems", "\"ai_move_target\"", violations, "s_ai_")
+
+	var message := "AI scripts should not use bare \"ai_move_target\" string literals"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+		message += "\nUse U_AITaskStateKeys constants instead."
+	assert_eq(violations.size(), 0, message)
+
+func test_ai_action_scripts_use_task_state_key_constants() -> void:
+	var violations: Array[String] = []
+	_collect_gd_literal_occurrences("res://scripts/resources/ai/actions", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/utils/ai", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/ecs/systems/s_ai_behavior_system.gd", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/ecs/systems/s_move_target_follower_system.gd", "task_state[\"", violations)
+
+	var message := "AI scripts should not use bare string keys for task_state access"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+		message += "\nUse U_AITaskStateKeys constants instead."
+	assert_eq(violations.size(), 0, message)
+
+func test_ai_resource_scripts_are_grouped_by_subdirectory() -> void:
+	var violations: Array[String] = []
+	_collect_ai_resource_layout_violations("res://scripts/resources/ai", violations)
+
+	var message := "AI resource scripts must live under scripts/resources/ai/{brain,goals,tasks,actions}"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_ecs_system_filenames_do_not_include_demo_marker() -> void:
+	var violations: Array[String] = []
+	_collect_gd_filename_substring_violations("res://scripts/ecs/systems", "_demo_", violations)
+
+	var message := "ECS system scripts under scripts/ecs/systems must not include '_demo_' in filename"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_ai_behavior_system_has_no_local_duck_typing_helpers() -> void:
+	var behavior_system_path := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
+	var forbidden_helpers: Array[String] = [
+		"_read_object_property",
+		"_read_int_property",
+		"_read_bool_property",
+		"_read_float_property",
+		"_variant_to_string_name",
+	]
+	var violations: Array[String] = []
+	var file := FileAccess.open(behavior_system_path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % behavior_system_path)
+	if file == null:
+		return
+	var file_text: String = file.get_as_text()
+	file.close()
+	for helper_name in forbidden_helpers:
+		if file_text.find("func %s(" % helper_name) != -1:
+			violations.append("%s defines %s" % [behavior_system_path, helper_name])
+
+	var message := "S_AIBehaviorSystem should not define AI-local duck-typing helper functions"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_ai_behavior_system_stays_under_two_hundred_lines() -> void:
+	var behavior_system_path := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
+	var file := FileAccess.open(behavior_system_path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % behavior_system_path)
+	if file == null:
+		return
+	var line_count: int = 0
+	while not file.eof_reached():
+		file.get_line()
+		line_count += 1
+	file.close()
+
+	assert_lte(
+		line_count,
+		199,
+		"S_AIBehaviorSystem should stay below 200 lines for orchestration-only scope (current=%d)." % line_count
+	)
+
+func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
+	var context_builders: Array[String] = [
+		"res://scripts/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/ecs/systems/s_character_state_system.gd",
+		"res://scripts/ecs/systems/s_game_event_system.gd",
+		"res://scripts/utils/ai/u_ai_context_builder.gd",
+		"res://scripts/managers/m_objectives_manager.gd",
+		"res://scripts/managers/m_scene_director_manager.gd",
+	]
+	var forbidden_methods: Array[String] = [
+		"_refresh_active_rules",
+		"_get_applicable_rules",
+		"_apply_state_gates",
+		"_mark_fired_rules",
+	]
+	var violations: Array[String] = []
+
+	for path in context_builders:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			violations.append("%s (unable to open file)" % path)
+			continue
+		var file_text: String = file.get_as_text()
+		file.close()
+
+		for method_name in forbidden_methods:
+			var signature: String = "func %s(" % method_name
+			if file_text.find(signature) != -1:
+				violations.append("%s defines %s" % [path, method_name])
+
+	var message := "Rule systems should use shared U_RuleEvaluator pipeline helpers"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_rule_systems_and_helpers_do_not_duplicate_property_readers() -> void:
+	var affected_files: Array[String] = [
+		"res://scripts/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/ecs/systems/s_character_state_system.gd",
+		"res://scripts/ecs/systems/s_game_event_system.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_runtime_context.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_landing_impact.gd",
+		"res://scripts/utils/qb/u_rule_validator.gd",
+		"res://scripts/utils/qb/u_rule_scorer.gd",
+		"res://scripts/utils/qb/u_rule_selector.gd",
+	]
+	var forbidden_methods: Array[String] = [
+		"_read_string_property",
+		"_read_string_name_property",
+		"_read_bool_property",
+		"_read_float_property",
+		"_read_int_property",
+		"_read_array_property",
+		"_is_script_instance_of",
+		"_object_has_property",
+		"_variant_to_string_name",
+		"_get_context_value",
+		"_extract_event_names_from_rule",
+	]
+	var violations: Array[String] = []
+
+	for path in affected_files:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			violations.append("%s (unable to open file)" % path)
+			continue
+		var file_text: String = file.get_as_text()
+		file.close()
+
+		for method_name in forbidden_methods:
+			var signature: String = "func %s(" % method_name
+			if file_text.find(signature) != -1:
+				violations.append("%s defines %s" % [path, method_name])
+
+	var message := "Rule systems and helpers should use shared U_RuleUtils property readers"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
+	var context_builders: Array[String] = [
+		"res://scripts/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/ecs/systems/s_character_state_system.gd",
+		"res://scripts/ecs/systems/s_game_event_system.gd",
+		"res://scripts/utils/ai/u_ai_context_builder.gd",
+		"res://scripts/managers/m_objectives_manager.gd",
+		"res://scripts/managers/m_scene_director_manager.gd",
+	]
+	# Forbidden: context["key"] or context.get("key") with bare string keys
+	# Allowed: context[RSRuleContext.KEY_*]
+	var forbidden_patterns: Array[String] = [
+		'context["',
+		"context.get(\"",
+		"context.has(\"",
+		"context.erase(\"",
+	]
+	var allowed_patterns: Array[String] = [
+		"context[RSRuleContext",
+		"context.get(RSRuleContext",
+		"context.has(RSRuleContext",
+		"context.erase(RSRuleContext",
+	]
+	var violations: Array[String] = []
+
+	for path in context_builders:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			violations.append("%s (unable to open file)" % path)
+			continue
+		var line_number: int = 0
+		while not file.eof_reached():
+			line_number += 1
+			var line: String = file.get_line()
+			var stripped: String = line.strip_edges()
+			if stripped.begins_with("#"):
+				continue
+
+			for forbidden in forbidden_patterns:
+				if line.find(forbidden) == -1:
+					continue
+				var is_allowed := false
+				for allowed in allowed_patterns:
+					if line.find(allowed) != -1:
+						is_allowed = true
+						break
+				if not is_allowed:
+					violations.append("%s:%d uses bare string context key: %s" % [path, line_number, stripped])
+		file.close()
+
+	var message := "Context builders should use RSRuleContext.KEY_* constants for context access"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_scene_manager_transition_path_avoids_reflection_and_array_wrapper_captures() -> void:
+	var path := "res://scripts/managers/m_scene_manager.gd"
+	var file := FileAccess.open(path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % path)
+	if file == null:
+		return
+	var text: String = file.get_as_text()
+	file.close()
+
+	assert_eq(
+		text.find('_camera_manager.get("_camera_blend_tween")'),
+		-1,
+		"M_SceneManager should query I_CameraManager.is_blend_active() instead of reflecting private tween state."
+	)
+	assert_eq(
+		text.find("var current_progress: Array = ["),
+		-1,
+		"M_SceneManager transition code should not use Array-wrapper mutable capture for progress state."
+	)
+	assert_eq(
+		text.find("var new_scene_ref: Array = ["),
+		-1,
+		"M_SceneManager transition code should use typed transition state, not Array-wrapper mutable capture for scene refs."
+	)
+
+
+func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> void:
+	# Files that have been migrated to use U_DependencyResolution should not
+	# contain the old inline cache→export→ServiceLocator pattern in their
+	# _resolve_* methods. The shared utility is the single source of truth.
+	var affected_files: Array[String] = [
+		"res://scripts/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/ecs/systems/s_character_state_system.gd",
+		"res://scripts/ecs/systems/s_game_event_system.gd",
+		"res://scripts/ecs/systems/s_ai_detection_system.gd",
+		"res://scripts/ecs/systems/s_ai_behavior_system.gd",
+		"res://scripts/ecs/systems/s_wall_visibility_system.gd",
+		"res://scripts/ecs/systems/s_region_visibility_system.gd",
+		"res://scripts/gameplay/s_demo_alarm_relay_system.gd",
+		"res://scripts/managers/m_vcam_manager.gd",
+		"res://scripts/managers/m_character_lighting_manager.gd",
+		"res://scripts/managers/m_run_coordinator_manager.gd",
+		"res://scripts/gameplay/inter_victory_zone.gd",
+		"res://scripts/gameplay/inter_ai_demo_guard_barrier.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd",
+		"res://scripts/gameplay/inter_character_light_zone.gd",
+		"res://scripts/gameplay/inter_ai_demo_flag_zone.gd",
+		"res://scripts/ecs/base_event_sfx_system.gd",
+		"res://scripts/ui/menus/ui_splash_screen.gd",
+		"res://scripts/ui/hud/ui_virtual_button.gd",
+		"res://scripts/ui/base/base_panel.gd",
+		"res://scripts/gameplay/base_interactable_controller.gd",
+		"res://scripts/managers/m_vfx_manager.gd",
+		"res://scripts/managers/m_audio_manager.gd",
+		"res://scripts/managers/m_localization_manager.gd",
+		"res://scripts/managers/m_display_manager.gd",
+		"res://scripts/utils/scene_director/u_store_action_binder.gd",
+	]
+	# Forbidden: inline U_STATE_UTILS.try_get_store calls in migrated files
+	# that should delegate to U_DependencyResolution
+	var dep_res_forbidden_patterns: Array[String] = [
+		"U_STATE_UTILS.try_get_store",
+		"U_StateUtils.try_get_store",
+	]
+	var dep_res_violations: Array[String] = []
+
+	for path in affected_files:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			dep_res_violations.append("%s (unable to open file)" % path)
+			continue
+		var file_text: String = file.get_as_text()
+		file.close()
+
+		for pattern in dep_res_forbidden_patterns:
+			if file_text.find(pattern) != -1:
+				dep_res_violations.append("%s still contains %s (should use U_DependencyResolution)" % [path, pattern])
+
+	var dep_res_message := "Migrated files should use U_DependencyResolution instead of inline U_STATE_UTILS.try_get_store"
+	if dep_res_violations.size() > 0:
+		dep_res_message += ":\n" + "\n".join(dep_res_violations)
+	assert_eq(dep_res_violations.size(), 0, dep_res_message)
+
+func test_ecs_systems_do_not_define_local_get_frame_state_snapshot() -> void:
+	# Systems that have been migrated to use BaseECSSystem.get_frame_state_snapshot()
+	# should not define their own _get_frame_state_snapshot method.
+	var migrated_files: Array[String] = [
+		"res://scripts/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/ecs/systems/s_character_state_system.gd",
+		"res://scripts/ecs/systems/s_vcam_system.gd",
+		"res://scripts/ecs/systems/s_wall_visibility_system.gd",
+		"res://scripts/ecs/systems/s_ai_behavior_system.gd",
+	]
+	var forbidden_pattern: String = "func _get_frame_state_snapshot"
+	var snapshot_violations: Array[String] = []
+
+	for path in migrated_files:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			snapshot_violations.append("%s (unable to open file)" % path)
+			continue
+		var file_text: String = file.get_as_text()
+		file.close()
+
+		if file_text.find(forbidden_pattern) != -1:
+			snapshot_violations.append("%s still defines _get_frame_state_snapshot (should use inherited get_frame_state_snapshot)" % path)
+
+	var snapshot_message := "Migrated systems should not define local _get_frame_state_snapshot"
+	if snapshot_violations.size() > 0:
+		snapshot_message += ":\n" + "\n".join(snapshot_violations)
+	assert_eq(snapshot_violations.size(), 0, snapshot_message)
+
 # Helper functions for prefix validation
 
 func _check_directory_prefixes(dir_path: String, allowed_prefixes: Array, violations: Array[String]) -> void:
@@ -737,6 +1079,42 @@ func _collect_scene_text_match_violations(
 		entry = dir.get_next()
 	dir.list_dir_end()
 
+func _collect_gd_literal_occurrences(
+	dir_path: String,
+	needle: String,
+	violations: Array[String],
+	filename_prefix_filter: String = ""
+) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_gd_literal_occurrences(path, needle, violations, filename_prefix_filter)
+		elif entry.ends_with(".gd"):
+			if filename_prefix_filter != "" and not entry.begins_with(filename_prefix_filter):
+				entry = dir.get_next()
+				continue
+
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				entry = dir.get_next()
+				continue
+			var line_number: int = 0
+			while not file.eof_reached():
+				line_number += 1
+				var line: String = file.get_line()
+				if line.find(needle) != -1:
+					violations.append("%s:%d" % [path, line_number])
+			file.close()
+		entry = dir.get_next()
+	dir.list_dir_end()
+
 func _count_theme_override_lines(path: String) -> int:
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
@@ -750,6 +1128,30 @@ func _count_theme_override_lines(path: String) -> int:
 
 	file.close()
 	return count
+
+func _collect_ai_resource_layout_violations(dir_path: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_ai_resource_layout_violations(path, violations)
+		elif entry.ends_with(".gd") and entry.begins_with("rs_ai_"):
+			var relative_path := path.trim_prefix("res://scripts/resources/ai/")
+			var slash_index := relative_path.find("/")
+			if slash_index == -1:
+				violations.append("%s is in ai root; expected brain/goals/tasks/actions subdirectory" % path)
+			else:
+				var top_level_dir := relative_path.substr(0, slash_index)
+				if not AI_RESOURCE_ALLOWED_SUBDIRECTORIES.has(top_level_dir):
+					violations.append("%s is under unexpected ai subdirectory '%s'" % [path, top_level_dir])
+		entry = dir.get_next()
+	dir.list_dir_end()
 
 func _collect_scene_theme_override_counts(dir_path: String, override_counts: Dictionary) -> void:
 	var dir := DirAccess.open(dir_path)
@@ -769,3 +1171,884 @@ func _collect_scene_theme_override_counts(dir_path: String, override_counts: Dic
 				override_counts[path] = override_count
 		entry = dir.get_next()
 	dir.list_dir_end()
+
+func _collect_gd_filename_substring_violations(
+	dir_path: String,
+	needle: String,
+	violations: Array[String]
+) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_gd_filename_substring_violations(path, needle, violations)
+		elif entry.ends_with(".gd"):
+			if entry.find(needle) != -1:
+				violations.append(path)
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+
+func test_resolve_state_store_naming_consistent() -> void:
+	var gd_dirs: Array[String] = [
+		"res://scripts/ecs",
+		"res://scripts/managers",
+		"res://scripts/gameplay",
+	]
+	var violations: Array[String] = []
+	for dir_path in gd_dirs:
+		_check_for_method_definition(dir_path, "func _resolve_store()", violations)
+	assert_eq(violations.size(), 0, "Found files defining _resolve_store() instead of _resolve_state_store():\n" + "\n".join(violations))
+
+
+func _check_for_method_definition(dir_path: String, method_signature: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_check_for_method_definition(path, method_signature, violations)
+		elif entry.ends_with(".gd"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file != null:
+				while not file.eof_reached():
+					var line := file.get_line()
+					if line.find(method_signature) != -1:
+						violations.append(path)
+						break
+				file.close()
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+## C7: No direct state.get("objectives", {}) outside selectors and reducers in production code.
+func test_objectives_state_access_uses_selectors() -> void:
+	var allowed_files: Array[String] = [
+		"res://scripts/state/selectors/u_objectives_selectors.gd",
+		"res://scripts/state/reducers/u_objectives_reducer.gd",
+		"res://scripts/managers/helpers/u_save_migration_engine.gd",
+		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
+		"res://scripts/ecs/systems/s_victory_handler_system.gd",
+		"res://scripts/ui/menus/ui_victory.gd",
+	]
+	var production_dirs: Array[String] = [
+		"res://scripts/ecs",
+		"res://scripts/state",
+		"res://scripts/ui",
+		"res://scripts/managers",
+		"res://scripts/core",
+		"res://scripts/interfaces",
+		"res://scripts/utils",
+		"res://scripts/input",
+		"res://scripts/scene_management",
+		"res://scripts/events",
+		"res://scripts/scene_structure",
+		"res://scripts/resources",
+		"res://scripts/gameplay",
+		"res://scripts/debug",
+	]
+	var violations: Array[String] = []
+	var patterns: Array[String] = [
+		'state.get("objectives"',
+		'state.get(&"objectives"',
+		'state["objectives"]',
+	]
+	for dir_path in production_dirs:
+		_check_for_patterns_in_files(dir_path, patterns, allowed_files, violations)
+	assert_eq(violations.size(), 0, "Found direct objectives state access outside selectors/reducers:\n" + "\n".join(violations))
+
+## C8: No direct state.get("slice", {}) or state["slice"] in manager/helper files.
+## All state reads must go through U_*Selectors.
+func test_managers_use_selectors_for_state_access() -> void:
+	# Files exempt from this check:
+	# - m_state_store.gd: The state store itself owns the state dict
+	# - u_save_migration_engine.gd: Operates on save file data, not live Redux state
+	var allowed_files: Array[String] = [
+		"res://scripts/managers/m_state_store.gd",
+		"res://scripts/managers/helpers/u_save_migration_engine.gd",
+	]
+	var manager_dirs: Array[String] = [
+		"res://scripts/managers",
+	]
+	var violations: Array[String] = []
+	var patterns: Array[String] = [
+		"state.get(",
+		'state["',
+		'state[&"',
+		"state['",
+		"state[&'",
+	]
+	for dir_path in manager_dirs:
+		_check_for_patterns_in_files(dir_path, patterns, allowed_files, violations)
+	assert_eq(violations.size(), 0, "Found direct state slice access in manager files (should use selectors):\n" + "\n".join(violations))
+
+## C11: No direct state.get("slice") or state["slice"] in production code scopes covered
+## by C8 (managers) and C11 (ECS systems, helpers, interactables, UI targets).
+## Files deferred to post-C11 cleanup are explicitly listed below.
+func test_all_production_files_use_selectors_for_state_access() -> void:
+	var allowed_files: Array[String] = [
+		# Core exemptions: own the state dict or operate on save data
+		"res://scripts/managers/m_state_store.gd",
+		"res://scripts/managers/helpers/u_save_migration_engine.gd",
+		# False positives: files that use local dict variables named "state" (not Redux state)
+		# u_vcam_orbit_effects and u_vcam_rotation use "state" for per-vcam internal tracking dicts.
+		# Decomposed helpers carry the same per-vcam dict pattern.
+		# u_vcam_look_input uses "state" for look-input smoothing state.
+		# Renaming these local vars is a larger refactor deferred beyond C11.
+		"res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_rotation.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_look_spring.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_orbit_centering.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_look_ahead.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_ground_anchor.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_soft_zone_applier.gd",
+		"res://scripts/ecs/systems/helpers/u_vcam_look_input.gd",
+		# Generic serializer: uses state.get(slice_name, null) with a variable key (not a string literal).
+		"res://scripts/utils/u_global_settings_serialization.gd",
+		# Deferred — not in C11 scope; will be migrated post-C11:
+		"res://scripts/ecs/systems/s_jump_system.gd",
+		"res://scripts/ecs/systems/s_playtime_system.gd",
+		"res://scripts/ecs/components/c_scene_trigger_component.gd",
+		"res://scripts/gameplay/inter_endgame_goal_zone.gd",
+		"res://scripts/ui/hud/ui_hud_controller.gd",
+		"res://scripts/ui/hud/ui_mobile_controls.gd",
+		"res://scripts/ui/menus/ui_main_menu.gd",
+		"res://scripts/ui/overlays/ui_input_rebinding_overlay.gd",
+		"res://scripts/ui/overlays/ui_save_load_menu.gd",
+		"res://scripts/ui/overlays/ui_touchscreen_settings_overlay.gd",
+		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
+	]
+	var production_dirs: Array[String] = [
+		"res://scripts/ecs",
+		"res://scripts/gameplay",
+		"res://scripts/ui",
+		"res://scripts/managers",
+		"res://scripts/scene_management",
+		"res://scripts/utils",
+		"res://scripts/core",
+	]
+	var violations: Array[String] = []
+	var patterns: Array[String] = [
+		"state.get(",
+		'state["',
+		'state[&"',
+		"state['",
+		"state[&'",
+	]
+	for dir_path in production_dirs:
+		_check_for_patterns_in_files(dir_path, patterns, allowed_files, violations)
+	assert_eq(
+		violations.size(),
+		0,
+		"Found direct state slice access in production files (should use selectors):\n" + "\n".join(violations)
+	)
+
+## C12: No "cinema_grade" identifiers should remain in scripts/ after the
+## cinema_grade → color_grading rename. All display/post-process code should
+## use color_grading terminology.
+func test_no_cinema_grade_identifiers_in_scripts() -> void:
+	var violations: Array[String] = []
+	_collect_gd_literal_occurrences("res://scripts", "cinema_grade", violations)
+	_collect_gd_filename_substring_violations("res://scripts", "cinema_grade", violations)
+	assert_eq(
+		violations.size(),
+		0,
+		"Found cinema_grade identifiers in scripts/ (should be renamed to color_grading):\n" + "\n".join(violations)
+	)
+
+## C12-gap: No bare "cinema" identifiers in display/post-process/debug scripts.
+## The camera manager's "cinematics" is a different concept (cutscene camera work)
+## and is allowlisted. All other uses should be "color_grading".
+func test_no_cinema_identifiers_in_display_scripts() -> void:
+	var allowed_files: Array[String] = [
+		"res://scripts/managers/m_camera_manager.gd",  # "cinematics" = cutscene camera work
+	]
+	var display_dirs: Array[String] = [
+		"res://scripts/managers/helpers/display",
+		"res://scripts/state",
+		"res://scripts/utils/debug",
+		"res://scripts/debug",
+	]
+	var violations: Array[String] = []
+	for dir_path in display_dirs:
+		_collect_gd_literal_occurrences(dir_path, "cinema", violations)
+	# Filter out allowed files
+	var filtered: Array[String] = []
+	for v in violations:
+		var is_allowed := false
+		for allowed in allowed_files:
+			if v.find(allowed) != -1:
+				is_allowed = true
+				break
+		if not is_allowed:
+			filtered.append(v)
+	assert_eq(
+		filtered.size(),
+		0,
+		"Found cinema identifiers in display/debug scripts (should be color_grading):\n" + "\n".join(filtered)
+	)
+
+## C12-gap: No "Combined" identifiers in display/post-process scripts.
+## The grain+dither pass was renamed from "combined" — no display code should
+## reference CombinedLayer, CombinedRect, or combined visibility helpers.
+func test_no_combined_identifiers_in_display_scripts() -> void:
+	var display_dirs: Array[String] = [
+		"res://scripts/managers/helpers/display",
+		"res://scripts/utils/debug",
+	]
+	var violations: Array[String] = []
+	for dir_path in display_dirs:
+		_collect_gd_literal_occurrences(dir_path, "CombinedLayer", violations)
+		_collect_gd_literal_occurrences(dir_path, "CombinedRect", violations)
+		_collect_gd_literal_occurrences(dir_path, "combined_visible", violations)
+		_collect_gd_literal_occurrences(dir_path, "get_combined_rect", violations)
+		_collect_gd_literal_occurrences(dir_path, "set_combined_visible", violations)
+		_collect_gd_literal_occurrences(dir_path, "set_combined_parameter", violations)
+	assert_eq(
+		violations.size(),
+		0,
+		"Found Combined identifiers in display scripts (should be grain_dither):\n" + "\n".join(violations)
+	)
+
+## C12: No CRT-related identifiers (crt_, chromatic_aberration, scanline,
+## curvature) should remain in display/post-process scripts after CRT removal.
+## Allowlist: non-post-process uses of these terms (e.g. audio scanning).
+func test_no_crt_identifiers_in_display_scripts() -> void:
+	var allowed_files: Array[String] = [
+		# Audio/input scanning is unrelated to CRT display
+	]
+	var display_dirs: Array[String] = [
+		"res://scripts/managers/helpers/display",
+		"res://scripts/state",
+		"res://scripts/utils/display",
+		"res://scripts/ui/settings",
+		"res://scripts/debug",
+	]
+	var violations: Array[String] = []
+	for dir_path in display_dirs:
+		_collect_gd_literal_occurrences(dir_path, "crt_enabled", violations)
+		_collect_gd_literal_occurrences(dir_path, "crt_scanline", violations)
+		_collect_gd_literal_occurrences(dir_path, "crt_curvature", violations)
+		_collect_gd_literal_occurrences(dir_path, "crt_chromatic", violations)
+		_collect_gd_literal_occurrences(dir_path, "chromatic_aberration", violations)
+		_collect_gd_literal_occurrences(dir_path, "scanline_intensity", violations)
+	# Filter out allowed files
+	var filtered: Array[String] = []
+	for v in violations:
+		var is_allowed := false
+		for allowed in allowed_files:
+			if v.find(allowed) != -1:
+				is_allowed = true
+				break
+		if not is_allowed:
+			filtered.append(v)
+	assert_eq(
+		filtered.size(),
+		0,
+		"Found CRT identifiers in display scripts (CRT should be fully removed):\n" + "\n".join(filtered)
+	)
+
+## C12: Only U_PostProcessPipeline's delegate appliers should construct ColorRect
+## children under PostProcessOverlay. All other files must go through the pipeline.
+func test_post_process_overlay_colorrect_creation_only_via_pipeline() -> void:
+	var allowed_files: Array[String] = [
+		"res://scripts/managers/helpers/display/u_post_process_pipeline.gd",
+		"res://scripts/managers/helpers/display/u_display_color_grading_applier.gd",
+		"res://scripts/managers/helpers/display/u_display_post_process_applier.gd",
+		# Editor-only preview (removes itself at runtime; not under PostProcessOverlay)
+		"res://scripts/utils/display/u_color_grading_preview.gd",
+	]
+	var display_dirs: Array[String] = [
+		"res://scripts/managers/helpers/display",
+		"res://scripts/utils/display",
+	]
+	var violations: Array[String] = []
+	for dir_path in display_dirs:
+		_collect_gd_literal_occurrences(dir_path, "ColorRect.new()", violations)
+	# Filter out allowed delegate appliers
+	var filtered: Array[String] = []
+	for v in violations:
+		var is_allowed := false
+		for allowed in allowed_files:
+			if v.find(allowed) != -1:
+				is_allowed = true
+				break
+		if not is_allowed:
+			filtered.append(v)
+	assert_eq(
+		filtered.size(),
+		0,
+		"Found ColorRect.new() in display helpers outside pipeline delegates:\n" + "\n".join(filtered)
+	)
+
+## F3: No direct _state[ mutation outside m_state_store.gd.
+## All state mutations must flow through dispatch() so that action history,
+## version bumping, validator, and signal batching stay consistent.
+## The only exception is m_state_store.gd itself, which owns _state and has
+## invariant-annotated direct-mutation paths for bulk load/restore.
+func test_no_state_mutation_outside_store() -> void:
+	var allowed_files: Array[String] = [
+		"res://scripts/state/m_state_store.gd",
+	]
+	var production_dirs: Array[String] = [
+		"res://scripts/ecs",
+		"res://scripts/gameplay",
+		"res://scripts/ui",
+		"res://scripts/managers",
+		"res://scripts/scene_management",
+		"res://scripts/utils",
+		"res://scripts/core",
+		"res://scripts/state",
+		"res://scripts/input",
+		"res://scripts/events",
+		"res://scripts/scene_structure",
+		"res://scripts/interfaces",
+		"res://scripts/resources",
+		"res://scripts/debug",
+	]
+	var violations: Array[String] = []
+	for dir_path in production_dirs:
+		_collect_state_mutation_violations(dir_path, allowed_files, violations)
+	assert_eq(
+		violations.size(),
+		0,
+		"Found _state[ mutations outside m_state_store.gd — all mutations must go through dispatch():\n" + "\n".join(violations)
+	)
+
+## F5: Managers must not publish to U_ECSEventBus.
+## Per the channel taxonomy (docs/adr/0001-channel-taxonomy.md):
+##   ECS component/system → U_ECSEventBus (subscribers can be anywhere)
+##   Manager → Redux dispatch only
+##   Manager-UI wiring → Godot signals
+##   Everything else → method calls
+## m_ecs_manager.gd is the only allowed publisher because it IS the ECS
+## infrastructure (publishes entity_registered/unregistered lifecycle events).
+func test_managers_dont_publish_to_ecs_bus() -> void:
+	var allowed_files: Array[String] = [
+		"res://scripts/managers/m_ecs_manager.gd",
+	]
+	var manager_dir := "res://scripts/managers"
+	var violations: Array[String] = []
+	# Match both direct U_ECSEventBus references and const alias U_ECS_EVENT_BUS references,
+	# plus the EVENT_BUS alias used by m_spawn_manager
+	_collect_gd_literal_occurrences(manager_dir, "ECSEventBus.publish", violations)
+	_collect_gd_literal_occurrences(manager_dir, "EVENT_BUS.publish", violations)
+	# Filter out allowed files (m_ecs_manager is ECS infrastructure)
+	var filtered: Array[String] = []
+	for v in violations:
+		var is_allowed := false
+		for allowed in allowed_files:
+			if v.find(allowed) != -1:
+				is_allowed = true
+				break
+		if not is_allowed:
+			filtered.append(v)
+	assert_eq(
+		filtered.size(),
+		0,
+		"Managers must not publish to U_ECSEventBus (use Redux dispatch instead):\n" + "\n".join(filtered)
+	)
+
+## F5: m_scene_manager must not subscribe to victory-related ECS events.
+## Victory routing should go through Redux (ACTION_TRIGGER_VICTORY_ROUTING),
+## not through U_ECSEventBus subscriptions. Manager-to-manager communication
+## belongs on the Redux channel, not the ECS event bus.
+func test_scene_manager_no_victory_ecs_subscription() -> void:
+	var violations: Array[String] = []
+	# Search for victory event names in m_scene_manager.gd
+	# The filename_prefix_filter ensures we only check m_scene_manager.gd
+	_collect_gd_literal_occurrences(
+		"res://scripts/managers",
+		"OBJECTIVE_VICTORY_TRIGGERED",
+		violations,
+		"m_scene_manager"
+	)
+	assert_eq(
+		violations.size(),
+		0,
+		"m_scene_manager must not subscribe to victory ECS events (use Redux dispatch):\n" + "\n".join(violations)
+	)
+
+## F5: Managers may only declare allow-listed Godot signals.
+## Per the channel taxonomy, Manager-UI wiring uses Godot signals.
+## This allow-list ensures managers only declare signals for UI wiring
+## and prevents new inter-system signal declarations without review.
+func test_manager_signals_allow_list() -> void:
+	var allowed_signals: Dictionary = {
+		# m_ecs_manager — component lifecycle notifications for UI consumers
+		"res://scripts/managers/m_ecs_manager.gd": [
+			"component_added", "component_removed"
+		],
+		# m_cursor_manager — cursor state for UI
+		"res://scripts/managers/m_cursor_manager.gd": [
+			"cursor_state_changed"
+		],
+		# m_time_manager — time state for UI
+		"res://scripts/managers/m_time_manager.gd": [
+			"pause_state_changed", "timescale_changed", "world_hour_changed"
+		],
+		# m_scene_manager — transition state for UI
+		"res://scripts/managers/m_scene_manager.gd": [
+			"transition_visual_complete"
+		],
+		# m_input_profile_manager — input profile state for UI
+		"res://scripts/managers/m_input_profile_manager.gd": [
+			"profile_switched", "bindings_reset", "custom_binding_added"
+		],
+		# u_palette_manager — palette state for UI
+		"res://scripts/managers/helpers/u_palette_manager.gd": [
+			"active_palette_changed"
+		],
+		# m_input_device_manager — device state for UI
+		"res://scripts/managers/m_input_device_manager.gd": [
+			"device_changed"
+		],
+	}
+	var violations: Array[String] = []
+	_collect_manager_signal_violations("res://scripts/managers", allowed_signals, violations)
+	assert_eq(
+		violations.size(),
+		0,
+		"Managers must only declare allow-listed signals for UI wiring (channel taxonomy):\n" + "\n".join(violations)
+	)
+
+func _collect_state_mutation_violations(dir_path: String, allowed_files: Array[String], violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_state_mutation_violations(path, allowed_files, violations)
+		elif entry.ends_with(".gd"):
+			if allowed_files.has(path):
+				entry = dir.get_next()
+				continue
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file != null:
+				var line_number: int = 0
+				while not file.eof_reached():
+					line_number += 1
+					var line := file.get_line()
+					var stripped: String = line.strip_edges()
+					if stripped.begins_with("#"):
+						continue
+					# Match _state[ with word boundary (not preceded by another identifier char)
+					# and followed by assignment (= but not ==)
+					if _is_state_member_mutation(line):
+						violations.append("%s:%d %s" % [path, line_number, stripped])
+						break  # One violation per file is enough
+				file.close()
+		entry = dir.get_next()
+
+func _is_state_member_mutation(line: String) -> bool:
+	# Look for _state[ followed by assignment (= but not ==)
+	var idx: int = line.find("_state[")
+	while idx != -1:
+		# Check word boundary: char before _state must not be an identifier char
+		if idx > 0:
+			var prev_char: String = line[idx - 1]
+			if prev_char.is_valid_identifier():
+				idx = line.find("_state[", idx + 7)
+				continue
+		# Find the closing bracket
+		var bracket_end: int = line.find("]", idx)
+		if bracket_end == -1:
+			idx = line.find("_state[", idx + 7)
+			continue
+		# Check if there's an assignment after the bracket ( = but not ==)
+		var after_bracket: String = line.substr(bracket_end + 1).strip_edges()
+		if after_bracket.begins_with("=") and not after_bracket.begins_with("=="):
+			return true
+		idx = line.find("_state[", idx + 7)
+	return false
+
+func _check_for_patterns_in_files(dir_path: String, patterns: Array[String], allowed_files: Array[String], violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_check_for_patterns_in_files(path, patterns, allowed_files, violations)
+		elif entry.ends_with(".gd"):
+			if allowed_files.has(path):
+				entry = dir.get_next()
+				continue
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file != null:
+				var line_number: int = 0
+				var found := false
+				while not file.eof_reached():
+					line_number += 1
+					var line := file.get_line()
+					var stripped: String = line.strip_edges()
+					if stripped.begins_with("#"):
+						continue
+					if _line_has_disallowed_state_access(line, patterns):
+						violations.append("%s:%d %s" % [path, line_number, stripped])
+						found = true
+					if found:
+						break
+				file.close()
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _line_has_disallowed_state_access(line: String, patterns: Array[String]) -> bool:
+	var normalized_line: String = line.replace(" ", "").replace("\t", "")
+	var candidates: Array[String] = [line]
+	if normalized_line != line:
+		candidates.append(normalized_line)
+
+	for candidate in candidates:
+		for pattern in patterns:
+			var idx: int = candidate.find(pattern)
+			while idx != -1:
+				if _is_state_token_boundary(candidate, idx):
+					return true
+				idx = candidate.find(pattern, idx + pattern.length())
+	return false
+
+func _is_state_token_boundary(line: String, state_index: int) -> bool:
+	if state_index <= 0:
+		return true
+	var prev_char: String = line.substr(state_index - 1, 1)
+	return not _is_identifier_char(prev_char)
+
+func _is_identifier_char(char: String) -> bool:
+	if char.is_empty():
+		return false
+	if char == "_":
+		return true
+	var code: int = char.unicode_at(0)
+	var is_number: bool = code >= 48 and code <= 57
+	var is_upper: bool = code >= 65 and code <= 90
+	var is_lower: bool = code >= 97 and code <= 122
+	return is_number or is_upper or is_lower
+
+func _collect_manager_signal_violations(
+	dir_path: String,
+	allowed_signals: Dictionary,
+	violations: Array[String]
+) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_manager_signal_violations(path, allowed_signals, violations)
+		elif entry.ends_with(".gd"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file != null:
+				var line_number: int = 0
+				while not file.eof_reached():
+					line_number += 1
+					var line: String = file.get_line()
+					var stripped: String = line.strip_edges()
+					if not stripped.begins_with("signal "):
+						continue
+					var signal_name: String = _extract_signal_name(stripped)
+					if signal_name.is_empty():
+						continue
+					var file_allowed: Variant = allowed_signals.get(path)
+					if file_allowed == null:
+						violations.append("%s:%d signal '%s' — file has no allow-list entry" % [path, line_number, signal_name])
+					elif not (file_allowed as Array).has(signal_name):
+						violations.append("%s:%d signal '%s' — not on allow-list for this file" % [path, line_number, signal_name])
+				file.close()
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _extract_signal_name(line: String) -> String:
+	var after_signal: String = line.substr(7).strip_edges()
+	var paren_idx: int = after_signal.find("(")
+	if paren_idx != -1:
+		return after_signal.substr(0, paren_idx).strip_edges()
+	return after_signal.split(" ")[0]
+
+
+# --- F8: VCam/CameraState System Decomposition (v7.2) ---
+
+func _count_file_lines(path: String) -> int:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return -1
+	var count: int = 0
+	while not file.eof_reached():
+		file.get_line()
+		count += 1
+	file.close()
+	return count
+
+
+func _count_method_lines(path: String, method_name: String) -> int:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return -1
+	var lines: PackedStringArray = []
+	while not file.eof_reached():
+		lines.append(file.get_line())
+	file.close()
+
+	var start_line: int = -1
+	var end_line: int = -1
+	var indent_level: int = -1
+	var in_method: bool = false
+
+	for i in range(lines.size()):
+		var line: String = lines[i]
+		if line.find("func %s(" % method_name) >= 0:
+			start_line = i
+			var stripped: String = line.lstrip("\t ")
+			indent_level = line.length() - stripped.length()
+			in_method = true
+			continue
+		if in_method:
+			if line.strip_edges() == "":
+				continue
+			var stripped: String = line.lstrip("\t ")
+			var current_indent: int = line.length() - stripped.length()
+			if current_indent <= indent_level and (stripped.begins_with("func ") or stripped.begins_with("var ") or stripped.begins_with("signal ")):
+				end_line = i - 1
+				break
+
+	if end_line == -1:
+		end_line = lines.size() - 1
+
+	if start_line == -1:
+		return -1
+	return end_line - start_line + 1
+
+
+func test_s_vcam_system_stays_under_400_lines() -> void:
+	var line_count: int = _count_file_lines("res://scripts/ecs/systems/s_vcam_system.gd")
+	assert_lt(line_count, 400,
+		"S_VCamSystem should stay under 400 lines (current=%d)." % line_count)
+
+
+func test_s_camera_state_system_stays_under_400_lines() -> void:
+	var line_count: int = _count_file_lines("res://scripts/ecs/systems/s_camera_state_system.gd")
+	assert_lt(line_count, 400,
+		"S_CameraStateSystem should stay under 400 lines (current=%d)." % line_count)
+
+
+func test_s_wall_visibility_system_stays_under_1200_lines() -> void:
+	# C5 decomposed wall visibility; the remaining size is in private methods
+	# that C5 chose not to extract (target architecture). F8 targets VCam/CameraState only.
+	var line_count: int = _count_file_lines("res://scripts/ecs/systems/s_wall_visibility_system.gd")
+	assert_lt(line_count, 1200,
+		"S_WallVisibilitySystem should stay under 1200 lines (current=%d)." % line_count)
+
+
+func test_vcam_system_process_tick_under_80_lines() -> void:
+	var method_lines: int = _count_method_lines("res://scripts/ecs/systems/s_vcam_system.gd", "process_tick")
+	assert_lt(method_lines, 80,
+		"S_VCamSystem.process_tick should stay under 80 lines (current=%d)." % method_lines)
+
+
+func test_camera_state_system_process_tick_under_80_lines() -> void:
+	var method_lines: int = _count_method_lines("res://scripts/ecs/systems/s_camera_state_system.gd", "process_tick")
+	assert_lt(method_lines, 80,
+		"S_CameraStateSystem.process_tick should stay under 80 lines (current=%d)." % method_lines)
+
+
+func test_all_ecs_system_helpers_under_400_lines() -> void:
+	# u_vcam_response_smoother.gd (468 lines) is exempt — coherent 2nd-order dynamics lifecycle
+	var exempt_files: Array[String] = [
+		"res://scripts/ecs/systems/helpers/u_vcam_response_smoother.gd",  # 468 lines - coherent 2nd-order dynamics lifecycle
+		"res://scripts/ecs/systems/helpers/u_vcam_look_spring.gd",  # 405 lines - 2nd-order spring + release damping (Phase 0 decomposition)
+	]
+	var helper_dir := "res://scripts/ecs/systems/helpers"
+	var dir := DirAccess.open(helper_dir)
+	assert_not_null(dir, "Should be able to open helpers directory")
+	if dir == null:
+		return
+
+	var violations: Array[String] = []
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not file_name.ends_with(".gd"):
+			file_name = dir.get_next()
+			continue
+		var path: String = helper_dir + "/" + file_name
+		if path in exempt_files:
+			file_name = dir.get_next()
+			continue
+		var line_count: int = _count_file_lines(path)
+		if line_count >= 400:
+			violations.append("%s — %d lines" % [path, line_count])
+		file_name = dir.get_next()
+	dir.list_dir_end()
+
+	var message := "ECS system helpers should stay under 400 lines (exempt: u_vcam_response_smoother.gd)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+
+func test_vcam_system_has_no_evaluate_and_submit() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("_evaluate_and_submit") >= 0,
+		"S_VCamSystem should not have dead _evaluate_and_submit method")
+
+func test_vcam_system_has_no_step_orbit_release_axis() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _step_orbit_release_axis(") >= 0,
+		"S_VCamSystem should not have dead _step_orbit_release_axis method")
+
+func test_vcam_system_has_no_resolve_orbit_center_target_yaw() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _resolve_orbit_center_target_yaw(") >= 0,
+		"S_VCamSystem should not have dead _resolve_orbit_center_target_yaw method")
+
+func test_vcam_system_has_no_apply_vcam_effect_pipeline() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _apply_vcam_effect_pipeline(") >= 0,
+		"S_VCamSystem should not have dead _apply_vcam_effect_pipeline method")
+
+func test_vcam_system_has_no_resolve_state_store() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _resolve_state_store(") >= 0,
+		"S_VCamSystem should not have dead _resolve_state_store method")
+
+func test_vcam_system_has_no_update_runtime_rotation() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _update_runtime_rotation(") >= 0,
+		"S_VCamSystem should not have dead _update_runtime_rotation method")
+
+func test_vcam_system_has_no_resolve_runtime_rotation_for_evaluation() -> void:
+	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	assert_not_null(file, "Should open s_vcam_system.gd")
+	if file == null:
+		return
+	var source := file.get_as_text()
+	file.close()
+	assert_false(source.find("func _resolve_runtime_rotation_for_evaluation(") >= 0,
+		"S_VCamSystem should not have dead _resolve_runtime_rotation_for_evaluation method")
+
+func test_all_ecs_systems_declare_explicit_phase() -> void:
+	var violations: Array[String] = []
+	var dir := DirAccess.open("res://scripts/ecs/systems/")
+	if dir == null:
+		push_error("Cannot open scripts/ecs/systems/ directory")
+		assert_false(true, "Directory access failed")
+		return
+	dir.include_navigational = false
+	dir.include_hidden = false
+	var filename := dir.get_next()
+	while filename != "":
+		if not filename.ends_with(".gd") or not filename.begins_with("s_"):
+			filename = dir.get_next()
+			continue
+		var file_path := "res://scripts/ecs/systems/" + filename
+		var file := FileAccess.open(file_path, FileAccess.READ)
+		if file == null:
+			violations.append("%s: cannot open file" % filename)
+			filename = dir.get_next()
+			continue
+		var source := file.get_as_text()
+		file.close()
+		if source.find("func get_phase()") < 0:
+			violations.append("%s: missing get_phase() override" % filename)
+		filename = dir.get_next()
+	assert_eq(violations.size(), 0, "Every S_* system must declare get_phase(): %s" % [violations])
+
+func test_base_event_bus_publish_does_not_duplicate_subscriber_list() -> void:
+	var file_path := "res://scripts/events/base_event_bus.gd"
+	var file := FileAccess.open(file_path, FileAccess.READ)
+	if file == null:
+		push_error("Cannot open %s" % file_path)
+		assert_false(true, "File access failed")
+		return
+	var source := file.get_as_text()
+	file.close()
+	# Extract only the publish function body (between "func publish" and next "func ")
+	var publish_start: int = source.find("func publish")
+	assert_ne(publish_start, -1, "Could not find func publish in base_event_bus.gd")
+	var next_func: int = source.find("\nfunc ", publish_start + 1)
+	if next_func < 0:
+		next_func = source.length()
+	var publish_body: String = source.substr(publish_start, next_func - publish_start)
+	assert_false(publish_body.find(".duplicate()") >= 0,
+		"BaseEventBus.publish() must not duplicate subscriber list — use _publishing guard + live iteration instead")
+
+func test_simple_settings_overlays_under_15_lines() -> void:
+	var simple_overlays := [
+		"res://scripts/ui/settings/ui_audio_settings_overlay.gd",
+		"res://scripts/ui/settings/ui_display_settings_overlay.gd",
+		"res://scripts/ui/settings/ui_localization_settings_overlay.gd",
+	]
+	var violations: PackedStringArray = []
+	for overlay_path in simple_overlays:
+		var overlay_file := FileAccess.open(overlay_path, FileAccess.READ)
+		if overlay_file == null:
+			violations.append("Cannot open %s" % overlay_path)
+			continue
+		var line_count := 0
+		while not overlay_file.eof_reached():
+			overlay_file.get_line()
+			line_count += 1
+		overlay_file.close()
+		if line_count > 15:
+			violations.append("%s is %d lines (max 15)" % [overlay_path, line_count])
+	# VFX overlay is explicitly excluded — it has Apply/Cancel and inline controls
+	var vfx_path := "res://scripts/ui/settings/ui_vfx_settings_overlay.gd"
+	var vfx_file := FileAccess.open(vfx_path, FileAccess.READ)
+	if vfx_file != null:
+		var vfx_lines := 0
+		while not vfx_file.eof_reached():
+			vfx_file.get_line()
+			vfx_lines += 1
+		vfx_file.close()
+		assert_true(vfx_lines > 15, "VFX overlay should NOT be under 15 lines (explicitly excluded from dedup)")
+	assert_eq(violations.size(), 0, "Simple settings overlays must be under 15 lines: %s" % [violations])

@@ -268,8 +268,8 @@ func test_world_hint_uses_camera_facing_render_defaults() -> void:
 
 	var icon := controller.get_node_or_null("SO_InteractionHintIcon") as Sprite3D
 	assert_not_null(icon, "World hint icon should be created when configured.")
-	assert_eq(icon.billboard, BaseMaterial3D.BILLBOARD_ENABLED,
-		"World hint icon should billboard toward the active camera.")
+	assert_eq(icon.billboard, BaseMaterial3D.BILLBOARD_FIXED_Y,
+		"World hint icon should rotate horizontally to face the player.")
 	assert_true(icon.double_sided, "World hint icon should render from both sides.")
 	assert_false(icon.shaded, "World hint icon should remain readable regardless of scene lighting.")
 

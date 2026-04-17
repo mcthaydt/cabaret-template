@@ -10,14 +10,30 @@ enum CompositeMode {
 	ANY = 1,
 }
 
+var _children: Array[I_Condition] = []
+
 @export var mode: CompositeMode = CompositeMode.ALL
-@export var children: Array[Resource] = []
+@export var children: Array[I_Condition] = []:
+	get:
+		return _children
+	set(value):
+		_children = _coerce_children(value)
+
+
+func _coerce_children(value: Variant) -> Array[I_Condition]:
+	var coerced: Array[I_Condition] = []
+	if not (value is Array):
+		return coerced
+	for child_variant in value as Array:
+		if child_variant is I_Condition:
+			coerced.append(child_variant as I_Condition)
+	return coerced
 
 func _evaluate_raw(context: Dictionary) -> float:
 	var current_depth: int = _read_depth(context)
 	if current_depth >= MAX_NESTING_DEPTH:
 		return 0.0
-	if children.is_empty():
+	if _children.is_empty():
 		return 0.0
 
 	var child_context: Dictionary = context.duplicate(false)
@@ -33,11 +49,8 @@ func _evaluate_raw(context: Dictionary) -> float:
 
 func _evaluate_all(context: Dictionary) -> float:
 	var score: float = 1.0
-	for child_resource in children:
-		var child: Variant = child_resource
+	for child in _children:
 		if child == null:
-			return 0.0
-		if not child is I_Condition:
 			return 0.0
 		score *= _to_score(child.evaluate(context))
 		if score <= 0.0:
@@ -46,11 +59,8 @@ func _evaluate_all(context: Dictionary) -> float:
 
 func _evaluate_any(context: Dictionary) -> float:
 	var best_score: float = 0.0
-	for child_resource in children:
-		var child: Variant = child_resource
+	for child in _children:
 		if child == null:
-			continue
-		if not child is I_Condition:
 			continue
 		var child_score: float = _to_score(child.evaluate(context))
 		if child_score > best_score:

@@ -36,7 +36,7 @@ func _ready() -> void:
 	if area != null:
 		_on_controller_area_ready(area)
 	await get_tree().process_frame
-	_resolve_store()
+	_resolve_state_store()
 	_connect_store()
 	_refresh_visibility_gate()
 
@@ -132,10 +132,8 @@ func _resolve_config() -> RS_VictoryInteractionConfig:
 		return _config as RS_VictoryInteractionConfig
 	return null
 
-func _resolve_store() -> void:
-	if _store != null and is_instance_valid(_store):
-		return
-	_store = U_StateUtils.try_get_store(self)
+func _resolve_state_store() -> void:
+	_store = U_DependencyResolution.resolve_state_store(_store, null, self) as I_StateStore
 
 func _connect_store() -> void:
 	if _store == null:
@@ -158,7 +156,7 @@ func _is_slice_relevant_for_visibility_gate(slice_name: StringName) -> bool:
 	return slice_name == OBJECTIVES_SLICE_NAME
 
 func _refresh_visibility_gate() -> void:
-	_resolve_store()
+	_resolve_state_store()
 	var state := _build_visibility_state()
 	var unlocked: bool = _compute_visibility_gate_unlocked(state)
 	_apply_visibility_gate_state(unlocked)

@@ -1,8 +1,10 @@
 [gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://bgwt1yvs2pofs"]
 
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_kqi2w"]
 [ext_resource type="Script" uid="uid://cgk1j4fpq4c8" path="res://scripts/resources/qb/effects/rs_effect_publish_event.gd" id="1_n3coq"]
 [ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="2_31p0j"]
 [ext_resource type="Script" uid="uid://bkrf6emw8eq0d" path="res://scripts/resources/qb/conditions/rs_condition_event_name.gd" id="3_8nvo7"]
+[ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/interfaces/i_effect.gd" id="3_xe0nc"]
 
 [sub_resource type="Resource" id="Resource_5lxpe"]
 script = ExtResource("3_8nvo7")
@@ -16,5 +18,5 @@ event_name = &"checkpoint_activation_requested"
 script = ExtResource("2_31p0j")
 rule_id = &"checkpoint_forward"
 trigger_mode = "event"
-conditions = Array[Resource]([SubResource("Resource_5lxpe")])
-effects = Array[Resource]([SubResource("Resource_k2dna")])
+conditions = Array[ExtResource("1_kqi2w")]([SubResource("Resource_5lxpe")])
+effects = Array[ExtResource("3_xe0nc")]([SubResource("Resource_k2dna")])

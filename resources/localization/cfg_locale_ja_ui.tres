@@ -245,7 +245,7 @@ translations = {
 "settings.display.section.post_processing": "ポストプロセス",
 "settings.display.section.ui": "UI",
 "settings.display.title": "ディスプレイ設定",
-"settings.display.tooltip.post_processing_preset": "ポストプロセス効果（フィルムグレイン、CRT、ディザ）の強度を調整します。",
+"settings.display.tooltip.post_processing_preset": "ポストプロセス効果（フィルムグレイン、ディザ）の強度を調整します。",
 "settings.display.tooltip.ui_scale": "UI のサイズを調整します。",
 "settings.display.tooltip.window_mode": "ボーダーレスは表示モードを変更せず画面全体に表示します。",
 "settings.display.tooltip.window_size": "ウィンドウモードでのみ利用できます。",

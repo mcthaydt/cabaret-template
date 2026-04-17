@@ -2,6 +2,7 @@ extends GutTest
 
 # Tests for U_DisplayReducer (Phase 0 - Task 0C.1)
 
+const DEFAULT_DISPLAY_CONFIG := preload("res://resources/base_settings/display/cfg_display_config_default.tres")
 
 # Test 1: Default state has all fields
 func test_default_state_has_all_fields() -> void:
@@ -13,9 +14,6 @@ func test_default_state_has_all_fields() -> void:
 	assert_true(default_state.has("quality_preset"))
 	assert_true(default_state.has("film_grain_enabled"))
 	assert_true(default_state.has("film_grain_intensity"))
-	assert_true(default_state.has("crt_enabled"))
-	assert_true(default_state.has("crt_scanline_intensity"))
-	assert_true(default_state.has("crt_curvature"))
 	assert_true(default_state.has("dither_enabled"))
 	assert_true(default_state.has("dither_intensity"))
 	assert_true(default_state.has("dither_pattern"))
@@ -37,17 +35,6 @@ func test_default_state_has_expected_defaults() -> void:
 	assert_almost_eq(
 		float(default_state.get("film_grain_intensity", 0.0)),
 		float(medium_values.get("film_grain_intensity", 0.0)),
-		0.0001
-	)
-	assert_eq(default_state.get("crt_enabled"), false)
-	assert_almost_eq(
-		float(default_state.get("crt_scanline_intensity", 0.0)),
-		float(medium_values.get("crt_scanline_intensity", 0.0)),
-		0.0001
-	)
-	assert_almost_eq(
-		float(default_state.get("crt_curvature", 0.0)),
-		float(medium_values.get("crt_curvature", 0.0)),
 		0.0001
 	)
 	assert_eq(default_state.get("dither_enabled"), false)
@@ -101,22 +88,6 @@ func test_set_film_grain_enabled_updates_field() -> void:
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
 	assert_eq(reduced.get("film_grain_enabled"), true)
-
-# Test 8: set_crt_enabled updates field
-func test_set_crt_enabled_updates_field() -> void:
-	var state := _make_display_state()
-	var action := U_DisplayActions.set_crt_enabled(true)
-	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
-
-	assert_eq(reduced.get("crt_enabled"), true)
-
-# Test 9: set_crt_curvature updates field
-func test_set_crt_curvature_updates_field() -> void:
-	var state := _make_display_state()
-	var action := U_DisplayActions.set_crt_curvature(5.0)
-	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
-
-	assert_almost_eq(float(reduced.get("crt_curvature", 0.0)), 5.0, 0.0001)
 
 # Test 10: set_dither_enabled updates field
 func test_set_dither_enabled_updates_field() -> void:
@@ -174,21 +145,22 @@ func test_set_dither_intensity_clamps() -> void:
 
 	assert_almost_eq(float(reduced.get("dither_intensity", 0.0)), 0.0, 0.0001)
 
-# Test 17: set_crt_scanline_intensity clamps
-func test_set_crt_scanline_intensity_clamps() -> void:
-	var state := _make_display_state()
-	var action := U_DisplayActions.set_crt_scanline_intensity(10.0)
-	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
-
-	assert_almost_eq(float(reduced.get("crt_scanline_intensity", 0.0)), 1.0, 0.0001)
-
 # Test 18: set_ui_scale clamps
 func test_set_ui_scale_clamps() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_ui_scale(3.0)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_almost_eq(float(reduced.get("ui_scale", 0.0)), 1.3, 0.0001)
+	var expected_max: float = float(DEFAULT_DISPLAY_CONFIG.get("max_ui_scale"))
+	assert_almost_eq(float(reduced.get("ui_scale", 0.0)), expected_max, 0.0001)
+
+func test_set_ui_scale_clamps_to_config_min() -> void:
+	var state := _make_display_state()
+	var action := U_DisplayActions.set_ui_scale(0.01)
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	var expected_min: float = float(DEFAULT_DISPLAY_CONFIG.get("min_ui_scale"))
+	assert_almost_eq(float(reduced.get("ui_scale", 0.0)), expected_min, 0.0001)
 
 # Test 19: invalid window_size_preset ignored
 func test_invalid_window_size_preset_ignored() -> void:
@@ -258,9 +230,6 @@ func test_post_processing_preset_applies_intensity_values() -> void:
 	# THEN: State should update preset and apply heavy intensity values
 	assert_eq(reduced.get("post_processing_preset"), "heavy", "Should set preset to heavy")
 	assert_eq(reduced.get("film_grain_intensity"), heavy_values.get("film_grain_intensity"), "Should apply heavy film grain intensity")
-	assert_eq(reduced.get("crt_scanline_intensity"), heavy_values.get("crt_scanline_intensity"), "Should apply heavy scanline intensity")
-	assert_eq(reduced.get("crt_curvature"), heavy_values.get("crt_curvature"), "Should apply heavy curvature")
-	assert_eq(reduced.get("crt_chromatic_aberration"), heavy_values.get("crt_chromatic_aberration"), "Should apply heavy aberration")
 	assert_eq(reduced.get("dither_intensity"), heavy_values.get("dither_intensity"), "Should apply heavy dither intensity")
 
 # Test 27: post-processing preset light values
@@ -273,9 +242,6 @@ func test_post_processing_preset_light_applies_correct_values() -> void:
 	# THEN: State should update preset and apply light intensity values
 	assert_eq(reduced.get("post_processing_preset"), "light", "Should set preset to light")
 	assert_eq(reduced.get("film_grain_intensity"), light_values.get("film_grain_intensity"), "Should apply light film grain intensity")
-	assert_eq(reduced.get("crt_scanline_intensity"), light_values.get("crt_scanline_intensity"), "Should apply light scanline intensity")
-	assert_eq(reduced.get("crt_curvature"), light_values.get("crt_curvature"), "Should apply light curvature")
-	assert_eq(reduced.get("crt_chromatic_aberration"), light_values.get("crt_chromatic_aberration"), "Should apply light aberration")
 	assert_eq(reduced.get("dither_intensity"), light_values.get("dither_intensity"), "Should apply light dither intensity")
 
 # Test 28: post-processing preset medium values
@@ -288,111 +254,108 @@ func test_post_processing_preset_medium_applies_current_defaults() -> void:
 	# THEN: State should update preset and apply medium (current default) intensity values
 	assert_eq(reduced.get("post_processing_preset"), "medium", "Should set preset to medium")
 	assert_eq(reduced.get("film_grain_intensity"), medium_values.get("film_grain_intensity"), "Should apply medium film grain intensity")
-	assert_eq(reduced.get("crt_scanline_intensity"), medium_values.get("crt_scanline_intensity"), "Should apply medium scanline intensity")
-	assert_eq(reduced.get("crt_curvature"), medium_values.get("crt_curvature"), "Should apply medium curvature")
-	assert_eq(reduced.get("crt_chromatic_aberration"), medium_values.get("crt_chromatic_aberration"), "Should apply medium aberration")
 	assert_eq(reduced.get("dither_intensity"), medium_values.get("dither_intensity"), "Should apply medium dither intensity")
 
-# --- Cinema Grade: ACTION_SET_PARAMETER ---
+# --- Color Grading: ACTION_SET_PARAMETER ---
 
 # Test 29: set_parameter filter_preset maps string to numeric mode and stores preset name
 func test_set_parameter_filter_preset_dramatic_maps_to_mode_1() -> void:
 	var state := _make_display_state()
-	var action := U_CinemaGradeActions.set_parameter("filter_preset", "dramatic")
+	var action := U_ColorGradingActions.set_parameter("filter_preset", "dramatic")
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_eq(reduced.get("cinema_grade_filter_mode"), 1, "dramatic maps to mode 1")
-	assert_eq(reduced.get("cinema_grade_filter_preset"), "dramatic", "preset name stored")
+	assert_eq(reduced.get("color_grading_filter_mode"), 1, "dramatic maps to mode 1")
+	assert_eq(reduced.get("color_grading_filter_preset"), "dramatic", "preset name stored")
 
 # Test 30: set_parameter filter_preset vivid_cold maps to mode 6
 func test_set_parameter_filter_preset_vivid_cold_maps_to_mode_6() -> void:
 	var state := _make_display_state()
-	var action := U_CinemaGradeActions.set_parameter("filter_preset", "vivid_cold")
+	var action := U_ColorGradingActions.set_parameter("filter_preset", "vivid_cold")
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_eq(reduced.get("cinema_grade_filter_mode"), 6, "vivid_cold maps to mode 6")
-	assert_eq(reduced.get("cinema_grade_filter_preset"), "vivid_cold")
+	assert_eq(reduced.get("color_grading_filter_mode"), 6, "vivid_cold maps to mode 6")
+	assert_eq(reduced.get("color_grading_filter_preset"), "vivid_cold")
 
 # Test 31: set_parameter filter_preset none maps to mode 0
 func test_set_parameter_filter_preset_none_maps_to_mode_0() -> void:
 	var state := _make_display_state()
-	var action := U_CinemaGradeActions.set_parameter("filter_preset", "none")
+	var action := U_ColorGradingActions.set_parameter("filter_preset", "none")
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_eq(reduced.get("cinema_grade_filter_mode"), 0, "none maps to mode 0")
-	assert_eq(reduced.get("cinema_grade_filter_preset"), "none")
+	assert_eq(reduced.get("color_grading_filter_mode"), 0, "none maps to mode 0")
+	assert_eq(reduced.get("color_grading_filter_preset"), "none")
 
 # Test 32: set_parameter unknown filter_preset falls back to mode 0
 func test_set_parameter_unknown_filter_preset_falls_back_to_mode_0() -> void:
 	var state := _make_display_state()
-	var action := U_CinemaGradeActions.set_parameter("filter_preset", "not_a_preset")
+	var action := U_ColorGradingActions.set_parameter("filter_preset", "not_a_preset")
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_eq(reduced.get("cinema_grade_filter_mode"), 0, "unknown preset falls back to mode 0")
-	assert_eq(reduced.get("cinema_grade_filter_preset"), "not_a_preset", "preset name still stored")
+	assert_eq(reduced.get("color_grading_filter_mode"), 0, "unknown preset falls back to mode 0")
+	assert_eq(reduced.get("color_grading_filter_preset"), "not_a_preset", "preset name still stored")
 
-# Test 33: set_parameter filter_intensity stores value directly as cinema_grade_filter_intensity
+# Test 33: set_parameter filter_intensity stores value directly as color_grading_filter_intensity
 func test_set_parameter_filter_intensity_stores_value() -> void:
 	var state := _make_display_state()
-	var action := U_CinemaGradeActions.set_parameter("filter_intensity", 0.75)
+	var action := U_ColorGradingActions.set_parameter("filter_intensity", 0.75)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_almost_eq(float(reduced.get("cinema_grade_filter_intensity", 0.0)), 0.75, 0.0001)
+	assert_almost_eq(float(reduced.get("color_grading_filter_intensity", 0.0)), 0.75, 0.0001)
 
-# Test 34: set_parameter generic param is stored under cinema_grade_ prefixed key
-func test_set_parameter_generic_param_stores_as_cinema_grade_key() -> void:
+# Test 34: set_parameter generic param is stored under color_grading_ prefixed key
+func test_set_parameter_generic_param_stores_as_color_grading_key() -> void:
 	var state := _make_display_state()
-	var action := U_CinemaGradeActions.set_parameter("exposure", 0.5)
+	var action := U_ColorGradingActions.set_parameter("exposure", 0.5)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_almost_eq(float(reduced.get("cinema_grade_exposure", 0.0)), 0.5, 0.0001)
+	assert_almost_eq(float(reduced.get("color_grading_exposure", 0.0)), 0.5, 0.0001)
 
 # Test 35: set_parameter empty param_name returns null
 func test_set_parameter_empty_param_name_returns_null() -> void:
 	var state := _make_display_state()
-	var action := U_CinemaGradeActions.set_parameter("", 1.0)
+	var action := U_ColorGradingActions.set_parameter("", 1.0)
 	var reduced: Variant = U_DisplayReducer.reduce(state, action)
 
 	assert_null(reduced, "Empty param_name should return null")
 
-# --- Cinema Grade: ACTION_RESET_TO_SCENE_DEFAULTS ---
+# --- Color Grading: ACTION_RESET_TO_SCENE_DEFAULTS ---
 
-# Test 36: reset_to_scene_defaults applies cinema_grade_ prefixed keys from payload
-func test_reset_to_scene_defaults_applies_cinema_grade_keys() -> void:
+# Test 36: reset_to_scene_defaults applies color_grading_ prefixed keys from payload
+func test_reset_to_scene_defaults_applies_color_grading_keys() -> void:
 	var state := _make_display_state()
 	var grade_dict := {
-		"cinema_grade_exposure": -0.2,
-		"cinema_grade_contrast": 1.1,
-		"cinema_grade_saturation": 0.9,
+		"color_grading_exposure": -0.2,
+		"color_grading_contrast": 1.1,
+		"color_grading_saturation": 0.9,
 	}
-	var action := U_CinemaGradeActions.reset_to_scene_defaults(grade_dict)
+	var action := U_ColorGradingActions.reset_to_scene_defaults(grade_dict)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_almost_eq(float(reduced.get("cinema_grade_exposure", 0.0)), -0.2, 0.0001)
-	assert_almost_eq(float(reduced.get("cinema_grade_contrast", 0.0)), 1.1, 0.0001)
-	assert_almost_eq(float(reduced.get("cinema_grade_saturation", 0.0)), 0.9, 0.0001)
+	assert_almost_eq(float(reduced.get("color_grading_exposure", 0.0)), -0.2, 0.0001)
+	assert_almost_eq(float(reduced.get("color_grading_contrast", 0.0)), 1.1, 0.0001)
+	assert_almost_eq(float(reduced.get("color_grading_saturation", 0.0)), 0.9, 0.0001)
 
-# Test 37: reset_to_scene_defaults ignores keys without cinema_grade_ prefix
-func test_reset_to_scene_defaults_ignores_non_cinema_grade_keys() -> void:
+# Test 37: reset_to_scene_defaults ignores keys without color_grading_ prefix
+func test_reset_to_scene_defaults_ignores_non_color_grading_keys() -> void:
 	var state := _make_display_state()
 	var grade_dict := {
-		"cinema_grade_exposure": 0.3,
+		"color_grading_exposure": 0.3,
 		"window_size_preset": "640x480",
 	}
-	var action := U_CinemaGradeActions.reset_to_scene_defaults(grade_dict)
+	var action := U_ColorGradingActions.reset_to_scene_defaults(grade_dict)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_almost_eq(float(reduced.get("cinema_grade_exposure", 0.0)), 0.3, 0.0001)
+	assert_almost_eq(float(reduced.get("color_grading_exposure", 0.0)), 0.3, 0.0001)
 	assert_eq(
 		reduced.get("window_size_preset"),
 		state.get("window_size_preset"),
-		"Non-cinema_grade key should be ignored"
+		"Non-color_grading key should be ignored"
 	)
 
 # Test 38: reset_to_scene_defaults with empty payload returns null
 func test_reset_to_scene_defaults_empty_payload_returns_null() -> void:
 	var state := _make_display_state()
-	var action := U_CinemaGradeActions.reset_to_scene_defaults({})
+	var action := U_ColorGradingActions.reset_to_scene_defaults({})
 	var reduced: Variant = U_DisplayReducer.reduce(state, action)
 
 	assert_null(reduced, "Empty grade dict should return null")

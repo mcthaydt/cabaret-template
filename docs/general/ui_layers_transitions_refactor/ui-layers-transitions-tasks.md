@@ -45,7 +45,7 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
 
 | Layer | Source | Node/Assignment |
 |------|--------|-----------------|
-| 1 | `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd:104` | `_cinema_grade_layer.layer = 1` |
+| 1 | `scripts/managers/helpers/display/u_display_color_grading_applier.gd:104` | `_color_grading_layer.layer = 1` |
 | 2 | `scenes/ui/overlays/ui_post_process_overlay.tscn:39` | `FilmGrainLayer.layer = 2` |
 | 3 | `scenes/ui/overlays/ui_post_process_overlay.tscn:53` | `DitherLayer.layer = 3` |
 | 4 | `scenes/ui/overlays/ui_post_process_overlay.tscn:67` | `CRTLayer.layer = 4` |
@@ -56,10 +56,10 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
 | 50 | `scenes/root.tscn:159` | `TransitionOverlay.layer = 50` |
 | 100 | `scenes/root.tscn:173` | `LoadingOverlay.layer = 100` |
 | 100 | `scenes/ui/hud/ui_hud_overlay.tscn:43` | `HUD.layer = 100` |
-| 100 | `scripts/utils/display/u_cinema_grade_preview.gd:37` | `_preview_layer.layer = 100` |
+| 100 | `scripts/utils/display/u_color_grading_preview.gd:37` | `_preview_layer.layer = 100` |
 | 101 | `scenes/ui/hud/ui_mobile_controls.tscn:9` | `MobileControls.layer = 101` |
 | 110 | `scenes/ui/overlays/ui_damage_flash_overlay.tscn:4` | `DamageFlashOverlay.layer = 110` |
-| 128 | `scenes/debug/debug_cinema_grade_overlay.tscn:6` | `DebugCinemaGradeOverlay.layer = 128` |
+| 128 | `scenes/debug/debug_color_grading_overlay.tscn:6` | `DebugCinemaGradeOverlay.layer = 128` |
 
 ---
 
@@ -113,9 +113,9 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
 - Replaced script-side hardcoded layer numbers with `U_CanvasLayers` constants in:
   - `scripts/ui/hud/ui_hud_controller.gd`
   - `scripts/managers/helpers/display/u_display_post_process_applier.gd`
-  - `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd`
-  - `scripts/utils/display/u_cinema_grade_preview.gd`
-  - `scripts/debug/debug_cinema_grade_overlay.gd`
+  - `scripts/managers/helpers/display/u_display_color_grading_applier.gd`
+  - `scripts/utils/display/u_color_grading_preview.gd`
+  - `scripts/debug/debug_color_grading_overlay.gd`
 - Confirmed `scenes/root.tscn` root viewport literals match constants (`HUD=6`, `UIOverlay=10`, `Transition=50`, `Loading=100`).
 - Validation:
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass 12/12)
@@ -302,7 +302,7 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
 - Implementation commit: `962d19d5` (`refactor(ui): harden service-locator container contracts and endgame snap flow`).
 - Closed remaining Phase 1-4 gaps after initial Phase 4 landing:
   - strict ServiceLocator lookups in phase-adjacent runtime modules:
-    - `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd` (`post_process_overlay`)
+    - `scripts/managers/helpers/display/u_display_color_grading_applier.gd` (`post_process_overlay`)
     - `scripts/managers/helpers/display/u_display_quality_applier.gd` (`game_viewport`, owner viewport fallback kept for isolated tests)
     - `scripts/managers/m_audio_manager.gd` (`game_viewport`)
     - `scripts/managers/m_time_manager.gd` (`ui_overlay_stack`)

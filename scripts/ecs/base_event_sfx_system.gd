@@ -17,7 +17,6 @@ class_name BaseEventSFXSystem
 ## - _get_audio_stream() -> AudioStream (optional, returns null by default)
 
 const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
@@ -27,7 +26,7 @@ const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd"
 var requests: Array = []
 
 ## Optional state store injection for pause/transition checking (Phase 6)
-## Tests can inject mock store; production uses U_StateUtils.try_get_store()
+## Tests can inject mock store; production uses U_DependencyResolution.resolve_state_store()
 @export var state_store: I_StateStore = null
 
 var _unsubscribe_callable: Callable = Callable()
@@ -114,29 +113,26 @@ func _should_skip_processing() -> bool:
 func _is_audio_blocked() -> bool:
 	var store: I_StateStore = state_store
 	if store == null:
-		store = U_STATE_UTILS.try_get_store(self)
+		store = U_DependencyResolution.resolve_state_store(state_store, null, self)
 	if store == null:
 		return false
 
 	var state: Dictionary = store.get_state()
-	var gameplay_slice: Dictionary = state.get("gameplay", {})
-	var scene_slice: Dictionary = state.get("scene", {})
-	var navigation_slice: Dictionary = state.get("navigation", {})
 
 	# Block if paused
-	var is_paused := U_GAMEPLAY_SELECTORS.get_is_paused(gameplay_slice)
+	var is_paused := U_GAMEPLAY_SELECTORS.get_is_paused(state)
 	if is_paused:
-		_log_blocked(is_paused, false, U_NAVIGATION_SELECTORS.get_shell(navigation_slice))
+		_log_blocked(is_paused, false, U_NAVIGATION_SELECTORS.get_shell(state))
 		return true
 
 	# Block if transitioning
-	var is_transitioning := U_SCENE_SELECTORS.is_transitioning(scene_slice)
+	var is_transitioning := U_SCENE_SELECTORS.is_transitioning(state)
 	if is_transitioning:
-		_log_blocked(is_paused, is_transitioning, U_NAVIGATION_SELECTORS.get_shell(navigation_slice))
+		_log_blocked(is_paused, is_transitioning, U_NAVIGATION_SELECTORS.get_shell(state))
 		return true
 
 	# Block if not in gameplay shell
-	var current_shell: StringName = U_NAVIGATION_SELECTORS.get_shell(navigation_slice)
+	var current_shell: StringName = U_NAVIGATION_SELECTORS.get_shell(state)
 	if current_shell != StringName("gameplay"):
 		_log_blocked(is_paused, is_transitioning, current_shell)
 		return true
