@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 Commit 1 (RED) and Commit 2 (GREEN) complete (`b5962d32`, `e07a933a`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 Commit 1-3 complete (`b5962d32`, `e07a933a`, `a70032dd`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -87,11 +87,12 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
   - Completed in commit `b5962d32`; test run is red for expected reason (`res://scripts/resources/bt/rs_bt_sequence.gd` missing).
 - [x] **Commit 2** (GREEN) — `scripts/resources/bt/rs_bt_sequence.gd`. State bag stores current child index.
   - Completed in commit `e07a933a` (`RS_BTSequence` + headless-safe BT test helper/coercion updates).
-- [ ] **Commit 3** (RED) — `test_rs_bt_selector.gd`:
+- [x] **Commit 3** (RED) — `test_rs_bt_selector.gd`:
   - Empty selector → FAILURE.
   - First SUCCESS short-circuits → SUCCESS.
   - All-FAILURE → FAILURE.
   - RUNNING child → RUNNING, re-enters next tick.
+  - Completed in commit `a70032dd`; test run is red for expected reason (`res://scripts/resources/bt/rs_bt_selector.gd` missing).
 - [ ] **Commit 4** (GREEN) — `scripts/resources/bt/rs_bt_selector.gd`.
 - [ ] **Commit 5** (RED) — `test_rs_bt_utility_selector.gd`:
   - Picks highest-scoring child.
