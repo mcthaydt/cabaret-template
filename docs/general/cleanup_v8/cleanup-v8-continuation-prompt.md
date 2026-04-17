@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1 is complete and P1.2 Commit 1 (RED) is complete (`b5962d32`).
-**Next Task**: P1.2 Commit 2 (GREEN) — implement `scripts/resources/bt/rs_bt_sequence.gd` to satisfy `tests/unit/ai/bt/test_rs_bt_sequence.gd`.
+**Status**: Phase 1 in progress. P1.1 is complete; P1.2 Commit 1 (RED) and Commit 2 (GREEN) are complete (`b5962d32`, `e07a933a`).
+**Next Task**: P1.2 Commit 3 (RED) — write `tests/unit/ai/bt/test_rs_bt_selector.gd`.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -32,10 +32,12 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - `(GREEN) P1.1 enforce BT resource size and dependency boundaries`
   - **P1.2** in progress:
     - `(RED) P1.2 add RS_BTSequence contract test` (`b5962d32`)
+    - `(GREEN) P1.2 implement RS_BTSequence composite` (`e07a933a`)
   - **Verification state**:
     - New P1.1 tests are green (`tests/unit/ai/bt/test_rs_bt_node_base.gd`).
+    - New P1.2 sequence tests are green (`tests/unit/ai/bt/test_rs_bt_sequence.gd`).
     - New BT style checks run and pass inside `tests/unit/style/test_style_enforcement.gd`.
-    - Full suite baseline is green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4460 passing / 8 pending / 0 failing).
+    - Full suite baseline is green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4465 passing / 8 pending / 0 failing).
 - **Phase 2**: NOT STARTED. 4 milestones.
 - **Phase 3**: NOT STARTED. 3 milestones.
 - **Phase 4**: NOT STARTED. 4 milestones.
@@ -48,6 +50,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
   - `tests/unit/ui/test_main_menu.gd`
   - `tests/unit/style/test_style_enforcement.gd`
 - Full suite check: `tools/run_gut_suite.sh` completed with no failing tests (8 expected pending/headless skips).
+- Post-P1.2 Commit 2 recheck: `tools/run_gut_suite.sh` completed with no failing tests (8 expected pending/headless skips).
 
 ---
 
@@ -153,8 +156,8 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 ## Next Steps
 
 1. Already on branch `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). No additional branch creation needed.
-2. Implement **P1.2 Commit 2 (GREEN)** — add `scripts/resources/bt/rs_bt_sequence.gd` and make `tests/unit/ai/bt/test_rs_bt_sequence.gd` pass.
-3. Continue P1.2 Commit 3–6 (selector + utility selector RED/GREEN pairs).
+2. Implement **P1.2 Commit 3 (RED)** — add `tests/unit/ai/bt/test_rs_bt_selector.gd`.
+3. Continue P1.2 Commit 4–6 (selector/utility selector GREEN + RED/GREEN pairs).
 4. Proceed through P1.3 → P1.10 in order.
 5. Merge Phase 1 to main.
 6. Branch for Phase 2 (or Phase 3 in parallel).

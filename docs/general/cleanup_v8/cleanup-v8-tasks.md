@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 Commit 1 (RED) complete (`b5962d32`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 Commit 1 (RED) and Commit 2 (GREEN) complete (`b5962d32`, `e07a933a`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -73,6 +73,7 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 - Added RED base-contract test coverage at `tests/unit/ai/bt/test_rs_bt_node_base.gd`.
 - Added BT style guards for per-file line-count and AI-dependency boundaries in `tests/unit/style/test_style_enforcement.gd`.
 - Re-verified on `cleanup-v8` after P1.2 RED test commit: full suite is currently green (`4460` passing, `8` expected pending/headless skips, `0` failing).
+- Re-verified after P1.2 Commit 2 (GREEN): full suite is currently green (`4465` passing, `8` expected pending/headless skips, `0` failing).
 
 ---
 
@@ -84,7 +85,8 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
   - First FAILURE short-circuits → FAILURE.
   - RUNNING child → returns RUNNING, re-enters same child next tick.
   - Completed in commit `b5962d32`; test run is red for expected reason (`res://scripts/resources/bt/rs_bt_sequence.gd` missing).
-- [ ] **Commit 2** (GREEN) — `scripts/resources/bt/rs_bt_sequence.gd`. State bag stores current child index.
+- [x] **Commit 2** (GREEN) — `scripts/resources/bt/rs_bt_sequence.gd`. State bag stores current child index.
+  - Completed in commit `e07a933a` (`RS_BTSequence` + headless-safe BT test helper/coercion updates).
 - [ ] **Commit 3** (RED) — `test_rs_bt_selector.gd`:
   - Empty selector → FAILURE.
   - First SUCCESS short-circuits → SUCCESS.
