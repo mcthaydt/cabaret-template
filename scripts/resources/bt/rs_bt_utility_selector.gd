@@ -6,6 +6,7 @@ const STATE_KEY_RUNNING_CHILD_INDEX := &"running_child_index"
 
 var _scorer_callables: Array[Callable] = []
 var _scorer_owners: Array[Variant] = []
+var _child_scorers: Array[Resource] = []
 
 @export var scorer_callables: Array[Callable] = []:
 	get:
@@ -13,6 +14,12 @@ var _scorer_owners: Array[Variant] = []
 	set(value):
 		_scorer_callables = _coerce_scorer_callables(value)
 		_scorer_owners = _capture_callable_owners(_scorer_callables)
+
+@export var child_scorers: Array[Resource] = []:
+	get:
+		return _child_scorers
+	set(value):
+		_child_scorers = _coerce_child_scorers(value)
 
 func tick(context: Dictionary, state_bag: Dictionary) -> Status:
 	if children.is_empty():
@@ -74,6 +81,9 @@ func _select_best_child_index(context: Dictionary) -> int:
 	return best_index
 
 func _score_child(index: int, context: Dictionary) -> float:
+	var scorer_resource_score: float = _score_child_via_resource(index, context)
+	if scorer_resource_score != 0.0:
+		return scorer_resource_score
 	if index < 0 or index >= _scorer_callables.size():
 		return 0.0
 
@@ -83,6 +93,20 @@ func _score_child(index: int, context: Dictionary) -> float:
 
 	var score_variant: Variant = scorer.call(context)
 	return float(score_variant)
+
+func _score_child_via_resource(index: int, context: Dictionary) -> float:
+	if index < 0 or index >= _child_scorers.size():
+		return 0.0
+
+	var scorer: Resource = _child_scorers[index]
+	if scorer == null:
+		return 0.0
+
+	var score_variant: Variant = scorer.call("score", context)
+	if score_variant is float or score_variant is int:
+		return float(score_variant)
+	push_error("RS_BTUtilitySelector.tick: child scorer at index %d returned non-numeric score %s" % [index, str(score_variant)])
+	return 0.0
 
 func _tick_selected_child(index: int, context: Dictionary, state_bag: Dictionary) -> Status:
 	var child: RS_BTNode = children[index]
@@ -129,6 +153,15 @@ func _coerce_scorer_callables(value: Variant) -> Array[Callable]:
 	for callable_variant in value as Array:
 		if callable_variant is Callable:
 			coerced.append(callable_variant)
+	return coerced
+
+func _coerce_child_scorers(value: Variant) -> Array[Resource]:
+	var coerced: Array[Resource] = []
+	if not (value is Array):
+		return coerced
+	for scorer_variant in value as Array:
+		if scorer_variant is Resource:
+			coerced.append(scorer_variant as Resource)
 	return coerced
 
 func _capture_callable_owners(callables: Array[Callable]) -> Array[Variant]:

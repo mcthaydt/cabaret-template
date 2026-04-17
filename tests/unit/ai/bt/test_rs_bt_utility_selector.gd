@@ -3,6 +3,7 @@ extends GutTest
 const RS_BT_NODE_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
 const RS_BT_UTILITY_SELECTOR_PATH := "res://scripts/resources/bt/rs_bt_utility_selector.gd"
 const TEST_STATUS_NODE_PATH := "res://tests/unit/ai/bt/helpers/test_bt_status_node.gd"
+const RS_AI_SCORER_CONSTANT_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd"
 
 class ScoreStub extends RefCounted:
 	var score_value: float = 0.0
@@ -63,6 +64,22 @@ func _set_scorers_for_test(selector: Resource, score_stubs: Array[ScoreStub]) ->
 	for scorer in score_stubs:
 		scorer_callables.append(Callable(scorer, "score"))
 	selector.set("scorer_callables", scorer_callables)
+
+func _set_child_scorers_for_test(selector: Resource, scorers: Array) -> void:
+	var coerced_scorers: Variant = selector.call("_coerce_child_scorers", scorers)
+	selector.set("_child_scorers", coerced_scorers)
+
+func _new_constant_scorer(value: float) -> Resource:
+	var scorer_script: Script = _load_script(RS_AI_SCORER_CONSTANT_PATH)
+	if scorer_script == null:
+		return null
+	var scorer_variant: Variant = scorer_script.new()
+	assert_not_null(scorer_variant, "Expected RS_AIScorerConstant.new() to succeed")
+	if scorer_variant == null:
+		return null
+	var scorer: Resource = scorer_variant as Resource
+	scorer.set("value", value)
+	return scorer
 
 func test_utility_selector_script_exists_and_loads() -> void:
 	var selector_script: Script = _load_script(RS_BT_UTILITY_SELECTOR_PATH)
@@ -183,3 +200,21 @@ func test_utility_selector_pins_running_child_until_completion() -> void:
 	assert_eq(second.get("tick_count"), 0, "Higher-score sibling should be ignored while pinned child resolves")
 	assert_eq(first_score.call_count, first_calls_after_tick_one, "Pinned tick should not re-score first child")
 	assert_eq(second_score.call_count, second_calls_after_tick_one, "Pinned tick should not re-score second child")
+
+func test_utility_selector_supports_child_scorer_resources() -> void:
+	var selector: Resource = _new_utility_selector()
+	if selector == null:
+		return
+	var first: Resource = _new_status_node(_status("SUCCESS"))
+	var second: Resource = _new_status_node(_status("SUCCESS"))
+	var first_scorer: Resource = _new_constant_scorer(0.1)
+	var second_scorer: Resource = _new_constant_scorer(0.9)
+	if first == null or second == null or first_scorer == null or second_scorer == null:
+		return
+	_set_children_for_test(selector, [first, second])
+	_set_child_scorers_for_test(selector, [first_scorer, second_scorer])
+
+	var status: Variant = selector.call("tick", {}, {})
+	assert_eq(status, _status("SUCCESS"), "Selector should return selected child status with resource scorers")
+	assert_eq(first.get("tick_count"), 0, "Lower score child should not be ticked")
+	assert_eq(second.get("tick_count"), 1, "Highest score child should be ticked once")
