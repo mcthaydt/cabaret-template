@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1 implementation commits are complete; full-suite verification is blocked by pre-existing unrelated red tests.
-**Next Task**: Resolve baseline red tests (listed below) or explicitly accept/park them, then begin Phase 1 Milestone P1.2.
+**Status**: Phase 1 in progress. P1.1 is complete and P1.2 Commit 1 (RED) is complete (`b5962d32`).
+**Next Task**: P1.2 Commit 2 (GREEN) — implement `scripts/resources/bt/rs_bt_sequence.gd` to satisfy `tests/unit/ai/bt/test_rs_bt_sequence.gd`.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -30,22 +30,24 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - `(RED) P1.1 add RS_BTNode base contract test`
     - `(GREEN) P1.1 add BT node/composite/decorator resources`
     - `(GREEN) P1.1 enforce BT resource size and dependency boundaries`
+  - **P1.2** in progress:
+    - `(RED) P1.2 add RS_BTSequence contract test` (`b5962d32`)
   - **Verification state**:
     - New P1.1 tests are green (`tests/unit/ai/bt/test_rs_bt_node_base.gd`).
     - New BT style checks run and pass inside `tests/unit/style/test_style_enforcement.gd`.
-    - Full suite currently has 5 failing tests unrelated to P1.1 changes (existing baseline red).
+    - Full suite baseline is green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4460 passing / 8 pending / 0 failing).
 - **Phase 2**: NOT STARTED. 4 milestones.
 - **Phase 3**: NOT STARTED. 3 milestones.
 - **Phase 4**: NOT STARTED. 4 milestones.
 - **Phase 5**: NOT STARTED. 4 milestones.
 
-### Baseline Red Tests (from full suite run on 2026-04-17)
+### Baseline Verification (2026-04-17, post-P1.2 RED commit)
 
-1. `tests/integration/scene_manager/test_endgame_flows.gd::test_victory_continue_and_credits_buttons_route_correctly`
-2. `tests/unit/style/test_style_enforcement.gd::test_production_paths_have_no_spaces`
-3. `tests/unit/style/test_style_enforcement.gd::test_ai_behavior_system_stays_under_two_hundred_lines`
-4. `tests/unit/ui/test_main_menu.gd::test_play_button_dispatches_start_game_action`
-5. `tests/unit/ui/test_main_menu.gd::test_new_game_confirmation_confirm_starts_game`
+- Previously listed baseline red tests now pass when run directly:
+  - `tests/integration/scene_manager/test_endgame_flows.gd`
+  - `tests/unit/ui/test_main_menu.gd`
+  - `tests/unit/style/test_style_enforcement.gd`
+- Full suite check: `tools/run_gut_suite.sh` completed with no failing tests (8 expected pending/headless skips).
 
 ---
 
@@ -151,9 +153,9 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 ## Next Steps
 
 1. Already on branch `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). No additional branch creation needed.
-2. Resolve or explicitly waive the 5 baseline red tests listed above so the P1 verification gate is meaningful.
-3. Begin **P1.2 Commit 1 (RED)** — write `tests/unit/ai/bt/test_rs_bt_sequence.gd`.
-4. Proceed through P1.2 → P1.10 in order.
+2. Implement **P1.2 Commit 2 (GREEN)** — add `scripts/resources/bt/rs_bt_sequence.gd` and make `tests/unit/ai/bt/test_rs_bt_sequence.gd` pass.
+3. Continue P1.2 Commit 3–6 (selector + utility selector RED/GREEN pairs).
+4. Proceed through P1.3 → P1.10 in order.
 5. Merge Phase 1 to main.
 6. Branch for Phase 2 (or Phase 3 in parallel).
 7. Sequence through remaining phases per dependency graph.

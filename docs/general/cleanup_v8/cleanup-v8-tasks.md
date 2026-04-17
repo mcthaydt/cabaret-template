@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Not started — Phase 1 first.
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 Commit 1 (RED) complete (`b5962d32`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -65,29 +65,25 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 
 **P1.1 Verification**:
 - [x] All new tests green.
-- [ ] Existing test suite green (no code wired yet).
-- [ ] Style enforcement green.
+- [x] Existing test suite green (no code wired yet).
+- [x] Style enforcement green.
 
 **P1.1 Completion Notes (2026-04-17)**:
 - Implemented `RS_BTNode`, `RS_BTComposite`, and `RS_BTDecorator` under `scripts/resources/bt/`.
 - Added RED base-contract test coverage at `tests/unit/ai/bt/test_rs_bt_node_base.gd`.
 - Added BT style guards for per-file line-count and AI-dependency boundaries in `tests/unit/style/test_style_enforcement.gd`.
-- Full suite is not yet green due pre-existing unrelated failures:
-  - `tests/integration/scene_manager/test_endgame_flows.gd::test_victory_continue_and_credits_buttons_route_correctly`
-  - `tests/unit/style/test_style_enforcement.gd::test_production_paths_have_no_spaces`
-  - `tests/unit/style/test_style_enforcement.gd::test_ai_behavior_system_stays_under_two_hundred_lines`
-  - `tests/unit/ui/test_main_menu.gd::test_play_button_dispatches_start_game_action`
-  - `tests/unit/ui/test_main_menu.gd::test_new_game_confirmation_confirm_starts_game`
+- Re-verified on `cleanup-v8` after P1.2 RED test commit: full suite is currently green (`4460` passing, `8` expected pending/headless skips, `0` failing).
 
 ---
 
 ## Milestone P1.2: Composites — Sequence, Selector, UtilitySelector
 
-- [ ] **Commit 1** (RED) — `test_rs_bt_sequence.gd`:
+- [x] **Commit 1** (RED) — `test_rs_bt_sequence.gd`:
   - Empty sequence returns SUCCESS.
   - All-SUCCESS children → SUCCESS.
   - First FAILURE short-circuits → FAILURE.
   - RUNNING child → returns RUNNING, re-enters same child next tick.
+  - Completed in commit `b5962d32`; test run is red for expected reason (`res://scripts/resources/bt/rs_bt_sequence.gd` missing).
 - [ ] **Commit 2** (GREEN) — `scripts/resources/bt/rs_bt_sequence.gd`. State bag stores current child index.
 - [ ] **Commit 3** (RED) — `test_rs_bt_selector.gd`:
   - Empty selector → FAILURE.
