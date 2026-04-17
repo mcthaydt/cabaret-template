@@ -1,6 +1,6 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
-**Branch**: GOAP-AI (new `cleanup-v8` branch recommended for Phase 1)
+**Branch**: `cleanup-v8-p1-ai-bt` (off `GOAP-AI`) for Phase 1. Subsequent phases can branch from `main` after Phase 1 merges. Matches continuation prompt.
 **Status**: Not started — Phase 1 first.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
@@ -14,7 +14,7 @@
 Five unrelated cleanups bundled because they share an outcome: **make the template LLM-friendly, modular, and ship-ready as a reusable base.**
 
 1. **Phase 1 — AI rewrite.** Replace the GOAP + HTN stack with utility-scored behavior trees. Plan file: `~/.claude/plans/whats-a-better-approach-snoopy-candle.md`. ~940 LOC of planning infrastructure serves behaviors that are, in practice, priority-ordered condition checks → fixed 2–4 step action sequences. No compound task has multiple decomposition methods. Every behavior-add touches 4 layers across two planning vocabularies, which is exactly where LLMs struggle.
-2. **Phase 2 — Debug/perf extraction.** Managers and ECS systems have accumulated in-line debug logging and perf probes (e.g., mobile camera perf probes per `MEMORY.md`). Extract into a shared `U_DebugLogThrottle` / `U_PerfProbe` utility so production code paths stop carrying inspection logic.
+2. **Phase 2 — Debug/perf extraction.** Managers and ECS systems have accumulated in-line debug logging and perf probes (e.g., mobile camera perf probes documented in `DEV_PITFALLS.md`). Consolidate through the existing `U_DebugLogThrottle` / `U_PerfProbe` utilities so production code paths stop carrying inspection logic. `U_PerfProbe` already exists at `scripts/utils/debug/u_perf_probe.gd` and is in use; Phase 2 extends adoption and forbids bare `print()` in managers/systems.
 3. **Phase 3 — Docs split.** `AGENTS.md` has grown into a single mega-doc with overlap against `DEV_PITFALLS.md`. Split by audience and concern so LLMs (and humans) can load just the section they need.
 4. **Phase 4 — Template vs demo separation.** Forest AI (wolf/deer/rabbit), sentry/drone/prism agents, and any demo-only scenes are entangled with core template code under `scripts/` and `resources/`. Reorganize into `template/` (core) and `demo/` (examples) so consumers can delete the demo tree without breaking the template.
 5. **Phase 5 — Base scene reset.** Multiple temp / fake scenes exist under `scenes/`. Define one canonical base scene, migrate the real demo content to it, delete the rest.
@@ -41,7 +41,7 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 
 **Goal**: Replace GOAP + HTN with a data-driven behavior tree framework where each creature's brain is one `.tres` readable top-to-bottom. Utility scoring replaces goal-selector priority arbitration. Cooldown / one-shot / rising-edge become decorator nodes. All 10 existing `I_AIAction` resources are reused unchanged.
 
-**LOC target**: ~400 added (BT framework + nodes + runner), ~940 removed (goal selector, HTN planner, replanner, task runner, task framework, rule/scorer infra if unused elsewhere). Net ~500 LOC reduction.
+**LOC target**: ~400 added (BT framework + nodes + runner), ~700 removed. Measured delete targets: `u_htn_planner.gd` 110 + `u_ai_goal_selector.gd` 225 + `u_ai_task_runner.gd` 88 + `u_ai_replanner.gd` 87 + `u_ai_context_builder.gd` 82 + `u_htn_planner_context.gd` 14 + `rs_ai_goal.gd` 32 + `rs_ai_{task,compound_task,primitive_task}.gd` 51 = 689 LOC. Net ~300 LOC reduction. (QB rule/scorer infra is retained per P3.5 Commit 12 — not counted in deletions.)
 
 **Creatures to migrate**: wolf, deer, rabbit, sentry, patrol_drone, guide_prism. Demo parity is the acceptance bar.
 
@@ -55,13 +55,13 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
   - Status enum has exactly `RUNNING`, `SUCCESS`, `FAILURE`.
   - Base `tick(context, state_bag)` calls `push_error` when not overridden (matches `I_AIAction` / `I_Condition` pattern per F16).
   - `node_id` is stable per instance (used as state-bag key).
-- [ ] **Commit 2** (GREEN) — Create:
-  - `scripts/resources/ai/bt/rs_bt_node.gd` — `class_name RS_BTNode`, `extends Resource`. `enum Status { RUNNING, SUCCESS, FAILURE }`. Virtual `tick(context: Dictionary, state_bag: Dictionary) -> Status`.
-  - `scripts/resources/ai/bt/rs_bt_composite.gd` — `class_name RS_BTComposite`, `extends RS_BTNode`. Typed `children: Array[RS_BTNode]` with `_coerce_children()` setter matching F7 pattern.
-  - `scripts/resources/ai/bt/rs_bt_decorator.gd` — `class_name RS_BTDecorator`, `extends RS_BTNode`. Typed `child: RS_BTNode`.
+- [ ] **Commit 2** (GREEN) — Create (general framework under `scripts/resources/bt/` — these base classes have no AI dependencies):
+  - `scripts/resources/bt/rs_bt_node.gd` — `class_name RS_BTNode`, `extends Resource`. `enum Status { RUNNING, SUCCESS, FAILURE }`. Virtual `tick(context: Dictionary, state_bag: Dictionary) -> Status`.
+  - `scripts/resources/bt/rs_bt_composite.gd` — `class_name RS_BTComposite`, `extends RS_BTNode`. Typed `children: Array[RS_BTNode]` with `_coerce_children()` setter matching F7 pattern.
+  - `scripts/resources/bt/rs_bt_decorator.gd` — `class_name RS_BTDecorator`, `extends RS_BTNode`. Typed `child: RS_BTNode`.
 - [ ] **Commit 3** (GREEN) — Style enforcement:
-  - Add to `tests/unit/style/test_style_enforcement.gd`: every file under `scripts/resources/ai/bt/` under 200 lines.
-  - `RS_BT*` resources must not import `U_AI*` legacy planner utils (prevents backslide).
+  - Add to `tests/unit/style/test_style_enforcement.gd`: every file under `scripts/resources/bt/` AND `scripts/resources/ai/bt/` under 200 lines.
+  - Files under `scripts/resources/bt/` must not import `U_AI*` legacy planner utils OR any AI-specific types (prevents backslide; keeps the framework general). Files under `scripts/resources/ai/bt/` may reference `I_Condition` / `I_AIAction` / `U_AITaskStateKeys`.
 
 **P1.1 Verification**:
 - [ ] All new tests green.
@@ -77,20 +77,20 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
   - All-SUCCESS children → SUCCESS.
   - First FAILURE short-circuits → FAILURE.
   - RUNNING child → returns RUNNING, re-enters same child next tick.
-- [ ] **Commit 2** (GREEN) — `rs_bt_sequence.gd`. State bag stores current child index.
+- [ ] **Commit 2** (GREEN) — `scripts/resources/bt/rs_bt_sequence.gd`. State bag stores current child index.
 - [ ] **Commit 3** (RED) — `test_rs_bt_selector.gd`:
   - Empty selector → FAILURE.
   - First SUCCESS short-circuits → SUCCESS.
   - All-FAILURE → FAILURE.
   - RUNNING child → RUNNING, re-enters next tick.
-- [ ] **Commit 4** (GREEN) — `rs_bt_selector.gd`.
+- [ ] **Commit 4** (GREEN) — `scripts/resources/bt/rs_bt_selector.gd`.
 - [ ] **Commit 5** (RED) — `test_rs_bt_utility_selector.gd`:
   - Picks highest-scoring child.
   - Score ≤ 0 treated as "not viable" and skipped.
   - Re-scores each tick at the root (not when mid-RUNNING on same child — state bag pins running child until it returns SUCCESS/FAILURE).
   - Tie-break: earlier child wins (stable).
   - Empty / all-zero-score → FAILURE.
-- [ ] **Commit 6** (GREEN) — `rs_bt_utility_selector.gd`. Scoring delegated to `RS_AIScorer` attached per child (see P1.4).
+- [ ] **Commit 6** (GREEN) — `scripts/resources/bt/rs_bt_utility_selector.gd`. Scoring delegated to per-child scorers (see P1.4 — base `RS_AIScorer` lives under `scripts/resources/ai/bt/scorers/` since scoring is AI-specific; the utility selector accepts any callable that returns a float, keeping it general).
 
 **P1.2 Verification**:
 - [ ] All composite tests green.
@@ -101,16 +101,16 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 ## Milestone P1.3: Leaves — Condition, Action
 
 - [ ] **Commit 1** (RED) — `test_rs_bt_condition.gd`:
-  - Wraps existing `I_AICondition` (reuse `scripts/resources/ai/conditions/*` infra from current goal selector).
+  - Wraps existing `I_Condition` (reuse `scripts/resources/qb/conditions/*` infra — the implementations the goal selector consumes via `U_RuleScorer`).
   - TRUE → SUCCESS, FALSE → FAILURE.
   - Never returns RUNNING.
-- [ ] **Commit 2** (GREEN) — `rs_bt_condition.gd`. Exports typed `condition: I_AICondition`.
+- [ ] **Commit 2** (GREEN) — `rs_bt_condition.gd`. Exports typed `condition: I_Condition`.
 - [ ] **Commit 3** (RED) — `test_rs_bt_action.gd`:
   - Wraps existing `I_AIAction` (reused unchanged from current tree).
   - First tick calls `action.start()`, subsequent ticks call `action.tick()`, polls `action.is_complete()`.
   - While not complete → RUNNING.
   - On complete → SUCCESS and resets state so next entry calls `start()` again.
-  - Uses `U_AITaskStateKeys.ACTION_STARTED` (reused) plus a new `BT_ACTION_STATE_BAG` key constant.
+  - Uses `U_AITaskStateKeys.ACTION_STARTED` (reused — `u_ai_task_state_keys.gd` is retained after P1.10 legacy deletion, per scope decision) plus a new `BT_ACTION_STATE_BAG` key constant.
 - [ ] **Commit 4** (GREEN) — `rs_bt_action.gd`. Typed `action: I_AIAction` export.
 
 **P1.3 Verification**:
@@ -143,16 +143,16 @@ Ports the features currently implemented in `U_AIGoalSelector` (cooldown/one-sho
   - First entry runs child.
   - After child returns SUCCESS, decorator blocks (returns FAILURE) for `duration` seconds.
   - Uses `context.time` or injected time source (not `Time.get_ticks_msec` directly — testability).
-- [ ] **Commit 2** (GREEN) — `rs_bt_cooldown.gd`.
+- [ ] **Commit 2** (GREEN) — `scripts/resources/bt/rs_bt_cooldown.gd`.
 - [ ] **Commit 3** (RED) — `test_rs_bt_once.gd`:
   - Runs child once per brain lifetime. Subsequent entries → FAILURE.
   - Reset via `context.brain.reset_once_nodes()` (used on scene change).
-- [ ] **Commit 4** (GREEN) — `rs_bt_once.gd`.
+- [ ] **Commit 4** (GREEN) — `scripts/resources/bt/rs_bt_once.gd`.
 - [ ] **Commit 5** (RED) — `test_rs_bt_rising_edge.gd`:
   - Only enters child when gate condition transitions false → true.
   - While child RUNNING, re-ticks child regardless of gate (completes what it started).
-- [ ] **Commit 6** (GREEN) — `rs_bt_rising_edge.gd`.
-- [ ] **Commit 7** (RED+GREEN) — `test_rs_bt_inverter.gd` + `rs_bt_inverter.gd` (trivial).
+- [ ] **Commit 6** (GREEN) — `scripts/resources/bt/rs_bt_rising_edge.gd`.
+- [ ] **Commit 7** (RED+GREEN) — `test_rs_bt_inverter.gd` + `scripts/resources/bt/rs_bt_inverter.gd` (trivial).
 
 **P1.5 Verification**:
 - [ ] All decorator tests green.
@@ -170,7 +170,7 @@ Replaces `u_ai_goal_selector`, `u_ai_replanner`, `u_htn_planner`, `u_htn_planner
   - Action lifecycle test: start → multiple tick → is_complete → next frame re-enters parent.
   - Parallel subtree state isolation (two sibling sequences don't share action state).
   - Handles null nodes with `push_error` (F16 pattern).
-- [ ] **Commit 2** (GREEN) — `scripts/utils/ai/u_bt_runner.gd`.
+- [ ] **Commit 2** (GREEN) — `scripts/utils/bt/u_bt_runner.gd` (general-purpose BT driver; no AI-specific imports).
 
 **P1.6 Verification**:
 - [ ] Runner tests green.
@@ -187,7 +187,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 - Opt-in: trees without a `RS_BTPlanner` pay zero planning cost.
 - Forward-chained A* from current world state → goal predicate. Depth-capped (`max_depth: int = 6`).
 - Loud failures: no plan found → `push_error` with state/goal/pool/depth.
-- Reuses `I_AICondition` for preconditions and for the goal predicate (no new condition type).
+- Reuses `I_Condition` for preconditions and for the goal predicate (no new condition type).
 - Only one new resource type: `RS_WorldStateEffect`.
 
 - [ ] **Commit 1** (RED) — `test_rs_world_state_effect.gd`:
@@ -209,7 +209,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 - [ ] **Commit 4** (GREEN) — `scripts/utils/ai/u_ai_world_state_builder.gd`.
 
 - [ ] **Commit 5** (RED) — `test_rs_bt_planner_action.gd`:
-  - Typed `preconditions: Array[I_AICondition]` with coerce setter (F7 pattern).
+  - Typed `preconditions: Array[I_Condition]` with coerce setter (F7 pattern).
   - Typed `effects: Array[RS_WorldStateEffect]` with coerce setter.
   - `cost: float = 1.0` (must be > 0; `push_error` if ≤ 0).
   - `child: RS_BTNode` (the behavior to run when planner selects this action).
@@ -225,7 +225,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
   - `max_depth` respected: plans longer than cap are rejected.
   - No action self-chains (same action twice consecutively) unless effects demonstrably changed state.
 - [ ] **Commit 8** (GREEN) — `scripts/utils/ai/u_bt_planner_search.gd`:
-  - `find_plan(initial_state, goal: I_AICondition, pool: Array[RS_BTPlannerAction], max_depth: int) -> Array[RS_BTPlannerAction]`
+  - `find_plan(initial_state, goal: I_Condition, pool: Array[RS_BTPlannerAction], max_depth: int) -> Array[RS_BTPlannerAction]`
   - Forward-chained A*. State hashing via canonicalized `var_to_str`. Heuristic: count of goal sub-conditions not yet satisfied (admissible for conjunctive goals).
   - Target: ~80 LOC.
 
@@ -245,7 +245,8 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
   - `debug_ai_brain_panel.gd` renders plan when present.
 
 - [ ] **Commit 12** (GREEN) — Style enforcement:
-  - `scripts/resources/bt/` (general framework) must not reference `I_AICondition`, `I_AIAction`, `RS_WorldStateEffect`, `RS_BTPlanner*` (AI-specific types stay in `scripts/resources/ai/bt/`).
+  - `scripts/resources/bt/` (general framework) must not reference `I_Condition`, `I_AIAction`, `RS_WorldStateEffect`, `RS_BTPlanner*`, or any other AI-specific types (AI-specific types stay in `scripts/resources/ai/bt/`).
+  - `scripts/utils/bt/` (general driver) must not reference AI-specific types.
   - `rs_bt_planner.gd` under 150 LOC.
   - `u_bt_planner_search.gd` under 120 LOC.
 
@@ -300,7 +301,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 For each creature, write an integration test asserting **behavior parity** with the current implementation, then author the BT `.tres`.
 
 - [ ] **Commit 1** (RED) — `tests/unit/ai/integration/test_wolf_brain_bt.gd`:
-  - Port existing wolf pack convergence test (`test_wolf_pack_convergence.gd` or nearest equivalent).
+  - Port existing wolf pack convergence test `tests/unit/ai/integration/test_pack_converges.gd` plus any adjacent coverage from `test_ai_pipeline_integration.gd` / `test_hunger_drives_goal_score.gd` / `test_ai_goal_resume.gd` that still applies under the BT model.
   - Assert: with prey detected + pack context, wolf executes move → wait → move → feed sequence.
   - Assert: without prey, wolf wanders.
   - Uses the new BT brain resource (file doesn't exist yet → red).
@@ -335,47 +336,61 @@ Only after P1.9 is green and the demo scene has been manually verified.
   - `scripts/utils/ai/u_ai_replanner.gd`
   - `scripts/utils/ai/u_ai_goal_selector.gd`
   - `scripts/utils/ai/u_ai_task_runner.gd`
-  - `scripts/utils/ai/u_ai_context_builder.gd` (if subsumed by BT context; verify first)
+  - `scripts/utils/ai/u_ai_context_builder.gd` (fully replaced by BT context construction in `S_AIBehaviorSystem` per P1.8)
   - `scripts/resources/ai/goals/rs_ai_goal.gd`
   - `scripts/resources/ai/tasks/` (entire dir)
+  - Retained: `scripts/utils/ai/u_ai_task_state_keys.gd` (still used by `RS_BTAction` per P1.3 Commit 3; keeps F16 style enforcement intact).
 - [ ] **Commit 2** (GREEN) — Delete legacy tests (`test_u_htn_planner.gd`, `test_u_ai_goal_selector.gd`, `test_u_ai_replanner.gd`, `test_u_ai_task_runner.gd`, `test_u_ai_context_builder.gd`).
-- [ ] **Commit 3** (GREEN) — Verify rule/scorer infra (`U_RuleScorer`, `RS_Rule`) — if used elsewhere, keep; if only used by deleted goal selector, delete.
+- [ ] **Commit 3** (informational) — QB rule/scorer infra under `scripts/{utils,resources}/qb/` (`U_RuleScorer`, `RS_Rule`, `U_RuleSelector`, `U_RuleStateTracker`, `U_RuleValidator`, `scripts/resources/qb/conditions/`, `scripts/resources/qb/effects/`) is **kept** as the non-AI game-logic rules framework — see P3.5 Commit 12's `conditions_effects_rules.md` recipe. Only the AI-specific consumers are deleted in Commits 1–2. No code action in this commit; noted for clarity so reviewers do not re-open the delete-vs-keep question.
 - [ ] **Commit 4** (GREEN) — Style enforcement grep: `scripts/resources/ai/` contains zero references to `U_HTNPlanner`, `U_AIGoalSelector`, `RS_AIGoal`, `RS_AICompoundTask`, `RS_AIPrimitiveTask`.
-- [ ] **Commit 5** (GREEN) — Update `MEMORY.md` — remove/edit entries that reference deleted systems.
+- [ ] **Commit 5** (GREEN) — Update `DEV_PITFALLS.md` / `AGENTS.md` — remove or edit any entries that reference deleted AI planner/goal-selector files, classes, or patterns.
 
 **P1.10 Verification**:
 - [ ] Full test suite green.
-- [ ] LOC delta roughly matches target (~500 net reduction).
+- [ ] LOC delta roughly matches target (~300 net reduction; ~689 removed vs ~400 added).
 - [ ] No dangling imports.
 
 ---
 
 # Phase 2 — Debug/Perf Extraction from Systems/Managers
 
-**Goal**: Production code paths should not carry inline debug logging or perf probing. Extract into shared utilities so managers/systems stay focused on their actual job.
+**Goal**: Production code paths should not carry inline debug logging or perf probing. Route all inspection through shared utilities so managers/systems stay focused on their actual job.
 
-**Known pollution sites** (from `MEMORY.md` and prior work):
-- Mobile camera perf probes (2026-04-08) scattered across camera managers/systems.
-- `U_DebugLogThrottle` is already a util but not used uniformly.
-- Display manager and post-process managers have inline debug prints.
+**Starting state (not empty)**: Phase 2 is ~20% complete at plan time:
+- `U_PerfProbe` already exists at `scripts/utils/debug/u_perf_probe.gd` (102 LOC, scope tracking, flush cadence, mobile auto-enable, zero-cost when disabled).
+- `U_PerfProbe` is in active use across `s_floating_system.gd`, `s_landing_indicator_system.gd`, `s_wall_visibility_system.gd`, `s_region_visibility_system.gd`, `s_movement_system.gd`, `m_display_manager.gd`, `m_character_lighting_manager.gd`.
+- `U_DebugLogThrottle` is a util but adoption is uneven.
+- Sibling utils present: `u_perf_monitor.gd`, `u_perf_fade_bypass.gd`, `u_perf_shader_bypass.gd`, `u_ai_render_probe.gd` (specialized; out of scope for Phase 2 consolidation, but catalogued).
 
-**Expected utilities**:
-- `U_DebugLogThrottle` — already exists; adopt uniformly.
-- `U_PerfProbe` — new. Wraps `Time.get_ticks_usec()` pairs with tagged scope names. Mobile flag to compile out cheaply.
-- `U_DebugDraw` — new if needed. Centralized debug overlay (gizmos, vectors). Off in release builds.
+**Known pollution sites** (from `DEV_PITFALLS.md` and grep, 2026-04-17):
+- Bare `print(` in managers (7 occurrences across 6 files): `m_save_manager.gd:2`, `m_vcam_manager.gd:1`, `m_run_coordinator_manager.gd:1`, `m_scene_manager.gd:1`, `m_scene_director_manager.gd:1`, `helpers/u_vcam_collision_detector.gd:1`.
+- Bare `print(` in ECS systems: `s_floating_system.gd`, `s_landing_indicator_system.gd`, `s_wall_visibility_system.gd`, `s_region_visibility_system.gd`, `s_movement_system.gd` (5 files — note these already use `U_PerfProbe`; the prints may or may not be probe-adjacent and must be audited individually).
+- Mobile camera perf probes (2026-04-08) scattered across camera managers/systems (documented in `DEV_PITFALLS.md`).
+
+**Utility status**:
+- `U_DebugLogThrottle` — exists; adopt uniformly in P2.3.
+- `U_PerfProbe` — exists; Phase 2 locks in current behavior via tests and extends coverage. No rewrite.
+- `U_DebugDraw` — new if audit shows it's needed. Optional.
 
 ## Milestone P2.1: Audit
 
-- [ ] **Commit 1** — `docs/general/cleanup_v8/debug_perf_audit.md`: grep all managers + systems, catalog every `print`, `push_warning` (intentional warnings excluded), inline timer, and `DebugDraw`. One row per site with file + line + category.
+- [ ] **Commit 1** — `docs/general/cleanup_v8/debug_perf_audit.md`: grep all managers + systems, catalog every `print`, `push_warning` (intentional warnings excluded), inline timer, and `DebugDraw`. Also catalog every `U_PerfProbe.start()`/`stop()` call site and every `U_DebugLogThrottle.tick(...)` / `log(...)` call site — to confirm the audit covers both pollution and the existing consolidation baseline. One row per site with file + line + category (pollution | consolidated | perf-probe | throttled-log).
 
-## Milestone P2.2: `U_PerfProbe` Utility
+## Milestone P2.2: `U_PerfProbe` test backfill
 
-- [ ] **Commit 1** (RED) — `test_u_perf_probe.gd`: scope start/end, tagged report, zero-cost when disabled flag, mobile-compile-out (via config flag, not ifdef).
-- [ ] **Commit 2** (GREEN) — `scripts/utils/debug/u_perf_probe.gd`.
+`U_PerfProbe` already exists. This milestone locks in its current behavior with a test suite, not a rewrite.
+
+- [ ] **Commit 1** (RED) — `tests/unit/utils/debug/test_u_perf_probe.gd`: scope start/end, zero-cost when disabled flag, accumulation (sample_count, total_usec, min/max), flush cadence (default 2s), mobile auto-enable behavior, reset semantics. Tests should fail until the test file is authored (no existing tests).
+- [ ] **Commit 2** (GREEN) — Verify existing `scripts/utils/debug/u_perf_probe.gd` passes every test. If any behavior diverges from tests, patch the source minimally and note the patch in the commit message. Do NOT rewrite from scratch.
+- [ ] **Commit 3** (GREEN, optional) — If audit flagged `U_DebugDraw` as needed, scaffold it here under the same TDD pattern. Skip if audit shows no demand.
 
 ## Milestone P2.3: Migration
 
-- [ ] **Commit 1+** (per manager/system) — Move inline probes/prints to `U_PerfProbe` / `U_DebugLogThrottle`. One commit per touched file to keep reviewable. RED commit adds grep test forbidding `print(` in that file; GREEN migrates.
+Convert the ~7 bare-print sites (per P2.1 audit) to either `U_DebugLogThrottle`, silent removal, or explicit `push_warning` (for genuine warnings). One commit per touched file to keep reviewable.
+
+- [ ] **Commit 1+** (per file, RED+GREEN pair per file) — RED adds a grep test forbidding bare `print(` in that specific file; GREEN migrates the bare prints.
+- [ ] Manager files: `m_save_manager.gd`, `m_vcam_manager.gd`, `m_run_coordinator_manager.gd`, `m_scene_manager.gd`, `m_scene_director_manager.gd`, `scripts/managers/helpers/u_vcam_collision_detector.gd`.
+- [ ] ECS system files: whichever sites P2.1 flagged that aren't inside an intentional `U_PerfProbe` block.
 
 ## Milestone P2.4: Enforcement
 
@@ -383,7 +398,8 @@ Only after P1.9 is green and the demo scene has been manually verified.
 
 **P2 Verification**:
 - [ ] Audit doc complete and signed off.
-- [ ] All migrations green.
+- [ ] `U_PerfProbe` test suite green; existing call sites unchanged.
+- [ ] All bare-print migrations green.
 - [ ] Style enforcement green.
 - [ ] Release build has zero debug overhead (perf probe disabled flag verified by mobile profiling session).
 
@@ -393,21 +409,23 @@ Only after P1.9 is green and the demo scene has been manually verified.
 
 **Goal**: `AGENTS.md` and `DEV_PITFALLS.md` have grown to the point where LLMs and humans can't cheaply load just the relevant section. Split by audience and concern.
 
+**Authorization scope (important)**: Phase 3 creates ~26 docs (18 extension recipes + 6 ADRs + 2 READMEs + structure tests). Per the standing `CLAUDE.md` rule (*"Do not create documentation unless I tell you to do so"*) and the `feedback_docs_only_scope` memory, committing the V8 plan does **not** blanket-authorize every doc creation in Phase 3. Each recipe commit requires a separate user check-in at the tail of its owning phase (e.g., `ai.md` after P1.10 needs user sign-off before landing). ADRs are authored per-phase tail, not batched. READMEs, structure-test code, and AGENTS.md/DEV_PITFALLS.md splits (P3.3 Commits 1–3) are covered by this plan commit.
+
 ## Milestone P3.0: Pre-Migration Docs Reorg
 
 Before splitting `AGENTS.md` / `DEV_PITFALLS.md`, the surrounding `docs/` tree needs reshaping. Current state observed 2026-04-17:
 
 - **Two conflicting ADR conventions coexist.** `docs/adr/0001-channel-taxonomy.md` (V7.2 F5, numeric `NNNN-kebab.md`) and `docs/architecture/adr/ADR-001..004-*.md` (pre-existing, `ADR-NNN-kebab.md`). P3.4 Commit 0 assumes an empty destination — it isn't. Must reconcile first.
-- **`docs/general/` is a kitchen sink.** Holds evergreen guides (`STYLE_GUIDE.md`, `SCENE_ORGANIZATION_GUIDE.md`, `DEV_PITFALLS.md`) alongside 11 historical planning dirs (`cleanup_v1..v8/`, `interactions_refactor/`, `quality_of_life_refactors/`, `ui_layers_transitions_refactor/`). Historical planning artifacts dilute the "guides" bucket for LLM loading.
+- **`docs/general/` is a kitchen sink.** Holds evergreen guides (`STYLE_GUIDE.md`, `SCENE_ORGANIZATION_GUIDE.md`, `DEV_PITFALLS.md`) alongside 12 historical planning dirs (`cleanup_v1`..`cleanup_v4`, `cleanup_v4.5`, `cleanup_v5`..`cleanup_v8`, plus `interactions_refactor/`, `quality_of_life_refactors/`, `ui_layers_transitions_refactor/`). Historical planning artifacts dilute the "guides" bucket for LLM loading.
 - **~20 per-manager doc dirs sit at the top of `docs/`** (`audio_manager/`, `display_manager/`, `vcam_manager/`, `ai_system/`, `ai_forest/`, etc.), peers of `general/` and `architecture/`. Root-level is noisy.
 
 - [ ] **Commit 1** — Reconcile ADR conventions:
   - Pick the numeric `NNNN-kebab.md` convention (matches V7.2 F5 and the rest of P3.4's numbering 0002–0007).
   - Rename existing `docs/architecture/adr/ADR-001-redux-state-management.md` → `0002-redux-state-management.md`, `ADR-002-ecs-node-based.md` → `0003-ecs-node-based.md`, `ADR-003-event-bus.md` → `0004-event-bus.md`, `ADR-004-service-locator.md` → `0005-service-locator.md` (or renumber interleaved with V7.2's `0001-channel-taxonomy.md` — pick during this commit; preserve chronology where possible).
   - Note: this reclaims ADR numbers P3.4 assigns to V8's new ADRs. **Update P3.4 ADR numbers in this plan** in the same commit so V8's six new ADRs pick up at whatever `N+1` the reconciliation lands on (likely `0006..0011`).
-- [ ] **Commit 2** — `git mv docs/adr/0001-channel-taxonomy.md docs/architecture/adr/`. Delete empty `docs/adr/`. Update `AGENTS.md`, `CLAUDE.md`, V7.2 F5 continuation doc, style enforcement tests. (This supersedes P3.4 Commit 0.)
-- [ ] **Commit 3** — Create `docs/history/` and move frozen planning archives: `git mv docs/general/cleanup_v1..v8 docs/history/`, same for `interactions_refactor/`, `quality_of_life_refactors/`, `ui_layers_transitions_refactor/`. These are never modified after their phase ships; they shouldn't live under "general."
-  - Exception: `docs/general/cleanup_v8/` stays in place **until Phase 3 completes**, since this very plan lives there and moving it mid-phase thrashes references. Move it at the tail of P3 (new P3.6 Commit).
+- [ ] **Commit 2** — `git mv docs/adr/0001-channel-taxonomy.md docs/architecture/adr/`. Delete empty `docs/adr/`. Update every file that references `docs/adr/0001-channel-taxonomy.md` — at minimum `AGENTS.md:56` and `AGENTS.md:74` (both cite the path directly), plus `CLAUDE.md`, V7.2 F5 continuation doc, and any style enforcement tests that grep for `docs/adr/`. Run `rg "docs/adr/"` after the move to confirm zero remaining references. (This supersedes P3.4 Commit 0.)
+- [ ] **Commit 3** — Create `docs/history/` and move frozen planning archives. Explicit list (the `v1..v8` shorthand is not a shell glob and would also miss `v4.5`): `cleanup_v1`, `cleanup_v2`, `cleanup_v3`, `cleanup_v4`, `cleanup_v4.5`, `cleanup_v5`, `cleanup_v6`, `cleanup_v7` (which contains both v7 and v7.2 subdocs — v7.2 is not its own top-level dir), plus `interactions_refactor/`, `quality_of_life_refactors/`, `ui_layers_transitions_refactor/`. Run `git mv` per dir so diffs stay per-archive. These are never modified after their phase ships; they shouldn't live under "general."
+  - Exception: `docs/general/cleanup_v8/` stays in place **until Phase 3 completes**, since this very plan lives there and moving it mid-phase thrashes references. Move it at the tail of P3 (P3.6 Commit).
 - [ ] **Commit 4** — Consolidate per-manager docs under `docs/systems/`: `git mv docs/{audio_manager,display_manager,vcam_manager,vfx_manager,lighting_manager,input_manager,localization_manager,save_manager,scene_manager,scene_director,time_manager,ui_manager,ui_visual_overhaul,state_store,ecs,ai_system,ai_forest,animation_system,cutscene_system,dialogue_system,narrative_system,qb_rule_manager} docs/systems/`. Update any cross-references.
   - Rationale: root-level `docs/` should have ~5 top-level concepts, not 25. Systems docs are one concept.
 - [ ] **Commit 5** — Rename `docs/general/` → `docs/guides/` once it holds only evergreen guides (`STYLE_GUIDE.md`, `SCENE_ORGANIZATION_GUIDE.md`, `DEV_PITFALLS.md` pre-split). Update references.
@@ -447,7 +465,7 @@ docs/
 │   ├── COMMIT_WORKFLOW.md       # RED/GREEN discipline, commit message style (from AGENTS.md)
 │   └── pitfalls/
 │       ├── GDSCRIPT_4_6.md      # from DEV_PITFALLS.md
-│       ├── MOBILE.md            # from DEV_PITFALLS.md + MEMORY.md patterns
+│       ├── MOBILE.md            # from DEV_PITFALLS.md patterns
 │       ├── ECS.md
 │       └── STATE.md
 ├── systems/                     # per-manager/system docs (was root-level dirs)
@@ -499,7 +517,7 @@ V7.2 F5 created `docs/adr/0001-channel-taxonomy.md`. V8 moves ADRs under `docs/a
   - Decision: `scripts/core/` + `scripts/demo/` (same in `resources/`); enforced by import-boundary grep.
   - Alternatives: keep mixed; top-level `template/`/`game/`.
 - [ ] **Commit 5** (tail of P5) — `docs/architecture/adr/0006-base-scene-and-demo-entry-split.md`:
-  - Decision: two scenes — `scenes/templates/base_scene.tscn` + `scenes/demo/demo_entry.tscn`.
+  - Decision: two scenes — existing `scenes/templates/tmpl_base_scene.tscn` (refactored in P5.2) + `scenes/demo/demo_entry.tscn`.
   - Alternatives: single scene with embedded demo menu; minimal-only.
 - [ ] **Commit 6** (tail of P3 itself) — `docs/architecture/adr/0007-service-locator-no-autoloads.md`:
   - Decision: all services via `U_ServiceLocator`; empty autoload list. Codifies `CLAUDE.md` rule + V7.2 F6 scope isolation.
@@ -692,21 +710,21 @@ The recipes below each own one subsystem. Written after that subsystem stabilize
 
 - [ ] **Commit 15** — `docs/architecture/extensions/display_post_process.md`:
   - Scope: adding display presets, post-process presets, window size presets.
-  - Canonical example: `M_DisplayManager` preset handling + preload arrays (mobile-compat pattern from `MEMORY.md`).
+  - Canonical example: `M_DisplayManager` preset handling + preload arrays (mobile-compat pattern documented in `DEV_PITFALLS.md`).
   - Recipe:
-    - "To add a preset" → extend the `const PRESETS := [preload(...)]` array (not DirAccess scanning — mobile-breaks). Pattern documented in `MEMORY.md`.
+    - "To add a preset" → extend the `const PRESETS := [preload(...)]` array (not DirAccess scanning — mobile-breaks). Pattern documented in `DEV_PITFALLS.md`.
     - "To add a post-process effect" → add to pipeline; guard tree-dependent init in `_ensure_appliers()`.
-  - Anti-patterns: runtime `DirAccess.open()` for preset discovery (breaks on mobile — documented in `MEMORY.md`), missing `_should_defer()` guard for window ops.
-  - References: `MEMORY.md` mobile compatibility notes.
+  - Anti-patterns: runtime `DirAccess.open()` for preset discovery (breaks on mobile — documented in `DEV_PITFALLS.md`), missing `_should_defer()` guard for window ops.
+  - References: `DEV_PITFALLS.md` mobile compatibility notes.
 
 - [ ] **Commit 16** — `docs/architecture/extensions/localization.md`:
   - Scope: adding translation keys, localized strings, language entries.
   - Canonical example: the existing localization settings overlay (F12 pattern).
   - Recipe:
-    - "To add a translatable string" → never use `.tr()` on Script class refs (Godot 4.6 parse error per `MEMORY.md`); use `localize()` or equivalent naming.
+    - "To add a translatable string" → never use `.tr()` on Script class refs (Godot 4.6 parse error documented in `DEV_PITFALLS.md`); use `localize()` or equivalent naming.
     - "To add a language" → author translation resource; register; expose in localization settings overlay.
   - Anti-patterns: `tr` as a static method name anywhere (parse error), hardcoded English strings in gameplay code.
-  - References: `MEMORY.md` GDScript 4.6 pitfalls.
+  - References: `DEV_PITFALLS.md` GDScript 4.6 pitfalls.
 
 - [ ] **Commit 17** — `docs/architecture/extensions/resources.md`:
   - Scope: adding designer-facing validated resources (game config, input profile, scene registry entry, etc.).
@@ -778,9 +796,14 @@ Tail of P3, after all other P3 milestones are green. Moves this plan into `docs/
 
 ## Milestone P4.2: Target Structure (Proposed)
 
+**Note**: `scripts/core/u_service_locator.gd` already exists (landed in cleanup_v1 as T141b). P4 extends `scripts/core/` in place rather than creating it. The existing file stays where it is; the other subtrees below are migration targets.
+
+**Also note**: general BT framework (per Phase 1 decisions) lives at `scripts/resources/bt/` (general composites/decorators) + `scripts/resources/ai/bt/` (AI-specific leaves/scorers/planner) + `scripts/utils/bt/u_bt_runner.gd`. Under the core/demo split, the general `scripts/resources/bt/` + `scripts/utils/bt/` trees land under `core/`; `scripts/resources/ai/bt/` is still core (BT framework AI-specific bits — shared infra, not individual creature behaviors); only creature `.tres` brains and action scripts that describe specific demo creatures live under `demo/`.
+
 ```
 scripts/
 ├── core/                    # template — framework code
+│   ├── u_service_locator.gd # already present; unchanged
 │   ├── ecs/
 │   ├── state/
 │   ├── managers/
@@ -788,9 +811,12 @@ scripts/
 │   ├── input/
 │   ├── audio/
 │   ├── debug/
-│   └── resources/ai/bt/     # BT framework (not specific behaviors)
+│   ├── resources/
+│   │   ├── bt/              # general BT framework
+│   │   └── ai/bt/           # AI-specific BT wrappers / scorers / planner (framework)
+│   └── utils/bt/            # general BT runner
 └── demo/                    # everything removable
-    ├── ai/
+    ├── ai/                  # creature action scripts + brain resources
     │   ├── forest/
     │   ├── sentry/
     │   ├── patrol_drone/
@@ -824,26 +850,28 @@ resources/
 
 **Goal**: One canonical base scene; delete the rest.
 
+**Starting state**: `scenes/templates/tmpl_base_scene.tscn` already exists with full managers + ECS systems wiring + camera template + scene-structure markers. P5 extends/refactors this file rather than creating a new `base_scene.tscn`. The `tmpl_` prefix is preserved per the template scene naming convention (see `tmpl_camera.tscn`, `tmpl_character.tscn`, `tmpl_character_ragdoll.tscn`).
+
 ## Milestone P5.1: Inventory
 
-- [ ] **Commit 1** — `docs/general/cleanup_v8/scene_inventory.md`: list every `.tscn` with one-line purpose, classify as **keep (base)**, **keep (demo)**, **delete (temp/fake)**.
+- [ ] **Commit 1** — `docs/general/cleanup_v8/scene_inventory.md`: list every `.tscn` with one-line purpose, classify as **keep (base)**, **keep (demo)**, **delete (temp/fake)**. Note that `tmpl_base_scene.tscn` is the base; no new base is needed.
 
 ## Milestone P5.2: Canonical Base Scene
 
-- [ ] **Commit 1** (RED) — Integration test: `scenes/templates/base_scene.tscn` loads without errors, instances `root.tscn` dependencies, boots through autoloads, exits cleanly.
-- [ ] **Commit 2** (GREEN) — Build `scenes/templates/base_scene.tscn`. Contents: managers node tree, empty world node, camera rig, UI root layer. No demo-specific content.
+- [ ] **Commit 1** (RED) — Integration test: `scenes/templates/tmpl_base_scene.tscn` loads without errors, instances `scenes/root.tscn` dependencies correctly, boots through service-locator registrations, exits cleanly without leaks.
+- [ ] **Commit 2** (GREEN) — Extend/refactor existing `scenes/templates/tmpl_base_scene.tscn` to match the base-scene contract: managers node tree, empty world node, camera rig, UI root layer. No demo-specific content. Any demo content that has crept into `tmpl_base_scene.tscn` migrates to demo scenes in P5.3. No new file is created.
 
 ## Milestone P5.3: Demo Scene Migration
 
-- [ ] **Commit 1+** — Move/rebuild real demo scenes (forest, etc.) on top of the base scene via `PackedScene` instancing or inheritance.
+- [ ] **Commit 1+** — Move/rebuild real demo scenes (forest, etc.) on top of `tmpl_base_scene.tscn` via `PackedScene` instancing or inheritance.
 
 ## Milestone P5.4: Deletion
 
 - [ ] **Commit 1** — Delete every scene classified "delete (temp/fake)". One commit so the removal is atomic and revertable.
 
 **P5 Verification**:
-- [ ] Base scene test green.
-- [ ] All real demo scenes boot from the base.
+- [ ] Base scene test green (against `tmpl_base_scene.tscn`).
+- [ ] All real demo scenes boot from `tmpl_base_scene.tscn`.
 - [ ] No orphaned `.tscn` files. `scenes/` tree matches the inventory's "keep" set exactly.
 
 ---
@@ -885,4 +913,4 @@ Phase 1 (AI BT rewrite)
 - **Manual demo check is mandatory** at end of P1.9 before P1.10 deletions.
 - **Phase 4 is high-churn**: every move commit should be reviewable in isolation; don't bundle unrelated moves.
 - **Phase 5 is last**: easier once code is organized.
-- **Update `MEMORY.md` after each phase** — entries referencing deleted/moved files become stale.
+- **Update `DEV_PITFALLS.md` / `AGENTS.md` after each phase** if entries reference deleted or moved files.
