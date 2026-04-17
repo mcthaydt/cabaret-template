@@ -60,14 +60,15 @@ func test_label_formats_entity_goal_and_task_as_multiline_text() -> void:
 		"entity_id": &"forest_wolf_01",
 		"goal_id": &"hunt",
 		"task_id": &"move_to_detected_first",
+		"is_player_in_range": false,
 	})
 	await get_tree().process_frame
 	label.call("_process", 0.0)
 
 	assert_eq(
 		label.text,
-		"forest_wolf_01\ngoal: hunt\ntask: move_to_detected_first",
-		"Label text should render entity/goal/task with multiline formatting."
+		"forest_wolf_01\ngoal: hunt\ntask: move_to_detected_first\ndetect:false",
+		"Label text should render entity/goal/task/detect with multiline formatting."
 	)
 
 func test_label_falls_back_to_entity_root_id_when_snapshot_id_missing() -> void:
@@ -80,12 +81,38 @@ func test_label_falls_back_to_entity_root_id_when_snapshot_id_missing() -> void:
 	brain.update_debug_snapshot({
 		"goal_id": &"wander",
 		"task_id": &"wander",
+		"is_player_in_range": true,
 	})
 	await get_tree().process_frame
 	label.call("_process", 0.0)
 
 	assert_eq(
 		label.text,
-		"fallback\ngoal: wander\ntask: wander",
+		"fallback\ngoal: wander\ntask: wander\ndetect:true",
 		"Label should derive entity_id from entity root when snapshot omits it."
 	)
+
+func test_label_follows_character_body_position() -> void:
+	var fixture: Dictionary = _build_entity_with_brain("E_Wolf_02")
+	if fixture.is_empty():
+		return
+
+	var entity: BaseECSEntity = fixture.get("entity") as BaseECSEntity
+	var label: Label3D = fixture.get("label") as Label3D
+
+	var body := CharacterBody3D.new()
+	body.name = "Player_Body"
+	entity.add_child(body)
+	autofree(body)
+
+	body.global_position = Vector3(5.0, 0.0, 3.0)
+	await get_tree().process_frame
+
+	label.call("_process", 0.0)
+	assert_almost_eq(label.global_position.x, 5.0, 0.01, "Label X should track body X.")
+	assert_almost_eq(label.global_position.z, 3.0, 0.01, "Label Z should track body Z.")
+
+	body.global_position = Vector3(-10.0, 2.0, 7.0)
+	label.call("_process", 0.0)
+	assert_almost_eq(label.global_position.x, -10.0, 0.01, "Label X should track body after move.")
+	assert_almost_eq(label.global_position.z, 7.0, 0.01, "Label Z should track body after move.")

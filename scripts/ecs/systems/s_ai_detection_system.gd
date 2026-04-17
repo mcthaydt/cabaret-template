@@ -132,13 +132,20 @@ func _process_detection(
 	if is_in_range and not detection.is_player_in_range:
 		detection.is_player_in_range = true
 		detection.last_detected_player_entity_id = nearest_target.get("entity_id", StringName(""))
+		var _dist: float = float(nearest_target.get("distance", 0.0))
+		print("[DETECT] %s (%s) → detected %s at dist %.1f" % [
+			source_entity_id, detection.target_tag,
+			detection.last_detected_player_entity_id, _dist])
 		_dispatch_flag(detection.ai_flag_id, detection.enter_flag_value)
 		_publish_enter_event(query, detection, nearest_target)
 		return
 
 	if (not is_in_range) and detection.is_player_in_range:
+		var _lost_id: StringName = detection.last_detected_player_entity_id
 		detection.is_player_in_range = false
 		detection.last_detected_player_entity_id = StringName("")
+		print("[DETECT] %s (%s) → lost %s" % [
+			source_entity_id, detection.target_tag, _lost_id])
 		if detection.set_flag_on_exit:
 			_dispatch_flag(detection.ai_flag_id, detection.exit_flag_value)
 

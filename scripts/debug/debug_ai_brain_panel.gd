@@ -72,7 +72,8 @@ func _build_row_text(brain: C_AIBrainComponent) -> String:
 	var entity_id_value: String = _resolve_entity_id(snapshot, brain)
 	var goal_id_value: String = _resolve_snapshot_string(snapshot, "goal_id")
 	var task_id_value: String = _resolve_snapshot_string(snapshot, "task_id")
-	return "%s | goal=%s | task=%s" % [entity_id_value, goal_id_value, task_id_value]
+	var detect_value: String = str(snapshot.get("is_player_in_range", "?"))
+	return "%s | goal=%s | task=%s | detect=%s" % [entity_id_value, goal_id_value, task_id_value, detect_value]
 
 func _resolve_entity_id(snapshot: Dictionary, brain: C_AIBrainComponent) -> String:
 	var from_snapshot: String = _resolve_snapshot_string(snapshot, "entity_id")

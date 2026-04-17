@@ -32,6 +32,8 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
 	task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
 	task_state[U_AITaskStateKeys.COMPLETED] = false
+	print("[ACTION] %s Wander → target (%.1f, %.1f, %.1f)" % [
+		_resolve_entity_label(context), target_position.x, target_position.y, target_position.z])
 
 func tick(_context: Dictionary, _task_state: Dictionary, _delta: float) -> void:
 	pass
@@ -64,6 +66,7 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	)
 	var arrived: bool = offset_xz.length() <= resolved_arrival_threshold
 	if arrived:
+		print("[ACTION] %s Wander arrived" % _resolve_entity_label(context))
 		_clear_move_target_component(context)
 		task_state[U_AITaskStateKeys.COMPLETED] = true
 	return arrived
@@ -117,3 +120,9 @@ func _resolve_move_target_component(context: Dictionary) -> Object:
 	if not (move_target_component_variant is Object):
 		return null
 	return move_target_component_variant as Object
+
+func _resolve_entity_label(context: Dictionary) -> String:
+	var entity: Node = context.get("entity", null) as Node
+	if entity != null and is_instance_valid(entity):
+		return str(entity.name)
+	return "?"

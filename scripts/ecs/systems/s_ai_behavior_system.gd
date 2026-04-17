@@ -3,6 +3,7 @@ extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
 const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_AI_GOAL_SELECTOR := preload("res://scripts/utils/ai/u_ai_goal_selector.gd")
@@ -76,7 +77,7 @@ func process_tick(delta: float) -> void:
 		)
 		active_context_keys.append(_context_builder.context_key_for_context(context))
 		_process_brain(brain, brain_settings, context, delta)
-		var snapshot: Dictionary = _build_brain_snapshot(brain)
+		var snapshot: Dictionary = _build_brain_snapshot(brain, context)
 		brain.update_debug_snapshot(snapshot)
 		_debug_log_brain_state(context, snapshot)
 	_tracker.cleanup_stale_contexts(active_context_keys)
@@ -98,10 +99,13 @@ func _process_brain(
 			executing_goal_id
 		)
 		if selected_goal != null:
+			if selected_goal.goal_id != brain.get_active_goal_id():
+				print("[BRAIN] %s goal: %s → %s" % [_context_builder.context_key_for_context(context), brain.get_active_goal_id(), selected_goal.goal_id])
 			_replanner.replan_for_goal(brain, selected_goal, context)
 
 	var finished_goal_id: StringName = _task_runner.tick(brain, delta, context)
 	if finished_goal_id != StringName():
+		print("[BRAIN] %s goal completed: %s" % [_context_builder.context_key_for_context(context), finished_goal_id])
 		_goal_selector.mark_goal_fired_by_id(brain_settings, finished_goal_id, context, _tracker)
 
 func _should_evaluate_goals(
@@ -134,11 +138,18 @@ func _consume_debug_log_budget(entity_id: StringName) -> bool:
 		return false
 	return _debug_log_throttle.consume_budget(entity_id, maxf(debug_log_interval_sec, 0.05))
 
-func _build_brain_snapshot(brain: C_AIBrainComponent) -> Dictionary:
+func _build_brain_snapshot(brain: C_AIBrainComponent, context: Dictionary) -> Dictionary:
 	var current_task: RS_AIPrimitiveTask = brain.get_current_task()
 	var task_id: StringName = current_task.task_id if current_task != null else StringName()
 	var task_state: Dictionary = brain.task_state
+	var _det: bool = false
+	var _ctx_comp: Variant = context.get("components", null)
+	if _ctx_comp is Dictionary:
+		var _dc: C_DetectionComponent = (_ctx_comp as Dictionary).get(C_DetectionComponent.COMPONENT_TYPE, null)
+		if _dc != null: _det = _dc.is_player_in_range
 	return {
+		"entity_id": _context_builder.context_key_for_context(context),
+		"is_player_in_range": _det,
 		"goal_id": brain.get_active_goal_id(),
 		"queue_size": brain.current_task_queue.size(),
 		"task_index": brain.current_task_index,
@@ -153,31 +164,17 @@ func _debug_log_brain_state(context: Dictionary, snapshot: Dictionary) -> void:
 	var entity_id: StringName = _context_builder.context_key_for_context(context)
 	if not _consume_debug_log_budget(entity_id):
 		return
-
 	var render_probe: String = ""
 	if debug_ai_render_probe_logging:
-		var movement_component: C_MovementComponent = null
-		var components_variant: Variant = context.get("components", null)
-		if components_variant is Dictionary:
-			movement_component = (components_variant as Dictionary).get(MOVEMENT_COMPONENT_TYPE, null) as C_MovementComponent
-		var entity: Node = context.get("entity", null) as Node
-		render_probe = U_AI_RENDER_PROBE.build_probe_string(entity, null, movement_component)
-
-	print(
-		"S_AIBehaviorSystem[entity=%s] goal=%s queue_size=%d task_index=%d task_id=%s action_started=%s move_target_resolved=%s move_target_source=%s suspended=%s%s"
-		% [
-			str(entity_id),
-			str(snapshot.get("goal_id", StringName())),
-			int(snapshot.get("queue_size", 0)),
-			int(snapshot.get("task_index", 0)),
-			str(snapshot.get("task_id", StringName())),
-			str(snapshot.get("action_started", false)),
-			str(snapshot.get("move_target_resolved", false)),
-			str(snapshot.get("move_target_source", "")),
-			str(snapshot.get("suspended_goal_ids", [])),
-			render_probe,
-		]
-	)
+		var _mc: C_MovementComponent = null
+		var _cv: Variant = context.get("components", null)
+		if _cv is Dictionary: _mc = (_cv as Dictionary).get(MOVEMENT_COMPONENT_TYPE, null)
+		render_probe = U_AI_RENDER_PROBE.build_probe_string(context.get("entity", null) as Node, null, _mc)
+	print("S_AIBehaviorSystem[entity=%s] goal=%s queue=%d tidx=%d tid=%s started=%s resolved=%s src=%s susp=%s%s" % [
+		entity_id, snapshot.get("goal_id", ""), int(snapshot.get("queue_size", 0)),
+		int(snapshot.get("task_index", 0)), snapshot.get("task_id", ""),
+		snapshot.get("action_started", false), snapshot.get("move_target_resolved", false),
+		snapshot.get("move_target_source", ""), snapshot.get("suspended_goal_ids", []), render_probe])
 
 func _debug_log_missing_brains() -> void:
 	if not debug_ai_logging:
