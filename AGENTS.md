@@ -1409,6 +1409,23 @@ func _apply_window_mode(mode: String) -> void:
 - ❌ Gating cinema grade behind `post_processing_enabled` (it's artistic direction, always active)
 - ❌ Using runtime `DirAccess` in cinema grade registry (breaks on Android PCK)
 
+## Behavior Tree Patterns (Phase 1)
+
+### File Layout
+- General BT framework (composites, decorators): `scripts/resources/bt/`
+- AI-specific leaves + scorers: `scripts/resources/ai/bt/`
+- BT runner (P1.6): `scripts/utils/bt/`
+
+### RS_BTAction Context Contract
+- `context["delta"]` must be injected by the **caller** before `tick()`. `RS_BTAction._resolve_delta()` reads `context["delta"]`; absent key silently returns `0.0`.
+- **P1.8 risk**: `S_AIBehaviorSystem` currently passes `delta` as a separate arg to the task runner, not into context. When `U_BTRunner` is wired in P1.8, inject `context[&"delta"] = delta` before calling `runner.tick(root, context, state_bag)` or every action silently gets `delta = 0`.
+- `U_AITaskStateKeys` (`scripts/utils/ai/u_ai_task_state_keys.gd`) is preloaded by `RS_BTAction` and is retained after P1.10.
+
+### Scorer Architecture
+- `RS_BTUtilitySelector` scores children via `child_scorers: Array[Resource]` — one scorer per child by index.
+- All scorers extend `RS_AIScorer` and implement `score(context: Dictionary) -> float`.
+- Score ≤ 0.0 means "not viable". Selector returns FAILURE when all children score ≤ 0.
+
 ## Test Commands
 
 - Run ECS tests
