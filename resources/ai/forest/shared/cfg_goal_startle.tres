@@ -45,3 +45,4 @@ conditions = Array[ExtResource("1_condition")]([SubResource("Condition_startle_d
 root_task = SubResource("Task_startle_sequence")
 priority = 8
 cooldown = 2.0
+requires_rising_edge = true
