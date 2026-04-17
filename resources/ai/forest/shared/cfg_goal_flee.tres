@@ -13,7 +13,7 @@ field_path = "is_player_in_range"
 
 [sub_resource type="Resource" id="Action_flee_detected"]
 script = ExtResource("4_action_flee_detected")
-flee_distance = 9.0
+flee_distance = 12.0
 arrival_threshold = 0.6
 
 [sub_resource type="Resource" id="Task_flee_detected"]

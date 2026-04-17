@@ -19,14 +19,15 @@ Notable behavior concern from the same run:
 Post-log tuning applied in repo:
 - `RS_AIActionMoveToDetected` now refreshes move target every tick from live detected entity position (continuous chase repath).
 - `cfg_goal_startle.tres` now sets `requires_rising_edge = true` to reduce repeated retrigger churn while threat remains continuously true.
+- 2026-04-17 tuning pass: rabbit `detection_exit_radius` increased to `16.0` (from `14.0`), deer `detection_exit_radius` increased to `18.0` (from `16.0`), rabbit flee distance increased to `12.0` (from `9.0`), and deer `startle` cooldown increased to `3.0` (from `2.0`) to reduce edge-flapping and repeated startle loops.
 
 ## 1) Species Behavior Comparison
 
 | Species | Phase 1 expected behavior | Current authored behavior | Comparison |
 |---|---|---|---|
 | Wolf | Chase nearest rabbit/prey when detected; otherwise roam | `target_tag = &"prey"`, `detection_radius = 12`, goals `[hunt(10), wander(0)]`, hunt task sequence `move_to_detected -> wait(0.4) -> move_to_detected`, with move-to-detected target refreshed each tick | Aligned by authored contract and runtime logs; chase continuity improved by repath tuning |
-| Rabbit | Flee from nearby wolves/predators | `target_tag = &"predator"`, `detection_radius = 8`, goals `[flee(10), graze(2), wander(0)]`, flee uses computed away-vector target with `flee_distance = 9` | Aligned by authored contract and runtime logs |
-| Deer | Switch from graze to startle when predator nearby | `target_tag = &"predator"`, `detection_radius = 10`, goals `[startle(8,cooldown=2,requires_rising_edge=true), graze(2), wander(0)]`, startle sequence `scan(1.0,1.5) -> wait(0.35)` | Functionally aligned; churn mitigation tuning applied, needs long-run validation |
+| Rabbit | Flee from nearby wolves/predators | `target_tag = &"predator"`, `detection_radius = 8`, `detection_exit_radius = 16`, goals `[flee(10), graze(2), wander(0)]`, flee uses computed away-vector target with `flee_distance = 12` | Aligned by authored contract; widened hysteresis + longer flee displacement to reduce rapid flee/wander toggles near boundary |
+| Deer | Switch from graze to startle when predator nearby | `target_tag = &"predator"`, `detection_radius = 10`, `detection_exit_radius = 18`, goals `[startle(8,cooldown=3,requires_rising_edge=true), graze(2), wander(0)]`, startle sequence `scan(1.0,1.5) -> wait(0.35)` | Functionally aligned; wider hysteresis + longer cooldown reduce repeated startle retriggers under sustained proximity |
 | Tree | Static decoration/obstacle only | `StaticBody3D` + collision shape + visual CSG mesh, no brain/components | Aligned |
 
 Detailed entity specs:
@@ -60,7 +61,7 @@ Detailed entity specs:
 ## 4) Gaps To Verify Now
 
 - Manual visual pass remains needed for UI/debug overlays and movement quality assessment.
-- Deer startle churn should be reviewed for tuning intent (cooldown/priority/condition gating), since repeated oscillation is visible in runtime logs.
+- Re-run a visual pass after the 2026-04-17 tuning update to verify reduced rabbit flee/wander edge flapping and reduced deer startle churn.
 - Re-run suites before locking comparison as current for a new code patch:
 - `tests/integration/gameplay/test_forest_ecosystem_smoke.gd`
 - `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd`

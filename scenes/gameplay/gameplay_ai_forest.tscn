@@ -9,7 +9,6 @@
 [ext_resource type="Script" uid="uid://cxemqvnjcd4qm" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="7_ai_behavior_system"]
 [ext_resource type="Script" uid="uid://ce63ayt3nfe71" path="res://scripts/ecs/systems/s_move_target_follower_system.gd" id="8_move_target_follower_system"]
 [ext_resource type="Script" uid="uid://bkvxy8p8my0na" path="res://scripts/ecs/systems/s_ai_detection_system.gd" id="9_ai_detection_system"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_needs_system.gd" id="21_needs_system"]
 [ext_resource type="Script" uid="uid://b85bi31g464hs" path="res://scripts/ecs/systems/s_gravity_system.gd" id="10_gravity_system"]
 [ext_resource type="Script" uid="uid://h5ym8nprt7dw" path="res://scripts/ecs/systems/s_movement_system.gd" id="11_movement_system"]
 [ext_resource type="Script" uid="uid://bybk18c838a4x" path="res://scripts/ecs/systems/s_floating_system.gd" id="12_floating_system"]
@@ -21,6 +20,7 @@
 [ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_forest_deer.tscn" id="18_deer_prefab"]
 [ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="19_marker_lighting"]
 [ext_resource type="PackedScene" path="res://scenes/debug/debug_ai_brain_panel.tscn" id="20_debug_panel"]
+[ext_resource type="Script" uid="uid://4si1ltple6nr" path="res://scripts/ecs/systems/s_needs_system.gd" id="21_needs_system"]
 
 [sub_resource type="StandardMaterial3D" id="1_floor_material"]
 shading_mode = 0
@@ -54,7 +54,7 @@ execution_priority = -12
 script = ExtResource("7_ai_behavior_system")
 execution_priority = -10
 
-[node name="S_NeedsSystem" type="Node" parent="Systems/Core"]
+[node name="S_NeedsSystem" type="Node" parent="Systems/Core" unique_id=849817738]
 script = ExtResource("21_needs_system")
 execution_priority = -9
 
@@ -306,6 +306,7 @@ size = 36.825
 [node name="Debug" type="Node" parent="." unique_id=387880905]
 
 [node name="DebugAIBrainPanel" parent="Debug" unique_id=1019706136 instance=ExtResource("20_debug_panel")]
+visible = false
 offset_left = 43.0
 offset_top = 24.0
 offset_right = 454.0

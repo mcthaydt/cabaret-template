@@ -40,7 +40,7 @@ Source template: `docs/ai_system/ai-entity-authoring-template.md`
 
 | detection_role | target_tag | radius | enter_event_name | cooldown (if any) | Notes |
 |---|---|---:|---|---:|---|
-| primary | `&"predator"` | `8.0` (`exit_radius = 14.0`) | none | none | Uses XZ distance (`detect_y_axis = false`) |
+| primary | `&"predator"` | `8.0` (`exit_radius = 16.0`) | none | none | Uses XZ distance (`detect_y_axis = false`) |
 
 ### 3.3 Detection invariants
 
@@ -108,7 +108,7 @@ Source template: `docs/ai_system/ai-entity-authoring-template.md`
 
 Implementation notes:
 - Flee target is computed as `self + normalize(self - detected) * flee_distance`.
-- Flee tunables from goal resource: `flee_distance = 9.0`, `arrival_threshold = 0.6`.
+- Flee tunables from goal resource: `flee_distance = 12.0`, `arrival_threshold = 0.6`.
 - `graze` and `wander` are non-event baseline behaviors.
 
 ## 7) Authoring Assets Checklist
@@ -160,9 +160,9 @@ Implementation notes:
 - `deceleration = 32.0`
 - Detection radii:
 - enter `8.0`
-- exit `14.0`
+- exit `16.0`
 - Evaluation cadence: `0.25s`
-- Flee behavior: `flee_distance = 9.0`, arrival threshold `0.6`
+- Flee behavior: `flee_distance = 12.0`, arrival threshold `0.6`
 
 ## 11) Definition Of Done
 

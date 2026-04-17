@@ -40,7 +40,7 @@ Source template: `docs/ai_system/ai-entity-authoring-template.md`
 
 | detection_role | target_tag | radius | enter_event_name | cooldown (if any) | Notes |
 |---|---|---:|---|---:|---|
-| primary | `&"predator"` | `10.0` (`exit_radius = 16.0`) | none | none | Uses XZ distance (`detect_y_axis = false`) |
+| primary | `&"predator"` | `10.0` (`exit_radius = 18.0`) | none | none | Uses XZ distance (`detect_y_axis = false`) |
 
 ### 3.3 Detection invariants
 
@@ -62,7 +62,7 @@ Source template: `docs/ai_system/ai-entity-authoring-template.md`
 - Goal resource: `resources/ai/forest/shared/cfg_goal_startle.tres`
 - Priority: `8`
 - Score threshold: `0.0` (default)
-- Cooldown: `2.0`
+- Cooldown: `3.0`
 - One-shot: `false` (default)
 - Requires rising edge: `true` (tuning to reduce repeated startle retriggers while threat stays continuously true)
 - Root task: `startle_sequence` compound task
@@ -157,9 +157,9 @@ Implementation notes:
 - `deceleration = 32.0`
 - Detection radii:
 - enter `10.0`
-- exit `16.0`
+- exit `18.0`
 - Evaluation cadence: `0.25s`
-- Startle timings: scan `1.0s`, wait `0.35s`, cooldown `2.0s`
+- Startle timings: scan `1.0s`, wait `0.35s`, cooldown `3.0s`
 
 ## 11) Definition Of Done
 

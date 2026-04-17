@@ -17,7 +17,7 @@ tags = Array[StringName]([&"prey", &"ai", &"forest"])
 [node name="C_DetectionComponent" parent="Components"]
 target_tag = &"predator"
 detection_radius = 8.0
-detection_exit_radius = 14.0
+detection_exit_radius = 16.0
 
 [node name="C_AIBrainComponent" parent="Components"]
 brain_settings = ExtResource("2_rabbit_brain")
