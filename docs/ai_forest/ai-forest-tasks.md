@@ -200,7 +200,8 @@
 
 ### P3a. Multi-detection-component support
 
-- [ ] **Commit 29** — Extend `C_DetectionComponent` with an optional `detection_role: StringName = &"primary"` export (purely informational; `is_player_in_range` + `last_detected_player_entity_id` stay per-component). Update `S_AIDetectionSystem` to iterate *all* `C_DetectionComponent` instances per entity rather than assuming one.
+- [x] **Commit 29** — Extend `C_DetectionComponent` with an optional `detection_role: StringName = &"primary"` export (purely informational; `is_player_in_range` + `last_detected_player_entity_id` stay per-component). Update `S_AIDetectionSystem` to iterate *all* `C_DetectionComponent` instances per entity rather than assuming one.
+  - Completion note (2026-04-16): added `detection_role` export group to `C_DetectionComponent`; refactored `S_AIDetectionSystem.process_tick()` to iterate all detection components via `get_components()` + entity-root lookup instead of `query_entities()`, enabling multiple detection components per entity; AI suite 142/142, detection suites 14/14, style 58/58.
 - [ ] **Commit 30** (RED) — Update `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd` (and add a new `test_s_ai_detection_system_multi_component.gd` if needed): one entity with two detection components, each `target_tag` different, each publishes independent state.
 - [ ] **Commit 31** (GREEN) — Implement multi-component iteration; preserve all back-compat fields per component.
 

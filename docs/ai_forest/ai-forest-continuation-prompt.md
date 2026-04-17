@@ -5,13 +5,13 @@
 This prompt directs you to implement the AI Forest Simulation by executing `docs/ai_forest/ai-forest-tasks.md` in sequential order, respecting the phase dependency chain. The full specification lives in `docs/ai_forest/ai-forest-overview.md`.
 
 **Branch**: GOAP-AI
-**Status**: Phase 2 complete (2026-04-17); Commits 20-28 completed. Manual Phase 1 visual acceptance still pending.
-**Next task**: Phase 3a Commit 29 — extend `C_DetectionComponent` with `detection_role` and update `S_AIDetectionSystem` for multi-component iteration.
-**Prerequisite**: Baseline AI suite re-measured and green (`142/142` passing on 2026-04-17); full unit/style/smoke phase checks executed at Phase 1 closeout.
+**Status**: Phase 3a in progress (2026-04-16); Commit 29 done. Manual Phase 1 visual acceptance still pending.
+**Next task**: Phase 3a Commit 30 (RED) — multi-detection-component tests.
+**Prerequisite**: Baseline AI suite green (`142/142` passing on 2026-04-16); Commit 29 regressions verified.
 
 ---
 
-## Current Status: Phase 2 Complete
+## Current Status: Phase 3a In Progress
 
 Implementation progress:
 - Commit 1 RED: added `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd` and confirmed expected failures before implementation.
@@ -161,8 +161,8 @@ These decisions diverge from what an intuitive reading of the AI system might su
 
 ### To be created (Phase 3)
 
-- New `C_DetectionComponent` export: `detection_role: StringName`
-- Multi-component iteration in `S_AIDetectionSystem`
+- ~~New `C_DetectionComponent` export: `detection_role: StringName`~~ (Commit 29)
+- ~~Multi-component iteration in `S_AIDetectionSystem`~~ (Commit 29)
 - `cfg_goal_hunt_pack.tres`
 - Additional `C_DetectionComponent` child on `prefab_forest_wolf.tscn`
 - Tests: `test_s_ai_detection_system_multi_component.gd`, `test_pack_converges.gd`
@@ -215,6 +215,6 @@ When the user says "proceed" or "start Phase 3":
 - **Outcome**: Needs settings/component/system, hunger-conditioned goal scoring, feed action integration, and hunger-aware debug outputs are complete. Phase 2 automated verification suites are green; manual visual fluctuation pass remains pending.
 
 ### Phase 3 — Pack behavior + polish
-- **Status**: Not started
-- **Commits**: 0 / 9
-- **Outcome**: —
+- **Status**: In progress (2026-04-16)
+- **Commits**: 1 / 9 (Commit 29 done)
+- **Outcome**: `detection_role` export added to `C_DetectionComponent`; `S_AIDetectionSystem` refactored to iterate all detection components via `get_components()` enabling multi-component per entity.
