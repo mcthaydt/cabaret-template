@@ -85,6 +85,7 @@ const AI_RESOURCE_ALLOWED_SUBDIRECTORIES := [
 	"goals",
 	"tasks",
 	"actions",
+	"bt",
 ]
 
 const BT_RESOURCE_MAX_LINES := 199
