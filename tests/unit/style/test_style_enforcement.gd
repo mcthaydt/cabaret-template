@@ -87,6 +87,19 @@ const AI_RESOURCE_ALLOWED_SUBDIRECTORIES := [
 	"actions",
 ]
 
+const BT_RESOURCE_MAX_LINES := 199
+const BT_GENERAL_DIR := "res://scripts/resources/bt"
+const BT_AI_DIR := "res://scripts/resources/ai/bt"
+const BT_GENERAL_FORBIDDEN_TOKENS := [
+	"U_AI",
+	"I_AIAction",
+	"I_Condition",
+	"U_AITaskStateKeys",
+	"RS_WorldStateEffect",
+	"RS_BTPlanner",
+	"RS_BTPlannerAction",
+]
+
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core": ["u_"],
@@ -574,6 +587,25 @@ func test_ai_resource_scripts_are_grouped_by_subdirectory() -> void:
 	_collect_ai_resource_layout_violations("res://scripts/resources/ai", violations)
 
 	var message := "AI resource scripts must live under scripts/resources/ai/{brain,goals,tasks,actions}"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_bt_resource_scripts_stay_under_two_hundred_lines() -> void:
+	var violations: Array[String] = []
+	_collect_gd_file_line_limit_violations(BT_GENERAL_DIR, BT_RESOURCE_MAX_LINES, violations)
+	_collect_gd_file_line_limit_violations(BT_AI_DIR, BT_RESOURCE_MAX_LINES, violations)
+
+	var message := "BT resource scripts should stay under 200 lines each"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_bt_general_resources_do_not_reference_ai_specific_types() -> void:
+	var violations: Array[String] = []
+	_collect_gd_forbidden_token_violations(BT_GENERAL_DIR, BT_GENERAL_FORBIDDEN_TOKENS, violations)
+
+	var message := "General BT resources must not import AI-specific interfaces/utilities/types"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
@@ -1191,6 +1223,62 @@ func _collect_gd_filename_substring_violations(
 		elif entry.ends_with(".gd"):
 			if entry.find(needle) != -1:
 				violations.append(path)
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _collect_gd_file_line_limit_violations(dir_path: String, max_lines: int, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_gd_file_line_limit_violations(path, max_lines, violations)
+		elif entry.ends_with(".gd"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				entry = dir.get_next()
+				continue
+			var line_count: int = 0
+			while not file.eof_reached():
+				file.get_line()
+				line_count += 1
+			file.close()
+			if line_count > max_lines:
+				violations.append("%s has %d lines (max %d)" % [path, line_count, max_lines])
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _collect_gd_forbidden_token_violations(
+	dir_path: String,
+	forbidden_tokens: Array,
+	violations: Array[String]
+) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_gd_forbidden_token_violations(path, forbidden_tokens, violations)
+		elif entry.ends_with(".gd"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				entry = dir.get_next()
+				continue
+			var file_text: String = file.get_as_text()
+			file.close()
+			for token in forbidden_tokens:
+				if file_text.find(token) != -1:
+					violations.append("%s references forbidden token '%s'" % [path, token])
 		entry = dir.get_next()
 	dir.list_dir_end()
 
