@@ -33,8 +33,10 @@ func refresh_rows() -> void:
 		var brain: C_AIBrainComponent = component_variant as C_AIBrainComponent
 		if brain == null:
 			continue
+		var snapshot: Dictionary = brain.get_debug_snapshot()
 		var row_label: Label = Label.new()
-		row_label.text = _build_row_text(brain)
+		row_label.text = _build_row_text(brain, snapshot)
+		row_label.modulate = _resolve_hunger_color(snapshot)
 		_rows.add_child(row_label)
 
 func _on_refresh_timeout() -> void:
@@ -67,19 +69,20 @@ func _ensure_required_children() -> void:
 		add_child(timer)
 		_refresh_timer = timer
 
-func _build_row_text(brain: C_AIBrainComponent) -> String:
-	var snapshot: Dictionary = brain.get_debug_snapshot()
+func _build_row_text(brain: C_AIBrainComponent, snapshot: Dictionary) -> String:
 	var entity_id_value: String = _resolve_entity_id(snapshot, brain)
 	var goal_id_value: String = _resolve_snapshot_string(snapshot, "goal_id")
 	var task_id_value: String = _resolve_snapshot_string(snapshot, "task_id")
 	var detect_value: String = str(snapshot.get("is_player_in_range", "?"))
+	var hunger_value: float = clampf(float(snapshot.get("hunger", 1.0)), 0.0, 1.0)
 	var exit_radius_value: String = ""
 	if snapshot.has("detection_exit_radius"):
 		var er: float = float(snapshot.get("detection_exit_radius", 0.0))
 		var dr: float = float(snapshot.get("detection_radius", 8.0))
 		if er > dr:
 			exit_radius_value = " exit=%.1f" % er
-	return "%s | goal=%s | task=%s | detect=%s%s" % [entity_id_value, goal_id_value, task_id_value, detect_value, exit_radius_value]
+	return "%s | goal=%s | task=%s | hunger=%.2f | detect=%s%s" % [
+		entity_id_value, goal_id_value, task_id_value, hunger_value, detect_value, exit_radius_value]
 
 func _resolve_entity_id(snapshot: Dictionary, brain: C_AIBrainComponent) -> String:
 	var from_snapshot: String = _resolve_snapshot_string(snapshot, "entity_id")
@@ -106,3 +109,13 @@ func _resolve_snapshot_string(snapshot: Dictionary, key: String) -> String:
 	if value is String:
 		return value as String
 	return str(value)
+
+func _resolve_hunger_color(snapshot: Dictionary) -> Color:
+	var hunger: float = clampf(float(snapshot.get("hunger", 1.0)), 0.0, 1.0)
+	var sated_threshold: float = clampf(float(snapshot.get("sated_threshold", 0.7)), 0.0, 1.0)
+	var starving_threshold: float = clampf(float(snapshot.get("starving_threshold", 0.25)), 0.0, 1.0)
+	if hunger >= sated_threshold:
+		return Color(0.5, 0.95, 0.5, 1.0)
+	if hunger <= starving_threshold:
+		return Color(1.0, 0.45, 0.45, 1.0)
+	return Color(1.0, 0.9, 0.35, 1.0)

@@ -3,13 +3,13 @@ extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
 const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_AI_GOAL_SELECTOR := preload("res://scripts/utils/ai/u_ai_goal_selector.gd")
 const U_AI_TASK_RUNNER := preload("res://scripts/utils/ai/u_ai_task_runner.gd")
 const U_AI_REPLANNER := preload("res://scripts/utils/ai/u_ai_replanner.gd")
 const U_AI_CONTEXT_BUILDER := preload("res://scripts/utils/ai/u_ai_context_builder.gd")
+const U_AI_BRAIN_SNAPSHOT_BUILDER := preload("res://scripts/ecs/systems/helpers/u_ai_brain_snapshot_builder.gd")
 const U_AI_RENDER_PROBE := preload("res://scripts/utils/debug/u_ai_render_probe.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
@@ -77,7 +77,7 @@ func process_tick(delta: float) -> void:
 		)
 		active_context_keys.append(_context_builder.context_key_for_context(context))
 		_process_brain(brain, brain_settings, context, delta)
-		var snapshot: Dictionary = _build_brain_snapshot(brain, context)
+		var snapshot: Dictionary = U_AI_BRAIN_SNAPSHOT_BUILDER.build(brain, context, _context_builder)
 		brain.update_debug_snapshot(snapshot)
 		_debug_log_brain_state(context, snapshot)
 	_tracker.cleanup_stale_contexts(active_context_keys)
@@ -137,35 +137,6 @@ func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	if debug_entity_id != StringName() and entity_id != debug_entity_id:
 		return false
 	return _debug_log_throttle.consume_budget(entity_id, maxf(debug_log_interval_sec, 0.05))
-
-func _build_brain_snapshot(brain: C_AIBrainComponent, context: Dictionary) -> Dictionary:
-	var current_task: RS_AIPrimitiveTask = brain.get_current_task()
-	var task_id: StringName = current_task.task_id if current_task != null else StringName()
-	var task_state: Dictionary = brain.task_state
-	var _det: bool = false
-	var _det_radius: float = 0.0
-	var _det_exit_radius: float = 0.0
-	var _ctx_comp: Variant = context.get("components", null)
-	if _ctx_comp is Dictionary:
-		var _dc: C_DetectionComponent = (_ctx_comp as Dictionary).get(C_DetectionComponent.COMPONENT_TYPE, null)
-		if _dc != null:
-			_det = _dc.is_player_in_range
-			_det_radius = _dc.detection_radius
-			_det_exit_radius = _dc.detection_exit_radius
-	return {
-		"entity_id": _context_builder.context_key_for_context(context),
-		"is_player_in_range": _det,
-		"detection_radius": _det_radius,
-		"detection_exit_radius": _det_exit_radius,
-		"goal_id": brain.get_active_goal_id(),
-		"queue_size": brain.current_task_queue.size(),
-		"task_index": brain.current_task_index,
-		"task_id": task_id,
-		"action_started": bool(task_state.get(U_AITaskStateKeys.ACTION_STARTED, false)),
-		"move_target_resolved": bool(task_state.get(U_AITaskStateKeys.MOVE_TARGET_RESOLVED, false)),
-		"move_target_source": str(task_state.get(U_AITaskStateKeys.MOVE_TARGET_SOURCE, "")),
-		"suspended_goal_ids": brain.suspended_goal_state.keys() if brain.suspended_goal_state is Dictionary else [],
-	}
 
 func _debug_log_brain_state(context: Dictionary, snapshot: Dictionary) -> void:
 	var entity_id: StringName = _context_builder.context_key_for_context(context)

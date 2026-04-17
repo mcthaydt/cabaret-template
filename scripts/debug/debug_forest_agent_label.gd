@@ -64,12 +64,14 @@ func _update_label_text() -> void:
 	var entity_id_text: String = _resolve_entity_id(snapshot)
 	var goal_id_text: String = _resolve_snapshot_text(snapshot, "goal_id")
 	var task_id_text: String = _resolve_snapshot_text(snapshot, "task_id")
+	var hunger: float = clampf(float(snapshot.get("hunger", 1.0)), 0.0, 1.0)
 	var detect_text: String = "detect:%s" % str(snapshot.get("is_player_in_range", "?"))
 	var exit_radius: float = float(snapshot.get("detection_exit_radius", 0.0))
 	var det_radius: float = float(snapshot.get("detection_radius", 0.0))
 	if exit_radius > det_radius:
 		detect_text += " exit:%.0f" % exit_radius
-	text = "%s\ngoal: %s\ntask: %s\n%s" % [entity_id_text, goal_id_text, task_id_text, detect_text]
+	modulate = _resolve_hunger_color(snapshot)
+	text = "%s\ngoal: %s\ntask: %s\nhunger: %.2f\n%s" % [entity_id_text, goal_id_text, task_id_text, hunger, detect_text]
 
 func _resolve_entity_id(snapshot: Dictionary) -> String:
 	var entity_id_text: String = _resolve_snapshot_text(snapshot, "entity_id")
@@ -96,3 +98,13 @@ func _resolve_snapshot_text(snapshot: Dictionary, key: String) -> String:
 	if value is StringName:
 		return str(value)
 	return str(value)
+
+func _resolve_hunger_color(snapshot: Dictionary) -> Color:
+	var hunger: float = clampf(float(snapshot.get("hunger", 1.0)), 0.0, 1.0)
+	var sated_threshold: float = clampf(float(snapshot.get("sated_threshold", 0.7)), 0.0, 1.0)
+	var starving_threshold: float = clampf(float(snapshot.get("starving_threshold", 0.25)), 0.0, 1.0)
+	if hunger >= sated_threshold:
+		return Color(0.5, 0.95, 0.5, 1.0)
+	if hunger <= starving_threshold:
+		return Color(1.0, 0.45, 0.45, 1.0)
+	return Color(1.0, 0.9, 0.35, 1.0)

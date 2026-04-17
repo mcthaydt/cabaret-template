@@ -61,11 +61,17 @@ func test_panel_renders_one_row_per_brain_component() -> void:
 		"entity_id": &"E_Wolf_01",
 		"goal_id": &"hunt",
 		"task_id": &"move_to_detected",
+		"hunger": 0.85,
+		"sated_threshold": 0.75,
+		"starving_threshold": 0.3,
 	}, panel)
 	_register_brain(ecs_manager, {
 		"entity_id": &"E_Rabbit_01",
 		"goal_id": &"flee",
 		"task_id": &"flee_from_detected",
+		"hunger": 0.22,
+		"sated_threshold": 0.75,
+		"starving_threshold": 0.3,
 	}, panel)
 
 	assert_true(panel.has_method("refresh_rows"), "Panel should expose refresh_rows() for deterministic testing.")
@@ -89,6 +95,9 @@ func test_panel_row_text_contains_entity_goal_and_task() -> void:
 		"entity_id": &"E_Deer_01",
 		"goal_id": &"startle",
 		"task_id": &"scan_alert",
+		"hunger": 0.45,
+		"sated_threshold": 0.75,
+		"starving_threshold": 0.3,
 	}, panel)
 
 	assert_true(panel.has_method("refresh_rows"), "Panel should expose refresh_rows() for deterministic testing.")
@@ -105,6 +114,9 @@ func test_panel_row_text_contains_entity_goal_and_task() -> void:
 	assert_string_contains(row_text, "E_Deer_01", "Row text should include entity_id.")
 	assert_string_contains(row_text, "startle", "Row text should include goal_id.")
 	assert_string_contains(row_text, "scan_alert", "Row text should include task_id.")
+	assert_string_contains(row_text, "hunger=0.45", "Row text should include formatted hunger.")
+	assert_almost_eq(row_labels[0].modulate.r, 1.0, 0.001, "Mid hunger should render warning/yellow color.")
+	assert_almost_eq(row_labels[0].modulate.g, 0.9, 0.001, "Mid hunger should render warning/yellow color.")
 
 func test_panel_handles_empty_brain_list_without_crashing() -> void:
 	var panel: Control = await _instantiate_panel()

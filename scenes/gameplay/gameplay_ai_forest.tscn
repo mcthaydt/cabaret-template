@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://cxemqvnjcd4qm" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="7_ai_behavior_system"]
 [ext_resource type="Script" uid="uid://ce63ayt3nfe71" path="res://scripts/ecs/systems/s_move_target_follower_system.gd" id="8_move_target_follower_system"]
 [ext_resource type="Script" uid="uid://bkvxy8p8my0na" path="res://scripts/ecs/systems/s_ai_detection_system.gd" id="9_ai_detection_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_needs_system.gd" id="21_needs_system"]
 [ext_resource type="Script" uid="uid://b85bi31g464hs" path="res://scripts/ecs/systems/s_gravity_system.gd" id="10_gravity_system"]
 [ext_resource type="Script" uid="uid://h5ym8nprt7dw" path="res://scripts/ecs/systems/s_movement_system.gd" id="11_movement_system"]
 [ext_resource type="Script" uid="uid://bybk18c838a4x" path="res://scripts/ecs/systems/s_floating_system.gd" id="12_floating_system"]
@@ -52,6 +53,10 @@ execution_priority = -12
 [node name="S_AIBehaviorSystem" type="Node" parent="Systems/Core" unique_id=397566918]
 script = ExtResource("7_ai_behavior_system")
 execution_priority = -10
+
+[node name="S_NeedsSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("21_needs_system")
+execution_priority = -9
 
 [node name="S_MoveTargetFollowerSystem" type="Node" parent="Systems/Core" unique_id=1853154069]
 script = ExtResource("8_move_target_follower_system")

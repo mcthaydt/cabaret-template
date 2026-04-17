@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RS_NeedsSettings" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ecs/rs_needs_settings.gd" id="1_0"]
+
+[resource]
+script = ExtResource("1_0")
+initial_hunger = 0.72
+decay_per_second = 0.05
+sated_threshold = 0.78
+starving_threshold = 0.28
+gain_on_feed = 0.35

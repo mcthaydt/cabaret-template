@@ -8,11 +8,19 @@
 [ext_resource type="Script" uid="uid://ut0hjawm2yq3" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="5_primitive_task"]
 [ext_resource type="Script" uid="uid://bs3dj8uojf4je" path="res://scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd" id="6_action_move_detected"]
 [ext_resource type="Script" uid="uid://cxpr5abl5uj1l" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="7_action_wait"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_feed.gd" id="8_action_feed"]
 
 [sub_resource type="Resource" id="Condition_hunt_detected_target"]
 script = ExtResource("2_condition_component_field")
 component_type = &"C_DetectionComponent"
 field_path = "is_player_in_range"
+
+[sub_resource type="Resource" id="Condition_hunt_hunger_low"]
+script = ExtResource("2_condition_component_field")
+component_type = &"C_NeedsComponent"
+field_path = "hunger"
+range_min = 1.0
+range_max = 0.0
 
 [sub_resource type="Resource" id="Action_move_detected_first"]
 script = ExtResource("6_action_move_detected")
@@ -41,14 +49,22 @@ script = ExtResource("5_primitive_task")
 action = SubResource("Action_move_detected_second")
 task_id = &"move_to_detected_second"
 
+[sub_resource type="Resource" id="Action_hunt_feed"]
+script = ExtResource("8_action_feed")
+
+[sub_resource type="Resource" id="Task_hunt_feed"]
+script = ExtResource("5_primitive_task")
+action = SubResource("Action_hunt_feed")
+task_id = &"hunt_feed"
+
 [sub_resource type="Resource" id="Task_hunt_sequence"]
 script = ExtResource("3_compound_task")
-subtasks = Array[ExtResource("4_ai_task")]([SubResource("Task_move_detected_first"), SubResource("Task_wait_hunt_mid"), SubResource("Task_move_detected_second")])
+subtasks = Array[ExtResource("4_ai_task")]([SubResource("Task_move_detected_first"), SubResource("Task_wait_hunt_mid"), SubResource("Task_move_detected_second"), SubResource("Task_hunt_feed")])
 task_id = &"hunt_sequence"
 
 [resource]
 script = ExtResource("1_goal")
 goal_id = &"hunt"
-conditions = Array[ExtResource("1_condition")]([SubResource("Condition_hunt_detected_target")])
+conditions = Array[ExtResource("1_condition")]([SubResource("Condition_hunt_detected_target"), SubResource("Condition_hunt_hunger_low")])
 root_task = SubResource("Task_hunt_sequence")
 priority = 10

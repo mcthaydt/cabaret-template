@@ -60,6 +60,9 @@ func test_label_formats_entity_goal_and_task_as_multiline_text() -> void:
 		"entity_id": &"forest_wolf_01",
 		"goal_id": &"hunt",
 		"task_id": &"move_to_detected_first",
+		"hunger": 0.85,
+		"sated_threshold": 0.75,
+		"starving_threshold": 0.3,
 		"is_player_in_range": false,
 	})
 	await get_tree().process_frame
@@ -67,9 +70,10 @@ func test_label_formats_entity_goal_and_task_as_multiline_text() -> void:
 
 	assert_eq(
 		label.text,
-		"forest_wolf_01\ngoal: hunt\ntask: move_to_detected_first\ndetect:false",
+		"forest_wolf_01\ngoal: hunt\ntask: move_to_detected_first\nhunger: 0.85\ndetect:false",
 		"Label text should render entity/goal/task/detect with multiline formatting."
 	)
+	assert_almost_eq(label.modulate.g, 0.95, 0.001, "High hunger should render sated/green label color.")
 
 func test_label_falls_back_to_entity_root_id_when_snapshot_id_missing() -> void:
 	var fixture: Dictionary = _build_entity_with_brain("E_Fallback")
@@ -81,6 +85,9 @@ func test_label_falls_back_to_entity_root_id_when_snapshot_id_missing() -> void:
 	brain.update_debug_snapshot({
 		"goal_id": &"wander",
 		"task_id": &"wander",
+		"hunger": 0.2,
+		"sated_threshold": 0.75,
+		"starving_threshold": 0.3,
 		"is_player_in_range": true,
 	})
 	await get_tree().process_frame
@@ -88,9 +95,10 @@ func test_label_falls_back_to_entity_root_id_when_snapshot_id_missing() -> void:
 
 	assert_eq(
 		label.text,
-		"fallback\ngoal: wander\ntask: wander\ndetect:true",
+		"fallback\ngoal: wander\ntask: wander\nhunger: 0.20\ndetect:true",
 		"Label should derive entity_id from entity root when snapshot omits it."
 	)
+	assert_almost_eq(label.modulate.r, 1.0, 0.001, "Low hunger should render starving/red label color.")
 
 func test_label_follows_character_body_position() -> void:
 	var fixture: Dictionary = _build_entity_with_brain("E_Wolf_02")

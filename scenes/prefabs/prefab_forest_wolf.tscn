@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_forest_agent.tscn" id="1_forest_agent"]
 [ext_resource type="Resource" path="res://resources/ai/forest/wolf/cfg_wolf_brain.tres" id="2_wolf_brain"]
+[ext_resource type="Resource" path="res://resources/base_settings/ai_forest/cfg_needs_wolf.tres" id="3_needs_wolf"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wolf"]
 shading_mode = 0
@@ -20,6 +21,9 @@ detection_exit_radius = 18.0
 
 [node name="C_AIBrainComponent" parent="Components"]
 brain_settings = ExtResource("2_wolf_brain")
+
+[node name="C_NeedsComponent" parent="Components"]
+settings = ExtResource("3_needs_wolf")
 
 [node name="Body_Mesh" type="CSGBox3D" parent="Player_Body"]
 transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 1.4, 0, 1, 0)
