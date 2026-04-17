@@ -51,22 +51,33 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 
 **Goal**: Introduce the node base class, status enum, and per-node state contract. Zero behavior change — nothing wired up to the game yet.
 
-- [ ] **Commit 1** (RED) — `tests/unit/ai/bt/test_rs_bt_node_base.gd`:
+- [x] **Commit 1** (RED) — `tests/unit/ai/bt/test_rs_bt_node_base.gd`:
   - Status enum has exactly `RUNNING`, `SUCCESS`, `FAILURE`.
   - Base `tick(context, state_bag)` calls `push_error` when not overridden (matches `I_AIAction` / `I_Condition` pattern per F16).
   - `node_id` is stable per instance (used as state-bag key).
-- [ ] **Commit 2** (GREEN) — Create (general framework under `scripts/resources/bt/` — these base classes have no AI dependencies):
+- [x] **Commit 2** (GREEN) — Create (general framework under `scripts/resources/bt/` — these base classes have no AI dependencies):
   - `scripts/resources/bt/rs_bt_node.gd` — `class_name RS_BTNode`, `extends Resource`. `enum Status { RUNNING, SUCCESS, FAILURE }`. Virtual `tick(context: Dictionary, state_bag: Dictionary) -> Status`.
   - `scripts/resources/bt/rs_bt_composite.gd` — `class_name RS_BTComposite`, `extends RS_BTNode`. Typed `children: Array[RS_BTNode]` with `_coerce_children()` setter matching F7 pattern.
   - `scripts/resources/bt/rs_bt_decorator.gd` — `class_name RS_BTDecorator`, `extends RS_BTNode`. Typed `child: RS_BTNode`.
-- [ ] **Commit 3** (GREEN) — Style enforcement:
+- [x] **Commit 3** (GREEN) — Style enforcement:
   - Add to `tests/unit/style/test_style_enforcement.gd`: every file under `scripts/resources/bt/` AND `scripts/resources/ai/bt/` under 200 lines.
   - Files under `scripts/resources/bt/` must not import `U_AI*` legacy planner utils OR any AI-specific types (prevents backslide; keeps the framework general). Files under `scripts/resources/ai/bt/` may reference `I_Condition` / `I_AIAction` / `U_AITaskStateKeys`.
 
 **P1.1 Verification**:
-- [ ] All new tests green.
+- [x] All new tests green.
 - [ ] Existing test suite green (no code wired yet).
 - [ ] Style enforcement green.
+
+**P1.1 Completion Notes (2026-04-17)**:
+- Implemented `RS_BTNode`, `RS_BTComposite`, and `RS_BTDecorator` under `scripts/resources/bt/`.
+- Added RED base-contract test coverage at `tests/unit/ai/bt/test_rs_bt_node_base.gd`.
+- Added BT style guards for per-file line-count and AI-dependency boundaries in `tests/unit/style/test_style_enforcement.gd`.
+- Full suite is not yet green due pre-existing unrelated failures:
+  - `tests/integration/scene_manager/test_endgame_flows.gd::test_victory_continue_and_credits_buttons_route_correctly`
+  - `tests/unit/style/test_style_enforcement.gd::test_production_paths_have_no_spaces`
+  - `tests/unit/style/test_style_enforcement.gd::test_ai_behavior_system_stays_under_two_hundred_lines`
+  - `tests/unit/ui/test_main_menu.gd::test_play_button_dispatches_start_game_action`
+  - `tests/unit/ui/test_main_menu.gd::test_new_game_confirmation_confirm_starts_game`
 
 ---
 
