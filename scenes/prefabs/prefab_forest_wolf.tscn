@@ -4,6 +4,7 @@
 [ext_resource type="Resource" path="res://resources/ai/forest/wolf/cfg_wolf_brain.tres" id="2_wolf_brain"]
 [ext_resource type="Resource" path="res://resources/base_settings/ai_forest/cfg_needs_wolf.tres" id="3_needs_wolf"]
 [ext_resource type="Resource" path="res://resources/base_settings/ai_forest/cfg_movement_forest_wolf.tres" id="4_movement_wolf"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_detection_component.gd" id="5_detection"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wolf"]
 shading_mode = 0
@@ -22,6 +23,12 @@ settings = ExtResource("4_movement_wolf")
 target_tag = &"prey"
 detection_radius = 12.0
 detection_exit_radius = 18.0
+
+[node name="C_DetectionComponentPack" type="Node" parent="Components"]
+script = ExtResource("5_detection")
+detection_role = &"pack"
+target_tag = &"predator"
+detection_radius = 18.0
 
 [node name="C_AIBrainComponent" parent="Components"]
 brain_settings = ExtResource("2_wolf_brain")
