@@ -5,7 +5,7 @@
 This prompt directs you to implement the AI Forest Simulation by executing `docs/ai_forest/ai-forest-tasks.md` in sequential order, respecting the phase dependency chain. The full specification lives in `docs/ai_forest/ai-forest-overview.md`.
 
 **Branch**: GOAP-AI
-**Status**: Phase 3b complete (2026-04-17); Commits 29-35 done. Manual Phase 1 visual acceptance still pending.
+**Status**: Phase 3b complete with hunt-consume closure hardening (2026-04-17); Commits 29-35 done + post-audit consume patch. Manual Phase 1 visual acceptance still pending.
 **Next task**: Phase 3c Commit 36 — tune detection/flee/home/hunger parameters and document final values.
 **Prerequisite**: Baseline AI suite green (`146/146` passing on 2026-04-17).
 
@@ -67,6 +67,12 @@ Implementation progress:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit` -> `58/58` passing.
   - `tools/run_gut_suite.sh -gtest=res://tests/integration/gameplay/test_forest_ecosystem_smoke.gd -gexit` -> `1/1` passing.
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/gameplay -ginclude_subdirs -gexit` -> `30/30` passing.
+- Post-audit consume hardening (2026-04-17):
+  - Added deterministic feed-target lock contract: `C_DetectionComponent.pending_feed_entity_id` + `U_AITaskStateKeys.DETECTED_ENTITY_ID`.
+  - `RS_AIActionMoveToDetected` now persists/clears locked prey IDs for feed handoff.
+  - `RS_AIActionFeed` now consumes locked target first (task-state -> pending detection id -> live detection fallback), clears lock state, unregisters/removes entity, and frees prey node.
+  - Expanded feed action unit coverage to include locked consume + consume-radius guard (`5/5` passing).
+  - `tests/integration/gameplay/test_forest_ecosystem_smoke.gd` now asserts wolf hunt-loop closure includes prey-count decrease.
 
 Planning artifacts remain authoritative:
 - **`docs/ai_forest/ai-forest-overview.md`** — purpose, scope, architecture, species spec, per-phase acceptance criteria.

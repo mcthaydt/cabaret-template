@@ -12,7 +12,7 @@ score = 0.3
 
 [sub_resource type="Resource" id="Action_wander"]
 script = ExtResource("4_action_wander")
-home_radius = 7.0
+home_radius = 10.0
 
 [sub_resource type="Resource" id="Task_wander"]
 script = ExtResource("3_primitive_task")

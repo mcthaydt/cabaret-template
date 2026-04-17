@@ -7,6 +7,7 @@ const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_compone
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 const WOLF_PREDATOR_TAG := StringName("predator")
+const PREY_TAG := StringName("prey")
 const HUNT_LOOP_FEED_EPSILON := 0.05
 const HUNT_LOOP_WARMUP_FRAMES := 60
 const HUNT_LOOP_POLL_INTERVAL_FRAMES := 30
@@ -157,13 +158,19 @@ func test_wolves_close_hunt_loop_and_refill_hunger() -> void:
 	if wolf_needs.is_empty():
 		return
 
+	var initial_prey_count: int = _count_prey_entities(ecs_manager)
+	assert_gt(initial_prey_count, 0, "Expected at least one prey-tagged entity in ai_forest scene.")
+	if initial_prey_count <= 0:
+		return
+
 	var prev_hunger_per_wolf: Dictionary = {}
 	for needs in wolf_needs:
 		prev_hunger_per_wolf[needs.get_instance_id()] = needs.hunger
 
 	var any_wolf_fed: bool = false
+	var any_prey_consumed: bool = false
 	var elapsed_frames: int = 0
-	while elapsed_frames < HUNT_LOOP_TOTAL_POLL_FRAMES and not any_wolf_fed:
+	while elapsed_frames < HUNT_LOOP_TOTAL_POLL_FRAMES and (not any_wolf_fed or not any_prey_consumed):
 		await wait_physics_frames(HUNT_LOOP_POLL_INTERVAL_FRAMES)
 		elapsed_frames += HUNT_LOOP_POLL_INTERVAL_FRAMES
 		for needs in _collect_wolf_needs(ecs_manager):
@@ -173,10 +180,17 @@ func test_wolves_close_hunt_loop_and_refill_hunger() -> void:
 				any_wolf_fed = true
 				break
 			prev_hunger_per_wolf[key] = needs.hunger
+		var current_prey_count: int = _count_prey_entities(ecs_manager)
+		if current_prey_count < initial_prey_count:
+			any_prey_consumed = true
 
 	assert_true(
 		any_wolf_fed,
 		"Expected at least one wolf to feed (hunger to rise above prior tick by %.2f) within %d physics frames; hunt loop is stuck." % [HUNT_LOOP_FEED_EPSILON, HUNT_LOOP_TOTAL_POLL_FRAMES]
+	)
+	assert_true(
+		any_prey_consumed,
+		"Expected wolf hunt feed loop to consume at least one prey-tagged entity within %d physics frames." % [HUNT_LOOP_TOTAL_POLL_FRAMES]
 	)
 
 func _collect_wolf_needs(ecs_manager: I_ECSManager) -> Array[C_NeedsComponent]:
@@ -194,6 +208,22 @@ func _collect_wolf_needs(ecs_manager: I_ECSManager) -> Array[C_NeedsComponent]:
 		if entity_typed.has_tag(WOLF_PREDATOR_TAG):
 			result.append(needs)
 	return result
+
+func _count_prey_entities(ecs_manager: I_ECSManager) -> int:
+	if ecs_manager == null:
+		return 0
+	var count: int = 0
+	for needs_variant in ecs_manager.get_components(C_NEEDS_COMPONENT.COMPONENT_TYPE):
+		var needs: C_NeedsComponent = needs_variant as C_NeedsComponent
+		if needs == null or not is_instance_valid(needs):
+			continue
+		var entity_root: Node = U_ECS_UTILS.find_entity_root(needs)
+		var entity_typed: BaseECSEntity = entity_root as BaseECSEntity
+		if entity_typed == null:
+			continue
+		if entity_typed.has_tag(PREY_TAG):
+			count += 1
+	return count
 
 func _spawn_scene_manager() -> M_SceneManager:
 	var manager := M_SCENE_MANAGER.new()

@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://ut0hjawm2yq3" path="res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd" id="5_primitive_task"]
 [ext_resource type="Script" uid="uid://bs3dj8uojf4je" path="res://scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd" id="6_action_move_detected"]
 [ext_resource type="Script" uid="uid://cxpr5abl5uj1l" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="7_action_wait"]
-[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_feed.gd" id="8_action_feed"]
+[ext_resource type="Script" uid="uid://cfhuov4fcosa2" path="res://scripts/resources/ai/actions/rs_ai_action_feed.gd" id="8_action_feed"]
 
 [sub_resource type="Resource" id="Condition_hunt_detected_target"]
 script = ExtResource("2_condition_component_field")
@@ -51,6 +51,7 @@ task_id = &"move_to_detected_second"
 
 [sub_resource type="Resource" id="Action_hunt_feed"]
 script = ExtResource("8_action_feed")
+consume_detected_target = true
 
 [sub_resource type="Resource" id="Task_hunt_feed"]
 script = ExtResource("5_primitive_task")

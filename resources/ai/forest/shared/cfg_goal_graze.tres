@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://d3ig84jkjjkpv" path="res://scripts/resources/qb/conditions/rs_condition_component_field.gd" id="5_condition_component_field"]
 [ext_resource type="Script" uid="uid://bb7kg3r8twqau" path="res://scripts/resources/ai/tasks/rs_ai_compound_task.gd" id="6_compound_task"]
 [ext_resource type="Script" uid="uid://d3jp8qgprpk0t" path="res://scripts/resources/ai/tasks/rs_ai_task.gd" id="7_ai_task"]
-[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_feed.gd" id="8_action_feed"]
+[ext_resource type="Script" uid="uid://cfhuov4fcosa2" path="res://scripts/resources/ai/actions/rs_ai_action_feed.gd" id="8_action_feed"]
 
 [sub_resource type="Resource" id="Condition_graze_constant"]
 script = ExtResource("2_condition_constant")
@@ -49,4 +49,4 @@ goal_id = &"graze"
 conditions = Array[ExtResource("1_condition")]([SubResource("Condition_graze_constant"), SubResource("Condition_graze_hunger_low")])
 root_task = SubResource("Task_graze_sequence")
 priority = 2
-cooldown = 4.0
+cooldown = 5.0

@@ -1,8 +1,11 @@
 extends BaseTest
 
 const ACTION_FEED_PATH := "res://scripts/resources/ai/actions/rs_ai_action_feed.gd"
+const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
 const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
 const RS_NEEDS_SETTINGS := preload("res://scripts/resources/ecs/rs_needs_settings.gd")
+const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 
 func _load_script(path: String) -> Script:
@@ -75,3 +78,115 @@ func test_feed_action_missing_needs_component_pushes_error_and_completes() -> vo
 
 	assert_push_error("RS_AIActionFeed.start: missing C_NeedsComponent in context.")
 	assert_true(action.is_complete(context, task_state))
+
+func test_feed_action_consumes_pending_detected_target_when_enabled() -> void:
+	var action_script: Script = _load_script(ACTION_FEED_PATH)
+	if action_script == null:
+		return
+
+	var ecs_manager: MockECSManager = MOCK_ECS_MANAGER.new()
+	autofree(ecs_manager)
+
+	var actor: BaseECSEntity = BASE_ECS_ENTITY.new()
+	actor.name = "E_Wolf"
+	add_child_autofree(actor)
+	actor.global_position = Vector3.ZERO
+	var needs: C_NeedsComponent = C_NEEDS_COMPONENT.new()
+	var settings: RS_NeedsSettings = RS_NEEDS_SETTINGS.new()
+	settings.initial_hunger = 0.2
+	settings.gain_on_feed = 0.4
+	needs.settings = settings
+	needs.hunger = 0.2
+	actor.add_child(needs)
+	autofree(needs)
+
+	var detection: C_DetectionComponent = C_DETECTION_COMPONENT.new()
+	actor.add_child(detection)
+	autofree(detection)
+
+	var prey: BaseECSEntity = BASE_ECS_ENTITY.new()
+	prey.name = "E_Rabbit"
+	add_child_autofree(prey)
+	prey.global_position = Vector3(0.5, 0.0, 0.0)
+	var prey_id: StringName = prey.get_entity_id()
+	ecs_manager.register_entity_id(prey_id, prey)
+
+	detection.last_detected_player_entity_id = StringName("")
+	detection.pending_feed_entity_id = prey_id
+	detection.is_player_in_range = true
+
+	var action: Resource = action_script.new()
+	action.set("consume_detected_target", true)
+	var context: Dictionary = {
+		"entity": actor,
+		"entity_position": actor.global_position,
+		"ecs_manager": ecs_manager,
+		"components": {
+			C_NEEDS_COMPONENT.COMPONENT_TYPE: needs,
+			C_DETECTION_COMPONENT.COMPONENT_TYPE: detection,
+		},
+	}
+	var task_state: Dictionary = {}
+
+	action.start(context, task_state)
+
+	assert_true(action.is_complete(context, task_state))
+	assert_almost_eq(needs.hunger, 0.6, 0.0001, "Successful consume should restore hunger.")
+	assert_eq(ecs_manager.get_entity_by_id(prey_id), null, "Expected consumed prey to be unregistered from ECS manager.")
+	assert_eq(detection.pending_feed_entity_id, StringName(""), "Expected pending feed target to clear after consume.")
+	assert_false(detection.is_player_in_range, "Expected detection in-range state to clear after consume.")
+
+func test_feed_action_does_not_consume_when_outside_consume_radius() -> void:
+	var action_script: Script = _load_script(ACTION_FEED_PATH)
+	if action_script == null:
+		return
+
+	var ecs_manager: MockECSManager = MOCK_ECS_MANAGER.new()
+	autofree(ecs_manager)
+
+	var actor: BaseECSEntity = BASE_ECS_ENTITY.new()
+	actor.name = "E_Wolf"
+	add_child_autofree(actor)
+	actor.global_position = Vector3.ZERO
+	var needs: C_NeedsComponent = C_NEEDS_COMPONENT.new()
+	var settings: RS_NeedsSettings = RS_NEEDS_SETTINGS.new()
+	settings.initial_hunger = 0.2
+	settings.gain_on_feed = 0.4
+	needs.settings = settings
+	needs.hunger = 0.2
+	actor.add_child(needs)
+	autofree(needs)
+
+	var detection: C_DetectionComponent = C_DETECTION_COMPONENT.new()
+	actor.add_child(detection)
+	autofree(detection)
+
+	var prey: BaseECSEntity = BASE_ECS_ENTITY.new()
+	prey.name = "E_Rabbit"
+	add_child_autofree(prey)
+	prey.global_position = Vector3(9.0, 0.0, 0.0)
+	var prey_id: StringName = prey.get_entity_id()
+	ecs_manager.register_entity_id(prey_id, prey)
+
+	detection.pending_feed_entity_id = prey_id
+	detection.is_player_in_range = true
+
+	var action: Resource = action_script.new()
+	action.set("consume_detected_target", true)
+	action.set("consume_radius", 1.0)
+	var context: Dictionary = {
+		"entity": actor,
+		"entity_position": actor.global_position,
+		"ecs_manager": ecs_manager,
+		"components": {
+			C_NEEDS_COMPONENT.COMPONENT_TYPE: needs,
+			C_DETECTION_COMPONENT.COMPONENT_TYPE: detection,
+		},
+	}
+	var task_state: Dictionary = {}
+
+	action.start(context, task_state)
+
+	assert_true(action.is_complete(context, task_state))
+	assert_almost_eq(needs.hunger, 0.2, 0.0001, "Failed consume should not restore hunger.")
+	assert_not_null(ecs_manager.get_entity_by_id(prey_id), "Expected distant prey to remain when outside consume radius.")

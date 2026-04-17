@@ -262,3 +262,141 @@ func test_hysteresis_prevents_exit_in_tag_target_mode() -> void:
 	rabbit_body.global_position = Vector3(11.0, 0.0, 0.0)
 	system.process_tick(0.016)
 	assert_false(detection.is_player_in_range, "Should exit past exit_radius")
+
+func test_in_range_target_switch_updates_last_detected_entity_id() -> void:
+	var fixture: Dictionary = _create_fixture(StringName("prey"))
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var rabbit_a_data: Dictionary = _register_target(
+		fixture,
+		"E_RabbitA",
+		Vector3(2.0, 0.0, 0.0),
+		[StringName("prey"), StringName("ai"), StringName("forest")]
+	)
+	var rabbit_b_data: Dictionary = _register_target(
+		fixture,
+		"E_RabbitB",
+		Vector3(4.0, 0.0, 0.0),
+		[StringName("prey"), StringName("ai"), StringName("forest")]
+	)
+	var rabbit_a_entity: BaseECSEntity = rabbit_a_data.get("entity") as BaseECSEntity
+	var rabbit_b_entity: BaseECSEntity = rabbit_b_data.get("entity") as BaseECSEntity
+	var rabbit_a_body: FakeBody = rabbit_a_data.get("body") as FakeBody
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var detection: C_DetectionComponent = fixture.get("detection") as C_DetectionComponent
+
+	system.process_tick(0.016)
+	assert_eq(
+		detection.last_detected_player_entity_id,
+		rabbit_a_entity.get_entity_id(),
+		"Detector should pick nearest prey on first enter."
+	)
+
+	rabbit_a_body.global_position = Vector3(20.0, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_true(detection.is_player_in_range, "Detector should stay in range via second prey target.")
+	assert_eq(
+		detection.last_detected_player_entity_id,
+		rabbit_b_entity.get_entity_id(),
+		"Detector should retarget to nearest valid prey while remaining in-range."
+	)
+
+func test_unregistered_target_is_ignored_for_nearest_resolution() -> void:
+	var fixture: Dictionary = _create_fixture(StringName("prey"))
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var rabbit_a_data: Dictionary = _register_target(
+		fixture,
+		"E_RabbitA",
+		Vector3(2.0, 0.0, 0.0),
+		[StringName("prey"), StringName("ai"), StringName("forest")]
+	)
+	var rabbit_b_data: Dictionary = _register_target(
+		fixture,
+		"E_RabbitB",
+		Vector3(4.0, 0.0, 0.0),
+		[StringName("prey"), StringName("ai"), StringName("forest")]
+	)
+	var rabbit_a_entity: BaseECSEntity = rabbit_a_data.get("entity") as BaseECSEntity
+	var rabbit_b_entity: BaseECSEntity = rabbit_b_data.get("entity") as BaseECSEntity
+	var ecs_manager: MockECSManager = fixture.get("ecs_manager") as MockECSManager
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var detection: C_DetectionComponent = fixture.get("detection") as C_DetectionComponent
+
+	system.process_tick(0.016)
+	assert_eq(
+		detection.last_detected_player_entity_id,
+		rabbit_a_entity.get_entity_id(),
+		"Detector should initially target the nearest registered prey."
+	)
+
+	# Simulate consume/unregister timing where node still exists this frame but is no longer registered.
+	ecs_manager.unregister_entity(rabbit_a_entity)
+	system.process_tick(0.016)
+
+	assert_true(detection.is_player_in_range, "Detector should remain in-range via the second registered prey.")
+	assert_eq(
+		detection.last_detected_player_entity_id,
+		rabbit_b_entity.get_entity_id(),
+		"Detector should ignore unregistered prey candidates and retarget to registered prey."
+	)
+
+func test_target_switch_requires_meaningful_distance_gain() -> void:
+	var fixture: Dictionary = _create_fixture(StringName("prey"))
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var rabbit_a_data: Dictionary = _register_target(
+		fixture,
+		"E_RabbitA",
+		Vector3(5.0, 0.0, 0.0),
+		[StringName("prey"), StringName("ai"), StringName("forest")]
+	)
+	var rabbit_b_data: Dictionary = _register_target(
+		fixture,
+		"E_RabbitB",
+		Vector3(5.6, 0.0, 0.0),
+		[StringName("prey"), StringName("ai"), StringName("forest")]
+	)
+	var rabbit_a_entity: BaseECSEntity = rabbit_a_data.get("entity") as BaseECSEntity
+	var rabbit_b_entity: BaseECSEntity = rabbit_b_data.get("entity") as BaseECSEntity
+	var rabbit_a_body: FakeBody = rabbit_a_data.get("body") as FakeBody
+	var rabbit_b_body: FakeBody = rabbit_b_data.get("body") as FakeBody
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var detection: C_DetectionComponent = fixture.get("detection") as C_DetectionComponent
+	detection.detection_radius = 10.0
+	detection.detection_exit_radius = 12.0
+
+	system.process_tick(0.016)
+	assert_eq(
+		detection.last_detected_player_entity_id,
+		rabbit_a_entity.get_entity_id(),
+		"Detector should lock onto nearest target on first enter."
+	)
+
+	# Rabbit B is only slightly closer (< switch margin), so sticky target should remain Rabbit A.
+	rabbit_a_body.global_position = Vector3(5.2, 0.0, 0.0)
+	rabbit_b_body.global_position = Vector3(4.8, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_eq(
+		detection.last_detected_player_entity_id,
+		rabbit_a_entity.get_entity_id(),
+		"Detector should keep current target when a new target is only marginally closer."
+	)
+
+	# Rabbit B becomes meaningfully closer (> switch margin), so retarget should occur.
+	rabbit_b_body.global_position = Vector3(3.6, 0.0, 0.0)
+	system.process_tick(0.016)
+	assert_eq(
+		detection.last_detected_player_entity_id,
+		rabbit_b_entity.get_entity_id(),
+		"Detector should switch once the new target is meaningfully closer."
+	)

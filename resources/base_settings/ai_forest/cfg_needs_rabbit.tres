@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_0")
-initial_hunger = 0.72
-decay_per_second = 0.05
-sated_threshold = 0.78
-starving_threshold = 0.28
+initial_hunger = 0.7
+decay_per_second = 0.02
+sated_threshold = 0.75
+starving_threshold = 0.25
 gain_on_feed = 0.35

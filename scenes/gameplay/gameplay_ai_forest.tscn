@@ -157,7 +157,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 24)
 
 [node name="Tree_15" parent="Environment/Trees" unique_id=355810970 instance=ExtResource("14_tree_prefab")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -24)
+transform = Transform3D(-0.9998834, 0, -0.015270983, 0, 1, 0, 0.015270983, 0, -0.9998834, 23.9993, 0, -24.091625)
 
 [node name="Tree_16" parent="Environment/Trees" unique_id=755153050 instance=ExtResource("14_tree_prefab")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -12)
@@ -172,7 +172,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 12)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 24)
 
 [node name="Tree_20" parent="Environment/Trees" unique_id=1317403881 instance=ExtResource("14_tree_prefab")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, -24)
+transform = Transform3D(-0.9998834, 0, -0.015270983, 0, 1, 0, 0.015270983, 0, -0.9998834, 12.0007, 0, -23.908375)
 
 [node name="Tree_21" parent="Environment/Trees" unique_id=868107385 instance=ExtResource("14_tree_prefab")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, -12)

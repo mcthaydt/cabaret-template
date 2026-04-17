@@ -24,6 +24,7 @@ Suggested spec path per entity: `docs/<domain>/entities/ai-entity-<entity_name>.
 - [ ] `C_MovementComponent` with valid settings
 - [ ] `C_AIBrainComponent` with non-null `RS_AIBrainSettings`
 - [ ] If detection-based behavior exists: `C_DetectionComponent` configured with explicit `target_tag`.
+- [ ] If predation/consume behavior exists: hunt/feed completion explicitly requires prey removal (entity node + ECS/entity registry) in addition to need refill.
 - [ ] Visual CSG nodes under body use `use_collision = false` (avoid self-collision jitter).
 - [ ] Any one-frame trigger dependency is replaced by durable state flags (Redux or component state).
 - [ ] No design assumes `decision_group` on `RS_AIGoal` (goal selector uses hardcoded `&"ai_goal"`).
@@ -48,6 +49,7 @@ For each detection role, fill one row:
 - Expected nearest-target policy:
 - Self-exclusion requirement (same-tag scenarios):
 - Behavior when no target found:
+- Feed-target locking strategy (if consume exists): identify where the prey id is persisted between move and feed so live nearest-target drift cannot redirect consumption.
 
 ## 4) Brain Settings (`RS_AIBrainSettings`)
 
@@ -87,6 +89,7 @@ Implementation notes:
 - Wait/scan durations:
 - Events published (if any):
 - Field writes via `RS_AIActionSetField` (if any):
+- Predation invariant (if applicable): define exactly when prey is considered consumed (distance gate + registry removal + node free).
 
 ## 7) Authoring Assets Checklist
 
@@ -113,12 +116,17 @@ Implementation notes:
 - New/updated test files:
 - RED cases to write first:
 - GREEN conditions that must pass:
+- Required predation RED/GREEN (when consume exists):
+  - RED: feed consumes locked detected target and clears pending target state.
+  - RED: feed does not consume when target is outside consume radius.
+  - GREEN: entity is removed from ECS/entity lookup after consume.
 
 ### 9.2 Integration tests
 
 - Scene-level test coverage:
 - Required assertions (goal selected, queue non-empty, transition behavior):
 - Edge cases (target disappears, same-tag entities, no targets, cooldown behavior):
+- Predation assertions (when consume exists): at least one prey-tagged entity count decreases during a long-enough hunt loop run.
 
 ### 9.3 Mandatory suites
 

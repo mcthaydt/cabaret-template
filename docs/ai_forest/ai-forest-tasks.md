@@ -1,7 +1,7 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 2 complete (2026-04-17); Commits 20-28 done, next up **Phase 3a Commit 29**.
+**Status**: Phase 3b complete with post-audit hunt-consume hardening (2026-04-17); next up **Phase 3c Commit 36**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
@@ -185,11 +185,25 @@
 - [x] **Commit 28** — Test update for panel + label reflecting hunger state.
   - Completion note (2026-04-16): updated debug suites for hunger text + color behavior; combined debug tests green (`6/6`).
 
+### P2d. Hunt-loop consume closure hardening (post-audit)
+
+- [x] **Post-audit patch (2026-04-17)** — Add RED tests for deterministic consume targeting in `tests/unit/ai/actions/test_ai_action_feed.gd`:
+  - consume locked pending prey target when enabled
+  - do not consume when outside consume radius
+  - Completion note: confirmed RED before implementation, then GREEN (`5/5`) after locking feed target resolution to task-state/detection pending target IDs.
+- [x] **Post-audit patch (2026-04-17)** — Implement deterministic consume lock between move and feed:
+  - `C_DetectionComponent.pending_feed_entity_id`
+  - `U_AITaskStateKeys.DETECTED_ENTITY_ID`
+  - `RS_AIActionMoveToDetected` persists and clears lock
+  - `RS_AIActionFeed` consumes locked target first, clears detection/task lock on completion
+  - Completion note: wolves now require actual prey removal to close the hunt loop in smoke coverage.
+
 ### Phase 2 verification
 
 - [x] Full unit + integration suites green
   - Completion note (2026-04-16): `tools/run_gut_suite.sh -gdir=res://tests/unit -ginclude_subdirs -gexit` -> `3968/3976` passing, `8` pending headless skips, `0` failing; `tools/run_gut_suite.sh -gdir=res://tests/integration/gameplay -ginclude_subdirs -gexit` -> `30/30` passing.
   - Audit completion note (2026-04-17): reran targeted Phase 2 coverage + regression suites (`test_ai_action_feed.gd`, `test_hunger_drives_goal_score.gd`, `tests/unit/ai`, style, smoke, gameplay integration) and all are green; `tests/unit/ai` now `142/142` passing.
+  - Post-audit consume note (2026-04-17): `test_ai_action_feed.gd` expanded and green (`5/5`), and `test_forest_ecosystem_smoke.gd` now asserts prey count decreases during wolf hunt-loop closure.
 - [ ] Visual: agents visibly fluctuate between `wander` and `hunt`/`graze` over time
 - [x] Debug panel hunger colors update
   - Completion note (2026-04-16): hunger color/state reflected in `test_debug_ai_brain_panel.gd` and `test_debug_forest_agent_label.gd`.

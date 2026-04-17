@@ -3,6 +3,7 @@ extends I_AIAction
 class_name RS_AIActionMoveToDetected
 
 const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
@@ -98,14 +99,23 @@ func _refresh_target_from_detection(
 	var target_position: Vector3 = detected_entity.global_position
 	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
 	_write_resolution_debug(task_state, context, "detected_entity", "resolved_detected_entity", false, true)
+	detection.pending_feed_entity_id = detected_entity_id
 	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
+	task_state[U_AITaskStateKeys.DETECTED_ENTITY_ID] = detected_entity_id
 	task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
 	return true
 
 func _mark_completed(context: Dictionary, task_state: Dictionary, reason: String) -> void:
 	_clear_move_target_component(context)
 	_write_resolution_debug(task_state, context, "detected_entity", reason, false, false)
+	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	if detection != null:
+		detection.pending_feed_entity_id = StringName("")
+	print("[ACTION] %s MoveToDetected complete (reason=%s)" % [
+		_resolve_entity_label(context), reason
+	])
 	task_state.erase(U_AITaskStateKeys.MOVE_TARGET)
+	task_state.erase(U_AITaskStateKeys.DETECTED_ENTITY_ID)
 	task_state.erase(U_AITaskStateKeys.ARRIVAL_THRESHOLD)
 	task_state[U_AITaskStateKeys.COMPLETED] = true
 
@@ -130,6 +140,16 @@ func _resolve_current_position(context: Dictionary) -> Variant:
 	var entity_position_variant: Variant = context.get("entity_position", null)
 	if entity_position_variant is Vector3:
 		return entity_position_variant
+
+	var components_variant: Variant = context.get("components", null)
+	if components_variant is Dictionary:
+		var components: Dictionary = components_variant as Dictionary
+		var movement_component_variant: Variant = components.get(C_MOVEMENT_COMPONENT.COMPONENT_TYPE, null)
+		if movement_component_variant is Object and (movement_component_variant as Object).has_method("get_character_body"):
+			var body_variant: Variant = (movement_component_variant as Object).call("get_character_body")
+			if body_variant is Node3D:
+				return (body_variant as Node3D).global_position
+
 	var entity: Node3D = context.get("entity", null) as Node3D
 	if entity != null:
 		return entity.global_position

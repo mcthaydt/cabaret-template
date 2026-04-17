@@ -114,6 +114,23 @@ func update_entity_tags(_entity: Node) -> void:
 func get_entity_by_id(id: StringName) -> Node:
 	return _entity_by_id.get(id, null) as Node
 
+func unregister_entity(entity: Node) -> void:
+	if entity == null:
+		return
+
+	var to_erase: Array[StringName] = []
+	for entity_id in _entity_by_id.keys():
+		var registered: Node = _entity_by_id.get(entity_id, null) as Node
+		if registered == entity:
+			to_erase.append(entity_id)
+	for entity_id in to_erase:
+		_entity_by_id.erase(entity_id)
+
+	for tag in _entities_by_tag.keys():
+		var tagged_entities: Array = _entities_by_tag.get(tag, [])
+		tagged_entities.erase(entity)
+		_entities_by_tag[tag] = tagged_entities
+
 func get_entities_by_tag(tag: StringName) -> Array[Node]:
 	var entries: Variant = _entities_by_tag.get(tag, [])
 	var result: Array[Node] = []
@@ -180,6 +197,13 @@ func reset_system_profiling() -> void:
 ## Pre-register a component for an entity
 func add_component_to_entity(_entity: Node, component: BaseECSComponent) -> void:
 	register_component(component)
+	if _entity == null:
+		return
+	var entity_id: StringName = _resolve_entity_id(_entity)
+	if entity_id != StringName(""):
+		_entity_by_id[entity_id] = _entity
+	for tag in _resolve_entity_tags(_entity):
+		register_entity_tag(tag, _entity)
 
 ## Clear all registered components
 func clear_all_components() -> void:
@@ -225,3 +249,39 @@ func _find_entity_root(component: BaseECSComponent) -> Node:
 		current = current.get_parent()
 	# Fallback to immediate parent
 	return component.get_parent()
+
+func _resolve_entity_id(entity: Node) -> StringName:
+	if entity == null:
+		return StringName("")
+	if entity.has_method("get_entity_id"):
+		var id_variant: Variant = entity.call("get_entity_id")
+		if id_variant is StringName:
+			return id_variant as StringName
+		if id_variant is String:
+			var id_text: String = id_variant as String
+			if not id_text.is_empty():
+				return StringName(id_text)
+	var node_name: String = String(entity.name)
+	if node_name.is_empty():
+		return StringName("")
+	if node_name.begins_with("E_"):
+		node_name = node_name.substr(2)
+	return StringName(node_name.to_lower())
+
+func _resolve_entity_tags(entity: Node) -> Array[StringName]:
+	var tags: Array[StringName] = []
+	if entity == null:
+		return tags
+	if not entity.has_method("get_tags"):
+		return tags
+	var tags_variant: Variant = entity.call("get_tags")
+	if not (tags_variant is Array):
+		return tags
+	for tag_variant in tags_variant as Array:
+		if tag_variant is StringName:
+			tags.append(tag_variant as StringName)
+		elif tag_variant is String:
+			var tag_text: String = tag_variant as String
+			if not tag_text.is_empty():
+				tags.append(StringName(tag_text))
+	return tags

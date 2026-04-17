@@ -205,6 +205,8 @@
 
 - **Tag-based detection must exclude the detector entity itself**: `S_AIDetectionSystem` candidate pools built from all movement entities can accidentally include the detector's own entity. When `target_tag` matches the detector's tags (for example pack detection with `target_tag = predator`), the detector can lock onto itself at distance `0` unless source/target identity is explicitly filtered.
   - **Fix pattern**: carry source entity identity into nearest-target resolution and skip candidates with matching entity instance ID (or matching entity ID fallback).
+- **Predator feed actions can silently no-op if they resolve prey from live detection at feed time**: between `move_to_detected` and `feed`, nearest-target detection can drift to a different entity (or clear), so hunger can refill while no prey is removed.
+  - **Fix pattern**: lock prey identity during move (`U_AITaskStateKeys.DETECTED_ENTITY_ID` and/or `C_DetectionComponent.pending_feed_entity_id`) and consume that locked target first in `RS_AIActionFeed`; add unit coverage for locked-target consume + out-of-radius no-consume.
 
 ## QB Rule Engine v2 Pitfalls
 

@@ -13,6 +13,7 @@ const MOVE_TARGET_REQUESTED_NODE_PATH := &"move_target_requested_node_path"
 const MOVE_TARGET_CONTEXT_ENTITY_PATH := &"move_target_context_entity_path"
 const MOVE_TARGET_CONTEXT_OWNER_PATH := &"move_target_context_owner_path"
 const MOVE_TARGET_WAYPOINT_INDEX := &"move_target_waypoint_index"
+const DETECTED_ENTITY_ID := &"detected_entity_id"
 
 const ELAPSED := &"elapsed"
 const SCAN_ELAPSED := &"scan_elapsed"

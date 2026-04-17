@@ -27,7 +27,7 @@ task_id = &"scan_alert"
 
 [sub_resource type="Resource" id="Action_flee_startle"]
 script = ExtResource("8_action_flee_detected")
-flee_distance = 14.0
+flee_distance = 8.0
 arrival_threshold = 0.6
 
 [sub_resource type="Resource" id="Task_flee_startle"]
@@ -55,5 +55,5 @@ goal_id = &"startle"
 conditions = Array[ExtResource("1_condition")]([SubResource("Condition_startle_detected_target")])
 root_task = SubResource("Task_startle_sequence")
 priority = 8
-cooldown = 3.0
+cooldown = 4.0
 requires_rising_edge = true

@@ -22,6 +22,7 @@ Source template: `docs/ai_system/ai-entity-authoring-template.md`
 - [x] `C_MovementComponent` with valid settings (`resources/base_settings/ai_forest/cfg_movement_forest.tres`)
 - [x] `C_AIBrainComponent` with non-null `RS_AIBrainSettings`
 - [x] Detection behavior uses `C_DetectionComponent` with explicit `target_tag = &"prey"`.
+- [x] Hunt completion is only valid when feed both refills hunger and consumes a prey entity (prey node removed + ECS/entity registry updated).
 - [x] Visual CSG under body uses `use_collision = false`.
 - [x] No one-frame pulse dependency; behavior is driven by component state (`is_player_in_range`, detected entity id).
 - [x] Goal design assumes shared hardcoded selector group `&"ai_goal"` (no goal-level `decision_group` field).
@@ -47,6 +48,7 @@ Source template: `docs/ai_system/ai-entity-authoring-template.md`
 - Nearest-target policy: nearest matching-tag target in range by XZ distance.
 - Self-exclusion: must ignore own entity when source and target tags overlap (system-level guard).
 - No-target behavior: detection clears `is_player_in_range` and `last_detected_player_entity_id`, then goals fall back to `wander`.
+- Feed-target locking: move-to-detected must persist the prey entity id (`task_state` + detection pending id) so feed consumes the same target even if live nearest-target detection changes.
 
 ## 4) Brain Settings (`RS_AIBrainSettings`)
 
@@ -90,15 +92,16 @@ Source template: `docs/ai_system/ai-entity-authoring-template.md`
 
 | goal_id | task sequence | action type per task | completion condition | abort/replan condition |
 |---|---|---|---|---|
-| `hunt` | `move_to_detected_first -> wait_hunt_mid -> move_to_detected_second` | `RS_AIActionMoveToDetected`, `RS_AIActionWait`, `RS_AIActionMoveToDetected` | move actions repath every tick to live detected target position and complete when XZ distance <= `0.6`; wait completes at `0.4s` | selector-driven replan on goal change or queue completion |
+| `hunt` | `move_to_detected_first -> wait_hunt_mid -> move_to_detected_second -> feed` | `RS_AIActionMoveToDetected`, `RS_AIActionWait`, `RS_AIActionMoveToDetected`, `RS_AIActionFeed` | move actions complete when XZ distance <= `0.6`; wait completes at `0.4s`; feed must increase hunger and consume the locked prey target within consume radius | selector-driven replan on goal change or queue completion |
 | `wander` | `wander` | `RS_AIActionWander` | XZ distance to sampled target <= `arrival_threshold` (`0.5` default) | selector-driven replan on goal change or queue completion |
 
 Implementation notes:
-- Move target source: detected entity resolved by `last_detected_player_entity_id`.
+- Move target source: detected entity resolved by `last_detected_player_entity_id`, then locked for feed via `U_AITaskStateKeys.DETECTED_ENTITY_ID` and `C_DetectionComponent.pending_feed_entity_id`.
 - Arrival thresholds: hunt `0.6`; wander default `0.5`.
 - Wait/scan durations: hunt wait `0.4`; no scan action in wolf spec.
 - Events published: none by wolf goals.
 - Field writes: none via `RS_AIActionSetField`.
+- Consume behavior: `RS_AIActionFeed.consume_detected_target = true` for wolf hunt goals (`cfg_goal_hunt`, `cfg_goal_hunt_pack`).
 
 ## 7) Authoring Assets Checklist
 
@@ -130,6 +133,7 @@ Implementation notes:
 - Relevant existing suites:
 - `tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd`
 - `tests/unit/ai/actions/test_ai_actions_forest.gd`
+- `tests/unit/ai/actions/test_ai_action_feed.gd`
 - `tests/unit/debug/test_debug_forest_agent_label.gd`
 - `tests/unit/debug/test_debug_ai_brain_panel.gd`
 
@@ -141,6 +145,7 @@ Implementation notes:
 - Wolves obtain non-empty task queues.
 - Wolves select non-empty active goals after warm-up.
 - Detection-driven goals can resolve valid target entity IDs.
+- Wolves close hunt loops by feeding and consuming prey entities (prey count decreases during test run).
 
 ### 9.3 Mandatory suites
 
@@ -167,11 +172,11 @@ Implementation notes:
 - [x] Goals documented with win/fallback logic.
 - [x] Task completion/abort behavior documented.
 - [x] Durable trigger behavior only.
-- [ ] Required test suites executed and green for current patch.
+- [x] Required test suites executed and green for current patch.
 - [x] Debug observability paths defined.
 - [ ] Manual in-scene verification completed for current patch.
 
 ## 12) Post-Implementation Notes
 
-- This document mirrors current wolf behavior as implemented on 2026-04-16.
+- This document mirrors current wolf behavior as implemented on 2026-04-17.
 - If wolf behavior changes (hunger weighting, pack-hunt, extra detection roles), update this spec in the same PR.

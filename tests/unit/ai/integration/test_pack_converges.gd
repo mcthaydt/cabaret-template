@@ -203,7 +203,7 @@ func test_sated_wolf_with_pack_and_prey_selects_wander() -> void:
 		"Sated wolf should select wander even with pack + prey detection."
 	)
 
-func test_hungry_wolf_with_pack_but_no_prey_selects_wander() -> void:
+func test_hungry_wolf_with_pack_but_no_prey_selects_search_food() -> void:
 	var fixture: Dictionary = await _create_fixture(false, true, 0.1)
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -215,6 +215,6 @@ func test_hungry_wolf_with_pack_but_no_prey_selects_wander() -> void:
 
 	assert_eq(
 		brain.get_active_goal_id(),
-		StringName("wander"),
-		"Hungry wolf with pack but no prey should select wander."
+		StringName("search_food"),
+		"Hungry wolf with pack but no prey should select search_food fallback."
 	)

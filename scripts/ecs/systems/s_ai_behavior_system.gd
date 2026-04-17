@@ -3,6 +3,8 @@ extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
+const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
 const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_AI_GOAL_SELECTOR := preload("res://scripts/utils/ai/u_ai_goal_selector.gd")
@@ -16,6 +18,11 @@ const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_thr
 const MOBILE_EVALUATION_INTERVAL_MULTIPLIER: float = 2.0
 const BRAIN_COMPONENT_TYPE := C_AIBrainComponent.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
+const DETECTION_COMPONENT_TYPE := C_DETECTION_COMPONENT.COMPONENT_TYPE
+const NEEDS_COMPONENT_TYPE := C_NEEDS_COMPONENT.COMPONENT_TYPE
+const PACK_DETECTION_COMPONENT_TYPE := StringName("C_DetectionComponent:pack")
+const HUNT_GOAL_ID := StringName("hunt")
+const HUNT_PACK_GOAL_ID := StringName("hunt_pack")
 
 @export var state_store: I_StateStore = null
 @export var debug_ai_logging: bool = false
@@ -88,10 +95,13 @@ func _process_brain(
 	context: Dictionary,
 	delta: float
 ) -> void:
+	var context_key: StringName = _context_builder.context_key_for_context(context)
 	if _should_evaluate_goals(brain, brain_settings, delta):
+		var active_goal_before: StringName = brain.get_active_goal_id()
+		var queue_size_before: int = brain.current_task_queue.size()
 		var executing_goal_id: StringName = StringName()
 		if not brain.current_task_queue.is_empty():
-			executing_goal_id = brain.get_active_goal_id()
+			executing_goal_id = active_goal_before
 		var selected_goal: RS_AIGoal = _goal_selector.select(
 			brain_settings,
 			context,
@@ -99,13 +109,24 @@ func _process_brain(
 			executing_goal_id
 		)
 		if selected_goal != null:
-			if selected_goal.goal_id != brain.get_active_goal_id():
-				print("[BRAIN] %s goal: %s → %s" % [_context_builder.context_key_for_context(context), brain.get_active_goal_id(), selected_goal.goal_id])
-			_replanner.replan_for_goal(brain, selected_goal, context)
+			var replan_applied: bool = _replanner.replan_for_goal(brain, selected_goal, context)
+			if selected_goal.goal_id != active_goal_before:
+				print("[BRAIN] %s goal: %s → %s%s" % [
+					context_key, active_goal_before, selected_goal.goal_id,
+					_build_goal_debug_suffix(brain, context)
+				])
+			elif replan_applied and queue_size_before == 0:
+				print("[BRAIN] %s replan: reran %s (queue was empty)%s" % [
+					context_key, selected_goal.goal_id,
+					_build_goal_debug_suffix(brain, context)
+				])
 
 	var finished_goal_id: StringName = _task_runner.tick(brain, delta, context)
 	if finished_goal_id != StringName():
-		print("[BRAIN] %s goal completed: %s" % [_context_builder.context_key_for_context(context), finished_goal_id])
+		print("[BRAIN] %s goal completed: %s%s" % [
+			context_key, finished_goal_id,
+			_build_goal_debug_suffix(brain, context)
+		])
 		_goal_selector.mark_goal_fired_by_id(brain_settings, finished_goal_id, context, _tracker)
 
 func _should_evaluate_goals(
@@ -168,3 +189,55 @@ func _debug_log_missing_brains() -> void:
 		"S_AIBehaviorSystem: query_entities([C_AIBrainComponent]) returned 0 entities; registered_brain_components=%d"
 		% [registered_brain_count]
 	)
+
+func _build_goal_debug_suffix(brain: C_AIBrainComponent, context: Dictionary) -> String:
+	var hunger_text: String = "?"
+	var needs: C_NeedsComponent = _resolve_needs_component(context)
+	if needs != null:
+		hunger_text = "%.2f" % [needs.hunger]
+
+	var primary_detection: C_DetectionComponent = _resolve_detection_component(context, DETECTION_COMPONENT_TYPE)
+	var pack_detection: C_DetectionComponent = _resolve_detection_component(context, PACK_DETECTION_COMPONENT_TYPE)
+	var prey_text: String = _format_detection_snapshot(primary_detection)
+	var pack_text: String = _format_detection_snapshot(pack_detection)
+
+	var context_key: StringName = _context_builder.context_key_for_context(context)
+	var hunt_cooldown: float = _tracker.get_cooldown_remaining(HUNT_GOAL_ID, context_key)
+	var pack_cooldown: float = _tracker.get_cooldown_remaining(HUNT_PACK_GOAL_ID, context_key)
+	return " | hunger=%s prey=%s pack=%s q=%d cooldown[hunt]=%.2f cooldown[hunt_pack]=%.2f" % [
+		hunger_text,
+		prey_text,
+		pack_text,
+		brain.current_task_queue.size(),
+		hunt_cooldown,
+		pack_cooldown,
+	]
+
+func _resolve_detection_component(context: Dictionary, key: StringName) -> C_DetectionComponent:
+	var components_variant: Variant = context.get("components", null)
+	if not (components_variant is Dictionary):
+		return null
+	var components: Dictionary = components_variant as Dictionary
+	var detection_variant: Variant = components.get(key, null)
+	if detection_variant is C_DetectionComponent:
+		return detection_variant as C_DetectionComponent
+	return null
+
+func _resolve_needs_component(context: Dictionary) -> C_NeedsComponent:
+	var components_variant: Variant = context.get("components", null)
+	if not (components_variant is Dictionary):
+		return null
+	var components: Dictionary = components_variant as Dictionary
+	var needs_variant: Variant = components.get(NEEDS_COMPONENT_TYPE, null)
+	if needs_variant is C_NeedsComponent:
+		return needs_variant as C_NeedsComponent
+	return null
+
+func _format_detection_snapshot(detection: C_DetectionComponent) -> String:
+	if detection == null:
+		return "missing"
+	var detected_text: String = "in" if detection.is_player_in_range else "out"
+	var target_id: String = str(detection.last_detected_player_entity_id)
+	if target_id.is_empty():
+		target_id = "-"
+	return "%s:%s" % [detected_text, target_id]

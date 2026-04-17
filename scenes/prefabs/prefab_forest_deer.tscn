@@ -16,7 +16,7 @@ tags = Array[StringName]([&"herbivore", &"ai", &"forest"])
 
 [node name="C_DetectionComponent" parent="Components"]
 target_tag = &"predator"
-detection_radius = 10.0
+detection_radius = 12.0
 detection_exit_radius = 18.0
 
 [node name="C_AIBrainComponent" parent="Components"]
