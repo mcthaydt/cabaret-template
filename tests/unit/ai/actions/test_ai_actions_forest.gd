@@ -96,6 +96,46 @@ func test_move_to_detected_sets_move_target_and_task_state_from_detected_entity(
 	if task_target_variant is Vector3:
 		_assert_vector3_almost_eq(task_target_variant as Vector3, target.global_position)
 
+func test_move_to_detected_tick_repaths_to_live_detected_target_position() -> void:
+	var action_script: Script = _load_required_script(ACTION_MOVE_TO_DETECTED_PATH)
+	if action_script == null:
+		return
+
+	var root := Node3D.new()
+	add_child_autofree(root)
+	var ecs_manager: MockECSManager = MOCK_ECS_MANAGER.new()
+	autofree(ecs_manager)
+
+	var actor: BaseECSEntity = _create_entity(root, "E_Wolf", Vector3.ZERO)
+	var target: BaseECSEntity = _create_entity(root, "E_Rabbit", Vector3(5.0, 0.0, 0.0))
+	var detection: C_DetectionComponent = C_DETECTION_COMPONENT.new()
+	actor.add_child(detection)
+	autofree(detection)
+	var move_target: C_MoveTargetComponent = C_MOVE_TARGET_COMPONENT.new()
+	actor.add_child(move_target)
+	autofree(move_target)
+
+	_register_detected_target(ecs_manager, detection, target)
+	var context: Dictionary = _create_context(actor, detection, move_target, ecs_manager)
+	var task_state: Dictionary = {}
+	var action: Resource = action_script.new()
+
+	action.start(context, task_state)
+	var initial_target: Vector3 = move_target.target_position
+	target.global_position = Vector3(7.0, 0.0, 2.0)
+	action.tick(context, task_state, 0.016)
+
+	assert_true(move_target.is_active, "Move-target component should stay active during chase repath.")
+	assert_true(
+		move_target.target_position != initial_target,
+		"Tick should refresh move target when detected entity moves."
+	)
+	_assert_vector3_almost_eq(move_target.target_position, target.global_position)
+	var task_target_variant: Variant = task_state.get(U_AI_TASK_STATE_KEYS.MOVE_TARGET, null)
+	assert_true(task_target_variant is Vector3)
+	if task_target_variant is Vector3:
+		_assert_vector3_almost_eq(task_target_variant as Vector3, target.global_position)
+
 func test_move_to_detected_stale_detection_pushes_error_and_completes() -> void:
 	var action_script: Script = _load_required_script(ACTION_MOVE_TO_DETECTED_PATH)
 	if action_script == null:
@@ -120,7 +160,7 @@ func test_move_to_detected_stale_detection_pushes_error_and_completes() -> void:
 
 	action.start(context, task_state)
 
-	assert_push_error("RS_AIActionMoveToDetected.start")
+	assert_push_error("RS_AIActionMoveToDetected: stale detection")
 	assert_true(action.is_complete(context, task_state), "Stale detection should complete immediately.")
 	assert_false(move_target.is_active, "Stale detection should not activate move-target component.")
 

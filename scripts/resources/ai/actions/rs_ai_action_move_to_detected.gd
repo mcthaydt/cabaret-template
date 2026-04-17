@@ -15,30 +15,22 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 		_mark_completed(context, task_state, "missing_detection_component")
 		return
 
-	var detected_entity_id: StringName = detection.last_detected_player_entity_id
-	if detected_entity_id == StringName(""):
-		push_error("RS_AIActionMoveToDetected.start: stale detection (empty detected entity id).")
-		_mark_completed(context, task_state, "stale_detection_empty_entity_id")
-		return
-
-	var detected_entity: Node3D = _resolve_detected_entity(context, detected_entity_id)
-	if detected_entity == null:
-		push_error("RS_AIActionMoveToDetected.start: detected entity not found for id %s." % str(detected_entity_id))
-		_mark_completed(context, task_state, "detected_entity_not_found")
-		return
-
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
-	var target_position: Vector3 = detected_entity.global_position
-	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
-	_write_resolution_debug(task_state, context, "detected_entity", "resolved_detected_entity", false, true)
-	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
 	task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
 	task_state[U_AITaskStateKeys.COMPLETED] = false
+	if not _refresh_target_from_detection(context, task_state, true):
+		_mark_completed(context, task_state, "stale_detection")
+		return
+
+	var target_position_variant: Variant = task_state.get(U_AITaskStateKeys.MOVE_TARGET, null)
+	var target_position: Vector3 = target_position_variant as Vector3
 	print("[ACTION] %s MoveToDetected → target (%.1f, %.1f, %.1f)" % [
 		_resolve_entity_label(context), target_position.x, target_position.y, target_position.z])
 
-func tick(_context: Dictionary, _task_state: Dictionary, _delta: float) -> void:
-	pass
+func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
+	if bool(task_state.get(U_AITaskStateKeys.COMPLETED, false)):
+		return
+	_refresh_target_from_detection(context, task_state, false)
 
 func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	if bool(task_state.get(U_AITaskStateKeys.COMPLETED, false)):
@@ -75,6 +67,40 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 		task_state[U_AITaskStateKeys.MOVE_TARGET_RESOLVED] = false
 		task_state[U_AITaskStateKeys.COMPLETED] = true
 	return arrived
+
+func _refresh_target_from_detection(
+	context: Dictionary,
+	task_state: Dictionary,
+	log_errors: bool
+) -> bool:
+	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	if detection == null:
+		if log_errors:
+			push_error("RS_AIActionMoveToDetected: missing C_DetectionComponent in context.")
+		return false
+
+	var detected_entity_id: StringName = detection.last_detected_player_entity_id
+	if detected_entity_id == StringName(""):
+		if log_errors:
+			push_error("RS_AIActionMoveToDetected: stale detection (empty detected entity id).")
+		return false
+
+	var detected_entity: Node3D = _resolve_detected_entity(context, detected_entity_id)
+	if detected_entity == null:
+		if log_errors:
+			push_error("RS_AIActionMoveToDetected: detected entity not found for id %s." % str(detected_entity_id))
+		return false
+
+	var resolved_arrival_threshold: float = maxf(
+		float(task_state.get(U_AITaskStateKeys.ARRIVAL_THRESHOLD, arrival_threshold)),
+		0.0
+	)
+	var target_position: Vector3 = detected_entity.global_position
+	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
+	_write_resolution_debug(task_state, context, "detected_entity", "resolved_detected_entity", false, true)
+	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
+	task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
+	return true
 
 func _mark_completed(context: Dictionary, task_state: Dictionary, reason: String) -> void:
 	_clear_move_target_component(context)
