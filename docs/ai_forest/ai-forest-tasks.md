@@ -1,12 +1,12 @@
 # AI Forest Simulation — Tasks Checklist
 
 **Branch**: GOAP-AI
-**Status**: Phase 2 complete (2026-04-16); Commits 20-28 done, next up **Phase 3a Commit 29**.
+**Status**: Phase 2 complete (2026-04-17); Commits 20-28 done, next up **Phase 3a Commit 29**.
 **Methodology**: TDD (Red-Green-Refactor) — write failing tests first, implement to green, then refactor.
 **Scope**: Build a standalone top-down AI-testing scene with three species (wolves, rabbits, deer) and static trees, phased over three milestones. Detailed context in `docs/ai_forest/ai-forest-overview.md`.
 
 **Ground rules**
-- Every milestone ends with the full AI unit-test suite green (current baseline: last measured 130/130 on 2026-04-16 after Phase 1c; re-measure immediately before starting new phases).
+- Every milestone ends with the full AI unit-test suite green (current baseline: last measured `142/142` on 2026-04-17 after audit-gap patching; re-measure immediately before starting new phases).
 - Style enforcement test (`tests/unit/style/test_style_enforcement.gd`) must stay green. Critical rules for this plan: `test_ai_move_target_magic_strings_not_used_in_ai_scripts`, `test_ai_action_scripts_use_task_state_key_constants`, `test_ai_resource_scripts_are_grouped_by_subdirectory`, `test_gameplay_scenes_do_not_embed_hud_instances`.
 - After each committed milestone: update this tasks doc (mark `[x]` with completion notes) and the continuation prompt.
 - Commit per milestone at minimum; commit per commit-level task when logically self-contained.
@@ -147,7 +147,7 @@
 
 - [x] `tools/run_gut_suite.sh -gdir=res://tests/unit -ginclude_subdirs -gexit` — green (`3945` passing, `8` pending/risky headless skips, `0` failing; run on 2026-04-16)
 - [x] `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit` — green (`58/58`)
-- [x] `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` — green (`130/130`)
+- [x] `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -ginclude_subdirs -gexit` — green (`142/142` on 2026-04-17 rerun)
 - [x] `tools/run_gut_suite.sh -gtest=res://tests/integration/gameplay/test_forest_ecosystem_smoke.gd -gexit` — green (`1/1`)
 - [ ] Manual visual pass: launch scene, confirm each acceptance criterion from the overview doc (not run in this headless pass)
 
@@ -189,6 +189,7 @@
 
 - [x] Full unit + integration suites green
   - Completion note (2026-04-16): `tools/run_gut_suite.sh -gdir=res://tests/unit -ginclude_subdirs -gexit` -> `3968/3976` passing, `8` pending headless skips, `0` failing; `tools/run_gut_suite.sh -gdir=res://tests/integration/gameplay -ginclude_subdirs -gexit` -> `30/30` passing.
+  - Audit completion note (2026-04-17): reran targeted Phase 2 coverage + regression suites (`test_ai_action_feed.gd`, `test_hunger_drives_goal_score.gd`, `tests/unit/ai`, style, smoke, gameplay integration) and all are green; `tests/unit/ai` now `142/142` passing.
 - [ ] Visual: agents visibly fluctuate between `wander` and `hunt`/`graze` over time
 - [x] Debug panel hunger colors update
   - Completion note (2026-04-16): hunger color/state reflected in `test_debug_ai_brain_panel.gd` and `test_debug_forest_agent_label.gd`.

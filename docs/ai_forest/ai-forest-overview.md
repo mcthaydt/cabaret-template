@@ -83,7 +83,7 @@ Tags are authored on each prefab's entity-root `BaseECSEntity.tags` array (as in
 ### Phase 1 — Scene shell + species behaviors + detection generalization
 Shippable slice: visually confirmable predator/prey behavior without hunger or pack. Wolves chase the nearest rabbit; rabbits flee; deer startle when a wolf is nearby; trees are decoration.
 
-**Current verification status (2026-04-16)**: automated suites are green; manual visual pass is still pending.
+**Current verification status (2026-04-17)**: automated suites are green (latest reruns: AI `142/142`, style `58/58`, gameplay integration `30/30`); manual visual pass is still pending.
 
 **Acceptance criteria**
 - [x] Scene boots and all brain-bearing agents produce non-empty task queues within 2 seconds (smoke test `test_forest_ecosystem_smoke.gd`)
@@ -92,20 +92,20 @@ Shippable slice: visually confirmable predator/prey behavior without hunger or p
 - [ ] Deer visibly switch from `graze` to `startle` when a wolf enters their detection radius *(manual visual pass pending; startle churn tuning in flight — see `phase-1-expected-vs-current.md`)*
 - [ ] Each agent's Label3D displays `entity_id\ngoal: X\ntask: Y` and updates live *(manual visual pass pending)*
 - [ ] Debug panel lists every brain entity with its current goal/task *(manual visual pass pending)*
-- [x] AI unit-suite baseline remains green (`130/130` on 2026-04-16)
+- [x] AI unit-suite baseline remains green (`142/142` on 2026-04-17)
 - [x] New Phase 1 test suites green (tag-target, forest actions, debug panel/label, forest smoke)
-- [x] `test_style_enforcement.gd` suite green (`58/58` on 2026-04-16)
+- [x] `test_style_enforcement.gd` suite green (`58/58` on 2026-04-17)
 
 ### Phase 2 — Hunger / satiety
 Agents grow hungry over time; hunger weights `hunt`/`graze` goal scores via `RS_ConditionComponentField` reading `C_NeedsComponent.hunger`.
 
 **Acceptance criteria**
-- [ ] `C_NeedsComponent.hunger` decays toward 0 at `settings.decay_per_second`
-- [ ] Wolves below `sated_threshold` pick `hunt` over `wander`
-- [ ] Rabbits + deer below `sated_threshold` pick `graze` over `wander`
-- [ ] `RS_AIActionFeed` sets hunger toward 1.0 when a `graze`/`hunt` compound task completes
-- [ ] Debug panel + Label3D display per-agent hunger (color-coded)
-- [ ] New Phase 2 test suites green
+- [x] `C_NeedsComponent.hunger` decays toward 0 at `settings.decay_per_second` (`test_c_needs_component.gd`, `test_s_needs_system.gd`)
+- [x] Wolves below `sated_threshold` pick `hunt` over `wander` (`test_hunger_drives_goal_score.gd`)
+- [x] Rabbits + deer below `sated_threshold` pick `graze` over `wander` (`test_hunger_drives_goal_score.gd`)
+- [x] `RS_AIActionFeed` sets hunger toward 1.0 when a `graze`/`hunt` compound task completes (`test_ai_action_feed.gd`, feed-step integration assertions in `test_hunger_drives_goal_score.gd`)
+- [x] Debug panel + Label3D display per-agent hunger (color-coded) (`test_debug_ai_brain_panel.gd`, `test_debug_forest_agent_label.gd`)
+- [x] New Phase 2 test suites green (latest rerun on 2026-04-17)
 
 ### Phase 3 — Emergent pack behavior + polish
 Wolves that share a pack-detection radius converge on the same prey without an explicit coordinator. Note: per-entity goal competition is still in the shared `ai_goal` group — new goals use `priority` + `cooldown` + `requires_rising_edge` to avoid thrashing `hunt` ↔ `hunt_pack`.
