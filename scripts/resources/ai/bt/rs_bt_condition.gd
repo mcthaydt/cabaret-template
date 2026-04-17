@@ -10,7 +10,7 @@ func tick(context: Dictionary, _state_bag: Dictionary) -> Status:
 		return Status.FAILURE
 
 	var score_variant: Variant = condition.evaluate(context)
-	if not (score_variant is float or score_variant is int):
+	if not (score_variant is float):
 		push_error("RS_BTCondition.tick: condition returned non-numeric score %s" % str(score_variant))
 		return Status.FAILURE
 

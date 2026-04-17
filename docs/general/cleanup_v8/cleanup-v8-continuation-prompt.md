@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1, P1.2, P1.3, and P1.4 are complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`, `8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `6ad6e79c`, `677003b4`, `b5eafe91`).
-**Next Task**: P1.5 Commit 1 (RED) — write `tests/unit/ai/bt/test_rs_bt_cooldown.gd`.
+**Status**: Phase 1 in progress. P1.1–P1.4 complete; P1.5 in progress (`488807d2`, `cf80eb4f`). Full commit list: `b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`, `8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`, `6ad6e79c`, `677003b4`, `b5eafe91`, `488807d2`, `cf80eb4f`.
+**Next Task**: P1.5 Commit 3 (RED) — write `tests/unit/ai/bt/test_rs_bt_once.gd`.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -42,10 +42,15 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - `(GREEN) P1.3 implement RS_BTCondition leaf` (`5051a2c4`)
     - `(RED) P1.3 add RS_BTAction contract test` (`fa7fc071`)
     - `(GREEN) P1.3 implement RS_BTAction leaf` (`aa083186`)
+    - `(VERIFY) P1.3 prove all 10 RS_AIAction scripts run under BT unmodified` (`7a3e936f`)
   - **P1.4** complete:
     - `(RED) P1.4 add AI scorer contract test` (`6ad6e79c`)
     - `(GREEN) P1.4 implement AI scorer resources` (`677003b4`)
     - `(GREEN) P1.4 wire BT utility selector to scorer resources` (`b5eafe91`)
+  - **P1.5** in progress:
+    - `(RED) P1.5 add RS_BTCooldown contract test` (`488807d2`)
+    - `(GREEN) P1.5 implement RS_BTCooldown decorator` (`cf80eb4f`)
+    - Commits 3–7 remain.
   - **Verification state**:
     - New P1.1 tests are green (`tests/unit/ai/bt/test_rs_bt_node_base.gd`).
     - New P1.2 sequence tests are green (`tests/unit/ai/bt/test_rs_bt_sequence.gd`).
