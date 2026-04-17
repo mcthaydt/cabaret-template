@@ -86,15 +86,15 @@ Shippable slice: visually confirmable predator/prey behavior without hunger or p
 **Current verification status (2026-04-16)**: automated suites are green; manual visual pass is still pending.
 
 **Acceptance criteria**
-- [ ] Scene boots and all brain-bearing agents produce non-empty task queues within 2 seconds
-- [ ] Wolves converge on rabbits visually
-- [ ] Rabbits visibly accelerate away when a wolf is within detection radius
-- [ ] Deer visibly switch from `graze` to `startle` when a wolf enters their detection radius
-- [ ] Each agent's Label3D displays `entity_id\ngoal: X\ntask: Y` and updates live
-- [ ] Debug panel lists every brain entity with its current goal/task
-- [ ] Existing 124-test AI unit-suite baseline remains green (re-measure before and after Phase 1a)
-- [ ] New Phase 1 test suites green
-- [ ] `test_style_enforcement.gd` suite green (including HUD-embedding, task-state key, and AI-resource-layout rules)
+- [x] Scene boots and all brain-bearing agents produce non-empty task queues within 2 seconds (smoke test `test_forest_ecosystem_smoke.gd`)
+- [ ] Wolves converge on rabbits visually *(manual visual pass pending)*
+- [ ] Rabbits visibly accelerate away when a wolf is within detection radius *(manual visual pass pending)*
+- [ ] Deer visibly switch from `graze` to `startle` when a wolf enters their detection radius *(manual visual pass pending; startle churn tuning in flight — see `phase-1-expected-vs-current.md`)*
+- [ ] Each agent's Label3D displays `entity_id\ngoal: X\ntask: Y` and updates live *(manual visual pass pending)*
+- [ ] Debug panel lists every brain entity with its current goal/task *(manual visual pass pending)*
+- [x] AI unit-suite baseline remains green (`130/130` on 2026-04-16)
+- [x] New Phase 1 test suites green (tag-target, forest actions, debug panel/label, forest smoke)
+- [x] `test_style_enforcement.gd` suite green (`58/58` on 2026-04-16)
 
 ### Phase 2 — Hunger / satiety
 Agents grow hungry over time; hunger weights `hunt`/`graze` goal scores via `RS_ConditionComponentField` reading `C_NeedsComponent.hunger`.
@@ -122,5 +122,10 @@ Wolves that share a pack-detection radius converge on the same prey without an e
 - `docs/adr/0001-channel-taxonomy.md` — publisher-based channel rules
 - `docs/scene_manager/ADDING_SCENES_GUIDE.md` — scene-registry registration workflow
 - `AGENTS.md` — AI goal-loop pattern, typed-contract pattern, demo-scene authoring contract
+- `docs/ai_forest/phase-1-expected-vs-current.md` — Phase 1 expected-vs-current behavior comparison sheet
+- `docs/ai_forest/entities/ai-entity-wolf.md` — concrete filled AI-entity behavior spec example for forest authoring
+- `docs/ai_forest/entities/ai-entity-rabbit.md` — concrete filled AI-entity behavior spec (rabbit)
+- `docs/ai_forest/entities/ai-entity-deer.md` — concrete filled AI-entity behavior spec (deer)
+- `docs/ai_forest/entities/ai-entity-tree.md` — static tree Phase 1 contract spec
 - `docs/ai_forest/ai-forest-tasks.md` — commit-level task checklist
 - `docs/ai_forest/ai-forest-continuation-prompt.md` — resume prompt

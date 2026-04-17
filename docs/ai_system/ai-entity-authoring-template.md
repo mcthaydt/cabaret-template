@@ -2,7 +2,7 @@
 
 Use this template before implementing any new AI entity. Fill every section first, then build exactly what is specified.
 
-Suggested spec path per entity: `docs/ai_system/entities/ai-entity-<entity_name>.md`
+Suggested spec path per entity: `docs/<domain>/entities/ai-entity-<entity_name>.md` (e.g. `docs/ai_forest/entities/ai-entity-wolf.md`). Place specs next to the domain's other docs rather than under `docs/ai_system/`.
 
 ---
 
