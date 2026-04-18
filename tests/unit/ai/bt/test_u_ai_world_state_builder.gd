@@ -58,20 +58,25 @@ func test_build_reads_selected_components_into_flat_world_state_dictionary() -> 
 
 	var entity: Node3D = _new_entity("E_PatrolDrone")
 	var brain := C_AI_BRAIN_COMPONENT.new()
+	autofree(brain)
 	brain.active_goal_id = &"investigate"
 	brain.evaluation_timer = 1.25
 
 	var movement := C_MOVEMENT_COMPONENT.new()
+	autofree(movement)
 	movement.set_horizontal_dynamics_velocity(Vector2(3.0, 4.0))
 
 	var detection := C_DETECTION_COMPONENT.new()
+	autofree(detection)
 	detection.is_player_in_range = true
 	detection.last_detected_player_entity_id = &"player"
 
 	var needs := C_NEEDS_COMPONENT.new()
+	autofree(needs)
 	needs.hunger = 0.35
 
 	var health := C_HEALTH_COMPONENT.new()
+	autofree(health)
 	health.current_health = 72.0
 	health.max_health = 100.0
 
@@ -106,6 +111,7 @@ func test_build_omits_keys_for_missing_components_instead_of_returning_null_valu
 
 	var entity: Node3D = _new_entity()
 	var brain := C_AI_BRAIN_COMPONENT.new()
+	autofree(brain)
 	var components: Dictionary = {
 		C_AI_BRAIN_COMPONENT.COMPONENT_TYPE: brain,
 	}
@@ -126,8 +132,10 @@ func test_build_returns_immutable_snapshots_across_calls() -> void:
 
 	var entity: Node3D = _new_entity()
 	var brain := C_AI_BRAIN_COMPONENT.new()
+	autofree(brain)
 	brain.active_goal_id = &"wander"
 	var needs := C_NEEDS_COMPONENT.new()
+	autofree(needs)
 	needs.hunger = 0.5
 	var components: Dictionary = {
 		C_AI_BRAIN_COMPONENT.COMPONENT_TYPE: brain,
@@ -142,4 +150,3 @@ func test_build_returns_immutable_snapshots_across_calls() -> void:
 	var second_state: Dictionary = _build_world_state(builder, query)
 	assert_almost_eq(float(second_state.get(&"hunger", -1.0)), 0.5, 0.0001)
 	assert_eq(second_state.get(&"active_goal_id"), &"wander")
-
