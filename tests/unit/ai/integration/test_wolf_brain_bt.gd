@@ -134,8 +134,8 @@ func _create_fixture(prey_detected: bool, pack_detected: bool, hunger: float) ->
 	if prey_detected:
 		prey = Node3D.new()
 		prey.name = "E_RabbitBT"
-		prey.global_position = Vector3(0.2, 0.0, 0.2)
 		root.add_child(prey)
+		prey.global_position = Vector3(0.2, 0.0, 0.2)
 		autofree(prey)
 		manager.register_entity_id(PREY_ENTITY_ID, prey)
 

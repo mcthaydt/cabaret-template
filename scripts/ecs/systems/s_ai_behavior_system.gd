@@ -25,7 +25,6 @@ var _state_store: I_StateStore = null
 @export var debug_ai_render_probe_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.5
 @export var debug_entity_id: StringName = StringName("patrol_drone")
-
 var _bt_runner: U_BTRunner = U_BT_RUNNER.new()
 var _debug_log_throttle: U_DebugLogThrottle = U_DEBUG_LOG_THROTTLE.new()
 var _is_mobile: bool = false
@@ -46,13 +45,13 @@ func process_tick(delta: float) -> void:
 	var redux_state: Dictionary = get_frame_state_snapshot()
 	var store: I_StateStore = _resolve_state_store()
 	var manager: I_ECSManager = get_manager()
+	var current_time: float = U_ECS_UTILS.get_current_time()
 	for entity_query_variant in entities:
 		if not (entity_query_variant is Object):
 			continue
 		var entity_query: Object = entity_query_variant as Object
 		if not entity_query.has_method("get_component"):
 			continue
-
 		var brain_variant: Variant = entity_query.call("get_component", BRAIN_COMPONENT_TYPE)
 		if not (brain_variant is C_AIBrainComponent):
 			continue
@@ -61,6 +60,8 @@ func process_tick(delta: float) -> void:
 		if brain_settings == null:
 			continue
 		var context: Dictionary = _build_context(entity_query, brain, redux_state, store, manager)
+		context[&"delta"] = maxf(delta, 0.0)
+		context[&"time"] = current_time
 		var status: int = _process_brain(brain, brain_settings, context, delta)
 		var snapshot: Dictionary = _build_debug_snapshot(brain, context, status)
 		brain.update_debug_snapshot(snapshot)
@@ -76,7 +77,6 @@ func _build_context(
 	var rule_context: RSRuleContext = RS_RULE_CONTEXT.new()
 	rule_context.brain_component = brain
 	rule_context.redux_state = redux_state
-
 	if store != null and is_instance_valid(store):
 		rule_context.state_store = store
 
