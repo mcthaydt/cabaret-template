@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b in progress (Commit 1 RED `a98fd907`, Commit 2 GREEN `08f2aaf4`, Commit 3 RED `0c196e7d`, Commit 4 GREEN `3dda0fd5`, Commit 5 RED `0128edd0`, Commit 6 GREEN `78d73d09`, Commit 7 RED `8b2198c6`, Commit 8 GREEN `97252380`). P1.6 commits: `f46f1fa3`, `5967661e`. Full commit list: `b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`, `8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`, `6ad6e79c`, `677003b4`, `b5eafe91`, `488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`, `f46f1fa3`, `5967661e`, `a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`.
-**Next Task**: P1.6b Commit 9 (RED) — add `tests/unit/ai/bt/test_rs_bt_planner.gd`.
+**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b in progress (Commit 1 RED `a98fd907`, Commit 2 GREEN `08f2aaf4`, Commit 3 RED `0c196e7d`, Commit 4 GREEN `3dda0fd5`, Commit 5 RED `0128edd0`, Commit 6 GREEN `78d73d09`, Commit 7 RED `8b2198c6`, Commit 8 GREEN `97252380`, Commit 9 RED `0ad8c49d`, Commit 10 GREEN `90ce7243`, follow-up GREEN fix `07ba856a`). P1.6 commits: `f46f1fa3`, `5967661e`.
+**Next Task**: P1.6b Commit 11 (GREEN) — wire planner debug snapshot into `C_AIBrainComponent.get_debug_snapshot()` and `debug_ai_brain_panel.gd`.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -67,6 +67,9 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - `(GREEN) P1.6b implement RS_BTPlannerAction` (`78d73d09`)
     - `(RED) P1.6b add U_BTPlannerSearch contract test` (`8b2198c6`)
     - `(GREEN) P1.6b implement U_BTPlannerSearch` (`97252380`)
+    - `(RED) P1.6b add RS_BTPlanner contract test` (`0ad8c49d`)
+    - `(GREEN) P1.6b implement RS_BTPlanner` (`90ce7243`)
+    - `(GREEN) P1.6b tighten no-plan diagnostics + trim planner search` (`07ba856a`)
   - **Verification state**:
     - New P1.1 tests are green (`tests/unit/ai/bt/test_rs_bt_node_base.gd`).
     - New P1.2 sequence tests are green (`tests/unit/ai/bt/test_rs_bt_sequence.gd`).
@@ -83,9 +86,10 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - New P1.6b world-state-builder contract tests are green (`tests/unit/ai/bt/test_u_ai_world_state_builder.gd`).
     - New P1.6b planner-action contract tests are green (`tests/unit/ai/bt/test_rs_bt_planner_action.gd`).
     - New P1.6b planner-search contract tests are green (`tests/unit/ai/bt/test_u_bt_planner_search.gd`).
+    - New P1.6b planner contract tests are green (`tests/unit/ai/bt/test_rs_bt_planner.gd`).
     - P1.4 utility-selector scorer integration test is green (`tests/unit/ai/bt/test_rs_bt_utility_selector.gd`).
     - New BT style checks run and pass inside `tests/unit/style/test_style_enforcement.gd`.
-    - Full suite is green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4539 passing / 8 pending / 0 failing).
+    - Full suite is green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4549 passing / 8 pending / 0 failing).
 - **Phase 2**: NOT STARTED. 4 milestones.
 - **Phase 3**: NOT STARTED. 3 milestones.
 - **Phase 4**: NOT STARTED. 4 milestones.
@@ -122,6 +126,12 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
 - P1.6b Commit 8 planner-action compatibility recheck: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner_action.gd` passes (`6/6`).
 - P1.6b Commit 8 style check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`60/60`).
 - Post-P1.6b Commit 8 recheck: `tools/run_gut_suite.sh` completed with no failing tests (`4539` passing / `8` pending).
+- P1.6b Commit 9 RED check landed in `0ad8c49d` (`tests/unit/ai/bt/test_rs_bt_planner.gd`).
+- P1.6b Commit 10 GREEN check landed in `90ce7243` (`scripts/resources/ai/bt/rs_bt_planner.gd`).
+- P1.6b follow-up GREEN fix `07ba856a`: tightened `U_BTPlannerSearch` no-plan diagnostics and reduced file size to 113 LOC.
+- Current planner check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner.gd` passes (`9/9`).
+- Current style check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`60/60`).
+- Current full suite check: `tools/run_gut_suite.sh` completed with no failing tests (`4549` passing / `8` pending).
 
 ---
 
@@ -227,8 +237,8 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 ## Next Steps
 
 1. Already on branch `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). No additional branch creation needed.
-2. Implement **P1.6b Commit 9 (RED)** — add `tests/unit/ai/bt/test_rs_bt_planner.gd`.
-3. Continue through remaining P1.6b planning milestones in order.
+2. Implement **P1.6b Commit 11 (GREEN)** — wire planner debug snapshot into `C_AIBrainComponent.get_debug_snapshot()` and `debug_ai_brain_panel.gd`.
+3. Implement **P1.6b Commit 12 (GREEN)** — style-enforcement follow-through for planner boundaries/LOC caps.
 4. Proceed through P1.7 → P1.10 in order.
 5. Merge Phase 1 to main.
 6. Branch for Phase 2 (or Phase 3 in parallel).
