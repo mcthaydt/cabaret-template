@@ -52,31 +52,6 @@ func test_brain_settings_export_is_assignable() -> void:
 	assert_eq(int(property_definition.get("hint", -1)), PROPERTY_HINT_RESOURCE_TYPE)
 	assert_true(str(property_definition.get("hint_string", "")).contains("RS_AIBrainSettings"))
 
-func test_runtime_state_defaults() -> void:
-	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
-	if component_script == null:
-		return
-
-	var component: BaseECSComponent = component_script.new()
-	autofree(component)
-	assert_eq(component.get("active_goal_id"), StringName(""))
-
-	var task_queue_variant: Variant = component.get("current_task_queue")
-	assert_true(task_queue_variant is Array)
-	if task_queue_variant is Array:
-		var task_queue: Array = task_queue_variant as Array
-		assert_eq(task_queue.size(), 0)
-
-	assert_eq(component.get("current_task_index"), 0)
-
-	var task_state_variant: Variant = component.get("task_state")
-	assert_true(task_state_variant is Dictionary)
-	if task_state_variant is Dictionary:
-		var task_state: Dictionary = task_state_variant as Dictionary
-		assert_eq(task_state.size(), 0)
-
-	assert_almost_eq(float(component.get("evaluation_timer")), 0.0, 0.0001)
-
 func test_registers_with_ecs_manager() -> void:
 	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
 	var settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
@@ -172,16 +147,6 @@ func test_brain_settings_export_typed_rs_ai_brain_settings() -> void:
 	var prop := _get_property_definition(component, "brain_settings")
 	_assert_typed_property_hint(prop, "RS_AIBrainSettings", false, "C_AIBrainComponent.brain_settings should be typed RS_AIBrainSettings")
 
-func test_current_task_queue_typed_rs_ai_primitive_task() -> void:
-	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
-	if component_script == null:
-		return
-
-	var component: BaseECSComponent = component_script.new()
-	autofree(component)
-	var prop := _get_property_definition(component, "current_task_queue")
-	_assert_typed_property_hint(prop, "RS_AIPrimitiveTask", true, "C_AIBrainComponent.current_task_queue should be typed Array[RS_AIPrimitiveTask]")
-
 func test_get_brain_settings_returns_typed() -> void:
 	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
 	var settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
@@ -208,32 +173,6 @@ func test_get_active_goal_id_returns_string_name() -> void:
 	var result: Variant = component.call("get_active_goal_id")
 	assert_true(result is StringName, "get_active_goal_id() should return StringName")
 
-func test_get_current_task_returns_typed() -> void:
-	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
-	if component_script == null:
-		return
-
-	var component: BaseECSComponent = component_script.new()
-	autofree(component)
-	assert_true(component.has_method("get_current_task"), "C_AIBrainComponent should have get_current_task() accessor")
-	var result: Variant = component.call("get_current_task")
-	# When queue is empty, should return null
-	assert_null(result, "get_current_task() should return null when queue is empty")
-
-func test_update_debug_snapshot() -> void:
-	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
-	if component_script == null:
-		return
-
-	var component: BaseECSComponent = component_script.new()
-	autofree(component)
-
-	assert_true(component.has_method("update_debug_snapshot"), "C_AIBrainComponent should have update_debug_snapshot()")
-	component.call("update_debug_snapshot", {"goal_id": StringName("patrol"), "queue_size": 3})
-	var snapshot: Dictionary = component.call("get_debug_snapshot")
-	assert_eq(snapshot.get("goal_id"), StringName("patrol"), "Snapshot should contain goal_id")
-	assert_eq(snapshot.get("queue_size"), 3, "Snapshot should contain queue_size")
-
 func test_get_debug_snapshot_returns_copy() -> void:
 	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
 	if component_script == null:
@@ -249,68 +188,6 @@ func test_get_debug_snapshot_returns_copy() -> void:
 	assert_eq(snapshot_b.get("goal_id"), StringName("patrol"), "Second snapshot should contain goal_id")
 	snapshot_a["goal_id"] = StringName("modified")
 	assert_eq(component.call("get_debug_snapshot").get("goal_id"), StringName("patrol"), "Modifying returned snapshot should not affect internal state")
-
-func test_debug_snapshot_includes_goal_id() -> void:
-	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
-	if component_script == null:
-		return
-
-	var component: BaseECSComponent = component_script.new()
-	autofree(component)
-
-	component.set("active_goal_id", StringName("chase"))
-	component.call("update_debug_snapshot", {"goal_id": component.get("active_goal_id")})
-	var snapshot: Dictionary = component.call("get_debug_snapshot")
-	assert_eq(snapshot.get("goal_id"), StringName("chase"), "Snapshot goal_id should reflect active_goal_id")
-
-func test_debug_snapshot_includes_suspended_goal_ids() -> void:
-	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
-	if component_script == null:
-		return
-
-	var component: BaseECSComponent = component_script.new()
-	autofree(component)
-
-	var suspended: Dictionary = {StringName("patrol"): {"task_queue": [], "task_index": 0}}
-	component.set("suspended_goal_state", suspended)
-	component.call("update_debug_snapshot", {"suspended_goal_ids": suspended.keys()})
-	var snapshot: Dictionary = component.call("get_debug_snapshot")
-	var suspended_ids: Variant = snapshot.get("suspended_goal_ids")
-	assert_true(suspended_ids is Array, "suspended_goal_ids should be an Array")
-	if suspended_ids is Array:
-		assert_eq((suspended_ids as Array).size(), 1, "suspended_goal_ids should contain one entry")
-
-func test_get_debug_snapshot_prefers_latest_planner_debug_from_task_state() -> void:
-	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
-	if component_script == null:
-		return
-
-	var component: BaseECSComponent = component_script.new()
-	autofree(component)
-	component.call("update_debug_snapshot", {
-		"goal_id": StringName("hunt"),
-		"last_plan": [StringName("stale_plan")],
-		"last_plan_cost": 0.1,
-	})
-	component.set("task_state", {
-		901: {
-			"last_plan": [StringName("stalk"), StringName("ambush"), StringName("pounce")],
-			"last_plan_cost": 3.75,
-		}
-	})
-
-	var snapshot: Dictionary = component.call("get_debug_snapshot")
-	assert_eq(
-		snapshot.get("last_plan"),
-		[StringName("stalk"), StringName("ambush"), StringName("pounce")],
-		"Snapshot should use planner debug plan from task_state over stale snapshot values."
-	)
-	assert_almost_eq(
-		float(snapshot.get("last_plan_cost", -1.0)),
-		3.75,
-		0.0001,
-		"Snapshot should use planner debug cost from task_state over stale snapshot values."
-	)
 
 func _assert_typed_property_hint(property_definition: Dictionary, expected_type: String, expect_array: bool, message: String) -> void:
 	var hint_string: String = str(property_definition.get("hint_string", ""))

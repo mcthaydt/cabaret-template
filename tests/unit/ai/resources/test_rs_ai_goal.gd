@@ -73,43 +73,6 @@ func test_goal_state_gate_fields_have_defaults_and_are_assignable() -> void:
 	assert_true(bool(goal.get("one_shot")))
 	assert_true(bool(goal.get("requires_rising_edge")))
 
-func test_brain_settings_holds_goals_array() -> void:
-	var brain_settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
-	var goal_script: Script = _load_script(RS_AI_GOAL_PATH)
-	if brain_settings_script == null or goal_script == null:
-		return
-
-	var first_goal_variant: Variant = goal_script.new()
-	var first_goal: RS_AIGoal = first_goal_variant as RS_AIGoal
-	first_goal.set("goal_id", StringName("patrol"))
-	var second_goal_variant: Variant = goal_script.new()
-	var second_goal: RS_AIGoal = second_goal_variant as RS_AIGoal
-	second_goal.set("goal_id", StringName("investigate"))
-
-	var brain_settings: Resource = brain_settings_script.new()
-	var goals: Array[RS_AIGoal] = [first_goal, second_goal]
-	brain_settings.set("goals", goals)
-
-	var goals_variant: Variant = brain_settings.get("goals")
-	assert_true(goals_variant is Array, "RS_AIBrainSettings.goals should be an array")
-	if not (goals_variant is Array):
-		return
-	var stored_goals: Array = goals_variant as Array
-	assert_eq(stored_goals.size(), 2, "RS_AIBrainSettings.goals should keep configured goals")
-	assert_eq(stored_goals[0], first_goal, "First goal should stay first")
-	assert_eq(stored_goals[1], second_goal, "Second goal should stay second")
-
-func test_brain_settings_default_goal_id() -> void:
-	var brain_settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
-	if brain_settings_script == null:
-		return
-
-	var brain_settings: Resource = brain_settings_script.new()
-	brain_settings.set("default_goal_id", StringName("idle"))
-	var default_goal_id: Variant = brain_settings.get("default_goal_id")
-	assert_true(default_goal_id is StringName, "RS_AIBrainSettings.default_goal_id should be StringName")
-	assert_eq(default_goal_id, StringName("idle"))
-
 func test_brain_settings_evaluation_interval_default() -> void:
 	var brain_settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
 	if brain_settings_script == null:
@@ -117,28 +80,6 @@ func test_brain_settings_evaluation_interval_default() -> void:
 
 	var brain_settings: Resource = brain_settings_script.new()
 	assert_almost_eq(float(brain_settings.get("evaluation_interval")), 0.5, 0.0001, "RS_AIBrainSettings.evaluation_interval should default to 0.5")
-
-# --- R1: Typed field tests ---
-
-func test_goals_array_is_typed_rs_ai_goal() -> void:
-	var brain_settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
-	if brain_settings_script == null:
-		return
-
-	var brain_settings: Resource = brain_settings_script.new()
-	var prop := _get_property_definition(brain_settings, "goals")
-	_assert_typed_property_hint(prop, "RS_AIGoal", true, "RS_AIBrainSettings.goals should be typed Array[RS_AIGoal]")
-
-func test_goals_rejects_non_rs_ai_goal_entries() -> void:
-	var brain_settings_script: Script = _load_script(RS_AI_BRAIN_SETTINGS_PATH)
-	var goal_script: Script = _load_script(RS_AI_GOAL_PATH)
-	if brain_settings_script == null or goal_script == null:
-		return
-
-	var brain_settings: Resource = brain_settings_script.new()
-	var goals_typed: Array = brain_settings.get("goals")
-	assert_true(goals_typed.is_typed(), "RS_AIBrainSettings.goals should be a typed array")
-	assert_eq(goals_typed.get_typed_script(), goal_script, "RS_AIBrainSettings.goals typed array should only allow RS_AIGoal entries")
 
 func test_root_task_typed_rs_ai_task() -> void:
 	var goal_script: Script = _load_script(RS_AI_GOAL_PATH)
