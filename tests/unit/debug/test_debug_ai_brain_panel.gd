@@ -118,6 +118,46 @@ func test_panel_row_text_contains_entity_goal_and_task() -> void:
 	assert_almost_eq(row_labels[0].modulate.r, 1.0, 0.001, "Mid hunger should render warning/yellow color.")
 	assert_almost_eq(row_labels[0].modulate.g, 0.9, 0.001, "Mid hunger should render warning/yellow color.")
 
+func test_panel_row_text_renders_planner_plan_when_present() -> void:
+	var panel: Control = await _instantiate_panel()
+	if panel == null:
+		return
+
+	var ecs_manager: MockECSManager = MOCK_ECS_MANAGER.new()
+	add_child_autofree(ecs_manager)
+	panel.set("ecs_manager", ecs_manager)
+
+	var brain: C_AIBrainComponent = _register_brain(ecs_manager, {
+		"entity_id": &"E_Wolf_02",
+		"goal_id": &"hunt",
+		"task_id": &"planner_step",
+		"hunger": 0.65,
+		"sated_threshold": 0.75,
+		"starving_threshold": 0.3,
+	}, panel)
+	if brain == null:
+		return
+	brain.task_state = {
+		777: {
+			"last_plan": [&"stalk", &"ambush", &"pounce"],
+			"last_plan_cost": 5.5,
+		}
+	}
+
+	assert_true(panel.has_method("refresh_rows"), "Panel should expose refresh_rows() for deterministic testing.")
+	if not panel.has_method("refresh_rows"):
+		return
+	panel.call("refresh_rows")
+
+	var row_labels: Array[Label] = _get_row_labels(panel)
+	assert_eq(row_labels.size(), 1, "Expected a single row for one brain component.")
+	if row_labels.size() != 1:
+		return
+
+	var row_text: String = row_labels[0].text
+	assert_string_contains(row_text, "plan=stalk->ambush->pounce", "Row text should render planner plan steps.")
+	assert_string_contains(row_text, "plan_cost=5.50", "Row text should render planner plan cost.")
+
 func test_panel_handles_empty_brain_list_without_crashing() -> void:
 	var panel: Control = await _instantiate_panel()
 	if panel == null:

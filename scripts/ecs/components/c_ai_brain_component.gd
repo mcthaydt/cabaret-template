@@ -3,6 +3,8 @@ extends BaseECSComponent
 class_name C_AIBrainComponent
 
 const COMPONENT_TYPE := StringName("C_AIBrainComponent")
+const SNAPSHOT_KEY_LAST_PLAN := &"last_plan"
+const SNAPSHOT_KEY_LAST_PLAN_COST := &"last_plan_cost"
 @export var brain_settings: RS_AIBrainSettings = null
 
 var _current_task_queue: Array[RS_AIPrimitiveTask] = []
@@ -52,4 +54,37 @@ func update_debug_snapshot(snapshot: Dictionary) -> void:
 	_debug_snapshot = snapshot.duplicate(true)
 
 func get_debug_snapshot() -> Dictionary:
-	return _debug_snapshot.duplicate(true)
+	var snapshot: Dictionary = _debug_snapshot.duplicate(true)
+	var planner_debug: Dictionary = _extract_planner_debug(task_state)
+	if planner_debug.has(SNAPSHOT_KEY_LAST_PLAN):
+		snapshot[SNAPSHOT_KEY_LAST_PLAN] = _coerce_plan_steps(planner_debug.get(SNAPSHOT_KEY_LAST_PLAN, []))
+	if planner_debug.has(SNAPSHOT_KEY_LAST_PLAN_COST):
+		var cost_variant: Variant = planner_debug.get(SNAPSHOT_KEY_LAST_PLAN_COST, 0.0)
+		if cost_variant is float or cost_variant is int:
+			snapshot[SNAPSHOT_KEY_LAST_PLAN_COST] = float(cost_variant)
+	return snapshot
+
+func _extract_planner_debug(state_bag: Dictionary) -> Dictionary:
+	var direct_debug: Dictionary = {}
+	if state_bag.has(SNAPSHOT_KEY_LAST_PLAN) or state_bag.has(SNAPSHOT_KEY_LAST_PLAN_COST):
+		direct_debug = state_bag
+	var fallback_debug: Dictionary = {}
+	for value in state_bag.values():
+		if not (value is Dictionary):
+			continue
+		var local_state: Dictionary = value as Dictionary
+		if local_state.has(SNAPSHOT_KEY_LAST_PLAN) or local_state.has(SNAPSHOT_KEY_LAST_PLAN_COST):
+			fallback_debug = local_state
+	var selected: Dictionary = direct_debug if not direct_debug.is_empty() else fallback_debug
+	return selected.duplicate(true)
+
+func _coerce_plan_steps(value: Variant) -> Array[StringName]:
+	var plan_steps: Array[StringName] = []
+	if not (value is Array):
+		return plan_steps
+	for step_variant in value as Array:
+		var step_text: String = str(step_variant)
+		if step_text.is_empty():
+			continue
+		plan_steps.append(StringName(step_text))
+	return plan_steps

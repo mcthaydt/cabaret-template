@@ -75,14 +75,35 @@ func _build_row_text(brain: C_AIBrainComponent, snapshot: Dictionary) -> String:
 	var task_id_value: String = _resolve_snapshot_string(snapshot, "task_id")
 	var detect_value: String = str(snapshot.get("is_player_in_range", "?"))
 	var hunger_value: float = clampf(float(snapshot.get("hunger", 1.0)), 0.0, 1.0)
+	var planner_text: String = _resolve_planner_text(snapshot)
 	var exit_radius_value: String = ""
 	if snapshot.has("detection_exit_radius"):
 		var er: float = float(snapshot.get("detection_exit_radius", 0.0))
 		var dr: float = float(snapshot.get("detection_radius", 8.0))
 		if er > dr:
 			exit_radius_value = " exit=%.1f" % er
-	return "%s | goal=%s | task=%s | hunger=%.2f | detect=%s%s" % [
-		entity_id_value, goal_id_value, task_id_value, hunger_value, detect_value, exit_radius_value]
+	return "%s | goal=%s | task=%s | hunger=%.2f | detect=%s%s%s" % [
+		entity_id_value, goal_id_value, task_id_value, hunger_value, detect_value, exit_radius_value, planner_text]
+
+func _resolve_planner_text(snapshot: Dictionary) -> String:
+	var plan_steps: Array[String] = []
+	var plan_variant: Variant = snapshot.get("last_plan", [])
+	if plan_variant is Array:
+		for step_variant in plan_variant as Array:
+			var step_name: String = str(step_variant)
+			if step_name.is_empty():
+				continue
+			plan_steps.append(step_name)
+
+	var plan_text: String = ""
+	if not plan_steps.is_empty():
+		plan_text = " | plan=%s" % "->".join(plan_steps)
+
+	var cost_text: String = ""
+	var cost_variant: Variant = snapshot.get("last_plan_cost", null)
+	if cost_variant is float or cost_variant is int:
+		cost_text = " | plan_cost=%.2f" % float(cost_variant)
+	return "%s%s" % [plan_text, cost_text]
 
 func _resolve_entity_id(snapshot: Dictionary, brain: C_AIBrainComponent) -> String:
 	var from_snapshot: String = _resolve_snapshot_string(snapshot, "entity_id")

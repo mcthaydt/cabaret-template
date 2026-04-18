@@ -280,6 +280,38 @@ func test_debug_snapshot_includes_suspended_goal_ids() -> void:
 	if suspended_ids is Array:
 		assert_eq((suspended_ids as Array).size(), 1, "suspended_goal_ids should contain one entry")
 
+func test_get_debug_snapshot_prefers_latest_planner_debug_from_task_state() -> void:
+	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
+	if component_script == null:
+		return
+
+	var component: BaseECSComponent = component_script.new()
+	autofree(component)
+	component.call("update_debug_snapshot", {
+		"goal_id": StringName("hunt"),
+		"last_plan": [StringName("stale_plan")],
+		"last_plan_cost": 0.1,
+	})
+	component.set("task_state", {
+		901: {
+			"last_plan": [StringName("stalk"), StringName("ambush"), StringName("pounce")],
+			"last_plan_cost": 3.75,
+		}
+	})
+
+	var snapshot: Dictionary = component.call("get_debug_snapshot")
+	assert_eq(
+		snapshot.get("last_plan"),
+		[StringName("stalk"), StringName("ambush"), StringName("pounce")],
+		"Snapshot should use planner debug plan from task_state over stale snapshot values."
+	)
+	assert_almost_eq(
+		float(snapshot.get("last_plan_cost", -1.0)),
+		3.75,
+		0.0001,
+		"Snapshot should use planner debug cost from task_state over stale snapshot values."
+	)
+
 func _assert_typed_property_hint(property_definition: Dictionary, expected_type: String, expect_array: bool, message: String) -> void:
 	var hint_string: String = str(property_definition.get("hint_string", ""))
 	if expect_array:
