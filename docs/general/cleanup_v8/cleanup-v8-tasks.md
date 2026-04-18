@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (`fffa2e55`); P1.9 Commit 3 (RED+GREEN) complete (`7de2a6cf`); P1.9 Commit 4 (RED+GREEN) complete (`c1d7b0fb`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (`fffa2e55`); P1.9 Commit 3 (RED+GREEN) complete (`7de2a6cf`); P1.9 Commit 4 (RED+GREEN) complete (`c1d7b0fb`); P1.9 Commit 5 (RED+GREEN) complete (`a2766455`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -474,7 +474,7 @@ For each creature, write an integration test asserting **behavior parity** with 
   Point `cfg_wolf_brain.tres`'s `root` to this tree. Old `goals` array removed.
 - [x] **Commit 3** (RED+GREEN) — Deer: port flee/startle/graze/wander. `test_deer_brain_bt.gd` first, then `cfg_deer_brain_bt.tres` (`7de2a6cf`).
 - [x] **Commit 4** (RED+GREEN) — Rabbit: same shape as deer minus startle (`c1d7b0fb`).
-- [ ] **Commit 5** (RED+GREEN) — Sentry, patrol_drone, guide_prism: port each. Smaller trees; one commit per creature acceptable.
+- [x] **Commit 5** (RED+GREEN) — Sentry, patrol_drone, guide_prism: port each. Smaller trees; one commit per creature acceptable (`a2766455`).
 - [ ] **Commit 6** (RED+GREEN) — **Planner showcase**: upgrade the wolf's `hunt_pack` branch to use `RS_BTPlanner`. Action pool: `stalk`, `approach`, `ambush`, `pounce`, `feed`, each with preconditions/effects against a world state including `{ has_line_of_sight, in_pounce_range, prey_alerted, hunger }`. Goal: `hunger == 0`. This demonstrates the planning path end-to-end and gives the template a working example for consumers. Integration test asserts the planner produces a valid plan and executes it to completion. Other creatures remain pure utility-scored BT (no planner).
 
 **P1.9 Verification**:
@@ -489,13 +489,22 @@ For each creature, write an integration test asserting **behavior parity** with 
 - Commit 2 follow-through test fix: adjusted `tests/unit/ai/integration/test_wolf_brain_bt.gd` fixture to set `prey.global_position` after `add_child` (prevents detached-node `global_transform` engine error in headless runs).
 - Commit 3 (RED+GREEN) `7de2a6cf`: added `tests/unit/ai/integration/test_deer_brain_bt.gd`, confirmed expected RED failure for missing deer BT resource, then authored `resources/ai/forest/deer/cfg_deer_brain_bt.tres` and migrated `resources/ai/forest/deer/cfg_deer_brain.tres` to BT `root`.
 - Commit 4 (RED+GREEN) `c1d7b0fb`: added `tests/unit/ai/integration/test_rabbit_brain_bt.gd`, confirmed expected RED failure for missing rabbit BT resource, then authored `resources/ai/forest/rabbit/cfg_rabbit_brain_bt.tres` and migrated `resources/ai/forest/rabbit/cfg_rabbit_brain.tres` to BT `root`.
+- Commit 5 (RED+GREEN) `a2766455`: added `tests/unit/ai/integration/test_patrol_drone_brain_bt.gd`, `tests/unit/ai/integration/test_sentry_brain_bt.gd`, and `tests/unit/ai/integration/test_guide_prism_brain_bt.gd`; confirmed expected RED failures for missing BT resources; then authored:
+  - `resources/ai/patrol_drone/cfg_patrol_drone_brain_bt.tres`
+  - `resources/ai/sentry/cfg_sentry_brain_bt.tres`
+  - `resources/ai/guide_prism/cfg_guide_brain_bt.tres`
+  - `resources/ai/guide_prism/cfg_guide_showcase_brain_bt.tres`
+  and migrated existing `cfg_*_brain.tres` sentry/patrol_drone/guide_prism resources to BT `root` definitions.
 - GREEN verification commands:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_patrol_drone_brain_bt.gd` passes (`3/3`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_sentry_brain_bt.gd` passes (`3/3`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_guide_prism_brain_bt.gd` passes (`3/3`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_rabbit_brain_bt.gd` passes (`3/3`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_deer_brain_bt.gd` passes (`3/3`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` passes (`2/2`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd` passes (`3/3`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` still fails on pre-existing unrelated guard (`S_AIBehaviorSystem` LOC cap, 248 > 199).
-  - `tools/run_gut_suite.sh` currently reports expected pre-P1.10 fallout (`4470` passing / `100` failing / `8` pending) from unmigrated legacy GOAP-era consumers and remaining P1.9 creature migrations.
+  - `tools/run_gut_suite.sh` currently reports expected pre-P1.10 fallout (`4481` passing / `98` failing / `8` pending) from unmigrated legacy GOAP-era consumers and remaining P1.9 planner-showcase migration work.
 
 ---
 
