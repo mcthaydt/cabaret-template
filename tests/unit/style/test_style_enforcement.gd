@@ -625,6 +625,20 @@ func test_bt_general_utils_do_not_reference_ai_specific_types() -> void:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
+func test_bt_general_does_not_reference_planner_runtime_utils() -> void:
+	const PLANNER_UTIL_TOKENS: Array[String] = [
+		"U_BTPlannerSearch",
+		"U_BTPlannerRuntime",
+	]
+	var violations: Array[String] = []
+	_collect_gd_forbidden_token_violations(BT_GENERAL_DIR, PLANNER_UTIL_TOKENS, violations)
+	_collect_gd_forbidden_token_violations(BT_UTILS_DIR, PLANNER_UTIL_TOKENS, violations)
+
+	var message := "General BT resources/utils must not reference planner runtime utilities (U_BTPlannerSearch, U_BTPlannerRuntime)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
 func test_bt_planner_scripts_stay_within_loc_caps() -> void:
 	var violations: Array[String] = []
 	_collect_gd_single_file_line_limit_violation(BT_PLANNER_PATH, BT_PLANNER_MAX_LINES, violations)
