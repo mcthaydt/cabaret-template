@@ -50,4 +50,5 @@ func test_brain_settings_keeps_evaluation_interval() -> void:
 func test_loading_legacy_goals_resource_pushes_migration_error_with_path() -> void:
 	var resource_variant: Variant = load(LEGACY_BRAIN_RESOURCE_PATH)
 	assert_not_null(resource_variant, "Expected legacy AI brain resource to load for migration check.")
+	await get_tree().process_frame
 	assert_push_error("cfg_wolf_brain.tres")
