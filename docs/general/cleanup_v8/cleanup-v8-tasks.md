@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b in progress (Commit 1 RED complete: `a98fd907`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -267,7 +267,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 - Reuses `I_Condition` for preconditions and for the goal predicate (no new condition type).
 - Only one new resource type: `RS_WorldStateEffect`.
 
-- [ ] **Commit 1** (RED) — `test_rs_world_state_effect.gd`:
+- [x] **Commit 1** (RED) — `test_rs_world_state_effect.gd`:
   - `Op.SET` overwrites key with value.
   - `Op.ADD` numeric-adds to existing (missing key treated as 0).
   - `Op.REMOVE` deletes key.
@@ -332,6 +332,11 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 - [ ] Unsolvable cases fail loud (every test confirms `push_error` content).
 - [ ] A tree with zero planner nodes has zero planner imports pulled in (lazy reference).
 - [ ] Debug panel shows plan when a planner runs.
+
+**P1.6b Progress Notes (2026-04-18)**:
+- Commit 1 (RED) `a98fd907`: added `tests/unit/ai/bt/test_rs_world_state_effect.gd`.
+- RED verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_world_state_effect.gd` failed for expected reason (`res://scripts/resources/ai/bt/rs_world_state_effect.gd` missing).
+- Style verification after test-file creation: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`60/60`).
 
 ---
 
