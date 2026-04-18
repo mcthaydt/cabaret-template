@@ -91,14 +91,23 @@ func test_preconditions_are_typed_and_coerce_invalid_entries() -> void:
 	if condition_true == null:
 		return
 
-	planner_action.set("preconditions", [condition_true, "invalid", null, 3])
+	var coerced_variant: Variant = planner_action.call("_coerce_preconditions", [condition_true, "invalid", null, 3])
+	assert_true(coerced_variant is Array, "_coerce_preconditions should return an array")
+	if not (coerced_variant is Array):
+		return
+	var coerced: Array = coerced_variant as Array
+	assert_eq(coerced.size(), 1, "_coerce_preconditions should keep only I_Condition entries")
+	assert_eq(coerced[0], condition_true, "_coerce_preconditions should retain valid I_Condition resources")
+
+	var typed_preconditions: Array[I_Condition] = [condition_true as I_Condition]
+	planner_action.set("preconditions", typed_preconditions)
 	var preconditions_variant: Variant = planner_action.get("preconditions")
 	assert_true(preconditions_variant is Array, "preconditions should remain an array")
 	if not (preconditions_variant is Array):
 		return
 	var preconditions: Array = preconditions_variant as Array
-	assert_eq(preconditions.size(), 1, "preconditions should keep only I_Condition entries")
-	assert_eq(preconditions[0], condition_true, "preconditions should retain valid I_Condition resources")
+	assert_eq(preconditions.size(), 1, "preconditions should persist typed I_Condition entries")
+	assert_eq(preconditions[0], condition_true, "preconditions should retain typed I_Condition resources")
 
 	var prop: Dictionary = _get_property_definition(planner_action, "preconditions")
 	_assert_typed_property_hint(prop, "I_Condition", true, "preconditions should be typed Array[I_Condition]")
@@ -111,14 +120,23 @@ func test_effects_are_typed_and_coerce_invalid_entries() -> void:
 	if effect == null:
 		return
 
-	planner_action.set("effects", [effect, "invalid", null, 2])
+	var coerced_variant: Variant = planner_action.call("_coerce_effects", [effect, "invalid", null, 2])
+	assert_true(coerced_variant is Array, "_coerce_effects should return an array")
+	if not (coerced_variant is Array):
+		return
+	var coerced: Array = coerced_variant as Array
+	assert_eq(coerced.size(), 1, "_coerce_effects should keep only RS_WorldStateEffect entries")
+	assert_eq(coerced[0], effect, "_coerce_effects should retain valid RS_WorldStateEffect resources")
+
+	var typed_effects: Array[RS_WorldStateEffect] = [effect as RS_WorldStateEffect]
+	planner_action.set("effects", typed_effects)
 	var effects_variant: Variant = planner_action.get("effects")
 	assert_true(effects_variant is Array, "effects should remain an array")
 	if not (effects_variant is Array):
 		return
 	var effects: Array = effects_variant as Array
-	assert_eq(effects.size(), 1, "effects should keep only RS_WorldStateEffect entries")
-	assert_eq(effects[0], effect, "effects should retain valid RS_WorldStateEffect resources")
+	assert_eq(effects.size(), 1, "effects should persist typed RS_WorldStateEffect entries")
+	assert_eq(effects[0], effect, "effects should retain typed RS_WorldStateEffect resources")
 
 	var prop: Dictionary = _get_property_definition(planner_action, "effects")
 	_assert_typed_property_hint(prop, "RS_WorldStateEffect", true, "effects should be typed Array[RS_WorldStateEffect]")
@@ -142,10 +160,12 @@ func test_is_applicable_requires_all_preconditions_to_pass() -> void:
 		return
 	planner_action.set("cost", 1.0)
 
-	planner_action.set("preconditions", [condition_true, condition_true])
+	var passing_preconditions: Array[I_Condition] = [condition_true as I_Condition, condition_true as I_Condition]
+	planner_action.set("preconditions", passing_preconditions)
 	assert_true(bool(planner_action.call("is_applicable", {})), "all positive preconditions should pass")
 
-	planner_action.set("preconditions", [condition_true, condition_false])
+	var failing_preconditions: Array[I_Condition] = [condition_true as I_Condition, condition_false as I_Condition]
+	planner_action.set("preconditions", failing_preconditions)
 	assert_false(bool(planner_action.call("is_applicable", {})), "any non-positive precondition should fail")
 
 func test_tick_delegates_to_child_node_status() -> void:
@@ -162,4 +182,3 @@ func test_tick_delegates_to_child_node_status() -> void:
 	var status: Variant = planner_action.call("tick", {}, state_bag)
 	assert_eq(status, _status("RUNNING"), "planner action should return child tick status")
 	assert_eq(child.get("tick_count"), 1, "planner action should delegate tick to child")
-
