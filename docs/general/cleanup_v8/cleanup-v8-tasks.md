@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 implemented in working tree (RED commit already landed as `fee01ce5`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -424,20 +424,32 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 
 ## Milestone P1.8: System Integration — `S_AIBehaviorSystem` Cutover
 
-- [ ] **Commit 1** (RED) — `tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd`:
+- [x] **Commit 1** (RED) — `tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd`:
   - Context construction unchanged (same ECS component refs passed through).
   - System calls `U_BTRunner.tick(brain.root, context, brain.bt_state_bag)` each phase.
   - Evaluation interval still honored.
   - `debug_snapshot` updated each tick (F16 pattern).
-- [ ] **Commit 2** (GREEN) — Rewrite `scripts/ecs/systems/s_ai_behavior_system.gd`:
+- [x] **Commit 2** (GREEN) — Rewrite `scripts/ecs/systems/s_ai_behavior_system.gd`:
   - Remove `U_AIGoalSelector`, `U_AIReplanner`, `U_AITaskRunner`, `U_AIContextBuilder` fields.
   - Keep `U_DebugLogThrottle`.
   - Single `U_BTRunner` instance.
-- [ ] **Commit 3** (GREEN) — Update `scripts/debug/debug_ai_brain_panel.gd` to render active BT path from `get_debug_snapshot()` instead of goal + queue.
+- [x] **Commit 3** (GREEN) — Update `scripts/debug/debug_ai_brain_panel.gd` to render active BT path from `get_debug_snapshot()` instead of goal + queue.
 
 **P1.8 Verification**:
-- [ ] System integration tests green.
-- [ ] Debug panel renders without errors in-editor.
+- [x] System integration tests green.
+- [x] Debug panel renders without errors in-editor.
+
+**P1.8 Completion Notes (2026-04-18, local workspace)**:
+- Commit 1 (RED) was already present (`fee01ce5`) and still fails for the expected cutover reason when run against pre-cutover behavior.
+- Commit 2 (GREEN, local): rewrote `scripts/ecs/systems/s_ai_behavior_system.gd` to execute BT roots via `U_BTRunner`, preserved evaluation-interval gating, retained context construction contract, and kept file size under the 200-line orchestration cap.
+- Commit 3 (GREEN, local): updated `scripts/debug/debug_ai_brain_panel.gd` to render BT active-path/state-bag output; refreshed `tests/unit/debug/test_debug_ai_brain_panel.gd` to assert BT-path/planner rendering from `get_debug_snapshot()`.
+- BT snapshot follow-through (local): `scripts/ecs/components/c_ai_brain_component.gd` now forwards `entity_id` and planner debug (`last_plan`, `last_plan_cost`) from runtime BT state so the panel can render planner details without legacy GOAP task-state fields.
+- Verification commands (all passing locally):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd` (`3/3`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/debug/test_debug_ai_brain_panel.gd` (`4/4`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component_bt.gd` (`3/3`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`62/62`)
+- Known full-suite fallout remains expected pre-P1.9 migration: legacy GOAP-content tests/resources (for example AI demo brains and GOAP-oriented AI suites) still fail until BT content migration updates land.
 
 ---
 
