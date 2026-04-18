@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b in progress (Commit 1 RED: `a98fd907`, Commit 2 GREEN: `08f2aaf4`, Commit 3 RED: `0c196e7d`, Commit 4 GREEN: `3dda0fd5`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b in progress (Commit 1 RED: `a98fd907`, Commit 2 GREEN: `08f2aaf4`, Commit 3 RED: `0c196e7d`, Commit 4 GREEN: `3dda0fd5`, Commit 5 RED: `0128edd0`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -285,7 +285,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
   - Immutable: caller-mutation of returned dict doesn't affect next build.
 - [x] **Commit 4** (GREEN) — `scripts/utils/ai/u_ai_world_state_builder.gd`.
 
-- [ ] **Commit 5** (RED) — `test_rs_bt_planner_action.gd`:
+- [x] **Commit 5** (RED) — `test_rs_bt_planner_action.gd`:
   - Typed `preconditions: Array[I_Condition]` with coerce setter (F7 pattern).
   - Typed `effects: Array[RS_WorldStateEffect]` with coerce setter.
   - `cost: float = 1.0` (must be > 0; `push_error` if ≤ 0).
@@ -346,6 +346,9 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 - Commit 4 (GREEN) `3dda0fd5`: implemented `scripts/utils/ai/u_ai_world_state_builder.gd` with flat world-state extraction for `C_AIBrainComponent`, `C_MovementComponent`, `C_DetectionComponent`, `C_NeedsComponent`, and `C_HealthComponent`.
 - GREEN verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_u_ai_world_state_builder.gd` passed (`3/3`).
 - Regression verification: `tools/run_gut_suite.sh` passed (`4525` passing, `8` pending, `0` failing).
+- Commit 5 (RED) `0128edd0`: added `tests/unit/ai/bt/test_rs_bt_planner_action.gd`.
+- RED verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner_action.gd` failed for expected reason (`res://scripts/resources/ai/bt/rs_bt_planner_action.gd` missing).
+- Style verification after test-file creation: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`60/60`).
 
 ---
 
