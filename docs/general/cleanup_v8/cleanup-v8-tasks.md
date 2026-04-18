@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b in progress (Commit 1 RED: `a98fd907`, Commit 2 GREEN: `08f2aaf4`, Commit 3 RED: `0c196e7d`, Commit 4 GREEN: `3dda0fd5`, Commit 5 RED: `0128edd0`, Commit 6 GREEN: `78d73d09`, Commit 7 RED: `8b2198c6`, Commit 8 GREEN: `97252380`, Commit 9 RED: `0ad8c49d`, Commit 10 GREEN: `90ce7243`, follow-up GREEN fix: `07ba856a`, Commit 11 GREEN: `64de76f6`, Commit 12 GREEN: pending commit).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -372,7 +372,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/debug/test_debug_ai_brain_panel.gd` passed (`4/4`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner.gd` passed (`9/9`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`60/60`).
-- Commit 12 (GREEN): enforced planner boundary/LOC style follow-through:
+- Commit 12 (GREEN) `7364b41f`: enforced planner boundary/LOC style follow-through:
   - Added `scripts/utils/ai/u_bt_planner_runtime.gd` and refactored `scripts/resources/ai/bt/rs_bt_planner.gd` to 135 LOC while preserving planner behavior.
   - Extended `tests/unit/style/test_style_enforcement.gd` with:
     - `scripts/utils/bt/` AI-type boundary checks,
@@ -392,20 +392,33 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 
 ## Milestone P1.7: Brain Component + Settings Refactor
 
-- [ ] **Commit 1** (RED) — `test_c_ai_brain_component_bt.gd`:
+- [x] **Commit 1** (RED) — `test_c_ai_brain_component_bt.gd` (`6385e68d`):
   - New `bt_state_bag: Dictionary` field.
   - `get_debug_snapshot()` (F16 pattern) now returns `{ active_path: Array[String], bt_state_keys: int }`.
   - Drops `current_task_queue`, `current_task_index`, `task_state`, `suspended_goal_state` — asserts these fields no longer exist (catches stale references).
-- [ ] **Commit 2** (GREEN) — Modify `scripts/ecs/components/c_ai_brain_component.gd`.
-- [ ] **Commit 3** (RED) — `test_rs_ai_brain_settings_bt.gd`:
+- [x] **Commit 2** (GREEN) — Modify `scripts/ecs/components/c_ai_brain_component.gd` (`fbcaccd9`).
+- [x] **Commit 3** (RED) — `test_rs_ai_brain_settings_bt.gd` (`54425b93`):
   - `root: RS_BTNode` export replaces `goals: Array[RS_AIGoal]`.
   - `evaluation_interval: float` preserved.
   - Load an existing `.tres` with the old `goals` field → `push_error` with path (loud migration failure).
-- [ ] **Commit 4** (GREEN) — Modify `scripts/resources/ai/brain/rs_ai_brain_settings.gd`.
+- [x] **Commit 4** (GREEN) — Modify `scripts/resources/ai/brain/rs_ai_brain_settings.gd` (`bf2a734e`).
 
 **P1.7 Verification**:
-- [ ] Component + settings tests green.
-- [ ] Compile errors in consumers are expected here (wired up in P1.8).
+- [x] Component + settings tests green.
+- [x] Compile errors in consumers are expected here (wired up in P1.8).
+
+**P1.7 Completion Notes (2026-04-18)**:
+- Commit 1 (RED) `6385e68d`: added `tests/unit/ecs/components/test_c_ai_brain_component_bt.gd` covering `bt_state_bag`, BT snapshot keys, and legacy runtime-field removal contract.
+- Commit 2 (GREEN) `fbcaccd9`: refactored `C_AIBrainComponent` to remove GOAP task-queue/runtime-state fields and expose BT-focused debug snapshot output (`active_path`, `bt_state_keys`).
+- Commit 3 (RED) `54425b93`: added `tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd` for BT root export + legacy goals migration-error contract.
+- Commit 4 (GREEN) `bf2a734e`: migrated `RS_AIBrainSettings` to `root: RS_BTNode`, preserved `evaluation_interval`, and added deferred legacy-goals migration error emission with resource path.
+- P1.7 targeted GREEN checks:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component_bt.gd` passed (`3/3`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd` passed (`3/3`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`62/62`).
+- Expected P1.7 fallout prior to P1.8 cutover:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` currently fails (`9/16` passing) because assertions still target removed GOAP fields/snapshot keys.
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` currently fails (`7/10` passing) because assertions still target removed `RS_AIBrainSettings.goals`.
 
 ---
 

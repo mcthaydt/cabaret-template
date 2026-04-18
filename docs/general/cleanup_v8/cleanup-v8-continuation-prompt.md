@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b in progress (Commit 1 RED `a98fd907`, Commit 2 GREEN `08f2aaf4`, Commit 3 RED `0c196e7d`, Commit 4 GREEN `3dda0fd5`, Commit 5 RED `0128edd0`, Commit 6 GREEN `78d73d09`, Commit 7 RED `8b2198c6`, Commit 8 GREEN `97252380`, Commit 9 RED `0ad8c49d`, Commit 10 GREEN `90ce7243`, follow-up GREEN fix `07ba856a`, Commit 11 GREEN `64de76f6`, Commit 12 GREEN pending commit). P1.6 commits: `f46f1fa3`, `5967661e`.
-**Next Task**: P1.7 Commit 1 (RED) — add `test_c_ai_brain_component_bt.gd` for BT-state bag and legacy-field removal contract.
+**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`). P1.6 commits: `f46f1fa3`, `5967661e`.
+**Next Task**: P1.8 Commit 1 (RED) — add `tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd` for BT runner integration and tick-snapshot contract.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -58,7 +58,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
   - **P1.6** complete:
     - `(RED) P1.6 add U_BTRunner contract test` (`f46f1fa3`)
     - `(GREEN) P1.6 implement U_BTRunner` (`5967661e`)
-  - **P1.6b** in progress:
+  - **P1.6b** complete:
     - `(RED) P1.6b add RS_WorldStateEffect contract test` (`a98fd907`)
     - `(GREEN) P1.6b implement RS_WorldStateEffect` (`08f2aaf4`)
     - `(RED) P1.6b add AI world-state builder contract test` (`0c196e7d`)
@@ -71,7 +71,12 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - `(GREEN) P1.6b implement RS_BTPlanner` (`90ce7243`)
     - `(GREEN) P1.6b tighten no-plan diagnostics + trim planner search` (`07ba856a`)
     - `(GREEN) P1.6b wire planner debug snapshot into AI brain debug panel` (`64de76f6`)
-    - `(GREEN) P1.6b style-enforcement follow-through for planner boundaries/LOC caps` (pending commit)
+    - `(GREEN) P1.6b style-enforcement follow-through for planner boundaries/LOC caps` (`7364b41f`)
+  - **P1.7** complete:
+    - `(RED) P1.7 add C_AIBrainComponent BT contract test` (`6385e68d`)
+    - `(GREEN) P1.7 refactor C_AIBrainComponent for BT state bag` (`fbcaccd9`)
+    - `(RED) P1.7 add BT brain settings contract test` (`54425b93`)
+    - `(GREEN) P1.7 migrate AI brain settings to BT root` (`bf2a734e`)
   - **Verification state**:
     - New P1.1 tests are green (`tests/unit/ai/bt/test_rs_bt_node_base.gd`).
     - New P1.2 sequence tests are green (`tests/unit/ai/bt/test_rs_bt_sequence.gd`).
@@ -92,9 +97,12 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - New P1.6b planner debug snapshot test is green (`tests/unit/ecs/components/test_c_ai_brain_component.gd::test_get_debug_snapshot_prefers_latest_planner_debug_from_task_state`).
     - New P1.6b planner debug panel rendering test is green (`tests/unit/debug/test_debug_ai_brain_panel.gd::test_panel_row_text_renders_planner_plan_when_present`).
     - New P1.6b planner boundary/LOC style checks are green (`tests/unit/style/test_style_enforcement.gd::test_bt_general_utils_do_not_reference_ai_specific_types`, `::test_bt_planner_scripts_stay_within_loc_caps`).
+    - New P1.7 brain-component BT contract tests are green (`tests/unit/ecs/components/test_c_ai_brain_component_bt.gd`).
+    - New P1.7 brain-settings BT contract tests are green (`tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd`).
     - P1.4 utility-selector scorer integration test is green (`tests/unit/ai/bt/test_rs_bt_utility_selector.gd`).
     - New BT style checks run and pass inside `tests/unit/style/test_style_enforcement.gd`.
-    - Full suite is green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
+    - Legacy consumer fallout is expected pre-P1.8 (`tests/unit/ecs/components/test_c_ai_brain_component.gd` and `tests/unit/ai/resources/test_rs_ai_goal.gd` still target removed GOAP fields).
+    - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
 - **Phase 2**: NOT STARTED. 4 milestones.
 - **Phase 3**: NOT STARTED. 3 milestones.
 - **Phase 4**: NOT STARTED. 4 milestones.
@@ -138,7 +146,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
 - P1.6b Commit 11 targeted checks:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` passes (`16/16`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/debug/test_debug_ai_brain_panel.gd` passes (`4/4`).
-- P1.6b Commit 12 GREEN check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`62/62`) after adding BT utils AI-boundary checks + planner LOC caps.
+- P1.6b Commit 12 GREEN (`7364b41f`) check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`62/62`) after adding BT utils AI-boundary checks + planner LOC caps.
 - P1.6b Commit 12 targeted checks:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner.gd` passes (`9/9`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_u_bt_planner_search.gd` passes (`9/9`).
@@ -147,6 +155,20 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
 - Current planner check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner.gd` passes (`9/9`).
 - Current style check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`62/62`).
 - Current full suite check: `tools/run_gut_suite.sh` completed with no failing tests (`4553` passing / `8` pending).
+- P1.7 Commit 1 RED (`6385e68d`) check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component_bt.gd` fails for expected BT-contract reasons (`bt_state_bag` absent, legacy fields still present).
+- P1.7 Commit 1 style check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`62/62`).
+- P1.7 Commit 2 GREEN (`fbcaccd9`) checks:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component_bt.gd` passes (`3/3`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`62/62`).
+- P1.7 Commit 3 RED (`54425b93`) check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd` fails for expected reasons (`root` missing, legacy `goals` still present, no migration `push_error`).
+- P1.7 Commit 3 style check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`62/62`).
+- P1.7 Commit 4 GREEN (`bf2a734e`) checks:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd` passes (`3/3`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component_bt.gd` passes (`3/3`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`62/62`).
+- Expected pre-P1.8 failures after P1.7:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` fails (`9/16` passing; old GOAP snapshot/task-state contract).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` fails (`7/10` passing; old `RS_AIBrainSettings.goals` assertions).
 
 ---
 
@@ -252,8 +274,8 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 ## Next Steps
 
 1. Already on branch `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). No additional branch creation needed.
-2. Implement **P1.7 Commit 1 (RED)** — `tests/unit/ecs/components/test_c_ai_brain_component_bt.gd`.
-3. Proceed through P1.7 → P1.10 in order.
+2. Implement **P1.8 Commit 1 (RED)** — `tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd`.
+3. Proceed through P1.8 → P1.10 in order.
 4. Merge Phase 1 to main.
 5. Branch for Phase 2 (or Phase 3 in parallel).
 6. Sequence through remaining phases per dependency graph.
