@@ -11,6 +11,7 @@ const RS_RULE_CONTEXT := preload("res://scripts/resources/ecs/rs_rule_context.gd
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_AI_RENDER_PROBE := preload("res://scripts/utils/debug/u_ai_render_probe.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
+const U_AI_CONTEXT_ASSEMBLER := preload("res://scripts/utils/ai/u_ai_context_assembler.gd")
 
 const MOBILE_EVALUATION_INTERVAL_MULTIPLIER: float = 2.0
 const BRAIN_COMPONENT_TYPE := C_AIBrainComponent.COMPONENT_TYPE
@@ -27,6 +28,7 @@ var _state_store: I_StateStore = null
 @export var debug_entity_id: StringName = StringName("patrol_drone")
 var _bt_runner: U_BTRunner = U_BT_RUNNER.new()
 var _debug_log_throttle: U_DebugLogThrottle = U_DEBUG_LOG_THROTTLE.new()
+var _context_assembler: U_AIContextAssembler = U_AI_CONTEXT_ASSEMBLER.new()
 var _is_mobile: bool = false
 
 func _init() -> void:
@@ -59,7 +61,7 @@ func process_tick(delta: float) -> void:
 		var brain_settings: RS_AIBrainSettings = brain.get_brain_settings()
 		if brain_settings == null:
 			continue
-		var context: Dictionary = _build_context(entity_query, brain, redux_state, store, manager)
+		var context: Dictionary = _context_assembler.build_context(entity_query, brain, redux_state, store, manager)
 		context[&"entity_query"] = entity_query
 		context[&"delta"] = maxf(delta, 0.0)
 		context[&"time"] = current_time
@@ -67,67 +69,6 @@ func process_tick(delta: float) -> void:
 		var snapshot: Dictionary = _build_debug_snapshot(brain, context, status)
 		brain.update_debug_snapshot(snapshot)
 		_debug_log_brain_state(context, snapshot)
-
-func _build_context(
-	entity_query: Object,
-	brain: C_AIBrainComponent,
-	redux_state: Dictionary,
-	store: I_StateStore,
-	manager: I_ECSManager
-) -> Dictionary:
-	var rule_context: RSRuleContext = RS_RULE_CONTEXT.new()
-	rule_context.brain_component = brain
-	rule_context.redux_state = redux_state
-	if store != null and is_instance_valid(store):
-		rule_context.state_store = store
-	if entity_query == null:
-		rule_context.components = {BRAIN_COMPONENT_TYPE: brain}
-		return rule_context.to_dictionary()
-
-	var entity_variant: Variant = entity_query.get("entity")
-	if entity_variant is Node:
-		var entity: Node = entity_variant as Node
-		rule_context.entity = entity
-		rule_context.entity_id = U_ECS_UTILS.get_entity_id(entity)
-
-		var components: Dictionary = {}
-		if manager != null:
-			components = manager.get_components_for_entity_readonly(entity)
-		if components.is_empty() and entity_query.has_method("get_all_components"):
-			var query_components_variant: Variant = entity_query.call("get_all_components")
-			if query_components_variant is Dictionary:
-				components = query_components_variant as Dictionary
-		if not components.is_empty():
-			_inject_role_keyed_detection(components, entity, manager)
-			rule_context.components = components
-		else:
-			rule_context.components = {BRAIN_COMPONENT_TYPE: brain}
-	else:
-		rule_context.components = {BRAIN_COMPONENT_TYPE: brain}
-
-	return rule_context.to_dictionary()
-
-func _inject_role_keyed_detection(components: Dictionary, entity: Node, manager: I_ECSManager) -> void:
-	if manager == null:
-		return
-	var all_detections: Array = manager.get_components(DETECTION_COMPONENT_TYPE)
-	if all_detections.size() <= 1:
-		return
-	for detection_variant in all_detections:
-		if detection_variant == null or not (detection_variant is C_DetectionComponent):
-			continue
-		var detection: C_DetectionComponent = detection_variant as C_DetectionComponent
-		if not is_instance_valid(detection):
-			continue
-		var detection_root: Node = U_ECS_UTILS.find_entity_root(detection)
-		if detection_root != entity:
-			continue
-		var role: StringName = detection.detection_role
-		if role == StringName("") or role == StringName("primary"):
-			components[DETECTION_COMPONENT_TYPE] = detection
-			continue
-		var role_key: StringName = StringName(String(DETECTION_COMPONENT_TYPE) + ":" + String(role))
-		components[role_key] = detection
 
 func _process_brain(
 	brain: C_AIBrainComponent,
@@ -143,7 +84,7 @@ func _process_brain(
 			push_error("S_AIBehaviorSystem: root is null for brain %s" % str(brain.name))
 			brain.active_goal_id = ROOT_MISSING_SENTINEL
 		return RS_BT_NODE.Status.FAILURE
-	brain.active_goal_id = _resolve_root_id(root)
+	brain.active_goal_id = _context_assembler.resolve_root_id(root, ROOT_ID_FALLBACK_PREFIX)
 	return _bt_runner.tick(root, context, brain.bt_state_bag)
 
 func _should_evaluate_goals(
@@ -164,14 +105,6 @@ func _should_evaluate_goals(
 		return false
 	brain.evaluation_timer = 0.0
 	return true
-
-func _resolve_root_id(root: RS_BTNode) -> StringName:
-	if root == null:
-		return StringName()
-	var resource_name: String = root.resource_name.strip_edges()
-	if not resource_name.is_empty():
-		return StringName(resource_name)
-	return StringName("%s%d" % [ROOT_ID_FALLBACK_PREFIX, root.node_id])
 
 func _build_debug_snapshot(
 	brain: C_AIBrainComponent,
@@ -223,7 +156,7 @@ func _debug_log_brain_state(context: Dictionary, snapshot: Dictionary) -> void:
 		var _cv: Variant = context.get("components", null)
 		if _cv is Dictionary: _mc = (_cv as Dictionary).get(MOVEMENT_COMPONENT_TYPE, null)
 		render_probe = U_AI_RENDER_PROBE.build_probe_string(context.get("entity", null) as Node, null, _mc)
-	print("S_AIBehaviorSystem[entity=%s] root=%s active_path=%s bt_keys=%d%s" % [
+	_debug_log_throttle.log_message("S_AIBehaviorSystem[entity=%s] root=%s active_path=%s bt_keys=%d%s" % [
 		entity_id,
 		snapshot.get("goal_id", ""),
 		snapshot.get("active_path", []),
@@ -241,7 +174,7 @@ func _debug_log_missing_brains() -> void:
 	var manager: I_ECSManager = get_manager()
 	if manager != null:
 		registered_brain_count = manager.get_components(BRAIN_COMPONENT_TYPE).size()
-	print(
+	_debug_log_throttle.log_message(
 		"S_AIBehaviorSystem: query_entities([C_AIBrainComponent]) returned 0 entities; registered_brain_components=%d"
 		% [registered_brain_count]
 	)
