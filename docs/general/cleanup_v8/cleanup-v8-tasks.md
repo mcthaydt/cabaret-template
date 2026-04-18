@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 in progress (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 in progress (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -201,7 +201,7 @@ Ports the features currently implemented in `U_AIGoalSelector` (cooldown/one-sho
   - Runs child once per brain lifetime. Subsequent entries → FAILURE.
   - Reset via `context.brain.reset_once_nodes()` (used on scene change).
 - [x] **Commit 4** (GREEN) — `scripts/resources/bt/rs_bt_once.gd` — `165d93c4`.
-- [ ] **Commit 5** (RED) — `test_rs_bt_rising_edge.gd`:
+- [x] **Commit 5** (RED) — `test_rs_bt_rising_edge.gd` — `4ea75032`:
   - Only enters child when gate condition transitions false → true.
   - While child RUNNING, re-ticks child regardless of gate (completes what it started).
 - [ ] **Commit 6** (GREEN) — `scripts/resources/bt/rs_bt_rising_edge.gd`.
@@ -216,10 +216,12 @@ Ports the features currently implemented in `U_AIGoalSelector` (cooldown/one-sho
 - Commit 2 (GREEN) `cf80eb4f`: implemented `scripts/resources/bt/rs_bt_cooldown.gd`.
 - Commit 3 (RED) `4069c08a`: added `tests/unit/ai/bt/test_rs_bt_once.gd` (failing for expected missing-script reason).
 - Commit 4 (GREEN) `165d93c4`: implemented `scripts/resources/bt/rs_bt_once.gd`.
+- Commit 5 (RED) `4ea75032`: added `tests/unit/ai/bt/test_rs_bt_rising_edge.gd` (failing for expected missing-script reason).
 - Verification commands:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_once.gd` (4/4 passing).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_rising_edge.gd` (0/4 passing; expected RED, missing `rs_bt_rising_edge.gd`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (60/60 passing).
-- Commits 5–7 remain.
+- Commits 6–7 remain.
 
 ---
 
