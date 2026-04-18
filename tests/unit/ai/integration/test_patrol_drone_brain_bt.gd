@@ -1,7 +1,7 @@
 extends BaseTest
 
 const S_AI_BEHAVIOR_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
-const PATROL_DRONE_BT_BRAIN_PATH := "res://resources/ai/patrol_drone/cfg_patrol_drone_brain_bt.tres"
+const PATROL_DRONE_BT_BRAIN_PATH := "res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres"
 
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
