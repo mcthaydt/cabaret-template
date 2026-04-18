@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (`fffa2e55`); P1.9 Commit 3 (RED+GREEN) complete (`7de2a6cf`); P1.9 Commit 4 (RED+GREEN) complete (`c1d7b0fb`); P1.9 Commit 5 (RED+GREEN) complete (`a2766455`).
-**Next Task**: P1.9 Commit 6 (RED+GREEN) — planner showcase for wolf `hunt_pack` branch (`RS_BTPlanner`) and integration parity checks.
+**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (`fffa2e55`); P1.9 Commit 3 (RED+GREEN) complete (`7de2a6cf`); P1.9 Commit 4 (RED+GREEN) complete (`c1d7b0fb`); P1.9 Commit 5 (RED+GREEN) complete (`a2766455`); P1.9 Commit 6 (RED+GREEN) complete (pending hash).
+**Next Task**: P1.9 manual AI-forest parity gate — run in-scene/manual behavior parity check before P1.10 legacy deletions.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -88,6 +88,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - `(RED+GREEN) P1.9 migrate deer brain to BT utility tree` (`7de2a6cf`)
     - `(RED+GREEN) P1.9 migrate rabbit brain to BT utility tree` (`c1d7b0fb`)
     - `(RED+GREEN) P1.9 migrate sentry/patrol_drone/guide_prism brains to BT utility trees` (`a2766455`)
+    - `(RED+GREEN) P1.9 planner showcase for wolf hunt_pack via RS_BTPlanner` (pending hash)
   - **Verification state**:
     - New P1.1 tests are green (`tests/unit/ai/bt/test_rs_bt_node_base.gd`).
     - New P1.2 sequence tests are green (`tests/unit/ai/bt/test_rs_bt_sequence.gd`).
@@ -136,9 +137,14 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_sentry_brain_bt.gd` RED check fails for expected reason (`cfg_sentry_brain_bt.tres` missing), then passes after GREEN migration (`3/3`).
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_guide_prism_brain_bt.gd` RED check fails for expected reason (`cfg_guide_brain_bt.tres` missing), then passes after GREEN migration (`3/3`).
       - Rechecks pass: `test_rabbit_brain_bt.gd` (`3/3`), `test_deer_brain_bt.gd` (`3/3`), `test_wolf_brain_bt.gd` (`2/2`), `test_s_ai_behavior_system_bt.gd` (`3/3`).
+    - P1.9 Commit 6 RED+GREEN checks:
+      - RED: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` fails for expected reason (`last_plan` snapshot missing on hunt-pack branch).
+      - GREEN: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` passes (`3/3`) after planner migration.
+      - Planner/runtime rechecks pass: `test_u_ai_world_state_builder.gd` (`3/3`), `test_rs_bt_planner.gd` (`9/9`), `test_s_ai_behavior_system_bt.gd` (`3/3`).
+      - Content-parity rechecks pass: `test_deer_brain_bt.gd` (`3/3`), `test_rabbit_brain_bt.gd` (`3/3`), `test_patrol_drone_brain_bt.gd` (`3/3`), `test_sentry_brain_bt.gd` (`3/3`), `test_guide_prism_brain_bt.gd` (`3/3`).
     - Post-P1.9 Commit 2 style check currently reports a pre-existing unrelated failure:
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` fails `test_ai_behavior_system_stays_under_two_hundred_lines` (`248` > `199`).
-    - Current style check after P1.9 Commit 5 still reports the same pre-existing unrelated failure:
+    - Current style check after P1.9 Commit 6 still reports the same pre-existing unrelated failure:
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` fails `test_ai_behavior_system_stays_under_two_hundred_lines` (`248` > `199`).
     - Current full-suite check after P1.9 Commit 5 reports expected pre-P1.10 migration fallout (`4481` passing / `98` failing / `8` pending).
     - Legacy consumer fallout is expected pre-P1.10 (`tests/unit/ecs/components/test_c_ai_brain_component.gd`, `tests/unit/ai/resources/test_rs_ai_goal.gd`, and GOAP-era AI integration suites still target removed goal/task contracts or pre-migration brain resources).
@@ -245,7 +251,20 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_deer_brain_bt.gd` passes (`3/3`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` passes (`2/2`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd` passes (`3/3`).
-- Current style check after P1.9 Commit 5:
+- P1.9 Commit 6 RED+GREEN checks:
+  - RED check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` fails for expected reason (`last_plan` planner snapshot missing on hunt-pack branch).
+  - GREEN check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` passes (`3/3`).
+  - Planner/runtime regression checks pass:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd` (`3/3`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_u_ai_world_state_builder.gd` (`3/3`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner.gd` (`9/9`)
+  - Content parity rechecks pass:
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_deer_brain_bt.gd` (`3/3`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_rabbit_brain_bt.gd` (`3/3`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_patrol_drone_brain_bt.gd` (`3/3`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_sentry_brain_bt.gd` (`3/3`)
+    - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_guide_prism_brain_bt.gd` (`3/3`)
+- Current style check after P1.9 Commit 6:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` fails on pre-existing LOC cap guard (`S_AIBehaviorSystem` is `248` lines, limit `199`).
 - Current full-suite check after P1.9 Commit 5:
   - `tools/run_gut_suite.sh` reports expected pre-P1.10 migration fallout (`4481` passing / `98` failing / `8` pending).
@@ -354,9 +373,8 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 ## Next Steps
 
 1. Already on branch `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). No additional branch creation needed.
-2. Implement **P1.9 Commit 6 (RED+GREEN)** — planner showcase for wolf `hunt_pack` via `RS_BTPlanner`.
-3. Continue P1.9 migration follow-through checks, then run the manual AI-forest parity pass.
-4. Run manual AI-forest parity check after P1.9 before P1.10 deletions.
-5. Proceed through P1.10 once P1.9 parity and checks are complete.
-6. Merge Phase 1 to main.
-7. Branch for Phase 2 (or Phase 3 in parallel).
+2. P1.9 Commit 6 implementation/checks are complete; keep commit metadata synchronized in both V8 tracking docs after commit lands.
+3. Run manual AI-forest parity check after P1.9 before P1.10 deletions.
+4. Proceed through P1.10 once P1.9 parity and manual checks are complete.
+5. Merge Phase 1 to main.
+6. Branch for Phase 2 (or Phase 3 in parallel).
