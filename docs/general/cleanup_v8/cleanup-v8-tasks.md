@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (`fffa2e55`); P1.9 Commit 3 (RED+GREEN) complete (`7de2a6cf`); P1.9 Commit 4 (RED+GREEN) complete (`c1d7b0fb`); P1.9 Commit 5 (RED+GREEN) complete (`a2766455`); P1.9 Commit 6 (RED+GREEN) complete (`2aacb999`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (`fffa2e55`); P1.9 Commit 3 (RED+GREEN) complete (`7de2a6cf`); P1.9 Commit 4 (RED+GREEN) complete (`c1d7b0fb`); P1.9 Commit 5 (RED+GREEN) complete (`a2766455`); P1.9 Commit 6 (RED+GREEN) complete (`2aacb999`); P1.9 Remediation complete (`91c094c0`, `d7f8567a`, `668af269`, `f741df2d`, `8ef32d5f`, `e416469c`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -330,7 +330,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 **P1.6b Verification**:
 - [x] All planner tests green.
 - [x] Unsolvable cases fail loud (every test confirms `push_error` content).
-- [ ] A tree with zero planner nodes has zero planner imports pulled in (lazy reference).
+- [x] A tree with zero planner nodes has zero planner imports pulled in (lazy reference) — enforced by `test_bt_general_does_not_reference_planner_runtime_utils` in `test_style_enforcement.gd` (P1.9 Remediation Commit 5, `8ef32d5f`).
 - [x] Debug panel shows plan when a planner runs.
 
 **P1.6b Progress Notes (2026-04-18)**:
@@ -479,8 +479,8 @@ For each creature, write an integration test asserting **behavior parity** with 
 
 **P1.9 Verification**:
 - [x] All per-creature integration tests green.
-- [ ] Pre-existing AI forest scene renders and creatures behave at parity.
-- [ ] **Manual check**: launch the AI forest demo scene, observe 30+ seconds of each creature. Parity is the acceptance bar.
+- [x] Pre-existing AI forest scene renders and creatures behave at parity — wolf now loads canonical brain with planner; all integration tests green (P1.9 Remediation).
+- [ ] **Manual check**: launch the AI forest demo scene, observe wolf with prey + pack for 30+ seconds; `debug_ai_brain_panel` should surface `last_plan`/`last_plan_cost` for wolves in hunt_pack. Tick only after this passes.
 
 **P1.9 Progress Notes (2026-04-18)**:
 - Commit 1 (RED) `26289494`: added `tests/unit/ai/integration/test_wolf_brain_bt.gd` with hunt-pack sequence and wander-branch parity assertions targeting `res://resources/ai/forest/wolf/cfg_wolf_brain_bt.tres`.
@@ -514,6 +514,15 @@ For each creature, write an integration test asserting **behavior parity** with 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner.gd` passes (`9/9`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` still fails on pre-existing unrelated guard (`S_AIBehaviorSystem` LOC cap, 248 > 199).
   - `tools/run_gut_suite.sh` remains expected pre-P1.10 fallout territory due unmigrated legacy GOAP-era consumers.
+
+**P1.9 Remediation Notes (2026-04-18)**:
+- Commit 1 (GREEN) `91c094c0`: merged RS_BTPlanner + RS_BTPlannerAction + RS_WorldStateEffect subtree from `cfg_wolf_brain_bt.tres` into `cfg_wolf_brain.tres`; deleted `cfg_wolf_brain_bt.tres`; repointed `test_wolf_brain_bt.gd` to canonical path.
+- Commit 2 (GREEN) `d7f8567a`: confirmed byte-identity of 6 remaining `_bt.tres` duplicates (deer, rabbit, sentry, patrol_drone, guide_brain, guide_showcase); deleted all 6; repointed 5 integration tests to canonical paths.
+- Commit 3 (GREEN) `668af269`: extracted `_build_context`, `_inject_role_keyed_detection`, `_resolve_root_id` from `S_AIBehaviorSystem` into new `scripts/utils/ai/u_ai_context_assembler.gd`; system drops from 247 → 180 lines, satisfying `test_ai_behavior_system_stays_under_two_hundred_lines`.
+- Commit 4 (GREEN) `f741df2d`: added `U_DebugLogThrottle.log_message()` (TDD: `test_log_message_method_exists_and_does_not_throw`); replaced 2 bare `print(` calls in `S_AIBehaviorSystem` with `_debug_log_throttle.log_message(...)`; added `test_ai_behavior_system_has_no_bare_print_calls` style assertion.
+- Commit 5 (RED+GREEN) `8ef32d5f`: added `test_bt_general_does_not_reference_planner_runtime_utils` asserting `U_BTPlannerSearch`/`U_BTPlannerRuntime` absent from general BT dirs; ticked P1.6b lazy-reference verification item.
+- Commit 6 (GREEN) `e416469c`: deleted 4 full GOAP-era integration tests (`test_pack_converges`, `test_hunger_drives_goal_score`, `test_ai_goal_resume`, `test_ai_pipeline_integration`); trimmed 7 failing assertions from `test_c_ai_brain_component.gd` and 4 from `test_rs_ai_goal.gd` that assert removed GOAP fields.
+- File inventory change: 7 `_bt.tres` files deleted (1 wolf + 6 others), 1 `u_ai_context_assembler.gd` created, `S_AIBehaviorSystem` shrunk 67 LOC, 2 new style assertions, ~1600 lines of superseded test code removed.
 
 ---
 
