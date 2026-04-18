@@ -11,13 +11,17 @@ const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_pr
 const RS_BT_NODE := preload("res://scripts/resources/bt/rs_bt_node.gd")
 
 class BehaviorSystemBtRecordingNode extends RS_BT_NODE:
+	const STATE_KEY_RUNNER_TICK_CALLS := &"runner_tick_calls"
+
 	var tick_calls: int = 0
 	var last_context: Dictionary = {}
 
 	func tick(context: Dictionary, state_bag: Dictionary) -> Status:
 		tick_calls += 1
 		last_context = context.duplicate(true)
-		state_bag[&"runner_tick_calls"] = tick_calls
+		state_bag[node_id] = {
+			STATE_KEY_RUNNER_TICK_CALLS: tick_calls,
+		}
 		return Status.SUCCESS
 
 class BehaviorSystemBtBrainSettingsShim extends RS_AI_BRAIN_SETTINGS:
@@ -100,7 +104,8 @@ func test_bt_runner_tick_receives_context_and_state_bag() -> void:
 	assert_true(root_node.last_context.has(&"redux_state"), "BT context should include redux_state.")
 	assert_true(root_node.last_context.has(&"components"), "BT context should include components.")
 	assert_true(root_node.last_context.has(&"brain_component"), "BT context should include brain_component.")
-	assert_eq(brain.bt_state_bag.get(&"runner_tick_calls", -1), 1, "BT runner should mutate the shared bt_state_bag.")
+	var root_state: Dictionary = brain.bt_state_bag.get(root_node.node_id, {})
+	assert_eq(root_state.get(root_node.STATE_KEY_RUNNER_TICK_CALLS, -1), 1, "BT runner should mutate the shared bt_state_bag.")
 
 func test_bt_tick_honors_evaluation_interval() -> void:
 	var fixture: Dictionary = _create_fixture(0.5)

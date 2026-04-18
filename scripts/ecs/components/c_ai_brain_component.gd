@@ -3,8 +3,11 @@ extends BaseECSComponent
 class_name C_AIBrainComponent
 
 const COMPONENT_TYPE := StringName("C_AIBrainComponent")
+const SNAPSHOT_KEY_ENTITY_ID := &"entity_id"
 const SNAPSHOT_KEY_ACTIVE_PATH := &"active_path"
 const SNAPSHOT_KEY_BT_STATE_KEYS := &"bt_state_keys"
+const SNAPSHOT_KEY_LAST_PLAN := &"last_plan"
+const SNAPSHOT_KEY_LAST_PLAN_COST := &"last_plan_cost"
 @export var brain_settings: RS_AIBrainSettings = null
 
 var active_goal_id: StringName = StringName("")
@@ -35,8 +38,12 @@ func update_debug_snapshot(snapshot: Dictionary) -> void:
 
 func get_debug_snapshot() -> Dictionary:
 	var snapshot: Dictionary = {}
+	var entity_id_variant: Variant = _debug_snapshot.get(SNAPSHOT_KEY_ENTITY_ID, StringName())
+	if entity_id_variant is StringName or entity_id_variant is String:
+		snapshot[SNAPSHOT_KEY_ENTITY_ID] = entity_id_variant
 	snapshot[SNAPSHOT_KEY_ACTIVE_PATH] = _coerce_active_path(_debug_snapshot.get(SNAPSHOT_KEY_ACTIVE_PATH, []))
 	snapshot[SNAPSHOT_KEY_BT_STATE_KEYS] = bt_state_bag.size()
+	_append_planner_debug(snapshot)
 	return snapshot
 
 func _coerce_active_path(value: Variant) -> Array[String]:
@@ -49,3 +56,13 @@ func _coerce_active_path(value: Variant) -> Array[String]:
 			continue
 		active_path.append(step_text)
 	return active_path
+
+func _append_planner_debug(snapshot: Dictionary) -> void:
+	for node_state_variant in bt_state_bag.values():
+		if not (node_state_variant is Dictionary):
+			continue
+		var node_state: Dictionary = node_state_variant as Dictionary
+		if node_state.has(SNAPSHOT_KEY_LAST_PLAN):
+			snapshot[SNAPSHOT_KEY_LAST_PLAN] = node_state.get(SNAPSHOT_KEY_LAST_PLAN, [])
+		if node_state.has(SNAPSHOT_KEY_LAST_PLAN_COST):
+			snapshot[SNAPSHOT_KEY_LAST_PLAN_COST] = node_state.get(SNAPSHOT_KEY_LAST_PLAN_COST, null)

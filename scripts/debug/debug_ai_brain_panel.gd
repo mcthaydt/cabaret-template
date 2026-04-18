@@ -71,19 +71,29 @@ func _ensure_required_children() -> void:
 
 func _build_row_text(brain: C_AIBrainComponent, snapshot: Dictionary) -> String:
 	var entity_id_value: String = _resolve_entity_id(snapshot, brain)
-	var goal_id_value: String = _resolve_snapshot_string(snapshot, "goal_id")
-	var task_id_value: String = _resolve_snapshot_string(snapshot, "task_id")
-	var detect_value: String = str(snapshot.get("is_player_in_range", "?"))
-	var hunger_value: float = clampf(float(snapshot.get("hunger", 1.0)), 0.0, 1.0)
+	var active_path_text: String = _resolve_active_path_text(snapshot)
+	var state_key_count: int = int(snapshot.get("bt_state_keys", 0))
 	var planner_text: String = _resolve_planner_text(snapshot)
-	var exit_radius_value: String = ""
-	if snapshot.has("detection_exit_radius"):
-		var er: float = float(snapshot.get("detection_exit_radius", 0.0))
-		var dr: float = float(snapshot.get("detection_radius", 8.0))
-		if er > dr:
-			exit_radius_value = " exit=%.1f" % er
-	return "%s | goal=%s | task=%s | hunger=%.2f | detect=%s%s%s" % [
-		entity_id_value, goal_id_value, task_id_value, hunger_value, detect_value, exit_radius_value, planner_text]
+	return "%s | bt=%s | bt_state_keys=%d%s" % [
+		entity_id_value,
+		active_path_text,
+		state_key_count,
+		planner_text,
+	]
+
+func _resolve_active_path_text(snapshot: Dictionary) -> String:
+	var path_variant: Variant = snapshot.get("active_path", [])
+	if not (path_variant is Array):
+		return "<idle>"
+	var steps: Array[String] = []
+	for step_variant in path_variant as Array:
+		var step: String = str(step_variant).strip_edges()
+		if step.is_empty():
+			continue
+		steps.append(step)
+	if steps.is_empty():
+		return "<idle>"
+	return "->".join(steps)
 
 func _resolve_planner_text(snapshot: Dictionary) -> String:
 	var plan_steps: Array[String] = []

@@ -82,7 +82,7 @@ func test_panel_renders_one_row_per_brain_component() -> void:
 	var row_labels: Array[Label] = _get_row_labels(panel)
 	assert_eq(row_labels.size(), 2, "Panel should render exactly one row per brain component.")
 
-func test_panel_row_text_contains_entity_goal_and_task() -> void:
+func test_panel_row_text_contains_entity_and_bt_path() -> void:
 	var panel: Control = await _instantiate_panel()
 	if panel == null:
 		return
@@ -93,11 +93,8 @@ func test_panel_row_text_contains_entity_goal_and_task() -> void:
 
 	_register_brain(ecs_manager, {
 		"entity_id": &"E_Deer_01",
-		"goal_id": &"startle",
-		"task_id": &"scan_alert",
-		"hunger": 0.45,
-		"sated_threshold": 0.75,
-		"starving_threshold": 0.3,
+		"active_path": [&"selector", &"flee_sequence", &"action_move_to_safe_zone"],
+		"bt_state_keys": 3,
 	}, panel)
 
 	assert_true(panel.has_method("refresh_rows"), "Panel should expose refresh_rows() for deterministic testing.")
@@ -112,11 +109,8 @@ func test_panel_row_text_contains_entity_goal_and_task() -> void:
 
 	var row_text: String = row_labels[0].text
 	assert_string_contains(row_text, "E_Deer_01", "Row text should include entity_id.")
-	assert_string_contains(row_text, "startle", "Row text should include goal_id.")
-	assert_string_contains(row_text, "scan_alert", "Row text should include task_id.")
-	assert_string_contains(row_text, "hunger=0.45", "Row text should include formatted hunger.")
-	assert_almost_eq(row_labels[0].modulate.r, 1.0, 0.001, "Mid hunger should render warning/yellow color.")
-	assert_almost_eq(row_labels[0].modulate.g, 0.9, 0.001, "Mid hunger should render warning/yellow color.")
+	assert_string_contains(row_text, "bt=selector->flee_sequence->action_move_to_safe_zone", "Row text should include active BT path.")
+	assert_string_contains(row_text, "bt_state_keys=0", "Row text should include BT state-bag key count from runtime snapshot.")
 
 func test_panel_row_text_renders_planner_plan_when_present() -> void:
 	var panel: Control = await _instantiate_panel()
@@ -129,15 +123,12 @@ func test_panel_row_text_renders_planner_plan_when_present() -> void:
 
 	var brain: C_AIBrainComponent = _register_brain(ecs_manager, {
 		"entity_id": &"E_Wolf_02",
-		"goal_id": &"hunt",
-		"task_id": &"planner_step",
-		"hunger": 0.65,
-		"sated_threshold": 0.75,
-		"starving_threshold": 0.3,
+		"active_path": [&"selector", &"planner_hunt"],
+		"bt_state_keys": 1,
 	}, panel)
 	if brain == null:
 		return
-	brain.task_state = {
+	brain.bt_state_bag = {
 		777: {
 			"last_plan": [&"stalk", &"ambush", &"pounce"],
 			"last_plan_cost": 5.5,
@@ -155,6 +146,7 @@ func test_panel_row_text_renders_planner_plan_when_present() -> void:
 		return
 
 	var row_text: String = row_labels[0].text
+	assert_string_contains(row_text, "bt=selector->planner_hunt", "Row text should render active BT path.")
 	assert_string_contains(row_text, "plan=stalk->ambush->pounce", "Row text should render planner plan steps.")
 	assert_string_contains(row_text, "plan_cost=5.50", "Row text should render planner plan cost.")
 
