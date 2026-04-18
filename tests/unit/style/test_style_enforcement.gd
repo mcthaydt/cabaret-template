@@ -687,6 +687,20 @@ func test_ai_behavior_system_stays_under_two_hundred_lines() -> void:
 		"S_AIBehaviorSystem should stay below 200 lines for orchestration-only scope (current=%d)." % line_count
 	)
 
+func test_ai_behavior_system_has_no_bare_print_calls() -> void:
+	var behavior_system_path := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
+	var file := FileAccess.open(behavior_system_path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % behavior_system_path)
+	if file == null:
+		return
+	var text: String = file.get_as_text()
+	file.close()
+
+	assert_false(
+		text.find("print(") != -1,
+		"s_ai_behavior_system.gd must not contain bare print() calls; route through U_DebugLogThrottle.log_message()"
+	)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var context_builders: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",

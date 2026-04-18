@@ -30,3 +30,7 @@ func tick(delta: float) -> void:
 
 func clear() -> void:
 	_cooldowns_by_key.clear()
+
+
+func log_message(message: String) -> void:
+	print(message)
