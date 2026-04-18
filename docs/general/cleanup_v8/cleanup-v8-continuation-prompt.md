@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`).
-**Next Task**: P1.9 Commit 2 (GREEN) — author `resources/ai/forest/wolf/cfg_wolf_brain_bt.tres` and point `cfg_wolf_brain.tres` at BT root.
+**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (working tree, commit pending).
+**Next Task**: P1.9 Commit 3 (RED+GREEN) — add deer BT parity test and author `resources/ai/forest/deer/cfg_deer_brain_bt.tres`.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -84,6 +84,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - `(GREEN) P1.8 patch audit gaps — kill P1.10 time bombs` (`a3f4bc33`)
   - **P1.9** in progress:
     - `(RED) P1.9 add wolf BT parity integration test` (`26289494`)
+    - `(GREEN) P1.9 author wolf BT brain resources + runtime context follow-through` (working tree, commit pending)
   - **Verification state**:
     - New P1.1 tests are green (`tests/unit/ai/bt/test_rs_bt_node_base.gd`).
     - New P1.2 sequence tests are green (`tests/unit/ai/bt/test_rs_bt_sequence.gd`).
@@ -113,9 +114,12 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/debug/test_debug_ai_brain_panel.gd` (`4/4`)
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component_bt.gd` (`3/3`)
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`62/62`)
-    - P1.9 Commit 1 RED check fails for expected reason:
-      - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` fails (`cfg_wolf_brain_bt.tres` missing).
-    - Post-P1.9 Commit 1 style check currently reports a pre-existing unrelated failure:
+    - P1.9 Commit 1 RED check failed for expected reason:
+      - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` failed (`cfg_wolf_brain_bt.tres` missing).
+    - P1.9 Commit 2 GREEN checks:
+      - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` passes (`2/2`).
+      - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd` passes (`3/3`).
+    - Post-P1.9 Commit 2 style check currently reports a pre-existing unrelated failure:
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` fails `test_ai_behavior_system_stays_under_two_hundred_lines` (`248` > `199`).
     - Legacy consumer fallout is expected pre-P1.9 (`tests/unit/ecs/components/test_c_ai_brain_component.gd`, `tests/unit/ai/resources/test_rs_ai_goal.gd`, and GOAP-era AI integration suites still target removed goal/task contracts or pre-migration brain resources).
     - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
@@ -187,7 +191,10 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` fails (`7/10` passing; old `RS_AIBrainSettings.goals` assertions).
 - P1.9 Commit 1 RED check (new):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` fails for expected reason (`cfg_wolf_brain_bt.tres` missing).
-- Current style check after P1.9 Commit 1:
+- P1.9 Commit 2 GREEN checks (new):
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` passes (`2/2`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd` passes (`3/3`).
+- Current style check after P1.9 Commit 2:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` fails on pre-existing LOC cap guard (`S_AIBehaviorSystem` is `248` lines, limit `199`).
 
 ---
@@ -240,7 +247,7 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 - **Decorators replace goal-selector features.** Cooldown, one-shot, rising-edge become `RS_BTCooldown`, `RS_BTOnce`, `RS_BTRisingEdge` nodes wrapping subtrees.
 - **Conditions reuse `I_Condition`.** No new `I_AICondition` interface. BT condition leaf wraps the existing implementations under `scripts/resources/qb/conditions/` that the goal selector already consumes via `U_RuleScorer`.
 - **Actions reused unchanged.** All 10 `I_AIAction` resources and their `.tres` files carry over. `u_ai_task_state_keys.gd` is retained after P1.10 legacy deletion (used by `RS_BTAction`).
-- **Context dictionary unchanged.** `S_AIBehaviorSystem`'s context construction is preserved.
+- **BT runtime context keys**: `S_AIBehaviorSystem` now includes per-tick `delta` and `time` keys in BT context so `RS_BTAction`/`RS_BTCooldown` can run deterministically in gameplay and tests.
 - **No ABORT status.** Three values only: `RUNNING`, `SUCCESS`, `FAILURE`. Parent re-ticking replaces abort semantics.
 - **State bag keyed by `node.get_instance_id()`.** Per-node running state stored on the brain component, not the node resource (resources are shared, instance state is not).
 - **`push_error` stubs on base classes** (F16 pattern): `RS_BTNode.tick` virtual must be overridden or fails loud.
@@ -294,9 +301,9 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 ## Next Steps
 
 1. Already on branch `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). No additional branch creation needed.
-2. Implement **P1.9 Commit 2 (GREEN)** — author `resources/ai/forest/wolf/cfg_wolf_brain_bt.tres` and wire `resources/ai/forest/wolf/cfg_wolf_brain.tres` to the BT root.
-3. Re-run `tests/unit/ai/integration/test_wolf_brain_bt.gd` and style checks after the GREEN migration.
-4. Proceed through P1.9 → P1.10 in order.
-5. Merge Phase 1 to main.
-6. Branch for Phase 2 (or Phase 3 in parallel).
-7. Sequence through remaining phases per dependency graph.
+2. Implement **P1.9 Commit 3 (RED+GREEN)** — deer BT parity test + `cfg_deer_brain_bt.tres`.
+3. Continue P1.9 creature migrations (rabbit, sentry, patrol_drone, guide_prism) in order.
+4. Run manual AI-forest parity check after P1.9 before P1.10 deletions.
+5. Proceed through P1.10 once P1.9 parity and checks are complete.
+6. Merge Phase 1 to main.
+7. Branch for Phase 2 (or Phase 3 in parallel).
