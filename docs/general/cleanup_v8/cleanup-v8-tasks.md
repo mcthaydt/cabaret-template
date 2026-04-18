@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b in progress (Commit 1 RED: `a98fd907`, Commit 2 GREEN: `08f2aaf4`, Commit 3 RED: `0c196e7d`, Commit 4 GREEN: `3dda0fd5`, Commit 5 RED: `0128edd0`, Commit 6 GREEN: `78d73d09`, Commit 7 RED: `8b2198c6`, Commit 8 GREEN: `97252380`, Commit 9 RED: `0ad8c49d`, Commit 10 GREEN: `90ce7243`, follow-up GREEN fix: `07ba856a`, Commit 11 GREEN: `64de76f6`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b in progress (Commit 1 RED: `a98fd907`, Commit 2 GREEN: `08f2aaf4`, Commit 3 RED: `0c196e7d`, Commit 4 GREEN: `3dda0fd5`, Commit 5 RED: `0128edd0`, Commit 6 GREEN: `78d73d09`, Commit 7 RED: `8b2198c6`, Commit 8 GREEN: `97252380`, Commit 9 RED: `0ad8c49d`, Commit 10 GREEN: `90ce7243`, follow-up GREEN fix: `07ba856a`, Commit 11 GREEN: `64de76f6`, Commit 12 GREEN: pending commit).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -321,7 +321,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
   - `C_AIBrainComponent.get_debug_snapshot()` includes `last_plan` + `last_plan_cost` from the most recent planner tick.
   - `debug_ai_brain_panel.gd` renders plan when present.
 
-- [ ] **Commit 12** (GREEN) — Style enforcement:
+- [x] **Commit 12** (GREEN) — Style enforcement:
   - `scripts/resources/bt/` (general framework) must not reference `I_Condition`, `I_AIAction`, `RS_WorldStateEffect`, `RS_BTPlanner*`, or any other AI-specific types (AI-specific types stay in `scripts/resources/ai/bt/`).
   - `scripts/utils/bt/` (general driver) must not reference AI-specific types.
   - `rs_bt_planner.gd` under 150 LOC.
@@ -372,10 +372,21 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/debug/test_debug_ai_brain_panel.gd` passed (`4/4`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner.gd` passed (`9/9`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`60/60`).
+- Commit 12 (GREEN): enforced planner boundary/LOC style follow-through:
+  - Added `scripts/utils/ai/u_bt_planner_runtime.gd` and refactored `scripts/resources/ai/bt/rs_bt_planner.gd` to 135 LOC while preserving planner behavior.
+  - Extended `tests/unit/style/test_style_enforcement.gd` with:
+    - `scripts/utils/bt/` AI-type boundary checks,
+    - planner LOC caps (`rs_bt_planner.gd <= 149`, `u_bt_planner_search.gd <= 119`).
+- Commit 12 verification:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`62/62`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner.gd` passed (`9/9`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_u_bt_planner_search.gd` passed (`9/9`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` passed (`16/16`).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/debug/test_debug_ai_brain_panel.gd` passed (`4/4`).
 - Current verification (2026-04-18):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner.gd` passed (`9/9`).
-  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`60/60`).
-  - `tools/run_gut_suite.sh` passed (`4551` passing, `8` pending, `0` failing).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`62/62`).
+  - `tools/run_gut_suite.sh` passed (`4553` passing, `8` pending, `0` failing).
 
 ---
 
