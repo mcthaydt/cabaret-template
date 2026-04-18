@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (working tree, commit pending).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (`fffa2e55`); P1.9 Commit 3 (RED+GREEN) complete (`7de2a6cf`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -450,7 +450,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/debug/test_debug_ai_brain_panel.gd` (`4/4`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component_bt.gd` (`3/3`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`62/62`)
-- Known full-suite fallout remains expected pre-P1.9 migration: legacy GOAP-content tests/resources (for example AI demo brains and GOAP-oriented AI suites) still fail until BT content migration updates land.
+- Known full-suite fallout remains expected pre-P1.10 cleanup: legacy GOAP-content tests/resources (for example AI demo brains and GOAP-oriented AI suites) still fail until BT content migration updates and legacy deletions land.
 
 ---
 
@@ -472,7 +472,7 @@ For each creature, write an integration test asserting **behavior parity** with 
   └── wander                  scorer: RS_AIScorerConstant(1)
   ```
   Point `cfg_wolf_brain.tres`'s `root` to this tree. Old `goals` array removed.
-- [ ] **Commit 3** (RED+GREEN) — Deer: port flee/startle/graze/wander. `test_deer_brain_bt.gd` first, then `cfg_deer_brain_bt.tres`.
+- [x] **Commit 3** (RED+GREEN) — Deer: port flee/startle/graze/wander. `test_deer_brain_bt.gd` first, then `cfg_deer_brain_bt.tres` (`7de2a6cf`).
 - [ ] **Commit 4** (RED+GREEN) — Rabbit: same shape as deer minus startle.
 - [ ] **Commit 5** (RED+GREEN) — Sentry, patrol_drone, guide_prism: port each. Smaller trees; one commit per creature acceptable.
 - [ ] **Commit 6** (RED+GREEN) — **Planner showcase**: upgrade the wolf's `hunt_pack` branch to use `RS_BTPlanner`. Action pool: `stalk`, `approach`, `ambush`, `pounce`, `feed`, each with preconditions/effects against a world state including `{ has_line_of_sight, in_pounce_range, prey_alerted, hunger }`. Goal: `hunger == 0`. This demonstrates the planning path end-to-end and gives the template a working example for consumers. Integration test asserts the planner produces a valid plan and executes it to completion. Other creatures remain pure utility-scored BT (no planner).
@@ -485,12 +485,15 @@ For each creature, write an integration test asserting **behavior parity** with 
 **P1.9 Progress Notes (2026-04-18)**:
 - Commit 1 (RED) `26289494`: added `tests/unit/ai/integration/test_wolf_brain_bt.gd` with hunt-pack sequence and wander-branch parity assertions targeting `res://resources/ai/forest/wolf/cfg_wolf_brain_bt.tres`.
 - RED verification command: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` fails for expected reason (`cfg_wolf_brain_bt.tres` missing).
-- Commit 2 (GREEN, commit pending): authored `resources/ai/forest/wolf/cfg_wolf_brain_bt.tres` with utility-scored `hunt_pack` / `hunt_solo` / `search_food` / `wander` branches, migrated `resources/ai/forest/wolf/cfg_wolf_brain.tres` to BT `root`, and patched BT runtime context wiring in `S_AIBehaviorSystem` so action/cooldown decorators receive `delta` + `time`.
+- Commit 2 (GREEN) `fffa2e55`: authored `resources/ai/forest/wolf/cfg_wolf_brain_bt.tres` with utility-scored `hunt_pack` / `hunt_solo` / `search_food` / `wander` branches, migrated `resources/ai/forest/wolf/cfg_wolf_brain.tres` to BT `root`, and patched BT runtime context wiring in `S_AIBehaviorSystem` so action/cooldown decorators receive `delta` + `time`.
 - Commit 2 follow-through test fix: adjusted `tests/unit/ai/integration/test_wolf_brain_bt.gd` fixture to set `prey.global_position` after `add_child` (prevents detached-node `global_transform` engine error in headless runs).
+- Commit 3 (RED+GREEN) `7de2a6cf`: added `tests/unit/ai/integration/test_deer_brain_bt.gd`, confirmed expected RED failure for missing deer BT resource, then authored `resources/ai/forest/deer/cfg_deer_brain_bt.tres` and migrated `resources/ai/forest/deer/cfg_deer_brain.tres` to BT `root`.
 - GREEN verification commands:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_deer_brain_bt.gd` passes (`3/3`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` passes (`2/2`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd` passes (`3/3`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` still fails on pre-existing unrelated guard (`S_AIBehaviorSystem` LOC cap, 248 > 199).
+  - `tools/run_gut_suite.sh` currently reports expected pre-P1.10 fallout (`4466` passing / `101` failing / `8` pending) from unmigrated legacy GOAP-era consumers and remaining P1.9 creature migrations.
 
 ---
 
