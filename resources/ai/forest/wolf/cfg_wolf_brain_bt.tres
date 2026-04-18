@@ -17,6 +17,10 @@
 [ext_resource type="Script" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd" id="15_ai_scorer_constant"]
 [ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_composite.gd" id="16_condition_composite"]
 [ext_resource type="Script" path="res://scripts/interfaces/i_condition.gd" id="17_i_condition"]
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_context_field.gd" id="18_condition_context_field"]
+[ext_resource type="Script" path="res://scripts/resources/ai/bt/rs_bt_planner.gd" id="19_bt_planner"]
+[ext_resource type="Script" path="res://scripts/resources/ai/bt/rs_bt_planner_action.gd" id="20_bt_planner_action"]
+[ext_resource type="Script" path="res://scripts/resources/ai/bt/rs_world_state_effect.gd" id="21_world_state_effect"]
 
 [sub_resource type="Resource" id="Condition_pack_detected"]
 script = ExtResource("5_condition_component_field")
@@ -76,6 +80,66 @@ condition = SubResource("Condition_prey_detected")
 script = ExtResource("4_bt_condition")
 condition = SubResource("Condition_hunger_low")
 
+[sub_resource type="Resource" id="Condition_world_prey_detected"]
+script = ExtResource("18_condition_context_field")
+field_path = "is_player_in_range"
+match_mode = "equals"
+match_value_string = "true"
+
+[sub_resource type="Resource" id="Condition_world_hunger_low"]
+script = ExtResource("18_condition_context_field")
+field_path = "hunger"
+range_min = 1.0
+range_max = 0.0
+
+[sub_resource type="Resource" id="Condition_world_hunger_sated"]
+script = ExtResource("18_condition_context_field")
+field_path = "hunger"
+range_min = 0.5
+range_max = 1.0
+
+[sub_resource type="Resource" id="Condition_world_stage_one"]
+script = ExtResource("18_condition_context_field")
+field_path = "planner_stage"
+match_mode = "equals"
+match_value_string = "1"
+
+[sub_resource type="Resource" id="Condition_world_stage_two"]
+script = ExtResource("18_condition_context_field")
+field_path = "planner_stage"
+match_mode = "equals"
+match_value_string = "2"
+
+[sub_resource type="Resource" id="Condition_world_stage_three"]
+script = ExtResource("18_condition_context_field")
+field_path = "planner_stage"
+match_mode = "equals"
+match_value_string = "3"
+
+[sub_resource type="Resource" id="Effect_world_stage_one"]
+script = ExtResource("21_world_state_effect")
+key = &"planner_stage"
+op = 0
+value = 1
+
+[sub_resource type="Resource" id="Effect_world_stage_two"]
+script = ExtResource("21_world_state_effect")
+key = &"planner_stage"
+op = 0
+value = 2
+
+[sub_resource type="Resource" id="Effect_world_stage_three"]
+script = ExtResource("21_world_state_effect")
+key = &"planner_stage"
+op = 0
+value = 3
+
+[sub_resource type="Resource" id="Effect_world_hunger_sated"]
+script = ExtResource("21_world_state_effect")
+key = &"hunger"
+op = 0
+value = 0.55
+
 [sub_resource type="Resource" id="Action_move_detected_pack_first"]
 script = ExtResource("7_action_move_to_detected")
 arrival_threshold = 0.6
@@ -108,9 +172,47 @@ consume_detected_target = true
 script = ExtResource("6_bt_action")
 action = SubResource("Action_hunt_pack_feed")
 
+[sub_resource type="Resource" id="PlannerAction_pack_close_in"]
+script = ExtResource("20_bt_planner_action")
+resource_name = "planner_pack_close_in"
+preconditions = Array[ExtResource("17_i_condition")]([SubResource("Condition_world_prey_detected"), SubResource("Condition_world_hunger_low")])
+effects = Array[ExtResource("21_world_state_effect")]([SubResource("Effect_world_stage_one")])
+cost = 1.0
+child = SubResource("Node_move_detected_pack_first")
+
+[sub_resource type="Resource" id="PlannerAction_pack_hold"]
+script = ExtResource("20_bt_planner_action")
+resource_name = "planner_pack_hold"
+preconditions = Array[ExtResource("17_i_condition")]([SubResource("Condition_world_stage_one")])
+effects = Array[ExtResource("21_world_state_effect")]([SubResource("Effect_world_stage_two")])
+cost = 1.0
+child = SubResource("Node_wait_hunt_pack_mid")
+
+[sub_resource type="Resource" id="PlannerAction_pack_reacquire"]
+script = ExtResource("20_bt_planner_action")
+resource_name = "planner_pack_reacquire"
+preconditions = Array[ExtResource("17_i_condition")]([SubResource("Condition_world_stage_two")])
+effects = Array[ExtResource("21_world_state_effect")]([SubResource("Effect_world_stage_three")])
+cost = 1.0
+child = SubResource("Node_move_detected_pack_second")
+
+[sub_resource type="Resource" id="PlannerAction_pack_feed"]
+script = ExtResource("20_bt_planner_action")
+resource_name = "planner_pack_feed"
+preconditions = Array[ExtResource("17_i_condition")]([SubResource("Condition_world_stage_three")])
+effects = Array[ExtResource("21_world_state_effect")]([SubResource("Effect_world_hunger_sated")])
+cost = 1.0
+child = SubResource("Node_hunt_pack_feed")
+
+[sub_resource type="Resource" id="Node_hunt_pack_planner"]
+script = ExtResource("19_bt_planner")
+resource_name = "wolf_hunt_pack_planner"
+goal = SubResource("Condition_world_hunger_sated")
+action_pool = Array[ExtResource("20_bt_planner_action")]([SubResource("PlannerAction_pack_close_in"), SubResource("PlannerAction_pack_hold"), SubResource("PlannerAction_pack_reacquire"), SubResource("PlannerAction_pack_feed")])
+
 [sub_resource type="Resource" id="Node_hunt_pack_sequence"]
 script = ExtResource("3_bt_sequence")
-children = Array[ExtResource("11_bt_node")]([SubResource("Node_pack_detected"), SubResource("Node_prey_detected"), SubResource("Node_hunger_low"), SubResource("Node_move_detected_pack_first"), SubResource("Node_wait_hunt_pack_mid"), SubResource("Node_move_detected_pack_second"), SubResource("Node_hunt_pack_feed")])
+children = Array[ExtResource("11_bt_node")]([SubResource("Node_pack_detected"), SubResource("Node_prey_detected"), SubResource("Node_hunger_low"), SubResource("Node_hunt_pack_planner")])
 
 [sub_resource type="Resource" id="Action_move_detected_solo_first"]
 script = ExtResource("7_action_move_to_detected")

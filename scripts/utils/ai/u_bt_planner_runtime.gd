@@ -18,8 +18,11 @@ func coerce_action_pool(value: Variant) -> Array[Object]:
 func build_world_state(world_state_builder: Object, context: Dictionary, entity_query_key: StringName) -> Dictionary:
 	if world_state_builder == null:
 		return {}
-	var entity_query: Variant = context.get(entity_query_key, null)
-	var world_state_variant: Variant = world_state_builder.call("build", entity_query)
+	var build_source: Variant = context
+	var components_variant: Variant = context.get(&"components", null)
+	if not (components_variant is Dictionary):
+		build_source = context.get(entity_query_key, null)
+	var world_state_variant: Variant = world_state_builder.call("build", build_source)
 	if world_state_variant is Dictionary:
 		return (world_state_variant as Dictionary).duplicate(true)
 	return {}

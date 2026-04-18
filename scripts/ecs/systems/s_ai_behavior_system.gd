@@ -60,6 +60,7 @@ func process_tick(delta: float) -> void:
 		if brain_settings == null:
 			continue
 		var context: Dictionary = _build_context(entity_query, brain, redux_state, store, manager)
+		context[&"entity_query"] = entity_query
 		context[&"delta"] = maxf(delta, 0.0)
 		context[&"time"] = current_time
 		var status: int = _process_brain(brain, brain_settings, context, delta)
@@ -79,7 +80,6 @@ func _build_context(
 	rule_context.redux_state = redux_state
 	if store != null and is_instance_valid(store):
 		rule_context.state_store = store
-
 	if entity_query == null:
 		rule_context.components = {BRAIN_COMPONENT_TYPE: brain}
 		return rule_context.to_dictionary()

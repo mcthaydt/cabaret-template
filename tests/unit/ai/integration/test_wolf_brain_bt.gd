@@ -265,3 +265,43 @@ func test_wolf_without_prey_uses_wander_branch() -> void:
 		starting_hunger,
 		"Wander branch should not change hunger via feed."
 	)
+
+func test_wolf_hunt_pack_branch_reports_planner_plan_snapshot() -> void:
+	var fixture: Dictionary = await _create_fixture(true, true, 0.1)
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var brain: C_AIBrainComponent = fixture.get("brain") as C_AIBrainComponent
+
+	system.process_tick(0.1)
+	var snapshot: Dictionary = brain.get_debug_snapshot()
+	assert_true(
+		snapshot.has(&"last_plan"),
+		"Hunt-pack branch should execute through RS_BTPlanner and expose last_plan debug data."
+	)
+	if not snapshot.has(&"last_plan"):
+		return
+
+	var last_plan_variant: Variant = snapshot.get(&"last_plan", [])
+	assert_true(last_plan_variant is Array, "last_plan should be an array of planner action ids.")
+	if not (last_plan_variant is Array):
+		return
+	var last_plan: Array = last_plan_variant as Array
+	assert_eq(
+		last_plan,
+		[
+			StringName("planner_pack_close_in"),
+			StringName("planner_pack_hold"),
+			StringName("planner_pack_reacquire"),
+			StringName("planner_pack_feed"),
+		],
+		"Wolf planner path should expose the authored hunt_pack action plan in order."
+	)
+	assert_almost_eq(
+		float(snapshot.get(&"last_plan_cost", -1.0)),
+		4.0,
+		0.0001,
+		"Wolf planner path should report the summed planner action cost."
+	)

@@ -12,12 +12,12 @@ const DETECTION_COMPONENT_TYPE := C_DETECTION_COMPONENT.COMPONENT_TYPE
 const NEEDS_COMPONENT_TYPE := C_NEEDS_COMPONENT.COMPONENT_TYPE
 const HEALTH_COMPONENT_TYPE := C_HEALTH_COMPONENT.COMPONENT_TYPE
 
-func build(entity_query: Object) -> Dictionary:
+func build(entity_source: Variant) -> Dictionary:
 	var world_state: Dictionary = {}
-	if entity_query == null:
+	if entity_source == null:
 		return world_state
 
-	var components: Dictionary = _resolve_components(entity_query)
+	var components: Dictionary = _resolve_components(entity_source)
 	_write_brain_state(world_state, components)
 	_write_movement_state(world_state, components)
 	_write_detection_state(world_state, components)
@@ -25,12 +25,29 @@ func build(entity_query: Object) -> Dictionary:
 	_write_health_state(world_state, components)
 	return world_state
 
-func _resolve_components(entity_query: Object) -> Dictionary:
-	if entity_query.has_method("get_all_components"):
-		var components_variant: Variant = entity_query.call("get_all_components")
-		if components_variant is Dictionary:
-			return (components_variant as Dictionary).duplicate(true)
+func _resolve_components(entity_source: Variant) -> Dictionary:
+	if entity_source is Dictionary:
+		var context: Dictionary = entity_source as Dictionary
+		var context_components: Variant = _get_dict_value_string_or_name(context, "components")
+		if context_components is Dictionary:
+			return (context_components as Dictionary).duplicate(true)
+		return context.duplicate(true)
+
+	if entity_source is Object:
+		var entity_query: Object = entity_source as Object
+		if entity_query.has_method("get_all_components"):
+			var components_variant: Variant = entity_query.call("get_all_components")
+			if components_variant is Dictionary:
+				return (components_variant as Dictionary).duplicate(true)
 	return {}
+
+func _get_dict_value_string_or_name(dictionary: Dictionary, key: String) -> Variant:
+	if dictionary.has(key):
+		return dictionary.get(key)
+	var key_name: StringName = StringName(key)
+	if dictionary.has(key_name):
+		return dictionary.get(key_name)
+	return null
 
 func _write_brain_state(world_state: Dictionary, components: Dictionary) -> void:
 	var brain_variant: Variant = components.get(BRAIN_COMPONENT_TYPE, null)
