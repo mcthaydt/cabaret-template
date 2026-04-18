@@ -189,6 +189,27 @@ func test_unsolvable_plan_returns_empty_and_reports_search_context() -> void:
 	assert_push_error("goal")
 	assert_push_error("initial state")
 
+func test_unsolvable_nonempty_pool_reports_all_four_context_fields() -> void:
+	var searcher: Object = _new_searcher()
+	if searcher == null:
+		return
+	var dead_end: Resource = _new_planner_action(
+		&"dead_end",
+		[] as Array[I_Condition],
+		[_new_effect(&"irrelevant", "SET", true)],
+		1.0
+	)
+	if dead_end == null:
+		return
+	var goal := TestStateEqualsCondition.new(&"goal_reached", true) as I_Condition
+	var initial_state: Dictionary = {&"goal_reached": false}
+	var plan: Array = _find_plan(searcher, initial_state, goal, [dead_end], 4)
+	assert_eq(plan.size(), 0, "non-empty pool with no path to goal should return empty plan")
+	assert_push_error("pool size")
+	assert_push_error("depth")
+	assert_push_error("goal")
+	assert_push_error("initial state")
+
 func test_max_depth_rejects_plans_longer_than_cap() -> void:
 	var searcher: Object = _new_searcher()
 	if searcher == null:
@@ -216,7 +237,10 @@ func test_max_depth_rejects_plans_longer_than_cap() -> void:
 	var goal := TestStateEqualsCondition.new(&"goal_reached", true) as I_Condition
 	var plan: Array = _find_plan(searcher, {}, goal, [step_a, step_b, step_c], 2)
 	assert_eq(plan.size(), 0, "plans longer than max_depth should be rejected")
+	assert_push_error("pool size")
 	assert_push_error("depth")
+	assert_push_error("goal")
+	assert_push_error("initial state")
 
 func test_action_can_self_chain_only_when_effects_change_state() -> void:
 	var searcher: Object = _new_searcher()
@@ -244,3 +268,7 @@ func test_action_can_self_chain_only_when_effects_change_state() -> void:
 		return
 	var no_change_plan: Array = _find_plan(searcher, {&"counter": 0}, goal, [no_change], 6)
 	assert_eq(no_change_plan.size(), 0, "non-state-changing self-chains should be rejected")
+	assert_push_error("pool size")
+	assert_push_error("depth")
+	assert_push_error("goal")
+	assert_push_error("initial state")
