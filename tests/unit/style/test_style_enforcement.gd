@@ -91,6 +91,11 @@ const AI_RESOURCE_ALLOWED_SUBDIRECTORIES := [
 const BT_RESOURCE_MAX_LINES := 199
 const BT_GENERAL_DIR := "res://scripts/resources/bt"
 const BT_AI_DIR := "res://scripts/resources/ai/bt"
+const BT_UTILS_DIR := "res://scripts/utils/bt"
+const BT_PLANNER_PATH := "res://scripts/resources/ai/bt/rs_bt_planner.gd"
+const BT_PLANNER_SEARCH_PATH := "res://scripts/utils/ai/u_bt_planner_search.gd"
+const BT_PLANNER_MAX_LINES := 149
+const BT_PLANNER_SEARCH_MAX_LINES := 119
 const BT_GENERAL_FORBIDDEN_TOKENS := [
 	"U_AI",
 	"I_AIAction",
@@ -607,6 +612,25 @@ func test_bt_general_resources_do_not_reference_ai_specific_types() -> void:
 	_collect_gd_forbidden_token_violations(BT_GENERAL_DIR, BT_GENERAL_FORBIDDEN_TOKENS, violations)
 
 	var message := "General BT resources must not import AI-specific interfaces/utilities/types"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_bt_general_utils_do_not_reference_ai_specific_types() -> void:
+	var violations: Array[String] = []
+	_collect_gd_forbidden_token_violations(BT_UTILS_DIR, BT_GENERAL_FORBIDDEN_TOKENS, violations)
+
+	var message := "General BT utils must not import AI-specific interfaces/utilities/types"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_bt_planner_scripts_stay_within_loc_caps() -> void:
+	var violations: Array[String] = []
+	_collect_gd_single_file_line_limit_violation(BT_PLANNER_PATH, BT_PLANNER_MAX_LINES, violations)
+	_collect_gd_single_file_line_limit_violation(BT_PLANNER_SEARCH_PATH, BT_PLANNER_SEARCH_MAX_LINES, violations)
+
+	var message := "Planner scripts must stay within enforced LOC caps"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
@@ -1253,6 +1277,19 @@ func _collect_gd_file_line_limit_violations(dir_path: String, max_lines: int, vi
 				violations.append("%s has %d lines (max %d)" % [path, line_count, max_lines])
 		entry = dir.get_next()
 	dir.list_dir_end()
+
+func _collect_gd_single_file_line_limit_violation(path: String, max_lines: int, violations: Array[String]) -> void:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		violations.append("%s is missing or unreadable" % path)
+		return
+	var line_count: int = 0
+	while not file.eof_reached():
+		file.get_line()
+		line_count += 1
+	file.close()
+	if line_count > max_lines:
+		violations.append("%s has %d lines (max %d)" % [path, line_count, max_lines])
 
 func _collect_gd_forbidden_token_violations(
 	dir_path: String,

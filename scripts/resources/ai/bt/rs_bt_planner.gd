@@ -4,6 +4,7 @@ class_name RS_BTPlanner
 
 const U_BT_PLANNER_SEARCH := preload("res://scripts/utils/ai/u_bt_planner_search.gd")
 const U_AI_WORLD_STATE_BUILDER := preload("res://scripts/utils/ai/u_ai_world_state_builder.gd")
+const U_BT_PLANNER_RUNTIME := preload("res://scripts/utils/ai/u_bt_planner_runtime.gd")
 const STATE_KEY_PLAN := &"plan"
 const STATE_KEY_PLAN_INDEX := &"plan_index"
 const STATE_KEY_REPLAN_ATTEMPTED := &"replan_attempted"
@@ -11,6 +12,7 @@ const STATE_KEY_LAST_PLAN := &"last_plan"
 const STATE_KEY_LAST_PLAN_COST := &"last_plan_cost"
 const CONTEXT_KEY_ENTITY_QUERY := &"entity_query"
 
+var _runtime: Object = U_BT_PLANNER_RUNTIME.new()
 var _action_pool: Array[Object] = []
 var _planner_search: Object = U_BT_PLANNER_SEARCH.new()
 var _world_state_builder: Object = U_AI_WORLD_STATE_BUILDER.new()
@@ -20,7 +22,7 @@ var _world_state_builder: Object = U_AI_WORLD_STATE_BUILDER.new()
 	get:
 		return _action_pool
 	set(value):
-		_action_pool = _coerce_action_pool(value)
+		_action_pool = _runtime.call("coerce_action_pool", value)
 @export var planner_search: Variant = null:
 	get:
 		return _planner_search
@@ -42,12 +44,12 @@ func tick(context: Dictionary, state_bag: Dictionary) -> Status:
 	if goal == null:
 		push_error("RS_BTPlanner.tick: goal is null")
 		return Status.FAILURE
-	var world_state: Dictionary = _build_world_state(context)
-	if _goal_satisfied(world_state):
+	var world_state: Dictionary = _runtime.call("build_world_state", _world_state_builder, context, CONTEXT_KEY_ENTITY_QUERY)
+	if _runtime.call("goal_satisfied", goal, world_state):
 		_clear_runtime_state(state_bag)
 		return Status.SUCCESS
 	var local_state: Dictionary = _get_local_state(state_bag)
-	var plan: Array[Object] = _read_plan(local_state)
+	var plan: Array[Object] = _runtime.call("coerce_action_pool", local_state.get(STATE_KEY_PLAN, []))
 	var plan_index: int = int(local_state.get(STATE_KEY_PLAN_INDEX, 0))
 	var replan_attempted: bool = bool(local_state.get(STATE_KEY_REPLAN_ATTEMPTED, false))
 	if plan.is_empty():
@@ -67,7 +69,7 @@ func tick(context: Dictionary, state_bag: Dictionary) -> Status:
 			_set_local_state(state_bag, plan, plan_index, replan_attempted, local_state)
 			return Status.RUNNING
 		if status == Status.SUCCESS:
-			world_state = _apply_action_effects(world_state, action)
+			world_state = _runtime.call("apply_action_effects", world_state, action)
 			plan_index += 1
 			continue
 		if status == Status.FAILURE:
@@ -85,7 +87,7 @@ func tick(context: Dictionary, state_bag: Dictionary) -> Status:
 		push_error("RS_BTPlanner.tick: invalid action status %s" % str(status_variant))
 		_clear_runtime_state(state_bag)
 		return Status.FAILURE
-	if _goal_satisfied(world_state):
+	if _runtime.call("goal_satisfied", goal, world_state):
 		_clear_runtime_state(state_bag)
 		return Status.SUCCESS
 	push_error("RS_BTPlanner.tick: plan completed but goal remains unsatisfied")
@@ -99,75 +101,16 @@ func _request_plan(world_state: Dictionary, state_bag: Dictionary, local_state: 
 	if not (plan_variant is Array):
 		push_error("RS_BTPlanner.tick: planner search returned non-array plan")
 		return []
-	var plan: Array[Object] = _coerce_action_pool(plan_variant)
+	var plan: Array[Object] = _runtime.call("coerce_action_pool", plan_variant)
 	if plan.is_empty():
 		if emit_no_plan_error:
 			push_error("RS_BTPlanner.tick: no plan found")
 		return []
-	_write_debug_snapshot(local_state, plan)
+	var debug_snapshot: Dictionary = _runtime.call("build_plan_debug_snapshot", plan)
+	local_state[STATE_KEY_LAST_PLAN] = debug_snapshot.get(STATE_KEY_LAST_PLAN, [])
+	local_state[STATE_KEY_LAST_PLAN_COST] = debug_snapshot.get(STATE_KEY_LAST_PLAN_COST, 0.0)
 	_set_local_state(state_bag, plan, 0, false, local_state)
 	return plan
-
-func _coerce_action_pool(value: Variant) -> Array[Object]:
-	var coerced: Array[Object] = []
-	if not (value is Array):
-		return coerced
-	for action_variant in value as Array:
-		if not (action_variant is Object):
-			continue
-		var action: Object = action_variant as Object
-		if action == null:
-			continue
-		if action.has_method("tick") and action.has_method("is_applicable"):
-			coerced.append(action)
-	return coerced
-
-func _build_world_state(context: Dictionary) -> Dictionary:
-	if _world_state_builder == null:
-		return {}
-	var entity_query: Variant = context.get(CONTEXT_KEY_ENTITY_QUERY, null)
-	var world_state_variant: Variant = _world_state_builder.call("build", entity_query)
-	if world_state_variant is Dictionary:
-		return (world_state_variant as Dictionary).duplicate(true)
-	return {}
-
-func _goal_satisfied(world_state: Dictionary) -> bool:
-	var score_variant: Variant = goal.evaluate(world_state)
-	return (score_variant is float or score_variant is int) and float(score_variant) > 0.0
-
-func _apply_action_effects(world_state: Dictionary, action: Object) -> Dictionary:
-	if action == null:
-		return world_state
-	var effects_variant: Variant = action.call("get_effect_sequence") if action.has_method("get_effect_sequence") else action.get("effects")
-	if not (effects_variant is Array):
-		return world_state
-	var next_state: Dictionary = world_state.duplicate(true)
-	for effect_variant in effects_variant as Array:
-		if not (effect_variant is Object):
-			continue
-		var effect: Object = effect_variant as Object
-		if effect != null and effect.has_method("apply_to"):
-			var result_variant: Variant = effect.call("apply_to", next_state)
-			if result_variant is Dictionary:
-				next_state = (result_variant as Dictionary).duplicate(true)
-	return next_state
-
-func _write_debug_snapshot(local_state: Dictionary, plan: Array[Object]) -> void:
-	var plan_names: Array[StringName] = []
-	var total_cost: float = 0.0
-	for action: Object in plan:
-		if action == null:
-			continue
-		plan_names.append(StringName(action.resource_name))
-		var cost_variant: Variant = action.get("cost")
-		if cost_variant is float or cost_variant is int:
-			total_cost += float(cost_variant)
-	local_state[STATE_KEY_LAST_PLAN] = plan_names
-	local_state[STATE_KEY_LAST_PLAN_COST] = total_cost
-
-func _read_plan(local_state: Dictionary) -> Array[Object]:
-	var plan_variant: Variant = local_state.get(STATE_KEY_PLAN, [])
-	return _coerce_action_pool(plan_variant)
 
 func _set_local_state(state_bag: Dictionary, plan: Array[Object], plan_index: int, replan_attempted: bool, local_state: Dictionary) -> void:
 	local_state[STATE_KEY_PLAN] = plan.duplicate()
