@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1–P1.4 complete; P1.5 in progress (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`). Full commit list: `b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`, `8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`, `6ad6e79c`, `677003b4`, `b5eafe91`, `488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`.
-**Next Task**: P1.5 Commit 6 (GREEN) — write `scripts/resources/bt/rs_bt_rising_edge.gd`.
+**Status**: Phase 1 in progress. P1.1–P1.4 complete; P1.5 in progress (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`). Full commit list: `b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`, `8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`, `6ad6e79c`, `677003b4`, `b5eafe91`, `488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`.
+**Next Task**: P1.5 Commit 7 (RED+GREEN) — add `tests/unit/ai/bt/test_rs_bt_inverter.gd` and `scripts/resources/bt/rs_bt_inverter.gd`.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -53,7 +53,8 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - `(RED) P1.5 add RS_BTOnce contract test` (`4069c08a`)
     - `(GREEN) P1.5 implement RS_BTOnce decorator` (`165d93c4`)
     - `(RED) P1.5 add RS_BTRisingEdge contract test` (`4ea75032`)
-    - Commits 6–7 remain.
+    - `(GREEN) P1.5 implement RS_BTRisingEdge decorator` (`5e3bdf5e`)
+    - Commit 7 remains.
   - **Verification state**:
     - New P1.1 tests are green (`tests/unit/ai/bt/test_rs_bt_node_base.gd`).
     - New P1.2 sequence tests are green (`tests/unit/ai/bt/test_rs_bt_sequence.gd`).
@@ -63,6 +64,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - New P1.3 action tests are green (`tests/unit/ai/bt/test_rs_bt_action.gd`).
     - New P1.4 scorer tests are green (`tests/unit/ai/bt/test_rs_ai_scorer.gd`).
     - New P1.5 once tests are green (`tests/unit/ai/bt/test_rs_bt_once.gd`).
+    - New P1.5 rising-edge tests are green (`tests/unit/ai/bt/test_rs_bt_rising_edge.gd`).
     - P1.4 utility-selector scorer integration test is green (`tests/unit/ai/bt/test_rs_bt_utility_selector.gd`).
     - New BT style checks run and pass inside `tests/unit/style/test_style_enforcement.gd`.
     - Full suite baseline is green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4492 passing / 8 pending / 0 failing).
@@ -187,9 +189,9 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 ## Next Steps
 
 1. Already on branch `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). No additional branch creation needed.
-2. Implement **P1.5 Commit 6 (GREEN)** — add `scripts/resources/bt/rs_bt_rising_edge.gd`.
-3. Implement **P1.5 Commit 7 (RED+GREEN)** — add `tests/unit/ai/bt/test_rs_bt_inverter.gd` and `scripts/resources/bt/rs_bt_inverter.gd`.
-4. Run full-suite and style verification for P1.5 before advancing to P1.6.
+2. Implement **P1.5 Commit 7 (RED+GREEN)** — add `tests/unit/ai/bt/test_rs_bt_inverter.gd` and `scripts/resources/bt/rs_bt_inverter.gd`.
+3. Run full-suite and style verification for P1.5 before advancing to P1.6.
+4. Update milestone completion notes once P1.5 verification is complete.
 5. Proceed through P1.6 → P1.10 in order.
 6. Merge Phase 1 to main.
 7. Branch for Phase 2 (or Phase 3 in parallel).
