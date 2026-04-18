@@ -6,7 +6,6 @@ const LEGACY_FIELD_GOALS := &"goals"
 const MIGRATION_ERROR_TEMPLATE := "RS_AIBrainSettings migration required: legacy goals field found in %s"
 
 @export var root: RS_BTNode = null
-@export var default_goal_id: StringName
 @export var evaluation_interval: float = 0.5
 var _legacy_goals_detected: bool = false
 

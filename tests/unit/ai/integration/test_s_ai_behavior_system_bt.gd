@@ -6,8 +6,6 @@ const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
-const RS_AI_GOAL := preload("res://scripts/resources/ai/goals/rs_ai_goal.gd")
-const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd")
 const RS_BT_NODE := preload("res://scripts/resources/bt/rs_bt_node.gd")
 
 class BehaviorSystemBtRecordingNode extends RS_BT_NODE:
@@ -24,14 +22,7 @@ class BehaviorSystemBtRecordingNode extends RS_BT_NODE:
 		}
 		return Status.SUCCESS
 
-class BehaviorSystemBtBrainSettingsShim extends RS_AI_BRAIN_SETTINGS:
-	var goals: Array[RS_AIGoal] = []
-
 class BehaviorSystemBtBrainShim extends C_AI_BRAIN_COMPONENT:
-	var current_task_queue: Array[RS_AIPrimitiveTask] = []
-	var current_task_index: int = 0
-	var task_state: Dictionary = {}
-	var suspended_goal_state: Dictionary = {}
 	var debug_snapshot_updates: int = 0
 
 	func update_debug_snapshot(snapshot: Dictionary) -> void:
@@ -66,7 +57,7 @@ func _create_fixture(evaluation_interval: float = 0.0) -> Dictionary:
 	system.configure(ecs_manager)
 
 	var root_node: BehaviorSystemBtRecordingNode = BehaviorSystemBtRecordingNode.new()
-	var brain_settings: BehaviorSystemBtBrainSettingsShim = BehaviorSystemBtBrainSettingsShim.new()
+	var brain_settings: RS_AIBrainSettings = RS_AI_BRAIN_SETTINGS.new()
 	brain_settings.root = root_node
 	brain_settings.evaluation_interval = evaluation_interval
 

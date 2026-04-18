@@ -3,16 +3,19 @@ extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
-const U_AI_CONTEXT_BUILDER := preload("res://scripts/utils/ai/u_ai_context_builder.gd")
 const U_BT_RUNNER := preload("res://scripts/utils/bt/u_bt_runner.gd")
 const RS_BT_NODE := preload("res://scripts/resources/bt/rs_bt_node.gd")
+const RS_RULE_CONTEXT := preload("res://scripts/resources/ecs/rs_rule_context.gd")
+const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_AI_RENDER_PROBE := preload("res://scripts/utils/debug/u_ai_render_probe.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 const MOBILE_EVALUATION_INTERVAL_MULTIPLIER: float = 2.0
 const BRAIN_COMPONENT_TYPE := C_AIBrainComponent.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
+const DETECTION_COMPONENT_TYPE := C_DETECTION_COMPONENT.COMPONENT_TYPE
 const ROOT_ID_FALLBACK_PREFIX := "bt_root_"
 const ROOT_MISSING_SENTINEL := &"bt_root_missing"
 
@@ -43,7 +46,6 @@ func process_tick(delta: float) -> void:
 	var redux_state: Dictionary = get_frame_state_snapshot()
 	var store: I_StateStore = _resolve_state_store()
 	var manager: I_ECSManager = get_manager()
-	var context_builder: U_AIContextBuilder = U_AI_CONTEXT_BUILDER.new()
 	for entity_query_variant in entities:
 		if not (entity_query_variant is Object):
 			continue
@@ -58,17 +60,74 @@ func process_tick(delta: float) -> void:
 		var brain_settings: RS_AIBrainSettings = brain.get_brain_settings()
 		if brain_settings == null:
 			continue
-		var context: Dictionary = context_builder.build(
-			entity_query,
-			brain,
-			redux_state,
-			store,
-			manager
-		)
+		var context: Dictionary = _build_context(entity_query, brain, redux_state, store, manager)
 		var status: int = _process_brain(brain, brain_settings, context, delta)
-		var snapshot: Dictionary = _build_debug_snapshot(brain, context, context_builder, status)
+		var snapshot: Dictionary = _build_debug_snapshot(brain, context, status)
 		brain.update_debug_snapshot(snapshot)
 		_debug_log_brain_state(context, snapshot)
+
+func _build_context(
+	entity_query: Object,
+	brain: C_AIBrainComponent,
+	redux_state: Dictionary,
+	store: I_StateStore,
+	manager: I_ECSManager
+) -> Dictionary:
+	var rule_context: RSRuleContext = RS_RULE_CONTEXT.new()
+	rule_context.brain_component = brain
+	rule_context.redux_state = redux_state
+
+	if store != null and is_instance_valid(store):
+		rule_context.state_store = store
+
+	if entity_query == null:
+		rule_context.components = {BRAIN_COMPONENT_TYPE: brain}
+		return rule_context.to_dictionary()
+
+	var entity_variant: Variant = entity_query.get("entity")
+	if entity_variant is Node:
+		var entity: Node = entity_variant as Node
+		rule_context.entity = entity
+		rule_context.entity_id = U_ECS_UTILS.get_entity_id(entity)
+
+		var components: Dictionary = {}
+		if manager != null:
+			components = manager.get_components_for_entity_readonly(entity)
+		if components.is_empty() and entity_query.has_method("get_all_components"):
+			var query_components_variant: Variant = entity_query.call("get_all_components")
+			if query_components_variant is Dictionary:
+				components = query_components_variant as Dictionary
+		if not components.is_empty():
+			_inject_role_keyed_detection(components, entity, manager)
+			rule_context.components = components
+		else:
+			rule_context.components = {BRAIN_COMPONENT_TYPE: brain}
+	else:
+		rule_context.components = {BRAIN_COMPONENT_TYPE: brain}
+
+	return rule_context.to_dictionary()
+
+func _inject_role_keyed_detection(components: Dictionary, entity: Node, manager: I_ECSManager) -> void:
+	if manager == null:
+		return
+	var all_detections: Array = manager.get_components(DETECTION_COMPONENT_TYPE)
+	if all_detections.size() <= 1:
+		return
+	for detection_variant in all_detections:
+		if detection_variant == null or not (detection_variant is C_DetectionComponent):
+			continue
+		var detection: C_DetectionComponent = detection_variant as C_DetectionComponent
+		if not is_instance_valid(detection):
+			continue
+		var detection_root: Node = U_ECS_UTILS.find_entity_root(detection)
+		if detection_root != entity:
+			continue
+		var role: StringName = detection.detection_role
+		if role == StringName("") or role == StringName("primary"):
+			components[DETECTION_COMPONENT_TYPE] = detection
+			continue
+		var role_key: StringName = StringName(String(DETECTION_COMPONENT_TYPE) + ":" + String(role))
+		components[role_key] = detection
 
 func _process_brain(
 	brain: C_AIBrainComponent,
@@ -117,17 +176,23 @@ func _resolve_root_id(root: RS_BTNode) -> StringName:
 func _build_debug_snapshot(
 	brain: C_AIBrainComponent,
 	context: Dictionary,
-	context_builder: U_AIContextBuilder,
 	status: int
 ) -> Dictionary:
-	var snapshot: Dictionary = {
-		&"entity_id": context_builder.context_key_for_context(context),
+	var entity_id_variant: Variant = context.get(RSRuleContext.KEY_ENTITY_ID, StringName())
+	var entity_id: StringName
+	if entity_id_variant is StringName:
+		entity_id = entity_id_variant as StringName
+	elif entity_id_variant is String:
+		entity_id = StringName(entity_id_variant as String)
+	else:
+		entity_id = StringName()
+	return {
+		&"entity_id": entity_id,
 		&"goal_id": brain.get_active_goal_id(),
 		&"active_path": _build_active_path(brain),
 		&"bt_status": status,
 		&"bt_state_keys": brain.bt_state_bag.size(),
 	}
-	return snapshot
 
 func _build_active_path(brain: C_AIBrainComponent) -> Array[String]:
 	var path: Array[String] = []

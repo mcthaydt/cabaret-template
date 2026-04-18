@@ -9,5 +9,4 @@
 [resource]
 script = ExtResource("1_brain")
 goals = Array[ExtResource("1_egqjp")]([ExtResource("2_goal_show_path"), ExtResource("3_goal_encourage"), ExtResource("4_goal_celebrate")])
-default_goal_id = &"show_path"
 evaluation_interval = 0.2

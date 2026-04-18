@@ -30,9 +30,6 @@ func get_brain_settings() -> RS_AIBrainSettings:
 func get_active_goal_id() -> StringName:
 	return active_goal_id
 
-func get_current_task() -> RS_AIPrimitiveTask:
-	return null
-
 func update_debug_snapshot(snapshot: Dictionary) -> void:
 	_debug_snapshot = snapshot.duplicate(true)
 
