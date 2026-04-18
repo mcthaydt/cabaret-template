@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -232,17 +232,26 @@ Ports the features currently implemented in `U_AIGoalSelector` (cooldown/one-sho
 
 Replaces `u_ai_goal_selector`, `u_ai_replanner`, `u_htn_planner`, `u_htn_planner_context`, `u_ai_task_runner`.
 
-- [ ] **Commit 1** (RED) — `test_u_bt_runner.gd`:
+- [x] **Commit 1** (RED) — `test_u_bt_runner.gd`:
   - Single `tick(root, context, state_bag) -> Status` entry point.
   - State bag is `Dictionary[int, Variant]` keyed by `node.get_instance_id()`.
   - Action lifecycle test: start → multiple tick → is_complete → next frame re-enters parent.
   - Parallel subtree state isolation (two sibling sequences don't share action state).
   - Handles null nodes with `push_error` (F16 pattern).
-- [ ] **Commit 2** (GREEN) — `scripts/utils/bt/u_bt_runner.gd` (general-purpose BT driver; no AI-specific imports).
+- [x] **Commit 2** (GREEN) — `scripts/utils/bt/u_bt_runner.gd` (general-purpose BT driver; no AI-specific imports).
 
 **P1.6 Verification**:
-- [ ] Runner tests green.
-- [ ] No reliance on `U_AITaskRunner` or `U_HTNPlanner` imports.
+- [x] Runner tests green.
+- [x] No reliance on `U_AITaskRunner` or `U_HTNPlanner` imports.
+
+**P1.6 Completion Notes (2026-04-17)**:
+- Commit 1 (RED) `f46f1fa3`: added `tests/unit/ai/bt/test_u_bt_runner.gd` with coverage for runner entrypoint delegation, node-id-keyed state bag contract, action lifecycle/re-entry, subtree state isolation, and null-root error handling.
+- Commit 1 RED verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_u_bt_runner.gd` failed for expected missing script reason (`res://scripts/utils/bt/u_bt_runner.gd` absent).
+- Commit 2 (GREEN) `5967661e`: implemented `scripts/utils/bt/u_bt_runner.gd` as a general BT runtime driver (`tick(root, context, state_bag) -> Status`) with null-root fail-loud behavior and state-bag key sanitization.
+- Verification commands:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_u_bt_runner.gd` (6/6 passing).
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (60/60 passing).
+  - `tools/run_gut_suite.sh` (`4518` passing, `8` pending, `0` failing).
 
 ---
 
