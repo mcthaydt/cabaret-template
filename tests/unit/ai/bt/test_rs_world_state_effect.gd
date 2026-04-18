@@ -110,10 +110,13 @@ func test_apply_all_returns_new_dictionary_without_mutating_input() -> void:
 		&"hunger": 9,
 		&"prey_alerted": true,
 	}
-	var effects: Array[Resource] = [set_effect, add_effect, remove_effect]
 	var effect_script: Script = _load_script(RS_WORLD_STATE_EFFECT_PATH)
 	if effect_script == null:
 		return
+	var effects: Array = Array([], TYPE_OBJECT, "Resource", effect_script)
+	effects.append(set_effect)
+	effects.append(add_effect)
+	effects.append(remove_effect)
 
 	var result_variant: Variant = effect_script.call("apply_all", initial_state, effects)
 	assert_true(result_variant is Dictionary, "apply_all should return a Dictionary")
@@ -128,4 +131,3 @@ func test_apply_all_returns_new_dictionary_without_mutating_input() -> void:
 	assert_eq(initial_state.get(&"has_line_of_sight"), false, "apply_all must not mutate input state")
 	assert_eq(initial_state.get(&"hunger"), 9, "apply_all must not mutate input state")
 	assert_true(initial_state.has(&"prey_alerted"), "apply_all must not mutate input state")
-
