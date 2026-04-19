@@ -248,6 +248,8 @@ func _apply_interaction_hint_render_defaults(sprite: Sprite3D) -> void:
 		mat.no_depth_test = true
 		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		mat.billboard_mode = INTERACTION_HINT_BILLBOARD_MODE
+		mat.billboard_keep_scale = true
 		sprite.material_override = mat
 
 func _apply_interaction_hint_config(config: Resource) -> void:

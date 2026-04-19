@@ -524,6 +524,64 @@ For each creature, write an integration test asserting **behavior parity** with 
 - Commit 6 (GREEN) `e416469c`: deleted 4 full GOAP-era integration tests (`test_pack_converges`, `test_hunger_drives_goal_score`, `test_ai_goal_resume`, `test_ai_pipeline_integration`); trimmed 7 failing assertions from `test_c_ai_brain_component.gd` and 4 from `test_rs_ai_goal.gd` that assert removed GOAP fields.
 - File inventory change: 7 `_bt.tres` files deleted (1 wolf + 6 others), 1 `u_ai_context_assembler.gd` created, `S_AIBehaviorSystem` shrunk 67 LOC, 2 new style assertions, ~1600 lines of superseded test code removed.
 
+**P1.9 Post-Cut Note (2026-04-18)**:
+- Commit `16eed2c4` ("cut ai forest") removed the entire forest demo (40 files, ~4271 lines): `scenes/gameplay/gameplay_ai_forest.tscn`, all forest prefabs, all `resources/ai/forest/**`, `resources/scene_registry/cfg_ai_forest_entry.tres`, `tests/unit/gameplay/test_forest_ecosystem_smoke.gd`, all per-creature BT integration tests, and `debug_forest_agent_label.gd`. `cfg_game_config.retry_scene_id` flipped from `&"ai_forest"` back to `&"alleyway"`. The BT stack itself is unchanged; only the authored content was cut.
+
+---
+
+## Milestone P1.9b: Woods Replacement Scene
+
+Replace the deleted forest demo with a house-building-agent showcase that exercises the same BT+HTN+detection stack under a new scenario. Scope is forest-parity (3 AI archetypes + resource nodes + 1 authored scene) with a new full action set for harvest/haul/build-stage. Plan file: `~/.claude/plans/we-deleted-the-forest-ticklish-tarjan.md`.
+
+Archetypes: **Builder** (primary; gather→haul→build loop), **Wolf** (threat; reincarnated forest brain), **Rabbit** (passive; reincarnated forest brain).
+
+- [ ] **Commit 1** (RED) — `tests/unit/ai/integration/test_builder_brain_bt.gd`:
+  - With inventory empty + build site missing wood + no threats, builder selects `gather_wood` and queues move + harvest.
+  - With inventory full, builder selects `haul_to_build_site`.
+  - With placed_materials >= required_materials, builder selects `build_current_stage`.
+  - Uses `res://resources/ai/woods/builder/cfg_builder_brain.tres` (does not exist → red).
+- [ ] **Commit 2** (GREEN) — New ECS components + settings resources + unit tests:
+  - `scripts/ecs/components/c_resource_node_component.gd` + `scripts/resources/ai/world/rs_resource_node_settings.gd`
+  - `scripts/ecs/components/c_inventory_component.gd` + `scripts/resources/ai/world/rs_inventory_settings.gd`
+  - `scripts/ecs/components/c_build_site_component.gd` + `scripts/resources/ai/world/rs_build_site_settings.gd` + `scripts/resources/ai/world/rs_build_stage.gd`
+  - `tests/unit/ecs/components/test_c_resource_node_component.gd`, `test_c_inventory_component.gd`, `test_c_build_site_component.gd`
+- [ ] **Commit 3** (GREEN) — New AI action resources + task_state key additions + action tests:
+  - `rs_ai_action_harvest.gd`, `rs_ai_action_haul_deposit.gd`, `rs_ai_action_build_stage.gd`, `rs_ai_action_drink.gd`, `rs_ai_action_reserve.gd`
+  - Extend `scripts/utils/ai/u_ai_task_state_keys.gd` with `HARVEST_ELAPSED`, `BUILD_ELAPSED`, `INVENTORY_RESERVED_TYPE`
+  - `tests/unit/ai/actions/test_ai_actions_woods.gd` covers each action's start/tick/is_complete + task_state writes + side effects
+- [ ] **Commit 4** (GREEN) — Builder brain + prefab; Commit 1 test now green:
+  - `resources/ai/woods/builder/cfg_builder_brain.tres` (utility selector: drink / haul / build / gather_wood / gather_stone / wander)
+  - `scenes/prefabs/prefab_woods_builder.tscn` (inherits `tmpl_character.tscn`; C_Inventory + C_Needs with thirst/hunger; C_Detection target_tag=`predator`)
+  - `resources/base_settings/ai_woods/cfg_movement_woods.tres`, `cfg_needs_builder.tres`
+- [ ] **Commit 5** (RED+GREEN) — Woods wolf:
+  - `tests/unit/ai/integration/test_woods_wolf_brain_bt.gd` (port forest wolf test against woods brain path)
+  - `resources/ai/woods/wolf/cfg_woods_wolf_brain.tres` (reincarnated via `git show 16eed2c4^:resources/ai/forest/wolf/cfg_wolf_brain.tres`)
+  - `scenes/prefabs/prefab_woods_wolf.tscn`, `resources/base_settings/ai_woods/cfg_movement_woods_wolf.tres`, `cfg_needs_wolf.tres`
+- [ ] **Commit 6** (RED+GREEN) — Woods rabbit:
+  - `tests/unit/ai/integration/test_woods_rabbit_brain_bt.gd`
+  - `resources/ai/woods/rabbit/cfg_woods_rabbit_brain.tres`, `scenes/prefabs/prefab_woods_rabbit.tscn`, `cfg_needs_rabbit.tres`
+- [ ] **Commit 7** (GREEN) — Static world prefabs + debug label:
+  - `prefab_woods_tree.tscn`, `prefab_woods_stone.tscn`, `prefab_woods_water.tscn`, `prefab_woods_stockpile.tscn`, `prefab_woods_construction_site.tscn` (4 stage visuals, initially hidden)
+  - `scripts/debug/debug_woods_agent_label.gd` + `scenes/debug/debug_woods_agent_label.tscn` (clone of deleted `debug_forest_agent_label.gd`; shows goal/task/thirst/hunger/inventory)
+- [ ] **Commit 8** (GREEN) — Scene composition + registry:
+  - `scenes/gameplay/gameplay_ai_woods.tscn` (top-down ortho cam; 1 builder + 1 wolf + 4 rabbits + ~20 trees + ~6 stones + 1 water + 1 stockpile + 1 construction site)
+  - `resources/scene_registry/cfg_ai_woods_entry.tres`
+  - `scripts/ui/menus/ui_main_menu.gd` — add "AI Woods" entry (parity with pre-`16eed2c4` main-menu slot)
+- [ ] **Commit 9** (RED+GREEN) — Ecosystem smoke test:
+  - `tests/unit/gameplay/test_woods_ecosystem_smoke.gd` mirrors deleted `test_forest_ecosystem_smoke.gd`: load via `M_SceneManager` with `"instant"` transition, warmup 180+60 frames, assert brains tick + resource/inventory state change within 900 frames.
+- [ ] **Commit 10** (DOCS) — Update trackers:
+  - Tick P1.9b boxes above, commit hashes, verification command outputs.
+  - Update `cleanup-v8-continuation-prompt.md` Status + Next Task.
+  - Append woods-scene entry to `docs/ai_system/ai-system-tasks.md`.
+  - `AGENTS.md`: add one-line contract for each new component (`C_ResourceNodeComponent.reserved_by_entity_id`, `C_InventoryComponent.items`, `C_BuildSiteComponent.current_stage_index`) and each new action's task_state contract.
+
+**P1.9b Verification**:
+- [ ] All new per-entity and action tests green (`test_builder_brain_bt`, `test_woods_wolf_brain_bt`, `test_woods_rabbit_brain_bt`, `test_ai_actions_woods`, component tests).
+- [ ] `test_woods_ecosystem_smoke.gd` green headless.
+- [ ] `test_style_enforcement.gd` still green (new `prefab_woods_*` and `debug_woods_*` honor prefix rules).
+- [ ] **Manual check**: launch `gameplay_ai_woods.tscn`; within ~60s the builder harvests at least one tree, deposits at the stockpile/site, and the construction site advances stage 0 → stage 1 (visible mesh change). Tick only after this passes.
+- [ ] No new `DirAccess.open(...)` calls; all resource arrays use `const … preload(...)` per mobile-compat memory note.
+
 ---
 
 ## Milestone P1.10: Legacy Deletion

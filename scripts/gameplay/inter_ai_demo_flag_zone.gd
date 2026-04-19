@@ -192,6 +192,8 @@ func _ensure_hint_sprite() -> Sprite3D:
 	mat.no_depth_test = true
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+	mat.billboard_keep_scale = true
 	sprite.material_override = mat
 	add_child(sprite)
 	_hint_sprite = sprite
