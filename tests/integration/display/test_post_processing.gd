@@ -222,3 +222,26 @@ func test_multiple_effects_share_single_grain_dither_rect() -> void:
 	assert_true(rect.visible, "Grain+dither rect should be visible with all effects on")
 	assert_eq(int(_get_grain_dither_param(StringName("film_grain_enabled"))), 1)
 	assert_eq(int(_get_grain_dither_param(StringName("dither_enabled"))), 1)
+
+func test_scanlines_toggle_updates_shader_parameter() -> void:
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_scanlines_enabled(true))
+	await get_tree().process_frame
+
+	var rect := _get_grain_dither_rect()
+	assert_not_null(rect, "Grain+dither rect should exist")
+	assert_true(rect.visible, "Grain+dither rect should be visible when scanlines enabled")
+	assert_eq(int(_get_grain_dither_param(StringName("scanlines_enabled"))), 1,
+		"scanlines_enabled flag should be 1 in grain+dither shader")
+
+func test_scanline_intensity_and_count_update_shader_parameters() -> void:
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_scanlines_enabled(true))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_scanline_intensity(0.4))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_scanline_count(720.0))
+	await get_tree().process_frame
+
+	assert_almost_eq(float(_get_grain_dither_param(StringName("scanline_intensity"))), 0.4, 0.001,
+		"scanline_intensity should update shader parameter")
+	assert_almost_eq(float(_get_grain_dither_param(StringName("scanline_count"))), 720.0, 0.1,
+		"scanline_count should update shader parameter")

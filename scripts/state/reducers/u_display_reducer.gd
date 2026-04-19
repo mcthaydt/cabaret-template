@@ -21,6 +21,7 @@ const DEFAULT_DISPLAY_STATE := {
 	"film_grain_enabled": false,
 	"dither_enabled": false,
 	"dither_pattern": "bayer",
+	"scanlines_enabled": false,
 	"ui_scale": 1.0,
 	"color_blind_mode": "normal",
 	"high_contrast_enabled": false,
@@ -38,6 +39,8 @@ static func get_default_display_state() -> Dictionary:
 	var preset_values := U_PostProcessingPresetValues.get_preset_values(preset)
 	state["film_grain_intensity"] = preset_values.get("film_grain_intensity", 0.2)
 	state["dither_intensity"] = preset_values.get("dither_intensity", 1.0)
+	state["scanline_intensity"] = preset_values.get("scanline_intensity", 0.0)
+	state["scanline_count"] = preset_values.get("scanline_count", 480.0)
 	return state
 
 static func reduce(state: Dictionary, action: Dictionary) -> Variant:
@@ -87,6 +90,8 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 				"post_processing_preset": preset,
 				"film_grain_intensity": preset_values.get("film_grain_intensity", current.get("film_grain_intensity", 0.1)),
 				"dither_intensity": preset_values.get("dither_intensity", current.get("dither_intensity", 0.5)),
+				"scanline_intensity": preset_values.get("scanline_intensity", current.get("scanline_intensity", 0.0)),
+				"scanline_count": preset_values.get("scanline_count", current.get("scanline_count", 480.0)),
 			})
 
 		U_DisplayActions.ACTION_SET_FILM_GRAIN_ENABLED:
@@ -145,6 +150,23 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var payload: Dictionary = action.get("payload", {})
 			var enabled := bool(payload.get("enabled", false))
 			return _with_values(current, {"color_blind_shader_enabled": enabled})
+
+		U_DisplayActions.ACTION_SET_SCANLINES_ENABLED:
+			var payload: Dictionary = action.get("payload", {})
+			var enabled := bool(payload.get("enabled", false))
+			return _with_values(current, {"scanlines_enabled": enabled})
+
+		U_DisplayActions.ACTION_SET_SCANLINE_INTENSITY:
+			var payload: Dictionary = action.get("payload", {})
+			var raw_intensity: float = float(payload.get("intensity", 0.35))
+			var clamped_intensity := clampf(raw_intensity, MIN_INTENSITY, MAX_INTENSITY)
+			return _with_values(current, {"scanline_intensity": clamped_intensity})
+
+		U_DisplayActions.ACTION_SET_SCANLINE_COUNT:
+			var payload: Dictionary = action.get("payload", {})
+			var raw_count: float = float(payload.get("count", 480.0))
+			var clamped_count := clampf(raw_count, 60.0, 1080.0)
+			return _with_values(current, {"scanline_count": clamped_count})
 
 		U_ColorGradingActions.ACTION_LOAD_SCENE_GRADE:
 			var payload: Dictionary = action.get("payload", {})

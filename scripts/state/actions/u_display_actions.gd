@@ -22,6 +22,11 @@ const ACTION_SET_DITHER_ENABLED := StringName("display/set_dither_enabled")
 const ACTION_SET_DITHER_INTENSITY := StringName("display/set_dither_intensity")
 const ACTION_SET_DITHER_PATTERN := StringName("display/set_dither_pattern")
 
+# Scanlines
+const ACTION_SET_SCANLINES_ENABLED := StringName("display/set_scanlines_enabled")
+const ACTION_SET_SCANLINE_INTENSITY := StringName("display/set_scanline_intensity")
+const ACTION_SET_SCANLINE_COUNT := StringName("display/set_scanline_count")
+
 # UI
 const ACTION_SET_UI_SCALE := StringName("display/set_ui_scale")
 
@@ -42,6 +47,9 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_PATTERN)
+	U_ActionRegistry.register_action(ACTION_SET_SCANLINES_ENABLED)
+	U_ActionRegistry.register_action(ACTION_SET_SCANLINE_INTENSITY)
+	U_ActionRegistry.register_action(ACTION_SET_SCANLINE_COUNT)
 	U_ActionRegistry.register_action(ACTION_SET_UI_SCALE)
 	U_ActionRegistry.register_action(ACTION_SET_COLOR_BLIND_MODE)
 	U_ActionRegistry.register_action(ACTION_SET_HIGH_CONTRAST_ENABLED)
@@ -123,6 +131,27 @@ static func set_dither_pattern(pattern: String) -> Dictionary:
 	return {
 		"type": ACTION_SET_DITHER_PATTERN,
 		"payload": {"pattern": pattern},
+		"immediate": true,
+	}
+
+static func set_scanlines_enabled(enabled: bool) -> Dictionary:
+	return {
+		"type": ACTION_SET_SCANLINES_ENABLED,
+		"payload": {"enabled": enabled},
+		"immediate": true,
+	}
+
+static func set_scanline_intensity(intensity: float) -> Dictionary:
+	return {
+		"type": ACTION_SET_SCANLINE_INTENSITY,
+		"payload": {"intensity": intensity},
+		"immediate": true,
+	}
+
+static func set_scanline_count(count: float) -> Dictionary:
+	return {
+		"type": ACTION_SET_SCANLINE_COUNT,
+		"payload": {"count": count},
 		"immediate": true,
 	}
 

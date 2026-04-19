@@ -13,3 +13,5 @@ class_name RS_PostProcessingPreset
 @export_group("Effect Intensities")
 @export_range(0.0, 1.0, 0.01) var film_grain_intensity: float = 0.1
 @export_range(0.0, 1.0, 0.01) var dither_intensity: float = 0.5
+@export_range(0.0, 1.0, 0.01) var scanline_intensity: float = 0.0
+@export_range(60.0, 1080.0, 10.0) var scanline_count: float = 480.0

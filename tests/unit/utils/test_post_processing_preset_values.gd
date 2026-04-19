@@ -73,3 +73,24 @@ func test_loaded_presets_match_canonical_resources() -> void:
 	assert_eq(light.get("film_grain_intensity"), CFG_LIGHT_PRESET.film_grain_intensity)
 	assert_eq(medium.get("film_grain_intensity"), CFG_MEDIUM_PRESET.film_grain_intensity)
 	assert_eq(heavy.get("film_grain_intensity"), CFG_HEAVY_PRESET.film_grain_intensity)
+
+func test_presets_expose_scanline_fields() -> void:
+	var light := U_PostProcessingPresetValues.get_preset_values("light")
+	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
+	var heavy := U_PostProcessingPresetValues.get_preset_values("heavy")
+
+	assert_true(light.has("scanline_intensity"), "light should expose scanline_intensity")
+	assert_true(medium.has("scanline_intensity"), "medium should expose scanline_intensity")
+	assert_true(heavy.has("scanline_intensity"), "heavy should expose scanline_intensity")
+
+	assert_almost_eq(float(light.get("scanline_intensity")), 0.0, 0.0001,
+		"light scanline_intensity should be 0 (off)")
+	assert_true(float(medium.get("scanline_intensity")) > 0.0,
+		"medium scanline_intensity should be positive")
+	assert_true(float(heavy.get("scanline_intensity")) > 0.0,
+		"heavy scanline_intensity should be positive")
+
+func test_medium_preset_scanline_count_matches_resource() -> void:
+	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
+	assert_almost_eq(float(medium.get("scanline_count")), CFG_MEDIUM_PRESET.scanline_count, 0.0001,
+		"scanline_count should match preset resource")

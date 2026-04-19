@@ -33,6 +33,8 @@ static func get_preset_values(preset: String) -> Dictionary:
 	return {
 		"film_grain_intensity": preset_resource.film_grain_intensity,
 		"dither_intensity": preset_resource.dither_intensity,
+		"scanline_intensity": preset_resource.scanline_intensity,
+		"scanline_count": preset_resource.scanline_count,
 	}
 
 ## Get a specific intensity value for a preset

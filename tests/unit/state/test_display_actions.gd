@@ -119,3 +119,27 @@ func test_set_color_blind_shader_enabled_action() -> void:
 	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_COLOR_BLIND_SHADER_ENABLED)
 	assert_eq(payload.get("enabled"), true)
 	assert_eq(action.get("immediate"), true)
+
+func test_set_scanlines_enabled_action() -> void:
+	var action: Dictionary = U_DisplayActions.set_scanlines_enabled(true)
+	var payload: Dictionary = action.get("payload", {})
+
+	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_SCANLINES_ENABLED)
+	assert_eq(payload.get("enabled"), true)
+	assert_eq(action.get("immediate"), true)
+
+func test_set_scanline_intensity_action() -> void:
+	var action: Dictionary = U_DisplayActions.set_scanline_intensity(0.3)
+	var payload: Dictionary = action.get("payload", {})
+
+	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_SCANLINE_INTENSITY)
+	assert_almost_eq(float(payload.get("intensity")), 0.3, 0.0001)
+	assert_eq(action.get("immediate"), true)
+
+func test_set_scanline_count_action() -> void:
+	var action: Dictionary = U_DisplayActions.set_scanline_count(480.0)
+	var payload: Dictionary = action.get("payload", {})
+
+	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_SCANLINE_COUNT)
+	assert_almost_eq(float(payload.get("count")), 480.0, 0.0001)
+	assert_eq(action.get("immediate"), true)

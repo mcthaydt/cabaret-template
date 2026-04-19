@@ -360,5 +360,57 @@ func test_reset_to_scene_defaults_empty_payload_returns_null() -> void:
 
 	assert_null(reduced, "Empty grade dict should return null")
 
+func test_reducer_handles_scanlines_enabled_toggle() -> void:
+	var state := _make_display_state()
+	var action := U_DisplayActions.set_scanlines_enabled(true)
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	assert_eq(reduced.get("scanlines_enabled"), true)
+
+func test_reducer_clamps_scanline_intensity() -> void:
+	var state := _make_display_state()
+
+	var action_high := U_DisplayActions.set_scanline_intensity(2.0)
+	var reduced_high: Dictionary = U_DisplayReducer.reduce(state, action_high)
+	assert_almost_eq(float(reduced_high.get("scanline_intensity", 0.0)), 1.0, 0.0001,
+		"scanline_intensity clamped to 1.0 when > 1")
+
+	var action_low := U_DisplayActions.set_scanline_intensity(-1.0)
+	var reduced_low: Dictionary = U_DisplayReducer.reduce(state, action_low)
+	assert_almost_eq(float(reduced_low.get("scanline_intensity", 1.0)), 0.0, 0.0001,
+		"scanline_intensity clamped to 0.0 when < 0")
+
+func test_reducer_clamps_scanline_count() -> void:
+	var state := _make_display_state()
+
+	var action_high := U_DisplayActions.set_scanline_count(9999.0)
+	var reduced_high: Dictionary = U_DisplayReducer.reduce(state, action_high)
+	assert_almost_eq(float(reduced_high.get("scanline_count", 480.0)), 1080.0, 0.0001,
+		"scanline_count clamped to 1080.0 when > 1080")
+
+	var action_low := U_DisplayActions.set_scanline_count(10.0)
+	var reduced_low: Dictionary = U_DisplayReducer.reduce(state, action_low)
+	assert_almost_eq(float(reduced_low.get("scanline_count", 480.0)), 60.0, 0.0001,
+		"scanline_count clamped to 60.0 when < 60")
+
+func test_set_post_processing_preset_loads_scanline_values() -> void:
+	var state := _make_display_state()
+	var action := U_DisplayActions.set_post_processing_preset("medium")
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+	var medium_values := U_PostProcessingPresetValues.get_preset_values("medium")
+
+	assert_almost_eq(
+		float(reduced.get("scanline_intensity")),
+		float(medium_values.get("scanline_intensity", 0.0)),
+		0.0001,
+		"Should apply medium scanline_intensity from preset"
+	)
+	assert_almost_eq(
+		float(reduced.get("scanline_count")),
+		float(medium_values.get("scanline_count", 480.0)),
+		0.0001,
+		"Should apply medium scanline_count from preset"
+	)
+
 func _make_display_state() -> Dictionary:
 	return U_DisplayReducer.get_default_display_state()

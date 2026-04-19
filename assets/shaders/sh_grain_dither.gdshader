@@ -7,6 +7,11 @@ uniform sampler2D screen_texture : hint_screen_texture;
 // --- Effect enable flags (0 = off, 1 = on) ---
 uniform int film_grain_enabled : hint_range(0, 1) = 0;
 uniform int dither_enabled : hint_range(0, 1) = 0;
+uniform int scanlines_enabled : hint_range(0, 1) = 0;
+
+// --- Scanline uniforms ---
+uniform float scanline_intensity : hint_range(0.0, 1.0) = 0.35;
+uniform float scanline_count     : hint_range(60.0, 1080.0) = 480.0;
 
 // --- Film grain uniforms ---
 uniform float fg_intensity : hint_range(0.0, 1.0) = 0.1;
@@ -70,6 +75,14 @@ vec3 _apply_dither(vec3 color, vec2 uv, vec2 pixel_size) {
 	return mix(color, quantized, dither_intensity);
 }
 
+// ======== Scanlines ========
+
+vec3 _apply_scanlines(vec3 color, vec2 uv) {
+	float s = 0.5 + 0.5 * cos(uv.y * scanline_count * 6.2831853);
+	float mask = mix(1.0, s, scanline_intensity);
+	return color * mask;
+}
+
 // ======== Main ========
 
 void fragment() {
@@ -83,6 +96,11 @@ void fragment() {
 
 	if (dither_enabled == 1) {
 		color = _apply_dither(color, SCREEN_UV, SCREEN_PIXEL_SIZE);
+	}
+
+	if (scanlines_enabled == 1) {
+		color = _apply_scanlines(color, SCREEN_UV);
+		color = clamp(color, 0.0, 1.0);
 	}
 
 	COLOR = vec4(color, 1.0);

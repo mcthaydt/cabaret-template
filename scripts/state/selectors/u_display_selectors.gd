@@ -66,6 +66,18 @@ static func is_color_blind_shader_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)
 	return bool(display.get("color_blind_shader_enabled", false))
 
+static func is_scanlines_enabled(state: Dictionary) -> bool:
+	var display := _get_display_slice(state)
+	return bool(display.get("scanlines_enabled", false))
+
+static func get_scanline_intensity(state: Dictionary) -> float:
+	var display := _get_display_slice(state)
+	return float(display.get("scanline_intensity", 0.0))
+
+static func get_scanline_count(state: Dictionary) -> float:
+	var display := _get_display_slice(state)
+	return float(display.get("scanline_count", 480.0))
+
 static func get_mobile_resolution_scale(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
 	return float(display.get("mobile_resolution_scale", 0.35))

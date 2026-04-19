@@ -56,8 +56,9 @@ func update_overlay_visibility(should_show: bool) -> void:
 func _apply_grain_dither_effect_settings(state: Dictionary) -> void:
 	var fg_enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state)
 	var dither_enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state)
+	var scanlines := U_DISPLAY_SELECTORS.is_scanlines_enabled(state)
 
-	_any_effect_active = fg_enabled or dither_enabled
+	_any_effect_active = fg_enabled or dither_enabled or scanlines
 
 	if not _any_effect_active:
 		return
@@ -65,6 +66,7 @@ func _apply_grain_dither_effect_settings(state: Dictionary) -> void:
 	# Set per-effect enable flags in the grain+dither shader
 	_post_process_layer.set_grain_dither_parameter(StringName("film_grain_enabled"), 1 if fg_enabled else 0)
 	_post_process_layer.set_grain_dither_parameter(StringName("dither_enabled"), 1 if dither_enabled else 0)
+	_post_process_layer.set_grain_dither_parameter(StringName("scanlines_enabled"), 1 if scanlines else 0)
 
 	# Film grain params
 	if fg_enabled:
@@ -75,6 +77,13 @@ func _apply_grain_dither_effect_settings(state: Dictionary) -> void:
 	if dither_enabled:
 		var intensity := U_DISPLAY_SELECTORS.get_dither_intensity(state)
 		_post_process_layer.set_grain_dither_parameter(StringName("dither_intensity"), intensity)
+
+	# Scanline params
+	if scanlines:
+		var intensity := U_DISPLAY_SELECTORS.get_scanline_intensity(state)
+		var count := U_DISPLAY_SELECTORS.get_scanline_count(state)
+		_post_process_layer.set_grain_dither_parameter(StringName("scanline_intensity"), intensity)
+		_post_process_layer.set_grain_dither_parameter(StringName("scanline_count"), count)
 
 func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 	var mode := U_DISPLAY_SELECTORS.get_color_blind_mode(state)

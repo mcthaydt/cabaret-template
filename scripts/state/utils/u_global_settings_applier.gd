@@ -55,6 +55,12 @@ static func _apply_display(store: I_StateStore, display: Dictionary) -> void:
 		store.dispatch(U_DISPLAY_ACTIONS.set_dither_intensity(float(display.get("dither_intensity", 0.5))))
 	if display.has("dither_pattern"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_dither_pattern(str(display.get("dither_pattern", ""))))
+	if display.has("scanlines_enabled"):
+		store.dispatch(U_DISPLAY_ACTIONS.set_scanlines_enabled(bool(display.get("scanlines_enabled", false))))
+	if display.has("scanline_intensity"):
+		store.dispatch(U_DISPLAY_ACTIONS.set_scanline_intensity(float(display.get("scanline_intensity", 0.0))))
+	if display.has("scanline_count"):
+		store.dispatch(U_DISPLAY_ACTIONS.set_scanline_count(float(display.get("scanline_count", 480.0))))
 	if display.has("ui_scale"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(float(display.get("ui_scale", 1.0))))
 	if display.has("color_blind_mode"):
