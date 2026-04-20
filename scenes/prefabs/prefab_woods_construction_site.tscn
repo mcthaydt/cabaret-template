@@ -1,0 +1,58 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ecs/components/c_build_site_component.gd" id="1_build_site"]
+[ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_build_site_house.tres" id="2_build_settings"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_foundation"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.65, 0.6, 0.55, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.55, 0.4, 0.2, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_walls"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.85, 0.8, 0.7, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_roof"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.5, 0.3, 0.15, 1)
+
+[node name="E_WoodsConstructionSite" type="StaticBody3D"]
+
+[node name="Foundation" type="CSGBox3D" parent="."]
+visible = false
+size = Vector3(3.0, 0.3, 3.0)
+material = SubResource("StandardMaterial3D_foundation")
+
+[node name="Frame" type="CSGBox3D" parent="."]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+size = Vector3(3.0, 2.0, 0.1)
+material = SubResource("StandardMaterial3D_frame")
+
+[node name="Walls" type="CSGBox3D" parent="."]
+visible = false
+size = Vector3(3.0, 2.5, 3.0)
+material = SubResource("StandardMaterial3D_walls")
+
+[node name="Roof" type="CSGBox3D" parent="."]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8, 0)
+size = Vector3(3.5, 0.2, 3.5)
+material = SubResource("StandardMaterial3D_roof")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+
+[node name="C_BuildSiteComponent" type="Node" parent="."]
+script = ExtResource("1_build_site")
+settings = ExtResource("2_build_settings")

@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ecs/components/c_resource_node_component.gd" id="1_resource_node"]
+[ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_resource_node_wood.tres" id="2_wood_settings"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_trunk"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.4, 0.26, 0.13, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_foliage"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.2, 0.55, 0.15, 1)
+
+[node name="E_WoodsTree" type="StaticBody3D"]
+
+[node name="Trunk" type="CSGCylinder3D" parent="."]
+radius = 0.3
+height = 2.0
+material = SubResource("StandardMaterial3D_trunk")
+
+[node name="Foliage" type="CSGSphere3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 0)
+radius = 1.2
+material = SubResource("StandardMaterial3D_foliage")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+
+[node name="C_ResourceNodeComponent" type="Node" parent="."]
+script = ExtResource("1_resource_node")
+settings = ExtResource("2_wood_settings")

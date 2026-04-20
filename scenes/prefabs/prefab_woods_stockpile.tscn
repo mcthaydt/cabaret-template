@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ecs/components/c_inventory_component.gd" id="1_inventory"]
+[ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_inventory_stockpile.tres" id="2_stockpile_settings"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stockpile"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.6, 0.45, 0.25, 1)
+
+[node name="E_WoodsStockpile" type="StaticBody3D"]
+
+[node name="Mesh" type="CSGBox3D" parent="."]
+size = Vector3(1.5, 0.5, 1.5)
+material = SubResource("StandardMaterial3D_stockpile")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+
+[node name="C_InventoryComponent" type="Node" parent="."]
+script = ExtResource("1_inventory")
+settings = ExtResource("2_stockpile_settings")
