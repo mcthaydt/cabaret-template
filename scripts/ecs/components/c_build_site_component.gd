@@ -1,0 +1,64 @@
+@icon("res://assets/editor_icons/icn_component.svg")
+extends BaseECSComponent
+class_name C_BuildSiteComponent
+
+const COMPONENT_TYPE := StringName("C_BuildSiteComponent")
+
+@export var settings: RS_BuildSiteSettings = null
+
+var current_stage_index: int = 0
+var placed_materials: Dictionary = {}
+var current_build_elapsed: float = 0.0
+var completed: bool = false
+var reserved_by_entity_id: StringName = StringName("")
+
+func _init() -> void:
+	component_type = COMPONENT_TYPE
+
+func _validate_required_settings() -> bool:
+	if settings == null:
+		push_error("C_BuildSiteComponent missing settings; assign an RS_BuildSiteSettings resource.")
+		return false
+	if settings.stages.is_empty():
+		push_error("C_BuildSiteComponent settings has no stages defined.")
+		return false
+	return true
+
+func current_stage() -> RS_BuildStage:
+	if settings == null or current_stage_index >= settings.stages.size():
+		return null
+	return settings.stages[current_stage_index]
+
+func required_materials_met() -> bool:
+	var stage := current_stage()
+	if stage == null:
+		return false
+	for mat_type in stage.required_materials:
+		var required: int = stage.required_materials[mat_type]
+		var placed: int = placed_materials.get(mat_type, 0)
+		if placed < required:
+			return false
+	return true
+
+func advance_stage() -> bool:
+	if settings == null or completed:
+		return false
+	var stage := current_stage()
+	if stage == null:
+		return false
+	_toggle_stage_visual(stage, true)
+	current_stage_index += 1
+	current_build_elapsed = 0.0
+	if current_stage_index >= settings.stages.size():
+		completed = true
+	return true
+
+func _toggle_stage_visual(stage: RS_BuildStage, visible: bool) -> void:
+	if stage.visual_node_path.is_empty():
+		return
+	var entity := ECS_UTILS.find_entity_root(self)
+	if entity == null:
+		return
+	var node := entity.get_node_or_null(stage.visual_node_path)
+	if node != null:
+		node.visible = visible
