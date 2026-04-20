@@ -78,3 +78,18 @@ func test_advance_stage_returns_false_when_completed() -> void:
 	var component: Variant = _instantiate(stages)
 	component.advance_stage()
 	assert_false(component.advance_stage())
+
+func test_refresh_materials_ready_updates_flag() -> void:
+	var stages := _make_stages(1, {&"wood": 2})
+	var component: Variant = _instantiate(stages)
+	assert_false(component.materials_ready)
+	component.placed_materials[&"wood"] = 2
+	component.refresh_materials_ready()
+	assert_true(component.materials_ready)
+
+func test_advance_stage_resets_materials_ready() -> void:
+	var stages := _make_stages(2, {&"wood": 1})
+	var component: Variant = _instantiate(stages)
+	component.materials_ready = true
+	component.advance_stage()
+	assert_false(component.materials_ready)

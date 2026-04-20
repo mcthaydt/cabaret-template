@@ -76,3 +76,18 @@ func test_add_returns_zero_when_no_settings() -> void:
 	autofree(component)
 	var added: int = component.add(&"wood", 1)
 	assert_eq(added, 0)
+
+func test_fill_ratio_updates_on_add() -> void:
+	var component: Variant = _instantiate(4)
+	assert_eq(component.fill_ratio, 0.0)
+	component.add(&"wood", 1)
+	assert_eq(component.fill_ratio, 0.25)
+	component.add(&"wood", 3)
+	assert_eq(component.fill_ratio, 1.0)
+
+func test_fill_ratio_updates_on_remove() -> void:
+	var component: Variant = _instantiate(4)
+	component.add(&"wood", 4)
+	assert_eq(component.fill_ratio, 1.0)
+	component.remove(&"wood", 2)
+	assert_eq(component.fill_ratio, 0.5)

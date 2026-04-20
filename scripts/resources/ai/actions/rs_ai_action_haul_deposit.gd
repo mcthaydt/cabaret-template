@@ -57,6 +57,8 @@ func _deposit_to_build_site(inventory: Object, build_site: Object) -> void:
 		if qty > 0:
 			placed[mat_type] = placed.get(mat_type, 0) + qty
 			inventory.call("remove", mat_type, qty)
+	if build_site.has_method("refresh_materials_ready"):
+		build_site.call("refresh_materials_ready")
 
 func _find_component_on_entity(entity: Node, component_type: StringName) -> Object:
 	for child in entity.get_children():

@@ -7,6 +7,7 @@ const COMPONENT_TYPE := StringName("C_InventoryComponent")
 @export var settings: RS_InventorySettings = null
 
 var items: Dictionary = {}
+var fill_ratio: float = 0.0
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
@@ -27,6 +28,7 @@ func add(type: StringName, qty: int) -> int:
 		return 0
 	var to_add := mini(qty, space)
 	items[type] = items.get(type, 0) + to_add
+	_refresh_fill_ratio()
 	return to_add
 
 func remove(type: StringName, qty: int) -> int:
@@ -37,6 +39,7 @@ func remove(type: StringName, qty: int) -> int:
 	items[type] = current - to_remove
 	if items[type] == 0:
 		items.erase(type)
+	_refresh_fill_ratio()
 	return to_remove
 
 func total() -> int:
@@ -52,3 +55,9 @@ func is_full() -> bool:
 
 func has_type(type: StringName) -> bool:
 	return items.get(type, 0) > 0
+
+func _refresh_fill_ratio() -> void:
+	if settings == null or settings.capacity <= 0:
+		fill_ratio = 0.0
+		return
+	fill_ratio = clampf(float(total()) / float(settings.capacity), 0.0, 1.0)

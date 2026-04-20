@@ -11,6 +11,7 @@ var placed_materials: Dictionary = {}
 var current_build_elapsed: float = 0.0
 var completed: bool = false
 var reserved_by_entity_id: StringName = StringName("")
+var materials_ready: bool = false
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
@@ -40,6 +41,9 @@ func required_materials_met() -> bool:
 			return false
 	return true
 
+func refresh_materials_ready() -> void:
+	materials_ready = required_materials_met()
+
 func advance_stage() -> bool:
 	if settings == null or completed:
 		return false
@@ -49,6 +53,7 @@ func advance_stage() -> bool:
 	_toggle_stage_visual(stage, true)
 	current_stage_index += 1
 	current_build_elapsed = 0.0
+	materials_ready = false
 	if current_stage_index >= settings.stages.size():
 		completed = true
 	return true
