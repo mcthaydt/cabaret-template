@@ -1,15 +1,15 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://dpcaa0ldjb3n0"]
 
-[ext_resource type="Script" path="res://scripts/debug/debug_ai_brain_panel.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://2mjns8ab3o1o" path="res://scripts/debug/debug_ai_brain_panel.gd" id="1_script"]
 
-[node name="DebugAIBrainPanel" type="Control"]
+[node name="DebugAIBrainPanel" type="Control" unique_id=1957488385]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 420.0
 offset_bottom = 300.0
 script = ExtResource("1_script")
 
-[node name="Rows" type="VBoxContainer" parent="."]
+[node name="Rows" type="VBoxContainer" parent="." unique_id=86257648]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -19,7 +19,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 4
 
-[node name="RefreshTimer" type="Timer" parent="."]
+[node name="RefreshTimer" type="Timer" parent="." unique_id=45546024]
 unique_name_in_owner = true
 wait_time = 0.25
 autostart = true

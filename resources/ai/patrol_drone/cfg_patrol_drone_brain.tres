@@ -1,26 +1,20 @@
-[gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3]
+[gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3 uid="uid://c015tdg1lh2er"]
 
-[ext_resource type="Script" path="res://scripts/resources/ai/brain/rs_ai_brain_settings.gd" id="1_brain"]
-[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_utility_selector.gd" id="2_bt_utility_selector"]
-[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_selector.gd" id="3_bt_selector"]
-[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_sequence.gd" id="4_bt_sequence"]
-[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_rising_edge.gd" id="5_bt_rising_edge"]
-[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_cooldown.gd" id="6_bt_cooldown"]
-[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_node.gd" id="7_bt_node"]
-[ext_resource type="Script" path="res://scripts/resources/ai/bt/rs_bt_condition.gd" id="8_bt_condition"]
-[ext_resource type="Script" path="res://scripts/resources/ai/bt/rs_bt_action.gd" id="9_bt_action"]
-[ext_resource type="Script" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd" id="10_ai_scorer_condition"]
-[ext_resource type="Script" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd" id="11_ai_scorer_constant"]
-[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="12_condition_redux_field"]
-[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="13_action_move_to"]
-[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_scan.gd" id="14_action_scan"]
-[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="15_action_wait"]
-
-[sub_resource type="Resource" id="Condition_power_core_activated"]
-script = ExtResource("12_condition_redux_field")
-state_path = "gameplay.ai_demo_flags.power_core_activated"
-match_mode = "equals"
-match_value_string = "true"
+[ext_resource type="Script" uid="uid://ccrnbhgcyknu0" path="res://scripts/resources/ai/brain/rs_ai_brain_settings.gd" id="1_brain"]
+[ext_resource type="Script" uid="uid://dkfwn2pl0i672" path="res://scripts/resources/bt/rs_bt_utility_selector.gd" id="2_bt_utility_selector"]
+[ext_resource type="Script" uid="uid://ddn7m5aiwrax0" path="res://scripts/resources/bt/rs_bt_selector.gd" id="3_bt_selector"]
+[ext_resource type="Script" uid="uid://db5dd1r1pfvd6" path="res://scripts/resources/bt/rs_bt_sequence.gd" id="4_bt_sequence"]
+[ext_resource type="Script" uid="uid://hximffv2hwil" path="res://scripts/resources/bt/rs_bt_rising_edge.gd" id="5_bt_rising_edge"]
+[ext_resource type="Script" uid="uid://bosbd72cesikv" path="res://scripts/resources/bt/rs_bt_cooldown.gd" id="6_bt_cooldown"]
+[ext_resource type="Script" uid="uid://n0lsv2efoykg" path="res://scripts/resources/bt/rs_bt_node.gd" id="7_bt_node"]
+[ext_resource type="Script" uid="uid://xj0fnqo6poc4" path="res://scripts/resources/ai/bt/rs_bt_condition.gd" id="8_bt_condition"]
+[ext_resource type="Script" uid="uid://d2g2cuucagm84" path="res://scripts/resources/ai/bt/rs_bt_action.gd" id="9_bt_action"]
+[ext_resource type="Script" uid="uid://ckmnsfbxfbeen" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd" id="10_ai_scorer_condition"]
+[ext_resource type="Script" uid="uid://7v6u478gtpxe" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd" id="11_ai_scorer_constant"]
+[ext_resource type="Script" uid="uid://bbw7r0gg2jdbf" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="12_condition_redux_field"]
+[ext_resource type="Script" uid="uid://bqdnedsa4xgps" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="13_action_move_to"]
+[ext_resource type="Script" uid="uid://c6kwruacxjm85" path="res://scripts/resources/ai/actions/rs_ai_action_scan.gd" id="14_action_scan"]
+[ext_resource type="Script" uid="uid://cxpr5abl5uj1l" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="15_action_wait"]
 
 [sub_resource type="Resource" id="Condition_power_core_proximity"]
 script = ExtResource("12_condition_redux_field")
@@ -28,21 +22,67 @@ state_path = "gameplay.ai_demo_flags.power_core_proximity"
 match_mode = "equals"
 match_value_string = "true"
 
-[sub_resource type="Resource" id="Scorer_investigate"]
-script = ExtResource("10_ai_scorer_condition")
-condition = SubResource("Condition_power_core_activated")
-if_true = 9.0
-if_false = 0.0
-
 [sub_resource type="Resource" id="Scorer_investigate_proximity"]
 script = ExtResource("10_ai_scorer_condition")
 condition = SubResource("Condition_power_core_proximity")
 if_true = 11.0
-if_false = 0.0
+
+[sub_resource type="Resource" id="Condition_power_core_activated"]
+script = ExtResource("12_condition_redux_field")
+state_path = "gameplay.ai_demo_flags.power_core_activated"
+match_mode = "equals"
+match_value_string = "true"
+
+[sub_resource type="Resource" id="Scorer_investigate"]
+script = ExtResource("10_ai_scorer_condition")
+condition = SubResource("Condition_power_core_activated")
+if_true = 9.0
 
 [sub_resource type="Resource" id="Scorer_patrol"]
 script = ExtResource("11_ai_scorer_constant")
 value = 1.0
+
+[sub_resource type="Resource" id="Node_flag_power_core_proximity"]
+script = ExtResource("8_bt_condition")
+condition = SubResource("Condition_power_core_proximity")
+
+[sub_resource type="Resource" id="Action_move_to_activatable"]
+script = ExtResource("13_action_move_to")
+target_node_path = NodePath("../../Interactions/Inter_ActivatableNode")
+arrival_threshold = 1.2
+
+[sub_resource type="Resource" id="Node_move_to_activatable"]
+script = ExtResource("9_bt_action")
+action = SubResource("Action_move_to_activatable")
+
+[sub_resource type="Resource" id="Action_scan_activatable"]
+script = ExtResource("14_action_scan")
+rotation_speed = 1.25
+
+[sub_resource type="Resource" id="Node_scan_activatable"]
+script = ExtResource("9_bt_action")
+action = SubResource("Action_scan_activatable")
+
+[sub_resource type="Resource" id="Action_wait_after_scan"]
+script = ExtResource("15_action_wait")
+
+[sub_resource type="Resource" id="Node_wait_after_scan"]
+script = ExtResource("9_bt_action")
+action = SubResource("Action_wait_after_scan")
+
+[sub_resource type="Resource" id="Node_investigate_proximity_sequence"]
+script = ExtResource("4_bt_sequence")
+children = Array[ExtResource("7_bt_node")]([SubResource("Node_flag_power_core_proximity"), SubResource("Node_move_to_activatable"), SubResource("Node_scan_activatable"), SubResource("Node_wait_after_scan")])
+
+[sub_resource type="Resource" id="Node_investigate_proximity_rising_edge"]
+script = ExtResource("5_bt_rising_edge")
+gate_condition = SubResource("Condition_power_core_proximity")
+child = SubResource("Node_investigate_proximity_sequence")
+
+[sub_resource type="Resource" id="Node_investigate_proximity_cooldown"]
+script = ExtResource("6_bt_cooldown")
+duration = 2.5
+child = SubResource("Node_investigate_proximity_rising_edge")
 
 [sub_resource type="Resource" id="Action_move_waypoint_a"]
 script = ExtResource("13_action_move_to")
@@ -112,33 +152,13 @@ action = SubResource("Action_wait_after_d")
 script = ExtResource("4_bt_sequence")
 children = Array[ExtResource("7_bt_node")]([SubResource("Node_move_waypoint_a"), SubResource("Node_wait_after_a"), SubResource("Node_move_waypoint_b"), SubResource("Node_wait_after_b"), SubResource("Node_move_waypoint_c"), SubResource("Node_wait_after_c"), SubResource("Node_move_waypoint_d"), SubResource("Node_wait_after_d")])
 
+[sub_resource type="Resource" id="Node_investigate_proximity_or_patrol"]
+script = ExtResource("3_bt_selector")
+children = Array[ExtResource("7_bt_node")]([SubResource("Node_investigate_proximity_cooldown"), SubResource("Node_patrol_sequence")])
+
 [sub_resource type="Resource" id="Node_flag_power_core_activated"]
 script = ExtResource("8_bt_condition")
 condition = SubResource("Condition_power_core_activated")
-
-[sub_resource type="Resource" id="Action_move_to_activatable"]
-script = ExtResource("13_action_move_to")
-target_node_path = NodePath("../../Interactions/Inter_ActivatableNode")
-arrival_threshold = 1.2
-
-[sub_resource type="Resource" id="Node_move_to_activatable"]
-script = ExtResource("9_bt_action")
-action = SubResource("Action_move_to_activatable")
-
-[sub_resource type="Resource" id="Action_scan_activatable"]
-script = ExtResource("14_action_scan")
-rotation_speed = 1.25
-
-[sub_resource type="Resource" id="Node_scan_activatable"]
-script = ExtResource("9_bt_action")
-action = SubResource("Action_scan_activatable")
-
-[sub_resource type="Resource" id="Action_wait_after_scan"]
-script = ExtResource("15_action_wait")
-
-[sub_resource type="Resource" id="Node_wait_after_scan"]
-script = ExtResource("9_bt_action")
-action = SubResource("Action_wait_after_scan")
 
 [sub_resource type="Resource" id="Node_investigate_sequence"]
 script = ExtResource("4_bt_sequence")
@@ -146,45 +166,23 @@ children = Array[ExtResource("7_bt_node")]([SubResource("Node_flag_power_core_ac
 
 [sub_resource type="Resource" id="Node_investigate_rising_edge"]
 script = ExtResource("5_bt_rising_edge")
-child = SubResource("Node_investigate_sequence")
 gate_condition = SubResource("Condition_power_core_activated")
+child = SubResource("Node_investigate_sequence")
 
 [sub_resource type="Resource" id="Node_investigate_cooldown"]
 script = ExtResource("6_bt_cooldown")
-child = SubResource("Node_investigate_rising_edge")
 duration = 2.5
+child = SubResource("Node_investigate_rising_edge")
 
 [sub_resource type="Resource" id="Node_investigate_or_patrol"]
 script = ExtResource("3_bt_selector")
 children = Array[ExtResource("7_bt_node")]([SubResource("Node_investigate_cooldown"), SubResource("Node_patrol_sequence")])
 
-[sub_resource type="Resource" id="Node_flag_power_core_proximity"]
-script = ExtResource("8_bt_condition")
-condition = SubResource("Condition_power_core_proximity")
-
-[sub_resource type="Resource" id="Node_investigate_proximity_sequence"]
-script = ExtResource("4_bt_sequence")
-children = Array[ExtResource("7_bt_node")]([SubResource("Node_flag_power_core_proximity"), SubResource("Node_move_to_activatable"), SubResource("Node_scan_activatable"), SubResource("Node_wait_after_scan")])
-
-[sub_resource type="Resource" id="Node_investigate_proximity_rising_edge"]
-script = ExtResource("5_bt_rising_edge")
-child = SubResource("Node_investigate_proximity_sequence")
-gate_condition = SubResource("Condition_power_core_proximity")
-
-[sub_resource type="Resource" id="Node_investigate_proximity_cooldown"]
-script = ExtResource("6_bt_cooldown")
-child = SubResource("Node_investigate_proximity_rising_edge")
-duration = 2.5
-
-[sub_resource type="Resource" id="Node_investigate_proximity_or_patrol"]
-script = ExtResource("3_bt_selector")
-children = Array[ExtResource("7_bt_node")]([SubResource("Node_investigate_proximity_cooldown"), SubResource("Node_patrol_sequence")])
-
 [sub_resource type="Resource" id="Node_patrol_drone_root_selector"]
-script = ExtResource("2_bt_utility_selector")
 resource_name = "patrol_drone_bt_root"
-children = Array[ExtResource("7_bt_node")]([SubResource("Node_investigate_proximity_or_patrol"), SubResource("Node_investigate_or_patrol"), SubResource("Node_patrol_sequence")])
+script = ExtResource("2_bt_utility_selector")
 child_scorers = Array[Resource]([SubResource("Scorer_investigate_proximity"), SubResource("Scorer_investigate"), SubResource("Scorer_patrol")])
+children = Array[ExtResource("7_bt_node")]([SubResource("Node_investigate_proximity_or_patrol"), SubResource("Node_investigate_or_patrol"), SubResource("Node_patrol_sequence")])
 
 [resource]
 script = ExtResource("1_brain")

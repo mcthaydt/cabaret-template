@@ -1,7 +1,6 @@
 [gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3 uid="uid://1obnyyxuffs6"]
 
 [ext_resource type="Script" uid="uid://ccrnbhgcyknu0" path="res://scripts/resources/ai/brain/rs_ai_brain_settings.gd" id="1"]
-[ext_resource type="Script" uid="uid://xhe4388ulpe1" path="res://scripts/resources/ai/goals/rs_ai_goal.gd" id="1_mthjt"]
 
 [resource]
 script = ExtResource("1")

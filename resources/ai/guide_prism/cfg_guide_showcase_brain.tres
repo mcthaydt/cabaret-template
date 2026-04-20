@@ -1,36 +1,18 @@
-[gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3]
+[gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3 uid="uid://bmwo3kaddap2a"]
 
-[ext_resource type="Script" path="res://scripts/resources/ai/brain/rs_ai_brain_settings.gd" id="1_brain"]
-[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_utility_selector.gd" id="2_bt_utility_selector"]
-[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_sequence.gd" id="3_bt_sequence"]
-[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_node.gd" id="4_bt_node"]
-[ext_resource type="Script" path="res://scripts/resources/ai/bt/rs_bt_condition.gd" id="5_bt_condition"]
-[ext_resource type="Script" path="res://scripts/resources/ai/bt/rs_bt_action.gd" id="6_bt_action"]
-[ext_resource type="Script" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd" id="7_ai_scorer_condition"]
-[ext_resource type="Script" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd" id="8_ai_scorer_constant"]
-[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="9_condition_redux_field"]
-[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="10_action_move_to"]
-[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="11_action_wait"]
-[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_animate.gd" id="12_action_animate"]
-[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_publish_event.gd" id="13_action_publish_event"]
-
-[sub_resource type="Resource" id="Condition_player_nearby"]
-script = ExtResource("9_condition_redux_field")
-state_path = "gameplay.ai_demo_flags.guide_player_nearby"
-match_mode = "equals"
-match_value_string = "true"
-
-[sub_resource type="Resource" id="Condition_player_not_nearby"]
-script = ExtResource("9_condition_redux_field")
-state_path = "gameplay.ai_demo_flags.guide_player_nearby"
-match_mode = "not_equals"
-match_value_string = "true"
-
-[sub_resource type="Resource" id="Condition_player_airborne"]
-script = ExtResource("9_condition_redux_field")
-state_path = "gameplay.entities.player.is_on_floor"
-match_mode = "not_equals"
-match_value_string = "true"
+[ext_resource type="Script" uid="uid://ccrnbhgcyknu0" path="res://scripts/resources/ai/brain/rs_ai_brain_settings.gd" id="1_brain"]
+[ext_resource type="Script" uid="uid://dkfwn2pl0i672" path="res://scripts/resources/bt/rs_bt_utility_selector.gd" id="2_bt_utility_selector"]
+[ext_resource type="Script" uid="uid://db5dd1r1pfvd6" path="res://scripts/resources/bt/rs_bt_sequence.gd" id="3_bt_sequence"]
+[ext_resource type="Script" uid="uid://n0lsv2efoykg" path="res://scripts/resources/bt/rs_bt_node.gd" id="4_bt_node"]
+[ext_resource type="Script" uid="uid://xj0fnqo6poc4" path="res://scripts/resources/ai/bt/rs_bt_condition.gd" id="5_bt_condition"]
+[ext_resource type="Script" uid="uid://d2g2cuucagm84" path="res://scripts/resources/ai/bt/rs_bt_action.gd" id="6_bt_action"]
+[ext_resource type="Script" uid="uid://ckmnsfbxfbeen" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd" id="7_ai_scorer_condition"]
+[ext_resource type="Script" uid="uid://7v6u478gtpxe" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd" id="8_ai_scorer_constant"]
+[ext_resource type="Script" uid="uid://bbw7r0gg2jdbf" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="9_condition_redux_field"]
+[ext_resource type="Script" uid="uid://bqdnedsa4xgps" path="res://scripts/resources/ai/actions/rs_ai_action_move_to.gd" id="10_action_move_to"]
+[ext_resource type="Script" uid="uid://cxpr5abl5uj1l" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="11_action_wait"]
+[ext_resource type="Script" uid="uid://43dofayxl0jr" path="res://scripts/resources/ai/actions/rs_ai_action_animate.gd" id="12_action_animate"]
+[ext_resource type="Script" uid="uid://boa1yvsvpngiv" path="res://scripts/resources/ai/actions/rs_ai_action_publish_event.gd" id="13_action_publish_event"]
 
 [sub_resource type="Resource" id="Condition_nav_goal_reached"]
 script = ExtResource("9_condition_redux_field")
@@ -42,19 +24,28 @@ match_value_string = "true"
 script = ExtResource("7_ai_scorer_condition")
 condition = SubResource("Condition_nav_goal_reached")
 if_true = 12.0
-if_false = 0.0
+
+[sub_resource type="Resource" id="Condition_player_airborne"]
+script = ExtResource("9_condition_redux_field")
+state_path = "gameplay.entities.player.is_on_floor"
+match_mode = "not_equals"
+match_value_string = "true"
 
 [sub_resource type="Resource" id="Scorer_encourage"]
 script = ExtResource("7_ai_scorer_condition")
 condition = SubResource("Condition_player_airborne")
 if_true = 8.0
-if_false = 0.0
+
+[sub_resource type="Resource" id="Condition_player_nearby"]
+script = ExtResource("9_condition_redux_field")
+state_path = "gameplay.ai_demo_flags.guide_player_nearby"
+match_mode = "equals"
+match_value_string = "true"
 
 [sub_resource type="Resource" id="Scorer_show_path"]
 script = ExtResource("7_ai_scorer_condition")
 condition = SubResource("Condition_player_nearby")
 if_true = 4.0
-if_false = 0.0
 
 [sub_resource type="Resource" id="Scorer_idle"]
 script = ExtResource("8_ai_scorer_constant")
@@ -202,6 +193,12 @@ action = SubResource("Action_wait_marker_d")
 script = ExtResource("3_bt_sequence")
 children = Array[ExtResource("4_bt_node")]([SubResource("Node_flag_player_nearby"), SubResource("Node_move_marker_a"), SubResource("Node_wait_marker_a"), SubResource("Node_move_marker_b"), SubResource("Node_wait_marker_b"), SubResource("Node_move_marker_c"), SubResource("Node_wait_marker_c"), SubResource("Node_move_marker_d"), SubResource("Node_wait_marker_d")])
 
+[sub_resource type="Resource" id="Condition_player_not_nearby"]
+script = ExtResource("9_condition_redux_field")
+state_path = "gameplay.ai_demo_flags.guide_player_nearby"
+match_mode = "not_equals"
+match_value_string = "true"
+
 [sub_resource type="Resource" id="Node_flag_player_not_nearby"]
 script = ExtResource("5_bt_condition")
 condition = SubResource("Condition_player_not_nearby")
@@ -219,10 +216,10 @@ script = ExtResource("3_bt_sequence")
 children = Array[ExtResource("4_bt_node")]([SubResource("Node_flag_player_not_nearby"), SubResource("Node_idle_wait")])
 
 [sub_resource type="Resource" id="Node_guide_showcase_root_selector"]
-script = ExtResource("2_bt_utility_selector")
 resource_name = "guide_showcase_bt_root"
-children = Array[ExtResource("4_bt_node")]([SubResource("Node_celebration_sequence"), SubResource("Node_encourage_sequence"), SubResource("Node_show_path_sequence"), SubResource("Node_idle_sequence")])
+script = ExtResource("2_bt_utility_selector")
 child_scorers = Array[Resource]([SubResource("Scorer_celebrate"), SubResource("Scorer_encourage"), SubResource("Scorer_show_path"), SubResource("Scorer_idle")])
+children = Array[ExtResource("4_bt_node")]([SubResource("Node_celebration_sequence"), SubResource("Node_encourage_sequence"), SubResource("Node_show_path_sequence"), SubResource("Node_idle_sequence")])
 
 [resource]
 script = ExtResource("1_brain")
