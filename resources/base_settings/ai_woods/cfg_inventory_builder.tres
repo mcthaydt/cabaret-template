@@ -1,8 +1,7 @@
-[gd_resource type="Resource" script_class="RS_InventorySettings" format=3]
+[gd_resource type="Resource" script_class="RS_InventorySettings" format=3 uid="uid://dli6x8t4vgf84"]
 
-[ext_resource type="Script" path="res://scripts/resources/ai/world/rs_inventory_settings.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://dk367envmy1rr" path="res://scripts/resources/ai/world/rs_inventory_settings.gd" id="1_0"]
 
 [resource]
 script = ExtResource("1_0")
-capacity = 4
 allowed_types = Array[StringName]([&"wood", &"stone"])

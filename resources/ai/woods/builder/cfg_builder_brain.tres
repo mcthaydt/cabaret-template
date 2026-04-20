@@ -14,7 +14,7 @@
 [ext_resource type="Script" uid="uid://bmx144266ovbw" path="res://scripts/resources/ai/actions/rs_ai_action_build_stage.gd" id="12_action_build_stage"]
 [ext_resource type="Script" uid="uid://ba540sje5xn2r" path="res://scripts/resources/ai/actions/rs_ai_action_drink.gd" id="13_action_drink"]
 [ext_resource type="Script" uid="uid://c5ywm687aat4v" path="res://scripts/resources/ai/actions/rs_ai_action_reserve.gd" id="14_action_reserve"]
-[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_move_to_nearest.gd" id="15_action_move_to_nearest"]
+[ext_resource type="Script" uid="uid://dk8ymaia4fhq2" path="res://scripts/resources/ai/actions/rs_ai_action_move_to_nearest.gd" id="15_action_move_to_nearest"]
 
 [sub_resource type="Resource" id="Condition_thirst_low"]
 script = ExtResource("8_condition_component_field")
@@ -78,7 +78,6 @@ children = Array[ExtResource("4_bt_node")]([SubResource("Node_drink")])
 script = ExtResource("15_action_move_to_nearest")
 scan_component_type = &"C_ResourceNodeComponent"
 scan_filter = &"is_available"
-arrival_threshold = 1.5
 
 [sub_resource type="Resource" id="Node_move_to_resource"]
 script = ExtResource("5_bt_action")
@@ -105,7 +104,6 @@ children = Array[ExtResource("4_bt_node")]([SubResource("Node_move_to_resource")
 [sub_resource type="Resource" id="Action_move_to_build_site"]
 script = ExtResource("15_action_move_to_nearest")
 scan_component_type = &"C_BuildSiteComponent"
-arrival_threshold = 1.5
 
 [sub_resource type="Resource" id="Node_move_to_build_site"]
 script = ExtResource("5_bt_action")

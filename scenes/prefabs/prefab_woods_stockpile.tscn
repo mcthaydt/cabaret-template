@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://8ktr2mhk2d3x"]
 
-[ext_resource type="Script" path="res://scripts/ecs/components/c_inventory_component.gd" id="1_inventory"]
+[ext_resource type="Script" uid="uid://cjbonelk4ugtf" path="res://scripts/ecs/components/c_inventory_component.gd" id="1_inventory"]
 [ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_inventory_stockpile.tres" id="2_stockpile_settings"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stockpile"]
@@ -12,15 +12,15 @@ albedo_color = Color(0.6, 0.45, 0.25, 1)
 [sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
 size = Vector3(2, 1, 2)
 
-[node name="E_WoodsStockpile" type="StaticBody3D"]
+[node name="E_WoodsStockpile" type="StaticBody3D" unique_id=1859250367]
 
-[node name="Mesh" type="CSGBox3D" parent="."]
+[node name="Mesh" type="CSGBox3D" parent="." unique_id=2126792472]
 size = Vector3(1.5, 0.5, 1.5)
 material = SubResource("StandardMaterial3D_stockpile")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1423599400]
 shape = SubResource("BoxShape3D_collision")
 
-[node name="C_InventoryComponent" type="Node" parent="."]
+[node name="C_InventoryComponent" type="Node" parent="." unique_id=7681523]
 script = ExtResource("1_inventory")
 settings = ExtResource("2_stockpile_settings")

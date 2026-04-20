@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cpu10a55x44bm"]
 
-[ext_resource type="Script" path="res://scripts/ecs/components/c_resource_node_component.gd" id="1_resource_node"]
+[ext_resource type="Script" uid="uid://baxnd8bwmxc1f" path="res://scripts/ecs/components/c_resource_node_component.gd" id="1_resource_node"]
 [ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_resource_node_water.tres" id="2_water_settings"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_water"]
@@ -8,20 +8,19 @@ shading_mode = 0
 diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.2, 0.4, 0.8, 0.7)
-transmission = Color(0.2, 0.4, 0.8, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
 size = Vector3(3, 0.3, 3)
 
-[node name="E_WoodsWater" type="StaticBody3D"]
+[node name="E_WoodsWater" type="StaticBody3D" unique_id=1543207604]
 
-[node name="Mesh" type="CSGBox3D" parent="."]
-size = Vector3(2.0, 0.15, 2.0)
+[node name="Mesh" type="CSGBox3D" parent="." unique_id=32975235]
+size = Vector3(2, 0.15, 2)
 material = SubResource("StandardMaterial3D_water")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1496288694]
 shape = SubResource("BoxShape3D_collision")
 
-[node name="C_ResourceNodeComponent" type="Node" parent="."]
+[node name="C_ResourceNodeComponent" type="Node" parent="." unique_id=1008205946]
 script = ExtResource("1_resource_node")
 settings = ExtResource("2_water_settings")

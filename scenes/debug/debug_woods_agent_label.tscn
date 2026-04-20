@@ -1,12 +1,11 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://ulajqu65rdw6"]
 
-[ext_resource type="Script" path="res://scripts/debug/debug_woods_agent_label.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bl3uswlg8f7sp" path="res://scripts/debug/debug_woods_agent_label.gd" id="1_script"]
 
-[node name="DebugWoodsAgentLabel" type="Label3D"]
-position = Vector3(0, 2.2, 0)
+[node name="DebugWoodsAgentLabel" type="Label3D" unique_id=1712617365]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 billboard = 1
-text = "agent | goal | task"
-font_size = 32
-outline_size = 8
 modulate = Color(0.862745, 1, 0.901961, 1)
+text = "agent | goal | task"
+outline_size = 8
 script = ExtResource("1_script")
