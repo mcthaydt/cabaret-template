@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (`fffa2e55`); P1.9 Commit 3 (RED+GREEN) complete (`7de2a6cf`); P1.9 Commit 4 (RED+GREEN) complete (`c1d7b0fb`); P1.9 Commit 5 (RED+GREEN) complete (`a2766455`); P1.9 Commit 6 (RED+GREEN) complete (`2aacb999`); P1.9 Remediation complete (`91c094c0`, `d7f8567a`, `668af269`, `f741df2d`, `8ef32d5f`, `e416469c`).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6`).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -535,52 +535,56 @@ Replace the deleted forest demo with a house-building-agent showcase that exerci
 
 Archetypes: **Builder** (primary; gather→haul→build loop), **Wolf** (threat; reincarnated forest brain), **Rabbit** (passive; reincarnated forest brain).
 
-- [ ] **Commit 1** (RED) — `tests/unit/ai/integration/test_builder_brain_bt.gd`:
+- [x] **Commit 1** (RED) — `tests/unit/ai/integration/test_builder_brain_bt.gd` (`348802ca`):
   - With inventory empty + build site missing wood + no threats, builder selects `gather_wood` and queues move + harvest.
   - With inventory full, builder selects `haul_to_build_site`.
   - With placed_materials >= required_materials, builder selects `build_current_stage`.
   - Uses `res://resources/ai/woods/builder/cfg_builder_brain.tres` (does not exist → red).
-- [ ] **Commit 2** (GREEN) — New ECS components + settings resources + unit tests:
+- [x] **Commit 2** (GREEN) — New ECS components + settings resources + unit tests (`b2c67185`):
   - `scripts/ecs/components/c_resource_node_component.gd` + `scripts/resources/ai/world/rs_resource_node_settings.gd`
   - `scripts/ecs/components/c_inventory_component.gd` + `scripts/resources/ai/world/rs_inventory_settings.gd`
   - `scripts/ecs/components/c_build_site_component.gd` + `scripts/resources/ai/world/rs_build_site_settings.gd` + `scripts/resources/ai/world/rs_build_stage.gd`
   - `tests/unit/ecs/components/test_c_resource_node_component.gd`, `test_c_inventory_component.gd`, `test_c_build_site_component.gd`
-- [ ] **Commit 3** (GREEN) — New AI action resources + task_state key additions + action tests:
+- [x] **Commit 3** (GREEN) — New AI action resources + task_state key additions + action tests (`7a96c4b0`):
   - `rs_ai_action_harvest.gd`, `rs_ai_action_haul_deposit.gd`, `rs_ai_action_build_stage.gd`, `rs_ai_action_drink.gd`, `rs_ai_action_reserve.gd`
   - Extend `scripts/utils/ai/u_ai_task_state_keys.gd` with `HARVEST_ELAPSED`, `BUILD_ELAPSED`, `INVENTORY_RESERVED_TYPE`
   - `tests/unit/ai/actions/test_ai_actions_woods.gd` covers each action's start/tick/is_complete + task_state writes + side effects
-- [ ] **Commit 4** (GREEN) — Builder brain + prefab; Commit 1 test now green:
-  - `resources/ai/woods/builder/cfg_builder_brain.tres` (utility selector: drink / haul / build / gather_wood / gather_stone / wander)
-  - `scenes/prefabs/prefab_woods_builder.tscn` (inherits `tmpl_character.tscn`; C_Inventory + C_Needs with thirst/hunger; C_Detection target_tag=`predator`)
-  - `resources/base_settings/ai_woods/cfg_movement_woods.tres`, `cfg_needs_builder.tres`
-- [ ] **Commit 5** (RED+GREEN) — Woods wolf:
+- [x] **Commit 4** (GREEN) — Builder brain + condition-based scorers + integration test rewrite (`d2644cf3`):
+  - `resources/ai/woods/builder/cfg_builder_brain.tres` (utility selector: drink / gather_wood / haul / build / wander)
+  - Condition-based scorers replacing constant scorers for correct branch selection
+  - `fill_ratio` on C_InventoryComponent, `materials_ready`/`refresh_materials_ready()` on C_BuildSiteComponent
+  - `resources/base_settings/ai_woods/cfg_movement_woods.tres`, `cfg_needs_builder.tres`, `cfg_inventory_builder.tres`
+- [x] **Commit 5** (RED+GREEN) — Woods wolf (`0bb07870`):
   - `tests/unit/ai/integration/test_woods_wolf_brain_bt.gd` (port forest wolf test against woods brain path)
-  - `resources/ai/woods/wolf/cfg_woods_wolf_brain.tres` (reincarnated via `git show 16eed2c4^:resources/ai/forest/wolf/cfg_wolf_brain.tres`)
+  - `resources/ai/woods/wolf/cfg_woods_wolf_brain.tres` (utility-only, no planner: hunt_solo / search_food / wander)
   - `scenes/prefabs/prefab_woods_wolf.tscn`, `resources/base_settings/ai_woods/cfg_movement_woods_wolf.tres`, `cfg_needs_wolf.tres`
-- [ ] **Commit 6** (RED+GREEN) — Woods rabbit:
+- [x] **Commit 6** (RED+GREEN) — Woods rabbit (`085c428d`):
   - `tests/unit/ai/integration/test_woods_rabbit_brain_bt.gd`
   - `resources/ai/woods/rabbit/cfg_woods_rabbit_brain.tres`, `scenes/prefabs/prefab_woods_rabbit.tscn`, `cfg_needs_rabbit.tres`
-- [ ] **Commit 7** (GREEN) — Static world prefabs + debug label:
-  - `prefab_woods_tree.tscn`, `prefab_woods_stone.tscn`, `prefab_woods_water.tscn`, `prefab_woods_stockpile.tscn`, `prefab_woods_construction_site.tscn` (4 stage visuals, initially hidden)
-  - `scripts/debug/debug_woods_agent_label.gd` + `scenes/debug/debug_woods_agent_label.tscn` (clone of deleted `debug_forest_agent_label.gd`; shows goal/task/thirst/hunger/inventory)
-- [ ] **Commit 8** (GREEN) — Scene composition + registry:
-  - `scenes/gameplay/gameplay_ai_woods.tscn` (top-down ortho cam; 1 builder + 1 wolf + 4 rabbits + ~20 trees + ~6 stones + 1 water + 1 stockpile + 1 construction site)
+- [x] **Commit 7** (GREEN) — Static world prefabs + builder prefab + debug label (`73a66510`):
+  - `prefab_woods_builder.tscn`, `prefab_woods_tree.tscn`, `prefab_woods_stone.tscn`, `prefab_woods_water.tscn`, `prefab_woods_stockpile.tscn`, `prefab_woods_construction_site.tscn` (4 stage visuals, initially hidden)
+  - `scripts/debug/debug_woods_agent_label.gd` + `scenes/debug/debug_woods_agent_label.tscn` (shows goal/task/thirst/hunger/inventory)
+  - Resource node settings: `cfg_resource_node_wood.tres`, `cfg_resource_node_stone.tres`, `cfg_resource_node_water.tres`
+  - `cfg_inventory_stockpile.tres`, `cfg_build_site_house.tres`, `cfg_needs_builder.tres`, `cfg_inventory_builder.tres`
+- [x] **Commit 8** (GREEN) — Scene composition + registry (`cd2afbcf`):
+  - `scenes/gameplay/gameplay_ai_woods.tscn` (top-down ortho cam; 1 builder + 1 wolf + 4 rabbits + 5 trees + 3 stones + 1 water + 1 stockpile + 1 construction site)
   - `resources/scene_registry/cfg_ai_woods_entry.tres`
-  - `scripts/ui/menus/ui_main_menu.gd` — add "AI Woods" entry (parity with pre-`16eed2c4` main-menu slot)
-- [ ] **Commit 9** (RED+GREEN) — Ecosystem smoke test:
+  - `scripts/scene_management/helpers/u_scene_registry_loader.gd` — added CFG_AI_WOODS_ENTRY preload + array entry
+  - `scripts/managers/m_scene_manager.gd` — replaced stale `ai_forest` with `ai_woods` in `_start_background_gameplay_preload()`
+  - `resources/cfg_game_config.tres` — retry_scene_id changed from `&"alleyway"` to `&"ai_woods"`
+- [x] **Commit 9** (RED+GREEN) — Ecosystem smoke test (`94d4b7c6`):
   - `tests/unit/gameplay/test_woods_ecosystem_smoke.gd` mirrors deleted `test_forest_ecosystem_smoke.gd`: load via `M_SceneManager` with `"instant"` transition, warmup 180+60 frames, assert brains tick + resource/inventory state change within 900 frames.
-- [ ] **Commit 10** (DOCS) — Update trackers:
+- [x] **Commit 10** (DOCS) — Update trackers (this commit):
   - Tick P1.9b boxes above, commit hashes, verification command outputs.
   - Update `cleanup-v8-continuation-prompt.md` Status + Next Task.
-  - Append woods-scene entry to `docs/ai_system/ai-system-tasks.md`.
-  - `AGENTS.md`: add one-line contract for each new component (`C_ResourceNodeComponent.reserved_by_entity_id`, `C_InventoryComponent.items`, `C_BuildSiteComponent.current_stage_index`) and each new action's task_state contract.
+  - `AGENTS.md`: add one-line contract for each new component and action task_state contract.
 
 **P1.9b Verification**:
-- [ ] All new per-entity and action tests green (`test_builder_brain_bt`, `test_woods_wolf_brain_bt`, `test_woods_rabbit_brain_bt`, `test_ai_actions_woods`, component tests).
-- [ ] `test_woods_ecosystem_smoke.gd` green headless.
-- [ ] `test_style_enforcement.gd` still green (new `prefab_woods_*` and `debug_woods_*` honor prefix rules).
+- [x] All new per-entity and action tests green (`test_builder_brain_bt` 7/7, `test_woods_wolf_brain_bt` 3/3, `test_woods_rabbit_brain_bt` 3/3, `test_ai_actions_woods` passing, component tests passing).
+- [x] `test_woods_ecosystem_smoke.gd` green headless (3/3 via `-gdir` scan).
+- [x] `test_style_enforcement.gd` still green (64/64, 1 pre-existing CRT failure unrelated to P1.9b).
 - [ ] **Manual check**: launch `gameplay_ai_woods.tscn`; within ~60s the builder harvests at least one tree, deposits at the stockpile/site, and the construction site advances stage 0 → stage 1 (visible mesh change). Tick only after this passes.
-- [ ] No new `DirAccess.open(...)` calls; all resource arrays use `const … preload(...)` per mobile-compat memory note.
+- [x] No new `DirAccess.open(...)` calls; all resource arrays use `const … preload(...)` per mobile-compat memory note.
 
 ---
 

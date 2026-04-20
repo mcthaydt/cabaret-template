@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 Commit 1 (RED) complete (`26289494`); P1.9 Commit 2 (GREEN) complete (`fffa2e55`); P1.9 Commit 3 (RED+GREEN) complete (`7de2a6cf`); P1.9 Commit 4 (RED+GREEN) complete (`c1d7b0fb`); P1.9 Commit 5 (RED+GREEN) complete (`a2766455`); P1.9 Commit 6 (RED+GREEN) complete (`2aacb999`).
-**Next Task**: P1.9 manual AI-forest parity gate — run in-scene/manual behavior parity check before P1.10 legacy deletions.
+**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6`).
+**Next Task**: P1.9b manual woods parity gate — launch `gameplay_ai_woods.tscn` in editor, verify builder harvest→deposit→build loop within ~60s. Then proceed to P1.10 legacy deletions.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---

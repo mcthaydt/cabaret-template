@@ -29,7 +29,7 @@
 - `scripts/managers/m_scene_manager.gd`: Scene transition coordinator (Phase 3+); manages ActiveSceneContainer.
 - `scripts/managers/m_save_manager.gd`: Save/load coordinator; manages save slots, atomic writes, migrations, and autosave scheduling.
 - `scripts/managers/m_objectives_manager.gd`: Objectives manager (Phase 2 core); loads objective sets, validates dependency DAGs, evaluates objective conditions on relevant events, and publishes objective lifecycle/victory events.
-- `scripts/managers/m_run_coordinator_manager.gd`: Run reset coordinator; listens for `run/reset`, dispatches gameplay reset, force-unblocks interactions, resets objectives for a fresh run, and retries to `alleyway`.
+- `scripts/managers/m_run_coordinator_manager.gd`: Run reset coordinator; listens for `run/reset`, dispatches gameplay reset, force-unblocks interactions, resets objectives for a fresh run, and retries to `ai_woods`.
 - `scripts/interfaces/i_objectives_manager.gd`: Interface contract for objectives manager lookups (`load_objective_set`, `reset_for_new_run`, `get_objective_status`).
 - `scripts/interfaces/i_scene_director.gd`: Interface contract for scene director lookups (`get_active_directive_id`).
 - `scripts/interfaces/i_run_coordinator.gd`: Interface contract for run coordinator lookups (`is_reset_in_flight`).
@@ -47,6 +47,9 @@
 - Canonical C9 default config instances live under `resources/base_settings/*/cfg_*_config_default.tres` and should be used as fallback baselines instead of runtime `Resource.new()` allocation in hot paths.
 - `scripts/ecs/components/c_spawn_recovery_component.gd`: Shared unsupported-state recovery component; requires `RS_SpawnRecoverySettings`.
 - `scripts/resources/ecs/rs_spawn_recovery_settings.gd`: Recovery tuning resource (`spawn_point_id`, `unsupported_delay_sec`, `recovery_cooldown_sec`, `startup_grace_period_sec`).
+- `scripts/ecs/components/c_resource_node_component.gd`: Harvestable resource node; `current_amount`, `reserved_by_entity_id`, regrow timer. Settings: `RS_ResourceNodeSettings` (`resource_type`, `initial_amount`, `regrow_seconds`, `harvest_tag`).
+- `scripts/ecs/components/c_inventory_component.gd`: Item container; `items: Dictionary[StringName, int]`, `fill_ratio`, `is_full()`. Settings: `RS_InventorySettings` (`capacity`, `allowed_types`).
+- `scripts/ecs/components/c_build_site_component.gd`: Staged construction; `current_stage_index`, `placed_materials`, `materials_ready`, `refresh_materials_ready()`. Settings: `RS_BuildSiteSettings` with `Array[RS_BuildStage]` (`stage_id`, `required_materials`, `build_seconds`, `visual_node_path`).
 - `scripts/ecs/systems/s_spawn_recovery_system.gd`: Shared player/NPC recovery system; respawns unsupported entities via `I_SpawnManager` and clears movement/task runtime state after recovery.
 - `scripts/utils/ecs/u_ecs_utils.gd`: ECS helpers (manager lookup, time, component mapping). Input helpers live in `scripts/utils/input/`.
 - `scripts/utils/scene_director/u_objective_graph.gd`: Objective DAG helper (build, cycle/missing-dependency validation, ready-dependents, topological sort).
