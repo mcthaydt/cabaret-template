@@ -8,7 +8,7 @@ const MAX_OBSERVATION_FRAMES := 900
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/ecs/components/c_resource_node_component.gd")
 const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_site_component.gd")
-const U_SERVICE_LOCATOR := preload("res://scripts/utils/u_service_locator.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _scene_manager: Node = null
 

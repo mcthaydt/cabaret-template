@@ -9,6 +9,9 @@ diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.55, 0.55, 0.55, 1)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
+size = Vector3(1.5, 1, 1.5)
+
 [node name="E_WoodsStone" type="StaticBody3D"]
 
 [node name="Mesh" type="CSGSphere3D" parent="."]
@@ -16,6 +19,7 @@ radius = 0.6
 material = SubResource("StandardMaterial3D_stone")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_collision")
 
 [node name="C_ResourceNodeComponent" type="Node" parent="."]
 script = ExtResource("1_resource_node")

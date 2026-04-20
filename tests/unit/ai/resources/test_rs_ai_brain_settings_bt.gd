@@ -1,7 +1,7 @@
 extends BaseTest
 
 const RS_AI_BRAIN_SETTINGS_PATH := "res://scripts/resources/ai/brain/rs_ai_brain_settings.gd"
-const LEGACY_BRAIN_RESOURCE_PATH := "res://resources/ai/forest/wolf/cfg_wolf_brain.tres"
+const LEGACY_BRAIN_RESOURCE_PATH := "res://resources/ai/woods/wolf/cfg_woods_wolf_brain.tres"
 
 func _load_script(path: String) -> Script:
 	var script_variant: Variant = load(path)
@@ -51,4 +51,4 @@ func test_loading_legacy_goals_resource_pushes_migration_error_with_path() -> vo
 	var resource_variant: Variant = load(LEGACY_BRAIN_RESOURCE_PATH)
 	assert_not_null(resource_variant, "Expected legacy AI brain resource to load for migration check.")
 	await get_tree().process_frame
-	assert_push_error("cfg_wolf_brain.tres")
+	assert_push_error("cfg_woods_wolf_brain.tres")

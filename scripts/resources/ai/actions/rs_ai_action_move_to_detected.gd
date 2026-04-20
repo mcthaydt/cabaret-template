@@ -25,8 +25,6 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 
 	var target_position_variant: Variant = task_state.get(U_AITaskStateKeys.MOVE_TARGET, null)
 	var target_position: Vector3 = target_position_variant as Vector3
-	print("[ACTION] %s MoveToDetected → target (%.1f, %.1f, %.1f)" % [
-		_resolve_entity_label(context), target_position.x, target_position.y, target_position.z])
 
 func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
 	if bool(task_state.get(U_AITaskStateKeys.COMPLETED, false)):
@@ -63,7 +61,6 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	)
 	var arrived: bool = offset_xz.length() <= resolved_arrival_threshold
 	if arrived:
-		print("[ACTION] %s MoveToDetected arrived" % _resolve_entity_label(context))
 		_clear_move_target_component(context)
 		task_state[U_AITaskStateKeys.MOVE_TARGET_RESOLVED] = false
 		task_state[U_AITaskStateKeys.COMPLETED] = true
@@ -111,9 +108,6 @@ func _mark_completed(context: Dictionary, task_state: Dictionary, reason: String
 	var detection: C_DetectionComponent = _resolve_detection_component(context)
 	if detection != null:
 		detection.pending_feed_entity_id = StringName("")
-	print("[ACTION] %s MoveToDetected complete (reason=%s)" % [
-		_resolve_entity_label(context), reason
-	])
 	task_state.erase(U_AITaskStateKeys.MOVE_TARGET)
 	task_state.erase(U_AITaskStateKeys.DETECTED_ENTITY_ID)
 	task_state.erase(U_AITaskStateKeys.ARRIVAL_THRESHOLD)

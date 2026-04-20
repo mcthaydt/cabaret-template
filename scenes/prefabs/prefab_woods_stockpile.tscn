@@ -9,6 +9,9 @@ diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.6, 0.45, 0.25, 1)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
+size = Vector3(2, 1, 2)
+
 [node name="E_WoodsStockpile" type="StaticBody3D"]
 
 [node name="Mesh" type="CSGBox3D" parent="."]
@@ -16,6 +19,7 @@ size = Vector3(1.5, 0.5, 1.5)
 material = SubResource("StandardMaterial3D_stockpile")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_collision")
 
 [node name="C_InventoryComponent" type="Node" parent="."]
 script = ExtResource("1_inventory")

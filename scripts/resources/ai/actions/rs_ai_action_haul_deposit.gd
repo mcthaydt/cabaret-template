@@ -4,6 +4,7 @@ class_name RS_AIActionHaulDeposit
 
 const C_INVENTORY_COMPONENT := preload("res://scripts/ecs/components/c_inventory_component.gd")
 const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_site_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 @export var deposit_target_tag: StringName = &"build_site"
@@ -35,13 +36,43 @@ func _resolve_inventory(context: Dictionary) -> Object:
 func _resolve_build_site(context: Dictionary, task_state: Dictionary) -> Object:
 	var target_id_variant: Variant = task_state.get(U_AITaskStateKeys.DETECTED_ENTITY_ID, StringName(""))
 	var target_id: StringName = target_id_variant as StringName if target_id_variant is StringName else StringName("")
+	if target_id == StringName(""):
+		var detection: Object = _resolve_detection_component(context)
+		if detection != null:
+			target_id = detection.get("last_scan_entity_id") as StringName
 	if target_id != StringName(""):
-		var manager_variant: Variant = context.get("ecs_manager", null)
-		if manager_variant != null and manager_variant.has_method("get_entity_by_id"):
-			var target_entity: Node = manager_variant.call("get_entity_by_id", target_id)
-			if target_entity != null and is_instance_valid(target_entity):
-				return _find_component_on_entity(target_entity, C_BUILD_SITE_COMPONENT.COMPONENT_TYPE)
+		var site: Object = _resolve_build_site_by_entity_id(context, target_id)
+		if site != null:
+			return site
+	return _resolve_build_site_by_component_query(context)
+
+func _resolve_build_site_by_entity_id(context: Dictionary, target_id: StringName) -> Object:
+	var manager_variant: Variant = context.get("ecs_manager", null)
+	if manager_variant == null or not manager_variant.has_method("get_entity_by_id"):
+		return null
+	var target_entity: Node = manager_variant.call("get_entity_by_id", target_id)
+	if target_entity == null or not is_instance_valid(target_entity):
+		return null
+	return _find_component_on_entity(target_entity, C_BUILD_SITE_COMPONENT.COMPONENT_TYPE)
+
+func _resolve_build_site_by_component_query(context: Dictionary) -> Object:
+	var manager_variant: Variant = context.get("ecs_manager", null)
+	if manager_variant == null or not manager_variant.has_method("get_components"):
+		return null
+	var sites: Array = manager_variant.call("get_components", C_BUILD_SITE_COMPONENT.COMPONENT_TYPE)
+	if sites.is_empty():
+		return null
+	for site_variant in sites:
+		if site_variant is Object and is_instance_valid(site_variant as Object):
+			return site_variant as Object
 	return null
+
+func _resolve_detection_component(context: Dictionary) -> Object:
+	var components_variant: Variant = context.get("components", null)
+	if not (components_variant is Dictionary):
+		return null
+	var components: Dictionary = components_variant as Dictionary
+	return components.get(C_DETECTION_COMPONENT.COMPONENT_TYPE, null)
 
 func _deposit_to_build_site(inventory: Object, build_site: Object) -> void:
 	var items_variant: Variant = inventory.get("items")

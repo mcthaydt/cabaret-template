@@ -101,6 +101,10 @@ script = ExtResource("9_death_handler")
 script = ExtResource("9_damage")
 execution_priority = 250
 
+[node name="S_ResourceRegrowSystem" type="Node" parent="Systems/Core"]
+script = preload("res://scripts/ecs/systems/s_resource_regrow_system.gd")
+execution_priority = -5
+
 [node name="Physics" type="Node" parent="Systems"]
 script = ExtResource("3_systems_physics")
 

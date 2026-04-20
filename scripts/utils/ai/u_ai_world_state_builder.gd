@@ -5,12 +5,18 @@ const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_c
 const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
 const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
 const C_HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
+const C_INVENTORY_COMPONENT := preload("res://scripts/ecs/components/c_inventory_component.gd")
+const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/ecs/components/c_resource_node_component.gd")
+const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_site_component.gd")
 
 const BRAIN_COMPONENT_TYPE := C_AIBrainComponent.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const DETECTION_COMPONENT_TYPE := C_DETECTION_COMPONENT.COMPONENT_TYPE
 const NEEDS_COMPONENT_TYPE := C_NEEDS_COMPONENT.COMPONENT_TYPE
 const HEALTH_COMPONENT_TYPE := C_HEALTH_COMPONENT.COMPONENT_TYPE
+const INVENTORY_COMPONENT_TYPE := C_INVENTORY_COMPONENT.COMPONENT_TYPE
+const RESOURCE_NODE_COMPONENT_TYPE := C_RESOURCE_NODE_COMPONENT.COMPONENT_TYPE
+const BUILD_SITE_COMPONENT_TYPE := C_BUILD_SITE_COMPONENT.COMPONENT_TYPE
 
 func build(entity_source: Variant) -> Dictionary:
 	var world_state: Dictionary = {}
@@ -23,6 +29,9 @@ func build(entity_source: Variant) -> Dictionary:
 	_write_detection_state(world_state, components)
 	_write_needs_state(world_state, components)
 	_write_health_state(world_state, components)
+	_write_inventory_state(world_state, components)
+	_write_resource_node_state(world_state, components)
+	_write_build_site_state(world_state, components)
 	return world_state
 
 func _resolve_components(entity_source: Variant) -> Dictionary:
@@ -87,3 +96,26 @@ func _write_health_state(world_state: Dictionary, components: Dictionary) -> voi
 	var health: C_HealthComponent = health_variant as C_HealthComponent
 	world_state[&"current_health"] = health.current_health
 	world_state[&"max_health"] = health.max_health
+
+func _write_inventory_state(world_state: Dictionary, components: Dictionary) -> void:
+	var inventory_variant: Variant = components.get(INVENTORY_COMPONENT_TYPE, null)
+	if inventory_variant == null or not (inventory_variant is C_InventoryComponent):
+		return
+	var inventory: C_InventoryComponent = inventory_variant as C_InventoryComponent
+	world_state[&"inventory_fill_ratio"] = inventory.fill_ratio
+
+func _write_resource_node_state(world_state: Dictionary, components: Dictionary) -> void:
+	var resource_variant: Variant = components.get(RESOURCE_NODE_COMPONENT_TYPE, null)
+	if resource_variant == null or not (resource_variant is C_ResourceNodeComponent):
+		return
+	var resource_node: C_ResourceNodeComponent = resource_variant as C_ResourceNodeComponent
+	world_state[&"resource_current_amount"] = resource_node.current_amount
+	world_state[&"resource_available"] = resource_node.is_available()
+
+func _write_build_site_state(world_state: Dictionary, components: Dictionary) -> void:
+	var build_site_variant: Variant = components.get(BUILD_SITE_COMPONENT_TYPE, null)
+	if build_site_variant == null or not (build_site_variant is C_BuildSiteComponent):
+		return
+	var build_site: C_BuildSiteComponent = build_site_variant as C_BuildSiteComponent
+	world_state[&"materials_ready"] = build_site.materials_ready
+	world_state[&"build_completed"] = build_site.completed

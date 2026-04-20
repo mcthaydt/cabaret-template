@@ -26,6 +26,7 @@ const COMPONENT_TYPE := StringName("C_DetectionComponent")
 var is_player_in_range: bool = false
 var last_detected_player_entity_id: StringName = StringName("")
 var pending_feed_entity_id: StringName = StringName("")
+var last_scan_entity_id: StringName = StringName("")
 var last_target_change_frame: int = -1
 
 func _init() -> void:

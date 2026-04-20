@@ -3,6 +3,8 @@ class_name U_AIContextAssembler
 
 const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_INVENTORY_COMPONENT := preload("res://scripts/ecs/components/c_inventory_component.gd")
+const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_site_component.gd")
 const RS_RULE_CONTEXT := preload("res://scripts/resources/ecs/rs_rule_context.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
@@ -38,6 +40,7 @@ func build_context(
 				components = query_components_variant as Dictionary
 		if not components.is_empty():
 			_inject_role_keyed_detection(components, entity, manager)
+			_inject_build_site_for_builders(components, manager)
 			rule_context.components = components
 		else:
 			rule_context.components = {brain_type: brain}
@@ -68,6 +71,21 @@ func _inject_role_keyed_detection(components: Dictionary, entity: Node, manager:
 			continue
 		var role_key: StringName = StringName(String(detect_type) + ":" + String(role))
 		components[role_key] = detection
+
+func _inject_build_site_for_builders(components: Dictionary, manager: I_ECSManager) -> void:
+	if manager == null:
+		return
+	if not components.has(C_INVENTORY_COMPONENT.COMPONENT_TYPE):
+		return
+	if components.has(C_BUILD_SITE_COMPONENT.COMPONENT_TYPE):
+		return
+	var sites: Array = manager.get_components(C_BUILD_SITE_COMPONENT.COMPONENT_TYPE)
+	if sites.is_empty():
+		return
+	for site_variant in sites:
+		if site_variant is Object and is_instance_valid(site_variant as Object):
+			components[C_BUILD_SITE_COMPONENT.COMPONENT_TYPE] = site_variant as Object
+			return
 
 func resolve_root_id(root: RS_BTNode, fallback_prefix: String) -> StringName:
 	if root == null:

@@ -10,6 +10,9 @@ specular_mode = 1
 albedo_color = Color(0.2, 0.4, 0.8, 0.7)
 transmission = Color(0.2, 0.4, 0.8, 1)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
+size = Vector3(3, 0.3, 3)
+
 [node name="E_WoodsWater" type="StaticBody3D"]
 
 [node name="Mesh" type="CSGBox3D" parent="."]
@@ -17,6 +20,7 @@ size = Vector3(2.0, 0.15, 2.0)
 material = SubResource("StandardMaterial3D_water")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_collision")
 
 [node name="C_ResourceNodeComponent" type="Node" parent="."]
 script = ExtResource("1_resource_node")
