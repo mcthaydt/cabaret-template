@@ -10,6 +10,7 @@ const CFG_POWER_CORE_ENTRY := preload("res://resources/scene_registry/cfg_power_
 const CFG_COMMS_ARRAY_ENTRY := preload("res://resources/scene_registry/cfg_comms_array_entry.tres")
 const CFG_NAV_NEXUS_ENTRY := preload("res://resources/scene_registry/cfg_nav_nexus_entry.tres")
 const CFG_AI_SHOWCASE_ENTRY := preload("res://resources/scene_registry/cfg_ai_showcase_entry.tres")
+const CFG_AI_WOODS_ENTRY := preload("res://resources/scene_registry/cfg_ai_woods_entry.tres")
 const CFG_UI_GAME_OVER_ENTRY := preload("res://resources/scene_registry/cfg_ui_game_over_entry.tres")
 const CFG_UI_VICTORY_ENTRY := preload("res://resources/scene_registry/cfg_ui_victory_entry.tres")
 const CFG_UI_CREDITS_ENTRY := preload("res://resources/scene_registry/cfg_ui_credits_entry.tres")
@@ -33,6 +34,7 @@ const PRELOADED_SCENE_REGISTRY_ENTRIES := [
 	CFG_COMMS_ARRAY_ENTRY,
 	CFG_NAV_NEXUS_ENTRY,
 	CFG_AI_SHOWCASE_ENTRY,
+	CFG_AI_WOODS_ENTRY,
 	CFG_UI_GAME_OVER_ENTRY,
 	CFG_UI_VICTORY_ENTRY,
 	CFG_UI_CREDITS_ENTRY,

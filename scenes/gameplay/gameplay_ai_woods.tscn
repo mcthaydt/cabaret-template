@@ -1,0 +1,203 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
+[ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
+[ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
+[ext_resource type="Script" uid="uid://gaammkurp23b" path="res://scripts/scene_structure/marker_systems_group.gd" id="3_ph0bl"]
+[ext_resource type="Script" uid="uid://cg10jkb2k5551" path="res://scripts/scene_structure/marker_systems_core_group.gd" id="3_systems_core"]
+[ext_resource type="Script" uid="uid://dl32cj7p543rh" path="res://scripts/scene_structure/marker_systems_feedback_group.gd" id="3_systems_feedback"]
+[ext_resource type="Script" uid="uid://ceou3w83ojcku" path="res://scripts/scene_structure/marker_systems_movement_group.gd" id="3_systems_movement"]
+[ext_resource type="Script" uid="uid://wp8ordbinat2" path="res://scripts/scene_structure/marker_systems_physics_group.gd" id="3_systems_physics"]
+[ext_resource type="Script" uid="uid://h5ym8nprt7dw" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
+[ext_resource type="Script" uid="uid://b85bi31g464hs" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
+[ext_resource type="Script" uid="uid://cxvneotjjmt2h" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
+[ext_resource type="Script" uid="uid://d0omtagbm74cs" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
+[ext_resource type="Script" uid="uid://bdp7886fufa8v" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
+[ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
+[ext_resource type="Script" uid="uid://cgbemg2ib5u7c" path="res://scripts/managers/m_gameplay_initializer_manager.gd" id="23_initializer"]
+[ext_resource type="Script" uid="uid://bwa45goxyaoe4" path="res://scripts/ecs/systems/s_vcam_system.gd" id="52_vcam_system"]
+[ext_resource type="Script" uid="uid://cxemqvnjcd4qm" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
+[ext_resource type="Script" uid="uid://ce63ayt3nfe71" path="res://scripts/ecs/systems/s_move_target_follower_system.gd" id="54_move_target_follower_system"]
+[ext_resource type="Script" uid="uid://bkvxy8p8my0na" path="res://scripts/ecs/systems/s_ai_detection_system.gd" id="56_ai_detection_system"]
+[ext_resource type="Script" uid="uid://b8oocaaklpsn2" path="res://scripts/ecs/systems/s_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
+[ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
+[ext_resource type="Script" uid="uid://vbqdwstwybck" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
+[ext_resource type="Script" uid="uid://vxfou682xmrp" path="res://scripts/ecs/systems/s_death_handler_system.gd" id="9_death_handler"]
+[ext_resource type="Script" uid="uid://dciojb5mih6gh" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_woods_builder.tscn" id="prefab_builder"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_woods_wolf.tscn" id="prefab_wolf"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_woods_rabbit.tscn" id="prefab_rabbit"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_woods_tree.tscn" id="prefab_tree"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_woods_stone.tscn" id="prefab_stone"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_woods_water.tscn" id="prefab_water"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_woods_stockpile.tscn" id="prefab_stockpile"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_woods_construction_site.tscn" id="prefab_construction_site"]
+[ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
+[ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/cfg_sp_base.tres" id="51_base_spawn_meta"]
+
+[sub_resource type="Environment" id="Environment_woods"]
+background_mode = 1
+background_color = Color(0.19607843, 0.26666668, 0.4, 1)
+background_energy_multiplier = 0.0
+ambient_light_source = 1
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 1.6
+
+[node name="GameplayRoot" type="Node3D"]
+script = ExtResource("1_f2o31")
+
+[node name="SceneObjects" type="Node3D" parent="."]
+script = ExtResource("2_ph0bl")
+
+[node name="SO_Floor" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
+use_collision = true
+collision_layer = 33
+size = Vector3(40, 1, 40)
+albedo_color = Color(0.35, 0.3, 0.2, 1)
+
+[node name="Environment" type="Node" parent="."]
+script = ExtResource("2_8soux")
+
+[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment"]
+environment = SubResource("Environment_woods")
+
+[node name="Systems" type="Node" parent="."]
+script = ExtResource("3_ph0bl")
+
+[node name="Core" type="Node" parent="Systems"]
+script = ExtResource("3_systems_core")
+
+[node name="S_InputSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("1_pybrx")
+require_captured_cursor = true
+
+[node name="S_AIDetectionSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("56_ai_detection_system")
+execution_priority = -12
+
+[node name="S_AIBehaviorSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("53_ai_behavior_system")
+execution_priority = -10
+
+[node name="S_MoveTargetFollowerSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("54_move_target_follower_system")
+execution_priority = -5
+
+[node name="S_VCamSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("52_vcam_system")
+execution_priority = 100
+
+[node name="S_HealthSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("9_health")
+execution_priority = 200
+
+[node name="S_DeathHandlerSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("9_death_handler")
+
+[node name="S_DamageSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("9_damage")
+execution_priority = 250
+
+[node name="Physics" type="Node" parent="Systems"]
+script = ExtResource("3_systems_physics")
+
+[node name="S_GravitySystem" type="Node" parent="Systems/Physics"]
+script = ExtResource("3_xnqit")
+execution_priority = 60
+
+[node name="Movement" type="Node" parent="Systems"]
+script = ExtResource("3_systems_movement")
+
+[node name="S_MovementSystem" type="Node" parent="Systems/Movement"]
+script = ExtResource("4_vry44")
+execution_priority = 50
+
+[node name="S_SpawnRecoverySystem" type="Node" parent="Systems/Movement"]
+script = ExtResource("67_ai_spawn_recovery_system")
+execution_priority = 75
+
+[node name="Feedback" type="Node" parent="Systems"]
+script = ExtResource("3_systems_feedback")
+
+[node name="Managers" type="Node" parent="."]
+script = ExtResource("12_klon2")
+
+[node name="M_ECSManager" type="Node" parent="Managers"]
+script = ExtResource("6_0e7m3")
+
+[node name="M_GameplayInitializerManager" type="Node" parent="Managers"]
+script = ExtResource("23_initializer")
+
+[node name="Entities" type="Node" parent="."]
+script = ExtResource("16_8qi87")
+
+[node name="SpawnPoints" type="Node3D" parent="Entities"]
+script = ExtResource("21_spawnpoints")
+
+[node name="sp_default" type="Node3D" parent="Entities/SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 10)
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("51_base_spawn_meta")
+
+[node name="WoodsEntities" type="Node" parent="Entities"]
+script = ExtResource("16_8qi87")
+
+[node name="E_Builder" parent="Entities/WoodsEntities" instance=ExtResource("prefab_builder")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="E_Wolf" parent="Entities/WoodsEntities" instance=ExtResource("prefab_wolf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, -10)
+
+[node name="E_RabbitA" parent="Entities/WoodsEntities" instance=ExtResource("prefab_rabbit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 8)
+
+[node name="E_RabbitB" parent="Entities/WoodsEntities" instance=ExtResource("prefab_rabbit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1, 12)
+
+[node name="E_RabbitC" parent="Entities/WoodsEntities" instance=ExtResource("prefab_rabbit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 1, -5)
+
+[node name="E_RabbitD" parent="Entities/WoodsEntities" instance=ExtResource("prefab_rabbit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, -12)
+
+[node name="E_TreeA" parent="Entities/WoodsEntities" instance=ExtResource("prefab_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -5)
+
+[node name="E_TreeB" parent="Entities/WoodsEntities" instance=ExtResource("prefab_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -8)
+
+[node name="E_TreeC" parent="Entities/WoodsEntities" instance=ExtResource("prefab_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 6)
+
+[node name="E_TreeD" parent="Entities/WoodsEntities" instance=ExtResource("prefab_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 12)
+
+[node name="E_TreeE" parent="Entities/WoodsEntities" instance=ExtResource("prefab_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -14)
+
+[node name="E_StoneA" parent="Entities/WoodsEntities" instance=ExtResource("prefab_stone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 5)
+
+[node name="E_StoneB" parent="Entities/WoodsEntities" instance=ExtResource("prefab_stone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -2)
+
+[node name="E_StoneC" parent="Entities/WoodsEntities" instance=ExtResource("prefab_stone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -10)
+
+[node name="E_Water" parent="Entities/WoodsEntities" instance=ExtResource("prefab_water")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 15)
+
+[node name="E_Stockpile" parent="Entities/WoodsEntities" instance=ExtResource("prefab_stockpile")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 5)
+
+[node name="E_ConstructionSite" parent="Entities/WoodsEntities" instance=ExtResource("prefab_construction_site")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 10)
+
+[node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 14)
