@@ -1,0 +1,102 @@
+[gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ai/brain/rs_ai_brain_settings.gd" id="1_brain"]
+[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_utility_selector.gd" id="2_bt_utility_selector"]
+[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_sequence.gd" id="3_bt_sequence"]
+[ext_resource type="Script" path="res://scripts/resources/ai/bt/rs_bt_condition.gd" id="4_bt_condition"]
+[ext_resource type="Script" path="res://scripts/resources/qb/conditions/rs_condition_component_field.gd" id="5_condition_component_field"]
+[ext_resource type="Script" path="res://scripts/resources/ai/bt/rs_bt_action.gd" id="6_bt_action"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_flee_from_detected.gd" id="7_action_flee_detected"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_wait.gd" id="8_action_wait"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_feed.gd" id="9_action_feed"]
+[ext_resource type="Script" path="res://scripts/resources/ai/actions/rs_ai_action_wander.gd" id="10_action_wander"]
+[ext_resource type="Script" path="res://scripts/resources/bt/rs_bt_node.gd" id="11_bt_node"]
+[ext_resource type="Script" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd" id="12_ai_scorer_condition"]
+[ext_resource type="Script" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd" id="13_ai_scorer_constant"]
+
+[sub_resource type="Resource" id="Condition_threat_detected"]
+script = ExtResource("5_condition_component_field")
+component_type = &"C_DetectionComponent"
+field_path = "is_player_in_range"
+
+[sub_resource type="Resource" id="Condition_hunger_low"]
+script = ExtResource("5_condition_component_field")
+component_type = &"C_NeedsComponent"
+field_path = "hunger"
+range_min = 0.3
+range_max = 0.0
+
+[sub_resource type="Resource" id="Scorer_threat"]
+script = ExtResource("12_ai_scorer_condition")
+condition = SubResource("Condition_threat_detected")
+if_true = 10.0
+if_false = 0.0
+
+[sub_resource type="Resource" id="Scorer_graze"]
+script = ExtResource("12_ai_scorer_condition")
+condition = SubResource("Condition_hunger_low")
+if_true = 6.0
+if_false = 0.0
+
+[sub_resource type="Resource" id="Scorer_wander"]
+script = ExtResource("13_ai_scorer_constant")
+value = 1.0
+
+[sub_resource type="Resource" id="Node_threat_detected"]
+script = ExtResource("4_bt_condition")
+condition = SubResource("Condition_threat_detected")
+
+[sub_resource type="Resource" id="Action_flee_detected"]
+script = ExtResource("7_action_flee_detected")
+flee_distance = 10.0
+arrival_threshold = 0.6
+
+[sub_resource type="Resource" id="Node_flee_detected"]
+script = ExtResource("6_bt_action")
+action = SubResource("Action_flee_detected")
+
+[sub_resource type="Resource" id="Node_threat_response_sequence"]
+script = ExtResource("3_bt_sequence")
+children = Array[ExtResource("11_bt_node")]([SubResource("Node_threat_detected"), SubResource("Node_flee_detected")])
+
+[sub_resource type="Resource" id="Node_hunger_low"]
+script = ExtResource("4_bt_condition")
+condition = SubResource("Condition_hunger_low")
+
+[sub_resource type="Resource" id="Action_graze_wait"]
+script = ExtResource("8_action_wait")
+duration = 1.8
+
+[sub_resource type="Resource" id="Node_graze_wait"]
+script = ExtResource("6_bt_action")
+action = SubResource("Action_graze_wait")
+
+[sub_resource type="Resource" id="Action_graze_feed"]
+script = ExtResource("9_action_feed")
+
+[sub_resource type="Resource" id="Node_graze_feed"]
+script = ExtResource("6_bt_action")
+action = SubResource("Action_graze_feed")
+
+[sub_resource type="Resource" id="Node_graze_sequence"]
+script = ExtResource("3_bt_sequence")
+children = Array[ExtResource("11_bt_node")]([SubResource("Node_hunger_low"), SubResource("Node_graze_wait"), SubResource("Node_graze_feed")])
+
+[sub_resource type="Resource" id="Action_wander"]
+script = ExtResource("10_action_wander")
+home_radius = 10.0
+
+[sub_resource type="Resource" id="Node_wander"]
+script = ExtResource("6_bt_action")
+action = SubResource("Action_wander")
+
+[sub_resource type="Resource" id="Node_rabbit_root_selector"]
+script = ExtResource("2_bt_utility_selector")
+resource_name = "woods_rabbit_bt_root"
+children = Array[ExtResource("11_bt_node")]([SubResource("Node_threat_response_sequence"), SubResource("Node_graze_sequence"), SubResource("Node_wander")])
+child_scorers = Array[Resource]([SubResource("Scorer_threat"), SubResource("Scorer_graze"), SubResource("Scorer_wander")])
+
+[resource]
+script = ExtResource("1_brain")
+root = SubResource("Node_rabbit_root_selector")
+evaluation_interval = 0.0

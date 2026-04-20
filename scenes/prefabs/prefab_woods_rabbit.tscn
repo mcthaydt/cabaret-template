@@ -1,0 +1,49 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/templates/tmpl_character.tscn" id="1_character"]
+[ext_resource type="Resource" path="res://resources/ai/woods/rabbit/cfg_woods_rabbit_brain.tres" id="2_rabbit_brain"]
+[ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_needs_rabbit.tres" id="3_needs_rabbit"]
+[ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_movement_woods.tres" id="4_movement"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="5_input"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="6_ai_brain"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_detection_component.gd" id="7_detection"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_move_target_component.gd" id="8_move_target"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_needs_component.gd" id="9_needs"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rabbit"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.95, 0.95, 0.95, 1)
+
+[node name="E_WoodsRabbit" instance=ExtResource("1_character")]
+entity_id = &"rabbit"
+tags = Array[StringName]([&"prey", &"ai", &"woods")]
+
+[node name="C_MovementComponent" parent="Components"]
+settings = ExtResource("4_movement")
+
+[node name="C_InputComponent" type="Node" parent="Components"]
+script = ExtResource("5_input")
+
+[node name="C_DetectionComponent" type="Node" parent="Components"]
+script = ExtResource("7_detection")
+target_tag = &"predator"
+detection_radius = 10.0
+detection_exit_radius = 15.0
+
+[node name="C_MoveTargetComponent" type="Node" parent="Components"]
+script = ExtResource("8_move_target")
+
+[node name="C_AIBrainComponent" type="Node" parent="Components"]
+script = ExtResource("6_ai_brain")
+brain_settings = ExtResource("2_rabbit_brain")
+
+[node name="C_NeedsComponent" type="Node" parent="Components"]
+script = ExtResource("9_needs")
+settings = ExtResource("3_needs_rabbit")
+
+[node name="Body_Mesh" type="CSGBox3D" parent="Player_Body"]
+transform = Transform3D(0.6, 0, 0, 0, 0.7, 0, 0, 0, 0.9, 0, 0.7, 0)
+use_collision = false
+material = SubResource("StandardMaterial3D_rabbit")
