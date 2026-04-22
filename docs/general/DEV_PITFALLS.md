@@ -213,6 +213,12 @@
   - **Fix pattern**: carry source entity identity into nearest-target resolution and skip candidates with matching entity instance ID (or matching entity ID fallback).
 - **Predator feed actions can silently no-op if they resolve prey from live detection at feed time**: between `move_to_detected` and `feed`, nearest-target detection can drift to a different entity (or clear), so hunger can refill while no prey is removed.
   - **Fix pattern**: lock prey identity during move (`U_AITaskStateKeys.DETECTED_ENTITY_ID` and/or `C_DetectionComponent.pending_feed_entity_id`) and consume that locked target first in `RS_AIActionFeed`; add unit coverage for locked-target consume + out-of-radius no-consume.
+- **Predator chase completion can stall if move completion radius is tighter than feed consume radius**: wolf hunt loops can arrive “close enough to eat” but still fail `RS_AIActionMoveToDetected.is_complete(...)` if only the smaller `arrival_threshold` is considered.
+  - **Fix pattern**: set `RS_AIActionMoveToDetected.completion_radius_override` to the same value as `RS_AIActionFeed.consume_radius` (or larger) and keep a unit test that asserts completion inside feed range.
+- **Builder utility branches must gate gather/haul when the build site is already completed**: if gather/haul scorers only look at inventory state, completed sites can still outscore wander and keep the Builder cycling pointless tasks.
+  - **Fix pattern**: add a build-completion gate (`C_BuildSiteComponent.completed == false`) to gather/haul scorer conditions (for example `RS_ConditionComposite`), and keep an integration assertion that completed sites fall back to wander.
+- **Builder gather/haul loops can deadlock when target selection ignores stage deficits**: scanning any available node and depositing full inventory can repeatedly choose the wrong material for the active stage, preventing `materials_ready` from ever becoming true.
+  - **Fix pattern**: drive gather targeting from `C_BuildSiteComponent.get_next_missing_material_type()` (`use_build_site_missing_material` / required resource filters) and cap deposit amounts to current-stage missing counts before refreshing `materials_ready`.
 
 ## QB Rule Engine v2 Pitfalls
 
