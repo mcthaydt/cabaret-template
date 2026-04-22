@@ -211,14 +211,14 @@
 
 - **Tag-based detection must exclude the detector entity itself**: `S_AIDetectionSystem` candidate pools built from all movement entities can accidentally include the detector's own entity. When `target_tag` matches the detector's tags (for example pack detection with `target_tag = predator`), the detector can lock onto itself at distance `0` unless source/target identity is explicitly filtered.
   - **Fix pattern**: carry source entity identity into nearest-target resolution and skip candidates with matching entity instance ID (or matching entity ID fallback).
-- **Predator feed actions can silently no-op if they resolve prey from live detection at feed time**: between `move_to_detected` and `feed`, nearest-target detection can drift to a different entity (or clear), so hunger can refill while no prey is removed.
-  - **Fix pattern**: lock prey identity during move (`U_AITaskStateKeys.DETECTED_ENTITY_ID` and/or `C_DetectionComponent.pending_feed_entity_id`) and consume that locked target first in `RS_AIActionFeed`; add unit coverage for locked-target consume + out-of-radius no-consume.
-- **Predator chase completion can stall if move completion radius is tighter than feed consume radius**: wolf hunt loops can arrive “close enough to eat” but still fail `RS_AIActionMoveToDetected.is_complete(...)` if only the smaller `arrival_threshold` is considered.
-  - **Fix pattern**: set `RS_AIActionMoveToDetected.completion_radius_override` to the same value as `RS_AIActionFeed.consume_radius` (or larger) and keep a unit test that asserts completion inside feed range.
-- **Builder utility branches must gate gather/haul when the build site is already completed**: if gather/haul scorers only look at inventory state, completed sites can still outscore wander and keep the Builder cycling pointless tasks.
-  - **Fix pattern**: add a build-completion gate (`C_BuildSiteComponent.completed == false`) to gather/haul scorer conditions (for example `RS_ConditionComposite`), and keep an integration assertion that completed sites fall back to wander.
-- **Builder gather/haul loops can deadlock when target selection ignores stage deficits**: scanning any available node and depositing full inventory can repeatedly choose the wrong material for the active stage, preventing `materials_ready` from ever becoming true.
-  - **Fix pattern**: drive gather targeting from `C_BuildSiteComponent.get_next_missing_material_type()` (`use_build_site_missing_material` / required resource filters) and cap deposit amounts to current-stage missing counts before refreshing `materials_ready`.
+- **Interaction chains can silently no-op when the action resolves targets from live detection at consume/use time**: in multi-step loops (`approach -> interact/consume`), live nearest-target re-resolution can drift to a different entity (or clear), so state can advance without applying the intended world-side effect.
+  - **Fix pattern**: lock target identity when the chain starts (task-state ID plus optional component-level pending ID), and make the final action consume/operate on the locked target first; add unit tests for locked-target success and out-of-range failure.
+- **Approach completion range must be compatible with interaction range**: when move completion thresholds are tighter than consume/interact radii, AI can be “in range to act” but still fail the move action completion gate and stall the sequence.
+  - **Fix pattern**: align move completion radius with the downstream action radius (or allow an override that uses the larger value) and keep movement-action tests that assert completion at interaction range.
+- **Utility-scored loops need explicit terminal-state gates**: if scorer conditions only consider local readiness (for example inventory state) and ignore terminal world state, agents can continue selecting obsolete branches and spin on no-op tasks.
+  - **Fix pattern**: include terminal-state predicates (for example target complete/disabled/exhausted) in scorer gates, and keep integration tests that assert fallback behavior once terminal state is reached.
+- **Acquire/deposit loops must be deficit-driven to avoid progress deadlocks**: choosing any valid source and depositing all carried items can repeatedly over-supply irrelevant types and under-supply the blocking requirement, preventing stage/objective progression.
+  - **Fix pattern**: derive required type(s) from the active deficit, filter source scans accordingly, and cap deposits to outstanding deficits before recomputing readiness.
 
 ## QB Rule Engine v2 Pitfalls
 
