@@ -13,7 +13,6 @@
 [ext_resource type="Script" uid="uid://n0lsv2efoykg" path="res://scripts/resources/bt/rs_bt_node.gd" id="11_bt_node"]
 [ext_resource type="Script" uid="uid://bosbd72cesikv" path="res://scripts/resources/bt/rs_bt_cooldown.gd" id="12_bt_cooldown"]
 [ext_resource type="Script" uid="uid://ckmnsfbxfbeen" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd" id="13_ai_scorer_condition"]
-[ext_resource type="Script" uid="uid://dfe2rp2m4cab3" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_context_field.gd" id="14_ai_scorer_context_field"]
 [ext_resource type="Script" uid="uid://7v6u478gtpxe" path="res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd" id="15_ai_scorer_constant"]
 [ext_resource type="Script" uid="uid://kwfegjglry4c" path="res://scripts/resources/qb/conditions/rs_condition_composite.gd" id="16_condition_composite"]
 [ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="17_i_condition"]
@@ -85,7 +84,6 @@ action = SubResource("Action_move_detected_solo_second")
 [sub_resource type="Resource" id="Action_hunt_solo_feed"]
 script = ExtResource("9_action_feed")
 consume_detected_target = true
-consume_radius = 1.25
 
 [sub_resource type="Resource" id="Node_hunt_solo_feed"]
 script = ExtResource("6_bt_action")

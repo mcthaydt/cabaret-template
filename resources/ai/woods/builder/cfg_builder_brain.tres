@@ -79,9 +79,6 @@ if_true = 5.0
 script = ExtResource("7_ai_scorer_constant")
 value = 1.0
 
-[sub_resource type="Resource" id="Action_drink"]
-script = ExtResource("13_action_drink")
-
 [sub_resource type="Resource" id="Action_move_to_water"]
 script = ExtResource("15_action_move_to_nearest")
 scan_component_type = &"C_ResourceNodeComponent"
@@ -91,6 +88,9 @@ scan_required_resource_type = &"water"
 [sub_resource type="Resource" id="Node_move_to_water"]
 script = ExtResource("5_bt_action")
 action = SubResource("Action_move_to_water")
+
+[sub_resource type="Resource" id="Action_drink"]
+script = ExtResource("13_action_drink")
 
 [sub_resource type="Resource" id="Node_drink"]
 script = ExtResource("5_bt_action")
