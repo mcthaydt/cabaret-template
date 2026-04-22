@@ -3,9 +3,9 @@ extends I_AIAction
 class_name RS_AIActionMoveToDetected
 
 const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
 
 @export var arrival_threshold: float = 0.5
 
@@ -25,6 +25,12 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 
 	var target_position_variant: Variant = task_state.get(U_AITaskStateKeys.MOVE_TARGET, null)
 	var target_position: Vector3 = target_position_variant as Vector3
+	print("[ACTION] %s MoveToDetected → target (%.1f, %.1f, %.1f)" % [
+		_resolve_entity_label(context),
+		target_position.x,
+		target_position.y,
+		target_position.z,
+	])
 
 func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
 	if bool(task_state.get(U_AITaskStateKeys.COMPLETED, false)):
@@ -64,6 +70,7 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 		_clear_move_target_component(context)
 		task_state[U_AITaskStateKeys.MOVE_TARGET_RESOLVED] = false
 		task_state[U_AITaskStateKeys.COMPLETED] = true
+		print("[ACTION] %s MoveToDetected arrived" % _resolve_entity_label(context))
 	return arrived
 
 func _refresh_target_from_detection(
@@ -93,7 +100,12 @@ func _refresh_target_from_detection(
 		float(task_state.get(U_AITaskStateKeys.ARRIVAL_THRESHOLD, arrival_threshold)),
 		0.0
 	)
-	var target_position: Vector3 = detected_entity.global_position
+	var target_position_variant: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_entity_position(detected_entity)
+	if not (target_position_variant is Vector3):
+		if log_errors:
+			push_error("RS_AIActionMoveToDetected: detected entity position unresolved for id %s." % str(detected_entity_id))
+		return false
+	var target_position: Vector3 = target_position_variant as Vector3
 	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
 	_write_resolution_debug(task_state, context, "detected_entity", "resolved_detected_entity", false, true)
 	detection.pending_feed_entity_id = detected_entity_id
@@ -131,23 +143,7 @@ func _resolve_detected_entity(context: Dictionary, entity_id: StringName) -> Nod
 	return manager.get_entity_by_id(entity_id) as Node3D
 
 func _resolve_current_position(context: Dictionary) -> Variant:
-	var entity_position_variant: Variant = context.get("entity_position", null)
-	if entity_position_variant is Vector3:
-		return entity_position_variant
-
-	var components_variant: Variant = context.get("components", null)
-	if components_variant is Dictionary:
-		var components: Dictionary = components_variant as Dictionary
-		var movement_component_variant: Variant = components.get(C_MOVEMENT_COMPONENT.COMPONENT_TYPE, null)
-		if movement_component_variant is Object and (movement_component_variant as Object).has_method("get_character_body"):
-			var body_variant: Variant = (movement_component_variant as Object).call("get_character_body")
-			if body_variant is Node3D:
-				return (body_variant as Node3D).global_position
-
-	var entity: Node3D = context.get("entity", null) as Node3D
-	if entity != null:
-		return entity.global_position
-	return null
+	return U_AI_ACTION_POSITION_RESOLVER.resolve_actor_position(context)
 
 func _write_resolution_debug(
 	task_state: Dictionary,

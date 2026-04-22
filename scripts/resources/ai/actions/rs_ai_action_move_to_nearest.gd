@@ -4,10 +4,15 @@ class_name RS_AIActionMoveToNearest
 
 const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
+const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_site_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
 
 @export var scan_component_type: StringName = &""
 @export var scan_filter: StringName = &""
+@export var scan_required_resource_type: StringName = &""
+@export var scan_required_harvest_tag: StringName = &""
+@export var use_build_site_missing_material: bool = false
 @export var arrival_threshold: float = 1.5
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
@@ -17,12 +22,17 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 		push_error("RS_AIActionMoveToNearest.start: cannot resolve entity position.")
 		_mark_completed(context, task_state, "missing_position")
 		return
-	var scan_result: Dictionary = _find_nearest(context, entity_position as Vector3)
+	var scan_result: Dictionary = _find_nearest(context, task_state, entity_position as Vector3)
 	var target_entity: Node = scan_result.get("entity", null)
 	if target_entity == null or not is_instance_valid(target_entity):
+		print("[ACTION] %s MoveToNearest skipped (no target)" % _resolve_entity_label(context))
 		_mark_completed(context, task_state, "no_target_found")
 		return
-	var target_position: Vector3 = (target_entity as Node3D).global_position
+	var target_position_variant: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_entity_position(target_entity)
+	if not (target_position_variant is Vector3):
+		_mark_completed(context, task_state, "missing_target_position")
+		return
+	var target_position: Vector3 = target_position_variant as Vector3
 	var resolved_threshold: float = maxf(arrival_threshold, 0.0)
 	_set_move_target_component_target(context, target_position, resolved_threshold)
 	var detection: C_DetectionComponent = _resolve_detection_component(context)
@@ -30,6 +40,16 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 		detection.last_scan_entity_id = U_ECS_UTILS.get_entity_id(target_entity)
 	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
 	task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_threshold
+	var target_id: StringName = U_ECS_UTILS.get_entity_id(target_entity)
+	var distance: float = float(scan_result.get("distance", INF))
+	print("[ACTION] %s MoveToNearest → target=%s dist=%.2f pos=(%.1f, %.1f, %.1f)" % [
+		_resolve_entity_label(context),
+		target_id,
+		distance,
+		target_position.x,
+		target_position.y,
+		target_position.z,
+	])
 
 func tick(_context: Dictionary, _task_state: Dictionary, _delta: float) -> void:
 	pass
@@ -59,10 +79,11 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	if offset_xz.length() <= resolved_threshold:
 		_clear_move_target_component(context)
 		task_state[U_AITaskStateKeys.COMPLETED] = true
+		print("[ACTION] %s MoveToNearest arrived" % _resolve_entity_label(context))
 		return true
 	return false
 
-func _find_nearest(context: Dictionary, origin: Vector3) -> Dictionary:
+func _find_nearest(context: Dictionary, task_state: Dictionary, origin: Vector3) -> Dictionary:
 	var manager_variant: Variant = context.get("ecs_manager", null)
 	if manager_variant == null or not manager_variant.has_method("get_components"):
 		return {}
@@ -77,12 +98,17 @@ func _find_nearest(context: Dictionary, origin: Vector3) -> Dictionary:
 			var filter_result: Variant = component.call(scan_filter)
 			if not (filter_result is bool and filter_result):
 				continue
+		if not _matches_component_requirements(component, context, task_state):
+			continue
 		var entity_root: Node = U_ECS_UTILS.find_entity_root(component as Node)
 		if entity_root == null or not is_instance_valid(entity_root):
 			continue
 		if not (entity_root is Node3D):
 			continue
-		var target_pos: Vector3 = (entity_root as Node3D).global_position
+		var target_pos_variant: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_entity_position(entity_root)
+		if not (target_pos_variant is Vector3):
+			continue
+		var target_pos: Vector3 = target_pos_variant as Vector3
 		var dist_xz: Vector2 = Vector2(target_pos.x - origin.x, target_pos.z - origin.z)
 		var distance: float = dist_xz.length()
 		if distance < best_distance:
@@ -90,18 +116,47 @@ func _find_nearest(context: Dictionary, origin: Vector3) -> Dictionary:
 			best_entity = entity_root
 	return {"entity": best_entity, "distance": best_distance}
 
+func _matches_component_requirements(component: Object, context: Dictionary, task_state: Dictionary) -> bool:
+	var resolved_required_resource_type: StringName = _resolve_required_resource_type(context, task_state)
+	if resolved_required_resource_type == StringName("") and scan_required_harvest_tag == StringName(""):
+		return true
+	var settings_variant: Variant = component.get("settings")
+	if not (settings_variant is Resource):
+		return false
+	if resolved_required_resource_type != StringName(""):
+		var resource_type_variant: Variant = settings_variant.get("resource_type")
+		var resource_type: StringName = resource_type_variant as StringName if resource_type_variant is StringName else StringName("")
+		if resource_type != resolved_required_resource_type:
+			return false
+	if scan_required_harvest_tag != StringName(""):
+		var harvest_tag_variant: Variant = settings_variant.get("harvest_tag")
+		var harvest_tag: StringName = harvest_tag_variant as StringName if harvest_tag_variant is StringName else StringName("")
+		if harvest_tag != scan_required_harvest_tag:
+			return false
+	return true
+
+func _resolve_required_resource_type(context: Dictionary, task_state: Dictionary) -> StringName:
+	if use_build_site_missing_material:
+		var build_site: Object = _resolve_build_site_component(context)
+		if build_site != null and build_site.has_method("get_next_missing_material_type"):
+			var missing_type_variant: Variant = build_site.call("get_next_missing_material_type")
+			if missing_type_variant is StringName:
+				var missing_type: StringName = missing_type_variant as StringName
+				if missing_type != StringName(""):
+					return missing_type
+	var reserved_type_variant: Variant = task_state.get(U_AITaskStateKeys.INVENTORY_RESERVED_TYPE, StringName(""))
+	if reserved_type_variant is StringName:
+		var reserved_type: StringName = reserved_type_variant as StringName
+		if reserved_type != StringName(""):
+			return reserved_type
+	return scan_required_resource_type
+
 func _mark_completed(context: Dictionary, task_state: Dictionary, _reason: String) -> void:
 	_clear_move_target_component(context)
 	task_state[U_AITaskStateKeys.COMPLETED] = true
 
 func _resolve_current_position(context: Dictionary) -> Variant:
-	var entity_position_variant: Variant = context.get("entity_position", null)
-	if entity_position_variant is Vector3:
-		return entity_position_variant
-	var entity: Node3D = context.get("entity", null) as Node3D
-	if entity != null and is_instance_valid(entity):
-		return entity.global_position
-	return null
+	return U_AI_ACTION_POSITION_RESOLVER.resolve_actor_position(context)
 
 func _resolve_detection_component(context: Dictionary) -> C_DetectionComponent:
 	var components_variant: Variant = context.get("components", null)
@@ -109,6 +164,13 @@ func _resolve_detection_component(context: Dictionary) -> C_DetectionComponent:
 		return null
 	var components: Dictionary = components_variant as Dictionary
 	return components.get(C_DETECTION_COMPONENT.COMPONENT_TYPE, null) as C_DetectionComponent
+
+func _resolve_build_site_component(context: Dictionary) -> Object:
+	var components_variant: Variant = context.get("components", null)
+	if not (components_variant is Dictionary):
+		return null
+	var components: Dictionary = components_variant as Dictionary
+	return components.get(C_BUILD_SITE_COMPONENT.COMPONENT_TYPE, null)
 
 func _resolve_move_target_component(context: Dictionary) -> Object:
 	var components_variant: Variant = context.get("components", null)
@@ -137,3 +199,9 @@ func _clear_move_target_component(context: Dictionary) -> void:
 	if move_target == null:
 		return
 	move_target.set("is_active", false)
+
+func _resolve_entity_label(context: Dictionary) -> String:
+	var entity: Node = context.get("entity", null) as Node
+	if entity != null and is_instance_valid(entity):
+		return str(entity.name)
+	return "?"

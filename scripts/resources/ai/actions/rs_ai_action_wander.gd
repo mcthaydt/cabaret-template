@@ -3,6 +3,8 @@ extends I_AIAction
 class_name RS_AIActionWander
 
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
+const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
+const HOME_ANCHOR_META_KEY := &"ai_home_anchor"
 
 @export var home_radius: float = 6.0
 @export var arrival_threshold: float = 0.5
@@ -19,12 +21,8 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 		_mark_completed(context, task_state)
 		return
 
-	var home_position: Vector3 = entity.global_position
-	var stored_home_variant: Variant = task_state.get(U_AITaskStateKeys.WANDER_HOME, null)
-	if stored_home_variant is Vector3:
-		home_position = stored_home_variant as Vector3
-	else:
-		task_state[U_AITaskStateKeys.WANDER_HOME] = home_position
+	var home_position: Vector3 = _resolve_home_anchor(entity, context)
+	task_state[U_AITaskStateKeys.WANDER_HOME] = home_position
 
 	var target_position: Vector3 = _sample_target(home_position)
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
@@ -77,14 +75,21 @@ func _sample_target(home_position: Vector3) -> Vector3:
 	var offset: Vector3 = Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
 	return home_position + offset
 
+func _resolve_home_anchor(entity: Node3D, context: Dictionary) -> Vector3:
+	var stored_home_variant: Variant = null
+	if entity.has_meta(HOME_ANCHOR_META_KEY):
+		stored_home_variant = entity.get_meta(HOME_ANCHOR_META_KEY)
+	if stored_home_variant is Vector3:
+		return stored_home_variant as Vector3
+	var home_position: Vector3 = entity.global_position
+	var actor_position: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_actor_position(context)
+	if actor_position is Vector3:
+		home_position = actor_position as Vector3
+	entity.set_meta(HOME_ANCHOR_META_KEY, home_position)
+	return home_position
+
 func _resolve_current_position(context: Dictionary) -> Variant:
-	var entity_position_variant: Variant = context.get("entity_position", null)
-	if entity_position_variant is Vector3:
-		return entity_position_variant
-	var entity: Node3D = context.get("entity", null) as Node3D
-	if entity != null:
-		return entity.global_position
-	return null
+	return U_AI_ACTION_POSITION_RESOLVER.resolve_actor_position(context)
 
 func _mark_completed(context: Dictionary, task_state: Dictionary) -> void:
 	_clear_move_target_component(context)

@@ -41,27 +41,12 @@ class FakeSpaceState extends Object:
 			}
 		return {}
 
-class FakeWorld3D extends Object:
-	var direct_space_state: Object
-
-	func _get(property: StringName):
-		if property == StringName("direct_space_state"):
-			return direct_space_state
-		return null
-
 class FakeBody extends CharacterBody3D:
 	var _space_state: FakeSpaceState
-	var _fake_world: FakeWorld3D
 
 	func _init() -> void:
 		up_direction = Vector3.UP
 		_space_state = FakeSpaceState.new()
-		_fake_world = FakeWorld3D.new()
-		_fake_world.direct_space_state = _space_state
-
-	@warning_ignore("native_method_override")
-	func get_world_3d():
-		return _fake_world
 
 	func set_raycast_hit(point: Vector3, normal: Vector3) -> void:
 		_space_state.set_hit(point, normal)

@@ -66,18 +66,30 @@ value = 1.0
 [sub_resource type="Resource" id="Action_drink"]
 script = ExtResource("13_action_drink")
 
+[sub_resource type="Resource" id="Action_move_to_water"]
+script = ExtResource("15_action_move_to_nearest")
+scan_component_type = &"C_ResourceNodeComponent"
+scan_filter = &"is_available"
+scan_required_resource_type = &"water"
+
+[sub_resource type="Resource" id="Node_move_to_water"]
+script = ExtResource("5_bt_action")
+action = SubResource("Action_move_to_water")
+
 [sub_resource type="Resource" id="Node_drink"]
 script = ExtResource("5_bt_action")
 action = SubResource("Action_drink")
 
 [sub_resource type="Resource" id="Node_drink_sequence"]
 script = ExtResource("3_bt_sequence")
-children = Array[ExtResource("4_bt_node")]([SubResource("Node_drink")])
+children = Array[ExtResource("4_bt_node")]([SubResource("Node_move_to_water"), SubResource("Node_drink")])
 
 [sub_resource type="Resource" id="Action_move_to_resource"]
 script = ExtResource("15_action_move_to_nearest")
 scan_component_type = &"C_ResourceNodeComponent"
 scan_filter = &"is_available"
+scan_required_resource_type = &"wood"
+use_build_site_missing_material = true
 
 [sub_resource type="Resource" id="Node_move_to_resource"]
 script = ExtResource("5_bt_action")
@@ -148,4 +160,4 @@ children = Array[ExtResource("4_bt_node")]([SubResource("Node_drink_sequence"), 
 [resource]
 script = ExtResource("1_brain")
 root = SubResource("Node_builder_root")
-evaluation_interval = 0.3
+evaluation_interval = 0.0

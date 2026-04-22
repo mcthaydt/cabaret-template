@@ -11,15 +11,29 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	var resource_node: Object = _resolve_resource_node(context, task_state)
 	if resource_node == null:
 		task_state[U_AITaskStateKeys.COMPLETED] = true
+		print("[ACTION] %s Reserve skipped (no resource node)" % _resolve_entity_label(context))
 		return
+	if resource_node.has_method("is_available"):
+		var available_variant: Variant = resource_node.call("is_available")
+		if available_variant is bool and not bool(available_variant):
+			task_state[U_AITaskStateKeys.COMPLETED] = true
+			print("[ACTION] %s Reserve skipped (resource unavailable)" % _resolve_entity_label(context))
+			return
 	var entity_id_variant: Variant = context.get("entity_id", StringName(""))
-	resource_node.set("reserved_by_entity_id", entity_id_variant)
+	var entity_id: StringName = entity_id_variant as StringName if entity_id_variant is StringName else StringName("")
+	resource_node.set("reserved_by_entity_id", entity_id)
 	var reserved_type: StringName = StringName("")
 	var settings_variant: Variant = resource_node.get("settings")
 	if settings_variant is Resource:
 		reserved_type = StringName(settings_variant.get("resource_type"))
 	task_state[U_AITaskStateKeys.INVENTORY_RESERVED_TYPE] = reserved_type
 	task_state[U_AITaskStateKeys.COMPLETED] = true
+	print("[ACTION] %s Reserve → entity_id=%s type=%s duration=%.2fs" % [
+		_resolve_entity_label(context),
+		entity_id,
+		reserved_type,
+		maxf(reserve_duration_seconds, 0.0),
+	])
 
 func tick(_context: Dictionary, _task_state: Dictionary, _delta: float) -> void:
 	pass
@@ -56,3 +70,9 @@ func _find_component_on_entity(entity: Node, component_type: StringName) -> Obje
 		if child.has_method("get_component_type") and child.get_component_type() == component_type:
 			return child
 	return null
+
+func _resolve_entity_label(context: Dictionary) -> String:
+	var entity: Node = context.get("entity", null) as Node
+	if entity != null and is_instance_valid(entity):
+		return str(entity.name)
+	return "?"

@@ -9,12 +9,19 @@ class_name RS_AIActionAnimate
 
 @export var animation_state: StringName
 
-func start(_context: Dictionary, task_state: Dictionary) -> void:
+func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state[U_AITaskStateKeys.ANIMATION_STATE] = animation_state
 	task_state[U_AITaskStateKeys.ANIMATION_REQUESTED] = true
+	print("[ACTION] %s Animate → state=%s" % [_resolve_entity_label(context), animation_state])
 
 func tick(_context: Dictionary, _task_state: Dictionary, _delta: float) -> void:
 	pass
 
 func is_complete(_context: Dictionary, task_state: Dictionary) -> bool:
 	return bool(task_state.get(U_AITaskStateKeys.ANIMATION_REQUESTED, false))
+
+func _resolve_entity_label(context: Dictionary) -> String:
+	var entity: Node = context.get("entity", null) as Node
+	if entity != null and is_instance_valid(entity):
+		return str(entity.name)
+	return "?"

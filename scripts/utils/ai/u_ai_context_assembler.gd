@@ -19,6 +19,8 @@ func build_context(
 	var rule_context: RSRuleContext = RS_RULE_CONTEXT.new()
 	rule_context.brain_component = brain
 	rule_context.redux_state = redux_state
+	if manager != null:
+		rule_context.set_extra(&"ecs_manager", manager)
 	if store != null and is_instance_valid(store):
 		rule_context.state_store = store
 	if entity_query == null:

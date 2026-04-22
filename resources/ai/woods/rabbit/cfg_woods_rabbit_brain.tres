@@ -48,6 +48,8 @@ condition = SubResource("Condition_threat_detected")
 script = ExtResource("7_action_flee_detected")
 flee_distance = 10.0
 arrival_threshold = 0.6
+clamp_to_home_radius = true
+home_radius = 14.0
 
 [sub_resource type="Resource" id="Node_flee_detected"]
 script = ExtResource("6_bt_action")

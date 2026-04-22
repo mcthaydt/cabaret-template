@@ -3,7 +3,6 @@ extends "res://scripts/resources/bt/rs_bt_composite.gd"
 class_name RS_BTUtilitySelector
 
 const STATE_KEY_RUNNING_CHILD_INDEX := &"running_child_index"
-
 var _child_scorers: Array[Resource] = []
 
 @export var child_scorers: Array[Resource] = []:
@@ -55,6 +54,8 @@ func _tick_pinned_child(index: int, context: Dictionary, state_bag: Dictionary) 
 func _select_best_child_index(context: Dictionary) -> int:
 	var best_index: int = -1
 	var best_score: float = 0.0
+	var should_trace: bool = _should_trace_selection(context)
+	var debug_scores: Array[String] = []
 
 	for index in range(children.size()):
 		var child: RS_BTNode = children[index]
@@ -63,11 +64,22 @@ func _select_best_child_index(context: Dictionary) -> int:
 			continue
 
 		var score: float = _score_child(index, context)
+		if should_trace:
+			debug_scores.append("%d:%0.2f" % [index, score])
 		if score <= 0.0:
 			continue
 		if score > best_score:
 			best_score = score
 			best_index = index
+
+	if should_trace:
+		print("[BT_TRACE] entity=%s selector=%s selected=%d score=%0.2f child_scores=%s" % [
+			_resolve_entity_id(context),
+			_resolve_selector_label(),
+			best_index,
+			best_score,
+			str(debug_scores),
+		])
 
 	return best_index
 
@@ -134,3 +146,20 @@ func _coerce_child_scorers(value: Variant) -> Array[Resource]:
 		if scorer_variant is Resource:
 			coerced.append(scorer_variant as Resource)
 	return coerced
+
+func _should_trace_selection(context: Dictionary) -> bool:
+	return _resolve_entity_id(context) != StringName("")
+
+func _resolve_entity_id(context: Dictionary) -> StringName:
+	var entity_id_variant: Variant = context.get("entity_id", context.get(&"entity_id", StringName()))
+	if entity_id_variant is StringName:
+		return entity_id_variant as StringName
+	if entity_id_variant is String:
+		return StringName(entity_id_variant as String)
+	return StringName("")
+
+func _resolve_selector_label() -> String:
+	var label: String = resource_name.strip_edges()
+	if label.is_empty():
+		return "<unnamed_selector>"
+	return label

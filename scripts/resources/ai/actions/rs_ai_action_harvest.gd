@@ -10,18 +10,24 @@ const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 @export var harvest_seconds: float = 2.0
 @export var harvest_amount: int = 1
 
-func start(_context: Dictionary, task_state: Dictionary) -> void:
+func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state[U_AITaskStateKeys.HARVEST_ELAPSED] = 0.0
+	print("[ACTION] %s Harvest started (duration=%.2fs, amount=%d)" % [
+		_resolve_entity_label(context),
+		maxf(harvest_seconds, 0.0),
+		maxi(harvest_amount, 0)
+	])
 
 func tick(_context: Dictionary, task_state: Dictionary, delta: float) -> void:
 	var elapsed: float = task_state.get(U_AITaskStateKeys.HARVEST_ELAPSED, 0.0)
 	task_state[U_AITaskStateKeys.HARVEST_ELAPSED] = elapsed + maxf(delta, 0.0)
 
-func is_complete(_context: Dictionary, task_state: Dictionary) -> bool:
+func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	var elapsed: float = task_state.get(U_AITaskStateKeys.HARVEST_ELAPSED, 0.0)
 	if elapsed < maxf(harvest_seconds, 0.0):
 		return false
-	_apply_harvest(_context, task_state)
+	_apply_harvest(context, task_state)
+	print("[ACTION] %s Harvest complete after %.2fs" % [_resolve_entity_label(context), elapsed])
 	return true
 
 func _apply_harvest(context: Dictionary, task_state: Dictionary) -> void:
@@ -31,15 +37,37 @@ func _apply_harvest(context: Dictionary, task_state: Dictionary) -> void:
 	var inventory: Object = _resolve_inventory(context)
 	if inventory == null:
 		return
-	var taken: int = resource_node.call("harvest", harvest_amount)
-	if taken <= 0:
+	var resource_type: StringName = _resolve_resource_type(resource_node)
+	if resource_type == StringName(""):
+		_clear_reservation_if_owned(context, resource_node)
 		return
-	var resource_type: StringName = StringName("")
+	var available_amount: int = int(resource_node.get("current_amount"))
+	var requested: int = mini(maxi(harvest_amount, 0), max(available_amount, 0))
+	if requested <= 0:
+		_clear_reservation_if_owned(context, resource_node)
+		return
+	var accepted: int = int(inventory.call("add", resource_type, requested))
+	if accepted <= 0:
+		_clear_reservation_if_owned(context, resource_node)
+		return
+	var taken: int = int(resource_node.call("harvest", accepted))
+	if taken < accepted:
+		var overflow: int = accepted - taken
+		if overflow > 0:
+			inventory.call("remove", resource_type, overflow)
+	_clear_reservation_if_owned(context, resource_node)
+
+func _resolve_resource_type(resource_node: Object) -> StringName:
 	var settings_variant: Variant = resource_node.get("settings")
 	if settings_variant is RS_ResourceNodeSettings:
-		resource_type = settings_variant.resource_type
-	if resource_type != StringName(""):
-		inventory.call("add", resource_type, taken)
+		return settings_variant.resource_type
+	return StringName("")
+
+func _clear_reservation_if_owned(context: Dictionary, resource_node: Object) -> void:
+	var entity_id_variant: Variant = context.get("entity_id", StringName(""))
+	var entity_id: StringName = entity_id_variant as StringName if entity_id_variant is StringName else StringName("")
+	if resource_node.has_method("clear_reservation_if_owned"):
+		resource_node.call("clear_reservation_if_owned", entity_id)
 
 func _resolve_resource_node(context: Dictionary, task_state: Dictionary) -> Object:
 	var target_id_variant: Variant = task_state.get(U_AITaskStateKeys.DETECTED_ENTITY_ID, StringName(""))
@@ -76,3 +104,9 @@ func _find_component_on_entity(entity: Node, component_type: StringName) -> Obje
 		if child.has_method("get_component_type") and child.get_component_type() == component_type:
 			return child
 	return null
+
+func _resolve_entity_label(context: Dictionary) -> String:
+	var entity: Node = context.get("entity", null) as Node
+	if entity != null and is_instance_valid(entity):
+		return str(entity.name)
+	return "?"

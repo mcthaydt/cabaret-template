@@ -154,6 +154,9 @@ func _process_detection_for_component(
 	)
 	var nearest_entity_id: StringName = nearest_target.get("entity_id", StringName(""))
 	var nearest_distance: float = float(nearest_target.get("distance", INF))
+	var nearest_tags_text: String = _format_tags_for_debug(nearest_target.get("tags", []))
+	var matching_candidates: int = int(nearest_target.get("matching_candidate_count", 0))
+	var should_trace_selection: bool = _should_trace_target_selection(source_entity_id, detection)
 	var nearest_in_detection_range: bool = (
 		nearest_entity_id != StringName("")
 		and nearest_distance <= detection_radius
@@ -168,6 +171,17 @@ func _process_detection_for_component(
 		print("[DETECT] %s (%s/%s) → detected %s at dist %.1f" % [
 			source_entity_id, detection.detection_role, detection.target_tag,
 			detection.last_detected_player_entity_id, nearest_distance])
+		if should_trace_selection:
+			print("[DETECT_TRACE] source=%s target_tag=%s candidates=%d nearest=%s tags=%s dist=%.1f enter_radius=%.1f exit_radius=%.1f" % [
+				source_entity_id,
+				detection.target_tag,
+				matching_candidates,
+				nearest_entity_id,
+				nearest_tags_text,
+				nearest_distance,
+				detection_radius,
+				effective_exit_radius,
+			])
 		_dispatch_flag(detection.ai_flag_id, detection.enter_flag_value)
 		_publish_enter_event(entity_root, detection, nearest_target)
 		return
@@ -208,6 +222,18 @@ func _process_detection_for_component(
 				nearest_entity_id,
 				nearest_distance,
 			])
+			if should_trace_selection:
+				print("[DETECT_TRACE] source=%s target_tag=%s candidates=%d switched_from=%s switched_to=%s tags=%s dist=%.1f enter_radius=%.1f exit_radius=%.1f" % [
+					source_entity_id,
+					detection.target_tag,
+					matching_candidates,
+					previous_target,
+					nearest_entity_id,
+					nearest_tags_text,
+					nearest_distance,
+					detection_radius,
+					effective_exit_radius,
+				])
 		return
 
 	if nearest_in_detection_range:
@@ -222,6 +248,18 @@ func _process_detection_for_component(
 			nearest_entity_id,
 			nearest_distance,
 		])
+		if should_trace_selection:
+			print("[DETECT_TRACE] source=%s target_tag=%s candidates=%d switched_from=%s switched_to=%s tags=%s dist=%.1f enter_radius=%.1f exit_radius=%.1f" % [
+				source_entity_id,
+				detection.target_tag,
+				matching_candidates,
+				previous_target,
+				nearest_entity_id,
+				nearest_tags_text,
+				nearest_distance,
+				detection_radius,
+				effective_exit_radius,
+			])
 		return
 
 	var _lost_id: StringName = sticky_target_id
@@ -278,12 +316,15 @@ func _resolve_nearest_target(
 ) -> Dictionary:
 	var best_distance: float = INF
 	var nearest_entity_id: StringName = StringName("")
+	var nearest_tags: Array = []
+	var matching_candidate_count: int = 0
 	for entry_variant in target_entries:
 		if not (entry_variant is Dictionary):
 			continue
 		var entry: Dictionary = entry_variant as Dictionary
 		if not _entry_matches_target(entry, target_tag):
 			continue
+		matching_candidate_count += 1
 		var entry_entity_id: StringName = entry.get("entity_id", StringName(""))
 		var entry_entity_instance_id: int = int(entry.get("entity_instance_id", 0))
 		if _is_same_entity(entry_entity_id, entry_entity_instance_id, source_entity_id, source_entity_instance_id):
@@ -297,11 +338,15 @@ func _resolve_nearest_target(
 			continue
 		best_distance = distance
 		nearest_entity_id = entry_entity_id
+		var entry_tags_variant: Variant = entry.get("tags", [])
+		nearest_tags = entry_tags_variant as Array if entry_tags_variant is Array else []
 
 	return {
 		"in_range": best_distance <= maxf(detection_radius, 0.0),
 		"distance": best_distance,
 		"entity_id": nearest_entity_id,
+		"tags": nearest_tags,
+		"matching_candidate_count": matching_candidate_count,
 	}
 
 func _is_same_entity(
@@ -358,3 +403,20 @@ func _publish_enter_event(entity_root: Node, detection: C_DetectionComponent, ne
 func _resolve_state_store() -> I_StateStore:
 	_store = U_DependencyResolution.resolve_state_store(_store, state_store, self)
 	return _store
+
+func _format_tags_for_debug(tags_variant: Variant) -> String:
+	if not (tags_variant is Array):
+		return "[]"
+	var tags: Array = tags_variant as Array
+	var formatted: Array[String] = []
+	for tag_variant in tags:
+		formatted.append(str(tag_variant))
+	return str(formatted)
+
+func _should_trace_target_selection(source_entity_id: StringName, detection: C_DetectionComponent) -> bool:
+	if detection == null:
+		return false
+	if detection.target_tag == StringName("prey"):
+		return true
+	var source_id_text: String = String(source_entity_id).to_lower()
+	return source_id_text.contains("wolf")

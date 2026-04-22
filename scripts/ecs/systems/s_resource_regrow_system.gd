@@ -35,3 +35,4 @@ func process_tick(delta: float) -> void:
 		if resource_node.regrow_timer >= regrow_seconds:
 			resource_node.current_amount = resource_node.settings.initial_amount
 			resource_node.regrow_timer = 0.0
+			resource_node.clear_reservation()

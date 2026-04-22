@@ -21,7 +21,7 @@ albedo_color = Color(0.55, 0.35, 0.15, 1)
 
 [node name="E_WoodsBuilder" unique_id=511234567 instance=ExtResource("1_character")]
 entity_id = &"builder"
-tags = Array[StringName]([&"prey", &"ai", &"woods", &"builder"])
+tags = Array[StringName]([&"ai", &"woods", &"builder"])
 
 [node name="Body_Mesh" type="CSGBox3D" parent="Player_Body" parent_id_path=PackedInt32Array(312897681) index="3" unique_id=511234568]
 transform = Transform3D(0.6, 0, 0, 0, 1.8, 0, 0, 0, 0.5, 0, 1, 0)

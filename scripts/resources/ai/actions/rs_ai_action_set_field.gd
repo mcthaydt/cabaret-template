@@ -16,6 +16,12 @@ const U_PATH_RESOLVER := preload("res://scripts/utils/qb/u_path_resolver.gd")
 @export var string_name_value: StringName
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
+	var value: Variant = _resolve_value()
+	print("[ACTION] %s SetField → path=%s value=%s" % [
+		_resolve_entity_label(context),
+		field_path,
+		str(value),
+	])
 	_apply_value(context)
 	task_state[U_AITaskStateKeys.COMPLETED] = true
 
@@ -90,3 +96,9 @@ func _object_has_property(object_value: Object, property_name: String) -> bool:
 		if str(name_value) == property_name:
 			return true
 	return false
+
+func _resolve_entity_label(context: Dictionary) -> String:
+	var entity: Node = context.get("entity", null) as Node
+	if entity != null and is_instance_valid(entity):
+		return str(entity.name)
+	return "?"

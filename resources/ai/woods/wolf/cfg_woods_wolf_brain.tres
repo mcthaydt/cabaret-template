@@ -40,9 +40,9 @@ condition = SubResource("Condition_hunt_solo_gate")
 if_true = 10.0
 
 [sub_resource type="Resource" id="Scorer_search_food"]
-script = ExtResource("14_ai_scorer_context_field")
-path = "components.C_NeedsComponent.hunger"
-multiplier = 6.0
+script = ExtResource("13_ai_scorer_condition")
+condition = SubResource("Condition_hunger_low")
+if_true = 6.0
 
 [sub_resource type="Resource" id="Scorer_wander"]
 script = ExtResource("15_ai_scorer_constant")

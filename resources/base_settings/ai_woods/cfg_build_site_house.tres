@@ -7,7 +7,6 @@
 script = ExtResource("2_stage")
 stage_id = &"foundation"
 required_materials = {
-&"stone": 1,
 &"wood": 2
 }
 visual_node_path = NodePath("Foundation")

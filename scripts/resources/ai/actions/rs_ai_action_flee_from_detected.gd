@@ -5,9 +5,13 @@ class_name RS_AIActionFleeFromDetected
 const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
+const HOME_ANCHOR_META_KEY := &"ai_home_anchor"
 
 @export var flee_distance: float = 6.0
 @export var arrival_threshold: float = 0.5
+@export var clamp_to_home_radius: bool = false
+@export var home_radius: float = 10.0
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
 	var self_entity: Node3D = context.get("entity", null) as Node3D
@@ -34,9 +38,17 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 		_mark_completed(context, task_state, "detected_entity_not_found")
 		return
 
-	var away_direction: Vector3 = (self_entity.global_position - detected_entity.global_position).normalized()
+	var self_position_variant: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_actor_position(context)
+	var detected_position_variant: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_entity_position(detected_entity)
+	if not (self_position_variant is Vector3) or not (detected_position_variant is Vector3):
+		_mark_completed(context, task_state, "missing_position")
+		return
+	var self_position: Vector3 = self_position_variant as Vector3
+	var detected_position: Vector3 = detected_position_variant as Vector3
+	var away_direction: Vector3 = (self_position - detected_position).normalized()
 	var distance: float = maxf(flee_distance, 0.0)
-	var target_position: Vector3 = self_entity.global_position + away_direction * distance
+	var target_position: Vector3 = self_position + away_direction * distance
+	target_position = _clamp_target_to_home_anchor(self_entity, context, target_position)
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
 	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
 	_write_resolution_debug(task_state, context, "flee_from_detected", "resolved_flee_target", false, true)
@@ -109,11 +121,18 @@ func _refresh_flee_target(context: Dictionary, task_state: Dictionary) -> void:
 	var detected_entity: Node3D = _resolve_detected_entity(context, detected_entity_id)
 	if detected_entity == null:
 		return
-	var away_direction: Vector3 = (self_entity.global_position - detected_entity.global_position).normalized()
+	var self_position_variant: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_actor_position(context)
+	var detected_position_variant: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_entity_position(detected_entity)
+	if not (self_position_variant is Vector3) or not (detected_position_variant is Vector3):
+		return
+	var self_position: Vector3 = self_position_variant as Vector3
+	var detected_position: Vector3 = detected_position_variant as Vector3
+	var away_direction: Vector3 = (self_position - detected_position).normalized()
 	if away_direction.length_squared() < 0.001:
 		return
 	var distance: float = maxf(flee_distance, 0.0)
-	var target_position: Vector3 = self_entity.global_position + away_direction * distance
+	var target_position: Vector3 = self_position + away_direction * distance
+	target_position = _clamp_target_to_home_anchor(self_entity, context, target_position)
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
 	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
 	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
@@ -136,13 +155,33 @@ func _resolve_detected_entity(context: Dictionary, entity_id: StringName) -> Nod
 	return manager.get_entity_by_id(entity_id) as Node3D
 
 func _resolve_current_position(context: Dictionary) -> Variant:
-	var entity_position_variant: Variant = context.get("entity_position", null)
-	if entity_position_variant is Vector3:
-		return entity_position_variant
-	var entity: Node3D = context.get("entity", null) as Node3D
-	if entity != null:
-		return entity.global_position
-	return null
+	return U_AI_ACTION_POSITION_RESOLVER.resolve_actor_position(context)
+
+func _clamp_target_to_home_anchor(entity: Node3D, context: Dictionary, target_position: Vector3) -> Vector3:
+	if not clamp_to_home_radius:
+		return target_position
+	var max_home_radius: float = maxf(home_radius, 0.0)
+	if max_home_radius <= 0.0:
+		return target_position
+	var home_anchor: Vector3 = _resolve_home_anchor(entity, context)
+	var offset_xz := Vector2(target_position.x - home_anchor.x, target_position.z - home_anchor.z)
+	if offset_xz.length() <= max_home_radius:
+		return target_position
+	var clamped_xz: Vector2 = offset_xz.normalized() * max_home_radius
+	return Vector3(home_anchor.x + clamped_xz.x, target_position.y, home_anchor.z + clamped_xz.y)
+
+func _resolve_home_anchor(entity: Node3D, context: Dictionary) -> Vector3:
+	var stored_home_variant: Variant = null
+	if entity.has_meta(HOME_ANCHOR_META_KEY):
+		stored_home_variant = entity.get_meta(HOME_ANCHOR_META_KEY)
+	if stored_home_variant is Vector3:
+		return stored_home_variant as Vector3
+	var home_position: Vector3 = entity.global_position
+	var actor_position: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_actor_position(context)
+	if actor_position is Vector3:
+		home_position = actor_position as Vector3
+	entity.set_meta(HOME_ANCHOR_META_KEY, home_position)
+	return home_position
 
 func _write_resolution_debug(
 	task_state: Dictionary,

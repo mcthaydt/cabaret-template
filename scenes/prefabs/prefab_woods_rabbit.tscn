@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://c4mkt2oec1pi0" path="res://scripts/ecs/components/c_detection_component.gd" id="7_detection"]
 [ext_resource type="Script" uid="uid://8o4h0u0rpqqy" path="res://scripts/ecs/components/c_move_target_component.gd" id="8_move_target"]
 [ext_resource type="Script" uid="uid://d4fbwkh1o6j7r" path="res://scripts/ecs/components/c_needs_component.gd" id="9_needs"]
+[ext_resource type="PackedScene" uid="uid://ulajqu65rdw6" path="res://scenes/debug/debug_woods_agent_label.tscn" id="10_debug_label"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rabbit"]
 shading_mode = 0
@@ -46,3 +47,5 @@ brain_settings = ExtResource("2_rabbit_brain")
 [node name="C_NeedsComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="13" unique_id=611234574]
 script = ExtResource("9_needs")
 settings = ExtResource("3_needs_rabbit")
+
+[node name="DebugWoodsAgentLabel" parent="." instance=ExtResource("10_debug_label")]

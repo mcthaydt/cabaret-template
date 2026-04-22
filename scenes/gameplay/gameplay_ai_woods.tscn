@@ -7,8 +7,8 @@
 [ext_resource type="Script" uid="uid://gaammkurp23b" path="res://scripts/scene_structure/marker_systems_group.gd" id="3_ph0bl"]
 [ext_resource type="Script" uid="uid://cg10jkb2k5551" path="res://scripts/scene_structure/marker_systems_core_group.gd" id="3_systems_core"]
 [ext_resource type="Script" uid="uid://dl32cj7p543rh" path="res://scripts/scene_structure/marker_systems_feedback_group.gd" id="3_systems_feedback"]
-[ext_resource type="Script" uid="uid://ceou3w83ojcku" path="res://scripts/scene_structure/marker_systems_physics_group.gd" id="3_systems_movement"]
-[ext_resource type="Script" uid="uid://wp8ordbinat2" path="res://scripts/scene_structure/marker_systems_movement_group.gd" id="3_systems_physics"]
+[ext_resource type="Script" uid="uid://ceou3w83ojcku" path="res://scripts/scene_structure/marker_systems_physics_group.gd" id="3_systems_physics"]
+[ext_resource type="Script" uid="uid://wp8ordbinat2" path="res://scripts/scene_structure/marker_systems_movement_group.gd" id="3_systems_movement"]
 [ext_resource type="Script" uid="uid://b85bi31g464hs" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
 [ext_resource type="Script" uid="uid://h5ym8nprt7dw" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
 [ext_resource type="Script" uid="uid://cxvneotjjmt2h" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
@@ -39,7 +39,7 @@
 [sub_resource type="Environment" id="Environment_woods"]
 background_mode = 1
 background_color = Color(0.19607843, 0.26666668, 0.4, 1)
-background_energy_multiplier = 0.0
+background_energy_multiplier = 16.0
 ambient_light_source = 1
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 1.6
@@ -147,6 +147,9 @@ spawn_metadata = ExtResource("51_base_spawn_meta")
 [node name="WoodsEntities" type="Node" parent="Entities" unique_id=759367682]
 script = ExtResource("16_8qi87")
 
+[node name="E_Player" type="Node3D" parent="Entities/WoodsEntities" unique_id=1170049982]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 10)
+
 [node name="E_Builder" parent="Entities/WoodsEntities" unique_id=1359932713 instance=ExtResource("prefab_builder")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 
@@ -155,15 +158,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, -10)
 
 [node name="E_RabbitA" parent="Entities/WoodsEntities" unique_id=799999857 instance=ExtResource("prefab_rabbit")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 8)
+entity_id = &"rabbit_a"
 
 [node name="E_RabbitB" parent="Entities/WoodsEntities" unique_id=1814853351 instance=ExtResource("prefab_rabbit")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1, 12)
+entity_id = &"rabbit_b"
 
 [node name="E_RabbitC" parent="Entities/WoodsEntities" unique_id=1648635520 instance=ExtResource("prefab_rabbit")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 1, -5)
+entity_id = &"rabbit_c"
 
 [node name="E_RabbitD" parent="Entities/WoodsEntities" unique_id=1234049129 instance=ExtResource("prefab_rabbit")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, -12)
+entity_id = &"rabbit_d"
 
 [node name="E_TreeA" parent="Entities/WoodsEntities" unique_id=1401611662 instance=ExtResource("prefab_tree")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -5)
@@ -199,5 +206,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 5)
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=16544656]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 34.89, 0)
+current = true
 projection = 1
-size = 34.637
+size = 40.0

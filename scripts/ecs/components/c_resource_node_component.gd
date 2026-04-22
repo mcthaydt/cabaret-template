@@ -29,3 +29,10 @@ func harvest(qty: int) -> int:
 	var taken := mini(qty, current_amount)
 	current_amount -= taken
 	return taken
+
+func clear_reservation() -> void:
+	reserved_by_entity_id = StringName("")
+
+func clear_reservation_if_owned(entity_id: StringName) -> void:
+	if reserved_by_entity_id == entity_id:
+		reserved_by_entity_id = StringName("")

@@ -66,3 +66,11 @@ func test_harvest_clamps_to_available() -> void:
 	var taken: int = component.harvest(5)
 	assert_eq(taken, 2)
 	assert_eq(component.current_amount, 0)
+
+func test_clear_reservation_if_owned() -> void:
+	var component: Variant = _instantiate()
+	component.reserved_by_entity_id = &"owner"
+	component.clear_reservation_if_owned(&"other")
+	assert_eq(component.reserved_by_entity_id, &"owner")
+	component.clear_reservation_if_owned(&"owner")
+	assert_eq(component.reserved_by_entity_id, StringName(""))

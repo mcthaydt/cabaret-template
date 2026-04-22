@@ -93,3 +93,17 @@ func test_advance_stage_resets_materials_ready() -> void:
 	component.materials_ready = true
 	component.advance_stage()
 	assert_false(component.materials_ready)
+
+func test_get_current_stage_missing_materials_returns_positive_deficits_only() -> void:
+	var stages := _make_stages(1, {&"wood": 2, &"stone": 1})
+	var component: Variant = _instantiate(stages)
+	component.placed_materials = {&"wood": 3, &"stone": 0}
+	var missing: Dictionary = component.get_current_stage_missing_materials()
+	assert_eq(missing.size(), 1)
+	assert_eq(int(missing.get(&"stone", 0)), 1)
+
+func test_get_next_missing_material_type_prefers_highest_deficit() -> void:
+	var stages := _make_stages(1, {&"wood": 3, &"stone": 1})
+	var component: Variant = _instantiate(stages)
+	component.placed_materials = {&"wood": 1}
+	assert_eq(component.get_next_missing_material_type(), &"wood")

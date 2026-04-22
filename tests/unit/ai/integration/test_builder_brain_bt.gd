@@ -1,6 +1,7 @@
 extends BaseTest
 
 const BUILDER_BT_BRAIN_PATH := "res://resources/ai/woods/builder/cfg_builder_brain.tres"
+const WOODS_BUILD_SITE_SETTINGS_PATH := "res://resources/base_settings/ai_woods/cfg_build_site_house.tres"
 
 const RS_BT_UTILITY_SELECTOR := preload("res://scripts/resources/bt/rs_bt_utility_selector.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
@@ -8,6 +9,9 @@ const RS_NEEDS_SETTINGS := preload("res://scripts/resources/ecs/rs_needs_setting
 const RS_INVENTORY_SETTINGS := preload("res://scripts/resources/ai/world/rs_inventory_settings.gd")
 const RS_BUILD_SITE_SETTINGS := preload("res://scripts/resources/ai/world/rs_build_site_settings.gd")
 const RS_BUILD_STAGE := preload("res://scripts/resources/ai/world/rs_build_stage.gd")
+const U_AI_CONTEXT_ASSEMBLER := preload("res://scripts/utils/ai/u_ai_context_assembler.gd")
+const U_ENTITY_QUERY := preload("res://scripts/ecs/u_entity_query.gd")
+const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 
 const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
 const C_INVENTORY_COMPONENT := preload("res://scripts/ecs/components/c_inventory_component.gd")
@@ -107,6 +111,47 @@ func test_brain_loads_with_condition_scorers() -> void:
 	if root == null:
 		return
 	assert_eq(root.child_scorers.size(), 5, "Builder brain should have 5 scorer-child pairs")
+
+func test_first_woods_build_stage_is_reachable_by_wood_loop() -> void:
+	var settings_variant: Variant = load(WOODS_BUILD_SITE_SETTINGS_PATH)
+	assert_true(settings_variant is RS_BuildSiteSettings, "Woods build site settings should load.")
+	if not (settings_variant is RS_BuildSiteSettings):
+		return
+	var settings: RS_BuildSiteSettings = settings_variant as RS_BuildSiteSettings
+	assert_gt(settings.stages.size(), 0, "Woods build site should have at least one stage.")
+	if settings.stages.is_empty():
+		return
+	var stage: RS_BuildStage = settings.stages[0]
+	assert_eq(stage.required_materials.keys(), [&"wood"], "First Woods stage should be wood-only so the current Builder brain can advance it.")
+
+func test_walls_stage_requires_mixed_materials() -> void:
+	var settings_variant: Variant = load(WOODS_BUILD_SITE_SETTINGS_PATH)
+	assert_true(settings_variant is RS_BuildSiteSettings, "Woods build site settings should load.")
+	if not (settings_variant is RS_BuildSiteSettings):
+		return
+	var settings: RS_BuildSiteSettings = settings_variant as RS_BuildSiteSettings
+	assert_gt(settings.stages.size(), 2, "Woods build site should define a walls stage at index 2.")
+	if settings.stages.size() <= 2:
+		return
+	var walls_stage: RS_BuildStage = settings.stages[2]
+	assert_eq(int(walls_stage.required_materials.get(&"wood", 0)), 2, "Walls stage should require wood.")
+	assert_eq(int(walls_stage.required_materials.get(&"stone", 0)), 1, "Walls stage should require stone.")
+
+func test_ai_context_includes_ecs_manager_for_scan_actions() -> void:
+	var assembler: U_AIContextAssembler = U_AI_CONTEXT_ASSEMBLER.new()
+	var manager: M_ECSManager = M_ECS_MANAGER.new()
+	var entity: Node3D = Node3D.new()
+	entity.name = "E_Builder"
+	var brain: C_AIBrainComponent = C_AIBrainComponent.new()
+	var query: U_EntityQuery = U_ENTITY_QUERY.new()
+	query.entity = entity
+	query.components = {C_AIBrainComponent.COMPONENT_TYPE: brain}
+	autofree(manager)
+	autofree(entity)
+	autofree(brain)
+	var context: Dictionary = assembler.build_context(query, brain, {}, null, manager)
+	assert_true(context.has(&"ecs_manager"), "AI BT action context should include ecs_manager for scan/target actions.")
+	assert_eq(context.get(&"ecs_manager"), manager, "AI BT action context should pass the active scene ECS manager.")
 
 func test_builder_with_empty_inventory_selects_gather_wood() -> void:
 	var brain_settings := _load_brain_settings()

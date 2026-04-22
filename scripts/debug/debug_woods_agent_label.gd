@@ -64,11 +64,33 @@ func _update_label_text() -> void:
 	var entity_id_text: String = _resolve_entity_id(snapshot)
 	var goal_id_text: String = _resolve_snapshot_text(snapshot, "goal_id")
 	var task_id_text: String = _resolve_snapshot_text(snapshot, "task_id")
+	var needs: Dictionary = _resolve_needs_values(snapshot)
+	var hunger: float = float(needs.get("hunger", 1.0))
+	var thirst: float = float(needs.get("thirst", 1.0))
+	var inventory_text: String = _resolve_inventory_text()
+	modulate = _resolve_hunger_color(needs)
+	text = "%s\ngoal: %s\ntask: %s\nhunger: %.2f | thirst: %.2f\n%s" % [entity_id_text, goal_id_text, task_id_text, hunger, thirst, inventory_text]
+
+func _resolve_needs_values(snapshot: Dictionary) -> Dictionary:
 	var hunger: float = clampf(float(snapshot.get("hunger", 1.0)), 0.0, 1.0)
 	var thirst: float = clampf(float(snapshot.get("thirst", 1.0)), 0.0, 1.0)
-	var inventory_text: String = _resolve_inventory_text()
-	modulate = _resolve_hunger_color(snapshot)
-	text = "%s\ngoal: %s\ntask: %s\nhunger: %.2f | thirst: %.2f\n%s" % [entity_id_text, goal_id_text, task_id_text, hunger, thirst, inventory_text]
+	var sated_threshold: float = clampf(float(snapshot.get("sated_threshold", 0.7)), 0.0, 1.0)
+	var starving_threshold: float = clampf(float(snapshot.get("starving_threshold", 0.25)), 0.0, 1.0)
+	var entity_root: Node = U_ECS_UTILS.find_entity_root(self)
+	if entity_root != null:
+		var needs: C_NeedsComponent = entity_root.get_node_or_null("Components/C_NeedsComponent") as C_NeedsComponent
+		if needs != null:
+			hunger = clampf(needs.hunger, 0.0, 1.0)
+			thirst = clampf(needs.thirst, 0.0, 1.0)
+			if needs.settings != null:
+				sated_threshold = clampf(needs.settings.sated_threshold, 0.0, 1.0)
+				starving_threshold = clampf(needs.settings.starving_threshold, 0.0, 1.0)
+	return {
+		"hunger": hunger,
+		"thirst": thirst,
+		"sated_threshold": sated_threshold,
+		"starving_threshold": starving_threshold,
+	}
 
 func _resolve_inventory_text() -> String:
 	var entity_root: Node = U_ECS_UTILS.find_entity_root(self)

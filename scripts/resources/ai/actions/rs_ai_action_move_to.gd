@@ -17,15 +17,24 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	var resolved_target: Variant = resolution.get("target", null)
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
 	if resolved_target is Vector3:
-		_set_move_target_component_target(context, resolved_target as Vector3, resolved_arrival_threshold)
+		var target_position: Vector3 = resolved_target as Vector3
+		_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
 		task_state[U_AITaskStateKeys.MOVE_TARGET] = resolved_target
 		task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
 		task_state[U_AITaskStateKeys.MOVE_TARGET_RESOLVED] = true
+		print("[ACTION] %s MoveTo → target (%.1f, %.1f, %.1f) source=%s" % [
+			_resolve_entity_label(context),
+			target_position.x,
+			target_position.y,
+			target_position.z,
+			str(resolution.get("source", "")),
+		])
 		return
 	_clear_move_target_component(context)
 	task_state.erase(U_AITaskStateKeys.MOVE_TARGET)
 	task_state.erase(U_AITaskStateKeys.ARRIVAL_THRESHOLD)
 	task_state[U_AITaskStateKeys.MOVE_TARGET_RESOLVED] = false
+	print("[ACTION] %s MoveTo skipped (unresolved target)" % _resolve_entity_label(context))
 
 func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
 	# Skip re-resolution if target was already resolved in start()
@@ -57,6 +66,7 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	var is_arrived: bool = offset_xz.length() <= maxf(arrival_threshold, 0.0)
 	if is_arrived:
 		_clear_move_target_component(context)
+		print("[ACTION] %s MoveTo arrived" % _resolve_entity_label(context))
 	return is_arrived
 
 func _resolve_target_resolution(context: Dictionary) -> Dictionary:
@@ -230,3 +240,9 @@ func _resolve_move_target_component(context: Dictionary) -> Object:
 	if move_target_component_variant == null or not (move_target_component_variant is Object):
 		return null
 	return move_target_component_variant as Object
+
+func _resolve_entity_label(context: Dictionary) -> String:
+	var entity: Node = context.get("entity", null) as Node
+	if entity != null and is_instance_valid(entity):
+		return str(entity.name)
+	return "?"

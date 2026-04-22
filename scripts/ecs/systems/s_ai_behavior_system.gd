@@ -76,7 +76,9 @@ func _process_brain(
 	context: Dictionary,
 	delta: float
 ) -> int:
-	if not _should_evaluate_goals(brain, brain_settings, delta):
+	var should_evaluate: bool = _should_evaluate_goals(brain, brain_settings, delta)
+	var has_running_bt_state: bool = not brain.bt_state_bag.is_empty()
+	if not should_evaluate and not has_running_bt_state:
 		return -1
 	var root: RS_BTNode = brain_settings.root
 	if root == null:

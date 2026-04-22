@@ -7,8 +7,9 @@ const RS_NEEDS_SETTINGS := preload("res://scripts/resources/ecs/rs_needs_setting
 
 @export var drink_seconds: float = 1.5
 
-func start(_context: Dictionary, task_state: Dictionary) -> void:
+func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state[U_AITaskStateKeys.ELAPSED] = 0.0
+	print("[ACTION] %s Drink started (duration=%.2fs)" % [_resolve_entity_label(context), maxf(drink_seconds, 0.0)])
 
 func tick(_context: Dictionary, task_state: Dictionary, delta: float) -> void:
 	var elapsed: float = task_state.get(U_AITaskStateKeys.ELAPSED, 0.0)
@@ -19,6 +20,7 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	if elapsed < maxf(drink_seconds, 0.0):
 		return false
 	_apply_drink(context)
+	print("[ACTION] %s Drink complete after %.2fs" % [_resolve_entity_label(context), elapsed])
 	return true
 
 func _apply_drink(context: Dictionary) -> void:
@@ -42,3 +44,9 @@ func _resolve_needs(context: Dictionary) -> Object:
 		return null
 	var components: Dictionary = components_variant as Dictionary
 	return components.get(C_NEEDS_COMPONENT.COMPONENT_TYPE, null)
+
+func _resolve_entity_label(context: Dictionary) -> String:
+	var entity: Node = context.get("entity", null) as Node
+	if entity != null and is_instance_valid(entity):
+		return str(entity.name)
+	return "?"

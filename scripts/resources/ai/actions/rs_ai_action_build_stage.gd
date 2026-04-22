@@ -6,8 +6,27 @@ const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_si
 const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
 const RS_BUILD_STAGE := preload("res://scripts/resources/ai/world/rs_build_stage.gd")
 
-func start(_context: Dictionary, task_state: Dictionary) -> void:
+func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state[U_AITaskStateKeys.BUILD_ELAPSED] = 0.0
+	var build_site: Object = _resolve_build_site(context)
+	if build_site == null:
+		print("[ACTION] %s BuildStage started (no build site)" % _resolve_entity_label(context))
+		return
+	var stage_id_text: String = ""
+	var required_materials_text: String = "{}"
+	var current_stage_variant: Variant = build_site.call("current_stage")
+	if current_stage_variant is RS_BuildStage:
+		var stage: RS_BuildStage = current_stage_variant as RS_BuildStage
+		stage_id_text = str(stage.stage_id)
+		required_materials_text = str(stage.required_materials)
+	print("[ACTION] %s BuildStage started stage_index=%d stage_id=%s required=%s placed=%s materials_ready=%s" % [
+		_resolve_entity_label(context),
+		int(build_site.get("current_stage_index")),
+		stage_id_text,
+		required_materials_text,
+		str(build_site.get("placed_materials")),
+		str(bool(build_site.get("materials_ready"))),
+	])
 
 func tick(_context: Dictionary, task_state: Dictionary, delta: float) -> void:
 	var elapsed: float = task_state.get(U_AITaskStateKeys.BUILD_ELAPSED, 0.0)
@@ -16,9 +35,11 @@ func tick(_context: Dictionary, task_state: Dictionary, delta: float) -> void:
 func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	var build_site: Object = _resolve_build_site(context)
 	if build_site == null:
+		print("[ACTION] %s BuildStage skipped (no build site)" % _resolve_entity_label(context))
 		return true
 	var current_stage_variant: Variant = build_site.call("current_stage")
 	if current_stage_variant == null:
+		print("[ACTION] %s BuildStage complete (all stages done)" % _resolve_entity_label(context))
 		return true
 	var build_seconds: float = 3.0
 	if current_stage_variant is RS_BuildStage:
@@ -28,6 +49,13 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	if elapsed < maxf(build_seconds, 0.0):
 		return false
 	build_site.call("advance_stage")
+	print("[ACTION] %s BuildStage advanced after %.2fs -> stage_index=%d completed=%s materials_ready=%s" % [
+		_resolve_entity_label(context),
+		elapsed,
+		int(build_site.get("current_stage_index")),
+		str(bool(build_site.get("completed"))),
+		str(bool(build_site.get("materials_ready"))),
+	])
 	return true
 
 func _resolve_build_site(context: Dictionary) -> Object:
@@ -73,3 +101,9 @@ func _find_component_on_entity(entity: Node, component_type: StringName) -> Obje
 		if child.has_method("get_component_type") and child.get_component_type() == component_type:
 			return child
 	return null
+
+func _resolve_entity_label(context: Dictionary) -> String:
+	var entity: Node = context.get("entity", null) as Node
+	if entity != null and is_instance_valid(entity):
+		return str(entity.name)
+	return "?"

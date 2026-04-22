@@ -44,6 +44,37 @@ func required_materials_met() -> bool:
 func refresh_materials_ready() -> void:
 	materials_ready = required_materials_met()
 
+func get_current_stage_missing_materials() -> Dictionary:
+	var missing: Dictionary = {}
+	var stage := current_stage()
+	if stage == null:
+		return missing
+	for material_type_variant in stage.required_materials.keys():
+		var material_type: StringName = StringName(material_type_variant)
+		var required: int = int(stage.required_materials.get(material_type, 0))
+		var placed: int = int(placed_materials.get(material_type, 0))
+		var deficit: int = maxi(required - placed, 0)
+		if deficit > 0:
+			missing[material_type] = deficit
+	return missing
+
+func get_next_missing_material_type() -> StringName:
+	var missing: Dictionary = get_current_stage_missing_materials()
+	if missing.is_empty():
+		return StringName("")
+	var best_type: StringName = StringName("")
+	var best_deficit: int = -1
+	for material_type_variant in missing.keys():
+		var material_type: StringName = StringName(material_type_variant)
+		var deficit: int = int(missing.get(material_type, 0))
+		if deficit > best_deficit:
+			best_deficit = deficit
+			best_type = material_type
+			continue
+		if deficit == best_deficit and String(material_type) < String(best_type):
+			best_type = material_type
+	return best_type
+
 func advance_stage() -> bool:
 	if settings == null or completed:
 		return false

@@ -194,6 +194,12 @@
 - **Tween pause mode is not reliably introspectable in tests**: In this Godot runtime, `Tween.get_pause_mode()` is unavailable and reading `tween.get("pause_mode")` can return `null`. Prefer behavior-focused assertions (for example tween created/valid and expected fade outcome) instead of inspecting tween pause mode internals.
 - **ServiceLocator-only container discovery requires explicit test registrations**: Scene/display/UI code paths that now resolve `hud_layer`, `active_scene_container`, `ui_overlay_stack`, `transition_overlay`, `loading_overlay`, `post_process_overlay`, and `game_viewport` via `U_ServiceLocator` will fail to initialize in test harnesses that only add nodes to the tree. Register these services in `before_each` when constructing lightweight scene scaffolds.
 
+- **Use ServiceLocator registration keys, not class-like names, in tests**: Root service registration uses canonical keys like `scene_manager`, `state_store`, and `camera_manager`. Looking up `M_SceneManager`/`M_StateStore` in smoke or integration tests returns `null` and can silently convert real coverage into skip/failure noise.
+  - **Fix pattern**: read keys from `scripts/root.gd` registration map and use `U_ServiceLocator.try_get_service(&"scene_manager")` (or the matching key) in tests.
+
+- **Detached `Node3D.global_position` access produces engine errors in GUT**: Reading or writing `global_position` before a `Node3D` is inside the scene tree logs `Condition "!is_inside_tree()" is true`.
+  - **Fix pattern**: either add nodes to the tree before touching global transforms, or use local `position` while detached.
+
 - **Standalone touchscreen-settings overlay tests can silently leave gameplay shell**: `UI_TouchscreenSettingsOverlay._close_overlay()` falls back to `set_shell(main_menu, settings_menu)` when `navigation.overlay_stack` is empty. Tests that instantiate the overlay directly (without pushing it on overlay stack) can pass Apply, then unintentionally move out of gameplay before drag-look assertions run.
   - **Fix pattern**: in standalone tests, either (a) seed/push overlay-stack state before Apply so close path pops overlay, or (b) explicitly dispatch `start_game(...)` + touchscreen `device_changed(...)` before sampling touch look input.
 
@@ -1681,3 +1687,11 @@ func test_window_mode_fullscreen() -> void:
 - **Prefab NPC instances inherit placeholder brain settings unless overridden in the scene**: `prefab_demo_npc.tscn` ships with `cfg_ai_brain_placeholder.tres` (empty goals, no default goal). If a gameplay scene instances the prefab and overrides `entity_id`/`tags` but forgets to override `C_AIBrainComponent.brain_settings`, the entity registers with the ECS but has zero goals — it will never plan or move.
   - **Symptom**: NPC is visible and floating but completely stationary; `S_AIBehaviorSystem` finds the entity but `_select_goal()` always returns `null`.
   - **Fix pattern**: when instancing `prefab_demo_npc` in a gameplay scene, always override `brain_settings` on the `C_AIBrainComponent` child to point at the entity-specific brain resource (e.g., `cfg_patrol_drone_brain.tres`).
+
+- **Scene-authored AI roots may not move even when the actor moves**: character prefabs commonly keep the entity root stationary and move the child `CharacterBody3D` (`Player_Body`). Movement-sensitive actions that compare against `entity.global_position` will think the actor or target never arrived, or will consume/chase/flee from stale positions.
+  - **Symptom**: headless scene smoke shows brains ticking, but authored AI loops stall or silently complete without visible movement/progression. In the Woods scene this made Builder gather/haul/build fail even though the `CharacterBody3D` was moving correctly.
+  - **Fix pattern**: use `U_AIActionPositionResolver.resolve_actor_position(context)` and `resolve_entity_position(target_entity)` in movement-sensitive AI actions. The resolver checks explicit `entity_position`, then `C_MovementComponent.get_character_body().global_position`, then the entity root fallback.
+
+- **BT AI actions that scan scene entities need the active ECS manager in context**: scan/reserve/harvest/deposit/build actions resolve authored targets through `context["ecs_manager"]`. If `U_AIContextAssembler` omits it, actions can start and even advance BT sequence state, but target resolution returns null and side effects never happen.
+  - **Symptom**: `RS_AIActionMoveToNearest` completes as if no target was found, `RS_AIActionHarvest` loops with empty inventory/resource changes, and scene smoke fails progression assertions.
+  - **Fix pattern**: keep `U_AIContextAssembler.build_context(...)` injecting the active scene manager via `rule_context.set_extra(&"ecs_manager", manager)` and add focused tests when introducing new scan/target actions.
