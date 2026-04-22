@@ -459,6 +459,43 @@ func test_move_to_detected_tracks_target_body_position() -> void:
 	if target_variant is Vector3:
 		_assert_vector3_almost_eq(target_variant as Vector3, Vector3(6.0, 0.0, 0.0))
 
+func test_move_to_detected_completion_radius_override_allows_feed_range_completion() -> void:
+	var action_script: Script = _load_script(ACTION_MOVE_TO_DETECTED_PATH)
+	if action_script == null:
+		return
+	var action: Resource = action_script.new()
+	action.set("arrival_threshold", 0.2)
+	action.set("completion_radius_override", 1.25)
+	var ecs_manager: MockECSManager = MOCK_ECS_MANAGER.new()
+	autofree(ecs_manager)
+	var actor := Node3D.new()
+	actor.name = "E_Wolf"
+	add_child_autofree(actor)
+	var actor_stack: Dictionary = _add_movement_stack(actor, Vector3.ZERO)
+	var target := Node3D.new()
+	target.name = "E_Rabbit"
+	add_child_autofree(target)
+	target.global_position = Vector3.ZERO
+	_add_movement_stack(target, Vector3(1.0, 0.0, 0.0))
+	ecs_manager.register_entity_id(&"rabbit", target)
+	var detection: C_DetectionComponent = C_DETECTION_COMPONENT.new()
+	detection.last_detected_player_entity_id = &"rabbit"
+	autofree(detection)
+	var move_target_component: Variant = _new_move_target_component()
+	autofree(move_target_component)
+	var context: Dictionary = {
+		"entity": actor,
+		"ecs_manager": ecs_manager,
+		"components": {
+			C_MOVEMENT_COMPONENT.COMPONENT_TYPE: actor_stack.get("movement"),
+			C_DETECTION_COMPONENT.COMPONENT_TYPE: detection,
+			C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE: move_target_component,
+		},
+	}
+	var task_state: Dictionary = {}
+	action.start(context, task_state)
+	assert_true(action.is_complete(context, task_state), "Completion-radius override should allow success at feed range.")
+
 func test_scan_action_completes_after_duration() -> void:
 	var action_script: Script = _load_script(ACTION_SCAN_PATH)
 	if action_script == null:

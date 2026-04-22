@@ -181,11 +181,16 @@ func test_get_debug_snapshot_returns_copy() -> void:
 	var component: BaseECSComponent = component_script.new()
 	autofree(component)
 
-	component.call("update_debug_snapshot", {"goal_id": StringName("patrol")})
+	component.call("update_debug_snapshot", {
+		"goal_id": StringName("patrol"),
+		"task_id": StringName("move_to_detected"),
+	})
 	var snapshot_a: Dictionary = component.call("get_debug_snapshot")
 	var snapshot_b: Dictionary = component.call("get_debug_snapshot")
 	assert_eq(snapshot_a.get("goal_id"), StringName("patrol"), "First snapshot should contain goal_id")
 	assert_eq(snapshot_b.get("goal_id"), StringName("patrol"), "Second snapshot should contain goal_id")
+	assert_eq(snapshot_a.get("task_id"), StringName("move_to_detected"), "First snapshot should contain task_id")
+	assert_eq(snapshot_b.get("task_id"), StringName("move_to_detected"), "Second snapshot should contain task_id")
 	snapshot_a["goal_id"] = StringName("modified")
 	assert_eq(component.call("get_debug_snapshot").get("goal_id"), StringName("patrol"), "Modifying returned snapshot should not affect internal state")
 

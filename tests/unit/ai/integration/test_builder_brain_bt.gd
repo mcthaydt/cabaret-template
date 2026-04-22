@@ -73,7 +73,7 @@ func _make_inventory_component(fill_count: int = 0, capacity: int = 4) -> C_Inve
 			inv.add(&"wood", 1)
 	return inv
 
-func _make_build_site_component(materials_ready: bool = false) -> C_BuildSiteComponent:
+func _make_build_site_component(materials_ready: bool = false, completed: bool = false) -> C_BuildSiteComponent:
 	var site: C_BuildSiteComponent = C_BuildSiteComponent.new()
 	var settings := RS_BUILD_SITE_SETTINGS.new()
 	var stage := RS_BuildStage.new()
@@ -86,6 +86,10 @@ func _make_build_site_component(materials_ready: bool = false) -> C_BuildSiteCom
 	if materials_ready:
 		site.placed_materials = { &"wood": 2 }
 		site.materials_ready = true
+	if completed:
+		site.completed = true
+		site.current_stage_index = site.settings.stages.size()
+		site.materials_ready = false
 	return site
 
 func _build_context(
@@ -215,6 +219,17 @@ func test_builder_full_inventory_beats_gather() -> void:
 	var gather_score: float = _get_branch_score(root, BRANCH_GATHER, context)
 	var haul_score: float = _get_branch_score(root, BRANCH_HAUL, context)
 	assert_true(haul_score > gather_score, "Haul should outscore gather when inventory is full")
+
+func test_builder_completed_site_falls_back_to_wander() -> void:
+	var brain_settings := _load_brain_settings()
+	if brain_settings == null:
+		return
+	var needs := _make_needs_component(1.0)
+	var inventory := _make_inventory_component(4, 4)
+	var build_site := _make_build_site_component(false, true)
+	var context := _build_context(needs, inventory, build_site)
+	var branch := _find_highest_scoring_branch(brain_settings, context)
+	assert_eq(branch, BRANCH_WANDER, "Completed build site should disable gather/haul and fall back to wander.")
 
 func _get_branch_score(root: RS_BTUtilitySelector, index: int, context: Dictionary) -> float:
 	if index < 0 or index >= root.child_scorers.size():

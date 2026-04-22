@@ -8,6 +8,7 @@ const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
 
 @export var arrival_threshold: float = 0.5
+@export var completion_radius_override: float = 0.0
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
 	var detection: C_DetectionComponent = _resolve_detection_component(context)
@@ -59,13 +60,15 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 		float(task_state.get(U_AITaskStateKeys.ARRIVAL_THRESHOLD, arrival_threshold)),
 		0.0
 	)
+	var resolved_completion_radius: float = maxf(completion_radius_override, 0.0)
+	var completion_radius: float = maxf(resolved_arrival_threshold, resolved_completion_radius)
 	var target_position: Vector3 = target_variant as Vector3
 	var current_position: Vector3 = current_position_variant as Vector3
 	var offset_xz: Vector2 = Vector2(
 		target_position.x - current_position.x,
 		target_position.z - current_position.z
 	)
-	var arrived: bool = offset_xz.length() <= resolved_arrival_threshold
+	var arrived: bool = offset_xz.length() <= completion_radius
 	if arrived:
 		_clear_move_target_component(context)
 		task_state[U_AITaskStateKeys.MOVE_TARGET_RESOLVED] = false

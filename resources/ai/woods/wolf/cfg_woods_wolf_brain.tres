@@ -59,6 +59,7 @@ condition = SubResource("Condition_hunger_low")
 [sub_resource type="Resource" id="Action_move_detected_solo_first"]
 script = ExtResource("7_action_move_to_detected")
 arrival_threshold = 0.6
+completion_radius_override = 1.25
 
 [sub_resource type="Resource" id="Node_move_detected_solo_first"]
 script = ExtResource("6_bt_action")
@@ -75,6 +76,7 @@ action = SubResource("Action_wait_hunt_solo_mid")
 [sub_resource type="Resource" id="Action_move_detected_solo_second"]
 script = ExtResource("7_action_move_to_detected")
 arrival_threshold = 0.6
+completion_radius_override = 1.25
 
 [sub_resource type="Resource" id="Node_move_detected_solo_second"]
 script = ExtResource("6_bt_action")
@@ -83,6 +85,7 @@ action = SubResource("Action_move_detected_solo_second")
 [sub_resource type="Resource" id="Action_hunt_solo_feed"]
 script = ExtResource("9_action_feed")
 consume_detected_target = true
+consume_radius = 1.25
 
 [sub_resource type="Resource" id="Node_hunt_solo_feed"]
 script = ExtResource("6_bt_action")

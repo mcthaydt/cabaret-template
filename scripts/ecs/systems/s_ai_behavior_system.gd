@@ -12,6 +12,7 @@ const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_AI_RENDER_PROBE := preload("res://scripts/utils/debug/u_ai_render_probe.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 const U_AI_CONTEXT_ASSEMBLER := preload("res://scripts/utils/ai/u_ai_context_assembler.gd")
+const U_AI_BT_TASK_LABEL_RESOLVER := preload("res://scripts/utils/ai/u_ai_bt_task_label_resolver.gd")
 
 const MOBILE_EVALUATION_INTERVAL_MULTIPLIER: float = 2.0
 const BRAIN_COMPONENT_TYPE := C_AIBrainComponent.COMPONENT_TYPE
@@ -66,7 +67,7 @@ func process_tick(delta: float) -> void:
 		context[&"delta"] = maxf(delta, 0.0)
 		context[&"time"] = current_time
 		var status: int = _process_brain(brain, brain_settings, context, delta)
-		var snapshot: Dictionary = _build_debug_snapshot(brain, context, status)
+		var snapshot: Dictionary = _build_debug_snapshot(brain, brain_settings, context, status)
 		brain.update_debug_snapshot(snapshot)
 		_debug_log_brain_state(context, snapshot)
 
@@ -110,6 +111,7 @@ func _should_evaluate_goals(
 
 func _build_debug_snapshot(
 	brain: C_AIBrainComponent,
+	brain_settings: RS_AIBrainSettings,
 	context: Dictionary,
 	status: int
 ) -> Dictionary:
@@ -124,6 +126,7 @@ func _build_debug_snapshot(
 	return {
 		&"entity_id": entity_id,
 		&"goal_id": brain.get_active_goal_id(),
+		&"task_id": U_AI_BT_TASK_LABEL_RESOLVER.resolve_task_id(brain_settings, brain.bt_state_bag),
 		&"active_path": _build_active_path(brain),
 		&"bt_status": status,
 		&"bt_state_keys": brain.bt_state_bag.size(),

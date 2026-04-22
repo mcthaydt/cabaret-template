@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://drlgrcjveyq6e" path="res://scripts/ecs/components/c_build_site_component.gd" id="1_build_site"]
 [ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_build_site_house.tres" id="2_build_settings"]
+[ext_resource type="PackedScene" path="res://scenes/debug/debug_woods_build_site_label.tscn" id="3_debug_label"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_foundation"]
 shading_mode = 0
@@ -60,3 +61,5 @@ shape = SubResource("BoxShape3D_collision")
 [node name="C_BuildSiteComponent" type="Node" parent="." unique_id=1850411579]
 script = ExtResource("1_build_site")
 settings = ExtResource("2_build_settings")
+
+[node name="DebugWoodsBuildSiteLabel" parent="." instance=ExtResource("3_debug_label")]

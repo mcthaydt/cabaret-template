@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/debug/debug_woods_build_site_label.gd" id="1_script"]
+
+[node name="DebugWoodsBuildSiteLabel" type="Label3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4, 0)
+billboard = 1
+modulate = Color(0.913725, 0.980392, 1, 1)
+text = "house: building\nstage: 1/4 (foundation)\nmissing: wood:2"
+outline_size = 8
+script = ExtResource("1_script")

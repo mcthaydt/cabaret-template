@@ -15,6 +15,8 @@
 [ext_resource type="Script" uid="uid://ba540sje5xn2r" path="res://scripts/resources/ai/actions/rs_ai_action_drink.gd" id="13_action_drink"]
 [ext_resource type="Script" uid="uid://c5ywm687aat4v" path="res://scripts/resources/ai/actions/rs_ai_action_reserve.gd" id="14_action_reserve"]
 [ext_resource type="Script" uid="uid://dk8ymaia4fhq2" path="res://scripts/resources/ai/actions/rs_ai_action_move_to_nearest.gd" id="15_action_move_to_nearest"]
+[ext_resource type="Script" uid="uid://kwfegjglry4c" path="res://scripts/resources/qb/conditions/rs_condition_composite.gd" id="16_condition_composite"]
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="17_i_condition"]
 
 [sub_resource type="Resource" id="Condition_thirst_low"]
 script = ExtResource("8_condition_component_field")
@@ -34,9 +36,19 @@ component_type = &"C_InventoryComponent"
 field_path = "fill_ratio"
 invert = true
 
+[sub_resource type="Resource" id="Condition_build_not_completed"]
+script = ExtResource("8_condition_component_field")
+component_type = &"C_BuildSiteComponent"
+field_path = "completed"
+invert = true
+
+[sub_resource type="Resource" id="Condition_gather_gate"]
+script = ExtResource("16_condition_composite")
+children = Array[ExtResource("17_i_condition")]([SubResource("Condition_inventory_not_full"), SubResource("Condition_build_not_completed")])
+
 [sub_resource type="Resource" id="Scorer_gather_wood"]
 script = ExtResource("6_ai_scorer_condition")
-condition = SubResource("Condition_inventory_not_full")
+condition = SubResource("Condition_gather_gate")
 if_true = 3.0
 
 [sub_resource type="Resource" id="Condition_inventory_has_items"]
@@ -44,9 +56,13 @@ script = ExtResource("8_condition_component_field")
 component_type = &"C_InventoryComponent"
 field_path = "fill_ratio"
 
+[sub_resource type="Resource" id="Condition_haul_gate"]
+script = ExtResource("16_condition_composite")
+children = Array[ExtResource("17_i_condition")]([SubResource("Condition_inventory_has_items"), SubResource("Condition_build_not_completed")])
+
 [sub_resource type="Resource" id="Scorer_haul_deposit"]
 script = ExtResource("6_ai_scorer_condition")
-condition = SubResource("Condition_inventory_has_items")
+condition = SubResource("Condition_haul_gate")
 if_true = 4.0
 
 [sub_resource type="Resource" id="Condition_build_materials_ready"]

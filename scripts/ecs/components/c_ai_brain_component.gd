@@ -4,6 +4,8 @@ class_name C_AIBrainComponent
 
 const COMPONENT_TYPE := StringName("C_AIBrainComponent")
 const SNAPSHOT_KEY_ENTITY_ID := &"entity_id"
+const SNAPSHOT_KEY_GOAL_ID := &"goal_id"
+const SNAPSHOT_KEY_TASK_ID := &"task_id"
 const SNAPSHOT_KEY_ACTIVE_PATH := &"active_path"
 const SNAPSHOT_KEY_BT_STATE_KEYS := &"bt_state_keys"
 const SNAPSHOT_KEY_LAST_PLAN := &"last_plan"
@@ -38,6 +40,12 @@ func get_debug_snapshot() -> Dictionary:
 	var entity_id_variant: Variant = _debug_snapshot.get(SNAPSHOT_KEY_ENTITY_ID, StringName())
 	if entity_id_variant is StringName or entity_id_variant is String:
 		snapshot[SNAPSHOT_KEY_ENTITY_ID] = entity_id_variant
+	var goal_id_variant: Variant = _debug_snapshot.get(SNAPSHOT_KEY_GOAL_ID, StringName())
+	if goal_id_variant is StringName or goal_id_variant is String:
+		snapshot[SNAPSHOT_KEY_GOAL_ID] = goal_id_variant
+	var task_id_variant: Variant = _debug_snapshot.get(SNAPSHOT_KEY_TASK_ID, StringName())
+	if task_id_variant is StringName or task_id_variant is String:
+		snapshot[SNAPSHOT_KEY_TASK_ID] = task_id_variant
 	snapshot[SNAPSHOT_KEY_ACTIVE_PATH] = _coerce_active_path(_debug_snapshot.get(SNAPSHOT_KEY_ACTIVE_PATH, []))
 	snapshot[SNAPSHOT_KEY_BT_STATE_KEYS] = bt_state_bag.size()
 	_append_planner_debug(snapshot)
