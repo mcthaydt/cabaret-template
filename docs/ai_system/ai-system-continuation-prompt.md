@@ -10,6 +10,32 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 ---
 
+## Latest Update (2026-04-22): Woods AI Fix Pack
+
+- Woods debug labels now refresh continuously and include runtime task labels:
+  - `scripts/debug/debug_woods_agent_label.gd`
+  - `scripts/ecs/components/c_ai_brain_component.gd`
+  - `scripts/ecs/systems/s_ai_behavior_system.gd`
+- Wolf chase/feed reliability tuned for consume-range completion:
+  - `scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd` now supports `completion_radius_override`.
+  - `resources/ai/woods/wolf/cfg_woods_wolf_brain.tres` updated to use a `1.25` consume-aligned completion radius.
+- Builder loop prevention after completed house:
+  - `resources/ai/woods/builder/cfg_builder_brain.tres` gather/haul scorers now gate on `build_not_completed`.
+- In-world house progress observability added:
+  - `scripts/debug/debug_woods_build_site_label.gd`
+  - `scenes/debug/debug_woods_build_site_label.tscn`
+  - `scenes/prefabs/prefab_woods_construction_site.tscn` instances the label.
+- Test updates for this pack:
+  - `tests/unit/ecs/components/test_c_ai_brain_component.gd`
+  - `tests/unit/ai/actions/test_ai_actions_movement.gd`
+  - `tests/unit/ai/integration/test_builder_brain_bt.gd`
+  - `tests/unit/debug/test_debug_woods_build_site_label.gd` (new)
+- Verification status:
+  - All four targeted suites above pass.
+  - `tests/unit/style/test_style_enforcement.gd` now only fails a known pre-existing unrelated check: `test_no_crt_identifiers_in_display_scripts` (12 CRT identifier references in display/state scripts).
+
+---
+
 ## Current Status: Milestone 15 + Refactor R1-R10 Complete
 
 - Overview: `docs/ai_system/ai-system-overview.md` — system architecture, goals, non-goals, resource definitions, demo integration.

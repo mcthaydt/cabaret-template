@@ -7,6 +7,33 @@
 
 ---
 
+## Latest Update: Woods AI Fix Pack (2026-04-22)
+
+- [x] Fixed stale woods debug agent labels:
+  - `scripts/debug/debug_woods_agent_label.gd` now updates follow + text every frame.
+  - `scripts/ecs/components/c_ai_brain_component.gd` now preserves `goal_id` and `task_id` in debug snapshots.
+  - `scripts/ecs/systems/s_ai_behavior_system.gd` now derives runtime `task_id` from running `RS_BTAction` state.
+- [x] Improved wolf consume reliability:
+  - Added `completion_radius_override` to `RS_AIActionMoveToDetected`.
+  - Updated `resources/ai/woods/wolf/cfg_woods_wolf_brain.tres` chase/feed tuning for consume-range completion (`1.25`).
+- [x] Prevented builder post-completion gather/haul loops and added in-world house progress label:
+  - Updated `resources/ai/woods/builder/cfg_builder_brain.tres` with `build_not_completed` gate for gather/haul scorers.
+  - Added `scripts/debug/debug_woods_build_site_label.gd` and `scenes/debug/debug_woods_build_site_label.tscn`.
+  - Instanced label in `scenes/prefabs/prefab_woods_construction_site.tscn`.
+- [x] Added/updated tests for this pack:
+  - `tests/unit/ecs/components/test_c_ai_brain_component.gd`
+  - `tests/unit/ai/actions/test_ai_actions_movement.gd`
+  - `tests/unit/ai/integration/test_builder_brain_bt.gd`
+  - `tests/unit/debug/test_debug_woods_build_site_label.gd` (new)
+- [x] Verification for this update:
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd -gexit` → pass (`9/9`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd -gexit` → pass (`19/19`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_builder_brain_bt.gd -gexit` → pass (`11/11`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/debug/test_debug_woods_build_site_label.gd -gexit` → pass (`2/2`)
+  - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit` → **known pre-existing unrelated failure** (`test_no_crt_identifiers_in_display_scripts`, 12 CRT references in display/state scripts).
+
+---
+
 ## Milestone 1: Task Resource Skeleton + I_AIAction Interface
 
 **Goal**: Create RS_AITask base class, RS_AIPrimitiveTask (holds typed action via I_AIAction), RS_AICompoundTask, and the I_AIAction interface.
