@@ -762,9 +762,15 @@ Completed 2026-04-23. This milestone reshaped the docs tree before AGENTS/DEV_PI
   - 44 DEV_PITFALLS sections + 19 AGENTS sections mapped to destinations with actions (move/merge/collapse/drop).
   - 16 new destination files identified; 13 existing files receive content; 29-commit migration sequence documented.
 
-## Milestone P3.2: Target Structure (Proposed — Adjust in P3.1)
+## Milestone P3.2: Target Structure
 
-Assumes P3.0 landed. Final layout:
+- [x] **Commit 1** — Confirmed target structure for P3.3 migration.
+  - `docs_inventory.md` is the authoritative source for destination ownership and commit sequence.
+  - Existing tracked pitfall files under `docs/guides/pitfalls/` are retained and filled out by P3.3 instead of recreated.
+  - Cross-cutting architecture files stay directly under `docs/architecture/`; `docs/architecture/extensions/` is introduced later by P3.5.
+  - `AGENTS.md` remains the repo-root routing index and must stay under 150 lines after P3.3.
+
+Final layout:
 
 ```
 docs/
@@ -772,8 +778,8 @@ docs/
 ├── architecture/
 │   ├── adr/                     # decision records (numeric NNNN-*.md)
 │   ├── extensions/              # "how to add a feature" recipes (P3.5)
-│   ├── systems/                 # cross-cutting (dependency_graph, ecs_state_contract)
-│   └── ...
+│   ├── dependency_graph.md      # cross-cutting architecture map
+│   └── ecs_state_contract.md    # cross-cutting ECS/state contract
 ├── guides/                      # evergreen developer-facing docs (was docs/guides/)
 │   ├── STYLE_GUIDE.md
 │   ├── SCENE_ORGANIZATION_GUIDE.md
@@ -781,7 +787,9 @@ docs/
 │   ├── TESTING.md               # TDD workflow, BaseTest, GUT commands (from AGENTS.md)
 │   ├── COMMIT_WORKFLOW.md       # RED/GREEN discipline, commit message style (from AGENTS.md)
 │   └── pitfalls/
+│       ├── GODOT_ENGINE.md      # from DEV_PITFALLS.md
 │       ├── GDSCRIPT_4_6.md      # from DEV_PITFALLS.md
+│       ├── TESTING.md           # from DEV_PITFALLS.md test pitfalls
 │       ├── MOBILE.md            # from DEV_PITFALLS.md patterns
 │       ├── ECS.md
 │       └── STATE.md
@@ -796,6 +804,12 @@ docs/
 ```
 
 Root `AGENTS.md` stays at repo root as the thin routing entry point.
+
+**P3.2 Completion Notes (2026-04-23)**:
+- Confirmed the P3.2 target structure against the current docs tree and P3.1 inventory.
+- Adjusted the proposed layout to match existing tracked files: `docs/guides/pitfalls/GODOT_ENGINE.md`, `GDSCRIPT_4_6.md`, `ECS.md`, `STATE.md`, and `MOBILE.md` already exist; P3.3 will continue filling/moving content and add only the missing destinations listed in `docs_inventory.md`.
+- Kept architecture cross-cutting files directly under `docs/architecture/` instead of introducing an extra `docs/architecture/systems/` bucket.
+- Verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`83/83`).
 
 ## Milestone P3.3: Migration
 
