@@ -785,6 +785,20 @@ func test_scene_director_manager_has_no_bare_print_calls() -> void:
 		"m_scene_director_manager.gd must not contain bare print() calls; route diagnostics through verbose helpers"
 	)
 
+func test_vcam_collision_detector_has_no_bare_print_calls() -> void:
+	var collision_detector_path := "res://scripts/managers/helpers/u_vcam_collision_detector.gd"
+	var file := FileAccess.open(collision_detector_path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % collision_detector_path)
+	if file == null:
+		return
+	var text: String = file.get_as_text()
+	file.close()
+
+	assert_false(
+		text.find("print(") != -1,
+		"u_vcam_collision_detector.gd must not contain bare print() calls; route debug output through verbose/throttled helpers"
+	)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var context_builders: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
