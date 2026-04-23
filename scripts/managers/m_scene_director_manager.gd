@@ -123,7 +123,7 @@ func _start_directive(directive: Resource) -> void:
 
 	var graph_report: Dictionary = U_BEAT_GRAPH.validate(beats)
 	if not bool(graph_report.get("valid", false)):
-		print(
+		print_verbose(
 			"M_SceneDirectorManager: Invalid beat graph for directive '%s': %s"
 			% [str(directive_id), str(graph_report.get("errors", []))]
 		)
@@ -364,4 +364,3 @@ func _check_conditions(conditions: Array[Resource], context: Dictionary) -> bool
 
 func _get_directive_id(directive: Resource) -> StringName:
 	return U_ResourceAccessHelpers.to_string_name(U_ResourceAccessHelpers.resource_get(directive, "directive_id", StringName("")))
-
