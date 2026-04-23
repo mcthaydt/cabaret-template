@@ -7,6 +7,7 @@ class_name U_VCamLookSpring
 
 const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
 const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
 const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0
@@ -16,6 +17,7 @@ const ORBIT_RELEASE_SIGN_FLIP_SETTLE_ERROR_DEG: float = 0.25
 var debug_enabled: bool = false
 var _look_rotation_state: Dictionary = {}  # StringName -> {smoothed_yaw, smoothed_pitch, yaw_velocity, pitch_velocity, mode_script, follow_target_id, response_signature, input_active}
 var _debug_last_look_spring_stage_by_vcam: Dictionary = {}  # StringName -> String
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 
 
 func resolve_runtime_rotation_for_evaluation(
@@ -388,7 +390,7 @@ func _debug_log_look_spring_stage_transition(
 	if previous_stage == stage:
 		return
 	_debug_last_look_spring_stage_by_vcam[vcam_id] = stage
-	print(
+	_debug_log_throttle.log_message(
 		"U_VCamLookSpring[debug] look_spring_stage: vcam_id=%s stage=%s prev=%s active_input=%s"
 		% [
 			String(vcam_id),

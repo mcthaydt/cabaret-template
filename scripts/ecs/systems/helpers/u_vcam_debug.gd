@@ -3,6 +3,7 @@ class_name U_VCamDebug
 
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 const MAX_DEBUG_ISSUES: int = 64
 const MIN_LOG_INTERVAL_SEC: float = 0.05
@@ -19,6 +20,7 @@ var _debug_look_ahead_motion_state: Dictionary = {}  # StringName -> bool
 var _debug_soft_zone_status: Dictionary = {}  # StringName -> String
 var _debug_landing_offset_status: int = -1  # -1 unknown, 0 inactive, 1 active
 var _debug_last_look_input_by_vcam: Dictionary = {}  # StringName -> Vector2
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 
 func configure(enabled: bool, log_interval_sec: float) -> void:
 	_enabled = enabled
@@ -40,7 +42,7 @@ func report_issue(message: String) -> void:
 	if _debug_issues.size() >= MAX_DEBUG_ISSUES:
 		_debug_issues.remove_at(0)
 	_debug_issues.append(message)
-	print_verbose("S_VCamSystem: %s" % message)
+	_log_debug("S_VCamSystem: %s" % message)
 
 func prune(active_vcam_ids: Array) -> void:
 	_prune_debug_dictionary(_debug_follow_target_ids, active_vcam_ids)
@@ -80,7 +82,7 @@ func log_follow_target_resolution(
 	var configured_path: String = String(component.get("follow_target_path") if component != null else NodePath(""))
 	var fallback_entity_id: String = String(component.get("follow_target_entity_id") if component != null else StringName(""))
 	var fallback_tag: String = String(component.get("follow_target_tag") if component != null else StringName(""))
-	print(
+	_log_debug(
 		"S_VCamSystem[debug] follow_target: vcam_id=%s configured_path=%s fallback_entity_id=%s fallback_tag=%s resolved_path=%s resolved_id=%d"
 		% [
 			String(vcam_id),
@@ -124,7 +126,7 @@ func log_look_ahead_motion_state(
 					if velocity_variant is Vector3:
 						gameplay_velocity = velocity_variant as Vector3
 
-	print(
+	_log_debug(
 		"S_VCamSystem[debug] look_ahead_motion: vcam_id=%s is_moving=%s movement_speed=%.5f desired_offset_len=%.5f gameplay_entity_id=%s gameplay_is_moving=%s gameplay_velocity=%s"
 		% [
 			String(vcam_id),
@@ -145,7 +147,7 @@ func log_soft_zone_status(vcam_id: StringName, status: String, correction: Vecto
 		return
 	_debug_soft_zone_status[vcam_id] = status
 
-	print(
+	_log_debug(
 		"S_VCamSystem[debug] soft_zone: vcam_id=%s status=%s correction_len=%.5f correction=%s"
 		% [
 			String(vcam_id),
@@ -185,12 +187,12 @@ func log_look_input_transition(vcam_id: StringName, look_input: Vector2) -> void
 	var currently_active: bool = not look_input.is_zero_approx()
 
 	if previously_active and not currently_active:
-		print(
+		_log_debug(
 			"S_VCamSystem[debug] look_input_stop: vcam_id=%s previous=%s prev_len=%.5f"
 			% [String(vcam_id), str(previous_input), previous_input.length()]
 		)
 	elif not previously_active and currently_active:
-		print(
+		_log_debug(
 			"S_VCamSystem[debug] look_input_start: vcam_id=%s current=%s len=%.5f"
 			% [String(vcam_id), str(look_input), look_input.length()]
 		)
@@ -223,7 +225,7 @@ func log_position_smoothing_gate_transition(
 		if cached_variant is Vector3:
 			cached_position = cached_variant as Vector3
 	var mode_label: String = _get_debug_mode_label(mode_script)
-	print(
+	_log_debug(
 		"S_VCamSystem[debug] smoothing_gate: vcam_id=%s mode=%s active_input=%s bypass=%s->%s speed=%.4f thresholds=(%.4f,%.4f) raw_pos=%s cached_pos=%s offset_len=%.5f"
 		% [
 			String(vcam_id),
@@ -247,7 +249,7 @@ func log_landing_offset_state(landing_offset: Vector3) -> void:
 	if _debug_landing_offset_status == status:
 		return
 	_debug_landing_offset_status = status
-	print(
+	_log_debug(
 		"S_VCamSystem[debug] landing_offset: status=%s offset_len=%.5f offset=%s"
 		% [
 			"active" if status == 1 else "inactive",
@@ -262,7 +264,7 @@ func log_rotation(vcam_id: StringName, message: String) -> void:
 	if _rotation_log_cooldown_sec > 0.0:
 		return
 	_rotation_log_cooldown_sec = _log_interval_sec
-	print("S_VCamSystem[debug] %s: %s" % [str(vcam_id), message])
+	_log_debug("S_VCamSystem[debug] %s: %s" % [str(vcam_id), message])
 
 func log_vcam_state(message: String, active_vcam_id: StringName, look_input: Vector2) -> void:
 	if not _enabled:
@@ -270,7 +272,7 @@ func log_vcam_state(message: String, active_vcam_id: StringName, look_input: Vec
 	if _state_log_cooldown_sec > 0.0:
 		return
 	_state_log_cooldown_sec = _log_interval_sec
-	print(
+	_log_debug(
 		"S_VCamSystem[debug] state: %s active_vcam_id=%s look_input=%s"
 		% [message, str(active_vcam_id), str(look_input)]
 	)
@@ -313,3 +315,6 @@ func _get_debug_mode_label(mode_script: Script) -> String:
 	if not resource_path.is_empty():
 		return resource_path.get_file().get_basename()
 	return "<anonymous>"
+
+func _log_debug(message: String) -> void:
+	_debug_log_throttle.log_message(message)

@@ -1,5 +1,6 @@
 extends RefCounted
 class_name U_VCamLookInput
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 const DEFAULT_LOOK_INPUT_DEADZONE: float = 0.02
 const DEFAULT_LOOK_INPUT_HOLD_SEC: float = 0.06
@@ -7,6 +8,7 @@ const DEFAULT_LOOK_INPUT_RELEASE_DECAY: float = 25.0
 
 var debug_enabled: bool = false
 var _look_input_filter_state: Dictionary = {}  # StringName -> {filtered_input, hold_timer_sec, input_active, raw_input_active}
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 
 func filter_look_input(
 	vcam_id: StringName,
@@ -158,7 +160,7 @@ func _debug_log_look_filter_state_transition(
 	if not raw_changed and not filtered_changed and not release_tail_active:
 		return
 
-	print(
+	_debug_log_throttle.log_message(
 		"U_VCamLookInput[debug] look_filter: vcam_id=%s raw=%s raw_active=%s filtered=%s prev_filtered=%s filtered_active=%s->%s hold_timer=%.4f deadzone=%.4f hold=%.4f decay=%.4f"
 		% [
 			String(vcam_id),
