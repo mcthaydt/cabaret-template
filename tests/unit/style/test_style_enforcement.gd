@@ -743,6 +743,20 @@ func test_vcam_manager_has_no_bare_print_calls() -> void:
 		"m_vcam_manager.gd must not contain bare print() calls; route through throttled/verbose debug helpers"
 	)
 
+func test_run_coordinator_manager_has_no_bare_print_calls() -> void:
+	var run_coordinator_path := "res://scripts/managers/m_run_coordinator_manager.gd"
+	var file := FileAccess.open(run_coordinator_path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % run_coordinator_path)
+	if file == null:
+		return
+	var text: String = file.get_as_text()
+	file.close()
+
+	assert_false(
+		text.find("print(") != -1,
+		"m_run_coordinator_manager.gd must not contain bare print() calls; route warnings through push_warning()"
+	)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var context_builders: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
