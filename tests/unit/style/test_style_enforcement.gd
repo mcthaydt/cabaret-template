@@ -877,6 +877,24 @@ func test_rotate_to_input_system_has_no_direct_print_calls() -> void:
 		"s_rotate_to_input_system.gd"
 	)
 
+func test_vcam_debug_helper_has_no_direct_print_calls() -> void:
+	_assert_file_has_no_direct_print_calls(
+		"res://scripts/ecs/systems/helpers/u_vcam_debug.gd",
+		"u_vcam_debug.gd"
+	)
+
+func test_vcam_look_input_helper_has_no_direct_print_calls() -> void:
+	_assert_file_has_no_direct_print_calls(
+		"res://scripts/ecs/systems/helpers/u_vcam_look_input.gd",
+		"u_vcam_look_input.gd"
+	)
+
+func test_vcam_look_spring_helper_has_no_direct_print_calls() -> void:
+	_assert_file_has_no_direct_print_calls(
+		"res://scripts/ecs/systems/helpers/u_vcam_look_spring.gd",
+		"u_vcam_look_spring.gd"
+	)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var context_builders: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
