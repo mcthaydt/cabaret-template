@@ -841,6 +841,42 @@ func test_gravity_system_has_no_bare_print_calls() -> void:
 		"s_gravity_system.gd must not contain bare print() calls; route debug output through print_verbose()/shared debug helpers"
 	)
 
+func test_detection_system_has_no_direct_print_calls() -> void:
+	_assert_file_has_no_direct_print_calls(
+		"res://scripts/ecs/systems/s_ai_detection_system.gd",
+		"s_ai_detection_system.gd"
+	)
+
+func test_floating_system_has_no_direct_print_calls() -> void:
+	_assert_file_has_no_direct_print_calls(
+		"res://scripts/ecs/systems/s_floating_system.gd",
+		"s_floating_system.gd"
+	)
+
+func test_input_system_has_no_direct_print_calls() -> void:
+	_assert_file_has_no_direct_print_calls(
+		"res://scripts/ecs/systems/s_input_system.gd",
+		"s_input_system.gd"
+	)
+
+func test_move_target_follower_system_has_no_direct_print_calls() -> void:
+	_assert_file_has_no_direct_print_calls(
+		"res://scripts/ecs/systems/s_move_target_follower_system.gd",
+		"s_move_target_follower_system.gd"
+	)
+
+func test_movement_system_has_no_direct_print_calls() -> void:
+	_assert_file_has_no_direct_print_calls(
+		"res://scripts/ecs/systems/s_movement_system.gd",
+		"s_movement_system.gd"
+	)
+
+func test_rotate_to_input_system_has_no_direct_print_calls() -> void:
+	_assert_file_has_no_direct_print_calls(
+		"res://scripts/ecs/systems/s_rotate_to_input_system.gd",
+		"s_rotate_to_input_system.gd"
+	)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var context_builders: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
@@ -874,6 +910,23 @@ func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
+
+func _assert_file_has_no_direct_print_calls(path: String, label: String) -> void:
+	var file := FileAccess.open(path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % path)
+	if file == null:
+		return
+	var text: String = file.get_as_text()
+	file.close()
+
+	assert_false(
+		text.find("print(") != -1,
+		"%s must not contain bare print() calls; route debug output through U_DebugLogThrottle/shared helpers" % label
+	)
+	assert_false(
+		text.find("print_verbose(") != -1,
+		"%s must not call print_verbose() directly; route debug output through U_DebugLogThrottle/shared helpers" % label
+	)
 
 func test_rule_systems_and_helpers_do_not_duplicate_property_readers() -> void:
 	var affected_files: Array[String] = [
