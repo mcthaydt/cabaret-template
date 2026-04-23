@@ -827,6 +827,20 @@ func test_spawn_recovery_system_has_no_bare_print_calls() -> void:
 		"s_spawn_recovery_system.gd must not contain bare print() calls; route debug output through print_verbose()/shared debug helpers"
 	)
 
+func test_gravity_system_has_no_bare_print_calls() -> void:
+	var gravity_system_path := "res://scripts/ecs/systems/s_gravity_system.gd"
+	var file := FileAccess.open(gravity_system_path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % gravity_system_path)
+	if file == null:
+		return
+	var text: String = file.get_as_text()
+	file.close()
+
+	assert_false(
+		text.find("print(") != -1,
+		"s_gravity_system.gd must not contain bare print() calls; route debug output through print_verbose()/shared debug helpers"
+	)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var context_builders: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
