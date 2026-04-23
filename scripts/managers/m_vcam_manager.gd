@@ -880,7 +880,7 @@ func _collect_occluder_paths(occluders: Array) -> Array[String]:
 func _debug_log_occlusion(enabled: bool, message: String) -> void:
 	if not enabled:
 		return
-	print("[VCAM_OCCLUSION][VCamManager] %s" % message)
+	print_verbose("[VCAM_OCCLUSION][VCamManager] %s" % message)
 
 func _report_issue(message: String) -> void:
 	print_verbose("M_VCamManager: %s" % message)
