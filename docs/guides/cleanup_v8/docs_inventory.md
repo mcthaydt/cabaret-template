@@ -60,21 +60,21 @@ Source: `docs/guides/DEV_PITFALLS.md` (~1 703 lines, 40+ sections)
 | 3 | Godot Script Class Cache | 37–43 | 7 | move | `docs/guides/pitfalls/GODOT_ENGINE.md` (New) | — |
 | 4 | Godot UI Pitfalls | 44–108 | 65 | move | `docs/guides/pitfalls/GODOT_ENGINE.md` (New) | — |
 | 5 | Godot Audio Pitfalls | 109–126 | 18 | move | `docs/guides/pitfalls/GODOT_ENGINE.md` (New) | — |
-| 6 | Room Fade System Pitfalls | 127–134 | 8 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
+| 6 | Room Fade System Pitfalls | 127–134 | 8 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
 | 7 | GDScript Typing Pitfalls | 135–174 | 40 | move | `docs/guides/pitfalls/GDSCRIPT_4_6.md` (New) | — |
 | 8 | Asset Import Pitfalls (Headless Tests) | 175–180 | 6 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 9 | Test Execution Pitfalls | 181–205 | 25 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 10 | Scene Director Pitfalls | 206–209 | 4 | merge | `docs/systems/scene_director/scene-director-overview.md` (Existing) | — |
 | 11 | AI System Pitfalls (first) | 210–222 | 13 | merge | `docs/systems/ai_system/ai-system-overview.md` (Existing) | — |
 | 12 | QB Rule Engine v2 Pitfalls | 223–230 | 8 | merge | `docs/systems/qb_rule_manager/qb-v2-overview.md` (Existing) | — |
-| 13 | QB Camera Rule Pitfalls | 231–243 | 13 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
-| 14 | vCam Scene Wiring Pitfalls | 244–250 | 7 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
-| 15 | vCam Orbit Evaluator Pitfalls | 251–255 | 5 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
-| 16 | vCam Orbit Feel Pitfalls | 256–296 | 41 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
-| 17 | vCam Soft-Zone Pitfalls | 297–304 | 8 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
-| 18 | vCam OTS Evaluator Pitfalls | 305–311 | 7 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
-| 19 | vCam OTS Collision Pitfalls | 312–316 | 5 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
-| 20 | vCam Fixed Evaluator Pitfalls | 317–323 | 7 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
+| 13 | QB Camera Rule Pitfalls | 231–243 | 13 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
+| 14 | vCam Scene Wiring Pitfalls | 244–250 | 7 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
+| 15 | vCam Orbit Evaluator Pitfalls | 251–255 | 5 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
+| 16 | vCam Orbit Feel Pitfalls | 256–296 | 41 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
+| 17 | vCam Soft-Zone Pitfalls | 297–304 | 8 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
+| 18 | vCam OTS Evaluator Pitfalls | 305–311 | 7 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
+| 19 | vCam OTS Collision Pitfalls | 312–316 | 5 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
+| 20 | vCam Fixed Evaluator Pitfalls | 317–323 | 7 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
 | 21 | Character Lighting Pitfalls | 324–329 | 6 | move | `docs/systems/lighting_manager/lighting-pitfalls.md` (New) | — |
 | 22 | UI Navigation Pitfalls (Gamepad/Joystick) | 330–486 | 157 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
 | 23 | State Store Pitfalls | 487–506 | 20 | move | `docs/guides/pitfalls/STATE.md` (New) | — |
@@ -90,7 +90,7 @@ Source: `docs/guides/DEV_PITFALLS.md` (~1 703 lines, 40+ sections)
 | 33 | Documentation and Planning Pitfalls | 802–816 | 15 | drop | Content fully covered by AGENTS.md "Start Here" workflow rules and CLAUDE.md | — |
 | 34 | Scene Manager Pitfalls (Phase 2+) incl. Phase 10 sub-section | 817–1 036 | 220 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | — |
 | 35 | Input System Pitfalls | 1 037–1 085 | 49 | merge | `docs/systems/input_manager/input-manager-overview.md` (New) | — |
-| 36 | vCam Integration Pitfalls | 1 086–1 116 | 31 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
+| 36 | vCam Integration Pitfalls | 1 086–1 116 | 31 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
 | 37 | UI Manager / Input Manager Boundary | 1 117–1 277 | 161 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
 | 38 | UI Navigation Pitfalls (second instance) | 1 278–1 351 | 74 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
 | 39 | Test Coverage Status | 1 352–1 403 | 52 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
