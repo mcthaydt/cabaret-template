@@ -7,9 +7,11 @@ class_name S_VictoryHandlerSystem
 @export var state_store: I_StateStore = null
 @export var game_config: RS_GameConfig = null
 const DEBUG_VICTORY_TRACE := false
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 var _store: I_StateStore = null
 var _event_unsubscribes: Array[Callable] = []
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 
 func _init() -> void:
 	execution_priority = 300
@@ -26,7 +28,7 @@ func process_tick(__delta: float) -> void:
 func _debug_log(message: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
 		return
-	print_verbose("[VictoryDebug][S_VictoryHandlerSystem] %s" % message)
+	_debug_log_throttle.log_message("[VictoryDebug][S_VictoryHandlerSystem] %s" % message)
 
 func _debug_gameplay_slice(label: String) -> void:
 	if not DEBUG_VICTORY_TRACE:

@@ -8,6 +8,7 @@ const ROTATE_TYPE := StringName("C_RotateToInputComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -19,6 +20,7 @@ const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 @export var debug_rotation_log_entity_id: StringName = StringName("player")
 
 var _last_debug_log_frame: int = -9999
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 
 func get_phase() -> BaseECSSystem.SystemPhase:
 	return BaseECSSystem.SystemPhase.PHYSICS_SOLVE
@@ -70,7 +72,7 @@ func process_tick(delta: float) -> void:
 		var target := component.get_target_node()
 		if target == null:
 			if can_log:
-				print("S_RotateToInputSystem: target missing. entity=%s path=%s" % [
+				_debug_log_rotation("S_RotateToInputSystem: target missing. entity=%s path=%s" % [
 					"%s" % [entity_id],
 					"%s" % [component.target_node_path],
 				])
@@ -79,13 +81,13 @@ func process_tick(delta: float) -> void:
 		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
 		if input_component == null:
 			if can_log:
-				print("S_RotateToInputSystem: input component missing. entity=%s" % ["%s" % [entity_id]])
+				_debug_log_rotation("S_RotateToInputSystem: input component missing. entity=%s" % ["%s" % [entity_id]])
 			continue
 
 		var move_vector := input_component.move_vector
 		if move_vector.length() == 0.0:
 			if can_log:
-				print("S_RotateToInputSystem: move_vector zero. entity=%s yaw=%.2f" % [
+				_debug_log_rotation("S_RotateToInputSystem: move_vector zero. entity=%s yaw=%.2f" % [
 					"%s" % [entity_id],
 					rad_to_deg(target.global_rotation.y),
 				])
@@ -125,7 +127,7 @@ func process_tick(delta: float) -> void:
 			if has_camera:
 				camera_label = "%.2f" % rad_to_deg(camera_yaw)
 
-			print("S_RotateToInputSystem: entity=%s move=%s desired_yaw=%.2f current_yaw=%.2f vel_yaw=%s cam_yaw=%s" % [
+			_debug_log_rotation("S_RotateToInputSystem: entity=%s move=%s desired_yaw=%.2f current_yaw=%.2f vel_yaw=%s cam_yaw=%s" % [
 				"%s" % [entity_id],
 				"%s" % [move_vector],
 				rad_to_deg(desired_yaw),
@@ -249,3 +251,6 @@ func _can_debug_log(entity_id: StringName) -> bool:
 		return false
 	_last_debug_log_frame = frame
 	return true
+
+func _debug_log_rotation(message: String) -> void:
+	_debug_log_throttle.log_message(message)

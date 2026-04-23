@@ -246,7 +246,7 @@ func process_tick(delta: float) -> void:
 					floating_component.settings.hover_frequency,
 					floating_component.settings.damping_ratio
 				)
-			print(
+			_debug_log_throttle.log_message(
 				"DIAG_FLOAT[f=%d] pos_y=%.4f vel_y_in=%.4f vel_y_out=%.4f height_err=%.4f spring_accel=%.4f support=%s is_on_floor=%s distance=%.4f"
 				% [
 					_diag_frame_counter,
@@ -379,4 +379,4 @@ func _consume_debug_log_budget(entity_id: StringName) -> bool:
 func _debug_log(entity_id: StringName, message: String) -> void:
 	if not _consume_debug_log_budget(entity_id):
 		return
-	print("S_FloatingSystem[entity=%s] %s" % [str(entity_id), message])
+	_debug_log_throttle.log_message("S_FloatingSystem[entity=%s] %s" % [str(entity_id), message])

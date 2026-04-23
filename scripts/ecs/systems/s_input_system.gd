@@ -13,6 +13,7 @@ const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 # Use centralized DeviceType enum
 const DeviceType := U_DeviceTypeConstants.DeviceType
@@ -48,7 +49,7 @@ var _gamepad_settings_cache: Dictionary = {}
 var _sprint_toggle_enabled: bool = false
 var _sprint_toggled_on: bool = false
 var _sprint_button_was_pressed: bool = false
-var _debug_log_cooldown_sec: float = 0.0
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 
 func get_phase() -> BaseECSSystem.SystemPhase:
 	return BaseECSSystem.SystemPhase.INPUT
@@ -68,8 +69,7 @@ func _ensure_input_device_manager() -> void:
 	_input_device_manager = U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
 
 func process_tick(_delta: float) -> void:
-	if debug_input_logging:
-		_debug_log_cooldown_sec = maxf(_debug_log_cooldown_sec - maxf(_delta, 0.0), 0.0)
+	_debug_log_throttle.tick(_delta)
 	_validate_required_actions()
 	if not _actions_valid:
 		_debug_log_input("blocked: required input actions are invalid")
@@ -368,11 +368,10 @@ func _debug_log_capture_snapshot(
 func _debug_log_input(message: String) -> void:
 	if not debug_input_logging:
 		return
-	if _debug_log_cooldown_sec > 0.0:
-		return
 	var interval: float = maxf(debug_log_interval_sec, 0.05)
-	_debug_log_cooldown_sec = interval
-	print("S_InputSystem[debug]: %s" % message)
+	if not _debug_log_throttle.consume_budget(&"input/debug_log", interval):
+		return
+	_debug_log_throttle.log_message("S_InputSystem[debug]: %s" % message)
 
 func _device_type_to_string(device_type: int) -> String:
 	match device_type:

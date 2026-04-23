@@ -274,7 +274,7 @@ func process_tick(delta: float) -> void:
 					var _diag_post_pos_y: float = body.global_position.y
 					var _diag_vel_delta: float = _diag_post_vel_y - _diag_pre_vel_y
 					var _diag_pos_delta: float = _diag_post_pos_y - _diag_pre_pos_y
-					print(
+					_debug_log_throttle.log_message(
 						"DIAG_MOVE[f=%d] pre_pos_y=%.4f post_pos_y=%.4f pos_delta=%.4f pre_vel_y=%.4f post_vel_y=%.4f vel_delta=%.4f is_on_floor=%s slide_count=%d"
 						% [
 							_diag_frame_counter,
@@ -489,4 +489,4 @@ func _consume_debug_log_budget(entity_id: StringName) -> bool:
 func _debug_log_for_entity(entity_id: StringName, message: String) -> void:
 	if not _consume_debug_log_budget(entity_id):
 		return
-	print("S_MovementSystem[entity=%s] %s" % [str(entity_id), message])
+	_debug_log_throttle.log_message("S_MovementSystem[entity=%s] %s" % [str(entity_id), message])

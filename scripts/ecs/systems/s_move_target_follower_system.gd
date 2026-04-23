@@ -241,14 +241,18 @@ func _debug_log_navigation(
 	if debug_ai_render_probe_logging:
 		var entity: Node = _resolve_entity_node(entity_query)
 		render_probe = U_AI_RENDER_PROBE.build_probe_string(entity, null, movement_component)
-	print("S_MoveTargetFollowerSystem[entity=%s] %s%s" % [str(entity_id), message, render_probe])
+	_debug_log_throttle.log_message(
+		"S_MoveTargetFollowerSystem[entity=%s] %s%s" % [str(entity_id), message, render_probe]
+	)
 
 func _debug_log_empty_navigation_query() -> void:
 	if not debug_move_target_follower_logging:
 		return
 	if not _debug_log_throttle.consume_budget(&"move_target_follower/empty_query", maxf(debug_log_interval_sec, 0.05)):
 		return
-	print("S_MoveTargetFollowerSystem: query_entities([C_InputComponent, C_MovementComponent]) returned 0 entities")
+	_debug_log_throttle.log_message(
+		"S_MoveTargetFollowerSystem: query_entities([C_InputComponent, C_MovementComponent]) returned 0 entities"
+	)
 
 func _resolve_entity_node(entity_query: Object) -> Node:
 	if entity_query == null:

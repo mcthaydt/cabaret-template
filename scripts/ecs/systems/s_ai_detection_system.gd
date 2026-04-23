@@ -7,6 +7,7 @@ const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_c
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 const DETECTION_COMPONENT_TYPE := C_DETECTION_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
@@ -16,8 +17,13 @@ const TARGET_SWITCH_COOLDOWN_FRAMES: int = 12
 const TARGET_SWITCH_ENTER_RADIUS_BUFFER: float = 1.0
 
 @export var state_store: I_StateStore = null
+@export var debug_detection_logging: bool = false
+@export var debug_detection_trace_logging: bool = false
+@export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25
+@export var debug_entity_id: StringName = StringName("")
 
 var _store: I_StateStore = null
+var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 
 func _init() -> void:
 	execution_priority = -12
@@ -26,6 +32,7 @@ func get_phase() -> BaseECSSystem.SystemPhase:
 	return BaseECSSystem.SystemPhase.PRE_PHYSICS
 
 func process_tick(_delta: float) -> void:
+	_debug_log_throttle.tick(_delta)
 	var manager := get_manager()
 	if manager == null:
 		return
@@ -173,11 +180,11 @@ func _process_detection_for_component(
 		detection.is_player_in_range = true
 		detection.last_detected_player_entity_id = nearest_entity_id
 		_mark_target_change(detection)
-		print("[DETECT] %s (%s/%s) → detected %s at dist %.1f" % [
+		_debug_log_detection(source_entity_id, "[DETECT] %s (%s/%s) → detected %s at dist %.1f" % [
 			source_entity_id, detection.detection_role, detection.target_tag,
 			detection.last_detected_player_entity_id, nearest_distance])
 		if should_trace_selection:
-			print("[DETECT_TRACE] source=%s target_tag=%s candidates=%d nearest=%s tags=%s dist=%.1f enter_radius=%.1f exit_radius=%.1f" % [
+			_debug_log_detection_trace(source_entity_id, "[DETECT_TRACE] source=%s target_tag=%s candidates=%d nearest=%s tags=%s dist=%.1f enter_radius=%.1f exit_radius=%.1f" % [
 				source_entity_id,
 				detection.target_tag,
 				matching_candidates,
@@ -219,7 +226,7 @@ func _process_detection_for_component(
 			var previous_target: StringName = sticky_target_id
 			detection.last_detected_player_entity_id = nearest_entity_id
 			_mark_target_change(detection)
-			print("[DETECT] %s (%s/%s) → switched %s → %s at dist %.1f" % [
+			_debug_log_detection(source_entity_id, "[DETECT] %s (%s/%s) → switched %s → %s at dist %.1f" % [
 				source_entity_id,
 				detection.detection_role,
 				detection.target_tag,
@@ -228,7 +235,7 @@ func _process_detection_for_component(
 				nearest_distance,
 			])
 			if should_trace_selection:
-				print("[DETECT_TRACE] source=%s target_tag=%s candidates=%d switched_from=%s switched_to=%s tags=%s dist=%.1f enter_radius=%.1f exit_radius=%.1f" % [
+				_debug_log_detection_trace(source_entity_id, "[DETECT_TRACE] source=%s target_tag=%s candidates=%d switched_from=%s switched_to=%s tags=%s dist=%.1f enter_radius=%.1f exit_radius=%.1f" % [
 					source_entity_id,
 					detection.target_tag,
 					matching_candidates,
@@ -245,7 +252,7 @@ func _process_detection_for_component(
 		var previous_target: StringName = sticky_target_id
 		detection.last_detected_player_entity_id = nearest_entity_id
 		_mark_target_change(detection)
-		print("[DETECT] %s (%s/%s) → switched %s → %s at dist %.1f" % [
+		_debug_log_detection(source_entity_id, "[DETECT] %s (%s/%s) → switched %s → %s at dist %.1f" % [
 			source_entity_id,
 			detection.detection_role,
 			detection.target_tag,
@@ -254,7 +261,7 @@ func _process_detection_for_component(
 			nearest_distance,
 		])
 		if should_trace_selection:
-			print("[DETECT_TRACE] source=%s target_tag=%s candidates=%d switched_from=%s switched_to=%s tags=%s dist=%.1f enter_radius=%.1f exit_radius=%.1f" % [
+			_debug_log_detection_trace(source_entity_id, "[DETECT_TRACE] source=%s target_tag=%s candidates=%d switched_from=%s switched_to=%s tags=%s dist=%.1f enter_radius=%.1f exit_radius=%.1f" % [
 				source_entity_id,
 				detection.target_tag,
 				matching_candidates,
@@ -272,8 +279,11 @@ func _process_detection_for_component(
 	detection.last_detected_player_entity_id = StringName("")
 	detection.last_target_change_frame = -1
 	var _exit_radius: float = detection.get_resolved_exit_radius()
-	print("[DETECT] %s (%s/%s) → lost %s (dist %.1f > exit_radius %.1f)" % [
-		source_entity_id, detection.detection_role, detection.target_tag, _lost_id, nearest_distance, _exit_radius])
+	_debug_log_detection(
+		source_entity_id,
+		"[DETECT] %s (%s/%s) → lost %s (dist %.1f > exit_radius %.1f)"
+		% [source_entity_id, detection.detection_role, detection.target_tag, _lost_id, nearest_distance, _exit_radius]
+	)
 	if detection.set_flag_on_exit:
 		_dispatch_flag(detection.ai_flag_id, detection.exit_flag_value)
 
@@ -427,9 +437,31 @@ func _format_tags_for_debug(tags_variant: Variant) -> String:
 	return str(formatted)
 
 func _should_trace_target_selection(source_entity_id: StringName, detection: C_DetectionComponent) -> bool:
+	if not debug_detection_trace_logging:
+		return false
 	if detection == null:
 		return false
 	if detection.target_tag == StringName("prey"):
 		return true
 	var source_id_text: String = String(source_entity_id).to_lower()
 	return source_id_text.contains("wolf")
+
+func _debug_log_detection(source_entity_id: StringName, message: String) -> void:
+	if not _consume_debug_log_budget(source_entity_id, StringName("detect")):
+		return
+	_debug_log_throttle.log_message(message)
+
+func _debug_log_detection_trace(source_entity_id: StringName, message: String) -> void:
+	if not _consume_debug_log_budget(source_entity_id, StringName("trace")):
+		return
+	_debug_log_throttle.log_message(message)
+
+func _consume_debug_log_budget(source_entity_id: StringName, channel: StringName) -> bool:
+	if not debug_detection_logging:
+		return false
+	if debug_entity_id != StringName("") and source_entity_id != debug_entity_id:
+		return false
+	var key: StringName = source_entity_id
+	if channel != StringName(""):
+		key = StringName("%s/%s" % [str(source_entity_id), str(channel)])
+	return _debug_log_throttle.consume_budget(key, maxf(debug_log_interval_sec, 0.05))

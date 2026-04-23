@@ -282,4 +282,4 @@ func _consume_debug_log_budget(entity_id: StringName) -> bool:
 func _debug_log(entity_id: StringName, message: String) -> void:
 	if not _consume_debug_log_budget(entity_id):
 		return
-	print_verbose("S_SpawnRecoverySystem[entity=%s] %s" % [str(entity_id), message])
+	_debug_log_throttle.log_message("S_SpawnRecoverySystem[entity=%s] %s" % [str(entity_id), message])
