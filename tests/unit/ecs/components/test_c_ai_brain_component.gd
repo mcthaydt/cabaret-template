@@ -4,7 +4,7 @@ const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const BASE_ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 const C_AI_BRAIN_COMPONENT_PATH := "res://scripts/ecs/components/c_ai_brain_component.gd"
 const RS_AI_BRAIN_SETTINGS_PATH := "res://scripts/resources/ai/brain/rs_ai_brain_settings.gd"
-const RS_AI_GOAL_PATH := "res://scripts/resources/ai/goals/rs_ai_goal.gd"
+const RS_BT_NODE_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
 
 func _load_script(path: String) -> Script:
 	var script_variant: Variant = load(path)
@@ -101,7 +101,7 @@ func test_validate_required_settings_fails_without_brain_settings() -> void:
 
 func test_validate_required_settings_fails_with_wrong_brain_settings_type() -> void:
 	var component_script: Script = _load_script(C_AI_BRAIN_COMPONENT_PATH)
-	var wrong_settings_script: Script = _load_script(RS_AI_GOAL_PATH)
+	var wrong_settings_script: Script = _load_script(RS_BT_NODE_PATH)
 	if component_script == null or wrong_settings_script == null:
 		return
 

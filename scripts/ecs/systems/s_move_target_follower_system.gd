@@ -2,7 +2,6 @@
 extends BaseECSSystem
 class_name S_MoveTargetFollowerSystem
 
-const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
@@ -10,7 +9,6 @@ const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_AI_RENDER_PROBE := preload("res://scripts/utils/debug/u_ai_render_probe.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
-const BRAIN_COMPONENT_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
 const INPUT_COMPONENT_TYPE := C_INPUT_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const MOVE_TARGET_COMPONENT_TYPE := C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE
@@ -36,10 +34,8 @@ func process_tick(delta: float) -> void:
 	var entities: Array = query_entities([
 		INPUT_COMPONENT_TYPE,
 		MOVEMENT_COMPONENT_TYPE,
-	], [
-		BRAIN_COMPONENT_TYPE,
 		MOVE_TARGET_COMPONENT_TYPE,
-	])
+	], [])
 	if entities.is_empty():
 		_debug_log_empty_navigation_query()
 		return
@@ -155,18 +151,7 @@ func _resolve_target_payload(entity_query: Object) -> Dictionary:
 	if entity_query == null:
 		return {"has_target": false, "reason": "missing_entity_query"}
 
-	var component_payload: Dictionary = _resolve_component_target_payload(entity_query)
-	if bool(component_payload.get("has_target", false)):
-		return component_payload
-
-	var ai_payload: Dictionary = _resolve_ai_task_state_payload(entity_query)
-	if bool(ai_payload.get("has_target", false)):
-		return ai_payload
-
-	# Preserve whichever source yielded actionable context for debug observability.
-	if bool(component_payload.get("has_source_context", false)):
-		return component_payload
-	return ai_payload
+	return _resolve_component_target_payload(entity_query)
 
 func _resolve_component_target_payload(entity_query: Object) -> Dictionary:
 	var move_target_component_variant: Variant = entity_query.call("get_component", MOVE_TARGET_COMPONENT_TYPE)
@@ -211,51 +196,6 @@ func _resolve_component_target_payload(entity_query: Object) -> Dictionary:
 		"source": "move_target_component",
 		"resolution_reason": "component_active",
 		"used_fallback": false,
-	}
-
-func _resolve_ai_task_state_payload(entity_query: Object) -> Dictionary:
-	var brain_component_variant: Variant = entity_query.call("get_component", BRAIN_COMPONENT_TYPE)
-	if brain_component_variant == null or not (brain_component_variant is Object):
-		return {
-			"has_target": false,
-			"has_source_context": false,
-			"source": "ai_task_state",
-			"resolution_reason": "brain_missing",
-			"reason": "brain_missing",
-			"used_fallback": false,
-		}
-
-	var brain_component_object: Object = brain_component_variant as Object
-	var task_state_variant: Variant = brain_component_object.get("task_state")
-	if not (task_state_variant is Dictionary):
-		return {
-			"has_target": false,
-			"has_source_context": true,
-			"source": "ai_task_state",
-			"resolution_reason": "task_state_invalid",
-			"reason": "task_state_invalid",
-			"used_fallback": false,
-		}
-	var task_state: Dictionary = task_state_variant as Dictionary
-	var target_variant: Variant = task_state.get(U_AITaskStateKeys.MOVE_TARGET, null)
-	if not (target_variant is Vector3):
-		return {
-			"has_target": false,
-			"has_source_context": true,
-			"source": "ai_task_state",
-			"resolution_reason": "move_target_missing",
-			"reason": "move_target_missing",
-			"used_fallback": bool(task_state.get(U_AITaskStateKeys.MOVE_TARGET_USED_FALLBACK, false)),
-		}
-
-	return {
-		"has_target": true,
-		"has_source_context": true,
-		"target_position": target_variant as Vector3,
-		"arrival_threshold": task_state.get(U_AITaskStateKeys.ARRIVAL_THRESHOLD, DEFAULT_ARRIVAL_THRESHOLD),
-		"source": str(task_state.get(U_AITaskStateKeys.MOVE_TARGET_SOURCE, "ai_task_state")),
-		"resolution_reason": str(task_state.get(U_AITaskStateKeys.MOVE_TARGET_RESOLUTION_REASON, "task_state_move_target")),
-		"used_fallback": bool(task_state.get(U_AITaskStateKeys.MOVE_TARGET_USED_FALLBACK, false)),
 	}
 
 func _resolve_arrival_threshold(value: Variant) -> float:

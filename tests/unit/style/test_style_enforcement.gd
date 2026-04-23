@@ -720,7 +720,6 @@ func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/ecs/systems/s_character_state_system.gd",
 		"res://scripts/ecs/systems/s_game_event_system.gd",
-		"res://scripts/utils/ai/u_ai_context_builder.gd",
 		"res://scripts/managers/m_objectives_manager.gd",
 		"res://scripts/managers/m_scene_director_manager.gd",
 	]
@@ -799,7 +798,6 @@ func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/ecs/systems/s_character_state_system.gd",
 		"res://scripts/ecs/systems/s_game_event_system.gd",
-		"res://scripts/utils/ai/u_ai_context_builder.gd",
 		"res://scripts/managers/m_objectives_manager.gd",
 		"res://scripts/managers/m_scene_director_manager.gd",
 	]

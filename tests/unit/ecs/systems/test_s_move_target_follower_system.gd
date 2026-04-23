@@ -152,7 +152,7 @@ func test_writes_zero_move_vector_within_arrival_threshold() -> void:
 
 	assert_eq(input.move_vector, Vector2.ZERO)
 
-func test_reads_ai_brain_task_state_when_move_target_component_absent_back_compat() -> void:
+func test_entity_without_move_target_component_is_not_queried() -> void:
 	var fixture: Dictionary = _create_fixture()
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -161,19 +161,15 @@ func test_reads_ai_brain_task_state_when_move_target_component_absent_back_compa
 	var entity: Dictionary = _add_entity(fixture, "E_AIAgent", true, false)
 	if entity.is_empty():
 		return
-	var body: FakeBody = entity.get("body", null) as FakeBody
 	var input: C_InputComponent = entity.get("input", null) as C_InputComponent
-	var brain: Variant = entity.get("brain", null)
 	var system: BaseECSSystem = fixture.get("system", null) as BaseECSSystem
 
-	body.global_position = Vector3.ZERO
-	brain.task_state = {U_AITaskStateKeys.MOVE_TARGET: Vector3(0.0, 0.0, 8.0)}
+	input.set_move_vector(Vector2(-0.35, 0.8))
 	system.process_tick(0.016)
 
-	assert_almost_eq(input.move_vector.x, 0.0, 0.01)
-	assert_almost_eq(input.move_vector.y, 1.0, 0.01)
+	assert_eq(input.move_vector, Vector2(-0.35, 0.8))
 
-func test_prefers_move_target_component_when_both_sources_present() -> void:
+func test_move_target_component_drives_vector_when_brain_present() -> void:
 	var fixture: Dictionary = _create_fixture()
 	autofree_context(fixture)
 	if fixture.is_empty():
@@ -184,12 +180,10 @@ func test_prefers_move_target_component_when_both_sources_present() -> void:
 		return
 	var body: FakeBody = entity.get("body", null) as FakeBody
 	var input: C_InputComponent = entity.get("input", null) as C_InputComponent
-	var brain: Variant = entity.get("brain", null)
 	var move_target: Variant = entity.get("move_target_component", null)
 	var system: BaseECSSystem = fixture.get("system", null) as BaseECSSystem
 
 	body.global_position = Vector3.ZERO
-	brain.task_state = {U_AITaskStateKeys.MOVE_TARGET: Vector3(0.0, 0.0, 10.0)}
 	move_target.set("is_active", true)
 	move_target.set("target_position", Vector3(10.0, 0.0, 0.0))
 	move_target.set("arrival_threshold", 0.5)

@@ -1,10 +1,6 @@
 extends BaseTest
 
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
-const RS_AI_GOAL := preload("res://scripts/resources/ai/goals/rs_ai_goal.gd")
-const RS_AI_PRIMITIVE_TASK := preload("res://scripts/resources/ai/tasks/rs_ai_primitive_task.gd")
-const I_AI_ACTION := preload("res://scripts/interfaces/i_ai_action.gd")
-const U_HTN_PLANNER := preload("res://scripts/utils/ai/u_htn_planner.gd")
 
 const PATROL_BRAIN_PATH := "res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres"
 const SENTRY_BRAIN_PATH := "res://resources/ai/sentry/cfg_sentry_brain.tres"
@@ -16,6 +12,13 @@ const NAV_NEXUS_SCENE_PATH := "res://scenes/gameplay/gameplay_nav_nexus.tscn"
 const INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH := "res://scripts/gameplay/inter_ai_demo_flag_zone.gd"
 const INTER_HAZARD_ZONE_SCRIPT_PATH := "res://scripts/gameplay/inter_hazard_zone.gd"
 const NAV_FALL_HAZARD_CONFIG_PATH := "res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres"
+
+const BT_UTILITY_SELECTOR_SCRIPT_PATH := "res://scripts/resources/bt/rs_bt_utility_selector.gd"
+const BT_SELECTOR_SCRIPT_PATH := "res://scripts/resources/bt/rs_bt_selector.gd"
+const BT_SEQUENCE_SCRIPT_PATH := "res://scripts/resources/bt/rs_bt_sequence.gd"
+const AI_SCORER_CONDITION_SCRIPT_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd"
+const AI_SCORER_CONSTANT_SCRIPT_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd"
+const QB_REDUX_FIELD_CONDITION_SCRIPT_PATH := "res://scripts/resources/qb/conditions/rs_condition_redux_field.gd"
 
 const REQUIRED_NPC_COMPONENT_PATHS: Array[String] = [
 	"Components/C_SpawnStateComponent",
@@ -32,69 +35,97 @@ const REQUIRED_NPC_COMPONENT_PATHS: Array[String] = [
 	"Components/C_AIBrainComponent",
 ]
 
-func _load_brain(path: String) -> Resource:
+func _load_brain(path: String) -> RS_AIBrainSettings:
 	var resource_variant: Variant = load(path)
 	assert_not_null(resource_variant, "Expected brain resource to exist: %s" % path)
-	if not (resource_variant is Resource):
+	if not (resource_variant is RS_AI_BRAIN_SETTINGS):
+		assert_true(false, "%s should be an RS_AIBrainSettings resource" % path)
 		return null
-	return resource_variant as Resource
+	return resource_variant as RS_AIBrainSettings
 
-func _find_goal_by_id(goals: Array[Resource], goal_id: StringName) -> Resource:
-	for goal in goals:
-		if goal == null:
-			continue
-		var current_goal_id: Variant = goal.get("goal_id")
-		if current_goal_id == goal_id:
-			return goal
-	return null
-
-func _assert_goal_has_actions(goal: Resource, context: Dictionary = {}) -> void:
-	assert_not_null(goal, "Expected goal resource to be non-null")
-	if goal == null:
+func _assert_script_path(resource: Resource, expected_path: String, message: String) -> void:
+	assert_not_null(resource, message)
+	if resource == null:
 		return
-
-	var root_task: Variant = goal.get("root_task")
-	assert_not_null(root_task, "Goal should have a root_task")
-	if root_task == null:
+	var script_variant: Variant = resource.get_script()
+	assert_true(script_variant is Script, "%s should have script %s" % [message, expected_path])
+	if not (script_variant is Script):
 		return
+	var script: Script = script_variant as Script
+	assert_eq(script.resource_path, expected_path, message)
 
-	var queue: Array[RS_AIPrimitiveTask] = U_HTN_PLANNER.decompose(root_task, context)
-	assert_false(queue.is_empty(), "Goal root_task should decompose into at least one primitive task")
-	for task_variant in queue:
-		assert_true(task_variant is RS_AI_PRIMITIVE_TASK, "Decomposed tasks should be RS_AIPrimitiveTask")
-		if not (task_variant is RS_AI_PRIMITIVE_TASK):
-			continue
-		var task: Resource = task_variant as Resource
-		var action_variant: Variant = task.get("action")
-		assert_true(action_variant is I_AI_ACTION, "Primitive task action must implement I_AIAction")
+func _assert_condition_scorer_state_path(
+	scorer: Resource,
+	expected_state_path: String,
+	label: String
+) -> void:
+	_assert_script_path(scorer, AI_SCORER_CONDITION_SCRIPT_PATH, "%s scorer type" % label)
+	if scorer == null:
+		return
+	var condition_variant: Variant = scorer.get("condition")
+	assert_true(condition_variant is Resource, "%s scorer should hold a condition resource" % label)
+	if not (condition_variant is Resource):
+		return
+	var condition: Resource = condition_variant as Resource
+	_assert_script_path(condition, QB_REDUX_FIELD_CONDITION_SCRIPT_PATH, "%s scorer condition type" % label)
+	assert_eq(String(condition.get("state_path")), expected_state_path, "%s scorer condition path" % label)
 
-func _assert_brain_goals(path: String, default_goal_id: StringName, expected_goal_ids: Array[StringName]) -> void:
-	var brain: Resource = _load_brain(path)
+func _assert_brain_root_contract(
+	brain_path: String,
+	expected_root_name: String,
+	expected_condition_paths: Array[String]
+) -> void:
+	var brain: RS_AIBrainSettings = _load_brain(brain_path)
 	if brain == null:
 		return
-	assert_true(brain is RS_AI_BRAIN_SETTINGS, "%s should be an RS_AIBrainSettings resource" % path)
-	if not (brain is RS_AI_BRAIN_SETTINGS):
+
+	var root_variant: Variant = brain.get("root")
+	assert_true(root_variant is Resource, "%s root should be a BT resource" % brain_path)
+	if not (root_variant is Resource):
+		return
+	var root: Resource = root_variant as Resource
+
+	_assert_script_path(root, BT_UTILITY_SELECTOR_SCRIPT_PATH, "%s root must be RS_BTUtilitySelector" % brain_path)
+	assert_eq(String(root.resource_name), expected_root_name, "%s root resource_name" % brain_path)
+
+	var scorers_variant: Variant = root.get("child_scorers")
+	assert_true(scorers_variant is Array, "%s root child_scorers should be an array" % brain_path)
+	if not (scorers_variant is Array):
+		return
+	var scorers: Array = scorers_variant as Array
+	assert_eq(scorers.size(), 3, "%s root should define three scorer branches" % brain_path)
+	if scorers.size() != 3:
 		return
 
-	var actual_default_goal_id: Variant = brain.get("default_goal_id")
-	assert_eq(actual_default_goal_id, default_goal_id)
-
-	var goals_variant: Variant = brain.get("goals")
-	assert_true(goals_variant is Array, "Brain goals should be an array")
-	if not (goals_variant is Array):
+	assert_true(
+		expected_condition_paths.size() == 2,
+		"Internal test contract: expected_condition_paths must contain two condition paths"
+	)
+	if expected_condition_paths.size() != 2:
 		return
-	var goals_untyped: Array = goals_variant as Array
-	var goals: Array[Resource] = []
-	for goal_variant in goals_untyped:
-		assert_true(goal_variant is RS_AI_GOAL, "Each goal should be RS_AIGoal")
-		if goal_variant is Resource:
-			goals.append(goal_variant as Resource)
+	_assert_condition_scorer_state_path(scorers[0] as Resource, expected_condition_paths[0], "%s scorer[0]" % brain_path)
+	_assert_condition_scorer_state_path(scorers[1] as Resource, expected_condition_paths[1], "%s scorer[1]" % brain_path)
+	_assert_script_path(
+		scorers[2] as Resource,
+		AI_SCORER_CONSTANT_SCRIPT_PATH,
+		"%s scorer[2] type" % brain_path
+	)
+	if scorers[2] is Resource:
+		var scorer_constant: Resource = scorers[2] as Resource
+		assert_almost_eq(float(scorer_constant.get("value")), 1.0, 0.0001, "%s scorer[2] constant value" % brain_path)
 
-	assert_eq(goals.size(), expected_goal_ids.size())
-	for goal_id in expected_goal_ids:
-		var goal: Resource = _find_goal_by_id(goals, goal_id)
-		assert_not_null(goal, "Expected goal %s in %s" % [String(goal_id), path])
-		_assert_goal_has_actions(goal)
+	var children_variant: Variant = root.get("children")
+	assert_true(children_variant is Array, "%s root children should be an array" % brain_path)
+	if not (children_variant is Array):
+		return
+	var children: Array = children_variant as Array
+	assert_eq(children.size(), 3, "%s root should define three child branches" % brain_path)
+	if children.size() != 3:
+		return
+
+	_assert_script_path(children[0] as Resource, BT_SELECTOR_SCRIPT_PATH, "%s child[0] should be selector" % brain_path)
+	_assert_script_path(children[1] as Resource, BT_SELECTOR_SCRIPT_PATH, "%s child[1] should be selector" % brain_path)
+	_assert_script_path(children[2] as Resource, BT_SEQUENCE_SCRIPT_PATH, "%s child[2] should be sequence" % brain_path)
 
 func _assert_scene_brain_path(scene_path: String, npc_brain_node_path: NodePath, expected_brain_path: String) -> void:
 	var packed_scene_variant: Variant = load(scene_path)
@@ -120,39 +151,6 @@ func _assert_scene_brain_path(scene_path: String, npc_brain_node_path: NodePath,
 		return
 	var brain_settings: Resource = brain_settings_variant as Resource
 	assert_eq(brain_settings.resource_path, expected_brain_path)
-
-func _assert_goal_condition_path(brain_path: String, goal_id: StringName, expected_state_path: String) -> void:
-	var brain: Resource = _load_brain(brain_path)
-	if brain == null:
-		return
-	var goals_variant: Variant = brain.get("goals")
-	assert_true(goals_variant is Array, "Brain goals should be an array")
-	if not (goals_variant is Array):
-		return
-	var goals_raw: Array = goals_variant as Array
-	var goals: Array[Resource] = []
-	for goal_variant in goals_raw:
-		if goal_variant is Resource:
-			goals.append(goal_variant as Resource)
-
-	var goal: Resource = _find_goal_by_id(goals, goal_id)
-	assert_not_null(goal, "Expected goal %s in %s" % [String(goal_id), brain_path])
-	if goal == null:
-		return
-
-	var conditions_variant: Variant = goal.get("conditions")
-	assert_true(conditions_variant is Array, "Goal conditions should be an array")
-	if not (conditions_variant is Array):
-		return
-	var conditions: Array = conditions_variant as Array
-	assert_false(conditions.is_empty(), "Goal should define at least one condition")
-	if conditions.is_empty():
-		return
-	var condition := conditions[0] as Resource
-	assert_not_null(condition, "First condition should be a valid resource")
-	if condition == null:
-		return
-	assert_eq(String(condition.get("state_path")), expected_state_path)
 
 func _load_scene_root(scene_path: String) -> Node:
 	var packed_scene_variant: Variant = load(scene_path)
@@ -202,36 +200,33 @@ func _assert_demo_npc_component_stack(scene_path: String, npc_path: NodePath) ->
 		"NPC should not include C_SurfaceDetectorComponent"
 	)
 
-func test_patrol_drone_brain_has_expected_goals_and_tasks() -> void:
-	_assert_brain_goals(
+func test_patrol_drone_brain_has_expected_bt_root_and_branches() -> void:
+	_assert_brain_root_contract(
 		PATROL_BRAIN_PATH,
-		StringName("patrol"),
+		"patrol_drone_bt_root",
 		[
-			StringName("patrol"),
-			StringName("investigate"),
-			StringName("investigate_proximity"),
+			"gameplay.ai_demo_flags.power_core_proximity",
+			"gameplay.ai_demo_flags.power_core_activated",
 		]
 	)
 
-func test_sentry_brain_has_expected_goals_and_tasks() -> void:
-	_assert_brain_goals(
+func test_sentry_brain_has_expected_bt_root_and_branches() -> void:
+	_assert_brain_root_contract(
 		SENTRY_BRAIN_PATH,
-		StringName("guard"),
+		"sentry_bt_root",
 		[
-			StringName("guard"),
-			StringName("investigate_disturbance"),
-			StringName("investigate_disturbance_proximity"),
+			"gameplay.ai_demo_flags.comms_disturbance_proximity",
+			"gameplay.ai_demo_flags.comms_disturbance_heard",
 		]
 	)
 
-func test_guide_prism_brain_has_expected_goals_and_tasks() -> void:
-	_assert_brain_goals(
+func test_guide_prism_brain_has_expected_bt_root_and_branches() -> void:
+	_assert_brain_root_contract(
 		GUIDE_BRAIN_PATH,
-		StringName("show_path"),
+		"guide_prism_bt_root",
 		[
-			StringName("show_path"),
-			StringName("encourage"),
-			StringName("celebrate"),
+			"gameplay.ai_demo_flags.nav_goal_reached",
+			"gameplay.entities.player.is_on_floor",
 		]
 	)
 
@@ -281,20 +276,29 @@ func test_demo_scenes_use_unified_npc_component_stack() -> void:
 	)
 
 func test_demo_goal_conditions_use_durable_ai_demo_flags() -> void:
-	_assert_goal_condition_path(
+	_assert_brain_root_contract(
 		PATROL_BRAIN_PATH,
-		StringName("investigate"),
-		"gameplay.ai_demo_flags.power_core_activated"
+		"patrol_drone_bt_root",
+		[
+			"gameplay.ai_demo_flags.power_core_proximity",
+			"gameplay.ai_demo_flags.power_core_activated",
+		]
 	)
-	_assert_goal_condition_path(
+	_assert_brain_root_contract(
 		SENTRY_BRAIN_PATH,
-		StringName("investigate_disturbance"),
-		"gameplay.ai_demo_flags.comms_disturbance_heard"
+		"sentry_bt_root",
+		[
+			"gameplay.ai_demo_flags.comms_disturbance_proximity",
+			"gameplay.ai_demo_flags.comms_disturbance_heard",
+		]
 	)
-	_assert_goal_condition_path(
+	_assert_brain_root_contract(
 		GUIDE_BRAIN_PATH,
-		StringName("celebrate"),
-		"gameplay.ai_demo_flags.nav_goal_reached"
+		"guide_prism_bt_root",
+		[
+			"gameplay.ai_demo_flags.nav_goal_reached",
+			"gameplay.entities.player.is_on_floor",
+		]
 	)
 
 func test_demo_scenes_wire_trigger_zones_to_runtime_scripts() -> void:

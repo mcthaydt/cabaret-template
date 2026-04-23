@@ -4,10 +4,8 @@ const AI_SHOWCASE_SCENE_PATH := "res://scenes/gameplay/gameplay_ai_showcase.tscn
 const PATROL_BRAIN_PATH := "res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres"
 const SENTRY_BRAIN_PATH := "res://resources/ai/sentry/cfg_sentry_brain.tres"
 const GUIDE_SHOWCASE_BRAIN_PATH := "res://resources/ai/guide_prism/cfg_guide_showcase_brain.tres"
-const U_HTN_PLANNER := preload("res://scripts/utils/ai/u_htn_planner.gd")
 const INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH := "res://scripts/gameplay/inter_ai_demo_flag_zone.gd"
 const INTER_AI_DEMO_GUARD_BARRIER_SCRIPT_PATH := "res://scripts/gameplay/inter_ai_demo_guard_barrier.gd"
-const SENTRY_INVESTIGATE_GOAL_PATH := "res://resources/ai/sentry/cfg_goal_investigate_disturbance.tres"
 
 const REQUIRED_NPC_COMPONENT_PATHS: Array[String] = [
 	"Components/C_SpawnStateComponent",
@@ -76,6 +74,38 @@ func _assert_npc_component_stack(root: Node, npc_path: NodePath) -> void:
 		npc.get_node_or_null("Components/C_GamepadComponent"),
 		"NPC should not include C_GamepadComponent"
 	)
+
+func _resource_tree_contains_publish_event(
+	resource: Resource,
+	event_name: StringName,
+	visited: Dictionary = {}
+) -> bool:
+	if resource == null:
+		return false
+	var object_id: int = resource.get_instance_id()
+	if visited.has(object_id):
+		return false
+	visited[object_id] = true
+
+	var action_variant: Variant = resource.get("action")
+	if action_variant is Resource:
+		var action: Resource = action_variant as Resource
+		if action.get("event_name") == event_name:
+			return true
+
+	var child_variant: Variant = resource.get("child")
+	if child_variant is Resource:
+		if _resource_tree_contains_publish_event(child_variant as Resource, event_name, visited):
+			return true
+
+	var children_variant: Variant = resource.get("children")
+	if children_variant is Array:
+		for entry_variant in children_variant as Array:
+			if entry_variant is Resource:
+				if _resource_tree_contains_publish_event(entry_variant as Resource, event_name, visited):
+					return true
+
+	return false
 
 func test_showcase_scene_loads() -> void:
 	var root: Node = _load_scene_root()
@@ -220,31 +250,20 @@ func test_showcase_detection_components_have_expected_flags() -> void:
 		)
 
 func test_sentry_investigate_goal_publishes_alarm_event() -> void:
-	var goal_variant: Variant = load(SENTRY_INVESTIGATE_GOAL_PATH)
-	assert_true(goal_variant is Resource)
-	if not (goal_variant is Resource):
+	var brain_variant: Variant = load(SENTRY_BRAIN_PATH)
+	assert_true(brain_variant is Resource)
+	if not (brain_variant is Resource):
 		return
-	var goal: Resource = goal_variant as Resource
-	var root_task_variant: Variant = goal.get("root_task")
+	var brain: Resource = brain_variant as Resource
+	var root_task_variant: Variant = brain.get("root")
 	assert_true(root_task_variant is Resource)
 	if not (root_task_variant is Resource):
 		return
-	var queue: Array[RS_AIPrimitiveTask] = U_HTN_PLANNER.decompose(root_task_variant as RS_AITask, {})
-	assert_false(queue.is_empty())
-	var found_alarm_publish: bool = false
-	for task_variant in queue:
-		if not (task_variant is Resource):
-			continue
-		var task: Resource = task_variant as Resource
-		var action_variant: Variant = task.get("action")
-		if action_variant == null or not (action_variant is Resource):
-			continue
-		var action: Resource = action_variant as Resource
-		var event_name_variant: Variant = action.get("event_name")
-		if event_name_variant == StringName("ai_alarm_triggered"):
-			found_alarm_publish = true
-			break
-	assert_true(found_alarm_publish, "Expected investigate_disturbance goal to publish ai_alarm_triggered")
+	var root_task: Resource = root_task_variant as Resource
+	assert_true(
+		_resource_tree_contains_publish_event(root_task, StringName("ai_alarm_triggered")),
+		"Expected sentry BT root to include a publish-event action for ai_alarm_triggered"
+	)
 
 func test_showcase_has_room_fade_shell() -> void:
 	var root: Node = _load_scene_root()
