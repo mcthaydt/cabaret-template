@@ -799,6 +799,20 @@ func test_vcam_collision_detector_has_no_bare_print_calls() -> void:
 		"u_vcam_collision_detector.gd must not contain bare print() calls; route debug output through verbose/throttled helpers"
 	)
 
+func test_victory_handler_system_has_no_bare_print_calls() -> void:
+	var victory_handler_path := "res://scripts/ecs/systems/s_victory_handler_system.gd"
+	var file := FileAccess.open(victory_handler_path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % victory_handler_path)
+	if file == null:
+		return
+	var text: String = file.get_as_text()
+	file.close()
+
+	assert_false(
+		text.find("print(") != -1,
+		"s_victory_handler_system.gd must not contain bare print() calls; route debug output through print_verbose()/shared debug helpers"
+	)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var context_builders: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
