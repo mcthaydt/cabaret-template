@@ -171,7 +171,7 @@ var skip_initial_scene_load: bool = false
 func _debug_log(message: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
 		return
-	print("[VictoryDebug][M_SceneManager] %s" % message)
+	print_verbose("[VictoryDebug][M_SceneManager] %s" % message)
 
 func _ready() -> void:
 	# Find managers via ServiceLocator (Phase 10B-7: T141c)
