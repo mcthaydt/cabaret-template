@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 complete. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). AI-unit regression slice passes `928/928`, AI-focused integration trio remains `20/20`, and full-suite status is now green.
-**Next Task**: Begin Phase 2 (debug/perf extraction) at P2.1 audit (`debug_perf_audit.md`) and capture fresh, post-P1.10 pollution/consolidation inventory.
+**Status**: Phase 1 complete. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). AI-unit regression slice passes `928/928`, AI-focused integration trio remains `20/20`, and full-suite status is now green. Phase 2 now started with P2.1 audit complete (2026-04-23): `docs/general/cleanup_v8/debug_perf_audit.md` records `39` bare prints, `57` `push_warning`, `21` timer/frame API sites, `20` `U_PerfProbe` sites, and `1` `U_DebugLogThrottle` site across managers/systems.
+**Next Task**: Proceed to P2.2 RED test backfill for `U_PerfProbe` at `tests/unit/utils/debug/test_u_perf_probe.gd`.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -156,7 +156,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
       - `AGENTS.md` and `DEV_PITFALLS.md` cleanup landed for BT-only terminology and stale GOAP/HTN reference removal.
       - Full-suite status is now green.
     - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
-- **Phase 2**: NOT STARTED. 4 milestones.
+- **Phase 2**: IN PROGRESS. P2.1 complete (audit doc + grep evidence baseline captured, 2026-04-23). P2.2–P2.4 pending.
 - **Phase 3**: NOT STARTED. 3 milestones.
 - **Phase 4**: NOT STARTED. 4 milestones.
 - **Phase 5**: NOT STARTED. 4 milestones.
@@ -379,7 +379,7 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 
 ## Next Steps
 
-1. Start P2.1 audit commit: author `docs/general/cleanup_v8/debug_perf_audit.md` with one-row-per-site inventory for `print`, warning, timer, `U_PerfProbe`, and `U_DebugLogThrottle` usage across managers/systems.
-2. Run/record targeted grep evidence used by the audit in the P2.1 commit notes.
-3. Proceed to P2.2 RED test backfill for `U_PerfProbe` (`tests/unit/utils/debug/test_u_perf_probe.gd`).
+1. Start P2.2 RED test backfill for `U_PerfProbe` (`tests/unit/utils/debug/test_u_perf_probe.gd`) covering scope start/end, disabled no-op behavior, accumulation metrics, flush cadence, mobile auto-enable, and reset semantics.
+2. Run targeted RED proof: `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/debug/test_u_perf_probe.gd` (expect fail before implementation patching).
+3. Continue with P2.2 GREEN by validating existing `scripts/utils/debug/u_perf_probe.gd` behavior (minimal patch only if tests expose drift).
 4. Keep V8 tracking docs synchronized after each P2 milestone and commit doc updates separately from implementation.
