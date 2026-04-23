@@ -6,7 +6,7 @@ Bring `resources/`, `scenes/`, and `assets/` to the same organizational quality 
 
 **Scope**: ~215 files across 6 phases, 31 tasks
 **Status**: 31/31 tasks complete (100%) - ALL PHASES COMPLETE ✅
-**Continuation Prompt**: `docs/general/cleanup_v4.5/reorganization-continuation-prompt.md`
+**Continuation Prompt**: `docs/history/cleanup_v4.5/reorganization-continuation-prompt.md`
 
 ---
 
@@ -397,7 +397,7 @@ Current → Target:
 **Status**: Complete (2026-01-24)
 **Files affected**: 3 audited, 3 violations found
 **Risk**: Medium
-**Completion notes**: Found 3 violations in gameplay_exterior.tscn (all CSGBox3D with c_surface_type_component.gd). No violations in interior_house or base scenes. Audit report: `docs/general/cleanup_v4.5/task-14-audit-report.md`
+**Completion notes**: Found 3 violations in gameplay_exterior.tscn (all CSGBox3D with c_surface_type_component.gd). No violations in interior_house or base scenes. Audit report: `docs/history/cleanup_v4.5/task-14-audit-report.md`
 
 **Detection Pattern:**
 Look for `[node]` blocks where:

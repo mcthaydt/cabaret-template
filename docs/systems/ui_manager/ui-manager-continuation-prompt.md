@@ -64,8 +64,8 @@ This guide directs you to implement the UI Manager / Navigation feature by follo
 ### 1. Review Project Foundations
 
 - `AGENTS.md` – Project conventions and patterns.
-- `docs/general/DEV_PITFALLS.md` – Common mistakes to avoid.
-- `docs/general/STYLE_GUIDE.md` – Code style and naming requirements.
+- `docs/guides/DEV_PITFALLS.md` – Common mistakes to avoid.
+- `docs/guides/STYLE_GUIDE.md` – Code style and naming requirements.
 - Scene Manager docs:
   - `docs/scene_manager/scene-manager-prd.md`
   - `docs/scene_manager/scene-manager-plan.md`
@@ -136,8 +136,8 @@ You MUST:
 - **State-First Architecture**: Navigation and UI state are declarative. Reducers + registry define behavior; managers enforce it.
 - **Immutable State**: Follow existing Redux patterns (`.duplicate(true)`, pure reducers).
 - **Input Contracts**: UI controllers must rely on `ui_*` actions, not hardcoded keycodes or gamepad buttons. Input Manager remains responsible for mapping hardware to `ui_*`.
-- **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and `docs/general/SCENE_ORGANIZATION_GUIDE.md`
-- **Cleanup Project**: See `docs/general/cleanup/style-scene-cleanup-continuation-prompt.md` for architectural improvements
+- **Style & Organization**: Follow `docs/guides/STYLE_GUIDE.md` and `docs/guides/SCENE_ORGANIZATION_GUIDE.md`
+- **Cleanup Project**: See `docs/history/cleanup_v1/style-scene-cleanup-continuation-prompt.md` for architectural improvements
 - **UI → Redux → Scene Manager Rule**: UI scripts must NOT call `M_SceneManager` directly - use Redux actions instead (see T056)
 
 ---

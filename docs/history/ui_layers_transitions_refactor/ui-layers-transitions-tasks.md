@@ -97,7 +97,7 @@ Pre-existing runtime warning seen in several suites (non-failing): `get_system_c
   - **Note:** TransitionOverlay `layer = 50` was already explicitly set in `root.tscn` (commit `db570323`). Verify it matches `U_CanvasLayers.TRANSITION`.
 - [x] **Note:** Post-process layers (2-5) in `ui_post_process_overlay.tscn` are inside `GameViewport` (different layer space). Keep as `.tscn` literals; the `PP_*` constants are reference documentation only.
 - [x] Grep for any remaining hardcoded layer assignments and update them.
-- [x] Update `docs/general/SCENE_ORGANIZATION_GUIDE.md` with the new canonical layer map referencing `U_CanvasLayers`.
+- [x] Update `docs/guides/SCENE_ORGANIZATION_GUIDE.md` with the new canonical layer map referencing `U_CanvasLayers`.
 
 ### 1C — Tests
 
@@ -461,11 +461,11 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 ## Phase 7 — Final Validation & Documentation
 
 - [x] Run full test suite: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true`.
-- [x] Update `docs/general/SCENE_ORGANIZATION_GUIDE.md` with:
+- [x] Update `docs/guides/SCENE_ORGANIZATION_GUIDE.md` with:
   - New canonical layer map referencing `U_CanvasLayers`.
   - ServiceLocator container registration list.
   - HUD lifecycle description.
-- [x] Update `docs/general/DEV_PITFALLS.md` with:
+- [x] Update `docs/guides/DEV_PITFALLS.md` with:
   - "Always use `U_CanvasLayers` constants for layer assignments."
   - "HUD is manager-instantiated under HUDLayer — do not add to gameplay scenes."
 - [x] Update `AGENTS.md` if new architectural patterns were introduced.
@@ -482,8 +482,8 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true`
   - Result: pass `2758/2767` with `9` known pending tests, `0` failures.
 - Updated documentation contracts:
-  - `docs/general/SCENE_ORGANIZATION_GUIDE.md` now explicitly lists root container ServiceLocator registrations and the Phase 6 HUD lifecycle contract.
-  - `docs/general/DEV_PITFALLS.md` now documents `U_CanvasLayers` constant usage and manager-instantiated HUD constraints.
+  - `docs/guides/SCENE_ORGANIZATION_GUIDE.md` now explicitly lists root container ServiceLocator registrations and the Phase 6 HUD lifecycle contract.
+  - `docs/guides/DEV_PITFALLS.md` now documents `U_CanvasLayers` constant usage and manager-instantiated HUD constraints.
 - `AGENTS.md` review: no additional edits were required because Phase 4/5/6 container/HUD architecture guidance is already documented.
 - Manual smoke-test note:
   - Interactive launch checks were not run in this headless terminal workflow; full automated suite remained green with the known pending set.
@@ -500,8 +500,8 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
   - `tests/unit/style/test_style_enforcement.gd::test_gameplay_scenes_do_not_embed_hud_instances`
 - [x] Fixed style helper iteration regression in `tests/unit/style/test_style_enforcement.gd` so interaction-resource placement scans advance across file entries.
 - [x] Synced docs/contracts after patch:
-  - `docs/general/SCENE_ORGANIZATION_GUIDE.md` (removed stale gameplay HUD hierarchy references)
-  - `docs/general/DEV_PITFALLS.md` (documented HUD-embed style guard)
+  - `docs/guides/SCENE_ORGANIZATION_GUIDE.md` (removed stale gameplay HUD hierarchy references)
+  - `docs/guides/DEV_PITFALLS.md` (documented HUD-embed style guard)
   - `AGENTS.md` (clarified root-managed HUD + no gameplay HUD nodes)
 - [x] Re-ran verification suites after patch:
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass `13/13`)
@@ -537,8 +537,8 @@ Key insight: `UI_HudController` already subscribes to `slice_updated` for the `"
 | `scenes/templates/tmpl_base_scene.tscn` | 6 | Remove HUD instance |
 | `scenes/gameplay/gameplay_*.tscn` | 7 gap patch | Remove legacy HUD embeds from gameplay scenes |
 | `tests/unit/style/test_style_enforcement.gd` | 7 gap patch | Add gameplay HUD embed regression guard |
-| `docs/general/SCENE_ORGANIZATION_GUIDE.md` | 7 gap patch | Remove stale gameplay HUD hierarchy references |
-| `docs/general/DEV_PITFALLS.md` | 7 gap patch | Document HUD embed style guard |
+| `docs/guides/SCENE_ORGANIZATION_GUIDE.md` | 7 gap patch | Remove stale gameplay HUD hierarchy references |
+| `docs/guides/DEV_PITFALLS.md` | 7 gap patch | Document HUD embed style guard |
 | `AGENTS.md` | 7 gap patch | Clarify root-managed HUD contract in gameplay section |
 | Tests (various) | 2-6 | Update for new APIs, ServiceLocator registrations |
 

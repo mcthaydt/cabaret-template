@@ -4,7 +4,7 @@ class_name U_SaveActions
 ## Action creators for save lifecycle notifications
 ##
 ## Replaces ECS event bus publishes from M_SaveManager per channel taxonomy
-## (docs/adr/0001-channel-taxonomy.md). Managers dispatch to Redux only;
+## (docs/architecture/adr/0001-channel-taxonomy.md). Managers dispatch to Redux only;
 ## subscribers connect to M_StateStore.action_dispatched and filter by type.
 
 const ACTION_SAVE_STARTED := StringName("save/started")

@@ -6,7 +6,7 @@ Remove `add_to_group()`/`is_in_group()`/`get_nodes_in_group()` usage throughout 
 
 **Priority:** Low (architectural consistency)
 **Status:** In Progress (Phases 0-11 complete; monitoring for regressions)
-**Continuation Prompt:** `docs/general/cleanup_v3/groups-cleanup-continuation-prompt.md`
+**Continuation Prompt:** `docs/history/cleanup_v3/groups-cleanup-continuation-prompt.md`
 
 ---
 

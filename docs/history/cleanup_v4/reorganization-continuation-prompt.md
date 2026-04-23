@@ -9,9 +9,9 @@
 
 ## Read First
 
-1. `docs/general/DEV_PITFALLS.md`
-2. `docs/general/STYLE_GUIDE.md`
-3. `docs/general/cleanup_v4/reorganization-tasks.md` (primary reference - all details)
+1. `docs/guides/DEV_PITFALLS.md`
+2. `docs/guides/STYLE_GUIDE.md`
+3. `docs/history/cleanup_v4/reorganization-tasks.md` (primary reference - all details)
 
 ---
 

@@ -6,8 +6,8 @@
 ## Start Here
 
 - `AGENTS.md`
-- `docs/general/DEV_PITFALLS.md`
-- `docs/general/STYLE_GUIDE.md`
+- `docs/guides/DEV_PITFALLS.md`
+- `docs/guides/STYLE_GUIDE.md`
 - `docs/localization_manager/localization-manager-plan.md`
 - `docs/localization_manager/localization-manager-refactor-tasks.md`
 

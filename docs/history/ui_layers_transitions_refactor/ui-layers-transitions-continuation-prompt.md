@@ -20,8 +20,8 @@
     - `tests/unit/style/test_style_enforcement.gd::test_gameplay_scenes_do_not_embed_hud_instances`
   - fixed style helper iteration regression in `tests/unit/style/test_style_enforcement.gd` (`_collect_interaction_resource_placement_violations`) so file entries advance correctly.
 - Synced architecture/docs after patch:
-  - `docs/general/SCENE_ORGANIZATION_GUIDE.md` gameplay hierarchy and UI naming references now match root-managed HUD lifecycle.
-  - `docs/general/DEV_PITFALLS.md` now documents the new style guard.
+  - `docs/guides/SCENE_ORGANIZATION_GUIDE.md` gameplay hierarchy and UI naming references now match root-managed HUD lifecycle.
+  - `docs/guides/DEV_PITFALLS.md` now documents the new style guard.
   - `AGENTS.md` gameplay-scene guidance now explicitly states HUD is root-managed (no gameplay HUD nodes).
 - Verification reruns after patch:
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass `13/13`)
@@ -38,9 +38,9 @@
 - Final validation:
   - `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` (pass `2758/2767` with `9` known pending tests, `0` failures).
 - Documentation closeout:
-  - `docs/general/SCENE_ORGANIZATION_GUIDE.md` updated with explicit root container ServiceLocator registrations and HUD lifecycle contract.
-  - `docs/general/DEV_PITFALLS.md` updated with `U_CanvasLayers` layer-assignment guidance and manager-instantiated HUD reminder.
-  - `docs/general/ui_layers_transitions_refactor/ui-layers-transitions-tasks.md` updated with Phase 7 completion notes/checklist.
+  - `docs/guides/SCENE_ORGANIZATION_GUIDE.md` updated with explicit root container ServiceLocator registrations and HUD lifecycle contract.
+  - `docs/guides/DEV_PITFALLS.md` updated with `U_CanvasLayers` layer-assignment guidance and manager-instantiated HUD reminder.
+  - `docs/history/ui_layers_transitions_refactor/ui-layers-transitions-tasks.md` updated with Phase 7 completion notes/checklist.
 - `AGENTS.md` reviewed; no additional updates were required because container/HUD architecture guidance from Phases 4-6 is already captured.
 - Manual smoke note:
   - GUI-driven smoke checks (damage flash layering and shell transition HUD toggles) were not run in this headless terminal workflow.
@@ -162,7 +162,7 @@
 - Added `scripts/ui/u_canvas_layers.gd` as the canonical CanvasLayer constants source.
 - Moved `DamageFlashOverlay` from layer `110` to `90`.
 - Replaced script-side hardcoded layer assignments with `U_CanvasLayers` constants (HUD controller, display post-process applier, cinema-grade applier/preview, debug cinema overlay).
-- Updated `docs/general/SCENE_ORGANIZATION_GUIDE.md` with canonical layer map, root hierarchy updates, and `U_CanvasLayers` references.
+- Updated `docs/guides/SCENE_ORGANIZATION_GUIDE.md` with canonical layer map, root hierarchy updates, and `U_CanvasLayers` references.
 - Phase 1 verification:
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (pass 12/12)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (pass 414/414)
@@ -185,7 +185,7 @@
 ### Phase 0 Inventory Snapshot
 
 - Layer grep completed for `.tscn` (`layer = ...`) and `.gd` (`.layer = ...`) assignments.
-- Full current layer map with source references is recorded in `docs/general/ui_layers_transitions_refactor/ui-layers-transitions-tasks.md` under "Phase 0 Completion Notes".
+- Full current layer map with source references is recorded in `docs/history/ui_layers_transitions_refactor/ui-layers-transitions-tasks.md` under "Phase 0 Completion Notes".
 
 ### Ad-Hoc Fixes Already on Branch
 
@@ -307,10 +307,10 @@ Layer   Node                        Purpose
 ## Required Readings (Do Not Skip)
 
 - `AGENTS.md` — project conventions, testing, and update rules.
-- `docs/general/DEV_PITFALLS.md` — known gotchas.
-- `docs/general/STYLE_GUIDE.md` — naming, formatting, prefix rules.
-- `docs/general/SCENE_ORGANIZATION_GUIDE.md` — layer/container reference.
-- `docs/general/ui_layers_transitions_refactor/ui-layers-transitions-tasks.md` — the task checklist.
+- `docs/guides/DEV_PITFALLS.md` — known gotchas.
+- `docs/guides/STYLE_GUIDE.md` — naming, formatting, prefix rules.
+- `docs/guides/SCENE_ORGANIZATION_GUIDE.md` — layer/container reference.
+- `docs/history/ui_layers_transitions_refactor/ui-layers-transitions-tasks.md` — the task checklist.
 
 ## Process for Completion (Every Phase)
 

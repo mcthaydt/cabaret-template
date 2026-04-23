@@ -70,9 +70,9 @@ Goal: Stop runtime `InputMap` mutation in gameplay systems (deterministic bindin
 
 ## Notes / Reminders
 
-- Before editing production code, re-check `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md`.
+- Before editing production code, re-check `docs/guides/DEV_PITFALLS.md` and `docs/guides/STYLE_GUIDE.md`.
 - After completing each phase, update:
-  - `docs/general/cleanup/hotspot-simplification-tasks.md` (checkboxes + completion notes)
-  - `docs/general/cleanup/hotspot-simplification-continuation-prompt.md`
+  - `docs/history/cleanup_v1/hotspot-simplification-tasks.md` (checkboxes + completion notes)
+  - `docs/history/cleanup_v1/hotspot-simplification-continuation-prompt.md`
   - Any impacted planning docs (e.g., `docs/architecture/dependency_graph.md`) if assumptions change
 - Commit documentation updates separately from implementation commits.

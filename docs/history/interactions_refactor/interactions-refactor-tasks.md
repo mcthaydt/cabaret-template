@@ -11,8 +11,8 @@ This refactor covers all interaction controllers and keeps the existing hybrid r
 **Status**: Complete  
 **Current Phase**: Complete (Phase 5)  
 **Task ID Range**: T001-T053  
-**Primary Tasks File**: `docs/general/interactions_refactor/interactions-refactor-tasks.md`  
-**Continuation Prompt File**: `docs/general/interactions_refactor/interactions-refactor-continuation-prompt.md` (required per phase)
+**Primary Tasks File**: `docs/history/interactions_refactor/interactions-refactor-tasks.md`  
+**Continuation Prompt File**: `docs/history/interactions_refactor/interactions-refactor-continuation-prompt.md` (required per phase)
 
 ---
 
@@ -61,7 +61,7 @@ This refactor covers all interaction controllers and keeps the existing hybrid r
 
 - TDD is mandatory per phase: RED tests first, then GREEN implementation, then REFACTOR cleanup.
 - During infrastructure phases (Phases 1-2), behavior parity is mandatory.
-- Use naming conventions from `docs/general/STYLE_GUIDE.md`:
+- Use naming conventions from `docs/guides/STYLE_GUIDE.md`:
   - Resource scripts: `rs_*`
   - Resource instances: `cfg_*`
 - Keep tabs in `.gd` files and preserve existing style checks.
@@ -73,7 +73,7 @@ This refactor covers all interaction controllers and keeps the existing hybrid r
 - After each phase completion:
   - Update this tasks file status.
   - Update continuation prompt file.
-  - Update `AGENTS.md` / `docs/general/DEV_PITFALLS.md` when new patterns/pitfalls are discovered.
+  - Update `AGENTS.md` / `docs/guides/DEV_PITFALLS.md` when new patterns/pitfalls are discovered.
 
 ---
 
@@ -600,10 +600,10 @@ At each phase completion:
   - Mark completed tasks `[x]`.
   - Add completion notes under phase section (tests run, commit hash, caveats).
 2. Update continuation prompt:
-  - `docs/general/interactions_refactor/interactions-refactor-continuation-prompt.md`
+  - `docs/history/interactions_refactor/interactions-refactor-continuation-prompt.md`
 3. Update architecture references when patterns stabilize:
   - `AGENTS.md` interaction patterns section (if behavior/pattern changed)
-  - `docs/general/DEV_PITFALLS.md` for new interaction pitfalls (if any)
+  - `docs/guides/DEV_PITFALLS.md` for new interaction pitfalls (if any)
 4. Keep documentation commits separate from implementation commits.
 
 ---

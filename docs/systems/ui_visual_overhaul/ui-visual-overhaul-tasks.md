@@ -6,7 +6,7 @@
 
 ## Prerequisite
 
-- [x] Confirm "UI, Layers & Transitions Refactor" is complete (all 7 phases in `docs/general/ui_layers_transitions_refactor/`) — completed 2026-03-03, branch `UI-Looksmaxxing`
+- [x] Confirm "UI, Layers & Transitions Refactor" is complete (all 7 phases in `docs/history/ui_layers_transitions_refactor/`) — completed 2026-03-03, branch `UI-Looksmaxxing`
 - [x] Confirm test baselines: `tools/run_gut_suite.sh -gdir=res://tests/ -ginclude_subdirs=true` — baselines green
 
 ---
@@ -725,7 +725,7 @@ Run through each flow end-to-end in the game (not headless):
 ### 5E — Documentation Updates
 
 - [x] Update `AGENTS.md` with theme system and motion framework patterns
-- [x] Update `docs/general/DEV_PITFALLS.md` with new pitfalls:
+- [x] Update `docs/guides/DEV_PITFALLS.md` with new pitfalls:
   - "Use `RS_UIThemeConfig` for styling, not inline `theme_override_*`"
   - "Motion resources are opt-in — `null` motion_set = zero behavioral change"
   - "Semantic per-node overrides (signpost golden, error red, virtual button) are intentional exceptions"
@@ -734,7 +734,7 @@ Run through each flow end-to-end in the game (not headless):
 
 Completion note (2026-03-06): Completed Phase 5E documentation closure.
 - Updated `AGENTS.md` with explicit unified-theme override policy + motion opt-in no-op contract.
-- Updated `docs/general/DEV_PITFALLS.md` with UI theming/motion exception pitfalls.
+- Updated `docs/guides/DEV_PITFALLS.md` with UI theming/motion exception pitfalls.
 - Updated this task list and the continuation prompt to final-complete status.
 - UI Visual Overhaul story is fully complete end-to-end (Phases 0-5).
 
@@ -850,4 +850,4 @@ These scenes currently have no `theme_override_*` lines, so they do not need ove
 
 - PRD: `docs/ui_visual_overhaul/ui-visual-overhaul-prd.md`
 - Continuation prompt: `docs/ui_visual_overhaul/ui-visual-overhaul-continuation-prompt.md`
-- Prerequisite refactor: `docs/general/ui_layers_transitions_refactor/`
+- Prerequisite refactor: `docs/history/ui_layers_transitions_refactor/`

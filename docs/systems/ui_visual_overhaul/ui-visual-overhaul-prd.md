@@ -38,7 +38,7 @@
 
 ## Technical Considerations
 
-- **Prerequisite**: The "UI, Layers & Transitions Refactor" (7 phases in `docs/general/ui_layers_transitions_refactor/`) must be complete before starting this work. That refactor establishes the layer stack, ServiceLocator container registration, and Redux-driven HUD visibility that this overhaul builds on.
+- **Prerequisite**: The "UI, Layers & Transitions Refactor" (7 phases in `docs/history/ui_layers_transitions_refactor/`) must be complete before starting this work. That refactor establishes the layer stack, ServiceLocator container registration, and Redux-driven HUD visibility that this overhaul builds on.
 - **Integration point**: `U_LocalizationFontApplier.build_theme()` already creates a Theme per UI root. The new `U_UIThemeBuilder` merges styleboxes/sizes onto that output. If no font applier is available, it works standalone.
 - **Config access**: `U_UIThemeBuilder.active_config` static var, set in `root.gd` via preload. No ServiceLocator involvement (ServiceLocator only accepts Node instances).
 - **Unified theme pipeline**: Two existing systems (`U_LocalizationFontApplier` for fonts, `U_DisplayUIThemeApplier` for palette colors) both overwrite `control.theme =` independently — latent last-writer-wins bug. `U_UIThemeBuilder` becomes the single composition point: takes font applier output + palette + theme config → one merged Theme. Both existing appliers feed INTO the builder rather than applying independently. Fixes existing bug AND accommodates new styleboxes/spacing.

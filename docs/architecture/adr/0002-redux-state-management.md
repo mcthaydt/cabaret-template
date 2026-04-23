@@ -1,4 +1,4 @@
-# ADR-001: Redux-Style State Management
+# ADR 0002: Redux-Style State Management
 
 **Status**: Accepted  
 **Date**: 2025-12-17  

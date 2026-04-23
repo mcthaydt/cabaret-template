@@ -6,7 +6,7 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
 **Status**: Complete (23/23 tasks complete)
-**Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
+**Continuation Prompt**: `docs/history/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
 

@@ -20,9 +20,9 @@ Use this prompt to resume the duck typing cleanup effort (cleanup_v4).
 
 ## Read First
 
-- `docs/general/DEV_PITFALLS.md`
-- `docs/general/STYLE_GUIDE.md`
-- `docs/general/cleanup_v4/duck-typing-cleanup-tasks.md`
+- `docs/guides/DEV_PITFALLS.md`
+- `docs/guides/STYLE_GUIDE.md`
+- `docs/history/cleanup_v4/duck-typing-cleanup-tasks.md`
 
 ---
 
@@ -91,7 +91,7 @@ Use this prompt to resume the duck typing cleanup effort (cleanup_v4).
 
 - Run the targeted tests listed per phase in `duck-typing-cleanup-tasks.md` **before** advancing.
 - After every phase, update:
-  - `docs/general/cleanup_v4/duck-typing-cleanup-tasks.md` (checkboxes/notes)
+  - `docs/history/cleanup_v4/duck-typing-cleanup-tasks.md` (checkboxes/notes)
   - This continuation prompt (progress + next steps)
 - Commit documentation updates separately from implementation commits.
 

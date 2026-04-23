@@ -77,9 +77,9 @@ When working with the ECS architecture:
 When working with ECS code, follow project-wide conventions:
 
 - **Naming**: All ECS files use established prefixes (`E_*` for entity roots, `C_*` for components, `S_*` for systems)
-- **Scene Organization**: See `docs/general/SCENE_ORGANIZATION_GUIDE.md` for scene file structure
-- **Style Guide**: See `docs/general/STYLE_GUIDE.md` for code conventions
-- **Cleanup Project**: See `docs/general/cleanup/style-scene-cleanup-continuation-prompt.md` for ongoing architectural improvements
+- **Scene Organization**: See `docs/guides/SCENE_ORGANIZATION_GUIDE.md` for scene file structure
+- **Style Guide**: See `docs/guides/STYLE_GUIDE.md` for code conventions
+- **Cleanup Project**: See `docs/history/cleanup_v1/style-scene-cleanup-continuation-prompt.md` for ongoing architectural improvements
 
 ## Friendly Resources
 

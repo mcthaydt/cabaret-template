@@ -45,7 +45,7 @@
 - [x] LM005 Create shader stub `assets/shaders/sh_character_zone_lighting.gdshader`
 - [x] LM006 Add manager node `M_CharacterLightingManager` under root `Managers` in `scenes/root.tscn`
 - [x] LM007 Register ServiceLocator key in `scripts/root.gd` (`character_lighting_manager`)
-- [x] LM064 Update `docs/general/STYLE_GUIDE.md` with lighting category naming conventions and locked shader filename guidance
+- [x] LM064 Update `docs/guides/STYLE_GUIDE.md` with lighting category naming conventions and locked shader filename guidance
 - [x] LM065 Update `tests/unit/style/test_style_enforcement.gd` prefix rules to include `scripts/resources/lighting` and enforce `rs_` pattern
 - [x] LM008 Run style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
   - 2026-02-12: PASS after removing duplicate workspace directories (`resources/interactions/* 2`).
@@ -216,7 +216,7 @@
   - 2026-02-12: Advanced continuation state to Phase 7 with manual QA completion recorded.
 - [x] LM059 Update `AGENTS.md` with finalized character-zone-lighting architecture patterns (if new stable patterns emerged)
   - 2026-02-12: Reviewed `AGENTS.md`; existing Character Lighting section already captures finalized architecture patterns from Phases 1-6, so no additional stable-pattern edits were required.
-- [x] LM060 Update `docs/general/DEV_PITFALLS.md` with new pitfalls discovered during implementation
+- [x] LM060 Update `docs/guides/DEV_PITFALLS.md` with new pitfalls discovered during implementation
   - 2026-02-12: Reviewed Phase 6/7 outcomes; no new stable pitfalls were identified beyond existing Character Lighting entries.
 - [x] LM061 Run style enforcement one final time
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)

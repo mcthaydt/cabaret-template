@@ -26,7 +26,7 @@ These are intentionally explicit so the work can proceed without ambiguity:
 **Exit Criteria:** Docs exist, baseline test runs recorded, and scope decisions captured.
 
 - [x] **Task 0.1**: Create this tasks document
-- [x] **Task 0.2**: Create continuation prompt (`docs/general/cleanup_v2/cleanup-v2-continuation-prompt.md`)
+- [x] **Task 0.2**: Create continuation prompt (`docs/history/cleanup_v2/cleanup-v2-continuation-prompt.md`)
 - [x] **Task 0.3**: Baseline test run + record results in this doc
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit`
@@ -78,10 +78,10 @@ These are intentionally explicit so the work can proceed without ambiguity:
       ./tests/integration/scene_manager/test_scene_contract_invocation.gd:99:    assert_eq(scene_state.get("current_scene_id", StringName(\"\")), StringName(\"tmp_invalid_gameplay\"))
       ./tests/unit/scene_manager/test_scene_registry_resources.gd:28:    entry.scene_path = "res://scenes/tmp_invalid_gameplay.tscn"  # existing test scene path
       ./tests/unit/scene_manager/test_scene_registry_resources.gd:46:    entry.scene_path = "res://scenes/tmp_invalid_gameplay.tscn"
-      ./docs/general/cleanup_v1/style-scene-cleanup-tasks.md:549:- [SKIP] T059 Delete orphaned temporary file `scenes/tmp_invalid_gameplay.tscn`:
-      ./docs/general/cleanup_v2/cleanup-v2-tasks.md:40:    - `rg -n \"tmp_invalid_gameplay\" -S .`
-      ./docs/general/cleanup_v2/cleanup-v2-tasks.md:216:  - Candidate: `scenes/tmp_invalid_gameplay.tscn`
-      ./docs/general/cleanup_v2/cleanup-v2-tasks.md:218:    - `rg -n \"tmp_invalid_gameplay\" -S .`
+      ./docs/history/cleanup_v1/style-scene-cleanup-tasks.md:549:- [SKIP] T059 Delete orphaned temporary file `scenes/tmp_invalid_gameplay.tscn`:
+      ./docs/history/cleanup_v2/cleanup-v2-tasks.md:40:    - `rg -n \"tmp_invalid_gameplay\" -S .`
+      ./docs/history/cleanup_v2/cleanup-v2-tasks.md:216:  - Candidate: `scenes/tmp_invalid_gameplay.tscn`
+      ./docs/history/cleanup_v2/cleanup-v2-tasks.md:218:    - `rg -n \"tmp_invalid_gameplay\" -S .`
       ```
 
 ---
@@ -114,7 +114,7 @@ These are intentionally explicit so the work can proceed without ambiguity:
 - [x] **Task 1.3 (Green)**: Enforce input source filenames by suffix rule
   - Files:
     - `tests/unit/style/test_style_enforcement.gd`
-    - `docs/general/STYLE_GUIDE.md`
+    - `docs/guides/STYLE_GUIDE.md`
   - Implement in the style test:
     - For `res://scripts/input/sources/`, require filename ends with `_source.gd`
   - Document in style guide:
@@ -130,7 +130,7 @@ These are intentionally explicit so the work can proceed without ambiguity:
 
 - [x] **Task 1.5 (Green)**: Style suite is green with the new enforcement
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
-  - If the suite forces a legitimate exception, document it in `docs/general/STYLE_GUIDE.md` and encode it explicitly in the test.
+  - If the suite forces a legitimate exception, document it in `docs/guides/STYLE_GUIDE.md` and encode it explicitly in the test.
 
 ---
 
@@ -302,10 +302,10 @@ These are intentionally explicit so the work can proceed without ambiguity:
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/ui`
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/utils`
   - Notes (2026-01-04):
-    - Headless runs can require a local `.godot` UID/class-cache refresh after moving `class_name` scripts (see `docs/general/DEV_PITFALLS.md`).
+    - Headless runs can require a local `.godot` UID/class-cache refresh after moving `class_name` scripts (see `docs/guides/DEV_PITFALLS.md`).
 
 - [x] **Task 4.5**: Normalize objective container placement in gameplay scenes
-  - Fix drift from `docs/general/SCENE_ORGANIZATION_GUIDE.md`: objective entities belong under `Entities/Objectives`.
+  - Fix drift from `docs/guides/SCENE_ORGANIZATION_GUIDE.md`: objective entities belong under `Entities/Objectives`.
   - Completed (2026-01-04): moved `E_FinalGoal` under `Entities/Objectives` in `scenes/gameplay/gameplay_exterior.tscn`.
 
 - [x] **Task 4.6**: Remove special-case spawn container prefix

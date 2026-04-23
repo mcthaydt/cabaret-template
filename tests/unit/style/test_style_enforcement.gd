@@ -1874,7 +1874,7 @@ func test_no_state_mutation_outside_store() -> void:
 	)
 
 ## F5: Managers must not publish to U_ECSEventBus.
-## Per the channel taxonomy (docs/adr/0001-channel-taxonomy.md):
+## Per the channel taxonomy (docs/architecture/adr/0001-channel-taxonomy.md):
 ##   ECS component/system → U_ECSEventBus (subscribers can be anywhere)
 ##   Manager → Redux dispatch only
 ##   Manager-UI wiring → Godot signals

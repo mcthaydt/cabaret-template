@@ -1094,7 +1094,7 @@
   - ✅ Added "Phase 10-Specific Pitfalls" subsection
   - ✅ Covers: camera blending requirements, queue handling, cache eviction, async loading, spawn positioning, cooldown timing
   - ✅ Updated Test Coverage Status section with Phase 10 completion stats
-  - **File**: docs/general/DEV_PITFALLS.md (lines 362-444, 450-491)
+  - **File**: docs/guides/DEV_PITFALLS.md (lines 362-444, 450-491)
 - [x] T195 Run full test suite (ALL tests must pass)
   - ✅ **502/506 tests passing (99.2%)**
   - ✅ 4 tests pending (Tween timing in headless mode - expected)
@@ -1122,7 +1122,7 @@
   - ✅ ECS components extend ECSComponent with proper COMPONENT_TYPE constants
   - ✅ Systems extend ECSSystem with process_tick() implementation
   - ✅ Managers use M_ prefix, group registration patterns followed
-- [x] T202 Code review: Ensure all code follows docs/general/STYLE_GUIDE.md
+- [x] T202 Code review: Ensure all code follows docs/guides/STYLE_GUIDE.md
   - ✅ All naming conventions followed (M_SceneManager, U_SceneRegistry, C_SceneTriggerComponent, etc.)
   - ✅ File names match class names in snake_case
   - ✅ Constants use UPPER_SNAKE_CASE
@@ -1464,7 +1464,7 @@
 - [x] T289 Update scene templates to register spawn points in _ready()  
   - ✅ Achieved via scene-attached `SP_SpawnPoint` nodes under `SpawnPoints` in `gameplay_base`, `gameplay_exterior`, and `gameplay_interior_house` (no runtime registration needed; metadata is read directly from the scene).
 - [ ] T290 Add spawn_by_tag() method to M_SpawnManager - **DEFERRED**: Still not needed at current scale
-- [ ] T291 Document spawn registry patterns in quickstart - **DEFERRED**: Can be added when spawn_by_tag() is introduced; for now, see Phase 8 notes in `docs/general/cleanup/style-scene-cleanup-tasks.md`.
+- [ ] T291 Document spawn registry patterns in quickstart - **DEFERRED**: Can be added when spawn_by_tag() is introduced; for now, see Phase 8 notes in `docs/history/cleanup_v1/style-scene-cleanup-tasks.md`.
 
 **Validation & Polish** ✅ COMPLETE
 - [x] T292 Run all spawn system tests - expect all PASS - **COMPLETE**: 564/570 passing (98.9%)

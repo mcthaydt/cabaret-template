@@ -25,9 +25,9 @@ Tracking remains available in [post-scene-manager-tasks.md](./post-scene-manager
 ### 1. Review Project Foundations
 
 - `AGENTS.md` - Project conventions and patterns
-- `docs/general/DEV_PITFALLS.md` - Common mistakes to avoid
-- `docs/general/SCENE_ORGANIZATION_GUIDE.md` - Code style requirements
-- `docs/general/STYLE_GUIDE.md` - Code style requirements
+- `docs/guides/DEV_PITFALLS.md` - Common mistakes to avoid
+- `docs/guides/SCENE_ORGANIZATION_GUIDE.md` - Code style requirements
+- `docs/guides/STYLE_GUIDE.md` - Code style requirements
 
 ### 2. Review Scene Manager Documentation
 
@@ -100,8 +100,8 @@ Additional tracking requirements:
 - **No autoloads**: Use scene-tree-based discovery patterns
 - **TDD is mandatory**: Write tests before implementation
 - **Immutable state**: Always use `.duplicate(true)` in reducers
-- **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and `docs/general/SCENE_ORGANIZATION_GUIDE.md`
-- **Cleanup Project**: See `docs/general/cleanup/style-scene-cleanup-continuation-prompt.md` for architectural improvements
+- **Style & Organization**: Follow `docs/guides/STYLE_GUIDE.md` and `docs/guides/SCENE_ORGANIZATION_GUIDE.md`
+- **Cleanup Project**: See `docs/history/cleanup_v1/style-scene-cleanup-continuation-prompt.md` for architectural improvements
 
 ---
 

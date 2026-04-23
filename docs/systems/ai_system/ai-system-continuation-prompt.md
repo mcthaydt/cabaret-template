@@ -708,8 +708,8 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 ### 1. Review Project Foundations
 
 - `AGENTS.md` — Project conventions, ECS guidelines, QB v2 patterns.
-- `docs/general/DEV_PITFALLS.md` — Common mistakes to avoid.
-- `docs/general/STYLE_GUIDE.md` — Code style, naming prefixes, formatting requirements.
+- `docs/guides/DEV_PITFALLS.md` — Common mistakes to avoid.
+- `docs/guides/STYLE_GUIDE.md` — Code style, naming prefixes, formatting requirements.
 
 ### 2. Review AI System Documentation
 
@@ -805,7 +805,7 @@ You MUST:
 - **M15 interaction trigger contract (implemented)**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` own player-proximity enter/exit state, and `S_DemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` to durable gameplay flags. Demo-flag updates dispatch via `U_GameplayActions.set_ai_demo_flag(...)`.
 - **Shared runtime wiring is now default**: both `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` include `S_AIBehaviorSystem(-10)` and `S_MoveTargetFollowerSystem(-5)` before `S_InputSystem(0)`.
 - **Demo Scenes are CSG Prototypes**: Use CSG geometry for all level geometry. Functional prototypes, not polished levels.
-- **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and node naming prefixes (S_, C_, RS_, U_, I_, E_, etc.).
+- **Style & Organization**: Follow `docs/guides/STYLE_GUIDE.md` and node naming prefixes (S_, C_, RS_, U_, I_, E_, etc.).
 - **Update Docs After Each Milestone**: Per AGENTS.md mandate, update this continuation prompt and the tasks checklist after completing each milestone.
 
 ---

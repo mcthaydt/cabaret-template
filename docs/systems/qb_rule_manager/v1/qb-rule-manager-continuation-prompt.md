@@ -97,7 +97,7 @@ Phases R1-R6 are complete (zero behavioral changes): shared variant helpers, bas
 ## Before Continuing
 
 1. Read `AGENTS.md` for project conventions
-2. Read `docs/general/DEV_PITFALLS.md` for known pitfalls
+2. Read `docs/guides/DEV_PITFALLS.md` for known pitfalls
 3. Read `docs/qb_rule_manager/qb-rule-manager-refactor-tasks.md` for the refactor task checklist
 4. R1-R6 complete as of February 20, 2026; **R7 (scoring + decision groups) is the next phase**
 5. Original feature tasks (all complete): `docs/qb_rule_manager/qb-rule-manager-tasks.md`

@@ -91,7 +91,7 @@ version: "1.0"
 
 ### Core Authority Model
 
-- [x] T020 Document the **pause/cursor authority model** in a short note under `docs/general/cleanup/`:
+- [x] T020 Document the **pause/cursor authority model** in a short note under `docs/history/cleanup_v1/`:
   - Confirm `M_PauseManager` is the single authority for engine pause and cursor coordination (via `M_CursorManager`).
   - Document cursor logic: overlays → visible, MENU/UI/END_GAME → visible, GAMEPLAY → hidden.
   - **NEW**: Document initialization order requirements (store → scene manager → pause system).
@@ -1488,7 +1488,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ## Phase 10B – Architectural Hardening
 
-**Detailed implementation plan**: See `docs/general/cleanup/phase-10b-implementation-plan.md`
+**Detailed implementation plan**: See `docs/history/cleanup_v1/phase-10b-implementation-plan.md`
 
 **Goal**: Address systemic architectural issues for better modularity, testability, and scalability.
 **Audit Date**: 2025-12-09
@@ -1711,7 +1711,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - ADR-002: ECS pattern with Node-based components
   - ADR-003: Event bus for cross-system communication
   - ADR-004: Service locator for dependency management
-  - ✅ Completed (2025-12-17): `docs/architecture/adr/ADR-001-redux-state-management.md` .. `ADR-004-service-locator.md`
+  - ✅ Completed (2025-12-17): `docs/architecture/adr/0002-redux-state-management.md` .. `0005-service-locator.md`
 
 ### Phase 10B Summary
 

@@ -18,8 +18,8 @@ This initiative focuses on three UX outcomes:
 **Status**: Complete  
 **Current Phase**: Phase 6 (Complete)  
 **Task ID Range**: QOL-T001-QOL-T065  
-**Primary Tasks File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`  
-**Continuation Prompt File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md` (required per phase)
+**Primary Tasks File**: `docs/history/quality_of_life_refactors/quality-of-life-refactors-tasks.md`  
+**Continuation Prompt File**: `docs/history/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md` (required per phase)
 
 ---
 
@@ -86,7 +86,7 @@ This initiative focuses on three UX outcomes:
   - `save_failed`
   - `checkpoint_activated`
 - Event payloads may be extended additively when required by this initiative, but existing keys/semantics must remain valid for current subscribers.
-- Use naming conventions from `docs/general/STYLE_GUIDE.md`:
+- Use naming conventions from `docs/guides/STYLE_GUIDE.md`:
   - Resource scripts: `rs_*`
   - Resource instances: `cfg_*`
   - UI scripts/scenes: existing `ui_*` conventions
@@ -97,7 +97,7 @@ This initiative focuses on three UX outcomes:
 - After each phase completion:
   - Update this tasks file status.
   - Update continuation prompt file.
-  - Update `AGENTS.md` / `docs/general/DEV_PITFALLS.md` when new patterns/pitfalls are discovered.
+  - Update `AGENTS.md` / `docs/guides/DEV_PITFALLS.md` when new patterns/pitfalls are discovered.
 
 ---
 
@@ -144,7 +144,7 @@ This initiative focuses on three UX outcomes:
 - Autosave feedback is spinner-first and does not reuse toast text pipeline.
 - Existing event names remain stable; behavior changes are subscriber-side and HUD layout-side.
 - World-space icon support is config-driven and opt-in by interaction authoring.
-- Documentation quality should mirror `docs/general/interactions_refactor/*`.
+- Documentation quality should mirror `docs/history/interactions_refactor/*`.
 
 ---
 
@@ -738,7 +738,7 @@ Validation suites executed:
 
 - Phase 6 exit criteria met on 2026-02-10.
 - Post-closure follow-up implementation completed on 2026-02-10 to address audited UX gaps.
-- `AGENTS.md` and `docs/general/DEV_PITFALLS.md` required no updates for this phase (no new durable patterns/pitfalls identified).
+- `AGENTS.md` and `docs/guides/DEV_PITFALLS.md` required no updates for this phase (no new durable patterns/pitfalls identified).
 - Initiative status: complete.
 
 ### Post-Closure Follow-up Validation (2026-02-10)
@@ -828,7 +828,7 @@ At completion of each phase:
     - Commit hash(es)
     - Any deviations
 2. Update continuation prompt:
-  - `docs/general/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md`
+  - `docs/history/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md`
 3. Update `AGENTS.md` if new architecture/patterns become project standards.
-4. Update `docs/general/DEV_PITFALLS.md` if new pitfalls are discovered.
+4. Update `docs/guides/DEV_PITFALLS.md` if new pitfalls are discovered.
 5. Commit docs updates separately from implementation updates.

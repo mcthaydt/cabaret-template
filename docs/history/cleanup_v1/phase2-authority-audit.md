@@ -80,9 +80,9 @@ Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 Files containing `get_tree().paused` references in documentation/examples:
 - `docs/ui_manager/general/flows-and-input.md`
-- `docs/general/cleanup/style-scene-cleanup-tasks.md`
-- `docs/general/cleanup/pause-cursor-authority-model.md`
-- `docs/general/DEV_PITFALLS.md`
+- `docs/history/cleanup_v1/style-scene-cleanup-tasks.md`
+- `docs/history/cleanup_v1/pause-cursor-authority-model.md`
+- `docs/guides/DEV_PITFALLS.md`
 - `docs/scene_manager/scene-manager-tasks.md`
 - `docs/scene_manager/general/research.md`
 - `docs/scene_manager/scene-manager-prd.md`
@@ -121,9 +121,9 @@ Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 Files containing `Input.mouse_mode` references in documentation/examples:
 - `docs/input_manager/input-manager-plan.md`
 - `docs/input_manager/input-manager-prd.md`
-- `docs/general/cleanup/style-scene-cleanup-tasks.md`
-- `docs/general/cleanup/pause-cursor-authority-model.md`
-- `docs/general/DEV_PITFALLS.md`
+- `docs/history/cleanup_v1/style-scene-cleanup-tasks.md`
+- `docs/history/cleanup_v1/pause-cursor-authority-model.md`
+- `docs/guides/DEV_PITFALLS.md`
 
 **Status**: ✅ DOCUMENTATION ONLY - Not executable code.
 
@@ -154,9 +154,9 @@ _cursor_manager.set_cursor_state(true, false)  # locked, hidden
 
 Files containing `set_cursor_state` references in documentation/examples:
 - `docs/state_store/for humans/redux-state-store-usage-guide.md`
-- `docs/general/cleanup/style-scene-cleanup-tasks.md`
-- `docs/general/cleanup/pause-cursor-authority-model.md`
-- `docs/general/DEV_PITFALLS.md:482` (outdated reference to M_SceneManager calling it)
+- `docs/history/cleanup_v1/style-scene-cleanup-tasks.md`
+- `docs/history/cleanup_v1/pause-cursor-authority-model.md`
+- `docs/guides/DEV_PITFALLS.md:482` (outdated reference to M_SceneManager calling it)
 
 **Status**: ✅ DOCUMENTATION ONLY - Not executable code.
 

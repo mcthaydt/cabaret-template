@@ -15,7 +15,7 @@ Before starting Phase 2, verify:
   - Read `docs/vcam_manager/vcam-manager-plan.md` (Commit 1.1, Commit 2.3 sections)
   - Read `docs/vcam_manager/vcam-manager-overview.md` (Camera Modes > RS_VCamModeOrbit)
   - Read `docs/vcam_manager/vcam-manager-prd.md` (orbit requirements)
-  - Read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md`
+  - Read `docs/guides/DEV_PITFALLS.md` and `docs/guides/STYLE_GUIDE.md`
 - [x] **PRE-3**: Understand existing patterns by reading:
   - `scripts/resources/display/vcam/rs_vcam_soft_zone.gd` (resource pattern from Phase 1)
   - `scripts/resources/display/vcam/rs_vcam_blend_hint.gd` (resource pattern from Phase 1)
@@ -29,7 +29,7 @@ Before starting Phase 2, verify:
 - [x] **DOC-1**: After Phase 2 completion, update `docs/vcam_manager/vcam-manager-continuation-prompt.md` with exact phase status and next step.
 - [x] **DOC-2**: After Phase 2 completion, update this file (`vcam-orbit-tasks.md`) with `[x]` marks and completion notes.
 - [x] **DOC-3**: Update `AGENTS.md` if orbit evaluation reveals new stable architecture/pattern contracts.
-- [x] **DOC-4**: Update `docs/general/DEV_PITFALLS.md` with any orbit-specific pitfalls discovered.
+- [x] **DOC-4**: Update `docs/guides/DEV_PITFALLS.md` with any orbit-specific pitfalls discovered.
 - [x] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
 
 **Documentation completion note (March 10, 2026):** Continuation/tasks docs updated and synchronized, AGENTS vCam runtime contracts updated for orbit resolved-values behavior, and post-`0f51c36` retune docs/tests now pin the active `cfg_default_response.tres` baseline plus authored-scene debug-logging defaults.

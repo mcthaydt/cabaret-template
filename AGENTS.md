@@ -9,13 +9,13 @@
   - `resources/base_settings/`: Default `*Settings.tres` for component configs (domain subfolders); update defaults when adding new exported fields.
   - `assets/audio/`, `assets/button_prompts/`, `assets/editor_icons/`: Shared asset libraries for audio, input glyphs, and editor UI.
 - Documentation to consult (do not duplicate here):
-  - General pitfalls: `docs/general/DEV_PITFALLS.md`
-  - AI entity behavior spec template (fill before implementing new AI entities): `docs/ai_system/ai-entity-authoring-template.md`
-- Before adding or modifying code, re-read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
+  - General pitfalls: `docs/guides/DEV_PITFALLS.md`
+  - AI entity behavior spec template (fill before implementing new AI entities): `docs/systems/ai_system/ai-entity-authoring-template.md`
+- Before adding or modifying code, re-read `docs/guides/DEV_PITFALLS.md` and `docs/guides/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
 - Keep project planning docs current: whenever a story advances, update the relevant plan and PRD documents immediately so written guidance matches the implementation state.
 - **MANDATORY: Update continuation prompt and tasks checklist after EVERY phase**: When completing a phase (e.g., Phase 2 of Scene Manager), you MUST:
-  1. Update the continuation prompt file (e.g., `docs/scene_manager/scene-manager-continuation-prompt.md`) with current status
-  2. Update the tasks file (e.g., `docs/scene_manager/scene-manager-tasks.md`) to mark completed tasks with [x] and add completion notes
+  1. Update the continuation prompt file (e.g., `docs/systems/scene_manager/scene-manager-continuation-prompt.md`) with current status
+  2. Update the tasks file (e.g., `docs/systems/scene_manager/scene-manager-tasks.md`) to mark completed tasks with [x] and add completion notes
   3. Update AGENTS.md with new patterns/architecture (if applicable)
   4. Update DEV_PITFALLS.md with new pitfalls discovered (if applicable)
   5. Commit documentation updates separately from implementation
@@ -56,7 +56,7 @@
 - `scripts/utils/scene_director/u_objective_event_log.gd`: Objective transition log helper (timestamped entries + readable formatting).
 - `scripts/utils/scene_director/u_beat_graph.gd`: Beat-flow graph validator/helper (ID/reference checks, cycle detection, ID->index map).
 - `scripts/events/ecs/`: ECS event bus + typed ECS events; `scripts/events/state/` holds `U_StateEventBus` (state-domain bus).
-- `docs/adr/0001-channel-taxonomy.md`: Channel taxonomy ADR — managers dispatch to Redux only; ECS components/systems publish to `U_ECSEventBus`.
+- `docs/architecture/adr/0001-channel-taxonomy.md`: Channel taxonomy ADR — managers dispatch to Redux only; ECS components/systems publish to `U_ECSEventBus`.
 - `scenes/root.tscn`: Main scene (persistent managers + containers).
 - `scenes/gameplay/*`: Gameplay scenes (dynamic loading, own M_ECSManager).
 - `tests/unit/*`: GUT test suites for ECS and state management.
@@ -74,7 +74,7 @@
   - Status transition dispatches via `U_ObjectivesActions` (`activate`, `complete`, `fail`).
   - Event log entries are dispatched through `U_ObjectiveEventLog.create_entry(...)`.
   - Dependents are activated only when `U_ObjectiveGraph.get_ready_dependents(...)` reports all prerequisites completed.
-  - VICTORY objectives dispatch `U_GameplayActions.trigger_victory_routing(target_scene, completion_payload)` through Redux (per channel taxonomy, `docs/adr/0001-channel-taxonomy.md`).
+  - VICTORY objectives dispatch `U_GameplayActions.trigger_victory_routing(target_scene, completion_payload)` through Redux (per channel taxonomy, `docs/architecture/adr/0001-channel-taxonomy.md`).
   - `M_SceneManager` subscribes to `M_StateStore.action_dispatched` and reacts to `ACTION_TRIGGER_VICTORY_ROUTING` for endgame transitions; legacy ECS-bus victory routing is removed.
 - Reset-run orchestration pattern (Phase 7):
   - `UI_Victory` Continue dispatches `U_RunActions.reset_run(&"retry")` (do not chain gameplay/navigation reset actions directly in UI code).
@@ -100,7 +100,7 @@
 
 ## Communication Channel Taxonomy (F5)
 
-Per `docs/adr/0001-channel-taxonomy.md`, the project enforces a publisher-based channel rule:
+Per `docs/architecture/adr/0001-channel-taxonomy.md`, the project enforces a publisher-based channel rule:
 
 - **ECS component/system → `U_ECSEventBus`**: subscribers can be anywhere (manager, UI, other systems).
 - **Manager → Redux dispatch only**: managers must not call `U_ECSEventBus.publish`. State changes flow through `M_StateStore.dispatch()` for action history, validation, and subscriber batching.
@@ -186,7 +186,7 @@ Per `docs/adr/0001-channel-taxonomy.md`, the project enforces a publisher-based 
   - `M_VFXManager` supports temporary overrides via `set_vfx_settings_preview(...)` and `clear_vfx_settings_preview()`.
   - `UI_VFXSettingsOverlay` pushes preview updates on toggle/slider changes and calls `trigger_test_shake()` on intensity changes; preview is cleared on cancel or overlay exit.
 - vCam Runtime Contracts (Documentation Sweep 2026-03)
-  - Gameplay camera orchestration authority lives in `docs/vcam_manager/*`; keep camera-runtime behavior aligned to those docs.
+  - Gameplay camera orchestration authority lives in `docs/systems/vcam_manager/*`; keep camera-runtime behavior aligned to those docs.
   - Refactor architecture contract (Phase 2A-2H / 3A): `S_VCamSystem` is a coordinator and should delegate feature state/runtime to focused helpers instead of reintroducing a monolith. Canonical helper stack:
     - `U_VCamLookInput` (look-input activity filtering + lifecycle)
     - `U_VCamRotation` (runtime yaw/pitch continuity + look smoothing/release + recenter state)
@@ -296,7 +296,7 @@ Per `docs/adr/0001-channel-taxonomy.md`, the project enforces a publisher-based 
   - If a gameplay scene instances `tmpl_camera.tscn`, `Systems/Core` must include `S_VCamSystem` with `execution_priority = 100` (parity with `gameplay_base`, `gameplay_bar`, `gameplay_alleyway`, `gameplay_exterior`, and `gameplay_interior_house`).
   - HUD is root-managed under `HUDLayer` by `M_SceneManager`; gameplay scenes must not embed HUD nodes.
   - UI controllers (including HUD) use `U_StateUtils.get_store(self)` for `M_StateStore` lookup (or injected store).
-- Node tree structure: See `docs/scene_organization/SCENE_ORGANIZATION_GUIDE.md`
+- Node tree structure: See `docs/guides/SCENE_ORGANIZATION_GUIDE.md`
 - Templates: `scenes/templates/tmpl_base_scene.tscn`, `scenes/templates/tmpl_character.tscn`, `scenes/templates/tmpl_camera.tscn`
 - Marker scripts: `scripts/scene_structure/*` (11 total) provide visual organization
 - Systems organized by category: Core / Physics / Movement / Feedback
@@ -403,7 +403,7 @@ Per `docs/adr/0001-channel-taxonomy.md`, the project enforces a publisher-based 
 
 ## Naming Conventions Quick Reference
 
-**IMPORTANT**: All production scripts, scenes, and resources must follow documented prefix patterns. As of Phase 5 Complete (2025-12-08), 100% prefix compliance achieved - all files follow their respective prefix patterns. See `docs/general/STYLE_GUIDE.md` for the complete prefix matrix.
+**IMPORTANT**: All production scripts, scenes, and resources must follow documented prefix patterns. As of Phase 5 Complete (2025-12-08), 100% prefix compliance achieved - all files follow their respective prefix patterns. See `docs/guides/STYLE_GUIDE.md` for the complete prefix matrix.
 
 - **Base classes:** `base_*` prefix (e.g., `base_ecs_component.gd` → `BaseECSComponent`, `base_panel.gd` → `BasePanel`)
 - **Utilities:** `u_*` prefix (e.g., `u_ecs_utils.gd` → `U_ECSUtils`, `u_entity_query.gd` → `U_EntityQuery`)
@@ -470,7 +470,7 @@ Production asset files use type-specific prefixes:
   - New exported fields in `*Settings.gd` require updating default `.tres` under `resources/base_settings/` and any scene using them.
   - Trigger settings automatically clamp `player_mask` to at least layer 1; configure the desired mask on the resource instead of zeroing it at runtime.
 - Tabs and warnings
-  - Keep tab indentation in `.gd` files; tests use native method stubs on engine classes—suppress with `@warning_ignore("native_method_override")` where applicable (details in `docs/general/developer_pitfalls.md`).
+  - Keep tab indentation in `.gd` files; tests use native method stubs on engine classes—suppress with `@warning_ignore("native_method_override")` where applicable (details in `docs/guides/DEV_PITFALLS.md`).
 - State store batching and input persistence
   - `M_StateStore` emits `slice_updated` once per physics frame; do not also flush on idle frames.
   - Actions that need same-frame visibility (e.g., input rebinds) must set `"immediate": true` on the dispatched payload; the store now flushes batched slice updates immediately for these actions.

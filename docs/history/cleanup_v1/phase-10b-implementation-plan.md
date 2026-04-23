@@ -810,7 +810,7 @@ Root Scene (root.tscn)
 
 **ADRs**:
 ```markdown
-# docs/architecture/adr/ADR-001-redux-state-management.md
+# docs/architecture/adr/0002-redux-state-management.md
 ## Context
 Need centralized state management for UI, gameplay, and persistence.
 
@@ -826,7 +826,7 @@ Adopt Redux-style architecture with immutable state and reducer pattern.
 
 ---
 
-# docs/architecture/adr/ADR-002-ecs-node-based.md
+# docs/architecture/adr/0003-ecs-node-based.md
 ## Context
 Need flexible component system for gameplay entities.
 
@@ -840,7 +840,7 @@ Use Node-based ECS with components as child nodes.
 
 ---
 
-# docs/architecture/adr/ADR-003-event-bus.md
+# docs/architecture/adr/0004-event-bus.md
 ## Context
 Need decoupled communication between ECS and managers.
 
@@ -854,7 +854,7 @@ Implement event bus for cross-system events.
 
 ---
 
-# docs/architecture/adr/ADR-004-service-locator.md
+# docs/architecture/adr/0005-service-locator.md
 ## Context
 70+ group lookups scattered, dependencies invisible.
 
@@ -868,10 +868,10 @@ Centralize manager lookup in ServiceLocator.
 ```
 
 **Files Created**:
-- `docs/architecture/adr/ADR-001-redux-state-management.md`
-- `docs/architecture/adr/ADR-002-ecs-node-based.md`
-- `docs/architecture/adr/ADR-003-event-bus.md`
-- `docs/architecture/adr/ADR-004-service-locator.md`
+- `docs/architecture/adr/0002-redux-state-management.md`
+- `docs/architecture/adr/0003-ecs-node-based.md`
+- `docs/architecture/adr/0004-event-bus.md`
+- `docs/architecture/adr/0005-service-locator.md`
 
 ---
 
@@ -987,17 +987,17 @@ Centralize manager lookup in ServiceLocator.
 
 ```bash
 cp /Users/mcthaydt/.claude/plans/jaunty-skipping-flame.md \
-   docs/general/cleanup/phase-10b-implementation-plan.md
+   docs/history/cleanup_v1/phase-10b-implementation-plan.md
 ```
 
 **Update references**:
-1. Add link in `docs/general/cleanup/style-scene-cleanup-continuation-prompt.md`:
+1. Add link in `docs/history/cleanup_v1/style-scene-cleanup-continuation-prompt.md`:
    - Under "Related Documents" section
-   - Add: `- docs/general/cleanup/phase-10b-implementation-plan.md`
+   - Add: `- docs/history/cleanup_v1/phase-10b-implementation-plan.md`
 
-2. Add note in `docs/general/cleanup/style-scene-cleanup-tasks.md` before Phase 10B:
+2. Add note in `docs/history/cleanup_v1/style-scene-cleanup-tasks.md` before Phase 10B:
    ```markdown
-   **Detailed implementation plan**: See `docs/general/cleanup/phase-10b-implementation-plan.md`
+   **Detailed implementation plan**: See `docs/history/cleanup_v1/phase-10b-implementation-plan.md`
    ```
 
 **During execution**:
@@ -1009,7 +1009,7 @@ cp /Users/mcthaydt/.claude/plans/jaunty-skipping-flame.md \
 
 ## Execution Checklist
 
-- [ ] **Copy plan to permanent location** (`docs/general/cleanup/phase-10b-implementation-plan.md`)
+- [ ] **Copy plan to permanent location** (`docs/history/cleanup_v1/phase-10b-implementation-plan.md`)
 - [ ] **Update documentation references** (continuation prompt, tasks file)
 - [ ] **10B-1**: Decouple systems from managers (T130-T133)
 - [ ] **10B-2**: Extract transition orchestrator (T134-T136b)

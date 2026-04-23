@@ -12,7 +12,7 @@
   - Completed end-to-end manual smoke checklist (boot/menu/gameplay/pause/save-load/death/victory/credits/HUD/loading/overlay stack), including pending Screen 15-19 visual checks.
   - Updated documentation for final rollout state:
     - `AGENTS.md` (unified-theme no-inline-override policy + motion opt-in no-op contract)
-    - `docs/general/DEV_PITFALLS.md` (theme tokens vs inline overrides, motion opt-in pitfall, semantic override exceptions)
+    - `docs/guides/DEV_PITFALLS.md` (theme tokens vs inline overrides, motion opt-in pitfall, semantic override exceptions)
     - `docs/ui_visual_overhaul/ui-visual-overhaul-tasks.md` (Phase 5E complete, progress 100%)
     - `docs/ui_visual_overhaul/ui-visual-overhaul-continuation-prompt.md` (final status)
   - Story outcome: all 168/168 task checklist items complete.
@@ -739,9 +739,9 @@ All phases are sequential. After every screen: run full test suite, verify behav
 ## Required Readings
 
 - `AGENTS.md` — project conventions, testing, and update rules
-- `docs/general/DEV_PITFALLS.md` — known gotchas
-- `docs/general/STYLE_GUIDE.md` — naming, formatting, prefix rules
-- `docs/general/SCENE_ORGANIZATION_GUIDE.md` — layer/container reference
+- `docs/guides/DEV_PITFALLS.md` — known gotchas
+- `docs/guides/STYLE_GUIDE.md` — naming, formatting, prefix rules
+- `docs/guides/SCENE_ORGANIZATION_GUIDE.md` — layer/container reference
 - `docs/ui_visual_overhaul/ui-visual-overhaul-tasks.md` — the task checklist
 - `docs/ui_visual_overhaul/ui-visual-overhaul-prd.md` — requirements
 
@@ -749,7 +749,7 @@ All phases are sequential. After every screen: run full test suite, verify behav
 
 1. Treat this continuation prompt as historical-complete context for UI Visual Overhaul; start any additional UI work as a separate follow-up story.
 2. Keep `tests/unit/style/test_style_enforcement.gd` override guards green when touching `scenes/ui/**`.
-3. Preserve the tokenized-theme + motion-resource contracts documented in `AGENTS.md` and `docs/general/DEV_PITFALLS.md`.
+3. Preserve the tokenized-theme + motion-resource contracts documented in `AGENTS.md` and `docs/guides/DEV_PITFALLS.md`.
 
 Updated next action (2026-03-06): Story complete; no pending UI Visual Overhaul tasks.
 
@@ -791,7 +791,7 @@ Updated next action (2026-03-06): Story complete; no pending UI Visual Overhaul 
 | 14 `.tscn` files with overrides (124 total) | 1-4 | Remove inline `theme_override_*` values, apply theme |
 | 4 settings overlay wrappers | 2 | Theme application, dim standardization |
 | `AGENTS.md` | 5C | New patterns |
-| `docs/general/DEV_PITFALLS.md` | 5C | New pitfalls |
+| `docs/guides/DEV_PITFALLS.md` | 5C | New pitfalls |
 
 ## Deferred Items (Not in Current Scope)
 
@@ -834,4 +834,4 @@ After **every screen**:
 
 - PRD: `docs/ui_visual_overhaul/ui-visual-overhaul-prd.md`
 - Tasks: `docs/ui_visual_overhaul/ui-visual-overhaul-tasks.md`
-- Prerequisite refactor: `docs/general/ui_layers_transitions_refactor/`
+- Prerequisite refactor: `docs/history/ui_layers_transitions_refactor/`

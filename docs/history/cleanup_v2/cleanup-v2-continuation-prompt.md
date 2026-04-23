@@ -19,10 +19,10 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
 
 ## Read First
 
-- `docs/general/STYLE_GUIDE.md`
-- `docs/general/SCENE_ORGANIZATION_GUIDE.md`
-- `docs/general/DEV_PITFALLS.md`
-- `docs/general/cleanup_v2/cleanup-v2-tasks.md`
+- `docs/guides/STYLE_GUIDE.md`
+- `docs/guides/SCENE_ORGANIZATION_GUIDE.md`
+- `docs/guides/DEV_PITFALLS.md`
+- `docs/history/cleanup_v2/cleanup-v2-tasks.md`
 
 ---
 
@@ -101,9 +101,9 @@ Copy this to start a new session:
 I’m continuing Cleanup V2.
 
 Read:
-- docs/general/cleanup_v2/cleanup-v2-tasks.md
-- docs/general/STYLE_GUIDE.md
-- docs/general/SCENE_ORGANIZATION_GUIDE.md
+- docs/history/cleanup_v2/cleanup-v2-tasks.md
+- docs/guides/STYLE_GUIDE.md
+- docs/guides/SCENE_ORGANIZATION_GUIDE.md
 
 Confirm Phase 5 is complete, re-run:
 - tools/run_gut_suite.sh -gdir=res://tests/unit/style

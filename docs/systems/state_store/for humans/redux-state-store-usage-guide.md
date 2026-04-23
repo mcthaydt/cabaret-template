@@ -827,7 +827,7 @@ func _ready() -> void:
 **Why `await get_tree().process_frame`?**
 - M_StateStore registers itself in its `_ready()` which runs concurrently with systems
 - Without the await, `get_store()` might execute before M_StateStore has added itself to the group
-- See `docs/general/DEV_PITFALLS.md` for more details
+- See `docs/guides/DEV_PITFALLS.md` for more details
 
 **Step 2**: Subscribe to state changes:
 

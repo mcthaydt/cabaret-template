@@ -2,7 +2,7 @@
 
 ## Scope / Goals
 
-- Bring repo back into the same conventions enforced by `docs/general/STYLE_GUIDE.md` and `tests/unit/style/*`.
+- Bring repo back into the same conventions enforced by `docs/guides/STYLE_GUIDE.md` and `tests/unit/style/*`.
 - Normalize out-of-band files/folders (especially root-level assets/scenes and duplicated `* 2` directories).
 - Refactor the display module (`M_DisplayManager` + display settings UI) to be modular, scalable, and designer-friendly:
   - Centralize option catalogs (data-driven where possible)
@@ -197,4 +197,4 @@ Completion Notes (2026-02-05): Ran style, unit/managers, and integration/display
 
 ## Notes
 
-- If any move/rename touches `.tscn` files created/edited outside the editor, re-read `docs/general/DEV_PITFALLS.md` regarding UIDs and class cache refresh.
+- If any move/rename touches `.tscn` files created/edited outside the editor, re-read `docs/guides/DEV_PITFALLS.md` regarding UIDs and class cache refresh.

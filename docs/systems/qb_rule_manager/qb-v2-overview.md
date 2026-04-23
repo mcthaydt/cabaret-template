@@ -553,8 +553,8 @@ Some domains execute effects. Others interpret the winning rule's identity:
 | `scripts/ecs/systems/s_camera_rule_manager.gd` | Rename → `s_camera_state_system.gd`, compose library instead of extending base |
 | All 9 `.tres` files in `resources/qb/` | Recreate with new resource types |
 | `AGENTS.md` | Update QB sections |
-| `docs/general/STYLE_GUIDE.md` | Remove `base_qb_rule_manager.gd` naming exception |
-| `docs/general/DEV_PITFALLS.md` | Update QB pitfall entries |
+| `docs/guides/STYLE_GUIDE.md` | Remove `base_qb_rule_manager.gd` naming exception |
+| `docs/guides/DEV_PITFALLS.md` | Update QB pitfall entries |
 
 ### Unchanged Files
 

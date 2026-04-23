@@ -56,7 +56,7 @@ Selectors can access state across multiple slices, but dependencies must be **ex
 
 ## Naming Conventions
 
-All state management code follows the project's prefix+suffix naming conventions defined in `docs/general/STYLE_GUIDE.md`:
+All state management code follows the project's prefix+suffix naming conventions defined in `docs/guides/STYLE_GUIDE.md`:
 
 | Component | Class Name | File Name | Example |
 |-----------|------------|-----------|---------|

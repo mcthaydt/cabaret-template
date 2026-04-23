@@ -33,8 +33,8 @@
 
 **Project Conventions:**
 - `AGENTS.md` - ECS guidelines, naming conventions, testing requirements
-- `docs/general/DEV_PITFALLS.md` - **Phase 6 touchscreen pitfalls section**
-- `docs/general/STYLE_GUIDE.md` - Code formatting
+- `docs/guides/DEV_PITFALLS.md` - **Phase 6 touchscreen pitfalls section**
+- `docs/guides/STYLE_GUIDE.md` - Code formatting
 
 **Phase 6 Documentation:**
 - `docs/input_manager/input-manager-tasks.md` - **Start with Task 6.13 (performance)**
@@ -73,9 +73,9 @@
 ## Style & Organization
 
 Follow project-wide conventions:
-- **Style Guide**: `docs/general/STYLE_GUIDE.md` - Code formatting and naming
-- **Scene Organization**: `docs/general/SCENE_ORGANIZATION_GUIDE.md` - Scene file structure
-- **Cleanup Project**: `docs/general/cleanup/style-scene-cleanup-continuation-prompt.md` - Architectural improvements
+- **Style Guide**: `docs/guides/STYLE_GUIDE.md` - Code formatting and naming
+- **Scene Organization**: `docs/guides/SCENE_ORGANIZATION_GUIDE.md` - Scene file structure
+- **Cleanup Project**: `docs/history/cleanup_v1/style-scene-cleanup-continuation-prompt.md` - Architectural improvements
 
 ## Links
 

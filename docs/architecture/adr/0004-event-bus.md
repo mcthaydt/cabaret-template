@@ -1,4 +1,4 @@
-# ADR-003: Event Bus for Cross-System Communication
+# ADR 0004: Event Bus for Cross-System Communication
 
 **Status**: Accepted  
 **Date**: 2025-12-17  

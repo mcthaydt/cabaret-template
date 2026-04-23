@@ -1,4 +1,4 @@
-# ADR-002: Node-Based ECS (Components + Systems)
+# ADR 0003: Node-Based ECS (Components + Systems)
 
 **Status**: Accepted  
 **Date**: 2025-12-17  

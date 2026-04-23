@@ -634,7 +634,7 @@ This plan covers the complete refactoring of existing code to match the new nami
 
 **The following Phase 1-10 checklist represents a completed ECS naming refactoring from 2024.**
 **All items below have been completed. This section is preserved for historical reference only.**
-**For current style/scene cleanup progress, see `docs/general/cleanup/style-scene-cleanup-tasks.md`**
+**For current style/scene cleanup progress, see `docs/history/cleanup_v1/style-scene-cleanup-tasks.md`**
 
 ---
 

@@ -32,11 +32,11 @@
 ## Required Readings (Do Not Skip)
 
 - `AGENTS.md` - project conventions, testing, and update rules.
-- `docs/general/DEV_PITFALLS.md` - known gotchas (imports, class cache, UI pitfalls).
-- `docs/general/STYLE_GUIDE.md` - naming, formatting, prefix rules.
-- `docs/general/cleanup_v5/cleanup-v5-continuation-prompt.md` - this file (keep current).
-- `docs/general/cleanup_v4.5/reorganization-continuation-prompt.md` - most recent cleanup patterns.
-- `docs/general/cleanup_v4/` docs - prior cleanup conventions and pitfalls.
+- `docs/guides/DEV_PITFALLS.md` - known gotchas (imports, class cache, UI pitfalls).
+- `docs/guides/STYLE_GUIDE.md` - naming, formatting, prefix rules.
+- `docs/history/cleanup_v5/cleanup-v5-continuation-prompt.md` - this file (keep current).
+- `docs/history/cleanup_v4.5/reorganization-continuation-prompt.md` - most recent cleanup patterns.
+- `docs/history/cleanup_v4/` docs - prior cleanup conventions and pitfalls.
 - Display manager docs (if working Phase 3+):
   - `docs/display_manager/display-manager-continuation-prompt.md`
   - `docs/display_manager/display-manager-tasks.md`

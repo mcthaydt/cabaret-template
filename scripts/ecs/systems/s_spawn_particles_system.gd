@@ -6,7 +6,7 @@ class_name S_SpawnParticlesSystem
 ##
 ## Creates particle effects when player spawns at spawn points.
 ## Subscribes to Redux ACTION_PLAYER_SPAWNED via action_dispatched signal
-## per channel taxonomy (docs/adr/0001-channel-taxonomy.md).
+## per channel taxonomy (docs/architecture/adr/0001-channel-taxonomy.md).
 
 const PARTICLE_SPAWNER := preload("res://scripts/utils/u_particle_spawner.gd")
 const U_SPAWN_ACTIONS := preload("res://scripts/state/actions/u_spawn_actions.gd")

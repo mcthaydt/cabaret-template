@@ -6,7 +6,7 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 
 **Priority:** Medium (type safety, IDE support, maintainability)
 **Status:** Not Started
-**Continuation Prompt:** `docs/general/cleanup_v4/duck-typing-cleanup-continuation-prompt.md`
+**Continuation Prompt:** `docs/history/cleanup_v4/duck-typing-cleanup-continuation-prompt.md`
 
 ---
 

@@ -4,7 +4,7 @@
 
 Before doing ANY work on style/scene cleanup:
 
-1. **Open `docs/general/cleanup/style-scene-cleanup-tasks.md` FIRST.**
+1. **Open `docs/history/cleanup_v1/style-scene-cleanup-tasks.md` FIRST.**
 2. **Find the next unchecked task `[ ]` in sequence** (top to bottom, unless marked `[P]` for parallel).
 3. **Complete one task at a time**, keeping changes as small and focused as possible.
 4. **Immediately change `[ ]` to `[x]`** once a task is completed and tests/docs are updated.
@@ -20,9 +20,9 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ## Current Status (2025-12-17 – Phase 10B Complete)
 
-- **PRD**: `docs/general/cleanup/style-scene-cleanup-prd.md` – Drafted.
-- **Plan**: `docs/general/cleanup/style-scene-cleanup-plan.md` – Phases 0–11 defined with user-approved policies.
-- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – Phase 10 expanded (2025-12-10), task numbers renumbered.
+- **PRD**: `docs/history/cleanup_v1/style-scene-cleanup-prd.md` – Drafted.
+- **Plan**: `docs/history/cleanup_v1/style-scene-cleanup-plan.md` – Phases 0–11 defined with user-approved policies.
+- **Tasks**: `docs/history/cleanup_v1/style-scene-cleanup-tasks.md` – Phase 10 expanded (2025-12-10), task numbers renumbered.
 
 **Execution Status**:
 
@@ -48,7 +48,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
   - Phase 10B-9 deliverables (T143a-T143c) completed:
     - `docs/architecture/ecs_state_contract.md`
     - `docs/architecture/dependency_graph.md` (includes mermaid)
-    - `docs/architecture/adr/ADR-001-redux-state-management.md` .. `ADR-004-service-locator.md`
+    - `docs/architecture/adr/0002-redux-state-management.md` .. `0005-service-locator.md`
 - Phase 11 – Final Validation & Regression Sweep: **NOT STARTED** (Tasks renumbered T150-T154)
 
 ---
@@ -60,7 +60,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 Phase 10B is complete. Phase 10 (Multi-Slot Save Manager) remains deferred to a separate PRD.
 
 **Next Steps**:
-1. Start Phase 11 tasks (T150-T154) in `docs/general/cleanup/style-scene-cleanup-tasks.md`
+1. Start Phase 11 tasks (T150-T154) in `docs/history/cleanup_v1/style-scene-cleanup-tasks.md`
 2. Run full GUT test suites and record baseline
 3. Manually verify core user flows (menu → gameplay → transitions → overlays)
 
@@ -85,9 +85,9 @@ When you complete a phase (e.g., Phase 0 or Phase 1):
 
 ## Related Documents **MUST READ**
 
-- `docs/general/STYLE_GUIDE.md`
-- `docs/general/SCENE_ORGANIZATION_GUIDE.md`
-- `docs/general/DEV_PITFALLS.md`
+- `docs/guides/STYLE_GUIDE.md`
+- `docs/guides/SCENE_ORGANIZATION_GUIDE.md`
+- `docs/guides/DEV_PITFALLS.md`
 - `AGENTS.md`
 
 - `docs/ecs/ecs_architecture.md`
@@ -96,7 +96,7 @@ When you complete a phase (e.g., Phase 0 or Phase 1):
 - `docs/input_manager/input-manager-prd.md`
 - `docs/ui_manager/ui-manager-prd.md`
 
-- `docs/general/cleanup/phase-10b-implementation-plan.md` (Architectural Hardening detailed plan)
+- `docs/history/cleanup_v1/phase-10b-implementation-plan.md` (Architectural Hardening detailed plan)
 
 These subsystem PRDs/plans will be referenced in Phase 5 when aligning documentation.
 

@@ -4,7 +4,7 @@
 
 - Initiative: Interactions Refactor (resource-driven configuration, TDD-first)
 - Current phase: Complete (Phase 5 finished)
-- Primary tasks file: `docs/general/interactions_refactor/interactions-refactor-tasks.md`
+- Primary tasks file: `docs/history/interactions_refactor/interactions-refactor-tasks.md`
 - Task progress: 24/24 complete (`T001-T003`, `T010-T014`, `T020-T023`, `T030-T033`, `T040-T043`, `T050-T053` complete)
 - Phase 0 baseline status (2026-02-10): 8/8 suites green
   - `res://tests/unit/interactables`: PASS (22/22)

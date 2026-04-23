@@ -24,7 +24,7 @@ const EVENT_DAMAGE_ZONE_ENTERED := StringName("damage_zone_entered")
 const EVENT_DAMAGE_ZONE_EXITED := StringName("damage_zone_exited")
 # NOTE: Manager-published vcam/objective/director events were removed in F5
 # (channel taxonomy migration). Those states now flow through Redux dispatch.
-# See docs/adr/0001-channel-taxonomy.md.
+# See docs/architecture/adr/0001-channel-taxonomy.md.
 
 # Service Names
 const SERVICE_VFX_MANAGER := StringName("vfx_manager")

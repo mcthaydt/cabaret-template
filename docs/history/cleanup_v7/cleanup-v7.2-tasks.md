@@ -40,7 +40,7 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl and a propos
 - Run this plan after C12 (`post-process-refactor-tasks.md`) completes and passes regression; do not start v7.2 in parallel with C12.
 - `F1` — **already resolved** during C6. Verification-only checkpoint (single commit).
 - `F2`, `F3`, `F4` all touch `m_state_store.gd`; run sequentially (F2 → F3 → F4) to avoid merge contention. **Run full test suite between each** as an integration checkpoint.
-- `F5` depends on `F3` having cleaned up the parallel mutation paths first (the channel taxonomy is cleaner to enforce once state mutation is single-sourced). Note: `docs/adr/` directory must be created (does not exist yet).
+- `F5` depends on `F3` having cleaned up the parallel mutation paths first (the channel taxonomy is cleaner to enforce once state mutation is single-sourced). Note: `docs/architecture/adr/` directory must be created (does not exist yet).
 - `F6` is independent.
 - `F7` is independent — blocked only on a one-commit parser feasibility investigation.
 - `F8` is independent — follows `C5`'s decomposition pattern once `C5` lands. **Expanded scope (v7.2.1)**: Phase 0 decomposes oversized helpers (`u_vcam_rotation.gd`, `u_vcam_orbit_effects.gd`) before Phase 1+ pushes system logic into them.
@@ -235,7 +235,7 @@ Declarations drift silently out of sync with reality because the check fails ope
   - `test_managers_do_not_publish_to_ecs_bus` — grep `scripts/managers/` for `U_ECSEventBus.publish` / `U_ECS_EVENT_BUS.publish`. Fails today (4 violating managers).
   - `test_scene_manager_does_not_subscribe_to_victory_ecs_event` — assert `EVENT_OBJECTIVE_VICTORY_TRIGGERED` absent from m_scene_manager subscribe calls. Fails today.
   - `test_manager_signals_stay_within_allow_list` — grep `scripts/managers/` for signal declarations, assert all in allow-list. Passes today (future enforcement).
-- [x] **Commit 2** (GREEN) — Create `docs/adr/` directory + `docs/adr/0001-channel-taxonomy.md`. Add pointer to `AGENTS.md`.
+- [x] **Commit 2** (GREEN) — Create `docs/architecture/adr/` directory + `docs/architecture/adr/0001-channel-taxonomy.md`. Add pointer to `AGENTS.md`.
 - [x] **Commit 3a** (GREEN) — Migrate `m_save_manager` (new `u_save_actions.gd`, update `ui_hud_controller`).
 - [x] **Commit 3b** (GREEN) — Migrate `m_objectives_manager` + victory routing (`m_scene_manager`, `s_victory_handler_system`, new `ACTION_TRIGGER_VICTORY_ROUTING`).
 - [x] **Commit 3c** (GREEN) — Migrate `m_vcam_manager` (remove redundant ECS publishes).
@@ -737,7 +737,7 @@ Candidates:
 
 Each contract doc owns its own invariants, phase history, and pitfalls. `AGENTS.md` just points to them.
 
-**Layer 3 — `docs/adr/NNNN-<title>.md` (architectural decision records)**:
+**Layer 3 — `docs/architecture/adr/NNNN-<title>.md` (architectural decision records)**:
 One ADR per architectural decision that currently lives inline in `AGENTS.md`. Suggested initial ADRs:
 - `0001-channel-taxonomy.md` (created by F5)
 - `0002-rule-engine-headless-fallback.md` (resolved or documented by F7)
@@ -761,7 +761,7 @@ Add a CI check asserting `AGENTS.md` stays under a target word/token budget so i
 ### Trigger for action
 
 Revisit this section and promote it to a numbered milestone (F12) when **all three** conditions are met:
-1. F5 (channel taxonomy ADR) has landed and the `docs/adr/` directory exists.
+1. F5 (channel taxonomy ADR) has landed and the `docs/architecture/adr/` directory exists.
 2. F7 (typed schema) has resolved the headless-parser question.
 3. At least two more AGENTS.md growth incidents have occurred post-v7.2 (confirming the sprawl pattern continues and isn't a one-time artifact of the v7 refactor wave).
 

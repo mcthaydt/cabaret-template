@@ -40,8 +40,8 @@
 ## Required Readings Before Coding
 
 - `AGENTS.md`
-- `docs/general/DEV_PITFALLS.md`
-- `docs/general/STYLE_GUIDE.md`
+- `docs/guides/DEV_PITFALLS.md`
+- `docs/guides/STYLE_GUIDE.md`
 - `docs/lighting_manager/lighting-manager-tasks.md`
 
 ## Execution Rules (Non-Negotiable)
@@ -62,7 +62,7 @@
    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
 9. Commit documentation updates separately from implementation.
 10. Keep style docs/tests aligned with new script categories before first phase style run:
-   - Update `docs/general/STYLE_GUIDE.md` when introducing new production path categories.
+   - Update `docs/guides/STYLE_GUIDE.md` when introducing new production path categories.
    - Update `tests/unit/style/test_style_enforcement.gd` prefix rules accordingly.
    - Document locked shader filename `sh_character_zone_lighting.gdshader` in style guidance (or explicit exception) to avoid naming-rule drift.
 11. Capture and maintain a lighting math contract before core manager hardening:

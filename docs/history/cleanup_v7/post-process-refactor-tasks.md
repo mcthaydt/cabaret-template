@@ -60,7 +60,7 @@ Existing `U_DisplayColorGradingApplier` and `U_DisplayPostProcessApplier` (renam
 ## Sequencing
 
 C12 is independent of C1–C11 — post-processing pipeline refactor touches display manager helpers, display state, and shaders; no overlap with rule engine, selectors, or scene manager milestones. May run in parallel with any other milestone.
-After C12 completes and passes regression, the next planned track is `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`.
+After C12 completes and passes regression, the next planned track is `docs/history/cleanup_v7/cleanup-v7.2-tasks.md`.
 
 Within C12, commits are ordered so that each GREEN step can land cleanly:
 

@@ -115,7 +115,7 @@ Phase 4C completion note (2026-02-25): Added `test_camera_shake_pipeline.gd` int
 | 5C — Final commit | T239-T240 | Test counts recorded, v2 complete |
 
 Phase 5A completion note (2026-02-25): Completed stale-reference/path greps (0 runtime matches), style verification (`tests/unit/style`: 11/12 — one pre-existing asset naming issue: `mdl_new_character_Image Color Quantizer.png` contains spaces, unrelated to QB v2 changes), QB verification (`tests/unit/qb`: 132/132, `tests/integration/qb`: 5/5), ECS verification (`tests/unit/ecs`: 126/126), and full integration verification (`tests/integration`: 395/396 passing with 1 headless pending, 0 failures).
-Phase 5B completion note (2026-02-25): Updated `AGENTS.md`, `docs/general/STYLE_GUIDE.md`, `docs/general/DEV_PITFALLS.md`, `docs/qb_rule_manager/qb-v2-tasks.md`, and `docs/qb_rule_manager/qb-v2-continuation-prompt.md` for final v2 architecture alignment.
+Phase 5B completion note (2026-02-25): Updated `AGENTS.md`, `docs/guides/STYLE_GUIDE.md`, `docs/guides/DEV_PITFALLS.md`, `docs/qb_rule_manager/qb-v2-tasks.md`, and `docs/qb_rule_manager/qb-v2-continuation-prompt.md` for final v2 architecture alignment.
 Phase 5C completion note (2026-02-25): Recorded final suite counts and committed v2 completion checkpoint.
 
 ---

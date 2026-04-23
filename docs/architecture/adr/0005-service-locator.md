@@ -1,4 +1,4 @@
-# ADR-004: Service Locator for Manager Dependency Access
+# ADR 0005: Service Locator for Manager Dependency Access
 
 **Status**: Accepted  
 **Date**: 2025-12-17  

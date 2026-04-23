@@ -2,11 +2,11 @@
 
 ## Overview
 
-Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
+Implements `docs/guides/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 complete. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). AI-unit regression slice passes `928/928`, AI-focused integration trio remains `20/20`, and full-suite status is now green. Phase 2 now started with P2.1 audit complete (2026-04-23): `docs/general/cleanup_v8/debug_perf_audit.md` records `39` bare prints, `57` `push_warning`, `21` timer/frame API sites, `20` `U_PerfProbe` sites, and `1` `U_DebugLogThrottle` site across managers/systems. P2.2 complete (2026-04-23): RED contract suite commit `93f10490` + GREEN runtime patch commit `8f4ce20b`; targeted perf-probe suite is `11/11` passing. P2.3 manager-side migration is complete: `m_save_manager.gd` (`48d60305`, `5e0911ac`), `m_vcam_manager.gd` (`4bcf7111`, `16c5c6f0`), `m_run_coordinator_manager.gd` (`18bf9075`, `0d9a2683`), `m_scene_manager.gd` (`ef4743fa`, `8ff6c203`), `m_scene_director_manager.gd` (`10d7ca7f`, `24073e62`), and `scripts/managers/helpers/u_vcam_collision_detector.gd` (`fd9e7d0d`, `a227e8b5`). P2.3 ECS-system migration now includes `scripts/ecs/systems/s_victory_handler_system.gd` (`9b91b977`, `c4438ff0`), `scripts/ecs/systems/s_spawn_recovery_system.gd` (`34850084`, `19307d8b`), `scripts/ecs/systems/s_gravity_system.gd` (`7650556b`, `01f2fccb`), shared debug-routing consolidation for `s_ai_detection_system.gd`, `s_floating_system.gd`, `s_input_system.gd`, `s_move_target_follower_system.gd`, `s_movement_system.gd`, `s_rotate_to_input_system.gd`, gravity/spawn/victory follow-through (`6fc2d089`, `07892b12`), and helper-path migration for `scripts/ecs/systems/helpers/{u_vcam_debug,u_vcam_look_input,u_vcam_look_spring}.gd` (`c6a3ac25`, `d4fb4047`). P2.4 complete with project-wide manager/ECS no-bare-print style guard (`28702b95`); `tests/unit/style/test_style_enforcement.gd` passes `83/83`.
-**Next Task**: Finish the milestone-boundary full regression run and log final suite totals, then begin Phase 3 docs-split sequencing.
+**Status**: Phase 1 complete. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). AI-unit regression slice passes `928/928`, AI-focused integration trio remains `20/20`, and full-suite status is now green. Phase 2 complete through P2.4 (`28702b95`) with style guard recheck green (`83/83`). Phase 3 started: P3.0 docs-tree reorg is complete (ADR normalization to `0001..0005`, `docs/guides/`, `docs/history/`, `docs/systems/`, and reference rewrites landed).
+**Next Task**: Milestone P3.1 — create `docs/guides/cleanup_v8/docs_inventory.md` with section-by-section AGENTS/DEV_PITFALLS migration mapping.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -156,8 +156,8 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
       - `AGENTS.md` and `DEV_PITFALLS.md` cleanup landed for BT-only terminology and stale GOAP/HTN reference removal.
       - Full-suite status is now green.
     - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
-- **Phase 2**: IN PROGRESS. P2.1 complete (audit doc + grep evidence baseline captured, 2026-04-23). P2.2 complete (`93f10490`, `8f4ce20b`). P2.3 migration complete through helper follow-through (`d4fb4047`). P2.4 complete (`28702b95`); milestone-boundary full-suite recheck in progress.
-- **Phase 3**: NOT STARTED. 3 milestones.
+- **Phase 2**: COMPLETE through P2.4 (`28702b95`) with style recheck passing (`83/83`).
+- **Phase 3**: IN PROGRESS. P3.0 complete (docs reorg + ADR normalization + path rewrites), P3.1 next.
 - **Phase 4**: NOT STARTED. 4 milestones.
 - **Phase 5**: NOT STARTED. 4 milestones.
 
@@ -368,7 +368,7 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 ## Critical Notes
 
 - **No Autoloads**: Follow existing pattern. Managers live under the `Managers` node and register via `U_ServiceLocator`.
-- **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and prefix conventions (`S_`, `C_`, `RS_`, `U_`, `I_`, `E_`, `M_`). New BT resources follow `RS_BT*` / `U_BT*` naming.
+- **Style & Organization**: Follow `docs/guides/STYLE_GUIDE.md` and prefix conventions (`S_`, `C_`, `RS_`, `U_`, `I_`, `E_`, `M_`). New BT resources follow `RS_BT*` / `U_BT*` naming.
 - **Update Docs After Each Milestone**: Mandatory. Update `cleanup-v8-tasks.md` completion notes and this continuation prompt after each milestone. Commit doc updates separately from implementation.
 - **Manual forest-demo parity check** at end of P1.9 is non-negotiable before P1.10 deletes the legacy stack.
 - **V7.2 is complete** (commit `e015aff2 "cleanup-v7.2 complete"` landed F10's verification test). No V7.2 prerequisite blocks V8.
@@ -379,7 +379,6 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 
 ## Next Steps
 
-1. Land P2.4 enforcement commit for manager/ECS no-bare-print policy and keep style checks green.
-2. For each migrated file, land a RED+GREEN pair where RED adds a file-scoped guard (or style assertion) and GREEN applies the print-to-throttled-log/removal/warning migration.
-3. Re-run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` after each file move/edit and keep full-suite regression checks at milestone boundaries.
-4. Keep V8 tracking docs synchronized after each P2 milestone and commit doc updates separately from implementation.
+1. Land P3.1 inventory doc at `docs/guides/cleanup_v8/docs_inventory.md` with section-level destination mapping for `AGENTS.md` and `DEV_PITFALLS.md`.
+2. Use that inventory to sequence P3.3 file-by-file migration commits (one destination document per commit).
+3. Keep running `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` after docs-structure changes and update both tracking docs after each milestone.

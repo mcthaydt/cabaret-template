@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide directs you to implement Cross-System Cleanup V7.2 by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` in sequential order, respecting the dependency graph documented below. V7.2 is the follow-up to V7 (C1–C12), addressing eight concrete architectural weaknesses that C1–C12 did not target, plus three additions (F8 Phase 0, F12, F15) surfaced during pre-implementation review.
+This guide directs you to implement Cross-System Cleanup V7.2 by following the tasks outlined in `docs/history/cleanup_v7/cleanup-v7.2-tasks.md` in sequential order, respecting the dependency graph documented below. V7.2 is the follow-up to V7 (C1–C12), addressing eight concrete architectural weaknesses that C1–C12 did not target, plus three additions (F8 Phase 0, F12, F15) surfaced during pre-implementation review.
 
 **Branch**: GOAP-AI
 **Status**: F15 complete — **F10 next** (verification-only checkpoint) or revisit AGENTS.md sprawl.
@@ -13,7 +13,7 @@ This guide directs you to implement Cross-System Cleanup V7.2 by following the t
 
 ## Current Status: F15 Complete
 
-F1–F9, F11, F12, F15, and F16 are complete. F10 is verification-only (already implemented, just needs test checkpoint). The task file `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
+F1–F9, F11, F12, F15, and F16 are complete. F10 is verification-only (already implemented, just needs test checkpoint). The task file `docs/history/cleanup_v7/cleanup-v7.2-tasks.md` is the authoritative source for commit-level checklists; this continuation prompt is a working index and context bank.
 
 - **F1 (SceneManager C6 Supplement)**: **ALREADY RESOLVED** during C6. Verification-only checkpoint (single commit adding style-enforcement grep assertions).
 - **F2 (StateStore Dispatch — Share Snapshot)**: **COMPLETE**. Dispatch now uses `get_state()` instead of `_state.duplicate(true)`, populating the versioned cache. Zero-subscriber skip already in place.
@@ -143,7 +143,7 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 
 ## Milestone F5: Communication Channel Taxonomy
 
-**Goal**: Enforce "if you're a manager, dispatch to Redux." Managers must not call `U_ECSEventBus.publish`. ECS-originated events stay on the bus regardless of subscriber. Rule documented in `docs/adr/0001-channel-taxonomy.md` and enforced by grep test in CI.
+**Goal**: Enforce "if you're a manager, dispatch to Redux." Managers must not call `U_ECSEventBus.publish`. ECS-originated events stay on the bus regardless of subscriber. Rule documented in `docs/architecture/adr/0001-channel-taxonomy.md` and enforced by grep test in CI.
 
 **Taxonomy (Option B — publisher-based)**:
 - ECS component/system → `U_ECSEventBus` (subscribers can be anywhere)
@@ -154,7 +154,7 @@ The doc closes with a non-numbered reflection on `AGENTS.md` sprawl (not a miles
 **4 managers to migrate**: `m_save_manager` (new save actions), `m_objectives_manager` (delete 3 dead-code publishes + migrate victory routing to `ACTION_TRIGGER_VICTORY_ROUTING`), `m_vcam_manager` (remove 4 redundant ECS publishes), `m_scene_director_manager` (remove 3 redundant ECS publishes). `m_scene_manager` moves from ECS subscription to Redux for victory routing.
 
 - [ ] **Commit 1** (RED) — 3 grep tests: managers-don't-publish (fails), scene-manager-no-victory-ECS-sub (fails), manager-signals-allow-list (passes).
-- [ ] **Commit 2** (GREEN) — `docs/adr/0001-channel-taxonomy.md` + `AGENTS.md` pointer.
+- [ ] **Commit 2** (GREEN) — `docs/architecture/adr/0001-channel-taxonomy.md` + `AGENTS.md` pointer.
 - [ ] **Commit 3a** (GREEN) — `m_save_manager` + new `u_save_actions.gd` + `ui_hud_controller` migration.
 - [ ] **Commit 3b** (GREEN) — `m_objectives_manager` + victory routing (`m_scene_manager`, `s_victory_handler_system`, `ACTION_TRIGGER_VICTORY_ROUTING`).
 - [ ] **Commit 3c** (GREEN) — `m_vcam_manager` redundant ECS publishes removed.
@@ -444,11 +444,11 @@ You MUST:
 ## Critical Notes
 
 - **No Autoloads**: Follow existing patterns. Managers live under the `Managers` node and register with `U_ServiceLocator`.
-- **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and node naming prefixes (`S_`, `C_`, `RS_`, `U_`, `I_`, `E_`, `M_`).
+- **Style & Organization**: Follow `docs/guides/STYLE_GUIDE.md` and node naming prefixes (`S_`, `C_`, `RS_`, `U_`, `I_`, `E_`, `M_`).
 - **Update Docs After Each Milestone**: Per AGENTS.md's mandatory pattern — update `cleanup-v7.2-tasks.md` completion notes and this continuation prompt after completing each milestone. Commit doc updates separately from implementation.
 - **Test Suite Command**: `tools/run_gut_suite.sh` (or `tools/run_gut_suite.sh -gtest=res://tests/unit/...` for targeted suites).
 - **Style Test**: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`
-- **`docs/adr/` directory must be created in F5 Commit 2** — it does not exist yet. ADR numbering starts at `0001-channel-taxonomy.md`.
+- **`docs/architecture/adr/` directory must be created in F5 Commit 2** — it does not exist yet. ADR numbering starts at `0001-channel-taxonomy.md`.
 - **F4 Commit 5 is the one behavior-change commit in v7.2** — strict-slice-dependency default flip. Run full suite before landing.
 - **F8 Phase 0 Commits (1a + 1b) must land before Phase 1+** — otherwise system extraction pushes logic into 800+ line helpers.
 - **F7 Commit 1 is an investigation commit** — record the Path A vs Path B decision and rationale in the milestone notes before writing tests or implementation.

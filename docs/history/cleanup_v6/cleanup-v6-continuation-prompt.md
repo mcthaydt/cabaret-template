@@ -42,10 +42,10 @@ All of this code needs to be brought up to the quality bar established by cleanu
 ## Required Readings (Do Not Skip)
 
 - `AGENTS.md` — project conventions, testing, and update rules.
-- `docs/general/DEV_PITFALLS.md` — known gotchas (imports, class cache, UI pitfalls).
-- `docs/general/STYLE_GUIDE.md` — naming, formatting, prefix rules.
-- `docs/general/cleanup_v6/cleanup-v6-tasks.md` — the task checklist.
-- `docs/general/cleanup_v5/cleanup-v5-continuation-prompt.md` — prior cleanup patterns.
+- `docs/guides/DEV_PITFALLS.md` — known gotchas (imports, class cache, UI pitfalls).
+- `docs/guides/STYLE_GUIDE.md` — naming, formatting, prefix rules.
+- `docs/history/cleanup_v6/cleanup-v6-tasks.md` — the task checklist.
+- `docs/history/cleanup_v5/cleanup-v5-continuation-prompt.md` — prior cleanup patterns.
 
 ## Process for Completion (Every Phase)
 

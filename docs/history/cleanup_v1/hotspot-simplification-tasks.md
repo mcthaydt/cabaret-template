@@ -19,7 +19,7 @@ version: "1.0"
 
 ## Phase 0 — Prep & Safety (Baseline)
 
-- [x] T100 Re-read `docs/general/DEV_PITFALLS.md` + `docs/general/STYLE_GUIDE.md` before touching code.
+- [x] T100 Re-read `docs/guides/DEV_PITFALLS.md` + `docs/guides/STYLE_GUIDE.md` before touching code.
 - [x] T101 Capture a “public API snapshot” for `M_SceneManager` (public methods + signals + expected invariants) in **Notes** below.
 - [x] T102 Create an extraction map for `scripts/managers/m_scene_manager.gd`:
   - Major responsibilities/regions (overlays, transition queue, navigation reconciliation, preload/cache, event subscriptions).
@@ -71,7 +71,7 @@ version: "1.0"
   - Added `U_StateUtils.try_get_store(node)` for optional store access; updated leaf nodes to prefer ServiceLocator-first with group fallback.
 - [x] T123 Add/adjust tests (or small helper tests) where dependency lookup changes could regress behavior.
   - Covered via existing must-pass suites (scene_manager / scene_management / integration / style).
-- [x] T124 Add a short “Dependency Lookup Rule” section to `docs/general/DEV_PITFALLS.md`.
+- [x] T124 Add a short “Dependency Lookup Rule” section to `docs/guides/DEV_PITFALLS.md`.
   - Documented the standard chain + when to use `try_get_*` vs `get_*`.
 
 ---
@@ -203,12 +203,12 @@ version: "1.0"
 
 ## Links
 
-- Plan: `docs/general/cleanup/hotspot-simplification-plan.md`
-- Continuation prompt: `docs/general/cleanup/hotspot-simplification-continuation-prompt.md`
+- Plan: `docs/history/cleanup_v1/hotspot-simplification-plan.md`
+- Continuation prompt: `docs/history/cleanup_v1/hotspot-simplification-continuation-prompt.md`
 - Related docs:
   - `docs/architecture/dependency_graph.md`
-  - `docs/general/DEV_PITFALLS.md`
-  - `docs/general/STYLE_GUIDE.md`
+  - `docs/guides/DEV_PITFALLS.md`
+  - `docs/guides/STYLE_GUIDE.md`
   - Must-pass tests (T103):
     - `tests/unit/scene_manager/` (core coverage for `M_SceneManager`, overlays, transitions, registry, dedupe)
     - `tests/unit/scene_management/` (scene type handlers + transition helpers)

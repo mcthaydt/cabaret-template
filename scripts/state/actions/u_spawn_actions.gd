@@ -4,7 +4,7 @@ class_name U_SpawnActions
 ## Action creators for spawn lifecycle notifications
 ##
 ## Replaces ECS event bus publishes from M_SpawnManager per channel taxonomy
-## (docs/adr/0001-channel-taxonomy.md). Managers dispatch to Redux only;
+## (docs/architecture/adr/0001-channel-taxonomy.md). Managers dispatch to Redux only;
 ## subscribers connect to M_StateStore.action_dispatched and filter by type.
 
 const ACTION_PLAYER_SPAWNED := StringName("spawn/player_spawned")

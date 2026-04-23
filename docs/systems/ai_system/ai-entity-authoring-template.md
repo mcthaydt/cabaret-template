@@ -156,5 +156,5 @@ Implementation notes:
 
 - What changed from spec and why:
 - Unexpected issues discovered:
-- Pitfalls to add to `docs/general/DEV_PITFALLS.md`:
+- Pitfalls to add to `docs/guides/DEV_PITFALLS.md`:
 - Follow-up tasks (if any):

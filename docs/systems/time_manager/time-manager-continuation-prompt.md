@@ -47,8 +47,8 @@ We are on branch `TimeManager` with `M_TimeManager` implementation complete.
 - `scripts/managers/m_time_manager.gd` (Phase 1 baseline for Phase 2+)
 - `scripts/root.gd` (ServiceLocator wiring to update in Phase 1 Commit 4)
 - `AGENTS.md`
-- `docs/general/DEV_PITFALLS.md`
-- `docs/general/STYLE_GUIDE.md`
+- `docs/guides/DEV_PITFALLS.md`
+- `docs/guides/STYLE_GUIDE.md`
 
 **Implementation rules**:
 1. Follow TDD strictly — write tests BEFORE implementing method bodies in each commit

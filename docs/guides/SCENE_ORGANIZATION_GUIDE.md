@@ -602,9 +602,9 @@ Root
 
 ## Related Documentation
 
-- **Style Guide:** `docs/general/STYLE_GUIDE.md` - Naming conventions for scripts
+- **Style Guide:** `docs/guides/STYLE_GUIDE.md` - Naming conventions for scripts
 - **ECS Architecture:** `docs/ecs/ECS_ARCHITECTURE.md` - ECS system details
-- **Dev Pitfalls:** `docs/general/DEV_PITFALLS.md` - Common issues and solutions
+- **Dev Pitfalls:** `docs/guides/DEV_PITFALLS.md` - Common issues and solutions
 
 ---
 

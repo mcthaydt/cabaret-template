@@ -14,9 +14,9 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 
 ## Read First
 
-- `docs/general/DEV_PITFALLS.md`
-- `docs/general/STYLE_GUIDE.md`
-- `docs/general/cleanup_v3/groups-cleanup-tasks.md`
+- `docs/guides/DEV_PITFALLS.md`
+- `docs/guides/STYLE_GUIDE.md`
+- `docs/history/cleanup_v3/groups-cleanup-tasks.md`
 
 ---
 
@@ -42,7 +42,7 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 
 - Run the targeted tests listed per phase in `groups-cleanup-tasks.md` (and full suite when specified) **before** advancing.
 - After every phase, update:
-  - `docs/general/cleanup_v3/groups-cleanup-tasks.md` (checkboxes/notes)
+  - `docs/history/cleanup_v3/groups-cleanup-tasks.md` (checkboxes/notes)
   - This continuation prompt (progress + next steps)
 - Commit documentation updates separately from implementation commits.
 

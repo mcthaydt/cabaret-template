@@ -2,12 +2,12 @@
 
 ## Overview
 
-This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/general/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
+This guide directs you to implement the Cross-System Cleanup (V7) by following the tasks outlined in `docs/history/cleanup_v7/cleanup-v7-tasks.md` in sequential order. C12 (Post-Processing Pipeline Refactor) is included as the final milestone and runs *after* C11; its full checklist lives in `docs/history/cleanup_v7/post-process-refactor-tasks.md`.
 
 **Branch**: GOAP-AI
 **Status**: C12 in progress (Commits 1–2 complete; Commit 3 next)
-**Next Task**: Continue C12 Commit 3 — Delete CRT from UI/localization per `docs/general/cleanup_v7/post-process-refactor-tasks.md`
-**Planned Follow-up After C12**: Begin `docs/general/cleanup_v7/cleanup-v7.2-tasks.md`
+**Next Task**: Continue C12 Commit 3 — Delete CRT from UI/localization per `docs/history/cleanup_v7/post-process-refactor-tasks.md`
+**Planned Follow-up After C12**: Begin `docs/history/cleanup_v7/cleanup-v7.2-tasks.md`
 
 ---
 
@@ -31,10 +31,10 @@ This guide directs you to implement the Cross-System Cleanup (V7) by following t
 
 - **C11 (Selector Enforcement — Systems, Helpers, Interactables, and UI)**: COMPLETE — All 4 commits done. Added new selectors (`U_GameplaySelectors.get_completed_areas/get_game_completed/get_death_count`, `U_InputSelectors.get_input_state_snapshot`, `U_SettingsSelectors.get_accessibility_settings`). Migrated 9 files: `s_victory_handler_system`, `s_gamepad_vibration_system`, `s_input_system` (missed C8 violation), `u_vcam_runtime_context`, `u_vcam_debug`, `inter_ai_demo_guard_barrier`, `ui_victory`, `ui_game_over`, `ui_gamepad_settings_overlay`. Expanded style enforcement to all production dirs with explicit deferred list for 11 not-yet-migrated files + 3 false-positive vcam internal-state files. 4217/4217 tests green.
 
-- **Task checklist**: `docs/general/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
-- **C12 standalone doc**: `docs/general/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.
-- **V7.2 follow-up doc**: `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` — scheduled to start after C12 lands.
-- **V7.2 continuation prompt**: `docs/general/cleanup_v7/cleanup-v7.2-continuation-prompt.md` — working index, status tracker, and context bank for F1–F15. Use this when executing v7.2.
+- **Task checklist**: `docs/history/cleanup_v7/cleanup-v7-tasks.md` — 12-milestone TDD cleanup plan (C1–C12) targeting DRY, modularity, scalability, designer-friendliness, and post-processing pipeline simplification across managers and ECS systems.
+- **C12 standalone doc**: `docs/history/cleanup_v7/post-process-refactor-tasks.md` — post-processing pipeline refactor (10 commits), scheduled after C11 completes.
+- **V7.2 follow-up doc**: `docs/history/cleanup_v7/cleanup-v7.2-tasks.md` — scheduled to start after C12 lands.
+- **V7.2 continuation prompt**: `docs/history/cleanup_v7/cleanup-v7.2-continuation-prompt.md` — working index, status tracker, and context bank for F1–F15. Use this when executing v7.2.
 - **Scope**: No behavioral changes except (a) CRT removal and (b) color grading becoming mobile-enabled (both gated behind C12). All existing integration tests must stay green throughout.
 
 ---
@@ -76,7 +76,7 @@ Over time, managers and ECS systems have accumulated shared patterns that were i
 
 ## Plan Snapshot Note
 
-Milestone checklists below are the original implementation-plan scaffold and may still contain unchecked boxes from kickoff drafting. Treat `docs/general/cleanup_v7/cleanup-v7-tasks.md` as the authoritative completion source for C1-C9 status and verification counts.
+Milestone checklists below are the original implementation-plan scaffold and may still contain unchecked boxes from kickoff drafting. Treat `docs/history/cleanup_v7/cleanup-v7-tasks.md` as the authoritative completion source for C1-C9 status and verification counts.
 
 ---
 
@@ -278,7 +278,7 @@ Milestone checklists below are the original implementation-plan scaffold and may
 
 **Scheduling**: C12 runs *after* C1–C11 are complete. It is architecturally independent of every earlier milestone (no overlap with rule engine, selectors, dependency resolution, or scene-manager work), but placing it at the end keeps the cleanup-v7 branch's display-layer churn isolated from the state/ECS churn in C1–C11 and gives a single clean review surface for the post-processing pipeline.
 
-**Standalone doc**: Full commit-by-commit checklist, critical file list, architecture notes, and verification steps live in `docs/general/cleanup_v7/post-process-refactor-tasks.md`. That doc is the source of truth; this section is a summary.
+**Standalone doc**: Full commit-by-commit checklist, critical file list, architecture notes, and verification steps live in `docs/history/cleanup_v7/post-process-refactor-tasks.md`. That doc is the source of truth; this section is a summary.
 
 - [ ] **Commit 1** (RED) — Add pipeline + removal tests (`test_u_post_process_pipeline.gd`, extend `test_style_enforcement.gd`)
 - [ ] **Commit 2** (GREEN) — Delete CRT from state layer (actions, selectors, reducer, initial state, preset values, 3 preset `.tres` files)
@@ -325,12 +325,12 @@ Milestone checklists below are the original implementation-plan scaffold and may
 ### 1. Review Project Foundations
 
 - `AGENTS.md` — Project conventions, ECS guidelines, QB v2 patterns.
-- `docs/general/DEV_PITFALLS.md` — Common mistakes to avoid.
-- `docs/general/STYLE_GUIDE.md` — Code style, naming prefixes, formatting requirements.
+- `docs/guides/DEV_PITFALLS.md` — Common mistakes to avoid.
+- `docs/guides/STYLE_GUIDE.md` — Code style, naming prefixes, formatting requirements.
 
 ### 2. Review Cleanup Task Checklist
 
-- `docs/general/cleanup_v7/cleanup-v7-tasks.md` — Full milestone details with commit-level checkboxes.
+- `docs/history/cleanup_v7/cleanup-v7-tasks.md` — Full milestone details with commit-level checkboxes.
 
 ### 3. Understand Existing Architecture
 
@@ -381,7 +381,7 @@ Work through C1–C12 sequentially, respecting dependency graph:
 - **C9** → Config Resources (depends on C4 pattern)
 - **C10** → Entity Tag Identification (depends on C8, C3)
 - **C11** → Selector Enforcement — Systems/Helpers/Interactables/UI (depends on C8)
-- **C12** → Post-Processing Pipeline Refactor (independent of C1–C11; scheduled last to isolate display-layer churn from state/ECS churn). Source of truth: `docs/general/cleanup_v7/post-process-refactor-tasks.md`.
+- **C12** → Post-Processing Pipeline Refactor (independent of C1–C11; scheduled last to isolate display-layer churn from state/ECS churn). Source of truth: `docs/history/cleanup_v7/post-process-refactor-tasks.md`.
 
 ### 5. Follow TDD Discipline
 
@@ -424,7 +424,7 @@ You MUST:
 ## Critical Notes
 
 - **No Autoloads**: Follow existing patterns. Managers live under the `Managers` node and register with `U_ServiceLocator`.
-- **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and node naming prefixes (`S_`, `C_`, `RS_`, `U_`, `I_`, `E_`, `M_`).
+- **Style & Organization**: Follow `docs/guides/STYLE_GUIDE.md` and node naming prefixes (`S_`, `C_`, `RS_`, `U_`, `I_`, `E_`, `M_`).
 - **Update Docs After Each Milestone**: Update `cleanup-v7-tasks.md` completion notes and this continuation prompt after completing each milestone.
 - **Test Suite Command**: `tools/run_gut_suite.sh` (or `tools/run_gut_suite.sh -gtest=res://tests/unit/...` for targeted suites).
 - **Style Test**: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`
@@ -437,8 +437,8 @@ You MUST:
 
 ## Next Steps
 
-1. **Begin C12** — Post-Processing Pipeline Refactor per `docs/general/cleanup_v7/post-process-refactor-tasks.md`. C12 is the last milestone of cleanup-v7.
+1. **Begin C12** — Post-Processing Pipeline Refactor per `docs/history/cleanup_v7/post-process-refactor-tasks.md`. C12 is the last milestone of cleanup-v7.
 2. After C12 completes, run a full regression suite (desktop + mobile, including the C12 runtime validation steps) and review before merging.
-3. Begin cleanup-v7.2 using `docs/general/cleanup_v7/cleanup-v7.2-tasks.md` and `docs/general/cleanup_v7/cleanup-v7.2-continuation-prompt.md` only after the C12 work and regression pass are complete.
+3. Begin cleanup-v7.2 using `docs/history/cleanup_v7/cleanup-v7.2-tasks.md` and `docs/history/cleanup_v7/cleanup-v7.2-continuation-prompt.md` only after the C12 work and regression pass are complete.
 4. Opportunistically address cross-cutting concerns listed at the bottom of this document when touching relevant files during C12.
 5. The 11 deferred selector-enforcement files (in `test_all_production_files_use_selectors_for_state_access` allowed list) should be migrated in a follow-up pass after C12 lands.

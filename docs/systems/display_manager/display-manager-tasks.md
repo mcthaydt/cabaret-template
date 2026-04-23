@@ -850,6 +850,6 @@ Before starting Phase 0, verify:
 | `scenes/ui/overlays/*.tscn` | Add UIScaleRoot helper node |
 | `scenes/ui/hud/*.tscn` | Add UIScaleRoot helper node |
 | `AGENTS.md` | Add Display Manager Patterns section (after Audio Manager) |
-| `docs/general/DEV_PITFALLS.md` | Add Display-specific pitfalls if discovered |
+| `docs/guides/DEV_PITFALLS.md` | Add Display-specific pitfalls if discovered |
 | `scripts/state/reducers/u_display_reducer.gd` | Add U_ColorGradingActions const + 3 color_grading/ match cases (Phase 11) |
 | `scripts/managers/m_display_manager.gd` | Add color grading applier preload, var, ensure, init, apply, visibility, cleanup (Phase 11) |

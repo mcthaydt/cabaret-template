@@ -4,7 +4,7 @@
 
 - Initiative: Quality of Life Refactors (HUD feedback separation + hybrid interaction cues)
 - Current phase: Phase 6 (Complete)
-- Primary tasks file: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`
+- Primary tasks file: `docs/history/quality_of_life_refactors/quality-of-life-refactors-tasks.md`
 - Task progress: 41/41 complete (`QOL-T001-QOL-T004`, `QOL-T010-QOL-T014`, `QOL-T020-QOL-T025`, `QOL-T030-QOL-T034`, `QOL-T040-QOL-T046`, `QOL-T050-QOL-T057`, `QOL-T060-QOL-T065`)
 - Last updated: 2026-02-10
 
@@ -213,11 +213,11 @@
 ## Required Reading (Do Not Skip)
 
 1. `AGENTS.md`
-2. `docs/general/DEV_PITFALLS.md`
-3. `docs/general/STYLE_GUIDE.md`
-4. `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`
-5. `docs/general/interactions_refactor/interactions-refactor-tasks.md` (format/discipline reference)
-6. `docs/general/interactions_refactor/interactions-refactor-continuation-prompt.md` (handoff quality reference)
+2. `docs/guides/DEV_PITFALLS.md`
+3. `docs/guides/STYLE_GUIDE.md`
+4. `docs/history/quality_of_life_refactors/quality-of-life-refactors-tasks.md`
+5. `docs/history/interactions_refactor/interactions-refactor-tasks.md` (format/discipline reference)
+6. `docs/history/interactions_refactor/interactions-refactor-continuation-prompt.md` (handoff quality reference)
 
 ## Working Loop (Per Phase)
 
@@ -278,4 +278,4 @@ Style suite is mandatory after any scene/resource structure change.
 - Keep Phase 2 spinner routing, Phase 3 checkpoint copy behavior, Phase 4 signpost panel/duration behavior, and Phase 5 world-hint coexistence behavior stable during closure/polish work.
 - If new pitfalls or repeat mistakes are discovered, update:
   - `AGENTS.md`
-  - `docs/general/DEV_PITFALLS.md`
+  - `docs/guides/DEV_PITFALLS.md`
