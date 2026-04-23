@@ -247,22 +247,7 @@ Per `docs/architecture/adr/0001-channel-taxonomy.md`, the project enforces a pub
   - Per-tick occlusion integration contract (Phase 10C): `M_VCamManager` must consult `U_VFXSelectors.is_occlusion_silhouette_enabled(...)` before occluder detection and publish `enabled=false` clear requests when silhouettes are disabled or transition blend ownership blocks gameplay camera submission.
   - Editor preview contract (Phase 11): `U_VCamRuleOfThirdsPreview` (`scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`) is the canonical editor-only thirds-grid helper for camera authoring. Keep it `@tool`, render through an internal `CanvasLayer` + draw control, and `queue_free()` outside editor so runtime has zero preview overhead.
   - Silhouette count observability contract (Phase 10C2): `silhouette_active_count` dispatch is renderer-owned in `M_VFXManager` and must be sourced from `U_VCamSilhouetteHelper.get_active_count()` after debounce/grace filtering (dispatch only on count changes, including clear-to-`0` on runtime teardown paths).
-- **Testing with Dependency Injection (Phase 10B-8)**
-  - Systems support `@export` dependency injection for isolated testing with mocks.
-  - **Inject ECS manager**: All systems inherit `@export var ecs_manager: I_ECSManager` from BaseECSSystem.
-  - **Inject state store**: 9 state-dependent systems have `@export var state_store: I_StateStore` (S_HealthSystem, S_VictorySystem, S_CheckpointSystem, S_InputSystem, S_GamepadVibrationSystem, S_GravitySystem, S_MovementSystem, S_JumpSystem, S_RotateToInputSystem).
-  - **Injection priority chain**: U_StateUtils.get_store() and U_ECSUtils.get_manager() check @export injection first, then fall back to ServiceLocator. Production code unchanged (auto-discovery if not injected).
-  - **Mock classes**: Use `MockStateStore` and `MockECSManager` from `tests/mocks/` for isolated testing.
-  - **Example test pattern**:
-    ```gdscript
-    var mock_manager := MockECSManager.new()
-    var mock_store := MockStateStore.new()
-    var system := S_HealthSystem.new()
-    system.ecs_manager = mock_manager  # Inject via @export
-    system.state_store = mock_store    # Inject via @export
-    # Test system in isolation without real managers
-    ```
-  - **Mock helpers**: `MockStateStore.get_dispatched_actions()` verifies actions; `MockStateStore.set_slice()` sets up test state; `MockECSManager.add_component_to_entity()` populates components.
+- Testing with dependency injection: see `docs/guides/pitfalls/TESTING.md`.
 - Manager
   - Ensure exactly one `M_ECSManager` in-scene. It registers with ServiceLocator on `_ready()`.
   - Emits `component_added`/`component_removed` and calls `component.on_registered(self)`.
@@ -1432,12 +1417,7 @@ func _apply_window_mode(mode: String) -> void:
 
 ## Test Commands
 
-- Run ECS tests
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
-- Always include `-gexit` when running GUT via the command line so the runner terminates cleanly; without it the process hangs and triggers harness timeouts.
-- Notes
-  - Tests commonly `await get_tree().process_frame` after adding nodes to allow auto-registration with `M_ECSManager` before assertions.
-  - When stubbing engine methods in tests (e.g., `is_on_floor`, `move_and_slide`), include `@warning_ignore("native_method_override")`.
+- Testing commands and GUT/headless pitfalls: `docs/guides/pitfalls/TESTING.md`.
 
 ## Quick How-Tos (non-duplicative)
 

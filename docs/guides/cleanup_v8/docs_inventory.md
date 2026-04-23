@@ -25,7 +25,7 @@ Source: `AGENTS.md` (~1 460 lines, 19 top-level sections)
 | 6c | ECS Guidelines — AI behavior-tree loop pattern | 148–174 | 27 | merge | `docs/systems/ai_system/ai-system-overview.md` (Existing) | — |
 | 6d | ECS Guidelines — VFX event requests / tuning / preview | 175–187 | 13 | merge | `docs/systems/vfx_manager/vfx-manager-overview.md` (Existing) | — |
 | 6e | ECS Guidelines — vCam runtime contracts | 188–249 | 62 | merge | `docs/systems/vcam_manager/vcam-manager-overview.md` (Existing) | — |
-| 6f | ECS Guidelines — testing with DI | 250–265 | 16 | merge | `docs/guides/TESTING.md` (New) | — |
+| 6f | ECS Guidelines — testing with DI | 250–265 | 16 | merge | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 6g | ECS Guidelines — manager / entities | 266–279 | 14 | move | `docs/systems/ecs/ecs_architecture.md` (Existing) | — |
 | 7 | Scene Organization — root/gameplay scene patterns | 280–304 | 25 | merge | `docs/guides/SCENE_ORGANIZATION_GUIDE.md` (Existing) | — |
 | 7b | Scene Organization — UI Theme Pipeline | 305–320 | 16 | merge | `docs/systems/ui_manager/ui-manager-overview.md` (New) | — |
@@ -42,7 +42,7 @@ Source: `AGENTS.md` (~1 460 lines, 19 top-level sections)
 | 15 | Audio Manager Patterns | 1 033–1 221 | 189 | merge | `docs/systems/audio_manager/AUDIO_MANAGER_GUIDE.md` (Existing) | — |
 | 16 | Display Manager Patterns | 1 222–1 415 | 194 | merge | `docs/systems/display_manager/display-manager-overview.md` (Existing) | — |
 | 17 | Behavior Tree Patterns | 1 416–1 432 | 17 | merge | `docs/systems/ai_system/ai-system-overview.md` (Existing) | — |
-| 18 | Test Commands | 1 433–1 441 | 9 | move | `docs/guides/TESTING.md` (New) | — |
+| 18 | Test Commands | 1 433–1 441 | 9 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 19 | Quick How-Tos | 1 442–1 460 | 19 | merge | `docs/guides/ARCHITECTURE.md` (New) | — |
 
 **Post-migration AGENTS.md target**: routing index only — one-line pointers to each destination, mandatory workflow rules (Start Here), and the `docs/guides/DEV_PITFALLS.md` pointer replaced by per-domain links. Hard cap: 150 lines.
@@ -62,8 +62,8 @@ Source: `docs/guides/DEV_PITFALLS.md` (~1 703 lines, 40+ sections)
 | 5 | Godot Audio Pitfalls | 109–126 | 18 | move | `docs/guides/pitfalls/GODOT_ENGINE.md` (New) | — |
 | 6 | Room Fade System Pitfalls | 127–134 | 8 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
 | 7 | GDScript Typing Pitfalls | 135–174 | 40 | move | `docs/guides/pitfalls/GDSCRIPT_4_6.md` (New) | — |
-| 8 | Asset Import Pitfalls (Headless Tests) | 175–180 | 6 | move | `docs/guides/pitfalls/TESTING.md` (New) | — |
-| 9 | Test Execution Pitfalls | 181–205 | 25 | move | `docs/guides/pitfalls/TESTING.md` (New) | — |
+| 8 | Asset Import Pitfalls (Headless Tests) | 175–180 | 6 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
+| 9 | Test Execution Pitfalls | 181–205 | 25 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 10 | Scene Director Pitfalls | 206–209 | 4 | merge | `docs/systems/scene_director/scene-director-overview.md` (Existing) | — |
 | 11 | AI System Pitfalls (first) | 210–222 | 13 | merge | `docs/systems/ai_system/ai-system-overview.md` (Existing) | — |
 | 12 | QB Rule Engine v2 Pitfalls | 223–230 | 8 | merge | `docs/systems/qb_rule_manager/qb-v2-overview.md` (Existing) | — |
@@ -85,15 +85,15 @@ Source: `docs/guides/DEV_PITFALLS.md` (~1 703 lines, 40+ sections)
 | 28 | GDScript Language Pitfalls | 605–676 | 72 | move | `docs/guides/pitfalls/GDSCRIPT_4_6.md` (New) | — |
 | 29 | ECS System Pitfalls | 677–682 | 6 | move | `docs/guides/pitfalls/ECS.md` (New) | — |
 | 30 | State Store Integration Pitfalls | 683–697 | 15 | move | `docs/guides/pitfalls/STATE.md` (New) | — |
-| 31 | GUT Testing Pitfalls | 698–797 | 100 | move | `docs/guides/pitfalls/TESTING.md` (New) | — |
-| 32 | Headless Test Pitfalls | 798–801 | 4 | move | `docs/guides/pitfalls/TESTING.md` (New) | — |
+| 31 | GUT Testing Pitfalls | 698–797 | 100 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
+| 32 | Headless Test Pitfalls | 798–801 | 4 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 33 | Documentation and Planning Pitfalls | 802–816 | 15 | drop | Content fully covered by AGENTS.md "Start Here" workflow rules and CLAUDE.md | — |
 | 34 | Scene Manager Pitfalls (Phase 2+) incl. Phase 10 sub-section | 817–1 036 | 220 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | — |
 | 35 | Input System Pitfalls | 1 037–1 085 | 49 | merge | `docs/systems/input_manager/input-manager-overview.md` (New) | — |
 | 36 | vCam Integration Pitfalls | 1 086–1 116 | 31 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | — |
 | 37 | UI Manager / Input Manager Boundary | 1 117–1 277 | 161 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
 | 38 | UI Navigation Pitfalls (second instance) | 1 278–1 351 | 74 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
-| 39 | Test Coverage Status | 1 352–1 403 | 52 | move | `docs/guides/pitfalls/TESTING.md` (New) | — |
+| 39 | Test Coverage Status | 1 352–1 403 | 52 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 40 | Mobile/Touchscreen Pitfalls | 1 404–1 452 | 49 | move | `docs/guides/pitfalls/MOBILE.md` (New) | — |
 | 41 | Unified Settings Panel Pitfalls | 1 453–1 597 | 145 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
 | 42 | Display Manager Pitfalls | 1 598–1 665 | 68 | merge | `docs/systems/display_manager/display-manager-overview.md` (Existing) | — |
@@ -109,11 +109,10 @@ Source: `docs/guides/DEV_PITFALLS.md` (~1 703 lines, 40+ sections)
 | File | Content sources |
 |------|----------------|
 | `docs/guides/ARCHITECTURE.md` | AGENTS §2 Repo Map, §4 ServiceLocator, §9 Conventions & Gotchas, §19 Quick How-Tos; DEV_PITFALLS §26 Dependency Lookup Rule |
-| `docs/guides/TESTING.md` | AGENTS §6f Testing with DI, §18 Test Commands; DEV_PITFALLS §8 Asset Import, §9 Test Execution, §31 GUT Testing, §32 Headless Tests, §39 Test Coverage Status |
+| `docs/guides/pitfalls/TESTING.md` | AGENTS §6f Testing with DI, §18 Test Commands; DEV_PITFALLS §8 Asset Import, §9 Test Execution, §31 GUT Testing, §32 Headless Tests, §39 Test Coverage Status |
 | `docs/guides/COMMIT_WORKFLOW.md` | AGENTS §1 Start Here (workflow rules and update obligations) |
 | `docs/guides/pitfalls/GDSCRIPT_4_6.md` | DEV_PITFALLS §7 GDScript Typing, §28 GDScript Language |
 | `docs/guides/pitfalls/GODOT_ENGINE.md` | DEV_PITFALLS §1–5 (Godot Scene UIDs, Physics, Script Class Cache, UI, Audio) |
-| `docs/guides/pitfalls/TESTING.md` | Merged with TESTING.md above (single destination for all test-related pitfalls) |
 | `docs/guides/pitfalls/ECS.md` | DEV_PITFALLS §29 ECS System Pitfalls |
 | `docs/guides/pitfalls/STATE.md` | DEV_PITFALLS §23 State Store Pitfalls, §30 State Store Integration Pitfalls |
 | `docs/guides/pitfalls/MOBILE.md` | DEV_PITFALLS §40 Mobile/Touchscreen Pitfalls |

@@ -784,7 +784,6 @@ docs/
 │   ├── STYLE_GUIDE.md
 │   ├── SCENE_ORGANIZATION_GUIDE.md
 │   ├── ARCHITECTURE.md          # ECS + state store + managers overview (from AGENTS.md)
-│   ├── TESTING.md               # TDD workflow, BaseTest, GUT commands (from AGENTS.md)
 │   ├── COMMIT_WORKFLOW.md       # RED/GREEN discipline, commit message style (from AGENTS.md)
 │   └── pitfalls/
 │       ├── GODOT_ENGINE.md      # from DEV_PITFALLS.md
@@ -823,7 +822,10 @@ Root `AGENTS.md` stays at repo root as the thin routing entry point.
   - Completed in `c7fbe1a8`.
 - [x] **Commit 5** — `docs/guides/pitfalls/MOBILE.md` (DEV_PITFALLS §40).
   - Completed in `cbb8617d`.
-- [ ] **Commit 6** — `docs/guides/pitfalls/TESTING.md` (DEV_PITFALLS §8, §9, §31, §32, §39; AGENTS §6f, §18).
+- [x] **Commit 6** — `docs/guides/pitfalls/TESTING.md` (DEV_PITFALLS §8, §9, §31, §32, §39; AGENTS §6f, §18).
+  - Migrated GUT, headless, asset-import, dependency-injection, test-command, and test-coverage limitation guidance into the dedicated testing pitfalls file.
+  - Replaced migrated `DEV_PITFALLS.md` sections and AGENTS testing snippets with routing pointers.
+  - Verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`83/83`).
 - [ ] **Remaining commits** — Continue section-by-section per inventory plan. One commit per destination file where practical. Update cross-references.
 - [ ] **Final AGENTS commit** — Shrink `AGENTS.md` to a routing index (~100 lines target, 150 hard cap — matches P3 Verification).
 - [ ] **Final pitfalls commit** — Delete `DEV_PITFALLS.md` once contents fully redistributed.

@@ -12,36 +12,7 @@
 
 > GDScript typing pitfalls → `docs/guides/pitfalls/GDSCRIPT_4_6.md`
 
-## Asset Import Pitfalls (Headless Tests)
-
-- **New assets used with `preload()` can fail until `.import` files exist**: If you add a new `*.ogg`, `*.png`, etc and immediately reference it via `preload("res://...")`, headless GUT runs can fail because Godot hasn’t generated the sidecar `*.import` file yet.
-  - **Fix**: Run a one-time import pass before running tests: `HOME="$PWD/.godot_user" /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
-  - Commit the generated `*.import` files (next to the asset); do not commit `.godot/imported` (it is cache and ignored).
-
-## Test Execution Pitfalls
-
-- **GUT needs recursive dirs**: `-gdir` is not recursive by default; suites in nested folders are silently skipped if you point at a parent. Always pass each test root explicitly (e.g., `-gdir=res://tests/unit -gdir=res://tests/integration`) or list the concrete leaf directories you added to ensure new suites actually run.
-- **Godot 4.6 CLI compatibility renderer flag is `gl_compatibility`, not `compatibility`**: Running headless checks with `--rendering-method compatibility` aborts early with an unknown-rendering-method error.
-  - **Fix pattern**: use `--rendering-method mobile` and/or `--rendering-method gl_compatibility` when validating shader/runtime behavior outside Forward+.
-- **Viewport capture fails in headless**: `Viewport.get_texture().get_image()` can error under the headless/dummy renderer (`Parameter "t" is null`). Tests that validate viewport screenshot capture should be marked `pending` when `OS.has_feature("headless")` or `DisplayServer.get_name() == "headless"` to avoid false failures.
-- **`Node.get_path()` / `Node3D.global_position` can throw in detached-node tests**: Debug/diagnostic helpers that probe scene nodes (for example render-probe logging) may run in unit tests where nodes are not in the scene tree. Calling `get_path()` on detached nodes logs `Cannot get path of node as it is not in a scene tree`, and `global_position` access can log `Condition "!is_inside_tree()" is true`.
-  - **Fix pattern**: guard with `is_inside_tree()`; for detached nodes, emit a synthetic marker (`<detached:NodeName>`) and use local `position` instead of `global_position`.
-- **`M_StateStore` autoload can leak ambient state into unit tests**: `RS_StateStoreSettings.enable_persistence` defaults to `true`, so tests that create `M_StateStore` can auto-load `user://savegame.json` and emit normalization warnings (for example unknown spawn point warnings) as unexpected test errors. For tests not explicitly validating persistence, set `store.settings.enable_persistence = false` before adding the store node.
-- **`M_StateStore` does not expose `set_slice(...)` like `MockStateStore`**: Tests that use the real `M_StateStore` cannot seed slices with `set_slice` and will fail at runtime (`Invalid call. Nonexistent function 'set_slice'`).  
-  - **Fix pattern**: for real-store tests, seed state through reducer actions (`store.dispatch(...)`, for example `U_VCamActions.set_active_runtime(...)`); keep direct `set_slice(...)` usage scoped to `MockStateStore` fixtures.
-- **Do not assert raw `push_warning` output directly in QB/system tests**: Engine warnings are hard to capture reliably in headless runs. Expose/override a small warning hook in test doubles and assert captured messages there instead of parsing console logs.
-- **`push_warning(...)` can be treated as an unexpected test error in manager paths**: In some GUT flows, warnings emitted during exercised runtime branches are surfaced as test failures/noise even when behavior is otherwise correct. For validation-failure branches that are expected in tests (for example invalid scene-director beat graphs), prefer deterministic non-warning observability (return values/state flags/test hooks, or `print` if you only need debug output) so tests can assert behavior without warning-channel flakiness.
-- **Tween pause mode is not reliably introspectable in tests**: In this Godot runtime, `Tween.get_pause_mode()` is unavailable and reading `tween.get("pause_mode")` can return `null`. Prefer behavior-focused assertions (for example tween created/valid and expected fade outcome) instead of inspecting tween pause mode internals.
-- **ServiceLocator-only container discovery requires explicit test registrations**: Scene/display/UI code paths that now resolve `hud_layer`, `active_scene_container`, `ui_overlay_stack`, `transition_overlay`, `loading_overlay`, `post_process_overlay`, and `game_viewport` via `U_ServiceLocator` will fail to initialize in test harnesses that only add nodes to the tree. Register these services in `before_each` when constructing lightweight scene scaffolds.
-
-- **Use ServiceLocator registration keys, not class-like names, in tests**: Root service registration uses canonical keys like `scene_manager`, `state_store`, and `camera_manager`. Looking up `M_SceneManager`/`M_StateStore` in smoke or integration tests returns `null` and can silently convert real coverage into skip/failure noise.
-  - **Fix pattern**: read keys from `scripts/root.gd` registration map and use `U_ServiceLocator.try_get_service(&"scene_manager")` (or the matching key) in tests.
-
-- **Detached `Node3D.global_position` access produces engine errors in GUT**: Reading or writing `global_position` before a `Node3D` is inside the scene tree logs `Condition "!is_inside_tree()" is true`.
-  - **Fix pattern**: either add nodes to the tree before touching global transforms, or use local `position` while detached.
-
-- **Standalone touchscreen-settings overlay tests can silently leave gameplay shell**: `UI_TouchscreenSettingsOverlay._close_overlay()` falls back to `set_shell(main_menu, settings_menu)` when `navigation.overlay_stack` is empty. Tests that instantiate the overlay directly (without pushing it on overlay stack) can pass Apply, then unintentionally move out of gameplay before drag-look assertions run.
-  - **Fix pattern**: in standalone tests, either (a) seed/push overlay-stack state before Apply so close path pops overlay, or (b) explicitly dispatch `start_game(...)` + touchscreen `device_changed(...)` before sampling touch look input.
+> Testing, GUT, headless, and asset-import pitfalls → `docs/guides/pitfalls/TESTING.md`
 
 ## Scene Director Pitfalls
 
@@ -430,109 +401,7 @@
 
 > State store integration pitfalls → `docs/guides/pitfalls/STATE.md`
 
-## GUT Testing Pitfalls
-
-- **Expected errors must use assert_push_error() AFTER the action**: When testing code that intentionally triggers `push_error()`, call `assert_push_error("error pattern")` immediately AFTER the action that causes the error, not before. Example:
-  ```gdscript
-  var result := ActionRegistry.validate_action(invalid_action)
-  assert_push_error("Action missing 'type' field")  # After validation
-  assert_false(result)
-  ```
-  **Wrong**: `gut.p("Expect error...")` before the action - this doesn't work and will show "Unexpected Errors".
-- **Prefer `print()` for temporary diagnostics**: GUT buffers its own `gut.p()` output and the CLI harness discards it in failures, which makes debugging harder. Emit short, prefixed messages with `print()` instead so they appear in the raw Godot log and in failing test transcripts. Remember to remove or guard noisy prints before merging.
-- **Default diagnostic debug flags to `true` when added for active investigation**: If you're adding a debug export specifically to diagnose a current bug, default it to enabled. The whole point is to run it and see output immediately — requiring manual enablement defeats the purpose. Only default to `false` for permanent debug flags that ship long-term with the system.
-- **State handoff persists across tests**: `M_StateStore` restores slices from `U_StateHandoff` on `_ready()`. If a previous test left the store mid-transition, the next store instance inherits that old state. Call `U_StateHandoff.clear_all()` in `before_each` / `after_each` whenever a test instantiates `M_StateStore` to guarantee a clean slate.
-- **Avoid private-manager assertions in refactor-prone tests**: Tests that assert internal fields/methods (`get("_apply_count")`, `get("_ui_roots")`, private helper calls) become brittle during helper extraction phases. Prefer public API and observable behavior checks (for localization: `get_locale()`, `get_effective_settings()`, root `_on_locale_changed` callbacks, and applied `Control.theme` state).
-
-- **Warnings treated as unexpected errors**: GUT treats `push_warning()` calls as unexpected errors in test output. If your code legitimately needs warnings (like deprecation notices), either:
-  - Reconsider if it should be a warning (default settings creation is NOT warning-worthy)
-  - Test the warning-causing path explicitly with intentional setup
-  - Accept that warnings will appear in test output but won't fail tests
-
-- **Mock overrides need warning suppression**: GUT tests that subclass engine nodes often stub methods like `is_on_floor()` or `move_and_slide()`. Godot 4 treats these as warnings, and our CI escalates warnings to errors. Add `@warning_ignore("native_method_override")` to those stubs to keep tests loading.
-
-- **Always register fixtures with GUT autofree**: Every node you instantiate in a test (managers, entities, components, fake bodies, etc.) must be registered with GUT's autofree system. Use `add_child_autofree(node)` instead of `add_child(node)` + `queue_free()`. GUT will automatically free these nodes after each test completes. Forgetting this leaks children and shows "Test script has N unfreed children" warnings even when assertions pass. Example:
-  ```gdscript
-  # WRONG - causes memory leaks:
-  func test_something() -> void:
-      var store := M_StateStore.new()
-      add_child(store)
-      # ... test logic ...
-      store.queue_free()  # Too late - test completes before queue processes
-
-  # CORRECT - GUT frees after test:
-  func test_something() -> void:
-      var store := M_StateStore.new()
-      add_child_autofree(store)  # GUT tracks and frees this
-      # ... test logic ...
-      # No manual cleanup needed
-  ```
-
-- **Clear static state between tests**: Static classes (like `StateHandoff`, `ActionRegistry`) retain state across tests. Always call reset/clear methods in `before_each()` and `after_each()`:
-  ```gdscript
-  func before_each() -> void:
-      U_StateEventBus.reset()  # For state tests
-      StateHandoff.clear_all()     # Prevents state pollution
-      # U_ECSEventBus.reset() for ECS tests
-  
-  func after_each() -> void:
-      StateHandoff.clear_all()
-      U_StateEventBus.reset()
-  ```
-  This prevents test pollution where one test's state affects another, causing false failures like getting `health=100` instead of expected `health=75`.
-
-- **Systems requiring M_StateStore need it in test setup**: Phase 16 systems (S_LandingIndicatorSystem, S_JumpSystem, S_InputSystem, S_GravitySystem, etc.) call `U_StateUtils.get_store(self)` in `process_tick()` to read state. Tests must provide a store or these systems will error with `push_error("No M_StateStore in 'state_store' group")`. **Solution**: In test setup, create and add a store:
-  ```gdscript
-  func _setup_entity(max_distance: float = 10.0) -> Dictionary:
-      var store: M_StateStore = M_StateStore.new()
-      add_child(store)
-      await _pump()
-      
-      var manager: M_ECSManager = ECS_MANAGER.new()
-      add_child(manager)
-      await _pump()
-      # ... rest of setup
-  ```
-  For tests needing gameplay state (entity coordination, etc.), initialize `store.gameplay_initial_state = RS_GameplayInitialState.new()` before adding as child.
-
-- **StateHandoff pollutes between tests without explicit clearing**: `StateHandoff.preserve_slice()` saves state that persists across test runs, causing state bleed where test B sees test A's entities/data. This manifests as "Expected 2 entities, got 3" failures. **Solution**: Call `StateHandoff.clear_all()` in `before_each()`:
-  ```gdscript
-  func before_each() -> void:
-      StateHandoff.clear_all()  # CRITICAL for state coordination tests
-      U_ECSEventBus.reset()        # CRITICAL for ECS event tests
-      store = M_StateStore.new()
-      store.gameplay_initial_state = RS_GameplayInitialState.new()
-      add_child_autofree(store)
-  ```
-
-- **Integration tests need extra initialization frames**: Full scene tests (`BASE_SCENE.instantiate()`) involve complex initialization with multiple managers and systems subscribing to events. If tests run assertions too soon, systems may not be fully initialized. **Symptom**: Event subscribers not found, empty request arrays when events fire. **Solution**: Add physics frame waits after scene instantiation:
-  ```gdscript
-  func _setup_scene() -> Dictionary:
-      await get_tree().process_frame
-      var scene := BASE_SCENE.instantiate()
-      add_child(scene)
-      autofree(scene)
-      await get_tree().process_frame
-      await get_tree().process_frame
-      await get_tree().physics_frame  # Extra waits for state store
-      await get_tree().physics_frame  # and system initialization
-      # Now safe to query systems/managers
-  ```
-
-- **wait_frames is deprecated, use wait_physics_frames**: GUT 9.5+ deprecates `wait_frames()` in favor of explicit `wait_physics_frames()` (counted in `_physics_process`) or `wait_process_frames()` (counted in `_process`). Using deprecated `wait_frames` generates warnings. Since ECS systems run in `_physics_process`, use `wait_physics_frames`:
-  ```gdscript
-  # WRONG (deprecated):
-  store.dispatch(action)
-  await wait_frames(1)
-  
-  # CORRECT:
-  store.dispatch(action)
-  await wait_physics_frames(1)
-  ```
-
-## Headless Test Pitfalls
-
-- **Headless GUT runs crash if `user://` resolves outside the sandbox**: The CLI harness blocks writes to `~/Library/Application Support/Godot/...`, so running Godot headless without overriding the user directory makes `RotatedFileLogger` abort during startup. Always launch tests via `tools/run_gut_suite.sh` (or manually prepend `HOME="$PWD/.godot_user"` to the Godot command). The script also enables `-ginclude_subdirs=true` so nested test suites execute instead of being skipped silently.
+> GUT and headless testing pitfalls → `docs/guides/pitfalls/TESTING.md`
 
 ## Documentation and Planning Pitfalls
 
@@ -1084,48 +953,7 @@ var is_paused = state.get("scene", {}).get("scene_stack", []).size() > 0
 var is_paused = U_NavigationSelectors.is_paused(state)
 ```
 
-## Test Coverage Status
-
-As of 2025-11-03 (Phase 10 Complete - Scene Manager Finished):
-- **Total Tests**: 502/506 tests passing (99.2%), 4 pending (Tween timing in headless mode)
-- **Total Assertions**: 1349
-- **Test Execution Time**: ~54 seconds for full suite
-- **Test Breakdown**:
-  - Cursor Manager: 13/13 ✅
-  - ECS: 62/62 ✅
-  - State: 104/104 ✅
-  - Utils: 11/11 ✅
-  - Unit/Integration: 12/12 ✅
-  - Integration: 10/10 ✅
-  - **Scene Manager (Phases 0-10)**:
-    - Integration: 13 (basic transitions) ✅
-    - Integration: 8 (state persistence) ✅
-    - Integration: 16 (pause system) ✅
-    - Integration: 9 (area transitions) ✅
-    - Integration: 10 (scene preloading) ✅
-    - Integration: 6 (camera blending) ✅
-    - Integration: 15 (edge cases) ✅
-    - M_SceneManager: 23 ✅
-    - U_SceneRegistry: 19 ✅
-    - Scene Reducer: 10 ✅
-    - Transition Effects: 16 (4 pending - Tween timing)
-  - **Gameplay Mechanics (Phase 8.5)**:
-    - Health System: tests integrated ✅
-    - Damage System: tests integrated ✅
-    - Victory System: tests integrated ✅
-  - **End-Game Flows (Phase 9)**:
-    - Death/victory/credits integration: tests integrated ✅
-- **Status**: All tests passing except 4 expected pending (Tween timing in headless mode)
-
-Test directories:
-- `tests/unit/ecs` - ECS component and system tests
-- `tests/unit/state` - State management tests
-- `tests/unit/integration` - ECS/State coordination tests
-- `tests/integration/scene_manager` - Scene Manager integration tests
-- `tests/integration/gameplay` - Gameplay mechanics integration tests
-- `tests/unit/utils` - Utility tests
-
-All critical paths tested including error conditions, edge cases, integration scenarios, scene restructuring patterns, camera blending, async loading, cache management, and end-game flows.
+> Test coverage status and manual QA limitations → `docs/guides/pitfalls/TESTING.md`
 - **No C-style ternaries**: GDScript 4.5 rejects `condition ? a : b`. Use the native `a if condition else b` form and keep payload normalization readable.
 - **Keep component discovery consistent**: Decoupled components (e.g., `C_MovementComponent`, `C_JumpComponent`, `C_RotateToInputComponent`, `C_AlignWithSurfaceComponent`) now auto-discover their peers, but components that still export NodePaths for scene nodes (landing indicator markers, floating raycasts, etc.) require those paths to be wired. Mixing patterns silently disables behaviour and breaks tests.
 - **Reset support timers after jumps**: When modifying jump logic, remember to clear support/apex timers just like `C_JumpComponent.on_jump_performed()` does. Forgetting this can enable double jumps that tests catch.
