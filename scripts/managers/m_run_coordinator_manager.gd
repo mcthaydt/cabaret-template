@@ -138,5 +138,5 @@ func _validate_game_config_references() -> void:
 		if not objectives_manager.has_objective_set(game_config.default_objective_set_id):
 			push_error("M_RunCoordinatorManager: game_config.default_objective_set_id '%s' not found in objectives registry. Resource: %s" % [String(game_config.default_objective_set_id), game_config.resource_path])
 
-static func _warn(message: String) -> void:
-	print("M_RunCoordinatorManager: WARNING %s" % message)
+func _warn(message: String) -> void:
+	push_warning("M_RunCoordinatorManager: %s" % message)
