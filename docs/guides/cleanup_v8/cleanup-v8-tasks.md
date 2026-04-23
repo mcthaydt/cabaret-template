@@ -813,9 +813,20 @@ Root `AGENTS.md` stays at repo root as the thin routing entry point.
 
 ## Milestone P3.3: Migration
 
-- [ ] **Commit 1** — Move section-by-section per inventory plan. One commit per destination file. Update cross-references.
-- [ ] **Commit 2** — Shrink `AGENTS.md` to a routing index (~100 lines target, 150 hard cap — matches P3 Verification).
-- [ ] **Commit 3** — Delete `DEV_PITFALLS.md` once contents fully redistributed.
+- [x] **Commit 1** — `docs/guides/pitfalls/GODOT_ENGINE.md` (DEV_PITFALLS §1–5).
+  - Completed in `5a33f386`.
+- [x] **Commit 2** — `docs/guides/pitfalls/GDSCRIPT_4_6.md` (DEV_PITFALLS §7, §28).
+  - Completed in `c23319fa`.
+- [x] **Commit 3** — `docs/guides/pitfalls/ECS.md` (DEV_PITFALLS §29).
+  - Completed in `c7fbe1a8`.
+- [x] **Commit 4** — `docs/guides/pitfalls/STATE.md` (DEV_PITFALLS §23, §30).
+  - Completed in `c7fbe1a8`.
+- [x] **Commit 5** — `docs/guides/pitfalls/MOBILE.md` (DEV_PITFALLS §40).
+  - Completed in `cbb8617d`.
+- [ ] **Commit 6** — `docs/guides/pitfalls/TESTING.md` (DEV_PITFALLS §8, §9, §31, §32, §39; AGENTS §6f, §18).
+- [ ] **Remaining commits** — Continue section-by-section per inventory plan. One commit per destination file where practical. Update cross-references.
+- [ ] **Final AGENTS commit** — Shrink `AGENTS.md` to a routing index (~100 lines target, 150 hard cap — matches P3 Verification).
+- [ ] **Final pitfalls commit** — Delete `DEV_PITFALLS.md` once contents fully redistributed.
 
 ## Milestone P3.4: Decision ADRs — "Why We Chose X"
 
