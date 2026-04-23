@@ -2401,3 +2401,43 @@ func test_simple_settings_overlays_under_15_lines() -> void:
 		vfx_file.close()
 		assert_true(vfx_lines > 15, "VFX overlay should NOT be under 15 lines (explicitly excluded from dedup)")
 	assert_eq(violations.size(), 0, "Simple settings overlays must be under 15 lines: %s" % [violations])
+
+func test_managers_and_ecs_systems_have_no_bare_print_calls() -> void:
+	var roots: Array[String] = [
+		"res://scripts/managers",
+		"res://scripts/ecs/systems",
+	]
+	var violations: Array[String] = []
+	for root in roots:
+		_collect_bare_print_calls(root, violations)
+
+	var message := "Managers and ECS systems must not use bare print() calls"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func _collect_bare_print_calls(dir_path: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_bare_print_calls(path, violations)
+		elif entry.ends_with(".gd"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				entry = dir.get_next()
+				continue
+			var line_number: int = 0
+			while not file.eof_reached():
+				line_number += 1
+				var line: String = file.get_line().strip_edges()
+				if line.begins_with("print("):
+					violations.append("%s:%d" % [path, line_number])
+			file.close()
+		entry = dir.get_next()
+	dir.list_dir_end()
