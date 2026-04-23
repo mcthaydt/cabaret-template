@@ -31,7 +31,7 @@ Source: `AGENTS.md` (~1 460 lines, 19 top-level sections)
 | 7b | Scene Organization — UI Theme Pipeline | 305–320 | 16 | merge | `docs/systems/ui_manager/ui-manager-overview.md` (New) | — |
 | 7c | Scene Organization — UI Motion Pipeline | 321–344 | 24 | merge | `docs/systems/ui_manager/ui-manager-overview.md` (New) | — |
 | 7d | Scene Organization — Interactable Controllers | 345–362 | 18 | merge | `docs/guides/SCENE_ORGANIZATION_GUIDE.md` (Existing) | — |
-| 7e | Scene Organization — Character Lighting | 363–403 | 41 | merge | `docs/systems/lighting_manager/lighting-manager-overview.md` (New) | — |
+| 7e | Scene Organization — Character Lighting | 363–403 | 41 | merge | `docs/systems/lighting_manager/lighting-manager-overview.md` (New) | Complete in P3.3 Commit 8 |
 | 8 | Naming Conventions Quick Reference | 404–452 | 49 | merge | `docs/guides/STYLE_GUIDE.md` (Existing) | — |
 | 9 | Conventions and Gotchas | 454–518 | 65 | merge | `docs/guides/ARCHITECTURE.md` (New) | — |
 | 10 | Localization Manager Patterns | 519–557 | 39 | merge | `docs/systems/localization_manager/localization-manager-overview.md` (Existing) | — |
@@ -75,7 +75,7 @@ Source: `docs/guides/DEV_PITFALLS.md` (~1 703 lines, 40+ sections)
 | 18 | vCam OTS Evaluator Pitfalls | 305–311 | 7 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
 | 19 | vCam OTS Collision Pitfalls | 312–316 | 5 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
 | 20 | vCam Fixed Evaluator Pitfalls | 317–323 | 7 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
-| 21 | Character Lighting Pitfalls | 324–329 | 6 | move | `docs/systems/lighting_manager/lighting-pitfalls.md` (New) | — |
+| 21 | Character Lighting Pitfalls | 324–329 | 6 | merge | `docs/systems/lighting_manager/lighting-manager-overview.md` (New) | Complete in P3.3 Commit 8 |
 | 22 | UI Navigation Pitfalls (Gamepad/Joystick) | 330–486 | 157 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
 | 23 | State Store Pitfalls | 487–506 | 20 | move | `docs/guides/pitfalls/STATE.md` (New) | — |
 | 24 | Save Manager Pitfalls | 507–563 | 57 | merge | `docs/systems/save_manager/save-manager-overview.md` (Existing) | — |
