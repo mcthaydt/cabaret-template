@@ -223,7 +223,7 @@
 ## QB Rule Engine v2 Pitfalls
 
 - **`U_PathResolver` intentionally has no method-call fallback**: Conditions/effects must resolve data through dictionary/object property paths only. Do not rely on `has_method()` + call behavior for rule evaluation.
-- **Rule-consumer systems should use typed arrays + coerce setters**: New rule-consumer systems should use `@export var rules: Array[RS_Rule] = []` (or the relevant interface type) with a coerce setter matching `RS_AIGoal`/`RS_Rule` patterns. `U_RuleValidator` validates semantics; typed arrays + coerce setters enforce schema at the GDScript level.
+- **Rule-consumer systems should use typed arrays + coerce setters**: New rule-consumer systems should use `@export var rules: Array[RS_Rule] = []` (or the relevant interface type) with an F7-style coerce setter matching existing `RS_Rule`/BT resource patterns. `U_RuleValidator` validates semantics; typed arrays + coerce setters enforce schema at the GDScript level.
 - **Condition/effect subresources must match v2 subclasses**: Rule assets should use `RS_Condition*` and `RS_Effect*` resources only; validator failures should block runtime registration.
 - **Context-driven effects require explicit context contracts**: `RS_EffectSetField.use_context_value` will no-op or write wrong values if the expected context path is missing/mistyped. Keep context keys documented per consumer (`components`, `event_payload`, `state`, etc.) and verify in unit tests.
 - **Trackers are per-system state, not shared utilities**: `RuleStateTracker` stores cooldown/rising-edge/one-shot state. Reusing one tracker across systems causes cross-domain gating bugs.
@@ -1674,11 +1674,11 @@ func test_window_mode_fullscreen() -> void:
 - **`C_AIBrainComponent` rejects missing or wrong-type settings**: AI placeholder entities cannot leave `brain_settings` unset and cannot assign non-`RS_AIBrainSettings` resources. Registration is intentionally aborted in `_validate_required_settings()` when this contract is violated.
   - **Fix pattern**: for placeholders/demo scenes, assign a minimal valid `RS_AIBrainSettings` resource instead of `null`.
 
-- **`RS_AIActionMoveTo` stalls on scene-authored NPCs that lack movement runtime components**: goals can score and task queues can start, but without `CharacterBody3D` + `C_InputComponent` + `C_MovementComponent`, `S_AINavigationSystem` has no valid movement pipeline and the NPC never reaches move targets.
+- **`RS_AIActionMoveTo` stalls on scene-authored NPCs that lack movement runtime components**: BT branches can score and start actions, but without `CharacterBody3D` + `C_InputComponent` + `C_MovementComponent`, `S_MoveTargetFollowerSystem` has no valid movement pipeline and the NPC never reaches move targets.
   - **Fix pattern**: when wiring demo/scene NPCs, always author the full runtime movement stack and assign valid movement settings (`cfg_movement_default` or equivalent) in addition to `C_AIBrainComponent`.
 
-- **Transient input booleans are unsafe as GOAP goal gates when evaluation is throttled**: gating goals on one-frame fields like `gameplay.input.camera_center_just_pressed` can be missed entirely when `RS_AIBrainSettings.evaluation_interval` is greater than the pulse window.
-  - **Fix pattern**: gate authored/demo goals on durable Redux flags (for example `gameplay.ai_demo_flags.*`) and set those flags from scene trigger zones (for example `Inter_AIDemoFlagZone`) instead of raw one-frame input pulses.
+- **Transient input booleans are unsafe as BT utility-branch gates when evaluation is throttled**: gating branch conditions on one-frame fields like `gameplay.input.camera_center_just_pressed` can be missed entirely when `RS_AIBrainSettings.evaluation_interval` is greater than the pulse window.
+  - **Fix pattern**: gate authored/demo BT branches on durable Redux flags (for example `gameplay.ai_demo_flags.*`) and set those flags from scene trigger zones (for example `Inter_AIDemoFlagZone`) instead of raw one-frame input pulses.
 
 - **AI demo flags are gameplay actions, not navigation actions**: there is no `U_NavigationActions.set_gameplay_ai_demo_flag(...)`; trying to route AI trigger updates through navigation actions either fails at compile time or silently bypasses gameplay reducers.
   - **Fix pattern**: dispatch `U_GameplayActions.set_ai_demo_flag(flag_id, value)` from detection/interaction/alarm systems.

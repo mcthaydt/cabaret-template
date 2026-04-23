@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup implemented in working tree (2026-04-22). AI-unit regression slice now passes `928/928` and the AI-focused integration trio remains `20/20`.
-**Next Task**: Begin Phase 2 (debug/perf extraction) once P1.10 docs-commit hygiene lands. Keep known unrelated failures out of scope for this phase handoff (`test_no_crt_identifiers_in_display_scripts`, display scanline integration, endgame reset assertion, woods smoke audio-bus environment failures).
+**Status**: Phase 1 complete. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). AI-unit regression slice passes `928/928`, AI-focused integration trio remains `20/20`, and full-suite status is now green.
+**Next Task**: Begin Phase 2 (debug/perf extraction) at P2.1 audit (`debug_perf_audit.md`) and capture fresh, post-P1.10 pollution/consolidation inventory.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -25,7 +25,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
 
 ## Current Status
 
-- **Phase 1**: IN PROGRESS.
+- **Phase 1**: COMPLETE.
   - **P1.1** complete (RED/GREEN/GREEN commits landed):
     - `(RED) P1.1 add RS_BTNode base contract test`
     - `(GREEN) P1.1 add BT node/composite/decorator resources`
@@ -82,7 +82,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - `(GREEN) P1.8 cut over AI behavior system to BT runner` (`301b39be`)
     - `(GREEN) P1.8 update cleanup v8 tracking docs` (`2b04de39`)
     - `(GREEN) P1.8 patch audit gaps — kill P1.10 time bombs` (`a3f4bc33`)
-  - **P1.9** in progress:
+  - **P1.9** complete:
     - `(RED) P1.9 add wolf BT parity integration test` (`26289494`)
     - `(GREEN) P1.9 author wolf BT brain resources + runtime context follow-through` (`fffa2e55`)
     - `(RED+GREEN) P1.9 migrate deer brain to BT utility tree` (`7de2a6cf`)
@@ -142,9 +142,9 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
       - GREEN: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_wolf_brain_bt.gd` passes (`3/3`) after planner migration.
       - Planner/runtime rechecks pass: `test_u_ai_world_state_builder.gd` (`3/3`), `test_rs_bt_planner.gd` (`9/9`), `test_s_ai_behavior_system_bt.gd` (`3/3`).
       - Content-parity rechecks pass: `test_deer_brain_bt.gd` (`3/3`), `test_rabbit_brain_bt.gd` (`3/3`), `test_patrol_drone_brain_bt.gd` (`3/3`), `test_sentry_brain_bt.gd` (`3/3`), `test_guide_prism_brain_bt.gd` (`3/3`).
-    - Post-P1.9 Commit 2 style check currently reports a pre-existing unrelated failure:
+    - Historical (pre-remediation): Post-P1.9 Commit 2 style check reported a pre-existing unrelated failure:
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` fails `test_ai_behavior_system_stays_under_two_hundred_lines` (`248` > `199`).
-    - Current style check after P1.9 Commit 6 still reports the same pre-existing unrelated failure:
+    - Historical (pre-remediation): style check after P1.9 Commit 6 still reported the same pre-existing unrelated failure:
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` fails `test_ai_behavior_system_stays_under_two_hundred_lines` (`248` > `199`).
     - Historical note (pre-P1.10): full-suite check after P1.9 Commit 5 reported expected migration fallout (`4481` passing / `98` failing / `8` pending).
     - Historical note (pre-P1.10): legacy consumer fallout centered on GOAP-era tests/resources (`tests/unit/ecs/components/test_c_ai_brain_component.gd`, `tests/unit/ai/resources/test_rs_ai_goal.gd`, GOAP integration suites).
@@ -152,6 +152,9 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
       - `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -gdir=res://tests/unit/ecs/components -gdir=res://tests/unit/ecs/systems -gdir=res://tests/unit/debug -ginclude_subdirs=true` passes (`928/928`).
       - AI-focused integration trio from `ai_unit_integration_20260422_203326.log` passes (`20/20`): `test_ai_interaction_triggers.gd`, `test_ai_demo_power_core.gd`, `test_ai_spawn_recovery_power_core.gd`.
       - `test_style_enforcement.gd` now fails only the pre-existing unrelated CRT identifier rule (`63/64`).
+    - Phase-close follow-through (2026-04-23):
+      - `AGENTS.md` and `DEV_PITFALLS.md` cleanup landed for BT-only terminology and stale GOAP/HTN reference removal.
+      - Full-suite status is now green.
     - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
 - **Phase 2**: NOT STARTED. 4 milestones.
 - **Phase 3**: NOT STARTED. 3 milestones.
@@ -376,9 +379,7 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 
 ## Next Steps
 
-1. Already on branch `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). No additional branch creation needed.
-2. P1.9 Commit 6 implementation/checks are complete; keep commit metadata synchronized in both V8 tracking docs after commit lands.
-3. Run manual AI-forest parity check after P1.9 before P1.10 deletions.
-4. Proceed through P1.10 once P1.9 parity and manual checks are complete.
-5. Merge Phase 1 to main.
-6. Branch for Phase 2 (or Phase 3 in parallel).
+1. Start P2.1 audit commit: author `docs/general/cleanup_v8/debug_perf_audit.md` with one-row-per-site inventory for `print`, warning, timer, `U_PerfProbe`, and `U_DebugLogThrottle` usage across managers/systems.
+2. Run/record targeted grep evidence used by the audit in the P2.1 commit notes.
+3. Proceed to P2.2 RED test backfill for `U_PerfProbe` (`tests/unit/utils/debug/test_u_perf_probe.gd`).
+4. Keep V8 tracking docs synchronized after each P2 milestone and commit doc updates separately from implementation.
