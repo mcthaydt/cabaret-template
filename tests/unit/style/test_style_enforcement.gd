@@ -771,6 +771,20 @@ func test_scene_manager_has_no_bare_print_calls() -> void:
 		"m_scene_manager.gd must not contain bare print() calls; route debug traces through verbose/throttled helpers"
 	)
 
+func test_scene_director_manager_has_no_bare_print_calls() -> void:
+	var scene_director_manager_path := "res://scripts/managers/m_scene_director_manager.gd"
+	var file := FileAccess.open(scene_director_manager_path, FileAccess.READ)
+	assert_not_null(file, "Unable to open %s" % scene_director_manager_path)
+	if file == null:
+		return
+	var text: String = file.get_as_text()
+	file.close()
+
+	assert_false(
+		text.find("print(") != -1,
+		"m_scene_director_manager.gd must not contain bare print() calls; route diagnostics through verbose helpers"
+	)
+
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var context_builders: Array[String] = [
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
