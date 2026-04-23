@@ -138,14 +138,10 @@ func _import_legacy_save_if_exists() -> void:
 		return
 
 	# Write migrated save to autosave slot
-	var autosave_path: String = _get_slot_file_path(SLOT_AUTOSAVE)
-	print("M_SaveManager: Importing legacy save user://savegame.json -> %s" % autosave_path)
 	var file_io := U_SAVE_FILE_IO.new()
-	var result: Error = file_io.save_to_file(autosave_path, migrated_save)
+	var result: Error = file_io.save_to_file(_get_slot_file_path(SLOT_AUTOSAVE), migrated_save)
 
-	if result == OK:
-		print("M_SaveManager: Successfully imported legacy save to autosave slot")
-	else:
+	if result != OK:
 		push_error("M_SaveManager: Failed to write imported legacy save (error %d)" % result)
 
 ## Clean up orphaned thumbnail files (no matching .json save)
