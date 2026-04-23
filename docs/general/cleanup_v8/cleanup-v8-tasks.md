@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 in progress — P2.1 audit complete (2026-04-23 baseline: `39` print, `57` push_warning, `21` timer/frame API, `20` `U_PerfProbe`, `1` `U_DebugLogThrottle`); P2.2 perf-probe test backfill complete (`93f10490`, `8f4ce20b`); P2.3 manager-side migration complete (`48d60305`, `5e0911ac`, `4bcf7111`, `16c5c6f0`, `18bf9075`, `0d9a2683`, `ef4743fa`, `8ff6c203`, `10d7ca7f`, `24073e62`, `fd9e7d0d`, `a227e8b5`), ECS-system migration now includes `s_victory_handler_system.gd` (`9b91b977`, `c4438ff0`), `s_spawn_recovery_system.gd` (`34850084`, `19307d8b`), `s_gravity_system.gd` (`7650556b`, `01f2fccb`), shared debug-routing follow-through in `s_ai_detection_system.gd`, `s_floating_system.gd`, `s_input_system.gd`, `s_move_target_follower_system.gd`, `s_movement_system.gd`, `s_rotate_to_input_system.gd`, and gravity/spawn/victory helper-path updates (`6fc2d089`, `07892b12`), plus helper-file migration in `u_vcam_debug.gd`, `u_vcam_look_input.gd`, and `u_vcam_look_spring.gd` (`c6a3ac25`, `d4fb4047`). P2.4 enforcement complete (`28702b95`): project-wide manager/ECS no-bare-print style guard added; style recheck passing (`83/83`).
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 in progress — P2.1 audit complete (2026-04-23 baseline: `39` print, `57` push_warning, `21` timer/frame API, `20` `U_PerfProbe`, `1` `U_DebugLogThrottle`); P2.2 perf-probe test backfill complete (`93f10490`, `8f4ce20b`); P2.3 manager-side migration complete (`48d60305`, `5e0911ac`, `4bcf7111`, `16c5c6f0`, `18bf9075`, `0d9a2683`, `ef4743fa`, `8ff6c203`, `10d7ca7f`, `24073e62`, `fd9e7d0d`, `a227e8b5`), ECS-system migration now includes `s_victory_handler_system.gd` (`9b91b977`, `c4438ff0`), `s_spawn_recovery_system.gd` (`34850084`, `19307d8b`), `s_gravity_system.gd` (`7650556b`, `01f2fccb`), shared debug-routing follow-through in `s_ai_detection_system.gd`, `s_floating_system.gd`, `s_input_system.gd`, `s_move_target_follower_system.gd`, `s_movement_system.gd`, `s_rotate_to_input_system.gd`, and gravity/spawn/victory helper-path updates (`6fc2d089`, `07892b12`), plus helper-file migration in `u_vcam_debug.gd`, `u_vcam_look_input.gd`, and `u_vcam_look_spring.gd` (`c6a3ac25`, `d4fb4047`). P2.4 enforcement complete (`28702b95`): project-wide manager/ECS no-bare-print style guard added; style recheck passing (`83/83`). Phase 3 pre-execution decisions recorded (2026-04-23): ADR numbering preserves V7.2 F5 at `0001`; pre-existing ADRs renumber to `0002..0005`; V8 new ADRs land at `0006..0010`. Existing service-locator ADR (post-rename `0005`) gets an in-place V7.2 F6 + no-autoloads amendment in lieu of a separate `0007-service-locator-no-autoloads.md`. P3.5 Phase 3 deliverable is the recipe framework only (dir + `README.md` + template + structure test); individual recipes ship at the tail of their owning phase.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -727,7 +727,7 @@ Convert the ~7 bare-print sites (per P2.1 audit) to either `U_DebugLogThrottle`,
 
 **Goal**: `AGENTS.md` and `DEV_PITFALLS.md` have grown to the point where LLMs and humans can't cheaply load just the relevant section. Split by audience and concern.
 
-**Authorization scope (important)**: Phase 3 creates ~26 docs (18 extension recipes + 6 ADRs + 2 READMEs + structure tests). Per the standing `CLAUDE.md` rule (*"Do not create documentation unless I tell you to do so"*) and the `feedback_docs_only_scope` memory, committing the V8 plan does **not** blanket-authorize every doc creation in Phase 3. Each recipe commit requires a separate user check-in at the tail of its owning phase (e.g., `ai.md` after P1.10 needs user sign-off before landing). ADRs are authored per-phase tail, not batched. READMEs, structure-test code, and AGENTS.md/DEV_PITFALLS.md splits (P3.3 Commits 1–3) are covered by this plan commit.
+**Authorization scope (important)**: Phase 3 creates ~26 docs (18 extension recipes + 5 ADRs + 1 ADR amendment + 2 READMEs + structure tests). Per the standing `CLAUDE.md` rule (*"Do not create documentation unless I tell you to do so"*) and the `feedback_docs_only_scope` memory, committing the V8 plan does **not** blanket-authorize every doc creation in Phase 3. Each recipe commit requires a separate user check-in at the tail of its owning phase (e.g., `ai.md` after P1.10 needs user sign-off before landing). ADRs are authored per-phase tail, not batched. READMEs, structure-test code, and AGENTS.md/DEV_PITFALLS.md splits (P3.3 Commits 1–3) are covered by this plan commit.
 
 ## Milestone P3.0: Pre-Migration Docs Reorg
 
@@ -738,9 +738,14 @@ Before splitting `AGENTS.md` / `DEV_PITFALLS.md`, the surrounding `docs/` tree n
 - **~20 per-manager doc dirs sit at the top of `docs/`** (`audio_manager/`, `display_manager/`, `vcam_manager/`, `ai_system/`, `ai_forest/`, etc.), peers of `general/` and `architecture/`. Root-level is noisy.
 
 - [ ] **Commit 1** — Reconcile ADR conventions:
-  - Pick the numeric `NNNN-kebab.md` convention (matches V7.2 F5 and the rest of P3.4's numbering 0002–0007).
-  - Rename existing `docs/architecture/adr/ADR-001-redux-state-management.md` → `0002-redux-state-management.md`, `ADR-002-ecs-node-based.md` → `0003-ecs-node-based.md`, `ADR-003-event-bus.md` → `0004-event-bus.md`, `ADR-004-service-locator.md` → `0005-service-locator.md` (or renumber interleaved with V7.2's `0001-channel-taxonomy.md` — pick during this commit; preserve chronology where possible).
-  - Note: this reclaims ADR numbers P3.4 assigns to V8's new ADRs. **Update P3.4 ADR numbers in this plan** in the same commit so V8's six new ADRs pick up at whatever `N+1` the reconciliation lands on (likely `0006..0011`).
+  - Adopt the numeric `NNNN-kebab.md` convention (matches V7.2 F5).
+  - **Decision (2026-04-23)**: preserve `0001-channel-taxonomy.md` at `0001` (no rename). Renumber pre-existing pushed after:
+    - `docs/architecture/adr/ADR-001-redux-state-management.md` → `0002-redux-state-management.md`
+    - `ADR-002-ecs-node-based.md` → `0003-ecs-node-based.md`
+    - `ADR-003-event-bus.md` → `0004-event-bus.md`
+    - `ADR-004-service-locator.md` → `0005-service-locator.md`
+  - V8's new ADRs pick up at `0006..0010` (five ADRs total — not six; see P3.4 amendment approach for service-locator).
+  - Update inter-ADR cross-references inside the renamed files in the same commit (`rg "ADR-00[1-4]"` inside `docs/architecture/adr/`).
 - [ ] **Commit 2** — `git mv docs/adr/0001-channel-taxonomy.md docs/architecture/adr/`. Delete empty `docs/adr/`. Update every file that references `docs/adr/0001-channel-taxonomy.md` — at minimum `AGENTS.md:56` and `AGENTS.md:74` (both cite the path directly), plus `CLAUDE.md`, V7.2 F5 continuation doc, and any style enforcement tests that grep for `docs/adr/`. Run `rg "docs/adr/"` after the move to confirm zero remaining references. (This supersedes P3.4 Commit 0.)
 - [ ] **Commit 3** — Create `docs/history/` and move frozen planning archives. Explicit list (the `v1..v8` shorthand is not a shell glob and would also miss `v4.5`): `cleanup_v1`, `cleanup_v2`, `cleanup_v3`, `cleanup_v4`, `cleanup_v4.5`, `cleanup_v5`, `cleanup_v6`, `cleanup_v7` (which contains both v7 and v7.2 subdocs — v7.2 is not its own top-level dir), plus `interactions_refactor/`, `quality_of_life_refactors/`, `ui_layers_transitions_refactor/`. Run `git mv` per dir so diffs stay per-archive. These are never modified after their phase ships; they shouldn't live under "general."
   - Exception: `docs/general/cleanup_v8/` stays in place **until Phase 3 completes**, since this very plan lives there and moving it mid-phase thrashes references. Move it at the tail of P3 (P3.6 Commit).
@@ -801,7 +806,7 @@ Root `AGENTS.md` stays at repo root as the thin routing entry point.
 ## Milestone P3.3: Migration
 
 - [ ] **Commit 1** — Move section-by-section per inventory plan. One commit per destination file. Update cross-references.
-- [ ] **Commit 2** — Shrink `AGENTS.md` to a routing index (~100 lines max).
+- [ ] **Commit 2** — Shrink `AGENTS.md` to a routing index (~100 lines target, 150 hard cap — matches P3 Verification).
 - [ ] **Commit 3** — Delete `DEV_PITFALLS.md` once contents fully redistributed.
 
 ## Milestone P3.4: Decision ADRs — "Why We Chose X"
@@ -821,37 +826,42 @@ V7.2 F5 created `docs/adr/0001-channel-taxonomy.md`. V8 moves ADRs under `docs/a
 
 **ADRs to author** (each lives at the tail of its owning phase, not batched):
 
-- [ ] **Commit 1** (tail of P1) — `docs/architecture/adr/0002-ai-architecture-utility-bt-with-scoped-planning.md`:
+- [ ] **Commit 1** (tail of P1) — `docs/architecture/adr/0006-ai-architecture-utility-bt-with-scoped-planning.md`:
   - Decision: utility-scored behavior trees with opt-in `RS_BTPlanner` for planning.
   - Alternatives: full GOAP + MBT, keep GOAP + HTN, plain BT without scoring.
   - References: `~/.claude/plans/whats-a-better-approach-snoopy-candle.md`, Phase 1 commits.
-- [ ] **Commit 2** (tail of P1) — `docs/architecture/adr/0003-bt-framework-scope-general-vs-ai-specific.md`:
+- [ ] **Commit 2** (tail of P1) — `docs/architecture/adr/0007-bt-framework-scope-general-vs-ai-specific.md`:
   - Decision: general BT under `scripts/resources/bt/`; AI-specific leaves + planner under `scripts/resources/ai/bt/`.
   - Alternatives: AI-only; fully general with AI imports in core.
-- [ ] **Commit 3** (tail of P2) — `docs/architecture/adr/0004-debug-perf-utility-extraction.md`:
+- [ ] **Commit 3** (tail of P2) — `docs/architecture/adr/0008-debug-perf-utility-extraction.md`:
   - Decision: managers + ECS systems route debug through `U_DebugLogThrottle` / `U_PerfProbe`; bare `print()` forbidden.
   - Alternatives: inline guards, compile-time flags.
-- [ ] **Commit 4** (tail of P4) — `docs/architecture/adr/0005-template-vs-demo-separation.md`:
+- [ ] **Commit 4** (tail of P4) — `docs/architecture/adr/0009-template-vs-demo-separation.md`:
   - Decision: `scripts/core/` + `scripts/demo/` (same in `resources/`); enforced by import-boundary grep.
   - Alternatives: keep mixed; top-level `template/`/`game/`.
-- [ ] **Commit 5** (tail of P5) — `docs/architecture/adr/0006-base-scene-and-demo-entry-split.md`:
+- [ ] **Commit 5** (tail of P5) — `docs/architecture/adr/0010-base-scene-and-demo-entry-split.md`:
   - Decision: two scenes — existing `scenes/templates/tmpl_base_scene.tscn` (refactored in P5.2) + `scenes/demo/demo_entry.tscn`.
   - Alternatives: single scene with embedded demo menu; minimal-only.
-- [ ] **Commit 6** (tail of P3 itself) — `docs/architecture/adr/0007-service-locator-no-autoloads.md`:
-  - Decision: all services via `U_ServiceLocator`; empty autoload list. Codifies `CLAUDE.md` rule + V7.2 F6 scope isolation.
-  - Alternatives: Godot autoloads; hybrid.
+- [ ] **Commit 6** (tail of P3 itself) — amend `docs/architecture/adr/0005-service-locator.md` in-place (not a new file):
+  - Add V7.2 F6 scope isolation clause (`push_scope`/`pop_scope` per-test) to Decision + Consequences sections.
+  - Add "no Godot autoloads" clause (empty autoload list; codifies `CLAUDE.md` rule) to Decision + Consequences sections.
+  - Bump Status line (e.g., `Status: Accepted (amended 2026-04-DD — V8 P3)`). Do not supersede; the original decision stands with clarifications.
+  - Rationale for amendment (not new ADR): pre-existing `ADR-004-service-locator.md` already records the service-locator decision; V8's additions are clarifications of the same decision, not a new one.
 
 - [ ] **Commit 7** — `docs/architecture/adr/README.md`: index with status + one-line summary per ADR.
 - [ ] **Commit 8** — Style enforcement: `test_adr_structure.gd` asserts every `docs/architecture/adr/[0-9]{4}-*.md` has required sections (Status / Context / Decision / Alternatives / Consequences).
 
 **P3.4 Verification**:
-- [ ] All 6 new decision ADRs exist with required sections.
+- [ ] All 5 new decision ADRs (`0006..0010`) exist with required sections.
+- [ ] `docs/architecture/adr/0005-service-locator.md` amendment includes scope-isolation + no-autoloads clauses and an updated Status line.
 - [ ] `docs/architecture/adr/README.md` indexes all ADRs.
 - [ ] ADR structure test green.
 
 ---
 
 ## Milestone P3.5: Extension Recipes — "How to Add a Feature Here"
+
+**Phase 3 deliverable (framework only)**: the P3.5 milestone *inside Phase 3* ships the `docs/architecture/extensions/` directory, the recipe template (spec below), the `README.md` routing scaffold (filled as recipes land), and `test_extension_recipe_structure.gd` structure test (Commits 19–20 below). The 18 individual recipe commits (1–18) are tracked here for provenance but each lands at the tail of its owning phase — not in Phase 3 itself. This prevents authoring recipes against code that's still being refactored in Phases 1/4/5. See also the sequencing note at the end of this milestone.
 
 Separate from decision ADRs. Lives under `docs/architecture/extensions/` (new). One recipe per major subsystem, framed as a **derivation template**: after the subsystem is built, every new feature should be mechanical pattern-following.
 
@@ -1098,7 +1108,7 @@ Tail of P3, after all other P3 milestones are green. Moves this plan into `docs/
 - [ ] `AGENTS.md` under 150 lines.
 - [ ] No dangling cross-references.
 - [ ] `CLAUDE.md` project file still points at the right entry.
-- [ ] `docs/architecture/adr/` contains reconciled ADR set under one numeric convention + V8 ADRs + `README.md`.
+- [ ] `docs/architecture/adr/` contains reconciled ADR set under one numeric convention + V8 ADRs + `README.md` — specifically: 5 pre-existing/V7.2 ADRs renumbered to `0001..0005` + 5 new V8 ADRs at `0006..0010` + amendment on `0005-service-locator.md` + `README.md`.
 - [ ] `docs/architecture/extensions/` contains `ai.md`, `state.md`, `vcam.md`, `ecs.md`, `managers.md`, `ui.md`, `scenes.md`, `save.md`, `input.md`, `audio.md`, `objectives.md`, `conditions_effects_rules.md`, `events.md`, `debug.md`, `display_post_process.md`, `localization.md`, `resources.md`, `tests.md` + `README.md`.
 - [ ] `docs/guides/`, `docs/history/`, `docs/systems/` exist per P3.0 structure; `docs/general/` and `docs/adr/` no longer exist.
 
