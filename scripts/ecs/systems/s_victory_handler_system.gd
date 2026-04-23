@@ -26,7 +26,7 @@ func process_tick(__delta: float) -> void:
 func _debug_log(message: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
 		return
-	print("[VictoryDebug][S_VictoryHandlerSystem] %s" % message)
+	print_verbose("[VictoryDebug][S_VictoryHandlerSystem] %s" % message)
 
 func _debug_gameplay_slice(label: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
