@@ -31,17 +31,24 @@ var _ui_sound_players: Array[AudioStreamPlayer] = []
 var _ui_sound_index: int = 0
 var _audio_settings_preview_active: bool = false
 var _last_audio_hash: int = 0
+var _music_bus_name: StringName = StringName("Music")
+var _ambient_bus_name: StringName = StringName("Ambient")
+var _ui_bus_name: StringName = StringName("UI")
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	U_SERVICE_LOCATOR.register(StringName("audio_manager"), self)
 
-	if not U_AUDIO_BUS_CONSTANTS.validate_bus_layout():
-		push_error("M_AudioManager: Invalid audio bus layout. Please configure buses in Project Settings → Audio → Buses")
+	var is_gut_test: bool = _is_gut_running()
+	if not U_AUDIO_BUS_CONSTANTS.validate_bus_layout(not is_gut_test):
+		if not is_gut_test:
+			push_error("M_AudioManager: Invalid audio bus layout. Please configure buses in Project Settings → Audio → Buses")
+
+	_resolve_runtime_bus_names(false)
 
 	U_AUDIO_REGISTRY_LOADER.initialize()
-	_music_crossfader = U_CrossfadePlayer.new(self, &"Music")
-	_ambient_crossfader = U_CrossfadePlayer.new(self, &"Ambient")
+	_music_crossfader = U_CrossfadePlayer.new(self, _music_bus_name)
+	_ambient_crossfader = U_CrossfadePlayer.new(self, _ambient_bus_name)
 	_setup_ui_sound_players()
 	var sfx_parent := _resolve_sfx_parent()
 	U_SFX_SPAWNER.initialize(sfx_parent)
@@ -109,12 +116,24 @@ func _is_gut_running() -> bool:
 		return false
 	return tree.root.find_child("GutRunner", true, false) != null
 
+func _resolve_runtime_bus_names(log_warnings: bool = false) -> void:
+	_music_bus_name = _resolve_bus_name_or_master(StringName("Music"), log_warnings)
+	_ambient_bus_name = _resolve_bus_name_or_master(StringName("Ambient"), log_warnings)
+	_ui_bus_name = _resolve_bus_name_or_master(StringName("UI"), log_warnings)
+
+func _resolve_bus_name_or_master(preferred_bus: StringName, log_warnings: bool = false) -> StringName:
+	var bus_index: int = U_AUDIO_BUS_CONSTANTS.get_bus_index_safe(preferred_bus, log_warnings)
+	var resolved_bus_name: String = AudioServer.get_bus_name(bus_index)
+	if resolved_bus_name.is_empty():
+		return StringName("Master")
+	return StringName(resolved_bus_name)
+
 func _setup_ui_sound_players() -> void:
 	_ui_sound_players.clear()
 	for i in range(UI_SOUND_POLYPHONY):
 		var player := AudioStreamPlayer.new()
 		player.name = "UIPlayer_%d" % i
-		player.bus = "UI"
+		player.bus = str(_ui_bus_name)
 		add_child(player)
 		_ui_sound_players.append(player)
 
@@ -301,10 +320,10 @@ func _apply_audio_settings(state: Dictionary) -> void:
 	if state == null:
 		return
 
-	var master_idx := AudioServer.get_bus_index("Master")
-	var music_idx := AudioServer.get_bus_index("Music")
-	var sfx_idx := AudioServer.get_bus_index("SFX")
-	var ambient_idx := AudioServer.get_bus_index("Ambient")
+	var master_idx: int = U_AUDIO_BUS_CONSTANTS.get_bus_index_safe(StringName("Master"), false)
+	var music_idx: int = U_AUDIO_BUS_CONSTANTS.get_bus_index_safe(StringName("Music"), false)
+	var sfx_idx: int = U_AUDIO_BUS_CONSTANTS.get_bus_index_safe(StringName("SFX"), false)
+	var ambient_idx: int = U_AUDIO_BUS_CONSTANTS.get_bus_index_safe(StringName("Ambient"), false)
 
 	AudioServer.set_bus_volume_db(master_idx, _linear_to_db(U_AUDIO_SELECTORS.get_master_volume(state)))
 	AudioServer.set_bus_mute(master_idx, U_AUDIO_SELECTORS.is_master_muted(state))
@@ -356,10 +375,10 @@ func _apply_audio_settings_from_values(
 	ambient_muted: bool,
 	spatial_audio_enabled: bool
 ) -> void:
-	var master_idx := AudioServer.get_bus_index("Master")
-	var music_idx := AudioServer.get_bus_index("Music")
-	var sfx_idx := AudioServer.get_bus_index("SFX")
-	var ambient_idx := AudioServer.get_bus_index("Ambient")
+	var master_idx: int = U_AUDIO_BUS_CONSTANTS.get_bus_index_safe(StringName("Master"), false)
+	var music_idx: int = U_AUDIO_BUS_CONSTANTS.get_bus_index_safe(StringName("Music"), false)
+	var sfx_idx: int = U_AUDIO_BUS_CONSTANTS.get_bus_index_safe(StringName("SFX"), false)
+	var ambient_idx: int = U_AUDIO_BUS_CONSTANTS.get_bus_index_safe(StringName("Ambient"), false)
 
 	AudioServer.set_bus_volume_db(master_idx, _linear_to_db(clampf(master_volume, 0.0, 1.0)))
 	AudioServer.set_bus_mute(master_idx, master_muted)

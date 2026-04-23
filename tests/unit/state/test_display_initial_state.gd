@@ -156,18 +156,18 @@ func test_has_scanlines_enabled_field() -> void:
 func test_to_dictionary_includes_scanline_fields() -> void:
 	var dict: Dictionary = initial_state.to_dictionary()
 	assert_true(dict.has("scanlines_enabled"), "to_dictionary should include scanlines_enabled")
-	assert_true(dict.has("scanline_intensity"), "to_dictionary should include scanline_intensity")
+	assert_true(dict.has("line_mask_intensity"), "to_dictionary should include line_mask_intensity")
 	assert_true(dict.has("scanline_count"), "to_dictionary should include scanline_count")
 
-func test_to_dictionary_loads_scanline_intensity_from_preset() -> void:
+func test_to_dictionary_loads_line_mask_intensity_from_preset() -> void:
 	initial_state.post_processing_preset = "medium"
 	var dict: Dictionary = initial_state.to_dictionary()
 	var medium_values := U_PostProcessingPresetValues.get_preset_values("medium")
 	assert_almost_eq(
-		float(dict["scanline_intensity"]),
-		float(medium_values.get("scanline_intensity", 0.0)),
+		float(dict["line_mask_intensity"]),
+		float(medium_values.get("line_mask_intensity", 0.0)),
 		0.0001,
-		"scanline_intensity should come from medium preset"
+		"line_mask_intensity should come from medium preset"
 	)
 
 func test_mobile_override_forces_scanlines_disabled() -> void:

@@ -4,7 +4,7 @@ const MainMenuScene := preload("res://scenes/ui/menus/ui_main_menu.tscn")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
-const EXPECTED_DEFAULT_GAMEPLAY_SCENE := StringName("ai_showcase")
+const CFG_GAME_CONFIG := preload("res://resources/cfg_game_config.tres")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -115,8 +115,8 @@ func test_play_button_dispatches_start_game_action() -> void:
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"),
 		"New Game button should move navigation shell to gameplay")
-	assert_eq(nav_slice.get("base_scene_id"), EXPECTED_DEFAULT_GAMEPLAY_SCENE,
-		"New Game button should target the ai_showcase scene by default")
+	assert_eq(nav_slice.get("base_scene_id"), _get_expected_default_gameplay_scene(),
+		"New Game button should target the configured retry scene by default")
 
 func test_new_game_prompts_confirmation_when_saves_exist() -> void:
 	var store := await _create_state_store()
@@ -157,8 +157,8 @@ func test_new_game_confirmation_confirm_starts_game() -> void:
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"),
 		"Confirming New Game should start gameplay shell")
-	assert_eq(nav_slice.get("base_scene_id"), EXPECTED_DEFAULT_GAMEPLAY_SCENE,
-		"Confirming New Game should target the ai_showcase scene by default")
+	assert_eq(nav_slice.get("base_scene_id"), _get_expected_default_gameplay_scene(),
+		"Confirming New Game should target the configured retry scene by default")
 
 func test_new_game_confirmation_cancel_does_nothing() -> void:
 	var store := await _create_state_store()
@@ -221,6 +221,14 @@ func _register_save_manager_with_saves() -> Node:
 	save_manager.set_has_any_saves(true)
 	await wait_process_frames(2)
 	return save_manager
+
+func _get_expected_default_gameplay_scene() -> StringName:
+	if CFG_GAME_CONFIG == null:
+		return StringName("ai_showcase")
+	var retry_scene_id: StringName = CFG_GAME_CONFIG.retry_scene_id
+	if retry_scene_id == StringName(""):
+		return StringName("ai_showcase")
+	return retry_scene_id
 
 
 ## Test main menu ignores non-menu panels (like pause/root from gameplay)

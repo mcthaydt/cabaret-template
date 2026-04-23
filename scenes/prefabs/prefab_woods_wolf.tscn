@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://x3kbhac4l16l"]
 
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://scenes/templates/tmpl_character.tscn" id="1_character"]
-[ext_resource type="Resource" path="res://resources/ai/woods/wolf/cfg_woods_wolf_brain.tres" id="2_wolf_brain"]
-[ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_needs_wolf.tres" id="3_needs_wolf"]
-[ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_movement_woods_wolf.tres" id="4_movement_wolf"]
+[ext_resource type="Resource" uid="uid://b3bxwsax1jmy5" path="res://resources/ai/woods/wolf/cfg_woods_wolf_brain.tres" id="2_wolf_brain"]
+[ext_resource type="Resource" uid="uid://bqvxuqbjjpv38" path="res://resources/base_settings/ai_woods/cfg_needs_wolf.tres" id="3_needs_wolf"]
+[ext_resource type="Resource" uid="uid://djsbcpo76jofy" path="res://resources/base_settings/ai_woods/cfg_movement_woods_wolf.tres" id="4_movement_wolf"]
 [ext_resource type="Script" uid="uid://273k4tlpun6e" path="res://scripts/ecs/components/c_input_component.gd" id="5_input"]
 [ext_resource type="Script" uid="uid://c8xs8mubjbl1p" path="res://scripts/ecs/components/c_ai_brain_component.gd" id="6_ai_brain"]
 [ext_resource type="Script" uid="uid://c4mkt2oec1pi0" path="res://scripts/ecs/components/c_detection_component.gd" id="7_detection"]
@@ -48,4 +48,4 @@ brain_settings = ExtResource("2_wolf_brain")
 script = ExtResource("9_needs")
 settings = ExtResource("3_needs_wolf")
 
-[node name="DebugWoodsAgentLabel" parent="." instance=ExtResource("10_debug_label")]
+[node name="DebugWoodsAgentLabel" parent="." index="2" unique_id=694190472 instance=ExtResource("10_debug_label")]

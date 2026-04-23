@@ -7,11 +7,15 @@ const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_ta
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
 const HOME_ANCHOR_META_KEY := &"ai_home_anchor"
+const TASK_PINNED_HOLD_ACTIVE := &"flee_pinned_hold_active"
+const TASK_PINNED_HOLD_RETRY_SEC := &"flee_pinned_hold_retry_sec"
+const MIN_PINNED_TARGET_DELTA_XZ: float = 0.1
 
 @export var flee_distance: float = 6.0
 @export var arrival_threshold: float = 0.5
 @export var clamp_to_home_radius: bool = false
 @export var home_radius: float = 10.0
+@export_range(0.0, 2.0, 0.01, "or_greater") var pinned_hold_retry_sec: float = 0.25
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
 	var self_entity: Node3D = context.get("entity", null) as Node3D
@@ -50,22 +54,49 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	var target_position: Vector3 = self_position + away_direction * distance
 	target_position = _clamp_target_to_home_anchor(self_entity, context, target_position)
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
-	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
-	_write_resolution_debug(task_state, context, "flee_from_detected", "resolved_flee_target", false, true)
+	var has_meaningful_target: bool = _has_meaningful_target(self_position, target_position, resolved_arrival_threshold)
+	task_state[TASK_PINNED_HOLD_ACTIVE] = false
+	task_state[TASK_PINNED_HOLD_RETRY_SEC] = maxf(pinned_hold_retry_sec, 0.0)
 	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
 	task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
 	task_state[U_AITaskStateKeys.COMPLETED] = false
+	if not has_meaningful_target and detection.is_player_in_range:
+		_clear_move_target_component(context)
+		task_state[TASK_PINNED_HOLD_ACTIVE] = true
+		print("[ACTION] %s FleeFromDetected hold (pinned target)" % _resolve_entity_label(context))
+		return
+	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
+	_write_resolution_debug(task_state, context, "flee_from_detected", "resolved_flee_target", false, true)
 	print("[ACTION] %s FleeFromDetected → target (%.1f, %.1f, %.1f)" % [
 		_resolve_entity_label(context), target_position.x, target_position.y, target_position.z])
 
 func tick(context: Dictionary, task_state: Dictionary, _delta: float) -> void:
 	if bool(task_state.get(U_AITaskStateKeys.COMPLETED, false)):
 		return
+	if bool(task_state.get(TASK_PINNED_HOLD_ACTIVE, false)):
+		if _should_release_pinned_hold(context):
+			_mark_completed(context, task_state, "pinned_hold_released")
+			return
+		var retry_after_sec: float = maxf(float(task_state.get(TASK_PINNED_HOLD_RETRY_SEC, 0.0)), 0.0)
+		retry_after_sec -= maxf(_delta, 0.0)
+		task_state[TASK_PINNED_HOLD_RETRY_SEC] = retry_after_sec
+		if retry_after_sec > 0.0:
+			return
+		task_state[TASK_PINNED_HOLD_RETRY_SEC] = maxf(pinned_hold_retry_sec, 0.0)
+		var repath_succeeded: bool = _refresh_flee_target(context, task_state)
+		if repath_succeeded:
+			task_state[TASK_PINNED_HOLD_ACTIVE] = false
+		return
 	_refresh_flee_target(context, task_state)
 
 func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	if bool(task_state.get(U_AITaskStateKeys.COMPLETED, false)):
 		return true
+	if bool(task_state.get(TASK_PINNED_HOLD_ACTIVE, false)):
+		if _should_release_pinned_hold(context):
+			_mark_completed(context, task_state, "pinned_hold_released")
+			return true
+		return false
 
 	var target_variant: Variant = task_state.get(U_AITaskStateKeys.MOVE_TARGET, null)
 	if not (target_variant is Vector3):
@@ -104,38 +135,70 @@ func _mark_completed(context: Dictionary, task_state: Dictionary, reason: String
 	_write_resolution_debug(task_state, context, "flee_from_detected", reason, false, false)
 	task_state.erase(U_AITaskStateKeys.MOVE_TARGET)
 	task_state.erase(U_AITaskStateKeys.ARRIVAL_THRESHOLD)
+	task_state.erase(TASK_PINNED_HOLD_ACTIVE)
+	task_state.erase(TASK_PINNED_HOLD_RETRY_SEC)
 	task_state[U_AITaskStateKeys.COMPLETED] = true
 
-func _refresh_flee_target(context: Dictionary, task_state: Dictionary) -> void:
+func _refresh_flee_target(context: Dictionary, task_state: Dictionary) -> bool:
 	var self_entity: Node3D = context.get("entity", null) as Node3D
 	if self_entity == null:
-		return
+		return false
 	var detection: C_DetectionComponent = _resolve_detection_component(context)
 	if detection == null:
-		return
+		return false
 	if not detection.is_player_in_range:
-		return
+		return false
 	var detected_entity_id: StringName = detection.last_detected_player_entity_id
 	if detected_entity_id == StringName(""):
-		return
+		return false
 	var detected_entity: Node3D = _resolve_detected_entity(context, detected_entity_id)
 	if detected_entity == null:
-		return
+		return false
 	var self_position_variant: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_actor_position(context)
 	var detected_position_variant: Variant = U_AI_ACTION_POSITION_RESOLVER.resolve_entity_position(detected_entity)
 	if not (self_position_variant is Vector3) or not (detected_position_variant is Vector3):
-		return
+		return false
 	var self_position: Vector3 = self_position_variant as Vector3
 	var detected_position: Vector3 = detected_position_variant as Vector3
 	var away_direction: Vector3 = (self_position - detected_position).normalized()
 	if away_direction.length_squared() < 0.001:
-		return
+		return false
 	var distance: float = maxf(flee_distance, 0.0)
 	var target_position: Vector3 = self_position + away_direction * distance
 	target_position = _clamp_target_to_home_anchor(self_entity, context, target_position)
 	var resolved_arrival_threshold: float = maxf(arrival_threshold, 0.0)
+	if not _has_meaningful_target(self_position, target_position, resolved_arrival_threshold):
+		_clear_move_target_component(context)
+		task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
+		task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
+		return false
 	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
 	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
+	task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
+	return true
+
+func _has_meaningful_target(current_position: Vector3, target_position: Vector3, resolved_arrival_threshold: float) -> bool:
+	var offset_xz: Vector2 = Vector2(
+		target_position.x - current_position.x,
+		target_position.z - current_position.z
+	)
+	var min_required_delta: float = maxf(
+		resolved_arrival_threshold + MIN_PINNED_TARGET_DELTA_XZ,
+		MIN_PINNED_TARGET_DELTA_XZ
+	)
+	return offset_xz.length() > min_required_delta
+
+func _should_release_pinned_hold(context: Dictionary) -> bool:
+	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	if detection == null:
+		return true
+	if not detection.is_player_in_range:
+		return true
+	var detected_entity_id: StringName = detection.last_detected_player_entity_id
+	if detected_entity_id == StringName(""):
+		return true
+	var detected_entity: Node3D = _resolve_detected_entity(context, detected_entity_id)
+	return detected_entity == null
 
 func _resolve_detection_component(context: Dictionary) -> C_DetectionComponent:
 	var components_variant: Variant = context.get("components", null)

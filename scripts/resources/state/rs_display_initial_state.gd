@@ -54,7 +54,7 @@ func to_dictionary() -> Dictionary:
 		"film_grain_intensity": preset_values.get("film_grain_intensity", 0.2),
 		"dither_intensity": preset_values.get("dither_intensity", 1.0),
 		"scanlines_enabled": scanlines_enabled,
-		"scanline_intensity": preset_values.get("scanline_intensity", 0.0),
+		"line_mask_intensity": preset_values.get("line_mask_intensity", 0.0),
 		"scanline_count": preset_values.get("scanline_count", 480.0),
 		"ui_scale": ui_scale,
 		"color_blind_mode": color_blind_mode,

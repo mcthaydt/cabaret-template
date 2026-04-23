@@ -14,10 +14,11 @@ const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
 const U_DEBUG_SELECTORS := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 const U_DEBUG_ACTIONS := preload("res://scripts/state/actions/u_debug_actions.gd")
+const CFG_GAME_CONFIG := preload("res://resources/cfg_game_config.tres")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
-const DEFAULT_GAMEPLAY_SCENE := StringName("ai_woods")
+const FALLBACK_GAMEPLAY_SCENE := StringName("ai_showcase")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 @onready var _title_label: Label = %TitleLabel
@@ -230,7 +231,7 @@ func _on_new_game_pressed() -> void:
 		_show_new_game_confirmation()
 		return
 
-	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
+	store.dispatch(U_NavigationActions.start_game(_get_default_gameplay_scene()))
 
 func _should_confirm_new_game() -> bool:
 	var typed_save_manager := _save_manager as I_SaveManager
@@ -251,7 +252,7 @@ func _on_new_game_confirmed() -> void:
 	var store := get_store()
 	if store == null:
 		return
-	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
+	store.dispatch(U_NavigationActions.start_game(_get_default_gameplay_scene()))
 
 func _on_new_game_canceled() -> void:
 	U_UISoundPlayer.play_cancel()
@@ -305,8 +306,16 @@ func _try_debug_skip_main_menu() -> bool:
 				var result: Error = typed_save_manager.load_from_slot(most_recent_slot)
 				if result == OK:
 					return true
-	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
+	store.dispatch(U_NavigationActions.start_game(_get_default_gameplay_scene()))
 	return true
+
+func _get_default_gameplay_scene() -> StringName:
+	if CFG_GAME_CONFIG == null:
+		return FALLBACK_GAMEPLAY_SCENE
+	var retry_scene_id: StringName = CFG_GAME_CONFIG.retry_scene_id
+	if retry_scene_id == StringName(""):
+		return FALLBACK_GAMEPLAY_SCENE
+	return retry_scene_id
 
 func _can_debug_skip_via_save_slot(slot_id: StringName) -> bool:
 	var concrete_save_manager := _save_manager as M_SaveManager

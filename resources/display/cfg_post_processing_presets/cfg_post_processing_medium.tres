@@ -9,4 +9,4 @@ display_name = "Medium"
 sort_order = 1
 film_grain_intensity = 0.16
 dither_intensity = 1.0
-scanline_intensity = 0.25
+line_mask_intensity = 0.25

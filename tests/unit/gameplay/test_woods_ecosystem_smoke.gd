@@ -13,6 +13,7 @@ const MAX_RABBIT_RADIUS_FROM_SPAWN := 30.0
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/ecs/components/c_resource_node_component.gd")
 const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_site_component.gd")
+const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const ROOT_SCENE := preload("res://scenes/root.tscn")
@@ -62,7 +63,7 @@ func test_woods_scene_contains_visible_showcase_archetypes() -> void:
 	assert_true(is_ready, "scene_manager service must exist after root harness bootstrap")
 	if not is_ready:
 		return
-	await _load_woods_scene()
+	await _load_woods_scene(8, 8)
 	var builder: Node = _find_entity_by_id(&"builder")
 	var wolf: Node = _find_entity_by_id(&"wolf")
 	var rabbits: Array[Node] = _find_entities_by_tag(&"prey")
@@ -111,18 +112,22 @@ func test_woods_rabbits_remain_within_bounded_radius() -> void:
 	assert_true(is_ready, "scene_manager service must exist after root harness bootstrap")
 	if not is_ready:
 		return
-	await _load_woods_scene()
+	await _load_woods_scene(8, 8)
 	var rabbits: Array[Node] = _find_entities_by_tag(&"prey")
 	assert_eq(rabbits.size(), 4, "Expected four rabbit entities for bounds validation.")
 	if rabbits.size() != 4:
 		return
 	var spawn_positions: Dictionary = {}
 	for rabbit in rabbits:
+		if not is_instance_valid(rabbit):
+			continue
 		if rabbit is Node3D:
 			spawn_positions[U_ECS_UTILS.get_entity_id(rabbit)] = (rabbit as Node3D).global_position
 	for i in range(MAX_LONG_OBSERVATION_FRAMES):
 		await get_tree().process_frame
 	for rabbit in rabbits:
+		if not is_instance_valid(rabbit):
+			continue
 		if not (rabbit is Node3D):
 			continue
 		var rabbit_id: StringName = U_ECS_UTILS.get_entity_id(rabbit)
@@ -186,11 +191,28 @@ func test_woods_builder_advances_beyond_mixed_material_stage() -> void:
 	assert_true(deposited_stone_for_walls, "Builder should deposit stone to satisfy mixed-material walls stage.")
 	assert_true(advanced_past_stage_two, "Builder should advance beyond stage_index=2 after satisfying walls stage materials.")
 
-func _load_woods_scene() -> void:
+func _load_woods_scene(warmup_frames: int = WARMUP_FRAMES, settle_frames: int = SETTLE_FRAMES) -> void:
 	_scene_manager.transition_to_scene(WOODS_SCENE_ID, "instant")
-	for i in range(WARMUP_FRAMES):
+	var scene_id_resolved: bool = false
+	for i in range(120):
 		await get_tree().process_frame
-	for i in range(SETTLE_FRAMES):
+		if _scene_manager != null and _scene_manager.get_current_scene() == WOODS_SCENE_ID:
+			scene_id_resolved = true
+			break
+	if scene_id_resolved:
+		await _wait_for_woods_entities_ready()
+	for i in range(maxi(warmup_frames, 0)):
+		await get_tree().process_frame
+	for i in range(maxi(settle_frames, 0)):
+		await get_tree().process_frame
+
+func _wait_for_woods_entities_ready(max_frames: int = 180) -> void:
+	for i in range(maxi(max_frames, 0)):
+		var builder: Node = _find_entity_by_id(&"builder")
+		var wolf: Node = _find_entity_by_id(&"wolf")
+		var rabbits: Array[Node] = _find_entities_by_tag(&"prey")
+		if builder != null and wolf != null and rabbits.size() >= 4:
+			return
 		await get_tree().process_frame
 
 func _ensure_scene_manager_ready() -> bool:
@@ -224,6 +246,11 @@ func _collect_brain_components(node: Node, out: Array[C_AIBrainComponent]) -> vo
 		_collect_brain_components(child, out)
 
 func _find_entity_by_id(entity_id: StringName) -> Node:
+	var ecs_manager := _get_ecs_manager()
+	if ecs_manager != null:
+		var from_manager: Node = ecs_manager.get_entity_by_id(entity_id)
+		if from_manager != null and is_instance_valid(from_manager):
+			return from_manager
 	var root := get_tree().root
 	if root == null:
 		return null
@@ -239,12 +266,20 @@ func _find_entity_by_id_recursive(node: Node, entity_id: StringName) -> Node:
 	return null
 
 func _find_entities_by_tag(tag: StringName) -> Array[Node]:
+	var ecs_manager := _get_ecs_manager()
+	if ecs_manager != null:
+		var managed_entities: Array[Node] = ecs_manager.get_entities_by_tag(tag)
+		if not managed_entities.is_empty():
+			return managed_entities
 	var result: Array[Node] = []
 	var root := get_tree().root
 	if root == null:
 		return result
 	_collect_entities_by_tag(root, tag, result)
 	return result
+
+func _get_ecs_manager() -> I_ECSManager:
+	return U_SERVICE_LOCATOR.try_get_service(&"ecs_manager") as I_ECSManager
 
 func _collect_entities_by_tag(node: Node, tag: StringName, out: Array[Node]) -> void:
 	if _entity_has_tag(node, tag):

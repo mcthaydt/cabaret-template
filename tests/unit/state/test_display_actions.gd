@@ -128,11 +128,11 @@ func test_set_scanlines_enabled_action() -> void:
 	assert_eq(payload.get("enabled"), true)
 	assert_eq(action.get("immediate"), true)
 
-func test_set_scanline_intensity_action() -> void:
-	var action: Dictionary = U_DisplayActions.set_scanline_intensity(0.3)
+func test_set_line_mask_intensity_action() -> void:
+	var action: Dictionary = U_DisplayActions.set_line_mask_intensity(0.3)
 	var payload: Dictionary = action.get("payload", {})
 
-	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_SCANLINE_INTENSITY)
+	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_LINE_MASK_INTENSITY)
 	assert_almost_eq(float(payload.get("intensity")), 0.3, 0.0001)
 	assert_eq(action.get("immediate"), true)
 

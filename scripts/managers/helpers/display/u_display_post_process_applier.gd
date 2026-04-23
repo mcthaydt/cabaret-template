@@ -80,9 +80,9 @@ func _apply_grain_dither_effect_settings(state: Dictionary) -> void:
 
 	# Scanline params
 	if scanlines:
-		var intensity := U_DISPLAY_SELECTORS.get_scanline_intensity(state)
+		var intensity := U_DISPLAY_SELECTORS.get_line_mask_intensity(state)
 		var count := U_DISPLAY_SELECTORS.get_scanline_count(state)
-		_post_process_layer.set_grain_dither_parameter(StringName("scanline_intensity"), intensity)
+		_post_process_layer.set_grain_dither_parameter(StringName("line_mask_intensity"), intensity)
 		_post_process_layer.set_grain_dither_parameter(StringName("scanline_count"), count)
 
 func _apply_color_blind_shader_settings(state: Dictionary) -> void:

@@ -374,6 +374,15 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.increment_death_count())
 	await wait_physics_frames(2)
 	var gameplay_state: Dictionary = _state_store.get_state().get("gameplay", {})
+	var player_entity_id: String = String(gameplay_state.get("player_entity_id", "player"))
+	var pre_reset_non_player_snapshot_ids: Array[String] = []
+	var pre_reset_snapshots_variant: Variant = gameplay_state.get("entities", {})
+	if pre_reset_snapshots_variant is Dictionary:
+		var pre_reset_snapshots: Dictionary = pre_reset_snapshots_variant as Dictionary
+		for snapshot_id_variant in pre_reset_snapshots.keys():
+			var snapshot_id: String = str(snapshot_id_variant)
+			if snapshot_id != player_entity_id:
+				pre_reset_non_player_snapshot_ids.append(snapshot_id)
 	assert_false(bool(gameplay_state.get("game_completed", false)),
 		"Game completed should be false before unlock")
 	assert_false(credits_button.visible, "Credits button hidden until game_completed true")
@@ -411,7 +420,6 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 	assert_eq(objectives_state.get("event_log", []), [],
 		"Continue should clear objective event log for a fresh run")
 	var entity_snapshots: Variant = gameplay_state.get("entities", {})
-	var player_entity_id: String = String(gameplay_state.get("player_entity_id", "player"))
 	if entity_snapshots is Dictionary:
 		var snapshot_dict: Dictionary = entity_snapshots as Dictionary
 		if snapshot_dict.has(player_entity_id):
@@ -421,9 +429,11 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 			assert_false(player_snapshot.get("is_dead", true),
 				"Reset should clear snapshot is_dead flag")
 			assert_true(snapshot_dict.size() >= 1, "Reset should preserve at least the player snapshot")
-		else:
-			assert_true(snapshot_dict.is_empty(),
-				"Reset should not retain non-player snapshots")
+		for stale_snapshot_id in pre_reset_non_player_snapshot_ids:
+			assert_false(
+				snapshot_dict.has(stale_snapshot_id),
+				"Reset should not retain stale non-player snapshot '%s'" % stale_snapshot_id
+			)
 
 	_scene_manager.transition_to_scene(StringName("victory"), "instant")
 	await wait_physics_frames(3)

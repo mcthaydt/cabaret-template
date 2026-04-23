@@ -13,6 +13,7 @@ const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const PLAYER_TAG_COMPONENT_TYPE := C_PLAYER_TAG_COMPONENT.COMPONENT_TYPE
 const TARGET_SWITCH_DISTANCE_MARGIN: float = 1.0
 const TARGET_SWITCH_COOLDOWN_FRAMES: int = 12
+const TARGET_SWITCH_ENTER_RADIUS_BUFFER: float = 1.0
 
 @export var state_store: I_StateStore = null
 
@@ -161,6 +162,10 @@ func _process_detection_for_component(
 		nearest_entity_id != StringName("")
 		and nearest_distance <= detection_radius
 	)
+	var nearest_in_switch_band: bool = (
+		nearest_entity_id != StringName("")
+		and _is_distance_inside_switch_band(nearest_distance, detection_radius)
+	)
 
 	if not detection.is_player_in_range:
 		if not nearest_in_detection_range:
@@ -205,7 +210,7 @@ func _process_detection_for_component(
 	var sticky_in_exit_range: bool = sticky_distance <= effective_exit_radius
 	if sticky_in_exit_range:
 		var can_switch: bool = (
-			nearest_in_detection_range
+			nearest_in_switch_band
 			and nearest_entity_id != sticky_target_id
 			and nearest_distance + TARGET_SWITCH_DISTANCE_MARGIN < sticky_distance
 			and _is_switch_cooldown_elapsed(detection)
@@ -236,7 +241,7 @@ func _process_detection_for_component(
 				])
 		return
 
-	if nearest_in_detection_range:
+	if nearest_in_switch_band:
 		var previous_target: StringName = sticky_target_id
 		detection.last_detected_player_entity_id = nearest_entity_id
 		_mark_target_change(detection)
@@ -283,6 +288,14 @@ func _is_switch_cooldown_elapsed(detection: C_DetectionComponent) -> bool:
 		return true
 	var elapsed_frames: int = current_frame - detection.last_target_change_frame
 	return elapsed_frames >= TARGET_SWITCH_COOLDOWN_FRAMES
+
+func _is_distance_inside_switch_band(distance: float, detection_radius: float) -> bool:
+	var resolved_detection_radius: float = maxf(detection_radius, 0.0)
+	if resolved_detection_radius <= 0.0:
+		return false
+	var required_headroom: float = minf(TARGET_SWITCH_ENTER_RADIUS_BUFFER, resolved_detection_radius)
+	var switch_radius: float = maxf(resolved_detection_radius - required_headroom, 0.0)
+	return distance <= switch_radius
 
 func _resolve_distance_for_entity_id(
 	target_entity_id: StringName,

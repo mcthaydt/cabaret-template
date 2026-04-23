@@ -145,8 +145,7 @@ func process_tick(delta: float) -> void:
 			body.velocity = Vector3.ZERO
 
 		var brain := entity_query.get_component(AI_BRAIN_TYPE) as C_AIBrainComponent
-		if brain != null:
-			brain.task_state = {}
+		_clear_ai_runtime_state(brain)
 
 		_unsupported_since_by_entity.erase(entity_id)
 		_set_recovery_cooldown(entity_id, settings, now)
@@ -255,6 +254,23 @@ func _prune_dictionary(runtime_map: Dictionary, seen_entities: Dictionary) -> vo
 		if seen_entities.has(key_variant):
 			continue
 		runtime_map.erase(key_variant)
+
+func _clear_ai_runtime_state(brain: C_AIBrainComponent) -> void:
+	if brain == null:
+		return
+
+	# Reset BT runtime node state after recovery so movement/action state is rebuilt cleanly.
+	brain.bt_state_bag = {}
+
+	# Compatibility: clear legacy task-state fields only when present on the component.
+	for property_variant in brain.get_property_list():
+		if not (property_variant is Dictionary):
+			continue
+		var property: Dictionary = property_variant as Dictionary
+		if str(property.get("name", "")) != "task_state":
+			continue
+		brain.set("task_state", {})
+		break
 
 func _consume_debug_log_budget(entity_id: StringName) -> bool:
 	if not debug_spawn_recovery_logging:

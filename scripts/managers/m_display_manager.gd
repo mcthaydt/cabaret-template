@@ -489,6 +489,7 @@ func _sync_pipeline_visibility(display_settings: Dictionary, state: Dictionary) 
 	var pp_enabled := U_DISPLAY_SELECTORS.is_post_processing_enabled(state_wrap)
 	var fg_enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state_wrap)
 	var dither_enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state_wrap)
+	var scanlines_enabled := U_DISPLAY_SELECTORS.is_scanlines_enabled(state_wrap)
 	# grain_dither: visibility driven by effect settings only; the GrainDitherLayer
 	# CanvasLayer is hidden by update_overlay_visibility when not in gameplay shell,
 	# so no shell check is needed at the ColorRect level.
@@ -496,7 +497,7 @@ func _sync_pipeline_visibility(display_settings: Dictionary, state: Dictionary) 
 	# (it is excluded), so the shell check lives here.
 	var shell := U_NAVIGATION_SELECTORS.get_shell(state)
 	(_pipeline as U_PostProcessPipeline).apply_settings({
-		"grain_dither_enabled": pp_enabled and (fg_enabled or dither_enabled),
+		"grain_dither_enabled": pp_enabled and (fg_enabled or dither_enabled or scanlines_enabled),
 		"color_grading_enabled": shell == SHELL_GAMEPLAY,
 	})
 

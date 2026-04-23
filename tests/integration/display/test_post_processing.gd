@@ -234,14 +234,14 @@ func test_scanlines_toggle_updates_shader_parameter() -> void:
 	assert_eq(int(_get_grain_dither_param(StringName("scanlines_enabled"))), 1,
 		"scanlines_enabled flag should be 1 in grain+dither shader")
 
-func test_scanline_intensity_and_count_update_shader_parameters() -> void:
+func test_line_mask_intensity_and_count_update_shader_parameters() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_scanlines_enabled(true))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_scanline_intensity(0.4))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_line_mask_intensity(0.4))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_scanline_count(720.0))
 	await get_tree().process_frame
 
-	assert_almost_eq(float(_get_grain_dither_param(StringName("scanline_intensity"))), 0.4, 0.001,
-		"scanline_intensity should update shader parameter")
+	assert_almost_eq(float(_get_grain_dither_param(StringName("line_mask_intensity"))), 0.4, 0.001,
+		"line_mask_intensity should update shader parameter")
 	assert_almost_eq(float(_get_grain_dither_param(StringName("scanline_count"))), 720.0, 0.1,
 		"scanline_count should update shader parameter")

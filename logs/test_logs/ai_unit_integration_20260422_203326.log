@@ -1,0 +1,2286 @@
+AI test run started: Wed Apr 22 20:33:26 CDT 2026
+Working dir: /Users/mcthaydt/Desktop/Business/Crispy Cabaret/Projects/cabaret-template
+
+=== UNIT (AI-focused) ===
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1014)
+---  GUT  ---
+[1m[INFO]:  [0musing [/Users/mcthaydt/Desktop/Business/Crispy Cabaret/Projects/cabaret-template/.godot_user/Library/Application Support/Godot/app_userdata/cabaret template] for temporary output.
+Godot version:  4.6.1
+GUT version:  9.5.0
+[33m[WARNING]:  [0mIgnoring script res://tests/unit/ai/bt/helpers/test_bt_counting_action.gd because it does not extend GutTest
+[33m[WARNING]:  [0mIgnoring script res://tests/unit/ai/bt/helpers/test_bt_status_node.gd because it does not extend GutTest
+[33m[WARNING]:  [0mIgnoring Inner Class TestStateEqualsCondition because it does not extend GutTest
+[33m[WARNING]:  [0mIgnoring Inner Class TestStateEqualsCondition because it does not extend GutTest
+[4m
+
+res://tests/unit/ai/actions/test_ai_action_feed.gd
+[0m* test_feed_action_increases_hunger_and_completes
+[ACTION] ? Feed consume_required=false consumed=true reason=consume_not_required target= hunger 0.25 → 0.60
+* test_feed_action_clamps_hunger_to_one
+[ACTION] ? Feed consume_required=false consumed=true reason=consume_not_required target= hunger 0.90 → 1.00
+* test_feed_action_missing_needs_component_pushes_error_and_completes
+ERROR: RS_AIActionFeed.start: missing C_NeedsComponent in context.
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] start (res://scripts/resources/ai/actions/rs_ai_action_feed.gd:18)
+       [1] test_feed_action_missing_needs_component_pushes_error_and_completes (res://tests/unit/ai/actions/test_ai_action_feed.gd:94)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+       [4] test_scripts (res://addons/gut/gut.gd:1027)
+       [5] run_tests (res://addons/gut/gui/GutRunner.gd:194)
+       [6] _run_tests (res://addons/gut/cli/gut_cli.gd:238)
+       [7] main (res://addons/gut/cli/gut_cli.gd:284)
+       [8] _init (res://addons/gut/gut_cmdln.gd:39)
+[34m[ExpectedError][0mExpected push_error error containing 'RS_AIActionFeed.start: missing C_NeedsComponent in context.'.  
+* test_feed_action_consumes_pending_detected_target_when_enabled
+[ACTION_TRACE] E_Wolf FeedTarget locked= pending= live= resolved=rabbit tags=[] dist_xz=0.50 radius=1.25 consumed=true reason=consumed_target
+[ACTION] E_Wolf Feed consume_required=true consumed=true reason=consumed_target target=rabbit hunger 0.20 → 0.60
+* test_feed_action_does_not_consume_when_outside_consume_radius
+[ACTION_TRACE] E_Wolf FeedTarget locked= pending=rabbit live= resolved=rabbit tags=[] dist_xz=9.00 radius=1.00 consumed=false reason=target_out_of_consume_radius
+[ACTION] E_Wolf Feed consume_required=true consumed=false reason=target_out_of_consume_radius target=rabbit hunger 0.20 → 0.20
+* test_feed_action_consumes_using_body_positions_when_roots_are_stale
+[ACTION_TRACE] E_Wolf FeedTarget locked= pending= live= resolved=rabbit tags=[] dist_xz=0.50 radius=1.00 consumed=true reason=consumed_target
+[ACTION] E_Wolf Feed consume_required=true consumed=true reason=consumed_target target=rabbit hunger 0.20 → 0.60
+[1m6/6 passed.
+[0m[4m
+
+res://tests/unit/ai/actions/test_ai_actions_instant.gd
+[0m* test_wait_action_completes_after_duration
+[ACTION] ? Wait started (duration=0.50s)
+[ACTION] ? Wait complete after 0.50s
+* test_wait_action_tracks_elapsed_in_task_state
+[ACTION] ? Wait started (duration=10.00s)
+* test_publish_event_action_fires_and_completes_immediately
+[ACTION] ? PublishEvent → name=ai/task_event payload={ "source": "unit_test" }
+* test_set_field_action_modifies_component_and_completes
+[ACTION] ? SetField → path=components.C_TestComponent.alert_level value=0.75
+* test_set_field_action_typed_exports
+[1m5/5 passed.
+[0m[4m
+
+res://tests/unit/ai/actions/test_ai_actions_movement.gd
+[0m* test_move_to_action_sets_target_in_task_state
+[ACTION] ? MoveTo → target (3.0, 0.0, 2.0) source=target_position
+* test_move_to_action_routes_to_move_target_component_when_present
+[ACTION] ? MoveTo → target (3.0, 0.0, 2.0) source=target_position
+* test_move_to_start_writes_arrival_threshold_to_task_state
+[ACTION] ? MoveTo → target (2.0, 0.0, 1.0) source=target_position
+* test_move_to_action_completes_when_within_threshold
+[ACTION] ? MoveTo → target (1.0, 0.0, 1.0) source=target_position
+[ACTION] ? MoveTo arrived
+* test_move_to_action_completion_deactivates_move_target_component
+[ACTION] ? MoveTo → target (1.0, 0.0, 1.0) source=target_position
+[ACTION] ? MoveTo arrived
+* test_move_to_action_stays_active_when_far
+[ACTION] ? MoveTo → target (8.0, 0.0, 0.0) source=target_position
+* test_move_to_action_resolves_waypoint_index
+[ACTION] ? MoveTo → target (7.0, 0.0, -2.0) source=waypoint_index
+* test_move_to_action_resolves_target_node_path_from_entity_context
+[ACTION] E_TestAgent MoveTo → target (12.0, 2.0, -4.0) source=target_node_path
+* test_move_to_action_target_node_path_falls_back_to_owner_node
+[ACTION] ? MoveTo → target (-3.0, 1.5, 8.0) source=target_node_path
+* test_move_to_action_target_node_path_falls_back_to_direct_target_node
+[ACTION] ? MoveTo → target (5.0, 0.2, -6.0) source=target_node_path
+* test_wander_completion_uses_character_body_position
+[ACTION] E_Rabbit Wander arrived
+* test_wander_preserves_entity_home_anchor_across_reentries
+[ACTION] E_Rabbit Wander → target (1.8, 0.0, 0.8)
+[ACTION] E_Rabbit Wander → target (-1.6, 0.0, 2.2)
+* test_flee_from_detected_uses_actor_and_threat_body_positions
+[ACTION] E_Rabbit FleeFromDetected → target (15.0, 0.0, 0.0)
+* test_flee_from_detected_clamps_target_to_home_radius_when_enabled
+[ACTION] E_Rabbit FleeFromDetected → target (-10.0, 0.0, 0.0)
+* test_flee_from_detected_pinned_at_home_boundary_stays_active_while_threat_persists
+[ACTION] E_Rabbit FleeFromDetected hold (pinned target)
+* test_flee_from_detected_pinned_hold_releases_when_detection_clears
+[ACTION] E_Rabbit FleeFromDetected hold (pinned target)
+* test_move_to_detected_tracks_target_body_position
+[ACTION] E_Wolf MoveToDetected → target (6.0, 0.0, 0.0)
+* test_move_to_detected_completion_radius_override_allows_feed_range_completion
+[ACTION] E_Wolf MoveToDetected → target (1.0, 0.0, 0.0)
+[ACTION] E_Wolf MoveToDetected arrived
+* test_scan_action_completes_after_duration
+[ACTION] ? Scan started (duration=0.40s, rotation_speed=2.00)
+[ACTION] ? Scan complete after 0.40s
+* test_animate_stub_sets_state_field
+[ACTION] ? Animate → state=alert
+* test_animate_stub_completes_immediately
+[ACTION] ? Animate → state=scan
+[1m21/21 passed.
+[0m[4m
+
+res://tests/unit/ai/actions/test_ai_actions_woods.gd
+[0m* test_harvest_action_extends_i_ai_action
+* test_harvest_accumulates_elapsed_and_completes
+[ACTION] ? Harvest started (duration=1.00s, amount=1)
+[ACTION] ? Harvest complete after 1.00s
+* test_harvest_does_not_consume_resource_when_inventory_rejects_type
+[ACTION] ? Harvest started (duration=0.00s, amount=1)
+[ACTION] ? Harvest complete after 0.00s
+* test_harvest_clears_reservation_after_success
+[ACTION] ? Harvest started (duration=0.00s, amount=2)
+[ACTION] ? Harvest complete after 0.00s
+* test_haul_deposit_extends_i_ai_action
+* test_haul_deposit_completes_immediately
+[ACTION] ? HaulDeposit started
+[ACTION] ? HaulDeposit complete
+* test_haul_deposit_caps_transfer_to_current_stage_missing_materials
+[ACTION] ? HaulDeposit started
+[ACTION] ? HaulDeposit moved=2 placed={ &"wood": 2, &"stone": 1 } stage_index=0 materials_ready=true
+[ACTION] ? HaulDeposit complete
+* test_move_to_nearest_can_resolve_required_resource_from_build_site_missing_materials
+[ACTION] ? MoveToNearest → target=stonenode dist=12.00 pos=(12.0, 0.0, 0.0)
+* test_build_stage_extends_i_ai_action
+* test_build_stage_accumulates_elapsed
+[ACTION] ? BuildStage started (no build site)
+* test_drink_action_extends_i_ai_action
+* test_drink_accumulates_elapsed_and_completes
+[ACTION] ? Drink started (duration=1.00s)
+[ACTION] ? Drink complete after 1.00s
+* test_reserve_action_extends_i_ai_action
+* test_reserve_completes_immediately
+[ACTION] ? Reserve skipped (no resource node)
+* test_move_to_nearest_filters_resource_type
+[ACTION] ? MoveToNearest → target=woodnode dist=12.00 pos=(12.0, 0.0, 0.0)
+* test_move_to_nearest_completion_uses_character_body_position
+[ACTION] E_TestBuilder MoveToNearest → target=woodnode dist=8.00 pos=(8.0, 0.0, 0.0)
+[ACTION] E_TestBuilder MoveToNearest arrived
+* test_new_task_state_keys_exist
+[1m17/17 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_ai_actions_bt_compat.gd
+[0m* test_expected_action_count_is_ten
+* test_each_action_script_exists_and_extends_i_ai_action
+* test_each_action_instantiates_and_binds_to_rs_bt_action
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_ai_scorer.gd
+[0m* test_constant_scorer_returns_configured_value
+* test_condition_scorer_returns_if_true_value_when_condition_is_positive
+* test_condition_scorer_returns_if_false_value_when_condition_is_zero
+* test_context_field_scorer_multiplies_resolved_context_value
+* test_context_field_scorer_invalid_path_returns_zero_and_pushes_error
+ERROR: RS_AIScorerContextField.score: unable to resolve path 'metrics.missing'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] score (res://scripts/resources/ai/bt/scorers/rs_ai_scorer_context_field.gd:17)
+       [1] test_context_field_scorer_invalid_path_returns_zero_and_pushes_error (res://tests/unit/ai/bt/test_rs_ai_scorer.gd:94)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'RS_AIScorerContextField.score: unable to resolve path 'metrics.missing''.  
+[1m5/5 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_action.gd
+[0m* test_action_script_exists_and_loads
+* test_action_returns_running_while_incomplete_and_starts_once
+* test_action_completes_and_clears_local_state
+* test_action_restarts_after_successful_completion
+[1m4/4 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_condition.gd
+[0m* test_condition_script_exists_and_loads
+* test_condition_returns_success_for_positive_scores
+* test_condition_returns_failure_for_zero_score
+* test_condition_never_returns_running
+[1m4/4 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_cooldown.gd
+[0m* test_cooldown_script_exists_and_loads
+* test_cooldown_blocks_for_duration_after_success
+* test_cooldown_starts_only_after_child_success
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_inverter.gd
+[0m* test_inverter_script_exists_and_loads
+* test_inverter_flips_success_to_failure
+* test_inverter_flips_failure_to_success
+* test_inverter_passes_through_running
+[1m4/4 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_node_base.gd
+[0m* test_status_enum_has_running_success_failure_only
+* test_tick_base_stub_pushes_error_and_returns_failure
+ERROR: RS_BTNode.tick: not implemented by subclass 
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] tick (res://scripts/resources/bt/rs_bt_node.gd:16)
+       [1] test_tick_base_stub_pushes_error_and_returns_failure (res://tests/unit/ai/bt/test_rs_bt_node_base.gd:40)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'RS_BTNode.tick: not implemented'.  
+* test_node_id_is_stable_per_instance_and_unique_across_instances
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_once.gd
+[0m* test_once_script_exists_and_loads
+* test_once_runs_child_once_then_blocks_subsequent_entries
+* test_once_allows_running_child_to_finish_before_locking
+* test_once_can_be_reset_via_context_brain_reset_once_nodes
+[1m4/4 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_planner.gd
+[0m* test_planner_script_exists_and_loads
+* test_entry_plans_once_and_caches_debug_snapshot_in_state_bag
+* test_running_step_reenters_same_action_until_completion
+* test_step_success_advances_to_next_step
+* test_final_step_success_and_goal_satisfied_returns_success
+* test_step_failure_attempts_one_replan_and_continues_if_found
+* test_step_failure_with_failed_replan_returns_failure
+* test_goal_already_satisfied_on_entry_returns_success_without_running_actions
+* test_unsolvable_entry_returns_failure_and_pushes_error
+ERROR: RS_BTPlanner.tick: no plan found
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _request_plan (res://scripts/resources/ai/bt/rs_bt_planner.gd:107)
+       [1] tick (res://scripts/resources/ai/bt/rs_bt_planner.gd:56)
+       [2] test_unsolvable_entry_returns_failure_and_pushes_error (res://tests/unit/ai/bt/test_rs_bt_planner.gd:359)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'no plan'.  
+[1m9/9 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_planner_action.gd
+[0m* test_planner_action_script_exists_and_loads
+* test_preconditions_are_typed_and_coerce_invalid_entries
+* test_effects_are_typed_and_coerce_invalid_entries
+* test_cost_defaults_to_one_and_invalid_cost_fails_loud
+ERROR: RS_BTPlannerAction.is_applicable: cost must be > 0.0
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] is_applicable (res://scripts/resources/ai/bt/rs_bt_planner_action.gd:35)
+       [1] test_cost_defaults_to_one_and_invalid_cost_fails_loud (res://tests/unit/ai/bt/test_rs_bt_planner_action.gd:151)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'RS_BTPlannerAction.is_applicable: cost must be > 0.0'.  
+* test_is_applicable_requires_all_preconditions_to_pass
+* test_tick_delegates_to_child_node_status
+[1m6/6 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_rising_edge.gd
+[0m* test_rising_edge_script_exists_and_loads
+* test_rising_edge_runs_only_on_false_to_true_transitions
+* test_rising_edge_rearms_after_gate_returns_false
+* test_rising_edge_reticks_running_child_until_completion_even_if_gate_falls
+[1m4/4 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_selector.gd
+[0m* test_selector_script_exists_and_loads
+* test_selector_without_children_returns_failure
+* test_selector_returns_success_and_short_circuits
+* test_selector_returns_running_and_stops_after_running_child
+* test_selector_all_failures_returns_failure
+* test_selector_reenters_running_child_on_next_tick
+[1m6/6 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_sequence.gd
+[0m* test_sequence_script_exists_and_loads
+* test_sequence_returns_success_when_all_children_succeed
+* test_sequence_returns_running_and_stops_after_running_child
+* test_sequence_returns_failure_and_stops_after_failure_child
+* test_sequence_without_children_returns_success
+* test_sequence_reenters_running_child_on_next_tick
+[1m6/6 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_bt_utility_selector.gd
+[0m* test_utility_selector_script_exists_and_loads
+* test_utility_selector_without_children_returns_failure
+* test_utility_selector_selects_highest_score_child
+* test_utility_selector_skips_non_positive_scores
+* test_utility_selector_uses_first_child_for_score_ties
+* test_utility_selector_re_scores_each_tick_when_not_running
+* test_utility_selector_pins_running_child_until_completion
+* test_utility_selector_supports_child_scorer_resources
+* test_utility_selector_with_mixed_resource_scorers
+[1m9/9 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_rs_world_state_effect.gd
+[0m* test_set_overwrites_key_with_value
+* test_add_numeric_adds_to_existing_value_and_missing_defaults_to_zero
+* test_remove_deletes_key
+* test_apply_all_returns_new_dictionary_without_mutating_input
+[1m4/4 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_u_ai_world_state_builder.gd
+[0m* test_build_reads_selected_components_into_flat_world_state_dictionary
+* test_build_omits_keys_for_missing_components_instead_of_returning_null_values
+* test_build_returns_immutable_snapshots_across_calls
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_u_bt_planner_search.gd
+[0m* test_planner_search_script_exists_and_loads
+* test_goal_already_satisfied_returns_empty_plan_and_zero_cost
+* test_single_action_plan_returns_that_action
+* test_multistep_plan_respects_precondition_dependency_order
+* test_cost_optimal_plan_prefers_lower_total_cost_path
+* test_unsolvable_plan_returns_empty_and_reports_search_context
+ERROR: U_BTPlannerSearch.find_plan: no plan found, pool size=0
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:110)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:16)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_unsolvable_plan_returns_empty_and_reports_search_context (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:185)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, depth=4
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:111)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:16)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_unsolvable_plan_returns_empty_and_reports_search_context (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:185)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, goal=():<Resource#-9223371765030318884>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:112)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:16)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_unsolvable_plan_returns_empty_and_reports_search_context (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:185)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, initial state={
+&"goal_reached": false
+}
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:113)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:16)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_unsolvable_plan_returns_empty_and_reports_search_context (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:185)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'pool size'.  
+[34m[ExpectedError][0mExpected push_error error containing 'depth'.  
+[34m[ExpectedError][0mExpected push_error error containing 'goal'.  
+[34m[ExpectedError][0mExpected push_error error containing 'initial state'.  
+* test_unsolvable_nonempty_pool_reports_all_four_context_fields
+ERROR: U_BTPlannerSearch.find_plan: no plan found, pool size=1
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:110)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_unsolvable_nonempty_pool_reports_all_four_context_fields (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:206)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, depth=4
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:111)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_unsolvable_nonempty_pool_reports_all_four_context_fields (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:206)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, goal=():<Resource#-9223371764577334113>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:112)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_unsolvable_nonempty_pool_reports_all_four_context_fields (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:206)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, initial state={
+&"goal_reached": false
+}
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:113)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_unsolvable_nonempty_pool_reports_all_four_context_fields (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:206)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'pool size'.  
+[34m[ExpectedError][0mExpected push_error error containing 'depth'.  
+[34m[ExpectedError][0mExpected push_error error containing 'goal'.  
+[34m[ExpectedError][0mExpected push_error error containing 'initial state'.  
+* test_max_depth_rejects_plans_longer_than_cap
+ERROR: U_BTPlannerSearch.find_plan: no plan found, pool size=3
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:110)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_max_depth_rejects_plans_longer_than_cap (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:238)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, depth=2
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:111)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_max_depth_rejects_plans_longer_than_cap (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:238)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, goal=():<Resource#-9223371763822359426>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:112)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_max_depth_rejects_plans_longer_than_cap (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:238)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, initial state={}
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:113)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_max_depth_rejects_plans_longer_than_cap (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:238)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'pool size'.  
+[34m[ExpectedError][0mExpected push_error error containing 'depth'.  
+[34m[ExpectedError][0mExpected push_error error containing 'goal'.  
+[34m[ExpectedError][0mExpected push_error error containing 'initial state'.  
+* test_action_can_self_chain_only_when_effects_change_state
+ERROR: U_BTPlannerSearch.find_plan: no plan found, pool size=1
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:110)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_action_can_self_chain_only_when_effects_change_state (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:269)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, depth=6
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:111)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_action_can_self_chain_only_when_effects_change_state (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:269)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, goal=():<Resource#-9223371763369374595>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:112)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_action_can_self_chain_only_when_effects_change_state (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:269)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+ERROR: U_BTPlannerSearch.find_plan: no plan found, initial state={
+&"counter": 0
+}
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_no_plan_context (res://scripts/utils/ai/u_bt_planner_search.gd:113)
+       [1] find_plan (res://scripts/utils/ai/u_bt_planner_search.gd:52)
+       [2] _find_plan (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:92)
+       [3] test_action_can_self_chain_only_when_effects_change_state (res://tests/unit/ai/bt/test_u_bt_planner_search.gd:269)
+       [4] _run_test (res://addons/gut/gut.gd:612)
+       [5] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'pool size'.  
+[34m[ExpectedError][0mExpected push_error error containing 'depth'.  
+[34m[ExpectedError][0mExpected push_error error containing 'goal'.  
+[34m[ExpectedError][0mExpected push_error error containing 'initial state'.  
+[1m9/9 passed.
+[0m[4m
+
+res://tests/unit/ai/bt/test_u_bt_runner.gd
+[0m* test_runner_script_exists_and_loads
+* test_tick_delegates_to_root_and_returns_status
+* test_tick_uses_node_id_integer_keys_for_state_bag
+* test_tick_action_lifecycle_restarts_after_parent_success
+* test_tick_state_is_isolated_between_sequence_subtrees
+* test_tick_null_root_pushes_error_and_returns_failure
+ERROR: U_BTRunner.tick: root is null
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] tick (res://scripts/utils/bt/u_bt_runner.gd:8)
+       [1] test_tick_null_root_pushes_error_and_returns_failure (res://tests/unit/ai/bt/test_u_bt_runner.gd:199)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'U_BTRunner.tick: root is null'.  
+[1m6/6 passed.
+[0m[4m
+
+res://tests/unit/ai/integration/test_builder_brain_bt.gd
+[0m* test_brain_loads_with_condition_scorers
+* test_first_woods_build_stage_is_reachable_by_wood_loop
+* test_walls_stage_requires_mixed_materials
+* test_ai_context_includes_ecs_manager_for_scan_actions
+* test_builder_with_empty_inventory_selects_gather_wood
+* test_builder_with_full_inventory_selects_haul
+* test_builder_with_placed_materials_selects_build_stage
+* test_builder_with_low_thirst_selects_drink
+* test_builder_with_moderate_thirst_does_not_drink
+* test_builder_full_inventory_beats_gather
+* test_builder_completed_site_falls_back_to_wander
+[1m11/11 passed.
+[0m[4m
+
+res://tests/unit/ai/integration/test_guide_prism_brain_bt.gd
+[0m* test_guide_prism_without_flags_runs_show_path_sequence
+[BT_TRACE] entity=guide_prism_bt selector=guide_prism_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_GuidePrismBT MoveTo → target (-3.0, 1.0, -3.0) source=target_node_path
+* test_guide_prism_player_airborne_runs_encourage_animation_branch
+[BT_TRACE] entity=guide_prism_bt selector=guide_prism_bt_root selected=1 score=8.00 child_scores=["0:0.00", "1:8.00", "2:1.00"]
+[ACTION] E_GuidePrismBT MoveTo → target (0.0, 1.0, 4.0) source=target_node_path
+* test_guide_prism_nav_goal_reached_celebrates_once_with_signpost_message
+[BT_TRACE] entity=guide_prism_bt selector=guide_prism_bt_root selected=0 score=12.00 child_scores=["0:12.00", "1:0.00", "2:1.00"]
+[ACTION] E_GuidePrismBT Animate → state=spin
+[ACTION] E_GuidePrismBT PublishEvent → name=signpost_message payload={ "message": "gameplay.signpost.default_message", "message_duration_sec": 2.5, "source": &"guide_prism" }
+[ACTION] E_GuidePrismBT Wait started (duration=3.00s)
+[ACTION] E_GuidePrismBT Wait complete after 3.00s
+[BT_TRACE] entity=guide_prism_bt selector=guide_prism_bt_root selected=0 score=12.00 child_scores=["0:12.00", "1:0.00", "2:1.00"]
+[ACTION] E_GuidePrismBT MoveTo → target (-3.0, 1.0, -3.0) source=target_node_path
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ai/integration/test_patrol_drone_brain_bt.gd
+[0m* test_patrol_drone_without_flags_runs_patrol_waypoint_move
+[BT_TRACE] entity=patrol_drone_bt selector=patrol_drone_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDroneBT MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+* test_patrol_drone_power_core_flag_runs_investigate_scan_sequence
+[BT_TRACE] entity=patrol_drone_bt selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDroneBT MoveTo → target (4.0, 1.0, 0.0) source=target_node_path
+* test_patrol_drone_proximity_flag_runs_proximity_investigate_branch
+[BT_TRACE] entity=patrol_drone_bt selector=patrol_drone_bt_root selected=0 score=11.00 child_scores=["0:11.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDroneBT MoveTo → target (4.0, 1.0, 0.0) source=target_node_path
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ai/integration/test_s_ai_behavior_system_bt.gd
+[0m* test_bt_runner_tick_receives_context_and_state_bag
+* test_bt_tick_honors_evaluation_interval
+* test_debug_snapshot_updates_each_tick_for_bt_brains
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ai/integration/test_sentry_brain_bt.gd
+[0m* test_sentry_without_disturbance_runs_guard_scan_then_patrol_move
+[BT_TRACE] entity=sentry_bt selector=sentry_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_SentryBT Scan started (duration=3.00s, rotation_speed=1.00)
+[ACTION] E_SentryBT Scan complete after 3.00s
+[ACTION] E_SentryBT MoveTo → target (-2.0, 1.0, -2.0) source=target_node_path
+* test_sentry_disturbance_flag_triggers_alarm_investigation_sequence
+[BT_TRACE] entity=sentry_bt selector=sentry_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_SentryBT PublishEvent → name=ai_alarm_triggered payload={ "source": &"sentry" }
+[ACTION] E_SentryBT MoveTo → target (4.0, 1.0, 0.0) source=target_node_path
+* test_sentry_proximity_flag_triggers_proximity_investigation_branch
+[BT_TRACE] entity=sentry_bt selector=sentry_bt_root selected=0 score=11.00 child_scores=["0:11.00", "1:0.00", "2:1.00"]
+[ACTION] E_SentryBT PublishEvent → name=ai_alarm_triggered payload={ "source": &"sentry" }
+[ACTION] E_SentryBT MoveTo → target (4.0, 1.0, 0.0) source=target_node_path
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ai/integration/test_woods_rabbit_brain_bt.gd
+[0m* test_rabbit_brain_loads_with_utility_root
+* test_rabbit_with_threat_selects_flee
+* test_rabbit_hungry_no_threat_selects_graze
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ai/integration/test_woods_wolf_brain_bt.gd
+[0m* test_wolf_brain_loads_with_utility_root
+* test_wolf_with_prey_and_hunger_selects_hunt
+* test_wolf_without_prey_selects_wander_or_search
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd
+[0m* test_patrol_drone_brain_has_expected_goals_and_tasks
+[31m    [Failed]:  [0m[<null>] expected to equal [STRING_NAME(patrol)]:  
+      at line 206
+[31m    [Failed]:  [0mBrain goals should be an array
+      at line 206
+* test_sentry_brain_has_expected_goals_and_tasks
+[31m    [Failed]:  [0m[<null>] expected to equal [STRING_NAME(guard)]:  
+      at line 217
+[31m    [Failed]:  [0mBrain goals should be an array
+      at line 217
+* test_guide_prism_brain_has_expected_goals_and_tasks
+[31m    [Failed]:  [0m[<null>] expected to equal [STRING_NAME(show_path)]:  
+      at line 228
+[31m    [Failed]:  [0mBrain goals should be an array
+      at line 228
+* test_demo_scenes_wire_npcs_to_m10_brain_resources
+* test_demo_npc_visual_exists
+* test_demo_scenes_use_unified_npc_component_stack
+* test_demo_goal_conditions_use_durable_ai_demo_flags
+[31m    [Failed]:  [0mBrain goals should be an array
+      at line 284
+[31m    [Failed]:  [0mBrain goals should be an array
+      at line 289
+[31m    [Failed]:  [0mBrain goals should be an array
+      at line 294
+* test_demo_scenes_wire_trigger_zones_to_runtime_scripts
+[1m4/8 passed.
+[0m[4m
+
+res://tests/unit/ai/resources/test_ai_showcase_scene.gd
+[0m* test_showcase_scene_loads
+* test_showcase_has_four_npcs
+* test_showcase_patrol_drones_use_patrol_brain
+* test_showcase_sentry_uses_sentry_brain
+* test_showcase_guide_prism_uses_guide_brain
+* test_showcase_npcs_have_unified_component_stack
+* test_showcase_has_patrol_waypoints
+* test_showcase_has_guard_waypoints
+* test_showcase_has_path_markers
+* test_showcase_has_interaction_and_noise_nodes
+* test_showcase_has_m15_interaction_nodes
+* test_showcase_has_guard_barrier_listener
+* test_showcase_has_m15_ai_systems
+* test_showcase_detection_components_have_expected_flags
+* test_sentry_investigate_goal_publishes_alarm_event
+* test_showcase_has_room_fade_shell
+* test_showcase_has_wall_visibility_system
+* test_showcase_registered_in_scene_registry
+[1m18/18 passed.
+[0m[4m
+
+res://tests/unit/ai/resources/test_prefab_npc.gd
+[0m* test_npc_prefab_has_all_base_character_components
+* test_npc_has_ai_brain
+* test_npc_has_input
+* test_npc_no_player_tag
+* test_npc_no_gamepad
+* test_npc_prefab_body_mesh_has_visual
+* test_character_template_has_no_body_mesh_instance
+[1m7/7 passed.
+[0m[4m
+
+res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd
+[0m* test_brain_settings_exports_bt_root_and_not_legacy_goals
+* test_brain_settings_keeps_evaluation_interval
+* test_loading_legacy_goals_resource_pushes_migration_error_with_path
+[31m    [Failed]:  [0mExpected push_error error containing 'cfg_woods_wolf_brain.tres'.  
+      at line 54
+[1m2/3 passed.
+[0m[4m
+
+res://tests/unit/ai/resources/test_rs_ai_goal.gd
+[0m* test_goal_has_id_conditions_and_root_task
+* test_goal_priority_defaults_to_zero
+* test_goal_state_gate_fields_have_defaults_and_are_assignable
+* test_brain_settings_evaluation_interval_default
+* test_root_task_typed_rs_ai_task
+* test_conditions_array_typed_i_condition
+[1m6/6 passed.
+[0m[4m
+
+res://tests/unit/ai/resources/test_rs_ai_task.gd
+[0m* test_primitive_task_holds_action_resource
+* test_compound_task_has_subtasks_array
+* test_compound_task_has_method_conditions_array
+* test_task_id_is_string_name
+* test_i_ai_action_interface_contract
+* test_primitive_task_action_defaults_to_null
+* test_primitive_task_action_typed_i_ai_action
+* test_compound_task_subtasks_typed_rs_ai_task
+* test_compound_task_method_conditions_typed_i_condition
+[1m9/9 passed.
+[0m[4m
+
+res://tests/unit/ai/test_i_ai_action_base.gd
+[0m* test_subclass_extends_class_name
+* test_base_virtuals_are_callable_and_return_defaults
+ERROR: I_AIAction.start: not implemented by subclass 
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] start (res://scripts/interfaces/i_ai_action.gd:12)
+       [1] test_base_virtuals_are_callable_and_return_defaults (res://tests/unit/ai/test_i_ai_action_base.gd:49)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+       [4] _run_test (res://addons/gut/gut.gd:640)
+       [5] test_loading_legacy_goals_resource_pushes_migration_error_with_path (res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd:54)
+[34m[ExpectedError][0mExpected push_error error containing 'I_AIAction.start: not implemented'.  
+ERROR: I_AIAction.tick: not implemented by subclass 
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] tick (res://scripts/interfaces/i_ai_action.gd:15)
+       [1] test_base_virtuals_are_callable_and_return_defaults (res://tests/unit/ai/test_i_ai_action_base.gd:51)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+       [4] _run_test (res://addons/gut/gut.gd:640)
+       [5] test_loading_legacy_goals_resource_pushes_migration_error_with_path (res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd:54)
+[34m[ExpectedError][0mExpected push_error error containing 'I_AIAction.tick: not implemented'.  
+ERROR: I_AIAction.is_complete: not implemented by subclass 
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] is_complete (res://scripts/interfaces/i_ai_action.gd:18)
+       [1] test_base_virtuals_are_callable_and_return_defaults (res://tests/unit/ai/test_i_ai_action_base.gd:53)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+       [4] _run_test (res://addons/gut/gut.gd:640)
+       [5] test_loading_legacy_goals_resource_pushes_migration_error_with_path (res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd:54)
+[34m[ExpectedError][0mExpected push_error error containing 'I_AIAction.is_complete: not implemented'.  
+* test_base_stubs_push_error_on_start
+ERROR: I_AIAction.start: not implemented by subclass 
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] start (res://scripts/interfaces/i_ai_action.gd:12)
+       [1] test_base_stubs_push_error_on_start (res://tests/unit/ai/test_i_ai_action_base.gd:65)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+       [4] _run_test (res://addons/gut/gut.gd:640)
+       [5] test_loading_legacy_goals_resource_pushes_migration_error_with_path (res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd:54)
+[34m[ExpectedError][0mExpected push_error error containing 'I_AIAction.start: not implemented'.  
+* test_base_stubs_push_error_on_tick
+ERROR: I_AIAction.tick: not implemented by subclass 
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] tick (res://scripts/interfaces/i_ai_action.gd:15)
+       [1] test_base_stubs_push_error_on_tick (res://tests/unit/ai/test_i_ai_action_base.gd:76)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+       [4] _run_test (res://addons/gut/gut.gd:640)
+       [5] test_loading_legacy_goals_resource_pushes_migration_error_with_path (res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd:54)
+[34m[ExpectedError][0mExpected push_error error containing 'I_AIAction.tick: not implemented'.  
+* test_base_stubs_push_error_on_is_complete
+ERROR: I_AIAction.is_complete: not implemented by subclass 
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] is_complete (res://scripts/interfaces/i_ai_action.gd:18)
+       [1] test_base_stubs_push_error_on_is_complete (res://tests/unit/ai/test_i_ai_action_base.gd:87)
+       [2] _run_test (res://addons/gut/gut.gd:612)
+       [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+       [4] _run_test (res://addons/gut/gut.gd:640)
+       [5] test_loading_legacy_goals_resource_pushes_migration_error_with_path (res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd:54)
+[34m[ExpectedError][0mExpected push_error error containing 'I_AIAction.is_complete: not implemented'.  
+[1m5/5 passed.
+[0m[4m
+
+res://tests/unit/ai/test_u_ai_context_builder.gd
+[0m* test_builds_context_with_redux_state_snapshot
+* test_includes_entity_and_entity_id
+* test_includes_components_dict
+* test_handles_missing_store_gracefully
+[1m4/4 passed.
+[0m[4m
+
+res://tests/unit/ai/test_u_ai_goal_selector.gd
+[0m* test_selects_highest_scoring_goal
+SCRIPT ERROR: Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at: _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+              [1] test_selects_highest_scoring_goal (res://tests/unit/ai/test_u_ai_goal_selector.gd:61)
+              [2] _run_test (res://addons/gut/gut.gd:612)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(high)]:  
+      at line 64
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+      at line -1
+* test_ties_broken_by_priority
+SCRIPT ERROR: Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at: _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+              [1] test_ties_broken_by_priority (res://tests/unit/ai/test_u_ai_goal_selector.gd:74)
+              [2] _run_test (res://addons/gut/gut.gd:612)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(high_priority)]:  
+      at line 77
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+      at line -1
+* test_falls_back_to_default_goal
+SCRIPT ERROR: Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at: _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+              [1] test_falls_back_to_default_goal (res://tests/unit/ai/test_u_ai_goal_selector.gd:87)
+              [2] _run_test (res://addons/gut/gut.gd:612)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(second)]:  
+      at line 90
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+      at line -1
+* test_applies_cooldown_gate
+SCRIPT ERROR: Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at: _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+              [1] test_applies_cooldown_gate (res://tests/unit/ai/test_u_ai_goal_selector.gd:100)
+              [2] _run_test (res://addons/gut/gut.gd:612)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(fallback)]:  
+      at line 105
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+      at line -1
+* test_applies_one_shot_gate
+SCRIPT ERROR: Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at: _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+              [1] test_applies_one_shot_gate (res://tests/unit/ai/test_u_ai_goal_selector.gd:115)
+              [2] _run_test (res://addons/gut/gut.gd:612)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(fallback)]:  
+      at line 120
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+      at line -1
+* test_applies_rising_edge_gate
+SCRIPT ERROR: Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at: _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+              [1] test_applies_rising_edge_gate (res://tests/unit/ai/test_u_ai_goal_selector.gd:130)
+              [2] _run_test (res://addons/gut/gut.gd:612)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(rising)]:  
+      at line 134
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(steady)]:  
+      at line 137
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+      at line -1
+* test_executing_goal_bypasses_cooldown_gate
+SCRIPT ERROR: Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at: _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_brain_settings (res://tests/unit/ai/test_u_ai_goal_selector.gd:45)
+              [1] test_executing_goal_bypasses_cooldown_gate (res://tests/unit/ai/test_u_ai_goal_selector.gd:147)
+              [2] _run_test (res://addons/gut/gut.gd:612)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(high)]:  
+      at line 152
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+      at line -1
+[1m0/7 passed.
+[0m[4m
+
+res://tests/unit/ai/test_u_ai_replanner.gd
+[0m* test_replan_decomposes_root_task
+SCRIPT ERROR: Invalid assignment of property or key 'task_state' with value of type 'Dictionary' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: U_AIReplanner.replan_for_goal (res://scripts/utils/ai/u_ai_replanner.gd:19)
+          GDScript backtrace (most recent call first):
+              [0] replan_for_goal (res://scripts/utils/ai/u_ai_replanner.gd:19)
+              [1] test_replan_decomposes_root_task (res://tests/unit/ai/test_u_ai_replanner.gd:57)
+              [2] _run_test (res://addons/gut/gut.gd:612)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed] [0m
+      at line 59
+SCRIPT ERROR: Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_replan_decomposes_root_task (res://tests/unit/ai/test_u_ai_replanner.gd:61)
+          GDScript backtrace (most recent call first):
+              [0] test_replan_decomposes_root_task (res://tests/unit/ai/test_u_ai_replanner.gd:61)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'task_state' with value of type 'Dictionary' on a base object of type 'Node (C_AIBrainComponent)'.
+    [2] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+* test_suspend_current_goal_saves_queue
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_suspend_current_goal_saves_queue (res://tests/unit/ai/test_u_ai_replanner.gd:77)
+          GDScript backtrace (most recent call first):
+              [0] test_suspend_current_goal_saves_queue (res://tests/unit/ai/test_u_ai_replanner.gd:77)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+* test_restore_suspended_queue_on_reentry
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_restore_suspended_queue_on_reentry (res://tests/unit/ai/test_u_ai_replanner.gd:107)
+          GDScript backtrace (most recent call first):
+              [0] test_restore_suspended_queue_on_reentry (res://tests/unit/ai/test_u_ai_replanner.gd:107)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+* test_no_replan_when_same_goal_and_queue_nonempty
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_no_replan_when_same_goal_and_queue_nonempty (res://tests/unit/ai/test_u_ai_replanner.gd:131)
+          GDScript backtrace (most recent call first):
+              [0] test_no_replan_when_same_goal_and_queue_nonempty (res://tests/unit/ai/test_u_ai_replanner.gd:131)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+* test_replan_clears_active_move_target_component_when_goal_changes
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_replan_clears_active_move_target_component_when_goal_changes (res://tests/unit/ai/test_u_ai_replanner.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] test_replan_clears_active_move_target_component_when_goal_changes (res://tests/unit/ai/test_u_ai_replanner.gd:151)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+[1m0/5 passed.
+[0m[4m
+
+res://tests/unit/ai/test_u_ai_task_runner.gd
+[0m* test_tick_starts_action_on_first_call
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_tick_starts_action_on_first_call (res://tests/unit/ai/test_u_ai_task_runner.gd:47)
+          GDScript backtrace (most recent call first):
+              [0] test_tick_starts_action_on_first_call (res://tests/unit/ai/test_u_ai_task_runner.gd:47)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+* test_tick_invokes_action_tick
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_tick_invokes_action_tick (res://tests/unit/ai/test_u_ai_task_runner.gd:64)
+          GDScript backtrace (most recent call first):
+              [0] test_tick_invokes_action_tick (res://tests/unit/ai/test_u_ai_task_runner.gd:64)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+* test_advances_on_complete
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_advances_on_complete (res://tests/unit/ai/test_u_ai_task_runner.gd:81)
+          GDScript backtrace (most recent call first):
+              [0] test_advances_on_complete (res://tests/unit/ai/test_u_ai_task_runner.gd:81)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+* test_finishes_queue_and_clears_state
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_finishes_queue_and_clears_state (res://tests/unit/ai/test_u_ai_task_runner.gd:97)
+          GDScript backtrace (most recent call first):
+              [0] test_finishes_queue_and_clears_state (res://tests/unit/ai/test_u_ai_task_runner.gd:97)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+* test_advancing_to_next_task_deactivates_move_target_component
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_advancing_to_next_task_deactivates_move_target_component (res://tests/unit/ai/test_u_ai_task_runner.gd:114)
+          GDScript backtrace (most recent call first):
+              [0] test_advancing_to_next_task_deactivates_move_target_component (res://tests/unit/ai/test_u_ai_task_runner.gd:114)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+* test_finishing_queue_deactivates_move_target_component
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_finishing_queue_deactivates_move_target_component (res://tests/unit/ai/test_u_ai_task_runner.gd:139)
+          GDScript backtrace (most recent call first):
+              [0] test_finishing_queue_deactivates_move_target_component (res://tests/unit/ai/test_u_ai_task_runner.gd:139)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+* test_skips_invalid_primitive_tasks
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_skips_invalid_primitive_tasks (res://tests/unit/ai/test_u_ai_task_runner.gd:166)
+          GDScript backtrace (most recent call first):
+              [0] test_skips_invalid_primitive_tasks (res://tests/unit/ai/test_u_ai_task_runner.gd:166)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+[1m0/7 passed.
+[0m[4m
+
+res://tests/unit/ai/test_u_ai_task_state_keys.gd
+[0m* test_move_target_key_constant
+* test_arrival_threshold_key_constant
+* test_action_started_key_constant
+* test_move_target_debug_key_constants
+* test_action_state_key_constants
+[1m5/5 passed.
+[0m[4m
+
+res://tests/unit/ai/test_u_htn_planner.gd
+[0m* test_decompose_single_primitive_returns_itself
+* test_decompose_compound_flattens_subtasks
+* test_decompose_nested_compounds
+* test_decompose_with_method_conditions_selects_first_passing
+* test_decompose_with_method_conditions_respects_authored_index_when_subtask_slots_are_empty
+* test_decompose_with_method_conditions_skips_invalid_condition_slots
+* test_decompose_cycle_detection
+* test_decompose_empty_compound_returns_empty
+* test_decompose_null_task_returns_empty
+ERROR: U_HTNPlanner.decompose: task is null
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] decompose (res://scripts/utils/ai/u_htn_planner.gd:13)
+       [1] _decompose (res://tests/unit/ai/test_u_htn_planner.gd:45)
+       [2] test_decompose_null_task_returns_empty (res://tests/unit/ai/test_u_htn_planner.gd:172)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'U_HTNPlanner.decompose: task is null'.  
+* test_decompose_null_subtask_pushes_error
+ERROR: U_HTNPlanner._decompose_subtask: subtask is null
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _decompose_subtask (res://scripts/utils/ai/u_htn_planner.gd:72)
+       [1] _decompose_recursive (res://scripts/utils/ai/u_htn_planner.gd:60)
+       [2] decompose (res://scripts/utils/ai/u_htn_planner.gd:18)
+       [3] _decompose (res://tests/unit/ai/test_u_htn_planner.gd:45)
+       [4] test_decompose_null_subtask_pushes_error (res://tests/unit/ai/test_u_htn_planner.gd:187)
+       [5] _run_test (res://addons/gut/gut.gd:612)
+       [6] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'U_HTNPlanner._decompose_subtask: subtask is null'.  
+* test_max_depth_guard
+ERROR: U_HTNPlanner._decompose_recursive: depth 1 reached max_depth 1
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _decompose_recursive (res://scripts/utils/ai/u_htn_planner.gd:36)
+       [1] _decompose_subtask (res://scripts/utils/ai/u_htn_planner.gd:76)
+       [2] _decompose_recursive (res://scripts/utils/ai/u_htn_planner.gd:60)
+       [3] decompose (res://scripts/utils/ai/u_htn_planner.gd:18)
+       [4] _decompose (res://tests/unit/ai/test_u_htn_planner.gd:45)
+       [5] test_max_depth_guard (res://tests/unit/ai/test_u_htn_planner.gd:204)
+       [6] _run_test (res://addons/gut/gut.gd:612)
+       [7] _test_the_scripts (res://addons/gut/gut.gd:815)
+[34m[ExpectedError][0mExpected push_error error containing 'U_HTNPlanner._decompose_recursive: depth 1 reached max_depth 1'.  
+* test_reusable_rule_is_not_mutated_between_calls
+[1m12/12 passed.
+[0m[4m
+
+res://tests/unit/ecs/components/test_c_ai_brain_component.gd
+[0m* test_component_type_constant
+* test_brain_settings_export_is_assignable
+* test_registers_with_ecs_manager
+* test_validate_required_settings_fails_without_brain_settings
+ERROR: C_AIBrainComponent missing brain_settings; assign an RS_AIBrainSettings resource.
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _validate_required_settings (res://scripts/ecs/components/c_ai_brain_component.gd:25)
+       [1] _ready (res://scripts/ecs/base_ecs_component.gd:21)
+       [2] test_validate_required_settings_fails_without_brain_settings (res://tests/unit/ecs/components/test_c_ai_brain_component.gd:92)
+       [3] _pump (res://tests/unit/ecs/components/test_c_ai_brain_component.gd:23)
+[34m[ExpectedError][0mExpected push_error error containing 'C_AIBrainComponent missing brain_settings'.  
+* test_validate_required_settings_fails_with_wrong_brain_settings_type
+ERROR: C_AIBrainComponent missing brain_settings; assign an RS_AIBrainSettings resource.
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _validate_required_settings (res://scripts/ecs/components/c_ai_brain_component.gd:25)
+       [1] _ready (res://scripts/ecs/base_ecs_component.gd:21)
+       [2] test_validate_required_settings_fails_with_wrong_brain_settings_type (res://tests/unit/ecs/components/test_c_ai_brain_component.gd:119)
+       [3] _pump (res://tests/unit/ecs/components/test_c_ai_brain_component.gd:23)
+[34m[ExpectedError][0mExpected push_error error containing 'C_AIBrainComponent missing brain_settings'.  
+* test_brain_settings_export_typed_rs_ai_brain_settings
+* test_get_brain_settings_returns_typed
+* test_get_active_goal_id_returns_string_name
+* test_get_debug_snapshot_returns_copy
+[1m9/9 passed.
+[0m[4m
+
+res://tests/unit/ecs/components/test_c_ai_brain_component_bt.gd
+[0m* test_bt_state_bag_field_exists_and_defaults_to_empty_dictionary
+* test_get_debug_snapshot_reports_active_path_and_bt_state_key_count
+* test_legacy_goal_task_runtime_fields_removed
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd
+[0m* test_system_extends_base_ecs_system
+* test_selects_highest_scoring_goal
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@200
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_selects_highest_scoring_goal (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:134)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  
+      at line 136
+SCRIPT ERROR: Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_selects_highest_scoring_goal (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:137)
+          GDScript backtrace (most recent call first):
+              [0] test_selects_highest_scoring_goal (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:137)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@200
+    [2] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_ties_broken_by_priority
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@201
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_ties_broken_by_priority (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:153)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(high)]:  
+      at line 155
+SCRIPT ERROR: Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_ties_broken_by_priority (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:156)
+          GDScript backtrace (most recent call first):
+              [0] test_ties_broken_by_priority (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:156)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@201
+    [2] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_default_goal_used_when_no_goal_passes
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@202
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_default_goal_used_when_no_goal_passes (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:172)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(b)]:  
+      at line 174
+SCRIPT ERROR: Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_default_goal_used_when_no_goal_passes (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:175)
+          GDScript backtrace (most recent call first):
+              [0] test_default_goal_used_when_no_goal_passes (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:175)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@202
+    [2] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_goal_change_clears_task_queue
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@203
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_goal_change_clears_task_queue (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:209)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(first)]:  
+      at line 210
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_goal_change_clears_task_queue (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:212)
+          GDScript backtrace (most recent call first):
+              [0] test_goal_change_clears_task_queue (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:212)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@203
+    [2] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_same_goal_replans_after_queue_completion
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@204
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_same_goal_replans_after_queue_completion (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:245)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(patrol)]:  
+      at line 246
+SCRIPT ERROR: Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_same_goal_replans_after_queue_completion (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:247)
+          GDScript backtrace (most recent call first):
+              [0] test_same_goal_replans_after_queue_completion (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:247)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@204
+    [2] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_active_goal_not_interrupted_by_own_cooldown
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@205
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_active_goal_not_interrupted_by_own_cooldown (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:279)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(patrol)]:  Should start with patrol
+      at line 280
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  Should switch to investigate
+      at line 287
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  Investigate should NOT be interrupted by its own cooldown (tick 0)
+      at line 292
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  Investigate should NOT be interrupted by its own cooldown (tick 1)
+      at line 292
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  Investigate should NOT be interrupted by its own cooldown (tick 2)
+      at line 292
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@205
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_cooldown_marks_only_selected_goal
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@206
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_cooldown_marks_only_selected_goal (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:320)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(high)]:  
+      at line 321
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(low)]:  
+      at line 324
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@206
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_one_shot_goal_transitions_to_next_goal_after_first_fire
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@207
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_one_shot_goal_transitions_to_next_goal_after_first_fire (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:342)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(one_shot)]:  
+      at line 343
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(fallback)]:  
+      at line 346
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@207
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_one_shot_is_scoped_per_context
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@208
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_one_shot_is_scoped_per_context (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:366)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(one_shot)]:  
+      at line 367
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@209
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_one_shot_is_scoped_per_context (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:378)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(one_shot)]:  
+      at line 379
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@208
+    [2] <push_error>S_AIBehaviorSystem: root is null for brain @Node@209
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_requires_rising_edge_goal_requires_state_transition
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@210
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_requires_rising_edge_goal_requires_state_transition (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:401)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(rising)]:  
+      at line 402
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(steady)]:  
+      at line 405
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(steady)]:  
+      at line 409
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(rising)]:  
+      at line 413
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@210
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_evaluation_interval_throttles_scoring
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@211
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_evaluation_interval_throttles_scoring (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:442)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(first)]:  
+      at line 443
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(first)]:  
+      at line 448
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(second)]:  
+      at line 451
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@211
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_no_brain_component_no_crash
+* test_context_redux_state_is_same_reference_as_store_state
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@212
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_context_redux_state_is_same_reference_as_store_state (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:495)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(patrol)]:  Goal selection should work without deep-copying redux_state.
+      at line 498
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@212
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_suspended_goal_state_not_duplicated_on_suspend_resume
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@213
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_suspended_goal_state_not_duplicated_on_suspend_resume (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:515)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  Higher-scoring goal should be selected.
+      at line 516
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@213
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_build_rule_from_goal_reuses_pooled_instance
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@214
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_build_rule_from_goal_reuses_pooled_instance (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:540)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+SCRIPT ERROR: Invalid access to property or key '_rule_pool' on a base object of type 'Node (S_AIBehaviorSystem)'.
+          at: test_build_rule_from_goal_reuses_pooled_instance (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:549)
+          GDScript backtrace (most recent call first):
+              [0] test_build_rule_from_goal_reuses_pooled_instance (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:549)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@214
+    [2] <engine-2>Invalid access to property or key '_rule_pool' on a base object of type 'Node (S_AIBehaviorSystem)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_rule_pool_produces_different_rules_for_different_goals
+ERROR: S_AIBehaviorSystem: root is null for brain @Node@215
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _process_brain (res://scripts/ecs/systems/s_ai_behavior_system.gd:87)
+       [1] process_tick (res://scripts/ecs/systems/s_ai_behavior_system.gd:69)
+       [2] test_rule_pool_produces_different_rules_for_different_goals (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:565)
+       [3] _run_test (res://addons/gut/gut.gd:612)
+       [4] _test_the_scripts (res://addons/gut/gut.gd:815)
+SCRIPT ERROR: Invalid access to property or key '_rule_pool' on a base object of type 'Node (S_AIBehaviorSystem)'.
+          at: test_rule_pool_produces_different_rules_for_different_goals (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:567)
+          GDScript backtrace (most recent call first):
+              [0] test_rule_pool_produces_different_rules_for_different_goals (res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd:567)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@215
+    [2] <engine-2>Invalid access to property or key '_rule_pool' on a base object of type 'Node (S_AIBehaviorSystem)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+[1m2/17 passed.
+[0m[4m
+
+res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd
+[0m* test_task_runner_dispatches_via_i_ai_action
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_task_runner_dispatches_via_i_ai_action (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] test_task_runner_dispatches_via_i_ai_action (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:93)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_task_queue_advances_sequentially
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_task_queue_advances_sequentially (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:120)
+          GDScript backtrace (most recent call first):
+              [0] test_task_queue_advances_sequentially (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:120)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_task_queue_completion_resets_state
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_task_queue_completion_resets_state (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:139)
+          GDScript backtrace (most recent call first):
+              [0] test_task_queue_completion_resets_state (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:139)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_empty_queue_does_nothing
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_empty_queue_does_nothing (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:158)
+          GDScript backtrace (most recent call first):
+              [0] test_empty_queue_does_nothing (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:158)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_invalid_queue_entry_is_skipped_instead_of_stalling
+SCRIPT ERROR: Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_invalid_queue_entry_is_skipped_instead_of_stalling (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:182)
+          GDScript backtrace (most recent call first):
+              [0] test_invalid_queue_entry_is_skipped_instead_of_stalling (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:182)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+* test_primitive_task_without_action_is_skipped_instead_of_stalling
+SCRIPT ERROR: Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at: test_primitive_task_without_action_is_skipped_instead_of_stalling (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:203)
+          GDScript backtrace (most recent call first):
+              [0] test_primitive_task_without_action_is_skipped_instead_of_stalling (res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd:203)
+              [1] _run_test (res://addons/gut/gut.gd:612)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:815)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+      at line -1
+ERROR: RS_AIBrainSettings migration required: legacy goals field found in <unsaved_resource>
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report_legacy_goals_migration_error (res://scripts/resources/ai/brain/rs_ai_brain_settings.gd:26)
+[1m0/6 passed.
+[0m[4m
+
+res://tests/unit/ecs/systems/test_s_ai_detection_system.gd
+[0m* test_system_extends_base_ecs_system
+* test_enters_range_dispatches_ai_flag_once
+[DETECT] npc (primary/player) → detected player at dist 3.0
+* test_exit_dispatches_false_when_enabled
+[DETECT] npc (primary/player) → detected player at dist 3.0
+[DETECT] npc (primary/player) → lost player (dist 20.0 > exit_radius 6.0)
+* test_enter_event_publishes_once
+[DETECT] npc (primary/player) → detected player at dist 2.0
+* test_no_players_keeps_detection_false
+* test_hysteresis_does_not_exit_at_detection_radius
+[DETECT] npc (primary/player) → detected player at dist 3.0
+* test_hysteresis_exits_past_exit_radius
+[DETECT] npc (primary/player) → detected player at dist 3.0
+[DETECT] npc (primary/player) → lost player (dist 11.0 > exit_radius 10.0)
+* test_hysteresis_default_exit_radius_equals_detection_radius
+[DETECT] npc (primary/player) → detected player at dist 3.0
+[DETECT] npc (primary/player) → lost player (dist 7.0 > exit_radius 6.0)
+[1m8/8 passed.
+[0m[4m
+
+res://tests/unit/ecs/systems/test_s_ai_detection_system_multi_component.gd
+[0m* test_both_detection_components_on_same_entity_detect_independently
+[DETECT] wolf (primary/prey) → detected rabbit at dist 5.0
+[DETECT_TRACE] source=wolf target_tag=prey candidates=1 nearest=rabbit tags=["prey", "ai", "forest"] dist=5.0 enter_radius=12.0 exit_radius=12.0
+[DETECT] wolf (pack/predator) → detected otherwolf at dist 10.0
+[DETECT_TRACE] source=wolf target_tag=predator candidates=2 nearest=otherwolf tags=["predator", "ai", "forest"] dist=10.0 enter_radius=18.0 exit_radius=18.0
+* test_detection_components_filter_by_their_own_target_tag
+[DETECT] wolf (primary/prey) → detected rabbit at dist 5.0
+[DETECT_TRACE] source=wolf target_tag=prey candidates=1 nearest=rabbit tags=["prey", "ai", "forest"] dist=5.0 enter_radius=12.0 exit_radius=12.0
+* test_only_pack_detection_triggers_when_predator_nearby
+[DETECT] wolf (pack/predator) → detected otherwolf at dist 5.0
+[DETECT_TRACE] source=wolf target_tag=predator candidates=2 nearest=otherwolf tags=["predator", "ai", "forest"] dist=5.0 enter_radius=18.0 exit_radius=18.0
+* test_detection_role_default_is_primary
+* test_last_detected_entity_id_is_independent_per_component
+[DETECT] wolf (primary/prey) → detected rabbit at dist 5.0
+[DETECT_TRACE] source=wolf target_tag=prey candidates=1 nearest=rabbit tags=["prey", "ai", "forest"] dist=5.0 enter_radius=12.0 exit_radius=12.0
+[DETECT] wolf (pack/predator) → detected otherwolf at dist 10.0
+[DETECT_TRACE] source=wolf target_tag=predator candidates=2 nearest=otherwolf tags=["predator", "ai", "forest"] dist=10.0 enter_radius=18.0 exit_radius=18.0
+* test_single_detection_component_back_compat
+[DETECT] wolf (primary/prey) → detected rabbit at dist 5.0
+[DETECT_TRACE] source=wolf target_tag=prey candidates=1 nearest=rabbit tags=["prey", "ai", "forest"] dist=5.0 enter_radius=12.0 exit_radius=12.0
+[1m6/6 passed.
+[0m[4m
+
+res://tests/unit/ecs/systems/test_s_ai_detection_system_tag_target.gd
+[0m* test_target_tag_prey_detects_matching_entity_in_range
+[DETECT] detector (primary/prey) → detected rabbit at dist 3.0
+[DETECT_TRACE] source=detector target_tag=prey candidates=1 nearest=rabbit tags=["prey", "ai", "forest"] dist=3.0 enter_radius=6.0 exit_radius=6.0
+* test_target_tag_prey_ignores_non_matching_entity
+* test_detector_does_not_match_itself_when_target_tag_matches_self_tags
+* test_default_player_target_tag_preserves_back_compat_detection
+[DETECT] detector (primary/player) → detected player at dist 3.0
+* test_last_detected_entity_id_uses_base_ecs_entity_id
+[DETECT] detector (primary/prey) → detected rabbit at dist 2.0
+[DETECT_TRACE] source=detector target_tag=prey candidates=1 nearest=rabbit tags=["prey", "ai", "forest"] dist=2.0 enter_radius=6.0 exit_radius=6.0
+* test_hysteresis_prevents_exit_in_tag_target_mode
+[DETECT] detector (primary/prey) → detected rabbit at dist 3.0
+[DETECT_TRACE] source=detector target_tag=prey candidates=1 nearest=rabbit tags=["prey", "ai", "forest"] dist=3.0 enter_radius=6.0 exit_radius=10.0
+[DETECT] detector (primary/prey) → lost rabbit (dist 11.0 > exit_radius 10.0)
+* test_in_range_target_switch_updates_last_detected_entity_id
+[DETECT] detector (primary/prey) → detected rabbita at dist 2.0
+[DETECT_TRACE] source=detector target_tag=prey candidates=2 nearest=rabbita tags=["prey", "ai", "forest"] dist=2.0 enter_radius=6.0 exit_radius=6.0
+[DETECT] detector (primary/prey) → switched rabbita → rabbitb at dist 4.0
+[DETECT_TRACE] source=detector target_tag=prey candidates=2 switched_from=rabbita switched_to=rabbitb tags=["prey", "ai", "forest"] dist=4.0 enter_radius=6.0 exit_radius=6.0
+* test_unregistered_target_is_ignored_for_nearest_resolution
+[DETECT] detector (primary/prey) → detected rabbita at dist 2.0
+[DETECT_TRACE] source=detector target_tag=prey candidates=2 nearest=rabbita tags=["prey", "ai", "forest"] dist=2.0 enter_radius=6.0 exit_radius=6.0
+[DETECT] detector (primary/prey) → switched rabbita → rabbitb at dist 4.0
+[DETECT_TRACE] source=detector target_tag=prey candidates=1 switched_from=rabbita switched_to=rabbitb tags=["prey", "ai", "forest"] dist=4.0 enter_radius=6.0 exit_radius=6.0
+* test_target_switch_requires_meaningful_distance_gain
+[DETECT] detector (primary/prey) → detected rabbita at dist 5.0
+[DETECT_TRACE] source=detector target_tag=prey candidates=2 nearest=rabbita tags=["prey", "ai", "forest"] dist=5.0 enter_radius=10.0 exit_radius=12.0
+[DETECT] detector (primary/prey) → switched rabbita → rabbitb at dist 3.6
+[DETECT_TRACE] source=detector target_tag=prey candidates=2 switched_from=rabbita switched_to=rabbitb tags=["prey", "ai", "forest"] dist=3.6 enter_radius=10.0 exit_radius=12.0
+* test_target_switch_requires_candidate_well_inside_enter_radius
+[DETECT] detector (primary/prey) → detected rabbita at dist 10.0
+[DETECT_TRACE] source=detector target_tag=prey candidates=2 nearest=rabbita tags=["prey", "ai", "forest"] dist=10.0 enter_radius=14.0 exit_radius=20.0
+[DETECT] detector (primary/prey) → switched rabbita → rabbitb at dist 12.5
+[DETECT_TRACE] source=detector target_tag=prey candidates=2 switched_from=rabbita switched_to=rabbitb tags=["prey", "ai", "forest"] dist=12.5 enter_radius=14.0 exit_radius=20.0
+[1m10/10 passed.
+[0m[4m
+
+res://tests/unit/ecs/systems/test_s_input_system_ai_filter.gd
+[0m* test_input_system_skips_entities_without_player_tag
+* test_input_system_still_writes_to_player_entity
+[1m2/2 passed.
+[0m[4m
+
+res://tests/unit/debug/test_debug_ai_brain_panel.gd
+[0m* test_panel_renders_one_row_per_brain_component
+* test_panel_row_text_contains_entity_and_bt_path
+* test_panel_row_text_renders_planner_plan_when_present
+* test_panel_handles_empty_brain_list_without_crashing
+[1m4/4 passed.
+[0m[4m
+
+res://tests/unit/utils/debug/test_u_ai_render_probe.gd
+[0m* test_build_render_probe_null_safe_on_missing_body
+* test_build_render_probe_null_safe_on_missing_visual
+* test_build_render_probe_reports_body_position
+* test_build_render_probe_reports_visual_transparency_when_geometry
+[1m4/4 passed.
+[0m
+
+
+
+[33m==============================================
+[0m[33m= Run Summary
+[0m[33m==============================================
+[0m[4m
+res://tests/unit/ai/resources/test_ai_demo_behavior_resources.gd
+[0m- test_patrol_drone_brain_has_expected_goals_and_tasks
+[31m    [Failed]:  [0m[<null>] expected to equal [STRING_NAME(patrol)]:  
+          at line 206
+[31m    [Failed]:  [0mBrain goals should be an array
+          at line 206
+- test_sentry_brain_has_expected_goals_and_tasks
+[31m    [Failed]:  [0m[<null>] expected to equal [STRING_NAME(guard)]:  
+          at line 217
+[31m    [Failed]:  [0mBrain goals should be an array
+          at line 217
+- test_guide_prism_brain_has_expected_goals_and_tasks
+[31m    [Failed]:  [0m[<null>] expected to equal [STRING_NAME(show_path)]:  
+          at line 228
+[31m    [Failed]:  [0mBrain goals should be an array
+          at line 228
+- test_demo_goal_conditions_use_durable_ai_demo_flags
+[31m    [Failed]:  [0mBrain goals should be an array
+          at line 284
+[31m    [Failed]:  [0mBrain goals should be an array
+          at line 289
+[31m    [Failed]:  [0mBrain goals should be an array
+          at line 294
+[4m
+res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd
+[0m- test_loading_legacy_goals_resource_pushes_migration_error_with_path
+[31m    [Failed]:  [0mExpected push_error error containing 'cfg_woods_wolf_brain.tres'.  
+          at line 54
+[4m
+res://tests/unit/ai/test_u_ai_goal_selector.gd
+[0m- test_selects_highest_scoring_goal
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(high)]:  
+          at line 64
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at line -1
+- test_ties_broken_by_priority
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(high_priority)]:  
+          at line 77
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at line -1
+- test_falls_back_to_default_goal
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(second)]:  
+          at line 90
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at line -1
+- test_applies_cooldown_gate
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(fallback)]:  
+          at line 105
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at line -1
+- test_applies_one_shot_gate
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(fallback)]:  
+          at line 120
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at line -1
+- test_applies_rising_edge_gate
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(rising)]:  
+          at line 134
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(steady)]:  
+          at line 137
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at line -1
+- test_executing_goal_bypasses_cooldown_gate
+[31m    [Failed]:  [0m[STRING_NAME()] expected to equal [STRING_NAME(high)]:  
+          at line 152
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'default_goal_id' with value of type 'StringName' on a base object of type 'Resource (RS_AIBrainSettings)'.
+          at line -1
+[4m
+res://tests/unit/ai/test_u_ai_replanner.gd
+[0m- test_replan_decomposes_root_task
+[31m    [Failed]:  [0m
+          at line 59
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'task_state' with value of type 'Dictionary' on a base object of type 'Node (C_AIBrainComponent)'.
+    [2] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_suspend_current_goal_saves_queue
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_restore_suspended_queue_on_reentry
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_no_replan_when_same_goal_and_queue_nonempty
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_replan_clears_active_move_target_component_when_goal_changes
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+[4m
+res://tests/unit/ai/test_u_ai_task_runner.gd
+[0m- test_tick_starts_action_on_first_call
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_tick_invokes_action_tick
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_advances_on_complete
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_finishes_queue_and_clears_state
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_advancing_to_next_task_deactivates_move_target_component
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_finishing_queue_deactivates_move_target_component
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_skips_invalid_primitive_tasks
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+[4m
+res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd
+[0m- test_selects_highest_scoring_goal
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  
+          at line 136
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@200
+    [2] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_ties_broken_by_priority
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(high)]:  
+          at line 155
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@201
+    [2] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_default_goal_used_when_no_goal_passes
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(b)]:  
+          at line 174
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@202
+    [2] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_goal_change_clears_task_queue
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(first)]:  
+          at line 210
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@203
+    [2] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_same_goal_replans_after_queue_completion
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(patrol)]:  
+          at line 246
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@204
+    [2] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_active_goal_not_interrupted_by_own_cooldown
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(patrol)]:  Should start with patrol
+          at line 280
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  Should switch to investigate
+          at line 287
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  Investigate should NOT be interrupted by its own cooldown (tick 0)
+          at line 292
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  Investigate should NOT be interrupted by its own cooldown (tick 1)
+          at line 292
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  Investigate should NOT be interrupted by its own cooldown (tick 2)
+          at line 292
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@205
+          at line -1
+- test_cooldown_marks_only_selected_goal
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(high)]:  
+          at line 321
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(low)]:  
+          at line 324
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@206
+          at line -1
+- test_one_shot_goal_transitions_to_next_goal_after_first_fire
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(one_shot)]:  
+          at line 343
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(fallback)]:  
+          at line 346
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@207
+          at line -1
+- test_one_shot_is_scoped_per_context
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(one_shot)]:  
+          at line 367
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(one_shot)]:  
+          at line 379
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@208
+    [2] <push_error>S_AIBehaviorSystem: root is null for brain @Node@209
+          at line -1
+- test_requires_rising_edge_goal_requires_state_transition
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(rising)]:  
+          at line 402
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(steady)]:  
+          at line 405
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(steady)]:  
+          at line 409
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(rising)]:  
+          at line 413
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@210
+          at line -1
+- test_evaluation_interval_throttles_scoring
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(first)]:  
+          at line 443
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(first)]:  
+          at line 448
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(second)]:  
+          at line 451
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@211
+          at line -1
+- test_context_redux_state_is_same_reference_as_store_state
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(patrol)]:  Goal selection should work without deep-copying redux_state.
+          at line 498
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@212
+          at line -1
+- test_suspended_goal_state_not_duplicated_on_suspend_resume
+[31m    [Failed]:  [0m[STRING_NAME(bt_root_missing)] expected to equal [STRING_NAME(investigate)]:  Higher-scoring goal should be selected.
+          at line 516
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@213
+          at line -1
+- test_build_rule_from_goal_reuses_pooled_instance
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@214
+    [2] <engine-2>Invalid access to property or key '_rule_pool' on a base object of type 'Node (S_AIBehaviorSystem)'.
+          at line -1
+- test_rule_pool_produces_different_rules_for_different_goals
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <push_error>S_AIBehaviorSystem: root is null for brain @Node@215
+    [2] <engine-2>Invalid access to property or key '_rule_pool' on a base object of type 'Node (S_AIBehaviorSystem)'.
+          at line -1
+[4m
+res://tests/unit/ecs/systems/test_s_ai_behavior_system_tasks.gd
+[0m- test_task_runner_dispatches_via_i_ai_action
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_task_queue_advances_sequentially
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_task_queue_completion_resets_state
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_empty_queue_does_nothing
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_invalid_queue_entry_is_skipped_instead_of_stalling
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid access to property or key 'current_task_queue' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+- test_primitive_task_without_action_is_skipped_instead_of_stalling
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'current_task_queue' with value of type 'Array[RS_AIPrimitiveTask]' on a base object of type 'Node (C_AIBrainComponent)'.
+          at line -1
+
+Totals
+------
+Warnings              4
+
+Scripts              52
+Tests               335
+Passing Tests       290
+Failing Tests        45
+Asserts           2494/2578
+Time              14.978s
+
+
+[31m---- 45 failing tests ----
+[0m
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2641)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)
+
+=== INTEGRATION (AI-focused) ===
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1014)
+---  GUT  ---
+[1m[INFO]:  [0musing [/Users/mcthaydt/Desktop/Business/Crispy Cabaret/Projects/cabaret-template/.godot_user/Library/Application Support/Godot/app_userdata/cabaret template] for temporary output.
+Godot version:  4.6.1
+GUT version:  9.5.0
+[4m
+
+res://tests/integration/gameplay/test_ai_interaction_triggers.gd
+[0m* test_proximity_dispatches_flag_to_state_store
+[DETECT] npc (primary/player) → detected player at dist 4.0
+* test_proximity_exit_dispatches_false_flag
+[DETECT] npc (primary/player) → detected player at dist 3.0
+[DETECT] npc (primary/player) → lost player (dist 20.0 > exit_radius 6.0)
+* test_detection_enter_publishes_ecs_event
+[DETECT] npc (primary/player) → detected player at dist 2.0
+* test_alarm_relay_cascades_flags
+* test_e2e_proximity_triggers_alarm_relay_cascade
+[DETECT] npc (primary/player) → detected player at dist 3.0
+* test_no_players_keeps_detection_false
+* test_alarm_relay_ignores_empty_flag_ids
+* test_y_axis_detection_respects_config
+[DETECT] npc (primary/player) → detected player at dist 0.0
+* test_multiple_npcs_detect_same_player
+[DETECT] npca (primary/player) → detected player at dist 3.0
+[1m9/9 passed.
+[0m[4m
+
+res://tests/integration/gameplay/test_ai_demo_power_core.gd
+[0m* test_patrol_drone_starts_with_patrol_goal
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+* test_patrol_drone_moves_toward_first_waypoint
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+* test_patrol_drone_reaches_waypoints_in_order
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+* test_patrol_completes_and_loops
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+* test_investigate_goal_activates_on_flag
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (4.0, 1.0, 0.0) source=target_node_path
+* test_investigate_produces_movement_toward_flag_zone
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (4.0, 1.0, 0.0) source=target_node_path
+* test_investigate_completes_full_sequence
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (4.0, 1.0, 0.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Scan started (duration=2.00s, rotation_speed=1.25)
+[ACTION] E_PatrolDrone Scan complete after 2.00s
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+* test_drone_returns_to_patrol_after_investigate
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (4.0, 1.0, 0.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Scan started (duration=2.00s, rotation_speed=1.25)
+[ACTION] E_PatrolDrone Scan complete after 2.00s
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+* test_rising_edge_prevents_re_investigate_while_flag_stays_true
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (4.0, 1.0, 0.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Scan started (duration=2.00s, rotation_speed=1.25)
+[ACTION] E_PatrolDrone Scan complete after 2.00s
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+* test_rising_edge_toggle_without_gate_sampling_does_not_reinvestigate
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (4.0, 1.0, 0.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Scan started (duration=2.00s, rotation_speed=1.25)
+[ACTION] E_PatrolDrone Scan complete after 2.00s
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, 6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[BT_TRACE] entity=patroldrone selector=patrol_drone_bt_root selected=1 score=9.00 child_scores=["0:0.00", "1:9.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, -6.0) source=target_node_path
+[ACTION] E_PatrolDrone MoveTo arrived
+[ACTION] E_PatrolDrone Wait started (duration=1.00s)
+[ACTION] E_PatrolDrone Wait complete after 1.10s
+[ACTION] E_PatrolDrone MoveTo → target (6.0, 1.0, 6.0) source=target_node_path
+[1m10/10 passed.
+[0m[4m
+
+res://tests/integration/spawn_system/test_ai_spawn_recovery_power_core.gd
+[0m* test_patrol_drone_recovers_to_ai_spawn_point_when_support_is_lost
+[BT_TRACE] entity=patrol_drone selector=patrol_drone_bt_root selected=2 score=1.00 child_scores=["0:0.00", "1:0.00", "2:1.00"]
+[ACTION] E_PatrolDrone MoveTo → target (-6.0, 1.0, -6.0) source=target_node_path
+[1m1/1 passed.
+[0m
+
+
+
+[33m==============================================
+[0m[33m= Run Summary
+[0m[33m==============================================
+[0m
+Totals
+------
+Scripts               3
+Tests                20
+Passing Tests        20
+Asserts             110
+Time              3.112s
+
+
+[32m---- All tests passed! ----
+[0m
+
+AI test run finished: Wed Apr 22 20:33:47 CDT 2026
+UNIT_EXIT=1
+INTEGRATION_EXIT=0

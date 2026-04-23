@@ -148,7 +148,9 @@ func _create_fixture(
 	if include_ai_brain:
 		brain = C_AI_BRAIN_COMPONENT.new()
 		brain.brain_settings = RS_AI_BRAIN_SETTINGS.new()
-		brain.task_state = {"ai_move_target": Vector3(6.0, 1.0, -6.0)}
+		brain.bt_state_bag = {
+			101: {"ai_move_target": Vector3(6.0, 1.0, -6.0)},
+		}
 		entity.add_child(brain)
 		autofree(brain)
 		ecs_manager.add_component_to_entity(entity, brain)
@@ -275,4 +277,4 @@ func test_npc_entity_respawned_via_shared_system() -> void:
 	assert_eq(spawn_manager.spawn_entity_calls.size(), 1, "NPC entity should respawn via generic entity spawn flow")
 	assert_eq(input.move_vector, Vector2.ZERO, "Respawn should clear move vector")
 	assert_eq(body.velocity, Vector3.ZERO, "Respawn should clear body velocity")
-	assert_eq(brain.task_state, {}, "Respawn should clear AI task state for NPCs")
+	assert_eq(brain.bt_state_bag, {}, "Respawn should clear AI BT runtime state for NPCs")

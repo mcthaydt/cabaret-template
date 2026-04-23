@@ -400,3 +400,59 @@ func test_target_switch_requires_meaningful_distance_gain() -> void:
 		rabbit_b_entity.get_entity_id(),
 		"Detector should switch once the new target is meaningfully closer."
 	)
+
+func test_target_switch_requires_candidate_well_inside_enter_radius() -> void:
+	var fixture: Dictionary = _create_fixture(StringName("prey"))
+	autofree_context(fixture)
+	if fixture.is_empty():
+		return
+
+	var rabbit_a_data: Dictionary = _register_target(
+		fixture,
+		"E_RabbitA",
+		Vector3(10.0, 0.0, 0.0),
+		[StringName("prey"), StringName("ai"), StringName("forest")]
+	)
+	var rabbit_b_data: Dictionary = _register_target(
+		fixture,
+		"E_RabbitB",
+		Vector3(12.0, 0.0, 0.0),
+		[StringName("prey"), StringName("ai"), StringName("forest")]
+	)
+	var rabbit_a_entity: BaseECSEntity = rabbit_a_data.get("entity") as BaseECSEntity
+	var rabbit_b_entity: BaseECSEntity = rabbit_b_data.get("entity") as BaseECSEntity
+	var rabbit_a_body: FakeBody = rabbit_a_data.get("body") as FakeBody
+	var rabbit_b_body: FakeBody = rabbit_b_data.get("body") as FakeBody
+
+	var system: BaseECSSystem = fixture.get("system") as BaseECSSystem
+	var detection: C_DetectionComponent = fixture.get("detection") as C_DetectionComponent
+	detection.detection_radius = 14.0
+	detection.detection_exit_radius = 20.0
+
+	system.process_tick(0.016)
+	assert_eq(
+		detection.last_detected_player_entity_id,
+		rabbit_a_entity.get_entity_id(),
+		"Detector should lock onto nearest target on first enter."
+	)
+
+	# Keep sticky target valid (inside exit radius), but make candidate only barely inside enter radius.
+	rabbit_a_body.global_position = Vector3(18.0, 0.0, 0.0)
+	rabbit_b_body.global_position = Vector3(13.8, 0.0, 0.0)
+	detection.last_target_change_frame = int(Engine.get_physics_frames()) - 30
+	system.process_tick(0.016)
+	assert_eq(
+		detection.last_detected_player_entity_id,
+		rabbit_a_entity.get_entity_id(),
+		"Detector should not switch to near-boundary candidates to avoid retarget jitter."
+	)
+
+	# Once candidate is safely inside enter radius, switching is allowed.
+	rabbit_b_body.global_position = Vector3(12.5, 0.0, 0.0)
+	detection.last_target_change_frame = int(Engine.get_physics_frames()) - 30
+	system.process_tick(0.016)
+	assert_eq(
+		detection.last_detected_player_entity_id,
+		rabbit_b_entity.get_entity_id(),
+		"Detector should switch when candidate is well inside enter radius and meaningfully closer."
+	)

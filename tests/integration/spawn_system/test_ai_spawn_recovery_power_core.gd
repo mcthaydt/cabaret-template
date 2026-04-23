@@ -78,7 +78,9 @@ func test_patrol_drone_recovers_to_ai_spawn_point_when_support_is_lost() -> void
 	if movement.settings != null:
 		movement.settings.support_grace_time = 0.0
 	floating.reset_recent_support(now, 5.0)
-	brain.task_state = {"ai_move_target": Vector3(6.0, 1.0, -6.0)}
+	brain.bt_state_bag = {
+		101: {"ai_move_target": Vector3(6.0, 1.0, -6.0)},
+	}
 	var recovery_settings: Resource = spawn_recovery.settings
 	assert_not_null(recovery_settings, "Expected patrol drone spawn recovery settings")
 	if recovery_settings == null:
@@ -99,4 +101,4 @@ func test_patrol_drone_recovers_to_ai_spawn_point_when_support_is_lost() -> void
 	assert_almost_eq(entity.global_position.z, spawn_point.global_position.z, 0.2)
 	assert_eq(input_component.move_vector, Vector2.ZERO, "Recovery should clear AI input vector")
 	assert_eq(body.velocity, Vector3.ZERO, "Recovery should zero patrol drone velocity")
-	assert_eq(brain.task_state, {}, "Recovery should clear AI task state to avoid stale move targets")
+	assert_eq(brain.bt_state_bag, {}, "Recovery should clear AI BT runtime state to avoid stale move targets")

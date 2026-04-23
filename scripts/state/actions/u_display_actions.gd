@@ -24,7 +24,7 @@ const ACTION_SET_DITHER_PATTERN := StringName("display/set_dither_pattern")
 
 # Scanlines
 const ACTION_SET_SCANLINES_ENABLED := StringName("display/set_scanlines_enabled")
-const ACTION_SET_SCANLINE_INTENSITY := StringName("display/set_scanline_intensity")
+const ACTION_SET_LINE_MASK_INTENSITY := StringName("display/set_line_mask_intensity")
 const ACTION_SET_SCANLINE_COUNT := StringName("display/set_scanline_count")
 
 # UI
@@ -48,7 +48,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_PATTERN)
 	U_ActionRegistry.register_action(ACTION_SET_SCANLINES_ENABLED)
-	U_ActionRegistry.register_action(ACTION_SET_SCANLINE_INTENSITY)
+	U_ActionRegistry.register_action(ACTION_SET_LINE_MASK_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_SCANLINE_COUNT)
 	U_ActionRegistry.register_action(ACTION_SET_UI_SCALE)
 	U_ActionRegistry.register_action(ACTION_SET_COLOR_BLIND_MODE)
@@ -141,9 +141,9 @@ static func set_scanlines_enabled(enabled: bool) -> Dictionary:
 		"immediate": true,
 	}
 
-static func set_scanline_intensity(intensity: float) -> Dictionary:
+static func set_line_mask_intensity(intensity: float) -> Dictionary:
 	return {
-		"type": ACTION_SET_SCANLINE_INTENSITY,
+		"type": ACTION_SET_LINE_MASK_INTENSITY,
 		"payload": {"intensity": intensity},
 		"immediate": true,
 	}

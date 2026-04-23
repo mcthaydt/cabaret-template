@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cbrb8fjoucl46"]
 
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://scenes/templates/tmpl_character.tscn" id="1_character"]
 [ext_resource type="Resource" uid="uid://c8xwp1m7qnkh2" path="res://resources/ai/woods/builder/cfg_builder_brain.tres" id="2_builder_brain"]
@@ -27,7 +27,7 @@ tags = Array[StringName]([&"ai", &"woods", &"builder"])
 transform = Transform3D(0.6, 0, 0, 0, 1.8, 0, 0, 0, 0.5, 0, 1, 0)
 material = SubResource("StandardMaterial3D_builder")
 
-[node name="C_MovementComponent" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="2" unique_id=511234569]
+[node name="C_MovementComponent" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="2" unique_id=1558546231]
 settings = ExtResource("4_movement")
 
 [node name="C_InputComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="9" unique_id=511234570]
@@ -35,9 +35,9 @@ script = ExtResource("6_input")
 
 [node name="C_DetectionComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="10" unique_id=511234571]
 script = ExtResource("8_detection")
-target_tag = &"predator"
 detection_radius = 10.0
 detection_exit_radius = 15.0
+target_tag = &"predator"
 
 [node name="C_MoveTargetComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="11" unique_id=511234572]
 script = ExtResource("9_move_target")
@@ -54,4 +54,4 @@ settings = ExtResource("3_needs_builder")
 script = ExtResource("11_inventory")
 settings = ExtResource("5_inventory")
 
-[node name="DebugWoodsAgentLabel" parent="." unique_id=511234576 instance=ExtResource("12_debug_label")]
+[node name="DebugWoodsAgentLabel" parent="." index="2" unique_id=511234576 instance=ExtResource("12_debug_label")]

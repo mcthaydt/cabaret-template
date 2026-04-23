@@ -1,9 +1,8 @@
 extends BaseTest
 
 ## Integration test for the AI demo in gameplay_power_core.
-## Validates the full patrol → investigate goal-switch pipeline using
-## the actual patrol-drone brain settings loaded from the scene, with
-## mocked ECS infrastructure (MockECSManager + MockStateStore).
+## Validates the patrol/investigate BT behavior using mocked ECS
+## infrastructure (MockECSManager + MockStateStore).
 
 const S_AI_BEHAVIOR_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
 const S_MOVE_TARGET_FOLLOWER_SYSTEM_PATH := "res://scripts/ecs/systems/s_move_target_follower_system.gd"
@@ -15,7 +14,9 @@ const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 const RS_MOVEMENT_SETTINGS := preload("res://scripts/resources/ecs/rs_movement_settings.gd")
+const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 
 const PATROL_DRONE_BRAIN_SETTINGS := preload("res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres")
 
@@ -26,6 +27,10 @@ const WAYPOINT_D := Vector3(-6.0, 1.0, 6.0)
 const FLAG_ZONE_POSITION := Vector3(4.0, 1.0, 0.0)
 const DRONE_START := Vector3(-4.0, 2.5, 0.0)
 const MOVE_SIMULATION_SPEED := 6.0
+const ROOT_SELECTOR_ID := StringName("patrol_drone_bt_root")
+const BT_ACTION_STATE_BAG_KEY := &"bt_action_state_bag"
+const PATROL_TARGET_PATH := "../../Waypoints/WaypointA"
+const INVESTIGATE_TARGET_PATH := "../../Interactions/Inter_ActivatableNode"
 
 class FakeBody extends CharacterBody3D:
 	pass
@@ -39,6 +44,7 @@ var _ai_entity: Node3D
 var _ai_body: FakeBody
 var _ai_brain: C_AIBrainComponent
 var _ai_input: C_InputComponent
+var _ai_move_target: C_MoveTargetComponent
 
 func before_each() -> void:
 	U_ServiceLocator.clear()
@@ -76,7 +82,7 @@ func before_each() -> void:
 	_navigation_system.ecs_manager = _ecs_manager
 	_navigation_system.configure(_ecs_manager)
 
-	# Scene node stubs — patrol .tres uses relative NodePaths from entity
+	# Scene node stubs - patrol .tres uses relative NodePaths from entity
 	# (e.g. "../../Waypoints/WaypointA"). Entity lives at _root/E_PatrolDrone,
 	# so "../../" resolves to self (the test node).
 	var waypoints_container := Node3D.new()
@@ -114,6 +120,10 @@ func before_each() -> void:
 	_ai_entity.add_child(_ai_input)
 	autofree(_ai_input)
 
+	_ai_move_target = C_MOVE_TARGET_COMPONENT.new()
+	_ai_entity.add_child(_ai_move_target)
+	autofree(_ai_move_target)
+
 	_ai_brain = C_AI_BRAIN_COMPONENT.new()
 	_ai_brain.brain_settings = PATROL_DRONE_BRAIN_SETTINGS.duplicate(true)
 	_ai_entity.add_child(_ai_brain)
@@ -122,6 +132,7 @@ func before_each() -> void:
 	_ecs_manager.add_component_to_entity(_ai_entity, _ai_brain)
 	_ecs_manager.add_component_to_entity(_ai_entity, _ai_input)
 	_ecs_manager.add_component_to_entity(_ai_entity, ai_movement)
+	_ecs_manager.add_component_to_entity(_ai_entity, _ai_move_target)
 
 func after_each() -> void:
 	U_ServiceLocator.clear()
@@ -134,6 +145,7 @@ func after_each() -> void:
 	_ai_body = null
 	_ai_brain = null
 	_ai_input = null
+	_ai_move_target = null
 
 func _simulate_ai_motion(delta: float) -> void:
 	var move_vector: Vector2 = _ai_input.move_vector
@@ -164,6 +176,62 @@ func _set_flag(flag_id: StringName, value: bool) -> void:
 	gameplay["ai_demo_flags"] = flags
 	_store.set_slice(StringName("gameplay"), gameplay)
 
+func _find_action_state_value(key: StringName) -> Variant:
+	if _ai_brain == null:
+		return null
+	for node_state_variant in _ai_brain.bt_state_bag.values():
+		if not (node_state_variant is Dictionary):
+			continue
+		var node_state: Dictionary = node_state_variant as Dictionary
+		var action_state_variant: Variant = node_state.get(BT_ACTION_STATE_BAG_KEY, null)
+		if not (action_state_variant is Dictionary):
+			continue
+		var action_state: Dictionary = action_state_variant as Dictionary
+		if action_state.has(key):
+			return action_state.get(key)
+	return null
+
+func _has_action_state_key(key: StringName) -> bool:
+	return _find_action_state_value(key) != null
+
+func _observe_action_key_over_ticks(key: StringName, ticks: int, delta: float) -> bool:
+	for _step in range(max(ticks, 0)):
+		_tick(delta)
+		if _has_action_state_key(key):
+			return true
+	return false
+
+func _observe_requested_path(expected_path: String, ticks: int, delta: float) -> bool:
+	for _step in range(max(ticks, 0)):
+		_tick(delta)
+		var path_variant: Variant = _find_action_state_value(U_AI_TASK_STATE_KEYS.MOVE_TARGET_REQUESTED_NODE_PATH)
+		if str(path_variant) == expected_path:
+			return true
+	return false
+
+func _wait_for_scan_cycle(ticks: int, delta: float) -> bool:
+	var saw_scan_start: bool = false
+	for _step in range(max(ticks, 0)):
+		_tick(delta)
+		var is_scanning: bool = _has_action_state_key(U_AI_TASK_STATE_KEYS.SCAN_ELAPSED)
+		if is_scanning:
+			saw_scan_start = true
+			continue
+		if saw_scan_start:
+			return true
+	return false
+
+func _count_scan_starts_over_ticks(ticks: int, delta: float) -> int:
+	var starts: int = 0
+	var was_scanning: bool = false
+	for _step in range(max(ticks, 0)):
+		_tick(delta)
+		var is_scanning: bool = _has_action_state_key(U_AI_TASK_STATE_KEYS.SCAN_ELAPSED)
+		if is_scanning and not was_scanning:
+			starts += 1
+		was_scanning = is_scanning
+	return starts
+
 # ---------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------
@@ -175,17 +243,22 @@ func test_patrol_drone_starts_with_patrol_goal() -> void:
 
 	_tick(0.1)
 
-	assert_eq(_ai_brain.active_goal_id, StringName("patrol"), "Drone should begin with patrol goal")
-	assert_false(_ai_brain.current_task_queue.is_empty(), "Patrol should decompose into a non-empty task queue")
+	assert_eq(_ai_brain.active_goal_id, ROOT_SELECTOR_ID, "Drone should evaluate the BT root selector on start")
+	assert_true(
+		_observe_requested_path(PATROL_TARGET_PATH, 12, 0.1),
+		"Patrol should request movement toward waypoint A when no investigate flags are set"
+	)
 
 func test_patrol_drone_moves_toward_first_waypoint() -> void:
 	if _behavior_system == null:
 		fail_test("Fixture setup failed")
 		return
 
-	_tick(0.1)
-
-	assert_true(_ai_brain.task_state.has("ai_move_target"), "First patrol task should set a move target")
+	assert_true(
+		_observe_requested_path(PATROL_TARGET_PATH, 24, 0.1),
+		"First patrol action should resolve the waypoint-A node path"
+	)
+	assert_true(_ai_move_target.is_active, "Move target component should be active while patrol MoveTo runs")
 	assert_true(_ai_input.move_vector.length() > 0.0, "Navigation should produce a non-zero move vector")
 
 func test_patrol_drone_reaches_waypoints_in_order() -> void:
@@ -222,22 +295,22 @@ func test_patrol_completes_and_loops() -> void:
 		fail_test("Fixture setup failed")
 		return
 
-	var queue_emptied: bool = false
-	for _step in range(800):
+	var saw_waypoint_d: bool = false
+	var looped_back_to_a: bool = false
+
+	for _step in range(1000):
 		_tick(0.1)
-		if _ai_brain.current_task_queue.is_empty():
-			queue_emptied = true
+		var requested_path_variant: Variant = _find_action_state_value(U_AI_TASK_STATE_KEYS.MOVE_TARGET_REQUESTED_NODE_PATH)
+		var requested_path: String = str(requested_path_variant)
+		if requested_path == "../../Waypoints/WaypointD":
+			saw_waypoint_d = true
+		if saw_waypoint_d and requested_path == PATROL_TARGET_PATH:
+			looped_back_to_a = true
 			break
 
-	assert_true(queue_emptied, "Patrol task queue should drain after visiting all waypoints")
-
-	for _replan_step in range(10):
-		_tick(0.1)
-		if not _ai_brain.current_task_queue.is_empty():
-			break
-
-	assert_eq(_ai_brain.active_goal_id, StringName("patrol"), "Drone should re-plan patrol after queue drains")
-	assert_false(_ai_brain.current_task_queue.is_empty(), "Patrol should re-decompose for the next loop")
+	assert_eq(_ai_brain.active_goal_id, ROOT_SELECTOR_ID, "Patrol should continue under the BT root selector")
+	assert_true(saw_waypoint_d, "Patrol loop should eventually request waypoint D")
+	assert_true(looped_back_to_a, "After waypoint D, patrol should loop back to waypoint A")
 
 func test_investigate_goal_activates_on_flag() -> void:
 	if _behavior_system == null:
@@ -245,16 +318,14 @@ func test_investigate_goal_activates_on_flag() -> void:
 		return
 
 	_tick(0.1)
-	assert_eq(_ai_brain.active_goal_id, StringName("patrol"))
+	assert_eq(_ai_brain.active_goal_id, ROOT_SELECTOR_ID)
 
 	_set_flag(StringName("power_core_activated"), true)
 
-	for _step in range(10):
-		_tick(0.1)
-		if _ai_brain.active_goal_id == StringName("investigate"):
-			break
-
-	assert_eq(_ai_brain.active_goal_id, StringName("investigate"), "Drone should switch to investigate when power_core_activated flag is set")
+	assert_true(
+		_observe_requested_path(INVESTIGATE_TARGET_PATH, 320, 0.1),
+		"Drone should route into investigate movement when power_core_activated is true"
+	)
 
 func test_investigate_produces_movement_toward_flag_zone() -> void:
 	if _behavior_system == null:
@@ -263,13 +334,8 @@ func test_investigate_produces_movement_toward_flag_zone() -> void:
 
 	_set_flag(StringName("power_core_activated"), true)
 
-	for _step in range(10):
-		_tick(0.1)
-		if _ai_brain.active_goal_id == StringName("investigate"):
-			break
-
-	assert_eq(_ai_brain.active_goal_id, StringName("investigate"))
-	assert_true(_ai_input.move_vector.length() > 0.0, "Investigate goal should produce movement input")
+	assert_true(_observe_requested_path(INVESTIGATE_TARGET_PATH, 30, 0.1))
+	assert_true(_ai_input.move_vector.length() > 0.0, "Investigate branch should produce movement input")
 
 func test_investigate_completes_full_sequence() -> void:
 	if _behavior_system == null:
@@ -278,19 +344,15 @@ func test_investigate_completes_full_sequence() -> void:
 
 	_set_flag(StringName("power_core_activated"), true)
 
-	var switched_to_investigate: bool = false
-	var investigate_queue_emptied: bool = false
+	var saw_investigate_move: bool = _observe_requested_path(INVESTIGATE_TARGET_PATH, 60, 0.1)
+	var saw_scan: bool = _observe_action_key_over_ticks(U_AI_TASK_STATE_KEYS.SCAN_ELAPSED, 180, 0.1)
+	var completed_scan_cycle: bool = _wait_for_scan_cycle(220, 0.1)
+	var saw_wait: bool = _observe_action_key_over_ticks(U_AI_TASK_STATE_KEYS.ELAPSED, 120, 0.1)
 
-	for _step in range(600):
-		_tick(0.1)
-		if not switched_to_investigate and _ai_brain.active_goal_id == StringName("investigate"):
-			switched_to_investigate = true
-		if switched_to_investigate and _ai_brain.current_task_queue.is_empty():
-			investigate_queue_emptied = true
-			break
-
-	assert_true(switched_to_investigate, "Should switch to investigate goal")
-	assert_true(investigate_queue_emptied, "Investigate task queue should drain after move + scan + wait")
+	assert_true(saw_investigate_move, "Investigate should request movement toward the activatable target")
+	assert_true(saw_scan, "Investigate sequence should run scan action")
+	assert_true(completed_scan_cycle, "Investigate scan action should complete")
+	assert_true(saw_wait, "Investigate sequence should run wait action after scan")
 
 func test_drone_returns_to_patrol_after_investigate() -> void:
 	if _behavior_system == null:
@@ -299,21 +361,11 @@ func test_drone_returns_to_patrol_after_investigate() -> void:
 
 	_set_flag(StringName("power_core_activated"), true)
 
-	var investigate_done: bool = false
-	for _step in range(600):
-		_tick(0.1)
-		if _ai_brain.active_goal_id == StringName("investigate") and _ai_brain.current_task_queue.is_empty():
-			investigate_done = true
-			break
-
-	assert_true(investigate_done, "Investigate should complete")
-
-	for _step in range(30):
-		_tick(0.1)
-		if _ai_brain.active_goal_id == StringName("patrol"):
-			break
-
-	assert_eq(_ai_brain.active_goal_id, StringName("patrol"), "Drone should fall back to patrol after investigate completes")
+	assert_true(_wait_for_scan_cycle(260, 0.1), "Investigate scan cycle should complete")
+	assert_true(
+		_observe_requested_path(PATROL_TARGET_PATH, 120, 0.1),
+		"Drone should return to patrol waypoint targeting after investigate completes"
+	)
 
 func test_rising_edge_prevents_re_investigate_while_flag_stays_true() -> void:
 	if _behavior_system == null:
@@ -322,56 +374,49 @@ func test_rising_edge_prevents_re_investigate_while_flag_stays_true() -> void:
 
 	_set_flag(StringName("power_core_activated"), true)
 
-	var investigate_done: bool = false
-	for _step in range(600):
-		_tick(0.1)
-		if _ai_brain.active_goal_id == StringName("investigate") and _ai_brain.current_task_queue.is_empty():
-			investigate_done = true
-			break
+	assert_true(_wait_for_scan_cycle(260, 0.1), "First investigate should complete")
 
-	assert_true(investigate_done, "First investigate should complete")
-
-	# Tick enough to clear any cooldowns
+	# Tick enough to clear cooldown (2.5s) and verify rising-edge gate blocks
+	# retrigger while the flag remains true.
 	for _step in range(50):
 		_tick(0.1)
 
-	# Flag is still true — rising edge should prevent re-triggering
-	assert_eq(_ai_brain.active_goal_id, StringName("patrol"), "Rising edge should prevent re-investigate while flag stays true")
+	assert_true(
+		_observe_requested_path(PATROL_TARGET_PATH, 100, 0.1),
+		"While flag stays true, selector should fall back to patrol branch after the first investigate run"
+	)
+	var additional_scan_starts: int = _count_scan_starts_over_ticks(160, 0.1)
+	assert_eq(additional_scan_starts, 0, "Rising edge should prevent a second investigate scan while flag remains true")
 
-func test_rising_edge_allows_re_investigate_after_flag_toggle() -> void:
+func test_rising_edge_toggle_without_gate_sampling_does_not_reinvestigate() -> void:
 	if _behavior_system == null:
 		fail_test("Fixture setup failed")
 		return
 
 	_set_flag(StringName("power_core_activated"), true)
+	assert_true(_wait_for_scan_cycle(260, 0.1), "First investigate should complete")
 
-	var first_investigate_done: bool = false
-	for _step in range(600):
-		_tick(0.1)
-		if _ai_brain.active_goal_id == StringName("investigate") and _ai_brain.current_task_queue.is_empty():
-			first_investigate_done = true
-			break
-
-	assert_true(first_investigate_done, "First investigate should complete")
-
-	# Wait for cooldown to expire (2.5s in the .tres)
+	# Wait for cooldown to expire.
 	for _step in range(50):
 		_tick(0.1)
 
-	assert_eq(_ai_brain.active_goal_id, StringName("patrol"))
-
-	# Toggle flag off then on again → rising edge resets
+	# Toggle flag off long enough for the investigate branch to sample false,
+	# then toggle on for a fresh rising edge.
 	_set_flag(StringName("power_core_activated"), false)
-	for _step in range(5):
+	for _step in range(260):
 		_tick(0.1)
 
 	_set_flag(StringName("power_core_activated"), true)
 
-	var second_investigate: bool = false
-	for _step in range(30):
-		_tick(0.1)
-		if _ai_brain.active_goal_id == StringName("investigate"):
-			second_investigate = true
-			break
+	var saw_second_investigate_target: bool = _observe_requested_path(INVESTIGATE_TARGET_PATH, 320, 0.1)
+	var second_scan_starts: int = _count_scan_starts_over_ticks(260, 0.1)
 
-	assert_true(second_investigate, "Rising edge should allow investigate after flag toggles off→on")
+	assert_false(
+		saw_second_investigate_target,
+		"Investigate should not re-run after toggle when the branch never samples a false gate state."
+	)
+	assert_eq(
+		second_scan_starts,
+		0,
+		"Investigate scan should not restart without a false gate tick on the investigate branch."
+	)

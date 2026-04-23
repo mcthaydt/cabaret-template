@@ -70,9 +70,9 @@ static func is_scanlines_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)
 	return bool(display.get("scanlines_enabled", false))
 
-static func get_scanline_intensity(state: Dictionary) -> float:
+static func get_line_mask_intensity(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
-	return float(display.get("scanline_intensity", 0.0))
+	return float(display.get("line_mask_intensity", 0.0))
 
 static func get_scanline_count(state: Dictionary) -> float:
 	var display := _get_display_slice(state)

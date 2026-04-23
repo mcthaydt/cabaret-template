@@ -421,6 +421,99 @@ func test_flee_from_detected_clamps_target_to_home_radius_when_enabled() -> void
 	if target_variant is Vector3:
 		_assert_vector3_almost_eq(target_variant as Vector3, Vector3(-10.0, 0.0, 0.0))
 
+func test_flee_from_detected_pinned_at_home_boundary_stays_active_while_threat_persists() -> void:
+	var action_script: Script = _load_script(ACTION_FLEE_FROM_DETECTED_PATH)
+	if action_script == null:
+		return
+	var action: Resource = action_script.new()
+	action.set("flee_distance", 20.0)
+	action.set("arrival_threshold", 0.5)
+	action.set("clamp_to_home_radius", true)
+	action.set("home_radius", 10.0)
+	var ecs_manager: MockECSManager = MOCK_ECS_MANAGER.new()
+	autofree(ecs_manager)
+	var actor := Node3D.new()
+	actor.name = "E_Rabbit"
+	add_child_autofree(actor)
+	actor.global_position = Vector3(-10.0, 0.0, 0.0)
+	actor.set_meta(&"ai_home_anchor", Vector3.ZERO)
+	var actor_stack: Dictionary = _add_movement_stack(actor, Vector3(-10.0, 0.0, 0.0))
+	var threat := Node3D.new()
+	threat.name = "E_Wolf"
+	add_child_autofree(threat)
+	threat.global_position = Vector3.ZERO
+	_add_movement_stack(threat, Vector3(0.0, 0.0, 0.0))
+	ecs_manager.register_entity_id(&"wolf", threat)
+	var detection: C_DetectionComponent = C_DETECTION_COMPONENT.new()
+	detection.last_detected_player_entity_id = &"wolf"
+	detection.is_player_in_range = true
+	autofree(detection)
+	var move_target_component: Variant = _new_move_target_component()
+	autofree(move_target_component)
+	var context: Dictionary = {
+		"entity": actor,
+		"ecs_manager": ecs_manager,
+		"components": {
+			C_MOVEMENT_COMPONENT.COMPONENT_TYPE: actor_stack.get("movement"),
+			C_DETECTION_COMPONENT.COMPONENT_TYPE: detection,
+			C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE: move_target_component,
+		},
+	}
+	var task_state: Dictionary = {}
+	action.start(context, task_state)
+	var target_variant: Variant = task_state.get(U_AITaskStateKeys.MOVE_TARGET, null)
+	assert_true(target_variant is Vector3)
+	if target_variant is Vector3:
+		_assert_vector3_almost_eq(target_variant as Vector3, Vector3(-10.0, 0.0, 0.0))
+	assert_false(
+		action.is_complete(context, task_state),
+		"Pinned flee targets should hold active while threat remains detected instead of instant complete/restart loops."
+	)
+
+func test_flee_from_detected_pinned_hold_releases_when_detection_clears() -> void:
+	var action_script: Script = _load_script(ACTION_FLEE_FROM_DETECTED_PATH)
+	if action_script == null:
+		return
+	var action: Resource = action_script.new()
+	action.set("flee_distance", 20.0)
+	action.set("arrival_threshold", 0.5)
+	action.set("clamp_to_home_radius", true)
+	action.set("home_radius", 10.0)
+	var ecs_manager: MockECSManager = MOCK_ECS_MANAGER.new()
+	autofree(ecs_manager)
+	var actor := Node3D.new()
+	actor.name = "E_Rabbit"
+	add_child_autofree(actor)
+	actor.global_position = Vector3(-10.0, 0.0, 0.0)
+	actor.set_meta(&"ai_home_anchor", Vector3.ZERO)
+	var actor_stack: Dictionary = _add_movement_stack(actor, Vector3(-10.0, 0.0, 0.0))
+	var threat := Node3D.new()
+	threat.name = "E_Wolf"
+	add_child_autofree(threat)
+	threat.global_position = Vector3.ZERO
+	_add_movement_stack(threat, Vector3(0.0, 0.0, 0.0))
+	ecs_manager.register_entity_id(&"wolf", threat)
+	var detection: C_DetectionComponent = C_DETECTION_COMPONENT.new()
+	detection.last_detected_player_entity_id = &"wolf"
+	detection.is_player_in_range = true
+	autofree(detection)
+	var move_target_component: Variant = _new_move_target_component()
+	autofree(move_target_component)
+	var context: Dictionary = {
+		"entity": actor,
+		"ecs_manager": ecs_manager,
+		"components": {
+			C_MOVEMENT_COMPONENT.COMPONENT_TYPE: actor_stack.get("movement"),
+			C_DETECTION_COMPONENT.COMPONENT_TYPE: detection,
+			C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE: move_target_component,
+		},
+	}
+	var task_state: Dictionary = {}
+	action.start(context, task_state)
+	assert_false(action.is_complete(context, task_state), "Pinned flee should stay active while threat is still detected.")
+	detection.is_player_in_range = false
+	assert_true(action.is_complete(context, task_state), "Pinned flee hold should complete once detection exits.")
+
 func test_move_to_detected_tracks_target_body_position() -> void:
 	var action_script: Script = _load_script(ACTION_MOVE_TO_DETECTED_PATH)
 	if action_script == null:

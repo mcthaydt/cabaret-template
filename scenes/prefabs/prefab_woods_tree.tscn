@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dnycfwtjofqrr"]
 
 [ext_resource type="Script" uid="uid://baxnd8bwmxc1f" path="res://scripts/ecs/components/c_resource_node_component.gd" id="1_resource_node"]
-[ext_resource type="Resource" path="res://resources/base_settings/ai_woods/cfg_resource_node_wood.tres" id="2_wood_settings"]
+[ext_resource type="Resource" uid="uid://bmh7c6x66wfxv" path="res://resources/base_settings/ai_woods/cfg_resource_node_wood.tres" id="2_wood_settings"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_trunk"]
 shading_mode = 0

@@ -79,16 +79,16 @@ func test_presets_expose_scanline_fields() -> void:
 	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
 	var heavy := U_PostProcessingPresetValues.get_preset_values("heavy")
 
-	assert_true(light.has("scanline_intensity"), "light should expose scanline_intensity")
-	assert_true(medium.has("scanline_intensity"), "medium should expose scanline_intensity")
-	assert_true(heavy.has("scanline_intensity"), "heavy should expose scanline_intensity")
+	assert_true(light.has("line_mask_intensity"), "light should expose line_mask_intensity")
+	assert_true(medium.has("line_mask_intensity"), "medium should expose line_mask_intensity")
+	assert_true(heavy.has("line_mask_intensity"), "heavy should expose line_mask_intensity")
 
-	assert_almost_eq(float(light.get("scanline_intensity")), 0.0, 0.0001,
-		"light scanline_intensity should be 0 (off)")
-	assert_true(float(medium.get("scanline_intensity")) > 0.0,
-		"medium scanline_intensity should be positive")
-	assert_true(float(heavy.get("scanline_intensity")) > 0.0,
-		"heavy scanline_intensity should be positive")
+	assert_almost_eq(float(light.get("line_mask_intensity")), 0.0, 0.0001,
+		"light line_mask_intensity should be 0 (off)")
+	assert_true(float(medium.get("line_mask_intensity")) > 0.0,
+		"medium line_mask_intensity should be positive")
+	assert_true(float(heavy.get("line_mask_intensity")) > 0.0,
+		"heavy line_mask_intensity should be positive")
 
 func test_medium_preset_scanline_count_matches_resource() -> void:
 	var medium := U_PostProcessingPresetValues.get_preset_values("medium")

@@ -39,7 +39,7 @@ static func get_default_display_state() -> Dictionary:
 	var preset_values := U_PostProcessingPresetValues.get_preset_values(preset)
 	state["film_grain_intensity"] = preset_values.get("film_grain_intensity", 0.2)
 	state["dither_intensity"] = preset_values.get("dither_intensity", 1.0)
-	state["scanline_intensity"] = preset_values.get("scanline_intensity", 0.0)
+	state["line_mask_intensity"] = preset_values.get("line_mask_intensity", 0.0)
 	state["scanline_count"] = preset_values.get("scanline_count", 480.0)
 	return state
 
@@ -90,7 +90,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 				"post_processing_preset": preset,
 				"film_grain_intensity": preset_values.get("film_grain_intensity", current.get("film_grain_intensity", 0.1)),
 				"dither_intensity": preset_values.get("dither_intensity", current.get("dither_intensity", 0.5)),
-				"scanline_intensity": preset_values.get("scanline_intensity", current.get("scanline_intensity", 0.0)),
+				"line_mask_intensity": preset_values.get("line_mask_intensity", current.get("line_mask_intensity", 0.0)),
 				"scanline_count": preset_values.get("scanline_count", current.get("scanline_count", 480.0)),
 			})
 
@@ -156,11 +156,11 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var enabled := bool(payload.get("enabled", false))
 			return _with_values(current, {"scanlines_enabled": enabled})
 
-		U_DisplayActions.ACTION_SET_SCANLINE_INTENSITY:
+		U_DisplayActions.ACTION_SET_LINE_MASK_INTENSITY:
 			var payload: Dictionary = action.get("payload", {})
 			var raw_intensity: float = float(payload.get("intensity", 0.35))
 			var clamped_intensity := clampf(raw_intensity, MIN_INTENSITY, MAX_INTENSITY)
-			return _with_values(current, {"scanline_intensity": clamped_intensity})
+			return _with_values(current, {"line_mask_intensity": clamped_intensity})
 
 		U_DisplayActions.ACTION_SET_SCANLINE_COUNT:
 			var payload: Dictionary = action.get("payload", {})

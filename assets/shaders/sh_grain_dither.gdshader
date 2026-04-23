@@ -10,7 +10,7 @@ uniform int dither_enabled : hint_range(0, 1) = 0;
 uniform int scanlines_enabled : hint_range(0, 1) = 0;
 
 // --- Scanline uniforms ---
-uniform float scanline_intensity : hint_range(0.0, 1.0) = 0.35;
+uniform float line_mask_intensity : hint_range(0.0, 1.0) = 0.35;
 uniform float scanline_count     : hint_range(60.0, 1080.0) = 480.0;
 
 // --- Film grain uniforms ---
@@ -79,7 +79,7 @@ vec3 _apply_dither(vec3 color, vec2 uv, vec2 pixel_size) {
 
 vec3 _apply_scanlines(vec3 color, vec2 uv) {
 	float s = 0.5 + 0.5 * cos(uv.y * scanline_count * 6.2831853);
-	float mask = mix(1.0, s, scanline_intensity);
+	float mask = mix(1.0, s, line_mask_intensity);
 	return color * mask;
 }
 

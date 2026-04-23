@@ -33,7 +33,7 @@ static func get_preset_values(preset: String) -> Dictionary:
 	return {
 		"film_grain_intensity": preset_resource.film_grain_intensity,
 		"dither_intensity": preset_resource.dither_intensity,
-		"scanline_intensity": preset_resource.scanline_intensity,
+		"line_mask_intensity": preset_resource.line_mask_intensity,
 		"scanline_count": preset_resource.scanline_count,
 	}
 
