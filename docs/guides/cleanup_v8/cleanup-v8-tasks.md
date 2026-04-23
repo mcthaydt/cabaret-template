@@ -758,7 +758,9 @@ Completed 2026-04-23. This milestone reshaped the docs tree before AGENTS/DEV_PI
 
 ## Milestone P3.1: Inventory
 
-- [ ] **Commit 1** — `docs/guides/cleanup_v8/docs_inventory.md` (path reflects P3.0 rename): section-by-section table of contents for both files with proposed new home for each section.
+- [x] **Commit 1** — `docs/guides/cleanup_v8/docs_inventory.md` (path reflects P3.0 rename): section-by-section table of contents for both files with proposed new home for each section.
+  - 44 DEV_PITFALLS sections + 19 AGENTS sections mapped to destinations with actions (move/merge/collapse/drop).
+  - 16 new destination files identified; 13 existing files receive content; 29-commit migration sequence documented.
 
 ## Milestone P3.2: Target Structure (Proposed — Adjust in P3.1)
 
