@@ -5,8 +5,8 @@
 Implements `docs/general/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through). The Woods smoke now passes `4/4` headless, including Builder harvest + build-site stage 0 -> 1 progression and stable Builder/Wolf/Rabbit authoring checks.
-**Next Task**: Run the optional GUI/manual woods parity gate if visual confirmation is needed, then proceed to P1.10 legacy deletion. Keep the known unrelated style failure (`test_no_crt_identifiers_in_display_scripts`) out of the Woods scope unless explicitly prioritizing display cleanup.
+**Status**: Phase 1 in progress. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup implemented in working tree (2026-04-22). AI-unit regression slice now passes `928/928` and the AI-focused integration trio remains `20/20`.
+**Next Task**: Begin Phase 2 (debug/perf extraction) once P1.10 docs-commit hygiene lands. Keep known unrelated failures out of scope for this phase handoff (`test_no_crt_identifiers_in_display_scripts`, display scanline integration, endgame reset assertion, woods smoke audio-bus environment failures).
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -146,8 +146,12 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` fails `test_ai_behavior_system_stays_under_two_hundred_lines` (`248` > `199`).
     - Current style check after P1.9 Commit 6 still reports the same pre-existing unrelated failure:
       - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` fails `test_ai_behavior_system_stays_under_two_hundred_lines` (`248` > `199`).
-    - Current full-suite check after P1.9 Commit 5 reports expected pre-P1.10 migration fallout (`4481` passing / `98` failing / `8` pending).
-    - Legacy consumer fallout is expected pre-P1.10 (`tests/unit/ecs/components/test_c_ai_brain_component.gd`, `tests/unit/ai/resources/test_rs_ai_goal.gd`, and GOAP-era AI integration suites still target removed goal/task contracts or pre-migration brain resources).
+    - Historical note (pre-P1.10): full-suite check after P1.9 Commit 5 reported expected migration fallout (`4481` passing / `98` failing / `8` pending).
+    - Historical note (pre-P1.10): legacy consumer fallout centered on GOAP-era tests/resources (`tests/unit/ecs/components/test_c_ai_brain_component.gd`, `tests/unit/ai/resources/test_rs_ai_goal.gd`, GOAP integration suites).
+    - Latest P1.10 follow-through verification (2026-04-22):
+      - `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -gdir=res://tests/unit/ecs/components -gdir=res://tests/unit/ecs/systems -gdir=res://tests/unit/debug -ginclude_subdirs=true` passes (`928/928`).
+      - AI-focused integration trio from `ai_unit_integration_20260422_203326.log` passes (`20/20`): `test_ai_interaction_triggers.gd`, `test_ai_demo_power_core.gd`, `test_ai_spawn_recovery_power_core.gd`.
+      - `test_style_enforcement.gd` now fails only the pre-existing unrelated CRT identifier rule (`63/64`).
     - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
 - **Phase 2**: NOT STARTED. 4 milestones.
 - **Phase 3**: NOT STARTED. 3 milestones.

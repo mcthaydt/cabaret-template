@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through).
+**Status**: Phase 1 in progress — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup implemented in working tree (2026-04-22).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -613,25 +613,37 @@ Archetypes: **Builder** (primary; gather→haul→build loop), **Wolf** (threat;
 
 Only after P1.9 is green and the demo scene has been manually verified.
 
-- [ ] **Commit 1** (GREEN) — Delete scripts:
+- [x] **Commit 1** (GREEN) — Delete scripts:
   - `scripts/utils/ai/u_htn_planner.gd`
   - `scripts/utils/ai/u_htn_planner_context.gd`
   - `scripts/utils/ai/u_ai_replanner.gd`
   - `scripts/utils/ai/u_ai_goal_selector.gd`
   - `scripts/utils/ai/u_ai_task_runner.gd`
   - `scripts/utils/ai/u_ai_context_builder.gd` (fully replaced by BT context construction in `S_AIBehaviorSystem` per P1.8)
+  - `scripts/utils/ai/u_ai_debug_formatter.gd`
   - `scripts/resources/ai/goals/rs_ai_goal.gd`
   - `scripts/resources/ai/tasks/` (entire dir)
   - Retained: `scripts/utils/ai/u_ai_task_state_keys.gd` (still used by `RS_BTAction` per P1.3 Commit 3; keeps F16 style enforcement intact).
-- [ ] **Commit 2** (GREEN) — Delete legacy tests (`test_u_htn_planner.gd`, `test_u_ai_goal_selector.gd`, `test_u_ai_replanner.gd`, `test_u_ai_task_runner.gd`, `test_u_ai_context_builder.gd`).
-- [ ] **Commit 3** (informational) — QB rule/scorer infra under `scripts/{utils,resources}/qb/` (`U_RuleScorer`, `RS_Rule`, `U_RuleSelector`, `U_RuleStateTracker`, `U_RuleValidator`, `scripts/resources/qb/conditions/`, `scripts/resources/qb/effects/`) is **kept** as the non-AI game-logic rules framework — see P3.5 Commit 12's `conditions_effects_rules.md` recipe. Only the AI-specific consumers are deleted in Commits 1–2. No code action in this commit; noted for clarity so reviewers do not re-open the delete-vs-keep question.
-- [ ] **Commit 4** (GREEN) — Style enforcement grep: `scripts/resources/ai/` contains zero references to `U_HTNPlanner`, `U_AIGoalSelector`, `RS_AIGoal`, `RS_AICompoundTask`, `RS_AIPrimitiveTask`.
+- [x] **Commit 2** (GREEN) — Delete legacy tests (`test_u_htn_planner.gd`, `test_u_ai_goal_selector.gd`, `test_u_ai_replanner.gd`, `test_u_ai_task_runner.gd`, `test_u_ai_context_builder.gd`) plus remaining GOAP-only suites (`test_rs_ai_goal.gd`, `test_rs_ai_task.gd`, `test_s_ai_behavior_system_goals.gd`, `test_s_ai_behavior_system_tasks.gd`).
+- [x] **Commit 3** (informational) — QB rule/scorer infra under `scripts/{utils,resources}/qb/` (`U_RuleScorer`, `RS_Rule`, `U_RuleSelector`, `U_RuleStateTracker`, `U_RuleValidator`, `scripts/resources/qb/conditions/`, `scripts/resources/qb/effects/`) is **kept** as the non-AI game-logic rules framework — see P3.5 Commit 12's `conditions_effects_rules.md` recipe. Only the AI-specific consumers are deleted in Commits 1–2. No code action in this commit; noted for clarity so reviewers do not re-open the delete-vs-keep question.
+- [x] **Commit 4** (GREEN) — Style enforcement grep: `scripts/resources/ai/` contains zero references to `U_HTNPlanner`, `U_AIGoalSelector`, `RS_AIGoal`, `RS_AICompoundTask`, `RS_AIPrimitiveTask`.
 - [ ] **Commit 5** (GREEN) — Update `DEV_PITFALLS.md` / `AGENTS.md` — remove or edit any entries that reference deleted AI planner/goal-selector files, classes, or patterns.
 
 **P1.10 Verification**:
 - [ ] Full test suite green.
 - [ ] LOC delta roughly matches target (~300 net reduction; ~689 removed vs ~400 added).
-- [ ] No dangling imports.
+- [x] No dangling imports.
+
+**P1.10 Completion Notes (2026-04-22)**:
+- Removed GOAP runtime + test surface and migrated remaining AI resource tests to BT contracts.
+- Added deterministic legacy migration fixture at `tests/unit/ai/resources/fixtures/cfg_ai_brain_legacy_goals_fixture.tres` for `test_rs_ai_brain_settings_bt.gd`.
+- Updated style guards after GOAP deletions (`tests/unit/style/test_style_enforcement.gd`) and removed move-target follower GOAP task-state fallback (`scripts/ecs/systems/s_move_target_follower_system.gd` + tests) to keep BT-only runtime paths.
+- Verification:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/ai -gdir=res://tests/unit/ecs/components -gdir=res://tests/unit/ecs/systems -gdir=res://tests/unit/debug -ginclude_subdirs=true` -> `928/928` passing (`0` failing).
+  - Integration trio from `ai_unit_integration_20260422_203326.log` remains green:
+    - `test_ai_interaction_triggers.gd` + `test_ai_demo_power_core.gd` + `test_ai_spawn_recovery_power_core.gd` -> `20/20` passing.
+  - `test_style_enforcement.gd` remains `63/64` with pre-existing unrelated `test_no_crt_identifiers_in_display_scripts`.
+  - Full-suite run still reports unrelated non-P1.10 failures (for example display scanline toggle, scene-manager endgame reset assertion, woods smoke audio-bus/env assertions).
 
 ---
 
