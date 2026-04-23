@@ -10,6 +10,7 @@ class_name U_PerfProbe
 ## No allocation in hot path: integer counters only, no string formatting until flush.
 
 const LOG_PREFIX := "[PERF]"
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 
 var _name: String = ""
 var _enabled: bool = false
@@ -28,13 +29,19 @@ var _last_flush_usec: int = 0
 
 
 ## Create a new probe. If enabled is not explicitly passed, auto-enables on mobile.
-static func create(name: String, enabled: bool = false, flush_interval_sec: float = 2.0) -> RefCounted:
+static func create(name: String, enabled: Variant = null, flush_interval_sec: float = 2.0) -> RefCounted:
 	var probe := new()
 	probe._name = name
-	probe._enabled = enabled
+	probe._enabled = _resolve_enabled(enabled)
 	probe._flush_interval_usec = int(flush_interval_sec * 1_000_000.0)
 	probe._last_flush_usec = Time.get_ticks_usec()
 	return probe
+
+
+static func _resolve_enabled(enabled: Variant) -> bool:
+	if enabled == null:
+		return U_MobilePlatformDetector.is_mobile()
+	return bool(enabled)
 
 
 func start() -> void:
