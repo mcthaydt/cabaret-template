@@ -250,7 +250,7 @@ static func _debug_log(enabled: bool, context: String, message: String) -> void:
 	if not enabled:
 		return
 	var context_text: String = context if not context.is_empty() else "default"
-	print(
+	print_verbose(
 		"[VCAM_OCCLUSION][CollisionDetector][%s] %s" % [
 			context_text,
 			message,
