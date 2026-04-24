@@ -5,8 +5,8 @@
 Implements `docs/guides/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 complete. P1.1–P1.6 complete; P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `a3f4bc33`); P1.9/P1.9b/P1.10 complete. Phase 2 complete through P2.4 (`28702b95`) with style guard green. Phase 3 in progress: P3.0 docs-tree reorg complete; P3.1 inventory complete (`fce9f326`); P3.2 target structure confirmed (`afd151f9`); P3.3 complete through final aggregator cleanup. `AGENTS.md` is now a 57-line routing index and `docs/guides/DEV_PITFALLS.md` has been deleted after redistribution.
-**Next Task**: Milestone P3.4 — add enforcement that `AGENTS.md` stays under the routing-index line cap and that deleted aggregator references do not return in active docs.
+**Status**: Phase 1 complete. P1.1–P1.10 complete. Phase 2 complete through P2.4 (`28702b95`) with style guard green. Phase 3 in progress: P3.0 docs-tree reorg complete; P3.1 inventory complete (`fce9f326`); P3.2 target structure confirmed (`afd151f9`); P3.3 complete through final aggregator cleanup; P3.4 ADR/index/structure enforcement complete; P3.5 recipe framework complete. `AGENTS.md` is now a 58-line routing index and `docs/guides/DEV_PITFALLS.md` has been deleted after redistribution.
+**Next Task**: Milestone P3.6 — archive `docs/guides/cleanup_v8/` into `docs/history/cleanup_v8/` after confirming remaining references.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -157,7 +157,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
       - Full-suite status is now green.
     - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
 - **Phase 2**: COMPLETE through P2.4 (`28702b95`) with style recheck passing (`83/83`).
-- **Phase 3**: IN PROGRESS. P3.0 complete (docs reorg + ADR normalization + path rewrites); P3.1 complete (`fce9f326`, inventory maps 44 DEV_PITFALLS + 19 AGENTS sections); P3.2 complete (`afd151f9`, target structure confirmed with style guard green); P3.3 complete through deletion of the old pitfalls aggregator.
+- **Phase 3**: IN PROGRESS. P3.0 complete (docs reorg + ADR normalization + path rewrites); P3.1 complete (`fce9f326`, inventory maps 44 DEV_PITFALLS + 19 AGENTS sections); P3.2 complete (`afd151f9`, target structure confirmed with style guard green); P3.3 complete; P3.4 complete; P3.5 framework complete; P3.6 archive remains.
 - **Phase 4**: NOT STARTED. 4 milestones.
 - **Phase 5**: NOT STARTED. 4 milestones.
 
@@ -379,6 +379,6 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 
 ## Next Steps
 
-1. Execute P3.4: add docs-structure enforcement for the routing-index line cap and active-doc references.
-2. Execute P3.5: create the Phase 3 recipe framework only (`docs/guides/recipes/README.md`, template, structure test), preserving per-recipe authorization for future phase-tail recipes.
-3. Keep running `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` after any docs-structure change and update both tracking docs after each milestone.
+1. Execute P3.6: archive `docs/guides/cleanup_v8/` into `docs/history/cleanup_v8/`.
+2. Update references that should continue pointing at the archived plan.
+3. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` and then full suite if the archive move changes enforced paths.

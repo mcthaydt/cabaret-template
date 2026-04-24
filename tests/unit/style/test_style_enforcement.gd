@@ -2416,6 +2416,66 @@ func test_managers_and_ecs_systems_have_no_bare_print_calls() -> void:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
+func test_agents_routing_index_stays_under_line_cap() -> void:
+	var file := FileAccess.open("res://AGENTS.md", FileAccess.READ)
+	assert_not_null(file, "Should open AGENTS.md")
+	if file == null:
+		return
+	var line_count := 0
+	while not file.eof_reached():
+		file.get_line()
+		line_count += 1
+	file.close()
+	assert_lte(line_count, 150, "AGENTS.md should stay a routing index under 150 lines")
+
+func test_adr_structure() -> void:
+	var violations: Array[String] = []
+	var dir := DirAccess.open("res://docs/architecture/adr")
+	assert_not_null(dir, "Should open ADR directory")
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		if entry.ends_with(".md") and entry != "README.md":
+			var path := "res://docs/architecture/adr/%s" % entry
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				violations.append("%s: cannot open" % path)
+			else:
+				var source := file.get_as_text()
+				file.close()
+				for section in ["**Status**", "## Context", "## Decision", "## Alternatives", "## Consequences"]:
+					if source.find(section) < 0:
+						violations.append("%s: missing %s" % [path, section])
+		entry = dir.get_next()
+	dir.list_dir_end()
+	assert_eq(violations.size(), 0, "ADRs must contain required sections: %s" % [violations])
+
+func test_extension_recipe_structure() -> void:
+	var violations: Array[String] = []
+	var dir := DirAccess.open("res://docs/architecture/extensions")
+	assert_not_null(dir, "Should open extension recipe directory")
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		if entry.ends_with(".md") and entry != "README.md":
+			var path := "res://docs/architecture/extensions/%s" % entry
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				violations.append("%s: cannot open" % path)
+			else:
+				var source := file.get_as_text()
+				file.close()
+				for section in ["## When To Use", "## Governing ADR", "## Canonical Example", "## Vocabulary", "## Recipe", "## Anti-patterns"]:
+					if source.find(section) < 0:
+						violations.append("%s: missing %s" % [path, section])
+		entry = dir.get_next()
+	dir.list_dir_end()
+	assert_eq(violations.size(), 0, "Extension recipes must contain required sections: %s" % [violations])
+
 func _collect_bare_print_calls(dir_path: String, violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:

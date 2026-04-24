@@ -875,7 +875,7 @@ Root `AGENTS.md` stays at repo root as the thin routing entry point.
 
 V7.2 F5 created `docs/architecture/adr/0001-channel-taxonomy.md`. V8 moves ADRs under `docs/architecture/adr/` so decision records live under the architecture bucket, while extension recipes live separately under `docs/architecture/extensions/`. V8 makes several structural decisions worth recording so future contributors (and LLMs) can audit *why* without reverse-engineering from code or git history.
 
-- [ ] **Commit 0** (migration) — `git mv docs/architecture/adr/ docs/architecture/adr/`. Update any `docs/architecture/adr/` references in `AGENTS.md`, `CLAUDE.md`, style enforcement tests, and V7.2 F5 continuation doc. Confirm no dangling links.
+- [x] **Commit 0** (migration) — ADR directory already normalized under `docs/architecture/adr/` during P3.0.
 
 **ADR template** (mirror `0001-channel-taxonomy.md`'s shape):
 
@@ -888,36 +888,36 @@ V7.2 F5 created `docs/architecture/adr/0001-channel-taxonomy.md`. V8 moves ADRs 
 
 **ADRs to author** (each lives at the tail of its owning phase, not batched):
 
-- [ ] **Commit 1** (tail of P1) — `docs/architecture/adr/0006-ai-architecture-utility-bt-with-scoped-planning.md`:
+- [x] **Commit 1** (tail of P1) — `docs/architecture/adr/0006-ai-architecture-utility-bt-with-scoped-planning.md`:
   - Decision: utility-scored behavior trees with opt-in `RS_BTPlanner` for planning.
   - Alternatives: full GOAP + MBT, keep GOAP + HTN, plain BT without scoring.
   - References: `~/.claude/plans/whats-a-better-approach-snoopy-candle.md`, Phase 1 commits.
-- [ ] **Commit 2** (tail of P1) — `docs/architecture/adr/0007-bt-framework-scope-general-vs-ai-specific.md`:
+- [x] **Commit 2** (tail of P1) — `docs/architecture/adr/0007-bt-framework-scope-general-vs-ai-specific.md`:
   - Decision: general BT under `scripts/resources/bt/`; AI-specific leaves + planner under `scripts/resources/ai/bt/`.
   - Alternatives: AI-only; fully general with AI imports in core.
-- [ ] **Commit 3** (tail of P2) — `docs/architecture/adr/0008-debug-perf-utility-extraction.md`:
+- [x] **Commit 3** (tail of P2) — `docs/architecture/adr/0008-debug-perf-utility-extraction.md`:
   - Decision: managers + ECS systems route debug through `U_DebugLogThrottle` / `U_PerfProbe`; bare `print()` forbidden.
   - Alternatives: inline guards, compile-time flags.
-- [ ] **Commit 4** (tail of P4) — `docs/architecture/adr/0009-template-vs-demo-separation.md`:
+- [x] **Commit 4** (tail of P4) — `docs/architecture/adr/0009-template-vs-demo-separation.md`:
   - Decision: `scripts/core/` + `scripts/demo/` (same in `resources/`); enforced by import-boundary grep.
   - Alternatives: keep mixed; top-level `template/`/`game/`.
-- [ ] **Commit 5** (tail of P5) — `docs/architecture/adr/0010-base-scene-and-demo-entry-split.md`:
+- [x] **Commit 5** (tail of P5) — `docs/architecture/adr/0010-base-scene-and-demo-entry-split.md`:
   - Decision: two scenes — existing `scenes/templates/tmpl_base_scene.tscn` (refactored in P5.2) + `scenes/demo/demo_entry.tscn`.
   - Alternatives: single scene with embedded demo menu; minimal-only.
-- [ ] **Commit 6** (tail of P3 itself) — amend `docs/architecture/adr/0005-service-locator.md` in-place (not a new file):
+- [x] **Commit 6** (tail of P3 itself) — amend `docs/architecture/adr/0005-service-locator.md` in-place (not a new file):
   - Add V7.2 F6 scope isolation clause (`push_scope`/`pop_scope` per-test) to Decision + Consequences sections.
   - Add "no Godot autoloads" clause (empty autoload list; codifies `CLAUDE.md` rule) to Decision + Consequences sections.
   - Bump Status line (e.g., `Status: Accepted (amended 2026-04-DD — V8 P3)`). Do not supersede; the original decision stands with clarifications.
   - Rationale for amendment (not new ADR): pre-existing `0005-service-locator.md` already records the service-locator decision; V8's additions are clarifications of the same decision, not a new one.
 
-- [ ] **Commit 7** — `docs/architecture/adr/README.md`: index with status + one-line summary per ADR.
-- [ ] **Commit 8** — Style enforcement: `test_adr_structure.gd` asserts every `docs/architecture/adr/[0-9]{4}-*.md` has required sections (Status / Context / Decision / Alternatives / Consequences).
+- [x] **Commit 7** — `docs/architecture/adr/README.md`: index with status + one-line summary per ADR.
+- [x] **Commit 8** — Style enforcement: `test_adr_structure` asserts every `docs/architecture/adr/[0-9]{4}-*.md` has required sections (Status / Context / Decision / Alternatives / Consequences).
 
 **P3.4 Verification**:
-- [ ] All 5 new decision ADRs (`0006..0010`) exist with required sections.
-- [ ] `docs/architecture/adr/0005-service-locator.md` amendment includes scope-isolation + no-autoloads clauses and an updated Status line.
-- [ ] `docs/architecture/adr/README.md` indexes all ADRs.
-- [ ] ADR structure test green.
+- [x] All 5 new decision ADRs (`0006..0010`) exist with required sections.
+- [x] `docs/architecture/adr/0005-service-locator.md` amendment includes scope-isolation + no-autoloads clauses and an updated Status line.
+- [x] `docs/architecture/adr/README.md` indexes all ADRs.
+- [x] ADR structure test green.
 
 ---
 
@@ -1136,21 +1136,21 @@ The recipes below each own one subsystem. Written after that subsystem stabilize
   - Anti-patterns: redundant `U_ServiceLocator.clear()` in `before_each` (F6 scope isolation made this unnecessary), tests that extend `GutTest` directly when `BaseTest` suffices (loses scope isolation).
   - References: V7.2 F6.
 
-- [ ] **Commit 19** — `docs/architecture/extensions/README.md`:
+- [x] **Commit 19** — `docs/architecture/extensions/README.md`:
   - Index of all recipes with a **Feature → Recipe** routing table so an LLM landing on "add an X" finds the right recipe in one hop.
   - Example row: `"Add a new AI behavior" → ai.md`.
   - Each entry lists the governing decision ADR(s) so the reader can jump to "why" if needed.
   - Update `AGENTS.md` to route to both `docs/architecture/adr/README.md` (decisions) and `docs/architecture/extensions/README.md` (recipes).
 
-- [ ] **Commit 20** — Style enforcement: `test_extension_recipe_structure.gd` — every file matching `docs/architecture/extensions/*.md` (except `README.md`) must contain the required sections (`When to use`, `Governing ADR(s)`, `Canonical example`, `Vocabulary`, `Recipe`, `Anti-patterns`). Catches drift.
+- [x] **Commit 20** — Style enforcement: `test_extension_recipe_structure` — every file matching `docs/architecture/extensions/*.md` (except `README.md`) must contain the required sections (`When to use`, `Governing ADR(s)`, `Canonical example`, `Vocabulary`, `Recipe`, `Anti-patterns`). Catches drift.
 
 **P3.5 Verification**:
 - [ ] All 18 recipes exist with required sections (10 core + 8 secondary).
 - [ ] Each recipe references a real canonical example file that currently exists in the repo (not a placeholder).
-- [ ] `docs/architecture/extensions/README.md` routing table covers every subsystem.
+- [x] `docs/architecture/extensions/README.md` routing table covers every subsystem.
 - [ ] Each recipe links to its governing ADR(s).
 - [ ] Recipe structure test green.
-- [ ] `AGENTS.md` routes to both `docs/architecture/adr/README.md` and `docs/architecture/extensions/README.md`.
+- [x] `AGENTS.md` routes to both `docs/architecture/adr/README.md` and `docs/architecture/extensions/README.md`.
 - [ ] **Dogfood check**: pick one recipe; have it drive a trivial derivative feature (e.g., "add a no-op scorer" following `ai.md`). If the recipe doesn't suffice, it's incomplete.
 
 **Sequencing note**: recipes are authored at the tail of their owning phase, not all at once. `ai.md` after P1.10. `ecs.md` depends on V7.2 F9 being landed. Phase 3's mechanical commits are the two `README.md` files + the two structure tests. Individual recipe commits move earlier, into the tail of each owning phase.

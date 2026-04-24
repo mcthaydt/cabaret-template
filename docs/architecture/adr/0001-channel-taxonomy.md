@@ -61,6 +61,12 @@ Grep tests in `tests/unit/style/test_style_enforcement.gd` enforce the taxonomy 
 
 - ECS systems that consume manager-published events (e.g., `s_spawn_particles_system` consuming `player_spawned`) must migrate to subscribe to Redux `action_dispatched` instead of ECS bus. This changes the subscription source but preserves the request-processing pipeline.
 
+## Alternatives Considered
+
+- **Keep channel choice per feature**: preserves flexibility, but keeps manager/ECS/state boundaries ambiguous and hard to enforce.
+- **Route everything through `U_ECSEventBus`**: gives one event mechanism, but bypasses Redux state history and reducer validation for manager-owned state changes.
+- **Route everything through Redux**: gives one state pipeline, but makes short-lived ECS gameplay requests heavier and less natural for components/systems.
+
 ### Migration summary
 
 | Manager | Migration strategy |

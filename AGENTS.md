@@ -44,14 +44,15 @@
 
 ## ADRs
 
+- ADR index: `docs/architecture/adr/README.md`
 - Communication channel taxonomy: `docs/architecture/adr/0001-channel-taxonomy.md`
 - Node-based ECS: `docs/architecture/adr/0003-ecs-node-based.md`
 - Event bus split: `docs/architecture/adr/0004-event-bus.md`
 - Service locator registration/test isolation: `docs/architecture/adr/0005-service-locator.md`
+- Extension recipe framework: `docs/architecture/extensions/README.md`
 
 ## Active Cleanup V8 Tracking
 
 - Task checklist: `docs/guides/cleanup_v8/cleanup-v8-tasks.md`
 - Continuation prompt: `docs/guides/cleanup_v8/cleanup-v8-continuation-prompt.md`
 - Docs inventory: `docs/guides/cleanup_v8/docs_inventory.md`
-
