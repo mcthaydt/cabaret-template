@@ -60,6 +60,15 @@ M_TimeManager (scripts/managers/m_time_manager.gd)  [extends Node]
 
 **Important**: `U_PauseSystem` and `U_WorldClock` extend `RefCounted` and therefore cannot declare GDScript signals. Internal state-change notifications use `Callable` callbacks registered by `M_TimeManager` at construction time.
 
+## Current Runtime Contracts
+
+- `M_TimeManager` is the runtime authority for pause, timescale, and world clock state; the Redux `time` slice is a synchronized mirror.
+- `M_TimeManager` registers both `time_manager` and backward-compatible `pause_manager` service names.
+- Pause is derived from layered channels plus scene/UI overlay state; gameplay pause selectors should not treat main-menu overlays as gameplay pause.
+- ECS receives scaled physics delta through `M_ECSManager` when a time manager is available.
+- Helper callbacks use `Callable` patterns because `RefCounted` helpers cannot declare signals.
+- Adding time-slice fields requires updating `U_StateSliceManager.initialize_slices()`, `M_StateStore` exports, state handoff stripping, and disk-save transient fields as appropriate.
+
 ## Responsibilities & Boundaries
 
 ### M_TimeManager owns
