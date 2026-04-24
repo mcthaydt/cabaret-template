@@ -584,7 +584,7 @@ Some domains execute effects. Others interpret the winning rule's identity:
 | All 9 `.tres` files in `resources/qb/` | Recreate with new resource types |
 | `AGENTS.md` | Update QB sections |
 | `docs/guides/STYLE_GUIDE.md` | Remove `base_qb_rule_manager.gd` naming exception |
-| `docs/guides/DEV_PITFALLS.md` | Update QB pitfall entries |
+| `docs/guides/pitfalls/GDSCRIPT_4_6.md` and this overview | Keep parser/runtime pitfalls current |
 
 ### Unchanged Files
 

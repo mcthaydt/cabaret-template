@@ -850,9 +850,26 @@ Root `AGENTS.md` stays at repo root as the thin routing entry point.
   - Migrated Input Manager ownership, runtime contracts, mobile input, device detection, reserved pause binding, and test-state pitfalls into the dedicated Input Manager overview.
   - Replaced migrated `DEV_PITFALLS.md` section with a routing pointer.
   - Verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`83/83`).
-- [ ] **Remaining commits** — Continue section-by-section per inventory plan. One commit per destination file where practical. Update cross-references.
-- [ ] **Final AGENTS commit** — Shrink `AGENTS.md` to a routing index (~100 lines target, 150 hard cap — matches P3 Verification).
-- [ ] **Final pitfalls commit** — Delete `DEV_PITFALLS.md` once contents fully redistributed.
+- [x] **Commits 13–27** — Completed remaining destination-file migrations.
+  - Commit 13: `docs/systems/ecs/ecs_architecture.md` ECS runtime contracts.
+  - Commit 14: `docs/systems/qb_rule_manager/qb-v2-overview.md` QB rule contracts/pitfalls.
+  - Commit 15: `docs/systems/ai_system/ai-system-overview.md` BT runtime contracts/pitfalls.
+  - Commit 16: `docs/systems/vfx_manager/vfx-manager-overview.md` VFX runtime contracts/pitfalls.
+  - Commit 17: `docs/systems/vcam_manager/vcam-manager-overview.md` vCam runtime contracts.
+  - Commit 18: `docs/systems/scene_director/scene-director-overview.md` objectives/director contracts.
+  - Commit 19: `docs/systems/localization_manager/localization-manager-overview.md` localization contracts.
+  - Commit 20: `docs/systems/time_manager/time-manager-overview.md` time manager contracts.
+  - Commit 21: `docs/systems/save_manager/save-manager-overview.md` save manager contracts/pitfalls.
+  - Commit 22: `docs/systems/audio_manager/AUDIO_MANAGER_GUIDE.md` audio contracts.
+  - Commit 23: `docs/systems/display_manager/display-manager-overview.md` display contracts/pitfalls.
+  - Commit 24: `docs/guides/STYLE_GUIDE.md` style/resource hygiene.
+  - Commit 25: `docs/guides/SCENE_ORGANIZATION_GUIDE.md` scene/interactable routing.
+  - Commit 26: `docs/guides/ARCHITECTURE.md` architecture routing guide.
+  - Commit 27: `docs/guides/COMMIT_WORKFLOW.md` commit workflow guide.
+- [x] **Final AGENTS commit** — Shrink `AGENTS.md` to a routing index (~100 lines target, 150 hard cap — matches P3 Verification).
+  - Completion notes: `AGENTS.md` is now 57 lines.
+- [x] **Final pitfalls commit** — Delete `DEV_PITFALLS.md` once contents fully redistributed.
+  - Completion notes: `AGENTS.md` is now a 57-line routing index, `docs/guides/DEV_PITFALLS.md` was deleted, and active references were redirected to focused `docs/guides/pitfalls/**` or system overview docs.
 
 ## Milestone P3.4: Decision ADRs — "Why We Chose X"
 

@@ -523,7 +523,7 @@ Target result: `E_Checkpoint_SafeZone` is a single node with a controller; no vi
   - Remove authored `C_CheckpointComponent` and `Area3D/CollisionShape3D` children.
 
 Notes & pitfalls
-- Tabs only in `.gd` files (see `DEV_PITFALLS.md`).
+- Tabs only in `.gd` files (see `docs/guides/STYLE_GUIDE.md` and `docs/guides/pitfalls/TESTING.md`).
 - In `.tres`, reference the script explicitly (don’t rely on `class_name`) to avoid “Cannot get class” errors.
 - QB game rules and handler systems continue to consume the same checkpoint component events; no scene-authoring change required beyond controller/config wiring.
 
@@ -614,7 +614,7 @@ Root
 
 - **Style Guide:** `docs/guides/STYLE_GUIDE.md` - Naming conventions for scripts
 - **ECS Architecture:** `docs/ecs/ECS_ARCHITECTURE.md` - ECS system details
-- **Dev Pitfalls:** `docs/guides/DEV_PITFALLS.md` - Common issues and solutions
+- **Pitfalls:** `docs/guides/pitfalls/` and system-specific overview docs - Common issues and solutions
 
 ---
 
