@@ -611,7 +611,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   - [ ] Baseline test count documented in research.md
 
 **Task 0.2: Review Project Patterns** (1 hour)
-- Re-read `AGENTS.md`, `docs/guides/DEV_PITFALLS.md`, `docs/guides/STYLE_GUIDE.md`
+- Re-read `AGENTS.md`, `docs/guides/pitfalls/`, `docs/guides/STYLE_GUIDE.md`
 - Review Scene Manager implementation for manager discovery patterns
 - Review State Store implementation for action/reducer/selector patterns
 - Review ECS implementation for component/system patterns
@@ -2620,4 +2620,4 @@ func _apply_landing_vibration(fall_speed: float) -> void:
 - **PRD**: docs/input_manager/input-manager-prd.md (136 FRs, 22 SCs, 13 edge cases, 7 user stories)
 - **Research**: docs/input_manager/research.md (Phase 0 prototyping findings, latency benchmarks)
 - **Task Tracker**: docs/input_manager/input-manager-tasks.md (Phase-by-phase checklist)
-- **General Guidelines**: AGENTS.md, docs/guides/DEV_PITFALLS.md, docs/guides/STYLE_GUIDE.md
+- **General Guidelines**: AGENTS.md, docs/guides/pitfalls/, docs/guides/STYLE_GUIDE.md

@@ -177,7 +177,7 @@
 - Phase 5B completed on 2026-02-25:
   - Updated `AGENTS.md` to replace v1 QB guidance with v2 scorer/selector/tracker composition patterns
   - Updated `docs/guides/STYLE_GUIDE.md` to remove `base_qb_rule_manager` exception and document `rs_condition_*.gd` / `rs_effect_*.gd` conventions in `conditions/` and `effects/`
-  - Updated `docs/guides/DEV_PITFALLS.md` with v2 QB pitfalls (path resolver contract, headless-safe rule exports, subtype validation, context-driven effects)
+  - Updated `docs/guides/pitfalls/` with v2 QB pitfalls (path resolver contract, headless-safe rule exports, subtype validation, context-driven effects)
   - Updated `docs/qb_rule_manager/qb-v2-tasks.md` with Phase 5 completion notes and final suite counts
 - Phase 5C completed on 2026-02-25:
   - Recorded final verification counts (`T239`)
@@ -198,7 +198,7 @@ Before making any changes, read these in order:
 2. `docs/qb_rule_manager/qb-v2-plan.md` — phased implementation plan
 3. `docs/qb_rule_manager/qb-v2-tasks.md` — task checklist (track progress here)
 4. `AGENTS.md` — project conventions, naming, testing patterns
-5. `docs/guides/DEV_PITFALLS.md` — GDScript pitfalls and testing patterns
+5. `docs/guides/pitfalls/` — GDScript pitfalls and testing patterns
 6. `docs/guides/STYLE_GUIDE.md` — prefix conventions
 
 ## Architecture Summary (Quick Reference)

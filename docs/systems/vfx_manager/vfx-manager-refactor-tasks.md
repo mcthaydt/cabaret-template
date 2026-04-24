@@ -1227,7 +1227,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
 
 - [ ] **T9.2**: Update DEV_PITFALLS.md with VFX pitfalls
-  - Location: `docs/guides/DEV_PITFALLS.md`
+  - Location: `docs/guides/pitfalls/`
   - Add section:
 
     ```markdown

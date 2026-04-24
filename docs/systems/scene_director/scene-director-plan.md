@@ -285,7 +285,7 @@ Create scene directives:
 ### 6A: Project-Level Updates
 
 - Update `AGENTS.md` with Scene Director / Objectives Manager patterns
-- Update `docs/guides/DEV_PITFALLS.md` with any new pitfalls discovered
+- Update `docs/guides/pitfalls/` with any new pitfalls discovered
 
 ### 6B: Final Verification
 

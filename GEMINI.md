@@ -5,20 +5,20 @@ Do not create documentation unless I tell you to do so.
 
 ## Start Here
 
-- Project type: Godot 4.5 (GDScript). Core area:
+- Project type: Godot 4.6 (GDScript). Core area:
   - `scripts/ecs`: Lightweight ECS built on Nodes (components + systems + manager).
 - Scenes and resources:
   - `templates/`: Base scene and player scene that wire components/systems together.
   - `resources/`: Default `*Settings.tres` for component configs; update when adding new exported fields.
 - Documentation to consult (do not duplicate here):
-  - General pitfalls: `docs/general/DEV_PITFALLS.md`
-- Before adding or modifying code, re-read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
+  - Per-topic pitfalls: `docs/guides/pitfalls/` (`GODOT_ENGINE.md`, `GDSCRIPT_4_6.md`, `TESTING.md`, `ECS.md`, `STATE.md`, `MOBILE.md`)
+- Before adding or modifying code, re-read the relevant `docs/guides/pitfalls/*.md` and `docs/guides/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
 - Keep project planning docs current: whenever a story advances, update the relevant plan and PRD documents immediately so written guidance matches the implementation state.
 - **MANDATORY: Update continuation prompt and tasks checklist after EVERY phase**: When completing a phase (e.g., Phase 2 of Scene Manager), you MUST:
-  1. Update the continuation prompt file (e.g., `docs/scene_manager/scene-manager-continuation-prompt.md`) with current status
-  2. Update the tasks file (e.g., `docs/scene_manager/scene-manager-tasks.md`) to mark completed tasks with [x] and add completion notes
+  1. Update the continuation prompt file (e.g., `docs/systems/scene_manager/scene-manager-continuation-prompt.md`) with current status
+  2. Update the tasks file (e.g., `docs/systems/scene_manager/scene-manager-tasks.md`) to mark completed tasks with [x] and add completion notes
   3. Update AGENTS.md with new patterns/architecture (if applicable)
-  4. Update DEV_PITFALLS.md with new pitfalls discovered (if applicable)
+  4. Update the relevant `docs/guides/pitfalls/*.md` with new pitfalls discovered (if applicable)
   5. Commit documentation updates separately from implementation
 - Commit at the end of each completed story (or logical, test-green milestone) so every commit represents a verified state.
 - Make a git commit whenever a feature, refactor, or documentation update moves the needle forward; keep commits focused and validated. Skipping required commits is a blocker—treat the guidance as non-optional.
@@ -116,7 +116,7 @@ Do not create documentation unless I tell you to do so.
 
 ## Naming Conventions Quick Reference
 
-**IMPORTANT**: All production scripts, scenes, and resources must follow documented prefix patterns. As of Phase 5 Complete (2025-12-08), 100% prefix compliance achieved - all files follow their respective prefix patterns. See `docs/general/STYLE_GUIDE.md` for the complete prefix matrix.
+**IMPORTANT**: All production scripts, scenes, and resources must follow documented prefix patterns. As of Phase 5 Complete (2025-12-08), 100% prefix compliance achieved - all files follow their respective prefix patterns. See `docs/guides/STYLE_GUIDE.md` for the complete prefix matrix.
 
 - **Base classes:** `base_*` prefix (e.g., `base_ecs_component.gd` → `BaseECSComponent`, `base_panel.gd` → `BasePanel`)
 - **Utilities:** `u_*` prefix (e.g., `u_ecs_utils.gd` → `U_ECSUtils`, `u_entity_query.gd` → `U_EntityQuery`)
@@ -158,7 +158,7 @@ Do not create documentation unless I tell you to do so.
   - New exported fields in `*Settings.gd` require updating default `.tres` under `resources/` and any scene using them.
   - Trigger settings automatically clamp `player_mask` to at least layer 1; configure the desired mask on the resource instead of zeroing it at runtime.
 - Tabs and warnings
-  - Keep tab indentation in `.gd` files; tests use native method stubs on engine classes—suppress with `@warning_ignore("native_method_override")` where applicable (details in `docs/general/developer_pitfalls.md`).
+  - Keep tab indentation in `.gd` files; tests use native method stubs on engine classes—suppress with `@warning_ignore("native_method_override")` where applicable (details in `docs/guides/pitfalls/GDSCRIPT_4_6.md`).
 - State store batching and input persistence
   - `M_StateStore` emits `slice_updated` once per physics frame; do not also flush on idle frames.
   - Actions that need same-frame visibility (e.g., input rebinds) must set `"immediate": true` on the dispatched payload; the store now flushes batched slice updates immediately for these actions.

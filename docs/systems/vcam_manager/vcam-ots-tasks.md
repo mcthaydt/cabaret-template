@@ -14,7 +14,7 @@ Before starting Phase 3, verify:
 - [x] **PRE-2**: Read required documentation
   - Read `docs/vcam_manager/vcam-manager-plan.md` (Commit 1.1, Commit 2.3 sections — OTS notes)
   - Read `docs/vcam_manager/vcam-manager-overview.md` (Camera Modes > RS_VCamModeOTS)
-  - Read `docs/guides/DEV_PITFALLS.md` and `docs/guides/STYLE_GUIDE.md`
+  - Read `docs/guides/pitfalls/` and `docs/guides/STYLE_GUIDE.md`
 - [x] **PRE-3**: Understand existing patterns by reading:
   - `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (resource pattern from Phase 2)
   - `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (evaluator pattern from Phase 2)
@@ -42,7 +42,7 @@ Before starting Phase 3, verify:
   - Phase 3C3 checklist + validation notes updated (March 15, 2026).
 - [x] **DOC-3**: Update `AGENTS.md` if OTS evaluation reveals new stable architecture/pattern contracts.  
   - No new AGENTS deltas from 3A; current OTS resource contract already matched implementation targets.
-- [x] **DOC-4**: Update `docs/guides/DEV_PITFALLS.md` with any OTS-specific pitfalls discovered.  
+- [x] **DOC-4**: Update `docs/guides/pitfalls/` with any OTS-specific pitfalls discovered.  
   - No new 3A pitfalls discovered.
 - [x] **DOC-5**: Commit documentation updates separately from implementation, per AGENTS requirements.
 

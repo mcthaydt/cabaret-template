@@ -1094,7 +1094,7 @@
   - ✅ Added "Phase 10-Specific Pitfalls" subsection
   - ✅ Covers: camera blending requirements, queue handling, cache eviction, async loading, spawn positioning, cooldown timing
   - ✅ Updated Test Coverage Status section with Phase 10 completion stats
-  - **File**: docs/guides/DEV_PITFALLS.md (lines 362-444, 450-491)
+  - **File**: docs/guides/pitfalls/ (lines 362-444, 450-491)
 - [x] T195 Run full test suite (ALL tests must pass)
   - ✅ **502/506 tests passing (99.2%)**
   - ✅ 4 tests pending (Tween timing in headless mode - expected)

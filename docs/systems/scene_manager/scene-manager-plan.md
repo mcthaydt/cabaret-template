@@ -1031,6 +1031,6 @@ func _perform_transition(...) -> void:
 - [scene-manager-prd.md](./scene-manager-prd.md) - Full feature specification (v2.3)
 - [AUDIT_REPORT.md](./AUDIT_REPORT.md) - Complete audit report with detailed findings
 - [AGENTS.md](../../AGENTS.md) - Project conventions and repo map
-- [DEV_PITFALLS.md](../general/DEV_PITFALLS.md) - Common pitfalls to avoid
-- [STYLE_GUIDE.md](../general/STYLE_GUIDE.md) - Code style requirements
+- [DEV_PITFALLS.md](../../guides/pitfalls/) - Common pitfalls to avoid
+- [STYLE_GUIDE.md](../../guides/STYLE_GUIDE.md) - Code style requirements
 - [redux-state-store-prd.md](../state%20store/redux-state-store-prd.md) - State store architecture

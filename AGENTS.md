@@ -42,14 +42,10 @@
 - Display Manager: `docs/systems/display_manager/display-manager-overview.md`
 - Lighting Manager: `docs/systems/lighting_manager/lighting-manager-overview.md`
 
-## ADRs
+## ADRs & Extensions
 
-- ADR index: `docs/architecture/adr/README.md`
-- Communication channel taxonomy: `docs/architecture/adr/0001-channel-taxonomy.md`
-- Node-based ECS: `docs/architecture/adr/0003-ecs-node-based.md`
-- Event bus split: `docs/architecture/adr/0004-event-bus.md`
-- Service locator registration/test isolation: `docs/architecture/adr/0005-service-locator.md`
-- Extension recipe framework: `docs/architecture/extensions/README.md`
+- ADR index ("why we chose X"): `docs/architecture/adr/README.md`
+- Extension recipes ("how to add a feature"): `docs/architecture/extensions/README.md`
 
 ## Active Cleanup V8 Tracking
 

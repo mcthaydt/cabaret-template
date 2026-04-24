@@ -216,7 +216,7 @@
   - 2026-02-12: Advanced continuation state to Phase 7 with manual QA completion recorded.
 - [x] LM059 Update `AGENTS.md` with finalized character-zone-lighting architecture patterns (if new stable patterns emerged)
   - 2026-02-12: Reviewed `AGENTS.md`; existing Character Lighting section already captures finalized architecture patterns from Phases 1-6, so no additional stable-pattern edits were required.
-- [x] LM060 Update `docs/guides/DEV_PITFALLS.md` with new pitfalls discovered during implementation
+- [x] LM060 Update `docs/guides/pitfalls/` with new pitfalls discovered during implementation
   - 2026-02-12: Reviewed Phase 6/7 outcomes; no new stable pitfalls were identified beyond existing Character Lighting entries.
 - [x] LM061 Run style enforcement one final time
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)

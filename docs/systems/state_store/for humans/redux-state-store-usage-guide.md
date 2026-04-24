@@ -791,7 +791,7 @@ const ACTION_TRANSITION_TO_GAMEPLAY := StringName("transition/to_gameplay")
 
 - Review [PRD](./redux-state-store-prd.md) for architecture details
 - Check [tasks.md](./redux-state-store-tasks.md) for implementation status
-- See [DEV_PITFALLS.md](../general/DEV_PITFALLS.md) for common mistakes
+- See the per-topic pitfalls under [docs/guides/pitfalls/](../../../guides/pitfalls/) for common mistakes
 - Run tests: `godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state -gexit`
 
 ---
@@ -827,7 +827,7 @@ func _ready() -> void:
 **Why `await get_tree().process_frame`?**
 - M_StateStore registers itself in its `_ready()` which runs concurrently with systems
 - Without the await, `get_store()` might execute before M_StateStore has added itself to the group
-- See `docs/guides/DEV_PITFALLS.md` for more details
+- See `docs/guides/pitfalls/` for more details
 
 **Step 2**: Subscribe to state changes:
 

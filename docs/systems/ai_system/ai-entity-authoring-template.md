@@ -156,5 +156,5 @@ Implementation notes:
 
 - What changed from spec and why:
 - Unexpected issues discovered:
-- Pitfalls to add to `docs/guides/DEV_PITFALLS.md`:
+- Pitfalls to add to the relevant `docs/guides/pitfalls/*.md` or `docs/systems/ai_system/` doc:
 - Follow-up tasks (if any):

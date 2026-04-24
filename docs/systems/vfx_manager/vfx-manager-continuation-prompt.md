@@ -23,7 +23,7 @@
 ## Required Readings (Do Not Skip)
 
 - `AGENTS.md` - project conventions, testing, and update rules.
-- `docs/guides/DEV_PITFALLS.md` - known gotchas.
+- `docs/guides/pitfalls/` - known gotchas.
 - `docs/guides/STYLE_GUIDE.md` - naming, formatting, prefixes.
 - `docs/vfx_manager/vfx-manager-prd.md` - scope + goals.
 - `docs/vfx_manager/vfx-manager-plan.md` - phases and sequencing.

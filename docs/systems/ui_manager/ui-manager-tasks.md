@@ -66,7 +66,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Acceptance**: Button prompts correctly display for ui_* actions per device type
 
 - [x] T003_pre [PREREQ] Document pause action reservation and --emulate-mobile flag.
-  - **Files**: `docs/guides/DEV_PITFALLS.md`
+  - **Files**: `docs/guides/pitfalls/`
   - **Content**:
     - Explain that "pause" is the only non-rebindable action (enforced by RS_RebindSettings)
     - Document `--emulate-mobile` flag for testing touchscreen UI
@@ -549,7 +549,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 
 - [x] T075 [DOC] Document Input Manager / UI Manager Boundary.
   - **Files**:
-    - `docs/guides/DEV_PITFALLS.md`
+    - `docs/guides/pitfalls/`
   - **Deliverables**:
     - PRDs explicitly state that Input Manager owns hardware→action mapping (including `ui_*`) and device state
     - UI Manager + navigation slice own UI flow (pause, back, overlays)
@@ -718,7 +718,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
     - `docs/scene_manager/scene-manager-prd.md` - Added UI Manager integration cross-reference
     - `docs/state_store/redux-state-store-prd.md` - Documented navigation slice
     - `docs/input_manager/input-manager-prd.md` - Documented ui_* actions table
-    - `docs/guides/DEV_PITFALLS.md` - Added 6 UI navigation pitfalls with examples
+    - `docs/guides/pitfalls/` - Added 6 UI navigation pitfalls with examples
   - **Content added**:
     - Navigation actions quick reference
     - UI registry usage patterns

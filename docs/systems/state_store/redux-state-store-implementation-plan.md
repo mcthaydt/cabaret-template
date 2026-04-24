@@ -90,7 +90,7 @@ Implement a centralized Redux-style state management system for the Godot 4.5 ga
 
 **De-facto Standards Applied**:
 - ✅ `AGENTS.md` - Commit strategy, testing requirements
-- ✅ `docs/guides/DEV_PITFALLS.md` - GDScript typing, GUT patterns
+- ✅ `docs/guides/pitfalls/` - GDScript typing, GUT patterns
 - ✅ `docs/guides/STYLE_GUIDE.md` - Naming conventions, file structure
 
 **Key Requirements from AGENTS.md**:
@@ -247,7 +247,7 @@ Before starting implementation, complete these mandatory tasks in order.
 ### 1. Understand Existing Patterns (30 min)
 
 Read these files to understand project conventions:
-- [ ] `docs/guides/DEV_PITFALLS.md` - GDScript gotchas, typing rules
+- [ ] `docs/guides/pitfalls/` - GDScript gotchas, typing rules
 - [ ] `docs/guides/STYLE_GUIDE.md` - Naming conventions, file structure
 - [ ] `AGENTS.md` - Commit strategy, testing requirements, repo map
 

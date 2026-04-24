@@ -1723,7 +1723,7 @@ metadata: {
 
 **Documentation:**
 - `AGENTS.md` (add touchscreen patterns after Phase 6 completion)
-- `docs/guides/DEV_PITFALLS.md` (add desktop emulation notes)
+- `docs/guides/pitfalls/` (add desktop emulation notes)
 
 **Total New Files:** +27 (was ~45, now ~56 including gap-fill additions)
 

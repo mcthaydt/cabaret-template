@@ -472,13 +472,13 @@ Completion note (2026-02-25): Completed codebase verification and full Phase 5A 
 - [x] T234. Update `AGENTS.md` — replace all v1 QB sections with v2 architecture (library model, typed resources, consumer pattern, scoring algorithm, context contract, anti-patterns)
 - [x] T235. Update `AGENTS.md` — remove `base_qb_rule_manager.gd` naming exception, add condition/effect subclass file patterns
 - [x] T236. Update `docs/guides/STYLE_GUIDE.md` — remove base_qb_rule_manager exception, add `rs_condition_*.gd` and `rs_effect_*.gd` patterns, add `conditions/` and `effects/` subdirectory convention
-- [x] T237. Update `docs/guides/DEV_PITFALLS.md` — replace v1 QB pitfalls with v2 pitfalls (no method-call fallback, typed arrays, effect subclasses, context-driven values)
+- [x] T237. Update `docs/guides/pitfalls/` — replace v1 QB pitfalls with v2 pitfalls (no method-call fallback, typed arrays, effect subclasses, context-driven values)
 - [x] T238. Update continuation prompt with final status
 
 Completion note (2026-02-25): Updated all required docs for v2 alignment.
 - `AGENTS.md`: replaced v1 QB architecture notes with v2 scorer/selector/tracker composition guidance and updated naming quick reference.
 - `docs/guides/STYLE_GUIDE.md`: removed legacy system exception and documented QB condition/effect filename patterns + `conditions/`/`effects/` directory convention.
-- `docs/guides/DEV_PITFALLS.md`: replaced v1 QB pitfalls with v2-specific guidance (path resolution contract, headless-safe rule exports, subtype validation, context-value effects).
+- `docs/guides/pitfalls/`: replaced v1 QB pitfalls with v2-specific guidance (path resolution contract, headless-safe rule exports, subtype validation, context-value effects).
 - `docs/qb_rule_manager/qb-v2-continuation-prompt.md`: updated to Phase 5 completion status and recorded final verification counts.
 
 ### 5C — Final Commit

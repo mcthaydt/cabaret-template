@@ -25,7 +25,7 @@ Tracking remains available in [post-scene-manager-tasks.md](./post-scene-manager
 ### 1. Review Project Foundations
 
 - `AGENTS.md` - Project conventions and patterns
-- `docs/guides/DEV_PITFALLS.md` - Common mistakes to avoid
+- `docs/guides/pitfalls/` - Common mistakes to avoid
 - `docs/guides/SCENE_ORGANIZATION_GUIDE.md` - Code style requirements
 - `docs/guides/STYLE_GUIDE.md` - Code style requirements
 

@@ -69,7 +69,7 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 ## Before Continuing
 
 1. Read `AGENTS.md` for project conventions
-2. Read `docs/guides/DEV_PITFALLS.md` for known pitfalls
+2. Read `docs/guides/pitfalls/` for known pitfalls
 3. Read `docs/scene_director/scene-director-tasks.md` for the task checklist
 4. Check task checklist for current progress (look for `[x]` vs `[ ]`)
 5. Read `docs/scene_director/scene-director-overview.md` for architecture context

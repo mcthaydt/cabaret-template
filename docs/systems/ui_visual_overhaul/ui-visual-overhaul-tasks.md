@@ -725,7 +725,7 @@ Run through each flow end-to-end in the game (not headless):
 ### 5E — Documentation Updates
 
 - [x] Update `AGENTS.md` with theme system and motion framework patterns
-- [x] Update `docs/guides/DEV_PITFALLS.md` with new pitfalls:
+- [x] Update `docs/guides/pitfalls/` with new pitfalls:
   - "Use `RS_UIThemeConfig` for styling, not inline `theme_override_*`"
   - "Motion resources are opt-in — `null` motion_set = zero behavioral change"
   - "Semantic per-node overrides (signpost golden, error red, virtual button) are intentional exceptions"
@@ -734,7 +734,7 @@ Run through each flow end-to-end in the game (not headless):
 
 Completion note (2026-03-06): Completed Phase 5E documentation closure.
 - Updated `AGENTS.md` with explicit unified-theme override policy + motion opt-in no-op contract.
-- Updated `docs/guides/DEV_PITFALLS.md` with UI theming/motion exception pitfalls.
+- Updated `docs/guides/pitfalls/` with UI theming/motion exception pitfalls.
 - Updated this task list and the continuation prompt to final-complete status.
 - UI Visual Overhaul story is fully complete end-to-end (Phases 0-5).
 

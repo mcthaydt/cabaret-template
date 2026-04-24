@@ -29,7 +29,7 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 ## Pre-Flight Checklist
 
-- [x] Re-read `docs/guides/DEV_PITFALLS.md`. (2026-02-16)
+- [x] Re-read `docs/guides/pitfalls/`. (2026-02-16)
 - [x] Re-read `docs/guides/STYLE_GUIDE.md`. (2026-02-16)
 - [x] Capture baseline status: (re-verified 2026-02-17)
   - [x] `tests/unit/managers/test_localization_manager.gd`
@@ -265,7 +265,7 @@ The following translation coverage gaps were identified and should be addressed 
 - [x] **Task 9.3**: Update `docs/localization_manager/localization-manager-continuation-prompt.md` with final status and next risks. (completed 2026-02-17)
 - [x] **Task 9.4**: Update `docs/localization_manager/localization-manager-tasks.md` summary to reference refactor completion. (completed 2026-02-17)
 - [x] **Task 9.5**: Update `AGENTS.md` with any new reusable localization patterns. (completed 2026-02-17; Phase 7/8 localization patterns and test-hardening guidance captured)
-- [x] **Task 9.6**: Update `docs/guides/DEV_PITFALLS.md` with any refactor-discovered pitfalls. (completed 2026-02-17; inner-class naming collision + private-manager assertion pitfalls added)
+- [x] **Task 9.6**: Update `docs/guides/pitfalls/` with any refactor-discovered pitfalls. (completed 2026-02-17; inner-class naming collision + private-manager assertion pitfalls added)
 
 ---
 

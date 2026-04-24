@@ -609,7 +609,7 @@ get_current_scene_id() -> StringName
 
 - **For more details**: See `docs/scene_manager/scene-manager-prd.md` (full specification)
 - **For implementation patterns**: See `AGENTS.md` (project conventions)
-- **For common pitfalls**: See `docs/guides/DEV_PITFALLS.md` (Scene Manager section)
+- **For common pitfalls**: See `docs/guides/pitfalls/` (Scene Manager section)
 - **For architectural details**: See `docs/scene_manager/scene-manager-plan.md`
 
 ---

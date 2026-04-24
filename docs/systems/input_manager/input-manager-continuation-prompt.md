@@ -33,7 +33,7 @@
 
 **Project Conventions:**
 - `AGENTS.md` - ECS guidelines, naming conventions, testing requirements
-- `docs/guides/DEV_PITFALLS.md` - **Phase 6 touchscreen pitfalls section**
+- `docs/guides/pitfalls/` - **Phase 6 touchscreen pitfalls section**
 - `docs/guides/STYLE_GUIDE.md` - Code formatting
 
 **Phase 6 Documentation:**

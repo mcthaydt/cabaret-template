@@ -236,7 +236,7 @@ Completion notes: Added `C_CameraStateComponent` to `tmpl_camera`, integrated `S
 ### Project-Level Updates
 
 - [x] T6.3: Update `AGENTS.md` with QB Rule Manager patterns section
-- [x] T6.4: Update `docs/guides/DEV_PITFALLS.md` with any new pitfalls discovered
+- [x] T6.4: Update `docs/guides/pitfalls/` with any new pitfalls discovered
 
 ### Final Verification
 

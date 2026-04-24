@@ -40,7 +40,7 @@
 ## Required Readings Before Coding
 
 - `AGENTS.md`
-- `docs/guides/DEV_PITFALLS.md`
+- `docs/guides/pitfalls/`
 - `docs/guides/STYLE_GUIDE.md`
 - `docs/lighting_manager/lighting-manager-tasks.md`
 

@@ -531,5 +531,5 @@ func get_payload() -> Dictionary
 ## Related Documentation
 
 - [ECS Architecture](./ecs_architecture.md) - Full ECS system overview
-- [STYLE_GUIDE.md](../general/STYLE_GUIDE.md) - Event naming conventions
-- [Phase 10B Implementation Plan](../general/cleanup/phase-10b-implementation-plan.md) - Event bus migration context
+- [STYLE_GUIDE.md](../../guides/STYLE_GUIDE.md) - Event naming conventions
+- [Phase 10B Implementation Plan](../../history/cleanup_v1/phase-10b-implementation-plan.md) - Event bus migration context

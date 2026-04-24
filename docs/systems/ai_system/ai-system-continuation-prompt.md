@@ -708,7 +708,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 ### 1. Review Project Foundations
 
 - `AGENTS.md` — Project conventions, ECS guidelines, QB v2 patterns.
-- `docs/guides/DEV_PITFALLS.md` — Common mistakes to avoid.
+- `docs/guides/pitfalls/` — Common mistakes to avoid.
 - `docs/guides/STYLE_GUIDE.md` — Code style, naming prefixes, formatting requirements.
 
 ### 2. Review AI System Documentation

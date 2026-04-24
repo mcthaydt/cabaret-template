@@ -64,7 +64,7 @@ This guide directs you to implement the UI Manager / Navigation feature by follo
 ### 1. Review Project Foundations
 
 - `AGENTS.md` – Project conventions and patterns.
-- `docs/guides/DEV_PITFALLS.md` – Common mistakes to avoid.
+- `docs/guides/pitfalls/` – Common mistakes to avoid.
 - `docs/guides/STYLE_GUIDE.md` – Code style and naming requirements.
 - Scene Manager docs:
   - `docs/scene_manager/scene-manager-prd.md`

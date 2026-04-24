@@ -263,7 +263,7 @@ Phase 5 completion notes (2026-02-25):
 
 - [x] T6.1: Update `AGENTS.md` with Scene Director / Objectives Manager patterns section
   - Completion note (2026-02-25): `AGENTS.md` includes Scene Director/Objectives architecture patterns and reset-run orchestration guidance under the Scene Director/Objectives section.
-- [x] T6.2: Update `docs/guides/DEV_PITFALLS.md` with any new pitfalls discovered
+- [x] T6.2: Update `docs/guides/pitfalls/` with any new pitfalls discovered
   - Completion note (2026-02-25): Added Scene Director reset pitfall documenting that `gameplay/reset_progress` alone does not reset objectives and that retry flows must dispatch `run/reset`.
 
 ### 6B: Final Verification

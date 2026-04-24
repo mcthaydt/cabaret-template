@@ -11,7 +11,7 @@
 Before starting Phase 1, verify:
 
 - [x] **PRE-1**: Read required documentation
-  - Read `AGENTS.md`, `docs/guides/DEV_PITFALLS.md`, `docs/guides/STYLE_GUIDE.md`
+  - Read `AGENTS.md`, `docs/guides/pitfalls/`, `docs/guides/STYLE_GUIDE.md`
   - Read `docs/vcam_manager/vcam-manager-overview.md` and `vcam-manager-continuation-prompt.md`
   - Read `scripts/ecs/systems/s_vcam_system.gd` (understand full evaluation pipeline)
   - Read `scripts/managers/m_vcam_manager.gd` (understand blend + registration)

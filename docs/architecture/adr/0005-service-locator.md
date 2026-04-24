@@ -1,6 +1,6 @@
 # ADR 0005: Service Locator for Manager Dependency Access
 
-**Status**: Accepted (amended 2026-04-24 — V8 P3)  
+**Status**: Accepted (amended 2026-04-23 — V8 P3)  
 **Date**: 2025-12-17  
 
 ## Context

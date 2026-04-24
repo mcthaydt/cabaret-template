@@ -49,7 +49,7 @@ After every completed phase, update docs immediately so written guidance matches
 - update `docs/vcam_manager/vcam-manager-continuation-prompt.md`
 - update `docs/vcam_manager/vcam-manager-tasks.md` with `[x]` marks and completion notes
 - update `AGENTS.md` when stable architecture/pattern contracts change
-- update `docs/guides/DEV_PITFALLS.md` for new pitfalls discovered during implementation
+- update `docs/guides/pitfalls/` for new pitfalls discovered during implementation
 - commit documentation updates separately from implementation commits
 
 ## Phase 0: State and Persistence
@@ -815,7 +815,7 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 - `docs/vcam_manager/vcam-manager-tasks.md`
 - `docs/vcam_manager/vcam-manager-continuation-prompt.md`
 - `AGENTS.md` if new architectural patterns prove stable
-- `docs/guides/DEV_PITFALLS.md` if implementation discovers new camera-specific pitfalls
+- `docs/guides/pitfalls/` if implementation discovers new camera-specific pitfalls
 
 ### Commit 7.3: Test gates
 

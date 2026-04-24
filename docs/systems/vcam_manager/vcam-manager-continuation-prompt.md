@@ -1286,7 +1286,7 @@
 ## Required Reading
 
 - `AGENTS.md`
-- `docs/guides/DEV_PITFALLS.md`
+- `docs/guides/pitfalls/`
 - `docs/guides/STYLE_GUIDE.md`
 - `docs/vcam_manager/vcam-manager-plan.md`
 - `docs/vcam_manager/vcam-manager-overview.md`
