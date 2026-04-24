@@ -9,7 +9,7 @@ const RS_NEEDS_SETTINGS := preload("res://scripts/resources/ecs/rs_needs_setting
 const RS_INVENTORY_SETTINGS := preload("res://scripts/demo/resources/ai/world/rs_inventory_settings.gd")
 const RS_BUILD_SITE_SETTINGS := preload("res://scripts/demo/resources/ai/world/rs_build_site_settings.gd")
 const RS_BUILD_STAGE := preload("res://scripts/demo/resources/ai/world/rs_build_stage.gd")
-const U_AI_CONTEXT_ASSEMBLER := preload("res://scripts/utils/ai/u_ai_context_assembler.gd")
+const U_AI_CONTEXT_ASSEMBLER := preload("res://scripts/demo/utils/ai/u_ai_context_assembler.gd")
 const U_ENTITY_QUERY := preload("res://scripts/ecs/u_entity_query.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 

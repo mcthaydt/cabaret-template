@@ -139,6 +139,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/demo/resources/ai/actions": ["rs_"],
 	"res://scripts/demo/resources/ai/world": ["rs_"],
 	"res://scripts/demo/resources/lighting": ["rs_"], # Demo lighting resources
+	"res://scripts/demo/utils/ai": ["u_"],
 	"res://scripts/interfaces": ["i_"],
 	"res://scripts/utils": ["u_"],
 	"res://scripts/input": ["u_", "i_"],
@@ -610,6 +611,7 @@ func test_ai_action_scripts_use_task_state_key_constants() -> void:
 	_collect_gd_literal_occurrences("res://scripts/resources/ai/actions", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/demo/resources/ai/actions", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/utils/ai", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/demo/utils/ai", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/demo/ecs/systems/s_ai_behavior_system.gd", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/demo/ecs/systems/s_move_target_follower_system.gd", "task_state[\"", violations)
 
