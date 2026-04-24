@@ -52,6 +52,16 @@ Baseline infrastructure exists and is active:
 - **Locale change notification**: Manager emits `locale_changed(locale)` and calls `_on_locale_changed(locale)` on registered UI roots that implement the method.
 - **UI scale ownership**: `M_DisplayManager` computes effective UI scale using display + localization slices. `M_LocalizationManager` must not dispatch display actions.
 
+## Current Runtime Contracts
+
+- Translation resources are `RS_LocaleTranslations` instances under `resources/localization/cfg_locale_*_*.tres`.
+- Use stable localization keys in UI/HUD code and resolve text through `U_LocalizationUtils.localize(...)` or `localize_fmt(...)`.
+- UI roots that need live updates register with `M_LocalizationManager` through `U_LocalizationRoot`.
+- Locale preview must stay visual-only until applied; clearing preview restores store-driven locale/font state.
+- Unsupported locale requests fall back without changing the active locale.
+- Dyslexia font application is global through localization manager helpers; per-control font overrides should be avoided unless the scene has a documented exception.
+- CJK overflow is a UI layout responsibility. Keep text containers responsive and verify long translated strings in settings/HUD screens.
+
 ## Responsibilities & Boundaries
 
 ### Localization Manager owns
