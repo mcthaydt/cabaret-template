@@ -39,6 +39,36 @@ Rule = Conditions[] + Effects[] + metadata
 
 **Everything is a score.** There is no separate boolean evaluation pass. A binary condition returns 0.0 or 1.0. The multiplicative product means any 0.0 condition kills the rule (logical AND). Response curves remap raw scores for non-linear preferences.
 
+## Current Runtime Contracts
+
+- The rule engine is a stateless library: `U_RuleScorer.score_rules(...)` plus `U_RuleSelector.select_winners(...)`. Domain systems compose these utilities directly instead of inheriting a QB base class.
+- Rule consumers such as `S_CharacterStateSystem`, `S_GameEventSystem`, and `S_CameraStateSystem` own their own `U_RuleStateTracker` instances. Never share tracker state between systems.
+- Rule assets use `RS_Rule` plus typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions` and `effects` use typed arrays (`Array[I_Condition]`, `Array[I_Effect]`) with coerce setters; `U_RuleValidator` validates semantic correctness.
+- All rules declare at least one condition. Unconditional rules are invalid: validator reports an error and scorer returns `0.0`.
+- Consumers should operate only on `valid_rules` from the validation report and expose `{valid_rules, errors_by_index, errors_by_rule_id}` where tests/debugging need visibility.
+- Condition scores are `0.0..1.0`; optional response curves remap before optional invert, and the final rule score is the multiplicative product.
+- Rules with empty `decision_group` fire independently. Grouped rules compete by score, then priority, then alphabetical `rule_id`.
+- `trigger_mode` supports `tick`, `event`, and `both`. Event subscriptions are derived from `RS_ConditionEventName.expected_event_name`, not rule-level metadata.
+- Event consumers fan out contexts per relevant entity/payload and apply cooldown/rising-edge/one-shot gating through their tracker.
+- Conditions/effects resolve context paths through `U_PathResolver`; do not add method-call fallback behavior.
+- Use `RS_ConditionComposite` for nested logical grouping (`ALL` as AND/product, `ANY` as OR/max). Keep nesting at or below 8 and validate through `U_RuleValidator`; empty composites are invalid.
+
+## Game Event Handler Contracts
+
+- `S_GameEventSystem` hosts default forwarding rules from `resources/qb/game/*.tres`, evaluates event/both rules on subscribed ECS events, and can optionally evaluate global tick/both rules.
+- Event-forwarding publish effects merge incoming event payloads into outgoing payloads, then apply configured payload overrides and entity-id injection.
+- `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates `checkpoint` and `spawn_point_id`, dispatches `set_last_checkpoint`, then publishes `Evn_CheckpointActivated`.
+- `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at priority `10`, enforces `game_config.required_final_area`, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED`.
+- Gameplay checkpoint/victory flows use `S_GameEventSystem` plus handler systems end to end. Legacy `S_CheckpointSystem` and `S_VictorySystem` are removed.
+
+## Pitfalls
+
+- `U_PathResolver` intentionally has no method-call fallback. Conditions/effects must resolve data through dictionary/object property paths only.
+- New rule-consumer systems should use typed arrays with coerce setters and rely on `U_RuleValidator` for semantic checks.
+- Condition/effect subresources must be v2 subclasses. Validator failures should block runtime registration.
+- Context-driven effects such as `RS_EffectSetField.use_context_value` require explicit context contracts per consumer.
+- `U_RuleStateTracker` is per-system state. Sharing one tracker causes cross-domain cooldown and rising-edge bugs.
+
 ---
 
 ## The Three Layers
