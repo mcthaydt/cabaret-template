@@ -33,6 +33,25 @@ M_CameraManager + C_CameraStateComponent + S_CameraStateSystem
 
 `M_VCamManager` chooses which virtual camera should drive gameplay, delegates live vCam blend runtime to `U_VCamBlendManager`, detects occluders, routes silhouette requests through VFX, and publishes runtime observability into Redux. `M_CameraManager` still owns scene-transition blending and shake layering. `S_CameraStateSystem` still owns the final `camera.fov` write.
 
+## Current Runtime Contracts
+
+- `S_VCamSystem` is a coordinator. Keep feature state/runtime in helpers: `U_VCamLookInput`, `U_VCamRotation`, `U_VCamOrbitEffects`, `U_VCamResponseSmoother`, `U_VCamLandingImpact`, `U_VCamRuntimeContext`, `U_VCamRuntimeState`, `U_VCamRuntimeServices`, `U_VCamEffectPipeline`, and `U_VCamDebug`.
+- `M_CameraManager.apply_main_camera_transform(xform)` is the gameplay transform handoff. `M_CameraManager.is_blend_active()` gates transition blends.
+- `U_VCamBlendManager` owns live-blend/startup-blend state machines. `M_VCamManager` delegates blend runtime state transitions to it.
+- `M_VCamManager` dispatches blend lifecycle actions through Redux and blends evaluated results through `U_VCamBlendManager`/`U_VCamBlendEvaluator`.
+- Active-camera switches dispatch `U_VCamActions.set_active_runtime(...)` before `U_VCamActions.start_blend(...)` so `blend_to_vcam_id` resolves to the incoming active camera.
+- `M_VCamManager` consumes frame-stamped submissions (`Engine.get_physics_frames`) and ignores stale previous-frame results.
+- Mid-blend `set_active_vcam()` snapshots the current blended pose as the new source. Invalid endpoints record recovery reasons (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`).
+- `in_fov_zone` lives in `state.vcam.in_fov_zone`; do not read legacy `state.camera.in_fov_zone`.
+- `U_VCamCollisionDetector` is the canonical line-of-sight blocker helper. It iterates ray hits with exclusions, honors the provided mask, resolves collision bodies to `GeometryInstance3D` descendants, and skips freed/invalid colliders.
+- `U_VCamSilhouetteHelper` owns silhouette lifecycle. It preserves original transparency/material state, applies deterministic visibility, restores on remove/clear, and debounces stable occluder sets through `update_silhouettes(...)`.
+- Shared look input is `gameplay.look_input`. `S_TouchscreenSystem` owns touchscreen look dispatch, and `S_InputSystem` must not zero-clobber touchscreen-owned move/look payloads.
+- Use `U_SecondOrderDynamics` and `U_SecondOrderDynamics3D` for scalar/vector camera response smoothing.
+- `RS_VCamResponse`, `RS_VCamModeOrbit`, `C_VCamComponent`, `M_VCamManager`, and `S_VCamSystem` are the canonical authoring/runtime bridge for orbit-mode vCams.
+- Orbit camera contracts include look-ahead, auto-level, soft-zone, ground-relative anchoring, release smoothing, moving-look smoothing gate, and button/double-tap recenter behavior as documented in this file.
+- Wall/region visibility systems are standalone ECS systems gated to orbit mode; material lifecycle is owned by their dedicated applier helpers.
+- Debug authoring fields such as `debug_rotation_logging` must remain disabled in authored gameplay/template scenes.
+
 ## Repo Reality Checks
 
 - `scenes/root.tscn` is the persistent app root. Long-lived managers live there.
