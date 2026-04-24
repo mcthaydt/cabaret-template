@@ -2,11 +2,11 @@
 extends BaseECSSystem
 class_name S_GameEventSystem
 
-const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
+const RSRuleContext := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
-const EFFECT_PUBLISH_EVENT_SCRIPT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
+const EFFECT_PUBLISH_EVENT_SCRIPT := preload("res://scripts/core/resources/qb/effects/rs_effect_publish_event.gd")
 
 const TRIGGER_MODE_TICK := "tick"
 const TRIGGER_MODE_EVENT := "event"

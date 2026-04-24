@@ -3,8 +3,8 @@ class_name U_DisplayOptionCatalog
 
 ## Display option catalog for data-driven UI + manager presets.
 
-const RS_QUALITY_PRESET := preload("res://scripts/resources/display/rs_quality_preset.gd")
-const RS_WINDOW_SIZE_PRESET := preload("res://scripts/resources/display/rs_window_size_preset.gd")
+const RS_QUALITY_PRESET := preload("res://scripts/core/resources/display/rs_quality_preset.gd")
+const RS_WINDOW_SIZE_PRESET := preload("res://scripts/core/resources/display/rs_window_size_preset.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
 const QUALITY_PRESET_DIR := "res://resources/display/cfg_quality_presets"

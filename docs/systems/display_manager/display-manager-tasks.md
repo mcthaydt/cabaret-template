@@ -138,7 +138,7 @@ Before starting Phase 0, verify:
 
 - [x] **Task 0D.3**: Integrate display slice with M_StateStore
   - Modify `scripts/state/m_state_store.gd`:
-    - Line ~41: Add `const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")`
+    - Line ~41: Add `const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")`
     - Line ~65: Add `@export var display_initial_state: Resource`
     - Lines 217-229: Add `display_initial_state` as 12th parameter to `initialize_slices()` call
   - Modify `scripts/state/utils/u_state_slice_manager.gd`:

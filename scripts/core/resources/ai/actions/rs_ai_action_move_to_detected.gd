@@ -2,8 +2,8 @@
 extends I_AIAction
 class_name RS_AIActionMoveToDetected
 
-const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
-const C_MOVE_TARGET_COMPONENT := preload("res://scripts/demo/ecs/components/c_move_target_component.gd")
+const DETECTION_COMPONENT_TYPE := StringName("C_DetectionComponent")
+const MOVE_TARGET_COMPONENT_TYPE := StringName("C_MoveTargetComponent")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
 
@@ -11,7 +11,7 @@ const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_acti
 @export var completion_radius_override: float = 0.0
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
-	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	var detection: Object = _resolve_detection_component(context)
 	if detection == null:
 		push_error("RS_AIActionMoveToDetected.start: missing C_DetectionComponent in context.")
 		_mark_completed(context, task_state, "missing_detection_component")
@@ -81,13 +81,13 @@ func _refresh_target_from_detection(
 	task_state: Dictionary,
 	log_errors: bool
 ) -> bool:
-	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	var detection: Object = _resolve_detection_component(context)
 	if detection == null:
 		if log_errors:
 			push_error("RS_AIActionMoveToDetected: missing C_DetectionComponent in context.")
 		return false
 
-	var detected_entity_id: StringName = detection.last_detected_player_entity_id
+	var detected_entity_id: StringName = detection.get("last_detected_player_entity_id") as StringName
 	if detected_entity_id == StringName(""):
 		if log_errors:
 			push_error("RS_AIActionMoveToDetected: stale detection (empty detected entity id).")
@@ -111,7 +111,7 @@ func _refresh_target_from_detection(
 	var target_position: Vector3 = target_position_variant as Vector3
 	_set_move_target_component_target(context, target_position, resolved_arrival_threshold)
 	_write_resolution_debug(task_state, context, "detected_entity", "resolved_detected_entity", false, true)
-	detection.pending_feed_entity_id = detected_entity_id
+	detection.set("pending_feed_entity_id", detected_entity_id)
 	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
 	task_state[U_AITaskStateKeys.DETECTED_ENTITY_ID] = detected_entity_id
 	task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
@@ -120,20 +120,20 @@ func _refresh_target_from_detection(
 func _mark_completed(context: Dictionary, task_state: Dictionary, reason: String) -> void:
 	_clear_move_target_component(context)
 	_write_resolution_debug(task_state, context, "detected_entity", reason, false, false)
-	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	var detection: Object = _resolve_detection_component(context)
 	if detection != null:
-		detection.pending_feed_entity_id = StringName("")
+		detection.set("pending_feed_entity_id", StringName(""))
 	task_state.erase(U_AITaskStateKeys.MOVE_TARGET)
 	task_state.erase(U_AITaskStateKeys.DETECTED_ENTITY_ID)
 	task_state.erase(U_AITaskStateKeys.ARRIVAL_THRESHOLD)
 	task_state[U_AITaskStateKeys.COMPLETED] = true
 
-func _resolve_detection_component(context: Dictionary) -> C_DetectionComponent:
+func _resolve_detection_component(context: Dictionary) -> Object:
 	var components_variant: Variant = context.get("components", null)
 	if not (components_variant is Dictionary):
 		return null
 	var components: Dictionary = components_variant as Dictionary
-	return components.get(C_DETECTION_COMPONENT.COMPONENT_TYPE, null) as C_DetectionComponent
+	return components.get(DETECTION_COMPONENT_TYPE, null) as Object
 
 func _resolve_detected_entity(context: Dictionary, entity_id: StringName) -> Node3D:
 	var manager: I_ECSManager = context.get("ecs_manager", null) as I_ECSManager
@@ -197,7 +197,7 @@ func _resolve_move_target_component(context: Dictionary) -> Object:
 	if not (components_variant is Dictionary):
 		return null
 	var components: Dictionary = components_variant as Dictionary
-	var move_target_component_variant: Variant = components.get(C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE, null)
+	var move_target_component_variant: Variant = components.get(MOVE_TARGET_COMPONENT_TYPE, null)
 	if not (move_target_component_variant is Object):
 		return null
 	return move_target_component_variant as Object

@@ -404,7 +404,7 @@ For Phase 1 (resource schema/validation) and Phase 2 (controller binding), these
 ### RED
 
 - [x] **T040 (RED)** Add style/contract checks for interaction config conventions.
-  - Added script prefix enforcement coverage for `res://scripts/resources/interactions` (`rs_`).
+  - Added script prefix enforcement coverage for `res://scripts/core/resources/interactions` (`rs_`).
   - Added resource naming/placement checks for `res://resources/interactions` (`cfg_` instance convention + category directories).
   - Added explicit checks that interaction config resources declare `script = ExtResource(...)`.
 

@@ -7,7 +7,7 @@ const RS_AI_ACTION_HAUL_DEPOSIT := preload("res://scripts/demo/resources/ai/acti
 const RS_AI_ACTION_BUILD_STAGE := preload("res://scripts/demo/resources/ai/actions/rs_ai_action_build_stage.gd")
 const RS_AI_ACTION_DRINK := preload("res://scripts/demo/resources/ai/actions/rs_ai_action_drink.gd")
 const RS_AI_ACTION_RESERVE := preload("res://scripts/demo/resources/ai/actions/rs_ai_action_reserve.gd")
-const RS_AI_ACTION_MOVE_TO_NEAREST := preload("res://scripts/resources/ai/actions/rs_ai_action_move_to_nearest.gd")
+const RS_AI_ACTION_MOVE_TO_NEAREST := preload("res://scripts/core/resources/ai/actions/rs_ai_action_move_to_nearest.gd")
 
 const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/demo/ecs/components/c_resource_node_component.gd")
 const C_INVENTORY_COMPONENT := preload("res://scripts/demo/ecs/components/c_inventory_component.gd")
@@ -20,8 +20,8 @@ const RS_RESOURCE_NODE_SETTINGS := preload("res://scripts/demo/resources/ai/worl
 const RS_INVENTORY_SETTINGS := preload("res://scripts/demo/resources/ai/world/rs_inventory_settings.gd")
 const RS_BUILD_SITE_SETTINGS := preload("res://scripts/demo/resources/ai/world/rs_build_site_settings.gd")
 const RS_BUILD_STAGE := preload("res://scripts/demo/resources/ai/world/rs_build_stage.gd")
-const RS_NEEDS_SETTINGS := preload("res://scripts/resources/ecs/rs_needs_settings.gd")
-const RS_MOVEMENT_SETTINGS := preload("res://scripts/resources/ecs/rs_movement_settings.gd")
+const RS_NEEDS_SETTINGS := preload("res://scripts/core/resources/ecs/rs_needs_settings.gd")
+const RS_MOVEMENT_SETTINGS := preload("res://scripts/core/resources/ecs/rs_movement_settings.gd")
 
 class WoodsActionECSManagerStub extends RefCounted:
 	var entities: Dictionary = {}

@@ -500,7 +500,7 @@ Before starting Phase 3, verify:
 
   **Aim activation integration point (in `process_tick`, after evaluation):**
   ```gdscript
-  const RS_VCAM_MODE_OTS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_ots.gd")
+  const RS_VCAM_MODE_OTS_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_ots.gd")
 
   # Gate: only process aim activation for OTS-capable vCams
   var mode_script := mode.get_script() as Script

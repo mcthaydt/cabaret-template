@@ -946,7 +946,7 @@ static func is_daytime(state: Dictionary) -> bool:
 
 ```gdscript
 # Add const (after line ~45):
-const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
+const RS_TIME_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_time_initial_state.gd")
 
 # Add export (after line ~70):
 @export var time_initial_state: RS_TimeInitialState

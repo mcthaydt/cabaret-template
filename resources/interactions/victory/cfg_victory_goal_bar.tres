@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_VictoryInteractionConfig" format=3 uid="uid://cu3ruo6k60o8k"]
 
-[ext_resource type="Script" uid="uid://8yfc6qhu0qub" path="res://scripts/resources/interactions/rs_victory_interaction_config.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/core/resources/interactions/rs_victory_interaction_config.gd" id="1"]
 [ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/cfg_goal_cylinder.tres" id="2"]
 
 [resource]

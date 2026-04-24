@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_PostProcessingPreset" format=3 uid="uid://bnejf3mmha2ou"]
 
-[ext_resource type="Script" uid="uid://cv8743dnbehki" path="res://scripts/resources/display/rs_post_processing_preset.gd" id="1_heavy"]
+[ext_resource type="Script" path="res://scripts/core/resources/display/rs_post_processing_preset.gd" id="1_heavy"]
 
 [resource]
 script = ExtResource("1_heavy")

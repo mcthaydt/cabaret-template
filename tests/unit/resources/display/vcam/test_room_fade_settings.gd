@@ -1,6 +1,6 @@
 extends GutTest
 
-const ROOM_FADE_SETTINGS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_room_fade_settings.gd")
+const ROOM_FADE_SETTINGS_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_room_fade_settings.gd")
 
 func _new_settings() -> Resource:
 	return ROOM_FADE_SETTINGS_SCRIPT.new()

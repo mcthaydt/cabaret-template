@@ -9,7 +9,7 @@ const C_REGION_VISIBILITY_COMPONENT := preload(
 	"res://scripts/ecs/components/c_region_visibility_component.gd"
 )
 const RS_REGION_VISIBILITY_SETTINGS := preload(
-	"res://scripts/resources/display/vcam/rs_region_visibility_settings.gd"
+	"res://scripts/core/resources/display/vcam/rs_region_visibility_settings.gd"
 )
 
 class MaterialApplierStub extends RefCounted:

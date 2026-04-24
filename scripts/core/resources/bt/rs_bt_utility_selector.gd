@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/resources/bt/rs_bt_composite.gd"
+extends "res://scripts/core/resources/bt/rs_bt_composite.gd"
 class_name RS_BTUtilitySelector
 
 const STATE_KEY_RUNNING_CHILD_INDEX := &"running_child_index"

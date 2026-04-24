@@ -2,9 +2,9 @@
 extends I_AIAction
 class_name RS_AIActionMoveToNearest
 
-const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
-const C_MOVE_TARGET_COMPONENT := preload("res://scripts/demo/ecs/components/c_move_target_component.gd")
-const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
+const DETECTION_COMPONENT_TYPE := StringName("C_DetectionComponent")
+const MOVE_TARGET_COMPONENT_TYPE := StringName("C_MoveTargetComponent")
+const BUILD_SITE_COMPONENT_TYPE := StringName("C_BuildSiteComponent")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
 
@@ -35,9 +35,9 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	var target_position: Vector3 = target_position_variant as Vector3
 	var resolved_threshold: float = maxf(arrival_threshold, 0.0)
 	_set_move_target_component_target(context, target_position, resolved_threshold)
-	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	var detection: Object = _resolve_detection_component(context)
 	if detection != null:
-		detection.last_scan_entity_id = U_ECS_UTILS.get_entity_id(target_entity)
+		detection.set("last_scan_entity_id", U_ECS_UTILS.get_entity_id(target_entity))
 	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
 	task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_threshold
 	var target_id: StringName = U_ECS_UTILS.get_entity_id(target_entity)
@@ -158,26 +158,26 @@ func _mark_completed(context: Dictionary, task_state: Dictionary, _reason: Strin
 func _resolve_current_position(context: Dictionary) -> Variant:
 	return U_AI_ACTION_POSITION_RESOLVER.resolve_actor_position(context)
 
-func _resolve_detection_component(context: Dictionary) -> C_DetectionComponent:
+func _resolve_detection_component(context: Dictionary) -> Object:
 	var components_variant: Variant = context.get("components", null)
 	if not (components_variant is Dictionary):
 		return null
 	var components: Dictionary = components_variant as Dictionary
-	return components.get(C_DETECTION_COMPONENT.COMPONENT_TYPE, null) as C_DetectionComponent
+	return components.get(DETECTION_COMPONENT_TYPE, null) as Object
 
 func _resolve_build_site_component(context: Dictionary) -> Object:
 	var components_variant: Variant = context.get("components", null)
 	if not (components_variant is Dictionary):
 		return null
 	var components: Dictionary = components_variant as Dictionary
-	return components.get(C_BUILD_SITE_COMPONENT.COMPONENT_TYPE, null)
+	return components.get(BUILD_SITE_COMPONENT_TYPE, null)
 
 func _resolve_move_target_component(context: Dictionary) -> Object:
 	var components_variant: Variant = context.get("components", null)
 	if not (components_variant is Dictionary):
 		return null
 	var components: Dictionary = components_variant as Dictionary
-	var mt_variant: Variant = components.get(C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE, null)
+	var mt_variant: Variant = components.get(MOVE_TARGET_COMPONENT_TYPE, null)
 	if not (mt_variant is Object):
 		return null
 	return mt_variant as Object

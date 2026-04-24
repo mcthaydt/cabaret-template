@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_SpawnConfig" format=3 uid="uid://cyryucy4pxy6f"]
 
-[ext_resource type="Script" uid="uid://c2d0k31tdqh0u" path="res://scripts/resources/managers/rs_spawn_config.gd" id="1_spawn_config_script"]
+[ext_resource type="Script" path="res://scripts/core/resources/managers/rs_spawn_config.gd" id="1_spawn_config_script"]
 
 [resource]
 script = ExtResource("1_spawn_config_script")

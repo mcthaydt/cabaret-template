@@ -1,9 +1,9 @@
 extends GutTest
 
-const RS_BT_NODE_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
-const RS_BT_RISING_EDGE_PATH := "res://scripts/resources/bt/rs_bt_rising_edge.gd"
+const RS_BT_NODE_PATH := "res://scripts/core/resources/bt/rs_bt_node.gd"
+const RS_BT_RISING_EDGE_PATH := "res://scripts/core/resources/bt/rs_bt_rising_edge.gd"
 const TEST_STATUS_NODE_PATH := "res://tests/unit/ai/bt/helpers/test_bt_status_node.gd"
-const RS_CONDITION_CONSTANT_PATH := "res://scripts/resources/qb/conditions/rs_condition_constant.gd"
+const RS_CONDITION_CONSTANT_PATH := "res://scripts/core/resources/qb/conditions/rs_condition_constant.gd"
 
 func _load_script(path: String) -> Script:
 	assert_true(FileAccess.file_exists(path), "Expected script file to exist: %s" % path)

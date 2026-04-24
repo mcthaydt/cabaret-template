@@ -1,8 +1,8 @@
 extends RefCounted
 class_name U_RuleUtils
 
-const CONDITION_EVENT_NAME_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
-const CONDITION_COMPOSITE_SCRIPT := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
+const CONDITION_EVENT_NAME_SCRIPT := preload("res://scripts/core/resources/qb/conditions/rs_condition_event_name.gd")
+const CONDITION_COMPOSITE_SCRIPT := preload("res://scripts/core/resources/qb/conditions/rs_condition_composite.gd")
 
 ## Reads a String property from an object. Returns the fallback if the object is null,
 ## the property doesn't exist, or the value is not a String/StringName.

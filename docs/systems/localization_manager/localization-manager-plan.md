@@ -194,7 +194,7 @@ static func _with_values(state: Dictionary, values: Dictionary) -> Dictionary:
 
 ```gdscript
 # Add const near the other RS_ preloads:
-const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_localization_initial_state.gd")
+const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_localization_initial_state.gd")
 
 # Add export near the other initial state exports (use Resource type to match
 # the pattern used by navigation_initial_state and display_initial_state):

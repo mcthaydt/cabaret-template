@@ -1,19 +1,19 @@
 extends GutTest
 
-const RS_BT_ACTION_PATH := "res://scripts/resources/ai/bt/rs_bt_action.gd"
+const RS_BT_ACTION_PATH := "res://scripts/core/resources/ai/bt/rs_bt_action.gd"
 const I_AI_ACTION_PATH := "res://scripts/core/interfaces/i_ai_action.gd"
 
 const RS_AI_ACTION_PATHS := [
-	"res://scripts/resources/ai/actions/rs_ai_action_animate.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_animate.gd",
 	"res://scripts/demo/resources/ai/actions/rs_ai_action_feed.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_flee_from_detected.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_move_to.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_publish_event.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_scan.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_set_field.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_wait.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_wander.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_flee_from_detected.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_move_to.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_move_to_detected.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_publish_event.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_scan.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_set_field.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_wait.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_wander.gd",
 ]
 
 func _load_script(path: String) -> Script:

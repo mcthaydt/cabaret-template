@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_UIMotion
 
-const RS_UI_MOTION_PRESET := preload("res://scripts/resources/ui/rs_ui_motion_preset.gd")
+const RS_UI_MOTION_PRESET := preload("res://scripts/core/resources/ui/rs_ui_motion_preset.gd")
 
 static func play(node: Node, presets: Array[Resource]) -> Tween:
 	if node == null:

@@ -1,7 +1,7 @@
 extends GutTest
 
-const RS_BT_NODE_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
-const RS_BT_ONCE_PATH := "res://scripts/resources/bt/rs_bt_once.gd"
+const RS_BT_NODE_PATH := "res://scripts/core/resources/bt/rs_bt_node.gd"
+const RS_BT_ONCE_PATH := "res://scripts/core/resources/bt/rs_bt_once.gd"
 const TEST_STATUS_NODE_PATH := "res://tests/unit/ai/bt/helpers/test_bt_status_node.gd"
 
 class BrainOnceResetStub extends RefCounted:

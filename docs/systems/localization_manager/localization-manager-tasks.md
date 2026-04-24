@@ -129,7 +129,7 @@ Before starting Phase 0, verify:
 
 - [x] **Task 0D.3**: Integrate localization slice with M_StateStore
   - Modify `scripts/state/m_state_store.gd`:
-    - Add `const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_localization_initial_state.gd")`
+    - Add `const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_localization_initial_state.gd")`
     - Add `@export var localization_initial_state: Resource`
     - Add `localization_initial_state` as **13th argument** to `initialize_slices()` call
   - Modify `scripts/state/utils/u_state_slice_manager.gd`:

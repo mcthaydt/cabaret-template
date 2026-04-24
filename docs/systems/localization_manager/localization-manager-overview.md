@@ -169,7 +169,7 @@ Each locale catalog is a `RS_LocaleTranslations` Resource with a flat `translati
 
 ```gdscript
 [resource]
-script = ExtResource("res://scripts/resources/localization/rs_locale_translations.gd")
+script = ExtResource("res://scripts/core/resources/localization/rs_locale_translations.gd")
 locale = &"en"
 domain = &"ui"
 translations = {
@@ -245,7 +245,7 @@ Adding the `localization` Redux slice requires touching four files beyond the ne
 Add the initial state resource constant and export:
 
 ```gdscript
-const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_localization_initial_state.gd")
+const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_localization_initial_state.gd")
 
 # Use Resource type to match the pattern used by navigation_initial_state and display_initial_state:
 @export var localization_initial_state: Resource

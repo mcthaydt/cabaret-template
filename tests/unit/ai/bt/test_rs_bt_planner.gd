@@ -1,9 +1,9 @@
 extends GutTest
 
-const RS_BT_PLANNER_PATH := "res://scripts/resources/ai/bt/rs_bt_planner.gd"
-const RS_BT_PLANNER_ACTION_PATH := "res://scripts/resources/ai/bt/rs_bt_planner_action.gd"
-const RS_WORLD_STATE_EFFECT_PATH := "res://scripts/resources/ai/bt/rs_world_state_effect.gd"
-const RS_BT_NODE_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
+const RS_BT_PLANNER_PATH := "res://scripts/core/resources/ai/bt/rs_bt_planner.gd"
+const RS_BT_PLANNER_ACTION_PATH := "res://scripts/core/resources/ai/bt/rs_bt_planner_action.gd"
+const RS_WORLD_STATE_EFFECT_PATH := "res://scripts/core/resources/ai/bt/rs_world_state_effect.gd"
+const RS_BT_NODE_PATH := "res://scripts/core/resources/bt/rs_bt_node.gd"
 const TEST_STATUS_NODE_PATH := "res://tests/unit/ai/bt/helpers/test_bt_status_node.gd"
 
 class TestStateEqualsCondition extends I_Condition:

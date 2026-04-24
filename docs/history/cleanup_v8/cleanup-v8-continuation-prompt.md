@@ -5,8 +5,8 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 complete. P1.1–P1.10 complete. Phase 2 complete through P2.4 (`28702b95`) with style guard green. Phase 3 complete through P3.6; P3.5 extension recipes authored — 16 of 18 done (`ai.md` + 15 eligible recipes in `cf4394a6` + `437c3a6c`); `scenes.md` and `resources.md` remain gated on Phase 4. Phase 4 complete through P4.2; P4.3 has the RED core-never-imports-demo boundary test and seven GREEN move chunks complete (demo gameplay/debug script move, demo ECS components/systems move in `df91cc4b`, demo AI action/world resource script move in `7a520d91`, demo lighting resource script move in `f9cb6c3e`, demo AI utils move in `21470236`, core root/events/scene_structure move in `5b5c1e3e`, and core interfaces/managers move now staged in working tree). `AGENTS.md` is now a 58-line routing index and `docs/guides/DEV_PITFALLS.md` has been deleted after redistribution. `ai-system-overview.md` updated to remove stale GOAP/HTN content.
-**Next Task**: Continue P4.3 move commits — next logical chunk is remaining core resource/script path normalization (especially `scripts/resources/**` and companion `.tres` references) per `docs/history/cleanup_v8/target_structure.md`.
+**Status**: Phase 1 complete. P1.1–P1.10 complete. Phase 2 complete through P2.4 (`28702b95`) with style guard green. Phase 3 complete through P3.6; P3.5 extension recipes authored — 16 of 18 done (`ai.md` + 15 eligible recipes in `cf4394a6` + `437c3a6c`); `scenes.md` and `resources.md` remain gated on Phase 4. Phase 4 complete through P4.2; P4.3 has the RED core-never-imports-demo boundary test and nine GREEN move chunks complete (demo gameplay/debug script move, demo ECS components/systems move in `df91cc4b`, demo AI action/world resource script move in `7a520d91`, demo lighting resource script move in `f9cb6c3e`, demo AI utils move in `21470236`, core root/events/scene_structure move in `5b5c1e3e`, core interfaces/managers move in `3d34de4f`, and core `scripts/resources/**` migration + companion `.tres/.tscn` path normalization now complete in working tree). `AGENTS.md` is now a 58-line routing index and `docs/guides/DEV_PITFALLS.md` has been deleted after redistribution. `ai-system-overview.md` updated to remove stale GOAP/HTN content.
+**Next Task**: Continue P4.3 move commits — next logical chunk is remaining core script-root migration (`scripts/ecs/**`, `scripts/state/**`, `scripts/ui/**`, `scripts/gameplay/**`, `scripts/input/**`, `scripts/scene_management/**`, `scripts/utils/**`) into `scripts/core/**` with atomic reference updates per `docs/history/cleanup_v8/target_structure.md`.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -158,7 +158,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
 - **Phase 2**: COMPLETE through P2.4 (`28702b95`) with style recheck passing (`83/83`).
 - **Phase 3**: COMPLETE. P3.0–P3.6 complete; P3.5 extension recipes authored — 16 of 18 done (`ai.md` + 15 eligible recipes in `cf4394a6` + `437c3a6c`); `scenes.md` and `resources.md` gated on Phase 4; `ai-system-overview.md` updated to remove stale GOAP/HTN content.
-- **Phase 4**: IN PROGRESS. P4.1 classification doc and P4.2 target structure doc are complete. P4.3 RED boundary test is complete; seven GREEN move chunks are complete: demo gameplay/debug scripts moved into `scripts/demo/`, demo ECS components/systems moved into `scripts/demo/ecs/**` (`df91cc4b`), demo AI action/world scripts moved into `scripts/demo/resources/ai/**` (`7a520d91`), demo lighting resource scripts moved into `scripts/demo/resources/lighting/**` (`f9cb6c3e`), demo AI utils moved into `scripts/demo/utils/ai/**` (`21470236`), core root/events/scene_structure moved into `scripts/core/**` (`5b5c1e3e`), and core interfaces/managers moved into `scripts/core/interfaces/**` + `scripts/core/managers/**` (working tree). Remaining P4.3 chunks should continue with remaining core script/resource/scene/asset moves per `docs/history/cleanup_v8/target_structure.md`.
+- **Phase 4**: IN PROGRESS. P4.1 classification doc and P4.2 target structure doc are complete. P4.3 RED boundary test is complete; nine GREEN move chunks are complete: demo gameplay/debug scripts moved into `scripts/demo/`, demo ECS components/systems moved into `scripts/demo/ecs/**` (`df91cc4b`), demo AI action/world scripts moved into `scripts/demo/resources/ai/**` (`7a520d91`), demo lighting resource scripts moved into `scripts/demo/resources/lighting/**` (`f9cb6c3e`), demo AI utils moved into `scripts/demo/utils/ai/**` (`21470236`), core root/events/scene_structure moved into `scripts/core/**` (`5b5c1e3e`), core interfaces/managers moved into `scripts/core/interfaces/**` + `scripts/core/managers/**` (`3d34de4f`), and core `scripts/resources/**` scripts moved into `scripts/core/resources/**` with companion `.tres/.tscn` script-path updates (working tree). Remaining P4.3 chunks should continue with remaining core script-root/resource-data/scene/asset moves per `docs/history/cleanup_v8/target_structure.md`.
 - **Phase 5**: NOT STARTED. 4 milestones.
 
 ### Baseline Verification (2026-04-17, post-P1.4 completion)
@@ -173,7 +173,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
 - Post-P1.3 Commit 4 recheck: `tools/run_gut_suite.sh` completed with no failing tests (`4486` passing / `8` pending).
 - Post-P1.4 Commit 3 recheck: `tools/run_gut_suite.sh` completed with no failing tests (`4492` passing / `8` pending).
 - Post-P1.6 Commit 2 recheck: `tools/run_gut_suite.sh` completed with no failing tests (`4518` passing / `8` pending).
-- P1.6b Commit 1 RED check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_world_state_effect.gd` fails for expected reason (`res://scripts/resources/ai/bt/rs_world_state_effect.gd` missing).
+- P1.6b Commit 1 RED check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_world_state_effect.gd` fails for expected reason (`res://scripts/core/resources/ai/bt/rs_world_state_effect.gd` missing).
 - P1.6b Commit 1 style check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`60/60`).
 - P1.6b Commit 2 GREEN check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_world_state_effect.gd` passes (`4/4`).
 - Post-P1.6b Commit 2 recheck: `tools/run_gut_suite.sh` completed with no failing tests (`4522` passing / `8` pending).
@@ -181,7 +181,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
 - P1.6b Commit 3 style check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`60/60`).
 - P1.6b Commit 4 GREEN check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_u_ai_world_state_builder.gd` passes (`3/3`).
 - Post-P1.6b Commit 4 recheck: `tools/run_gut_suite.sh` completed with no failing tests (`4525` passing / `8` pending).
-- P1.6b Commit 5 RED check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner_action.gd` fails for expected reason (`res://scripts/resources/ai/bt/rs_bt_planner_action.gd` missing).
+- P1.6b Commit 5 RED check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner_action.gd` fails for expected reason (`res://scripts/core/resources/ai/bt/rs_bt_planner_action.gd` missing).
 - P1.6b Commit 5 style check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`60/60`).
 - P1.6b Commit 6 GREEN check: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner_action.gd` passes (`6/6`).
 - P1.6b Commit 6 style check: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`60/60`).
@@ -379,7 +379,7 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 
 ## Next Steps
 
-1. Continue Phase 4 P4.3 move commits; next logical chunk is remaining core resource/script path normalization (`scripts/resources/**` + affected `.tres`/scene references) per `target_structure.md`.
+1. Continue Phase 4 P4.3 move commits; next logical chunk is remaining core script-root migration (`scripts/{ecs,state,ui,gameplay,input,scene_management,utils}/**` -> `scripts/core/**`) with atomic reference updates per `target_structure.md`.
 2. After Phase 4: author remaining P3.5 recipes (`scenes.md`, `resources.md`) gated on Phase 4.
 3. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
 4. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` after any file move.

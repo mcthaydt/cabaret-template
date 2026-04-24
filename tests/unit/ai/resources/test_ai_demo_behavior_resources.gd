@@ -1,6 +1,6 @@
 extends BaseTest
 
-const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
+const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")
 
 const PATROL_BRAIN_PATH := "res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres"
 const SENTRY_BRAIN_PATH := "res://resources/ai/sentry/cfg_sentry_brain.tres"
@@ -13,12 +13,12 @@ const INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH := "res://scripts/demo/gameplay/inter_
 const INTER_HAZARD_ZONE_SCRIPT_PATH := "res://scripts/gameplay/inter_hazard_zone.gd"
 const NAV_FALL_HAZARD_CONFIG_PATH := "res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres"
 
-const BT_UTILITY_SELECTOR_SCRIPT_PATH := "res://scripts/resources/bt/rs_bt_utility_selector.gd"
-const BT_SELECTOR_SCRIPT_PATH := "res://scripts/resources/bt/rs_bt_selector.gd"
-const BT_SEQUENCE_SCRIPT_PATH := "res://scripts/resources/bt/rs_bt_sequence.gd"
-const AI_SCORER_CONDITION_SCRIPT_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd"
-const AI_SCORER_CONSTANT_SCRIPT_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd"
-const QB_REDUX_FIELD_CONDITION_SCRIPT_PATH := "res://scripts/resources/qb/conditions/rs_condition_redux_field.gd"
+const BT_UTILITY_SELECTOR_SCRIPT_PATH := "res://scripts/core/resources/bt/rs_bt_utility_selector.gd"
+const BT_SELECTOR_SCRIPT_PATH := "res://scripts/core/resources/bt/rs_bt_selector.gd"
+const BT_SEQUENCE_SCRIPT_PATH := "res://scripts/core/resources/bt/rs_bt_sequence.gd"
+const AI_SCORER_CONDITION_SCRIPT_PATH := "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_condition.gd"
+const AI_SCORER_CONSTANT_SCRIPT_PATH := "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_constant.gd"
+const QB_REDUX_FIELD_CONDITION_SCRIPT_PATH := "res://scripts/core/resources/qb/conditions/rs_condition_redux_field.gd"
 
 const REQUIRED_NPC_COMPONENT_PATHS: Array[String] = [
 	"Components/C_SpawnStateComponent",

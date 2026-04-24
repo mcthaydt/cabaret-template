@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/resources/interactions/rs_victory_interaction_config.gd"
+extends "res://scripts/core/resources/interactions/rs_victory_interaction_config.gd"
 class_name RS_EndgameGoalInteractionConfig
 
 @export var required_area: String = "interior_house"

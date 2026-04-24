@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_SpawnMetadata" format=3 uid="uid://w32u5tryuii8"]
 
-[ext_resource type="Script" uid="uid://b60nvcmvpvwa2" path="res://scripts/resources/scene_management/rs_spawn_metadata.gd" id="1_spawn_meta"]
+[ext_resource type="Script" path="res://scripts/core/resources/scene_management/rs_spawn_metadata.gd" id="1_spawn_meta"]
 
 [resource]
 script = ExtResource("1_spawn_meta")

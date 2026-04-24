@@ -3,7 +3,7 @@ extends HBoxContainer
 class_name UI_ButtonPrompt
 
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 @export var label_path: NodePath = NodePath("Text")
 @export var text_icon_panel_path: NodePath = NodePath("TextIcon")

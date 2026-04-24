@@ -3,7 +3,7 @@ extends BaseTest
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 const JUMP_COMPONENT := preload("res://scripts/ecs/components/c_jump_component.gd")
-const JUMP_SETTINGS := preload("res://scripts/resources/ecs/rs_jump_settings.gd")
+const JUMP_SETTINGS := preload("res://scripts/core/resources/ecs/rs_jump_settings.gd")
 
 class TestInvalidComponent extends BaseECSComponent:
 	const TYPE := StringName("C_TestInvalidComponent")

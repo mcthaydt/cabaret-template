@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/resources/bt/rs_bt_composite.gd"
+extends "res://scripts/core/resources/bt/rs_bt_composite.gd"
 class_name RS_BTSequence
 
 const STATE_KEY_CURRENT_CHILD_INDEX := &"current_child_index"

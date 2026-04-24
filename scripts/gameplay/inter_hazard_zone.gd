@@ -1,7 +1,7 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name Inter_HazardZone
 
-const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_hazard_interaction_config.gd")
+const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_hazard_interaction_config.gd")
 const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
 
 @export var component_name: StringName = StringName("C_DamageZoneComponent")

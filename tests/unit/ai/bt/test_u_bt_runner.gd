@@ -1,9 +1,9 @@
 extends GutTest
 
 const U_BT_RUNNER_PATH := "res://scripts/utils/bt/u_bt_runner.gd"
-const RS_BT_NODE_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
-const RS_BT_ACTION_PATH := "res://scripts/resources/ai/bt/rs_bt_action.gd"
-const RS_BT_SEQUENCE_PATH := "res://scripts/resources/bt/rs_bt_sequence.gd"
+const RS_BT_NODE_PATH := "res://scripts/core/resources/bt/rs_bt_node.gd"
+const RS_BT_ACTION_PATH := "res://scripts/core/resources/ai/bt/rs_bt_action.gd"
+const RS_BT_SEQUENCE_PATH := "res://scripts/core/resources/bt/rs_bt_sequence.gd"
 const TEST_STATUS_NODE_PATH := "res://tests/unit/ai/bt/helpers/test_bt_status_node.gd"
 const TEST_COUNTING_ACTION_PATH := "res://tests/unit/ai/bt/helpers/test_bt_counting_action.gd"
 

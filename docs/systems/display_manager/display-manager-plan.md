@@ -248,7 +248,7 @@ static func _with_values(state: Dictionary, values: Dictionary) -> Dictionary:
 **1. `scripts/state/m_state_store.gd`**:
 ```gdscript
 # Line ~41, add const:
-const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
+const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")
 
 # Line ~65, add export:
 @export var display_initial_state: Resource

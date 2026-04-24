@@ -1,6 +1,6 @@
 extends BaseTest
 
-const CONDITION_ENTITY_TAG := preload("res://scripts/resources/qb/conditions/rs_condition_entity_tag.gd")
+const CONDITION_ENTITY_TAG := preload("res://scripts/core/resources/qb/conditions/rs_condition_entity_tag.gd")
 
 func _make_condition() -> Variant:
 	var condition: Variant = CONDITION_ENTITY_TAG.new()

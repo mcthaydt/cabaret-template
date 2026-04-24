@@ -5,7 +5,7 @@ class_name C_VCamComponent
 const COMPONENT_TYPE := StringName("VCamComponent")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const I_VCAM_MANAGER := preload("res://scripts/core/interfaces/i_vcam_manager.gd")
-const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
+const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_response.gd")
 
 @export var vcam_id: StringName = StringName("")
 @export var priority: int = 0

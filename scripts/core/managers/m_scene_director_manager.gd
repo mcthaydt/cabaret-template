@@ -7,8 +7,8 @@ const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd
 const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_director_actions.gd")
 const U_BEAT_RUNNER := preload("res://scripts/utils/scene_director/u_beat_runner.gd")
 const U_BEAT_GRAPH := preload("res://scripts/utils/scene_director/u_beat_graph.gd")
-const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
-const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
+const RS_BEAT_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_beat_definition.gd")
+const RSRuleContext := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
 
 @export var state_store: I_StateStore = null
 @export var directives: Array[Resource] = []

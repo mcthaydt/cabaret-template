@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/resources/bt/rs_bt_node.gd"
+extends "res://scripts/core/resources/bt/rs_bt_node.gd"
 class_name RS_BTDecorator
 
 var _child: RS_BTNode = null

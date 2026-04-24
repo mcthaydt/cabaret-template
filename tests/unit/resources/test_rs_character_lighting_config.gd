@@ -1,6 +1,6 @@
 extends GutTest
 
-const SCRIPT_PATH := "res://scripts/resources/managers/rs_character_lighting_config.gd"
+const SCRIPT_PATH := "res://scripts/core/resources/managers/rs_character_lighting_config.gd"
 
 
 func _load_script() -> Script:

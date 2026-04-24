@@ -286,7 +286,7 @@ func _on_export_pressed() -> void:
 	# Build .tres format string
 	var tres_content := """[gd_resource type="Resource" script_class="RS_SceneColorGrading" format=3]
 
-[ext_resource type="Script" path="res://scripts/resources/display/rs_scene_color_grading.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/core/resources/display/rs_scene_color_grading.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")

@@ -3,7 +3,7 @@ extends GutTest
 # TDD: Test filter preset map consistency across codebase (M1)
 # Bug: FILTER_PRESET_MAP is duplicated in 3 places - easy to get out of sync
 
-const RS_SCENE_COLOR_GRADING := preload("res://scripts/resources/display/rs_scene_color_grading.gd")
+const RS_SCENE_COLOR_GRADING := preload("res://scripts/core/resources/display/rs_scene_color_grading.gd")
 const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
 
 # FAILING TEST: Reducer should use the same filter preset map as the resource

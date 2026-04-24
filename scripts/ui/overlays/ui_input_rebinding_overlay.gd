@@ -6,7 +6,7 @@ const I_INPUT_PROFILE_MANAGER := preload("res://scripts/core/interfaces/i_input_
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/cfg_default_rebind_settings.tres")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"menu.settings.rebind"
 const STATUS_DEFAULT_KEY := &"overlay.input_rebinding.status.default"

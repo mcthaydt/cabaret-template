@@ -432,7 +432,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `scripts/resources/ai/rs_ai_primitive_task.gd` → `scripts/resources/ai/tasks/rs_ai_primitive_task.gd`
   - `scripts/resources/ai/rs_ai_compound_task.gd` → `scripts/resources/ai/tasks/rs_ai_compound_task.gd`
   - Carry the `.uid` files alongside
-  - Update every `preload("res://scripts/resources/ai/...")` call-site across `scripts/`, `tests/`, and `resources/ai/*.tres` `[ext_resource]` entries
+  - Update every `preload("res://scripts/core/resources/ai/...")` call-site across `scripts/`, `tests/`, and `resources/ai/*.tres` `[ext_resource]` entries
 
 **R7 Verification**:
 - [x] New style test green

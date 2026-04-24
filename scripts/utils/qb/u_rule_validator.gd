@@ -9,14 +9,14 @@ class_name U_RuleValidator
 ## and cross-field constraints that typed arrays cannot enforce.
 
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
-const BASE_CONDITION_SCRIPT := preload("res://scripts/resources/qb/rs_base_condition.gd")
-const BASE_EFFECT_SCRIPT := preload("res://scripts/resources/qb/rs_base_effect.gd")
-const CONDITION_COMPONENT_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_component_field.gd")
-const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
-const CONDITION_EVENT_PAYLOAD := preload("res://scripts/resources/qb/conditions/rs_condition_event_payload.gd")
-const CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
-const CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
-const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
+const BASE_CONDITION_SCRIPT := preload("res://scripts/core/resources/qb/rs_base_condition.gd")
+const BASE_EFFECT_SCRIPT := preload("res://scripts/core/resources/qb/rs_base_effect.gd")
+const CONDITION_COMPONENT_FIELD := preload("res://scripts/core/resources/qb/conditions/rs_condition_component_field.gd")
+const CONDITION_REDUX_FIELD := preload("res://scripts/core/resources/qb/conditions/rs_condition_redux_field.gd")
+const CONDITION_EVENT_PAYLOAD := preload("res://scripts/core/resources/qb/conditions/rs_condition_event_payload.gd")
+const CONDITION_EVENT_NAME := preload("res://scripts/core/resources/qb/conditions/rs_condition_event_name.gd")
+const CONDITION_COMPOSITE := preload("res://scripts/core/resources/qb/conditions/rs_condition_composite.gd")
+const EFFECT_SET_FIELD := preload("res://scripts/core/resources/qb/effects/rs_effect_set_field.gd")
 const MAX_COMPOSITE_VALIDATION_DEPTH: int = 8
 
 static func validate_rules(rules: Array) -> Dictionary:

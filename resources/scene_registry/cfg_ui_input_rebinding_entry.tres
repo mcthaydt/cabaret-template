@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_SceneRegistryEntry" format=3 uid="uid://dtu7x7jn0k6vp"]
 
-[ext_resource type="Script" uid="uid://bp306ag318ahx" path="res://scripts/resources/scene_management/rs_scene_registry_entry.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/core/resources/scene_management/rs_scene_registry_entry.gd" id="1"]
 
 [resource]
 script = ExtResource("1")

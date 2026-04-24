@@ -6,7 +6,7 @@ const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/base_se
 const WINDOW_CONFIRM_SECONDS := 10
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"settings.display.title"
 const SECTION_GRAPHICS_KEY := &"settings.display.section.graphics"

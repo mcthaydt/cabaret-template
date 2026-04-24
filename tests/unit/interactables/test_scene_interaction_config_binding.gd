@@ -1,13 +1,13 @@
 extends BaseTest
 
 const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
-const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_door_interaction_config.gd")
-const RS_CHECKPOINT_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_checkpoint_interaction_config.gd")
-const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_hazard_interaction_config.gd")
-const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_victory_interaction_config.gd")
-const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_signpost_interaction_config.gd")
-const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd")
-const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
+const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_door_interaction_config.gd")
+const RS_CHECKPOINT_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_checkpoint_interaction_config.gd")
+const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_hazard_interaction_config.gd")
+const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_victory_interaction_config.gd")
+const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_signpost_interaction_config.gd")
+const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_endgame_goal_interaction_config.gd")
+const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/core/resources/ecs/rs_scene_trigger_settings.gd")
 const DOOR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_exterior_to_bar.tres"
 const DOOR_ALLEYWAY_TO_BAR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres"
 const DOOR_BAR_TO_ALLEYWAY_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_bar_to_alleyway.tres"

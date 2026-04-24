@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_BTRunner
 
-const RS_BT_NODE := preload("res://scripts/resources/bt/rs_bt_node.gd")
+const RS_BT_NODE := preload("res://scripts/core/resources/bt/rs_bt_node.gd")
 
 func tick(root: RS_BTNode, context: Dictionary, state_bag: Dictionary) -> int:
 	if root == null:

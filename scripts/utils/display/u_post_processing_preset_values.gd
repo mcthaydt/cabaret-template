@@ -3,7 +3,7 @@ class_name U_PostProcessingPresetValues
 
 ## Loads and provides access to post-processing preset resources (light/medium/heavy).
 
-const RS_POST_PROCESSING_PRESET := preload("res://scripts/resources/display/rs_post_processing_preset.gd")
+const RS_POST_PROCESSING_PRESET := preload("res://scripts/core/resources/display/rs_post_processing_preset.gd")
 
 # Mobile-safe: Use const preload arrays instead of runtime DirAccess.open()
 # (DirAccess fails on Android when resources are packed into PCK files)

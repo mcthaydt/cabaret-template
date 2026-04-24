@@ -6,8 +6,8 @@ const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const C_ROOM_FADE_GROUP_COMPONENT := preload("res://scripts/ecs/components/c_room_fade_group_component.gd")
-const RS_ROOM_FADE_SETTINGS := preload("res://scripts/resources/display/vcam/rs_room_fade_settings.gd")
-const RS_WALL_VISIBILITY_CONFIG := preload("res://scripts/resources/ecs/rs_wall_visibility_config.gd")
+const RS_ROOM_FADE_SETTINGS := preload("res://scripts/core/resources/display/vcam/rs_room_fade_settings.gd")
+const RS_WALL_VISIBILITY_CONFIG := preload("res://scripts/core/resources/ecs/rs_wall_visibility_config.gd")
 
 
 class WallVisibilityApplierStub extends RefCounted:

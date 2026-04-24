@@ -5,7 +5,7 @@ class_name U_ObjectivesDebugTracer
 ## All methods are no-ops when DEBUG_VICTORY_TRACE is false, so this class
 ## adds zero runtime cost in production builds.
 
-const RS_OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
+const RS_OBJECTIVE_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_objective_definition.gd")
 
 const DEBUG_VICTORY_TRACE := false
 const DEBUG_SIGNATURE := "objmgr-2026-02-25T2"

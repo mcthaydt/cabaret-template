@@ -1,7 +1,7 @@
 extends "res://scripts/gameplay/triggered_interactable_controller.gd"
 class_name Inter_DoorTrigger
 
-const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_door_interaction_config.gd")
+const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_door_interaction_config.gd")
 const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
 
 ## Door trigger authored as a single E_* entity.

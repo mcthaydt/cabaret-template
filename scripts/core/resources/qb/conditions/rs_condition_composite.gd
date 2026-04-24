@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/resources/qb/rs_base_condition.gd"
+extends "res://scripts/core/resources/qb/rs_base_condition.gd"
 class_name RS_ConditionComposite
 
 const MAX_NESTING_DEPTH: int = 8

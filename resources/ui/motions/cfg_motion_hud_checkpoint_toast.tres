@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="RS_UIMotionSet" format=3 uid="uid://diws5nytknsue"]
 
-[ext_resource type="Script" uid="uid://ugamig071o8r" path="res://scripts/resources/ui/rs_ui_motion_set.gd" id="1_motion_set"]
-[ext_resource type="Script" uid="uid://b5a8sejif7dwj" path="res://scripts/resources/ui/rs_ui_motion_preset.gd" id="2_motion_preset"]
+[ext_resource type="Script" path="res://scripts/core/resources/ui/rs_ui_motion_set.gd" id="1_motion_set"]
+[ext_resource type="Script" path="res://scripts/core/resources/ui/rs_ui_motion_preset.gd" id="2_motion_preset"]
 
 [sub_resource type="Resource" id="MotionPreset_toast_fade_in"]
 script = ExtResource("2_motion_preset")

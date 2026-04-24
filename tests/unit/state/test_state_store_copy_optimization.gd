@@ -7,7 +7,7 @@ extends GutTest
 ## A3: U_SignalBatcher defers deep copy to flush() time
 
 var store: M_StateStore
-const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
+const RS_TIME_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_time_initial_state.gd")
 
 func before_each() -> void:
 	U_StateEventBus.reset()

@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/resources/bt/rs_bt_decorator.gd"
+extends "res://scripts/core/resources/bt/rs_bt_decorator.gd"
 class_name RS_BTRisingEdge
 
 const STATE_KEY_WAS_TRUE := &"was_true"

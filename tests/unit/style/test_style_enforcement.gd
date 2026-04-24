@@ -12,14 +12,14 @@ const GD_DIRECTORIES := [
 	"res://scripts/scene_management",
 	"res://scripts/core/events",
 	"res://scripts/core/scene_structure",
-	"res://scripts/resources/qb",
-	"res://scripts/resources/qb/conditions",
-	"res://scripts/resources/qb/effects",
-	"res://scripts/resources/scene_director",
-	"res://scripts/resources/ecs",
-	"res://scripts/resources/display",
-	"res://scripts/resources/localization",
-	"res://scripts/resources/ai",
+	"res://scripts/core/resources/qb",
+	"res://scripts/core/resources/qb/conditions",
+	"res://scripts/core/resources/qb/effects",
+	"res://scripts/core/resources/scene_director",
+	"res://scripts/core/resources/ecs",
+	"res://scripts/core/resources/display",
+	"res://scripts/core/resources/localization",
+	"res://scripts/core/resources/ai",
 	"res://scripts/debug",
 	"res://tests/unit/interactables",
 	"res://tests/unit/input",
@@ -88,10 +88,10 @@ const AI_RESOURCE_ALLOWED_SUBDIRECTORIES := [
 ]
 
 const BT_RESOURCE_MAX_LINES := 199
-const BT_GENERAL_DIR := "res://scripts/resources/bt"
-const BT_AI_DIR := "res://scripts/resources/ai/bt"
+const BT_GENERAL_DIR := "res://scripts/core/resources/bt"
+const BT_AI_DIR := "res://scripts/core/resources/ai/bt"
 const BT_UTILS_DIR := "res://scripts/utils/bt"
-const BT_PLANNER_PATH := "res://scripts/resources/ai/bt/rs_bt_planner.gd"
+const BT_PLANNER_PATH := "res://scripts/core/resources/ai/bt/rs_bt_planner.gd"
 const BT_PLANNER_SEARCH_PATH := "res://scripts/utils/ai/u_bt_planner_search.gd"
 const BT_PLANNER_MAX_LINES := 149
 const BT_PLANNER_SEARCH_MAX_LINES := 119
@@ -143,9 +143,14 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/utils": ["u_"],
 	"res://scripts/input": ["u_", "i_"],
 	"res://scripts/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
-	"res://scripts/resources/input": ["rs_"],
-	"res://scripts/resources/interactions": ["rs_"],
-	"res://scripts/resources/lighting": ["rs_"], # Character lighting resources
+	"res://scripts/core/resources/input": ["rs_"],
+	"res://scripts/core/resources/interactions": ["rs_"],
+	"res://scripts/core/resources/lighting": ["rs_"], # Character lighting resources
+	"res://scripts/core/resources": ["rs_"],
+	"res://scripts/core/resources/managers": ["rs_"],
+	"res://scripts/core/resources/bt": ["rs_"],
+	"res://scripts/core/resources/ai/bt": ["rs_"],
+	"res://scripts/core/resources/ai/bt/scorers": ["rs_"],
 	"res://scripts/core/managers/helpers": ["u_"],
 	"res://scripts/ecs/systems": ["s_", "base_"], # s_*_system.gd plus base system scripts
 	"res://scripts/ecs/systems/helpers": ["u_"], # vCam/system helper utilities
@@ -158,19 +163,19 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/state/actions": ["u_"],
 	"res://scripts/state/reducers": ["u_"],
 	"res://scripts/state/selectors": ["u_"],
-	"res://scripts/resources/state": ["rs_"], # State initial state resources
-	"res://scripts/resources/qb": ["rs_"], # QB base condition/effect/rule resources
-	"res://scripts/resources/qb/conditions": ["rs_"], # QB condition resources
-	"res://scripts/resources/qb/effects": ["rs_"], # QB effect resources
-	"res://scripts/resources/scene_director": ["rs_"], # Scene director beat/objective/directive resources
-	"res://scripts/resources/ecs": ["rs_"], # ECS component settings resources
-	"res://scripts/resources/display": ["rs_"], # Display preset resources
-	"res://scripts/resources/localization": ["rs_"], # Localization resources
-	"res://scripts/resources/ai": ["rs_"], # AI resources
-	"res://scripts/resources/ai/actions": ["rs_"], # AI action resources
+	"res://scripts/core/resources/state": ["rs_"], # State initial state resources
+	"res://scripts/core/resources/qb": ["rs_"], # QB base condition/effect/rule resources
+	"res://scripts/core/resources/qb/conditions": ["rs_"], # QB condition resources
+	"res://scripts/core/resources/qb/effects": ["rs_"], # QB effect resources
+	"res://scripts/core/resources/scene_director": ["rs_"], # Scene director beat/objective/directive resources
+	"res://scripts/core/resources/ecs": ["rs_"], # ECS component settings resources
+	"res://scripts/core/resources/display": ["rs_"], # Display preset resources
+	"res://scripts/core/resources/localization": ["rs_"], # Localization resources
+	"res://scripts/core/resources/ai": ["rs_"], # AI resources
+	"res://scripts/core/resources/ai/actions": ["rs_"], # AI action resources
 	"res://scripts/debug": ["debug_"], # Debug utility scripts
 	"res://scripts/state": ["u_", "m_"], # m_state_store.gd is in root
-	"res://scripts/resources/ui": ["rs_"], # UI screen definitions
+	"res://scripts/core/resources/ui": ["rs_"], # UI screen definitions
 	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
 	"res://scripts/ui/settings": ["ui_", "base_"], # ui_ for overlays, base_ for shared overlay base
 	"res://scripts/ui/utils": ["u_"], # UI utilities
@@ -179,7 +184,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_", "s_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers, s_ for gameplay-scoped ECS systems
 	"res://scripts/core/scene_structure": ["marker_"], # marker_*.gd organizational scripts
 	"res://scripts/scene_management/transitions": ["trans_", "base_"], # transition effects
-	"res://scripts/resources/scene_management": ["rs_"], # scene registry resources
+	"res://scripts/core/resources/scene_management": ["rs_"], # scene registry resources
 	"res://scripts/scene_management/handlers": ["h_"], # Scene type handlers (Phase 10B-3)
 	"res://scripts/scene_management": ["u_", "sp_"], # u_scene_registry.gd, u_transition_factory.gd, sp_spawn_point.gd
 	"res://scripts/core/events": ["base_"], # base_event_bus.gd
@@ -595,7 +600,7 @@ func test_vcam_debug_logging_not_enabled_in_authored_scenes() -> void:
 
 func test_ai_move_target_magic_strings_not_used_in_ai_scripts() -> void:
 	var violations: Array[String] = []
-	_collect_gd_literal_occurrences("res://scripts/resources/ai", "\"ai_move_target\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/core/resources/ai", "\"ai_move_target\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/ecs/systems", "\"ai_move_target\"", violations, "s_ai_")
 
 	var message := "AI scripts should not use bare \"ai_move_target\" string literals"
@@ -606,7 +611,7 @@ func test_ai_move_target_magic_strings_not_used_in_ai_scripts() -> void:
 
 func test_ai_action_scripts_use_task_state_key_constants() -> void:
 	var violations: Array[String] = []
-	_collect_gd_literal_occurrences("res://scripts/resources/ai/actions", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/core/resources/ai/actions", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/demo/resources/ai/actions", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/utils/ai", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/demo/utils/ai", "task_state[\"", violations)
@@ -621,9 +626,9 @@ func test_ai_action_scripts_use_task_state_key_constants() -> void:
 
 func test_ai_resource_scripts_are_grouped_by_subdirectory() -> void:
 	var violations: Array[String] = []
-	_collect_ai_resource_layout_violations("res://scripts/resources/ai", violations)
+	_collect_ai_resource_layout_violations("res://scripts/core/resources/ai", violations)
 
-	var message := "AI resource scripts must live under scripts/resources/ai/{brain,goals,tasks,actions}"
+	var message := "AI resource scripts must live under scripts/core/resources/ai/{brain,goals,tasks,actions}"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
@@ -1453,7 +1458,7 @@ func _collect_ai_resource_layout_violations(dir_path: String, violations: Array[
 			if not entry.begins_with("."):
 				_collect_ai_resource_layout_violations(path, violations)
 		elif entry.ends_with(".gd") and entry.begins_with("rs_ai_"):
-			var relative_path := path.trim_prefix("res://scripts/resources/ai/")
+			var relative_path := path.trim_prefix("res://scripts/core/resources/ai/")
 			var slash_index := relative_path.find("/")
 			if slash_index == -1:
 				violations.append("%s is in ai root; expected brain/goals/tasks/actions subdirectory" % path)
@@ -1633,7 +1638,7 @@ func test_objectives_state_access_uses_selectors() -> void:
 		"res://scripts/scene_management",
 		"res://scripts/core/events",
 		"res://scripts/core/scene_structure",
-		"res://scripts/resources",
+		"res://scripts/core/resources",
 		"res://scripts/gameplay",
 		"res://scripts/demo",
 		"res://scripts/debug",
@@ -1895,7 +1900,7 @@ func test_no_state_mutation_outside_store() -> void:
 		"res://scripts/core/events",
 		"res://scripts/core/scene_structure",
 		"res://scripts/core/interfaces",
-		"res://scripts/resources",
+		"res://scripts/core/resources",
 		"res://scripts/debug",
 	]
 	var violations: Array[String] = []

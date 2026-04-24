@@ -11,9 +11,9 @@ const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_select
 const U_OBJECTIVES_SELECTORS := preload("res://scripts/state/selectors/u_objectives_selectors.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const RS_OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
+const RS_OBJECTIVE_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_objective_definition.gd")
 const U_OBJECTIVES_DEBUG_TRACER := preload("res://scripts/utils/scene_director/u_objectives_debug_tracer.gd")
-const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
+const RSRuleContext := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
 
 const STATUS_INACTIVE := "inactive"
 const STATUS_ACTIVE := "active"

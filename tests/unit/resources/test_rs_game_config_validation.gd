@@ -5,7 +5,7 @@ extends GutTest
 ## Validates that required fields push_error when set to empty values,
 ## and that valid values produce no errors.
 
-const RS_GAME_CONFIG_PATH := "res://scripts/resources/rs_game_config.gd"
+const RS_GAME_CONFIG_PATH := "res://scripts/core/resources/rs_game_config.gd"
 const TEST_RESOURCE_PATH := "res://tests/unit/resources/test_cfg_game_config_invalid.tres"
 
 

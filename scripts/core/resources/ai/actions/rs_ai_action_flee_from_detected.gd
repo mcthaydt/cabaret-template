@@ -2,8 +2,8 @@
 extends I_AIAction
 class_name RS_AIActionFleeFromDetected
 
-const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
-const C_MOVE_TARGET_COMPONENT := preload("res://scripts/demo/ecs/components/c_move_target_component.gd")
+const DETECTION_COMPONENT_TYPE := StringName("C_DetectionComponent")
+const MOVE_TARGET_COMPONENT_TYPE := StringName("C_MoveTargetComponent")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
 const HOME_ANCHOR_META_KEY := &"ai_home_anchor"
@@ -24,13 +24,13 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 		_mark_completed(context, task_state, "missing_entity")
 		return
 
-	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	var detection: Object = _resolve_detection_component(context)
 	if detection == null:
 		push_error("RS_AIActionFleeFromDetected.start: missing C_DetectionComponent in context.")
 		_mark_completed(context, task_state, "missing_detection_component")
 		return
 
-	var detected_entity_id: StringName = detection.last_detected_player_entity_id
+	var detected_entity_id: StringName = detection.get("last_detected_player_entity_id") as StringName
 	if detected_entity_id == StringName(""):
 		push_error("RS_AIActionFleeFromDetected.start: stale detection (empty detected entity id).")
 		_mark_completed(context, task_state, "stale_detection_empty_entity_id")
@@ -60,7 +60,7 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state[U_AITaskStateKeys.MOVE_TARGET] = target_position
 	task_state[U_AITaskStateKeys.ARRIVAL_THRESHOLD] = resolved_arrival_threshold
 	task_state[U_AITaskStateKeys.COMPLETED] = false
-	if not has_meaningful_target and detection.is_player_in_range:
+	if not has_meaningful_target and bool(detection.get("is_player_in_range")):
 		_clear_move_target_component(context)
 		task_state[TASK_PINNED_HOLD_ACTIVE] = true
 		print("[ACTION] %s FleeFromDetected hold (pinned target)" % _resolve_entity_label(context))
@@ -143,12 +143,12 @@ func _refresh_flee_target(context: Dictionary, task_state: Dictionary) -> bool:
 	var self_entity: Node3D = context.get("entity", null) as Node3D
 	if self_entity == null:
 		return false
-	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	var detection: Object = _resolve_detection_component(context)
 	if detection == null:
 		return false
-	if not detection.is_player_in_range:
+	if not bool(detection.get("is_player_in_range")):
 		return false
-	var detected_entity_id: StringName = detection.last_detected_player_entity_id
+	var detected_entity_id: StringName = detection.get("last_detected_player_entity_id") as StringName
 	if detected_entity_id == StringName(""):
 		return false
 	var detected_entity: Node3D = _resolve_detected_entity(context, detected_entity_id)
@@ -189,23 +189,23 @@ func _has_meaningful_target(current_position: Vector3, target_position: Vector3,
 	return offset_xz.length() > min_required_delta
 
 func _should_release_pinned_hold(context: Dictionary) -> bool:
-	var detection: C_DetectionComponent = _resolve_detection_component(context)
+	var detection: Object = _resolve_detection_component(context)
 	if detection == null:
 		return true
-	if not detection.is_player_in_range:
+	if not bool(detection.get("is_player_in_range")):
 		return true
-	var detected_entity_id: StringName = detection.last_detected_player_entity_id
+	var detected_entity_id: StringName = detection.get("last_detected_player_entity_id") as StringName
 	if detected_entity_id == StringName(""):
 		return true
 	var detected_entity: Node3D = _resolve_detected_entity(context, detected_entity_id)
 	return detected_entity == null
 
-func _resolve_detection_component(context: Dictionary) -> C_DetectionComponent:
+func _resolve_detection_component(context: Dictionary) -> Object:
 	var components_variant: Variant = context.get("components", null)
 	if not (components_variant is Dictionary):
 		return null
 	var components: Dictionary = components_variant as Dictionary
-	return components.get(C_DETECTION_COMPONENT.COMPONENT_TYPE, null) as C_DetectionComponent
+	return components.get(DETECTION_COMPONENT_TYPE, null) as Object
 
 func _resolve_detected_entity(context: Dictionary, entity_id: StringName) -> Node3D:
 	var manager: I_ECSManager = context.get("ecs_manager", null) as I_ECSManager
@@ -295,7 +295,7 @@ func _resolve_move_target_component(context: Dictionary) -> Object:
 	if not (components_variant is Dictionary):
 		return null
 	var components: Dictionary = components_variant as Dictionary
-	var move_target_component_variant: Variant = components.get(C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE, null)
+	var move_target_component_variant: Variant = components.get(MOVE_TARGET_COMPONENT_TYPE, null)
 	if not (move_target_component_variant is Object):
 		return null
 	return move_target_component_variant as Object

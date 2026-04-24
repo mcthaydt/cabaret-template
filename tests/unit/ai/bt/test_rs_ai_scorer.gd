@@ -1,9 +1,9 @@
 extends GutTest
 
-const RS_AI_SCORER_CONSTANT_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd"
-const RS_AI_SCORER_CONDITION_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd"
-const RS_AI_SCORER_CONTEXT_FIELD_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_context_field.gd"
-const RS_CONDITION_CONSTANT_PATH := "res://scripts/resources/qb/conditions/rs_condition_constant.gd"
+const RS_AI_SCORER_CONSTANT_PATH := "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_constant.gd"
+const RS_AI_SCORER_CONDITION_PATH := "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_condition.gd"
+const RS_AI_SCORER_CONTEXT_FIELD_PATH := "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_context_field.gd"
+const RS_CONDITION_CONSTANT_PATH := "res://scripts/core/resources/qb/conditions/rs_condition_constant.gd"
 
 func _load_script(path: String) -> Script:
 	assert_true(FileAccess.file_exists(path), "Expected script file to exist: %s" % path)

@@ -6,7 +6,7 @@ const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selector
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 const I_StateStore := preload("res://scripts/core/interfaces/i_state_store.gd")
 const RS_REGION_VISIBILITY_SETTINGS_SCRIPT := preload(
-	"res://scripts/resources/display/vcam/rs_region_visibility_settings.gd"
+	"res://scripts/core/resources/display/vcam/rs_region_visibility_settings.gd"
 )
 const U_ROOM_FADE_MATERIAL_APPLIER := preload(
 	"res://scripts/utils/lighting/u_room_fade_material_applier.gd"

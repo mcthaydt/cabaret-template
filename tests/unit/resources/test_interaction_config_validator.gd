@@ -1,12 +1,12 @@
 extends GutTest
 
-const BASE_CONFIG_PATH := "res://scripts/resources/interactions/rs_interaction_config.gd"
-const DOOR_CONFIG_PATH := "res://scripts/resources/interactions/rs_door_interaction_config.gd"
-const CHECKPOINT_CONFIG_PATH := "res://scripts/resources/interactions/rs_checkpoint_interaction_config.gd"
-const HAZARD_CONFIG_PATH := "res://scripts/resources/interactions/rs_hazard_interaction_config.gd"
-const VICTORY_CONFIG_PATH := "res://scripts/resources/interactions/rs_victory_interaction_config.gd"
-const SIGNPOST_CONFIG_PATH := "res://scripts/resources/interactions/rs_signpost_interaction_config.gd"
-const ENDGAME_CONFIG_PATH := "res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd"
+const BASE_CONFIG_PATH := "res://scripts/core/resources/interactions/rs_interaction_config.gd"
+const DOOR_CONFIG_PATH := "res://scripts/core/resources/interactions/rs_door_interaction_config.gd"
+const CHECKPOINT_CONFIG_PATH := "res://scripts/core/resources/interactions/rs_checkpoint_interaction_config.gd"
+const HAZARD_CONFIG_PATH := "res://scripts/core/resources/interactions/rs_hazard_interaction_config.gd"
+const VICTORY_CONFIG_PATH := "res://scripts/core/resources/interactions/rs_victory_interaction_config.gd"
+const SIGNPOST_CONFIG_PATH := "res://scripts/core/resources/interactions/rs_signpost_interaction_config.gd"
+const ENDGAME_CONFIG_PATH := "res://scripts/core/resources/interactions/rs_endgame_goal_interaction_config.gd"
 const VALIDATOR_PATH := "res://scripts/gameplay/helpers/u_interaction_config_validator.gd"
 
 func _load_script(path: String) -> Script:

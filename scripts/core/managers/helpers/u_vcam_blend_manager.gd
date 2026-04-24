@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_VCamBlendManager
 
-const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
+const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd")
 const U_VCAM_BLEND_EVALUATOR := preload("res://scripts/core/managers/helpers/u_vcam_blend_evaluator.gd")
 
 const DEFAULT_TRANS_TYPE: int = Tween.TRANS_LINEAR

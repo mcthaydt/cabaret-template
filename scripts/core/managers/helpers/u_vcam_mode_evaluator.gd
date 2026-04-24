@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_VCamModeEvaluator
 
-const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
+const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const MIN_DIRECTION_LENGTH_SQUARED: float = 0.000001
 const PARALLEL_UP_DOT_THRESHOLD: float = 0.999
 

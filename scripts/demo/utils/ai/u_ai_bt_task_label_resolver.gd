@@ -1,10 +1,10 @@
 extends RefCounted
 class_name U_AIBTTaskLabelResolver
 
-const RS_BT_NODE := preload("res://scripts/resources/bt/rs_bt_node.gd")
-const RS_BT_ACTION := preload("res://scripts/resources/ai/bt/rs_bt_action.gd")
-const RS_BT_COMPOSITE := preload("res://scripts/resources/bt/rs_bt_composite.gd")
-const RS_BT_DECORATOR := preload("res://scripts/resources/bt/rs_bt_decorator.gd")
+const RS_BT_NODE := preload("res://scripts/core/resources/bt/rs_bt_node.gd")
+const RS_BT_ACTION := preload("res://scripts/core/resources/ai/bt/rs_bt_action.gd")
+const RS_BT_COMPOSITE := preload("res://scripts/core/resources/bt/rs_bt_composite.gd")
+const RS_BT_DECORATOR := preload("res://scripts/core/resources/bt/rs_bt_decorator.gd")
 
 const BT_ACTION_STATE_BAG_KEY := &"bt_action_state_bag"
 

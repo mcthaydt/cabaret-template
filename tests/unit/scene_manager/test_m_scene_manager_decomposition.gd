@@ -10,8 +10,8 @@ extends GutTest
 
 const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
-const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
+const RS_SceneInitialState = preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_StateStoreSettings = preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
 const MockCameraManager = preload("res://tests/mocks/mock_camera_manager.gd")
 const U_TransitionState = preload("res://scripts/scene_management/helpers/u_transition_state.gd")

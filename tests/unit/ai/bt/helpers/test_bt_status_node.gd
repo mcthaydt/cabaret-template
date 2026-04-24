@@ -1,4 +1,4 @@
-extends "res://scripts/resources/bt/rs_bt_node.gd"
+extends "res://scripts/core/resources/bt/rs_bt_node.gd"
 class_name TestBTStatusNode
 
 var fixed_status: int = 0

@@ -13,7 +13,7 @@ var validation_error: String = ""
 var callback_count: int = 0
 var slice_updated_count: int = 0
 var last_slice_name: StringName = StringName()
-const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
+const RS_TIME_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_time_initial_state.gd")
 
 func _mixed_type_slice_reducer(_current: Dictionary, _action: Dictionary) -> Dictionary:
 	return {"value": Vector2(1.0, -0.5)}

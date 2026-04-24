@@ -5,7 +5,7 @@ class_name C_RoomFadeGroupComponent
 const COMPONENT_TYPE := StringName("RoomFadeGroup")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const RS_ROOM_FADE_SETTINGS_SCRIPT := preload(
-	"res://scripts/resources/display/vcam/rs_room_fade_settings.gd"
+	"res://scripts/core/resources/display/vcam/rs_room_fade_settings.gd"
 )
 
 @export var group_tag: StringName = StringName("")

@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://bl1mfl7srgr8r"]
 
 [ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/core/interfaces/i_condition.gd" id="1_2ymk1"]
-[ext_resource type="Script" uid="uid://dos132ufjpwdl" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="1_7ubwf"]
-[ext_resource type="Script" uid="uid://bj3ax75uhg755" path="res://scripts/resources/qb/rs_rule.gd" id="2_3tnus"]
-[ext_resource type="Script" uid="uid://bkrf6emw8eq0d" path="res://scripts/resources/qb/conditions/rs_condition_event_name.gd" id="3_081w0"]
+[ext_resource type="Script" path="res://scripts/core/resources/qb/effects/rs_effect_set_field.gd" id="1_7ubwf"]
+[ext_resource type="Script" path="res://scripts/core/resources/qb/rs_rule.gd" id="2_3tnus"]
+[ext_resource type="Script" path="res://scripts/core/resources/qb/conditions/rs_condition_event_name.gd" id="3_081w0"]
 [ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/core/interfaces/i_effect.gd" id="3_yxtf0"]
 
 [sub_resource type="Resource" id="Resource_qw7p2"]

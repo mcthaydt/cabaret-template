@@ -5,8 +5,8 @@ const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
-const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
-const RS_BT_NODE := preload("res://scripts/resources/bt/rs_bt_node.gd")
+const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")
+const RS_BT_NODE := preload("res://scripts/core/resources/bt/rs_bt_node.gd")
 
 class BehaviorSystemBtRecordingNode extends RS_BT_NODE:
 	const STATE_KEY_RUNNER_TICK_CALLS := &"runner_tick_calls"

@@ -16,9 +16,9 @@ const U_VCAM_RUNTIME_SERVICES := preload("res://scripts/ecs/systems/helpers/u_vc
 const I_VCAM_MANAGER := preload("res://scripts/core/interfaces/i_vcam_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
-const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
-const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
-const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
+const RS_VCAM_MODE_ORBIT_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
+const RS_VCAM_RESPONSE_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_response.gd")
+const RS_VCAM_SOFT_ZONE_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_soft_zone.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")

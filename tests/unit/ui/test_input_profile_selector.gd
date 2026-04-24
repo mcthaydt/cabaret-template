@@ -6,7 +6,7 @@ extends GutTest
 
 const INPUT_PROFILE_SELECTOR_SCENE := preload("res://scenes/ui/overlays/ui_input_profile_selector.tscn")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 class MockInputProfileManager:
 	extends I_InputProfileManager

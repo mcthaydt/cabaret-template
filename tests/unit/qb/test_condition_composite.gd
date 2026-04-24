@@ -1,7 +1,7 @@
 extends BaseTest
 
-const CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
-const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
+const CONDITION_COMPOSITE := preload("res://scripts/core/resources/qb/conditions/rs_condition_composite.gd")
+const CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
 const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 
 func _make_constant(score: float) -> I_Condition:

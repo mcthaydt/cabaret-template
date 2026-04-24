@@ -1,12 +1,12 @@
 extends GutTest
 
-const RS_BT_NODE_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
-const RS_BT_UTILITY_SELECTOR_PATH := "res://scripts/resources/bt/rs_bt_utility_selector.gd"
+const RS_BT_NODE_PATH := "res://scripts/core/resources/bt/rs_bt_node.gd"
+const RS_BT_UTILITY_SELECTOR_PATH := "res://scripts/core/resources/bt/rs_bt_utility_selector.gd"
 const TEST_STATUS_NODE_PATH := "res://tests/unit/ai/bt/helpers/test_bt_status_node.gd"
-const RS_AI_SCORER_CONSTANT_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_constant.gd"
-const RS_AI_SCORER_CONDITION_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd"
-const RS_AI_SCORER_CONTEXT_FIELD_PATH := "res://scripts/resources/ai/bt/scorers/rs_ai_scorer_context_field.gd"
-const RS_CONDITION_CONSTANT_PATH := "res://scripts/resources/qb/conditions/rs_condition_constant.gd"
+const RS_AI_SCORER_CONSTANT_PATH := "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_constant.gd"
+const RS_AI_SCORER_CONDITION_PATH := "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_condition.gd"
+const RS_AI_SCORER_CONTEXT_FIELD_PATH := "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_context_field.gd"
+const RS_CONDITION_CONSTANT_PATH := "res://scripts/core/resources/qb/conditions/rs_condition_constant.gd"
 
 class ScoreStub extends Resource:
 	var score_value: float = 0.0

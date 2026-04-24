@@ -3,9 +3,9 @@ extends BaseTest
 const BUILDER_BT_BRAIN_PATH := "res://resources/ai/woods/builder/cfg_builder_brain.tres"
 const WOODS_BUILD_SITE_SETTINGS_PATH := "res://resources/base_settings/ai_woods/cfg_build_site_house.tres"
 
-const RS_BT_UTILITY_SELECTOR := preload("res://scripts/resources/bt/rs_bt_utility_selector.gd")
-const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
-const RS_NEEDS_SETTINGS := preload("res://scripts/resources/ecs/rs_needs_settings.gd")
+const RS_BT_UTILITY_SELECTOR := preload("res://scripts/core/resources/bt/rs_bt_utility_selector.gd")
+const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")
+const RS_NEEDS_SETTINGS := preload("res://scripts/core/resources/ecs/rs_needs_settings.gd")
 const RS_INVENTORY_SETTINGS := preload("res://scripts/demo/resources/ai/world/rs_inventory_settings.gd")
 const RS_BUILD_SITE_SETTINGS := preload("res://scripts/demo/resources/ai/world/rs_build_site_settings.gd")
 const RS_BUILD_STAGE := preload("res://scripts/demo/resources/ai/world/rs_build_stage.gd")

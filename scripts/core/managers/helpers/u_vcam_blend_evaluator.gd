@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_VCamBlendEvaluator
 
-const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
+const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd")
 
 const DEFAULT_TRANS_TYPE: int = Tween.TRANS_LINEAR
 const DEFAULT_EASE_TYPE: int = Tween.EASE_IN_OUT

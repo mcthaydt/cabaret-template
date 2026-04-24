@@ -7,7 +7,7 @@ const S_FOOTSTEP_SOUND_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_foo
 const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 const C_FLOATING_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_floating_component.gd")
-const RS_FLOATING_SETTINGS_SCRIPT := preload("res://scripts/resources/ecs/rs_floating_settings.gd")
+const RS_FLOATING_SETTINGS_SCRIPT := preload("res://scripts/core/resources/ecs/rs_floating_settings.gd")
 const C_SURFACE_TYPE_COMPONENT := preload("res://scripts/ecs/components/c_surface_type_component.gd")
 
 # NOTE: Footstep system tests are currently limited in headless mode because:

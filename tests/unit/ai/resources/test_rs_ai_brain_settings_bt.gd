@@ -1,6 +1,6 @@
 extends BaseTest
 
-const RS_AI_BRAIN_SETTINGS_PATH := "res://scripts/resources/ai/brain/rs_ai_brain_settings.gd"
+const RS_AI_BRAIN_SETTINGS_PATH := "res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd"
 const LEGACY_BRAIN_RESOURCE_PATH := "res://tests/unit/ai/resources/fixtures/cfg_ai_brain_legacy_goals_fixture.tres"
 
 func _load_script(path: String) -> Script:

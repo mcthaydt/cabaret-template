@@ -1,6 +1,6 @@
 extends BaseTest
 
-const EFFECT_DISPATCH_ACTION := preload("res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd")
+const EFFECT_DISPATCH_ACTION := preload("res://scripts/core/resources/qb/effects/rs_effect_dispatch_action.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 
 func test_dispatches_action_with_correct_type_and_payload() -> void:

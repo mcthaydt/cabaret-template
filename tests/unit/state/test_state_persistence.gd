@@ -5,7 +5,7 @@ extends GutTest
 
 var store: M_StateStore
 var test_save_path: String = "user://test_state_save.json"
-const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
+const RS_TIME_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_time_initial_state.gd")
 
 func before_each() -> void:
 	U_StateEventBus.reset()

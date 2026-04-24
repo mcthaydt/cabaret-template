@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/resources/ai/bt/scorers/rs_ai_scorer.gd"
+extends "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer.gd"
 class_name RS_AIScorerContextField
 
 const U_PATH_RESOLVER := preload("res://scripts/utils/qb/u_path_resolver.gd")

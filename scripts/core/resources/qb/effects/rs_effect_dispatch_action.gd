@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/resources/qb/rs_base_effect.gd"
+extends "res://scripts/core/resources/qb/rs_base_effect.gd"
 class_name RS_EffectDispatchAction
 
 @export var action_type: StringName

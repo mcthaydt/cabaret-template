@@ -1,15 +1,15 @@
 extends BaseTest
 
-const ACTION_MOVE_TO_PATH := "res://scripts/resources/ai/actions/rs_ai_action_move_to.gd"
-const ACTION_MOVE_TO_DETECTED_PATH := "res://scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd"
-const ACTION_FLEE_FROM_DETECTED_PATH := "res://scripts/resources/ai/actions/rs_ai_action_flee_from_detected.gd"
-const ACTION_WANDER_PATH := "res://scripts/resources/ai/actions/rs_ai_action_wander.gd"
-const ACTION_SCAN_PATH := "res://scripts/resources/ai/actions/rs_ai_action_scan.gd"
-const ACTION_ANIMATE_PATH := "res://scripts/resources/ai/actions/rs_ai_action_animate.gd"
+const ACTION_MOVE_TO_PATH := "res://scripts/core/resources/ai/actions/rs_ai_action_move_to.gd"
+const ACTION_MOVE_TO_DETECTED_PATH := "res://scripts/core/resources/ai/actions/rs_ai_action_move_to_detected.gd"
+const ACTION_FLEE_FROM_DETECTED_PATH := "res://scripts/core/resources/ai/actions/rs_ai_action_flee_from_detected.gd"
+const ACTION_WANDER_PATH := "res://scripts/core/resources/ai/actions/rs_ai_action_wander.gd"
+const ACTION_SCAN_PATH := "res://scripts/core/resources/ai/actions/rs_ai_action_scan.gd"
+const ACTION_ANIMATE_PATH := "res://scripts/core/resources/ai/actions/rs_ai_action_animate.gd"
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/demo/ecs/components/c_move_target_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
-const RS_MOVEMENT_SETTINGS := preload("res://scripts/resources/ecs/rs_movement_settings.gd")
+const RS_MOVEMENT_SETTINGS := preload("res://scripts/core/resources/ecs/rs_movement_settings.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
 

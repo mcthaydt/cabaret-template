@@ -1,8 +1,8 @@
 @icon("res://assets/editor_icons/icn_resource.svg")
-extends "res://scripts/resources/bt/rs_bt_node.gd"
+extends "res://scripts/core/resources/bt/rs_bt_node.gd"
 class_name RS_BTComposite
 
-const BT_NODE_SCRIPT_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
+const BT_NODE_SCRIPT_PATH := "res://scripts/core/resources/bt/rs_bt_node.gd"
 
 var _children: Array[RS_BTNode] = []
 

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_DisplayInitialState" format=3 uid="uid://cotj7miwrx8ky"]
 
-[ext_resource type="Script" uid="uid://tsyeattfgg60" path="res://scripts/resources/state/rs_display_initial_state.gd" id="1_display_initial_state"]
+[ext_resource type="Script" path="res://scripts/core/resources/state/rs_display_initial_state.gd" id="1_display_initial_state"]
 
 [resource]
 script = ExtResource("1_display_initial_state")

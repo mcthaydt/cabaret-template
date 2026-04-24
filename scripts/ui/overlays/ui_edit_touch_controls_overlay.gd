@@ -6,7 +6,7 @@ const I_INPUT_DEVICE_MANAGER := preload("res://scripts/core/interfaces/i_input_d
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/core/interfaces/i_input_profile_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"overlay.edit_touch_controls.title"
 const LABEL_DRAG_MODE_KEY := &"overlay.edit_touch_controls.label.drag_mode"

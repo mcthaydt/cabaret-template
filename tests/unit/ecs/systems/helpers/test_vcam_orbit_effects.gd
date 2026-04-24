@@ -1,8 +1,8 @@
 extends GutTest
 
 const U_VCAM_ORBIT_EFFECTS := preload("res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd")
-const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
-const RS_VCAM_SOFT_ZONE := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
+const RS_VCAM_MODE_ORBIT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
+const RS_VCAM_SOFT_ZONE := preload("res://scripts/core/resources/display/vcam/rs_vcam_soft_zone.gd")
 
 var _velocity_sample: Dictionary = {"has_velocity": false, "velocity": Vector3.ZERO}
 var _grounded: bool = false

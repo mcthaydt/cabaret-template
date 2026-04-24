@@ -15,9 +15,9 @@ const U_LOCALIZATION_REDUCER := preload("res://scripts/state/reducers/u_localiza
 const U_TIME_REDUCER := preload("res://scripts/state/reducers/u_time_reducer.gd")
 const U_OBJECTIVES_REDUCER := preload("res://scripts/state/reducers/u_objectives_reducer.gd")
 const U_SCENE_DIRECTOR_REDUCER := preload("res://scripts/state/reducers/u_scene_director_reducer.gd")
-const RS_OBJECTIVES_INITIAL_STATE := preload("res://scripts/resources/state/rs_objectives_initial_state.gd")
-const RS_SCENE_DIRECTOR_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_director_initial_state.gd")
-const RS_VCAM_INITIAL_STATE := preload("res://scripts/resources/state/rs_vcam_initial_state.gd")
+const RS_OBJECTIVES_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_objectives_initial_state.gd")
+const RS_SCENE_DIRECTOR_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_director_initial_state.gd")
+const RS_VCAM_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_vcam_initial_state.gd")
 
 ## Initialize core slices based on the provided initial state resources.
 ##

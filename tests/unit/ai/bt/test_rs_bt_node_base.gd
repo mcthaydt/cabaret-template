@@ -1,6 +1,6 @@
 extends GutTest
 
-const RS_BT_NODE_PATH := "res://scripts/resources/bt/rs_bt_node.gd"
+const RS_BT_NODE_PATH := "res://scripts/core/resources/bt/rs_bt_node.gd"
 
 func _load_script(path: String) -> Script:
 	assert_true(FileAccess.file_exists(path), "Expected script file to exist: %s" % path)

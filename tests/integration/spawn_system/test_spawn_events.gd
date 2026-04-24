@@ -4,7 +4,7 @@ extends GutTest
 
 const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_GAMEPLAY_INITIAL := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
+const RS_GAMEPLAY_INITIAL := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
 const U_SPAWN_ACTIONS := preload("res://scripts/state/actions/u_spawn_actions.gd")
 
 var _spawn_manager: M_SpawnManager

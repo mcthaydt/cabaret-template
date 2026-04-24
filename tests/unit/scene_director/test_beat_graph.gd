@@ -1,7 +1,7 @@
 extends GutTest
 
 const U_BEAT_GRAPH := preload("res://scripts/utils/scene_director/u_beat_graph.gd")
-const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
+const RS_BEAT_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_beat_definition.gd")
 
 func test_linear_beats_validate_successfully() -> void:
 	var report: Dictionary = U_BEAT_GRAPH.validate([

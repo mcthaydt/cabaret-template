@@ -1,6 +1,6 @@
 extends GutTest
 
-const RS_WORLD_STATE_EFFECT_PATH := "res://scripts/resources/ai/bt/rs_world_state_effect.gd"
+const RS_WORLD_STATE_EFFECT_PATH := "res://scripts/core/resources/ai/bt/rs_world_state_effect.gd"
 
 func _load_script(path: String) -> Script:
 	assert_true(FileAccess.file_exists(path), "Expected script file to exist: %s" % path)

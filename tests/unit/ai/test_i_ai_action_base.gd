@@ -2,12 +2,12 @@ extends GutTest
 
 const I_AI_ACTION_PATH := "res://scripts/core/interfaces/i_ai_action.gd"
 const ACTION_SCRIPT_PATHS := [
-	"res://scripts/resources/ai/actions/rs_ai_action_move_to.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_wait.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_scan.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_animate.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_publish_event.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_set_field.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_move_to.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_wait.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_scan.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_animate.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_publish_event.gd",
+	"res://scripts/core/resources/ai/actions/rs_ai_action_set_field.gd",
 ]
 
 func _read_script_text(path: String) -> String:

@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="RS_AIBrainSettings" format=3 uid="uid://xxgf7txhe5iq"]
 
-[ext_resource type="Script" uid="uid://d2fjfbh1ijo17" path="res://scripts/resources/ai/brain/rs_ai_brain_settings.gd" id="1_brain"]
+[ext_resource type="Script" path="res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd" id="1_brain"]
 
 [resource]
 script = ExtResource("1_brain")
+goals = []

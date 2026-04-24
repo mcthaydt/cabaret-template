@@ -1,7 +1,7 @@
 extends BaseTest
 
 const C_NEEDS_COMPONENT_PATH := "res://scripts/demo/ecs/components/c_needs_component.gd"
-const RS_NEEDS_SETTINGS_PATH := "res://scripts/resources/ecs/rs_needs_settings.gd"
+const RS_NEEDS_SETTINGS_PATH := "res://scripts/core/resources/ecs/rs_needs_settings.gd"
 
 func _load_required_script(path: String) -> Script:
 	var script_variant: Variant = load(path)

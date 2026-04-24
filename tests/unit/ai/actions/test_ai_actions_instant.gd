@@ -1,8 +1,8 @@
 extends BaseTest
 
-const ACTION_WAIT_PATH := "res://scripts/resources/ai/actions/rs_ai_action_wait.gd"
-const ACTION_PUBLISH_EVENT_PATH := "res://scripts/resources/ai/actions/rs_ai_action_publish_event.gd"
-const ACTION_SET_FIELD_PATH := "res://scripts/resources/ai/actions/rs_ai_action_set_field.gd"
+const ACTION_WAIT_PATH := "res://scripts/core/resources/ai/actions/rs_ai_action_wait.gd"
+const ACTION_PUBLISH_EVENT_PATH := "res://scripts/core/resources/ai/actions/rs_ai_action_publish_event.gd"
+const ACTION_SET_FIELD_PATH := "res://scripts/core/resources/ai/actions/rs_ai_action_set_field.gd"
 const ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 
 func before_each() -> void:

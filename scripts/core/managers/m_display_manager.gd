@@ -24,7 +24,7 @@ const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobil
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 const U_PERF_MONITOR := preload("res://scripts/utils/debug/u_perf_monitor.gd")
 const U_PERF_SHADER_BYPASS := preload("res://scripts/utils/debug/u_perf_shader_bypass.gd")
-const RS_DISPLAY_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_display_config.gd")
+const RS_DISPLAY_CONFIG_SCRIPT := preload("res://scripts/core/resources/managers/rs_display_config.gd")
 const DEFAULT_DISPLAY_CONFIG := preload("res://resources/base_settings/display/cfg_display_config_default.tres")
 
 const SERVICE_NAME := StringName("display_manager")

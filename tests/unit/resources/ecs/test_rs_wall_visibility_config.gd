@@ -1,6 +1,6 @@
 extends GutTest
 
-const SCRIPT_PATH := "res://scripts/resources/ecs/rs_wall_visibility_config.gd"
+const SCRIPT_PATH := "res://scripts/core/resources/ecs/rs_wall_visibility_config.gd"
 
 
 func _load_script() -> Script:

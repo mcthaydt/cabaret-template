@@ -2,7 +2,7 @@ extends GutTest
 
 const PauseMenuScene := preload("res://scenes/ui/menus/ui_pause_menu.tscn")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 func before_each() -> void:
 	U_UI_THEME_BUILDER.active_config = null

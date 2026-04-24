@@ -14,8 +14,8 @@ const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_br
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/demo/ecs/components/c_move_target_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 
-const RS_MOVEMENT_SETTINGS := preload("res://scripts/resources/ecs/rs_movement_settings.gd")
-const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
+const RS_MOVEMENT_SETTINGS := preload("res://scripts/core/resources/ecs/rs_movement_settings.gd")
+const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")
 
 const BT_ACTION_STATE_BAG_KEY := &"bt_action_state_bag"
 const INVESTIGATE_TARGET_PATH := "../../Interactions/Inter_ActivatableNode"

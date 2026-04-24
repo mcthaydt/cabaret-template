@@ -1,7 +1,7 @@
 extends GutTest
 
 const U_VCAM_BLEND_MANAGER := preload("res://scripts/core/managers/helpers/u_vcam_blend_manager.gd")
-const RS_VCAM_BLEND_HINT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
+const RS_VCAM_BLEND_HINT := preload("res://scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd")
 
 func test_configure_transition_starts_live_blend_with_settings() -> void:
 	var helper := U_VCAM_BLEND_MANAGER.new()

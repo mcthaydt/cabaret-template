@@ -27,7 +27,7 @@
 - [x] Record baseline results and any pre-existing failures in this document.
   - Baseline run date: 2026-02-26.
   - Style baseline: 11/12 passed, 1 failed (`test_production_paths_have_no_spaces`) due to 4 orphaned files with spaces:
-    - `res://scripts/resources/qb/conditions/rs_condition_composite 2.gd.uid`
+    - `res://scripts/core/resources/qb/conditions/rs_condition_composite 2.gd.uid`
     - `res://scripts/managers/m_run_coordinator 2.gd.uid`
     - `res://scripts/utils/scene_director/u_beat_graph 2.gd.uid`
     - `res://scripts/state/actions/u_run_actions 2.gd.uid`

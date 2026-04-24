@@ -3,7 +3,7 @@ extends I_AIAction
 class_name RS_AIActionMoveTo
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const C_MOVE_TARGET_COMPONENT := preload("res://scripts/demo/ecs/components/c_move_target_component.gd")
+const MOVE_TARGET_COMPONENT_TYPE := StringName("C_MoveTargetComponent")
 
 @export_group("Target")
 @export var target_position: Vector3 = Vector3.ZERO
@@ -236,7 +236,7 @@ func _resolve_move_target_component(context: Dictionary) -> Object:
 	if not (components_variant is Dictionary):
 		return null
 	var components: Dictionary = components_variant as Dictionary
-	var move_target_component_variant: Variant = components.get(C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE, null)
+	var move_target_component_variant: Variant = components.get(MOVE_TARGET_COMPONENT_TYPE, null)
 	if move_target_component_variant == null or not (move_target_component_variant is Object):
 		return null
 	return move_target_component_variant as Object

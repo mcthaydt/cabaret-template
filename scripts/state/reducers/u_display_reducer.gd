@@ -8,7 +8,7 @@ class_name U_DisplayReducer
 ## validation and clamping.
 
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
-const RS_DISPLAY_CONFIG_SCRIPT := preload("res://scripts/resources/managers/rs_display_config.gd")
+const RS_DISPLAY_CONFIG_SCRIPT := preload("res://scripts/core/resources/managers/rs_display_config.gd")
 const DEFAULT_DISPLAY_CONFIG := preload("res://resources/base_settings/display/cfg_display_config_default.tres")
 
 const DEFAULT_DISPLAY_STATE := {

@@ -7,7 +7,7 @@ const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_cha
 var _context_class: Script = null
 
 func before_each() -> void:
-	var script_path := "res://scripts/resources/ecs/rs_rule_context.gd"
+	var script_path := "res://scripts/core/resources/ecs/rs_rule_context.gd"
 	var script_obj: Variant = load(script_path)
 	if script_obj is Script:
 		_context_class = script_obj

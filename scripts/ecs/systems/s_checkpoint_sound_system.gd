@@ -8,7 +8,7 @@ class_name S_CheckpointSoundSystem
 ## Position is now resolved in S_CheckpointHandlerSystem and included in event payload,
 ## eliminating O(n) find_child() traversal.
 
-const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_checkpoint_sound_settings.gd")
+const SETTINGS_TYPE := preload("res://scripts/core/resources/ecs/rs_checkpoint_sound_settings.gd")
 
 @export var settings: SETTINGS_TYPE
 

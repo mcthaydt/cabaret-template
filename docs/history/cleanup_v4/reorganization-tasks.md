@@ -420,7 +420,7 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 **Path Update Command**:
 ```bash
 find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
-  -exec sed -i '' 's|res://scripts/ecs/resources/|res://scripts/resources/ecs/|g' {} +
+  -exec sed -i '' 's|res://scripts/ecs/resources/|res://scripts/core/resources/ecs/|g' {} +
 ```
 
 **Critical Files for Manual Verification**:
@@ -446,7 +446,7 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 **Path Update Command**:
 ```bash
 find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
-  -exec sed -i '' 's|res://scripts/ui/resources/|res://scripts/resources/ui/|g' {} +
+  -exec sed -i '' 's|res://scripts/ui/resources/|res://scripts/core/resources/ui/|g' {} +
 ```
 
 ---
@@ -478,15 +478,15 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 ```bash
 # State resources
 find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
-  -exec sed -i '' 's|res://scripts/state/resources/|res://scripts/resources/state/|g' {} +
+  -exec sed -i '' 's|res://scripts/state/resources/|res://scripts/core/resources/state/|g' {} +
 
 # Input resources
 find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
-  -exec sed -i '' 's|res://scripts/input/resources/|res://scripts/resources/input/|g' {} +
+  -exec sed -i '' 's|res://scripts/input/resources/|res://scripts/core/resources/input/|g' {} +
 
 # Scene management resources
 find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
-  -exec sed -i '' 's|res://scripts/scene_management/resources/|res://scripts/resources/scene_management/|g' {} +
+  -exec sed -i '' 's|res://scripts/scene_management/resources/|res://scripts/core/resources/scene_management/|g' {} +
 ```
 
 ---

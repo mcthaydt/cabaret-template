@@ -7,7 +7,7 @@ class_name S_DeathSoundSystem
 ## Plays death sounds using base class helpers with pause/transition blocking.
 ## Resolves entity position from entity_id.
 
-const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_death_sound_settings.gd")
+const SETTINGS_TYPE := preload("res://scripts/core/resources/ecs/rs_death_sound_settings.gd")
 
 @export var settings: SETTINGS_TYPE
 

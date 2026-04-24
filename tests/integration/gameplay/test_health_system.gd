@@ -15,13 +15,13 @@ extends GutTest
 const M_SCENE_MANAGER := preload("res://scripts/core/managers/m_scene_manager.gd")
 const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
 const PLAYER_TAG_COMPONENT_PATH := "res://scripts/ecs/components/c_player_tag_component.gd"
 const HEALTH_COMPONENT_PATH := "res://scripts/ecs/components/c_health_component.gd"
 const HEALTH_SYSTEM_PATH := "res://scripts/ecs/systems/s_health_system.gd"
-const HEALTH_SETTINGS_PATH := "res://scripts/resources/ecs/rs_health_settings.gd"
+const HEALTH_SETTINGS_PATH := "res://scripts/core/resources/ecs/rs_health_settings.gd"
 const HEALTH_SETTINGS_RESOURCE := "res://resources/base_settings/gameplay/cfg_health_settings.tres"
 
 var _root: Node

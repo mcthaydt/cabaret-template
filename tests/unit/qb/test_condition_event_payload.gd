@@ -1,6 +1,6 @@
 extends BaseTest
 
-const CONDITION_EVENT_PAYLOAD := preload("res://scripts/resources/qb/conditions/rs_condition_event_payload.gd")
+const CONDITION_EVENT_PAYLOAD := preload("res://scripts/core/resources/qb/conditions/rs_condition_event_payload.gd")
 
 func _make_condition() -> Variant:
 	var condition: Variant = CONDITION_EVENT_PAYLOAD.new()

@@ -2,7 +2,7 @@
 extends I_AIAction
 class_name RS_AIActionWander
 
-const C_MOVE_TARGET_COMPONENT := preload("res://scripts/demo/ecs/components/c_move_target_component.gd")
+const MOVE_TARGET_COMPONENT_TYPE := StringName("C_MoveTargetComponent")
 const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
 const HOME_ANCHOR_META_KEY := &"ai_home_anchor"
 
@@ -121,7 +121,7 @@ func _resolve_move_target_component(context: Dictionary) -> Object:
 	if not (components_variant is Dictionary):
 		return null
 	var components: Dictionary = components_variant as Dictionary
-	var move_target_component_variant: Variant = components.get(C_MOVE_TARGET_COMPONENT.COMPONENT_TYPE, null)
+	var move_target_component_variant: Variant = components.get(MOVE_TARGET_COMPONENT_TYPE, null)
 	if not (move_target_component_variant is Object):
 		return null
 	return move_target_component_variant as Object

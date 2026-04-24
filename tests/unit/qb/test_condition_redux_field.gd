@@ -1,6 +1,6 @@
 extends BaseTest
 
-const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
+const CONDITION_REDUX_FIELD := preload("res://scripts/core/resources/qb/conditions/rs_condition_redux_field.gd")
 
 func _make_condition() -> Variant:
 	var condition: Variant = CONDITION_REDUX_FIELD.new()

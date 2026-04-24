@@ -3,7 +3,7 @@ extends "res://scripts/ui/base/base_overlay.gd"
 class_name BaseSettingsSimpleOverlay
 
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 @onready var _main_panel: PanelContainer = $CenterContainer/Panel
 @onready var _main_panel_content: VBoxContainer = $CenterContainer/Panel/VBox

@@ -3,7 +3,7 @@ extends BaseECSComponent
 class_name C_SpawnRecoveryComponent
 
 const COMPONENT_TYPE := StringName("C_SpawnRecoveryComponent")
-const RS_SPAWN_RECOVERY_SETTINGS := preload("res://scripts/resources/ecs/rs_spawn_recovery_settings.gd")
+const RS_SPAWN_RECOVERY_SETTINGS := preload("res://scripts/core/resources/ecs/rs_spawn_recovery_settings.gd")
 
 @export var settings: RS_SpawnRecoverySettings = null
 

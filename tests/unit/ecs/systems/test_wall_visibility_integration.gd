@@ -7,7 +7,7 @@ const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const C_ROOM_FADE_GROUP_COMPONENT := preload("res://scripts/ecs/components/c_room_fade_group_component.gd")
 const U_WALL_VISIBILITY_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_wall_visibility_material_applier.gd")
-const RS_ROOM_FADE_SETTINGS := preload("res://scripts/resources/display/vcam/rs_room_fade_settings.gd")
+const RS_ROOM_FADE_SETTINGS := preload("res://scripts/core/resources/display/vcam/rs_room_fade_settings.gd")
 
 
 func _wall_visibility_system_script() -> Script:

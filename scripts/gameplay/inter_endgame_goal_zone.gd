@@ -1,7 +1,7 @@
 extends "res://scripts/gameplay/inter_victory_zone.gd"
 class_name Inter_EndgameGoalZone
 
-const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd")
+const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_endgame_goal_interaction_config.gd")
 const DEBUG_VICTORY_TRACE := false
 
 ## Exterior final goal controller built on the victory interactable base.

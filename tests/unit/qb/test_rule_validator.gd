@@ -1,15 +1,15 @@
 extends BaseTest
 
 const RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
-const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
+const RULE_RESOURCE := preload("res://scripts/core/resources/qb/rs_rule.gd")
 const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
-const CONDITION_COMPONENT_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_component_field.gd")
-const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
-const CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
-const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
-const CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
-const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
-const EFFECT_SET_CONTEXT_VALUE := preload("res://scripts/resources/qb/effects/rs_effect_set_context_value.gd")
+const CONDITION_COMPONENT_FIELD := preload("res://scripts/core/resources/qb/conditions/rs_condition_component_field.gd")
+const CONDITION_REDUX_FIELD := preload("res://scripts/core/resources/qb/conditions/rs_condition_redux_field.gd")
+const CONDITION_EVENT_NAME := preload("res://scripts/core/resources/qb/conditions/rs_condition_event_name.gd")
+const CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
+const CONDITION_COMPOSITE := preload("res://scripts/core/resources/qb/conditions/rs_condition_composite.gd")
+const EFFECT_SET_FIELD := preload("res://scripts/core/resources/qb/effects/rs_effect_set_field.gd")
+const EFFECT_SET_CONTEXT_VALUE := preload("res://scripts/core/resources/qb/effects/rs_effect_set_context_value.gd")
 
 func _make_valid_rule() -> Variant:
 	var rule: Variant = RULE_RESOURCE.new()

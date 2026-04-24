@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_BeatRunner
 
-const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
+const RS_BEAT_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_beat_definition.gd")
 
 var _beats: Array[Resource] = []
 var _beat_id_to_index: Dictionary = {}

@@ -2,7 +2,7 @@ extends GutTest
 
 const OverlayScene := preload("res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 var _store: TestStateStore
 var _profile_manager: ProfileManagerStub

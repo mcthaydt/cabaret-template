@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4 complete through P4.2; P4.3 has the RED boundary test plus seven GREEN move chunks complete (`0dba3719`, `df91cc4b`, `7a520d91`, `f9cb6c3e`, `21470236`, `5b5c1e3e`, plus core interfaces/managers move in working tree), with style recheck `87/87`.
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4 complete through P4.2; P4.3 has the RED boundary test plus nine GREEN move chunks complete (`0dba3719`, `df91cc4b`, `7a520d91`, `f9cb6c3e`, `21470236`, `5b5c1e3e`, `3d34de4f`, and core `scripts/resources/**` move/path-normalization now in working tree), with style recheck `87/87`.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -85,7 +85,7 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
   - All-SUCCESS children → SUCCESS.
   - First FAILURE short-circuits → FAILURE.
   - RUNNING child → returns RUNNING, re-enters same child next tick.
-  - Completed in commit `b5962d32`; test run is red for expected reason (`res://scripts/resources/bt/rs_bt_sequence.gd` missing).
+  - Completed in commit `b5962d32`; test run is red for expected reason (`res://scripts/core/resources/bt/rs_bt_sequence.gd` missing).
 - [x] **Commit 2** (GREEN) — `scripts/resources/bt/rs_bt_sequence.gd`. State bag stores current child index.
   - Completed in commit `e07a933a` (`RS_BTSequence` + headless-safe BT test helper/coercion updates).
 - [x] **Commit 3** (RED) — `test_rs_bt_selector.gd`:
@@ -93,7 +93,7 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
   - First SUCCESS short-circuits → SUCCESS.
   - All-FAILURE → FAILURE.
   - RUNNING child → RUNNING, re-enters next tick.
-  - Completed in commit `a70032dd`; test run is red for expected reason (`res://scripts/resources/bt/rs_bt_selector.gd` missing).
+  - Completed in commit `a70032dd`; test run is red for expected reason (`res://scripts/core/resources/bt/rs_bt_selector.gd` missing).
 - [x] **Commit 4** (GREEN) — `scripts/resources/bt/rs_bt_selector.gd`.
   - Completed in commit `784aede9`.
 - [x] **Commit 5** (RED) — `test_rs_bt_utility_selector.gd`:
@@ -335,7 +335,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 
 **P1.6b Progress Notes (2026-04-18)**:
 - Commit 1 (RED) `a98fd907`: added `tests/unit/ai/bt/test_rs_world_state_effect.gd`.
-- RED verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_world_state_effect.gd` failed for expected reason (`res://scripts/resources/ai/bt/rs_world_state_effect.gd` missing).
+- RED verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_world_state_effect.gd` failed for expected reason (`res://scripts/core/resources/ai/bt/rs_world_state_effect.gd` missing).
 - Style verification after test-file creation: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`60/60`).
 - Commit 2 (GREEN) `08f2aaf4`: implemented `scripts/resources/ai/bt/rs_world_state_effect.gd` with `SET`/`ADD`/`REMOVE`, immutable `apply_to(...)`, and typed static `apply_all(...)`.
 - GREEN verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_world_state_effect.gd` passed (`4/4`).
@@ -347,7 +347,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 - GREEN verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_u_ai_world_state_builder.gd` passed (`3/3`).
 - Regression verification: `tools/run_gut_suite.sh` passed (`4525` passing, `8` pending, `0` failing).
 - Commit 5 (RED) `0128edd0`: added `tests/unit/ai/bt/test_rs_bt_planner_action.gd`.
-- RED verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner_action.gd` failed for expected reason (`res://scripts/resources/ai/bt/rs_bt_planner_action.gd` missing).
+- RED verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner_action.gd` failed for expected reason (`res://scripts/core/resources/ai/bt/rs_bt_planner_action.gd` missing).
 - Style verification after test-file creation: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`60/60`).
 - Commit 6 (GREEN) `78d73d09`: implemented `scripts/resources/ai/bt/rs_bt_planner_action.gd` with typed/coerced `preconditions` and `effects`, positive-cost applicability guard, and `child` tick delegation.
 - GREEN verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner_action.gd` passed (`6/6`).
@@ -1299,8 +1299,9 @@ resources/
 - Updated `S_AIBehaviorSystem` and builder-BT integration test preloads to the new demo util paths and extended style prefix enforcement/task-state key scanning for `scripts/demo/utils/ai`.
 - Verification: style guard (`87/87`), `test_builder_brain_bt.gd` (`11/11`), and `test_s_ai_behavior_system_bt.gd` (`3/3`) pass.
 - Sixth GREEN move chunk landed in `5b5c1e3e` and moved core root/events/scene_structure scripts into `scripts/core/**`.
-- Seventh GREEN move chunk (working tree) moves all interface and manager scripts into `scripts/core/interfaces/**` + `scripts/core/managers/**`, updates script/scene/resource/test references to core paths, and updates style enforcement roots/rules for the new manager/interface locations.
-- Verification (working tree): `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`87/87`) after running a headless editor import pass to refresh script-class metadata.
+- Seventh GREEN move chunk landed in `3d34de4f` and moved all interface/manager scripts into `scripts/core/interfaces/**` + `scripts/core/managers/**`, with reference/style-root updates.
+- Eighth GREEN move chunk (working tree) moved all remaining `scripts/resources/**/*.gd` files into `scripts/core/resources/**`, updated script/resource/scene/test references from `res://scripts/resources/**` to `res://scripts/core/resources/**`, removed stale `scripts/resources/*.uid` leftovers, and normalized script-only `ext_resource` UID attributes in `.tres/.tscn` to avoid stale UID warnings after the path move.
+- Verification (working tree): `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`87/87`), `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd` passes (`3/3`), and `tools/run_gut_suite.sh -gdir=res://tests/unit/resources -gdir=res://tests/unit/ai/resources -ginclude_subdirs=true` passes (`192/192`) after a headless import refresh.
 
 ## Milestone P4.4: Enforcement
 

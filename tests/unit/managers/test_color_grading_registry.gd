@@ -10,7 +10,7 @@ extends GutTest
 ## - Re-initializing does not break subsequent lookups
 
 const U_COLOR_GRADING_REGISTRY := preload("res://scripts/core/managers/helpers/display/u_color_grading_registry.gd")
-const RS_SCENE_COLOR_GRADING := preload("res://scripts/resources/display/rs_scene_color_grading.gd")
+const RS_SCENE_COLOR_GRADING := preload("res://scripts/core/resources/display/rs_scene_color_grading.gd")
 
 func before_each() -> void:
 	U_COLOR_GRADING_REGISTRY.initialize()

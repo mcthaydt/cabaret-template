@@ -5,7 +5,7 @@ const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_dete
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
 const C_INVENTORY_COMPONENT := preload("res://scripts/demo/ecs/components/c_inventory_component.gd")
 const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
-const RS_RULE_CONTEXT := preload("res://scripts/resources/ecs/rs_rule_context.gd")
+const RS_RULE_CONTEXT := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 func build_context(
