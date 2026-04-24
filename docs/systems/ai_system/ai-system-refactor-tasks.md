@@ -229,7 +229,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `test_build_render_probe_reports_visual_transparency_when_geometry`
 - [x] **Commit 2** — Implement debug utils (TDD GREEN):
   - `scripts/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle extends RefCounted`) — `consume_budget(key: StringName, interval_sec: float) -> bool`, `tick(delta: float) -> void`, `clear() -> void`
-  - `scripts/utils/debug/u_ai_render_probe.gd` (`class_name U_AIRenderProbe extends RefCounted`) — `static func build_probe_string(entity: Node, body: CharacterBody3D, movement_component: C_MovementComponent) -> String`; internal `_resolve_visual_node`, `_find_character_body_recursive`, `_find_first_geometry_recursive`
+  - `scripts/demo/debug/utils/u_ai_render_probe.gd` (`class_name U_AIRenderProbe extends RefCounted`) — `static func build_probe_string(entity: Node, body: CharacterBody3D, movement_component: C_MovementComponent) -> String`; internal `_resolve_visual_node`, `_find_character_body_recursive`, `_find_first_geometry_recursive`
 - [x] **Commit 3** — Migrate call sites (TDD GREEN):
   - `scripts/ecs/systems/s_ai_behavior_system.gd` — delete inline `_build_render_probe`, `_resolve_body_from_context`, `_resolve_visual_node`, `_find_character_body_recursive`, `_find_first_geometry_recursive`, `_debug_log_cooldowns` bookkeeping, `_tick_debug_log_cooldowns`. Use `U_DebugLogThrottle` and `U_AIRenderProbe` instead.
   - `scripts/ecs/systems/s_ai_navigation_system.gd` — same delete-and-replace pass
@@ -248,7 +248,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `tests/unit/utils/debug/test_u_ai_render_probe.gd` (`4/4`)
 - Implemented shared debug utilities:
   - `scripts/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle`)
-  - `scripts/utils/debug/u_ai_render_probe.gd` (`class_name U_AIRenderProbe`)
+  - `scripts/demo/debug/utils/u_ai_render_probe.gd` (`class_name U_AIRenderProbe`)
 - Migrated AI debug/probe call sites to shared utilities:
   - `scripts/ecs/systems/s_ai_behavior_system.gd` now uses `U_DebugLogThrottle` for per-entity and empty-query logging budgets and `U_AIRenderProbe.build_probe_string(...)` for render diagnostics.
   - `scripts/ecs/systems/s_ai_navigation_system.gd` now uses `U_DebugLogThrottle` + `U_AIRenderProbe` and no longer owns duplicate probe/cooldown helpers.
@@ -262,7 +262,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - Migrated recursive character-body lookup duplicates to `U_NodeFind.find_character_body_recursive(...)` in:
     - `scripts/ecs/components/c_movement_component.gd`
     - `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd`
-    - `scripts/utils/debug/u_ai_render_probe.gd` (internal delegation)
+    - `scripts/demo/debug/utils/u_ai_render_probe.gd` (internal delegation)
 - Headless hardening included in `U_AIRenderProbe`:
   - detached nodes now emit safe `<detached:...>` path markers and use local `position` when `global_position` is unavailable.
 - Line count reduction:
@@ -475,7 +475,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 - [x] **Commit 1** — Add style enforcement test (TDD RED):
   - Extend `tests/unit/style/test_style_enforcement.gd`: assert no file matching `scripts/ecs/systems/*.gd` contains `_demo_` in its filename
 - [x] **Commit 2** — Move file and update wiring (TDD GREEN):
-  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/s_demo_alarm_relay_system.gd`. Rationale: the existing convention already groups demo-specific gameplay scripts flat under `scripts/gameplay/` (see `inter_ai_demo_flag_zone.gd`, `inter_ai_demo_guard_barrier.gd`). Introducing a new `demo_signal_lost/` subfolder would break that convention — avoid it unless that reorganization is its own separate milestone. Verify the style test rule covers the new location.
+  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`. Rationale: the existing convention already groups demo-specific gameplay scripts flat under `scripts/gameplay/` (see `inter_ai_demo_flag_zone.gd`, `inter_ai_demo_guard_barrier.gd`). Introducing a new `demo_signal_lost/` subfolder would break that convention — avoid it unless that reorganization is its own separate milestone. Verify the style test rule covers the new location.
   - Caveat: `scripts/gameplay/` currently holds interactable controllers (`inter_*.gd`, `base_*.gd`). An ECS `System` at that level is a new shape. If the style test enforces "no `s_*.gd` files under `scripts/gameplay/`", relax it or create `scripts/gameplay/ecs_systems/` as a subfolder — decide at R8 execution time, not speculatively.
   - Rename class to `S_DemoAlarmRelaySystem`
   - Update scene wiring: `s_ai_demo_alarm_relay_system` is referenced **only** by `scenes/gameplay/gameplay_ai_showcase.tscn` (verified via grep — *not* `gameplay_comms_array.tscn`). Update just that one scene.
@@ -490,15 +490,15 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 - Added RED/GREEN style enforcement for demo-only ECS script placement:
   - `tests/unit/style/test_style_enforcement.gd` now includes `test_ecs_system_filenames_do_not_include_demo_marker`.
 - Moved and renamed demo-only alarm relay runtime:
-  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/s_demo_alarm_relay_system.gd`
+  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`
   - `class_name S_AIDemoAlarmRelaySystem` → `class_name S_DemoAlarmRelaySystem`
 - Updated gameplay prefix guard to allow gameplay-scoped ECS systems:
   - `tests/unit/style/test_style_enforcement.gd` `SCRIPT_PREFIX_RULES["res://scripts/gameplay"]` now includes `s_`.
 - Updated scene/test wiring:
-  - `scenes/gameplay/gameplay_ai_showcase.tscn` now wires `S_DemoAlarmRelaySystem` from `res://scripts/gameplay/s_demo_alarm_relay_system.gd`.
+  - `scenes/gameplay/gameplay_ai_showcase.tscn` now wires `S_DemoAlarmRelaySystem` from `res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd`.
   - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd`.
   - `tests/unit/ai/resources/test_ai_showcase_scene.gd` now asserts `Systems/Core/S_DemoAlarmRelaySystem`.
-  - `tests/integration/gameplay/test_ai_interaction_triggers.gd` now loads `res://scripts/gameplay/s_demo_alarm_relay_system.gd`.
+  - `tests/integration/gameplay/test_ai_interaction_triggers.gd` now loads `res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd`.
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`21/21`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/gameplay/test_s_demo_alarm_relay_system.gd` (`3/3`)

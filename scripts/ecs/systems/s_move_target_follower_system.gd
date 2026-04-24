@@ -6,7 +6,7 @@ const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_compone
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_AI_RENDER_PROBE := preload("res://scripts/utils/debug/u_ai_render_probe.gd")
+const U_AI_RENDER_PROBE := preload("res://scripts/demo/debug/utils/u_ai_render_probe.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 
 const INPUT_COMPONENT_TYPE := C_INPUT_COMPONENT.COMPONENT_TYPE

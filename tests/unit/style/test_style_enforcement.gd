@@ -7,6 +7,7 @@ const GD_DIRECTORIES := [
 	"res://scripts/ui",
 	"res://scripts/managers",
 	"res://scripts/core",
+	"res://scripts/demo",
 	"res://scripts/interfaces",
 	"res://scripts/utils",
 	"res://scripts/input",
@@ -130,6 +131,9 @@ const REQUIRED_EXTENSION_RECIPES := [
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core": ["u_"],
+	"res://scripts/demo/gameplay": ["inter_", "s_"],
+	"res://scripts/demo/debug": ["debug_"],
+	"res://scripts/demo/debug/utils": ["u_"],
 	"res://scripts/interfaces": ["i_"],
 	"res://scripts/utils": ["u_"],
 	"res://scripts/input": ["u_", "i_"],
@@ -1103,15 +1107,15 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		"res://scripts/ecs/systems/s_ai_behavior_system.gd",
 		"res://scripts/ecs/systems/s_wall_visibility_system.gd",
 		"res://scripts/ecs/systems/s_region_visibility_system.gd",
-		"res://scripts/gameplay/s_demo_alarm_relay_system.gd",
+		"res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd",
 		"res://scripts/managers/m_vcam_manager.gd",
 		"res://scripts/managers/m_character_lighting_manager.gd",
 		"res://scripts/managers/m_run_coordinator_manager.gd",
 		"res://scripts/gameplay/inter_victory_zone.gd",
-		"res://scripts/gameplay/inter_ai_demo_guard_barrier.gd",
+		"res://scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd",
 		"res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd",
 		"res://scripts/gameplay/inter_character_light_zone.gd",
-		"res://scripts/gameplay/inter_ai_demo_flag_zone.gd",
+		"res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd",
 		"res://scripts/ecs/base_event_sfx_system.gd",
 		"res://scripts/ui/menus/ui_splash_screen.gd",
 		"res://scripts/ui/hud/ui_virtual_button.gd",
@@ -1570,6 +1574,7 @@ func test_resolve_state_store_naming_consistent() -> void:
 		"res://scripts/ecs",
 		"res://scripts/managers",
 		"res://scripts/gameplay",
+		"res://scripts/demo",
 	]
 	var violations: Array[String] = []
 	for dir_path in gd_dirs:
@@ -1624,6 +1629,7 @@ func test_objectives_state_access_uses_selectors() -> void:
 		"res://scripts/scene_structure",
 		"res://scripts/resources",
 		"res://scripts/gameplay",
+		"res://scripts/demo",
 		"res://scripts/debug",
 	]
 	var violations: Array[String] = []
@@ -1705,6 +1711,7 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/scene_management",
 		"res://scripts/utils",
 		"res://scripts/core",
+		"res://scripts/demo",
 	]
 	var violations: Array[String] = []
 	var patterns: Array[String] = [

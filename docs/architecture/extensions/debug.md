@@ -26,8 +26,8 @@ This recipe does **not** cover:
 
 - Perf probe: Any system using `U_PerfProbe.create("system_name")`
 - Log throttle: `scripts/utils/debug/u_debug_log_throttle.gd`
-- Debug panel: `scripts/debug/debug_ai_brain_panel.gd` (extends `Control`)
-- 3D label: `scripts/debug/debug_woods_agent_label.gd` (extends `Label3D`)
+- Debug panel: `scripts/demo/debug/debug_ai_brain_panel.gd` (extends `Control`)
+- 3D label: `scripts/demo/debug/debug_woods_agent_label.gd` (extends `Label3D`)
 - State overlay: `scripts/debug/debug_state_overlay.gd` (extends `CanvasLayer`)
 - Tracer: `scripts/utils/scene_director/u_objectives_debug_tracer.gd`
 - Debug Redux slice: `scripts/state/actions/u_debug_actions.gd`

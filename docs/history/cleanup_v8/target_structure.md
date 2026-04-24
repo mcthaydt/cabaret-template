@@ -34,7 +34,7 @@ Also:
 
 | File | P4.1 Class | Corrected Class | Reason |
 |------|------------|-----------------|--------|
-| `scripts/utils/debug/u_ai_render_probe.gd` | CORE (default) | **DEMO** | Only used by demo systems (`s_ai_behavior_system`, `s_move_target_follower_system`) |
+| `scripts/demo/debug/utils/u_ai_render_probe.gd` | CORE (default) | **DEMO** | Only used by demo systems (`s_ai_behavior_system`, `s_move_target_follower_system`) |
 | `scripts/resources/ai/actions/rs_ai_action_reserve.gd` | (unclassified) | **DEMO** | References `c_resource_node_component`; only used by builder brain |
 
 ---

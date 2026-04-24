@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4 complete through P4.2 — P4.1 classification doc + P4.2 target structure doc landed; P4.3 (move commits) next.
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4 complete through P4.2; P4.3 has the RED boundary test and first GREEN demo gameplay/debug script move complete, with style recheck now `87/87`.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -366,7 +366,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 - Commit 9 (RED) `0ad8c49d`: added `tests/unit/ai/bt/test_rs_bt_planner.gd`.
 - Commit 10 (GREEN) `90ce7243`: implemented `scripts/resources/ai/bt/rs_bt_planner.gd` with plan caching, step progression, one-replan-on-failure behavior, and planner debug state writes (`last_plan`, `last_plan_cost`) to node-local state bag.
 - Follow-up (GREEN) `07ba856a`: tightened `U_BTPlannerSearch` no-plan diagnostics and trimmed implementation to 113 LOC while preserving P1.6b contracts.
-- Commit 11 (GREEN) `64de76f6`: wired planner debug snapshot propagation in `scripts/ecs/components/c_ai_brain_component.gd` (`get_debug_snapshot()` now merges `last_plan`/`last_plan_cost` from planner state bag data) and updated `scripts/debug/debug_ai_brain_panel.gd` to render planner path + cost when present.
+- Commit 11 (GREEN) `64de76f6`: wired planner debug snapshot propagation in `scripts/ecs/components/c_ai_brain_component.gd` (`get_debug_snapshot()` now merges `last_plan`/`last_plan_cost` from planner state bag data) and updated `scripts/demo/debug/debug_ai_brain_panel.gd` to render planner path + cost when present.
 - Commit 11 verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` passed (`16/16`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/debug/test_debug_ai_brain_panel.gd` passed (`4/4`).
@@ -433,7 +433,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
   - Remove `U_AIGoalSelector`, `U_AIReplanner`, `U_AITaskRunner`, `U_AIContextBuilder` fields.
   - Keep `U_DebugLogThrottle`.
   - Single `U_BTRunner` instance.
-- [x] **Commit 3** (GREEN) — Update `scripts/debug/debug_ai_brain_panel.gd` to render active BT path from `get_debug_snapshot()` instead of goal + queue.
+- [x] **Commit 3** (GREEN) — Update `scripts/demo/debug/debug_ai_brain_panel.gd` to render active BT path from `get_debug_snapshot()` instead of goal + queue.
 
 **P1.8 Verification**:
 - [x] System integration tests green.
@@ -563,7 +563,7 @@ Archetypes: **Builder** (primary; gather→haul→build loop), **Wolf** (threat;
   - `resources/ai/woods/rabbit/cfg_woods_rabbit_brain.tres`, `scenes/prefabs/prefab_woods_rabbit.tscn`, `cfg_needs_rabbit.tres`
 - [x] **Commit 7** (GREEN) — Static world prefabs + builder prefab + debug label (`73a66510`):
   - `prefab_woods_builder.tscn`, `prefab_woods_tree.tscn`, `prefab_woods_stone.tscn`, `prefab_woods_water.tscn`, `prefab_woods_stockpile.tscn`, `prefab_woods_construction_site.tscn` (4 stage visuals, initially hidden)
-  - `scripts/debug/debug_woods_agent_label.gd` + `scenes/debug/debug_woods_agent_label.tscn` (shows goal/task/thirst/hunger/inventory)
+  - `scripts/demo/debug/debug_woods_agent_label.gd` + `scenes/debug/debug_woods_agent_label.tscn` (shows goal/task/thirst/hunger/inventory)
   - Resource node settings: `cfg_resource_node_wood.tres`, `cfg_resource_node_stone.tres`, `cfg_resource_node_water.tres`
   - `cfg_inventory_stockpile.tres`, `cfg_build_site_house.tres`, `cfg_needs_builder.tres`, `cfg_inventory_builder.tres`
 - [x] **Commit 8** (GREEN) — Scene composition + registry (`cd2afbcf`):
@@ -1244,9 +1244,22 @@ resources/
 
 ## Milestone P4.3: Move
 
-- [ ] **Commit 1** (RED) — Grep test: `scripts/core/` never imports from `scripts/demo/`. (Reverse direction is fine.)
+- [x] **Commit 1** (RED) — Grep test: `scripts/core/` never imports from `scripts/demo/`. (Reverse direction is fine.)
 - [ ] **Commit 2+** (GREEN) — Move files per classification. One commit per logical chunk (AI forest, sentry, demo gameplay scenes, etc). Update all imports. Update `.tres` resource paths.
 - [ ] **Commit N** (GREEN) — Update scene references, project settings, autoload paths.
+
+**P4.3 Progress Notes (2026-04-24)**:
+- RED boundary test landed in `0dba3719` as `test_core_scripts_never_import_from_demo`.
+- First GREEN move chunk moved demo gameplay/debug scripts:
+  - `scripts/gameplay/inter_ai_demo_flag_zone.gd` -> `scripts/demo/gameplay/inter_ai_demo_flag_zone.gd`
+  - `scripts/gameplay/inter_ai_demo_guard_barrier.gd` -> `scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd`
+  - `scripts/gameplay/s_demo_alarm_relay_system.gd` -> `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`
+  - `scripts/debug/debug_ai_brain_panel.gd` -> `scripts/demo/debug/debug_ai_brain_panel.gd`
+  - `scripts/debug/debug_woods_agent_label.gd` -> `scripts/demo/debug/debug_woods_agent_label.gd`
+  - `scripts/debug/debug_woods_build_site_label.gd` -> `scripts/demo/debug/debug_woods_build_site_label.gd`
+  - `scripts/utils/debug/u_ai_render_probe.gd` -> `scripts/demo/debug/utils/u_ai_render_probe.gd`
+- Updated scene/test/doc references for those paths and added `scripts/demo/` prefix/style scanning.
+- Verification: `test_ai_showcase_scene.gd` (`18/18`), `test_ai_demo_behavior_resources.gd` (`8/8`), `test_ai_interaction_triggers.gd` (`9/9`), `test_s_demo_alarm_relay_system.gd` (`3/3`), `test_debug_ai_brain_panel.gd` (`4/4`), `test_debug_woods_build_site_label.gd` (`2/2`), `test_u_ai_render_probe.gd` (`4/4`), and style guard (`87/87`) pass.
 
 ## Milestone P4.4: Enforcement
 

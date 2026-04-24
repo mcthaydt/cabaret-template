@@ -57,7 +57,7 @@
 [ext_resource type="Script" uid="uid://cas8xr0c0ly7b" path="res://scripts/ecs/systems/s_vcam_system.gd" id="52_vcam_system"]
 [ext_resource type="Script" uid="uid://dx7wdw2ep3ej5" path="res://scripts/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
 [ext_resource type="Script" uid="uid://cwbc2q1jdc7cl" path="res://scripts/ecs/systems/s_move_target_follower_system.gd" id="54_move_target_follower_system"]
-[ext_resource type="Script" uid="uid://c2u7ut30mns73" path="res://scripts/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
+[ext_resource type="Script" uid="uid://b610rm0br8diq" path="res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Script" uid="uid://dr2u7w3ufadya" path="res://scripts/gameplay/inter_hazard_zone.gd" id="63_inter_hazard_zone"]
 [ext_resource type="Resource" uid="uid://bk120ybuvl5ly" path="res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres" id="64_nav_fall_hazard_config"]
 [ext_resource type="Script" uid="uid://b2huwk7mlhlvv" path="res://scripts/ecs/systems/s_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]

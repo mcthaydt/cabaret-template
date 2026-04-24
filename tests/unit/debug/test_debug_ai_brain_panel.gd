@@ -1,6 +1,6 @@
 extends BaseTest
 
-const PANEL_SCRIPT_PATH := "res://scripts/debug/debug_ai_brain_panel.gd"
+const PANEL_SCRIPT_PATH := "res://scripts/demo/debug/debug_ai_brain_panel.gd"
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const RS_AI_BRAIN_PLACEHOLDER := preload("res://resources/ai/cfg_ai_brain_placeholder.tres")

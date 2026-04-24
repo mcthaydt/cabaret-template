@@ -13,7 +13,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 ## Latest Update (2026-04-22): Woods AI Fix Pack
 
 - Woods debug labels now refresh continuously and include runtime task labels:
-  - `scripts/debug/debug_woods_agent_label.gd`
+  - `scripts/demo/debug/debug_woods_agent_label.gd`
   - `scripts/ecs/components/c_ai_brain_component.gd`
   - `scripts/ecs/systems/s_ai_behavior_system.gd`
 - Wolf chase/feed reliability tuned for consume-range completion:
@@ -22,7 +22,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Builder loop prevention after completed house:
   - `resources/ai/woods/builder/cfg_builder_brain.tres` gather/haul scorers now gate on `build_not_completed`.
 - In-world house progress observability added:
-  - `scripts/debug/debug_woods_build_site_label.gd`
+  - `scripts/demo/debug/debug_woods_build_site_label.gd`
   - `scenes/debug/debug_woods_build_site_label.tscn`
   - `scenes/prefabs/prefab_woods_construction_site.tscn` instances the label.
 - Test updates for this pack:
@@ -191,7 +191,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - Nav Nexus includes vertical CSG platforms, path markers, fall-detection Area3D, victory-zone Area3D, and `E_GuidePrism` with `C_AIBrainComponent`.
 - Post-audit integration pass completed:
   - Added runtime trigger wiring for all demo trigger zones:
-    - `scripts/gameplay/inter_ai_demo_flag_zone.gd` on Power/Comms/Victory triggers for durable AI flags (`power_core_activated`, `comms_disturbance_heard`, `nav_goal_reached`)
+    - `scripts/demo/gameplay/inter_ai_demo_flag_zone.gd` on Power/Comms/Victory triggers for durable AI flags (`power_core_activated`, `comms_disturbance_heard`, `nav_goal_reached`)
     - `Inter_FallDetectionArea` now uses `Inter_HazardZone` + `resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres`
   - Added scene registry entries and mobile-safe preload/backfill coverage:
     - `resources/scene_registry/cfg_power_core_entry.tres`
@@ -359,8 +359,8 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Implemented new detection + relay runtime:
   - `scripts/ecs/components/c_detection_component.gd`
   - `scripts/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
-  - `scripts/gameplay/s_demo_alarm_relay_system.gd` (`execution_priority = -11`, moved from `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` during R8)
-  - `scripts/gameplay/inter_ai_demo_guard_barrier.gd`
+  - `scripts/demo/gameplay/s_demo_alarm_relay_system.gd` (`execution_priority = -11`, moved from `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` during R8)
+  - `scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd`
 - Updated showcase behavior/resources for trigger-driven interactions:
   - Added guide showcase resources:
     - `resources/ai/guide_prism/cfg_goal_idle_showcase.tres`
@@ -484,7 +484,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/utils/debug/test_u_ai_render_probe.gd` (`4/4`)
 - Implemented shared debug utilities:
   - `scripts/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle`)
-  - `scripts/utils/debug/u_ai_render_probe.gd` (`class_name U_AIRenderProbe`)
+  - `scripts/demo/debug/utils/u_ai_render_probe.gd` (`class_name U_AIRenderProbe`)
 - Refactored AI systems to remove duplicated probe/cooldown logic:
   - `scripts/ecs/systems/s_ai_behavior_system.gd` now composes `U_DebugLogThrottle` and `U_AIRenderProbe` and no longer owns `_build_render_probe` / `_tick_debug_log_cooldowns` helper stacks.
   - `scripts/ecs/systems/s_ai_navigation_system.gd` now composes the same utility pair and no longer owns duplicate probe/cooldown helpers.
@@ -611,11 +611,11 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Added RED/GREEN demo-placement style coverage:
   - `tests/unit/style/test_style_enforcement.gd` now includes `test_ecs_system_filenames_do_not_include_demo_marker`.
 - Moved demo-only alarm relay runtime and test out of production ECS folders:
-  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/s_demo_alarm_relay_system.gd`
+  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`
   - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd`
   - Relay class renamed `S_AIDemoAlarmRelaySystem` → `S_DemoAlarmRelaySystem`
 - Updated wiring and compatibility call sites:
-  - `scenes/gameplay/gameplay_ai_showcase.tscn` now wires `S_DemoAlarmRelaySystem` from `scripts/gameplay/s_demo_alarm_relay_system.gd`.
+  - `scenes/gameplay/gameplay_ai_showcase.tscn` now wires `S_DemoAlarmRelaySystem` from `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`.
   - `tests/integration/gameplay/test_ai_interaction_triggers.gd` now loads the gameplay-scoped relay script path.
   - `tests/unit/ai/resources/test_ai_showcase_scene.gd` now validates `Systems/Core/S_DemoAlarmRelaySystem`.
   - `tests/unit/style/test_style_enforcement.gd` gameplay prefix rules now permit `s_` scripts in `scripts/gameplay/`.
@@ -697,7 +697,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **R5 shared spawn-recovery migration is complete**: `S_SpawnRecoverySystem` + `C_SpawnRecoveryComponent` + `RS_SpawnRecoverySettings` now own unsupported-entity recovery for both player and NPC flows; AI-brain-owned `respawn_*` fields were removed from `RS_AIBrainSettings`, and legacy `S_AISpawnRecoverySystem` was deleted.
 - **R6 move-target follower generalization is complete**: move-target following is now shared runtime behavior (`C_MoveTargetComponent` + `S_MoveTargetFollowerSystem`) with AI-task-state fallback for compatibility; `S_AINavigationSystem` was removed.
 - **R7 AI resource directory reorganization is complete**: AI core resources are now grouped by concept under `scripts/resources/ai/brain/`, `scripts/resources/ai/goals/`, `scripts/resources/ai/tasks/`, and `scripts/resources/ai/actions/`; style enforcement now guards against new top-level `rs_ai_*.gd` drift.
-- **R8 demo-only system placement is complete**: demo relay runtime moved to `scripts/gameplay/s_demo_alarm_relay_system.gd` (`S_DemoAlarmRelaySystem`), `scripts/ecs/systems` now rejects `_demo_` filenames via style enforcement, and showcase/integration tests are wired to the gameplay-scoped relay path.
+- **R8 demo-only system placement is complete**: demo relay runtime moved to `scripts/demo/gameplay/s_demo_alarm_relay_system.gd` (`S_DemoAlarmRelaySystem`), `scripts/ecs/systems` now rejects `_demo_` filenames via style enforcement, and showcase/integration tests are wired to the gameplay-scoped relay path.
 - **R9 HTN planner context-object cleanup is complete**: planner recursion now carries mutable state through `U_HTNPlannerContext` (`reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`) instead of threading these values as standalone recursive parameters in `U_HTNPlanner`.
 - **R10 orchestration integration pass is complete**: `S_AIBehaviorSystem` is now an orchestration-only runtime (`195` lines), style enforcement guards AI-local duck-typing helper reintroduction and line-budget regression, and per-frame state snapshot fallback to store state is preserved for method-condition context compatibility.
 
@@ -763,7 +763,7 @@ M1–M15 are complete. **The AI system refactor is complete (R1–R10).** Use `d
 5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`) **COMPLETE (2026-04-10)**
 6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`) **COMPLETE (2026-04-10)**
 7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`) **COMPLETE (2026-04-10)**
-8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/gameplay/s_demo_alarm_relay_system.gd`) **COMPLETE (2026-04-11)**
+8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`) **COMPLETE (2026-04-11)**
 9. **R9** — HTN Planner Context Object (collapse recursive params into `HTNPlannerContext`) **COMPLETE (2026-04-11)**
 10. **R10** — Behavior System Orchestration Integration (final pass: `s_ai_behavior_system.gd` under 200 lines) **COMPLETE (2026-04-11)**
 

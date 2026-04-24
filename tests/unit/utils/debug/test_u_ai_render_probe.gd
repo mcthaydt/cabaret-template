@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_AI_RENDER_PROBE_PATH := "res://scripts/utils/debug/u_ai_render_probe.gd"
+const U_AI_RENDER_PROBE_PATH := "res://scripts/demo/debug/utils/u_ai_render_probe.gd"
 
 
 func _new_probe_script() -> Script:

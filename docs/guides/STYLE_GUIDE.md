@@ -269,6 +269,8 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | **Base Controllers** | `base_*_controller.gd` / `*_controller.gd` | `Base*Controller` / `*Controller` | `base_volume_controller.gd` → `BaseVolumeController`, `triggered_interactable_controller.gd` → `TriggeredInteractableController` |
 | **Gameplay Helpers** | `helpers/u_*.gd` | `U_*` | `helpers/u_interaction_config_validator.gd` → `U_InteractionConfigValidator` |
 
+Demo-only gameplay scripts live under `scripts/demo/gameplay/` and keep the same file/class prefixes as gameplay controllers (`inter_*` for interactables, `s_*_system.gd` for gameplay-scoped systems). Demo-only debug scripts live under `scripts/demo/debug/` with `debug_*` files and `scripts/demo/debug/utils/` with `u_*` utilities.
+
 #### Additional Prefix Patterns
 
 | Category | File Pattern | Class Pattern | Examples |

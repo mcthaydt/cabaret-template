@@ -5,7 +5,7 @@ extends BaseTest
 ## flag dispatch, ECS event publication, and alarm relay cascading.
 
 const S_AI_DETECTION_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_detection_system.gd"
-const S_DEMO_ALARM_RELAY_SYSTEM_PATH := "res://scripts/gameplay/s_demo_alarm_relay_system.gd"
+const S_DEMO_ALARM_RELAY_SYSTEM_PATH := "res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd"
 
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")

@@ -10,7 +10,7 @@
 ## Latest Update: Woods AI Fix Pack (2026-04-22)
 
 - [x] Fixed stale woods debug agent labels:
-  - `scripts/debug/debug_woods_agent_label.gd` now updates follow + text every frame.
+  - `scripts/demo/debug/debug_woods_agent_label.gd` now updates follow + text every frame.
   - `scripts/ecs/components/c_ai_brain_component.gd` now preserves `goal_id` and `task_id` in debug snapshots.
   - `scripts/ecs/systems/s_ai_behavior_system.gd` now derives runtime `task_id` from running `RS_BTAction` state.
 - [x] Improved wolf consume reliability:
@@ -18,7 +18,7 @@
   - Updated `resources/ai/woods/wolf/cfg_woods_wolf_brain.tres` chase/feed tuning for consume-range completion (`1.25`).
 - [x] Prevented builder post-completion gather/haul loops and added in-world house progress label:
   - Updated `resources/ai/woods/builder/cfg_builder_brain.tres` with `build_not_completed` gate for gather/haul scorers.
-  - Added `scripts/debug/debug_woods_build_site_label.gd` and `scenes/debug/debug_woods_build_site_label.tscn`.
+  - Added `scripts/demo/debug/debug_woods_build_site_label.gd` and `scenes/debug/debug_woods_build_site_label.tscn`.
   - Instanced label in `scenes/prefabs/prefab_woods_construction_site.tscn`.
 - [x] Added/updated tests for this pack:
   - `tests/unit/ecs/components/test_c_ai_brain_component.gd`
@@ -381,7 +381,7 @@
   - `resources/ai/cfg_ai_brain_placeholder.tres`
 - Filled scene-integration gaps:
   - Wired runtime trigger behavior for all milestone demo trigger areas:
-    - `scripts/gameplay/inter_ai_demo_flag_zone.gd` now drives durable gameplay AI flags from Area3D triggers (`power_core_activated`, `comms_disturbance_heard`, `nav_goal_reached`).
+    - `scripts/demo/gameplay/inter_ai_demo_flag_zone.gd` now drives durable gameplay AI flags from Area3D triggers (`power_core_activated`, `comms_disturbance_heard`, `nav_goal_reached`).
     - `Inter_FallDetectionArea` in Nav Nexus now uses `Inter_HazardZone` + `cfg_hazard_nav_nexus_fall` for actual fall/death behavior.
 - Registered demo scenes for runtime + export/mobile loading:
   - Added scene registry entries:
@@ -698,8 +698,8 @@
 - Implemented:
   - `scripts/ecs/components/c_detection_component.gd`
   - `scripts/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
-  - `scripts/gameplay/s_demo_alarm_relay_system.gd` (`execution_priority = -11`, moved from `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` during R8)
-  - `scripts/gameplay/inter_ai_demo_guard_barrier.gd`
+  - `scripts/demo/gameplay/s_demo_alarm_relay_system.gd` (`execution_priority = -11`, moved from `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` during R8)
+  - `scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd`
   - `resources/ai/guide_prism/cfg_goal_idle_showcase.tres`
   - `resources/ai/guide_prism/cfg_goal_show_path_showcase.tres`
   - `resources/ai/guide_prism/cfg_guide_showcase_brain.tres`

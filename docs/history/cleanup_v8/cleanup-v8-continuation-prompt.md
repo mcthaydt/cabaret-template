@@ -5,8 +5,8 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 complete. P1.1–P1.10 complete. Phase 2 complete through P2.4 (`28702b95`) with style guard green. Phase 3 complete through P3.6; P3.5 extension recipes authored — 16 of 18 done (`ai.md` + 15 eligible recipes in `cf4394a6` + `437c3a6c`); `scenes.md` and `resources.md` remain gated on Phase 4. `AGENTS.md` is now a 58-line routing index and `docs/guides/DEV_PITFALLS.md` has been deleted after redistribution. `ai-system-overview.md` updated to remove stale GOAP/HTN content.
-**Next Task**: P4.1 — Create `docs/guides/cleanup_v8/template_vs_demo.md` classification doc.
+**Status**: Phase 1 complete. P1.1–P1.10 complete. Phase 2 complete through P2.4 (`28702b95`) with style guard green. Phase 3 complete through P3.6; P3.5 extension recipes authored — 16 of 18 done (`ai.md` + 15 eligible recipes in `cf4394a6` + `437c3a6c`); `scenes.md` and `resources.md` remain gated on Phase 4. Phase 4 complete through P4.2; P4.3 has the RED core-never-imports-demo boundary test and first GREEN demo gameplay/debug script move complete. `AGENTS.md` is now a 58-line routing index and `docs/guides/DEV_PITFALLS.md` has been deleted after redistribution. `ai-system-overview.md` updated to remove stale GOAP/HTN content.
+**Next Task**: Continue P4.3 move commits — next logical chunk is demo ECS components/systems under `scripts/demo/ecs/**`.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -158,7 +158,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
     - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
 - **Phase 2**: COMPLETE through P2.4 (`28702b95`) with style recheck passing (`83/83`).
 - **Phase 3**: COMPLETE. P3.0–P3.6 complete; P3.5 extension recipes authored — 16 of 18 done (`ai.md` + 15 eligible recipes in `cf4394a6` + `437c3a6c`); `scenes.md` and `resources.md` gated on Phase 4; `ai-system-overview.md` updated to remove stale GOAP/HTN content.
-- **Phase 4**: NOT STARTED. 4 milestones (P4.1 classification doc, P4.2 target structure, P4.3 move commits, P4.4 enforcement).
+- **Phase 4**: IN PROGRESS. P4.1 classification doc and P4.2 target structure doc are complete. P4.3 RED boundary test is complete; first GREEN move chunk moved demo gameplay/debug scripts into `scripts/demo/` and updated references. Remaining P4.3 chunks should continue moving demo ECS components/systems, demo AI resource scripts, then core scripts/resources/scenes/assets per `docs/history/cleanup_v8/target_structure.md`.
 - **Phase 5**: NOT STARTED. 4 milestones.
 
 ### Baseline Verification (2026-04-17, post-P1.4 completion)
@@ -195,7 +195,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
 - P1.6b Commit 9 RED check landed in `0ad8c49d` (`tests/unit/ai/bt/test_rs_bt_planner.gd`).
 - P1.6b Commit 10 GREEN check landed in `90ce7243` (`scripts/resources/ai/bt/rs_bt_planner.gd`).
 - P1.6b follow-up GREEN fix `07ba856a`: tightened `U_BTPlannerSearch` no-plan diagnostics and reduced file size to 113 LOC.
-- P1.6b Commit 11 GREEN landed in `64de76f6` (`scripts/ecs/components/c_ai_brain_component.gd`, `scripts/debug/debug_ai_brain_panel.gd`) with planner `last_plan`/`last_plan_cost` snapshot propagation and debug row rendering.
+- P1.6b Commit 11 GREEN landed in `64de76f6` (`scripts/ecs/components/c_ai_brain_component.gd`, `scripts/demo/debug/debug_ai_brain_panel.gd`) with planner `last_plan`/`last_plan_cost` snapshot propagation and debug row rendering.
 - P1.6b Commit 11 targeted checks:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` passes (`16/16`).
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/debug/test_debug_ai_brain_panel.gd` passes (`4/4`).
@@ -379,7 +379,7 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 
 ## Next Steps
 
-1. Start Phase 4 with template-vs-demo classification (P4.1 Commit 1 — `docs/guides/cleanup_v8/template_vs_demo.md`).
+1. Continue Phase 4 P4.3 move commits; next logical chunk is demo ECS components/systems under `scripts/demo/ecs/**`.
 2. After Phase 4: author remaining P3.5 recipes (`scenes.md`, `resources.md`) gated on Phase 4.
 3. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
 4. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` after any file move.

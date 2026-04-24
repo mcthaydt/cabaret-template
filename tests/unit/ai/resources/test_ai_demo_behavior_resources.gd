@@ -9,7 +9,7 @@ const GUIDE_BRAIN_PATH := "res://resources/ai/guide_prism/cfg_guide_brain.tres"
 const POWER_CORE_SCENE_PATH := "res://scenes/gameplay/gameplay_power_core.tscn"
 const COMMS_ARRAY_SCENE_PATH := "res://scenes/gameplay/gameplay_comms_array.tscn"
 const NAV_NEXUS_SCENE_PATH := "res://scenes/gameplay/gameplay_nav_nexus.tscn"
-const INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH := "res://scripts/gameplay/inter_ai_demo_flag_zone.gd"
+const INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH := "res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd"
 const INTER_HAZARD_ZONE_SCRIPT_PATH := "res://scripts/gameplay/inter_hazard_zone.gd"
 const NAV_FALL_HAZARD_CONFIG_PATH := "res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres"
 
