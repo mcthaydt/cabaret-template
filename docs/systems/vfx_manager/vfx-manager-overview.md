@@ -18,6 +18,24 @@ The VFX Manager is a persistent orchestration layer for screen-level visual effe
 - Occlusion silhouette player preference is persisted in `vfx.occlusion_silhouette_enabled` and exposed in `UI_VFXSettingsOverlay` with localization keys.
 - Occlusion rollout requires both physics layer naming (`vcam_occludable`) and authored-scene migration of true camera blockers.
 
+## Current Runtime Contracts
+
+- Publisher systems translate gameplay events into VFX request events. `M_VFXManager` subscribes to those requests and processes queues in `_physics_process()`.
+- Player-only and transition gating happen in `M_VFXManager` via `_is_player_entity()` and `_is_transition_blocked()`, using Redux fields `gameplay.player_entity_id`, `scene.is_transitioning`, `scene.scene_stack`, and `navigation.shell == "gameplay"`.
+- `U_DamageFlash` takes `(flash_rect, owner_node)` and creates tweens through `U_TweenManager` using idle tween processing and explicit pause processing.
+- Use `U_ECSEventNames` constants for event subscriptions instead of string literals.
+- `RS_ScreenShakeTuning` owns trauma decay plus damage/landing/death curves; default instance: `resources/vfx/cfg_screen_shake_tuning.tres`.
+- `RS_ScreenShakeConfig` owns offset/rotation/noise tuning; default instance: `resources/vfx/cfg_screen_shake_config.tres`.
+- `S_ScreenShakePublisherSystem` reads tuning; `M_VFXManager` uses tuning for decay and config for `U_ScreenShake`.
+- Temporary settings preview flows through `set_vfx_settings_preview(...)` and `clear_vfx_settings_preview()`. `UI_VFXSettingsOverlay` pushes preview updates and clears preview on cancel or overlay exit.
+- Silhouette application is renderer-owned in `M_VFXManager` through `U_VCamSilhouetteHelper.update_silhouettes(...)`; disable/clear requests bypass transition blocking so stale silhouettes are always removed.
+
+## Pitfalls
+
+- VFX requests are ignored when `gameplay.player_entity_id` is missing or does not match the request payload.
+- VFX is blocked outside gameplay shell, during scene transitions, or while scene stack overlays are active.
+- Integration tests that publish VFX requests must initialize `gameplay_initial_state.player_entity_id` and set `navigation.shell = "gameplay"` before publishing.
+
 ## Repo Reality Checks
 
 - Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
