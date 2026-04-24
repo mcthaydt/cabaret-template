@@ -1,8 +1,8 @@
-# Cabaret Template (Godot 4.6)
+# Cabaret Template (Godot 4.7)
 
 ![MOV to GIF (1)](https://github.com/user-attachments/assets/419c5753-2701-4444-aa7b-26b0d59edbd1)
 
-Cabaret Template is an opinionated Godot 4.6 starter project for building a small-to-medium game with:
+Cabaret Template is an opinionated Godot 4.7 starter project for building a small-to-medium game with:
 - A lightweight **Node-based ECS** (entities + components + systems) for gameplay logic
 - A **Redux-style state store** (actions/reducers/selectors) for deterministic state + UI/navigation
 - A **scene manager** with transitions, overlays, preloading, and caching
@@ -11,7 +11,7 @@ Cabaret Template is an opinionated Godot 4.6 starter project for building a smal
 
 ## Quick Start
 
-1. Install **Godot 4.6**.
+1. Install **Godot 4.7**.
 2. Open `project.godot` in Godot.
 3. Press Play: `scenes/root.tscn` boots persistent managers and loads the initial scene (`main_menu` by default).
 
