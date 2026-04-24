@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://rygahxanlmio"]
 
-[ext_resource type="Script" path="res://scripts/core/root.gd" id="1_f2o31"]
+[ext_resource type="Script" uid="uid://co5weeyagsqn3" path="res://scripts/core/root.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://c0t8tpubx5v3i" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/core/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/core/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
@@ -29,8 +29,8 @@
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/core/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://2teehl7y7n7w" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="22_gamepad_vibration"]
 [ext_resource type="Script" uid="uid://cas8xr0c0ly7b" path="res://scripts/ecs/systems/s_vcam_system.gd" id="23_vcam_system"]
-[ext_resource type="Script" path="res://scripts/demo/ecs/systems/s_ai_behavior_system.gd" id="24_ai_behavior_system"]
-[ext_resource type="Script" path="res://scripts/demo/ecs/systems/s_move_target_follower_system.gd" id="25_move_target_follower_system"]
+[ext_resource type="Script" uid="uid://cxemqvnjcd4qm" path="res://scripts/demo/ecs/systems/s_ai_behavior_system.gd" id="24_ai_behavior_system"]
+[ext_resource type="Script" uid="uid://ce63ayt3nfe71" path="res://scripts/demo/ecs/systems/s_move_target_follower_system.gd" id="25_move_target_follower_system"]
 [ext_resource type="Script" uid="uid://dmpersmvlqd8v" path="res://scripts/ecs/components/c_room_fade_group_component.gd" id="26_room_fade_group_component"]
 [ext_resource type="Script" uid="uid://cev2jaqejfcyx" path="res://scripts/ecs/systems/s_wall_visibility_system.gd" id="27_wall_visibility_system"]
 [ext_resource type="Script" uid="uid://b2huwk7mlhlvv" path="res://scripts/ecs/systems/s_spawn_recovery_system.gd" id="28_ai_spawn_recovery_system"]

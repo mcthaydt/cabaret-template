@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cho7lldu4ypjp"]
 
-[ext_resource type="Script" path="res://scripts/core/root.gd" id="1_p1gsf"]
+[ext_resource type="Script" uid="uid://co5weeyagsqn3" path="res://scripts/core/root.gd" id="1_p1gsf"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/core/scene_structure/marker_scene_objects_group.gd" id="2_ysyyo"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/core/scene_structure/marker_environment_group.gd" id="3_ejfwd"]
 [ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/core/scene_structure/marker_lighting_group.gd" id="4_8mc26"]

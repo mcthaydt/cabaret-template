@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://m7o054qd5u44"]
 
-[ext_resource type="Script" path="res://scripts/core/resources/qb/conditions/rs_condition_event_name.gd" id="1_0kyf7"]
+[ext_resource type="Script" uid="uid://bkrf6emw8eq0d" path="res://scripts/core/resources/qb/conditions/rs_condition_event_name.gd" id="1_0kyf7"]
 [ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/core/interfaces/i_condition.gd" id="1_n7i5s"]
-[ext_resource type="Script" path="res://scripts/core/resources/qb/conditions/rs_condition_event_payload.gd" id="2_t38nv"]
-[ext_resource type="Script" path="res://scripts/core/resources/qb/effects/rs_effect_set_field.gd" id="3_h3i6n"]
-[ext_resource type="Script" path="res://scripts/core/resources/qb/rs_rule.gd" id="4_44nrb"]
+[ext_resource type="Script" uid="uid://c01hdmwtkd014" path="res://scripts/core/resources/qb/conditions/rs_condition_event_payload.gd" id="2_t38nv"]
+[ext_resource type="Script" uid="uid://baf360oqwp7v5" path="res://scripts/core/resources/qb/effects/rs_effect_set_field.gd" id="3_h3i6n"]
+[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/core/resources/qb/rs_rule.gd" id="4_44nrb"]
 [ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/core/interfaces/i_effect.gd" id="4_aakyq"]
 
 [sub_resource type="Resource" id="Resource_fjn3d"]

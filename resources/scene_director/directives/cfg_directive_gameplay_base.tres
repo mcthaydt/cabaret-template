@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="RS_SceneDirective" format=3 uid="uid://d2gupe7j15r78"]
 
-[ext_resource type="Script" path="res://scripts/core/resources/scene_director/rs_scene_directive.gd" id="1_7m0t8"]
-[ext_resource type="Script" path="res://scripts/core/resources/scene_director/rs_beat_definition.gd" id="2_vf4lq"]
-[ext_resource type="Script" path="res://scripts/core/resources/qb/effects/rs_effect_publish_event.gd" id="3_5n2ac"]
+[ext_resource type="Script" uid="uid://ddki6ynkpsyds" path="res://scripts/core/resources/scene_director/rs_scene_directive.gd" id="1_7m0t8"]
+[ext_resource type="Script" uid="uid://ic2ouvl1md7q" path="res://scripts/core/resources/scene_director/rs_beat_definition.gd" id="2_vf4lq"]
+[ext_resource type="Script" uid="uid://cgk1j4fpq4c8" path="res://scripts/core/resources/qb/effects/rs_effect_publish_event.gd" id="3_5n2ac"]
 [ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/core/interfaces/i_condition.gd" id="4_0fy8e"]
 [ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/core/interfaces/i_effect.gd" id="4_ieffect"]
 

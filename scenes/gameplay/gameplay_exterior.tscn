@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bnxhc71hx1tiq" path="res://scripts/ecs/systems/s_camera_state_system.gd" id="1_camera_state_system"]
 [ext_resource type="Script" uid="uid://breqdywdxah32" path="res://scripts/ecs/systems/s_character_state_system.gd" id="1_character_rule_manager"]
-[ext_resource type="Script" path="res://scripts/core/root.gd" id="1_f2o31"]
+[ext_resource type="Script" uid="uid://co5weeyagsqn3" path="res://scripts/core/root.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://b6cx6oiv6464k" path="res://scripts/ecs/systems/s_game_event_system.gd" id="1_game_event_system"]
 [ext_resource type="Script" uid="uid://c0t8tpubx5v3i" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/core/scene_structure/marker_environment_group.gd" id="2_8soux"]

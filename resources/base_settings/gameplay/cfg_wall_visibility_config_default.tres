@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_WallVisibilityConfig" format=3 uid="uid://0feve3rl35x4"]
 
-[ext_resource type="Script" path="res://scripts/core/resources/ecs/rs_wall_visibility_config.gd" id="1_wall_visibility_config_script"]
+[ext_resource type="Script" uid="uid://yompo16qkb8d" path="res://scripts/core/resources/ecs/rs_wall_visibility_config.gd" id="1_wall_visibility_config_script"]
 
 [resource]
 script = ExtResource("1_wall_visibility_config_script")

@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://xbsisw0afima"]
 
-[ext_resource type="Script" path="res://scripts/core/resources/qb/conditions/rs_condition_component_field.gd" id="1_fahw2"]
+[ext_resource type="Script" uid="uid://d3ig84jkjjkpv" path="res://scripts/core/resources/qb/conditions/rs_condition_component_field.gd" id="1_fahw2"]
 [ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/core/interfaces/i_condition.gd" id="1_g1h6o"]
-[ext_resource type="Script" path="res://scripts/core/resources/qb/effects/rs_effect_set_context_value.gd" id="2_np75x"]
+[ext_resource type="Script" uid="uid://y3hog88by51c" path="res://scripts/core/resources/qb/effects/rs_effect_set_context_value.gd" id="2_np75x"]
 [ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/core/interfaces/i_effect.gd" id="3_4jesr"]
-[ext_resource type="Script" path="res://scripts/core/resources/qb/rs_rule.gd" id="3_g1h6o"]
+[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/core/resources/qb/rs_rule.gd" id="3_g1h6o"]
 
 [sub_resource type="Resource" id="Resource_4jesr"]
 script = ExtResource("1_fahw2")

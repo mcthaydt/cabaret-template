@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://brwv47r8lqkkf" path="res://scripts/core/managers/m_cursor_manager.gd" id="7_cursor"]
 [ext_resource type="Script" uid="uid://dc31pkcyw0kmt" path="res://scripts/core/managers/m_scene_manager.gd" id="8_scene_manager"]
 [ext_resource type="Script" uid="uid://wn8fs28hxufc" path="res://scripts/core/scene_structure/marker_active_scene_container.gd" id="9_active_scene_container"]
-[ext_resource type="Script" path="res://scripts/core/root.gd" id="10_main_root"]
+[ext_resource type="Script" uid="uid://co5weeyagsqn3" path="res://scripts/core/root.gd" id="10_main_root"]
 [ext_resource type="Script" uid="uid://d0omtagbm74cs" path="res://scripts/core/scene_structure/marker_managers_group.gd" id="11_managers_group"]
 [ext_resource type="PackedScene" uid="uid://clwc6tou4bgkr" path="res://scenes/ui/hud/ui_loading_screen.tscn" id="12_loading_screen"]
 [ext_resource type="Script" uid="uid://c8ke127f7bad" path="res://scripts/core/managers/m_spawn_manager.gd" id="13_spawn_manager"]

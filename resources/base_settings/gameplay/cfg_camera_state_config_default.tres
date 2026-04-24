@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_CameraStateConfig" format=3 uid="uid://dudc2c1cvyyb5"]
 
-[ext_resource type="Script" path="res://scripts/core/resources/ecs/rs_camera_state_config.gd" id="1_camera_state_config_script"]
+[ext_resource type="Script" uid="uid://ddwxfwdqyxhyj" path="res://scripts/core/resources/ecs/rs_camera_state_config.gd" id="1_camera_state_config_script"]
 
 [resource]
 script = ExtResource("1_camera_state_config_script")

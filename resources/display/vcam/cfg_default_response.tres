@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_VCamResponse" format=3 uid="uid://bya5pusmeeom1"]
 
-[ext_resource type="Script" path="res://scripts/core/resources/display/vcam/rs_vcam_response.gd" id="1_j0vk8"]
+[ext_resource type="Script" uid="uid://dpqbu17n47p18" path="res://scripts/core/resources/display/vcam/rs_vcam_response.gd" id="1_j0vk8"]
 
 [resource]
 script = ExtResource("1_j0vk8")
