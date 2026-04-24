@@ -1183,7 +1183,13 @@ Tail of P3, after all other P3 milestones are green. Moves this plan into `docs/
 
 ## Milestone P4.1: Classification
 
-- [ ] **Commit 1** — `docs/guides/cleanup_v8/template_vs_demo.md`: every top-level dir classified as **core** (ECS framework, state store, managers, UI kits, input, audio, debug infra) or **demo** (forest AI, sentry/drone/prism, gameplay sample scenes, sample audio/vfx assets).
+- [x] **Commit 1** — `docs/guides/cleanup_v8/template_vs_demo.md`: every top-level dir classified as **core** (ECS framework, state store, managers, UI kits, input, audio, debug infra) or **demo** (forest AI, sentry/drone/prism, gameplay sample scenes, sample audio/vfx assets).
+
+**P4.1 Completion Notes (2026-04-23)**:
+- Classification doc covers `scripts/`, `resources/`, `scenes/`, `assets/`, and other top-level dirs.
+- Mixed-directory decomposition identifies 9 dirs needing selective migration (not whole-dir moves).
+- AI framework/content boundary: generic BT nodes + 10 generic AI actions = core; 5 demo actions + creature world types + all utils/ai/ = demo.
+- Style enforcement green (86/86) after doc creation.
 
 ## Milestone P4.2: Target Structure (Proposed)
 
