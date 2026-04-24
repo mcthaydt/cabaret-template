@@ -10,6 +10,15 @@
 
 The Save Manager is a persistent orchestration layer that coordinates save/load timing, slot management, atomic disk IO, versioning/migrations, and user-facing status/errors. It does **not** define gameplay data; the Redux-style `M_StateStore` remains the single source of truth for what gets serialized and how transient fields are excluded/normalized.
 
+## Current Runtime Contracts
+
+- Use `M_SaveManager.save_to_slot(slot_id)` for production saves. Do not bypass it with `M_StateStore.save_state(filepath)`, which writes raw state without headers, migrations, or atomic-write safety.
+- Autosave requires `navigation.shell == "gameplay"`.
+- Autosave is suppressed during player death, scene transitions, and save/load lock windows.
+- Save files are `{header, state}` payloads written through save file IO helpers with `.tmp` rename and `.bak` backup behavior.
+- Save/load scene restoration coordinates with `M_SceneManager`; entity/component state is restored through Redux and scene-load flow, not direct scene graph serialization.
+- Gameplay damage tests should use the configured player entity id or empty entity id. Hardcoded `"player"` can silently miss reducer updates when it does not match `gameplay.player_entity_id`.
+
 ## Goals
 
 - Persist player progress reliably (crash-safe, atomic writes).
