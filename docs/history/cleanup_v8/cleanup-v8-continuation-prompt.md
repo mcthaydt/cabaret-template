@@ -5,8 +5,8 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 complete. P1.1–P1.10 complete. Phase 2 complete through P2.4 (`28702b95`) with style guard green. Phase 3 framework complete through P3.6 archive; P3.5 extension recipes not yet authored (18 total — `ai.md` eligible now, remainder gated on Phases 4/5). `AGENTS.md` is now a 58-line routing index and `docs/guides/DEV_PITFALLS.md` has been deleted after redistribution.
-**Next Task**: P3.5 — Author `ai.md` extension recipe (Phase 1 tail, eligible after P1.10; requires per-recipe user sign-off per CLAUDE.md).
+**Status**: Phase 1 complete. P1.1–P1.10 complete. Phase 2 complete through P2.4 (`28702b95`) with style guard green. Phase 3 complete through P3.6; P3.5 extension recipes authored — 16 of 18 done (`ai.md` + 15 eligible recipes in `cf4394a6` + `437c3a6c`); `scenes.md` and `resources.md` remain gated on Phase 4. `AGENTS.md` is now a 58-line routing index and `docs/guides/DEV_PITFALLS.md` has been deleted after redistribution. `ai-system-overview.md` updated to remove stale GOAP/HTN content.
+**Next Task**: P4.1 — Create `docs/guides/cleanup_v8/template_vs_demo.md` classification doc.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -157,8 +157,8 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
       - Full-suite status is now green.
     - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
 - **Phase 2**: COMPLETE through P2.4 (`28702b95`) with style recheck passing (`83/83`).
-- **Phase 3**: FRAMEWORK COMPLETE; P3.5 recipes pending. P3.0 complete (docs reorg + ADR normalization + path rewrites); P3.1 complete (`fce9f326`, inventory maps 44 DEV_PITFALLS + 19 AGENTS sections); P3.2 complete (`afd151f9`, target structure confirmed with style guard green); P3.3 complete; P3.4 complete; P3.5 framework complete (dir + `README.md` + `TEMPLATE.md` + structure test), 18 individual recipes unwritten — `ai.md` eligible now (Phase 1 tail), `scenes.md`/`resources.md` gated on Phase 4, remainder gated on Phase 5 or no hard gating; P3.6 archive complete.
-- **Phase 4**: NOT STARTED. 4 milestones.
+- **Phase 3**: COMPLETE. P3.0–P3.6 complete; P3.5 extension recipes authored — 16 of 18 done (`ai.md` + 15 eligible recipes in `cf4394a6` + `437c3a6c`); `scenes.md` and `resources.md` gated on Phase 4; `ai-system-overview.md` updated to remove stale GOAP/HTN content.
+- **Phase 4**: NOT STARTED. 4 milestones (P4.1 classification doc, P4.2 target structure, P4.3 move commits, P4.4 enforcement).
 - **Phase 5**: NOT STARTED. 4 milestones.
 
 ### Baseline Verification (2026-04-17, post-P1.4 completion)
@@ -379,7 +379,7 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 
 ## Next Steps
 
-1. Author `docs/architecture/extensions/ai.md` (P3.5 Commit 1 — Phase 1 tail). Requires explicit user sign-off per CLAUDE.md doc-creation rule before writing.
-2. After `ai.md` lands: start Phase 4 with template-vs-demo classification (P4.1 Commit 1 — `docs/guides/cleanup_v8/template_vs_demo.md`). Author Phase 4-tail recipes (`scenes.md`, `resources.md`) at Phase 4 close.
+1. Start Phase 4 with template-vs-demo classification (P4.1 Commit 1 — `docs/guides/cleanup_v8/template_vs_demo.md`).
+2. After Phase 4: author remaining P3.5 recipes (`scenes.md`, `resources.md`) gated on Phase 4.
 3. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
 4. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` after any file move.
