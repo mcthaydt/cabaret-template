@@ -2476,6 +2476,40 @@ func test_extension_recipe_structure() -> void:
 	dir.list_dir_end()
 	assert_eq(violations.size(), 0, "Extension recipes must contain required sections: %s" % [violations])
 
+func test_core_scripts_never_import_from_demo() -> void:
+	var violations: Array[String] = []
+	_collect_demo_imports_in_core("res://scripts/core", violations)
+	var message := "scripts/core/ must not import from scripts/demo/"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func _collect_demo_imports_in_core(dir_path: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_demo_imports_in_core(path, violations)
+		elif entry.ends_with(".gd"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				entry = dir.get_next()
+				continue
+			var line_number: int = 0
+			while not file.eof_reached():
+				line_number += 1
+				var line: String = file.get_line()
+				if "res://scripts/demo/" in line:
+					violations.append("%s:%d" % [path, line_number])
+			file.close()
+		entry = dir.get_next()
+	dir.list_dir_end()
+
 func _collect_bare_print_calls(dir_path: String, violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
