@@ -108,6 +108,7 @@ func test_run_reset_without_objectives_manager_still_resets_and_retries() -> voi
 	var actions: Array[Dictionary] = _store.get_dispatched_actions()
 	assert_true(_find_action_index(actions, U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS) >= 0)
 	assert_true(_find_action_index(actions, U_NAVIGATION_ACTIONS.ACTION_RETRY) >= 0)
+	assert_engine_error("objectives_manager not available during run/reset")
 
 func test_reentrant_run_reset_requests_are_ignored_while_in_flight() -> void:
 	var coordinator := M_RUN_COORDINATOR.new()
@@ -122,6 +123,7 @@ func test_reentrant_run_reset_requests_are_ignored_while_in_flight() -> void:
 	var actions: Array[Dictionary] = _store.get_dispatched_actions()
 	assert_eq(_count_actions(actions, U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS), 1)
 	assert_eq(_count_actions(actions, U_NAVIGATION_ACTIONS.ACTION_RETRY), 1)
+	assert_engine_error("objectives_manager not available during run/reset")
 
 func _find_action_index(actions: Array[Dictionary], action_type: StringName) -> int:
 	for i in range(actions.size()):
