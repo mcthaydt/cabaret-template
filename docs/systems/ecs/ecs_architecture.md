@@ -1724,6 +1724,50 @@ func build_entity_snapshot(entity: Node) -> Dictionary
 3. Expand unit coverage for event-driven responder systems (particles, audio, camera shake).
 4. Continue enforcing deep-copy semantics for shared dictionaries/arrays.
 
+## 10. Current Runtime Contracts
+
+These contracts are the active authoring rules for ECS code in this template.
+
+### 10.1 Components
+
+- Extend `BaseECSComponent`.
+- Define `const COMPONENT_TYPE := StringName("YourComponent")` and set `component_type = COMPONENT_TYPE` in `_init()`.
+- Enforce required settings/resources with `_validate_required_settings()`. Push an error and return `false` to abort registration; use `_on_required_settings_ready()` for post-validation setup.
+- Prefer exported `NodePath` fields plus typed getters that use `get_node_or_null(...) as Type` and return `null` on empty paths.
+- Keep call sites null-safe. Missing authored paths should disable behavior instead of erroring unless the setting is truly mandatory.
+- Use `U_NodeFind.find_character_body_recursive(...)` for generic `CharacterBody3D` discovery instead of duplicating recursive body helpers.
+- If exposing debug state, return deep copies with `snapshot.duplicate(true)` so callers cannot mutate component internals.
+- Spawn freeze/unfreeze state lives in `C_SpawnStateComponent` (`is_physics_frozen`, `unfreeze_at_frame`, `suppress_landing_until_frame`). Movement, jump, and floating systems gate through that component.
+
+### 10.2 Systems
+
+- Extend `BaseECSSystem` and implement `process_tick(delta)`.
+- Override `get_phase()` in every `S_*` system. `M_ECSManager` sorts by phase first, then `execution_priority`, then instance ID.
+- Query through `get_components(StringName)`, dedupe by body where needed, and clamp/guard authored numeric values.
+- Use `U_ECSUtils.map_components_by_body()` when multiple component arrays need the same body-keyed lookup.
+- Let systems auto-discover `M_ECSManager` through parent traversal or the `ecs_manager` ServiceLocator entry; avoid manual scene wiring unless a test injects a manager.
+- Event-driven request systems should extend `BaseEventVFXSystem` or `BaseEventSFXSystem` and implement `get_event_name()` plus `create_request_from_payload()`.
+
+### 10.3 Manager
+
+- Keep exactly one `M_ECSManager` per active gameplay scene.
+- The manager registers with ServiceLocator during `_ready()`, emits component lifecycle signals, and calls `component.on_registered(self)`.
+- `get_components()` strips null entries automatically; only add extra missing-component guards when behavior truly requires them.
+- Entity root caching is dictionary-backed in `M_ECSManager` and `U_ECSUtils`; do not use metadata tags as hidden manager indexes.
+- `BaseECSEntity` registers itself with the manager for entity lookup.
+
+### 10.4 Entities
+
+- Entity roots extend `BaseECSEntity`.
+- `entity_id` is exported, cached after first access, and can be generated from node names for compatibility.
+- Duplicate IDs receive an `_{instance_id}` suffix automatically.
+- Tags are freeform `Array[StringName]`; mutate them with `add_tag(tag)`, `remove_tag(tag)`, and `has_tag(tag)` so the manager tag index stays current.
+- Use `get_entity_by_id(id)`, `get_entities_by_tag(tag)`, and `get_entities_by_tags(tags, match_all)` for manager queries.
+
+### 10.5 Channel Boundary
+
+Per `docs/architecture/adr/0001-channel-taxonomy.md`, ECS components and systems publish gameplay events through `U_ECSEventBus`. Managers dispatch Redux actions instead, except `M_ECSManager`, which is ECS infrastructure and may publish entity registration lifecycle events.
+
 ### 9.4 Related Documentation
 
 - **docs/ecs/for humans/ecs_ELI5.md** - Beginner-friendly explanation
