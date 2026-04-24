@@ -8,7 +8,7 @@ const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_co
 const RS_NEEDS_SETTINGS := preload("res://scripts/core/resources/ecs/rs_needs_settings.gd")
 const RS_MOVEMENT_SETTINGS := preload("res://scripts/core/resources/ecs/rs_movement_settings.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
-const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
+const U_AI_TASK_STATE_KEYS := preload("res://scripts/core/utils/ai/u_ai_task_state_keys.gd")
 
 func _load_script(path: String) -> Script:
 	var script_variant: Variant = load(path)

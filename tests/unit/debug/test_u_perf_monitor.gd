@@ -1,8 +1,8 @@
 extends GutTest
 
-const U_PERF_MONITOR := preload("res://scripts/utils/debug/u_perf_monitor.gd")
+const U_PERF_MONITOR := preload("res://scripts/core/utils/debug/u_perf_monitor.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 var _monitor: U_PerfMonitor = null
 

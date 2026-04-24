@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_RuleSelector
 
-const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+const U_RULE_UTILS := preload("res://scripts/core/utils/ecs/u_rule_utils.gd")
 
 static func select_winners(scored_results: Array) -> Array[Dictionary]:
 	if scored_results.is_empty():

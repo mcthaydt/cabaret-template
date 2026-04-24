@@ -2,21 +2,16 @@ extends RefCounted
 class_name U_AIWorldStateBuilder
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
-const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
-const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
 const C_HEALTH_COMPONENT := preload("res://scripts/core/ecs/components/c_health_component.gd")
-const C_INVENTORY_COMPONENT := preload("res://scripts/demo/ecs/components/c_inventory_component.gd")
-const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/demo/ecs/components/c_resource_node_component.gd")
-const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
 
-const BRAIN_COMPONENT_TYPE := C_AIBrainComponent.COMPONENT_TYPE
+const BRAIN_COMPONENT_TYPE := StringName("C_AIBrainComponent")
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
-const DETECTION_COMPONENT_TYPE := C_DETECTION_COMPONENT.COMPONENT_TYPE
-const NEEDS_COMPONENT_TYPE := C_NEEDS_COMPONENT.COMPONENT_TYPE
+const DETECTION_COMPONENT_TYPE := StringName("C_DetectionComponent")
+const NEEDS_COMPONENT_TYPE := StringName("C_NeedsComponent")
 const HEALTH_COMPONENT_TYPE := C_HEALTH_COMPONENT.COMPONENT_TYPE
-const INVENTORY_COMPONENT_TYPE := C_INVENTORY_COMPONENT.COMPONENT_TYPE
-const RESOURCE_NODE_COMPONENT_TYPE := C_RESOURCE_NODE_COMPONENT.COMPONENT_TYPE
-const BUILD_SITE_COMPONENT_TYPE := C_BUILD_SITE_COMPONENT.COMPONENT_TYPE
+const INVENTORY_COMPONENT_TYPE := StringName("C_InventoryComponent")
+const RESOURCE_NODE_COMPONENT_TYPE := StringName("C_ResourceNodeComponent")
+const BUILD_SITE_COMPONENT_TYPE := StringName("C_BuildSiteComponent")
 
 func build(entity_source: Variant) -> Dictionary:
 	var world_state: Dictionary = {}
@@ -59,12 +54,11 @@ func _get_dict_value_string_or_name(dictionary: Dictionary, key: String) -> Vari
 	return null
 
 func _write_brain_state(world_state: Dictionary, components: Dictionary) -> void:
-	var brain_variant: Variant = components.get(BRAIN_COMPONENT_TYPE, null)
-	if brain_variant == null or not (brain_variant is C_AIBrainComponent):
+	var brain: Object = components.get(BRAIN_COMPONENT_TYPE, null)
+	if brain == null:
 		return
-	var brain: C_AIBrainComponent = brain_variant as C_AIBrainComponent
-	world_state[&"active_goal_id"] = brain.active_goal_id
-	world_state[&"evaluation_timer"] = brain.evaluation_timer
+	world_state[&"active_goal_id"] = brain.get("active_goal_id")
+	world_state[&"evaluation_timer"] = brain.get("evaluation_timer")
 
 func _write_movement_state(world_state: Dictionary, components: Dictionary) -> void:
 	var movement_variant: Variant = components.get(MOVEMENT_COMPONENT_TYPE, null)
@@ -75,19 +69,17 @@ func _write_movement_state(world_state: Dictionary, components: Dictionary) -> v
 	world_state[&"movement_speed"] = velocity.length()
 
 func _write_detection_state(world_state: Dictionary, components: Dictionary) -> void:
-	var detection_variant: Variant = components.get(DETECTION_COMPONENT_TYPE, null)
-	if detection_variant == null or not (detection_variant is C_DetectionComponent):
+	var detection: Object = components.get(DETECTION_COMPONENT_TYPE, null)
+	if detection == null:
 		return
-	var detection: C_DetectionComponent = detection_variant as C_DetectionComponent
-	world_state[&"is_player_in_range"] = detection.is_player_in_range
-	world_state[&"last_detected_player_entity_id"] = detection.last_detected_player_entity_id
+	world_state[&"is_player_in_range"] = detection.get("is_player_in_range")
+	world_state[&"last_detected_player_entity_id"] = detection.get("last_detected_player_entity_id")
 
 func _write_needs_state(world_state: Dictionary, components: Dictionary) -> void:
-	var needs_variant: Variant = components.get(NEEDS_COMPONENT_TYPE, null)
-	if needs_variant == null or not (needs_variant is C_NeedsComponent):
+	var needs: Object = components.get(NEEDS_COMPONENT_TYPE, null)
+	if needs == null:
 		return
-	var needs: C_NeedsComponent = needs_variant as C_NeedsComponent
-	world_state[&"hunger"] = needs.hunger
+	world_state[&"hunger"] = needs.get("hunger")
 
 func _write_health_state(world_state: Dictionary, components: Dictionary) -> void:
 	var health_variant: Variant = components.get(HEALTH_COMPONENT_TYPE, null)
@@ -98,24 +90,21 @@ func _write_health_state(world_state: Dictionary, components: Dictionary) -> voi
 	world_state[&"max_health"] = health.max_health
 
 func _write_inventory_state(world_state: Dictionary, components: Dictionary) -> void:
-	var inventory_variant: Variant = components.get(INVENTORY_COMPONENT_TYPE, null)
-	if inventory_variant == null or not (inventory_variant is C_InventoryComponent):
+	var inventory: Object = components.get(INVENTORY_COMPONENT_TYPE, null)
+	if inventory == null:
 		return
-	var inventory: C_InventoryComponent = inventory_variant as C_InventoryComponent
-	world_state[&"inventory_fill_ratio"] = inventory.fill_ratio
+	world_state[&"inventory_fill_ratio"] = inventory.get("fill_ratio")
 
 func _write_resource_node_state(world_state: Dictionary, components: Dictionary) -> void:
-	var resource_variant: Variant = components.get(RESOURCE_NODE_COMPONENT_TYPE, null)
-	if resource_variant == null or not (resource_variant is C_ResourceNodeComponent):
+	var resource_node: Object = components.get(RESOURCE_NODE_COMPONENT_TYPE, null)
+	if resource_node == null:
 		return
-	var resource_node: C_ResourceNodeComponent = resource_variant as C_ResourceNodeComponent
-	world_state[&"resource_current_amount"] = resource_node.current_amount
-	world_state[&"resource_available"] = resource_node.is_available()
+	world_state[&"resource_current_amount"] = resource_node.get("current_amount")
+	world_state[&"resource_available"] = resource_node.call("is_available")
 
 func _write_build_site_state(world_state: Dictionary, components: Dictionary) -> void:
-	var build_site_variant: Variant = components.get(BUILD_SITE_COMPONENT_TYPE, null)
-	if build_site_variant == null or not (build_site_variant is C_BuildSiteComponent):
+	var build_site: Object = components.get(BUILD_SITE_COMPONENT_TYPE, null)
+	if build_site == null:
 		return
-	var build_site: C_BuildSiteComponent = build_site_variant as C_BuildSiteComponent
-	world_state[&"materials_ready"] = build_site.materials_ready
-	world_state[&"build_completed"] = build_site.completed
+	world_state[&"materials_ready"] = build_site.get("materials_ready")
+	world_state[&"build_completed"] = build_site.get("completed")

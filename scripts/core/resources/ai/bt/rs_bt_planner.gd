@@ -2,9 +2,9 @@
 extends "res://scripts/core/resources/bt/rs_bt_composite.gd"
 class_name RS_BTPlanner
 
-const U_BT_PLANNER_SEARCH := preload("res://scripts/utils/ai/u_bt_planner_search.gd")
-const U_AI_WORLD_STATE_BUILDER := preload("res://scripts/utils/ai/u_ai_world_state_builder.gd")
-const U_BT_PLANNER_RUNTIME := preload("res://scripts/utils/ai/u_bt_planner_runtime.gd")
+const U_BT_PLANNER_SEARCH := preload("res://scripts/core/utils/ai/u_bt_planner_search.gd")
+const U_AI_WORLD_STATE_BUILDER := preload("res://scripts/core/utils/ai/u_ai_world_state_builder.gd")
+const U_BT_PLANNER_RUNTIME := preload("res://scripts/core/utils/ai/u_bt_planner_runtime.gd")
 const STATE_KEY_PLAN := &"plan"
 const STATE_KEY_PLAN_INDEX := &"plan_index"
 const STATE_KEY_REPLAN_ATTEMPTED := &"replan_attempted"

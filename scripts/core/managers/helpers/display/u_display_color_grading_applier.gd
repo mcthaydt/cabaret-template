@@ -11,7 +11,7 @@ class_name U_DisplayColorGradingApplier
 const COLOR_GRADING_SHADER := preload("res://assets/shaders/sh_color_grading_shader.gdshader")
 const U_CANVAS_LAYERS := preload("res://scripts/core/ui/u_canvas_layers.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 const U_POST_PROCESS_PIPELINE := preload("res://scripts/core/managers/helpers/display/u_post_process_pipeline.gd")
 
 const SCENE_SWAPPED := StringName("scene/swapped")

@@ -1,6 +1,6 @@
 extends BaseTest
 
-const RULE_SELECTOR := preload("res://scripts/utils/qb/u_rule_selector.gd")
+const RULE_SELECTOR := preload("res://scripts/core/utils/qb/u_rule_selector.gd")
 const RULE_RESOURCE := preload("res://scripts/core/resources/qb/rs_rule.gd")
 
 func _make_rule(rule_id: StringName, decision_group: StringName = StringName(), priority: int = 0) -> Variant:

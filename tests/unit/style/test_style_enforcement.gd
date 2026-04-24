@@ -4,7 +4,7 @@ const GD_DIRECTORIES := [
 	"res://scripts/core/gameplay",
 	"res://scripts/core",
 	"res://scripts/demo",
-	"res://scripts/utils",
+	"res://scripts/core/utils",
 	"res://scripts/core/events",
 	"res://scripts/core/scene_structure",
 	"res://scripts/core/resources/qb",
@@ -85,9 +85,9 @@ const AI_RESOURCE_ALLOWED_SUBDIRECTORIES := [
 const BT_RESOURCE_MAX_LINES := 199
 const BT_GENERAL_DIR := "res://scripts/core/resources/bt"
 const BT_AI_DIR := "res://scripts/core/resources/ai/bt"
-const BT_UTILS_DIR := "res://scripts/utils/bt"
+const BT_UTILS_DIR := "res://scripts/core/utils/bt"
 const BT_PLANNER_PATH := "res://scripts/core/resources/ai/bt/rs_bt_planner.gd"
-const BT_PLANNER_SEARCH_PATH := "res://scripts/utils/ai/u_bt_planner_search.gd"
+const BT_PLANNER_SEARCH_PATH := "res://scripts/core/utils/ai/u_bt_planner_search.gd"
 const BT_PLANNER_MAX_LINES := 149
 const BT_PLANNER_SEARCH_MAX_LINES := 119
 const BT_GENERAL_FORBIDDEN_TOKENS := [
@@ -135,7 +135,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/demo/resources/ai/world": ["rs_"],
 	"res://scripts/demo/resources/lighting": ["rs_"], # Demo lighting resources
 	"res://scripts/demo/utils/ai": ["u_"],
-	"res://scripts/utils": ["u_"],
+	"res://scripts/core/utils": ["u_"],
 	"res://scripts/core/input": ["u_", "i_"],
 	"res://scripts/core/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
 	"res://scripts/core/resources/input": ["rs_"],
@@ -608,7 +608,7 @@ func test_ai_action_scripts_use_task_state_key_constants() -> void:
 	var violations: Array[String] = []
 	_collect_gd_literal_occurrences("res://scripts/core/resources/ai/actions", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/demo/resources/ai/actions", "task_state[\"", violations)
-	_collect_gd_literal_occurrences("res://scripts/utils/ai", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/core/utils/ai", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/demo/utils/ai", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/demo/ecs/systems/s_ai_behavior_system.gd", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/demo/ecs/systems/s_move_target_follower_system.gd", "task_state[\"", violations)
@@ -984,9 +984,9 @@ func test_rule_systems_and_helpers_do_not_duplicate_property_readers() -> void:
 		"res://scripts/core/ecs/systems/s_game_event_system.gd",
 		"res://scripts/core/ecs/systems/helpers/u_vcam_runtime_context.gd",
 		"res://scripts/core/ecs/systems/helpers/u_vcam_landing_impact.gd",
-		"res://scripts/utils/qb/u_rule_validator.gd",
-		"res://scripts/utils/qb/u_rule_scorer.gd",
-		"res://scripts/utils/qb/u_rule_selector.gd",
+		"res://scripts/core/utils/qb/u_rule_validator.gd",
+		"res://scripts/core/utils/qb/u_rule_scorer.gd",
+		"res://scripts/core/utils/qb/u_rule_selector.gd",
 	]
 	var forbidden_methods: Array[String] = [
 		"_read_string_property",
@@ -1131,7 +1131,7 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		"res://scripts/core/managers/m_audio_manager.gd",
 		"res://scripts/core/managers/m_localization_manager.gd",
 		"res://scripts/core/managers/m_display_manager.gd",
-		"res://scripts/utils/scene_director/u_store_action_binder.gd",
+		"res://scripts/core/utils/scene_director/u_store_action_binder.gd",
 	]
 	# Forbidden: inline U_STATE_UTILS.try_get_store calls in migrated files
 	# that should delegate to U_DependencyResolution
@@ -1617,7 +1617,7 @@ func test_objectives_state_access_uses_selectors() -> void:
 		"res://scripts/core/state/selectors/u_objectives_selectors.gd",
 		"res://scripts/core/state/reducers/u_objectives_reducer.gd",
 		"res://scripts/core/managers/helpers/u_save_migration_engine.gd",
-		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
+		"res://scripts/core/utils/scene_director/u_objectives_debug_tracer.gd",
 		"res://scripts/core/ecs/systems/s_victory_handler_system.gd",
 		"res://scripts/core/ui/menus/ui_victory.gd",
 	]
@@ -1628,7 +1628,7 @@ func test_objectives_state_access_uses_selectors() -> void:
 		"res://scripts/core/managers",
 		"res://scripts/core",
 		"res://scripts/core/interfaces",
-		"res://scripts/utils",
+		"res://scripts/core/utils",
 		"res://scripts/input",
 		"res://scripts/scene_management",
 		"res://scripts/core/events",
@@ -1695,7 +1695,7 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/core/ecs/systems/helpers/u_vcam_soft_zone_applier.gd",
 		"res://scripts/core/ecs/systems/helpers/u_vcam_look_input.gd",
 		# Generic serializer: uses state.get(slice_name, null) with a variable key (not a string literal).
-		"res://scripts/utils/u_global_settings_serialization.gd",
+		"res://scripts/core/utils/u_global_settings_serialization.gd",
 		# Deferred — not in C11 scope; will be migrated post-C11:
 		"res://scripts/core/ecs/systems/s_jump_system.gd",
 		"res://scripts/core/ecs/systems/s_playtime_system.gd",
@@ -1707,7 +1707,7 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/core/ui/overlays/ui_input_rebinding_overlay.gd",
 		"res://scripts/core/ui/overlays/ui_save_load_menu.gd",
 		"res://scripts/core/ui/overlays/ui_touchscreen_settings_overlay.gd",
-		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
+		"res://scripts/core/utils/scene_director/u_objectives_debug_tracer.gd",
 	]
 	var production_dirs: Array[String] = [
 		"res://scripts/core/ecs",
@@ -1716,7 +1716,7 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/core/managers",
 		"res://scripts/scene_management",
 		"res://scripts/core/scene_management",
-		"res://scripts/utils",
+		"res://scripts/core/utils",
 		"res://scripts/demo",
 	]
 	var violations: Array[String] = []
@@ -1758,7 +1758,7 @@ func test_no_cinema_identifiers_in_display_scripts() -> void:
 	var display_dirs: Array[String] = [
 		"res://scripts/core/managers/helpers/display",
 		"res://scripts/state",
-		"res://scripts/utils/debug",
+		"res://scripts/core/utils/debug",
 		"res://scripts/debug",
 	]
 	var violations: Array[String] = []
@@ -1786,7 +1786,7 @@ func test_no_cinema_identifiers_in_display_scripts() -> void:
 func test_no_combined_identifiers_in_display_scripts() -> void:
 	var display_dirs: Array[String] = [
 		"res://scripts/core/managers/helpers/display",
-		"res://scripts/utils/debug",
+		"res://scripts/core/utils/debug",
 	]
 	var violations: Array[String] = []
 	for dir_path in display_dirs:
@@ -1812,7 +1812,7 @@ func test_no_crt_identifiers_in_display_scripts() -> void:
 	var display_dirs: Array[String] = [
 		"res://scripts/core/managers/helpers/display",
 		"res://scripts/state",
-		"res://scripts/utils/display",
+		"res://scripts/core/utils/display",
 		"res://scripts/core/ui/settings",
 		"res://scripts/debug",
 	]
@@ -1848,11 +1848,11 @@ func test_post_process_overlay_colorrect_creation_only_via_pipeline() -> void:
 		"res://scripts/core/managers/helpers/display/u_display_color_grading_applier.gd",
 		"res://scripts/core/managers/helpers/display/u_display_post_process_applier.gd",
 		# Editor-only preview (removes itself at runtime; not under PostProcessOverlay)
-		"res://scripts/utils/display/u_color_grading_preview.gd",
+		"res://scripts/core/utils/display/u_color_grading_preview.gd",
 	]
 	var display_dirs: Array[String] = [
 		"res://scripts/core/managers/helpers/display",
-		"res://scripts/utils/display",
+		"res://scripts/core/utils/display",
 	]
 	var violations: Array[String] = []
 	for dir_path in display_dirs:
@@ -1888,7 +1888,7 @@ func test_no_state_mutation_outside_store() -> void:
 		"res://scripts/ui",
 		"res://scripts/core/managers",
 		"res://scripts/scene_management",
-		"res://scripts/utils",
+		"res://scripts/core/utils",
 		"res://scripts/core",
 		"res://scripts/state",
 		"res://scripts/input",

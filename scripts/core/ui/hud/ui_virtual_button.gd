@@ -35,7 +35,7 @@ const ACTION_LABEL_KEYS := {
 	StringName("pause"): &"input.action.pause",
 }
 
-const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 
 const BRIDGE_MODE_NONE := 0
 const BRIDGE_MODE_INPUT_ACTION := 1

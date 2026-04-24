@@ -12,7 +12,7 @@ const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_
 const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_localization_initial_state.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/core/state/actions/u_localization_actions.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_localization_selectors.gd")
-const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/core/utils/u_global_settings_serialization.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 

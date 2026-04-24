@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 var _original_mobile_feature: bool = false
 

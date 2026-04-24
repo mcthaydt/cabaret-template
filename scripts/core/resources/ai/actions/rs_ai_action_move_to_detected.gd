@@ -4,8 +4,8 @@ class_name RS_AIActionMoveToDetected
 
 const DETECTION_COMPONENT_TYPE := StringName("C_DetectionComponent")
 const MOVE_TARGET_COMPONENT_TYPE := StringName("C_MoveTargetComponent")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
+const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/core/utils/ai/u_ai_action_position_resolver.gd")
 
 @export var arrival_threshold: float = 0.5
 @export var completion_radius_override: float = 0.0

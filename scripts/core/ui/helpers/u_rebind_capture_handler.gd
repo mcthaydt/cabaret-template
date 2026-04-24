@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_RebindCaptureHandler
 
-const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 
 const STATUS_CAPTURE_PROMPT_KEY := &"overlay.input_rebinding.status.capture_prompt"
 const STATUS_REBIND_CANCELLED_KEY := &"overlay.input_rebinding.status.rebind_cancelled"

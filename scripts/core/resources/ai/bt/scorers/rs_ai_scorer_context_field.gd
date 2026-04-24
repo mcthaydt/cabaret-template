@@ -2,7 +2,7 @@
 extends "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer.gd"
 class_name RS_AIScorerContextField
 
-const U_PATH_RESOLVER := preload("res://scripts/utils/qb/u_path_resolver.gd")
+const U_PATH_RESOLVER := preload("res://scripts/core/utils/qb/u_path_resolver.gd")
 
 @export var path: String = ""
 @export var multiplier: float = 1.0

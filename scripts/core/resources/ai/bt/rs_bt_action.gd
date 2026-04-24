@@ -2,7 +2,7 @@
 extends "res://scripts/core/resources/bt/rs_bt_node.gd"
 class_name RS_BTAction
 
-const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
+const U_AI_TASK_STATE_KEYS := preload("res://scripts/core/utils/ai/u_ai_task_state_keys.gd")
 
 const BT_ACTION_STATE_BAG := &"bt_action_state_bag"
 const CONTEXT_KEY_DELTA := &"delta"

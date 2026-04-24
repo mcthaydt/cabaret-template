@@ -7,7 +7,7 @@
 [ext_resource type="Resource" uid="uid://di7grdc78eh1y" path="res://resources/display/vcam/cfg_default_soft_zone.tres" id="5_vcam_soft_zone"]
 [ext_resource type="Resource" uid="uid://bt6j3uwuawu6k" path="res://resources/display/vcam/cfg_default_blend_hint.tres" id="6_vcam_blend_hint"]
 [ext_resource type="Resource" uid="uid://bya5pusmeeom1" path="res://resources/display/vcam/cfg_default_response.tres" id="7_vcam_response"]
-[ext_resource type="Script" uid="uid://chv7wx1yek8bj" path="res://scripts/utils/display/u_vcam_rule_of_thirds_preview.gd" id="9_rule_of_thirds_preview"]
+[ext_resource type="Script" uid="uid://chv7wx1yek8bj" path="res://scripts/core/utils/display/u_vcam_rule_of_thirds_preview.gd" id="9_rule_of_thirds_preview"]
 
 [node name="E_CameraRoot" type="Node3D" unique_id=246158049]
 script = ExtResource("1_ecsentity")

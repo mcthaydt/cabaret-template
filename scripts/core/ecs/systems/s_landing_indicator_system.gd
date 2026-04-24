@@ -6,8 +6,8 @@ class_name S_LandingIndicatorSystem
 
 const COMPONENT_TYPE := StringName("C_LandingIndicatorComponent")
 const UP_VECTOR: Vector3 = Vector3.UP
-const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 const MOBILE_TICK_INTERVAL := 2
 
 var _perf_probe: U_PerfProbe = null

@@ -9,7 +9,7 @@ class_name U_PerfMonitor
 ## Auto-enables on mobile. Zero-cost when disabled (early return in _process).
 
 const LOG_PREFIX := "[PERF]"
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 @export var enabled: bool = false

@@ -15,7 +15,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme
 @export var input_device_manager: M_InputDeviceManager = null
 
 const INTERACT_COLOR := Color(1.0, 0.85, 0.6)
-const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const DEFAULT_INTERACT_FALLBACK := "Interact"
 
 var _label: Label

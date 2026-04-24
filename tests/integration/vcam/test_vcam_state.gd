@@ -15,7 +15,7 @@ const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
-const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/core/utils/u_global_settings_serialization.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/core/state/actions/u_vcam_actions.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/core/state/selectors/u_vcam_selectors.gd")
 const U_VFX_ACTIONS := preload("res://scripts/core/state/actions/u_vfx_actions.gd")

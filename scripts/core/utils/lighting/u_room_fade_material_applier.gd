@@ -3,7 +3,7 @@ class_name U_RoomFadeMaterialApplier
 
 const SH_ROOM_FADE := preload("res://assets/shaders/sh_room_fade.gdshader")
 const SH_ROOM_FADE_DITHERED := preload("res://assets/shaders/sh_room_fade_dithered.gdshader")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 const USE_MOBILE_DITHERED_FADE := true
 

@@ -4,7 +4,7 @@ class_name U_UIScaleRoot
 
 ## Registers a UI root node with the display manager for scaling.
 
-const U_DISPLAY_UTILS := preload("res://scripts/utils/display/u_display_utils.gd")
+const U_DISPLAY_UTILS := preload("res://scripts/core/utils/display/u_display_utils.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/core/ui/utils/u_ui_theme_debug.gd")
 
 const MAX_REGISTER_FRAMES: int = 30

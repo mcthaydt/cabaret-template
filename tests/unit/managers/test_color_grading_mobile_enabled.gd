@@ -5,7 +5,7 @@ extends GutTest
 ## on mobile (5-tap unsharp mask is too expensive on tile-based GPUs).
 
 const U_COLOR_GRADING_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_color_grading_applier.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const COLOR_GRADING_SHADER := preload("res://assets/shaders/sh_color_grading_shader.gdshader")
 

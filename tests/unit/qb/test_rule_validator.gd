@@ -1,6 +1,6 @@
 extends BaseTest
 
-const RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
+const RULE_VALIDATOR := preload("res://scripts/core/utils/qb/u_rule_validator.gd")
 const RULE_RESOURCE := preload("res://scripts/core/resources/qb/rs_rule.gd")
 const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 const CONDITION_COMPONENT_FIELD := preload("res://scripts/core/resources/qb/conditions/rs_condition_component_field.gd")

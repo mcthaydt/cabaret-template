@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_AIRenderProbe
 
-const U_NODE_FIND := preload("res://scripts/utils/ecs/u_node_find.gd")
+const U_NODE_FIND := preload("res://scripts/core/utils/ecs/u_node_find.gd")
 
 
 static func build_probe_string(

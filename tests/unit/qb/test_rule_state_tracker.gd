@@ -1,6 +1,6 @@
 extends BaseTest
 
-const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
+const RULE_STATE_TRACKER := preload("res://scripts/core/utils/qb/u_rule_state_tracker.gd")
 
 func test_tick_cooldowns_decrements_active_cooldowns() -> void:
 	var tracker: Variant = RULE_STATE_TRACKER.new()

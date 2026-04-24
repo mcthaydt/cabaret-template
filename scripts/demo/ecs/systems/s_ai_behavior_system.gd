@@ -4,13 +4,13 @@ class_name S_AIBehaviorSystem
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
-const U_BT_RUNNER := preload("res://scripts/utils/bt/u_bt_runner.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
+const U_BT_RUNNER := preload("res://scripts/core/utils/bt/u_bt_runner.gd")
 const RS_BT_NODE := preload("res://scripts/core/resources/bt/rs_bt_node.gd")
 const RS_RULE_CONTEXT := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 const U_AI_RENDER_PROBE := preload("res://scripts/demo/debug/utils/u_ai_render_probe.gd")
-const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 const U_AI_CONTEXT_ASSEMBLER := preload("res://scripts/demo/utils/ai/u_ai_context_assembler.gd")
 const U_AI_BT_TASK_LABEL_RESOLVER := preload("res://scripts/demo/utils/ai/u_ai_bt_task_label_resolver.gd")
 

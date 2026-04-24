@@ -4,7 +4,7 @@ const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const ALIGN_COMPONENT := preload("res://scripts/core/ecs/components/c_align_with_surface_component.gd")
 const ALIGN_SYSTEM := preload("res://scripts/core/ecs/systems/s_align_with_surface_system.gd")
 const FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
-const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 
 class FakeBody extends CharacterBody3D:
 	func _init() -> void:

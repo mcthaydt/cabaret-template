@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_ObjectiveEventLog
 
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 
 const EVENT_ACTIVATED := "activated"
 const EVENT_COMPLETED := "completed"

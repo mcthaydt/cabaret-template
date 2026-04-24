@@ -1,6 +1,6 @@
 extends GutTest
 
-const UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
+const UTILS := preload("res://scripts/core/utils/display/u_vcam_utils.gd")
 
 
 # --- get_node_instance_id ---

@@ -1,8 +1,8 @@
 extends RefCounted
 class_name U_GlobalSettingsSerialization
 
-const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serialization.gd")
-const U_INPUT_SERIALIZATION := preload("res://scripts/utils/input/u_input_serialization.gd")
+const U_AUDIO_SERIALIZATION := preload("res://scripts/core/utils/u_audio_serialization.gd")
+const U_INPUT_SERIALIZATION := preload("res://scripts/core/utils/input/u_input_serialization.gd")
 
 const SAVE_PATH := "user://global_settings.json"
 const BACKUP_PATH := "user://global_settings.json.backup"

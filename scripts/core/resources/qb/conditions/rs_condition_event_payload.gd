@@ -2,7 +2,7 @@
 extends "res://scripts/core/resources/qb/rs_base_condition.gd"
 class_name RS_ConditionEventPayload
 
-const U_PATH_RESOLVER := preload("res://scripts/utils/qb/u_path_resolver.gd")
+const U_PATH_RESOLVER := preload("res://scripts/core/utils/qb/u_path_resolver.gd")
 
 @export_group("Source")
 @export var field_path: String = ""

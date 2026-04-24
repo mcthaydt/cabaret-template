@@ -8,8 +8,8 @@ class_name U_PerfShaderBypass
 ## identify which shader pass causes the biggest drop.
 
 const LOG_PREFIX := "[PERF]"
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
-const U_PERF_FADE_BYPASS := preload("res://scripts/utils/debug/u_perf_fade_bypass.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_FADE_BYPASS := preload("res://scripts/core/utils/debug/u_perf_fade_bypass.gd")
 
 const RAPID_TAP_COUNT := 5
 const RAPID_TAP_MAX_INTERVAL_SEC := 0.6

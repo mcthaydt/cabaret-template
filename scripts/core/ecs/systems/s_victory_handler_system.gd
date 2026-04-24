@@ -7,7 +7,7 @@ class_name S_VictoryHandlerSystem
 @export var state_store: I_StateStore = null
 @export var game_config: RS_GameConfig = null
 const DEBUG_VICTORY_TRACE := false
-const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
 var _store: I_StateStore = null
 var _event_unsubscribes: Array[Callable] = []

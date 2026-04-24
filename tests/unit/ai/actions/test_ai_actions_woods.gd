@@ -1,6 +1,6 @@
 extends BaseTest
 
-const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
+const U_AI_TASK_STATE_KEYS := preload("res://scripts/core/utils/ai/u_ai_task_state_keys.gd")
 const I_AI_ACTION := preload("res://scripts/core/interfaces/i_ai_action.gd")
 const RS_AI_ACTION_HARVEST := preload("res://scripts/demo/resources/ai/actions/rs_ai_action_harvest.gd")
 const RS_AI_ACTION_HAUL_DEPOSIT := preload("res://scripts/demo/resources/ai/actions/rs_ai_action_haul_deposit.gd")

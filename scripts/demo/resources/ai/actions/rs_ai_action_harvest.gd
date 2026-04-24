@@ -5,7 +5,7 @@ class_name RS_AIActionHarvest
 const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/demo/ecs/components/c_resource_node_component.gd")
 const C_INVENTORY_COMPONENT := preload("res://scripts/demo/ecs/components/c_inventory_component.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 
 @export var harvest_seconds: float = 2.0
 @export var harvest_amount: int = 1

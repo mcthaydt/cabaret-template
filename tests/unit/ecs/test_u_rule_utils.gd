@@ -1,6 +1,6 @@
 extends BaseTest
 
-const RULE_UTILS_PATH := "res://scripts/utils/ecs/u_rule_utils.gd"
+const RULE_UTILS_PATH := "res://scripts/core/utils/ecs/u_rule_utils.gd"
 const RS_RULE := preload("res://scripts/core/resources/qb/rs_rule.gd")
 const RS_CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
 const RS_CONDITION_EVENT_NAME := preload("res://scripts/core/resources/qb/conditions/rs_condition_event_name.gd")

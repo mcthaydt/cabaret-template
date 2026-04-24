@@ -3,7 +3,7 @@ extends BaseEventVFXSystem
 class_name S_LandingParticlesSystem
 
 const SETTINGS_TYPE := preload("res://scripts/core/resources/ecs/rs_landing_particles_settings.gd")
-const PARTICLE_SPAWNER := preload("res://scripts/utils/u_particle_spawner.gd")
+const PARTICLE_SPAWNER := preload("res://scripts/core/utils/u_particle_spawner.gd")
 
 @export var settings: SETTINGS_TYPE
 

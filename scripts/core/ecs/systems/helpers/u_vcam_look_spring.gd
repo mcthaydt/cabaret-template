@@ -5,9 +5,9 @@ class_name U_VCamLookSpring
 ## and debug stage logging. Provides smoothed rotation values that converge
 ## toward the target with configurable frequency and damping.
 
-const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
-const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
-const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
+const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/core/utils/math/u_second_order_dynamics.gd")
+const U_VCAM_UTILS := preload("res://scripts/core/utils/display/u_vcam_utils.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
 const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
 const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0

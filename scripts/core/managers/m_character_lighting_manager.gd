@@ -3,12 +3,12 @@ extends "res://scripts/core/interfaces/i_character_lighting_manager.gd"
 class_name M_CharacterLightingManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_CHARACTER_LIGHTING_BLEND_MATH := preload("res://scripts/utils/lighting/u_character_lighting_blend_math.gd")
-const U_CHARACTER_LIGHTING_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_character_lighting_material_applier.gd")
+const U_CHARACTER_LIGHTING_BLEND_MATH := preload("res://scripts/core/utils/lighting/u_character_lighting_blend_math.gd")
+const U_CHARACTER_LIGHTING_MATERIAL_APPLIER := preload("res://scripts/core/utils/lighting/u_character_lighting_material_applier.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
-const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")
 const RS_CHARACTER_LIGHTING_CONFIG_SCRIPT := preload("res://scripts/core/resources/managers/rs_character_lighting_config.gd")
 const DEFAULT_CHARACTER_LIGHTING_CONFIG := preload("res://resources/base_settings/display/cfg_character_lighting_config_default.tres")
 const SERVICE_NAME := StringName("character_lighting_manager")

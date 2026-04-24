@@ -3,9 +3,9 @@ class_name U_DisplayWindowApplier
 
 ## Applies window mode/size/vsync settings with platform guards.
 
-const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
+const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/core/utils/display/u_display_option_catalog.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_display_selectors.gd")
-const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/utils/display/u_display_server_window_ops.gd")
+const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/core/utils/display/u_display_server_window_ops.gd")
 
 var _owner: Node = null
 var _window_ops: I_WindowOps = null

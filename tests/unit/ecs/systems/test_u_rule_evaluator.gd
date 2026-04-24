@@ -1,6 +1,6 @@
 extends BaseTest
 
-const RULE_EVALUATOR_PATH := "res://scripts/utils/ecs/u_rule_evaluator.gd"
+const RULE_EVALUATOR_PATH := "res://scripts/core/utils/ecs/u_rule_evaluator.gd"
 const RULE_RESOURCE := preload("res://scripts/core/resources/qb/rs_rule.gd")
 const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")

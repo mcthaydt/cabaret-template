@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_AI_TASK_STATE_KEYS_PATH := "res://scripts/utils/ai/u_ai_task_state_keys.gd"
+const U_AI_TASK_STATE_KEYS_PATH := "res://scripts/core/utils/ai/u_ai_task_state_keys.gd"
 
 func _load_keys_script() -> Script:
 	var script_variant: Variant = load(U_AI_TASK_STATE_KEYS_PATH)

@@ -16,7 +16,7 @@ const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs
 
 const U_AUDIO_ACTIONS := preload("res://scripts/core/state/actions/u_audio_actions.gd")
 const U_AUDIO_SELECTORS := preload("res://scripts/core/state/selectors/u_audio_selectors.gd")
-const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/core/utils/u_global_settings_serialization.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")

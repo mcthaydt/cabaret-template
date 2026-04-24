@@ -7,7 +7,7 @@ class_name UI_VFXSettingsOverlay
 ## Displays VFX settings (screen shake, damage flash) with Apply/Cancel pattern.
 ## Changes are applied only when user clicks Apply button.
 
-const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 

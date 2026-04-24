@@ -1,6 +1,6 @@
 extends BaseTest
 
-const RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
+const RULE_SCORER := preload("res://scripts/core/utils/qb/u_rule_scorer.gd")
 const RULE_RESOURCE := preload("res://scripts/core/resources/qb/rs_rule.gd")
 const CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
 

@@ -8,7 +8,7 @@ class_name U_RuleValidator
 ## checks semantic correctness: required fields, valid state paths, numeric ranges,
 ## and cross-field constraints that typed arrays cannot enforce.
 
-const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+const U_RULE_UTILS := preload("res://scripts/core/utils/ecs/u_rule_utils.gd")
 const BASE_CONDITION_SCRIPT := preload("res://scripts/core/resources/qb/rs_base_condition.gd")
 const BASE_EFFECT_SCRIPT := preload("res://scripts/core/resources/qb/rs_base_effect.gd")
 const CONDITION_COMPONENT_FIELD := preload("res://scripts/core/resources/qb/conditions/rs_condition_component_field.gd")

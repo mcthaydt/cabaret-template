@@ -3,7 +3,7 @@ extends I_AIAction
 class_name RS_AIActionWander
 
 const MOVE_TARGET_COMPONENT_TYPE := StringName("C_MoveTargetComponent")
-const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
+const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/core/utils/ai/u_ai_action_position_resolver.gd")
 const HOME_ANCHOR_META_KEY := &"ai_home_anchor"
 
 @export var home_radius: float = 6.0

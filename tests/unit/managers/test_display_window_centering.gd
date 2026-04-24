@@ -3,7 +3,7 @@ extends GutTest
 # TDD: Test window centering uses usable rect instead of full screen (H2)
 # Bug: Window centering ignores taskbar/dock - can position behind OS UI
 
-const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/utils/display/u_display_server_window_ops.gd")
+const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/core/utils/display/u_display_server_window_ops.gd")
 
 # Test the centering calculation logic directly
 func test_centering_calculation_uses_usable_rect() -> void:

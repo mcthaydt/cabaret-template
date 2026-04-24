@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_VCamRotationContinuity
 
-const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
+const U_VCAM_UTILS := preload("res://scripts/core/utils/display/u_vcam_utils.gd")
 
 ## Handles rotation continuity when the active vCam changes.
 ## If the outgoing and incoming vCams share the same orbit mode and follow target,

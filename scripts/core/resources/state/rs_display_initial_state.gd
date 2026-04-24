@@ -6,7 +6,7 @@ class_name RS_DisplayInitialState
 ##
 ## Defines default display settings for the display slice.
 
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 @export_group("Graphics")
 @export var window_size_preset: String = "1920x1080"

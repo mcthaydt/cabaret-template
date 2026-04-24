@@ -1,9 +1,9 @@
 extends RefCounted
 class_name U_VCamDebug
 
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
-const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
+const U_VCAM_UTILS := preload("res://scripts/core/utils/display/u_vcam_utils.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
 const MAX_DEBUG_ISSUES: int = 64
 const MIN_LOG_INTERVAL_SEC: float = 0.05

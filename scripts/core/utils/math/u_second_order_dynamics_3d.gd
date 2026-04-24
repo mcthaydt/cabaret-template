@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_SecondOrderDynamics3D
 
-const SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
+const SECOND_ORDER_DYNAMICS := preload("res://scripts/core/utils/math/u_second_order_dynamics.gd")
 
 var _x: Variant
 var _y: Variant

@@ -20,9 +20,9 @@ const U_AUDIO_SELECTORS := preload("res://scripts/core/state/selectors/u_audio_s
 const U_VFX_SELECTORS := preload("res://scripts/core/state/selectors/u_vfx_selectors.gd")
 const U_INPUT_SELECTORS := preload("res://scripts/core/state/selectors/u_input_selectors.gd")
 
-const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
-const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serialization.gd")
-const U_INPUT_SERIALIZATION := preload("res://scripts/utils/input/u_input_serialization.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/core/utils/u_global_settings_serialization.gd")
+const U_AUDIO_SERIALIZATION := preload("res://scripts/core/utils/u_audio_serialization.gd")
+const U_INPUT_SERIALIZATION := preload("res://scripts/core/utils/input/u_input_serialization.gd")
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 const GLOBAL_SETTINGS_PATH := "user://global_settings.json"

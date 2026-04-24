@@ -452,7 +452,7 @@ func test_camera_context_includes_vcam_runtime_fields_for_qb_rules() -> void:
 	assert_false(contexts.is_empty())
 	var context: Dictionary = contexts[0] as Dictionary
 	# Dictionary keys are StringName after RSRuleContext migration, use U_RuleUtils for lookups
-	var U_RULE_UTILS := load("res://scripts/utils/ecs/u_rule_utils.gd")
+	var U_RULE_UTILS := load("res://scripts/core/utils/ecs/u_rule_utils.gd")
 	var rule_utils: RefCounted = U_RULE_UTILS.new()
 	assert_eq(String(rule_utils.call("get_context_value", context, "vcam_active_mode")), "orbit")
 	assert_eq(bool(rule_utils.call("get_context_value", context, "vcam_is_blending")), true)

@@ -4,8 +4,8 @@ class_name RS_AIActionFleeFromDetected
 
 const DETECTION_COMPONENT_TYPE := StringName("C_DetectionComponent")
 const MOVE_TARGET_COMPONENT_TYPE := StringName("C_MoveTargetComponent")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
+const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/core/utils/ai/u_ai_action_position_resolver.gd")
 const HOME_ANCHOR_META_KEY := &"ai_home_anchor"
 const TASK_PINNED_HOLD_ACTIVE := &"flee_pinned_hold_active"
 const TASK_PINNED_HOLD_RETRY_SEC := &"flee_pinned_hold_retry_sec"

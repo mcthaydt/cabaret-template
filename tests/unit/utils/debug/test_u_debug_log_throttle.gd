@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_DEBUG_LOG_THROTTLE_PATH := "res://scripts/utils/debug/u_debug_log_throttle.gd"
+const U_DEBUG_LOG_THROTTLE_PATH := "res://scripts/core/utils/debug/u_debug_log_throttle.gd"
 
 
 func _new_throttle() -> Variant:

@@ -1,6 +1,6 @@
 extends GutTest
 
-const OBJECTIVE_GRAPH := preload("res://scripts/utils/scene_director/u_objective_graph.gd")
+const OBJECTIVE_GRAPH := preload("res://scripts/core/utils/scene_director/u_objective_graph.gd")
 const OBJECTIVE_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_objective_definition.gd")
 
 func test_build_graph_maps_dependencies_and_dependents() -> void:

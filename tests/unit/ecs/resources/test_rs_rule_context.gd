@@ -377,7 +377,7 @@ func test_to_dictionary_is_compatible_with_rule_utils_get_context_value() -> voi
 	var dict: Dictionary = context.call("to_dictionary")
 
 	# U_RuleUtils.get_context_value should find values by string key lookup
-	var U_RULE_UTILS := load("res://scripts/utils/ecs/u_rule_utils.gd")
+	var U_RULE_UTILS := load("res://scripts/core/utils/ecs/u_rule_utils.gd")
 	var rule_utils: RefCounted = U_RULE_UTILS.new()
 
 	var entity_id: Variant = rule_utils.call("get_context_value", dict, "entity_id")

@@ -10,8 +10,8 @@ const C_HEALTH_COMPONENT := preload("res://scripts/core/ecs/components/c_health_
 const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_state_component.gd")
-const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
-const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+const U_RULE_EVALUATOR := preload("res://scripts/core/utils/ecs/u_rule_evaluator.gd")
+const U_RULE_UTILS := preload("res://scripts/core/utils/ecs/u_rule_utils.gd")
 
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const FLOATING_TYPE := C_FLOATING_COMPONENT.COMPONENT_TYPE

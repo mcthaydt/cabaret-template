@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_BT_RUNNER_PATH := "res://scripts/utils/bt/u_bt_runner.gd"
+const U_BT_RUNNER_PATH := "res://scripts/core/utils/bt/u_bt_runner.gd"
 const RS_BT_NODE_PATH := "res://scripts/core/resources/bt/rs_bt_node.gd"
 const RS_BT_ACTION_PATH := "res://scripts/core/resources/ai/bt/rs_bt_action.gd"
 const RS_BT_SEQUENCE_PATH := "res://scripts/core/resources/bt/rs_bt_sequence.gd"

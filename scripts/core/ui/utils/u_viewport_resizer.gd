@@ -6,7 +6,7 @@ class_name U_ViewportResizer
 ## Uses stretch_shrink when stretch is enabled (Godot-managed upscaling),
 ## or directly sets SubViewport.size when stretch is disabled.
 
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 func _ready() -> void:
 	resized.connect(_on_resized)

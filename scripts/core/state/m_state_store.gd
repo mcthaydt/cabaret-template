@@ -21,7 +21,7 @@ const U_STATE_VALIDATOR := preload("res://scripts/core/state/utils/u_state_valid
 const U_ACTION_HISTORY_BUFFER := preload("res://scripts/core/state/utils/u_action_history_buffer.gd")
 const U_STORE_PERFORMANCE_METRICS := preload("res://scripts/core/state/utils/u_store_performance_metrics.gd")
 const U_GLOBAL_SETTINGS_APPLIER := preload("res://scripts/core/state/utils/u_global_settings_applier.gd")
-const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/core/utils/u_global_settings_serialization.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_BOOT_REDUCER := preload("res://scripts/core/state/reducers/u_boot_reducer.gd")
 const U_MENU_REDUCER := preload("res://scripts/core/state/reducers/u_menu_reducer.gd")
@@ -32,7 +32,7 @@ const U_SETTINGS_REDUCER := preload("res://scripts/core/state/reducers/u_setting
 const U_DEBUG_REDUCER := preload("res://scripts/core/state/reducers/u_debug_reducer.gd")
 const U_VFX_REDUCER := preload("res://scripts/core/state/reducers/u_vfx_reducer.gd")
 const U_AUDIO_REDUCER := preload("res://scripts/core/state/reducers/u_audio_reducer.gd")
-const U_INPUT_CAPTURE_GUARD := preload("res://scripts/utils/input/u_input_capture_guard.gd")
+const U_INPUT_CAPTURE_GUARD := preload("res://scripts/core/utils/input/u_input_capture_guard.gd")
 const RS_BOOT_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_boot_initial_state.gd")
 const RS_MENU_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_menu_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
@@ -381,7 +381,7 @@ func _initialize_settings() -> void:
 		enable_history = bool(ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, enable_history))
 
 	# Disable action history on mobile to avoid expensive deep copies
-	const U_MOBILE := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+	const U_MOBILE := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 	if U_MOBILE.is_mobile():
 		enable_history = false
 	_action_history_buffer.configure(settings.max_history_size, enable_history)

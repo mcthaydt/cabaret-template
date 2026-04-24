@@ -3,7 +3,7 @@ extends BaseECSComponent
 class_name C_RegionVisibilityComponent
 
 const COMPONENT_TYPE := StringName("RegionVisibility")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 const RS_REGION_VISIBILITY_SETTINGS_SCRIPT := preload(
 	"res://scripts/core/resources/display/vcam/rs_region_visibility_settings.gd"
 )

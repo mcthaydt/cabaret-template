@@ -3,7 +3,7 @@ extends GutTest
 ## Tests for U_ViewportResizer mobile resolution scaling behavior.
 
 const U_VIEWPORT_RESIZER := preload("res://scripts/core/ui/utils/u_viewport_resizer.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 var _container: SubViewportContainer
 var _viewport: SubViewport

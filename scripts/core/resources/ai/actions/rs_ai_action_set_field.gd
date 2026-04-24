@@ -2,7 +2,7 @@
 extends I_AIAction
 class_name RS_AIActionSetField
 
-const U_PATH_RESOLVER := preload("res://scripts/utils/qb/u_path_resolver.gd")
+const U_PATH_RESOLVER := preload("res://scripts/core/utils/qb/u_path_resolver.gd")
 
 @export_group("Target")
 @export var field_path: String = ""

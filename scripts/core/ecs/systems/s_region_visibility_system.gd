@@ -9,15 +9,15 @@ const RS_REGION_VISIBILITY_SETTINGS_SCRIPT := preload(
 	"res://scripts/core/resources/display/vcam/rs_region_visibility_settings.gd"
 )
 const U_ROOM_FADE_MATERIAL_APPLIER := preload(
-	"res://scripts/utils/lighting/u_room_fade_material_applier.gd"
+	"res://scripts/core/utils/lighting/u_room_fade_material_applier.gd"
 )
 const U_ENTITY_SELECTORS := preload("res://scripts/core/state/selectors/u_entity_selectors.gd")
 const DEFAULT_REGION_VISIBILITY_SETTINGS := preload(
 	"res://resources/display/vcam/cfg_default_region_visibility.tres"
 )
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
-const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
-const U_PERF_FADE_BYPASS := preload("res://scripts/utils/debug/u_perf_fade_bypass.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")
+const U_PERF_FADE_BYPASS := preload("res://scripts/core/utils/debug/u_perf_fade_bypass.gd")
 
 const MOBILE_TICK_INTERVAL := 4
 

@@ -3,7 +3,7 @@ extends GutTest
 const RS_BT_NODE_PATH := "res://scripts/core/resources/bt/rs_bt_node.gd"
 const RS_BT_ACTION_PATH := "res://scripts/core/resources/ai/bt/rs_bt_action.gd"
 const TEST_COUNTING_ACTION_PATH := "res://tests/unit/ai/bt/helpers/test_bt_counting_action.gd"
-const U_AI_TASK_STATE_KEYS_PATH := "res://scripts/utils/ai/u_ai_task_state_keys.gd"
+const U_AI_TASK_STATE_KEYS_PATH := "res://scripts/core/utils/ai/u_ai_task_state_keys.gd"
 
 func _load_script(path: String) -> Script:
 	assert_true(FileAccess.file_exists(path), "Expected script file to exist: %s" % path)

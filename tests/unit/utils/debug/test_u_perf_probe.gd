@@ -1,7 +1,7 @@
 extends GutTest
 
-const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 
 func before_all() -> void:

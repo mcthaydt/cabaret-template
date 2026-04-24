@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_BT_PLANNER_SEARCH_PATH := "res://scripts/utils/ai/u_bt_planner_search.gd"
+const U_BT_PLANNER_SEARCH_PATH := "res://scripts/core/utils/ai/u_bt_planner_search.gd"
 const RS_BT_PLANNER_ACTION_PATH := "res://scripts/core/resources/ai/bt/rs_bt_planner_action.gd"
 const RS_WORLD_STATE_EFFECT_PATH := "res://scripts/core/resources/ai/bt/rs_world_state_effect.gd"
 

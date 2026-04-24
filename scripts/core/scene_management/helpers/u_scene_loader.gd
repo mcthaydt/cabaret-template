@@ -12,7 +12,7 @@ class_name U_SceneLoader
 
 const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_state_component.gd")
-const U_ENTITY_LOOKUP := preload("res://scripts/utils/ecs/u_entity_lookup.gd")
+const U_ENTITY_LOOKUP := preload("res://scripts/core/utils/ecs/u_entity_lookup.gd")
 
 ## Load scene via ResourceLoader (sync)
 func load_scene(scene_path: String) -> Node:

@@ -4,9 +4,9 @@ class_name RS_AIActionFeed
 
 const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 const U_ENTITY_ACTIONS := preload("res://scripts/core/state/actions/u_entity_actions.gd")
-const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/utils/ai/u_ai_action_position_resolver.gd")
+const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/core/utils/ai/u_ai_action_position_resolver.gd")
 
 @export var consume_detected_target: bool = false
 @export var consume_radius: float = 1.25

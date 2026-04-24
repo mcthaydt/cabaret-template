@@ -2,7 +2,7 @@ extends "res://scripts/core/scene_management/transitions/base_transition_effect.
 class_name Trans_LoadingScreen
 
 const LOADING_SCREEN_SCENE := preload("res://scenes/ui/hud/ui_loading_screen.tscn")
-const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 
 ## Loading screen transition effect
 ##

@@ -8,7 +8,7 @@ class_name S_SpawnParticlesSystem
 ## Subscribes to Redux ACTION_PLAYER_SPAWNED via action_dispatched signal
 ## per channel taxonomy (docs/architecture/adr/0001-channel-taxonomy.md).
 
-const PARTICLE_SPAWNER := preload("res://scripts/utils/u_particle_spawner.gd")
+const PARTICLE_SPAWNER := preload("res://scripts/core/utils/u_particle_spawner.gd")
 const U_SPAWN_ACTIONS := preload("res://scripts/core/state/actions/u_spawn_actions.gd")
 
 @export var enabled: bool = true

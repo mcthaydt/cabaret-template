@@ -5,8 +5,8 @@ class_name U_VCamGroundAnchor
 ## Uses 2nd-order dynamics to blend between ground reference heights,
 ## re-anchoring on landing and smoothly following ground height changes.
 
-const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
-const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
+const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/core/utils/math/u_second_order_dynamics.gd")
+const U_VCAM_UTILS := preload("res://scripts/core/utils/display/u_vcam_utils.gd")
 
 var _ground_relative_state: Dictionary = {}  # StringName -> {initialized, follow_target_id, ground_anchor_y, ...}
 

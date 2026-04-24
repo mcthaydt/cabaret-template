@@ -1,6 +1,6 @@
 extends GutTest
 
-const OBJECTIVE_EVENT_LOG := preload("res://scripts/utils/scene_director/u_objective_event_log.gd")
+const OBJECTIVE_EVENT_LOG := preload("res://scripts/core/utils/scene_director/u_objective_event_log.gd")
 
 func test_create_entry_includes_timestamp_and_copies_details() -> void:
 	var start_time: float = Time.get_ticks_msec() / 1000.0

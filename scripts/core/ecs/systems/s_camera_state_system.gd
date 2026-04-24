@@ -8,8 +8,8 @@ const U_VCAM_SELECTORS := preload("res://scripts/core/state/selectors/u_vcam_sel
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_camera_state_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
-const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
-const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+const U_RULE_EVALUATOR := preload("res://scripts/core/utils/ecs/u_rule_evaluator.gd")
+const U_RULE_UTILS := preload("res://scripts/core/utils/ecs/u_rule_utils.gd")
 
 const CAMERA_STATE_TYPE := C_CAMERA_STATE_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE

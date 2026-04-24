@@ -10,7 +10,7 @@ class_name UI_Victory
 ## - Menu: Return to main menu.
 
 
-const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_RUN_ACTIONS := preload("res://scripts/core/state/actions/u_run_actions.gd")
 const U_TRANSITION_OVERLAY_SNAP := preload("res://scripts/core/scene_management/helpers/u_transition_overlay_snap.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")

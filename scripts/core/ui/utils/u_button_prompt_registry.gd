@@ -4,7 +4,7 @@ class_name U_ButtonPromptRegistry
 const DEVICE_KEYBOARD_MOUSE := 0
 const DEVICE_GAMEPAD := 1
 const DEVICE_TOUCHSCREEN := 2
-const U_INPUT_EVENT_DISPLAY := preload("res://scripts/utils/input/u_input_event_display.gd")
+const U_INPUT_EVENT_DISPLAY := preload("res://scripts/core/utils/input/u_input_event_display.gd")
 
 static var _prompt_registry: Dictionary = {}
 static var _initialized: bool = false

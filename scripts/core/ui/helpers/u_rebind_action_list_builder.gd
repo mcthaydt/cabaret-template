@@ -2,7 +2,7 @@ extends RefCounted
 class_name U_RebindActionListBuilder
 
 const I_REBIND_OVERLAY := preload("res://scripts/core/interfaces/i_rebind_overlay.gd")
-const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 
 const REPLACE_BUTTON_TEXT := "Replace"
 const ADD_BUTTON_TEXT := "Add Binding"

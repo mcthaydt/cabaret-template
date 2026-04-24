@@ -25,7 +25,7 @@ const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_s
 const U_SAVE_FILE_IO := preload("res://scripts/core/managers/helpers/u_save_file_io.gd")
 const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/core/managers/helpers/u_save_migration_engine.gd")
 const U_SCREENSHOT_CAPTURE := preload("res://scripts/core/managers/helpers/u_screenshot_capture.gd")
-const U_SAVE_VALIDATOR := preload("res://scripts/utils/u_save_validator.gd")
+const U_SAVE_VALIDATOR := preload("res://scripts/core/utils/u_save_validator.gd")
 const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
 
 ## Save file format version

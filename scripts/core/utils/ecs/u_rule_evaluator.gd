@@ -1,12 +1,12 @@
 extends RefCounted
 class_name U_RuleEvaluator
 
-const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+const U_RULE_UTILS := preload("res://scripts/core/utils/ecs/u_rule_utils.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
-const U_RULE_SCORER := preload("res://scripts/utils/qb/u_rule_scorer.gd")
-const U_RULE_SELECTOR := preload("res://scripts/utils/qb/u_rule_selector.gd")
-const RULE_STATE_TRACKER := preload("res://scripts/utils/qb/u_rule_state_tracker.gd")
-const U_RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
+const U_RULE_SCORER := preload("res://scripts/core/utils/qb/u_rule_scorer.gd")
+const U_RULE_SELECTOR := preload("res://scripts/core/utils/qb/u_rule_selector.gd")
+const RULE_STATE_TRACKER := preload("res://scripts/core/utils/qb/u_rule_state_tracker.gd")
+const U_RULE_VALIDATOR := preload("res://scripts/core/utils/qb/u_rule_validator.gd")
 const IGNORABLE_VALIDATION_ERRORS_EXACT := [
 	"rule_id must be non-empty",
 	"event/both trigger modes require an RS_ConditionEventName condition",

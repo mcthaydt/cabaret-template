@@ -13,9 +13,9 @@ const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
-const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
-const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
+const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
 @export var debug_ai_floating_logging: bool = false
 @export_range(0.05, 5.0, 0.05) var debug_log_interval_sec: float = 0.25

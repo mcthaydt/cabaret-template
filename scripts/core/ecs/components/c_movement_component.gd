@@ -3,7 +3,7 @@ extends BaseECSComponent
 class_name C_MovementComponent
 
 const COMPONENT_TYPE := StringName("C_MovementComponent")
-const U_NODE_FIND := preload("res://scripts/utils/ecs/u_node_find.gd")
+const U_NODE_FIND := preload("res://scripts/core/utils/ecs/u_node_find.gd")
 
 @export var settings: RS_MovementSettings
 

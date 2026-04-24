@@ -13,7 +13,7 @@ class_name BaseMenuScreen
 
 const ANALOG_STICK_REPEATER_PATH := "res://scripts/core/ui/utils/u_analog_stick_repeater.gd"
 const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 const BACKGROUND_SHADER_PRESET_NONE := "none"
 const BACKGROUND_SHADER_PRESET_RETRO_GRID := "retro_grid"

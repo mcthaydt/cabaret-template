@@ -1,6 +1,6 @@
 extends I_AIAction
 
-const U_AI_TASK_STATE_KEYS := preload("res://scripts/utils/ai/u_ai_task_state_keys.gd")
+const U_AI_TASK_STATE_KEYS := preload("res://scripts/core/utils/ai/u_ai_task_state_keys.gd")
 
 const STATE_KEY_PROGRESS := &"helper_progress"
 

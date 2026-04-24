@@ -10,7 +10,7 @@ class_name U_PerfProbe
 ## No allocation in hot path: integer counters only, no string formatting until flush.
 
 const LOG_PREFIX := "[PERF]"
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
+const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 var _name: String = ""
 var _enabled: bool = false

@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/core/utils/u_global_settings_serialization.gd")
 
 func before_each() -> void:
 	_cleanup_input_settings_files()

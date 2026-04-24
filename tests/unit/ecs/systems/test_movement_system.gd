@@ -7,7 +7,7 @@ const InputComponentScript = preload("res://scripts/core/ecs/components/c_input_
 const FloatingComponentScript = preload("res://scripts/core/ecs/components/c_floating_component.gd")
 const AIBrainComponentScript = preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
 const AIBrainSettingsScript = preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")
-const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 

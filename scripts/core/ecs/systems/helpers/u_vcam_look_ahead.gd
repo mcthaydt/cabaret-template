@@ -4,8 +4,8 @@ class_name U_VCamLookAhead
 ## Applies orbit look-ahead offset based on follow-target movement velocity.
 ## Smoothed via 2nd-order dynamics to prevent jittering.
 
-const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
-const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
+const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/core/utils/math/u_second_order_dynamics_3d.gd")
+const U_VCAM_UTILS := preload("res://scripts/core/utils/display/u_vcam_utils.gd")
 
 const LOOK_AHEAD_MOVEMENT_EPSILON_SQ: float = 0.000001
 

@@ -10,7 +10,7 @@ const C_PLAYER_TAG_COMPONENT := preload("res://scripts/core/ecs/components/c_pla
 const RS_SPAWN_RECOVERY_SETTINGS := preload("res://scripts/core/resources/ecs/rs_spawn_recovery_settings.gd")
 const I_SPAWN_MANAGER := preload("res://scripts/core/interfaces/i_spawn_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
 const RECOVERY_TYPE := C_SPAWN_RECOVERY_COMPONENT.COMPONENT_TYPE
 const FLOATING_TYPE := C_FLOATING_COMPONENT.COMPONENT_TYPE

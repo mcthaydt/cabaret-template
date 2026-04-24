@@ -1,6 +1,6 @@
 extends RefCounted
 class_name U_VCamLookInput
-const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
 const DEFAULT_LOOK_INPUT_DEADZONE: float = 0.02
 const DEFAULT_LOOK_INPUT_HOLD_SEC: float = 0.06

@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_RuleScorer
 
-const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+const U_RULE_UTILS := preload("res://scripts/core/utils/ecs/u_rule_utils.gd")
 
 static func score_rules(rules: Array, context: Dictionary) -> Array[Dictionary]:
 	if rules.is_empty():

@@ -1,8 +1,8 @@
 extends RefCounted
 class_name U_VCamLandingImpact
 
-const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
-const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
+const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/core/utils/math/u_second_order_dynamics_3d.gd")
+const U_RULE_UTILS := preload("res://scripts/core/utils/ecs/u_rule_utils.gd")
 
 const DEFAULT_FALL_SPEED_MIN: float = 5.0
 const DEFAULT_FALL_SPEED_MAX: float = 30.0

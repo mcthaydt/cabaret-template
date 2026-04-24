@@ -1,6 +1,6 @@
 extends BaseTest
 
-const PARTICLE_SPAWNER := preload("res://scripts/utils/u_particle_spawner.gd")
+const PARTICLE_SPAWNER := preload("res://scripts/core/utils/u_particle_spawner.gd")
 
 func _pump() -> void:
 	await get_tree().process_frame

@@ -1,6 +1,6 @@
 extends GutTest
 
-const DYNAMICS_SCRIPT := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
+const DYNAMICS_SCRIPT := preload("res://scripts/core/utils/math/u_second_order_dynamics.gd")
 
 func _step_many(dynamics: Variant, target: float, dt: float, steps: int) -> float:
 	var output: float = dynamics.get_value()

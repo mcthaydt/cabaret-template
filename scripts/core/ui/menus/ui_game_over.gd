@@ -9,7 +9,7 @@ class_name UI_GameOver
 ## - Menu: Soft reset and return to main menu.
 
 
-const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_TRANSITION_OVERLAY_SNAP := preload("res://scripts/core/scene_management/helpers/u_transition_overlay_snap.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")

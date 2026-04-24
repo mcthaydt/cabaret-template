@@ -1,6 +1,6 @@
 extends BaseTest
 
-const APPLIER_PATH := "res://scripts/utils/lighting/u_character_lighting_material_applier.gd"
+const APPLIER_PATH := "res://scripts/core/utils/lighting/u_character_lighting_material_applier.gd"
 const PARAM_ALBEDO_TEXTURE := "albedo_texture"
 const PARAM_BASE_TINT := "base_tint"
 const PARAM_EFFECTIVE_TINT := "effective_tint"

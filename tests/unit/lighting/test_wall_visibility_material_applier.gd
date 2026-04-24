@@ -1,6 +1,6 @@
 extends BaseTest
 
-const APPLIER_PATH := "res://scripts/utils/lighting/u_wall_visibility_material_applier.gd"
+const APPLIER_PATH := "res://scripts/core/utils/lighting/u_wall_visibility_material_applier.gd"
 const SH_WALL_VISIBILITY := preload("res://assets/shaders/sh_wall_visibility.gdshader")
 
 

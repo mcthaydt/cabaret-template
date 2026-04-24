@@ -4,15 +4,15 @@ class_name M_ObjectivesManager
 
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
-const U_OBJECTIVE_GRAPH := preload("res://scripts/utils/scene_director/u_objective_graph.gd")
-const U_OBJECTIVE_EVENT_LOG := preload("res://scripts/utils/scene_director/u_objective_event_log.gd")
+const U_OBJECTIVE_GRAPH := preload("res://scripts/core/utils/scene_director/u_objective_graph.gd")
+const U_OBJECTIVE_EVENT_LOG := preload("res://scripts/core/utils/scene_director/u_objective_event_log.gd")
 const U_OBJECTIVES_ACTIONS := preload("res://scripts/core/state/actions/u_objectives_actions.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
 const U_OBJECTIVES_SELECTORS := preload("res://scripts/core/state/selectors/u_objectives_selectors.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const RS_OBJECTIVE_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_objective_definition.gd")
-const U_OBJECTIVES_DEBUG_TRACER := preload("res://scripts/utils/scene_director/u_objectives_debug_tracer.gd")
+const U_OBJECTIVES_DEBUG_TRACER := preload("res://scripts/core/utils/scene_director/u_objectives_debug_tracer.gd")
 const RSRuleContext := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
 
 const STATUS_INACTIVE := "inactive"

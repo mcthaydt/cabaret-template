@@ -2,9 +2,9 @@ extends RefCounted
 class_name U_VCamRuntimeContext
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
-const U_NODE_FIND := preload("res://scripts/utils/ecs/u_node_find.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
+const U_RULE_UTILS := preload("res://scripts/core/utils/ecs/u_rule_utils.gd")
+const U_NODE_FIND := preload("res://scripts/core/utils/ecs/u_node_find.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 const C_MOVEMENT_COMPONENT_SCRIPT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 const C_CHARACTER_STATE_COMPONENT_SCRIPT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")

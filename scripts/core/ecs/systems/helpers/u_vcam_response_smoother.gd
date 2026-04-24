@@ -1,8 +1,8 @@
 extends RefCounted
 class_name U_VCamResponseSmoother
 
-const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/utils/math/u_second_order_dynamics.gd")
-const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/utils/math/u_second_order_dynamics_3d.gd")
+const U_SECOND_ORDER_DYNAMICS := preload("res://scripts/core/utils/math/u_second_order_dynamics.gd")
+const U_SECOND_ORDER_DYNAMICS_3D := preload("res://scripts/core/utils/math/u_second_order_dynamics_3d.gd")
 
 var _follow_dynamics: Dictionary = {}  # StringName -> U_SecondOrderDynamics3D
 var _rotation_dynamics: Dictionary = {}  # StringName -> {x, y, z}
